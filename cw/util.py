@@ -1610,7 +1610,13 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
     for i, (zname, info) in enumerate(zip(z.namelist(), z.infolist())):
 
         if progress and i % 10 == 0:
-            progress(i)
+            if progress(i):
+                if overwrite:
+                    break
+                else:
+                    z.close()
+                    remove(dstdir)
+                    return
         name = decode_zipname(zname).replace('\\', '/')
         normpath = os.path.normpath(name)
         if os.path.isabs(normpath):
@@ -1771,10 +1777,19 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
         if progress:
             class Progress(object):
                 def __init__(self):
-                    self.result = dstdir
+                    self.result = None
+                    self.cancel = False
+
                 def run(self):
-                    if subprocess.call(s.encode(encoding), shell=True) <> 0:
-                        self.result = None
+                    p = subprocess.Popen(s.encode(encoding), shell=True)
+                    r = p.poll()
+                    while r is None:
+                        if self.cancel:
+                            p.terminate()
+                        time.sleep(0.001)
+                        r = p.poll()
+                    if r == 0:
+                        self.result = dstdir
 
             prog = Progress()
             thr = threading.Thread(target=prog.run)
@@ -1787,10 +1802,14 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                 for dpath, _dnames, fnames in os.walk(dstdir):
                     count += len(fnames)
                 if last_count <> count:
-                    progress(count)
+                    if progress(count):
+                        prog.cancel = True
                 p = time.time() + 0.1
                 while thr.is_alive() and time.time() < p:
                     time.sleep(0.001)
+            if prog.cancel and not overwrite:
+                remove(dstdir)
+                return None
         else:
             if subprocess.call(s.encode(encoding), shell=True) <> 0:
                 return None
