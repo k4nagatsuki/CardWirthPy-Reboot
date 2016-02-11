@@ -836,6 +836,17 @@ class NamePage(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
 
+        if cw.cwpy.setting.show_autobuttoninentrydialog:
+            dc = wx.ClientDC(self)
+            font = cw.cwpy.rsrc.get_wxfont("button", pixelsize=cw.wins(14))
+            dc.SetFont(font)
+            s = cw.cwpy.msgs["auto"]
+            tw = dc.GetTextExtent(s)[0] + 16
+            self.autoname = cw.cwpy.rsrc.create_wxbutton(self, -1, (tw, cw.wins(20)), s)
+            self.autoname.SetFont(font)
+        else:
+            self.autoname = None
+
         self.ch_imgdpath = wx.Choice(self, size=(cw.wins(140), -1))
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.ch_imgdpath.SetFont(font)
@@ -848,6 +859,7 @@ class NamePage(AdventurerCreaterPage):
             if period.firstselect:
                 self.age = u"＿" + period.name
                 break
+        self._update_sex()
         self.imgpaths = []
         self.imgdpath = None
         self.set_imgpathlist(True)
@@ -868,6 +880,8 @@ class NamePage(AdventurerCreaterPage):
         AdventurerCreaterPage._bind(self)
         self.Bind(wx.EVT_TEXT, self.OnInputText)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
+        if self.autoname:
+            self.Bind(wx.EVT_BUTTON, self.OnAutoName, self.autoname)
         self.ch_imgdpath.Bind(wx.EVT_CHOICE, self.OnChoiceImgDPath)
 
     def OnMouseWheel(self, event):
@@ -914,6 +928,16 @@ class NamePage(AdventurerCreaterPage):
         else:
             self.Parent.nextbtn.Disable()
 
+    def OnAutoName(self, event):
+        if not self.sex in cw.cwpy.setting.sexcoupons:
+            return
+        cw.cwpy.play_sound("signal")
+        sindex = cw.cwpy.setting.sexcoupons.index(self.sex)
+        randomname = get_randomname(cw.cwpy.setting.sexsubnames[sindex])
+        if randomname:
+            self.textctrl.SetValue(randomname)
+            self.input_name = ""
+
     def OnChoiceImgDPath(self, event):
         index = self.ch_imgdpath.GetSelection()
         if index <> self.imgdpath:
@@ -935,6 +959,10 @@ class NamePage(AdventurerCreaterPage):
         w2, _h2 = self.ch_imgdpath.GetSize()
 
         self.textctrl.SetPosition(((csize[0]-w1)/2, cw.wins(90)))
+        if self.autoname:
+            x, y, w, h = self.textctrl.GetRect()
+            self.autoname.SetPosition((x+w+cw.wins(1), y-(self.autoname.GetSize()[1]-h)/2))
+
         x = cw.wins(275) + cw.wins(cw.SIZE_CARDIMAGE[0])/2 - w2/2
         self.ch_imgdpath.SetPosition((x, cw.wins(225)))
 
@@ -1012,6 +1040,15 @@ class NamePage(AdventurerCreaterPage):
             self.sex = name
             self.set_imgpathlist(True)
             self.draw(True)
+            self._update_sex()
+
+    def _update_sex(self):
+        if self.autoname:
+            if self.sex in cw.cwpy.setting.sexcoupons:
+                sindex = cw.cwpy.setting.sexcoupons.index(self.sex)
+                self.autoname.Enable(bool(get_randomname(cw.cwpy.setting.sexsubnames[sindex])))
+            else:
+                self.autoname.Enable(False)
 
     def set_age(self, name):
         if not self.age == name:

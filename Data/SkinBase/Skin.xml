@@ -734,6 +734,7 @@
     <Message key="mode_replace">交換モード - 「%s」との交換</Message>
     <Message key="edit_star">カードにスターをつける</Message>
     <Message key="desc_close_message_log">メッセージログを閉じます</Message>
+    <Message key="auto">自動</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>

@@ -702,6 +702,7 @@ class CharaRequirementPanel(wx.Panel):
         self.namebox = wx.StaticBox(self, -1, u"名前")
         self.name = wx.TextCtrl(self, size=(125, -1))
         self.name.SetMaxLength(14)
+        self.autoname = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (50, -1), name=u"自動")
 
         self.imgbox = wx.StaticBox(self, -1, u"イメージ")
         self.imgbox.DragAcceptFiles(True)
@@ -749,6 +750,7 @@ class CharaRequirementPanel(wx.Panel):
 
     def _bind(self):
         self.Bind(wx.EVT_TEXT, self.OnName, self.name)
+        self.Bind(wx.EVT_BUTTON, self.OnAutoName, self.autoname)
         self.Bind(wx.EVT_BUTTON, self.OnLevelBtn, self.levelbtn)
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectImage, self.imgcombo)
         if self.race:
@@ -760,8 +762,10 @@ class CharaRequirementPanel(wx.Panel):
         self.imgbox.Bind(wx.EVT_DROP_FILES, self.OnImgBoxDropFiles)
 
     def _do_layout(self):
-        sizer_name = wx.StaticBoxSizer(self.namebox, wx.VERTICAL)
-        sizer_name.Add(self.name, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 5)
+        sizer_name = wx.StaticBoxSizer(self.namebox, wx.HORIZONTAL)
+        sizer_name.AddSpacer((5, 0))
+        sizer_name.Add(self.name, 1, wx.RIGHT|wx.BOTTOM|wx.CENTER, 2)
+        sizer_name.Add(self.autoname, 0, wx.RIGHT|wx.BOTTOM|wx.CENTER, 5)
 
         sizer_image = wx.StaticBoxSizer(self.imgbox, wx.VERTICAL)
         sizer_image.AddStretchSpacer(1)
@@ -820,6 +824,25 @@ class CharaRequirementPanel(wx.Panel):
             info.name = self.name.GetValue()
             info.input_name = info.name
         self._update_okbtn()
+
+    def OnAutoName(self, event):
+        if self._proc:
+            return
+        self._proc = True
+        name = None
+        for info in self._get_infos():
+            if info.sex in cw.cwpy.setting.sexcoupons:
+                sindex = cw.cwpy.setting.sexcoupons.index(info.sex)
+                randomname = cw.dialog.create.get_randomname(cw.cwpy.setting.sexsubnames[sindex])
+                if randomname:
+                    info.name = randomname
+                    info.input_name = u""
+            if name is None:
+                name = info.name
+            if name <> info.name:
+                name = u""
+        self.name.SetValue(name)
+        self._proc = False
 
     def _update_okbtn(self):
         for info in self._get_infos():
