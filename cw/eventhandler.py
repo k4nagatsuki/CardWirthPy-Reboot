@@ -240,12 +240,23 @@ class EventHandler(object):
                 sprite = cw.cwpy.list[cw.cwpy.index]
                 cw.cwpy.change_selection(sprite)
 
+    def _update_selection(self):
+        # マウスポインタの移動を検知する前にクリックイベントが
+        # 発生する可能性があるので、キーボード等で選択された
+        # 状態でなければ、選択状態を更新しておく
+        if cw.cwpy.index == -1 and not cw.cwpy.is_runningevent() and not self.is_processing():
+            cw.cwpy.update_mousepos()
+            cw.cwpy.update()
+
     def lclick_event(self):
         """
         左クリックイベント。
         """
         if cw.cwpy.is_showingdlg():
             return
+
+        self._update_selection()
+
         if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
                      cw.cwpy.selection.selectable_on_event)) or\
@@ -271,6 +282,9 @@ class EventHandler(object):
 
         if cw.cwpy.is_showingdlg():
             return
+
+        self._update_selection()
+
         if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
                      cw.cwpy.selection.selectable_on_event)) or\
@@ -723,6 +737,9 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         if not self.can_input():
             return
+
+        self._update_selection()
+
         if cw.cwpy.selection:
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos) or\
                     isinstance(cw.cwpy.selection, cw.sprite.message.SelectionBar):
@@ -743,6 +760,9 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         if not self.can_input():
             return
+
+        self._update_selection()
+
         if cw.cwpy.selection and len(cw.cwpy.list) > 1:
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event(skip=True)
@@ -758,6 +778,9 @@ class EventHandlerForMessageWindow(EventHandler):
 
         if not self.can_input():
             return
+
+        self._update_selection()
+
         if cw.cwpy.selection:
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
@@ -1068,6 +1091,9 @@ class EventHandlerForBacklog(EventHandler):
         """
         if cw.cwpy.setting.is_logscrollable():
             self._in_scroll = False
+
+        self._update_selection()
+
         self.returnkey_event()
 
     def mclick_event(self):
@@ -1087,6 +1113,9 @@ class EventHandlerForBacklog(EventHandler):
 
         if not self.can_input():
             return
+
+        self._update_selection()
+
         if cw.cwpy.selection:
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.rclick_event()
@@ -1392,6 +1421,9 @@ class EventHandlerForEffectBooster(EventHandler):
 
         if not self.can_input():
             return
+
+        self._update_selection()
+
         if cw.cwpy.selection:
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()
