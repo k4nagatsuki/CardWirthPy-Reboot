@@ -726,17 +726,16 @@ class PlayerCard(CWPyCard, character.Player):
             cw.animation.animate_sprite(self, "click")
 
             if cw.cwpy.is_battlestatus():
-                if not cw.cwpy.setting.openhandviewalways and self.is_inactive():
+                if self.is_inactive():
                     s = cw.cwpy.msgs["inactive"] % self.name
                     cw.cwpy.call_modaldlg("NOTICE", text=s)
-                elif not cw.cwpy.setting.openhandviewalways and self.is_autoselectedpenalty() and not cw.cwpy.debug:
+                elif self.is_autoselectedpenalty() and not cw.cwpy.debug:
                     s = cw.cwpy.msgs["selected_penalty"]
                     cw.cwpy.call_modaldlg("NOTICE", text=s)
                 else:
                     cw.cwpy.call_modaldlg("HANDVIEW")
             else:
-                if not cw.cwpy.setting.openhandviewalways and self.is_inactive() and\
-                        not cw.cwpy.areaid in cw.AREAS_TRADE:
+                if self.is_inactive() and not cw.cwpy.areaid in cw.AREAS_TRADE:
                     s = cw.cwpy.msgs["inactive"] % self.name
                     cw.cwpy.call_modaldlg("NOTICE", text=s)
                 else:
@@ -952,7 +951,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         # CARDPOCKETダイアログを開く(通常)
         if (not cw.cwpy.is_curtained() or cw.cwpy.areaid == cw.AREA_CAMP) and self.is_analyzable():
             if cw.cwpy.is_battlestatus():
-                if not cw.cwpy.setting.openhandviewalways and self.is_inactive():
+                if self.is_inactive():
                     s = cw.cwpy.msgs["inactive"] % self.name
                     cw.cwpy.call_modaldlg("NOTICE", text=s)
                 else:
@@ -1025,10 +1024,10 @@ class FriendCard(CWPyCard, character.Friend):
         cw.animation.animate_sprite(self, "click")
 
         if cw.cwpy.is_battlestatus():
-            if not cw.cwpy.setting.openhandviewalways and self.is_inactive():
+            if self.is_inactive():
                 s = cw.cwpy.msgs["inactive"] % self.name
                 cw.cwpy.call_modaldlg("NOTICE", text=s)
-            elif not cw.cwpy.setting.openhandviewalways and self.is_autoselectedpenalty() and not cw.cwpy.debug:
+            elif self.is_autoselectedpenalty() and not cw.cwpy.debug:
                 s = cw.cwpy.msgs["selected_penalty"]
                 cw.cwpy.call_modaldlg("NOTICE", text=s)
             else:

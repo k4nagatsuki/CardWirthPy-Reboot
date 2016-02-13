@@ -515,7 +515,6 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_showbackpackcardatend.SetValue(cw.cwpy.setting.show_backpackcardatend_init)
             self.pane_ui.cb_can_clicksidesofcardcontrol.SetValue(cw.cwpy.setting.can_clicksidesofcardcontrol_init)
             self.pane_ui.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket_init)
-            self.pane_ui.cb_openhandviewalways.SetValue(cw.cwpy.setting.openhandviewalways_init)
             self.pane_ui.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation_init == cw.setting.WHEEL_SHOWLOG)
             self.pane_ui.cb_confirmbeforeusingcard.SetValue(cw.cwpy.setting.confirm_beforeusingcard_init)
             self.pane_ui.cb_showsavedmessage.SetValue(cw.cwpy.setting.show_savedmessage_init)
@@ -919,8 +918,6 @@ class SettingsPanel(wx.Panel):
         setting.can_clicksidesofcardcontrol = value
         value = self.pane_ui.cb_revertcardpocket.GetValue()
         setting.revert_cardpocket = value
-        value = self.pane_ui.cb_openhandviewalways.GetValue()
-        setting.openhandviewalways = value
         value = self.pane_ui.cb_confirmbeforesaving.GetValue()
         setting.confirm_beforesaving = value
         value = self.pane_ui.cb_showsavedmessage.GetValue()
@@ -2274,8 +2271,6 @@ class UISettingPanel(wx.ScrolledWindow):
             self, -1, u"カード選択ダイアログの背景クリックで左右移動を行う")
         self.cb_revertcardpocket = wx.CheckBox(
             self, -1, u"レベル調節で手放したカードを自動的に戻す")
-        self.cb_openhandviewalways = wx.CheckBox(
-            self, -1, u"行動不能でも行動選択ダイアログを開く")
         self.cb_showlogwithwheelup = wx.CheckBox(
             self, -1, u"マウスホイールを上に回すとログを表示")
         self.cb_showroundautostartbutton = wx.CheckBox(
@@ -2343,7 +2338,6 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showbackpackcardatend.SetValue(setting.show_backpackcardatend)
         self.cb_can_clicksidesofcardcontrol.SetValue(setting.can_clicksidesofcardcontrol)
         self.cb_revertcardpocket.SetValue(setting.revert_cardpocket)
-        self.cb_openhandviewalways.SetValue(setting.openhandviewalways)
         self.cb_showlogwithwheelup.SetValue(setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
         self.cb_showroundautostartbutton.SetValue(setting.show_roundautostartbutton)
         self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog)
@@ -2405,7 +2399,6 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_gene.Add(self.cb_showbackpackcardatend, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_can_clicksidesofcardcontrol, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_openhandviewalways, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showroundautostartbutton, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showautobuttoninentrydialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)

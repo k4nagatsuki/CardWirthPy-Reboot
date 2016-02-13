@@ -1216,7 +1216,7 @@ class CardHolder(CardControl):
         else:
             self.areaid = areaid
 
-        if cw.cwpy.setting.openhandviewalways or self.areaid in cw.AREAS_TRADE:
+        if self.areaid in cw.AREAS_TRADE:
             status = "unreversed"
         else:
             status = "active"
@@ -2179,10 +2179,7 @@ class HandView(CardControl):
         self.owner = selection
 
         # カードリスト
-        if cw.cwpy.setting.openhandviewalways:
-            status = "unreversed"
-        else:
-            status = "active"
+        status = "active"
         if isinstance(selection, cw.character.Player):
             self.list2 = cw.cwpy.get_pcards(status)
         elif isinstance(selection, cw.character.Friend):

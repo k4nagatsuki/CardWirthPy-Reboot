@@ -135,7 +135,7 @@ class Setting(object):
         self.standbys_narrowtype = 0
         self.infoview_narrowtype = 0
         self.backlogmax = 100
-        self.messagelog_type = LOG_LIST
+        self.messagelog_type = LOG_COMPRESS
         self.showfps = False
         self.selectscenariofromtype = True
         self.show_unfitnessscenario = True
@@ -149,7 +149,6 @@ class Setting(object):
         self.show_backpackcard = True
         self.show_backpackcardatend = False
         self.show_statustime = True
-        self.openhandviewalways = False
         self.noticeimpossibleaction = True
         self.initmoneyamount = basedata.getint("Property/InitialCash", 4000)
         self.initmoneyisinitialcash = True
@@ -169,12 +168,12 @@ class Setting(object):
         self.statusbarmask = True
         self.show_experiencebar = True
         self.show_roundautostartbutton = True
-        self.show_autobuttoninentrydialog = False
+        self.show_autobuttoninentrydialog = True
         self.unconvert_targetfolder = u"UnconvertedYado"
         self.can_skipwait = True
         self.can_skipanimation = True
         self.can_repeatlclick = False
-        self.cursor_type = CURSOR_BLACK
+        self.cursor_type = CURSOR_WHITE
         self.autoenter_on_sprite = False
         self.bordering_cardname = True
         self.blink_statusbutton = True
@@ -522,8 +521,6 @@ class Setting(object):
         # セーブ完了時に確認ダイアログを表示
         self.show_savedmessage = data.getbool("ShowSavedMessage", self.show_savedmessage)
 
-        # カードを選択できない時はダイアログを開かない
-        self.openhandviewalways = data.getbool("OpenHandViewAlways", self.openhandviewalways)
         # 不可能な行動を選択した時に警告を表示
         self.noticeimpossibleaction = data.getbool("NoticeImpossibleAction", self.noticeimpossibleaction)
 

@@ -408,10 +408,6 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.show_statustime <> setting.show_statustime_init:
         e = cw.data.make_element("ShowStatusTime", str(setting.show_statustime))
         element.append(e)
-    # カードを選択できない時はダイアログを開かない
-    if setting.openhandviewalways <> setting.openhandviewalways_init:
-        e = cw.data.make_element("OpenHandViewAlways", str(setting.openhandviewalways))
-        element.append(e)
     # 不可能な行動を選択した時に警告を表示
     if setting.noticeimpossibleaction <> setting.noticeimpossibleaction_init:
         e = cw.data.make_element("NoticeImpossibleAction", str(setting.noticeimpossibleaction))

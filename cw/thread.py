@@ -1204,8 +1204,7 @@ class CWPy(_Singleton, threading.Thread):
                 # 対象消去されている場合は開かない
                 index2 = pre_info[1]
                 if isinstance(index2, cw.character.Character) and\
-                        (index2.is_vanished() or ((not index2.is_active() and not self.areaid in cw.AREAS_TRADE) and\
-                                                  not cw.cwpy.setting.openhandviewalways)):
+                        (index2.is_vanished() or ((not index2.is_active() and not self.areaid in cw.AREAS_TRADE))):
                     self.pre_dialogs.pop()
                     self.lock_menucards = False
                     return
