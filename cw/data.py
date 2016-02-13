@@ -61,6 +61,7 @@ class SystemData(object):
         self.resource_cache = {}
         self.autostart_round = False
         self.breakpoints = set()
+        self.in_f9 = False
 
         # シナリオごとのブレークポイントを保存する
         if isinstance(cw.cwpy.sdata, ScenarioData):

@@ -729,6 +729,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def get_breakflag(self):
         """待機時間を飛ばすべき入力がある場合にTrueを返す。"""
+        if self.is_playingscenario() and self.sdata.in_f9:
+            return True
         breakflag = False
         events = pygame.event.get((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
         for e in events:

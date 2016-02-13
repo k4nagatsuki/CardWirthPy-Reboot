@@ -801,7 +801,7 @@ class Event(object):
             (self.cur_content.tag == "Elapse" and self.cur_content.get("type") == "Time"):
             self.check_gameover()
 
-        if cw.cwpy.event.is_stoped():
+        if cw.cwpy.event.is_stoped() or cw.cwpy.sdata.in_f9:
             raise EffectBreakError()
 
     def get_nextcontents(self):
