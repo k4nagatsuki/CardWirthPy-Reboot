@@ -1533,7 +1533,7 @@ class CallStartContent(EventContentBase):
 
         if startname in trees:
             event = cw.cwpy.event.get_event()
-            if event.nowrunningcontents or 0 < len(self.data.find("Contents")):
+            if 0 < len(self.data.find("Contents")):
                 if cw.LIMIT_RECURSE <= cw.cwpy.event.get_currentstack():
                     s = u"イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
                     cw.cwpy.call_modaldlg("ERROR", text=s)
@@ -2363,7 +2363,7 @@ class LinkPackageContent(EventContentBase):
             return 0
 
         event = cw.cwpy.event.get_event()
-        call_package(self.resid, not event.nowrunningcontents is None)
+        call_package(self.resid, bool(event.nowrunningcontents))
         return 0
 
     def get_status(self):
