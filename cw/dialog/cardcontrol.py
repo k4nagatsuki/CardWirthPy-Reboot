@@ -2277,9 +2277,17 @@ class ReplCardHolder(CardControl):
         self.owner = selection
         self.target = target
 
+        if target.type == "SkillCard":
+            self.cardtype = cw.POCKET_SKILL
+        elif target.type == "ItemCard":
+            self.cardtype = cw.POCKET_ITEM
+        elif target.type == "BeastCard":
+            self.cardtype = cw.POCKET_BEAST
+
         # カードリスト
         status = "unreversed"
         self.list2 = cw.cwpy.get_pcards(status)
+        self.list2 = filter(lambda pcard: bool(pcard.cardpocket[self.cardtype]), self.list2)
 
         # 前に開いていたときのindex値があったら取得する
         self.index = 0
@@ -2287,12 +2295,6 @@ class ReplCardHolder(CardControl):
         self.index2 = self.selection
 
         # 手札リスト
-        if target.type == "SkillCard":
-            self.cardtype = cw.POCKET_SKILL
-        elif target.type == "ItemCard":
-            self.cardtype = cw.POCKET_ITEM
-        elif target.type == "BeastCard":
-            self.cardtype = cw.POCKET_BEAST
         self.list = self.selection.cardpocket[self.cardtype]
         # ダイアログ作成
         name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)

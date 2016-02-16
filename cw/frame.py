@@ -653,9 +653,12 @@ class Frame(wx.Frame):
     def OnCARDPOCKET_REPLACE(self, event):
         selection = cw.cwpy.selection
         target = cw.cwpy.selectedheader
-        dlg = cw.dialog.cardcontrol.ReplCardHolder(self, selection, cw.cwpy.selectedheader)
-        self.move_dlg(dlg, (0, -63))
-        dlg.ShowModal()
+        if selection and target:
+            dlg = cw.dialog.cardcontrol.ReplCardHolder(self, selection, target)
+            self.move_dlg(dlg, (0, -63))
+            dlg.ShowModal()
+        else:
+            dlg = None
         self.kill_dlg(dlg)
 
     def _get_cardcontrolparams(self):
