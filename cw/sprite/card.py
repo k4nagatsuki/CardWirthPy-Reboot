@@ -241,9 +241,10 @@ class CWPyCard(base.SelectableSprite):
 
     def deal(self):
         """カードをアニメーショ無しで表示する。"""
-        if hasattr(self, "cardimg") and self.cardimg.is_modifiedfile():
-            self.update_image()
         self.status = "normal"
+        if hasattr(self, "cardimg") and (self.cardimg.is_modifiedfile() or\
+                                         self.image.get_width() <= 0):
+            self.update_image()
         self.image = self.get_animeimage()
         if cw.cwpy.selection == self:
             self.image = cw.imageretouch.to_negative_for_card(self.image)
