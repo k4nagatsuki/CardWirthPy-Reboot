@@ -1781,6 +1781,7 @@ class YadoCreater(wx.Dialog):
         if name <> self.name:
             # ディレクトリの移動
             yadodir = os.path.dirname(self.yadodir)
+            olddname = os.path.basename(self.yadodir)
             dname = cw.binary.util.check_filename(name)
             if os.path.normcase(os.path.basename(self.yadodir)) <> os.path.normcase(dname):
                 yadodir = cw.util.join_paths(yadodir, dname)
@@ -1788,6 +1789,8 @@ class YadoCreater(wx.Dialog):
                 try:
                     shutil.move(self.yadodir, yadodir)
                     self.yadodir = yadodir
+                    if cw.cwpy.setting.lastyado == olddname:
+                        cw.cwpy.setting.lastyado = os.path.basename(self.yadodir)
                 except Exception:
                     cw.util.print_ex()
 
