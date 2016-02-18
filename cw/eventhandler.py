@@ -246,7 +246,7 @@ class EventHandler(object):
         # 状態でなければ、選択状態を更新しておく
         if cw.cwpy.index == -1 and not cw.cwpy.is_runningevent() and not self.is_processing():
             cw.cwpy.update_mousepos()
-            cw.cwpy.update()
+            cw.cwpy.update_groups()
 
     def lclick_event(self):
         """

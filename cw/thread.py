@@ -867,6 +867,9 @@ class CWPy(_Singleton, threading.Thread):
                 self.disposition_pcards()
                 self.draw()
 
+        self.update_groups()
+
+    def update_groups(self):
         self.cardgrp.update(self.scr_draw)
         self.topgrp.update(self.scr_draw)
         self.sbargrp.update(self.scr_draw)
