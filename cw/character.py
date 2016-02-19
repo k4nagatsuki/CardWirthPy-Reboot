@@ -919,8 +919,10 @@ class Character(object):
 
     def _add_priorityacts(self, target, h):
         if cw.cwpy.battle and target and h:
-            for e in h.carddata.getfind("Motions"):
+            for e in self._get_motions(h):
                 t = e.get("type", "")
+                if not self._is_bonusedmtype(t):
+                    continue
                 if t:
                     cw.cwpy.battle.priorityacts.append((t, target, self))
 
@@ -1119,18 +1121,24 @@ class Character(object):
 
         return selected
 
+    def _get_motions(self, header):
+        if header.type == "ActionCard" and header.id == 7:
+            # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
+            return [{"type":"Runaway"}]
+        else:
+            return header.carddata.getfind("Motions").getchildren()
+
+    def _is_bonusedmtype(self, mtype):
+        return mtype in ("Runaway", "Heal")
+
     def _get_targetingbonus_and_targets(self, header, targets):
         bonus = -2147483647
         maxbonustargs = []
-        if header.type == "ActionCard" and header.id == 7:
-            # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
-            motions = [{"type":"Runaway"}]
-        else:
-            motions = header.carddata.getfind("Motions").getchildren()
         # 最大ボーナスを取得
+        motions = self._get_motions(header)
         for motion in motions:
             mtype = motion.get("type", "")
-            if not mtype in ("Runaway", "Heal"):
+            if not self._is_bonusedmtype(mtype):
                 continue
             for targ in targets:
                 b = targ.get_targetingbonus(mtype)
