@@ -1019,7 +1019,7 @@ class ShowFriendCardsButton(StatusBarButton):
 
     def lclick_event(self):
         cw.cwpy.play_sound("page")
-        if cw.cwpy.is_battlestatus():
+        if cw.cwpy.is_battlestatus() and cw.cwpy.battle.is_ready():
             cw.cwpy.setting.show_fcardsinbattle = not cw.cwpy.setting.show_fcardsinbattle
             cw.cwpy.battle.update_showfcards()
 

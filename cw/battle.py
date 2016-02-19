@@ -218,19 +218,19 @@ class BattleEngine(object):
             member.deck.draw(member)
         self.set_actionorder()
         self.set_action()
-        self._ready = True
 
         if cw.cwpy.is_autospread():
             ecards = cw.cwpy.get_mcards("flagtrue")
             if self.numenemy <> len(ecards):
                 self.numenemy = len(ecards)
                 cw.cwpy.set_autospread(ecards, 6, False, anime=True)
-        cw.cwpy.statusbar.change()
         cw.cwpy.show_party()
         cw.cwpy.disposition_pcards()
         if cw.cwpy.is_debugmode() and cw.cwpy.setting.show_fcardsinbattle:
             cw.cwpy.add_fcardsprites(status="normal", alpha=192)
         if redraw:
+            self._ready = True
+            cw.cwpy.statusbar.change()
             cw.cwpy.draw()
 
     def update_debug(self):
@@ -304,6 +304,7 @@ class BattleEngine(object):
         # 行動内容のクリア
         for member in cw.cwpy.get_pcards():
             member.clear_action()
+        assert cw.cwpy.is_battlestatus()
 
         cw.cwpy.hide_cards(True)
         cw.cwpy.cardgrp.remove(cw.cwpy.mcards)
