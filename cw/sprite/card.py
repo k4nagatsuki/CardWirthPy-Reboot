@@ -606,7 +606,11 @@ class CWPyCard(base.SelectableSprite):
         elif center:
             self._rect.center = center
 
-        self.rect.topleft = self._rect.topleft
+        self.rect.center = self._rect.center
+        if self.zoomimgs:
+            for image, zrect in self.zoomimgs:
+                zrect.center = self._rect.center
+
         if hasattr(self, "cardimg"):
             self.cardimg.rect.topleft = self._rect.topleft
 
