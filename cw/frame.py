@@ -11,6 +11,8 @@ import pygame
 import pygame.locals
 
 import cw
+import cw.debug.debugger
+from cw.util import synclock
 
 
 class Frame(wx.Frame):
@@ -236,6 +238,7 @@ class Frame(wx.Frame):
         for _i in xrange(count):
             self.tick_clock()
 
+    @synclock(cw.debug.debugger.mutex)
     def show_debugger(self, refreshtree):
         """デバッガ開く。"""
         if cw.cwpy.debug and not self.debugger:
@@ -259,10 +262,11 @@ class Frame(wx.Frame):
                 cw.cwpy.exec_func(func)
             dlg.Show()
 
+    @synclock(cw.debug.debugger.mutex)
     def close_debugger(self):
         """デバッガ閉じる。"""
         if self.debugger:
-            self.debugger.Close()
+            self.debugger.Destroy()
             self.debugger = None
             def func():
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)

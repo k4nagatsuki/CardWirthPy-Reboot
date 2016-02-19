@@ -9,6 +9,9 @@ import wx
 import wx.aui
 
 import cw
+from cw.util import synclock
+
+mutex = threading.Lock()
 
 
 # ID
@@ -587,11 +590,13 @@ class Debugger(wx.Frame):
         cw.cwpy.keyevent.keydown(wx.WXK_F9)
         cw.cwpy.keyevent.keyup(wx.WXK_F9)
 
+    @synclock(mutex)
     def OnClose(self, event):
         cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
         self.Destroy()
         cw.cwpy.frame.debugger = None
 
+    @synclock(mutex)
     def OnDestroy(self, event):
         # デタッチしていたAuiToolBarをメインフレームにドッキングすると
         # Destroyイベントが呼ばれるようなので、それと区別
