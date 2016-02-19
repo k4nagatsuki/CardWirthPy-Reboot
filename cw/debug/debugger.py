@@ -588,9 +588,9 @@ class Debugger(wx.Frame):
         cw.cwpy.keyevent.keyup(wx.WXK_F9)
 
     def OnClose(self, event):
-        cw.cwpy.frame.debugger = None
         cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
         self.Destroy()
+        cw.cwpy.frame.debugger = None
 
     def OnDestroy(self, event):
         # デタッチしていたAuiToolBarをメインフレームにドッキングすると
