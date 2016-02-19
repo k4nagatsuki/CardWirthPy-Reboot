@@ -1130,6 +1130,8 @@ class Character(object):
         # 最大ボーナスを取得
         for motion in motions:
             mtype = motion.get("type", "")
+            if not mtype in ("Runaway", "Heal"):
+                continue
             for targ in targets:
                 b = targ.get_targetingbonus(mtype)
                 if bonus == b:
