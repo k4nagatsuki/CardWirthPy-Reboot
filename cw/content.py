@@ -2669,6 +2669,9 @@ class LoseBgImageContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data)
         self.cellname = data.getattr(".", "cellname", u"")
+        # CWNext 1.60ではアニメーションあり・エフェクトブースター無視となる
+        self.doanime = data.getbool(".", "doanime", True)
+        self.ignoreeffectbooster = data.getbool(".", "ignoreeffectbooster", False)
 
     def action(self):
         """背景削除コンテント(Wsn.1)。"""
@@ -2676,8 +2679,8 @@ class LoseBgImageContent(EventContentBase):
             return 0
 
         ttype = self.get_transitiontype()
-        if cw.cwpy.background.reload(True, ttype, cellname=self.cellname, repldata=None,
-                                     ignoreeffectbooster=True):
+        if cw.cwpy.background.reload(self.doanime, ttype, cellname=self.cellname, repldata=None,
+                                     ignoreeffectbooster=self.ignoreeffectbooster):
             # フレームを進める
             cw.cwpy.draw()
             cw.cwpy.tick_clock(framerate=30)
@@ -3507,6 +3510,9 @@ class MoveBgImageContent(EventContentBase):
         self.sizetype = data.getattr(".", "sizetype", u"")
         self.width = data.getint(".", "width", 0)
         self.height = data.getint(".", "height", 0)
+        # CWNext 1.60ではアニメーションあり・エフェクトブースター無視となる
+        self.doanime = data.getbool(".", "doanime", True)
+        self.ignoreeffectbooster = data.getbool(".", "ignoreeffectbooster", False)
 
     def action(self):
         """背景再配置コンテント(Wsn.1)。"""
@@ -3516,8 +3522,8 @@ class MoveBgImageContent(EventContentBase):
         ttype = self.get_transitiontype()
         movedata = (self.positiontype, self.x, self.y, self.sizetype, self.width, self.height)
 
-        if cw.cwpy.background.reload(True, ttype, cellname=self.cellname, movedata=movedata,
-                                     ignoreeffectbooster=True):
+        if cw.cwpy.background.reload(self.doanime, ttype, cellname=self.cellname, movedata=movedata,
+                                     ignoreeffectbooster=self.ignoreeffectbooster):
             # フレームを進める
             cw.cwpy.draw()
             cw.cwpy.tick_clock(framerate=30)
@@ -3537,6 +3543,9 @@ class ReplaceBgImageContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data)
         self.cellname = data.getattr(".", "cellname", u"")
+        # CWNext 1.60ではアニメーション無し・エフェクトブースター無視となる
+        self.doanime = data.getbool(".", "doanime", True)
+        self.ignoreeffectbooster = data.getbool(".", "ignoreeffectbooster", False)
 
     def action(self):
         """背景置換コンテント(Wsn.1)。"""
@@ -3547,8 +3556,8 @@ class ReplaceBgImageContent(EventContentBase):
         elements = cw.cwpy.sdata.get_bgdata(e)
         ttype = self.get_transitiontype()
 
-        if cw.cwpy.background.reload(False, ttype, cellname=self.cellname, repldata=elements,
-                                     ignoreeffectbooster=True):
+        if cw.cwpy.background.reload(self.doanime, ttype, cellname=self.cellname, repldata=elements,
+                                     ignoreeffectbooster=self.ignoreeffectbooster):
             # フレームを進める
             cw.cwpy.draw()
             cw.cwpy.tick_clock(framerate=30)
