@@ -384,8 +384,18 @@ class BackGround(base.CWPySprite):
             bgs2 = []
             replaced = False
             for bgtype, d in self.bgs:
+                if bgtype == BG_IMAGE and ignoreeffectbooster:
+                    path = d[0]
+                    if os.path.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
+                        bgs2.append((bgtype, d))
+                        continue
+
                 if cellname == self._get_cellname(bgtype, d):
-                    if not repldata is None:
+                    if movedata:
+                        d = self._move_bgdata(bgtype, d, movedata)
+                        bgs2.append((bgtype, d))
+
+                    elif not repldata is None:
                         for e in repldata:
                             if e.tag == "BgImage":
                                 # 背景画像
@@ -518,6 +528,34 @@ class BackGround(base.CWPySprite):
             return d[-1]
         else:
             return u""
+
+    def _move_bgdata(self, bgtype, d, movedata):
+        positiontype, x, y, sizetype, width, height = movedata
+        pos = d[-5]
+        size = d[-6]
+        pos = self._calc_possize(positiontype, pos, (x, y), False)
+        size = self._calc_possize(sizetype, size, (width, height), True)
+        return d[:-6] + (size, pos) + d[-4:]
+
+    def _calc_possize(self, ctype, vals, movevals, miniszero):
+        x, y = vals
+        mx, my = movevals
+
+        if ctype == "Absolute":
+            x = mx
+            y = my
+        elif ctype == "Relative":
+            x += mx
+            y += my
+        elif ctype == "Percentage":
+            x = ((x * mx) + 50) // 100
+            y = ((y * my) + 50) // 100
+
+        if miniszero:
+            x = max(0, x)
+            y = max(0, y)
+
+        return (x, y)
 
     def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime, nocheckvisible=False):
         path, inusecard, mask, size, pos, flag, visible, layer, cellname = d

@@ -2676,7 +2676,8 @@ class LoseBgImageContent(EventContentBase):
             return 0
 
         ttype = self.get_transitiontype()
-        if cw.cwpy.background.reload(True, ttype, cellname=self.cellname, repldata=None):
+        if cw.cwpy.background.reload(True, ttype, cellname=self.cellname, repldata=None,
+                                     ignoreeffectbooster=True):
             # フレームを進める
             cw.cwpy.draw()
             cw.cwpy.tick_clock(framerate=30)
@@ -3496,7 +3497,37 @@ class BranchFlagValueContent(BranchContent):
 # 移動系コンテント (Wsn.1～)
 #-------------------------------------------------------------------------------
 
-# TODO
+class MoveBgImageContent(EventContentBase):
+    def __init__(self, data):
+        EventContentBase.__init__(self, data)
+        self.cellname = data.getattr(".", "cellname", u"")
+        self.positiontype = data.getattr(".", "positiontype", u"")
+        self.x = data.getint(".", "x", 0)
+        self.y = data.getint(".", "y", 0)
+        self.sizetype = data.getattr(".", "sizetype", u"")
+        self.width = data.getint(".", "width", 0)
+        self.height = data.getint(".", "height", 0)
+
+    def action(self):
+        """背景再配置コンテント(Wsn.1)。"""
+        if not self.cellname or (self.positiontype == u"None" and self.sizetype == u"None"):
+            return 0
+
+        ttype = self.get_transitiontype()
+        movedata = (self.positiontype, self.x, self.y, self.sizetype, self.width, self.height)
+
+        if cw.cwpy.background.reload(True, ttype, cellname=self.cellname, movedata=movedata,
+                                     ignoreeffectbooster=True):
+            # フレームを進める
+            cw.cwpy.draw()
+            cw.cwpy.tick_clock(framerate=30)
+
+        self.update_bg_after()
+
+        return 0
+
+    def get_status(self):
+        return u"TODO"
 
 #-------------------------------------------------------------------------------
 # 置換系コンテント (Wsn.1～)
