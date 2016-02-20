@@ -178,7 +178,8 @@ class BackGround(base.CWPySprite):
             mask = e.getbool(".", "mask", False)
             path = e.gettext("ImagePath", "")
             flag = e.gettext("Flag", "")
-            if pos == (0, 0) and size == cw.SIZE_AREA and not mask and path and not flag:
+            cellname = e.getattr(".", "cellname", "")
+            if pos == (0, 0) and size == cw.SIZE_AREA and not mask and path and not flag and not cellname:
                 # 最初の1件がイメージセル・0,0,632,420のサイズ・マスクなし・パス名あり
                 # (ファイルが実在する必要はない)の時、内部的に背景は継承しない状態になる。
                 # CWはこの状態で冒険を中断して再開すると事前に描画されていた背景が消えるが、
@@ -191,7 +192,7 @@ class BackGround(base.CWPySprite):
                     if bgtype == BG_SEPARATOR:
                         bgs2.append((bgtype, d))
                     else:
-                        layer = d[-1]
+                        layer = d[-2]
                         if layer <> cw.LAYER_BACKGROUND:
                             bgs2.append((bgtype, d))
                 self.bgs = bgs2
@@ -239,6 +240,7 @@ class BackGround(base.CWPySprite):
                 else:
                     visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                         self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+                cellname = e.getattr(".", "cellname", "")
 
             def getcolor(e, xpath, r, g, b, a):
                 r = e.getint(xpath, "r", r)
@@ -259,7 +261,7 @@ class BackGround(base.CWPySprite):
                     imgpath = cw.util.get_inusecardmaterialpath(path, cw.M_IMG)
                     inusecard = os.path.isfile(imgpath)
 
-                d = (path, inusecard, mask, size, pos, flag, visible, layer)
+                d = (path, inusecard, mask, size, pos, flag, visible, layer, cellname)
                 try:
                     animated2, update2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, d, self._doanime,
                                                                        nocheckvisible=nocheckvisible)
@@ -297,7 +299,7 @@ class BackGround(base.CWPySprite):
                 text = cw.util.decodewrap(text)
 
                 d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
-                     btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer)
+                     btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname)
                 if self._add_textcell(blitlist, self.bgs, oldbgs, d,
                                       nocheckvisible=nocheckvisible):
                     forcedraw = True
@@ -309,7 +311,7 @@ class BackGround(base.CWPySprite):
                 gradient = e.getattr("Gradient", "direction", "None")
                 color2 = getcolor(e, "Gradient/EndColor", 0, 0, 0, 255)
 
-                d = (blend, color1, gradient, color2, size, pos, flag, visible, layer)
+                d = (blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname)
                 if self._add_colorcell(blitlist, self.bgs, oldbgs, d,
                                        nocheckvisible=nocheckvisible):
                     forcedraw = True
@@ -443,14 +445,14 @@ class BackGround(base.CWPySprite):
 
     def _is_flagchanged(self, bgtype, d):
         if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR):
-            visible = d[-2]
-            flag = d[-3]
+            visible = d[-3]
+            flag = d[-4]
             return bool(visible) <> bool(cw.cwpy.sdata.flags.get(flag, True))
         else:
             return False
 
     def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime, nocheckvisible=False):
-        path, inusecard, mask, size, pos, flag, visible, layer = d
+        path, inusecard, mask, size, pos, flag, visible, layer, cellname = d
         basepath = path
         bginhrt = True
 
@@ -480,17 +482,17 @@ class BackGround(base.CWPySprite):
         if image and image.get_size() <> (0, 0):
             d2 = (image, pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
-            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True, layer)))
+            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True, layer, cellname)))
         else:
             flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
-            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue, layer)))
-            oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue, layer)))
+            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue, layer, cellname)))
+            oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue, layer, cellname)))
 
         return anime, update, bginhrt
 
     def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
         text, face, tsize, color, bold, italic, underline, strike, vertical,\
-            btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer = d
+            btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
@@ -500,7 +502,7 @@ class BackGround(base.CWPySprite):
             text = cw.sprite.message.rpl_specialstr(text)
             loaded = True
         d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
-             btype, bcolor, bwidth, loaded, size, pos, flag, flagvalue, layer)
+             btype, bcolor, bwidth, loaded, size, pos, flag, flagvalue, layer, cellname)
         if visible:
             if btype == "Inline":
                 # 縁取り形式2のみは事前にセル生成が可能
@@ -526,12 +528,12 @@ class BackGround(base.CWPySprite):
         return visible
 
     def _add_colorcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
-        blend, color1, gradient, color2, size, pos, flag, visible, layer = d
+        blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
-        d = blend, color1, gradient, color2, size, pos, flag, flagvalue, layer
+        d = blend, color1, gradient, color2, size, pos, flag, flagvalue, layer, cellname
         if visible:
             image = cw.image.create_colorcell(cw.s(size), color1, gradient, color2)
             if blend == "Add":
