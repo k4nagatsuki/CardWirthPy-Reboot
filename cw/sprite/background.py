@@ -224,44 +224,9 @@ class BackGround(base.CWPySprite):
         if self.bgs and bginhrt:
             self.bgs.append((BG_SEPARATOR, None))
         for e in elements:
-            if e.tag <> "Redisplay":
-                left = e.getint("Location", "left")
-                top = e.getint("Location", "top")
-                pos = (left, top)
-                width = e.getint("Size", "width")
-                height = e.getint("Size", "height")
-                size = (width, height)
-                flag = e.gettext("Flag", "")
-                layer = e.getint("Layer", cw.LAYER_BACKGROUND)
-                visible = e.getattr(".", "visible", "")
-                hasvisible = visible <> ""
-                if visible in (u"True", u"False"):
-                    visible = visible == u"True"
-                else:
-                    visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
-                        self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
-                cellname = e.getattr(".", "cellname", "")
-
-            def getcolor(e, xpath, r, g, b, a):
-                r = e.getint(xpath, "r", r)
-                g = e.getint(xpath, "g", g)
-                b = e.getint(xpath, "b", b)
-                a = e.getint(xpath, "a", a)
-                return (r, g, b, a)
-
             if e.tag == "BgImage":
                 # 背景画像
-                mask = e.getbool(".", "mask", False)
-                path = e.gettext("ImagePath", "")
-
-                # 使用時イベント中なら使用したカードの素材から探す
-                if e.getbool("ImagePath", "inusecard", False):
-                    inusecard = True
-                else:
-                    imgpath = cw.util.get_inusecardmaterialpath(path, cw.M_IMG)
-                    inusecard = os.path.isfile(imgpath)
-
-                d = (path, inusecard, mask, size, pos, flag, visible, layer, cellname)
+                d = self._create_bgdata(e)
                 try:
                     animated2, update2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, d, self._doanime,
                                                                        nocheckvisible=nocheckvisible)
@@ -273,45 +238,14 @@ class BackGround(base.CWPySprite):
 
             elif e.tag == "TextCell":
                 # テキストセル
-                text = e.gettext("Text", "")
-                face = e.gettext("Font", "")
-                tsize = e.getint("Font", "size", 12)
-                color = getcolor(e, "Color", 0, 0, 0, 255)
-                bold = e.getbool("Font", "bold", False)
-                italic = e.getbool("Font", "italic", False)
-                underline = e.getbool("Font", "underline", False)
-                strike = e.getbool("Font", "strike", False)
-                vertical = e.getbool("Vertical", False)
-                btype = e.getattr("Bordering", "type", "None")
-                bcolor = getcolor(e, "Bordering/Color", 255, 255, 255, 255)
-                bwidth = e.getint("Bordering", "width", 1)
-                if hasvisible:
-                    # visible属性を持つ場合はシナリオではなくScenarioLogの情報。
-                    # 0.12.3以前はテキストセルの内容が表示の有無にかかわりなく
-                    # 最初の出現時点で固定されていたが、0.12.4以降はCardWirthに
-                    # 合わせて最初の表示時点で固定するように変更した。
-                    # visibleがあってloadedが無い場合は0.12.3以前の情報で、
-                    # 内容はすでに固定済みとなっている。
-                    loaded = e.getbool(".", "loaded", True)
-                else:
-                    loaded = e.getbool(".", "loaded", False)
-
-                text = cw.util.decodewrap(text)
-
-                d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
-                     btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname)
+                d = self._create_bgdata(e)
                 if self._add_textcell(blitlist, self.bgs, oldbgs, d,
                                       nocheckvisible=nocheckvisible):
                     forcedraw = True
 
             elif e.tag == "ColorCell":
                 # カラーセル
-                blend = e.gettext("BlendMode", "Normal")
-                color1 = getcolor(e, "Color", 255, 255, 255, 255)
-                gradient = e.getattr("Gradient", "direction", "None")
-                color2 = getcolor(e, "Gradient/EndColor", 0, 0, 0, 255)
-
-                d = (blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname)
+                d = self._create_bgdata(e)
                 if self._add_colorcell(blitlist, self.bgs, oldbgs, d,
                                        nocheckvisible=nocheckvisible):
                     forcedraw = True
@@ -346,16 +280,143 @@ class BackGround(base.CWPySprite):
         self._in_playing = False
         return update
 
-    def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True):
-        return self._reload(doanime, ttype, redraw, False, redisplay=False)
+    def _create_bgdata(self, e, ignoreeffectbooster=False):
+        assert e.tag <> "Redisplay"
+        left = e.getint("Location", "left")
+        top = e.getint("Location", "top")
+        pos = (left, top)
+        width = e.getint("Size", "width")
+        height = e.getint("Size", "height")
+        size = (width, height)
+        flag = e.gettext("Flag", "")
+        layer = e.getint("Layer", cw.LAYER_BACKGROUND)
+        visible = e.getattr(".", "visible", "")
+        hasvisible = visible <> ""
+        if visible in (u"True", u"False"):
+            visible = visible == u"True"
+        else:
+            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+        cellname = e.getattr(".", "cellname", "")
 
-    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False, redisplay=True,
-                beforeload=False):
+        def getcolor(e, xpath, r, g, b, a):
+            r = e.getint(xpath, "r", r)
+            g = e.getint(xpath, "g", g)
+            b = e.getint(xpath, "b", b)
+            a = e.getint(xpath, "a", a)
+            return (r, g, b, a)
+
+        if e.tag == "BgImage":
+            # 背景画像
+            mask = e.getbool(".", "mask", False)
+            path = e.gettext("ImagePath", "")
+            if ignoreeffectbooster and os.path.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
+                # 背景置換コンテントでエフェクトブースターファイルが
+                # 完全に無視される(CWNext 1.60との互換動作)
+                return None
+
+            # 使用時イベント中なら使用したカードの素材から探す
+            if e.getbool("ImagePath", "inusecard", False):
+                inusecard = True
+            else:
+                imgpath = cw.util.get_inusecardmaterialpath(path, cw.M_IMG)
+                inusecard = os.path.isfile(imgpath)
+
+            return (path, inusecard, mask, size, pos, flag, visible, layer, cellname)
+
+        elif e.tag == "TextCell":
+            # テキストセル
+            text = e.gettext("Text", "")
+            face = e.gettext("Font", "")
+            tsize = e.getint("Font", "size", 12)
+            color = getcolor(e, "Color", 0, 0, 0, 255)
+            bold = e.getbool("Font", "bold", False)
+            italic = e.getbool("Font", "italic", False)
+            underline = e.getbool("Font", "underline", False)
+            strike = e.getbool("Font", "strike", False)
+            vertical = e.getbool("Vertical", False)
+            btype = e.getattr("Bordering", "type", "None")
+            bcolor = getcolor(e, "Bordering/Color", 255, 255, 255, 255)
+            bwidth = e.getint("Bordering", "width", 1)
+            if hasvisible:
+                # visible属性を持つ場合はシナリオではなくScenarioLogの情報。
+                # 0.12.3以前はテキストセルの内容が表示の有無にかかわりなく
+                # 最初の出現時点で固定されていたが、0.12.4以降はCardWirthに
+                # 合わせて最初の表示時点で固定するように変更した。
+                # visibleがあってloadedが無い場合は0.12.3以前の情報で、
+                # 内容はすでに固定済みとなっている。
+                loaded = e.getbool(".", "loaded", True)
+            else:
+                loaded = e.getbool(".", "loaded", False)
+
+            text = cw.util.decodewrap(text)
+
+            return (text, face, tsize, color, bold, italic, underline, strike, vertical,
+                    btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname)
+
+        elif e.tag == "ColorCell":
+            # カラーセル
+            blend = e.gettext("BlendMode", "Normal")
+            color1 = getcolor(e, "Color", 255, 255, 255, 255)
+            gradient = e.getattr("Gradient", "direction", "None")
+            color2 = getcolor(e, "Gradient/EndColor", 0, 0, 0, 255)
+
+            return (blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname)
+
+        else:
+            assert False
+
+    def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, cellname=u"", repldata=None,
+               movedata=None, ignoreeffectbooster=False):
+        return self._reload(doanime, ttype, redraw, False, redisplay=False, cellname=cellname, repldata=repldata,
+                            movedata=movedata, ignoreeffectbooster=ignoreeffectbooster)
+
+    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False,
+                redisplay=True, beforeload=False, cellname=u"", repldata=None, movedata=None, ignoreeffectbooster=False):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
-        oldbgs = list(self.bgs)
+        if cellname:
+            # 背景置換または削除。
+            # 置換において複数のセルが指定された場合は次のように動く。
+            #  1. 指定名称のセルを全て削除する
+            #  2. 指定名称の最初のセルがあった位置に置換後セルを全て追加する
+            bgs2 = []
+            replaced = False
+            for bgtype, d in self.bgs:
+                if cellname == self._get_cellname(bgtype, d):
+                    if not repldata is None:
+                        for e in repldata:
+                            if e.tag == "BgImage":
+                                # 背景画像
+                                bgtype = BG_IMAGE
+                                d = self._create_bgdata(e, ignoreeffectbooster=ignoreeffectbooster)
+                                if not d:
+                                    continue
+
+                            elif e.tag == "TextCell":
+                                # テキストセル
+                                bgtype = BG_TEXT
+                                d = self._create_bgdata(e)
+
+                            elif e.tag == "ColorCell":
+                                # カラーセル
+                                bgtype = BG_COLOR
+                                d = self._create_bgdata(e)
+                            bgs2.append((bgtype, d))
+                        repldata = None
+                    replaced = True
+                else:
+                    bgs2.append((bgtype, d))
+
+            if not replaced:
+                # 指定されたセル名称のセルが無かった
+                return False
+        else:
+            bgs2 = self.bgs
+
         # 背景再構築
+        oldbgs = list(self.bgs)
         bgs = []
 
         animated = False
@@ -380,7 +441,8 @@ class BackGround(base.CWPySprite):
         if not beforeload and not doanime:
             ttype = cw.sprite.transition.get_transition(ttype)
 
-        for bgtype, d in self.bgs:
+        for bgtype, d in bgs2:
+
             if bgtype == BG_IMAGE:
                 # 背景画像
                 try:
@@ -450,6 +512,12 @@ class BackGround(base.CWPySprite):
             return bool(visible) <> bool(cw.cwpy.sdata.flags.get(flag, True))
         else:
             return False
+
+    def _get_cellname(self, bgtype, d):
+        if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR):
+            return d[-1]
+        else:
+            return u""
 
     def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime, nocheckvisible=False):
         path, inusecard, mask, size, pos, flag, visible, layer, cellname = d

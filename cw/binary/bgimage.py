@@ -173,6 +173,9 @@ class BgImage(base.CWBinaryBase):
         flag = ""
         unknown = 0
 
+        if data.get("cellname", ""):
+            f.check_wsnversion("1")
+
         # 背景画像
         imgpath = ""
         mask = cw.util.str2bool(data.get("mask", False))

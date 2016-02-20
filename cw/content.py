@@ -31,12 +31,14 @@ class EventContentBase(object):
         ChangeBgImage, ChangeArea, Redisplayコンテント参照。
         """
         tname = self.data.get("transition", "Default")
-        tspeed = self.data.get("transitionspeed", "Default")
-
-        try:
-            tspeed = int(tspeed)
-        except:
-            pass
+        if tname == "Default":
+            tspeed = "Default"
+        else:
+            tspeed = self.data.get("transitionspeed", "Default")
+            try:
+                tspeed = int(tspeed)
+            except:
+                pass
 
         return (tname, tspeed)
 
@@ -94,6 +96,16 @@ class EventContentBase(object):
                 self._author = ""
                 self._inusecard = False
         return self._inusecard and (self._scenario <> cw.cwpy.sdata.name or self._author <> cw.cwpy.sdata.author)
+
+    def update_bg_after(self):
+        # 背景更新中、ユーザ操作によりスケール変更のイベントが発生する
+        # 可能性があるため、後続のイベントへ進む前に全て消化する
+        if not cw.cwpy.event.is_stoped():
+            cw.cwpy.input()
+            cw.cwpy.eventhandler.run()
+            while pygame.event.peek(pygame.locals.USEREVENT) and not not cw.cwpy.event.is_stoped():
+                cw.cwpy.input()
+                cw.cwpy.eventhandler.run()
 
     @property
     def textdict(self):
@@ -1634,14 +1646,9 @@ class ChangeBgImageContent(EventContentBase):
             # フレームを進める
             cw.cwpy.draw()
             cw.cwpy.tick_clock(framerate=30)
-        if not cw.cwpy.event.is_stoped():
-            cw.cwpy.input()
-            cw.cwpy.eventhandler.run()
-            while pygame.event.peek(pygame.locals.USEREVENT) and not cw.cwpy.event.is_stoped():
-                # ユーザ操作によりスケール変更のイベントが発生する可能性があるため
-                # 後続のイベントへ進む前に全て消化
-                cw.cwpy.input()
-                cw.cwpy.eventhandler.run()
+
+        self.update_bg_after()
+
         return 0
 
     def get_status(self):
@@ -2658,6 +2665,29 @@ class LoseCouponContent(LoseContent):
         else:
             return u"称号が指定されていません"
 
+class LoseBgImageContent(EventContentBase):
+    def __init__(self, data):
+        EventContentBase.__init__(self, data)
+        self.cellname = data.getattr(".", "cellname", u"")
+
+    def action(self):
+        """背景削除コンテント(Wsn.1)。"""
+        if not self.cellname:
+            return 0
+
+        ttype = self.get_transitiontype()
+        if cw.cwpy.background.reload(True, ttype, cellname=self.cellname, repldata=None):
+            # フレームを進める
+            cw.cwpy.draw()
+            cw.cwpy.tick_clock(framerate=30)
+
+        self.update_bg_after()
+
+        return 0
+
+    def get_status(self):
+        return u"セル名称 = 【%s】" % (self.cellname)
+
 #-------------------------------------------------------------------------------
 # Play系コンテント
 #-------------------------------------------------------------------------------
@@ -2751,14 +2781,9 @@ class RedisplayContent(EventContentBase):
             # フレームを進める
             cw.cwpy.draw()
             cw.cwpy.tick_clock(framerate=30)
-        if not cw.cwpy.event.is_stoped():
-            cw.cwpy.input()
-            cw.cwpy.eventhandler.run()
-            while pygame.event.peek(pygame.locals.USEREVENT) and not not cw.cwpy.event.is_stoped():
-                # ユーザ操作によりスケール変更のイベントが発生する可能性があるため
-                # 後続のイベントへ進む前に全て消化
-                cw.cwpy.input()
-                cw.cwpy.eventhandler.run()
+
+        self.update_bg_after()
+
         return 0
 
     def get_status(self):
@@ -3466,6 +3491,63 @@ class BranchFlagValueContent(BranchContent):
 
         else:
             return u"フラグが指定されていません"
+
+#-------------------------------------------------------------------------------
+# 移動系コンテント (Wsn.1～)
+#-------------------------------------------------------------------------------
+
+# TODO
+
+#-------------------------------------------------------------------------------
+# 置換系コンテント (Wsn.1～)
+#-------------------------------------------------------------------------------
+
+class ReplaceBgImageContent(EventContentBase):
+    def __init__(self, data):
+        EventContentBase.__init__(self, data)
+        self.cellname = data.getattr(".", "cellname", u"")
+
+    def action(self):
+        """背景置換コンテント(Wsn.1)。"""
+        if not self.cellname:
+            return 0
+
+        e = self.data.getfind("BgImages")
+        elements = cw.cwpy.sdata.get_bgdata(e)
+        ttype = self.get_transitiontype()
+
+        if cw.cwpy.background.reload(False, ttype, cellname=self.cellname, repldata=elements,
+                                     ignoreeffectbooster=True):
+            # フレームを進める
+            cw.cwpy.draw()
+            cw.cwpy.tick_clock(framerate=30)
+
+        self.update_bg_after()
+
+        return 0
+
+    def get_status(self):
+        seq = []
+
+        for e in self.data.getfind("BgImages", raiseerror=False):
+            if e.tag == "BgImage":
+                path = e.gettext("ImagePath", "")
+                seq.append(path)
+            elif e.tag == "TextCell":
+                text = e.gettext("Text", "")
+                if 10 < len(text):
+                    text = text.replace(u"\\n", u"")
+                    text = text[:10+1] + u"..."
+                seq.append(u"テキスト「%s」" % (text))
+            elif e.tag == "ColorCell":
+                seq.append(u"カラーセル")
+
+        if seq:
+            s = u"】【".join(seq)
+        else:
+            s = u"無し"
+
+        return u"セル名称 = 【%s】 背景 = 【%s】" % (self.cellname, s)
 
 #-------------------------------------------------------------------------------
 # 特殊コンテント

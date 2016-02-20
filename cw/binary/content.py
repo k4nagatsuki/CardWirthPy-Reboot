@@ -380,8 +380,7 @@ class Content(base.CWBinaryBase):
         elif tag == "End" and ctype == "BadEnd":
             pass
         elif tag == "Change" and ctype == "Area":
-            if data.get("transition", "Default") <> "Default" or\
-                    data.get("transitionspeed", "Default") <> "Default":
+            if data.get("transition", "Default") <> "Default":
                 f.check_wsnversion("")
             f.write_dword(int(data.get("id")))
         elif tag == "Talk" and ctype == "Message":
@@ -396,8 +395,7 @@ class Content(base.CWBinaryBase):
             f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
             f.check_bgmoptions(data)
         elif tag == "Change" and ctype == "BgImage":
-            if data.get("transition", "Default") <> "Default" or\
-                    data.get("transitionspeed", "Default") <> "Default":
+            if data.get("transition", "Default") <> "Default":
                 f.check_wsnversion("")
             bgimgs = []
             for e in data:
@@ -593,8 +591,7 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and ctype == "IsBattle":
             pass
         elif tag == "Redisplay" and ctype == "":
-            if data.get("transition", "Default") <> "Default" or\
-                    data.get("transitionspeed", "Default") <> "Default":
+            if data.get("transition", "Default") <> "Default":
                 f.check_version("CardWirthPy 0.12")
         elif tag == "Check" and ctype == "Flag":
             f.write_string(data.get("flag"))
@@ -645,6 +642,12 @@ class Content(base.CWBinaryBase):
             f.check_version(1.50)
             f.write_byte(base.CWBinaryBase.unconv_comparison3(data.get("comparison")))
             f.write_dword(int(data.get("round")))
+        elif tag == "Replace" and ctype == "BgImage": # Wsn.1
+            f.check_wsnversion("1")
+        elif tag == "Lose" and ctype == "BgImage": # Wsn.1
+            f.check_wsnversion("1")
+        elif tag == "Move" and ctype == "BgImage": # Wsn.1
+            f.check_wsnversion("1")
         else:
             raise ValueError(tag + ", " + ctype)
 
