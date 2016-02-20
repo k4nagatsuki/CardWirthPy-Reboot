@@ -3533,7 +3533,31 @@ class MoveBgImageContent(EventContentBase):
         return 0
 
     def get_status(self):
-        return u"TODO"
+        seq = []
+        seq.append(u"セル名称 = 【%s】" % (self.cellname))
+        if self.positiontype <> "None":
+            if self.positiontype == "Absolute":
+                s = u"(%s, %s)pxへ移動" % (self.x, self.y)
+            elif self.positiontype == "Relative":
+                s = u"現在位置+(%s, %s)pxへ移動" % (self.x, self.y)
+            elif self.positiontype == "Percentage":
+                s = u"現在位置×(%s, %s)%%へ移動" % (self.x, self.y)
+            else:
+                assert False
+            seq.append(s)
+
+        if self.sizetype <> "None":
+            if self.sizetype == "Absolute":
+                s = u"(%s, %s)pxにリサイズ" % (self.width, self.height)
+            elif self.sizetype == "Relative":
+                s = u"現在サイズ+(%s, %s)pxにリサイズ" % (self.width, self.height)
+            elif self.sizetype == "Percentage":
+                s = u"現在サイズ×(%s, %s)%%にリサイズ" % (self.width, self.height)
+            else:
+                assert False
+            seq.append(s)
+
+        return u" ".join(seq)
 
 #-------------------------------------------------------------------------------
 # 置換系コンテント (Wsn.1～)
