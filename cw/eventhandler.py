@@ -819,15 +819,18 @@ class EventHandlerForMessageWindow(EventHandler):
         elif len(cw.cwpy.list) == 1:
             cw.cwpy.has_inputevent = True
             sbar = cw.cwpy.list[cw.cwpy.index]
-            sbar.lclick_event(skip=True)
+            if isinstance(sbar, cw.sprite.message.SelectionBar):
+                sbar.lclick_event(skip=True)
         elif isinstance(cw.cwpy.selection, cw.sprite.message.SelectionBar):
             cw.cwpy.has_inputevent = True
             sbar = cw.cwpy.selection
-            sbar.lclick_event(skip=True)
+            if isinstance(sbar, cw.sprite.message.SelectionBar):
+                sbar.lclick_event(skip=True)
         elif not pushing and cw.cwpy.index >= 0:
             cw.cwpy.has_inputevent = True
             sbar = cw.cwpy.list[cw.cwpy.index]
-            sbar.lclick_event(skip=True)
+            if isinstance(sbar, cw.sprite.message.SelectionBar):
+                sbar.lclick_event(skip=True)
 
     def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
         """
@@ -861,7 +864,8 @@ class EventHandlerForMessageWindow(EventHandler):
         if len(cw.cwpy.list) == 1 and y > 0:
             cw.cwpy.has_inputevent = True
             sbar = cw.cwpy.list[cw.cwpy.index]
-            sbar.lclick_event(skip=True)
+            if isinstance(sbar, cw.sprite.message.SelectionBar):
+                sbar.lclick_event(skip=True)
 
         elif cw.cwpy.list:
             cw.cwpy.has_inputevent = True
