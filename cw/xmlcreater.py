@@ -837,6 +837,8 @@ def create_scenariolog(sdata, path, recording):
                 btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible),
                      "loaded": str(loaded)}
+            if cellname:
+                attrs["cellname"] = cellname
             e_bgimg = cw.data.make_element("TextCell", attrs=attrs)
 
             e = cw.data.make_element("Text", text)
@@ -861,6 +863,8 @@ def create_scenariolog(sdata, path, recording):
         elif bgtype == cw.sprite.background.BG_COLOR:
             blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible)}
+            if cellname:
+                attrs["cellname"] = cellname
             e_bgimg = cw.data.make_element("ColorCell", attrs=attrs)
 
             e = cw.data.make_element("BlendMode", blend)
