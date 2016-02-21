@@ -937,7 +937,10 @@ class CWPy(_Singleton, threading.Thread):
             for music in self.music:
                 if music.movie_scr:
                     self.scr_draw.blit(music.movie_scr, (0, 0))
-            dirty_rects.extend(self.sbargrp.draw(self.scr_draw))
+            clip2 = self.scr_draw.get_clip()
+            self.scr_draw.set_clip(None)
+            dirty_rects.extend(self.statusbar.layered_draw_ex(self.sbargrp, self.scr_draw))
+            self.scr_draw.set_clip(clip2)
 
             # FPS描画
             if self.setting.showfps:
@@ -1378,6 +1381,7 @@ class CWPy(_Singleton, threading.Thread):
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+        self.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
 
         # 互換性マーク削除
         if self.is_playingscenario():

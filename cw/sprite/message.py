@@ -155,6 +155,7 @@ class MessageWindow(base.CWPySprite):
         else:
             cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
             cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+            cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
         self.selections = []
         self.selection_pos = cw.s((81, 230))
 
@@ -602,6 +603,14 @@ class SelectionBar(base.SelectableSprite):
         else:
             self.group = cw.cwpy.cardgrp
             self.group.add(self, layer=cw.LAYER_SELECTIONBAR_1)
+
+        # 半ば画面外へ出る選択肢は特別措置としてステータスバー上にも表示する
+        if cw.s(cw.SIZE_AREA[1]) <= self.rect.bottom:
+            cw.cwpy.sbargrp.add(self, layer=cw.sprite.statusbar.LAYER_MESSAGE)
+
+        # 完全に画面外に出る選択肢は表示禁止
+        if cw.s(cw.SIZE_GAME[1]) <= self.rect.bottom:
+            self.rect.height = 0
 
     def get_unselectedimage(self):
         return self._image

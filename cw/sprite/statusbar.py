@@ -8,6 +8,12 @@ import cw
 import base
 
 
+LAYER_BASE = 0
+LAYER_STATUS_ITEM = 1
+LAYER_MESSAGE = 2
+LAYER_VOLUME_BAR = 3
+LAYER_DESC = 4
+
 class StatusBar(base.CWPySprite):
     def __init__(self):
         base.CWPySprite.__init__(self)
@@ -26,10 +32,10 @@ class StatusBar(base.CWPySprite):
         self._statusbarmask = cw.cwpy.setting.statusbarmask
         self.loading = False
         self.volumebar = VolumeBar()
-        cw.cwpy.sbargrp.add(self.volumebar, layer=3)
+        cw.cwpy.sbargrp.add(self.volumebar, layer=LAYER_VOLUME_BAR)
         self._init_image()
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer=0)
+        cw.cwpy.sbargrp.add(self, layer=LAYER_BASE)
 
     def _init_image(self):
         self.image = pygame.Surface(cw.s((632, 33))).convert()
@@ -140,8 +146,9 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.event.refresh_tools()
 
     def clear(self):
-        cw.cwpy.sbargrp.remove_sprites_of_layer(1)
-        cw.cwpy.sbargrp.remove_sprites_of_layer(2)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_ITEM)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_VOLUME_BAR)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_DESC)
 
     def _create_autostart(self, pos):
         if self.autostart:
@@ -210,6 +217,27 @@ class StatusBar(base.CWPySprite):
         """全体音量バーが表示中か。"""
         return 0 < self.volumebar.rect.width
 
+    def layered_draw_ex(self, layered_updates, surface):
+        rects = []
+        srect = surface.get_rect()
+        clip = surface.get_clip()
+        if clip:
+            srect = clip
+
+        sprites = layered_updates.sprites()
+        h = cw.SIZE_GAME[1]-cw.SIZE_AREA[1]
+        sbarclip = cw.s(pygame.Rect(0, cw.SIZE_AREA[1], cw.SIZE_GAME[0], h))
+        for sprite in sprites:
+            if srect.colliderect(sprite.rect):
+                if isinstance(sprite, (VolumeBar, Desc)):
+                    surface.set_clip(srect.clip(sprite.rect))
+                else:
+                    surface.set_clip(srect.clip(sprite.rect).clip(sbarclip))
+                rect = surface.blit(sprite.image, sprite.rect)
+                rects.append(rect)
+        surface.set_clip(clip)
+        return rects
+
 class VolumeBar(base.CWPySprite):
 
     def __init__(self):
@@ -273,7 +301,7 @@ class ProgressView(base.CWPySprite):
         self.update(None)
 
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer=1)
+        cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_ITEM)
 
     def update(self, scr):
         params = (self.text, self.max, self.min, self.current)
@@ -358,7 +386,7 @@ class StatusBarPanel(base.CWPySprite):
         self.rect.top = self.parent.rect.top + pos[1]
         self.rect.left = self.parent.rect.left + pos[0]
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer=1)
+        cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_ITEM)
 
     def update_image(self):
         pass
@@ -626,7 +654,7 @@ class StatusBarButton(base.SelectableSprite):
         self.rect.left = self.parent.rect.left + pos[0]
 
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer=1)
+        cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_ITEM)
 
     def get_icon(self):
         return None
@@ -777,7 +805,19 @@ class StatusBarButton(base.SelectableSprite):
             rect = self._desc.rect
             self._desc = None
             self._desc = Desc(self, self.name, self.desc, self.hotkey)
-            cw.cwpy.sbargrp.add(self._desc, layer=2)
+            cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
+
+    def is_selection(self):
+        # FIXME: メッセージの選択肢と重なった領域でマウスポインタを
+        #        動かすと解説表示が出たり消えたりするのを避ける。
+        #        本来はすでに選択中のスプライトがselfより前にあれば
+        #        マウスポインタ位置による選択を行わないという判定を
+        #        SelectableSpriteに実装するべきだが、
+        #        前後の判定が簡単ではないのでここで暫定的に対処する。
+        b = cw.sprite.base.SelectableSprite.is_selection(self)
+        if b and cw.cwpy.selection and isinstance(cw.cwpy.selection, cw.sprite.message.SelectionBar):
+            return False
+        return b
 
     def update_image(self):
         if not self.enabled:
@@ -790,11 +830,12 @@ class StatusBarButton(base.SelectableSprite):
         if cw.cwpy.setting.show_btndesc and self.is_selection() and self.desc and not cw.cwpy.is_showingdlg():
             if not self._desc:
                 self._desc = Desc(self, self.name, self.desc, self.hotkey)
-                cw.cwpy.sbargrp.add(self._desc, layer=2)
+                cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
         else:
             if self._desc:
                 cw.cwpy.sbargrp.remove(self._desc)
                 self._desc = None
+                cw.cwpy.has_inputevent = True
 
         flags = 0
         if self.is_pushed:

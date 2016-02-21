@@ -886,6 +886,7 @@ class EventHandlerForMessageWindow(EventHandler):
                 cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
                 cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
                 cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+                cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
                 if redraw:
                     cw.cwpy.draw()
         else:
@@ -893,6 +894,8 @@ class EventHandlerForMessageWindow(EventHandler):
                 cw.cwpy.cardgrp.add(self.mwin, layer=cw.LAYER_MESSAGE)
                 for sbar in self.mwin.selections:
                     cw.cwpy.cardgrp.add(sbar, layer=cw.LAYER_SELECTIONBAR_1)
+                    if cw.s(cw.SIZE_AREA[1]) <= sbar.rect.bottom:
+                        cw.cwpy.sbargrp.add(sbar, layer=cw.sprite.statusbar.LAYER_MESSAGE)
                 if redraw:
                     cw.cwpy.draw()
 
