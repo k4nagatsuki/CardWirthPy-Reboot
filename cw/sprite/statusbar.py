@@ -147,7 +147,6 @@ class StatusBar(base.CWPySprite):
 
     def clear(self):
         cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_ITEM)
-        cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_VOLUME_BAR)
         cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_DESC)
 
     def _create_autostart(self, pos):
