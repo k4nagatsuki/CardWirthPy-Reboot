@@ -942,6 +942,7 @@ class EventHandlerForBacklog(EventHandler):
                 scrsize_noscale += self._pos_noscale[0]
             else:
                 scrsize_noscale += cw.SIZE_AREA[1]-(h+self.backlog[-1].rect_noscale[1])
+                scrsize_noscale = max(scrsize_noscale, self._bottom_noscale[-1]+cw.s(5))
         else:
             self._height_noscale = []
             self._pos_noscale = []
@@ -1237,6 +1238,7 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_PAGE)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_SCROLLBAR)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
 
     def exit_backlog(self, playsound=True):
         if playsound:
@@ -1292,6 +1294,7 @@ class EventHandlerForBacklog(EventHandler):
         # スプライト削除
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
         if cw.cwpy.setting.is_logscrollable():
             self.mwin = None
             # 表示範囲

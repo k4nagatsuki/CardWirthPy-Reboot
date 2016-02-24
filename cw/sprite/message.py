@@ -606,10 +606,14 @@ class SelectionBar(base.SelectableSprite):
 
         # 半ば画面外へ出る選択肢は特別措置としてステータスバー上にも表示する
         if cw.s(cw.SIZE_AREA[1]) <= self.rect.bottom:
-            cw.cwpy.sbargrp.add(self, layer=cw.sprite.statusbar.LAYER_MESSAGE)
+            if backlog:
+                if cw.cwpy.setting.messagelog_type == cw.setting.LOG_SINGLE:
+                    cw.cwpy.sbargrp.add(self, layer=cw.sprite.statusbar.LAYER_MESSAGE_LOG)
+            else:
+                cw.cwpy.sbargrp.add(self, layer=cw.sprite.statusbar.LAYER_MESSAGE)
 
         # 完全に画面外に出る選択肢は表示禁止
-        if cw.s(cw.SIZE_GAME[1]) <= self.rect.bottom:
+        if cw.s(cw.SIZE_AREA[1]) < self.rect.top:
             self.rect.height = 0
 
     def get_unselectedimage(self):
