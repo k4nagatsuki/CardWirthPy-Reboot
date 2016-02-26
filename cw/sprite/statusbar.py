@@ -11,9 +11,9 @@ import base
 LAYER_BASE = 0
 LAYER_STATUS_ITEM = 1
 LAYER_MESSAGE = 2
-LAYER_MESSAGE_LOG = 2
-LAYER_VOLUME_BAR = 3
-LAYER_DESC = 4
+LAYER_MESSAGE_LOG = 3
+LAYER_VOLUME_BAR = 4
+LAYER_DESC = 5
 
 class StatusBar(base.CWPySprite):
     def __init__(self):
