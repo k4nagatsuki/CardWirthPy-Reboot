@@ -573,7 +573,8 @@ class CWPy(_Singleton, threading.Thread):
     def update_curtainstyle(self):
         """カーテンの描画形式の変更を反映する。"""
         for sprite in itertools.chain(self.cardgrp.sprites(),
-                                      self.backloggrp.sprites()):
+                                      self.backloggrp.sprites(),
+                                      self.sbargrp.sprites()):
             if isinstance(sprite, cw.sprite.message.BacklogCurtain):
                 sprite.color = self.setting.blcurtaincolour
                 sprite.update_scale()

@@ -67,7 +67,7 @@ class MessageWindow(base.CWPySprite):
         self.speed = cw.cwpy.setting.messagespeed
         # SelectionBarインスタンスリスト
         self.selections = []
-        self.selection_pos = cw.s((81, 230))
+        self.selection_pos_noscale = (81, 230)
         # frame
         self.frame = 0
         if not self.backlog:
@@ -157,7 +157,7 @@ class MessageWindow(base.CWPySprite):
             cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
             cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
         self.selections = []
-        self.selection_pos = cw.s((81, 230))
+        self.selection_pos_noscale = (81, 230)
 
         self.is_drawing = True
         self.frame = 0
@@ -238,15 +238,15 @@ class MessageWindow(base.CWPySprite):
         # SelectionBarを描画
         if not self.backlog:
             cw.cwpy.list = self.selections
-        x, y = self.selection_pos
+        x_noscale, y_noscale = self.selection_pos_noscale
 
         for index, name in enumerate(self.names):
             # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
             if not self.backlog and self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
                 name = (name[0], self.rpl_specialstr(False, name[1], self.name_subtable, encodedtext=False))
-            pos = (x, cw.s(25) * index + y)
+            pos_noscale = (x_noscale, 25 * index + y_noscale)
             selected = 1 < len(self.names) and self.backlog and self.result == index
-            sbar = SelectionBar(name, pos, backlog=self.backlog, selected=selected)
+            sbar = SelectionBar(name, pos_noscale, backlog=self.backlog, selected=selected)
             self.selections.append(sbar)
             sbar.update()
             self.names_log.append(name)
@@ -513,7 +513,7 @@ class SelectWindow(MessageWindow):
         self.is_drawing = True
         # SelectionBarインスタンスリスト
         self.selections = []
-        self.selection_pos = cw.s((81, 90))
+        self.selection_pos_noscale = (81, 90)
         # メッセージ全て表示
         self.draw_all(textimg)
         # spritegroupに追加
@@ -552,7 +552,7 @@ class SelectWindow(MessageWindow):
             cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
             cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
         self.selections = []
-        self.selection_pos = cw.s((81, 90))
+        self.selection_pos_noscale = (81, 90)
 
         self.is_drawing = True
         self.frame = 0
@@ -575,7 +575,7 @@ class MemberSelectWindow(SelectWindow):
         SelectWindow.__init__(self, names, text, pos_noscale, size_noscale)
 
 class SelectionBar(base.SelectableSprite):
-    def __init__(self, name, pos, backlog=False, selected=False):
+    def __init__(self, name, pos_noscale, backlog=False, selected=False):
         base.SelectableSprite.__init__(self)
         self.selectable_on_event = True
         # 各種データ
@@ -585,11 +585,13 @@ class SelectionBar(base.SelectableSprite):
         self.name = name[1]
         self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext and "selectionbar_classic" in cw.cwpy.rsrc.fonts
         # 通常画像
-        size = cw.s((470, 25))
+        self.size_noscale = (470, 25)
+        size = cw.s(self.size_noscale)
         self._image = self.get_image(size)
         # rect
         self.rect = self._image.get_rect()
-        self.rect.topleft = pos
+        self.pos_noscale = pos_noscale
+        self.rect.topleft = cw.s(self.pos_noscale)
         # image
         self.image = self._image
         # status
@@ -720,9 +722,9 @@ class SelectionBar(base.SelectableSprite):
         else:
             mwin.result = self.index
 
-class BacklogData:
+class BacklogData(object):
     def __init__(self, base):
-        """バックログ表示用のデータ。
+        """メッセージログ表示用のデータ。
         """
         if isinstance(base, SelectWindow):
             self.type = 1
@@ -816,8 +818,8 @@ class BacklogData:
         return base
 
 class BacklogCurtain(base.CWPySprite):
-    def __init__(self, spritegrp, color=None):
-        """バックログ用の半透明黒背景スプライト。
+    def __init__(self, spritegrp, layer, size_noscale, pos_noscale, color=None):
+        """メッセージログ用の半透明黒背景スプライト。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         alpha: 透明度。
         """
@@ -826,20 +828,22 @@ class BacklogCurtain(base.CWPySprite):
             self.color = color
         else:
             self.color = cw.cwpy.setting.blcurtaincolour
-        self.image = pygame.Surface(cw.s((632, 420))).convert()
+        self.size_noscale = size_noscale
+        self.pos_noscale = pos_noscale
+        self.image = pygame.Surface(cw.s(self.size_noscale)).convert()
         self.image.fill(self.color[:3])
         self.image.set_alpha(self.color[3])
         self.rect = self.image.get_rect()
-        self.rect.topleft = cw.s((0, 0))
+        self.rect.topleft = cw.s(self.pos_noscale)
         # spritegroupに追加
-        spritegrp.add(self, layer=cw.LAYER_LOG_CURTAIN)
+        spritegrp.add(self, layer=layer)
 
     def update_scale(self):
-        self.image = pygame.Surface(cw.s((632, 420))).convert()
+        self.image = pygame.Surface(cw.s(self.size_noscale)).convert()
         self.image.fill(self.color[:3])
         self.image.set_alpha(self.color[3])
         self.rect = self.image.get_rect()
-        self.rect.topleft = cw.s((0, 0))
+        self.rect.topleft = cw.s(self.pos_noscale)
 
 class BacklogPage(base.CWPySprite):
     def __init__(self, page, pagemax, spritegrp):

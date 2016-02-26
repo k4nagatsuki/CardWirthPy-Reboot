@@ -949,7 +949,16 @@ class EventHandlerForBacklog(EventHandler):
             self._bottom_noscale = []
             scrsize_noscale = 0
 
-        self._curtain = cw.sprite.message.BacklogCurtain(cw.cwpy.backloggrp)
+        self._curtain = cw.sprite.message.BacklogCurtain(cw.cwpy.backloggrp, cw.LAYER_LOG_CURTAIN, cw.SIZE_AREA, (0, 0))
+        sbarbar = cw.cwpy.sbargrp.get_sprites_from_layer(cw.sprite.statusbar.LAYER_MESSAGE)
+        if sbarbar:
+            sbarbar = sbarbar[0]
+            self._curtain2 = cw.sprite.message.BacklogCurtain(cw.cwpy.sbargrp,
+                                                              cw.sprite.statusbar.LAYER_MESSAGE_LOG_CURTAIN,
+                                                              sbarbar.size_noscale, sbarbar.pos_noscale)
+        else:
+            self._curtain2 = None
+
         if init:
             self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale, visible=cw.cwpy.setting.is_logscrollable())
             self._scrollbar.lazyscroll_func = self.update_sprites
@@ -1238,6 +1247,7 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_PAGE)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_SCROLLBAR)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG_CURTAIN)
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
 
     def exit_backlog(self, playsound=True):
