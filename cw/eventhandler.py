@@ -918,9 +918,17 @@ class EventHandlerForBacklog(EventHandler):
 
         self._in_scroll = False
 
+        self._sbarbar = None
         self._update_posdata(init=True)
 
     def _update_posdata(self, init):
+        sbarbar = cw.cwpy.sbargrp.get_sprites_from_layer(cw.sprite.statusbar.LAYER_MESSAGE)
+        if self._sbarbar and sbarbar:
+            # ステータスバー上にはみ出した選択肢が一時的に非表示にされ、
+            # かつ画面スケールが変更された時には、選択肢が新規生成され
+            # 非表示化中の選択肢は不要になるので破棄する
+            self._sbarbar = None
+
         self._clear_sprites()
 
         self.backlog = self.backlog_all
@@ -950,14 +958,23 @@ class EventHandlerForBacklog(EventHandler):
             scrsize_noscale = 0
 
         self._curtain = cw.sprite.message.BacklogCurtain(cw.cwpy.backloggrp, cw.LAYER_LOG_CURTAIN, cw.SIZE_AREA, (0, 0))
-        sbarbar = cw.cwpy.sbargrp.get_sprites_from_layer(cw.sprite.statusbar.LAYER_MESSAGE)
         if sbarbar:
-            sbarbar = sbarbar[0]
-            self._curtain2 = cw.sprite.message.BacklogCurtain(cw.cwpy.sbargrp,
-                                                              cw.sprite.statusbar.LAYER_MESSAGE_LOG_CURTAIN,
-                                                              sbarbar.size_noscale, sbarbar.pos_noscale)
+            # 現在の仕様ではステータスバー上にはみ出る選択肢は1件まで
+            assert len(sbarbar) == 1
+            if cw.cwpy.setting.is_logscrollable():
+                # スクロールする時はステータスバー上の選択肢を一時的に非表示化する
+                self._sbarbar = sbarbar[0]
+                cw.cwpy.sbargrp.remove(self._sbarbar)
+            else:
+                # 1件ずつ表示する時はステータスバー上の選択肢にもカーテンをかける
+                sbarbar = sbarbar[0]
+                self._curtain2 = cw.sprite.message.BacklogCurtain(cw.cwpy.sbargrp,
+                                                                  cw.sprite.statusbar.LAYER_MESSAGE_LOG_CURTAIN,
+                                                                  sbarbar.size_noscale, sbarbar.pos_noscale)
+                self._sbarbar = None
         else:
             self._curtain2 = None
+            self._sbarbar = None
 
         if init:
             self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale, visible=cw.cwpy.setting.is_logscrollable())
@@ -1249,6 +1266,9 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_SCROLLBAR)
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG_CURTAIN)
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
+        if self._sbarbar:
+            cw.cwpy.sbargrp.add(self._sbarbar, layer=cw.sprite.statusbar.LAYER_MESSAGE)
+            self._sbarbar = None
 
     def exit_backlog(self, playsound=True):
         if playsound:
