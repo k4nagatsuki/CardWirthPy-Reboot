@@ -508,17 +508,23 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_show_advancedsettings.SetValue(cw.cwpy.setting.show_advancedsettings_init)
             self.pane_ui.cb_show_addctrlbtn.SetValue(cw.cwpy.setting.show_addctrlbtn_init)
             self.pane_ui.cb_show_experiencebar.SetValue(cw.cwpy.setting.show_experiencebar_init)
-            self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
 
+            if cw.setting.CONFIRM_BEFORESAVING_BASE == cw.cwpy.setting.confirm_beforesaving_init:
+                self.pane_ui.ch_confirm_beforesaving.SetSelection(1)
+            elif not cw.util.str2bool(cw.cwpy.setting.confirm_beforesaving_init):
+                self.pane_ui.ch_confirm_beforesaving.SetSelection(2)
+            else:
+                self.pane_ui.ch_confirm_beforesaving.SetSelection(0)
+            self.pane_ui.cb_showsavedmessage.SetValue(cw.cwpy.setting.show_savedmessage_init)
+            self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
             self.pane_ui.cb_store_skinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase_init)
+
             self.pane_ui.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard_init)
             self.pane_ui.cb_showbackpackcardatend.SetValue(cw.cwpy.setting.show_backpackcardatend_init)
             self.pane_ui.cb_can_clicksidesofcardcontrol.SetValue(cw.cwpy.setting.can_clicksidesofcardcontrol_init)
             self.pane_ui.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket_init)
             self.pane_ui.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation_init == cw.setting.WHEEL_SHOWLOG)
             self.pane_ui.cb_confirmbeforeusingcard.SetValue(cw.cwpy.setting.confirm_beforeusingcard_init)
-            self.pane_ui.cb_showsavedmessage.SetValue(cw.cwpy.setting.show_savedmessage_init)
-            self.pane_ui.cb_confirmbeforesaving.SetValue(cw.cwpy.setting.confirm_beforesaving_init)
             self.pane_ui.cb_noticeimpossibleaction.SetValue(cw.cwpy.setting.noticeimpossibleaction_init)
         self.GetTopLevelParent().applied()
 
@@ -918,8 +924,13 @@ class SettingsPanel(wx.Panel):
         setting.can_clicksidesofcardcontrol = value
         value = self.pane_ui.cb_revertcardpocket.GetValue()
         setting.revert_cardpocket = value
-        value = self.pane_ui.cb_confirmbeforesaving.GetValue()
-        setting.confirm_beforesaving = value
+        value = self.pane_ui.ch_confirm_beforesaving.GetSelection()
+        if value == 2:
+            setting.confirm_beforesaving = cw.setting.CONFIRM_BEFORESAVING_NO
+        elif value == 1:
+            setting.confirm_beforesaving = cw.setting.CONFIRM_BEFORESAVING_BASE
+        else:
+            setting.confirm_beforesaving = cw.setting.CONFIRM_BEFORESAVING_YES
         value = self.pane_ui.cb_showsavedmessage.GetValue()
         setting.show_savedmessage = value
         value = self.pane_ui.cb_confirmbeforeusingcard.GetValue()
@@ -2261,8 +2272,6 @@ class UISettingPanel(wx.ScrolledWindow):
         # インタフェースオプション
         self.box_gene = wx.StaticBox(self, -1, u"操作")
         # 基本的なオプション
-        self.cb_store_skinoneachbase = wx.CheckBox(
-            self, -1, u"拠点ごとにスキンを記憶する")
         self.cb_showbackpackcard = wx.CheckBox(
             self, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
         self.cb_showbackpackcardatend = wx.CheckBox(
@@ -2297,6 +2306,19 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_blink_partymoney = wx.CheckBox(
             self, -1, u"所持金が増減した時に所持金欄を点滅させる")
 
+        # セーブとロードオプション
+        self.box_saveandload = wx.StaticBox(self, -1, u"セーブとロード")
+        self.st_confirm_beforesaving = wx.StaticText(self, -1,
+                                                     u"セーブ前の確認ダイアログ:")
+        choices = [u"常に表示", u"拠点にいる時だけ表示", u"表示しない"]
+        self.ch_confirm_beforesaving = wx.Choice(self, -1, choices=choices)
+        self.cb_showsavedmessage = wx.CheckBox(
+            self, -1, u"セーブ完了時に確認ダイアログを表示")
+        self.cb_cautionbeforesaving = wx.CheckBox(
+            self, -1, u"保存せずに終了しようとしたら警告する")
+        self.cb_store_skinoneachbase = wx.CheckBox(
+            self, -1, u"拠点ごとにスキンを記憶する")
+
         # ダイアログオプション
         self.box_dlg = wx.StaticBox(self, -1, u"ダイアログ")
         self.cb_show_advancedsettings = wx.CheckBox(
@@ -2305,12 +2327,6 @@ class UISettingPanel(wx.ScrolledWindow):
             self, -1, u"絞り込み等の表示切替ボタンを表示する(非表示時はCtrl+Fで切替可能)")
         self.cb_show_experiencebar = wx.CheckBox(
             self, -1, u"キャラクター情報に次のレベルアップまでの割合を表示する")
-        self.cb_cautionbeforesaving = wx.CheckBox(
-            self, -1, u"保存せずに終了しようとしたら警告する")
-        self.cb_confirmbeforesaving = wx.CheckBox(
-            self, -1, u"セーブ前に確認ダイアログを表示")
-        self.cb_showsavedmessage = wx.CheckBox(
-            self, -1, u"セーブ完了時に確認ダイアログを表示")
         self.cb_confirmbeforeusingcard = wx.CheckBox(
             self, -1, u"カード使用時に確認ダイアログを表示")
         self.cb_noticeimpossibleaction = wx.CheckBox(
@@ -2333,7 +2349,6 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_show_cardkind.SetValue(setting.show_cardkind)
         self.cb_show_premiumicon.SetValue(setting.show_premiumicon)
 
-        self.cb_store_skinoneachbase.SetValue(setting.store_skinoneachbase)
         self.cb_showbackpackcard.SetValue(setting.show_backpackcard)
         self.cb_showbackpackcardatend.SetValue(setting.show_backpackcardatend)
         self.cb_can_clicksidesofcardcontrol.SetValue(setting.can_clicksidesofcardcontrol)
@@ -2349,12 +2364,19 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_blink_statusbutton.SetValue(setting.blink_statusbutton)
         self.cb_blink_partymoney.SetValue(setting.blink_partymoney)
 
+        if setting.confirm_beforesaving == cw.setting.CONFIRM_BEFORESAVING_BASE:
+            self.ch_confirm_beforesaving.SetSelection(1)
+        elif setting.confirm_beforesaving == cw.setting.CONFIRM_BEFORESAVING_NO:
+            self.ch_confirm_beforesaving.SetSelection(2)
+        else:
+            self.ch_confirm_beforesaving.SetSelection(0)
+        self.cb_cautionbeforesaving.SetValue(setting.caution_beforesaving)
+        self.cb_showsavedmessage.SetValue(setting.show_savedmessage)
+        self.cb_store_skinoneachbase.SetValue(setting.store_skinoneachbase)
+
         self.cb_show_advancedsettings.SetValue(setting.show_advancedsettings)
         self.cb_show_addctrlbtn.SetValue(setting.show_addctrlbtn)
         self.cb_show_experiencebar.SetValue(setting.show_experiencebar)
-        self.cb_cautionbeforesaving.SetValue(setting.caution_beforesaving)
-        self.cb_confirmbeforesaving.SetValue(setting.confirm_beforesaving)
-        self.cb_showsavedmessage.SetValue(setting.show_savedmessage)
         self.cb_confirmbeforeusingcard.SetValue(setting.confirm_beforeusingcard)
         self.cb_noticeimpossibleaction.SetValue(setting.noticeimpossibleaction)
 
@@ -2377,6 +2399,7 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_draw = wx.StaticBoxSizer(self.box_draw, wx.VERTICAL)
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_notice = wx.StaticBoxSizer(self.box_notice, wx.VERTICAL)
+        bsizer_saveandload = wx.StaticBoxSizer(self.box_saveandload, wx.VERTICAL)
         bsizer_dlg = wx.StaticBoxSizer(self.box_dlg, wx.VERTICAL)
 
         bsizer_wait.Add(self.cb_can_skipwait, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -2394,7 +2417,6 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_draw.Add(self.cb_show_premiumicon, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_draw.SetMinSize((SETTINGS_WIDTH, -1))
 
-        bsizer_gene.Add(self.cb_store_skinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showbackpackcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showbackpackcardatend, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_can_clicksidesofcardcontrol, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -2411,12 +2433,17 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_notice.Add(self.cb_blink_statusbutton, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_notice.Add(self.cb_blink_partymoney, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
+        bsizer_confirm_beforesaving = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_confirm_beforesaving.Add(self.st_confirm_beforesaving, 0, wx.ALIGN_CENTER|wx.RIGHT, 3)
+        bsizer_confirm_beforesaving.Add(self.ch_confirm_beforesaving, 0, wx.ALIGN_CENTER, 0)
+        bsizer_saveandload.Add(bsizer_confirm_beforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_saveandload.Add(self.cb_showsavedmessage, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_saveandload.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_saveandload.Add(self.cb_store_skinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+
         bsizer_dlg.Add(self.cb_show_advancedsettings, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_show_addctrlbtn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_show_experiencebar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_dlg.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_dlg.Add(self.cb_confirmbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_dlg.Add(self.cb_showsavedmessage, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_confirmbeforeusingcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_noticeimpossibleaction, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.SetMinSize((SETTINGS_WIDTH, -1))
@@ -2425,6 +2452,7 @@ class UISettingPanel(wx.ScrolledWindow):
         sizer_v1.Add(bsizer_draw, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_notice, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_saveandload, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_dlg, 0, wx.EXPAND, 0)
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)

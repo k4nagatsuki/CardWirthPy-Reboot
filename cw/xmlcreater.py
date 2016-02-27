@@ -390,7 +390,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         element.append(e)
     # セーブ前に確認ダイアログを表示
     if setting.confirm_beforesaving <> setting.confirm_beforesaving_init:
-        e = cw.data.make_element("ConfirmBeforeSaving", str(setting.confirm_beforesaving))
+        e = cw.data.make_element("ConfirmBeforeSaving", setting.confirm_beforesaving)
         element.append(e)
     # セーブ完了時に確認ダイアログを表示
     if setting.show_savedmessage <> setting.show_savedmessage_init:

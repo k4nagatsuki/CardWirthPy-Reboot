@@ -59,6 +59,11 @@ LOG_COMPRESS = "Compress"
 OPEN_TITLE = "Title"
 OPEN_LAST_BASE = "LastBase"
 
+# 保存前のダイアログ表示の有無
+CONFIRM_BEFORESAVING_YES = "True"
+CONFIRM_BEFORESAVING_NO = "False"
+CONFIRM_BEFORESAVING_BASE = "BaseOnly" # 宿にいる時に限り表示
+
 # ステータスバーのボタン状態
 SB_PRESSED   = 0b00000001 # 押下
 SB_CURRENT   = 0b00000010 # カーソル下
@@ -144,7 +149,7 @@ class Setting(object):
         self.wheelup_operation = WHEEL_SHOWLOG
         self.show_allselectedcards = True
         self.confirm_beforeusingcard = True
-        self.confirm_beforesaving = True
+        self.confirm_beforesaving = CONFIRM_BEFORESAVING_YES
         self.show_savedmessage = True
         self.show_backpackcard = True
         self.show_backpackcardatend = False
@@ -517,7 +522,7 @@ class Setting(object):
         # カード使用時に確認ダイアログを表示
         self.confirm_beforeusingcard = data.getbool("ConfirmBeforeUsingCard", self.confirm_beforeusingcard)
         # セーブ前に確認ダイアログを表示
-        self.confirm_beforesaving = data.getbool("ConfirmBeforeSaving", self.confirm_beforesaving)
+        self.confirm_beforesaving = data.gettext("ConfirmBeforeSaving", self.confirm_beforesaving)
         # セーブ完了時に確認ダイアログを表示
         self.show_savedmessage = data.getbool("ShowSavedMessage", self.show_savedmessage)
 

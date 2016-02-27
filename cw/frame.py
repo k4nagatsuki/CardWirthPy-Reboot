@@ -702,7 +702,12 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnSAVE(self, event):
-        if cw.cwpy.setting.confirm_beforesaving:
+        is_playingscenario = cw.cwpy.is_playingscenario()
+
+        if (cw.cwpy.setting.confirm_beforesaving == cw.setting.CONFIRM_BEFORESAVING_BASE and\
+                    not is_playingscenario) or\
+                not cw.cwpy.setting.confirm_beforesaving in (cw.setting.CONFIRM_BEFORESAVING_NO,
+                                                             cw.setting.CONFIRM_BEFORESAVING_BASE):
             s = cw.cwpy.msgs["confirm_save"]
             dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
             self.move_dlg(dlg)
