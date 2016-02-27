@@ -2239,7 +2239,8 @@ class ScenarioSettingPanel(wx.Panel):
 class UISettingPanel(wx.ScrolledWindow):
     def __init__(self, parent):
         wx.ScrolledWindow.__init__(self, parent)
-        self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_ALWAYS)
+        if 3 <= wx.VERSION[0]:
+            self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_ALWAYS)
         self.SetScrollbars(1, 1, 1, 1)
         self.SetScrollRate(1, 15)
         self.SetScrollPageSize(1, 250)
@@ -2402,6 +2403,13 @@ class UISettingPanel(wx.ScrolledWindow):
             panel = self.panel.GetFoldPanel(item)
             h += panel.GetSize()[1]
         self.panel.SetMinSize((-1, h))
+        if wx.VERSION[0] < 3:
+            self.panel.SetSize((self.GetClientSize()[0], h))
+            def func():
+                self.panel.FitInside()
+                self.panel.SetMinSize((self.GetClientSize()[0], h))
+                self.panel.SetSize((self.GetClientSize()[0], h))
+            wx.CallAfter(func)
 
     def load(self, setting):
         self.cb_can_skipwait.SetValue(setting.can_skipwait)
