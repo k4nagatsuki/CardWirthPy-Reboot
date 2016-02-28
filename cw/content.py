@@ -3078,8 +3078,8 @@ class TalkMessageContent(TalkContent):
                 talker = None
 
             if talker:
-                for imgpath in talker.imgpaths:
-                    imgpath = imgpath.path
+                for base in talker.imgpaths:
+                    imgpath = base.path
                     if talkeriscard:
                         if not cw.binary.image.path_is_code(imgpath):
                             if not hasattr(talker, "scenariocard") or not talker.scenariocard:
@@ -3089,7 +3089,7 @@ class TalkMessageContent(TalkContent):
                                     imgpath = cw.util.join_yadodir(imgpath)
                             else:
                                 imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, imgpath)
-                    talkers.append(cw.image.ImageInfo(imgpath, base=imgpath))
+                    talkers.append(cw.image.ImageInfo(imgpath, base=base))
             elif imgpath:
                 inusepath = cw.util.get_inusecardmaterialpath(imgpath, cw.M_IMG)
                 if os.path.isfile(inusepath):
