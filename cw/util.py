@@ -889,7 +889,7 @@ def _sorted_by_attr_impl(d, seq, *attr):
         get = operator.attrgetter(*attr)
     else:
         get = lambda a: a
-    re_num = re.compile(u"\\-?([0-9]+\\.?[0-9]*|[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+)")
+    re_num = re.compile(u"( *[0-9]+ *)| +")
     str_table = {}
 
     class LogicalStr(object):
@@ -907,7 +907,12 @@ def _sorted_by_attr_impl(d, seq, *attr):
                 si = m.start()
                 ei = m.end()
                 self.seq.append(s[pos:si].lower())
-                self.seq.append(float(s[si:ei]))
+                ss = s[si:ei]
+                if ss.isspace():
+                    self.seq.append(0)
+                    self.seq.append(ss)
+                else:
+                    self.seq.append(int(ss))
                 pos = ei
 
         def __cmp__(self, other):
@@ -967,8 +972,7 @@ def sort_by_attr(seq, *attr):
     return _sorted_by_attr_impl(True, seq, *attr)
 
 assert sort_by_attr(["a1234b", "a12b", "a1234b"]) == ["a12b", "a1234b", "a1234b"]
-assert sort_by_attr(["a.1234b", "a-.1234b", "a-.", "a-.1b", "a-12b", "a12.34b", "a1234.b"]) == ["a-12b", "a-.1234b", "a-.1b", "a.1234b", "a12.34b", "a1234.b", "a-."]
-assert sort_by_attr(["a12a", "a8a", "a8.5a", "a-1234a"]) == ["a-1234a", "a8a", "a8.5a", "a12a"]
+assert sort_by_attr(["a12b", "a1234b", "a1b", "a9b", "a01234b", "a1234b", "a-."]) == ["a1b", "a9b", "a12b", "a01234b", "a1234b", "a1234b", "a-."]
 
 def new_order(seq, mode=1):
     """order属性を持つアイテムのlistを
