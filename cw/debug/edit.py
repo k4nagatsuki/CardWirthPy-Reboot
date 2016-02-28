@@ -693,30 +693,6 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoW
         listmix.TextEditMixin.__init__(self)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
-    def make_editor(self, col_style=wx.LIST_FORMAT_LEFT):
-        listmix.TextEditMixin.make_editor(self, col_style)
-
-        if sys.platform == "win32" and sys.getwindowsversion().major < 6:
-            # BUG: Windows XPでペーストすると空欄になってしまうという
-            #      状態が頻繁に発生するので、せめてCtrl+Vによる
-            #      ペーストだけはキーイベントで介入して強制的に実行する。
-            self.editor.Bind(wx.EVT_KEY_DOWN, self.OnPaste)
-
-    def OnPaste(self, event):
-        if event.GetKeyCode() == ord('V') and event.ControlDown():
-            cb = wx.Clipboard.Get()
-            if not cb.IsOpened():
-                cb.Open()
-                try:
-                    dobj = wx.TextDataObject()
-                    if cb.GetData(dobj):
-                        s = dobj.GetText()
-                        self.editor.WriteText(s)
-                        return
-                finally:
-                    cb.Close()
-        event.Skip()
-
     def OpenEditor(self, row, col):
         # FIXME: 直接呼び出すとcol_locsが生成されないバグ
         self.col_locs = [0]
@@ -724,6 +700,9 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoW
         for n in xrange(self.GetColumnCount()):
             loc = loc + self.GetColumnWidth(n)
             self.col_locs.append(loc)
+        if sys.platform == "win32" and sys.getwindowsversion().major < 6:
+            # BUG: Windows XP環境でペーストすると空欄になる状態が発生する
+            self.make_editor()
         listmix.TextEditMixin.OpenEditor(self, row, col)
 
 #-------------------------------------------------------------------------------
