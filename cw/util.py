@@ -909,10 +909,9 @@ def _sorted_by_attr_impl(d, seq, *attr):
                 self.seq.append(s[pos:si].lower())
                 ss = s[si:ei]
                 if ss.isspace():
-                    self.seq.append(0)
-                    self.seq.append(ss)
+                    self.seq.append((0, ss))
                 else:
-                    self.seq.append(int(ss))
+                    self.seq.append((int(ss), ss))
                 pos = ei
 
         def __cmp__(self, other):
