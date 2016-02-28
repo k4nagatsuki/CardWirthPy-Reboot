@@ -19,6 +19,9 @@ class ImageInfo(object):
         """
         self.path = path
         self.pcnumber = pcnumber
+        while base and base.base:
+            base = base.base
+        self.base = base
 
     def set_attr(self, e):
         """拡張情報をeへ登録する(現在は処理なし)。
@@ -136,6 +139,10 @@ class CardImage(Image):
         self._upwin = self._upwinmemo()
         self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype]
         self.rect = self.cardbg.get_rect()
+
+    def clear_cache(self):
+        self._bmp = None
+        self._wxbmp = None
 
     def _upwinmemo(self):
         return (cw.UP_WIN, cw.cwpy.setting.fontsmoothing_cardname,
