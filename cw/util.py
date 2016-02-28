@@ -921,7 +921,7 @@ def _sorted_by_attr_impl(d, seq, *attr):
             return cmp(self.s, other.s)
 
     def logical_cmp_str(a, b):
-        if not isinstance(a, (str, unicode)):
+        if not (isinstance(a, (str, unicode)) and isinstance(b, (str, unicode))):
             return cmp(a, b)
         if a in str_table:
             al = str_table[a]
@@ -939,9 +939,15 @@ def _sorted_by_attr_impl(d, seq, *attr):
         a = get(aobj)
         b = get(bobj)
 
-        if isinstance(a, tuple):
+        if isinstance(a, tuple) and isinstance(b, tuple):
             r = 0
-            for aval, bval in zip(a, b):
+            for i in xrange(max(len(a), len(b))):
+                if len(a) <= i:
+                    return -1
+                if len(b) <= i:
+                    return 1
+                aval = a[i]
+                bval = b[i]
                 r = logical_cmp_str(aval, bval)
                 if r <> 0:
                     break
