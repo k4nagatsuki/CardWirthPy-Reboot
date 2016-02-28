@@ -60,13 +60,13 @@ class DebugLogDialog(wx.Dialog):
             if self.text.GetValue():
                 self.text.Newline()
                 self.plain_text.append(u"")
-            for gossip in sorted(filter(lambda a: a[1], debuglog.gossip)):
+            for gossip in cw.util.sorted_by_attr(filter(lambda a: a[1], debuglog.gossip)):
                 self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_GET_GOSSIP"])
                 s = u"ゴシップ「%s」を追加しました。" % (gossip[0])
                 self.text.WriteText(s)
                 self.text.Newline()
                 self.plain_text.append(s)
-            for gossip in sorted(filter(lambda a: not a[1], debuglog.gossip)):
+            for gossip in cw.util.sorted_by_attr(filter(lambda a: not a[1], debuglog.gossip)):
                 self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_GOSSIP"])
                 s = u"ゴシップ「%s」を削除しました。" % (gossip[0])
                 self.text.WriteText(s)
@@ -78,13 +78,13 @@ class DebugLogDialog(wx.Dialog):
             if self.text.GetValue():
                 self.text.Newline()
                 self.plain_text.append(u"")
-            for compstamp in sorted(filter(lambda a: a[1], debuglog.compstamp)):
+            for compstamp in cw.util.sorted_by_attr(filter(lambda a: a[1], debuglog.compstamp)):
                 self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_GET_COMPLETESTAMP"])
                 s = u"終了印「%s」を追加しました。" % (compstamp[0])
                 self.text.WriteText(s)
                 self.text.Newline()
                 self.plain_text.append(s)
-            for compstamp in sorted(filter(lambda a: not a[1], debuglog.compstamp)):
+            for compstamp in cw.util.sorted_by_attr(filter(lambda a: not a[1], debuglog.compstamp)):
                 self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_COMPLETESTAMP"])
                 s = u"終了印「%s」を削除しました。" % (compstamp[0])
                 self.text.WriteText(s)
@@ -97,7 +97,7 @@ class DebugLogDialog(wx.Dialog):
                 self.text.Newline()
                 self.plain_text.append(u"")
             for type in ("SkillCard", "ItemCard", "BeastCard"):
-                for key in sorted(filter(lambda a: a[0] == type, debuglog.got_card.iterkeys())):
+                for key in cw.util.sorted_by_attr(filter(lambda a: a[0] == type, debuglog.got_card.iterkeys())):
                     _type, name, _desc, premium = key
                     num = debuglog.got_card[key]
                     if type == "SkillCard":
@@ -140,7 +140,7 @@ class DebugLogDialog(wx.Dialog):
                 self.text.Newline()
                 self.plain_text.append(u"")
             for type in ("SkillCard", "ItemCard", "BeastCard"):
-                for key in sorted(filter(lambda a: a[0] == type, debuglog.lost_card.iterkeys())):
+                for key in cw.util.sorted_by_attr(filter(lambda a: a[0] == type, debuglog.lost_card.iterkeys())):
                     _type, name, _desc, _premium = key
                     num = debuglog.lost_card[key]
                     if type == "SkillCard":

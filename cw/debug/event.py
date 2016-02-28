@@ -117,7 +117,7 @@ class EventList(wx.TreeCtrl):
 
         def append_item(d, imgidx):
             keys = d.keys()
-            keys.sort()
+            cw.util.sort_by_attr(keys)
             for eid in keys:
                 if eid < 0:
                     continue

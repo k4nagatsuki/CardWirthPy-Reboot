@@ -515,7 +515,7 @@ class SkinInfoPanel(wx.Panel):
                     e = cw.data.xml2element(skinpath, "Property")
                     self.types.add(e.gettext("Type", ""))
         self.types = list(self.types)
-        self.types.sort(lambda x, y: cmp(x.lower(), y.lower()))
+        cw.util.sort_by_attr(self.types)
 
         # 種別
         self.typelabel = wx.StaticText(self, -1, u"種別")
@@ -887,26 +887,20 @@ class SkinCardPanel(wx.Panel):
 
         row = 0
         self.grid.InsertRows(row, len(baseconv.actioncard), False)
-        keys = baseconv.actioncard.keys()
-        keys.sort()
-        for key in keys:
+        for key in cw.util.sorted_by_attr(baseconv.actioncard.iterkeys()):
             e = baseconv.actioncard[key]
             name = e.gettext("Property/Name", "")
             self.grid.SetRowLabelValue(row, u"アクション:" + name)
             row += 1
         self.grid.InsertRows(row, len(baseconv.specialcard), False)
-        keys = baseconv.specialcard.keys()
-        keys.sort()
-        for key in keys:
+        for key in cw.util.sorted_by_attr(baseconv.specialcard.iterkeys()):
             e = baseconv.specialcard[key]
             name = e.gettext("Property/Name", "")
             self.grid.SetRowLabelValue(row, u"特殊カード:" + name)
             row += 1
 
         def put_areacards(table, row):
-            keys = table.keys()
-            keys.sort()
-            for key in keys:
+            for key in cw.util.sorted_by_attr(table.iterkeys()):
                 data = table[key]
                 areaname = data.gettext("Property/Name", "")
                 cards = data.getfind("MenuCards")
@@ -932,18 +926,14 @@ class SkinCardPanel(wx.Panel):
 
     def set_values(self, conv):
         row = 0
-        keys = conv.actioncard.keys()
-        keys.sort()
-        for key in keys:
+        for key in cw.util.sorted_by_attr(conv.actioncard.iterkeys()):
             e = conv.actioncard[key]
             name = e.gettext("Property/Name", "")
             desc = e.gettext("Property/Description", "")
             self.grid.SetCellValue(row, 0, name)
             self.grid.SetCellValue(row, 1, desc)
             row += 1
-        keys = conv.specialcard.keys()
-        keys.sort()
-        for key in keys:
+        for key in cw.util.sorted_by_attr(conv.specialcard.iterkeys()):
             e = conv.specialcard[key]
             name = e.gettext("Property/Name", "")
             desc = e.gettext("Property/Description", "")
@@ -952,9 +942,7 @@ class SkinCardPanel(wx.Panel):
             row += 1
 
         def put_areacards(table, row):
-            keys = table.keys()
-            keys.sort()
-            for key in keys:
+            for key in cw.util.sorted_by_attr(table.iterkeys()):
                 data = table[key]
                 cards = data.getfind("MenuCards")
                 for e in cards:
@@ -972,18 +960,14 @@ class SkinCardPanel(wx.Panel):
 
     def get_values(self, conv):
         row = 0
-        keys = conv.actioncard.keys()
-        keys.sort()
-        for key in keys:
+        for key in cw.util.sorted_by_attr(conv.actioncard.iterkeys()):
             e = conv.actioncard[key]
             name = self.grid.GetCellValue(row, 0)
             desc = self.grid.GetCellValue(row, 1)
             name = e.find("Property/Name").text = name
             desc = e.find("Property/Description").text = desc
             row += 1
-        keys = conv.specialcard.keys()
-        keys.sort()
-        for key in keys:
+        for key in cw.util.sorted_by_attr(conv.specialcard.iterkeys()):
             e = conv.specialcard[key]
             name = self.grid.GetCellValue(row, 0)
             desc = self.grid.GetCellValue(row, 1)
@@ -992,9 +976,7 @@ class SkinCardPanel(wx.Panel):
             row += 1
 
         def get_areacards(table, row):
-            keys = table.keys()
-            keys.sort()
-            for key in keys:
+            for key in cw.util.sorted_by_attr(table.iterkeys()):
                 data = table[key]
                 cards = data.getfind("MenuCards")
                 for e in cards:

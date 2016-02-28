@@ -861,7 +861,7 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             seq = [(key, str(key) + ": " + value[0]) for key, value in
                                 cw.cwpy.sdata.infos.iteritems() if key >= 0]
-            seq.sort()
+            cw.util.sort_by_attr(seq)
             infoids = set(cw.cwpy.sdata.get_infocards(order=False))
             oldids = infoids.copy()
             choices = []
@@ -902,7 +902,7 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             seq = [(key, str(key) + ": " + value[0]) for key, value in
                                 cw.cwpy.sdata.casts.iteritems() if key >= 0]
-            seq.sort()
+            cw.util.sort_by_attr(seq)
             friendids = set([i.id for i in cw.cwpy.sdata.friendcards])
             choices = []
             selections = []
@@ -958,7 +958,7 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             seq = [(key, str(key) + ": " + value[0]) for key, value in
                                 cw.cwpy.sdata.battles.iteritems() if key >= 0]
-            seq.sort()
+            cw.util.sort_by_attr(seq)
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
                 self, u"開始するバトルを選択してください。",
@@ -975,7 +975,7 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             seq = [(key, str(key) + ": " + value[0]) for key, value in
                                 cw.cwpy.sdata.packs.iteritems() if key >= 0]
-            seq.sort()
+            cw.util.sort_by_attr(seq)
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
                 self, u"実行するパッケージを選択してください。",
@@ -999,7 +999,7 @@ class Debugger(wx.Frame):
             else:
                 seq = [(key, str(key) + ": " + value[0]) for key, value in
                                 cw.cwpy.sdata.areas.iteritems() if key >= 0]
-                seq.sort()
+                cw.util.sort_by_attr(seq)
                 choices = []
                 if cw.cwpy.sdata and cw.cwpy.is_battlestatus():
                     areaid = cw.cwpy.sdata.pre_battleareadata[0]

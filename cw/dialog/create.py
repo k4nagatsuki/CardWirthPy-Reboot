@@ -330,9 +330,9 @@ class AdventurerData(object):
             for nature in cw.cwpy.setting.natures:
                 if nature.special:
                     sp.append(nature)
-            sp.sort(cmp=lambda x, y: y.genecount - x.genecount)
+            cw.util.sort_by_attr(sp, "genecount")
 
-            for nature in sp:
+            for nature in reversed(sp):
                 if nature.genecount == 0:
                     # 遺伝子の1が0個の場合。例えば凡庸型
                     if n == 0:
@@ -770,7 +770,7 @@ class AdventurerCreaterPage(wx.Panel):
             self.imgpathlist.update(imgpathlist)
 
         self.imgdpaths = self.imgpathlist.keys()
-        self.imgdpaths.sort()
+        cw.util.sort_by_attr(self.imgdpaths)
 
         if self.imgpathlist and (reset or not self.imgpaths):
             if None in self.imgpathlist:

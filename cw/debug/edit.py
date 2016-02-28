@@ -716,7 +716,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         self.cwpy_debug = True
         keys = savedjpdcimage.iterkeys()
-        self.list = list(sorted(keys))
+        self.list = list(cw.util.sorted_by_attr(keys))
         self._removed = []
 
         # リスト
@@ -829,7 +829,7 @@ class BreakpointEditDialog(wx.Dialog):
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         self.cwpy_debug = True
         keys = breakpoint_table.iterkeys()
-        self.list = list(sorted(keys))
+        self.list = list(cw.util.sorted_by_attr(keys))
         self._removed = []
 
         # リスト

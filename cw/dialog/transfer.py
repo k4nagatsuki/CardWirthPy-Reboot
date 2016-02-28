@@ -179,8 +179,7 @@ class TransferYadoDataDialog(wx.Dialog):
             i += 1
 
         keys = savedjpdcimage.keys()
-        keys.sort()
-        for key in keys:
+        for key in cw.util.sorted_by_attr(keys):
             header = savedjpdcimage[key]
             self.datalist.InsertStringItem(i, u"")
             if header.scenarioauthor:

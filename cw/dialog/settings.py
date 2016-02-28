@@ -2087,7 +2087,7 @@ class ScenarioSettingPanel(wx.Panel):
             types.add(skintype)
 
         types = list(types)
-        types.sort()
+        cw.util.sort_by_attr(types)
 
         colattr = wx.grid.GridCellAttr()
         self.celleditor = wx.grid.GridCellChoiceEditor(types, allowOthers=True)
@@ -2546,7 +2546,7 @@ class FontSettingPanel(wx.Panel):
 
         # フォント配列のロード
         facenames = list(wx.FontEnumerator().GetFacenames())
-        facenames.sort()
+        cw.util.sort_by_attr(facenames)
         self.str_default = u"[付属フォント]" # デフォルトフォント名
         self._fontface_array = [self.str_default]
         self._types = []

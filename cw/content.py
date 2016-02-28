@@ -1059,7 +1059,7 @@ class BranchSelectContent(BranchContent):
             s += u"ランダムで "
         elif self.method == "Valued":
             values = [u"初期値 = %s" % (self.initvalue)]
-            for key in sorted(self.coupons.iterkeys()):
+            for key in cw.util.sorted_by_attr(self.coupons.iterkeys()):
                 values.append(u"%s = %s" % (key, self.coupons[key]))
             s += u"評価条件(%s)で" % (", ".join(values))
         else:

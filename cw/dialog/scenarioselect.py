@@ -2174,7 +2174,7 @@ class ScenarioSelect(select.Select):
         except Exception:
             cw.util.print_ex()
 
-        seq.sort()
+        cw.util.sort_by_attr(seq)
         return seq
 
     def is_listitem(self, path):

@@ -21,6 +21,7 @@ import datetime
 import ctypes
 import array
 import unicodedata
+import functools
 
 if sys.platform == "win32":
     import win32api
@@ -883,19 +884,91 @@ def remove_soundtempfile(basedir):
         if not os.listdir(join_paths(cw.tempdir, u"Playing")):
             remove(dpath)
 
-def sort_by_attr(seq, *attr):
-    """破壊的にオブジェクトの属性でソートする。
-    seq: リスト
-    attr: 属性名
-    """
-    return seq.sort(key=operator.attrgetter(*attr))
+def _sorted_by_attr_impl(d, seq, *attr):
+    if attr:
+        get = operator.attrgetter(*attr)
+    else:
+        get = lambda a: a
+    re_num = re.compile(u"\\-?([0-9]+\\.?[0-9]*|[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+)")
+    str_table = {}
+
+    class LogicalStr(object):
+        def __init__(self, s):
+            self.seq = []
+            if not s:
+                return
+            pos = 0
+            self.s = s
+            while s <> u"":
+                m = re_num.search(s, pos=pos)
+                if m is None:
+                    self.seq.append(s[pos:].lower())
+                    break
+                si = m.start()
+                ei = m.end()
+                self.seq.append(s[pos:si].lower())
+                self.seq.append(float(s[si:ei]))
+                pos = ei
+
+        def __cmp__(self, other):
+            r = cmp(self.seq, other.seq)
+            if r:
+                return r
+            return cmp(self.s, other.s)
+
+    def logical_cmp_str(a, b):
+        if not isinstance(a, (str, unicode)):
+            return cmp(a, b)
+        if a in str_table:
+            al = str_table[a]
+        else:
+            al = LogicalStr(a)
+            str_table[a] = al
+        if b in str_table:
+            bl = str_table[b]
+        else:
+            bl = LogicalStr(b)
+            str_table[b] = bl
+        return cmp(al, bl)
+
+    def logical_cmp(aobj, bobj):
+        a = get(aobj)
+        b = get(bobj)
+
+        if isinstance(a, tuple):
+            r = 0
+            for aval, bval in zip(a, b):
+                r = logical_cmp_str(aval, bval)
+                if r <> 0:
+                    break
+            return r
+        else:
+            r = logical_cmp_str(a, b)
+            return r
+
+    if d:
+        seq.sort(key=functools.cmp_to_key(logical_cmp))
+        return seq
+    else:
+        return sorted(seq, key=functools.cmp_to_key(logical_cmp))
 
 def sorted_by_attr(seq, *attr):
     """非破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
     """
-    return sorted(seq, key=operator.attrgetter(*attr))
+    return _sorted_by_attr_impl(False, seq, *attr)
+
+def sort_by_attr(seq, *attr):
+    """破壊的にオブジェクトの属性でソートする。
+    seq: リスト
+    attr: 属性名
+    """
+    return _sorted_by_attr_impl(True, seq, *attr)
+
+assert sort_by_attr(["a1234b", "a12b", "a1234b"]) == ["a12b", "a1234b", "a1234b"]
+assert sort_by_attr(["a.1234b", "a-.1234b", "a-.", "a-.1b", "a-12b", "a12.34b", "a1234.b"]) == ["a-12b", "a-.1234b", "a-.1b", "a.1234b", "a12.34b", "a1234.b", "a-."]
+assert sort_by_attr(["a12a", "a8a", "a8.5a", "a-1234a"]) == ["a-1234a", "a8a", "a8.5a", "a12a"]
 
 def new_order(seq, mode=1):
     """order属性を持つアイテムのlistを

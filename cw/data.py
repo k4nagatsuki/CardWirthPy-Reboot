@@ -187,10 +187,10 @@ class SystemData(object):
 
             data = xml2etree(cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"))
 
-            for gossip, get in sorted(self.gossips.iteritems()):
+            for gossip, get in cw.util.sorted_by_attr(self.gossips.iteritems()):
                 debuglog.add_gossip(gossip, get)
 
-            for compstamp, get in sorted(self.compstamps.iteritems()):
+            for compstamp, get in cw.util.sorted_by_attr(self.compstamps.iteritems()):
                 debuglog.add_compstamp(compstamp, get)
 
             for type in ("SkillCard", "ItemCard", "BeastCard"):
