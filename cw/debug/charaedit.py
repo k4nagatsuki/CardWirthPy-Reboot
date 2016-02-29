@@ -935,7 +935,9 @@ class CharaRequirementPanel(wx.Panel):
             for dpaths, paths in cw.util.get_facepaths(info.sex, info.age).iteritems():
                 fpaths.update(map(lambda a: (dpaths[0], cw.util.join_paths(dpaths[1], os.path.basename(a)), a), paths))
         flist = list(fpaths)
+        cw.util.t_start()
         cw.util.sort_by_attr(flist)
+        cw.util.t_end(0)
         flist = drops + flist
         self.imgpathlist = map(lambda a: a[2], flist)
         flist = map(lambda a: a[1], flist)

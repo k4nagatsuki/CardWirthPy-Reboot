@@ -935,11 +935,9 @@ def _sorted_by_attr_impl(d, seq, *attr):
             str_table[b] = bl
         return cmp(al, bl)
 
-    def logical_cmp(aobj, bobj):
-        a = get(aobj)
-        b = get(bobj)
-
-        if isinstance(a, tuple) and isinstance(b, tuple):
+    def logical_cmp_impl(a, b):
+        if (isinstance(a, tuple) and isinstance(b, tuple)) or\
+                (isinstance(a, list) and isinstance(b, list)):
             r = 0
             for i in xrange(max(len(a), len(b))):
                 if len(a) <= i:
@@ -948,13 +946,18 @@ def _sorted_by_attr_impl(d, seq, *attr):
                     return 1
                 aval = a[i]
                 bval = b[i]
-                r = logical_cmp_str(aval, bval)
+                r = logical_cmp_impl(aval, bval)
                 if r <> 0:
                     break
             return r
         else:
             r = logical_cmp_str(a, b)
             return r
+
+    def logical_cmp(aobj, bobj):
+        a = get(aobj)
+        b = get(bobj)
+        return logical_cmp_impl(a, b)
 
     if d:
         seq.sort(key=functools.cmp_to_key(logical_cmp))
@@ -978,6 +981,7 @@ def sort_by_attr(seq, *attr):
 
 assert sort_by_attr(["a1234b", "a12b", "a1234b"]) == ["a12b", "a1234b", "a1234b"]
 assert sort_by_attr(["a12b", "a1234b", "a1b", "a9b", "a01234b", "a1234b", "a-."]) == ["a1b", "a9b", "a12b", "a01234b", "a1234b", "a1234b", "a-."]
+assert sort_by_attr([(1, "a"), None, (0, "b"), (0, "c")]) == [None, (0, "b"), (0, "c"), (1, "a")]
 
 def new_order(seq, mode=1):
     """order属性を持つアイテムのlistを
