@@ -1691,7 +1691,8 @@ class ChangeAreaContent(EventContentBase):
             cw.cwpy._dealing = True
             raise cw.event.AreaChangeError()
         else:
-            raise cw.event.EffectBreakError()
+            # CardWirthではエリア未指定の時はシナリオが終了する
+            end_scenario(False)
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
@@ -1918,65 +1919,7 @@ class EndContent(EventContentBase):
         宿画面に遷移する。completeがTrueだったら済み印をつける。
         """
         complete = self.data.getbool(".", "complete", False)
-        if complete and cw.cwpy.ydata and cw.cwpy.sdata:
-            # 終了印追加
-            cw.cwpy.ydata.set_compstamp(cw.cwpy.sdata.name)
-
-        if cw.cwpy.battle and cw.cwpy.battle.is_running:
-            # バトルを強制終了
-            cw.cwpy.battle.end(False, True)
-
-        # 使用時イベント等ではズームインしている
-        # PCがいる可能性があるのでズームアウト
-        for pcard in cw.cwpy.get_pcards():
-            if pcard.zoomimgs:
-                cw.animation.animate_sprite(pcard, "zoomout")
-        cw.cwpy.clear_inusecardimg()
-        cw.cwpy.clear_guardcardimg()
-
-        # メニューカード全て非表示
-        cw.cwpy.hide_cards(True)
-
-        # キャンセル可能な対象消去状態だったメンバを復元する(互換動作)
-        if cw.cwpy.ydata.party.vanished_pcards:
-            cw.util.sort_by_attr(cw.cwpy.ydata.party.vanished_pcards, "index")
-            for pcard in cw.cwpy.ydata.party.vanished_pcards:
-                pcard.cancel_vanish()
-                if cw.cwpy.is_showparty and not cw.cwpy.setting.all_quickdeal:
-                    cw.animation.animate_sprite(pcard, "deal", battlespeed=False)
-
-            if cw.cwpy.is_showparty and cw.cwpy.setting.all_quickdeal:
-                cw.animation.animate_sprites(cw.cwpy.ydata.party.vanished_pcards, "deal", battlespeed=False)
-            cw.cwpy.ydata.party.vanished_pcards = []
-
-        # 時限クーポン削除
-        for pcard in cw.cwpy.get_pcards():
-            pcard.remove_timedcoupons()
-
-        for fcard in cw.cwpy.get_fcards():
-            fcard.remove_timedcoupons()
-
-        # パーティ表示
-        cw.cwpy.show_party()
-
-        # レベルアップと回復処理
-        cw.cwpy.check_level(fromscenario=True)
-
-        # 特殊文字の辞書が変更されていたら、元に戻す
-        if cw.cwpy.rsrc.specialchars_is_changed:
-            cw.cwpy.rsrc.specialchars = cw.cwpy.rsrc.get_specialchars()
-
-        cw.cwpy.sdata.end(showdebuglog=True)
-        cw.cwpy.ydata.party.write()
-
-        # BGMストップ
-        for music in cw.cwpy.music:
-            music.stop()
-
-        # 宿画面に遷移
-        cw.cwpy.exec_func(cw.cwpy.set_yado)
-        cw.cwpy._dealing = True
-        raise cw.event.ScenarioEndError()
+        end_scenario(complete)
 
     def get_status(self):
         complete = self.data.getbool(".", "complete", False)
@@ -1985,6 +1928,67 @@ class EndContent(EventContentBase):
             return u"済印をつけて終了"
         else:
             return u"済印をつけずに終了"
+
+def end_scenario(complete):
+    if complete and cw.cwpy.ydata and cw.cwpy.sdata:
+        # 終了印追加
+        cw.cwpy.ydata.set_compstamp(cw.cwpy.sdata.name)
+
+    if cw.cwpy.battle and cw.cwpy.battle.is_running:
+        # バトルを強制終了
+        cw.cwpy.battle.end(False, True)
+
+    # 使用時イベント等ではズームインしている
+    # PCがいる可能性があるのでズームアウト
+    for pcard in cw.cwpy.get_pcards():
+        if pcard.zoomimgs:
+            cw.animation.animate_sprite(pcard, "zoomout")
+    cw.cwpy.clear_inusecardimg()
+    cw.cwpy.clear_guardcardimg()
+
+    # メニューカード全て非表示
+    cw.cwpy.hide_cards(True)
+
+    # キャンセル可能な対象消去状態だったメンバを復元する(互換動作)
+    if cw.cwpy.ydata.party.vanished_pcards:
+        cw.util.sort_by_attr(cw.cwpy.ydata.party.vanished_pcards, "index")
+        for pcard in cw.cwpy.ydata.party.vanished_pcards:
+            pcard.cancel_vanish()
+            if cw.cwpy.is_showparty and not cw.cwpy.setting.all_quickdeal:
+                cw.animation.animate_sprite(pcard, "deal", battlespeed=False)
+
+        if cw.cwpy.is_showparty and cw.cwpy.setting.all_quickdeal:
+            cw.animation.animate_sprites(cw.cwpy.ydata.party.vanished_pcards, "deal", battlespeed=False)
+        cw.cwpy.ydata.party.vanished_pcards = []
+
+    # 時限クーポン削除
+    for pcard in cw.cwpy.get_pcards():
+        pcard.remove_timedcoupons()
+
+    for fcard in cw.cwpy.get_fcards():
+        fcard.remove_timedcoupons()
+
+    # パーティ表示
+    cw.cwpy.show_party()
+
+    # レベルアップと回復処理
+    cw.cwpy.check_level(fromscenario=True)
+
+    # 特殊文字の辞書が変更されていたら、元に戻す
+    if cw.cwpy.rsrc.specialchars_is_changed:
+        cw.cwpy.rsrc.specialchars = cw.cwpy.rsrc.get_specialchars()
+
+    cw.cwpy.sdata.end(showdebuglog=True)
+    cw.cwpy.ydata.party.write()
+
+    # BGMストップ
+    for music in cw.cwpy.music:
+        music.stop()
+
+    # 宿画面に遷移
+    cw.cwpy.exec_func(cw.cwpy.set_yado)
+    cw.cwpy._dealing = True
+    raise cw.event.ScenarioEndError()
 
 class EndBadEndContent(EventContentBase):
     def __init__(self, data):
