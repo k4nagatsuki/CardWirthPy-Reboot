@@ -984,7 +984,14 @@ class Debugger(wx.Frame):
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.exec_func(cw.cwpy.clean_specials)
                 resid = seq[dlg.GetSelection()][0]
-                cw.cwpy.exec_func(cw.content.call_package, resid, False)
+
+                def func(resid):
+                    try:
+                        cw.content.call_package(resid, False)
+                    except cw.battle.BattleError, ex:
+                        if cw.cwpy.is_battlestatus():
+                            cw.cwpy.battle.process_exception(ex)
+                cw.cwpy.exec_func(func, resid)
 
             dlg.Destroy()
 
