@@ -616,6 +616,8 @@ class Debugger(wx.Frame):
 
     def OnUpdateTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
+            cw.cwpy.is_debuggerprocessing = True
+            self.refresh_tools()
             def func():
                 cw.cwpy.play_sound("click")
                 try:
@@ -808,6 +810,8 @@ class Debugger(wx.Frame):
             cw.cwpy.exec_func(func, path)
 
     def OnLoadYadoTool(self, event):
+        cw.cwpy.is_debuggerprocessing = True
+        self.refresh_tools()
         def func():
             cw.cwpy.clean_specials()
             cw.cwpy.exec_func(cw.cwpy.reload_yado)
@@ -1451,6 +1455,8 @@ class Debugger(wx.Frame):
 
                 bars = set()
                 for mi, tl, enable in enabled.itervalues():
+                    if cw.cwpy.is_debuggerprocessing:
+                        enable = False
                     if tl.IsEnabled() <> enable:
                         mi.Enable(enable)
                         tl.Enable(enable)

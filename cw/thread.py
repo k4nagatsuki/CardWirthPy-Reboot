@@ -58,6 +58,7 @@ class CWPy(_Singleton, threading.Thread):
         self.update_titlebar()
         self.expand_mode = setting.expandmode
         self.is_processing = False
+        self.is_debuggerprocessing = False
         self.is_decompressing = False
 
         # pygame初期化
@@ -2029,6 +2030,13 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata = cw.data.SystemData()
                 cw.util.remove_temp()
                 self.load_yado(self.yadodir, createmutex=False)
+                def func():
+                    def func():
+                        self.is_debuggerprocessing = False
+                        if self.is_showingdebugger() and self.event:
+                            self.event.refresh_tools()
+                    self.frame.exec_func(func)
+                self.exec_func(func)
             self.exec_func(func)
 
         def func4():

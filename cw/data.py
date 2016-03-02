@@ -772,6 +772,11 @@ class ScenarioData(SystemData):
                 self.steps[name].value = value
 
         self._init_debugger()
+        def func():
+            cw.cwpy.is_debuggerprocessing = False
+            if cw.cwpy.is_showingdebugger() and cw.cwpy.event:
+                cw.cwpy.event.refresh_tools()
+        cw.cwpy.frame.exec_func(func)
 
     def _init_xmlpaths(self):
         """
