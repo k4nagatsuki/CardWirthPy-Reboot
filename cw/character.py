@@ -1250,12 +1250,16 @@ class Character(object):
         """
         return int(100.0 * self.life / self.maxlife + 0.5)
 
-    def get_bonus(self, vocation):
+    def get_bonus(self, vocation, enhance_act=True):
         """
         適性値と行動力強化値を合計した、行為判定用のボーナス値を返す。
         vocation: 適性データ。(身体適性名, 精神適性名)のタプル。
+        enhance_act: 行動力修正の影響を受けるか。
         """
-        return self.get_vocation_val(vocation) + self.get_enhance_act()
+        value = self.get_vocation_val(vocation)
+        if enhance_act:
+            value += self.get_enhance_act()
+        return value
 
     def get_vocation_val(self, vocation):
         """

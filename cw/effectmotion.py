@@ -86,6 +86,10 @@ class Effect(object):
         self.visualeffect = d.get("visualeffect", "None")
         self.battlespeed = battlespeed
 
+        # 行動力修正の影響を受けるか
+        # アクションカードまたは特殊技能の場合のみ
+        self.is_enhance_act = self.inusecard and self.inusecard.type in ("ActionCard", "SkillCard")
+
         if self.user and self.inusecard:
             self.motions = [EffectMotion(e, self.user, self.inusecard)
                                                             for e in motions]
@@ -261,7 +265,7 @@ class Effect(object):
 
             if self.user and self.inusecard:
                 uservocation = self.inusecard.vocation
-                userbonus =  self.user.get_bonus(uservocation)
+                userbonus =  self.user.get_bonus(uservocation, enhance_act=self.is_enhance_act)
             else:
                 userbonus = 4
 
@@ -281,7 +285,7 @@ class Effect(object):
 
             if self.user and self.inusecard:
                 uservocation = self.inusecard.vocation
-                userbonus =  self.user.get_bonus(uservocation)
+                userbonus =  self.user.get_bonus(uservocation, enhance_act=self.is_enhance_act)
             else:
                 userbonus = 4
 
@@ -418,18 +422,21 @@ class EffectMotion(object):
 
         # 使用者(PlayerCard, EnemyCard)
         self.user = user
+        # 行動力修正の影響を受けるか
+        # アクションカードまたは特殊技能の場合のみ
+        self.is_enhance_act = header and header.type in ("ActionCard", "SkillCard")
         # 使用カード(CardHeader)
         self.cardheader = header
         # 使用者の適性値(効果コンテントの場合は"4")
         self.vocation_val = header.get_vocation_val(user) if header else 4
         # 使用者の適性レベル(効果コンテントの場合は"2")
         # スキルカードの場合は行動力修正の影響を受ける
-        self.vocation_level = header.get_vocation_level(user, enhance_act=(header.type=="SkillCard")) if header else 2
+        self.vocation_level = header.get_vocation_level(user, enhance_act=self.is_enhance_act) if header else 2
         # 使用者のレベルもしくは効果コンテントの対象レベル
         self.level = user.level if user else targetlevel
 
         # 使用者の行動力修正(技能カード以外は全て"0")
-        if header and header.type == "SkillCard":
+        if self.is_enhance_act:
             self.enhance_act = user.get_enhance_act()
         else:
             self.enhance_act = 0
