@@ -3428,6 +3428,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.money = party.money
                 self.members = party.members[:]
                 self.backpack = party.backpack[:]
+                self.is_suspendlevelup = party.is_suspendlevelup
                 cw.util.sort_by_attr(self.backpack, "order")
         return StoredParty(self.ydata.party)
 

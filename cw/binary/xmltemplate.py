@@ -232,6 +232,7 @@ Party = """$indent<Party>
 $indent <Property>
 $indent  <Name>$name</Name>
 $indent  <Money>$money</Money>
+$indent  <SuspendLevelUp>$suspend_levelup</SuspendLevelUp>
 $indent  <Members>$members
 $indent  </Members>
 $indent </Property>
@@ -243,6 +244,7 @@ PartyRecord = """$indent<PartyRecord>
 $indent <Property>
 $indent  <Name>$name</Name>
 $indent  <Money>$money</Money>
+$indent  <SuspendLevelUp>$suspend_levelup</SuspendLevelUp>
 $indent  <Members>$members
 $indent  </Members>
 $indent </Property>

@@ -20,7 +20,7 @@ def _create_xml(name, path, d):
         f.flush()
         f.close()
 
-def create_party(headers, moneyamount=0, pname=None):
+def create_party(headers, moneyamount=0, pname=None, is_suspendlevelup=False):
     """
     新しくパーティを作る。
     headers: 初期メンバーのファイル名(拡張子無し)のlist。
@@ -30,6 +30,7 @@ def create_party(headers, moneyamount=0, pname=None):
 
     d = {"name" : cw.binary.util.repl_escapechar(pname),
          "money" : str(moneyamount),
+         "suspend_levelup": str(is_suspendlevelup),
          "backpack" : "",
          "indent": ""}
 
@@ -50,6 +51,7 @@ def create_party(headers, moneyamount=0, pname=None):
 def create_partyrecord(party):
     d = {"name" : cw.binary.util.repl_escapechar(party.name),
          "money" : str(party.money),
+         "suspend_levelup": str(party.is_suspendlevelup),
          "members" : "",
          "backpack": "",
          "indent": ""}

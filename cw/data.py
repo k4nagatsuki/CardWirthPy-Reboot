@@ -1820,10 +1820,13 @@ class YadoData(object):
 
         name = partyrecordheader.name
         money = partyrecordheader.money
+        prop = cw.header.GetProperty(partyrecordheader.fpath)
+        is_suspendlevelup = cw.util.str2bool(prop.properties["SuspendLevelUp"])
         if self.money < money:
             money = self.money
         self.set_money(-money)
-        path = cw.xmlcreater.create_party(members, moneyamount=money, pname=name)
+        path = cw.xmlcreater.create_party(members, moneyamount=money, pname=name,
+                                          is_suspendlevelup=is_suspendlevelup)
         header = self.create_partyheader(cw.util.join_paths(path, "Party.xml"))
 
         cw.cwpy.load_party(header, chgarea=chgarea, newparty=True)
