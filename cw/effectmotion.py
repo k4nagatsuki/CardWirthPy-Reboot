@@ -512,7 +512,7 @@ class EffectMotion(object):
         効果時間値から適性レベルに合わせた実数値を計算して返す。
         効果コンテントの場合も計算する。
         """
-        if enhance:
+        if enhance and self.duration <= 0:
             minvalue = 0
         else:
             minvalue = 1
