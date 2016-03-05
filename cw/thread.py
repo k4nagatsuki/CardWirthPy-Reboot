@@ -2144,6 +2144,10 @@ class CWPy(_Singleton, threading.Thread):
                             pcard.set_pos_noscale(pos_noscale)
                             pcard.update_image()
                         self.ydata.party._loading = False
+                        self.ydata.party.lastscenario = []
+                        self.ydata.party.lastscenariopath = optscenario
+                        self.setting.lastscenario = []
+                        self.setting.lastscenariopath = optscenario
                         self._show_party()
                     header = header2
 
