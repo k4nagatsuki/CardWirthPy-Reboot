@@ -134,6 +134,11 @@ class BackGround(base.CWPySprite):
                 image = cw.effectbooster.JptxImage(path, mask).get_image()
             elif ext == ".jpdc":
                 image = cw.effectbooster.JpdcImage(mask, path, doanime=doanime).get_image()
+                if cw.cwpy.is_processing:
+                    # シナリオロード中。ロード後に再撮影する
+                    image = pygame.Surface(image.get_size()).convert()
+                    image.fill((0, 0, 0))
+                    image.set_colorkey((0, 0, 0))
             elif ext == ".jpy1":
                 jpy1 = cw.effectbooster.JpyImage(path, mask, doanime=doanime)
                 anime = not jpy1.is_cacheable
