@@ -645,6 +645,7 @@ class Debugger(wx.Frame):
         dlg = cw.debug.edit.GossipEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        cw.cwpy.exec_func(cw.cwpy.update_yadoinitial)
 
     def OnSavedJPDCImageTool(self, event):
         def func(self):
@@ -676,6 +677,7 @@ class Debugger(wx.Frame):
         dlg = cw.debug.cardedit.CardEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        cw.cwpy.exec_func(cw.cwpy.update_yadoinitial)
 
     def OnRoundTool(self, event):
         if not cw.cwpy.is_battlestatus():
@@ -821,6 +823,7 @@ class Debugger(wx.Frame):
         dlg = cw.debug.edit.CompStampEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        cw.cwpy.exec_func(cw.cwpy.update_yadoinitial)
 
     def OnMemberTool(self, event):
         dlg = cw.debug.charaedit.CharacterEditDialog(self)
@@ -1340,6 +1343,7 @@ class Debugger(wx.Frame):
 
         def func(self):
             ydata = bool(cw.cwpy.ydata)
+            party = bool(cw.cwpy.ydata and cw.cwpy.ydata.party)
             savedjpdcimage = bool(ydata and cw.cwpy.ydata.savedjpdcimage)
             event_paused = cw.cwpy.event.is_paused()
             event_step = cw.cwpy.event.is_stepexec()
@@ -1401,8 +1405,9 @@ class Debugger(wx.Frame):
                         enabled[self.mi_savedjpdcimage.GetId()] = (self.mi_savedjpdcimage, self.tl_savedjpdcimage, True)
                     enabled[self.mi_money.GetId()] = (self.mi_money, self.tl_money, True)
                     enabled[self.mi_card.GetId()] = (self.mi_card, self.tl_card, True)
-                    enabled[self.mi_member.GetId()] = (self.mi_member, self.tl_member, True)
-                    enabled[self.mi_coupon.GetId()] = (self.mi_coupon, self.tl_coupon, True)
+                    if party:
+                        enabled[self.mi_member.GetId()] = (self.mi_member, self.tl_member, True)
+                        enabled[self.mi_coupon.GetId()] = (self.mi_coupon, self.tl_coupon, True)
                     enabled[self.mi_loadyado.GetId()] = (self.mi_loadyado, self.tl_loadyado, True)
 
                 if is_playingscenario:

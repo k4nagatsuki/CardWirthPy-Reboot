@@ -1632,7 +1632,8 @@ class YadoData(object):
 
     def is_empty(self):
         return self.partys or self.standbys or self.storehouse or\
-               self.album or self.partyrecord or self.savedjpdcimage
+               self.album or self.partyrecord or self.savedjpdcimage or\
+               self.get_gossips() or self.get_compstamps()
 
     def set_skinname(self, skindirname):
         self.skindirname = skindirname

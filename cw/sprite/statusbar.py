@@ -10,11 +10,12 @@ import base
 
 LAYER_BASE = 0
 LAYER_STATUS_ITEM = 1
-LAYER_MESSAGE = 2
-LAYER_MESSAGE_LOG_CURTAIN = 3
-LAYER_MESSAGE_LOG = 4
-LAYER_VOLUME_BAR = 5
-LAYER_DESC = 6
+LAYER_STATUS_PROGRESS = 2
+LAYER_MESSAGE = 3
+LAYER_MESSAGE_LOG_CURTAIN = 4
+LAYER_MESSAGE_LOG = 5
+LAYER_VOLUME_BAR = 6
+LAYER_DESC = 7
 
 class StatusBar(base.CWPySprite):
     def __init__(self):
@@ -149,6 +150,7 @@ class StatusBar(base.CWPySprite):
 
     def clear(self):
         cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_ITEM)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_PROGRESS)
         cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_DESC)
 
     def _create_autostart(self, pos):
@@ -302,7 +304,7 @@ class ProgressView(base.CWPySprite):
         self.update(None)
 
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_ITEM)
+        cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_PROGRESS)
 
     def update(self, scr):
         params = (self.text, self.max, self.min, self.current)

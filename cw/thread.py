@@ -439,6 +439,16 @@ class CWPy(_Singleton, threading.Thread):
             for music in self.music:
                 music.play(music.path, updatepredata=False)
 
+    def update_yadoinitial(self):
+        if not self.ydata or self.ydata.party or self.is_playingscenario():
+            return
+        if self.ydata.is_empty() and not self.ydata.is_changed():
+            if self.areaid == 1:
+                self.change_area(3)
+        else:
+            if self.areaid == 3:
+                self.change_area(1)
+
     def update_titlebar(self):
         """タイトルバー文字列を更新する。"""
         self.set_titlebar(self.create_title())
