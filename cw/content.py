@@ -42,17 +42,22 @@ class EventContentBase(object):
 
         return (tname, tspeed)
 
+    def init_values(self):
+        if self._init_values:
+            return
+        self._init_values = True
+        self.initvalue = self.data.getint(".", "initialValue", 0)
+        self.coupons = {}
+        for e in self.data.getfind("Coupons", raiseerror=False):
+            self.coupons[e.text] = self.coupons.get(e.text, 0) + e.getint(".", "value", 0)
+
     def get_valuedmember(self, mode="unreversed"):
         """評価値が最大になるメンバを返す(1.50)。
         これを使用するイベントコンテントは
         self._init_valuesをFalseで初期化しておくこと。
         """
         if not self._init_values:
-            self._init_values = True
-            self.initvalue = self.data.getint(".", "initialValue", 0)
-            self.coupons = {}
-            for e in self.data.getfind("Coupons", raiseerror=False):
-                self.coupons[e.text] = self.coupons.get(e.text, 0) + e.getint(".", "value", 0)
+            self.init_values()
 
         values = {}
         maxvalue = 0
@@ -1050,6 +1055,8 @@ class BranchSelectContent(BranchContent):
         return u"選択分岐コンテント"
 
     def get_childname(self, child):
+        self.init_values()
+
         if self.targetall:
             s = u"パーティ全員から"
         else:
