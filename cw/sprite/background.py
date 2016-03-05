@@ -40,6 +40,7 @@ class BackGround(base.CWPySprite):
         self.files = []
         self._inhrt_index_files = 0
         self.update_scaling = False
+        self.reload_jpdcimage = True
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
@@ -168,6 +169,14 @@ class BackGround(base.CWPySprite):
 
         return image, anime, True
 
+    def has_jpdccell(self):
+        for bgtype, d in self.bgs:
+            if bgtype == BG_IMAGE:
+                path = d[0]
+                if os.path.splitext(path)[1].lower() == ".jpdc":
+                    return True
+        return False
+
     def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True, nocheckvisible=False, redraw=True):
         """背景画面を構成する。
         elements: BgImageElementのリスト。
@@ -181,6 +190,7 @@ class BackGround(base.CWPySprite):
         self._elements = elements
 
         cw.cwpy.file_updates_bg = False
+        self.reload_jpdcimage = True
 
         animated = False
         blitlist = []
@@ -467,6 +477,7 @@ class BackGround(base.CWPySprite):
         bgs = []
 
         cw.cwpy.file_updates_bg = False
+        self.reload_jpdcimage = True
 
         animated = False
         blitlist = []
@@ -751,6 +762,11 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.cardgrp.remove(transitspr)
             else:
                 cw.cwpy.draw()
+
+        # 冒険の再開などで背景の状態を変更しないために
+        # 直に配置されたJPDCイメージがあれば操作可能になった時点で再読込する
+        if self.has_jpdccell():
+            self.reload_jpdcimage = False
 
         return blitlist2
 

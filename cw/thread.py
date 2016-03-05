@@ -916,6 +916,10 @@ class CWPy(_Singleton, threading.Thread):
         if self.file_updates_bg:
             self.background.reload(False)
             self.file_updates_bg = False
+        elif not self.background.reload_jpdcimage:
+            self.background.reload(False, ttype=(None, None))
+        self.background.reload_jpdcimage = True
+
         if self.file_updates:
             for mcard in self.get_mcards("visible"):
                 if mcard in self.file_updates:
