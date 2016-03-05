@@ -186,9 +186,9 @@ class CWPy(_Singleton, threading.Thread):
         self.animations = set()
 
         # JPDC撮影などで表示内容が変化するべきスプライト
-        self.file_updates = []
-        # 更新リスト
-        self.file_updates_set = set()
+        self.file_updates = set()
+        # 背景の更新が発生しているか
+        self.file_updates_bg = False
 
         # アーカイヴを展開中のシナリオ
         self.expanding = u""
@@ -361,6 +361,7 @@ class CWPy(_Singleton, threading.Thread):
         self.backloggrp.set_clip(clip)
 
     def update_skin(self, skindirname, changearea=True, restartop=True):
+        self.file_updates.clear()
         if self.status == "Title" and restartop:
             changearea = False
             self.cardgrp.remove(self.mcards)
@@ -876,6 +877,8 @@ class CWPy(_Singleton, threading.Thread):
         # 一時カードはダイアログを開き直す直前に荷物袋へ戻すが、
         # 戦闘突入等でダイアログを開き直せなかった場合はここで戻す
         self.return_takenoutcard()
+        # JPDC撮影などで更新されたメニューカードと背景を更新する
+        self.fix_updated_file()
         # パーティが非表示であれば表示する
         if not self.is_runningevent():
             if not self.is_showparty:
@@ -898,6 +901,20 @@ class CWPy(_Singleton, threading.Thread):
                 self.clear_inusecardimg(self.card_takenouttemporarily.get_owner())
                 cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None, sound=False, call_predlg=False, sort=True)
             cw.cwpy.card_takenouttemporarily = None
+
+    def fix_updated_file(self):
+        # JPDC撮影などで更新されたメニューカードと背景を更新する
+        if not self.is_playingscenario() or self.is_runningevent():
+            return
+        if self.file_updates_bg:
+            self.background.reload(False)
+            self.file_updates_bg = False
+        if self.file_updates:
+            for mcard in self.get_mcards("visible"):
+                if mcard in self.file_updates:
+                    cw.animation.animate_sprite(mcard, "hide")
+                    cw.animation.animate_sprite(mcard, "deal")
+            assert not self.file_updates # deal処理内で除去されるはず
 
     def proc_animation(self):
         removes = set()
@@ -1731,7 +1748,7 @@ class CWPy(_Singleton, threading.Thread):
                                 if music.path <> music.get_path(musicpath, inusecard):
                                     music.stop()
 
-                        self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal)
+                        self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal, doanime=not resume)
 
                         if musicpaths:
                             for i, (musicpath, subvolume, loopcount, inusecard) in enumerate(musicpaths):
@@ -2369,13 +2386,15 @@ class CWPy(_Singleton, threading.Thread):
         self.event.refresh_showpartytools()
 
     def set_sprites(self, dealanime=True,
-                                bginhrt=False, ttype=("Default", "Default")):
+                                bginhrt=False, ttype=("Default", "Default"),
+                                doanime=True):
         """エリアにスプライトをセットする。
         bginhrt: Trueの時は背景継承。
         """
         # メニューカードスプライトグループの中身を削除
         self.cardgrp.remove(self.mcards)
         self.mcards = []
+        self.file_updates.clear()
 
         # プレイヤカードスプライトグループの中身を削除
         if self.ydata:
@@ -2385,7 +2404,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 背景スプライト作成
         if not bginhrt:
-            self.background.load(self.sdata.get_bgdata(), True, ttype)
+            self.background.load(self.sdata.get_bgdata(), doanime, ttype)
 
         # 特殊エリア(キャンプ・メンバー解散)だったら背景にカーテンを追加。
         if self.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
@@ -2581,7 +2600,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def change_area(self, areaid, eventstarting=True,
                           bginhrt=False, ttype=("Default", "Default"),
-                          quickdeal=False, specialarea=False, startbattle=False):
+                          quickdeal=False, specialarea=False, startbattle=False,
+                          doanime=True):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -2607,7 +2627,7 @@ class CWPy(_Singleton, threading.Thread):
         self.sdata.change_data(areaid)
         bginhrt |= bool(self.areaid < 0)
         self.hide_cards(True, quickhide=quickdeal)
-        self.set_sprites(bginhrt=bginhrt, ttype=ttype)
+        self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime)
 
         if not self.is_playingscenario() and not self.is_showparty:
             # 宿にいる場合は常に全回復状態にする
@@ -2794,6 +2814,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.pre_mcards.append(self.get_mcards())
                 self.cardgrp.remove(self.mcards)
                 self.mcards = []
+                self.file_updates.clear()
                 for mcard in self.sdata.sparea_mcards[areaid]:
                     self.cardgrp.add(mcard, layer=mcard.layer)
                     self.mcards.append(mcard)
@@ -2892,6 +2913,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.change_data(areaid)
                 self.cardgrp.remove(self.mcards)
                 self.mcards = []
+                self.file_updates.clear()
                 for mcard in self.pre_mcards.pop():
                     self.cardgrp.add(mcard, layer=mcard.layer)
                     self.mcards.append(mcard)

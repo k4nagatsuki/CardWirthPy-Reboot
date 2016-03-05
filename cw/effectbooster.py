@@ -689,6 +689,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         # 指定位置に存在しなかった
         if not os.path.isfile(fpath):
             return u""
+        cw.cwpy.background.store_filepath(fpath)
         return fpath
     elif dirtype == 5:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
@@ -709,6 +710,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
 
     path = cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
     path = cw.cwpy.rsrc.get_filepath(path)
+    cw.cwpy.background.store_filepath(path)
     return path
 
 class JpyPartsImage(_JpySubImage):
@@ -893,7 +895,7 @@ class JpdcImage(cw.image.Image):
         filename = config.get("jpdc:init", "savefilename", "")
         savecomment = config.get("jpdc:init", "savecomment", "")
 
-        if filename and cw.cwpy.is_playingscenario():
+        if doanime and not doanime.all_cut and filename and cw.cwpy.is_playingscenario():
             filename = cw.util.repl_dischar(filename)
             savecomment = savecomment.replace("%file%", filename)
             savecomment = savecomment.replace("%dir%", os.path.dirname(path))
@@ -947,9 +949,9 @@ class JpdcImage(cw.image.Image):
                         continue
                     if mcard.cardimg.is_modifiedfile():
                         mcard.cardimg.clear_cache()
-                        ##if not mcard in cw.cwpy.file_updates_set:
-                        ##    cw.cwpy.file_updates_set.add(mcard)
-                        ##    cw.cwpy.file_updates.append(mcard)
+                        cw.cwpy.file_updates.add(mcard)
+                if not cw.cwpy.file_updates_bg and cw.cwpy.background.is_modifiedfile():
+                    cw.cwpy.file_updates_bg = True
 
             cw.cwpy.draw()
             self.wait(doanime=doanime)

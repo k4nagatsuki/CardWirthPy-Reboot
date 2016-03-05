@@ -582,12 +582,18 @@ class CWPyCard(base.SelectableSprite):
         if self.status == "hidden":
             self.clear_image(False)
 
+        if self in cw.cwpy.file_updates:
+            cw.cwpy.file_updates.remove(self)
+
     def clear_image(self, move=True):
         self.image = pygame.Surface(cw.s((0, 0))).convert()
         if move:
             topleft = self.rect.topleft
             self.rect = self.image.get_rect()
             self.rect.topleft = topleft
+
+        if self in cw.cwpy.file_updates:
+            cw.cwpy.file_updates.remove(self)
 
     def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
         """画面の拡大率を考慮せずに座標を設定する。"""
@@ -984,6 +990,8 @@ class EnemyCard(CWPyCard, character.Enemy):
         if self.frame == 0:
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.mcards.remove(self)
+            if self in cw.cwpy.file_updates:
+                cw.cwpy.file_updates.remove(self)
 
     def lclick_event(self):
         """左クリックイベント。"""

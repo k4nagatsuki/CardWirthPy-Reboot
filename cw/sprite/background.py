@@ -37,6 +37,8 @@ class BackGround(base.CWPySprite):
         cw.cwpy.cardgrp.add(self, layer=self.layer)
         self.foregrounds = set()
         self.foregroundlist = []
+        self.files = []
+        self._inhrt_index_files = 0
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
@@ -65,6 +67,36 @@ class BackGround(base.CWPySprite):
 
     def update_skin(self, oldskindir, newskindir):
         pass
+
+    def store_filepath(self, path):
+        if not cw.cwpy.is_playingscenario():
+            return
+        if os.path.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
+            return
+        if not os.path.isfile(path):
+            return
+
+        for dpath in (cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile"), cw.cwpy.sdata.scedir):
+            dpath = cw.util.join_paths(dpath)
+            if not dpath.endswith("/"):
+                dpath += u"/"
+            if path.startswith(dpath):
+                rel = cw.util.relpath(path, dpath)
+                cw.cwpy.sdata.background_image_mtime[cw.util.join_paths(rel).lower()] = (rel, os.path.getmtime(path))
+                break
+
+    def is_modifiedfile(self):
+        if not cw.cwpy.is_playingscenario():
+            return False
+
+        for key, (rel, mtime) in cw.cwpy.sdata.background_image_mtime.iteritems():
+            for dpath in (cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile"), cw.cwpy.sdata.scedir):
+                fpath = cw.util.join_paths(dpath, rel)
+                if os.path.isfile(fpath):
+                    if mtime <> os.path.getmtime(fpath):
+                        return True
+                    break
+        return False
 
     def load_surface(self, path, mask, size, flag, doanime, visible=True, nocheckvisible=False):
         """背景サーフェスを作成。
@@ -144,6 +176,8 @@ class BackGround(base.CWPySprite):
         oldbgs = list(self.bgs)
         self._bgs = list(oldbgs)
         self._elements = elements
+
+        cw.cwpy.file_updates_bg = False
 
         animated = False
         blitlist = []
@@ -429,6 +463,8 @@ class BackGround(base.CWPySprite):
         oldbgs = list(self.bgs)
         bgs = []
 
+        cw.cwpy.file_updates_bg = False
+
         animated = False
         blitlist = []
         bginhrt = True
@@ -586,6 +622,7 @@ class BackGround(base.CWPySprite):
                 self._inhrt_index = 0
 
         if image and image.get_size() <> (0, 0):
+            self.store_filepath(path)
             d2 = (image, pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
             bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True, layer, cellname)))

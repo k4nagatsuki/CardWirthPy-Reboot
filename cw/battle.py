@@ -309,6 +309,7 @@ class BattleEngine(object):
         cw.cwpy.hide_cards(True)
         cw.cwpy.cardgrp.remove(cw.cwpy.mcards)
         cw.cwpy.mcards = []
+        cw.cwpy.file_updates.clear()
 
         if runevent:
             eventkeynum = 1
@@ -336,6 +337,7 @@ class BattleEngine(object):
             cw.cwpy.hide_cards(True)
             cw.cwpy.cardgrp.remove(cw.cwpy.mcards)
             cw.cwpy.mcards = []
+            cw.cwpy.file_updates.clear()
             cw.cwpy._gameover = False
 
             # 戦闘前のエリアに戻り、敗北イベント開始
