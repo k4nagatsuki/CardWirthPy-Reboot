@@ -395,12 +395,12 @@ class CWPy(_Singleton, threading.Thread):
                     self.cardgrp.remove(sprite)
                     self.mcards.remove(sprite)
             self.sdata.change_data(self.areaid)
+            self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
+            self.deal_cards()
             if self.is_playingscenario():
                 self.background.reload(doanime=False, ttype=("None", "None"), redraw=False)
             else:
                 self.background.load(self.sdata.get_bgdata(), False, ("None", "None"), redraw=False)
-            self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
-            self.deal_cards()
             if not self.is_playingscenario():
                 self.sdata.start_event(keynum=1)
 
@@ -521,7 +521,8 @@ class CWPy(_Singleton, threading.Thread):
                     self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
             self._update_clip()
             for sprite in self.cardgrp.sprites():
-                if sprite.is_initialized():
+                if sprite.is_initialized() and not isinstance(sprite, (cw.sprite.background.BackGround,
+                                                                       cw.sprite.background.BgCell)):
                     sprite.update_scale()
             for sprite in self.topgrp.sprites():
                 sprite.update_scale()
@@ -529,6 +530,12 @@ class CWPy(_Singleton, threading.Thread):
                 sprite.update_scale()
             for sprite in self.get_fcards():
                 sprite.update_scale()
+
+            for sprite in self.cardgrp.sprites():
+                if sprite.is_initialized() and isinstance(sprite, (cw.sprite.background.BackGround,
+                                                                   cw.sprite.background.BgCell)):
+                    sprite.update_scale()
+
             self._update_clip()
             for music in self.music:
                 music.update_scale()

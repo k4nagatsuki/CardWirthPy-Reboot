@@ -39,10 +39,12 @@ class BackGround(base.CWPySprite):
         self.foregroundlist = []
         self.files = []
         self._inhrt_index_files = 0
+        self.update_scaling = False
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
+        self.update_scaling = True
         if self._in_playing:
             # Jpy1アニメーション中の場合は再実行
             bgs = self._bgs
@@ -64,6 +66,7 @@ class BackGround(base.CWPySprite):
         else:
             self.image.fill((0, 0, 0))
             self._reload(doanime=cw.effectbooster.CutAnimation(), ttype=("None", "None"), redraw=False, force=True, nocheckvisible=True)
+        self.update_scaling = False
 
     def update_skin(self, oldskindir, newskindir):
         pass

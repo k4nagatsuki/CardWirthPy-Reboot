@@ -895,15 +895,16 @@ class JpdcImage(cw.image.Image):
         filename = config.get("jpdc:init", "savefilename", "")
         savecomment = config.get("jpdc:init", "savecomment", "")
 
-        if doanime and not doanime.all_cut and filename and cw.cwpy.is_playingscenario():
+        if ((doanime and not doanime.all_cut) or cw.cwpy.background.update_scaling) and filename and cw.cwpy.is_playingscenario():
             filename = cw.util.repl_dischar(filename)
             savecomment = savecomment.replace("%file%", filename)
             savecomment = savecomment.replace("%dir%", os.path.dirname(path))
 
-            if savecomment:
-                cw.cwpy.set_titlebar(savecomment)
-            else:
-                cw.cwpy.set_titlebar(filename)
+            if doanime and not doanime.all_cut:
+                if savecomment:
+                    cw.cwpy.set_titlebar(savecomment)
+                else:
+                    cw.cwpy.set_titlebar(filename)
 
             saveimage = self.image
             if cw.UP_SCR <> 1:
@@ -944,18 +945,20 @@ class JpdcImage(cw.image.Image):
                     del cw.cwpy.sdata.resource_cache[key]
 
                 # メニューカードが更新されるものを更新リストに登録する
-                for mcard in cw.cwpy.get_mcards():
-                    if not mcard.is_initialized():
-                        continue
-                    if mcard.cardimg.is_modifiedfile():
-                        mcard.cardimg.clear_cache()
-                        cw.cwpy.file_updates.add(mcard)
-                if not cw.cwpy.file_updates_bg and cw.cwpy.background.is_modifiedfile():
-                    cw.cwpy.file_updates_bg = True
+                if not cw.cwpy.background.update_scaling:
+                    for mcard in cw.cwpy.get_mcards():
+                        if not mcard.is_initialized():
+                            continue
+                        if mcard.cardimg.is_modifiedfile():
+                            mcard.cardimg.clear_cache()
+                            cw.cwpy.file_updates.add(mcard)
+                    if not cw.cwpy.file_updates_bg and cw.cwpy.background.is_modifiedfile():
+                        cw.cwpy.file_updates_bg = True
 
-            cw.cwpy.draw()
-            self.wait(doanime=doanime)
-            cw.cwpy.update_titlebar()
+            if doanime and not doanime.all_cut:
+                cw.cwpy.draw()
+                self.wait(doanime=doanime)
+                cw.cwpy.update_titlebar()
 
     def wait(self, doanime):
         # 右クリックするまで待機
