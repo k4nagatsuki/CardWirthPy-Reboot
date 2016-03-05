@@ -1621,12 +1621,17 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change()
 
         if self.ydata.party:
+            # パーティを選択中
             areaid = 2
             self.ydata.party.remove_numbercoupon()
             for pcard in self.get_pcards():
                 pcard.clear_action()
-        else:
+        elif self.ydata.is_empty() or self.ydata.is_changed():
+            # パーティを選択中でない
             areaid = 1
+        else:
+            # 初期状態
+            areaid = 3
 
         if self.setting.store_skinoneachbase and self.ydata.skindirname <> cw.cwpy.setting.skindirname:
             self.update_skin(self.ydata.skindirname, changearea=False)

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<System>
+  <Property>
+    <Id>3</Id>
+  <Name>冒険者の宿</Name>
+  </Property>
+ <BgImages>
+    <BgImage mask="False">
+      <ImagePath>Table/MapOfWirth.bmp</ImagePath>
+   <Flag />
+   <Location left="0" top="0" />
+   <Size height="420" width="632" />
+   </BgImage>
+  <BgImage mask="False">
+      <ImagePath>Table/AdventurersInn.bmp</ImagePath>
+   <Flag />
+   <Location left="116" top="15" />
+   <Size height="260" width="400" />
+   </BgImage>
+  </BgImages>
+ <MenuCards spreadtype="Custom">
+    <MenuCard arg="PLAYERSELECT" command="ShowDialog">
+      <Property>
+        <Name>宿帳を開く</Name>
+    <ImagePath>Resource/Image/Card/COMMAND2.bmp</ImagePath>
+    <Description>待機中のメンバーを閲覧し、パーティの編成を行います。新規登録や引退もここから行います。</Description>
+    <Flag />
+    <Location left="233" top="150" />
+    <Size scale="100%" />
+    </Property>
+   <Events />
+   </MenuCard>
+  <MenuCard arg="RETURNTITLE" command="ShowDialog">
+      <Property>
+        <Name>宿を出る</Name>
+    <ImagePath>Resource/Image/Card/COMMAND1.bmp</ImagePath>
+    <Description>ゲームを終了し、タイトル画面へ戻ります。</Description>
+    <Flag />
+    <Location left="318" top="150" />
+    <Size scale="100%" />
+    </Property>
+   <Events />
+   </MenuCard>
+  </MenuCards>
+ <Events>
+    <Event>
+      <Ignitions>
+        <Number>1</Number>
+    <KeyCodes />
+    </Ignitions>
+   <Contents>
+        <Start name="エリアイベント">
+          <Contents>
+            <Play path="Bgm/DefInn.mid" type="Bgm">
+              <Contents>
+              </Contents>
+       </Play>
+      </Contents>
+     </Start>
+    </Contents>
+   </Event>
+  </Events>
+ </System>

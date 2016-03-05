@@ -853,8 +853,79 @@ class Setting(object):
                     e.edit("Property/Enhance", "-10", "resist")
                 e.write()
 
+            if skinversion <= 8:
+                # dataVersion=8までは`03_YadoInitial.xml`
+                # (データ無し宿で表示されるエリア)が存在しなかったので生成。
+                # タイトル画面のカード位置も調節する。
+                update = True
+
+                fpath = cw.util.join_paths(self.skindir, u"Resource/Xml/Title/01_Title.xml")
+                if os.path.isfile(fpath):
+                    # タイトル画面のカード位置を調節
+                    e = cw.data.xml2etree(fpath)
+                    e_mcards = e.find("MenuCards")
+                    if not e_mcards is None and len(e_mcards) == 2 and\
+                            e_mcards.getattr(".", "spreadtype", "") == "Custom" and\
+                            e_mcards[0].getint("Property/Location", "left", 0) == 231 and\
+                            e_mcards[0].getint("Property/Location", "top", 0) == 156 and\
+                            e_mcards[1].getint("Property/Location", "left", 0) == 316 and\
+                            e_mcards[1].getint("Property/Location", "top", 0) == 156:
+                        # バックアップを作成
+                        iver = skinversion
+                        if iver % 1 == 0:
+                            iver = int(iver)
+                        dst = "%s.v%s" % (fpath, iver)
+                        dst = cw.util.dupcheck_plus(dst, yado=False)
+                        shutil.copy2(fpath, dst)
+                        e.edit("MenuCards/MenuCard[1]/Property/Location", "233", "left")
+                        e.edit("MenuCards/MenuCard[1]/Property/Location", "150", "top")
+                        e.edit("MenuCards/MenuCard[2]/Property/Location", "318", "left")
+                        e.edit("MenuCards/MenuCard[2]/Property/Location", "150", "top")
+                        e.write()
+
+                fpath1 = u"Data/SkinBase/Resource/Xml/Yado/03_YadoInitial.xml"
+                fpath2 = cw.util.join_paths(self.skindir, u"Resource/Xml/Yado/03_YadoInitial.xml")
+                if not os.path.isfile(fpath2):
+                    shutil.copy2(fpath1, fpath2)
+                    fpath3 = cw.util.join_paths(self.skindir, u"Resource/Xml/Yado/01_Yado.xml")
+                    if os.path.isfile(fpath3):
+                        e = cw.data.xml2etree(fpath2)
+                        e3 = cw.data.xml2etree(fpath3)
+                        e_playerselect = None
+                        e_returntitle = None
+                        for e_mcard in e3.getfind("MenuCards", raiseerror=False):
+                            command = e_mcard.getattr(".", "command", "")
+                            arg = e_mcard.getattr(".", "arg", "")
+                            if command == "ShowDialog" and arg == "PLAYERSELECT":
+                                e_playerselect = e_mcard
+                            elif command == "ShowDialog" and arg == "RETURNTITLE":
+                                e_returntitle = e_mcard
+                        if not e_playerselect is None:
+                            e.edit("MenuCards/MenuCard[1]/Property/Name",
+                                   e_playerselect.gettext("Property/Name"))
+                            e.edit("MenuCards/MenuCard[1]/Property/ImagePath",
+                                   e_playerselect.gettext("Property/ImagePath"))
+                            e.edit("MenuCards/MenuCard[1]/Property/Description",
+                                   e_playerselect.gettext("Property/Description"))
+                        if not e_returntitle is None:
+                            e.edit("MenuCards/MenuCard[2]/Property/Name",
+                                   e_returntitle.gettext("Property/Name"))
+                            e.edit("MenuCards/MenuCard[2]/Property/ImagePath",
+                                   e_returntitle.gettext("Property/ImagePath"))
+                            e.edit("MenuCards/MenuCard[2]/Property/Description",
+                                   e_returntitle.gettext("Property/Description"))
+                        e_bgimgs = e3.find("BgImages")
+                        if not e_bgimgs is None:
+                            e.remove(".", e.find("BgImages"))
+                            e.insert(".", e_bgimgs, 1)
+                        e_event = e3.find("Events")
+                        if not e_event is None:
+                            e.remove(".", e.find("Events"))
+                            e.append(".", e_event)
+                        e.write()
+
             if update:
-                data.edit(".", "7", "dataVersion")
+                data.edit(".", "9", "dataVersion")
                 data.write()
 
             return data

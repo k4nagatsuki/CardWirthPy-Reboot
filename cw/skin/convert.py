@@ -440,7 +440,8 @@ class Converter(threading.Thread):
                 index = get_menucard([(self.title["01_Title"], 2)], index)
                 # 宿帳を開く
                 index = get_menucard([(self.yado["01_Yado"], 1),
-                                      (self.yado["02_Yado2"], 1)], index)
+                                      (self.yado["02_Yado2"], 1),
+                                      (self.yado["03_YadoInitial"], 1)], index)
                 # 冒険の再開
                 index = get_menucard([(self.yado["01_Yado"], 3),
                                       (self.yado["02_Yado2"], 3)], index)
@@ -458,7 +459,8 @@ class Converter(threading.Thread):
                 index = get_menucard([(self.scenario["-4_Camp"], 5),
                                       (self.yado["02_Yado2"], 10)], index)
                 # 宿を出る
-                index = get_menucard([(self.yado["01_Yado"], 6)], index)
+                index = get_menucard([(self.yado["01_Yado"], 6),
+                                      (self.yado["03_YadoInitial"], 2)], index)
                 # 仲間を外す
                 index = get_menucard([(self.yado["02_Yado2"], 4)], index)
                 # セーブ
@@ -1336,6 +1338,11 @@ class Converter(threading.Thread):
                     data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths(u"Table", self.adventurersinn))
                     data.write()
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/02_Yado2.xml")
+                if os.path.isfile(fpath):
+                    data = cw.data.xml2etree(fpath)
+                    data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths(u"Table", self.adventurersinn))
+                    data.write()
+                fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/03_YadoInitial.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
                     data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths(u"Table", self.adventurersinn))

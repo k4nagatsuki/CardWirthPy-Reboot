@@ -1630,6 +1630,10 @@ class YadoData(object):
     def is_changed(self):
         return self._changed
 
+    def is_empty(self):
+        return self.partys or self.standbys or self.storehouse or\
+               self.album or self.partyrecord or self.savedjpdcimage
+
     def set_skinname(self, skindirname):
         self.skindirname = skindirname
         e = self.environment.find("Property/Skin")

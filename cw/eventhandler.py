@@ -345,7 +345,7 @@ class EventHandler(object):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.play_sound("click")
 
-                if cw.cwpy.areaid == 1:
+                if cw.cwpy.areaid in (1, 3):
                     cw.cwpy.call_modaldlg("RETURNTITLE")
                 if cw.cwpy.areaid == 2:
                     cw.cwpy.exec_func(cw.cwpy.load_party, None)

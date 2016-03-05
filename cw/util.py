@@ -71,7 +71,7 @@ class MusicInterface(object):
             return
 
         assert threading.currentThread() == cw.cwpy
-        if cw.cwpy.ydata:
+        if cw.cwpy.ydata and cw.cwpy.is_playingscenario():
             cw.cwpy.ydata.changed()
         fpath = self.get_path(path, inusecard)
         self.path = path

@@ -209,6 +209,7 @@ class Frame(wx.Frame):
             "CHARAINFO",  # キャラクタ情報ダイアログ
             "RETURNTITLE",  # タイトルに戻るダイアログ
             "SAVE",  # セーブダイアログ
+            "SAVED_MESSAGE", # セーブ完了通知ダイアログ
             "USECARD",   # カード使用ダイアログ
             "RUNAWAY",   # 逃走確認ダイアログ
             "ERROR",  # エラーダイアログ
@@ -544,10 +545,13 @@ class Frame(wx.Frame):
         def func():
             if cw.cwpy.ydata.party:
                 areaid = 2
-            else:
+            elif cw.cwpy.ydata.is_empty() or cw.cwpy.ydata.is_changed():
                 areaid = 1
+            else:
+                areaid = 3
             if areaid <> cw.cwpy.areaid:
-                cw.cwpy.ydata.party._loading = False
+                if cw.cwpy.ydata.party:
+                    cw.cwpy.ydata.party._loading = False
                 cw.cwpy.change_area(areaid)
         cw.cwpy.exec_func(func)
 
@@ -723,10 +727,34 @@ class Frame(wx.Frame):
                 cw.cwpy.play_sound("signal")
                 if cw.cwpy.setting.show_savedmessage:
                     s = cw.cwpy.msgs["saved"]
-                    cw.cwpy.call_dlg("MESSAGE", text=s)
+                    cw.cwpy.call_dlg("SAVED_MESSAGE", text=s)
+                else:
+                    self._saved()
             cw.cwpy.exec_func(func)
         else:
             self.kill_dlg(dlg)
+
+    def OnSAVED_MESSAGE(self, event):
+        self.OnMESSAGE(event)
+        def func():
+            self._saved()
+        cw.cwpy.exec_func(func)
+
+    def _saved(self):
+        if cw.cwpy.is_playingscenario():
+            return
+
+        if cw.cwpy.ydata.party:
+            areaid = 2
+        elif cw.cwpy.ydata.is_empty() or cw.cwpy.ydata.is_changed():
+            areaid = 1
+        else:
+            areaid = 3
+
+        if areaid <> cw.cwpy.areaid:
+            if cw.cwpy.ydata.party:
+                cw.cwpy.ydata.party._loading = False
+            cw.cwpy.change_area(areaid)
 
     def OnRUNAWAY(self, event):
         s = cw.cwpy.msgs["confirm_runaway"]
