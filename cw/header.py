@@ -229,7 +229,8 @@ class CardHeader(object):
             paths.append(cw.image.ImageInfo(path, base=info))
 
         # TODO scaleinfo
-        self._cardimg = cw.image.CardImage(paths, self.get_bgtype(), self.name, self.premium)
+        self._cardimg = cw.image.CardImage(paths, self.get_bgtype(), self.name, self.premium,
+                                           is_scenariocard=self.scenariocard)
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
         self.wxrect = pygame.Rect(self._cardimg.wxrect)
@@ -823,7 +824,8 @@ class InfoCardHeader(object):
 
     def set_cardimg(self):
         # TODO scaleinfo
-        self._cardimg = cw.image.CardImage(self.imgpaths, "INFO", self.name)
+        self._cardimg = cw.image.CardImage(self.imgpaths, "INFO", self.name,
+                                           is_scenariocard=True)
         self.rect = self._cardimg.rect
         self.wxrect = self._cardimg.wxrect
         self._cardscale = cw.UP_SCR

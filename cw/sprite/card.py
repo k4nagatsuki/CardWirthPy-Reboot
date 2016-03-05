@@ -958,7 +958,8 @@ class EnemyCard(CWPyCard, character.Enemy):
             path = info.path
             self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
         # TODO scaleinfo
-        self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=self._init_pos_noscale)
+        self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=self._init_pos_noscale,
+                                                   is_scenariocard=True)
         self.set_pos_noscale(pos_noscale=self._init_pos_noscale)
         self.update_image()
         # 空のイメージ
@@ -1044,7 +1045,7 @@ class FriendCard(CWPyCard, character.Friend):
             path = info.path
             self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
         # TODO scaleinfo
-        self.cardimg = cw.image.CharacterCardImage(self)
+        self.cardimg = cw.image.CharacterCardImage(self, is_scenariocard=True)
         self.update_image()
         # 空のイメージ
         self.clear_image()
@@ -1159,8 +1160,7 @@ class MenuCard(CWPyCard):
         paths = []
         for info in cw.image.get_imageinfos(self._data.find("Property"), pcnumber=True):
             if info.path:
-                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=cw.cwpy.areaid < 0)
-                paths.append(cw.image.ImageInfo(path, base=info))
+                paths.append(cw.image.ImageInfo(info.path, base=info))
             elif info.pcnumber:
                 # メニューカードにPCの画像を表示(1.30)
                 pcards = cw.cwpy.ydata.party.members
@@ -1174,10 +1174,12 @@ class MenuCard(CWPyCard):
 
         if self._data.tag == "LargeMenuCard":
             # TODO scaleinfo
-            self._cardimg = cw.image.LargeCardImage(paths, "NORMAL", self.name)
+            self._cardimg = cw.image.LargeCardImage(paths, "NORMAL", self.name,
+                                                    is_scenariocard=0 <= cw.cwpy.areaid)
         else:
             # TODO scaleinfo
-            self._cardimg = cw.image.CardImage(paths, "NORMAL", self.name)
+            self._cardimg = cw.image.CardImage(paths, "NORMAL", self.name,
+                                               is_scenariocard=0 <= cw.cwpy.areaid)
 
         self.update_image()
         # pos

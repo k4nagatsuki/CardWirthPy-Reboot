@@ -185,6 +185,11 @@ class CWPy(_Singleton, threading.Thread):
         # アニメーション中のスプライト
         self.animations = set()
 
+        # JPDC撮影などで表示内容が変化するべきスプライト
+        self.file_updates = []
+        # 更新リスト
+        self.file_updates_set = set()
+
         # アーカイヴを展開中のシナリオ
         self.expanding = u""
         # 展開の進捗情報
