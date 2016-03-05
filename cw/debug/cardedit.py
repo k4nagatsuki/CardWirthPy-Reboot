@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import threading
+import wx
 import wx.combo
 import wx.lib.agw.customtreectrl
 
@@ -199,13 +201,31 @@ class CardEditDialog(wx.Dialog):
         if dlg.ShowModal() == wx.ID_OK:
             fpath = dlg.GetPath()
 
-            scdata = get_scenario(fpath)
-            if not scdata:
-                return
+            def func(self):
+                try:
+                    scdata = get_scenario(fpath)
+                    if not scdata:
+                        def func(self):
+                            self.Enable(True)
+                        cw.cwpy.frame.exec_func(func, self)
+                        return
+                except:
+                    cw.util.print_ex(file=sys.stderr)
+                    def func(self):
+                        self.Enable(True)
+                    cw.cwpy.frame.exec_func(func, self)
+                    return
 
-            self.scpath = fpath
-            self.scdata = scdata
-            self._update_cards()
+                def func(self):
+                    self.Enable(True)
+                    self.scpath = fpath
+                    self.scdata = scdata
+                    self._update_cards()
+
+                cw.cwpy.frame.exec_func(func, self)
+
+            self.Enable(False)
+            cw.cwpy.exec_func(func, self)
 
     def OnDetailBtn(self, event):
         """カードの情報を表示する。"""
