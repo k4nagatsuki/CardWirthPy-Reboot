@@ -2325,7 +2325,14 @@ class Character(object):
                 for card in pocket[:]:
                     if card.premium == "Premium":
                         cw.cwpy.trade("BACKPACK", header=card, from_event=True, sort=False)
+
+            index = cw.cwpy.ydata.party.members.index(self.data)
+            for i in xrange(index, len(cw.cwpy.ydata.party.members)):
+                pi = i + 1
+                cw.cwpy.file_updates.update(cw.cwpy.update_pcimage(pi, deal=False))
+
             cw.cwpy.ydata.party.remove(self)
+
         self.lost()
 
     def set_enhance_act(self, value, duration):

@@ -913,6 +913,7 @@ class CWPy(_Singleton, threading.Thread):
             for mcard in self.get_mcards("visible"):
                 if mcard in self.file_updates:
                     cw.animation.animate_sprite(mcard, "hide")
+                    mcard.update_image()
                     cw.animation.animate_sprite(mcard, "deal")
             assert not self.file_updates # deal処理内で除去されるはず
 
@@ -2350,6 +2351,45 @@ class CWPy(_Singleton, threading.Thread):
         if not self.is_showingmessage():
             self.list = visible
             self.index = -1
+
+    def update_pcimage(self, pcnumber, deal):
+        updates = []
+        pcards = self.get_pcards()
+        pcard = pcards[pcnumber-1] if pcnumber-1 < len(pcards) else None
+        for mcard in self.get_mcards():
+            if not mcard.is_initialized():
+                continue
+            imgpaths = []
+            update = False
+            for i, info in enumerate(mcard.cardimg.paths):
+                # PC画像を更新
+                if info.pcnumber == pcnumber:
+                    if pcard:
+                        for base in pcard.imgpaths:
+                            imgpaths.append(cw.image.ImageInfo(base.path, pcnumber, info.base))
+                    else:
+                        imgpaths.append(cw.image.ImageInfo(pcnumber=pcnumber, base=info.base))
+                    update = True
+                else:
+                    imgpaths.append(info)
+            if not update:
+                continue
+            mcard.cardimg.paths = imgpaths
+            mcard.cardimg.clear_cache()
+            updates.append(mcard)
+        if deal:
+            if cw.cwpy.setting.all_quickdeal:
+                cw.animation.animate_sprites(updates, "hide")
+                for mcard in updates:
+                    mcard.update_image()
+                cw.animation.animate_sprites(updates, "deal")
+            else:
+                for mcard in updates:
+                    cw.animation.animate_sprite(mcard, "hide")
+                    mcard.cardimg.clear_cache()
+                    mcard.update_image()
+                    cw.animation.animate_sprite(mcard, "deal")
+        return updates
 
     def show_party(self):
         """非表示のPlayerCardを再表示にする。"""

@@ -693,36 +693,7 @@ class PlayerCard(CWPyCard, character.Player):
         def func():
             def func():
                 num = cw.cwpy.get_pcards().index(self)+1
-                updates = []
-                for mcard in cw.cwpy.get_mcards("visible"):
-                    if not mcard.is_initialized():
-                        continue
-                    imgpaths = []
-                    update = False
-                    for i, info in enumerate(mcard.cardimg.paths):
-                        # PC画像を更新
-                        if info.pcnumber == num:
-                            for base in self.imgpaths:
-                                imgpaths.append(cw.image.ImageInfo(base.path, num, info.base))
-                            update = True
-                        else:
-                            imgpaths.append(info)
-                    if not update:
-                        continue
-                    mcard.cardimg.paths = imgpaths
-                    updates.append(mcard)
-                if cw.cwpy.setting.all_quickdeal:
-                    cw.animation.animate_sprites(updates, "hide")
-                    for mcard in updates:
-                        mcard.cardimg.clear_cache()
-                        mcard.update_image()
-                    cw.animation.animate_sprites(updates, "deal")
-                else:
-                    for mcard in updates:
-                        cw.animation.animate_sprite(mcard, "hide")
-                        mcard.cardimg.clear_cache()
-                        mcard.update_image()
-                        cw.animation.animate_sprite(mcard, "deal")
+                cw.cwpy.update_pcimage(num, deal=True)
             cw.cwpy.exec_func(func)
         cw.cwpy.exec_func(func)
 

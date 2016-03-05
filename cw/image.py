@@ -685,7 +685,7 @@ class CharacterCardImage(CardImage):
         for info in self.paths:
             path = info.path
             if not cw.binary.image.path_is_code(path) and isinstance(self.ccard, cw.sprite.card.PlayerCard):
-                path = cw.util.get_materialpath(path, cw.M_IMG, system=not self.is_scenariocard)
+                path = cw.util.get_yadofilepath(path)
             self.cardimgs.append(cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo)))
 
     def set_nameimg(self, name):
