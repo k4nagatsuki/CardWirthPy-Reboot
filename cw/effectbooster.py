@@ -941,6 +941,12 @@ class JpdcImage(cw.image.Image):
                 for key in removekeys:
                     del cw.cwpy.sdata.resource_cache[key]
 
+                # メニューカードのイメージのキャッシュをクリアする
+                for mcard in cw.cwpy.get_mcards():
+                    if not mcard.is_initialized():
+                        continue
+                    mcard.cardimg.clear_cache()
+
             cw.cwpy.draw()
             self.wait(doanime=doanime)
             cw.cwpy.update_titlebar()
