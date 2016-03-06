@@ -1154,11 +1154,13 @@ class MenuCard(CWPyCard):
         if self._data.tag == "LargeMenuCard":
             # TODO scaleinfo
             self._cardimg = cw.image.LargeCardImage(paths, "NORMAL", self.name,
-                                                    is_scenariocard=0 <= cw.cwpy.areaid)
+                                                    is_scenariocard=0 <= cw.cwpy.areaid and\
+                                                                    cw.cwpy.is_playingscenario())
         else:
             # TODO scaleinfo
             self._cardimg = cw.image.CardImage(paths, "NORMAL", self.name,
-                                               is_scenariocard=0 <= cw.cwpy.areaid)
+                                               is_scenariocard=0 <= cw.cwpy.areaid and\
+                                                               cw.cwpy.is_playingscenario())
 
         self.update_image()
         # pos

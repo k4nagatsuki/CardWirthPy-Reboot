@@ -162,7 +162,7 @@ class Debugger(wx.Frame):
         self.mi_recovery.SetBitmap(rsrc["RECOVERY"])
         edit_menu.AppendItem(self.mi_recovery)
 
-        self.mi_update = wx.MenuItem(scenario_menu, ID_UPDATE, u"再読込(&R)\tF5",
+        self.mi_update = wx.MenuItem(scenario_menu, ID_UPDATE, u"再読込(&R)\tCtrl+F5",
                          u"最新の情報に更新します。")
         self.mi_update.SetBitmap(rsrc["UPDATE"])
         scenario_menu.AppendItem(self.mi_update)

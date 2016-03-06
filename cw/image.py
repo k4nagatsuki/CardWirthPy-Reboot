@@ -582,8 +582,16 @@ class LargeCardImage(CardImage):
 
         for info in self.paths:
             path = info.path
-            subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
-            image.blit(subimg, cw.s((10, 18)))
+            pisc = cw.binary.image.path_is_code(path)
+            if not pisc:
+                path = cw.util.get_yadofilepath(path)
+
+            if not path:
+                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
+
+            if pisc or os.path.isfile(path):
+                subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
+                image.blit(subimg, cw.s((10, 18)))
 
         font = cw.cwpy.rsrc.fonts["pcard_name"]
         if self.name:
@@ -630,8 +638,16 @@ class LargeCardImage(CardImage):
 
         for info in self.paths:
             path = info.path
-            subimg = cw.util.load_wxbmp(path, True)
-            subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+            pisc = cw.binary.image.path_is_code(path)
+            if not pisc:
+                path = cw.util.get_yadofilepath(path)
+
+            if not path:
+                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
+
+            if pisc or os.path.isfile(path):
+                subimg = cw.util.load_wxbmp(path, True)
+                subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
 
         dc.DrawBitmap(subimg, cw.wins(10), cw.wins(18), True)
         pixelsize = cw.cwpy.setting.fonttypes["ccardname"][2]
