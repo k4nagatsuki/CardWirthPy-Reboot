@@ -792,23 +792,35 @@ def read_summary(basepath):
 
     if path.lower().endswith(".cab"):
         try:
-            if cw.util.cab_hasfile(path, "Summary.wsm"):
+            summpath = cw.util.cab_hasfile(path, "Summary.wsm")
+            if summpath:
+                # BUG: Windows XP付属のexpandのバージョン5とより新しいバージョン6では
+                #      expandの-fオプションの挙動が違う。
+                #      5ではCABアーカイブ内のパスを指定しなければ失敗し、
+                #      6ではパスを指定すると失敗しファイル名を指定すると成功する。
+                #      ワイルドカード指定はどちらでも成功する。
                 dpath = cw.util.join_paths(cw.tempdir, u"Cab")
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
-                s = "expand \"%s\" -I -f:%s \"%s\"" % (path, "Summary.wsm", dpath)
+                s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, "*.wsm", dpath)
                 encoding = sys.getfilesystemencoding()
                 ret = subprocess.call(s.encode(encoding), shell=True)
                 if ret == 0:
-                    spath = cw.util.join_paths(dpath, os.listdir(dpath)[0])
-                    f = None
-                    try:
-                        with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
-                            r, images = read_summary_classic(basepath, path, f)
-                            f.close()
-                            return r, images
-                    finally:
-                        os.remove(spath)
+                    spath = cw.util.join_paths(dpath, os.path.basename(summpath))
+                    if not os.path.isfile(spath):
+                        spath = cw.util.join_paths(dpath, summpath)
+                    if os.path.isfile(spath):
+                        f = None
+                        try:
+                            with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
+                                r, images = read_summary_classic(basepath, path, f)
+                                f.close()
+                                return r, images
+                        finally:
+                            for fpath in os.listdir(dpath):
+                                fpath = cw.util.decode_zipname(fpath)
+                                fpath = cw.util.join_paths(dpath, fpath)
+                                cw.util.remove(fpath)
                 else:
                     return None, []
             else:

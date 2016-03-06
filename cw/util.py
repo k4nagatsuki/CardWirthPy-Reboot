@@ -1888,7 +1888,19 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
     try:
         if not os.path.isdir(dstdir):
             os.makedirs(dstdir)
-        s = "expand \"%s\" -f:* \"%s\"" % (path, dstdir)
+        ss = []
+        if sys.platform == "win32" and sys.getwindowsversion().major <= 5 or True:
+            # バージョン5以前の`expand.exe`は`-f:*`でディレクトリ構造を無視してしまう
+            for dname in cab_dpaths(path):
+                if not dname:
+                    continue
+                dstdir2 = cw.util.join_paths(dstdir, dname)
+                if not os.path.isdir(dstdir2):
+                    os.makedirs(dstdir2)
+                ss.append("expand \"%s\" -f:\"%s\\*\" \"%s\"" % (path, dname, dstdir2))
+            ss.append("expand \"%s\" -f:\"*\" \"%s\"" % (path, dstdir))
+        else:
+            ss.append("expand \"%s\" -f:* \"%s\"" % (path, dstdir))
         encoding = sys.getfilesystemencoding()
         if progress:
             class Progress(object):
@@ -1897,15 +1909,17 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                     self.cancel = False
 
                 def run(self):
-                    p = subprocess.Popen(s.encode(encoding), shell=True)
-                    r = p.poll()
-                    while r is None:
-                        if self.cancel:
-                            p.kill()
-                        time.sleep(0.001)
+                    for s in ss:
+                        p = subprocess.Popen(s.encode(encoding), shell=True)
                         r = p.poll()
-                    if r == 0:
-                        self.result = dstdir
+                        while r is None:
+                            if self.cancel:
+                                p.kill()
+                            time.sleep(0.001)
+                            r = p.poll()
+                        if r <> 0:
+                            return # 失敗
+                    self.result = dstdir
 
             prog = Progress()
             thr = threading.Thread(target=prog.run)
@@ -1927,8 +1941,9 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                 remove(dstdir)
                 return None
         else:
-            if subprocess.call(s.encode(encoding), shell=True) <> 0:
-                return None
+            for s in ss:
+                if subprocess.call(s.encode(encoding), shell=True) <> 0:
+                    return None
     except Exception:
         cw.util.print_ex()
         return None
@@ -2008,6 +2023,53 @@ def cab_hasfile(cab, fname):
     except Exception:
         cw.util.print_ex()
     return ""
+
+def cab_dpaths(cab):
+    """CABアーカイブ内のディレクトリのsetを返す。"""
+    if not os.path.isfile(cab):
+        return ""
+
+    dword = struct.Struct("<l")
+    word = struct.Struct("<h")
+
+    r = set()
+
+    encoding = "cp932"
+    try:
+        with io.BufferedReader(io.FileIO(cab, "rb")) as f:
+            # ヘッダ
+            buf = f.read(36)
+            if buf[:4] <> "MSCF":
+                f.close()
+                return ""
+
+            cofffiles = dword.unpack(buf[16:20])[0]
+            cfiles = word.unpack(buf[28:30])[0]
+            f.seek(cofffiles)
+
+            for _i in xrange(cfiles):
+                buf = f.read(16)
+                attribs = word.unpack(buf[14:16])[0]
+                name = []
+                while True:
+                    c = str(f.read(1))
+                    if c == '\0':
+                        break
+                    name.append(c)
+                name = "".join(name)
+                _A_NAME_IS_UTF = 0x80
+                if not (attribs & _A_NAME_IS_UTF):
+                    name = unicode(name, encoding)
+                i = name.rfind(u"\\")
+                if i == -1:
+                    r.add(u"")
+                else:
+                    dname = name[:i]
+                    r.add(dname)
+            f.close()
+    except Exception:
+        cw.util.print_ex()
+    return r
 
 def cab_scdir(cab):
     """CABアーカイブ内でSummary.wsmまたは
