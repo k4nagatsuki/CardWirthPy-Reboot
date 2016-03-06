@@ -77,7 +77,8 @@ class BackGround(base.CWPySprite):
     def store_filepath(self, path):
         if not cw.cwpy.is_playingscenario():
             return
-        if os.path.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
+        ext = os.path.splitext(path)[1].lower()
+        if ext in (".jpy1", ".jptx", ".jpdc") or ext in cw.EXTS_SND:
             return
         if not os.path.isfile(path):
             return
