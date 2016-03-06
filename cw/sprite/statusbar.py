@@ -636,7 +636,8 @@ class StatusBarButton(base.SelectableSprite):
     def _create_paneimg(self, pos, icon):
         # ボタン画像
         self.btnimg = {}
-        self._statusbarmask = cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()
+        self._statusbarmask = (cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()) or\
+                              cw.cwpy.statusbar._statusbarmask
 
         # ボタンアイコン・ラベル
         if icon:
@@ -677,7 +678,8 @@ class StatusBarButton(base.SelectableSprite):
             return self.notice
 
     def get_btnimg(self, flags):
-        statusbarmask = cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()
+        statusbarmask = (cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()) or\
+                        cw.cwpy.statusbar._statusbarmask
 
         if self._statusbarmask <> statusbarmask:
             self._statusbarmask = statusbarmask
