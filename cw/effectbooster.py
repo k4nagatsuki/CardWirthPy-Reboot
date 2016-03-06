@@ -885,6 +885,7 @@ class JpdcImage(cw.image.Image):
             if copymode == 2:
                 for sprite in cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"): # TODO: layer
                     self.image.blit(sprite.image, sprite.rect.topleft)
+            cw.cwpy.background.reload_jpdcimage = False
 
         self.image = self.image.subsurface(rect)
 
@@ -895,7 +896,7 @@ class JpdcImage(cw.image.Image):
         filename = config.get("jpdc:init", "savefilename", "")
         savecomment = config.get("jpdc:init", "savecomment", "")
 
-        if ((doanime and not doanime.all_cut) or cw.cwpy.background.update_scaling) and filename and cw.cwpy.is_playingscenario():
+        if doanime and not doanime.all_cut and not cw.cwpy.update_scaling and filename and cw.cwpy.is_playingscenario():
             filename = cw.util.repl_dischar(filename)
             savecomment = savecomment.replace("%file%", filename)
             savecomment = savecomment.replace("%dir%", os.path.dirname(path))
@@ -945,7 +946,7 @@ class JpdcImage(cw.image.Image):
                     del cw.cwpy.sdata.resource_cache[key]
 
                 # メニューカードが更新されるものを更新リストに登録する
-                if not cw.cwpy.background.update_scaling:
+                if not cw.cwpy.update_scaling:
                     for mcard in cw.cwpy.get_mcards():
                         if not mcard.is_initialized():
                             continue
@@ -959,6 +960,8 @@ class JpdcImage(cw.image.Image):
                 cw.cwpy.draw()
                 self.wait(doanime=doanime)
                 cw.cwpy.update_titlebar()
+
+            cw.cwpy.background.reload_jpdcimage = False
 
     def wait(self, doanime):
         # 右クリックするまで待機

@@ -56,10 +56,12 @@ class CWPy(_Singleton, threading.Thread):
         self.setting = setting  # 設定
         self.status = "Title"
         self.update_titlebar()
-        self.expand_mode = setting.expandmode
-        self.is_processing = False
-        self.is_debuggerprocessing = False
-        self.is_decompressing = False
+        self.expand_mode = setting.expandmode # 画面拡大条件
+        self.is_processing = False # シナリオ読込中か
+        self.is_debuggerprocessing = False # デバッガの処理が進行中か(宿の再ロードなど)
+        self.is_decompressing = False # アーカイブ展開中か
+
+        self.update_scaling = False # 画面スケール変更中か
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
@@ -485,6 +487,8 @@ class CWPy(_Singleton, threading.Thread):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
+        self.update_scaling = True
+
         if self.ydata:
             changed = self.ydata.is_changed()
         else:
@@ -520,6 +524,7 @@ class CWPy(_Singleton, threading.Thread):
                     mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1])
                     self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
             self._update_clip()
+
             for sprite in self.cardgrp.sprites():
                 if sprite.is_initialized() and not isinstance(sprite, (cw.sprite.background.BackGround,
                                                                        cw.sprite.background.BgCell)):
@@ -556,6 +561,10 @@ class CWPy(_Singleton, threading.Thread):
             pos = pygame.mouse.get_pos()
             pygame.mouse.set_pos([-1, -1])
             pygame.mouse.set_pos(pos)
+
+        self.update_scaling = False
+        if udpatedrawsize and not self.background.reload_jpdcimage and self.background.has_jpdcimage:
+            self.background.reload(False, ttype=(None, None))
 
         if changearea:
             def func():
@@ -913,10 +922,13 @@ class CWPy(_Singleton, threading.Thread):
         # JPDC撮影などで更新されたメニューカードと背景を更新する
         if not self.is_playingscenario() or self.is_runningevent():
             return
+        if self.is_curtained():
+            self.background.reload_jpdcimage = True
+            return
         if self.file_updates_bg:
             self.background.reload(False)
             self.file_updates_bg = False
-        elif not self.background.reload_jpdcimage:
+        elif not self.background.reload_jpdcimage and self.background.has_jpdcimage:
             self.background.reload(False, ttype=(None, None))
         self.background.reload_jpdcimage = True
 

@@ -26,26 +26,29 @@ class BackGround(base.CWPySprite):
         self.bgs = []
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
+        # 画面スケール変更などによってアニメーションを途中まで
+        # 再実行するための記憶用変数
         self._in_playing = False
         self._bgs = []
         self._elements = []
         self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
+        # 背景不継承の時、完全に削除するセルの位置
         self._inhrt_index = 0
         # spritegroupに追加
         self.layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
+        # レイヤ0以外に配置した背景セル
         self.foregrounds = set()
         self.foregroundlist = []
-        self.files = []
-        self._inhrt_index_files = 0
-        self.update_scaling = False
+        # 冒険の再開などで背景の状態を変更しないために
+        # 直に配置されたJPDCイメージがあれば操作可能になった時点で再読込する
         self.reload_jpdcimage = True
+        self.has_jpdcimage = False
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
-        self.update_scaling = True
         if self._in_playing:
             # Jpy1アニメーション中の場合は再実行
             bgs = self._bgs
@@ -67,7 +70,6 @@ class BackGround(base.CWPySprite):
         else:
             self.image.fill((0, 0, 0))
             self._reload(doanime=cw.effectbooster.CutAnimation(), ttype=("None", "None"), redraw=False, force=True, nocheckvisible=True)
-        self.update_scaling = False
 
     def update_skin(self, oldskindir, newskindir):
         pass
@@ -139,6 +141,7 @@ class BackGround(base.CWPySprite):
                     image = pygame.Surface(image.get_size()).convert()
                     image.fill((0, 0, 0))
                     image.set_colorkey((0, 0, 0))
+                self.reload_jpdcimage = False
             elif ext == ".jpy1":
                 jpy1 = cw.effectbooster.JpyImage(path, mask, doanime=doanime)
                 anime = not jpy1.is_cacheable
@@ -173,14 +176,6 @@ class BackGround(base.CWPySprite):
             cw.cwpy.sdata.resource_cache[(path, mtime, size, mask)] = image
 
         return image, anime, True
-
-    def has_jpdccell(self):
-        for bgtype, d in self.bgs:
-            if bgtype == BG_IMAGE:
-                path = d[0]
-                if os.path.splitext(path)[1].lower() == ".jpdc":
-                    return True
-        return False
 
     def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True, nocheckvisible=False, redraw=True):
         """背景画面を構成する。
@@ -768,10 +763,7 @@ class BackGround(base.CWPySprite):
             else:
                 cw.cwpy.draw()
 
-        # 冒険の再開などで背景の状態を変更しないために
-        # 直に配置されたJPDCイメージがあれば操作可能になった時点で再読込する
-        if self.has_jpdccell():
-            self.reload_jpdcimage = False
+        self.has_jpdcimage = not self.reload_jpdcimage
 
         return blitlist2
 
