@@ -772,6 +772,7 @@ class Debugger(wx.Frame):
 
     def OnQuitDebugMode(self, event):
         def func():
+            cw.cwpy.play_sound("page")
             cw.cwpy.set_debug(False)
             cw.cwpy.draw()
         cw.cwpy.exec_func(func)
