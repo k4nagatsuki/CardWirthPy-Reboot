@@ -350,6 +350,32 @@ class Frame(wx.Frame):
             return # WindowsではAlt+F4はウィンドウを閉じる操作
         if keycode <> wx.WXK_CONTROL:
             self.update_keystate()
+
+        if self.debugger:
+            # デバッガのメニューのアクセラレータキーに
+            # 一致するものがあれば、そのメニューを実行する
+            def recurse(menu):
+                for item in menu.GetMenuItems():
+                    if not item.IsEnabled():
+                        continue
+                    sub = item.GetSubMenu()
+                    if sub:
+                        if recurse(sub):
+                            return True
+                        continue
+                    accel = item.GetAccel()
+                    if not accel:
+                        continue
+                    if accel.GetKeyCode() == keycode and event.GetModifiers() == accel.GetFlags():
+                        e = wx.PyCommandEvent(wx.wxEVT_COMMAND_MENU_SELECTED, item.GetId())
+                        self.debugger.ProcessEvent(e)
+                        return True
+                return False
+            bar = self.debugger.GetMenuBar()
+            for menu, label in bar.GetMenus():
+                if recurse(menu):
+                    return
+
         cw.cwpy.keyevent.keydown(keycode)
 
     def OnMotion(self, event):
