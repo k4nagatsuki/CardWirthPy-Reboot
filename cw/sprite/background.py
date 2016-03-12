@@ -758,7 +758,7 @@ class BackGround(base.CWPySprite):
             if pcnumber in self.pc_cache:
                 image = self.pc_cache[pcnumber]
             else:
-                image = pygame.Surface(cw.s(size)).convert_alpha()
+                image = pygame.Surface(size).convert_alpha()
                 image.fill((0, 0, 0, 0))
                 pcards = cw.cwpy.ydata.party.members
                 pi = pcnumber - 1
@@ -772,9 +772,9 @@ class BackGround(base.CWPySprite):
                         #      1.60ではPCイメージとしてそのようなイメージを表示すると、
                         #      マスクされた状態で表示される。従ってマスクの効く・効かないという
                         #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
-                        image.blit(cw.s(cw.util.load_image(path, True, isback=False)), (0, 0))
+                        image.blit(cw.util.load_image(path, True, isback=False), (0, 0))
                 self.pc_cache[pcnumber] = image
-            d2 = (image, pos, 0)
+            d2 = (cw.s(image), pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
             bgs.append((BG_PC, (pcnumber, size, pos, flag, True, layer, cellname)))
         else:
