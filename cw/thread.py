@@ -2376,6 +2376,17 @@ class CWPy(_Singleton, threading.Thread):
             self.index = -1
 
     def update_pcimage(self, pcnumber, deal):
+        if not self.file_updates_bg or deal:
+            for bgtype, d in self.background.bgs:
+                if bgtype == cw.sprite.background.BG_PC:
+                    bgpcnumber = d[0]
+                    if bgpcnumber == pcnumber:
+                        if deal:
+                            self.background.reload(False)
+                        else:
+                            self.file_updates_bg = True
+                        break
+
         updates = []
         pcards = self.get_pcards()
         pcard = pcards[pcnumber-1] if pcnumber-1 < len(pcards) else None
