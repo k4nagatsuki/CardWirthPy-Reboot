@@ -2331,6 +2331,13 @@ class Character(object):
                 pi = i + 1
                 cw.cwpy.file_updates.update(cw.cwpy.update_pcimage(pi, deal=False))
 
+            for bgtype, d in cw.cwpy.background.bgs:
+                if bgtype == cw.sprite.background.BG_PC:
+                    pcnumber = d[0]
+                    if index + 1 <= pcnumber:
+                        cw.cwpy.file_updates_bg = True
+                        break
+
             cw.cwpy.ydata.party.remove(self)
 
         self.lost()

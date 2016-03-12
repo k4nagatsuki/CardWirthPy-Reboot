@@ -19,6 +19,7 @@ BG_SEPARATOR = -1
 BG_IMAGE = 0
 BG_TEXT = 1
 BG_COLOR = 2
+BG_PC = 3
 
 class BackGround(base.CWPySprite):
     def __init__(self):
@@ -37,6 +38,10 @@ class BackGround(base.CWPySprite):
         self._inhrt_index = 0
         # spritegroupに追加
         self.layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0, 0)
+        # 全背景にカーテンがかかっている時のレイヤ
+        # このレイヤにスプライトが存在するか検査する事で、
+        # 前面背景にもカーテンがかかっている状態か確認できる
+        self.curtain_layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0x7fffffff, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
         # レイヤ0以外に配置した背景セル
         self.foregrounds = set()
@@ -244,6 +249,9 @@ class BackGround(base.CWPySprite):
                         if layer <> cw.LAYER_BACKGROUND:
                             bgs2.append((bgtype, d))
                 self.bgs = bgs2
+                for sprite in self.foregrounds:
+                    cw.cwpy.cardgrp.remove(sprite)
+                self.foregrounds.clear()
                 del self.foregroundlist[:]
 
                 self._inhrt_index = len(self.bgs)
@@ -296,6 +304,13 @@ class BackGround(base.CWPySprite):
                 d = self._create_bgdata(e)
                 if self._add_colorcell(blitlist, self.bgs, oldbgs, d,
                                        nocheckvisible=nocheckvisible):
+                    forcedraw = True
+
+            elif e.tag == "PCCell":
+                # PCイメージセル
+                d = self._create_bgdata(e)
+                if self._add_pccell(blitlist, self.bgs, oldbgs, d,
+                                    nocheckvisible=nocheckvisible):
                     forcedraw = True
 
             elif e.tag == "Redisplay":
@@ -411,6 +426,12 @@ class BackGround(base.CWPySprite):
 
             return (blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname)
 
+        elif e.tag == "PCCell":
+            # PCイメージセル
+            pcnumber = e.getint("PCNumber", 0)
+
+            return (pcnumber, size, pos, flag, visible, layer, cellname)
+
         else:
             assert False
 
@@ -461,6 +482,12 @@ class BackGround(base.CWPySprite):
                                 # カラーセル
                                 bgtype = BG_COLOR
                                 d = self._create_bgdata(e)
+
+                            elif e.tag == "PCCell":
+                                # PCイメージセル
+                                bgtype = BG_PC
+                                d = self._create_bgdata(e)
+
                             bgs2.append((bgtype, d))
                         repldata = None
                     replaced = True
@@ -476,6 +503,11 @@ class BackGround(base.CWPySprite):
         # 背景再構築
         oldbgs = list(self.bgs)
         bgs = []
+
+        for sprite in self.foregrounds:
+            cw.cwpy.cardgrp.remove(sprite)
+        self.foregrounds.clear()
+        del self.foregroundlist[:]
 
         cw.cwpy.file_updates_bg = False
         self.reload_jpdcimage = True
@@ -528,6 +560,11 @@ class BackGround(base.CWPySprite):
                 if self._add_colorcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
                     forcedraw = True
 
+            elif bgtype == BG_PC:
+                # PCイメージセル
+                if self._add_pccell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
+                    forcedraw = True
+
             else:
                 assert bgtype == BG_SEPARATOR
                 if not redisplay:
@@ -567,7 +604,7 @@ class BackGround(base.CWPySprite):
             return update
 
     def _is_flagchanged(self, bgtype, d):
-        if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR):
+        if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR, BG_PC):
             visible = d[-3]
             flag = d[-4]
             return bool(visible) <> bool(cw.cwpy.sdata.flags.get(flag, True))
@@ -575,7 +612,7 @@ class BackGround(base.CWPySprite):
             return False
 
     def _get_cellname(self, bgtype, d):
-        if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR):
+        if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR, BG_PC):
             return d[-1]
         else:
             return u""
@@ -710,6 +747,38 @@ class BackGround(base.CWPySprite):
             oldbgs.append((BG_COLOR, d))
         return visible
 
+    def _add_pccell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
+        pcnumber, size, pos, flag, visible, layer, cellname = d
+        if not nocheckvisible:
+            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+        flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
+        if visible:
+            # PCのイメージを表示
+            image = pygame.Surface(cw.s(size)).convert_alpha()
+            image.fill((0, 0, 0, 0))
+            pcards = cw.cwpy.ydata.party.members
+            pi = pcnumber - 1
+            if 0 <= pi and pi < len(pcards):
+                for info2 in cw.image.get_imageinfos(pcards[pi].find("Property")):
+                    path = info2.path
+                    if path:
+                        path = cw.util.join_yadodir(path)
+                    # BUG: CardWirth 1.50以降では、一部のPNGイメージで背景に配置した時は
+                    #      マスク設定が効かないのにカードだと効くという状態になるが、
+                    #      1.60ではPCイメージとしてそのようなイメージを表示すると、
+                    #      マスクされた状態で表示される。従ってマスクの効く・効かないという
+                    #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
+                    image.blit(cw.s(cw.util.load_image(path, True, isback=False)), (0, 0))
+            d2 = (image, pos, 0)
+            blitlist.append((BG_IMAGE, d2, flag, layer))
+            bgs.append((BG_PC, (pcnumber, size, pos, flag, True, layer, cellname)))
+        else:
+            bgs.append((BG_PC, d))
+            oldbgs.append((BG_PC, d))
+        return visible
+
+
     def _load_after(self, bginhrt, blitlist, doanime, animated, ttype, oldbgs, redraw, redisplay):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
 
@@ -724,12 +793,12 @@ class BackGround(base.CWPySprite):
         if not redisplay:
             for sprite in self.foregrounds:
                 cw.cwpy.cardgrp.remove(sprite)
-            self.foregrounds.clear()
             blitlist2 = []
             for t in self.foregroundlist:
                 blitlist2.append(t)
             blitlist2.extend(blitlist)
             blitlist = blitlist2
+            self.foregrounds.clear()
             del self.foregroundlist[:]
 
         if not bginhrt:
@@ -747,10 +816,15 @@ class BackGround(base.CWPySprite):
                 if redisplay:
                     blitlist2.append(t)
                 else:
-                    sprite = BgCell(bgtype, d2, flag)
+                    sprite = BgCell(bgtype, d2, flag, layer, i)
                     self.foregrounds.add(sprite)
                     self.foregroundlist.append(t)
-                    cw.cwpy.cardgrp.add(sprite, layer=(layer, cw.LTYPE_BACKGROUND, -1, i))
+                    if cw.cwpy.cardgrp.get_sprites_from_layer(self.curtain_layer):
+                        # キャンプ中など、前面背景にもカーテンがかかっている状態
+                        cw.cwpy.cardgrp.add(sprite, layer=sprite.curtained_layer)
+                    else:
+                        # カーテンがかかっていないか前面背景はカーテンで覆わない状態
+                        cw.cwpy.cardgrp.add(sprite, layer=sprite.normal_layer)
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -808,11 +882,15 @@ def _draw_bgcell(surface, bgdata, allclip=None):
     return rect
 
 class BgCell(base.CWPySprite):
-    def __init__(self, bgtype, d, flag):
+    def __init__(self, bgtype, d, flag, layer, index):
         cw.sprite.base.CWPySprite.__init__(self)
         self.bgtype = bgtype
         self.d = d
         self.flag = flag
+        # 通常時(背景にカーテンがかかっていない時)のレイヤ
+        self.normal_layer = (layer, cw.LTYPE_BACKGROUND, -1, index)
+        # 前面背景にもカーテンがかかっている時のレイヤ
+        self.curtained_layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, layer, index)
 
 def layered_draw_ex(layered_updates, surface):
     rects = []
@@ -835,7 +913,7 @@ def layered_draw_ex(layered_updates, surface):
     return rects
 
 class Curtain(base.SelectableSprite):
-    def __init__(self, target, spritegrp, color=None):
+    def __init__(self, target, spritegrp, color=None, layer=None):
         """半透明のブルーバックスプライト。右クリックで解除。
         target: 覆い隠す対象。
         spritegrp: 登録するSpriteGroup。
@@ -851,7 +929,10 @@ class Curtain(base.SelectableSprite):
         self.update_scale()
 
         # spritegroupに追加
-        self.layer = (target.layer[0], target.layer[1], target.layer[2], 100)
+        if layer:
+            self.layer = layer
+        else:
+            self.layer = (target.layer[0], target.layer[1], target.layer[2], 100)
         spritegrp.add(self, layer=self.layer)
         cw.cwpy.curtains.append(self)
 

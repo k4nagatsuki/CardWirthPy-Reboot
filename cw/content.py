@@ -1664,7 +1664,8 @@ class ChangeBgImageContent(EventContentBase):
         for e in self.data.getfind("BgImages", raiseerror=False):
             if e.tag == "BgImage":
                 path = e.gettext("ImagePath", "")
-                seq.append(path)
+                if path:
+                    seq.append(path)
             elif e.tag == "TextCell":
                 text = e.gettext("Text", "")
                 if 10 < len(text):
@@ -1673,6 +1674,9 @@ class ChangeBgImageContent(EventContentBase):
                 seq.append(u"テキスト「%s」" % (text))
             elif e.tag == "ColorCell":
                 seq.append(u"カラーセル")
+            elif e.tag == "PCCell":
+                pcnumber = e.gettext("PCNumber", "")
+                seq.append(u"PCイメージ[%s]" % (pcnumber))
 
         if seq:
             s = u"】【".join(seq)
@@ -3616,6 +3620,9 @@ class ReplaceBgImageContent(EventContentBase):
                 seq.append(u"テキスト「%s」" % (text))
             elif e.tag == "ColorCell":
                 seq.append(u"カラーセル")
+            elif e.tag == "PCCell":
+                pcnumber = e.gettext("PCNumber", "")
+                seq.append(u"PCイメージ[%s]" % (pcnumber))
 
         if seq:
             s = u"】【".join(seq)

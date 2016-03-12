@@ -256,6 +256,9 @@ class BgImage(base.CWBinaryBase):
                         if e_grd.tag == "EndColor":
                             color2 = getcolor(e_grd, color2)
 
+            elif data.tag == "PCCell":
+                f.check_wsnversion("1")
+
         if data.tag == "BgImage":
             f.write_dword(left)
             f.write_dword(top)
@@ -318,6 +321,9 @@ class BgImage(base.CWBinaryBase):
                 f.write_ubyte(color2[3])
             f.write_string(flag)
             f.write_byte(unknown)
+
+        elif data.tag == "PCCell":
+            f.check_wsnversion("1")
 
 def main():
     pass

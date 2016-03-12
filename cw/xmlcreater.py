@@ -879,6 +879,16 @@ def create_scenariolog(sdata, path, recording):
                 e.append(make_colorelement("EndColor", color2))
                 e_bgimg.append(e)
 
+        elif bgtype == cw.sprite.background.BG_PC:
+            pcnumber, size, pos, flag, visible, layer, cellname = d
+            attrs = {"visible": str(visible)}
+            if cellname:
+                attrs["cellname"] = cellname
+            e_bgimg = cw.data.make_element("PCCell", attrs=attrs)
+
+            e = cw.data.make_element("PCNumber", str(pcnumber))
+            e_bgimg.append(e)
+
         else:
             assert bgtype == cw.sprite.background.BG_SEPARATOR
             e_bgimg = cw.data.make_element("Redisplay")

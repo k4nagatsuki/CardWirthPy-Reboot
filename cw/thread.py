@@ -2471,7 +2471,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 特殊エリア(キャンプ・メンバー解散)だったら背景にカーテンを追加。
         if self.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
-            self.set_curtain()
+            self.set_curtain(move_bgcells=True)
 
         # メニューカードスプライト作成
         self.set_mcards(self.sdata.get_mcarddata(), dealanime)
@@ -2894,7 +2894,7 @@ class CWPy(_Singleton, threading.Thread):
 
                 self.list = self.get_mcards("visible")
                 self.index = -1
-                self.set_curtain()
+                self.set_curtain(move_bgcells=True)
             self.lock_menucards = False
 
         # ターゲット選択エリア
@@ -3344,7 +3344,7 @@ class CWPy(_Singleton, threading.Thread):
             self.list = []
         self.index = -1
 
-    def set_curtain(self, target="Both"):
+    def set_curtain(self, target="Both", move_bgcells=False):
         """Curtainスプライトをセットする。"""
         if not self.is_curtained():
             self.is_pcardsselectable = target in ("Both", "Party")
@@ -3353,7 +3353,13 @@ class CWPy(_Singleton, threading.Thread):
             self.update_selectablelist()
 
             # 背景上のカーテン
-            cw.sprite.background.Curtain(self.background, self.cardgrp)
+            if move_bgcells:
+                cw.sprite.background.Curtain(self.background, self.cardgrp,
+                                             layer=self.background.curtain_layer)
+                for bgcell in self.background.foregrounds:
+                    cw.cwpy.cardgrp.change_layer(bgcell, bgcell.curtained_layer)
+            else:
+                cw.sprite.background.Curtain(self.background, self.cardgrp)
 
             # カード上のカーテン
             if not self.is_pcardsselectable:
@@ -3370,6 +3376,9 @@ class CWPy(_Singleton, threading.Thread):
     def clear_curtain(self):
         """Curtainスプライトを解除する。"""
         if self.is_curtained():
+            if self.cardgrp.get_sprites_from_layer(self.background.curtain_layer):
+                for bgcell in self.background.foregrounds:
+                    cw.cwpy.cardgrp.change_layer(bgcell, bgcell.normal_layer)
             self.cardgrp.remove(self.curtains)
             self.curtains = []
             self._curtained = False
