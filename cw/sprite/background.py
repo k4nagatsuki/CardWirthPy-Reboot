@@ -428,8 +428,9 @@ class BackGround(base.CWPySprite):
         elif e.tag == "PCCell":
             # PCイメージセル
             pcnumber = e.getint("PCNumber", 0)
+            expand = e.getbool(".", "expand", False)
 
-            return (pcnumber, size, pos, flag, visible, layer, cellname)
+            return (pcnumber, expand, size, pos, flag, visible, layer, cellname)
 
         else:
             assert False
@@ -529,11 +530,6 @@ class BackGround(base.CWPySprite):
         if not beforeload and not doanime:
             ttype = cw.sprite.transition.get_transition(ttype)
 
-        for sprite in self.foregrounds:
-            cw.cwpy.cardgrp.remove(sprite)
-        self.foregrounds.clear()
-        del self.foregroundlist[:]
-
         for bgtype, d in bgs2:
 
             if bgtype == BG_IMAGE:
@@ -582,13 +578,26 @@ class BackGround(base.CWPySprite):
         if bginhrt and not blitlist:
             update = False
 
+        if doanime:
+            # 背景処理する前に、トランジション用スプライト作成
+            transitspr = cw.sprite.transition.get_transition(ttype)
+        else:
+            # アニメーションしない場合は描画前の
+            # トランジション用スプライトが生成されている
+            transitspr = ttype
+
+        for sprite in self.foregrounds:
+            cw.cwpy.cardgrp.remove(sprite)
+        self.foregrounds.clear()
+        del self.foregroundlist[:]
+
         if update:
             self.bgs = bgs
             if not beforeload:
-                self._load_after(True, blitlist, doanime, animated, ttype, oldbgs, redraw, False)
+                self._load_after(True, blitlist, doanime, animated, transitspr, oldbgs, redraw, False)
         elif forcedraw:
             if not beforeload:
-                self._load_after(True, blitlist, doanime, animated, ttype, oldbgs, False, False)
+                self._load_after(True, blitlist, doanime, animated, transitspr, oldbgs, False, False)
         else:
             if not beforeload:
                 # エフェクトブースターの一時描画で使ったスプライトはすべて削除
@@ -748,7 +757,7 @@ class BackGround(base.CWPySprite):
         return visible
 
     def _add_pccell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
-        pcnumber, size, pos, flag, visible, layer, cellname = d
+        pcnumber, expand, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
@@ -756,10 +765,9 @@ class BackGround(base.CWPySprite):
         if visible:
             # PCのイメージを表示
             if pcnumber in self.pc_cache:
-                image = self.pc_cache[pcnumber]
+                paths = self.pc_cache[pcnumber]
             else:
-                image = pygame.Surface(size).convert_alpha()
-                image.fill((0, 0, 0, 0))
+                paths = []
                 pcards = cw.cwpy.ydata.party.members
                 pi = pcnumber - 1
                 if 0 <= pi and pi < len(pcards):
@@ -767,16 +775,36 @@ class BackGround(base.CWPySprite):
                         path = info2.path
                         if path:
                             path = cw.util.join_yadodir(path)
-                        # BUG: CardWirth 1.50以降では、一部のPNGイメージで背景に配置した時は
-                        #      マスク設定が効かないのにカードだと効くという状態になるが、
-                        #      1.60ではPCイメージとしてそのようなイメージを表示すると、
-                        #      マスクされた状態で表示される。従ってマスクの効く・効かないという
-                        #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
-                        image.blit(cw.util.load_image(path, True, isback=False), (0, 0))
-                self.pc_cache[pcnumber] = image
+                            if path:
+                                paths.append(path)
+                self.pc_cache[pcnumber] = paths
+
+            if expand:
+                image = pygame.Surface(cw.SIZE_CARDIMAGE).convert_alpha()
+                image.fill((0, 0, 0, 0))
+
+                for path in paths:
+                    # BUG: CardWirth 1.50以降では、一部のPNGイメージで背景に配置した時は
+                    #      マスク設定が効かないのにカードだと効くという状態になるが、
+                    #      1.60ではPCイメージとしてそのようなイメージを表示すると、
+                    #      マスクされた状態で表示される。従ってマスクの効く・効かないという
+                    #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
+                    image.blit(cw.util.load_image(path, True, isback=False), (0, 0))
+
+                if cw.cwpy.setting.smoothscale_bg:
+                    image = cw.image.smoothscale(image, size)
+                else:
+                    image = pygame.transform.scale(image, size)
+            else:
+                image = pygame.Surface(size).convert_alpha()
+                image.fill((0, 0, 0, 0))
+
+                for path in paths:
+                    image.blit(cw.util.load_image(path, True, isback=False), (0, 0))
+
             d2 = (cw.s(image), pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
-            bgs.append((BG_PC, (pcnumber, size, pos, flag, True, layer, cellname)))
+            bgs.append((BG_PC, (pcnumber, expand, size, pos, flag, True, layer, cellname)))
         else:
             bgs.append((BG_PC, d))
             oldbgs.append((BG_PC, d))
@@ -786,13 +814,15 @@ class BackGround(base.CWPySprite):
     def _load_after(self, bginhrt, blitlist, doanime, animated, ttype, oldbgs, redraw, redisplay):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
 
-        if doanime:
-            # 背景処理する前に、トランジション用スプライト作成
-            transitspr = cw.sprite.transition.get_transition(ttype)
-        else:
+        if isinstance(ttype, cw.sprite.transition.Transition):
             # アニメーションしない場合は描画前の
             # トランジション用スプライトが生成されている
             transitspr = ttype
+        elif ttype:
+            # 背景処理する前に、トランジション用スプライト作成
+            transitspr = cw.sprite.transition.get_transition(ttype)
+        else:
+            transitspr = None
 
         if not redisplay:
             for sprite in self.foregrounds:

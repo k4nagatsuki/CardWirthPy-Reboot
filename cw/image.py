@@ -1086,6 +1086,9 @@ def smoothscale(surface, size, smoothing=True):
         #        稀にアクセス違反になる事がある
         return pygame.transform.scale(surface, size)
 
+    if smoothing and size[0] % surface.get_width() == 0 and size[1] % surface.get_height() == 0:
+        smoothing = False
+
     if smoothing:
         if surface.get_bitsize() < 24:
             surface = surface.convert(24)
