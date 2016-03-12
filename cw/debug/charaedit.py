@@ -893,6 +893,9 @@ class CharaRequirementPanel(wx.Panel):
             self._dropfiles = seq
             img = [cw.image.ImageInfo(seq[0])]
             self._update_images(img)
+            infos = self._get_infos()
+            for info in infos:
+                info.imgpaths = img
 
     def OnRace(self, event):
         for info in self._get_infos():
