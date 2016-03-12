@@ -51,6 +51,8 @@ class BackGround(base.CWPySprite):
         self.reload_jpdcimage = True
         self.has_jpdcimage = False
 
+        self.pc_cache = {}
+
     def update_scale(self):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
@@ -249,9 +251,6 @@ class BackGround(base.CWPySprite):
                         if layer <> cw.LAYER_BACKGROUND:
                             bgs2.append((bgtype, d))
                 self.bgs = bgs2
-                for sprite in self.foregrounds:
-                    cw.cwpy.cardgrp.remove(sprite)
-                self.foregrounds.clear()
                 del self.foregroundlist[:]
 
                 self._inhrt_index = len(self.bgs)
@@ -504,12 +503,8 @@ class BackGround(base.CWPySprite):
         oldbgs = list(self.bgs)
         bgs = []
 
-        for sprite in self.foregrounds:
-            cw.cwpy.cardgrp.remove(sprite)
-        self.foregrounds.clear()
-        del self.foregroundlist[:]
-
-        cw.cwpy.file_updates_bg = False
+        if not movedata:
+            cw.cwpy.file_updates_bg = False
         self.reload_jpdcimage = True
 
         animated = False
@@ -533,6 +528,11 @@ class BackGround(base.CWPySprite):
 
         if not beforeload and not doanime:
             ttype = cw.sprite.transition.get_transition(ttype)
+
+        for sprite in self.foregrounds:
+            cw.cwpy.cardgrp.remove(sprite)
+        self.foregrounds.clear()
+        del self.foregroundlist[:]
 
         for bgtype, d in bgs2:
 
@@ -755,21 +755,25 @@ class BackGround(base.CWPySprite):
         flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
         if visible:
             # PCのイメージを表示
-            image = pygame.Surface(cw.s(size)).convert_alpha()
-            image.fill((0, 0, 0, 0))
-            pcards = cw.cwpy.ydata.party.members
-            pi = pcnumber - 1
-            if 0 <= pi and pi < len(pcards):
-                for info2 in cw.image.get_imageinfos(pcards[pi].find("Property")):
-                    path = info2.path
-                    if path:
-                        path = cw.util.join_yadodir(path)
-                    # BUG: CardWirth 1.50以降では、一部のPNGイメージで背景に配置した時は
-                    #      マスク設定が効かないのにカードだと効くという状態になるが、
-                    #      1.60ではPCイメージとしてそのようなイメージを表示すると、
-                    #      マスクされた状態で表示される。従ってマスクの効く・効かないという
-                    #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
-                    image.blit(cw.s(cw.util.load_image(path, True, isback=False)), (0, 0))
+            if pcnumber in self.pc_cache:
+                image = self.pc_cache[pcnumber]
+            else:
+                image = pygame.Surface(cw.s(size)).convert_alpha()
+                image.fill((0, 0, 0, 0))
+                pcards = cw.cwpy.ydata.party.members
+                pi = pcnumber - 1
+                if 0 <= pi and pi < len(pcards):
+                    for info2 in cw.image.get_imageinfos(pcards[pi].find("Property")):
+                        path = info2.path
+                        if path:
+                            path = cw.util.join_yadodir(path)
+                        # BUG: CardWirth 1.50以降では、一部のPNGイメージで背景に配置した時は
+                        #      マスク設定が効かないのにカードだと効くという状態になるが、
+                        #      1.60ではPCイメージとしてそのようなイメージを表示すると、
+                        #      マスクされた状態で表示される。従ってマスクの効く・効かないという
+                        #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
+                        image.blit(cw.s(cw.util.load_image(path, True, isback=False)), (0, 0))
+                self.pc_cache[pcnumber] = image
             d2 = (image, pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
             bgs.append((BG_PC, (pcnumber, size, pos, flag, True, layer, cellname)))

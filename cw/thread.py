@@ -525,6 +525,8 @@ class CWPy(_Singleton, threading.Thread):
                     self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
             self._update_clip()
 
+            self.background.pc_cache.clear()
+
             for sprite in self.cardgrp.sprites():
                 if sprite.is_initialized() and not isinstance(sprite, (cw.sprite.background.BackGround,
                                                                        cw.sprite.background.BgCell)):
@@ -922,6 +924,10 @@ class CWPy(_Singleton, threading.Thread):
         # JPDC撮影などで更新されたメニューカードと背景を更新する
         if not self.is_playingscenario() or self.is_runningevent():
             return
+
+        if self.background.pc_cache:
+            self.background.pc_cache.clear()
+
         if self.is_curtained():
             self.background.reload_jpdcimage = True
             return
