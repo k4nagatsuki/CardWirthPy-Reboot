@@ -1360,7 +1360,7 @@ class BranchRandomSelectContent(BranchContent):
         """ランダム選択分岐コンテント(1.30)。"""
         minlevel = int(self.data.get("minLevel", "0"))
         maxlevel = int(self.data.get("maxLevel", "0"))
-        status = self.data.get("status", "")
+        status = self.data.get("status", "None")
         ranges = self.get_castranges()
 
         if status:
@@ -1375,7 +1375,7 @@ class BranchRandomSelectContent(BranchContent):
         # レベル・状態判定
         targets2 = []
         for target in targets:
-            if status and not (hasattr(target, methodname) and getattr(target, methodname)()):
+            if status and status <> "None" and not (hasattr(target, methodname) and getattr(target, methodname)()):
                 continue
             if 0 < minlevel and target.level < minlevel:
                 continue
