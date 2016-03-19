@@ -30,6 +30,8 @@ class EventInterface(object):
 
         # カードイベントの実行中はTrue
         self.in_cardevent = False
+        # カードの効果実行中はTrue
+        self.in_cardeffectmotion = False
         # 使用時イベントの実行中はTrue
         self.in_inusecardevent = False
 
@@ -914,7 +916,11 @@ class CardEvent(Event):
                 self.run_areaevent()
 
             # カード効果
-            self.effect_cardmotion()
+            cw.cwpy.event.in_cardeffectmotion = True
+            try:
+                self.effect_cardmotion()
+            finally:
+                cw.cwpy.event.in_cardeffectmotion = False
 
         finally:
             cw.cwpy.event.in_cardevent = False

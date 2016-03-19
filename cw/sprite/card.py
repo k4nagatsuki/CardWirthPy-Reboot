@@ -1141,9 +1141,7 @@ class MenuCard(CWPyCard):
         paths = []
         for info in cw.image.get_imageinfos(self._data.find("Property"), pcnumber=True):
             if info.path:
-                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not is_scenariocard)
-                if path:
-                    paths.append(cw.image.ImageInfo(path, base=info))
+                paths.append(cw.image.ImageInfo(info.path, base=info))
             elif info.pcnumber:
                 # メニューカードにPCの画像を表示(1.30)
                 pcards = cw.cwpy.ydata.party.members

@@ -171,7 +171,7 @@ class CardImage(Image):
             elif not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
-            if not path:
+            if (not path or self.is_scenariocard) and not info.pcnumber:
                 path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
             if not os.path.isfile(path):
                 continue
@@ -210,7 +210,7 @@ class CardImage(Image):
             if not pisc and not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
-            if not path:
+            if (not path or self.is_scenariocard) and not info.pcnumber:
                 path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
 
             if not pisc and os.path.isfile(path):
@@ -393,7 +393,7 @@ class CardImage(Image):
             if not pisc and not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
-            if not path:
+            if (not path or self.is_scenariocard) and not info.pcnumber:
                 path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
 
             if pisc or os.path.isfile(path):
@@ -586,7 +586,7 @@ class LargeCardImage(CardImage):
             if not pisc and not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
-            if not path:
+            if (not path or self.is_scenariocard) and not info.pcnumber:
                 path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
 
             if pisc or os.path.isfile(path):
@@ -642,7 +642,7 @@ class LargeCardImage(CardImage):
             if not pisc and not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
-            if not path:
+            if (not path or self.is_scenariocard) and not info.pcnumber:
                 path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
 
             if pisc or os.path.isfile(path):

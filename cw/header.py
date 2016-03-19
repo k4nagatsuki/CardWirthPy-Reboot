@@ -223,7 +223,7 @@ class CardHeader(object):
                     path = cw.util.join_paths(cw.cwpy.skindir, path)
                     path = cw.util.get_materialpathfromskin(path, cw.M_IMG)
                 elif self.scenariocard or self.scedir:
-                    path = cw.util.get_materialpath(path, cw.M_IMG, scedir=self.scedir)
+                    path = path
                 elif not self.scenariocard:
                     path = cw.util.join_yadodir(path)
             paths.append(cw.image.ImageInfo(path, base=info))
@@ -814,8 +814,6 @@ class InfoCardHeader(object):
         self.author = cw.cwpy.sdata.author
         # 画像
         imgpaths = cw.image.get_imageinfos(data)
-        for info in imgpaths:
-            info.path = cw.util.get_materialpath(info.path, cw.M_IMG)
         self.imgpaths = imgpaths
         self.set_cardimg()
         # cardcontrolダイアログで使うフラグ

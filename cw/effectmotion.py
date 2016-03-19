@@ -1098,7 +1098,11 @@ class EffectMotion(object):
             recycle = u"リサイクル" in cw.util.decodetextlist(e.gettext("Property/KeyCodes", u""))
             duration = self.calc_durationvalue(recycle)
             e.find("Property/UseLimit").text = str(duration)
-            eff |= target.set_beast(e)
+            header = self.cardheader
+            if not header and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion):
+                # 使用時イベント中の効果コンテントからの実行の時
+                header = cw.cwpy.event.get_inusecard()
+            eff |= target.set_beast(e, is_scenariocard=not header or header.scenariocard)
         return eff
 
 #-------------------------------------------------------------------------------

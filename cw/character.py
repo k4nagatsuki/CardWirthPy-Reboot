@@ -2448,7 +2448,7 @@ class Character(object):
             if cw.cwpy.is_battlestatus():
                 self.deck.lose_skillpower(self, -value)
 
-    def set_beast(self, element=None, vanish=False):
+    def set_beast(self, element=None, vanish=False, is_scenariocard=False):
         """召喚獣を召喚する。付帯召喚設定は強制的にクリアされる。
         vanish: 召喚獣を消去するかどうか。
         """
@@ -2465,7 +2465,7 @@ class Character(object):
             if self.is_unconscious():
                 return eff
             etree = cw.data.xml2etree(element=element, nocache=True)
-            cw.content.get_card(etree, self, True)
+            cw.content.get_card(etree, self, not is_scenariocard)
             eff = True
         return eff
 

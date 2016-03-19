@@ -691,7 +691,7 @@ class ScenarioData(SystemData):
             return linkdata
 
         inusecard = cw.cwpy.event.get_inusecard()
-        if inusecard and (not inusecard.scenariocard or inusecard.carddata.gettext("Property/Materials", "")):
+        if inusecard and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion) and (not inusecard.scenariocard or inusecard.carddata.gettext("Property/Materials", "")):
             # プレイ中のシナリオ外のカードを使用
             mates = inusecard.carddata.gettext("Property/Materials", "")
             if not mates:
