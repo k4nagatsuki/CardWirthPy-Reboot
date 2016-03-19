@@ -4152,6 +4152,9 @@ class CWPy(_Singleton, threading.Thread):
             from_scenario = True
             scedir = cw.util.join_paths(yadodir, mdir)
 
+        if not scedir and from_scenario:
+            scedir = self.sdata.scedir
+
         for e in data.iter():
             if e.tag == "ImagePath" and importimage:
                 # ImagePathはcarddata無しでの表示に必要となるので取り込んでおく
