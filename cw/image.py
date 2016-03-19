@@ -168,7 +168,7 @@ class CardImage(Image):
             path = info.path
             if cw.binary.image.path_is_code(path):
                 continue
-            else:
+            elif not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
             if not path:
@@ -207,7 +207,7 @@ class CardImage(Image):
         for info in self.paths:
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc:
+            if not pisc and not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
             if not path:
@@ -390,7 +390,7 @@ class CardImage(Image):
         for info in self.paths:
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc:
+            if not pisc and not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
             if not path:
@@ -583,7 +583,7 @@ class LargeCardImage(CardImage):
         for info in self.paths:
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc:
+            if not pisc and not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
             if not path:
@@ -639,7 +639,7 @@ class LargeCardImage(CardImage):
         for info in self.paths:
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc:
+            if not pisc and not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
 
             if not path:
@@ -700,7 +700,8 @@ class CharacterCardImage(CardImage):
         self.cardimgs = []
         for info in self.paths:
             path = info.path
-            if not cw.binary.image.path_is_code(path) and isinstance(self.ccard, cw.sprite.card.PlayerCard):
+            if not cw.binary.image.path_is_code(path) and isinstance(self.ccard, cw.sprite.card.PlayerCard) and\
+                    not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
             self.cardimgs.append(cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo)))
 
