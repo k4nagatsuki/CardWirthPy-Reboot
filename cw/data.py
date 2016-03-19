@@ -917,7 +917,10 @@ class ScenarioData(SystemData):
         for e in self.summary.getfind("Steps"):
             value = e.getint(".", "default")
             name = e.gettext("Name", "")
-            valuenames = [e.gettext("Value" + str(n), "") for n in xrange(10)]
+            valuenames = []
+            for ev in e:
+                if ev.tag.startswith("Value"):
+                    valuenames.append(ev.text)
             self.steps[name] = Step(value, name, valuenames)
 
     def reset_variables(self):
