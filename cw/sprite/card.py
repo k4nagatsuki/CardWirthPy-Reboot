@@ -1135,11 +1135,15 @@ class MenuCard(CWPyCard):
         # イベント
         self.events = cw.event.EventEngine(self._data.getfind("Events"))
 
+        is_scenariocard = 0 <= cw.cwpy.areaid and cw.cwpy.is_playingscenario()
+
         # 通常イメージ。LargeMenuCardはサイズ大のメニューカード作成
         paths = []
         for info in cw.image.get_imageinfos(self._data.find("Property"), pcnumber=True):
             if info.path:
-                paths.append(cw.image.ImageInfo(info.path, base=info))
+                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not is_scenariocard)
+                if path:
+                    paths.append(cw.image.ImageInfo(path, base=info))
             elif info.pcnumber:
                 # メニューカードにPCの画像を表示(1.30)
                 pcards = cw.cwpy.ydata.party.members
@@ -1154,13 +1158,11 @@ class MenuCard(CWPyCard):
         if self._data.tag == "LargeMenuCard":
             # TODO scaleinfo
             self._cardimg = cw.image.LargeCardImage(paths, "NORMAL", self.name,
-                                                    is_scenariocard=0 <= cw.cwpy.areaid and\
-                                                                    cw.cwpy.is_playingscenario())
+                                                    is_scenariocard=is_scenariocard)
         else:
             # TODO scaleinfo
             self._cardimg = cw.image.CardImage(paths, "NORMAL", self.name,
-                                               is_scenariocard=0 <= cw.cwpy.areaid and\
-                                                               cw.cwpy.is_playingscenario())
+                                               is_scenariocard=is_scenariocard)
 
         self.update_image()
         # pos
