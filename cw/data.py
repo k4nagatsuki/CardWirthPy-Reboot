@@ -1284,7 +1284,7 @@ class Step(object):
         self.valuenames = valuenames
 
     def set(self, value):
-        value = cw.util.numwrap(value, 0, 9)
+        value = cw.util.numwrap(value, 0, len(self.valuenames)-1)
         if self.value <> value:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
@@ -1292,7 +1292,7 @@ class Step(object):
             cw.cwpy.event.refresh_variable(self)
 
     def up(self):
-        if not self.value >= 9:
+        if self.value < len(self.valuenames)-1:
             self.set(self.value + 1)
 
     def down(self):
@@ -1302,6 +1302,7 @@ class Step(object):
     def get_valuename(self, value=None):
         if value is None:
             value = self.value
+        value = cw.util.numwrap(value, 0, len(self.valuenames)-1)
 
         return self.valuenames[value]
 
