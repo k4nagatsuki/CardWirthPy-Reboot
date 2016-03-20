@@ -355,70 +355,112 @@ class Content(base.CWBinaryBase):
         self.data = None
 
     def get_data(self):
-        if self.data is None:
-            self.data = cw.data.make_element(self.tag)
-            if self.type:
-                self.data.set("type", self.type)
-            self.data.set("name", self.name)
-            for key, value in self.properties.iteritems():
+        if not self.data is None:
+            return self.data
+
+        contentsline = None
+        child = self
+        while True:
+            child.data = cw.data.make_element(child.tag)
+            if child.type:
+                child.data.set("type", child.type)
+            child.data.set("name", child.name)
+
+            for key, value in child.properties.iteritems():
                 if isinstance(value, (str, unicode)):
-                    self.data.set(key, value)
+                    child.data.set(key, value)
                 else:
-                    self.data.set(key, str(value))
-            e = cw.data.make_element("Contents")
-            for child in self.children:
-                e.append(child.get_data())
-            self.data.append(e)
+                    child.data.set(key, str(value))
 
-            if self.tag == "Talk" and self.type == "Message":
-                self.data.append(cw.data.make_element("Text", self.text))
-            elif self.tag == "Change" and self.type == "BgImage":
+            if child.tag == "Talk" and child.type == "Message":
+                child.data.append(cw.data.make_element("Text", child.text))
+            elif child.tag == "Change" and child.type == "BgImage":
                 e = cw.data.make_element("BgImages")
-                for bgimg in self.bgimgs:
+                for bgimg in child.bgimgs:
                     e.append(bgimg.get_data())
-                self.data.append(e)
-            elif self.tag == "Effect" and self.type == "":
+                child.data.append(e)
+            elif child.tag == "Effect" and child.type == "":
                 e = cw.data.make_element("Motions")
-                for motion in self.motions:
+                for motion in child.motions:
                     e.append(motion.get_data())
-                self.data.append(e)
-            elif self.tag == "Talk" and self.type == "Dialog":
-                if self.properties["targetm"] == "Valued":
+                child.data.append(e)
+            elif child.tag == "Talk" and child.type == "Dialog":
+                if child.properties["targetm"] == "Valued":
                     e = cw.data.make_element("Coupons")
-                    for coupon in self.coupons:
+                    for coupon in child.coupons:
                         e.append(coupon.get_data())
-                    self.data.append(e)
+                    child.data.append(e)
                 e = cw.data.make_element("Dialogs")
-                for dialog in self.dialogs:
+                for dialog in child.dialogs:
                     e.append(dialog.get_data())
-                self.data.append(e)
-            elif self.tag == "Branch" and self.type == "RandomSelect": # 1.30
+                child.data.append(e)
+            elif child.tag == "Branch" and child.type == "RandomSelect": # 1.30
                 e = cw.data.make_element("CastRanges")
-                for castrange in self.castranges:
+                for castrange in child.castranges:
                     e.append(cw.data.make_element("CastRange", castrange))
-                self.data.append(e)
+                child.data.append(e)
 
-        return self.data
+            if not contentsline is None:
+                contentsline.append(child.data)
+
+            if len(child.children) == 1:
+                if contentsline is None:
+                    contentsline = cw.data.make_element("ContentsLine")
+                    contentsline.append(child.data)
+                child = child.children[0]
+                continue # 再帰回避
+            else:
+                if child.children:
+                    e = cw.data.make_element("Contents")
+                    for child2 in child.children:
+                        e.append(child2.get_data())
+                    child.data.append(e)
+                break
+
+        if contentsline is None:
+            return self.data
+        else:
+            return contentsline
 
     @staticmethod
     def unconv(f, data):
+        if data.tag == "ContentsLine":
+            for child in data[:-1]:
+                Content._unconv_header(f, child)
+                f.write_dword(1 + 50000)
+            Content.unconv(f, data[-1])
+            for child in reversed(data[:-1]):
+                Content._unconv_properties(f, child)
+
+        else:
+            Content._unconv_header(f, data)
+
+            children = ()
+            for e in data:
+                if e.tag == "Contents":
+                    children = e
+            f.write_dword(len(children) + 50000)
+            for child in children:
+                Content.unconv(f, child)
+
+            Content._unconv_properties(f, data)
+
+    @staticmethod
+    def _unconv_header(f, data):
         tag = data.tag
         ctype = data.get("type", "")
         name = data.get("name", "")
-        children = []
-
-        for e in data:
-            if e.tag == "Contents":
-                children = e
-
         f.write_byte(base.CWBinaryBase.unconv_contenttype(tag, ctype))
         f.write_string(name)
-        f.write_dword(len(children) + 50000)
-        for child in children:
-            Content.unconv(f, child)
+
+    @staticmethod
+    def _unconv_properties(f, data):
         # 宿データの埋め込みカードのコンテントは
         # 子コンテントデータの後ろに"dword()"(4)が埋め込まれている。
         f.write_dword(4)
+
+        tag = data.tag
+        ctype = data.get("type", "")
 
         if tag == "Start" and ctype == "":
             pass

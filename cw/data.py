@@ -3003,6 +3003,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
         self.nextelements = None
         self.needcheck = None
         self.cwxpath = None
+        self._cwxline_index = None
 
     def append(self, subelement):
         subelement.cwxparent = self
@@ -3094,8 +3095,16 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
             else:
                 # Content
                 assert not e.cwxparent is None, e.tag
-                assert e.cwxparent.tag == "Contents", "%s/%s" % (e.cwxparent.tag, e.tag)
-                cwxpath.append(":%s" % (e.cwxparent.index(e)))
+                assert e.cwxparent.tag in ("Contents", "ContentsLine"), "%s/%s" % (e.cwxparent.tag, e.tag)
+                if e.cwxparent.tag == "ContentsLine":
+                    if e._cwxline_index is None:
+                        for i, line_child in enumerate(e.cwxparent):
+                            line_child._cwxline_index = i
+                    assert not e._cwxline_index is None
+                    for _i in xrange(e._cwxline_index):
+                        cwxpath.append(":0")
+                else:
+                    cwxpath.append(":%s" % (e.cwxparent.index(e)))
 
             e = e.cwxparent
 

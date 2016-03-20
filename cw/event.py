@@ -334,10 +334,13 @@ class EventInterface(object):
         """デバッガのイベントコントロールバーで指定した分だけ、
         イベントの実行を待機する。
         """
-        if not self.get_event():
+        event = self.get_event()
+        if not event:
             return
 
-        cur_content= self.get_event().cur_content
+        cur_content = event.cur_content
+        if not cur_content is None and cur_content.tag == "ContentsLine":
+            cur_content = cur_content[event.line_index]
 
         if cw.cwpy.is_showingdebugger() and\
                  cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
@@ -424,7 +427,12 @@ class EventInterface(object):
             event = self.get_nowrunningevent()
             while event.parent:
                 event = event.parent
-            event.force_nextcontent = content
+            if content.cwxparent.tag == "ContentsLine":
+                event.force_nextcontent = content.cwxparent
+                event.force_nextcontent_index = content.cwxparent.index(content)
+            else:
+                event.force_nextcontent = content
+                event.force_nextcontent_index = 0
             mwin = cw.cwpy.get_messagewindow()
             if mwin:
                 mwin.result = 0
@@ -432,7 +440,12 @@ class EventInterface(object):
                 event.skip_action = True
                 self.refresh_activeitem()
         else:
-            event.force_nextcontent = content
+            if content.cwxparent.tag == "ContentsLine":
+                event.force_nextcontent = content.cwxparent
+                event.force_nextcontent_index = content.cwxparent.index(content)
+            else:
+                event.force_nextcontent = content
+                event.force_nextcontent_index = 0
             try:
                 event.start()
             except cw.battle.BattleError, ex:
@@ -589,6 +602,8 @@ class Event(object):
         self.trees = {}
         self.treekeys = []
         self.starttree = self.cur_content = None
+        # ContentsLine実行中の時の実行位置
+        self.line_index = 0
         # (パッケージ, 呼出前のcur_content, 呼出前のversionhint)
         # パッケージがNoneならスタートの呼び出し
         self.nowrunningcontents = []
@@ -617,7 +632,10 @@ class Event(object):
             self.keycode_matching = event.getattr("Ignitions", "keyCodeMatchingType", "Or")
 
             for content in event.getfind("Contents"):
-                name = content.get("name")
+                if content.tag == "ContentsLine":
+                    name = content[0].get("name", "")
+                else:
+                    name = content.get("name", "")
 
                 if not name in self.trees:
                     self.trees[name] = content
@@ -629,6 +647,7 @@ class Event(object):
 
         # 強制的に実行する次コンテント
         self.force_nextcontent = None
+        self.force_nextcontent_index = -1
         self.skip_action = False
 
     def copy_from(self, event, versionhint_base=None):
@@ -647,6 +666,7 @@ class Event(object):
         self.trees = event.trees
         self.treekeys = event.treekeys
         self.starttree = event.starttree
+        self.line_index = event.line_index
 
     def start(self):
         try:
@@ -705,7 +725,7 @@ class Event(object):
 
                 # コールコンテントを呼んでいた場合、呼んだところから再開
                 if self.nowrunningcontents:
-                    packevent, self.cur_content, versionhint = self.nowrunningcontents.pop()
+                    packevent, self.cur_content, self.line_index, versionhint = self.nowrunningcontents.pop()
                     if packevent:
                         packevent.run_exit()
                         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
@@ -715,7 +735,7 @@ class Event(object):
         finally:
             # イベント中断時は互換性情報のみ書き戻す
             if self.nowrunningcontents:
-                packevent, self.cur_content, versionhint = self.nowrunningcontents[0]
+                packevent, self.cur_content, self.line_index, versionhint = self.nowrunningcontents[0]
                 if packevent:
                     cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
 
@@ -781,6 +801,7 @@ class Event(object):
     def clear(self):
         self.index = 0
         self.cur_content = self.starttree
+        self.line_index = 0
         self.nowrunningcontents = []
 
     def action(self):
@@ -791,17 +812,22 @@ class Event(object):
             self.skip_action = False
             return
         """self.cur_contentを実行。"""
-        content = cw.content.get_content(self.cur_content)
-        #cw.util.t_start()
+        if self.cur_content.tag == "ContentsLine":
+            cur_content = self.cur_content[self.line_index]
+        else:
+            cur_content = self.cur_content
+
+        content = cw.content.get_content(cur_content)
+        # cw.util.t_start()
         if content:
             self.index = content.action()
         else:
             self.index = 0
-        #cw.util.td_end(content.data.tag + content.data.get("type", ""))
+        # cw.util.td_end(content.data.tag + content.data.get("type", ""))
 
-        if (self.cur_content.tag == "Effect") or\
-            (self.cur_content.tag == "Set" and self.cur_content.get("type") == "Coupon") or\
-            (self.cur_content.tag == "Elapse" and self.cur_content.get("type") == "Time"):
+        if (cur_content.tag == "Effect") or\
+            (cur_content.tag == "Set" and cur_content.get("type") == "Coupon") or\
+            (cur_content.tag == "Elapse" and cur_content.get("type") == "Time"):
             self.check_gameover()
 
         if cw.cwpy.event.is_stoped() or cw.cwpy.sdata.in_f9:
@@ -812,39 +838,93 @@ class Event(object):
         if not self.force_nextcontent is None:
             content = self.force_nextcontent
             self.force_nextcontent = None
+            self.line_index = self.force_nextcontent_index
+            self.force_nextcontent_index = -1
             return [content]
+
         elif self.cur_content is None:
+            self.line_index = 0
             return None
+
         else:
-            if self.cur_content.nextelements is None:
+            isline = self.cur_content.tag == "ContentsLine"
+            if isline:
+                cur_content = self.cur_content[self.line_index]
+                self.line_index += 1
+            else:
+                cur_content = self.cur_content
+                self.line_index = 0
 
-                element = self.cur_content.find("Contents")
+            if cur_content.nextelements is None:
+                if isline and self.line_index < len(self.cur_content):
+                    element = None
+                else:
+                    element = cur_content.find("Contents")
+                cur_content.nextelements = []
+                cur_content.needcheck = False
 
-                if element is not None:
-                    self.cur_content.nextelements = []
-                    self.cur_content.needcheck = False
+                if not element is None and len(element):
                     seq = []
-                    for e in element:
+                    for ee in element:
+                        if ee.tag == "ContentsLine":
+                            e = ee[0]
+                        else:
+                            e = ee
+
                         # フラグ判定コンテントの場合、
                         # 対応フラグがTrueの場合のみ実行対象に
                         if e.tag == "Check":
-                            self.cur_content.needcheck = True
+                            cur_content.needcheck = True
                             if cw.content.get_content(e).action() == 0:
-                                seq.append(e)
+                                seq.append(ee)
                         else:
-                            seq.append(e)
-                        self.cur_content.nextelements.append(e)
+                            seq.append(ee)
+                        cur_content.nextelements.append(ee)
+                    self.line_index = 0
                     return seq
-                else:
+
+                elif isline and self.line_index < len(self.cur_content):
+                    e = self.cur_content[self.line_index]
+                    cur_content.nextelements.append(e)
+                    if e.tag == "Check":
+                        cur_content.needcheck = True
+                        if cw.content.get_content(e).action() == 0:
+                            return [self.cur_content]
+                    else:
+                        return [self.cur_content]
+
                     return None
-            elif self.cur_content.needcheck:
-                seq = []
-                for e in self.cur_content.nextelements:
+
+                else:
+                    self.line_index = 0
+                    return None
+
+            elif cur_content.needcheck:
+                if isline and self.line_index < len(self.cur_content):
+                    e = self.cur_content[self.line_index]
                     if e.tag <> "Check" or cw.content.get_content(e).action() == 0:
-                        seq.append(e)
-                return seq
+                        return [self.cur_content]
+                    else:
+                        self.line_index = 0
+                        return None
+                else:
+                    seq = []
+                    for ee in cur_content.nextelements:
+                        if ee.tag == "ContentsLine":
+                            e = ee[0]
+                        else:
+                            e = ee
+
+                        if e.tag <> "Check" or cw.content.get_content(e).action() == 0:
+                            seq.append(ee)
+                    self.line_index = 0
+                    return seq
             else:
-                return self.cur_content.nextelements
+                if isline and self.line_index < len(self.cur_content):
+                    return [self.cur_content]
+                else:
+                    self.line_index = 0
+                    return cur_content.nextelements
 
     def check_gameover(self):
         """ゲームオーバーチェック。"""

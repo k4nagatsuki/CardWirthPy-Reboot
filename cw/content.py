@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import pygame
 
 import cw
@@ -24,7 +25,33 @@ class EventContentBase(object):
         return self.data.tag + self.data.get("type", "")
 
     def get_childname(self, child):
-        return child.get("name", "")
+        return self.get_contentname(child)
+
+    def get_contentname(self, child, default=""):
+        if child.tag == "ContentsLine":
+            return child[0].get("name", default)
+        else:
+            return child.get("name", default)
+
+    def get_children(self):
+        line_index = cw.cwpy.event.get_event().line_index
+        if self.data.cwxparent.tag == "ContentsLine" and line_index+1 < len(self.data.cwxparent):
+            elements = (self.data.cwxparent[line_index+1],)
+        else:
+            elements = self.data.find("Contents")
+            if elements is None:
+                elements = ()
+        return elements
+
+    def get_children_num(self):
+        line_index = cw.cwpy.event.get_event().line_index
+        if self.data.cwxparent.tag == "ContentsLine" and line_index+1 < len(self.data.cwxparent):
+            return 1
+        else:
+            elements = self.data.find("Contents")
+            if not elements is None:
+                return len(elements)
+        return 0
 
     def get_transitiontype(self):
         """トランジション効果のデータのタプル((効果名, 速度))を返す。
@@ -323,33 +350,32 @@ class BranchContent(EventContentBase):
 
         index = 0
         self._boolean_checked = False
-        for chld in self.data:
-            if chld.tag == "Contents":
-                for e in chld:
-                    # フラグ判定コンテントの場合、
-                    # 対応フラグがTrueの場合のみ実行対象に
-                    if e.tag == "Check":
-                        checker = cw.content.get_content(e)
-                        self._boolean_checked = True
-                    else:
-                        checker = None
+        for e in self.get_children():
+            if e.tag == "ContentsLine":
+                e = e[0]
+            name = e.get("name", "")
 
-                    name = e.get("name")
+            # フラグ判定コンテントの場合、
+            # 対応フラグがTrueの場合のみ実行対象に
+            if e.tag == "Check":
+                checker = cw.content.get_content(e)
+                self._boolean_checked = True
+            else:
+                checker = None
 
-                    if name == u"○":
-                        self._boolean_table.append((checker, True))
-                        if checker and checker.action() <> 0:
-                            continue
-                        elif idx_true < 0:
-                            idx_true = index
-                    elif name == u"×":
-                        self._boolean_table.append((checker, False))
-                        if checker and checker.action() <> 0:
-                            continue
-                        elif idx_false < 0:
-                            idx_false = index
-                    index += 1
-                break
+            if name == u"○":
+                self._boolean_table.append((checker, True))
+                if checker and checker.action() <> 0:
+                    continue
+                elif idx_true < 0:
+                    idx_true = index
+            elif name == u"×":
+                self._boolean_table.append((checker, False))
+                if checker and checker.action() <> 0:
+                    continue
+                elif idx_false < 0:
+                    idx_false = index
+            index += 1
 
         if flag:
             index = idx_true
@@ -394,41 +420,41 @@ class BranchContent(EventContentBase):
         checkedlist = []
         self._index_table = {}
         self._index_checked = False
-        for chld in self.data:
-            if chld.tag == "Contents":
-                for e in chld:
-                    # フラグ判定コンテントの場合、
-                    # 対応フラグがTrueの場合のみ実行対象に
-                    if e.tag == "Check":
-                        checker = cw.content.get_content(e)
-                        self._index_checked = True
-                    else:
-                        checker = None
+        for e in self.get_children():
+            if e.tag == "ContentsLine":
+                e = e[0]
+            name = e.get("name", "")
 
-                    name = e.get("name")
-                    if name == "Default":
-                        name = -1
-                    else:
-                        try:
-                            name = int(name)
-                        except:
-                            name = -2
+            # フラグ判定コンテントの場合、
+            # 対応フラグがTrueの場合のみ実行対象に
+            if e.tag == "Check":
+                checker = cw.content.get_content(e)
+                self._index_checked = True
+            else:
+                checker = None
 
-                    if not name in self._index_table:
-                        self._index_table[name] = index
-                    if self._index_default < 0 and name == -1:
-                        self._index_default = index
-                    checkedlist.append((checker, name))
+            if name == "Default":
+                name = -1
+            else:
+                try:
+                    name = int(name)
+                except:
+                    name = -2
 
-                    if checker and checker.action() <> 0:
-                        continue
+            if not name in self._index_table:
+                self._index_table[name] = index
+            if self._index_default < 0 and name == -1:
+                self._index_default = index
+            checkedlist.append((checker, name))
 
-                    if idx_value < 0 and name == value:
-                        idx_value = index
-                    elif idx_default < 0 and name == -1:
-                        idx_default = index
-                    index += 1
-                break
+            if checker and checker.action() <> 0:
+                continue
+
+            if idx_value < 0 and name == value:
+                idx_value = index
+            elif idx_default < 0 and name == -1:
+                idx_default = index
+            index += 1
 
         if self._index_checked:
             self._index_table = checkedlist
@@ -446,30 +472,25 @@ class BranchContent(EventContentBase):
         idx_gt = cw.IDX_TREEEND
 
         index = 0
-        for chld in self.data:
-            if chld.tag == "Contents":
-                for e in chld:
-                    # フラグ判定コンテントの場合、
-                    # 対応フラグがTrueの場合のみ実行対象に
-                    if e.tag == "Check":
-                        ctype = e.get("type")
-                        if ctype == "Flag":
-                            if cw.content.get_content(e).action() <> 0:
-                                continue
-                        elif ctype == "Step":
-                            if cw.content.get_content(e).action() <> 0:
-                                continue
+        for e in self.get_children():
+            if e.tag == "ContentsLine":
+                e = e[0]
 
-                    name = e.get("name")
+            # フラグ判定コンテントの場合、
+            # 対応フラグがTrueの場合のみ実行対象に
+            if e.tag == "Check":
+                if cw.content.get_content(e).action() <> 0:
+                    continue
 
-                    if idx_lt < 0 and name == u"<":
-                        idx_lt = index
-                    elif idx_eq < 0 and name == u"=":
-                        idx_eq = index
-                    elif idx_gt < 0 and name == u">":
-                        idx_gt = index
-                    index += 1
-                break
+            name = e.get("name", "")
+
+            if idx_lt < 0 and name == u"<":
+                idx_lt = index
+            elif idx_eq < 0 and name == u"=":
+                idx_eq = index
+            elif idx_gt < 0 and name == u">":
+                idx_gt = index
+            index += 1
 
         if cmptype < 0:
             index = idx_lt
@@ -505,7 +526,7 @@ class BranchSkillContent(BranchContent):
             s = self.textdict.get(scope.lower(), "")
             s2 = cw.cwpy.sdata.skills[resid][0]
 
-            if child.get("name", "") == u"○":
+            if self.get_contentname(child) == u"○":
                 s = u"%sが『%s』を所有している" % (s, s2)
             else:
                 s = u"%sが『%s』を所有していない" % (s, s2)
@@ -539,7 +560,7 @@ class BranchItemContent(BranchContent):
             s = self.textdict.get(scope.lower(), "")
             s2 = cw.cwpy.sdata.items[resid][0]
 
-            if child.get("name", "") == u"○":
+            if self.get_contentname(child) == u"○":
                 s = u"%sが『%s』を所有している" % (s, s2)
             else:
                 s = u"%sが『%s』を所有していない" % (s, s2)
@@ -573,7 +594,7 @@ class BranchBeastContent(BranchContent):
             s = self.textdict.get(scope.lower(), "")
             s2 = cw.cwpy.sdata.beasts[resid][0]
 
-            if child.get("name", "") == u"○":
+            if self.get_contentname(child) == u"○":
                 s = u"%sが『%s』を所有している" % (s, s2)
             else:
                 s = u"%sが『%s』を所有していない" % (s, s2)
@@ -612,7 +633,7 @@ class BranchCastContent(BranchContent):
         else:
             s = u"指定無し"
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"キャスト『%s』が加わっている" % (s)
         else:
             return u"キャスト『%s』が加わっていない" % (s)
@@ -645,7 +666,7 @@ class BranchInfoContent(BranchContent):
         else:
             s = u"指定無し"
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"情報カード『%s』を所持している" % (s)
         else:
             return u"情報カード『%s』を所持していない" % (s)
@@ -663,7 +684,7 @@ class BranchIsBattleContent(BranchContent):
         return u"戦闘判定コンテント"
 
     def get_childname(self, child):
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"イベント発生時の状況が戦闘中"
         else:
             return u"イベント発生時の状況が戦闘以外"
@@ -691,7 +712,7 @@ class BranchBattleContent(BranchContent):
 
     def get_childname(self, child):
         try:
-            resid = int(child.get("name", ""))
+            resid = int(self.get_contentname(child))
         except:
             resid = "Default"
 
@@ -726,7 +747,7 @@ class BranchAreaContent(BranchContent):
 
     def get_childname(self, child):
         try:
-            resid = int(child.get("name", ""))
+            resid = int(self.get_contentname(child))
         except:
             resid = "Default"
 
@@ -813,7 +834,7 @@ class BranchStatusContent(BranchContent):
         s = self.textdict.get(self.data.get("targetm", "").lower(), "")
         s2 = self.textdict.get(self.data.get("status", "").lower(), "")
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"%sが【%s】の判定に成功" % (s, s2)
         else:
             return u"%sが【%s】の判定に失敗" % (s, s2)
@@ -834,7 +855,7 @@ class BranchGossipContent(BranchContent):
     def get_childname(self, child):
         s = self.data.get("gossip", "")
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"ゴシップ『%s』が宿屋にある" % (s)
         else:
             return u"ゴシップ『%s』が宿屋にない" % (s)
@@ -860,7 +881,7 @@ class BranchCompleteStampContent(BranchContent):
     def get_childname(self, child):
         s = self.data.get("scenario", "")
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"シナリオ『%s』が終了済である" % (s)
         else:
             return u"シナリオ『%s』が終了済ではない" % (s)
@@ -881,7 +902,7 @@ class BranchPartyNumberContent(BranchContent):
     def get_childname(self, child):
         s = self.data.get("value", "0")
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"パーティ人数が%s人以上" % (s)
         else:
             return u"パーティ人数が%s人未満" % (s)
@@ -914,7 +935,7 @@ class BranchLevelContent(BranchContent):
         else:
             s = u"選択中のキャラ"
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"%sがレベル%s以上" % (s, self.data.get("value", ""))
         else:
             return u"%sがレベル%s未満" % (s, self.data.get("value", ""))
@@ -1006,7 +1027,7 @@ class BranchCouponContent(BranchContent):
         scope = self.data.get("targets")
         s2 = self.textdict.get(scope.lower(), "")
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"%sが称号『%s』を所有している" % (s2, s)
         else:
             return u"%sが称号『%s』を所有していない" % (s2, s)
@@ -1072,7 +1093,7 @@ class BranchSelectContent(BranchContent):
         else:
             s += u"手動で "
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             s += u"キャラクターを選択"
         else:
             if self.method == "Manual":
@@ -1096,7 +1117,7 @@ class BranchMoneyContent(BranchContent):
         return u"金額 = " + self.data.get("value", "0")
 
     def get_childname(self, child):
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return self.data.get("value", "0") + u" sp以上所持している"
         else:
             return self.data.get("value", "0") + u" sp以上所持していない"
@@ -1115,7 +1136,7 @@ class BranchFlagContent(BranchContent):
         if flag in cw.cwpy.sdata.flags:
             flag = cw.cwpy.sdata.flags[flag]
             index = self.get_boolean_index(flag)
-        elif len(self.data.getfind("Contents")):
+        elif self.get_children_num():
             # フラグが存在しない場合は
             # 常に最初の子コンテントが選ばれる
             index = 0
@@ -1136,7 +1157,7 @@ class BranchFlagContent(BranchContent):
         flag = self.data.get("flag")
 
         if flag in cw.cwpy.sdata.flags:
-            if child.get("name", "") == u"○":
+            if self.get_contentname(child) == u"○":
                 valuename = cw.cwpy.sdata.flags[flag].get_valuename(True)
             else:
                 valuename = cw.cwpy.sdata.flags[flag].get_valuename(False)
@@ -1150,7 +1171,7 @@ class BranchStepContent(BranchContent):
         BranchContent.__init__(self, data)
         self.step = self.data.get("step")
         self.value = self.data.getint(".", "value", 0)
-        self.nextlen = len(self.data.getfind("Contents"))
+        self.nextlen = self.get_children_num()
 
     def action(self):
         """ステップ上下分岐コンテント。"""
@@ -1185,7 +1206,7 @@ class BranchStepContent(BranchContent):
         if step in cw.cwpy.sdata.steps:
             valuename = cw.cwpy.sdata.steps[step].get_valuename(value)
 
-            if child.get("name", "") == u"○":
+            if self.get_contentname(child) == u"○":
                 return u"ステップ『%s』が『%s』以上" % (step, valuename)
             else:
                 return u"ステップ『%s』が『%s』未満" % (step, valuename)
@@ -1197,7 +1218,7 @@ class BranchMultiStepContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
         self.step = self.data.get("step")
-        self.nextlen = len(self.data.getfind("Contents"))
+        self.nextlen = self.get_children_num()
 
     def action(self):
         """ステップ多岐分岐コンテント。"""
@@ -1231,7 +1252,7 @@ class BranchMultiStepContent(BranchContent):
 
         if step in cw.cwpy.sdata.steps:
             try:
-                value = int(child.get("name", "Default"))
+                value = int(self.get_contentname(child, "Default"))
             except:
                 value = "Default"
 
@@ -1262,7 +1283,7 @@ class BranchRandomContent(BranchContent):
         return u"確率 = %s%%" % (self.data.get("value", "0"))
 
     def get_childname(self, child):
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return self.data.get("value", "") + u" %成功"
         else:
             return self.data.get("value", "") + u" %失敗"
@@ -1345,7 +1366,7 @@ class BranchAbilityContent(BranchContent):
         s2 = self.textdict.get(scope.lower(), "")
         s = u"%sがレベル%sで %sと %sで行う" % (s2, level, physical, mental)
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             s += u"判定に成功"
         else:
             s += u"判定に失敗"
@@ -1424,7 +1445,7 @@ class BranchRandomSelectContent(BranchContent):
                 s2 += u"で"
             s2 += u"【%s】" % (self.textdict.get(self.data.get("status", "").lower(), ""))
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"%sから%sのキャラクターの選択に成功" % (s, s2)
         else:
             return u"%sから%sのキャラクターの選択に失敗" % (s, s2)
@@ -1496,7 +1517,7 @@ class BranchKeyCodeContent(BranchContent):
         s2 = self.textdict.get(etype.lower(), "")
         s3 = keycode
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"%sの%sからキーコード『%s』の発見に成功" % (s, s2, s3)
         else:
             return u"%sの%sからキーコード『%s』の発見に失敗" % (s, s2, s3)
@@ -1529,7 +1550,7 @@ class BranchRoundContent(BranchContent):
         round1 = int(self.data.get("round", "1"))
         comparison = self.data.get("comparison")
 
-        if child.get("name", "") == u"○":
+        if self.get_contentname(child) == u"○":
             return u"%s %s 現在のバトルラウンドである" % (round1, comparison)
         else:
             return u"%s %s 現在のバトルラウンドでない" % (round1, comparison)
@@ -1552,13 +1573,20 @@ class CallStartContent(EventContentBase):
 
         if startname in trees:
             event = cw.cwpy.event.get_event()
-            if 0 < len(self.data.find("Contents")):
+
+            if self.data.cwxparent.tag == "ContentsLine":
+                call = event.line_index+1 < len(self.data.cwxparent)
+            else:
+                call = 0 < self.get_children_num()
+
+            if call:
                 if cw.LIMIT_RECURSE <= cw.cwpy.event.get_currentstack():
                     s = u"イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
                     cw.cwpy.call_modaldlg("ERROR", text=s)
                     raise cw.event.EffectBreakError()
-                event.nowrunningcontents.append((None, event.cur_content, None))
+                event.nowrunningcontents.append((None, event.cur_content, event.line_index, None))
             event.cur_content = trees[startname]
+            event.line_index = 0
 
         return 0
 
@@ -1583,7 +1611,13 @@ class CallPackageContent(EventContentBase):
 
         resid = self.data.getint(".", "call", 0)
         event = cw.cwpy.event.get_event()
-        call_package(resid, event.nowrunningcontents or 0 < len(self.data.find("Contents")))
+        call = bool(event.nowrunningcontents)
+        if self.data.cwxparent.tag == "ContentsLine":
+            call |= event.line_index+1 < len(self.data.cwxparent)
+        else:
+            call |= 0 < self.get_children_num()
+
+        call_package(resid, call)
         return 0
 
     def get_status(self):
@@ -1626,13 +1660,14 @@ def call_package(resid, call):
     event = cw.cwpy.event.get_event()
     versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
     if call:
-        event.nowrunningcontents.append((packevent, event.cur_content, versionhint_base))
+        event.nowrunningcontents.append((packevent, event.cur_content, event.line_index, versionhint_base))
         cw.cwpy.event.append_event(packevent)
         packevent.parent = cw.cwpy.event.get_event()
     else:
         cw.cwpy.event.replace_event(packevent, (cw.HINT_AREA, versionhint_base))
         event = cw.cwpy.event.get_event()
     event.cur_content = packevent.starttree
+    event.line_index = 0
     if cw.cwpy.is_playingscenario():
         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
 
@@ -2364,6 +2399,7 @@ class LinkStartContent(EventContentBase):
         c = trees.get(startname, None)
         if not c is None:
             event.cur_content = c
+            event.line_index = 0
 
         return 0
 
@@ -3019,16 +3055,14 @@ class TalkContent(EventContentBase):
         seq = []
 
         index = 0
-        for e in self.data.getfind("Contents"):
-            name = e.get("name")
+        for e in self.get_children():
+            if e.tag == "ContentsLine":
+                e = e[0]
+            name = e.get("name", "")
 
             # フラグ判定コンテントの場合、対応フラグがTrueだったら選択肢追加
             if e.tag == "Check":
-                ctype = e.get("type")
-                if ctype in ("Flag", "Step"):
-                    if get_content(e).action() <> 0:
-                        continue
-                else:
+                if get_content(e).action() <> 0:
                     continue
 
             if name:
@@ -3111,7 +3145,7 @@ class TalkMessageContent(TalkContent):
                 if os.path.isfile(inusepath):
                     imgpath = inusepath
                 else:
-                    imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG,\
+                    imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG,
                                                        system=cw.cwpy.areaid < 0)
                 talkers.append(cw.image.ImageInfo(imgpath, base=info))
 
@@ -3460,9 +3494,9 @@ class BranchStepValueContent(BranchContent):
         tostep = self.data.get("to")
 
         if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
-            if child.get("name", "") == ">":
+            if self.get_contentname(child) == ">":
                 return u"ステップ『%s』が『%s』より大きい" % (fromstep, tostep)
-            elif child.get("name", "") == "=":
+            elif self.get_contentname(child) == "=":
                 return u"ステップ『%s』が『%s』と等しい" % (fromstep, tostep)
             else:
                 return u"ステップ『%s』が『%s』より小さい" % (fromstep, tostep)
@@ -3504,7 +3538,7 @@ class BranchFlagValueContent(BranchContent):
         toflag = self.data.get("to")
 
         if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
-            if child.get("name", "") == u"○":
+            if self.get_contentname(child) == u"○":
                 return u"フラグ『%s』が『%s』と同値" % (fromflag, toflag)
             else:
                 return u"フラグ『%s』が『%s』と異なる" % (fromflag, toflag)
@@ -3706,6 +3740,7 @@ def get_content(data):
         data.content = globals()[classname](data)
         return data.content
     except:
+        cw.util.print_ex(file=sys.stderr)
         print "NoContent: ", classname
         return None
 

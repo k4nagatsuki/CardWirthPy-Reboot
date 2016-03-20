@@ -728,7 +728,10 @@ class Debugger(wx.Frame):
             elif cw.cwpy.is_runningevent():
                 event = cw.cwpy.event.get_event()
                 if event and not event.cur_content is None:
-                    cwxpath = event.cur_content.get_cwxpath()
+                    cur_content = event.cur_content
+                    if cur_content.tag == "ContentsLine":
+                        cur_content = cur_content[event.line_index]
+                    cwxpath = cur_content.get_cwxpath()
 
                 if not cwxpath:
                     # パッケージ処理中でなければ0が返る
@@ -1747,7 +1750,10 @@ class EventView(wx.ScrolledWindow):
                 if i < y:
                     continue
             else:
-                if self.items[item.nextdata[-1]].pos[1] < ytop:
+                child = item.nextdata[-1]
+                if child.tag == "ContentsLine":
+                    child = child[0]
+                if self.items[child].pos[1] < ytop:
                     continue
             ix, iy = item.pos
             ix -= xtop
@@ -1760,6 +1766,8 @@ class EventView(wx.ScrolledWindow):
                 dc.DrawLine(cx-5, bottom, cx+5, bottom)
             else:
                 for child in item.nextdata:
+                    if child.tag == "ContentsLine":
+                        child = child[0]
                     child = self.items[child]
                     if child.pos[0] == item.pos[0]:
                         bottom = child.pos[1]-ytop + self.lineheight/2
@@ -1963,6 +1971,8 @@ class EventView(wx.ScrolledWindow):
         def func(self):
             event = cw.cwpy.event.get_event()
             cur_content = event.cur_content if event else None
+            if not cur_content is None and cur_content.tag == "ContentsLine":
+                cur_content = cur_content[event.line_index]
 
             def func(self, event, cur_content):
                 if not self:
@@ -2081,30 +2091,51 @@ class EventView(wx.ScrolledWindow):
             self.Scroll(0, 0)
             self.Refresh()
 
-    def create_item(self, parentitem, content, shiftx, dc):
+    def create_item(self, parentitem, contents, shiftx, dc):
         assert threading.currentThread() <> cw.cwpy
-        if parentitem:
-            parent = parentitem.content
-            x = parentitem.pos[0]
-            if parentitem.is_branch():
-                x += shiftx
-        else:
-            parent = None
-            x = 0
-        if self.itemlist:
-            item = self.itemlist[-1]
-            pos = (x, item.pos[1] + item.height)
-        else:
-            pos = (0, 0)
-        item = EventViewItem(parent, content, pos, self.lineheight, dc)
-        self.items[content] = item
-        self.itemlist.append(item)
-        self.maxwidth = max(item.pos[0] + item.width, self.maxwidth)
-        for e in item.nextdata:
-            self.create_item(item, e, shiftx, dc)
+
+        def update_pos():
+            if parentitem:
+                parent = parentitem.content
+                x = parentitem.pos[0]
+                if parentitem.is_branch():
+                    x += shiftx
+            else:
+                parent = None
+                x = 0
+
+            if self.itemlist:
+                item = self.itemlist[-1]
+                pos = (x, item.pos[1] + item.height)
+            else:
+                pos = (0, 0)
+            return parent, x, pos
+
+        isline = contents.tag == "ContentsLine"
+        if not isline:
+            contents = (contents,)
+
+        for i, content in enumerate(contents):
+            parent, x, pos = update_pos()
+            if isline and i+1 < len(contents):
+                nextdata = (contents[i+1],)
+            else:
+                nextdata = content.find("Contents")
+                if nextdata is None:
+                    nextdata = ()
+            item = EventViewItem(parent, content, nextdata, pos, self.lineheight, dc)
+            assert content.tag <> "ContentsLine"
+            self.items[content] = item
+            self.itemlist.append(item)
+            self.maxwidth = max(item.pos[0] + item.width, self.maxwidth)
+            if not (isline and i+1 < len(contents)):
+                for e in item.nextdata:
+                    self.create_item(item, e, shiftx, dc)
+
+            parentitem = item
 
 class EventViewItem(object):
-    def __init__(self, parent, content, pos, lineheight, dc):
+    def __init__(self, parent, content, nextdata, pos, lineheight, dc):
         assert threading.currentThread() <> cw.cwpy
         self.parent = parent
         self.content = content
@@ -2122,7 +2153,7 @@ class EventViewItem(object):
         if "type" in self.content.attrib:
             s += "_" + self.content.get("type").upper()
         self.image = cw.cwpy.rsrc.debugs.get(s, None)
-        self.nextdata = self.content.find("Contents")
+        self.nextdata = nextdata
         self.nextlen = len(self.nextdata)
 
         if self.nextlen:
