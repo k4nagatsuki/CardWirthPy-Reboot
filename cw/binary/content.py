@@ -10,26 +10,77 @@ import cw
 
 
 class Content(base.CWBinaryBase):
-    def __init__(self, parent, f):
+    def __init__(self, parent, f, stratum):
         base.CWBinaryBase.__init__(self, parent, f)
-
-        tag, ctype = self.conv_contenttype(f.byte())
-
         self.xmltype = "Content"
+
+        self.children = []
+
+        if f is None:
+            return
+
+        eventstack = []
+        children = []
+
+        if 255 < stratum:
+            # ある程度以上ツリー階層が深くなったら
+            # 再帰を回避する方向に切り替える
+            while True:
+                tag, ctype = self.conv_contenttype(f.byte())
+                name = f.string()
+                children_num = f.dword()
+                if children_num <= 39999:
+                    version = 2
+                elif children_num <= 49999:
+                    version = 4
+                    children_num -= 40000
+                else:
+                    version = 5
+                    children_num -= 50000
+
+                eventstack.append((tag, ctype, name, version))
+
+                if children_num == 0:
+                    break
+                elif children_num == 1:
+                    # 子コンテントが1件だけの時は情報をスタックにためて再帰回避
+                    continue
+                else:
+                    # stratumはすでにmaxであるため加算しない
+                    children = [Content(self, f, stratum) for _cnt in xrange(children_num)]
+                    break
+
+            for i, (tag, ctype, name, version) in enumerate(reversed(eventstack)):
+                if i+1 == len(eventstack):
+                    e = self
+                else:
+                    e = Content(self, None, stratum)
+                e._read_properties(f, tag, ctype, name, version)
+                for child in children:
+                    e.children.append(child)
+                children = [e]
+        else:
+            tag, ctype = self.conv_contenttype(f.byte())
+            name = f.string()
+            children_num = f.dword()
+            if children_num <= 39999:
+                version = 2
+            elif children_num <= 49999:
+                version = 4
+                children_num -= 40000
+            else:
+                version = 5
+                children_num -= 50000
+
+            self.children = [Content(self, f, stratum+1) for _cnt in xrange(children_num)]
+
+            self._read_properties(f, tag, ctype, name, version)
+
+    def _read_properties(self, f, tag, ctype, name, version):
         self.tag = tag
         self.type = ctype
-        self.name = f.string()
-        children_num = f.dword()
-        if children_num <= 39999:
-            self.version = 2
-        elif children_num <= 49999:
-            self.version = 4
-            children_num -= 40000
-        else:
-            self.version = 5
-            children_num -= 50000
-
-        self.children = [Content(self, f) for _cnt in xrange(children_num)]
+        self.name = name
+        self.version = version
 
         # 宿データの埋め込みカードのコンテントは
         # 子コンテントデータの後ろに"dword()"(4)が埋め込まれている。
