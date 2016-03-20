@@ -2080,7 +2080,7 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
     # 召喚獣カードの場合、付帯属性を操作する
     # 召喚獣獲得コンテントないしデバッガからの配布であれば、必ず付帯能力に
     if etree.getroot().tag == "BeastCard":
-        if not notscenariocard or fromdebugger or from_getcontent:
+        if fromdebugger or from_getcontent:
             attachment = True
 
         if etree.gettext("Property/UseLimit") == "0":
