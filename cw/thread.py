@@ -203,7 +203,7 @@ class CWPy(_Singleton, threading.Thread):
         self.change_cursor(force=True)
 
         # ゲーム状態を"Title"にセット
-        self.exec_func(self.startup)
+        self.exec_func(self.startup, loadyado=True)
 
     def set_fullscreen(self, fullscreen):
         """wx側ウィンドウのフルスクリーンモードを切り替える。"""
@@ -439,10 +439,10 @@ class CWPy(_Singleton, threading.Thread):
             # タイトル画面にいる場合はロゴ表示前まで戻す
             if self.topgrp.sprites():
                 # アニメーション中なら中止してから戻す
-                self.exec_func(self.startup)
+                self.exec_func(self.startup, loadyado=False)
                 raise cw.event.EffectBreakError()
             else:
-                self.startup()
+                self.startup(loadyado=False)
         else:
             for music in self.music:
                 music.play(music.path, updatepredata=False)
@@ -1534,7 +1534,7 @@ class CWPy(_Singleton, threading.Thread):
         self.pre_dialogs = []
         self.pre_mcards = []
 
-    def startup(self):
+    def startup(self, loadyado=True):
         """起動時のアニメーションを表示してから
         タイトル画面へ遷移する。"""
         resdir = cw.util.join_paths(cw.cwpy.skindir, u"Resource/Image/Other")
@@ -1556,7 +1556,7 @@ class CWPy(_Singleton, threading.Thread):
 
         optyado = cw.OPTIONS.yado
         cw.OPTIONS.yado = ""
-        if not optyado and self.setting.startupscene == cw.setting.OPEN_LAST_BASE:
+        if not optyado and self.setting.startupscene == cw.setting.OPEN_LAST_BASE and loadyado:
             optyado = self.setting.lastyado
             cw.OPTIONS.party = ""
             cw.OPTIONS.scenario = ""
