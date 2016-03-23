@@ -666,7 +666,6 @@ class Event(object):
         self.trees = event.trees
         self.treekeys = event.treekeys
         self.starttree = event.starttree
-        self.line_index = event.line_index
 
     def start(self):
         try:
@@ -694,6 +693,9 @@ class Event(object):
 
         # 起動中のイベントは全てクリア
         for event in cw.cwpy.event.get_events():
+            if event.base:
+                event._copy_from(event.base)
+                event.base = None
             cw.cwpy.event.remove_event(event)
             event.clear()
 
