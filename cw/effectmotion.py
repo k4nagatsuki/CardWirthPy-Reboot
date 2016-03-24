@@ -148,9 +148,9 @@ class Effect(object):
                 success_res = self.check_resist(target)
                 success_avo = self.check_avoid(target)
 
-        if not success_res and self.resisttype == "Resist" and not target.is_resistable():
+        if not success_res and self.resisttype == "Resist" and not target.is_resistable(use_enhance=False):
             allsuccess = True
-        if not success_avo and self.resisttype == "Avoid" and not target.is_avoidable():
+        if not success_avo and self.resisttype == "Avoid" and not target.is_avoidable(use_enhance=False):
             allsuccess = True
 
         # ダメージ効果の有無

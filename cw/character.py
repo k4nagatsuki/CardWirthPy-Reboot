@@ -530,13 +530,16 @@ class Character(object):
         else:
             return True
 
-    def is_avoidable(self):
+    def is_avoidable(self, use_enhance=True):
         """
         回避判定可能かどうかbool値で返す。
         """
-        return self.is_active() and self.get_enhance_avo() > -10
+        if use_enhance:
+            return self.is_active() and self.get_enhance_avo() > -10
+        else:
+            return self.is_active()
 
-    def is_resistable(self):
+    def is_resistable(self, use_enhance=True):
         """
         抵抗判定可能かどうかbool値で返す。
         呪縛状態でも抵抗できる。
@@ -544,7 +547,10 @@ class Character(object):
         b = self.is_sleep()
         b |= self.is_paralyze()
         b |= self.is_unconscious()
-        return not b and self.get_enhance_res() > -10
+        if use_enhance:
+            return not b and self.get_enhance_res() > -10
+        else:
+            return not b
 
     def is_reversed(self):
         """
