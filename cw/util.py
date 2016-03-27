@@ -1174,6 +1174,35 @@ def print_ex(file=None):
     file.write("\n")
     return
 
+def screenshot_title(date):
+    """スクリーンショットタイトルの書き出し。
+    """
+    d = cw.cwpy.get_titledic()
+    d["date"] = date.strftime("%Y-%m-%d")
+    d["year"] = date.strftime("%Y")
+    d["month"] = date.strftime("%m")
+    d["day"] = date.strftime("%d")
+    d["time"] = date.strftime("%H:%M:%S")
+    d["hour"] = date.strftime("%H")
+    d["minute"] = date.strftime("%M")
+    d["second"] = date.strftime("%S")
+    title = format_title(cw.cwpy.setting.ssinfoformat, d)
+    return title
+
+def screenshot_header(title, w):
+    """スクリーンショット情報の書き出し。
+    """
+    fore = cw.cwpy.setting.ssinfofontcolor
+    font = cw.cwpy.rsrc.fonts["screenshot"]
+    fh = font.get_height()
+    lh = fh + 2
+    subimg = font.render(title, True, fore)
+    swmax = w - cw.s(10)*2
+    if swmax < subimg.get_width():
+        size = (swmax, subimg.get_height())
+        subimg = cw.image.smoothscale(subimg, size)
+    return subimg, fh, lh
+
 def screenshot():
     """スクリーンショットをファイルへ書き出す。
     """
@@ -1193,33 +1222,16 @@ def create_screenshotfilename(date):
 def create_screenshot(date):
     """スクリーンショットを作成する。
     """
-    d = cw.cwpy.get_titledic()
-    d["date"] = date.strftime("%Y-%m-%d")
-    d["year"] = date.strftime("%Y")
-    d["month"] = date.strftime("%m")
-    d["day"] = date.strftime("%d")
-    d["time"] = date.strftime("%H:%M:%S")
-    d["hour"] = date.strftime("%H")
-    d["minute"] = date.strftime("%M")
-    d["second"] = date.strftime("%S")
-    title = format_title(cw.cwpy.setting.ssinfoformat, d)
+    title = screenshot_title(date)
     if title:
-        fore = cw.cwpy.setting.ssinfofontcolor
         back = cw.cwpy.setting.ssinfobackcolor
-        font = cw.cwpy.rsrc.fonts["screenshot"]
-        fh = font.get_height()
-        lh = fh + 2
         w = cw.s(cw.SIZE_GAME[0])
+        subimg, fh, lh = screenshot_header(title, w)
         h = cw.s(cw.SIZE_GAME[1]) + lh
         bmp = pygame.Surface((w, h)).convert()
         bmp.fill(back, rect=pygame.Rect(cw.s(0), cw.s(0), w, lh))
         bmp.blit(cw.cwpy.scr_draw, (cw.s(0), lh))
-        subimg = font.render(title, True, fore)
         y = (lh - fh) / 2
-        swmax = w - cw.s(10)*2
-        if swmax < subimg.get_width():
-            size = (swmax, subimg.get_height())
-            subimg = cw.image.smoothscale(subimg, size)
         bmp.blit(subimg, (cw.s(10), y))
         y = lh
     else:
@@ -1227,6 +1239,83 @@ def create_screenshot(date):
         y = cw.s(0)
 
     return bmp, y
+
+def card_screenshot():
+    """ パーティー所持カードのスクリーンショットをファイルへ書き出す。
+    """
+    if cw.cwpy.ydata:
+        if cw.cwpy.ydata.party:
+            cw.cwpy.play_sound("screenshot")
+            date = datetime.datetime.today()
+            filename = create_cardscreenshotfilename(date)
+            bmp = create_cardscreenshot(date)
+            pygame.image.save(bmp, filename)
+
+def create_cardscreenshotfilename(date):
+    """パーティー所持カードスクリーンショット用のファイルパスを作成する。
+    """
+    if not os.path.isdir("ScreenShot"):
+        os.mkdir("ScreenShot")
+    encoding = sys.getfilesystemencoding()
+    return os.path.join("ScreenShot", cw.cwpy.ydata.party.name.encode(encoding) + date.strftime("_%Y%m%d_%H%M%S_%f.png"))
+
+def create_cardscreenshot(date):
+    """パーティー所持カードスクリーンショットを作成する。
+    """
+
+    pcards = [i for i in cw.cwpy.get_pcards()]
+    if pcards:
+
+        max_card = [2, 2, 2]
+        margin = 2
+        back = [map(lambda n: n / 2 + 88, cw.cwpy.setting.ssinfobackcolor),
+                map(lambda n: n / 2 + 40, cw.cwpy.setting.ssinfobackcolor)]
+
+        for pcard in pcards:
+            for index in (cw.POCKET_SKILL, cw.POCKET_ITEM, cw.POCKET_BEAST):
+                max_card[index] = max(len(pcard.cardpocket[index]), max_card[index])
+
+        w = cw.s(95 + 80 * sum(max_card) + margin * (5 + sum(max_card)))
+        h = cw.s((130 + 2 * margin) * len(pcards))
+        title = screenshot_title(date)
+        if title:
+            subimg, fh, lh = screenshot_header(title, w)
+            h += lh
+        bmp = pygame.Surface((w, h)).convert()
+        bmp.fill(cw.cwpy.setting.ssinfobackcolor, rect=pygame.Rect(cw.s(0), cw.s(0), w, h))
+
+        y = 0
+        if title:
+            bmp.blit(subimg, (cw.s(10), (lh - fh) / 2))
+            y += lh
+
+        for i in range(len(pcards)):
+            backindex = (1 + i) % 2
+            bmp.fill(back[backindex], rect=pygame.Rect(cw.s(0), cw.s(y), cw.s(95 + 2 * margin), cw.s(130 + 2 * margin)))
+            bmp.blit(pcards[i].cardimg.image, (cw.s(margin), cw.s(y + margin)))
+
+            def blit_card(headers, x, y):
+                for header in headers:
+                    bmp.blit(header.cardimg.get_cardimg(header), (cw.s(x), cw.s(10 + y + margin)))
+                    x += 80 + margin
+
+            current_x = 95 + 2 * margin
+            next_x = 0
+            for index in (cw.POCKET_SKILL, cw.POCKET_ITEM, cw.POCKET_BEAST):
+                current_x += next_x
+                next_x = 80 * max_card[index] + margin * (max_card[index] + 1)
+                backindex = (index + i) % 2
+                bmp.fill(back[backindex], rect=pygame.Rect(cw.s(current_x), cw.s(y), cw.s(next_x), cw.s(130 + 2 * margin)))
+                adjust_x = (max_card[index] - len(pcards[i].cardpocket[index]))
+                x = current_x + adjust_x * 40 + margin * (2 + adjust_x) / 2
+                blit_card(pcards[i].cardpocket[index], x, y)
+
+            y += 130 + 2 * margin
+
+    else:
+        raise
+
+    return bmp
 
 #-------------------------------------------------------------------------------
 #　ファイル操作関連

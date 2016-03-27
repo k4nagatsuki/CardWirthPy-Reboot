@@ -529,7 +529,8 @@ class EventHandler(object):
         """
         if not self.can_input():
             return
-        cw.util.screenshot()
+
+        self.capture_screenshot()
 
     def keydown_event(self, key):
         """その他のKEYDOWNイベント。"""
@@ -553,9 +554,17 @@ class EventHandler(object):
         ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
 
         if ctrldown and key == ord('P'):
-            cw.util.screenshot()
+            self.capture_screenshot()
             return False
         return True
+
+    def capture_screenshot(self):
+        shiftdown = cw.cwpy.keyevent.keyin[pygame.K_LSHIFT] or cw.cwpy.keyevent.keyin[pygame.K_RSHIFT]
+        if shiftdown:
+            cw.util.card_screenshot()
+        else:
+            cw.util.screenshot()
+        return
 
     def change_volume(self, val):
         if val <> 0 and pygame.mouse.get_pressed()[2]:
