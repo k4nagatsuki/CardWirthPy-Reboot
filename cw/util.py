@@ -1217,7 +1217,10 @@ def screenshot():
 def create_screenshotfilename(titledic):
     """スクリーンショット用のファイルパスを作成する。
     """
-    return format_title(cw.cwpy.setting.ssfnameformat, titledic)
+    fpath = format_title(cw.cwpy.setting.ssfnameformat, titledic)
+    if not os.path.splitext(fpath)[1].lower() in cw.EXTS_IMG:
+        fpath += ".png"
+    return fpath
 
 def create_screenshot(titledic):
     """スクリーンショットを作成する。
@@ -1266,7 +1269,10 @@ def card_screenshot():
 def create_cardscreenshotfilename(titledic):
     """パーティー所持カードスクリーンショット用のファイルパスを作成する。
     """
-    return format_title(cw.cwpy.setting.cardssfnameformat, titledic)
+    fpath = format_title(cw.cwpy.setting.cardssfnameformat, titledic)
+    if not os.path.splitext(fpath)[1].lower() in cw.EXTS_IMG:
+        fpath += ".png"
+    return fpath
 
 def create_cardscreenshot(titledic):
     """パーティー所持カードスクリーンショットを作成する。
