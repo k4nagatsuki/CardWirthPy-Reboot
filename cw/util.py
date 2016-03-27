@@ -1201,20 +1201,23 @@ def screenshot():
     cw.cwpy.play_sound("screenshot")
     titledic = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
     filename = create_screenshotfilename(titledic)
-    bmp, y = create_screenshot(titledic)
-    encoding = sys.getfilesystemencoding()
-    pygame.image.save(bmp, filename.encode(encoding))
+    try:
+        dpath = os.path.dirname(filename)
+        if os.path.isdir(dpath):
+            fpath = dupcheck_plus(filename, yado=False)
+        else:
+            os.makedirs(dpath)
+        bmp, y = create_screenshot(titledic)
+        encoding = sys.getfilesystemencoding()
+        pygame.image.save(bmp, filename.encode(encoding))
+    except:
+        s = u"スクリーンショットの保存に失敗しました。\n%s" % (filename)
+        cw.cwpy.call_modaldlg("ERROR", text=s)
 
 def create_screenshotfilename(titledic):
     """スクリーンショット用のファイルパスを作成する。
     """
-    fpath = format_title(u"ScreenShot/%year%%month%%day%_%hour%%minute%%second%_%millisecond%.png", titledic)
-    dpath = os.path.dirname(fpath)
-    if os.path.isdir(dpath):
-        fpath = dupcheck_plus(fpath, yado=False)
-    else:
-        os.mkdir(dpath)
-    return fpath
+    return format_title(cw.cwpy.setting.ssfnameformat, titledic)
 
 def create_screenshot(titledic):
     """スクリーンショットを作成する。
@@ -1247,20 +1250,23 @@ def card_screenshot():
             cw.cwpy.play_sound("screenshot")
             titledic = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
             filename = create_cardscreenshotfilename(titledic)
-            bmp = create_cardscreenshot(titledic)
-            encoding = sys.getfilesystemencoding()
-            pygame.image.save(bmp, filename.encode(encoding))
+            try:
+                dpath = os.path.dirname(filename)
+                if os.path.isdir(dpath):
+                    fpath = dupcheck_plus(filename, yado=False)
+                else:
+                    os.makedirs(dpath)
+                bmp = create_cardscreenshot(titledic)
+                encoding = sys.getfilesystemencoding()
+                pygame.image.save(bmp, filename.encode(encoding))
+            except:
+                s = u"スクリーンショットの保存に失敗しました。\n%s" % (filename)
+                cw.cwpy.call_modaldlg("ERROR", text=s)
 
 def create_cardscreenshotfilename(titledic):
     """パーティー所持カードスクリーンショット用のファイルパスを作成する。
     """
-    fpath = format_title(u"ScreenShot/%party%_%year%%month%%day%_%hour%%minute%%second%_%millisecond%.png", titledic)
-    dpath = os.path.dirname(fpath)
-    if os.path.isdir(dpath):
-        fpath = dupcheck_plus(fpath, yado=False)
-    else:
-        os.mkdir(dpath)
-    return fpath
+    return format_title(cw.cwpy.setting.cardssfnameformat, titledic)
 
 def create_cardscreenshot(titledic):
     """パーティー所持カードスクリーンショットを作成する。
@@ -1268,12 +1274,14 @@ def create_cardscreenshot(titledic):
 
     pcards = [i for i in cw.cwpy.get_pcards()]
     if pcards:
-
         max_card = [2, 2, 2]
         margin = 2
-        back = [map(lambda n: n / 2 + 88, cw.cwpy.setting.ssinfobackcolor),
-                map(lambda n: n / 2 + 40, cw.cwpy.setting.ssinfobackcolor)]
+        # 背景のタイル色
+        # タイトルバーに馴染む色にする
+        back = [map(lambda n: min(255, max(0, n / 2 + 88)), cw.cwpy.setting.ssinfobackcolor),
+                map(lambda n: min(255, max(0, n / 2 + 40)), cw.cwpy.setting.ssinfobackcolor)]
 
+        # カード数によってタイルのサイズを決定
         for pcard in pcards:
             for index in (cw.POCKET_SKILL, cw.POCKET_ITEM, cw.POCKET_BEAST):
                 max_card[index] = max(len(pcard.cardpocket[index]), max_card[index])
@@ -1287,6 +1295,7 @@ def create_cardscreenshot(titledic):
         bmp = pygame.Surface((w, h)).convert()
         bmp.fill(cw.cwpy.setting.ssinfobackcolor, rect=pygame.Rect(cw.s(0), cw.s(0), w, h))
 
+        # イメージの作成
         sy = cw.s(0)
         if title:
             bmp.blit(subimg, (cw.s(10), (lh - fh) / 2))

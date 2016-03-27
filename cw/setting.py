@@ -165,8 +165,10 @@ class Setting(object):
         self.scenario_narrow = ""
         self.scenario_narrowtype = 0
         self.scenario_sorttype = 0
-        self.ssinfoformat = "[%scenario%[(%author%)] - ][%party% at ]%yado%"
-        self.titleformat = "%application% %skin%[ - %yado%[ %scenario%]]"
+        self.ssinfoformat = u"[%scenario%[(%author%)] - ][%party% at ]%yado%"
+        self.ssfnameformat = u"ScreenShot/%year%%month%%day%_%hour%%minute%%second%_%millisecond%.png"
+        self.cardssfnameformat = u"ScreenShot/%party%_%year%%month%%day%_%hour%%minute%%second%_%millisecond%.png"
+        self.titleformat = u"%application% %skin%[ - %yado%[ %scenario%]]"
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
         self.show_fcardsinbattle = False
@@ -571,6 +573,11 @@ class Setting(object):
         g = data.getint("ScreenShotInformationBackgroundColor", "green", self.ssinfobackcolor[1])
         b = data.getint("ScreenShotInformationBackgroundColor", "blue", self.ssinfobackcolor[2])
         self.ssinfobackcolor = (r, g, b, 255)
+
+        # スクリーンショットのファイル名
+        self.ssfnameformat = data.gettext("ScreenShotFileNameFormat", self.ssfnameformat)
+        # 所持カード撮影情報のファイル名
+        self.cardssfnameformat = data.gettext("ScreenShotOfCardsFileNameFormat", self.cardssfnameformat)
 
         # イベント中にステータスバーの色を変える
         self.statusbarmask = data.getbool("StatusBarMask", self.statusbarmask)

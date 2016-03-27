@@ -524,6 +524,15 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("ScreenShotInformationBackgroundColor", "", d)
         element.append(e)
 
+    # スクリーンショットのファイル名
+    if setting.ssfnameformat <> setting.ssfnameformat_init:
+        e = cw.data.make_element("ScreenShotFileNameFormat", setting.ssfnameformat)
+        element.append(e)
+    # 所持カード撮影情報のファイル名
+    if setting.cardssfnameformat <> setting.cardssfnameformat_init:
+        e = cw.data.make_element("ScreenShotOfCardsFileNameFormat", setting.cardssfnameformat)
+        element.append(e)
+
     # イベント中にステータスバーの色を変える
     if setting.statusbarmask <> setting.statusbarmask_init:
         e = cw.data.make_element("StatusBarMask", str(setting.statusbarmask))
