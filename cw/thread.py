@@ -469,11 +469,21 @@ class CWPy(_Singleton, threading.Thread):
 
     def get_titledic(self, with_datetime=False, for_fname=False):
         """タイトルバー文字列生成用の情報を辞書で取得する。"""
-        d = { "application":cw.APP_NAME, "skin":self.setting.skinname }
+        vstr = []
+        for v in cw.APP_VERSION:
+            vstr.append(str(v))
+        vstr = u".".join(vstr)
+
+        d = { "application":cw.APP_NAME, "skin":self.setting.skinname, "version":vstr }
+
+        if versioninfo:
+            d["build"] = versioninfo.build_datetime
+
         if self.ydata:
             d["yado"] = self.ydata.name
             if self.ydata.party:
                 d["party"] = self.ydata.party.name
+
         if self.status.startswith("Scenario"):
             d["scenario"] = self.sdata.name
             d["author"] = self.sdata.author
@@ -492,14 +502,17 @@ class CWPy(_Singleton, threading.Thread):
             d["hour"] = date.strftime("%H")
             d["minute"] = date.strftime("%M")
             d["second"] = date.strftime("%S")
-            d["millisecond"] = date.strftime("%f")
+            d["millisecond"] = date.strftime("%f")[:3]
 
         if for_fname:
             d2 = {}
             for key, value in d.iteritems():
+                value = value.replace(" ", "_")
+                value = value.replace(":", ".")
                 d2[key] = cw.binary.util.check_filename(value).strip()
-
-        return d
+            return (d, d2)
+        else:
+            return d
 
     def update_scale(self, scale, changearea=True, rsrconly=False, udpatedrawsize=True):
         """画面の表示倍率を変更する。

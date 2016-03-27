@@ -308,12 +308,12 @@ class SettingsPanel(wx.Panel):
         self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
         h = self.btn_dflt.GetBestSize()[1]
 
-        self.btn_load = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_LOAD"])
-        self.btn_load.SetToolTipString(u"設定の読み込み")
-        self.btn_load.SetMinSize((32, h))
         self.btn_save = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_SAVE"])
         self.btn_save.SetToolTipString(u"設定の保存")
         self.btn_save.SetMinSize((32, h))
+        self.btn_load = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_LOAD"])
+        self.btn_load.SetToolTipString(u"設定の読み込み")
+        self.btn_load.SetMinSize((32, h))
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_apply = wx.Button(self, wx.ID_APPLY, u"適用")
@@ -407,6 +407,8 @@ class SettingsPanel(wx.Panel):
             self.pane_gene.cb_overwritepartyrecord.SetValue(cw.cwpy.setting.overwrite_partyrecord_init)
             self.pane_gene.cb_overwritepartyrecord.Enable(self.pane_gene.cb_autosavepartyrecord.GetValue())
             self.pane_gene.tx_ssinfoformat.SetValue(cw.cwpy.setting.ssinfoformat_init)
+            self.pane_gene.tx_ssfnameformat.SetValue(cw.cwpy.setting.ssfnameformat_init)
+            self.pane_gene.tx_cardssfnameformat.SetValue(cw.cwpy.setting.cardssfnameformat_init)
             self.pane_gene.ch_ssinfocolor.Select(1 if cw.cwpy.setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
         elif selpane == 1:
             self.pane_draw.cb_smoothing_card_up.SetValue(cw.cwpy.setting.smoothing_card_up_init)
@@ -643,6 +645,10 @@ class SettingsPanel(wx.Panel):
         setting.overwrite_partyrecord = value
         value = self.pane_gene.tx_ssinfoformat.GetValue()
         setting.ssinfoformat = value
+        value = self.pane_gene.tx_ssfnameformat.GetValue()
+        setting.ssfnameformat = value
+        value = self.pane_gene.tx_cardssfnameformat.GetValue()
+        setting.cardssfnameformat = value
         value = self.pane_gene.ch_ssinfocolor.GetSelection()
         if value == 1:
             setting.ssinfofontcolor = (255, 255, 255)
@@ -1391,12 +1397,63 @@ class GeneralSettingPanel(wx.Panel):
         choices = [u"黒文字", u"白文字"]
         self.ch_ssinfocolor = wx.Choice(self, -1, size=(-1, -1), choices=choices)
 
-        self.st_ssinfodesc = wx.StaticText(self, -1,
-                                           u"次の各情報を表示できます:\n" +
-                                           u" %application% = ソフト名, %skin% = スキン名,\n" +
-                                           u" %yado% = 拠点名, %party% = パーティ名,\n" +
-                                           u" %scenario% = シナリオ名, %author% = 作者名,\n" +
-                                           u" %date% = 日付, %time% = 時刻")
+        # スクリーンショットのファイル名
+        self.st_ssfnameformat = wx.StaticText(self, -1, u"ファイル名:")
+        self.tx_ssfnameformat = wx.TextCtrl(self, -1, size=(150, -1))
+        # 所持カード撮影情報のファイル名
+        self.st_cardssfnameformat = wx.StaticText(self, -1, u"所持カード:")
+        self.tx_cardssfnameformat = wx.TextCtrl(self, -1, size=(150, -1))
+
+        self.ss_tx = set()
+        self.ss_tx.add(self.tx_ssinfoformat)
+        self.ss_tx.add(self.tx_ssfnameformat)
+        self.ss_tx.add(self.tx_cardssfnameformat)
+
+        self.st_ssinfo_brackets = wx.StaticText(self, -1, u"[ ] 内は、各種情報がある場合のみ挿入されます")
+
+        self.sstoolbar = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_HORZ_TEXT|wx.TB_NOICONS)
+        self.sstoolbar.SetToolBitmapSize(wx.Size(0, 0))
+        self.ti_ssins = self.sstoolbar.AddLabelTool(
+            -1, u"各種情報の挿入", wx.EmptyBitmap(0, 0),
+            shortHelp=u"状況によって動的に変化する情報を挿入します。")
+        self.sstoolbar.Realize()
+
+        ssdic = [
+            (u"application", u"アプリケーション名"),
+            (u"version", u"バージョン情報"),
+            None,
+            (u"skin", u"スキン名"),
+            (u"yado", u"拠点名"),
+            (u"party", u"パーティ名"),
+            None,
+            (u"scenario", u"シナリオ名"),
+            (u"author", u"作者名"),
+            (u"path", u"シナリオのファイルパス"),
+            (u"file", u"シナリオのファイル名"),
+            (u"compatibility", u"互換モード"),
+            None,
+            (u"date", u"日付"),
+            (u"time", u"時刻"),
+            (u"year", u"年"),
+            (u"month", u"月"),
+            (u"day", u"日"),
+            (u"hour", u"時"),
+            (u"minute", u"分"),
+            (u"second", u"秒"),
+            (u"millisecond", u"ミリ秒"),
+        ]
+        if versioninfo:
+            ssdic.insert(2, (u"build", u"ビルド情報"))
+        self.ssdic = {}
+        self.ssinsmenu = wx.Menu()
+        for t in ssdic:
+            if t:
+                p, name = t
+                mi = self.ssinsmenu.Append(-1, u"%%%s%% = %s" % (p, name))
+                self.ssdic[mi.GetId()] = (mi.GetId(), p, name)
+            else:
+                self.ssinsmenu.AppendSeparator()
+        self._ss_focus()
 
         self._do_layout()
         self._bind()
@@ -1404,6 +1461,10 @@ class GeneralSettingPanel(wx.Panel):
     def _bind(self):
         self.cb_autosavepartyrecord.Bind(wx.EVT_CHECKBOX, self.OnAutoSavePartyRecord)
         self.cb_initmoneyisinitialcash.Bind(wx.EVT_CHECKBOX, self.OnInitMoneyIsInitialCash)
+        self.sstoolbar.Bind(wx.EVT_TOOL, self.OnSSTool)
+        for tx in self.ss_tx:
+            tx.Bind(wx.EVT_SET_FOCUS, self.OnSSFocus)
+            tx.Bind(wx.EVT_KILL_FOCUS, self.OnSSFocus)
 
     def load(self, setting):
         self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog)
@@ -1426,11 +1487,34 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_overwritepartyrecord.SetValue(setting.overwrite_partyrecord)
         self.cb_overwritepartyrecord.Enable(setting.autosave_partyrecord)
         self.tx_ssinfoformat.SetValue(setting.ssinfoformat)
+        self.tx_ssfnameformat.SetValue(setting.ssfnameformat)
+        self.tx_cardssfnameformat.SetValue(setting.cardssfnameformat)
         if setting.ssinfofontcolor[:3] == (255, 255, 255):
             self.ch_ssinfocolor.Select(1)
         else:
             self.ch_ssinfocolor.Select(0)
         self.expand.load(setting)
+
+    def OnSSTool(self, event):
+        if self.ti_ssins.GetId() == event.GetId():
+            self.sstoolbar.PopupMenu(self.ssinsmenu)
+        else:
+            t = self.ssdic.get(event.GetId(), None)
+            if not t:
+                return
+            p = t[1]
+            f = wx.Window.FindFocus()
+            for tx in self.ss_tx:
+                if tx is f:
+                    tx.WriteText(u"%%%s%%" % (p))
+
+    def OnSSFocus(self, event):
+        self._ss_focus()
+        event.Skip()
+
+    def _ss_focus(self):
+        enable = wx.Window.FindFocus() in self.ss_tx
+        self.sstoolbar.Enable(enable)
 
     def OnAutoSavePartyRecord(self, event):
         self.cb_overwritepartyrecord.Enable(self.cb_autosavepartyrecord.GetValue())
@@ -1487,7 +1571,17 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_ssl.Add(self.tx_ssinfoformat, 1, wx.RIGHT|wx.CENTER, 3)
         bsizer_ssl.Add(self.ch_ssinfocolor, 0, wx.CENTER, 3)
         bsizer_ss.Add(bsizer_ssl, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        bsizer_ss.Add(self.st_ssinfodesc, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+
+        gsizer_fname = wx.GridBagSizer()
+        gsizer_fname.Add(self.st_ssfnameformat, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+        gsizer_fname.Add(self.tx_ssfnameformat, pos=(0, 1), flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=3)
+        gsizer_fname.Add(self.st_cardssfnameformat, pos=(1, 0), flag=wx.TOP|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+        gsizer_fname.Add(self.tx_cardssfnameformat, pos=(1, 1), flag=wx.TOP|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=3)
+        gsizer_fname.AddGrowableCol(1, 1)
+
+        bsizer_ss.Add(gsizer_fname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        bsizer_ss.Add(self.st_ssinfo_brackets, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
+        bsizer_ss.Add(self.sstoolbar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
 
         sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_left.Add(bsizer_log, 0, wx.BOTTOM|wx.EXPAND, 3)

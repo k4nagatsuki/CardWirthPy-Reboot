@@ -1199,8 +1199,8 @@ def screenshot():
     """スクリーンショットをファイルへ書き出す。
     """
     cw.cwpy.play_sound("screenshot")
-    titledic = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
-    filename = create_screenshotfilename(titledic)
+    titledic, titledicfn = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+    filename = create_screenshotfilename(titledicfn)
     try:
         dpath = os.path.dirname(filename)
         if os.path.isdir(dpath):
@@ -1248,8 +1248,8 @@ def card_screenshot():
     if cw.cwpy.ydata:
         if cw.cwpy.ydata.party:
             cw.cwpy.play_sound("screenshot")
-            titledic = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
-            filename = create_cardscreenshotfilename(titledic)
+            titledic, titledicfn = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+            filename = create_cardscreenshotfilename(titledicfn)
             try:
                 dpath = os.path.dirname(filename)
                 if os.path.isdir(dpath):

@@ -166,8 +166,8 @@ class Setting(object):
         self.scenario_narrowtype = 0
         self.scenario_sorttype = 0
         self.ssinfoformat = u"[%scenario%[(%author%)] - ][%party% at ]%yado%"
-        self.ssfnameformat = u"ScreenShot/%year%%month%%day%_%hour%%minute%%second%_%millisecond%.png"
-        self.cardssfnameformat = u"ScreenShot/%party%_%year%%month%%day%_%hour%%minute%%second%_%millisecond%.png"
+        self.ssfnameformat = u"ScreenShot/%year%%month%%day%_%hour%%minute%%second%_%millisecond%000.png"
+        self.cardssfnameformat = u"ScreenShot/%party%_%year%%month%%day%_%hour%%minute%%second%_%millisecond%000.png"
         self.titleformat = u"%application% %skin%[ - %yado%[ %scenario%]]"
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
