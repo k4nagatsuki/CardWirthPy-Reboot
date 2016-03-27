@@ -1284,19 +1284,19 @@ def create_cardscreenshot(date):
         bmp = pygame.Surface((w, h)).convert()
         bmp.fill(cw.cwpy.setting.ssinfobackcolor, rect=pygame.Rect(cw.s(0), cw.s(0), w, h))
 
-        y = 0
+        sy = cw.s(0)
         if title:
             bmp.blit(subimg, (cw.s(10), (lh - fh) / 2))
-            y += lh
+            sy += lh
 
         for i in range(len(pcards)):
             backindex = (1 + i) % 2
-            bmp.fill(back[backindex], rect=pygame.Rect(cw.s(0), cw.s(y), cw.s(95 + 2 * margin), cw.s(130 + 2 * margin)))
-            bmp.blit(pcards[i].cardimg.image, (cw.s(margin), cw.s(y + margin)))
+            bmp.fill(back[backindex], rect=pygame.Rect(cw.s(0), sy, cw.s(95 + 2 * margin), cw.s(130 + 2 * margin)))
+            bmp.blit(pcards[i].cardimg.image, (cw.s(margin), sy + cw.s(margin)))
 
-            def blit_card(headers, x, y):
+            def blit_card(headers, x, sy):
                 for header in headers:
-                    bmp.blit(header.cardimg.get_cardimg(header), (cw.s(x), cw.s(10 + y + margin)))
+                    bmp.blit(header.cardimg.get_cardimg(header), (cw.s(x), sy + cw.s(10 + margin)))
                     x += 80 + margin
 
             current_x = 95 + 2 * margin
@@ -1305,12 +1305,12 @@ def create_cardscreenshot(date):
                 current_x += next_x
                 next_x = 80 * max_card[index] + margin * (max_card[index] + 1)
                 backindex = (index + i) % 2
-                bmp.fill(back[backindex], rect=pygame.Rect(cw.s(current_x), cw.s(y), cw.s(next_x), cw.s(130 + 2 * margin)))
+                bmp.fill(back[backindex], rect=pygame.Rect(cw.s(current_x), sy, cw.s(next_x), cw.s(130 + 2 * margin)))
                 adjust_x = (max_card[index] - len(pcards[i].cardpocket[index]))
                 x = current_x + adjust_x * 40 + margin * (2 + adjust_x) / 2
-                blit_card(pcards[i].cardpocket[index], x, y)
+                blit_card(pcards[i].cardpocket[index], x, sy)
 
-            y += 130 + 2 * margin
+            sy += cw.s(130 + 2 * margin)
 
     else:
         raise
