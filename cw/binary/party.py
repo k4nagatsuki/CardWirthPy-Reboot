@@ -273,11 +273,7 @@ class PartyMembers(base.CWBinaryBase):
     def split_variables(self, text, step):
         d = {}
         for l in text.splitlines():
-            index = -1
-            for i, c in enumerate(l):
-                if c == '=':
-                    index = i
-                    break
+            index = l.rfind('=')
             if index <> -1:
                 if step:
                     d[l[:index]] = int(l[index+1:])
