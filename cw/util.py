@@ -1223,6 +1223,8 @@ def create_screenshot(date):
     """スクリーンショットを作成する。
     """
     title = screenshot_title(date)
+    scr = pygame.Surface(cw.cwpy.scr_draw.get_size()).convert()
+    cw.cwpy.draw_to(scr, False)
     if title:
         back = cw.cwpy.setting.ssinfobackcolor
         w = cw.s(cw.SIZE_GAME[0])
@@ -1230,12 +1232,12 @@ def create_screenshot(date):
         h = cw.s(cw.SIZE_GAME[1]) + lh
         bmp = pygame.Surface((w, h)).convert()
         bmp.fill(back, rect=pygame.Rect(cw.s(0), cw.s(0), w, lh))
-        bmp.blit(cw.cwpy.scr_draw, (cw.s(0), lh))
+        bmp.blit(scr, (cw.s(0), lh))
         y = (lh - fh) / 2
         bmp.blit(subimg, (cw.s(10), y))
         y = lh
     else:
-        bmp = cw.cwpy.scr_draw
+        bmp = scr
         y = cw.s(0)
 
     return bmp, y

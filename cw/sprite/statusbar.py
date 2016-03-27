@@ -220,7 +220,7 @@ class StatusBar(base.CWPySprite):
         """全体音量バーが表示中か。"""
         return 0 < self.volumebar.rect.width
 
-    def layered_draw_ex(self, layered_updates, surface):
+    def layered_draw_ex(self, layered_updates, surface, draw_desc):
         rects = []
         srect = surface.get_rect()
         clip = surface.get_clip()
@@ -233,6 +233,8 @@ class StatusBar(base.CWPySprite):
         for sprite in sprites:
             if srect.colliderect(sprite.rect):
                 if isinstance(sprite, (VolumeBar, Desc)):
+                    if not draw_desc:
+                        continue
                     surface.set_clip(srect.clip(sprite.rect))
                 else:
                     surface.set_clip(srect.clip(sprite.rect).clip(sbarclip))

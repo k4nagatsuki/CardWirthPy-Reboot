@@ -980,6 +980,27 @@ class CWPy(_Singleton, threading.Thread):
             sprite.frame = 0
             self.animations.remove(sprite)
 
+    def draw_to(self, scr, draw_desc):
+        dirty_rects = cw.sprite.background.layered_draw_ex(self.cardgrp, scr)
+
+        dirty_rects.extend(self.topgrp.draw(scr))
+        dirty_rects.extend(self.backloggrp.draw(scr))
+        for music in self.music:
+            if music.movie_scr:
+                scr.blit(music.movie_scr, (0, 0))
+        clip2 = scr.get_clip()
+        scr.set_clip(None)
+        dirty_rects.extend(self.statusbar.layered_draw_ex(self.sbargrp, scr, draw_desc))
+        scr.set_clip(clip2)
+
+        # FPS描画
+        if self.setting.showfps:
+            sur = self.fpsfont.render(str(int(self.clock.get_fps())), False, (0, 255, 255))
+            pos = cw.s((600, 5))
+            dirty_rects.append(scr.blit(sur, pos))
+
+        return dirty_rects
+
     def draw(self, mainloop=False, clip=None):
         if self.has_inputevent or not mainloop:
             # SpriteGroup描画
@@ -992,23 +1013,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.backloggrp.set_clip(clip)
                 self.sbargrp.set_clip(clip)
 
-            dirty_rects = cw.sprite.background.layered_draw_ex(self.cardgrp, self.scr_draw)
-
-            dirty_rects.extend(self.topgrp.draw(self.scr_draw))
-            dirty_rects.extend(self.backloggrp.draw(self.scr_draw))
-            for music in self.music:
-                if music.movie_scr:
-                    self.scr_draw.blit(music.movie_scr, (0, 0))
-            clip2 = self.scr_draw.get_clip()
-            self.scr_draw.set_clip(None)
-            dirty_rects.extend(self.statusbar.layered_draw_ex(self.sbargrp, self.scr_draw))
-            self.scr_draw.set_clip(clip2)
-
-            # FPS描画
-            if self.setting.showfps:
-                sur = self.fpsfont.render(str(int(self.clock.get_fps())), False, (0, 255, 255))
-                pos = cw.s((600, 5))
-                dirty_rects.append(self.scr_draw.blit(sur, pos))
+            dirty_rects = self.draw_to(self.scr_draw, True)
 
             if not self.setting.smoothexpand or cw.UP_SCR % cw.UP_WIN == 0 or cw.UP_WIN % cw.UP_SCR == 0:
                 scale = pygame.transform.scale
