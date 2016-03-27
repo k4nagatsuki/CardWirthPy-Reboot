@@ -33,6 +33,7 @@ if sys.platform == "win32":
 import wx
 import wx.lib.mixins.listctrl
 import pygame
+import pygame.image
 from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
 
 import cw
@@ -1174,19 +1175,10 @@ def print_ex(file=None):
     file.write("\n")
     return
 
-def screenshot_title(date):
+def screenshot_title(titledic):
     """スクリーンショットタイトルの書き出し。
     """
-    d = cw.cwpy.get_titledic()
-    d["date"] = date.strftime("%Y-%m-%d")
-    d["year"] = date.strftime("%Y")
-    d["month"] = date.strftime("%m")
-    d["day"] = date.strftime("%d")
-    d["time"] = date.strftime("%H:%M:%S")
-    d["hour"] = date.strftime("%H")
-    d["minute"] = date.strftime("%M")
-    d["second"] = date.strftime("%S")
-    title = format_title(cw.cwpy.setting.ssinfoformat, d)
+    title = format_title(cw.cwpy.setting.ssinfoformat, titledic)
     return title
 
 def screenshot_header(title, w):
@@ -1207,22 +1199,27 @@ def screenshot():
     """スクリーンショットをファイルへ書き出す。
     """
     cw.cwpy.play_sound("screenshot")
-    date = datetime.datetime.today()
-    filename = create_screenshotfilename(date)
-    bmp, y = create_screenshot(date)
-    pygame.image.save(bmp, filename)
+    titledic = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+    filename = create_screenshotfilename(titledic)
+    bmp, y = create_screenshot(titledic)
+    encoding = sys.getfilesystemencoding()
+    pygame.image.save(bmp, filename.encode(encoding))
 
-def create_screenshotfilename(date):
+def create_screenshotfilename(titledic):
     """スクリーンショット用のファイルパスを作成する。
     """
-    if not os.path.isdir("ScreenShot"):
-        os.mkdir("ScreenShot")
-    return os.path.join("ScreenShot", date.strftime("%Y%m%d_%H%M%S_%f.png"))
+    fpath = format_title(u"ScreenShot/%year%%month%%day%_%hour%%minute%%second%_%millisecond%.png", titledic)
+    dpath = os.path.dirname(fpath)
+    if os.path.isdir(dpath):
+        fpath = dupcheck_plus(fpath, yado=False)
+    else:
+        os.mkdir(dpath)
+    return fpath
 
-def create_screenshot(date):
+def create_screenshot(titledic):
     """スクリーンショットを作成する。
     """
-    title = screenshot_title(date)
+    title = screenshot_title(titledic)
     scr = pygame.Surface(cw.cwpy.scr_draw.get_size()).convert()
     cw.cwpy.draw_to(scr, False)
     if title:
@@ -1248,20 +1245,24 @@ def card_screenshot():
     if cw.cwpy.ydata:
         if cw.cwpy.ydata.party:
             cw.cwpy.play_sound("screenshot")
-            date = datetime.datetime.today()
-            filename = create_cardscreenshotfilename(date)
-            bmp = create_cardscreenshot(date)
-            pygame.image.save(bmp, filename)
+            titledic = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+            filename = create_cardscreenshotfilename(titledic)
+            bmp = create_cardscreenshot(titledic)
+            encoding = sys.getfilesystemencoding()
+            pygame.image.save(bmp, filename.encode(encoding))
 
-def create_cardscreenshotfilename(date):
+def create_cardscreenshotfilename(titledic):
     """パーティー所持カードスクリーンショット用のファイルパスを作成する。
     """
-    if not os.path.isdir("ScreenShot"):
-        os.mkdir("ScreenShot")
-    encoding = sys.getfilesystemencoding()
-    return os.path.join("ScreenShot", cw.cwpy.ydata.party.name.encode(encoding) + date.strftime("_%Y%m%d_%H%M%S_%f.png"))
+    fpath = format_title(u"ScreenShot/%party%_%year%%month%%day%_%hour%%minute%%second%_%millisecond%.png", titledic)
+    dpath = os.path.dirname(fpath)
+    if os.path.isdir(dpath):
+        fpath = dupcheck_plus(fpath, yado=False)
+    else:
+        os.mkdir(dpath)
+    return fpath
 
-def create_cardscreenshot(date):
+def create_cardscreenshot(titledic):
     """パーティー所持カードスクリーンショットを作成する。
     """
 
@@ -1279,7 +1280,7 @@ def create_cardscreenshot(date):
 
         w = cw.s(95 + 80 * sum(max_card) + margin * (5 + sum(max_card)))
         h = cw.s((130 + 2 * margin) * len(pcards))
-        title = screenshot_title(date)
+        title = screenshot_title(titledic)
         if title:
             subimg, fh, lh = screenshot_header(title, w)
             h += lh

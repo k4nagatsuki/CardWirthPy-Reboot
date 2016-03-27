@@ -467,7 +467,7 @@ class CWPy(_Singleton, threading.Thread):
         d = self.get_titledic()
         return cw.util.format_title(s, d)
 
-    def get_titledic(self):
+    def get_titledic(self, with_datetime=False, for_fname=False):
         """タイトルバー文字列生成用の情報を辞書で取得する。"""
         d = { "application":cw.APP_NAME, "skin":self.setting.skinname }
         if self.ydata:
@@ -481,6 +481,24 @@ class CWPy(_Singleton, threading.Thread):
             d["file"] = os.path.basename(self.sdata.fpath)
             versionhint = self.sdata.get_versionhint()
             d["compatibility"] = self.sct.to_basehint(versionhint)
+
+        if with_datetime:
+            date = datetime.datetime.today()
+            d["date"] = date.strftime("%Y-%m-%d")
+            d["year"] = date.strftime("%Y")
+            d["month"] = date.strftime("%m")
+            d["day"] = date.strftime("%d")
+            d["time"] = date.strftime("%H:%M:%S")
+            d["hour"] = date.strftime("%H")
+            d["minute"] = date.strftime("%M")
+            d["second"] = date.strftime("%S")
+            d["millisecond"] = date.strftime("%f")
+
+        if for_fname:
+            d2 = {}
+            for key, value in d.iteritems():
+                d2[key] = cw.binary.util.check_filename(value).strip()
+
         return d
 
     def update_scale(self, scale, changearea=True, rsrconly=False, udpatedrawsize=True):
