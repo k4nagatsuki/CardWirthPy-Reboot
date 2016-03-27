@@ -301,7 +301,7 @@ https://bitbucket.org/takuto_cw/cardwirthpy-reboot
 
 https://bitbucket.org/tachi_gigas/cardwirthpy-reboot-lessor
  : TachiGigas はいくつかのバグを修正し、シナリオダイアログの見逃されていた未実装部分を実装しました。
- : また、フォント設定の提案と最初の実装、「冒険の再開」ダイアログでの先頭メンバ表示など、いくつもの機能の提案や実装を行っています。
+ : また、フォント設定の提案と最初の実装、「冒険の再開」ダイアログでの先頭メンバ表示、所持カード一覧の撮影など、いくつもの機能の提案や実装を行っています。
 
 Ganma Shadow は、いくつかの問題の報告を行った他、プレイヤーキャラクターの自動生成機能を提案し、Modern・School・Oedo・Monstersの各スキンタイプ向けに名前のリストを提供しました。
 
