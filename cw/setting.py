@@ -924,8 +924,18 @@ class Setting(object):
                             e.append(".", e_event)
                         e.write()
 
+            if skinversion <= 9:
+                fpath1 = u"Data/SkinBase/Resource/Xml/Animation/Opening.xml"
+                fpath2 = cw.util.join_paths(self.skindir, u"Resource/Xml/Animation/Opening.xml")
+                if not os.path.isfile(fpath2):
+                    dpath = os.path.dirname(fpath2)
+                    if not os.path.isdir(dpath):
+                        os.makedirs(dpath)
+                    shutil.copy2(fpath1, fpath2)
+                update = True
+
             if update:
-                data.edit(".", "9", "dataVersion")
+                data.edit(".", "10", "dataVersion")
                 data.write()
 
             return data

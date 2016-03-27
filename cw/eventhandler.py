@@ -119,6 +119,13 @@ class EventHandler(object):
         if exception:
             raise exception
 
+    @staticmethod
+    def is_skiptrigger(self, event):
+        if event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
+            return event.button in (1, 3)
+        if event.type in (KEYDOWN, KEYUP):
+            return event.key == K_RETURN
+
     def check_puressedbutton(self, event):
         if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
             return

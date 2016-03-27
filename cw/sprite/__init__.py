@@ -8,6 +8,7 @@ import message
 import scrollbar
 import statusbar
 import transition
+import animationcell
 
 
 def main():

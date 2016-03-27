@@ -1583,56 +1583,11 @@ class CWPy(_Singleton, threading.Thread):
 
         self.sdata = cw.data.SystemData()
         self.statusbar.change()
-        white = cw.sprite.background.TitleCell("white", 3, 0, False, None)
-        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CARD1"), self.rsrc.ext_img)
-        card1 = cw.sprite.background.TitleCell(path, 1, 120, True, white)
-        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CARD2"), self.rsrc.ext_img)
-        card2 = cw.sprite.background.TitleCell(path, 1, 120, True, white)
-        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CELL1"), self.rsrc.ext_img)
-        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False, white, center=True)
-        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CELL2"), self.rsrc.ext_img)
-        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False, white, center=True)
-        cell1.set_y_noscale(cell2.y_noscale)
 
-        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CELL3"), self.rsrc.ext_img)
-        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False, white, center=True)
-
-        cw.cwpy.topgrp.add(card1, layer="title") # TODO: layer
-        cw.cwpy.topgrp.add(card2, layer="title") # TODO: layer
-        cw.cwpy.topgrp.add(cell1, layer="title") # TODO: layer
-        cw.cwpy.topgrp.add(cell2, layer="title") # TODO: layer
-        cw.cwpy.topgrp.add(cell3, layer="title") # TODO: layer
-        cw.cwpy.topgrp.add(white, layer="title") # TODO: layer
-
-        self.lock_menucards = False
         try:
-            cw.animation.animate_sprite(card2, "deal", clearevent=False)
-            cw.animation.animate_sprite(card2, "hide", clearevent=False)
-            cw.animation.animate_sprite(card1, "deal", clearevent=False)
-            cw.animation.animate_sprite(card1, "hide", clearevent=False)
-            cw.animation.animate_sprites2([(card2, "deal"), (cell1, "fadein")], clearevent=False)
-            cw.animation.animate_sprite(card2, "hide", clearevent=False)
-            cw.animation.animate_sprite(card1, "deal", clearevent=False)
-            cw.animation.animate_sprites2([(card1, "hide"), (cell1, "vanish"), (cell2, "show")], clearevent=False)
-            cw.animation.animate_sprite(card2, "deal", clearevent=False)
-            cw.animation.animate_sprite(card2, "hide", clearevent=False)
-            cw.animation.animate_sprite(card1, "deal", clearevent=False)
-            cw.animation.animate_sprites2([(card1, "hide"), (cell2, "fadeout")], clearevent=False)
-            cw.animation.animate_sprite(card2, "deal", clearevent=False)
-            cw.animation.animate_sprite(card2, "hide", clearevent=False)
-            cw.animation.animate_sprite(card1, "deal", clearevent=False)
-            cw.animation.animate_sprite(card1, "hide", clearevent=False)
-            cw.animation.animate_sprites2([(card2, "deal"), (cell3, "fadein")], clearevent=False)
-            cw.animation.animate_sprite(card2, "hide", clearevent=False)
-            cw.animation.animate_sprite(card1, "deal", clearevent=False)
-            cw.animation.animate_sprite(card1, "hide", clearevent=False)
-            cw.animation.animate_sprite(card2, "deal", clearevent=False)
-            cw.animation.animate_sprites2([(card2, "hide"), (white, "fadein2")], clearevent=False)
-            for _i in xrange(self.setting.fps / 2):
-                if self.cut_animation:
-                    break
-                self.tick_clock()
-            self.selection = None
+            fpath = cw.util.join_paths(self.skindir, u"Resource/Xml/Animation/Opening.xml")
+            anime = cw.sprite.animationcell.AnimationCell(fpath, cw.SIZE_AREA, (0, 0), self.topgrp, "title")
+            cw.animation.animate_sprite(anime, "animation", clearevent=False)
 
             # スプライトを解除する
             self.topgrp.remove_sprites_of_layer("title")
@@ -3415,7 +3370,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_lockmenucards(self, sprite):
         """メニューカードをクリック出来ない状態か。"""
-        if isinstance(sprite, cw.sprite.statusbar.StatusBarButton) and sprite.selectable_on_event:
+        if isinstance(sprite, (cw.sprite.statusbar.StatusBarButton, cw.sprite.animationcell.AnimationCell)) and\
+                sprite.selectable_on_event:
             return False
         return self.lock_menucards or\
                self.is_showingdlg() or\

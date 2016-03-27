@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Animations parallel="True">
+  <Animation>
+    <!-- カードBの回転 -->
+    <ImagePath>Resource/Image/Other/TITLE_CARD2.bmp</ImagePath>
+    <Mask>True</Mask>
+    <Location left="Center" top="120" />
+    <Size width="Original" height="Original" />
+    <AnimationType frame="40">Rotate</AnimationType><!-- アニメーション形式。Rotateは回転しながら出現して消える -->
+    <Repeat interval="40">6</Repeat><!-- リピート回数。intervalは再実行までの間隔 -->
+    <Spawn>0</Spawn><!-- 最初の表示のタイミング(フレーム単位) -->
+    <Duration>430</Duration><!-- 表示期間(フレーム単位) -->
+  </Animation>
+  <Animation>
+    <!-- カードAの回転 -->
+    <ImagePath>Resource/Image/Other/TITLE_CARD1.bmp</ImagePath>
+    <Mask>True</Mask>
+    <Location left="Center" top="120" />
+    <Size width="Original" height="Original" />
+    <AnimationType frame="40">Rotate</AnimationType>
+    <Repeat interval="40">5</Repeat>
+    <Spawn>40</Spawn>
+    <Duration>400</Duration>
+  </Animation>
+  <Animation>
+    <!-- presents表示1 -->
+    <ImagePath>Resource/Image/Other/TITLE_CELL1.bmp</ImagePath>
+    <Mask>True</Mask>
+    <Location left="Center" top="Ref:cell2" /><!-- 上位置はTITLE_CELL2の表示位置を参照する -->
+    <Size width="Original" height="Original" />
+    <AnimationType frame="20">FadeIn</AnimationType><!-- フェードインしながら出現 -->
+    <Spawn>80</Spawn>
+    <Duration>60</Duration>
+  </Animation>
+  <Animation id="cell2">
+    <!-- presents表示2 -->
+    <ImagePath>Resource/Image/Other/TITLE_CELL2.bmp</ImagePath>
+    <Mask>True</Mask>
+    <Location left="Center" top="Center" />
+    <Size width="Original" height="Original" />
+    <AnimationType frame="0">Spawn</AnimationType><!-- 即座に出現 -->
+    <Spawn>140</Spawn>
+    <Duration>80</Duration>
+  </Animation>
+  <Animation>
+    <!-- presents表示を消す -->
+    <ImagePath>Resource/Image/Other/TITLE_CELL2.bmp</ImagePath>
+    <Mask>True</Mask>
+    <Location left="Center" top="Center" />
+    <Size width="Original" height="Original" />
+    <AnimationType frame="20">FadeOut</AnimationType><!-- フェードアウトして消える -->
+    <Spawn>220</Spawn>
+    <Duration>20</Duration>
+  </Animation>
+  <Animation>
+    <!-- タイトルロゴのシルエット -->
+    <ImagePath>Resource/Image/Other/TITLE_CELL3.bmp</ImagePath>
+    <Mask>True</Mask>
+    <Location left="Center" top="Center" />
+    <Size width="Original" height="Original" />
+    <AnimationType frame="20">FadeIn</AnimationType>
+    <Spawn>340</Spawn>
+    <Duration>90</Duration>
+  </Animation>
+  <Animation>
+    <!-- 最後のホワイトアウト -->
+    <Fill r="255" g="255" b="255" /><!-- 全体をRGB(255,255,255)で塗り潰す -->
+    <Mask>False</Mask>
+    <Location left="0" top="0" />
+    <Size width="Max" height="Max" />
+    <AnimationType frame="10">FadeIn</AnimationType>
+    <Spawn>420</Spawn>
+    <Duration>40</Duration>
+  </Animation>
+</Animations>

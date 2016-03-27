@@ -15,6 +15,7 @@ class CWPySprite(pygame.sprite.DirtySprite):
         self.old_status = ""
         self.anitype = ""
         self.start_animation = 0
+        self.skipped = False
         self.frame = 0
 
     def is_initialized(self):
@@ -22,6 +23,21 @@ class CWPySprite(pygame.sprite.DirtySprite):
 
     def update_scale(self):
         pass
+
+    def get_frame(self):
+        """
+        システムタイマから計算した処理中のフレームを返す。
+        処理落ちが発生した場合は途中が飛ばされる可能性もある。
+        """
+        tick = pygame.time.get_ticks()
+        if self.start_animation == 0:
+            self.start_animation = tick - (1000//cw.cwpy.setting.fps)
+        if tick < self.start_animation:
+            p_frame = self.frame + 1
+        else:
+            p_frame = (tick - self.start_animation) * cw.cwpy.setting.fps // 1000
+            p_frame = max(self.frame+1, p_frame)
+        return p_frame
 
 class SelectableSprite(CWPySprite):
     def __init__(self, *groups):

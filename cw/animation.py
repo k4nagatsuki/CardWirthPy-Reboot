@@ -23,6 +23,8 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     sprite.old_status = sprite.status
     sprite.status = anitype
+    sprite.skipped = False
+    sprite.start_animation = pygame.time.get_ticks()
 
     if battlespeed:
         if hasattr(sprite, "battlespeed"):
@@ -33,6 +35,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
     cw.cwpy.draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
         clip = pygame.Rect(sprite.rect)
+        sprite.skipped |= skip
         sprite.update(cw.cwpy.scr_draw)
         clip.union_ip(sprite.rect)
         if sprite.status <> anitype:
@@ -51,6 +54,8 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
             else:
                 cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
+
+    sprite.skipped = False
 
     if battlespeed:
         if hasattr(sprite, "battlespeed"):
@@ -71,6 +76,8 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
     if clearevent and selection and cw.cwpy.selection <> selection:
         cw.cwpy.change_selection(selection)
 
+    return skip
+
 def animate_sprites(sprites, anitype, clearevent=True, battlespeed=False):
     """spritesに含まれる全てのスプライトをanitypeの
     アニメーションで動かす。
@@ -87,7 +94,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
     for spr, anitype in sprandanimes:
         if not hasattr(spr, "update_" + anitype):
             print "Not found " + anitype + " animation."
-            print sprite
+            print sprandanimes
             return
 
     if clearevent:
@@ -95,9 +102,12 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
         cw.cwpy.lock_menucards = True
         selection = cw.cwpy.selection
 
+    tick = pygame.time.get_ticks()
     for sprite, anitype in sprandanimes:
         sprite.old_status = sprite.status
         sprite.status = anitype
+        sprite.skipped = False
+        sprite.start_animation = tick
         if battlespeed:
             if hasattr(sprite, "battlespeed"):
                 sprite.battlespeed = True
@@ -116,6 +126,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
                 clip.union_ip(sprite.rect)
             else:
                 clip = pygame.Rect(sprite.rect)
+            sprite.skipped |= skip
             sprite.update(cw.cwpy.scr_draw)
             if sprite.status == anitype:
                 upd = True
@@ -139,6 +150,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
                 break
 
     for sprite, anitype in sprandanimes:
+        sprite.skipped = False
         if battlespeed:
             if hasattr(sprite, "battlespeed"):
                 sprite.battlespeed = False
@@ -154,6 +166,8 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
         cw.cwpy.lock_menucards = lock_menucards
     if clearevent and not cw.cwpy.selection is selection:
         cw.cwpy.change_selection(selection)
+
+    return skip
 
 def _inputevent(clip, clearevent, statusbutton):
     if statusbutton:

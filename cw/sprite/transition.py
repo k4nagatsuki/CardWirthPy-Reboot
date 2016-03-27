@@ -20,25 +20,9 @@ class Transition(base.CWPySprite):
         self.status = "hidden"
         self.frame = 0
         self.speed = speed
-        self.start_tick = 0 # 背景変更開始時のシステムタイマ値(ミリ秒)
 
     def update_scale(self):
         pass
-
-    def get_frame(self):
-        """
-        システムタイマから計算した処理中のフレームを返す。
-        処理落ちが発生した場合は途中が飛ばされる可能性もある。
-        """
-        tick = pygame.time.get_ticks()
-        if self.start_tick == 0:
-            self.start_tick = tick - (1000//cw.cwpy.setting.fps)
-        if tick < self.start_tick:
-            p_frame = self.frame + 1
-        else:
-            p_frame = (tick - self.start_tick) * cw.cwpy.setting.fps // 1000
-            p_frame = max(self.frame+1, p_frame)
-        return p_frame
 
     def clear(self):
         self.image = pygame.Surface(cw.s((0, 0))).convert()
