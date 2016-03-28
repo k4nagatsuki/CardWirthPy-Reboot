@@ -903,9 +903,9 @@ class JpdcImage(cw.image.Image):
 
             if doanime and not doanime.all_cut:
                 if savecomment:
-                    cw.cwpy.set_titlebar(savecomment)
+                    cw.cwpy.set_titlebar(savecomment + u" - " + cw.cwpy.create_title())
                 else:
-                    cw.cwpy.set_titlebar(filename)
+                    cw.cwpy.set_titlebar(filename + u" - " + cw.cwpy.create_title())
 
             saveimage = self.image
             if cw.UP_SCR <> 1:
