@@ -1022,8 +1022,8 @@ class Frame(wx.Frame):
             # ダイアログを表示中の場合
             def func(self):
                 cw.cwpy.play_sound("screenshot")
-                date = datetime.datetime.today()
-                image, y = cw.util.create_screenshot(date)
+                titledic, titledicfn = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+                image, y = cw.util.create_screenshot(titledic)
                 w, h = image.get_size()
                 if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey() or sys.platform <> "win32":
                     # linuxでは画像が壊れるので常にこちら
@@ -1039,7 +1039,7 @@ class Frame(wx.Frame):
                     else:
                         colorkey = None
 
-                def func(w, h, alpha, buf, colorkey, date, y, fore, back):
+                def func(w, h, alpha, buf, colorkey, titledicfn, y, fore, back):
                     if alpha:
                         bmp = wx.BitmapFromBufferRGBA(w, h, buf)
                     else:
@@ -1048,12 +1048,12 @@ class Frame(wx.Frame):
                     if colorkey:
                         r, g, b, a = colorkey
                         bmp.SetMaskColour(wx.Colour(r, g, b))
-                    filename = cw.util.create_screenshotfilename(date)
+                    filename = cw.util.create_screenshotfilename(titledicfn)
                     bmp.SaveFile(filename, wx.BITMAP_TYPE_PNG)
 
                 fore = cw.cwpy.setting.ssinfofontcolor
                 back = cw.cwpy.setting.ssinfobackcolor
-                self.exec_func(func, w, h, alpha, buf, colorkey, date, y, fore, back)
+                self.exec_func(func, w, h, alpha, buf, colorkey, titledicfn, y, fore, back)
 
             cw.cwpy.exec_func(func, self)
             return True
