@@ -229,54 +229,54 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("DecorationFont", str(setting.decorationfont))
         element.append(e)
     # メッセージウィンドウの色と透明度
-    if setting.mwincolour <> setting.mwincolour_init:
-        d = {"red": str(setting.mwincolour[0]),
-             "green": str(setting.mwincolour[1]),
-             "blue": str(setting.mwincolour[2]),
-             "alpha": str(setting.mwincolour[3])
+    if setting.local_mwincolour <> setting.local_mwincolour_init:
+        d = {"red": str(setting.local_mwincolour[0]),
+             "green": str(setting.local_mwincolour[1]),
+             "blue": str(setting.local_mwincolour[2]),
+             "alpha": str(setting.local_mwincolour[3])
              }
         e = cw.data.make_element("MessageWindowColor", "", d)
         element.append(e)
-    if setting.mwinframecolour <> setting.mwinframecolour_init:
-        d = {"red": str(setting.mwinframecolour[0]),
-             "green": str(setting.mwinframecolour[1]),
-             "blue": str(setting.mwinframecolour[2]),
-             "alpha": str(setting.mwinframecolour[3])
+    if setting.local_mwinframecolour <> setting.local_mwinframecolour_init:
+        d = {"red": str(setting.local_mwinframecolour[0]),
+             "green": str(setting.local_mwinframecolour[1]),
+             "blue": str(setting.local_mwinframecolour[2]),
+             "alpha": str(setting.local_mwinframecolour[3])
              }
         e = cw.data.make_element("MessageWindowFrameColor", "", d)
         element.append(e)
     # バックログウィンドウの色と透明度
-    if setting.blwincolour <> setting.blwincolour_init:
-        d = {"red": str(setting.blwincolour[0]),
-             "green": str(setting.blwincolour[1]),
-             "blue": str(setting.blwincolour[2]),
-             "alpha": str(setting.blwincolour[3])
+    if setting.local_blwincolour <> setting.local_blwincolour_init:
+        d = {"red": str(setting.local_blwincolour[0]),
+             "green": str(setting.local_blwincolour[1]),
+             "blue": str(setting.local_blwincolour[2]),
+             "alpha": str(setting.local_blwincolour[3])
              }
         e = cw.data.make_element("MessageLogWindowColor", "", d)
         element.append(e)
-    if setting.blwinframecolour <> setting.blwinframecolour_init:
-        d = {"red": str(setting.blwinframecolour[0]),
-             "green": str(setting.blwinframecolour[1]),
-             "blue": str(setting.blwinframecolour[2]),
-             "alpha": str(setting.blwinframecolour[3])
+    if setting.local_blwinframecolour <> setting.local_blwinframecolour_init:
+        d = {"red": str(setting.local_blwinframecolour[0]),
+             "green": str(setting.local_blwinframecolour[1]),
+             "blue": str(setting.local_blwinframecolour[2]),
+             "alpha": str(setting.local_blwinframecolour[3])
              }
         e = cw.data.make_element("MessageLogWindowFrameColor", "", d)
         element.append(e)
     # メッセージログカーテン色
-    if setting.blcurtaincolour <> setting.blcurtaincolour_init:
-        d = {"red": str(setting.blcurtaincolour[0]),
-             "green": str(setting.blcurtaincolour[1]),
-             "blue": str(setting.blcurtaincolour[2]),
-             "alpha": str(setting.blcurtaincolour[3])
+    if setting.local_blcurtaincolour <> setting.local_blcurtaincolour_init:
+        d = {"red": str(setting.local_blcurtaincolour[0]),
+             "green": str(setting.local_blcurtaincolour[1]),
+             "blue": str(setting.local_blcurtaincolour[2]),
+             "alpha": str(setting.local_blcurtaincolour[3])
              }
         e = cw.data.make_element("MessageLogCurtainColor", "", d)
         element.append(e)
     # カーテン色
-    if setting.curtaincolour <> setting.curtaincolour_init:
-        d = {"red": str(setting.curtaincolour[0]),
-             "green": str(setting.curtaincolour[1]),
-             "blue": str(setting.curtaincolour[2]),
-             "alpha": str(setting.curtaincolour[3])
+    if setting.local_curtaincolour <> setting.local_curtaincolour_init:
+        d = {"red": str(setting.local_curtaincolour[0]),
+             "green": str(setting.local_curtaincolour[1]),
+             "blue": str(setting.local_curtaincolour[2]),
+             "alpha": str(setting.local_curtaincolour[3])
              }
         e = cw.data.make_element("CurtainColor", "", d)
         element.append(e)
@@ -441,34 +441,34 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         element.append(e)
 
     # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
-    if setting.fullscreenbackgroundtype <> setting.fullscreenbackgroundtype_init:
-        e = cw.data.make_element("FullScreenBackgroundType", str(setting.fullscreenbackgroundtype))
+    if setting.local_fullscreenbackgroundtype <> setting.local_fullscreenbackgroundtype_init:
+        e = cw.data.make_element("FullScreenBackgroundType", str(setting.local_fullscreenbackgroundtype))
         element.append(e)
-    if setting.fullscreenbackgroundfile <> setting.fullscreenbackgroundfile_init:
-        e = cw.data.make_element("FullScreenBackgroundFile", setting.fullscreenbackgroundfile)
+    if setting.local_fullscreenbackgroundfile <> setting.local_fullscreenbackgroundfile_init:
+        e = cw.data.make_element("FullScreenBackgroundFile", setting.local_fullscreenbackgroundfile)
         element.append(e)
 
     # 基本フォント(空白時デフォルト)
-    if setting.basefont["gothic"] <> setting.basefont_init["gothic"]:
-        e = cw.data.make_element("FontGothic", setting.basefont["gothic"])
+    if setting.local_basefont["gothic"] <> setting.local_basefont_init["gothic"]:
+        e = cw.data.make_element("FontGothic", setting.local_basefont["gothic"])
         element.append(e)
-    if setting.basefont["uigothic"] <> setting.basefont_init["uigothic"]:
-        e = cw.data.make_element("FontUIGothic", setting.basefont["uigothic"])
+    if setting.local_basefont["uigothic"] <> setting.local_basefont_init["uigothic"]:
+        e = cw.data.make_element("FontUIGothic", setting.local_basefont["uigothic"])
         element.append(e)
-    if setting.basefont["mincho"] <> setting.basefont_init["mincho"]:
-        e = cw.data.make_element("FontMincho", setting.basefont["mincho"])
+    if setting.local_basefont["mincho"] <> setting.local_basefont_init["mincho"]:
+        e = cw.data.make_element("FontMincho", setting.local_basefont["mincho"])
         element.append(e)
-    if setting.basefont["pmincho"] <> setting.basefont_init["pmincho"]:
-        e = cw.data.make_element("FontPMincho", setting.basefont["pmincho"])
+    if setting.local_basefont["pmincho"] <> setting.local_basefont_init["pmincho"]:
+        e = cw.data.make_element("FontPMincho", setting.local_basefont["pmincho"])
         element.append(e)
-    if setting.basefont["pgothic"] <> setting.basefont_init["pgothic"]:
-        e = cw.data.make_element("FontPGothic", setting.basefont["pgothic"])
+    if setting.local_basefont["pgothic"] <> setting.local_basefont_init["pgothic"]:
+        e = cw.data.make_element("FontPGothic", setting.local_basefont["pgothic"])
         element.append(e)
 
     # 役割別フォント
     e = cw.data.make_element("Fonts")
-    for key, value in setting.fonttypes.iteritems():
-        if setting.fonttypes[key] <> setting.fonttypes_init[key]:
+    for key, value in setting.local_fonttypes.iteritems():
+        if value <> setting.local_fonttypes_init[key]:
             fonttype, name, pixels, bold, bold_upscr, italic = value
             attrs = {"key": key}.copy()
             if fonttype:

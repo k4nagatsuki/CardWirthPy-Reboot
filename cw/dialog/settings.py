@@ -422,25 +422,25 @@ class SettingsPanel(wx.Panel):
             self.pane_draw.speed.sl_msgs.SetValue(cw.cwpy.setting.messagespeed_init)
             self.pane_draw.speed.ch_tran.SetSelection(self.pane_draw.speed.transitions.index(cw.cwpy.setting.transition_init))
             self.pane_draw.speed.sl_tran.SetValue(cw.cwpy.setting.transitionspeed_init)
-            self.pane_draw.sc_mwin.SetValue(cw.cwpy.setting.mwincolour_init[3])
-            self.pane_draw.cs_mwin.SetColour(cw.cwpy.setting.mwincolour_init[:3])
-            self.pane_draw.sc_mframe.SetValue(cw.cwpy.setting.mwinframecolour_init[3])
-            self.pane_draw.cs_mframe.SetColour(cw.cwpy.setting.mwinframecolour_init[:3])
-            self.pane_draw.cs_blwin.SetColour(cw.cwpy.setting.blwincolour_init[:3])
-            self.pane_draw.cs_blframe.SetColour(cw.cwpy.setting.blwinframecolour_init[:3])
-            self.pane_draw.sc_blcurtain.SetValue(cw.cwpy.setting.blcurtaincolour_init[3])
-            self.pane_draw.cs_blcurtain.SetColour(cw.cwpy.setting.blcurtaincolour_init[:3])
-            self.pane_draw.sc_curtain.SetValue(cw.cwpy.setting.curtaincolour_init[3])
-            self.pane_draw.cs_curtain.SetColour(cw.cwpy.setting.curtaincolour_init[:3])
+            self.pane_draw.sc_mwin.SetValue(cw.cwpy.setting.local_mwincolour_init[3])
+            self.pane_draw.cs_mwin.SetColour(cw.cwpy.setting.local_mwincolour_init[:3])
+            self.pane_draw.sc_mframe.SetValue(cw.cwpy.setting.local_mwinframecolour_init[3])
+            self.pane_draw.cs_mframe.SetColour(cw.cwpy.setting.local_mwinframecolour_init[:3])
+            self.pane_draw.cs_blwin.SetColour(cw.cwpy.setting.local_blwincolour_init[:3])
+            self.pane_draw.cs_blframe.SetColour(cw.cwpy.setting.local_blwinframecolour_init[:3])
+            self.pane_draw.sc_blcurtain.SetValue(cw.cwpy.setting.local_blcurtaincolour_init[3])
+            self.pane_draw.cs_blcurtain.SetColour(cw.cwpy.setting.local_blcurtaincolour_init[:3])
+            self.pane_draw.sc_curtain.SetValue(cw.cwpy.setting.local_curtaincolour_init[3])
+            self.pane_draw.cs_curtain.SetColour(cw.cwpy.setting.local_curtaincolour_init[:3])
 
-            if cw.cwpy.setting.fullscreenbackgroundtype_init == 2:
+            if cw.cwpy.setting.local_fullscreenbackgroundtype_init == 2:
                 self.pane_draw.tx_fscrbackfile.SetValue("")
-                if cw.cwpy.setting.fullscreenbackgroundfile_init == u"Resource/Image/Dialog/CAUTION":
+                if cw.cwpy.setting.local_fullscreenbackgroundfile_init == u"Resource/Image/Dialog/CAUTION":
                     self.pane_draw.ch_fscrbacktype.Select(2)
                 else:
                     self.pane_draw.ch_fscrbacktype.Select(3)
-            elif cw.cwpy.setting.fullscreenbackgroundtype_init == 1:
-                self.pane_draw.tx_fscrbackfile.SetValue(cw.cwpy.setting.fullscreenbackgroundfile_init)
+            elif cw.cwpy.setting.local_fullscreenbackgroundtype_init == 1:
+                self.pane_draw.tx_fscrbackfile.SetValue(cw.cwpy.setting.local_fullscreenbackgroundfile_init)
                 self.pane_draw.ch_fscrbacktype.Select(1)
             else:
                 self.pane_draw.tx_fscrbackfile.SetValue("")
@@ -461,12 +461,12 @@ class SettingsPanel(wx.Panel):
                 self.pane_sound.list_soundfont.CheckItem(index, use)
         elif selpane == 3:
             for i, basename in enumerate(self.pane_font.bases):
-                name = cw.cwpy.setting.basefont_init[basename]
+                name = cw.cwpy.setting.local_basefont_init[basename]
                 if not name:
                     name = self.pane_font.str_default
                 self.pane_font.base.SetCellValue(i, 0, name)
             for i, typename in enumerate(self.pane_font.types):
-                fonttype, name, pixels, bold, bold_upscr, italic = cw.cwpy.setting.fonttypes_init[typename]
+                fonttype, name, pixels, bold, bold_upscr, italic = cw.cwpy.setting.local_fonttypes_init[typename]
                 if fonttype:
                     name = u"[%s]" % (self.pane_font.typenames[fonttype])
                 self.pane_font.type.SetCellValue(i, 0, name)
@@ -618,11 +618,11 @@ class SettingsPanel(wx.Panel):
             flag_fontupdate = True
 
         # フォント変更チェック
-        if basefont <> setting.basefont:
-            setting.basefont = basefont
+        if basefont <> setting.local_basefont:
+            setting.local_basefont = basefont
             flag_fontupdate = True
-        if fonttypes <> setting.fonttypes:
-            setting.fonttypes = fonttypes
+        if fonttypes <> setting.local_fonttypes:
+            setting.local_fonttypes = fonttypes
             flag_fontupdate = True
 
         # 一般
@@ -705,17 +705,17 @@ class SettingsPanel(wx.Panel):
 
         value = self.pane_draw.ch_fscrbacktype.GetSelection()
         if value == 0:
-            setting.fullscreenbackgroundfile = u""
-            setting.fullscreenbackgroundtype = 0
+            setting.local_fullscreenbackgroundfile = u""
+            setting.local_fullscreenbackgroundtype = 0
         elif value == 1:
-            setting.fullscreenbackgroundfile = self.pane_draw.tx_fscrbackfile.GetValue()
-            setting.fullscreenbackgroundtype = 1
+            setting.local_fullscreenbackgroundfile = self.pane_draw.tx_fscrbackfile.GetValue()
+            setting.local_fullscreenbackgroundtype = 1
         elif value == 2:
-            setting.fullscreenbackgroundfile = u"Resource/Image/Dialog/CAUTION"
-            setting.fullscreenbackgroundtype = 2
+            setting.local_fullscreenbackgroundfile = u"Resource/Image/Dialog/CAUTION"
+            setting.local_fullscreenbackgroundtype = 2
         elif value == 3:
-            setting.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
-            setting.fullscreenbackgroundtype = 2
+            setting.local_fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+            setting.local_fullscreenbackgroundtype = 2
         if update:
             def func1():
                 cw.cwpy.update_fullscreenbackground()
@@ -797,24 +797,24 @@ class SettingsPanel(wx.Panel):
         alpha = self.pane_draw.sc_mwin.GetValue()
         colour = self.pane_draw.cs_mwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        setting.mwincolour = colour
-        updatemessage |= setting.mwincolour <> colour
+        setting.local_mwincolour = colour
+        updatemessage |= setting.local_mwincolour <> colour
         alpha = self.pane_draw.sc_mframe.GetValue()
         colour = self.pane_draw.cs_mframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= setting.mwinframecolour <> colour
-        setting.mwinframecolour = colour
+        updatemessage |= setting.local_mwinframecolour <> colour
+        setting.local_mwinframecolour = colour
         # 配色(バックログ)
         alpha = self.pane_draw.sc_mwin.GetValue()
         colour = self.pane_draw.cs_blwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= setting.blwincolour <> colour
-        setting.blwincolour = colour
+        updatemessage |= setting.local_blwincolour <> colour
+        setting.local_blwincolour = colour
         alpha = self.pane_draw.sc_mframe.GetValue()
         colour = self.pane_draw.cs_blframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= setting.blwinframecolour <> colour
-        setting.blwinframecolour = colour
+        updatemessage |= setting.local_blwinframecolour <> colour
+        setting.local_blwinframecolour = colour
         if update and updatemessage:
             cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
 
@@ -823,14 +823,14 @@ class SettingsPanel(wx.Panel):
         alpha = self.pane_draw.sc_blcurtain.GetValue()
         colour = self.pane_draw.cs_blcurtain.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatecurtain |= setting.blcurtaincolour <> colour
-        setting.blcurtaincolour = colour
+        updatecurtain |= setting.local_blcurtaincolour <> colour
+        setting.local_blcurtaincolour = colour
         # 配色(選択モードカーテン)
         alpha = self.pane_draw.sc_curtain.GetValue()
         colour = self.pane_draw.cs_curtain.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatecurtain |= setting.curtaincolour <> colour
-        setting.curtaincolour = colour
+        updatecurtain |= setting.local_curtaincolour <> colour
+        setting.local_curtaincolour = colour
         if update and updatecurtain:
             cw.cwpy.exec_func(cw.cwpy.update_curtainstyle)
 
@@ -1784,28 +1784,28 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_smoothing_card_up.SetValue(setting.smoothing_card_up)
         self.cb_smoothing_card_down.SetValue(setting.smoothing_card_down)
         self.cb_whitecursor.SetValue(setting.cursor_type == cw.setting.CURSOR_WHITE)
-        self.cs_mwin.SetColour(setting.mwincolour)
-        self.cs_blwin.SetColour(setting.blwincolour)
-        self.sc_mwin.SetValue(setting.mwincolour[3])
-        self.cs_mframe.SetColour(setting.mwinframecolour)
-        self.cs_blframe.SetColour(setting.blwinframecolour)
-        self.sc_mframe.SetValue(setting.mwinframecolour[3])
-        self.cs_blcurtain.SetColour(setting.blcurtaincolour)
-        self.sc_blcurtain.SetValue(setting.blcurtaincolour[3])
-        self.cs_curtain.SetColour(setting.curtaincolour)
-        self.sc_curtain.SetValue(setting.curtaincolour[3])
+        self.cs_mwin.SetColour(setting.local_mwincolour)
+        self.cs_blwin.SetColour(setting.local_blwincolour)
+        self.sc_mwin.SetValue(setting.local_mwincolour[3])
+        self.cs_mframe.SetColour(setting.local_mwinframecolour)
+        self.cs_blframe.SetColour(setting.local_blwinframecolour)
+        self.sc_mframe.SetValue(setting.local_mwinframecolour[3])
+        self.cs_blcurtain.SetColour(setting.local_blcurtaincolour)
+        self.sc_blcurtain.SetValue(setting.local_blcurtaincolour[3])
+        self.cs_curtain.SetColour(setting.local_curtaincolour)
+        self.sc_curtain.SetValue(setting.local_curtaincolour[3])
 
-        if setting.fullscreenbackgroundtype == 0:
+        if setting.local_fullscreenbackgroundtype == 0:
             self.ch_fscrbacktype.SetSelection(0)
             self.tx_fscrbackfile.SetValue(u"")
-        elif setting.fullscreenbackgroundtype == 1:
+        elif setting.local_fullscreenbackgroundtype == 1:
             self.ch_fscrbacktype.SetSelection(1)
-            self.tx_fscrbackfile.SetValue(setting.fullscreenbackgroundfile)
-        elif setting.fullscreenbackgroundtype == 2:
-            if setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
+            self.tx_fscrbackfile.SetValue(setting.local_fullscreenbackgroundfile)
+        elif setting.local_fullscreenbackgroundtype == 2:
+            if setting.local_fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
                 self.ch_fscrbacktype.SetSelection(2)
                 self.tx_fscrbackfile.SetValue(u"")
-            elif setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
+            elif setting.local_fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
                 self.ch_fscrbacktype.SetSelection(3)
                 self.tx_fscrbackfile.SetValue(u"")
             else:
@@ -2691,7 +2691,7 @@ class FontSettingPanel(wx.Panel):
         self.choicetypes = create_grid(self.type, self.types, self._types, 5, 120)
 
         for i, name, in enumerate(self.bases):
-            str_font = cw.cwpy.setting.basefont[name]
+            str_font = cw.cwpy.setting.local_basefont[name]
             if not str_font:
                 str_font = self.str_default
             self.base.SetCellValue(i, 0, str_font)
@@ -2705,7 +2705,7 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColLabelValue(4, u"斜体")
         self.type.SetColSize(4, 70)
         for i, name in enumerate(self.types):
-            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = cw.cwpy.setting.fonttypes_init[name]
+            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = cw.cwpy.setting.local_fonttypes_init[name]
             if 0 < defpixels:
                 self.type.SetCellEditor(i, 1, wx.grid.GridCellNumberEditor(1, 99))
                 self.type.SetCellRenderer(i, 1, wx.grid.GridCellNumberRenderer())
@@ -2751,7 +2751,7 @@ class FontSettingPanel(wx.Panel):
 
         create_grid(self.base, self.bases)
         for i, name, in enumerate(self.bases):
-            str_font = setting.basefont[name]
+            str_font = setting.local_basefont[name]
             if not str_font:
                 str_font = self.str_default
             self.base.SetCellValue(i, 0, str_font)
@@ -2768,8 +2768,8 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColSize(4, 70)
 
         for i, name in enumerate(self.types):
-            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = setting.fonttypes_init[name]
-            fonttype, face, pixels, bold, bold_upscr, italic = setting.fonttypes[name]
+            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = setting.local_fonttypes_init[name]
+            fonttype, face, pixels, bold, bold_upscr, italic = setting.local_fonttypes[name]
             if fonttype:
                 self.type.SetCellValue(i, 0, u"[%s]" % (self.typenames[fonttype]))
             else:
