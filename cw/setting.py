@@ -13,6 +13,7 @@ import weakref
 import array
 import re
 import threading
+import copy
 import ConfigParser
 import wx
 import pygame
@@ -236,6 +237,9 @@ class LocalSetting(object):
         self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", self.fullscreenbackgroundtype)
         # フルスクリーン時の背景ファイル
         self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", self.fullscreenbackgroundfile)
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 
 class Setting(object):
@@ -761,8 +765,10 @@ class Setting(object):
         self.races.append(self.unknown_race)
 
         # スキンローカル設定
-        data = basedata.find("Settings")
-        if not data is None:
+        data = data.find("Settings")
+        if data is None:
+            self.skin_local = self.local.copy()
+        else:
             self.skin_local.load(data)
 
     def _update_skin(self, path):

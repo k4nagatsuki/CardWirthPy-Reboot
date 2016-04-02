@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import copy
 import time
 import threading
 import wx
@@ -21,9 +22,15 @@ class SkinConversionDialog(wx.Dialog):
 
         if get_localsettings:
             self.local = get_localsettings()
-        else:
+            use_copybase = True
+        elif cw.cwpy:
             get_localsettings = lambda: cw.cwpy.setting.local
             self.local = cw.cwpy.setting.local
+            use_copybase = True
+        else:
+            self.local = cw.setting.LocalSetting()
+            get_localsettings = lambda: self.local
+            use_copybase = False
 
         self.successful = False
         self.select_skin = False
@@ -46,9 +53,13 @@ class SkinConversionDialog(wx.Dialog):
         self.pane_sound = SkinSoundPanel(self.note, self.conv)
         self.pane_message = SkinMessagePanel(self.note, self.conv)
         self.pane_card = SkinCardPanel(self.note, self.conv)
-        self.pane_draw = cw.dialog.settings.DrawingSettingPanel(self.note, for_local=True, get_localsettings=get_localsettings)
+        self.pane_draw = cw.dialog.settings.DrawingSettingPanel(self.note, for_local=True,
+                                                                get_localsettings=get_localsettings,
+                                                                use_copybase=use_copybase)
         self.pane_draw.load(None, self.local)
-        self.pane_font = cw.dialog.settings.FontSettingPanel(self.note, for_local=True, get_localsettings=get_localsettings)
+        self.pane_font = cw.dialog.settings.FontSettingPanel(self.note, for_local=True,
+                                                             get_localsettings=get_localsettings,
+                                                             use_copybase=use_copybase)
         self.pane_font.load(None, self.local)
         self.note.AddPage(self.pane_base, u"基本")
         self.note.AddPage(self.pane_feature, u"特性")
@@ -98,6 +109,9 @@ class SkinConversionDialog(wx.Dialog):
         if e is None:
             e = cw.data.make_element("Settings", "")
             self.conv.data.append(e)
+        else:
+            e.clear()
+        self.local = cw.setting.LocalSetting()
         self.pane_draw.apply_localsettings(self.local)
         self.pane_font.apply_localsettings(self.local)
         cw.xmlcreater.create_localsettings(e, self.local)
@@ -261,7 +275,7 @@ class SkinConversionDialog(wx.Dialog):
 #-------------------------------------------------------------------------------
 
 class SkinEditDialog(wx.Dialog):
-    def __init__(self, parent, skindirname, skinsummary):
+    def __init__(self, parent, skindirname, skinsummary, get_localsettings):
         wx.Dialog.__init__(self, parent, -1, u"スキンの編集",
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
         self.cwpy_debug = True
@@ -269,13 +283,26 @@ class SkinEditDialog(wx.Dialog):
         self.skindirname = skindirname
         self.skinsummary = skinsummary
 
+        if cw.cwpy.setting.skindirname == self.skindirname:
+            self.local = cw.cwpy.setting.skin_local
+        else:
+            data = cw.data.xml2element(cw.util.join_paths(u"Data/Skin", skindirname, u"Skin.xml"))
+            e = data.find("Settings")
+            if e is None:
+                self.local = get_localsettings()
+            else:
+                self.local = cw.setting.LocalSetting()
+                self.local.load(e)
+
         self.warning = wx.StaticText(self, -1, u"ここでの編集結果は、設定ダイアログでのOK・キャンセルの選択に関わらず即時に反映されます。")
         font = self.warning.GetFont()
         font = wx.Font(font.GetPointSize(), font.GetFamily(), font.GetStyle(), wx.BOLD)
         self.warning.SetFont(font)
 
-        self.box_info = wx.StaticBox(self, -1, u"スキン情報")
-        self.info = SkinInfoPanel(self)
+        self.note = wx.Notebook(self)
+        self.pane_info = wx.Panel(self.note, -1)
+        self.box_info = wx.StaticBox(self.pane_info, -1, u"スキン情報")
+        self.info = SkinInfoPanel(self.pane_info)
         skintype, skinname, author, desc, classictext, vocation120, initialcash = self.skinsummary
         self.info.typectrl.SetValue(skintype)
         self.info.namectrl.SetValue(skinname)
@@ -284,6 +311,19 @@ class SkinEditDialog(wx.Dialog):
         self.info.classictext.SetValue(classictext)
         self.info.vocation120.SetValue(vocation120)
         self.info.initialcash.SetValue(initialcash)
+
+        self.pane_draw = cw.dialog.settings.DrawingSettingPanel(self.note, for_local=True,
+                                                                get_localsettings=lambda: self.local,
+                                                                use_copybase=True)
+        self.pane_draw.load(None, self.local)
+        self.pane_font = cw.dialog.settings.FontSettingPanel(self.note, for_local=True,
+                                                             get_localsettings=lambda: self.local,
+                                                             use_copybase=True)
+        self.pane_font.load(None, self.local)
+
+        self.note.AddPage(self.pane_info, u"基本")
+        self.note.AddPage(self.pane_draw, u"描画")
+        self.note.AddPage(self.pane_font, u"フォント")
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
@@ -321,32 +361,60 @@ class SkinEditDialog(wx.Dialog):
             prop.append(cw.data.make_element("InitialCash", str(initialcash)))
         else:
             e.edit("Property/InitialCash", str(initialcash))
+
+        element = e.find("Settings")
+        if element is None:
+            element = cw.data.make_element("Settings", "")
+            e.append(".", element)
+        else:
+            element.clear()
+        self.local = cw.setting.LocalSetting()
+        updatemessage, updatecurtain, updatefullscreen = self.pane_draw.apply_localsettings(self.local)
+        updatefont = self.pane_font.apply_localsettings(self.local)
+        cw.xmlcreater.create_localsettings(element, self.local)
+
         e.write(skinpath)
 
         if cw.cwpy.setting.skindirname == self.skindirname:
-            def func(skinname, classicstyletext, vocation120, initialcash):
-                cw.cwpy.setting.skinname = skinname
-                cw.cwpy.setting.skintype = skintype
-                cw.cwpy.update_titlebar()
-                cw.cwpy.update_messagefontstyle(classicstyletext)
-                cw.cwpy.update_vocation120(vocation120)
-                cw.cwpy.setting.initialcash = initialcash
-            cw.cwpy.exec_func(func, skinname, classictext, vocation120, initialcash)
+            if updatefont:
+                cw.cwpy.exec_func(cw.cwpy.update_skin, self.skindirname, restartop=False)
+            else:
+                def func(local, skinname, classicstyletext, vocation120, initialcash):
+                    cw.cwpy.setting.skin_local = local
+                    cw.cwpy.setting.skinname = skinname
+                    cw.cwpy.setting.skintype = skintype
+                    cw.cwpy.update_titlebar()
+                    cw.cwpy.update_messagefontstyle(classicstyletext)
+                    cw.cwpy.update_vocation120(vocation120)
+                    cw.cwpy.setting.initialcash = initialcash
+
+                cw.cwpy.exec_func(func, self.local, skinname, classictext, vocation120, initialcash)
+
+                if updatemessage:
+                    cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
+                if updatecurtain:
+                    cw.cwpy.exec_func(cw.cwpy.update_curtainstyle)
+                if updatefullscreen:
+                    cw.cwpy.exec_func(cw.cwpy.update_fullscreenbackground)
 
         self.EndModal(wx.ID_OK)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
 
-        bsizer_info.Add(self.info, 1, wx.ALL|wx.EXPAND, 3)
+        sizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
+        sizer_info.Add(self.info, 1, wx.EXPAND, 0)
+
+        sizer_panel = wx.BoxSizer(wx.VERTICAL)
+        sizer_panel.Add(sizer_info, 1, wx.ALL|wx.EXPAND, 10)
+        self.pane_info.SetSizer(sizer_panel)
 
         sizer_btn.Add(self.btn_ok, 0, 0, 0)
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, 5)
 
         sizer.Add(self.warning, 0, wx.ALL, 3)
-        sizer.Add(bsizer_info, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        sizer.Add(self.note, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
         sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -426,7 +494,7 @@ class SkinBasePanel(wx.Panel):
         self.info.namectrl.Bind(wx.EVT_TEXT, self.OnInput)
 
     def _do_layout(self):
-        sizer = wx.GridBagSizer()
+        sizer_gb = wx.GridBagSizer()
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
         gbsizer_base = wx.GridBagSizer()
@@ -453,10 +521,14 @@ class SkinBasePanel(wx.Panel):
         bsizer_base.Add(gbsizer_base, 0, wx.EXPAND, 5)
         bsizer_info.Add(self.info, 1, wx.EXPAND, 5)
 
-        sizer.Add(bsizer_base, pos=(0, 0), flag=wx.BOTTOM|wx.EXPAND, border=5)
-        sizer.Add(bsizer_info, pos=(1, 0), flag=wx.EXPAND, border=0)
-        sizer.AddGrowableRow(1)
-        sizer.AddGrowableCol(0)
+        sizer_gb.Add(bsizer_base, pos=(0, 0), flag=wx.BOTTOM|wx.EXPAND, border=5)
+        sizer_gb.Add(bsizer_info, pos=(1, 0), flag=wx.EXPAND, border=0)
+        sizer_gb.AddGrowableRow(1)
+        sizer_gb.AddGrowableCol(0)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(sizer_gb, 1, wx.ALL|wx.EXPAND, 10)
+
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -613,7 +685,7 @@ class SkinFeaturePanel(wx.Panel):
         basenatures = base.getfind("Natures")
         basemakings = base.getfind("Makings")
 
-        self.grid = wx.grid.Grid(self, -1, size=(200, 200))
+        self.grid = wx.grid.Grid(self, -1, size=(200, 200), style=wx.BORDER)
         self.grid.CreateGrid(len(basesexes) + len(baseperiods) +\
                              len(basenatures) + len(basemakings), 12)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
@@ -736,7 +808,7 @@ class SkinSoundPanel(wx.Panel):
         base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
         basesounds = base.find("Sounds")
 
-        self.grid = wx.grid.Grid(self, -1, size=(200, 200))
+        self.grid = wx.grid.Grid(self, -1, size=(200, 200), style=wx.BORDER)
         self.grid.CreateGrid(len(basesounds), 1)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
@@ -778,7 +850,7 @@ class SkinMessagePanel(wx.Panel):
         base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
         basemsgs = base.find("Messages")
 
-        self.grid = wx.grid.Grid(self, -1, size=(200, 200))
+        self.grid = wx.grid.Grid(self, -1, size=(200, 200), style=wx.BORDER)
         self.grid.CreateGrid(len(basemsgs) + 6 + 2 + 4, 1)
         self.grid.SetRowLabelSize(150)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)

@@ -290,9 +290,11 @@ class SettingsPanel(wx.Panel):
 
         self.note = wx.Notebook(self)
         self.pane_gene = GeneralSettingPanel(self.note)
-        self.pane_draw = DrawingSettingPanel(self.note, for_local=False, get_localsettings=None)
+        self.pane_draw = DrawingSettingPanel(self.note, for_local=False, get_localsettings=None,
+                                             use_copybase=True)
         self.pane_sound = AudioSettingPanel(self.note)
-        self.pane_font = FontSettingPanel(self.note, for_local=False, get_localsettings=None)
+        self.pane_font = FontSettingPanel(self.note, for_local=False, get_localsettings=None,
+                                          use_copybase=True)
         self.pane_scenario = ScenarioSettingPanel(self.note)
         self.pane_ui = UISettingPanel(self.note)
         self.note.AddPage(self.pane_gene, u"一般")
@@ -827,7 +829,7 @@ class SkinPanel(wx.Panel):
             self.btn_editskin.Bind(wx.EVT_BUTTON, self.OnEditSkin)
             self.btn_deleteskin.Bind(wx.EVT_BUTTON, self.OnDeleteSkin)
 
-    def update_skins(self, skindirname):
+    def update_skins(self, skindirname, applied=True):
         self.skins = []
         self.skindirs = []
         self.skin_summarys = {}
@@ -847,7 +849,7 @@ class SkinPanel(wx.Panel):
         self.ch_skin.SetItems(self.skins)
         n = self.skindirs.index(skindirname)
         self.ch_skin.SetSelection(n)
-        self._choice_skin()
+        self._choice_skin(applied=applied)
 
     def load_allskins(self):
         for skin in self.skindirs:
@@ -882,7 +884,7 @@ class SkinPanel(wx.Panel):
     def OnSkinChoice(self, event):
         self._choice_skin()
 
-    def _choice_skin(self, init=False):
+    def _choice_skin(self, init=False, applied=True):
         skin = self.skindirs[self.ch_skin.GetSelection()]
         s = u"種別: %s\n場所: %s\n作者: %s\n" + u"-" * 45 + u"\n%s"
         if not skin in self.skin_summarys:
@@ -892,16 +894,18 @@ class SkinPanel(wx.Panel):
         self.st_skin.SetLabel(s % (skintype, cw.util.join_paths(u"Data/Skin", skin), author, desc))
         if self.editbuttons:
             self.btn_deleteskin.Enable(cw.cwpy.setting.skindirname <> skin)
-        if not init:
+        if not init and applied:
             self.GetTopLevelParent().applied()
 
+    def _get_localsettings(self):
+        local = cw.setting.LocalSetting()
+        self.GetTopLevelParent().panel.pane_draw.apply_localsettings(local)
+        self.GetTopLevelParent().panel.pane_font.apply_localsettings(local)
+        return local
+
     def OnConvertSkin(self, event):
-        def get_localsettings():
-            local = cw.setting.LocalSetting()
-            self.GetTopLevelParent().panel.pane_draw.apply_localsettings(local)
-            self.GetTopLevelParent().panel.pane_font.apply_localsettings(local)
-            return local
-        dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe=u"", from_settings=True, get_localsettings=get_localsettings)
+        dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe=u"", from_settings=True,
+                                                  get_localsettings=self._get_localsettings)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         if dlg.successful:
@@ -913,12 +917,13 @@ class SkinPanel(wx.Panel):
     def OnEditSkin(self, event):
         skin = self.skindirs[self.ch_skin.GetSelection()]
         skinsummary = self.skin_summarys[skin]
-        dlg = cw.dialog.skin.SkinEditDialog(self.TopLevelParent, skin, skinsummary)
+        dlg = cw.dialog.skin.SkinEditDialog(self.TopLevelParent, skin, skinsummary,
+                                            get_localsettings=self._get_localsettings)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
             self.skin_summarys[skin] = dlg.skinsummary
-            self.update_skins(skin)
+            self.update_skins(skin, applied=False)
             if self.pane_scenario:
                 self.pane_scenario.celleditor = None
         dlg.Destroy()
@@ -1533,7 +1538,7 @@ class SpeedPanel(wx.Panel):
         self.sl_msgs.SetValue(speed.sl_msgs.GetValue())
 
 class DrawingSettingPanel(wx.Panel):
-    def __init__(self, parent, for_local, get_localsettings):
+    def __init__(self, parent, for_local, get_localsettings, use_copybase):
         wx.Panel.__init__(self, parent)
         self._for_local = for_local
         self._get_localsettings = get_localsettings
@@ -1597,7 +1602,10 @@ class DrawingSettingPanel(wx.Panel):
             wildcard=u"画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
 
         if self._for_local:
-            self.copybtn = wx.Button(self, -1, u"基本設定をコピー")
+            if use_copybase:
+                self.copybtn = wx.Button(self, -1, u"基本設定をコピー")
+            else:
+                self.copybtn = None
             self.initbtn = wx.Button(self, -1, u"デフォルト")
 
         self._do_layout()
@@ -1756,7 +1764,8 @@ class DrawingSettingPanel(wx.Panel):
         self.ch_fscrbacktype.Bind(wx.EVT_CHOICE, self.OnFullScreenBackgroundType, id=self.ch_fscrbacktype.GetId())
         if self._for_local:
             self.cb_important.Bind(wx.EVT_CHECKBOX, self.OnImportant)
-            self.copybtn.Bind(wx.EVT_BUTTON, self.OnCopyBase)
+            if self.copybtn:
+                self.copybtn.Bind(wx.EVT_BUTTON, self.OnCopyBase)
             self.initbtn.Bind(wx.EVT_BUTTON, self.OnInitValue)
 
     def _do_layout(self):
@@ -1850,7 +1859,8 @@ class DrawingSettingPanel(wx.Panel):
         if self._for_local:
             sizer_right.AddStretchSpacer(1)
             bsizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-            bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, 3)
+            if self.copybtn:
+                bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, 3)
             bsizer_btn.Add(self.initbtn, 0, 0, 0)
             sizer_right.Add(bsizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, 5)
 
@@ -1888,7 +1898,8 @@ class DrawingSettingPanel(wx.Panel):
         self.tx_fscrbackfile.Enable(enbl and self.ch_fscrbacktype.GetSelection() == 1)
         self.ref_fscrbackfile.Enable(enbl and self.ch_fscrbacktype.GetSelection() == 1)
         if self._for_local:
-            self.copybtn.Enable(enbl)
+            if self.copybtn:
+                self.copybtn.Enable(enbl)
             self.initbtn.Enable(enbl)
 
     def OnInitValue(self, event):
@@ -2650,7 +2661,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.Layout()
 
 class FontSettingPanel(wx.Panel):
-    def __init__(self, parent, for_local, get_localsettings):
+    def __init__(self, parent, for_local, get_localsettings, use_copybase):
         wx.Panel.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self._for_local = for_local
@@ -2767,12 +2778,6 @@ class FontSettingPanel(wx.Panel):
         self.type.SetDoubleBuffered(True)
         self.choicetypes = create_grid(self.type, self.types, self._types, 5, 120)
 
-        for i, name, in enumerate(self.bases):
-            str_font = cw.cwpy.setting.local.basefont[name]
-            if not str_font:
-                str_font = self.str_default
-            self.base.SetCellValue(i, 0, str_font)
-
         self.type.SetColLabelValue(1, u"サイズ")
         self.type.SetColSize(1, 80)
         self.type.SetColLabelValue(2, u"太字\n(通常)")
@@ -2781,8 +2786,9 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColSize(3, 70)
         self.type.SetColLabelValue(4, u"斜体")
         self.type.SetColSize(4, 70)
+        local = cw.setting.LocalSetting()
         for i, name in enumerate(self.types):
-            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = cw.cwpy.setting.local.fonttypes_init[name]
+            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.fonttypes_init[name]
             if 0 < defpixels:
                 self.type.SetCellEditor(i, 1, wx.grid.GridCellNumberEditor(1, 99))
                 self.type.SetCellRenderer(i, 1, wx.grid.GridCellNumberRenderer())
@@ -2808,13 +2814,11 @@ class FontSettingPanel(wx.Panel):
                 self.type.GetOrCreateCellAttr(i, 4).SetReadOnly(True)
             self.type.SetCellAlignment(i, 4, wx.ALIGN_CENTER, 0)
 
-        font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-                       face=self.st_example.GetLabel())
-        self.st_example.SetFont(font)
-        self.st_example.SetLabel(self.get_basefontface(self.bases[0]))
-
         if self._for_local:
-            self.copybtn = wx.Button(self, -1, u"基本設定をコピー")
+            if use_copybase:
+                self.copybtn = wx.Button(self, -1, u"基本設定をコピー")
+            else:
+                self.copybtn = None
             self.initbtn = wx.Button(self, -1, u"デフォルト")
 
         self._do_layout()
@@ -2851,6 +2855,12 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColLabelValue(4, u"斜体")
         self.type.SetColSize(4, 70)
 
+        for i, name, in enumerate(self.bases):
+            str_font = local.basefont[name]
+            if not str_font:
+                str_font = self.str_default
+            self.base.SetCellValue(i, 0, str_font)
+
         for i, name in enumerate(self.types):
             _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.fonttypes_init[name]
             fonttype, face, pixels, bold, bold_upscr, italic = local.fonttypes[name]
@@ -2878,6 +2888,11 @@ class FontSettingPanel(wx.Panel):
                 self.type.SetCellValue(i, 4, u"-")
 
         self._select_base(self.base.GetGridCursorRow())
+
+        font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
+                       face=self.st_example.GetLabel())
+        self.st_example.SetFont(font)
+        self.st_example.SetLabel(self.get_basefontface(self.bases[0]))
 
         self._update_enabled()
         self.Layout()
@@ -2969,7 +2984,8 @@ class FontSettingPanel(wx.Panel):
         self.type.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnEditorCreatedType)
         if self._for_local:
             self.cb_important.Bind(wx.EVT_CHECKBOX, self.OnImportant)
-            self.copybtn.Bind(wx.EVT_BUTTON, self.OnCopyBase)
+            if self.copybtn:
+                self.copybtn.Bind(wx.EVT_BUTTON, self.OnCopyBase)
             self.initbtn.Bind(wx.EVT_BUTTON, self.OnInitValue)
 
     def _select_base(self, i):
@@ -3081,7 +3097,8 @@ class FontSettingPanel(wx.Panel):
         if self._for_local:
             sizer_v1.AddStretchSpacer(0)
             bsizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-            bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, 3)
+            if self.copybtn:
+                bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, 3)
             bsizer_btn.Add(self.initbtn, 0, 0, 0)
             sizer_v1.Add(bsizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, 5)
 
@@ -3098,7 +3115,8 @@ class FontSettingPanel(wx.Panel):
         self.base.Enable(enbl)
         self.type.Enable(enbl)
         if self._for_local:
-            self.copybtn.Enable(enbl)
+            if self.copybtn:
+                self.copybtn.Enable(enbl)
             self.initbtn.Enable(enbl)
 
     def OnInitValue(self, event):

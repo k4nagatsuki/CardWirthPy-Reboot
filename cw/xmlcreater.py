@@ -581,6 +581,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     return path
 
 def create_localsettings(element, local):
+    if local.important_draw <> local.important_draw_init:
+        element.set("importantdrawing", str(local.important_draw))
+    if local.important_font <> local.important_font_init:
+        element.set("importantfont", str(local.important_font))
+
     # メッセージウィンドウの色と透明度
     if local.mwincolour <> local.mwincolour_init:
         d = {"red": str(local.mwincolour[0]),
