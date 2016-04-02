@@ -340,9 +340,9 @@ class SettingsPanel(wx.Panel):
 
     def load(self, setting):
         self.pane_gene.load(setting)
-        self.pane_draw.load(setting)
+        self.pane_draw.load(setting, setting.local)
         self.pane_sound.load(setting)
-        self.pane_font.load(setting)
+        self.pane_font.load(setting, setting.local)
         self.pane_scenario.load(setting)
         self.pane_ui.load(setting)
 
@@ -379,156 +379,19 @@ class SettingsPanel(wx.Panel):
     def OnDefault(self, event):
         selpane = self.note.GetSelection()
         if selpane == 0:
-            self.pane_gene.cb_show_debuglogdialog.SetValue(cw.cwpy.setting.show_debuglogdialog_init)
-            self.pane_gene.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode_init)
-            if cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_SINGLE:
-                self.pane_gene.ch_messagelog_type.SetSelection(0)
-            elif cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_LIST:
-                self.pane_gene.ch_messagelog_type.SetSelection(1)
-            elif cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_COMPRESS:
-                self.pane_gene.ch_messagelog_type.SetSelection(2)
-            if cw.cwpy.setting.startupscene_init == cw.setting.OPEN_TITLE:
-                self.pane_gene.ch_startupscene.SetSelection(0)
-            elif cw.cwpy.setting.startupscene_init == cw.setting.OPEN_LAST_BASE:
-                self.pane_gene.ch_startupscene.SetSelection(1)
-            self.pane_gene.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax_init)
-            self.pane_gene.expand.ch_expanddrawing.SetSelection(0)
-            if cw.cwpy.setting.expandmode_init == "FullScreen":
-                self.pane_gene.expand.cb_fullscreen.SetValue(True)
-            else:
-                self.pane_gene.expand.ch_expanddrawing.SetSelection(int(cw.cwpy.setting.expandmode_init)-1)
-                self.pane_gene.expand.cb_fullscreen.SetValue(False)
-            self.pane_gene.expand.make_expandinfo()
-            self.pane_gene.expand.cb_smoothexpand.SetValue(cw.cwpy.setting.smoothexpand_init)
-            self.pane_gene.sc_initmoneyamount.SetValue(cw.cwpy.setting.initmoneyamount_init)
-            self.pane_gene.cb_initmoneyisinitialcash.SetValue(cw.cwpy.setting.initmoneyisinitialcash_init)
-            self.pane_gene.sc_initmoneyamount.Enable(not self.pane_gene.cb_initmoneyisinitialcash.GetValue())
-            self.pane_gene.cb_autosavepartyrecord.SetValue(cw.cwpy.setting.autosave_partyrecord_init)
-            self.pane_gene.cb_overwritepartyrecord.SetValue(cw.cwpy.setting.overwrite_partyrecord_init)
-            self.pane_gene.cb_overwritepartyrecord.Enable(self.pane_gene.cb_autosavepartyrecord.GetValue())
-            self.pane_gene.tx_ssinfoformat.SetValue(cw.cwpy.setting.ssinfoformat_init)
-            self.pane_gene.tx_ssfnameformat.SetValue(cw.cwpy.setting.ssfnameformat_init)
-            self.pane_gene.tx_cardssfnameformat.SetValue(cw.cwpy.setting.cardssfnameformat_init)
-            self.pane_gene.ch_ssinfocolor.Select(1 if cw.cwpy.setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
+            self.pane_gene.init_values(cw.cwpy.setting)
         elif selpane == 1:
-            self.pane_draw.cb_smoothing_card_up.SetValue(cw.cwpy.setting.smoothing_card_up_init)
-            self.pane_draw.cb_smoothing_card_down.SetValue(cw.cwpy.setting.smoothing_card_down_init)
-            self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
-            self.pane_draw.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type_init == cw.setting.CURSOR_WHITE)
-            self.pane_draw.speed.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
-            self.pane_draw.speed.sl_deal_battle.SetValue(cw.cwpy.setting.dealspeed_battle_init)
-            self.pane_draw.speed.cb_use_battlespeed.SetValue(not cw.cwpy.setting.use_battlespeed_init)
-            self.pane_draw.speed.sl_deal_battle.Enable(cw.cwpy.setting.use_battlespeed_init)
-            self.pane_draw.speed.sl_msgs.SetValue(cw.cwpy.setting.messagespeed_init)
-            self.pane_draw.speed.ch_tran.SetSelection(self.pane_draw.speed.transitions.index(cw.cwpy.setting.transition_init))
-            self.pane_draw.speed.sl_tran.SetValue(cw.cwpy.setting.transitionspeed_init)
-            self.pane_draw.sc_mwin.SetValue(cw.cwpy.setting.local_mwincolour_init[3])
-            self.pane_draw.cs_mwin.SetColour(cw.cwpy.setting.local_mwincolour_init[:3])
-            self.pane_draw.sc_mframe.SetValue(cw.cwpy.setting.local_mwinframecolour_init[3])
-            self.pane_draw.cs_mframe.SetColour(cw.cwpy.setting.local_mwinframecolour_init[:3])
-            self.pane_draw.cs_blwin.SetColour(cw.cwpy.setting.local_blwincolour_init[:3])
-            self.pane_draw.cs_blframe.SetColour(cw.cwpy.setting.local_blwinframecolour_init[:3])
-            self.pane_draw.sc_blcurtain.SetValue(cw.cwpy.setting.local_blcurtaincolour_init[3])
-            self.pane_draw.cs_blcurtain.SetColour(cw.cwpy.setting.local_blcurtaincolour_init[:3])
-            self.pane_draw.sc_curtain.SetValue(cw.cwpy.setting.local_curtaincolour_init[3])
-            self.pane_draw.cs_curtain.SetColour(cw.cwpy.setting.local_curtaincolour_init[:3])
-
-            if cw.cwpy.setting.local_fullscreenbackgroundtype_init == 2:
-                self.pane_draw.tx_fscrbackfile.SetValue("")
-                if cw.cwpy.setting.local_fullscreenbackgroundfile_init == u"Resource/Image/Dialog/CAUTION":
-                    self.pane_draw.ch_fscrbacktype.Select(2)
-                else:
-                    self.pane_draw.ch_fscrbacktype.Select(3)
-            elif cw.cwpy.setting.local_fullscreenbackgroundtype_init == 1:
-                self.pane_draw.tx_fscrbackfile.SetValue(cw.cwpy.setting.local_fullscreenbackgroundfile_init)
-                self.pane_draw.ch_fscrbacktype.Select(1)
-            else:
-                self.pane_draw.tx_fscrbackfile.SetValue("")
-                self.pane_draw.ch_fscrbacktype.Select(0)
-            self.pane_draw.tx_fscrbackfile.Enable(self.pane_draw.ch_fscrbacktype.GetSelection() == 1)
-            self.pane_draw.ref_fscrbackfile.Enable(self.pane_draw.ch_fscrbacktype.GetSelection() == 1)
+            self.pane_draw.init_values(cw.cwpy.setting, cw.cwpy.setting.local)
         elif selpane == 2:
-            self.pane_sound.cb_playbgm.SetValue(cw.cwpy.setting.play_bgm_init)
-            self.pane_sound.cb_playsound.SetValue(cw.cwpy.setting.play_sound_init)
-            self.pane_sound.sl_master.SetValue(int(cw.cwpy.setting.vol_master_init*100))
-            self.pane_sound.sl_music.SetValue(int(cw.cwpy.setting.vol_bgm_init*100))
-            self.pane_sound.sl_midi.SetValue(int(cw.cwpy.setting.vol_midi_init*100))
-            self.pane_sound.sl_sound.SetValue(int(cw.cwpy.setting.vol_sound_init*100))
-            self.pane_sound.list_soundfont.DeleteAllItems()
-            for index, soundfont in enumerate(cw.cwpy.setting.soundfonts_init):
-                sfont, use = soundfont
-                self.pane_sound.list_soundfont.InsertStringItem(index, sfont)
-                self.pane_sound.list_soundfont.CheckItem(index, use)
+            self.pane_sound.init_values(cw.cwpy.setting)
         elif selpane == 3:
-            for i, basename in enumerate(self.pane_font.bases):
-                name = cw.cwpy.setting.local_basefont_init[basename]
-                if not name:
-                    name = self.pane_font.str_default
-                self.pane_font.base.SetCellValue(i, 0, name)
-            for i, typename in enumerate(self.pane_font.types):
-                fonttype, name, pixels, bold, bold_upscr, italic = cw.cwpy.setting.local_fonttypes_init[typename]
-                if fonttype:
-                    name = u"[%s]" % (self.pane_font.typenames[fonttype])
-                self.pane_font.type.SetCellValue(i, 0, name)
-                self.pane_font.type.SetCellValue(i, 1, str(pixels) if 0 < pixels else u"-")
-                self.pane_font.type.SetCellValue(i, 2, (u"1" if bold else u"") if not bold is None else u"-")
-                self.pane_font.type.SetCellValue(i, 3, (u"1" if bold_upscr else u"") if not bold_upscr is None else u"-")
-                self.pane_font.type.SetCellValue(i, 4, (u"1" if italic else u"") if not italic is None else u"-")
-            self.pane_font.cb_bordering_cardname.SetValue(cw.cwpy.setting.bordering_cardname_init)
-            self.pane_font.cb_decorationfont.SetValue(cw.cwpy.setting.decorationfont_init)
-            self.pane_font.cb_fontsmoothingcardname.SetValue(cw.cwpy.setting.fontsmoothing_cardname_init)
-            self.pane_font.cb_fontsmoothingstatusbar.SetValue(cw.cwpy.setting.fontsmoothing_statusbar_init)
+            self.pane_font.init_values(cw.cwpy.setting, cw.cwpy.setting.local)
         elif selpane == 4:
             # スキン毎のシナリオ開始位置の設定は変更しない
-            self.pane_scenario.tx_editor.SetValue(cw.cwpy.setting.editor_init)
-            self.pane_scenario.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype_init)
-            self.pane_scenario.cb_show_paperandtree.SetValue(cw.cwpy.setting.show_paperandtree)
-            self.pane_scenario.tx_filer_dir.SetValue(cw.cwpy.setting.filer_dir_init)
-            self.pane_scenario.tx_filer_file.SetValue(cw.cwpy.setting.filer_file_init)
+            self.pane_scenario.init_values(cw.cwpy.setting)
         elif selpane == 5:
-            self.pane_ui.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait_init)
-            self.pane_ui.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation_init)
-            self.pane_ui.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard_init)
-            self.pane_ui.cb_can_repeatlclick.SetValue(cw.cwpy.setting.can_repeatlclick_init)
-            self.pane_ui.cb_autoenter_on_sprite.SetValue(cw.cwpy.setting.autoenter_on_sprite_init)
+            self.pane_ui.init_values(cw.cwpy.setting)
 
-            self.pane_ui.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal_init)
-            self.pane_ui.cb_allquickdeal.SetValue(cw.cwpy.setting.all_quickdeal_init)
-            self.pane_ui.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards_init)
-            self.pane_ui.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime_init)
-            self.pane_ui.cb_show_cardkind.SetValue(cw.cwpy.setting.show_cardkind_init)
-            self.pane_ui.cb_show_premiumicon.SetValue(cw.cwpy.setting.show_premiumicon_init)
-            self.pane_ui.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton_init)
-            self.pane_ui.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog_init)
-            self.pane_ui.cb_protect_staredcard.SetValue(cw.cwpy.setting.protect_staredcard_init)
-            self.pane_ui.cb_protect_premiercard.SetValue(cw.cwpy.setting.protect_premiercard_init)
-
-            self.pane_ui.cb_show_btndesc.SetValue(cw.cwpy.setting.show_btndesc_init)
-            self.pane_ui.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
-            self.pane_ui.cb_blink_statusbutton.SetValue(cw.cwpy.setting.blink_statusbutton_init)
-            self.pane_ui.cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney_init)
-
-            self.pane_ui.cb_show_advancedsettings.SetValue(cw.cwpy.setting.show_advancedsettings_init)
-            self.pane_ui.cb_show_addctrlbtn.SetValue(cw.cwpy.setting.show_addctrlbtn_init)
-            self.pane_ui.cb_show_experiencebar.SetValue(cw.cwpy.setting.show_experiencebar_init)
-
-            if cw.setting.CONFIRM_BEFORESAVING_BASE == cw.cwpy.setting.confirm_beforesaving_init:
-                self.pane_ui.ch_confirm_beforesaving.SetSelection(1)
-            elif not cw.util.str2bool(cw.cwpy.setting.confirm_beforesaving_init):
-                self.pane_ui.ch_confirm_beforesaving.SetSelection(2)
-            else:
-                self.pane_ui.ch_confirm_beforesaving.SetSelection(0)
-            self.pane_ui.cb_showsavedmessage.SetValue(cw.cwpy.setting.show_savedmessage_init)
-            self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
-            self.pane_ui.cb_store_skinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase_init)
-
-            self.pane_ui.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard_init)
-            self.pane_ui.cb_showbackpackcardatend.SetValue(cw.cwpy.setting.show_backpackcardatend_init)
-            self.pane_ui.cb_can_clicksidesofcardcontrol.SetValue(cw.cwpy.setting.can_clicksidesofcardcontrol_init)
-            self.pane_ui.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket_init)
-            self.pane_ui.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation_init == cw.setting.WHEEL_SHOWLOG)
-            self.pane_ui.cb_confirmbeforeusingcard.SetValue(cw.cwpy.setting.confirm_beforeusingcard_init)
-            self.pane_ui.cb_noticeimpossibleaction.SetValue(cw.cwpy.setting.noticeimpossibleaction_init)
         self.GetTopLevelParent().applied()
 
     def OnOk(self, event):
@@ -559,45 +422,8 @@ class SettingsPanel(wx.Panel):
         # フォント
         flag_fontupdate = False
         updatemessage = False
-        basetable = {}
-        basefont = {}
-        for i, basename in enumerate(self.pane_font.bases):
-            value = self.pane_font.base.GetCellValue(i, 0)
-            if value == self.pane_font.str_default:
-                value = u""
-            basefont[basename] = value
-            basetable[u"[%s]" % (self.pane_font.typenames[basename])] = basename
-        fonttypes = {}
-        for i, typename in enumerate(self.pane_font.types):
-            value = self.pane_font.type.GetCellValue(i, 0)
-            pixels = self.pane_font.type.GetCellValue(i, 1)
-            try:
-                if pixels <> u"-":
-                    pixels = int(pixels)
-                else:
-                    pixels = -1
-            except:
-                pixels = -1
-            bold = self.pane_font.type.GetCellValue(i, 2)
-            if bold in (u"1", u""):
-                bold = bold == u"1"
-            else:
-                bold = None
-            bold_upscr = self.pane_font.type.GetCellValue(i, 3)
-            if bold_upscr in (u"1", u""):
-                bold_upscr = bold_upscr == u"1"
-            else:
-                bold_upscr = None
-            italic = self.pane_font.type.GetCellValue(i, 4)
-            if italic in (u"1", u""):
-                italic = italic == u"1"
-            else:
-                italic = None
-            fonttype = basetable.get(value, "")
-            if fonttype:
-                fonttypes[typename] = (fonttype, u"", pixels, bold, bold_upscr, italic)
-            else:
-                fonttypes[typename] = (u"", value, pixels, bold, bold_upscr, italic)
+
+        flag_fontupdate |= self.pane_font.apply_localsettings(setting.local)
 
         value = self.pane_font.cb_bordering_cardname.GetValue()
         if setting.bordering_cardname <> value:
@@ -615,14 +441,6 @@ class SettingsPanel(wx.Panel):
         value = self.pane_font.cb_fontsmoothingstatusbar.GetValue()
         if value <> setting.fontsmoothing_statusbar:
             setting.fontsmoothing_statusbar = value
-            flag_fontupdate = True
-
-        # フォント変更チェック
-        if basefont <> setting.local_basefont:
-            setting.local_basefont = basefont
-            flag_fontupdate = True
-        if fonttypes <> setting.local_fonttypes:
-            setting.local_fonttypes = fonttypes
             flag_fontupdate = True
 
         # 一般
@@ -703,24 +521,6 @@ class SettingsPanel(wx.Panel):
 
         self.pane_draw.speed.apply_speed(setting)
 
-        value = self.pane_draw.ch_fscrbacktype.GetSelection()
-        if value == 0:
-            setting.local_fullscreenbackgroundfile = u""
-            setting.local_fullscreenbackgroundtype = 0
-        elif value == 1:
-            setting.local_fullscreenbackgroundfile = self.pane_draw.tx_fscrbackfile.GetValue()
-            setting.local_fullscreenbackgroundtype = 1
-        elif value == 2:
-            setting.local_fullscreenbackgroundfile = u"Resource/Image/Dialog/CAUTION"
-            setting.local_fullscreenbackgroundtype = 2
-        elif value == 3:
-            setting.local_fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
-            setting.local_fullscreenbackgroundtype = 2
-        if update:
-            def func1():
-                cw.cwpy.update_fullscreenbackground()
-            cw.cwpy.exec_func(func1)
-
         value = self.pane_draw.cb_whitecursor.GetValue()
         if value <> (setting.cursor_type == cw.setting.CURSOR_WHITE):
             if value:
@@ -738,19 +538,19 @@ class SettingsPanel(wx.Panel):
         value = self.pane_sound.cb_playsound.GetValue()
         setting.play_sound = value
         value = self.pane_sound.sl_master.GetValue()
-        value = setting.wrap_volumevalue(value)
+        value = cw.setting.Setting.wrap_volumevalue(value)
         setting.vol_master = value
         value = self.pane_sound.sl_sound.GetValue()
-        value = setting.wrap_volumevalue(value)
+        value = cw.setting.Setting.wrap_volumevalue(value)
         setting.vol_sound = value
         value = self.pane_sound.sl_midi.GetValue()
-        value = setting.wrap_volumevalue(value)
+        value = cw.setting.Setting.wrap_volumevalue(value)
         setting.vol_midi = value
         value = self.pane_sound.sl_music.GetValue()
-        value = setting.wrap_volumevalue(value)
+        value = cw.setting.Setting.wrap_volumevalue(value)
         setting.vol_bgm = value
         value = self.pane_sound.sl_master.GetValue()
-        value = setting.wrap_volumevalue(value)
+        value = cw.setting.Setting.wrap_volumevalue(value)
         setting.vol_master = value
         if update:
             volume = int(setting.vol_master*100)
@@ -794,45 +594,20 @@ class SettingsPanel(wx.Panel):
                 cw.cwpy.exec_func(func)
 
         # 配色(メッセージ)
-        alpha = self.pane_draw.sc_mwin.GetValue()
-        colour = self.pane_draw.cs_mwin.GetColour()
-        colour = (colour[0], colour[1], colour[2], alpha)
-        setting.local_mwincolour = colour
-        updatemessage |= setting.local_mwincolour <> colour
-        alpha = self.pane_draw.sc_mframe.GetValue()
-        colour = self.pane_draw.cs_mframe.GetColour()
-        colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= setting.local_mwinframecolour <> colour
-        setting.local_mwinframecolour = colour
-        # 配色(バックログ)
-        alpha = self.pane_draw.sc_mwin.GetValue()
-        colour = self.pane_draw.cs_blwin.GetColour()
-        colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= setting.local_blwincolour <> colour
-        setting.local_blwincolour = colour
-        alpha = self.pane_draw.sc_mframe.GetValue()
-        colour = self.pane_draw.cs_blframe.GetColour()
-        colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= setting.local_blwinframecolour <> colour
-        setting.local_blwinframecolour = colour
+        r_updatemessage, updatecurtain, updatefullscreen = self.pane_draw.apply_localsettings(setting.local)
+        updatemessage |= r_updatemessage
+
         if update and updatemessage:
             cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
 
-        updatecurtain = False
-        # 配色(メッセージログカーテン)
-        alpha = self.pane_draw.sc_blcurtain.GetValue()
-        colour = self.pane_draw.cs_blcurtain.GetColour()
-        colour = (colour[0], colour[1], colour[2], alpha)
-        updatecurtain |= setting.local_blcurtaincolour <> colour
-        setting.local_blcurtaincolour = colour
-        # 配色(選択モードカーテン)
-        alpha = self.pane_draw.sc_curtain.GetValue()
-        colour = self.pane_draw.cs_curtain.GetColour()
-        colour = (colour[0], colour[1], colour[2], alpha)
-        updatecurtain |= setting.local_curtaincolour <> colour
-        setting.local_curtaincolour = colour
         if update and updatecurtain:
             cw.cwpy.exec_func(cw.cwpy.update_curtainstyle)
+
+        if update and updatefullscreen:
+            def func1():
+                cw.cwpy.update_fullscreenbackground()
+
+            cw.cwpy.exec_func(func1)
 
         # スキン
         if update:
@@ -1495,6 +1270,40 @@ class GeneralSettingPanel(wx.Panel):
             self.ch_ssinfocolor.Select(0)
         self.expand.load(setting)
 
+    def init_values(self, setting):
+        self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog_init)
+
+        self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode_init)
+        if setting.messagelog_type_init == cw.setting.LOG_SINGLE:
+            self.ch_messagelog_type.SetSelection(0)
+        elif setting.messagelog_type_init == cw.setting.LOG_LIST:
+            self.ch_messagelog_type.SetSelection(1)
+        elif setting.messagelog_type_init == cw.setting.LOG_COMPRESS:
+            self.ch_messagelog_type.SetSelection(2)
+        if setting.startupscene_init == cw.setting.OPEN_TITLE:
+            self.ch_startupscene.SetSelection(0)
+        elif setting.startupscene_init == cw.setting.OPEN_LAST_BASE:
+            self.ch_startupscene.SetSelection(1)
+        self.sc_backlogmax.SetValue(setting.backlogmax_init)
+        self.expand.ch_expanddrawing.SetSelection(0)
+        if setting.expandmode_init == "FullScreen":
+            self.expand.cb_fullscreen.SetValue(True)
+        else:
+            self.expand.ch_expanddrawing.SetSelection(int(setting.expandmode_init) - 1)
+            self.expand.cb_fullscreen.SetValue(False)
+        self.expand.make_expandinfo()
+        self.expand.cb_smoothexpand.SetValue(setting.smoothexpand_init)
+        self.sc_initmoneyamount.SetValue(setting.initmoneyamount_init)
+        self.cb_initmoneyisinitialcash.SetValue(setting.initmoneyisinitialcash_init)
+        self.sc_initmoneyamount.Enable(not self.cb_initmoneyisinitialcash.GetValue())
+        self.cb_autosavepartyrecord.SetValue(setting.autosave_partyrecord_init)
+        self.cb_overwritepartyrecord.SetValue(setting.overwrite_partyrecord_init)
+        self.cb_overwritepartyrecord.Enable(self.cb_autosavepartyrecord.GetValue())
+        self.tx_ssinfoformat.SetValue(setting.ssinfoformat_init)
+        self.tx_ssfnameformat.SetValue(setting.ssfnameformat_init)
+        self.tx_cardssfnameformat.SetValue(setting.cardssfnameformat_init)
+        self.ch_ssinfocolor.Select(1 if setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
+
     def OnSSTool(self, event):
         if self.ti_ssins.GetId() == event.GetId():
             self.sstoolbar.PopupMenu(self.ssinsmenu)
@@ -1779,33 +1588,33 @@ class DrawingSettingPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def load(self, setting):
+    def load(self, setting, local):
         self.cb_smooth_bg.SetValue(setting.smoothscale_bg)
         self.cb_smoothing_card_up.SetValue(setting.smoothing_card_up)
         self.cb_smoothing_card_down.SetValue(setting.smoothing_card_down)
         self.cb_whitecursor.SetValue(setting.cursor_type == cw.setting.CURSOR_WHITE)
-        self.cs_mwin.SetColour(setting.local_mwincolour)
-        self.cs_blwin.SetColour(setting.local_blwincolour)
-        self.sc_mwin.SetValue(setting.local_mwincolour[3])
-        self.cs_mframe.SetColour(setting.local_mwinframecolour)
-        self.cs_blframe.SetColour(setting.local_blwinframecolour)
-        self.sc_mframe.SetValue(setting.local_mwinframecolour[3])
-        self.cs_blcurtain.SetColour(setting.local_blcurtaincolour)
-        self.sc_blcurtain.SetValue(setting.local_blcurtaincolour[3])
-        self.cs_curtain.SetColour(setting.local_curtaincolour)
-        self.sc_curtain.SetValue(setting.local_curtaincolour[3])
+        self.cs_mwin.SetColour(local.mwincolour)
+        self.cs_blwin.SetColour(local.blwincolour)
+        self.sc_mwin.SetValue(local.mwincolour[3])
+        self.cs_mframe.SetColour(local.mwinframecolour)
+        self.cs_blframe.SetColour(local.blwinframecolour)
+        self.sc_mframe.SetValue(local.mwinframecolour[3])
+        self.cs_blcurtain.SetColour(local.blcurtaincolour)
+        self.sc_blcurtain.SetValue(local.blcurtaincolour[3])
+        self.cs_curtain.SetColour(local.curtaincolour)
+        self.sc_curtain.SetValue(local.curtaincolour[3])
 
-        if setting.local_fullscreenbackgroundtype == 0:
+        if local.fullscreenbackgroundtype == 0:
             self.ch_fscrbacktype.SetSelection(0)
             self.tx_fscrbackfile.SetValue(u"")
-        elif setting.local_fullscreenbackgroundtype == 1:
+        elif local.fullscreenbackgroundtype == 1:
             self.ch_fscrbacktype.SetSelection(1)
-            self.tx_fscrbackfile.SetValue(setting.local_fullscreenbackgroundfile)
-        elif setting.local_fullscreenbackgroundtype == 2:
-            if setting.local_fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
+            self.tx_fscrbackfile.SetValue(local.fullscreenbackgroundfile)
+        elif local.fullscreenbackgroundtype == 2:
+            if local.fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
                 self.ch_fscrbacktype.SetSelection(2)
                 self.tx_fscrbackfile.SetValue(u"")
-            elif setting.local_fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
+            elif local.fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
                 self.ch_fscrbacktype.SetSelection(3)
                 self.tx_fscrbackfile.SetValue(u"")
             else:
@@ -1816,6 +1625,107 @@ class DrawingSettingPanel(wx.Panel):
         self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
 
         self.speed.load(setting)
+
+    def init_values(self, setting, local):
+        self.cb_smoothing_card_up.SetValue(setting.smoothing_card_up_init)
+        self.cb_smoothing_card_down.SetValue(setting.smoothing_card_down_init)
+        self.cb_smooth_bg.SetValue(setting.smoothscale_bg_init)
+        self.cb_whitecursor.SetValue(setting.cursor_type_init == cw.setting.CURSOR_WHITE)
+        self.speed.sl_deal.SetValue(setting.dealspeed_init)
+        self.speed.sl_deal_battle.SetValue(setting.dealspeed_battle_init)
+        self.speed.cb_use_battlespeed.SetValue(not setting.use_battlespeed_init)
+        self.speed.sl_deal_battle.Enable(setting.use_battlespeed_init)
+        self.speed.sl_msgs.SetValue(setting.messagespeed_init)
+        self.speed.ch_tran.SetSelection(self.speed.transitions.index(setting.transition_init))
+        self.speed.sl_tran.SetValue(setting.transitionspeed_init)
+        self.sc_mwin.SetValue(local.mwincolour_init[3])
+        self.cs_mwin.SetColour(local.mwincolour_init[:3])
+        self.sc_mframe.SetValue(local.mwinframecolour_init[3])
+        self.cs_mframe.SetColour(local.mwinframecolour_init[:3])
+        self.cs_blwin.SetColour(local.blwincolour_init[:3])
+        self.cs_blframe.SetColour(local.blwinframecolour_init[:3])
+        self.sc_blcurtain.SetValue(local.blcurtaincolour_init[3])
+        self.cs_blcurtain.SetColour(local.blcurtaincolour_init[:3])
+        self.sc_curtain.SetValue(local.curtaincolour_init[3])
+        self.cs_curtain.SetColour(local.curtaincolour_init[:3])
+
+        if local.fullscreenbackgroundtype_init == 2:
+            self.tx_fscrbackfile.SetValue("")
+            if local.fullscreenbackgroundfile_init == u"Resource/Image/Dialog/CAUTION":
+                self.ch_fscrbacktype.Select(2)
+            else:
+                self.ch_fscrbacktype.Select(3)
+        elif local.fullscreenbackgroundtype_init == 1:
+            self.tx_fscrbackfile.SetValue(local.fullscreenbackgroundfile_init)
+            self.ch_fscrbacktype.Select(1)
+        else:
+            self.tx_fscrbackfile.SetValue("")
+            self.ch_fscrbacktype.Select(0)
+        self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
+        self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
+
+    def apply_localsettings(self, local):
+        updatemessage = False
+        alpha = self.sc_mwin.GetValue()
+        colour = self.cs_mwin.GetColour()
+        colour = (colour[0], colour[1], colour[2], alpha)
+        local.mwincolour = colour
+        updatemessage |= local.mwincolour <> colour
+        alpha = self.sc_mframe.GetValue()
+        colour = self.cs_mframe.GetColour()
+        colour = (colour[0], colour[1], colour[2], alpha)
+        updatemessage |= local.mwinframecolour <> colour
+        local.mwinframecolour = colour
+        # 配色(バックログ)
+        alpha = self.sc_mwin.GetValue()
+        colour = self.cs_blwin.GetColour()
+        colour = (colour[0], colour[1], colour[2], alpha)
+        updatemessage |= local.blwincolour <> colour
+        local.blwincolour = colour
+        alpha = self.sc_mframe.GetValue()
+        colour = self.cs_blframe.GetColour()
+        colour = (colour[0], colour[1], colour[2], alpha)
+        updatemessage |= local.blwinframecolour <> colour
+        local.blwinframecolour = colour
+
+        updatecurtain = False
+        # 配色(メッセージログカーテン)
+        alpha = self.sc_blcurtain.GetValue()
+        colour = self.cs_blcurtain.GetColour()
+        colour = (colour[0], colour[1], colour[2], alpha)
+        updatecurtain |= local.blcurtaincolour <> colour
+        local.blcurtaincolour = colour
+        # 配色(選択モードカーテン)
+        alpha = self.sc_curtain.GetValue()
+        colour = self.cs_curtain.GetColour()
+        colour = (colour[0], colour[1], colour[2], alpha)
+        updatecurtain |= local.curtaincolour <> colour
+        local.curtaincolour = colour
+
+        # フルスクリーンの背景
+        value = self.ch_fscrbacktype.GetSelection()
+        fullscreenbackgroundfile = local.fullscreenbackgroundfile
+        fullscreenbackgroundtype = local.fullscreenbackgroundtype
+        if value == 0:
+            fullscreenbackgroundfile = u""
+            fullscreenbackgroundtype = 0
+        elif value == 1:
+            fullscreenbackgroundfile = self.tx_fscrbackfile.GetValue()
+            fullscreenbackgroundtype = 1
+        elif value == 2:
+            fullscreenbackgroundfile = u"Resource/Image/Dialog/CAUTION"
+            fullscreenbackgroundtype = 2
+        elif value == 3:
+            fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+            fullscreenbackgroundtype = 2
+
+        updatefullscreen = fullscreenbackgroundfile <> local.fullscreenbackgroundfile or\
+                           fullscreenbackgroundtype <> local.fullscreenbackgroundtype
+
+        local.fullscreenbackgroundfile = fullscreenbackgroundfile
+        local.fullscreenbackgroundtype = fullscreenbackgroundtype
+
+        return updatemessage, updatecurtain, updatefullscreen
 
     def _bind(self):
         self.ch_fscrbacktype.Bind(wx.EVT_CHOICE, self.OnFullScreenBackgroundType, id=self.ch_fscrbacktype.GetId())
@@ -1959,6 +1869,19 @@ class AudioSettingPanel(wx.Panel):
         self.sl_sound.SetValue(n)
         self.list_soundfont.DeleteAllItems()
         for index, soundfont in enumerate(setting.soundfonts):
+            sfont, use = soundfont
+            self.list_soundfont.InsertStringItem(index, sfont)
+            self.list_soundfont.CheckItem(index, use)
+
+    def init_values(self, setting):
+        self.cb_playbgm.SetValue(setting.play_bgm_init)
+        self.cb_playsound.SetValue(setting.play_sound_init)
+        self.sl_master.SetValue(int(setting.vol_master_init * 100))
+        self.sl_music.SetValue(int(setting.vol_bgm_init * 100))
+        self.sl_midi.SetValue(int(setting.vol_midi_init * 100))
+        self.sl_sound.SetValue(int(setting.vol_sound_init * 100))
+        self.list_soundfont.DeleteAllItems()
+        for index, soundfont in enumerate(setting.soundfonts_init):
             sfont, use = soundfont
             self.list_soundfont.InsertStringItem(index, sfont)
             self.list_soundfont.CheckItem(index, use)
@@ -2170,6 +2093,13 @@ class ScenarioSettingPanel(wx.Panel):
         self.tx_editor.SetValue(setting.editor)
         self.tx_filer_dir.SetValue(setting.filer_dir)
         self.tx_filer_file.SetValue(setting.filer_file)
+
+    def init_values(self, setting):
+        self.tx_editor.SetValue(setting.editor_init)
+        self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype_init)
+        self.cb_show_paperandtree.SetValue(setting.show_paperandtree)
+        self.tx_filer_dir.SetValue(setting.filer_dir_init)
+        self.tx_filer_file.SetValue(setting.filer_file_init)
 
     def OnGirdSelectCell(self, event):
         if self.celleditor:
@@ -2550,6 +2480,51 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_confirmbeforeusingcard.SetValue(setting.confirm_beforeusingcard)
         self.cb_noticeimpossibleaction.SetValue(setting.noticeimpossibleaction)
 
+    def init_values(self, setting):
+        self.cb_can_skipwait.SetValue(setting.can_skipwait_init)
+        self.cb_can_skipanimation.SetValue(setting.can_skipanimation_init)
+        self.cb_wait_usecard.SetValue(setting.wait_usecard_init)
+        self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick_init)
+        self.cb_autoenter_on_sprite.SetValue(setting.autoenter_on_sprite_init)
+
+        self.cb_quickdeal.SetValue(setting.quickdeal_init)
+        self.cb_allquickdeal.SetValue(setting.all_quickdeal_init)
+        self.cb_showallselectedcards.SetValue(setting.show_allselectedcards_init)
+        self.cb_showstatustime.SetValue(setting.show_statustime_init)
+        self.cb_show_cardkind.SetValue(setting.show_cardkind_init)
+        self.cb_show_premiumicon.SetValue(setting.show_premiumicon_init)
+        self.cb_showroundautostartbutton.SetValue(setting.show_roundautostartbutton_init)
+        self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog_init)
+        self.cb_protect_staredcard.SetValue(setting.protect_staredcard_init)
+        self.cb_protect_premiercard.SetValue(setting.protect_premiercard_init)
+
+        self.cb_show_btndesc.SetValue(setting.show_btndesc_init)
+        self.cb_statusbarmask.SetValue(setting.statusbarmask_init)
+        self.cb_blink_statusbutton.SetValue(setting.blink_statusbutton_init)
+        self.cb_blink_partymoney.SetValue(setting.blink_partymoney_init)
+
+        self.cb_show_advancedsettings.SetValue(setting.show_advancedsettings_init)
+        self.cb_show_addctrlbtn.SetValue(setting.show_addctrlbtn_init)
+        self.cb_show_experiencebar.SetValue(setting.show_experiencebar_init)
+
+        if cw.setting.CONFIRM_BEFORESAVING_BASE == setting.confirm_beforesaving_init:
+            self.ch_confirm_beforesaving.SetSelection(1)
+        elif not cw.util.str2bool(setting.confirm_beforesaving_init):
+            self.ch_confirm_beforesaving.SetSelection(2)
+        else:
+            self.ch_confirm_beforesaving.SetSelection(0)
+        self.cb_showsavedmessage.SetValue(setting.show_savedmessage_init)
+        self.cb_cautionbeforesaving.SetValue(setting.caution_beforesaving_init)
+        self.cb_store_skinoneachbase.SetValue(setting.store_skinoneachbase_init)
+
+        self.cb_showbackpackcard.SetValue(setting.show_backpackcard_init)
+        self.cb_showbackpackcardatend.SetValue(setting.show_backpackcardatend_init)
+        self.cb_can_clicksidesofcardcontrol.SetValue(setting.can_clicksidesofcardcontrol_init)
+        self.cb_revertcardpocket.SetValue(setting.revert_cardpocket_init)
+        self.cb_showlogwithwheelup.SetValue(setting.wheelup_operation_init == cw.setting.WHEEL_SHOWLOG)
+        self.cb_confirmbeforeusingcard.SetValue(setting.confirm_beforeusingcard_init)
+        self.cb_noticeimpossibleaction.SetValue(setting.noticeimpossibleaction_init)
+
     def OnQuickDeal(self, event):
         if not self.cb_quickdeal.GetValue():
             self.cb_allquickdeal.SetValue(False)
@@ -2691,7 +2666,7 @@ class FontSettingPanel(wx.Panel):
         self.choicetypes = create_grid(self.type, self.types, self._types, 5, 120)
 
         for i, name, in enumerate(self.bases):
-            str_font = cw.cwpy.setting.local_basefont[name]
+            str_font = cw.cwpy.setting.local.basefont[name]
             if not str_font:
                 str_font = self.str_default
             self.base.SetCellValue(i, 0, str_font)
@@ -2705,7 +2680,7 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColLabelValue(4, u"斜体")
         self.type.SetColSize(4, 70)
         for i, name in enumerate(self.types):
-            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = cw.cwpy.setting.local_fonttypes_init[name]
+            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = cw.cwpy.setting.local.fonttypes_init[name]
             if 0 < defpixels:
                 self.type.SetCellEditor(i, 1, wx.grid.GridCellNumberEditor(1, 99))
                 self.type.SetCellRenderer(i, 1, wx.grid.GridCellNumberRenderer())
@@ -2739,7 +2714,7 @@ class FontSettingPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def load(self, setting):
+    def load(self, setting, local):
         self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
         self.cb_decorationfont.SetValue(setting.decorationfont)
         self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname)
@@ -2751,7 +2726,7 @@ class FontSettingPanel(wx.Panel):
 
         create_grid(self.base, self.bases)
         for i, name, in enumerate(self.bases):
-            str_font = setting.local_basefont[name]
+            str_font = local.basefont[name]
             if not str_font:
                 str_font = self.str_default
             self.base.SetCellValue(i, 0, str_font)
@@ -2768,8 +2743,8 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColSize(4, 70)
 
         for i, name in enumerate(self.types):
-            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = setting.local_fonttypes_init[name]
-            fonttype, face, pixels, bold, bold_upscr, italic = setting.local_fonttypes[name]
+            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.fonttypes_init[name]
+            fonttype, face, pixels, bold, bold_upscr, italic = local.fonttypes[name]
             if fonttype:
                 self.type.SetCellValue(i, 0, u"[%s]" % (self.typenames[fonttype]))
             else:
@@ -2795,6 +2770,79 @@ class FontSettingPanel(wx.Panel):
 
         self._select_base(self.base.GetGridCursorRow())
         self.Layout()
+
+    def init_values(self, setting, local):
+        for i, basename in enumerate(self.bases):
+            name = local.basefont_init[basename]
+            if not name:
+                name = self.str_default
+            self.base.SetCellValue(i, 0, name)
+        for i, typename in enumerate(self.types):
+            fonttype, name, pixels, bold, bold_upscr, italic = local.fonttypes_init[typename]
+            if fonttype:
+                name = u"[%s]" % (self.typenames[fonttype])
+            self.type.SetCellValue(i, 0, name)
+            self.type.SetCellValue(i, 1, str(pixels) if 0 < pixels else u"-")
+            self.type.SetCellValue(i, 2, (u"1" if bold else u"") if not bold is None else u"-")
+            self.type.SetCellValue(i, 3, (u"1" if bold_upscr else u"") if not bold_upscr is None else u"-")
+            self.type.SetCellValue(i, 4, (u"1" if italic else u"") if not italic is None else u"-")
+        self.cb_bordering_cardname.SetValue(setting.bordering_cardname_init)
+        self.cb_decorationfont.SetValue(setting.decorationfont_init)
+        self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname_init)
+        self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar_init)
+
+    def apply_localsettings(self, local):
+        flag_fontupdate = False
+
+        basetable = {}
+        basefont = {}
+        for i, basename in enumerate(self.bases):
+            value = self.base.GetCellValue(i, 0)
+            if value == self.str_default:
+                value = u""
+            basefont[basename] = value
+            basetable[u"[%s]" % (self.typenames[basename])] = basename
+        fonttypes = {}
+        for i, typename in enumerate(self.types):
+            value = self.type.GetCellValue(i, 0)
+            pixels = self.type.GetCellValue(i, 1)
+            try:
+                if pixels <> u"-":
+                    pixels = int(pixels)
+                else:
+                    pixels = -1
+            except:
+                pixels = -1
+            bold = self.type.GetCellValue(i, 2)
+            if bold in (u"1", u""):
+                bold = bold == u"1"
+            else:
+                bold = None
+            bold_upscr = self.type.GetCellValue(i, 3)
+            if bold_upscr in (u"1", u""):
+                bold_upscr = bold_upscr == u"1"
+            else:
+                bold_upscr = None
+            italic = self.type.GetCellValue(i, 4)
+            if italic in (u"1", u""):
+                italic = italic == u"1"
+            else:
+                italic = None
+            fonttype = basetable.get(value, "")
+            if fonttype:
+                fonttypes[typename] = (fonttype, u"", pixels, bold, bold_upscr, italic)
+            else:
+                fonttypes[typename] = (u"", value, pixels, bold, bold_upscr, italic)
+
+        # フォント変更チェック
+        if basefont <> local.basefont:
+            local.basefont = basefont
+            flag_fontupdate = True
+        if fonttypes <> local.fonttypes:
+            local.fonttypes = fonttypes
+            flag_fontupdate = True
+
+        return flag_fontupdate
 
     def _bind(self):
         self.base.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontBase)

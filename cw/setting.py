@@ -71,6 +71,173 @@ SB_DISABLE   = 0b00000100 # 無効状態
 SB_NOTICE    = 0b00001000 # 通知
 SB_EMPHASIZE = 0b00010000 # 強調
 
+
+class LocalSetting(object):
+
+    def __init__(self):
+        """スキンで上書き可能な設定。"""
+        self.important_draw = False
+        self.important_font = False
+
+        self.mwincolour = (0, 0, 80, 180)
+        self.mwinframecolour = (128, 0, 0, 255)
+        self.blwincolour = (80, 80, 80, 180)
+        self.blwinframecolour = (128, 128, 128, 255)
+        self.curtaincolour = (0, 0, 80, 128)
+        self.blcurtaincolour = (0, 0, 0, 192)
+        self.fullscreenbackgroundtype = 2
+        self.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+        self.basefont = {
+            "gothic": "",
+            "uigothic": "",
+            "mincho": "",
+            "pmincho": "",
+            "pgothic": "",
+        }
+        self.fonttypes = {
+            "button": ("uigothic", "", -1, True, True, False),
+            "combo": ("uigothic", "", -1, False, False, False),
+            "slider": ("gothic", "", -1, False, False, False),
+            "spin": ("gothic", "", -1, False, False, False),
+            "tree": ("gothic", "", -1, False, False, False),
+            "list": ("uigothic", "", -1, False, False, False),
+            "tab": ("uigothic", "", -1, True, True, False),
+            "menu": ("uigothic", "", -1, False, False, False),
+            "scenario": ("pmincho", "", -1, True, True, False),
+            "targetlevel": ("mincho", "", -1, True, True, True),
+            "paneltitle": ("uigothic", "", -1, True, True, False),
+            "paneltitle2": ("uigothic", "", -1, False, False, False),
+            "dlgmsg": ("uigothic", "", -1, True, True, False),
+            "dlgmsg2": ("uigothic", "", -1, False, False, False),
+            "dlgtitle": ("mincho", "", -1, True, True, False),
+            "dlgtitle2": ("mincho", "", -1, True, True, True),
+            "createtitle": ("mincho", "", -1, True, True, True),
+            "inputname": ("mincho", "", -1, True, True, False),
+            "datadesc": ("gothic", "", -1, False, False, False),
+            "charadesc": ("mincho", "", -1, True, True, False),
+            "charaparam": ("pmincho", "", -1, True, True, True),
+            "charaparam2": ("uigothic", "", -1, True, True, False),
+            "characre": ("pgothic", "", -1, True, True, False),
+            "dlglist": ("mincho", "", -1, True, True, False),
+            "uselimit": ("mincho", "", 18, False, False, False),
+            "cardname": ("uigothic", "", 13, True, True, False),
+            "ccardname": ("uigothic", "", 15, True, True, False),
+            "level": ("mincho", "", 33, False, False, True),
+            "numcards": ("uigothic", "", 18, False, False, False),
+            "message": ("", u"IPA明朝", 22, True, True, False),
+            "selectionbar": ("uigothic", "", 15, True, True, False),
+            "logpage": ("mincho", "", 24, False, False, False),
+            "sbarpanel": ("mincho", "", 16, True, True, False),
+            "sbarprogress": ("mincho", "", 16, True, True, False),
+            "sbarbtn": ("uigothic", "", 14, True, True, False),
+            "statusnum": ("mincho", "", 12, True, True, False),  # 桁が増える毎に-2
+            "sbardesctitle": ("pgothic", "", 14, True, True, False),
+            "sbardesc": ("pgothic", "", 14, False, False, False),
+            "screenshot": ("uigothic", "", 18, False, False, False),
+        }
+
+        # Windowsのフォントが使用可能であれば標準フォントを差し替える
+        if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
+            self.basefont["uigothic"] = u"MS UI Gothic"
+        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
+            self.basefont["mincho"] = u"ＭＳ 明朝"
+        if u"ＭＳ Ｐ明朝" in wx.FontEnumerator.GetFacenames():
+            self.basefont["pmincho"] = u"ＭＳ Ｐ明朝"
+        if u"ＭＳ ゴシック" in wx.FontEnumerator.GetFacenames():
+            self.basefont["gothic"] = u"ＭＳ ゴシック"
+        if u"ＭＳ Ｐゴシック" in wx.FontEnumerator.GetFacenames():
+            self.basefont["pgothic"] = u"ＭＳ Ｐゴシック"
+
+        for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
+            if not t[0].startswith("__"):
+                if isinstance(t[1], list):
+                    v = t[1][:]
+                elif hasattr(t[1], "copy"):
+                    v = t[1].copy()
+                else:
+                    v = t[1]
+                setattr(self, "%s_init" % (t[0]), v)
+
+    def load(self, data):
+        """dataから設定をロードする。"""
+        # 基本設定を上書きするか。
+        self.important_draw = data.getbool(".", "importantdrawing", False)
+        self.important_font = data.getbool(".", "importantfont", False)
+
+        # メッセージウィンドウの色と透明度
+        r = data.getint("MessageWindowColor", "red", self.mwincolour[0])
+        g = data.getint("MessageWindowColor", "green", self.mwincolour[1])
+        b = data.getint("MessageWindowColor", "blue", self.mwincolour[2])
+        a = data.getint("MessageWindowColor", "alpha", self.mwincolour[3])
+        self.mwincolour = Setting.wrap_colorvalue(r, g, b, a)
+        r = data.getint("MessageWindowFrameColor", "red", self.mwinframecolour[0])
+        g = data.getint("MessageWindowFrameColor", "green", self.mwinframecolour[1])
+        b = data.getint("MessageWindowFrameColor", "blue", self.mwinframecolour[2])
+        a = data.getint("MessageWindowFrameColor", "alpha", self.mwinframecolour[3])
+        self.mwinframecolour = Setting.wrap_colorvalue(r, g, b, a)
+        # バックログウィンドウの色と透明度
+        r = data.getint("MessageLogWindowColor", "red", self.blwincolour[0])
+        g = data.getint("MessageLogWindowColor", "green", self.blwincolour[1])
+        b = data.getint("MessageLogWindowColor", "blue", self.blwincolour[2])
+        a = data.getint("MessageLogWindowColor", "alpha", self.blwincolour[3])
+        self.blwincolour = Setting.wrap_colorvalue(r, g, b, a)
+        r = data.getint("MessageLogWindowFrameColor", "red", self.blwinframecolour[0])
+        g = data.getint("MessageLogWindowFrameColor", "green", self.blwinframecolour[1])
+        b = data.getint("MessageLogWindowFrameColor", "blue", self.blwinframecolour[2])
+        a = data.getint("MessageLogWindowFrameColor", "alpha", self.blwinframecolour[3])
+        self.blwinframecolour = Setting.wrap_colorvalue(r, g, b, a)
+        # メッセージログカーテン色
+        r = data.getint("MessageLogCurtainColor", "red", self.blcurtaincolour[0])
+        g = data.getint("MessageLogCurtainColor", "green", self.blcurtaincolour[1])
+        b = data.getint("MessageLogCurtainColor", "blue", self.blcurtaincolour[2])
+        a = data.getint("MessageLogCurtainColor", "alpha", self.blcurtaincolour[3])
+        self.blcurtaincolour = (r, g, b, a)
+        # カーテン色
+        r = data.getint("CurtainColor", "red", self.curtaincolour[0])
+        g = data.getint("CurtainColor", "green", self.curtaincolour[1])
+        b = data.getint("CurtainColor", "blue", self.curtaincolour[2])
+        a = data.getint("CurtainColor", "alpha", self.curtaincolour[3])
+        self.curtaincolour = (r, g, b, a)
+
+        # フォント名(空白時デフォルト)
+        self.basefont["gothic"] = data.gettext("FontGothic", self.basefont["gothic"])
+        self.basefont["uigothic"] = data.gettext("FontUIGothic", self.basefont["uigothic"])
+        self.basefont["mincho"] = data.gettext("FontMincho", self.basefont["mincho"])
+        self.basefont["pmincho"] = data.gettext("FontPMincho", self.basefont["pmincho"])
+        self.basefont["pgothic"] = data.gettext("FontPGothic", self.basefont["pgothic"])
+        # 役割別フォント
+        for e in data.getfind("Fonts", raiseerror=False):
+            key = e.getattr(".", "key", "")
+            if not key or not key in self.fonttypes:
+                continue
+            _deftype, _defname, defpixels, defbold, defbold_upscr, defitalic = self.fonttypes[key]
+
+            fonttype = e.getattr(".", "type", "")
+            name = e.text if e.text else u""
+            pixels = e.getint(".", "pixels", defpixels)
+            bold = e.getattr(".", "bold", "")
+            if bold == "":
+                bold = defbold
+            else:
+                bold = cw.util.str2bool(bold)
+            bold_upscr = e.getattr(".", "expandedbold", "")
+            if bold_upscr == "":
+                bold_upscr = defbold_upscr
+            else:
+                bold_upscr = cw.util.str2bool(bold_upscr)
+            italic = e.getattr(".", "italic", "")
+            if italic == "":
+                italic = defitalic
+            else:
+                italic = cw.util.str2bool(italic)
+            self.fonttypes[key] = (fonttype, name, pixels, bold, bold_upscr, italic)
+
+        # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
+        self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", self.fullscreenbackgroundtype)
+        # フルスクリーン時の背景ファイル
+        self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", self.fullscreenbackgroundfile)
+
+
 class Setting(object):
     def __init__(self, loadfile=None, init=True):
         # Settings
@@ -84,7 +251,11 @@ class Setting(object):
         path = cw.util.join_paths("Data/SkinBase/Skin.xml")
         basedata = cw.data.xml2etree(path)
 
+        self.skin_local = LocalSetting()
+
         # "Settings.xml"がなかったら新しく作る
+        self.local = LocalSetting()
+
         self.show_advancedsettings = False
         self.editor = "cwxeditor"
         self.startupscene = OPEN_TITLE
@@ -108,12 +279,6 @@ class Setting(object):
         self.soundfonts = [(cw.DEFAULT_SOUNDFONT, True)]
         self.messagespeed = 5
         self.decorationfont = False
-        self.local_mwincolour = (0, 0, 80, 180)
-        self.local_mwinframecolour = (128, 0, 0, 255)
-        self.local_blwincolour = (80, 80, 80, 180)
-        self.local_blwinframecolour = (128, 128, 128, 255)
-        self.local_curtaincolour = (0, 0, 80, 128)
-        self.local_blcurtaincolour = (0, 0, 0, 192)
         self.dealspeed = 5
         self.dealspeed_battle = 5
         self.wait_usecard = True
@@ -160,8 +325,6 @@ class Setting(object):
         self.autosave_partyrecord = True
         self.overwrite_partyrecord = True
         self.folderoftype = []
-        self.local_fullscreenbackgroundtype = 2
-        self.local_fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
         self.scenario_narrow = ""
         self.scenario_narrowtype = 0
         self.scenario_sorttype = 0
@@ -222,67 +385,6 @@ class Setting(object):
         self.show_multipleplayers = False
         self.show_scenariotree = False
 
-        self.local_basefont = {
-            "gothic"  : "",
-            "uigothic": "",
-            "mincho"  : "",
-            "pmincho" : "",
-            "pgothic" : "",
-        }
-        self.local_fonttypes = {
-            "button"       : ("uigothic", "", -1, True, True, False),
-            "combo"        : ("uigothic", "", -1, False, False, False),
-            "slider"       : ("gothic",   "", -1, False, False, False),
-            "spin"         : ("gothic",   "", -1, False, False, False),
-            "tree"         : ("gothic",   "", -1, False, False, False),
-            "list"         : ("uigothic", "", -1, False, False, False),
-            "tab"          : ("uigothic", "", -1, True, True, False),
-            "menu"         : ("uigothic", "", -1, False, False, False),
-            "scenario"     : ("pmincho",  "", -1, True, True, False),
-            "targetlevel"  : ("mincho",   "", -1, True, True, True),
-            "paneltitle"   : ("uigothic", "", -1, True, True, False),
-            "paneltitle2"  : ("uigothic", "", -1, False, False, False),
-            "dlgmsg"       : ("uigothic", "", -1, True, True, False),
-            "dlgmsg2"      : ("uigothic", "", -1, False, False, False),
-            "dlgtitle"     : ("mincho",   "", -1, True, True, False),
-            "dlgtitle2"    : ("mincho",   "", -1, True, True, True),
-            "createtitle"  : ("mincho",   "", -1, True, True, True),
-            "inputname"    : ("mincho",   "", -1, True, True, False),
-            "datadesc"     : ("gothic",   "", -1, False, False, False),
-            "charadesc"    : ("mincho",   "", -1, True, True, False),
-            "charaparam"   : ("pmincho",  "", -1, True, True, True),
-            "charaparam2"  : ("uigothic", "", -1, True, True, False),
-            "characre"     : ("pgothic",  "", -1, True, True, False),
-            "dlglist"      : ("mincho",   "", -1, True, True, False),
-            "uselimit"     : ("mincho",   "", 18, False, False, False),
-            "cardname"     : ("uigothic", "", 13, True, True, False),
-            "ccardname"    : ("uigothic", "", 15, True, True, False),
-            "level"        : ("mincho",   "", 33, False, False, True),
-            "numcards"     : ("uigothic", "", 18, False, False, False),
-            "message"      : ("", u"IPA明朝", 22, True, True, False),
-            "selectionbar" : ("uigothic", "", 15, True, True, False),
-            "logpage"      : ("mincho",   "", 24, False, False, False),
-            "sbarpanel"    : ("mincho",   "", 16, True, True, False),
-            "sbarprogress" : ("mincho",   "", 16, True, True, False),
-            "sbarbtn"      : ("uigothic", "", 14, True, True, False),
-            "statusnum"    : ("mincho",   "", 12, True, True, False), # 桁が増える毎に-2
-            "sbardesctitle": ("pgothic",  "", 14, True, True, False),
-            "sbardesc"     : ("pgothic",  "", 14, False, False, False),
-            "screenshot"   : ("uigothic", "", 18, False, False, False),
-        }
-
-        # Windowsのフォントが使用可能であれば標準フォントを差し替える
-        if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
-            self.local_basefont["uigothic"] = u"MS UI Gothic"
-        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
-            self.local_basefont["mincho"] = u"ＭＳ 明朝"
-        if u"ＭＳ Ｐ明朝" in wx.FontEnumerator.GetFacenames():
-            self.local_basefont["pmincho"] = u"ＭＳ Ｐ明朝"
-        if u"ＭＳ ゴシック" in wx.FontEnumerator.GetFacenames():
-            self.local_basefont["gothic"] = u"ＭＳ ゴシック"
-        if u"ＭＳ Ｐゴシック" in wx.FontEnumerator.GetFacenames():
-            self.local_basefont["pgothic"] = u"ＭＳ Ｐゴシック"
-
         self.fontsmoothing_cardname = True
         self.fontsmoothing_statusbar = True
 
@@ -314,6 +416,8 @@ class Setting(object):
             return
 
         data = self.data
+
+        self.local.load(data)
 
         # 最初から詳細モードで設定を行う
         self.show_advancedsettings = data.getbool("ShowAdvancedSettings", self.show_advancedsettings)
@@ -372,16 +476,16 @@ class Setting(object):
         self.play_sound = data.getbool("PlaySound", self.play_sound)
         # 音声全体のボリューム(0～1.0)
         self.vol_master = data.getint("MasterVolume", int(self.vol_master*100))
-        self.vol_master = self.wrap_volumevalue(self.vol_master)
+        self.vol_master = Setting.wrap_volumevalue(self.vol_master)
         # 音楽のボリューム(0～1.0)
         self.vol_bgm = data.getint("BgmVolume", int(self.vol_bgm*100))
-        self.vol_bgm = self.wrap_volumevalue(self.vol_bgm)
+        self.vol_bgm = Setting.wrap_volumevalue(self.vol_bgm)
         # midi音楽のボリューム(0～1.0)
         self.vol_midi = data.getint("BgmVolume", "midi", int(self.vol_midi*100))
-        self.vol_midi = self.wrap_volumevalue(self.vol_midi)
+        self.vol_midi = Setting.wrap_volumevalue(self.vol_midi)
         # 効果音ボリューム
         self.vol_sound = data.getint("SoundVolume", int(self.vol_sound*100))
-        self.vol_sound = self.wrap_volumevalue(self.vol_sound)
+        self.vol_sound = Setting.wrap_volumevalue(self.vol_sound)
         # MIDIサウンドフォント
         elements = data.find("SoundFonts", False)
         if not elements is None:
@@ -394,40 +498,6 @@ class Setting(object):
         self.messagespeed = cw.util.numwrap(self.messagespeed, 0, 100)
         # メッセージで装飾フォントを使用する
         self.decorationfont = data.getbool("DecorationFont", self.decorationfont)
-        # メッセージウィンドウの色と透明度
-        r = data.getint("MessageWindowColor", "red", self.local_mwincolour[0])
-        g = data.getint("MessageWindowColor", "green", self.local_mwincolour[1])
-        b = data.getint("MessageWindowColor", "blue", self.local_mwincolour[2])
-        a = data.getint("MessageWindowColor", "alpha", self.local_mwincolour[3])
-        self.local_mwincolour = self.wrap_colorvalue(r, g, b, a)
-        r = data.getint("MessageWindowFrameColor", "red", self.local_mwinframecolour[0])
-        g = data.getint("MessageWindowFrameColor", "green", self.local_mwinframecolour[1])
-        b = data.getint("MessageWindowFrameColor", "blue", self.local_mwinframecolour[2])
-        a = data.getint("MessageWindowFrameColor", "alpha", self.local_mwinframecolour[3])
-        self.local_mwinframecolour = self.wrap_colorvalue(r, g, b, a)
-        # バックログウィンドウの色と透明度
-        r = data.getint("MessageLogWindowColor", "red", self.local_blwincolour[0])
-        g = data.getint("MessageLogWindowColor", "green", self.local_blwincolour[1])
-        b = data.getint("MessageLogWindowColor", "blue", self.local_blwincolour[2])
-        a = data.getint("MessageLogWindowColor", "alpha", self.local_blwincolour[3])
-        self.local_blwincolour = self.wrap_colorvalue(r, g, b, a)
-        r = data.getint("MessageLogWindowFrameColor", "red", self.local_blwinframecolour[0])
-        g = data.getint("MessageLogWindowFrameColor", "green", self.local_blwinframecolour[1])
-        b = data.getint("MessageLogWindowFrameColor", "blue", self.local_blwinframecolour[2])
-        a = data.getint("MessageLogWindowFrameColor", "alpha", self.local_blwinframecolour[3])
-        self.local_blwinframecolour = self.wrap_colorvalue(r, g, b, a)
-        # メッセージログカーテン色
-        r = data.getint("MessageLogCurtainColor", "red", self.local_blcurtaincolour[0])
-        g = data.getint("MessageLogCurtainColor", "green", self.local_blcurtaincolour[1])
-        b = data.getint("MessageLogCurtainColor", "blue", self.local_blcurtaincolour[2])
-        a = data.getint("MessageLogCurtainColor", "alpha", self.local_blcurtaincolour[3])
-        self.local_blcurtaincolour = (r, g, b, a)
-        # カーテン色
-        r = data.getint("CurtainColor", "red", self.local_curtaincolour[0])
-        g = data.getint("CurtainColor", "green", self.local_curtaincolour[1])
-        b = data.getint("CurtainColor", "blue", self.local_curtaincolour[2])
-        a = data.getint("CurtainColor", "alpha", self.local_curtaincolour[3])
-        self.local_curtaincolour = (r, g, b, a)
         # カードの表示スピード(数字が小さいほど速い)(1～100)
         dealspeed = data.getint("CardDealingSpeed", self.dealspeed)
         # 戦闘行動の表示スピード(数字が小さいほど速い)(1～100)
@@ -469,39 +539,6 @@ class Setting(object):
         self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
         # メッセージログ表示形式
         self.messagelog_type = data.gettext("MessageLogType", self.messagelog_type)
-
-        # フォント名(空白時デフォルト)
-        self.local_basefont["gothic"] = data.gettext("FontGothic", self.local_basefont["gothic"])
-        self.local_basefont["uigothic"] = data.gettext("FontUIGothic", self.local_basefont["uigothic"])
-        self.local_basefont["mincho"] = data.gettext("FontMincho", self.local_basefont["mincho"])
-        self.local_basefont["pmincho"] = data.gettext("FontPMincho", self.local_basefont["pmincho"])
-        self.local_basefont["pgothic"] = data.gettext("FontPGothic", self.local_basefont["pgothic"])
-        # 役割別フォント
-        for e in data.getfind("Fonts", raiseerror=False):
-            key = e.getattr(".", "key", "")
-            if not key or not key in self.local_fonttypes:
-                continue
-            _deftype, _defname, defpixels, defbold, defbold_upscr, defitalic = self.local_fonttypes[key]
-
-            fonttype = e.getattr(".", "type", "")
-            name = e.text if e.text else u""
-            pixels = e.getint(".", "pixels", defpixels)
-            bold = e.getattr(".", "bold", "")
-            if bold == "":
-                bold = defbold
-            else:
-                bold = cw.util.str2bool(bold)
-            bold_upscr = e.getattr(".", "expandedbold", "")
-            if bold_upscr == "":
-                bold_upscr = defbold_upscr
-            else:
-                bold_upscr = cw.util.str2bool(bold_upscr)
-            italic = e.getattr(".", "italic", "")
-            if italic == "":
-                italic = defitalic
-            else:
-                italic = cw.util.str2bool(italic)
-            self.local_fonttypes[key] = (fonttype, name, pixels, bold, bold_upscr, italic)
 
         # カード名の文字を滑らかにする
         self.fontsmoothing_cardname = data.getbool("FontSmoothingCardName", self.fontsmoothing_cardname)
@@ -558,11 +595,6 @@ class Setting(object):
         # シナリオ絞込・整列条件
         self.scenario_narrowtype = data.getint("ScenarioNarrowType", self.scenario_narrowtype)
         self.scenario_sorttype = data.getint("ScenarioSortType", self.scenario_sorttype)
-
-        # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
-        self.local_fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", self.local_fullscreenbackgroundtype)
-        # フルスクリーン時の背景ファイル
-        self.local_fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", self.local_fullscreenbackgroundfile)
 
         # スクリーンショット情報
         self.ssinfoformat = data.gettext("ScreenShotInformationFormat", self.ssinfoformat)
@@ -727,6 +759,11 @@ class Setting(object):
         # 未指定種族
         self.unknown_race = cw.header.UnknownRaceHeader(self)
         self.races.append(self.unknown_race)
+
+        # スキンローカル設定
+        data = basedata.find("Settings")
+        if not data is None:
+            self.skin_local.load(data)
 
     def _update_skin(self, path):
         """旧バージョンのデータの誤りを訂正する。
@@ -979,45 +1016,57 @@ class Setting(object):
         else:
             return self.dealspeed
 
+    def get_drawsetting(self):
+        if self.local.important_draw or not self.skin_local.important_draw:
+            return self.local
+        else:
+            return self.skin_local
+
+    def get_fontsetting(self):
+        if self.local.important_font or not self.skin_local.important_font:
+            return self.local
+        else:
+            return self.skin_local
+
     @property
     def mwincolour(self):
-        return self.local_mwincolour
+        return self.get_drawsetting().mwincolour
 
     @property
     def mwinframecolour(self):
-        return self.local_mwinframecolour
+        return self.get_drawsetting().mwinframecolour
 
     @property
     def blwincolour(self):
-        return self.local_blwincolour
+        return self.get_drawsetting().blwincolour
 
     @property
     def blwinframecolour(self):
-        return self.local_blwinframecolour
+        return self.get_drawsetting().blwinframecolour
 
     @property
     def curtaincolour(self):
-        return self.local_curtaincolour
+        return self.get_drawsetting().curtaincolour
 
     @property
     def blcurtaincolour(self):
-        return self.local_blcurtaincolour
+        return self.get_drawsetting().blcurtaincolour
 
     @property
     def fullscreenbackgroundtype(self):
-        return self.local_fullscreenbackgroundtype
+        return self.get_drawsetting().fullscreenbackgroundtype
 
     @property
     def fullscreenbackgroundfile(self):
-        return self.local_fullscreenbackgroundfile
+        return self.get_drawsetting().fullscreenbackgroundfile
 
     @property
     def basefont(self):
-        return self.local_basefont
+        return self.get_fontsetting().basefont
 
     @property
     def fonttypes(self):
-        return self.local_fonttypes
+        return self.get_fontsetting().fonttypes
 
     def is_logscrollable(self):
         return self.messagelog_type <> LOG_SINGLE
@@ -1025,10 +1074,12 @@ class Setting(object):
     def write(self):
         cw.xmlcreater.create_settings(self)
 
-    def wrap_volumevalue(self, value):
+    @staticmethod
+    def wrap_volumevalue(value):
         return cw.util.numwrap(value, 0, 100) / 100.0
 
-    def wrap_colorvalue(self, r, g, b, a):
+    @staticmethod
+    def wrap_colorvalue(r, g, b, a):
         r = cw.util.numwrap(r, 0, 255)
         g = cw.util.numwrap(g, 0, 255)
         b = cw.util.numwrap(b, 0, 255)
@@ -1246,7 +1297,7 @@ class Resource(object):
 
         # 設定に応じた差し替え
         for basetype in d.iterkeys():
-            font = self.setting().local_basefont[basetype]
+            font = self.setting().local.basefont[basetype]
             if font:
                 d[basetype] = font
 
