@@ -1285,7 +1285,10 @@ class Debugger(wx.Frame):
     def _refresh_areaname(self, force=False):
         assert threading.currentThread() <> cw.cwpy
         s = cw.cwpy.sdata.get_areaname()
-        dc = wx.ClientDC(self.st_area)
+        if sys.platform.startswith("linux"):
+            dc = wx.ClientDC(self)
+        else:
+            dc = wx.ClientDC(self.st_area)
         sep = s.rfind("\\")
         w = self.st_area.GetClientSize()[0]
         if sep == -1:
@@ -1328,7 +1331,10 @@ class Debugger(wx.Frame):
         if cw.cwpy.frame.debugger is None:
             return
         s = cw.cwpy.event.get_selectedmembername()
-        dc = wx.ClientDC(self.st_select)
+        if sys.platform.startswith("linux"):
+            dc = wx.ClientDC(self)
+        else:
+            dc = wx.ClientDC(self.st_select)
         s2 = cw.util.abbr_longstr(dc, s, self.st_select.GetClientSize()[0])
         self.st_select.SetLabel(s2)
         if s == s2:
