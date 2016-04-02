@@ -290,9 +290,9 @@ class SettingsPanel(wx.Panel):
 
         self.note = wx.Notebook(self)
         self.pane_gene = GeneralSettingPanel(self.note)
-        self.pane_draw = DrawingSettingPanel(self.note)
+        self.pane_draw = DrawingSettingPanel(self.note, for_local=False, get_localsettings=None)
         self.pane_sound = AudioSettingPanel(self.note)
-        self.pane_font = FontSettingPanel(self.note)
+        self.pane_font = FontSettingPanel(self.note, for_local=False, get_localsettings=None)
         self.pane_scenario = ScenarioSettingPanel(self.note)
         self.pane_ui = UISettingPanel(self.note)
         self.note.AddPage(self.pane_gene, u"一般")
@@ -896,7 +896,12 @@ class SkinPanel(wx.Panel):
             self.GetTopLevelParent().applied()
 
     def OnConvertSkin(self, event):
-        dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe=u"", from_settings=True)
+        def get_localsettings():
+            local = cw.setting.LocalSetting()
+            self.GetTopLevelParent().panel.pane_draw.apply_localsettings(local)
+            self.GetTopLevelParent().panel.pane_font.apply_localsettings(local)
+            return local
+        dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe=u"", from_settings=True, get_localsettings=get_localsettings)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         if dlg.successful:
@@ -1528,17 +1533,23 @@ class SpeedPanel(wx.Panel):
         self.sl_msgs.SetValue(speed.sl_msgs.GetValue())
 
 class DrawingSettingPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, for_local, get_localsettings):
         wx.Panel.__init__(self, parent)
+        self._for_local = for_local
+        self._get_localsettings = get_localsettings
 
-        self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        self.cb_smoothing_card_up = wx.CheckBox(self, -1, u"拡大したカード画像を滑らかにする")
-        self.cb_smoothing_card_down = wx.CheckBox(self, -1, u"縮小したカード画像を滑らかにする")
-        self.cb_smooth_bg = wx.CheckBox(self, -1, u"拡大・縮小した背景画像を滑らかにする")
-        self.cb_whitecursor = wx.CheckBox(self, -1, u"メイン画面で白いカーソルを使用する")
+        if self._for_local:
+            self.cb_important = wx.CheckBox(self, -1, u"このスキンの描画設定を基本設定よりも優先して使用する")
+        else:
+            self.cb_important = None
+            self.box_gene = wx.StaticBox(self, -1, u"詳細")
+            self.cb_smoothing_card_up = wx.CheckBox(self, -1, u"拡大したカード画像を滑らかにする")
+            self.cb_smoothing_card_down = wx.CheckBox(self, -1, u"縮小したカード画像を滑らかにする")
+            self.cb_smooth_bg = wx.CheckBox(self, -1, u"拡大・縮小した背景画像を滑らかにする")
+            self.cb_whitecursor = wx.CheckBox(self, -1, u"メイン画面で白いカーソルを使用する")
 
-        # 背景切替方式と各種速度
-        self.speed = SpeedPanel(self, True)
+            # 背景切替方式と各種速度
+            self.speed = SpeedPanel(self, True)
 
         # メッセージウィンドウ背景色
         self.box_mwin = wx.StaticBox(self, -1, u"メッセージウィンドウ背景")
@@ -1585,14 +1596,24 @@ class DrawingSettingPanel(wx.Panel):
             message=u"フルスクリーンの背景にするファイルを選択",
             wildcard=u"画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
 
+        if self._for_local:
+            self.copybtn = wx.Button(self, -1, u"基本設定をコピー")
+            self.initbtn = wx.Button(self, -1, u"デフォルト")
+
         self._do_layout()
         self._bind()
 
     def load(self, setting, local):
-        self.cb_smooth_bg.SetValue(setting.smoothscale_bg)
-        self.cb_smoothing_card_up.SetValue(setting.smoothing_card_up)
-        self.cb_smoothing_card_down.SetValue(setting.smoothing_card_down)
-        self.cb_whitecursor.SetValue(setting.cursor_type == cw.setting.CURSOR_WHITE)
+        if self._for_local:
+            self.cb_important.SetValue(local.important_draw)
+        else:
+            self.cb_smooth_bg.SetValue(setting.smoothscale_bg)
+            self.cb_smoothing_card_up.SetValue(setting.smoothing_card_up)
+            self.cb_smoothing_card_down.SetValue(setting.smoothing_card_down)
+            self.cb_whitecursor.SetValue(setting.cursor_type == cw.setting.CURSOR_WHITE)
+
+            self.speed.load(setting)
+
         self.cs_mwin.SetColour(local.mwincolour)
         self.cs_blwin.SetColour(local.blwincolour)
         self.sc_mwin.SetValue(local.mwincolour[3])
@@ -1621,23 +1642,21 @@ class DrawingSettingPanel(wx.Panel):
                 self.ch_fscrbacktype.SetSelection(0)
                 self.tx_fscrbackfile.SetValue(u"")
 
-        self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
-        self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
-
-        self.speed.load(setting)
+        self._update_enabled()
 
     def init_values(self, setting, local):
-        self.cb_smoothing_card_up.SetValue(setting.smoothing_card_up_init)
-        self.cb_smoothing_card_down.SetValue(setting.smoothing_card_down_init)
-        self.cb_smooth_bg.SetValue(setting.smoothscale_bg_init)
-        self.cb_whitecursor.SetValue(setting.cursor_type_init == cw.setting.CURSOR_WHITE)
-        self.speed.sl_deal.SetValue(setting.dealspeed_init)
-        self.speed.sl_deal_battle.SetValue(setting.dealspeed_battle_init)
-        self.speed.cb_use_battlespeed.SetValue(not setting.use_battlespeed_init)
-        self.speed.sl_deal_battle.Enable(setting.use_battlespeed_init)
-        self.speed.sl_msgs.SetValue(setting.messagespeed_init)
-        self.speed.ch_tran.SetSelection(self.speed.transitions.index(setting.transition_init))
-        self.speed.sl_tran.SetValue(setting.transitionspeed_init)
+        if not self._for_local:
+            self.cb_smoothing_card_up.SetValue(setting.smoothing_card_up_init)
+            self.cb_smoothing_card_down.SetValue(setting.smoothing_card_down_init)
+            self.cb_smooth_bg.SetValue(setting.smoothscale_bg_init)
+            self.cb_whitecursor.SetValue(setting.cursor_type_init == cw.setting.CURSOR_WHITE)
+            self.speed.sl_deal.SetValue(setting.dealspeed_init)
+            self.speed.sl_deal_battle.SetValue(setting.dealspeed_battle_init)
+            self.speed.cb_use_battlespeed.SetValue(not setting.use_battlespeed_init)
+            self.speed.sl_deal_battle.Enable(setting.use_battlespeed_init)
+            self.speed.sl_msgs.SetValue(setting.messagespeed_init)
+            self.speed.ch_tran.SetSelection(self.speed.transitions.index(setting.transition_init))
+            self.speed.sl_tran.SetValue(setting.transitionspeed_init)
         self.sc_mwin.SetValue(local.mwincolour_init[3])
         self.cs_mwin.SetColour(local.mwincolour_init[:3])
         self.sc_mframe.SetValue(local.mwinframecolour_init[3])
@@ -1725,57 +1744,89 @@ class DrawingSettingPanel(wx.Panel):
         local.fullscreenbackgroundfile = fullscreenbackgroundfile
         local.fullscreenbackgroundtype = fullscreenbackgroundtype
 
+        if self.cb_important and self.cb_important.GetValue() <> local.important_draw:
+            local.important_draw = self.cb_important.GetValue()
+            updatemessage = True
+            updatecurtain = True
+            updatefullscreen = True
+
         return updatemessage, updatecurtain, updatefullscreen
 
     def _bind(self):
         self.ch_fscrbacktype.Bind(wx.EVT_CHOICE, self.OnFullScreenBackgroundType, id=self.ch_fscrbacktype.GetId())
+        if self._for_local:
+            self.cb_important.Bind(wx.EVT_CHECKBOX, self.OnImportant)
+            self.copybtn.Bind(wx.EVT_BUTTON, self.OnCopyBase)
+            self.initbtn.Bind(wx.EVT_BUTTON, self.OnInitValue)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_left = wx.BoxSizer(wx.VERTICAL)
+        if not self._for_local:
+            sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_right = wx.BoxSizer(wx.VERTICAL)
 
-        bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
+        if not self._for_local:
+            bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
 
-        bsizer_gene.Add(self.cb_smoothing_card_up, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_smoothing_card_down, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_smooth_bg, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
+            bsizer_gene.Add(self.cb_smoothing_card_up, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+            bsizer_gene.Add(self.cb_smoothing_card_down, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+            bsizer_gene.Add(self.cb_smooth_bg, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+            bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+            bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
-        bsizer_mwin = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
-        gsizer_mwin = wx.GridBagSizer()
-        gsizer_mwin.Add(self.st_mwin, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
-        gsizer_mwin.Add(self.cs_mwin, pos=(0, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
-        gsizer_mwin.Add(self.st_blwin, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
-        gsizer_mwin.Add(self.cs_blwin, pos=(1, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
-        bsizer_mwin.Add(gsizer_mwin, 0, wx.CENTER|wx.LEFT, 5)
-        bsizer_mwin.Add(self.st_mwin2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
-        bsizer_mwin.Add(self.sc_mwin, 0, wx.CENTER|wx.RIGHT, 3)
+        bsizer_mwin = wx.BoxSizer(wx.HORIZONTAL)
+        if self._for_local:
+            bsizer_mwin.Add(self.st_mwin, 0, wx.CENTER|wx.RIGHT, 3)
+            bsizer_mwin.Add(self.cs_mwin, 0, wx.CENTER|wx.RIGHT, 5)
+            bsizer_mwin.Add(self.st_blwin, 0, wx.CENTER|wx.RIGHT, 3)
+            bsizer_mwin.Add(self.cs_blwin, 0, wx.CENTER, 0)
+        else:
+            gsizer_mwin = wx.GridBagSizer()
+            gsizer_mwin.Add(self.st_mwin, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gsizer_mwin.Add(self.cs_mwin, pos=(0, 1), flag=wx.EXPAND)
+            gsizer_mwin.Add(self.st_blwin, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gsizer_mwin.Add(self.cs_blwin, pos=(1, 1), flag=wx.EXPAND)
+            bsizer_mwin.Add(gsizer_mwin, 0, wx.CENTER, 0)
+        bsizer_mwin.Add(self.st_mwin2, 0, wx.CENTER|wx.LEFT, 5)
+        bsizer_mwin.Add(self.sc_mwin, 0, wx.CENTER|wx.LEFT, 3)
+        bsizer_mwin2 = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
+        bsizer_mwin2.Add(bsizer_mwin, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 3)
 
-        bsizer_mframe = wx.StaticBoxSizer(self.box_mframe, wx.HORIZONTAL)
-        gsizer_mframe = wx.GridBagSizer()
-        gsizer_mframe.Add(self.st_mframe, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
-        gsizer_mframe.Add(self.cs_mframe, pos=(0, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
-        gsizer_mframe.Add(self.st_blframe, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
-        gsizer_mframe.Add(self.cs_blframe, pos=(1, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
-        bsizer_mframe.Add(gsizer_mframe, 0, wx.CENTER|wx.LEFT, 3)
-        bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
-        bsizer_mframe.Add(self.sc_mframe, 0, wx.CENTER|wx.RIGHT, 3)
+        bsizer_mframe = wx.BoxSizer(wx.HORIZONTAL)
+        if self._for_local:
+            bsizer_mframe.Add(self.st_mframe, 0, wx.CENTER|wx.RIGHT, 3)
+            bsizer_mframe.Add(self.cs_mframe, 0, wx.CENTER|wx.RIGHT, 5)
+            bsizer_mframe.Add(self.st_blframe, 0, wx.CENTER|wx.RIGHT, 3)
+            bsizer_mframe.Add(self.cs_blframe, 0, wx.CENTER, 0)
+        else:
+            gsizer_mframe = wx.GridBagSizer()
+            gsizer_mframe.Add(self.st_mframe, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gsizer_mframe.Add(self.cs_mframe, pos=(0, 1), flag=wx.EXPAND)
+            gsizer_mframe.Add(self.st_blframe, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gsizer_mframe.Add(self.cs_blframe, pos=(1, 1), flag=wx.EXPAND)
+            bsizer_mframe.Add(gsizer_mframe, 0, wx.CENTER, 0)
+        bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT, 5)
+        bsizer_mframe.Add(self.sc_mframe, 0, wx.CENTER|wx.LEFT, 3)
+        bsizer_mframe2 = wx.StaticBoxSizer(self.box_mframe, wx.HORIZONTAL)
+        bsizer_mframe2.Add(bsizer_mframe, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 3)
 
-        bsizer_blcurtain = wx.StaticBoxSizer(self.box_blcurtain, wx.HORIZONTAL)
-        bsizer_blcurtain.Add(self.st_blcurtain, 0, wx.LEFT|wx.RIGHT|wx.CENTER, 3)
-        bsizer_blcurtain.Add(self.cs_blcurtain, 0, wx.RIGHT|wx.EXPAND, 3)
-        bsizer_blcurtain.Add(self.st_blcurtain2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
-        bsizer_blcurtain.Add(self.sc_blcurtain, 0, wx.CENTER|wx.RIGHT, 3)
+        bsizer_blcurtain = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_blcurtain.Add(self.st_blcurtain, 0, wx.RIGHT|wx.CENTER, 3)
+        bsizer_blcurtain.Add(self.cs_blcurtain, 0, wx.RIGHT|wx.EXPAND, 5)
+        bsizer_blcurtain.Add(self.st_blcurtain2, 0, wx.CENTER|wx.RIGHT, 3)
+        bsizer_blcurtain.Add(self.sc_blcurtain, 0, wx.CENTER, 0)
+        bsizer_blcurtain2 = wx.StaticBoxSizer(self.box_blcurtain, wx.HORIZONTAL)
+        bsizer_blcurtain2.Add(bsizer_blcurtain, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 3)
 
-        bsizer_curtain = wx.StaticBoxSizer(self.box_curtain, wx.HORIZONTAL)
-        bsizer_curtain.Add(self.st_curtain, 0, wx.LEFT|wx.RIGHT|wx.CENTER, 3)
-        bsizer_curtain.Add(self.cs_curtain, 0, wx.RIGHT|wx.EXPAND, 3)
-        bsizer_curtain.Add(self.st_curtain2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
-        bsizer_curtain.Add(self.sc_curtain, 0, wx.CENTER|wx.RIGHT, 3)
+        bsizer_curtain = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_curtain.Add(self.st_curtain, 0, wx.RIGHT|wx.CENTER, 3)
+        bsizer_curtain.Add(self.cs_curtain, 0, wx.RIGHT|wx.EXPAND, 5)
+        bsizer_curtain.Add(self.st_curtain2, 0, wx.CENTER|wx.RIGHT, 3)
+        bsizer_curtain.Add(self.sc_curtain, 0, wx.CENTER, 0)
+        bsizer_curtain2 = wx.StaticBoxSizer(self.box_curtain, wx.HORIZONTAL)
+        bsizer_curtain2.Add(bsizer_curtain, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 3)
 
         bsizer_fscrback = wx.StaticBoxSizer(self.box_fscrback, wx.VERTICAL)
         bsizer_fscrback.Add(self.ch_fscrbacktype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -1784,17 +1835,30 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_fscrbackfile.Add(self.ref_fscrbackfile, 0, wx.CENTER, 3)
         bsizer_fscrback.Add(bsizer_fscrbackfile, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
 
-        sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_left.Add(self.speed, 0, wx.EXPAND, 3)
+        if self._for_local:
+            sizer_right.Add(self.cb_important, 0, wx.BOTTOM, 5)
+        else:
+            sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
+            sizer_left.Add(self.speed, 0, wx.EXPAND, 3)
 
-        sizer_right.Add(bsizer_mwin, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_mframe, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_blcurtain, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_curtain, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_mwin2, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_mframe2, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_blcurtain2, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_curtain2, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_right.Add(bsizer_fscrback, 0, wx.EXPAND, 3)
 
-        sizer_h1.Add(sizer_left, 1, wx.RIGHT|wx.EXPAND, 5)
-        sizer_h1.Add(sizer_right, 0, wx.EXPAND, 3)
+        if self._for_local:
+            sizer_right.AddStretchSpacer(1)
+            bsizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+            bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, 3)
+            bsizer_btn.Add(self.initbtn, 0, 0, 0)
+            sizer_right.Add(bsizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, 5)
+
+        if self._for_local:
+            sizer_h1.Add(sizer_right, 1, wx.EXPAND, 3)
+        else:
+            sizer_h1.Add(sizer_left, 1, wx.RIGHT|wx.EXPAND, 5)
+            sizer_h1.Add(sizer_right, 0, wx.EXPAND, 3)
 
         sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
@@ -1804,6 +1868,37 @@ class DrawingSettingPanel(wx.Panel):
     def OnFullScreenBackgroundType(self, event):
         self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
         self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
+
+    def OnImportant(self, event):
+        self._update_enabled()
+
+    def _update_enabled(self):
+        enbl = self.cb_important.GetValue() if self.cb_important else True
+        self.cs_mwin.Enable(enbl)
+        self.cs_blwin.Enable(enbl)
+        self.sc_mwin.Enable(enbl)
+        self.cs_mframe.Enable(enbl)
+        self.cs_blframe.Enable(enbl)
+        self.sc_mframe.Enable(enbl)
+        self.cs_curtain.Enable(enbl)
+        self.sc_curtain.Enable(enbl)
+        self.cs_blcurtain.Enable(enbl)
+        self.sc_blcurtain.Enable(enbl)
+        self.ch_fscrbacktype.Enable(enbl)
+        self.tx_fscrbackfile.Enable(enbl and self.ch_fscrbacktype.GetSelection() == 1)
+        self.ref_fscrbackfile.Enable(enbl and self.ch_fscrbacktype.GetSelection() == 1)
+        if self._for_local:
+            self.copybtn.Enable(enbl)
+            self.initbtn.Enable(enbl)
+
+    def OnInitValue(self, event):
+        local = cw.setting.LocalSetting()
+        self.init_values(None, local)
+
+    def OnCopyBase(self, event):
+        local = self._get_localsettings()
+        local.important_draw = True
+        self.load(None, local)
 
 class AudioSettingPanel(wx.Panel):
     def __init__(self, parent):
@@ -2555,9 +2650,11 @@ class UISettingPanel(wx.ScrolledWindow):
         self.Layout()
 
 class FontSettingPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, for_local, get_localsettings):
         wx.Panel.__init__(self, parent)
         self.SetDoubleBuffered(True)
+        self._for_local = for_local
+        self._get_localsettings = get_localsettings
         self.typenames = {"gothic"       : u"等幅ゴシック",
                           "uigothic"     : u"UI用",
                           "mincho"       : u"等幅明朝",
@@ -2631,12 +2728,16 @@ class FontSettingPanel(wx.Panel):
         self.st_example = wx.StaticText(self, -1, size=(100, 35), style=wx.ALIGN_CENTER)
         self.st_example.SetDoubleBuffered(True)
 
-        # 描画オプション
-        self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        self.cb_bordering_cardname = wx.CheckBox(self, -1, u"カード名を縁取りする")
-        self.cb_decorationfont = wx.CheckBox(self, -1, u"メッセージで装飾フォントを使用する")
-        self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
-        self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
+        if self._for_local:
+            self.cb_important = wx.CheckBox(self, -1, u"このスキンのフォント設定を基本設定よりも優先して使用する")
+        else:
+            self.cb_important = None
+            # 描画オプション
+            self.box_gene = wx.StaticBox(self, -1, u"詳細")
+            self.cb_bordering_cardname = wx.CheckBox(self, -1, u"カード名を縁取りする")
+            self.cb_decorationfont = wx.CheckBox(self, -1, u"メッセージで装飾フォントを使用する")
+            self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
+            self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
 
         def create_grid(grid, seq, faces, cols, rowlblsize):
             grid.CreateGrid(len(seq), cols)
@@ -2655,9 +2756,10 @@ class FontSettingPanel(wx.Panel):
 
         # 基本フォント
         self.box_base = wx.StaticBox(self, -1, u"基本フォント")
-        self.base = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
+        self.base = wx.grid.Grid(self, -1, size=(-1, -1), style=wx.BORDER)
         self.base.SetDoubleBuffered(True)
         self.choicebases = create_grid(self.base, self.bases, self._fontface_array, 1, 100)
+        self.base.SetMinSize(self.base.GetBestSize())
 
         # 役割別フォント
         self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
@@ -2711,14 +2813,21 @@ class FontSettingPanel(wx.Panel):
         self.st_example.SetFont(font)
         self.st_example.SetLabel(self.get_basefontface(self.bases[0]))
 
+        if self._for_local:
+            self.copybtn = wx.Button(self, -1, u"基本設定をコピー")
+            self.initbtn = wx.Button(self, -1, u"デフォルト")
+
         self._do_layout()
         self._bind()
 
     def load(self, setting, local):
-        self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
-        self.cb_decorationfont.SetValue(setting.decorationfont)
-        self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname)
-        self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar)
+        if self._for_local:
+            self.cb_important.SetValue(local.important_font)
+        else:
+            self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
+            self.cb_decorationfont.SetValue(setting.decorationfont)
+            self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname)
+            self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar)
 
         def create_grid(grid, seq):
             for i, name in enumerate(seq):
@@ -2769,6 +2878,8 @@ class FontSettingPanel(wx.Panel):
                 self.type.SetCellValue(i, 4, u"-")
 
         self._select_base(self.base.GetGridCursorRow())
+
+        self._update_enabled()
         self.Layout()
 
     def init_values(self, setting, local):
@@ -2786,10 +2897,11 @@ class FontSettingPanel(wx.Panel):
             self.type.SetCellValue(i, 2, (u"1" if bold else u"") if not bold is None else u"-")
             self.type.SetCellValue(i, 3, (u"1" if bold_upscr else u"") if not bold_upscr is None else u"-")
             self.type.SetCellValue(i, 4, (u"1" if italic else u"") if not italic is None else u"-")
-        self.cb_bordering_cardname.SetValue(setting.bordering_cardname_init)
-        self.cb_decorationfont.SetValue(setting.decorationfont_init)
-        self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname_init)
-        self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar_init)
+        if not self._for_local:
+            self.cb_bordering_cardname.SetValue(setting.bordering_cardname_init)
+            self.cb_decorationfont.SetValue(setting.decorationfont_init)
+            self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname_init)
+            self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar_init)
 
     def apply_localsettings(self, local):
         flag_fontupdate = False
@@ -2842,6 +2954,10 @@ class FontSettingPanel(wx.Panel):
             local.fonttypes = fonttypes
             flag_fontupdate = True
 
+        if self.cb_important and self.cb_important.GetValue() <> local.important_font:
+            local.important_font = self.cb_important.GetValue()
+            flag_fontupdate = True
+
         return flag_fontupdate
 
     def _bind(self):
@@ -2851,6 +2967,10 @@ class FontSettingPanel(wx.Panel):
         self.type.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontType)
         self.type.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChangeType)
         self.type.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnEditorCreatedType)
+        if self._for_local:
+            self.cb_important.Bind(wx.EVT_CHECKBOX, self.OnImportant)
+            self.copybtn.Bind(wx.EVT_BUTTON, self.OnCopyBase)
+            self.initbtn.Bind(wx.EVT_BUTTON, self.OnInitValue)
 
     def _select_base(self, i):
         if 0 <= i:
@@ -2931,14 +3051,18 @@ class FontSettingPanel(wx.Panel):
         bsizer_example = wx.StaticBoxSizer(self.box_example, wx.VERTICAL)
         bsizer_example.Add(bsizer_example2, 1, wx.LEFT|wx.RIGHT|wx.EXPAND|wx.ALIGN_CENTER, 3)
 
-        bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
-        bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-        bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+        if self._for_local:
+            bsizer_left.Add(bsizer_example, 1, wx.EXPAND, 3)
 
-        bsizer_left.Add(bsizer_example, 1, wx.EXPAND|wx.BOTTOM, 3)
-        bsizer_left.Add(bsizer_gene, 0, wx.EXPAND, 3)
+        else:
+            bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
+            bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+            bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+            bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+            bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+
+            bsizer_left.Add(bsizer_example, 1, wx.EXPAND | wx.BOTTOM, 3)
+            bsizer_left.Add(bsizer_gene, 0, wx.EXPAND, 3)
 
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_base.Add(self.base, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
@@ -2949,12 +3073,42 @@ class FontSettingPanel(wx.Panel):
         bsizer_type = wx.StaticBoxSizer(self.box_type, wx.VERTICAL)
         bsizer_type.Add(self.type, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
 
-        sizer_v1.Add(bsizer_top, 1, wx.EXPAND|wx.BOTTOM, 3)
+        if self.cb_important:
+            sizer_v1.Add(self.cb_important, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_top, 0, wx.EXPAND|wx.BOTTOM, 3)
         sizer_v1.Add(bsizer_type, 1, wx.EXPAND, 0)
+
+        if self._for_local:
+            sizer_v1.AddStretchSpacer(0)
+            bsizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+            bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, 3)
+            bsizer_btn.Add(self.initbtn, 0, 0, 0)
+            sizer_v1.Add(bsizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, 5)
+
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
+    def OnImportant(self, event):
+        self._update_enabled()
+
+    def _update_enabled(self):
+        enbl = self.cb_important.GetValue() if self.cb_important else True
+        self.base.Enable(enbl)
+        self.type.Enable(enbl)
+        if self._for_local:
+            self.copybtn.Enable(enbl)
+            self.initbtn.Enable(enbl)
+
+    def OnInitValue(self, event):
+        local = cw.setting.LocalSetting()
+        self.init_values(None, local)
+
+    def OnCopyBase(self, event):
+        local = self._get_localsettings()
+        local.important_font = True
+        self.load(None, local)
 
 def main():
     pass

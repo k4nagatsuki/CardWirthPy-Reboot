@@ -737,4 +737,5 @@
     <Message key="auto">自動</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
+  <Settings importantdrawing="False" importantfont="False" />
 </Skin>

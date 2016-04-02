@@ -14,10 +14,16 @@ import cw
 #-------------------------------------------------------------------------------
 
 class SkinConversionDialog(wx.Dialog):
-    def __init__(self, parent, exe, from_settings=False):
+    def __init__(self, parent, exe, from_settings=False, get_localsettings=None):
         wx.Dialog.__init__(self, parent, -1, u"スキンの自動生成",
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
         self.cwpy_debug = True
+
+        if get_localsettings:
+            self.local = get_localsettings()
+        else:
+            get_localsettings = lambda: cw.cwpy.setting.local
+            self.local = cw.cwpy.setting.local
 
         self.successful = False
         self.select_skin = False
@@ -40,11 +46,17 @@ class SkinConversionDialog(wx.Dialog):
         self.pane_sound = SkinSoundPanel(self.note, self.conv)
         self.pane_message = SkinMessagePanel(self.note, self.conv)
         self.pane_card = SkinCardPanel(self.note, self.conv)
+        self.pane_draw = cw.dialog.settings.DrawingSettingPanel(self.note, for_local=True, get_localsettings=get_localsettings)
+        self.pane_draw.load(None, self.local)
+        self.pane_font = cw.dialog.settings.FontSettingPanel(self.note, for_local=True, get_localsettings=get_localsettings)
+        self.pane_font.load(None, self.local)
         self.note.AddPage(self.pane_base, u"基本")
         self.note.AddPage(self.pane_feature, u"特性")
         self.note.AddPage(self.pane_sound, u"サウンド")
         self.note.AddPage(self.pane_message, u"メッセージ")
         self.note.AddPage(self.pane_card, u"カード")
+        self.note.AddPage(self.pane_draw, u"描画")
+        self.note.AddPage(self.pane_font, u"フォント")
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"決定")
         if not exe:
@@ -82,6 +94,13 @@ class SkinConversionDialog(wx.Dialog):
         e.text = str(self.pane_base.info.vocation120.GetValue())
         e = self.conv.data.find("Property/InitialCash")
         e.text = str(self.pane_base.info.initialcash.GetValue())
+        e = self.conv.data.find("Settings")
+        if e is None:
+            e = cw.data.make_element("Settings", "")
+            self.conv.data.append(e)
+        self.pane_draw.apply_localsettings(self.local)
+        self.pane_font.apply_localsettings(self.local)
+        cw.xmlcreater.create_localsettings(e, self.local)
 
         self.conv.start()
 
@@ -548,9 +567,10 @@ class SkinInfoPanel(wx.Panel):
 
         gbsizer_info = wx.GridBagSizer()
 
-        def add_info(ctrl, pos, colspan=1, rowspan=1, expand=True):
+        def add_info(ctrl, pos, colspan=1, rowspan=1, expand=True, growable=False):
             sizer = wx.BoxSizer(wx.HORIZONTAL)
-            sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL, 0)
+            growable = wx.EXPAND if growable else 0
+            sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL|growable, 0)
             span = wx.GBSpan(colspan=colspan, rowspan=rowspan)
             expand = wx.EXPAND if expand else 0
             gbsizer_info.Add(sizer, pos=pos, span=span, flag=wx.ALL|expand|wx.ALIGN_CENTER_VERTICAL, border=3)
@@ -562,7 +582,7 @@ class SkinInfoPanel(wx.Panel):
         add_info(self.authorlabel, pos=(2, 0))
         add_info(self.authorctrl, pos=(2, 1), colspan=2)
         add_info(self.desclabel, pos=(3, 0))
-        add_info(self.descctrl, pos=(3, 1), colspan=2)
+        add_info(self.descctrl, pos=(3, 1), colspan=2, growable=True)
         add_info(self.initialcashlabel, pos=(4, 0))
         add_info(self.initialcash, pos=(4, 1), expand=False)
         gbsizer_info.AddGrowableCol(1)
