@@ -313,11 +313,11 @@ class SkinEditDialog(wx.Dialog):
         self.info.initialcash.SetValue(initialcash)
 
         self.pane_draw = cw.dialog.settings.DrawingSettingPanel(self.note, for_local=True,
-                                                                get_localsettings=lambda: self.local,
+                                                                get_localsettings=get_localsettings,
                                                                 use_copybase=True)
         self.pane_draw.load(None, self.local)
         self.pane_font = cw.dialog.settings.FontSettingPanel(self.note, for_local=True,
-                                                             get_localsettings=lambda: self.local,
+                                                             get_localsettings=get_localsettings,
                                                              use_copybase=True)
         self.pane_font.load(None, self.local)
 
@@ -376,20 +376,19 @@ class SkinEditDialog(wx.Dialog):
         e.write(skinpath)
 
         if cw.cwpy.setting.skindirname == self.skindirname:
+            def func(local, skinname, classicstyletext, vocation120, initialcash):
+                cw.cwpy.setting.skin_local = local
+                cw.cwpy.setting.skinname = skinname
+                cw.cwpy.setting.skintype = skintype
+                cw.cwpy.update_titlebar()
+                cw.cwpy.update_messagefontstyle(classicstyletext)
+                cw.cwpy.update_vocation120(vocation120)
+                cw.cwpy.setting.initialcash = initialcash
+            cw.cwpy.exec_func(func, self.local, skinname, classictext, vocation120, initialcash)
+
             if updatefont:
                 cw.cwpy.exec_func(cw.cwpy.update_skin, self.skindirname, restartop=False)
             else:
-                def func(local, skinname, classicstyletext, vocation120, initialcash):
-                    cw.cwpy.setting.skin_local = local
-                    cw.cwpy.setting.skinname = skinname
-                    cw.cwpy.setting.skintype = skintype
-                    cw.cwpy.update_titlebar()
-                    cw.cwpy.update_messagefontstyle(classicstyletext)
-                    cw.cwpy.update_vocation120(vocation120)
-                    cw.cwpy.setting.initialcash = initialcash
-
-                cw.cwpy.exec_func(func, self.local, skinname, classictext, vocation120, initialcash)
-
                 if updatemessage:
                     cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
                 if updatecurtain:
