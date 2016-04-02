@@ -1333,7 +1333,7 @@ class Resource(object):
 
     def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM,
-                        adjustsize=False, adjustsizewx3=True):
+                        adjustsize=False, adjustsizewx3=True, pointsize=None):
         if size is None and pixelsize is None:
             pixelsize = cw.wins(14)
 
@@ -1348,20 +1348,25 @@ class Resource(object):
         if not italic is None:
             style = wx.ITALIC if italic else wx.FONTSTYLE_NORMAL
 
-        # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
-        #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
-        if not pixelsize:
-            pixelsize = int((1.0/72 * 96) * size + 0.5)
-        elif 3 <= wx.VERSION[0] and adjustsizewx3:
-            # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
-            pixelsize -= 1
+        if pointsize is None:
+            # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
+            #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
+            if not pixelsize:
+                pixelsize = int((1.0/72 * 96) * size + 0.5)
+            elif 3 <= wx.VERSION[0] and adjustsizewx3:
+                # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
+                pixelsize -= 1
 
-        # BUG: フォントサイズとテキストによっては
-        #      ツリーアイテムの後方が欠ける事がある
-        if (name in ("tree", "slider") or adjustsize) and 15 < pixelsize and pixelsize % 2 == 1:
-            pixelsize += 1
+            # BUG: フォントサイズとテキストによっては
+            #      ツリーアイテムの後方が欠ける事がある
+            if (name in ("tree", "slider") or adjustsize) and 15 < pixelsize and pixelsize % 2 == 1:
+                pixelsize += 1
 
-        wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)
+            wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)
+
+        else:
+            wxfont = wx.Font(pointsize, family, style, weight, 0, fontname, encoding)
+
         return wxfont
 
     def create_font(self, type, size_noscale, defbold, defbold_upscr, defitalic, pixelsadd=0, nobold=False):

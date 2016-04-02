@@ -1687,6 +1687,10 @@ class EventView(wx.ScrolledWindow):
             except:
                 pass
 
+        if sys.platform.startswith("linux"):
+            # FIXME: なぜか文字化けするので
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pointsize=12))
+
         csize = self.GetClientSize()
         csize = (csize[0]+self.leftbarwidth, csize[1])
 
