@@ -18,6 +18,7 @@ class Message(wx.Dialog):
     def __init__(self, parent, name, text, mode=2):
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((355, 120)),
                             style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.basetext = text
         self.text = cw.util.txtwrap(text, mode=6)
         self.mode = mode
 
@@ -36,15 +37,38 @@ class Message(wx.Dialog):
             # yes and no
             self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), cw.cwpy.msgs["yes"])
             self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["no"])
+            self.buttons = (self.yesbtn, self.nobtn)
         elif self.mode == 2:
             # close
             self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["close"])
+            self.buttons = (self.closebtn,)
+        else:
+            assert False
 
         # layout
         self._do_layout()
         # bind
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+        copyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
+        seq = [
+            (wx.ACCEL_CTRL, ord('C'), copyid),
+        ]
+        cw.util.set_acceleratortable(self, seq)
+
+    def OnCopyDetail(self, event):
+        tdo = wx.TextDataObject()
+        s = [u"[Window Title]", self.GetTitle(), u"", u"[Content]", self.basetext, u""]
+        b = []
+        for button in self.buttons:
+            b.append(u"[%s]" % button.GetLabelText())
+        s.append(" ".join(b))
+        tdo.SetText(u"\n".join(s))
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(tdo)
+            wx.TheClipboard.Close()
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
