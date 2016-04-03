@@ -717,6 +717,12 @@ class Setting(object):
             basedata = cw.data.xml2etree(path)
         path = cw.util.join_paths(self.skindir, "Skin.xml")
         data = self._update_skin(path)
+        err = self._check_skin()
+        if err:
+            dlg = wx.MessageDialog(None, err, u"スキンチェックエラー", wx.OK|wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            raise
         self.skinname = data.gettext("Property/Name", "")
         self.skintype = data.gettext("Property/Type", "")
         self.classicstyletext = data.getbool("Property/ClassicStyleText", True)
@@ -994,6 +1000,31 @@ class Setting(object):
 
         finally:
             cw.util.release_mutex()
+
+    def _check_skin(self):
+        """
+        必須リソースが欠けていないかチェックする。
+        今のところ、全てのリソースをチェックしているのではなく、
+        過去のアップデートで追加されたリソースのみ確認している。
+        """
+        dpath = cw.util.join_paths(self.skindir, u"Resource/Xml/Yado")
+        for fname in os.listdir(dpath):
+            fpath = cw.util.join_paths(dpath, fname)
+            id = int(cw.header.GetName(fpath, tagname="Id").name)
+            if id == 3:
+                break
+        else:
+            return u"スキンにデータバージョン「9」で導入された「初期拠点」エリアが存在しません。\n" +\
+                   u"スキンの自動アップデートに失敗した可能性があります。\n" +\
+                   u"手動での修復を試みるか、スキンを再導入してください。"
+
+        fpath = cw.util.join_paths(self.skindir, u"Resource/Xml/Animation/Opening.xml")
+        if not os.path.isfile(fpath):
+            return u"スキンにデータバージョン「10」で導入されたオープニングアニメーション定義が存在しません。\n" + \
+                   u"スキンの自動アップデートに失敗した可能性があります。\n" + \
+                   u"手動での修復を試みるか、スキンを再導入してください。"
+
+        return u""
 
     def set_dealspeed(self, value, battlevalue, usebattle):
         self.dealspeed = value
