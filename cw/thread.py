@@ -1464,7 +1464,6 @@ class CWPy(_Singleton, threading.Thread):
 
         # バックログの保存
         if self.setting.backlogmax and isinstance(mwin.result, int) and\
-                isinstance(self.sdata, cw.data.ScenarioData) and\
                 not isinstance(mwin, cw.sprite.message.MemberSelectWindow):
             if self.setting.backlogmax <= len(self.sdata.backlog):
                 self.sdata.backlog.pop(0)
