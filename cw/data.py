@@ -41,7 +41,7 @@ class SystemData(object):
         self.scedir = ""
         self._init_xmlpaths()
         self._init_sparea_mcards()
-        self.is_playing = False
+        self.is_playing = True
         self.events = None
         self.deletedpaths = set()
         self.lostadventurers = set()
@@ -63,6 +63,9 @@ class SystemData(object):
         self.breakpoints = set()
         self.in_f9 = False
         self.background_image_mtime = {}
+
+        # メッセージのバックログ
+        self.backlog = []
 
         # シナリオごとのブレークポイントを保存する
         if isinstance(cw.cwpy.sdata, ScenarioData):

@@ -1495,7 +1495,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def has_backlog(self):
         """表示可能なメッセージログがあるか。"""
-        return isinstance(self.sdata, cw.data.ScenarioData) and self.sdata.backlog
+        return bool(self.sdata.backlog)
 
     def show_backlog(self, n=0):
         """直近から過去に遡ってn回目のメッセージを表示する。
@@ -1665,7 +1665,9 @@ class CWPy(_Singleton, threading.Thread):
     def set_yado(self):
         """宿画面へ遷移。"""
         self.set_status("Yado")
+        msglog = self.sdata.backlog
         self.sdata = cw.data.SystemData()
+        self.sdata.backlog = msglog
         self.update_titlebar()
         # 冒険の中断やF9時のためにカーテン消去
         self.clear_curtain()
@@ -1819,7 +1821,9 @@ class CWPy(_Singleton, threading.Thread):
         del self.sdata.friendcards[:]
         self.sdata.end()
         self.ydata.load_party(None)
+        msglog = self.sdata.backlog
         self.sdata = cw.data.SystemData()
+        self.sdata.backlog = msglog
         self.update_titlebar()
         self.statusbar.change()
         self.change_area(1)
