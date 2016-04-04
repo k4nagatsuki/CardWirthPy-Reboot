@@ -1678,7 +1678,7 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.party.remove_numbercoupon()
             for pcard in self.get_pcards():
                 pcard.clear_action()
-        elif self.ydata.is_empty() or self.ydata.is_changed():
+        elif not self.ydata.is_empty() or self.ydata.is_changed():
             # パーティを選択中でない
             areaid = 1
         else:

@@ -571,7 +571,7 @@ class Frame(wx.Frame):
         def func():
             if cw.cwpy.ydata.party:
                 areaid = 2
-            elif cw.cwpy.ydata.is_empty() or cw.cwpy.ydata.is_changed():
+            elif not cw.cwpy.ydata.is_empty() or cw.cwpy.ydata.is_changed():
                 areaid = 1
             else:
                 areaid = 3
@@ -772,7 +772,7 @@ class Frame(wx.Frame):
 
         if cw.cwpy.ydata.party:
             areaid = 2
-        elif cw.cwpy.ydata.is_empty() or cw.cwpy.ydata.is_changed():
+        elif not cw.cwpy.ydata.is_empty() or cw.cwpy.ydata.is_changed():
             areaid = 1
         else:
             areaid = 3
