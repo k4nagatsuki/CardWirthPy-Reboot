@@ -507,7 +507,7 @@ class EffectMotion(object):
 
         return out_value
 
-    def calc_durationvalue(self, enhance):
+    def calc_durationvalue(self, target, enhance):
         """
         効果時間値から適性レベルに合わせた実数値を計算して返す。
         効果コンテントの場合も計算する。
@@ -517,18 +517,23 @@ class EffectMotion(object):
         else:
             minvalue = 1
 
-        if self.vocation_level == 0:
+        # 弱点属性だったら適性レベル+1のボーナス
+        vocation_level = self.vocation_level
+        if self.is_weakness(target):
+            vocation_level += 1
+
+        if vocation_level <= 0:
             return cw.util.numwrap(self.duration * 50 / 100, minvalue, 999)
-        elif self.vocation_level == 1:
+        elif vocation_level == 1:
             return cw.util.numwrap(self.duration * 80 / 100, minvalue, 999)
-        elif self.vocation_level == 2:
+        elif vocation_level == 2:
             return cw.util.numwrap(self.duration, minvalue, 999)
-        elif self.vocation_level == 3:
+        elif vocation_level == 3:
             return cw.util.numwrap(self.duration * 120 / 100, minvalue, 999)
-        elif self.vocation_level == 4:
+        elif vocation_level >= 4:
             return cw.util.numwrap(self.duration * 150 / 100, minvalue, 999)
         else:
-            return cw.util.numwrap(self.duration, minvalue, 999)
+            assert False
 
     def calc_defensedvalue(self, value, target):
         """
@@ -747,7 +752,7 @@ class EffectMotion(object):
             eff = True
             target.set_mentality(self.type.title(), duration)
         else:
-            duration = self.calc_durationvalue(False)
+            duration = self.calc_durationvalue(target, False)
             if duration == 0:
                 eff = target.mentality <> "Normal"
                 target.set_mentality("Normal", duration)
@@ -783,7 +788,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        duration = self.calc_durationvalue(False)
+        duration = self.calc_durationvalue(target, False)
         eff = target.bind < duration
         target.set_bind(duration, overwrite=False)
         return eff
@@ -804,7 +809,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        duration = self.calc_durationvalue(False)
+        duration = self.calc_durationvalue(target, False)
         eff = target.silence < duration
         target.set_silence(duration, overwrite=False)
         return eff
@@ -825,7 +830,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        duration = self.calc_durationvalue(False)
+        duration = self.calc_durationvalue(target, False)
         eff = target.faceup < duration
         target.set_faceup(duration, overwrite=False)
         return eff
@@ -846,7 +851,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        duration = self.calc_durationvalue(False)
+        duration = self.calc_durationvalue(target, False)
         eff = target.antimagic < duration
         target.set_antimagic(duration, overwrite=False)
         return eff
@@ -871,7 +876,7 @@ class EffectMotion(object):
         if success_res:
             return False
         if self.value <> 0:
-            duration = self.calc_durationvalue(True)
+            duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
         eff = target.enhance_act <> self.value or target.enhance_act_dur < duration
@@ -886,7 +891,7 @@ class EffectMotion(object):
         if success_res:
             return False
         if self.value <> 0:
-            duration = self.calc_durationvalue(True)
+            duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
         eff = target.enhance_avo <> self.value or target.enhance_avo_dur < duration
@@ -901,7 +906,7 @@ class EffectMotion(object):
         if success_res:
             return False
         if self.value <> 0:
-            duration = self.calc_durationvalue(True)
+            duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
         eff = target.enhance_res <> self.value or target.enhance_res_dur < duration
@@ -916,7 +921,7 @@ class EffectMotion(object):
         if success_res:
             return False
         if self.value <> 0:
-            duration = self.calc_durationvalue(True)
+            duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
         eff = target.enhance_def <> self.value or target.enhance_def_dur < duration
@@ -1096,7 +1101,7 @@ class EffectMotion(object):
                 e.attrib["cwxpath"] = cwxpath
             self.duration = e.getint("Property/UseLimit")
             recycle = u"リサイクル" in cw.util.decodetextlist(e.gettext("Property/KeyCodes", u""))
-            duration = self.calc_durationvalue(recycle)
+            duration = self.calc_durationvalue(target, recycle)
             e.find("Property/UseLimit").text = str(duration)
             header = self.cardheader
             if not header and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion):
