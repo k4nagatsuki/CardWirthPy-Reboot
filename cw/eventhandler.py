@@ -637,6 +637,12 @@ class EventHandlerForMessageWindow(EventHandler):
         # 下方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
+        # 左方向キー押しっぱなし
+        elif cw.cwpy.keyevent.is_keyin(K_LEFT):
+            self.dirkey_event(x=-1)
+        # 右方向キー押しっぱなし
+        elif cw.cwpy.keyevent.is_keyin(K_RIGHT):
+            self.dirkey_event(x=1)
         # 左クリック押しっぱなし
         elif cw.cwpy.keyevent.is_mousein() and autoenter_on_sprite:
             self.returnkey_event(True)
@@ -656,6 +662,12 @@ class EventHandlerForMessageWindow(EventHandler):
                 # 下方向キー
                 elif event.key == K_DOWN:
                     self.dirkey_event(y=1)
+                # 左方向キー
+                if event.key == K_LEFT:
+                    self.dirkey_event(x=-1)
+                # 右方向キー
+                elif event.key == K_RIGHT:
+                    self.dirkey_event(x=1)
                 # Shiftキー
                 elif event.key == K_RSHIFT or event.key == K_LSHIFT:
                     self.shiftkey_event(True)
@@ -856,7 +868,29 @@ class EventHandlerForMessageWindow(EventHandler):
             return
         if not self.mwin.is_drawing:
             cw.cwpy.has_inputevent = True
-            cw.cwpy.index = self.calc_index(y)
+
+            if 0 <= cw.cwpy.index and cw.cwpy.index < len(self.mwin.selections):
+                if y:
+                    maxrow = (len(self.mwin.selections)+self.mwin.columns-1) // self.mwin.columns
+                    if 0 < y:
+                        cw.cwpy.index += self.mwin.columns
+                        if len(self.mwin.selections) <= cw.cwpy.index:
+                            cw.cwpy.index = (cw.cwpy.index+1) % (maxrow*self.mwin.columns) % self.mwin.columns
+                    elif y < 0:
+                        cw.cwpy.index -= self.mwin.columns
+                        if cw.cwpy.index < 0:
+                            cw.cwpy.index += maxrow*self.mwin.columns+self.mwin.columns - 1
+                            if len(self.mwin.selections) <= cw.cwpy.index:
+                                cw.cwpy.index -= self.mwin.columns
+                            if len(self.mwin.selections) <= cw.cwpy.index:
+                                cw.cwpy.index -= self.mwin.columns
+
+                else:
+                    cw.cwpy.index = self.calc_index(x)
+
+            else:
+                cw.cwpy.index = 0
+
             sbar = cw.cwpy.list[cw.cwpy.index]
             cw.cwpy.change_selection(sbar)
 
@@ -885,7 +919,7 @@ class EventHandlerForMessageWindow(EventHandler):
 
         elif cw.cwpy.list:
             cw.cwpy.has_inputevent = True
-            self.dirkey_event(y=y)
+            self.dirkey_event(x=y)
 
     def shiftkey_event(self, down, redraw=True):
         """
@@ -1358,7 +1392,7 @@ class EventHandlerForBacklog(EventHandler):
                 m.rect.top = cw.s(self._pos_noscale[i]-top)
                 cw.cwpy.backloggrp.add(m, layer=cw.LAYER_LOG)
                 for j, sbar in enumerate(m.selections):
-                    sbar.rect.top = m.rect.bottom+cw.s(j*25)
+                    sbar.rect.top = m.rect.bottom + (j // m.columns * sbar.rect.height)
                     cw.cwpy.backloggrp.add(sbar, layer=cw.LAYER_LOG_BAR)
             # ページ表示の更新
             f2 = bisect.bisect_left(self._pos_noscale, top)
