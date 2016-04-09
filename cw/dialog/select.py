@@ -1765,11 +1765,11 @@ class PlayerSelect(MultiViewSelect):
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title"])
         self.sort_label.SetFont(font)
-        self.sort = wx.Choice(self, size=cw.wins((75, 20)))
+        choices = (cw.cwpy.msgs["sort_no"],
+                   cw.cwpy.msgs["sort_name"],
+                   cw.cwpy.msgs["sort_level"])
+        self.sort = wx.Choice(self, size=cw.wins((75, 20)), choices=choices)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
-        self.sort.Append(cw.cwpy.msgs["sort_no"])
-        self.sort.Append(cw.cwpy.msgs["sort_name"])
-        self.sort.Append(cw.cwpy.msgs["sort_level"])
         if cw.cwpy.setting.sort_standbys == "Name":
             self.sort.Select(1)
         elif cw.cwpy.setting.sort_standbys == "Level":
