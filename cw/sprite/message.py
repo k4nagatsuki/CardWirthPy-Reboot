@@ -13,7 +13,7 @@ class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, imgpaths=[][:], talker=None,
                  pos_noscale=None, size_noscale=None, talkerimage=[][:],
                  nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
-                 backlog=False, result=None, versionhint="", specialchars=None, textimg=None,
+                 backlog=False, result=None, showing_result=-1, versionhint="", specialchars=None, textimg=None,
                  trim_top_noscale=0, columns=1):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
@@ -34,6 +34,7 @@ class MessageWindow(base.CWPySprite):
 
         # メッセージの選択結果
         self.result = result
+        self.showing_result = showing_result
         # data
         self.names = names
         self.names_log = []
@@ -244,11 +245,11 @@ class MessageWindow(base.CWPySprite):
         for index, name in enumerate(self.names):
             # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
             if not self.backlog and self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-                name = (name[0], self.rpl_specialstr(False, name[1], self.name_subtable, encodedtext=False))
+                name = (name[0], index, self.rpl_specialstr(False, name[2], self.name_subtable, encodedtext=False))
             pos_noscale = (x_noscale, y_noscale)
             rest = 1 if (index % self.columns) < (self.rect_noscale.width % self.columns) else 0
             size_noscale = ((self.rect_noscale.width // self.columns) + rest, 25)
-            selected = 1 < len(self.names) and self.backlog and self.result == index
+            selected = 1 < len(self.names) and self.backlog and self.showing_result == index
             sbar = SelectionBar(name, pos_noscale, size_noscale, backlog=self.backlog, selected=selected)
             self.selections.append(sbar)
             sbar.update()
@@ -484,7 +485,7 @@ class MessageWindow(base.CWPySprite):
 
 class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos_noscale=None, size_noscale=None,
-                 backlog=False, result=None, textimg=None, columns=1):
+                 backlog=False, result=None, showing_result=-1, textimg=None, columns=1):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -507,6 +508,7 @@ class SelectWindow(MessageWindow):
 
         # メッセージの選択結果
         self.result = result
+        self.showing_result = showing_result
         # data
         self.names = names
         self.names_log = []
@@ -593,7 +595,8 @@ class SelectionBar(base.SelectableSprite):
         self.backlog = backlog
         self.selected = selected
         self.index = name[0]
-        self.name = name[1]
+        self.showing_index = name[1]
+        self.name = name[2]
         self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext and "selectionbar_classic" in cw.cwpy.rsrc.fonts
         # 通常画像
         self.size_noscale = size_noscale
@@ -732,6 +735,7 @@ class SelectionBar(base.SelectableSprite):
 
         else:
             mwin.result = self.index
+            mwin.showing_result = self.showing_index
 
 class BacklogData(object):
     def __init__(self, base):
@@ -763,7 +767,7 @@ class BacklogData(object):
         self.columns = base.columns
         self.flag_table = base.flag_table
         self.step_table = base.step_table
-        self.result = base.result
+        self.showing_result = base.showing_result
         self.versionhint = base.versionhint
         self.specialchars = cw.cwpy.rsrc.specialchars.copy()
         self.create_cache(base)
@@ -785,7 +789,7 @@ class BacklogData(object):
         if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
             if self.type == 0:
                 height_noscale = min(self.rect_noscale.height, self.bottom_noscale-self.top_noscale)
-                if len(self.names) == 1 and self.columns == 1 and self.names[0][1] == cw.cwpy.msgs["ok"]:
+                if len(self.names) == 1 and self.columns == 1 and self.names[0][2] == cw.cwpy.msgs["ok"]:
                     num = 0
                 else:
                     num = 1
@@ -797,7 +801,7 @@ class BacklogData(object):
 
     @property
     def _from_index(self):
-        return self.result // self.columns * self.columns
+        return self.showing_result // self.columns * self.columns
 
     @property
     def _to_index(self):
@@ -810,34 +814,34 @@ class BacklogData(object):
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
                 size_noscale = (self.rect_noscale.width, min(self.rect_noscale.height, self.bottom_noscale-self.top_noscale))
                 trim_top = self.top_noscale
-                if len(self.names) == 1 and self.columns == 1 and self.names[0][1] == cw.cwpy.msgs["ok"]:
+                if len(self.names) == 1 and self.columns == 1 and self.names[0][2] == cw.cwpy.msgs["ok"]:
                     # 高さ圧縮時はデフォルト選択肢を表示しない
                     names = []
-                    result = -1
+                    showing_result = -1
                 else:
                     # 選択された項目のある行のみ表示
                     names = self.names_log[self._from_index:self._to_index]
-                    result = self.result - self._from_index
+                    showing_result = self.showing_result - self._from_index
             else:
                 size_noscale = self.rect_noscale.size
                 trim_top = 0
                 names = self.names_log
-                result = self.result
+                showing_result = self.showing_result
             base = MessageWindow(self.text, names, self.imgpaths, None,
                                  self.rect_noscale.topleft, size_noscale,
                                  self.talker_image,
                                  self.name_table, self.name_subtable, self.flag_table, self.step_table,
-                                 True, result, self.versionhint, self.specialchars,
+                                 True, None, showing_result, self.versionhint, self.specialchars,
                                  self.textimg, trim_top_noscale=trim_top, columns=self.columns)
         else:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
                 names = self.names_log[self._from_index:self._to_index]
-                result = self.result - self._from_index
+                showing_result = self.showing_result - self._from_index
             else:
                 names = self.names_log
-                result = self.result
+                showing_result = self.showing_result
             base = SelectWindow(names, self.text, self.rect_noscale.topleft, self.rect_noscale.size,
-                                True, result, self.textimg, columns=self.columns)
+                                True, None, showing_result, self.textimg, columns=self.columns)
         if not self.textimg:
             self.create_cache(base)
 
