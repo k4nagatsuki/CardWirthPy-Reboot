@@ -581,9 +581,9 @@ class MemberSelectWindow(SelectWindow):
         if size_noscale is None:
             size_noscale = (470, 40)
         self.selectmembers = pcards
-        names = [(index, pcard.name)
+        names = [(index, index, pcard.name)
                         for index, pcard in enumerate(self.selectmembers)]
-        names.append((len(names), cw.cwpy.msgs["cancel"]))
+        names.append((len(names), len(names), cw.cwpy.msgs["cancel"]))
         text = cw.cwpy.msgs["select_member_message"]
         SelectWindow.__init__(self, names, text, pos_noscale, size_noscale)
 
