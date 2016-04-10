@@ -2042,14 +2042,26 @@ class EndBadEndContent(EventContentBase):
 
     def action(self):
         """シナリオ終了コンテント。
-        ゲームオーバ画面に遷移する。
+        ゲームオーバ画面に遷移するはずだが、
+        実際にはCardWirth 1.20以降パーティが全滅したかのように振る舞う。
+        つまり戦闘中は敗北イベントが発生する。
         """
-        cw.cwpy.set_gameoverstatus(True)
-        cw.cwpy.exec_func(cw.cwpy.set_gameover)
-        raise cw.event.ScenarioBadEndError()
+        # 互換動作: 1.15では戦闘中でもゲームオーバーになる。
+        #           それより前のバージョンは不明だが1.15と同じように振る舞うと想定。
+        if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.15", cw.cwpy.sdata.get_versionhint()):
+            cw.cwpy.set_gameoverstatus(True)
+            cw.cwpy.exec_func(cw.cwpy.set_gameover)
+            raise cw.event.ScenarioBadEndError()
+        else:
+            if cw.cwpy.is_battlestatus():
+                raise cw.battle.BattleDefeatError()
+            else:
+                cw.cwpy.set_gameoverstatus(True)
+                cw.cwpy.exec_func(cw.cwpy.set_gameover)
+                raise cw.event.ScenarioBadEndError()
 
     def get_status(self):
-        return u"ゲームオーバー"
+        return u"敗北・ゲームオーバー"
 
 #-------------------------------------------------------------------------------
 # Get系コンテント
