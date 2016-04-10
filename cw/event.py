@@ -788,8 +788,14 @@ class Event(object):
         if cw.cwpy.is_battlestatus():
             # 敗北処理
             if cw.cwpy.is_gameover():
-                cw.cwpy.set_gameoverstatus(False)
-                raise cw.battle.BattleDefeatError()
+                # 互換動作: 1.15では戦闘中でもゲームオーバーになる。
+                #           それより前のバージョンは不明だが1.15と同じように振る舞うと想定。
+                if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.15", cw.cwpy.sdata.get_versionhint()):
+                    raise cw.battle.BattleDefeatError()
+                else:
+                    # 1.20以降は一旦ゲームオーバーが取り消されて敗北イベントになる
+                    cw.cwpy.set_gameoverstatus(False)
+                    raise cw.battle.BattleDefeatError()
             # 別の戦闘を開始する場合は、戦闘終了
             elif isinstance(self.error, StartBattleError):
                 raise cw.battle.BattleStartBattleError()
