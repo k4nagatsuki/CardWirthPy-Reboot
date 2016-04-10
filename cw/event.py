@@ -788,6 +788,7 @@ class Event(object):
         if cw.cwpy.is_battlestatus():
             # 敗北処理
             if cw.cwpy.is_gameover():
+                cw.cwpy.set_gameoverstatus(False)
                 raise cw.battle.BattleDefeatError()
             # 別の戦闘を開始する場合は、戦闘終了
             elif isinstance(self.error, StartBattleError):

@@ -4,6 +4,7 @@
 import bisect
 
 import cw
+import event
 
 
 class BattleError(Exception):

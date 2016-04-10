@@ -2054,14 +2054,15 @@ class EndBadEndContent(EventContentBase):
             raise cw.event.ScenarioBadEndError()
         else:
             if cw.cwpy.is_battlestatus():
-                raise cw.battle.BattleDefeatError()
+                cw.cwpy.set_gameoverstatus(True)
+                raise cw.event.ScenarioBadEndError()
             else:
                 cw.cwpy.set_gameoverstatus(True)
                 cw.cwpy.exec_func(cw.cwpy.set_gameover)
                 raise cw.event.ScenarioBadEndError()
 
     def get_status(self):
-        return u"敗北・ゲームオーバー"
+        return u"パーティ全滅"
 
 #-------------------------------------------------------------------------------
 # Get系コンテント
