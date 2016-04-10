@@ -34,7 +34,10 @@ class EventContentBase(object):
             return child.get("name", default)
 
     def get_children(self):
-        line_index = cw.cwpy.event.get_event().line_index
+        event = cw.cwpy.event.get_event()
+        if not event:
+            return ()
+        line_index = event.line_index
         if self.data.cwxparent.tag == "ContentsLine" and line_index+1 < len(self.data.cwxparent):
             elements = (self.data.cwxparent[line_index+1],)
         else:
@@ -44,7 +47,10 @@ class EventContentBase(object):
         return elements
 
     def get_children_num(self):
-        line_index = cw.cwpy.event.get_event().line_index
+        event = cw.cwpy.event.get_event()
+        if not event:
+            return 0
+        line_index = event.line_index
         if self.data.cwxparent.tag == "ContentsLine" and line_index+1 < len(self.data.cwxparent):
             return 1
         else:
