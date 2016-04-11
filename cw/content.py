@@ -3074,7 +3074,7 @@ class TalkContent(EventContentBase):
         seq = []
 
         index = 0
-        for i, e in enumerate(self.get_children()):
+        for e in self.get_children():
             if e.tag == "ContentsLine":
                 e = e[0]
             name = e.get("name", "")
@@ -3085,14 +3085,14 @@ class TalkContent(EventContentBase):
                     continue
 
             if name:
-                seq.append((index, i, name))
+                seq.append((index, name))
                 index += 1
             else:
                 # 選択できないが後続コンテントとしては存在する
                 index += 1
 
         if not seq:
-            seq = [(0, 0, cw.cwpy.msgs["ok"])]
+            seq = [(0, cw.cwpy.msgs["ok"])]
 
         return seq
 

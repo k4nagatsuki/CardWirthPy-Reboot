@@ -245,12 +245,12 @@ class MessageWindow(base.CWPySprite):
         for index, name in enumerate(self.names):
             # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
             if not self.backlog and self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-                name = (name[0], index, self.rpl_specialstr(False, name[2], self.name_subtable, encodedtext=False))
+                name = (name[0], self.rpl_specialstr(False, name[1], self.name_subtable, encodedtext=False))
             pos_noscale = (x_noscale, y_noscale)
             rest = 1 if (index % self.columns) < (self.rect_noscale.width % self.columns) else 0
             size_noscale = ((self.rect_noscale.width // self.columns) + rest, 25)
             selected = 1 < len(self.names) and self.backlog and self.showing_result == index
-            sbar = SelectionBar(name, pos_noscale, size_noscale, backlog=self.backlog, selected=selected)
+            sbar = SelectionBar(index, name, pos_noscale, size_noscale, backlog=self.backlog, selected=selected)
             self.selections.append(sbar)
             sbar.update()
             self.names_log.append(name)
@@ -581,22 +581,22 @@ class MemberSelectWindow(SelectWindow):
         if size_noscale is None:
             size_noscale = (470, 40)
         self.selectmembers = pcards
-        names = [(index, index, pcard.name)
+        names = [(index, pcard.name)
                         for index, pcard in enumerate(self.selectmembers)]
-        names.append((len(names), len(names), cw.cwpy.msgs["cancel"]))
+        names.append((len(names), cw.cwpy.msgs["cancel"]))
         text = cw.cwpy.msgs["select_member_message"]
         SelectWindow.__init__(self, names, text, pos_noscale, size_noscale)
 
 class SelectionBar(base.SelectableSprite):
-    def __init__(self, name, pos_noscale, size_noscale, backlog=False, selected=False):
+    def __init__(self, showing_index, name, pos_noscale, size_noscale, backlog=False, selected=False):
         base.SelectableSprite.__init__(self)
         self.selectable_on_event = True
         # 各種データ
         self.backlog = backlog
         self.selected = selected
         self.index = name[0]
-        self.showing_index = name[1]
-        self.name = name[2]
+        self.showing_index = showing_index
+        self.name = name[1]
         self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext and "selectionbar_classic" in cw.cwpy.rsrc.fonts
         # 通常画像
         self.size_noscale = size_noscale
@@ -789,7 +789,7 @@ class BacklogData(object):
         if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
             if self.type == 0:
                 height_noscale = min(self.rect_noscale.height, self.bottom_noscale-self.top_noscale)
-                if len(self.names) == 1 and self.columns == 1 and self.names[0][2] == cw.cwpy.msgs["ok"]:
+                if len(self.names) == 1 and self.columns == 1 and self.names[0][1] == cw.cwpy.msgs["ok"]:
                     num = 0
                 else:
                     num = 1
@@ -814,7 +814,7 @@ class BacklogData(object):
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
                 size_noscale = (self.rect_noscale.width, min(self.rect_noscale.height, self.bottom_noscale-self.top_noscale))
                 trim_top = self.top_noscale
-                if len(self.names) == 1 and self.columns == 1 and self.names[0][2] == cw.cwpy.msgs["ok"]:
+                if len(self.names) == 1 and self.columns == 1 and self.names[0][1] == cw.cwpy.msgs["ok"]:
                     # 高さ圧縮時はデフォルト選択肢を表示しない
                     names = []
                     showing_result = -1

@@ -849,7 +849,7 @@ class PlayerCard(CWPyCard, character.Player):
         # レベルアップメッセージ
         if fromscenario and 0 < levelup:
             text = cw.util.encodewrap(cw.cwpy.msgs["level_up"])
-            names = [(0, 0, cw.cwpy.msgs["ok"])]
+            names = [(0, cw.cwpy.msgs["ok"])]
             mwin = cw.sprite.message.MessageWindow(text, names, self.imgpaths, self)
             cw.cwpy.show_message(mwin)
             if base <> level or cw.cwpy.ydata.party.is_suspendlevelup:
