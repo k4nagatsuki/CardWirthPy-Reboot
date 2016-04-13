@@ -218,21 +218,23 @@ class Effect(object):
         # 効果モーションを発動
         effectual = False
         for motion in self.motions:
+            ltype = motion.type.lower()
+            if ltype in ("damage", "absorb") and motion.can_apply(target):
+                # ダメージ軽減によるカード消耗
+                consume.clear()
+                for header in cards:
+                    avoid, resist, defense = header.get_enhance_val()
+                    if 0 <> defense:
+                        consume.add(header)
+
+                for header in consume:
+                    header.set_uselimit(-1)
+
             effectual |= motion.apply(target, success_res)
 
         if not effectual:
             # 効果無し
             cw.cwpy.play_sound("ineffective", True)
-
-        # ダメージ軽減によるカード消耗
-        if hasdamage:
-            for header in cards:
-                avoid, resist, defense = header.get_enhance_val()
-                if 0 <> defense:
-                    consume.add(header)
-
-        for header in consume:
-            header.set_uselimit(-countdamage)
 
         # アニメーション・画像更新(対象消去されていなかったら)
         if not target.is_vanished():
@@ -565,10 +567,9 @@ class EffectMotion(object):
         else:
             return False
 
-    def apply(self, target, success_res):
+    def can_apply(self, target):
         """
-        target(PlayerCard, EnemyCard)に
-        効果モーションを適用する。
+        実際に効果を適用しようとした時に無効であればFalseを返す。
         """
         # 無効属性だったら処理中止
         if self.is_noeffect(target):
@@ -576,6 +577,16 @@ class EffectMotion(object):
 
         # 意識不明だったら一部効果の処理中止
         if target.is_unconscious() and not self.type in CAN_UNCONSCIOUS:
+            return False
+
+        return True
+
+    def apply(self, target, success_res):
+        """
+        target(PlayerCard, EnemyCard)に
+        効果モーションを適用する。
+        """
+        if not self.can_apply(target):
             return False
 
         methodname = self.type.lower() + "_motion"

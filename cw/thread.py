@@ -1454,11 +1454,13 @@ class CWPy(_Singleton, threading.Thread):
             self.update()
 
             if mwin.result is None:
+                self.input()
                 self.draw(not mwin.is_drawing or self.has_inputevent)
 
             self.tick_clock()
             self.input()
             eventhandler.run()
+
         self.clear_selection()
         self.lock_menucards = locks
 
