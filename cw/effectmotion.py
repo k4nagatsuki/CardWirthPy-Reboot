@@ -218,8 +218,9 @@ class Effect(object):
         # 効果モーションを発動
         effectual = False
         for motion in self.motions:
-            ltype = motion.type.lower()
-            if ltype in ("damage", "absorb") and motion.can_apply(target):
+            effectual |= motion.apply(target, success_res)
+
+            if motion.type.lower() in ("damage", "absorb") and motion.can_apply(target):
                 # ダメージ軽減によるカード消耗
                 consume.clear()
                 for header in cards:
@@ -229,8 +230,6 @@ class Effect(object):
 
                 for header in consume:
                     header.set_uselimit(-1)
-
-            effectual |= motion.apply(target, success_res)
 
         if not effectual:
             # 効果無し
