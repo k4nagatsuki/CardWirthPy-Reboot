@@ -84,7 +84,7 @@ class EventContentBase(object):
         for e in self.data.getfind("Coupons", raiseerror=False):
             self.coupons[e.text] = self.coupons.get(e.text, 0) + e.getint(".", "value", 0)
 
-    def get_valuedmember(self, mode="unreversed"):
+    def get_valuedmember(self, mode="unreversed", silenced_member=True):
         """評価値が最大になるメンバを返す(1.50)。
         これを使用するイベントコンテントは
         self._init_valuesをFalseで初期化しておくこと。
@@ -96,6 +96,8 @@ class EventContentBase(object):
         maxvalue = 0
         for pcard in cw.cwpy.get_pcards():
             if not pcard.is_active():
+                continue
+            if not silenced_member and pcard.is_silence():
                 continue
             value = self.initvalue
             for name, cvalue in self.coupons.iteritems():
@@ -3254,7 +3256,7 @@ class TalkDialogContent(TalkContent):
         # 対象メンバ取得
         targetm = self.data.get("targetm", "")
         if targetm == "Valued":
-            talker = self.get_valuedmember()
+            talker = self.get_valuedmember(silenced_member=False)
         else:
             talker = cw.cwpy.event.get_targetmember(targetm)
 
