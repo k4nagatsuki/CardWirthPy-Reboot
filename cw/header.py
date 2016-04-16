@@ -472,21 +472,23 @@ class CardHeader(object):
                                                             header.maxuselimit)
             e = header.carddata.getfind("Property/UseLimit")
             e.text = str(header.uselimit)
-            owner.data.is_edited = True
+            if owner:
+                owner.data.is_edited = True
         # アイテムカード。
         elif header.type == "ItemCard" and not header.maxuselimit == 0:
             header.uselimit += value
             header.uselimit = cw.util.numwrap(header.uselimit, 0, 999)
             e = header.carddata.getfind("Property/UseLimit")
             e.text = str(header.uselimit)
-            owner.data.is_edited = True
+            if owner:
+                owner.data.is_edited = True
 
-            # カード消滅処理。リサイクルカードの場合は消滅させない
-            if header.uselimit <= 0 and not header.recycle and header.get_owner() == owner:
-                if cw.cwpy.battle and header in owner.deck.hand:
-                    owner.deck.hand.remove(header)
+                # カード消滅処理。リサイクルカードの場合は消滅させない
+                if header.uselimit <= 0 and not header.recycle and header.get_owner() == owner:
+                    if cw.cwpy.battle and header in owner.deck.hand:
+                        owner.deck.hand.remove(header)
 
-                cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
+                    cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
 
         # 召喚獣カード。
         elif header.type == "BeastCard" and not header.maxuselimit == 0:
@@ -494,13 +496,14 @@ class CardHeader(object):
             header.uselimit = cw.util.numwrap(header.uselimit, 0, 999)
             e = header.carddata.getfind("Property/UseLimit")
             e.text = str(header.uselimit)
-            owner.data.is_edited = True
+            if owner:
+                owner.data.is_edited = True
 
-            # カード消滅処理
-            if header.uselimit <= 0 and not header.recycle and header.get_owner() == owner:
-                # 召喚獣消去効果で消えてる場合もあるのでチェック
-                if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
-                    cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
+                # カード消滅処理
+                if header.uselimit <= 0 and not header.recycle and header.get_owner() == owner:
+                    # 召喚獣消去効果で消えてる場合もあるのでチェック
+                    if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
+                        cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
 
     def write(self, party=None, move=False, from_getcontent=False):
         def create_newpath(party):
