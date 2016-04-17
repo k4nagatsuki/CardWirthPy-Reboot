@@ -370,7 +370,7 @@ class SoundInterface(object):
                     return
                 assert threading.currentThread() == cw.cwpy
                 try:
-                    cw.bassplayer.stop_sound(from_scenario, channel=self.channel, stopfadeout=stopfadeout)
+                    cw.bassplayer.stop_sound(from_scenario, channel=self.channel, fade=fade, stopfadeout=stopfadeout)
                     remove_soundtempfile(tempbasedir)
                 except Exception:
                     cw.util.print_ex()
