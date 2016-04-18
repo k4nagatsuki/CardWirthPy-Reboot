@@ -746,8 +746,10 @@ class Debugger(wx.Frame):
                 seq.append("package:id:%s" % (packid))
             elif cw.cwpy.is_battlestatus():
                 seq.append("battle:id:%s" % (cw.cwpy.areaid))
-            else:
+            elif 0 <= cw.cwpy.areaid:
                 seq.append("area:id:%s" % (cw.cwpy.areaid))
+            elif cw.cwpy.pre_areaids:
+                seq.append("area:id:%s" % (cw.cwpy.pre_areaids[0]))
 
             def func(self, seq):
                 if not self:
