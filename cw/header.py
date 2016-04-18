@@ -474,6 +474,8 @@ class CardHeader(object):
             e.text = str(header.uselimit)
             if owner:
                 owner.data.is_edited = True
+                if owner.deck:
+                    owner.deck.update_skillcardimage(header)
         # アイテムカード。
         elif header.type == "ItemCard" and not header.maxuselimit == 0:
             header.uselimit += value

@@ -207,6 +207,11 @@ class Deck(object):
                 count = handcounts.get(header.ref_original(), 0)
                 header.uselimit = count
 
+    def update_skillcardimage(self, header):
+        for header2 in self.hand:
+            if header2.ref_original() is header:
+                header2.uselimit = header.uselimit
+
     def clear(self, ccard):
         self.talon = []
         self.hand = []
