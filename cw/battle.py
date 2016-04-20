@@ -261,6 +261,10 @@ class BattleEngine(object):
         if event:
             # 逃走イベント開始
             try:
+                cw.cwpy.clear_selection()
+                cw.cwpy.clear_fcardsprites()
+                self._ready = False
+                self._running = True
                 cw.cwpy.sdata.start_event(keynum=2)
             except BattleStartBattleError:
                 self.end(False, startnextbattle=True)
