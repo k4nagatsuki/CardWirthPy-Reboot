@@ -1066,8 +1066,9 @@ class CardEvent(Event):
             cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
     def run_deadevent(self, target):
-        if self.inusecard.id == 7 and self.inusecard.type == "ActionCard":
-            # 逃走カードは死亡イベントを発生させない
+        if cw.cwpy.msgs["runaway_keycode"] in self.inusecard.get_keycodes(with_name=False):
+            # キーコード「逃走」付きのカードは死亡イベントを発生させない
+            # (ただしカード名キーコードは除く)
             return False
         if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
             cw.cwpy.event.set_selectedmember(self.user)

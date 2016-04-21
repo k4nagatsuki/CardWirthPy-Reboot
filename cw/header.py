@@ -757,7 +757,10 @@ class CardHeader(object):
                 return False
         return True
 
-    def get_keycodes(self):
+    def get_keycodes(self, with_name=True):
+        if not with_name:
+            return self.keycodes[:-1]
+
         # 互換動作: 1.20以前にカード名キーコードは存在しない
         if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
             return self.keycodes[:-1]
