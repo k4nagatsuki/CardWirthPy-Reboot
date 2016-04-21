@@ -1110,7 +1110,7 @@ class EffectMotion(object):
             if cwxpath:
                 e.attrib["cwxpath"] = cwxpath
             self.duration = e.getint("Property/UseLimit")
-            recycle = u"リサイクル" in cw.util.decodetextlist(e.gettext("Property/KeyCodes", u""))
+            recycle = cw.cwpy.msgs["recycle_keycode"] in cw.util.decodetextlist(e.gettext("Property/KeyCodes", u""))
             duration = self.calc_durationvalue(target, recycle)
             e.find("Property/UseLimit").text = str(duration)
             header = self.cardheader

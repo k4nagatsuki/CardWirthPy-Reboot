@@ -183,15 +183,15 @@ class CardHeader(object):
         self.clickedflag = False
 
         # 特殊なキーコード
-        self.keycodes.append(self.name)
-        self.penalty = bool(u"ペナルティ" in self.keycodes)
+        self.penalty = bool(cw.cwpy.msgs["penalty_keycode"] in self.keycodes)
         if not scenariocard and self.type == "BeastCard" and isinstance(owner, (cw.character.Friend, cw.character.Enemy)):
             # 最初から持っていた使用回数ありリサイクル召喚獣に限っては
             # 付帯能力でなくてもリサイクル状態が有効になる
             reattachment = True
         else:
             reattachment = (self.attachment or self.type == "ItemCard")
-        self.recycle = bool(self.type in ("ItemCard", "BeastCard") and u"リサイクル" in self.keycodes and reattachment)
+        self.recycle = bool(self.type in ("ItemCard", "BeastCard") and cw.cwpy.msgs["recycle_keycode"] in self.keycodes and reattachment)
+        self.keycodes.append(self.name)
 
         # 所持スキルカードだった場合は使用回数を設定
         if self.is_ccardheader() and self.type == "SkillCard":

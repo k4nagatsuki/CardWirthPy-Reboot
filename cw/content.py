@@ -2140,7 +2140,7 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
             attachment = True
 
         if etree.gettext("Property/UseLimit") == "0":
-            recycle = u"リサイクル" in cw.util.decodetextlist(etree.gettext("Property/KeyCodes"))
+            recycle = cw.cwpy.msgs["recycle_keycode"] in cw.util.decodetextlist(etree.gettext("Property/KeyCodes"))
             if not (recycle and attachment) and not attachment:
                 etree.edit("Property/UseLimit", "1")
 
