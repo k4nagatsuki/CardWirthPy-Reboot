@@ -1254,9 +1254,14 @@ class Flag(object):
             value = self.value
 
         if value:
-            return self.truename
+            s = self.truename
         else:
-            return self.falsename
+            s = self.falsename
+
+        if s is None:
+            return u""
+        else:
+            return s
 
 def redraw_cards(value, flag=""):
     """フラグに対応するメニューカードの再描画処理"""
@@ -1307,7 +1312,11 @@ class Step(object):
             value = self.value
         value = cw.util.numwrap(value, 0, len(self.valuenames)-1)
 
-        return self.valuenames[value]
+        s = self.valuenames[value]
+        if s is None:
+            return u""
+        else:
+            return s
 
 #-------------------------------------------------------------------------------
 #　宿データ
