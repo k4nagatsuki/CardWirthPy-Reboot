@@ -1196,7 +1196,7 @@ def get_messagelogtext(mwins):
         if mwin.names_log and not (len(mwin.names_log) == 1 and mwin.columns == 1 and mwin.names_log[0][1] == cw.cwpy.msgs["ok"]):
             lines.append("")
             for i, sel in enumerate(mwin.names_log):
-                if i == mwin.showing_result:
+                if i == mwin.showing_result and 1 < len(mwin.names_log):
                     s = u">>[ %s " % (sel[1])
                 else:
                     s = u"  [ %s " % (sel[1])
