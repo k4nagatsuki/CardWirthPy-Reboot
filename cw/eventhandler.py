@@ -894,6 +894,23 @@ class EventHandlerForMessageWindow(EventHandler):
             sbar = cw.cwpy.list[cw.cwpy.index]
             cw.cwpy.change_selection(sbar)
 
+    def keydown_event(self, key):
+        """その他のKEYDOWNイベント。"""
+        if not EventHandler.keydown_event(self, key):
+            return
+
+        if not self.can_input():
+            return False
+
+        ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
+
+        if ctrldown and key == ord('C') and not self.mwin.is_drawing:
+            cw.cwpy.play_sound("equipment")
+            s = cw.sprite.message.get_messagelogtext((self.mwin,))
+            cw.cwpy.frame.exec_func(cw.util.to_clipboard, s)
+            return False
+        return True
+
     def wheel_event(self, y=0):
         """
         ホイールイベント。
@@ -1335,12 +1352,19 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy.draw()
 
     def keydown_event(self, key):
-        """その他のKEYUPイベント。"""
+        """その他のKEYDOWNイベント。"""
         if not EventHandler.keydown_event(self, key):
             return
 
+        ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
+        if self.can_input() and ctrldown and key == ord('C'):
+            cw.cwpy.play_sound("equipment")
+            s = cw.sprite.message.get_messagelogtext(self.backlog_all)
+            cw.cwpy.frame.exec_func(cw.util.to_clipboard, s)
+            return False
+
         if not cw.cwpy.setting.is_logscrollable():
-            return
+            return True
 
         if key == pygame.locals.K_PAGEUP:
             self._scrollbar.set_pos(self._scrollbar.get_pos()-cw.SIZE_AREA[1]*80/100, lazy=True)
@@ -1350,6 +1374,8 @@ class EventHandlerForBacklog(EventHandler):
             self._scrollbar.set_pos(0, lazy=True)
         elif key == pygame.locals.K_END:
             self._scrollbar.set_pos(self._scrollbar.scrsize_noscale-cw.SIZE_AREA[1], lazy=True)
+
+        return False
 
     def _get_maxpage(self):
         if not self.backlog:

@@ -43,7 +43,8 @@ class KeyEventRelay(object):
             wx.WXK_HOME : K_HOME,
             wx.WXK_END : K_END,
             ord('D') : ord('D'), # デバッグモード切り替え
-            ord('P') : ord('P')} # スクリーンショット
+            ord('P') : ord('P'), # スクリーンショット
+            ord('C') : ord('C')} # メッセージのコピー
         # キー入力(pygame用)
         self.keyin = [0 for _cnt in xrange(322)]
         # マウス入力。EventHandlerから受信

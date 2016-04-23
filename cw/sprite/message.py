@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import re
 import pygame
 import pygame.locals
@@ -40,9 +41,14 @@ class MessageWindow(base.CWPySprite):
         self.names_log = []
         self.imgpaths = imgpaths
         self.text = text
+        self.text_log = u""
 
         # 話者(CardHeader or Character)
         self.talker = talker
+        if talker:
+            self.talker_name = talker.name
+        else:
+            self.talker_name = None
 
         self.backlog_versionhint = versionhint
         self.versionhint = None
@@ -266,6 +272,7 @@ class MessageWindow(base.CWPySprite):
         if pos_noscale is None:
             pos_noscale = (14, 9)
         pos = cw.s(pos_noscale)
+        log_seq = []
         if self.talker_image:
             if not self.backlog:
                 self.text = self.rpl_specialstr(True, self.text)
@@ -322,6 +329,7 @@ class MessageWindow(base.CWPySprite):
                 cnt += 1
                 pos = posp[0], lineheight * cnt + posp[1]
                 y_noscale = lineheight_noscale * cnt + yp_noscale
+                log_seq.append(u"\n")
 
                 # 8行以下の文字列は表示しない
                 if cnt > 6:
@@ -334,7 +342,8 @@ class MessageWindow(base.CWPySprite):
                 skip = False
                 continue
 
-            chars = "".join(self.text[index:index+2]).lower()
+            orig_chars = self.text[index:index+2]
+            chars = "".join(orig_chars).lower()
 
             # 特殊文字
             image2 = None
@@ -350,6 +359,7 @@ class MessageWindow(base.CWPySprite):
                         images.append((cpos, None, cw.s(charimg), None))
                         pos = pos[0] + cw.s(20), pos[1]
                         skip = True
+                        log_seq.append(orig_chars)
                         continue
 
                     size = charimg.get_size()
@@ -362,6 +372,7 @@ class MessageWindow(base.CWPySprite):
                     images.append((pos, None, decorate(image2, basecolour=colour), None))
                     pos = pos[0] + cw.s(20), pos[1]
                     skip = True
+                    log_seq.append(orig_chars)
                     continue
 
             # 文字色変更
@@ -371,6 +382,7 @@ class MessageWindow(base.CWPySprite):
                     skip = True
                 continue
 
+            log_seq.append(char)
             # 半角文字だったら文字幅は半分にする
             if cw.util.is_hw(char):
                 cwidth = cw.s(10)
@@ -417,6 +429,7 @@ class MessageWindow(base.CWPySprite):
             self.top_noscale = cw.s(0)
             self.bottom_noscale = yp_noscale + bottom
 
+        self.text_log = u"".join(log_seq)
         return images
 
     def rpl_specialstr(self, full, s, nametable=None, encodedtext=True):
@@ -514,7 +527,9 @@ class SelectWindow(MessageWindow):
         self.names_log = []
         self.imgpaths = []
         self.text = cw.cwpy.msgs["select_message"] if not text else text
+        self.text_log = u""
         self.talker = None
+        self.talker_name = None
         self._init_image(size_noscale, pos_noscale)
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs((14, 9))
@@ -746,9 +761,11 @@ class BacklogData(object):
         else:
             self.type = 0
         self.text = base.text
+        self.text_log = base.text_log
         self.names = base.names
         self.names_log = base.names_log
         self.imgpaths = base.imgpaths
+        self.talker_name = base.talker_name
         self.talker_image = []
         for info in self.imgpaths:
             # シナリオ内のイメージは静的だが、
@@ -789,7 +806,7 @@ class BacklogData(object):
         if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
             if self.type == 0:
                 height_noscale = min(self.rect_noscale.height, self.bottom_noscale-self.top_noscale)
-                if len(self.names) == 1 and self.columns == 1 and self.names[0][1] == cw.cwpy.msgs["ok"]:
+                if len(self.names_log) == 1 and self.columns == 1 and self.names_log[0][1] == cw.cwpy.msgs["ok"]:
                     num = 0
                 else:
                     num = 1
@@ -797,7 +814,7 @@ class BacklogData(object):
             else:
                 return self.rect_noscale.height + 25
         else:
-            return self.rect_noscale.height + len(self.names)*25
+            return self.rect_noscale.height + len(self.names_log)*25
 
     @property
     def _from_index(self):
@@ -814,7 +831,7 @@ class BacklogData(object):
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
                 size_noscale = (self.rect_noscale.width, min(self.rect_noscale.height, self.bottom_noscale-self.top_noscale))
                 trim_top = self.top_noscale
-                if len(self.names) == 1 and self.columns == 1 and self.names[0][1] == cw.cwpy.msgs["ok"]:
+                if len(self.names_log) == 1 and self.columns == 1 and self.names_log[0][1] == cw.cwpy.msgs["ok"]:
                     # 高さ圧縮時はデフォルト選択肢を表示しない
                     names = []
                     showing_result = -1
@@ -1152,6 +1169,47 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
     else:
         return "".join(buf)
 
+def get_messagelogtext(mwins):
+    """メッセージまたはログをプレイヤー向けのテキストデータに変換する。
+    """
+    lines = []
+    for mwin in mwins:
+        name = mwin.talker_name
+        if name is None:
+            seq = []
+            for path in mwin.imgpaths:
+                if path.path:
+                    seq.append(os.path.basename(path.path))
+            if seq:
+                name = u" ".join(seq)
+
+        if name:
+            s = u"--[ %s ]--" % (name)
+        else:
+            s = u"--"
+
+        slen = reduce(lambda a, b: a+b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
+        if slen < 42:
+            s += u"-" * (42-slen)
+        lines.append(s)
+        lines.append(mwin.text_log.strip(u"\n"))
+        if mwin.names_log and not (len(mwin.names_log) == 1 and mwin.columns == 1 and mwin.names_log[0][1] == cw.cwpy.msgs["ok"]):
+            lines.append("")
+            for i, sel in enumerate(mwin.names_log):
+                if i == mwin.showing_result:
+                    s = u">>[ %s " % (sel[1])
+                else:
+                    s = u"  [ %s " % (sel[1])
+                slen = reduce(lambda a, b: a+b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
+                if slen < 41:
+                    s += u" " * (41-slen)
+                s += u"]"
+                lines.append(s)
+
+    lines.append(u"-" * 42)
+    lines.append("")
+
+    return u"\n".join(lines)
 
 def main():
     pass

@@ -1335,6 +1335,15 @@ def create_cardscreenshot(titledic):
 
     return bmp
 
+def to_clipboard(s):
+    """テキストsをクリップボードへ転写する。"""
+    tdo = wx.TextDataObject()
+    tdo.SetText(s)
+    if wx.TheClipboard.Open():
+        wx.TheClipboard.SetData(tdo)
+        wx.TheClipboard.Close()
+
+
 #-------------------------------------------------------------------------------
 #　ファイル操作関連
 #-------------------------------------------------------------------------------

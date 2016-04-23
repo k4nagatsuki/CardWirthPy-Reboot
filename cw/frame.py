@@ -1160,6 +1160,7 @@ class Frame(wx.Frame):
         pos = self.GetPosition()
         return (size[0] - csize[0]) + pos[0], (size[1] - csize[1]) + pos[1]
 
+
 class MyApp(wx.App):
     def OnInit(self):
         wx.Log.SetLogLevel(wx.LOG_Error)
