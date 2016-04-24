@@ -95,6 +95,7 @@ class CharaInfo(wx.Dialog):
         self.endkeyid = wx.NewId()
         self.enter = wx.NewId()
         self.openinfo = wx.NewId()
+        copyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnUp, id=self.upkeyid)
@@ -105,6 +106,7 @@ class CharaInfo(wx.Dialog):
         self.Bind(wx.EVT_MENU, self.OnEnd, id=self.endkeyid)
         self.Bind(wx.EVT_MENU, self.OnEnter, id=self.enter)
         self.Bind(wx.EVT_MENU, self.OnOpenInfo, id=self.openinfo)
+        self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftpagekeyid),
             (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
@@ -116,6 +118,7 @@ class CharaInfo(wx.Dialog):
             (wx.ACCEL_NORMAL, wx.WXK_END, self.endkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_RETURN, self.enter),
             (wx.ACCEL_CTRL, wx.WXK_RETURN, self.openinfo),
+            (wx.ACCEL_CTRL, ord('C'), copyid),
         ]
         cw.util.set_acceleratortable(self, seq)
 
@@ -128,6 +131,17 @@ class CharaInfo(wx.Dialog):
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def OnCopyDetail(self, event):
+        page = self.notebook.GetPage(self.notebook.GetSelection())
+        lines = []
+        lines.append(self.toppanel.get_detailtext())
+        lines.append(u"-" * 40)
+        s = page.get_detailtext()
+        if s:
+            lines.append(s)
+        lines.append(u"")
+        cw.util.to_clipboard(u"\n".join(lines))
 
     def OnEnter(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
@@ -441,6 +455,11 @@ class TopPanel(wx.Panel):
                         if coupon.text == u"＠Ｒ" + race.name:
                             self.race = race
                             break
+        else:
+            self.sex = u""
+            self.age = u""
+            self.ep = u""
+            self.race = cw.cwpy.setting.unknown_race
 
         if update:
             dc = wx.ClientDC(self)
@@ -540,6 +559,8 @@ class TopPanel(wx.Panel):
             gcdc.DrawRoundedRectangle(x-1, y-1, w+2, h+2, rad)
             gcdc.EndDrawing()
 
+        self.baselevel = baselevel
+
         # 名前
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
         s = self.ccard.name
@@ -582,6 +603,23 @@ class TopPanel(wx.Panel):
 
         if update:
             self.Refresh()
+
+    def get_detailtext(self):
+        lines = []
+        if self.baselevel == self.ccard.level:
+            level = u"%s" % (self.ccard.level)
+        else:
+            level = u"%s / %s" % (self.ccard.level, self.baselevel)
+        s = u"[ %s ] Level %s" % (self.ccard.name, level)
+        if not isinstance(self.race, cw.header.UnknownRaceHeader):
+            s += u" / %s" % (self.race.name)
+        if self.sex or self.age:
+            s += u" / %s%s" % (self.age, self.sex)
+        if self.ep:
+            s += u" / EP %s" % self.ep
+        lines.append(s)
+
+        return u"\n".join(lines)
 
 class DescPanel(wx.ScrolledWindow):
     """
@@ -648,6 +686,10 @@ class DescPanel(wx.ScrolledWindow):
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
         dc.DrawLabel(self.text, (self.x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
+
+    def get_detailtext(self):
+        return self.text
+
 
 class HistoryPanel(wx.ScrolledWindow):
     """
@@ -809,6 +851,17 @@ class HistoryPanel(wx.ScrolledWindow):
             y += lineheight
             if csize[1] <= y:
                 break
+
+    def get_detailtext(self):
+        lines = []
+        for text, value in self.coupons:
+            if 0 <= value:
+                lines.append(u"%s (+%s)" % (text, value))
+            else:
+                lines.append(u"%s (%s)" % (text, value))
+
+        return u"\n".join(lines)
+
 
 class EditButton():
     def __init__(self, name, btype):
@@ -1016,6 +1069,10 @@ class EditPanel(wx.Panel):
         if update:
             self.Refresh()
 
+    def get_detailtext(self):
+        return u""
+
+
 class StatusPanel(wx.ScrolledWindow):
     def __init__(self, parent, mlist, ccard, editable):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(200)), style=wx.SUNKEN_BORDER)
@@ -1067,18 +1124,7 @@ class StatusPanel(wx.ScrolledWindow):
 
         # 生命力の割合
         bmp = cw.cwpy.rsrc.wxstatuses["LIFE"]
-        if self.ccard.is_unconscious():
-            colour = wx.Colour(0, 0, 128)
-            msg = u"意識不明"
-        elif self.ccard.is_heavyinjured():
-            colour = wx.Colour(127, 0, 0)
-            msg = u"重症"
-        elif self.ccard.is_injured():
-            colour = wx.Colour(0, 153, 187)
-            msg = u"負傷"
-        else:
-            colour = wx.Colour(192, 192, 192)
-            msg = u"正常"
+        colour, msg = self._get_life()
 
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
         dc.DrawRectangle(cw.wins(12), height - cw.wins(1), bmp.Width, bmp.Height)
@@ -1088,34 +1134,27 @@ class StatusPanel(wx.ScrolledWindow):
 
         # 肉体状態異常
         if self.ccard.is_poison():
-            height = self._draw_status(dc, u"中毒 (%s)" % (self.ccard.poison), "BODY0", height)
+            height = self._draw_status(dc, self._get_poison(), "BODY0", height)
         if self.ccard.is_paralyze():
             if self.ccard.is_petrified():
-                height = self._draw_status(dc, u"石化 (%s)" % (self.ccard.paralyze), "BODY1", height)
+                height = self._draw_status(dc, self._get_petrified(), "BODY1", height)
             else:
-                height = self._draw_status(dc, u"麻痺 (%s)" % (self.ccard.paralyze), "BODY1", height)
+                height = self._draw_status(dc, self._get_paralyze(), "BODY1", height)
 
         # 精神状態異常
-        if self.ccard.is_sleep():
-            height = self._draw_status(dc, u"眠り状態 (%s)" % (self.ccard.mentality_dur), "MIND1", height)
-        if self.ccard.is_confuse():
-            height = self._draw_status(dc, u"混乱状態 (%s)" % (self.ccard.mentality_dur), "MIND2", height)
-        if self.ccard.is_overheat():
-            height = self._draw_status(dc, u"激高状態 (%s)" % (self.ccard.mentality_dur), "MIND3", height)
-        if self.ccard.is_brave():
-            height = self._draw_status(dc, u"勇敢状態 (%s)" % (self.ccard.mentality_dur), "MIND4", height)
-        if self.ccard.is_panic():
-            height = self._draw_status(dc, u"恐慌状態 (%s)" % (self.ccard.mentality_dur), "MIND5", height)
+        s, icon = self._get_mentality()
+        if icon:
+            height = self._draw_status(dc, s, icon, height)
 
         # 魔法的状態異常
         if self.ccard.is_bind():
-            height = self._draw_status(dc, u"呪縛状態 (%s)" % (self.ccard.bind), "MAGIC0", height)
+            height = self._draw_status(dc, self._get_bind(), "MAGIC0", height)
         if self.ccard.is_silence():
-            height = self._draw_status(dc, u"沈黙状態 (%s)" % (self.ccard.silence), "MAGIC1", height)
+            height = self._draw_status(dc, self._get_silence(), "MAGIC1", height)
         if self.ccard.is_faceup():
-            height = self._draw_status(dc, u"暴露状態 (%s)" % (self.ccard.faceup), "MAGIC2", height)
+            height = self._draw_status(dc, self._get_faceup(), "MAGIC2", height)
         if self.ccard.is_antimagic():
-            height = self._draw_status(dc, u"完全魔法防御状態 (%s)" % (self.ccard.antimagic), "MAGIC3", height)
+            height = self._draw_status(dc, self._get_antimagic(), "MAGIC3", height)
 
         # 能力ボーナス・ペナルティ
         height = self._draw_enhance(dc, u"行動力", self.ccard.enhance_act,
@@ -1132,6 +1171,105 @@ class StatusPanel(wx.ScrolledWindow):
             self.Scroll(0, 0)
             self.Refresh()
 
+    def get_detailtext(self):
+        lines = []
+        _colour, msg = self._get_life()
+        lines.append(msg)
+
+        # 肉体状態異常
+        if self.ccard.is_poison():
+            lines.append(self._get_poison())
+        if self.ccard.is_paralyze():
+            if self.ccard.is_petrified():
+                lines.append(self._get_petrified())
+            else:
+                lines.append(self._get_paralyze())
+
+        # 精神状態異常
+        msg, icon = self._get_mentality()
+        if icon:
+            lines.append(msg)
+
+        # 魔法的状態異常
+        if self.ccard.is_bind():
+            lines.append(self._get_bind())
+        if self.ccard.is_silence():
+            lines.append(self._get_silence())
+        if self.ccard.is_faceup():
+            lines.append(self._get_faceup())
+        if self.ccard.is_antimagic():
+            lines.append(self._get_antimagic())
+
+        # 能力ボーナス・ペナルティ
+        _colour, _bmp, msg = self._get_enhance(u"行動力", self.ccard.enhance_act,
+                                    self.ccard.enhance_act_dur, "UP0", "DOWN0")
+        if msg:
+            lines.append(msg)
+        _colour, _bmp, msg = self._get_enhance(u"回避力", self.ccard.enhance_avo,
+                                    self.ccard.enhance_avo_dur, "UP1", "DOWN1")
+        if msg:
+            lines.append(msg)
+        _colour, _bmp, msg = self._get_enhance(u"抵抗力", self.ccard.enhance_res,
+                                    self.ccard.enhance_res_dur, "UP2", "DOWN2")
+        if msg:
+            lines.append(msg)
+        _colour, _bmp, msg = self._get_enhance(u"防御力", self.ccard.enhance_def,
+                                    self.ccard.enhance_def_dur, "UP3", "DOWN3")
+        if msg:
+            lines.append(msg)
+
+        return u"\n".join(lines)
+
+    def _get_life(self):
+        if self.ccard.is_unconscious():
+            colour = wx.Colour(0, 0, 128)
+            msg = u"意識不明"
+        elif self.ccard.is_heavyinjured():
+            colour = wx.Colour(127, 0, 0)
+            msg = u"重症"
+        elif self.ccard.is_injured():
+            colour = wx.Colour(0, 153, 187)
+            msg = u"負傷"
+        else:
+            colour = wx.Colour(192, 192, 192)
+            msg = u"正常"
+        return colour, msg
+
+    def _get_poison(self):
+        return u"中毒 (%s)" % (self.ccard.poison)
+
+    def _get_paralyze(self):
+        return u"麻痺 (%s)" % (self.ccard.paralyze)
+
+    def _get_petrified(self):
+        return u"石化 (%s)" % (self.ccard.paralyze)
+
+    def _get_mentality(self):
+        if self.ccard.is_sleep():
+            return u"眠り状態 (%s)" % (self.ccard.mentality_dur), "MIND1"
+        elif self.ccard.is_confuse():
+            return u"混乱状態 (%s)" % (self.ccard.mentality_dur), "MIND2"
+        elif self.ccard.is_overheat():
+            return u"激高状態 (%s)" % (self.ccard.mentality_dur), "MIND3"
+        elif self.ccard.is_brave():
+            return u"勇敢状態 (%s)" % (self.ccard.mentality_dur), "MIND4"
+        elif self.ccard.is_panic():
+            return u"恐慌状態 (%s)" % (self.ccard.mentality_dur), "MIND5"
+        else:
+            return u"", ""
+
+    def _get_bind(self):
+        return u"呪縛状態 (%s)" % (self.ccard.bind)
+
+    def _get_silence(self):
+        return u"沈黙状態 (%s)" % (self.ccard.silence)
+
+    def _get_faceup(self):
+        return u"暴露状態 (%s)" % (self.ccard.faceup)
+
+    def _get_antimagic(self):
+        return u"完全魔法防御状態 (%s)" % (self.ccard.antimagic)
+
     def _draw_status(self, dc, msg, imgname, height):
         bmp = cw.cwpy.rsrc.wxstatuses[imgname]
         dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1))
@@ -1139,9 +1277,10 @@ class StatusPanel(wx.ScrolledWindow):
         self.Refresh()
         return height + cw.wins(17)
 
-    def _draw_enhance(self, dc, enhname, value, dur, enhimage, pnlimage, height):
+    def _get_enhance(self, enhname, value, dur, enhimage, pnlimage):
         if 0 == value:
-            return height
+            return None, None, u""
+
         if 10 <= value:
             colour = wx.Colour(255, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
@@ -1174,12 +1313,20 @@ class StatusPanel(wx.ScrolledWindow):
             colour = wx.Colour(0, 0, 187)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
             msg = u"%s小ペナルティ (%d)" % (enhname, dur)
+
+        return colour, bmp, msg
+
+    def _draw_enhance(self, dc, enhname, value, dur, enhimage, pnlimage, height):
+        if 0 == value:
+            return height
+        colour, bmp, msg = self._get_enhance(enhname, value, dur, enhimage, pnlimage)
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
         dc.DrawRectangle(cw.wins(12), height - cw.wins(1), bmp.Width, bmp.Height)
         dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1), True)
         dc.DrawText(msg, cw.wins(32), height)
         self.Refresh()
         return height + cw.wins(17)
+
 
 class CardPanel(wx.Panel):
     def __init__(self, parent, ccard, pocket):
@@ -1448,27 +1595,66 @@ class CardPanel(wx.Panel):
             dc.DrawBitmap(bmp, pos[0]-cw.wins(20), pos[1]-cw.wins(1), True)
 
         # カード枚数
-        n = len(self.headers)
-        maxn = self.ccard.get_cardpocketspace()[self.pocket]
-        s = cw.cwpy.msgs["card_number"] % (n, maxn)
-        dc.DrawText(s, cw.wins(10), cw.wins(10))
+        dc.DrawText(self._get_cardnum(), cw.wins(10), cw.wins(10))
         dc.EndDrawing()
 
         if update:
             self.Refresh()
+
+    def _get_cardnum(self):
+        n = len(self.headers)
+        maxn = self.ccard.get_cardpocketspace()[self.pocket]
+        return cw.cwpy.msgs["card_number"] % (n, maxn)
+
+    def get_detailtext(self):
+        lines = []
+        if self.ccard.hold_all[self.pocket]:
+            lines.append(u"%s <%s>" % (self._get_cardnum(), cw.cwpy.msgs["hold_all"]))
+        else:
+            lines.append(self._get_cardnum())
+
+        for header in self.headers:
+            if header.penalty:
+                s = u"X"
+            elif header.hold:
+                s = u"#"
+            elif header.type == u"SkillCard":
+                s = u"S"
+            elif header.type == u"ItemCard":
+                s = u"I"
+            elif header.type == u"BeastCard":
+                if header.attachment:
+                    s = u"A"
+                else:
+                    s = u"B"
+
+            s = u"[%s] %s" % (s, header.name)
+            slen = reduce(lambda a, b: a+b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
+            if slen < 32:
+                s += u" " * (32-slen)
+            vocation = header.get_showed_vocation_level(self.ccard)
+            uselimit = header.get_uselimit_level()
+            s = u"%s (%s) (%s)" % (s, vocation, uselimit)
+
+            lines.append(s)
+
+        return u"\n".join(lines)
 
 class HoldAll(object):
     def __init__(self):
         self.negaflag = False
         self.subrect = pygame.Rect(0, 0, 0, 0)
 
+
 class SkillPanel(CardPanel):
     def __init__(self, parent, ccard):
         CardPanel.__init__(self, parent, ccard, cw.POCKET_SKILL)
 
+
 class ItemPanel(CardPanel):
     def __init__(self, parent, ccard):
         CardPanel.__init__(self, parent, ccard, cw.POCKET_ITEM)
+
 
 class BeastPanel(SkillPanel):
     def __init__(self, parent, ccard):
@@ -1477,6 +1663,7 @@ class BeastPanel(SkillPanel):
     def OnLeftUp(self, event):
         # ホールド不可
         self._open_cardinfo()
+
 
 def main():
     pass
