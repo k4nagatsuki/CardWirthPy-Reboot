@@ -89,7 +89,7 @@ class CardInfo(wx.Dialog):
         cw.cwpy.play_sound("equipment")
         s = self.get_source()
         if s:
-            s = u"[ %s ] - %s" % (self.selection.name, s)
+            s = u"[ %s ] %s" % (self.selection.name, s)
         else:
             s = u"[ %s ]" % (self.selection.name)
 
