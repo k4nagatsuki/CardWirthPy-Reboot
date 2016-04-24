@@ -1265,6 +1265,8 @@ def card_screenshot():
             except:
                 s = u"スクリーンショットの保存に失敗しました。\n%s" % (filename)
                 cw.cwpy.call_modaldlg("ERROR", text=s)
+            return True
+    return False
 
 def create_cardscreenshotfilename(titledic):
     """パーティー所持カードスクリーンショット用のファイルパスを作成する。

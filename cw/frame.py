@@ -1049,7 +1049,16 @@ class Frame(wx.Frame):
                         r, g, b, a = colorkey
                         bmp.SetMaskColour(wx.Colour(r, g, b))
                     filename = cw.util.create_screenshotfilename(titledicfn)
-                    bmp.SaveFile(filename, wx.BITMAP_TYPE_PNG)
+                    try:
+                        dpath = os.path.dirname(filename)
+                        if os.path.isdir(dpath):
+                            fpath = cw.util.dupcheck_plus(filename, yado=False)
+                        else:
+                            os.makedirs(dpath)
+                        bmp.SaveFile(filename, wx.BITMAP_TYPE_PNG)
+                    except:
+                        s = u"スクリーンショットの保存に失敗しました。\n%s" % (filename)
+                        cw.cwpy.call_modaldlg("ERROR", text=s)
 
                 fore = cw.cwpy.setting.ssinfofontcolor
                 back = cw.cwpy.setting.ssinfobackcolor
@@ -1209,9 +1218,12 @@ class MyApp(wx.App):
             if (wx.WXK_SNAPSHOT == event.GetKeyCode() or\
                  (ord('P') == event.GetKeyCode() and event.ControlDown())) and\
                  cw.cwpy.frame.can_screenshot():
-                if cw.cwpy.frame.save_screenshot():
-                    event.Skip()
-                    return True
+                if event.ShiftDown():
+                    cw.cwpy.exec_func(cw.util.card_screenshot)
+                else:
+                    cw.cwpy.frame.save_screenshot()
+                event.Skip()
+                return True
             if ord('D') == event.GetKeyCode() and event.ControlDown() and not cw.cwpy.is_showingdlg():
                 cw.cwpy.frame.exec_func(cw.cwpy.set_debug, not cw.cwpy.is_debugmode())
                 event.Skip()
