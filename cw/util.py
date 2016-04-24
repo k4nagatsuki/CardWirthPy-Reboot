@@ -2248,6 +2248,9 @@ def is_hw(unichr):
     """unichrが半角文字であればTrueを返す。"""
     return not unicodedata.east_asian_width(unichr) in ('F', 'W', 'A')
 
+def get_strlen(s):
+    return reduce(lambda a, b: a + b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
+
 WRAPS_CHARS = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
 
 def txtwrap(s, mode, width=30, wrapschars=""):

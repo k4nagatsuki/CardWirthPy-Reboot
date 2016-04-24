@@ -1630,7 +1630,7 @@ class CardPanel(wx.Panel):
                     s = u"B"
 
             s = u"[%s] %s" % (s, header.name)
-            slen = reduce(lambda a, b: a+b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
+            slen = cw.util.get_strlen(s)
             if slen < 32:
                 s += u" " * (32-slen)
             vocation = header.get_showed_vocation_level(self.ccard)

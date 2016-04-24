@@ -287,6 +287,10 @@ class ScenarioSelect(select.Select):
         self.Bind(wx.EVT_MENU, self.OnBookmark2, id=bookmarkkey)
         seq.append((wx.ACCEL_CTRL, ord('b'), bookmarkkey))
 
+        copyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
+        seq.append((wx.ACCEL_CTRL, ord('C'), copyid))
+
         self.narrowkeydown = []
         self.sortkeydown = []
         for i in xrange(0, 9):
@@ -342,6 +346,13 @@ class ScenarioSelect(select.Select):
 
         select.Select.update_additionals(self)
         cw.cwpy.setting.show_additional_scenario = self.addctrlbtn.GetToggle()
+
+    def OnCopyDetail(self, event):
+        s = self.get_detailtext()
+        if not s:
+            return
+        cw.cwpy.play_sound("equipment")
+        cw.util.to_clipboard(s)
 
     def OnEscape(self, event):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
@@ -1293,6 +1304,148 @@ class ScenarioSelect(select.Select):
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         self._bg = cw.util.load_wxbmp(path)
         return self._bg
+
+    def get_detailtext(self):
+        lines = []
+        if cw.cwpy.setting.show_paperandtree or not (self.tree and self.tree.IsShown()):
+            s1 = self._get_paperdetailtext()
+        else:
+            s1 = u""
+
+        if self.tree and self.tree.IsShown():
+            s2 = self._get_treedetailtext()
+        else:
+            s2 = u""
+
+        if s1:
+            lines.append(s1)
+            if s2:
+                lines.append(u"-" * 38)
+
+        if s2:
+            lines.append(s2)
+
+        if lines and not lines[-1].endswith(u"\n"):
+            lines.append(u"")
+
+        return u"\n".join(lines)
+
+    def _get_paperdetailtext(self):
+        if not self.list:
+            return u""
+
+        lines = []
+        if isinstance(self.list[self.index], cw.header.ScenarioHeader):
+            header = self.list[self.index]
+            name = header.name
+            if header.levelmin and header.levelmax:
+                if header.levelmin == header.levelmax:
+                    level = u"%s" % (header.levelmax)
+                else:
+                    level = u"%s～%s" % (header.levelmin, header.levelmax)
+            elif header.levelmin:
+                level = u"%s～" % (header.levelmin)
+            elif header.levelmax:
+                level = u"～%s" % (header.levelmax)
+            else:
+                level = u""
+            if level:
+                name = u"%s (%s)" % (name, level)
+            name = u"[ %s ]" % name
+            slen = cw.util.get_strlen(name)
+            if slen < 38:
+                name += u"-" * (38-slen)
+            lines.append(name)
+            if header.author:
+                name = u"(%s)" % header.author
+                slen = cw.util.get_strlen(name)
+                if slen < 38:
+                    name = u" " * (38-slen) + name
+                lines.append(name)
+            lines.append(u"")
+            lines.append(header.desc)
+
+        else:
+            dpath = self.list[self.index]
+            if isinstance(dpath, FindResult):
+                name = u"[ %s ]" % cw.cwpy.msgs["find_result"]
+            else:
+                dpath = os.path.basename(dpath)
+                if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
+                    dpath = os.path.splitext(dpath)[0]
+                name = u"[ %s ]" % dpath
+            slen = cw.util.get_strlen(name)
+            if slen < 38:
+                name += u"-" * (38 - slen)
+            lines.append(name)
+
+            for name in self.names:
+                addition = ""
+                if isinstance(name, cw.header.ScenarioHeader):
+                    header = name
+                    name = name.name
+                    if self.sort.GetSelection() == 2:
+                        # 整列条件: 作者名
+                        if header.author:
+                            addition = u"(%s)" % (header.author)
+                    elif self.sort.GetSelection() == 4:
+                        # 整列条件: 更新日時
+                        addition = u"[%s]" % (self._formatted_mtime(header.mtime, False))
+                    elif header.levelmin or header.levelmax:
+                        levelmin = str(header.levelmin) if header.levelmin else " "
+                        levelmax = str(header.levelmax) if header.levelmax else " "
+                        if levelmin == levelmax:
+                            addition = u"[%s]" % (levelmin)
+                        else:
+                            addition = u"[%s～%s]" % (levelmin, levelmax)
+                    if self.is_playing(header) or self.is_complete(header) or self.is_invisible(header):
+                        pass
+                else:
+                    if isinstance(dpath, FindResult):
+                        name = u"[%s]" % (os.path.basename(name))
+                if addition:
+                    name += u" %s" % addition
+                lines.append(name)
+
+        if lines and not lines[-1].endswith(u"\n"):
+            lines.append(u"")
+
+        return u"\n".join(lines)
+
+    def _get_treedetailtext(self):
+        if not self.list:
+            return u""
+
+        lines = []
+        if self.tree and self.tree.IsShown():
+            lines.append(u"[%s]" % os.path.basename(self.scedir))
+            vline = u"│"
+            pline = u"├"
+            lline = u"└"
+            def recurse(parent, tab):
+                item, cookie = self.tree.GetFirstChild(parent)
+                while item.IsOk():
+                    s = self.tree.GetItemText(item)
+                    data = self.tree.GetItemPyData(item)
+                    if not data is None:
+                        index, header = data
+                        if not isinstance(header, cw.header.ScenarioHeader):
+                            s = u"[%s]" % (s)
+                    parent2 = item
+                    item, cookie = self.tree.GetNextChild(parent, cookie)
+                    if item.IsOk():
+                        lines.append(tab + pline + s)
+                    else:
+                        lines.append(tab + lline + s)
+                    if self.tree.IsExpanded(parent2):
+                        if item.IsOk():
+                            recurse(parent2, tab + vline + u" ")
+                        else:
+                            recurse(parent2, tab + u"   ")
+
+            recurse(self.tree.root, u" ")
+
+        return u"\n".join(lines)
 
     def _draw_impl(self, update=False, dc=None):
         if update:
@@ -2392,12 +2545,12 @@ class ScenarioSelect(select.Select):
             parent = self.tree.GetSelection()
             prev = None
             i = 0
-            item, cookie = self.tree.GetFirstItem(parent)
+            item, cookie = self.tree.GetFirstChild(parent)
             while item.IsOk():
                 if i == self.index:
                     prev = item
                     break
-                item, cookie = self.tree.GetNextItem(item, cookie)
+                item, cookie = self.tree.GetNextChild(item, cookie)
                 i += 1
             if prev:
                 item = self.tree.InsertItem(parent, prev, name, image)

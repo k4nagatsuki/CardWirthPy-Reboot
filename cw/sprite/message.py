@@ -1188,7 +1188,7 @@ def get_messagelogtext(mwins):
         else:
             s = u"--"
 
-        slen = reduce(lambda a, b: a+b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
+        slen = cw.util.get_strlen(s)
         if slen < 42:
             s += u"-" * (42-slen)
         lines.append(s)
@@ -1200,7 +1200,7 @@ def get_messagelogtext(mwins):
                     s = u">>[ %s " % (sel[1])
                 else:
                     s = u"  [ %s " % (sel[1])
-                slen = reduce(lambda a, b: a+b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
+                slen = cw.util.get_strlen(s)
                 if slen < 41:
                     s += u" " * (41-slen)
                 s += u"]"
