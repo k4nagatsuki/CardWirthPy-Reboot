@@ -1631,11 +1631,11 @@ class CardPanel(wx.Panel):
 
             s = u"[%s] %s" % (s, header.name)
             slen = cw.util.get_strlen(s)
-            if slen < 32:
-                s += u" " * (32-slen)
-            vocation = header.get_showed_vocation_level(self.ccard)
-            uselimit = header.get_uselimit_level()
-            s = u"%s (%s) (%s)" % (s, vocation, uselimit)
+            if slen < 26:
+                s += u" " * (26-slen)
+            vocation = u"|" * (header.get_showed_vocation_level(self.ccard)+1)
+            uselimit = u"|" * header.get_uselimit_level()
+            s = u"%s [%s] [%s]" % (s, vocation.ljust(4), uselimit.ljust(4))
 
             lines.append(s)
 
