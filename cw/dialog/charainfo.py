@@ -133,6 +133,7 @@ class CharaInfo(wx.Dialog):
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
     def OnCopyDetail(self, event):
+        cw.cwpy.play_sound("equipment")
         page = self.notebook.GetPage(self.notebook.GetSelection())
         lines = []
         lines.append(self.toppanel.get_detailtext())
