@@ -1342,6 +1342,7 @@ def to_clipboard(s):
     if wx.TheClipboard.Open():
         wx.TheClipboard.SetData(tdo)
         wx.TheClipboard.Close()
+        wx.TheClipboard.Flush()
 
 
 #-------------------------------------------------------------------------------

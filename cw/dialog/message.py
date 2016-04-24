@@ -59,16 +59,13 @@ class Message(wx.Dialog):
         cw.util.set_acceleratortable(self, seq)
 
     def OnCopyDetail(self, event):
-        tdo = wx.TextDataObject()
+        cw.cwpy.play_sound("equipment")
         s = [u"[Window Title]", self.GetTitle(), u"", u"[Content]", self.basetext, u""]
         b = []
         for button in self.buttons:
             b.append(u"[%s]" % button.GetLabelText())
-        s.append(" ".join(b))
-        tdo.SetText(u"\n".join(s))
-        if wx.TheClipboard.Open():
-            wx.TheClipboard.SetData(tdo)
-            wx.TheClipboard.Close()
+        s.append(u" ".join(b))
+        cw.util.to_clipboard(u"\n".join(s))
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")

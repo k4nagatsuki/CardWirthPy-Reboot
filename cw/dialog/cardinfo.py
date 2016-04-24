@@ -51,7 +51,7 @@ class CardInfo(wx.Dialog):
             self.rightbtn.Disable()
 
         # layout
-        self.__do_layout()
+        self._do_layout()
         # bind
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
@@ -64,13 +64,16 @@ class CardInfo(wx.Dialog):
 
         self.leftpagekeyid = wx.NewId()
         self.rightpagekeyid = wx.NewId()
+        copyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
+        self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
         seq = [
             (wx.ACCEL_NORMAL, wx.WXK_LEFT, self.leftpagekeyid),
             (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.rightpagekeyid),
             (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftpagekeyid),
             (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
+            (wx.ACCEL_CTRL, ord('C'), copyid),
         ]
         cw.util.set_acceleratortable(self, seq)
 
@@ -78,6 +81,23 @@ class CardInfo(wx.Dialog):
             # BUG: SetBackgroundColour()を呼ばないと色が変わってしまう(Gtk)
             self.toppanel.SetBackgroundColour(self.toppanel.GetBackgroundColour())
             self.SetBackgroundColour(self.GetBackgroundColour())
+
+    def OnCopyDetail(self, event):
+        if not self.selection:
+            return
+
+        cw.cwpy.play_sound("equipment")
+        s = self.get_source()
+        if s:
+            s = u"[ %s ] - %s" % (self.selection.name, s)
+        else:
+            s = self.selection.name
+
+        lines = []
+        lines.append(s)
+        lines.append(self.get_desc())
+        lines.append(u"")
+        cw.util.to_clipboard(u"\n".join(lines))
 
     def OnMouseWheel(self, event):
         if len(self.list) == 1:
@@ -97,6 +117,18 @@ class CardInfo(wx.Dialog):
 
     def OnPaint(self, event):
         self.draw()
+
+    def get_source(self):
+        scenario = self.selection.scenario
+        author = self.selection.author
+        author = u"(" + author + u")" if author else u""
+        return scenario + author
+
+    def get_desc(self):
+        s = cw.util.txtwrap(self.selection.desc, 1)
+        if s.count(u"\n") > 8:
+            s = u"\n".join(s.split(u"\n")[0:9])
+        return s
 
     def draw(self, update=False):
         if update:
@@ -134,21 +166,14 @@ class CardInfo(wx.Dialog):
         dc.DrawRectangle(cw.wins(122), y, size[0], size[1])
         dc.DrawText(s, cw.wins(122), y)
         # 説明文
-        s = cw.util.txtwrap(self.selection.desc, 1)
-
-        if s.count("\n") > 8:
-            s = "\n".join(s.split("\n")[0:9])
+        s = self.get_desc()
 
         font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(13))
         dc.SetFont(font)
         dc.DrawLabel(s, cw.wins((127, 19, 200, 110)))
 
         # シナリオ・作者名
-        scenario = self.selection.scenario
-        author = self.selection.author
-        author = "(" + author + ")" if author else ""
-        s = scenario + author
-
+        s = self.get_source()
         if s:
             font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
             dc.SetFont(font)
@@ -161,7 +186,7 @@ class CardInfo(wx.Dialog):
             self.toppanel.Refresh()
             self.toppanel.Update()
 
-    def __do_layout(self):
+    def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
