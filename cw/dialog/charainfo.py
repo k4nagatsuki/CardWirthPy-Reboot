@@ -607,10 +607,7 @@ class TopPanel(wx.Panel):
 
     def get_detailtext(self):
         lines = []
-        if self.baselevel == self.ccard.level:
-            level = u"%s" % (self.ccard.level)
-        else:
-            level = u"%s / %s" % (self.ccard.level, self.baselevel)
+        level = u"%s" % (self.ccard.level)
         s = u"[ %s ] Level %s" % (self.ccard.name, level)
         if not isinstance(self.race, cw.header.UnknownRaceHeader):
             s += u" / %s" % (self.race.name)
