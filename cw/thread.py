@@ -2324,6 +2324,8 @@ class CWPy(_Singleton, threading.Thread):
                     hide = True
                 else:
                     cw.animation.animate_sprite(mcard, "hide")
+                if isinstance(mcard, cw.character.Character):
+                    mcard.clear_action()
         if hide:
             cw.animation.animate_sprites(mcards, "hide")
 
