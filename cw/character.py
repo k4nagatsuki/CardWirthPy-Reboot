@@ -481,7 +481,7 @@ class Character(object):
         """
         return bool(self.life < self.maxlife)
 
-    def is_inactive(self):
+    def is_inactive(self, check_reversed=True):
         """
         行動不可状態かどうかをbool値で返す
         """
@@ -489,7 +489,8 @@ class Character(object):
         b |= self.is_paralyze()
         b |= self.is_bind()
         b |= self.is_unconscious()
-        b |= self.is_reversed()
+        if check_reversed:
+            b |= self.is_reversed()
         return b
 
     def is_active(self):
@@ -939,13 +940,13 @@ class Character(object):
         麻痺・死亡状態であれば召喚獣も動けない。
         """
         if self.actiondata:
-            if self.is_unconscious() or self.is_reversed():
+            if self.is_unconscious():
                 self.clear_action()
-            elif self.is_inactive():
+            elif self.is_inactive(check_reversed=False):
                 _target, _header, beasts = self.actiondata
                 self.set_action(None, None, beasts, True)
 
-        if self.is_inactive():
+        if self.is_inactive(check_reversed=False):
             self.deck.throwaway()
 
     def clear_action(self):
@@ -2711,11 +2712,11 @@ class Enemy(Character):
         b |= self.status == "hidden"
         return b
 
-    def is_inactive(self):
+    def is_inactive(self, check_reversed=True):
         """
         敵は隠蔽状態であれば行動不能と見做す。
         """
-        b = Character.is_inactive(self)
+        b = Character.is_inactive(self, check_reversed=check_reversed)
         b |= self.status == "hidden"
         return b
 
