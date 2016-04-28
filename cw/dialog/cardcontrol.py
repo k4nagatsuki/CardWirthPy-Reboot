@@ -2220,6 +2220,14 @@ class HandView(CardControl):
         # 選択中カード色反転
         self.Parent.change_selection(self.selection)
 
+        # 手札再配布
+        if cw.cwpy.is_debugmode():
+            bmp = cw.cwpy.rsrc.dialogs["HAND"]
+            self.redeal = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((24, 24)), bmp=bmp)
+            self.redeal.SetToolTipString(cw.cwpy.msgs["re_deal"])
+        else:
+            self.redeal = None
+
         # 使用モードでパーティが一人だけの場合は左右ボタンを無効化
         if len(self.list2) == 1:
             self.rightbtn.Disable()
@@ -2230,8 +2238,31 @@ class HandView(CardControl):
         # bind
         self._bind()
 
+    def _do_layout(self):
+        CardControl._do_layout(self)
+        if self.redeal:
+            cwidth = cw.wins(520)
+            x = cwidth - cw.wins(5)
+            y = cw.wins(0)
+            x -= cw.wins(24)
+            self.redeal.SetPosition((x, y))
+            self.redeal.SetSize(cw.wins((24, 24)))
+
     def _bind(self):
         CardControl._bind(self)
+        if self.redeal:
+            self.Bind(wx.EVT_BUTTON, self.OnReDeal, self.redeal)
+
+    def OnReDeal(self, event):
+        cw.cwpy.play_sound("dump")
+
+        self.selection.deck.throwaway()
+        self.selection.deck.draw(self.selection)
+
+        self.list = self.selection.deck.hand
+        for header in self.list:
+            header.negaflag = False
+        self.draw_cards(update=True)
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.play_sound("page")
