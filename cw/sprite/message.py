@@ -401,9 +401,9 @@ class MessageWindow(base.CWPySprite):
 
                 else:
                     # CardWirthPy形式
-                    image = font.render(char, True, colour)
+                    image = font.render(char, cw.cwpy.setting.fontsmoothing_message, colour)
                     image = decorate(image, basecolour=colour)
-                    image3 = font.render(char, True, (0, 0, 0))
+                    image3 = font.render(char, cw.cwpy.setting.fontsmoothing_message, (0, 0, 0))
 
                     # u"―"の場合、左右の線が繋がるように補完する
                     if r_join.match(char):
@@ -701,9 +701,9 @@ class SelectionBar(base.SelectableSprite):
             font = cw.cwpy.rsrc.fonts["selectionbar_classic"]
         else:
             font = cw.cwpy.rsrc.fonts["selectionbar"]
-        nameimg = font.render(self.name, not self.classicstyletext, (255, 255, 255))
+        nameimg = font.render(self.name, cw.cwpy.setting.fontsmoothing_message, (255, 255, 255))
         nameimg = decorate(nameimg, angle=16, basecolour=(255, 255, 255))
-        nameimg2 = font.render(self.name, not self.classicstyletext, (0, 0, 0))
+        nameimg2 = font.render(self.name, cw.cwpy.setting.fontsmoothing_message, (0, 0, 0))
         w = size[0] - cw.s(10)
         if w < nameimg.get_width():
             nameimg = cw.image.smoothscale(nameimg, (w, nameimg.get_height()))

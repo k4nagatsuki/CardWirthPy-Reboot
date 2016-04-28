@@ -436,6 +436,10 @@ class SettingsPanel(wx.Panel):
         if value <> setting.decorationfont:
             setting.decorationfont = value
             updatemessage = True
+        value = self.pane_font.cb_fontsmoothingmessage.GetValue()
+        if value <> setting.fontsmoothing_message:
+            setting.fontsmoothing_message = value
+            flag_fontupdate = True
         value = self.pane_font.cb_fontsmoothingcardname.GetValue()
         if value <> setting.fontsmoothing_cardname:
             setting.fontsmoothing_cardname = value
@@ -2747,6 +2751,7 @@ class FontSettingPanel(wx.Panel):
             self.box_gene = wx.StaticBox(self, -1, u"詳細")
             self.cb_bordering_cardname = wx.CheckBox(self, -1, u"カード名を縁取りする")
             self.cb_decorationfont = wx.CheckBox(self, -1, u"メッセージで装飾フォントを使用する")
+            self.cb_fontsmoothingmessage = wx.CheckBox(self, -1, u"メッセージの文字を滑らかにする")
             self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
             self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
 
@@ -2830,6 +2835,7 @@ class FontSettingPanel(wx.Panel):
         else:
             self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
             self.cb_decorationfont.SetValue(setting.decorationfont)
+            self.cb_fontsmoothingmessage.SetValue(setting.fontsmoothing_message)
             self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname)
             self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar)
 
@@ -2915,6 +2921,7 @@ class FontSettingPanel(wx.Panel):
         if not self._for_local:
             self.cb_bordering_cardname.SetValue(setting.bordering_cardname_init)
             self.cb_decorationfont.SetValue(setting.decorationfont_init)
+            self.cb_fontsmoothingmessage.SetValue(setting.fontsmoothing_message_init)
             self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname_init)
             self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar_init)
 
@@ -3074,6 +3081,7 @@ class FontSettingPanel(wx.Panel):
             bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
             bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
             bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+            bsizer_gene.Add(self.cb_fontsmoothingmessage, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
             bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
             bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 

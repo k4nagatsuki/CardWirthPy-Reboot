@@ -391,6 +391,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             e.append(e_folder)
         element.append(e)
 
+    # メッセージの文字を滑らかにする
+    if setting.fontsmoothing_message <> setting.fontsmoothing_message_init:
+        e = cw.data.make_element("FontSmoothingMessage", str(setting.fontsmoothing_message))
+        element.append(e)
     # カード名の文字を滑らかにする
     if setting.fontsmoothing_cardname <> setting.fontsmoothing_cardname_init:
         e = cw.data.make_element("FontSmoothingCardName", str(setting.fontsmoothing_cardname))

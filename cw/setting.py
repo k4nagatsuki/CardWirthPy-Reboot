@@ -389,6 +389,7 @@ class Setting(object):
         self.show_multipleplayers = False
         self.show_scenariotree = False
 
+        self.fontsmoothing_message = False
         self.fontsmoothing_cardname = True
         self.fontsmoothing_statusbar = True
 
@@ -544,6 +545,8 @@ class Setting(object):
         # メッセージログ表示形式
         self.messagelog_type = data.gettext("MessageLogType", self.messagelog_type)
 
+        # メッセージの文字を滑らかにする
+        self.fontsmoothing_message = data.getbool("FontSmoothingMessage", self.fontsmoothing_message)
         # カード名の文字を滑らかにする
         self.fontsmoothing_cardname = data.getbool("FontSmoothingCardName", self.fontsmoothing_cardname)
         # ステータスバーの文字を滑らかにする
