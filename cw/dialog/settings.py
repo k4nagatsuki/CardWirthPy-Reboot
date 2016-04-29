@@ -417,37 +417,10 @@ class SettingsPanel(wx.Panel):
 
         # 設定変更前はレベル上昇が可能な状態だったか
         can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
-        updatecardimg = False # キャラクターカードイメージの更新が必要か
-        updatemcardimg = False # メニューカードイメージの更新が必要か
         updatestatusbar = False # ステータスバーの更新が必要か
 
         # フォント
-        flag_fontupdate = False
-        updatemessage = False
-
-        flag_fontupdate |= self.pane_font.apply_localsettings(setting.local)
-
-        value = self.pane_font.cb_bordering_cardname.GetValue()
-        if setting.bordering_cardname <> value:
-            setting.bordering_cardname = value
-            updatecardimg = True
-            updatemcardimg = True
-        value = self.pane_font.cb_decorationfont.GetValue()
-        if value <> setting.decorationfont:
-            setting.decorationfont = value
-            updatemessage = True
-        value = self.pane_font.cb_fontsmoothingmessage.GetValue()
-        if value <> setting.fontsmoothing_message:
-            setting.fontsmoothing_message = value
-            flag_fontupdate = True
-        value = self.pane_font.cb_fontsmoothingcardname.GetValue()
-        if value <> setting.fontsmoothing_cardname:
-            setting.fontsmoothing_cardname = value
-            flag_fontupdate = True
-        value = self.pane_font.cb_fontsmoothingstatusbar.GetValue()
-        if value <> setting.fontsmoothing_statusbar:
-            setting.fontsmoothing_statusbar = value
-            flag_fontupdate = True
+        flag_fontupdate, updatecardimg, updatemcardimg, updatemessage = self.pane_font.apply_localsettings(setting.local)
 
         # 一般
         if update:
@@ -2738,22 +2711,23 @@ class FontSettingPanel(wx.Panel):
                 self._fontface_array.append(name)
                 self._types.append(name)
 
+        if self._for_local:
+            self.cb_important = wx.CheckBox(self, -1, u"このスキンのフォント設定を基本設定よりも優先して使用する")
+        else:
+            self.cb_important = None
+
         # フォント表示サンプル
         self.box_example = wx.StaticBox(self, -1, u"表示例")
         self.st_example = wx.StaticText(self, -1, size=(100, 35), style=wx.ALIGN_CENTER)
         self.st_example.SetDoubleBuffered(True)
 
-        if self._for_local:
-            self.cb_important = wx.CheckBox(self, -1, u"このスキンのフォント設定を基本設定よりも優先して使用する")
-        else:
-            self.cb_important = None
-            # 描画オプション
-            self.box_gene = wx.StaticBox(self, -1, u"詳細")
-            self.cb_bordering_cardname = wx.CheckBox(self, -1, u"カード名を縁取りする")
-            self.cb_decorationfont = wx.CheckBox(self, -1, u"メッセージで装飾フォントを使用する")
-            self.cb_fontsmoothingmessage = wx.CheckBox(self, -1, u"メッセージの文字を滑らかにする")
-            self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
-            self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
+        # 描画オプション
+        self.box_gene = wx.StaticBox(self, -1, u"詳細")
+        self.cb_bordering_cardname = wx.CheckBox(self, -1, u"カード名を縁取りする")
+        self.cb_decorationfont = wx.CheckBox(self, -1, u"メッセージで装飾フォントを使用する")
+        self.cb_fontsmoothingmessage = wx.CheckBox(self, -1, u"メッセージの文字を滑らかにする")
+        self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
+        self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
 
         def create_grid(grid, seq, faces, cols, rowlblsize):
             grid.CreateGrid(len(seq), cols)
@@ -2832,12 +2806,11 @@ class FontSettingPanel(wx.Panel):
     def load(self, setting, local):
         if self._for_local:
             self.cb_important.SetValue(local.important_font)
-        else:
-            self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
-            self.cb_decorationfont.SetValue(setting.decorationfont)
-            self.cb_fontsmoothingmessage.SetValue(setting.fontsmoothing_message)
-            self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname)
-            self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar)
+        self.cb_bordering_cardname.SetValue(local.bordering_cardname)
+        self.cb_decorationfont.SetValue(local.decorationfont)
+        self.cb_fontsmoothingmessage.SetValue(local.fontsmoothing_message)
+        self.cb_fontsmoothingcardname.SetValue(local.fontsmoothing_cardname)
+        self.cb_fontsmoothingstatusbar.SetValue(local.fontsmoothing_statusbar)
 
         def create_grid(grid, seq):
             for i, name in enumerate(seq):
@@ -2918,15 +2891,40 @@ class FontSettingPanel(wx.Panel):
             self.type.SetCellValue(i, 2, (u"1" if bold else u"") if not bold is None else u"-")
             self.type.SetCellValue(i, 3, (u"1" if bold_upscr else u"") if not bold_upscr is None else u"-")
             self.type.SetCellValue(i, 4, (u"1" if italic else u"") if not italic is None else u"-")
-        if not self._for_local:
-            self.cb_bordering_cardname.SetValue(setting.bordering_cardname_init)
-            self.cb_decorationfont.SetValue(setting.decorationfont_init)
-            self.cb_fontsmoothingmessage.SetValue(setting.fontsmoothing_message_init)
-            self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname_init)
-            self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar_init)
+
+        self.cb_bordering_cardname.SetValue(local.bordering_cardname_init)
+        self.cb_decorationfont.SetValue(local.decorationfont_init)
+        self.cb_fontsmoothingmessage.SetValue(local.fontsmoothing_message_init)
+        self.cb_fontsmoothingcardname.SetValue(local.fontsmoothing_cardname_init)
+        self.cb_fontsmoothingstatusbar.SetValue(local.fontsmoothing_statusbar_init)
 
     def apply_localsettings(self, local):
-        flag_fontupdate = False
+        updatecardimg = False  # キャラクターカードイメージの更新が必要か
+        updatemcardimg = False  # メニューカードイメージの更新が必要か
+        updatemessage = False  # メッセージの更新が必要か
+        flag_fontupdate = False  # フォントの変更があるか
+
+        value = self.cb_bordering_cardname.GetValue()
+        if local.bordering_cardname <> value:
+            local.bordering_cardname = value
+            updatecardimg = True
+            updatemcardimg = True
+        value = self.cb_decorationfont.GetValue()
+        if value <> local.decorationfont:
+            local.decorationfont = value
+            updatemessage = True
+        value = self.cb_fontsmoothingmessage.GetValue()
+        if value <> local.fontsmoothing_message:
+            local.fontsmoothing_message = value
+            flag_fontupdate = True
+        value = self.cb_fontsmoothingcardname.GetValue()
+        if value <> local.fontsmoothing_cardname:
+            local.fontsmoothing_cardname = value
+            flag_fontupdate = True
+        value = self.cb_fontsmoothingstatusbar.GetValue()
+        if value <> local.fontsmoothing_statusbar:
+            local.fontsmoothing_statusbar = value
+            flag_fontupdate = True
 
         basetable = {}
         basefont = {}
@@ -2980,7 +2978,7 @@ class FontSettingPanel(wx.Panel):
             local.important_font = self.cb_important.GetValue()
             flag_fontupdate = True
 
-        return flag_fontupdate
+        return flag_fontupdate, updatecardimg, updatemcardimg, updatemessage
 
     def _bind(self):
         self.base.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontBase)
@@ -3074,19 +3072,15 @@ class FontSettingPanel(wx.Panel):
         bsizer_example = wx.StaticBoxSizer(self.box_example, wx.VERTICAL)
         bsizer_example.Add(bsizer_example2, 1, wx.LEFT|wx.RIGHT|wx.EXPAND|wx.ALIGN_CENTER, 3)
 
-        if self._for_local:
-            bsizer_left.Add(bsizer_example, 1, wx.EXPAND, 3)
+        bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
+        bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_fontsmoothingmessage, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+        bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+        bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
-        else:
-            bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
-            bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-            bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-            bsizer_gene.Add(self.cb_fontsmoothingmessage, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-            bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-            bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-
-            bsizer_left.Add(bsizer_example, 1, wx.EXPAND | wx.BOTTOM, 3)
-            bsizer_left.Add(bsizer_gene, 0, wx.EXPAND, 3)
+        bsizer_left.Add(bsizer_example, 1, wx.EXPAND | wx.BOTTOM, 3)
+        bsizer_left.Add(bsizer_gene, 0, wx.EXPAND, 3)
 
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_base.Add(self.base, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
@@ -3122,6 +3116,11 @@ class FontSettingPanel(wx.Panel):
         enbl = self.cb_important.GetValue() if self.cb_important else True
         self.base.Enable(enbl)
         self.type.Enable(enbl)
+        self.cb_bordering_cardname.Enable(enbl)
+        self.cb_decorationfont.Enable(enbl)
+        self.cb_fontsmoothingmessage.Enable(enbl)
+        self.cb_fontsmoothingcardname.Enable(enbl)
+        self.cb_fontsmoothingstatusbar.Enable(enbl)
         if self._for_local:
             if self.copybtn:
                 self.copybtn.Enable(enbl)

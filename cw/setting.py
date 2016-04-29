@@ -88,6 +88,13 @@ class LocalSetting(object):
         self.blcurtaincolour = (0, 0, 0, 192)
         self.fullscreenbackgroundtype = 2
         self.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+
+        self.decorationfont = False
+        self.bordering_cardname = True
+        self.fontsmoothing_message = False
+        self.fontsmoothing_cardname = True
+        self.fontsmoothing_statusbar = True
+
         self.basefont = {
             "gothic": "",
             "uigothic": "",
@@ -200,6 +207,17 @@ class LocalSetting(object):
         a = data.getint("CurtainColor", "alpha", self.curtaincolour[3])
         self.curtaincolour = (r, g, b, a)
 
+        # カード名を縁取りする
+        self.bordering_cardname = data.getbool("BorderingCardName", self.bordering_cardname)
+        # メッセージで装飾フォントを使用する
+        self.decorationfont = data.getbool("DecorationFont", self.decorationfont)
+        # メッセージの文字を滑らかにする
+        self.fontsmoothing_message = data.getbool("FontSmoothingMessage", self.fontsmoothing_message)
+        # カード名の文字を滑らかにする
+        self.fontsmoothing_cardname = data.getbool("FontSmoothingCardName", self.fontsmoothing_cardname)
+        # ステータスバーの文字を滑らかにする
+        self.fontsmoothing_statusbar = data.getbool("FontSmoothingStatusBar", self.fontsmoothing_statusbar)
+
         # フォント名(空白時デフォルト)
         self.basefont["gothic"] = data.gettext("FontGothic", self.basefont["gothic"])
         self.basefont["uigothic"] = data.gettext("FontUIGothic", self.basefont["uigothic"])
@@ -282,7 +300,6 @@ class Setting(object):
         self.vol_sound = 1.0
         self.soundfonts = [(cw.DEFAULT_SOUNDFONT, True)]
         self.messagespeed = 5
-        self.decorationfont = False
         self.dealspeed = 5
         self.dealspeed_battle = 5
         self.wait_usecard = True
@@ -349,7 +366,6 @@ class Setting(object):
         self.can_repeatlclick = False
         self.cursor_type = CURSOR_WHITE
         self.autoenter_on_sprite = False
-        self.bordering_cardname = True
         self.blink_statusbutton = True
         self.blink_partymoney = True
         self.show_btndesc = True
@@ -388,10 +404,6 @@ class Setting(object):
         self.show_multipleparties = False
         self.show_multipleplayers = False
         self.show_scenariotree = False
-
-        self.fontsmoothing_message = False
-        self.fontsmoothing_cardname = True
-        self.fontsmoothing_statusbar = True
 
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
@@ -501,8 +513,6 @@ class Setting(object):
         # メッセージスピード(数字が小さいほど速い)(0～100)
         self.messagespeed = data.getint("MessageSpeed", self.messagespeed)
         self.messagespeed = cw.util.numwrap(self.messagespeed, 0, 100)
-        # メッセージで装飾フォントを使用する
-        self.decorationfont = data.getbool("DecorationFont", self.decorationfont)
         # カードの表示スピード(数字が小さいほど速い)(1～100)
         dealspeed = data.getint("CardDealingSpeed", self.dealspeed)
         # 戦闘行動の表示スピード(数字が小さいほど速い)(1～100)
@@ -513,7 +523,6 @@ class Setting(object):
         self.wait_usecard = data.getbool("WaitUseCard", self.wait_usecard)
         # トランジション効果の種類
         self.transition = data.gettext("Transition", self.transition)
-
         self.transitionspeed = data.getint("Transition", "speed", self.transitionspeed)
         self.transitionspeed = cw.util.numwrap(self.transitionspeed, 0, 10)
         # 背景のスムーススケーリング
@@ -544,13 +553,6 @@ class Setting(object):
         self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
         # メッセージログ表示形式
         self.messagelog_type = data.gettext("MessageLogType", self.messagelog_type)
-
-        # メッセージの文字を滑らかにする
-        self.fontsmoothing_message = data.getbool("FontSmoothingMessage", self.fontsmoothing_message)
-        # カード名の文字を滑らかにする
-        self.fontsmoothing_cardname = data.getbool("FontSmoothingCardName", self.fontsmoothing_cardname)
-        # ステータスバーの文字を滑らかにする
-        self.fontsmoothing_statusbar = data.getbool("FontSmoothingStatusBar", self.fontsmoothing_statusbar)
 
         self.showfps = False
 
@@ -645,8 +647,6 @@ class Setting(object):
         self.cursor_type = data.gettext("CursorType", self.cursor_type)
         # 連打状態の時、カードなどの選択を自動的に決定する
         self.autoenter_on_sprite = data.getbool("AutoEnterOnSprite", self.autoenter_on_sprite)
-        # カード名を縁取りする
-        self.bordering_cardname = data.getbool("BorderingCardName", self.bordering_cardname)
         # 通知のあるステータスボタンを点滅させる
         self.blink_statusbutton = data.getbool("BlinkStatusButton", self.blink_statusbutton)
         # 所持金が増減した時に所持金欄を点滅させる
@@ -1099,6 +1099,26 @@ class Setting(object):
     @property
     def fullscreenbackgroundfile(self):
         return self.get_drawsetting().fullscreenbackgroundfile
+
+    @property
+    def bordering_cardname(self):
+        return self.get_fontsetting().bordering_cardname
+
+    @property
+    def decorationfont(self):
+        return self.get_fontsetting().decorationfont
+
+    @property
+    def fontsmoothing_message(self):
+        return self.get_fontsetting().fontsmoothing_message
+
+    @property
+    def fontsmoothing_cardname(self):
+        return self.get_fontsetting().fontsmoothing_cardname
+
+    @property
+    def fontsmoothing_statusbar(self):
+        return self.get_fontsetting().fontsmoothing_statusbar
 
     @property
     def basefont(self):

@@ -227,10 +227,6 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.messagespeed <> setting.messagespeed_init:
         e = cw.data.make_element("MessageSpeed", str(setting.messagespeed))
         element.append(e)
-    # メッセージで装飾フォントを使用する
-    if setting.decorationfont <> setting.decorationfont_init:
-        e = cw.data.make_element("DecorationFont", str(setting.decorationfont))
-        element.append(e)
     # カードの表示スピード(数字が小さいほど速い)(1～100)
     if setting.dealspeed <> setting.dealspeed_init:
         e = cw.data.make_element("CardDealingSpeed", str(setting.dealspeed))
@@ -391,19 +387,6 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             e.append(e_folder)
         element.append(e)
 
-    # メッセージの文字を滑らかにする
-    if setting.fontsmoothing_message <> setting.fontsmoothing_message_init:
-        e = cw.data.make_element("FontSmoothingMessage", str(setting.fontsmoothing_message))
-        element.append(e)
-    # カード名の文字を滑らかにする
-    if setting.fontsmoothing_cardname <> setting.fontsmoothing_cardname_init:
-        e = cw.data.make_element("FontSmoothingCardName", str(setting.fontsmoothing_cardname))
-        element.append(e)
-    # ステータスバーの文字を滑らかにする
-    if setting.fontsmoothing_statusbar <> setting.fontsmoothing_statusbar_init:
-        e = cw.data.make_element("FontSmoothingStatusBar", str(setting.fontsmoothing_statusbar))
-        element.append(e)
-
     if writeplayingdata:
         # シナリオ絞込・整列条件
         if setting.scenario_narrowtype <> setting.scenario_narrowtype_init:
@@ -492,10 +475,6 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     # 連打状態の時、カードなどの選択を自動的に決定する
     if setting.autoenter_on_sprite <> setting.autoenter_on_sprite_init:
         e = cw.data.make_element("AutoEnterOnSprite", str(setting.autoenter_on_sprite))
-        element.append(e)
-    # カード名を縁取りする
-    if setting.bordering_cardname <> setting.bordering_cardname_init:
-        e = cw.data.make_element("BorderingCardName", str(setting.bordering_cardname))
         element.append(e)
     # 通知のあるステータスボタンを点滅させる
     if setting.blink_statusbutton <> setting.blink_statusbutton_init:
@@ -649,6 +628,27 @@ def create_localsettings(element, local):
         element.append(e)
     if local.fullscreenbackgroundfile <> local.fullscreenbackgroundfile_init:
         e = cw.data.make_element("FullScreenBackgroundFile", local.fullscreenbackgroundfile)
+        element.append(e)
+
+    # カード名を縁取りする
+    if local.bordering_cardname <> local.bordering_cardname_init:
+        e = cw.data.make_element("BorderingCardName", str(local.bordering_cardname))
+        element.append(e)
+    # メッセージで装飾フォントを使用する
+    if local.decorationfont <> local.decorationfont_init:
+        e = cw.data.make_element("DecorationFont", str(local.decorationfont))
+        element.append(e)
+    # メッセージの文字を滑らかにする
+    if local.fontsmoothing_message <> local.fontsmoothing_message_init:
+        e = cw.data.make_element("FontSmoothingMessage", str(local.fontsmoothing_message))
+        element.append(e)
+    # カード名の文字を滑らかにする
+    if local.fontsmoothing_cardname <> local.fontsmoothing_cardname_init:
+        e = cw.data.make_element("FontSmoothingCardName", str(local.fontsmoothing_cardname))
+        element.append(e)
+    # ステータスバーの文字を滑らかにする
+    if local.fontsmoothing_statusbar <> local.fontsmoothing_statusbar_init:
+        e = cw.data.make_element("FontSmoothingStatusBar", str(local.fontsmoothing_statusbar))
         element.append(e)
 
     # 基本フォント(空白時デフォルト)
