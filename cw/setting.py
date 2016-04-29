@@ -132,8 +132,8 @@ class LocalSetting(object):
             "ccardname": ("uigothic", "", 15, True, True, False),
             "level": ("mincho", "", 33, False, False, True),
             "numcards": ("uigothic", "", 18, False, False, False),
-            "message": ("", u"IPA明朝", 22, True, True, False),
-            "selectionbar": ("uigothic", "", 15, True, True, False),
+            "message": ("mincho", "", 22, True, True, False),
+            "selectionbar": ("uigothic", "", 14, True, True, False),
             "logpage": ("mincho", "", 24, False, False, False),
             "sbarpanel": ("mincho", "", 16, True, True, False),
             "sbarprogress": ("mincho", "", 16, True, True, False),
@@ -315,7 +315,6 @@ class Setting(object):
         self.quickdeal = True
         self.all_quickdeal = False
         self.skindirname = "Classic"
-        self.classicstyletext = True
         self.vocation120 = False
         self.sort_standbys = "None"
         self.sort_cards = "None"
@@ -433,6 +432,7 @@ class Setting(object):
             return
 
         data = self.data
+        settings_version = data.getattr(".", "dataVersion", "0")
 
         self.local.load(data)
 
@@ -696,6 +696,16 @@ class Setting(object):
         if not loadfile:
             self.init_skin(basedata=basedata)
 
+        # 設定バージョンの更新
+        if int(settings_version) < 1:
+            # バージョン0ではスキンの
+            if self._classicstyletext:
+                self.local.fontsmoothing_message = False
+                self.local.fonttypes["message"] = self.local.fonttypes_init["message"]
+                self.local.fonttypes["selectionbar"] = self.local.fonttypes_init["selectionbar"]
+            else:
+                self.local.fontsmoothing_message = True
+
     def init_skin(self, basedata=None):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
         if not os.path.isdir(self.skindir):
@@ -728,8 +738,8 @@ class Setting(object):
             raise
         self.skinname = data.gettext("Property/Name", "")
         self.skintype = data.gettext("Property/Type", "")
-        self.classicstyletext = data.getbool("Property/ClassicStyleText", True)
         self.vocation120 = data.getbool("Property/CW120VocationLevel", False)
+        self._classicstyletext = data.getbool("Property/ClassicStyleText", False) # 設定バージョンアップデート用
         self.initialcash = data.getint("Property/InitialCash", basedata.getint("Property/InitialCash", 4000))
         # スキン・種族
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("Races")]
@@ -1458,12 +1468,8 @@ class Resource(object):
         # メッセージウィンドウのテキスト描画用
         t = self.setting().fonttypes["message"]
         fonts.set("message", self.create_font, "message", t[0], t[1], t[2], t[3], nobold=True)
-        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
-            fonts.set("message_classic", cw.imageretouch.Font, u"ＭＳ 明朝", cw.s(22), bold=True)
         # メッセージウィンドウの選択肢描画用
         fonts.set("selectionbar", self.create_font, "selectionbar", *self.setting().fonttypes["selectionbar"])
-        if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
-            fonts.set("selectionbar_classic", cw.imageretouch.Font, u"MS UI Gothic", cw.s(15), bold=True)
         # メッセージログのページ表示描画用
         fonts.set("backlog_page", self.create_font, "logpage", *self.setting().fonttypes["logpage"])
         # カード枚数描画用

@@ -608,14 +608,6 @@ class CWPy(_Singleton, threading.Thread):
                 self.set_clientsize(cw.wins(cw.SIZE_GAME))
             self.exec_func(func)
 
-    def update_messagefontstyle(self, classicstyletext):
-        """メッセージの描画フォント設定を変更する。
-        表示中のメッセージがあれば更新する。
-        """
-        if self.setting.classicstyletext <> classicstyletext:
-            self.setting.classicstyletext = classicstyletext
-            self.update_messagestyle()
-
     def update_messagestyle(self):
         """メッセージの描画形式の変更を反映する。"""
         for sprite in itertools.chain(self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE),

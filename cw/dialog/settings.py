@@ -842,10 +842,9 @@ class SkinPanel(wx.Panel):
             skinname = prop.properties.get("Name", "")
             author = prop.properties.get("Author", "")
             desc = prop.properties.get("Description", "")
-            classictext = cw.util.str2bool(prop.properties.get("ClassicStyleText", "True"))
             vocation120 = cw.util.str2bool(prop.properties.get("CW120VocationLevel", "False"))
             initialcash = int(prop.properties.get("InitialCash", str(self.basecash)))
-            self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120, initialcash)
+            self.skin_summarys[name] = (skintype, skinname, author, desc, vocation120, initialcash)
         except Exception:
             # エラーのあるスキン
             cw.util.print_ex()
@@ -853,10 +852,9 @@ class SkinPanel(wx.Panel):
             skinname = u"*読込エラー*"
             author = u""
             desc = u"Skin.xmlの読み込みでエラーが発生しました。"
-            classictext = False
             vocation120 = False
             initialcash = self.basecash
-            self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120, initialcash)
+            self.skin_summarys[name] = (skintype, skinname, author, desc, vocation120, initialcash)
 
     def OnSkinChoice(self, event):
         self._choice_skin()
@@ -866,7 +864,7 @@ class SkinPanel(wx.Panel):
         s = u"種別: %s\n場所: %s\n作者: %s\n" + u"-" * 45 + u"\n%s"
         if not skin in self.skin_summarys:
             self._load_skinproperties(skin)
-        skintype, _skinname, author, desc, _classictext, _vocation120, _initialcash = self.skin_summarys[skin]
+        skintype, _skinname, author, desc, _vocation120, _initialcash = self.skin_summarys[skin]
         desc = cw.util.txtwrap(desc, 1)
         self.st_skin.SetLabel(s % (skintype, cw.util.join_paths(u"Data/Skin", skin), author, desc))
         if self.editbuttons:
@@ -2190,7 +2188,7 @@ class ScenarioSettingPanel(wx.Panel):
         types = set()
         self.Parent.Parent.pane_gene.skin.load_allskins()
         for t in self.Parent.Parent.pane_gene.skin.skin_summarys.itervalues():
-            skintype, _skinname, _author, _desc, _classictext, _vocation120, _initialcash = t
+            skintype, _skinname, _author, _desc, _vocation120, _initialcash = t
             types.add(skintype)
 
         types = list(types)

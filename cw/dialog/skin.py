@@ -99,8 +99,6 @@ class SkinConversionDialog(wx.Dialog):
         e.text = self.pane_base.info.authorctrl.GetValue()
         e = self.conv.data.find("Property/Description")
         e.text = self.pane_base.info.descctrl.GetValue()
-        e = self.conv.data.find("Property/ClassicStyleText")
-        e.text = str(self.pane_base.info.classictext.GetValue())
         e = self.conv.data.find("Property/CW120VocationLevel")
         e.text = str(self.pane_base.info.vocation120.GetValue())
         e = self.conv.data.find("Property/InitialCash")
@@ -303,12 +301,11 @@ class SkinEditDialog(wx.Dialog):
         self.pane_info = wx.Panel(self.note, -1)
         self.box_info = wx.StaticBox(self.pane_info, -1, u"スキン情報")
         self.info = SkinInfoPanel(self.pane_info)
-        skintype, skinname, author, desc, classictext, vocation120, initialcash = self.skinsummary
+        skintype, skinname, author, desc, vocation120, initialcash = self.skinsummary
         self.info.typectrl.SetValue(skintype)
         self.info.namectrl.SetValue(skinname)
         self.info.authorctrl.SetValue(author)
         self.info.descctrl.SetValue(desc)
-        self.info.classictext.SetValue(classictext)
         self.info.vocation120.SetValue(vocation120)
         self.info.initialcash.SetValue(initialcash)
 
@@ -339,10 +336,9 @@ class SkinEditDialog(wx.Dialog):
         skinname = self.info.namectrl.GetValue()
         author = self.info.authorctrl.GetValue()
         desc = self.info.descctrl.GetValue()
-        classictext = self.info.classictext.GetValue()
         vocation120 = self.info.vocation120.GetValue()
         initialcash = self.info.initialcash.GetValue()
-        self.skinsummary = (skintype, skinname, author, desc, classictext, vocation120, initialcash)
+        self.skinsummary = (skintype, skinname, author, desc, vocation120, initialcash)
 
         skinpath = cw.util.join_paths(u"Data/Skin", self.skindirname, u"Skin.xml")
         e = cw.data.xml2etree(skinpath)
@@ -350,7 +346,6 @@ class SkinEditDialog(wx.Dialog):
         e.edit("Property/Name", skinname)
         e.edit("Property/Author", author)
         e.edit("Property/Description", desc)
-        e.edit("Property/ClassicStyleText", str(classictext))
         if e.find("Property/CW120VocationLevel") is None:
             prop = e.find("Property")
             prop.append(cw.data.make_element("CW120VocationLevel", str(vocation120)))
@@ -376,15 +371,14 @@ class SkinEditDialog(wx.Dialog):
         e.write(skinpath)
 
         if cw.cwpy.setting.skindirname == self.skindirname:
-            def func(local, skinname, classicstyletext, vocation120, initialcash):
+            def func(local, skinname, vocation120, initialcash):
                 cw.cwpy.setting.skin_local = local
                 cw.cwpy.setting.skinname = skinname
                 cw.cwpy.setting.skintype = skintype
                 cw.cwpy.update_titlebar()
-                cw.cwpy.update_messagefontstyle(classicstyletext)
                 cw.cwpy.update_vocation120(vocation120)
                 cw.cwpy.setting.initialcash = initialcash
-            cw.cwpy.exec_func(func, self.local, skinname, classictext, vocation120, initialcash)
+            cw.cwpy.exec_func(func, self.local, skinname, vocation120, initialcash)
 
             if updatefont:
                 cw.cwpy.exec_func(cw.cwpy.update_skin, self.skindirname, restartop=False)
@@ -475,7 +469,6 @@ class SkinBasePanel(wx.Panel):
         self.info.namectrl.SetValue(conv.data.gettext("Property/Name", ""))
         self.info.authorctrl.SetValue(conv.data.gettext("Property/Author", ""))
         self.info.descctrl.SetValue(conv.data.gettext("Property/Description", ""))
-        self.info.classictext.SetValue(conv.data.getbool("Property/ClassicStyleText", True))
         if self.conv and self.conv.version <= (1, 2, 0, 99):
             self.info.vocation120.SetValue(True)
         else:
@@ -622,8 +615,6 @@ class SkinInfoPanel(wx.Panel):
         # 初期資金
         self.initialcashlabel = wx.StaticText(self, -1, u"初期資金")
         self.initialcash = wx.SpinCtrl(self, -1, max=999999, min=0)
-        # クラシックなフォントを使用するか
-        self.classictext = wx.CheckBox(self, -1, u"メッセージでクラシックなフォントを使用する")
         # カードの適性計算をCardWirth 1.20に合わせるか
         self.vocation120 = wx.CheckBox(self, -1, u"CardWirth 1.20相当のカード適性計算を行う")
 
@@ -660,7 +651,6 @@ class SkinInfoPanel(wx.Panel):
         gbsizer_info.AddGrowableRow(3)
 
         vsizer = wx.BoxSizer(wx.VERTICAL)
-        vsizer.Add(self.classictext, 0, wx.TOP, 3)
         vsizer.Add(self.vocation120, 0, wx.TOP, 3)
         add_info(vsizer, pos=(4, 2), colspan=1, rowspan=2, expand=False)
 

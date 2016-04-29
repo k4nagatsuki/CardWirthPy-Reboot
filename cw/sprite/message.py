@@ -64,7 +64,6 @@ class MessageWindow(base.CWPySprite):
             self.name_subtable = _create_nametable(False, self.talker)
 
         self.talker_image_noscale = talkerimage
-        self._init_style()
         self._init_image(size_noscale, pos_noscale)
 
         # 描画する文字画像のリスト作成
@@ -93,14 +92,6 @@ class MessageWindow(base.CWPySprite):
             cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
         else:
             cw.cwpy.cardgrp.add(self, layer=cw.LAYER_MESSAGE)
-
-    def _init_style(self):
-        # クラシックスタイルか
-        self.classicstyletext = MessageWindow.is_classicstyletext()
-
-    @staticmethod
-    def is_classicstyletext():
-        return cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts
 
     def _init_image(self, size_noscale, pos_noscale):
         # image
@@ -155,7 +146,6 @@ class MessageWindow(base.CWPySprite):
         self._back = self._fore.copy()
 
     def update_scale(self):
-        self._init_style()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs()
         if self.backlog:
@@ -177,14 +167,11 @@ class MessageWindow(base.CWPySprite):
 
     @staticmethod
     def is_sbold():
-        return (not cw.cwpy.setting.classicstyletext or\
-                 not "message_classic" in cw.cwpy.rsrc.fonts) and\
-                cw.cwpy.setting.fonttypes["message"][3 if cw.UP_SCR <= 1 else 4]
+        return cw.cwpy.setting.fonttypes["message"][3 if cw.UP_SCR <= 1 else 4]
 
     @staticmethod
     def get_messagestyledata():
-        classic = MessageWindow.is_classicstyletext()
-        return (classic, MessageWindow.is_sbold(), cw.cwpy.setting.fonttypes["message"] if classic else None,
+        return (MessageWindow.is_sbold(), cw.cwpy.setting.fonttypes["message"],
                 cw.UP_SCR, cw.cwpy.setting.decorationfont)
 
     def draw_all(self, textimg=None):
@@ -299,10 +286,7 @@ class MessageWindow(base.CWPySprite):
         # 文字色変更文字(&)の集合
         r_changecolour = re.compile("&[\x20-\x7E]")
         # フォントデータ
-        if self.classicstyletext:
-            font = cw.cwpy.rsrc.fonts["message_classic"]
-        else:
-            font = cw.cwpy.rsrc.fonts["message"]
+        font = cw.cwpy.rsrc.fonts["message"]
         colour = (255, 255, 255)
         lineheight_noscale = 22
         lineheight = cw.s(lineheight_noscale)
@@ -393,34 +377,25 @@ class MessageWindow(base.CWPySprite):
                 put_topbottom(y_noscale-1, lineheight_noscale+2)
 
                 # 通常文字
-                if self.classicstyletext:
-                    # クラシック形式
-                    image = font.render(char, False, colour)
-                    image = decorate(image, basecolour=colour)
-                    image3 = font.render(char, False, (0, 0, 0))
+                image = font.render(char, cw.cwpy.setting.fontsmoothing_message, colour)
+                image = decorate(image, basecolour=colour)
+                image3 = font.render(char, cw.cwpy.setting.fontsmoothing_message, (0, 0, 0))
 
-                else:
-                    # CardWirthPy形式
-                    image = font.render(char, cw.cwpy.setting.fontsmoothing_message, colour)
-                    image = decorate(image, basecolour=colour)
-                    image3 = font.render(char, cw.cwpy.setting.fontsmoothing_message, (0, 0, 0))
-
-                    # u"―"の場合、左右の線が繋がるように補完する
-                    if r_join.match(char):
-                        rect = image.get_rect()
-                        size = (rect.w + cw.s(20), rect.h)
-                        image = pygame.transform.scale(image, size)
-                        image3 = pygame.transform.scale(image3, size)
-                        image = image.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
-                        image3 = image3.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
+                # u"―"の場合、左右の線が繋がるように補完する
+                if r_join.match(char):
+                    rect = image.get_rect()
+                    size = (rect.w + cw.s(20), rect.h)
+                    image = pygame.transform.scale(image, size)
+                    image3 = pygame.transform.scale(image3, size)
+                    image = image.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
+                    image3 = image3.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
 
                 px = pos[0]
                 py = pos[1]
 
-                if not self.classicstyletext:
-                    if image:
-                        px += (cwidth-image.get_width() + cw.s(2)) / 2
-                    py += (lineheight-cheight) / 2
+                if image:
+                    px += (cwidth-image.get_width() + cw.s(2)) / 2
+                py += (lineheight-cheight) / 2
                 images.append(((px, py), image, image2, image3))
 
             pos = pos[0] + cwidth, pos[1]
@@ -517,8 +492,6 @@ class SelectWindow(MessageWindow):
         self.versionhint = None
         self.backlog_versionhint = None
 
-        self._init_style()
-
         # メッセージの選択結果
         self.result = result
         self.showing_result = showing_result
@@ -571,7 +544,6 @@ class SelectWindow(MessageWindow):
         self._back = self._fore.copy()
 
     def update_scale(self):
-        self._init_style()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs((14, 9))
         if self.backlog:
@@ -612,7 +584,6 @@ class SelectionBar(base.SelectableSprite):
         self.index = name[0]
         self.showing_index = showing_index
         self.name = name[1]
-        self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext and "selectionbar_classic" in cw.cwpy.rsrc.fonts
         # 通常画像
         self.size_noscale = size_noscale
         size = cw.s(self.size_noscale)
@@ -697,10 +668,7 @@ class SelectionBar(base.SelectableSprite):
         # 外枠描画
         draw_frame(image, size, pos=cw.s((0, 0)), backlog=self.backlog)
         # 選択肢描画
-        if self.classicstyletext:
-            font = cw.cwpy.rsrc.fonts["selectionbar_classic"]
-        else:
-            font = cw.cwpy.rsrc.fonts["selectionbar"]
+        font = cw.cwpy.rsrc.fonts["selectionbar"]
         nameimg = font.render(self.name, cw.cwpy.setting.fontsmoothing_message, (255, 255, 255))
         nameimg = decorate(nameimg, angle=16, basecolour=(255, 255, 255))
         nameimg2 = font.render(self.name, cw.cwpy.setting.fontsmoothing_message, (0, 0, 0))

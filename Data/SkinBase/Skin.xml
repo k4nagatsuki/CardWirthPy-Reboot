@@ -6,7 +6,6 @@
     <Author></Author>
     <Description></Description>
     <Extension image=".bmp" bgm=".mid" sound=".wav" />
-    <ClassicStyleText>True</ClassicStyleText>
     <CW120VocationLevel>False</CW120VocationLevel>
     <InitialCash>4000</InitialCash>
   </Property>
