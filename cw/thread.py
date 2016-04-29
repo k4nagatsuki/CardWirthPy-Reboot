@@ -556,6 +556,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
             self._update_clip()
 
+            cw.sprite.message.MessageWindow.clear_selections()
             for sprite in self.cardgrp.sprites():
                 if sprite.is_initialized() and not isinstance(sprite, (cw.sprite.background.BackGround,
                                                                        cw.sprite.background.BgCell)):

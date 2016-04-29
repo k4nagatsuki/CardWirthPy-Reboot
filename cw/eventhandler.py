@@ -1415,10 +1415,14 @@ class EventHandlerForBacklog(EventHandler):
                 m = self._mwins[i]
 
                 # 範囲内のスプライトを表示
-                m.rect.top = cw.s(self._pos_noscale[i]-top)
+                m.rect_noscale.top = self._pos_noscale[i]-top
+                m.rect.top = cw.s(m.rect_noscale.top)
                 cw.cwpy.backloggrp.add(m, layer=cw.LAYER_LOG)
                 for j, sbar in enumerate(m.selections):
-                    sbar.rect.top = m.rect.bottom + (j // m.columns * sbar.rect.height)
+                    sbar.rect_noscale.height = sbar.size_noscale[1]
+                    sbar.rect.height = cw.s(sbar.rect_noscale.height)
+                    sbar.rect_noscale.top = m.rect_noscale.bottom + (j // m.columns * sbar.rect_noscale.height)
+                    sbar.rect.top = cw.s(sbar.rect_noscale.top)
                     cw.cwpy.backloggrp.add(sbar, layer=cw.LAYER_LOG_BAR)
             # ページ表示の更新
             f2 = bisect.bisect_left(self._pos_noscale, top)

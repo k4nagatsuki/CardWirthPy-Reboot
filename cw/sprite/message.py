@@ -74,7 +74,6 @@ class MessageWindow(base.CWPySprite):
         self.speed = cw.cwpy.setting.messagespeed
         # SelectionBarインスタンスリスト
         self.selections = []
-        self.selection_pos_noscale = (81, 230)
         # frame
         self.frame = 0
         if not self.backlog:
@@ -148,18 +147,19 @@ class MessageWindow(base.CWPySprite):
     def update_scale(self):
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs()
-        if self.backlog:
-            cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
-        else:
-            cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
-            cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
-            cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
         self.selections = []
-        self.selection_pos_noscale = (81, 230)
 
         self.is_drawing = True
         self.frame = 0
         self.draw_all()
+
+    @staticmethod
+    def clear_selections():
+        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
 
     def update(self, scr):
         if self.is_drawing:
@@ -233,7 +233,7 @@ class MessageWindow(base.CWPySprite):
         # SelectionBarを描画
         if not self.backlog:
             cw.cwpy.list = self.selections
-        x_noscale, y_noscale = self.selection_pos_noscale
+        x_noscale, y_noscale = self.rect_noscale.left, self.rect_noscale.bottom
 
         for index, name in enumerate(self.names):
             # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
@@ -250,7 +250,7 @@ class MessageWindow(base.CWPySprite):
 
             if (index+1) % self.columns == 0:
                 # 次の行
-                x_noscale = self.selection_pos_noscale[0]
+                x_noscale = self.rect_noscale.left
                 y_noscale += size_noscale[1]
             else:
                 x_noscale += size_noscale[0]
@@ -514,7 +514,6 @@ class SelectWindow(MessageWindow):
         self.is_drawing = True
         # SelectionBarインスタンスリスト
         self.selections = []
-        self.selection_pos_noscale = (81, 90)
         # メッセージ全て表示
         self.draw_all(textimg)
         # spritegroupに追加
@@ -546,13 +545,7 @@ class SelectWindow(MessageWindow):
     def update_scale(self):
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs((14, 9))
-        if self.backlog:
-            cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
-        else:
-            cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
-            cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
         self.selections = []
-        self.selection_pos_noscale = (81, 90)
 
         self.is_drawing = True
         self.frame = 0
@@ -592,6 +585,7 @@ class SelectionBar(base.SelectableSprite):
         self.rect = self._image.get_rect()
         self.pos_noscale = pos_noscale
         self.rect.topleft = cw.s(self.pos_noscale)
+        self.rect_noscale = pygame.Rect(self.pos_noscale, self.size_noscale)
         # image
         self.image = self._image
         # status
@@ -616,7 +610,8 @@ class SelectionBar(base.SelectableSprite):
 
         # 完全に画面外に出る選択肢は表示禁止
         if cw.s(cw.SIZE_AREA[1]) < self.rect.top:
-            self.rect.height = 0
+            self.rect.height = cw.s(0)
+            self.rect_noscale.height = 0
 
     def get_unselectedimage(self):
         return self._image
@@ -782,7 +777,7 @@ class BacklogData(object):
             else:
                 return self.rect_noscale.height + 25
         else:
-            return self.rect_noscale.height + len(self.names_log)*25
+            return self.rect_noscale.height + ((len(self.names_log)+(self.columns-1)) // self.columns)*25
 
     @property
     def _from_index(self):
