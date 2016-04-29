@@ -697,7 +697,7 @@ class Setting(object):
             self.init_skin(basedata=basedata)
 
         # 設定バージョンの更新
-        if int(settings_version) < 1:
+        if int(settings_version) < 1 and not loadfile:
             # バージョン0ではスキンの
             if self._classicstyletext:
                 self.local.fontsmoothing_message = False
