@@ -1681,7 +1681,9 @@ def call_package(resid, call):
     else:
         cw.cwpy.event.replace_event(packevent, (cw.HINT_AREA, versionhint_base))
         event = cw.cwpy.event.get_event()
-        cw.cwpy.event.stackinfo[-1] = (nowrunning, packevent.starttree, 0)
+        assert isinstance(cw.cwpy.event.stackinfo[-1], cw.event.Event)
+        cw.cwpy.event.stackinfo[-1] = event
+        cw.cwpy.event.refresh_stackinfo()
     event.cur_content = packevent.starttree
     event.line_index = 0
 

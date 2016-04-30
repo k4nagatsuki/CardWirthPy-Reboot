@@ -2310,6 +2310,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                         e = evt.starttree
                         if e is None:
                             continue
+                        icon = None
                         while not e.cwxparent is None:
                             e = e.cwxparent
                             if e.tag == "Area":
@@ -2329,8 +2330,18 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                             else:
                                 continue
                             break
-                        name = e.gettext("Property/Name", u"(名称無し)")
-                        name += u" (%s)" % evt.treekeys[0]
+                        if icon is None:
+                            continue
+                        if e.tag == "EnemyCard":
+                            resid = e.getint("Property/Id", 0)
+                            enemy = cw.cwpy.sdata.casts.get(resid, None)
+                            if enemy:
+                                name = enemy[0] if enemy[0] else u"(名称なし)"
+                            else:
+                                name = u"(未設定)"
+                        else:
+                            name = e.gettext("Property/Name", u"(名称なし)")
+                        name += u" (%s)" % (evt.treekeys[0] if evt.treekeys[0] else u"イベント名なし")
                         item = self.InsertImageStringItem(self.GetItemCount(), name, icon)
                         e = evt.starttree
                         if not e is None and e.tag == "ContentsLine":
@@ -2351,7 +2362,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                         elif e.tag == "Link" and ctype == "Package":
                             icon = self.imgidx_link_package
                         else:
-                            assert False
+                            assert False, e.tag + ctype
                         name = cw.content.get_content(e).get_status()
                         self.InsertImageStringItem(self.GetItemCount(), name, icon)
                         self.list.append((evt2, e))
@@ -2398,6 +2409,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         else:
             self.InsertImageStringItem(self.GetItemCount(), name, icon)
             self.list.append((nowrunning, cur_content))
+            self._has_curcontent = True
 
 
 def main():

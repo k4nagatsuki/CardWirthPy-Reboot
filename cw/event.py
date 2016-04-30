@@ -684,9 +684,6 @@ class Event(object):
                 cw.cwpy.areaid in cw.AREAS_SP
             cw.cwpy.statusbar.change(showbuttons)
 
-            cw.cwpy.event.stackinfo = []
-            cw.cwpy.event.stackinfo.append(self)
-            cw.cwpy.event.refresh_stackinfo()
             self.run()
 
         except EventError, err:
@@ -723,6 +720,10 @@ class Event(object):
         これは不自然だが、際限の無い再帰を避けるために
         必要な処置である。
         """
+        cw.cwpy.event.stackinfo = []
+        cw.cwpy.event.stackinfo.append(self)
+        cw.cwpy.event.refresh_stackinfo()
+
         cw.cwpy.event.append_event(self)
 
         try:
