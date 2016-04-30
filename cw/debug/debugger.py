@@ -242,9 +242,9 @@ class Debugger(wx.Frame):
         run_menu.AppendItem(self.mi_clear_breakpoint)
         run_menu.AppendSeparator()
         self.mi_showstacktrace = wx.MenuItem(run_menu, ID_SHOW_STACK_TRACE, u"呼び出し履歴の表示(&S)\tCtrl+T",
-                         u"呼び出し履歴を表示します。")
+                         u"呼び出し履歴を表示します。", kind=wx.ITEM_CHECK)
         bmp = rsrc["STACK_TRACE"]
-        self.mi_showstacktrace.SetBitmap(bmp)
+        self.mi_showstacktrace.SetBitmaps(bmp, bmp)
         run_menu.AppendItem(self.mi_showstacktrace)
         run_menu.AppendSeparator()
         self.mi_select = wx.MenuItem(run_menu, ID_SELECTION, u"選択メンバ(&S)",
@@ -797,7 +797,7 @@ class Debugger(wx.Frame):
         self.view_stacktrace = StackTraceView(self)
         self._mgr.AddPane(
             self.view_stacktrace,
-            wx.aui.AuiPaneInfo().Name("view_stacktrace").MinSize((-1, 30)).
+            wx.aui.AuiPaneInfo().Name("view_stacktrace").MinSize((-1, 10)).
             Bottom().CloseButton(True).MaximizeButton(True).
             Caption(u"呼び出し履歴").DestroyOnClose())
         self.view_stacktrace.refresh_stackinfo()
@@ -805,11 +805,14 @@ class Debugger(wx.Frame):
 
         def OnDestroy(event):
             self.view_stacktrace = None
-            if self.tl_showstacktrace.IsToggled():
-                self.tl_showstacktrace.Toggle()
-                self.tb_event.Realize()
+            if cw.cwpy.frame.debugger:
+                self.mi_showstacktrace.Check(False)
+                if self.tl_showstacktrace.IsToggled():
+                    self.tl_showstacktrace.Toggle()
+                    self.tb_event.Realize()
         self.view_stacktrace.Bind(wx.EVT_WINDOW_DESTROY, OnDestroy)
 
+        self.mi_showstacktrace.Check(True)
         if not self.tl_showstacktrace.IsToggled():
             self.tl_showstacktrace.Toggle()
             self.tb_event.Realize()
@@ -2033,11 +2036,12 @@ class EventView(wx.ScrolledWindow):
 
         def func(self):
             event = cw.cwpy.event.get_event()
+            nowrunning= cw.cwpy.event.get_nowrunningevent()
             cur_content = event.cur_content if event else None
             if not cur_content is None and cur_content.tag == "ContentsLine":
                 cur_content = cur_content[event.line_index]
 
-            def func(self, event, cur_content):
+            def func(self, nowrunning, event, cur_content):
                 if not self:
                     return
 
@@ -2054,9 +2058,11 @@ class EventView(wx.ScrolledWindow):
                     self.current_content = None
                     self.Parent.statusbar.SetStatusText(u"", 1)
                 self.Refresh()
+                if self.Parent.view_stacktrace:
+                    self.Parent.view_stacktrace.refresh_activeitem(nowrunning, cur_content)
                 self.processing = processing
 
-            cw.cwpy.frame.exec_func(func, self, event, cur_content)
+            cw.cwpy.frame.exec_func(func, self, nowrunning, event, cur_content)
 
         cw.cwpy.exec_func(func, self)
 
@@ -2254,7 +2260,7 @@ def get_contenticon(content):
 
 class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
     def __init__(self, parent):
-        wx.ListCtrl.__init__(self, parent, -1, size=(-1, 100),
+        wx.ListCtrl.__init__(self, parent, -1, size=(-1, 80),
                              style=wx.LC_REPORT|wx.LC_NO_HEADER)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
         self.list = []
@@ -2271,8 +2277,10 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"])
         self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
         self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
+        self.imgidx_contents = {}
+        self._has_curcontent = False
         self.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
-        self.InsertColumn(0, u"呼び出し元")
+        self.InsertColumn(0, u"呼び出し履歴")
         self.SetColumnWidth(0, 400)
         self._bind()
 
@@ -2288,65 +2296,108 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
             self.Parent.view_tree.set_event(evt, selection=cur_content)
 
     def refresh_stackinfo(self):
-        def func(self, stackinfo):
-            if not self:
-                return
-            self.DeleteAllItems()
-            del self.list[:]
-            if not stackinfo:
-                return
-            for evt in stackinfo:
-                if isinstance(evt, cw.event.Event):
-                    e = evt.starttree
-                    if e is None:
-                        continue
-                    while not e.cwxparent is None:
-                        e = e.cwxparent
-                        if e.tag == "Area":
-                            icon = self.imgidx_area
-                        elif e.tag == "Battle":
-                            icon = self.imgidx_battle
-                        elif e.tag == "Package":
-                            icon = self.imgidx_package
-                        elif e.tag == "SkillCard":
-                            icon = self.imgidx_skill
-                        elif e.tag == "ItemCard":
-                            icon = self.imgidx_item
-                        elif e.tag == "BeastCard":
-                            icon = self.imgidx_beast
-                        elif e.tag in ("MenuCard", "LargeMenuCard", "EnemyCard"):
-                            icon = self.imgidx_card
-                        else:
+        assert cw.cwpy <> threading.currentThread()
+        def func(self):
+            def func(self, nowrunning, cur_content, stackinfo):
+                if not self:
+                    return
+                self.DeleteAllItems()
+                del self.list[:]
+                if not stackinfo:
+                    return
+                for evt in stackinfo:
+                    if isinstance(evt, cw.event.Event):
+                        e = evt.starttree
+                        if e is None:
                             continue
-                        break
-                    name = e.gettext("Property/Name", u"(名称無し)")
-                    name += u" (%s)" % evt.treekeys[0]
-                    item = self.InsertImageStringItem(self.GetItemCount(), name, icon)
-                    e = evt.starttree
-                    if not e is None and e.tag == "ContentsLine":
-                        e = e[0]
-                    self.list.append((evt, e))
-                else:
-                    assert isinstance(evt, tuple)
-                    evt2, e, line_index = evt
-                    if not e is None and e.tag == "ContentsLine":
-                        e = e[line_index]
-                    ctype = e.getattr(".", "type", "")
-                    if e.tag == "Call" and ctype == "Start":
-                        icon = self.imgidx_call_start
-                    elif e.tag == "Link" and ctype == "Start":
-                        icon = self.imgidx_link_start
-                    elif e.tag == "Call" and ctype == "Package":
-                        icon = self.imgidx_call_package
-                    elif e.tag == "Link" and ctype == "Package":
-                        icon = self.imgidx_link_package
+                        while not e.cwxparent is None:
+                            e = e.cwxparent
+                            if e.tag == "Area":
+                                icon = self.imgidx_area
+                            elif e.tag == "Battle":
+                                icon = self.imgidx_battle
+                            elif e.tag == "Package":
+                                icon = self.imgidx_package
+                            elif e.tag == "SkillCard":
+                                icon = self.imgidx_skill
+                            elif e.tag == "ItemCard":
+                                icon = self.imgidx_item
+                            elif e.tag == "BeastCard":
+                                icon = self.imgidx_beast
+                            elif e.tag in ("MenuCard", "LargeMenuCard", "EnemyCard"):
+                                icon = self.imgidx_card
+                            else:
+                                continue
+                            break
+                        name = e.gettext("Property/Name", u"(名称無し)")
+                        name += u" (%s)" % evt.treekeys[0]
+                        item = self.InsertImageStringItem(self.GetItemCount(), name, icon)
+                        e = evt.starttree
+                        if not e is None and e.tag == "ContentsLine":
+                            e = e[0]
+                        self.list.append((evt, e))
                     else:
-                        assert False
-                    name = cw.content.get_content(e).get_status()
-                    self.InsertImageStringItem(self.GetItemCount(), name, icon)
-                    self.list.append((evt2, e))
+                        assert isinstance(evt, tuple)
+                        evt2, e, line_index = evt
+                        if not e is None and e.tag == "ContentsLine":
+                            e = e[line_index]
+                        ctype = e.getattr(".", "type", "")
+                        if e.tag == "Call" and ctype == "Start":
+                            icon = self.imgidx_call_start
+                        elif e.tag == "Link" and ctype == "Start":
+                            icon = self.imgidx_link_start
+                        elif e.tag == "Call" and ctype == "Package":
+                            icon = self.imgidx_call_package
+                        elif e.tag == "Link" and ctype == "Package":
+                            icon = self.imgidx_link_package
+                        else:
+                            assert False
+                        name = cw.content.get_content(e).get_status()
+                        self.InsertImageStringItem(self.GetItemCount(), name, icon)
+                        self.list.append((evt2, e))
 
-        cw.cwpy.exec_func(func, self, cw.cwpy.event.stackinfo[:])
+                if cur_content is None:
+                    self._has_curcontent = False
+                else:
+                    name, icon = self._get_info(cur_content)
+                    self.InsertImageStringItem(self.GetItemCount(), name, icon)
+                    self.list.append((nowrunning, cur_content))
+                    self._has_curcontent = True
+
+            nowrunning = cw.cwpy.event.get_nowrunningevent()
+            event = cw.cwpy.event.get_event()
+            if event:
+                e = event.cur_content
+                if not e is None and e.tag == "ContentsLine":
+                    e = e[event.line_index]
+            else:
+                e = None
+            cw.cwpy.frame.exec_func(func, self, nowrunning, e, cw.cwpy.event.stackinfo[:])
+        cw.cwpy.exec_func(func, self)
+
+    def _get_info(self, cur_content):
+        name = cw.content.get_content(cur_content).get_status()
+        cname = cur_content.tag + cur_content.getattr(".", "type", "")
+        if cname in self.imgidx_contents:
+            icon = self.imgidx_contents[cname]
+        else:
+            bmp = get_contenticon(cur_content)
+            icon = self.imglist.Add(bmp)
+            self.imgidx_contents[cname] = icon
+        return name, icon
+
+    def refresh_activeitem(self, nowrunning, cur_content):
+        assert cw.cwpy <> threading.currentThread()
+        if cur_content is None:
+            return
+        name, icon = self._get_info(cur_content)
+        if self._has_curcontent:
+            self.SetItemText(self.GetItemCount()-1, name)
+            self.SetItemImage(self.GetItemCount()-1, icon)
+            self.list[-1] = (nowrunning, cur_content)
+        else:
+            self.InsertImageStringItem(self.GetItemCount(), name, icon)
+            self.list.append((nowrunning, cur_content))
 
 
 def main():
