@@ -1593,6 +1593,8 @@ class CallStartContent(EventContentBase):
                     cw.cwpy.call_modaldlg("ERROR", text=s)
                     raise cw.event.EffectBreakError()
                 event.nowrunningcontents.append((None, event.cur_content, event.line_index, None))
+                cw.cwpy.event.stackinfo.append((cw.cwpy.event.get_nowrunningevent(), event.cur_content, event.line_index))
+                cw.cwpy.event.refresh_stackinfo()
             event.cur_content = trees[startname]
             event.line_index = 0
 
@@ -1667,15 +1669,22 @@ def call_package(resid, call):
 
     event = cw.cwpy.event.get_event()
     versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
+    nowrunning = cw.cwpy.event.get_nowrunningevent()
     if call:
         event.nowrunningcontents.append((packevent, event.cur_content, event.line_index, versionhint_base))
         cw.cwpy.event.append_event(packevent)
         packevent.parent = cw.cwpy.event.get_event()
+
+        cw.cwpy.event.stackinfo.append((nowrunning, event.cur_content, event.line_index))
+        cw.cwpy.event.refresh_stackinfo()
+
     else:
         cw.cwpy.event.replace_event(packevent, (cw.HINT_AREA, versionhint_base))
         event = cw.cwpy.event.get_event()
+        cw.cwpy.event.stackinfo[-1] = (nowrunning, packevent.starttree, 0)
     event.cur_content = packevent.starttree
     event.line_index = 0
+
     if cw.cwpy.is_playingscenario():
         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
 

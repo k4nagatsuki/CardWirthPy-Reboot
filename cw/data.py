@@ -3091,7 +3091,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
                 if e.getbool(".", "scenariocard", False):
                     scenariodata = True
                     break
-            elif e.tag == "MenuCard":
+            elif e.tag in ("MenuCard", "LargeMenuCard"):
                 cwxpath.append("menucard:%s" % (e.cwxparent.index(e)))
             elif e.tag == "EnemyCard":
                 cwxpath.append("enemycard:%s" % (e.cwxparent.index(e)))
