@@ -538,19 +538,19 @@ class Status(object):
             update = True
 
         if self.bind <> s.bind:
-            pcard.set_bind(self.bind - pcard.bind)
+            pcard.set_bind(self.bind)
             update = True
 
         if self.silence <> s.silence:
-            pcard.set_silence(self.silence - pcard.silence)
+            pcard.set_silence(self.silence)
             update = True
 
         if self.faceup <> s.faceup:
-            pcard.set_faceup(self.faceup - pcard.faceup)
+            pcard.set_faceup(self.faceup)
             update = True
 
         if self.antimagic <> s.antimagic:
-            pcard.set_antimagic(self.antimagic - pcard.antimagic)
+            pcard.set_antimagic(self.antimagic)
             update = True
 
         if self.enhance_act <> s.enhance_act or\
