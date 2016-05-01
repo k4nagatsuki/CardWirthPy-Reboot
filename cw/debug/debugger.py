@@ -2288,7 +2288,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
 
     def OnDClick(self, event):
-        if not cw.cwpy.event.is_paused():
+        if not cw.cwpy.event.is_paused() and not cw.cwpy.is_showingmessage():
             return
         if self.GetSelectedItemCount() == 1:
             item = self.list[self.GetFirstSelected()]
