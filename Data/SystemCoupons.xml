@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <SystemCoupons>
-  <SystemCoupon regex="True">\A＠CardWirthPy Version\.0\.12\.([234]|3b)\Z</SystemCoupon>
-  <SystemCoupon>＠CardWirthPy Version.0.12.4 Only</SystemCoupon>
+  <SystemCoupon regex="True">\A＠CardWirthPy Version\.(0\.12\.([23]|3b)|1\.0)\Z</SystemCoupon>
+  <SystemCoupon>＠CardWirthPy Version.1.0 Only</SystemCoupon>
 </SystemCoupons>
