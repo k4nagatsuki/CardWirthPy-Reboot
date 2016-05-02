@@ -3350,6 +3350,7 @@ class TalkDialogContent(TalkContent):
 
     def get_dialogtext(self, dialogs, coupons):
         dialogtext = None
+        exit = False
         for req_coupons, text in dialogs:
             hasallcoupons = True
             for req_coupon in req_coupons:
@@ -3359,11 +3360,13 @@ class TalkDialogContent(TalkContent):
 
             if hasallcoupons:
                 dialogtext = text
+                exit = True
 
             if not req_coupons:
                 dialogtext = text
+                exit = True
 
-            if dialogtext:
+            if exit:
                 break
         return dialogtext
 
