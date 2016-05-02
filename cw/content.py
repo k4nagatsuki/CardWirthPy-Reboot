@@ -3349,8 +3349,6 @@ class TalkDialogContent(TalkContent):
         return dialogs
 
     def get_dialogtext(self, dialogs, coupons):
-        dialogtext = None
-        exit = False
         for req_coupons, text in dialogs:
             hasallcoupons = True
             for req_coupon in req_coupons:
@@ -3358,17 +3356,10 @@ class TalkDialogContent(TalkContent):
                     hasallcoupons = False
                     break
 
-            if hasallcoupons:
-                dialogtext = text
-                exit = True
+            if hasallcoupons or not req_coupons:
+                return text
 
-            if not req_coupons:
-                dialogtext = text
-                exit = True
-
-            if exit:
-                break
-        return dialogtext
+        return None
 
     def get_status(self):
         e = self.data.getfind("Dialogs")
