@@ -1443,6 +1443,7 @@ class CWPy(_Singleton, threading.Thread):
             self.event.refresh_tools()
 
         self.event.refresh_activeitem()
+        self.input()
         while self.is_running() and mwin.result is None:
             self.update()
 
