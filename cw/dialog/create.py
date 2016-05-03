@@ -1030,7 +1030,7 @@ class NamePage(AdventurerCreaterPage):
         dc.SetClippingRect(wx.Rect(cw.wins(275), cw.wins(130), cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
             bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
-            dc.DrawBitmap(bmp, cw.wins(275), cw.wins(130), True)
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(275), cw.wins(130), True)
         dc.DestroyClippingRegion()
         self.set_clickablearea(cw.wins((275, 130)), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
@@ -1317,7 +1317,7 @@ class RelationPage(AdventurerCreaterPage):
         for path in paths:
             if path.path:
                 bmp = cw.wins((cw.util.load_wxbmp(path.path, True), cw.SIZE_CARDIMAGE))
-                dc.DrawBitmap(bmp, pos[0], pos[1], True)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, pos[0], pos[1], True)
         dc.DestroyClippingRegion()
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "FatherFace", None, self.on_mousewheel)
 
@@ -1334,7 +1334,7 @@ class RelationPage(AdventurerCreaterPage):
         for path in paths:
             if path.path:
                 bmp = cw.wins((cw.util.load_wxbmp(path.path, True), cw.SIZE_CARDIMAGE))
-                dc.DrawBitmap(bmp, pos[0], pos[1], True)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, pos[0], pos[1], True)
         dc.DestroyClippingRegion()
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "MotherFace", None, self.on_mousewheel)
 
@@ -2239,7 +2239,7 @@ class DesignPanel(AdventurerCreaterPage):
         dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
             bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
-            dc.DrawBitmap(bmp, x, y, True)
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, x, y, True)
         dc.DestroyClippingRegion()
         self.set_clickablearea((x, y), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 

@@ -1597,8 +1597,8 @@ class PartySelect(MultiViewSelect):
                             if w and h:
                                 img = bmp3.ConvertToImage()
                                 img = img.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
-                                bmp3 = img.ConvertToBitmap()
-                                bmp2.append(bmp3)
+                                bmp4 = img.ConvertToBitmap()
+                                bmp2.append((bmp3, bmp4))
             return bmp, bmp2, sceheader
 
         if self.views == 1:
@@ -1641,15 +1641,15 @@ class PartySelect(MultiViewSelect):
             # シナリオ・宿画像
             bmp, bmp2, sceheader = get_image(header)
             for b in bmp:
-                dc.DrawBitmap(b, (bmpw-cw.wins(74))/2, cw.wins(125), True)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, (bmpw-cw.wins(74))/2, cw.wins(125), True)
             # パーティの先頭メンバを小さく表示する
             px = bmpw/2
             py = cw.wins(125+47)
             pw = cw.wins(cw.SIZE_CARDIMAGE[0])
             ph = cw.wins(cw.SIZE_CARDIMAGE[1])
             dc.SetClippingRect(wx.Rect(px, py, pw, ph))
-            for bmp in bmp2:
-                dc.DrawBitmap(bmp, px, py, True)
+            for bmp3, bmp4 in bmp2:
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp4, px, py, True, bitsizekey=bmp3)
             dc.DestroyClippingRegion()
 
             # シナリオ・宿名
@@ -1688,7 +1688,7 @@ class PartySelect(MultiViewSelect):
                 iy = y + 5
                 dc.SetClippingRect((ix, iy, cw.wins(74), cw.wins(94)))
                 for b in bmp:
-                    dc.DrawBitmap(b, ix, iy, True)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, ix, iy, True)
                 dc.DestroyClippingRegion()
                 # パーティの先頭メンバを小さく表示する
                 px = ix + cw.wins(37)
@@ -1696,8 +1696,8 @@ class PartySelect(MultiViewSelect):
                 pw = cw.wins(cw.SIZE_CARDIMAGE[0])
                 ph = cw.wins(cw.SIZE_CARDIMAGE[1])
                 dc.SetClippingRect(wx.Rect(px, py, pw, ph))
-                for bmp in bmp2:
-                    dc.DrawBitmap(bmp, px, py, True)
+                for bmp3, bmp4 in bmp2:
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp4, px, py, True, bitsizekey=bmp3)
                 dc.DestroyClippingRegion()
 
                 # パーティ名
@@ -2492,7 +2492,7 @@ class PlayerSelect(MultiViewSelect):
                 for info in header.imgpaths:
                     path = cw.util.join_yadodir(info.path)
                     bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-                    dc.DrawBitmap(bmp, cw.wins(88), cw.wins(90), True)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(88), cw.wins(90), True)
                 dc.DestroyClippingRegion()
                 # Age
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
@@ -2552,7 +2552,7 @@ class PlayerSelect(MultiViewSelect):
                     for info in header.imgpaths:
                         path = cw.util.join_yadodir(info.path)
                         bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-                        dc.DrawBitmap(bmp, ix, iy, True)
+                        cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, ix, iy, True)
                     dc.DestroyClippingRegion()
 
                     # Name

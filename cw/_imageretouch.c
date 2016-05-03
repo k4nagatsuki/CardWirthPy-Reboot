@@ -554,6 +554,124 @@ blend_sub_1_50(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+blend_and(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    Py_ssize_t dlen, slen;
+    int w, h, x, y, dr, dg, db, da, sr, sg, sb, sa, mask_r, mask_g, mask_b;
+    unsigned char *dest, *source, *outdata;
+
+    if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
+        return NULL;
+
+    string = PyBytes_FromStringAndSize(NULL, dlen);
+
+    if (!string)
+        return NULL;
+
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &dlen);
+
+    mask_r = (int) source[0];
+    mask_g = (int) source[1];
+    mask_b = (int) source[2];
+    for (y = 0; y < h; y++)
+    {
+        for (x = 0; x < w; x++)
+        {
+            dr = (int) dest[0];
+            dg = (int) dest[1];
+            db = (int) dest[2];
+            da = (int) dest[3];
+            sr = (int) source[0];
+            sg = (int) source[1];
+            sb = (int) source[2];
+            sa = (int) source[3];
+            if (sr != mask_r || sg != mask_g || sb != mask_b)
+            {
+                dr = dr & sr;
+                dg = dg & sg;
+                db = db & sb;
+                outdata[0] = (char) dr;
+                outdata[1] = (char) dg;
+                outdata[2] = (char) db;
+                outdata[3] = (unsigned char) 255;
+            }
+            else
+            {
+                outdata[0] = (char) dr;
+                outdata[1] = (char) dg;
+                outdata[2] = (char) db;
+                outdata[3] = (unsigned char) 0;
+            }
+
+            source += 4;
+            dest += 4;
+            outdata += 4;
+        }
+    }
+    return string;
+}
+
+static PyObject *
+blend_and_msg(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    Py_ssize_t dlen, slen;
+    int w, h, x, y, dr, dg, db, da, sr, sg, sb, sa, mask_r, mask_g, mask_b, base_r, base_g, base_b, base_a;
+    unsigned char *dest, *source, *outdata;
+
+    if (!PyArg_ParseTuple(args, "s#(ii)s#(iiii)", &dest, &dlen, &w, &h, &source, &slen, &base_r, &base_g, &base_b, &base_a))
+        return NULL;
+
+    string = PyBytes_FromStringAndSize(NULL, dlen);
+
+    if (!string)
+        return NULL;
+
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &dlen);
+
+    mask_r = (int) source[0];
+    mask_g = (int) source[1];
+    mask_b = (int) source[2];
+    for (y = 0; y < h; y++)
+    {
+        for (x = 0; x < w; x++)
+        {
+            dr = (int) dest[0];
+            dg = (int) dest[1];
+            db = (int) dest[2];
+            da = (int) dest[3];
+            sr = (int) source[0];
+            sg = (int) source[1];
+            sb = (int) source[2];
+            sa = (int) source[3];
+            if (sr != mask_r || sg != mask_g || sb != mask_b)
+            {
+                dr = base_a & sr;
+                dg = base_a & sg;
+                db = base_a & sb;
+                outdata[0] = (unsigned char) dr;
+                outdata[1] = (unsigned char) dg;
+                outdata[2] = (unsigned char) db;
+                outdata[3] = (unsigned char) max(base_a, 255 - (sr + sg + sb) / 3);
+            }
+            else
+            {
+                outdata[0] = (char) dr;
+                outdata[1] = (char) dg;
+                outdata[2] = (char) db;
+                outdata[3] = (unsigned char) 0;
+            }
+
+            source += 4;
+            dest += 4;
+            outdata += 4;
+        }
+    }
+    return string;
+}
+
+static PyObject *
 to_disabledimage(PyObject *self, PyObject *args)
 {
     int px, w, h, keyR, keyG, keyB;
@@ -1213,6 +1331,10 @@ _imageretouchMethods[] =
         "blend_add_1_50(rgba_str, size, rgba_str)"},
     {"blend_sub_1_50", blend_sub_1_50, METH_VARARGS,
         "blend_sub_1_50(rgba_str, size, rgba_str)"},
+    {"blend_and", blend_and, METH_VARARGS,
+        "blend_and(rgba_str, size, rgba_str)"},
+    {"blend_and_msg", blend_and_msg, METH_VARARGS,
+        "blend_and_msg(rgba_str, size, rgba_str, rgba)"},
     {"to_disabledimage", to_disabledimage, METH_VARARGS,
         "to_disabledimage(char*, size)"},
     {"decode_rle4data", decode_rle4data, METH_VARARGS,

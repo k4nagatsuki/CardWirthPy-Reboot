@@ -484,7 +484,7 @@ class TopPanel(wx.Panel):
                 path = cw.util.join_yadodir(path)
 
             bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-            dc.DrawBitmap(bmp, x, cw.wins(5), True)
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, x, cw.wins(5), True)
         # レベル
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam" , pixelsize=cw.wins(16)))
         coupons = self.ccard.get_specialcoupons()

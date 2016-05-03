@@ -96,9 +96,10 @@ class MessageWindow(base.CWPySprite):
         # image
         self.image = pygame.Surface(cw.s(size_noscale)).convert_alpha()
         if self.backlog:
-            self.image.fill(cw.cwpy.setting.blwincolour)
+            wincolour = cw.cwpy.setting.blwincolour
         else:
-            self.image.fill(cw.cwpy.setting.mwincolour)
+            wincolour = cw.cwpy.setting.mwincolour
+        self.image.fill(wincolour)
         # rect
         self.rect_noscale = pygame.Rect(pos_noscale, size_noscale)
         self.rect = cw.s(self.rect_noscale)
@@ -138,7 +139,7 @@ class MessageWindow(base.CWPySprite):
         for talker_image in self.talker_image:
             y = (cw.s(180) - talker_image.get_height()) / 2
             y -= cw.s(self.trim_top_noscale)
-            self.image.blit(talker_image, (cw.s(15), y))
+            cw.imageretouch.blit_2bitbmp_to_message(self.image, talker_image, (cw.s(15), y), wincolour)
 
         self._fore = pygame.Surface(cw.s((470, 180))).convert_alpha()
         self._fore.fill((0, 0, 0, 0))
@@ -198,9 +199,14 @@ class MessageWindow(base.CWPySprite):
         sbold = MessageWindow.is_sbold()
         if chridx < len(self.charimgs):
             pos, txtimg, txtimg2, txtimg3 = self.charimgs[chridx]
+            size = None
 
             if txtimg2:
-                self._back.blit(txtimg2, pos)
+                if self.backlog:
+                    wincolour = cw.cwpy.setting.blwincolour
+                else:
+                    wincolour = cw.cwpy.setting.mwincolour
+                cw.imageretouch.blit_2bitbmp_to_message(self.image, txtimg2, pos, wincolour)
                 size = txtimg2.get_size()
 
             # 通常のテキスト描画
@@ -217,11 +223,13 @@ class MessageWindow(base.CWPySprite):
                     self._fore.blit(txtimg, (pos[0]+1, pos[1]))
 
                 size = txtimg.get_size()
-            area1 = pygame.Rect(pos[0]-1, pos[1]-1, size[0]+3, size[1]+2)
-            area2 = pygame.Rect(area1)
-            area1.top -= cw.s(self.trim_top_noscale)
-            self.image.blit(self._back, area1, area2)
-            self.image.blit(self._fore, area1, area2)
+
+            if size:
+                area1 = pygame.Rect(pos[0]-1, pos[1]-1, size[0]+3, size[1]+2)
+                area2 = pygame.Rect(area1)
+                area1.top -= cw.s(self.trim_top_noscale)
+                self.image.blit(self._back, area1, area2)
+                self.image.blit(self._fore, area1, area2)
             self.frame += 1
         else:
             self.is_drawing = False

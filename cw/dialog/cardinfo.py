@@ -148,7 +148,7 @@ class CardInfo(wx.Dialog):
         cheight = bmp.GetHeight()
         x = (cw.wins(113)-cwidth) / 2
         y = (self.toppanel.GetClientSize()[1] - cheight) / 2
-        dc.DrawBitmap(bmp, x, y, False)
+        cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, x, y, True)
 
         # 説明文を囲うボックス
         rectsize = (self.textwidth + cw.wins(30), self.textheight + cw.wins(25))

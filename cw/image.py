@@ -218,7 +218,7 @@ class CardImage(Image):
 
             if pisc or os.path.isfile(path):
                 subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
-                image.blit(subimg, cw.s((3, 13)))
+                cw.imageretouch.blit_2bitbmp_to_card(image, subimg, cw.s((3, 13)))
 
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         colour = (0, 0, 0)
@@ -399,7 +399,7 @@ class CardImage(Image):
             if pisc or os.path.isfile(path):
                 subimg = cw.util.load_wxbmp(path, True)
                 subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
-                dc.DrawBitmap(subimg, cw.wins(3), cw.wins(13), True)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg, cw.wins(3), cw.wins(13), True)
 
         pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
         if wx.VERSION[0] <= 3:
@@ -591,7 +591,7 @@ class LargeCardImage(CardImage):
 
             if pisc or os.path.isfile(path):
                 subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
-                image.blit(subimg, cw.s((10, 18)))
+                cw.imageretouch.blit_2bitbmp_to_card(image, subimg, cw.s((10, 18)))
 
         font = cw.cwpy.rsrc.fonts["pcard_name"]
         if self.name:
@@ -649,7 +649,7 @@ class LargeCardImage(CardImage):
                 subimg = cw.util.load_wxbmp(path, True)
                 subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
 
-        dc.DrawBitmap(subimg, cw.wins(10), cw.wins(18), True)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg, cw.wins(10), cw.wins(18), True)
         pixelsize = cw.cwpy.setting.fonttypes["ccardname"][2]
         if wx.VERSION[0] <= 3:
             pixelsize += 1
@@ -757,7 +757,7 @@ class CharacterCardImage(CardImage):
             dh = cardimg.get_height()
             x = insets_w + (bw - dw) / 2
             y = insets_n + (bh - dh) / 2
-            self.image.blit(cardimg, (x, y))
+            cw.imageretouch.blit_2bitbmp_to_card(self.image, cardimg, (x, y))
 
         # 名前
         if self.nameimg:
@@ -1201,6 +1201,32 @@ def patch_rle4bitmap(data):
         f.close()
 
     return data
+
+
+def get_bmpdepth(data):
+    """
+    Bitmapデータのビット深度値を返す。
+    正常なBitmapデータでない場合は0を返す。
+    """
+    if len(data) < 14 + 40:
+        return 0
+    s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
+    if s[0] <> ord('B'):
+        return 0
+    if s[1] <> ord('M'):
+        return 0
+    biBitCount = s[10]
+    return biBitCount
+
+
+def get_1bitpalette(data):
+    s = struct.unpack("<BBIhhII", data[0:14+4])
+    biSize = s[6]
+    s = struct.unpack("<BBBBBBBB", data[14+biSize:14+biSize+8])
+    color1 = pygame.Color(s[0], s[1], s[2])
+    color2 =  pygame.Color(s[4], s[5], s[6])
+    return (color1, color2)
+
 
 def main():
     pass

@@ -520,6 +520,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
     #assert threading.currentThread() == cw.cwpy
     if cw.cwpy.rsrc:
         path = cw.cwpy.rsrc.get_filepath(path)
+    bmpdepth = 0
     try:
         if f:
             try:
@@ -535,6 +536,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             ispng = ext == ".png"
             if ext == ".bmp":
                 data = cw.image.patch_rle4bitmap(data)
+                bmpdepth = cw.image.get_bmpdepth(data)
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
                 f2.close()
@@ -549,6 +551,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 with open(path, "rb") as f2:
                     data = f2.read()
                     f2.close()
+                bmpdepth = cw.image.get_bmpdepth(data)
                 data = cw.image.patch_rle4bitmap(data)
                 with io.BytesIO(data) as f2:
                     image = pygame.image.load(f2)
@@ -575,6 +578,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                     with open(path, "rb") as f2:
                         data = f2.read()
                         f2.close()
+                bmpdepth = cw.image.get_bmpdepth(data)
                 data, _ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
                     r = load_image(path, mask, maskpos, f2, False, isback=isback)
@@ -619,6 +623,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
             image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
 
+    if bmpdepth == 1 and mask and cw.cwpy.sdata:
+        cw.cwpy.sdata.bmpdepth_cache[image] = cw.image.get_1bitpalette(data)
     return image
 
 def put_number(image, num):
@@ -2480,6 +2486,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
 
     if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
+    bmpdepth = 0
     if mask:
         if not image:
             try:
@@ -2494,6 +2501,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                         data = f2.read()
                         f2.close()
 
+                bmpdepth = cw.image.get_bmpdepth(data)
                 data, ok = cw.image.fix_cwnext16bitbitmap(data)
                 if name and ok and not cw.binary.image.path_is_code(name):
                     # BUG: io.BytesIO()を用いてのwx.ImageFromStream()は、
@@ -2547,6 +2555,8 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             print u"画像が読み込めません(load_wxbmp)", name
             return wx.EmptyBitmap(0, 0)
 
+    if bmpdepth == 1 and mask and cw.cwpy.sdata:
+        cw.cwpy.sdata.bmpdepth_cache[wxbmp] = cw.image.get_1bitpalette(data)
     return wxbmp
 
 def copy_wxbmp(bmp):
@@ -2819,7 +2829,7 @@ class CWPyStaticBitmap(wx.Panel):
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
         for bmp in self.bmps:
-            dc.DrawBitmap(bmp, 0, 0, True)
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, 0, 0, True)
 
     def SetBitmap(self, bmps):
         self.bmps = bmps

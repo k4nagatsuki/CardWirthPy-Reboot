@@ -1522,7 +1522,7 @@ class ScenarioSelect(select.Select):
                 cw.util.draw_witharound(dc, s, cw.wins(135), cw.wins(65)+yp, maxwidth=maxwidth)
                 # フォルダ画像
                 bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
-                dc.DrawBitmap(bmp, cw.wins(65), cw.wins(30)+yp, True)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(65), cw.wins(30)+yp, True)
                 if isinstance(dpath, FindResult):
                     # 検索アイコン
                     bmp = cw.cwpy.rsrc.dialogs["FIND_SCENARIO3"]
@@ -1613,7 +1613,7 @@ class ScenarioSelect(select.Select):
             # 見出し画像
             for bmp in header.get_wxbmps():
                 # 左上位置固定(CardWirthとの互換性維持)
-                dc.DrawBitmap(bmp, cw.wins(163), cw.wins(70)+yp, True)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(163), cw.wins(70)+yp, True)
 
             # シナリオ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(21)))
