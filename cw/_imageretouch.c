@@ -558,7 +558,7 @@ blend_and(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     Py_ssize_t dlen, slen;
-    int w, h, x, y, dr, dg, db, da, sr, sg, sb, sa, mask_r, mask_g, mask_b;
+    int w, h, x, y, dr, dg, db, sr, sg, sb, mask_r, mask_g, mask_b;
     unsigned char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
@@ -581,11 +581,9 @@ blend_and(PyObject *self, PyObject *args)
             dr = (int) dest[0];
             dg = (int) dest[1];
             db = (int) dest[2];
-            da = (int) dest[3];
             sr = (int) source[0];
             sg = (int) source[1];
             sb = (int) source[2];
-            sa = (int) source[3];
             if (sr != mask_r || sg != mask_g || sb != mask_b)
             {
                 dr = dr & sr;
@@ -617,7 +615,7 @@ blend_and_msg(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     Py_ssize_t dlen, slen;
-    int w, h, x, y, dr, dg, db, da, sr, sg, sb, sa, mask_r, mask_g, mask_b, base_r, base_g, base_b, base_a;
+    int w, h, x, y, dr, dg, db, sr, sg, sb, mask_r, mask_g, mask_b, base_r, base_g, base_b, base_a;
     unsigned char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#(iiii)", &dest, &dlen, &w, &h, &source, &slen, &base_r, &base_g, &base_b, &base_a))
@@ -640,11 +638,9 @@ blend_and_msg(PyObject *self, PyObject *args)
             dr = (int) dest[0];
             dg = (int) dest[1];
             db = (int) dest[2];
-            da = (int) dest[3];
             sr = (int) source[0];
             sg = (int) source[1];
             sb = (int) source[2];
-            sa = (int) source[3];
             if (sr != mask_r || sg != mask_g || sb != mask_b)
             {
                 dr = base_a & sr;
