@@ -32,10 +32,13 @@ class AdventurerDataComp(wx.Dialog):
             self.ccard.set_age(self.age)
         # 画像
         bmps = []
+        bmps_noscale = []
         for info in ccard.imgpaths:
-            bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
+            bmp = cw.util.load_wxbmp(info.path, True)
+            bmps_noscale.append(bmp)
+            bmp = cw.wins((bmp, cw.SIZE_CARDIMAGE))
             bmps.append(bmp)
-        self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmps, size=cw.wins(cw.SIZE_CARDIMAGE))
+        self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmps, bmps_noscale, size=cw.wins(cw.SIZE_CARDIMAGE))
         # 各種テキスト
         s = cw.cwpy.msgs["insufficiency_message"]
         s = cw.util.txtwrap(s, 0, width=42, wrapschars=cw.util.WRAPS_CHARS)
@@ -1029,8 +1032,9 @@ class NamePage(AdventurerCreaterPage):
         # image
         dc.SetClippingRect(wx.Rect(cw.wins(275), cw.wins(130), cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
-            bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(275), cw.wins(130), True)
+            bmp = cw.util.load_wxbmp(info.path, True)
+            bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, cw.wins(275), cw.wins(130), True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea(cw.wins((275, 130)), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
@@ -1316,8 +1320,9 @@ class RelationPage(AdventurerCreaterPage):
         dc.SetClippingRect(wx.Rect(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for path in paths:
             if path.path:
-                bmp = cw.wins((cw.util.load_wxbmp(path.path, True), cw.SIZE_CARDIMAGE))
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, pos[0], pos[1], True)
+                bmp = cw.util.load_wxbmp(path.path, True)
+                bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, pos[0], pos[1], True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "FatherFace", None, self.on_mousewheel)
 
@@ -1333,8 +1338,9 @@ class RelationPage(AdventurerCreaterPage):
         dc.SetClippingRect(wx.Rect(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for path in paths:
             if path.path:
-                bmp = cw.wins((cw.util.load_wxbmp(path.path, True), cw.SIZE_CARDIMAGE))
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, pos[0], pos[1], True)
+                bmp = cw.util.load_wxbmp(path.path, True)
+                bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, pos[0], pos[1], True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "MotherFace", None, self.on_mousewheel)
 
@@ -2238,8 +2244,9 @@ class DesignPanel(AdventurerCreaterPage):
         x, y = (cwidth - cw.wins(74)) / 2, cw.wins(y2)
         dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
-            bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, x, y, True)
+            bmp = cw.util.load_wxbmp(info.path, True)
+            bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x, y, True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea((x, y), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 

@@ -483,8 +483,9 @@ class TopPanel(wx.Panel):
             elif not cw.binary.image.path_is_code(path):
                 path = cw.util.join_yadodir(path)
 
-            bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, x, cw.wins(5), True)
+            bmp = cw.util.load_wxbmp(path, True)
+            bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x, cw.wins(5), True, bitsizekey=bmp)
         # レベル
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam" , pixelsize=cw.wins(16)))
         coupons = self.ccard.get_specialcoupons()

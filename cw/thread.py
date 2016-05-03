@@ -1314,8 +1314,6 @@ class CWPy(_Singleton, threading.Thread):
     def kill_showingdlg(self):
         self._showingdlg -= 1
         if self._showingdlg <= 0:
-            if self.sdata:
-                self.sdata.bmpdepth_cache.clear()
             self.frame.app.SetCallFilterEvent(False)
             if not self.is_runningevent():
                 self.exec_func(self.clear_selection)

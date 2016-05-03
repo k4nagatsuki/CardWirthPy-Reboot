@@ -1507,7 +1507,11 @@ class ScenarioSelect(select.Select):
             if scan_folder_bmp and os.path.isfile(scan_folder_bmp):
                 # Folder.bmp表示
                 folder_bmp = cw.util.load_wxbmp(scan_folder_bmp, True)
-                cw.util.draw_center(dc, cw.wins(folder_bmp), (cw.wins(200), cw.wins(60)+yp), True)
+                bmp2 = cw.wins(folder_bmp)
+                size = bmp2.GetSize()
+                pos = (cw.wins(200), cw.wins(60)+yp)
+                pos = cw.util.get_centerposition(size, pos)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, pos[0], pos[1], True, bitsizekey=folder_bmp)
 
             else:
                 # ディレクトリ名
@@ -1522,7 +1526,7 @@ class ScenarioSelect(select.Select):
                 cw.util.draw_witharound(dc, s, cw.wins(135), cw.wins(65)+yp, maxwidth=maxwidth)
                 # フォルダ画像
                 bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(65), cw.wins(30)+yp, True)
+                dc.DrawBitmap(bmp, cw.wins(65), cw.wins(30)+yp, True)
                 if isinstance(dpath, FindResult):
                     # 検索アイコン
                     bmp = cw.cwpy.rsrc.dialogs["FIND_SCENARIO3"]
@@ -1611,9 +1615,10 @@ class ScenarioSelect(select.Select):
             header = self.list[self.index]
 
             # 見出し画像
-            for bmp in header.get_wxbmps():
+            wxbmps = header.get_wxbmps()
+            for bmp, bmp_noscale in zip(wxbmps[0], wxbmps[1]):
                 # 左上位置固定(CardWirthとの互換性維持)
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(163), cw.wins(70)+yp, True)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(163), cw.wins(70)+yp, True, bitsizekey=bmp_noscale)
 
             # シナリオ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(21)))

@@ -1191,6 +1191,7 @@ class ScenarioHeader(object):
                 self.images.append(imgrec["image"])
 
         self._wxbmps = None
+        self._wxbmps_noscale = None
 
     @property
     def mtime_reversed(self):
@@ -1203,12 +1204,15 @@ class ScenarioHeader(object):
     def get_wxbmps(self, mask=True):
         if self._wxbmps is None:
             self._wxbmps = []
+            self._wxbmps_noscale = []
             for image in self.images:
                 with io.BytesIO(str(image)) as f:
                     # TODO scaleinfo
-                    self._wxbmps.append(cw.wins((cw.util.load_wxbmp(f=f, mask=mask), cw.SIZE_CARDIMAGE)))
+                    bmp = cw.util.load_wxbmp(f=f, mask=mask)
+                    self._wxbmps_noscale.append(bmp)
+                    self._wxbmps.append(cw.wins((bmp, cw.SIZE_CARDIMAGE)))
                     f.close()
-        return self._wxbmps
+        return self._wxbmps, self._wxbmps_noscale
 
 class PartyHeader(object):
     def __init__(self, data=None, dbrec=None):

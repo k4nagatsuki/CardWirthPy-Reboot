@@ -1572,11 +1572,12 @@ class PartySelect(MultiViewSelect):
             sceheader = header.get_sceheader()
 
             if sceheader:
-                bmp = sceheader.get_wxbmps()
+                bmp, bmp_noscale = sceheader.get_wxbmps()
             else:
                 path = "Resource/Image/Card/COMMAND0"
                 path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-                bmp = [cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))]
+                bmp_noscale = [cw.util.load_wxbmp(path, True)]
+                bmp = [cw.wins((bmp_noscale[0], cw.SIZE_CARDIMAGE))]
 
             paths = header.get_memberpaths()
             bmp2 = []
@@ -1591,15 +1592,25 @@ class PartySelect(MultiViewSelect):
                     for info in paths:
                         fpath = info.path
                         if os.path.isfile(fpath):
-                            bmp3 = cw.wins((cw.util.load_wxbmp(fpath, True), cw.SIZE_CARDIMAGE))
-                            w = bmp3.GetWidth() // 2
-                            h = bmp3.GetHeight() // 2
+                            bmp3 = cw.util.load_wxbmp(fpath, True)
+                            bmp4 = cw.wins((bmp3, cw.SIZE_CARDIMAGE))
+                            w = bmp4.GetWidth() // 2
+                            h = bmp4.GetHeight() // 2
                             if w and h:
-                                img = bmp3.ConvertToImage()
+                                bmpdepthis1 = hasattr(bmp4, "bmpdepthis1")
+                                maskcolour = bmp4.maskcolour if hasattr(bmp4, "maskcolour") else None
+                                if bmpdepthis1:
+                                    img = cw.util.convert_to_image(bmp4)
+                                else:
+                                    img = bmp4.ConvertToImage()
                                 img = img.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
                                 bmp4 = img.ConvertToBitmap()
+                                if bmpdepthis1:
+                                    bmp4.bmpdepthis1 = bmpdepthis1
+                                if maskcolour:
+                                    bmp4.maskcolour = maskcolour
                                 bmp2.append((bmp3, bmp4))
-            return bmp, bmp2, sceheader
+            return bmp, bmp_noscale, bmp2, sceheader
 
         if self.views == 1:
             # 単独表示
@@ -1639,9 +1650,9 @@ class PartySelect(MultiViewSelect):
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
             # シナリオ・宿画像
-            bmp, bmp2, sceheader = get_image(header)
-            for b in bmp:
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, (bmpw-cw.wins(74))/2, cw.wins(125), True)
+            bmp, bmp_noscale, bmp2, sceheader = get_image(header)
+            for b, bns in zip(bmp, bmp_noscale):
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, (bmpw-cw.wins(74))/2, cw.wins(125), True, bitsizekey=bns)
             # パーティの先頭メンバを小さく表示する
             px = bmpw/2
             py = cw.wins(125+47)
@@ -1683,12 +1694,12 @@ class PartySelect(MultiViewSelect):
             dc.SetTextForeground(wx.BLACK)
             for i, header in enumerate(seq):
                 # 宿・シナリオイメージ
-                bmp, bmp2, sceheader = get_image(header)
+                bmp, bmp_noscale, bmp2, sceheader = get_image(header)
                 ix = x + (rw - cw.wins(72)) / 2
                 iy = y + 5
                 dc.SetClippingRect((ix, iy, cw.wins(74), cw.wins(94)))
-                for b in bmp:
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, ix, iy, True)
+                for b, bns in zip(bmp, bmp_noscale):
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, ix, iy, True, bitsizekey=bns)
                 dc.DestroyClippingRegion()
                 # パーティの先頭メンバを小さく表示する
                 px = ix + cw.wins(37)
@@ -2491,8 +2502,9 @@ class PlayerSelect(MultiViewSelect):
                 dc.SetClippingRect(cw.wins((88, 90, 74, 94)))
                 for info in header.imgpaths:
                     path = cw.util.join_yadodir(info.path)
-                    bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(88), cw.wins(90), True)
+                    bmp = cw.util.load_wxbmp(path, True)
+                    bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, cw.wins(88), cw.wins(90), True, bitsizekey=bmp)
                 dc.DestroyClippingRegion()
                 # Age
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
@@ -2551,8 +2563,9 @@ class PlayerSelect(MultiViewSelect):
                     dc.SetClippingRect((ix, iy, cw.wins(74), cw.wins(94)))
                     for info in header.imgpaths:
                         path = cw.util.join_yadodir(info.path)
-                        bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-                        cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, ix, iy, True)
+                        bmp = cw.util.load_wxbmp(path, True)
+                        bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+                        cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, ix, iy, True, bitsizekey=bmp)
                     dc.DestroyClippingRegion()
 
                     # Name

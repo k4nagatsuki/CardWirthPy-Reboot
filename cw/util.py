@@ -623,9 +623,16 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
             image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
 
-    if bmpdepth == 1 and mask and cw.cwpy.sdata:
-        cw.cwpy.sdata.bmpdepth_cache[image] = cw.image.get_1bitpalette(data)
+    if bmpdepth == 1 and mask and not isback:
+        image = Depth1Surface(image)
     return image
+
+class Depth1Surface(pygame.Surface):
+    def __init__(self, surface):
+        pygame.Surface.__init__(self, surface.get_size())
+        self.blit(surface, (0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+        self.set_colorkey(surface.get_colorkey())
+        self.bmpdepthis1 = True
 
 def put_number(image, num):
     """アイコンサイズの画像imageの上に
@@ -2487,6 +2494,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
     bmpdepth = 0
+    maskcolour = None
     if mask:
         if not image:
             try:
@@ -2522,9 +2530,10 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             g = image.GetGreen(maskpos[0], maskpos[1])
             b = image.GetBlue(maskpos[0], maskpos[1])
             image.SetMaskColour(r, g, b)
+            return (r, g, b)
 
         if not image.HasAlpha() and not image.HasMask():
-            set_mask(image, maskpos)
+            maskcolour = set_mask(image, maskpos)
 
         wxbmp = image.ConvertToBitmap()
 
@@ -2543,7 +2552,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                         maskok = True
                         break
                 if not maskok:
-                    set_mask(image, maskpos)
+                    maskcolour = set_mask(image, maskpos)
                     wxbmp = image.ConvertToBitmap()
 
     elif image:
@@ -2555,8 +2564,10 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             print u"画像が読み込めません(load_wxbmp)", name
             return wx.EmptyBitmap(0, 0)
 
-    if bmpdepth == 1 and mask and cw.cwpy.sdata:
-        cw.cwpy.sdata.bmpdepth_cache[wxbmp] = cw.image.get_1bitpalette(data)
+    if bmpdepth == 1 and mask:
+        wxbmp.bmpdepthis1 = True
+    if maskcolour:
+        wxbmp.maskcolour = maskcolour
     return wxbmp
 
 def copy_wxbmp(bmp):
@@ -2574,7 +2585,11 @@ def convert_to_image(bmp):
     h = bmp.GetHeight()
     buf = array.array('B', [0] * (w*h * 3))
     bmp.CopyToBuffer(buf)
-    return wx.ImageFromBuffer(w, h, buf)
+    img = wx.ImageFromBuffer(w, h, buf)
+    if hasattr(bmp, "maskcolour"):
+        r, g, b = bmp.maskcolour
+        img.SetMaskColour(r, g, b)
+    return img
 
 def fill_bitmap(dc, bmp, csize, ctrlpos=(0, 0)):
     """引数のbmpを敷き詰める。"""
@@ -2810,7 +2825,7 @@ class CWPyStaticBitmap(wx.Panel):
     正しく表示できない場合があるので代替する。
     複数重ねての表示にも対応。
     """
-    def __init__(self, parent, cid, bmps, size=None):
+    def __init__(self, parent, cid, bmps, bmps_bmpdepthkey, size=None):
         if not size and bmps:
             w = 0
             h = 0
@@ -2821,6 +2836,7 @@ class CWPyStaticBitmap(wx.Panel):
             size = (w, h)
         wx.Panel.__init__(self, parent, cid, size=size)
         self.bmps = bmps
+        self.bmps_bmpdepthkey = bmps_bmpdepthkey
         self._bind()
 
     def _bind(self):
@@ -2828,8 +2844,8 @@ class CWPyStaticBitmap(wx.Panel):
 
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
-        for bmp in self.bmps:
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, 0, 0, True)
+        for bmp, bmpdepthkey in zip(self.bmps, self.bmps_bmpdepthkey):
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, 0, 0, True, bitsizekey=bmpdepthkey)
 
     def SetBitmap(self, bmps):
         self.bmps = bmps

@@ -263,37 +263,55 @@ def _s_impl(num, up_scr):
                 # TODO scaleinfo
                 size = _s_impl(num[1], up_scr)
                 if size[0] % num[1] == 0:
-                    return pygame.transform.scale(bmp, size)
+                    result = pygame.transform.scale(bmp, size)
                 else:
                     if not (bmp.get_flags() & pygame.locals.SRCALPHA) and bmp.get_colorkey():
                         bmp = bmp.convert_alpha()
-                    return image.smoothscale(bmp, size)
+                    result = image.smoothscale(bmp, size)
+                if isinstance(num[0], util.Depth1Surface):
+                    result = util.Depth1Surface(result)
+                return result
             else:
                 # スケール情報の無いpygame.Surface(単純拡大)
                 return _s_impl(bmp, up_scr)
         elif isinstance(num[0], wx.Image):
             img = num[0]
             if img.GetWidth() <= 0 or img.GetHeight() <= 0:
-                return bmp
+                return img
             if scaleinfo:
                 # スケール情報のあるwx.Image
                 # TODO scaleinfo
+                bmpdepthis1 = hasattr(img, "bmpdepthis1")
                 size = _s_impl(num[1], up_scr)
-                if size[0] % num[1] == 0:
-                    return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
+                if size[0] % num[1] == 0 or bmpdepthis1:
+                    result = img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
                 else:
                     if not img.HasAlpha():
                         img.InitAlpha()
-                    return img.Rescale(size[0], size[1], RESCALE_QUALITY)
+                    result = img.Rescale(size[0], size[1], RESCALE_QUALITY)
+                if bmpdepthis1:
+                    result.bmpdepthis1 = bmpdepthis1
+                return result
             else:
                 # スケール情報の無いwx.Image(単純拡大)
                 return _s_impl(img, up_scr)
         elif isinstance(num[0], wx.Bitmap):
             bmp = num[0]
+            bmpdepthis1 = hasattr(bmp, "bmpdepthis1")
+            maskcolour = bmp.maskcolour if hasattr(bmp, "maskcolour") else None
             if bmp.GetWidth() <= 0 or bmp.GetHeight() <= 0:
                 return bmp
             # wx.Bitmap
-            return _s_impl((bmp.ConvertToImage(), num[1]), up_scr).ConvertToBitmap()
+            if bmpdepthis1:
+                img = util.convert_to_image(bmp)
+            else:
+                img = bmp.ConvertToImage()
+            result = _s_impl((img, num[1]), up_scr).ConvertToBitmap()
+            if bmpdepthis1:
+                result.bmpdepthis1 = bmpdepthis1
+            if maskcolour:
+                result.maskcolour = maskcolour
+            return result
 
         elif len(num) == 4:
             # 矩形
@@ -310,39 +328,63 @@ def _s_impl(num, up_scr):
 
     elif isinstance(num, pygame.Surface):
         # スケール情報の無いpygame.Surface(単純拡大)
+        bmp0 = num
         w = int(num.get_width() * up_scr)
         h = int(num.get_height() * up_scr)
         if w <= 0 or h <= 0:
             return num
         size = (w, h)
         if up_scr % 1 == 0:
-            return pygame.transform.scale(num, size)
+            result = pygame.transform.scale(num, size)
         else:
             if not (num.get_flags() & pygame.locals.SRCALPHA) and num.get_colorkey():
                 num = num.convert_alpha()
-            return image.smoothscale(num, size)
+            result = image.smoothscale(num, size)
+        if isinstance(bmp0, util.Depth1Surface):
+            result = util.Depth1Surface(result)
+        return result
 
     elif isinstance(num, wx.Image):
         # スケール情報の無いwx.Image(単純拡大)
+        bmpdepthis1 = hasattr(num, "bmpdepthis1")
         w = int(num.GetWidth() * up_scr)
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
             return num
 
-        if up_scr % 1 == 0:
-            return num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
+        if up_scr % 1 == 0 or bmpdepthis1:
+            result = num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
         else:
             if not num.HasAlpha():
                 num.InitAlpha()
-            return num.Rescale(w, h, RESCALE_QUALITY)
+            result = num.Rescale(w, h, RESCALE_QUALITY)
+
+        if bmpdepthis1:
+            result.bmpdepthis1 = bmpdepthis1
+
+        return result
 
     elif isinstance(num, wx.Bitmap):
         # スケール情報の無いwx.Bitmap(単純拡大)
+        bmpdepthis1 = hasattr(num, "bmpdepthis1")
+        maskcolour = num.maskcolour if hasattr(num, "maskcolour") else None
         w = int(num.GetWidth() * up_scr)
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
             return num
-        return _s_impl(num.ConvertToImage(), up_scr).ConvertToBitmap()
+        bmp = num
+        if bmpdepthis1:
+            img = util.convert_to_image(bmp)
+        else:
+            img = bmp.ConvertToImage()
+        img = _s_impl(img, up_scr)
+        result = img.ConvertToBitmap()
+
+        if bmpdepthis1:
+            result.bmpdepthis1 = bmpdepthis1
+        if maskcolour:
+            result.maskcolour = maskcolour
+        return result
 
     return num
 

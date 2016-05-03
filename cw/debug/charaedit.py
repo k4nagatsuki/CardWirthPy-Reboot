@@ -709,7 +709,7 @@ class CharaRequirementPanel(wx.Panel):
         path = u"Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         self.defaultface = cw.util.load_wxbmp(path, mask=True)
-        self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], size=cw.SIZE_CARDIMAGE)
+        self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.SIZE_CARDIMAGE)
         self.imgcombo = wx.ComboBox(self, -1, size=(125, -1), style=wx.CB_READONLY)
         self.imgpathlist = []
 

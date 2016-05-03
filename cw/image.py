@@ -398,8 +398,8 @@ class CardImage(Image):
 
             if pisc or os.path.isfile(path):
                 subimg = cw.util.load_wxbmp(path, True)
-                subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg, cw.wins(3), cw.wins(13), True)
+                subimg2 = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg2, cw.wins(3), cw.wins(13), True, bitsizekey=subimg)
 
         pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
         if wx.VERSION[0] <= 3:
@@ -647,9 +647,8 @@ class LargeCardImage(CardImage):
 
             if pisc or os.path.isfile(path):
                 subimg = cw.util.load_wxbmp(path, True)
-                subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
-
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg, cw.wins(10), cw.wins(18), True)
+                subimg2 = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg2, cw.wins(10), cw.wins(18), True, bitsizekey=subimg)
         pixelsize = cw.cwpy.setting.fonttypes["ccardname"][2]
         if wx.VERSION[0] <= 3:
             pixelsize += 1

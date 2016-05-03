@@ -855,61 +855,57 @@ def blit_2bitbmp_to_card(dest, source, pos):
     さらなる問題を抱えているので、正確に再現はせず、
     より直感に合った描画を行う。
     """
-    if cw.cwpy.sdata and source.get_colorkey():
-        palette = cw.cwpy.sdata.bmpdepth_cache.get(source, None)
-        if palette:
-            w, h = source.get_size()
-            rect = pygame.Rect(pos, (w, h))
-            rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)
-            if rect.w <= 0 or rect.h <= 0:
-                return
-
-            sub = dest.subsurface(rect)
-            rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
-            source2 = source.subsurface(rect2)
-
-            try:
-                func = _imageretouch.blend_and
-
-                sbuf = pygame.image.tostring(source2, "RGBA")
-
-                outimage = _retouch(func, sub, sbuf)
-            except:
-                dest.blit(source, pos)
-                return
-
-            dest.blit(outimage, rect.topleft, None, 0)
+    if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface):
+        w, h = source.get_size()
+        rect = pygame.Rect(pos, (w, h))
+        rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)
+        if rect.w <= 0 or rect.h <= 0:
             return
+
+        sub = dest.subsurface(rect)
+        rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
+        source2 = source.subsurface(rect2)
+
+        try:
+            func = _imageretouch.blend_and
+
+            sbuf = pygame.image.tostring(source2, "RGBA")
+
+            outimage = _retouch(func, sub, sbuf)
+        except:
+            dest.blit(source, pos)
+            return
+
+        dest.blit(outimage, rect.topleft, None, 0)
+        return
 
     dest.blit(source, pos)
 
 
 def blit_2bitbmp_to_message(dest, source, pos, wincolour):
-    if cw.cwpy.sdata and source.get_colorkey():
-        palette = cw.cwpy.sdata.bmpdepth_cache.get(source, None)
-        if palette:
-            w, h = source.get_size()
-            rect = pygame.Rect(pos, (w, h))
-            rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)
-            if rect.w <= 0 or rect.h <= 0:
-                return
-
-            sub = dest.subsurface(rect)
-            rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
-            source2 = source.subsurface(rect2)
-
-            try:
-                func = _imageretouch.blend_and_msg
-
-                sbuf = pygame.image.tostring(source2, "RGBA")
-
-                outimage = _retouch(func, sub, sbuf, wincolour)
-            except:
-                dest.blit(source, pos)
-                return
-
-            dest.blit(outimage, rect.topleft)
+    if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface):
+        w, h = source.get_size()
+        rect = pygame.Rect(pos, (w, h))
+        rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)
+        if rect.w <= 0 or rect.h <= 0:
             return
+
+        sub = dest.subsurface(rect)
+        rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
+        source2 = source.subsurface(rect2)
+
+        try:
+            func = _imageretouch.blend_and_msg
+
+            sbuf = pygame.image.tostring(source2, "RGBA")
+
+            outimage = _retouch(func, sub, sbuf, wincolour)
+        except:
+            dest.blit(source, pos)
+            return
+
+        dest.blit(outimage, rect.topleft)
+        return
 
     dest.blit(source, pos)
 
@@ -921,15 +917,13 @@ def wxblit_2bitbmp_to_card(dc, wxbmp, x, y, useMask, bitsizekey=None):
     if bitsizekey is None:
         bitsizekey = wxbmp
 
-    if cw.cwpy.sdata and useMask:
-        palette = cw.cwpy.sdata.bmpdepth_cache.get(bitsizekey, None)
-        if palette:
-            sourcedc = wx.MemoryDC()
-            sourcedc.SelectObject(wxbmp)
-            w, h = wxbmp.GetWidth(), wxbmp.GetHeight()
-            dc.Blit(x, y, w, h, sourcedc, 0, 0, wx.AND)
-            sourcedc.SelectObject(wx.NullBitmap)
-            return
+    if useMask and hasattr(bitsizekey, "bmpdepthis1"):
+        w, h = wxbmp.GetWidth(), wxbmp.GetHeight()
+        sourcedc = wx.MemoryDC()
+        sourcedc.SelectObject(wxbmp)
+        dc.Blit(x, y, w, h, sourcedc, 0, 0, wx.AND)
+        sourcedc.SelectObject(wx.NullBitmap)
+        return
 
     dc.DrawBitmap(wxbmp, x, y, useMask)
 

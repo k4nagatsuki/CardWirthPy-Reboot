@@ -63,7 +63,6 @@ class SystemData(object):
         self.breakpoints = set()
         self.in_f9 = False
         self.background_image_mtime = {}
-        self.bmpdepth_cache = {}
 
         # メッセージのバックログ
         self.backlog = []
@@ -453,7 +452,6 @@ class ScenarioData(SystemData):
         self.is_playing = True
         self.in_f9 = False
         self.background_image_mtime = {}
-        self.bmpdepth_cache = {}
         self.fpath = cw.util.get_linktarget(header.get_fpath())
         self.mtime = os.path.getmtime(self.fpath)
         self.name = header.name
