@@ -231,6 +231,7 @@ class BattleEngine(object):
         if redraw:
             self._ready = True
             cw.cwpy.statusbar.change()
+            cw.cwpy.clear_selection()
             cw.cwpy.draw()
 
     def update_debug(self):
