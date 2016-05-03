@@ -282,6 +282,7 @@ def _s_impl(num, up_scr):
                 # スケール情報のあるwx.Image
                 # TODO scaleinfo
                 bmpdepthis1 = hasattr(img, "bmpdepthis1")
+                maskcolour = img.maskcolour if hasattr(img, "maskcolour") else None
                 size = _s_impl(num[1], up_scr)
                 if size[0] % num[1] == 0 or bmpdepthis1:
                     result = img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
@@ -291,6 +292,8 @@ def _s_impl(num, up_scr):
                     result = img.Rescale(size[0], size[1], RESCALE_QUALITY)
                 if bmpdepthis1:
                     result.bmpdepthis1 = bmpdepthis1
+                if maskcolour:
+                    result.maskcolour = maskcolour
                 return result
             else:
                 # スケール情報の無いwx.Image(単純拡大)
@@ -347,6 +350,7 @@ def _s_impl(num, up_scr):
     elif isinstance(num, wx.Image):
         # スケール情報の無いwx.Image(単純拡大)
         bmpdepthis1 = hasattr(num, "bmpdepthis1")
+        maskcolour = num.maskcolour if hasattr(num, "maskcolour") else None
         w = int(num.GetWidth() * up_scr)
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
@@ -361,6 +365,8 @@ def _s_impl(num, up_scr):
 
         if bmpdepthis1:
             result.bmpdepthis1 = bmpdepthis1
+        if maskcolour:
+            result.maskcolour = maskcolour
 
         return result
 
