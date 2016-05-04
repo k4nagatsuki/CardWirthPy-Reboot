@@ -2787,7 +2787,7 @@ class CWPy(_Singleton, threading.Thread):
         self.battle = cw.battle.BattleEngine()
         self.lock_menucards = False
 
-    def clear_battlearea(self, areachange=True, eventkeynum=0, startnextbattle=False):
+    def clear_battlearea(self, areachange=True, eventkeynum=0, startnextbattle=False, is_battlestarting=False):
         """戦闘状態を解除して戦闘前のエリアに戻る。
         areachangeがFalseだったら、戦闘前のエリアには戻らない
         (戦闘イベントで、エリア移動コンテント等が発動した時用)。
@@ -2842,7 +2842,8 @@ class CWPy(_Singleton, threading.Thread):
                         pcard.update_image()
                         cw.animation.animate_sprite(pcard, "deal", battlespeed=True)
 
-            if (areachange or startnextbattle) and not eventkeynum == 3 and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
+            print is_battlestarting
+            if (areachange or (startnextbattle and not is_battlestarting)) and not eventkeynum == 3 and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
                 # 勝利・逃走成功時に時間経過
                 # 戦闘中のエリア移動・敗北イベント・1.20以下は時間経過しない
                 self.elapse_time()

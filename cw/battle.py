@@ -76,6 +76,11 @@ class BattleEngine(object):
     def is_ready(self):
         return self._ready
 
+    def is_battlestarting(self):
+        print self.is_running()
+        print self.is_ready()
+        return not (self.is_running() or self.is_ready())
+
     def start(self):
         try:
             self.run()
@@ -196,13 +201,14 @@ class BattleEngine(object):
         for member in cw.cwpy.get_pcards():
             member.clear_action()
 
+        is_battlestarting = self.is_battlestarting()
         self._running = False
         self._ready = True
 
         if f9:
             cw.cwpy.sdata.pre_battleareadata = None
         else:
-            cw.cwpy.clear_battlearea(areachange=areachange, startnextbattle=startnextbattle)
+            cw.cwpy.clear_battlearea(areachange=areachange, startnextbattle=startnextbattle, is_battlestarting=is_battlestarting)
 
     def ready(self, redraw=True):
         """戦闘行動の準備を行う。
@@ -311,6 +317,7 @@ class BattleEngine(object):
             member.clear_action()
         assert cw.cwpy.is_battlestatus()
 
+        is_battlestarting = self.is_battlestarting()
         cw.cwpy.hide_cards(True)
         cw.cwpy.cardgrp.remove(cw.cwpy.mcards)
         cw.cwpy.mcards = []
@@ -322,7 +329,7 @@ class BattleEngine(object):
             eventkeynum = 0
 
         # 勝利イベント実行時は元のエリアに戻る
-        cw.cwpy.clear_battlearea(True, eventkeynum=eventkeynum)
+        cw.cwpy.clear_battlearea(True, eventkeynum=eventkeynum, is_battlestarting=is_battlestarting)
 
     def defeat(self, runevent=True):
         """敗北処理。敗北イベント後、
@@ -332,6 +339,7 @@ class BattleEngine(object):
         for member in self.members:
             member.clear_action()
 
+        is_battlestarting = self.is_battlestarting()
         self._running = False
         if runevent and not cw.cwpy.is_forcegameover():
             event = cw.cwpy.sdata.events.check_keynum(3)
@@ -346,7 +354,7 @@ class BattleEngine(object):
             cw.cwpy._gameover = False
 
             # 戦闘前のエリアに戻り、敗北イベント開始
-            cw.cwpy.clear_battlearea(True, eventkeynum=3)
+            cw.cwpy.clear_battlearea(True, eventkeynum=3, is_battlestarting=is_battlestarting)
 
         else:
             cw.cwpy.set_gameover()
