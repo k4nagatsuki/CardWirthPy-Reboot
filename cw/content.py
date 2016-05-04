@@ -1965,7 +1965,7 @@ class ElapseTimeContent(EventContentBase):
 
     def action(self):
         """ターン数経過コンテント。"""
-        cw.cwpy.elapse_time()
+        cw.cwpy.elapse_time(playeronly=True)
         return 0
 
     def get_status(self):

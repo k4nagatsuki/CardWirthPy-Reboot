@@ -3419,14 +3419,19 @@ class CWPy(_Singleton, threading.Thread):
 # プレイ用メソッド
 #-------------------------------------------------------------------------------
 
-    def elapse_time(self):
+    def elapse_time(self, playeronly=False):
         """時間経過。"""
         ccards = self.get_pcards("unreversed")
-        ccards.extend(self.get_ecards("unreversed"))
-        ccards.extend(self.get_fcards())
+        if not playeronly:
+            ccards.extend(self.get_ecards("unreversed"))
+            ccards.extend(self.get_fcards())
 
         for ccard in ccards:
-            ccard.set_timeelapse()
+            try:
+                ccard.set_timeelapse()
+            except cw.event.EffectBreakError:
+                # 効果中断されても以降のキャラクターの処理は継続
+                pass
 
         if ccards:
             self.draw()
