@@ -1758,6 +1758,8 @@ class EventView(wx.ScrolledWindow):
 
         if not self.itemlist:
             return
+        clippingrect = wx.Rect(self.leftbarwidth+1, 0, csize[0]-self.leftbarwidth+1, csize[1])
+        dc.SetClippingRect(clippingrect)
 
         selpen = wx.Pen(wx.Colour(255, 128, 128))
         selbrush = wx.Brush(wx.Colour(255, 240, 240))
@@ -1781,10 +1783,12 @@ class EventView(wx.ScrolledWindow):
                 dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
 
             if item.cwxpath in cw.cwpy.sdata.breakpoints:
+                dc.DestroyClippingRegion()
                 dc.SetPen(bppen)
                 dc.SetBrush(bpbrush)
                 circlesize = 6
                 dc.DrawCircle(self.leftbarwidth-circlesize-5, item.pos[1]-ytop+self.lineheight/2, circlesize)
+                dc.SetClippingRect(clippingrect)
                 dc.SetPen(wx.TRANSPARENT_PEN)
                 dc.SetBrush(bpbackbrush)
                 dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
