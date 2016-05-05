@@ -2914,7 +2914,7 @@ class FontSettingPanel(wx.Panel):
         value = self.cb_fontsmoothingmessage.GetValue()
         if value <> local.fontsmoothing_message:
             local.fontsmoothing_message = value
-            flag_fontupdate = True
+            updatemessage = True
         value = self.cb_fontsmoothingcardname.GetValue()
         if value <> local.fontsmoothing_cardname:
             local.fontsmoothing_cardname = value

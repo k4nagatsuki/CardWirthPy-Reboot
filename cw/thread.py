@@ -611,9 +611,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def update_messagestyle(self):
         """メッセージの描画形式の変更を反映する。"""
-        for sprite in itertools.chain(self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE),
-                                      self.cardgrp.get_sprites_from_layer(cw.LAYER_SELECTIONBAR_1),
-                                      self.cardgrp.get_sprites_from_layer(cw.LAYER_SELECTIONBAR_2)):
+        cw.sprite.message.MessageWindow.clear_selections()
+        for sprite in self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
             sprite.update_scale()
         if self._log_handler:
             self._log_handler.update_sprites(clearcache=True)
