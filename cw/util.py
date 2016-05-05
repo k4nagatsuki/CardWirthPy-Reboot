@@ -1199,7 +1199,7 @@ def screenshot_header(title, w):
     """
     fore = cw.cwpy.setting.ssinfofontcolor
     font = cw.cwpy.rsrc.fonts["screenshot"]
-    fh = font.get_height()
+    fh = font.size("#")[1]
     lh = fh + 2
     subimg = font.render(title, True, fore)
     swmax = w - cw.s(10)*2

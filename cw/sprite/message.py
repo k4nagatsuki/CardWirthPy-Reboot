@@ -298,7 +298,7 @@ class MessageWindow(base.CWPySprite):
         colour = (255, 255, 255)
         lineheight_noscale = 22
         lineheight = cw.s(lineheight_noscale)
-        cheight = font.get_height()
+        cheight = font.size("#")[1]
         # 各種変数
         cnt = 0
         skip = False
@@ -687,7 +687,6 @@ class SelectionBar(base.SelectableSprite):
         image.blit(nameimg2, (pos[0], pos[1]-1))
         image.blit(nameimg, pos)
         if self.selected:
-
             image = cw.imageretouch.to_negative(image)
         return image
 
