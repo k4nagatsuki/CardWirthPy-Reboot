@@ -3184,14 +3184,14 @@ def create_mutex(dpath):
 
     # 二重起動防止 for Windows
     if sys.platform == "win32":
-        name = u"CardWirthPy/%s" % (name)
+        name = u"CardWirthPy/%s\0" % (name)
         name = name.encode("utf-16")
         ERROR_ALREADY_EXISTS = 183
         kernel32 = ctypes.windll.kernel32
         handle = kernel32.CreateMutexW(None, 1, name)
         err = kernel32.GetLastError()
 
-        if err == ERROR_ALREADY_EXISTS:
+        if err == ERROR_ALREADY_EXISTS or handle is None:
             if handle:
                 kernel32.ReleaseMutex(handle)
                 kernel32.CloseHandle(handle)
@@ -3201,7 +3201,7 @@ def create_mutex(dpath):
             return True
     else:
         # Posix
-        name = "/CardWirthPy_%s" % (name)
+        name = "/CardWirthPy_%s\0" % (name)
         handle = _librt.sem_open(name, os.O_CREAT|os.O_EXCL, S_IRWXU, 1)
         if SEM_FAILED <> handle and handle:
             _mutex.append((handle, name))
@@ -3219,7 +3219,7 @@ def exists_mutex(dpath):
     name = hashlib.md5(buffer(dpath)).hexdigest()
 
     if sys.platform == "win32":
-        name = u"CardWirthPy/%s" % (name)
+        name = u"CardWirthPy/%s\0" % (name)
         name = name.encode("utf-16")
         MUTEX_ALL_ACCESS = 0x001F0001
         _SYNCHRONIZE = 0x00100000
@@ -3234,7 +3234,7 @@ def exists_mutex(dpath):
 
         return False
     else:
-        name = "/CardWirthPy_%s" % (name)
+        name = "/CardWirthPy_%s\0" % (name)
         handle = _librt.sem_open(name, os.O_CREAT|os.O_EXCL, S_IRWXU, 1)
         if name in map(lambda m: m[1], _mutex):
             return False
