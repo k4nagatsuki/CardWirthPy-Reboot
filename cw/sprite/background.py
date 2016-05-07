@@ -688,7 +688,10 @@ class BackGround(base.CWPySprite):
             blitlist.append((BG_IMAGE, d2, flag, layer))
             bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True, layer, cellname)))
         else:
-            flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
+            if nocheckvisible:
+                flagvalue = visible
+            else:
+                flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
             bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue, layer, cellname)))
             oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue, layer, cellname)))
 
@@ -705,6 +708,8 @@ class BackGround(base.CWPySprite):
             # テキストセルは最初の表示で内容が固定される
             text = cw.sprite.message.rpl_specialstr(text)
             loaded = True
+        if nocheckvisible:
+            flagvalue = visible
         d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
              btype, bcolor, bwidth, loaded, size, pos, flag, flagvalue, layer, cellname)
         if visible:
@@ -736,7 +741,10 @@ class BackGround(base.CWPySprite):
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
-        flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
+        if nocheckvisible:
+            flagvalue = visible
+        else:
+            flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
         d = blend, color1, gradient, color2, size, pos, flag, flagvalue, layer, cellname
         if visible:
             image = cw.image.create_colorcell(cw.s(size), color1, gradient, color2)
@@ -761,7 +769,10 @@ class BackGround(base.CWPySprite):
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
-        flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
+        if nocheckvisible:
+            flagvalue = visible
+        else:
+            flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
         if visible:
             # PCのイメージを表示
             if pcnumber in self.pc_cache:
@@ -844,7 +855,8 @@ class BackGround(base.CWPySprite):
             bgtype, d2, flag, layer = t
             if layer == cw.LAYER_BACKGROUND:
                 # 特別なレイヤ指定が無いので本当の背景に描画
-                _draw_bgcell(self.image, (bgtype, d2, flag))
+                if cw.cwpy.sdata.flags.get(flag, True):
+                    _draw_bgcell(self.image, (bgtype, d2))
             else:
                 # それよりも手前に描画する場合はスプライトを生成する
                 if redisplay:
@@ -877,9 +889,7 @@ class BackGround(base.CWPySprite):
         return blitlist2
 
 def _draw_bgcell(surface, bgdata, allclip=None):
-    bgtype, d, flag = bgdata
-    if not cw.cwpy.sdata.flags.get(flag, True):
-        return
+    bgtype, d = bgdata
     srect = surface.get_rect()
     clip = surface.get_clip()
     if allclip:
@@ -936,7 +946,7 @@ def layered_draw_ex(layered_updates, surface):
     sprites = layered_updates.sprites()
     for sprite in sprites:
         if isinstance(sprite, BgCell):
-            rect = _draw_bgcell(surface, (sprite.bgtype, sprite.d, sprite.flag), clip)
+            rect = _draw_bgcell(surface, (sprite.bgtype, sprite.d), clip)
             rects.append(rect)
         else:
             if srect.colliderect(sprite.rect):
