@@ -77,8 +77,6 @@ class BattleEngine(object):
         return self._ready
 
     def is_battlestarting(self):
-        print self.is_running()
-        print self.is_ready()
         return not (self.is_running() or self.is_ready())
 
     def start(self):

@@ -2841,7 +2841,6 @@ class CWPy(_Singleton, threading.Thread):
                         pcard.update_image()
                         cw.animation.animate_sprite(pcard, "deal", battlespeed=True)
 
-            print is_battlestarting
             if (areachange or (startnextbattle and not is_battlestarting)) and not eventkeynum == 3 and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
                 # 勝利・逃走成功時に時間経過
                 # 戦闘中のエリア移動・敗北イベント・1.20以下は時間経過しない

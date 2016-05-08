@@ -2336,6 +2336,8 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
 
                 for evt in stackinfo:
                     name, icon, data = self._get_item(evt)
+                    if not data:
+                        continue
                     self.InsertImageStringItem(self.GetItemCount(), name, icon)
                     self.list.append(data)
 
@@ -2362,7 +2364,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         if isinstance(evt, cw.event.Event):
             e = evt.starttree
             if e is None:
-                return None
+                return None, None, None
             icon = None
             while not e.cwxparent is None:
                 e = e.cwxparent
@@ -2384,7 +2386,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                     continue
                 break
             if icon is None:
-                return None
+                return None, None, None
             if e.tag == "EnemyCard":
                 resid = e.getint("Property/Id", 0)
                 enemy = cw.cwpy.sdata.casts.get(resid, None)
@@ -2439,6 +2441,8 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                 return
             index = self.GetItemCount()
             name, icon, data = self._get_item(item)
+            if not data:
+                return
             if self._has_curcontent:
                 self.list.append(self.list[-1])
                 self.list[-2] = data
@@ -2472,6 +2476,8 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
             if not self:
                 return
             name, icon, data = self._get_item(item)
+            if not data:
+                return
             self.SetItemText(index, name)
             self.SetItemImage(index, icon)
             self.list[index] = data
