@@ -19,7 +19,8 @@ class EventInterface(object):
         # 現在起動中のパッケージイベントの辞書(EventEngine, keyはID)
         self.nowrunningpacks = {}
         # デバッガで表示する呼出履歴
-        self.stackinfo = []
+        self.stackinfo = [None] * 16
+        self.stackinfo_len = 0
         # デバッガのイベントコントロールバー用変数
         self._paused = False
         self._stoped = False
@@ -67,8 +68,7 @@ class EventInterface(object):
 
     def clear_events(self):
         self._nowrunningevents = []
-        self.stackinfo = []
-        self.refresh_stackinfo()
+        self.clear_stackinfo()
 
     def get_event(self):
         """現在起動中のEventを返す。"""
@@ -334,12 +334,39 @@ class EventInterface(object):
             while self._debugger_processing:
                 pass
 
-    def refresh_stackinfo(self):
-        """デバッガの呼び出し履歴を更新する。"""
+    def append_stackinfo(self, item):
+        """呼び出し履歴を追加する。"""
+        if len(self.stackinfo) <= self.stackinfo_len:
+            self.stackinfo.extend([None] * len(self.stackinfo))
+        self.stackinfo[self.stackinfo_len] = item
+        self.stackinfo_len += 1
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
-            func = dbg.refresh_stackinfo
-            cw.cwpy.frame.exec_func(func)
+            dbg.append_stackinfo_cwpy(item)
+
+    def pop_stackinfo(self):
+        """呼び出し履歴の末尾を除去する。"""
+        self.stackinfo_len -= 1
+        self.stackinfo[self.stackinfo_len] = None
+        dbg = cw.cwpy.frame.debugger
+        if cw.cwpy.is_showingdebugger():
+            dbg.pop_stackinfo_cwpy()
+
+    def replace_stackinfo(self, index, item):
+        """呼び出し履歴の途中または末尾を置換する。"""
+        assert isinstance(cw.cwpy.event.stackinfo[self.stackinfo_len+index], cw.event.Event)
+        self.stackinfo[self.stackinfo_len+index] = item
+        dbg = cw.cwpy.frame.debugger
+        if cw.cwpy.is_showingdebugger():
+            dbg.replace_stackinfo_cwpy(index, item)
+
+    def clear_stackinfo(self):
+        """呼び出し履歴をクリアする。"""
+        self.stackinfo = [None] * 16
+        self.stackinfo_len = 0
+        dbg = cw.cwpy.frame.debugger
+        if cw.cwpy.is_showingdebugger():
+            dbg.clear_stackinfo_cwpy()
 
     def wait(self):
         """デバッガのイベントコントロールバーで指定した分だけ、
@@ -720,9 +747,8 @@ class Event(object):
         これは不自然だが、際限の無い再帰を避けるために
         必要な処置である。
         """
-        cw.cwpy.event.stackinfo = []
-        cw.cwpy.event.stackinfo.append(self)
-        cw.cwpy.event.refresh_stackinfo()
+        cw.cwpy.event.clear_stackinfo()
+        cw.cwpy.event.append_stackinfo(self)
 
         cw.cwpy.event.append_event(self)
 
@@ -743,8 +769,7 @@ class Event(object):
                 # コールコンテントを呼んでいた場合、呼んだところから再開
                 if self.nowrunningcontents:
                     packevent, self.cur_content, self.line_index, versionhint = self.nowrunningcontents.pop()
-                    cw.cwpy.event.stackinfo.pop()
-                    cw.cwpy.event.refresh_stackinfo()
+                    cw.cwpy.event.pop_stackinfo()
                     if packevent:
                         packevent.run_exit()
                         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)

@@ -1593,8 +1593,8 @@ class CallStartContent(EventContentBase):
                     cw.cwpy.call_modaldlg("ERROR", text=s)
                     raise cw.event.EffectBreakError()
                 event.nowrunningcontents.append((None, event.cur_content, event.line_index, None))
-                cw.cwpy.event.stackinfo.append((cw.cwpy.event.get_nowrunningevent(), event.cur_content, event.line_index))
-                cw.cwpy.event.refresh_stackinfo()
+                item = (cw.cwpy.event.get_nowrunningevent(), event.cur_content, event.line_index)
+                cw.cwpy.event.append_stackinfo(item)
             event.cur_content = trees[startname]
             event.line_index = 0
 
@@ -1675,15 +1675,13 @@ def call_package(resid, call):
         cw.cwpy.event.append_event(packevent)
         packevent.parent = cw.cwpy.event.get_event()
 
-        cw.cwpy.event.stackinfo.append((nowrunning, event.cur_content, event.line_index))
-        cw.cwpy.event.refresh_stackinfo()
+        item = (nowrunning, event.cur_content, event.line_index)
+        cw.cwpy.event.append_stackinfo(item)
 
     else:
         cw.cwpy.event.replace_event(packevent, (cw.HINT_AREA, versionhint_base))
         event = cw.cwpy.event.get_event()
-        assert isinstance(cw.cwpy.event.stackinfo[-1], cw.event.Event)
-        cw.cwpy.event.stackinfo[-1] = event
-        cw.cwpy.event.refresh_stackinfo()
+        cw.cwpy.event.replace_stackinfo(-1, event)
     event.cur_content = packevent.starttree
     event.line_index = 0
 
