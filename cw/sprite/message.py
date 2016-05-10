@@ -206,7 +206,8 @@ class MessageWindow(base.CWPySprite):
                     wincolour = cw.cwpy.setting.blwincolour
                 else:
                     wincolour = cw.cwpy.setting.mwincolour
-                cw.imageretouch.blit_2bitbmp_to_message(self.image, txtimg2, pos, wincolour)
+                pos2 = (pos[0], pos[1] - cw.s(self.trim_top_noscale))
+                cw.imageretouch.blit_2bitbmp_to_message(self.image, txtimg2, pos2, wincolour)
                 size = txtimg2.get_size()
 
             # 通常のテキスト描画
