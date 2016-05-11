@@ -1582,10 +1582,7 @@ class CallStartContent(EventContentBase):
         if startname in trees:
             event = cw.cwpy.event.get_event()
 
-            if self.data.cwxparent.tag == "ContentsLine":
-                call = event.line_index+1 < len(self.data.cwxparent)
-            else:
-                call = 0 < self.get_children_num()
+            call = 0 < self.get_children_num()
 
             if call:
                 if cw.LIMIT_RECURSE <= cw.cwpy.event.get_currentstack():
@@ -1622,10 +1619,7 @@ class CallPackageContent(EventContentBase):
         resid = self.data.getint(".", "call", 0)
         event = cw.cwpy.event.get_event()
         call = bool(event.nowrunningcontents)
-        if self.data.cwxparent.tag == "ContentsLine":
-            call |= event.line_index+1 < len(self.data.cwxparent)
-        else:
-            call |= 0 < self.get_children_num()
+        call |= 0 < self.get_children_num()
 
         call_package(resid, call)
         return 0
