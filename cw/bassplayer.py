@@ -14,6 +14,10 @@ from cw.util import synclock
 BASS_DEVICE_DEFAULT = 2
 BASS_DEFAULT = 0
 BASS_SAMPLE_LOOP = 4
+BASS_MUSIC_RAMP = 0x200
+BASS_MUSIC_RAMPS = 0x400
+BASS_MUSIC_POSRESET = 0x8000
+BASS_MUSIC_PRESCAN = 0x20000
 BASS_MUSIC_STOPBACK = 0x80000
 BASS_FILEPOS_CURRENT = 0
 BASS_FILEPOS_END = 2
@@ -201,7 +205,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     """
     global _bass, _bassmidi, _bassfx, _sfonts
     encoding = sys.getfilesystemencoding()
-    flag = BASS_STREAM_DECODE
+    flag = BASS_STREAM_DECODE|BASS_MUSIC_RAMP|BASS_MUSIC_POSRESET|BASS_MUSIC_PRESCAN
 
     _BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ismidi = False
