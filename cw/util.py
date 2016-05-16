@@ -1816,10 +1816,10 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
     if not dname:
         dname = splitext(os.path.basename(path))[0]
 
-    dstdir = join_paths(dstdir, dname)
     if overwrite:
         paths = set()
     else:
+        dstdir = join_paths(dstdir, dname)
         dstdir = dupcheck_plus(dstdir, False)
 
     seq = z.infolist()
@@ -1994,8 +1994,8 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
     if not dname:
         dname = splitext(os.path.basename(path))[0]
 
-    dstdir = join_paths(dstdir, dname)
     if not overwrite:
+        dstdir = join_paths(dstdir, dname)
         dstdir = dupcheck_plus(dstdir, False)
 
     if overwrite and os.path.isdir(dstdir):
