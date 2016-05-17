@@ -1429,5 +1429,3 @@ init_imageretouch32(void)
     (void) Py_InitModule("_imageretouch32", _imageretouchMethods);
 }
 #endif
-
-      
