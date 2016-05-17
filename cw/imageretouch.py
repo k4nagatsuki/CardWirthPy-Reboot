@@ -6,8 +6,8 @@ import sys
 import random
 import wx
 import pygame
-from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_RGB_ADD, BLEND_RGB_SUB,\
-                          BLEND_RGBA_ADD, BLEND_RGBA_SUB, RLEACCEL, SRCALPHA
+from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND_RGB_SUB,\
+                          BLEND_RGBA_ADD, BLEND_RGBA_SUB, BLEND_RGBA_MULT, RLEACCEL, SRCALPHA
 
 import cw
 
@@ -680,7 +680,7 @@ def blend_1_50(dest, pos, source, flag):
     dest: pygame.Surface。
     pos: 合成位置。
     image: pygame.Surface。
-    flag: BLEND_ADDまたはBLEND_SUB
+    flag: BLEND_ADDまたはBLEND_SUBまたはBLEND_MULT
     """
     w, h = source.get_size()
     rect = pygame.Rect(pos, (w, h))
@@ -698,6 +698,8 @@ def blend_1_50(dest, pos, source, flag):
             func = _imageretouch.blend_add_1_50
         elif flag in (BLEND_SUB, BLEND_RGBA_SUB):
             func = _imageretouch.blend_sub_1_50
+        elif flag in (BLEND_MULT, BLEND_RGBA_MULT):
+            func = _imageretouch.blend_mult_1_50
         else:
             assert False
 
@@ -709,6 +711,8 @@ def blend_1_50(dest, pos, source, flag):
             func = _blend_add_1_50
         elif flag in (BLEND_SUB, BLEND_RGBA_SUB):
             func = _blend_sub_1_50
+        elif flag in (BLEND_MULT, BLEND_RGBA_MULT):
+            func = _blend_mult_1_50
         else:
             assert False
         outimage = func(sub, source)
@@ -749,6 +753,31 @@ def _blend_sub_1_50(dest, source):
         dr = max(colorwrap(dr * (255 - sa) >> 8), colorwrap(dr - (sr * sa >> 8)))
         dg = max(colorwrap(dg * (255 - sa) >> 8), colorwrap(dg - (sg * sa >> 8)))
         db = max(colorwrap(db * (255 - sa) >> 8), colorwrap(db - (sb * sa >> 8)))
+        da = 255
+
+        buf.extend([chr(dr), chr(dg), chr(db), chr(da)])
+
+    assert len(buf) == len(dbuf)
+    buf = "".join(buf)
+    return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
+
+def _blend_mult_1_50(dest, source):
+    w, h = dest.get_size()
+    dbuf = pygame.image.tostring(dest, "RGBA")
+    sbuf = pygame.image.tostring(source, "RGBA")
+
+    buf = []
+    for i in xrange(0, len(dbuf), 4):
+        dr, dg, db, da = ord(dbuf[i+0]), ord(dbuf[i+1]), ord(dbuf[i+2]), ord(dbuf[i+3])
+        sr, sg, sb, sa = ord(sbuf[i+0]), ord(sbuf[i+1]), ord(sbuf[i+2]), ord(sbuf[i+3])
+
+        if sa <> 255:
+            sr = colorwrap(((sr * sa) + (((1 << 8) - sa) << 8)) >> 8)
+            sg = colorwrap(((sg * sa) + (((1 << 8) - sa) << 8)) >> 8)
+            sb = colorwrap(((sb * sa) + (((1 << 8) - sa) << 8)) >> 8)
+        dr = colorwrap(dr * sr >> 8)
+        dg = colorwrap(dg * sg >> 8)
+        db = colorwrap(db * sb >> 8)
         da = 255
 
         buf.extend([chr(dr), chr(dg), chr(db), chr(da)])

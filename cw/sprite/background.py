@@ -4,7 +4,7 @@
 import os
 import math
 import pygame
-from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT
+from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT
 
 import cw
 import base
@@ -753,7 +753,10 @@ class BackGround(base.CWPySprite):
             elif blend == "Subtract":
                 blendflag = BLEND_SUB
             elif blend == "Multiply":
-                blendflag = BLEND_MULT
+                if color1[3] <> 255 or (gradient in ("LeftToRight", "TopToBottom") and color2[3] <> 255):
+                    blendflag = BLEND_RGBA_MULT
+                else:
+                    blendflag = BLEND_MULT
             else:
                 blendflag = 0
             d2 = (image, pos, blendflag)
@@ -904,7 +907,7 @@ def _draw_bgcell(surface, bgdata, allclip=None):
             surface.set_clip(srect.clip(rect))
             if sflag in (0, BLEND_MULT):
                 surface.blit(image, cw.s(pos), None, sflag)
-            elif sflag in (BLEND_ADD, BLEND_SUB):
+            elif sflag in (BLEND_ADD, BLEND_SUB, BLEND_RGBA_MULT):
                 cw.imageretouch.blend_1_50(surface, cw.s(pos), image, sflag)
             else:
                 assert False

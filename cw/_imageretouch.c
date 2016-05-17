@@ -554,6 +554,58 @@ blend_sub_1_50(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+blend_mult_1_50(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    Py_ssize_t dlen, slen;
+    int w, h, x, y, dr, dg, db, sr, sg, sb, sa;
+    unsigned char *dest, *source, *outdata;
+
+    if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
+        return NULL;
+
+    string = PyBytes_FromStringAndSize(NULL, dlen);
+
+    if (!string)
+        return NULL;
+
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &dlen);
+
+    for (y = 0; y < h; y++)
+    {
+        for (x = 0; x < w; x++)
+        {
+            dr = (int) dest[0];
+            dg = (int) dest[1];
+            db = (int) dest[2];
+            sr = (int) source[0];
+            sg = (int) source[1];
+            sb = (int) source[2];
+            sa = (int) source[3];
+
+            if (sa != 255)
+            {
+                sr = colorwrap(((sr * sa) + (((1 << 8) - sa) << 8)) >> 8);
+                sg = colorwrap(((sg * sa) + (((1 << 8) - sa) << 8)) >> 8);
+                sb = colorwrap(((sb * sa) + (((1 << 8) - sa) << 8)) >> 8);
+            }
+            dr = colorwrap(dr * sr >> 8);
+            dg = colorwrap(dg * sg >> 8);
+            db = colorwrap(db * sb >> 8);
+
+            outdata[0] = (char) dr;
+            outdata[1] = (char) dg;
+            outdata[2] = (char) db;
+
+            source += 4;
+            dest += 4;
+            outdata += 4;
+        }
+    }
+    return string;
+}
+
+static PyObject *
 blend_and(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
@@ -1327,6 +1379,8 @@ _imageretouchMethods[] =
         "blend_add_1_50(rgba_str, size, rgba_str)"},
     {"blend_sub_1_50", blend_sub_1_50, METH_VARARGS,
         "blend_sub_1_50(rgba_str, size, rgba_str)"},
+    {"blend_mult_1_50", blend_mult_1_50, METH_VARARGS,
+        "blend_mult_1_50(rgba_str, size, rgba_str)"},
     {"blend_and", blend_and, METH_VARARGS,
         "blend_and(rgba_str, size, rgba_str)"},
     {"blend_and_msg", blend_and_msg, METH_VARARGS,
@@ -1376,3 +1430,4 @@ init_imageretouch32(void)
 }
 #endif
 
+      
