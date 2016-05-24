@@ -444,10 +444,15 @@ class MultiViewSelect(Select):
         # 一覧表示の場合はダブルクリックで決定
         if self._processing:
             return
-        if self.views <= 1 or not self.list:
-            return
-        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self._enterid)
-        self.ProcessEvent(btnevent)
+        if 1 < self.views and self.list and self.can_clickcenter() and self.clickmode == 0:
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self._enterid)
+            self.ProcessEvent(btnevent)
+        elif self.can_clickside() and self.clickmode == wx.LEFT:
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
+            self.ProcessEvent(btnevent)
+        elif self.can_clickside() and self.clickmode == wx.RIGHT:
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
+            self.ProcessEvent(btnevent)
 
     def OnMouseWheel(self, event):
         if self._processing:

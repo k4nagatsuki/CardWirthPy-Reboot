@@ -239,6 +239,7 @@ class ScenarioSelect(select.Select):
         self._do_layout()
         # bind
         self._bind()
+        self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
         self.Bind(wx.EVT_BUTTON, self.OnClickYesBtn, self.yesbtn)
@@ -256,7 +257,7 @@ class ScenarioSelect(select.Select):
         self.tree.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.OnTreeItemExpanded)
         self.tree.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnTreeItemCollapsed)
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
-        self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+        self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick2)
         self.tree.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
         self.sort.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
@@ -770,6 +771,16 @@ class ScenarioSelect(select.Select):
         cw.cwpy.exec_func(func, self)
 
     def OnLeftDClick(self, event):
+        if self._processing:
+            return
+        if self.can_clickside() and self.clickmode == wx.LEFT:
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
+            self.ProcessEvent(btnevent)
+        elif self.can_clickside() and self.clickmode == wx.RIGHT:
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
+            self.ProcessEvent(btnevent)
+
+    def OnLeftDClick2(self, event):
         if not (self.tree.HitTest(event.GetPosition())[1] & wx.TREE_HITTEST_ONITEM):
             return
         self._tree_dclick()
