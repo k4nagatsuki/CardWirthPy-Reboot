@@ -859,9 +859,11 @@ class ScenarioSelect(select.Select):
                 seq.append(os.path.basename(sel))
             return seq, os.path.abspath(sel)
 
-    def _get_nowlist(self, nowdir=None):
+    def _get_nowlist(self, nowdir=None, update=True):
         if nowdir is None:
             nowdir = self.nowdir
+        if not update and nowdir in self.scetable:
+            return self.scetable[nowdir]
         if isinstance(nowdir, FindResult):
             return nowdir.headers
         seq = []
@@ -912,7 +914,7 @@ class ScenarioSelect(select.Select):
             self.nowdir = self.scedir
             self.index = 0
             self.dirstack = []
-            self.list = self._get_nowlist()
+            self.list = self._get_nowlist(update=True)
             self.scetable[self.nowdir] = self.list
             self.list = self._narrow_scenario(self.list)
 
@@ -951,7 +953,7 @@ class ScenarioSelect(select.Select):
                     exists = False
                     break
             self.nowdir = parent
-            self.list = self._get_nowlist()
+            self.list = self._get_nowlist(update=True)
             self.scetable[self.nowdir] = self.list
             self.list = self._narrow_scenario(self.list)
             self.index = 0
@@ -1067,7 +1069,7 @@ class ScenarioSelect(select.Select):
                 else:
                     self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
                     self.nowdir = cw.util.get_linktarget(self.list[self.index])
-                self.list = self._get_nowlist()
+                self.list = self._get_nowlist(update=True)
                 self.scetable[self.nowdir] = self.list
                 self.list = self._narrow_scenario(self.list)
                 self.index = 0
@@ -1083,7 +1085,7 @@ class ScenarioSelect(select.Select):
     def BackPaper(self):
         cw.cwpy.play_sound("equipment")
         self.nowdir, selname = self.dirstack.pop()
-        self.list = self._get_nowlist()
+        self.list = self._get_nowlist(update=True)
         self.scetable[self.nowdir] = self.list
         self.list = self._narrow_scenario(self.list)
         self.index = 0
@@ -1797,7 +1799,7 @@ class ScenarioSelect(select.Select):
         dpaths = []
 
         if not nowdir in self.scetable:
-            self.scetable[nowdir] = self._get_nowlist(nowdir)
+            self.scetable[nowdir] = self._get_nowlist(nowdir, update=True)
 
         for index, header in enumerate(self._narrow_scenario(self.scetable[nowdir])):
             if isinstance(header, cw.header.ScenarioHeader):
@@ -2017,7 +2019,7 @@ class ScenarioSelect(select.Select):
         _index, self.nowdir = self.tree.GetItemPyData(paritem)
         self.index, _pathorheader = self.tree.GetItemPyData(selitem)
 
-        self.list = self._get_nowlist()
+        self.list = self._get_nowlist(update=False)
         self.scetable[self.nowdir] = self.list
         self.list = self._narrow_scenario(self.list)
 
@@ -2532,7 +2534,7 @@ class ScenarioSelect(select.Select):
         dlg.Destroy()
         # 更新処理
         self.db.insert_scenario(zpath, skintype=cw.cwpy.setting.skintype)
-        self.list = self._get_nowlist()
+        self.list = self._get_nowlist(update=True)
         self.scetable[self.nowdir] = self.list
         self.list = self._narrow_scenario(self.list)
         self.index = 0
