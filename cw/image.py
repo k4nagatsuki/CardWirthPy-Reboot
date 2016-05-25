@@ -726,7 +726,7 @@ class CharacterCardImage(CardImage):
         for char in reversed(s):
             subimg = font.render(char, True, (0, 0, 0))
             self.levelimg.blit(subimg, (w - subimg.get_width(), cw.s(0)))
-            w -= min(cw.s(20), font.size(char)[0])
+            w -= min(cw.s(18), font.size(char)[0])
 
         for x in xrange(size[0]):
             for y in xrange(size[1]):
@@ -742,7 +742,7 @@ class CharacterCardImage(CardImage):
 
         # レベル
         if ccard.is_analyzable():
-            self.image.blit(self.levelimg, (cw.s(90) - self.levelimg.get_width(), cw.s(2)))
+            self.image.blit(self.levelimg, (cw.s(92) - self.levelimg.get_width(), cw.s(0)))
 
         # カード画像
         insets_n = cw.s(18)
