@@ -71,7 +71,7 @@ _bassfx = None
 _sfonts = []
 
 _streams = [0, 0, 0, 0, 0]
-_fadeoutstreams = [0, 0, 0, 0, 0]
+_fadeoutstreams = [None, None, None, None, None]
 _loopstarts = [0, 0, 0, 0, 0]
 _loopcounts = [0, 1, 1, 1, 1]
 
@@ -99,7 +99,7 @@ def _free_channel(handle, channel, data, streamindex):
 
     @synclock(_fadeoutlock)
     def func(streamindex):
-        _fadeoutstreams[streamindex] = 0
+        _fadeoutstreams[streamindex] = None
     func(streamindex)
 
 def _free_channel_lockfree(handle, channel, data, streamindex):
@@ -108,17 +108,28 @@ def _free_channel_lockfree(handle, channel, data, streamindex):
     _bass.BASS_StreamFree(channel)
     if streamindex is None:
         streamindex = 0
-    _fadeoutstreams[streamindex] = 0
+    _fadeoutstreams[streamindex] = None
 
 FREE_CHANNEL = SYNCPROC(_free_channel)
 
 @synclock(_lock)
 def _loop(handle, channel, data, streamindex):
-    global _bass, _loopcounts, _loopstarts
-    loops = _loopcounts[streamindex]
+    global _bass, _loopcounts, _loopstarts, _fadeoutstreams
+    fadeouting = _fadeoutstreams[streamindex] and _fadeoutstreams[streamindex][0] == channel
+    if fadeouting:
+        # フェードアウト中のチャンネル
+        loops = _fadeoutstreams[streamindex][1]
+        pos = _fadeoutstreams[streamindex][2]
+    else:
+        loops = _loopcounts[streamindex]
+        pos = _loopstarts[streamindex]
+
     if loops <> 1:
         if 0 < loops:
-            _loopcounts[streamindex] = loops - 1
+            if fadeouting:
+                _fadeoutstreams[streamindex] = (channel, loops - 1, pos)
+            else:
+                _loopcounts[streamindex] = loops - 1
         pos = _loopstarts[streamindex]
         _bass.BASS_ChannelSetPosition(c_long(channel), c_longlong(pos), c_long(BASS_POS_BYTE))
 
@@ -254,6 +265,8 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
                     loopinfo = (pos, -1)
                     break
 
+    stream = _bassfx.BASS_FX_TempoCreate(stream, BASS_FX_FREESOURCE)
+
     _loopcounts[streamindex] = loopcount
     if loopinfo:
         loopstart, loopend = loopinfo
@@ -266,7 +279,6 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
         _loopstarts[streamindex] = 0
         _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, c_void_p(streamindex))
 
-    stream = _bassfx.BASS_FX_TempoCreate(stream, BASS_FX_FREESOURCE)
     if tempo <> 0:
         _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO, c_float(tempo)) # -95%...0...+5000%
     if pitch <> 0:
@@ -474,7 +486,7 @@ def _stop(streamindex, fade, stopfadeout):
             _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(0), c_long(fade))
             @synclock(_fadeoutlock)
             def func(stream):
-                _fadeoutstreams[streamindex] = stream
+                _fadeoutstreams[streamindex] = (stream, _loopcounts[streamindex], _loopstarts[streamindex])
             func(stream)
         else:
             _free_channel(None, stream, 0, streamindex)
@@ -482,8 +494,8 @@ def _stop(streamindex, fade, stopfadeout):
 
 @synclock(_fadeoutlock)
 def _free_fadeoutstream(streamindex):
-    channel = _fadeoutstreams[streamindex]
-    if channel:
+    if _fadeoutstreams[streamindex]:
+        channel = _fadeoutstreams[streamindex][0]
         _free_channel_lockfree(None, channel, 0, streamindex)
 
 def stop_bgm(channel=0, fade=0, stopfadeout=False):
@@ -510,9 +522,9 @@ def stop_sound(fromscenario=False, channel=0, fade=0, stopfadeout=False):
 def _set_volume(volume, streamindex, fade):
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
     if _fadeoutstreams[streamindex] and volume == 0 and fade == 0:
-        _bass.BASS_ChannelStop(_fadeoutstreams[streamindex])
-        _bass.BASS_StreamFree(_fadeoutstreams[streamindex])
-        _fadeoutstreams[streamindex] = 0
+        _bass.BASS_ChannelStop(_fadeoutstreams[streamindex][0])
+        _bass.BASS_StreamFree(_fadeoutstreams[streamindex][0])
+        _fadeoutstreams[streamindex] = None
 
     if _streams[streamindex]:
         _bass.BASS_ChannelSlideAttribute(_streams[streamindex], BASS_ATTRIB_VOL, c_float(volume), c_long(fade))
