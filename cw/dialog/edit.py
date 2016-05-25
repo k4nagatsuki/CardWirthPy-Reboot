@@ -43,7 +43,7 @@ class PartyEditor(wx.Dialog):
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
                                                         cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
