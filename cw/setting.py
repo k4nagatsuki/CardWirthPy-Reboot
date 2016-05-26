@@ -92,7 +92,7 @@ class LocalSetting(object):
         self.decorationfont = False
         self.bordering_cardname = True
         self.fontsmoothing_message = False
-        self.fontsmoothing_cardname = True
+        self.fontsmoothing_cardname = False
         self.fontsmoothing_statusbar = True
 
         self.basefont = {
@@ -128,8 +128,8 @@ class LocalSetting(object):
             "characre": ("pgothic", "", -1, True, True, False),
             "dlglist": ("mincho", "", -1, True, True, False),
             "uselimit": ("mincho", "", 18, False, False, False),
-            "cardname": ("uigothic", "", 13, True, True, False),
-            "ccardname": ("uigothic", "", 15, True, True, False),
+            "cardname": ("uigothic", "", 12, True, True, False),
+            "ccardname": ("uigothic", "", 12, True, True, False),
             "level": ("mincho", "", 33, False, False, True),
             "numcards": ("uigothic", "", 18, False, False, False),
             "message": ("mincho", "", 22, True, True, False),
