@@ -698,13 +698,25 @@ class Setting(object):
 
         # 設定バージョンの更新
         if int(settings_version) < 1 and not loadfile:
-            # バージョン0ではスキンの
+            # バージョン0ではスキンに
+            # 「メッセージでクラシックなフォントを使用する」が
+            # 存在するため、それを使用中の場合に限り
+            # デフォルトフォントをクラシックなものに初期化する
             if self._classicstyletext:
                 self.local.fontsmoothing_message = False
                 self.local.fonttypes["message"] = self.local.fonttypes_init["message"]
                 self.local.fonttypes["selectionbar"] = self.local.fonttypes_init["selectionbar"]
             else:
                 self.local.fontsmoothing_message = True
+
+        if int(settings_version) < 2 and not loadfile:
+            # バージョン1ではカード名のスムージングはデフォルトでオン
+            # スムージング設定がデフォルト値でカード名フォントの設定を
+            # 変更している場合は、スムージングを改めてオンにする
+            if not self.local.fontsmoothing_cardname and\
+                    (self.local.fonttypes["cardname"] <> self.local.fonttypes_init["cardname"] or \
+                     self.local.fonttypes["ccardname"] <> self.local.fonttypes_init["ccardname"]):
+                self.local.fontsmoothing_cardname = True
 
     def init_skin(self, basedata=None):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)

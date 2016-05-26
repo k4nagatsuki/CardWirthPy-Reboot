@@ -122,7 +122,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     writeplayingdata: デバッグ状態やスキンの選択状態などを保存するか。
     fpath: 保存先のファイルパス。
     """
-    element = cw.data.make_element("Settings", attrs={"dataVersion": "1"})
+    element = cw.data.make_element("Settings", attrs={"dataVersion": "2"})
 
     create_localsettings(element, setting.local)
 
