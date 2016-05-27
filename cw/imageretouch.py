@@ -972,6 +972,7 @@ def _create_mfont(name, pixels, bold, italic, sys):
             pixels += 1
             font = pygame.sysfont.SysFont(name, pixels, bold, italic)
         font2x = pygame.sysfont.SysFont(name, pixels*2, bold, italic)
+        font_notitalic = pygame.sysfont.SysFont(name, pixels, bold, italic)
     else:
         if pixels < 0:
             # FIXME: CreateFont()で高さにマイナス値を指定した場合には
@@ -987,11 +988,15 @@ def _create_mfont(name, pixels, bold, italic, sys):
             pixels += 1
             font = pygame.font.Font(name, pixels)
         font2x = pygame.font.Font(name, pixels*2)
-        font.set_bold(bold)
-        font.set_italic(italic)
-        font2x.set_bold(bold)
-        font2x.set_italic(italic)
-    return font, font2x
+        font_notitalic = pygame.font.Font(name, pixels)
+
+    font.set_bold(bold)
+    font.set_italic(italic)
+    font2x.set_bold(bold)
+    font2x.set_italic(italic)
+    font_notitalic.set_bold(bold)
+
+    return font, font2x, font_notitalic
 
 class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
@@ -1006,7 +1011,7 @@ class Font(object):
             if face in names:
                 path = cw.util.join_paths(u"Data/Font", ttf)
                 if os.path.isfile(path):
-                    self.font, self.font2x = _create_mfont(path, pixels, bold, italic, sys=False)
+                    self.font, self.font2x, self.font_notitalic = _create_mfont(path, pixels, bold, italic, sys=False)
                     return
 
         face = get_fontface(face)
@@ -1015,6 +1020,7 @@ class Font(object):
                 func = _imageretouch.font_new
                 self.font = None
                 self.font2x = None
+                self.font_notitalic = None
                 self.face = face
                 self.pixels = pixels
                 self.bold = bold
@@ -1025,11 +1031,11 @@ class Font(object):
             except:
                 encoding = sys.getfilesystemencoding()
                 face = face.encode(encoding)
-                self.font, self.font2x = _create_mfont(face, pixels, bold, italic, sys=True)
+                self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
         else:
             encoding = sys.getfilesystemencoding()
             face = face.encode(encoding)
-            self.font, self.font2x = _create_mfont(face, pixels, bold, italic, sys=True)
+            self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
 
     def _is_cachable(self, s):
         s = unicode(s)
@@ -1061,6 +1067,7 @@ class Font(object):
         if self.font:
             self.font.set_bold(v)
             self.font2x.set_bold(v)
+            self.font_notitalic.set_bold(v)
         else:
             self.bold = v
             _imageretouch.font_bold(self.fontinfo, v)
@@ -1091,6 +1098,7 @@ class Font(object):
         if self.font:
             self.font.set_underline(v)
             self.font2x.set_underline(v)
+            self.font_notitalic.set_underline(v)
         else:
             self.underline = v
             _imageretouch.font_underline(self.fontinfo, v)
@@ -1118,7 +1126,7 @@ class Font(object):
 
     def size_withoutoverhang(self, text):
         if self.font:
-            return self.font.size(text)
+            return self.font_notitalic.size(text)
         else:
             return _imageretouch.font_size(self.fontinfo, text.encode("utf-8"))
 

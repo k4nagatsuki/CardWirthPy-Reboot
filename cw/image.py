@@ -718,22 +718,56 @@ class CharacterCardImage(CardImage):
 
     def set_levelimg(self, level):
         font = cw.cwpy.rsrc.fonts["pcard_level"]
-        s = str(level)
-        w = cw.s(95)
-        size = (w, font.get_height())
+        bgname = self.get_cardbgname(self.ccard)
+        cardbg = cw.cwpy.rsrc.cardbgs[bgname]
+        w = cardbg.get_width() + cw.s(4)
+
+        overhang = 0
+        h = 0
+        for n in xrange(10):
+            c = str(n)
+            size = font.size(c)
+            h = max(h, size[1])
+            if font.get_italic():
+                overhang = max(overhang, size[0] - font.size_withoutoverhang(c)[0])
+        size = (w, h)
         self.levelimg = pygame.Surface(size, pygame.locals.SRCALPHA).convert_alpha()
 
+        w -= overhang
+        s = str(level)
         for char in reversed(s):
             subimg = font.render(char, True, (0, 0, 0))
-            self.levelimg.blit(subimg, (w - subimg.get_width(), cw.s(0)))
-            w -= min(cw.s(18), font.size(char)[0])
+            w -= font.size_withoutoverhang(char)[0]
+            self.levelimg.blit(subimg, (w, cw.s(0)))
 
+        top = 0x7fffffff
+        right = 0
         for x in xrange(size[0]):
             for y in xrange(size[1]):
                 color = self.levelimg.get_at((x, y))
                 if color[3] <> 0:
                     color[3] = color[3] / 2
                     self.levelimg.set_at((x, y), color)
+                    right = max(x, right)
+                    top = min(y, top)
+
+        # 実際の文字の位置に合わせて描画位置を調節
+        if font.get_italic():
+            adjust = cw.s(4)
+        else:
+            adjust = cw.s(6)
+        if cardbg.get_width()-adjust < right:
+            x = (cardbg.get_width()-adjust) - right
+        elif right < cardbg.get_width()-cw.s(10):
+            x = cardbg.get_width()-cw.s(10) - right
+        else:
+            x = cw.s(0)
+
+        y = (font.get_height()-self.levelimg.get_height()) // 2
+        if y + top < cw.s(5):
+            y = -top + cw.s(5)
+
+        self.levelimg_pos = (x, y)
 
     def update(self, ccard, header=None):
         # 画像合成
@@ -742,7 +776,8 @@ class CharacterCardImage(CardImage):
 
         # レベル
         if ccard.is_analyzable():
-            self.image.blit(self.levelimg, (cw.s(92) - self.levelimg.get_width(), cw.s(0)))
+            font = cw.cwpy.rsrc.fonts["pcard_level"]
+            self.image.blit(self.levelimg, self.levelimg_pos)
 
         # カード画像
         insets_n = cw.s(18)
