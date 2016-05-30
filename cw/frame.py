@@ -1082,7 +1082,9 @@ class Frame(wx.Frame):
         frect = self.GetRect()
         def recurse(win):
             for child in win.GetChildren():
-                if child.IsTopLevel() and not (hasattr(child, "cwpy_debug") and child.cwpy_debug):
+                if not hasattr(child, "cwpy_debug"):
+                    continue
+                if child.IsTopLevel() and not child.IsIconized() and not child.cwpy_debug:
                     # ダイアログを描画
                     dc = wx.ClientDC(child)
                     rect = child.GetClientRect()

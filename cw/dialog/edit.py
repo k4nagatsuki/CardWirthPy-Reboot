@@ -17,6 +17,7 @@ class PartyEditor(wx.Dialog):
     def __init__(self, parent, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["party_information"],
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         if party:
             self.party = party
         else:
@@ -279,6 +280,7 @@ class NumberEditDialog(wx.Dialog):
     def __init__(self, parent, title, value, minvalue, maxvalue):
         wx.Dialog.__init__(self, parent, -1, title,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.value = value
 
         # スライダ
@@ -341,6 +343,7 @@ class Number2EditDialog(wx.Dialog):
                  label2, value2, minvalue2, maxvalue2):
         wx.Dialog.__init__(self, parent, -1, title,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.value1 = value1
         self.value2 = value2
 
@@ -417,6 +420,7 @@ class NumberComboEditDialog(wx.Dialog):
                  label2, value, minvalue, maxvalue):
         wx.Dialog.__init__(self, parent, -1, title,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.selected = value
         self.value = value
 
@@ -736,6 +740,7 @@ class ComboEditDialog(wx.Dialog):
     def __init__(self, parent, title, label, mlist, selected):
         wx.Dialog.__init__(self, parent, -1, title,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.selected = selected
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
@@ -809,6 +814,7 @@ class ComboEditDialog2(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((-1, -1)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.message = cw.util.txtwrap(message, 0, width=40, wrapschars=cw.util.WRAPS_CHARS)
+        self.cwpy_debug = False
 
         self.combo = wx.Choice(self, -1, size=cw.wins((200, -1)), choices=choices)
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
@@ -887,6 +893,7 @@ class LevelEditDialog(wx.Dialog):
     def __init__(self, parent, mlist, selected, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
 
@@ -1057,6 +1064,7 @@ class InputTextDialog(wx.Dialog):
     def __init__(self, parent, title, msg, text="", maxlength=0):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.SetClientSize(cw.wins((312, 112)))
         self.msg = msg
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))

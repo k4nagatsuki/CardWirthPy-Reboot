@@ -14,6 +14,7 @@ class ProgressDialog(wx.Dialog):
     def __init__(self, parent, title, message, maximum=100, minimum=0):
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.DEFAULT_DIALOG_STYLE)
+        self.cwpy_debug = False
         self.SetClientSize(cw.wins((300, 60)))
         self.EnableCloseButton(False)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
@@ -70,6 +71,7 @@ class SysProgressDialog(wx.Dialog):
     def __init__(self, parent, title, message, maximum=100, minimum=0, cancelable=False, width=280):
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.DEFAULT_DIALOG_STYLE)
+        self.cwpy_debug = False
         self.SetClientSize((width+20, 60))
         self.EnableCloseButton(cancelable)
         self.SetDoubleBuffered(True)

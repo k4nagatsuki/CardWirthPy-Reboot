@@ -16,6 +16,7 @@ class Text(wx.Dialog):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((550, 290)),
                             style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+        self.cwpy_debug = False
         # panel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((550, 245)))
         self.toppanel.SetBackgroundColour(wx.Colour(0, 0, 128))

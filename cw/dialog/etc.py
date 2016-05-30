@@ -15,6 +15,7 @@ import cw
 class BattleCommand(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["select_battle_action"])
+        self.cwpy_debug = False
         self.list = []
 
         # 行動開始
@@ -319,6 +320,7 @@ class ExtensionDialog(wx.Dialog):
     """
     def __init__(self, parent, title, items):
         wx.Dialog.__init__(self, parent, -1, title)
+        self.cwpy_debug = False
         self.items = items
 
         self.buttons = []
@@ -404,6 +406,7 @@ class BookmarkDialog(wx.Dialog):
     def __init__(self, parent, scedir, db):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["arrange_bookmark"],
                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+        self.cwpy_debug = False
 
         # リスト
         self.values = AutoListCtrl(self, -1, size=cw.wins((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER)
@@ -627,6 +630,7 @@ class ConvertYadoDialog(wx.Dialog):
     def __init__(self, parent, yadoname):
         wx.Dialog.__init__(self, parent, -1, u"拠点の逆変換",
                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.message = u"%s を逆変換し、\n新規作成したフォルダへ格納します。" % (yadoname)
         dc = wx.ClientDC(self)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))

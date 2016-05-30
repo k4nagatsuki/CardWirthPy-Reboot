@@ -30,6 +30,7 @@ class CardControl(wx.Dialog):
         # ダイアログ作成
         wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.SetDoubleBuffered(True)
         self.additionals = []
         self.change_bgs = []

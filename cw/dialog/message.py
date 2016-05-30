@@ -18,6 +18,7 @@ class Message(wx.Dialog):
     def __init__(self, parent, name, text, mode=2):
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((355, 120)),
                             style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.basetext = text
         self.text = cw.util.txtwrap(text, mode=6)
         self.mode = mode

@@ -17,6 +17,7 @@ class AdventurerDataComp(wx.Dialog):
     def __init__(self, parent, ccard):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["insufficiency_title"],
                             style=wx.CAPTION|wx.SYSTEM_MENU)
+        self.cwpy_debug = False
         self.ccard = ccard
         hassex = self.ccard.has_sex()
         if hassex:
@@ -415,6 +416,7 @@ class AdventurerCreater(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["entry_title"],
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.header = None
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         if cw.cwpy.setting.show_autobuttoninentrydialog:
@@ -1677,6 +1679,7 @@ class YadoCreater(wx.Dialog):
         s = cw.cwpy.msgs["create_base_title"] if self.create else cw.cwpy.msgs["edit_base_title"]
         wx.Dialog.__init__(self, parent, -1, s, size=(318, 180),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self.SetDoubleBuffered(True)
 
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
@@ -1971,6 +1974,7 @@ class AdventurerDesignDialog(wx.Dialog):
     def __init__(self, parent, ccard):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["design_title"],
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         # buttonlist
         self.buttonlist = []
 

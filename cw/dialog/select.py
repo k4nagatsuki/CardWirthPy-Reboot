@@ -24,6 +24,7 @@ class Select(wx.Dialog):
     def __init__(self, parent, name):
         wx.Dialog.__init__(self, parent, -1, name,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = False
         self._processing = False
         self.list = []
         self.toppanel = None
