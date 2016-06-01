@@ -327,7 +327,7 @@ CardWirthPyを開発するにあたって、お世話になった方々に、心
 
 [groupAsk様](http://www.ask.sakura.ne.jp/)
 
-[カードワース愛護協会](http://cardwirthaigo.sakura.ne.jp/)および書類の谷様
+[カードワース愛護協会](http://cardwirth.net/)および書類の谷様
 
 [どうせモテないしカードワースシナリオ作ろうぜスレの方々](http://hideyoshi.2ch.net/motenai/)
 
