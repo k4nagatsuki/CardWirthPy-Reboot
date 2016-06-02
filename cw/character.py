@@ -318,7 +318,7 @@ class Character(object):
                     if maxn <= len(headers):
                         # 最大所持数を越えたカードは消去
                         break
-                    e = cw.cwpy.sdata.get_carddata(e)
+                    e = cw.cwpy.sdata.get_carddata(e, inusecard=False)
                     header = cw.header.CardHeader(owner=self, carddata=e,
                                                                 from_scenario=flag)
                     headers.append(header)
