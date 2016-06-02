@@ -245,7 +245,7 @@ class SystemData(object):
 
         return xml2etree(path)
 
-    def get_carddata(self, linkdata):
+    def get_carddata(self, linkdata, inusecard=True):
         return linkdata
 
     def _get_carddatapath(self, type, resid, dpath):
