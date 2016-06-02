@@ -95,8 +95,6 @@ class EventContentBase(object):
         values = {}
         maxvalue = 0
         for pcard in cw.cwpy.get_pcards():
-            if not pcard.is_active():
-                continue
             if not silenced_member and pcard.is_silence():
                 continue
             value = self.initvalue
@@ -3259,7 +3257,7 @@ class TalkDialogContent(TalkContent):
         # 対象メンバ取得
         targetm = self.data.get("targetm", "")
         if targetm == "Valued":
-            talker = self.get_valuedmember(silenced_member=False)
+            talker = self.get_valuedmember("active", silenced_member=False)
         else:
             talker = cw.cwpy.event.get_targetmember(targetm)
 
@@ -3302,7 +3300,7 @@ class TalkDialogContent(TalkContent):
         # 対象メンバ取得
         targetm = self.data.get("targetm", "")
         if targetm == "Valued":
-            talker = self.get_valuedmember()
+            talker = self.get_valuedmember("active", silenced_member=False)
         else:
             talker = cw.cwpy.event.get_targetmember(targetm)
 
