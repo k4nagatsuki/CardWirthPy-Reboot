@@ -1,7 +1,9 @@
 TimGM6mb.sf2 は Public Domain です。
 一切の条件を設けず自由に使用する事ができます。
+また、オリジナルのファイルにハルキゲニア(@tekitoudesu)さんによる若干の修正が加わっています。
 
-###################################
+---
+
 http://musescore.org/en/node/1463#comment-9161 より引用:
 
 > Some terrific news from the TimGM6mb.sf2 soundfont creator (Tim Brechbill):
