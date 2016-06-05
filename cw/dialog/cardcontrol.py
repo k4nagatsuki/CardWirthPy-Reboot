@@ -1202,7 +1202,7 @@ class CardControl(wx.Dialog):
         self.Enable(False)
         self.Show(False)
 
-        if self.callname in ("CARDPOCKET", "HANDVIEW"):
+        if self.callname in ("CARDPOCKET", "CARDPOCKETB", "HANDVIEW"):
             # カードの対象を選択する
             target_selection = cw.cwpy.is_playingscenario() and cw.cwpy.areaid >= 0
             if target_selection:
