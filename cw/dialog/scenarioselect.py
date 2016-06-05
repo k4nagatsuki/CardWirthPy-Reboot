@@ -2595,7 +2595,8 @@ class ScenarioSelect(select.Select):
     def OnCancel2(self, event):
         # キャンセルしても最後の選択は記憶する
         cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = self.get_selected()
-        cw.cwpy.frame.kill_dlg(self)
+        cw.cwpy.frame.kill_dlg(None)
+        cw.cwpy.frame.append_killlist(self)
 
 
 class FindResult(object):

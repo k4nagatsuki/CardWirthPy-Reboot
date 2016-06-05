@@ -237,6 +237,9 @@ class CardControl(wx.Dialog):
         if self.addctrlbtn:
             self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
 
+        self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel2, id=wx.ID_CANCEL)
+
         self.leftkeyid = wx.NewId()
         self.rightkeyid = wx.NewId()
         self.upid = wx.NewId()
@@ -1194,6 +1197,25 @@ class CardControl(wx.Dialog):
             return False
 
         return True
+
+    def OnOk(self, event):
+        self.Enable(False)
+        self.Show(False)
+
+        if self.callname in ("CARDPOCKET", "HANDVIEW"):
+            # カードの対象を選択する
+            target_selection = cw.cwpy.is_playingscenario() and cw.cwpy.areaid >= 0
+            if target_selection:
+                cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
+
+        cw.cwpy.frame.kill_dlg(None)
+        cw.cwpy.frame.append_killlist(self)
+
+    def OnCancel2(self, event):
+        if not self.callname in ("CARDPOCKET_REPLACE", "INFOVIEW"):
+            cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
+        cw.cwpy.frame.kill_dlg(None)
+        cw.cwpy.frame.append_killlist(self)
 
 #-------------------------------------------------------------------------------
 #　カード倉庫or荷物袋or手札カードダイアログ

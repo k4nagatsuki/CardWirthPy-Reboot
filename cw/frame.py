@@ -649,10 +649,7 @@ class Frame(wx.Frame):
         dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, -63))
 
-        if not dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
-
-        self.kill_dlg(dlg)
+        dlg.ShowModal()
 
     def OnSTOREHOUSE(self, event):
         selection, preinfo = self._get_cardcontrolparams()
@@ -660,10 +657,7 @@ class Frame(wx.Frame):
         dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, -63))
 
-        if not dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
-
-        self.kill_dlg(dlg)
+        dlg.ShowModal()
 
     def OnCARDPOCKETB(self, event):
         self._cardpocket_impl("CARDPOCKETB")
@@ -677,28 +671,14 @@ class Frame(wx.Frame):
         dlg = cw.dialog.cardcontrol.CardHolder(self, callname, selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, -63))
 
-        if dlg.ShowModal() == wx.ID_OK:
-            if cw.cwpy.is_playingscenario() and cw.cwpy.areaid >= 0:
-                cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
-            self.kill_dlg(dlg, lockmenucard=True)
-
-        else:
-            cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
-            self.kill_dlg(dlg)
+        dlg.ShowModal()
 
     def OnHANDVIEW(self, event):
         selection, preinfo = self._get_cardcontrolparams()
         dlg = cw.dialog.cardcontrol.HandView(self, selection, preinfo)
         self.move_dlg(dlg, (0, -63))
 
-        if dlg.ShowModal() == wx.ID_OK:
-            if cw.cwpy.is_playingscenario() and cw.cwpy.areaid >= 0:
-                cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
-
-        else:
-            cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
-
-        self.kill_dlg(dlg)
+        dlg.ShowModal()
 
     def OnCARDPOCKET_REPLACE(self, event):
         selection = cw.cwpy.selection
@@ -708,8 +688,7 @@ class Frame(wx.Frame):
             self.move_dlg(dlg, (0, -63))
             dlg.ShowModal()
         else:
-            dlg = None
-        self.kill_dlg(dlg)
+            self.kill_dlg(None)
 
     def _get_cardcontrolparams(self):
         if cw.cwpy.pre_dialogs:
@@ -724,7 +703,6 @@ class Frame(wx.Frame):
         dlg = cw.dialog.cardcontrol.InfoView(self)
         self.move_dlg(dlg, (0, -63))
         dlg.ShowModal()
-        self.kill_dlg(dlg)
 
     def OnCHARAINFO(self, event):
         dlg = cw.dialog.charainfo.ActiveCharaInfo(self)
