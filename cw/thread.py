@@ -913,6 +913,8 @@ class CWPy(_Singleton, threading.Thread):
             if not self.is_runningevent() and not self.is_showingdlg():
                 self.lock_menucards = False
 
+        cw.cwpy.frame.check_killlist()
+
         # 一時カードはダイアログを開き直す直前に荷物袋へ戻すが、
         # 戦闘突入等でダイアログを開き直せなかった場合はここで戻す
         self.return_takenoutcard()

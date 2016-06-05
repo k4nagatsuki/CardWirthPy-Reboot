@@ -264,6 +264,9 @@ class ScenarioSelect(select.Select):
         self.find.Bind(wx.EVT_BUTTON, self.OnFind)
         self.bookmark.Bind(wx.EVT_BUTTON, self.OnBookmark)
 
+        self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel2, id=wx.ID_CANCEL)
+
         if lastscenario or lastscenariopath:
             self.set_selected(lastscenario, lastscenariopath)
         else:
@@ -2581,9 +2584,24 @@ class ScenarioSelect(select.Select):
         self.draw(True)
         self.enable_btn()
 
+    def OnOk(self, event):
+        if not self.list:
+            return
+
+        self.Enable(False)
+        self.Show(False)
+        cw.cwpy.frame.ok_scenarioselect(self)
+
+    def OnCancel2(self, event):
+        # キャンセルしても最後の選択は記憶する
+        cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = self.get_selected()
+        cw.cwpy.frame.kill_dlg(self)
+
+
 class FindResult(object):
     def __init__(self):
         self.headers = []
+
 
 class UpdateNamesThread(threading.Thread):
 

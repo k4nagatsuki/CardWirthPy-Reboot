@@ -14,6 +14,8 @@ import cw
 import cw.debug.debugger
 from cw.util import synclock
 
+_killlist_mutex = threading.Lock()
+
 
 class Frame(wx.Frame):
     def __init__(self, app, skindirname=""):
@@ -33,6 +35,8 @@ class Frame(wx.Frame):
         else:
             cw.UP_WIN = 1
             cw.UP_SCR = 1
+
+        self.kill_list = []
 
         # トップフレーム
         setfullscreensize = False
@@ -600,26 +604,38 @@ class Frame(wx.Frame):
         dlg = cw.dialog.scenarioselect.ScenarioSelect(self, db, cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath)
         self.move_dlg(dlg)
 
-        if dlg.ShowModal() == wx.ID_OK:
-            header = dlg.list[dlg.index]
-            sel, selpath = dlg.get_selected()
-            cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
-            if sys.platform == "win32":
-                cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath, manualstart=True)
-                self.kill_dlg(dlg)
-            else:
-                # linuxでたまに操作不能になる
-                cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath, manualstart=True)
-                def func(self, dlg):
-                    def func(self, dlg):
-                        if self:
-                            self.kill_dlg(dlg)
-                    cw.cwpy.frame.exec_func(func, self, dlg)
-                cw.cwpy.exec_func(func, self, dlg)
-        else:
-            # キャンセルしても最後の選択は記憶する
-            cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
-            self.kill_dlg(dlg)
+        dlg.ShowModal()
+
+    def ok_scenarioselect(self, dlg):
+        header = dlg.list[dlg.index]
+        sel, selpath = dlg.get_selected()
+        cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
+
+        cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath, manualstart=True)
+
+        # FIXME: linuxでたまに操作不能になる
+        #        Windowsでも環境によって落ちる事がある
+        #        kill_dlgを遅延させる事で問題を回避する
+        self.kill_dlg(None)
+        self.append_killlist(dlg)
+
+    @synclock(_killlist_mutex)
+    def append_killlist(self, dlg):
+        self.kill_list.append(dlg)
+
+    @synclock(_killlist_mutex)
+    def check_killlist(self):
+        assert threading.currentThread() is cw.cwpy
+        if self.kill_list and not cw.cwpy.lock_menucards:
+            # FIXME: ダイアログの遅延Kill。
+            #        一部環境でたまにシナリオ選択後にハングアップするため。
+            if not cw.cwpy.is_runningevent() and not cw.cwpy.is_showingdlg():
+                def func():
+                    for dlg in self.kill_list:
+                        dlg.Destroy()
+                    del self.kill_list[:]
+                    print "kill!"
+                self.exec_func(func)
 
     def OnALBUM(self, event):
         dlg = cw.dialog.select.Album(self)
