@@ -210,7 +210,6 @@ class CardControl(wx.Dialog):
             self.draw_cards()
 
     def _bind(self):
-        self.Bind(wx.EVT_BUTTON, self.OnCancel2, self.closebtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn2, self.leftbtn2)
@@ -238,7 +237,7 @@ class CardControl(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
 
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
-        self.Bind(wx.EVT_BUTTON, self.OnCancel2, id=wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
         self.leftkeyid = wx.NewId()
         self.rightkeyid = wx.NewId()
@@ -1208,7 +1207,7 @@ class CardControl(wx.Dialog):
         cw.cwpy.frame.kill_dlg(None)
         cw.cwpy.frame.append_killlist(self)
 
-    def OnCancel2(self, event):
+    def OnCancel(self, event):
         if not self.callname in ("CARDPOCKET_REPLACE", "INFOVIEW"):
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
         cw.cwpy.frame.kill_dlg(None)
@@ -1707,7 +1706,7 @@ class CardHolder(CardControl):
         self._redraw = True
         self.draw_cards()
 
-    def OnCancel2(self, event):
+    def OnCancel(self, event):
         if self.callname == "CARDPOCKETB":
             cw.cwpy.play_sound("page")
             old_callname = self.callname
@@ -1715,7 +1714,7 @@ class CardHolder(CardControl):
             self._change_callname(old_callname)
             self.draw_cards()
         else:
-            CardControl.OnCancel2(self, event)
+            CardControl.OnCancel(self, event)
 
     def _change_callname(self, old_callname):
         self._load_index()

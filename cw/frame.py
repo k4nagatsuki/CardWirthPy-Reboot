@@ -634,7 +634,6 @@ class Frame(wx.Frame):
                     for dlg in self.kill_list:
                         dlg.Destroy()
                     del self.kill_list[:]
-                    print "kill!"
                 self.exec_func(func)
 
     def OnALBUM(self, event):
