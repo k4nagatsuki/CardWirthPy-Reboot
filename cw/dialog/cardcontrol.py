@@ -210,7 +210,7 @@ class CardControl(wx.Dialog):
             self.draw_cards()
 
     def _bind(self):
-        self.Bind(wx.EVT_BUTTON, self.OnCancel, self.closebtn)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel2, self.closebtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn2, self.leftbtn2)
@@ -690,9 +690,6 @@ class CardControl(wx.Dialog):
         # キャンセルボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.closebtn.GetId())
         self.ProcessEvent(btnevent)
-
-    def OnCancel(self, event):
-        self.EndModal(wx.ID_CANCEL)
 
     def OnMove(self, event):
         mousepos = event.GetPosition()
@@ -1710,7 +1707,7 @@ class CardHolder(CardControl):
         self._redraw = True
         self.draw_cards()
 
-    def OnCancel(self, event):
+    def OnCancel2(self, event):
         if self.callname == "CARDPOCKETB":
             cw.cwpy.play_sound("page")
             old_callname = self.callname
@@ -1718,7 +1715,7 @@ class CardHolder(CardControl):
             self._change_callname(old_callname)
             self.draw_cards()
         else:
-            CardControl.OnCancel(self, event)
+            CardControl.OnCancel2(self, event)
 
     def _change_callname(self, old_callname):
         self._load_index()
