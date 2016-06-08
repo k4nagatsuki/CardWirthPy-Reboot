@@ -924,7 +924,7 @@ class ScenarioData(SystemData):
             valuenames = []
             for ev in e:
                 if ev.tag.startswith("Value"):
-                    valuenames.append(ev.text)
+                    valuenames.append(ev.text if ev.text else u"")
             self.steps[name] = Step(value, name, valuenames)
 
     def reset_variables(self):
@@ -1230,8 +1230,8 @@ class Flag(object):
     def __init__(self, value, name, truename, falsename):
         self.value = value
         self.name = name
-        self.truename = truename
-        self.falsename = falsename
+        self.truename = truename if truename else u""
+        self.falsename = falsename if falsename else u""
 
     def __nonzero__(self):
         return self.value
