@@ -94,7 +94,7 @@ class EventContentBase(object):
 
         values = {}
         maxvalue = 0
-        for pcard in cw.cwpy.get_pcards():
+        for pcard in cw.cwpy.get_pcards(mode):
             if not silenced_member and pcard.is_silence():
                 continue
             value = self.initvalue
