@@ -1121,7 +1121,7 @@ class ScenarioSelect(select.Select):
         if self.tree.IsShown():
             self.tree.Hide()
             self.toppanel.Show()
-            self.update_narrowcondition()
+            self.draw(True)
             cw.cwpy.setting.show_scenariotree = False
         else:
             self.show_tree()
