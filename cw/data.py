@@ -21,6 +21,9 @@ from cw.util import synclock
 
 _lock = threading.Lock()
 
+_WSN_DATA_DIRS = ("area", "battle", "package", "castcard", "skillcard", "itemcard", "beastcard", "infocard")
+
+
 #-------------------------------------------------------------------------------
 #　システムデータ
 #-------------------------------------------------------------------------------
@@ -81,7 +84,7 @@ class SystemData(object):
         self._init_xmlpaths()
         self._init_sparea_mcards()
 
-    def _init_xmlpaths(self):
+    def _init_xmlpaths(self, xmlonly=False):
         self.areas = {}
         self.battles = {}
         self.packs = {}
@@ -447,6 +450,7 @@ class SystemData(object):
 #-------------------------------------------------------------------------------
 
 class ScenarioData(SystemData):
+
     def __init__(self, header, cardonly=False):
         self.data = None
         self.is_playing = True
@@ -481,6 +485,34 @@ class ScenarioData(SystemData):
 
         # 特殊文字の画像パスの集合(正規表現)
         self._r_specialchar = re.compile(r"^font_(.)[.]bmp$")
+
+        # エリア・カードなどのデータ
+        class _ScenarioResTable(dict):
+            def __init__(self, sdata):
+                self.sdata = sdata
+
+            def get(self, k, d=None):
+                result = dict.get(self, k, d)
+                if result and not os.path.isfile(result[1]) and self.sdata.is_updatedfilenames():
+                    self.sdata._init_xmlpaths()
+                    result = dict.get(self, k, d)
+                return result
+
+            def __getitem__(self, item):
+                result = dict.__getitem__(self, item)
+                if result and not os.path.isfile(result[1]) and self.sdata.is_updatedfilenames():
+                    self.sdata._init_xmlpaths()
+                    result = dict.__getitem__(self, item)
+                return result
+
+        self.areas = _ScenarioResTable(self)
+        self.battles = _ScenarioResTable(self)
+        self.packs = _ScenarioResTable(self)
+        self.casts = _ScenarioResTable(self)
+        self.infos = _ScenarioResTable(self)
+        self.items = _ScenarioResTable(self)
+        self.skills = _ScenarioResTable(self)
+        self.beasts = _ScenarioResTable(self)
 
         # 各種xmlファイルのパスを設定
         self._init_xmlpaths()
@@ -784,7 +816,29 @@ class ScenarioData(SystemData):
                 cw.cwpy.event.refresh_tools()
         cw.cwpy.frame.exec_func(func)
 
-    def _init_xmlpaths(self):
+    def is_updatedfilenames(self):
+        """WSNシナリオのデータ(XML)のファイル名がデータテーブル
+        作成時点から変更されている場合はTrueを返す。
+        """
+        datafilenames = set()
+
+        for dpath, _dnames, fnames in os.walk(self.tempdir):
+            if not os.path.basename(dpath).lower() in _WSN_DATA_DIRS:
+                continue
+            for fname in fnames:
+                if not fname.lower().endswith(".xml"):
+                    continue
+                path = cw.util.join_paths(dpath, fname)
+                if not os.path.isfile(path):
+                    continue
+                path = os.path.normcase(path)
+                if not path in self._datafilenames:
+                    return True
+                datafilenames.add(path)
+
+        return datafilenames <> self._datafilenames
+
+    def _init_xmlpaths(self, xmlonly=False):
         """
         シナリオで使用されるXMLファイルのパスを辞書登録。
         また、"Summary.xml"のあるフォルダをシナリオディレクトリに設定する。
@@ -794,22 +848,30 @@ class ScenarioData(SystemData):
         # summary(CWPyElementTree)
         self.summary = None
         # 各xmlの(name, path)の辞書(IDがkey)
-        self.areas = {}
-        self.battles = {}
-        self.packs = {}
-        self.casts = {}
-        self.infos = {}
-        self.items = {}
-        self.skills = {}
-        self.beasts = {}
+        self._datafilenames = set()
+        self.areas.clear()
+        self.battles.clear()
+        self.packs.clear()
+        self.casts.clear()
+        self.skills.clear()
+        self.items.clear()
+        self.beasts.clear()
+        self.infos.clear()
 
         for dpath, _dnames, fnames in os.walk(self.tempdir):
+            isdatadir = os.path.basename(dpath).lower() in _WSN_DATA_DIRS
+            if xmlonly and not isdatadir:
+                continue
             for fname in fnames:
+                lf = fname.lower()
+
+                if xmlonly and not lf.endswith(".xml"):
+                    continue
+
                 # "font_*.*"のファイルパスの画像を特殊文字に指定
                 if self.eat_spchar(dpath, fname):
                     continue
                 else:
-                    lf = fname.lower()
                     if not (lf.endswith(".xml") or lf.endswith(".wsm") or lf.endswith(".wid")):
                         # シナリオファイル以外はここで処理終わり
                         continue
@@ -820,13 +882,15 @@ class ScenarioData(SystemData):
                 path = cw.util.join_paths(dpath, fname)
                 if not os.path.isfile(path):
                     continue
+                if lf.endswith(".xml"):
+                    self._datafilenames.add(os.path.normcase(path))
 
                 if (lf == "summary.xml" or lf == "summary.wsm") and not self.summary:
                     self.scedir = dpath.replace("\\", "/")
                     self.summary = xml2etree(path)
                     continue
 
-                if lf.endswith(".xml"):
+                if isdatadir and lf.endswith(".xml"):
                     # wsnシナリオの基本要素一覧情報
                     e = xml2element(path, "Property")
                     resid = e.getint("Id", -1)
