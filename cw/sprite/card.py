@@ -925,7 +925,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.events = cw.event.EventEngine(self.mcarddata.getfind("Events"))
         # CWPyElementTreeインスタンス
         e = cw.cwpy.sdata.get_castdata(self.mcarddata.getint("Property/Id"), nocache=True)
-        if not e:
+        if e is None:
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.mcards.remove(self)
             return False
