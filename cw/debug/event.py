@@ -115,29 +115,33 @@ class EventList(wx.TreeCtrl):
         self.SetImageList(self.imglist)
         self.root = self.AddRoot(cw.cwpy.sdata.name)
 
-        def append_item(d, imgidx):
-            keys = d.keys()
+        def append_item(getids, getname, getdata, getfpath, imgidx):
+            keys = getids()
             cw.util.sort_by_attr(keys)
-            for eid in keys:
-                if eid < 0:
+            for resid in keys:
+                if resid < 0:
                     continue
-                a = d[eid]
-                name, path = a
+                name = getname(resid)
+                if name is None:
+                    continue
+                fpath = getfpath(resid)
+                if fpath is None:
+                    continue
                 item = self.AppendItem(self.root, name, imgidx)
-                self.SetItemPyData(item, (name, path, False))
-                if os.path.normcase(currentfpath) == os.path.normcase(path):
+                self.SetItemPyData(item, (name, resid, getdata, getfpath, False))
+                if os.path.normcase(currentfpath) == os.path.normcase(fpath):
                     self._expand_item(item)
                     self.Expand(item)
                     self.SelectItem(item, True)
                 else:
                     self.AppendItem(item, u"読込中...")
 
-        append_item(cw.cwpy.sdata.areas, imgidx_area)
-        append_item(cw.cwpy.sdata.battles, imgidx_battle)
-        append_item(cw.cwpy.sdata.packs, imgidx_package)
-        append_item(cw.cwpy.sdata.skills, imgidx_skill)
-        append_item(cw.cwpy.sdata.items, imgidx_item)
-        append_item(cw.cwpy.sdata.beasts, imgidx_beast)
+        append_item(cw.cwpy.sdata.get_areaids, cw.cwpy.sdata.get_areaname, cw.cwpy.sdata.get_areadata, cw.cwpy.sdata.get_areafpath, imgidx_area)
+        append_item(cw.cwpy.sdata.get_battleids, cw.cwpy.sdata.get_battlename, cw.cwpy.sdata.get_battledata, cw.cwpy.sdata.get_battlefpath, imgidx_battle)
+        append_item(cw.cwpy.sdata.get_packageids, cw.cwpy.sdata.get_packagename, cw.cwpy.sdata.get_packagedata, cw.cwpy.sdata.get_packagefpath, imgidx_package)
+        append_item(cw.cwpy.sdata.get_skillids, cw.cwpy.sdata.get_skillname, cw.cwpy.sdata.get_skilldata, cw.cwpy.sdata.get_skillfpath, imgidx_skill)
+        append_item(cw.cwpy.sdata.get_itemids, cw.cwpy.sdata.get_itemname, cw.cwpy.sdata.get_itemdata, cw.cwpy.sdata.get_itemfpath, imgidx_item)
+        append_item(cw.cwpy.sdata.get_beastids, cw.cwpy.sdata.get_beastname, cw.cwpy.sdata.get_beastdata, cw.cwpy.sdata.get_beastfpath, imgidx_beast)
 
         selitem = self.GetSelection()
         if selitem:
@@ -157,7 +161,7 @@ class EventList(wx.TreeCtrl):
         paritem = self.GetItemParent(selitem)
         if paritem <> self.root:
             return
-        name, path, expanded = self.GetItemPyData(selitem)
+        name, resid, getdata, getfpath, expanded = self.GetItemPyData(selitem)
         if expanded:
             return
 
@@ -213,7 +217,11 @@ class EventList(wx.TreeCtrl):
                 child = self.AppendItem(item, name, self.imgidx_round)
                 self.SetItemPyData(child, e)
 
-        data = cw.data.xml2etree(path)
+        e = getdata(resid)
+        if e is None:
+            self.AppendItem(selitem, u"読込に失敗しました")
+            return
+        data = cw.data.xml2etree(element=e)
         for ee in data.getfind("Events"):
             append(selitem, ee, data.getroot().tag)
 
@@ -221,7 +229,9 @@ class EventList(wx.TreeCtrl):
             if self._showallcards or cw.sprite.card.CWPyCard.is_flagtrue_static(ce):
                 if ce.tag == "EnemyCard":
                     cardid = ce.getint("Property/Id", 0)
-                    cardname = cw.cwpy.sdata.casts.get(cardid, (u"", u""))[0]
+                    cardname = cw.cwpy.sdata.get_castname(cardid)
+                    if  cardname is None:
+                        cardname = u"(未設定)"
                 else:
                     cardname = ce.gettext("Property/Name", u"")
                 item = self.AppendItem(selitem, cardname, self.imgidx_menucard)
@@ -229,7 +239,7 @@ class EventList(wx.TreeCtrl):
                     append(item, ee, ce.tag)
                 self.Expand(item)
 
-        self.SetItemPyData(selitem, (name, path, True))
+        self.SetItemPyData(selitem, (name, resid, getdata, getfpath, True))
 
     def set_showallcards(self, value):
         """フラグがオフのカードをリストに表示するか設定する。
@@ -240,8 +250,8 @@ class EventList(wx.TreeCtrl):
             self._showallcards = value
             item, cookie = self.GetFirstChild(self.root)
             while item.IsOk():
-                name, path, expanded = self.GetItemPyData(item)
-                self.SetItemPyData(item, (name, path, False))
+                name, resid, getdata, getfpath, expanded = self.GetItemPyData(item)
+                self.SetItemPyData(item, (name, resid, getdata, getfpath, False))
                 if self.IsExpanded(item):
                     self._expand_item(item)
                 else:
@@ -271,5 +281,5 @@ class EventList(wx.TreeCtrl):
             selitem = parent
             parent = self.GetItemParent(selitem)
 
-        _name, path, _expanded = self.GetItemPyData(selitem)
-        return path
+        _name, resid, _getdata, getfpath, _expanded = self.GetItemPyData(selitem)
+        return getfpath(resid)

@@ -241,25 +241,24 @@ class BranchContent(EventContentBase):
 
         # 対象カードのxmlファイルのパス
         if cardtype == "SkillCard":
-            table = cw.cwpy.sdata.skills
+            getdata = cw.cwpy.sdata.get_skilldata
             pocketidx = cw.POCKET_SKILL
         elif cardtype == "ItemCard":
-            table = cw.cwpy.sdata.items
+            getdata = cw.cwpy.sdata.get_itemdata
             pocketidx = cw.POCKET_ITEM
         elif cardtype == "BeastCard":
-            table = cw.cwpy.sdata.beasts
+            getdata = cw.cwpy.sdata.get_beastdata
             pocketidx = cw.POCKET_BEAST
         else:
             raise ValueError(cardtype + " is invalid cardtype")
 
-        if not resid in table:
+        # 対象カードデータ取得
+        e = getdata(resid, "Property")
+
+        if e is None:
             # 存在しないカードは常に所持していない
             return self.get_boolean_index(False)
 
-        path = table[resid][1]
-
-        # 対象カードデータ取得
-        e = cw.data.xml2element(path, "Property")
         cardname = e.gettext("Name", "")
         carddesc = e.gettext("Description", "")
 
@@ -518,24 +517,23 @@ class BranchSkillContent(BranchContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
-
-        if resid in cw.cwpy.sdata.skills:
-            return u"特殊技能カード『%s』所持分岐" % (cw.cwpy.sdata.skills[resid][0])
+        name = cw.cwpy.sdata.get_skillname(resid)
+        if not name is None:
+            return u"特殊技能カード『%s』所持分岐" % (name)
         else:
             return u"特殊技能カードが指定されていません"
 
     def get_childname(self, child):
         resid = self.data.getint(".", "id", 0)
         scope = self.data.get("targets")
-
-        if resid in cw.cwpy.sdata.skills:
+        name = cw.cwpy.sdata.get_skillname(resid)
+        if not name is None:
             s = self.textdict.get(scope.lower(), "")
-            s2 = cw.cwpy.sdata.skills[resid][0]
 
             if self.get_contentname(child) == u"○":
-                s = u"%sが『%s』を所有している" % (s, s2)
+                s = u"%sが『%s』を所有している" % (s, name)
             else:
-                s = u"%sが『%s』を所有していない" % (s, s2)
+                s = u"%sが『%s』を所有していない" % (s, name)
 
         else:
             s = u"特殊技能カードが指定されていません"
@@ -552,24 +550,24 @@ class BranchItemContent(BranchContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
-
-        if resid in cw.cwpy.sdata.items:
-            return u"アイテムカード『%s』所持分岐" % (cw.cwpy.sdata.items[resid][0])
+        name = cw.cwpy.sdata.get_itemname(resid)
+        if not name is None:
+            return u"アイテムカード『%s』所持分岐" % (name)
         else:
             return u"アイテムカードが指定されていません"
 
     def get_childname(self, child):
         resid = self.data.getint(".", "id", 0)
         scope = self.data.get("targets")
+        name = cw.cwpy.sdata.get_itemname(resid)
 
-        if resid in cw.cwpy.sdata.items:
+        if not name is None:
             s = self.textdict.get(scope.lower(), "")
-            s2 = cw.cwpy.sdata.items[resid][0]
 
             if self.get_contentname(child) == u"○":
-                s = u"%sが『%s』を所有している" % (s, s2)
+                s = u"%sが『%s』を所有している" % (s, name)
             else:
-                s = u"%sが『%s』を所有していない" % (s, s2)
+                s = u"%sが『%s』を所有していない" % (s, name)
 
         else:
             s = u"アイテムカードが指定されていません"
@@ -586,24 +584,24 @@ class BranchBeastContent(BranchContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
-
-        if resid in cw.cwpy.sdata.beasts:
-            return u"召喚獣カード『%s』所持分岐" % (cw.cwpy.sdata.beasts[resid][0])
+        name = cw.cwpy.sdata.get_beastname(resid)
+        if not name is None:
+            return u"召喚獣カード『%s』所持分岐" % (name)
         else:
             return u"召喚獣カードが指定されていません"
 
     def get_childname(self, child):
         resid = self.data.getint(".", "id", 0)
         scope = self.data.get("targets")
+        name = cw.cwpy.sdata.get_beastname(resid)
 
-        if resid in cw.cwpy.sdata.beasts:
+        if not name is None:
             s = self.textdict.get(scope.lower(), "")
-            s2 = cw.cwpy.sdata.beasts[resid][0]
 
             if self.get_contentname(child) == u"○":
-                s = u"%sが『%s』を所有している" % (s, s2)
+                s = u"%sが『%s』を所有している" % (s, name)
             else:
-                s = u"%sが『%s』を所有していない" % (s, s2)
+                s = u"%sが『%s』を所有していない" % (s, name)
 
         else:
             s = u"召喚獣カードが指定されていません"
@@ -625,17 +623,19 @@ class BranchCastContent(BranchContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_castname(resid)
 
-        if resid and resid in cw.cwpy.sdata.casts:
-            return u"キャスト『%s』存在分岐" % (cw.cwpy.sdata.casts[resid][0])
+        if not name is None:
+            return u"キャスト『%s』存在分岐" % (name)
         else:
             return u"キャストが指定されていません"
 
     def get_childname(self, child):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_castname(resid)
 
-        if resid and resid in cw.cwpy.sdata.casts:
-            s = cw.cwpy.sdata.casts[resid][0]
+        if not name is None:
+            s = name
         else:
             s = u"指定無し"
 
@@ -658,17 +658,19 @@ class BranchInfoContent(BranchContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_infoname(resid)
 
-        if resid and resid in cw.cwpy.sdata.infos:
-            return u"情報カード『%s』存在分岐" % (cw.cwpy.sdata.infos[resid][0])
+        if not name is None:
+            return u"情報カード『%s』存在分岐" % (name)
         else:
             return u"情報カードが指定されていません"
 
     def get_childname(self, child):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_infoname(resid)
 
-        if resid and resid in cw.cwpy.sdata.infos:
-            s = cw.cwpy.sdata.infos[resid][0]
+        if not name is None:
+            s = name
         else:
             s = u"指定無し"
 
@@ -724,10 +726,12 @@ class BranchBattleContent(BranchContent):
 
         if resid == "Default":
             s = u"その他"
-        elif resid in cw.cwpy.sdata.battles:
-            s = cw.cwpy.sdata.battles[resid][0]
         else:
-            s = u"指定無し"
+            name = cw.cwpy.sdata.get_battlename(resid)
+            if not name is None:
+                s = name
+            else:
+                s = u"指定無し"
 
         return u"バトル = " + s
 
@@ -759,10 +763,12 @@ class BranchAreaContent(BranchContent):
 
         if resid == "Default":
             s = u"その他"
-        elif resid in cw.cwpy.sdata.areas:
-            s = cw.cwpy.sdata.areas[resid][0]
         else:
-            s = u"指定無し"
+            name = cw.cwpy.sdata.get_areaname(resid)
+            if not name is None:
+                s = name
+            else:
+                s = u"指定無し"
 
         return u"エリア = " + s
 
@@ -1624,9 +1630,10 @@ class CallPackageContent(EventContentBase):
 
     def get_status(self):
         resid = self.data.getint(".", "call", 0)
+        name = cw.cwpy.sdata.get_packagename(resid)
 
-        if resid and resid in cw.cwpy.sdata.packs:
-            return u"パッケージ『%s』コール" % (cw.cwpy.sdata.packs[resid][0])
+        if not name is None:
+            return u"パッケージ『%s』コール" % (name)
         else:
             return u"パッケージが指定されていません"
 
@@ -1634,12 +1641,11 @@ def call_package(resid, call):
     """パッケージを実行する。
     call: コールならTrue、リンクならFalse。
     """
-    if not (resid and resid in cw.cwpy.sdata.packs):
-        return
-
     if not resid in cw.cwpy.event.nowrunningpacks:
-        path = cw.cwpy.sdata.packs[resid][1]
-        data = cw.data.xml2etree(path)
+        e = cw.cwpy.sdata.get_packagedata(resid)
+        if e is None:
+            return 0
+        data = cw.data.xml2etree(element=e)
         versionhint = cw.cwpy.sct.from_basehint(data.getattr("Property", "versionHint", ""))
         e = data.find("Events/Event")
         if e is None:
@@ -1740,8 +1746,9 @@ class ChangeAreaContent(EventContentBase):
 
         resid = self.data.getint(".", "id", 0)
         ttype = self.get_transitiontype()
+        name = cw.cwpy.sdata.get_areaname(resid)
 
-        if resid and resid in cw.cwpy.sdata.areas:
+        if not name is None:
             cw.cwpy.exec_func(cw.cwpy.change_area, resid, ttype=ttype)
             cw.cwpy._dealing = True
             raise cw.event.AreaChangeError()
@@ -1751,9 +1758,10 @@ class ChangeAreaContent(EventContentBase):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_areaname(resid)
 
-        if resid and resid in cw.cwpy.sdata.areas:
-            return u"エリア『%s』へ移動" % (cw.cwpy.sdata.areas[resid][0])
+        if not name is None:
+            return u"エリア『%s』へ移動" % (name)
         else:
             return u"エリアが指定されていません"
 
@@ -2099,21 +2107,21 @@ class GetContent(EventContentBase):
 
         # 対象カードのxmlファイルのパス
         if cardtype == "SkillCard":
-            path = cw.cwpy.sdata.skills.get(resid, ("", ""))[1]
+            getdata = cw.cwpy.sdata.get_skilldata
         elif cardtype == "ItemCard":
-            path = cw.cwpy.sdata.items.get(resid, ("", ""))[1]
+            getdata = cw.cwpy.sdata.get_itemdata
         elif cardtype == "BeastCard":
-            path = cw.cwpy.sdata.beasts.get(resid, ("", ""))[1]
+            getdata = cw.cwpy.sdata.get_beastdata
         else:
             raise ValueError("%s is invalid cardtype" % cardtype)
-
-        if not path:
-            return
 
         for _cnt in xrange(num):
             for target in cw.cwpy.event.get_targetscope(scope):
                 nocache = not (cw.cwpy.ydata and cw.cwpy.ydata.party and cw.cwpy.ydata.party.backpack == target)
-                etree = cw.data.xml2etree(path, nocache=nocache)
+                e = getdata(resid, nocache=nocache)
+                if e is None:
+                    return 0
+                etree = cw.data.xml2etree(element=e, nocache=nocache)
                 get_card(etree, target, from_getcontent=True)
 
 def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None,
@@ -2183,13 +2191,14 @@ class GetSkillContent(GetContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_skillname(resid)
 
-        if resid in cw.cwpy.sdata.skills:
+        if not name is None:
             scope = self.data.get("targets")
             scope = self.textdict.get(scope.lower(), "")
             num = self.data.getint(".", "number", 0)
             num = u"%s枚" % (num)
-            return u"%sが特殊技能カード『%s』を%s取得" % (scope, cw.cwpy.sdata.skills[resid][0], num)
+            return u"%sが特殊技能カード『%s』を%s取得" % (scope, name, num)
         else:
             return u"特殊技能カードが指定されていません"
 
@@ -2204,13 +2213,14 @@ class GetItemContent(GetContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_itemname(resid)
 
-        if resid in cw.cwpy.sdata.items:
+        if not name is None:
             scope = self.data.get("targets")
             scope = self.textdict.get(scope.lower(), "")
             num = self.data.getint(".", "number", 0)
             num = u"%s枚" % (num)
-            return u"%sがアイテムカード『%s』を%s取得" % (scope, cw.cwpy.sdata.items[resid][0], num)
+            return u"%sがアイテムカード『%s』を%s取得" % (scope, name, num)
         else:
             return u"アイテムカードが指定されていません"
 
@@ -2225,13 +2235,14 @@ class GetBeastContent(GetContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_beastname(resid)
 
-        if resid in cw.cwpy.sdata.beasts:
+        if not name is None:
             scope = self.data.get("targets")
             scope = self.textdict.get(scope.lower(), "")
             num = self.data.getint(".", "number", 0)
             num = u"%s枚" % (num)
-            return u"%sが召喚獣カード『%s』を%s取得" % (scope, cw.cwpy.sdata.beasts[resid][0], num)
+            return u"%sが召喚獣カード『%s』を%s取得" % (scope, name, num)
         else:
             return u"召喚獣カードが指定されていません"
 
@@ -2246,13 +2257,14 @@ class GetCastContent(GetContent):
 
         resid = self.data.getint(".", "id", 0)
 
-        if resid and resid in cw.cwpy.sdata.casts:
-            fcards = [i for i in cw.cwpy.sdata.friendcards if i.id == resid]
+        fcards = [i for i in cw.cwpy.sdata.friendcards if i.id == resid]
 
-            if not fcards and len(cw.cwpy.sdata.friendcards) < 6:
-                if cw.cwpy.ydata:
-                    cw.cwpy.ydata.changed()
-                fcard = cw.sprite.card.FriendCard(resid)
+        if not fcards and len(cw.cwpy.sdata.friendcards) < 6:
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
+            e = cw.cwpy.sdata.get_castdata(resid, nocache=True)
+            if not e is None:
+                fcard = cw.sprite.card.FriendCard(data=e)
                 cw.cwpy.sdata.friendcards.append(fcard)
                 if cw.cwpy.is_battlestatus() and fcard.is_alive():
                     # 即戦闘に参加する
@@ -2263,9 +2275,10 @@ class GetCastContent(GetContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_castname(resid)
 
-        if resid and resid in cw.cwpy.sdata.casts:
-            return u"キャストカード『%s』加入" % (cw.cwpy.sdata.casts[resid][0])
+        if not name is None:
+            return u"キャストカード『%s』加入" % (name)
         else:
             return u"キャストカードが指定されていません"
 
@@ -2279,7 +2292,8 @@ class GetInfoContent(GetContent):
         if self.is_differentscenario():
             return 0
 
-        if self.resid in cw.cwpy.sdata.infos:
+        name = cw.cwpy.sdata.get_infoname(self.resid)
+        if not name is None:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             if cw.cwpy.sdata.has_infocard(self.resid):
@@ -2293,9 +2307,10 @@ class GetInfoContent(GetContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_infoname(resid)
 
-        if resid and resid in cw.cwpy.sdata.infos:
-            return u"情報カード『%s』入手" % (cw.cwpy.sdata.infos[resid][0])
+        if not name is None:
+            return u"情報カード『%s』入手" % (name)
         else:
             return u"情報カードが指定されていません"
 
@@ -2449,9 +2464,10 @@ class LinkPackageContent(EventContentBase):
 
     def get_status(self):
         resid = self.data.getint(".", "link", 0)
+        name = cw.cwpy.sdata.get_packagename(resid)
 
-        if resid in cw.cwpy.sdata.packs:
-            return u"パッケージビュー『%s』" % (cw.cwpy.sdata.packs[resid][0])
+        if not name is None:
+            return u"パッケージビュー『%s』" % (name)
         else:
             return u"パッケージが指定されていません"
 
@@ -2478,22 +2494,21 @@ class LoseContent(EventContentBase):
 
         # 対象カードのxmlファイルのパス
         if cardtype == "SkillCard":
-            path = cw.cwpy.sdata.skills.get(resid, ("", ""))[1]
+            getdata = cw.cwpy.sdata.get_skilldata
             index = cw.POCKET_SKILL
         elif cardtype == "ItemCard":
-            path = cw.cwpy.sdata.items.get(resid, ("", ""))[1]
+            getdata = cw.cwpy.sdata.get_itemdata
             index = cw.POCKET_ITEM
         elif cardtype == "BeastCard":
-            path = cw.cwpy.sdata.beasts.get(resid, ("", ""))[1]
+            getdata = cw.cwpy.sdata.get_beastdata
             index = cw.POCKET_BEAST
         else:
             raise ValueError("%s is invalid cardtype" % cardtype)
 
-        if not path:
-            return
-
         # 対象カードデータ取得
-        e = cw.data.xml2element(path, "Property")
+        e = getdata(resid, "Property")
+        if e is None:
+            return 0
         name = e.gettext("Name", "")
         desc = e.gettext("Description", "")
         if num == 0:
@@ -2540,9 +2555,9 @@ class LoseSkillContent(LoseContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_skillname(resid)
 
-        if resid in cw.cwpy.sdata.skills:
-            name = cw.cwpy.sdata.skills[resid][0]
+        if not name is None:
             scope = self.data.get("targets")
             scope = self.textdict.get(scope.lower(), "")
             num = self.data.getint(".", "number", 0)
@@ -2562,9 +2577,9 @@ class LoseItemContent(LoseContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_itemname(resid)
 
-        if resid in cw.cwpy.sdata.items:
-            name = cw.cwpy.sdata.items[resid][0]
+        if not name is None:
             scope = self.data.get("targets")
             scope = self.textdict.get(scope.lower(), "")
             num = self.data.getint(".", "number", 0)
@@ -2584,9 +2599,9 @@ class LoseBeastContent(LoseContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_beastname(resid)
 
-        if resid in cw.cwpy.sdata.beasts:
-            name = cw.cwpy.sdata.beasts[resid][0]
+        if not name is None:
             scope = self.data.get("targets")
             scope = self.textdict.get(scope.lower(), "")
             num = self.data.getint(".", "number", 0)
@@ -2606,24 +2621,23 @@ class LoseCastContent(LoseContent):
 
         resid = self.data.getint(".", "id", 0)
 
-        if resid in cw.cwpy.sdata.casts:
-            fcards = [i for i in cw.cwpy.sdata.friendcards if i.id == resid]
+        fcards = [i for i in cw.cwpy.sdata.friendcards if i.id == resid]
 
-            if fcards:
-                if cw.cwpy.ydata:
-                    cw.cwpy.ydata.changed()
-                if cw.cwpy.is_battlestatus() and fcards[0] in cw.cwpy.battle.members:
-                    cw.cwpy.battle.members.remove(fcards[0])
-                    fcards[0].clear_action()
-                cw.cwpy.sdata.friendcards.remove(fcards[0])
+        if fcards:
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
+            if cw.cwpy.is_battlestatus() and fcards[0] in cw.cwpy.battle.members:
+                cw.cwpy.battle.members.remove(fcards[0])
+                fcards[0].clear_action()
+            cw.cwpy.sdata.friendcards.remove(fcards[0])
 
         return 0
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_castname(resid)
 
-        if resid in cw.cwpy.sdata.casts:
-            name = cw.cwpy.sdata.casts[resid][0]
+        if not name is None:
             return u"キャストカード『%s』離脱" % (name)
         else:
             return u"キャストカードが指定されていません"
@@ -2638,7 +2652,8 @@ class LoseInfoContent(LoseContent):
         if self.is_differentscenario():
             return 0
 
-        if self.resid in cw.cwpy.sdata.infos:
+        name = cw.cwpy.sdata.get_infoname(self.resid)
+        if not name is None:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             cw.cwpy.sdata.remove_infocard(self.resid)
@@ -2647,9 +2662,9 @@ class LoseInfoContent(LoseContent):
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_infoname(resid)
 
-        if resid in cw.cwpy.sdata.infos:
-            name = cw.cwpy.sdata.infos[resid][0]
+        if not name is None:
             return u"情報カード『%s』喪失" % (name)
         else:
             return u"情報カードが指定されていません"
@@ -3047,8 +3062,8 @@ class StartBattleContent(StartContent):
             return 0
 
         areaid = self.data.getint(".", "id", 0)
-
-        if areaid in cw.cwpy.sdata.battles:
+        name = cw.cwpy.sdata.get_battlename(areaid)
+        if not name is None:
             cw.cwpy.lock_menucards = True
             cw.cwpy.exec_func(cw.cwpy.change_battlearea, areaid)
             cw.cwpy._dealing = True
@@ -3058,9 +3073,10 @@ class StartBattleContent(StartContent):
 
     def get_status(self):
         areaid = self.data.getint(".", "id", 0)
+        name = cw.cwpy.sdata.get_battlename(areaid)
 
-        if areaid in cw.cwpy.sdata.battles:
-            return u"バトルビュー『%s』" % (cw.cwpy.sdata.battles[areaid][0])
+        if not name is None:
+            return u"バトルビュー『%s』" % (name)
         else:
             return u"バトルエリアが指定されていません"
 

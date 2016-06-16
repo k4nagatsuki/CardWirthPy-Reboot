@@ -717,10 +717,13 @@ class CardEditDialog(wx.Dialog):
 
         self.scenario.SetLabel(self.scdata.name)
 
-        def append_cards(table, image):
-            for resid in table.keys():
+        def append_cards(getids, getdata, image):
+            for resid in getids():
                 index = self.cards.GetItemCount()
-                data = cw.data.xml2etree(table[resid][1])
+                e = getdata(resid)
+                if e is None:
+                    continue
+                data = cw.data.xml2etree(element=e)
 
                 header = cw.header.CardHeader(carddata=data.getroot(), from_scenario=True, scedir=self.scdata.scedir)
                 header.negaflag = False
@@ -731,9 +734,9 @@ class CardEditDialog(wx.Dialog):
                 self.list.append(header)
                 self.datalist.append(data)
 
-        append_cards(self.scdata.skills, self.imgidx_skill)
-        append_cards(self.scdata.items, self.imgidx_item)
-        append_cards(self.scdata.beasts, self.imgidx_beast)
+        append_cards(self.scdata.get_skillids, self.scdata.get_skilldata, self.imgidx_skill)
+        append_cards(self.scdata.get_itemids, self.scdata.get_itemdata, self.imgidx_item)
+        append_cards(self.scdata.get_beastids, self.scdata.get_beastdata, self.imgidx_beast)
 
         self._update_enable()
 

@@ -897,7 +897,8 @@ class EnemyCard(CWPyCard, character.Enemy):
             self._rect = cw.s(pygame.Rect(0, 0, 0, 0))
             self.clear_image()
         else:
-            self.initialize()
+            if not self.initialize():
+                raise
 
         layer = mcarddata.getint("Property/Layer", -1)
         if 0 <= layer:
@@ -916,15 +917,19 @@ class EnemyCard(CWPyCard, character.Enemy):
 
     def initialize(self):
         if self._init:
-            return
+            return True
 
         self._init = True
 
         # イベントデータ
         self.events = cw.event.EventEngine(self.mcarddata.getfind("Events"))
         # CWPyElementTreeインスタンス
-        path = cw.cwpy.sdata.casts[self.mcarddata.getint("Property/Id")][1]
-        self.data = cw.data.xml2etree(path, nocache=True)
+        e = cw.cwpy.sdata.get_castdata(self.mcarddata.getint("Property/Id"), nocache=True)
+        if not e:
+            cw.cwpy.cardgrp.remove(self)
+            cw.cwpy.mcards.remove(self)
+            return False
+        self.data = cw.data.xml2etree(element=e)
         self.fpath = self.data.fpath
         # CharacterCard初期化
         character.Enemy.__init__(self)
@@ -943,13 +948,15 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.clear_image()
         # 精神力回復
         self.set_skillpower()
+        return True
 
     def is_initialized(self):
         return self._init
 
     def update(self, scr):
         if self.status <> "hidden" and not self._init:
-            self.initialize()
+            if not self.initialize():
+                return
         CWPyCard.update(self, scr)
 
     def update_delete(self):
@@ -998,21 +1005,16 @@ class EnemyCard(CWPyCard, character.Enemy):
 #-------------------------------------------------------------------------------
 
 class FriendCard(CWPyCard, character.Friend):
-    def __init__(self, castid=None, data=None, index=0):
+    def __init__(self, data=None, index=0):
         CWPyCard.__init__(self, "hidden")
         self.zoomsize_noscale = (32, 42)
         self.index = index
         self.layer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, self.index, 0)
 
-        if castid:
-            # Id
-            self.id = castid
-            # CWPyElementTreeインスタンス
-            path = cw.cwpy.sdata.casts[self.id][1]
-            self.data = cw.data.xml2etree(path, nocache=True)
-        elif data:
-            self.data = data
-            self.id = self.data.getint("Property/Id", 1)
+        if isinstance(data, cw.data.CWPyElement):
+            data = cw.data.xml2etree(element=data)
+        self.data = data
+        self.id = self.data.getint("Property/Id", 1)
 
         self.fpath = self.data.fpath
         # CharacterCard初期化
@@ -1128,7 +1130,7 @@ class MenuCard(CWPyCard):
 
     def initialize(self):
         if self._init:
-            return
+            return True
 
         self._init = True
 
@@ -1175,6 +1177,7 @@ class MenuCard(CWPyCard):
         # 初期化後は不要
         self._data = None
         self._pos_noscale2 = None
+        return True
 
     @property
     def cardimg(self):

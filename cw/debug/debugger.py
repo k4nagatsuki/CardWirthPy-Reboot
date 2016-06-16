@@ -407,7 +407,7 @@ class Debugger(wx.Frame):
 
         self.tb_area.AddSeparator()
         self.st_area = wx.StaticText(
-            self.tb_area, -1, cw.cwpy.sdata.get_areaname(), size=(200, -1))
+            self.tb_area, -1, cw.cwpy.sdata.get_currentareaname(), size=(200, -1))
         self.tb_area.AddControl(self.st_area)
 
         self.tb_area.AddSeparator()
@@ -949,9 +949,14 @@ class Debugger(wx.Frame):
 
     def OnInfoTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
-            seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.infos.iteritems() if key >= 0]
-            cw.util.sort_by_attr(seq)
+            seq = []
+            ids = cw.cwpy.sdata.get_infoids()
+            cw.util.sort_by_attr(ids)
+            for resid in ids:
+                name = cw.cwpy.sdata.get_infoname(resid)
+                fpath = cw.cwpy.sdata.get_infofpath(resid)
+                if not name is None:
+                    seq.append((resid, u"%s: %s" % (resid, name), fpath))
             infoids = set(cw.cwpy.sdata.get_infocards(order=False))
             oldids = infoids.copy()
             choices = []
@@ -973,6 +978,12 @@ class Debugger(wx.Frame):
                 hasids = set()
                 for index in dlg.GetSelections():
                     resid = seq[index][0]
+                    fpath = cw.cwpy.sdata.get_infofpath(resid)
+                    if fpath is None:
+                        s = u"%s の読込に失敗しました。" % (os.path.basename(seq[index][2]))
+                        cw.cwpy.call_modaldlg("ERROR", text=s)
+                        continue
+
                     hasids.add(resid)
 
                     if not resid in infoids:
@@ -990,8 +1001,14 @@ class Debugger(wx.Frame):
 
     def OnFriendTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
-            seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.casts.iteritems() if key >= 0]
+            seq = []
+            ids = cw.cwpy.sdata.get_castids()
+            cw.util.sort_by_attr(ids)
+            for resid in ids:
+                name = cw.cwpy.sdata.get_castname(resid)
+                if not name is None:
+                    seq.append((resid, u"%s: %s" % (resid, name)))
+
             cw.util.sort_by_attr(seq)
             friendids = set([i.id for i in cw.cwpy.sdata.friendcards])
             choices = []
@@ -1022,8 +1039,10 @@ class Debugger(wx.Frame):
                         if key in friendids:
                             friendids.remove(key)
                         else:
-                            fcard = cw.sprite.card.FriendCard(key)
-                            cw.cwpy.sdata.friendcards.append(fcard)
+                            e = cw.cwpy.sdata.get_castdata(key, nocache=True)
+                            if not e is None:
+                                fcard = cw.sprite.card.FriendCard(data=e)
+                                cw.cwpy.sdata.friendcards.append(fcard)
 
                     def func(friendids):
                         fcards = [i for i in cw.cwpy.sdata.friendcards
@@ -1046,9 +1065,14 @@ class Debugger(wx.Frame):
 
     def OnBattleTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
-            seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.battles.iteritems() if key >= 0]
-            cw.util.sort_by_attr(seq)
+            seq = []
+            ids = cw.cwpy.sdata.get_battleids()
+            cw.util.sort_by_attr(ids)
+            for resid in ids:
+                name = cw.cwpy.sdata.get_battlename(resid)
+                if not name is None:
+                    seq.append((resid, u"%s: %s" % (resid, name)))
+
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
                 self, u"開始するバトルを選択してください。",
@@ -1056,16 +1080,25 @@ class Debugger(wx.Frame):
 
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.exec_func(cw.cwpy.clean_specials)
-                func = cw.cwpy.change_battlearea
+                def func(resid):
+                    try:
+                        cw.cwpy.change_battlearea(resid)
+                    except cw.event.EffectBreakError, ex:
+                        cw.util.print_ex()
                 cw.cwpy.exec_func(func, seq[dlg.GetSelection()][0])
 
             dlg.Destroy()
 
     def OnPackageTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
-            seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.packs.iteritems() if key >= 0]
-            cw.util.sort_by_attr(seq)
+            seq = []
+            ids = cw.cwpy.sdata.get_packageids()
+            cw.util.sort_by_attr(ids)
+            for resid in ids:
+                name = cw.cwpy.sdata.get_packagename(resid)
+                if not name is None:
+                    seq.append((resid, u"%s: %s" % (resid, name)))
+
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
                 self, u"実行するパッケージを選択してください。",
@@ -1081,6 +1114,8 @@ class Debugger(wx.Frame):
                     except cw.battle.BattleError, ex:
                         if cw.cwpy.is_battlestatus():
                             cw.cwpy.battle.process_exception(ex)
+                    except cw.event.EffectBreakError, ex:
+                        cw.util.print_ex()
                 cw.cwpy.exec_func(func, resid)
 
             dlg.Destroy()
@@ -1094,9 +1129,16 @@ class Debugger(wx.Frame):
                 cw.cwpy.exec_func(func)
             # 非戦闘中はエリア移動
             else:
-                seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.areas.iteritems() if key >= 0]
-                cw.util.sort_by_attr(seq)
+                seq = []
+                ids = cw.cwpy.sdata.get_areaids()
+                cw.util.sort_by_attr(ids)
+                for resid in ids:
+                    if resid < 0:
+                        continue
+                    name = cw.cwpy.sdata.get_areaname(resid)
+                    if not name is None:
+                        seq.append((resid, u"%s: %s" % (resid, name)))
+
                 choices = []
                 if cw.cwpy.sdata and cw.cwpy.is_battlestatus():
                     areaid = cw.cwpy.sdata.pre_battleareadata[0]
@@ -1114,7 +1156,11 @@ class Debugger(wx.Frame):
 
                 if dlg.ShowModal() == wx.ID_OK:
                     cw.cwpy.exec_func(cw.cwpy.clean_specials)
-                    func = cw.cwpy.change_area
+                    def func(resid):
+                        try:
+                            cw.cwpy.change_area(resid)
+                        except cw.event.EffectBreakError, ex:
+                            cw.util.print_ex()
                     cw.cwpy.exec_func(func, seq[dlg.GetSelection()][0])
 
                 dlg.Destroy()
@@ -1184,6 +1230,8 @@ class Debugger(wx.Frame):
             dlg = cw.debug.event.EventListDialog(self, currentfpath, self._showhiddencards)
             if dlg.ShowModal() == wx.ID_OK:
                 self._currentfpath = dlg.events.get_currentfpath()
+                if not self._currentfpath:
+                    self._currentfpath = ""
                 self._showhiddencards = dlg.showhiddencards
                 def func(start):
                     try:
@@ -1363,7 +1411,7 @@ class Debugger(wx.Frame):
 
     def _refresh_areaname(self, force=False):
         assert threading.currentThread() <> cw.cwpy
-        s = cw.cwpy.sdata.get_areaname()
+        s = cw.cwpy.sdata.get_currentareaname()
         if sys.platform.startswith("linux"):
             dc = wx.ClientDC(self)
         else:
@@ -2389,11 +2437,11 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                 return None, None, None
             if e.tag == "EnemyCard":
                 resid = e.getint("Property/Id", 0)
-                enemy = cw.cwpy.sdata.casts.get(resid, None)
-                if enemy:
-                    name = enemy[0] if enemy[0] else u"(名称なし)"
-                else:
+                enemy = cw.cwpy.sdata.get_castname(resid)
+                if enemy is None:
                     name = u"(未設定)"
+                else:
+                    name = enemy[0] if enemy[0] else u"(名称なし)"
             else:
                 name = e.gettext("Property/Name", u"(名称なし)")
             name += u" (%s)" % (evt.treekeys[0] if evt.treekeys[0] else u"イベント名なし")

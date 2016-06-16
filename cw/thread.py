@@ -1732,7 +1732,8 @@ class CWPy(_Singleton, threading.Thread):
                     self.is_processing = False
                     quickdeal = resume and self.setting.all_quickdeal
                     try:
-                        if not self.sdata.startid in self.sdata.areas:
+                        name = self.sdata.get_areaname(self.sdata.startid)
+                        if name is None:
                             if resume:
                                 # 再開時に読込失敗
                                 load_failure(True)
@@ -2254,10 +2255,11 @@ class CWPy(_Singleton, threading.Thread):
             mcardsinv = self.get_mcards("invisible", flag=flag)
 
         # エネミーカードは初期化されていない場合がある
-        for mcard in mcardsinv:
+        for mcard in mcardsinv[:]:
             if isinstance(mcard, cw.sprite.card.EnemyCard):
                 if mcard.is_flagtrue():
-                    mcard.initialize()
+                    if not mcard.initialize():
+                        mcardsinv.remove(mcard)
 
         # カード自動配置の配置位置を再設定する
         if self.is_autospread():
@@ -2626,7 +2628,7 @@ class CWPy(_Singleton, threading.Thread):
                     status2 = "hidden"
 
             if e.tag == "EnemyCard":
-                if not e.getint("Property/Id", -1) in self.sdata.casts:
+                if self.sdata.get_castname(e.getint("Property/Id", -1)) is None:
                     continue
                 mcard = cw.sprite.card.EnemyCard(e, pos_noscale, status2, addgroup, i)
             else:
@@ -2695,7 +2697,8 @@ class CWPy(_Singleton, threading.Thread):
         bginhrt |= bool(self.areaid < 0 and self.areaid <> cw.AREA_BREAKUP)
         oldareaid = self.areaid
         self.areaid = areaid
-        self.sdata.change_data(areaid)
+        if not self.sdata.change_data(areaid):
+            raise cw.event.EffectBreakError()
         bginhrt |= bool(self.areaid < 0)
         self.hide_cards(True, quickhide=quickdeal)
         self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime)
@@ -2747,6 +2750,10 @@ class CWPy(_Singleton, threading.Thread):
         """
         指定するIDの戦闘を開始する。
         """
+        data = self.sdata.get_resdata(True, areaid)
+        if data is None:
+            raise cw.event.EffectBreakError()
+
         # 対象選択中であれば中止
         self.lock_menucards = True
         self.clean_specials()
@@ -2754,16 +2761,12 @@ class CWPy(_Singleton, threading.Thread):
         self.play_sound("battle", from_scenario=True, material_override=True)
         self.statusbar.change(False, encounter=True)
 
-        data = self.sdata.get_resdata(True, areaid)
-        if not data is None:
-            path = data.gettext("Property/MusicPath", "")
-            volume = data.getint("Property/MusicPath", "volume", 100)
-            loopcount = data.getint("Property/MusicPath", "loopcount", 0)
-            channel = data.getint("Property/MusicPath", "channel", 0)
-            fade = data.getint("Property/MusicPath", "fadein", 0)
-        else:
-            channel = 0
-            fade = 0
+        path = data.gettext("Property/MusicPath", "")
+        volume = data.getint("Property/MusicPath", "volume", 100)
+        loopcount = data.getint("Property/MusicPath", "loopcount", 0)
+        channel = data.getint("Property/MusicPath", "channel", 0)
+        fade = data.getint("Property/MusicPath", "fadein", 0)
+
         music = self.music[channel]
 
         # 戦闘開始アニメーション
@@ -2776,8 +2779,7 @@ class CWPy(_Singleton, threading.Thread):
             oldbgmpath = self.sdata.pre_battleareadata[1]
 
         # 戦闘音楽を流す
-        if not data is None:
-            music.play(path, subvolume=volume, loopcount=loopcount, fade=fade)
+        music.play(path, subvolume=volume, loopcount=loopcount, fade=fade)
 
         self.set_battle()
         self.change_area(areaid, False, bginhrt=True, ttype=("None", "Default"), startbattle=True)

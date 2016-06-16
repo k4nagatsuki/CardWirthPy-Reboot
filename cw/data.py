@@ -42,8 +42,19 @@ class SystemData(object):
         self.mtime = 0
         self.tempdir = ""
         self.scedir = ""
+
+        self._areas = {}
+        self._battles = {}
+        self._packs = {}
+        self._casts = {}
+        self._infos = {}
+        self._items = {}
+        self._skills = {}
+        self._beasts = {}
+
         self._init_xmlpaths()
         self._init_sparea_mcards()
+
         self.is_playing = True
         self.events = None
         self.deletedpaths = set()
@@ -85,14 +96,14 @@ class SystemData(object):
         self._init_sparea_mcards()
 
     def _init_xmlpaths(self, xmlonly=False):
-        self.areas = {}
-        self.battles = {}
-        self.packs = {}
-        self.casts = {}
-        self.infos = {}
-        self.items = {}
-        self.skills = {}
-        self.beasts = {}
+        self._areas.clear()
+        self._battles.clear()
+        self._packs.clear()
+        self._casts.clear()
+        self._infos.clear()
+        self._items.clear()
+        self._skills.clear()
+        self._beasts.clear()
         dpath = cw.util.join_paths(cw.cwpy.skindir,
                                             u"Resource/Xml", cw.cwpy.status)
 
@@ -103,7 +114,7 @@ class SystemData(object):
                 e = xml2element(path, "Property")
                 resid = e.getint("Id")
                 name = e.gettext("Name")
-                self.areas[resid] = (name, path)
+                self._areas[resid] = (name, path)
 
     def _init_sparea_mcards(self):
         """
@@ -112,7 +123,7 @@ class SystemData(object):
         """
         d = {}
 
-        for key in self.areas.iterkeys():
+        for key in self._areas.iterkeys():
             if key in cw.AREAS_TRADE:
                 data = self.get_mcarddata(key, battlestatus=False)
                 areaid = cw.cwpy.areaid
@@ -238,18 +249,151 @@ class SystemData(object):
 
     def get_resdata(self, isbattle, resid):
         if isbattle:
-            if not resid in self.battles:
-                return
-            path = self.battles[resid][1]
+            data = self.get_battledata(resid)
         else:
-            if not resid in self.areas:
-                return
-            path = self.areas[resid][1]
+            data = self.get_areadata(resid)
 
-        return xml2etree(path)
+        if data is None:
+            return None
+
+        return xml2etree(element=data)
 
     def get_carddata(self, linkdata, inusecard=True):
         return linkdata
+
+    def is_updatedfilenames(self):
+        """WSNシナリオのデータ(XML)のファイル名がデータテーブル
+        作成時点から変更されている場合はTrueを返す。
+        """
+        return False
+
+    def _get_resdata(self, table, resid, tag, nocache):
+        fpath0 = table.get(resid, (u"", u"(未定義のリソース)"))[1]
+        fpath = self._get_resfpath(table, resid)
+        if fpath is None:
+            s = u"%s の読込に失敗しました。" % (os.path.basename(fpath0))
+            cw.cwpy.call_modaldlg("ERROR", text=s)
+            return None
+        try:
+            return xml2element(fpath, tag, nocache=nocache)
+        except:
+            cw.util.print_ex()
+            s = u"%s の読込に失敗しました。" % (os.path.basename(fpath0))
+            cw.cwpy.call_modaldlg("ERROR", text=s)
+            return None
+
+    def _get_resname(self, table, resid):
+        return table.get(resid, (None, None))[0]
+
+    def _get_resfpath(self, table, resid):
+        fpath = table.get(resid, None)
+        if fpath is None:
+            return None
+        if not os.path.isfile(fpath[1]) and self.is_updatedfilenames():
+            self._init_xmlpaths(xmlonly=True)
+            fpath = table.get(resid, None)
+            if fpath is None:
+                return None
+        return fpath[1]
+
+    def _get_resids(self, table):
+        return table.keys()
+
+    def get_areadata(self, resid, tag="", nocache=False):
+        return self._get_resdata(self._areas, resid, tag, nocache)
+
+    def get_areaname(self, resid):
+        return self._get_resname(self._areas, resid)
+
+    def get_areafpath(self, resid):
+        return self._get_resfpath(self._areas, resid)
+
+    def get_areaids(self):
+        return self._get_resids(self._areas)
+
+    def get_battledata(self, resid, tag="", nocache=False):
+        return self._get_resdata(self._battles, resid, tag, nocache)
+
+    def get_battlename(self, resid):
+        return self._get_resname(self._battles, resid)
+
+    def get_battlefpath(self, resid):
+        return self._get_resfpath(self._battles, resid)
+
+    def get_battleids(self):
+        return self._get_resids(self._battles)
+
+    def get_packagedata(self, resid, tag="", nocache=False):
+        return self._get_resdata(self._packs, resid, tag, nocache)
+
+    def get_packagename(self, resid):
+        return self._get_resname(self._packs, resid)
+
+    def get_packagefpath(self, resid):
+        return self._get_resfpath(self._packs, resid)
+
+    def get_packageids(self):
+        return self._get_resids(self._packs)
+
+    def get_castdata(self, resid, tag="", nocache=False):
+        return self._get_resdata(self._casts, resid, tag, nocache)
+
+    def get_castname(self, resid):
+        return self._get_resname(self._casts, resid)
+
+    def get_castfpath(self, resid):
+        return self._get_resfpath(self._casts, resid)
+
+    def get_castids(self):
+        return self._get_resids(self._casts)
+
+    def get_skilldata(self, resid, tag="", nocache=False):
+        return self._get_resdata(self._skills, resid, tag, nocache)
+
+    def get_skillname(self, resid):
+        return self._get_resname(self._skills, resid)
+
+    def get_skillfpath(self, resid):
+        return self._get_resfpath(self._skills, resid)
+
+    def get_skillids(self):
+        return self._get_resids(self._skills)
+
+    def get_itemdata(self, resid, tag="", nocache=False):
+        return self._get_resdata(self._items, resid, tag, nocache)
+
+    def get_itemname(self, resid):
+        return self._get_resname(self._items, resid)
+
+    def get_itemfpath(self, resid):
+        return self._get_resfpath(self._items, resid)
+
+    def get_itemids(self):
+        return self._get_resids(self._items)
+
+    def get_beastdata(self, resid, tag="", nocache=False):
+        return self._get_resdata(self._beasts, resid, tag, nocache)
+
+    def get_beastname(self, resid):
+        return self._get_resname(self._beasts, resid)
+
+    def get_beastfpath(self, resid):
+        return self._get_resfpath(self._beasts, resid)
+
+    def get_beastids(self):
+        return self._get_resids(self._beasts)
+
+    def get_infodata(self, resid, tag="", nocache=False):
+        return self._get_resdata(self._infos, resid, tag, nocache)
+
+    def get_infoname(self, resid):
+        return self._get_resname(self._infos, resid)
+
+    def get_infofpath(self, resid):
+        return self._get_resfpath(self._infos, resid)
+
+    def get_infoids(self):
+        return self._get_resids(self._infos)
 
     def _get_carddatapath(self, type, resid, dpath):
         dpath = cw.util.join_paths(dpath, type)
@@ -272,13 +416,21 @@ class SystemData(object):
             return
 
         if scedir == self.scedir:
-            path = self.beasts.get(resid, None)
-            if not path or not os.path.isfile(path[1]):
+            path = self.get_beastfpath(resid)
+            if not path or not os.path.isfile(path):
                 return
-            path = path[1]
+            data = self.get_beastdata(resid)
+            if data is None:
+                return
+            data = xml2etree(element=data)
             dstpath = cw.util.relpath(path, self.tempdir)
         else:
             path = self._get_carddatapath(linkdata.tag, resid, scedir)
+            try:
+                data = xml2etree(path)
+            except:
+                cw.util.print_ex()
+                return
             dstpath = cw.util.relpath(path, scedir)
 
         if path in imgpaths:
@@ -287,18 +439,21 @@ class SystemData(object):
         dstpath = cw.util.join_paths(dstdir, dstpath)
         imgpaths[path] = dstpath
 
-        data = xml2etree(path)
         cw.cwpy.copy_materials(data, dstdir, from_scenario=from_scenario, scedir=scedir, imgpaths=imgpaths)
         data.fpath = dstpath
         data.write_xml(True)
 
     def change_data(self, resid):
-        self.data = self.get_resdata(cw.cwpy.is_battlestatus(), resid)
+        data = self.get_resdata(cw.cwpy.is_battlestatus(), resid)
+        if data is None:
+            return False
+        self.data = data
 
         if isinstance(self, ScenarioData):
             self.set_versionhint(cw.HINT_AREA, cw.cwpy.sct.from_basehint(self.data.getattr("Property", "versionHint", "")))
         cw.cwpy.event.refresh_areaname()
         self.events = cw.event.EventEngine(self.data.getfind("Events"))
+        return True
 
     def start_event(self, keynum=None, keycodes=[][:]):
         cw.cwpy.statusbar.change(False)
@@ -310,12 +465,15 @@ class SystemData(object):
                 cw.cwpy.disposition_pcards()
                 cw.cwpy.draw()
 
-    def get_areaname(self):
+    def get_currentareaname(self):
         """現在滞在中のエリアの名前を返す"""
         if cw.cwpy.is_battlestatus():
-            return self.battles.get(cw.cwpy.areaid, ("",))[0]
+            name = self.get_battlename(cw.cwpy.areaid)
         else:
-            return self.areas.get(cw.cwpy.areaid, ("",))[0]
+            name = self.get_areaname(cw.cwpy.areaid)
+        if name is None:
+            name = u"(読込失敗)"
+        return name
 
     def get_bgdata(self, e=None):
         """背景のElementのリストを返す。
@@ -340,11 +498,15 @@ class SystemData(object):
         if resid is None:
             data = self.data
         elif battlestatus:
-            path = self.battles[resid][1]
-            data = xml2etree(path)
+            data = self.get_battledata(resid)
+            if data is None:
+                return ("Custom", [])
+            data = xml2etree(element=data)
         else:
-            path = self.areas[resid][1]
-            data = xml2etree(path)
+            data = self.get_areadata(resid)
+            if data is None:
+                return ("Custom", [])
+            data = xml2etree(element=data)
 
         e = data.find("MenuCards")
         if e is None:
@@ -436,9 +598,10 @@ class SystemData(object):
             if resid in self._infocard_cache:
                 header = self._infocard_cache[resid]
                 headers.append(header)
-            elif resid in self.infos:
-                path = self.infos[resid][1]
-                e = cw.data.xml2element(path, "Property")
+            elif resid in self.get_infoids():
+                e = self.get_infodata(resid, "Property")
+                if e is None:
+                    continue
                 header = cw.header.InfoCardHeader(e)
                 self._infocard_cache[resid] = header
                 headers.append(header)
@@ -486,33 +649,14 @@ class ScenarioData(SystemData):
         # 特殊文字の画像パスの集合(正規表現)
         self._r_specialchar = re.compile(r"^font_(.)[.]bmp$")
 
-        # エリア・カードなどのデータ
-        class _ScenarioResTable(dict):
-            def __init__(self, sdata):
-                self.sdata = sdata
-
-            def get(self, k, d=None):
-                result = dict.get(self, k, d)
-                if result and not os.path.isfile(result[1]) and self.sdata.is_updatedfilenames():
-                    self.sdata._init_xmlpaths()
-                    result = dict.get(self, k, d)
-                return result
-
-            def __getitem__(self, item):
-                result = dict.__getitem__(self, item)
-                if result and not os.path.isfile(result[1]) and self.sdata.is_updatedfilenames():
-                    self.sdata._init_xmlpaths()
-                    result = dict.__getitem__(self, item)
-                return result
-
-        self.areas = _ScenarioResTable(self)
-        self.battles = _ScenarioResTable(self)
-        self.packs = _ScenarioResTable(self)
-        self.casts = _ScenarioResTable(self)
-        self.infos = _ScenarioResTable(self)
-        self.items = _ScenarioResTable(self)
-        self.skills = _ScenarioResTable(self)
-        self.beasts = _ScenarioResTable(self)
+        self._areas = {}
+        self._battles = {}
+        self._packs = {}
+        self._casts = {}
+        self._infos = {}
+        self._items = {}
+        self._skills = {}
+        self._beasts = {}
 
         # 各種xmlファイルのパスを設定
         self._init_xmlpaths()
@@ -736,24 +880,21 @@ class ScenarioData(SystemData):
             dpath = cw.util.join_yadodir(mates)
             fpath = self._get_carddatapath(linkdata.tag, resid, dpath)
             if not fpath:
-                return
+                return None
             data = xml2element(fpath, nocache=True)
 
         else:
             # プレイ中のシナリオ内のカードを使用
             if linkdata.tag == "SkillCard":
-                path = self.skills.get(resid, None)
+                data = self.get_skilldata(resid, nocache=True)
             elif linkdata.tag == "ItemCard":
-                path = self.items.get(resid, None)
+                data = self.get_itemdata(resid, nocache=True)
             elif linkdata.tag == "BeastCard":
-                path = self.beasts.get(resid, None)
+                data = self.get_beastdata(resid, nocache=True)
             else:
                 assert False
-            if not path or not os.path.isfile(path[1]):
+            if data is None:
                 return None
-
-            path = path[1]
-            data = xml2element(path, nocache=True)
 
         prop1 = linkdata.find("Property")
         ule1 = linkdata.find("Property/UseLimit")
@@ -780,7 +921,7 @@ class ScenarioData(SystemData):
 
     def change_data(self, resid):
         self.check_archiveupdated(True)
-        SystemData.change_data(self, resid)
+        return SystemData.change_data(self, resid)
 
     def reload(self):
         self.check_archiveupdated(False)
@@ -849,14 +990,15 @@ class ScenarioData(SystemData):
         self.summary = None
         # 各xmlの(name, path)の辞書(IDがkey)
         self._datafilenames = set()
-        self.areas.clear()
-        self.battles.clear()
-        self.packs.clear()
-        self.casts.clear()
-        self.skills.clear()
-        self.items.clear()
-        self.beasts.clear()
-        self.infos.clear()
+
+        self._areas.clear()
+        self._battles.clear()
+        self._packs.clear()
+        self._casts.clear()
+        self._infos.clear()
+        self._items.clear()
+        self._skills.clear()
+        self._beasts.clear()
 
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             isdatadir = os.path.basename(dpath).lower() in _WSN_DATA_DIRS
@@ -907,23 +1049,23 @@ class ScenarioData(SystemData):
 
                 ldpath = dpath.lower()
                 if ldpath.endswith("area") or lf.startswith("area"):
-                    self.areas[resid] = (name, path)
+                    self._areas[resid] = (name, path)
                 elif ldpath.endswith("battle") or lf.startswith("battle"):
-                    self.battles[resid] = (name, path)
+                    self._battles[resid] = (name, path)
                 elif ldpath.endswith("package") or lf.startswith("package"):
-                    self.packs[resid] = (name, path)
+                    self._packs[resid] = (name, path)
                 elif ldpath.endswith("castcard") or lf.startswith("mate"):
-                    self.casts[resid] = (name, path)
+                    self._casts[resid] = (name, path)
                 elif ldpath.endswith("infocard") or lf.startswith("info"):
-                    self.infos[resid] = (name, path)
+                    self._infos[resid] = (name, path)
                 elif ldpath.endswith("itemcard") or lf.startswith("item"):
-                    self.items[resid] = (name, path)
+                    self._items[resid] = (name, path)
                 elif ldpath.endswith("skillcard") or lf.startswith("skill"):
-                    self.skills[resid] = (name, path)
+                    self._skills[resid] = (name, path)
                 elif ldpath.endswith("beastcard") or lf.startswith("beast"):
-                    self.beasts[resid] = (name, path)
+                    self._beasts[resid] = (name, path)
 
-        if not self.summary:
+        if not xmlonly and not self.summary:
             raise ValueError("Summary file is not found.")
 
         # 特殊エリアのxmlファイルのパスを設定
@@ -936,7 +1078,7 @@ class ScenarioData(SystemData):
                 e = xml2element(path, "Property")
                 resid = e.getint("Id")
                 name = e.gettext("Name")
-                self.areas[resid] = (name, path)
+                self._areas[resid] = (name, path)
 
     def update_scale(self):
         # 特殊文字の画像パスの集合(正規表現)
@@ -1198,18 +1340,19 @@ class ScenarioData(SystemData):
         self.infocard_maxindex = 0
         for e in reversed(etree.getfind("InfoCards")):
             resid = int(e.text)
-            if resid in self.infos:
+            if resid in self.get_infoids():
                 self.append_infocard(resid)
 
         self.friendcards = []
         for e in etree.getfind("CastCards"):
             if e.tag == "FriendCard":
                 # IDのみ。変換直後の宿でこの状態になる
-                fcard = cw.sprite.card.FriendCard(castid=int(e.text))
-                self.friendcards.append(fcard)
+                e = self.get_castdata(int(e.text), nocache=True)
+                if not e is None:
+                    fcard = cw.sprite.card.FriendCard(data=e)
+                    self.friendcards.append(fcard)
             else:
-                data = xml2etree(element=e)
-                fcard = cw.sprite.card.FriendCard(data=data)
+                fcard = cw.sprite.card.FriendCard(data=e)
                 self.friendcards.append(fcard)
 
         if not recording:
@@ -1282,7 +1425,9 @@ class ScenarioData(SystemData):
             self.set_versionhint(cw.HINT_MESSAGE, fcard.versionhint)
             # 互換動作: 1.28以前は戦闘毎に同行キャストの状態が完全に復元される
             if cw.cwpy.sct.lessthan("1.28", self.get_versionhint(cw.HINT_MESSAGE)):
-                fcard = cw.sprite.card.FriendCard(castid=fcard.id)
+                e = cw.cwpy.sdata.get_castdata(fcard.id, nocache=True)
+                if not e is None:
+                    fcard = cw.sprite.card.FriendCard(data=e)
             else:
                 fcard.set_fullrecovery()
                 fcard.update_image()
