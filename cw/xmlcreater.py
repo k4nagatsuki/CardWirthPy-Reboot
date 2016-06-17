@@ -803,7 +803,7 @@ def create_scenariolog(sdata, path, recording):
     if cw.cwpy.areaid >= 0:
         areaid = cw.cwpy.areaid
     elif cw.cwpy.pre_areaids:
-        areaid = cw.cwpy.pre_areaids[0]
+        areaid = cw.cwpy.pre_areaids[0][0]
     else:
         areaid = 0
 

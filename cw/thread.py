@@ -396,8 +396,8 @@ class CWPy(_Singleton, threading.Thread):
                 if not isinstance(sprite, cw.sprite.card.FriendCard):
                     self.cardgrp.remove(sprite)
                     self.mcards.remove(sprite)
-            self.sdata.change_data(self.areaid)
-            self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
+            self.sdata.change_data(self.areaid, data=self.sdata.data)
+            self.set_mcards(self.sdata.get_mcarddata(data=self.sdata.data), False, True, False)
             self.deal_cards()
             if self.is_playingscenario():
                 self.background.reload(doanime=False, ttype=("None", "None"), redraw=False)
@@ -552,7 +552,7 @@ class CWPy(_Singleton, threading.Thread):
             if self.sdata:
                 self.sdata.update_scale()
                 if self.pre_mcards:
-                    mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1])
+                    mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1][0], self.pre_areaids[-1][1])
                     self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
             self._update_clip()
 
@@ -570,7 +570,11 @@ class CWPy(_Singleton, threading.Thread):
 
             for sprite in self.cardgrp.sprites():
                 if sprite.is_initialized() and isinstance(sprite, (cw.sprite.background.BackGround,
-                                                                   cw.sprite.background.BgCell)):
+                                                                   cw.sprite.background.BgCell))\
+                                           and not isinstance(sprite, cw.sprite.background.Curtain):
+                    sprite.update_scale()
+            for sprite in self.cardgrp.sprites():
+                if isinstance(sprite, cw.sprite.background.Curtain):
                     sprite.update_scale()
 
             self._update_clip()
@@ -1986,7 +1990,7 @@ class CWPy(_Singleton, threading.Thread):
             cw.cwpy.ydata.deletedpaths.add(header.fpath)
 
         if not self.areaid >= 0:
-            self.areaid = self.pre_areaids[0]
+            self.areaid = self.pre_areaids[0][0]
 
         # スプライトを作り直す
         pcards = self.get_pcards()
@@ -2460,7 +2464,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_sprites(self, dealanime=True,
                                 bginhrt=False, ttype=("Default", "Default"),
-                                doanime=True):
+                                doanime=True, data=None):
         """エリアにスプライトをセットする。
         bginhrt: Trueの時は背景継承。
         """
@@ -2484,7 +2488,7 @@ class CWPy(_Singleton, threading.Thread):
             self.set_curtain(move_bgcells=True)
 
         # メニューカードスプライト作成
-        self.set_mcards(self.sdata.get_mcarddata(), dealanime)
+        self.set_mcards(self.sdata.get_mcarddata(data=data), dealanime)
 
         # プレイヤカードスプライト作成
         if self.ydata and self.ydata.party and not self.get_pcards():
@@ -2674,7 +2678,7 @@ class CWPy(_Singleton, threading.Thread):
     def change_area(self, areaid, eventstarting=True,
                           bginhrt=False, ttype=("Default", "Default"),
                           quickdeal=False, specialarea=False, startbattle=False,
-                          doanime=True):
+                          doanime=True, data=None):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -2697,11 +2701,11 @@ class CWPy(_Singleton, threading.Thread):
         bginhrt |= bool(self.areaid < 0 and self.areaid <> cw.AREA_BREAKUP)
         oldareaid = self.areaid
         self.areaid = areaid
-        if not self.sdata.change_data(areaid):
+        if not self.sdata.change_data(areaid, data=data):
             raise cw.event.EffectBreakError()
         bginhrt |= bool(self.areaid < 0)
         self.hide_cards(True, quickhide=quickdeal)
-        self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime)
+        self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime, data=data)
 
         if not self.is_playingscenario() and not self.is_showparty:
             # 宿にいる場合は常に全回復状態にする
@@ -2869,7 +2873,7 @@ class CWPy(_Singleton, threading.Thread):
     def change_specialarea(self, areaid):
         """特殊エリア(エリアIDが負の数)に移動する。"""
         if areaid < 0:
-            self.pre_areaids.append(self.areaid)
+            self.pre_areaids.append((self.areaid, self.sdata.data))
 
             # パーティ解散・キャンプエリア移動の場合はエリアチェンジ
             if areaid in (cw.AREA_BREAKUP, cw.AREA_CAMP):
@@ -2970,7 +2974,7 @@ class CWPy(_Singleton, threading.Thread):
         oldareaid = self.areaid
         if self.areaid < 0:
             self.selectedheader = None
-            areaid = self.pre_areaids.pop()
+            areaid, data = self.pre_areaids.pop()
 
             # キャンプ時は常にカーテン表示
             if areaid <> cw.AREA_CAMP:
@@ -2983,7 +2987,7 @@ class CWPy(_Singleton, threading.Thread):
             # カード移動操作エリアを解除の場合
             if oldareaid in cw.AREAS_TRADE:
                 self.areaid = areaid
-                self.sdata.change_data(areaid)
+                self.sdata.change_data(areaid, data=data)
                 self.cardgrp.remove(self.mcards)
                 self.mcards = []
                 self.file_updates.clear()
@@ -2996,7 +3000,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
-                self.change_area(areaid, quickdeal=True, specialarea=True)
+                self.change_area(areaid, data=data, quickdeal=True, specialarea=True)
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata._changed = changed
         elif self.is_battlestatus():
@@ -3449,7 +3453,7 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.load_party(None)
 
             if not self.areaid >= 0:
-                self.areaid = self.pre_areaids[0]
+                self.areaid, _data = self.pre_areaids[0]
 
             self.set_yado()
 
@@ -3549,7 +3553,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if breakuparea:
                 self._save_partyrecord()
-                self.pre_areaids[-1] = 1
+                self.pre_areaids[-1] = (1, None)
                 self.clear_specialarea()
 
     def get_partyrecord(self):

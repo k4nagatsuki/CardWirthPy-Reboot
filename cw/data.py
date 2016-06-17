@@ -443,8 +443,9 @@ class SystemData(object):
         data.fpath = dstpath
         data.write_xml(True)
 
-    def change_data(self, resid):
-        data = self.get_resdata(cw.cwpy.is_battlestatus(), resid)
+    def change_data(self, resid, data=None):
+        if data is None:
+            data = self.get_resdata(cw.cwpy.is_battlestatus(), resid)
         if data is None:
             return False
         self.data = data
@@ -487,7 +488,7 @@ class SystemData(object):
         else:
             return []
 
-    def get_mcarddata(self, resid=None, battlestatus=None):
+    def get_mcarddata(self, resid=None, battlestatus=None, data=None):
         """spreadtypeの値("Custom", "Auto")と
         メニューカードのElementのリストをタプルで返す。
         id: 取得対象のエリア。不指定の場合は現在のエリア。
@@ -495,18 +496,19 @@ class SystemData(object):
         if not isinstance(battlestatus, bool):
             battlestatus = cw.cwpy.is_battlestatus()
 
-        if resid is None:
-            data = self.data
-        elif battlestatus:
-            data = self.get_battledata(resid)
-            if data is None:
-                return ("Custom", [])
-            data = xml2etree(element=data)
-        else:
-            data = self.get_areadata(resid)
-            if data is None:
-                return ("Custom", [])
-            data = xml2etree(element=data)
+        if data is None:
+            if resid is None:
+                data = self.data
+            elif battlestatus:
+                data = self.get_battledata(resid)
+                if data is None:
+                    return ("Custom", [])
+                data = xml2etree(element=data)
+            else:
+                data = self.get_areadata(resid)
+                if data is None:
+                    return ("Custom", [])
+                data = xml2etree(element=data)
 
         e = data.find("MenuCards")
         if e is None:
@@ -919,9 +921,10 @@ class ScenarioData(SystemData):
         elif key in cw.cwpy.breakpoint_table:
             del cw.cwpy.breakpoint_table[key]
 
-    def change_data(self, resid):
-        self.check_archiveupdated(True)
-        return SystemData.change_data(self, resid)
+    def change_data(self, resid, data=None):
+        if data is None:
+            self.check_archiveupdated(True)
+        return SystemData.change_data(self, resid, data=data)
 
     def reload(self):
         self.check_archiveupdated(False)

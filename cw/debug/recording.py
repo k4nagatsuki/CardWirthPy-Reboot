@@ -20,6 +20,16 @@ def load(path):
         return
 
     areaid = cw.cwpy.areaid
+    if areaid == cw.AREA_CAMP:
+        assert cw.cwpy.pre_areaids[-1]
+        resid = cw.cwpy.pre_areaids[-1][0]
+    else:
+        resid = areaid
+
+    data = cw.cwpy.sdata.get_areadata(resid)
+    if data is None:
+        return
+
     musicpaths = cw.cwpy.sdata.load_log(path, True)
 
     # BGM
@@ -30,10 +40,10 @@ def load(path):
     # キャンプ画面を開いている場合はエリア再表示
     func = cw.cwpy.change_area
     if areaid == cw.AREA_CAMP:
-        cw.cwpy.pre_areaids[-1] = cw.cwpy.areaid
+        cw.cwpy.pre_areaids[-1] = (cw.cwpy.areaid, data)
         cw.cwpy.exec_func(func, cw.AREA_CAMP, False, bginhrt=True)
     else:
-        cw.cwpy.exec_func(func, cw.cwpy.areaid, False, bginhrt=True)
+        cw.cwpy.exec_func(func, cw.cwpy.areaid, False, bginhrt=True, data=data)
 
 def main():
     pass

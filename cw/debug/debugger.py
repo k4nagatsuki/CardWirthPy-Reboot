@@ -762,7 +762,7 @@ class Debugger(wx.Frame):
             elif 0 <= cw.cwpy.areaid:
                 seq.append("area:id:%s" % (cw.cwpy.areaid))
             elif cw.cwpy.pre_areaids:
-                seq.append("area:id:%s" % (cw.cwpy.pre_areaids[0]))
+                seq.append("area:id:%s" % (cw.cwpy.pre_areaids[0][0]))
 
             def func(self, seq):
                 if not self:
@@ -878,8 +878,6 @@ class Debugger(wx.Frame):
         if not cw.cwpy.is_playingscenario():
             return
 
-        cw.cwpy.exec_func(cw.cwpy.clean_specials)
-
         fpath = cw.binary.util.check_filename(cw.cwpy.sdata.name)
         fpath += ".wstx"
         dlg = wx.FileDialog(self, u"状態の復元", "", fpath,
@@ -888,6 +886,7 @@ class Debugger(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             def func(path):
+                cw.cwpy.clean_specials()
                 cw.debug.recording.load(path)
                 def func():
                     self.view_var.refresh_variablelist()
@@ -1142,6 +1141,8 @@ class Debugger(wx.Frame):
                 choices = []
                 if cw.cwpy.sdata and cw.cwpy.is_battlestatus():
                     areaid = cw.cwpy.sdata.pre_battleareadata[0]
+                elif cw.cwpy.areaid == cw.AREA_CAMP:
+                    areaid = cw.cwpy.pre_areaids[-1][0]
                 else:
                     areaid = cw.cwpy.areaid
                 selected = -1
