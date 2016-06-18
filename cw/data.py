@@ -987,10 +987,12 @@ class ScenarioData(SystemData):
         シナリオで使用されるXMLファイルのパスを辞書登録。
         また、"Summary.xml"のあるフォルダをシナリオディレクトリに設定する。
         """
-        # 解凍したシナリオのディレクトリ
-        self.scedir = ""
-        # summary(CWPyElementTree)
-        self.summary = None
+        if not xmlonly:
+            # 解凍したシナリオのディレクトリ
+            self.scedir = ""
+            # summary(CWPyElementTree)
+            self.summary = None
+
         # 各xmlの(name, path)の辞書(IDがkey)
         self._datafilenames = set()
 
