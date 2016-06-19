@@ -516,6 +516,7 @@ class SelectWindow(MessageWindow):
         self.imgpaths = []
         self.text = cw.cwpy.msgs["select_message"] if not text else text
         self.text_log = u""
+        self.spcharinfo = set()
         self.talker = None
         self.talker_name = None
         self._init_image(size_noscale, pos_noscale)
