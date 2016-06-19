@@ -3122,7 +3122,7 @@ class TalkMessageContent(TalkContent):
     def action(self):
         """メッセージコンテント。"""
         # テキスト取得
-        text = self.data.gettext("Text", "")
+        text = cw.util.decodewrap(self.data.gettext("Text", ""))
         # 選択肢取得
         names = self.get_selections_and_indexes()
         # 画像パス取得
@@ -3363,7 +3363,7 @@ class TalkDialogContent(TalkContent):
                     break
 
             if hasallcoupons or not req_coupons:
-                return text
+                return cw.util.decodewrap(text)
 
         return None
 

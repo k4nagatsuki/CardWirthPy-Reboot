@@ -2268,7 +2268,7 @@ def get_strlen(s):
 
 WRAPS_CHARS = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
 
-def txtwrap(s, mode, width=30, wrapschars=""):
+def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True):
     """引数の文字列を任意の文字数で改行する(全角は2文字として数える)。
     mode=1: カード解説。
     mode=2: 画像付きメッセージ（台詞）用。
@@ -2296,8 +2296,9 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         wrapschars = WRAPS_CHARS
         width = 48
 
-    # \\nを改行コードに戻す
-    s = cw.util.decodewrap(s)
+    if encodedtext:
+        # \\nを改行コードに戻す
+        s = cw.util.decodewrap(s)
     # 行頭禁止文字集合
     r_wchar = re.compile(wrapschars) if not mode in (2, 3) and wrapschars else None
     # 特殊文字記号集合

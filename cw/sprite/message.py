@@ -247,7 +247,7 @@ class MessageWindow(base.CWPySprite):
         for index, name in enumerate(self.names):
             # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
             if not self.backlog and self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-                name = (name[0], self.rpl_specialstr(False, name[1], self.name_subtable, encodedtext=False))
+                name = (name[0], self.rpl_specialstr(False, name[1], self.name_subtable))
             pos_noscale = (x_noscale, y_noscale)
             rest = 1 if (index % self.columns) < (self.rect_noscale.width % self.columns) else 0
             size_noscale = ((self.rect_noscale.width // self.columns) + rest, 25)
@@ -272,7 +272,7 @@ class MessageWindow(base.CWPySprite):
         if self.talker_image:
             if not self.backlog:
                 self.text = self.rpl_specialstr(True, self.text)
-                self.text = cw.util.txtwrap(self.text, 2)
+                self.text = cw.util.txtwrap(self.text, 2, encodedtext=False)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if self.backlog:
                 versionhint = self.backlog_versionhint
@@ -286,7 +286,7 @@ class MessageWindow(base.CWPySprite):
         else:
             if not self.backlog:
                 self.text = self.rpl_specialstr(True, self.text)
-                self.text = cw.util.txtwrap(self.text, 3)
+                self.text = cw.util.txtwrap(self.text, 3, encodedtext=False)
             posp = pos
 
         yp_noscale = pos_noscale[1]
@@ -416,13 +416,13 @@ class MessageWindow(base.CWPySprite):
         self.text_log = u"".join(log_seq)
         return images
 
-    def rpl_specialstr(self, full, s, nametable=None, encodedtext=True):
+    def rpl_specialstr(self, full, s, nametable=None):
         """
         特殊文字列(#, $)を置換した文字列を返す。
         """
         if not nametable:
             nametable = self.name_table
-        return _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue, encodedtext=encodedtext)
+        return _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue)
 
     def get_stepvalue(self, key):
         if self.backlog:
@@ -996,7 +996,7 @@ def rpl_specialstr(s):
     特殊文字列(#, $)を置換した文字列を返す。
     """
     name_table = _create_nametable(False, None)
-    return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue, encodedtext=False)
+    return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue)
 
 class _NameGetter(object):
     def __init__(self, func):
@@ -1076,15 +1076,14 @@ def _get_flagvalue(key):
         s = None
     return s
 
-def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
+def _rpl_specialstr(full, s, name_table, get_step, get_flag):
     """
     特殊文字列(#, $)を置換した文字列を返す。
     """
     _reset_nametable(name_table)
     buf = []
+    colors = set()
     skip = 0
-    if encodedtext:
-        s = cw.util.decodewrap(s)
     for i, c in enumerate(s):
         if 0 < skip:
             skip -= 1
@@ -1135,10 +1134,7 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
         else:
             buf.append(c)
 
-    if encodedtext:
-        return cw.util.encodewrap("".join(buf))
-    else:
-        return "".join(buf)
+    return "".join(buf)
 
 def get_messagelogtext(mwins):
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。
