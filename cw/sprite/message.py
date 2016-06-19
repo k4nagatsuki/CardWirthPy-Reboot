@@ -15,7 +15,7 @@ class MessageWindow(base.CWPySprite):
                  pos_noscale=None, size_noscale=None, talkerimage=[][:],
                  nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
                  backlog=False, result=None, showing_result=-1, versionhint="", specialchars=None, textimg=None,
-                 trim_top_noscale=0, columns=1):
+                 trim_top_noscale=0, columns=1, spcharinfo=None):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -42,6 +42,7 @@ class MessageWindow(base.CWPySprite):
         self.imgpaths = imgpaths
         self.text = text
         self.text_log = u""
+        self.spcharinfo = spcharinfo
 
         # 話者(CardHeader or Character)
         self.talker = talker
@@ -67,7 +68,7 @@ class MessageWindow(base.CWPySprite):
         self._init_image(size_noscale, pos_noscale)
 
         # 描画する文字画像のリスト作成
-        self.charimgs = self.create_charimgs()
+        self.charimgs = self.create_charimgs(init=True)
         # メッセージ描画中か否かのフラグ
         self.is_drawing = True
         # メッセージスピード
@@ -147,7 +148,7 @@ class MessageWindow(base.CWPySprite):
 
     def update_scale(self):
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
-        self.charimgs = self.create_charimgs()
+        self.charimgs = self.create_charimgs(init=False)
         self.selections = []
 
         self.is_drawing = True
@@ -264,15 +265,15 @@ class MessageWindow(base.CWPySprite):
             else:
                 x_noscale += size_noscale[0]
 
-    def create_charimgs(self, pos_noscale=None):
+    def create_charimgs(self, pos_noscale=None, init=True):
         if pos_noscale is None:
             pos_noscale = (14, 9)
         pos = cw.s(pos_noscale)
         log_seq = []
         if self.talker_image:
-            if not self.backlog:
-                self.text = self.rpl_specialstr(True, self.text)
-                self.text = cw.util.txtwrap(self.text, 2, encodedtext=False)
+            if not self.backlog and init:
+                self.text, self.spcharinfo = self.rpl_specialstr(True, self.text)
+                self.text = cw.util.txtwrap(self.text, 2, encodedtext=False, spcharinfo=self.spcharinfo)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if self.backlog:
                 versionhint = self.backlog_versionhint
@@ -284,9 +285,9 @@ class MessageWindow(base.CWPySprite):
                 w = cw.s(74)
             posp = pos = pos[0] + cw.s(26) + w, pos[1]
         else:
-            if not self.backlog:
-                self.text = self.rpl_specialstr(True, self.text)
-                self.text = cw.util.txtwrap(self.text, 3, encodedtext=False)
+            if not self.backlog and init:
+                self.text, self.spcharinfo = self.rpl_specialstr(True, self.text)
+                self.text = cw.util.txtwrap(self.text, 3, encodedtext=False, spcharinfo=self.spcharinfo)
             posp = pos
 
         yp_noscale = pos_noscale[1]
@@ -340,40 +341,41 @@ class MessageWindow(base.CWPySprite):
 
             # 特殊文字
             image2 = None
-            if r_specialfont.match(chars):
-                specialchars = self.specialchars if self.specialchars else cw.cwpy.rsrc.specialchars
-                if chars in specialchars:
-                    charimg, userfont = specialchars[chars]
+            if index in self.spcharinfo:
+                if r_specialfont.match(chars):
+                    specialchars = self.specialchars if self.specialchars else cw.cwpy.rsrc.specialchars
+                    if chars in specialchars:
+                        charimg, userfont = specialchars[chars]
 
-                    if userfont:
-                        # TODO scaleinfo
-                        cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
-                        put_topbottom(y_noscale+1, charimg.get_height())
-                        images.append((cpos, None, cw.s(charimg), None))
+                        if userfont:
+                            # TODO scaleinfo
+                            cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
+                            put_topbottom(y_noscale+1, charimg.get_height())
+                            images.append((cpos, None, cw.s(charimg), None))
+                            pos = pos[0] + cw.s(20), pos[1]
+                            skip = True
+                            log_seq.append(orig_chars)
+                            continue
+
+                        size = charimg.get_size()
+                        put_topbottom(y_noscale-1, lineheight_noscale+2)
+                        image2 = pygame.Surface(size).convert()
+                        image2.fill(colour)
+                        image2.blit(charimg, (0, 0))
+                        image2.set_colorkey(image2.get_at((0, 0)), pygame.locals.RLEACCEL)
+                        image2 = cw.s((image2, cw.setting.SIZE_SPFONT))
+                        images.append((pos, None, decorate(image2, basecolour=colour), None))
                         pos = pos[0] + cw.s(20), pos[1]
                         skip = True
                         log_seq.append(orig_chars)
                         continue
 
-                    size = charimg.get_size()
-                    put_topbottom(y_noscale-1, lineheight_noscale+2)
-                    image2 = pygame.Surface(size).convert()
-                    image2.fill(colour)
-                    image2.blit(charimg, (0, 0))
-                    image2.set_colorkey(image2.get_at((0, 0)), pygame.locals.RLEACCEL)
-                    image2 = cw.s((image2, cw.setting.SIZE_SPFONT))
-                    images.append((pos, None, decorate(image2, basecolour=colour), None))
-                    pos = pos[0] + cw.s(20), pos[1]
-                    skip = True
-                    log_seq.append(orig_chars)
+                # 文字色変更
+                elif r_changecolour.match(chars):
+                    colour = self.get_fontcolour(chars[1])
+                    if chars[1] <> '\n':
+                        skip = True
                     continue
-
-            # 文字色変更
-            elif r_changecolour.match(chars):
-                colour = self.get_fontcolour(chars[1])
-                if chars[1] <> '\n':
-                    skip = True
-                continue
 
             log_seq.append(char)
             # 半角文字だったら文字幅は半分にする
@@ -422,7 +424,11 @@ class MessageWindow(base.CWPySprite):
         """
         if not nametable:
             nametable = self.name_table
-        return _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue)
+        text, spcharinfo = _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue)
+        if full:
+            return text, spcharinfo
+        else:
+            return text
 
     def get_stepvalue(self, key):
         if self.backlog:
@@ -514,7 +520,7 @@ class SelectWindow(MessageWindow):
         self.talker_name = None
         self._init_image(size_noscale, pos_noscale)
         # 描画する文字画像のリスト作成
-        self.charimgs = self.create_charimgs((14, 9))
+        self.charimgs = self.create_charimgs((14, 9), init=True)
         # frame
         self.frame = 0
         # メッセージスピード
@@ -553,7 +559,7 @@ class SelectWindow(MessageWindow):
 
     def update_scale(self):
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
-        self.charimgs = self.create_charimgs((14, 9))
+        self.charimgs = self.create_charimgs((14, 9), init=False)
         self.selections = []
 
         self.is_drawing = True
@@ -733,6 +739,7 @@ class BacklogData(object):
             self.type = 0
         self.text = base.text
         self.text_log = base.text_log
+        self.spcharinfo = base.spcharinfo
         self.names = base.names
         self.names_log = base.names_log
         self.imgpaths = base.imgpaths
@@ -820,7 +827,8 @@ class BacklogData(object):
                                  self.talker_image,
                                  self.name_table, self.name_subtable, self.flag_table, self.step_table,
                                  True, None, showing_result, self.versionhint, self.specialchars,
-                                 self.textimg, trim_top_noscale=trim_top, columns=self.columns)
+                                 self.textimg, trim_top_noscale=trim_top, columns=self.columns,
+                                 spcharinfo=self.spcharinfo)
         else:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
                 names = self.names_log[self._from_index:self._to_index]
@@ -996,7 +1004,7 @@ def rpl_specialstr(s):
     特殊文字列(#, $)を置換した文字列を返す。
     """
     name_table = _create_nametable(False, None)
-    return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue)
+    return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue)[0]
 
 class _NameGetter(object):
     def __init__(self, func):
@@ -1082,7 +1090,8 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
     """
     _reset_nametable(name_table)
     buf = []
-    colors = set()
+    buflen = 0
+    spcharinfo = set()
     skip = 0
     for i, c in enumerate(s):
         if 0 < skip:
@@ -1104,37 +1113,52 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
             return skip
 
         if c == '#':
+            if full:
+                spcharinfo.add(buflen)
             if i + 1 == len(s) or s[i+1] == '\n':
                 buf.append(c)
+                buflen += len(c)
                 continue
             nc = s[i+1].lower()
             if full and '#' + nc in cw.cwpy.rsrc.specialchars:
                 buf.append(c)
+                buflen += len(c)
                 continue
             if full:
                 if nc in ('m', 'r', 'u', 'c', 'i', 't', 'y'):
                     buf.append(_get_namefromtable(nc, name_table))
+                    buflen += len(buf[-1])
                     skip = 1
                 else:
                     buf.append(c)
+                    buflen += len(c)
             else:
                 if nc in ('m', 'r', 'u', 't', 'y'):
                     buf.append(_get_namefromtable(nc, name_table))
+                    buflen += len(buf[-1])
                     skip = 1
                 else:
                     buf.append(c)
+                    buflen += len(c)
         elif c == '%':
             skip = get_varvalue(get_flag, '%')
+            buflen += len(buf[-1])
             if skip == 0:
                 buf.append(c)
+                buflen += len(c)
         elif c == '$':
             skip = get_varvalue(get_step, '$')
+            buflen += len(buf[-1])
             if skip == 0:
                 buf.append(c)
+                buflen += len(c)
         else:
+            if full and c == '&':
+                spcharinfo.add(buflen)
             buf.append(c)
+            buflen += len(c)
 
-    return "".join(buf)
+    return "".join(buf), spcharinfo
 
 def get_messagelogtext(mwins):
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。

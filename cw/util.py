@@ -2268,7 +2268,7 @@ def get_strlen(s):
 
 WRAPS_CHARS = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
 
-def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True):
+def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None):
     """引数の文字列を任意の文字数で改行する(全角は2文字として数える)。
     mode=1: カード解説。
     mode=2: 画像付きメッセージ（台詞）用。
@@ -2302,12 +2302,10 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True):
     # 行頭禁止文字集合
     r_wchar = re.compile(wrapschars) if not mode in (2, 3) and wrapschars else None
     # 特殊文字記号集合
-    # 互換動作: 1.30以前はO,P,L,Dの各色が無い
-    if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-        re_color = "&[wrbgy]"
-    else:
-        re_color = "&[wrbgyopld]"
-    r_spchar = re.compile("#[abdefghjklnopqsvwxz]|" + re_color) if mode in (2, 3) else None
+    re_color = "&[\x20-\x7E]"
+    r_spchar = re.compile("#.|" + re_color) if mode in (2, 3) else None
+    if spcharinfo:
+        spcharinfo2 = []
     cnt = 0
     asciicnt = 0
     wraped = False
@@ -2316,6 +2314,19 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True):
     defspchar = False
     wrapafter = False
     seq = []
+    seqlen = 0
+
+    def seq_insert(index, char):
+        if index < 0:
+            index = len(seq) + index
+        seq.insert(index, char)
+        if spcharinfo:
+            for i in reversed(xrange(len(spcharinfo2))):
+                spi = spcharinfo2[i]
+                if spi < index:
+                    break
+                else:
+                    spcharinfo2[i] += len(char)
 
     for index, char in enumerate(s):
         spchar2 = spchar
@@ -2328,16 +2339,20 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True):
         if r_spchar and not defspchar2:
             if skip:
                 seq.append(char)
+                seqlen += len(char)
                 skip = False
                 continue
 
             chars = char + get_char(s, index + 1)
 
             if r_spchar.match(chars.lower()):
+                if spcharinfo and index in spcharinfo:
+                    spcharinfo2.append(seqlen)
                 if not chars.startswith("#") or\
                    not chars[:2].lower() in cw.cwpy.rsrc.specialchars or\
                    cw.cwpy.rsrc.specialchars[chars[:2].lower()][1]:
                     seq.append(char)
+                    seqlen += len(char)
                     skip = True
                     continue
                 spchar = True
@@ -2347,13 +2362,15 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True):
 
         # 行頭禁止文字
         if cnt == 0 and not wraped and r_wchar and r_wchar.match(char):
-            seq.insert(-1, char)
+            seq_insert(-1, char)
+            seqlen += len(char)
             asciicnt = 0
             wraped = True
         # 改行記号
         elif char == "\n":
             if not wrapafter:
                 seq.append(char)
+                seqlen += len(char)
             cnt = 0
             asciicnt = 0
             wraped = False
@@ -2361,6 +2378,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True):
         # 半角文字
         elif is_hw(char):
             seq.append(char)
+            seqlen += len(char)
             cnt += 1
             if not (mode in (2, 3)) and not (mode == 1 and index+1 < len(s) and not is_hw(s[index+1])):
                 asciicnt += 1
@@ -2371,6 +2389,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True):
         # 行頭禁止文字・改行記号・半角文字以外
         else:
             seq.append(char)
+            seqlen += len(char)
             cnt += 2
             asciicnt = 0
             wrapafter = False
@@ -2389,19 +2408,26 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True):
             if defspchar2 and width2+1 < cnt:
                 index = -(cnt - (width+1))
                 if seq[-index] <> "\n":
-                    seq.insert(index, "\n")
+                    seq_insert(index, "\n")
+                    seqlen += len("\n")
                 cnt = 1
             elif width2 >= asciicnt > 0 and not defspchar2:
                 if not get_char(s, index + 1) == "\n" and seq[-asciicnt] <> "\n":
-                    seq.insert(-asciicnt, "\n")
+                    seq_insert(-asciicnt, "\n")
+                    seqlen += len("\n")
                 cnt = asciicnt
             elif index + 1 <= len(s) or not get_char(s, index + 1) == "\n":
                 if index + 2 <= len(s) or not get_char(s, index + 2) == "\n":
                     seq.append("\n")
+                    seqlen += len("\n")
                     wrapafter = True
                 cnt = 0
                 asciicnt = 0
                 wraped = False
+
+    if spcharinfo:
+        spcharinfo.clear()
+        spcharinfo.update(spcharinfo2)
 
     return "".join(seq).rstrip()
 
