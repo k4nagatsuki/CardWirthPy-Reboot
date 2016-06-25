@@ -577,6 +577,7 @@ class BackGround(base.CWPySprite):
 
         if bginhrt and not blitlist:
             update = False
+        print self.bgs
 
         if doanime:
             # 背景処理する前に、トランジション用スプライト作成
@@ -586,17 +587,20 @@ class BackGround(base.CWPySprite):
             # トランジション用スプライトが生成されている
             transitspr = ttype
 
-        for sprite in self.foregrounds:
-            cw.cwpy.cardgrp.remove(sprite)
-        self.foregrounds.clear()
-        del self.foregroundlist[:]
+        def clear_forgrounds():
+            for sprite in self.foregrounds:
+                cw.cwpy.cardgrp.remove(sprite)
+            self.foregrounds.clear()
+            del self.foregroundlist[:]
 
         if update:
             self.bgs = bgs
             if not beforeload:
+                clear_forgrounds()
                 self._load_after(True, blitlist, doanime, animated, transitspr, oldbgs, redraw, False)
         elif forcedraw:
             if not beforeload:
+                clear_forgrounds()
                 self._load_after(True, blitlist, doanime, animated, transitspr, oldbgs, False, False)
         else:
             if not beforeload:
