@@ -577,7 +577,6 @@ class BackGround(base.CWPySprite):
 
         if bginhrt and not blitlist:
             update = False
-        print self.bgs
 
         if doanime:
             # 背景処理する前に、トランジション用スプライト作成
