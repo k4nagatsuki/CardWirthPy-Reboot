@@ -852,6 +852,7 @@ class CharaRequirementPanel(wx.Panel):
             if name <> info.name:
                 name = u""
         self.name.SetValue(name)
+        self._update_okbtn()
         self._proc = False
 
     def _update_okbtn(self):
