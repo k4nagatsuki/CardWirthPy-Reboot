@@ -675,7 +675,7 @@ class CharaInfo(object):
                     value1 += value
             value2 = data.level * (data.level-1)
             if value1 <> value2:
-                data.set_coupon(u"＿%s" % (data.name), value2-value1)
+                data.set_coupon(u"＿レベル調節", value2-value1)
 
         return cw.xmlcreater.create_adventurer(data)
 
