@@ -1558,10 +1558,14 @@ class Character(object):
     def replace_allcoupons(self, seq, syscoupons={}.copy()):
         """システムクーポン以外の全てのクーポンを
         listの内容に入れ替える。
+        所持クーポンが変化したらTrueを返す。
         seq: クーポン情報のタプル(name, value)のリスト。
         syscoupons: このコレクション内にあるクーポンは
                     システムクーポンとして処理対象外にする
         """
+        old_coupons = {}
+        for name, (value, e) in self.coupons.iteritems():
+            old_coupons[name] = value
         revcoupon_old = False
         revcoupon_new = False
         # システムクーポン以外を一旦除去
@@ -1600,6 +1604,11 @@ class Character(object):
                 self.reverse()
             else:
                 cw.animation.animate_sprite(self, "reverse")
+
+        new_coupons = {}
+        for name, (value, e) in self.coupons.iteritems():
+            new_coupons[name] = value
+        return new_coupons <> old_coupons
 
     @synclock(_couponlock)
     def get_sex(self):

@@ -324,18 +324,19 @@ class CouponEditDialog(wx.Dialog):
         self._item_selected()
 
     def OnOkBtn(self, event):
-        def func(pcards, coupons, syscoupons):
+        def func(pcards, coupons, syscoupons, cindex):
             update = False
             for i, pcard in enumerate(pcards):
-                pcard.replace_allcoupons(reversed(coupons[i]), syscoupons)
+                replaced = pcard.replace_allcoupons(reversed(coupons[i]), syscoupons)
                 # レベル調節
-                if isinstance(pcard, cw.sprite.card.PlayerCard):
+                if (cindex == -1 or i == cindex or replaced) and isinstance(pcard, cw.sprite.card.PlayerCard):
                     update |= pcard.adjust_level(False)
 
             if not update:
                 cw.cwpy.play_sound("harvest")
 
-        cw.cwpy.exec_func(func, self.pcards, self.coupons, self.syscoupons)
+        cindex = self.target.GetSelection() - 1
+        cw.cwpy.exec_func(func, self.pcards, self.coupons, self.syscoupons, cindex)
         self.EndModal(wx.ID_OK)
 
     def get_selectedindexes(self):
