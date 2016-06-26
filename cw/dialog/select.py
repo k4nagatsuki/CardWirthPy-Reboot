@@ -2367,10 +2367,17 @@ class PlayerSelect(MultiViewSelect):
         sex = header.get_sex()
         randomname = cw.dialog.create.get_randomname(sex)
 
+        def random_name():
+            return cw.dialog.create.get_randomname(sex)
+        addition = cw.cwpy.msgs["auto"] if cw.cwpy.setting.show_autobuttoninentrydialog else ""
+        addition_func = random_name if cw.cwpy.setting.show_autobuttoninentrydialog else None
+
         dlg = cw.dialog.edit.InputTextDialog(self, cw.cwpy.msgs["naming"],
                                              cw.cwpy.msgs["naming_random_character"],
                                              text=randomname,
-                                             maxlength=14)
+                                             maxlength=14,
+                                             addition=addition,
+                                             addition_func=addition_func)
         self.Parent.move_dlg(dlg, point=(cw.wins(130), cw.wins(0)))
         if dlg.ShowModal() == wx.ID_OK:
             if cw.cwpy.ydata:

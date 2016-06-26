@@ -1061,18 +1061,32 @@ class LevelEditDialog(wx.Dialog):
 #-------------------------------------------------------------------------------
 
 class InputTextDialog(wx.Dialog):
-    def __init__(self, parent, title, msg, text="", maxlength=0):
+    def __init__(self, parent, title, msg, text="", maxlength=0, addition="", addition_func=None):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.cwpy_debug = False
         self.SetClientSize(cw.wins((312, 112)))
         self.msg = msg
-        self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
+        self.textctrl = wx.TextCtrl(self, size=(cw.wins(175), -1))
         self.textctrl.SetMaxLength(maxlength)
         self.textctrl.SetValue(text)
         self.textctrl.SelectAll()
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
+
+        if addition:
+            dc = wx.ClientDC(self)
+            font = cw.cwpy.rsrc.get_wxfont("button", pixelsize=cw.wins(14))
+            dc.SetFont(font)
+            s = cw.cwpy.msgs["auto"]
+            tw = dc.GetTextExtent(s)[0] + 16
+            self.addition = cw.cwpy.rsrc.create_wxbutton(self, -1, (tw, cw.wins(20)), s)
+            self.addition.SetFont(font)
+            self.addition_func = addition_func
+        else:
+            self.addition = None
+            self.addition_func = None
+
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
                                                         cw.wins((100, 30)), cw.cwpy.msgs["decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
@@ -1088,6 +1102,9 @@ class InputTextDialog(wx.Dialog):
             self.okbtn.Enable()
         else:
             self.okbtn.Disable()
+
+    def OnAddition(self, event):
+        self.textctrl.SetValue(self.addition_func())
 
     def OnOk(self, event):
         self.text = self.textctrl.GetValue()
@@ -1118,14 +1135,25 @@ class InputTextDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        if self.addition:
+            self.Bind(wx.EVT_BUTTON, self.OnAddition, self.addition)
 
     def _do_layout(self):
         csize = self.GetClientSize()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1.Add(cw.wins((0, 35)), 0, 0, 0)
-        margin = (csize[0] - self.textctrl.GetSize()[0]) / 2
-        sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
+        tw = self.textctrl.GetSize()[0]
+        if self.addition:
+            tw += self.addition.GetSize()[0]
+        margin = (csize[0] - tw) / 2
+        if self.addition:
+            sizer_h = wx.BoxSizer(wx.HORIZONTAL)
+            sizer_h.Add(self.textctrl, 0, wx.CENTER, 0)
+            sizer_h.Add(self.addition, 0, wx.CENTER, 0)
+            sizer_1.Add(sizer_h, 0, wx.LEFT|wx.RIGHT, margin)
+        else:
+            sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
         sizer_1.Add(cw.wins((0, 12)), 0, 0, 0)
         sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
 
