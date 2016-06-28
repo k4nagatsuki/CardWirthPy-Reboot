@@ -667,16 +667,6 @@ class CharaInfo(object):
         data.avoid = cw.util.numwrap(data.avoid, -10, 10)
         data.resist = cw.util.numwrap(data.resist, -10, 10)
         data.defense = cw.util.numwrap(data.defense, -10, 10)
-
-        if setlevel:
-            value1 = 0
-            for name, value in data.coupons:
-                if not name.startswith(u"＠"):
-                    value1 += value
-            value2 = data.level * (data.level-1)
-            if value1 <> value2:
-                data.set_coupon(u"＿得点調節", value2-value1)
-
         return cw.xmlcreater.create_adventurer(data)
 
     def get_makingslist(self):

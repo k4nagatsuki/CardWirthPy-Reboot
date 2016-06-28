@@ -70,6 +70,12 @@ class CouponEditDialog(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["RSMALL_dbg"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
 
+        # 合計得点
+        self.total = wx.StaticText(self, -1, "", style=wx.ALIGN_RIGHT|wx.ST_NO_AUTORESIZE)
+
+        # レベル調節の有無
+        self.adjust_level = wx.CheckBox(self, -1, u"得点に合わせてレベルを調節する")
+
         # 検索
         self.find = FindPanel(self, self.values, self._item_selected)
 
@@ -92,9 +98,6 @@ class CouponEditDialog(wx.Dialog):
         self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
         # 中止
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
-
-        # 合計得点
-        self.total = wx.StaticText(self, -1, "", style=wx.ALIGN_RIGHT|wx.ST_NO_AUTORESIZE)
 
         self._select_target()
 
@@ -125,6 +128,7 @@ class CouponEditDialog(wx.Dialog):
         sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=3)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
         sizer_left.Add(self.total, 0, flag=wx.EXPAND|wx.TOP, border=3)
+        sizer_left.Add(self.adjust_level, 0, flag=wx.ALIGN_RIGHT|wx.TOP, border=3)
         sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=3)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
@@ -324,19 +328,21 @@ class CouponEditDialog(wx.Dialog):
         self._item_selected()
 
     def OnOkBtn(self, event):
-        def func(pcards, coupons, syscoupons, cindex):
+        def func(pcards, coupons, syscoupons, cindex, adjust_level):
             update = False
             for i, pcard in enumerate(pcards):
                 replaced = pcard.replace_allcoupons(reversed(coupons[i]), syscoupons)
                 # レベル調節
-                if (cindex == -1 or i == cindex or replaced) and isinstance(pcard, cw.sprite.card.PlayerCard):
+                if adjust_level and (cindex == -1 or i == cindex or replaced) and\
+                        isinstance(pcard, cw.sprite.card.PlayerCard):
                     update |= pcard.adjust_level(False)
 
             if not update:
                 cw.cwpy.play_sound("harvest")
 
         cindex = self.target.GetSelection() - 1
-        cw.cwpy.exec_func(func, self.pcards, self.coupons, self.syscoupons, cindex)
+        adjust_level = self.adjust_level.IsChecked()
+        cw.cwpy.exec_func(func, self.pcards, self.coupons, self.syscoupons, cindex, adjust_level)
         self.EndModal(wx.ID_OK)
 
     def get_selectedindexes(self):
