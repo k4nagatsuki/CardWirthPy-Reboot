@@ -201,6 +201,9 @@ class CWYado(object):
         self.wpls = []
         self.wpts = []
 
+        wchwarn = False
+        wptwarn = False
+
         self.curnum_n = 0
         self.curnum = 0
         self.maxnum = len(self.yadofiles) + len(self.cardfiles) + 1
@@ -215,6 +218,13 @@ class CWYado(object):
                 cw.util.print_ex()
                 s = os.path.basename(path)
                 s = u"%s は読込できませんでした。\n" % (s)
+                s2 = u"%sが所持しているカードが破損している可能性があります。その場合、あらかじめカードを荷物袋やカード置場へ移動する事で変換が可能になるかもしれません。\n"
+                if path.lower().endswith(".wch") and not wchwarn:
+                    s += s2 % (u"キャラクター")
+                    wchwarn = True
+                elif path.lower().endswith(".wpt") and not wptwarn:
+                    s += s2 % (u"パーティメンバ")
+                    wptwarn = True
                 self.write_errorlog(s)
 
         # ファイルネームからカードの種類を判別する辞書を作成し、
