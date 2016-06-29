@@ -1779,6 +1779,10 @@ class CWPy(_Singleton, threading.Thread):
 
                         if self.is_showingdebugger() and self.event:
                             self.event.refresh_variablelist()
+
+                        if not self.setting.lastscenariopath:
+                            self.setting.lastscenariopath = header.get_fpath()
+
                     except:
                         # 読込失敗(帰還)
                         cw.util.print_ex()
