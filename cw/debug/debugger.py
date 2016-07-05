@@ -54,6 +54,8 @@ ID_SHOW_STACK_TRACE = wx.NewId()
 ID_CLEAR_BREAKPOINT = wx.NewId()
 ID_QUIT_DEBUG_MODE = wx.NewId()
 
+_HINT = u"ヒント: ダブルクリックかEnterキー押下で選択したコンテントを実行します"
+
 
 class Debugger(wx.Frame):
     def __init__(self, parent):
@@ -71,6 +73,7 @@ class Debugger(wx.Frame):
         # create status bar
         self.statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
         self.statusbar.SetStatusWidths([0, -1])
+        self.statusbar.SetStatusText(_HINT, 1)
 
         # 最後に強制実行したイベントが属するファイルパス
         self._currentfpath = ""
@@ -1759,7 +1762,6 @@ class EventView(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self, parent, -1)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.WHITE)
-        self.SetToolTipString(u"ダブルクリックかEnterキー押下で\n選択したコンテントを実行します")
 
         # 左側の垂直バーの幅
         self.leftbarwidth = 24
@@ -2133,7 +2135,7 @@ class EventView(wx.ScrolledWindow):
                     self.Parent.statusbar.SetStatusText(s, 1)
                 else:
                     self.current_content = None
-                    self.Parent.statusbar.SetStatusText(u"", 1)
+                    self.Parent.statusbar.SetStatusText(_HINT, 1)
                 self.Refresh()
                 if self.Parent.view_stacktrace:
                     self.Parent.view_stacktrace.refresh_activeitem(nowrunning, cur_content)
@@ -2219,7 +2221,7 @@ class EventView(wx.ScrolledWindow):
             trees = nowrunning.trees
             self.current_event = nowrunning
             self.current_tree = trees
-            self.Parent.statusbar.SetStatusText(u"", 1)
+            self.Parent.statusbar.SetStatusText(_HINT, 1)
             self.activeitem = None
             self.set_selectionitem(None)
             self.selectionindex = -1
