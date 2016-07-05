@@ -54,8 +54,6 @@ ID_SHOW_STACK_TRACE = wx.NewId()
 ID_CLEAR_BREAKPOINT = wx.NewId()
 ID_QUIT_DEBUG_MODE = wx.NewId()
 
-_HINT = u"ヒント: ダブルクリックかEnterキー押下で選択したコンテントを実行します"
-
 
 class Debugger(wx.Frame):
     def __init__(self, parent):
@@ -73,7 +71,6 @@ class Debugger(wx.Frame):
         # create status bar
         self.statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
         self.statusbar.SetStatusWidths([0, -1])
-        self.statusbar.SetStatusText(_HINT, 1)
 
         # 最後に強制実行したイベントが属するファイルパス
         self._currentfpath = ""
@@ -1832,7 +1829,15 @@ class EventView(wx.ScrolledWindow):
         dc.DrawRectangle(-1, -1, self.leftbarwidth+2, csize[1]+2)
 
         if not self.itemlist:
+            dc.DrawText(u"ここに実行中のイベントツリーが表示されます。", self.leftbarwidth+5, 5)
+            hint = u"ヒント:"
+            ts = dc.GetTextExtent(hint)
+            tx = self.leftbarwidth+5
+            ty = 10+ts[1]
+            dc.DrawText(hint, tx, ty)
+            dc.DrawText(u"ダブルクリックかEnterキー押下で任意の\nイベントコンテントを実行できます。", tx+ts[0]+5, ty)
             return
+
         clippingrect = wx.Rect(self.leftbarwidth+1, 0, csize[0]-self.leftbarwidth+1, csize[1])
         dc.SetClippingRect(clippingrect)
 
@@ -2135,7 +2140,7 @@ class EventView(wx.ScrolledWindow):
                     self.Parent.statusbar.SetStatusText(s, 1)
                 else:
                     self.current_content = None
-                    self.Parent.statusbar.SetStatusText(_HINT, 1)
+                    self.Parent.statusbar.SetStatusText(u"", 1)
                 self.Refresh()
                 if self.Parent.view_stacktrace:
                     self.Parent.view_stacktrace.refresh_activeitem(nowrunning, cur_content)
@@ -2221,7 +2226,7 @@ class EventView(wx.ScrolledWindow):
             trees = nowrunning.trees
             self.current_event = nowrunning
             self.current_tree = trees
-            self.Parent.statusbar.SetStatusText(_HINT, 1)
+            self.Parent.statusbar.SetStatusText(u"", 1)
             self.activeitem = None
             self.set_selectionitem(None)
             self.selectionindex = -1
