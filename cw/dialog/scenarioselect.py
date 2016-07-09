@@ -902,7 +902,7 @@ class ScenarioSelect(select.Select):
             # 経路をたどれないがフルパスがある場合(検索結果として表示)
             if self.is_scenario(fullpath):
                 header = self.db.search_path(fullpath)
-                if header:
+                if header and self.is_showing(header):
                     self._set_findresult([header], True)
                     selfullpath = True
                 else:
@@ -2159,12 +2159,30 @@ class ScenarioSelect(select.Select):
 
     def _narrow_scenario(self, headers):
         """設定に応じて表示しないシナリオを除去する。"""
-        if not cw.cwpy.setting.show_unfitnessscenario:
+        ntype, narrow, donarrow, level = self._get_narrowparams()
+        dseq = []
+        seq = []
+        for header in headers:
+            if not self._is_showing(header, ntype, narrow, donarrow, level):
+                continue
+            if isinstance(header, cw.header.ScenarioHeader):
+                seq.append(header)
+            else:
+                dseq.append(header)
+
+        return dseq + self._sort_headers(seq)
+
+    def is_showing(self, header):
+        ntype, narrow, donarrow, level = self._get_narrowparams()
+        return self._is_showing(header, ntype, narrow, donarrow, level)
+
+    def _get_narrowparams(self):
+        if cw.cwpy.setting.show_unfitnessscenario:
+            level = 0
+        else:
             pcards = cw.cwpy.get_pcards("unreversed")
             level = sum([pcard.level for pcard in pcards]) / len(pcards)
 
-        dseq = []
-        seq = []
         narrow = self.narrow.GetValue().lower()
         donarrow = bool(narrow) and self.narrow.IsShown()
         ntype = self.narrow_type.GetSelection()
@@ -2174,45 +2192,43 @@ class ScenarioSelect(select.Select):
                 narrow = int(narrow)
             except:
                 narrow = ""
-        for header in headers:
-            if isinstance(header, cw.header.ScenarioHeader):
-                if not cw.cwpy.setting.show_unfitnessscenario and not (ntype == 3 and donarrow) and\
-                        ((header.levelmin <> 0 and level < header.levelmin) or\
-                         (header.levelmax <> 0 and header.levelmax < level)):
-                    continue
-                if not cw.cwpy.setting.show_completedscenario and self.is_complete(header):
-                    continue
-                if not cw.cwpy.setting.show_invisiblescenario and self.is_invisible(header):
-                    continue
+        return ntype, narrow, donarrow, level
 
-                if donarrow:
-                    if ntype == 0:
-                        # タイトルで絞り込み
-                        if not narrow in header.name.lower():
-                            continue
-                    elif ntype == 1:
-                        # 解説で絞り込み
-                        if not narrow in header.desc.lower():
-                            continue
-                    elif ntype == 2:
-                        # 作者名で絞り込み
-                        if not narrow in header.author.lower():
-                            continue
-                    elif ntype == 3:
-                        # 対象レベルで絞り込み
-                        if not (header.levelmin <= narrow <= header.levelmax):
-                            continue
-                    elif ntype == 4:
-                        # ファイル名で絞り込み
-                        if not narrow in header.fname.lower():
-                            continue
-                    else:
-                        assert False
-                seq.append(header)
-            else:
-                dseq.append(header)
+    def _is_showing(self, header, ntype, narrow, donarrow, level):
+        if isinstance(header, cw.header.ScenarioHeader):
+            if not cw.cwpy.setting.show_unfitnessscenario and not (ntype == 3 and donarrow) and\
+                    ((header.levelmin <> 0 and level < header.levelmin) or\
+                     (header.levelmax <> 0 and header.levelmax < level)):
+                return False
+            if not cw.cwpy.setting.show_completedscenario and self.is_complete(header):
+                return False
+            if not cw.cwpy.setting.show_invisiblescenario and self.is_invisible(header):
+                return False
 
-        return dseq + self._sort_headers(seq)
+            if donarrow:
+                if ntype == 0:
+                    # タイトルで絞り込み
+                    if not narrow in header.name.lower():
+                        return False
+                elif ntype == 1:
+                    # 解説で絞り込み
+                    if not narrow in header.desc.lower():
+                        return False
+                elif ntype == 2:
+                    # 作者名で絞り込み
+                    if not narrow in header.author.lower():
+                        return False
+                elif ntype == 3:
+                    # 対象レベルで絞り込み
+                    if not (header.levelmin <= narrow <= header.levelmax):
+                        return False
+                elif ntype == 4:
+                    # ファイル名で絞り込み
+                    if not narrow in header.fname.lower():
+                        return False
+                else:
+                    assert False
+        return True
 
     def _sort_headers(self, seq):
         sort = self.sort.GetSelection()
