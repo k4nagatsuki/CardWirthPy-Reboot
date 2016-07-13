@@ -965,12 +965,7 @@ def parse_summarydata(basepath, data, scetype, archive, mtime):
     levelmax = int(e.get("max", 0))
     e = data.find("RequiredCoupons")
     coupons = e.text or ""
-    clist = cw.util.decodewrap(coupons)
-    coupons = []
-    for coupon in clist:
-        if coupon:
-            coupons.append(coupon)
-    coupons = cw.util.encodewrap(coupons)
+    coupons = cw.util.decodewrap(coupons)
     couponsnum = int(e.get("number", 0))
     e = data.find("StartAreaId")
     startid = int(e.text) if e.text else 0
