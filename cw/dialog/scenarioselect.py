@@ -1731,15 +1731,12 @@ class ScenarioSelect(select.Select):
             return False
 
         num = 0
-        flag = False
 
         for coupon in header.coupons.splitlines():
             if coupon:
-                num += self.coupons.get(coupon, 0)
-                if self.coupons.get(coupon, 0) == 0:
-                    flag = True
+                num += min(1, self.coupons.get(coupon, 0))
 
-        return num < header.couponsnum or flag
+        return num < header.couponsnum
 
     def update_narrowcondition(self):
         self._processing = True
