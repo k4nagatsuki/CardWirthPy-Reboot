@@ -2124,6 +2124,7 @@ class CWPy(_Singleton, threading.Thread):
             if self.is_showingmessage():
                 mwin = self.get_messagewindow()
                 mwin.result = cw.event.EffectBreakError()
+                self.event._stoped = True
             elif self.is_runningevent():
                 self.event._stoped = True
             self.sdata.is_playing = False

@@ -889,11 +889,11 @@ class Character(object):
                         ishidden = self.status == "hidden"
 
                     # カードの効果で行動が変わっている可能性がある
-                    if not self.actiondata or ishidden or self.status == "reversed":
+                    if not self.actiondata or ishidden or self.status == "reversed" or not cw.cwpy.is_battlestatus():
                         break
 
             # 手札カードの使用
-            if self.is_alive() and not ishidden and self.status <> "reversed" and self.actiondata:
+            if self.is_alive() and not ishidden and self.status <> "reversed" and self.actiondata and cw.cwpy.is_battlestatus():
                 targets, header, beasts = self.actiondata
                 if header and self.is_active() and not ishidden and self.status <> "reversed":
                     self.deck.use(header)
