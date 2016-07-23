@@ -2516,10 +2516,12 @@ class CWPy(_Singleton, threading.Thread):
             fcard.set_alpha(alpha)
             if fcard.status == "hidden":
                 fcard.clear_image()
-                self.cardgrp.add(fcard, layer=(cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, 2, fcard.index, 0))
+                fcard.layer = (cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, fcard.index, 0)
+                self.cardgrp.add(fcard, layer=fcard.layer)
                 self.mcards.append(fcard)
             else:
-                self.cardgrp.add(fcard, layer=(cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, 2, fcard.index, 0))
+                fcard.layer = (cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, fcard.index, 0)
+                self.cardgrp.add(fcard, layer=fcard.layer)
                 self.mcards.append(fcard)
                 if not alpha is None:
                     fcard.update_image()
@@ -3266,7 +3268,7 @@ class CWPy(_Singleton, threading.Thread):
                 elif self.setting.show_allselectedcards or selowner:
                     alpha = 160
                     if not sprite.alpha is None:
-                        alpha = int(alpha * sprite.alpha / 255.0)
+                        alpha = min(alpha, sprite.alpha)
                     self.set_inusecardimg(sprite, header, alpha=alpha)
 
                 if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
