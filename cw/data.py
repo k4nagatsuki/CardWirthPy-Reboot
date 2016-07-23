@@ -267,8 +267,8 @@ class SystemData(object):
         """
         return False
 
-    def _get_resdata(self, table, resid, tag, nocache):
-        fpath0 = table.get(resid, (u"", u"(未定義のリソース)"))[1]
+    def _get_resdata(self, table, resid, tag, nocache, resname=u"?"):
+        fpath0 = table.get(resid, (u"", u"(未定義の%s ID:%s)" % (resname, resid)))[1]
         fpath = self._get_resfpath(table, resid)
         if fpath is None:
             s = u"%s の読込に失敗しました。" % (os.path.basename(fpath0))
@@ -300,7 +300,7 @@ class SystemData(object):
         return table.keys()
 
     def get_areadata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._areas, resid, tag, nocache)
+        return self._get_resdata(self._areas, resid, tag, nocache, resname=u"エリア")
 
     def get_areaname(self, resid):
         return self._get_resname(self._areas, resid)
@@ -312,7 +312,7 @@ class SystemData(object):
         return self._get_resids(self._areas)
 
     def get_battledata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._battles, resid, tag, nocache)
+        return self._get_resdata(self._battles, resid, tag, nocache, resname=u"バトル")
 
     def get_battlename(self, resid):
         return self._get_resname(self._battles, resid)
@@ -324,7 +324,7 @@ class SystemData(object):
         return self._get_resids(self._battles)
 
     def get_packagedata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._packs, resid, tag, nocache)
+        return self._get_resdata(self._packs, resid, tag, nocache, resname=u"パッケージ")
 
     def get_packagename(self, resid):
         return self._get_resname(self._packs, resid)
@@ -336,7 +336,7 @@ class SystemData(object):
         return self._get_resids(self._packs)
 
     def get_castdata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._casts, resid, tag, nocache)
+        return self._get_resdata(self._casts, resid, tag, nocache, resname=u"キャスト")
 
     def get_castname(self, resid):
         return self._get_resname(self._casts, resid)
@@ -348,7 +348,7 @@ class SystemData(object):
         return self._get_resids(self._casts)
 
     def get_skilldata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._skills, resid, tag, nocache)
+        return self._get_resdata(self._skills, resid, tag, nocache, resname=u"特殊技能")
 
     def get_skillname(self, resid):
         return self._get_resname(self._skills, resid)
@@ -360,7 +360,7 @@ class SystemData(object):
         return self._get_resids(self._skills)
 
     def get_itemdata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._items, resid, tag, nocache)
+        return self._get_resdata(self._items, resid, tag, nocache, resname=u"アイテム")
 
     def get_itemname(self, resid):
         return self._get_resname(self._items, resid)
@@ -372,7 +372,7 @@ class SystemData(object):
         return self._get_resids(self._items)
 
     def get_beastdata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._beasts, resid, tag, nocache)
+        return self._get_resdata(self._beasts, resid, tag, nocache, resname=u"召喚獣")
 
     def get_beastname(self, resid):
         return self._get_resname(self._beasts, resid)
@@ -384,7 +384,7 @@ class SystemData(object):
         return self._get_resids(self._beasts)
 
     def get_infodata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._infos, resid, tag, nocache)
+        return self._get_resdata(self._infos, resid, tag, nocache, resname=u"情報")
 
     def get_infoname(self, resid):
         return self._get_resname(self._infos, resid)
