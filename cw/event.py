@@ -846,7 +846,7 @@ class Event(object):
                 raise cw.battle.BattleAreaChangeError()
 
         # ゲームオーバ
-        elif cw.cwpy.is_gameover() and cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9:
+        elif cw.cwpy.is_gameover() and cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9 and 0 <= cw.cwpy.areaid:
             cw.cwpy.set_gameover()
 
     def clear(self):
