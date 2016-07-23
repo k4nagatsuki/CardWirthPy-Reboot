@@ -2089,7 +2089,7 @@ class CWPy(_Singleton, threading.Thread):
         del self.pre_dialogs[:]
         del self.pre_areaids[:]
 
-        def func5():
+        def return_title():
             def func():
                 self.set_status("Title")
                 self.sdata = cw.data.SystemData()
@@ -2104,28 +2104,21 @@ class CWPy(_Singleton, threading.Thread):
                 self.exec_func(func)
             self.exec_func(func)
 
-        def func4():
+        def init_resources():
             self.event.clear()
             self._init_resources()
 
-            self.frame.exec_func(func5)
+            self.frame.exec_func(return_title)
 
-        def func3():
+        def end_scenario():
             # シナリオを強制終了
             if self.is_playingscenario():
                 self.sdata.end()
 
-            self.exec_func(func4)
+            self.exec_func(init_resources)
 
             if self.is_decompressing:
                 raise cw.event.EffectBreakError()
-
-        def func2():
-            # バトルを強制終了
-            if self.battle and self.battle.is_running:
-                self.battle.end(True, True)
-
-            self.exec_func(func3)
 
         def func1():
             if self.is_showingmessage():
@@ -2135,7 +2128,11 @@ class CWPy(_Singleton, threading.Thread):
                 self.event._stoped = True
             self.sdata.is_playing = False
 
-            self.exec_func(func2)
+            # バトルを強制終了
+            if self.battle and self.battle.is_running:
+                self.battle.end(True, True)
+
+            self.exec_func(end_scenario)
 
         self.exec_func(func1)
 
