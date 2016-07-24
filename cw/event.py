@@ -1101,7 +1101,7 @@ class CardEvent(Event):
     def _restore_inusedata(self):
         cw.cwpy.event.in_cardeffectmotion = self._stored_in_cardeffectmotion
         self._stored_in_cardeffectmotion = False
-        cw.cwpy.event.in_inusecardevent = cw.cwpy.event.in_inusecardevent
+        cw.cwpy.event.in_inusecardevent = self._stored_in_inusecardevent
         self._stored_in_inusecardevent = False
 
     def run_areaevent(self):
