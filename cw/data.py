@@ -397,6 +397,8 @@ class SystemData(object):
 
     def _get_carddatapath(self, type, resid, dpath):
         dpath = cw.util.join_paths(dpath, type)
+        if not os.path.isdir(dpath):
+            return ""
         for fpath in os.listdir(dpath):
             if not fpath.lower().endswith(".xml"):
                 continue

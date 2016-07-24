@@ -1090,22 +1090,32 @@ class CardEvent(Event):
         # 特殊エリア解除・カード選択ダイアログを開く
         cw.cwpy.clear_specialarea()
 
+    def _store_inusedata(self, selectuser):
+        if selectuser:
+            cw.cwpy.event.set_selectedmember(self.user)
+        self._stored_in_cardeffectmotion = cw.cwpy.event.in_cardeffectmotion
+        cw.cwpy.event.in_cardeffectmotion = False
+        self._stored_in_inusecardevent = cw.cwpy.event.in_inusecardevent
+        cw.cwpy.event.in_inusecardevent = False
+
+    def _restore_inusedata(self):
+        cw.cwpy.event.in_cardeffectmotion = self._stored_in_cardeffectmotion
+        self._stored_in_cardeffectmotion = False
+        cw.cwpy.event.in_inusecardevent = cw.cwpy.event.in_inusecardevent
+        self._stored_in_inusecardevent = False
+
     def run_areaevent(self):
         keycodes = self.inusecard.get_keycodes()
-        cw.cwpy.event.set_selectedmember(self.user)
-        in_inusecardevent = cw.cwpy.event.in_inusecardevent
-        cw.cwpy.event.in_inusecardevent = False
+        self._store_inusedata(selectuser=True)
         cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
-        cw.cwpy.event.in_inusecardevent = in_inusecardevent
+        self._restore_inusedata()
 
     def run_enemyevent(self, target, can_unconscious):
         if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
             keycodes = self.inusecard.get_keycodes()
-            cw.cwpy.event.set_selectedmember(self.user)
-            in_inusecardevent = cw.cwpy.event.in_inusecardevent
-            cw.cwpy.event.in_inusecardevent = False
+            self._store_inusedata(selectuser=True)
             target.events.start(keycodes=keycodes, isinsideevent=True)
-            cw.cwpy.event.in_inusecardevent = in_inusecardevent
+            self._restore_inusedata()
 
     def run_deadevent(self, target):
         if cw.cwpy.msgs["runaway_keycode"] in self.inusecard.get_keycodes(with_name=False):
@@ -1113,11 +1123,9 @@ class CardEvent(Event):
             # (ただしカード名キーコードは除く)
             return False
         if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
-            cw.cwpy.event.set_selectedmember(self.user)
-            in_inusecardevent = cw.cwpy.event.in_inusecardevent
-            cw.cwpy.event.in_inusecardevent = False
+            self._store_inusedata(selectuser=True)
             r = target.events.start(1, isinsideevent=True)
-            cw.cwpy.event.in_inusecardevent = in_inusecardevent
+            self._restore_inusedata()
             return r
         else:
             return False
@@ -1132,10 +1140,9 @@ class CardEvent(Event):
         if event:
             lock = cw.cwpy.lock_menucards
             cw.cwpy.lock_menucards = False
-            in_inusecardevent = cw.cwpy.event.in_inusecardevent
-            cw.cwpy.event.in_inusecardevent = False
+            self._store_inusedata(selectuser=False)
             target.events.start(keycodes=keycodes)
-            cw.cwpy.event.in_inusecardevent = in_inusecardevent
+            self._restore_inusedata()
             cw.cwpy.lock_menucards = lock
             self.error = event.error
         else:
@@ -1151,11 +1158,9 @@ class CardEvent(Event):
                     else:
                         keycodes.append(keycode + u"×")
 
-            cw.cwpy.event.set_selectedmember(self.user)
-            in_inusecardevent = cw.cwpy.event.in_inusecardevent
-            cw.cwpy.event.in_inusecardevent = False
+            self._store_inusedata(selectuser=True)
             target.events.start(keycodes=keycodes, isinsideevent=True, successevent=True)
-            cw.cwpy.event.in_inusecardevent = in_inusecardevent
+            self._restore_inusedata()
 
     def effect_cardmotion(self):
         """カード効果発動。イベント実行の最後に行う。"""
