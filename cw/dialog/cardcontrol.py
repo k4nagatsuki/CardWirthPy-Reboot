@@ -1719,9 +1719,6 @@ class CardHolder(CardControl):
     def _change_callname(self, old_callname):
         self._load_index()
 
-        if self.callname <> old_callname:
-            self._show_controls()
-
         if self.callname == "CARDPOCKET":
             self.bgcolour = wx.Colour(0, 0, 128)
         elif self.callname == "CARDPOCKETB":
@@ -1743,6 +1740,7 @@ class CardHolder(CardControl):
 
         self.Parent.change_selection(self.selection)
         if self.callname <> old_callname:
+            self._show_controls()
             self._do_layout()
 
         self._enable_updown()
@@ -2125,8 +2123,9 @@ class CardHolder(CardControl):
         ntype = self.narrow_type.GetSelection()
 
         show = [True] * 3
-        for cardtype, btn in enumerate(self.show):
-            show[cardtype] = not btn.IsShown() or btn.GetToggle()
+        if self.callname in ("STOREHOUSE", "BACKPACK"):
+            for cardtype, btn in enumerate(self.show):
+                show[cardtype] = btn.GetToggle()
 
         if not narrow and all(show):
             return self._fulllist
