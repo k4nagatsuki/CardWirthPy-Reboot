@@ -168,68 +168,71 @@ class LocalSetting(object):
 
     def load(self, data):
         """dataから設定をロードする。"""
+        self.basefont = self.basefont_init.copy()
+        self.fonttypes = self.fonttypes_init.copy()
+
         # 基本設定を上書きするか。
         self.important_draw = data.getbool(".", "importantdrawing", False)
         self.important_font = data.getbool(".", "importantfont", False)
 
         # メッセージウィンドウの色と透明度
-        r = data.getint("MessageWindowColor", "red", self.mwincolour[0])
-        g = data.getint("MessageWindowColor", "green", self.mwincolour[1])
-        b = data.getint("MessageWindowColor", "blue", self.mwincolour[2])
-        a = data.getint("MessageWindowColor", "alpha", self.mwincolour[3])
+        r = data.getint("MessageWindowColor", "red", self.mwincolour_init[0])
+        g = data.getint("MessageWindowColor", "green", self.mwincolour_init[1])
+        b = data.getint("MessageWindowColor", "blue", self.mwincolour_init[2])
+        a = data.getint("MessageWindowColor", "alpha", self.mwincolour_init[3])
         self.mwincolour = Setting.wrap_colorvalue(r, g, b, a)
-        r = data.getint("MessageWindowFrameColor", "red", self.mwinframecolour[0])
-        g = data.getint("MessageWindowFrameColor", "green", self.mwinframecolour[1])
-        b = data.getint("MessageWindowFrameColor", "blue", self.mwinframecolour[2])
-        a = data.getint("MessageWindowFrameColor", "alpha", self.mwinframecolour[3])
+        r = data.getint("MessageWindowFrameColor", "red", self.mwinframecolour_init[0])
+        g = data.getint("MessageWindowFrameColor", "green", self.mwinframecolour_init[1])
+        b = data.getint("MessageWindowFrameColor", "blue", self.mwinframecolour_init[2])
+        a = data.getint("MessageWindowFrameColor", "alpha", self.mwinframecolour_init[3])
         self.mwinframecolour = Setting.wrap_colorvalue(r, g, b, a)
         # バックログウィンドウの色と透明度
-        r = data.getint("MessageLogWindowColor", "red", self.blwincolour[0])
-        g = data.getint("MessageLogWindowColor", "green", self.blwincolour[1])
-        b = data.getint("MessageLogWindowColor", "blue", self.blwincolour[2])
-        a = data.getint("MessageLogWindowColor", "alpha", self.blwincolour[3])
+        r = data.getint("MessageLogWindowColor", "red", self.blwincolour_init[0])
+        g = data.getint("MessageLogWindowColor", "green", self.blwincolour_init[1])
+        b = data.getint("MessageLogWindowColor", "blue", self.blwincolour_init[2])
+        a = data.getint("MessageLogWindowColor", "alpha", self.blwincolour_init[3])
         self.blwincolour = Setting.wrap_colorvalue(r, g, b, a)
-        r = data.getint("MessageLogWindowFrameColor", "red", self.blwinframecolour[0])
-        g = data.getint("MessageLogWindowFrameColor", "green", self.blwinframecolour[1])
-        b = data.getint("MessageLogWindowFrameColor", "blue", self.blwinframecolour[2])
-        a = data.getint("MessageLogWindowFrameColor", "alpha", self.blwinframecolour[3])
+        r = data.getint("MessageLogWindowFrameColor", "red", self.blwinframecolour_init[0])
+        g = data.getint("MessageLogWindowFrameColor", "green", self.blwinframecolour_init[1])
+        b = data.getint("MessageLogWindowFrameColor", "blue", self.blwinframecolour_init[2])
+        a = data.getint("MessageLogWindowFrameColor", "alpha", self.blwinframecolour_init[3])
         self.blwinframecolour = Setting.wrap_colorvalue(r, g, b, a)
         # メッセージログカーテン色
-        r = data.getint("MessageLogCurtainColor", "red", self.blcurtaincolour[0])
-        g = data.getint("MessageLogCurtainColor", "green", self.blcurtaincolour[1])
-        b = data.getint("MessageLogCurtainColor", "blue", self.blcurtaincolour[2])
-        a = data.getint("MessageLogCurtainColor", "alpha", self.blcurtaincolour[3])
+        r = data.getint("MessageLogCurtainColor", "red", self.blcurtaincolour_init[0])
+        g = data.getint("MessageLogCurtainColor", "green", self.blcurtaincolour_init[1])
+        b = data.getint("MessageLogCurtainColor", "blue", self.blcurtaincolour_init[2])
+        a = data.getint("MessageLogCurtainColor", "alpha", self.blcurtaincolour_init[3])
         self.blcurtaincolour = (r, g, b, a)
         # カーテン色
-        r = data.getint("CurtainColor", "red", self.curtaincolour[0])
-        g = data.getint("CurtainColor", "green", self.curtaincolour[1])
-        b = data.getint("CurtainColor", "blue", self.curtaincolour[2])
-        a = data.getint("CurtainColor", "alpha", self.curtaincolour[3])
+        r = data.getint("CurtainColor", "red", self.curtaincolour_init[0])
+        g = data.getint("CurtainColor", "green", self.curtaincolour_init[1])
+        b = data.getint("CurtainColor", "blue", self.curtaincolour_init[2])
+        a = data.getint("CurtainColor", "alpha", self.curtaincolour_init[3])
         self.curtaincolour = (r, g, b, a)
 
         # カード名を縁取りする
-        self.bordering_cardname = data.getbool("BorderingCardName", self.bordering_cardname)
+        self.bordering_cardname = data.getbool("BorderingCardName", self.bordering_cardname_init)
         # メッセージで装飾フォントを使用する
-        self.decorationfont = data.getbool("DecorationFont", self.decorationfont)
+        self.decorationfont = data.getbool("DecorationFont", self.decorationfont_init)
         # メッセージの文字を滑らかにする
-        self.fontsmoothing_message = data.getbool("FontSmoothingMessage", self.fontsmoothing_message)
+        self.fontsmoothing_message = data.getbool("FontSmoothingMessage", self.fontsmoothing_message_init)
         # カード名の文字を滑らかにする
-        self.fontsmoothing_cardname = data.getbool("FontSmoothingCardName", self.fontsmoothing_cardname)
+        self.fontsmoothing_cardname = data.getbool("FontSmoothingCardName", self.fontsmoothing_cardname_init)
         # ステータスバーの文字を滑らかにする
-        self.fontsmoothing_statusbar = data.getbool("FontSmoothingStatusBar", self.fontsmoothing_statusbar)
+        self.fontsmoothing_statusbar = data.getbool("FontSmoothingStatusBar", self.fontsmoothing_statusbar_init)
 
         # フォント名(空白時デフォルト)
-        self.basefont["gothic"] = data.gettext("FontGothic", self.basefont["gothic"])
-        self.basefont["uigothic"] = data.gettext("FontUIGothic", self.basefont["uigothic"])
-        self.basefont["mincho"] = data.gettext("FontMincho", self.basefont["mincho"])
-        self.basefont["pmincho"] = data.gettext("FontPMincho", self.basefont["pmincho"])
-        self.basefont["pgothic"] = data.gettext("FontPGothic", self.basefont["pgothic"])
+        self.basefont["gothic"] = data.gettext("FontGothic", self.basefont_init["gothic"])
+        self.basefont["uigothic"] = data.gettext("FontUIGothic", self.basefont_init["uigothic"])
+        self.basefont["mincho"] = data.gettext("FontMincho", self.basefont_init["mincho"])
+        self.basefont["pmincho"] = data.gettext("FontPMincho", self.basefont_init["pmincho"])
+        self.basefont["pgothic"] = data.gettext("FontPGothic", self.basefont_init["pgothic"])
         # 役割別フォント
         for e in data.getfind("Fonts", raiseerror=False):
             key = e.getattr(".", "key", "")
-            if not key or not key in self.fonttypes:
+            if not key or not key in self.fonttypes_init:
                 continue
-            _deftype, _defname, defpixels, defbold, defbold_upscr, defitalic = self.fonttypes[key]
+            _deftype, _defname, defpixels, defbold, defbold_upscr, defitalic = self.fonttypes_init[key]
 
             fonttype = e.getattr(".", "type", "")
             name = e.text if e.text else u""
@@ -252,9 +255,9 @@ class LocalSetting(object):
             self.fonttypes[key] = (fonttype, name, pixels, bold, bold_upscr, italic)
 
         # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
-        self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", self.fullscreenbackgroundtype)
+        self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", self.fullscreenbackgroundtype_init)
         # フルスクリーン時の背景ファイル
-        self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", self.fullscreenbackgroundfile)
+        self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", self.fullscreenbackgroundfile_init)
 
     def copy(self):
         return copy.deepcopy(self)
