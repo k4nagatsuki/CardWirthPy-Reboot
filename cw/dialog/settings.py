@@ -1671,8 +1671,8 @@ class DrawingSettingPanel(wx.Panel):
         alpha = self.sc_mwin.GetValue()
         colour = self.cs_mwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        local.mwincolour = colour
         updatemessage |= local.mwincolour <> colour
+        local.mwincolour = colour
         alpha = self.sc_mframe.GetValue()
         colour = self.cs_mframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
