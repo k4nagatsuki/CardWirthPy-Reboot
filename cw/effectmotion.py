@@ -655,7 +655,7 @@ class EffectMotion(object):
                 if self.damagetype <> "Max":
                     value = self.calc_defensedvalue(value, target)
 
-        target.set_life(-value)
+        value = -(target.set_life(-value))
 
         # 睡眠解除
         if target.is_sleep():
