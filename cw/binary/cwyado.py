@@ -737,10 +737,9 @@ class UnconvCWYado(object):
                 atbl = { "yadoname":self.ydata.name }
                 names = partyheader.get_membernames()
                 i = 0
-                for member in pt.data.getfind("Property/Members"):
-                    if member.tag == "Member" and member.text:
-                        atbl[member.text] = names[i]
-                        i += 1
+                for member in partyheader.members:
+                    atbl[member] = names[i]
+                    i += 1
                 atbl["adventurers"] = atbl
 
                 fpath1 = create_fpath(pt.name, ".wpl")

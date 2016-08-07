@@ -132,7 +132,7 @@ class Party(base.CWBinaryBase):
                         atbl = table["adventurers"]
                         seq = []
                         for me in prop:
-                            if me.tag == "Member" and me.text:
+                            if me.tag == "Member" and me.text and me.text in atbl:
                                 seq.append(atbl[me.text])
                         memberslist = cw.util.encodetextlist(seq)
 
