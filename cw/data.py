@@ -271,9 +271,11 @@ class SystemData(object):
         fpath0 = table.get(resid, (u"", u"(未定義の%s ID:%s)" % (resname, resid)))[1]
         fpath = self._get_resfpath(table, resid)
         if fpath is None:
-            if resid <> 0:
-                s = u"%s の読込に失敗しました。" % (os.path.basename(fpath0))
-                cw.cwpy.call_modaldlg("ERROR", text=s)
+            # イベント中に存在しないリソースを読み込もうとする
+            # クラシックシナリオがいくつか確認されているため、
+            # 読込失敗の警告ダイアログは出さないようにする。
+            ##s = u"%s の読込に失敗しました。" % (os.path.basename(fpath0))
+            ##cw.cwpy.call_modaldlg("ERROR", text=s)
             return None
         try:
             return xml2element(fpath, tag, nocache=nocache)
