@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+
 import base
 import item
 import skill
@@ -480,6 +482,13 @@ class CastCard(base.CWBinaryBase):
                     cardname = card.gettext("Property/Name", "")
                     s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
                     f.write_errorlog(s)
+            except Exception:
+                cw.util.print_ex(file=sys.stderr)
+                f.seek(pos)
+                if f.write_errorlog:
+                    cardname = card.gettext("Property/Name", "")
+                    s = u"%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                    f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
         f.write_dword(cardslen)
@@ -499,6 +508,13 @@ class CastCard(base.CWBinaryBase):
                     cardname = card.gettext("Property/Name", "")
                     s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
                     f.write_errorlog(s)
+            except Exception:
+                cw.util.print_ex(file=sys.stderr)
+                f.seek(pos)
+                if f.write_errorlog:
+                    cardname = card.gettext("Property/Name", "")
+                    s = u"%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                    f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
         f.write_dword(cardslen)
@@ -517,6 +533,13 @@ class CastCard(base.CWBinaryBase):
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
                     s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                    f.write_errorlog(s)
+            except Exception:
+                cw.util.print_ex(file=sys.stderr)
+                f.seek(pos)
+                if f.write_errorlog:
+                    cardname = card.gettext("Property/Name", "")
+                    s = u"%s の所持する %s は変換できませんでした。\n" % (name, cardname)
                     f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)

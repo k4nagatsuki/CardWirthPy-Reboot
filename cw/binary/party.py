@@ -3,6 +3,7 @@
 
 import os
 import io
+import sys
 
 import base
 import adventurer
@@ -399,8 +400,16 @@ class PartyMembers(base.CWBinaryBase):
                     cardname = member.gettext("Property/Name", "")
                     s = u"%s の %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
                     errorlog.append(s)
+            except Exception:
+                cw.util.print_ex(file=sys.stderr)
+                f.seek(pos)
+                if f.write_errorlog:
+                    cardname = member.gettext("Property/Name", "")
+                    s = u"%s の %s は変換できませんでした。\n" % (name, cardname)
+                    errorlog.append(s)
+
         if advnum == 0:
-            s = u"%s は全メンバが対象エンジンで使用できないため、変換しません。\n" % (name)
+            s = u"%s は全メンバが変換に失敗したため、変換しません。\n" % (name)
             raise cw.binary.cwfile.UnsupportedError(s)
 
         if f.write_errorlog:
@@ -434,6 +443,13 @@ class PartyMembers(base.CWBinaryBase):
                     if f.write_errorlog:
                         cardname = member.gettext("Property/Name", "")
                         s = u"%s の %s(消去前データ) は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                        f.write_errorlog(s)
+                except Exception:
+                    cw.util.print_ex(file=sys.stderr)
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = member.gettext("Property/Name", "")
+                        s = u"%s の %s(消去前データ) は変換できませんでした。\n" % (name, cardname)
                         f.write_errorlog(s)
             tell = f.tell()
             f.seek(vannumpos)
