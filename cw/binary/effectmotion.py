@@ -103,14 +103,14 @@ class EffectMotion(base.CWBinaryBase):
         # 生命力, 肉体
         if tabtype in (0, 1):
             f.write_byte(base.CWBinaryBase.unconv_effectmotion_damagetype(data.get("damagetype")))
-            f.write_dword(int(data.get("value")))
+            f.write_dword(int(data.get("value", "0")))
         # 精神, 魔法
         elif tabtype in (3, 4):
-            f.write_dword(int(data.get("duration")))
+            f.write_dword(int(data.get("duration", "10")))
         # 能力
         elif tabtype == 5:
-            f.write_dword(int(data.get("value")))
-            f.write_dword(int(data.get("duration")))
+            f.write_dword(int(data.get("value", "0")))
+            f.write_dword(int(data.get("duration", "10")))
         # 技能
         elif tabtype == 2:
             if not data.get("damagetype", "Max") in ("", "Max"):
