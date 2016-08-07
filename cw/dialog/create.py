@@ -180,6 +180,7 @@ class AdventurerData(object):
         self.resist = 0
         self.defense = 0
         self.coupons = []
+        self.couponnames = {}
         self.gene = None
         self.has_parents = False
         # 能力限界値
@@ -230,8 +231,15 @@ class AdventurerData(object):
     def set_coupon(self, name, value):
         coupon = (name, value)
 
-        if not coupon in self.coupons:
+        if not name in self.couponnames:
+            self.couponnames[name] = len(self.coupons)
             self.coupons.append(coupon)
+        elif name == u"＠レベル上限":
+            # レベル上限に限っては、種族によって
+            # 高めに設定されている場合があるので、
+            # 最も高いものを使用する
+            i = self.couponnames[name]
+            self.coupons[i] = coupon
 
     def set_name(self, name):
         self.name = name
@@ -349,7 +357,7 @@ class AdventurerData(object):
                     talent = u"＿" + nature.name
                     self.gene = self.gene.reverse()
                     break
-                
+
         for nature in cw.cwpy.setting.natures:
                if u"＿" + nature.name == talent:
                    nature.modulate(self)
