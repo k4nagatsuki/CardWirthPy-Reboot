@@ -2437,7 +2437,7 @@ class CWPy(_Singleton, threading.Thread):
         if pcards:
             seq = []
             for pcard in pcards:
-                if pcard.inusecardimg:
+                if pcard.inusecardimg and not pcard.inusecardimg.center:
                     seq.append(pcard.inusecardimg)
             cw.animation.animate_sprites(pcards + seq, "shiftup")
 
@@ -2455,7 +2455,7 @@ class CWPy(_Singleton, threading.Thread):
         if pcards:
             seq = []
             for pcard in pcards:
-                if pcard.inusecardimg:
+                if pcard.inusecardimg and not pcard.inusecardimg.center:
                     seq.append(pcard.inusecardimg)
             cw.animation.animate_sprites(pcards + seq, "shiftdown")
 
