@@ -33,6 +33,7 @@ class ScenarioSelect(select.Select):
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
         self.SetDoubleBuffered(True)
         self._bg = None
+        self._quit = False
 
         # ディレクトリとシナリオリストの対応
         self.scetable = {}
@@ -2609,11 +2610,19 @@ class ScenarioSelect(select.Select):
         if not self.list:
             return
 
+        if self._quit:
+            return
+        self._quit = True
+
         self.Enable(False)
         self.Show(False)
         cw.cwpy.frame.ok_scenarioselect(self)
 
     def OnCancel2(self, event):
+        if self._quit:
+            return
+        self._quit = True
+
         # キャンセルしても最後の選択は記憶する
         cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = self.get_selected()
         cw.cwpy.frame.kill_dlg(None)

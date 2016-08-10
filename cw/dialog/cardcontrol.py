@@ -36,6 +36,8 @@ class CardControl(wx.Dialog):
         self.change_bgs = []
         self._redraw = True
 
+        self._quit = False
+
         if areaid is None:
             self.areaid = cw.cwpy.areaid
         else:
@@ -1066,6 +1068,9 @@ class CardControl(wx.Dialog):
     def lclick_event(self, header):
         if self._proc:
             return
+        if self._quit:
+            return
+
         header.negaflag = False
         self.toppanel.SetFocusIgnoringChildren()
 
@@ -1195,6 +1200,10 @@ class CardControl(wx.Dialog):
         return True
 
     def OnOk(self, event):
+        if self._quit:
+            return
+        self._quit = True
+
         self.Enable(False)
         self.Show(False)
 
@@ -1208,6 +1217,13 @@ class CardControl(wx.Dialog):
         cw.cwpy.frame.append_killlist(self)
 
     def OnCancel(self, event):
+        if self._quit:
+            return
+        self._quit = True
+
+        self.Enable(False)
+        self.Show(False)
+
         if not self.callname in ("CARDPOCKET_REPLACE", "INFOVIEW"):
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
         cw.cwpy.frame.kill_dlg(None)
@@ -1512,6 +1528,7 @@ class CardHolder(CardControl):
     def OnDestroy(self, event):
         for header in self._fulllist:
             header.negaflag = False
+            header.clickedflag = False
 
     def OnSort(self, event):
         self.toppanel.SetFocusIgnoringChildren()
