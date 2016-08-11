@@ -1679,6 +1679,13 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.party.remove_numbercoupon()
             for pcard in self.get_pcards():
                 pcard.clear_action()
+
+            # 全員対象消去による戦闘の敗北から
+            # シナリオクリアへ直結した場合の処置
+            if not self.ydata.party.members:
+                self.dissolve_party()
+                areaid = 1
+
         elif not self.ydata.is_empty() or self.ydata.is_changed():
             # パーティを選択中でない
             areaid = 1
