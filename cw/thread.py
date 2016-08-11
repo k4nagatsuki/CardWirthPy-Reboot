@@ -2968,7 +2968,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.lock_menucards = False
 
-        self.statusbar.change(True)
+        self.exec_func(self.statusbar.change, True)
         self.disposition_pcards()
 
     def clear_specialarea(self, redraw=True):
@@ -3029,11 +3029,14 @@ class CWPy(_Singleton, threading.Thread):
             if self.pre_dialogs:
                 callpredlg = True
 
-        showbuttons = not self.is_playingscenario() or\
-            (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP) or\
-            oldareaid == cw.AREA_CAMP or\
-            targetselectionarea
-        self.statusbar.change(showbuttons)
+        def func():
+            showbuttons = not self.is_playingscenario() or\
+                (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP) or\
+                oldareaid == cw.AREA_CAMP or\
+                targetselectionarea or\
+                (self.is_battlestatus() and self.battle.is_ready())
+            self.statusbar.change(showbuttons)
+        self.exec_func(func)
 
         self.disposition_pcards()
         if not callpredlg:
