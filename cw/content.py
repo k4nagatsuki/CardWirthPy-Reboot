@@ -1993,6 +1993,11 @@ class EndContent(EventContentBase):
             return u"済印をつけずに終了"
 
 def end_scenario(complete):
+    if cw.cwpy.ydata and cw.cwpy.ydata.party and not cw.cwpy.ydata.party.members:
+        # 全員対象消去されて発生した敗北イベント中にシナリオクリア
+        cw.cwpy.set_gameover()
+        return
+
     if complete and cw.cwpy.ydata and cw.cwpy.sdata:
         # 終了印追加
         cw.cwpy.ydata.set_compstamp(cw.cwpy.sdata.name)
