@@ -1744,6 +1744,9 @@ class ScenarioSelect(select.Select):
         selected = self.list[self.index] if self.list else None
         if self.tree.IsShown():
             selitem = self.tree.GetSelection()
+            if not selitem:
+                self._processing = False
+                return
             paritem = self.tree.GetItemParent(selitem)
             def recurse(parent):
                 index, nowdir = self.tree.GetItemPyData(parent)
@@ -1919,8 +1922,9 @@ class ScenarioSelect(select.Select):
                     treeitem = itemlist[self.index]
                     self.tree.SelectItem(treeitem)
                 else:
-                    self.tree.SelectItem(treeitem)
-                    self._tree_selchanged()
+                    if not treeitem is self.tree.root:
+                        self.tree.SelectItem(treeitem)
+                        self._tree_selchanged()
 
                 # 検索結果ディレクトリを選択中であれば展開する
                 data = self.tree.GetItemPyData(treeitem)
@@ -2058,6 +2062,8 @@ class ScenarioSelect(select.Select):
 
     def select_treeitem(self, index):
         item = self.tree.GetSelection()
+        if not item:
+            return
         paritem = self.tree.GetItemParent(item)
         item, cookie = self.tree.GetFirstChild(paritem)
         i = 0
@@ -2263,7 +2269,7 @@ class ScenarioSelect(select.Select):
             self.yesbtn.Enable(False)
             self.infobtn.Enable(False)
             if self.viewbtn:
-                self.viewbtn.Enable(bool(self.dirstack))
+                self.viewbtn.Enable()
             self.nobtn.Enable()
             self.rightbtn.Disable()
             self.right2btn.Disable()
@@ -2377,9 +2383,10 @@ class ScenarioSelect(select.Select):
         """
         指定されたパスが選択可能ならTrueを返す。
         """
-        return os.path.isdir(path) or\
-            (sys.platform == "win32" and path.lower().endswith(".lnk")) or\
-            self.is_scenario(path)
+        if os.path.isdir(path):
+            return True
+        path = cw.util.get_linktarget(path)
+        return self.is_scenario(path)
 
     def is_scenario(self, path):
         """
