@@ -553,6 +553,9 @@ class Scenariodb(object):
             else:
                 return []
 
+        if not os.path.isdir(dpath):
+            return []
+
         for name in os.listdir(unicode(dpath)):
             if name in names:
                 continue
