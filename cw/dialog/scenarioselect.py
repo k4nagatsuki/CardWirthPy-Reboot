@@ -2383,10 +2383,8 @@ class ScenarioSelect(select.Select):
         """
         指定されたパスが選択可能ならTrueを返す。
         """
-        if os.path.isdir(path):
-            return True
         path = cw.util.get_linktarget(path)
-        return self.is_scenario(path)
+        return os.path.isdir(path) or self.is_scenario(path)
 
     def is_scenario(self, path):
         """
