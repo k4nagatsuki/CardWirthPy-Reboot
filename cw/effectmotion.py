@@ -434,7 +434,7 @@ class EffectMotion(object):
         # スキルカードの場合は行動力修正の影響を受ける
         self.vocation_level = header.get_vocation_level(user, enhance_act=self.is_enhance_act) if header else 2
         # 使用者のレベルもしくは効果コンテントの対象レベル
-        self.level = user.level if user else targetlevel
+        self.level = cw.util.numwrap(user.level if user else targetlevel, -65536, 65536)
 
         # 使用者の行動力修正(技能カード以外は全て"0")
         if self.is_enhance_act:
@@ -460,10 +460,11 @@ class EffectMotion(object):
         効果値が0の場合は実数値も0を返す。
         """
         value = self.value
+        minvalue = 1 if self.type in ("Heal", "Damage", "Absorb") else 0
 
         # 固定値(Wsn.1)
         if self.damagetype == "Fixed":
-            return value
+            return max(minvalue, value)
 
         # ダメージタイプが"Max"の場合、最大HPを実数値として返す
         if self.damagetype == "Max":
@@ -471,10 +472,7 @@ class EffectMotion(object):
         elif value <= 0:
             # 効果値0以下の場合、0を実数値として返す
             # (ダメージ・回復・吸収を除く)
-            if self.type in ("Heal", "Damage", "Absorb"):
-                return 1
-            else:
-                return 0
+            return minvalue
 
         # レベル比の効果値を計算(レベル比じゃない場合はそのままの効果値)
         if self.damagetype == "LevelRatio":
@@ -490,8 +488,8 @@ class EffectMotion(object):
         # 中毒・麻痺なら効果値のまま返す
         if physical:
             # 最低でも0とする
-            if value < 0:
-                value = 0
+            if value < minvalue:
+                value = minvalue
             return value
 
         # 効果値から実数値を計算
@@ -503,8 +501,8 @@ class EffectMotion(object):
             out_value += cw.cwpy.dice.roll(1, n)
 
         # 最低でも1ダメージとする
-        if out_value <= 0:
-            out_value = 1
+        if out_value < minvalue:
+            out_value = minvalue
 
         return out_value
 
@@ -885,13 +883,14 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        if self.value <> 0:
+        value = cw.util.numwrap(self.value, -10, 10)
+        if value <> 0:
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
-        eff = target.enhance_act <> self.value or target.enhance_act_dur < duration
+        eff = target.enhance_act <> value or target.enhance_act_dur < duration
         if eff:
-            target.set_enhance_act(self.value, duration)
+            target.set_enhance_act(value, duration)
         return eff
 
     def enhanceavoid_motion(self, target, success_res):
@@ -900,13 +899,14 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        if self.value <> 0:
+        value = cw.util.numwrap(self.value, -10, 10)
+        if value <> 0:
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
-        eff = target.enhance_avo <> self.value or target.enhance_avo_dur < duration
+        eff = target.enhance_avo <> value or target.enhance_avo_dur < duration
         if eff:
-            target.set_enhance_avo(self.value, duration)
+            target.set_enhance_avo(value, duration)
         return eff
 
     def enhanceresist_motion(self, target, success_res):
@@ -915,13 +915,14 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        if self.value <> 0:
+        value = cw.util.numwrap(self.value, -10, 10)
+        if value <> 0:
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
-        eff = target.enhance_res <> self.value or target.enhance_res_dur < duration
+        eff = target.enhance_res <> value or target.enhance_res_dur < duration
         if eff:
-            target.set_enhance_res(self.value, duration)
+            target.set_enhance_res(value, duration)
         return eff
 
     def enhancedefense_motion(self, target, success_res):
@@ -930,13 +931,14 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        if self.value <> 0:
+        value = cw.util.numwrap(self.value, -10, 10)
+        if value <> 0:
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
-        eff = target.enhance_def <> self.value or target.enhance_def_dur < duration
+        eff = target.enhance_def <> value or target.enhance_def_dur < duration
         if eff:
-            target.set_enhance_def(self.value, duration)
+            target.set_enhance_def(value, duration)
         return eff
 
     #-----------------------------------------------------------------------

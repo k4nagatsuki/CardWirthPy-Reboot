@@ -369,9 +369,10 @@ class CardHeader(object):
             mental = int(mental)
 
         if enhance_act:
-            return physical + mental + owner.data.getint("Property/Enhance/Action")
+            n = physical + mental + owner.data.getint("Property/Enhance/Action")
         else:
-            return physical + mental
+            n = physical + mental
+        return cw.util.numwrap(n, -65536, 65536)
 
     def get_uselimit_level(self):
         """
@@ -889,7 +890,7 @@ class AdventurerHeader(object):
         elif fpath:
             self.fpath = fpath
             prop = GetProperty(fpath)
-            self.level = int(prop.properties.get("Level", "0"))
+            self.level = cw.util.numwrap(int(prop.properties.get("Level", "1")), 1, 65536)
             self.name = prop.properties.get("Name", "")
             self.desc = cw.util.decodewrap(prop.properties.get("Description", ""))
             self.imgpaths = cw.image.get_imageinfos_p(prop)
@@ -931,7 +932,7 @@ class AdventurerHeader(object):
 
         else:
             self.fpath = data.fpath
-            self.level = data.getint("Level", 0)
+            self.level = cw.util.numwrap(data.getint("Level", 1), 1, 65536)
             self.name = data.gettext("Name", "")
             self.desc = cw.util.decodewrap(data.gettext("Description", ""))
             self.imgpaths = cw.image.get_imageinfos(data)

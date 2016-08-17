@@ -23,7 +23,7 @@ class Character(object):
         # 名前
         self.name = self.data.gettext("Property/Name", "")
         # レベル
-        self.level = self.data.getint("Property/Level")
+        self.level = cw.util.numwrap(self.data.getint("Property/Level", 1), 1, 65536)
         # 各種所持カードのリスト
         self.cardpocket = self.get_cardpocket()
         # 全てホールド
@@ -33,41 +33,57 @@ class Character(object):
             self.data.getbool("BeastCards", "hold_all", False),
         ]
         # 現在ライフ・最大ライフ
-        self.life = self.data.getint("Property/Life")
-        self.maxlife = self.data.getint("Property/Life", "max")
+        self.life = max(0, self.data.getint("Property/Life", 0))
+        self.maxlife = max(1, self.data.getint("Property/Life", "max", 1))
+        self.life = min(self.maxlife, self.life)
         # 精神状態
-        self.mentality = self.data.gettext("Property/Status/Mentality")
-        self.mentality_dur = self.data.getint("Property/Status/Mentality",
-                                                                    "duration")
+        self.mentality = self.data.gettext("Property/Status/Mentality", "Normal")
+        self.mentality_dur = cw.util.numwrap(self.data.getint("Property/Status/Mentality",
+                                                                    "duration", 0), 0, 999)
+        if self.mentality_dur == 0 or self.mentality == "Normal":
+            self.mentality = "Normal"
+            self.mentality_dur = 0
         # 麻痺値
-        self.paralyze = self.data.getint("Property/Status/Paralyze")
+        self.paralyze = cw.util.numwrap(self.data.getint("Property/Status/Paralyze", 0), 0, 40)
         # 中毒値
-        self.poison = self.data.getint("Property/Status/Poison")
+        self.poison = cw.util.numwrap(self.data.getint("Property/Status/Poison", 0), 0, 40)
         # 束縛時間値
-        self.bind = self.data.getint("Property/Status/Bind", "duration")
+        self.bind = cw.util.numwrap(self.data.getint("Property/Status/Bind", "duration", 0), 0, 999)
         # 沈黙時間値
-        self.silence = self.data.getint("Property/Status/Silence", "duration")
+        self.silence = cw.util.numwrap(self.data.getint("Property/Status/Silence", "duration", 0), 0, 999)
         # 暴露時間値
-        self.faceup = self.data.getint("Property/Status/FaceUp", "duration")
+        self.faceup = cw.util.numwrap(self.data.getint("Property/Status/FaceUp", "duration", 0), 0, 999)
         # 魔法無効時間値
-        self.antimagic = self.data.getint("Property/Status/AntiMagic",
-                                                                    "duration")
+        self.antimagic = cw.util.numwrap(self.data.getint("Property/Status/AntiMagic",
+                                                                    "duration", 0), 0, 999)
         # 行動力強化値
-        self.enhance_act = self.data.getint("Property/Enhance/Action")
-        self.enhance_act_dur = self.data.getint("Property/Enhance/Action",
-                                                                    "duration")
+        self.enhance_act = cw.util.numwrap(self.data.getint("Property/Enhance/Action", 0), -10, 10)
+        self.enhance_act_dur = cw.util.numwrap(self.data.getint("Property/Enhance/Action",
+                                                                    "duration", 0), 0, 999)
+        if self.enhance_act == 0 or self.enhance_act_dur == 0:
+            self.enhance_act = 0
+            self.enhance_act_dur = 0
         # 回避力強化値
-        self.enhance_avo = self.data.getint("Property/Enhance/Avoid")
-        self.enhance_avo_dur = self.data.getint("Property/Enhance/Avoid",
-                                                                    "duration")
+        self.enhance_avo = cw.util.numwrap(self.data.getint("Property/Enhance/Avoid", 0), -10, 10)
+        self.enhance_avo_dur = cw.util.numwrap(self.data.getint("Property/Enhance/Avoid",
+                                                                    "duration", 0), 0, 999)
+        if self.enhance_avo == 0 or self.enhance_avo_dur == 0:
+            self.enhance_avo = 0
+            self.enhance_avo_dur = 0
         # 抵抗力強化値
-        self.enhance_res = self.data.getint("Property/Enhance/Resist")
-        self.enhance_res_dur = self.data.getint("Property/Enhance/Resist",
-                                                                    "duration")
+        self.enhance_res = cw.util.numwrap(self.data.getint("Property/Enhance/Resist", 0), -10, 10)
+        self.enhance_res_dur = cw.util.numwrap(self.data.getint("Property/Enhance/Resist",
+                                                                    "duration", 0), 0, 999)
+        if self.enhance_res == 0 or self.enhance_res_dur == 0:
+            self.enhance_res = 0
+            self.enhance_res_dur = 0
         # 防御力強化値
-        self.enhance_def = self.data.getint("Property/Enhance/Defense")
-        self.enhance_def_dur = self.data.getint("Property/Enhance/Defense",
-                                                                    "duration")
+        self.enhance_def = cw.util.numwrap(self.data.getint("Property/Enhance/Defense", 0), -10, 10)
+        self.enhance_def_dur = cw.util.numwrap(self.data.getint("Property/Enhance/Defense",
+                                                                    "duration", 0), 0, 999)
+        if self.enhance_def == 0 or self.enhance_def_dur == 0:
+            self.enhance_def = 0
+            self.enhance_def_dur = 0
         # 各種能力値
         e = self.data.getfind("Property/Ability/Physical")
         self.physical = copy.copy(e.attrib)
@@ -76,9 +92,21 @@ class Character(object):
         e = self.data.getfind("Property/Ability/Enhance")
         self.enhance = copy.copy(e.attrib)
 
-        for d in (self.physical, self.mental, self.enhance):
-            for key, value in d.iteritems():
-                d[key] = float(value)
+        for key, value in self.physical.iteritems():
+            try:
+                self.physical[key] = cw.util.numwrap(float(value), 0, 65536)
+            except:
+                self.physical[key] = 0
+        for key, value in self.mental.iteritems():
+            try:
+                self.mental[key] = cw.util.numwrap(float(value), -65536, 65536)
+            except:
+                self.mental[key] = 0
+        for key, value in self.enhance.iteritems():
+            try:
+                self.enhance[key] = cw.util.numwrap(float(value), -10, 10)
+            except:
+                self.enhance[key] = 0
 
         # 特性
         e = self.data.getfind("Property/Feature/Type")
@@ -92,7 +120,10 @@ class Character(object):
 
         for d in (self.feature, self.noeffect, self.resist, self.weakness):
             for key, value in d.iteritems():
-                d[key] = cw.util.str2bool(value)
+                try:
+                    d[key] = cw.util.str2bool(value)
+                except:
+                    d[key] = False
 
         # デッキ
         self.deck = cw.deck.Deck(self)
@@ -109,7 +140,12 @@ class Character(object):
         # クーポン一覧
         self.coupons = {}
         for e in self.data.getfind("Property/Coupons"):
-            self.coupons[e.text] = int(e.get("value")), e
+            if not e.text:
+                continue
+            try:
+                self.coupons[e.text] = int(e.get("value")), e
+            except:
+                self.coupons[e.text] = 0, e
             if e.text == u"：Ｒ":
                 self.reversed = True
         # 時限クーポンのデータのリスト(name, flag_countable)
@@ -1296,6 +1332,7 @@ class Character(object):
             mental = int(mental)
 
         voc = int(physical + mental)
+        voc = cw.util.numwrap(voc, -65536, 65536)
         self._voc_tbl[vo] = voc
         return voc
 
@@ -2710,6 +2747,7 @@ def calc_maxlife(vit, minval, level):
     """能力値から体力の最大値を計算する。"""
     vit = max(1, vit)
     minval = max(1, minval)
+    level = max(1, level)
     return int((float(vit) / 2.0 + 4) * (level + 1) + float(minval) / 2.0)
 assert calc_maxlife(8, 5, 10) == 90
 assert calc_maxlife(9, 5, 10) == 96
@@ -2738,7 +2776,7 @@ class AlbumPage(object):
     def __init__(self, data):
         self.data = data
         self.name = self.data.gettext("Property/Name", "")
-        self.level = self.data.getint("Property/Level")
+        self.level = cw.util.numwrap(self.data.getint("Property/Level"), 1, 65536)
 
     def get_specialcoupons(self):
         """

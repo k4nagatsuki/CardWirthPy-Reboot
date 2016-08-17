@@ -978,11 +978,11 @@ class ScenarioSelect(select.Select):
                             while item.IsOk() and i <> index:
                                 item, cookie = self.tree.GetNextChild(treeitem, cookie)
                                 i += 1
-                            assert item.IsOk()
-                            self.tree.SelectItem(item)
-                            if not isinstance(sel, cw.header.ScenarioHeader):
-                                self.tree.Expand(item)
-                                self.create_treeitems(item)
+                            if item.IsOk():
+                                self.tree.SelectItem(item)
+                                if not isinstance(sel, cw.header.ScenarioHeader):
+                                    self.tree.Expand(item)
+                                    self.create_treeitems(item)
                         break
 
         self._processing = processing
