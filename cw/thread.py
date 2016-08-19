@@ -3057,6 +3057,8 @@ class CWPy(_Singleton, threading.Thread):
             self._is_showingbacklog = False
         if self.is_curtained():
             self.pre_dialogs = []
+            if self.areaid in cw.AREAS_TRADE:
+                self.topgrp.empty()
             self.clear_specialarea()
 
     def check_level(self, fromscenario):
