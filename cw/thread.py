@@ -15,6 +15,7 @@ import pygame
 from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
 
 import cw
+from cw.util import synclock
 
 # build_exe.pyによって作られる一時モジュール
 # cw.versioninfoからビルド時間の情報を得る
@@ -803,7 +804,7 @@ class CWPy(_Singleton, threading.Thread):
                                  pygame.locals.K_F9, pygame.locals.K_F10, pygame.locals.K_F11, pygame.locals.K_F12,
                                  pygame.locals.K_F13, pygame.locals.K_F14, pygame.locals.K_F15):
                     breakflag = True
-            pygame.event.post(e)
+            cw.thread.post_pygameevent(e)
         return breakflag
 
     def get_nextevent(self):
@@ -867,7 +868,7 @@ class CWPy(_Singleton, threading.Thread):
                 if e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
                     seq.append(e)
                 else:
-                    pygame.event.post(e)
+                    cw.thread.post_pygameevent(e)
             events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             if events:
                 events = [events[-1]]
@@ -1329,7 +1330,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         event = pygame.event.Event(pygame.USEREVENT, func=func, args=args,
                                                                 kwargs=kwargs)
-        pygame.event.post(event)
+        post_pygameevent(event)
 
     def sync_exec(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行し、
@@ -4492,6 +4493,23 @@ class CWPy(_Singleton, threading.Thread):
             fcards = [fcard for fcard in fcards if fcard.is_active()]
 
         return fcards
+
+
+_mutex_postevent = threading.Lock()
+
+@synclock(_mutex_postevent)
+def post_pygameevent(event):
+    """pygameイベントをキューへ投入する。
+    投入に失敗した場合は一度だけ入力イベントを
+    クリアしてからの再投入を試みる。
+    """
+    try:
+        pygame.event.post(event)
+    except:
+        # 入力イベントが輻輳している場合はクリアする
+        pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+        pygame.event.post(event)
+
 
 class ShowMenuCards(object):
     def __init__(self, cwpy):

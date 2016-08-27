@@ -420,10 +420,10 @@ class EventHandler(object):
         if cw.cwpy.is_showingbacklog():
             if cw.cwpy.setting.is_logscrollable():
                 event = pygame.event.Event(KEYDOWN, key=K_ESCAPE)
-                pygame.event.post(event)
+                cw.thread.post_pygameevent(event)
             else:
                 event = pygame.event.Event(KEYDOWN, key=K_UP)
-                pygame.event.post(event)
+                cw.thread.post_pygameevent(event)
         elif cw.cwpy.has_backlog():
             cw.cwpy.play_sound("page")
             cw.cwpy.show_backlog()

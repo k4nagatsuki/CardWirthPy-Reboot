@@ -67,7 +67,7 @@ class KeyEventRelay(object):
         if key:
             if self.keyin[key] == 0:
                 event = pygame.event.Event(KEYDOWN, key=key)
-                pygame.event.post(event)
+                cw.thread.post_pygameevent(event)
 
             if self.keyin[key] <= self.threshold + 1:
                 self.keyin[key] += 1
@@ -77,7 +77,7 @@ class KeyEventRelay(object):
 
         if key:
             event = pygame.event.Event(KEYUP, key=key)
-            pygame.event.post(event)
+            cw.thread.post_pygameevent(event)
             self.keyin[key] = 0
             self.nokeyupevent = False
 
@@ -89,7 +89,7 @@ class KeyEventRelay(object):
             # 連続押下は最初の1回のみKeyUpしたかのように動作する
             if not cw.cwpy.setting.autoenter_on_sprite and not self.nokeyupevent:
                 event = pygame.event.Event(KEYUP, key=keycode)
-                pygame.event.post(event)
+                cw.thread.post_pygameevent(event)
             self.keyin[keycode] += 1
         if self.threshold < self.keyin[keycode]:
             self.nokeyupevent = False
@@ -113,7 +113,7 @@ class KeyEventRelay(object):
                             # 最初の1回のみMouseUpしたかのように動作する
                             if not cw.cwpy.setting.autoenter_on_sprite:
                                 event = pygame.event.Event(MOUSEBUTTONUP, button=button+1, pos=cw.cwpy.mousepos, ignoreup=True)
-                                pygame.event.post(event)
+                                cw.thread.post_pygameevent(event)
                             self.mousein[button] = -1
                     return self.mousein[button] == -1
                 else:

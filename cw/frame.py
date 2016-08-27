@@ -391,27 +391,27 @@ class Frame(wx.Frame):
 
     def OnLeftUp(self, event):
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
-        pygame.event.post(evt)
+        cw.thread.post_pygameevent(evt)
 
     def OnLeftDown(self, event):
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=1)
-        pygame.event.post(evt)
+        cw.thread.post_pygameevent(evt)
 
     def OnMiddleUp(self, event):
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=2)
-        pygame.event.post(evt)
+        cw.thread.post_pygameevent(evt)
 
     def OnMiddleDown(self, event):
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=2)
-        pygame.event.post(evt)
+        cw.thread.post_pygameevent(evt)
 
     def OnRightUp(self, event):
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=3)
-        pygame.event.post(evt)
+        cw.thread.post_pygameevent(evt)
 
     def OnRightDown(self, event):
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=3)
-        pygame.event.post(evt)
+        cw.thread.post_pygameevent(evt)
 
     def OnMouseWheel(self, event):
         if event.GetWheelRotation() > 0:
@@ -419,7 +419,7 @@ class Frame(wx.Frame):
         else:
             evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=5)
 
-        pygame.event.post(evt)
+        cw.thread.post_pygameevent(evt)
 
     def OnDropFiles(self, event):
         paths = event.GetFiles()
