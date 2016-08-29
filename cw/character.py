@@ -647,7 +647,7 @@ class Character(object):
         ターゲットの選択に使用される判定であるため、
         実際には有効であっても必ずしもTrueを返さない。
         """
-        if self.is_reversed() or self.is_vanished() or (self.status == "hidden" and not isinstance(self, Friend)):
+        if self.is_reversed() or self.is_vanished() or (self.status == "hidden" and not isinstance(self, (Friend, Player))):
             return False
 
         if cw.effectmotion.is_noeffect(motion.get("element", ""), self):
