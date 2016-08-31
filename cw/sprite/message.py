@@ -1143,14 +1143,16 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
                     buflen += len(c)
         elif c == '%':
             skip = get_varvalue(get_flag, '%')
-            buflen += len(buf[-1])
-            if skip == 0:
+            if skip:
+                buflen += len(buf[-1])
+            else:
                 buf.append(c)
                 buflen += len(c)
         elif c == '$':
             skip = get_varvalue(get_step, '$')
-            buflen += len(buf[-1])
-            if skip == 0:
+            if skip:
+                buflen += len(buf[-1])
+            else:
                 buf.append(c)
                 buflen += len(c)
         else:
