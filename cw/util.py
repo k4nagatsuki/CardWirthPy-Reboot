@@ -83,13 +83,13 @@ class MusicInterface(object):
             fpath = cw.cwpy.rsrc.get_filepath(fpath)
 
         if not os.path.isfile(fpath):
-            self._stop(fade, stopfadeout=False)
+            self._stop(fade, stopfadeout=False, updatepredata=False)
         else:
             assert threading.currentThread() == cw.cwpy
 
             self.set_volume()
             if restart or self.fpath <> fpath:
-                self._stop(fade, stopfadeout=False)
+                self._stop(fade, stopfadeout=False, updatepredata=False)
                 self._winmm = False
                 self._bass = False
                 bgmtype = load_bgm(fpath)
@@ -175,9 +175,9 @@ class MusicInterface(object):
         if threading.currentThread() <> cw.cwpy:
             cw.cwpy.exec_func(self.stop, fade)
             return
-        self._stop(fade=fade, stopfadeout=True)
+        self._stop(fade=fade, stopfadeout=True, updatepredata=True)
 
-    def _stop(self, fade, stopfadeout):
+    def _stop(self, fade, stopfadeout, updatepredata=True):
         if threading.currentThread() <> cw.cwpy:
             cw.cwpy.exec_func(self._stop, fade, stopfadeout)
             return
@@ -215,6 +215,11 @@ class MusicInterface(object):
             path = "DefReset"
             path = find_resource(join_paths(cw.cwpy.setting.skindir, "Bgm", path), cw.cwpy.rsrc.ext_bgm)
             load_bgm(path)
+
+        if updatepredata and cw.cwpy.sdata and cw.cwpy.sdata.pre_battleareadata and cw.cwpy.sdata.pre_battleareadata[1][3] == self.channel:
+            areaid, bgmpath, battlebgmpath = cw.cwpy.sdata.pre_battleareadata
+            bgmpath = (u"", 100, 0, self.channel)
+            cw.cwpy.sdata.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
     def _get_volumevalue(self, fpath):
         if not cw.cwpy.setting.play_bgm:
