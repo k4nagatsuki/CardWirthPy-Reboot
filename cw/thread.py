@@ -3040,6 +3040,7 @@ class CWPy(_Singleton, threading.Thread):
                 targetselectionarea or\
                 (self.is_battlestatus() and self.battle.is_ready())
             self.statusbar.change(showbuttons)
+            self.draw()
         self.exec_func(func)
 
         self.disposition_pcards()
