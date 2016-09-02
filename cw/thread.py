@@ -401,7 +401,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.change_data(self.areaid, data=self.sdata.data)
             else:
                 self.sdata.change_data(self.areaid, data=None)
-            self.set_mcards(self.sdata.get_mcarddata(data=self.sdata.data), False, True, False)
+            self.set_mcards(self.sdata.get_mcarddata(data=self.sdata.data), False, True, setautospread=True)
             self.deal_cards()
             if self.is_playingscenario():
                 self.background.reload(doanime=False, ttype=("None", "None"), redraw=False)
