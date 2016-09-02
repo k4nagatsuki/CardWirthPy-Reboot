@@ -397,7 +397,10 @@ class CWPy(_Singleton, threading.Thread):
                 if not isinstance(sprite, cw.sprite.card.FriendCard):
                     self.cardgrp.remove(sprite)
                     self.mcards.remove(sprite)
-            self.sdata.change_data(self.areaid, data=self.sdata.data)
+            if self.is_playingscenario():
+                self.sdata.change_data(self.areaid, data=self.sdata.data)
+            else:
+                self.sdata.change_data(self.areaid, data=None)
             self.set_mcards(self.sdata.get_mcarddata(data=self.sdata.data), False, True, False)
             self.deal_cards()
             if self.is_playingscenario():
