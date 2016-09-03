@@ -1249,6 +1249,9 @@ class ScenarioData(SystemData):
         cw.cwpy.exec_func(cw.cwpy.f9)
 
     def create_log(self):
+        # play log
+        cw.cwpy.advlog.start_scenario()
+
         # log
         cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)
         # Party and members xml update
@@ -1377,6 +1380,8 @@ class ScenarioData(SystemData):
         ttype = ("Default", "Default")
         cw.cwpy.background.load(elements, False, ttype, bginhrt=False, nocheckvisible=True)
         self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")
+
+        cw.cwpy.advlog.resume_scenario()
 
         musicpaths = []
         for music in cw.cwpy.music:

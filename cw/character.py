@@ -489,11 +489,15 @@ class Character(object):
         """
         return bool(self.antimagic > 0)
 
+    @staticmethod
+    def calc_petrified(paralyze):
+        return bool(paralyze > 20)
+
     def is_petrified(self):
         """
         石化状態かどうかをbool値で返す
         """
-        return bool(self.paralyze > 20)
+        return Character.calc_petrified(self.paralyze)
 
     def is_unconscious(self):
         """
@@ -501,17 +505,25 @@ class Character(object):
         """
         return bool(self.life <= 0)
 
+    @staticmethod
+    def calc_heavyinjured(life, maxlife):
+        return bool(Character.calc_lifeper(life, maxlife) <= 20 and 0 < life)
+
     def is_heavyinjured(self):
         """
         重傷状態かどうかをbool値で返す
         """
-        return bool(self.get_lifeper() <= 20 and not self.is_unconscious())
+        return Character.calc_heavyinjured(self.life, self.maxlife)
+
+    @staticmethod
+    def calc_injured(life, maxlife):
+        return bool(life < maxlife and not Character.calc_heavyinjured(life, maxlife) and 0 < life)
 
     def is_injured(self):
         """
         軽傷状態かどうかをbool値で返す
         """
-        return bool(self.life < self.maxlife and not self.is_heavyinjured() and not self.is_unconscious())
+        return Character.calc_injured(self.life, self.maxlife)
 
     def is_injuredall(self):
         """
@@ -780,6 +792,8 @@ class Character(object):
 
     def use_card(self, targets, header):
         """targetsにカードを使用する。"""
+        cw.cwpy.advlog.use_card(self, header, targets)
+
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         if not isinstance(targets, list):
@@ -1289,11 +1303,15 @@ class Character(object):
         maxbeastnum = cw.util.numwrap(maxbeastnum, 1, 10)
         return (maxskillnum, maxskillnum, maxbeastnum)
 
+    @staticmethod
+    def calc_lifeper(life, maxlife):
+        return int(100.0 * life // maxlife + 0.5)
+
     def get_lifeper(self):
         """
         ライフのパーセンテージを返す。
         """
-        return int(100.0 * self.life / self.maxlife + 0.5)
+        return Character.calc_lifeper(self.life, self.maxlife)
 
     def get_bonus(self, vocation, enhance_act=True):
         """
@@ -2565,6 +2583,7 @@ class Character(object):
 
             if not self.is_poison():
                 flag = True
+                cw.cwpy.advlog.recover_poison(self)
             else:
                 cw.cwpy.play_sound("dump")
                 value = 1 * self.poison
@@ -2575,7 +2594,9 @@ class Character(object):
                 if n2:
                     value += cw.cwpy.dice.roll(1, n2)
 
-                self.set_life(-value)
+                oldlife = self.life
+                value = self.set_life(-value)
+                cw.cwpy.advlog.poison_damage(value, self.life, oldlife)
 
                 if self.status <> "reversed" and self.status <> "hidden":
                     cw.animation.animate_sprite(self, "lateralvibe", battlespeed=cw.cwpy.is_battlestatus())
@@ -2584,7 +2605,9 @@ class Character(object):
         # 麻痺
         if self.is_paralyze() and not self.is_petrified() and not self.is_unconscious():
             self.decrease_physical("Paralyze", time)
-            flag |= not self.is_paralyze()
+            if not self.is_paralyze():
+                cw.cwpy.advlog.recover_paralyze(self)
+                flag = True
             if self.is_analyzable():
                 updateimage = True
 
@@ -2592,7 +2615,9 @@ class Character(object):
         if self.is_bind():
             value = self.bind - time
             self.set_bind(value)
-            flag |= not self.is_bind()
+            if not self.is_bind():
+                cw.cwpy.advlog.recover_bind(self)
+                flag = True
             if self.is_analyzable():
                 updateimage = True
 
@@ -2600,7 +2625,9 @@ class Character(object):
         if self.is_silence():
             value = self.silence - time
             self.set_silence(value)
-            flag |= not self.is_silence()
+            if not self.is_silence():
+                cw.cwpy.advlog.recover_silence(self)
+                flag = True
             if self.is_analyzable():
                 updateimage = True
 
@@ -2608,7 +2635,9 @@ class Character(object):
         if self.is_faceup():
             value = self.faceup - time
             self.set_faceup(value)
-            flag |= not self.is_faceup()
+            if not self.is_faceup():
+                cw.cwpy.advlog.recover_faceup(self)
+                flag = True
             if self.is_analyzable():
                 updateimage = True
 
@@ -2616,7 +2645,9 @@ class Character(object):
         if self.is_antimagic():
             value = self.antimagic - time
             self.set_antimagic(value)
-            flag |= not self.is_antimagic()
+            if not self.is_antimagic():
+                cw.cwpy.advlog.recover_antimagic(self)
+                flag = True
             if self.is_analyzable():
                 updateimage = True
 
@@ -2627,6 +2658,7 @@ class Character(object):
             if value > 0:
                 self.set_mentality(self.mentality, value)
             else:
+                cw.cwpy.advlog.recover_mentality(self, self.mentality)
                 self.set_mentality("Normal", 0)
                 flag = True
 
@@ -2640,6 +2672,7 @@ class Character(object):
             if value > 0:
                 self.set_enhance_act(self.enhance_act, value)
             else:
+                cw.cwpy.advlog.recover_enhance_act(self)
                 self.set_enhance_act(0, 0)
                 flag = True
 
@@ -2653,6 +2686,7 @@ class Character(object):
             if value > 0:
                 self.set_enhance_avo(self.enhance_avo, value)
             else:
+                cw.cwpy.advlog.recover_enhance_avo(self)
                 self.set_enhance_avo(0, 0)
                 flag = True
 
@@ -2666,6 +2700,7 @@ class Character(object):
             if value > 0:
                 self.set_enhance_res(self.enhance_res, value)
             else:
+                cw.cwpy.advlog.recover_enhance_res(self)
                 self.set_enhance_res(0, 0)
                 flag = True
 
@@ -2679,6 +2714,7 @@ class Character(object):
             if value > 0:
                 self.set_enhance_def(self.enhance_def, value)
             else:
+                cw.cwpy.advlog.recover_enhance_def(self)
                 self.set_enhance_def(0, 0)
                 flag = True
 

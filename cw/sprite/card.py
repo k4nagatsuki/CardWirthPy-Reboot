@@ -1208,6 +1208,7 @@ class MenuCard(CWPyCard):
             if self.command:
                 cw.content.PostEventContent.do_action(self.command, self.arg)
             else:
+                cw.cwpy.advlog.click_menucard(self)
                 self.events.start(keynum=1)
 
         # カード移動操作

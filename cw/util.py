@@ -2271,6 +2271,12 @@ def is_hw(unichr):
 def get_strlen(s):
     return reduce(lambda a, b: a + b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
 
+def rjustify(s, length, c):
+    slen = cw.util.get_strlen(s)
+    if slen < length:
+        s += c * (length - slen)
+    return s
+
 WRAPS_CHARS = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
 
 def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None):

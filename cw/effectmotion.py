@@ -205,15 +205,21 @@ class Effect(object):
             cw.cwpy.play_sound_with(self.soundpath, subvolume=self.volume, loopcount=self.loopcount,
                                     channel=self.channel, fade=self.fade)
 
+        resisted = False
         if success_avo:
             cw.cwpy.play_sound("avoid", True)
             cw.cwpy.draw()
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
+            cw.cwpy.advlog.avoid(target)
             return False
         elif noeffect or (success_res and not hasdamage):
             cw.cwpy.play_sound("ineffective", True)
             self.animate(target, True)
+            cw.cwpy.advlog.noeffect(target)
             return False
+        elif success_res:
+            cw.cwpy.advlog.resist(target)
+            resisted = True
 
         # 効果モーションを発動
         effectual = False
@@ -234,6 +240,8 @@ class Effect(object):
         if not effectual:
             # 効果無し
             cw.cwpy.play_sound("ineffective", True)
+            if not resisted and self.motions:
+                cw.cwpy.advlog.effect_failed(target)
 
         # アニメーション・画像更新(対象消去されていなかったら)
         if not target.is_vanished():
@@ -603,7 +611,10 @@ class EffectMotion(object):
         if success_res:
             return False
         value = self.calc_effectvalue(target)
+        oldlife = target.life
+        origvalue = value
         value = target.set_life(value)
+        cw.cwpy.advlog.heal_motion(target, origvalue, target.life, oldlife)
         return 0 < value
 
     def damage_motion(self, target, success_res):
@@ -626,11 +637,15 @@ class EffectMotion(object):
                 if self.damagetype <> "Max":
                     value = self.calc_defensedvalue(value, target)
 
+        oldlife = target.life
+        origvalue = value
         target.set_life(-value)
 
         # 睡眠解除
-        if target.is_sleep():
+        dissleep = target.is_sleep()
+        if dissleep:
             target.set_mentality("Normal", 0)
+        cw.cwpy.advlog.damage_motion(target, origvalue, target.life, oldlife, dissleep)
         return 0 < value
 
     def absorb_motion(self, target, success_res):
@@ -653,15 +668,24 @@ class EffectMotion(object):
                 if self.damagetype <> "Max":
                     value = self.calc_defensedvalue(value, target)
 
+        oldlife = target.life
+        origvalue = value
         value = -(target.set_life(-value))
 
         # 睡眠解除
-        if target.is_sleep():
+        dissleep = target.is_sleep()
+        if dissleep:
             target.set_mentality("Normal", 0)
 
         # 与えたダメージ分、使用者回復
         if self.user:
+            oldulife = self.usere.life
             self.user.set_life(value)
+            ulife = self.user.life
+        else:
+            ulife = 0
+            oldulife = 0
+        cw.cwpy.advlog.absorb_motion(self.user, value, ulife, oldulife, target, origvalue, target.life, oldlife, dissleep)
         return 0 < value
 
     #-----------------------------------------------------------------------
@@ -678,7 +702,9 @@ class EffectMotion(object):
         if self.damagetype == "Max":
             value = 40
 
+        oldvalue = target.paralyze
         target.set_paralyze(value)
+        cw.cwpy.advlog.paralyze_motion(target, target.paralyze, oldvalue)
         return 0 < value
 
     def disparalyze_motion(self, target, success_res):
@@ -692,7 +718,9 @@ class EffectMotion(object):
         if self.damagetype == "Max":
             value = 40
 
+        oldvalue = target.paralyze
         value = target.set_paralyze(-value)
+        cw.cwpy.advlog.disparalyze_motion(target, target.paralyze, oldvalue)
         return value < 0
 
     def poison_motion(self, target, success_res):
@@ -706,7 +734,9 @@ class EffectMotion(object):
         if self.damagetype == "Max":
             value = 40
 
+        oldvalue = target.poison
         target.set_poison(value)
+        cw.cwpy.advlog.poison_motion(target, target.poison, oldvalue)
         return 0 < value
 
     def dispoison_motion(self, target, success_res):
@@ -720,7 +750,9 @@ class EffectMotion(object):
         if self.damagetype == "Max":
             value = 40
 
+        oldvalue = target.poison
         value = target.set_poison(-value)
+        cw.cwpy.advlog.dispoison_motion(target, target.poison, oldvalue)
         return value < 0
 
     #-----------------------------------------------------------------------
@@ -734,6 +766,7 @@ class EffectMotion(object):
             return False
         value = self.calc_skillpowervalue()
         target.set_skillpower(value)
+        cw.cwpy.advlog.getskillpower_motion(target, value)
         return True
 
     def loseskillpower_motion(self, target, success_res):
@@ -744,6 +777,7 @@ class EffectMotion(object):
             return False
         value = self.calc_skillpowervalue()
         target.set_skillpower(-value)
+        cw.cwpy.advlog.loseskillpower_motion(target, value)
         return True
 
     #-----------------------------------------------------------------------
@@ -755,6 +789,8 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        oldmentality = target.mentality
+        oldduration = target.mentality_dur
         if self.type.title() == "Normal":
             duration = 0
             eff = True
@@ -767,6 +803,7 @@ class EffectMotion(object):
             else:
                 eff = target.mentality <> self.type.title() or target.mentality_dur < duration
                 target.set_mentality(self.type.title(), duration, overwrite=False)
+        cw.cwpy.advlog.mentality_motion(target, self.type.title(), duration, oldmentality, oldduration)
         return eff
 
     def sleep_motion(self, *args, **kwargs):
@@ -798,7 +835,9 @@ class EffectMotion(object):
             return False
         duration = self.calc_durationvalue(target, False)
         eff = target.bind < duration
+        oldvalue = target.bind
         target.set_bind(duration, overwrite=False)
+        cw.cwpy.advlog.bind_motion(target, target.bind, oldvalue)
         return eff
 
     def disbind_motion(self, target, success_res):
@@ -808,7 +847,9 @@ class EffectMotion(object):
         if success_res:
             return False
         duration = target.bind
+        oldvalue = duration
         target.set_bind(0)
+        cw.cwpy.advlog.disbind_motion(target, target.bind, oldvalue)
         return 0 < duration
 
     def silence_motion(self, target, success_res):
@@ -819,7 +860,9 @@ class EffectMotion(object):
             return False
         duration = self.calc_durationvalue(target, False)
         eff = target.silence < duration
+        oldvalue = target.silence
         target.set_silence(duration, overwrite=False)
+        cw.cwpy.advlog.silence_motion(target, target.silence, oldvalue)
         return eff
 
     def dissilence_motion(self, target, success_res):
@@ -829,7 +872,9 @@ class EffectMotion(object):
         if success_res:
             return False
         duration = target.silence
+        oldvalue = duration
         target.set_silence(0)
+        cw.cwpy.advlog.dissilence_motion(target, target.silence, oldvalue)
         return 0 < duration
 
     def faceup_motion(self, target, success_res):
@@ -840,7 +885,9 @@ class EffectMotion(object):
             return False
         duration = self.calc_durationvalue(target, False)
         eff = target.faceup < duration
+        oldvalue = target.faceup
         target.set_faceup(duration, overwrite=False)
+        cw.cwpy.advlog.faceup_motion(target, target.faceup, oldvalue)
         return eff
 
     def facedown_motion(self, target, success_res):
@@ -850,7 +897,9 @@ class EffectMotion(object):
         if success_res:
             return False
         duration = target.faceup
+        oldvalue = duration
         target.set_faceup(0)
+        cw.cwpy.advlog.facedown_motion(target, target.faceup, oldvalue)
         return 0 < duration
 
     def antimagic_motion(self, target, success_res):
@@ -861,7 +910,9 @@ class EffectMotion(object):
             return False
         duration = self.calc_durationvalue(target, False)
         eff = target.antimagic < duration
+        oldvalue = target.antimagic
         target.set_antimagic(duration, overwrite=False)
+        cw.cwpy.advlog.antimagic_motion(target, target.antimagic, oldvalue)
         return eff
 
     def disantimagic_motion(self, target, success_res):
@@ -871,7 +922,9 @@ class EffectMotion(object):
         if success_res:
             return False
         duration = target.antimagic
+        oldvalue = duration
         target.set_antimagic(0)
+        cw.cwpy.advlog.disantimagic_motion(target, target.antimagic, oldvalue)
         return 0 < duration
 
     #-----------------------------------------------------------------------
@@ -888,9 +941,11 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
+        oldvalue = target.enhance_act
         eff = target.enhance_act <> value or target.enhance_act_dur < duration
         if eff:
             target.set_enhance_act(value, duration)
+        cw.cwpy.advlog.enhanceaction_motion(target, target.enhance_act, oldvalue)
         return eff
 
     def enhanceavoid_motion(self, target, success_res):
@@ -904,9 +959,11 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
+        oldvalue = target.enhance_avo
         eff = target.enhance_avo <> value or target.enhance_avo_dur < duration
         if eff:
             target.set_enhance_avo(value, duration)
+        cw.cwpy.advlog.enhanceavoid_motion(target, target.enhance_avo, oldvalue)
         return eff
 
     def enhanceresist_motion(self, target, success_res):
@@ -920,9 +977,11 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
+        oldvalue = target.enhance_res
         eff = target.enhance_res <> value or target.enhance_res_dur < duration
         if eff:
             target.set_enhance_res(value, duration)
+        cw.cwpy.advlog.enhanceresist_motion(target, target.enhance_res, oldvalue)
         return eff
 
     def enhancedefense_motion(self, target, success_res):
@@ -936,9 +995,11 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
+        oldvalue = target.enhance_def
         eff = target.enhance_def <> value or target.enhance_def_dur < duration
         if eff:
             target.set_enhance_def(value, duration)
+        cw.cwpy.advlog.enhancedefense_motion(target, target.enhance_def, oldvalue)
         return eff
 
     #-----------------------------------------------------------------------
@@ -951,6 +1012,7 @@ class EffectMotion(object):
         if success_res:
             return False
         target.set_vanish(battlespeed=self.cardheader and cw.cwpy.is_battlestatus())
+        cw.cwpy.advlog.vanishtarget_motion(target)
         return True
 
     def vanishcard_motion(self, target, success_res):
@@ -958,6 +1020,9 @@ class EffectMotion(object):
         カード消去。
         """
         if success_res:
+            return False
+        cw.cwpy.advlog.vanishcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
+        if target.is_inactive():
             return False
         if cw.cwpy.battle:
             target.deck.throwaway()
@@ -970,6 +1035,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.vanishbeast_motion(target)
         return target.set_beast(vanish=True)
 
     #-----------------------------------------------------------------------
@@ -981,6 +1047,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.dealattackcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -994,6 +1061,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.dealpowerfulattackcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -1007,6 +1075,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.dealcriticalattackcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -1020,6 +1089,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.dealfeintcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -1033,6 +1103,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.dealdefensecard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -1046,6 +1117,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.dealdistancecard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -1059,6 +1131,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.dealconfusecard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -1072,6 +1145,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.dealskillcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -1085,6 +1159,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        cw.cwpy.advlog.cancelaction_motion(target, cw.cwpy.is_battlestatus())
         if target.actiondata:
             target.clear_action()
             return True
@@ -1119,7 +1194,10 @@ class EffectMotion(object):
             if not header and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion):
                 # 使用時イベント中の効果コンテントからの実行の時
                 header = cw.cwpy.event.get_inusecard()
-            eff |= target.set_beast(e, is_scenariocard=not header or (header.scenariocard and not header.carddata.gettext("Property/Materials", "")))
+            if target.set_beast(e, is_scenariocard=not header or (header.scenariocard and not header.carddata.gettext("Property/Materials", ""))):
+                cw.cwpy.advlog.summonbeast_motion(target, header)
+                eff = True
+
         return eff
 
 #-------------------------------------------------------------------------------

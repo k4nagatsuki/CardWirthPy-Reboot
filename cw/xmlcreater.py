@@ -450,6 +450,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("TitleFormat", setting.titleformat)
         element.append(e)
 
+    # プレイログの表示内容
+    if setting.playlogformat <> setting.playlogformat_init:
+        e = cw.data.make_element("PlayLogFormat", setting.playlogformat)
+        element.append(e)
+
     if writeplayingdata:
         # 逆変換先ディレクトリ
         if setting.unconvert_targetfolder <> setting.unconvert_targetfolder_init:
@@ -528,6 +533,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     # マウスホイールによる全体音量の増減量
     if setting.volume_increment <> setting.volume_increment_init:
         e = cw.data.make_element("VolumeIncrement", setting.volume_increment)
+        element.append(e)
+
+    # シナリオのプレイログを出力する
+    if setting.write_playlog <> setting.write_playlog_init:
+        e = cw.data.make_element("WritePlayLog", str(setting.write_playlog))
         element.append(e)
 
     if writeplayingdata:

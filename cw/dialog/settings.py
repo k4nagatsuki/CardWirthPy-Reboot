@@ -608,6 +608,12 @@ class SettingsPanel(wx.Panel):
         setting.show_paperandtree = value
         if setting.show_paperandtree:
             setting.show_scenariotree = False
+        value = self.pane_scenario.cb_write_playlog.GetValue()
+        if value <> setting.write_playlog:
+            setting.write_playlog = value
+            def func():
+                cw.cwpy.advlog.enable(setting.write_playlog)
+            cw.cwpy.exec_func(func)
         value = self.pane_scenario.tx_filer_dir.GetValue()
         setting.filer_dir = value
         value = self.pane_scenario.tx_filer_file.GetValue()
@@ -2101,6 +2107,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
         self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
         self.cb_show_paperandtree = wx.CheckBox(self, -1, u"シナリオ選択ダイアログで貼紙と一覧を同時に表示する")
+        self.cb_write_playlog = wx.CheckBox(self, -1, u"シナリオのプレイログを出力する")
 
         # スキンタイプ毎の初期フォルダ
         self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
@@ -2160,6 +2167,7 @@ class ScenarioSettingPanel(wx.Panel):
     def load(self, setting):
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype)
         self.cb_show_paperandtree.SetValue(setting.show_paperandtree)
+        self.cb_write_playlog.SetValue(setting.write_playlog)
         if 0 < self.grid_folderoftype.GetNumberRows():
             self.grid_folderoftype.DeleteRows(0, self.grid_folderoftype.GetNumberRows())
         self.grid_folderoftype.InsertRows(0, len(setting.folderoftype) + 1)
@@ -2179,6 +2187,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.tx_editor.SetValue(setting.editor_init)
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype_init)
         self.cb_show_paperandtree.SetValue(setting.show_paperandtree)
+        self.cb_write_playlog.SetValue(setting.write_playlog)
         self.tx_filer_dir.SetValue(setting.filer_dir_init)
         self.tx_filer_file.SetValue(setting.filer_file_init)
 
@@ -2217,6 +2226,7 @@ class ScenarioSettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_show_paperandtree, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_write_playlog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)

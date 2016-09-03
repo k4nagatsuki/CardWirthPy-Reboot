@@ -54,6 +54,8 @@ class BattleEngine(object):
         cw.cwpy.battle = self
 
         try:
+            cw.cwpy.advlog.start_battle(self)
+
             # バトル開始イベント(1.50)
             # このイベントの終了時点では勝利・敗北は発生しない
             cw.cwpy.sdata.start_event(keynum=5)
@@ -122,6 +124,8 @@ class BattleEngine(object):
             raise BattleDefeatError()
         elif self.check_win():
             raise BattleWinError()
+
+        cw.cwpy.advlog.start_round(self.round)
 
         # ラウンドイベントスタート
         cw.cwpy.sdata.start_event(keynum=-self.round)
@@ -297,12 +301,14 @@ class BattleEngine(object):
 
             # 逃走成功・失敗時の処理
             if pcards and success > len(pcards) / 2:
+                cw.cwpy.advlog.runaway(True)
                 # 行動内容のクリア
                 for member in self.members:
                     member.clear_action()
                 cw.cwpy.play_sound("run")
                 self.end()
             else:
+                cw.cwpy.advlog.runaway(False)
                 cw.cwpy.play_sound("error")
                 self.start()
 

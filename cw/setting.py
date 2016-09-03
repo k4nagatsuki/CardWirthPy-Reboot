@@ -355,6 +355,7 @@ class Setting(object):
         self.ssfnameformat = u"ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
         self.cardssfnameformat = u"ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
         self.titleformat = u"%application% %skin%[ - %yado%[ %scenario%]]"
+        self.playlogformat = u"PlayLog/%yado%/%party%_%year%%month%%day%_%hour%%minute%%second%_%scenario%.txt"
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
         self.show_fcardsinbattle = False
@@ -382,6 +383,7 @@ class Setting(object):
         self.recenthistory_limit = 5 # 展開したシナリオを取っておく数
         self.volume_increment = 5 # ホイールによる全体音量調節での増減量
         self.show_debuglogdialog = False
+        self.write_playlog = True
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = False
@@ -693,6 +695,11 @@ class Setting(object):
         self.show_additional_card = data.getbool("ShowAdditionalControls", "card", self.show_additional_card)
         # 絞り込み等の表示切替ボタンを表示する
         self.show_addctrlbtn = data.gettext("ShowAdditionalControls", "" if self.show_addctrlbtn else "Hidden") <> "Hidden"
+
+        # シナリオのプレイログを出力する
+        self.write_playlog = data.getbool("WritePlayLog", self.write_playlog)
+        # プレイログのフォーマット
+        self.playlogformat = data.gettext("PlayLogFormat", self.playlogformat)
 
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)

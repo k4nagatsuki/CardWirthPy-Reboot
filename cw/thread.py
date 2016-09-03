@@ -203,6 +203,9 @@ class CWPy(_Singleton, threading.Thread):
         self.cursor = ""
         self.change_cursor(force=True)
 
+        # テキストログ
+        self.advlog = cw.advlog.AdventurerLogger()
+
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup, loadyado=True)
 
@@ -745,6 +748,7 @@ class CWPy(_Singleton, threading.Thread):
         self.frame.AddPendingEvent(event)
 
     def _quit(self):
+        self.advlog.end_scenario(False, False)
         for music in self.music:
             music.stop()
         for i in xrange(len(self.lastsound_scenario)):
@@ -1474,6 +1478,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.backlog.pop(0)
             self.sdata.backlog.append(cw.sprite.message.BacklogData(mwin))
 
+        self.advlog.show_message(mwin)
+
         self.statusbar.change(False)
 
         # cwpylist, index 初期化
@@ -1822,6 +1828,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_gameover(self):
         """ゲームオーバー画面へ遷移。"""
+        cw.cwpy.advlog.gameover()
         self.set_status("GameOver")
         del self.pre_dialogs[:]
         del self.pre_areaids[:]
@@ -1869,6 +1876,7 @@ class CWPy(_Singleton, threading.Thread):
         self.exec_func(func)
 
     def _f9impl(self, startotherscenario=False):
+        cw.cwpy.advlog.f9()
         self.sdata.is_playing = False
         self.statusbar.change(False)
         self.pre_dialogs = []

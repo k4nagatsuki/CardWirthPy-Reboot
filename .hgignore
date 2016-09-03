@@ -20,6 +20,7 @@ syntax: regexp
 ^UnconvertedYado/.*
 ^ConvertedYado/.*
 ^Yado/.*
+^PlayLog/.*
 ^Settings\.xml$
 ^Breakpoints\.xml$
 ^Scenario\.db$

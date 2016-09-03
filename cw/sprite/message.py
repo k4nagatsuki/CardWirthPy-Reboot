@@ -1163,7 +1163,7 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
 
     return "".join(buf), spcharinfo
 
-def get_messagelogtext(mwins):
+def get_messagelogtext(mwins, lastline=True):
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。
     """
     lines = []
@@ -1183,8 +1183,8 @@ def get_messagelogtext(mwins):
             s = u"--"
 
         slen = cw.util.get_strlen(s)
-        if slen < 42:
-            s += u"-" * (42-slen)
+        if slen < cw.LOG_SEPARATOR_LEN_SHORT:
+            s += u"-" * (cw.LOG_SEPARATOR_LEN_SHORT-slen)
         lines.append(s)
         lines.append(mwin.text_log.strip(u"\n"))
         if mwin.names_log and not (len(mwin.names_log) == 1 and mwin.columns == 1 and mwin.names_log[0][1] == cw.cwpy.msgs["ok"]):
@@ -1200,8 +1200,9 @@ def get_messagelogtext(mwins):
                 s += u"]"
                 lines.append(s)
 
-    lines.append(u"-" * 42)
-    lines.append("")
+    if lastline:
+        lines.append(u"-" * cw.LOG_SEPARATOR_LEN_SHORT)
+        lines.append("")
 
     return u"\n".join(lines)
 

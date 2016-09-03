@@ -2049,6 +2049,8 @@ def end_scenario(complete):
     cw.cwpy.sdata.end(showdebuglog=True)
     cw.cwpy.ydata.party.write()
 
+    cw.cwpy.advlog.end_scenario(True, complete)
+
     # BGMストップ
     for music in cw.cwpy.music:
         music.stop()
