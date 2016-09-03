@@ -155,7 +155,7 @@ else:
 # プレイログの区切り線の長さ
 LOG_SEPARATOR_LEN_LONG = 80
 LOG_SEPARATOR_LEN_MIDDLE = 60
-LOG_SEPARATOR_LEN_SHORT = 42
+LOG_SEPARATOR_LEN_SHORT = 45
 
 # 起動オプション
 _argparser = argparser.ArgParser(appname=APP_NAME,

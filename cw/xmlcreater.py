@@ -793,7 +793,7 @@ def write_castimagepath(name, paths):
             seq.append(cw.image.ImageInfo(dstpath.replace(cw.cwpy.tempdir + "/", ""), base=info))
     return seq
 
-def create_scenariolog(sdata, path, recording):
+def create_scenariolog(sdata, path, recording, logfilepath):
     """
     シナリオのプレイデータを記録したXMLファイルを作成する。
     """
@@ -808,6 +808,8 @@ def create_scenariolog(sdata, path, recording):
     e = cw.data.make_element("RoundAutoStart", str(sdata.autostart_round))
     e_prop.append(e)
     e = cw.data.make_element("NoticeInfoView", str(sdata.notice_infoview))
+    e_prop.append(e)
+    e = cw.data.make_element("LogFile", logfilepath)
     e_prop.append(e)
 
     if cw.cwpy.areaid >= 0:

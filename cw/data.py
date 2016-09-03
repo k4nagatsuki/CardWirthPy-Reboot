@@ -1253,7 +1253,8 @@ class ScenarioData(SystemData):
         cw.cwpy.advlog.start_scenario()
 
         # log
-        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)
+        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False,
+                                         cw.cwpy.advlog.logfilepath)
         # Party and members xml update
         cw.cwpy.ydata.party.write()
         # party
@@ -1381,7 +1382,8 @@ class ScenarioData(SystemData):
         cw.cwpy.background.load(elements, False, ttype, bginhrt=False, nocheckvisible=True)
         self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")
 
-        cw.cwpy.advlog.resume_scenario()
+        logfilepath = etree.gettext("Property/LogFile", u"")
+        cw.cwpy.advlog.resume_scenario(logfilepath)
 
         musicpaths = []
         for music in cw.cwpy.music:
@@ -1411,7 +1413,10 @@ class ScenarioData(SystemData):
         return musicpaths
 
     def update_log(self):
-        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)
+        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False,
+                                         cw.cwpy.advlog.logfilepath)
+        cw.cwpy.advlog.end_scenario(False, False)
+
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
 
         if path.startswith("Yado"):

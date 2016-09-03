@@ -10,7 +10,7 @@ def save(path):
     if not cw.cwpy.is_playingscenario():
         return
 
-    cw.xmlcreater.create_scenariolog(cw.cwpy.sdata, path, True)
+    cw.xmlcreater.create_scenariolog(cw.cwpy.sdata, path, True, cw.cwpy.advlog.logfilepath)
     return path
 
 def load(path):
