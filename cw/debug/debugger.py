@@ -3,6 +3,7 @@
 
 import os
 import sys
+import itertools
 import threading
 import subprocess
 import wx
@@ -53,6 +54,7 @@ ID_BREAKPOINT = wx.NewId()
 ID_SHOW_STACK_TRACE = wx.NewId()
 ID_CLEAR_BREAKPOINT = wx.NewId()
 ID_QUIT_DEBUG_MODE = wx.NewId()
+ID_INIT_VARIABLES = wx.NewId()
 
 
 class Debugger(wx.Frame):
@@ -200,6 +202,10 @@ class Debugger(wx.Frame):
                          u"バトルラウンドを変更します。")
         self.mi_round.SetBitmap(rsrc["ROUND"])
         scenario_menu.AppendItem(self.mi_round)
+        scenario_menu.AppendSeparator()
+        self.mi_initvars = wx.MenuItem(scenario_menu, ID_INIT_VARIABLES, u"状態変数の初期化(&V)")
+        self.mi_initvars.SetBitmap(rsrc["INIT_VARIABLES"])
+        scenario_menu.AppendItem(self.mi_initvars)
 
         self.mi_startevent = wx.MenuItem(run_menu, ID_STARTEVENT, u"イベントの実行(&E)",
                          u"イベントを選択して実行します。")
@@ -539,6 +545,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnStartEventTool, id=ID_STARTEVENT)
         self.Bind(wx.EVT_MENU, self.OnEditorTool, id=ID_EDITOR)
         self.Bind(wx.EVT_MENU, self.OnQuitDebugMode, id=ID_QUIT_DEBUG_MODE)
+        self.Bind(wx.EVT_MENU, self.OnInitVariables, id=ID_INIT_VARIABLES)
 
         # F1～F9キーをメイン画面へ転送
         self.f1keyid = wx.NewId()
@@ -1404,6 +1411,9 @@ class Debugger(wx.Frame):
             cw.cwpy.frame.debugger.tl_clear_breakpoint.Enable(enable)
             cw.cwpy.frame.debugger.tb_event.Realize()
 
+    def OnInitVariables(self, event):
+        self.view_var.init_variables()
+
     def refresh_areaname(self):
         assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
@@ -1533,8 +1543,8 @@ class Debugger(wx.Frame):
                 enabled[self.mi_startevent.GetId()] = (self.mi_startevent, self.tl_startevent, False)
                 enabled[self.mi_breakpoint.GetId()] = (self.mi_breakpoint, self.tl_breakpoint, False)
                 enabled[self.mi_clear_breakpoint.GetId()] = (self.mi_clear_breakpoint, self.tl_clear_breakpoint, False)
-
                 enabled[self.mi_bgm.GetId()] = (self.mi_bgm, self.tl_bgm, True)
+                enabled[self.mi_initvars.GetId()] = ((self.mi_initvars, self.view_var.mi_initvars), None, False)
 
                 if ydata:
                     enabled[self.mi_comp.GetId()] = (self.mi_comp, self.tl_comp, True)
@@ -1579,6 +1589,7 @@ class Debugger(wx.Frame):
                             enabled[self.mi_reset.GetId()] = (self.mi_reset, self.tl_reset, True)
                             enabled[self.mi_area.GetId()] = (self.mi_area, self.tl_area, True)
                             enabled[self.mi_startevent.GetId()] = (self.mi_startevent, self.tl_startevent, True)
+                    enabled[self.mi_initvars.GetId()] = ((self.mi_initvars, self.view_var.mi_initvars), None, True)
 
                 else:
                     enabled[self.mi_pause.GetId()] = (self.mi_pause, self.tl_pause, True)
@@ -1600,8 +1611,14 @@ class Debugger(wx.Frame):
                 for mi, tl, enable in enabled.itervalues():
                     if cw.cwpy.is_debuggerprocessing:
                         enable = False
-                    if tl.IsEnabled() <> enable:
-                        mi.Enable(enable)
+                    if isinstance(mi, wx.MenuItem):
+                        if mi.IsEnabled() <> enable:
+                            mi.Enable(enable)
+                    else:
+                        for mi2 in mi:
+                            if mi2.IsEnabled() <> enable:
+                                mi2.Enable(enable)
+                    if tl and tl.IsEnabled() <> enable:
                         tl.Enable(enable)
                         bars.add(tl.GetToolBar())
 
@@ -1654,11 +1671,44 @@ class VariableListCtrl(wx.ListCtrl):
         self.InsertColumn(1, u"現在値")
         self.SetColumnWidth(0, 120)
         self.SetColumnWidth(1, 80)
+
+        self.popup_menu = wx.Menu()
+        self.mi_initvars = wx.MenuItem(self.popup_menu, ID_INIT_VARIABLES, u"状態変数の初期化(&V)")
+        self.mi_initvars.SetBitmap(cw.cwpy.rsrc.debugs["INIT_VARIABLES"])
+        self.popup_menu.AppendItem(self.mi_initvars)
+
         self._refresh_variablelist()
         self._bind()
 
     def _bind(self):
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
+        self.Bind(wx.EVT_MENU, self.OnInitVariables, id=ID_INIT_VARIABLES)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+
+    def OnContextMenu(self, event):
+        self.PopupMenu(self.popup_menu)
+
+    def OnInitVariables(self, event):
+        self.init_variables()
+
+    def init_variables(self):
+        def func():
+            if not cw.cwpy.is_playingscenario():
+                return
+            update = False
+            for var in cw.cwpy.sdata.flags.itervalues():
+                if var.value <> var.defaultvalue:
+                    var.set(var.defaultvalue, updatedebugger=False)
+                    var.redraw_cards()
+                    update = True
+            for var in cw.cwpy.sdata.steps.itervalues():
+                if var.value <> var.defaultvalue:
+                    var.set(var.defaultvalue, updatedebugger=False)
+                    update = True
+            cw.cwpy.play_sound("signal")
+            if update:
+                cw.cwpy.event.refresh_variablelist()
+        cw.cwpy.exec_func(func)
 
     def OnDClick(self, event):
         # On DClick Item

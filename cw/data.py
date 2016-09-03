@@ -1126,7 +1126,7 @@ class ScenarioData(SystemData):
             name = e.gettext("Name", "")
             truename = e.gettext("True", "")
             falsename = e.gettext("False", "")
-            self.flags[name] = Flag(value, name, truename, falsename)
+            self.flags[name] = Flag(value, name, truename, falsename, defaultvalue=value)
 
     def _init_steps(self):
         """
@@ -1141,7 +1141,7 @@ class ScenarioData(SystemData):
             for ev in e:
                 if ev.tag.startswith("Value"):
                     valuenames.append(ev.text if ev.text else u"")
-            self.steps[name] = Step(value, name, valuenames)
+            self.steps[name] = Step(value, name, valuenames, defaultvalue=value)
 
     def reset_variables(self):
         """すべての状態変数を初期化する。"""
@@ -1446,11 +1446,12 @@ class ScenarioData(SystemData):
         self.friendcards = seq
 
 class Flag(object):
-    def __init__(self, value, name, truename, falsename):
+    def __init__(self, value, name, truename, falsename, defaultvalue):
         self.value = value
         self.name = name
         self.truename = truename if truename else u""
         self.falsename = falsename if falsename else u""
+        self.defaultvalue = defaultvalue
 
     def __nonzero__(self):
         return self.value
@@ -1459,12 +1460,13 @@ class Flag(object):
         """対応するメニューカードの再描画処理"""
         cw.data.redraw_cards(self.value, flag=self.name)
 
-    def set(self, value):
+    def set(self, value, updatedebugger=True):
         if self.value <> value:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.value = value
-            cw.cwpy.event.refresh_variable(self)
+            if updatedebugger:
+                cw.cwpy.event.refresh_variable(self)
 
     def reverse(self):
         self.set(not self.value)
@@ -1506,18 +1508,20 @@ def redraw_cards(value, flag=""):
         cw.cwpy.hide_cards(updatelist=False, flag=flag)
 
 class Step(object):
-    def __init__(self, value, name, valuenames):
+    def __init__(self, value, name, valuenames, defaultvalue):
         self.value = value
         self.name = name
         self.valuenames = valuenames
+        self.defaultvalue = defaultvalue
 
-    def set(self, value):
+    def set(self, value, updatedebugger=True):
         value = cw.util.numwrap(value, 0, len(self.valuenames)-1)
         if self.value <> value:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.value = value
-            cw.cwpy.event.refresh_variable(self)
+            if updatedebugger:
+                cw.cwpy.event.refresh_variable(self)
 
     def up(self):
         if self.value < len(self.valuenames)-1:
