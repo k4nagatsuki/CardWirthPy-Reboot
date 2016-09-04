@@ -2577,6 +2577,8 @@ class Character(object):
         flag = False # 反転しながら画像を更新する場合はTrue
         updateimage = False # 反転せずに画像を更新する場合はTrue
 
+        cw.cwpy.advlog.small_separator()
+
         # 中毒
         if self.is_poison() and not self.is_unconscious():
             self.decrease_physical("Poison", time)
@@ -2596,7 +2598,7 @@ class Character(object):
 
                 oldlife = self.life
                 value = self.set_life(-value)
-                cw.cwpy.advlog.poison_damage(value, self.life, oldlife)
+                cw.cwpy.advlog.poison_damage(self, value, self.life, oldlife)
 
                 if self.status <> "reversed" and self.status <> "hidden":
                     cw.animation.animate_sprite(self, "lateralvibe", battlespeed=cw.cwpy.is_battlestatus())

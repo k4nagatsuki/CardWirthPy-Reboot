@@ -210,16 +210,18 @@ class Effect(object):
             cw.cwpy.play_sound("avoid", True)
             cw.cwpy.draw()
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
-            cw.cwpy.advlog.avoid(target)
+            if self.motions:
+                if noeffect:
+                    cw.cwpy.advlog.noeffect(target)
+                else:
+                    cw.cwpy.advlog.avoid(target)
             return False
         elif noeffect or (success_res and not hasdamage):
             cw.cwpy.play_sound("ineffective", True)
             self.animate(target, True)
-            cw.cwpy.advlog.noeffect(target)
+            if self.motions:
+                cw.cwpy.advlog.noeffect(target)
             return False
-        elif success_res:
-            cw.cwpy.advlog.resist(target)
-            resisted = True
 
         # 効果モーションを発動
         effectual = False
@@ -240,7 +242,7 @@ class Effect(object):
         if not effectual:
             # 効果無し
             cw.cwpy.play_sound("ineffective", True)
-            if not resisted and self.motions:
+            if self.motions:
                 cw.cwpy.advlog.effect_failed(target)
 
         # アニメーション・画像更新(対象消去されていなかったら)
@@ -679,7 +681,7 @@ class EffectMotion(object):
 
         # 与えたダメージ分、使用者回復
         if self.user:
-            oldulife = self.usere.life
+            oldulife = self.user.life
             self.user.set_life(value)
             ulife = self.user.life
         else:
@@ -1012,7 +1014,11 @@ class EffectMotion(object):
         if success_res:
             return False
         target.set_vanish(battlespeed=self.cardheader and cw.cwpy.is_battlestatus())
-        cw.cwpy.advlog.vanishtarget_motion(target)
+        if self.cardheader:
+            runaway = cw.cwpy.msgs["runaway_keycode"] in self.cardheader.get_keycodes(with_name=False)
+        else:
+            runaway = False
+        cw.cwpy.advlog.vanishtarget_motion(target, runaway)
         return True
 
     def vanishcard_motion(self, target, success_res):
@@ -1035,8 +1041,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.vanishbeast_motion(target)
-        return target.set_beast(vanish=True)
+        result = target.set_beast(vanish=True)
+        if result:
+            cw.cwpy.advlog.vanishbeast_motion(target)
+        return result
 
     #-----------------------------------------------------------------------
     #「カード」関連効果
@@ -1195,7 +1203,7 @@ class EffectMotion(object):
                 # 使用時イベント中の効果コンテントからの実行の時
                 header = cw.cwpy.event.get_inusecard()
             if target.set_beast(e, is_scenariocard=not header or (header.scenariocard and not header.carddata.gettext("Property/Materials", ""))):
-                cw.cwpy.advlog.summonbeast_motion(target, header)
+                cw.cwpy.advlog.summonbeast_motion(target, e2)
                 eff = True
 
         return eff

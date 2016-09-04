@@ -1998,6 +1998,8 @@ def end_scenario(complete):
         cw.cwpy.set_gameover()
         return
 
+    cw.cwpy.advlog.separator()
+
     if complete and cw.cwpy.ydata and cw.cwpy.sdata:
         # 終了印追加
         cw.cwpy.ydata.set_compstamp(cw.cwpy.sdata.name)

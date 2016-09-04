@@ -1195,8 +1195,8 @@ def get_messagelogtext(mwins, lastline=True):
                 else:
                     s = u"  [ %s " % (sel[1])
                 slen = cw.util.get_strlen(s)
-                if slen < 41:
-                    s += u" " * (41-slen)
+                if slen < (cw.LOG_SEPARATOR_LEN_SHORT-1):
+                    s += u" " * ((cw.LOG_SEPARATOR_LEN_SHORT-1)-slen)
                 s += u"]"
                 lines.append(s)
 
