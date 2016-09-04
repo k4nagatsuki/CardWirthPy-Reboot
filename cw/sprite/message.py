@@ -1178,7 +1178,7 @@ def get_messagelogtext(mwins, lastline=True):
                 name = u" ".join(seq)
 
         if name:
-            s = u"--[ %s ]--" % (name)
+            s = u"--< %s >--" % (name)
         else:
             s = u"--"
 

@@ -383,7 +383,7 @@ class Setting(object):
         self.recenthistory_limit = 5 # 展開したシナリオを取っておく数
         self.volume_increment = 5 # ホイールによる全体音量調節での増減量
         self.show_debuglogdialog = False
-        self.write_playlog = True
+        self.write_playlog = False
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = False

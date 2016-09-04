@@ -3045,7 +3045,7 @@ class CWPy(_Singleton, threading.Thread):
             showbuttons = not self.is_playingscenario() or\
                 (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP) or\
                 oldareaid == cw.AREA_CAMP or\
-                targetselectionarea or\
+                (targetselectionarea and not self.is_runningevent()) or\
                 (self.is_battlestatus() and self.battle.is_ready())
             self.statusbar.change(showbuttons)
             self.draw()
@@ -3457,6 +3457,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def elapse_time(self, playeronly=False):
         """時間経過。"""
+        cw.cwpy.advlog.start_timeelapse()
+
         ccards = self.get_pcards("unreversed")
         if not playeronly:
             ccards.extend(self.get_ecards("unreversed"))

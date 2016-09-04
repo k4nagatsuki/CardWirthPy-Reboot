@@ -2577,8 +2577,6 @@ class Character(object):
         flag = False # 反転しながら画像を更新する場合はTrue
         updateimage = False # 反転せずに画像を更新する場合はTrue
 
-        cw.cwpy.advlog.small_separator()
-
         # 中毒
         if self.is_poison() and not self.is_unconscious():
             self.decrease_physical("Poison", time)

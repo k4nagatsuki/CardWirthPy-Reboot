@@ -2222,7 +2222,9 @@ class YadoData(object):
 
         # ScenarioLog更新
         if cw.cwpy.is_playingscenario():
+            logfilepath = cw.cwpy.advlog.logfilepath
             cw.cwpy.sdata.update_log()
+            cw.cwpy.advlog.resume_scenario(logfilepath)
 
         # environment.xml書き出し
         self.environment.write_xml()

@@ -212,7 +212,7 @@ class Effect(object):
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
             if self.motions:
                 if noeffect:
-                    cw.cwpy.advlog.noeffect(target)
+                    cw.cwpy.advlog.effect_failed(target)
                 else:
                     cw.cwpy.advlog.avoid(target)
             return False
