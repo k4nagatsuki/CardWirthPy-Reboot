@@ -2277,6 +2277,12 @@ def rjustify(s, length, c):
         s += c * (length - slen)
     return s
 
+def ljustify(s, length, c):
+    slen = cw.util.get_strlen(s)
+    if slen < length:
+        s = (c * (length - slen)) + s
+    return s
+
 WRAPS_CHARS = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
 
 def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None):

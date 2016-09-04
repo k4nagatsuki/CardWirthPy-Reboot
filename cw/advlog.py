@@ -87,20 +87,20 @@ class AdventurerLogger(object):
         if self._logger:
             if end:
                 if completestamp:
-                    self._put(SYSTEM, u"== 済印をつけてシナリオを終了 ==", lambda s: cw.util.rjustify(s, cw.LOG_SEPARATOR_LEN_LONG, u'='))
+                    self._put(SYSTEM, u"== 済印をつけてシナリオを終了 ==", lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, u'='))
                 else:
-                    self._put(SYSTEM, u"== 済印をつけずにシナリオを終了 ==", lambda s: cw.util.rjustify(s, cw.LOG_SEPARATOR_LEN_LONG, u'='))
+                    self._put(SYSTEM, u"== 済印をつけずにシナリオを終了 ==", lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, u'='))
             else:
                 self._put_logtype(VOID)
             self._logger.queue.put_nowait(None)
         self._logger = None
 
     def gameover(self):
-        self._put(0, u"== ゲームオーバー ==", lambda s: cw.util.rjustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
+        self._put(0, u"== ゲームオーバー ==", lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
         self.end_scenario(False, False)
 
     def f9(self):
-        self._put(0, u"== 緊急避難 ==", lambda s: cw.util.rjustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
+        self._put(0, u"== 緊急避難 ==", lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
         self.end_scenario(False, False)
 
     def _put_logtype(self, logtype):
