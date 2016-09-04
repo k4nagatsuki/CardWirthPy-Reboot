@@ -662,11 +662,15 @@ class AdventurerLogger(object):
     def recover_enhance_def(self, ccard):
         self._put(ELAPSE_TIME, ccard.name, lambda name: u"%sの防御力は通常状態に戻った。" % (name))
 
-    # 以下は当面出力しない事にする。
+    # 以下は当面出力しない(できない)。
+    #  * カード効果(使用時イベント含む)以外の効果
+    #  * エリア・バトルのカードの配置
     #  * 各種カード入手・喪失(使用回数が尽きた場合も)
     #  * NPC同行・同行解除
     #  * BGM・効果音の再生
     #  * 隠蔽クーポンによる隠蔽・隠蔽解除
+    #  * パーティの隠蔽・表示
+    #  * 背景周りなど
 
 
 class Logger(threading.Thread):
