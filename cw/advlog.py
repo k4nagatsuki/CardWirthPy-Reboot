@@ -98,6 +98,7 @@ class AdventurerLogger(object):
                 self._put_logtype(VOID)
             self._logger.queue.put_nowait(None)
         self._logger = None
+        self._last_logtype = VOID
 
     def gameover(self):
         self._put(0, u"== ゲームオーバー ==", lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
