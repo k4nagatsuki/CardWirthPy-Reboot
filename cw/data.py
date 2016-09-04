@@ -2928,11 +2928,13 @@ class Party(object):
         """
         パーティ名を変更する。
         """
-        if not self.name == name:
+        if self.name <> name:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
+            oldname = self.name
             self.name = name
             self.data.edit("Property/Name", name)
+            cw.cwpy.advlog.rename_party(self.name, oldname)
 
     def set_money(self, value, fromevent=False, blink=False):
         """

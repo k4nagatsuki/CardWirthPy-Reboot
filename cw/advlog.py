@@ -144,6 +144,9 @@ class AdventurerLogger(object):
 
         self._put(SYSTEM, mcard.name, click_menucard)
 
+    def rename_party(self, newname, oldname):
+        self._put(SYSTEM, newname, lambda name: u"パーティ名を[ %s ]に変更" % (name))
+
     def start_battle(self, battle):
         self._put(SYSTEM, None, lambda dummy: cw.util.rjustify(u"==[ バトルスタート ]==",
                                                           cw.LOG_SEPARATOR_LEN_LONG,
