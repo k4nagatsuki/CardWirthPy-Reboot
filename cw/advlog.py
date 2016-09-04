@@ -419,7 +419,10 @@ class AdventurerLogger(object):
 
         def mentality_motion((name, mentality, duration, oldmentality, oldduration, in_cardeffectmotion)):
             if mentality == "Normal":
-                s = u"%sの精神は正常化した。" % (name)
+                if oldmentality == "Sleep":
+                    s = u"%sは目を覚ました。" % (name)
+                else:
+                    s = u"%sの精神は正常化した。" % (name)
             else:
                 if mentality == "Panic":
                     s = u"%sは恐慌状態になった。" % (name)
