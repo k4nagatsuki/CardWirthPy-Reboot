@@ -55,6 +55,9 @@ class AdventurerLogger(object):
                         cnames.append(header.name)
                     lines.append("  %-5s: %s" % (pname, u", ".join(cnames)))
 
+        lines.append(u"")
+        lines.append(u"=" * cw.LOG_SEPARATOR_LEN_MIDDLE)
+
         self._put(INITIAL, lines, lambda lines: u"\n".join(lines))
 
     def resume_scenario(self, logfilepath):
@@ -119,7 +122,12 @@ class AdventurerLogger(object):
         else:
             self._last_logtype = VOID
 
-    def _put(self, logtype, data, func=None):
+    def _put(self, logtype, data, func=None, usecard=False):
+        if logtype in (MOTION, MOTION_IN_BATTLE) and not usecard:
+            if not (cw.cwpy.event.in_cardeffectmotion or cw.cwpy.event.in_inusecardevent):
+                # カード効果以外の効果はあえて出力しない
+                return
+
         if self._logger:
             self._put_logtype(logtype)
             if data is None and func is None:
@@ -192,9 +200,11 @@ class AdventurerLogger(object):
         targettype = header.target
         is_battlestatus = cw.cwpy.is_battlestatus()
         if is_battlestatus:
-            self._put(self._motion_type(), (castname, cardname, isbeast, targetname, targettype, is_battlestatus), use_card)
+            self._put(self._motion_type(), (castname, cardname, isbeast, targetname, targettype, is_battlestatus), use_card,
+                      usecard=True)
         else:
-            self._put(SYSTEM, (castname, cardname, isbeast, targetname, targettype, is_battlestatus), use_card)
+            self._put(SYSTEM, (castname, cardname, isbeast, targetname, targettype, is_battlestatus), use_card,
+                      usecard=True)
 
     def wrap_effectmotion(self, s, in_cardeffectmotion):
         if in_cardeffectmotion:
@@ -216,11 +226,14 @@ class AdventurerLogger(object):
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), noeffect)
 
-    def effect_failed(self, target):
+    def effect_failed(self, target, ismenucard=False):
         def effect_failed((name, in_cardeffectmotion)):
             s = u"%sには効果がなかった。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
-        self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), effect_failed)
+        if ismenucard:
+            self._put(SYSTEM, (target.name, self.in_cardeffectmotion()), effect_failed)
+        else:
+            self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), effect_failed)
 
     def _get_lifestatus(self, life, maxlife):
         if life <= 0:

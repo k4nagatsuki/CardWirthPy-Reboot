@@ -728,7 +728,8 @@ class SelectionBar(base.SelectableSprite):
 
         else:
             mwin.result = self.index
-            mwin.showing_result = self.showing_index
+
+        mwin.showing_result = self.showing_index
 
 class BacklogData(object):
     def __init__(self, base):

@@ -1147,6 +1147,7 @@ class CardEvent(Event):
             self.error = event.error
         else:
             cw.cwpy.play_sound("ineffective", True)
+            cw.cwpy.advlog.effect_failed(target, ismenucard=True)
 
     def run_successevent(self, target, successflag, can_unconscious):
         if isinstance(target, Enemy):
