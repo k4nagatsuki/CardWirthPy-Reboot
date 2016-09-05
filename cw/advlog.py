@@ -9,11 +9,10 @@ import Queue
 
 import cw
 
-VOID = -1
-INITIAL = 0
-SYSTEM = 1
-MESSAGE = 2
-ROUND = 3
+VOID = 0
+INITIAL = 1
+SYSTEM = 2
+MESSAGE = 3
 MOTION = 4
 MOTION_IN_BATTLE = 5
 ELAPSE_TIME = 6
@@ -165,6 +164,9 @@ class AdventurerLogger(object):
                                                           cw.LOG_SEPARATOR_LEN_LONG,
                                                           u'='))
 
+    def start_runaway(self):
+        self._put(SYSTEM, u"<<<< 逃走 >>>>")
+
     def runaway(self, success):
         def runaway((pname, success)):
             if success:
@@ -174,7 +176,7 @@ class AdventurerLogger(object):
         self._put(SYSTEM, (cw.cwpy.ydata.party.name, success), runaway)
 
     def start_round(self, round):
-        self._put(ROUND, round, lambda round: u"<<<< ラウンド %s >>>>" % (round))
+        self._put(SYSTEM, round, lambda round: u"<<<< ラウンド %s >>>>" % (round))
 
     def _motion_type(self):
         return MOTION_IN_BATTLE if cw.cwpy.is_battlestatus() else MOTION

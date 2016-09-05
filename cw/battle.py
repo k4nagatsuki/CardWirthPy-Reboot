@@ -267,6 +267,8 @@ class BattleEngine(object):
         event = cw.cwpy.sdata.events.check_keynum(2)
         self._ranaway = True
 
+        cw.cwpy.advlog.start_runaway()
+
         if event:
             # 逃走イベント開始
             try:
