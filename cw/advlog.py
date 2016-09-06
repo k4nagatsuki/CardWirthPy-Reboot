@@ -188,7 +188,7 @@ class AdventurerLogger(object):
                     return u"%sの< %s >が発動。" % (castname, cardname)
                 else:
                     return u"%sは< %s >を使用。" % (castname, cardname)
-            elif not targetname is None and targettype <> "User":
+            elif not targetname is None and not targettype in ("User", "None"):
                 s = u"==%sが< %s >を< %s >に使用==" % (castname, cardname, targetname)
             else:
                 s = u"==%sが< %s >を使用==" % (castname, cardname)
