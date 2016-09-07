@@ -210,6 +210,9 @@ class BattleEngine(object):
         if f9:
             cw.cwpy.sdata.pre_battleareadata = None
         else:
+            if not startnextbattle:
+                cw.cwpy.advlog.end_battle(self)
+
             cw.cwpy.clear_battlearea(areachange=areachange, startnextbattle=startnextbattle, is_battlestarting=is_battlestarting)
 
     def ready(self, redraw=True):
@@ -334,6 +337,8 @@ class BattleEngine(object):
         else:
             eventkeynum = 0
 
+        cw.cwpy.advlog.end_battle(self)
+
         # 勝利イベント実行時は元のエリアに戻る
         cw.cwpy.clear_battlearea(True, eventkeynum=eventkeynum, is_battlestarting=is_battlestarting)
 
@@ -351,6 +356,8 @@ class BattleEngine(object):
             event = cw.cwpy.sdata.events.check_keynum(3)
         else:
             event = None
+
+        cw.cwpy.advlog.end_battle(self)
 
         if event:
             cw.cwpy.hide_cards(True)

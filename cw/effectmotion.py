@@ -616,7 +616,8 @@ class EffectMotion(object):
         oldlife = target.life
         origvalue = value
         value = target.set_life(value)
-        cw.cwpy.advlog.heal_motion(target, origvalue, target.life, oldlife)
+        if 0 < value:
+            cw.cwpy.advlog.heal_motion(target, origvalue, target.life, oldlife)
         return 0 < value
 
     def damage_motion(self, target, success_res):
@@ -647,7 +648,8 @@ class EffectMotion(object):
         dissleep = target.is_sleep()
         if dissleep:
             target.set_mentality("Normal", 0)
-        cw.cwpy.advlog.damage_motion(target, origvalue, target.life, oldlife, dissleep)
+        if 0 < value:
+            cw.cwpy.advlog.damage_motion(target, origvalue, target.life, oldlife, dissleep)
         return 0 < value
 
     def absorb_motion(self, target, success_res):
@@ -687,7 +689,8 @@ class EffectMotion(object):
         else:
             ulife = 0
             oldulife = 0
-        cw.cwpy.advlog.absorb_motion(self.user, value, ulife, oldulife, target, origvalue, target.life, oldlife, dissleep)
+        if 0 < value:
+            cw.cwpy.advlog.absorb_motion(self.user, value, ulife, oldulife, target, origvalue, target.life, oldlife, dissleep)
         return 0 < value
 
     #-----------------------------------------------------------------------
@@ -706,7 +709,8 @@ class EffectMotion(object):
 
         oldvalue = target.paralyze
         target.set_paralyze(value)
-        cw.cwpy.advlog.paralyze_motion(target, target.paralyze, oldvalue)
+        if 0 < value:
+            cw.cwpy.advlog.paralyze_motion(target, target.paralyze, oldvalue)
         return 0 < value
 
     def disparalyze_motion(self, target, success_res):
@@ -722,7 +726,8 @@ class EffectMotion(object):
 
         oldvalue = target.paralyze
         value = target.set_paralyze(-value)
-        cw.cwpy.advlog.disparalyze_motion(target, target.paralyze, oldvalue)
+        if value < 0:
+            cw.cwpy.advlog.disparalyze_motion(target, target.paralyze, oldvalue)
         return value < 0
 
     def poison_motion(self, target, success_res):
@@ -738,7 +743,8 @@ class EffectMotion(object):
 
         oldvalue = target.poison
         target.set_poison(value)
-        cw.cwpy.advlog.poison_motion(target, target.poison, oldvalue)
+        if 0 < value:
+            cw.cwpy.advlog.poison_motion(target, target.poison, oldvalue)
         return 0 < value
 
     def dispoison_motion(self, target, success_res):
@@ -754,7 +760,8 @@ class EffectMotion(object):
 
         oldvalue = target.poison
         value = target.set_poison(-value)
-        cw.cwpy.advlog.dispoison_motion(target, target.poison, oldvalue)
+        if value < 0:
+            cw.cwpy.advlog.dispoison_motion(target, target.poison, oldvalue)
         return value < 0
 
     #-----------------------------------------------------------------------
@@ -805,7 +812,8 @@ class EffectMotion(object):
             else:
                 eff = target.mentality <> self.type.title() or target.mentality_dur < duration
                 target.set_mentality(self.type.title(), duration, overwrite=False)
-        cw.cwpy.advlog.mentality_motion(target, self.type.title(), duration, oldmentality, oldduration)
+        if eff:
+            cw.cwpy.advlog.mentality_motion(target, self.type.title(), duration, oldmentality, oldduration)
         return eff
 
     def sleep_motion(self, *args, **kwargs):
@@ -839,7 +847,8 @@ class EffectMotion(object):
         eff = target.bind < duration
         oldvalue = target.bind
         target.set_bind(duration, overwrite=False)
-        cw.cwpy.advlog.bind_motion(target, target.bind, oldvalue)
+        if eff:
+            cw.cwpy.advlog.bind_motion(target, target.bind, oldvalue)
         return eff
 
     def disbind_motion(self, target, success_res):
@@ -851,7 +860,8 @@ class EffectMotion(object):
         duration = target.bind
         oldvalue = duration
         target.set_bind(0)
-        cw.cwpy.advlog.disbind_motion(target, target.bind, oldvalue)
+        if 0 < duration:
+            cw.cwpy.advlog.disbind_motion(target, target.bind, oldvalue)
         return 0 < duration
 
     def silence_motion(self, target, success_res):
@@ -864,7 +874,8 @@ class EffectMotion(object):
         eff = target.silence < duration
         oldvalue = target.silence
         target.set_silence(duration, overwrite=False)
-        cw.cwpy.advlog.silence_motion(target, target.silence, oldvalue)
+        if eff:
+            cw.cwpy.advlog.silence_motion(target, target.silence, oldvalue)
         return eff
 
     def dissilence_motion(self, target, success_res):
@@ -876,7 +887,8 @@ class EffectMotion(object):
         duration = target.silence
         oldvalue = duration
         target.set_silence(0)
-        cw.cwpy.advlog.dissilence_motion(target, target.silence, oldvalue)
+        if 0 < duration:
+            cw.cwpy.advlog.dissilence_motion(target, target.silence, oldvalue)
         return 0 < duration
 
     def faceup_motion(self, target, success_res):
@@ -889,7 +901,8 @@ class EffectMotion(object):
         eff = target.faceup < duration
         oldvalue = target.faceup
         target.set_faceup(duration, overwrite=False)
-        cw.cwpy.advlog.faceup_motion(target, target.faceup, oldvalue)
+        if eff:
+            cw.cwpy.advlog.faceup_motion(target, target.faceup, oldvalue)
         return eff
 
     def facedown_motion(self, target, success_res):
@@ -901,7 +914,8 @@ class EffectMotion(object):
         duration = target.faceup
         oldvalue = duration
         target.set_faceup(0)
-        cw.cwpy.advlog.facedown_motion(target, target.faceup, oldvalue)
+        if 0 < duration:
+            cw.cwpy.advlog.facedown_motion(target, target.faceup, oldvalue)
         return 0 < duration
 
     def antimagic_motion(self, target, success_res):
@@ -914,7 +928,8 @@ class EffectMotion(object):
         eff = target.antimagic < duration
         oldvalue = target.antimagic
         target.set_antimagic(duration, overwrite=False)
-        cw.cwpy.advlog.antimagic_motion(target, target.antimagic, oldvalue)
+        if eff:
+            cw.cwpy.advlog.antimagic_motion(target, target.antimagic, oldvalue)
         return eff
 
     def disantimagic_motion(self, target, success_res):
@@ -926,7 +941,8 @@ class EffectMotion(object):
         duration = target.antimagic
         oldvalue = duration
         target.set_antimagic(0)
-        cw.cwpy.advlog.disantimagic_motion(target, target.antimagic, oldvalue)
+        if 0 < duration:
+            cw.cwpy.advlog.disantimagic_motion(target, target.antimagic, oldvalue)
         return 0 < duration
 
     #-----------------------------------------------------------------------
@@ -947,7 +963,7 @@ class EffectMotion(object):
         eff = target.enhance_act <> value or target.enhance_act_dur < duration
         if eff:
             target.set_enhance_act(value, duration)
-        cw.cwpy.advlog.enhanceaction_motion(target, target.enhance_act, oldvalue)
+            cw.cwpy.advlog.enhanceaction_motion(target, target.enhance_act, oldvalue)
         return eff
 
     def enhanceavoid_motion(self, target, success_res):
@@ -965,7 +981,7 @@ class EffectMotion(object):
         eff = target.enhance_avo <> value or target.enhance_avo_dur < duration
         if eff:
             target.set_enhance_avo(value, duration)
-        cw.cwpy.advlog.enhanceavoid_motion(target, target.enhance_avo, oldvalue)
+            cw.cwpy.advlog.enhanceavoid_motion(target, target.enhance_avo, oldvalue)
         return eff
 
     def enhanceresist_motion(self, target, success_res):
@@ -983,7 +999,7 @@ class EffectMotion(object):
         eff = target.enhance_res <> value or target.enhance_res_dur < duration
         if eff:
             target.set_enhance_res(value, duration)
-        cw.cwpy.advlog.enhanceresist_motion(target, target.enhance_res, oldvalue)
+            cw.cwpy.advlog.enhanceresist_motion(target, target.enhance_res, oldvalue)
         return eff
 
     def enhancedefense_motion(self, target, success_res):
@@ -1001,7 +1017,7 @@ class EffectMotion(object):
         eff = target.enhance_def <> value or target.enhance_def_dur < duration
         if eff:
             target.set_enhance_def(value, duration)
-        cw.cwpy.advlog.enhancedefense_motion(target, target.enhance_def, oldvalue)
+            cw.cwpy.advlog.enhancedefense_motion(target, target.enhance_def, oldvalue)
         return eff
 
     #-----------------------------------------------------------------------
@@ -1027,10 +1043,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.vanishcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
+            cw.cwpy.advlog.vanishcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
             target.deck.throwaway()
             return True
         return False
@@ -1041,10 +1057,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        result = target.set_beast(vanish=True)
-        if result:
+        eff = target.set_beast(vanish=True)
+        if eff:
             cw.cwpy.advlog.vanishbeast_motion(target)
-        return result
+        return eff
 
     #-----------------------------------------------------------------------
     #「カード」関連効果
@@ -1055,10 +1071,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.dealattackcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
+            cw.cwpy.advlog.dealattackcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
             target.deck.set_nextcard(1)
             return True
         return False
@@ -1069,10 +1085,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.dealpowerfulattackcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
+            cw.cwpy.advlog.dealpowerfulattackcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
             target.deck.set_nextcard(2)
             return True
         return False
@@ -1083,10 +1099,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.dealcriticalattackcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
+            cw.cwpy.advlog.dealcriticalattackcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
             target.deck.set_nextcard(3)
             return True
         return False
@@ -1097,10 +1113,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.dealfeintcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
+            cw.cwpy.advlog.dealfeintcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
             target.deck.set_nextcard(4)
             return True
         return False
@@ -1111,10 +1127,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.dealdefensecard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
+            cw.cwpy.advlog.dealdefensecard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
             target.deck.set_nextcard(5)
             return True
         return False
@@ -1125,10 +1141,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.dealdistancecard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
+            cw.cwpy.advlog.dealdistancecard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
             target.deck.set_nextcard(6)
             return True
         return False
@@ -1139,10 +1155,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.dealconfusecard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
+            cw.cwpy.advlog.dealconfusecard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
             target.deck.set_nextcard(-1)
             return True
         return False
@@ -1153,10 +1169,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        cw.cwpy.advlog.dealskillcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
+            cw.cwpy.advlog.dealskillcard_motion(target, target.is_inactive(), cw.cwpy.is_battlestatus())
             target.deck.set_nextcard()
             return True
         return False

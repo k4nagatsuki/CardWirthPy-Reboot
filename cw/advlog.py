@@ -30,7 +30,8 @@ class AdventurerLogger(object):
         self.resume_scenario(u"")
 
         lines = []
-        s = u"== シナリオ [ %s ] 開始 ==" % (cw.cwpy.sdata.name)
+        author = u" (%s)" % (cw.cwpy.sdata.author) if cw.cwpy.sdata.author else u""
+        s = u"== シナリオ [ %s ]%s 開始 ==" % (cw.cwpy.sdata.name, author)
         lines.append(cw.util.rjustify(s, cw.LOG_SEPARATOR_LEN_LONG, u'='))
 
         lines.append(u"")
@@ -160,7 +161,12 @@ class AdventurerLogger(object):
         self._put(SYSTEM, newname, lambda name: u"パーティ名を[ %s ]に変更" % (name))
 
     def start_battle(self, battle):
-        self._put(SYSTEM, None, lambda dummy: cw.util.rjustify(u"==[ バトルスタート ]==",
+        self._put(SYSTEM, None, lambda dummy: cw.util.rjustify(u"==[ バトル開始 ]==",
+                                                          cw.LOG_SEPARATOR_LEN_LONG,
+                                                          u'='))
+
+    def end_battle(self, battle):
+        self._put(SYSTEM, None, lambda dummy: cw.util.rjustify(u"==[ バトル終了 ]==",
                                                           cw.LOG_SEPARATOR_LEN_LONG,
                                                           u'='))
 
