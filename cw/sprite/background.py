@@ -152,7 +152,7 @@ class BackGround(base.CWPySprite):
                 self.reload_jpdcimage = False
             elif ext == ".jpy1":
                 jpy1 = cw.effectbooster.JpyImage(path, mask, doanime=doanime)
-                anime = not jpy1.is_cacheable
+                anime = jpy1.is_animated
                 image = jpy1.get_image()
             else:
                 image = cw.util.load_image(path, mask, isback=True)

@@ -115,6 +115,7 @@ class _JpySubImage(cw.image.Image):
 
         self.defaultcopymode = 2
         self.is_cacheable = True # アニメーションなどが無く、キャッシング可能か
+        self.is_animated = False # アニメーションが発生したか
         self.can_mask = True # 加工でマスクが無効になっていないか
 
     def draw2back(self, back, mask):
@@ -195,6 +196,7 @@ class _JpySubImage(cw.image.Image):
                     i = 0
                     while rest_x or rest_y:
                         self.is_cacheable = False
+                        self.is_animated = True
                         n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
                         n /= animespeed
 
@@ -298,12 +300,14 @@ class _JpySubImage(cw.image.Image):
         # 指定時間だけ待機
         if waittime > 0:
             self.is_cacheable = False
+            self.is_animated = True
             if doanime.countup():
                 wait_effectbooster(waittime, doanime=doanime)
 
         # 右クリックするまで待機
         elif waittime < 0:
             self.is_cacheable = False
+            self.is_animated = True
             if doanime.countup():
                 wait_effectbooster(0, doanime=doanime)
 
@@ -532,6 +536,7 @@ class _JpySubImage(cw.image.Image):
 
                     if sound:
                         self.is_cacheable = False
+                        self.is_animated = True
                         if doanime.countup():
                             sound.play(True)
 
@@ -545,6 +550,8 @@ class _JpySubImage(cw.image.Image):
                         cw.cwpy.sdata.resource_cache[cachekey] = (image.copy(), mtime)
                     else:
                         self.is_cacheable = False
+                    if jpy1.is_animated:
+                        self.is_animated = True
                 # Jpdcファイル
                 elif ext == ".jpdc":
                     self.is_cacheable = False
@@ -763,6 +770,7 @@ class JpyImage(cw.image.Image):
             # 実際にはbackwidthが0未満だと消滅する
             self.image = pygame.Surface(cw.s((0, 0))).convert()
             self.is_cacheable = True
+            self.is_animated = False
 
         else:
             config.path = os.path.abspath(config.path)
@@ -772,6 +780,7 @@ class JpyImage(cw.image.Image):
             back.load(doanime)
             defaultcopymode = 1
             self.is_cacheable = not back.transparent
+            self.is_animated = back.is_animated
             if parent and back.loadcache:
                 self.is_cacheable = False
 
@@ -790,6 +799,8 @@ class JpyImage(cw.image.Image):
                     parts.draw2back(back, mask)
                     if not parts.is_cacheable:
                         self.is_cacheable = False
+                    if parts.is_animated:
+                        self.is_animated = True
                     if parent and parts.loadcache:
                         self.is_cacheable = False
                     if parts.animation in (1, 2, 3):
@@ -802,6 +813,8 @@ class JpyImage(cw.image.Image):
                 cache.restore()
             if not back.is_cacheable:
                 self.is_cacheable = False
+            if back.is_animated:
+                self.is_animated = True
             can_mask &= back.can_mask
             self.image = back.get_image()
 
