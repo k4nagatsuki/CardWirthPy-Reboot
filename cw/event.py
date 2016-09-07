@@ -808,7 +808,7 @@ class Event(object):
             if not cw.cwpy.is_gameover() and not cw.cwpy.event.is_stoped():
                 cw.cwpy.show_party()
                 cw.cwpy.disposition_pcards()
-                cw.cwpy.background.reload_jpdcimage = False
+                cw.cwpy.background.reload_jpdcimage = True
 
         if not isinstance(self.error, AreaChangeError):
             # BUG: CardWirthでは全滅時は選択メンバがクリアされない
