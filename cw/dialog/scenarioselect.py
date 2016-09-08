@@ -1516,7 +1516,7 @@ class ScenarioSelect(select.Select):
                         self.updatenames_thr.quit = True
                         self.updatenames_thr = None
                     self.names = [u"読込中..."]
-                    self.updatenames_thr = UpdateNamesThread(self, dpath, self.dirstack[:],
+                    self.updatenames_thr = UpdateNamesThread(self, self.nowdir, dpath, self.dirstack[:],
                                                              startdir=dpath, expandedset=set(),
                                                              skintype=cw.cwpy.setting.skintype)
                     self.updatenames_thr.start()
@@ -1975,10 +1975,11 @@ class ScenarioSelect(select.Select):
         if self.updatenames_thr:
             self.updatenames_thr.quit = True
             self.updatenames_thr = None
-        self.names = [u"読込中..."]
+        if self.nowdir == dpath:
+            self.names = [u"読込中..."]
         paritem = self.tree.GetItemParent(selitem)
         dirstack = self.get_dirstack(paritem)
-        self.updatenames_thr = UpdateNamesThread(self, dpath, dirstack,
+        self.updatenames_thr = UpdateNamesThread(self, dpath, dpath, dirstack,
                                                  startdir=startdir, expandedset=expandedset,
                                                  skintype=cw.cwpy.setting.skintype)
         self.updatenames_thr.start()
@@ -2641,10 +2642,10 @@ class FindResult(object):
 
 class UpdateNamesThread(threading.Thread):
 
-    def __init__(self, dlg, dpath, dirstack, startdir, expandedset, skintype):
+    def __init__(self, dlg, nowdir, dpath, dirstack, startdir, expandedset, skintype):
         threading.Thread.__init__(self)
         self.dlg = dlg
-        self.nowdir = dlg.nowdir
+        self.nowdir = nowdir
         self.dpath = dpath
         self.dirstack = dirstack
         self.dpaths = dlg.get_dpaths(dpath)
