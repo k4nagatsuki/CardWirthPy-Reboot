@@ -47,7 +47,7 @@ class ProgressDialog(wx.Dialog):
         # massage
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14)))
-        dc.DrawLabel(self.text, (cw.s(10), cw.s(36), csize[0]-cw.s(20), cw.wins(50)), wx.ALIGN_RIGHT)
+        dc.DrawLabel(self.text, (cw.wins(10), cw.wins(36), csize[0]-cw.wins(20), cw.wins(50)), wx.ALIGN_RIGHT)
 
         dc.SelectObject(wx.NullBitmap)
         dc2 = wx.PaintDC(self)
