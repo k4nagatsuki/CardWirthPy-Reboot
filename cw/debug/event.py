@@ -16,7 +16,7 @@ class EventListDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, u"実行するイベントの選択",
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         self.cwpy_debug = True
-        self.events = EventList(self, (250, 300), currentfpath, showhiddencards)
+        self.events = EventList(self, cw.ppis((250, 300)), currentfpath, showhiddencards)
         self.showhiddencards = showhiddencards
         self.showallcards = wx.CheckBox(self, -1, u"表示フラグがオフのカードも表示する")
         self.showallcards.SetValue(self.showhiddencards)
@@ -37,17 +37,17 @@ class EventListDialog(wx.Dialog):
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.events, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.showallcards, 0, flag=wx.EXPAND|wx.TOP, border=5)
+        sizer_left.Add(self.showallcards, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(5))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.openbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.startbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.startbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.cnclbtn, 0, wx.EXPAND)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -98,9 +98,8 @@ class EventList(wx.TreeCtrl):
         currentfpath: 最初から選択状態にするエリア等のファイルパス。
         """
         wx.TreeCtrl.__init__(self, parent, -1, size=size, style=wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
-        self.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=14))
         self._showallcards = showhiddencards
-        self.imglist = wx.ImageList(16, 16)
+        self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         imgidx_area = self.imglist.Add(cw.cwpy.rsrc.debugs["AREA"])
         imgidx_battle = self.imglist.Add(cw.cwpy.rsrc.debugs["BATTLE"])
         imgidx_package = self.imglist.Add(cw.cwpy.rsrc.debugs["PACK"])

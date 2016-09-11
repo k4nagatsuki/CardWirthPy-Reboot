@@ -2845,7 +2845,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
     if winsize:
         size = (cw.wins(25), -1)
     else:
-        size = (25, -1)
+        size = (cw.ppis(25), -1)
     button = wx.Button(parent, size=size, label=u"...")
     parent.Bind(wx.EVT_BUTTON, OnOpen, button)
     return button
@@ -2946,14 +2946,14 @@ class CWBackCheckBox(wx.CheckBox):
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15)))
         w, h = dc.GetTextExtent(text)
-        bmp = cw.wins(cw.cwpy.rsrc.debugs["NOCHECK"])
+        bmp = cw.wins(cw.cwpy.rsrc.debugs_noscale["NOCHECK"])
         w += cw.wins(4) + bmp.GetWidth()
         h = max(h, bmp.GetHeight())
         self.SetMinSize((w, h))
         self.SetSize((w, h))
 
         self._nocheck = bmp
-        self._check = cw.wins(cw.cwpy.rsrc.debugs["CHECK"])
+        self._check = cw.wins(cw.cwpy.rsrc.debugs_noscale["CHECK"])
 
         self.background = cw.cwpy.rsrc.dialogs["CAUTION"]
 
@@ -3061,7 +3061,7 @@ def adjust_dropdownwidth(choice):
         # 項目ごとに幅を計算
         dc = wx.ClientDC(choice)
         for s in choice.GetItems():
-            w = max(w, dc.GetTextExtent(s)[0] + 5 + scwidth)
+            w = max(w, dc.GetTextExtent(s)[0] + cw.ppis(5) + scwidth)
         dc.SetFont(choice.GetFont())
 
         # モニタの横幅よりは大きくしない

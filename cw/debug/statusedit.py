@@ -26,18 +26,18 @@ class StatusEditDialog(wx.Dialog):
             self.statuses.append(Status(pcard))
             self.statuses_backup.append(Status(pcard))
 
-        self.life      = StatusButton(self, 0, self._is_dead, size=(45, 45))
-        self.poison    = StatusButton(self, 1, self._is_dead, size=(45, 45))
-        self.paralyze  = StatusButton(self, 2, self._is_dead, size=(45, 45))
-        self.mentality = StatusButton(self, 3, self._is_dead, size=(45, 60))
-        self.bind      = StatusButton(self, 4, self._is_dead, size=(45, 45))
-        self.silence   = StatusButton(self, 5, self._is_dead, size=(45, 45))
-        self.faceup    = StatusButton(self, 6, self._is_dead, size=(45, 45))
-        self.antimagic = StatusButton(self, 7, self._is_dead, size=(45, 45))
-        self.action    = StatusButton(self, 8, self._is_dead, size=(45, 60))
-        self.avoid     = StatusButton(self, 9, self._is_dead, size=(45, 60))
-        self.resist    = StatusButton(self, 10, self._is_dead, size=(45, 60))
-        self.defense   = StatusButton(self, 11, self._is_dead, size=(45, 60))
+        self.life      = StatusButton(self, 0, self._is_dead, size=cw.ppis((45, 45)))
+        self.poison    = StatusButton(self, 1, self._is_dead, size=cw.ppis((45, 45)))
+        self.paralyze  = StatusButton(self, 2, self._is_dead, size=cw.ppis((45, 45)))
+        self.mentality = StatusButton(self, 3, self._is_dead, size=cw.ppis((45, 60)))
+        self.bind      = StatusButton(self, 4, self._is_dead, size=cw.ppis((45, 45)))
+        self.silence   = StatusButton(self, 5, self._is_dead, size=cw.ppis((45, 45)))
+        self.faceup    = StatusButton(self, 6, self._is_dead, size=cw.ppis((45, 45)))
+        self.antimagic = StatusButton(self, 7, self._is_dead, size=cw.ppis((45, 45)))
+        self.action    = StatusButton(self, 8, self._is_dead, size=cw.ppis((45, 60)))
+        self.avoid     = StatusButton(self, 9, self._is_dead, size=cw.ppis((45, 60)))
+        self.resist    = StatusButton(self, 10, self._is_dead, size=cw.ppis((45, 60)))
+        self.defense   = StatusButton(self, 11, self._is_dead, size=cw.ppis((45, 60)))
         self.statusbtns = [self.life, self.poison, self.paralyze,
                            self.mentality, self.bind, self.silence,
                            self.faceup, self.antimagic, self.action,
@@ -51,10 +51,10 @@ class StatusEditDialog(wx.Dialog):
         self.target.Select(max(selected, -1) + 1)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL_dbg"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL_dbg"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
 
         # 全快
         self.rcvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"全快")
@@ -94,37 +94,37 @@ class StatusEditDialog(wx.Dialog):
 
     def _do_layout(self):
         sizer_status = wx.GridBagSizer()
-        sizer_status.Add(self.life, pos=(0, 0), flag=wx.RIGHT|wx.BOTTOM, border=5)
-        sizer_status.Add(self.poison, pos=(0, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
-        sizer_status.Add(self.paralyze, pos=(0, 2), flag=wx.RIGHT|wx.BOTTOM, border=5)
-        sizer_status.Add(self.mentality, pos=(1, 0), flag=wx.RIGHT|wx.BOTTOM, border=5)
-        sizer_status.Add(self.bind, pos=(2, 0), flag=wx.RIGHT|wx.BOTTOM, border=5)
-        sizer_status.Add(self.silence, pos=(2, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
-        sizer_status.Add(self.faceup, pos=(2, 2), flag=wx.RIGHT|wx.BOTTOM, border=5)
-        sizer_status.Add(self.antimagic, pos=(2, 3), flag=wx.BOTTOM, border=5)
-        sizer_status.Add(self.action, pos=(3, 0), flag=wx.RIGHT, border=5)
-        sizer_status.Add(self.avoid, pos=(3, 1), flag=wx.RIGHT, border=5)
-        sizer_status.Add(self.resist, pos=(3, 2), flag=wx.RIGHT, border=5)
+        sizer_status.Add(self.life, pos=(0, 0), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.poison, pos=(0, 1), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.paralyze, pos=(0, 2), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.mentality, pos=(1, 0), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.bind, pos=(2, 0), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.silence, pos=(2, 1), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.faceup, pos=(2, 2), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.antimagic, pos=(2, 3), flag=wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.action, pos=(3, 0), flag=wx.RIGHT, border=cw.ppis(5))
+        sizer_status.Add(self.avoid, pos=(3, 1), flag=wx.RIGHT, border=cw.ppis(5))
+        sizer_status.Add(self.resist, pos=(3, 2), flag=wx.RIGHT, border=cw.ppis(5))
         sizer_status.Add(self.defense, pos=(3, 3))
 
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
         sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
-        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=5)
+        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=cw.ppis(5))
         sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
-        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=5)
+        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
         sizer_left.Add(sizer_status, 1, flag=wx.EXPAND)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rcvbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.restorebtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.restorebtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, flag=wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+        sizer.Add(sizer_left, 1, flag=wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -777,7 +777,7 @@ class StatusButton(wx.BitmapButton):
         dc.SetPen(wx.Pen(colour))
         dc.SetBrush(wx.Brush(colour))
         dc.DrawRectangle(0, 0, canvas.GetWidth(), canvas.GetHeight())
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("button", pixelsize=12))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("button", pointsize=9))
 
         SPACER = 4
         height = self.image.GetHeight()

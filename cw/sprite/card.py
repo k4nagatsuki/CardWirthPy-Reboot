@@ -240,8 +240,11 @@ class CWPyCard(base.SelectableSprite):
             self.frame += 1
 
     def deal(self):
-        """カードをアニメーショ無しで表示する。"""
-        self.status = "normal"
+        """カードをアニメーション無しで表示する。"""
+        if self.reversed:
+            self.status = "reversed"
+        else:
+            self.status = "normal"
         if hasattr(self, "cardimg") and (self.cardimg.is_modifiedfile() or\
                                          self.image.get_width() <= 0):
             self.update_image()
@@ -288,7 +291,7 @@ class CWPyCard(base.SelectableSprite):
         n = (self._get_dealspeed()+1) * 3
         if self.frame >= n:
             self.rect = pygame.Rect(self.get_animerect())
-            self.status = "normal"
+            self.status = self.old_status
             self.frame = 0
             return
 
@@ -330,7 +333,7 @@ class CWPyCard(base.SelectableSprite):
             self.rect = pygame.Rect(self.get_animerect())
             if self.image.get_size() <> self.rect.size:
                 self.image = pygame.transform.scale(self.get_animeimage(), self.rect.size)
-            self.status = "normal"
+            self.status = self.old_status
             self.frame = 0
             return
 
@@ -705,7 +708,7 @@ class PlayerCard(CWPyCard, character.Player):
             self.image = self.get_animeimage()
 
             if self.frame == 15:
-                self.status = "normal"
+                self.status = self.old_status
                 self.cardimg.set_levelimg(self.level)
                 self.frame = 0
                 return

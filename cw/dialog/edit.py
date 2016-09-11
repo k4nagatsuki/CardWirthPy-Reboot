@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import shutil
 import wx
 import wx.combo
@@ -216,21 +217,21 @@ class MoneyEditPanel(wx.Panel):
         sizer_v3 = wx.BoxSizer(wx.VERTICAL)
 
         sizer_v3.Add(self.text_yado, 0, wx.CENTER|wx.TOP, cw.wins(3))
-        sizer_v3.Add(self.spinctrl2, 0, wx.CENTER, 0)
+        sizer_v3.Add(self.spinctrl2, 0, wx.CENTER, cw.wins(0))
 
-        sizer_v2.Add(self.text_party, 0, wx.CENTER, 0)
-        sizer_v2.Add(self.spinctrl, 0, wx.CENTER, 0)
+        sizer_v2.Add(self.text_party, 0, wx.CENTER, cw.wins(0))
+        sizer_v2.Add(self.spinctrl, 0, wx.CENTER, cw.wins(0))
 
-        sizer_h3.Add(self.bmp_ymoney, 0, wx.CENTER, 0)
+        sizer_h3.Add(self.bmp_ymoney, 0, wx.CENTER, cw.wins(0))
         sizer_h3.Add(sizer_v3, 1, wx.CENTER|wx.LEFT, cw.wins(5))
 
-        sizer_h2.Add(self.bmp_pmoney, 0, wx.CENTER, 0)
+        sizer_h2.Add(self.bmp_pmoney, 0, wx.CENTER, cw.wins(0))
         sizer_h2.Add(sizer_v2, 1, wx.CENTER|wx.LEFT, cw.wins(5))
 
-        sizer_v1.Add(sizer_h2, 0, wx.CENTER|wx.EXPAND, 0)
-        sizer_v1.Add(sizer_h3, 0, wx.CENTER|wx.EXPAND, 0)
+        sizer_v1.Add(sizer_h2, 0, wx.CENTER|wx.EXPAND, cw.wins(0))
+        sizer_v1.Add(sizer_h3, 0, wx.CENTER|wx.EXPAND, cw.wins(0))
 
-        sizer_h1.Add(self.slider, 0, wx.CENTER, 0)
+        sizer_h1.Add(self.slider, 0, wx.CENTER, cw.wins(0))
         sizer_h1.Add(sizer_v1, 0, wx.CENTER|wx.LEFT, cw.wins(5))
 
         sizer.Add(sizer_h1, 0, wx.ALL, cw.wins(5))
@@ -260,10 +261,10 @@ class MoneyViewPanel(wx.Panel):
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer_v1.Add(self.text_party, 0, wx.CENTER, 0)
+        sizer_v1.Add(self.text_party, 0, wx.CENTER, cw.wins(0))
         sizer_v1.Add(self.text_pmoney, 2, wx.CENTER|wx.TOP, cw.wins(2))
 
-        sizer_h1.Add(self.bmp_pmoney, 0, wx.CENTER, 0)
+        sizer_h1.Add(self.bmp_pmoney, 0, wx.CENTER, cw.wins(0))
         sizer_h1.Add(sizer_v1, 0, wx.CENTER|wx.LEFT, cw.wins(5))
 
         sizer.Add(sizer_h1, 0, wx.ALL, cw.wins(5))
@@ -306,7 +307,7 @@ class NumberEditDialog(wx.Dialog):
         sizer_panel.Add(self.panel, 1, wx.EXPAND|wx.ALL, cw.wins(5))
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.okbtn, 0, 0, cw.wins(0))
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(30))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
@@ -350,7 +351,9 @@ class Number2EditDialog(wx.Dialog):
         # スライダ
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         self.box1 = wx.StaticBox(self.panel, -1, label1)
+        self.box1.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(12)))
         self.box2 = wx.StaticBox(self.panel, -1, label2)
+        self.box2.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(12)))
 
         self.slider1 = NumberEditor(self.panel, value1, minvalue1, maxvalue1)
         self.slider2 = NumberEditor(self.panel, value2, minvalue2, maxvalue2)
@@ -382,7 +385,7 @@ class Number2EditDialog(wx.Dialog):
         self.panel.SetSizer(sizer_panel)
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.okbtn, 0, 0, cw.wins(0))
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(30))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
@@ -426,10 +429,18 @@ class NumberComboEditDialog(wx.Dialog):
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         self.box1 = wx.StaticBox(self.panel, -1, label1)
+        self.box1.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(12)))
         self.box2 = wx.StaticBox(self.panel, -1, label2)
+        self.box2.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(12)))
 
         # コンボボックス
-        self.combo = wx.combo.BitmapComboBox(self.panel, -1, style=wx.CB_READONLY)
+        if 1 <= len(mlist) and not isinstance(mlist[0], (str, unicode)):
+            self._combo_panel = wx.Panel(self.panel, -1, size=(-1, cw.wins(24)))
+            self.combo = wx.combo.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
+        else:
+            self._combo_panel = None
+            self.combo = wx.ComboBox(self.panel, -1, style=wx.CB_READONLY)
+        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         for li in mlist:
             if isinstance(li, (str, unicode)):
                 self.combo.Append(li)
@@ -458,7 +469,22 @@ class NumberComboEditDialog(wx.Dialog):
         sizer_box1 = wx.StaticBoxSizer(self.box1, wx.HORIZONTAL)
         sizer_box2 = wx.StaticBoxSizer(self.box2, wx.HORIZONTAL)
 
-        sizer_box1.Add(self.combo, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+        if self._combo_panel:
+            sizer_box1.Add(self._combo_panel, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+            def func(self):
+                if not self:
+                    return
+                w, h = self._combo_panel.GetSize()
+                self.combo.SetPosition(cw.wins((0, 0)))
+                self.combo.SetSize((w, h))
+                if sys.platform == "win32":
+                    import win32api
+                    CB_SETITEMHEIGHT = 0x153
+                    win32api.SendMessage(self.combo.Handle, CB_SETITEMHEIGHT, -1, cw.wins(24))
+            cw.cwpy.frame.exec_func(func, self)
+        else:
+            sizer_box1.Add(self.combo, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+
         sizer_box2.Add(self.slider, 1, wx.EXPAND|wx.ALL, cw.wins(5))
 
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
@@ -467,7 +493,7 @@ class NumberComboEditDialog(wx.Dialog):
         self.panel.SetSizer(sizer_panel)
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.okbtn, 0, 0, cw.wins(0))
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(30))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
@@ -585,7 +611,7 @@ class SliderWithButton(wx.Panel):
     def _do_layout(self):
         sizer_slider = wx.BoxSizer(wx.HORIZONTAL)
         sizer_slider.Add(self.leftbtn, 0, wx.ALIGN_CENTER)
-        sizer_slider.Add(self.slider, 1, wx.LEFT|wx.RIGHT, cw.wins(3))
+        sizer_slider.Add(self.slider, 1, wx.LEFT|wx.RIGHT|wx.ALIGN_CENTER, cw.wins(3))
         sizer_slider.Add(self.rightbtn, 0, wx.ALIGN_CENTER)
 
         self.SetSizer(sizer_slider)
@@ -745,9 +771,16 @@ class ComboEditDialog(wx.Dialog):
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         self.box = wx.StaticBox(self.panel, -1, label)
+        self.box.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(12)))
 
         # コンボボックス
-        self.combo = wx.combo.BitmapComboBox(self.panel, -1, style=wx.CB_READONLY)
+        if 1 <= len(mlist) and not isinstance(mlist[0], (str, unicode)):
+            self._combo_panel = wx.Panel(self.panel, -1, size=(-1, cw.wins(24)))
+            self.combo = wx.combo.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
+        else:
+            self._combo_panel = None
+            self.combo = wx.ComboBox(self.panel, -1, style=wx.CB_READONLY)
+        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         for li in mlist:
             if isinstance(li, (str, unicode)):
                 self.combo.Append(li)
@@ -772,18 +805,32 @@ class ComboEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_box = wx.StaticBoxSizer(self.box, wx.HORIZONTAL)
 
-        sizer_box.Add(self.combo, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+        if self._combo_panel:
+            sizer_box.Add(self._combo_panel, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+            def func(self):
+                if not self:
+                    return
+                w, h = self._combo_panel.GetSize()
+                self.combo.SetPosition(cw.wins((0, 0)))
+                self.combo.SetSize((w, h))
+                if sys.platform == "win32":
+                    import win32api
+                    CB_SETITEMHEIGHT = 0x153
+                    win32api.SendMessage(self.combo.Handle, CB_SETITEMHEIGHT, -1, cw.wins(24))
+            cw.cwpy.frame.exec_func(func, self)
+        else:
+            sizer_box.Add(self.combo, 1, wx.EXPAND|wx.ALL, cw.wins(5))
 
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
         sizer_panel.Add(sizer_box, 0, wx.EXPAND|wx.ALL, cw.wins(5))
         self.panel.SetSizer(sizer_panel)
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.okbtn, 0, 0, cw.wins(0))
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(20))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, cw.wins(5))
+        sizer_v1.Add(self.panel, 0, wx.EXPAND|wx.TOP, cw.wins(5))
         sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(10))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -869,18 +916,18 @@ class ComboEditDialog2(wx.Dialog):
 
         csize = cw.wins(318), cw.wins(0)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add((cw.wins(0), cw.wins(20)+self._textheight), 0, 0, 0)
+        sizer_1.Add((cw.wins(0), cw.wins(20)+self._textheight), 0, 0, cw.wins(0))
         margin = (csize[0] - self.combo.GetSize()[0]) / 2
         sizer_1.Add(self.combo, 0, wx.LEFT|wx.RIGHT, margin)
-        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
         sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
 
-        sizer_1.Add(sizer_2, 0, wx.EXPAND, 0)
-        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+        sizer_1.Add(sizer_2, 0, wx.EXPAND, cw.wins(0))
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
 
         self.SetSizer(sizer_1)
         self.Layout()
@@ -985,7 +1032,7 @@ class LevelEditDialog(wx.Dialog):
         self.panel.SetSizer(sizer_panel)
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.okbtn, 0, 0, cw.wins(0))
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(30))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
@@ -1079,7 +1126,7 @@ class InputTextDialog(wx.Dialog):
             font = cw.cwpy.rsrc.get_wxfont("button", pixelsize=cw.wins(14))
             dc.SetFont(font)
             s = cw.cwpy.msgs["auto"]
-            tw = dc.GetTextExtent(s)[0] + 16
+            tw = dc.GetTextExtent(s)[0] + cw.wins(16)
             self.addition = cw.cwpy.rsrc.create_wxbutton(self, -1, (tw, cw.wins(20)), s)
             self.addition.SetFont(font)
             self.addition_func = addition_func
@@ -1142,20 +1189,20 @@ class InputTextDialog(wx.Dialog):
         csize = self.GetClientSize()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(cw.wins((0, 35)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, 35)), 0, 0, cw.wins(0))
         tw = self.textctrl.GetSize()[0]
         if self.addition:
             tw += self.addition.GetSize()[0]
         margin = (csize[0] - tw) / 2
         if self.addition:
             sizer_h = wx.BoxSizer(wx.HORIZONTAL)
-            sizer_h.Add(self.textctrl, 0, wx.CENTER, 0)
-            sizer_h.Add(self.addition, 0, wx.CENTER, 0)
+            sizer_h.Add(self.textctrl, 0, wx.CENTER, cw.wins(0))
+            sizer_h.Add(self.addition, 0, wx.CENTER, cw.wins(0))
             sizer_1.Add(sizer_h, 0, wx.LEFT|wx.RIGHT, margin)
         else:
             sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
-        sizer_1.Add(cw.wins((0, 12)), 0, 0, 0)
-        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+        sizer_1.Add(cw.wins((0, 12)), 0, 0, cw.wins(0))
+        sizer_1.Add(sizer_2, 1, wx.EXPAND, cw.wins(0))
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)

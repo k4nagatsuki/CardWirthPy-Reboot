@@ -46,7 +46,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imglist = self.datalist.GetImageList(wx.IMAGE_LIST_SMALL)
         assert self.imglist.ImageCount == 2
 
-        w, h = cw.cwpy.rsrc.debugs["NOCHECK"].GetSize()
+        w, h = cw.cwpy.rsrc.debugs_noscale["NOCHECK"].GetSize()
         w, h = cw.wins((w, h))
 
         # CheckableListはImageListの0番と1番にチェックボックスの
@@ -56,20 +56,20 @@ class TransferYadoDataDialog(wx.Dialog):
         w2, h2 = self.imglist.GetSize(0)
         if (w, h) <> (w2, h2):
             self.imglist = wx.ImageList(w, h, True)
-            self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["NOCHECK"]))
-            self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["CHECK"]))
+            self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["NOCHECK"]))
+            self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["CHECK"]))
         self.imgidx_bookmark = self.imglist.Add(cw.cwpy.rsrc.dialogs["BOOKMARK"])
-        self.imgidx_party = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["MEMBER"]))
-        self.imgidx_standby = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_CAST"]))
-        self.imgidx_skill = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"]))
-        self.imgidx_item = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"]))
-        self.imgidx_beast = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"]))
-        self.imgidx_gossip = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_GOSSIP"]))
-        self.imgidx_completestamp = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_COMPLETESTAMP"]))
-        self.imgidx_money = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["MONEY"]))
-        self.imgidx_album = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["CARD"]))
-        self.imgidx_partyrecord = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SELECTION"]))
-        self.imgidx_savedjpdcimage = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["JPDCIMAGE"]))
+        self.imgidx_party = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["MEMBER"]))
+        self.imgidx_standby = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_CAST"]))
+        self.imgidx_skill = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_SKILL"]))
+        self.imgidx_item = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_ITEM"]))
+        self.imgidx_beast = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_BEAST"]))
+        self.imgidx_gossip = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_GOSSIP"]))
+        self.imgidx_completestamp = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_COMPLETESTAMP"]))
+        self.imgidx_money = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["MONEY"]))
+        self.imgidx_album = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["CARD"]))
+        self.imgidx_partyrecord = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["SELECTION"]))
+        self.imgidx_savedjpdcimage = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["JPDCIMAGE"]))
         self.datalist.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
 
         self._checking = False

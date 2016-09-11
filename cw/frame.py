@@ -252,7 +252,7 @@ class Frame(wx.Frame):
             # メインフレームの真横に表示
             w = dlg.GetSize()[0]
             w -= (w - self.GetSize()[0]) / 2
-            self.move_dlg(dlg, (w, 0))
+            self.move_dlg(dlg, (w, cw.ppis(0)))
             self.debugger = dlg
             def func():
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
@@ -646,7 +646,7 @@ class Frame(wx.Frame):
         selection, preinfo = self._get_cardcontrolparams()
         areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", selection, preinfo, areaid=areaid)
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, (0, cw.ppis(-63)))
 
         dlg.ShowModal()
 
@@ -654,7 +654,7 @@ class Frame(wx.Frame):
         selection, preinfo = self._get_cardcontrolparams()
         areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", selection, preinfo, areaid=areaid)
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, (0, cw.ppis(-63)))
 
         dlg.ShowModal()
 
@@ -668,14 +668,14 @@ class Frame(wx.Frame):
         selection, preinfo = self._get_cardcontrolparams()
         areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, callname, selection, preinfo, areaid=areaid)
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, (0, cw.ppis(-63)))
 
         dlg.ShowModal()
 
     def OnHANDVIEW(self, event):
         selection, preinfo = self._get_cardcontrolparams()
         dlg = cw.dialog.cardcontrol.HandView(self, selection, preinfo)
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, (0, cw.ppis(-63)))
 
         dlg.ShowModal()
 
@@ -684,7 +684,7 @@ class Frame(wx.Frame):
         target = cw.cwpy.selectedheader
         if selection and target:
             dlg = cw.dialog.cardcontrol.ReplCardHolder(self, selection, target)
-            self.move_dlg(dlg, (0, -63))
+            self.move_dlg(dlg, (0, cw.ppis(-63)))
             dlg.ShowModal()
         else:
             self.kill_dlg(None)
@@ -700,7 +700,7 @@ class Frame(wx.Frame):
 
     def OnINFOVIEW(self, event):
         dlg = cw.dialog.cardcontrol.InfoView(self)
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, (0, cw.ppis(-63)))
         dlg.ShowModal()
 
     def OnCHARAINFO(self, event):

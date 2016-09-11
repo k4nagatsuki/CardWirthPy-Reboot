@@ -50,20 +50,20 @@ class CardEditDialog(wx.Dialog):
 
         self.scenario = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"(シナリオ未選択)")
 
-        self.imglist = wx.ImageList(16, 16)
+        self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL_dbg"])
         self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM_dbg"])
         self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST_dbg"])
 
-        self.cards = wx.ListCtrl(self, -1, size=(200, 250),
+        self.cards = wx.ListCtrl(self, -1, size=cw.ppis((200, 250)),
             style=wx.LC_REPORT)
         self.cards.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.cards.InsertColumn(0, "ID")
         self.cards.InsertColumn(1, u"カード名")
         self.cards.InsertColumn(2, u"解説")
-        self.cards.SetColumnWidth(0, 40)
-        self.cards.SetColumnWidth(1, 85)
-        self.cards.SetColumnWidth(2, 110)
+        self.cards.SetColumnWidth(0, cw.ppis(40))
+        self.cards.SetColumnWidth(1, cw.ppis(85))
+        self.cards.SetColumnWidth(2, cw.ppis(110))
 
         self.dealtarg = wx.combo.BitmapComboBox(self, -1, style=wx.CB_READONLY)
         self.notcast = 0
@@ -99,7 +99,7 @@ class CardEditDialog(wx.Dialog):
         self.mscenario = wx.CheckBox(self, -1, u"シナリオ")
         self.mauthor = wx.CheckBox(self, -1, u"作者")
 
-        self.timglist = wx.ImageList(16, 16)
+        self.timglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         self.timgidx_storehouse = self.timglist.Add(cw.cwpy.rsrc.buttons["DECK_dbg"])
         self.timgidx_backpack = self.timglist.Add(cw.cwpy.rsrc.buttons["SACK_dbg"])
         self.timgidx_party = self.timglist.Add(cw.cwpy.rsrc.debugs["MEMBER_dbg"])
@@ -141,46 +141,46 @@ class CardEditDialog(wx.Dialog):
 
     def _do_layout(self):
         sizer_cards = wx.StaticBoxSizer(self.cardsbox, wx.VERTICAL)
-        sizer_cards.Add(self.scenario, 0, wx.EXPAND|wx.ALL, 5)
-        sizer_cards.Add(self.cards, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
+        sizer_cards.Add(self.scenario, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
+        sizer_cards.Add(self.cards, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
 
         sizer_dealtarg = wx.StaticBoxSizer(self.dealtargbox, wx.HORIZONTAL)
-        sizer_dealtarg.Add(self.dealtarg, 1, wx.ALL, 5)
+        sizer_dealtarg.Add(self.dealtarg, 1, wx.ALL, cw.ppis(5))
 
         sizer_left = wx.BoxSizer(wx.VERTICAL)
-        sizer_left.Add(sizer_cards, 1, wx.EXPAND|wx.ALL, 5)
-        sizer_left.Add(sizer_dealtarg, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
+        sizer_left.Add(sizer_cards, 1, wx.EXPAND|wx.ALL, cw.ppis(5))
+        sizer_left.Add(sizer_dealtarg, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
 
         sizer_method = wx.StaticBoxSizer(self.methodbox, wx.HORIZONTAL)
         sizer_checks = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_checks.Add(self.mname, 1, wx.RIGHT, 5)
-        sizer_checks.Add(self.mdesc, 1, wx.RIGHT, 5)
-        sizer_checks.Add(self.mscenario, 1, wx.RIGHT, 5)
+        sizer_checks.Add(self.mname, 1, wx.RIGHT, cw.ppis(5))
+        sizer_checks.Add(self.mdesc, 1, wx.RIGHT, cw.ppis(5))
+        sizer_checks.Add(self.mscenario, 1, wx.RIGHT, cw.ppis(5))
         sizer_checks.Add(self.mauthor, 1)
-        sizer_method.Add(sizer_checks, 1, wx.EXPAND|wx.ALL, 5)
+        sizer_method.Add(sizer_checks, 1, wx.EXPAND|wx.ALL, cw.ppis(5))
 
         sizer_targets = wx.StaticBoxSizer(self.targetsbox, wx.VERTICAL)
-        sizer_targets.Add(self.targets, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, 5)
-        sizer_targets.Add(self.status, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
+        sizer_targets.Add(self.targets, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, cw.ppis(5))
+        sizer_targets.Add(self.status, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
 
         sizer_middle = wx.BoxSizer(wx.VERTICAL)
-        sizer_middle.Add(sizer_targets, 1, wx.EXPAND|wx.BOTTOM, 5)
+        sizer_middle.Add(sizer_targets, 1, wx.EXPAND|wx.BOTTOM, cw.ppis(5))
         sizer_middle.Add(sizer_method, 0, wx.EXPAND)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.dtlbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.dealbtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.Add(self.findbtn, 0, wx.EXPAND|wx.TOP, border=20)
-        sizer_right.Add(self.stopbtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.Add(self.updbtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.Add(self.delbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.dealbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.findbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(20))
+        sizer_right.Add(self.stopbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.updbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.delbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.closebtn, 0, wx.EXPAND)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(sizer_middle, 1, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
-        sizer.Add(sizer_right, 0, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_middle, 1, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()

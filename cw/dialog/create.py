@@ -48,6 +48,7 @@ class AdventurerDataComp(wx.Dialog):
         self.text_message.SetFont(font)
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16))
         self.box = wx.StaticBox(self, -1)
+        self.box.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(12)))
         self.text_name = wx.StaticText(self, -1, ccard.name)
         self.text_name.SetFont(font)
         self.text_caution = wx.StaticText(self, -1, cw.cwpy.msgs["coution"])

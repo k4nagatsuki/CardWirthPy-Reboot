@@ -62,7 +62,7 @@ class BattleCommand(wx.Dialog):
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add(self.toppanel, 1, wx.EXPAND, 0)
+        sizer_1.Add(self.toppanel, 1, wx.EXPAND, cw.wins(0))
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
@@ -299,15 +299,15 @@ class ErrorLogDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, u"エラーログ")
         self.cwpy_debug = True
         self.tc = wx.TextCtrl(
-            self, -1, log, size=(250, 200),
+            self, -1, log, size=cw.ppis((250, 200)),
             style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self._do_layout()
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.tc, 0, 0, 0)
-        sizer.Add(self.btn_ok, 0, wx.CENTER|wx.ALL, cw.wins(5))
+        sizer.Add(self.tc, 0, 0, cw.ppis(0))
+        sizer.Add(self.btn_ok, 0, wx.CENTER|wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -740,24 +740,24 @@ class ConvertYadoDialog(wx.Dialog):
         dc.SetFont(font)
         w, _h = dc.GetTextExtent(u"対象エンジン:")
         sizer_3.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
-        sizer_3.Add(self.target, 1, wx.CENTER, 0)
+        sizer_3.Add(self.target, 1, wx.CENTER, cw.wins(0))
 
         sizer_4.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
-        sizer_4.Add(self.folder, 1, wx.CENTER, 0)
-        sizer_4.Add(self.reffolder, 0, wx.CENTER|wx.EXPAND, 0)
+        sizer_4.Add(self.folder, 1, wx.CENTER, cw.wins(0))
+        sizer_4.Add(self.reffolder, 0, wx.CENTER|wx.EXPAND, cw.wins(0))
 
         sizer_1.Add(sizer_4, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.wins(10))
-        sizer_1.Add(cw.wins((0, 5)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, 5)), 0, 0, cw.wins(0))
         sizer_1.Add(sizer_3, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.wins(10))
 
-        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
         sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
-        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+        sizer_1.Add(sizer_2, 1, wx.EXPAND, cw.wins(0))
 
-        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
 
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)

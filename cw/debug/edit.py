@@ -44,8 +44,8 @@ class CouponEditDialog(wx.Dialog):
             self.coupons.append(seq)
 
         # リスト
-        self.values = EditableListCtrl(self, -1, size=(250, 300), style=wx.LC_REPORT|wx.MULTIPLE)
-        self.values.imglist = wx.ImageList(14, 14)
+        self.values = EditableListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE)
+        self.values.imglist = wx.ImageList(cw.ppis(14), cw.ppis(14))
         self.values.imgidx_2 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS3_dbg"])
         self.values.imgidx_1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS2_dbg"])
         self.values.imgidx_0 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS1_dbg"])
@@ -53,8 +53,8 @@ class CouponEditDialog(wx.Dialog):
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
         self.values.InsertColumn(0, u"名称")
         self.values.InsertColumn(1, u"得点")
-        self.values.SetColumnWidth(0, 170)
-        self.values.SetColumnWidth(1, 50)
+        self.values.SetColumnWidth(0, cw.ppis(170))
+        self.values.SetColumnWidth(1, cw.ppis(50))
         self.values.setResizeColumn(0)
 
         # 対象者
@@ -65,10 +65,10 @@ class CouponEditDialog(wx.Dialog):
         self.target.Select(max(selected, -1) + 1)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL_dbg"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL_dbg"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
 
         # 合計得点
         self.total = wx.StaticText(self, -1, "", style=wx.ALIGN_RIGHT|wx.ST_NO_AUTORESIZE)
@@ -123,28 +123,28 @@ class CouponEditDialog(wx.Dialog):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
         sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
-        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=3)
+        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=cw.ppis(3))
         sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
-        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=3)
+        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=cw.ppis(3))
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.total, 0, flag=wx.EXPAND|wx.TOP, border=3)
-        sizer_left.Add(self.adjust_level, 0, flag=wx.ALIGN_RIGHT|wx.TOP, border=3)
-        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=3)
+        sizer_left.Add(self.total, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
+        sizer_left.Add(self.adjust_level, 0, flag=wx.ALIGN_RIGHT|wx.TOP, border=cw.ppis(3))
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.addbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.Add(self.valbtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.Add(self.copybtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.valbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.copybtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -496,12 +496,12 @@ class ListEditDialog(wx.Dialog):
         self._processing = False
 
         # リスト
-        self.values = EditableListCtrl(self, -1, size=(250, 300), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER)
+        self.values = EditableListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
         self.values.InsertColumn(0, u"項目名")
-        self.values.SetColumnWidth(0, 170)
+        self.values.SetColumnWidth(0, cw.ppis(170))
         self.values.setResizeColumn(0)
 
         # 検索
@@ -546,20 +546,20 @@ class ListEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=3)
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.addbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -728,12 +728,12 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 
         # リスト
         image = cw.cwpy.rsrc.debugs["JPDCIMAGE_dbg"]
-        self.values = AutoWidthListCtrl(self, -1, size=(250, 300), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER|wx.BORDER)
+        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER|wx.BORDER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
         self.values.InsertColumn(0, u"項目名")
-        self.values.SetColumnWidth(0, 170)
+        self.values.SetColumnWidth(0, cw.ppis(170))
         self.values.setResizeColumn(0)
 
         # 検索
@@ -770,17 +770,17 @@ class SavedJPDCImageEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=3)
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -841,12 +841,12 @@ class BreakpointEditDialog(wx.Dialog):
 
         # リスト
         image = cw.cwpy.rsrc.debugs["BREAKPOINT_dbg"]
-        self.values = AutoWidthListCtrl(self, -1, size=(250, 300), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER|wx.BORDER)
+        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER|wx.BORDER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
         self.values.InsertColumn(0, u"項目名")
-        self.values.SetColumnWidth(0, 170)
+        self.values.SetColumnWidth(0, cw.ppis(170))
         self.values.setResizeColumn(0)
 
         # 検索
@@ -883,17 +883,17 @@ class BreakpointEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=3)
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -963,10 +963,10 @@ class FindPanel(wx.Panel):
 
         # up
         bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
-        self.findup = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+        self.findup = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
         # down
         bmp = cw.cwpy.rsrc.buttons["DOWN_dbg"]
-        self.finddown = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+        self.finddown = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
 
         self.findup.Disable()
         self.finddown.Disable()

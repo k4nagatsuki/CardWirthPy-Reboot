@@ -20,7 +20,10 @@ try:
 except ImportError:
     versioninfo = None
 
-SETTINGS_WIDTH = 250
+
+def _settings_width():
+    return cw.ppis(250)
+
 
 def create_versioninfo(parent):
     """バージョン情報を表示するwx.TextCtrlを生成する。"""
@@ -31,7 +34,8 @@ def create_versioninfo(parent):
     parent.versioninfo.SetBackgroundColour(parent.GetBackgroundColour())
     dc = wx.ClientDC(parent.versioninfo)
     w, h, _lh = dc.GetMultiLineTextExtent(s)
-    parent.versioninfo.SetMinSize((w + 15, h))
+    parent.versioninfo.SetMinSize((w + cw.ppis(15), h))
+
 
 def apply_levelupparams(can_levelup):
     """レベル調節に関する状況が変わった時に呼び出され、
@@ -49,6 +53,7 @@ def apply_levelupparams(can_levelup):
                 if 0 < pcard.check_level():
                     pcard.adjust_level(False)
     cw.cwpy.exec_func(check_levelup, can_levelup)
+
 
 class SettingsDialog(wx.Dialog):
     def __init__(self, parent):
@@ -73,7 +78,7 @@ class SettingsDialog(wx.Dialog):
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        sizer.Add(self.panel, 1, wx.EXPAND, 0)
+        sizer.Add(self.panel, 1, wx.EXPAND, cw.ppis(0))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -246,45 +251,45 @@ class SimpleSettingsPanel(wx.Panel):
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer_debug = wx.StaticBoxSizer(self.box_debug, wx.VERTICAL)
-        sizer_debug.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        sizer_debug.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         sizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
-        sizer_skin.Add(self.skin, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        sizer_skin.SetMinSize((270, -1))
+        sizer_skin.Add(self.skin, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_skin.SetMinSize((cw.ppis(270), -1))
         sizer_expand = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
-        sizer_expand.Add(self.expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        sizer_expand.Add(self.expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         sizer_audio = wx.StaticBoxSizer(self.box_audio, wx.VERTICAL)
-        sizer_audio.Add(self.cb_playbgm, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        sizer_audio.Add(self.cb_playsound, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        sizer_audio.Add(self.cb_playbgm, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        sizer_audio.Add(self.cb_playsound, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
 
-        sizer_left.Add(sizer_debug, 0, wx.EXPAND, 0)
-        sizer_left.Add(sizer_skin, 1, wx.EXPAND|wx.TOP, 3)
-        sizer_left.Add(sizer_audio, 0, wx.EXPAND|wx.TOP, 3)
+        sizer_left.Add(sizer_debug, 0, wx.EXPAND, cw.ppis(0))
+        sizer_left.Add(sizer_skin, 1, wx.EXPAND|wx.TOP, cw.ppis(3))
+        sizer_left.Add(sizer_audio, 0, wx.EXPAND|wx.TOP, cw.ppis(3))
 
-        sizer_right.Add(sizer_expand, 0, wx.EXPAND, 0)
-        sizer_right.Add(self.speed, 0, wx.EXPAND|wx.TOP, 3)
+        sizer_right.Add(sizer_expand, 0, wx.EXPAND, cw.ppis(0))
+        sizer_right.Add(self.speed, 0, wx.EXPAND|wx.TOP, cw.ppis(3))
 
-        sizer_btn.Add(self.btn_details, 0, wx.ALIGN_CENTER, 0)
+        sizer_btn.Add(self.btn_details, 0, wx.ALIGN_CENTER, cw.ppis(0))
         sizer_btn.AddStretchSpacer(1)
-        sizer_btn.Add(self.versioninfo, 0, wx.LEFT|wx.RIGHT|wx.ALIGN_CENTER, 10)
+        sizer_btn.Add(self.versioninfo, 0, wx.LEFT|wx.RIGHT|wx.ALIGN_CENTER, cw.ppis(10))
         sizer_btn.AddStretchSpacer(1)
         sizer_btn.Add(self.btn_ok, 0, wx.ALIGN_CENTER)
-        sizer_btn.Add(self.btn_apply, 0, wx.LEFT|wx.ALIGN_CENTER, 5)
-        sizer_btn.Add(self.btn_cncl, 0, wx.LEFT|wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER, 5)
+        sizer_btn.Add(self.btn_apply, 0, wx.LEFT|wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_btn.Add(self.btn_cncl, 0, wx.LEFT|wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
 
-        sizer_h1.Add(sizer_left, 1, wx.EXPAND|wx.ALL, 10)
-        sizer_h1.Add(sizer_right, 0, wx.EXPAND|wx.TOP|wx.BOTTOM|wx.RIGHT, 10)
+        sizer_h1.Add(sizer_left, 1, wx.EXPAND|wx.ALL, cw.ppis(10))
+        sizer_h1.Add(sizer_right, 0, wx.EXPAND|wx.TOP|wx.BOTTOM|wx.RIGHT, cw.ppis(10))
 
         self.panel.SetSizer(sizer_h1)
 
-        sizer.Add(self.panel, 0, wx.EXPAND, 0)
-        sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 5)
+        sizer.Add(self.panel, 0, wx.EXPAND, cw.ppis(0))
+        sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
 
 class SettingsPanel(wx.Panel):
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent, pos=(-100, -100))
+        wx.Panel.__init__(self, parent, pos=(-1024, -1024))
         self.SetDoubleBuffered(True)
         self.Hide()
 
@@ -312,10 +317,10 @@ class SettingsPanel(wx.Panel):
 
         self.btn_save = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_SAVE"])
         self.btn_save.SetToolTipString(u"設定の保存")
-        self.btn_save.SetMinSize((32, h))
+        self.btn_save.SetMinSize((cw.ppis(32), h))
         self.btn_load = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_LOAD"])
         self.btn_load.SetToolTipString(u"設定の読み込み")
-        self.btn_load.SetMinSize((32, h))
+        self.btn_load.SetMinSize((cw.ppis(32), h))
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_apply = wx.Button(self, wx.ID_APPLY, u"適用")
@@ -765,19 +770,19 @@ class SettingsPanel(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
-        sizer_btn.Add(self.versioninfo, 0, wx.ALIGN_CENTER, 0)
+        sizer_btn.Add(self.versioninfo, 0, wx.ALIGN_CENTER, cw.ppis(0))
         sizer_btn.AddStretchSpacer(1)
-        sizer_btn.Add(self.btn_dflt, 0, wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER, 5)
-        sizer_btn.Add((10, 0), 0, 0, 0)
-        sizer_btn.Add(self.btn_save, 0, wx.ALIGN_CENTER, 0)
-        sizer_btn.Add(self.btn_load, 0, wx.LEFT|wx.ALIGN_CENTER, 2)
-        sizer_btn.Add((10, 0), 0, 0, 0)
-        sizer_btn.Add(self.btn_ok, 0, wx.ALIGN_CENTER, 0)
-        sizer_btn.Add(self.btn_apply, 0, wx.LEFT|wx.ALIGN_CENTER, 5)
-        sizer_btn.Add(self.btn_cncl, 0, wx.LEFT|wx.ALIGN_CENTER, 5)
+        sizer_btn.Add(self.btn_dflt, 0, wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_btn.Add(cw.ppis((10, 0)), 0, 0, cw.ppis(0))
+        sizer_btn.Add(self.btn_save, 0, wx.ALIGN_CENTER, cw.ppis(0))
+        sizer_btn.Add(self.btn_load, 0, wx.LEFT|wx.ALIGN_CENTER, cw.ppis(2))
+        sizer_btn.Add(cw.ppis((10, 0)), 0, 0, cw.ppis(0))
+        sizer_btn.Add(self.btn_ok, 0, wx.ALIGN_CENTER, cw.ppis(0))
+        sizer_btn.Add(self.btn_apply, 0, wx.LEFT|wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_btn.Add(self.btn_cncl, 0, wx.LEFT|wx.ALIGN_CENTER, cw.ppis(5))
 
-        sizer.Add(self.note, 0, wx.EXPAND, 0)
-        sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 5)
+        sizer.Add(self.note, 0, wx.EXPAND, cw.ppis(0))
+        sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -930,14 +935,14 @@ class SkinPanel(wx.Panel):
 
         if self.editbuttons:
             bsizer_skinbtn = wx.BoxSizer(wx.HORIZONTAL)
-            bsizer_skinbtn.Add(self.btn_convertskin, 0, wx.RIGHT, 3)
-            bsizer_skinbtn.Add(self.btn_editskin, 0, wx.RIGHT, 3)
-            bsizer_skinbtn.Add(self.btn_deleteskin, 0, 0, 3)
+            bsizer_skinbtn.Add(self.btn_convertskin, 0, wx.RIGHT, cw.ppis(3))
+            bsizer_skinbtn.Add(self.btn_editskin, 0, wx.RIGHT, cw.ppis(3))
+            bsizer_skinbtn.Add(self.btn_deleteskin, 0, 0, cw.ppis(3))
 
-        sizer.Add(self.ch_skin, 0, wx.CENTER, 0)
-        sizer.Add(self.st_skin, 1, wx.CENTER|wx.TOP, 3)
+        sizer.Add(self.ch_skin, 0, wx.CENTER, cw.ppis(0))
+        sizer.Add(self.st_skin, 1, wx.CENTER|wx.TOP, cw.ppis(3))
         if self.editbuttons:
-            sizer.Add(bsizer_skinbtn, 0, wx.ALIGN_RIGHT|wx.TOP, 3)
+            sizer.Add(bsizer_skinbtn, 0, wx.ALIGN_RIGHT|wx.TOP, cw.ppis(3))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -972,7 +977,7 @@ class ExpandPanel(wx.Panel):
         self.ch_expanddrawing = wx.ComboBox(self, -1, style=wx.CB_DROPDOWN|wx.CB_READONLY)
 
         self.sl_expand = wx.Slider(
-            self, -1, 10, 10, 11, size=(120, -1),
+            self, -1, 10, 10, 11, size=(cw.ppis(120), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.st_expand = wx.StaticText(self, -1)
         dc = wx.ClientDC(self.st_expand)
@@ -1057,17 +1062,17 @@ class ExpandPanel(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         bsizer_expandmode_draw = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_expandmode_draw.Add(self.st_expandscr, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_expandmode_draw.Add(self.ch_expanddrawing, 0, wx.CENTER|wx.RIGHT, 10)
-        bsizer_expandmode_draw.Add(self.st_expandwin, 0, wx.CENTER, 0)
-        bsizer_expandmode_draw.Add(self.st_expand, 0, wx.CENTER, 0)
+        bsizer_expandmode_draw.Add(self.st_expandscr, 0, wx.RIGHT|wx.CENTER, cw.ppis(3))
+        bsizer_expandmode_draw.Add(self.ch_expanddrawing, 0, wx.CENTER|wx.RIGHT, cw.ppis(10))
+        bsizer_expandmode_draw.Add(self.st_expandwin, 0, wx.CENTER, cw.ppis(0))
+        bsizer_expandmode_draw.Add(self.st_expand, 0, wx.CENTER, cw.ppis(0))
 
-        sizer.Add(bsizer_expandmode_draw, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer.Add(self.sl_expand, 0, wx.EXPAND, 3)
-        sizer.Add(self.cb_fullscreen, 0, wx.ALIGN_RIGHT, 0)
+        sizer.Add(bsizer_expandmode_draw, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer.Add(self.sl_expand, 0, wx.EXPAND, cw.ppis(3))
+        sizer.Add(self.cb_fullscreen, 0, wx.ALIGN_RIGHT, cw.ppis(0))
         if self.options:
-            sizer.Add(self.ln_expand, 0, wx.TOP|wx.EXPAND, 3)
-            sizer.Add(self.cb_smoothexpand, 0, wx.TOP, 3)
+            sizer.Add(self.ln_expand, 0, wx.TOP|wx.EXPAND, cw.ppis(3))
+            sizer.Add(self.cb_smoothexpand, 0, wx.TOP, cw.ppis(3))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -1135,7 +1140,7 @@ class GeneralSettingPanel(wx.Panel):
         self.st_messagelog_type = wx.StaticText(self, -1, u"表示形式:")
         self.ch_messagelog_type = wx.Choice(self, -1, choices=[u"1件ずつ表示", u"並べて表示", u"高さを圧縮"])
         self.st_backlogmax = wx.StaticText(self, -1, u"最大数:")
-        self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(80, -1), max=9999, min=0)
+        self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(cw.ppis(80), -1), max=9999, min=0)
 
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
@@ -1148,7 +1153,7 @@ class GeneralSettingPanel(wx.Panel):
         # 持出金額
         self.box_party = wx.StaticBox(self, -1, u"パーティ")
         self.st_initmoneyamount = wx.StaticText(self, -1, u"結成時の持出金額:")
-        self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(80, -1), min=0, max=999999)
+        self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(cw.ppis(80), -1), min=0, max=999999)
         self.cb_initmoneyisinitialcash = wx.CheckBox(self, -1, u"初期資金と同額")
 
         self.cb_autosavepartyrecord = wx.CheckBox(
@@ -1158,17 +1163,17 @@ class GeneralSettingPanel(wx.Panel):
 
         # スクリーンショット情報
         self.box_ss = wx.StaticBox(self, -1, u"スクリーンショット情報(画像上部に表示)")
-        self.tx_ssinfoformat = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_ssinfoformat = wx.TextCtrl(self, -1, size=(cw.ppis(150), -1))
         # スクリーンショット情報の色
         choices = [u"黒文字", u"白文字"]
         self.ch_ssinfocolor = wx.Choice(self, -1, size=(-1, -1), choices=choices)
 
         # スクリーンショットのファイル名
         self.st_ssfnameformat = wx.StaticText(self, -1, u"ファイル名:")
-        self.tx_ssfnameformat = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_ssfnameformat = wx.TextCtrl(self, -1, size=(cw.ppis(150), -1))
         # 所持カード撮影情報のファイル名
         self.st_cardssfnameformat = wx.StaticText(self, -1, u"所持カード:")
-        self.tx_cardssfnameformat = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_cardssfnameformat = wx.TextCtrl(self, -1, size=(cw.ppis(150), -1))
 
         self.ss_tx = set()
         self.ss_tx.add(self.tx_ssinfoformat)
@@ -1178,9 +1183,9 @@ class GeneralSettingPanel(wx.Panel):
         self.st_ssinfo_brackets = wx.StaticText(self, -1, u"[ ] 内は、各種情報がある場合のみ挿入されます")
 
         self.sstoolbar = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_HORZ_TEXT|wx.TB_NOICONS)
-        self.sstoolbar.SetToolBitmapSize(wx.Size(0, 0))
+        self.sstoolbar.SetToolBitmapSize(wx.Size(cw.ppis(0), cw.ppis(0)))
         self.ti_ssins = self.sstoolbar.AddLabelTool(
-            -1, u"各種情報の挿入", wx.EmptyBitmap(0, 0),
+            -1, u"各種情報の挿入", wx.EmptyBitmap(cw.ppis(0), cw.ppis(0)),
             shortHelp=u"状況によって動的に変化する情報を挿入します。")
         self.sstoolbar.Realize()
 
@@ -1333,68 +1338,68 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
 
-        bsizer_gene.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_show_debuglogdialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_show_debuglogdialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
 
         bsizer_startup = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_startup.Add(self.st_startupscene, 0, wx.ALIGN_CENTER, 0)
-        bsizer_startup.Add(self.ch_startupscene, 0, wx.LEFT|wx.ALIGN_CENTER, 3)
-        bsizer_gene.Add(bsizer_startup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_startup.Add(self.st_startupscene, 0, wx.ALIGN_CENTER, cw.ppis(0))
+        bsizer_startup.Add(self.ch_startupscene, 0, wx.LEFT|wx.ALIGN_CENTER, cw.ppis(3))
+        bsizer_gene.Add(bsizer_startup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
 
-        bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
+        bsizer_gene.SetMinSize((_settings_width(), -1))
 
         bsizer_log = wx.StaticBoxSizer(self.box_messagelog, wx.HORIZONTAL)
-        bsizer_log.Add(self.st_messagelog_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 3)
-        bsizer_log.Add(self.ch_messagelog_type, 0, wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
-        bsizer_log.Add(self.st_backlogmax, 0, wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 3)
-        bsizer_log.Add(self.sc_backlogmax, 0, wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
-        bsizer_log.SetMinSize((SETTINGS_WIDTH, -1))
+        bsizer_log.Add(self.st_messagelog_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(3))
+        bsizer_log.Add(self.ch_messagelog_type, 0, wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
+        bsizer_log.Add(self.st_backlogmax, 0, wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(3))
+        bsizer_log.Add(self.sc_backlogmax, 0, wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
+        bsizer_log.SetMinSize((_settings_width(), -1))
 
-        bsizer_skin.Add(self.skin, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_skin.SetMinSize((SETTINGS_WIDTH, 180))
+        bsizer_skin.Add(self.skin, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_skin.SetMinSize((_settings_width(), cw.ppis(180)))
 
-        bsizer_expandmode.Add(self.expand, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        bsizer_expandmode.SetMinSize((SETTINGS_WIDTH, -1))
+        bsizer_expandmode.Add(self.expand, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        bsizer_expandmode.SetMinSize((_settings_width(), -1))
 
         bsizer_party = wx.StaticBoxSizer(self.box_party, wx.VERTICAL)
         bsizer_partymoney = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_partymoney.Add(self.st_initmoneyamount, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_partymoney.Add(self.sc_initmoneyamount, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_partymoney.Add(self.cb_initmoneyisinitialcash, 0, wx.CENTER, 3)
-        bsizer_party.Add(bsizer_partymoney, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_party.Add(self.cb_autosavepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_party.Add(self.cb_overwritepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_partymoney.Add(self.st_initmoneyamount, 0, wx.RIGHT|wx.CENTER, cw.ppis(3))
+        bsizer_partymoney.Add(self.sc_initmoneyamount, 0, wx.RIGHT|wx.CENTER, cw.ppis(3))
+        bsizer_partymoney.Add(self.cb_initmoneyisinitialcash, 0, wx.CENTER, cw.ppis(3))
+        bsizer_party.Add(bsizer_partymoney, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_party.Add(self.cb_autosavepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_party.Add(self.cb_overwritepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
 
         bsizer_ss = wx.StaticBoxSizer(self.box_ss, wx.VERTICAL)
         bsizer_ssl = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_ssl.Add(self.tx_ssinfoformat, 1, wx.RIGHT|wx.CENTER, 3)
-        bsizer_ssl.Add(self.ch_ssinfocolor, 0, wx.CENTER, 3)
-        bsizer_ss.Add(bsizer_ssl, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        bsizer_ssl.Add(self.tx_ssinfoformat, 1, wx.RIGHT|wx.CENTER, cw.ppis(3))
+        bsizer_ssl.Add(self.ch_ssinfocolor, 0, wx.CENTER, cw.ppis(3))
+        bsizer_ss.Add(bsizer_ssl, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
 
         gsizer_fname = wx.GridBagSizer()
-        gsizer_fname.Add(self.st_ssfnameformat, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
-        gsizer_fname.Add(self.tx_ssfnameformat, pos=(0, 1), flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=3)
-        gsizer_fname.Add(self.st_cardssfnameformat, pos=(1, 0), flag=wx.TOP|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
-        gsizer_fname.Add(self.tx_cardssfnameformat, pos=(1, 1), flag=wx.TOP|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=3)
+        gsizer_fname.Add(self.st_ssfnameformat, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
+        gsizer_fname.Add(self.tx_ssfnameformat, pos=(0, 1), flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=cw.ppis(3))
+        gsizer_fname.Add(self.st_cardssfnameformat, pos=(1, 0), flag=wx.TOP|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
+        gsizer_fname.Add(self.tx_cardssfnameformat, pos=(1, 1), flag=wx.TOP|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=cw.ppis(3))
         gsizer_fname.AddGrowableCol(1, 1)
 
-        bsizer_ss.Add(gsizer_fname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        bsizer_ss.Add(self.st_ssinfo_brackets, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
-        bsizer_ss.Add(self.sstoolbar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
+        bsizer_ss.Add(gsizer_fname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        bsizer_ss.Add(self.st_ssinfo_brackets, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(3))
+        bsizer_ss.Add(self.sstoolbar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(3))
 
-        sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_left.Add(bsizer_log, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_left.Add(bsizer_skin, 1, wx.EXPAND, 3)
+        sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_left.Add(bsizer_log, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_left.Add(bsizer_skin, 1, wx.EXPAND, cw.ppis(3))
 
-        sizer_right.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_party, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_ss, 0, wx.EXPAND, 0)
+        sizer_right.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_right.Add(bsizer_party, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_right.Add(bsizer_ss, 0, wx.EXPAND, cw.ppis(0))
 
-        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, 5)
-        sizer_h1.Add(sizer_right, 1, wx.EXPAND, 3)
+        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, cw.ppis(5))
+        sizer_h1.Add(sizer_right, 1, wx.EXPAND, cw.ppis(3))
 
-        sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, cw.ppis(10))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -1417,13 +1422,13 @@ class SpeedPanel(wx.Panel):
             self, -1, size=(-1, -1), choices=self.choices_tran)
         self.sl_tran = wx.Slider(
             self, -1, 0, 0, 10,
-            size=(SETTINGS_WIDTH-10, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
+            size=(_settings_width()-cw.ppis(10), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_tran.SetTickFreq(1, 1)
         # カード描画速度
         self.box_deal = wx.StaticBox(
             self, -1, u"カード描画速度(速い⇔遅い)")
         self.sl_deal = wx.Slider(
-            self, -1, 0, 0, 10, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 10, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_deal.SetTickFreq(1, 1)
         if self.battlespeed:
@@ -1431,7 +1436,7 @@ class SpeedPanel(wx.Panel):
             self.box_deal_battle = wx.StaticBox(
                 self, -1, u"戦闘行動描画速度(速い⇔遅い)")
             self.sl_deal_battle = wx.Slider(
-                self, -1, 0, 0, 10, size=(SETTINGS_WIDTH-10, -1),
+                self, -1, 0, 0, 10, size=(_settings_width()-cw.ppis(10), -1),
                 style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
             self.sl_deal_battle.SetTickFreq(1, 1)
             self.cb_use_battlespeed = wx.CheckBox(
@@ -1440,7 +1445,7 @@ class SpeedPanel(wx.Panel):
         self.box_msgs = wx.StaticBox(
             self, -1, u"メッセージ表示速度(速い⇔遅い)")
         self.sl_msgs = wx.Slider(
-            self, -1, 0, 0, 10, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 10, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_msgs.SetTickFreq(1, 1)
 
@@ -1471,19 +1476,19 @@ class SpeedPanel(wx.Panel):
             bsizer_deal_battle = wx.StaticBoxSizer(self.box_deal_battle, wx.VERTICAL)
         bsizer_msgs = wx.StaticBoxSizer(self.box_msgs, wx.VERTICAL)
 
-        bsizer_tran.Add(self.ch_tran, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_tran.Add(self.sl_tran, 0, wx.EXPAND, 0)
-        bsizer_deal.Add(self.sl_deal, 0, wx.EXPAND, 0)
+        bsizer_tran.Add(self.ch_tran, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_tran.Add(self.sl_tran, 0, wx.EXPAND, cw.ppis(0))
+        bsizer_deal.Add(self.sl_deal, 0, wx.EXPAND, cw.ppis(0))
         if self.battlespeed:
-            bsizer_deal_battle.Add(self.sl_deal_battle, 0, wx.EXPAND, 0)
-            bsizer_deal_battle.Add(self.cb_use_battlespeed, 0, wx.ALIGN_RIGHT, 0)
-        bsizer_msgs.Add(self.sl_msgs, 0, wx.EXPAND, 0)
+            bsizer_deal_battle.Add(self.sl_deal_battle, 0, wx.EXPAND, cw.ppis(0))
+            bsizer_deal_battle.Add(self.cb_use_battlespeed, 0, wx.ALIGN_RIGHT, cw.ppis(0))
+        bsizer_msgs.Add(self.sl_msgs, 0, wx.EXPAND, cw.ppis(0))
 
-        sizer.Add(bsizer_tran, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer.Add(bsizer_deal, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer.Add(bsizer_tran, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer.Add(bsizer_deal, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
         if self.battlespeed:
-            sizer.Add(bsizer_deal_battle, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer.Add(bsizer_msgs, 0, wx.EXPAND, 3)
+            sizer.Add(bsizer_deal_battle, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer.Add(bsizer_msgs, 0, wx.EXPAND, cw.ppis(3))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -1544,7 +1549,7 @@ class DrawingSettingPanel(wx.Panel):
         self.st_blwin = wx.StaticText(self, -1, u"ログ")
         self.cs_blwin = wx.ColourPickerCtrl(self, -1)
         self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50), -1))
         self.sc_mwin.SetRange(0, 255)
         # メッセージウィンドウ枠色
         self.box_mframe = wx.StaticBox(self, -1, u"メッセージウィンドウ枠")
@@ -1553,7 +1558,7 @@ class DrawingSettingPanel(wx.Panel):
         self.st_blframe = wx.StaticText(self, -1, u"ログ")
         self.cs_blframe = wx.ColourPickerCtrl(self, -1)
         self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50), -1))
         self.sc_mframe.SetRange(0, 255)
 
         # メッセージログカーテン色
@@ -1561,7 +1566,7 @@ class DrawingSettingPanel(wx.Panel):
         self.st_blcurtain = wx.StaticText(self, -1, u"カラー")
         self.cs_blcurtain = wx.ColourPickerCtrl(self, -1)
         self.st_blcurtain2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_blcurtain = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_blcurtain = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50), -1))
         self.sc_blcurtain.SetRange(0, 255)
 
         # カーテン色
@@ -1569,14 +1574,14 @@ class DrawingSettingPanel(wx.Panel):
         self.st_curtain = wx.StaticText(self, -1, u"カラー")
         self.cs_curtain = wx.ColourPickerCtrl(self, -1)
         self.st_curtain2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_curtain = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_curtain = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50), -1))
         self.sc_curtain.SetRange(0, 255)
 
         # フルスクリーンの背景
         self.box_fscrback = wx.StaticBox(self, -1, u"フルスクリーンの背景")
         choices = [u"<背景なし>", u"<ファイルから選択>", u"ダイアログの壁紙", u"スキンのロゴ"]
         self.ch_fscrbacktype = wx.Choice(self, -1, size=(-1, -1), choices=choices)
-        self.tx_fscrbackfile = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_fscrbackfile = wx.TextCtrl(self, -1, size=(cw.ppis(150), -1))
         self.ref_fscrbackfile = cw.util.create_fileselection(self,
             target=self.tx_fscrbackfile,
             message=u"フルスクリーンの背景にするファイルを選択",
@@ -1760,98 +1765,98 @@ class DrawingSettingPanel(wx.Panel):
         if not self._for_local:
             bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
 
-            bsizer_gene.Add(self.cb_smoothing_card_up, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-            bsizer_gene.Add(self.cb_smoothing_card_down, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-            bsizer_gene.Add(self.cb_smooth_bg, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-            bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-            bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
+            bsizer_gene.Add(self.cb_smoothing_card_up, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+            bsizer_gene.Add(self.cb_smoothing_card_down, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+            bsizer_gene.Add(self.cb_smooth_bg, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+            bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+            bsizer_gene.SetMinSize((_settings_width(), -1))
 
         bsizer_mwin = wx.BoxSizer(wx.HORIZONTAL)
         if self._for_local:
-            bsizer_mwin.Add(self.st_mwin, 0, wx.CENTER|wx.RIGHT, 3)
-            bsizer_mwin.Add(self.cs_mwin, 0, wx.CENTER|wx.RIGHT, 5)
-            bsizer_mwin.Add(self.st_blwin, 0, wx.CENTER|wx.RIGHT, 3)
-            bsizer_mwin.Add(self.cs_blwin, 0, wx.CENTER, 0)
+            bsizer_mwin.Add(self.st_mwin, 0, wx.CENTER|wx.RIGHT, cw.ppis(3))
+            bsizer_mwin.Add(self.cs_mwin, 0, wx.CENTER|wx.RIGHT, cw.ppis(5))
+            bsizer_mwin.Add(self.st_blwin, 0, wx.CENTER|wx.RIGHT, cw.ppis(3))
+            bsizer_mwin.Add(self.cs_blwin, 0, wx.CENTER, cw.ppis(0))
         else:
             gsizer_mwin = wx.GridBagSizer()
-            gsizer_mwin.Add(self.st_mwin, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gsizer_mwin.Add(self.st_mwin, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
             gsizer_mwin.Add(self.cs_mwin, pos=(0, 1), flag=wx.EXPAND)
-            gsizer_mwin.Add(self.st_blwin, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gsizer_mwin.Add(self.st_blwin, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
             gsizer_mwin.Add(self.cs_blwin, pos=(1, 1), flag=wx.EXPAND)
-            bsizer_mwin.Add(gsizer_mwin, 0, wx.CENTER, 0)
-        bsizer_mwin.Add(self.st_mwin2, 0, wx.CENTER|wx.LEFT, 5)
-        bsizer_mwin.Add(self.sc_mwin, 0, wx.CENTER|wx.LEFT, 3)
+            bsizer_mwin.Add(gsizer_mwin, 0, wx.CENTER, cw.ppis(0))
+        bsizer_mwin.Add(self.st_mwin2, 0, wx.CENTER|wx.LEFT, cw.ppis(5))
+        bsizer_mwin.Add(self.sc_mwin, 0, wx.CENTER|wx.LEFT, cw.ppis(3))
         bsizer_mwin2 = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
-        bsizer_mwin2.Add(bsizer_mwin, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 3)
+        bsizer_mwin2.Add(bsizer_mwin, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, cw.ppis(3))
 
         bsizer_mframe = wx.BoxSizer(wx.HORIZONTAL)
         if self._for_local:
-            bsizer_mframe.Add(self.st_mframe, 0, wx.CENTER|wx.RIGHT, 3)
-            bsizer_mframe.Add(self.cs_mframe, 0, wx.CENTER|wx.RIGHT, 5)
-            bsizer_mframe.Add(self.st_blframe, 0, wx.CENTER|wx.RIGHT, 3)
-            bsizer_mframe.Add(self.cs_blframe, 0, wx.CENTER, 0)
+            bsizer_mframe.Add(self.st_mframe, 0, wx.CENTER|wx.RIGHT, cw.ppis(3))
+            bsizer_mframe.Add(self.cs_mframe, 0, wx.CENTER|wx.RIGHT, cw.ppis(5))
+            bsizer_mframe.Add(self.st_blframe, 0, wx.CENTER|wx.RIGHT, cw.ppis(3))
+            bsizer_mframe.Add(self.cs_blframe, 0, wx.CENTER, cw.ppis(0))
         else:
             gsizer_mframe = wx.GridBagSizer()
-            gsizer_mframe.Add(self.st_mframe, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gsizer_mframe.Add(self.st_mframe, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
             gsizer_mframe.Add(self.cs_mframe, pos=(0, 1), flag=wx.EXPAND)
-            gsizer_mframe.Add(self.st_blframe, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gsizer_mframe.Add(self.st_blframe, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
             gsizer_mframe.Add(self.cs_blframe, pos=(1, 1), flag=wx.EXPAND)
-            bsizer_mframe.Add(gsizer_mframe, 0, wx.CENTER, 0)
-        bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT, 5)
-        bsizer_mframe.Add(self.sc_mframe, 0, wx.CENTER|wx.LEFT, 3)
+            bsizer_mframe.Add(gsizer_mframe, 0, wx.CENTER, cw.ppis(0))
+        bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT, cw.ppis(5))
+        bsizer_mframe.Add(self.sc_mframe, 0, wx.CENTER|wx.LEFT, cw.ppis(3))
         bsizer_mframe2 = wx.StaticBoxSizer(self.box_mframe, wx.HORIZONTAL)
-        bsizer_mframe2.Add(bsizer_mframe, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 3)
+        bsizer_mframe2.Add(bsizer_mframe, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, cw.ppis(3))
 
         bsizer_blcurtain = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_blcurtain.Add(self.st_blcurtain, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_blcurtain.Add(self.cs_blcurtain, 0, wx.RIGHT|wx.EXPAND, 5)
-        bsizer_blcurtain.Add(self.st_blcurtain2, 0, wx.CENTER|wx.RIGHT, 3)
-        bsizer_blcurtain.Add(self.sc_blcurtain, 0, wx.CENTER, 0)
+        bsizer_blcurtain.Add(self.st_blcurtain, 0, wx.RIGHT|wx.CENTER, cw.ppis(3))
+        bsizer_blcurtain.Add(self.cs_blcurtain, 0, wx.RIGHT|wx.EXPAND, cw.ppis(5))
+        bsizer_blcurtain.Add(self.st_blcurtain2, 0, wx.CENTER|wx.RIGHT, cw.ppis(3))
+        bsizer_blcurtain.Add(self.sc_blcurtain, 0, wx.CENTER, cw.ppis(0))
         bsizer_blcurtain2 = wx.StaticBoxSizer(self.box_blcurtain, wx.HORIZONTAL)
-        bsizer_blcurtain2.Add(bsizer_blcurtain, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 3)
+        bsizer_blcurtain2.Add(bsizer_blcurtain, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, cw.ppis(3))
 
         bsizer_curtain = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_curtain.Add(self.st_curtain, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_curtain.Add(self.cs_curtain, 0, wx.RIGHT|wx.EXPAND, 5)
-        bsizer_curtain.Add(self.st_curtain2, 0, wx.CENTER|wx.RIGHT, 3)
-        bsizer_curtain.Add(self.sc_curtain, 0, wx.CENTER, 0)
+        bsizer_curtain.Add(self.st_curtain, 0, wx.RIGHT|wx.CENTER, cw.ppis(3))
+        bsizer_curtain.Add(self.cs_curtain, 0, wx.RIGHT|wx.EXPAND, cw.ppis(5))
+        bsizer_curtain.Add(self.st_curtain2, 0, wx.CENTER|wx.RIGHT, cw.ppis(3))
+        bsizer_curtain.Add(self.sc_curtain, 0, wx.CENTER, cw.ppis(0))
         bsizer_curtain2 = wx.StaticBoxSizer(self.box_curtain, wx.HORIZONTAL)
-        bsizer_curtain2.Add(bsizer_curtain, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 3)
+        bsizer_curtain2.Add(bsizer_curtain, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, cw.ppis(3))
 
         bsizer_fscrback = wx.StaticBoxSizer(self.box_fscrback, wx.VERTICAL)
-        bsizer_fscrback.Add(self.ch_fscrbacktype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_fscrback.Add(self.ch_fscrbacktype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_fscrbackfile = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_fscrbackfile.Add(self.tx_fscrbackfile, 1, wx.RIGHT|wx.CENTER, 3)
-        bsizer_fscrbackfile.Add(self.ref_fscrbackfile, 0, wx.CENTER, 3)
-        bsizer_fscrback.Add(bsizer_fscrbackfile, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        bsizer_fscrbackfile.Add(self.tx_fscrbackfile, 1, wx.RIGHT|wx.CENTER, cw.ppis(3))
+        bsizer_fscrbackfile.Add(self.ref_fscrbackfile, 0, wx.CENTER, cw.ppis(3))
+        bsizer_fscrback.Add(bsizer_fscrbackfile, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
 
         if self._for_local:
-            sizer_right.Add(self.cb_important, 0, wx.BOTTOM, 5)
+            sizer_right.Add(self.cb_important, 0, wx.BOTTOM, cw.ppis(5))
         else:
-            sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
-            sizer_left.Add(self.speed, 0, wx.EXPAND, 3)
+            sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+            sizer_left.Add(self.speed, 0, wx.EXPAND, cw.ppis(3))
 
-        sizer_right.Add(bsizer_mwin2, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_mframe2, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_blcurtain2, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_curtain2, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_fscrback, 0, wx.EXPAND, 3)
+        sizer_right.Add(bsizer_mwin2, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_right.Add(bsizer_mframe2, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_right.Add(bsizer_blcurtain2, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_right.Add(bsizer_curtain2, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_right.Add(bsizer_fscrback, 0, wx.EXPAND, cw.ppis(3))
 
         if self._for_local:
             sizer_right.AddStretchSpacer(1)
             bsizer_btn = wx.BoxSizer(wx.HORIZONTAL)
             if self.copybtn:
-                bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, 3)
-            bsizer_btn.Add(self.initbtn, 0, 0, 0)
-            sizer_right.Add(bsizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, 5)
+                bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, cw.ppis(3))
+            bsizer_btn.Add(self.initbtn, 0, 0, cw.ppis(0))
+            sizer_right.Add(bsizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, cw.ppis(5))
 
         if self._for_local:
-            sizer_h1.Add(sizer_right, 1, wx.EXPAND, 3)
+            sizer_h1.Add(sizer_right, 1, wx.EXPAND, cw.ppis(3))
         else:
-            sizer_h1.Add(sizer_left, 1, wx.RIGHT|wx.EXPAND, 5)
-            sizer_h1.Add(sizer_right, 0, wx.EXPAND, 3)
+            sizer_h1.Add(sizer_left, 1, wx.RIGHT|wx.EXPAND, cw.ppis(5))
+            sizer_h1.Add(sizer_right, 0, wx.EXPAND, cw.ppis(3))
 
-        sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, cw.ppis(10))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -1907,28 +1912,28 @@ class AudioSettingPanel(wx.Panel):
         # 全体音量
         self.box_master = wx.StaticBox(self, -1, u"全体音量")
         self.sl_master = wx.Slider(
-            self, -1, 0, 0, 100, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_master.SetTickFreq(10, 1)
 
         # 音量
         self.box_music = wx.StaticBox(self, -1, u"ミュージック音量")
         self.sl_music = wx.Slider(
-            self, -1, 0, 0, 100, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_music.SetTickFreq(10, 1)
 
         # midi音量
         self.box_midi = wx.StaticBox(self, -1, u"MIDIミュージック音量")
         self.sl_midi = wx.Slider(
-            self, -1, 0, 0, 100, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_midi.SetTickFreq(10, 1)
 
         # 効果音音量
         self.box_sound = wx.StaticBox(self, -1, u"効果音音量")
         self.sl_sound = wx.Slider(
-            self, -1, 0, 0, 100, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_sound.SetTickFreq(10, 1)
 
@@ -1936,9 +1941,9 @@ class AudioSettingPanel(wx.Panel):
         self.box_soundfont = wx.StaticBox(self, -1, u"MIDIサウンドフォント")
         self.btn_addsoundfont = wx.Button(self, -1, u"追加...")
         self.btn_rmvsoundfont = wx.Button(self, -1, u"削除")
-        self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(25, -1))
-        self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(25, -1))
-        self.list_soundfont = cw.util.CheckableListCtrl(self, -1, size=(SETTINGS_WIDTH, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
+        self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(cw.ppis(25), -1))
+        self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(cw.ppis(25), -1))
+        self.list_soundfont = cw.util.CheckableListCtrl(self, -1, size=(_settings_width(), -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
 
         self._do_layout()
         self._bind()
@@ -1997,35 +2002,35 @@ class AudioSettingPanel(wx.Panel):
         bsizer_sound = wx.StaticBoxSizer(self.box_sound, wx.VERTICAL)
         bsizer_soundfont = wx.StaticBoxSizer(self.box_soundfont, wx.VERTICAL)
 
-        bsizer_gene.Add(self.cb_playbgm, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_playsound, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
+        bsizer_gene.Add(self.cb_playbgm, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_playsound, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.SetMinSize((_settings_width(), -1))
 
         sizer_soundfontbtns = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_soundfontbtns.Add(self.btn_addsoundfont, 0, wx.RIGHT, 3)
-        sizer_soundfontbtns.Add(self.btn_rmvsoundfont, 0, wx.RIGHT, 3)
-        sizer_soundfontbtns.Add(self.btn_upsoundfont, 0, wx.RIGHT, 3)
-        sizer_soundfontbtns.Add(self.btn_downsoundfont, 0, 0, 0)
+        sizer_soundfontbtns.Add(self.btn_addsoundfont, 0, wx.RIGHT, cw.ppis(3))
+        sizer_soundfontbtns.Add(self.btn_rmvsoundfont, 0, wx.RIGHT, cw.ppis(3))
+        sizer_soundfontbtns.Add(self.btn_upsoundfont, 0, wx.RIGHT, cw.ppis(3))
+        sizer_soundfontbtns.Add(self.btn_downsoundfont, 0, 0, cw.ppis(0))
 
-        bsizer_master.Add(self.sl_master, 0, wx.EXPAND, 0)
-        bsizer_music.Add(self.sl_music, 0, wx.EXPAND, 0)
-        bsizer_midi.Add(self.sl_midi, 0, wx.EXPAND, 0)
-        bsizer_sound.Add(self.sl_sound, 0, wx.EXPAND, 0)
-        bsizer_soundfont.Add(sizer_soundfontbtns, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+        bsizer_master.Add(self.sl_master, 0, wx.EXPAND, cw.ppis(0))
+        bsizer_music.Add(self.sl_music, 0, wx.EXPAND, cw.ppis(0))
+        bsizer_midi.Add(self.sl_midi, 0, wx.EXPAND, cw.ppis(0))
+        bsizer_sound.Add(self.sl_sound, 0, wx.EXPAND, cw.ppis(0))
+        bsizer_soundfont.Add(sizer_soundfontbtns, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, cw.ppis(3))
 
-        sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_left.Add(bsizer_master, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_left.Add(bsizer_music, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_left.Add(bsizer_midi, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_left.Add(bsizer_sound, 0, wx.EXPAND, 3)
+        sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_left.Add(bsizer_master, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_left.Add(bsizer_music, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_left.Add(bsizer_midi, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_left.Add(bsizer_sound, 0, wx.EXPAND, cw.ppis(3))
 
-        sizer_right.Add(bsizer_soundfont, 1, wx.EXPAND, 0)
+        sizer_right.Add(bsizer_soundfont, 1, wx.EXPAND, cw.ppis(0))
 
-        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, 5)
-        sizer_h1.Add(sizer_right, 1, wx.EXPAND, 3)
+        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, cw.ppis(5))
+        sizer_h1.Add(sizer_right, 1, wx.EXPAND, cw.ppis(3))
 
-        sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, cw.ppis(10))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -2113,8 +2118,8 @@ class ScenarioSettingPanel(wx.Panel):
         self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
         self.btn_reffolder = wx.Button(self, -1, u"参照...")
         self.btn_removefolder = wx.Button(self, -1, u"削除")
-        self.btn_upfolder = wx.Button(self, -1, u"↑", size=(25, -1))
-        self.btn_downfolder = wx.Button(self, -1, u"↓", size=(25, -1))
+        self.btn_upfolder = wx.Button(self, -1, u"↑", size=(cw.ppis(25), -1))
+        self.btn_downfolder = wx.Button(self, -1, u"↓", size=(cw.ppis(25), -1))
 
         self.btn_constructdb = wx.Button(self, -1, u"データベース構築...", size=(-1, -1))
 
@@ -2159,7 +2164,7 @@ class ScenarioSettingPanel(wx.Panel):
             w = max(w, w2)
             h = max(h, h2)
         for obj in (self.st_editor, self.st_filer_dir, self.st_filer_file):
-            obj.SetMinSize((w + 15, h))
+            obj.SetMinSize((w + cw.ppis(15), h))
 
         self._do_layout()
         self._bind()
@@ -2171,10 +2176,10 @@ class ScenarioSettingPanel(wx.Panel):
         if 0 < self.grid_folderoftype.GetNumberRows():
             self.grid_folderoftype.DeleteRows(0, self.grid_folderoftype.GetNumberRows())
         self.grid_folderoftype.InsertRows(0, len(setting.folderoftype) + 1)
-        self.grid_folderoftype.SetColLabelSize(0)
-        self.grid_folderoftype.SetRowLabelSize(0)
-        self.grid_folderoftype.SetColSize(0, 100)
-        self.grid_folderoftype.SetColSize(1, 370)
+        self.grid_folderoftype.SetColLabelSize(cw.ppis(0))
+        self.grid_folderoftype.SetRowLabelSize(cw.ppis(0))
+        self.grid_folderoftype.SetColSize(0, cw.ppis(100))
+        self.grid_folderoftype.SetColSize(1, cw.ppis(370))
         for row in xrange(self.grid_folderoftype.GetNumberRows() - 1):
             skintype, folder = setting.folderoftype[row]
             self.grid_folderoftype.SetCellValue(row, 0, skintype)
@@ -2224,21 +2229,21 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_folderoftype = wx.StaticBoxSizer(self.box_folderoftype, wx.VERTICAL)
 
-        bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_show_paperandtree, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_write_playlog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
+        bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_show_paperandtree, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_write_playlog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.SetMinSize((_settings_width(), -1))
 
         sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_folderbtns.Add(self.btn_reffolder, 0, wx.RIGHT, 3)
-        sizer_folderbtns.Add(self.btn_removefolder, 0, wx.RIGHT, 3)
-        sizer_folderbtns.Add(self.btn_upfolder, 0, wx.RIGHT, 3)
-        sizer_folderbtns.Add(self.btn_downfolder, 0, wx.RIGHT, 3)
-        sizer_folderbtns.Add((0, 0), 1, 0, 0)
-        sizer_folderbtns.Add(self.btn_constructdb, 0, 0, 0)
+        sizer_folderbtns.Add(self.btn_reffolder, 0, wx.RIGHT, cw.ppis(3))
+        sizer_folderbtns.Add(self.btn_removefolder, 0, wx.RIGHT, cw.ppis(3))
+        sizer_folderbtns.Add(self.btn_upfolder, 0, wx.RIGHT, cw.ppis(3))
+        sizer_folderbtns.Add(self.btn_downfolder, 0, wx.RIGHT, cw.ppis(3))
+        sizer_folderbtns.Add(cw.ppis((0, 0)), 1, 0, cw.ppis(0))
+        sizer_folderbtns.Add(self.btn_constructdb, 0, 0, cw.ppis(0))
 
-        bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+        bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, cw.ppis(3))
 
         bsizer_application = wx.StaticBoxSizer(self.box_application, wx.VERTICAL)
         gbsizer_application = wx.GridBagSizer()
@@ -2246,7 +2251,7 @@ class ScenarioSettingPanel(wx.Panel):
         def add_application(ctrl, pos, flag):
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL, 0)
-            gbsizer_application.Add(sizer, pos=pos, flag=flag|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, border=2)
+            gbsizer_application.Add(sizer, pos=pos, flag=flag|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(2))
 
         add_application(self.st_editor, pos=(0, 0), flag=wx.RIGHT|wx.BOTTOM)
         add_application(self.tx_editor, pos=(0, 1), flag=wx.RIGHT|wx.BOTTOM)
@@ -2258,13 +2263,13 @@ class ScenarioSettingPanel(wx.Panel):
         add_application(self.tx_filer_file, pos=(2, 1), flag=wx.RIGHT)
         add_application(self.ref_filer_file, pos=(2, 2), flag=0)
         gbsizer_application.AddGrowableCol(1)
-        bsizer_application.Add(gbsizer_application, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        bsizer_application.Add(gbsizer_application, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_folderoftype, 1, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_application, 0, wx.EXPAND, 0)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_v1.Add(bsizer_folderoftype, 1, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer_v1.Add(bsizer_application, 0, wx.EXPAND, cw.ppis(0))
 
-        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, cw.ppis(10))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -2357,8 +2362,8 @@ class UISettingPanel(wx.ScrolledWindow):
         if 3 <= wx.VERSION[0]:
             self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_ALWAYS)
         self.SetScrollbars(1, 1, 1, 1)
-        self.SetScrollRate(1, 15)
-        self.SetScrollPageSize(1, 250)
+        self.SetScrollRate(1, cw.ppis(15))
+        self.SetScrollPageSize(1, cw.ppis(250))
 
         self.panel = wx.lib.foldpanelbar.FoldPanelBar(self, -1,
                                                       agwStyle=wx.lib.foldpanelbar.FPB_VERTICAL)
@@ -2367,97 +2372,97 @@ class UISettingPanel(wx.ScrolledWindow):
         panel = self.panel.AddFoldPanel(caption=u"スキップと空白時間")
         self.cb_can_skipwait = wx.CheckBox(
             panel, -1, u"空白時間をスキップ可能にする")
-        panel.AddWindow(self.cb_can_skipwait, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_can_skipwait, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_can_skipanimation = wx.CheckBox(
             panel, -1, u"アニメーションをスキップ可能にする")
-        panel.AddWindow(self.cb_can_skipanimation, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_can_skipanimation, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_wait_usecard = wx.CheckBox(
             panel, -1, u"カードの使用前に空白時間を入れる")
-        panel.AddWindow(self.cb_wait_usecard, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_wait_usecard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_can_repeatlclick = wx.CheckBox(
             panel, -1, u"マウスの左ボタンを押し続けた時は連打状態にする")
-        panel.AddWindow(self.cb_can_repeatlclick, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_can_repeatlclick, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_autoenter_on_sprite = wx.CheckBox(
             panel, -1, u"連打状態の時、カードなどの選択を自動的に決定する")
-        panel.AddWindow(self.cb_autoenter_on_sprite, spacing=3, leftSpacing=10)
-        spacer = wx.Panel(panel, -1, size=(-1, 0))
-        panel.AddWindow(spacer, spacing=3)
+        panel.AddWindow(self.cb_autoenter_on_sprite, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
+        panel.AddWindow(spacer, spacing=cw.ppis(3))
 
         # 描画オプション
         panel = self.panel.AddFoldPanel(caption=u"カード")
         self.cb_quickdeal = wx.CheckBox(
             panel, -1, u"キャンプモードへ高速で切り替える")
-        panel.AddWindow(self.cb_quickdeal, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_quickdeal, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_allquickdeal = wx.CheckBox(
             panel, -1, u"全てのシステムカードを高速表示する")
-        panel.AddWindow(self.cb_allquickdeal, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_allquickdeal, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_showallselectedcards = wx.CheckBox(
             panel, -1, u"戦闘行動を全員分表示する")
-        panel.AddWindow(self.cb_showallselectedcards, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_showallselectedcards, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_showstatustime = wx.CheckBox(
             panel, -1, u"状態の残り時間をカード上に表示する")
-        panel.AddWindow(self.cb_showstatustime, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_showstatustime, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_show_cardkind = wx.CheckBox(
             panel, -1, u"カード置場と荷物袋でカードの種類を表示する")
-        panel.AddWindow(self.cb_show_cardkind, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_show_cardkind, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_show_premiumicon = wx.CheckBox(
             panel, -1, u"カードの希少度をアイコンで表示する")
-        panel.AddWindow(self.cb_show_premiumicon, spacing=3, leftSpacing=10)
-        spacer = wx.Panel(panel, -1, size=(-1, 0))
-        panel.AddWindow(spacer, spacing=3)
+        panel.AddWindow(self.cb_show_premiumicon, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
+        panel.AddWindow(spacer, spacing=cw.ppis(3))
 
         # インタフェースオプション
         panel = self.panel.AddFoldPanel(caption=u"操作")
         self.cb_showbackpackcard = wx.CheckBox(
             panel, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
-        panel.AddWindow(self.cb_showbackpackcard, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_showbackpackcard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_showbackpackcardatend = wx.CheckBox(
             panel, -1, u"荷物袋カードを最後に配置する")
-        panel.AddWindow(self.cb_showbackpackcardatend, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_showbackpackcardatend, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_can_clicksidesofcardcontrol = wx.CheckBox(
             panel, -1, u"カード選択ダイアログの背景クリックで左右移動を行う")
-        panel.AddWindow(self.cb_can_clicksidesofcardcontrol, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_can_clicksidesofcardcontrol, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_revertcardpocket = wx.CheckBox(
             panel, -1, u"レベル調節で手放したカードを自動的に戻す")
-        panel.AddWindow(self.cb_revertcardpocket, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_revertcardpocket, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_showlogwithwheelup = wx.CheckBox(
             panel, -1, u"マウスホイールを上に回すとログを表示")
-        panel.AddWindow(self.cb_showlogwithwheelup, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_showlogwithwheelup, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_showroundautostartbutton = wx.CheckBox(
             panel, -1, u"バトルで自動的に行動を開始できるようにする")
-        panel.AddWindow(self.cb_showroundautostartbutton, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_showroundautostartbutton, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_showautobuttoninentrydialog = wx.CheckBox(
             panel, -1, u"新規登録ダイアログに自動ボタンを表示する")
-        panel.AddWindow(self.cb_showautobuttoninentrydialog, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_showautobuttoninentrydialog, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_protect_staredcard = wx.CheckBox(
             panel, -1, u"スターつきのカードの売却や破棄を禁止する")
-        panel.AddWindow(self.cb_protect_staredcard, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_protect_staredcard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_protect_premiercard = wx.CheckBox(
             panel, -1, u"プレミアカードの売却や破棄を禁止する")
-        panel.AddWindow(self.cb_protect_premiercard, spacing=3, leftSpacing=10)
-        spacer = wx.Panel(panel, -1, size=(-1, 0))
-        panel.AddWindow(spacer, spacing=3)
+        panel.AddWindow(self.cb_protect_premiercard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
+        panel.AddWindow(spacer, spacing=cw.ppis(3))
 
         # 通知オプション
         panel = self.panel.AddFoldPanel(caption=u"通知と解説")
         # ステータスバーのボタンの解説を表示する
         self.cb_show_btndesc = wx.CheckBox(
             panel, -1, u"ステータスバーのボタンの解説を表示する")
-        panel.AddWindow(self.cb_show_btndesc, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_show_btndesc, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         # イベント中にステータスバーの色を変える
         self.cb_statusbarmask = wx.CheckBox(
             panel, -1, u"イベント中にステータスバーの色を変える")
-        panel.AddWindow(self.cb_statusbarmask, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_statusbarmask, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         # 通知のあるステータスボタンを点滅させる
         self.cb_blink_statusbutton = wx.CheckBox(
             panel, -1, u"通知のあるステータスボタンを点滅させる")
-        panel.AddWindow(self.cb_blink_statusbutton, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_blink_statusbutton, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         # 所持金が増減した時に所持金欄を点滅させる
         self.cb_blink_partymoney = wx.CheckBox(
             panel, -1, u"所持金が増減した時に所持金欄を点滅させる")
-        panel.AddWindow(self.cb_blink_partymoney, spacing=3, leftSpacing=10)
-        spacer = wx.Panel(panel, -1, size=(-1, 0))
-        panel.AddWindow(spacer, spacing=3)
+        panel.AddWindow(self.cb_blink_partymoney, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
+        panel.AddWindow(spacer, spacing=cw.ppis(3))
 
         # セーブとロードオプション
         panel = self.panel.AddFoldPanel(caption=u"セーブとロード")
@@ -2467,42 +2472,42 @@ class UISettingPanel(wx.ScrolledWindow):
         choices = [u"常に表示", u"拠点にいる時だけ表示", u"表示しない"]
         self.ch_confirm_beforesaving = wx.Choice(panel_confirm, -1, choices=choices)
         bsizer_confirm_beforesaving = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_confirm_beforesaving.Add(self.st_confirm_beforesaving, 0, wx.ALIGN_CENTER|wx.RIGHT, 3)
-        bsizer_confirm_beforesaving.Add(self.ch_confirm_beforesaving, 0, wx.ALIGN_CENTER, 0)
+        bsizer_confirm_beforesaving.Add(self.st_confirm_beforesaving, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
+        bsizer_confirm_beforesaving.Add(self.ch_confirm_beforesaving, 0, wx.ALIGN_CENTER, cw.ppis(0))
         panel_confirm.SetSizer(bsizer_confirm_beforesaving)
         panel_confirm.SetSize(bsizer_confirm_beforesaving.CalcMin())
-        panel.AddWindow(panel_confirm, spacing=3, leftSpacing=10)
+        panel.AddWindow(panel_confirm, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_showsavedmessage = wx.CheckBox(
             panel, -1, u"セーブ完了時に確認ダイアログを表示")
-        panel.AddWindow(self.cb_showsavedmessage, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_showsavedmessage, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_cautionbeforesaving = wx.CheckBox(
             panel, -1, u"保存せずに終了しようとしたら警告する")
-        panel.AddWindow(self.cb_cautionbeforesaving, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_cautionbeforesaving, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_store_skinoneachbase = wx.CheckBox(
             panel, -1, u"拠点ごとにスキンを記憶する")
-        panel.AddWindow(self.cb_store_skinoneachbase, spacing=3, leftSpacing=10)
-        spacer = wx.Panel(panel, -1, size=(-1, 0))
-        panel.AddWindow(spacer, spacing=3)
+        panel.AddWindow(self.cb_store_skinoneachbase, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
+        panel.AddWindow(spacer, spacing=cw.ppis(3))
 
         # ダイアログオプション
         panel = self.panel.AddFoldPanel(caption=u"ダイアログ")
         self.cb_show_advancedsettings = wx.CheckBox(
             panel, -1, u"最初から詳細モードで設定を行う")
-        panel.AddWindow(self.cb_show_advancedsettings, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_show_advancedsettings, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_show_addctrlbtn = wx.CheckBox(
             panel, -1, u"絞り込み等の表示切替ボタンを表示する(非表示時はCtrl+Fで切替可能)")
-        panel.AddWindow(self.cb_show_addctrlbtn, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_show_addctrlbtn, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_show_experiencebar = wx.CheckBox(
             panel, -1, u"キャラクター情報に次のレベルアップまでの割合を表示する")
-        panel.AddWindow(self.cb_show_experiencebar, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_show_experiencebar, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_confirmbeforeusingcard = wx.CheckBox(
             panel, -1, u"カード使用時に確認ダイアログを表示")
-        panel.AddWindow(self.cb_confirmbeforeusingcard, spacing=3, leftSpacing=10)
+        panel.AddWindow(self.cb_confirmbeforeusingcard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_noticeimpossibleaction = wx.CheckBox(
             panel, -1, u"不可能な行動を選択した時に警告を表示")
-        panel.AddWindow(self.cb_noticeimpossibleaction, spacing=3, leftSpacing=10)
-        spacer = wx.Panel(panel, -1, size=(-1, 0))
-        panel.AddWindow(spacer, spacing=3)
+        panel.AddWindow(self.cb_noticeimpossibleaction, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
+        panel.AddWindow(spacer, spacing=cw.ppis(3))
 
         self._do_layout()
         self._bind()
@@ -2639,7 +2644,7 @@ class UISettingPanel(wx.ScrolledWindow):
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        sizer.Add(self.panel, 1, wx.ALL|wx.EXPAND, 0)
+        sizer.Add(self.panel, 1, wx.ALL|wx.EXPAND, cw.ppis(0))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -2726,7 +2731,7 @@ class FontSettingPanel(wx.Panel):
 
         # フォント表示サンプル
         self.box_example = wx.StaticBox(self, -1, u"表示例")
-        self.st_example = wx.StaticText(self, -1, size=(100, 35), style=wx.ALIGN_CENTER)
+        self.st_example = wx.StaticText(self, -1, size=cw.ppis((100, 35)), style=wx.ALIGN_CENTER)
         self.st_example.SetDoubleBuffered(True)
 
         # 描画オプション
@@ -2744,7 +2749,7 @@ class FontSettingPanel(wx.Panel):
             grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
             grid.SetRowLabelSize(rowlblsize)
             grid.SetColLabelValue(0, u"フォント名")
-            grid.SetColSize(0, 150)
+            grid.SetColSize(0, cw.ppis(150))
             editors = []
             for i, name in enumerate(seq):
                 editor = wx.grid.GridCellChoiceEditor(faces)
@@ -2756,23 +2761,23 @@ class FontSettingPanel(wx.Panel):
         self.box_base = wx.StaticBox(self, -1, u"基本フォント")
         self.base = wx.grid.Grid(self, -1, size=(-1, -1), style=wx.BORDER)
         self.base.SetDoubleBuffered(True)
-        self.choicebases = create_grid(self.base, self.bases, self._fontface_array, 1, 100)
+        self.choicebases = create_grid(self.base, self.bases, self._fontface_array, 1, cw.ppis(100))
         self.base.SetMinSize(self.base.GetBestSize())
 
         # 役割別フォント
         self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
         self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.type.SetDoubleBuffered(True)
-        self.choicetypes = create_grid(self.type, self.types, self._types, 5, 120)
+        self.choicetypes = create_grid(self.type, self.types, self._types, 5, cw.ppis(120))
 
         self.type.SetColLabelValue(1, u"サイズ")
-        self.type.SetColSize(1, 80)
+        self.type.SetColSize(1, cw.ppis(80))
         self.type.SetColLabelValue(2, u"太字\n(通常)")
-        self.type.SetColSize(2, 70)
+        self.type.SetColSize(2, cw.ppis(70))
         self.type.SetColLabelValue(3, u"太字\n(拡大)")
-        self.type.SetColSize(3, 70)
+        self.type.SetColSize(3, cw.ppis(70))
         self.type.SetColLabelValue(4, u"斜体")
-        self.type.SetColSize(4, 70)
+        self.type.SetColSize(4, cw.ppis(70))
         local = cw.setting.LocalSetting()
         for i, name in enumerate(self.types):
             _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.fonttypes_init[name]
@@ -2834,13 +2839,13 @@ class FontSettingPanel(wx.Panel):
         create_grid(self.type, self.types)
 
         self.type.SetColLabelValue(1, u"サイズ")
-        self.type.SetColSize(1, 80)
+        self.type.SetColSize(1, cw.ppis(80))
         self.type.SetColLabelValue(2, u"太字\n(通常)")
-        self.type.SetColSize(2, 70)
+        self.type.SetColSize(2, cw.ppis(70))
         self.type.SetColLabelValue(3, u"太字\n(拡大)")
-        self.type.SetColSize(3, 70)
+        self.type.SetColSize(3, cw.ppis(70))
         self.type.SetColLabelValue(4, u"斜体")
-        self.type.SetColSize(4, 70)
+        self.type.SetColSize(4, cw.ppis(70))
 
         for i, name, in enumerate(self.bases):
             str_font = local.basefont[name]
@@ -3075,44 +3080,44 @@ class FontSettingPanel(wx.Panel):
         bsizer_left = wx.BoxSizer(wx.VERTICAL)
 
         bsizer_example2 = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_example2.Add(self.st_example, 1, wx.ALIGN_CENTER, 0)
+        bsizer_example2.Add(self.st_example, 1, wx.ALIGN_CENTER, cw.ppis(0))
 
         bsizer_example = wx.StaticBoxSizer(self.box_example, wx.VERTICAL)
-        bsizer_example.Add(bsizer_example2, 1, wx.LEFT|wx.RIGHT|wx.EXPAND|wx.ALIGN_CENTER, 3)
+        bsizer_example.Add(bsizer_example2, 1, wx.LEFT|wx.RIGHT|wx.EXPAND|wx.ALIGN_CENTER, cw.ppis(3))
 
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
-        bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_fontsmoothingmessage, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-        bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-        bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+        bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_fontsmoothingmessage, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, cw.ppis(3))
+        bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, cw.ppis(3))
+        bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, cw.ppis(3))
 
-        bsizer_left.Add(bsizer_example, 1, wx.EXPAND | wx.BOTTOM, 3)
-        bsizer_left.Add(bsizer_gene, 0, wx.EXPAND, 3)
+        bsizer_left.Add(bsizer_example, 1, wx.EXPAND | wx.BOTTOM, cw.ppis(3))
+        bsizer_left.Add(bsizer_gene, 0, wx.EXPAND, cw.ppis(3))
 
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
-        bsizer_base.Add(self.base, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        bsizer_base.Add(self.base, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
 
-        bsizer_top.Add(bsizer_left, 1, wx.EXPAND|wx.RIGHT, 5)
-        bsizer_top.Add(bsizer_base, 1, wx.EXPAND, 3)
+        bsizer_top.Add(bsizer_left, 1, wx.EXPAND|wx.RIGHT, cw.ppis(5))
+        bsizer_top.Add(bsizer_base, 1, wx.EXPAND, cw.ppis(3))
 
         bsizer_type = wx.StaticBoxSizer(self.box_type, wx.VERTICAL)
-        bsizer_type.Add(self.type, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        bsizer_type.Add(self.type, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
 
         if self.cb_important:
-            sizer_v1.Add(self.cb_important, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_top, 0, wx.EXPAND|wx.BOTTOM, 3)
-        sizer_v1.Add(bsizer_type, 1, wx.EXPAND, 0)
+            sizer_v1.Add(self.cb_important, 0, wx.BOTTOM, cw.ppis(5))
+        sizer_v1.Add(bsizer_top, 0, wx.EXPAND|wx.BOTTOM, cw.ppis(3))
+        sizer_v1.Add(bsizer_type, 1, wx.EXPAND, cw.ppis(0))
 
         if self._for_local:
             sizer_v1.AddStretchSpacer(0)
             bsizer_btn = wx.BoxSizer(wx.HORIZONTAL)
             if self.copybtn:
-                bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, 3)
-            bsizer_btn.Add(self.initbtn, 0, 0, 0)
-            sizer_v1.Add(bsizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, 5)
+                bsizer_btn.Add(self.copybtn, 0, wx.RIGHT, cw.ppis(3))
+            bsizer_btn.Add(self.initbtn, 0, 0, cw.ppis(0))
+            sizer_v1.Add(bsizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, cw.ppis(5))
 
-        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, cw.ppis(10))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()

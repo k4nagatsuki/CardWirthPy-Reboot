@@ -19,7 +19,7 @@ class DebugLogDialog(wx.Dialog):
         self.cwpy_debug = True
         self.plain_text = [u"「%s」のプレイ結果" % (sname), u"========================================", ""]
 
-        self.text = wx.richtext.RichTextCtrl(self, -1, size=(400, 380))
+        self.text = wx.richtext.RichTextCtrl(self, -1, size=cw.ppis((400, 380)))
         self.text.SetEditable(False)
 
         # 連れ込み
@@ -182,7 +182,7 @@ class DebugLogDialog(wx.Dialog):
                     self.text.WriteText(s)
                     self.text.Newline()
                     self.plain_text.append(s)
-                    self.text.BeginLeftIndent(50)
+                    self.text.BeginLeftIndent(cw.ppis(50))
                     for coupon, value in got_coupons:
                         if value < 0:
                             bmp = cw.cwpy.rsrc.debugs["COUPON_MINUS"]
@@ -256,14 +256,14 @@ class DebugLogDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(self.writetext, 0, wx.ALIGN_CENTER|wx.RIGHT, border=5)
+        hsizer.Add(self.writetext, 0, wx.ALIGN_CENTER|wx.RIGHT, border=cw.ppis(5))
         hsizer.AddStretchSpacer(1)
         hsizer.Add(self.okbtn, 0, wx.ALIGN_CENTER)
 
-        sizer.Add(self.text, 1, wx.EXPAND|wx.ALL, border=5)
-        sizer.Add((0, 5), 0, 0, 0)
-        sizer.Add(hsizer, 0, wx.EXPAND|wx.RIGHT|wx.LEFT|wx.BOTTOM, border=5)
-        sizer.Add((0, 10), 0, 0, 0)
+        sizer.Add(self.text, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(cw.ppis((0, 5)), 0, 0, 0)
+        sizer.Add(hsizer, 0, wx.EXPAND|wx.RIGHT|wx.LEFT|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(cw.ppis((0, 10)), 0, 0, 0)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()

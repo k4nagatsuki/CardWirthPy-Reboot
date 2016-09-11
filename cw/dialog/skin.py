@@ -251,18 +251,18 @@ class SkinConversionDialog(wx.Dialog):
         sizer = wx.GridBagSizer()
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
-        sizer_btn.Add(self.btn_ok, 0, 0, 0)
-        sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, 5)
+        sizer_btn.Add(self.btn_ok, 0, 0, cw.ppis(0))
+        sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, cw.ppis(5))
 
         row = 0
         if self.warning:
-            sizer.Add(self.warning, pos=(row, 0), flag=wx.ALL, border=5)
+            sizer.Add(self.warning, pos=(row, 0), flag=wx.ALL, border=cw.ppis(5))
             row += 1
         sizer.Add(self.note, pos=(row, 0), flag=wx.EXPAND)
         sizer.AddGrowableRow(row)
         sizer.AddGrowableCol(0)
         row += 1
-        sizer.Add(sizer_btn, pos=(row, 0), flag=wx.ALL|wx.ALIGN_RIGHT, border=5)
+        sizer.Add(sizer_btn, pos=(row, 0), flag=wx.ALL|wx.ALIGN_RIGHT, border=cw.ppis(5))
         row += 1
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -397,18 +397,18 @@ class SkinEditDialog(wx.Dialog):
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
-        sizer_info.Add(self.info, 1, wx.EXPAND, 0)
+        sizer_info.Add(self.info, 1, wx.EXPAND, cw.ppis(0))
 
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
-        sizer_panel.Add(sizer_info, 1, wx.ALL|wx.EXPAND, 10)
+        sizer_panel.Add(sizer_info, 1, wx.ALL|wx.EXPAND, cw.ppis(10))
         self.pane_info.SetSizer(sizer_panel)
 
-        sizer_btn.Add(self.btn_ok, 0, 0, 0)
-        sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, 5)
+        sizer_btn.Add(self.btn_ok, 0, 0, cw.ppis(0))
+        sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, cw.ppis(5))
 
-        sizer.Add(self.warning, 0, wx.ALL, 3)
-        sizer.Add(self.note, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
+        sizer.Add(self.warning, 0, wx.ALL, cw.ppis(3))
+        sizer.Add(self.note, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(3))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -494,7 +494,7 @@ class SkinBasePanel(wx.Panel):
         def add_base(ctrl, pos):
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL, 0)
-            gbsizer_base.Add(sizer, pos=pos, flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gbsizer_base.Add(sizer, pos=pos, flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
 
         add_base(self.exelabel, pos=(0, 0))
         add_base(self.exectrl, pos=(0, 1))
@@ -510,16 +510,16 @@ class SkinBasePanel(wx.Panel):
         add_base(self.yadoref, pos=(3, 2))
         gbsizer_base.AddGrowableCol(1, proportion=1)
 
-        bsizer_base.Add(gbsizer_base, 0, wx.EXPAND, 5)
-        bsizer_info.Add(self.info, 1, wx.EXPAND, 5)
+        bsizer_base.Add(gbsizer_base, 0, wx.EXPAND, cw.ppis(5))
+        bsizer_info.Add(self.info, 1, wx.EXPAND, cw.ppis(5))
 
-        sizer_gb.Add(bsizer_base, pos=(0, 0), flag=wx.BOTTOM|wx.EXPAND, border=5)
-        sizer_gb.Add(bsizer_info, pos=(1, 0), flag=wx.EXPAND, border=0)
+        sizer_gb.Add(bsizer_base, pos=(0, 0), flag=wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
+        sizer_gb.Add(bsizer_info, pos=(1, 0), flag=wx.EXPAND, border=cw.ppis(0))
         sizer_gb.AddGrowableRow(1)
         sizer_gb.AddGrowableCol(0)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_gb, 1, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(sizer_gb, 1, wx.ALL|wx.EXPAND, cw.ppis(10))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -611,7 +611,7 @@ class SkinInfoPanel(wx.Panel):
         self.authorctrl = wx.TextCtrl(self)
         # 解説
         self.desclabel = wx.StaticText(self, -1, u"解説")
-        self.descctrl = wx.TextCtrl(self, size=(400, 100), style=wx.TE_MULTILINE)
+        self.descctrl = wx.TextCtrl(self, size=cw.ppis((400, 100)), style=wx.TE_MULTILINE)
         # 初期資金
         self.initialcashlabel = wx.StaticText(self, -1, u"初期資金")
         self.initialcash = wx.SpinCtrl(self, -1, max=999999, min=0)
@@ -632,10 +632,10 @@ class SkinInfoPanel(wx.Panel):
         def add_info(ctrl, pos, colspan=1, rowspan=1, expand=True, growable=False):
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             growable = wx.EXPAND if growable else 0
-            sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL|growable, 0)
+            sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL|growable, cw.ppis(0))
             span = wx.GBSpan(colspan=colspan, rowspan=rowspan)
             expand = wx.EXPAND if expand else 0
-            gbsizer_info.Add(sizer, pos=pos, span=span, flag=wx.ALL|expand|wx.ALIGN_CENTER_VERTICAL, border=3)
+            gbsizer_info.Add(sizer, pos=pos, span=span, flag=wx.ALL|expand|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
 
         add_info(self.typelabel, pos=(0, 0))
         add_info(self.typectrl, pos=(0, 1), colspan=2)
@@ -651,10 +651,10 @@ class SkinInfoPanel(wx.Panel):
         gbsizer_info.AddGrowableRow(3)
 
         vsizer = wx.BoxSizer(wx.VERTICAL)
-        vsizer.Add(self.vocation120, 0, wx.TOP, 3)
+        vsizer.Add(self.vocation120, 0, wx.TOP, cw.ppis(3))
         add_info(vsizer, pos=(4, 2), colspan=1, rowspan=2, expand=False)
 
-        sizer.Add(gbsizer_info, 1, wx.EXPAND, 0)
+        sizer.Add(gbsizer_info, 1, wx.EXPAND, cw.ppis(0))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -674,7 +674,7 @@ class SkinFeaturePanel(wx.Panel):
         basenatures = base.getfind("Natures")
         basemakings = base.getfind("Makings")
 
-        self.grid = wx.grid.Grid(self, -1, size=(200, 200), style=wx.BORDER)
+        self.grid = wx.grid.Grid(self, -1, size=cw.ppis((200, 200)), style=wx.BORDER)
         self.grid.CreateGrid(len(basesexes) + len(baseperiods) +\
                              len(basenatures) + len(basemakings), 12)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
@@ -692,15 +692,15 @@ class SkinFeaturePanel(wx.Panel):
         self.grid.SetColLabelValue(10, u"慎重")
         self.grid.SetColLabelValue(11, u"狡猾")
 
-        self.grid.SetColSize(0, 80)
+        self.grid.SetColSize(0, cw.ppis(80))
         for col in xrange(1, 7):
             self.grid.SetColFormatNumber(col)
-            self.grid.SetColSize(col, 40)
+            self.grid.SetColSize(col, cw.ppis(40))
             for row in xrange(0, self.grid.GetNumberRows()):
                 self.grid.SetCellEditor(row, col, wx.grid.GridCellNumberEditor(-99, 99))
         for col in xrange(7, 12):
             self.grid.SetColFormatFloat(col, 2, 1)
-            self.grid.SetColSize(col, 40)
+            self.grid.SetColSize(col, cw.ppis(40))
             for row in xrange(0, self.grid.GetNumberRows()):
                 self.grid.SetCellEditor(row, col, wx.grid.GridCellFloatEditor(4, 1))
 
@@ -781,7 +781,7 @@ class SkinFeaturePanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.GridSizer(1, 1)
-        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, 5)
+        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -797,12 +797,12 @@ class SkinSoundPanel(wx.Panel):
         base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
         basesounds = base.find("Sounds")
 
-        self.grid = wx.grid.Grid(self, -1, size=(200, 200), style=wx.BORDER)
+        self.grid = wx.grid.Grid(self, -1, size=cw.ppis((200, 200)), style=wx.BORDER)
         self.grid.CreateGrid(len(basesounds), 1)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
         self.grid.SetColLabelValue(0, u"ファイル名(拡張子を除く)")
-        self.grid.SetColSize(0, 170)
+        self.grid.SetColSize(0, cw.ppis(170))
 
         for row, e in enumerate(basesounds):
             self.grid.SetRowLabelValue(row, e.text)
@@ -823,7 +823,7 @@ class SkinSoundPanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.GridSizer(1, 1)
-        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, 5)
+        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -839,13 +839,13 @@ class SkinMessagePanel(wx.Panel):
         base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
         basemsgs = base.find("Messages")
 
-        self.grid = wx.grid.Grid(self, -1, size=(200, 200), style=wx.BORDER)
+        self.grid = wx.grid.Grid(self, -1, size=cw.ppis((200, 200)), style=wx.BORDER)
         self.grid.CreateGrid(len(basemsgs) + 6 + 2 + 4, 1)
-        self.grid.SetRowLabelSize(150)
+        self.grid.SetRowLabelSize(cw.ppis(150))
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
         self.grid.SetColLabelValue(0, u"メッセージ(\\n=改行, \\\\=\\)")
-        self.grid.SetColSize(0, 380)
+        self.grid.SetColSize(0, cw.ppis(380))
 
         row = 0
         for e in basemsgs:
@@ -943,7 +943,7 @@ class SkinMessagePanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.GridSizer(1, 1)
-        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, 5)
+        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -957,14 +957,14 @@ class SkinCardPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         baseconv = cw.skin.convert.Converter("")
 
-        self.grid = wx.grid.Grid(self, -1, size=(200, 200))
+        self.grid = wx.grid.Grid(self, -1, size=cw.ppis((200, 200)))
         self.grid.CreateGrid(0, 2)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
         self.grid.SetColLabelValue(0, u"名称")
         self.grid.SetColLabelValue(1, u"解説(\\n=改行, \\\\=\\)")
-        self.grid.SetColSize(0, 80)
-        self.grid.SetColSize(1, 300)
+        self.grid.SetColSize(0, cw.ppis(80))
+        self.grid.SetColSize(1, cw.ppis(300))
 
         row = 0
         self.grid.InsertRows(row, len(baseconv.actioncard), False)
@@ -1075,7 +1075,7 @@ class SkinCardPanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.GridSizer(1, 1)
-        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, 5)
+        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()

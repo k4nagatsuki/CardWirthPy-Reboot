@@ -44,20 +44,20 @@ class ConstructScenarioDB(wx.Dialog):
 
     def _do_layout(self):
         sizer_top = wx.BoxSizer(wx.VERTICAL)
-        sizer_top.Add(self.text, 0, wx.BOTTOM, 10)
-        sizer_top.Add(self.clear, 0, wx.ALIGN_RIGHT, 0)
+        sizer_top.Add(self.text, 0, wx.BOTTOM, cw.ppis(10))
+        sizer_top.Add(self.clear, 0, wx.ALIGN_RIGHT, cw.ppis(0))
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_btn.Add(self.okbtn, 1, 0, 0)
-        sizer_btn.Add((10, 0), 0, 0, 0)
-        sizer_btn.Add(self.cnclbtn, 1, 0, 0)
+        sizer_btn.Add(self.okbtn, 1, 0, cw.ppis(0))
+        sizer_btn.Add(cw.ppis((10, 0)), 0, 0, cw.ppis(0))
+        sizer_btn.Add(self.cnclbtn, 1, 0, cw.ppis(0))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1.Add(sizer_top, 0, 0, 0)
-        sizer_v1.Add(sizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, 10)
+        sizer_v1.Add(sizer_top, 0, 0, cw.ppis(0))
+        sizer_v1.Add(sizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, cw.ppis(10))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_v1, 0, wx.ALL, 10)
+        sizer.Add(sizer_v1, 0, wx.ALL, cw.ppis(10))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()

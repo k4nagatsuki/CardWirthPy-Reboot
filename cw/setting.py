@@ -1217,7 +1217,7 @@ class Resource(object):
         # wx版。wxスレッドから初期化
         self.dialogs = ResourceTable("Dialog", {}.copy(), empty_wxbmp)
         # デバッガで使う画像(辞書)
-        self.pygamedebugs = self.get_debugs(cw.util.load_image)
+        self.pygamedebugs = self.get_debugs(cw.util.load_image, cw.s)
         # wx版。wxスレッドから初期化
         self.debugs = ResourceTable("Debug", {}.copy(), empty_wxbmp)
         # ダイアログで使うカーソル(辞書)
@@ -1299,7 +1299,8 @@ class Resource(object):
         # wxダイアログで使う画像(辞書)
         self.dialogs = self.get_dialogs(cw.util.load_wxbmp)
         # デバッガで使う画像(辞書)
-        self.debugs = self.get_debugs(cw.util.load_wxbmp)
+        self.debugs = self.get_debugs(cw.util.load_wxbmp, cw.ppis)
+        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, lambda bmp: bmp)
         # ダイアログで使うカーソル(辞書)
         self.cursors = self.get_cursors()
         # 適性値・使用回数値画像(辞書)
@@ -1531,7 +1532,7 @@ class Resource(object):
         if name:
             button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
-            button.SetFont(self.get_wxfont("button", pixelsize=14))
+            button.SetFont(self.get_wxfont("button", pointsize=9))
         elif bmp:
             button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
@@ -1785,11 +1786,13 @@ class Resource(object):
         """
         def nokeyfunc(key):
             dbg = not nodbg and key.endswith("_dbg")
+            noscale = key.endswith("_noscale")
             fpath = ""
 
             if dbg:
                 key = key[:-len("_dbg")]
-                dbg = True
+            if noscale:
+                key = key[:-len("_noscale")]
 
             if dpath2:
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath2, key), ext)
@@ -1803,12 +1806,15 @@ class Resource(object):
             else:
                 res = func(fpath)
 
-            if not dbg and ss and not key in noresize:
-                ressize = get_resourcesize(fpath)
-                if ressize is None:
-                    res = ss(res)
-                else:
-                    res = ss((res, ressize))
+            if not noscale:
+                if not dbg and ss and not key in noresize:
+                    ressize = get_resourcesize(fpath)
+                    if ressize is None:
+                        res = ss(res)
+                    else:
+                        res = ss((res, ressize))
+                elif dbg and ss:
+                    res = cw.ppis(res)
 
             return res
 
@@ -1951,7 +1957,7 @@ class Resource(object):
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss, emptyfunc=emptyfunc)
 
-    def get_debugs(self, load_image):
+    def get_debugs(self, load_image, ss):
         """
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -1962,7 +1968,7 @@ class Resource(object):
             emptyfunc=empty_image
 
         dpath = u"Data/Debugger"
-        return self.get_resources(load_image, dpath, "", cw.M_IMG, True, lambda bmp: bmp, emptyfunc=emptyfunc)
+        return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc)
 
     def get_cardbgs(self, load_image):
         """

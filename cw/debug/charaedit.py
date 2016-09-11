@@ -36,10 +36,10 @@ class CharacterEditDialog(wx.Dialog):
         self.target.Select(max(selected, -1) + 1)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL_dbg"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL_dbg"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
         if self.create:
             self.target.Hide()
             self.leftbtn.Hide()
@@ -96,28 +96,28 @@ class CharacterEditDialog(wx.Dialog):
         if not self.create:
             sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
             sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
-            sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=5)
+            sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=cw.ppis(5))
             sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
-            sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=5)
+            sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
         sizer_left.Add(self.note, 1, flag=wx.EXPAND)
 
         if not self.create:
             sizer_recalc = wx.BoxSizer(wx.VERTICAL)
-            sizer_recalc.Add(self.recalc_maxlife, 0, 0, 0)
-            sizer_recalc.Add(self.recalc_parameter, 0, wx.TOP, 1)
-            sizer_recalc.Add(self.recalc_coupons, 0, wx.TOP, 1)
-            sizer_left.Add(sizer_recalc, 0, wx.TOP, 5)
+            sizer_recalc.Add(self.recalc_maxlife, 0, 0, cw.ppis(0))
+            sizer_recalc.Add(self.recalc_parameter, 0, wx.TOP, cw.ppis(1))
+            sizer_recalc.Add(self.recalc_coupons, 0, wx.TOP, cw.ppis(1))
+            sizer_left.Add(sizer_recalc, 0, wx.TOP, cw.ppis(5))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.stdbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.autobtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.autobtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(sizer_right, 0, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -700,24 +700,24 @@ class CharaRequirementPanel(wx.Panel):
                 break
 
         self.namebox = wx.StaticBox(self, -1, u"名前")
-        self.name = wx.TextCtrl(self, size=(125, -1))
+        self.name = wx.TextCtrl(self, size=(cw.ppis(125), -1))
         self.name.SetMaxLength(14)
-        self.autoname = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (50, -1), name=u"自動")
+        self.autoname = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (cw.ppis(50), -1), name=u"自動")
 
         self.imgbox = wx.StaticBox(self, -1, u"イメージ")
         self.imgbox.DragAcceptFiles(True)
         path = u"Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        self.defaultface = cw.util.load_wxbmp(path, mask=True)
-        self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.SIZE_CARDIMAGE)
-        self.imgcombo = wx.ComboBox(self, -1, size=(125, -1), style=wx.CB_READONLY)
+        self.defaultface = cw.ppis(cw.util.load_wxbmp(path, mask=True))
+        self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.ppis(cw.SIZE_CARDIMAGE))
+        self.imgcombo = wx.ComboBox(self, -1, size=(cw.ppis(125), -1), style=wx.CB_READONLY)
         self.imgpathlist = []
 
         self.lvlbox = wx.StaticBox(self, -1, u"レベル")
         self.levelbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"Lv ―")
 
         self.typbox = wx.StaticBox(self, -1, u"能力型")
-        self.type = wx.StaticText(self, -1, u"―――", size=(80, -1), style=wx.ALIGN_CENTRE|wx.ST_NO_AUTORESIZE)
+        self.type = wx.StaticText(self, -1, u"―――", size=(cw.ppis(80), -1), style=wx.ALIGN_CENTRE|wx.ST_NO_AUTORESIZE)
 
         assert 1 <= len(cw.cwpy.setting.races)
         if 1 == len(cw.cwpy.setting.races) and isinstance(cw.cwpy.setting.races[0], cw.header.UnknownRaceHeader):
@@ -763,54 +763,54 @@ class CharaRequirementPanel(wx.Panel):
 
     def _do_layout(self):
         sizer_name = wx.StaticBoxSizer(self.namebox, wx.HORIZONTAL)
-        sizer_name.AddSpacer((5, 0))
-        sizer_name.Add(self.name, 1, wx.RIGHT|wx.BOTTOM|wx.CENTER, 2)
-        sizer_name.Add(self.autoname, 0, wx.RIGHT|wx.BOTTOM|wx.CENTER, 5)
+        sizer_name.AddSpacer(cw.ppis((5, 0)))
+        sizer_name.Add(self.name, 1, wx.RIGHT|wx.BOTTOM|wx.CENTER, cw.ppis(2))
+        sizer_name.Add(self.autoname, 0, wx.RIGHT|wx.BOTTOM|wx.CENTER, cw.ppis(5))
 
         sizer_image = wx.StaticBoxSizer(self.imgbox, wx.VERTICAL)
         sizer_image.AddStretchSpacer(1)
-        sizer_image.Add(self.img, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
+        sizer_image.Add(self.img, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
         sizer_image.AddStretchSpacer(1)
-        sizer_image.Add(self.imgcombo, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND|wx.ALIGN_CENTER, 5)
+        sizer_image.Add(self.imgcombo, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND|wx.ALIGN_CENTER, cw.ppis(5))
 
         sizer_level = wx.StaticBoxSizer(self.lvlbox, wx.VERTICAL)
-        sizer_level.Add(self.levelbtn, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
+        sizer_level.Add(self.levelbtn, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
 
         sizer_type = wx.StaticBoxSizer(self.typbox, wx.VERTICAL)
         sizer_type2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_type2.Add(self.type, 1, wx.ALIGN_CENTER, 0)
-        sizer_type.Add(sizer_type2, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
+        sizer_type2.Add(self.type, 1, wx.ALIGN_CENTER, cw.ppis(0))
+        sizer_type.Add(sizer_type2, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
 
         sizer_lefttop = wx.BoxSizer(wx.VERTICAL)
         sizer_lefttop.Add(sizer_name, 0, wx.EXPAND)
         if self.race:
             sizer_leveltype = wx.BoxSizer(wx.HORIZONTAL)
-            sizer_leveltype.Add(sizer_level, 0, wx.EXPAND, border=5)
-            sizer_leveltype.Add(sizer_type, 0, wx.EXPAND|wx.LEFT, border=5)
+            sizer_leveltype.Add(sizer_level, 0, wx.EXPAND, border=cw.ppis(5))
+            sizer_leveltype.Add(sizer_type, 0, wx.EXPAND|wx.LEFT, border=cw.ppis(5))
 
-            sizer_lefttop.Add(sizer_leveltype, 0, wx.EXPAND|wx.TOP, border=5)
+            sizer_lefttop.Add(sizer_leveltype, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
 
             sizer_race = wx.StaticBoxSizer(self.racebox, wx.VERTICAL)
-            sizer_race.Add(self.race, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
-            sizer_lefttop.Add(sizer_race, 0, wx.EXPAND|wx.TOP, border=5)
+            sizer_race.Add(self.race, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
+            sizer_lefttop.Add(sizer_race, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         else:
-            sizer_lefttop.Add(sizer_level, 0, wx.EXPAND|wx.TOP, border=5)
-            sizer_lefttop.Add(sizer_type, 0, wx.EXPAND|wx.TOP, border=5)
+            sizer_lefttop.Add(sizer_level, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+            sizer_lefttop.Add(sizer_type, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
 
-        sizer_bottom = wx.BoxSizer()
+        sizer_bottom = wx.BoxSizer(wx.HORIZONTAL)
         sizer_bottom.Add(self.sexes, 0)
-        sizer_bottom.Add(self.periods, 0, wx.LEFT, 5)
-        sizer_bottom.Add(self.natures, 0, wx.LEFT, 5)
+        sizer_bottom.Add(self.periods, 0, wx.LEFT, cw.ppis(5))
+        sizer_bottom.Add(self.natures, 0, wx.LEFT, cw.ppis(5))
 
         sizer_main = wx.GridBagSizer()
-        sizer_main.Add(sizer_lefttop, pos=(0, 0), flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=5)
-        sizer_main.Add(sizer_image, pos=(0, 1), flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=5)
-        sizer_main.Add(sizer_bottom, pos=(1, 0), span=(1, 2), flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=5)
+        sizer_main.Add(sizer_lefttop, pos=(0, 0), flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
+        sizer_main.Add(sizer_image, pos=(0, 1), flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=cw.ppis(5))
+        sizer_main.Add(sizer_bottom, pos=(1, 0), span=(1, 2), flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_main, 1, wx.EXPAND|wx.ALL, 5)
+        sizer.Add(sizer_main, 1, wx.EXPAND|wx.ALL, cw.ppis(5))
         sizer.AddStretchSpacer(0)
-        sizer.Add(self.autobtn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 5)
+        sizer.Add(self.autobtn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -972,7 +972,7 @@ class CharaRequirementPanel(wx.Panel):
                 # 全員のイメージが一致
                 bmps = []
                 for info in img:
-                    bmps.append(cw.util.load_wxbmp(info.path, mask=True))
+                    bmps.append(cw.ppis(cw.util.load_wxbmp(info.path, mask=True)))
                 self.img.SetBitmap(bmps)
             else:
                 # イメージが一致しないか未設定
@@ -980,7 +980,7 @@ class CharaRequirementPanel(wx.Panel):
         else:
             # パスを選択
             img = self.imgpathlist[self.imgcombo.GetSelection()-1]
-            self.img.SetBitmap([cw.util.load_wxbmp(img, mask=True)])
+            self.img.SetBitmap([cw.ppis(cw.util.load_wxbmp(img, mask=True))])
 
     def _get_infos(self):
         if self.cindex == 0:
@@ -1146,19 +1146,19 @@ class CharaSelectablePanel(wx.Panel):
                 flag |= wx.TOP
             if 0 < col:
                 flag |= wx.LEFT
-            sizer_checks.Add(check, pos=(row, col), flag=flag, border=5)
+            sizer_checks.Add(check, pos=(row, col), flag=flag, border=cw.ppis(5))
 
         sizer_box = wx.StaticBoxSizer(self.mkgbox, wx.HORIZONTAL)
-        sizer_box.Add(sizer_checks, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
+        sizer_box.Add(sizer_checks, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
 
         sizer_buttons = wx.GridSizer(1, 2, 5, 5)
         sizer_buttons.Add(self.autobtn)
         sizer_buttons.Add(self.clearbtn)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_box, 1, wx.EXPAND|wx.ALL, 5)
+        sizer.Add(sizer_box, 1, wx.EXPAND|wx.ALL, cw.ppis(5))
         sizer.AddStretchSpacer(0)
-        sizer.Add(sizer_buttons, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 5)
+        sizer.Add(sizer_buttons, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)

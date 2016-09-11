@@ -229,7 +229,7 @@ CardWirthPy 1.1固有で将来修正される見込みのバグに対処した�
 
 CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはpy2exeを使用しています。
 
-[Python ver2.7.11](http://www.python.org/)
+[Python ver2.7.12](http://www.python.org/)
  : License: Python Software Foundation License
 
 [py2exe ver0.6.9](http://www.py2exe.org/)
@@ -242,7 +242,7 @@ CardWirthPyは以下のPythonの外部モジュールを使用しています。
 [Pygame ver1.9.1](http://www.pygame.org/)
  : License: GNU Lesser General Public License
 
-[Python for Windows extensions Build 219](http://sourceforge.net/projects/pywin32/)
+[Python for Windows extensions Build 220](http://sourceforge.net/projects/pywin32/)
  : License: Python Software Foundation License
 
 [lhafile 0.1](http://trac.neotitans.net/wiki/lhafile)

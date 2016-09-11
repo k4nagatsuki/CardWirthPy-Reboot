@@ -72,7 +72,7 @@ class SysProgressDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.DEFAULT_DIALOG_STYLE)
         self.cwpy_debug = False
-        self.SetClientSize((width+20, 60))
+        self.SetClientSize(cw.ppis((width+20, 60)))
         self.EnableCloseButton(cancelable)
         self.SetDoubleBuffered(True)
         self.cancel = False
@@ -80,7 +80,7 @@ class SysProgressDialog(wx.Dialog):
         self.minimum = minimum
         self.maximum = maximum
         self.gauge = wx.Gauge(self, -1, range=self.maximum-self.minimum,
-                              size=(-1, 20),
+                              size=(-1, cw.ppis(20)),
                               style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
         self.message = wx.StaticText(self, -1, self.text,
                                      size=(-1, -1),
@@ -89,7 +89,7 @@ class SysProgressDialog(wx.Dialog):
 
         if cancelable:
             self.btn_cncl = wx.Button(self, -1, u"中止")
-            self.SetClientSize((width+20, 60+self.btn_cncl.GetBestSize()[1]+5))
+            self.SetClientSize((cw.ppis(width+20), cw.ppis(60)+self.btn_cncl.GetBestSize()[1]+cw.ppis(5)))
         else:
             self.btn_cncl = None
 
@@ -115,16 +115,16 @@ class SysProgressDialog(wx.Dialog):
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer_1.Add((0, 10), 0, 0, 0)
-        sizer_1.Add(self.gauge, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, 10)
-        sizer_1.Add((0, 4), 0, 0, 0)
-        sizer_1.Add(self.message, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, 10)
+        sizer_1.Add((0, 10), 0, 0, cw.ppis(0))
+        sizer_1.Add(self.gauge, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.ppis(10))
+        sizer_1.Add((0, 4), 0, 0, cw.ppis(0))
+        sizer_1.Add(self.message, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.ppis(10))
 
         if self.btn_cncl:
-            sizer_1.Add((0, 5), 0, 0, 0)
-            sizer_1.Add(self.btn_cncl, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT, 10)
+            sizer_1.Add((0, 5), 0, 0, cw.ppis(0))
+            sizer_1.Add(self.btn_cncl, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT, cw.ppis(10))
         else:
-            sizer_1.Add((0, 30), 0, 0, 0)
+            sizer_1.Add((0, 30), 0, 0, cw.ppis(0))
 
         self.SetSizer(sizer_1)
         self.Layout()

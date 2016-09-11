@@ -64,7 +64,7 @@ class Debugger(wx.Frame):
             style=wx.CLIP_CHILDREN|wx.CAPTION|wx.RESIZE_BOX|
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         self.cwpy_debug = True
-        self.SetClientSize((635, cw.cwpy.frame.GetClientSize()[1]))
+        self.SetClientSize((cw.ppis(635), cw.cwpy.frame.GetClientSize()[1]))
         # set icon
         cw.cwpy.frame.set_icon(self)
         # aui manager
@@ -72,7 +72,7 @@ class Debugger(wx.Frame):
         self._mgr.SetManagedWindow(self)
         # create status bar
         self.statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
-        self.statusbar.SetStatusWidths([0, -1])
+        self.statusbar.SetStatusWidths([cw.ppis(0), -1])
 
         # 最後に強制実行したイベントが属するファイルパス
         self._currentfpath = ""
@@ -276,7 +276,7 @@ class Debugger(wx.Frame):
 
         # create main toolbar
         self.tb1 = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
-        self.tb1.SetToolBitmapSize(wx.Size(20, 20))
+        self.tb1.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
         self.tl_comp = self.tb1.AddLabelTool(
             ID_COMPSTAMP, u"終了印", rsrc["COMPSTAMP"],
             shortHelp=u"終了印リストを編集します。")
@@ -293,7 +293,7 @@ class Debugger(wx.Frame):
             ID_CARD, u"手札配布", rsrc["CARD"],
             shortHelp=u"手札カードを配布します。")
         self.tb1.AddSeparator()
-        self.tb1.SetToolBitmapSize(wx.Size(20, 20))
+        self.tb1.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
         self.tl_member = self.tb1.AddLabelTool(
             ID_MEMBER, u"冒険者", rsrc["MEMBER"],
             shortHelp=u"冒険者の情報を編集します。")
@@ -310,7 +310,7 @@ class Debugger(wx.Frame):
 
         # create scenario toolbar
         self.tb2 = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
-        self.tb2.SetToolBitmapSize(wx.Size(20, 20))
+        self.tb2.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
         self.tl_update = self.tb2.AddLabelTool(
             ID_UPDATE, u"再読込", rsrc["UPDATE"],
             shortHelp=u"最新の情報に更新します。")
@@ -330,7 +330,7 @@ class Debugger(wx.Frame):
             ID_ROUND, u"ラウンド", rsrc["ROUND"],
             shortHelp=u"バトルラウンドを変更します。")
         self.tb2.AddSeparator()
-        self.tb2.SetToolBitmapSize(wx.Size(20, 20))
+        self.tb2.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
         self.tl_save = self.tb2.AddLabelTool(
             ID_SAVE, u"セーブ", rsrc["SAVE"],
             shortHelp=u"状況を記録します。")
@@ -357,7 +357,7 @@ class Debugger(wx.Frame):
 
         # create event control bar
         self.tb_event = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
-        self.tb_event.SetToolBitmapSize(wx.Size(20, 20))
+        self.tb_event.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
 
         self.tl_startevent = self.tb_event.AddLabelTool(
             ID_STARTEVENT, u"イベントの実行", rsrc["EVENT"],
@@ -392,7 +392,7 @@ class Debugger(wx.Frame):
             shortHelp=u"呼び出し履歴を表示します。")
         self.tb_event.AddSeparator()
         self.sc_waittime = wx.SpinCtrl(
-            self.tb_event, -1, u"イベント待機時間", size=(40, 20))
+            self.tb_event, -1, u"イベント待機時間", size=(cw.ppis(40), cw.ppis(20)))
         self.sc_waittime.SetRange(0, 99)
         self.sc_waittime.SetValue(0)
         st = wx.StaticText(self.tb_event, -1, u"ウェイト")
@@ -403,7 +403,7 @@ class Debugger(wx.Frame):
         self.tb_event.Realize()
         # create area toolbar
         self.tb_area = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
-        self.tb_area.SetToolBitmapSize(wx.Size(20, 20))
+        self.tb_area.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
         self.tl_area = self.tb_area.AddLabelTool(
             ID_AREA, u"エリア", rsrc["AREA"],
             shortHelp=u"エリアを選択して場面を変更します。")
@@ -413,7 +413,7 @@ class Debugger(wx.Frame):
 
         self.tb_area.AddSeparator()
         self.st_area = wx.StaticText(
-            self.tb_area, -1, cw.cwpy.sdata.get_currentareaname(), size=(200, -1))
+            self.tb_area, -1, cw.cwpy.sdata.get_currentareaname(), size=(cw.ppis(200), -1))
         self.tb_area.AddControl(self.st_area)
 
         self.tb_area.AddSeparator()
@@ -428,14 +428,14 @@ class Debugger(wx.Frame):
 
         # create selection toolbar
         self.tb_select = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
-        self.tb_select.SetToolBitmapSize(wx.Size(20, 20))
+        self.tb_select.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
         self.tl_select = self.tb_select.AddLabelTool(
             ID_SELECTION, u"選択メンバ",
             rsrc["SELECTION"], shortHelp=u"選択中のキャラクターを変更します。")
         self.tb_select.AddSeparator()
         self.st_select = wx.StaticText(
             self.tb_select, -1, cw.cwpy.event.get_selectedmembername(),
-            size=(100, -1))
+            size=(cw.ppis(100), -1))
         self.tb_select.AddControl(self.st_select)
         self.tb_select.AddSeparator()
         self.tl_showparty = self.tb_select.AddLabelTool(
@@ -461,7 +461,7 @@ class Debugger(wx.Frame):
         # add pane
         self._mgr.AddPane(
             self.view_var,
-            wx.aui.AuiPaneInfo().Name("list_var").MinSize((200, -1)).
+            wx.aui.AuiPaneInfo().Name("list_var").MinSize((cw.ppis(200), -1)).
             Left().CloseButton(True).MaximizeButton(True).
             Caption(u"状態変数"))
         self._mgr.AddPane(
@@ -804,7 +804,7 @@ class Debugger(wx.Frame):
         self.view_stacktrace = StackTraceView(self)
         self._mgr.AddPane(
             self.view_stacktrace,
-            wx.aui.AuiPaneInfo().Name("view_stacktrace").MinSize((-1, 10)).
+            wx.aui.AuiPaneInfo().Name("view_stacktrace").MinSize((-1, cw.ppis(10))).
             Bottom().CloseButton(True).MaximizeButton(True).
             Caption(u"呼び出し履歴").DestroyOnClose())
         self.view_stacktrace.refresh_stackinfo()
@@ -1663,14 +1663,14 @@ class VariableListCtrl(wx.ListCtrl):
             self, parent, -1, style=wx.LC_REPORT|wx.BORDER_NONE|
             wx.LC_SORT_ASCENDING|wx.LC_VIRTUAL)
         self.list = []
-        self.imglist = wx.ImageList(16, 16)
+        self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         self.imgidx_flag = self.imglist.Add(cw.cwpy.rsrc.debugs["FLAG"])
         self.imgidx_step = self.imglist.Add(cw.cwpy.rsrc.debugs["STEP"])
         self.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.InsertColumn(0, u"名称")
         self.InsertColumn(1, u"現在値")
-        self.SetColumnWidth(0, 120)
-        self.SetColumnWidth(1, 80)
+        self.SetColumnWidth(0, cw.ppis(120))
+        self.SetColumnWidth(1, cw.ppis(80))
 
         self.popup_menu = wx.Menu()
         self.mi_initvars = wx.MenuItem(self.popup_menu, ID_INIT_VARIABLES, u"状態変数の初期化(&V)")
@@ -1811,7 +1811,7 @@ class EventView(wx.ScrolledWindow):
         self.SetBackgroundColour(wx.WHITE)
 
         # 左側の垂直バーの幅
-        self.leftbarwidth = 24
+        self.leftbarwidth = cw.ppis(24)
 
         # 現在実行中のイベントツリーとイベント
         self.current_event = None
@@ -1876,19 +1876,19 @@ class EventView(wx.ScrolledWindow):
         linepen = wx.Pen(wx.Colour(128, 128, 128))
         dc.SetPen(linepen)
         dc.SetBrush(wx.Brush(wx.Colour(240, 240, 240)))
-        dc.DrawRectangle(-1, -1, self.leftbarwidth+2, csize[1]+2)
+        dc.DrawRectangle(-1, -1, self.leftbarwidth+cw.ppis(2), csize[1]+cw.ppis(2))
 
         if not self.itemlist:
-            dc.DrawText(u"ここに実行中のイベントツリーが表示されます。", self.leftbarwidth+5, 5)
+            dc.DrawText(u"ここに実行中のイベントツリーが表示されます。", self.leftbarwidth+cw.ppis(5), cw.ppis(5))
             hint = u"ヒント:"
             ts = dc.GetTextExtent(hint)
-            tx = self.leftbarwidth+5
-            ty = 10+ts[1]
+            tx = self.leftbarwidth+cw.ppis(5)
+            ty = cw.ppis(10)+ts[1]
             dc.DrawText(hint, tx, ty)
-            dc.DrawText(u"ダブルクリックかEnterキー押下で任意の\nイベントコンテントを実行できます。", tx+ts[0]+5, ty)
+            dc.DrawText(u"ダブルクリックかEnterキー押下で任意の\nイベントコンテントを実行できます。", tx+ts[0]+cw.ppis(5), ty)
             return
 
-        clippingrect = wx.Rect(self.leftbarwidth+1, 0, csize[0]-self.leftbarwidth+1, csize[1])
+        clippingrect = wx.Rect(self.leftbarwidth+cw.ppis(1), 0, csize[0]-self.leftbarwidth+cw.ppis(1), csize[1])
         dc.SetClippingRect(clippingrect)
 
         selpen = wx.Pen(wx.Colour(255, 128, 128))
@@ -1910,36 +1910,36 @@ class EventView(wx.ScrolledWindow):
         for item in self.itemlist[y:]:
             if item.parent is None and item <> self.itemlist[0]:
                 dc.SetPen(linepen)
-                dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
+                dc.DrawLine(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
 
             if item.cwxpath in cw.cwpy.sdata.breakpoints:
                 dc.DestroyClippingRegion()
                 dc.SetPen(bppen)
                 dc.SetBrush(bpbrush)
-                circlesize = 6
-                dc.DrawCircle(self.leftbarwidth-circlesize-5, item.pos[1]-ytop+self.lineheight/2, circlesize)
+                circlesize = cw.ppis(6)
+                dc.DrawCircle(self.leftbarwidth-circlesize-cw.ppis(5), item.pos[1]-ytop+self.lineheight/2, circlesize)
                 dc.SetClippingRect(clippingrect)
                 dc.SetPen(wx.TRANSPARENT_PEN)
                 dc.SetBrush(bpbackbrush)
-                dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
+                dc.DrawRectangle(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], self.lineheight)
 
             if item == self.activeitem:
                 dc.SetPen(actpen)
                 dc.SetBrush(actbrush)
-                dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
+                dc.DrawRectangle(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], self.lineheight)
             else:
                 dc.SetBrush(selbrush)
             if item == self.selectionitem:
                 dc.SetPen(wx.TRANSPARENT_PEN)
-                dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
+                dc.DrawRectangle(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], self.lineheight)
                 dc.SetPen(selpen)
-                dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
-                dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop+self.lineheight-1, csize[0], item.pos[1]-ytop+self.lineheight-1)
+                dc.DrawLine(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
+                dc.DrawLine(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop+self.lineheight-1, csize[0], item.pos[1]-ytop+self.lineheight-1)
 
             if last == item:
                 break
 
-        pen = wx.Pen(wx.Colour(192, 192, 192), width=4)
+        pen = wx.Pen(wx.Colour(192, 192, 192), width=cw.ppis(4))
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
         iw = cw.cwpy.rsrc.debugs["EVT_START"].GetWidth()
@@ -1961,9 +1961,9 @@ class EventView(wx.ScrolledWindow):
             cx = ix + iw/2 + self.leftbarwidth
             cy = iy + self.lineheight/2
             if item.nextlen == 0:
-                bottom = cy+self.lineheight-4
+                bottom = cy+self.lineheight-cw.ppis(4)
                 dc.DrawLine(cx, cy, cx, bottom)
-                dc.DrawLine(cx-5, bottom, cx+5, bottom)
+                dc.DrawLine(cx-cw.ppis(5), bottom, cx+cw.ppis(5), bottom)
             else:
                 for child in item.nextdata:
                     if child.tag == "ContentsLine":
@@ -1976,7 +1976,7 @@ class EventView(wx.ScrolledWindow):
                         bottom = child.pos[1]-ytop-self.lineheight/2
                         if cy < bottom:
                             dc.DrawLine(cx, cy, cx, bottom)
-                            circles.append((cx, bottom+2))
+                            circles.append((cx, bottom+cw.ppis(2)))
                         dc.DrawArc(cx, bottom, cx+iw, bottom+self.lineheight, cx+iw, bottom)
 
             if last == item:
@@ -1984,7 +1984,7 @@ class EventView(wx.ScrolledWindow):
 
         dc.SetBrush(wx.WHITE_BRUSH)
         for cx, cy in circles:
-            dc.DrawCircle(cx, cy, 6)
+            dc.DrawCircle(cx, cy, cw.ppis(6))
 
         yg = (self.lineheight - dc.GetTextExtent("#")[1]) / 2
         for item in self.itemlist[y:]:
@@ -2001,7 +2001,7 @@ class EventView(wx.ScrolledWindow):
             else:
                 imgwidth = 0
             dc.DrawText(s,
-                        item.pos[0]+imgwidth+2-xtop+self.leftbarwidth,
+                        item.pos[0]+imgwidth+cw.ppis(2)-xtop+self.leftbarwidth,
                         item.pos[1]-ytop+yg)
 
             if last == item:
@@ -2271,7 +2271,7 @@ class EventView(wx.ScrolledWindow):
         dc = wx.ClientDC(self)
         actw, self.lineheight = dc.GetTextExtent(" // ACTIVE!")
         shiftx = icon.GetWidth()
-        self.lineheight = max(icon.GetHeight() + 2, self.lineheight)
+        self.lineheight = max(icon.GetHeight() + cw.ppis(2), self.lineheight)
         if self.current_tree <> trees:
             trees = nowrunning.trees
             self.current_event = nowrunning
@@ -2311,13 +2311,13 @@ class EventView(wx.ScrolledWindow):
                     x += shiftx
             else:
                 parent = None
-                x = 0
+                x = cw.ppis(0)
 
             if self.itemlist:
                 item = self.itemlist[-1]
                 pos = (x, item.pos[1] + item.height)
             else:
-                pos = (0, 0)
+                pos = cw.ppis((0, 0))
             return parent, x, pos
 
         isline = contents.tag == "ContentsLine"
@@ -2371,9 +2371,9 @@ class EventViewItem(object):
         if self.image:
             self.width = self.image.GetWidth()
         else:
-            self.width = 0
+            self.width = cw.ppis(0)
         if self.text:
-            self.width += 2
+            self.width += cw.ppis(2)
             self.width += dc.GetTextExtent(self.text)[0]
 
     def is_branch(self):
@@ -2394,11 +2394,11 @@ def get_contenticon(content):
 
 class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
     def __init__(self, parent):
-        wx.ListCtrl.__init__(self, parent, -1, size=(-1, 80),
+        wx.ListCtrl.__init__(self, parent, -1, size=(-1, cw.ppis(80)),
                              style=wx.LC_REPORT|wx.LC_NO_HEADER)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
         self.list = []
-        self.imglist = wx.ImageList(16, 16)
+        self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         self.imgidx_area = self.imglist.Add(cw.cwpy.rsrc.debugs["AREA"])
         self.imgidx_battle = self.imglist.Add(cw.cwpy.rsrc.debugs["BATTLE"])
         self.imgidx_package = self.imglist.Add(cw.cwpy.rsrc.debugs["PACK"])
@@ -2415,7 +2415,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         self._has_curcontent = False
         self.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.InsertColumn(0, u"呼び出し履歴")
-        self.SetColumnWidth(0, 400)
+        self.SetColumnWidth(0, cw.ppis(400))
         self._bind()
 
     def _bind(self):
