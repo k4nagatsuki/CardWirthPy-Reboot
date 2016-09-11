@@ -798,6 +798,10 @@ class EffectMotion(object):
         """
         if success_res:
             return False
+        if target.reversed:
+            # 隠蔽中は、ダメージによる睡眠解除を除いて
+            # 精神状態の変化は無い
+            return False
         oldmentality = target.mentality
         oldduration = target.mentality_dur
         if self.type.title() == "Normal":
@@ -1182,6 +1186,8 @@ class EffectMotion(object):
         行動キャンセル(1.50)。
         """
         if success_res:
+            return False
+        if target.is_inactive():
             return False
         cw.cwpy.advlog.cancelaction_motion(target, cw.cwpy.is_battlestatus())
         if target.actiondata:
