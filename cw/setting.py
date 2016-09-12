@@ -2656,7 +2656,7 @@ class ScenarioCompatibilityTable(object):
     def to_basehint(self, versionhint):
         """複合情報versionhintから最も基本的な情報を取り出す。"""
         if versionhint:
-            return versionhint[0]
+            return versionhint[0] if versionhint[0] else ""
         else:
             return ""
 
