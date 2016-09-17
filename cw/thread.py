@@ -4352,7 +4352,9 @@ class CWPy(_Singleton, threading.Thread):
             if from_scenario:
                 if not scedir:
                     scedir = self.sdata.scedir
-                imgpath = cw.util.join_paths(scedir, materialpath)
+                imgpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile", materialpath)
+                if not os.path.isfile(imgpath):
+                    imgpath = cw.util.join_paths(scedir, materialpath)
             elif yadodir:
                 imgpath = cw.util.join_paths(yadodir, materialpath)
             else:
@@ -4377,7 +4379,7 @@ class CWPy(_Singleton, threading.Thread):
                     if not jpy1innnerfile:
                         continue
                     dirtype = config.get_int(section, "dirtype", 1)
-                    innerfpath = cw.effectbooster.get_filepath_s(imgpath, jpy1innnerfile, dirtype)
+                    innerfpath = cw.effectbooster.get_filepath_s(config.path, imgpath, jpy1innnerfile, dirtype)
                     if not innerfpath.startswith(scedir + "/"):
                         continue
                     innerfpath = innerfpath.replace(scedir + "/", "", 1)

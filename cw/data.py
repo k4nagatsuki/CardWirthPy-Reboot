@@ -1207,13 +1207,6 @@ class ScenarioData(SystemData):
 
         cw.cwpy.ydata.remove_emptypartyrecord()
 
-        # 保存済みJPDCイメージを宿フォルダへ移動
-        cw.header.SavedJPDCImageHeader.create_header(debuglog)
-
-        cw.cwpy.ydata.party.remove_numbercoupon()
-        self.remove_log(debuglog)
-        cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
-
         # シナリオ取得カードの正規取得処理などを行う
         if cw.cwpy.ydata.party:
             for header in cw.cwpy.ydata.party.get_allcardheaders():
@@ -1232,6 +1225,13 @@ class ScenarioData(SystemData):
                     # どこかで所有しているので素材は消さない
                     cw.cwpy.ydata.deletedpaths.add(header.fpath)
             cw.cwpy.ydata.party.backpack_moved = []
+
+        # 保存済みJPDCイメージを宿フォルダへ移動
+        cw.header.SavedJPDCImageHeader.create_header(debuglog)
+
+        cw.cwpy.ydata.party.remove_numbercoupon()
+        self.remove_log(debuglog)
+        cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
 
         if debuglog:
             def func(sname, debuglog):
