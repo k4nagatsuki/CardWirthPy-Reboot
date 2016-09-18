@@ -1818,7 +1818,8 @@ class EventView(wx.ScrolledWindow):
         self.SetBackgroundColour(wx.WHITE)
 
         # 左側の垂直バーの幅
-        self.leftbarwidth = cw.ppis(24)
+        self._linenumwidth = cw.ppis(20)
+        self.leftbarwidth = cw.ppis(24) + self._linenumwidth
 
         # 現在実行中のイベントツリーとイベント
         self.current_event = None
@@ -1883,20 +1884,17 @@ class EventView(wx.ScrolledWindow):
         linepen = wx.Pen(wx.Colour(128, 128, 128))
         dc.SetPen(linepen)
         dc.SetBrush(wx.Brush(wx.Colour(240, 240, 240)))
-        dc.DrawRectangle(-1, -1, self.leftbarwidth+cw.ppis(2), csize[1]+cw.ppis(2))
+        dc.DrawRectangle(-1, -1, self.leftbarwidth+2, csize[1]+cw.ppis(2))
 
         if not self.itemlist:
-            dc.DrawText(u"ここに実行中のイベントツリーが表示されます。", self.leftbarwidth+cw.ppis(5), cw.ppis(5))
+            dc.DrawText(u"ここに実行中のイベントツリーが表示されます。", self.leftbarwidth+cw.ppis(10), cw.ppis(5))
             hint = u"ヒント:"
             ts = dc.GetTextExtent(hint)
-            tx = self.leftbarwidth+cw.ppis(5)
+            tx = self.leftbarwidth+cw.ppis(10)
             ty = cw.ppis(10)+ts[1]
             dc.DrawText(hint, tx, ty)
             dc.DrawText(u"ダブルクリックかEnterキー押下で任意の\nイベントコンテントを実行できます。", tx+ts[0]+cw.ppis(5), ty)
             return
-
-        clippingrect = wx.Rect(self.leftbarwidth+cw.ppis(1), 0, csize[0]-self.leftbarwidth+cw.ppis(1), csize[1])
-        dc.SetClippingRect(clippingrect)
 
         selpen = wx.Pen(wx.Colour(255, 128, 128))
         selbrush = wx.Brush(wx.Colour(255, 240, 240))
@@ -1914,10 +1912,23 @@ class EventView(wx.ScrolledWindow):
         if not last:
             last = self.itemlist[-1]
 
+        linenum = y + 1
         for item in self.itemlist[y:]:
+            # 行番号
+            dc.DestroyClippingRegion()
+            dc.SetTextForeground(wx.Colour(64, 64, 64))
+            linestr = u"%s" % (linenum)
+            ts = dc.GetTextExtent(linestr)
+            dc.DrawText(linestr, self.leftbarwidth-cw.ppis(6*2+5+5)-ts[0], item.pos[1]-ytop+(self.lineheight-ts[1])/2)
+
+            clippingrect = wx.Rect(self.leftbarwidth + 1, 0,
+                                   csize[0] - self.leftbarwidth + 1, csize[1])
+            dc.SetClippingRect(clippingrect)
+
+            # イベントコンテントを結ぶ線
             if item.parent is None and item <> self.itemlist[0]:
                 dc.SetPen(linepen)
-                dc.DrawLine(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
+                dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
 
             if item.cwxpath in cw.cwpy.sdata.breakpoints:
                 dc.DestroyClippingRegion()
@@ -1928,20 +1939,22 @@ class EventView(wx.ScrolledWindow):
                 dc.SetClippingRect(clippingrect)
                 dc.SetPen(wx.TRANSPARENT_PEN)
                 dc.SetBrush(bpbackbrush)
-                dc.DrawRectangle(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], self.lineheight)
+                dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
 
             if item == self.activeitem:
                 dc.SetPen(actpen)
                 dc.SetBrush(actbrush)
-                dc.DrawRectangle(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], self.lineheight)
+                dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
             else:
                 dc.SetBrush(selbrush)
             if item == self.selectionitem:
                 dc.SetPen(wx.TRANSPARENT_PEN)
-                dc.DrawRectangle(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], self.lineheight)
+                dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
                 dc.SetPen(selpen)
-                dc.DrawLine(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
-                dc.DrawLine(self.leftbarwidth + cw.ppis(1), item.pos[1]-ytop+self.lineheight-1, csize[0], item.pos[1]-ytop+self.lineheight-1)
+                dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
+                dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop+self.lineheight-1, csize[0], item.pos[1]-ytop+self.lineheight-1)
+
+            linenum += 1
 
             if last == item:
                 break
@@ -2261,6 +2274,8 @@ class EventView(wx.ScrolledWindow):
 
     def _refresh_tree(self, nowrunning, trees):
         if nowrunning is None:
+            self._linenumwidth = cw.ppis(20)
+            self.leftbarwidth = cw.ppis(24) + self._linenumwidth
             self.items = {}
             self.itemlist = []
             self.activeitem = None
@@ -2298,6 +2313,17 @@ class EventView(wx.ScrolledWindow):
             if self.itemlist:
                 item = self.itemlist[-1]
                 self.maxheight = item.pos[1] + item.height
+
+                # 行番号表示幅を計算(最小=self._linenumwidth)
+                maxline = len(self.itemlist)
+                nw = 0
+                for i in xrange(0, 10):
+                    nw = max(nw, dc.GetTextExtent("%s" % (i))[0])
+                linew = max(self._linenumwidth, len("%s" % (maxline))*nw+cw.ppis(5))
+            else:
+                linew = self._linenumwidth
+            self.leftbarwidth = cw.ppis(24) + linew
+
             self.maxwidth += actw
 
             self.SetVirtualSize((self.maxwidth, self.maxheight))
