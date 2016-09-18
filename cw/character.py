@@ -2185,7 +2185,7 @@ class Character(object):
         if clearbeast:
             self.set_beast(vanish=True)
 
-    def set_fullrecovery(self):
+    def set_fullrecovery(self, decideaction=False):
         """
         完全回復処理。HP＆精神力＆状態異常回復。
         強化値もすべて0、付帯召喚以外の召喚獣カードも消去。
@@ -2206,7 +2206,7 @@ class Character(object):
         self.set_beast(vanish=True)
 
         # 行動を再選択する
-        if cw.cwpy.is_battlestatus() and cw.cwpy.battle.is_ready():
+        if decideaction and cw.cwpy.is_battlestatus() and cw.cwpy.battle.is_ready() and self.is_active():
             self.deck.set(self)
             self.decide_action()
 

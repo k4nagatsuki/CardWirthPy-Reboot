@@ -566,7 +566,8 @@ class CWPy(_Singleton, threading.Thread):
             cw.sprite.message.MessageWindow.clear_selections()
             for sprite in self.cardgrp.sprites():
                 if sprite.is_initialized() and not isinstance(sprite, (cw.sprite.background.BackGround,
-                                                                       cw.sprite.background.BgCell)):
+                                                                       cw.sprite.background.BgCell))\
+                                           and not isinstance(sprite, cw.sprite.background.Curtain):
                     sprite.update_scale()
             for sprite in self.topgrp.sprites():
                 sprite.update_scale()
@@ -581,7 +582,8 @@ class CWPy(_Singleton, threading.Thread):
                                            and not isinstance(sprite, cw.sprite.background.Curtain):
                     sprite.update_scale()
             for sprite in self.cardgrp.sprites():
-                if isinstance(sprite, cw.sprite.background.Curtain):
+                if isinstance(sprite, cw.sprite.background.Curtain) and\
+                        isinstance(sprite.target, cw.sprite.card.CWPyCard):
                     sprite.update_scale()
 
             self._update_clip()
@@ -3503,13 +3505,7 @@ class CWPy(_Singleton, threading.Thread):
             self.update_selectablelist()
 
             # 背景上のカーテン
-            if move_bgcells:
-                cw.sprite.background.Curtain(self.background, self.cardgrp,
-                                             layer=self.background.curtain_layer)
-                for bgcell in self.background.foregrounds:
-                    cw.cwpy.cardgrp.change_layer(bgcell, bgcell.curtained_layer)
-            else:
-                cw.sprite.background.Curtain(self.background, self.cardgrp)
+            self.background.set_curtain(move_bgcells=move_bgcells)
 
             # カード上のカーテン
             if not self.is_pcardsselectable:
@@ -3526,9 +3522,7 @@ class CWPy(_Singleton, threading.Thread):
     def clear_curtain(self):
         """Curtainスプライトを解除する。"""
         if self.is_curtained():
-            if self.cardgrp.get_sprites_from_layer(self.background.curtain_layer):
-                for bgcell in self.background.foregrounds:
-                    cw.cwpy.cardgrp.change_layer(bgcell, bgcell.normal_layer)
+            self.background.clear_curtain()
             self.cardgrp.remove(self.curtains)
             self.curtains = []
             self._curtained = False
