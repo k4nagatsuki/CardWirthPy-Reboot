@@ -933,7 +933,8 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not self._recovering:
             self._recovering = True
             def recovery_all(self):
-                for pcard in cw.cwpy.get_pcards("unreversed"):
+                pcards = cw.cwpy.get_pcards("unreversed")
+                for pcard in pcards:
                     cw.cwpy.play_sound("harvest")
                     battlespeed = cw.cwpy.is_battlestatus()
                     if pcard.status == "hidden":
@@ -946,6 +947,11 @@ class Debugger(wx.Frame):
                         pcard.set_fullrecovery(decideaction=False)
                         pcard.update_image()
                         cw.animation.animate_sprite(pcard, "deal", battlespeed=battlespeed)
+                if cw.cwpy.is_battlestatus() and cw.cwpy.battle.is_ready():
+                    for pcard in pcards:
+                        if pcard.is_active():
+                            pcard.deck.set(pcard)
+                            pcard.decide_action()
 
                 def func(self):
                     if self:

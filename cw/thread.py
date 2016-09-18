@@ -3504,9 +3504,6 @@ class CWPy(_Singleton, threading.Thread):
                                        target in ("Both", "Enemy")
             self.update_selectablelist()
 
-            # 背景上のカーテン
-            self.background.set_curtain(move_bgcells=move_bgcells)
-
             # カード上のカーテン
             if not self.is_pcardsselectable:
                 cards = self.get_pcards()
@@ -3516,6 +3513,9 @@ class CWPy(_Singleton, threading.Thread):
                 cards = self.get_mcards("visible")
                 for card in cards:
                     cw.sprite.background.Curtain(card, self.cardgrp)
+
+            # 背景上のカーテン
+            self.background.set_curtain(move_bgcells=move_bgcells)
 
             self._curtained = True
 

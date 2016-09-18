@@ -102,20 +102,29 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.cardgrp.change_layer(bgcell, bgcell.curtained_layer)
         else:
             if self.foregrounds:
+                cutter = pygame.Surface(cw.s(cw.SIZE_AREA)).convert_alpha()
+                cutter.fill((0, 0, 0, 0))
+
+                layers = []
+                for sprite in reversed(cw.cwpy.cardgrp.sprites()):
+                    if isinstance(sprite, cw.sprite.background.Curtain):
+                        curtain = sprite
+                        curtain.cutter = cutter.subsurface(sprite.rect).copy()
+                        curtain.update_scale()
+                        cutter.fill((0, 0, 0, 255), sprite.rect)
+                    elif isinstance(sprite, cw.sprite.background.BgCell):
+                        bgcell = sprite
+                        curtain = cw.sprite.background.Curtain(bgcell, cw.cwpy.cardgrp, is_selectable=False,
+                                                               initialize=False)
+                        curtain.cutter = cutter.subsurface(bgcell.rect).copy()
+                        curtain.update_scale()
+                        cutter.fill((0, 0, 0, 255), bgcell.rect)
+                        self._curtains.append(curtain)
+
                 maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp,
                                                            initialize=False)
                 self._curtains.append(maincurtain)
-                cutter_noscale = pygame.Surface(cw.SIZE_AREA).convert_alpha()
-                cutter_noscale.fill((0, 0, 0, 0))
-                for bgcell in self.foregrounds:
-                    curtain = cw.sprite.background.Curtain(bgcell, cw.cwpy.cardgrp, is_selectable=False,
-                                                           initialize=False)
-                    curtain.cutter_noscale = cutter_noscale.subsurface(bgcell.rect_noscale).copy()
-                    curtain.update_scale()
-                    cutter_noscale.fill((0, 0, 0, 255), bgcell.rect_noscale)
-                    self._curtains.append(curtain)
-
-                maincurtain.cutter_noscale = cutter_noscale
+                maincurtain.cutter = cutter
                 maincurtain.update_scale()
             else:
                 maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp)
@@ -1034,7 +1043,7 @@ class Curtain(base.SelectableSprite):
         color: カーテン色(不透明度含む)。
         """
         base.SelectableSprite.__init__(self)
-        self.cutter_noscale = None
+        self.cutter = None
         self._is_selectable = is_selectable
 
         if color:
@@ -1058,9 +1067,8 @@ class Curtain(base.SelectableSprite):
         self.image = pygame.Surface(self.target.rect.size).convert_alpha()
         self.image.fill(self.color)
         self.rect = pygame.Rect(self.target.rect)
-        if self.cutter_noscale:
-            cutter = cw.s(self.cutter_noscale)
-            self.image.blit(cutter, (0, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        if self.cutter:
+            self.image.blit(self.cutter, (0, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
 
     def rclick_event(self):
         cw.cwpy.cancel_cardcontrol()
