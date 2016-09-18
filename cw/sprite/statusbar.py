@@ -1046,7 +1046,7 @@ class CancelButton(StatusBarButton):
 
 class ShowFriendCardsButton(StatusBarButton):
     def __init__(self, parent, pos):
-        image = cw.s(cw.cwpy.rsrc.pygamedebugs["EVT_GET_CAST"])
+        image = cw.s(cw.cwpy.rsrc.pygamedebugs["EVT_GET_CAST_noscale"])
         name = cw.cwpy.msgs["show_fcards"]
         desc = cw.cwpy.msgs["desc_show_friend_card"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
@@ -1056,7 +1056,7 @@ class ShowFriendCardsButton(StatusBarButton):
         self.selectable_on_event = False
 
     def get_icon(self):
-        return cw.s(cw.cwpy.rsrc.pygamedebugs["EVT_GET_CAST"])
+        return cw.s(cw.cwpy.rsrc.pygamedebugs["EVT_GET_CAST_noscale"])
 
     def update(self, scr):
         self.update_selection()
