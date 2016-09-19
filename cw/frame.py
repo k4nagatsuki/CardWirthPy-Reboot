@@ -35,6 +35,7 @@ class Frame(wx.Frame):
         else:
             cw.UP_WIN = 1
             cw.UP_SCR = 1
+        cw.UP_WIN_M = cw.UP_WIN
 
         self.kill_list = []
 
@@ -81,6 +82,7 @@ class Frame(wx.Frame):
         if self._setting.is_expanded and (drect[2] < wsize[0] or drect[3] < wsize[1]):
             self._setting.is_expanded = False
             cw.UP_WIN = 1
+            cw.UP_WIN_M = cw.UP_WIN
             cw.UP_SCR = 1
             self.SetClientSize(cw.wins(cw.SIZE_GAME))
             if sys.platform <> "win32":
@@ -386,7 +388,7 @@ class Frame(wx.Frame):
         if not (self.IsActive() or (self.debugger and self.debugger.IsActive())):
             pos = (-1, -1)
         else:
-            pos = cw.win2scr_s((event.GetX()-cw.cwpy.scr_pos[0], event.GetY()-cw.cwpy.scr_pos[1]))
+            pos = cw.mwin2scr_s((event.GetX()-cw.cwpy.scr_pos[0], event.GetY()-cw.cwpy.scr_pos[1]))
         cw.cwpy.wxmousepos = pos
 
     def OnLeftUp(self, event):
@@ -1092,7 +1094,7 @@ class Frame(wx.Frame):
 
                     # サイズを適正に変換
                     img = cw.util.convert_to_image(bmp)
-                    img = cw.win2scr_s(img)
+                    img = cw.mwin2scr_s(img)
                     bmp = img.ConvertToBitmap()
 
                     # 位置を調節

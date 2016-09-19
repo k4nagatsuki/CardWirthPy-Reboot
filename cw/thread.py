@@ -521,10 +521,19 @@ class CWPy(_Singleton, threading.Thread):
         else:
             return d
 
-    def update_scale(self, scale, changearea=True, rsrconly=False, udpatedrawsize=True):
+    def update_scale(self, scale, changearea=True, rsrconly=False, udpatedrawsize=True,
+                     displaysize=None):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
+        fullscreen = self.is_expanded() and self.setting.expandmode == "FullScreen"
+        if displaysize is None and fullscreen:
+            def func():
+                dsize = self.frame.get_displaysize()
+                self.exec_func(self.update_scale, scale, changearea, rsrconly, udpatedrawsize, dsize)
+            self.frame.exec_func(func)
+            return
+
         self.update_scaling = True
 
         if self.ydata:
@@ -536,9 +545,8 @@ class CWPy(_Singleton, threading.Thread):
         if not rsrconly:
             cw.UP_SCR = scale
             flags = 0
-            fullscreen = self.is_expanded() and self.setting.expandmode == "FullScreen"
             if fullscreen:
-                dsize = self.frame.get_displaysize()
+                dsize = displaysize
                 self.scr_fullscreen = pygame.display.set_mode((dsize[0], dsize[1]), flags)
                 self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
                 self.scr_draw = self.scr
@@ -903,14 +911,14 @@ class CWPy(_Singleton, threading.Thread):
         if sys.platform <> "win32":
             self.mousepos = self.wxmousepos
             return True
-        if pygame.mouse.get_focused():
+        if pygame.mouse.get_focused() or sys.platform <> "win32":
             if self.scr_fullscreen:
                 mousepos = pygame.mouse.get_pos()
                 x = int((mousepos[0] - self.scr_pos[0]) / self.scr_scale)
                 y = int((mousepos[1] - self.scr_pos[1]) / self.scr_scale)
                 self.mousepos = (x, y)
             else:
-                self.mousepos = cw.win2scr_s(pygame.mouse.get_pos())
+                self.mousepos = cw.mwin2scr_s(pygame.mouse.get_pos())
         else:
             self.mousepos = (-1, -1)
         return True
@@ -1124,6 +1132,7 @@ class CWPy(_Singleton, threading.Thread):
             # FIXME: シナリオ選択ダイアログの縦幅が画面解像度を
             #        超えてしまうので若干小さめにする
             cw.UP_WIN = scale * 0.9
+            cw.UP_WIN_M = scale
 
         else:
             self.scr_size = self.scr.get_size()
@@ -1469,7 +1478,7 @@ class CWPy(_Singleton, threading.Thread):
                 time.sleep(0.001)
             return result[0]
 
-    def set_expanded(self, flag, expandmode="", force=False):
+    def set_expanded(self, flag, expandmode="", force=False, displaysize=None):
         """拡大表示する。すでに拡大表示されている場合は解除する。
         flag: Trueなら拡大表示、Falseなら解除。
         """
@@ -1479,6 +1488,13 @@ class CWPy(_Singleton, threading.Thread):
         if not expandmode:
             expandmode = self.expand_mode if self.is_expanded() else self.setting.expandmode
 
+        if displaysize is None and expandmode == "FullScreen" and flag:
+            def func():
+                dsize = self.frame.get_displaysize()
+                self.exec_func(self.set_expanded, flag, expandmode, force, dsize)
+            self.frame.exec_func(func)
+            return
+
         updatedrawsize = force or self.setting.expanddrawing <> 1
 
         if expandmode == "None":
@@ -1487,6 +1503,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.expand_mode = "None"
                 self.setting.is_expanded = False
                 cw.UP_WIN = 1
+                cw.UP_WIN_M = cw.UP_WIN
                 self.update_scale(1, True, False, updatedrawsize)
                 self.clear_inputevents()
             else:
@@ -1504,8 +1521,9 @@ class CWPy(_Singleton, threading.Thread):
 
                 self.setting.is_expanded = flag
                 if flag:
+                    assert not displaysize is None
                     self.expand_mode = expandmode
-                    dsize = self.frame.get_displaysize()
+                    dsize = displaysize
                     self.scr_fullscreen = pygame.display.set_mode((dsize[0], dsize[1]), 0)
                     self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
                     self.scr_draw = self.scr
@@ -1513,6 +1531,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.update_scale(self.setting.expanddrawing, True, False, updatedrawsize)
                 else:
                     cw.UP_WIN = 1
+                    cw.UP_WIN_M = cw.UP_WIN
                     self.expand_mode = "None"
                     self.scr_fullscreen = None
                     self.scr = pygame.display.set_mode(cw.wins(cw.SIZE_GAME), 0)
@@ -1540,10 +1559,12 @@ class CWPy(_Singleton, threading.Thread):
                 if flag:
                     self.expand_mode = expandmode
                     cw.UP_WIN = scale
+                    cw.UP_WIN_M = cw.UP_WIN
                     self.update_scale(self.setting.expanddrawing, True, False, updatedrawsize)
                 else:
                     self.expand_mode = "None"
                     cw.UP_WIN = 1
+                    cw.UP_WIN_M = cw.UP_WIN
                     self.update_scale(1, True, False, updatedrawsize)
                 self.clear_inputevents()
 

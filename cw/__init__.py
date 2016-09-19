@@ -143,8 +143,12 @@ LAYER_LOG_SCROLLBAR = (2004, 0, 0, 0) # ログのスクロールバー
 
 # ゲーム画面構築の拡大率
 UP_SCR = 1
-# ゲーム画面・ダイアログ描画時の拡大率(UP_SCRが1の時の値)
+# ダイアログ描画時の拡大率(UP_SCRが1の時の値)
 UP_WIN = 1
+# ゲーム画面の拡大率
+# フルスクリーン時にはダイアログを若干小さく表示するため、
+# UP_WINとは異なる値になる
+UP_WIN_M = 1
 
 # wxPythonでイメージをスムージングしつつサイズ変更する際に用いるフラグ
 if 3 <= wx.VERSION[0]:
@@ -223,6 +227,26 @@ def win2scr_s(num):
         return _s_impl(num, 1)
     else:
         return _s_impl(num, float(UP_SCR) / UP_WIN)
+
+def scr2mwin_s(num):
+    """numを描画サイズから表示サイズに変換する。
+    num: int or 座標(x,y) or 矩形(x,y,width,height)
+         or pygame.Surface or pygame.Bitmap or pygame.Image
+    """
+    if UP_WIN_M == UP_SCR:
+        return _s_impl(num, 1)
+    else:
+        return _s_impl(num, float(UP_WIN_M) / UP_SCR)
+
+def mwin2scr_s(num):
+    """numを表示サイズから描画サイズに変換する。
+    num: int or 座標(x,y) or 矩形(x,y,width,height)
+         or pygame.Surface or pygame.Bitmap or pygame.Image
+    """
+    if UP_WIN_M == UP_SCR:
+        return _s_impl(num, 1)
+    else:
+        return _s_impl(num, float(UP_SCR) / UP_WIN_M)
 
 def _s_impl(num, up_scr):
     if isinstance(num, tuple) and len(num) == 3 and num[2] is None:
