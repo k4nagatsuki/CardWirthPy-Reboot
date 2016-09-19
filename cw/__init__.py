@@ -399,6 +399,8 @@ def _s_impl(num, up_scr):
 
     return num
 
+dpi_level = 1
+
 def ppis(num):
     ppi = wx.ScreenDC().GetPPI()
     base = 96
