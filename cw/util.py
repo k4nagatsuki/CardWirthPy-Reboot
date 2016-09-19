@@ -19,6 +19,7 @@ import io
 import traceback
 import datetime
 import ctypes
+import ctypes.util
 import array
 import unicodedata
 import functools
@@ -1581,7 +1582,7 @@ def remove_temp():
 
     removeall = True
     for name in os.listdir(dpath):
-        if name == "Scenario":
+        if name in ("Scenario", "LockFiles"):
             removeall = False
         else:
             path = join_paths(dpath, name)
@@ -3213,9 +3214,7 @@ def t_print():
 _lock_mutex = threading.Lock()
 _mutex = []
 if sys.platform <> "win32":
-    _librt = ctypes.CDLL("librt.so")
-    SEM_FAILED = -1
-    S_IRWXU = 0x0700
+    import fcntl
 
 @synclock(_lock_mutex)
 def create_mutex(dpath):
@@ -3245,11 +3244,18 @@ def create_mutex(dpath):
             return True
     else:
         # Posix
-        name = "/CardWirthPy_%s\0" % (name)
-        handle = _librt.sem_open(name, os.O_CREAT|os.O_EXCL, S_IRWXU, 1)
-        if SEM_FAILED <> handle and handle:
-            _mutex.append((handle, name))
+        name = u"Data/Temp/Global/LockFiles/%s" % (name)
+        try:
+            if not os.path.isfile(name):
+                dpath = os.path.dirname(name)
+                if not os.path.isdir(dpath):
+                    os.makedirs(dpath)
+            f = open(name, "wb")
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            _mutex.append((f, name))
             return True
+        except IOError:
+            return False
 
     return False
 
@@ -3278,16 +3284,23 @@ def exists_mutex(dpath):
 
         return False
     else:
-        name = "/CardWirthPy_%s\0" % (name)
-        handle = _librt.sem_open(name, os.O_CREAT|os.O_EXCL, S_IRWXU, 1)
+        # Posix
+        name = u"Data/Temp/Global/LockFiles/%s" % (name)
         if name in map(lambda m: m[1], _mutex):
             return False
-        if SEM_FAILED <> handle and handle:
-            _librt.sem_close(handle)
-            _librt.sem_unlink(name)
+        try:
+            if not os.path.isfile(name):
+                dpath = os.path.dirname(name)
+                if not os.path.isdir(dpath):
+                    os.makedirs(dpath)
+            with open(name, "wb") as f:
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                f.close()
+            remove(name)
             return False
-
-        return True
+        except IOError:
+            return True
 
 @synclock(_lock_mutex)
 def release_mutex():
@@ -3298,8 +3311,9 @@ def release_mutex():
             kernel32.ReleaseMutex(_mutex[-1][0])
             kernel32.CloseHandle(_mutex[-1][0])
         else:
-            _librt.sem_close(_mutex[-1][0])
-            _librt.sem_unlink(_mutex[-1][1])
+            fcntl.flock(_mutex[-1][0].fileno(), fcntl.LOCK_UN)
+            _mutex[-1][0].close()
+            remove(_mutex[-1][1])
         del _mutex[-1]
 
 @synclock(_lock_mutex)
@@ -3311,8 +3325,10 @@ def clear_mutex():
             kernel32.ReleaseMutex(mutex)
             kernel32.CloseHandle(mutex)
         else:
-            _librt.sem_close(mutex)
-            _librt.sem_unlink(name)
+            f = mutex
+            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            f.close()
+            remove(name)
     _mutex = []
 
 def main():
