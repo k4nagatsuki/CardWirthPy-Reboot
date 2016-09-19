@@ -1046,18 +1046,21 @@ class Debugger(wx.Frame):
                     mdlg.ShowModal()
                     mdlg.Destroy()
                 else:
-                    for index in dlg.GetSelections():
-                        key = seq[index][0]
+                    def func(friendids, seq, indices):
+                        for index in indices:
+                            key = seq[index][0]
 
-                        if key in friendids:
-                            friendids.remove(key)
-                        else:
-                            e = cw.cwpy.sdata.get_castdata(key, nocache=True)
-                            if not e is None:
-                                fcard = cw.sprite.card.FriendCard(data=e)
-                                cw.cwpy.sdata.friendcards.append(fcard)
+                            if key in friendids:
+                                friendids.remove(key)
+                            else:
+                                e = cw.cwpy.sdata.get_castdata(key, nocache=True)
+                                if not e is None:
+                                    fcard = cw.sprite.card.FriendCard(data=e)
+                                    cw.cwpy.sdata.friendcards.append(fcard)
+                                    if cw.cwpy.is_battlestatus() and cw.cwpy.battle.is_ready() and fcard.is_active():
+                                        fcard.deck.set(fcard)
+                                        fcard.decide_action()
 
-                    def func(friendids):
                         fcards = [i for i in cw.cwpy.sdata.friendcards
                                                             if i.id in friendids]
 
@@ -1071,8 +1074,9 @@ class Debugger(wx.Frame):
                         elif cw.cwpy.is_battlestatus():
                             # バトル中は同行キャストの表示更新
                             cw.cwpy.battle.update_showfcards()
+                            cw.cwpy.statusbar.change()
                         cw.cwpy.draw()
-                    cw.cwpy.exec_func(func, friendids)
+                    cw.cwpy.exec_func(func, friendids, seq, dlg.GetSelections())
 
             dlg.Destroy()
 
