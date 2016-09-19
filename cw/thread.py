@@ -1186,7 +1186,7 @@ class CWPy(_Singleton, threading.Thread):
             name = "arrow"
 
         if name == "arrow":
-            if 2 <= cw.UP_SCR:
+            if 2 <= cw.dpi_level:
                 # 48x48
                 s = (
                   "###                                             ",
@@ -1280,7 +1280,7 @@ class CWPy(_Singleton, threading.Thread):
         elif name == "tri_right":
             pygame.mouse.set_cursor(*pygame.cursors.tri_right)
         elif name == "mouse":
-            if 2 <= cw.UP_SCR:
+            if 2 <= cw.dpi_level:
                 # 48x48
                 s = (
                   "          ##..##  ####################          ",

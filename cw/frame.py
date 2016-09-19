@@ -39,6 +39,8 @@ class Frame(wx.Frame):
 
         self.kill_list = []
 
+        cw.dpi_level = cw.ppis(1)
+
         # トップフレーム
         setfullscreensize = False
         self.style = wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX & ~wx.RESIZE_BORDER
