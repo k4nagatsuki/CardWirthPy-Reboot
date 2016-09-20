@@ -109,17 +109,23 @@ class BackGround(base.CWPySprite):
                 for sprite in reversed(cw.cwpy.cardgrp.sprites()):
                     if isinstance(sprite, cw.sprite.background.Curtain):
                         curtain = sprite
-                        curtain.cutter = cutter.subsurface(sprite.rect).copy()
-                        curtain.update_scale()
-                        cutter.fill((0, 0, 0, 255), sprite.rect)
+                        rect = sprite.target.rect
                     elif isinstance(sprite, cw.sprite.background.BgCell):
                         bgcell = sprite
+                        rect = bgcell.rect
                         curtain = cw.sprite.background.Curtain(bgcell, cw.cwpy.cardgrp, is_selectable=False,
                                                                initialize=False)
-                        curtain.cutter = cutter.subsurface(bgcell.rect).copy()
-                        curtain.update_scale()
-                        cutter.fill((0, 0, 0, 255), bgcell.rect)
                         self._curtains.append(curtain)
+                    else:
+                        continue
+
+                    subrect = cutter.get_rect().clip(rect)
+                    if 0 < subrect.width and 0 < subrect.height:
+                        curtain.cutter = cutter.subsurface(subrect).copy()
+                        curtain.cutter_pos = (max(0, -rect.left), max(0, -rect.top))
+                        cutter.fill((0, 0, 0, 255), rect)
+
+                    curtain.update_scale()
 
                 maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp,
                                                            initialize=False)
@@ -1044,6 +1050,7 @@ class Curtain(base.SelectableSprite):
         """
         base.SelectableSprite.__init__(self)
         self.cutter = None
+        self.cutter_pos = (0, 0)
         self._is_selectable = is_selectable
 
         if color:
@@ -1068,7 +1075,7 @@ class Curtain(base.SelectableSprite):
         self.image.fill(self.color)
         self.rect = pygame.Rect(self.target.rect)
         if self.cutter:
-            self.image.blit(self.cutter, (0, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
+            self.image.blit(self.cutter, self.cutter_pos, special_flags=pygame.locals.BLEND_RGBA_SUB)
 
     def rclick_event(self):
         cw.cwpy.cancel_cardcontrol()
