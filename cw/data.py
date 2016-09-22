@@ -34,6 +34,7 @@ class SystemData(object):
         引数のゲームの状態遷移の情報によって読み込むxmlを変える。
         """
         cw.cwpy.debug = cw.cwpy.setting.debug
+        self.wsn_version = ""
         self.data = None
         self.name = ""
         self.sdata = ""
@@ -133,6 +134,17 @@ class SystemData(object):
                 d[key] = mcards
 
         self.sparea_mcards = d
+
+    def is_wsnversion(self, wsn_version):
+        if not self.wsn_version:
+            return not wsn_version
+        else:
+            try:
+                ivs = int(self.wsn_version)
+                ivd = int(wsn_version)
+                return ivd <= ivs
+            except:
+                return False
 
     def get_versionhint(self, frompos=0):
         """現在有効になっている互換性マークを返す(常に無し)。"""
@@ -1089,6 +1101,9 @@ class ScenarioData(SystemData):
                 resid = e.getint("Id")
                 name = e.gettext("Name")
                 self._areas[resid] = (name, path)
+
+        # WSNバージョン
+        self.wsn_version = self.summary.getattr(".", "dataVersion", "")
 
     def update_scale(self):
         # 特殊文字の画像パスの集合(正規表現)

@@ -2379,6 +2379,27 @@ class GetGossipContent(GetContent):
         else:
             return u"ゴシップが指定されていません"
 
+def is_addablecoupon(coupon):
+    """
+    シナリオ側から操作可能なクーポンか。
+    """
+    if not coupon:
+        return False
+
+    # "＠"で始まるクーポンは付与しない
+    # ただしWSN形式には一部例外がある
+    if coupon.startswith(u'＠'):
+        if cw.cwpy.sdata.is_wsnversion('2'):
+            # カードの効果対象を指定する(Wsn.2)
+            cardevent = cw.cwpy.event.get_cardevent()
+            if cardevent and coupon in (u'＠効果対象',):
+                return True
+
+        return False
+
+    else:
+        return True
+
 class GetCouponContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
@@ -2389,8 +2410,7 @@ class GetCouponContent(GetContent):
         value = self.data.get("value")
         scope = self.data.get("targets")
 
-        # "＠"で始まるクーポンは付与しない
-        if coupon and not coupon.startswith(u"＠"):
+        if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(scope, False)
 
             for target in targets:
@@ -2743,8 +2763,7 @@ class LoseCouponContent(LoseContent):
         coupon = self.data.get("coupon")
         scope = self.data.get("targets")
 
-        # "＠"で始まるクーポンは剥奪しない
-        if coupon and not coupon.startswith(u"＠"):
+        if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(scope, False)
 
             for target in targets:

@@ -70,7 +70,7 @@ SIZE_BILL = (400, 370)
 RECT_STATUSBAR = (0, 420, 632, 33)
 
 # 対応するWSNデータバージョン
-SUPPORTED_WSN = ("", "1")
+SUPPORTED_WSN = ("", "1", "2")
 
 # 特殊エリアのID
 AREAS_SP = (-1, -2, -3, -4, -5)

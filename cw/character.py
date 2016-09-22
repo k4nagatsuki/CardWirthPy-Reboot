@@ -142,6 +142,11 @@ class Character(object):
         for e in self.data.getfind("Property/Coupons"):
             if not e.text:
                 continue
+
+            if e.text in (u"＠効果対象", u"イベント対象", u"使用者"):
+                # 効果・イベント対象に付与されるシステムクーポン(Wsn.2)
+                continue
+
             try:
                 self.coupons[e.text] = int(e.get("value")), e
             except:
@@ -1876,6 +1881,12 @@ class Character(object):
                     cw.animation.animate_sprite(self, "reverse")
             self.reversed = True
 
+        if not removed:
+            # 効果対象の変更(Wsn.2)
+            cardevent = cw.cwpy.event.get_cardevent()
+            if cardevent and name == u"＠効果対象":
+                cardevent.add_target(self)
+
         # 隠蔽クーポンがあるため
         self.adjust_action()
 
@@ -1922,6 +1933,11 @@ class Character(object):
                 else:
                     cw.animation.animate_sprite(self, "reverse")
             self.reversed = False
+
+        # 効果対象の変更(Wsn.2)
+        cardevent = cw.cwpy.event.get_cardevent()
+        if cardevent and name == u"＠効果対象":
+            cardevent.remove_target(self)
 
         return True
 
@@ -2725,10 +2741,6 @@ class Character(object):
         if self.is_unconscious():
             self.set_unconsciousstatus()
 
-        # 敵が中毒効果で死亡していたら、死亡イベント開始
-        if isinstance(self, Enemy) and self.is_dead() and oldalive:
-            self.events.start(1)
-
         # 画像更新
         if flag or updateimage:
             if self.status <> "reversed" and self.status <> "hidden":
@@ -2741,6 +2753,14 @@ class Character(object):
                     self.update_image()
             else:
                 self.update_image()
+
+        # 敵が中毒効果で死亡していたら、死亡イベント開始
+        if isinstance(self, Enemy) and self.is_dead() and oldalive:
+            if cw.cwpy.sdata.is_wsnversion('2'):
+                # イベント所持者を示すシステムクーポン(Wsn.2)
+                self.set_coupon(u"＠イベント対象", 0)
+            self.events.start(1)
+            self.remove_coupon(u"＠イベント対象")
 
     def set_hold_all(self, pocket, value):
         self.hold_all[pocket] = value
