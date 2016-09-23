@@ -1527,9 +1527,9 @@ class CardHolder(CardControl):
 
     def _end(self):
         self._timer.Stop()
-    def func():
-        self._timerfunc = None
-        self._timerbtn = None
+        def func():
+            self._timerfunc = None
+            self._timerbtn = None
         wx.CallAfter(func)
 
     def OnTimer1(self, event):
@@ -1689,7 +1689,6 @@ class CardHolder(CardControl):
         self.draw_cards()
         self._enable_updown()
         self._update_page()
-
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.play_sound("page")
@@ -2057,7 +2056,6 @@ class CardHolder(CardControl):
 
         self.page.SetValue(self.index+1)
 
-
         self.draw_cards()
 
     def OnPageNum(self, event):
@@ -2124,8 +2122,6 @@ class CardHolder(CardControl):
                 if event.GetWheelRotation() > 0:
                     if self.upbtn.IsEnabled():
                         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
-                        
-
                         self.ProcessEvent(btnevent)
                         return
                 else:
