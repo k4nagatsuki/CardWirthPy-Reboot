@@ -1119,8 +1119,7 @@ class CardEvent(Event):
         assert cw.cwpy.sdata.is_wsnversion('2')
         assert not ccard._has_coupon(u"＠効果対象")
         self._target_updated = True
-        if ccard in self._coupon_owners:
-            self._coupon_owners.remove(ccard)
+        self._coupon_owners.discard(ccard)
 
     def run_exit(self):
         """イベント実行の最後に行う終了処理。
@@ -1398,7 +1397,7 @@ class CardEvent(Event):
                     cw.cwpy.play_sound_with(eff.soundpath)
                     eff.animate(target)
                     self.run_menucardevent(target)
-                    self._coupon_owners.remove(target)
+                    self._coupon_owners.discard(target)
                 elif d["target"] <> "None":
                     eff.apply(target)
                     target.remove_coupon(u"＠効果対象")
