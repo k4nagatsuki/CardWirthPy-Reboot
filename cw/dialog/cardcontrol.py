@@ -1469,7 +1469,9 @@ class CardHolder(CardControl):
 
         for ctrl in self.change_bgs:
             ctrl.SetBackgroundColour(self.bgcolour)
-
+        
+        # 押しっぱなし用
+        self._timer = wx.Timer(self)
         # layout
         self._do_layout()
         # bind
@@ -1485,11 +1487,64 @@ class CardHolder(CardControl):
 
         self.Bind(wx.EVT_BUTTON, self.OnClickUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickDownBtn, self.downbtn)
+        self.upbtn.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDownBtn)
+        self.downbtn.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDownBtn)
+        self.upbtn.Bind(wx.EVT_LEFT_UP, self.OnMouseUpBtn)
+        self.downbtn.Bind(wx.EVT_LEFT_UP, self.OnMouseUpBtn)
+        self.upbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
+        self.downbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
 
         self.page.Bind(wx.lib.intctrl.EVT_INT, self.OnPageNum)
         self.page.Bind(wx.EVT_SET_FOCUS, self.OnPageSetFocus)
 
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
+
+
+    #押しっぱなし用タイマー
+    def OnMouseDownBtn(self, event):
+        if event.GetId() == self.upbtn.GetId():
+            self._timerfunc = self._OnClickDownBtn
+            self._timerbtn = self.upbtn
+        elif event.GetId() == self.downbtn.GetId():
+            self._timerfunc = self._OnClickDownBtn
+            self._timerbtn = self.downbtn
+        else:
+            assert False
+        self._timerfunc()
+        self.Bind(wx.EVT_TIMER, self.OnTimer1, self._timer)
+        self._timer.Start(cw.cwpy.setting.move_repeat_first, wx.TIMER_ONE_SHOT)
+        event.Skip()
+
+    def OnMouseUpBtn(self, event):
+        self._end()
+        event.Skip()
+
+    def OnKillFocusBtn(self, event):
+        f = wx.Window.FindFocus()
+        if f <> self.upbtn and f <> self.downbtn:
+            self._end()
+        event.Skip()
+
+    def _end(self):
+        self._timer.Stop()
+    def func():
+        self._timerfunc = None
+        self._timerbtn = None
+        wx.CallAfter(func)
+
+    def OnTimer1(self, event):
+        pos = self.ScreenToClient(wx.GetMousePosition())
+        if self._timerbtn.GetRect().Contains(pos):
+            self._timerfunc()
+        self._timer.Stop()
+        self.Bind(wx.EVT_TIMER, self.OnTimer2, self._timer)
+        self._timer.Start(cw.cwpy.setting.move_repeat_second)
+
+    def OnTimer2(self, event):
+        pos = self.ScreenToClient(wx.GetMousePosition())
+        if self._timerbtn.GetRect().Contains(pos):
+            self._timerfunc()
+            #ここまで
 
     def _load_index(self):
         if self.callname == "CARDPOCKET":
@@ -1634,6 +1689,7 @@ class CardHolder(CardControl):
         self.draw_cards()
         self._enable_updown()
         self._update_page()
+
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.play_sound("page")
@@ -1943,6 +1999,16 @@ class CardHolder(CardControl):
             self.ProcessEvent(btnevent)
 
     def OnClickUpBtn(self, event):
+        if self._timerfunc:
+            return
+        self._OnClickUpBtn()
+
+    def OnClickDownBtn(self, event):
+        if self._timerfunc:
+            return
+        self._OnClickDownBtn()
+
+    def _OnClickUpBtn(self):
         cw.cwpy.play_sound("click")
         negaindex = -1
 
@@ -1965,9 +2031,10 @@ class CardHolder(CardControl):
 
         self.page.SetValue(self.index+1)
 
+
         self.draw_cards()
 
-    def OnClickDownBtn(self, event):
+    def _OnClickDownBtn(self):
         cw.cwpy.play_sound("click")
         negaindex = -1
 
@@ -1989,6 +2056,7 @@ class CardHolder(CardControl):
                     header.negaflag = True
 
         self.page.SetValue(self.index+1)
+
 
         self.draw_cards()
 
@@ -2052,9 +2120,12 @@ class CardHolder(CardControl):
             else:
                 # カード置き場、荷物袋、情報カード
                 # ページを切り替え
+                self._timerfunc = None #先にホイールするとattributeエラーが出るので
                 if event.GetWheelRotation() > 0:
                     if self.upbtn.IsEnabled():
                         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
+                        
+
                         self.ProcessEvent(btnevent)
                         return
                 else:

@@ -384,6 +384,8 @@ class Setting(object):
         self.volume_increment = 5 # ホイールによる全体音量調節での増減量
         self.show_debuglogdialog = False
         self.write_playlog = False
+        self.move_repeat_first = 400 #移動ボタン押しっぱなしの速度
+        self.move_repeat_second = 250
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = False
@@ -679,6 +681,8 @@ class Setting(object):
 
         # マウスホイールによる全体音量の増減量
         self.volume_increment = data.getint("VolumeIncrement", self.volume_increment)
+
+
 
         # 一覧表示
         self.show_multiplebases = data.getbool("ShowMultipleItems", "base", self.show_multiplebases)
