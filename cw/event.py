@@ -1404,6 +1404,9 @@ class CardEvent(Event):
                     target.remove_coupon(u"＠効果対象")
                 cw.cwpy.draw()
 
+        if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+            return
+
         if not isinstance(self.error, AreaChangeError):
             # 通常のカード効果は全滅時でも選択メンバをクリアする
             cw.cwpy.event.set_selectedmember(None)
