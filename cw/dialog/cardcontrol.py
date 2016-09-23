@@ -1472,6 +1472,7 @@ class CardHolder(CardControl):
         
         # 押しっぱなし用
         self._timer = wx.Timer(self)
+        self._timerfunc = None
         # layout
         self._do_layout()
         # bind
@@ -1493,7 +1494,6 @@ class CardHolder(CardControl):
         self.downbtn.Bind(wx.EVT_LEFT_UP, self.OnMouseUpBtn)
         self.upbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
         self.downbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
-
         self.page.Bind(wx.lib.intctrl.EVT_INT, self.OnPageNum)
         self.page.Bind(wx.EVT_SET_FOCUS, self.OnPageSetFocus)
 
@@ -1503,7 +1503,7 @@ class CardHolder(CardControl):
     #押しっぱなし用タイマー
     def OnMouseDownBtn(self, event):
         if event.GetId() == self.upbtn.GetId():
-            self._timerfunc = self._OnClickDownBtn
+            self._timerfunc = self._OnClickUpBtn
             self._timerbtn = self.upbtn
         elif event.GetId() == self.downbtn.GetId():
             self._timerfunc = self._OnClickDownBtn
@@ -2118,7 +2118,6 @@ class CardHolder(CardControl):
             else:
                 # カード置き場、荷物袋、情報カード
                 # ページを切り替え
-                self._timerfunc = None #先にホイールするとattributeエラーが出るので
                 if event.GetWheelRotation() > 0:
                     if self.upbtn.IsEnabled():
                         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
