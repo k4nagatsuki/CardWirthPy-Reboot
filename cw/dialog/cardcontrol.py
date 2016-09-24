@@ -53,10 +53,10 @@ class CardControl(wx.Dialog):
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((90, 24)), s)
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=1)
         # right
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=1)
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((520, 285)))
         self.toppanel.SetMinSize(cw.wins((520, 285)))
@@ -128,13 +128,13 @@ class CardControl(wx.Dialog):
 
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
-        self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp)
+        self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp, chain=1)
         # sendto
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((100, 24)), style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
-        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp)
+        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp, chain=1)
         if not sendto:
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
@@ -1395,7 +1395,7 @@ class CardHolder(CardControl):
         # カード置き場、荷物袋、情報カード用のコントロール
         # up
         bmp = cw.cwpy.rsrc.buttons["UP"]
-        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp)
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp, chain=1)
         # ページ指定
         self.page = wx.lib.intctrl.IntCtrl(self.toppanel, -1, style=wx.TE_RIGHT, size=cw.wins((-1, 22)))
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(17))
@@ -1409,7 +1409,7 @@ class CardHolder(CardControl):
         self.additionals.append((self.page, lambda: self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")))
         # down
         bmp = cw.cwpy.rsrc.buttons["DOWN"]
-        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp)
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp, chain=1)
 
         self._enable_updown()
 
@@ -1469,10 +1469,7 @@ class CardHolder(CardControl):
 
         for ctrl in self.change_bgs:
             ctrl.SetBackgroundColour(self.bgcolour)
-        
-        # 押しっぱなし用
-        self._timer = wx.Timer(self)
-        self._timerfunc = None
+
         # layout
         self._do_layout()
         # bind
@@ -1488,63 +1485,11 @@ class CardHolder(CardControl):
 
         self.Bind(wx.EVT_BUTTON, self.OnClickUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickDownBtn, self.downbtn)
-        self.upbtn.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDownBtn)
-        self.downbtn.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDownBtn)
-        self.upbtn.Bind(wx.EVT_LEFT_UP, self.OnMouseUpBtn)
-        self.downbtn.Bind(wx.EVT_LEFT_UP, self.OnMouseUpBtn)
-        self.upbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
-        self.downbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
+
         self.page.Bind(wx.lib.intctrl.EVT_INT, self.OnPageNum)
         self.page.Bind(wx.EVT_SET_FOCUS, self.OnPageSetFocus)
 
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
-
-
-    #押しっぱなし用タイマー
-    def OnMouseDownBtn(self, event):
-        if event.GetId() == self.upbtn.GetId():
-            self._timerfunc = self._OnClickUpBtn
-            self._timerbtn = self.upbtn
-        elif event.GetId() == self.downbtn.GetId():
-            self._timerfunc = self._OnClickDownBtn
-            self._timerbtn = self.downbtn
-        else:
-            assert False
-        self._timerfunc()
-        self.Bind(wx.EVT_TIMER, self.OnTimer1, self._timer)
-        self._timer.Start(cw.cwpy.setting.move_repeat_first, wx.TIMER_ONE_SHOT)
-        event.Skip()
-
-    def OnMouseUpBtn(self, event):
-        self._end()
-        event.Skip()
-
-    def OnKillFocusBtn(self, event):
-        f = wx.Window.FindFocus()
-        if f <> self.upbtn and f <> self.downbtn:
-            self._end()
-        event.Skip()
-
-    def _end(self):
-        self._timer.Stop()
-        def func():
-            self._timerfunc = None
-            self._timerbtn = None
-        wx.CallAfter(func)
-
-    def OnTimer1(self, event):
-        pos = self.ScreenToClient(wx.GetMousePosition())
-        if self._timerbtn.GetRect().Contains(pos):
-            self._timerfunc()
-        self._timer.Stop()
-        self.Bind(wx.EVT_TIMER, self.OnTimer2, self._timer)
-        self._timer.Start(cw.cwpy.setting.move_repeat_second)
-
-    def OnTimer2(self, event):
-        pos = self.ScreenToClient(wx.GetMousePosition())
-        if self._timerbtn.GetRect().Contains(pos):
-            self._timerfunc()
-            #ここまで
 
     def _load_index(self):
         if self.callname == "CARDPOCKET":
@@ -1998,16 +1943,6 @@ class CardHolder(CardControl):
             self.ProcessEvent(btnevent)
 
     def OnClickUpBtn(self, event):
-        if self._timerfunc:
-            return
-        self._OnClickUpBtn()
-
-    def OnClickDownBtn(self, event):
-        if self._timerfunc:
-            return
-        self._OnClickDownBtn()
-
-    def _OnClickUpBtn(self):
         cw.cwpy.play_sound("click")
         negaindex = -1
 
@@ -2030,10 +1965,9 @@ class CardHolder(CardControl):
 
         self.page.SetValue(self.index+1)
 
-
         self.draw_cards()
 
-    def _OnClickDownBtn(self):
+    def OnClickDownBtn(self, event):
         cw.cwpy.play_sound("click")
         negaindex = -1
 

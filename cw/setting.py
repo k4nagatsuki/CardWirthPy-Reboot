@@ -384,8 +384,7 @@ class Setting(object):
         self.volume_increment = 5 # ホイールによる全体音量調節での増減量
         self.show_debuglogdialog = False
         self.write_playlog = False
-        self.move_repeat_first = 400 #移動ボタン押しっぱなしの速度
-        self.move_repeat_second = 250
+        self.move_repeat = 250 #移動ボタン押しっぱなしの速度
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = False
@@ -681,8 +680,6 @@ class Setting(object):
 
         # マウスホイールによる全体音量の増減量
         self.volume_increment = data.getint("VolumeIncrement", self.volume_increment)
-
-
 
         # 一覧表示
         self.show_multiplebases = data.getbool("ShowMultipleItems", "base", self.show_multiplebases)
@@ -1519,17 +1516,44 @@ class Resource(object):
         fonts.set("screenshot", self.create_font, "screenshot", *self.setting().fonttypes["screenshot"])
         return fonts
 
-    def create_wxbutton(self, parent, cid, size, name=None, bmp=None):
+    def create_wxbutton(self, parent, cid, size, name=None, bmp=None , chain=0):
         if name:
             button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
             button.SetFont(self.get_wxfont("button"))
         elif bmp:
-            button = wx.BitmapButton(parent, cid, bmp)
+            button = wx.BitmapButton(parent, cid, bmp , style=wx.NO_BORDER)
             button.SetMinSize(size)
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
 
+        if chain==1:
+            #押しっぱなしTimer
+            timer = wx.Timer(button)
+            
+            def starttimer(event):
+                timer.Start(cw.cwpy.setting.move_repeat, wx.TIMER_ONE_SHOT)
+
+            def click(event):
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
+                button.ProcessEvent(btnevent)
+                event.Skip()
+
+            def timerfunc(event):
+                click(event)
+                timer.Stop()
+                starttimer(event)
+                
+            def stoptimer(event):
+                timer.Stop()
+                event.Skip()
+
+            button.Bind(wx.EVT_TIMER, timerfunc)
+            button.Bind(wx.EVT_LEFT_DOWN, starttimer)
+            button.Bind(wx.EVT_LEFT_DOWN, click) #starttimerだけだとシングルクリックが認識されない
+            button.Bind(wx.EVT_LEFT_UP, stoptimer)
+            button.Bind(wx.EVT_KILL_FOCUS, stoptimer)
+            
         return button
 
     def create_wxbutton_dbg(self, parent, cid, size, name=None, bmp=None):
