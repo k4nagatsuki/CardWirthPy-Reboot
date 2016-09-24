@@ -39,6 +39,8 @@ class EventInterface(object):
         self.in_cardeffectmotion = False
         # 使用時イベントの実行中はTrue
         self.in_inusecardevent = False
+        # 終了時実行関数。F9用
+        self.exit_func = None
 
     def get_selectedmembername(self):
         """選択中メンバの名前を返す。"""
@@ -127,6 +129,7 @@ class EventInterface(object):
         self._targetstack = -2
         self.refresh_tools()
         self.refresh_activeitem()
+        self.exit_func = None
 
     def set_inusecard(self, header):
         """使用中カードを変更する。
@@ -658,8 +661,6 @@ class Event(object):
         self.keycodes = []
         # キーコード発火条件("Or":どれか一つが存在する, "And":全て存在する)
         self.keycode_matching = "Or"
-        # 終了時実行関数。F9用
-        self.exit_func = None
         # パッケージイベントであればパッケージIDを設定
         self.packageid = 0
         # 実行後に互換性情報を書き戻す必要があれば設定
@@ -724,10 +725,11 @@ class Event(object):
             self.error = err
             self.stop()
 
-        self.end()
+        if cw.cwpy.event.exit_func:
+            cw.cwpy.exec_func(cw.cwpy.event.exit_func)
+            cw.cwpy.event.exit_func = None
 
-        if self.exit_func:
-            cw.cwpy.exec_func(self.exit_func)
+        self.end()
 
     def stop(self):
         """イベント強制中断処理。
@@ -1324,6 +1326,11 @@ class CardEvent(Event):
         self._target_index = 0
 
         # 対象メンバに効果モーションを適用
+        def clear_params(target):
+            if isinstance(target, cw.character.Character):
+                target.remove_coupon(u"＠効果対象")
+            target.clear_cardtarget()
+
         while True:
             if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                 break
@@ -1337,13 +1344,16 @@ class CardEvent(Event):
                     not eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS):
                 # 意識不明者に有効な効果が含まれていない場合は
                 # イベント発火判定を含め何もしない
+                clear_params(target)
                 continue
             if target.status == "hidden" and\
                     not isinstance(target, cw.sprite.card.FriendCard):
                 # 非表示の場合は何もしない
+                clear_params(target)
                 continue
             if not isinstance(target, cw.sprite.card.MenuCard) and\
                     target.is_vanished():
+                clear_params(target)
                 continue
 
             unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and\
@@ -1365,6 +1375,7 @@ class CardEvent(Event):
                     self._update_targets()
 
                     if cw.cwpy.sdata.is_wsnversion('2') and not target.has_coupon(u"＠効果対象"):
+                        clear_params(target)
                         continue
 
                     target.clear_cardtarget()
