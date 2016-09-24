@@ -1154,7 +1154,7 @@ class YadoSelect(MultiViewSelect):
 
         # 変換可能なデータかどうか確認
         if not cwdata.is_convertible():
-            s = u"CardWirth ver1.20以降の宿しか変換できません。"
+            s = u"CardWirth ver.1.20-1.50の宿しか変換できません。"
             dlg = message.ErrorMessage(self, s)
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
@@ -1365,11 +1365,16 @@ class YadoSelect(MultiViewSelect):
                 try:
                     wyd = cw.util.join_paths(yadodir, u"Environment.wyd")
                     if not os.path.isfile(wyd):
+                        advnames.append([u"*読込失敗*"])
                         continue
 
                     with cw.binary.cwfile.CWFile(wyd, "rb") as f:
                         wyd = cw.binary.environment.Environment(None, f, True, versiononly=True)
                         f.close()
+                    if 13 <= wyd.dataversion_int:
+                        # 1.50まで
+                        advnames.append([u"*読込失敗*"])
+                        continue
 
                     # 1.20のアルバムデータは時間がかかる可能性があるため
                     # リストに表示しない

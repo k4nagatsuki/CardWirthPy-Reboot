@@ -208,7 +208,8 @@ class SkinConversionDialog(wx.Dialog):
                     for fpath in os.listdir(targ):
                         dpath = cw.util.join_paths(targ, fpath)
                         fpath = cw.util.join_paths(dpath, "Environment.wyd")
-                        if os.path.isfile(fpath) and not os.path.normcase(os.path.abspath(os.path.normpath(dpath))) in exists:
+                        cwyado = cw.binary.cwyado.CWYado(dpath, u"Yado")
+                        if cwyado.is_convertible() and not os.path.normcase(os.path.abspath(os.path.normpath(dpath))) in exists:
                             link = os.path.basename(dpath)
                             link = cw.util.join_paths(u"Yado", link + ".lnk")
                             link = cw.binary.util.check_duplicate(link)
