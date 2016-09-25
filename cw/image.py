@@ -13,7 +13,7 @@ import cw
 
 
 class ImageInfo(object):
-    def __init__(self, path="", pcnumber=0, base=None, postype="Default"):
+    def __init__(self, path="", pcnumber=0, base=None, postype="Default", basecardtype=None):
         """
         カードなどの画像の定義。
         """
@@ -26,11 +26,76 @@ class ImageInfo(object):
             self.postype = self.base.postype
         else:
             self.postype = postype
+        self.basecardtype = basecardtype
 
     def set_attr(self, e):
         """拡張情報をeへ登録する(現在は処理なし)。
         """
         assert e.tag == "ImagePath"
+        if not e.postype in ("Default", None):
+            e.attrib["positiontype"] = e.postype
+
+    def calc_basecardposition(self, (imgwidth, imgheight), noscale=False, basecardtype=None, cardpostype=None):
+        """カードに配置した時の描画位置を返す。
+        ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
+        """
+        def getsize(resname):
+            return cw.cwpy.rsrc.cardbgs[resname].get_size()
+        return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
+
+    def calc_basecardposition_wx(self, (imgwidth, imgheight), noscale=False, basecardtype=None, cardpostype=None):
+        """カードに配置した時の描画位置を返す。
+        ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
+        """
+        def getsize(resname):
+            return cw.cwpy.rsrc.wxcardbgs[resname].GetSize()
+        return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
+
+    def _calc_basecardposition_impl(self, imgwidth, imgheight, noscale, basecardtype, cardpostype, ss, getsize):
+        if self.basecardtype:
+            basecardtype = self.basecardtype
+
+        if cardpostype == "LargeCard":
+            x, y = (11, 18)
+        elif cardpostype == "NormalCard":
+            x, y = (3, 13)
+        else:
+            x, y = (0, 0)
+
+        if basecardtype == "LargeCard":
+            w, h = getsize("LARGE_noscale")
+            bx, by = (11, 18)
+            defpostype = "Center"
+        elif basecardtype == "NormalCard":
+            w, h = getsize("NORMAL_noscale")
+            bx, by = (3, 13)
+            defpostype = "TopLeft"
+        else:
+            return pygame.Rect(0, 0, imgwidth, imgheight)
+
+        if not noscale:
+            x, y = ss((x, y))
+            w, h = ss((w, h))
+            bx, by = ss((bx, by))
+
+        postype = self.postype
+        if not postype in ("TopLeft", "Center"):
+            postype = defpostype
+
+        if postype == "Center":
+            x = (w-imgwidth) // 2
+            y = (h-imgheight) // 2
+        elif postype == "TopLeft":
+            x = bx
+            y = by
+        else:
+            assert False
+
+        if cardpostype:
+            x -= bx
+            y -= by
+
+        return pygame.Rect(x, y, w, h)
 
     def __eq__(self, other):
         return isinstance(other, ImageInfo) and self.path == other.path and self.pcnumber == other.pcnumber and\
@@ -229,13 +294,12 @@ class CardImage(Image):
 
             if pisc or os.path.isfile(path):
                 subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
-                if info.postype == "Center":
-                    x = (w-subimg.get_width()) // 2
-                    y = (h-subimg.get_height()) // 2
-                    cw.imageretouch.blit_2bitbmp_to_card(image, subimg, (x, y))
-                else:
-                    # info.postype in ("TopLeft", "Default")
-                    cw.imageretouch.blit_2bitbmp_to_card(image, subimg, cw.s((3, 13)))
+
+                baserect = info.calc_basecardposition(subimg.get_size(), noscale=False,
+                                                      basecardtype="NormalCard",
+                                                      cardpostype="NormalCard")
+
+                cw.imageretouch.blit_2bitbmp_to_card(image, subimg, (cw.s(3)+baserect.x, cw.s(13)+baserect.y))
 
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         colour = (0, 0, 0)
@@ -416,15 +480,13 @@ class CardImage(Image):
             if pisc or os.path.isfile(path):
                 subimg = cw.util.load_wxbmp(path, True)
                 subimg2 = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
-                if info.postype == "Center":
-                    x = (w - subimg2.GetWidth()) // 2
-                    y = (h - subimg2.GetHeight()) // 2
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg2, x, y, True,
-                                                           bitsizekey=subimg)
-                else:
-                    # info.postype in ("TopLeft", "Default")
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg2, cw.wins(3), cw.wins(13), True,
-                                                           bitsizekey=subimg)
+
+                baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
+                                                         basecardtype="NormalCard",
+                                                         cardpostype="NormalCard")
+
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg2, cw.wins(3)+baserect.x, cw.wins(13)+baserect.y, True,
+                                                       bitsizekey=subimg)
 
         pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
         if wx.VERSION[0] <= 3:
@@ -616,13 +678,12 @@ class LargeCardImage(CardImage):
 
             if pisc or os.path.isfile(path):
                 subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
-                if info.postype == "TopLeft":
-                    cw.imageretouch.blit_2bitbmp_to_card(image, subimg, cw.s((11, 18)))
-                else:
-                    # info.postype in ("Center", "Default")
-                    x = (w-subimg.get_width()) // 2
-                    y = (h-subimg.get_height()) // 2
-                    cw.imageretouch.blit_2bitbmp_to_card(image, subimg, (x, y))
+
+                baserect = info.calc_basecardposition(subimg.get_size(), noscale=False,
+                                                      basecardtype="LargeCard",
+                                                      cardpostype="LargeCard")
+
+                cw.imageretouch.blit_2bitbmp_to_card(image, subimg, (cw.s(11)+baserect.x, cw.s(18)+baserect.y))
 
         font = cw.cwpy.rsrc.fonts["pcard_name"]
         if self.name:
@@ -679,15 +740,13 @@ class LargeCardImage(CardImage):
             if pisc or os.path.isfile(path):
                 subimg = cw.util.load_wxbmp(path, True)
                 subimg2 = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
-                if info.postype == "TopLeft":
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg2, cw.wins(11), cw.wins(18), True,
-                                                           bitsizekey=subimg)
-                else:
-                    # info.postype in ("Center", "Default")
-                    x = (w - subimg2.GetWidth()) // 2
-                    y = (h - subimg2.GetHeight()) // 2
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg2, x, y, True,
-                                                           bitsizekey=subimg)
+
+                baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
+                                                         basecardtype="LargeCard",
+                                                         cardpostype="LargeCard")
+
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, subimg2, cw.wins(11)+baserect.x, cw.wins(18)+baserect.y, True,
+                                                       bitsizekey=subimg)
 
         pixelsize = cw.cwpy.setting.fonttypes["ccardname"][2]
         if wx.VERSION[0] <= 3:
@@ -821,15 +880,12 @@ class CharacterCardImage(CardImage):
 
         # カード画像
         for cardimg, info in zip(self.cardimgs, self.paths):
-            dw = cardimg.get_width()
-            dh = cardimg.get_height()
-            if info.postype == "TopLeft":
-                cw.imageretouch.blit_2bitbmp_to_card(self.image, cardimg, cw.s((11, 18)))
-            else:
-                # info.postype in ("Center", "Default")
-                x = (self.rect.width-dw) // 2
-                y = (self.rect.height-dh) // 2
-                cw.imageretouch.blit_2bitbmp_to_card(self.image, cardimg, (x, y))
+
+            baserect = info.calc_basecardposition(cardimg.get_size(), noscale=False,
+                                                  basecardtype="LargeCard",
+                                                  cardpostype="LargeCard")
+
+            cw.imageretouch.blit_2bitbmp_to_card(self.image, cardimg, (cw.s(11)+baserect.x, cw.s(18)+baserect.y))
 
         # 名前
         if self.nameimg:

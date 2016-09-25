@@ -111,8 +111,8 @@ class MessageWindow(base.CWPySprite):
         # 話者画像
         if self.talker_image_noscale:
             self.talker_image = []
-            for talker_image_noscale in self.talker_image_noscale:
-                self.talker_image.append(cw.s(talker_image_noscale))
+            for talker_image_noscale, info in self.talker_image_noscale:
+                self.talker_image.append((cw.s(talker_image_noscale), info))
         elif self.imgpaths:
             self.talker_image_noscale = []
             self.talker_image = []
@@ -125,22 +125,32 @@ class MessageWindow(base.CWPySprite):
                         path = cw.util.get_yadofilepath(path)
                 talker_image_noscale = cw.util.load_image(path, True)
                 if talker_image_noscale and talker_image_noscale.get_width():
-                    self.talker_image_noscale.append(talker_image_noscale)
-                    self.talker_image.append(cw.s(talker_image_noscale))
+                    self.talker_image_noscale.append((talker_image_noscale, info))
+                    self.talker_image.append((cw.s(talker_image_noscale), info))
         else:
             self.talker_image_noscale = []
             self.talker_image = []
 
-        for talker_image in self.talker_image_noscale:
+        for talker_image, info in self.talker_image_noscale:
             tih = talker_image.get_height()
-            y = (size_noscale[1] - tih) / 2
+            y = (size_noscale[1] - tih) // 2
+            y += info.calc_basecardposition(talker_image.get_size(), noscale=True).y
+
             self.top_noscale = max(0, min(y-9, self.top_noscale))
             self.bottom_noscale = min(size_noscale[1], max(y+tih+9, self.bottom_noscale))
 
-        for talker_image in self.talker_image:
-            y = (cw.s(180) - talker_image.get_height()) / 2
+        for talker_image, info in self.talker_image:
+            baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
+            y = (cw.s(180) - baserect.height) // 2
             y -= cw.s(self.trim_top_noscale)
-            cw.imageretouch.blit_2bitbmp_to_message(self.image, talker_image, (cw.s(15), y), wincolour)
+            if info.basecardtype:
+                x = cw.s(15) + baserect.x
+            elif info.postype == "Center":
+                x = (self.rect.width-baserect.width) // 2
+            else:
+                x = cw.s(15)
+            y += baserect.y
+            cw.imageretouch.blit_2bitbmp_to_message(self.image, talker_image, (x, y), wincolour)
 
         self._fore = pygame.Surface(cw.s((470, 180))).convert_alpha()
         self._fore.fill((0, 0, 0, 0))
@@ -280,7 +290,10 @@ class MessageWindow(base.CWPySprite):
             else:
                 versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
             if cw.cwpy.sct.lessthan("1.28", versionhint):
-                w = max(map(lambda bmp: bmp.get_width(), self.talker_image))
+                def calc_w((bmp, info)):
+                    baserect = info.calc_basecardposition(bmp.get_size())
+                    return baserect.x + baserect.width
+                w = max(map(calc_w, self.talker_image))
             else:
                 w = cw.s(74)
             posp = pos = pos[0] + cw.s(26) + w, pos[1]

@@ -855,20 +855,24 @@ class BackGround(base.CWPySprite):
                         if path:
                             path = cw.util.join_yadodir(path)
                             if path:
-                                paths.append(path)
+                                paths.append((path, info2))
                 self.pc_cache[pcnumber] = paths
 
             if expand:
                 image = pygame.Surface(cw.SIZE_CARDIMAGE).convert_alpha()
                 image.fill((0, 0, 0, 0))
 
-                for path in paths:
+                for path, info in paths:
                     # BUG: CardWirth 1.50以降では、一部のPNGイメージで背景に配置した時は
                     #      マスク設定が効かないのにカードだと効くという状態になるが、
                     #      1.60ではPCイメージとしてそのようなイメージを表示すると、
                     #      マスクされた状態で表示される。従ってマスクの効く・効かないという
                     #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
-                    image.blit(cw.util.load_image(path, True, isback=False), (0, 0))
+                    bmp = cw.util.load_image(path, True, isback=False)
+                    baserect = info.calc_basecardposition(bmp.get_size(), noscale=True,
+                                                          basecardtype="LargeCard",
+                                                          cardpostype="NotCard")
+                    image.blit(bmp, (baserect.x, baserect.y))
 
                 if cw.cwpy.setting.smoothscale_bg:
                     image = cw.image.smoothscale(image, size)
@@ -878,8 +882,12 @@ class BackGround(base.CWPySprite):
                 image = pygame.Surface(size).convert_alpha()
                 image.fill((0, 0, 0, 0))
 
-                for path in paths:
-                    image.blit(cw.util.load_image(path, True, isback=False), (0, 0))
+                for path, info in paths:
+                    bmp = cw.util.load_image(path, True, isback=False)
+                    baserect = info.calc_basecardposition(bmp.get_size(), noscale=True,
+                                                          basecardtype="LargeCard",
+                                                          cardpostype="NotCard")
+                    image.blit(bmp, (baserect.x, baserect.y))
 
             d2 = (cw.s(image), size, pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))

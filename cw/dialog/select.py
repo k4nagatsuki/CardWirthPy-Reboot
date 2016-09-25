@@ -1620,7 +1620,7 @@ class PartySelect(MultiViewSelect):
                                     bmp4.bmpdepthis1 = bmpdepthis1
                                 if maskcolour:
                                     bmp4.maskcolour = maskcolour
-                                bmp2.append((bmp3, bmp4))
+                                bmp2.append((bmp3, bmp4, info))
             return bmp, bmp_noscale, bmp2, sceheader
 
         if self.views == 1:
@@ -1669,9 +1669,14 @@ class PartySelect(MultiViewSelect):
             py = cw.wins(125+47)
             pw = cw.wins(cw.SIZE_CARDIMAGE[0])
             ph = cw.wins(cw.SIZE_CARDIMAGE[1])
-            dc.SetClippingRect(wx.Rect(px, py, pw, ph))
-            for bmp3, bmp4 in bmp2:
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp4, px, py, True, bitsizekey=bmp3)
+            dc.SetClippingRect(wx.Rect(px, py, pw//2, ph//2))
+            for bmp3, bmp4, info in bmp2:
+                baserect = info.calc_basecardposition_wx(bmp3.GetSize(), noscale=False,
+                                                         basecardtype="LargeCard",
+                                                         cardpostype="NotCard")
+                baserect.x //= 2
+                baserect.y //= 2
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp4, px+baserect.x, py+baserect.y, True, bitsizekey=bmp3)
             dc.DestroyClippingRegion()
 
             # シナリオ・宿名
@@ -2522,7 +2527,12 @@ class PlayerSelect(MultiViewSelect):
                     path = cw.util.join_yadodir(info.path)
                     bmp = cw.util.load_wxbmp(path, True)
                     bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, cw.wins(88), cw.wins(90), True, bitsizekey=bmp)
+
+                    baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+                                                             basecardtype="LargeCard",
+                                                             cardpostype="NotCard")
+
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, cw.wins(88)+baserect.x, cw.wins(90)+baserect.y, True, bitsizekey=bmp)
                 dc.DestroyClippingRegion()
                 # Age
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
@@ -2583,7 +2593,10 @@ class PlayerSelect(MultiViewSelect):
                         path = cw.util.join_yadodir(info.path)
                         bmp = cw.util.load_wxbmp(path, True)
                         bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
-                        cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, ix, iy, True, bitsizekey=bmp)
+                        baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+                                                                 basecardtype="LargeCard",
+                                                                 cardpostype="NotCard")
+                        cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, ix+baserect.x, iy+baserect.y, True, bitsizekey=bmp)
                     dc.DestroyClippingRegion()
 
                     # Name

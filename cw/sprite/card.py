@@ -853,7 +853,10 @@ class PlayerCard(CWPyCard, character.Player):
         if fromscenario and 0 < levelup:
             text = cw.cwpy.msgs["level_up"]
             names = [(0, cw.cwpy.msgs["ok"])]
-            mwin = cw.sprite.message.MessageWindow(text, names, self.imgpaths, self)
+            infos = []
+            for info in self.imgpaths:
+                infos.append(cw.image.ImageInfo(path=info.path, pcnumber=info.pcnumber, base=info, basecardtype="LargeCard"))
+            mwin = cw.sprite.message.MessageWindow(text, names, infos, self)
             cw.cwpy.show_message(mwin)
             if base <> level or cw.cwpy.ydata.party.is_suspendlevelup:
                 # レベル調節中だった場合は再調節
@@ -1156,7 +1159,7 @@ class MenuCard(CWPyCard):
                         path = info2.path
                         if path:
                             path = cw.util.join_yadodir(path)
-                        paths.append(cw.image.ImageInfo(path, info.pcnumber, base=info))
+                        paths.append(cw.image.ImageInfo(path, info.pcnumber, base=info2, basecardtype="LargeCard"))
 
         if self._data.tag == "LargeMenuCard":
             # TODO scaleinfo

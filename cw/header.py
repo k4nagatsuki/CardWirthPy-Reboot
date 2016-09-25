@@ -30,7 +30,7 @@ def to_imgpaths(dbrec, imgdbrec):
         imgpaths.append(cw.image.ImageInfo(path, postype=postype))
     if imgdbrec:
         for imgrec in imgdbrec:
-            postype = imgrec["postype"] if "postype" in imgrec else "Default"
+            postype = imgrec["postype"] if "postype" in imgrec.keys() else "Default"
             if postype is None:
                 postype = "Default"
             imgpaths.append(cw.image.ImageInfo(imgrec["imgpath"], postype=postype))
@@ -1189,13 +1189,19 @@ class ScenarioHeader(object):
         self.ctime = dbrec["ctime"]
         self.mtime = dbrec["mtime"]
         self.images = []
+        self.imgpaths = []
 
         image = dbrec["image"]
         if image:
             self.images.append(image)
+            self.imgpaths.append(cw.image.ImageInfo())
         if imgdbrec:
             for imgrec in imgdbrec:
                 self.images.append(imgrec["image"])
+                postype = imgrec["postype"]
+                if not postype:
+                    postype = "Default"
+                self.imgpaths.append(cw.image.ImageInfo(postype=postype))
 
         self._wxbmps = None
         self._wxbmps_noscale = None

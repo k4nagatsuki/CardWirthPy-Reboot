@@ -264,7 +264,7 @@ class CharaInfo(object):
             self.imgpaths = []
             imgpaths = pcard.get_imagepaths()
             for info in imgpaths:
-                self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info))
+                self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info, basecardtype="LargeCard"))
             self.imgpaths_base = self.imgpaths
             self.level = pcard.level
             self.sex = pcard.get_sex()
@@ -709,7 +709,8 @@ class CharaRequirementPanel(wx.Panel):
         path = u"Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         self.defaultface = cw.ppis(cw.util.load_wxbmp(path, mask=True))
-        self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.ppis(cw.SIZE_CARDIMAGE))
+        self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.ppis(cw.SIZE_CARDIMAGE),
+                                            ss=cw.ppis)
         self.imgcombo = wx.ComboBox(self, -1, size=(cw.ppis(125), -1), style=wx.CB_READONLY)
         self.imgpathlist = []
 
@@ -971,16 +972,20 @@ class CharaRequirementPanel(wx.Panel):
             if img:
                 # 全員のイメージが一致
                 bmps = []
+                bmps_bmpdepthkey = []
                 for info in img:
-                    bmps.append(cw.ppis(cw.util.load_wxbmp(info.path, mask=True)))
-                self.img.SetBitmap(bmps)
+                    bmp = cw.util.load_wxbmp(info.path, mask=True)
+                    bmps.append(cw.ppis(bmp))
+                    bmps_bmpdepthkey.append(bmp)
+                self.img.SetBitmap(bmps, bmps_bmpdepthkey, img)
             else:
                 # イメージが一致しないか未設定
-                self.img.SetBitmap([self.defaultface])
+                self.img.SetBitmap([self.defaultface], [self.defaultface])
         else:
             # パスを選択
             img = self.imgpathlist[self.imgcombo.GetSelection()-1]
-            self.img.SetBitmap([cw.ppis(cw.util.load_wxbmp(img, mask=True))])
+            bmp = cw.util.load_wxbmp(img, mask=True)
+            self.img.SetBitmap([cw.ppis(bmp)], [bmp])
 
     def _get_infos(self):
         if self.cindex == 0:

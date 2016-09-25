@@ -3207,7 +3207,12 @@ class TalkMessageContent(TalkContent):
                                     imgpath = cw.util.join_yadodir(imgpath)
                             else:
                                 imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, imgpath)
-                    talkers.append(cw.image.ImageInfo(imgpath, base=base))
+                    if isinstance(talker, cw.character.Character) or\
+                            isinstance(talker.cardimg, cw.image.LargeCardImage):
+                        basecardtype = "LargeCard"
+                    else:
+                        basecardtype = "NormalCard"
+                    talkers.append(cw.image.ImageInfo(imgpath, base=base, basecardtype=basecardtype))
             elif imgpath:
                 inusepath = cw.util.get_inusecardmaterialpath(imgpath, cw.M_IMG)
                 if os.path.isfile(inusepath):

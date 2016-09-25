@@ -2555,9 +2555,9 @@ class CWPy(_Singleton, threading.Thread):
                 if info.pcnumber == pcnumber:
                     if pcard:
                         for base in pcard.imgpaths:
-                            imgpaths.append(cw.image.ImageInfo(base.path, pcnumber, info.base))
+                            imgpaths.append(cw.image.ImageInfo(base.path, pcnumber, info.base, basecardtype="LargeCard"))
                     else:
-                        imgpaths.append(cw.image.ImageInfo(pcnumber=pcnumber, base=info.base))
+                        imgpaths.append(cw.image.ImageInfo(pcnumber=pcnumber, base=info.base, basecardtype="LargeCard"))
                     update = True
                 else:
                     imgpaths.append(info)

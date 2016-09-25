@@ -486,7 +486,13 @@ class TopPanel(wx.Panel):
 
             bmp = cw.util.load_wxbmp(path, True)
             bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x, cw.wins(5), True, bitsizekey=bmp)
+
+            baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+                                                     basecardtype="LargeCard",
+                                                     cardpostype="NotCard")
+
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x+baserect.x, cw.wins(5)+baserect.y, True, bitsizekey=bmp)
+
         # レベル
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam" , pixelsize=cw.wins(16)))
         coupons = self.ccard.get_specialcoupons()

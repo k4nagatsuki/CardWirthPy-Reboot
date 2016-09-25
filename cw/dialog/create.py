@@ -39,7 +39,8 @@ class AdventurerDataComp(wx.Dialog):
             bmps_noscale.append(bmp)
             bmp = cw.wins((bmp, cw.SIZE_CARDIMAGE))
             bmps.append(bmp)
-        self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmps, bmps_noscale, size=cw.wins(cw.SIZE_CARDIMAGE))
+        self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmps, bmps_noscale, size=cw.wins(cw.SIZE_CARDIMAGE),
+                                            infos=ccard.imgpaths, ss=cw.wins)
         # 各種テキスト
         s = cw.cwpy.msgs["insufficiency_message"]
         s = cw.util.txtwrap(s, 0, width=42, wrapschars=cw.util.WRAPS_CHARS)
@@ -1322,37 +1323,41 @@ class RelationPage(AdventurerCreaterPage):
         # 父親画像
         if self.father:
             paths = self.father.get_imgpaths()
+            basecardtype = "LargeCard"
         else:
             path = "Resource/Image/Card/FATHER"
             path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
             paths = [cw.image.ImageInfo(path)]
+            basecardtype = "NormalCard"
+
+        def draw_paths(pos, paths):
+            dc.SetClippingRect(wx.Rect(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
+            for info in paths:
+                if info.path:
+                    bmp = cw.util.load_wxbmp(info.path, True)
+                    bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+                    baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+                                                             basecardtype=basecardtype,
+                                                             cardpostype="NotCard")
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, pos[0]+baserect.x, pos[1]+baserect.y, True, bitsizekey=bmp)
+            dc.DestroyClippingRegion()
 
         pos = cw.wins((100, 110))
-        dc.SetClippingRect(wx.Rect(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
-        for path in paths:
-            if path.path:
-                bmp = cw.util.load_wxbmp(path.path, True)
-                bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, pos[0], pos[1], True, bitsizekey=bmp)
-        dc.DestroyClippingRegion()
+        draw_paths(pos, paths)
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "FatherFace", None, self.on_mousewheel)
 
         # 母親画像
         if self.mother:
             paths = self.mother.get_imgpaths()
+            basecardtype = "LargeCard"
         else:
             path = "Resource/Image/Card/MOTHER"
             path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
             paths = [cw.image.ImageInfo(path)]
+            basecardtype = "NormalCard"
 
         pos = cw.wins((275, 110))
-        dc.SetClippingRect(wx.Rect(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
-        for path in paths:
-            if path.path:
-                bmp = cw.util.load_wxbmp(path.path, True)
-                bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, pos[0], pos[1], True, bitsizekey=bmp)
-        dc.DestroyClippingRegion()
+        draw_paths(pos, paths)
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "MotherFace", None, self.on_mousewheel)
 
         # 父親名前
@@ -2090,7 +2095,7 @@ class DesignPanel(AdventurerCreaterPage):
 
         self.imgpaths = []
         for info in self.ccard.get_imagepaths():
-            self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info))
+            self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info, basecardtype="LargeCard"))
         self._oldimgpath = self.imgpaths[:]
 
         self.name = self.ccard.get_name()
@@ -2259,7 +2264,12 @@ class DesignPanel(AdventurerCreaterPage):
         for info in self.imgpaths:
             bmp = cw.util.load_wxbmp(info.path, True)
             bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x, y, True, bitsizekey=bmp)
+
+            baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+                                                     basecardtype="LargeCard",
+                                                     cardpostype="NotCard")
+
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x+baserect.x, y+baserect.y, True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea((x, y), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 

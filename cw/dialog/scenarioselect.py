@@ -1638,9 +1638,17 @@ class ScenarioSelect(select.Select):
 
             # 見出し画像
             wxbmps = header.get_wxbmps()
-            for bmp, bmp_noscale in zip(wxbmps[0], wxbmps[1]):
-                # 左上位置固定(CardWirthとの互換性維持)
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(163), cw.wins(70)+yp, True, bitsizekey=bmp_noscale)
+            for bmp, bmp_noscale, info in zip(wxbmps[0], wxbmps[1], header.imgpaths):
+                # デフォルトは左上位置固定(CardWirthとの互換性維持)
+                if info.postype == "Center":
+                    bx = (bmpw-bmp.GetWidth()) // 2
+                    by = (bmph-bmp.GetHeight()) // 2
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, bx, by+yp, True,
+                                                           bitsizekey=bmp_noscale)
+                else:
+                    # info.postype in ("TopLeft", "Default")
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(163), cw.wins(70)+yp, True,
+                                                           bitsizekey=bmp_noscale)
 
             # シナリオ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(21)))

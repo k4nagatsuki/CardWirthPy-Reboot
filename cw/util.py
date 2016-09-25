@@ -2872,7 +2872,7 @@ class CWPyStaticBitmap(wx.Panel):
     正しく表示できない場合があるので代替する。
     複数重ねての表示にも対応。
     """
-    def __init__(self, parent, cid, bmps, bmps_bmpdepthkey, size=None):
+    def __init__(self, parent, cid, bmps, bmps_bmpdepthkey, size=None, infos=None, ss=None):
         if not size and bmps:
             w = 0
             h = 0
@@ -2884,6 +2884,8 @@ class CWPyStaticBitmap(wx.Panel):
         wx.Panel.__init__(self, parent, cid, size=size)
         self.bmps = bmps
         self.bmps_bmpdepthkey = bmps_bmpdepthkey
+        self.infos = infos
+        self.ss = ss
         self._bind()
 
     def _bind(self):
@@ -2891,11 +2893,22 @@ class CWPyStaticBitmap(wx.Panel):
 
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
-        for bmp, bmpdepthkey in zip(self.bmps, self.bmps_bmpdepthkey):
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, 0, 0, True, bitsizekey=bmpdepthkey)
+        for i, (bmp, bmpdepthkey) in enumerate(zip(self.bmps, self.bmps_bmpdepthkey)):
+            if self.infos:
+                info = self.infos[i]
+                baserect = info.calc_basecardposition_wx(bmpdepthkey.GetSize(), noscale=True,
+                                                         basecardtype="LargeCard",
+                                                         cardpostype="NotCard")
+                baserect = self.ss(baserect)
+                x, y = baserect.x, baserect.y
+            else:
+                x, y = 0, 0
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, x, y, True, bitsizekey=bmpdepthkey)
 
-    def SetBitmap(self, bmps):
+    def SetBitmap(self, bmps, bmps_bmpdepthkey, infos=None):
         self.bmps = bmps
+        self.bmps_bmpdepthkey = bmps_bmpdepthkey
+        self.infos = infos
         self.Refresh()
 
     def GetBitmap(self, bmps):
