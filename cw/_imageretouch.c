@@ -1085,8 +1085,10 @@ font_bold(PyObject *self, PyObject *args)
         return NULL;
 
     if (font->bold != val)
+    {
         font->bold = val;
         _clear_font(font);
+    }
 
     Py_RETURN_NONE;
 }
@@ -1104,8 +1106,10 @@ font_italic(PyObject *self, PyObject *args)
         return NULL;
 
     if (font->italic != val)
+    {
         font->italic = val;
         _clear_font(font);
+    }
 
     Py_RETURN_NONE;
 }
@@ -1123,8 +1127,10 @@ font_underline(PyObject *self, PyObject *args)
         return NULL;
 
     if (font->underline != val)
+    {
         font->underline = val;
         _clear_font(font);
+    }
 
     Py_RETURN_NONE;
 }

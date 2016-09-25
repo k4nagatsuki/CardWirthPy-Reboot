@@ -1456,7 +1456,7 @@ class Resource(object):
 
         return wxfont
 
-    def create_font(self, type, size_noscale, defbold, defbold_upscr, defitalic, pixelsadd=0, nobold=False):
+    def create_font(self, type, basetype, fontname, size_noscale, defbold, defbold_upscr, defitalic, pixelsadd=0, nobold=False):
         fontname, pixels_noscale, bold, bold_upscr, italic = self.get_fontfromtype(type)
         if pixels_noscale <= 0:
             pixels_noscale = size_noscale
@@ -1481,38 +1481,52 @@ class Resource(object):
         # 使用フォント(辞書)
         fonts = ResourceTable("Font", {}.copy(), lambda: None)
         # 所持カードの使用回数描画用
-        fonts.set("card_uselimit", self.create_font, "uselimit", *self.setting().fonttypes["uselimit"])
+        t = self.setting().fonttypes["uselimit"]
+        fonts.set("card_uselimit", self.create_font, "uselimit", t[0], t[1], t[2], t[3], t[4], t[5])
         # メニューカードの名前描画用
-        fonts.set("mcard_name", self.create_font, "cardname", *self.setting().fonttypes["cardname"])
+        t = self.setting().fonttypes["cardname"]
+        fonts.set("mcard_name", self.create_font, "cardname", t[0], t[1], t[2], t[3], t[4], t[5])
         # プレイヤカードの名前描画用
-        fonts.set("pcard_name", self.create_font, "ccardname", *self.setting().fonttypes["ccardname"])
+        t = self.setting().fonttypes["ccardname"]
+        fonts.set("pcard_name", self.create_font, "ccardname", t[0], t[1], t[2], t[3], t[4], t[5])
         # プレイヤカードのレベル描画用
-        fonts.set("pcard_level", self.create_font, "level", *self.setting().fonttypes["level"])
+        t = self.setting().fonttypes["level"]
+        fonts.set("pcard_level", self.create_font, "level", t[0], t[1], t[2], t[3], t[4], t[5])
         # メッセージウィンドウのテキスト描画用
         t = self.setting().fonttypes["message"]
-        fonts.set("message", self.create_font, "message", t[0], t[1], t[2], t[3], nobold=True)
+        fonts.set("message", self.create_font, "message", t[0], t[1], t[2], t[3], t[4], t[5], nobold=True)
         # メッセージウィンドウの選択肢描画用
-        fonts.set("selectionbar", self.create_font, "selectionbar", *self.setting().fonttypes["selectionbar"])
+        t = self.setting().fonttypes["selectionbar"]
+        fonts.set("selectionbar", self.create_font, "selectionbar", t[0], t[1], t[2], t[3], t[4], t[5])
         # メッセージログのページ表示描画用
-        fonts.set("backlog_page", self.create_font, "logpage", *self.setting().fonttypes["logpage"])
+        t = self.setting().fonttypes["logpage"]
+        fonts.set("backlog_page", self.create_font, "logpage", t[0], t[1], t[2], t[3], t[4], t[5])
         # カード枚数描画用
-        fonts.set("numcards", self.create_font, "numcards", *self.setting().fonttypes["numcards"])
+        t = self.setting().fonttypes["numcards"]
+        fonts.set("numcards", self.create_font, "numcards", t[0], t[1], t[2], t[3], t[4], t[5])
         # ステータスバーパネル描画用
-        fonts.set("sbarpanel", self.create_font, "sbarpanel", *self.setting().fonttypes["sbarpanel"])
+        t = self.setting().fonttypes["sbarpanel"]
+        fonts.set("sbarpanel", self.create_font, "sbarpanel", t[0], t[1], t[2], t[3], t[4], t[5])
         # 進行状況・音量バー描画用
-        fonts.set("sbarprogress", self.create_font, "sbarprogress", *self.setting().fonttypes["sbarprogress"])
+        t = self.setting().fonttypes["sbarprogress"]
+        fonts.set("sbarprogress", self.create_font, "sbarprogress", t[0], t[1], t[2], t[3], t[4], t[5])
         # ステータスバーボタン描画用
-        fonts.set("sbarbtn", self.create_font, "sbarbtn", *self.setting().fonttypes["sbarbtn"])
+        t = self.setting().fonttypes["sbarbtn"]
+        fonts.set("sbarbtn", self.create_font, "sbarbtn", t[0], t[1], t[2], t[3], t[4], t[5])
         # ステータスバーボタン解説描画用
-        fonts.set("sbardesc", self.create_font, "sbardesc", *self.setting().fonttypes["sbardesc"])
+        t = self.setting().fonttypes["sbardesc"]
+        fonts.set("sbardesc", self.create_font, "sbardesc", t[0], t[1], t[2], t[3], t[4], t[5])
         # ステータスバーボタン解説の表題描画用
-        fonts.set("sbardesctitle", self.create_font, "sbardesctitle", *self.setting().fonttypes["sbardesctitle"])
+        t = self.setting().fonttypes["sbardesctitle"]
+        fonts.set("sbardesctitle", self.create_font, "sbardesctitle", t[0], t[1], t[2], t[3], t[4], t[5])
         # ステータス画像の召喚回数描画用
-        fonts.set("statusimg1", self.create_font, "statusnum", *self.setting().fonttypes["statusnum"])
         t = self.setting().fonttypes["statusnum"]
-        fonts.set("statusimg2", self.create_font, "statusnum", t[0], t[1], t[2], t[3], pixelsadd=-2)
-        fonts.set("statusimg3", self.create_font, "statusnum", t[0], t[1], t[2], t[3], pixelsadd=-4)
-        fonts.set("screenshot", self.create_font, "screenshot", *self.setting().fonttypes["screenshot"])
+        fonts.set("statusimg1", self.create_font, "statusnum", t[0], t[1], t[2], t[3], t[4], t[5])
+        t = self.setting().fonttypes["statusnum"]
+        fonts.set("statusimg2", self.create_font, "statusnum", t[0], t[1], t[2], t[3], t[4], t[5], pixelsadd=-2)
+        fonts.set("statusimg3", self.create_font, "statusnum", t[0], t[1], t[2], t[3], t[4], t[5], pixelsadd=-4)
+        t = self.setting().fonttypes["screenshot"]
+        fonts.set("screenshot", self.create_font, "screenshot", t[0], t[1], t[2], t[3], t[4], t[5])
         return fonts
 
     def create_wxbutton(self, parent, cid, size, name=None, bmp=None):
