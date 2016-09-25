@@ -1516,43 +1516,46 @@ class Resource(object):
         fonts.set("screenshot", self.create_font, "screenshot", *self.setting().fonttypes["screenshot"])
         return fonts
 
-    def create_wxbutton(self, parent, cid, size, name=None, bmp=None , chain=0):
+    def create_wxbutton(self, parent, cid, size, name=None, bmp=None , chain=False):
         if name:
             button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
             button.SetFont(self.get_wxfont("button"))
         elif bmp:
-            button = wx.BitmapButton(parent, cid, bmp , style=wx.NO_BORDER)
+            button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
 
-        if chain==1:
+        if chain:
             #押しっぱなしTimer
             timer = wx.Timer(button)
-            
+
             def starttimer(event):
                 timer.Start(cw.cwpy.setting.move_repeat, wx.TIMER_ONE_SHOT)
 
+            def timerfunc(event):
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
+                button.ProcessEvent(btnevent)
+                starttimer(event)
+
+            def stoptimer(event):
+                timer.Stop()
+                event.Skip()
+
+            #LEFT_DOWNでeventskipしないとシングルクリックされず
+            #タイマーと一緒にするとチャタリングが発生するので仕方なく二つ作る
             def click(event):
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
                 button.ProcessEvent(btnevent)
                 event.Skip()
 
-            def timerfunc(event):
-                click(event)
-                timer.Stop()
-                starttimer(event)
-                
-            def stoptimer(event):
-                timer.Stop()
-                event.Skip()
-
             button.Bind(wx.EVT_TIMER, timerfunc)
             button.Bind(wx.EVT_LEFT_DOWN, starttimer)
-            button.Bind(wx.EVT_LEFT_DOWN, click) #starttimerだけだとシングルクリックが認識されない
+            button.Bind(wx.EVT_LEFT_DOWN, click)
             button.Bind(wx.EVT_LEFT_UP, stoptimer)
             button.Bind(wx.EVT_KILL_FOCUS, stoptimer)
+            button.Bind(wx.EVT_LEAVE_WINDOW, stoptimer)
             
         return button
 
