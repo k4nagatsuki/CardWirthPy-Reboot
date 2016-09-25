@@ -1042,6 +1042,7 @@ class CardEvent(Event):
         else:
             # 使用可能なのでイベント実行
             cw.cwpy.event.set_inusecard(self.inusecard)
+            cw.cwpy.event.cardevent = self
             cw.cwpy.event.set_selectedmember(self.user)
             Event.start(self)
 
@@ -1128,7 +1129,6 @@ class CardEvent(Event):
         カード効果発動・効果中断コンテントに対応。
         """
         # イベント終了
-        cw.cwpy.event.cardevent = self
         try:
             Event.run_exit(self)
 
