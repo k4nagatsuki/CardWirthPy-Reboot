@@ -70,6 +70,10 @@ class ImageInfo(object):
             w, h = getsize("NORMAL_noscale")
             bx, by = (3, 13)
             defpostype = "TopLeft"
+        elif basecardtype == "Bill": # 貼紙
+            w, h = cw.SIZE_BILL
+            bx, by = (163, 70)
+            defpostype = "TopLeft"
         else:
             return pygame.Rect(0, 0, imgwidth, imgheight)
 

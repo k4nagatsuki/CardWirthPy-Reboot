@@ -1584,11 +1584,13 @@ class PartySelect(MultiViewSelect):
 
             if sceheader:
                 bmp, bmp_noscale = sceheader.get_wxbmps()
+                imgpaths = sceheader.imgpaths
             else:
                 path = "Resource/Image/Card/COMMAND0"
                 path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
                 bmp_noscale = [cw.util.load_wxbmp(path, True)]
                 bmp = [cw.wins((bmp_noscale[0], cw.SIZE_CARDIMAGE))]
+                imgpaths = [cw.image.ImageInfo(path=path)]
 
             paths = header.get_memberpaths()
             bmp2 = []
@@ -1621,7 +1623,7 @@ class PartySelect(MultiViewSelect):
                                 if maskcolour:
                                     bmp4.maskcolour = maskcolour
                                 bmp2.append((bmp3, bmp4, info))
-            return bmp, bmp_noscale, bmp2, sceheader
+            return bmp, bmp_noscale, bmp2, sceheader, imgpaths
 
         if self.views == 1:
             # 単独表示
@@ -1661,9 +1663,16 @@ class PartySelect(MultiViewSelect):
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
             # シナリオ・宿画像
-            bmp, bmp_noscale, bmp2, sceheader = get_image(header)
-            for b, bns in zip(bmp, bmp_noscale):
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, (bmpw-cw.wins(74))/2, cw.wins(125), True, bitsizekey=bns)
+            bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
+            ix = (bmpw-cw.wins(74))//2
+            iy = cw.wins(125)
+            dc.SetClippingRect((ix, iy, cw.SIZE_CARDIMAGE[0], cw.SIZE_CARDIMAGE[1]))
+            for b, bns, info in zip(bmp, bmp_noscale, imgpaths):
+                baserect = info.calc_basecardposition_wx(b.GetSize(), noscale=False,
+                                                         basecardtype="Bill",
+                                                         cardpostype="NotCard")
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, ix+baserect.x, iy+baserect.y, True, bitsizekey=bns)
+            dc.DestroyClippingRegion()
             # パーティの先頭メンバを小さく表示する
             px = bmpw/2
             py = cw.wins(125+47)
@@ -1711,21 +1720,30 @@ class PartySelect(MultiViewSelect):
             dc.SetTextForeground(wx.BLACK)
             for i, header in enumerate(seq):
                 # 宿・シナリオイメージ
-                bmp, bmp_noscale, bmp2, sceheader = get_image(header)
+                bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
                 ix = x + (rw - cw.wins(72)) / 2
                 iy = y + 5
-                dc.SetClippingRect((ix, iy, cw.wins(74), cw.wins(94)))
-                for b, bns in zip(bmp, bmp_noscale):
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, ix, iy, True, bitsizekey=bns)
+                dc.SetClippingRect((ix, iy, cw.SIZE_CARDIMAGE[0], cw.SIZE_CARDIMAGE[1]))
+                for b, bns, info in zip(bmp, bmp_noscale, imgpaths):
+                    baserect = info.calc_basecardposition_wx(b.GetSize(), noscale=False,
+                                                             basecardtype="Bill",
+                                                             cardpostype="NotCard")
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, ix+baserect.x, iy+baserect.y, True, bitsizekey=bns)
                 dc.DestroyClippingRegion()
                 # パーティの先頭メンバを小さく表示する
                 px = ix + cw.wins(37)
                 py = iy + cw.wins(47)
                 pw = cw.wins(cw.SIZE_CARDIMAGE[0])
                 ph = cw.wins(cw.SIZE_CARDIMAGE[1])
-                dc.SetClippingRect(wx.Rect(px, py, pw, ph))
-                for bmp3, bmp4 in bmp2:
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp4, px, py, True, bitsizekey=bmp3)
+                dc.SetClippingRect(wx.Rect(px, py, pw//2, ph//2))
+                for bmp3, bmp4, info in bmp2:
+                    baserect = info.calc_basecardposition_wx(bmp3.GetSize(), noscale=True,
+                                                             basecardtype="LargeCard",
+                                                             cardpostype="NotCard")
+                    baserect = cw.wins(baserect)
+                    baserect.x //= 2
+                    baserect.y //= 2
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp4, px+baserect.x, py+baserect.y, True, bitsizekey=bmp3)
                 dc.DestroyClippingRegion()
 
                 # パーティ名
