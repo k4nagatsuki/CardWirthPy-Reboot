@@ -1012,8 +1012,6 @@ class CardEvent(Event):
         self._target_updated = False
         self._target_index = 0
 
-        self._targets_to_coupon()  # 対象にシステムクーポンを付与(Wsn.2)
-
     def start(self):
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, self.inusecard.versionhint)
@@ -1041,15 +1039,16 @@ class CardEvent(Event):
             self.end()
         else:
             # 使用可能なのでイベント実行
+            if cw.cwpy.sdata.is_wsnversion('2', data.getattr(".", "dataVersion", "")):
+                self._targets_to_coupon()  # 対象にシステムクーポンを付与(Wsn.2)
+
             cw.cwpy.event.set_inusecard(self.inusecard)
             cw.cwpy.event.cardevent = self
             cw.cwpy.event.set_selectedmember(self.user)
             Event.start(self)
 
     def _targets_to_coupon(self):
-        if not cw.cwpy.sdata.is_wsnversion('2'):
-            return
-
+        self._clear_eventcoupons()
         if self.user:
             self.user.set_coupon(u"＠使用者", 0)
 
@@ -1062,6 +1061,7 @@ class CardEvent(Event):
         self._target_index = 0
 
     def _clear_eventcoupons(self):
+        self.user.remove_coupon(u"＠使用者")
         for ccard in self._coupon_owners:
             if isinstance(ccard, cw.character.Character):
                 assert not ccard.has_coupon(u"＠使用者")
@@ -1071,7 +1071,7 @@ class CardEvent(Event):
         self._coupon_owners.clear()
 
     def _update_targets(self):
-        if self._target_updated and cw.cwpy.sdata.is_wsnversion('2'):
+        if self._target_updated:
             self.targets = []
             for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"),
                                          cw.cwpy.get_mcards("unreversed"),
@@ -1110,7 +1110,6 @@ class CardEvent(Event):
         """ccardを効果対象に追加する(Wsn.2)。
         "＠効果対象"はあらかじめ付与しておく事。
         """
-        assert cw.cwpy.sdata.is_wsnversion('2')
         assert ccard._has_coupon(u"＠効果対象")
         self._target_updated = True
         self._coupon_owners.add(ccard)
@@ -1119,7 +1118,6 @@ class CardEvent(Event):
         """ccardを効果対象から外す(Wsn.2)。
         "＠効果対象"はあらかじめ外しておく事。
         """
-        assert cw.cwpy.sdata.is_wsnversion('2')
         assert not ccard._has_coupon(u"＠効果対象")
         self._target_updated = True
         self._coupon_owners.discard(ccard)
@@ -1131,6 +1129,11 @@ class CardEvent(Event):
         # イベント終了
         try:
             Event.run_exit(self)
+
+            if cw.cwpy.sdata.is_wsnversion('2'):
+                self._targets_to_coupon()
+            else:
+                self._clear_eventcoupons()
 
             if cw.cwpy.is_playingscenario():
                 cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
@@ -1181,7 +1184,6 @@ class CardEvent(Event):
         Event.end(self)
 
         # システムクーポン除去(Wsn.2)
-        self.user.remove_coupon(u"＠使用者")
         self._clear_eventcoupons()
 
         # 特殊エリア解除・カード選択ダイアログを開く

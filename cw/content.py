@@ -2389,7 +2389,11 @@ def is_addablecoupon(coupon):
     # "＠"で始まるクーポンは付与しない
     # ただしWSN形式には一部例外がある
     if coupon.startswith(u'＠'):
-        if cw.cwpy.sdata.is_wsnversion('2'):
+        if cw.cwpy.event.in_inusecardevent:
+            cardversion = cw.cwpy.event.get_inusecard().carddata.getattr(".", "dataVersion", "")
+        else:
+            cardversion = None
+        if cw.cwpy.sdata.is_wsnversion('2', cardversion):
             # カードの効果対象を指定する(Wsn.2)
             cardevent = cw.cwpy.event.get_cardevent()
             if cardevent and coupon in (u'＠効果対象',):

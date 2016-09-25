@@ -135,12 +135,17 @@ class SystemData(object):
 
         self.sparea_mcards = d
 
-    def is_wsnversion(self, wsn_version):
-        if not self.wsn_version:
+    def is_wsnversion(self, wsn_version, cardversion=None):
+        if cardversion is None:
+            swsnversion = self.wsn_version
+        else:
+            swsnversion = cardversion
+
+        if not swsnversion:
             return not wsn_version
         else:
             try:
-                ivs = int(self.wsn_version)
+                ivs = int(swsnversion)
                 ivd = int(wsn_version)
                 return ivd <= ivs
             except:
