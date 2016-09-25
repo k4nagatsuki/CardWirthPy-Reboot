@@ -1073,7 +1073,7 @@ class AdventurerHeader(object):
     def get_imgpaths(self):
         seq = []
         for info in self.imgpaths:
-            seq.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path)))
+            seq.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info))
         return seq
 
     def get_age(self):

@@ -2190,7 +2190,8 @@ class CWPy(_Singleton, threading.Thread):
                             # (set_images()内で削除される)
                             prop.append(cw.data.make_element("ImagePath", eimg.text))
                             if os.path.isfile(face):
-                                pcard.set_images([cw.image.ImageInfo(face)])
+                                postype = eimg.get("positiontype", "Default")
+                                pcard.set_images([cw.image.ImageInfo(face, postype=postype)])
                             else:
                                 pcard.set_images([])
                         elif eimg.tag == "ImagePaths":
