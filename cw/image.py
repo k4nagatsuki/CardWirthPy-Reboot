@@ -13,7 +13,7 @@ import cw
 
 
 class ImageInfo(object):
-    def __init__(self, path="", pcnumber=0, base=None):
+    def __init__(self, path="", pcnumber=0, base=None, postype="Default"):
         """
         カードなどの画像の定義。
         """
@@ -22,6 +22,10 @@ class ImageInfo(object):
         while base and base.base:
             base = base.base
         self.base = base
+        if self.base:
+            self.postype = self.base.postype
+        else:
+            self.postype = postype
 
     def set_attr(self, e):
         """拡張情報をeへ登録する(現在は処理なし)。
@@ -29,7 +33,8 @@ class ImageInfo(object):
         assert e.tag == "ImagePath"
 
     def __eq__(self, other):
-        return isinstance(other, ImageInfo) and self.path == other.path and self.pcnumber == other.pcnumber
+        return isinstance(other, ImageInfo) and self.path == other.path and self.pcnumber == other.pcnumber and\
+               self.postype == other.postype
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -38,7 +43,7 @@ class ImageInfo(object):
         if self.pcnumber:
             return "PC: %s" % (self.pcnumber)
         else:
-            return "File: %s" % (self.path)
+            return "File: %s, Position Type: %s" % (self.path, self.postype)
 
 def get_imageinfos(data, pcnumber=False):
     """PropertyなどのデータからImageInfoのlistを生成する。
@@ -52,7 +57,8 @@ def get_imageinfos(data, pcnumber=False):
                 if e.tag == "ImagePath":
                     path = e.gettext(".", "")
                     if path:
-                        seq.append(ImageInfo(path=path))
+                        postype = e.getattr(".", "positiontype", "Default")
+                        seq.append(ImageInfo(path=path, postype=postype))
                 elif pcnumber and e.tag == "PCNumber":
                     pcn = e.getint(".", 0)
                     if pcn:
@@ -60,17 +66,20 @@ def get_imageinfos(data, pcnumber=False):
         else:
             path = data.getattr(".", "path", "") # イベントコンテントでの画像指定
             if path:
-                seq.append(ImageInfo(path=path))
+                postype = data.getattr(".", "positiontype", "Default")
+                seq.append(ImageInfo(path=path, postype=postype))
             if pcnumber:
                 pcn = data.getint(".", "pcNumber", 0) # イベントコンテントでのPC指定
                 if pcn:
                     seq.append(ImageInfo(pcnumber=pcn))
             path = data.gettext("ImagePath", "") # 単一のパス指定
             if path:
-                seq.append(ImageInfo(path=path))
+                postype = data.getattr("ImagePath", "positiontype", "Default")
+                seq.append(ImageInfo(path=path, postype=postype))
             if pcnumber:
                 if path:
-                    seq.append(ImageInfo(path=path))
+                    postype = data.getattr("ImagePath", "positiontype", "Default")
+                    seq.append(ImageInfo(path=path, postype=postype))
                 pcn = data.getint("PCNumber", 0) # 単一のPC指定
                 if pcn:
                     seq.append(ImageInfo(pcnumber=pcn))
@@ -87,19 +96,21 @@ def get_imageinfos_p(prop, pcnumber=False):
     imgpaths = []
     imgpath = prop.properties.get("ImagePath", "")
     if imgpath:
-        imgpaths.append(cw.image.ImageInfo(imgpath))
+        postype = prop.attrs.get("ImagePath", {}).get("positiontype", "Default")
+        imgpaths.append(ImageInfo(imgpath, postype=postype))
     if pcnumber:
         pcn = prop.properties.get("PCNumber", "0")
         if pcn and 0 < int(pcn):
-            imgpaths.append(cw.image.ImageInfo(pcnumber=int(pcn)))
-    for eimg, _attrs, imgpath in prop.third.get("ImagePaths", []):
+            imgpaths.append(ImageInfo(pcnumber=int(pcn)))
+    for eimg, attrs, imgpath in prop.third.get("ImagePaths", []):
         if eimg == "ImagePath":
             if imgpath:
-                imgpaths.append(cw.image.ImageInfo(imgpath))
+                postype = attrs.get("positiontype", "Default")
+                imgpaths.append(ImageInfo(imgpath, postype=postype))
         elif eimg == "PCNumber":
             pcn = imgpath
             if pcn and 0 < int(pcn):
-                imgpaths.append(cw.image.ImageInfo(pcnumber=int(pcn)))
+                imgpaths.append(ImageInfo(pcnumber=int(pcn)))
 
     return imgpaths
 
