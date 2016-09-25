@@ -33,6 +33,8 @@ class YadoDB(object):
             self.con.row_factory = sqlite3.Row
             self.cur = self.con.cursor()
 
+            reqcommit = False
+
             # cardorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
             cur = self.con.execute("PRAGMA table_info('cardorder')")
             res = cur.fetchall()
@@ -55,10 +57,25 @@ class YadoDB(object):
                         fpath TEXT,
                         numorder INTEGER,
                         imgpath TEXT,
+                        postype TEXT,
                         PRIMARY KEY (fpath, numorder)
                     )
                 """
                 self.cur.execute(s)
+
+            else:
+                # postype列が存在しない場合は作成する(～1.1との互換性維持)
+                cur = self.con.execute("PRAGMA table_info('cardimage')")
+                res = cur.fetchall()
+                haspostype = False
+                for rec in res:
+                    if rec[1] == "postype":
+                        haspostype = True
+                        break
+                if not haspostype:
+                    # 値はNone(Default扱い)
+                    self.cur.execute("ALTER TABLE cardimage ADD COLUMN postype TEXT")
+                    reqcommit = True
 
             if self.mode == YADO:
                 # adventurerorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
@@ -83,10 +100,25 @@ class YadoDB(object):
                             fpath TEXT,
                             numorder INTEGER,
                             imgpath TEXT,
+                            postype TEXT,
                             PRIMARY KEY (fpath, numorder)
                         )
                     """
                     self.cur.execute(s)
+
+                else:
+                    # postype列が存在しない場合は作成する(～1.1との互換性維持)
+                    cur = self.con.execute("PRAGMA table_info('adventurerimage')")
+                    res = cur.fetchall()
+                    haspostype = False
+                    for rec in res:
+                        if rec[1] == "postype":
+                            haspostype = True
+                            break
+                    if not haspostype:
+                        # 値はNone(Default扱い)
+                        self.cur.execute("ALTER TABLE adventurerimage ADD COLUMN postype TEXT")
+                        reqcommit = True
 
             # moved列,scenariocard列,versionhint列,star列が存在しない
             # 場合は作成する(旧バージョンとの互換性維持)
@@ -105,8 +137,6 @@ class YadoDB(object):
                     hasversionhint = True
                 elif rec[1] == "star":
                     hasstar = True
-
-            reqcommit = False
 
             if not hasmoved:
                 self.cur.execute("ALTER TABLE card ADD COLUMN moved INTEGER")
@@ -263,6 +293,7 @@ class YadoDB(object):
                     fpath TEXT,
                     numorder INTEGER,
                     imgpath TEXT,
+                    postype TEXT,
                     PRIMARY KEY (fpath, numorder)
                 )
             """
@@ -310,6 +341,7 @@ class YadoDB(object):
                         fpath TEXT,
                         numorder INTEGER,
                         imgpath TEXT,
+                        postype TEXT,
                         PRIMARY KEY (fpath, numorder)
                     )
                 """
@@ -723,14 +755,20 @@ class YadoDB(object):
                 INSERT OR REPLACE INTO cardimage (
                     fpath,
                     numorder,
-                    imgpath
+                    imgpath,
+                    postype
                 ) VALUES (
+                    ?,
                     ?,
                     ?,
                     ?
                 )
                 """
-                self.cur.execute(s, (fpath, i, imgpath.path,))
+                if imgpath.postype == "Default":
+                    postype = None
+                else:
+                    postype = imgpath.postype
+                self.cur.execute(s, (fpath, i, imgpath.path, postype,))
 
         if commit:
             self.con.commit()
@@ -804,7 +842,8 @@ class YadoDB(object):
 
         s = """
             SELECT
-                imgpath
+                imgpath,
+                postype
             FROM
                 cardimage
             WHERE
@@ -949,14 +988,20 @@ class YadoDB(object):
                 INSERT OR REPLACE INTO adventurerimage (
                     fpath,
                     numorder,
-                    imgpath
+                    imgpath,
+                    postype
                 ) VALUES (
+                    ?,
                     ?,
                     ?,
                     ?
                 )
                 """
-                self.cur.execute(s, (fpath, i, imgpath.path,))
+                if imgpath.postype == "Default":
+                    postype = None
+                else:
+                    postype = imgpath.postype
+                self.cur.execute(s, (fpath, i, imgpath.path, postype))
 
         if commit:
             self.con.commit()
@@ -999,7 +1044,8 @@ class YadoDB(object):
 
         s = """
             SELECT
-                imgpath
+                imgpath,
+                postype
             FROM
                 adventurerimage
             WHERE

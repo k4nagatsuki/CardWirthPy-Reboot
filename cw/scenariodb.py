@@ -143,10 +143,25 @@ class Scenariodb(object):
                         fname TEXT,
                         numorder INTEGER,
                         image BLOB,
+                        postype TEXT,
                         PRIMARY KEY (dpath, fname, numorder)
                     )
                 """
                 self.cur.execute(s)
+
+            else:
+                # postype列が存在しない場合は作成する(～1.1との互換性維持)
+                cur = self.con.execute("PRAGMA table_info('scenarioimage')")
+                res = cur.fetchall()
+                haspostype = False
+                for rec in res:
+                    if rec[1] == "postype":
+                        haspostype = True
+                        break
+                if not haspostype:
+                    # 値はNone(Default扱い)
+                    self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN postype TEXT")
+                    needcommit = True
 
             if needcommit:
                 self.con.commit()
@@ -170,6 +185,7 @@ class Scenariodb(object):
                     fname TEXT,
                     numorder INTEGER,
                     image BLOB,
+                    postype TEXT,
                     PRIMARY KEY (dpath, fname, numorder)
                 )
             """
@@ -318,15 +334,21 @@ class Scenariodb(object):
                     dpath,
                     fname,
                     numorder,
-                    image
+                    image,
+                    postype
                 ) VALUES (
+                    ?,
                     ?,
                     ?,
                     ?,
                     ?
                 )
                 """
-                self.cur.execute(s, (t[0], t[2], i, image,))
+                if image[1] == "Default":
+                    postype = None
+                else:
+                    postype = image[1]
+                self.cur.execute(s, (t[0], t[2], i, image[0], postype,))
 
         if commit:
             self.con.commit()
@@ -366,7 +388,8 @@ class Scenariodb(object):
         if data["image"] is None:
             s = """
                 SELECT
-                    image
+                    image,
+                    postype
                 FROM
                     scenarioimage
                 WHERE
@@ -772,18 +795,18 @@ def read_summary(basepath):
                 e = cw.data.xml2element(spath, "Property")
                 imgpaths, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath))
                 imgbufs = []
-                for imgpath in imgpaths:
-                    imgpath = cw.util.join_paths(path, imgpath)
+                for info in imgpaths:
+                    imgpath = cw.util.join_paths(path, info.path)
                     if os.path.isfile(imgpath):
                         with open(imgpath, "rb") as f2:
                             imgbuf = f2.read()
                             f2.close()
                         imgbuf = buffer(imgbuf)
-                        imgbufs.append(imgbuf)
+                        imgbufs.append((imgbuf, info.postype))
                 if len(imgbufs) == 0:
                     imgbuf = ""
-                elif len(imgbufs) == 1:
-                    imgbuf = imgbufs[0]
+                elif len(imgbufs) == 1 and imgbufs[0][1] == "Default":
+                    imgbuf = imgbufs[0][0]
                     imgbufs = []
                 else:
                     imgbuf = None
@@ -847,8 +870,8 @@ def read_summary(basepath):
                                 return None, []
 
                             imgbufs = []
-                            for imgpath in imgpaths:
-                                imgpath = cw.util.join_paths(scedir, imgpath)
+                            for info in imgpaths:
+                                imgpath = cw.util.join_paths(scedir, info.path)
                                 s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath), dpath)
                                 encoding = sys.getfilesystemencoding()
                                 ret = subprocess.call(s.encode(encoding), shell=True)
@@ -858,12 +881,12 @@ def read_summary(basepath):
                                         imgbuf = f.read()
                                         f.close()
                                     imgbuf = buffer(imgbuf)
-                                    imgbufs.append(imgbuf)
+                                    imgbufs.append((imgbuf, info.postype))
 
                             if len(imgbufs) == 0:
                                 imgbuf = ""
-                            elif len(imgbufs) == 1:
-                                imgbuf = imgbufs[0]
+                            elif len(imgbufs) == 1 and imgbufs[0][1] == "Default":
+                                imgbuf = imgbufs[0][0]
                                 imgbufs = []
                             else:
                                 imgbuf = None
@@ -916,14 +939,14 @@ def read_summary(basepath):
         imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
 
         imgbufs = []
-        for imgpath in imgpaths:
-            imgpath = cw.util.join_paths(scedir, imgpath)
+        for info in imgpaths:
+            imgpath = cw.util.join_paths(scedir, info.path)
             imgpath = nametable.get(imgpath, "")
             if imgpath:
                 imgbuf = cw.util.read_zipdata(z, imgpath)
                 if imgbuf:
                     imgbuf = buffer(imgbuf)
-                    imgbufs.append(imgbuf)
+                    imgbufs.append((imgbuf, info.postype))
 
         z.close()
 
@@ -936,8 +959,8 @@ def read_summary(basepath):
 
     if len(imgbufs) == 0:
         imgbuf = ""
-    elif len(imgbufs) == 1:
-        imgbuf = imgbufs[0]
+    elif len(imgbufs) == 1 and imgbufs[0][1] == "Default":
+        imgbuf = imgbufs[0][0]
         imgbufs = []
     else:
         imgbuf = None
@@ -948,12 +971,12 @@ def parse_summarydata(basepath, data, scetype, archive, mtime):
     e = data.find("ImagePath")
     imgpaths = []
     if not e is None and e.text:
-        imgpaths.append(e.text)
+        imgpaths.append(cw.image.ImageInfo(path=e.text, postype=e.getattr(".", "positiontype", "Default")))
     e = data.find("ImagePaths")
     if not e is None:
         for e2 in e:
             if e2.tag == "ImagePath" and e2.text:
-                imgpaths.append(e2.text)
+                imgpaths.append(cw.image.ImageInfo(path=e2.text, postype=e2.getattr(".", "positiontype", "Default")))
     e = data.find("Name")
     name = e.text or ""
     e = data.find("Author")

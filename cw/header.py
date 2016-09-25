@@ -23,11 +23,17 @@ def to_imgpaths(dbrec, imgdbrec):
     """
     imgpaths = []
     path = dbrec["imgpath"]
+    postype = dbrec["postype"] if "postype" in dbrec else "Default"
+    if postype is None:
+        postype = "Default"
     if path:
-        imgpaths.append(cw.image.ImageInfo(path))
+        imgpaths.append(cw.image.ImageInfo(path, postype=postype))
     if imgdbrec:
         for imgrec in imgdbrec:
-            imgpaths.append(cw.image.ImageInfo(imgrec["imgpath"]))
+            postype = imgrec["postype"] if "postype" in imgrec else "Default"
+            if postype is None:
+                postype = "Default"
+            imgpaths.append(cw.image.ImageInfo(imgrec["imgpath"], postype=postype))
     return imgpaths
 
 class CardHeader(object):
