@@ -1530,8 +1530,14 @@ class Resource(object):
         if chain:
             #押しっぱなしTimer
             timer = wx.Timer(button)
+            button.c = None
 
             def starttimer(event):
+                if button.c is None:
+                    button.c = True
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
+                    button.ProcessEvent(btnevent)
+
                 timer.Start(cw.cwpy.setting.move_repeat, wx.TIMER_ONE_SHOT)
 
             def timerfunc(event):
@@ -1542,19 +1548,11 @@ class Resource(object):
             def stoptimer(event):
                 timer.Stop()
                 event.Skip()
-
-            #LEFT_DOWNでeventskipしないとシングルクリックされず
-            #タイマーと一緒にするとチャタリングが発生するので仕方なく二つ作る
-            def click(event):
-                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
-                button.ProcessEvent(btnevent)
-                event.Skip()
+                button.c = None
 
             button.Bind(wx.EVT_TIMER, timerfunc)
             button.Bind(wx.EVT_LEFT_DOWN, starttimer)
-            button.Bind(wx.EVT_LEFT_DOWN, click)
             button.Bind(wx.EVT_LEFT_UP, stoptimer)
-            button.Bind(wx.EVT_KILL_FOCUS, stoptimer)
             button.Bind(wx.EVT_LEAVE_WINDOW, stoptimer)
             
         return button
