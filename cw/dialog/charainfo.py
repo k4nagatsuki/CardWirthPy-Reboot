@@ -487,7 +487,7 @@ class TopPanel(wx.Panel):
             bmp = cw.util.load_wxbmp(path, True)
             bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
 
-            baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+            baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                      basecardtype="LargeCard",
                                                      cardpostype="NotCard")
 

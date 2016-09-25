@@ -1336,7 +1336,7 @@ class RelationPage(AdventurerCreaterPage):
                 if info.path:
                     bmp = cw.util.load_wxbmp(info.path, True)
                     bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
-                    baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+                    baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                              basecardtype=basecardtype,
                                                              cardpostype="NotCard")
                     cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, pos[0]+baserect.x, pos[1]+baserect.y, True, bitsizekey=bmp)
@@ -2265,7 +2265,7 @@ class DesignPanel(AdventurerCreaterPage):
             bmp = cw.util.load_wxbmp(info.path, True)
             bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
 
-            baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+            baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                      basecardtype="LargeCard",
                                                      cardpostype="NotCard")
 

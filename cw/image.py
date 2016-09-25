@@ -49,7 +49,7 @@ class ImageInfo(object):
         """
         def getsize(resname):
             return cw.cwpy.rsrc.wxcardbgs[resname].GetSize()
-        return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
+        return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.wins, getsize)
 
     def _calc_basecardposition_impl(self, imgwidth, imgheight, noscale, basecardtype, cardpostype, ss, getsize):
         if self.basecardtype:

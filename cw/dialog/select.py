@@ -1671,9 +1671,10 @@ class PartySelect(MultiViewSelect):
             ph = cw.wins(cw.SIZE_CARDIMAGE[1])
             dc.SetClippingRect(wx.Rect(px, py, pw//2, ph//2))
             for bmp3, bmp4, info in bmp2:
-                baserect = info.calc_basecardposition_wx(bmp3.GetSize(), noscale=False,
+                baserect = info.calc_basecardposition_wx(bmp3.GetSize(), noscale=True,
                                                          basecardtype="LargeCard",
                                                          cardpostype="NotCard")
+                baserect = cw.wins(baserect)
                 baserect.x //= 2
                 baserect.y //= 2
                 cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp4, px+baserect.x, py+baserect.y, True, bitsizekey=bmp3)
@@ -2528,7 +2529,7 @@ class PlayerSelect(MultiViewSelect):
                     bmp = cw.util.load_wxbmp(path, True)
                     bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
 
-                    baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+                    baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                              basecardtype="LargeCard",
                                                              cardpostype="NotCard")
 
@@ -2593,7 +2594,7 @@ class PlayerSelect(MultiViewSelect):
                         path = cw.util.join_yadodir(info.path)
                         bmp = cw.util.load_wxbmp(path, True)
                         bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
-                        baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+                        baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                                  basecardtype="LargeCard",
                                                                  cardpostype="NotCard")
                         cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, ix+baserect.x, iy+baserect.y, True, bitsizekey=bmp)
