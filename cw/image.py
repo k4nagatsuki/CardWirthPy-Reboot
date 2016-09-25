@@ -823,7 +823,7 @@ class CharacterCardImage(CardImage):
         for cardimg, info in zip(self.cardimgs, self.paths):
             dw = cardimg.get_width()
             dh = cardimg.get_height()
-            if info.postype == "TopLeft":
+            if info.postype == "TopLeft" or info.postype == "Default":
                 cw.imageretouch.blit_2bitbmp_to_card(self.image, cardimg, cw.s((11, 18)))
             else:
                 # info.postype in ("Center", "Default")
