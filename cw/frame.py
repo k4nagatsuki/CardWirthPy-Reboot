@@ -1208,12 +1208,25 @@ class MyApp(wx.App):
         if not (cw.cwpy and cw.cwpy.frame):
             return -1
 
+        if not event:
+            return -1
+
         if cw.cwpy.frame.filter_event:
+            if not event.GetEventObject():
+                return -1
+
             if cw.cwpy.frame.filter_event(event):
                 return True
 
+        if isinstance(event, wx.KeyEvent):
+            return -1
+
+        if not event.GetEventObject():
+            return -1
+
         # スクリーンショットの撮影
-        if event.GetEventType() == wx.EVT_KEY_UP.typeId:
+        if isinstance(event, wx.KeyEvent) and\
+                event.GetEventType() == wx.EVT_KEY_UP.typeId:
             if (wx.WXK_SNAPSHOT == event.GetKeyCode() or\
                  (ord('P') == event.GetKeyCode() and event.ControlDown())) and\
                  cw.cwpy.frame.can_screenshot():

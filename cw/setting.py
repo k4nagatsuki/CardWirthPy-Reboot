@@ -1544,11 +1544,11 @@ class Resource(object):
         if chain:
             # ボタンを押し続けた時に一定間隔で押下イベントを発生させる
             timer = wx.Timer(button)
-            button.running = False
+            timer.running = False
 
             def starttimer(event):
-                if not button.running:
-                    button.running = True
+                if not timer.running:
+                    timer.running = True
                     btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
                     button.ProcessEvent(btnevent)
 
@@ -1562,7 +1562,7 @@ class Resource(object):
             def stoptimer(event):
                 timer.Stop()
                 event.Skip()
-                button.running = False
+                timer.running = False
 
             button.Bind(wx.EVT_TIMER, timerfunc)
             button.Bind(wx.EVT_LEFT_DOWN, starttimer)
