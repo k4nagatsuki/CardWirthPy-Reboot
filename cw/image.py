@@ -29,11 +29,11 @@ class ImageInfo(object):
         self.basecardtype = basecardtype
 
     def set_attr(self, e):
-        """拡張情報をeへ登録する(現在は処理なし)。
+        """拡張情報をeへ登録する。
         """
         assert e.tag == "ImagePath"
-        if not e.postype in ("Default", None):
-            e.attrib["positiontype"] = e.postype
+        if not self.postype in ("Default", None):
+            e.set("positiontype", self.postype)
 
     def calc_basecardposition(self, (imgwidth, imgheight), noscale=False, basecardtype=None, cardpostype=None):
         """カードに配置した時の描画位置を返す。
