@@ -86,8 +86,6 @@ class SettingsDialog(wx.Dialog):
     def OnFilterEvent(self, event):
         if not self:
             return False
-        if not event.GetEventType() in (10115, 10061, 10038, 10008, 10099, 10039, 10040, 10098, 10100):
-            print event.GetEventType()
         if event.GetEventType() in (wx.EVT_TEXT.typeId,
                                     wx.EVT_SPINCTRL.typeId,
                                     wx.EVT_COMBOBOX.typeId,
@@ -95,7 +93,6 @@ class SettingsDialog(wx.Dialog):
                                     wx.EVT_SLIDER.typeId,
                                     wx.EVT_CHOICE.typeId,
                                     wx.EVT_COLOURPICKER_CHANGED.typeId,
-                                    wx.grid.EVT_GRID_CELL_CHANGING.typeId,
                                     wx.grid.EVT_GRID_CELL_CHANGE.typeId):
             obj = event.GetEventObject()
             if isinstance(obj, wx.Window) and obj.GetTopLevelParent() is self:
