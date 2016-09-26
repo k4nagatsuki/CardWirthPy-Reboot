@@ -93,9 +93,14 @@ class SettingsDialog(wx.Dialog):
                                     wx.EVT_SLIDER.typeId,
                                     wx.EVT_CHOICE.typeId,
                                     wx.EVT_COLOURPICKER_CHANGED.typeId,
-                                    wx.grid.EVT_GRID_CELL_CHANGE.typeId):
+                                    wx.grid.EVT_GRID_CELL_CHANGE.typeId,
+                                    wx.grid.EVT_GRID_EDITOR_SHOWN.typeId):
             obj = event.GetEventObject()
-            if isinstance(obj, wx.Window) and obj.GetTopLevelParent() is self:
+            if wx.grid.EVT_GRID_EDITOR_SHOWN.typeId and isinstance(obj, wx.grid.Grid):
+                editor = obj.GetCellEditor(event.GetRow(), event.GetCol())
+                if isinstance(editor, wx.grid.GridCellBoolEditor):
+                    self.applied()
+            elif isinstance(obj, wx.Window) and obj.GetTopLevelParent() is self:
                 self.applied()
         return False
 
