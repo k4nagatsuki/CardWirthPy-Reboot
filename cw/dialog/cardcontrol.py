@@ -53,10 +53,10 @@ class CardControl(wx.Dialog):
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((90, 24)), s)
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=True)
         # right
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=True)
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((520, 285)))
         self.toppanel.SetMinSize(cw.wins((520, 285)))
@@ -128,13 +128,13 @@ class CardControl(wx.Dialog):
 
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
-        self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp)
+        self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp, chain=True)
         # sendto
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((100, 24)), style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
-        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp)
+        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp, chain=True)
         if not sendto:
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
@@ -1395,7 +1395,7 @@ class CardHolder(CardControl):
         # カード置き場、荷物袋、情報カード用のコントロール
         # up
         bmp = cw.cwpy.rsrc.buttons["UP"]
-        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp)
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp, chain=True)
         # ページ指定
         self.page = wx.lib.intctrl.IntCtrl(self.toppanel, -1, style=wx.TE_RIGHT, size=cw.wins((-1, 22)))
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(17))
@@ -1409,7 +1409,7 @@ class CardHolder(CardControl):
         self.additionals.append((self.page, lambda: self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")))
         # down
         bmp = cw.cwpy.rsrc.buttons["DOWN"]
-        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp)
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp, chain=True)
 
         self._enable_updown()
 

@@ -384,6 +384,7 @@ class Setting(object):
         self.volume_increment = 5 # ホイールによる全体音量調節での増減量
         self.show_debuglogdialog = False
         self.write_playlog = False
+        self.move_repeat = 250 #移動ボタン押しっぱなしの速度
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = False
@@ -1529,7 +1530,7 @@ class Resource(object):
         fonts.set("screenshot", self.create_font, "screenshot", t[0], t[1], t[2], t[3], t[4], t[5])
         return fonts
 
-    def create_wxbutton(self, parent, cid, size, name=None, bmp=None):
+    def create_wxbutton(self, parent, cid, size, name=None, bmp=None , chain=False):
         if name:
             button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
@@ -1540,6 +1541,34 @@ class Resource(object):
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
 
+        if chain:
+            #押しっぱなしTimer
+            timer = wx.Timer(button)
+            button.c = None
+
+            def starttimer(event):
+                if button.c is None:
+                    button.c = True
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
+                    button.ProcessEvent(btnevent)
+
+                timer.Start(cw.cwpy.setting.move_repeat, wx.TIMER_ONE_SHOT)
+
+            def timerfunc(event):
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
+                button.ProcessEvent(btnevent)
+                starttimer(event)
+
+            def stoptimer(event):
+                timer.Stop()
+                event.Skip()
+                button.c = None
+
+            button.Bind(wx.EVT_TIMER, timerfunc)
+            button.Bind(wx.EVT_LEFT_DOWN, starttimer)
+            button.Bind(wx.EVT_LEFT_UP, stoptimer)
+            button.Bind(wx.EVT_LEAVE_WINDOW, stoptimer)
+            
         return button
 
     def create_wxbutton_dbg(self, parent, cid, size, name=None, bmp=None):
