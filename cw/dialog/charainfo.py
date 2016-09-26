@@ -476,7 +476,11 @@ class TopPanel(wx.Panel):
         cw.util.draw_center(dc, self.wing, (self.Parent.width/2, cw.wins(50)))
         # カード画像
         x = (dc.GetSize()[0] - cw.wins(74)) / 2
-        for info in cw.image.get_imageinfos(self.ccard.data.find("Property")):
+
+        infos = cw.image.get_imageinfos(self.ccard.data.find("Property"))
+        setpos = 1 < len(infos) or any(map(lambda info: not info.postype in (None, "Default"), infos))
+
+        for info in infos:
             path = info.path
             if isinstance(cw.cwpy.selection, (cw.character.Enemy,
                                                 cw.character.Friend)):
@@ -487,9 +491,12 @@ class TopPanel(wx.Panel):
             bmp = cw.util.load_wxbmp(path, True)
             bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
 
-            baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
-                                                     basecardtype="LargeCard",
-                                                     cardpostype="NotCard")
+            if setpos:
+                baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
+                                                         basecardtype="LargeCard",
+                                                         cardpostype="NotCard")
+            else:
+                baserect = cw.wins(pygame.Rect(0, 0, 0, 0))
 
             cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x+baserect.x, cw.wins(5)+baserect.y, True, bitsizekey=bmp)
 
