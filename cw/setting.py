@@ -1542,27 +1542,24 @@ class Resource(object):
             button.SetBitmapDisabled(bmp)
 
         if chain:
-            #押しっぱなしTimer
+            # ボタンを押し続けた時に一定間隔で押下イベントを発生させる
             timer = wx.Timer(button)
-            button.c = None
 
             def starttimer(event):
-                if button.c is None:
-                    button.c = True
-                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
-                    button.ProcessEvent(btnevent)
-
                 timer.Start(cw.cwpy.setting.move_repeat, wx.TIMER_ONE_SHOT)
-
-            def timerfunc(event):
-                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
-                button.ProcessEvent(btnevent)
-                starttimer(event)
+                event.Skip()
 
             def stoptimer(event):
                 timer.Stop()
                 event.Skip()
-                button.c = None
+
+            def timerfunc(event):
+                if button.HasFocus():
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, button.GetId())
+                    button.ProcessEvent(btnevent)
+                    starttimer(event)
+                else:
+                    stoptimer()
 
             button.Bind(wx.EVT_TIMER, timerfunc)
             button.Bind(wx.EVT_LEFT_DOWN, starttimer)
