@@ -1062,7 +1062,7 @@ class CardEvent(Event):
 
     def _clear_eventcoupons(self):
         self.user.remove_coupon(u"＠使用者")
-        for ccard in self._coupon_owners:
+        for ccard in self._coupon_owners.copy():
             if isinstance(ccard, cw.character.Character):
                 assert not ccard.has_coupon(u"＠使用者")
                 assert not ccard.has_coupon(u"＠イベント対象")
