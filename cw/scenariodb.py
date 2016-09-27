@@ -75,7 +75,9 @@ class Scenariodb(object):
     tags(タグ。"\n"が区切り),
     ctime(DB登録時間。エポック秒),
     mtime(ファイル最終更新時間。エポック秒),
-    imgpath(見出し画像)
+    image(見出し画像のイメージデータ),
+    imgpath(見出し画像のパス),
+    wsnversion(WSN形式の場合はそのバージョン)
     """
     @synclock(_lock)
     def __init__(self):
@@ -87,17 +89,32 @@ class Scenariodb(object):
             self.cur = self.con.cursor()
             needcommit = False
 
-            # type列が存在しない場合は作成する(旧バージョンとの互換性維持)
+            # type, imgpath列が存在しない場合は作成する(旧バージョンとの互換性維持)
             cur = self.con.execute("PRAGMA table_info('scenariodb')")
             res = cur.fetchall()
             hastype = False
+            hasimgpath = False
+            haswsnversion = False
             for rec in res:
                 if rec[1] == "type":
                     hastype = True
+                elif rec[1] == "imgpath":
+                    hasimgpath = True
+                elif rec[1] == "wsnversion":
+                    haswsnversion = True
+                if all((hastype, hasimgpath, haswsnversion)):
                     break
             if not hastype:
                 self.cur.execute("ALTER TABLE scenariodb ADD COLUMN type INTEGER")
                 self.cur.execute("UPDATE scenariodb SET type=?", (TYPE_WSN,))
+                needcommit = True
+            if not hasimgpath:
+                # 値はNoneのままにしておく
+                self.cur.execute("ALTER TABLE scenariodb ADD COLUMN imgpath TEXT")
+                needcommit = True
+            if not haswsnversion:
+                # 値はNoneのままにしておく
+                self.cur.execute("ALTER TABLE scenariodb ADD COLUMN wsnversion TEXT")
                 needcommit = True
 
             cur = self.con.execute("PRAGMA index_info('scenariodb_index1')")
@@ -143,6 +160,7 @@ class Scenariodb(object):
                         fname TEXT,
                         numorder INTEGER,
                         image BLOB,
+                        imgpath TEXT,
                         postype TEXT,
                         PRIMARY KEY (dpath, fname, numorder)
                     )
@@ -150,17 +168,25 @@ class Scenariodb(object):
                 self.cur.execute(s)
 
             else:
-                # postype列が存在しない場合は作成する(～1.1との互換性維持)
+                # postype, imgpath列が存在しない場合は作成する(～1.1との互換性維持)
                 cur = self.con.execute("PRAGMA table_info('scenarioimage')")
                 res = cur.fetchall()
                 haspostype = False
+                hasimgpath = False
                 for rec in res:
                     if rec[1] == "postype":
                         haspostype = True
+                    elif rec[1] == "imgpath":
+                        hasimgpath = True
+                    if all((haspostype, hasimgpath)):
                         break
                 if not haspostype:
                     # 値はNone(Default扱い)
                     self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN postype TEXT")
+                    needcommit = True
+                if not hasimgpath:
+                    # 値はNoneのままにしておく
+                    self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN imgpath TEXT")
                     needcommit = True
 
             if needcommit:
@@ -174,6 +200,7 @@ class Scenariodb(object):
                    desc TEXT, skintype TEXT, levelmin INTEGER, levelmax INTEGER,
                    coupons TEXT, couponsnum INTEGER, startid INTEGER,
                    tags TEXT, ctime INTEGER, mtime INTEGER, image BLOB,
+                   imgpath TEXT, wsnversion TEXT,
                    PRIMARY KEY (dpath, fname))"""
 
             self.cur.execute(s)
@@ -185,6 +212,7 @@ class Scenariodb(object):
                     fname TEXT,
                     numorder INTEGER,
                     image BLOB,
+                    imgpath TEXT,
                     postype TEXT,
                     PRIMARY KEY (dpath, fname, numorder)
                 )
@@ -313,9 +341,9 @@ class Scenariodb(object):
         s = """INSERT OR REPLACE INTO scenariodb(
                     dpath, type, fname, name, author, desc, skintype,
                     levelmin, levelmax, coupons, couponsnum,
-                    startid, tags, ctime, mtime, image
+                    startid, tags, ctime, mtime, wsnversion, image, imgpath
                ) VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                )"""
         self.cur.execute(s, t)
         if skintype:
@@ -335,8 +363,10 @@ class Scenariodb(object):
                     fname,
                     numorder,
                     image,
+                    imgpath,
                     postype
                 ) VALUES (
+                    ?,
                     ?,
                     ?,
                     ?,
@@ -344,11 +374,11 @@ class Scenariodb(object):
                     ?
                 )
                 """
-                if image[1] == "Default":
+                if image[1].postype == "Default":
                     postype = None
                 else:
-                    postype = image[1]
-                self.cur.execute(s, (t[0], t[2], i, image[0], postype,))
+                    postype = image[1].postype
+                self.cur.execute(s, (t[0], t[2], i, image[0], image[1].path, postype,))
 
         if commit:
             self.con.commit()
@@ -389,6 +419,7 @@ class Scenariodb(object):
             s = """
                 SELECT
                     image,
+                    imgpath,
                     postype
                 FROM
                     scenarioimage
@@ -492,7 +523,9 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image" +\
+                "     A.image," +\
+                "     A.imgpath," +\
+                "     A.wsnversion" +\
                 " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE A.dpath=? AND A.fname=? AND (B.skintype=? OR B.skintype IS NULL)"
@@ -514,7 +547,9 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image" +\
+                "     A.image," +\
+                "     A.imgpath," +\
+                "     A.wsnversion" +\
                 " FROM scenariodb A WHERE dpath=? AND fname=?"
             self.cur.execute(s, (dpath, fname,))
 
@@ -539,7 +574,9 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image" +\
+                "     A.image," +\
+                "     A.imgpath," +\
+                "     A.wsnversion" +\
                 " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE A.dpath=? AND (B.skintype=? OR B.skintype IS NULL)"
@@ -561,7 +598,9 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image" +\
+                "     A.image," +\
+                "     A.imgpath," +\
+                "     A.wsnversion" +\
                 " FROM scenariodb A WHERE dpath=?"
             self.cur.execute(s, (dpath,))
 
@@ -648,7 +687,9 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image" +\
+                "     A.image," +\
+                "     A.imgpath," +\
+                "     A.wsnversion" +\
                 " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE " + where +\
@@ -674,7 +715,9 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image" +\
+                "     A.image," +\
+                "     A.imgpath," +\
+                "     A.wsnversion" +\
                 " FROM scenariodb A WHERE " + where
             if ftype == DATA_LEVEL:
                 values = (value, value,)
@@ -779,6 +822,22 @@ def is_scenario(path):
                lpath.endswith(".cab")
 
 def read_summary(basepath):
+
+    def imgbufs_to_result(summaryinfos, imgbufs):
+        if len(imgbufs) == 0:
+            imgbuf = ""
+            imgpath = None
+        elif len(imgbufs) == 1 and imgbufs[0][1].postype == "Default":
+            imgbuf = imgbufs[0][0]
+            imgpath = imgbufs[0][1].path
+            imgbufs = []
+        else:
+            imgbuf = None
+            imgpath = None
+        summaryinfos.append(imgbuf)
+        summaryinfos.append(imgpath)
+        return tuple(summaryinfos), imgbufs
+
     path = cw.util.get_linktarget(basepath)
     if os.path.isdir(path):
         f = None
@@ -792,8 +851,9 @@ def read_summary(basepath):
 
             spath = cw.util.join_paths(path, "Summary.xml")
             if os.path.isfile(spath):
-                e = cw.data.xml2element(spath, "Property")
-                imgpaths, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath))
+                rootattrs = {}
+                e = cw.data.xml2element(spath, "Property", rootattrs=rootattrs)
+                imgpaths, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath), rootattrs)
                 imgbufs = []
                 for info in imgpaths:
                     imgpath = cw.util.join_paths(path, info.path)
@@ -802,16 +862,11 @@ def read_summary(basepath):
                             imgbuf = f2.read()
                             f2.close()
                         imgbuf = buffer(imgbuf)
-                        imgbufs.append((imgbuf, info.postype))
-                if len(imgbufs) == 0:
-                    imgbuf = ""
-                elif len(imgbufs) == 1 and imgbufs[0][1] == "Default":
-                    imgbuf = imgbufs[0][0]
-                    imgbufs = []
-                else:
-                    imgbuf = None
-                summaryinfos.append(imgbuf)
-                return tuple(summaryinfos), imgbufs
+                        imgbufs.append((imgbuf, info))
+                    else:
+                        imgbufs.append((None, info))
+
+                return imgbufs_to_result(summaryinfos, imgbufs)
         except:
             cw.util.print_ex()
             return None, []
@@ -862,10 +917,11 @@ def read_summary(basepath):
                     summpath2 = cw.util.join_paths(dpath, summpath)
                     if ret == 0 and os.path.isfile(summpath2):
                         try:
-                            e = cw.data.xml2element(summpath2, "Property")
+                            rootattrs = {}
+                            e = cw.data.xml2element(summpath2, "Property", rootattrs=rootattrs)
 
                             try:
-                                imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
+                                imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path), rootattrs)
                             except:
                                 return None, []
 
@@ -881,17 +937,11 @@ def read_summary(basepath):
                                         imgbuf = f.read()
                                         f.close()
                                     imgbuf = buffer(imgbuf)
-                                    imgbufs.append((imgbuf, info.postype))
+                                    imgbufs.append((imgbuf, info))
+                                else:
+                                    imgbufs.append((None, info))
 
-                            if len(imgbufs) == 0:
-                                imgbuf = ""
-                            elif len(imgbufs) == 1 and imgbufs[0][1] == "Default":
-                                imgbuf = imgbufs[0][0]
-                                imgbufs = []
-                            else:
-                                imgbuf = None
-                            summaryinfos.append(imgbuf)
-                            return tuple(summaryinfos), imgbufs
+                            return imgbufs_to_result(summaryinfos, imgbufs)
 
                         finally:
                             for p in os.listdir(dpath):
@@ -932,11 +982,12 @@ def read_summary(basepath):
         f = StringIO.StringIO(fdata)
 
         try:
-            e = cw.data.xml2element(path, "Property", stream=f)
+            rootattrs = {}
+            e = cw.data.xml2element(path, "Property", stream=f, rootattrs=rootattrs)
         finally:
             f.close()
 
-        imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
+        imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path), rootattrs)
 
         imgbufs = []
         for info in imgpaths:
@@ -946,7 +997,11 @@ def read_summary(basepath):
                 imgbuf = cw.util.read_zipdata(z, imgpath)
                 if imgbuf:
                     imgbuf = buffer(imgbuf)
-                    imgbufs.append((imgbuf, info.postype))
+                    imgbufs.append((imgbuf, info))
+                else:
+                    imgbufs.append((None, info))
+            else:
+                imgbufs.append((None, info))
 
         z.close()
 
@@ -957,18 +1012,11 @@ def read_summary(basepath):
             z.close()
         return None, []
 
-    if len(imgbufs) == 0:
-        imgbuf = ""
-    elif len(imgbufs) == 1 and imgbufs[0][1] == "Default":
-        imgbuf = imgbufs[0][0]
-        imgbufs = []
-    else:
-        imgbuf = None
-    summaryinfos.append(imgbuf)
-    return tuple(summaryinfos), imgbufs
+    return imgbufs_to_result(summaryinfos, imgbufs)
 
-def parse_summarydata(basepath, data, scetype, archive, mtime):
+def parse_summarydata(basepath, data, scetype, archive, mtime, rootattrs):
     e = data.find("ImagePath")
+    wsnversion = rootattrs.get("dataVersion", "")
     imgpaths = []
     if not e is None and e.text:
         imgpaths.append(cw.image.ImageInfo(path=e.text, postype=e.getattr(".", "positiontype", "Default")))
@@ -1005,7 +1053,7 @@ def parse_summarydata(basepath, data, scetype, archive, mtime):
         dpath, fname = os.path.split(os.path.dirname(basepath))
     return (imgpaths,
              [dpath, scetype, fname, name, author, desc, skintype, levelmin,
-              levelmax, coupons, couponsnum, startid, tags, ctime, mtime])
+              levelmax, coupons, couponsnum, startid, tags, ctime, mtime, wsnversion])
 
 def read_summary_classic(basepath, spath, f=None):
     try:
@@ -1025,10 +1073,11 @@ def read_summary_classic(basepath, spath, f=None):
             os.path.basename(basepath), s.name, s.author,
             s.description, s.skintype, s.level_min, s.level_max,
             s.required_coupons, s.required_coupons_num,
-            s.area_id, s.tags, ctime, mtime]
+            s.area_id, s.tags, ctime, mtime, ""]
     if imgbuf:
         imgbuf = buffer(imgbuf)
     summaryinfos.append(imgbuf)
+    summaryinfos.append(None)
     return tuple(summaryinfos), []
 
 def get_scenariopaths(path):
@@ -1052,6 +1101,46 @@ def get_scenariopaths(path):
                lfile.endswith(".lzh") or\
                lfile.endswith(".cab"):
                 yield fname
+
+def get_scenario(fpath):
+    """fpathのシナリオのデータを生成して返す。"""
+    lfpath = fpath.lower()
+    if lfpath.endswith(".wsm") or lfpath.endswith(".xml"):
+        t, images = read_summary(os.path.dirname(fpath))
+    else:
+        t, images = read_summary(fpath)
+    if not t:
+        return None
+
+    dbrec = {}.copy()
+    dbrec["dpath"] = t[0]
+    dbrec["type"] = t[1]
+    dbrec["fname"] = t[2]
+    dbrec["name"] = t[3]
+    dbrec["author"] = t[4]
+    dbrec["desc"] = t[5]
+    dbrec["skintype"] = t[6]
+    dbrec["levelmin"] = t[7]
+    dbrec["levelmax"] = t[8]
+    dbrec["coupons"] = t[9]
+    dbrec["couponsnum"] = t[10]
+    dbrec["startid"] = t[11]
+    dbrec["tags"] = t[12]
+    dbrec["ctime"] = t[13]
+    dbrec["mtime"] = t[14]
+    dbrec["image"] = t[15]
+    dbrec["imgpath"] = t[16]
+    dbrec["wsnversion"] = t[17]
+    imgdbrec = []
+    for (image, info) in images:
+        imgdbrec.append({
+            "image":image,
+            "imgpath": info.path,
+            "postype": info.postype
+        })
+
+    header = cw.header.ScenarioHeader(dbrec=dbrec, imgdbrec=imgdbrec)
+    return cw.data.ScenarioData(header, cardonly=True)
 
 def main():
     db = Scenariodb()

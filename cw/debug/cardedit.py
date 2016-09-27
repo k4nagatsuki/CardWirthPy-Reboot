@@ -203,7 +203,7 @@ class CardEditDialog(wx.Dialog):
 
             def func(self):
                 try:
-                    scdata = get_scenario(fpath)
+                    scdata = cw.scenariodb.get_scenario(fpath)
                     if not scdata:
                         def func(self):
                             self.Enable(True)
@@ -757,40 +757,6 @@ class CardEditDialog(wx.Dialog):
         self.stopbtn.Enable(self._find)
         self.updbtn.Enable(hascard and not self._find)
         self.delbtn.Enable(hascard and not self._find)
-
-def get_scenario(fpath):
-    """fpathのシナリオのデータを生成して返す。"""
-    lfpath = fpath.lower()
-    if lfpath.endswith(".wsm") or lfpath.endswith(".xml"):
-        t, images = cw.scenariodb.read_summary(os.path.dirname(fpath))
-    else:
-        t, images = cw.scenariodb.read_summary(fpath)
-    if not t:
-        return None
-
-    dbrec = {}.copy()
-    dbrec["dpath"] = t[0]
-    dbrec["type"] = t[1]
-    dbrec["fname"] = t[2]
-    dbrec["name"] = t[3]
-    dbrec["author"] = t[4]
-    dbrec["desc"] = t[5]
-    dbrec["skintype"] = t[6]
-    dbrec["levelmin"] = t[7]
-    dbrec["levelmax"] = t[8]
-    dbrec["coupons"] = t[9]
-    dbrec["couponsnum"] = t[10]
-    dbrec["startid"] = t[11]
-    dbrec["tags"] = t[12]
-    dbrec["ctime"] = t[13]
-    dbrec["mtime"] = t[14]
-    dbrec["image"] = t[15]
-    imgdbrec = []
-    for image in images:
-        imgdbrec.append({ "image":image })
-
-    header = cw.header.ScenarioHeader(dbrec=dbrec, imgdbrec=imgdbrec)
-    return cw.data.ScenarioData(header, cardonly=True)
 
 def main():
     pass

@@ -1188,23 +1188,29 @@ class ScenarioHeader(object):
         self.tags = dbrec["tags"]
         self.ctime = dbrec["ctime"]
         self.mtime = dbrec["mtime"]
+        self.wsnversion = dbrec["wsnversion"]
         self.images = []
         self.imgpaths = []
 
         image = dbrec["image"]
-        if image:
+        imgpath = dbrec["imgpath"]
+        if image or imgpath:
             self.images.append(image)
-            self.imgpaths.append(cw.image.ImageInfo())
+            self.imgpaths.append(cw.image.ImageInfo(path=imgpath if imgpath else ""))
         if imgdbrec:
             for imgrec in imgdbrec:
                 self.images.append(imgrec["image"])
                 postype = imgrec["postype"]
                 if not postype:
                     postype = "Default"
-                self.imgpaths.append(cw.image.ImageInfo(postype=postype))
+                imgpath = imgrec["imgpath"]
+                if not imgpath:
+                    imgpath = ""
+                self.imgpaths.append(cw.image.ImageInfo(path=imgpath, postype=postype))
 
         self._wxbmps = None
         self._wxbmps_noscale = None
+        self.skindir = None
 
     @property
     def mtime_reversed(self):
@@ -1215,16 +1221,25 @@ class ScenarioHeader(object):
         return "/".join([self.dpath, self.fname])
 
     def get_wxbmps(self, mask=True):
-        if self._wxbmps is None:
+        if self._wxbmps is None or self.skindir <> cw.cwpy.skindir:
+            self.skindir = cw.cwpy.skindir
             self._wxbmps = []
             self._wxbmps_noscale = []
-            for image in self.images:
-                with io.BytesIO(str(image)) as f:
-                    # TODO scaleinfo
-                    bmp = cw.util.load_wxbmp(f=f, mask=mask)
-                    self._wxbmps_noscale.append(bmp)
-                    self._wxbmps.append(cw.wins((bmp, cw.SIZE_CARDIMAGE)))
-                    f.close()
+            for image, info in zip(self.images, self.imgpaths):
+                if image:
+                    with io.BytesIO(str(image)) as f:
+                        # TODO scaleinfo
+                        bmp = cw.util.load_wxbmp(f=f, mask=mask)
+                        self._wxbmps_noscale.append(bmp)
+                        self._wxbmps.append(cw.wins((bmp, cw.SIZE_CARDIMAGE)))
+                        f.close()
+                elif info.path:
+                    # スキンのTableフォルダを指定している場合はDBにバイナリが無い
+                    path = cw.util.get_materialpathfromskin(info.path, cw.M_IMG)
+                    if path:
+                        bmp = cw.util.load_wxbmp(path, mask=mask)
+                        self._wxbmps_noscale.append(bmp)
+                        self._wxbmps.append(cw.wins((bmp, cw.SIZE_CARDIMAGE)))
         return self._wxbmps, self._wxbmps_noscale
 
 class PartyHeader(object):

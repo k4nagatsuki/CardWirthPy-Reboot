@@ -3545,7 +3545,7 @@ def xml2etree(path="", tag="", stream=None, element=None, nocache=False):
 
     return CWPyElementTree(element=element)
 
-def xml2element(path="", tag="", stream=None, nocache=False):
+def xml2element(path="", tag="", stream=None, nocache=False, rootattrs=None):
     usecache = path and cw.cwpy and cw.cwpy.sdata and\
                isinstance(cw.cwpy.sdata, cw.data.ScenarioData) and\
                path.startswith(cw.cwpy.sdata.tempdir)
@@ -3557,6 +3557,9 @@ def xml2element(path="", tag="", stream=None, nocache=False):
         cachedata = cw.cwpy.sdata.data_cache[path]
         if mtime <= cachedata.mtime:
             data = cachedata.data
+            if not rootattrs is None:
+                for key, value in data.attrib.iteritems():
+                    rootattrs[key] = value
             if tag:
                 data = data.find(tag)
             if nocache:
@@ -3588,13 +3591,16 @@ def xml2element(path="", tag="", stream=None, nocache=False):
 
     if data is None:
         if not usecache and tag and not versionhint:
-            parser = SimpleXmlParser(path, tag, stream, targetonly=True)
+            parser = SimpleXmlParser(path, tag, stream, targetonly=True, rootattrs=rootattrs)
             return parser.parse()
         else:
             parser = SimpleXmlParser(path, "", stream)
             data = parser.parse()
 
     basedata = data
+    if not rootattrs is None:
+        for key, value in data.attrib.iteritems():
+            rootattrs[key] = value
     if tag:
         data = data.find(tag)
 
@@ -3642,7 +3648,8 @@ class EndTargetTagException(Exception):
     pass
 
 class SimpleXmlParser(object):
-    def __init__(self, fpath, targettag="", stream=None, targetonly=False):
+    def __init__(self, fpath, targettag="", stream=None, targetonly=False,
+                 rootattrs=None):
         """
         targettag: 読み込むタグのロケーションパス。絶対パスは使えない。
             "Property/Name"という風にタグごとに"/"で区切って指定する。
@@ -3656,10 +3663,16 @@ class SimpleXmlParser(object):
         self.targetonly = targetonly
         self.parsetags = []
         self.currenttags = []
+        self.rootattrs = rootattrs
         self._persed = False
 
     def start_element(self, name, attrs):
         """要素の開始。"""
+        if not self.currenttags:
+            if not self.rootattrs is None:
+                for key, value in attrs.iteritems():
+                    self.rootattrs[key] = value
+
         self.currenttags.append(name)
 
         if not self._persed and self.get_currentpath() == self.targettag:
