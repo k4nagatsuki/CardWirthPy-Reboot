@@ -1218,7 +1218,7 @@ class MyApp(wx.App):
             if cw.cwpy.frame.filter_event(event):
                 return True
 
-        if isinstance(event, wx.KeyEvent):
+        if not isinstance(event, wx.KeyEvent):
             return -1
 
         if not event.GetEventObject():
