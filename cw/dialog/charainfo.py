@@ -478,7 +478,7 @@ class TopPanel(wx.Panel):
         x = (dc.GetSize()[0] - cw.wins(74)) / 2
 
         infos = cw.image.get_imageinfos(self.ccard.data.find("Property"))
-        setpos = 1 < len(infos) or any(map(lambda info: not info.postype in (None, "Default"), infos))
+        setpos = any(map(lambda info: not info.postype in (None, "Default"), infos))
 
         for info in infos:
             path = info.path
