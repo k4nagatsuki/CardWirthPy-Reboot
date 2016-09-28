@@ -1039,7 +1039,7 @@ class CardEvent(Event):
             self.end()
         else:
             # 使用可能なのでイベント実行
-            if cw.cwpy.sdata.is_wsnversion('2', data.getattr(".", "dataVersion", "")):
+            if cw.cwpy.sdata.is_wsnversion('2', self.inusecard.wsnversion):
                 self._targets_to_coupon()  # 対象にシステムクーポンを付与(Wsn.2)
 
             cw.cwpy.event.set_inusecard(self.inusecard)
@@ -1048,6 +1048,7 @@ class CardEvent(Event):
             Event.start(self)
 
     def _targets_to_coupon(self):
+        self._update_targets()
         self._clear_eventcoupons()
         if self.user:
             self.user.set_coupon(u"＠使用者", 0)
@@ -1061,6 +1062,7 @@ class CardEvent(Event):
         self._target_index = 0
 
     def _clear_eventcoupons(self):
+        self._update_targets()
         self.user.remove_coupon(u"＠使用者")
         for ccard in self._coupon_owners.copy():
             if isinstance(ccard, cw.character.Character):

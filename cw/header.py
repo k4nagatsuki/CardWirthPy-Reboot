@@ -72,11 +72,15 @@ class CardHeader(object):
             if dbowner == "BACKPACK":
                 from_scenario = bool(dbrec["scenariocard"])
             self.versionhint = cw.cwpy.sct.from_basehint(dbrec["versionhint"])
+            self.wsnversion = dbrec["wsnversion"] # ""の場合はWsn.1以前
+            if not self.wsnversion:
+                self.wsnversion = ""
             self.moved = dbrec["moved"]
             self.star = dbrec["star"]
         else:
             self.set_owner(owner)
             self.carddata = carddata
+            self.wsnversion = carddata.getattr(".", "dataVersion", "")
 
             if data is not None:
                 self.fpath = data.fpath
@@ -868,7 +872,7 @@ class InfoCardHeader(object):
             return self.cardimg.get_image()
 
 class AdventurerHeader(object):
-    def __init__(self, data=None, album=False, dbrec=None, imgdbrec=None, fpath=""):
+    def __init__(self, data=None, album=False, dbrec=None, imgdbrec=None, fpath="", rootattrs=None):
         """
         album: アルバム用の場合はTrueにする。
         dbrec: データベースから生成する場合は対象レコード。
@@ -892,6 +896,10 @@ class AdventurerHeader(object):
             self.history = dbrec["history"].split("\n")
             self.race = dbrec["race"]
             self.versionhint = cw.cwpy.sct.from_basehint(dbrec["versionhint"])
+            # ""の場合はWsn.1以前
+            self.wsnversion = dbrec["wsnversion"]
+            if not self.wsnversion:
+                self.wsnversion = ""
 
         elif fpath:
             self.fpath = fpath
@@ -917,6 +925,7 @@ class AdventurerHeader(object):
             self.race = ""
             # 互換性マーク
             self.versionhint = cw.cwpy.sct.from_basehint(prop.attrs.get(".", {}).get("versionHint", ""))
+            self.wsnversion = prop.attrs.get(None, {}).get("dataVersion", "")
 
             for _coupon, attrs, name in reversed(prop.third.get("Coupons", [])):
                 if not name:
@@ -964,6 +973,7 @@ class AdventurerHeader(object):
             self.race = ""
             # 互換性マーク
             self.versionhint = cw.cwpy.sct.from_basehint(data.getattr(".", "versionHint", ""))
+            self.wsnversion = rootattrs.get("dataVersion", "") if rootattrs else ""
 
             for e in reversed(data.getfind("Coupons").getchildren()):
                 if not e.text:
@@ -1188,7 +1198,10 @@ class ScenarioHeader(object):
         self.tags = dbrec["tags"]
         self.ctime = dbrec["ctime"]
         self.mtime = dbrec["mtime"]
+        # ""の場合はWsn.1以前
         self.wsnversion = dbrec["wsnversion"]
+        if not self.wsnversion:
+            self.wsnversion = ""
         self.images = []
         self.imgpaths = []
 
@@ -1585,6 +1598,10 @@ class GetProperty(object):
             f.close()
 
     def start_element(self, name, attrs):
+        if 0 == len(self.stack):
+            # ルート要素の属性
+            self.attrs[None] = attrs
+
         self.stack.append(name)
         if 4 == len(self.stack) and self.stack[1] == "Property":
             name2 = self.stack[2]

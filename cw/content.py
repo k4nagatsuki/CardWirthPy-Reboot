@@ -2390,7 +2390,7 @@ def is_addablecoupon(coupon):
     # ただしWSN形式には一部例外がある
     if coupon.startswith(u'＠'):
         if cw.cwpy.event.in_inusecardevent:
-            cardversion = cw.cwpy.event.get_inusecard().carddata.getattr(".", "dataVersion", "")
+            cardversion = cw.cwpy.event.get_inusecard().wsnversion
         else:
             cardversion = None
         if cw.cwpy.sdata.is_wsnversion('2', cardversion):

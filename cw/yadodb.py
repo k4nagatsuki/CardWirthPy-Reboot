@@ -127,6 +127,7 @@ class YadoDB(object):
             hasmoved = False
             hasscenariocard = False
             hasversionhint = False
+            haswsnversion = False
             hasstar = False
             for rec in res:
                 if rec[1] == "moved":
@@ -135,8 +136,12 @@ class YadoDB(object):
                     hasscenariocard = True
                 elif rec[1] == "versionhint":
                     hasversionhint = True
+                elif rec[1] == "wsnversion":
+                    haswsnversion = True
                 elif rec[1] == "star":
                     hasstar = True
+                if all((hasmoved, hasscenariocard, hasversionhint, haswsnversion, hasstar)):
+                    break
 
             if not hasmoved:
                 self.cur.execute("ALTER TABLE card ADD COLUMN moved INTEGER")
@@ -154,19 +159,28 @@ class YadoDB(object):
                 self.cur.execute("ALTER TABLE card ADD COLUMN star INTEGER")
                 self.cur.execute("UPDATE card SET star=?", (0,))
                 reqcommit = True
+            if not haswsnversion:
+                # 値はNoneのままにしておく
+                self.cur.execute("ALTER TABLE card ADD COLUMN wsnversion TEXT")
+                reqcommit = True
 
             if self.mode == YADO:
-                # desc列かversionhint列が存在しない場合は作成する
+                # desc, versionhint, wsnversion列が存在しない場合は作成する
                 # (旧バージョンとの互換性維持)
                 cur = self.con.execute("PRAGMA table_info('adventurer')")
                 res = cur.fetchall()
                 hasdesc = False
                 hasversionhint = False
+                haswsnversion = False
                 for rec in res:
                     if rec[1] == "desc":
                         hasdesc = True
                     elif rec[1] == "versionhint":
                         hasversionhint = True
+                    elif rec[1] == "wsnversion":
+                        haswsnversion = True
+                    if all((hasdesc, hasversionhint, haswsnversion)):
+                        break
 
                 if not hasdesc:
                     self.cur.execute("ALTER TABLE adventurer ADD COLUMN desc TEXT")
@@ -176,6 +190,11 @@ class YadoDB(object):
                 if not hasversionhint:
                     self.cur.execute("ALTER TABLE adventurer ADD COLUMN versionhint TEXT")
                     self.cur.execute("UPDATE adventurer SET versionhint=?", ("",))
+                    reqcommit = True
+
+                if not haswsnversion:
+                    # 値はNoneのままにしておく
+                    self.cur.execute("ALTER TABLE adventurer ADD COLUMN wsnversion TEXT")
                     reqcommit = True
 
             if self.mode == YADO:
@@ -279,6 +298,7 @@ class YadoDB(object):
                     moved INTEGER,
                     scenariocard INTEGER,
                     versionhint TEXT,
+                    wsnversion TEXT,
                     star INTEGER,
                     ctime INTEGER,
                     mtime INTEGER,
@@ -328,6 +348,7 @@ class YadoDB(object):
                         history TEXT,
                         race TEXT,
                         versionhint TEXT,
+                        wsnversion TEXT,
                         ctime INTEGER,
                         mtime INTEGER,
                         PRIMARY KEY (fpath)
@@ -652,10 +673,12 @@ class YadoDB(object):
             moved,
             scenariocard,
             versionhint,
+            wsnversion,
             star,
             ctime,
             mtime
         ) VALUES(
+            ?,
             ?,
             ?,
             ?,
@@ -730,6 +753,7 @@ class YadoDB(object):
             header.moved,
             1 if header.scenariocard else 0,
             cw.cwpy.sct.to_basehint(header.versionhint),
+            header.wsnversion,
             header.star,
             ctime,
             mtime,
@@ -818,6 +842,7 @@ class YadoDB(object):
                 moved,
                 scenariocard,
                 versionhint,
+                wsnversion,
                 star,
                 ctime,
                 mtime,
@@ -911,9 +936,11 @@ class YadoDB(object):
             history,
             race,
             versionhint,
+            wsnversion,
             ctime,
             mtime
         ) VALUES(
+            ?,
             ?,
             ?,
             ?,
@@ -963,6 +990,7 @@ class YadoDB(object):
             "\n".join(header.history),
             header.race,
             cw.cwpy.sct.to_basehint(header.versionhint),
+            header.wsnversion,
             ctime,
             mtime,
         ))

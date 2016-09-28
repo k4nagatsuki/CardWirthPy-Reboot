@@ -4130,6 +4130,9 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 target.cardpocket[index].insert(toindex, header)
                 target.data.find(path).insert(toindex, header.carddata)
+            # ～1.1まではDBにwsnversion列が無いため、
+            # header.wsnversionがNoneの場合がある
+            header.wsnversion = header.carddata.getattr(".", "dataVersion", "")
 
             # 戦闘中の場合、Deckの手札・山札に追加
             if self.battle:

@@ -2153,10 +2153,11 @@ class YadoData(object):
         album: Trueならアルバム用のAdventurerHeaderを作成。
         element: PropertyタグのElement。
         """
+        rootattrs = {}
         if not element:
-            element = yadoxml2element(path, "Property")
+            element = yadoxml2element(path, "Property", rootattrs=rootattrs)
 
-        return cw.header.AdventurerHeader(element, album)
+        return cw.header.AdventurerHeader(element, album, rootattrs=rootattrs)
 
     def create_cardheader(self, path="", element=None, owner=None):
         """
@@ -3518,11 +3519,11 @@ def make_element(name, text="", attrs={}.copy(), tail=""):
     element.tail = tail
     return element
 
-def yadoxml2etree(path, tag=""):
-    element = yadoxml2element(path, tag)
+def yadoxml2etree(path, tag="", rootattrs=None):
+    element = yadoxml2element(path, tag, rootattrs=rootattrs)
     return CWPyElementTree(element=element)
 
-def yadoxml2element(path, tag=""):
+def yadoxml2element(path, tag="", rootattrs=None):
     yadodir = cw.util.join_paths(cw.tempdir, u"Yado")
     if path.startswith("Yado"):
         temppath = path.replace("Yado", yadodir, 1)
@@ -3533,9 +3534,9 @@ def yadoxml2element(path, tag=""):
         raise ValueError("%s is not YadoXMLFile." % path)
 
     if os.path.isfile(temppath):
-        return xml2element(temppath, tag)
+        return xml2element(temppath, tag, rootattrs=rootattrs)
     elif os.path.isfile(path):
-        return xml2element(path, tag)
+        return xml2element(path, tag, rootattrs=rootattrs)
     else:
         raise ValueError("%s is not found." % path)
 
