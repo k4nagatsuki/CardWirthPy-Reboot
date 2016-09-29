@@ -1666,7 +1666,7 @@ class PartySelect(MultiViewSelect):
             bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
             ix = (bmpw-cw.wins(74))//2
             iy = cw.wins(125)
-            dc.SetClippingRect((ix, iy, cw.SIZE_CARDIMAGE[0], cw.SIZE_CARDIMAGE[1]))
+            dc.SetClippingRect((ix, iy, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
             for b, bns, info in zip(bmp, bmp_noscale, imgpaths):
                 baserect = info.calc_basecardposition_wx(b.GetSize(), noscale=False,
                                                          basecardtype="Bill",
@@ -1722,8 +1722,8 @@ class PartySelect(MultiViewSelect):
                 # 宿・シナリオイメージ
                 bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
                 ix = x + (rw - cw.wins(72)) / 2
-                iy = y + 5
-                dc.SetClippingRect((ix, iy, cw.SIZE_CARDIMAGE[0], cw.SIZE_CARDIMAGE[1]))
+                iy = y + cw.s(5)
+                dc.SetClippingRect((ix, iy, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
                 for b, bns, info in zip(bmp, bmp_noscale, imgpaths):
                     baserect = info.calc_basecardposition_wx(b.GetSize(), noscale=False,
                                                              basecardtype="Bill",
