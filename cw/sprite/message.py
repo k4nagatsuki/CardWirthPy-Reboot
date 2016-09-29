@@ -51,13 +51,9 @@ class MessageWindow(base.CWPySprite):
         else:
             self.talker_name = None
 
-        self.backlog_versionhint = versionhint
-        self.versionhint = None
-        if not self.backlog and self.talker and cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.set_versionhint(cw.HINT_MESSAGE, talker.versionhint)
-
-        if not self.backlog:
-            self.versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
+        self.versionhint = versionhint
+        if cw.cwpy.is_playingscenario():
+            cw.cwpy.sdata.set_versionhint(cw.HINT_MESSAGE, self.versionhint)
 
         if not self.name_table:
             self.name_table = _create_nametable(True, self.talker)
@@ -133,14 +129,18 @@ class MessageWindow(base.CWPySprite):
 
         for talker_image, info in self.talker_image_noscale:
             tih = talker_image.get_height()
-            y = (size_noscale[1] - tih) // 2
-            y += info.calc_basecardposition(talker_image.get_size(), noscale=True).y
+            baserect = info.calc_basecardposition(talker_image.get_size(), noscale=True)
+            y = (180 - tih) // 2
+            y -= self.trim_top_noscale
 
             self.top_noscale = max(0, min(y-9, self.top_noscale))
             self.bottom_noscale = min(size_noscale[1], max(y+tih+9, self.bottom_noscale))
 
         for talker_image, info in self.talker_image:
-            baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
+            if cw.cwpy.sct.lessthan("1.28", self.versionhint):
+                baserect = talker_image.get_rect()
+            else:
+                baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
             y = (cw.s(180) - baserect.height) // 2
             y -= cw.s(self.trim_top_noscale)
             if info.basecardtype:
@@ -285,14 +285,13 @@ class MessageWindow(base.CWPySprite):
                 self.text, self.spcharinfo = self.rpl_specialstr(True, self.text)
                 self.text = cw.util.txtwrap(self.text, 2, encodedtext=False, spcharinfo=self.spcharinfo)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
-            if self.backlog:
-                versionhint = self.backlog_versionhint
-            else:
-                versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
-            if cw.cwpy.sct.lessthan("1.28", versionhint):
+            if cw.cwpy.sct.lessthan("1.28", self.versionhint):
                 def calc_w((bmp, info)):
-                    baserect = info.calc_basecardposition(bmp.get_size())
-                    return baserect.x + baserect.width
+                    if info.postype in ("Default", None):
+                        return bmp.get_width()
+                    else:
+                        baserect = info.calc_basecardposition(bmp.get_size())
+                        return baserect.x + baserect.width
                 w = max(map(calc_w, self.talker_image))
             else:
                 w = cw.s(74)
@@ -518,7 +517,6 @@ class SelectWindow(MessageWindow):
         self.step_table = {}
         self.talker_image = []
         self.versionhint = None
-        self.backlog_versionhint = None
 
         # メッセージの選択結果
         self.result = result

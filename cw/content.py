@@ -3235,9 +3235,15 @@ class TalkMessageContent(TalkContent):
         if not talk:
             return 0
 
+        if firsttalker:
+            versionhint = talker.versionhint
+        else:
+            versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
+
         # MessageWindow表示
         if text:
-            mwin = cw.sprite.message.MessageWindow(text, names, talkers, firsttalker, columns=columns)
+            mwin = cw.sprite.message.MessageWindow(text, names, talkers, firsttalker, columns=columns,
+                                                   versionhint=versionhint)
             index = cw.cwpy.show_message(mwin)
         # テキストが存在せず、選択肢が複数存在する場合はSelectWindowを表示する
         elif len(names) > 1:
@@ -3319,7 +3325,10 @@ class TalkDialogContent(TalkContent):
             return 0
 
         # 画像パス
-        imgpaths = talker.imgpaths
+        imgpaths = []
+        for base in talker.imgpaths:
+            basecardtype = "LargeCard"
+            imgpaths.append(cw.image.ImageInfo(base.path, base=base, basecardtype=basecardtype))
         # 対象メンバの所持クーポンの集合
         coupons = talker.get_coupons()
         # ダイアログリスト
@@ -3332,8 +3341,10 @@ class TalkDialogContent(TalkContent):
         dialogtext = self.get_dialogtext(dialogs, coupons)
 
         # MessageWindow表示
+        versionhint = talker.versionhint
         if dialogtext:
-            mwin = cw.sprite.message.MessageWindow(dialogtext, names, imgpaths, talker, columns=columns)
+            mwin = cw.sprite.message.MessageWindow(dialogtext, names, imgpaths, talker, columns=columns,
+                                                   versionhint=versionhint)
             index = cw.cwpy.show_message(mwin)
         elif not dialogtext is None and len(names) > 1:
             # 選択されたDialogに空文字列が設定されており、

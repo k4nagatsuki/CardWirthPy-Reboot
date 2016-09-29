@@ -862,7 +862,8 @@ class PlayerCard(CWPyCard, character.Player):
             infos = []
             for info in self.imgpaths:
                 infos.append(cw.image.ImageInfo(path=info.path, pcnumber=info.pcnumber, base=info, basecardtype="LargeCard"))
-            mwin = cw.sprite.message.MessageWindow(text, names, infos, self)
+            mwin = cw.sprite.message.MessageWindow(text, names, infos, self,
+                                                   versionhint=self.versionhint)
             cw.cwpy.show_message(mwin)
             if base <> level or cw.cwpy.ydata.party.is_suspendlevelup:
                 # レベル調節中だった場合は再調節
