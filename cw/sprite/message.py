@@ -136,11 +136,13 @@ class MessageWindow(base.CWPySprite):
             self.top_noscale = max(0, min(y-9, self.top_noscale))
             self.bottom_noscale = min(size_noscale[1], max(y+tih+9, self.bottom_noscale))
 
+        xmove = cw.s(0)
         for talker_image, info in self.talker_image:
-            if cw.cwpy.sct.lessthan("1.28", self.versionhint):
-                baserect = talker_image.get_rect()
-            else:
-                baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
+            baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
+            xmove = max(-baserect.x, xmove)
+
+        for talker_image, info in self.talker_image:
+            baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
             y = (cw.s(180) - baserect.height) // 2
             y -= cw.s(self.trim_top_noscale)
             if info.basecardtype:
@@ -149,6 +151,7 @@ class MessageWindow(base.CWPySprite):
                 x = (self.rect.width-baserect.width) // 2
             else:
                 x = cw.s(15)
+            x += xmove
             y += baserect.y
             cw.imageretouch.blit_2bitbmp_to_message(self.image, talker_image, (x, y), wincolour)
 
@@ -287,11 +290,7 @@ class MessageWindow(base.CWPySprite):
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if cw.cwpy.sct.lessthan("1.28", self.versionhint):
                 def calc_w((bmp, info)):
-                    if info.postype in ("Default", None):
-                        return bmp.get_width()
-                    else:
-                        baserect = info.calc_basecardposition(bmp.get_size())
-                        return baserect.x + baserect.width
+                    return bmp.get_width()
                 w = max(map(calc_w, self.talker_image))
             else:
                 w = cw.s(74)
