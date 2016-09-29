@@ -665,6 +665,12 @@ class PlayerCard(CWPyCard, character.Player):
             self.rect = pygame.Rect(self._rect)
             self.rect.move_ip(cw.s(0), cw.s(+150))
 
+        # スキンの種族設定とキャラクター編集ダイアログでの
+        # 編集の噛み合わせで"＠ＥＰ"が消えてしまうバグがあったので
+        # ここで修復する(issue #416)
+        if not self.has_coupon(u"＠ＥＰ"):
+            self.set_coupon(u"＠ＥＰ", 0)
+
         # "：Ｒ"クーポンを所持していたら反転フラグON
         if self.has_coupon(u"：Ｒ"):
             self.reversed = True

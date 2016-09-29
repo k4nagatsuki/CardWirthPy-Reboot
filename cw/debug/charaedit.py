@@ -448,6 +448,13 @@ class CharaInfo(object):
             if self.talent == u"＿" + f.name:
                 self.levelmax = f.levelmax
                 break
+        for f in cw.cwpy.setting.races:
+            if race == f:
+                for coupon in f.coupons:
+                    if coupon[0] == u"＠レベル上限":
+                        self.levelmax = max(self.levelmax, coupon[1])
+                        break
+                break
 
     def put_params(self, pcard):
         self._calc_params()
@@ -469,7 +476,11 @@ class CharaInfo(object):
             racecoupons = set()
             for period in itertools.chain(cw.cwpy.setting.periods, cw.cwpy.setting.races):
                 for coupon in period.coupons:
+                    if coupon[0] == u"＠ＥＰ":
+                        # "＠ＥＰ"は種族を変更しても変化しない
+                        continue
                     racecoupons.add(coupon[0])
+
             syscoupons = set()
             for coupon in cw.cwpy.setting.sexcoupons:
                 syscoupons.add(coupon)
@@ -495,7 +506,8 @@ class CharaInfo(object):
             for e in pcard.data.getfind("Property/Coupons"):
                 name = e.text
                 if name in syscoupons or name.startswith(u"＠Ｒ"):
-                    continue
+                    if not (self.recalc_parameter and name == u"＠レベル上限"):
+                        continue
 
                 value = e.getint(".", "value", 0)
 
@@ -596,7 +608,7 @@ class CharaInfo(object):
                         break
 
                 for coupon in etccoupons:
-                    if not coupon[0] in racecoupons:
+                    if not coupon[0] in racecoupons or coupon[0] == u"＠レベル上限":
                         seq.append(coupon)
 
             else:
