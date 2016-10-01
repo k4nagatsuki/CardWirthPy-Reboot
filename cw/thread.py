@@ -859,7 +859,8 @@ class CWPy(_Singleton, threading.Thread):
         self.proc_animation()
 
         if not self.is_showingdlg():
-            self.mousein = pygame.mouse.get_pressed()
+            if sys.platform == "win32":
+                self.mousein = pygame.mouse.get_pressed()
             mousepos = self.mousepos
             if self.update_mousepos():
                 self.mousemotion = False if self.mousepos == mousepos else True

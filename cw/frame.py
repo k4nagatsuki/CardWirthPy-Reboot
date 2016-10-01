@@ -332,6 +332,7 @@ class Frame(wx.Frame):
         """
         self.SetFocus()
         self.update_keystate()
+        self._update_mousepressed()
 
     def update_keystate(self):
         if wx.GetKeyState(wx.WXK_CONTROL):
@@ -341,7 +342,19 @@ class Frame(wx.Frame):
             if cw.cwpy.keyevent.is_keyin(pygame.locals.K_LCTRL):
                 cw.cwpy.keyevent.keyup(wx.WXK_CONTROL)
 
+    def _update_mousepressed(self):
+        if self.IsActive():
+            state = wx.GetMouseState()
+            l = state.LeftDown()
+            m = state.MiddleDown()
+            r = state.RightDown()
+            cw.cwpy.mousein = (l, m, r)
+        else:
+            cw.cwpy.mousein = (0, 0, 0)
+        pass
+
     def OnKillFocus(self, event):
+        self._update_mousepressed()
         cw.cwpy.keyevent.clear()
 
     def OnKeyUp(self, event):
@@ -394,30 +407,37 @@ class Frame(wx.Frame):
         cw.cwpy.wxmousepos = pos
 
     def OnLeftUp(self, event):
+        self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
         cw.thread.post_pygameevent(evt)
 
     def OnLeftDown(self, event):
+        self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=1)
         cw.thread.post_pygameevent(evt)
 
     def OnMiddleUp(self, event):
+        self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=2)
         cw.thread.post_pygameevent(evt)
 
     def OnMiddleDown(self, event):
+        self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=2)
         cw.thread.post_pygameevent(evt)
 
     def OnRightUp(self, event):
+        self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=3)
         cw.thread.post_pygameevent(evt)
 
     def OnRightDown(self, event):
+        self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=3)
         cw.thread.post_pygameevent(evt)
 
     def OnMouseWheel(self, event):
+        self._update_mousepressed()
         if event.GetWheelRotation() > 0:
             evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=4)
         else:

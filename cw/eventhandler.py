@@ -574,7 +574,7 @@ class EventHandler(object):
         return
 
     def change_volume(self, val):
-        if val <> 0 and pygame.mouse.get_pressed()[2]:
+        if val <> 0 and cw.cwpy.mousein[2]:
             # 右クリック+ホイール。音量の変更
             for music in cw.cwpy.music:
                 volume = music.mastervolume + val * cw.cwpy.setting.volume_increment

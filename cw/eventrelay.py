@@ -103,7 +103,7 @@ class KeyEventRelay(object):
 
         if cw.cwpy.setting.can_repeatlclick:
             button -= 1
-            pressed = pygame.mouse.get_pressed()
+            pressed = cw.cwpy.mousein[:]
             if 0 <= button and button < len(self.mousein) and 0 <> self.mousein[button]:
                 if 0 <= button and button < len(pressed) and pressed[button]:
                     # マウスボタン押下時間閾値
