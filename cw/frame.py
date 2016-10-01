@@ -343,15 +343,15 @@ class Frame(wx.Frame):
                 cw.cwpy.keyevent.keyup(wx.WXK_CONTROL)
 
     def _update_mousepressed(self):
-        if self.IsActive():
-            state = wx.GetMouseState()
-            l = state.LeftDown()
-            m = state.MiddleDown()
-            r = state.RightDown()
-            cw.cwpy.mousein = (l, m, r)
-        else:
-            cw.cwpy.mousein = (0, 0, 0)
-        pass
+        if sys.platform <> "win32":
+            if self.IsActive():
+                state = wx.GetMouseState()
+                l = state.LeftDown()
+                m = state.MiddleDown()
+                r = state.RightDown()
+                cw.cwpy.mousein = (l, m, r)
+            else:
+                cw.cwpy.mousein = (0, 0, 0)
 
     def OnKillFocus(self, event):
         self._update_mousepressed()
