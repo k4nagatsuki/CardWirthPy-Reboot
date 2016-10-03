@@ -386,7 +386,7 @@ class SoundInterface(object):
                     return
                 assert threading.currentThread() <> cw.cwpy
                 if from_scenario:
-                    name = "cwsnd1_" + self.channel
+                    name = "cwsnd1_" + str(self.channel)
                 else:
                     name = "cwsnd2"
 
