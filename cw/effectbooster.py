@@ -98,7 +98,9 @@ class _JpySubImage(cw.image.Image):
         self.mask = config.get_int(section, "mask", 0)
         self.colormap = config.get_int(section, "colormap", 0)
         self.alpha = config.get_int(section, "alpha", 0)
-        self.exchange = config.get_int(section, "colorexchange", 0)
+        self.exchange = config.get_int(section, "exchange", None)
+        if self.exchange is None:
+            self.exchange = config.get_int(section, "colorexchange", 0)
         self.noise = config.get_int(section, "noise", 0)
         self.noisepoint = config.get_int(section, "noisepoint", 0)
         self.filter = config.get_int(section, "filter", 0)
