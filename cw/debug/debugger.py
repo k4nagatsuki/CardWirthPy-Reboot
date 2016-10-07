@@ -1871,6 +1871,7 @@ class EventView(wx.ScrolledWindow):
             return
 
         dc = wx.PaintDC(self)
+
         if sys.platform <> "win32" or 6 <= sys.getwindowsversion().major:
             try:
                 dc = wx.GCDC(dc)
@@ -1879,7 +1880,9 @@ class EventView(wx.ScrolledWindow):
 
         if sys.platform.startswith("linux"):
             # FIXME: なぜか文字化けするので
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pointsize=12))
+            #        DPIも反映されない
+            font = wx.Font(cw.ppis(12), wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+            dc.SetFont(font)
 
         csize = self.GetClientSize()
         csize = (csize[0]+self.leftbarwidth, csize[1])
@@ -1897,7 +1900,9 @@ class EventView(wx.ScrolledWindow):
             tx = self.leftbarwidth+cw.ppis(10)
             ty = cw.ppis(10)+ts[1]
             dc.DrawText(hint, tx, ty)
-            dc.DrawText(u"ダブルクリックかEnterキー押下で任意の\nイベントコンテントを実行できます。", tx+ts[0]+cw.ppis(5), ty)
+            ts = dc.GetTextExtent(hint)
+            dc.DrawText(u"ダブルクリックかEnterキー押下で任意の", tx+ts[0]+cw.ppis(5), ty)
+            dc.DrawText(u"イベントコンテントを実行できます。", tx+ts[0]+cw.ppis(5), ty+ts[1])
             return
 
         selpen = wx.Pen(wx.Colour(255, 128, 128))
