@@ -39,8 +39,6 @@ class Frame(wx.Frame):
 
         self.kill_list = []
 
-        cw.dpi_level = cw.ppis(1)
-
         # トップフレーム
         setfullscreensize = False
         self.style = wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX & ~wx.RESIZE_BORDER
@@ -55,6 +53,10 @@ class Frame(wx.Frame):
                 self.SetClientSize(cw.wins(cw.SIZE_GAME))
                 self.SetMinSize(self.GetBestSize())
                 self.SetMaxSize(self.GetBestSize())
+
+        font = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        pixels = font.GetPixelSize()[1]
+        cw.dpi_level = int(pixels / 12.0 / (1.0 / 72) / 96)
 
         self.thread = threading.currentThread()
         self._skindirname = skindirname

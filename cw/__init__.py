@@ -426,12 +426,7 @@ def _s_impl(num, up_scr):
 dpi_level = 1
 
 def ppis(num):
-    ppi = wx.ScreenDC().GetPPI()
-    base = 96
-    exp = 2.0
-    while base*exp <= ppi[0]:
-        exp *= 2.0
-    return _s_impl(num, exp/2.0)
+    return _s_impl(num, dpi_level)
 
 
 def main():
