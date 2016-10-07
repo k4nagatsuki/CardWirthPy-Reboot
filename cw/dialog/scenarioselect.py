@@ -2432,7 +2432,7 @@ class ScenarioSelect(select.Select):
                                         fpath = cw.util.join_paths(dpath2, fname)
                                         if os.path.isfile(fpath):
                                             cw.util.add_winauth(fpath)
-                                            with open(fpath, "r") as f:
+                                            with open(fpath, "rb") as f:
                                                 content = f.read()
                                                 f.close()
                                             seq.append(text.ReadmeData(fname, content))
@@ -2465,7 +2465,7 @@ class ScenarioSelect(select.Select):
                                 paths.append(fpath)
 
                 for fpath in paths:
-                    with open(fpath, "r") as f:
+                    with open(fpath, "rb") as f:
                         data = f.read()
                         f.close()
                     name = cw.util.relpath(fpath, path)
@@ -2478,7 +2478,7 @@ class ScenarioSelect(select.Select):
                 for fname in os.listdir(dpath):
                     if os.path.splitext(fname)[1].lower().endswith(".txt"):
                         fpath = cw.util.join_paths(dpath, fname)
-                        with open(fpath, "r") as f:
+                        with open(fpath, "rb") as f:
                             data = f.read()
                             f.close()
                         seq.append(text.ReadmeData(fname, data))
