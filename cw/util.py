@@ -462,7 +462,24 @@ class SoundInterface(object):
 
 def init(size_noscale=None, title="", fullscreen=False, soundfonts=None, fullscreensize=(0, 0)):
     """pygame初期化。"""
-    pygame.display.init()
+    if sys.platform == "win32":
+        # FIXME: SDLがWindowsの言語設定に勝手にUSキーボード設定を追加してしまうので
+        #        キーボードレイアウトが増えていた場合に限り除去
+        #        おそらくSDL2では発生しないので、更新した時には以下のコードを取り除けるはず
+        active = win32api.GetKeyboardLayout(0)
+        hkls = set()
+        for hkl in win32api.GetKeyboardLayoutList():
+            hkls.add(hkl)
+
+        pygame.display.init()
+
+        for hkl in win32api.GetKeyboardLayoutList():
+            if not hkl in hkls:
+                p = ctypes.c_void_p(hkl)
+                ctypes.windll.user32.UnloadKeyboardLayout(p)
+    else:
+        pygame.display.init()
+
     pygame.font.init()
     #pygame.joystick.init()
     flags = 0
