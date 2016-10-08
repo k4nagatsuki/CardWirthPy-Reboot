@@ -929,6 +929,11 @@ class EventHandlerForMessageWindow(EventHandler):
             return
 
         if len(cw.cwpy.list) == 1 and y > 0:
+
+            if not cw.cwpy.setting.can_forwardmessage_with_wheel:
+                # ホイールによるメッセージ送り無効の設定
+                return
+
             cw.cwpy.has_inputevent = True
             sbar = cw.cwpy.list[cw.cwpy.index]
             if isinstance(sbar, cw.sprite.message.SelectionBar):
@@ -1565,7 +1570,8 @@ class EventHandlerForEffectBooster(EventHandler):
             self.f5key_event()
             return
 
-        self.running = False
+        if cw.cwpy.setting.can_skipwait_with_wheel:
+            self.running = False
 
     def escapekey_event(self):
         """

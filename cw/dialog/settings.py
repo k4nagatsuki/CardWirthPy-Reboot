@@ -640,6 +640,10 @@ class SettingsPanel(wx.Panel):
         setting.can_skipwait = value
         value = self.pane_ui.cb_can_skipanimation.GetValue()
         setting.can_skipanimation = value
+        value = self.pane_ui.cb_can_skipwait_with_wheel.GetValue()
+        setting.can_skipwait_with_wheel = value
+        value = self.pane_ui.cb_can_forwardmessage_with_wheel.GetValue()
+        setting.can_forwardmessage_with_wheel = value
         value = self.pane_ui.cb_wait_usecard.GetValue()
         setting.wait_usecard = value
         value = self.pane_ui.cb_can_repeatlclick.GetValue()
@@ -2381,6 +2385,12 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_can_skipanimation = wx.CheckBox(
             panel, -1, u"アニメーションをスキップ可能にする")
         panel.AddWindow(self.cb_can_skipanimation, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        self.cb_can_skipwait_with_wheel = wx.CheckBox(
+            panel, -1, u"マウスのホイールで空白時間をスキップする")
+        panel.AddWindow(self.cb_can_skipwait_with_wheel, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        self.cb_can_forwardmessage_with_wheel = wx.CheckBox(
+            panel, -1, u"マウスのホイールでメッセージ送りを行う")
+        panel.AddWindow(self.cb_can_forwardmessage_with_wheel, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_wait_usecard = wx.CheckBox(
             panel, -1, u"カードの使用前に空白時間を入れる")
         panel.AddWindow(self.cb_wait_usecard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
@@ -2539,6 +2549,8 @@ class UISettingPanel(wx.ScrolledWindow):
     def load(self, setting):
         self.cb_can_skipwait.SetValue(setting.can_skipwait)
         self.cb_can_skipanimation.SetValue(setting.can_skipanimation)
+        self.cb_can_skipwait_with_wheel.SetValue(setting.can_skipwait_with_wheel)
+        self.cb_can_forwardmessage_with_wheel.SetValue(setting.can_forwardmessage_with_wheel)
         self.cb_wait_usecard.SetValue(setting.wait_usecard)
         self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick)
         self.cb_autoenter_on_sprite.SetValue(setting.autoenter_on_sprite)
@@ -2584,6 +2596,8 @@ class UISettingPanel(wx.ScrolledWindow):
     def init_values(self, setting):
         self.cb_can_skipwait.SetValue(setting.can_skipwait_init)
         self.cb_can_skipanimation.SetValue(setting.can_skipanimation_init)
+        self.cb_can_skipwait_with_wheel.SetValue(setting.can_skipwait_with_wheel_init)
+        self.cb_can_forwardmessage_with_wheel.SetValue(setting.can_forwardmessage_with_wheel_init)
         self.cb_wait_usecard.SetValue(setting.wait_usecard_init)
         self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick_init)
         self.cb_autoenter_on_sprite.SetValue(setting.autoenter_on_sprite_init)

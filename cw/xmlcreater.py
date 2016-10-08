@@ -469,6 +469,16 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.can_skipanimation <> setting.can_skipanimation_init:
         e = cw.data.make_element("CanSkipAnimation", str(setting.can_skipanimation))
         element.append(e)
+
+    # マウスのホイールで空白時間をスキップする
+    if setting.can_skipwait_with_wheel <> setting.can_skipwait_with_wheel_init:
+        e = cw.data.make_element("CanSkipWaitWithWheel", str(setting.can_skipwait_with_wheel))
+        element.append(e)
+    # マウスのホイールでメッセージ送りを行う
+    if setting.can_forwardmessage_with_wheel <> setting.can_forwardmessage_with_wheel_init:
+        e = cw.data.make_element("CanForwardMessageWithWheel", str(setting.can_forwardmessage_with_wheel))
+        element.append(e)
+
     # マウスの左ボタンを押し続けた時は連打状態にする
     if setting.can_repeatlclick <> setting.can_repeatlclick_init:
         e = cw.data.make_element("CanRepeatLClick", str(setting.can_repeatlclick))

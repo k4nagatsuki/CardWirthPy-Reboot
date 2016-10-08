@@ -366,6 +366,8 @@ class Setting(object):
         self.unconvert_targetfolder = u"UnconvertedYado"
         self.can_skipwait = True
         self.can_skipanimation = True
+        self.can_skipwait_with_wheel = True
+        self.can_forwardmessage_with_wheel = True
         self.can_repeatlclick = False
         self.cursor_type = CURSOR_WHITE
         self.autoenter_on_sprite = False
@@ -647,6 +649,10 @@ class Setting(object):
         self.can_skipwait = data.getbool("CanSkipWait", self.can_skipwait)
         # アニメーションをスキップ可能にする
         self.can_skipanimation = data.getbool("CanSkipAnimation", self.can_skipanimation)
+        # マウスのホイールで空白時間をスキップする
+        self.can_skipwait_with_wheel = data.getbool("CanSkipWaitWithWheel", self.can_skipwait_with_wheel)
+        # マウスのホイールでメッセージ送りを行う
+        self.can_forwardmessage_with_wheel = data.getbool("CanForwardMessageWithWheel", self.can_forwardmessage_with_wheel)
         # マウスの左ボタンを押し続けた時は連打状態にする
         self.can_repeatlclick = data.getbool("CanRepeatLClick", self.can_repeatlclick)
         # カーソルタイプ

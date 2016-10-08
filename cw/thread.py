@@ -797,7 +797,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.sbargrp.update(cw.cwpy.scr_draw)
                 if sel <> self.selection:
                     cw.cwpy.draw(clip=self.statusbar.rect)
-                breakflag = self.get_breakflag()
+                print cw.cwpy.setting.can_skipwait_with_wheel
+                breakflag = self.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)
                 self.input(inputonly=True)
                 self.eventhandler.run()
                 if breakflag:
@@ -807,14 +808,17 @@ class CWPy(_Singleton, threading.Thread):
             self.tick_clock()
         return skip
 
-    def get_breakflag(self):
+    def get_breakflag(self, handle_wheel=True):
         """待機時間を飛ばすべき入力がある場合にTrueを返す。"""
         if self.is_playingscenario() and self.sdata.in_f9:
             return True
         breakflag = False
         events = pygame.event.get((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
         for e in events:
-            if e.type == pygame.locals.MOUSEBUTTONUP:
+            if e.type == pygame.locals.MOUSEBUTTONUP and hasattr(e, "button"):
+                if not handle_wheel and e.button in (4, 5):
+                    # ホイールによる空白時間スキップ無効の設定
+                    continue
                 breakflag = True
             elif e.type == pygame.locals.KEYUP:
                 if not e.key in (pygame.locals.K_F1, pygame.locals.K_F2, pygame.locals.K_F3, pygame.locals.K_F4,
