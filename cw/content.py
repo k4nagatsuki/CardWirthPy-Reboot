@@ -2416,9 +2416,15 @@ class GetCouponContent(GetContent):
 
         if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(scope, False)
+            cardevent = cw.cwpy.event.get_cardevent()
+            targetout = cardevent and cardevent.in_effectmotionloop() and coupon == u"＠効果対象"
 
             for target in targets:
                 if isinstance(target, cw.character.Character):
+                    if targetout and target.has_coupon(u"＠効果対象外"):
+                        # "＠効果対象外"を持つメンバには"＠効果対象"はつかない(Wsn.2)
+                        continue
+
                     target.set_coupon(coupon, value)
 
         return 0
@@ -2769,10 +2775,17 @@ class LoseCouponContent(LoseContent):
 
         if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(scope, False)
+            cardevent = cw.cwpy.event.get_cardevent()
+            targetout = cardevent and cardevent.in_effectmotionloop() and coupon == u"＠効果対象"
 
             for target in targets:
                 if isinstance(target, cw.character.Character):
                     target.remove_coupon(coupon)
+
+                    if targetout:
+                        # 無限ループを避けるための措置(Wsn.2)
+                        # "＠効果対象"を除去されたメンバは"＠効果対象外"がつく
+                        target.set_coupon(u"＠効果対象外", 0)
 
         return 0
 
