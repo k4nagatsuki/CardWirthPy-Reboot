@@ -470,7 +470,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("CanSkipAnimation", str(setting.can_skipanimation))
         element.append(e)
 
-    # マウスのホイールで空白時間をスキップする
+    # マウスのホイールで空白時間とアニメーションをスキップする
     if setting.can_skipwait_with_wheel <> setting.can_skipwait_with_wheel_init:
         e = cw.data.make_element("CanSkipWaitWithWheel", str(setting.can_skipwait_with_wheel))
         element.append(e)

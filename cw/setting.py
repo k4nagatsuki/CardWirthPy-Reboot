@@ -649,7 +649,7 @@ class Setting(object):
         self.can_skipwait = data.getbool("CanSkipWait", self.can_skipwait)
         # アニメーションをスキップ可能にする
         self.can_skipanimation = data.getbool("CanSkipAnimation", self.can_skipanimation)
-        # マウスのホイールで空白時間をスキップする
+        # マウスのホイールで空白時間とアニメーションをスキップする
         self.can_skipwait_with_wheel = data.getbool("CanSkipWaitWithWheel", self.can_skipwait_with_wheel)
         # マウスのホイールでメッセージ送りを行う
         self.can_forwardmessage_with_wheel = data.getbool("CanForwardMessageWithWheel", self.can_forwardmessage_with_wheel)

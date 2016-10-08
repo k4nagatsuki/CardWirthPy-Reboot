@@ -993,6 +993,8 @@ class EventHandlerForBacklog(EventHandler):
         self._sbarbar = None
         self._update_posdata(init=True)
 
+        self._start_ticks = pygame.time.get_ticks()
+
     def _update_posdata(self, init):
         sbarbar = cw.cwpy.sbargrp.get_sprites_from_layer(cw.sprite.statusbar.LAYER_MESSAGE)
         if self._sbarbar and sbarbar:
@@ -1351,6 +1353,14 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy._is_showingbacklog = False
         if cw.cwpy.lock_menucards:
             cw.cwpy.lock_menucards = self._lock_menucards
+
+        # ステータスボタンを除き、ログ表示中はアニメーションを止める
+        # (開始時間をずらして調節する)
+        for sprite in cw.cwpy.cardgrp.sprites():
+            if sprite.start_animation and not isinstance(sprite, cw.sprite.statusbar.StatusBarButton):
+                elapse = pygame.time.get_ticks() - self._start_ticks
+                if 0 < elapse:
+                    sprite.start_animation += elapse
 
         # 背景スプライト削除
         cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())

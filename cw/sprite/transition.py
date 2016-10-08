@@ -55,7 +55,7 @@ class Fade(Transition):
 
         if alpha <= 0:
             self.frame = 0
-            self.start_tick = 0
+            self.start_animation = 0
             self.status = "hidden"
 
 class PixelDissolve(Transition):
@@ -94,7 +94,7 @@ class PixelDissolve(Transition):
 
         if not self.poslist:
             self.frame = 0
-            self.start_tick = 0
+            self.start_animation = 0
             self.status = "hidden"
 
 class Blinds(Transition):

@@ -2386,7 +2386,7 @@ class UISettingPanel(wx.ScrolledWindow):
             panel, -1, u"アニメーションをスキップ可能にする")
         panel.AddWindow(self.cb_can_skipanimation, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_can_skipwait_with_wheel = wx.CheckBox(
-            panel, -1, u"マウスのホイールで空白時間をスキップする")
+            panel, -1, u"マウスのホイールで空白時間とアニメーションをスキップする")
         panel.AddWindow(self.cb_can_skipwait_with_wheel, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_can_forwardmessage_with_wheel = wx.CheckBox(
             panel, -1, u"マウスのホイールでメッセージ送りを行う")

@@ -797,7 +797,6 @@ class CWPy(_Singleton, threading.Thread):
                 self.sbargrp.update(cw.cwpy.scr_draw)
                 if sel <> self.selection:
                     cw.cwpy.draw(clip=self.statusbar.rect)
-                print cw.cwpy.setting.can_skipwait_with_wheel
                 breakflag = self.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)
                 self.input(inputonly=True)
                 self.eventhandler.run()
@@ -815,7 +814,7 @@ class CWPy(_Singleton, threading.Thread):
         breakflag = False
         events = pygame.event.get((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
         for e in events:
-            if e.type == pygame.locals.MOUSEBUTTONUP and hasattr(e, "button"):
+            if e.type in (pygame.locals.MOUSEBUTTONUP, pygame.locals.MOUSEBUTTONDOWN) and hasattr(e, "button"):
                 if not handle_wheel and e.button in (4, 5):
                     # ホイールによる空白時間スキップ無効の設定
                     continue
