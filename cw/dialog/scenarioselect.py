@@ -35,6 +35,8 @@ class ScenarioSelect(select.Select):
         self._bg = None
         self._quit = False
 
+        self._last_narrowparams = None
+
         # ディレクトリとシナリオリストの対応
         self.scetable = {}
         # シナリオディレクトリ
@@ -1748,6 +1750,9 @@ class ScenarioSelect(select.Select):
         return num < header.couponsnum
 
     def update_narrowcondition(self):
+        if not self._update_narrowparams():
+            return
+
         self._processing = True
         selected = self.list[self.index] if self.list else None
         if self.tree.IsShown():
@@ -1755,6 +1760,8 @@ class ScenarioSelect(select.Select):
             if not selitem:
                 self._processing = False
                 return
+            self.Freeze()
+            self.tree.Hide()
             paritem = self.tree.GetItemParent(selitem)
             def recurse(parent):
                 index, nowdir = self.tree.GetItemPyData(parent)
@@ -1787,6 +1794,8 @@ class ScenarioSelect(select.Select):
             #item = self.tree.GetSelection()
             #if item and not self.tree.IsVisible(item):
             #    self.tree.ScrollTo(item)
+            self.tree.Show()
+            self.Thaw()
 
         if self.toppanel.IsShown():
             self.list = self.scetable[self.nowdir]
@@ -1813,6 +1822,13 @@ class ScenarioSelect(select.Select):
         self._update_pagelabel()
 
     def create_treeitems(self, treeitem):
+        if not treeitem is self.tree.root:
+            # 再描画を抑止して軽くする
+            # self.tree.Freeze()にはほとんど効果が認められなかったので
+            # 予めツリーを閉じるようにする
+            self.tree.Freeze()
+            self.tree.Collapse(treeitem)
+            pos = self.tree.GetScrollPos(wx.VERTICAL)
         self.tree.DeleteChildren(treeitem)
         index, nowdir = self.tree.GetItemPyData(treeitem)
         itemlist = []
@@ -1843,8 +1859,11 @@ class ScenarioSelect(select.Select):
                 itemlist.append(item)
                 dpaths.append(dpath)
 
-        if not cw.cwpy.setting.show_paperandtree and not treeitem is self.tree.root:
-            self.tree.Expand(treeitem)
+        if not treeitem is self.tree.root:
+            if treeitem.IsOk() and not self.tree.IsExpanded(treeitem):
+                self.tree.Expand(treeitem)
+                self.tree.SetScrollPos(wx.VERTICAL, pos)
+            self.tree.Thaw()
 
         return itemlist, dpaths
 
@@ -1869,6 +1888,7 @@ class ScenarioSelect(select.Select):
     def create_treeitem(self, index, treeitem, header):
         name = header.name
         image = self.tree.imgidx_summary
+
         if self.is_playing(header):
             image = self.tree.imgidx_playing
         elif self.is_complete(header):
@@ -2187,6 +2207,14 @@ class ScenarioSelect(select.Select):
                 dseq.append(header)
 
         return dseq + self._sort_headers(seq)
+
+    def _update_narrowparams(self):
+        t = self._get_narrowparams()
+        if t == self._last_narrowparams:
+            return False
+        else:
+            self._last_narrowparams = t
+            return True
 
     def is_showing(self, header):
         ntype, narrow, donarrow, level = self._get_narrowparams()

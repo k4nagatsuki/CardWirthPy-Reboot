@@ -231,8 +231,11 @@ class Scenariodb(object):
             self.cur.execute("CREATE INDEX scenariotype_index1 ON scenariodb(dpath, fname)")
 
     @synclock(_lock)
-    def update(self, dpath=u"Scenario", skintype=u"", commit=True):
+    def update(self, dpath=u"Scenario", skintype=u"", commit=True, update=True):
         """データベースを更新する。"""
+        if not update:
+            return
+
         if skintype:
             s = "SELECT A.dpath, A.fname, mtime, B.skintype FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
@@ -407,7 +410,7 @@ class Scenariodb(object):
             ##shutil.move(path, dst)
             return False
 
-    def create_header(self, data, skintype=u""):
+    def create_header(self, data, skintype=u"", update=True):
         """
         データベース内のシナリオ情報からヘッダ部分を返す。
         情報が古くなっている場合は更新する。
@@ -433,6 +436,9 @@ class Scenariodb(object):
             imgdbrec = None
 
         header = cw.header.ScenarioHeader(data, imgdbrec=imgdbrec)
+        if not update:
+            return header
+
         path = header.get_fpath()
         ltarg = cw.util.get_linktarget(path)
 
@@ -466,7 +472,7 @@ class Scenariodb(object):
 
         return header
 
-    def create_headers(self, data, skintype=u""):
+    def create_headers(self, data, skintype=u"", update=True):
         """
         データベース内のシナリオ群のヘッダを返す。
         その際、情報が古くなっている場合は更新する。
@@ -475,7 +481,7 @@ class Scenariodb(object):
         names = set()
 
         for t in data:
-            header = self.create_header(t, skintype=skintype)
+            header = self.create_header(t, skintype=skintype, update=update)
 
             if header:
                 headers.append(header)
@@ -554,7 +560,7 @@ class Scenariodb(object):
             self.cur.execute(s, (dpath, fname,))
 
     @synclock(_lock)
-    def search_dpath(self, dpath, create=False, skintype=u""):
+    def search_dpath(self, dpath, create=False, skintype=u"", update=True):
         dpath = cw.util.get_linktarget(dpath).replace("\\", "/")
 
         if skintype:
@@ -605,7 +611,10 @@ class Scenariodb(object):
             self.cur.execute(s, (dpath,))
 
         data = self.cur.fetchall()
-        headers, names = self.create_headers(data, skintype=skintype)
+        headers, names = self.create_headers(data, skintype=skintype, update=update)
+        if not update:
+            return self.sort_headers(headers)
+
         # データベースに登録されていないシナリオファイルがないかチェック
         dbpaths = set([h.get_fpath() for h in headers])
 
