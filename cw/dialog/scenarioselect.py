@@ -235,7 +235,6 @@ class ScenarioSelect(select.Select):
                 self.tree.ScrollTo(item)
                 self.tree.SetScrollPos(wx.HORIZONTAL, 0)
 
-
         # リストが空だったらボタンを無効化
         self.enable_btn()
         # 選択状態を記憶
@@ -1134,6 +1133,10 @@ class ScenarioSelect(select.Select):
             cw.cwpy.setting.show_scenariotree = False
         else:
             self.show_tree()
+            selitem = self.tree.GetSelection()
+            if selitem and selitem.IsOk() and not self.tree.IsVisible(selitem):
+                self.tree.ScrollTo(selitem)
+                self.tree.SetScrollPos(wx.HORIZONTAL, 0)
             self.toppanel.Hide()
             self.tree.Show()
             self.tree.SetFocus()
@@ -1756,6 +1759,7 @@ class ScenarioSelect(select.Select):
             return
 
         self._processing = True
+        self._no_treechangedsound = True
         selected = self.list[self.index] if self.list else None
         if self.tree.IsShown():
             selitem = self.tree.GetSelection()
@@ -1789,7 +1793,12 @@ class ScenarioSelect(select.Select):
                                 selected.dpath == header.dpath and selected.fname == header.fname:
                             self.tree.SelectItem(item)
 
+            self.Freeze()
+            self.tree.Hide()
             recurse(self.tree.root)
+            self.tree.Show()
+            self.Thaw()
+            self.Layout()
             # スクロールしないほうが操作性がよい
             #item = self.tree.GetSelection()
             #if item and not self.tree.IsVisible(item):
@@ -2038,7 +2047,7 @@ class ScenarioSelect(select.Select):
             return
         self._tree_selchanged()
 
-        if self.toppanel.IsShown():
+        if cw.cwpy.setting.show_paperandtree:
             if not self._no_treechangedsound:
                 cw.cwpy.play_sound("page")
             self.draw(True)
