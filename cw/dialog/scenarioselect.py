@@ -233,6 +233,8 @@ class ScenarioSelect(select.Select):
             item = self.tree.GetSelection()
             if item and not self.tree.IsVisible(item):
                 self.tree.ScrollTo(item)
+                self.tree.SetScrollPos(wx.HORIZONTAL, 0)
+
 
         # リストが空だったらボタンを無効化
         self.enable_btn()
@@ -1760,8 +1762,6 @@ class ScenarioSelect(select.Select):
             if not selitem:
                 self._processing = False
                 return
-            self.Freeze()
-            self.tree.Hide()
             paritem = self.tree.GetItemParent(selitem)
             def recurse(parent):
                 index, nowdir = self.tree.GetItemPyData(parent)
@@ -1794,8 +1794,6 @@ class ScenarioSelect(select.Select):
             #item = self.tree.GetSelection()
             #if item and not self.tree.IsVisible(item):
             #    self.tree.ScrollTo(item)
-            self.tree.Show()
-            self.Thaw()
 
         if self.toppanel.IsShown():
             self.list = self.scetable[self.nowdir]
@@ -1863,7 +1861,7 @@ class ScenarioSelect(select.Select):
                 self.tree.Expand(treeitem)
         self.tree.Show()
         self.tree.Thaw()
-        self.draw(True)
+        self.Layout()
 
         return itemlist, dpaths
 
