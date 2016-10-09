@@ -4138,10 +4138,6 @@ class CWPy(_Singleton, threading.Thread):
             header.wsnversion = header.carddata.getattr(".", "dataVersion", "")
 
             # 戦闘中の場合、Deckの手札・山札に追加
-            if self.battle:
-                target.deck.add(target, header)
-
-            # 手札の再構築
             if cw.cwpy.is_battlestatus():
                 target.deck.add(target, header)
 
