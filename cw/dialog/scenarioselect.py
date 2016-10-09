@@ -1822,13 +1822,12 @@ class ScenarioSelect(select.Select):
         self._update_pagelabel()
 
     def create_treeitems(self, treeitem):
-        if not treeitem is self.tree.root:
-            # 再描画を抑止して軽くする
-            # self.tree.Freeze()にはほとんど効果が認められなかったので
-            # 予めツリーを閉じるようにする
-            self.tree.Freeze()
-            self.tree.Collapse(treeitem)
-            pos = self.tree.GetScrollPos(wx.VERTICAL)
+        # 再描画を抑止して軽くする
+        # self.tree.Freeze()にはほとんど効果が認められなかったので
+        # 予めツリーを閉じるようにする
+        self.tree.Freeze()
+        self.tree.Hide()
+
         self.tree.DeleteChildren(treeitem)
         index, nowdir = self.tree.GetItemPyData(treeitem)
         itemlist = []
@@ -1862,8 +1861,9 @@ class ScenarioSelect(select.Select):
         if not treeitem is self.tree.root:
             if treeitem.IsOk() and not self.tree.IsExpanded(treeitem):
                 self.tree.Expand(treeitem)
-                self.tree.SetScrollPos(wx.VERTICAL, pos)
-            self.tree.Thaw()
+        self.tree.Show()
+        self.tree.Thaw()
+        self.draw(True)
 
         return itemlist, dpaths
 
