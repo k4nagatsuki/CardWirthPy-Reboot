@@ -466,8 +466,7 @@ class CharaInfo(object):
                      self.age <> pcard.get_age() or\
                      self.talent <> pcard.get_talent() or\
                      self.makings <> pcard.get_makings() or\
-                     self.type <> self.get_paramtype(pcard) or\
-                     self.levelmax <> pcard.get_levelmax()
+                     self.type <> self.get_paramtype(pcard)
         updateetc  = self.name <> pcard.name or\
                      self.imgpaths <> self.imgpaths_base or\
                      self.level <> pcard.level
@@ -528,7 +527,10 @@ class CharaInfo(object):
                 etccoupons.append((name, value))
 
             if not setlevelmax:
-                etccoupons.append((u"＠レベル上限", self.levelmax))
+                if self.recalc_parameter:
+                    etccoupons.append((u"＠レベル上限", self.levelmax))
+                else:
+                    etccoupons.append((u"＠レベル上限", pcard.get_levelmax()))
 
             desc_bef = pcard.get_description()
             desc_bef_d = cw.dialog.create.create_description(pcard.get_talent(), pcard.get_makings())
