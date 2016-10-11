@@ -812,6 +812,10 @@ class Setting(object):
         self.unknown_race = cw.header.UnknownRaceHeader(self)
         self.races.append(self.unknown_race)
 
+        # スキン判別用クーポン
+        syscoupons = data.find("SystemCoupons")
+        self.skinsyscoupons = SystemCoupons(fpath="", data=syscoupons)
+
         # スキンローカル設定
         data = data.find("Settings")
         if data is None:
@@ -2537,12 +2541,13 @@ class SystemCoupons(object):
     シナリオ側からのエンジンのバージョン判定等に利用する。
     CardWirth由来の"＿１"～"＿６"や"＠ＭＰ３"は含まれない。
     """
-    def __init__(self):
+    def __init__(self, fpath=u"Data/SystemCoupons.xml", data=None):
         self._normal = set() # 固定値
         self._regexes = [] # 正規表現
         self._ats = True # u"＠"で始まる称号のみが含まれる場合はTrue
-        if os.path.isfile("Data/SystemCoupons.xml"):
-            data = cw.data.xml2element(path="Data/SystemCoupons.xml")
+        if data is None and os.path.isfile(fpath):
+            data = cw.data.xml2element(path=fpath)
+        if not data is None:
             for e in data:
                 if self._ats and not e.text.startswith(u"＠"):
                     self._ats = False

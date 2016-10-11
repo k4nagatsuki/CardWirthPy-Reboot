@@ -960,7 +960,7 @@ class BranchCouponContent(BranchContent):
         """称号存在分岐コンテント。"""
         coupon = self.data.get("coupon")
 
-        if cw.cwpy.syscoupons.match(coupon):
+        if cw.cwpy.syscoupons.match(coupon) or cw.cwpy.setting.skinsyscoupons.match(coupon):
             return self.get_boolean_index(True)
 
         scope = self.data.get("targets")
