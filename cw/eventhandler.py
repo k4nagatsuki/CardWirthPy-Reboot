@@ -13,9 +13,10 @@ from pygame.locals import K_RETURN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
 import cw
 
 class EventHandler(object):
-    mouse_lbutton = False
-    mouse_mbutton = False
-    mouse_rbutton = False
+    def __init__(self):
+        self.mouse_lbuttondown = False
+        self.mouse_mbuttondown = False
+        self.mouse_rbuttondown = False
 
     def run(self):
         cw.cwpy.has_inputevent = False
@@ -97,24 +98,24 @@ class EventHandler(object):
             elif event.type == MOUSEBUTTONDOWN:
                 # 左クリックイベント
                 if event.button == 1:
-                    self.mouse_lbutton = True
+                    self.mouse_lbuttondown = True
 
                 # 右クリックイベント
                 elif event.button == 3:
-                    self.mouse_rbutton = True
+                    self.mouse_rbuttondown = True
 
             elif event.type == MOUSEBUTTONUP:
                 # 左クリックイベント
                 if event.button == 1:
-                    if self.mouse_lbutton:
+                    if self.mouse_lbuttondown:
                         self.lclick_event()
-                        self.mouse_lbutton = False
+                        self.mouse_lbuttondown = False
 
                 # 右クリックイベント
                 elif event.button == 3:
-                    if self.mouse_rbutton:
+                    if self.mouse_rbuttondown:
                         self.rclick_event()
-                        self.mouse_rbutton = False
+                        self.mouse_rbuttondown = False
 
                 # マウスホイール上移動
                 elif event.button == 4:
@@ -639,6 +640,7 @@ class EventHandlerForMessageWindow(EventHandler):
         """メッセージウィンドウ表示中のイベントハンドラ。
         mwin: MessageWindowインスタンス。
         """
+        super(EventHandlerForMessageWindow, self).__init__()
         self.mwin = mwin
 
     def run(self):
@@ -731,13 +733,13 @@ class EventHandlerForMessageWindow(EventHandler):
             elif event.type == MOUSEBUTTONDOWN:
                 # 左クリック
                 if event.button == 1:
-                    self.mouse_lbutton = True
+                    self.mouse_lbuttondown = True
                 # ミドルクリック
                 elif event.button == 2:
-                    self.mouse_mbutton = True
+                    self.mouse_mbuttondown = True
                 # 右クリックイベント
                 elif event.button == 3:
-                    self.mouse_rbutton = True
+                    self.mouse_rbuttondown = True
                     if cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
                         self.shiftkey_event(True)
 
@@ -748,26 +750,26 @@ class EventHandlerForMessageWindow(EventHandler):
                         not (event.button == 4 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG):
                     self.mouse_event()
                     if event.button == 1:
-                        self.mouse_lbutton = False
+                        self.mouse_lbuttondown = False
                     elif event.button == 2:
-                        self.mouse_mbutton = False
+                        self.mouse_mbuttondown = False
                     elif event.button == 3:
-                        self.mouse_rbutton = False
+                        self.mouse_rbuttondown = False
                 # 左クリック
                 elif event.button == 1:
-                    if self.mouse_lbutton:
+                    if self.mouse_lbuttondown:
                         self.lclick_event()
-                        self.mouse_lbutton = False
+                        self.mouse_lbuttondown = False
                 # ミドルクリック
                 elif event.button == 2:
-                    if self.mouse_mbutton:
+                    if self.mouse_mbuttondown:
                         self.mclick_event()
-                        self.mouse_mbutton = False
+                        self.mouse_mbuttondown = False
                 # 右クリック
                 elif event.button == 3:
-                    if self.mouse_rbutton:
+                    if self.mouse_rbuttondown:
                         self.rclick_event()
-                        self.mouse_rbutton = False
+                        self.mouse_rbuttondown = False
                 # マウスホイール上移動
                 elif event.button == 4:
                     self.wheel_event(y=-1)
@@ -1012,6 +1014,7 @@ class EventHandlerForBacklog(EventHandler):
     def __init__(self, backlog, index):
         """バックログ表示中のイベントハンドラ。
         """
+        super(EventHandlerForBacklog, self).__init__()
         self.backlog_all = backlog
         self.index = index
         self._scrollnum_noscale = cw.SIZE_AREA[1] // 4
@@ -1187,31 +1190,31 @@ class EventHandlerForBacklog(EventHandler):
             elif event.type == MOUSEBUTTONDOWN:
                 # 左クリック
                 if event.button == 1:
-                    self.mouse_lbutton = True
+                    self.mouse_lbuttondown = True
                     self.ldown_event()
                 # ミドルクリック
                 elif event.button == 2:
-                    self.mouse_mbutton = True
+                    self.mouse_mbuttondown = True
                 # 右クリック
                 elif event.button == 3:
-                    self.mouse_rbutton = True
+                    self.mouse_rbuttondown = True
 
             elif event.type == MOUSEBUTTONUP:
                 # 左クリック
                 if event.button == 1:
-                    if self.mouse_lbutton:
+                    if self.mouse_lbuttondown:
                         self.lclick_event()
-                        self.mouse_lbutton = False
+                        self.mouse_lbuttondown = False
                 # ミドルクリック
                 elif event.button == 2:
-                    if self.mouse_mbutton:
+                    if self.mouse_mbuttondown:
                         self.mclick_event()
-                        self.mouse_mbutton = False
+                        self.mouse_mbuttondown = False
                 # 右クリック
                 elif event.button == 3:
-                    if self.mouse_rbutton:
+                    if self.mouse_rbuttondown:
                         self.rclick_event()
-                        self.mouse_rbutton = False
+                        self.mouse_rbuttondown = False
                 # マウスホイール上移動
                 elif event.button == 4:
                     self.wheel_event(y=-1)
@@ -1504,6 +1507,7 @@ class EventHandlerForEffectBooster(EventHandler):
         """エフェクトブースターのウェイト処理中の
         イベントハンドラ。
         """
+        super(EventHandlerForEffectBooster, self).__init__()
         self.running = True
 
     def run(self):
@@ -1562,16 +1566,33 @@ class EventHandlerForEffectBooster(EventHandler):
                 else:
                     self.keyup_event(event.key)
 
+            elif event.type == MOUSEBUTTONDOWN:
+                # 左クリック
+                if event.button == 1:
+                    self.mouse_lbuttondown = True
+                # ミドルクリック
+                elif event.button == 2:
+                    self.mouse_mbuttondown = True
+                # 右クリック
+                elif event.button == 3:
+                    self.mouse_rbuttondown = True
+
             elif event.type == MOUSEBUTTONUP:
                 # 左クリック
                 if event.button == 1:
-                    self.lclick_event()
+                    if self.mouse_lbuttondown:
+                        self.lclick_event()
+                        self.mouse_lbuttondown = False
                 # ミドルクリック
                 elif event.button == 2:
-                    self.mclick_event()
+                    if self.mouse_mbuttondown:
+                        self.mclick_event()
+                        self.mouse_mbuttondown = False
                 # 右クリック
                 elif event.button == 3:
-                    self.rclick_event()
+                    if self.mouse_rbuttondown:
+                        self.rclick_event()
+                        self.mouse_rbuttondown = False
                 # マウスホイール上移動
                 elif event.button == 4:
                     self.wheel_event(y=-1)
