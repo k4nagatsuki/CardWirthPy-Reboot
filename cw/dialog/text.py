@@ -3,6 +3,8 @@
 
 import os
 import wx
+import re
+import webbrowser
 
 import cw
 
@@ -22,20 +24,30 @@ class Text(wx.Dialog):
         self.toppanel.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
 
-        # text ctrl
+        # rich text ctrl
         if self.list2:
             value = self.list2[self.index2]
         else:
             value = ""
 
-        self.textctrl = wx.TextCtrl(self.toppanel, -1, "", size=cw.wins((550, 220)), style=wx.TE_MULTILINE|wx.NO_BORDER)
-        self.foreground = self.textctrl.GetForegroundColour()
+        self.richtextctrl = wx.richtext.RichTextCtrl(self.toppanel, -1, "", size=cw.wins((550, 220)), style=wx.TE_MULTILINE|wx.NO_BORDER)
+        self.foreground = self.richtextctrl.GetForegroundColour()
         self._set_text(value)
-        self.textctrl.SetBackgroundColour(wx.Colour(0, 0, 128))
-        self.textctrl.SetForegroundColour(wx.WHITE)
-        self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14)))
-        self.textctrl.SetEditable(False)
-        self.textctrl.ShowPosition(0)
+        self.richtextctrl.SetBackgroundColour(wx.Colour(0, 0, 128))
+        self.richtextctrl.SetFont(cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14)))
+        self.richtextctrl.SetEditable(False)
+        self.richtextctrl.ShowPosition(0)
+        # popup menu
+        googleid = wx.NewId()
+        self.popup_menu = wx.Menu()
+        self.mi_copy = wx.MenuItem(self.popup_menu, wx.ID_COPY, u"コピー(&C)")
+        self.mi_selectall = wx.MenuItem(self.popup_menu, wx.ID_SELECTALL, u"すべて選択(&A)")
+        self.mi_google = wx.MenuItem(self.popup_menu, googleid, u"&Googleで検索")
+        self.popup_menu.AppendItem(self.mi_copy)
+        self.popup_menu.AppendItem(self.mi_selectall)
+        self.popup_menu.AppendSeparator()
+        self.popup_menu.AppendItem(self.mi_google)
+
         # close
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((85, 24)), cw.cwpy.msgs["close"])
         # left
@@ -60,6 +72,13 @@ class Text(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_COMBOBOX, self.OnCombobox)
+        self.richtextctrl.Bind(wx.EVT_TEXT_URL, self.OnURL)
+        self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
+        self.Bind(wx.EVT_MENU, self.OnSelectAll, id=wx.ID_SELECTALL)
+        self.Bind(wx.EVT_MENU, self.OnGoogle, id=googleid)
+        self.richtextctrl.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        self.richtextctrl.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        self.richtextctrl.Bind(wx.EVT_MOTION, self.OnMotion)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
 
         # FIXME: ウィンドウのリサイズで正しく再描画されない。
@@ -71,13 +90,13 @@ class Text(wx.Dialog):
             self.Refresh()
         self.Bind(wx.EVT_SIZE, resize)
 
-        self.textctrl.Enable(bool(self.list2))
+        self.richtextctrl.Enable(bool(self.list2))
         if self.list2:
-            self.textctrl.Show()
+            self.richtextctrl.Show()
             self.combo.Enable()
             self.Layout()
         else:
-            self.textctrl.Hide()
+            self.richtextctrl.Hide()
             self.combo.Disable()
 
         self.leftpagekeyid = wx.NewId()
@@ -93,18 +112,76 @@ class Text(wx.Dialog):
             (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
+            (wx.ACCEL_CTRL, ord('C'), wx.ID_COPY),
+            (wx.ACCEL_CTRL, ord('A'), wx.ID_SELECTALL),
         ]
         cw.util.set_acceleratortable(self, seq)
 
     def _set_text(self, value):
+
         # ZIPアーカイブのファイルエンコーディングと
         # 読み込むテキストファイルのエンコーディングが異なる場合、
         # エラーが出るので
         try:
-            self.textctrl.SetValue(value)
-        except:
-            self.textctrl.SetValue(cw.util.decode_text(value))
-        self.textctrl.ShowPosition(0)
+            # 書き込みテスト FIXME: 書き込みに頼らないスマートな方法
+            self.richtextctrl.WriteText(value)
+
+            value2 = value
+        except Exception:
+            value2 = cw.util.decode_text(value)
+
+        # URLを検索して取り出し、テキストをリストに分割
+        def func(text):
+            prog = re.compile(r"http(s)?://([\w\-]+\.)+[\w]+(/[\w\-./?%&=~#!]*)?")
+            list = []
+
+            url = prog.search(text)
+
+            # TODO: URLクリック等でキャレットがURL上にある場合に
+            # テキストを切り替えるとURLリンク設定が全テキストに適用される
+            # これは暫定対処の1、しかも冒頭がURLだと無理矢理空白を入れる
+            if url and url.start() == 0:
+                list.append(" ")
+
+            while url:
+                if url.start() > 0:
+                    list.append(text[:url.start()])
+                list.append(url.group(0))
+                text = text[url.end():]
+
+                url = prog.search(text)
+
+            if len(text) > 0:
+                list.append(text)
+
+            return list
+
+        # TODO: URLクリック等でキャレットがURL上にある場合に
+        # テキストを切り替えるとURLリンク設定が全テキストに適用される
+        # これは暫定対処の2、しかも冒頭がURLではない事が前提の操作
+        self.richtextctrl.MoveHome()
+
+        self.richtextctrl.Clear()
+
+        for v in func(value2):
+            url_flag = True if re.match(r"http(s)?://", v) else False
+
+            if url_flag:
+                self.richtextctrl.BeginTextColour((255, 132, 0))
+                self.richtextctrl.BeginUnderline()
+                self.richtextctrl.BeginURL(v)
+            else:
+                self.richtextctrl.BeginTextColour(wx.WHITE)
+
+            self.richtextctrl.WriteText(v)
+
+            if url_flag:
+                self.richtextctrl.EndURL()
+                self.richtextctrl.EndUnderline()
+            self.richtextctrl.EndTextColour()
+
+        self.richtextctrl.EndTextColour()
+        self.richtextctrl.ShowPosition(0)
 
     def OnCombobox(self, event):
         self.index = self.combo.GetSelection()
@@ -130,13 +207,13 @@ class Text(wx.Dialog):
 
         # notextfile
         self.toppanel.Update()
-        self.textctrl.Enable(bool(self.list2))
+        self.richtextctrl.Enable(bool(self.list2))
         if self.list2:
-            self.textctrl.Show()
+            self.richtextctrl.Show()
             self.combo.Enable()
             self.Layout()
         else:
-            self.textctrl.Hide()
+            self.richtextctrl.Hide()
             self.combo.Disable()
 
     def OnClickRightBtn(self, event):
@@ -158,13 +235,13 @@ class Text(wx.Dialog):
 
         # notextfile
         self.toppanel.Update()
-        self.textctrl.Enable(bool(self.list2))
+        self.richtextctrl.Enable(bool(self.list2))
         if self.list2:
-            self.textctrl.Show()
+            self.richtextctrl.Show()
             self.combo.Enable()
             self.Layout()
         else:
-            self.textctrl.Hide()
+            self.richtextctrl.Hide()
             self.combo.Disable()
 
     def OnUp(self, event):
@@ -218,6 +295,56 @@ class Text(wx.Dialog):
             pos = pos[0] - cw.wins(30), pos[1] - cw.wins(10)
             cw.util.draw_box(dc, pos, size)
 
+    def OnMouseWheel(self, event):
+        y = self.richtextctrl.GetScrollPos(wx.VERTICAL)
+        if event.GetWheelRotation() > 0:
+            self.richtextctrl.Scroll(0, y - cw.wins(4))
+        else:
+            self.richtextctrl.Scroll(0, y + cw.wins(4))
+        self.Refresh()
+
+    def OnMotion(self, event):
+        # 画面外へのドラッグによるスクロール処理だが、マウス入力の分岐は不要？
+        mousey = event.GetPosition()[1]
+        y = self.richtextctrl.GetScrollPos(wx.VERTICAL)
+        if mousey < cw.wins(0):
+            self.richtextctrl.Scroll(0, y - cw.wins(4))
+            self.Refresh()
+        elif mousey > cw.wins(245):
+            self.richtextctrl.Scroll(0, y + cw.wins(4))
+            self.Refresh()
+
+        event.Skip()
+
+    def OnContextMenu(self, event):
+        self.mi_copy.Enable(self.richtextctrl.HasSelection())
+        self.mi_google.Enable(self.richtextctrl.HasSelection())
+        self.PopupMenu(self.popup_menu)
+
+    def OnCopy(self, event):
+        self.richtextctrl.Copy()
+
+    def OnSelectAll(self, event):
+        self.richtextctrl.SelectAll()
+
+    def OnGoogle(self, event):
+        self.go_url(u"http://www.google.com/search?q=%s" % self.richtextctrl.GetStringSelection())
+
+    def go_url(self, url):
+        try:
+            webbrowser.open(url)
+        except:
+            s = u"「%s」が開けませんでした。インターネットブラウザが正常に関連付けされているか確認して下さい。" % url
+            dlg = cw.dialog.message.ErrorMessage(self, s)
+            cw.cwpy.frame.move_dlg(dlg)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+    def OnURL(self, event):
+        # 文字列選択中はブラウザ起動しない
+        if not self.richtextctrl.HasSelection():
+            self.go_url(event.GetString())
+
     def __do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
@@ -229,7 +356,7 @@ class Text(wx.Dialog):
         sizer_topbar.Add(self.combo, 0, 0, cw.wins(0))
         sizer_toppanel.Add(sizer_topbar, 0, wx.EXPAND, cw.wins(0))
         sizer_toppanel.Add(cw.wins((0, 3)), 0, wx.EXPAND, cw.wins(0))
-        sizer_toppanel.Add(self.textctrl, 1, wx.EXPAND, cw.wins(0))
+        sizer_toppanel.Add(self.richtextctrl, 1, wx.EXPAND, cw.wins(0))
         self.toppanel.SetSizer(sizer_toppanel)
 
         sizer_panel.Add(self.leftbtn, 0, 0, cw.wins(0))
