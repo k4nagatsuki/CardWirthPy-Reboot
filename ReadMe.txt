@@ -322,6 +322,10 @@ https://bitbucket.org/akkw/cardwirthpy-reboot
 
 ハルキゲニア(@tekitoudesu) は、音声再生に関する問題の報告・提案を多数行い、付属のサウンドフォント`TimGM6mb.sf2`の65:AltoSax (TB)のE4のノートに音が設定されていない事を指摘して修正しました。
 
+https://irakat.bitbucket.io/
+ : Iraka.T(@IrakaT)は、スキン「BloodWirth」の作者です。
+ : CardWirthPy本体に対しても、いくつもの提案やバグ報告を行い、自ら修正も行っています。
+
 
 謝辞
 --------------------------------------------------------------------------
