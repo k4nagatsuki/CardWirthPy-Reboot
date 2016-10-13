@@ -49,6 +49,8 @@ class KeyEventRelay(object):
         self.keyin = [0 for _cnt in xrange(322)]
         # マウス入力。EventHandlerから受信
         self.mousein = [0, 0, 0]
+        # マウスが押下状態か
+        self.mouse_buttondown = [False, False, False]
         # キー押しっぱなし閾値
         self.threshold = 1
         # 連続押下は最初の1回のみKeyUpしたかのように動作するが、
@@ -60,6 +62,21 @@ class KeyEventRelay(object):
         self.keyin = [0 for _cnt in xrange(322)]
         self.mousein = [0, 0, 0]
         self.nokeyupevent = False
+
+    def peek_mousestate(self):
+        """MOUSEUPイベントに対応するMOUSEDOWNイベントが
+        無ければキューから取り除く。
+        """
+        events = pygame.event.get()
+        for e in events:
+            if e.type == pygame.locals.MOUSEBUTTONUP and hasattr(e, "button") and e.button <= len(self.mouse_buttondown):
+                if self.mouse_buttondown[e.button-1]:
+                    cw.thread.post_pygameevent(e)
+            elif e.type == pygame.locals.MOUSEBUTTONDOWN and hasattr(e, "button") and e.button <= len(self.mouse_buttondown):
+                self.mouse_buttondown[e.button - 1] = True
+                cw.thread.post_pygameevent(e)
+            else:
+                cw.thread.post_pygameevent(e)
 
     def keydown(self, keycode):
         key = self.keymap.get(keycode, None)

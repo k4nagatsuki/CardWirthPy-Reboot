@@ -812,6 +812,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.is_playingscenario() and self.sdata.in_f9:
             return True
         breakflag = False
+        self.keyevent.peek_mousestate()
         events = pygame.event.get((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
         for e in events:
             if e.type in (pygame.locals.MOUSEBUTTONUP, pygame.locals.MOUSEBUTTONDOWN) and hasattr(e, "button"):
@@ -847,6 +848,7 @@ class CWPy(_Singleton, threading.Thread):
                 return None
 
     def clear_inputevents(self):
+        self.keyevent.peek_mousestate()
         pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         events = []
         for e in self.events:
@@ -856,9 +858,10 @@ class CWPy(_Singleton, threading.Thread):
 
     def input(self, eventclear=False, inputonly=False, noinput=False):
         if eventclear:
-            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+            self.clear_inputevents()
             return
 
+        self.keyevent.peek_mousestate()
         self.proc_animation()
 
         if not self.is_showingdlg():
@@ -1970,6 +1973,7 @@ class CWPy(_Singleton, threading.Thread):
         self._forcegameover = False
         self.battle = None
         self.card_takenouttemporarily = None
+        self.clear_inputevents()
         pygame.event.clear()
         self.hide_party()
         if self._need_disposition:
@@ -4648,7 +4652,7 @@ def post_pygameevent(event):
         pygame.event.post(event)
     except:
         # 入力イベントが輻輳している場合はクリアする
-        pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+        self.clear_inputevents()
         pygame.event.post(event)
 
 
