@@ -1010,8 +1010,26 @@ class Frame(wx.Frame):
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False
         cw.cwpy.kill_showingdlg()
+
+        # キーやマウスボタンの押下状態をpygame側へ伝える
         if wx.GetKeyState(wx.WXK_RETURN):
             cw.cwpy.keyevent.nokeyupevent = True
+        state = wx.GetMouseState()
+        if 3 <= wx.VERSION[0]:
+            if state.LeftIsDown():
+                cw.cwpy.keyevent.mouse_buttondown[0] = True
+            if state.MiddleIsDown():
+                cw.cwpy.keyevent.mouse_buttondown[1] = True
+            if state.RightIsDown():
+                cw.cwpy.keyevent.mouse_buttondown[2] = True
+        else:
+            if state.LeftDown():
+                cw.cwpy.keyevent.mouse_buttondown[0] = True
+            if state.MiddleDown():
+                cw.cwpy.keyevent.mouse_buttondown[1] = True
+            if state.RightDown():
+                cw.cwpy.keyevent.mouse_buttondown[2] = True
+
         cw.cwpy.exec_func(func, lockmenucard)
 
     def can_screenshot(self):
