@@ -2202,7 +2202,7 @@ class ScenarioSelect(select.Select):
 
     def _narrow_scenario(self, headers):
         """設定に応じて表示しないシナリオを除去する。"""
-        ntype, narrow, donarrow, level = self._get_narrowparams()
+        ntype, narrow, donarrow, level, _unfitness, _complete, _invisible = self._get_narrowparams()
         dseq = []
         seq = []
         for header in headers:
@@ -2224,7 +2224,7 @@ class ScenarioSelect(select.Select):
             return True
 
     def is_showing(self, header):
-        ntype, narrow, donarrow, level = self._get_narrowparams()
+        ntype, narrow, donarrow, level, _unfitness, _complete, _invisible = self._get_narrowparams()
         return self._is_showing(header, ntype, narrow, donarrow, level)
 
     def _get_narrowparams(self):
@@ -2243,7 +2243,8 @@ class ScenarioSelect(select.Select):
                 narrow = int(narrow)
             except:
                 narrow = ""
-        return ntype, narrow, donarrow, level
+        return ntype, narrow, donarrow, level, cw.cwpy.setting.show_unfitnessscenario,\
+               cw.cwpy.setting.show_completedscenario, cw.cwpy.setting.show_invisiblescenario
 
     def _is_showing(self, header, ntype, narrow, donarrow, level):
         if isinstance(header, cw.header.ScenarioHeader):
