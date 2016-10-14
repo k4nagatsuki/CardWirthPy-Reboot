@@ -3124,14 +3124,36 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU, self.OnSelectAll, id=wx.ID_SELECTALL)
 
+        self.search_engines = []
         if searchmenu:
-            googleid = wx.NewId()
-            self.popup_menu.AppendSeparator()
-            self.mi_google = wx.MenuItem(self.popup_menu, googleid, u"&Googleで検索")
-            self.popup_menu.AppendItem(self.mi_google)
-            self.Bind(wx.EVT_MENU, self.OnGoogle, id=googleid)
-        else:
-            self.mi_google = None
+            if os.path.isfile(u"Data/SearchEngines.xml"):
+                try:
+                    class SearchEngine(object):
+                        def __init__(self, parent, url, name):
+                            self.parent = parent
+                            self.url = url
+                            menuid = wx.NewId()
+                            self.mi = wx.MenuItem(self.parent.popup_menu, menuid, name)
+                            self.parent.popup_menu.AppendItem(self.mi)
+                            self.parent.Bind(wx.EVT_MENU, self.OnSearch, id=menuid)
+
+                        def OnSearch(self, event):
+                            try:
+                                self.parent.go_url(self.url % self.parent.GetStringSelection())
+                            except:
+                                cw.util.print_ex(file=sys.stderr)
+
+                    data = cw.data.xml2element(u"Data/SearchEngines.xml")
+                    for i, e in enumerate(data):
+                        if e.tag == u"SearchEngine":
+                            if i == 0:
+                                self.popup_menu.AppendSeparator()
+                            url = e.getattr(".", "url", "")
+                            name = e.text
+                            if url and name:
+                                self.search_engines.append(SearchEngine(self, url, name))
+                except:
+                    cw.util.print_ex(file=sys.stderr)
 
     def set_text(self, value, linkurl=False):
         # ZIPアーカイブのファイルエンコーディングと
@@ -3231,8 +3253,8 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
 
     def OnContextMenu(self, event):
         self.mi_copy.Enable(self.HasSelection())
-        if self.mi_google:
-            self.mi_google.Enable(self.HasSelection())
+        for searchengine in self.search_engines:
+            searchengine.mi.Enable(self.HasSelection())
         self.PopupMenu(self.popup_menu)
 
     def OnCopy(self, event):
@@ -3240,9 +3262,6 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
 
     def OnSelectAll(self, event):
         self.SelectAll()
-
-    def OnGoogle(self, event):
-        self.go_url(u"http://www.google.com/search?q=%s" % self.GetStringSelection())
 
     def go_url(self, url):
         try:
