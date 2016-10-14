@@ -3656,15 +3656,20 @@ class SimpleXmlParser(object):
             "Property/Name"という風にタグごとに"/"で区切って指定する。
             targettagが空の場合は、全てのデータを読み込む。
         """
+        self.fpath = fpath.replace("\\", "/")
+        self.targettag = targettag.strip("/")
+        self.file = stream
+        self.targetonly = targetonly
+        self.rootattrs = rootattrs
+        self._clear_attrs()
+
+    def _clear_attrs(self):
         self.root = None
         self.node_stack = []
-        self.fpath = fpath.replace("\\", "/")
-        self.file = stream
-        self.targettag = targettag.strip("/")
-        self.targetonly = targetonly
         self.parsetags = []
         self.currenttags = []
-        self.rootattrs = rootattrs
+        if self.rootattrs:
+            self.rootattrs.clear()
         self._persed = False
 
     def start_element(self, name, attrs):
@@ -3740,15 +3745,25 @@ class SimpleXmlParser(object):
             err.args = (err.args[0] + s.encode(u"utf-8"), )
             raise err
 
-    def _parse_file(self, fname):
+    def _create_parser(self):
         parser = xml.parsers.expat.ParserCreate()
         parser.buffer_text = 1
         parser.StartElementHandler = self.start_element
         parser.EndElementHandler = self.end_element
         parser.CharacterDataHandler = self.char_data
+        return parser
 
+    def _parse_file(self, fname):
+        parser = self._create_parser()
         fdata = fname.read()
-        parser.Parse(fdata, 1)
+        try:
+            parser.Parse(fdata, 1)
+        except xml.parsers.expat.ExpatError:
+            # たまに制御文字が混入しているシナリオがある
+            fdata = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", fdata)
+            self._clear_attrs()
+            parser = self._create_parser()
+            parser.Parse(fdata, 1)
 
     def get_currentpath(self):
         if len(self.currenttags) > 1:
