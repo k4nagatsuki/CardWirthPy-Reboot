@@ -2117,16 +2117,22 @@ class GetContent(EventContentBase):
         # 対象カードのxmlファイルのパス
         if cardtype == "SkillCard":
             getdata = cw.cwpy.sdata.get_skilldata
+            pocket = cw.POCKET_SKILL
         elif cardtype == "ItemCard":
             getdata = cw.cwpy.sdata.get_itemdata
+            pocket = cw.POCKET_ITEM
         elif cardtype == "BeastCard":
             getdata = cw.cwpy.sdata.get_beastdata
+            pocket = cw.POCKET_BEAST
         else:
             raise ValueError("%s is invalid cardtype" % cardtype)
 
         for _cnt in xrange(num):
             for target in cw.cwpy.event.get_targetscope(scope):
-                nocache = not (cw.cwpy.ydata and cw.cwpy.ydata.party and cw.cwpy.ydata.party.backpack == target)
+                tobackpack = cw.cwpy.ydata.party.backpack == target
+                if not tobackpack and isinstance(target, cw.character.Character):
+                    tobackpack = target.get_cardpocketspace()[pocket] <= len(target.get_pocketcards(pocket))
+                nocache = not (cw.cwpy.ydata and cw.cwpy.ydata.party and tobackpack)
                 e = getdata(resid, nocache=nocache)
                 if e is None:
                     return 0

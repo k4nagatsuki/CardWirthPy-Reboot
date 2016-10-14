@@ -3949,7 +3949,8 @@ class CWPy(_Singleton, threading.Thread):
                 if from_event:
                     # 互換動作: 1.20以前では手札が一杯でも荷物袋に入らない
                     if not (from_getcontent and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
-                        self.trade("BACKPACK", header=header, from_event=True, sort=sort, party=party)
+                        self.trade("BACKPACK", header=header, from_event=True, sort=sort, party=party,
+                                   from_getcontent=from_getcontent)
 
                 else:
                     s = cw.cwpy.msgs["error_hand_be_full"] % target.name
