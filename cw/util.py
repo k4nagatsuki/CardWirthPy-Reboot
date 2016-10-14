@@ -23,6 +23,7 @@ import ctypes.util
 import array
 import unicodedata
 import functools
+import webbrowser
 
 if sys.platform == "win32":
     import win32api
@@ -33,6 +34,7 @@ if sys.platform == "win32":
 
 import wx
 import wx.lib.mixins.listctrl
+import wx.richtext
 import pygame
 import pygame.image
 from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
@@ -3103,6 +3105,160 @@ def adjust_dropdownwidth(choice):
 
         # 幅を設定
         win32api.SendMessage(choice.GetHandle(), win32con.CB_SETDROPPEDWIDTH, w, 0)
+
+class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
+    def __init__(self, parent, id, text="", size=(-1, -1), style=0, searchmenu=False):
+        wx.richtext.RichTextCtrl.__init__(self, parent, id, text, size=size, style=style)
+
+        # popup menu
+        self.popup_menu = wx.Menu()
+        self.mi_copy = wx.MenuItem(self.popup_menu, wx.ID_COPY, u"コピー(&C)")
+        self.mi_selectall = wx.MenuItem(self.popup_menu, wx.ID_SELECTALL, u"すべて選択(&A)")
+        self.popup_menu.AppendItem(self.mi_copy)
+        self.popup_menu.AppendItem(self.mi_selectall)
+
+        self.Bind(wx.EVT_TEXT_URL, self.OnURL)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        self.Bind(wx.EVT_MOTION, self.OnMotion)
+        self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
+        self.Bind(wx.EVT_MENU, self.OnSelectAll, id=wx.ID_SELECTALL)
+
+        if searchmenu:
+            googleid = wx.NewId()
+            self.popup_menu.AppendSeparator()
+            self.mi_google = wx.MenuItem(self.popup_menu, googleid, u"&Googleで検索")
+            self.popup_menu.AppendItem(self.mi_google)
+            self.Bind(wx.EVT_MENU, self.OnGoogle, id=googleid)
+        else:
+            self.mi_google = None
+
+    def set_text(self, value, linkurl=False):
+        # ZIPアーカイブのファイルエンコーディングと
+        # 読み込むテキストファイルのエンコーディングが異なる場合、
+        # エラーが出るので
+        try:
+            # 書き込みテスト FIXME: 書き込みに頼らないスマートな方法
+            self.WriteText(value)
+
+            value2 = value
+        except Exception:
+            value2 = cw.util.decode_text(value)
+
+        # FIXME: URLクリック等でキャレットがURL上にある場合に
+        # テキストを削除すると、URLリンク設定が以降追加された
+        # 全テキストに適用される。
+        # そのため、末尾がURLではない事を前提に、キャレットを
+        # テキスト末尾へ移動してからクリアを行う。
+        self.MoveEnd()
+        self.Clear()
+
+        # URLを検索して取り出し、テキストをリストに分割
+        def get_urls(text):
+            prog = re.compile(r"http(s)?://([\w\-]+\.)+[\w]+(/[\w\-./?%&=~#!]*)?")
+            list = []
+
+            url = prog.search(text)
+
+            while url:
+                if url.start() > 0:
+                    list.append((text[:url.start()], False))
+                list.append((url.group(0), True))
+                text = text[url.end():]
+
+                url = prog.search(text)
+
+            if len(text) > 0:
+                list.append((text, False))
+
+            return list
+
+        if linkurl:
+            for v, url_flag in get_urls(value2):
+                if url_flag:
+                    self.BeginTextColour((255, 132, 0))
+                    self.BeginUnderline()
+                    self.BeginURL(v)
+                else:
+                    self.BeginTextColour(wx.WHITE)
+
+                self.WriteText(v)
+
+                if url_flag:
+                    self.EndURL()
+                    self.EndUnderline()
+                self.EndTextColour()
+
+            self.EndTextColour()
+            if len(self.GetValue()) and not self.GetValue()[-1] in ("\n", "\r"):
+                # 末尾が改行でない時は改行を加える
+                # 前記した全文URL化バグへの対策でもある
+                self.WriteText("\n")
+
+        self.ShowPosition(0)
+
+    def OnMouseWheel(self, event):
+        y = self.GetScrollPos(wx.VERTICAL)
+
+        if sys.platform == "win32":
+            import win32gui
+            SPI_GETDESKWALLPAPER = 104
+            value = win32gui.SystemParametersInfo(SPI_GETDESKWALLPAPER)
+            line_height = self.GetFont().GetPixelSize()[1]
+            value *= line_height
+            value /= self.GetScrollPixelsPerUnit()[1]
+        else:
+            value = cw.wins(4)
+
+        if event.GetWheelRotation() > 0:
+            self.Scroll(0, y - value)
+        else:
+            self.Scroll(0, y + value)
+        self.Refresh()
+
+    def OnMotion(self, event):
+        # 画面外へのドラッグによるスクロール処理だが、マウス入力の分岐は不要？
+        mousey = event.GetPosition()[1]
+        y = self.GetScrollPos(wx.VERTICAL)
+        if mousey < cw.wins(0):
+            self.Scroll(0, y - cw.wins(4))
+            self.Refresh()
+        elif mousey > cw.wins(245):
+            self.Scroll(0, y + cw.wins(4))
+            self.Refresh()
+
+        event.Skip()
+
+    def OnContextMenu(self, event):
+        self.mi_copy.Enable(self.HasSelection())
+        if self.mi_google:
+            self.mi_google.Enable(self.HasSelection())
+        self.PopupMenu(self.popup_menu)
+
+    def OnCopy(self, event):
+        self.Copy()
+
+    def OnSelectAll(self, event):
+        self.SelectAll()
+
+    def OnGoogle(self, event):
+        self.go_url(u"http://www.google.com/search?q=%s" % self.GetStringSelection())
+
+    def go_url(self, url):
+        try:
+            webbrowser.open(url)
+        except:
+            s = u"「%s」が開けませんでした。インターネットブラウザが正常に関連付けされているか確認して下さい。" % url
+            dlg = cw.dialog.message.ErrorMessage(self, s)
+            cw.cwpy.frame.move_dlg(dlg)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+    def OnURL(self, event):
+        # 文字列選択中はブラウザ起動しない
+        if not self.HasSelection():
+            self.go_url(event.GetString())
+
 
 #-------------------------------------------------------------------------------
 #  スレッド関係

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import wx
-import wx.richtext
 
 import cw
 
@@ -19,7 +18,7 @@ class DebugLogDialog(wx.Dialog):
         self.cwpy_debug = True
         self.plain_text = [u"「%s」のプレイ結果" % (sname), u"========================================", ""]
 
-        self.text = wx.richtext.RichTextCtrl(self, -1, size=cw.ppis((400, 380)))
+        self.text = cw.util.CWPyRichTextCtrl(self, -1, size=cw.ppis((400, 380)))
         self.text.SetEditable(False)
 
         # 連れ込み
