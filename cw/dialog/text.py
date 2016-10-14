@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import os
-import wx
+import sys
 import re
+
+import wx
 import webbrowser
 
 import cw
@@ -34,7 +36,9 @@ class Text(wx.Dialog):
         self.foreground = self.richtextctrl.GetForegroundColour()
         self._set_text(value)
         self.richtextctrl.SetBackgroundColour(wx.Colour(0, 0, 128))
-        self.richtextctrl.SetFont(cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14)))
+        font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14))
+        self._line_height = font.GetPixelSize()[1]
+        self.richtextctrl.SetFont(font)
         self.richtextctrl.SetEditable(False)
         self.richtextctrl.ShowPosition(0)
         # popup menu
@@ -297,10 +301,20 @@ class Text(wx.Dialog):
 
     def OnMouseWheel(self, event):
         y = self.richtextctrl.GetScrollPos(wx.VERTICAL)
-        if event.GetWheelRotation() > 0:
-            self.richtextctrl.Scroll(0, y - cw.wins(4))
+
+        if sys.platform == "win32":
+            import win32gui
+            SPI_GETDESKWALLPAPER = 104
+            value = win32gui.SystemParametersInfo(SPI_GETDESKWALLPAPER)
+            value *= self._line_height
+            value /= self.richtextctrl.GetScrollPixelsPerUnit()[1]
         else:
-            self.richtextctrl.Scroll(0, y + cw.wins(4))
+            value = cw.wins(4)
+
+        if event.GetWheelRotation() > 0:
+            self.richtextctrl.Scroll(0, y - value)
+        else:
+            self.richtextctrl.Scroll(0, y + value)
         self.Refresh()
 
     def OnMotion(self, event):
