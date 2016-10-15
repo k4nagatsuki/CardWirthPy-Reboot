@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SearchEngines>
+  <SearchEngine url="http://www.google.com/search?q=%s">&amp;Googleで検索</SearchEngine>
+</SearchEngines>

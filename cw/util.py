@@ -3247,7 +3247,7 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         if mousey < cw.wins(0):
             self.Scroll(0, y - cw.wins(4))
             self.Refresh()
-        elif mousey > cw.wins(245):
+        elif mousey > self.GetSize()[1]:
             self.Scroll(0, y + cw.wins(4))
             self.Refresh()
 
