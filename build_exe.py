@@ -43,7 +43,7 @@ class BuildExe(object):
         self.project_name = "CardWirthPy"
 
         #Project url
-        self.project_url = "http://sites.google.com/site/cardwirthpy/"
+        self.project_url = "https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot/"
 
         #Version of program
         self.project_version = "1.1"
