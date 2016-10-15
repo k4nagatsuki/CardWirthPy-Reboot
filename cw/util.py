@@ -3144,9 +3144,11 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
                                 cw.util.print_ex(file=sys.stderr)
 
                     data = cw.data.xml2element(u"Data/SearchEngines.xml")
-                    for i, e in enumerate(data):
+                    separator = False
+                    for e in data:
                         if e.tag == u"SearchEngine":
-                            if i == 0:
+                            if not separator:
+                                separator = True
                                 self.popup_menu.AppendSeparator()
                             url = e.getattr(".", "url", "")
                             name = e.text
