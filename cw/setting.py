@@ -1321,6 +1321,14 @@ class Resource(object):
         # カード背景画像(辞書)
         self.wxcardbgs = self.get_cardbgs(cw.util.load_wxbmp)
 
+    def init_debugicon(self):
+        """エディタ情報変更によりデバッグアイコンを再読込する"""
+        def func():
+            self.pygamedebugs = self.get_debugs(cw.util.load_image, cw.s)
+        cw.cwpy.exec_func(func)
+        self.debugs = self.get_debugs(cw.util.load_wxbmp, cw.ppis)
+        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, lambda bmp: bmp)
+
     def get_fontpaths(self):
         """
         フォントパス(辞書)
@@ -1832,7 +1840,8 @@ class Resource(object):
 
         return btn.copy() if btn else None
 
-    def get_resources(self, func, dpath1, dpath2, ext, mask=False, ss=None, noresize=(), nodbg=False, emptyfunc=None):
+    def get_resources(self, func, dpath1, dpath2, ext, mask=False, ss=None, noresize=(), nodbg=False, emptyfunc=None,
+                      editor_res=None):
         """
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
@@ -1847,7 +1856,13 @@ class Resource(object):
             if noscale:
                 key = key[:-len("_noscale")]
 
-            if dpath2:
+            if editor_res:
+                resname = CWXEDITOR_RESOURCES.get(key, "")
+                fpath = cw.util.join_paths(editor_res, resname)
+                if not os.path.isfile(fpath):
+                    fpath = ""
+
+            if not fpath and dpath2:
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath2, key), ext)
             if not fpath:
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath1, key), ext)
@@ -2021,7 +2036,14 @@ class Resource(object):
             emptyfunc=empty_image
 
         dpath = u"Data/Debugger"
-        return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc)
+
+        # 可能ならcwxeditor/resourceからアイコンを読み込む
+        editor_res = os.path.dirname(os.path.abspath(self.setting().editor))
+        editor_res = cw.util.join_paths(editor_res, "resource")
+        if not os.path.isdir(editor_res):
+            editor_res = None
+
+        return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc, editor_res=editor_res)
 
     def get_cardbgs(self, load_image):
         """
@@ -2276,6 +2298,132 @@ def get_resourcesize(path):
     else:
         return None
 
+# Data/Debuggerとcwxeditor/resource内にあるファイルとの対応表
+# 該当無しのリソースはこのテーブルには含まない
+CWXEDITOR_RESOURCES = {
+    "AREA": "area.png",
+    "BATTLE": "battle.png",
+    "CARD": "cards.png",
+    "COMPSTAMP": "end.png",
+    "COUPON": "coupon_high.png",
+    "COUPON_MINUS": "coupon_minus.png",
+    "COUPON_PLUS": "coupon_plus.png",
+    "COUPON_ZERO": "coupon_n.png",
+    "EDITOR": "cwxeditor.png",
+    "EVENT": "event_tree.png",
+    "FLAG": "flag.png",
+    "FRIEND": "cast.png",
+    "GOSSIP": "gossip.png",
+    "IGNITION": "def_start.png",
+    "INFO": "info.png",
+    "KEYCODE": "key_code.png",
+    "LOAD": "open.png",
+    "MEMBER": "party_cards.png",
+    "MONEY": "money.png",
+    "PACK": "package.png",
+    "RECOVERY": "msn_heal.png",
+    "RESET": "reload.png",
+    "ROUND": "round.png",
+    "SAVE": "save.png",
+    "SELECTION": "sc_m.png",
+    "STEP": "step.png",
+    "UPDATE": "refresh.png",
+    "YADO": "sc_y.png",
+
+    # Terminal
+    "EVT_START": "evt_start.png",  # スタート
+    "EVT_START_BATTLE": "evt_battle.png",  # バトル開始
+    "EVT_END": "evt_clear.png",  # シナリオクリア
+    "EVT_END_BADEND": "evt_gameover.png",  # 敗北・ゲームオーバー
+    "EVT_CHANGE_AREA": "evt_area.png",  # エリア移動
+    "EVT_EFFECT_BREAK": "evt_stop.png",  # 効果中断
+    "EVT_LINK_START": "evt_link_s.png",  # スタートへのリンク
+    "EVT_LINK_PACKAGE": "evt_link_p.png",  # パッケージへのリンク
+
+    # Standard
+    "EVT_TALK_MESSAGE": "evt_message.png",  # メッセージ
+    "EVT_TALK_DIALOG": "evt_speak.png",  # セリフ
+    "EVT_PLAY_BGM": "evt_bgm.png",  # BGM変更
+    "EVT_PLAY_SOUND": "evt_se.png",  # 効果音
+    "EVT_CHANGE_BGIMAGE": "evt_back.png",  # 背景変更
+    "EVT_ELAPSE_TIME": "evt_time.png",  # 時間経過
+    "EVT_EFFECT": "evt_effect.png",  # 効果
+    "EVT_WAIT": "evt_wait.png",  # 空白時間
+    "EVT_CALL_PACKAGE": "evt_call_p.png",  # パッケージのコール
+    "EVT_CALL_START": "evt_call_s.png",  # スタートのコール
+
+    # Data
+    "EVT_BRANCH_FLAG": "evt_br_flag.png",  # フラグ分岐
+    "EVT_SET_FLAG": "evt_flag_set.png",  # フラグ変更
+    "EVT_REVERSE_FLAG": "evt_flag_r.png",  # フラグ反転
+    "EVT_CHECK_FLAG": "evt_flag_judge.png",  # フラグ判定
+    "EVT_BRANCH_MULTISTEP": "evt_br_step_n.png",  # ステップ多岐分岐
+    "EVT_BRANCH_STEP": "evt_br_step_ul.png",  # ステップ上下分岐
+    "EVT_SET_STEPUP": "evt_step_plus.png",  # ステップ増加
+    "EVT_SET_STEPDOWN": "evt_step_minus.png",  # ステップ減少
+    "EVT_SET_STEP": "evt_step_set.png",  # ステップ変更
+    "EVT_CHECK_STEP": "evt_check_step.png",  # ステップ判定
+    "EVT_BRANCH_FLAGVALUE": "evt_cmpflag.png",  # フラグ比較分岐
+    "EVT_BRANCH_STEPVALUE": "evt_cmpstep.png",  # ステップ比較分岐
+    "EVT_SUBSTITUTE_FLAG": "evt_cpflag.png",  # フラグ代入
+    "EVT_SUBSTITUTE_STEP": "evt_cpstep.png",  # ステップ代入
+
+    # Utility
+    "EVT_BRANCH_SELECT": "evt_br_member.png",  # メンバ選択
+    "EVT_BRANCH_ABILITY": "evt_br_power.png",  # 能力判定分岐
+    "EVT_BRANCH_RANDOM": "evt_br_random.png",  # ランダム分岐
+    "EVT_BRANCH_LEVEL": "evt_br_level.png",  # レベル判定分岐
+    "EVT_BRANCH_STATUS": "evt_br_state.png",  # 状態判定分岐
+    "EVT_BRANCH_PARTYNUMBER": "evt_br_num.png",  # 人数判定
+    "EVT_BRANCH_AREA": "evt_br_area.png",  # エリア分岐
+    "EVT_BRANCH_BATTLE": "evt_br_battle.png",  # バトル分岐
+    "EVT_BRANCH_ISBATTLE": "evt_br_on_battle.png",  # バトル判定分岐
+    "EVT_BRANCH_ROUND": "evt_br_round.png",  # ラウンド分岐
+    "EVT_BRANCH_RANDOMSELECT": "evt_br_rndsel.png",  # ランダム選択
+
+    # Branch
+    "EVT_BRANCH_CAST": "evt_br_cast.png",  # キャスト存在分岐
+    "EVT_BRANCH_ITEM": "evt_br_item.png",  # アイテム所持分岐
+    "EVT_BRANCH_SKILL": "evt_br_skill.png",  # スキル所持分岐
+    "EVT_BRANCH_INFO": "evt_br_info.png",  # 情報所持分岐
+    "EVT_BRANCH_BEAST": "evt_br_beast.png",  # 召喚獣存在分岐
+    "EVT_BRANCH_MONEY": "evt_br_money.png",  # 所持金分岐
+    "EVT_BRANCH_COUPON": "evt_br_coupon.png",  # クーポン分岐
+    "EVT_BRANCH_COMPLETESTAMP": "evt_br_end.png",  # 終了済シナリオ分岐
+    "EVT_BRANCH_GOSSIP": "evt_br_gossip.png",  # ゴシップ分岐
+    "EVT_BRANCH_KEYCODE": "evt_br_keycode.png",  # キーコード所持分岐
+
+    # Get
+    "EVT_GET_CAST": "cast.png",  # キャスト加入
+    "EVT_GET_ITEM": "item.png",  # アイテム入手
+    "EVT_GET_SKILL": "skill.png",  # スキル取得
+    "EVT_GET_INFO": "info.png",  # 情報入手
+    "EVT_GET_BEAST": "beast.png",  # 召喚獣獲得
+    "EVT_GET_MONEY": "money.png",  # 所持金増加
+    "EVT_GET_COUPON": "coupon.png",  # 称号獲得
+    "EVT_GET_COMPLETESTAMP": "end.png",  # 終了シナリオ設定・貼り紙
+    "EVT_GET_GOSSIP": "gossip.png",  # ゴシップ追加
+
+    # Lost
+    "EVT_LOSE_CAST": "evt_lost_cast.png",  # キャスト離脱
+    "EVT_LOSE_ITEM": "evt_lost_item.png",  # アイテム喪失
+    "EVT_LOSE_SKILL": "evt_lost_skill.png",  # スキル喪失
+    "EVT_LOSE_INFO": "evt_lost_info.png",  # 情報喪失
+    "EVT_LOSE_BEAST": "evt_lost_beast.png",  # 召喚獣喪失
+    "EVT_LOSE_MONEY": "evt_lost_money.png",  # 所持金減少
+    "EVT_LOSE_COUPON": "evt_lost_coupon.png",  # クーポン削除
+    "EVT_LOSE_COMPLETESTAMP": "evt_lost_end.png",  # 終了シナリオ削除
+    "EVT_LOSE_GOSSIP": "evt_lost_gossip.png",  # ゴシップ削除
+
+    # Visual
+    "EVT_SHOW_PARTY": "evt_show_party.png",  # パーティ表示
+    "EVT_HIDE_PARTY": "evt_hide_party.png",  # パーティ隠蔽
+    "EVT_MOVE_BGIMAGE": "evt_mv_back.png",  # 背景再配置
+    "EVT_REPLACE_BGIMAGE": "evt_rpl_back.png",  # 背景置換
+    "EVT_LOSE_BGIMAGE": "evt_lose_back.png",  # 背景削除
+    "EVT_REDISPLAY": "evt_refresh.png",  # 画面の再構築
+}
+
 def empty_wxbmp():
     """空のwx.Bitmapを返す。"""
     wxbmp = wx.EmptyBitmap(1, 1)
@@ -2308,6 +2456,10 @@ class LazyResource(object):
         self.load = False
         self.failure = False
 
+    def clear(self):
+        self.load = False
+        self._res = None
+
     def get_res(self):
         if not self.load:
             try:
@@ -2331,6 +2483,10 @@ class ResourceTable(object):
         self.deffunc = deffunc
         self.defvalue = None
         self.defload = False
+
+    def reset(self):
+        for lazy in self.dic.itervalues():
+            lazy.clear()
 
     def __getitem__(self, key):
         self._put_nokeyvalue(key)
