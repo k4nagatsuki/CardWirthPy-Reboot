@@ -2271,6 +2271,18 @@ class GetCastContent(GetContent):
             return 0
 
         resid = self.data.getint(".", "id", 0)
+        # CardWirthではラウンドイベントで加入したメンバは次ラウンドから
+        # 行動を開始するが、CardWirthPy 1では即時に行動していた。
+        # その挙動を前提にしたWsn.1シナリオが作られている可能性があるので、
+        # Wsn.2で`startaction`属性を設けて挙動を制御可能にする。
+        #  * Wsnシナリオで`startaction`が無い場合(Wsn.1以前)は、
+        #    `startaction="Now"`として扱う。
+        #  * クラシックなシナリオを変換した時は`startaction="NextRound"`とする。
+        # 選択できる挙動は以下の通り。
+        #  * `Now` = 即時に行動する(無指定の場合のデフォルト)。
+        #  * `CurrentRound` = ラウンドイベントで加入した場合はそのラウンドから行動する。
+        #  * `NextRound` = 次ラウンドから行動する(クラシックなシナリオのデフォルト)。
+        startactin = self.data.getattr(".", "startaction", "Now")
 
         fcards = [i for i in cw.cwpy.sdata.friendcards if i.id == resid]
 
@@ -2282,9 +2294,12 @@ class GetCastContent(GetContent):
                 fcard = cw.sprite.card.FriendCard(data=e)
                 cw.cwpy.sdata.friendcards.append(fcard)
                 if cw.cwpy.is_battlestatus() and fcard.is_alive():
-                    # 即戦闘に参加する
-                    cw.cwpy.battle.members.append(fcard)
-                    fcard.decide_action()
+                    if startactin == "Now" or\
+                            (startactin == "CurrentRound" and\
+                                     (cw.cwpy.battle.is_ready() or cw.cwpy.battle.in_roundevent)):
+                        # 即戦闘に参加する
+                        cw.cwpy.battle.members.append(fcard)
+                        fcard.decide_action()
 
         return 0
 

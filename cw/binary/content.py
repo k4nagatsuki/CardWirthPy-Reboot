@@ -185,6 +185,7 @@ class Content(base.CWBinaryBase):
             self.properties["targets"] = self.conv_target_scope_coupon(f.byte())
         elif self.tag == "Get" and self.type == "Cast":
             self.properties["id"] = f.dword()
+            self.properties["startaction"] = "NextRound"
         elif self.tag == "Get" and self.type == "Item":
             self.properties["id"] = f.dword()
             if self.version <= 2:

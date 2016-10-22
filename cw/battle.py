@@ -50,6 +50,8 @@ class BattleEngine(object):
         self.numenemy = 0
         if cw.cwpy.is_autospread():
             self.numenemy = len(cw.cwpy.get_mcards("flagtrue"))
+        # ラウンドイベント中か
+        self.in_roundevent = False
 
         cw.cwpy.battle = self
 
@@ -128,7 +130,11 @@ class BattleEngine(object):
         cw.cwpy.advlog.start_round(self.round)
 
         # ラウンドイベントスタート
-        cw.cwpy.sdata.start_event(keynum=-self.round)
+        self.in_roundevent = True
+        try:
+            cw.cwpy.sdata.start_event(keynum=-self.round)
+        finally:
+            self.in_roundevent = False
 
         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
             self.end(f9=True)
