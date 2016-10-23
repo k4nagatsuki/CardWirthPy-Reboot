@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<System>
+ <Property>
+  <Id>4</Id>
+  <Name>冒険者の宿</Name>
+ </Property>
+ <BgImages />
+ <MenuCards spreadtype="Custom" />
+ <Events>
+  <Event>
+   <Ignitions>
+    <Number>1</Number>
+    <KeyCodes />
+   </Ignitions>
+   <Contents>
+    <Start name="エリアイベント">
+     <Contents>
+      <Post type="Event" command="StartScenario">
+       <Contents />
+      </Post>
+     </Contents>
+    </Start>
+   </Contents>
+  </Event>
+ </Events>
+</System>

@@ -105,17 +105,19 @@ class SystemData(object):
         self._items.clear()
         self._skills.clear()
         self._beasts.clear()
-        dpath = cw.util.join_paths(cw.cwpy.skindir,
-                                            u"Resource/Xml", cw.cwpy.status)
+        dpaths = (cw.util.join_paths(cw.cwpy.skindir, u"Resource/Xml", cw.cwpy.status),
+                  cw.util.join_paths(u"Data/SkinBase/Resource/Xml", cw.cwpy.status))
 
-        for fname in os.listdir(dpath):
-            path = cw.util.join_paths(dpath, fname)
+        for dpath in dpaths:
+            for fname in os.listdir(dpath):
+                path = cw.util.join_paths(dpath, fname)
 
-            if os.path.isfile(path) and fname.endswith(".xml"):
-                e = xml2element(path, "Property")
-                resid = e.getint("Id")
-                name = e.gettext("Name")
-                self._areas[resid] = (name, path)
+                if os.path.isfile(path) and fname.endswith(".xml"):
+                    e = xml2element(path, "Property")
+                    resid = e.getint("Id")
+                    name = e.gettext("Name")
+                    if not resid in self._areas:
+                        self._areas[resid] = (name, path)
 
     def _init_sparea_mcards(self):
         """

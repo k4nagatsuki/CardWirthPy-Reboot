@@ -3798,7 +3798,8 @@ methoddict = {
     "LoadParty": "load_party",
     "InterruptAdventure": "interrupt_adventure",
     "DissolveParty": "dissolve_party",
-    "Load": "reload_yado"}
+    "Load": "reload_yado",
+    "StartScenario": "start_scenario"}
 
 class PostEventContent(EventContentBase):
     def __init__(self, data):

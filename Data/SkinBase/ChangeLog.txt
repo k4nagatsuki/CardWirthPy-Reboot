@@ -1,9 +1,13 @@
 SkinBase 変更履歴
 =================
 
+2016年10月23日(dataVersion=11)
+----------------------------
+ * シナリオ選択ダイアログの後に遷移する宿エリア`Resource/Xml/Yado/04_StartScenario.xml`を追加。
+   このバージョン以降、スキンに無いエリア定義は`SkinBase`のものが使用されるため、`dataVersion=10`以前のスキンのアップデートは不要。
+
 2016年3月27日(dataVersion=10)
 ----------------------------
-
  * オープニングアニメーション定義`Resource/Xml/Animation/Opening.xml`を追加。
 
 2016年3月5日(dataVersion=9)

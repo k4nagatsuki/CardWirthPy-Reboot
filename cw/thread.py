@@ -193,6 +193,9 @@ class CWPy(_Singleton, threading.Thread):
         # 背景の更新が発生しているか
         self.file_updates_bg = False
 
+        # シナリオ選択ダイアログで選択されたシナリオ
+        self.selectedscenario = None
+
         # アーカイヴを展開中のシナリオ
         self.expanding = u""
         # 展開の進捗情報
@@ -1846,6 +1849,14 @@ class CWPy(_Singleton, threading.Thread):
         self.change_area(areaid)
 
         self.is_pcardsselectable = self.ydata and self.ydata.party
+
+    def start_scenario(self):
+        """
+        シナリオ選択ダイアログで選択されたシナリオがあればスタートする。
+        """
+        if self.selectedscenario:
+            self.set_scenario(self.selectedscenario, manualstart=True)
+            self.selectedscenario = None
 
     def set_scenario(self, header=None, lastscenario=[][:], lastscenariopath="",
                      resume=False, manualstart=False):
