@@ -1,10 +1,10 @@
-TimGM6mb.sf2 �� Public Domain �ł��B
-��؂̏�����݂������R�Ɏg�p���鎖���ł��܂��B
-�܂��A�I���W�i���̃t�@�C���Ƀn���L�Q�j�A(@tekitoudesu)����y��[�݂���](http://misica.lv9.org/)����ɂ��኱�̏C����������Ă��܂��B
+TimGM6mb.sf2 は Public Domain です。
+一切の条件を設けず自由に使用する事ができます。
+また、オリジナルのファイルにハルキゲニア(@tekitoudesu)さん及び[みしか](http://misica.lv9.org/)さんによる若干の修正が加わっています。
 
 ---
 
-http://musescore.org/en/node/1463#comment-9161 �����p:
+http://musescore.org/en/node/1463#comment-9161 より引用:
 
 > Some terrific news from the TimGM6mb.sf2 soundfont creator (Tim Brechbill):
 > "Yes the soundfont is mine and public domain.
