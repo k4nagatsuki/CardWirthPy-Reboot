@@ -2375,6 +2375,8 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
 
         if r_spchar and not defspchar2:
             if skip:
+                if spcharinfo and index in spcharinfo:
+                    spcharinfo2.append(seqlen)
                 seq.append(char)
                 seqlen += len(char)
                 skip = False

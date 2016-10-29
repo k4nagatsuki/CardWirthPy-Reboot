@@ -1125,19 +1125,19 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
             return skip
 
         if c == '#':
-            if full:
-                spcharinfo.add(buflen)
             if i + 1 == len(s) or s[i+1] == '\n':
                 buf.append(c)
                 buflen += len(c)
                 continue
             nc = s[i+1].lower()
             if full and '#' + nc in cw.cwpy.rsrc.specialchars:
+                spcharinfo.add(buflen)
                 buf.append(c)
                 buflen += len(c)
                 continue
             if full:
                 if nc in ('m', 'r', 'u', 'c', 'i', 't', 'y'):
+                    spcharinfo.add(buflen)
                     buf.append(_get_namefromtable(nc, name_table))
                     buflen += len(buf[-1])
                     skip = 1
