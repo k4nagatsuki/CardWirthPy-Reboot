@@ -593,6 +593,9 @@ class Converter(threading.Thread):
                 "start_action": "TMAINWINDOW/MainWindow/ButtonControl/BattleSheet/BattleBtn/Caption",
                 "runaway": "TMAINWINDOW/MainWindow/ButtonControl/BattleSheet/EscapeBtn/Caption",
                 "round": ("TMAINWINDOW/MainWindow/ButtonControl/BattleSheet/RoundPanel/Caption", ("00", "%s")),
+                "skillcard": "TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Hint",
+                "itemcard": "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Hint",
+                "beastcard": "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Hint",
             }
             rcdata = {}
             for key, path in rsrcmsgs.iteritems():
