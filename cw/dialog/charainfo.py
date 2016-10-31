@@ -338,8 +338,7 @@ class CharaInfo(wx.Dialog):
         for win in self.bottompanel:
             win.ccard = self.ccard
             win.headers = []
-            
-            win.Refresh()
+            win.draw(True)
 
     def OnPageChanged(self, event):
         pass
