@@ -619,7 +619,7 @@ class CardControl(wx.Dialog):
         return rect.x + rect.width / 4 * 3 < x and self.rightbtn.IsEnabled()
 
     def OnMouseWheel(self, event):
-        if event.GetWheelRotation() > 0:
+        if cw.util.get_wheelrotation(event) > 0:
             if self.leftbtn.IsEnabled():
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
                 self.ProcessEvent(btnevent)
@@ -2015,7 +2015,7 @@ class CardHolder(CardControl):
             if combo.IsShown() and combo.GetRect().Contains(mousepos):
                 index = combo.GetSelection()
                 count = combo.GetCount()
-                if event.GetWheelRotation() > 0:
+                if cw.util.get_wheelrotation(event) > 0:
                     if index <= 0:
                         index = count - 1
                     else:
@@ -2041,7 +2041,7 @@ class CardHolder(CardControl):
                 # キャストの手札カード
                 # 特殊技能、アイテム、召喚獣を切り替え
                 l = [self.skillbtn, self.itembtn, self.beastbtn]
-                if event.GetWheelRotation() > 0:
+                if cw.util.get_wheelrotation(event) > 0:
                     btn = l[cw.cwpy.setting.last_cardpocket - 1] if not cw.cwpy.setting.last_cardpocket == 0 else l[len(l) -1]
                 else:
                     btn = l[cw.cwpy.setting.last_cardpocket + 1] if not cw.cwpy.setting.last_cardpocket == len(l) -1 else l[0]
@@ -2052,7 +2052,7 @@ class CardHolder(CardControl):
             else:
                 # カード置き場、荷物袋、情報カード
                 # ページを切り替え
-                if event.GetWheelRotation() > 0:
+                if cw.util.get_wheelrotation(event) > 0:
                     if self.upbtn.IsEnabled():
                         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
                         self.ProcessEvent(btnevent)

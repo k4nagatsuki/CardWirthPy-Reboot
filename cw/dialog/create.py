@@ -711,7 +711,7 @@ class AdventurerCreaterPage(wx.Panel):
             rect, _method, wheelmethod = value
 
             if wheelmethod and rect.collidepoint(mousepos):
-                wheelmethod(key, event.GetWheelRotation())
+                wheelmethod(key, cw.util.get_wheelrotation(event))
 
     def draw_clickabletext(self, dc, s, pos, name, method, wheelmethod, setname=None):
         size = dc.GetTextExtent(s)
@@ -901,7 +901,7 @@ class NamePage(AdventurerCreaterPage):
 
     def OnMouseWheel(self, event):
         if self.ch_imgdpath.GetRect().Contains(event.GetPosition()):
-            if event.GetWheelRotation() < 0:
+            if cw.util.get_wheelrotation(event) < 0:
                 self._up_imgd()
             else:
                 self._down_imgd()
@@ -2132,7 +2132,7 @@ class DesignPanel(AdventurerCreaterPage):
 
     def OnMouseWheel(self, event):
         if self.ch_imgdpath.GetRect().Contains(event.GetPosition()):
-            if event.GetWheelRotation() < 0:
+            if cw.util.get_wheelrotation(event) < 0:
                 self._up_imgd()
             else:
                 self._down_imgd()

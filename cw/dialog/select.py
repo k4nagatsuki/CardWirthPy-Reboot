@@ -205,7 +205,7 @@ class Select(wx.Dialog):
         if not self.list or len(self.list) == 1:
             return
 
-        if event.GetWheelRotation() > 0:
+        if cw.util.get_wheelrotation(event) > 0:
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
             self.ProcessEvent(btnevent)
         else:
@@ -464,12 +464,12 @@ class MultiViewSelect(Select):
         count = self.views
         if len(self.list) <= self.views:
             count = 1
-            if event.GetWheelRotation() > 0:
+            if cw.util.get_wheelrotation(event) > 0:
                 self.index = cw.util.number_normalization(self.index - count, 0, len(self.list))
             else:
                 self.index = cw.util.number_normalization(self.index + count, 0, len(self.list))
         else:
-            if event.GetWheelRotation() > 0:
+            if cw.util.get_wheelrotation(event) > 0:
                 self.index = cw.util.number_normalization(self.index - count, 0, self.get_pagecount() * self.views)
             else:
                 self.index = cw.util.number_normalization(self.index + count, 0, self.get_pagecount() * self.views)
@@ -2742,7 +2742,7 @@ def change_combo(combo, event):
     if combo and combo.IsShown() and combo.GetRect().Contains(event.GetPosition()):
         index = combo.GetSelection()
         count = combo.GetCount()
-        if event.GetWheelRotation() > 0:
+        if cw.util.get_wheelrotation(event) > 0:
             if index <= 0:
                 index = count - 1
             else:

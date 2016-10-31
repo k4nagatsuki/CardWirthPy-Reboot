@@ -221,7 +221,7 @@ class CharaInfo(wx.Dialog):
         # 情報タブの切り替えを行う
         rect = wx.Rect(rect[0], rect[1], rect[2], rect[3] / 2)
         if rect.Contains(event.GetPosition()) and self.leftbtn.IsEnabled():
-            if event.GetWheelRotation() > 0:
+            if cw.util.get_wheelrotation(event) > 0:
                 if self.leftbtn.IsEnabled():
                     btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
                     self.ProcessEvent(btnevent)
@@ -232,7 +232,7 @@ class CharaInfo(wx.Dialog):
         else:
             index = self.notebook.GetSelection()
             count = self.notebook.GetPageCount()
-            if event.GetWheelRotation() > 0:
+            if cw.util.get_wheelrotation(event) > 0:
                 if index <= 0:
                     index = count - 1
                 else:

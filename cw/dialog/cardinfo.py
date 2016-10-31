@@ -104,7 +104,7 @@ class CardInfo(wx.Dialog):
         if len(self.list) == 1:
             return
 
-        if event.GetWheelRotation() > 0:
+        if cw.util.get_wheelrotation(event) > 0:
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
             self.ProcessEvent(btnevent)
         else:

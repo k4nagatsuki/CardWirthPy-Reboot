@@ -440,7 +440,7 @@ class Frame(wx.Frame):
 
     def OnMouseWheel(self, event):
         self._update_mousepressed()
-        if event.GetWheelRotation() > 0:
+        if cw.util.get_wheelrotation(event) > 0:
             evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=4)
         else:
             evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=5)

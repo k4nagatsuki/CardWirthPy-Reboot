@@ -3236,7 +3236,7 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         else:
             value = cw.wins(4)
 
-        if event.GetWheelRotation() > 0:
+        if get_wheelrotation(event) > 0:
             self.Scroll(0, y - value)
         else:
             self.Scroll(0, y + value)
@@ -3281,6 +3281,17 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         # 文字列選択中はブラウザ起動しない
         if not self.HasSelection():
             self.go_url(event.GetString())
+
+
+def get_wheelrotation(event):
+    """マウスのホイールを横に倒した場合に
+    取得できる回転量の値は直感と逆転しているので
+    この関数をラッパとして反転した値を取得する。
+    """
+    if event.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
+        return -event.GetWheelRotation()
+    else:
+        return event.GetWheelRotation()
 
 
 #-------------------------------------------------------------------------------

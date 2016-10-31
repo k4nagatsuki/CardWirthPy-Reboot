@@ -94,7 +94,7 @@ class BattleCommand(wx.Dialog):
     def OnMouseWheel(self, event):
         if not self.toppanel.IsEnabled():
             return
-        if event.GetWheelRotation() > 0:
+        if cw.util.get_wheelrotation(event) > 0:
             e = wx.PyCommandEvent(wx.wxEVT_COMMAND_MENU_SELECTED, self.leftkeyid)
             self.ProcessEvent(e)
         else:
