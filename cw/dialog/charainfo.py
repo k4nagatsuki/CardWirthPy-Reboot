@@ -778,12 +778,11 @@ class DescPanel(wx.ScrolledWindow):
         
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
+
         # 解説文
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        #dc.DrawText(u" "*18+cw.cwpy.msgs["description"], -1 , cw.wins(1))
         dc.DrawLabel(self.text, (self.x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
-        self.Refresh()
 
     def get_detailtext(self):
         return self.text
@@ -801,7 +800,6 @@ class HistoryPanel(wx.ScrolledWindow):
         self.SetScrollRate(cw.wins(10), cw.wins(10))
         # エレメントオブジェクト
         self.ccard = ccard
-        self.charainfo = CharaInfo
         # bmp
         self.gold = cw.cwpy.rsrc.dialogs["STATUS3"]
         self.silver = cw.cwpy.rsrc.dialogs["STATUS2"]
@@ -914,7 +912,6 @@ class HistoryPanel(wx.ScrolledWindow):
 
         # クーポン
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        dc.SetTextForeground(wx.WHITE)
 
         lineheight = self.gold.GetSize()[1] + cw.wins(5)
 
