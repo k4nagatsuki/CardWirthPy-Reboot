@@ -8,7 +8,6 @@ import pygame
 
 import cw
 import cardinfo
-import wx.aui
 
 import wx.lib.agw.aui as aui
 
@@ -301,7 +300,6 @@ class CharaInfo(wx.Dialog):
         self.toppanel.Refresh()
    
         for win in self.bottompanel:
-
             win.ccard = self.ccard
             win.headers = []
             win.draw(True)
@@ -681,7 +679,6 @@ class TitlePanel(wx.Panel):
         self.draw()
 
     def draw(self, update=False):
-
         if update:
             dc = wx.ClientDC(self)
         else:
@@ -699,20 +696,17 @@ class TitlePanel(wx.Panel):
             else:
                 self.text = u" "*18+cw.cwpy.msgs["edit"]
         elif index == 3:
-            self.text = u" "*16+cw.cwpy.msgs["skillcard"]
+            self.text = u" "*15+cw.cwpy.msgs["skillcard"]
         elif index == 4:
-            self.text = u" "*14+cw.cwpy.msgs["itemcard"]        
+            self.text = u" "*13+cw.cwpy.msgs["itemcard"]        
         else:
-            self.text = u" "*15+cw.cwpy.msgs["beastcard"]
+            self.text = u" "*14+cw.cwpy.msgs["beastcard"]
 
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
         dc.DrawText(self.text, -1, cw.wins(2))
         if update:
             self.Refresh()
-
-
-
 
 class DescPanel(wx.ScrolledWindow):
     """
@@ -768,8 +762,6 @@ class DescPanel(wx.ScrolledWindow):
             self._init_view()
 
     def OnPaint(self, event):
-        
-        # 解説文
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
         vy *= cw.wins(10)
