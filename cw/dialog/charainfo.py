@@ -51,37 +51,37 @@ class CharaInfo(wx.Dialog):
         
         # notebook
         self.notebook = wx.lib.agw.aui.auibook.AuiNotebook(self, -1, size=(self.width, cw.wins(200)),
-                                                           agwStyle=aui.AUI_NB_BOTTOM|aui.AUI_NB_SMART_TABS|aui.AUI_NB_TAB_FIXED_WIDTH)
+                                                           agwStyle=aui.AUI_NB_BOTTOM|aui.AUI_NB_TAB_FIXED_WIDTH)
         self.notebook.SetFont(cw.cwpy.rsrc.get_wxfont("tab", pixelsize=cw.wins(13)))
 
-        cut = self.width / 6.2
+        cut= self.GetClientSize()[0] / 6 - 1
         self.notebook.SetMinMaxTabWidth(cut, cut)
 
         # 解説
         self.descpanel = DescPanel(self.notebook, self.ccard, editable)
-        self.notebook.AddPage(self.descpanel,  u" " + cw.cwpy.msgs["description"] + u" ")
+        self.notebook.AddPage(self.descpanel, cw.cwpy.msgs["description"])
         # 経歴
         self.historypanel = HistoryPanel(self.notebook, self.ccard, editable)
-        self.notebook.AddPage(self.historypanel,  u" " + cw.cwpy.msgs["history"] + u" ")
+        self.notebook.AddPage(self.historypanel,  cw.cwpy.msgs["history"])
         # 編集または状態
         if self.is_playingscenario:
             self.editpanel = StatusPanel(self.notebook, self.list, self.ccard, editable)
-            self.notebook.AddPage(self.editpanel,  u" " + cw.cwpy.msgs["status"] + u" ")
+            self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         elif editable:
             self.editpanel = EditPanel(self.notebook, self.list, self.ccard)
-            self.notebook.AddPage(self.editpanel,  u" " + cw.cwpy.msgs["edit"] + u" ")
+            self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["edit"])
 
         # 各種所持カード
         if self.ccard.data.hasfind("SkillCards"):
             # 技能
             self.skillpanel = SkillPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.skillpanel,  u" " + cw.cwpy.msgs["skills"] + u" ")
+            self.notebook.AddPage(self.skillpanel, cw.cwpy.msgs["skills"])
             # アイテム
             self.itempanel = ItemPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.itempanel,  u" " + cw.cwpy.msgs["items"] + u" ")
+            self.notebook.AddPage(self.itempanel,  cw.cwpy.msgs["items"])
             # 召喚獣
             self.beastpanel = BeastPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.beastpanel,  u" " + cw.cwpy.msgs["beasts"] + u" ")
+            self.notebook.AddPage(self.beastpanel, cw.cwpy.msgs["beasts"])
 
         # toppanel
         self.toppanel = TopPanel(self, self.ccard, redrawfunc)
@@ -442,7 +442,8 @@ class TopPanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(106)))
         self.SetDoubleBuffered(True)
         #カードワース本来の背景値。暗くなりすぎるので保留
-        #将来的にはスキンオプション化出来た方が良いかも
+        
+#将来的にはスキンオプション化出来た方が良いかも
         #self.SetBackgroundColour(wx.Colour(192, 192, 192))
         self.csize = self.GetClientSize()
         self.ccard = ccard
@@ -666,7 +667,6 @@ class TitlePanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(22)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
-        # エレメントオブジェクト
         self.notebook = notebook
         self.is_playingscenario = cw.cwpy.is_playingscenario()
 
@@ -684,27 +684,31 @@ class TitlePanel(wx.Panel):
         else:
             dc = wx.PaintDC(self)
 
+
         index = self.notebook.GetSelection()
         #カードワースではcenterではなく絶対位置(江戸バリは若干ズレている)
         if index == 0:
-            self.text = u" "*18+cw.cwpy.msgs["description"]
+            self.text = cw.cwpy.msgs["description"]
         elif index == 1:
-            self.text = u" "*18+cw.cwpy.msgs["history"]
+            self.text = cw.cwpy.msgs["history"]
         elif index == 2:
             if self.is_playingscenario:
-                self.text = u" "*18+cw.cwpy.msgs["status"]
+                self.text = cw.cwpy.msgs["status"]
             else:
-                self.text = u" "*18+cw.cwpy.msgs["edit"]
+                self.text = cw.cwpy.msgs["edit"]
         elif index == 3:
-            self.text = u" "*15+cw.cwpy.msgs["skillcard"]
+            self.text = cw.cwpy.msgs["skillcard"]
         elif index == 4:
-            self.text = u" "*13+cw.cwpy.msgs["itemcard"]        
+            self.text = cw.cwpy.msgs["itemcard"]        
         else:
-            self.text = u" "*14+cw.cwpy.msgs["beastcard"]
+            self.text = cw.cwpy.msgs["beastcard"]
 
+
+       
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        dc.DrawText(self.text, -1, cw.wins(2))
+        x = (self.GetClientSize()[0]-dc.GetTextExtent(self.text)[0])/2
+        dc.DrawText(self.text, x, cw.wins(2))
         if update:
             self.Refresh()
 
