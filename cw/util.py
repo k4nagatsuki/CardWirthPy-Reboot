@@ -3289,7 +3289,7 @@ def get_wheelrotation(event):
     取得できる回転量の値は直感と逆転しているので
     この関数をラッパとして反転した値を取得する。
     """
-    if event.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
+    if 3 <= wx.VERSION[0] and event.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
         return -event.GetWheelRotation()
     else:
         return event.GetWheelRotation()
