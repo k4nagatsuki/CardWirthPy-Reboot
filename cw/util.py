@@ -33,6 +33,7 @@ if sys.platform == "win32":
     win32shell = importlib.import_module("win32com.shell.shell")
 
 import wx
+import wx.lib.agw.aui.tabart
 import wx.lib.mixins.listctrl
 import wx.richtext
 import pygame
@@ -3292,6 +3293,24 @@ def get_wheelrotation(event):
         return -event.GetWheelRotation()
     else:
         return event.GetWheelRotation()
+
+
+class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
+    """wx.lib.agw.aui.tabart.AuiDefaultTabArtと同じように
+    wx.lib.agw.aui.AuiNotebookのタブを描画するが、
+    テキストのみ左寄せから中央寄せに変更する。
+    """
+    def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
+        # テキストを一旦空にして背景だけ描画させる
+        caption = page.caption
+        page.caption = u""
+        r = super(CWTabArt, self).DrawTab(dc, wnd, page, in_rect, close_button_state, paint_control)
+        page.caption = caption
+        # テキストを描画
+        te = dc.GetTextExtent(page.caption)
+        rect = r[0]
+        dc.DrawText(page.caption, rect.X + (rect.Width - te[0]) / 2, in_rect.Y + (in_rect.Height - te[1]) / 2)
+        return r
 
 
 #-------------------------------------------------------------------------------
