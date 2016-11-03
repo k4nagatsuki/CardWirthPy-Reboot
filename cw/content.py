@@ -1860,6 +1860,9 @@ class EffectContent(EventContentBase):
         # 対象メンバ取得
         self.targetm = self.data.get("targetm", "Selected")
 
+        # 死亡時イベントが発火するか(Wsn.2)
+        self.deadevent = self.data.getattr(".", "deadevent", "DoNotRun")
+
     def action(self):
         """効果コンテント。"""
 
@@ -1872,13 +1875,42 @@ class EffectContent(EventContentBase):
             cw.cwpy.event.clear_selectedmember()
             return 0
 
+        if self.deadevent == "InCardUsed":
+            rundeadevent = cw.cwpy.event.in_inusecardevent
+        else:
+            rundeadevent = (self.deadevent == "Run")
+
+        def apply(target):
+            unconscious_flag, paralyze_flag = cw.event.get_effecttargetstatus(target, self.eff)
+            if cw.cwpy.sdata.is_wsnversion('2'):
+                # イベント所持者を示すシステムクーポン(Wsn.2)
+                target.set_coupon(u"＠イベント対象", 0)
+            try:
+                self.eff.apply(target, event=True)
+
+                deadevent = False
+                if rundeadevent:
+                    # 効果イベントで使用イベントを発生させる(Wsn.2)
+                    # 最初から意識不明・麻痺なら死亡イベント発生なし
+                    event = cw.cwpy.event.get_event()
+                    if event and not unconscious_flag and not paralyze_flag:
+                        deadevent = event.ignition_deadevent(target, keycodes=[])
+                        event = target.events.check_keynum(1)
+                        if event:
+                            event.run_scenarioevent()
+                            if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+                                return
+
+            finally:
+                target.remove_coupon(u"＠イベント対象")
+
         # 対象メンバに効果モーションを適用
         if isinstance(target, list):
             for member in target:
-                self.eff.apply(member, event=True)
+                apply(member)
 
         else:
-            self.eff.apply(target, event=True)
+            apply(target)
 
         if cw.cwpy.is_gameover():
             # 効果中断。引き続き

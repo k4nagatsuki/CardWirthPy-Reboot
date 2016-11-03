@@ -713,6 +713,20 @@ class Event(object):
         self.treekeys = event.treekeys
         self.starttree = event.starttree
 
+    def _store_inusedata(self, selectuser):
+        if selectuser:
+            cw.cwpy.event.set_selectedmember(self.user)
+        self._stored_in_cardeffectmotion = cw.cwpy.event.in_cardeffectmotion
+        cw.cwpy.event.in_cardeffectmotion = False
+        self._stored_in_inusecardevent = cw.cwpy.event.in_inusecardevent
+        cw.cwpy.event.in_inusecardevent = False
+
+    def _restore_inusedata(self):
+        cw.cwpy.event.in_cardeffectmotion = self._stored_in_cardeffectmotion
+        self._stored_in_cardeffectmotion = False
+        cw.cwpy.event.in_inusecardevent = self._stored_in_inusecardevent
+        self._stored_in_inusecardevent = False
+
     def start(self):
         try:
             showbuttons = not cw.cwpy.is_playingscenario() or\
@@ -746,7 +760,7 @@ class Event(object):
             cw.cwpy.event.remove_event(event)
             event.clear()
 
-    def run(self, perf=False):
+    def run(self, perf=False, isinside=False):
         """イベント実行。子コンテンツを順番に実行する。
         実行対象のイベントコンテント・イベントツリーは
         このイベントに属すものではない事がある。
@@ -756,10 +770,11 @@ class Event(object):
         これは不自然だが、際限の無い再帰を避けるために
         必要な処置である。
         """
-        cw.cwpy.event.clear_stackinfo()
-        cw.cwpy.event.append_stackinfo(self)
+        if not isinside:
+            cw.cwpy.event.clear_stackinfo()
+            cw.cwpy.event.append_stackinfo(self)
 
-        cw.cwpy.event.append_event(self)
+            cw.cwpy.event.append_event(self)
 
         try:
             while True:
@@ -782,6 +797,8 @@ class Event(object):
                     if packevent:
                         packevent.run_exit()
                         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
+                    if isinside:
+                        break
                 else:
                     self.run_exit()
                     break
@@ -857,6 +874,42 @@ class Event(object):
         # ゲームオーバ
         elif cw.cwpy.is_gameover() and cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9 and 0 <= cw.cwpy.areaid:
             cw.cwpy.set_gameover()
+
+    def ignition_deadevent(self, target, keycodes):
+        """targetの死亡イベントが発生可能か。"""
+        if cw.cwpy.msgs["runaway_keycode"] in keycodes:
+            # キーコード「逃走」付きのカードは死亡イベントを発生させない
+            # (ただしカード名キーコードは除く)
+            return False
+        if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
+            return not target.events.check_keynum(1) is None
+        else:
+            return False
+
+    def run_scenarioevent(self):
+        """効果コンテントなどの実行中に他のイベントを割り込ませる。"""
+        event = cw.cwpy.event.get_event()
+        versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
+        nowrunning = cw.cwpy.event.get_nowrunningevent()
+
+        event.nowrunningcontents.append((self, event.cur_content, event.line_index, versionhint_base))
+        cw.cwpy.event.append_event(self)
+        self.parent = cw.cwpy.event.get_event()
+
+        item = (self, event.cur_content, event.line_index)
+        cw.cwpy.event.append_stackinfo(item)
+
+        event.cur_content = self.starttree
+        event.line_index = 0
+
+        if cw.cwpy.is_playingscenario():
+            cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint_base)
+
+        event._store_inusedata(selectuser=False)
+        try:
+            event.run(isinside=True)
+        finally:
+            event._restore_inusedata()
 
     def clear(self):
         self.index = 0
@@ -1225,17 +1278,12 @@ class CardEvent(Event):
             self._restore_inusedata()
 
     def run_deadevent(self, target):
-        if cw.cwpy.msgs["runaway_keycode"] in self.inusecard.get_keycodes(with_name=False):
-            # キーコード「逃走」付きのカードは死亡イベントを発生させない
-            # (ただしカード名キーコードは除く)
-            return False
-        if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
+        """targetの死亡イベントが発生可能であれば発生させる。"""
+        if self.ignition_deadevent(target, self.inusecard.get_keycodes(with_name=False)):
             self._store_inusedata(selectuser=True)
             r = target.events.start(1, isinsideevent=True)
             self._restore_inusedata()
             return r
-        else:
-            return False
 
     def run_menucardevent(self, target):
         """
@@ -1366,11 +1414,7 @@ class CardEvent(Event):
                 clear_params(target)
                 continue
 
-            unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and\
-                not isinstance(target, cw.sprite.card.MenuCard) and\
-                target.is_unconscious()
-            paralyze_flag = not isinstance(target, cw.sprite.card.MenuCard) and\
-                target.is_paralyze()
+            unconscious_flag, paralyze_flag = get_effecttargetstatus(target, eff)
 
             if isinstance(target, Enemy) and (not target.is_unconscious() or unconscious_flag):
                 if cw.cwpy.sdata.is_wsnversion('2'):
@@ -1431,6 +1475,16 @@ class CardEvent(Event):
             # 通常のカード効果は全滅時でも選択メンバをクリアする
             cw.cwpy.event.set_selectedmember(None)
         self.check_gameover()
+
+
+def get_effecttargetstatus(target, eff):
+    unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and \
+                       not isinstance(target, cw.sprite.card.MenuCard) and \
+                       target.is_unconscious()
+    paralyze_flag = not isinstance(target, cw.sprite.card.MenuCard) and \
+                    target.is_paralyze()
+    return unconscious_flag, paralyze_flag
+
 
 def main():
     pass

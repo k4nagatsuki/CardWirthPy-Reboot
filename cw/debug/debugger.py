@@ -2450,6 +2450,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         self.imgidx_call_start = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_CALL_START"])
         self.imgidx_link_package = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_LINK_PACKAGE"])
         self.imgidx_call_package = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_CALL_PACKAGE"])
+        self.imgidx_effect = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_EFFECT"])
         self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"])
         self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
         self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
@@ -2563,6 +2564,8 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                 icon = self.imgidx_call_package
             elif e.tag == "Link" and ctype == "Package":
                 icon = self.imgidx_link_package
+            elif e.tag == "Effect" and ctype == "":
+                icon = self.imgidx_effect
             else:
                 assert False, e.tag + ctype
             name = cw.content.get_content(e).get_status()
