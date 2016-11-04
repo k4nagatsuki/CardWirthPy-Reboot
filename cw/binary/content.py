@@ -122,7 +122,7 @@ class Content(base.CWBinaryBase):
             self.properties["successrate"] = f.dword()
             self.properties["sound"] = self.get_materialpath(f.string())
             self.properties["visual"] = self.conv_card_visualeffect(f.byte())
-            self.properties["deadevent"] = "DoNotRun"
+            self.properties["ignite"] = False
             motions_num = f.dword()
             self.motions = [effectmotion.EffectMotion(self, f, dataversion=self.version)
                                             for _cnt in xrange(motions_num)]

@@ -875,16 +875,41 @@ class Event(object):
         elif cw.cwpy.is_gameover() and cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9 and 0 <= cw.cwpy.areaid:
             cw.cwpy.set_gameover()
 
+    def ignition_enemyevent(self, target, can_unconscious, keycodes):
+        """targetのキーコードイベントが発生可能か。"""
+        if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
+            return target.events.check_keycodes(keycodes)
+        else:
+            return None
+
     def ignition_deadevent(self, target, keycodes):
-        """targetの死亡イベントが発生可能か。"""
+        """targetの死亡イベントが発生可能であれば該当イベントを返す。"""
         if cw.cwpy.msgs["runaway_keycode"] in keycodes:
             # キーコード「逃走」付きのカードは死亡イベントを発生させない
             # (ただしカード名キーコードは除く)
-            return False
+            return None
         if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
-            return not target.events.check_keynum(1) is None
+            return target.events.check_keynum(1)
         else:
-            return False
+            return None
+
+    def _keycodes_for_successevent(self, keycodes, successflag):
+        keycodes2 = []
+        for keycode in keycodes:
+            if keycode:
+                if successflag:
+                    keycodes2.append(keycode + u"○")
+                else:
+                    keycodes2.append(keycode + u"×")
+        return keycodes2
+
+    def ignition_successevent(self, target, successflag, can_unconscious, keycodes):
+        """targetのキーコード成功・失敗イベントが発生可能であれば該当イベントを返す。"""
+        if isinstance(target, Enemy):
+            keycodes = self._keycodes_for_successevent(keycodes, successflag)
+            return target.events.check_keycodes(keycodes=keycodes, successevent=True)
+        else:
+            return None
 
     def run_scenarioevent(self):
         """効果コンテントなどの実行中に他のイベントを割り込ませる。"""
@@ -1250,20 +1275,6 @@ class CardEvent(Event):
         # 特殊エリア解除・カード選択ダイアログを開く
         cw.cwpy.clear_specialarea()
 
-    def _store_inusedata(self, selectuser):
-        if selectuser:
-            cw.cwpy.event.set_selectedmember(self.user)
-        self._stored_in_cardeffectmotion = cw.cwpy.event.in_cardeffectmotion
-        cw.cwpy.event.in_cardeffectmotion = False
-        self._stored_in_inusecardevent = cw.cwpy.event.in_inusecardevent
-        cw.cwpy.event.in_inusecardevent = False
-
-    def _restore_inusedata(self):
-        cw.cwpy.event.in_cardeffectmotion = self._stored_in_cardeffectmotion
-        self._stored_in_cardeffectmotion = False
-        cw.cwpy.event.in_inusecardevent = self._stored_in_inusecardevent
-        self._stored_in_inusecardevent = False
-
     def run_areaevent(self):
         keycodes = self.inusecard.get_keycodes()
         self._store_inusedata(selectuser=True)
@@ -1271,8 +1282,8 @@ class CardEvent(Event):
         self._restore_inusedata()
 
     def run_enemyevent(self, target, can_unconscious):
-        if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
-            keycodes = self.inusecard.get_keycodes()
+        keycodes = self.inusecard.get_keycodes()
+        if self.ignition_enemyevent(target, can_unconscious, keycodes):
             self._store_inusedata(selectuser=True)
             target.events.start(keycodes=keycodes, isinsideevent=True)
             self._restore_inusedata()
@@ -1305,15 +1316,9 @@ class CardEvent(Event):
             cw.cwpy.advlog.effect_failed(target, ismenucard=True)
 
     def run_successevent(self, target, successflag, can_unconscious):
-        if isinstance(target, Enemy):
-            keycodes = []
-            for keycode in self.inusecard.get_keycodes():
-                if keycode:
-                    if successflag:
-                        keycodes.append(keycode + u"○")
-                    else:
-                        keycodes.append(keycode + u"×")
-
+        keycodes = self.inusecard.get_keycodes()
+        if self.ignition_successevent(target, successflag, can_unconscious, keycodes):
+            keycodes = self._keycodes_for_successevent(keycodes, successflag)
             self._store_inusedata(selectuser=True)
             target.events.start(keycodes=keycodes, isinsideevent=True, successevent=True)
             self._restore_inusedata()
@@ -1446,10 +1451,7 @@ class CardEvent(Event):
 
                     # 成功・失敗キーコードイベントより死亡イベントを優先
                     if not deadevent:
-                        if success:
-                            self.run_successevent(target, True, unconscious_flag)
-                        else:
-                            self.run_successevent(target, False, unconscious_flag)
+                        self.run_successevent(target, success, unconscious_flag)
                         cw.cwpy.draw()
 
                 finally:
