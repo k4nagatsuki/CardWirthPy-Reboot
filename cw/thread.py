@@ -1998,7 +1998,7 @@ class CWPy(_Singleton, threading.Thread):
         self.sdata.backlog = msglog
         self.update_titlebar()
         self.statusbar.change()
-        self.change_area(1)
+        self.change_area(1, nocheckvisible=True)
 
     def set_gameoverstatus(self, gameover, force=True):
         """パーティの状態に係わらず
@@ -2634,8 +2634,9 @@ class CWPy(_Singleton, threading.Thread):
         self.event.refresh_showpartytools()
 
     def set_sprites(self, dealanime=True,
-                                bginhrt=False, ttype=("Default", "Default"),
-                                doanime=True, data=None):
+                    bginhrt=False, ttype=("Default", "Default"),
+                    doanime=True, data=None,
+                    nocheckvisible=False):
         """エリアにスプライトをセットする。
         bginhrt: Trueの時は背景継承。
         """
@@ -2652,7 +2653,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 背景スプライト作成
         if not bginhrt:
-            self.background.load(self.sdata.get_bgdata(), doanime, ttype)
+            self.background.load(self.sdata.get_bgdata(), doanime, ttype, nocheckvisible=nocheckvisible)
 
         # 特殊エリア(キャンプ・メンバー解散)だったら背景にカーテンを追加。
         if self.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
@@ -2851,7 +2852,7 @@ class CWPy(_Singleton, threading.Thread):
     def change_area(self, areaid, eventstarting=True,
                           bginhrt=False, ttype=("Default", "Default"),
                           quickdeal=False, specialarea=False, startbattle=False,
-                          doanime=True, data=None):
+                          doanime=True, data=None, nocheckvisible=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -2878,7 +2879,8 @@ class CWPy(_Singleton, threading.Thread):
             raise cw.event.EffectBreakError()
         bginhrt |= bool(self.areaid < 0)
         self.hide_cards(True, quickhide=quickdeal)
-        self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime, data=data)
+        self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime, data=data,
+                         nocheckvisible=nocheckvisible)
 
         if not self.is_playingscenario() and not self.is_showparty:
             # 宿にいる場合は常に全回復状態にする

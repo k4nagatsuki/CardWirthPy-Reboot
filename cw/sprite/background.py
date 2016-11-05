@@ -321,10 +321,11 @@ class BackGround(base.CWPySprite):
             # 背景継承
             # フラグの状態が変更されており、再描画を要するか判定する
             bginhrt2 = False
-            for bgtype, d in self.bgs:
-                if self._is_flagchanged(bgtype, d):
-                    bginhrt2 = True
-                    break
+            if not nocheckvisible:
+                for bgtype, d in self.bgs:
+                    if self._is_flagchanged(bgtype, d):
+                        bginhrt2 = True
+                        break
 
         if bginhrt2:
             # 背景継承
