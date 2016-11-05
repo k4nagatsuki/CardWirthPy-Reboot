@@ -775,7 +775,10 @@ class Event(object):
             cw.cwpy.event.append_stackinfo(self)
 
             cw.cwpy.event.append_event(self)
+        else:
+            insidelevel = cw.cwpy.event.get_currentstack()
 
+        fin = True
         try:
             while True:
                 self.index = 0
@@ -792,19 +795,21 @@ class Event(object):
 
                 # コールコンテントを呼んでいた場合、呼んだところから再開
                 if self.nowrunningcontents:
+                    stack = cw.cwpy.event.get_currentstack()
                     packevent, self.cur_content, self.line_index, versionhint = self.nowrunningcontents.pop()
                     cw.cwpy.event.pop_stackinfo()
                     if packevent:
                         packevent.run_exit()
                         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
-                    if isinside:
+                    if isinside and insidelevel == stack:
                         break
                 else:
                     self.run_exit()
                     break
+            fin = False
         finally:
             # イベント中断時は互換性情報のみ書き戻す
-            if self.nowrunningcontents:
+            if fin and self.nowrunningcontents:
                 packevent, self.cur_content, self.line_index, versionhint = self.nowrunningcontents[0]
                 if packevent:
                     cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
