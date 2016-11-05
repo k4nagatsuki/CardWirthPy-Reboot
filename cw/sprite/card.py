@@ -680,7 +680,7 @@ class PlayerCard(CWPyCard, character.Player):
         self.index = index
         self.layer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, self.index, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
-        cw.cwpy.pcards.append(self)
+        cw.cwpy.pcards.insert(index, self)
 
     def set_pos(self, pos=None, center=None):
         CWPyCard.set_pos(self, pos, center)

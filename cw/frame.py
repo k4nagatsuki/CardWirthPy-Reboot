@@ -605,10 +605,13 @@ class Frame(wx.Frame):
                 areaid = 1
             else:
                 areaid = 3
+
             if areaid <> cw.cwpy.areaid:
                 if cw.cwpy.ydata.party:
                     cw.cwpy.ydata.party._loading = False
-                cw.cwpy.change_area(areaid)
+                if cw.cwpy.areaid in (1, 2, 3):
+                    cw.cwpy.change_area(areaid)
+
         cw.cwpy.exec_func(func)
 
     def OnSCENARIOSELECT(self, event):

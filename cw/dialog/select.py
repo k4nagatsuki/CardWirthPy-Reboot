@@ -2179,6 +2179,8 @@ class PlayerSelect(MultiViewSelect):
                 cw.cwpy.play_sound("harvest")
                 cw.cwpy.ydata.standbys.remove(header)
                 cw.cwpy.ydata.party.add(header)
+                if cw.cwpy.areaid == cw.AREA_BREAKUP:
+                    cw.cwpy.create_poschangearrow()
                 return True
             else:
                 # 追加できなかった

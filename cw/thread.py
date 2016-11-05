@@ -3059,7 +3059,7 @@ class CWPy(_Singleton, threading.Thread):
                     cw.cwpy.ydata._changed = changed
                 if areaid == cw.AREA_BREAKUP:
                     self._store_partyrecord()
-                    self._create_poschangearrow()
+                    self.create_poschangearrow()
             else:
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
@@ -3234,7 +3234,7 @@ class CWPy(_Singleton, threading.Thread):
         for pcard in self.get_pcards():
             pcard.adjust_level(fromscenario)
 
-    def _create_poschangearrow(self):
+    def create_poschangearrow(self):
         """パーティ解散エリアにメンバ位置入替用の
         クリック可能スプライトを配置する。
         """
@@ -3291,7 +3291,7 @@ class CWPy(_Singleton, threading.Thread):
         if not (self.ydata and self.ydata.party):
             return
         self.ydata.party.replace_order(index1, index2)
-        self._create_poschangearrow()
+        self.create_poschangearrow()
 
     def show_numberofcards(self, type):
         """カードの所持枚数とカード交換スプライトを表示する。"""
@@ -3665,7 +3665,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.is_pcardsselectable = self.ydata and self.ydata.party
 
-    def dissolve_party(self, pcard=None):
+    def dissolve_party(self, pcard=None, cleararea=True):
         """現在選択中のパーティからpcardを削除する。
         pcardがない場合はパーティ全体を解散する。
         """
@@ -3686,7 +3686,7 @@ class CWPy(_Singleton, threading.Thread):
                 sprites.append(arrows[-1])
             cw.animation.animate_sprites(sprites, "delete")
             if breakuparea and pcards:
-                self._create_poschangearrow()
+                self.create_poschangearrow()
             pcard.data.write_xml()
             self.ydata.add_standbys(pcard.data.fpath)
 
@@ -3728,8 +3728,9 @@ class CWPy(_Singleton, threading.Thread):
 
             if breakuparea:
                 self._save_partyrecord()
-                self.pre_areaids[-1] = (1, None)
-                self.clear_specialarea()
+                if cleararea:
+                    self.pre_areaids[-1] = (1, None)
+                    self.clear_specialarea()
 
     def get_partyrecord(self):
         """現在のパーティ情報の記録を生成して返す。"""

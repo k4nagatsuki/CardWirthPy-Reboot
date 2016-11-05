@@ -2080,9 +2080,9 @@ class YadoData(object):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         if cw.cwpy.ydata.party:
-            cw.cwpy.dissolve_party()
+            cw.cwpy.dissolve_party(cleararea=False)
         assert not cw.cwpy.ydata.party
-        chgarea = cw.cwpy.areaid <> 2
+        chgarea = not cw.cwpy.areaid in (2, cw.AREA_BREAKUP)
 
         members = []
         for member in partyrecordheader.members:
@@ -2891,11 +2891,17 @@ class Party(object):
             data = yadoxml2etree(header.fpath)
         pcards = cw.cwpy.get_pcards()
         if pcards:
-            index = pcards[-1].index + 1
+            # 欠けているindexがあったら隙間に挿入する
+            for i, pcard in enumerate(pcards):
+                if i <> pcard.index:
+                    index = i
+                    break
+            else:
+                index = pcards[-1].index + 1
         else:
             index = 0
-        self.members.append(data)
-        pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
+        self.members.insert(index, data)
+        pos_noscale = (9 + 95 * index + 9 * index, 285)
         pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="deal", index=index)
         cw.animation.animate_sprite(pcard, "deal")
 
