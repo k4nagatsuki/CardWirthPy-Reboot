@@ -474,8 +474,6 @@ class BackGround(base.CWPySprite):
             else:
                 loaded = e.getbool(".", "loaded", False)
 
-            text = cw.util.decodewrap(text)
-
             return (text, face, tsize, color, bold, italic, underline, strike, vertical,
                     btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname)
 
@@ -772,7 +770,8 @@ class BackGround(base.CWPySprite):
         flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
         if flagvalue and not loaded:
             # テキストセルは最初の表示で内容が固定される
-            text = cw.sprite.message.rpl_specialstr(text)
+            text = cw.util.decodewrap(text)
+            text, _namelist = cw.sprite.message.rpl_specialstr(text)
             loaded = True
         if nocheckvisible:
             flagvalue = visible

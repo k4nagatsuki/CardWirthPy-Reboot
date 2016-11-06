@@ -435,7 +435,7 @@ class MessageWindow(base.CWPySprite):
         """
         if not nametable:
             nametable = self.name_table
-        text, spcharinfo = _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue)
+        text, spcharinfo, _namelist = _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue)
         if full:
             return text, spcharinfo
         else:
@@ -1010,13 +1010,14 @@ def get_pointlist(size, pos=(0, 0)):
     pos5 = pos
     return (pos1, pos2, pos3, pos4, pos5)
 
-def rpl_specialstr(s):
+def rpl_specialstr(s, basenamelist=None):
     """
     テキストセルや選択肢のテキスト内の
     特殊文字列(#, $)を置換した文字列を返す。
     """
     name_table = _create_nametable(False, None)
-    return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue)[0]
+    r = _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=basenamelist)
+    return r[0], r[2]
 
 class _NameGetter(object):
     def __init__(self, func):
@@ -1041,27 +1042,48 @@ def _reset_nametable(nametable):
         if isinstance(name, _NameGetter):
             name.reset()
 
-def _get_namefromtable(nc, nametable):
-    name = nametable.get(u"#" + nc, "")
-    if isinstance(name, _NameGetter):
-        name = name.get_name()
+class NameListItem(object):
+    """パーティ名やキャラクター名が変更された時に
+    後からテキストセルの内容を書き換えるため、
+    内容を記録しておく。
+    """
+    def __init__(self, spchar, data, name):
+        self.spchar = spchar
+        self.data = data
+        self.name = name
+
+def _get_namefromlist(index, namelist):
+    item = namelist[index]
+    if isinstance(item.data, (str, unicode)):
+        name = item.data
+    else:
+        name = item.data.name if not item.data is None else item.name
+    index += 1
+    return index, name
+
+def _get_namefromtable(nc, nametable, namelist):
+    data = nametable.get(u"#" + nc, "")
+    if isinstance(data, _NameGetter):
+        data = data.get_name()
+
+    if isinstance(data, (str, unicode)):
+        name = data
+    else:
+        name = data.name if not data is None else ""
+
+    namelist.append(NameListItem(nc, data, name))
+
     return name
 
 def _create_nametable(full, talker):
     def get_random():
-        random = cw.cwpy.event.get_targetmember("Random")
-        random = random.name if random else ""
-        return random
+        return cw.cwpy.event.get_targetmember("Random")
     selected = cw.cwpy.event.get_targetmember("Selected")\
                if cw.cwpy.event.has_selectedmember() else u""
-    selected = selected.name if selected else ""
     unselected = cw.cwpy.event.get_targetmember("Unselected")
-    unselected = unselected.name if unselected else ""
     if full:
         inusecard = cw.cwpy.event.get_targetmember("Inusecard")
-        inusecard = inusecard.name if inusecard else ""
-        talker = talker.name if talker else ""
-    party = cw.cwpy.ydata.party.name if cw.cwpy.ydata.party else ""
+    party = cw.cwpy.ydata.party
     yado = cw.cwpy.ydata.name
 
     name_table = {
@@ -1096,7 +1118,7 @@ def _get_flagvalue(key):
         s = None
     return s
 
-def _rpl_specialstr(full, s, name_table, get_step, get_flag):
+def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None):
     """
     特殊文字列(#, $)を置換した文字列を返す。
     """
@@ -1105,6 +1127,8 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
     buflen = 0
     spcharinfo = set()
     skip = 0
+    namelist = []
+    namelistindex = 0
     for i, c in enumerate(s):
         if 0 < skip:
             skip -= 1
@@ -1138,7 +1162,11 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
             if full:
                 if nc in ('m', 'r', 'u', 'c', 'i', 't', 'y'):
                     spcharinfo.add(buflen)
-                    buf.append(_get_namefromtable(nc, name_table))
+                    if basenamelist is None:
+                        buf.append(_get_namefromtable(nc, name_table, namelist))
+                    else:
+                        namelistindex, name = _get_namefromlist(namelistindex, basenamelist)
+                        buf.append(name)
                     buflen += len(buf[-1])
                     skip = 1
                 else:
@@ -1146,7 +1174,11 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
                     buflen += len(c)
             else:
                 if nc in ('m', 'r', 'u', 't', 'y'):
-                    buf.append(_get_namefromtable(nc, name_table))
+                    if basenamelist is None:
+                        buf.append(_get_namefromtable(nc, name_table, namelist))
+                    else:
+                        namelistindex, name = _get_namefromlist(namelistindex, basenamelist)
+                        buf.append(name)
                     buflen += len(buf[-1])
                     skip = 1
                 else:
@@ -1172,7 +1204,7 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
             buf.append(c)
             buflen += len(c)
 
-    return "".join(buf), spcharinfo
+    return "".join(buf), spcharinfo, namelist
 
 def get_messagelogtext(mwins, lastline=True):
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。
