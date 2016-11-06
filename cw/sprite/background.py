@@ -470,11 +470,39 @@ class BackGround(base.CWPySprite):
                 # 合わせて最初の表示時点で固定するように変更した。
                 # visibleがあってloadedが無い場合は0.12.3以前の情報で、
                 # 内容はすでに固定済みとなっている。
+                # ---
+                # 2.0以降は、パーティ名などの変更に合わせてでテキストを
+                # 更新するため、loadedパラメータは使用せずにNames要素を
+                # 使用して表示対象を固定する。
+                # loadedは常にFalseになるが、パラメータ自体は互換性のために残す。
                 loaded = e.getbool(".", "loaded", True)
             else:
                 loaded = e.getbool(".", "loaded", False)
 
-            return (text, face, tsize, color, bold, italic, underline, strike, vertical,
+            e_names = e.find("Names")
+            if e_names is None:
+                namelist = None
+            else:
+                namelist = []
+                for e_name in e_names:
+                    type = e_name.getattr(".", "type", "")
+                    name = e_name.text if e_name.text else u""
+                    if type == "Yado":
+                        data = cw.cwpy.ydata
+                    elif type == "Party":
+                        data = cw.cwpy.ydata.party if cw.cwpy.ydata else None
+                    elif type == "Player":
+                        number = e_name.getint(".", "number", 0)-1
+                        pcards = cw.cwpy.get_pcards()
+                        if 0 <= number and number < len(pcards):
+                            data = pcards[number]
+                        else:
+                            data = None
+                    else:
+                        data = None
+                    namelist.append(cw.sprite.message.NameListItem(data, name))
+
+            return (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,
                     btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname)
 
         elif e.tag == "ColorCell":
@@ -497,9 +525,9 @@ class BackGround(base.CWPySprite):
             assert False
 
     def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, cellname=u"", repldata=None,
-               movedata=None, ignoreeffectbooster=False):
+               movedata=None, ignoreeffectbooster=False, nocheckvisible=False):
         return self._reload(doanime, ttype, redraw, False, redisplay=False, cellname=cellname, repldata=repldata,
-                            movedata=movedata, ignoreeffectbooster=ignoreeffectbooster)
+                            movedata=movedata, ignoreeffectbooster=ignoreeffectbooster, nocheckvisible=nocheckvisible)
 
     def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False,
                 redisplay=True, beforeload=False, cellname=u"", repldata=None, movedata=None, ignoreeffectbooster=False):
@@ -762,7 +790,7 @@ class BackGround(base.CWPySprite):
         return anime, update, bginhrt
 
     def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
-        text, face, tsize, color, bold, italic, underline, strike, vertical,\
+        text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,\
             btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
@@ -770,17 +798,20 @@ class BackGround(base.CWPySprite):
         flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
         if flagvalue and not loaded:
             # テキストセルは最初の表示で内容が固定される
-            text = cw.util.decodewrap(text)
-            text, _namelist = cw.sprite.message.rpl_specialstr(text)
-            loaded = True
+            text2 = cw.util.decodewrap(text)
+            text2, namelist = cw.sprite.message.rpl_specialstr(text2, basenamelist=namelist)
+            # 2.0以降はloadedパラメータは使用しない
+            #loaded = True
+        else:
+            text2 = text
         if nocheckvisible:
             flagvalue = visible
-        d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
+        d = (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,
              btype, bcolor, bwidth, loaded, size, pos, flag, flagvalue, layer, cellname)
         if visible:
             if btype == "Inline":
                 # 縁取り形式2のみは事前にセル生成が可能
-                image = cw.image.create_type2textcell(text, face, cw.s(tsize), color,
+                image = cw.image.create_type2textcell(text2, face, cw.s(tsize), color,
                     bold, italic, underline, strike, vertical,
                     cw.s(size), bcolor, bwidth)
                 bgtype = BG_IMAGE
@@ -790,7 +821,7 @@ class BackGround(base.CWPySprite):
                 if btype <> "Outline":
                     bcolor = None
                 bgtype = BG_TEXT
-                d2 = (text, face, tsize, color, bold, italic, underline, strike, vertical,
+                d2 = (text2, face, tsize, color, bold, italic, underline, strike, vertical,
                       bcolor, size, pos)
 
             blitlist.append((bgtype, d2, flag, layer))

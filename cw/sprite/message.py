@@ -1047,8 +1047,7 @@ class NameListItem(object):
     後からテキストセルの内容を書き換えるため、
     内容を記録しておく。
     """
-    def __init__(self, spchar, data, name):
-        self.spchar = spchar
+    def __init__(self, data, name):
         self.data = data
         self.name = name
 
@@ -1071,7 +1070,7 @@ def _get_namefromtable(nc, nametable, namelist):
     else:
         name = data.name if not data is None else ""
 
-    namelist.append(NameListItem(nc, data, name))
+    namelist.append(NameListItem(data, name))
 
     return name
 
@@ -1084,7 +1083,7 @@ def _create_nametable(full, talker):
     if full:
         inusecard = cw.cwpy.event.get_targetmember("Inusecard")
     party = cw.cwpy.ydata.party
-    yado = cw.cwpy.ydata.name
+    yado = cw.cwpy.ydata
 
     name_table = {
         "#m" : selected,   # 選択中のキャラ名(#i=#m というわけではない)
@@ -1204,6 +1203,8 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None):
             buf.append(c)
             buflen += len(c)
 
+    if not basenamelist is None:
+        namelist = basenamelist
     return "".join(buf), spcharinfo, namelist
 
 def get_messagelogtext(mwins, lastline=True):

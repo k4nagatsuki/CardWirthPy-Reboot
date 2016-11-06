@@ -2633,6 +2633,16 @@ class CWPy(_Singleton, threading.Thread):
         self.input(True)
         self.event.refresh_showpartytools()
 
+    def set_pcards(self):
+        # プレイヤカードスプライト作成
+        if self.ydata and self.ydata.party and not self.get_pcards():
+            for idx, e in enumerate(self.ydata.party.members):
+                pos_noscale = 95 * idx + 9 * (idx + 1), 285
+                cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=idx)
+
+            # 番号クーポン設定
+            self.ydata.party._loading = False
+
     def set_sprites(self, dealanime=True,
                     bginhrt=False, ttype=("Default", "Default"),
                     doanime=True, data=None,
@@ -2663,13 +2673,7 @@ class CWPy(_Singleton, threading.Thread):
         self.set_mcards(self.sdata.get_mcarddata(data=data), dealanime)
 
         # プレイヤカードスプライト作成
-        if self.ydata and self.ydata.party and not self.get_pcards():
-            for idx, e in enumerate(self.ydata.party.members):
-                pos_noscale = 95 * idx + 9 * (idx + 1), 285
-                cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=idx)
-
-            # 番号クーポン設定
-            self.ydata.party._loading = False
+        self.set_pcards()
 
         # キャンプ画面のときはFriendCardもスプライトグループに追加
         if self.areaid == cw.AREA_CAMP:

@@ -881,7 +881,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
             e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_TEXT:
-            text, face, tsize, color, bold, italic, underline, strike, vertical,\
+            text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,\
                 btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible),
                      "loaded": str(loaded)}
@@ -906,6 +906,20 @@ def create_scenariolog(sdata, path, recording, logfilepath):
                 e = cw.data.make_element("Bordering", attrs={"type": btype,
                                                              "width": str(bwidth)})
                 e.append(make_colorelement("Color", bcolor))
+                e_bgimg.append(e)
+
+            if namelist:
+                e = cw.data.make_element("Names")
+                for item in namelist:
+                    e_name = cw.data.make_element("Name", item.name)
+                    if isinstance(item.data, cw.data.YadoData):
+                        e_name.set("type", "Yado")
+                    elif isinstance(item.data, cw.data.Party):
+                        e_name.set("type", "Party")
+                    elif isinstance(item.data, cw.character.Player) and item.data in cw.cwpy.get_pcards():
+                        e_name.set("type", "Player")
+                        e_name.set("number", str(cw.cwpy.get_pcards().index(item.data)+1))
+                    e.append(e_name)
                 e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_COLOR:

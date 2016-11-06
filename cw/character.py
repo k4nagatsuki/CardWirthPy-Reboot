@@ -2426,6 +2426,14 @@ class Character(object):
                     if index + 1 <= pcnumber:
                         cw.cwpy.file_updates_bg = True
                         break
+                elif bgtype == cw.sprite.background.BG_TEXT:
+                    namelist = d[1]
+                    for item in namelist:
+                        if item.data is self:
+                            # テキストセルに表示中の名前
+                            # 対象消去された場合は最後に表示された文字列に固定する
+                            print item.data.name
+                            item.data = None
 
             cw.cwpy.ydata.party.remove(self)
 
@@ -2798,6 +2806,7 @@ class Player(Character):
         if cw.cwpy.ydata:
             for header in cw.cwpy.ydata.partyrecord:
                 header.rename_member(self.data.fpath, name)
+        cw.cwpy.background.reload(False, nocheckvisible=True)
 
 def calc_maxlife(vit, minval, level):
     """能力値から体力の最大値を計算する。"""

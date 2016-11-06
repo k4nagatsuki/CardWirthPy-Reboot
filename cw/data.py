@@ -180,6 +180,7 @@ class SystemData(object):
         wslファイルの読み込みまたは新規作成を行う。
         読み込みを行った場合はTrue、新規作成を行った場合はFalseを返す。
         """
+        cw.cwpy.set_pcards()
         cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         path = cw.util.get_yadofilepath(path)
@@ -2966,6 +2967,7 @@ class Party(object):
             self.name = name
             self.data.edit("Property/Name", name)
             cw.cwpy.advlog.rename_party(self.name, oldname)
+            cw.cwpy.background.reload(False, nocheckvisible=True)
 
     def set_money(self, value, fromevent=False, blink=False):
         """
