@@ -53,7 +53,7 @@ class CharaInfo(wx.Dialog):
         # notebook
         self.notebook = wx.lib.agw.aui.auibook.AuiNotebook(self, -1, size=(self.width, cw.wins(203)),
                                                            agwStyle=aui.AUI_NB_BOTTOM|aui.AUI_NB_TAB_FIXED_WIDTH)
-        self.notebook.SetMinSize((self.width, cw.wins(203)))
+        self.notebook.SetMinSize((self.width, cw.wins(199)))
         self.notebook.SetArtProvider(cw.util.CWTabArt())
         self.notebook.SetFont(cw.cwpy.rsrc.get_wxfont("tab", pixelsize=cw.wins(13)))
 
