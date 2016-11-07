@@ -23,9 +23,8 @@ class CharaInfo(wx.Dialog):
         # フォントサイズによってダイアログサイズを決定する
         dc = wx.ClientDC(parent)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        self.width = dc.GetTextExtent(u"―")[0] * 20
-        self.width = max(cw.wins(302), self.width)
-        
+        self.width = dc.GetTextExtent(u"―")[0] * 20 + cw.wins(20)
+        self.width = max(cw.wins(300), self.width)
 
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=(self.width, cw.wins(355)),
@@ -49,7 +48,7 @@ class CharaInfo(wx.Dialog):
         if len(self.list) <= 1:
             self.leftbtn.Disable()
             self.rightbtn.Disable()
-        
+
         # notebook
         self.notebook = wx.lib.agw.aui.auibook.AuiNotebook(self, -1, size=(self.width, cw.wins(203)),
                                                            agwStyle=aui.AUI_NB_BOTTOM|aui.AUI_NB_TAB_FIXED_WIDTH)
@@ -301,7 +300,7 @@ class CharaInfo(wx.Dialog):
 
         self.toppanel.ccard = self.ccard
         self.toppanel.Refresh()
-   
+
         for win in self.bottompanel:
             win.ccard = self.ccard
             win.headers = []
@@ -700,12 +699,10 @@ class TitlePanel(wx.Panel):
         elif index == 3:
             self.text = cw.cwpy.msgs["skillcard"]
         elif index == 4:
-            self.text = cw.cwpy.msgs["itemcard"]        
+            self.text = cw.cwpy.msgs["itemcard"]
         else:
             self.text = cw.cwpy.msgs["beastcard"]
 
-
-       
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
         x = (self.GetClientSize()[0]-dc.GetTextExtent(self.text)[0])/2
@@ -757,6 +754,7 @@ class DescPanel(wx.ScrolledWindow):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
         _maxwidth, maxheight, _lineheight = dc.GetMultiLineTextExtent(self.text)
         self.x = cw.wins(14) if maxheight <= self.csize[1] else cw.wins(7)
+        self.x += (self.csize[0]+cw.wins(14)-dc.GetTextExtent(u"―")[0]*20) / 2
         maxheight += cw.wins(10)
         self.SetVirtualSize((-1, maxheight))
         self.Scroll(0, 0)
@@ -778,11 +776,8 @@ class DescPanel(wx.ScrolledWindow):
 
         # 解説文
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
-        self.multi = dc.GetMultiLineTextExtent(self.text)[0]
-        cut = (self.GetClientSize()[0] - self.multi)/2
-        dc.DrawLabel(self.text, (cut, cw.wins(8) - vy, cw.wins(200), cw.wins(120)))
-        #dc.DrawLabel(self.text, (self.x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.DrawLabel(self.text, (self.x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
 
     def get_detailtext(self):
         return self.text
