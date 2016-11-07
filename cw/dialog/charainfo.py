@@ -59,30 +59,39 @@ class CharaInfo(wx.Dialog):
         cut= self.GetClientSize()[0] / 6 - 1
         self.notebook.SetMinMaxTabWidth(cut, cut)
 
+        self.bottompanel = []
+
         # 解説
         self.descpanel = DescPanel(self.notebook, self.ccard, editable)
+        self.bottompanel.append(self.descpanel)
         self.notebook.AddPage(self.descpanel, cw.cwpy.msgs["description"])
         # 経歴
         self.historypanel = HistoryPanel(self.notebook, self.ccard, editable)
+        self.bottompanel.append(self.historypanel)
         self.notebook.AddPage(self.historypanel,  cw.cwpy.msgs["history"])
         # 編集または状態
         if self.is_playingscenario:
             self.editpanel = StatusPanel(self.notebook, self.list, self.ccard, editable)
+            self.bottompanel.append(self.editpanel)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         elif editable:
             self.editpanel = EditPanel(self.notebook, self.list, self.ccard)
+            self.bottompanel.append(self.editpanel)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["edit"])
 
         # 各種所持カード
         if self.ccard.data.hasfind("SkillCards"):
             # 技能
             self.skillpanel = SkillPanel(self.notebook, self.ccard)
+            self.bottompanel.append(self.skillpanel)
             self.notebook.AddPage(self.skillpanel, cw.cwpy.msgs["skills"])
             # アイテム
             self.itempanel = ItemPanel(self.notebook, self.ccard)
+            self.bottompanel.append(self.itempanel)
             self.notebook.AddPage(self.itempanel,  cw.cwpy.msgs["items"])
             # 召喚獣
             self.beastpanel = BeastPanel(self.notebook, self.ccard)
+            self.bottompanel.append(self.beastpanel)
             self.notebook.AddPage(self.beastpanel, cw.cwpy.msgs["beasts"])
 
         # toppanel
@@ -91,9 +100,6 @@ class CharaInfo(wx.Dialog):
         # titlepanel
         self.titlepanel = TitlePanel(self, self.notebook)
 
-        # bottompanel
-        self.bottompanel = [self.descpanel,self.historypanel,self.editpanel,
-                            self.skillpanel,self.itempanel,self.beastpanel]
         # layout
         self._do_layout()
         # bind
