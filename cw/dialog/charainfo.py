@@ -23,7 +23,7 @@ class CharaInfo(wx.Dialog):
         # フォントサイズによってダイアログサイズを決定する
         dc = wx.ClientDC(parent)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        self.width = dc.GetTextExtent(u"―")[0] * 20 + cw.wins(20)
+        self.width = dc.GetTextExtent(u"―"*20)[0] + cw.wins(20)
         self.width = max(cw.wins(300), self.width)
 
         # ダイアログボックス
@@ -760,9 +760,6 @@ class DescPanel(wx.ScrolledWindow):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
         _maxwidth, maxheight, _lineheight = dc.GetMultiLineTextExtent(self.text)
         self.x = cw.wins(14) if maxheight <= self.csize[1] else cw.wins(7)
-        maxwidth = dc.GetTextExtent(u"―")[0]*20
-        if cw.wins(300) < maxwidth:
-            self.x += (self.csize[0]+cw.wins(14)-maxwidth) / 2
         maxheight += cw.wins(10)
         self.SetVirtualSize((-1, maxheight))
         self.Scroll(0, 0)
