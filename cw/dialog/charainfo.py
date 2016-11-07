@@ -23,8 +23,9 @@ class CharaInfo(wx.Dialog):
         # フォントサイズによってダイアログサイズを決定する
         dc = wx.ClientDC(parent)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        self.width = dc.GetTextExtent(u"―")[0] * 20 + cw.wins(20)
-        self.width = max(cw.wins(300), self.width)
+        self.width = dc.GetTextExtent(u"―")[0] * 20
+        self.width = max(cw.wins(302), self.width)
+        
 
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=(self.width, cw.wins(355)),
@@ -50,9 +51,9 @@ class CharaInfo(wx.Dialog):
             self.rightbtn.Disable()
         
         # notebook
-        self.notebook = wx.lib.agw.aui.auibook.AuiNotebook(self, -1, size=(self.width, cw.wins(200)),
+        self.notebook = wx.lib.agw.aui.auibook.AuiNotebook(self, -1, size=(self.width, cw.wins(203)),
                                                            agwStyle=aui.AUI_NB_BOTTOM|aui.AUI_NB_TAB_FIXED_WIDTH)
-        self.notebook.SetMinSize((self.width, cw.wins(200)))
+        self.notebook.SetMinSize((self.width, cw.wins(203)))
         self.notebook.SetArtProvider(cw.util.CWTabArt())
         self.notebook.SetFont(cw.cwpy.rsrc.get_wxfont("tab", pixelsize=cw.wins(13)))
 
@@ -441,11 +442,10 @@ class TopPanel(wx.Panel):
     顔画像などを描画するパネル
     """
     def __init__(self, parent, ccard, redrawfunc):
-        wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(106)))
+        wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(105)))
         self.SetDoubleBuffered(True)
         #カードワース本来の背景値。暗くなりすぎるので保留
-        
-#将来的にはスキンオプション化出来た方が良いかも
+        #将来的にはスキンオプション化出来た方が良いかも
         #self.SetBackgroundColour(wx.Colour(192, 192, 192))
         self.csize = self.GetClientSize()
         self.ccard = ccard
@@ -666,7 +666,7 @@ class TitlePanel(wx.Panel):
     タイトルバーを描画するパネルを作る。
     """
     def __init__(self, parent, notebook):
-        wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(22)), style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(24)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.notebook = notebook
@@ -688,7 +688,6 @@ class TitlePanel(wx.Panel):
 
 
         index = self.notebook.GetSelection()
-        #カードワースではcenterではなく絶対位置(江戸バリは若干ズレている)
         if index == 0:
             self.text = cw.cwpy.msgs["description"]
         elif index == 1:
@@ -710,7 +709,7 @@ class TitlePanel(wx.Panel):
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
         x = (self.GetClientSize()[0]-dc.GetTextExtent(self.text)[0])/2
-        dc.DrawText(self.text, x, cw.wins(2))
+        dc.DrawText(self.text, x, cw.wins(3))
         if update:
             self.Refresh()
 
@@ -719,7 +718,7 @@ class DescPanel(wx.ScrolledWindow):
     解説文を描画するパネル。
     """
     def __init__(self, parent, ccard, editable):
-        wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(180)), style=wx.SUNKEN_BORDER)
+        wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(cw.wins(10), cw.wins(10))
@@ -773,14 +772,17 @@ class DescPanel(wx.ScrolledWindow):
         vy *= cw.wins(10)
 
         dc = wx.PaintDC(self)
-        
+
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
         # 解説文
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        dc.DrawLabel(self.text, (self.x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
+        self.multi = dc.GetMultiLineTextExtent(self.text)[0]
+        cut = (self.GetClientSize()[0] - self.multi)/2
+        dc.DrawLabel(self.text, (cut, cw.wins(8) - vy, cw.wins(200), cw.wins(120)))
+        #dc.DrawLabel(self.text, (self.x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
 
     def get_detailtext(self):
         return self.text
@@ -791,7 +793,7 @@ class HistoryPanel(wx.ScrolledWindow):
     クーポンを描画するスクロールウィンドウ。
     """
     def __init__(self, parent, ccard, editable):
-        wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(180)), style=wx.SUNKEN_BORDER)
+        wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
@@ -967,7 +969,7 @@ class EditButton():
 
 class EditPanel(wx.Panel):
     def __init__(self, parent, mlist, ccard):
-        wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(180)), style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self._destroy = False
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
@@ -1173,7 +1175,7 @@ class EditPanel(wx.Panel):
 
 class StatusPanel(wx.ScrolledWindow):
     def __init__(self, parent, mlist, ccard, editable):
-        wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(180)), style=wx.SUNKEN_BORDER)
+        wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(cw.wins(10), cw.wins(10))
@@ -1428,7 +1430,7 @@ class StatusPanel(wx.ScrolledWindow):
 
 class CardPanel(wx.Panel):
     def __init__(self, parent, ccard, pocket):
-        wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(180)), style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
