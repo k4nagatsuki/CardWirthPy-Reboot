@@ -22,7 +22,7 @@ class CharaInfo(wx.Dialog):
     def __init__(self, parent, redrawfunc, editable, party=None):
         # フォントサイズによってダイアログサイズを決定する
         dc = wx.ClientDC(parent)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         self.width = dc.GetTextExtent(u"―"*20)[0] + cw.wins(20)
         self.width = max(cw.wins(302), self.width)
 
@@ -703,7 +703,7 @@ class TitlePanel(wx.Panel):
 
         dc = wx.PaintDC(self)
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         csize = self.GetClientSize()
         te = dc.GetTextExtent(self.text)
         x = (csize[0] - te[0]) / 2
@@ -751,9 +751,9 @@ class DescPanel(wx.ScrolledWindow):
         self.text = self.ccard.data.gettext("Property/Description", "")
         self.text = cw.util.txtwrap(self.text, 4)
         dc = wx.ClientDC(self)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        _maxwidth, maxheight, _lineheight = dc.GetMultiLineTextExtent(self.text)
-        maxheight += cw.wins(10)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
+        maxheight = len(self.text.splitlines())*cw.wins(14)
+        maxheight += cw.wins(7)*2
         self.SetVirtualSize((-1, maxheight))
         self.Scroll(0, 0)
         self.Refresh()
@@ -769,7 +769,7 @@ class DescPanel(wx.ScrolledWindow):
         vy *= cw.wins(10)
 
         dc = wx.PaintDC(self)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         maxwidth = dc.GetTextExtent(u"―"*19)[0]
         x = (csize[0]-maxwidth) / 2
@@ -779,7 +779,11 @@ class DescPanel(wx.ScrolledWindow):
 
         # 解説文
         dc.SetTextForeground(wx.WHITE)
-        dc.DrawLabel(self.text, (x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
+        x = x-vx
+        y = cw.wins(7) - vy
+        for line in self.text.splitlines():
+            dc.DrawText(line, x, y)
+            y += cw.wins(14)
 
     def get_detailtext(self):
         return self.text
@@ -874,7 +878,7 @@ class HistoryPanel(wx.ScrolledWindow):
 
         # maxheght, maxwidth計算
         dc = wx.ClientDC(self)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         h = self.gold.GetSize()[1]
         maxheight = (h + cw.wins(5)) * len(self.coupons) + cw.wins(10)
@@ -908,7 +912,7 @@ class HistoryPanel(wx.ScrolledWindow):
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
         # クーポン
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         lineheight = self.gold.GetSize()[1] + cw.wins(5)
 
@@ -1068,7 +1072,7 @@ class EditPanel(wx.Panel):
                 header.negaflag = False
                 dc = wx.ClientDC(self)
                 dc.SetTextForeground(wx.WHITE)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
         self.Refresh()
@@ -1089,7 +1093,7 @@ class EditPanel(wx.Panel):
 
     def draw_header(self, dc, header):
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         if header.negaflag:
             dc.SetTextForeground(wx.RED)
             dc.DrawText(header.name, header.textpos[0], header.textpos[1])
@@ -1142,7 +1146,7 @@ class EditPanel(wx.Panel):
 
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         # 編集アイコン
         bmp = cw.cwpy.rsrc.dialogs["STATUS12"]
@@ -1215,7 +1219,7 @@ class StatusPanel(wx.ScrolledWindow):
 
         # 状態
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         height = cw.wins(8)
 
@@ -1523,7 +1527,7 @@ class CardPanel(wx.Panel):
                 header.negaflag = False
                 dc = wx.ClientDC(self)
                 dc.SetTextForeground(wx.WHITE)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
         self.Refresh()
@@ -1550,7 +1554,7 @@ class CardPanel(wx.Panel):
             self.Refresh()
             return
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         if header.negaflag:
             dc.SetTextForeground(wx.RED)
             dc.DrawText(header.name, header.textpos[0], header.textpos[1])
@@ -1617,7 +1621,7 @@ class CardPanel(wx.Panel):
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
         # 所持スキル
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         if not self.headers:
             self.headers = self.ccard.cardpocket[self.pocket]
