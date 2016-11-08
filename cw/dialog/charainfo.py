@@ -24,7 +24,7 @@ class CharaInfo(wx.Dialog):
         dc = wx.ClientDC(parent)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
         self.width = dc.GetTextExtent(u"―"*20)[0] + cw.wins(20)
-        self.width = max(cw.wins(300), self.width)
+        self.width = max(cw.wins(302), self.width)
 
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=(self.width, cw.wins(355)),
@@ -665,7 +665,6 @@ class TopPanel(wx.Panel):
         return u"\n".join(lines)
 
 
-
 class TitlePanel(wx.Panel):
     """
     タイトルバーを描画するパネルを作る。
@@ -681,17 +680,10 @@ class TitlePanel(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.OnCancel)
 
+    def draw(self, update=False):
+        self.Refresh()
 
     def OnPaint(self, event):
-        self.draw()
-
-    def draw(self, update=False):
-        if update:
-            dc = wx.ClientDC(self)
-        else:
-            dc = wx.PaintDC(self)
-
-
         index = self.notebook.GetSelection()
         if index == 0:
             self.text = cw.cwpy.msgs["description"]
@@ -709,12 +701,15 @@ class TitlePanel(wx.Panel):
         else:
             self.text = cw.cwpy.msgs["beastcard"]
 
+        dc = wx.PaintDC(self)
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        x = (self.GetClientSize()[0]-dc.GetTextExtent(self.text)[0])/2
-        dc.DrawText(self.text, x, cw.wins(3))
-        if update:
-            self.Refresh()
+        csize = self.GetClientSize()
+        te = dc.GetTextExtent(self.text)
+        x = (csize[0] - te[0]) / 2
+        y = (csize[1] - te[1]) / 2
+        dc.DrawText(self.text, x, y)
+
 
 class DescPanel(wx.ScrolledWindow):
     """
@@ -725,7 +720,6 @@ class DescPanel(wx.ScrolledWindow):
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(cw.wins(10), cw.wins(10))
-        self.csize = self.GetClientSize()
 
         # エレメントオブジェクト
         self.ccard = ccard
@@ -759,7 +753,6 @@ class DescPanel(wx.ScrolledWindow):
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
         _maxwidth, maxheight, _lineheight = dc.GetMultiLineTextExtent(self.text)
-        self.x = cw.wins(14) if maxheight <= self.csize[1] else cw.wins(7)
         maxheight += cw.wins(10)
         self.SetVirtualSize((-1, maxheight))
         self.Scroll(0, 0)
@@ -770,19 +763,23 @@ class DescPanel(wx.ScrolledWindow):
             self._init_view()
 
     def OnPaint(self, event):
+        csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
         vy *= cw.wins(10)
 
         dc = wx.PaintDC(self)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+
+        maxwidth = dc.GetTextExtent(u"―"*19)[0]
+        x = (csize[0]-maxwidth) / 2
 
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
+        dc.DrawBitmap(self.watermark, (csize[0]-self.watermark.GetWidth())/2, (csize[1]-self.watermark.GetHeight())/2, True)
 
         # 解説文
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        dc.DrawLabel(self.text, (self.x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
+        dc.DrawLabel(self.text, (x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
 
     def get_detailtext(self):
         return self.text
