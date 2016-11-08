@@ -752,7 +752,7 @@ class DescPanel(wx.ScrolledWindow):
         self.text = cw.util.txtwrap(self.text, 4)
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
-        maxheight = len(self.text.splitlines())*cw.wins(14)
+        maxheight = len(self.text.splitlines())*cw.wins(13)
         maxheight += cw.wins(7)*2
         self.SetVirtualSize((-1, maxheight))
         self.Scroll(0, 0)
@@ -783,7 +783,7 @@ class DescPanel(wx.ScrolledWindow):
         y = cw.wins(7) - vy
         for line in self.text.splitlines():
             dc.DrawText(line, x, y)
-            y += cw.wins(14)
+            y += cw.wins(13)
 
     def get_detailtext(self):
         return self.text
