@@ -503,7 +503,7 @@ class TopPanel(wx.Panel):
 
         dc.BeginDrawing()
         # カード画像の後ろにある羽みたいなの
-        cw.util.draw_center(dc, self.wing, (self.Parent.width/2, cw.wins(50)))
+        cw.util.draw_center(dc, self.wing, (self.Parent.width/2, cw.wins(52)))
         # カード画像
         x = (dc.GetSize()[0] - cw.wins(74)) / 2
 
@@ -718,6 +718,7 @@ class DescPanel(wx.ScrolledWindow):
     def __init__(self, parent, ccard, editable):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
+        self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(cw.wins(10), cw.wins(10))
 
@@ -775,7 +776,7 @@ class DescPanel(wx.ScrolledWindow):
         x = (csize[0]-maxwidth) / 2
 
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (csize[0]-self.watermark.GetWidth())/2, (csize[1]-self.watermark.GetHeight())/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
         # 解説文
         dc.SetTextForeground(wx.WHITE)
