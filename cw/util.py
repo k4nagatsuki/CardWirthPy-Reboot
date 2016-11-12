@@ -2047,7 +2047,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
         if not os.path.isdir(dstdir):
             os.makedirs(dstdir)
         ss = []
-        if sys.platform == "win32" and sys.getwindowsversion().major <= 5 or True:
+        if sys.platform == "win32" and sys.getwindowsversion().major <= 5:
             # バージョン5以前の`expand.exe`は`-f:*`でディレクトリ構造を無視してしまう
             for dname in cab_dpaths(path):
                 if not dname:
@@ -2233,7 +2233,7 @@ def cab_scdir(cab):
     """CABアーカイブ内でSummary.wsmまたは
     Summary.xmlが含まれるフォルダを返す。
     """
-    fpath = cab_hasfile(cab, ("Summary.xml", "Summary.wid"))
+    fpath = cab_hasfile(cab, ("Summary.xml", "Summary.wsm"))
     return os.path.dirname(fpath)
 
 #-------------------------------------------------------------------------------
