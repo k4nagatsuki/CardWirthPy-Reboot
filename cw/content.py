@@ -1015,9 +1015,10 @@ class BranchCouponContent(BranchContent):
 
         # 選択設定
         if scope <> "Selected":
-            if not selectedmember and scope == "Party" and not someone:
-                # パーティ全員を選択する場合は先頭のメンバが選択状態になる
-                selectedmember = cw.cwpy.event.get_targetmember("First", "unreversed")
+            if scope == "Party" and not someone:
+                # BUG: CardWirthでは称号所持分岐と能力判定分岐で
+                #      「パーティ全員」判定が成功すると選択メンバがいなくなる
+                selectedmember = None
 
             if selectedmember:
                 cw.cwpy.event.set_selectedmember(selectedmember)
@@ -1360,6 +1361,11 @@ class BranchAbilityContent(BranchContent):
 
         # 選択設定
         if not targetm == "Selected":
+            if self.targetm == "Party" and not self.someone:
+                # BUG: CardWirthでは称号所持分岐と能力判定分岐で
+                #      「パーティ全員」判定が成功すると選択メンバがいなくなる
+                selectedmember = None
+
             if selectedmember:
                 cw.cwpy.event.set_selectedmember(selectedmember)
             else:
