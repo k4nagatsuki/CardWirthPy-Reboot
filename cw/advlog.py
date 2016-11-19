@@ -539,7 +539,7 @@ class AdventurerLogger(object):
     def enhancedefense_motion(self, target, newvalue, oldvalue):
         if newvalue == oldvalue:
             return
-        self._put(self._motion_type(), (u"行動力", target.name, newvalue, self.in_cardeffectmotion()), self._enhanceaction_motion)
+        self._put(self._motion_type(), (u"防御力", target.name, newvalue, self.in_cardeffectmotion()), self._enhanceaction_motion)
 
     def vanishtarget_motion(self, target, runaway):
         def vanishtarget_motion((name, runaway, in_cardeffectmotion)):
