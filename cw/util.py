@@ -1583,12 +1583,19 @@ def get_materialpathfromskin(path, mtype, findskin=True):
         else:
             fname = os.path.basename(path)
             fname = cw.util.splitext(fname)[0]
-            if mtype == cw.M_IMG:
-                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, "Table", fname), cw.cwpy.rsrc.ext_img)
-            elif mtype == cw.M_MSC:
-                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, "Bgm", fname), cw.cwpy.rsrc.ext_bgm)
-            elif mtype == cw.M_SND:
-                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, "Sound", fname), cw.cwpy.rsrc.ext_snd)
+            dpaths = [cw.cwpy.skindir]
+            dpaths.extend(map(lambda d: cw.util.join_paths(u"Data/Materials", d), os.listdir(u"Data/Materials")))
+            for dpath in dpaths:
+                if mtype == cw.M_IMG:
+                    path = cw.util.find_resource(cw.util.join_paths(dpath, "Table", fname), cw.cwpy.rsrc.ext_img)
+                elif mtype == cw.M_MSC:
+                    path = cw.util.find_resource(cw.util.join_paths(dpath, "Bgm", fname), cw.cwpy.rsrc.ext_bgm)
+                elif mtype == cw.M_SND:
+                    path = cw.util.find_resource(cw.util.join_paths(dpath, "Sound", fname), cw.cwpy.rsrc.ext_snd)
+
+                if path:
+                    break
+
     return path
 
 def remove_temp():
