@@ -1584,7 +1584,8 @@ def get_materialpathfromskin(path, mtype, findskin=True):
             fname = os.path.basename(path)
             fname = cw.util.splitext(fname)[0]
             dpaths = [cw.cwpy.skindir]
-            dpaths.extend(map(lambda d: cw.util.join_paths(u"Data/Materials", d), os.listdir(u"Data/Materials")))
+            if os.path.isdir(u"Data/Materials"):
+                dpaths.extend(map(lambda d: cw.util.join_paths(u"Data/Materials", d), os.listdir(u"Data/Materials")))
             for dpath in dpaths:
                 if mtype == cw.M_IMG:
                     path = cw.util.find_resource(cw.util.join_paths(dpath, "Table", fname), cw.cwpy.rsrc.ext_img)
