@@ -1926,7 +1926,8 @@ class CWPy(_Singleton, threading.Thread):
                                     return
 
                         for pcard in self.get_pcards():
-                            pcard.set_fullrecovery()
+                            if not resume:
+                                pcard.set_fullrecovery()
                             pcard.update_image()
 
                         if musicpaths:
