@@ -342,7 +342,27 @@ class Content(base.CWBinaryBase):
                 self.properties["status"] = self.conv_statustype(f.byte())
         elif self.tag == "Branch" and self.type == "KeyCode": # 1.50
             self.properties["targetkc"] = self.conv_keycoderange(f.byte())
-            self.properties["effectCardType"] = self.conv_effectcardtype(f.byte())
+            ect = self.conv_effectcardtype(f.byte())
+            if ect == "All":
+                self.properties["skill"] = True
+                self.properties["item"] = True
+                self.properties["beast"] = True
+                self.properties["hand"] = True # BUG: CardWirth 1.50ではアイテムが対象にあると手札も検索される
+            elif ect == "Skill":
+                self.properties["skill"] = True
+                self.properties["item"] = False
+                self.properties["beast"] = False
+                self.properties["hand"] = False
+            elif ect == "Item":
+                self.properties["skill"] = False
+                self.properties["item"] = True
+                self.properties["beast"] = False
+                self.properties["hand"] = True # BUG: CardWirth 1.50ではアイテムが対象にあると手札も検索される
+            elif ect == "Beast":
+                self.properties["skill"] = False
+                self.properties["item"] = False
+                self.properties["beast"] = True
+                self.properties["hand"] = False
             self.properties["keyCode"] = f.string()
         elif self.tag == "Check" and self.type == "Step": # 1.50
             self.properties["step"] = f.string()

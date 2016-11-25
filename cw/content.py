@@ -1472,46 +1472,59 @@ class BranchKeyCodeContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
 
+        self.targetkc = self.data.get("targetkc", "Selected")
+        self.keycode = self.data.get("keyCode", "")
+
+        # 対象カード種別
+        # Wsn.1方式(1.50と同様の選択式)
+        etype = self.data.get("effectCardType", "All")
+        self.skill = False
+        self.item = False
+        self.beast = False
+        self.hand = False
+        if etype == "All":
+            self.skill = True
+            self.item = True
+            self.beast = True
+        elif etype == "Skill":
+            self.skill = True
+        elif etype == "Item":
+            self.item = True
+        elif etype == "Beast":
+            self.beast = True
+
+        # Wsn.2方式(任意の組み合わせ)
+        if "skill" in self.data.attrib:
+            self.skill = self.data.getbool(".", "skill")
+        if "item" in self.data.attrib:
+            self.item = self.data.getbool(".", "item")
+        if "beast" in self.data.attrib:
+            self.beast = self.data.getbool(".", "beast")
+        if "hand" in self.data.attrib:
+            self.hand = self.data.getbool(".", "hand")
+
     def action(self):
         """キーコード所持分岐コンテント(1.30)。"""
-        targetkc = self.data.get("targetkc", "Selected")
-        etype = self.data.get("effectCardType", "All")
-        keycode = self.data.get("keyCode", "")
 
         # 対象メンバ取得
         targets = []
-        if targetkc == "Selected":
-            targets.append(cw.cwpy.event.get_targetmember(targetkc))
-        elif targetkc == "Random":
+        if self.targetkc == "Selected":
+            targets.append(cw.cwpy.event.get_targetmember(self.targetkc))
+        elif self.targetkc == "Random":
             targets.extend(cw.cwpy.event.get_targetmember("Party"))
             cw.cwpy.dice.shuffle(targets)
-        elif targetkc == "Backpack":
+        elif self.targetkc == "Backpack":
             targets.append(cw.cwpy.ydata.party)
-        elif targetkc == "PartyAndBackpack":
+        elif self.targetkc == "PartyAndBackpack":
             targets.extend(cw.cwpy.event.get_targetmember("Party"))
             cw.cwpy.dice.shuffle(targets)
             targets.append(cw.cwpy.ydata.party)
-
-        # 対象カード種別
-        skill = False
-        item = False
-        beast = False
-        if etype == "All":
-            skill = True
-            item = True
-            beast = True
-        elif etype == "Skill":
-            skill = True
-        elif etype == "Item":
-            item = True
-        elif etype == "Beast":
-            beast = True
 
         # キーコード所持判定
         selectedmember = None
         flag = False
         for target in targets:
-            if target.has_keycode(keycode, skill, item, beast):
+            if target.has_keycode(self.keycode, self.skill, self.item, self.beast, self.hand):
                 if isinstance(target, cw.character.Character):
                     selectedmember = target
                 flag = True
@@ -1527,13 +1540,18 @@ class BranchKeyCodeContent(BranchContent):
         return u"キーコード所持分岐コンテント"
 
     def get_childname(self, child):
-        targetkc = self.data.get("targetkc", "Selected")
-        etype = self.data.get("effectCardType", "All")
-        keycode = self.data.get("keyCode", "")
-
-        s = self.textdict.get(targetkc.lower(), "")
-        s2 = self.textdict.get(etype.lower(), "")
-        s3 = keycode
+        s = self.textdict.get(self.targetkc.lower(), "")
+        types = []
+        if self.skill:
+            types.append(u"特殊技能")
+        if self.item:
+            types.append(u"アイテム")
+        if self.beast:
+            types.append(u"召喚獣")
+        if self.hand:
+            types.append(u"手札")
+        s2 = u"・".join(types) if types else u"(指定無し)"
+        s3 = self.keycode
 
         if self.get_contentname(child) == u"○":
             return u"%sの%sからキーコード『%s』の発見に成功" % (s, s2, s3)

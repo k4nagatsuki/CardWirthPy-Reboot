@@ -220,7 +220,12 @@ class Deck(object):
         ccard.clear_action()
 
     def throwaway(self):
+        """手札消去効果を適用する。"""
         self._throwaway = True
+
+    def is_throwed(self):
+        """手札が消去されているか。"""
+        return self._throwaway
 
     def _remove(self, header):
         self.hand.remove(header)
