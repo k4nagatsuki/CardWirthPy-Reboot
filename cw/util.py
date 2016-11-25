@@ -24,6 +24,7 @@ import array
 import unicodedata
 import functools
 import webbrowser
+import math
 
 if sys.platform == "win32":
     import win32api
@@ -538,7 +539,29 @@ def convert_maskpos(maskpos, width, height):
             raise Exception("Invalid maskpos: %s" % (maskpos))
     return maskpos
 
-def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False):
+def find_scaledimagepath(path, up_scr, noscale):
+    """ファイル名に".xN"をつけたイメージをを探して(ファイル名, スケール値)を返す。
+    例えば"file.bmp"に対する"file.x2.bmp"を探す。
+    """
+    scale = 1
+    if not noscale and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.can_loaded_scaledimage:
+        cpath1 = os.path.abspath(os.path.normpath(path))
+        cpath2 = os.path.abspath(os.path.normpath(cw.cwpy.sdata.scedir))
+        cpath1 = cw.util.join_paths(cpath1)
+        cpath2 = cw.util.join_paths(cpath2) + "/"
+        if cpath1.startswith(cpath2):
+            scale =  int(math.pow(2, int(math.log(up_scr, 2))))
+            while 2 <= scale:
+                spext = os.path.splitext(path)
+                fname = u"%s.x%d%s" % (spext[0], scale, spext[1])
+                fname = cw.cwpy.rsrc.get_filepath(fname)
+                if os.path.isfile(fname):
+                    path = fname
+                    break
+                scale /= 2
+    return path, scale
+
+def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False, noscale=False):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -546,6 +569,9 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
     #assert threading.currentThread() == cw.cwpy
     if cw.cwpy.rsrc:
         path = cw.cwpy.rsrc.get_filepath(path)
+
+    path, up_scr = find_scaledimagepath(path, cw.UP_SCR, noscale)
+
     bmpdepth = 0
     try:
         if f:
@@ -649,16 +675,17 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
             image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
 
-    if bmpdepth == 1 and mask and not isback:
-        image = Depth1Surface(image)
+    if bmpdepth == 1 and mask and not isback or up_scr <> 1:
+        image = Depth1Surface(image, up_scr)
     return image
 
 class Depth1Surface(pygame.Surface):
-    def __init__(self, surface):
-        pygame.Surface.__init__(self, surface.get_size())
+    def __init__(self, surface, scr_scale):
+        pygame.Surface.__init__(self, surface.get_size(), surface.get_flags(), surface.get_bitsize(), surface.get_masks())
         self.blit(surface, (0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
         self.set_colorkey(surface.get_colorkey())
         self.bmpdepthis1 = True
+        self.scr_scale = scr_scale
 
 def put_number(image, num):
     """アイコンサイズの画像imageの上に
@@ -2559,7 +2586,7 @@ def format_title(fmt, d):
 # wx汎用関数
 #-------------------------------------------------------------------------------
 
-def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True):
+def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True, noscale=False):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
     if sys.platform <> "win32":
         assert threading.currentThread() <> cw.cwpy
@@ -2568,6 +2595,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
 
     if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
+
+    name, up_scr = find_scaledimagepath(name, cw.UP_WIN, noscale)
+
     bmpdepth = 0
     maskcolour = None
     if mask:
@@ -2643,6 +2673,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         wxbmp.bmpdepthis1 = True
     if maskcolour:
         wxbmp.maskcolour = maskcolour
+
+    wxbmp.scr_scale = up_scr
+
     return wxbmp
 
 def copy_wxbmp(bmp):

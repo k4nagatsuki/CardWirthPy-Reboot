@@ -651,6 +651,7 @@ class ScenarioData(SystemData):
         self.name = header.name
         self.author = header.author
         self.startid = header.startid
+        self.can_loaded_scaledimage = False # TODO
         if not cardonly:
             cw.cwpy.areaid = self.startid
         if os.path.isfile(self.fpath):

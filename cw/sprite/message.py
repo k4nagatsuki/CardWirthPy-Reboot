@@ -119,10 +119,17 @@ class MessageWindow(base.CWPySprite):
                     if lpath.startswith(cw.cwpy.yadodir.lower()) or\
                             lpath.startswith(cw.cwpy.tempdir.lower()):
                         path = cw.util.get_yadofilepath(path)
-                talker_image_noscale = cw.util.load_image(path, True)
+                talker_image_noscale = cw.util.load_image(path, True, noscale=True)
                 if talker_image_noscale and talker_image_noscale.get_width():
                     self.talker_image_noscale.append((talker_image_noscale, info))
-                    self.talker_image.append((cw.s(talker_image_noscale), info))
+                    if cw.UP_SCR == 1:
+                        self.talker_image.append((talker_image_noscale, info))
+                    else:
+                        talker_image = cw.util.load_image(path, True, noscale=False)
+                        if talker_image and talker_image.get_width():
+                            self.talker_image.append((cw.s(talker_image), info))
+                        else:
+                            self.talker_image.append((cw.s(talker_image_noscale), info))
         else:
             self.talker_image_noscale = []
             self.talker_image = []
@@ -139,10 +146,14 @@ class MessageWindow(base.CWPySprite):
         xmove = cw.s(0)
         for talker_image, info in self.talker_image:
             baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
+            if info.basecardtype == "LargeCard":
+                baserect.x -= cw.s(10) # LargeCardとNormalCardのサイズ差に合わせた調節
             xmove = max(-baserect.x, xmove)
 
         for talker_image, info in self.talker_image:
             baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
+            if info.basecardtype == "LargeCard":
+                baserect.x -= cw.s(10) # LargeCardとNormalCardのサイズ差に合わせた調節
             y = (cw.s(180) - baserect.height) // 2
             y -= cw.s(self.trim_top_noscale)
             if info.basecardtype:

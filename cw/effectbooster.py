@@ -922,12 +922,14 @@ class JpdcImage(cw.image.Image):
                 else:
                     cw.cwpy.set_titlebar(filename + u" - " + cw.cwpy.create_title())
 
-            saveimage = self.image
+            saveimage_noscale = self.image
+            saveimage = None
             if cw.UP_SCR <> 1:
                 if cw.UP_SCR % 1 == 0:
-                    saveimage = pygame.transform.scale(saveimage, (w_noscale, h_noscale))
+                    saveimage_noscale = pygame.transform.scale(saveimage_noscale, (w_noscale, h_noscale))
+                    saveimage = self.image
                 else:
-                    saveimage = cw.image.smoothscale(saveimage, (w_noscale, h_noscale))
+                    saveimage_noscale = cw.image.smoothscale(saveimage_noscale, (w_noscale, h_noscale))
 
             path = cw.util.join_paths(os.path.dirname(path), filename)
 
@@ -944,7 +946,11 @@ class JpdcImage(cw.image.Image):
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
                 encoding = sys.getfilesystemencoding()
-                pygame.image.save(saveimage, path.encode(encoding))
+                pygame.image.save(saveimage_noscale, path.encode(encoding))
+                if saveimage:
+                    spext = os.path.splitext(path)
+                    path = u"%s.x%d%s" % (spext[0], cw.UP_SCR, spext[1])
+                    pygame.image.save(saveimage, path.encode(encoding))
 
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
