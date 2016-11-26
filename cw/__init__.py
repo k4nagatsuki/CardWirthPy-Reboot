@@ -292,7 +292,7 @@ def _s_impl(num, up_scr):
                 return bmp
             if scaleinfo:
                 # スケール情報のあるpygame.Surface
-                # TODO scaleinfo
+                # TODO scaleinfoは廃止
                 scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
                 up_scr /= scr_scale
                 size = _s_impl(num[1], up_scr)
@@ -314,7 +314,7 @@ def _s_impl(num, up_scr):
                 return img
             if scaleinfo:
                 # スケール情報のあるwx.Image
-                # TODO scaleinfo
+                # TODO scaleinfoは廃止
                 bmpdepthis1 = hasattr(img, "bmpdepthis1")
                 maskcolour = img.maskcolour if hasattr(img, "maskcolour") else None
                 scr_scale = img.scr_scale if hasattr(img, "scr_scale") else 1
