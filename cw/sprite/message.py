@@ -105,6 +105,7 @@ class MessageWindow(base.CWPySprite):
         # 外枠描画
         draw_frame(self.image, cw.s(size_noscale), cw.s((0, 0)), self.backlog)
         # 話者画像
+        # TODO: scaledimage
         if self.talker_image_noscale:
             self.talker_image = []
             for talker_image_noscale, info in self.talker_image_noscale:
@@ -370,7 +371,6 @@ class MessageWindow(base.CWPySprite):
                         charimg, userfont = specialchars[chars]
 
                         if userfont:
-                            # TODO scaleinfo
                             cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
                             put_topbottom(y_noscale+1, charimg.get_height())
                             images.append((cpos, None, cw.s(charimg), None))

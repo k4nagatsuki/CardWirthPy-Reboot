@@ -2094,7 +2094,7 @@ class CardHolder(CardControl):
             self._leftmarks = []
             for path in paths:
                 path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-                self._leftmarks.append(cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE)))
+                self._leftmarks.append(cw.wins((cw.util.load_wxbmp(path, True, noscale=False), cw.SIZE_CARDIMAGE)))
 
         CardControl.draw_cards(self, update, mode)
 

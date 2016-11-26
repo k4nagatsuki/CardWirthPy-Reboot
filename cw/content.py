@@ -2269,7 +2269,8 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
         dstdir = cw.util.join_paths(cw.cwpy.ydata.yadodir,
                                     "Material", header.type, name)
         dstdir = cw.util.dupcheck_plus(dstdir)
-        cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom, importimage=from_scenario)
+        cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom, importimage=from_scenario,
+                               can_loaded_scaledimage=etree.getbool(".", "scaledimage", False))
         header.imgpaths = cw.image.get_imageinfos(etree.find("Property"))
 
     cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False, party=party, from_getcontent=from_getcontent)

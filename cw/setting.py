@@ -1870,7 +1870,7 @@ class Resource(object):
                 return emptyfunc()
 
             if mask:
-                res = func(fpath, mask=mask)
+                res = func(fpath, mask=mask, noscale=False)
             else:
                 res = func(fpath)
 
@@ -1981,19 +1981,19 @@ class Resource(object):
             ss = cw.s
             emptyfunc=empty_image
 
-        def load_image2(fpath, mask=False):
+        def load_image2(fpath, mask=False, noscale=False):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
-                return load_image(fpath, mask=True, maskpos=(1, 1))
+                return load_image(fpath, mask=True, maskpos=(1, 1), noscale=noscale)
             elif key == "TARGET":
-                return load_image(fpath, mask=True, maskpos="right")
+                return load_image(fpath, mask=True, maskpos="right", noscale=noscale)
             elif key == "LIFEGUAGE":
-                return load_image(fpath, mask=True, maskpos=(5, 5))
+                return load_image(fpath, mask=True, maskpos=(5, 5), noscale=noscale)
             elif key == "LIFEBAR":
-                return load_image(fpath, mask=False)
+                return load_image(fpath, mask=False, noscale=noscale)
             else:
-                return load_image(fpath, mask=False)
+                return load_image(fpath, mask=False, noscale=noscale)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc)
@@ -2010,17 +2010,17 @@ class Resource(object):
             ss = cw.s
             emptyfunc=empty_image
 
-        def load_image2(fpath, mask=False):
+        def load_image2(fpath, mask=False, noscale=False):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("LINK", "MONEYY"):
-                return load_image(fpath, mask=False)
+                return load_image(fpath, mask=False, noscale=noscale)
             elif key == "STATUS8":
-                return load_image(fpath, mask=True, maskpos="right")
+                return load_image(fpath, mask=True, maskpos="right", noscale=noscale)
             elif key in ("CAUTION", "INVISIBLE"):
-                return load_image(fpath)
+                return load_image(fpath, noscale=noscale)
             else:
-                return load_image(fpath, mask=mask)
+                return load_image(fpath, mask=mask, noscale=noscale)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss, emptyfunc=emptyfunc)
@@ -2058,15 +2058,15 @@ class Resource(object):
             ss = cw.s
             emptyfunc=empty_image
 
-        def load_image2(fpath, mask=False):
+        def load_image2(fpath, mask=False, noscale=False):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("HOLD", "PENALTY"):
-                return load_image(fpath, mask=True, maskpos="center")
+                return load_image(fpath, mask=True, maskpos="center", noscale=noscale)
             elif key in ("PREMIER", "RARE"):
-                return load_image(fpath, mask=True, maskpos="right")
+                return load_image(fpath, mask=True, maskpos="right", noscale=noscale)
             else:
-                return load_image(fpath, mask=mask)
+                return load_image(fpath, mask=mask, noscale=noscale)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/CardBg", dpath, self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc)

@@ -508,6 +508,7 @@ class TopPanel(wx.Panel):
         x = (dc.GetSize()[0] - cw.wins(74)) / 2
 
         infos = cw.image.get_imageinfos(self.ccard.data.find("Property"))
+        can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
         setpos = any(map(lambda info: not info.postype in (None, "Default"), infos))
 
         for info in infos:
@@ -518,7 +519,7 @@ class TopPanel(wx.Panel):
             elif not cw.binary.image.path_is_code(path):
                 path = cw.util.join_yadodir(path)
 
-            bmp = cw.util.load_wxbmp(path, True)
+            bmp = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
             bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
 
             if setpos:

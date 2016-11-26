@@ -224,7 +224,7 @@ class CardHeader(object):
             return 0
         return -self.star
 
-    def set_cardimg(self, imgpaths):
+    def set_cardimg(self, imgpaths, can_loaded_scaledimage):
         paths = []
         for info in imgpaths:
             path = info.path
@@ -238,9 +238,8 @@ class CardHeader(object):
                     path = cw.util.join_yadodir(path)
             paths.append(cw.image.ImageInfo(path, base=info))
 
-        # TODO scaleinfo
         self._cardimg = cw.image.CardImage(paths, self.get_bgtype(), self.name, self.premium,
-                                           is_scenariocard=self.scenariocard)
+                                           can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=self.scenariocard)
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
         self.wxrect = pygame.Rect(self._cardimg.wxrect)
@@ -280,7 +279,11 @@ class CardHeader(object):
                 self._skindirname <> cw.cwpy.setting.skindirname or\
                 self._bordering_cardname <> cw.cwpy.setting.bordering_cardname or\
                 self._show_premiumicon <> cw.cwpy.setting.show_premiumicon:
-            self.set_cardimg(self.imgpaths)
+            if self.carddata is None:
+                can_loaded_scaledimage = bool(GetRootAttribute(self.fpath).attrs.get("scaledimage", "False"))
+            else:
+                can_loaded_scaledimage = self.carddata.getbool(".", "scaledimage", False)
+            self.set_cardimg(self.imgpaths, can_loaded_scaledimage)
         return self._cardimg
 
     def get_cardwxbmp(self, test_aptitude=None):
@@ -609,7 +612,7 @@ class CardHeader(object):
             owner.data.is_edited = True
         elif self.is_backpackheader() and self.scenariocard and self.carddata:
             imgpaths = cw.image.get_imageinfos(self.carddata.find("Property"))
-            self.set_cardimg(imgpaths)
+            self.set_cardimg(imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False))
 
     def set_scenarioend(self):
         """
@@ -632,10 +635,11 @@ class CardHeader(object):
             dstdir = cw.util.join_paths(cw.cwpy.yadodir,
                                             "Material", self.type, self.name)
             dstdir = cw.util.dupcheck_plus(dstdir)
-            cw.cwpy.copy_materials(self.carddata, dstdir)
+            can_loaded_scaledimage = self.carddata.getbool(".", "scaledimage", False)
+            cw.cwpy.copy_materials(self.carddata, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)
             # 画像更新
             self.imgpaths = cw.image.get_imageinfos(self.carddata.find("Property"))
-            self.set_cardimg(self.imgpaths)
+            self.set_cardimg(self.imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False))
             if self.is_backpackheader():
                 self.write()
                 self.carddata = None
@@ -658,7 +662,7 @@ class CardHeader(object):
         CardImageインスタンスを新しく生成して返す。
         """
         header = copy.copy(self)
-        header.set_cardimg(self.imgpaths)
+        header.set_cardimg(self.imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False))
         return header
 
     def is_ccardheader(self):
@@ -834,15 +838,16 @@ class InfoCardHeader(object):
         # 画像
         imgpaths = cw.image.get_imageinfos(data)
         self.imgpaths = imgpaths
-        self.set_cardimg()
+        self.can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
+        self.set_cardimg(self.can_loaded_scaledimage)
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
 
-    def set_cardimg(self):
-        # TODO scaleinfo
+    def set_cardimg(self, can_loaded_scaledimage):
+        self.can_loaded_scaledimage = can_loaded_scaledimage
         self._cardimg = cw.image.CardImage(self.imgpaths, "INFO", self.name,
-                                           is_scenariocard=True)
+                                           can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=True)
         self.rect = self._cardimg.rect
         self.wxrect = self._cardimg.wxrect
         self._cardscale = cw.UP_SCR
@@ -856,7 +861,7 @@ class InfoCardHeader(object):
                 self._wxcardscale <> cw.UP_WIN or\
                 self._skindirname <> cw.cwpy.setting.skindirname or\
                 self._bordering_cardname <> cw.cwpy.setting.bordering_cardname:
-            self.set_cardimg()
+            self.set_cardimg(self.can_loaded_scaledimage)
         return self._cardimg
 
     def get_cardwxbmp(self, test_aptitude=None):
@@ -1241,10 +1246,9 @@ class ScenarioHeader(object):
             for image, info in zip(self.images, self.imgpaths):
                 if image:
                     with io.BytesIO(str(image)) as f:
-                        # TODO scaleinfo
                         bmp = cw.util.load_wxbmp(f=f, mask=mask)
                         self._wxbmps_noscale.append(bmp)
-                        self._wxbmps.append(cw.wins((bmp, cw.SIZE_CARDIMAGE)))
+                        self._wxbmps.append(cw.wins(bmp))
                         f.close()
                 elif info.path:
                     # スキンのTableフォルダを指定している場合はDBにバイナリが無い
@@ -1252,7 +1256,7 @@ class ScenarioHeader(object):
                     if path:
                         bmp = cw.util.load_wxbmp(path, mask=mask)
                         self._wxbmps_noscale.append(bmp)
-                        self._wxbmps.append(cw.wins((bmp, cw.SIZE_CARDIMAGE)))
+                        self._wxbmps.append(cw.wins(bmp))
         return self._wxbmps, self._wxbmps_noscale
 
 class PartyHeader(object):
@@ -1627,6 +1631,25 @@ class GetProperty(object):
             if 4 == len(self.stack):
                 seq = self.third[self.stack[2]]
                 seq[-1] = (seq[-1][0], seq[-1][1], seq[-1][2] + data)
+
+class GetRootAttribute(object):
+    def __init__(self, fpath):
+        """XMLファイル中のルート要素の属性を読む。"""
+        self.attrs = {}
+        parser = xml.parsers.expat.ParserCreate()
+        parser.StartElementHandler = self.start_element
+
+        with open(fpath, "r") as f:
+            try:
+                parser.ParseFile(f)
+            except Exception:
+                pass
+            f.close()
+
+    def start_element(self, name, attrs):
+        # ルート要素の属性
+        self.attrs = attrs
+        raise Exception()
 
 class RaceHeader(object):
     def __init__(self, data):

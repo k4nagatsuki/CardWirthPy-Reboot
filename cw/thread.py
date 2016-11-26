@@ -1164,7 +1164,7 @@ class CWPy(_Singleton, threading.Thread):
                 fname = cw.util.find_resource(cw.util.join_paths(self.skindir, fname), self.rsrc.ext_img)
 
             if fname:
-                back = cw.util.load_image(fname)
+                back = cw.util.load_image(fname, noscale=False)
                 if back.get_width():
                     if self.setting.fullscreenbackgroundtype == 2:
                         back = cw.wins(back)
@@ -4287,7 +4287,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def copy_materials(self, data, dstdir, from_scenario=True, scedir="",
                        yadodir=None, toyado=None, adventurer=False,
-                       imgpaths=None, importimage=False):
+                       imgpaths=None, importimage=False, can_loaded_scaledimage=False):
         """
         from_scenario: Trueの場合は開いているシナリオから、
                        Falseの場合は開いている宿からコピーする
@@ -4357,7 +4357,8 @@ class CWPy(_Singleton, threading.Thread):
                         path = cw.util.relpath(path, mdir)
                     def set_material(text):
                         e.text = text
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado,
+                                        can_loaded_scaledimage=can_loaded_scaledimage)
             elif e.tag in ("Play", "Talk"):
                 path = e.getattr(".", "path", "")
                 if path:
@@ -4365,14 +4366,16 @@ class CWPy(_Singleton, threading.Thread):
                         path = cw.util.relpath(path, mdir)
                     def set_material(text):
                         e.attrib["path"] = text
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado,
+                                        can_loaded_scaledimage=can_loaded_scaledimage)
             elif e.tag == "Text" and e.text:
                 for spchar in r_specialfont.findall(e.text):
                     c = "font_" + spchar[1:]
                     def set_material(text):
                         pass
                     for ext in cw.EXTS_IMG:
-                        self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, c + ext, set_material, yadodir, toyado)
+                        self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, c + ext, set_material, yadodir, toyado,
+                                            can_loaded_scaledimage=can_loaded_scaledimage)
 
             elif e.tag == "Effect":
                 path = e.getattr(".", "sound", "")
@@ -4381,12 +4384,14 @@ class CWPy(_Singleton, threading.Thread):
                         path = cw.util.relpath(path, mdir)
                     def set_material(text):
                         e.attrib["sound"] = text
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado,
+                                        can_loaded_scaledimage=can_loaded_scaledimage)
 
             elif e.tag == "BeastCard" and from_scenario:
                 self.sdata.copy_carddata(e, dstdir, from_scenario, scedir, imgpaths)
 
-    def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material, yadodir, toyado):
+    def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material, yadodir, toyado,
+                       can_loaded_scaledimage):
         pisc = not e is None and e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
         if pisc:
             imgpath = materialpath
@@ -4427,7 +4432,8 @@ class CWPy(_Singleton, threading.Thread):
                     innerfpath = innerfpath.replace(scedir + "/", "", 1)
                     def func(text):
                         pass
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, None, innerfpath, func, yadodir, toyado)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, None, innerfpath, func, yadodir, toyado,
+                                        can_loaded_scaledimage=can_loaded_scaledimage)
 
             except Exception:
                 cw.util.print_ex()
@@ -4466,7 +4472,7 @@ class CWPy(_Singleton, threading.Thread):
                     f.flush()
                     f.close()
             else:
-                shutil.copy2(imgpath, imgdst)
+                cw.util.copy_scaledimagepaths(imgpath, imgdst, can_loaded_scaledimage)
                 if sli:
                     shutil.copy2(sli, imgdst + u".sli")
             # ElementTree編集

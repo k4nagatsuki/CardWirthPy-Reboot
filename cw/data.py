@@ -79,6 +79,9 @@ class SystemData(object):
         self.in_f9 = False
         self.background_image_mtime = {}
 
+        # "file.x2.bmp"などのスケーリングされたイメージを読み込むか
+        self.can_loaded_scaledimage = True
+
         # メッセージのバックログ
         self.backlog = []
 
@@ -463,8 +466,10 @@ class SystemData(object):
 
         dstpath = cw.util.join_paths(dstdir, dstpath)
         imgpaths[path] = dstpath
+        can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
 
-        cw.cwpy.copy_materials(data, dstdir, from_scenario=from_scenario, scedir=scedir, imgpaths=imgpaths)
+        cw.cwpy.copy_materials(data, dstdir, from_scenario=from_scenario, scedir=scedir, imgpaths=imgpaths,
+                               can_loaded_scaledimage=can_loaded_scaledimage)
         data.fpath = dstpath
         data.write_xml(True)
 
@@ -651,7 +656,7 @@ class ScenarioData(SystemData):
         self.name = header.name
         self.author = header.author
         self.startid = header.startid
-        self.can_loaded_scaledimage = False # TODO
+        self.can_loaded_scaledimage = True
         if not cardonly:
             cw.cwpy.areaid = self.startid
         if os.path.isfile(self.fpath):
@@ -1061,6 +1066,7 @@ class ScenarioData(SystemData):
                 if (lf == "summary.xml" or lf == "summary.wsm") and not self.summary:
                     self.scedir = dpath.replace("\\", "/")
                     self.summary = xml2etree(path)
+                    self.can_loaded_scaledimage = self.summary.getbool(".", "scaledimage", False)
                     continue
 
                 if isdatadir and lf.endswith(".xml"):
@@ -1128,7 +1134,7 @@ class ScenarioData(SystemData):
         if self._r_specialchar.match(fname.lower()):
             def load(dpath, fname):
                 path = cw.util.join_paths(dpath, fname)
-                image = cw.util.load_image(path, True)
+                image = cw.util.load_image(path, True, noscale=not self.can_loaded_scaledimage)
                 return image, True
             m = self._r_specialchar.match(fname.lower())
             name = "#%s" % (m.group(1))
@@ -2593,7 +2599,8 @@ class YadoData(object):
                     dstdir = cw.util.join_paths(self.yadodir,
                                                     "Material", cardtype, name)
                     dstdir = cw.util.dupcheck_plus(dstdir)
-                    cw.cwpy.copy_materials(e, dstdir)
+                    can_loaded_scaledimage = e.getbool(".", "scaledimage", False)
+                    cw.cwpy.copy_materials(e, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)
 
             # カード画像コピー
             name = cw.util.repl_dischar(fcard.name)
@@ -2601,7 +2608,8 @@ class YadoData(object):
             dstdir = cw.util.join_paths(self.yadodir,
                                                 "Material", "Adventurer", name)
             dstdir = cw.util.dupcheck_plus(dstdir)
-            cw.cwpy.copy_materials(e, dstdir)
+            can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
+            cw.cwpy.copy_materials(e, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)
             # xmlファイル書き込み
             data.getroot().tag = "Adventurer"
             path = cw.util.join_paths(self.tempdir, "Adventurer", name + ".xml")

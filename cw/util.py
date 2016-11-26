@@ -539,26 +539,38 @@ def convert_maskpos(maskpos, width, height):
             raise Exception("Invalid maskpos: %s" % (maskpos))
     return maskpos
 
+
+def copy_scaledimagepaths(frompath, topath, can_loaded_scaledimage):
+    """frompathをtopathへコピーする。
+    その後、ファイル名に".xN"をつけたイメージを探し、
+    実際に存在するファイルであればコピーする。
+    """
+    shutil.copy2(frompath, topath)
+    fromspext = os.path.splitext(frompath)
+    if can_loaded_scaledimage and fromspext[1].lower() in cw.EXTS_IMG:
+        tospext = os.path.splitext(topath)
+        for scale in cw.SCALE_LIST:
+            fname = u"%s.x%d%s" % (fromspext[0], scale, fromspext[1])
+            fname = cw.cwpy.rsrc.get_filepath(fname)
+            if os.path.isfile(fname):
+                fname2 = u"%s.x%d%s" % (tospext[0], scale, tospext[1])
+                shutil.copy2(fname, fname2)
+
 def find_scaledimagepath(path, up_scr, noscale):
-    """ファイル名に".xN"をつけたイメージをを探して(ファイル名, スケール値)を返す。
+    """ファイル名に".xN"をつけたイメージを探して(ファイル名, スケール値)を返す。
     例えば"file.bmp"に対する"file.x2.bmp"を探す。
     """
     scale = 1
-    if not noscale and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.can_loaded_scaledimage:
-        cpath1 = os.path.abspath(os.path.normpath(path))
-        cpath2 = os.path.abspath(os.path.normpath(cw.cwpy.sdata.scedir))
-        cpath1 = cw.util.join_paths(cpath1)
-        cpath2 = cw.util.join_paths(cpath2) + "/"
-        if cpath1.startswith(cpath2):
-            scale =  int(math.pow(2, int(math.log(up_scr, 2))))
-            while 2 <= scale:
-                spext = os.path.splitext(path)
-                fname = u"%s.x%d%s" % (spext[0], scale, spext[1])
-                fname = cw.cwpy.rsrc.get_filepath(fname)
-                if os.path.isfile(fname):
-                    path = fname
-                    break
-                scale /= 2
+    if not noscale:
+        scale =  int(math.pow(2, int(math.log(up_scr, 2))))
+        spext = os.path.splitext(path)
+        while 2 <= scale:
+            fname = u"%s.x%d%s" % (spext[0], scale, spext[1])
+            fname = cw.cwpy.rsrc.get_filepath(fname)
+            if os.path.isfile(fname):
+                path = fname
+                break
+            scale /= 2
     return path, scale
 
 def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False, noscale=False):
@@ -633,7 +645,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, _ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
-                    r = load_image(path, mask, maskpos, f2, False, isback=isback)
+                    r = load_image(path, mask, maskpos, f2, False, isback=isback, noscale=noscale)
                     f2.close()
                 return r
             except:
@@ -2959,7 +2971,11 @@ class CWPyStaticBitmap(wx.Panel):
         for i, (bmp, bmpdepthkey) in enumerate(zip(self.bmps, self.bmps_bmpdepthkey)):
             if self.infos:
                 info = self.infos[i]
-                baserect = info.calc_basecardposition_wx(bmpdepthkey.GetSize(), noscale=True,
+                w, h = bmpdepthkey.GetSize()
+                scr_scale = bmpdepthkey.scr_scale if hasattr(bmpdepthkey, "scr_scale") else 1
+                w /= scr_scale
+                h /= scr_scale
+                baserect = info.calc_basecardposition_wx((w, h), noscale=True,
                                                          basecardtype="LargeCard",
                                                          cardpostype="NotCard")
                 baserect = self.ss(baserect)

@@ -266,6 +266,7 @@ class CharaInfo(object):
             for info in imgpaths:
                 self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info, basecardtype="LargeCard"))
             self.imgpaths_base = self.imgpaths
+            self.can_loaded_scaledimage = pcard.data.getbool(".", "scaledimage", False)
             self.level = pcard.level
             self.sex = pcard.get_sex()
             self.age = pcard.get_age()
@@ -722,7 +723,7 @@ class CharaRequirementPanel(wx.Panel):
         self.imgbox.DragAcceptFiles(True)
         path = u"Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        self.defaultface = cw.ppis(cw.util.load_wxbmp(path, mask=True))
+        self.defaultface = cw.ppis(cw.util.load_wxbmp(path, mask=True, noscale=False))
         self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.ppis(cw.SIZE_CARDIMAGE),
                                             ss=cw.ppis)
         self.imgcombo = wx.ComboBox(self, -1, size=(cw.ppis(125), -1), style=wx.CB_READONLY)
@@ -976,19 +977,22 @@ class CharaRequirementPanel(wx.Panel):
         if self.imgcombo.GetSelection() == 0:
             # [変更しない]
             img = []
+            can_loaded_scaledimage = False
             for i, info in enumerate(infos):
                 force = (i == 0)
                 if force:
                     img = info.imgpaths
-                elif img <> info.imgpaths:
+                    can_loaded_scaledimage = info.can_loaded_scaledimage
+                elif img <> info.imgpaths or can_loaded_scaledimage <> info.can_loaded_scaledimage:
                     img = []
+                    can_loaded_scaledimage = False
                     break
             if img:
                 # 全員のイメージが一致
                 bmps = []
                 bmps_bmpdepthkey = []
                 for info in img:
-                    bmp = cw.util.load_wxbmp(info.path, mask=True)
+                    bmp = cw.util.load_wxbmp(info.path, mask=True, noscale=not can_loaded_scaledimage)
                     bmps.append(cw.ppis(bmp))
                     bmps_bmpdepthkey.append(bmp)
                 self.img.SetBitmap(bmps, bmps_bmpdepthkey, img)

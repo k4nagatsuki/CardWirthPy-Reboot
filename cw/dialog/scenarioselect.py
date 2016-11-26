@@ -1331,7 +1331,7 @@ class ScenarioSelect(select.Select):
             return self._bg
         path = "Table/Bill"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        self._bg = cw.util.load_wxbmp(path)
+        self._bg = cw.util.load_wxbmp(path, noscale=False)
         return self._bg
 
     def get_detailtext(self):
@@ -1535,7 +1535,7 @@ class ScenarioSelect(select.Select):
                 scan_folder_bmp = os.path.join(cw.util.get_linktarget(dpath), u"Folder.bmp")
             if scan_folder_bmp and os.path.isfile(scan_folder_bmp):
                 # Folder.bmp表示
-                folder_bmp = cw.util.load_wxbmp(scan_folder_bmp, True)
+                folder_bmp = cw.util.load_wxbmp(scan_folder_bmp, True, noscale=False)
                 bmp2 = cw.wins(folder_bmp)
                 size = bmp2.GetSize()
                 pos = (cw.wins(200), cw.wins(60)+yp)

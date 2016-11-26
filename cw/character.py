@@ -191,6 +191,7 @@ class Character(object):
         etree = None
         eimg = None
         infos = self.get_imagepaths()
+        can_loaded_scaledimage = self.data.getattr(".", "scaledimage", False)
         if infos:
             if cw.cwpy.is_playingscenario():
                 # F9のためにシナリオ突入時の画像の記録を取る
@@ -223,7 +224,7 @@ class Character(object):
                             fpath = cw.util.dupcheck_plus(fpath, yado=False)
                             if not os.path.isdir(dpath):
                                 os.makedirs(dpath)
-                            shutil.copy2(fpath2, fpath)
+                            cw.util.copy_scaledimagepaths(fpath2, fpath, can_loaded_scaledimage)
                             e2 = cw.data.make_element("ImagePath", os.path.basename(fpath))
                             info.set_attr(e2)
                             e.append(e2)
@@ -262,6 +263,9 @@ class Character(object):
                 if not eimg is None:
                     # F9時に変更後のイメージを削除するため、記録しておく
                     eimg.append(cw.data.make_element("NewImagePath", info.path))
+
+        # 外部から設定したイメージは常にスケーリング可能とする
+        self.data.edit(".", str(True), "scaledimage")
 
         self.data.is_edited = True
 

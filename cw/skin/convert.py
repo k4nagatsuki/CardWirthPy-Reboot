@@ -1286,9 +1286,9 @@ class Converter(threading.Thread):
             if os.path.isfile(fpath):
                 data = cw.data.xml2etree(fpath)
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath, "Resource/Image/Other/TITLE_CELL3"), cw.M_IMG)
-                tsize = cw.util.load_wxbmp(fpath).GetSize()
+                tsize = cw.util.load_wxbmp(fpath, noscale=False).GetSize()
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath, "Resource/Image/Other/TITLE_VERSION"), cw.M_IMG)
-                vsize = cw.util.load_wxbmp(fpath).GetSize()
+                vsize = cw.util.load_wxbmp(fpath, noscale=False).GetSize()
 
                 tleft = (cw.SIZE_AREA[0]-tsize[0]) // 2
                 ttop = (cw.SIZE_AREA[1]-tsize[1]) // 2

@@ -640,7 +640,10 @@ class TransferYadoDataDialog(wx.Dialog):
         for header in album:
             data = cw.data.xml2etree(header.fpath)
             dstdir = cw.util.join_paths(toyado, u"Material", u"Album")
-            cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado, adventurer=True, imgpaths=counter.imgpaths)
+            can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
+            cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado,
+                                   toyado=toyado, adventurer=True, imgpaths=counter.imgpaths,
+                                   can_loaded_scaledimage=can_loaded_scaledimage)
             data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
             data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
             data.write()
@@ -654,7 +657,10 @@ class TransferYadoDataDialog(wx.Dialog):
             data = cw.data.xml2etree(data.fpath)
         dstdir = cw.util.join_paths(toyado, u"Material", u"Adventurer", data.gettext("Property/Name"))
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
-        cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado, adventurer=True, imgpaths=counter.imgpaths)
+        can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
+        cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado,
+                               toyado=toyado, adventurer=True, imgpaths=counter.imgpaths,
+                               can_loaded_scaledimage=can_loaded_scaledimage)
         if not overwrite:
             data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
             data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
@@ -683,7 +689,9 @@ class TransferYadoDataDialog(wx.Dialog):
             dstdir = cw.util.join_paths(toyado, e.text)
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
         if not data.getbool(".", "scenariocard", False):
-            cw.cwpy.copy_materials(data, dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado, imgpaths=counter.imgpaths)
+            can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
+            cw.cwpy.copy_materials(data, dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado,
+                                   imgpaths=counter.imgpaths, can_loaded_scaledimage=can_loaded_scaledimage)
         if data.fpath:
             data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
             data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)

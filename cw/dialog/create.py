@@ -34,8 +34,9 @@ class AdventurerDataComp(wx.Dialog):
         # 画像
         bmps = []
         bmps_noscale = []
+        can_loaded_scaledimage = ccard.data.getbool(".", "scaledimage", False)
         for info in ccard.imgpaths:
-            bmp = cw.util.load_wxbmp(info.path, True)
+            bmp = cw.util.load_wxbmp(info.path, True, noscale=not can_loaded_scaledimage)
             bmps_noscale.append(bmp)
             bmp = cw.wins((bmp, cw.SIZE_CARDIMAGE))
             bmps.append(bmp)
@@ -827,7 +828,7 @@ class AdventurerCreaterPage(wx.Panel):
         # 共通背景
         path = "Table/Book"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
+        bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK), noscale=False)
         dc.DrawBitmap(bmp, 0, 0, False)
         return dc
 
@@ -1044,7 +1045,7 @@ class NamePage(AdventurerCreaterPage):
         # image
         dc.SetClippingRect(wx.Rect(cw.wins(275), cw.wins(130), cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
-            bmp = cw.util.load_wxbmp(info.path, True)
+            bmp = cw.util.load_wxbmp(info.path, True, noscale=False)
             bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
             cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, cw.wins(275), cw.wins(130), True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
@@ -1323,18 +1324,20 @@ class RelationPage(AdventurerCreaterPage):
         # 父親画像
         if self.father:
             paths = self.father.get_imgpaths()
+            can_loaded_scaledimage = bool(cw.header.GetRootAttribute(self.father.fpath).attrs.get("scaledimage", "False"))
             basecardtype = "LargeCard"
         else:
             path = "Resource/Image/Card/FATHER"
             path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
             paths = [cw.image.ImageInfo(path)]
+            can_loaded_scaledimage = True
             basecardtype = "NormalCard"
 
-        def draw_paths(pos, paths):
+        def draw_paths(pos, paths, can_loaded_scaledimage):
             dc.SetClippingRect(wx.Rect(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
             for info in paths:
                 if info.path:
-                    bmp = cw.util.load_wxbmp(info.path, True)
+                    bmp = cw.util.load_wxbmp(info.path, True, noscale=not can_loaded_scaledimage)
                     bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
                     baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                              basecardtype=basecardtype,
@@ -1343,21 +1346,23 @@ class RelationPage(AdventurerCreaterPage):
             dc.DestroyClippingRegion()
 
         pos = cw.wins((100, 110))
-        draw_paths(pos, paths)
+        draw_paths(pos, paths, can_loaded_scaledimage)
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "FatherFace", None, self.on_mousewheel)
 
         # 母親画像
         if self.mother:
             paths = self.mother.get_imgpaths()
+            can_loaded_scaledimage = bool(cw.header.GetRootAttribute(self.mother.fpath).attrs.get("scaledimage", "False"))
             basecardtype = "LargeCard"
         else:
             path = "Resource/Image/Card/MOTHER"
             path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
             paths = [cw.image.ImageInfo(path)]
+            can_loaded_scaledimage = True
             basecardtype = "NormalCard"
 
         pos = cw.wins((275, 110))
-        draw_paths(pos, paths)
+        draw_paths(pos, paths, can_loaded_scaledimage)
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "MotherFace", None, self.on_mousewheel)
 
         # 父親名前
@@ -1851,7 +1856,7 @@ class YadoCreater(wx.Dialog):
         imgdata = self.cautions[index]
         bmp = imgdata[1]
         if not bmp:
-            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], False), cw.setting.SIZE_RESOURCES[u"Dialog/CAUTION"]))
+            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], False, noscale=False), cw.setting.SIZE_RESOURCES[u"Dialog/CAUTION"]))
             imgdata[1] = bmp
         return bmp
 
@@ -1866,7 +1871,7 @@ class YadoCreater(wx.Dialog):
         imgdata = self.command0s[index]
         bmp = imgdata[1]
         if not bmp:
-            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], True), cw.SIZE_CARDIMAGE))
+            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], True, noscale=False), cw.SIZE_CARDIMAGE))
             imgdata[1] = bmp
         bmph = bmp.GetHeight()
         y = (self._inputareaheight-bmph) / 2
@@ -2097,6 +2102,7 @@ class DesignPanel(AdventurerCreaterPage):
         for info in self.ccard.get_imagepaths():
             self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info, basecardtype="LargeCard"))
         self._oldimgpath = self.imgpaths[:]
+        self.can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
 
         self.name = self.ccard.get_name()
         self.desc = self.ccard.get_description()
@@ -2184,6 +2190,10 @@ class DesignPanel(AdventurerCreaterPage):
         self.imgdpath = index
         key = self.imgdpaths[index]
         self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
+        if self.is_changedimgpath():
+            self.can_loaded_scaledimage = True
+        else:
+            self.can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
         self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
         self.draw(True)
         self.namectrl.SetFocus()
@@ -2212,7 +2222,7 @@ class DesignPanel(AdventurerCreaterPage):
         # 背景
         path = "Table/Bill"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BILL))
+        bmp = cw.wins((cw.util.load_wxbmp(path, noscale=False), cw.SIZE_BILL))
         dc.DrawBitmap(bmp, 0, 0, False)
 
         # Resident Registration
@@ -2262,7 +2272,7 @@ class DesignPanel(AdventurerCreaterPage):
         x, y = (cwidth - cw.wins(74)) / 2, cw.wins(y2)
         dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
-            bmp = cw.util.load_wxbmp(info.path, True)
+            bmp = cw.util.load_wxbmp(info.path, True, noscale=not self.can_loaded_scaledimage)
             bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
 
             baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
