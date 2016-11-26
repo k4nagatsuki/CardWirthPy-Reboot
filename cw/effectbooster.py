@@ -947,9 +947,14 @@ class JpdcImage(cw.image.Image):
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
                 encoding = sys.getfilesystemencoding()
+                cw.sprite.message.store_messagelogimage(path, True)
+                spext = os.path.splitext(path)
+                for scale in cw.SCALE_LIST:
+                    pathxn = u"%s.x%d%s" % (spext[0], scale, spext[1])
+                    if os.path.isfile(pathxn):
+                        cw.util.remove(pathxn)
                 pygame.image.save(saveimage_noscale, path.encode(encoding))
                 if saveimage:
-                    spext = os.path.splitext(path)
                     path = u"%s.x%d%s" % (spext[0], cw.UP_SCR, spext[1])
                     pygame.image.save(saveimage, path.encode(encoding))
 

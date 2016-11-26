@@ -860,8 +860,10 @@ class PlayerCard(CWPyCard, character.Player):
             text = cw.cwpy.msgs["level_up"]
             names = [(0, cw.cwpy.msgs["ok"])]
             infos = []
+            can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
             for info in self.imgpaths:
-                infos.append(cw.image.ImageInfo(path=info.path, pcnumber=info.pcnumber, base=info, basecardtype="LargeCard"))
+                infos.append((cw.image.ImageInfo(path=info.path, pcnumber=info.pcnumber, base=info, basecardtype="LargeCard"),
+                              can_loaded_scaledimage, self, {}))
             mwin = cw.sprite.message.MessageWindow(text, names, infos, self,
                                                    versionhint=self.versionhint)
             cw.cwpy.show_message(mwin)

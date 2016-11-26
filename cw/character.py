@@ -194,6 +194,17 @@ class Character(object):
         can_loaded_scaledimage = self.data.getattr(".", "scaledimage", False)
         if infos:
             if cw.cwpy.is_playingscenario():
+                # メッセージログのイメージが変化しないように
+                # ファイル上書き前に読み込んでおく
+                for info in infos:
+                    if not info.path:
+                        continue
+                    fpath = info.path
+                    fname = os.path.basename(fpath)
+                    fpath2 = cw.util.join_yadodir(fpath)
+                    if os.path.isfile(fpath2):
+                        cw.sprite.message.store_messagelogimage(fpath2, can_loaded_scaledimage)
+
                 # F9のためにシナリオ突入時の画像の記録を取る
                 name = os.path.splitext(os.path.basename(self.data.fpath))[0]
                 log = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face/Log.xml")
