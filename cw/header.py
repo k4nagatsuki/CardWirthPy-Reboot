@@ -12,6 +12,7 @@ import wx
 import pygame
 import xml.parsers.expat
 import shutil
+import math
 
 import cw
 
@@ -1208,17 +1209,23 @@ class ScenarioHeader(object):
         self.wsnversion = dbrec["wsnversion"]
         if not self.wsnversion:
             self.wsnversion = ""
-        self.images = []
+        self.images = { 1: [] }
         self.imgpaths = []
 
         image = dbrec["image"]
         imgpath = dbrec["imgpath"]
         if image or imgpath:
-            self.images.append(image)
+            self.images[1] = [image]
             self.imgpaths.append(cw.image.ImageInfo(path=imgpath if imgpath else ""))
         if imgdbrec:
             for imgrec in imgdbrec:
-                self.images.append(imgrec["image"])
+                scale = imgrec["scale"]
+                if scale in self.images:
+                    seq = self.images[scale]
+                else:
+                    seq = []
+                    self.images[scale] = seq
+                seq.append(imgrec["image"])
                 postype = imgrec["postype"]
                 if not postype:
                     postype = "Default"
@@ -1230,6 +1237,7 @@ class ScenarioHeader(object):
         self._wxbmps = None
         self._wxbmps_noscale = None
         self.skindir = None
+        self._up_win = None
 
     @property
     def mtime_reversed(self):
@@ -1240,24 +1248,47 @@ class ScenarioHeader(object):
         return "/".join([self.dpath, self.fname])
 
     def get_wxbmps(self, mask=True):
-        if self._wxbmps is None or self.skindir <> cw.cwpy.skindir:
+        if self._wxbmps is None or self.skindir <> cw.cwpy.skindir or self._up_win <> cw.UP_WIN:
             self.skindir = cw.cwpy.skindir
+            self._up_win = cw.UP_WIN
             self._wxbmps = []
             self._wxbmps_noscale = []
-            for image, info in zip(self.images, self.imgpaths):
+
+            images = self.images[1]
+            imagesx1 = images
+            scale = int(math.pow(2, int(math.log(cw.UP_WIN, 2))))
+            while 2 <= scale:
+                if scale in self.images:
+                    images = self.images[scale]
+                    break
+                scale /= 2
+
+            for image, imagex1, info in zip(images, imagesx1, self.imgpaths):
                 if image:
-                    with io.BytesIO(str(image)) as f:
-                        bmp = cw.util.load_wxbmp(f=f, mask=mask)
-                        self._wxbmps_noscale.append(bmp)
-                        self._wxbmps.append(cw.wins(bmp))
+                    with io.BytesIO(str(imagex1)) as f:
+                        bmp_noscale = cw.util.load_wxbmp(f=f, mask=mask)
+                        bmp_noscale.scr_scale = 1
                         f.close()
+                    if scale == 1:
+                        bmp = cw.wins(bmp_noscale)
+                    else:
+                        with io.BytesIO(str(image)) as f:
+                            bmp = cw.util.load_wxbmp(f=f, mask=mask)
+                            bmp.scr_scale = scale
+                            f.close()
+                        bmp = cw.wins(bmp)
+                    self._wxbmps_noscale.append(bmp_noscale)
+                    self._wxbmps.append(bmp)
                 elif info.path:
                     # スキンのTableフォルダを指定している場合はDBにバイナリが無い
                     path = cw.util.get_materialpathfromskin(info.path, cw.M_IMG)
                     if path:
-                        bmp = cw.util.load_wxbmp(path, mask=mask)
+                        bmp = cw.util.load_wxbmp(path, mask=mask, noscale=True)
                         self._wxbmps_noscale.append(bmp)
+                        if not cw.UP_WIN == 1:
+                            bmp = cw.util.load_wxbmp(path, mask=mask, noscale=False)
                         self._wxbmps.append(cw.wins(bmp))
+
         return self._wxbmps, self._wxbmps_noscale
 
 class PartyHeader(object):

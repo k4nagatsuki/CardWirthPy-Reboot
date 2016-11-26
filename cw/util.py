@@ -540,6 +540,18 @@ def convert_maskpos(maskpos, width, height):
     return maskpos
 
 
+def get_scaledimagepaths(path, can_loaded_scaledimage):
+    """(スケーリングされたファイル名, スケール)のlistを返す。
+    listには1倍スケールを示す(path, 1)が必ず含まれる。
+    """
+    seq = [(path, 1)]
+    if can_loaded_scaledimage:
+        spext = os.path.splitext(path)
+        for scale in cw.SCALE_LIST:
+            fname = u"%s.x%d%s" % (spext[0], scale, spext[1])
+            seq.append((fname, scale))
+    return seq
+
 def copy_scaledimagepaths(frompath, topath, can_loaded_scaledimage):
     """frompathをtopathへコピーする。
     その後、ファイル名に".xN"をつけたイメージを探し、
