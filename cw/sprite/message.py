@@ -1216,9 +1216,9 @@ def get_messagelogtext(mwins, lastline=True):
         name = mwin.talker_name
         if name is None:
             seq = []
-            for path in mwin.imgpaths:
-                if path.path:
-                    seq.append(os.path.basename(path.path))
+            for info, _can_loaded_scaledimage2, _basetalker, _scaledimagedict in mwin.imgpaths:
+                if info.path:
+                    seq.append(os.path.basename(info.path))
             if seq:
                 name = u" ".join(seq)
 

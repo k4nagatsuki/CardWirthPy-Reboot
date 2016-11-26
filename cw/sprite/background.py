@@ -895,7 +895,7 @@ class BackGround(base.CWPySprite):
                 self.pc_cache[pcnumber] = (paths, can_loaded_scaledimage)
 
             if expand:
-                image = pygame.Surface(cw.SIZE_CARDIMAGE).convert_alpha()
+                image = pygame.Surface(cw.s(cw.SIZE_CARDIMAGE)).convert_alpha()
                 image.fill((0, 0, 0, 0))
 
                 for path, info in paths:
@@ -905,27 +905,35 @@ class BackGround(base.CWPySprite):
                     #      マスクされた状態で表示される。従ってマスクの効く・効かないという
                     #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
                     bmp = cw.util.load_image(path, True, isback=False, noscale=not can_loaded_scaledimage)
-                    baserect = info.calc_basecardposition(bmp.get_size(), noscale=True,
+                    iw, ih = bmp.get_size()
+                    scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+                    iw //= scr_scale
+                    ih //= scr_scale
+                    baserect = info.calc_basecardposition((iw, ih), noscale=True,
                                                           basecardtype="LargeCard",
                                                           cardpostype="NotCard")
-                    image.blit(bmp, (baserect.x, baserect.y))
+                    image.blit(cw.s(bmp), (baserect.x, baserect.y))
 
                 if cw.cwpy.setting.smoothscale_bg:
-                    image = cw.image.smoothscale(image, size)
+                    image = cw.image.smoothscale(image, cw.s(size))
                 else:
-                    image = pygame.transform.scale(image, size)
+                    image = pygame.transform.scale(image, cw.s(size))
             else:
-                image = pygame.Surface(size).convert_alpha()
+                image = pygame.Surface(cw.s(size)).convert_alpha()
                 image.fill((0, 0, 0, 0))
 
                 for path, info in paths:
                     bmp = cw.util.load_image(path, True, isback=False, noscale=not can_loaded_scaledimage)
-                    baserect = info.calc_basecardposition(bmp.get_size(), noscale=True,
+                    iw, ih = bmp.get_size()
+                    scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+                    iw //= scr_scale
+                    ih //= scr_scale
+                    baserect = info.calc_basecardposition((iw, ih), noscale=True,
                                                           basecardtype="LargeCard",
                                                           cardpostype="NotCard")
-                    image.blit(bmp, (baserect.x, baserect.y))
+                    image.blit(cw.s(bmp), (baserect.x, baserect.y))
 
-            d2 = (cw.s(image), size, pos, 0)
+            d2 = (image, size, pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
             bgs.append((BG_PC, (pcnumber, expand, size, pos, flag, True, layer, cellname)))
         else:

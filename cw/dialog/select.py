@@ -1607,7 +1607,7 @@ class PartySelect(MultiViewSelect):
                         fpath = info.path
                         if os.path.isfile(fpath):
                             bmp3 = cw.util.load_wxbmp(fpath, True, noscale=not can_loaded_scaledimage)
-                            bmp4 = cw.wins((bmp3, cw.SIZE_CARDIMAGE))
+                            bmp4 = cw.wins(bmp3)
                             w = bmp4.GetWidth() // 2
                             h = bmp4.GetHeight() // 2
                             if w and h:
@@ -1681,7 +1681,11 @@ class PartySelect(MultiViewSelect):
             ph = cw.wins(cw.SIZE_CARDIMAGE[1])
             dc.SetClippingRect(wx.Rect(px, py, pw//2, ph//2))
             for bmp3, bmp4, info in bmp2:
-                baserect = info.calc_basecardposition_wx(bmp3.GetSize(), noscale=True,
+                iw, ih = bmp3.GetSize()
+                scr_scale = bmp3.scr_scale if hasattr(bmp3, "scr_scale") else 1
+                iw //= scr_scale
+                ih //= scr_scale
+                baserect = info.calc_basecardposition_wx((iw, ih), noscale=True,
                                                          basecardtype="LargeCard",
                                                          cardpostype="NotCard")
                 baserect = cw.wins(baserect)
@@ -1738,7 +1742,11 @@ class PartySelect(MultiViewSelect):
                 ph = cw.wins(cw.SIZE_CARDIMAGE[1])
                 dc.SetClippingRect(wx.Rect(px, py, pw//2, ph//2))
                 for bmp3, bmp4, info in bmp2:
-                    baserect = info.calc_basecardposition_wx(bmp3.GetSize(), noscale=True,
+                    iw, ih = bmp3.GetSize()
+                    scr_scale = bmp3.scr_scale if hasattr(bmp3, "scr_scale") else 1
+                    iw //= scr_scale
+                    ih //= scr_scale
+                    baserect = info.calc_basecardposition_wx((iw, ih), noscale=True,
                                                              basecardtype="LargeCard",
                                                              cardpostype="NotCard")
                     baserect = cw.wins(baserect)
