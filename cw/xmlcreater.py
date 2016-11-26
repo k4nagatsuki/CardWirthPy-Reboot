@@ -765,7 +765,7 @@ def create_adventurer(data):
     # 画像パス
     paths = data.imgpaths
     advname = cw.util.repl_dischar(d["name"])
-    infos = write_castimagepath(advname, paths)
+    infos = write_castimagepath(advname, paths, True)
     imgpaths = map(lambda info: cw.binary.xmltemplate.get_xmltext("ImagePath",
                     {"path":cw.binary.util.repl_escapechar(info.path), "indent": "   "}), infos)
     d["imgpaths"] = "\n" + "\n".join(imgpaths)
@@ -784,7 +784,7 @@ def create_adventurer(data):
     _create_xml("Adventurer", path, d)
     return path
 
-def write_castimagepath(name, paths):
+def write_castimagepath(name, paths, can_loaded_scaledimage):
     """
     キャストの新しい画像を記憶し、記憶後のパスを返す。
     """
@@ -800,7 +800,7 @@ def write_castimagepath(name, paths):
             if not os.path.isdir(dpath):
                 os.makedirs(dpath)
 
-            shutil.copy2(path, dstpath)
+            cw.util.copy_scaledimagepaths(path, dstpath, can_loaded_scaledimage)
             seq.append(cw.image.ImageInfo(dstpath.replace(cw.cwpy.tempdir + "/", ""), base=info))
     return seq
 

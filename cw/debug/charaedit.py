@@ -723,7 +723,7 @@ class CharaRequirementPanel(wx.Panel):
         self.imgbox.DragAcceptFiles(True)
         path = u"Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        self.defaultface = cw.ppis(cw.util.load_wxbmp(path, mask=True, noscale=False))
+        self.defaultface = cw.ppis(cw.util.load_wxbmp(path, mask=True, noscale=True))
         self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.ppis(cw.SIZE_CARDIMAGE),
                                             ss=cw.ppis)
         self.imgcombo = wx.ComboBox(self, -1, size=(cw.ppis(125), -1), style=wx.CB_READONLY)
@@ -904,6 +904,7 @@ class CharaRequirementPanel(wx.Panel):
         for fpath in files:
             ext = os.path.splitext(fpath)[1].lower()
             if ext in cw.EXTS_IMG:
+                fpath = cw.util.find_noscalepath(fpath)
                 seq.append(fpath)
 
         if seq:
@@ -992,7 +993,7 @@ class CharaRequirementPanel(wx.Panel):
                 bmps = []
                 bmps_bmpdepthkey = []
                 for info in img:
-                    bmp = cw.util.load_wxbmp(info.path, mask=True, noscale=not can_loaded_scaledimage)
+                    bmp = cw.util.load_wxbmp(info.path, mask=True, noscale=True)
                     bmps.append(cw.ppis(bmp))
                     bmps_bmpdepthkey.append(bmp)
                 self.img.SetBitmap(bmps, bmps_bmpdepthkey, img)
@@ -1002,7 +1003,7 @@ class CharaRequirementPanel(wx.Panel):
         else:
             # パスを選択
             img = self.imgpathlist[self.imgcombo.GetSelection()-1]
-            bmp = cw.util.load_wxbmp(img, mask=True)
+            bmp = cw.util.load_wxbmp(img, mask=True, noscale=True)
             self.img.SetBitmap([cw.ppis(bmp)], [bmp])
 
     def _get_infos(self):

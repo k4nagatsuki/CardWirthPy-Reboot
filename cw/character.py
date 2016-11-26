@@ -256,7 +256,7 @@ class Character(object):
                     eimg.remove(e)
 
         # 新しいファイル群をコピー
-        newpaths = cw.xmlcreater.write_castimagepath(self.get_name(), paths)
+        newpaths = cw.xmlcreater.write_castimagepath(self.get_name(), paths, True)
         prop = self.data.find("Property")
         for ename in ("ImagePath", "ImagePaths"):
             e = prop.find(ename)

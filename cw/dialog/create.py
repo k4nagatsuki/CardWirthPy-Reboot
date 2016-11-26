@@ -668,6 +668,7 @@ class AdventurerCreaterPage(wx.Panel):
         for fpath in files:
             ext = os.path.splitext(fpath)[1].lower()
             if ext in cw.EXTS_IMG:
+                fpath = cw.util.find_noscalepath(fpath)
                 seq.append(fpath)
 
         if not seq:
@@ -828,7 +829,7 @@ class AdventurerCreaterPage(wx.Panel):
         # 共通背景
         path = "Table/Book"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK), noscale=False)
+        bmp = cw.wins(cw.util.load_wxbmp(path, noscale=False))
         dc.DrawBitmap(bmp, 0, 0, False)
         return dc
 

@@ -585,6 +585,22 @@ def find_scaledimagepath(path, up_scr, noscale):
             scale /= 2
     return path, scale
 
+
+def find_noscalepath(path):
+    """pathが"file.x2.bmp"のようなスケール付きイメージのものであれば
+    ".xN"の部分を取り除いて返す。
+    ただし取り除いた後のファイルが実在しない場合はそのまま返す。
+    """
+    scales = u"|".join(map(lambda s: str(s), cw.SCALE_LIST))
+    exts = u"|".join(map(lambda s: s.replace(".", "\\."), cw.EXTS_IMG))
+    result = re.match(u"\\A(.+)\.x(%s)(%s)\\Z" % (scales, exts), path, re.IGNORECASE)
+    if result:
+        fpath = result.group(1) + result.group(3)
+        if os.path.isfile(fpath):
+            path = fpath
+    return path
+
+
 def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False, noscale=False):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
@@ -839,12 +855,15 @@ def _get_facepaths(facedir, imgpaths, dpaths, passed):
 
         dpaths2 = [][:]
         seq = []
+        scales = u"|".join(map(lambda s: str(s), cw.SCALE_LIST))
+        re_xn = re.compile(u"\\A.+\.x(%s)\\Z" % (scales), re.IGNORECASE)
         for fname in os.listdir(dpath):
             path1 = join_paths(dpath, fname)
             path = get_linktarget(path1)
             if os.path.isfile(path):
-                ext = os.path.splitext(path)[1].lower()
-                if ext in cw.EXTS_IMG:
+                spext = os.path.splitext(path)
+                ext = spext[1].lower()
+                if ext in cw.EXTS_IMG and not re_xn.match(spext[0]):
                     seq.append(path)
             elif os.path.isdir(path):
                 showpath = join_paths(showdpath, fname)
