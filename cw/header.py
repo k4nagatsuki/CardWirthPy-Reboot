@@ -827,7 +827,7 @@ class CardHeader(object):
             self.fpath = data.fpath
 
 class InfoCardHeader(object):
-    def __init__(self, data):
+    def __init__(self, data, can_loaded_scaledimage):
         """
         情報カードのヘッダ。引数のdataはPropertyElement。
         """
@@ -840,7 +840,7 @@ class InfoCardHeader(object):
         # 画像
         imgpaths = cw.image.get_imageinfos(data)
         self.imgpaths = imgpaths
-        self.can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
+        self.can_loaded_scaledimage = can_loaded_scaledimage
         self.set_cardimg(self.can_loaded_scaledimage)
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False

@@ -292,7 +292,7 @@ class SystemData(object):
         """
         return False
 
-    def _get_resdata(self, table, resid, tag, nocache, resname=u"?"):
+    def _get_resdata(self, table, resid, tag, nocache, resname=u"?", rootattrs=None):
         fpath0 = table.get(resid, (u"", u"(未定義の%s ID:%s)" % (resname, resid)))[1]
         fpath = self._get_resfpath(table, resid)
         if fpath is None:
@@ -303,7 +303,7 @@ class SystemData(object):
             ##cw.cwpy.call_modaldlg("ERROR", text=s)
             return None
         try:
-            return xml2element(fpath, tag, nocache=nocache)
+            return xml2element(fpath, tag, nocache=nocache, rootattrs=rootattrs)
         except:
             cw.util.print_ex()
             s = u"%s の読込に失敗しました。" % (os.path.basename(fpath0))
@@ -327,8 +327,8 @@ class SystemData(object):
     def _get_resids(self, table):
         return table.keys()
 
-    def get_areadata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._areas, resid, tag, nocache, resname=u"エリア")
+    def get_areadata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._areas, resid, tag, nocache, resname=u"エリア", rootattrs=rootattrs)
 
     def get_areaname(self, resid):
         return self._get_resname(self._areas, resid)
@@ -339,8 +339,8 @@ class SystemData(object):
     def get_areaids(self):
         return self._get_resids(self._areas)
 
-    def get_battledata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._battles, resid, tag, nocache, resname=u"バトル")
+    def get_battledata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._battles, resid, tag, nocache, resname=u"バトル", rootattrs=rootattrs)
 
     def get_battlename(self, resid):
         return self._get_resname(self._battles, resid)
@@ -351,8 +351,8 @@ class SystemData(object):
     def get_battleids(self):
         return self._get_resids(self._battles)
 
-    def get_packagedata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._packs, resid, tag, nocache, resname=u"パッケージ")
+    def get_packagedata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._packs, resid, tag, nocache, resname=u"パッケージ", rootattrs=rootattrs)
 
     def get_packagename(self, resid):
         return self._get_resname(self._packs, resid)
@@ -363,8 +363,8 @@ class SystemData(object):
     def get_packageids(self):
         return self._get_resids(self._packs)
 
-    def get_castdata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._casts, resid, tag, nocache, resname=u"キャスト")
+    def get_castdata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._casts, resid, tag, nocache, resname=u"キャスト", rootattrs=rootattrs)
 
     def get_castname(self, resid):
         return self._get_resname(self._casts, resid)
@@ -375,8 +375,8 @@ class SystemData(object):
     def get_castids(self):
         return self._get_resids(self._casts)
 
-    def get_skilldata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._skills, resid, tag, nocache, resname=u"特殊技能")
+    def get_skilldata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._skills, resid, tag, nocache, resname=u"特殊技能", rootattrs=rootattrs)
 
     def get_skillname(self, resid):
         return self._get_resname(self._skills, resid)
@@ -387,8 +387,8 @@ class SystemData(object):
     def get_skillids(self):
         return self._get_resids(self._skills)
 
-    def get_itemdata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._items, resid, tag, nocache, resname=u"アイテム")
+    def get_itemdata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._items, resid, tag, nocache, resname=u"アイテム", rootattrs=rootattrs)
 
     def get_itemname(self, resid):
         return self._get_resname(self._items, resid)
@@ -399,8 +399,8 @@ class SystemData(object):
     def get_itemids(self):
         return self._get_resids(self._items)
 
-    def get_beastdata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._beasts, resid, tag, nocache, resname=u"召喚獣")
+    def get_beastdata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._beasts, resid, tag, nocache, resname=u"召喚獣", rootattrs=rootattrs)
 
     def get_beastname(self, resid):
         return self._get_resname(self._beasts, resid)
@@ -411,8 +411,8 @@ class SystemData(object):
     def get_beastids(self):
         return self._get_resids(self._beasts)
 
-    def get_infodata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._infos, resid, tag, nocache, resname=u"情報")
+    def get_infodata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._infos, resid, tag, nocache, resname=u"情報", rootattrs=rootattrs)
 
     def get_infoname(self, resid):
         return self._get_resname(self._infos, resid)
@@ -633,10 +633,11 @@ class SystemData(object):
                 header = self._infocard_cache[resid]
                 headers.append(header)
             elif resid in self.get_infoids():
-                e = self.get_infodata(resid, "Property")
+                rootattrs = {}
+                e = self.get_infodata(resid, "Property", rootattrs=rootattrs)
                 if e is None:
                     continue
-                header = cw.header.InfoCardHeader(e)
+                header = cw.header.InfoCardHeader(e, cw.util.str2bool(rootattrs.get("scaledimage", "False")))
                 self._infocard_cache[resid] = header
                 headers.append(header)
         return headers
