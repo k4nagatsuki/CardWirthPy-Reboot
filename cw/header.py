@@ -282,7 +282,7 @@ class CardHeader(object):
                 self._bordering_cardname <> cw.cwpy.setting.bordering_cardname or\
                 self._show_premiumicon <> cw.cwpy.setting.show_premiumicon:
             if self.carddata is None:
-                can_loaded_scaledimage = bool(GetRootAttribute(self.fpath).attrs.get("scaledimage", "False"))
+                can_loaded_scaledimage = cw.util.str2bool(GetRootAttribute(self.fpath).attrs.get("scaledimage", "False"))
             else:
                 can_loaded_scaledimage = self.carddata.getbool(".", "scaledimage", False)
             self.set_cardimg(self.imgpaths, can_loaded_scaledimage)
@@ -635,7 +635,7 @@ class CardHeader(object):
             self.carddata.attrib.pop("scenariocard")
             # 画像コピー
             dstdir = cw.util.join_paths(cw.cwpy.yadodir,
-                                            "Material", self.type, self.name)
+                                            "Material", self.type, self.name if self.name else "noname")
             dstdir = cw.util.dupcheck_plus(dstdir)
             can_loaded_scaledimage = self.carddata.getbool(".", "scaledimage", False)
             cw.cwpy.copy_materials(self.carddata, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)

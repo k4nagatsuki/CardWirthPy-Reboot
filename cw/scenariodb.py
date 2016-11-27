@@ -913,7 +913,7 @@ def read_summary(basepath):
             if os.path.isfile(spath):
                 rootattrs = {}
                 e = cw.data.xml2element(spath, "Property", rootattrs=rootattrs)
-                can_loaded_scaledimage = bool(rootattrs.get("scaledimage", "True"))
+                can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
                 imgpaths, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath), rootattrs)
                 imgbufs = []
                 for info in imgpaths:
@@ -981,7 +981,7 @@ def read_summary(basepath):
                         try:
                             rootattrs = {}
                             e = cw.data.xml2element(summpath2, "Property", rootattrs=rootattrs)
-                            can_loaded_scaledimage = bool(rootattrs.get("scaledimage", "False"))
+                            can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
 
                             try:
                                 imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path), rootattrs)
@@ -1052,7 +1052,7 @@ def read_summary(basepath):
             f.close()
 
         imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path), rootattrs)
-        can_loaded_scaledimage = bool(rootattrs.get("scaledimage", "False"))
+        can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
 
         imgbufs = []
         for info in imgpaths:

@@ -639,7 +639,8 @@ class TransferYadoDataDialog(wx.Dialog):
         # アルバムの転送
         for header in album:
             data = cw.data.xml2etree(header.fpath)
-            dstdir = cw.util.join_paths(toyado, u"Material", u"Album")
+            cname = data.gettext("Property/Name", "")
+            dstdir = cw.util.join_paths(toyado, u"Material", u"Album", cname if cname else "noname")
             can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
             cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado,
                                    toyado=toyado, adventurer=True, imgpaths=counter.imgpaths,
@@ -655,7 +656,8 @@ class TransferYadoDataDialog(wx.Dialog):
         # 冒険者の転送
         if isinstance(data, cw.header.AdventurerHeader):
             data = cw.data.xml2etree(data.fpath)
-        dstdir = cw.util.join_paths(toyado, u"Material", u"Adventurer", data.gettext("Property/Name"))
+        cname = data.gettext("Property/Name", "")
+        dstdir = cw.util.join_paths(toyado, u"Material", u"Adventurer", cname if cname else "noname")
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
         can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
         cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado,
@@ -684,9 +686,10 @@ class TransferYadoDataDialog(wx.Dialog):
             data = cw.data.xml2etree(data.fpath)
         e = data.find("Property/Materials")
         if e is None:
-            dstdir = cw.util.join_paths(toyado, u"Material", data.getroot().tag, data.gettext("Property/Name"))
+            cname = data.gettext("Property/Name", "")
+            dstdir = cw.util.join_paths(toyado, u"Material", data.getroot().tag, data.gettext("Property/Name", cname if cname else "noname"))
         else:
-            dstdir = cw.util.join_paths(toyado, e.text)
+            dstdir = cw.util.join_paths(toyado, e.text if e.text else "noname")
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
         if not data.getbool(".", "scenariocard", False):
             can_loaded_scaledimage = data.getbool(".", "scaledimage", False)

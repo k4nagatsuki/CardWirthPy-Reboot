@@ -3,6 +3,7 @@
 
 import os
 import sys
+import traceback
 
 import wx
 import pygame
@@ -282,6 +283,8 @@ def _s_impl(num, up_scr):
 
     elif isinstance(num, tuple):
         if len(num) == 3:
+            print "A scaleinfo is deprecated."
+            traceback.print_stack()
             scaleinfo = num[2]
         else:
             scaleinfo = None
@@ -295,6 +298,8 @@ def _s_impl(num, up_scr):
                 # TODO scaleinfoは廃止
                 scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
                 up_scr /= scr_scale
+                if up_scr == 1:
+                    return bmp
                 size = _s_impl(num[1], up_scr)
                 if size[0] % num[1] == 0:
                     result = pygame.transform.scale(bmp, size)
@@ -319,6 +324,8 @@ def _s_impl(num, up_scr):
                 maskcolour = img.maskcolour if hasattr(img, "maskcolour") else None
                 scr_scale = img.scr_scale if hasattr(img, "scr_scale") else 1
                 up_scr /= scr_scale
+                if up_scr == 1:
+                    return img
                 size = _s_impl(num[1], up_scr)
                 if size[0] % num[1] == 0 or bmpdepthis1:
                     result = img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
@@ -340,6 +347,8 @@ def _s_impl(num, up_scr):
             maskcolour = bmp.maskcolour if hasattr(bmp, "maskcolour") else None
             scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
             up_scr /= scr_scale
+            if up_scr == 1:
+                return bmp
             if bmp.GetWidth() <= 0 or bmp.GetHeight() <= 0:
                 return bmp
             # wx.Bitmap
@@ -372,6 +381,8 @@ def _s_impl(num, up_scr):
         bmp0 = num
         scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1
         up_scr /= scr_scale
+        if up_scr == 1:
+            return num
         w = int(num.get_width() * up_scr)
         h = int(num.get_height() * up_scr)
         if w <= 0 or h <= 0:
@@ -393,6 +404,8 @@ def _s_impl(num, up_scr):
         maskcolour = num.maskcolour if hasattr(num, "maskcolour") else None
         scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1
         up_scr /= scr_scale
+        if up_scr == 1:
+            return num
         w = int(num.GetWidth() * up_scr)
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
@@ -418,6 +431,8 @@ def _s_impl(num, up_scr):
         maskcolour = num.maskcolour if hasattr(num, "maskcolour") else None
         scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1
         up_scr /= scr_scale
+        if up_scr == 1:
+            return num
         w = int(num.GetWidth() * up_scr)
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:

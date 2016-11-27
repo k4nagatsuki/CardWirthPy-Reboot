@@ -32,7 +32,7 @@ class MessageWindow(base.CWPySprite):
         self.name_subtable = namesubtable
         self.flag_table = flagtable
         self.step_table = steptable
-        self.specialchars = specialchars
+        self.specialchars = specialchars if specialchars else cw.cwpy.rsrc.specialchars.copy()
 
         # メッセージの選択結果
         self.result = result
@@ -105,9 +105,9 @@ class MessageWindow(base.CWPySprite):
         # 外枠描画
         draw_frame(self.image, cw.s(size_noscale), cw.s((0, 0)), self.backlog)
         # 話者画像
+        talkersize_noscale = []
+        self.talker_image = []
         if self.imgpaths:
-            talkersize_noscale = []
-            self.talker_image = []
             for info, can_loaded_scaledimage, basetalker, scaledimagedict in self.imgpaths:
                 if scaledimagedict:
                     talker_image_noscale = scaledimagedict.get(1, None)
@@ -133,8 +133,6 @@ class MessageWindow(base.CWPySprite):
                     w /= scr_scale
                     h /= scr_scale
                     talkersize_noscale.append(((w, h), info))
-        else:
-            self.talker_image = []
 
         for size, info in talkersize_noscale:
             tih = size[1]
@@ -173,6 +171,7 @@ class MessageWindow(base.CWPySprite):
         self._back = self._fore.copy()
 
     def update_scale(self):
+        self.specialchars.reset()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs(init=False)
         self.selections = []
@@ -367,7 +366,7 @@ class MessageWindow(base.CWPySprite):
             image2 = None
             if index in self.spcharinfo:
                 if r_specialfont.match(chars):
-                    specialchars = self.specialchars if self.specialchars else cw.cwpy.rsrc.specialchars
+                    specialchars = self.specialchars
                     if chars in specialchars:
                         charimg, userfont = specialchars[chars]
 
@@ -386,7 +385,7 @@ class MessageWindow(base.CWPySprite):
                         image2.fill(colour)
                         image2.blit(charimg, (0, 0))
                         image2.set_colorkey(image2.get_at((0, 0)), pygame.locals.RLEACCEL)
-                        image2 = cw.s((image2, cw.setting.SIZE_SPFONT))
+                        image2 = cw.s(image2)
                         images.append((pos, None, decorate(image2, basecolour=colour), None))
                         pos = pos[0] + cw.s(20), pos[1]
                         skip = True
@@ -778,7 +777,7 @@ class BacklogData(object):
         self.step_table = base.step_table
         self.showing_result = base.showing_result
         self.versionhint = base.versionhint
-        self.specialchars = cw.cwpy.rsrc.specialchars.copy()
+        self.specialchars = base.specialchars
         self.create_cache(base)
 
     def create_cache(self, base):
@@ -1274,14 +1273,14 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                         if lpath.startswith(cw.cwpy.yadodir.lower()) or \
                                 lpath.startswith(cw.cwpy.tempdir.lower()):
                             fpath = cw.util.get_yadofilepath(fpath)
-                    bmp = cw.util.load_image(fpath, True, noscale=not can_loaded_scaledimage2)
+                    bmp = cw.util.load_image(fpath, True, noscale=True)
                     scaledimagedict[1] = bmp
                     if can_loaded_scaledimage2:
                         spext = os.path.splitext(fpath)
                         for scale in cw.SCALE_LIST:
                             fname = u"%s.x%s%s" % (spext[0], scale, spext[1])
                             if os.path.isfile(fname):
-                                bmp = cw.util.load_image(fname, True, noscale=not can_loaded_scaledimage2)
+                                bmp = cw.util.Depth1Surface(cw.util.load_image(fname, True, noscale=True), scale)
                                 scaledimagedict[scale] = bmp
                 log.imgpaths[i] = (info, can_loaded_scaledimage, basetalker, scaledimagedict)
 

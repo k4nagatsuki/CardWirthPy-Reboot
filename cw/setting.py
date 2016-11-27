@@ -1876,11 +1876,7 @@ class Resource(object):
 
             if not noscale:
                 if not dbg and ss and not key in noresize:
-                    ressize = get_resourcesize(fpath)
-                    if ressize is None:
-                        res = ss(res)
-                    else:
-                        res = ss((res, ressize))
+                    res = ss(res)
                 elif dbg and ss:
                     res = cw.ppis(res)
 

@@ -723,6 +723,7 @@ def create_albumpage(path, lost=False, nocoupon=False):
     sets = set(["Name", "ImagePath", "ImagePaths", "Description", "Level",
                 "Ability", "Coupons"])
 
+    can_loaded_scaledimage = etree.getbool(".", "scaledimage", False)
     for e in etree.getfind("Property"):
         if e.tag in sets:
             pelement.append(e)
@@ -741,10 +742,13 @@ def create_albumpage(path, lost=False, nocoupon=False):
 
     # 画像コピー
     name = etree.gettext("Property/Name", "noname")
+    name = name if name else "noname"
     fname = cw.util.repl_dischar(name)
     dstdir = cw.util.join_paths(cw.cwpy.yadodir, "Material/Album")
     cw.cwpy.copy_materials(element, dstdir, from_scenario=False,
-                           can_loaded_scaledimage=etree.getbool(".", "scaledimage", False))
+                           can_loaded_scaledimage=can_loaded_scaledimage)
+    if can_loaded_scaledimage:
+        etree.edit(".", str(can_loaded_scaledimage), "scaledimage")
     # ファイル書き込み
     path = cw.util.join_paths(cw.cwpy.tempdir, "Album", fname + ".xml")
     path = cw.util.dupcheck_plus(path)
@@ -789,6 +793,8 @@ def write_castimagepath(name, paths, can_loaded_scaledimage):
     キャストの新しい画像を記憶し、記憶後のパスを返す。
     """
     seq = []
+    if not name:
+        name = "noname"
     for info in paths:
         path = info.path
         if os.path.isfile(path):

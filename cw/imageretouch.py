@@ -884,7 +884,7 @@ def blit_2bitbmp_to_card(dest, source, pos):
     さらなる問題を抱えているので、正確に再現はせず、
     より直感に合った描画を行う。
     """
-    if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface):
+    if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface) and source.bmpdepthis1:
         w, h = source.get_size()
         rect = pygame.Rect(pos, (w, h))
         rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)
@@ -912,7 +912,7 @@ def blit_2bitbmp_to_card(dest, source, pos):
 
 
 def blit_2bitbmp_to_message(dest, source, pos, wincolour):
-    if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface):
+    if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface) and source.bmpdepthis1:
         w, h = source.get_size()
         rect = pygame.Rect(pos, (w, h))
         rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)

@@ -958,7 +958,7 @@ class YadoSelect(MultiViewSelect):
         # 背景
         path = "Table/Bill"
         path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins((cw.util.load_wxbmp(path, noscale=False), cw.SIZE_BILL))
+        bmp = cw.wins(cw.util.load_wxbmp(path, noscale=False))
         bmpw, bmph = bmp.GetSize()
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -979,7 +979,7 @@ class YadoSelect(MultiViewSelect):
             # 宿画像
             path = "Resource/Image/Card/COMMAND0"
             path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
-            bmp = cw.wins((cw.util.load_wxbmp(path, True, noscale=False), cw.SIZE_CARDIMAGE))
+            bmp = cw.wins(cw.util.load_wxbmp(path, True, noscale=False))
             dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(70), True)
             if self.isshortcuts[self.index]:
                 bmp = cw.cwpy.rsrc.dialogs["LINK"]
@@ -1040,7 +1040,7 @@ class YadoSelect(MultiViewSelect):
                 # 宿画像
                 path = "Resource/Image/Card/COMMAND0"
                 path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
-                bmp = cw.wins((cw.util.load_wxbmp(path, True, noscale=False), cw.SIZE_CARDIMAGE))
+                bmp = cw.wins(cw.util.load_wxbmp(path, True, noscale=False))
                 dc.DrawBitmap(bmp, cw.wins(5)+x, cw.wins(20)+y, True)
                 if self.isshortcuts[index]:
                     bmp = cw.cwpy.rsrc.dialogs["LINK"]
@@ -1571,7 +1571,7 @@ class PartySelect(MultiViewSelect):
         # 背景
         path = "Table/Book"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins((cw.util.load_wxbmp(path, noscale=False), cw.SIZE_BOOK))
+        bmp = cw.wins(cw.util.load_wxbmp(path, noscale=False))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -1589,7 +1589,7 @@ class PartySelect(MultiViewSelect):
                 path = "Resource/Image/Card/COMMAND0"
                 path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
                 bmp_noscale = [cw.util.load_wxbmp(path, True, noscale=False)]
-                bmp = [cw.wins((bmp_noscale[0], cw.SIZE_CARDIMAGE))]
+                bmp = [cw.wins(bmp_noscale[0])]
                 imgpaths = [cw.image.ImageInfo(path=path)]
 
             paths = header.get_memberpaths()
@@ -1602,7 +1602,7 @@ class PartySelect(MultiViewSelect):
                     paths = cw.image.get_imageinfos_p(prop)
                     for info in paths:
                         info.path = cw.util.join_yadodir(info.path)
-                    can_loaded_scaledimage = bool(prop.attrs[None].get("scaledimage", "False"))
+                    can_loaded_scaledimage = cw.util.str2bool(prop.attrs[None].get("scaledimage", "False"))
                     for info in paths:
                         fpath = info.path
                         if os.path.isfile(fpath):
@@ -2521,7 +2521,7 @@ class PlayerSelect(MultiViewSelect):
     def draw(self, update=False):
         dc = MultiViewSelect.draw(self, update)
         # 背景
-        bmp = cw.wins((self._get_bg(), cw.SIZE_BOOK))
+        bmp = cw.wins(self._get_bg())
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -2553,11 +2553,11 @@ class PlayerSelect(MultiViewSelect):
                 dc.DrawText(s, cw.wins(125) - w / 2, cw.wins(67))
                 # Image
                 dc.SetClippingRect(cw.wins((88, 90, 74, 94)))
-                can_loaded_scaledimage = bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
+                can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
                 for info in header.imgpaths:
                     path = cw.util.join_yadodir(info.path)
                     bmp = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
-                    bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+                    bmp2 = cw.wins(bmp)
 
                     baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                              basecardtype="LargeCard",
@@ -2620,11 +2620,11 @@ class PlayerSelect(MultiViewSelect):
                     ix = x + (rw - cw.wins(72)) / 2
                     iy = y + 5
                     dc.SetClippingRect((ix, iy, cw.wins(74), cw.wins(94)))
-                    can_loaded_scaledimage = bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
+                    can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
                     for info in header.imgpaths:
                         path = cw.util.join_yadodir(info.path)
                         bmp = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
-                        bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+                        bmp2 = cw.wins(bmp)
                         baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                                  basecardtype="LargeCard",
                                                                  cardpostype="NotCard")

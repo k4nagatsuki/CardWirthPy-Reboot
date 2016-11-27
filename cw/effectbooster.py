@@ -673,7 +673,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         fpath = cw.util.find_resource(fpath, mtype)
         return (fpath, True)
     elif dirtype == 4:
-        if cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard():
+        if cw.cwpy.is_runningevent() and cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
             inusecard = cw.cwpy.event.get_inusecard()
             if not inusecard.carddata.getbool(".", "scenariocard", False):
                 e_mates = inusecard.carddata.find("Property/Materials")
@@ -700,7 +700,14 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         if not os.path.isfile(fpath):
             return (u"", False)
         cw.cwpy.background.store_filepath(fpath)
-        return (fpath, cw.cwpy.sdata.can_loaded_scaledimage)
+
+        if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
+            inusecard = cw.cwpy.event.get_inusecard()
+            can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
+        else:
+            can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
+
+        return (fpath, can_loaded_scaledimage)
     elif dirtype == 5:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
         mtype = get_mtype(filename)
@@ -721,7 +728,14 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
     path = cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
     path = cw.cwpy.rsrc.get_filepath(path)
     cw.cwpy.background.store_filepath(path)
-    return (path, cw.cwpy.sdata.can_loaded_scaledimage)
+
+    if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
+        inusecard = cw.cwpy.event.get_inusecard()
+        can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
+    else:
+        can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
+
+    return (path, can_loaded_scaledimage)
 
 class JpyPartsImage(_JpySubImage):
     def __init__(self, config, section, cache, mask):

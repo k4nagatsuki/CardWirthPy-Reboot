@@ -1504,7 +1504,7 @@ class ScenarioSelect(select.Select):
         dc.SetPen(wx.Pen(colour))
         dc.SetBrush(wx.Brush(colour))
         dc.DrawRectangle(0, 0, csize[0], csize[1])
-        bmp = cw.wins((self._get_bg(), cw.SIZE_BILL))
+        bmp = cw.wins(self._get_bg())
         bmpw, bmph = bmp.GetSize()
         dc.DrawBitmap(bmp, 0, yp, False)
 

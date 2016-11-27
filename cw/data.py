@@ -168,6 +168,8 @@ class SystemData(object):
         for mcards in self.sparea_mcards.itervalues():
             for mcard in mcards:
                 mcard.update_scale()
+        for log in self.backlog:
+            log.specialchars.reset()
 
     def start(self):
         pass
@@ -1047,7 +1049,7 @@ class ScenarioData(SystemData):
                     continue
 
                 # "font_*.*"のファイルパスの画像を特殊文字に指定
-                if self.eat_spchar(dpath, fname):
+                if self.eat_spchar(dpath, fname, self.can_loaded_scaledimage):
                     continue
                 else:
                     if not (lf.endswith(".xml") or lf.endswith(".wsm") or lf.endswith(".wid")):
@@ -1127,14 +1129,14 @@ class ScenarioData(SystemData):
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 if os.path.isfile(cw.util.join_paths(dpath, fname)):
-                    self.eat_spchar(dpath, fname)
+                    self.eat_spchar(dpath, fname, self.can_loaded_scaledimage)
 
-    def eat_spchar(self, dpath, fname):
+    def eat_spchar(self, dpath, fname, can_loaded_scaledimage):
         # "font_*.*"のファイルパスの画像を特殊文字に指定
         if self._r_specialchar.match(fname.lower()):
             def load(dpath, fname):
                 path = cw.util.join_paths(dpath, fname)
-                image = cw.util.load_image(path, True, noscale=not self.can_loaded_scaledimage)
+                image = cw.util.load_image(path, True, noscale=not can_loaded_scaledimage)
                 return image, True
             m = self._r_specialchar.match(fname.lower())
             name = "#%s" % (m.group(1))
@@ -2597,13 +2599,13 @@ class YadoData(object):
                     name = cw.util.repl_dischar(name)
                     # 素材ファイルコピー
                     dstdir = cw.util.join_paths(self.yadodir,
-                                                    "Material", cardtype, name)
+                                                    "Material", cardtype, name if name else"noname")
                     dstdir = cw.util.dupcheck_plus(dstdir)
                     can_loaded_scaledimage = e.getbool(".", "scaledimage", False)
                     cw.cwpy.copy_materials(e, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)
 
             # カード画像コピー
-            name = cw.util.repl_dischar(fcard.name)
+            name = cw.util.repl_dischar(fcard.name) if fcard.name else "noname"
             e = data.getfind("Property")
             dstdir = cw.util.join_paths(self.yadodir,
                                                 "Material", "Adventurer", name)

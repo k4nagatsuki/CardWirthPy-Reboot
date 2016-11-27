@@ -1158,6 +1158,7 @@ class CardEvent(Event):
                 ccard.remove_coupon(u"＠効果対象外")
             ccard.clear_cardtarget()
         self._coupon_owners.clear()
+        self._target_updated = False
 
     def in_effectmotionloop(self):
         return self.waited

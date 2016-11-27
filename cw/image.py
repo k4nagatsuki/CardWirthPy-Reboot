@@ -286,10 +286,10 @@ class CardImage(Image):
                 image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
 
         self.image_mtime.clear()
-        for info in self.paths:
+        for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc and not self.is_scenariocard:
+            if (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
             if (not path or self.is_scenariocard) and not info.pcnumber:
@@ -300,7 +300,11 @@ class CardImage(Image):
                 self.image_mtime[path] = os.path.getmtime(path)
 
             if pisc or os.path.isfile(path):
-                subimg = cw.s(cw.util.load_image(path, True, noscale=not self.can_loaded_scaledimage))
+                if isinstance(self.can_loaded_scaledimage, (list, tuple)):
+                    can_loaded_scaledimage = self.can_loaded_scaledimage[i]
+                else:
+                    can_loaded_scaledimage = self.can_loaded_scaledimage
+                subimg = cw.s(cw.util.load_image(path, True, noscale=not can_loaded_scaledimage))
 
                 baserect = info.calc_basecardposition(subimg.get_size(), noscale=False,
                                                       basecardtype="NormalCard",
@@ -475,10 +479,10 @@ class CardImage(Image):
                 dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
                 dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
 
-        for info in self.paths:
+        for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc and not self.is_scenariocard:
+            if (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
             if (not path or self.is_scenariocard) and not info.pcnumber:
@@ -486,7 +490,11 @@ class CardImage(Image):
                                                 scedir=self.scedir)
 
             if pisc or os.path.isfile(path):
-                subimg = cw.util.load_wxbmp(path, True, noscale=not self.can_loaded_scaledimage)
+                if isinstance(self.can_loaded_scaledimage, (list, tuple)):
+                    can_loaded_scaledimage = self.can_loaded_scaledimage[i]
+                else:
+                    can_loaded_scaledimage = self.can_loaded_scaledimage
+                subimg = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
                 subimg2 = cw.wins(subimg)
 
                 baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
@@ -676,10 +684,10 @@ class LargeCardImage(CardImage):
             image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
             image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
 
-        for info in self.paths:
+        for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc and not self.is_scenariocard:
+            if (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
             if (not path or self.is_scenariocard) and not info.pcnumber:
@@ -687,7 +695,11 @@ class LargeCardImage(CardImage):
                                                 scedir=self.scedir)
 
             if pisc or os.path.isfile(path):
-                subimg = cw.s(cw.util.load_image(path, True, noscale=not self.can_loaded_scaledimage))
+                if isinstance(self.can_loaded_scaledimage, (list, tuple)):
+                    can_loaded_scaledimage = self.can_loaded_scaledimage[i]
+                else:
+                    can_loaded_scaledimage = self.can_loaded_scaledimage
+                subimg = cw.s(cw.util.load_image(path, True, noscale=not can_loaded_scaledimage))
 
                 baserect = info.calc_basecardposition(subimg.get_size(), noscale=False,
                                                       basecardtype="LargeCard",
@@ -739,10 +751,10 @@ class LargeCardImage(CardImage):
             dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
             dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
 
-        for info in self.paths:
+        for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc and not self.is_scenariocard:
+            if (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
             if (not path or self.is_scenariocard) and not info.pcnumber:
@@ -750,7 +762,11 @@ class LargeCardImage(CardImage):
                                                 scedir=self.scedir)
 
             if pisc or os.path.isfile(path):
-                subimg = cw.util.load_wxbmp(path, True, noscale=not self.can_loaded_scaledimage)
+                if isinstance(self.can_loaded_scaledimage, (list, tuple)):
+                    can_loaded_scaledimage = self.can_loaded_scaledimage[i]
+                else:
+                    can_loaded_scaledimage = self.can_loaded_scaledimage
+                subimg = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
                 subimg2 = cw.wins(subimg)
 
                 baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
@@ -931,7 +947,7 @@ class CharacterCardImage(CardImage):
             lifeper = float(ccard.life) / ccard.maxlife
             self.lifeimg.blit(self.lifebar, (int(lifeper*(guagesize[0]+1) + 0.5) - (guagesize[0]+1), 1))
             self.lifeimg.blit(self.lifeguage, (0, 0))
-            self.image.blit(cw.s((self.lifeimg, guagesize)), cw.s((8, 110)))
+            self.image.blit(cw.s(self.lifeimg), cw.s((8, 110)))
 
         # ステータス画像追加
         self.update_statusimg(ccard)

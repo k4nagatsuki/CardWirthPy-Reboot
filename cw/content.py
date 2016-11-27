@@ -2267,7 +2267,7 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
     if copymaterialfrom:
         # 素材ファイルコピー
         dstdir = cw.util.join_paths(cw.cwpy.ydata.yadodir,
-                                    "Material", header.type, name)
+                                    "Material", header.type, name if name else "noname")
         dstdir = cw.util.dupcheck_plus(dstdir)
         cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom, importimage=from_scenario,
                                can_loaded_scaledimage=etree.getbool(".", "scaledimage", False))
@@ -3318,7 +3318,7 @@ class TalkMessageContent(TalkContent):
                     can_loaded_scaledimage = talker.carddata.getbool(".", "scaledimage", False)
                 else:
                     assert isinstance(talker, cw.character.Character)
-                can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
+                    can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
                 for base in talker.imgpaths:
                     imgpath = base.path
                     if talkeriscard:
@@ -3347,7 +3347,12 @@ class TalkMessageContent(TalkContent):
                 else:
                     imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG,
                                                        system=cw.cwpy.areaid < 0)
-                    can_loaded_scaledimage = True if cw.cwpy.areaid < 0 else cw.cwpy.sdata.can_loaded_scaledimage
+                    if cw.cwpy.areaid < 0:
+                        can_loaded_scaledimage = True
+                    elif cw.cwpy.event.in_inusecardevent:
+                        can_loaded_scaledimage = cw.cwpy.event.get_inusecard().carddata.getbool(".", "scaledimage", False)
+                    else:
+                        can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
                 talkers.append((cw.image.ImageInfo(imgpath, base=info), can_loaded_scaledimage, None, {}))
 
             if not firsttalker:

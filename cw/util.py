@@ -716,15 +716,16 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
 
     if bmpdepth == 1 and mask and not isback or up_scr <> 1:
-        image = Depth1Surface(image, up_scr)
+        image = Depth1Surface(image, up_scr, bmpdepth)
     return image
 
 class Depth1Surface(pygame.Surface):
-    def __init__(self, surface, scr_scale):
+    def __init__(self, surface, scr_scale, bmpdepth=24):
         pygame.Surface.__init__(self, surface.get_size(), surface.get_flags(), surface.get_bitsize(), surface.get_masks())
         self.blit(surface, (0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
-        self.set_colorkey(surface.get_colorkey())
-        self.bmpdepthis1 = True
+        colorkey = surface.get_colorkey()
+        self.set_colorkey(colorkey, pygame.locals.RLEACCEL)
+        self.bmpdepthis1 = surface.bmpdepthis1 if hasattr(surface, "bmpdepthis1") else (bmpdepth == 1)
         self.scr_scale = scr_scale
 
 def put_number(image, num):

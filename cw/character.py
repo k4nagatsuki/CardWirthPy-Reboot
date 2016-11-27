@@ -246,7 +246,8 @@ class Character(object):
                 if not info.path:
                     continue
                 fpath = cw.util.join_yadodir(info.path)
-                cw.cwpy.ydata.deletedpaths.add(fpath, forceyado=True)
+                for fpath, _scale in cw.util.get_scaledimagepaths(fpath, can_loaded_scaledimage):
+                    cw.cwpy.ydata.deletedpaths.add(fpath, forceyado=True)
 
         if not eimg is None:
             # 複数回変更された時は変更後ファイル情報を
@@ -888,12 +889,13 @@ class Character(object):
         specialchars = cw.cwpy.rsrc.specialchars
         specialchars_is_changed = cw.cwpy.rsrc.specialchars_is_changed
         e_mates = header.carddata.find("Property/Materials")
+        can_loaded_scaledimage = header.carddata.getbool(".", "scaledimage", False)
         if cw.cwpy.is_playingscenario() and not e_mates is None:
             specialchars = specialchars.copy()
             dpath = cw.util.join_yadodir(e_mates.text)
             if os.path.isdir(dpath):
                 for fname in os.listdir(dpath):
-                    cw.cwpy.sdata.eat_spchar(dpath, fname)
+                    cw.cwpy.sdata.eat_spchar(dpath, fname, can_loaded_scaledimage)
 
         try:
             # カードイベント開始

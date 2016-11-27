@@ -1153,30 +1153,34 @@ class MenuCard(CWPyCard):
         self.events = cw.event.EventEngine(self._data.getfind("Events"))
 
         is_scenariocard = 0 <= cw.cwpy.areaid and cw.cwpy.is_playingscenario()
-        can_loaded_scaledimage = cw.cwpy.areaid < 0 or cw.cwpy.sdata.can_loaded_scaledimage
+        infos = cw.image.get_imageinfos(self._data.find("Property"), pcnumber=True)
 
         # 通常イメージ。LargeMenuCardはサイズ大のメニューカード作成
         paths = []
-        for info in cw.image.get_imageinfos(self._data.find("Property"), pcnumber=True):
+        can_loaded_scaledimages = []
+        for info in infos:
             if info.path:
                 paths.append(cw.image.ImageInfo(info.path, base=info))
+                can_loaded_scaledimages.append(cw.cwpy.areaid < 0 or cw.cwpy.sdata.can_loaded_scaledimage)
             elif info.pcnumber:
                 # メニューカードにPCの画像を表示(1.30)
                 pcards = cw.cwpy.ydata.party.members
                 pi = info.pcnumber - 1
                 if 0 <= pi and pi < len(pcards):
+                    can_loaded_scaledimage = pcards[pi].getbool(".", "scaledimage", False)
                     for info2 in cw.image.get_imageinfos(pcards[pi].find("Property")):
                         path = info2.path
                         if path:
                             path = cw.util.join_yadodir(path)
                         paths.append(cw.image.ImageInfo(path, info.pcnumber, base=info2, basecardtype="LargeCard"))
+                        can_loaded_scaledimages.append(can_loaded_scaledimage)
 
         if self._data.tag == "LargeMenuCard":
             self._cardimg = cw.image.LargeCardImage(paths, "NORMAL", self.name,
-                                                    can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=is_scenariocard)
+                                                    can_loaded_scaledimage=can_loaded_scaledimages, is_scenariocard=is_scenariocard)
         else:
             self._cardimg = cw.image.CardImage(paths, "NORMAL", self.name,
-                                               can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=is_scenariocard)
+                                               can_loaded_scaledimage=can_loaded_scaledimages, is_scenariocard=is_scenariocard)
 
         self.update_image()
         # pos

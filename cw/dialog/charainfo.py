@@ -520,7 +520,7 @@ class TopPanel(wx.Panel):
                 path = cw.util.join_yadodir(path)
 
             bmp = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
-            bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+            bmp2 = cw.wins(bmp)
 
             if setpos:
                 baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,

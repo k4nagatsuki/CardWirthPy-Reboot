@@ -38,7 +38,7 @@ class AdventurerDataComp(wx.Dialog):
         for info in ccard.imgpaths:
             bmp = cw.util.load_wxbmp(info.path, True, noscale=not can_loaded_scaledimage)
             bmps_noscale.append(bmp)
-            bmp = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+            bmp = cw.wins(bmp)
             bmps.append(bmp)
         self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmps, bmps_noscale, size=cw.wins(cw.SIZE_CARDIMAGE),
                                             infos=ccard.imgpaths, ss=cw.wins)
@@ -1047,7 +1047,7 @@ class NamePage(AdventurerCreaterPage):
         dc.SetClippingRect(wx.Rect(cw.wins(275), cw.wins(130), cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
             bmp = cw.util.load_wxbmp(info.path, True, noscale=False)
-            bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+            bmp2 = cw.wins(bmp)
             cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, cw.wins(275), cw.wins(130), True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea(cw.wins((275, 130)), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
@@ -1325,7 +1325,7 @@ class RelationPage(AdventurerCreaterPage):
         # 父親画像
         if self.father:
             paths = self.father.get_imgpaths()
-            can_loaded_scaledimage = bool(cw.header.GetRootAttribute(self.father.fpath).attrs.get("scaledimage", "False"))
+            can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(self.father.fpath).attrs.get("scaledimage", "False"))
             basecardtype = "LargeCard"
         else:
             path = "Resource/Image/Card/FATHER"
@@ -1339,7 +1339,7 @@ class RelationPage(AdventurerCreaterPage):
             for info in paths:
                 if info.path:
                     bmp = cw.util.load_wxbmp(info.path, True, noscale=not can_loaded_scaledimage)
-                    bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+                    bmp2 = cw.wins(bmp)
                     baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                              basecardtype=basecardtype,
                                                              cardpostype="NotCard")
@@ -1353,7 +1353,7 @@ class RelationPage(AdventurerCreaterPage):
         # 母親画像
         if self.mother:
             paths = self.mother.get_imgpaths()
-            can_loaded_scaledimage = bool(cw.header.GetRootAttribute(self.mother.fpath).attrs.get("scaledimage", "False"))
+            can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(self.mother.fpath).attrs.get("scaledimage", "False"))
             basecardtype = "LargeCard"
         else:
             path = "Resource/Image/Card/MOTHER"
@@ -1872,7 +1872,7 @@ class YadoCreater(wx.Dialog):
         imgdata = self.command0s[index]
         bmp = imgdata[1]
         if not bmp:
-            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], True, noscale=False), cw.SIZE_CARDIMAGE))
+            bmp = cw.wins(cw.util.load_wxbmp(imgdata[0], True, noscale=False))
             imgdata[1] = bmp
         bmph = bmp.GetHeight()
         y = (self._inputareaheight-bmph) / 2
@@ -2223,7 +2223,7 @@ class DesignPanel(AdventurerCreaterPage):
         # 背景
         path = "Table/Bill"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins((cw.util.load_wxbmp(path, noscale=False), cw.SIZE_BILL))
+        bmp = cw.wins(cw.util.load_wxbmp(path, noscale=False))
         dc.DrawBitmap(bmp, 0, 0, False)
 
         # Resident Registration
@@ -2274,7 +2274,7 @@ class DesignPanel(AdventurerCreaterPage):
         dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
             bmp = cw.util.load_wxbmp(info.path, True, noscale=not self.can_loaded_scaledimage)
-            bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+            bmp2 = cw.wins(bmp)
 
             baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                      basecardtype="LargeCard",
