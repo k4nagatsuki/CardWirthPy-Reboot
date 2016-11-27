@@ -875,10 +875,12 @@ def create_scenariolog(sdata, path, recording, logfilepath):
 
     for bgtype, d in cw.cwpy.background.bgs:
         if bgtype == cw.sprite.background.BG_IMAGE:
-            fpath, inusecard, scaledimage, mask, size, pos, flag, visible, layer, cellname = d
+            fpath, inusecard, scaledimage, mask, smoothing, size, pos, flag, visible, layer, cellname = d
             attrs = {"mask": str(mask), "visible": str(visible)}
             if cellname:
                 attrs["cellname"] = cellname
+            if smoothing <> "Default":
+                attrs["smoothing"] = smoothing
             e_bgimg = cw.data.make_element("BgImage", attrs=attrs)
 
             if inusecard:
@@ -948,11 +950,13 @@ def create_scenariolog(sdata, path, recording, logfilepath):
                 e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_PC:
-            pcnumber, expand, size, pos, flag, visible, layer, cellname = d
+            pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible),
                      "expand": str(expand)}
             if cellname:
                 attrs["cellname"] = cellname
+            if smoothing <> "Default":
+                attrs["smoothing"] = smoothing
             e_bgimg = cw.data.make_element("PCCell", attrs=attrs)
 
             e = cw.data.make_element("PCNumber", str(pcnumber))
