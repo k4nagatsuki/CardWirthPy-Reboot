@@ -3169,6 +3169,9 @@ class CWPy(_Singleton, threading.Thread):
             # パーティ解散エリア解除の場合
             if self.areaid == cw.AREA_BREAKUP:
                 self.topgrp.empty() # TODO: layer
+                for i, pcard in enumerate(self.get_pcards()):
+                    pcard.index = i
+                    pcard.layer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, i, 0)
 
             # カード移動操作エリアを解除の場合
             if oldareaid in cw.AREAS_TRADE:
