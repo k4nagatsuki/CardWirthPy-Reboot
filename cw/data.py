@@ -2915,7 +2915,6 @@ class Party(object):
             index = 0
         self.members.insert(index, data)
         pos_noscale = (9 + 95 * index + 9 * index, 285)
-        print pos_noscale
         pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="deal", index=index)
         cw.animation.animate_sprite(pcard, "deal")
 
