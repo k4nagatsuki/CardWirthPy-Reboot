@@ -218,7 +218,7 @@ class BackGround(base.CWPySprite):
                 anime = jpy1.is_animated
                 image = jpy1.get_image()
             else:
-                image = cw.util.load_image(path, mask, isback=True, noscale=not can_loaded_scaledimage)
+                image = cw.util.load_image(path, mask, isback=True, can_loaded_scaledimage=can_loaded_scaledimage)
         except cw.event.EffectBreakError, ex:
             raise ex
         except cw.effectbooster.ScreenRescale, ex:
@@ -909,7 +909,7 @@ class BackGround(base.CWPySprite):
                     #      1.60ではPCイメージとしてそのようなイメージを表示すると、
                     #      マスクされた状態で表示される。従ってマスクの効く・効かないという
                     #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
-                    bmp = cw.util.load_image(path, True, isback=False, noscale=not can_loaded_scaledimage)
+                    bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage)
                     iw, ih = bmp.get_size()
                     scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
                     iw //= scr_scale
@@ -931,7 +931,7 @@ class BackGround(base.CWPySprite):
                 image.fill((0, 0, 0, 0))
 
                 for path, info in paths:
-                    bmp = cw.util.load_image(path, True, isback=False, noscale=not can_loaded_scaledimage)
+                    bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage)
                     iw, ih = bmp.get_size()
                     scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
                     iw //= scr_scale

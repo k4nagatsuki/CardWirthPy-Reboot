@@ -1286,7 +1286,7 @@ class ScenarioHeader(object):
                         bmp = cw.util.load_wxbmp(path, mask=mask, noscale=True)
                         self._wxbmps_noscale.append(bmp)
                         if not cw.UP_WIN == 1:
-                            bmp = cw.util.load_wxbmp(path, mask=mask, noscale=False)
+                            bmp = cw.util.load_wxbmp(path, mask=mask, can_loaded_scaledimage=True)
                         self._wxbmps.append(cw.wins(bmp))
 
         return self._wxbmps, self._wxbmps_noscale

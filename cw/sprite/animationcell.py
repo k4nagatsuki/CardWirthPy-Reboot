@@ -168,7 +168,7 @@ class _AnimationPart(object):
                 key = os.path.normcase(os.path.normpath(os.path.abspath(self.imgpath)))
                 self.image_noscale = self.parent.cache.get(key, None)
                 if not self.image_noscale:
-                    self.image_noscale = cw.util.load_image(self.imgpath, self.mask, noscale=False)
+                    self.image_noscale = cw.util.load_image(self.imgpath, self.mask, can_loaded_scaledimage=True)
                     self.parent.cache[key] = self.image_noscale
                 self.fill_color = None
                 if width == "Original":

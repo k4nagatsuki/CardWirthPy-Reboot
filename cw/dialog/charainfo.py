@@ -519,7 +519,7 @@ class TopPanel(wx.Panel):
             elif not cw.binary.image.path_is_code(path):
                 path = cw.util.join_yadodir(path)
 
-            bmp = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
+            bmp = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
             bmp2 = cw.wins(bmp)
 
             if setpos:

@@ -958,7 +958,7 @@ class YadoSelect(MultiViewSelect):
         # 背景
         path = "Table/Bill"
         path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins(cw.util.load_wxbmp(path, noscale=False))
+        bmp = cw.wins(cw.util.load_wxbmp(path, can_loaded_scaledimage=True))
         bmpw, bmph = bmp.GetSize()
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -979,7 +979,7 @@ class YadoSelect(MultiViewSelect):
             # 宿画像
             path = "Resource/Image/Card/COMMAND0"
             path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
-            bmp = cw.wins(cw.util.load_wxbmp(path, True, noscale=False))
+            bmp = cw.wins(cw.util.load_wxbmp(path, True, can_loaded_scaledimage=True))
             dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(70), True)
             if self.isshortcuts[self.index]:
                 bmp = cw.cwpy.rsrc.dialogs["LINK"]
@@ -1022,7 +1022,7 @@ class YadoSelect(MultiViewSelect):
             if cw.util.exists_mutex(self.list[self.index]):
                 fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING"), cw.M_IMG)
                 if os.path.isfile(fpath):
-                    bmp = cw.wins((cw.util.load_wxbmp(fpath, True, noscale=False), cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
+                    bmp = cw.wins((cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True), cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
                 else:
                     bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
                 w = bmp.GetSize()[0]
@@ -1040,7 +1040,7 @@ class YadoSelect(MultiViewSelect):
                 # 宿画像
                 path = "Resource/Image/Card/COMMAND0"
                 path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
-                bmp = cw.wins(cw.util.load_wxbmp(path, True, noscale=False))
+                bmp = cw.wins(cw.util.load_wxbmp(path, True, can_loaded_scaledimage=True))
                 dc.DrawBitmap(bmp, cw.wins(5)+x, cw.wins(20)+y, True)
                 if self.isshortcuts[index]:
                     bmp = cw.cwpy.rsrc.dialogs["LINK"]
@@ -1098,7 +1098,7 @@ class YadoSelect(MultiViewSelect):
                 if cw.util.exists_mutex(self.list[index]):
                     fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING"), cw.M_IMG)
                     if os.path.isfile(fpath):
-                        bmp = cw.wins((cw.util.load_wxbmp(fpath, True, noscale=False), cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
+                        bmp = cw.wins((cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True), cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
                     else:
                         bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
                     w, h = bmp.GetSize()
@@ -1571,7 +1571,7 @@ class PartySelect(MultiViewSelect):
         # 背景
         path = "Table/Book"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins(cw.util.load_wxbmp(path, noscale=False))
+        bmp = cw.wins(cw.util.load_wxbmp(path, can_loaded_scaledimage=True))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -1588,7 +1588,7 @@ class PartySelect(MultiViewSelect):
             else:
                 path = "Resource/Image/Card/COMMAND0"
                 path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-                bmp_noscale = [cw.util.load_wxbmp(path, True, noscale=False)]
+                bmp_noscale = [cw.util.load_wxbmp(path, True, can_loaded_scaledimage=True)]
                 bmp = [cw.wins(bmp_noscale[0])]
                 imgpaths = [cw.image.ImageInfo(path=path)]
 
@@ -1606,7 +1606,7 @@ class PartySelect(MultiViewSelect):
                     for info in paths:
                         fpath = info.path
                         if os.path.isfile(fpath):
-                            bmp3 = cw.util.load_wxbmp(fpath, True, noscale=not can_loaded_scaledimage)
+                            bmp3 = cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=can_loaded_scaledimage)
                             bmp4 = cw.wins(bmp3)
                             w = bmp4.GetWidth() // 2
                             h = bmp4.GetHeight() // 2
@@ -2515,7 +2515,7 @@ class PlayerSelect(MultiViewSelect):
             return self._bg
         path = "Table/Book"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        self._bg = cw.util.load_wxbmp(path, noscale=False)
+        self._bg = cw.util.load_wxbmp(path, can_loaded_scaledimage=True)
         return self._bg
 
     def draw(self, update=False):
@@ -2556,7 +2556,7 @@ class PlayerSelect(MultiViewSelect):
                 can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
                 for info in header.imgpaths:
                     path = cw.util.join_yadodir(info.path)
-                    bmp = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
+                    bmp = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                     bmp2 = cw.wins(bmp)
 
                     baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
@@ -2623,7 +2623,7 @@ class PlayerSelect(MultiViewSelect):
                     can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
                     for info in header.imgpaths:
                         path = cw.util.join_yadodir(info.path)
-                        bmp = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
+                        bmp = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                         bmp2 = cw.wins(bmp)
                         baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                                  basecardtype="LargeCard",

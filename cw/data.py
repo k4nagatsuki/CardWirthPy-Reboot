@@ -1137,7 +1137,7 @@ class ScenarioData(SystemData):
         if self._r_specialchar.match(fname.lower()):
             def load(dpath, fname):
                 path = cw.util.join_paths(dpath, fname)
-                image = cw.util.load_image(path, True, noscale=not can_loaded_scaledimage)
+                image = cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                 return image, True
             m = self._r_specialchar.match(fname.lower())
             name = "#%s" % (m.group(1))

@@ -1164,7 +1164,7 @@ class CWPy(_Singleton, threading.Thread):
                 fname = cw.util.find_resource(cw.util.join_paths(self.skindir, fname), self.rsrc.ext_img)
 
             if fname:
-                back = cw.util.load_image(fname, noscale=False)
+                back = cw.util.load_image(fname, can_loaded_scaledimage=True)
                 if back.get_width():
                     if self.setting.fullscreenbackgroundtype == 2:
                         back = cw.wins(back)

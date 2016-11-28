@@ -568,12 +568,13 @@ def copy_scaledimagepaths(frompath, topath, can_loaded_scaledimage):
                 fname2 = u"%s.x%d%s" % (tospext[0], scale, tospext[1])
                 shutil.copy2(fname, fname2)
 
-def find_scaledimagepath(path, up_scr, noscale):
+def find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale):
     """ファイル名に".xN"をつけたイメージを探して(ファイル名, スケール値)を返す。
     例えば"file.bmp"に対する"file.x2.bmp"を探す。
     """
     scale = 1
-    if not noscale:
+    path = cw.util.join_paths(path)
+    if not noscale and (can_loaded_scaledimage or path.startswith(cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile/"))):
         scale =  int(math.pow(2, int(math.log(up_scr, 2))))
         spext = os.path.splitext(path)
         while 2 <= scale:
@@ -601,7 +602,8 @@ def find_noscalepath(path):
     return path
 
 
-def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False, noscale=False):
+def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False, can_loaded_scaledimage=True,
+               noscale=False):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -610,7 +612,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
     if cw.cwpy.rsrc:
         path = cw.cwpy.rsrc.get_filepath(path)
 
-    path, up_scr = find_scaledimagepath(path, cw.UP_SCR, noscale)
+    path, up_scr = find_scaledimagepath(path, cw.UP_SCR, can_loaded_scaledimage, noscale)
 
     bmpdepth = 0
     try:
@@ -673,7 +675,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, _ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
-                    r = load_image(path, mask, maskpos, f2, False, isback=isback, noscale=noscale)
+                    r = load_image(path, mask, maskpos, f2, False, isback=isback, can_loaded_scaledimage=can_loaded_scaledimage)
                     f2.close()
                 return r
             except:
@@ -2630,7 +2632,8 @@ def format_title(fmt, d):
 # wx汎用関数
 #-------------------------------------------------------------------------------
 
-def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True, noscale=False):
+def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True, can_loaded_scaledimage=True,
+               noscale=False, up_win=None):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
     if sys.platform <> "win32":
         assert threading.currentThread() <> cw.cwpy
@@ -2640,7 +2643,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
 
-    name, up_scr = find_scaledimagepath(name, cw.UP_WIN, noscale)
+    if up_win is None:
+        up_win = cw.UP_WIN
+    name, up_scr = find_scaledimagepath(name, up_win, can_loaded_scaledimage, noscale)
 
     bmpdepth = 0
     maskcolour = None

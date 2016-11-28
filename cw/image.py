@@ -304,7 +304,7 @@ class CardImage(Image):
                     can_loaded_scaledimage = self.can_loaded_scaledimage[i]
                 else:
                     can_loaded_scaledimage = self.can_loaded_scaledimage
-                subimg = cw.s(cw.util.load_image(path, True, noscale=not can_loaded_scaledimage))
+                subimg = cw.s(cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage))
 
                 baserect = info.calc_basecardposition(subimg.get_size(), noscale=False,
                                                       basecardtype="NormalCard",
@@ -494,7 +494,7 @@ class CardImage(Image):
                     can_loaded_scaledimage = self.can_loaded_scaledimage[i]
                 else:
                     can_loaded_scaledimage = self.can_loaded_scaledimage
-                subimg = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
+                subimg = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                 subimg2 = cw.wins(subimg)
 
                 baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
@@ -699,7 +699,7 @@ class LargeCardImage(CardImage):
                     can_loaded_scaledimage = self.can_loaded_scaledimage[i]
                 else:
                     can_loaded_scaledimage = self.can_loaded_scaledimage
-                subimg = cw.s(cw.util.load_image(path, True, noscale=not can_loaded_scaledimage))
+                subimg = cw.s(cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage))
 
                 baserect = info.calc_basecardposition(subimg.get_size(), noscale=False,
                                                       basecardtype="LargeCard",
@@ -766,7 +766,7 @@ class LargeCardImage(CardImage):
                     can_loaded_scaledimage = self.can_loaded_scaledimage[i]
                 else:
                     can_loaded_scaledimage = self.can_loaded_scaledimage
-                subimg = cw.util.load_wxbmp(path, True, noscale=not can_loaded_scaledimage)
+                subimg = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                 subimg2 = cw.wins(subimg)
 
                 baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
@@ -832,7 +832,7 @@ class CharacterCardImage(CardImage):
             if not cw.binary.image.path_is_code(path) and isinstance(self.ccard, cw.sprite.card.PlayerCard) and\
                     not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
-            self.cardimgs.append(cw.s(cw.util.load_image(path, True, noscale=not self.can_loaded_scaledimage)))
+            self.cardimgs.append(cw.s(cw.util.load_image(path, True, can_loaded_scaledimage=self.can_loaded_scaledimage)))
 
     def set_nameimg(self, name):
         if name:

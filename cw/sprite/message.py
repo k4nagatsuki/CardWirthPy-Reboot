@@ -124,7 +124,7 @@ class MessageWindow(base.CWPySprite):
                         if lpath.startswith(cw.cwpy.yadodir.lower()) or \
                                 lpath.startswith(cw.cwpy.tempdir.lower()):
                             path = cw.util.get_yadofilepath(path)
-                    talker_image_noscale = cw.util.load_image(path, True, noscale=not can_loaded_scaledimage)
+                    talker_image_noscale = cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
 
                 if talker_image_noscale and talker_image_noscale.get_width():
                     self.talker_image.append((cw.s(talker_image_noscale), info))

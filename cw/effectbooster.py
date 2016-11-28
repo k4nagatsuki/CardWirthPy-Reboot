@@ -565,7 +565,7 @@ class _JpySubImage(cw.image.Image):
                     cw.cwpy.sdata.resource_cache[cachekey] = (image.copy(), mtime)
                 # その他画像ファイル
                 else:
-                    image = cw.s(cw.util.load_image(path, False, isback=True, noscale=not can_loaded_scaledimage))
+                    image = cw.s(cw.util.load_image(path, False, isback=True, can_loaded_scaledimage=can_loaded_scaledimage))
 
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:
@@ -940,11 +940,8 @@ class JpdcImage(cw.image.Image):
             saveimage_noscale = self.image
             saveimage = None
             if cw.UP_SCR <> 1:
-                if cw.UP_SCR % 1 == 0:
-                    saveimage_noscale = pygame.transform.scale(saveimage_noscale, (w_noscale, h_noscale))
-                    saveimage = self.image
-                else:
-                    saveimage_noscale = cw.image.smoothscale(saveimage_noscale, (w_noscale, h_noscale))
+                saveimage_noscale = cw.image.smoothscale(saveimage_noscale, (w_noscale, h_noscale))
+                saveimage = self.image
 
             path = cw.util.join_paths(os.path.dirname(path), filename)
 
@@ -956,7 +953,8 @@ class JpdcImage(cw.image.Image):
             if cpath1.startswith(cpath2):
                 # シナリオの不変を保つためにScenarioLog内に保存
                 rel = cw.util.relpath(cpath1, cpath2)
-                path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile", rel)
+                temppath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile")
+                path = cw.util.join_paths(temppath, rel)
                 dpath = os.path.dirname(path)
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
@@ -968,9 +966,19 @@ class JpdcImage(cw.image.Image):
                     if os.path.isfile(pathxn):
                         cw.util.remove(pathxn)
                 pygame.image.save(saveimage_noscale, path.encode(encoding))
+
+                if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
+                    inusecard = cw.cwpy.event.get_inusecard()
+                    can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
+                else:
+                    can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
+
                 if saveimage:
                     path = u"%s.x%d%s" % (spext[0], cw.UP_SCR, spext[1])
-                    pygame.image.save(saveimage, path.encode(encoding))
+                    rel2 = cw.util.relpath(path, temppath)
+                    x2path = cw.util.join_paths(cw.cwpy.sdata.scedir, rel2)
+                    if can_loaded_scaledimage or not os.path.isfile(x2path):
+                        pygame.image.save(saveimage, path.encode(encoding))
 
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
