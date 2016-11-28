@@ -1870,7 +1870,10 @@ class Resource(object):
                 return emptyfunc()
 
             if mask:
-                res = func(fpath, mask=mask, can_loaded_scaledimage=True)
+                if ss == cw.ppis and func == cw.util.load_wxbmp:
+                    res = func(fpath, mask=mask, can_loaded_scaledimage=True, up_win=cw.dpi_level)
+                else:
+                    res = func(fpath, mask=mask, can_loaded_scaledimage=True)
             else:
                 res = func(fpath)
 
@@ -2006,7 +2009,7 @@ class Resource(object):
             ss = cw.s
             emptyfunc=empty_image
 
-        def load_image2(fpath, mask=False, can_loaded_scaledimage=False):
+        def load_image2(fpath, mask=False, can_loaded_scaledimage=True):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("LINK", "MONEYY"):
@@ -2054,7 +2057,7 @@ class Resource(object):
             ss = cw.s
             emptyfunc=empty_image
 
-        def load_image2(fpath, mask=False, can_loaded_scaledimage=False):
+        def load_image2(fpath, mask=False, can_loaded_scaledimage=True):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("HOLD", "PENALTY"):
