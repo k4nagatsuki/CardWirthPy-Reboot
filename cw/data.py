@@ -2842,7 +2842,7 @@ class Party(object):
         s.discard("")
         return s
 
-    def has_keycode(self, keycode, skill=True, item=True, beast=True):
+    def has_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
         """指定されたキーコードを所持しているか。"""
         for header in self.backpack:
             if not skill and header.type == "SkillCard":
