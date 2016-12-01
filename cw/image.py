@@ -497,7 +497,7 @@ class CardImage(Image):
                 subimg = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                 subimg2 = cw.wins(subimg)
 
-                baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
+                baserect = info.calc_basecardposition_wx(subimg2.GetSize(), noscale=False,
                                                          basecardtype="NormalCard",
                                                          cardpostype="NormalCard")
 
@@ -769,7 +769,7 @@ class LargeCardImage(CardImage):
                 subimg = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                 subimg2 = cw.wins(subimg)
 
-                baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
+                baserect = info.calc_basecardposition_wx(subimg2.GetSize(), noscale=False,
                                                          basecardtype="LargeCard",
                                                          cardpostype="LargeCard")
 

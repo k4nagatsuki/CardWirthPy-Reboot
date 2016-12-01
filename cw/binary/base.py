@@ -215,17 +215,30 @@ class CWBinaryBase(object):
         return util.repl_escapechar(path)
 
     @staticmethod
-    def import_image(f, imagepath, convertbitmap=True, fullpath=False):
+    def check_imgpath(f, e_imgpath, defpostype):
+        """ImagePath要素のWSNバージョンをチェックする。"""
+        if e_imgpath is None:
+            return
+        assert e_imgpath.tag in ("ImagePath", "Talk"), e_imgpath.tag
+        postype = e_imgpath.getattr(".", "positiontype", "Default")
+        if postype in (defpostype, "Default"):
+            return
+        f.check_wsnversion("2")
+
+    @staticmethod
+    def import_image(f, imagepath, convertbitmap=True, fullpath=False, defpostype="TopLeft"):
         """imagepathの画像を読み込み、バイナリデータとして返す。
         ビットマップ以外であればビットマップに変換する。
         """
         if isinstance(imagepath, cw.data.CWPyElement):
             e = imagepath
             if e.tag == "ImagePath":
+                CWBinaryBase.check_imgpath(f, e, defpostype)
                 imagepath = e.text
             elif e.tag == "ImagePaths":
                 if 1 < len(e):
                     f.check_wsnversion("1")
+                CWBinaryBase.check_imgpath(f, e.find("ImagePath"), defpostype)
                 imagepath = e.gettext("ImagePath", "")
             else:
                 imagepath = ""

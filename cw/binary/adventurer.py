@@ -819,7 +819,7 @@ class AdventurerWithImage(base.CWBinaryBase):
         e = data.find("Property/ImagePaths")
         if e is None:
             e = data.find("Property/ImagePath")
-        f.write_image(base.CWBinaryBase.import_image(f, e))
+        f.write_image(base.CWBinaryBase.import_image(f, e, defpostype="Center"))
         if logdata is None:
             cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
         Adventurer.unconv(f, data, logdata)
@@ -890,7 +890,7 @@ class AdventurerHeader(base.CWBinaryBase):
                     if prop.tag == "Name":
                         name = prop.text
                     elif prop.tag in ("ImagePath", "ImagePaths"):
-                        image = base.CWBinaryBase.import_image(f, prop)
+                        image = base.CWBinaryBase.import_image(f, prop, defpostype="Center")
                     elif prop.tag == "Level":
                         level = int(prop.text)
                     elif prop.tag == "Ability":

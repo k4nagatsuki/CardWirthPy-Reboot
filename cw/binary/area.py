@@ -184,11 +184,13 @@ class MenuCard(base.CWBinaryBase):
                     if prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "ImagePath":
+                        base.CWBinaryBase.check_imgpath(f, prop, "TopLeft")
                         imgpath = base.CWBinaryBase.materialpath(prop.text)
                     elif prop.tag == "ImagePaths":
                         if 1 < len(prop):
                             f.check_wsnversion("1")
                         else:
+                            base.CWBinaryBase.check_imgpath(f, prop.find("ImagePath"), "TopLeft")
                             imgpath2 = prop.gettext("ImagePath", "")
                             if imgpath2:
                                 imgpath = base.CWBinaryBase.materialpath(imgpath2)
