@@ -1906,10 +1906,19 @@ class EffectContent(EventContentBase):
 
         if self.ignite:
             event = cw.cwpy.event.get_event()
+            if cw.cwpy.event.in_inusecardevent:
+                cardversion = cw.cwpy.event.get_inusecard().wsnversion
+            else:
+                cardversion = None
 
         def apply(target):
             unconscious_flag, paralyze_flag = cw.event.get_effecttargetstatus(target, self.eff)
-            if cw.cwpy.sdata.is_wsnversion('2'):
+            if not (not target.is_unconscious() or unconscious_flag):
+                if self.ignite:
+                    target.remove_coupon(u"＠効果対象")
+                return
+
+            if self.ignite:
                 # イベント所持者を示すシステムクーポン(Wsn.2)
                 target.set_coupon(u"＠イベント対象", 0)
             try:
@@ -1919,9 +1928,17 @@ class EffectContent(EventContentBase):
                     if runevent:
                         runevent.run_scenarioevent()
                         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+                            target.remove_coupon(u"＠効果対象")
+                            return
+
+                        tevent.update_targets()
+
+                        if not target.has_coupon(u"＠効果対象"):
                             return
 
                 success = self.eff.apply(target, event=True)
+                if self.ignite:
+                    target.remove_coupon(u"＠効果対象")
 
                 if self.ignite:
                     # 効果イベントで使用イベントを発生させる(Wsn.2)
@@ -1942,22 +1959,79 @@ class EffectContent(EventContentBase):
                         runevent.run_scenarioevent()
 
             finally:
-                target.remove_coupon(u"＠イベント対象")
-
-        # エリアイベント(Wsn.2)
-        if self.ignite:
-            runevent = cw.cwpy.sdata.events.check_keycodes(self.keycodes)
-            if runevent:
-                runevent.run_scenarioevent()
+                if self.ignite:
+                    target.remove_coupon(u"＠イベント対象")
 
         # 対象メンバに効果モーションを適用
         if isinstance(target, list):
-            for member in target:
+            targets = target
+        else:
+            targets = [target]
+
+        if self.ignite:
+            try:
+                # 実行中の効果イベントの"＠効果対象"関係のクーポンをクリアし、
+                # 効果イベントを新しいものに差し替える。
+                # 効果コンテントの処理終了後に状況を復元し、前の効果イベントへ差し戻す。
+                e_effectevent = cw.cwpy.event.get_effectevent()
+                cw.cwpy.event.effectevent = None
+                if e_effectevent:
+                    e_effectevent.update_targets()
+                    e_targets = e_effectevent.targets
+                    e_outoftargets = []
+                    e_eventtarget = None
+                    for t in e_effectevent.coupon_owners:
+                        if t.has_coupon(u"＠効果対象外"):
+                            e_outoftargets.append(t)
+                        if t.has_coupon(u"＠イベント対象"):
+                            e_eventtarget = t
+                        t.remove_coupon(u"＠効果対象")
+                        t.remove_coupon(u"＠効果対象外")
+                        t.remove_coupon(u"＠イベント対象")
+
+                # 効果イベントの差し替え
+                tevent = cw.event.Targeting(None, targets, False)
+                cw.cwpy.event.effectevent = tevent
+
+                tevent.targets_to_coupon()
+
+                # エリアイベント(Wsn.2)
+                runevent = cw.cwpy.sdata.events.check_keycodes(self.keycodes)
+                if runevent:
+                    runevent.run_scenarioevent()
+
+                tevent.waited = True
+
+                # 効果の実行
+                while True:
+                    member = tevent.get_nexttarget()
+                    if member is None:
+                        break
+                    apply(member)
+                    if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+                        break
+
+            finally:
+                if self.ignite:
+                    # 状況を復元して効果イベントを元に戻す
+                    tevent.clear_eventcoupons()
+                    for t in e_targets:
+                        assert t in e_effectevent.coupon_owners
+                        t.set_coupon(u"＠効果対象", 0)
+                    for t in e_outoftargets:
+                        assert t in e_effectevent.coupon_owners
+                        t.set_coupon(u"＠効果対象外", 0)
+                    if e_eventtarget:
+                        assert e_eventtarget in e_effectevent.coupon_owners
+                        e_eventtarget.set_coupon(u"＠イベント対象", 0)
+                    cw.cwpy.event.effectevent = e_effectevent
+
+        else:
+            # イベントが発火しない場合の効果適用処理
+            for member in targets:
                 apply(member)
                 if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                     break
-        else:
-            apply(target)
 
         if cw.cwpy.is_gameover():
             # 効果中断。引き続き
@@ -2496,7 +2570,7 @@ def is_addablecoupon(coupon):
             cardversion = None
         if cw.cwpy.sdata.is_wsnversion('2', cardversion):
             # カードの効果対象を指定する(Wsn.2)
-            cardevent = cw.cwpy.event.get_cardevent()
+            cardevent = cw.cwpy.event.get_effectevent()
             if cardevent and coupon in (u'＠効果対象',):
                 return True
 
@@ -2517,7 +2591,7 @@ class GetCouponContent(GetContent):
 
         if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(scope, False)
-            cardevent = cw.cwpy.event.get_cardevent()
+            cardevent = cw.cwpy.event.get_effectevent()
             targetout = cardevent and cardevent.in_effectmotionloop() and coupon == u"＠効果対象"
 
             for target in targets:
@@ -2876,7 +2950,7 @@ class LoseCouponContent(LoseContent):
 
         if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(scope, False)
-            cardevent = cw.cwpy.event.get_cardevent()
+            cardevent = cw.cwpy.event.get_effectevent()
             targetout = cardevent and cardevent.in_effectmotionloop() and coupon == u"＠効果対象"
 
             for target in targets:

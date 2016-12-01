@@ -1905,9 +1905,9 @@ class Character(object):
 
         if not removed:
             # 効果対象の変更(Wsn.2)
-            cardevent = cw.cwpy.event.get_cardevent()
-            if cardevent and name == u"＠効果対象":
-                cardevent.add_target(self)
+            effectevent = cw.cwpy.event.get_effectevent()
+            if effectevent and name == u"＠効果対象":
+                effectevent.add_target(self)
 
         # 隠蔽クーポンがあるため
         self.adjust_action()
@@ -1957,9 +1957,9 @@ class Character(object):
             self.reversed = False
 
         # 効果対象の変更(Wsn.2)
-        cardevent = cw.cwpy.event.get_cardevent()
-        if cardevent and name == u"＠効果対象":
-            cardevent.remove_target(self)
+        effectevent = cw.cwpy.event.get_effectevent()
+        if effectevent and name == u"＠効果対象":
+            effectevent.remove_target(self)
 
         return True
 

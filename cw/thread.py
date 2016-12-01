@@ -4518,7 +4518,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_runningevent(self):
         return self.event.get_event() or\
-            self.event.get_cardevent() or\
+            self.event.get_effectevent() or\
             pygame.event.peek(USEREVENT) or\
             (self.is_battlestatus() and not (self.battle and self.battle.is_ready())) or\
             self.is_decompressing
