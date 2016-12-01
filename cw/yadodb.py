@@ -717,7 +717,7 @@ class YadoDB(object):
         fpath = cw.util.join_paths(fpath)
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
-        if len(header.imgpaths) == 1:
+        if len(header.imgpaths) == 1 and header.imgpaths[0].postype == "Default":
             imgpath = header.imgpaths[0].path
         elif not header.imgpaths:
             imgpath = ""
@@ -769,7 +769,7 @@ class YadoDB(object):
                 fpath,
                 cardorder,
             ))
-        if 1 < len(header.imgpaths):
+        if header.imgpaths and not (len(header.imgpaths) == 1 and header.imgpaths[0].postype == "Default"):
             s = """
             DELETE FROM cardimage WHERE fpath=?
             """
@@ -964,7 +964,7 @@ class YadoDB(object):
         fpath = cw.util.join_paths(fpath)
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
-        if len(header.imgpaths) == 1:
+        if len(header.imgpaths) == 1 and header.imgpaths[0].postype == "Default":
             imgpath = header.imgpaths[0].path
         elif not header.imgpaths:
             imgpath = ""
@@ -1006,7 +1006,7 @@ class YadoDB(object):
                 fpath,
                 adventurerorder,
             ))
-        if 1 < len(header.imgpaths):
+        if header.imgpaths and not (len(header.imgpaths) == 1 and header.imgpaths[0].postype == "Default"):
             s = """
             DELETE FROM adventurerimage WHERE fpath=?
             """
