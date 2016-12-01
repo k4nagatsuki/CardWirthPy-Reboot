@@ -226,6 +226,13 @@ class CWBinaryBase(object):
         f.check_wsnversion("2")
 
     @staticmethod
+    def check_coupon(f, coupon):
+        """称号名couponがシステムクーポンであればWSNバージョンをチェックする。
+        """
+        if coupon in (u"＠効果対象", u"＠効果対象外", u"＠イベント対象", u"＠使用者"):
+            f.check_wsnversion("2")
+
+    @staticmethod
     def import_image(f, imagepath, convertbitmap=True, fullpath=False, defpostype="TopLeft"):
         """imagepathの画像を読み込み、バイナリデータとして返す。
         ビットマップ以外であればビットマップに変換する。

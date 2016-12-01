@@ -605,6 +605,7 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Branch" and ctype == "Coupon":
+            base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(0)
             f.write_byte(base.CWBinaryBase.unconv_target_scope_coupon(data.get("targets"), f))
@@ -629,6 +630,7 @@ class Content(base.CWBinaryBase):
         elif tag == "Get" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Get" and ctype == "Coupon":
+            base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(int(data.get("value")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
@@ -651,6 +653,7 @@ class Content(base.CWBinaryBase):
         elif tag == "Lose" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Lose" and ctype == "Coupon":
+            base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(0)
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
