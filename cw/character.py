@@ -973,10 +973,7 @@ class Character(object):
             if self.is_alive() and not ishidden and self.status <> "reversed" and self.actiondata and cw.cwpy.is_battlestatus():
                 targets, header, beasts = self.actiondata
                 if header and self.is_active() and not ishidden and self.status <> "reversed":
-                    try:
-                        self.use_card(targets, header)
-                    finally:
-                        self.deck.use(header)
+                    self.use_card(targets, header)
 
     def set_action(self, target, header, beasts=[][:], auto=False):
         """
