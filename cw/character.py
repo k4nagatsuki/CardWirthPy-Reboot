@@ -412,9 +412,14 @@ class Character(object):
 
     def has_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
         """指定されたキーコードを所持しているか。"""
-        if hand and self.is_active() and self.deck and not self.deck.is_throwed():
+        if hand and self.is_active() and self.deck:
             # 戦闘時の手札(Wsn.2)
-            for header in self.deck.hand:
+            if not self.deck.is_throwed():
+                for header in self.deck.hand:
+                    if keycode in header.get_keycodes():
+                        return True
+            if self.actiondata:
+                _targets, header, _beasts = self.actiondata
                 if keycode in header.get_keycodes():
                     return True
         if skill:
