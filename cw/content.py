@@ -1015,7 +1015,7 @@ class BranchCouponContent(BranchContent):
 
         # 選択設定
         if scope <> "Selected":
-            if scope == "Party" and not someone:
+            if scope == "Party" and not someone and flag:
                 # BUG: CardWirthでは称号所持分岐と能力判定分岐で
                 #      「パーティ全員」判定が成功すると選択メンバがいなくなる
                 selectedmember = None
@@ -1361,7 +1361,7 @@ class BranchAbilityContent(BranchContent):
 
         # 選択設定
         if not targetm == "Selected":
-            if self.targetm == "Party" and not self.someone:
+            if self.targetm == "Party" and not self.someone and flag:
                 # BUG: CardWirthでは称号所持分岐と能力判定分岐で
                 #      「パーティ全員」判定が成功すると選択メンバがいなくなる
                 selectedmember = None
