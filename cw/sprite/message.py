@@ -171,7 +171,8 @@ class MessageWindow(base.CWPySprite):
         self._back = self._fore.copy()
 
     def update_scale(self):
-        self.specialchars.reset()
+        if self.specialchars:
+            self.specialchars.reset()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs(init=False)
         self.selections = []
@@ -364,7 +365,7 @@ class MessageWindow(base.CWPySprite):
 
             # 特殊文字
             image2 = None
-            if index in self.spcharinfo:
+            if self.specialchars and index in self.spcharinfo:
                 if r_specialfont.match(chars):
                     specialchars = self.specialchars
                     if chars in specialchars:
@@ -527,6 +528,7 @@ class SelectWindow(MessageWindow):
         self.step_table = {}
         self.talker_image = []
         self.versionhint = None
+        self.specialchars = None
 
         # メッセージの選択結果
         self.result = result
