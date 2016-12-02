@@ -1981,13 +1981,14 @@ class EffectContent(EventContentBase):
                     e_outoftargets = []
                     e_eventtarget = None
                     for t in e_effectevent.coupon_owners:
-                        if t.has_coupon(u"＠効果対象外"):
-                            e_outoftargets.append(t)
-                        if t.has_coupon(u"＠イベント対象"):
-                            e_eventtarget = t
-                        t.remove_coupon(u"＠効果対象")
-                        t.remove_coupon(u"＠効果対象外")
-                        t.remove_coupon(u"＠イベント対象")
+                        if isinstance(t, cw.character.Character):
+                            if t.has_coupon(u"＠効果対象外"):
+                                e_outoftargets.append(t)
+                            if t.has_coupon(u"＠イベント対象"):
+                                e_eventtarget = t
+                            t.remove_coupon(u"＠効果対象")
+                            t.remove_coupon(u"＠効果対象外")
+                            t.remove_coupon(u"＠イベント対象")
 
                 # 効果イベントの差し替え
                 tevent = cw.event.Targeting(None, targets, False)
@@ -2017,13 +2018,16 @@ class EffectContent(EventContentBase):
                     tevent.clear_eventcoupons()
                     for t in e_targets:
                         assert t in e_effectevent.coupon_owners
-                        t.set_coupon(u"＠効果対象", 0)
+                        if isinstance(t, cw.character.Character):
+                            t.set_coupon(u"＠効果対象", 0)
                     for t in e_outoftargets:
                         assert t in e_effectevent.coupon_owners
-                        t.set_coupon(u"＠効果対象外", 0)
+                        if isinstance(t, cw.character.Character):
+                            t.set_coupon(u"＠効果対象外", 0)
                     if e_eventtarget:
                         assert e_eventtarget in e_effectevent.coupon_owners
-                        e_eventtarget.set_coupon(u"＠イベント対象", 0)
+                        if isinstance(e_eventtarget, cw.character.Character):
+                            e_eventtarget.set_coupon(u"＠イベント対象", 0)
                     cw.cwpy.event.effectevent = e_effectevent
 
         else:
