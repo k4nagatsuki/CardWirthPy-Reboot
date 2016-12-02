@@ -14,6 +14,8 @@ class Deck(object):
         self.talon = []
         # 定められた次のドローカード
         self.nextcards = []
+        # 手札が破棄されたか
+        self._throwaway = False
 
     def get_actioncards(self, ccard):
         seq = []
