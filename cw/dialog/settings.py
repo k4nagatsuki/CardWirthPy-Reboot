@@ -1035,7 +1035,7 @@ class ExpandPanel(wx.Panel):
                 self.ch_expanddrawing.Select(i)
             i += 1
             val *= 2
-            if nmax < val*10:
+            if nmax < val*10 and 2 < val:
                 break
         if nmax <= 10:
             self.sl_expand.SetMax(11)
@@ -1049,6 +1049,11 @@ class ExpandPanel(wx.Panel):
 
         if self.ch_expanddrawing.GetSelection() == -1:
             self.ch_expanddrawing.Select(0)
+
+        if nmax < int(2 ** (self.ch_expanddrawing.GetCount()-1)) * 10:
+            self.ch_expanddrawing.SetToolTipString(u"画面解像度を超える描画サイズは、環境によっては\n正常に機能しない可能性があります。")
+        else:
+            self.ch_expanddrawing.SetToolTipString(u"")
 
         self.make_expandinfo()
 
