@@ -412,14 +412,9 @@ class Character(object):
 
     def has_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
         """指定されたキーコードを所持しているか。"""
-        if hand and self.is_active() and self.deck:
+        if hand and self.deck:
             # 戦闘時の手札(Wsn.2)
-            if not self.deck.is_throwed():
-                for header in self.deck.hand:
-                    if keycode in header.get_keycodes():
-                        return True
-            if self.actiondata:
-                _targets, header, _beasts = self.actiondata
+            for header in self.deck.get_hand(self):
                 if keycode in header.get_keycodes():
                     return True
         if skill:
@@ -978,6 +973,7 @@ class Character(object):
             if self.is_alive() and not ishidden and self.status <> "reversed" and self.actiondata and cw.cwpy.is_battlestatus():
                 targets, header, beasts = self.actiondata
                 if header and self.is_active() and not ishidden and self.status <> "reversed":
+                    self.deck.use(header)
                     self.use_card(targets, header)
 
     def set_action(self, target, header, beasts=[][:], auto=False):
@@ -1491,6 +1487,12 @@ class Character(object):
 
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
+        elif self.deck and self.deck.get_used():
+            header = self.deck.get_used()
+        else:
+            header = None
+
+        if header:
             val4 = header.get_enhance_val_used()[enhindex]
             addval(header, val4, True)
 

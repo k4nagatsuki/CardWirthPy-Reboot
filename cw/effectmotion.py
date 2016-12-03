@@ -167,6 +167,11 @@ class Effect(object):
         if not allsuccess:
             if target.actiondata and target.actiondata[1]:
                 header = target.actiondata[1]
+            elif target.deck and target.deck.get_used():
+                header = target.deck.get_used()
+            else:
+                header = None
+            if header:
                 avoid, resist, defense = header.get_enhance_val_used()
                 if (0 <> avoid and self.resisttype == "Avoid") or\
                    (0 <> resist and self.resisttype == "Resist"):
