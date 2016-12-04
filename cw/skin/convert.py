@@ -597,6 +597,13 @@ class Converter(threading.Thread):
                 "itemcard": "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Hint",
                 "beastcard": "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Hint",
             }
+            if ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
+                rsrcmsgs["desc_base_money"] = "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/Hint"
+                rsrcmsgs["desc_party_money"] = "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/Hint"
+            else:
+                rsrcmsgs["desc_base_money"] = "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/VaultPanel/Hint"
+                rsrcmsgs["desc_party_money"] = "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/Hint"
+
             rcdata = {}
             for key, path in rsrcmsgs.iteritems():
                 repls = []
