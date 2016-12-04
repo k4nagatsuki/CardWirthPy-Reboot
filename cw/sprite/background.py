@@ -777,8 +777,9 @@ class BackGround(base.CWPySprite):
         if not anime and ext <> ".jpdc" and pygame.Rect(pos, size).contains(pygame.Rect((0, 0), cw.SIZE_AREA)) and visible and not mask and not flag:
             if image and not image.get_colorkey() and not (image.get_flags() & pygame.locals.SRCALPHA):
                 # 背景を覆ったので非継承の背景を実際に削除する
-                del bgs[:self._inhrt_index]
-                del blitlist[:-1]
+                if 0 < self._inhrt_index:
+                    del bgs[:self._inhrt_index]
+                    del blitlist[:-1]
                 bginhrt = False
                 self._inhrt_index = 0
 
