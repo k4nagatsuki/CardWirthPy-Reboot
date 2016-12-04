@@ -850,7 +850,10 @@ class SkinMessagePanel(wx.Panel):
 
         row = 0
         for e in basemsgs:
-            s = cw.util.encodewrap(e.text)
+            if e.text:
+                s = cw.util.encodewrap(e.text)
+            else:
+                s = u"(空のテキスト)"
             self.grid.SetRowLabelValue(row, s)
             row += 1
 

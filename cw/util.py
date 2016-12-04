@@ -2325,6 +2325,8 @@ def cab_scdir(cab):
 def encodewrap(s):
     """改行コードを\nに置換する。"""
     r = []
+    if not s:
+        return u""
     for c in s:
         if c == '\\':
             r.append("\\\\")
