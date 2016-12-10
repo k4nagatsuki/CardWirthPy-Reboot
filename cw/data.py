@@ -2899,7 +2899,6 @@ class Party(object):
         s = os.path.basename(header.fpath)
         s = cw.util.splitext(s)[0]
         e = self.data.make_element("Member", s)
-        self.data.append("Property/Members", e)
         if not data:
             data = yadoxml2etree(header.fpath)
         pcards = cw.cwpy.get_pcards()
@@ -2914,6 +2913,7 @@ class Party(object):
         else:
             index = 0
         self.members.insert(index, data)
+        self.data.insert("Property/Members", e, index)
         pos_noscale = (9 + 95 * index + 9 * index, 285)
         pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="deal", index=index)
         cw.animation.animate_sprite(pcard, "deal")
