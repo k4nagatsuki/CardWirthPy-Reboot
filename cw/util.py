@@ -2647,7 +2647,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         name = cw.cwpy.rsrc.get_filepath(name)
 
     if up_win is None:
-        up_win = cw.UP_WIN
+        up_win = cw.UP_SCR # ゲーム画面と合わせるため、ダイアログなどでも描画サイズのイメージを使用する
     name, up_scr = find_scaledimagepath(name, up_win, can_loaded_scaledimage, noscale)
 
     bmpdepth = 0

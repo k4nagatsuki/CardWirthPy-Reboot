@@ -1238,6 +1238,7 @@ class ScenarioHeader(object):
         self._wxbmps_noscale = None
         self.skindir = None
         self._up_win = None
+        self._up_scr = None
 
     @property
     def mtime_reversed(self):
@@ -1248,15 +1249,16 @@ class ScenarioHeader(object):
         return "/".join([self.dpath, self.fname])
 
     def get_wxbmps(self, mask=True):
-        if self._wxbmps is None or self.skindir <> cw.cwpy.skindir or self._up_win <> cw.UP_WIN:
+        if self._wxbmps is None or self.skindir <> cw.cwpy.skindir or self._up_win <> cw.UP_WIN or self._up_scr <> cw.UP_SCR:
             self.skindir = cw.cwpy.skindir
             self._up_win = cw.UP_WIN
+            self._up_scr = cw.UP_SCR
             self._wxbmps = []
             self._wxbmps_noscale = []
 
             images = self.images[1]
             imagesx1 = images
-            scale = int(math.pow(2, int(math.log(cw.UP_WIN, 2))))
+            scale = int(math.pow(2, int(math.log(cw.UP_SCR, 2))))
             while 2 <= scale:
                 if scale in self.images:
                     images = self.images[scale]
@@ -1285,7 +1287,7 @@ class ScenarioHeader(object):
                     if path:
                         bmp = cw.util.load_wxbmp(path, mask=mask, noscale=True)
                         self._wxbmps_noscale.append(bmp)
-                        if not cw.UP_WIN == 1:
+                        if not cw.UP_SCR == 1:
                             bmp = cw.util.load_wxbmp(path, mask=mask, can_loaded_scaledimage=True)
                         self._wxbmps.append(cw.wins(bmp))
 
