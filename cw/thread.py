@@ -3172,6 +3172,7 @@ class CWPy(_Singleton, threading.Thread):
                 for i, pcard in enumerate(self.get_pcards()):
                     pcard.index = i
                     pcard.layer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, i, 0)
+                    self.cardgrp.change_layer(pcard, pcard.layer)
 
             # カード移動操作エリアを解除の場合
             if oldareaid in cw.AREAS_TRADE:
