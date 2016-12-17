@@ -631,6 +631,8 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
     if dirtype == -1:
         dirtype = 1
 
+    scedir = cw.cwpy.sdata.scedir
+
     def get_mtype(fpath):
         ext = os.path.splitext(fpath)[1].lower()
         if ext in cw.EXTS_SND:
@@ -644,7 +646,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         if inusecardpath:
             fpath = inusecardpath
         else:
-            fpath = cw.util.get_materialpath(filename, mtype, scedir=dpath, findskin=False)
+            fpath = cw.util.get_materialpath(filename, mtype, findskin=False)
         fpath = cw.cwpy.rsrc.get_filepath(fpath)
         return fpath
 
@@ -652,6 +654,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         if configpath:
             dpath = os.path.dirname(configpath)
             fpath = cw.util.join_paths(dpath, filename)
+            filename = cw.util.relpath(fpath, scedir)
             fpath = find_materialpath(fpath)
         else:
             fpath = u""
@@ -695,6 +698,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
             dpath = os.path.dirname(dpath)
 
         fpath = cw.util.join_paths(dpath, filename)
+        filename = cw.util.relpath(fpath, scedir)
         fpath = find_materialpath(fpath)
         # 指定位置に存在しなかった
         if not os.path.isfile(fpath):
