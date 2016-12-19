@@ -267,6 +267,7 @@ class CharaInfo(object):
                 self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info, basecardtype="LargeCard"))
             self.imgpaths_base = self.imgpaths
             self.can_loaded_scaledimage = pcard.data.getbool(".", "scaledimage", False)
+            self.can_loaded_scaledimage_base = self.can_loaded_scaledimage
             self.level = pcard.level
             self.sex = pcard.get_sex()
             self.age = pcard.get_age()
@@ -323,6 +324,8 @@ class CharaInfo(object):
             self.race = cw.cwpy.setting.unknown_race
             self.imgpaths = []
             self.imgpaths_base = ""
+            self.can_loaded_scaledimage = True
+            self.can_loaded_scaledimage_base = self.can_loaded_scaledimage
             self.level = 1
             self.sex = cw.cwpy.setting.sexcoupons[0]
             self.age = cw.cwpy.setting.periodcoupons[0]
@@ -350,6 +353,7 @@ class CharaInfo(object):
         for values in cw.util.get_facepaths(self.sex, self.age).itervalues():
             faces.extend(values)
         self.imgpaths = [cw.image.ImageInfo(cw.cwpy.dice.choice(faces))] if faces else []
+        self.can_loaded_scaledimage = True
 
         natures = []
         for nature in cw.cwpy.setting.natures:
@@ -470,6 +474,7 @@ class CharaInfo(object):
                      self.type <> self.get_paramtype(pcard)
         updateetc  = self.name <> pcard.name or\
                      self.imgpaths <> self.imgpaths_base or\
+                     self.can_loaded_scaledimage <> self.can_loaded_scaledimage_base or\
                      self.level <> pcard.level
 
         if updatebase:
@@ -627,7 +632,7 @@ class CharaInfo(object):
         if self.name <> pcard.name:
             pcard.set_name(self.name)
 
-        if self.imgpaths <> self.imgpaths_base:
+        if self.imgpaths <> self.imgpaths_base or self.can_loaded_scaledimage <> self.can_loaded_scaledimage_base:
             pcard.set_images(self.imgpaths)
 
         if updatebase or self.level <> pcard.level:
@@ -891,10 +896,12 @@ class CharaRequirementPanel(wx.Panel):
         if self.imgcombo.GetSelection() == 0:
             for info in infos:
                 info.imgpaths = info.imgpaths_base
+                info.can_loaded_scaledimage = info.can_loaded_scaledimage_base
         else:
             fpath = self.imgpathlist[self.imgcombo.GetSelection()-1]
             for info in infos:
                 info.imgpaths = [cw.image.ImageInfo(fpath)]
+                info.can_loaded_scaledimage = True
 
         self._select_image()
 
@@ -914,6 +921,7 @@ class CharaRequirementPanel(wx.Panel):
             infos = self._get_infos()
             for info in infos:
                 info.imgpaths = img
+                info.can_loaded_scaledimage = True
 
     def OnRace(self, event):
         for info in self._get_infos():
@@ -1120,6 +1128,7 @@ class CharaRequirementPanel(wx.Panel):
 
             fpath = cw.cwpy.dice.choice(seq)
             info.imgpaths = [cw.image.ImageInfo(fpath)]
+            info.can_loaded_scaledimage = True
 
             if not info.input_name:
                 for sex in cw.cwpy.setting.sexes:
