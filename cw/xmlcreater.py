@@ -550,6 +550,16 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("WritePlayLog", str(setting.write_playlog))
         element.append(e)
 
+    # ドロップによるシナリオのインストールを可能にする
+    if setting.can_installscenariofromdrop <> setting.can_installscenariofromdrop_init:
+        e = cw.data.make_element("CanInstallScenarioFromDrop", str(setting.can_installscenariofromdrop))
+        element.append(e)
+
+    #  シナリオのインストールに成功したら元ファイルを削除する
+    if setting.delete_sourceafterinstalled <> setting.delete_sourceafterinstalled_init:
+        e = cw.data.make_element("DeleteSourceAfterInstalled", str(setting.delete_sourceafterinstalled))
+        element.append(e)
+
     if writeplayingdata:
         # 一覧表示
         attrs = {}

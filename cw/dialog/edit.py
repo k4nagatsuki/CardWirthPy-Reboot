@@ -1112,8 +1112,15 @@ class InputTextDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.cwpy_debug = False
-        self.SetClientSize(cw.wins((312, 112)))
+        msg = cw.util.txtwrap(msg, mode=6)
         self.msg = msg
+
+        dc = wx.ClientDC(self)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
+        w, h, _lineheight = dc.GetMultiLineTextExtent(self.msg)
+        self._textheight = h
+        self.SetClientSize((max(w + cw.wins(10)*2, cw.wins(312)), cw.wins(97)+h))
+
         self.textctrl = wx.TextCtrl(self, size=(cw.wins(175), -1))
         self.textctrl.SetMaxLength(maxlength)
         self.textctrl.SetValue(text)
@@ -1174,8 +1181,8 @@ class InputTextDialog(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = self.msg
-        w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (csize[0]-w)/2, cw.wins(10))
+        w, h, _lineheight = dc.GetMultiLineTextExtent(self.msg)
+        dc.DrawLabel(self.msg, (0, cw.wins(10), csize[0], h), wx.ALIGN_CENTER)
 
     def _bind(self):
         self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
@@ -1189,7 +1196,7 @@ class InputTextDialog(wx.Dialog):
         csize = self.GetClientSize()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(cw.wins((0, 35)), 0, 0, cw.wins(0))
+        sizer_1.Add((cw.wins(0), cw.wins(20)+self._textheight), 0, 0, cw.wins(0))
         tw = self.textctrl.GetSize()[0]
         if self.addition:
             tw += self.addition.GetSize()[0]

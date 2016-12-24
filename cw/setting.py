@@ -387,6 +387,11 @@ class Setting(object):
         self.show_debuglogdialog = False
         self.write_playlog = False
         self.move_repeat = 250 #移動ボタン押しっぱなしの速度
+        # ドロップによるシナリオのインストールを可能にする
+        # Falseの場合は常に検索結果として表示
+        self.can_installscenariofromdrop = True
+        # シナリオのインストールに成功したら元ファイルを削除する
+        self.delete_sourceafterinstalled = False
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = False
@@ -707,6 +712,11 @@ class Setting(object):
         self.write_playlog = data.getbool("WritePlayLog", self.write_playlog)
         # プレイログのフォーマット
         self.playlogformat = data.gettext("PlayLogFormat", self.playlogformat)
+
+        # ドロップによるシナリオのインストールを可能にする
+        self.can_installscenariofromdrop = data.getbool("CanInstallScenarioFromDrop", self.can_installscenariofromdrop)
+        # シナリオのインストールに成功したら元ファイルを削除する
+        self.delete_sourceafterinstalled = data.getbool("DeleteSourceAfterInstalled", self.delete_sourceafterinstalled)
 
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)

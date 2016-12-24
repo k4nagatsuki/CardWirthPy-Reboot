@@ -13,9 +13,10 @@ import cw
 class Message(wx.Dialog):
     """
     メッセージダイアログ。
-    mode=1だと「はい」「いいえ」。mode=2だと「閉じる」。
+    mode=1は「はい」「いいえ」。mode=2は「閉じる」。
+    mode=3は、choicesに(テキスト, ID, 幅)のtupleまたはlistを指定する事で任意の選択肢を表示する。
     """
-    def __init__(self, parent, name, text, mode=2):
+    def __init__(self, parent, name, text, mode=2, choices=None):
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((355, 120)),
                             style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.cwpy_debug = False
@@ -43,6 +44,13 @@ class Message(wx.Dialog):
             # close
             self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["close"])
             self.buttons = (self.closebtn,)
+        elif self.mode == 3:
+            # 任意
+            self.buttons = []
+            for s, id, width in choices:
+                button = cw.cwpy.rsrc.create_wxbutton(self, id, (width, cw.wins(30)), s)
+                self.buttons.append(button)
+                button.Bind(wx.EVT_BUTTON, self.OnButton)
         else:
             assert False
 
@@ -73,6 +81,12 @@ class Message(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+    def OnButton(self, event):
+        button = event.GetEventObject()
+        self.Close()
+        self.SetReturnCode(button.GetId())
+        event.Skip()
+
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
         # background
@@ -86,21 +100,30 @@ class Message(wx.Dialog):
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
-        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
         csize = self.GetClientSize()
 
         if self.mode == 1:
-            margin = (csize[0] - self.yesbtn.GetSize()[0] * 2) / 3
+            sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+            margin = (csize[0] - self.yesbtn.GetSize()[0] * 2) // 3
             sizer_2.Add(self.yesbtn, 0, wx.LEFT, margin)
             sizer_2.Add(self.nobtn, 0, wx.LEFT|wx.RIGHT, margin)
         elif self.mode == 2:
-            margin = (csize[0] - self.closebtn.GetSize()[0]) / 2
+            sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+            margin = (csize[0] - self.closebtn.GetSize()[0]) // 2
             sizer_2.Add(self.closebtn, 0, wx.LEFT, margin)
+        elif self.mode == 3:
+            sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+            sizer_2.AddStretchSpacer(1)
+            for i, button in enumerate(self.buttons):
+                sizer_2.Add(button, 0, 0, 0)
+                sizer_2.AddStretchSpacer(1)
+
+        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
 
         self.SetSizer(sizer_1)
         self.Layout()
+
 
 class YesNoMessage(Message):
     def __init__(self, parent, name, text):
