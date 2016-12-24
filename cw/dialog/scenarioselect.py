@@ -1176,6 +1176,7 @@ class ScenarioSelect(select.Select):
 
                 def run(self):
                     dstpath = os.path.normcase(os.path.normpath(os.path.abspath(self.dstpath)))
+                    allret = [None]
                     for header in self.headers:
                         if dlg.cancel:
                             break
@@ -1184,7 +1185,39 @@ class ScenarioSelect(select.Select):
                             fpath = header.get_fpath()
                             dst = cw.util.join_paths(self.dstpath, os.path.basename(fpath))
                             if dstpath <> os.path.normcase(os.path.normpath(os.path.abspath(header.dpath))):
-                                dst = cw.util.dupcheck_plus(dst, yado=False)
+                                if os.path.exists(dst):
+                                    s = u"%sはすでに存在します。置換しますか？" % (os.path.basename(dst))
+                                    def func(self):
+                                        choices = (
+                                            (u"置換", wx.ID_YES, cw.wins(80)),
+                                            (u"名前変更", wx.ID_DUPLICATE, cw.wins(80)),
+                                            (u"スキップ", wx.ID_NO, cw.wins(80)),
+                                            (u"中止", wx.ID_CANCEL, cw.wins(80)),
+                                        )
+                                        dlg2 = message.Message(dlg, cw.cwpy.msgs["message"], s, mode=3, choices=choices)
+                                        cw.cwpy.frame.move_dlg(dlg2)
+                                        ret = dlg2.ShowModal()
+                                        dlg2.Destroy()
+                                        if wx.GetKeyState(wx.WXK_SHIFT):
+                                            allret[0] = ret
+
+                                        return ret
+
+                                    if allret[0] is None:
+                                        ret = cw.cwpy.frame.sync_exec(func, self.outer)
+                                    else:
+                                        ret = allret[0]
+
+                                    if ret == wx.ID_YES:
+                                        cw.util.remove(dst)
+                                    elif ret == wx.ID_DUPLICATE:
+                                        dst = cw.util.dupcheck_plus(dst, yado=False)
+                                    elif ret == wx.ID_NO:
+                                        self.num += 1
+                                        continue
+                                    elif ret == wx.ID_CANCEL:
+                                        break
+
                                 if cw.cwpy.setting.delete_sourceafterinstalled:
                                     shutil.move(fpath, dst)
                                 elif os.path.isfile(fpath):
