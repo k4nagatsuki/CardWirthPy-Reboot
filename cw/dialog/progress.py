@@ -28,7 +28,7 @@ class ProgressDialog(wx.Dialog):
 
         if cancelable:
             self.btn_cncl = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((80, 30)), u"中止")
-            self.SetClientSize((cw.ppis(width_noscale+20), cw.wins(60)+self.btn_cncl.GetBestSize()[1]+cw.wins(4)))
+            self.SetClientSize((cw.wins(width_noscale+20), cw.wins(60)+self.btn_cncl.GetBestSize()[1]+cw.wins(4)))
         else:
             self.btn_cncl = None
 
@@ -72,10 +72,10 @@ class ProgressDialog(wx.Dialog):
         sizer_1.Add(self.gauge, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.wins(10))
 
         if self.btn_cncl:
-            sizer_1.Add((0, 24), 0, 0, cw.wins(0))
+            sizer_1.Add(cw.wins((0, 24)), 0, 0, cw.wins(0))
             sizer_1.Add(self.btn_cncl, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT, cw.wins(10))
         else:
-            sizer_1.Add((0, 30), 0, 0, cw.wins(0))
+            sizer_1.Add(cw.wins((0, 30)), 0, 0, cw.wins(0))
 
         self.SetSizer(sizer_1)
         self.Layout()
@@ -132,16 +132,16 @@ class SysProgressDialog(wx.Dialog):
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer_1.Add((0, 10), 0, 0, cw.ppis(0))
+        sizer_1.Add(cw.ppis((0, 10)), 0, 0, cw.ppis(0))
         sizer_1.Add(self.gauge, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.ppis(10))
-        sizer_1.Add((0, 4), 0, 0, cw.ppis(0))
+        sizer_1.Add(cw.ppis((0, 4)), 0, 0, cw.ppis(0))
         sizer_1.Add(self.message, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.ppis(10))
 
         if self.btn_cncl:
-            sizer_1.Add((0, 5), 0, 0, cw.ppis(0))
+            sizer_1.Add(cw.ppis((0, 5)), 0, 0, cw.ppis(0))
             sizer_1.Add(self.btn_cncl, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT, cw.ppis(10))
         else:
-            sizer_1.Add((0, 30), 0, 0, cw.ppis(0))
+            sizer_1.Add(cw.ppis((0, 30)), 0, 0, cw.ppis(0))
 
         self.SetSizer(sizer_1)
         self.Layout()
