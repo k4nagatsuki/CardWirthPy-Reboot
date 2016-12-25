@@ -32,6 +32,7 @@ if sys.platform == "win32":
     import importlib
     pythoncom = importlib.import_module("pythoncom")
     win32shell = importlib.import_module("win32com.shell.shell")
+    import win32com.shell.shellcon
 
 import wx
 import wx.lib.agw.aui.tabart
@@ -1706,35 +1707,46 @@ def remove_temp():
     except:
         pass
 
-def remove(path):
+def remove(path, trashbox=False):
     if os.path.isfile(path):
-        remove_file(path)
+        remove_file(path, trashbox=trashbox)
     elif os.path.isdir(path):
         if join_paths(path).lower().startswith("data/temp/"):
             # Tempフォルダは、フォルダの内容さえ消えていれば
             # 空フォルダが残っていてもほとんど無害
             try:
-                remove_treefiles(path)
-                remove_tree(path, noretry=True)
+                remove_treefiles(path, trashbox=trashbox)
+                remove_tree(path, noretry=True, trashbox=trashbox)
             except:
                 # まれにフォルダ削除に失敗する環境がある
                 #print_ex(file=sys.stderr)
                 print_ex()
-                remove_treefiles(path)
+                remove_treefiles(path, trashbox=trashbox)
         else:
-            remove_treefiles(path)
-            remove_tree(path)
+            if trashbox:
+                try:
+                    remove_tree(path, trashbox=trashbox)
+                except:
+                    print_ex()
+                    remove_treefiles(path, trashbox=trashbox)
+                    remove_tree(path, trashbox=trashbox)
+            else:
+                remove_treefiles(path, trashbox=trashbox)
+                remove_tree(path, trashbox=trashbox)
 
-def remove_file(path, retry=0):
+def remove_file(path, retry=0, trashbox=False):
     try:
-        os.remove(path)
+        if trashbox:
+            send_trashbox(path)
+        else:
+            os.remove(path)
     except WindowsError, err:
         if err.errno == 13 and retry < 5:
             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
-            remove_file(path, retry + 1)
+            remove_file(path, retry + 1, trashbox=trashbox)
         elif retry < 5:
             time.sleep(1)
-            remove_tree(path, retry + 1)
+            remove_tree(path, retry + 1, trashbox=trashbox)
         else:
             raise err
 
@@ -1742,9 +1754,12 @@ def add_winauth(file):
     if os.path.isfile(file) and sys.platform == "win32":
         os.chmod(file, stat.S_IWRITE|stat.S_IREAD)
 
-def remove_tree(treepath, retry=0, noretry=False):
+def remove_tree(treepath, retry=0, noretry=False, trashbox=False):
     try:
-        shutil.rmtree(treepath)
+        if trashbox:
+            send_trashbox(treepath)
+        else:
+            shutil.rmtree(treepath)
     except WindowsError, err:
         if err.errno == 13 and retry < 5 and not noretry:
             for dpath, dnames, fnames in os.walk(treepath):
@@ -1755,7 +1770,7 @@ def remove_tree(treepath, retry=0, noretry=False):
                             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
                         except WindowsError, err:
                             time.sleep(1)
-                            remove_tree2(treepath)
+                            remove_tree2(treepath, trashbox=trashbox)
                             return
 
                 for fname in fnames:
@@ -1765,17 +1780,17 @@ def remove_tree(treepath, retry=0, noretry=False):
                             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
                         except WindowsError, err:
                             time.sleep(1)
-                            remove_tree2(treepath)
+                            remove_tree2(treepath, trashbox=trashbox)
                             return
 
-            remove_tree(treepath, retry + 1)
+            remove_tree(treepath, retry + 1, trashbox=trashbox)
         elif retry < 5 and not noretry:
             time.sleep(1)
-            remove_tree(treepath, retry + 1)
+            remove_tree(treepath, retry + 1, trashbox=trashbox)
         else:
-            remove_tree2(treepath)
+            remove_tree2(treepath, trashbox=trashbox)
 
-def remove_tree2(treepath):
+def remove_tree2(treepath, trashbox=False):
     # shutil.rmtree()で権限付与時にエラーになる事があるので
     # 削除方法を変えてみる
     for dpath, dnames, fnames in os.walk(treepath, topdown=False):
@@ -1786,10 +1801,13 @@ def remove_tree2(treepath):
         for fname in fnames:
             path = join_paths(dpath, fname)
             if os.path.isfile(path):
-                os.remove(path)
+                if trashbox:
+                    send_trashbox(path)
+                else:
+                    os.remove(path)
     os.rmdir(treepath)
 
-def remove_treefiles(treepath):
+def remove_treefiles(treepath, trashbox=False):
     # remove_tree2()でもたまにエラーになる環境があるらしいので、
     # せめてディレクトリだけでなくファイルだけでも削除を試みる
     for dpath, dnames, fnames in os.walk(treepath, topdown=False):
@@ -1797,16 +1815,19 @@ def remove_treefiles(treepath):
             path = join_paths(dpath, fname)
             if os.path.isfile(path):
                 add_winauth(path)
-                os.remove(path)
+                if trashbox:
+                    send_trashbox(path)
+                else:
+                    os.remove(path)
 
-def rename_file(path, dstpath):
+def rename_file(path, dstpath, trashbox=False):
     """pathをdstpathへ移動する。
     すでにdstpathがある場合は上書きされる。
     """
     if not os.path.isdir(os.path.dirname(dstpath)):
         os.makedirs(os.path.dirname(dstpath))
     if os.path.isfile(dstpath):
-        remove_file(dstpath)
+        remove_file(dstpath, trashbox=trashbox)
     try:
         shutil.move(path, dstpath)
     except OSError:
@@ -1819,7 +1840,24 @@ def rename_file(path, dstpath):
                 f2.flush()
                 f2.close()
             f1.close()
-        remove_file(path)
+        remove_file(path, trashbox=trashbox)
+
+def send_trashbox(path):
+    """
+    可能であればpathをゴミ箱へ送る。
+    """
+    if sys.platform == "win32":
+        path = os.path.normpath(os.path.abspath(path))
+        ope = win32com.shell.shellcon.FO_DELETE
+        flags = win32com.shell.shellcon.FOF_NOCONFIRMATION |\
+                win32com.shell.shellcon.FOF_ALLOWUNDO |\
+                win32com.shell.shellcon.FOF_SILENT
+        win32com.shell.shell.SHFileOperation((None, ope, path + '\0\0', None, flags, None, None))
+    elif os.path.isfile(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)
+
 
 #-------------------------------------------------------------------------------
 #　ZIPファイル関連

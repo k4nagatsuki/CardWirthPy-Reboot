@@ -1147,6 +1147,8 @@ class ScenarioSelect(select.Select):
             else:
                 dpath = sel
                 seldname = os.path.basename(sel)
+        else:
+            seldname = u""
 
         cw.cwpy.play_sound("signal")
         if sys.platform == "win32" and os.path.isfile(dpath) and os.path.splitext(dpath)[1].lower() == ".lnk":
@@ -1275,7 +1277,7 @@ class ScenarioSelect(select.Select):
                             if os.path.normcase(os.path.normpath(os.path.abspath(fpath))) <>\
                                     os.path.normcase(os.path.normpath(os.path.abspath(dst))):
                                 if rmpath:
-                                    cw.util.remove(rmpath)
+                                    cw.util.remove(rmpath, trashbox=True)
                                 if cw.cwpy.setting.delete_sourceafterinstalled:
                                     shutil.move(fpath, dst)
                                 elif os.path.isfile(fpath):
