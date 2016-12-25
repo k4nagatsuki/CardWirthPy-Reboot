@@ -875,7 +875,7 @@ class YadoSelect(MultiViewSelect):
                     if self.isshortcuts[self.index]:
                         cw.util.remove(self.isshortcuts[self.index])
                     else:
-                        cw.util.remove(path)
+                        cw.util.remove(path, trashbox=True)
                     if not self.classic[self.index]:
                         cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
                     cw.cwpy.play_sound("dump")
