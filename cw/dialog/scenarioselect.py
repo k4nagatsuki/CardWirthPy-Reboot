@@ -928,7 +928,6 @@ class ScenarioSelect(select.Select):
 
         selfullpath = False
         if not exists_spaths:
-            # 経路をたどれないがフルパスがある場合(検索結果として表示)
             headers = []
             if findresults:
                 for fpath in findresults:
@@ -1128,6 +1127,11 @@ class ScenarioSelect(select.Select):
         self.enable_btn()
 
     def _install_scenario(self, headers):
+        """
+        headersを選択中のディレクトリにインストールする。
+        シナリオDB内に同じ名前・作者のシナリオがあった場合は
+        プレイヤーへの問い合わせの上で置換する。
+        """
         if not headers:
             return
 
@@ -1171,6 +1175,7 @@ class ScenarioSelect(select.Select):
 
         elif ret == wx.ID_YES:
 
+            # インストール済みの情報が見つかったシナリオ
             db_exists = {}
 
             for header in headers:
@@ -1181,13 +1186,13 @@ class ScenarioSelect(select.Select):
 
             if db_exists:
                 if 1 < len(db_exists):
-                    s = u"%s本のシナリオがすでにインストール済みです。\n以前インストールしたシナリオを上書きしますか？" % (len(db_exists))
+                    s = u"%s本のシナリオがすでにインストール済みです。\n以前インストールしたシナリオを置換しますか？" % (len(db_exists))
                 else:
                     header2 = list(db_exists.itervalues())[0]
                     sname = header2.name if header2.name else u"(無名のシナリオ)"
                     if header2.author:
                         sname += u"(%s)" % header2.author
-                    s = u"インストール済みの「%s」がシナリオデータベース上に見つかりました。\n以前インストールしたシナリオを上書きしますか？" % (sname)
+                    s = u"インストール済みの「%s」がシナリオデータベース上に見つかりました。\n以前インストールしたシナリオを置換しますか？" % (sname)
                 dlg = message.YesNoCancelMessage(self, cw.cwpy.msgs["message"], s)
                 cw.cwpy.frame.move_dlg(dlg)
                 ret = dlg.ShowModal()
@@ -1227,7 +1232,7 @@ class ScenarioSelect(select.Select):
                             header2 = self.db_exists.get(fpath, None)
                             rmpath = u""
                             if header2:
-                                # DBに登録されている既存のシナリオを上書き
+                                # DBに登録されている既存のシナリオを置換
                                 dst = cw.util.join_paths(header2.dpath, os.path.basename(fpath))
                                 rmpath = header2.get_fpath()
                             else:

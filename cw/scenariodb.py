@@ -825,7 +825,11 @@ class Scenariodb(object):
         return self.sort_headers(seq)
 
     @synclock(_lock)
-    def find_scenario(self, name, author, skintype, ignore_dpath, ignore_fname):
+    def find_scenario(self, name, author, skintype, ignore_dpath=None, ignore_fname=None):
+        """
+        シナリオ名と作者名からシナリオDBを検索する。
+        ただしファイルパスがignore_dpathとignore_fnameにマッチするシナリオは無視する。
+        """
         self._fetch_from_name(name, author, skintype)
         data = self.cur.fetchall()
         for t in data:
