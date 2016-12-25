@@ -562,9 +562,7 @@ class Scenariodb(object):
 
         return self.create_header(data, skintype=skintype)
 
-    def _fetch(self, dpath, fname, skintype):
-        if skintype:
-            s = "SELECT" +\
+    FETCH_SQL = "SELECT" +\
                 "     A.dpath," +\
                 "     A.type," +\
                 "     A.fname," +\
@@ -582,33 +580,33 @@ class Scenariodb(object):
                 "     A.mtime," +\
                 "     A.image," +\
                 "     A.imgpath," +\
-                "     A.wsnversion" +\
+                "     A.wsnversion"
+
+    def _fetch(self, dpath, fname, skintype):
+        if skintype:
+            s = Scenariodb.FETCH_SQL +\
                 " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE A.dpath=? AND A.fname=? AND (B.skintype=? OR B.skintype IS NULL)"
             self.cur.execute(s, (dpath, fname, skintype,))
         else:
-            s = "SELECT" +\
-                "     A.dpath," +\
-                "     A.type," +\
-                "     A.fname," +\
-                "     A.name," +\
-                "     A.author," +\
-                "     A.desc," +\
-                "     A.skintype," +\
-                "     A.levelmin," +\
-                "     A.levelmax," +\
-                "     A.coupons," +\
-                "     A.couponsnum," +\
-                "     A.startid," +\
-                "     A.tags," +\
-                "     A.ctime," +\
-                "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath," +\
-                "     A.wsnversion" +\
+            s = Scenariodb.FETCH_SQL +\
                 " FROM scenariodb A WHERE dpath=? AND fname=?"
             self.cur.execute(s, (dpath, fname,))
+
+    def _fetch_from_name(self, name, author, skintype):
+        if skintype:
+            s = Scenariodb.FETCH_SQL +\
+                " FROM scenariodb A LEFT JOIN scenariotype B" +\
+                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
+                " WHERE A.name=? AND A.author=? AND (B.skintype=? OR B.skintype IS NULL)" +\
+                " ORDER BY A.mtime DESC, A.dpath, A.fname"
+            self.cur.execute(s, (name, author, skintype,))
+        else:
+            s = Scenariodb.FETCH_SQL +\
+                " FROM scenariodb A WHERE name=? AND author=?" +\
+                " ORDER BY mtime DESC, dpath, fname"
+            self.cur.execute(s, (name, author,))
 
     @synclock(_lock)
     def search_dpath(self, dpath, create=False, skintype=u"", update=True):
@@ -825,6 +823,16 @@ class Scenariodb(object):
                 seq.append(header)
 
         return self.sort_headers(seq)
+
+    @synclock(_lock)
+    def find_scenario(self, name, author, skintype, ignore_dpath, ignore_fname):
+        self._fetch_from_name(name, author, skintype)
+        data = self.cur.fetchall()
+        for t in data:
+            if t["dpath"] == ignore_dpath and t["fname"] == ignore_fname:
+                continue
+            return self.create_header(t, skintype=skintype)
+        return None
 
     @synclock(_lock)
     def commit(self):

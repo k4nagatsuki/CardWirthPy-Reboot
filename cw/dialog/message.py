@@ -129,6 +129,15 @@ class YesNoMessage(Message):
     def __init__(self, parent, name, text):
         Message.__init__(self, parent, name, text, 1)
 
+class YesNoCancelMessage(Message):
+    def __init__(self, parent, name, text):
+        choices = (
+            (u"はい", wx.ID_YES, cw.wins(105)),
+            (u"いいえ", wx.ID_NO, cw.wins(105)),
+            (u"キャンセル", wx.ID_CANCEL, cw.wins(105)),
+        )
+        Message.__init__(self, parent, name, text, 3, choices=choices)
+
 class ErrorMessage(Message):
     def __init__(self, parent, text):
         cw.cwpy.play_sound("error")
