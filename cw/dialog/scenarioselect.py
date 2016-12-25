@@ -1341,8 +1341,8 @@ class ScenarioSelect(select.Select):
                 lastscenariopath = os.path.abspath(thread.firstpath)
                 self._processing = True
                 self.narrow.SetValue(u"")
-                self.set_selected(lastscenario, lastscenariopath, updatetree=True, findresults=thread.paths)
                 self._processing = False
+                self.set_selected(lastscenario, lastscenariopath, updatetree=True, findresults=thread.paths)
 
             return
 
