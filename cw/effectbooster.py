@@ -988,7 +988,7 @@ class JpdcImage(cw.image.Image):
                 # 避けるため、Jpy1のキャッシュを全て取り除く
                 removekeys = []
                 for cachekey in cw.cwpy.sdata.resource_cache.iterkeys():
-                    if isinstance(cachekey, tuple) and len(cachekey) == 4:
+                    if isinstance(cachekey, tuple) and len(cachekey) == 5:
                         if isinstance(cachekey[3], (str, unicode)) and\
                                 os.path.splitext(cachekey[3])[1].lower() == ".jpy1":
                             removekeys.append(cachekey)

@@ -263,7 +263,7 @@ class CardImage(Image):
         return False
 
     def get_image(self):
-        if self._bmp:
+        if self._bmp and not self.is_modifiedfile():
             return self._bmp.copy()
 
         image = self.cardbg.copy()
@@ -454,7 +454,7 @@ class CardImage(Image):
         return pygame.transform.scale(negaimg, size)
 
     def get_wxbmp(self):
-        if self._wxbmp and self._upwin == self._upwinmemo():
+        if self._wxbmp and self._upwin == self._upwinmemo() and not self.is_modifiedfile():
             return cw.util.copy_wxbmp(self._wxbmp)
         self._upwin = self._upwinmemo()
 
