@@ -2,4 +2,5 @@
 <SystemCoupons>
   <SystemCoupon regex="True">\A＠CardWirthPy Version\.(0\.12\.([23]|3b)|1\.[01])\Z</SystemCoupon>
   <SystemCoupon>＠CardWirthPy Version.1.1 Only</SystemCoupon>
+  <SystemCoupon>＠Wsn.2</SystemCoupon>
 </SystemCoupons>
