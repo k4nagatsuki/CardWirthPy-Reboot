@@ -644,7 +644,6 @@ class Frame(wx.Frame):
             cw.cwpy.selectedscenario = header
             cw.cwpy.ydata.party.set_lastscenario(sel, selpath)
             cw.cwpy.change_area(4)
-            cw.cwpy.set_scenario(header, sel, selpath, manualstart=True)
         cw.cwpy.exec_func(func, header, sel, selpath)
 
         # FIXME: linuxでたまに操作不能になる
