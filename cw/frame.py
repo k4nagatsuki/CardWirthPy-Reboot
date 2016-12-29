@@ -640,13 +640,12 @@ class Frame(wx.Frame):
         sel, selpath = dlg.get_selected()
         cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
 
-        def func():
+        def func(header, sel, selpath):
             cw.cwpy.selectedscenario = header
             cw.cwpy.ydata.party.set_lastscenario(sel, selpath)
             cw.cwpy.change_area(4)
-        cw.cwpy.exec_func(func)
-
-        cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath, manualstart=True)
+            cw.cwpy.set_scenario(header, sel, selpath, manualstart=True)
+        cw.cwpy.exec_func(func, header, sel, selpath)
 
         # FIXME: linuxでたまに操作不能になる
         #        Windowsでも環境によって落ちる事がある
