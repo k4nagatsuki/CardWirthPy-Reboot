@@ -1133,9 +1133,9 @@ class Targeting(object):
     def update_targets(self):
         if self._target_updated:
             self.targets = []
-            for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"),
-                                         cw.cwpy.get_mcards("unreversed"),
-                                         cw.cwpy.get_fcards("unreversed")):
+            for ccard in itertools.chain(cw.cwpy.get_pcards(),
+                                         cw.cwpy.get_mcards("visible"),
+                                         cw.cwpy.get_fcards()):
                 if isinstance(ccard, cw.character.Character):
                     if ccard.has_coupon(u"＠効果対象"):
                         self.targets.append(ccard)
