@@ -898,6 +898,8 @@ class CardControl(wx.Dialog):
                     w = dc.GetTextExtent(s)[0]
                     dc.DrawText(s, sx-w, sy)
 
+        self._draw_additionals(dc)
+
         dc.SelectObject(wx.NullBitmap)
         dc = wx.PaintDC(self.toppanel)
         dc.DrawBitmap(basebmp, 0, 0)
@@ -906,6 +908,9 @@ class CardControl(wx.Dialog):
         if self._after_event:
             cw.cwpy.frame.exec_func(self._after_event)
             self._after_event = None
+
+    def _draw_additionals(self, dc):
+        pass
 
     def _show_star(self, header):
         if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "CARDPOCKET"):
@@ -2335,6 +2340,16 @@ class HandView(CardControl):
 
     def get_headers(self):
         return self.list
+
+    def _draw_additionals(self, dc):
+        if self.redeal and self.redeal.IsShown():
+            fh = dc.GetTextExtent("#")[1]
+            fy = (cw.wins(24) - fh) / 2
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
+            s = cw.cwpy.msgs["re_deal_label"]
+            x = self.redeal.GetPosition()[0] - dc.GetTextExtent(s)[0] - cw.wins(2)
+            dc.DrawText(s, x, fy)
+
 
 #-------------------------------------------------------------------------------
 #　カード交換ダイアログ

@@ -747,6 +747,7 @@
     <Message key="desc_party_money"><!-- パーティの所持金です --></Message>
     <Message key="install_scenario">シナリオのインストール</Message>
     <Message key="create_directory">新規フォルダ</Message>
+    <Message key="re_deal_label">カード交換:</Message>
     <!-- 2.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
