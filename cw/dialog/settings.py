@@ -839,8 +839,10 @@ class SkinPanel(wx.Panel):
 
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 try:
-                    self.skins.append(cw.header.GetName(skinpath).name)
-                    self.skindirs.append(name)
+                    prop = cw.header.GetProperty(skinpath)
+                    if prop.attrs.get(None, {}).get("dataVersion") in cw.SUPPORTED_SKIN:
+                        self.skins.append(prop.properties.get("Name", name))
+                        self.skindirs.append(name)
                 except:
                     # エラーのあるスキンは無視
                     cw.util.print_ex()

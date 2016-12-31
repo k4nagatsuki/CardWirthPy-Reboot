@@ -1683,7 +1683,9 @@ class YadoData(object):
 
         # スキン
         self.skindirname = self.environment.gettext("Property/Skin", cw.cwpy.setting.skindirname)
-        if not self.skindirname or not os.path.isfile(cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")):
+        skinpath = cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")
+        if not self.skindirname or not os.path.isfile(skinpath) or \
+                not cw.header.GetProperty(skinpath).attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN:
             self.skindirname = cw.cwpy.setting.skindirname
             e = self.environment.find("Property/Skin")
             if e is None:

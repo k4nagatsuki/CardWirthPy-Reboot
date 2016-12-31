@@ -39,8 +39,13 @@ class SkinConversionDialog(wx.Dialog):
 
         self.conv = cw.skin.convert.Converter(exe)
 
-        if cw.frame.get_skincount() == 0:
-            self.warning = wx.StaticText(self, -1, u"スキンがインストールされていません。\n入手してインストールするか、自動生成を行なってください。")
+        skincount, unknown_ver = cw.frame.get_skincount()
+        if skincount == 0:
+            if unknown_ver:
+                s = u"インストールされているスキンは未知のバージョンです。\n%sをアップデートするか、対応バージョンのスキンをインストールするか、スキンの自動生成を行ってください。" % cw.APP_NAME
+            else:
+                s = u"スキンがインストールされていません。\nスキンを入手してインストールするか、自動生成を行なってください。"
+            self.warning = wx.StaticText(self, -1, s)
             font = self.warning.GetFont()
             font = wx.Font(font.GetPointSize(), font.GetFamily(), font.GetStyle(), wx.BOLD)
             self.warning.SetFont(font)
@@ -230,7 +235,7 @@ class SkinConversionDialog(wx.Dialog):
             self.Destroy()
         else:
             self.successful = True
-            if 1 < cw.frame.get_skincount():
+            if 1 < cw.frame.get_skincount()[0]:
                 s = u"スキンの自動生成に成功しました。生成したスキンに切り替えますか？"
                 if wx.MessageBox(s, u"メッセージ", wx.YES_NO|wx.ICON_QUESTION, self) == wx.YES:
                     self.select_skin = True

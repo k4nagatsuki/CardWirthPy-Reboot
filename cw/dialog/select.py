@@ -1306,6 +1306,8 @@ class YadoSelect(MultiViewSelect):
         classic = []
         isshortcuts = []
 
+        skin_support = {}
+
         if not os.path.exists(u"Yado"):
             os.makedirs(u"Yado")
 
@@ -1323,7 +1325,17 @@ class YadoSelect(MultiViewSelect):
                     skin = prop.properties.get(u"Skin", u"Classic")
                     skin = cw.util.join_paths(u"Data/Skin", skin)
                     skinxml = cw.util.join_paths(skin, u"Skin.xml")
-                    if os.path.isfile(skinxml):
+
+                    if skinxml in skin_support:
+                        supported_skin = skin_support[skinxml]
+                    else:
+                        if not os.path.isfile(skinxml):
+                            supported_skin = False
+                        else:
+                            supported_skin = cw.header.GetProperty(skinxml).attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN
+                        skin_support[skinxml] = supported_skin
+
+                    if supported_skin:
                         skins.append(skin)
                     else:
                         skins.append(cw.cwpy.skindir)

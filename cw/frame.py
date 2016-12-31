@@ -1221,7 +1221,7 @@ class MyApp(wx.App):
         wx.Log.SetLogLevel(wx.LOG_Error)
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
-        skincount = get_skincount()
+        skincount = get_skincount()[0]
         exe = u""
         if len(cw.SKIN_CONV_ARGS) > 0 and cw.SKIN_CONV_ARGS[0].lower().endswith(".exe"):
             exe = cw.SKIN_CONV_ARGS[0]
@@ -1241,7 +1241,7 @@ class MyApp(wx.App):
     def OnCloseSkinDialog(self, event):
         # スキンが1つでもあればそのまま起動する
         self.skindlg.Destroy()
-        skincount = get_skincount()
+        skincount = get_skincount()[0]
 
         if 0 < skincount:
             if self.skindlg.select_skin:
@@ -1291,12 +1291,18 @@ class MyApp(wx.App):
 
 def get_skincount():
     skincount = 0
+    unknown_ver = 0
     if os.path.isdir(u"Data/Skin"):
         for name in os.listdir(u"Data/Skin"):
             skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
-            if os.path.exists(skinpath):
-                skincount += 1
-    return skincount
+            if os.path.isfile(skinpath):
+                prop = cw.header.GetProperty(skinpath)
+                skinversion = prop.attrs.get(None, {}).get(u"dataVersion", "0")
+                if skinversion in cw.SUPPORTED_SKIN:
+                    skincount += 1
+                else:
+                    unknown_ver += 1
+    return skincount, unknown_ver
 
 def main():
     pass
