@@ -732,6 +732,11 @@ class Depth1Surface(pygame.Surface):
         self.bmpdepthis1 = surface.bmpdepthis1 if hasattr(surface, "bmpdepthis1") else (bmpdepth == 1)
         self.scr_scale = scr_scale
 
+    def copy(self):
+        bmp = Depth1Surface(pygame.Surface.copy(self), self.scr_scale)
+        bmp.bmpdepthis1 = self.bmpdepthis1
+        return bmp
+
 def put_number(image, num):
     """アイコンサイズの画像imageの上に
     numの値を表示する。

@@ -40,7 +40,11 @@ class ImageInfo(object):
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
         def getsize(resname):
-            return cw.cwpy.rsrc.cardbgs[resname].get_size()
+            if resname.endswith("_noscale"):
+                resname = resname[0:-len("_noscale")]
+                return cw.setting.SIZE_RESOURCES["CardBg/" + resname]
+            else:
+                return cw.s(cw.setting.SIZE_RESOURCES["CardBg/" + resname])
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
 
     def calc_basecardposition_wx(self, (imgwidth, imgheight), noscale=False, basecardtype=None, cardpostype=None):
@@ -48,7 +52,11 @@ class ImageInfo(object):
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
         def getsize(resname):
-            return cw.cwpy.rsrc.wxcardbgs[resname].GetSize()
+            if resname.endswith("_noscale"):
+                resname = resname[0:-len("_noscale")]
+                return cw.setting.SIZE_RESOURCES["CardBg/" + resname]
+            else:
+                return cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + resname])
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.wins, getsize)
 
     def _calc_basecardposition_impl(self, imgwidth, imgheight, noscale, basecardtype, cardpostype, ss, getsize):
