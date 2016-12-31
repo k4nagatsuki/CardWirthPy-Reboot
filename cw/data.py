@@ -1684,8 +1684,26 @@ class YadoData(object):
         # スキン
         self.skindirname = self.environment.gettext("Property/Skin", cw.cwpy.setting.skindirname)
         skinpath = cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")
-        if not self.skindirname or not os.path.isfile(skinpath) or \
-                not cw.header.GetProperty(skinpath).attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN:
+        if not self.skindirname:
+            # スキン指定無し
+            supported_skin = False
+        elif not os.path.isfile(skinpath):
+            if cw.cwpy.setting.store_skinoneachbase:
+                s = u"スキン「%s」が見つかりません。" % (self.skindirname)
+                cw.cwpy.call_modaldlg("ERROR", text=s)
+            supported_skin = False
+        else:
+            prop = cw.header.GetProperty(skinpath)
+            if prop.attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN:
+                supported_skin = True
+            else:
+                if cw.cwpy.setting.store_skinoneachbase:
+                    skinname = prop.properties.get("Name", self.skindirname)
+                    s = u"「%s」は対応していないバージョンのスキンです。%sをアップデートしてください。" % (skinname, cw.APP_NAME)
+                cw.cwpy.call_modaldlg("ERROR", text=s)
+                supported_skin = False
+
+        if not supported_skin:
             self.skindirname = cw.cwpy.setting.skindirname
             e = self.environment.find("Property/Skin")
             if e is None:
