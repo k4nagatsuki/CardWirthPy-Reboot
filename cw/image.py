@@ -821,13 +821,6 @@ class CharacterCardImage(CardImage):
         self.set_nameimg(self.ccard.name)
         # フォント画像(レベル)
         self.set_levelimg(self.ccard.level)
-        # ライフバー画像
-        guagesize = cw.setting.SIZE_RESOURCES["Status/LIFEGUAGE"]
-        self.lifeimg = pygame.Surface(guagesize).convert()
-        guage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
-        self.lifeguage = guage
-        self.lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
-        self.lifeimg.set_colorkey(guage.get_at((0, 0)), pygame.locals.RLEACCEL)
         # rect
         self.rect = pygame.Rect(cw.s(self._pos_noscale), cw.s((95, 130)))
 
@@ -949,13 +942,29 @@ class CharacterCardImage(CardImage):
                     nameimg = self.nameimg
                 self.image.blit(nameimg, cw.s((5, 5)))
 
-        # ライフ
+        # ライフバー
         if ccard.is_analyzable() and not ccard.is_unconscious():
-            guagesize = cw.setting.SIZE_RESOURCES["Status/LIFEGUAGE"]
-            lifeper = float(ccard.life) / ccard.maxlife
-            self.lifeimg.blit(self.lifebar, (int(lifeper*(guagesize[0]+1) + 0.5) - (guagesize[0]+1), 1))
-            self.lifeimg.blit(self.lifeguage, (0, 0))
-            self.image.blit(cw.s(self.lifeimg), cw.s((8, 110)))
+            def calc_barpos(guage):
+                w, h = guage.get_size()
+                lifeper = float(ccard.life) / ccard.maxlife
+                barpos = (int(lifeper*(w+cw.s(1)) + 0.5) - (w+cw.s(1)), cw.s(1))
+                return barpos
+
+            lifeimg = cw.cwpy.rsrc.statuses["LIFEGUAGE2"]
+            if 1 < lifeimg.get_width():
+                # LIFEGUAGE2は左上をマスク色とし、白色部分にLIFEBARを転写する
+                lifeimg = cw.cwpy.rsrc.statuses["LIFEGUAGE2"].convert_alpha()
+                lifeimg.blit(cw.cwpy.rsrc.statuses["LIFEBAR"], calc_barpos(lifeimg), special_flags=pygame.locals.BLEND_RGBA_MULT)
+            else:
+                # LIFEGUAGEは(5, 5)の位置をマスク色とする。CardWirthのライフバーイメージと互換性がある
+                guage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
+                lifeimg = pygame.Surface(guage.get_size()).convert()
+                lifeimg.set_colorkey(guage.get_at((0, 0)), pygame.locals.RLEACCEL)
+
+                lifeimg.blit(cw.cwpy.rsrc.statuses["LIFEBAR"], calc_barpos(guage))
+                lifeimg.blit(guage, (0, 0))
+
+            self.image.blit(lifeimg, cw.s((8, 110)))
 
         # ステータス画像追加
         self.update_statusimg(ccard)

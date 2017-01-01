@@ -1999,6 +1999,8 @@ class Resource(object):
                 return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage)
             elif key == "LIFEGUAGE":
                 return load_image(fpath, mask=True, maskpos=(5, 5), can_loaded_scaledimage=can_loaded_scaledimage)
+            elif key == "LIFEGUAGE2":
+                return load_image(fpath, mask=True, can_loaded_scaledimage=can_loaded_scaledimage)
             elif key == "LIFEBAR":
                 return load_image(fpath, mask=False, can_loaded_scaledimage=can_loaded_scaledimage)
             else:
