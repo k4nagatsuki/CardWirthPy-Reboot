@@ -604,7 +604,7 @@ def find_noscalepath(path):
 
 
 def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False, can_loaded_scaledimage=True,
-               noscale=False):
+               noscale=False, up_scr=None):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -613,7 +613,9 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
     if cw.cwpy.rsrc:
         path = cw.cwpy.rsrc.get_filepath(path)
 
-    path, up_scr = find_scaledimagepath(path, cw.UP_SCR, can_loaded_scaledimage, noscale)
+    if up_scr is None:
+        up_scr = cw.UP_SCR
+    path, up_scr = find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale)
 
     bmpdepth = 0
     try:
@@ -2679,7 +2681,7 @@ def format_title(fmt, d):
 #-------------------------------------------------------------------------------
 
 def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True, can_loaded_scaledimage=True,
-               noscale=False, up_win=None):
+               noscale=False, up_scr=None):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
     if sys.platform <> "win32":
         assert threading.currentThread() <> cw.cwpy
@@ -2689,9 +2691,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
 
-    if up_win is None:
-        up_win = cw.UP_SCR # ゲーム画面と合わせるため、ダイアログなどでも描画サイズのイメージを使用する
-    name, up_scr = find_scaledimagepath(name, up_win, can_loaded_scaledimage, noscale)
+    if up_scr is None:
+        up_scr = cw.UP_SCR # ゲーム画面と合わせるため、ダイアログなどでも描画サイズのイメージを使用する
+    name, up_scr = find_scaledimagepath(name, up_scr, can_loaded_scaledimage, noscale)
 
     bmpdepth = 0
     maskcolour = None
