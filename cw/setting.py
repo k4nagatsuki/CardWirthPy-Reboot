@@ -2007,7 +2007,7 @@ class Resource(object):
                 return load_image(fpath, mask=False, can_loaded_scaledimage=can_loaded_scaledimage)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
-        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc)
+        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss, emptyfunc=emptyfunc)
 
     def get_dialogs(self, load_image):
         """

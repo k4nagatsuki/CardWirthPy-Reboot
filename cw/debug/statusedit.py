@@ -283,7 +283,7 @@ class StatusEditDialog(wx.Dialog):
         seq = []
         selected = 0
         for i, stdata in enumerate(STATUSES):
-            seq.append((stdata[1], stdata[2]))
+            seq.append((stdata[1], cw.s(stdata[2])))
             if stdata[0] == value:
                 selected = i
 

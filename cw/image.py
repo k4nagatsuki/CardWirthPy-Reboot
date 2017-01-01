@@ -953,7 +953,7 @@ class CharacterCardImage(CardImage):
             lifeimg = cw.cwpy.rsrc.statuses["LIFEGUAGE2"]
             if 1 < lifeimg.get_width():
                 # LIFEGUAGE2は左上をマスク色とし、白色部分にLIFEBARを転写する
-                lifeimg = cw.cwpy.rsrc.statuses["LIFEGUAGE2"].convert_alpha()
+                lifeimg = lifeimg.convert_alpha()
                 lifeimg.blit(cw.cwpy.rsrc.statuses["LIFEBAR"], calc_barpos(lifeimg), special_flags=pygame.locals.BLEND_RGBA_MULT)
             else:
                 # LIFEGUAGEは(5, 5)の位置をマスク色とする。CardWirthのライフバーイメージと互換性がある
