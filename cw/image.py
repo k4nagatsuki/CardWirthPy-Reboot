@@ -950,18 +950,24 @@ class CharacterCardImage(CardImage):
                 barpos = (int(lifeper*(w+cw.s(1)) + 0.5) - (w+cw.s(1)), cw.s(1))
                 return barpos
 
-            lifeimg = cw.cwpy.rsrc.statuses["LIFEGUAGE2"]
-            if 1 < lifeimg.get_width():
-                # LIFEGUAGE2は左上をマスク色とし、白色部分にLIFEBARを転写する
-                lifeimg = lifeimg.convert_alpha()
-                lifeimg.blit(cw.cwpy.rsrc.statuses["LIFEBAR"], calc_barpos(lifeimg), special_flags=pygame.locals.BLEND_RGBA_MULT)
+            guage = cw.cwpy.rsrc.statuses["LIFEGUAGE2"]
+            lifemask = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"]
+            lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
+            if 1 < guage.get_width() and 1 < lifemask.get_width():
+                # LIFEGUAGE2がある場合、LIFEBARの上にLIFEGUAGE2を転写した上で
+                # LIFEGUAGE2_MASKのアルファ値を反映する
+                lifeimg = pygame.Surface(guage.get_size()).convert_alpha()
+                lifeimg.blit(lifebar, calc_barpos(guage))
+                lifeimg.blit(guage, (0, 0))
+                lifemask = lifemask.convert_alpha()
+                lifemask.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_MAX)
+                lifeimg.blit(lifemask, (0, 0), special_flags=pygame.locals.BLEND_RGBA_MULT)
             else:
                 # LIFEGUAGEは(5, 5)の位置をマスク色とする。CardWirthのライフバーイメージと互換性がある
                 guage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
                 lifeimg = pygame.Surface(guage.get_size()).convert()
                 lifeimg.set_colorkey(guage.get_at((0, 0)), pygame.locals.RLEACCEL)
-
-                lifeimg.blit(cw.cwpy.rsrc.statuses["LIFEBAR"], calc_barpos(guage))
+                lifeimg.blit(lifebar, calc_barpos(guage))
                 lifeimg.blit(guage, (0, 0))
 
             self.image.blit(lifeimg, cw.s((8, 110)))
