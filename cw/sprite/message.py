@@ -385,11 +385,9 @@ class MessageWindow(base.CWPySprite):
                             continue
 
                         put_topbottom(y_noscale-1, lineheight_noscale+2)
-                        image2 = charimg.copy()
-                        image2.fill(colour)
-                        image2.blit(charimg, (0, 0))
-                        image2.set_colorkey(image2.get_at((0, 0)), pygame.locals.RLEACCEL)
-                        image2 = cw.s(image2)
+                        image2 = cw.s(charimg)
+                        image2 = image2.convert_alpha()
+                        image2.fill(colour, special_flags=pygame.locals.BLEND_RGBA_MULT)
                         images.append((pos, None, decorate(image2, basecolour=colour), None))
                         pos = pos[0] + cw.s(20), pos[1]
                         skip = True

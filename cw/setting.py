@@ -2177,8 +2177,7 @@ class Resource(object):
         d = ResourceTable("Resource/Image/Font", {}.copy(), empty_image)
         def load(key, name):
             fpath = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)
-            image = cw.util.load_image(fpath, can_loaded_scaledimage=True)
-            image.set_colorkey((255, 255, 255))
+            image = cw.util.load_image(fpath, mask=True, can_loaded_scaledimage=True)
             return image, False
 
         for key, name in ndict.iteritems():
