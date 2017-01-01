@@ -171,10 +171,13 @@ class _AnimationPart(object):
                     self.image_noscale = cw.util.load_image(self.imgpath, self.mask, can_loaded_scaledimage=True)
                     self.parent.cache[key] = self.image_noscale
                 self.fill_color = None
+                scr_scale = self.image_noscale.scr_scale if hasattr(self.image_noscale, "scr_scale") else 1
                 if width == "Original":
                     width = self.image_noscale.get_width() if self.image_noscale.get_width() else self.parent.size_noscale[0]
+                    width //= scr_scale
                 if height == "Original":
                     height = self.image_noscale.get_height() if self.image_noscale.get_height() else self.parent.size_noscale[1]
+                    height //= scr_scale
 
             else:
                 # 塗り潰し
@@ -243,7 +246,12 @@ class _AnimationPart(object):
 
     def update_scale(self):
         if self.image_noscale.get_width():
-            if self.image_noscale.get_size() <> self.size_noscale:
+            w, h = self.image_noscale.get_size()
+            scr_scale = self.image_noscale.scr_scale if hasattr(self.image_noscale, "scr_scale") else 1
+            w //= scr_scale
+            h //= scr_scale
+            size = (w, h)
+            if size <> self.size_noscale:
                 size = cw.s(self.size_noscale)
                 if cw.cwpy.setting.smoothscale_bg and self.imgpath:
                     self._image = cw.image.smoothscale(self.image_noscale, size)
