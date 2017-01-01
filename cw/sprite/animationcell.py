@@ -198,8 +198,7 @@ class _AnimationPart(object):
             self.fill_color = None
             scr_scale = self.image_noscale.scr_scale if hasattr(self.image_noscale, "scr_scale") else 1
             if width == "Original":
-                width = self.image_noscale.get_width() if self.image_noscale.get_width() else self.parent.size_noscale[
-                    0]
+                width = self.image_noscale.get_width() if self.image_noscale.get_width() else self.parent.size_noscale[0]
                 width //= scr_scale
             if height == "Original":
                 height = self.image_noscale.get_height() if self.image_noscale.get_height() else \
