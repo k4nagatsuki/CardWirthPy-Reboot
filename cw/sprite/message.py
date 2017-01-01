@@ -370,19 +370,22 @@ class MessageWindow(base.CWPySprite):
                     specialchars = self.specialchars
                     if chars in specialchars:
                         charimg, userfont = specialchars[chars]
+                        w, h = charimg.get_size()
+                        scr_scale = charimg.scr_scale if hasattr(charimg, "scr_scale") else 1
+                        w //= scr_scale
+                        h //= scr_scale
 
                         if userfont:
                             cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
-                            put_topbottom(y_noscale+1, charimg.get_height())
+                            put_topbottom(y_noscale+1, h)
                             images.append((cpos, None, cw.s(charimg), None))
                             pos = pos[0] + cw.s(20), pos[1]
                             skip = True
                             log_seq.append(orig_chars)
                             continue
 
-                        size = charimg.get_size()
                         put_topbottom(y_noscale-1, lineheight_noscale+2)
-                        image2 = pygame.Surface(size).convert()
+                        image2 = charimg.copy()
                         image2.fill(colour)
                         image2.blit(charimg, (0, 0))
                         image2.set_colorkey(image2.get_at((0, 0)), pygame.locals.RLEACCEL)
