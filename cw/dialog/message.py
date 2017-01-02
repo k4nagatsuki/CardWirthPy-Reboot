@@ -58,6 +58,8 @@ class Message(wx.Dialog):
         self._do_layout()
         # bind
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        for child in self.GetChildren():
+            child.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
         copyid = wx.NewId()

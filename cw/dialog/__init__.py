@@ -6,6 +6,7 @@ import cardinfo
 import cardcontrol
 import select
 import scenarioselect
+import scenarioinstall
 import charainfo
 import text
 import create

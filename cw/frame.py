@@ -451,8 +451,8 @@ class Frame(wx.Frame):
         paths = event.GetFiles()
 
         for path in paths:
+            # スキンの自動生成
             if path.lower().endswith(".exe"):
-                # スキンの自動生成
                 dlg = cw.dialog.skin.SkinConversionDialog(self, path)
                 self.move_dlg(dlg)
                 dlg.ShowModal()
@@ -460,6 +460,23 @@ class Frame(wx.Frame):
                     cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname)
                 dlg.Destroy()
                 break
+        else:
+            # シナリオのインストール
+            db = self._open_scenariodb()
+            if not db:
+                return
+            try:
+                headers = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db, cw.cwpy.setting.skintype)
+                if not headers:
+                    return
+                cw.cwpy.play_sound("signal")
+                scedir = cw.cwpy.setting.get_scedir()
+                dlg = cw.dialog.scenarioinstall.ScenarioInstall(self, db, headers, cw.cwpy.setting.skintype, scedir)
+                self.move_dlg(dlg)
+                dlg.ShowModal()
+                self.kill_dlg(dlg)
+            finally:
+                db.close()
 
     def OnDestroy(self, event):
         if self.debugger:
@@ -614,22 +631,28 @@ class Frame(wx.Frame):
 
         cw.cwpy.exec_func(func)
 
-    def OnSCENARIOSELECT(self, event):
+    def _open_scenariodb(self):
         # Scenariodb更新用のサブスレッドの処理が終わるまで待機
         while not cw.scenariodb.ScenariodbUpdatingThread.is_finished():
             pass
 
+        if not os.path.isdir(u"Scenario"):
+            os.makedirs(u"Scenario")
+
         try:
-            db = cw.scenariodb.Scenariodb()
+            return cw.scenariodb.Scenariodb()
         except:
-            s = (u"データベースへの接続に失敗しました。\n"
+            s = (u"シナリオデータベースへの接続に失敗しました。\n"
                  u"しばらくしてからもう一度やり直してください。")
             event.args = {"text":s, "shutdown":False}
             self.OnERROR(event)
+            return None
+
+    def OnSCENARIOSELECT(self, event):
+        db = self._open_scenariodb()
+        if not db:
             return
 
-        if not os.path.exists(u"Scenario"):
-            os.makedirs(u"Scenario")
         dlg = cw.dialog.scenarioselect.ScenarioSelect(self, db, cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath)
         self.move_dlg(dlg)
 

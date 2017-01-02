@@ -832,8 +832,12 @@ class Scenariodb(object):
         """
         self._fetch_from_name(name, author, skintype)
         data = self.cur.fetchall()
+        ignore_dpath = os.path.normcase(os.path.normpath(os.path.abspath(ignore_dpath)))
+        ignore_fname = os.path.normcase(ignore_fname)
         for t in data:
-            if t["dpath"] == ignore_dpath and t["fname"] == ignore_fname:
+            dpath = os.path.normcase(os.path.normpath(os.path.abspath(t["dpath"])))
+            fname = os.path.normcase(t["fname"])
+            if dpath == ignore_dpath and fname == ignore_fname:
                 continue
             return self.create_header(t, skintype=skintype)
         return None

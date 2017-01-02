@@ -561,6 +561,20 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         element.append(e)
 
     if writeplayingdata:
+        # シナリオのインストール先(スキンタイプ毎)
+        if setting.installed_dir:
+            e = cw.data.make_element("InstalledPaths")
+            for rootdir, dirstack in setting.installed_dir.iteritems():
+                if not os.path.isdir(rootdir):
+                    continue
+                e_path = cw.data.make_element("InstalledPath", attrs={"root": rootdir})
+                for dname in dirstack:
+                    e_dir = cw.data.make_element("Path", dname)
+                    e_path.append(e_dir)
+                e.append(e_path)
+            if len(e):
+                element.append(e)
+
         # 一覧表示
         attrs = {}
         if setting.show_multiplebases or setting.show_multiplebases_init:

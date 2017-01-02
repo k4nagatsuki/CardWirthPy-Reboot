@@ -2600,6 +2600,36 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
 
     return "".join(seq).rstrip()
 
+def wordwrap(s, width, get_width, wrapschars=WRAPS_CHARS):
+    """
+    sをwidthの幅で折り返す。
+    テキストの長さをは計る時にget_width(s)を使用する。
+    """
+    r_wchar = re.compile(wrapschars)
+    lines = []
+    text = u""
+    for i, c in enumerate(s):
+        text2 = text + c
+        if width < get_width(text2):
+            if r_wchar.match(c.lower()):
+                if text:
+                    lines.append(text[:-1])
+                    text = text[-1] + c
+                else:
+                    lines.append(text2)
+                    text = u""
+            else:
+                lines.append(text)
+                text = c
+        else:
+            text = text2
+
+    lines.append(text)
+    return u"\n".join(lines)
+
+assert wordwrap("ABC.DEFG.H,IKLM?", 3, lambda s: len(s), "\\.|,|\\?") == "AB\nC.D\nEF\nG.\nH,I\nKL\nM?"
+
+
 def get_char(s, index):
     try:
         if 0 <= index and index < len(s):

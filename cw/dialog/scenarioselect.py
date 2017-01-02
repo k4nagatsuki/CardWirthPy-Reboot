@@ -16,6 +16,7 @@ import message
 import charainfo
 import text
 import select
+import scenarioinstall
 
 from cw.util import synclock
 
@@ -52,7 +53,7 @@ class ScenarioSelect(select.Select):
         self.db.update(self.nowdir, skintype=cw.cwpy.setting.skintype)
         headers = self.db.search_dpath(self.nowdir, create=True, skintype=cw.cwpy.setting.skintype)
         # nowdirにあるディレクトリリスト
-        dpaths = self.get_dpaths(self.nowdir)
+        dpaths = scenarioinstall.get_dpaths(self.nowdir)
         # nowdirがディレクトリだった場合の内容リスト
         self.names = []
         self.updatenames_thr = None
@@ -716,7 +717,7 @@ class ScenarioSelect(select.Select):
                     p = os.path.basename(path)
 
                 path = cw.util.get_linktarget(path)
-                if self.is_scenario(path):
+                if cw.scenariodb.is_scenario(path):
                     header = self.db.search_path(path, skintype=cw.cwpy.setting.skintype)
                 elif os.path.isdir(path):
                     header = None
@@ -902,7 +903,7 @@ class ScenarioSelect(select.Select):
         if nowdir == self.scedir and self.find_result:
             seq.append(self.find_result)
         seq.extend(self.db.search_dpath(nowdir, skintype=cw.cwpy.setting.skintype))
-        seq.extend(self.get_dpaths(nowdir))
+        seq.extend(scenarioinstall.get_dpaths(nowdir))
         return seq
 
     def set_selected(self, spaths, fullpath, opendir=False, updatetree=False, findresults=[]):
@@ -938,7 +939,7 @@ class ScenarioSelect(select.Select):
             if headers:
                 self._set_findresult(headers, True)
                 selfullpath = True
-            elif self.is_scenario(fullpath):
+            elif cw.scenariodb.is_scenario(fullpath):
                 header = self.db.search_path(fullpath)
                 if header and self.is_showing(header):
                     self._set_findresult([header], True)
@@ -1074,35 +1075,51 @@ class ScenarioSelect(select.Select):
             if headers:
                 self._install_scenario(headers)
 
-    def OnCreateDirBtn(self, event):
-        cw.cwpy.play_sound("signal")
+    def _get_installtarget(self):
         dpath = self.nowdir
         if isinstance(dpath, FindResult):
             dpath = self.scedir
-        s = u"%sに作成する新しいフォルダの名前を入力してください。" % (os.path.basename(dpath))
-        dname = cw.util.join_paths(dpath, u"新規フォルダ")
-        dname = cw.util.dupcheck_plus(dname, yado=False)
-        dname = os.path.basename(dname)
-        dlg = cw.dialog.edit.InputTextDialog(self, u"新規フォルダ",
-                                             msg=s,
-                                             text=dname)
-        self.Parent.move_dlg(dlg)
-        if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.play_sound("harvest")
-            dpath = cw.util.join_paths(dpath, dlg.text)
-            dpath = cw.util.dupcheck_plus(dpath, yado=False)
-            os.makedirs(dpath)
-
-            self._update_saveddirstack()
-            lastscenario, lastscenariopath = self.get_selected()
-            if lastscenario:
-                lastscenario[-1] = os.path.basename(dpath)
+            seldname = u""
+        elif self.list:
+            sel = self.list[self.index]
+            if isinstance(sel, (FindResult, cw.header.ScenarioHeader)):
+                seldname = u""
             else:
-                lastscenario = [os.path.basename(dpath)]
-            lastscenariopath = os.path.abspath(dpath)
-            self.set_selected(lastscenario, lastscenariopath, updatetree=True)
+                dpath = sel
+                seldname = os.path.basename(sel)
+        else:
+            seldname = u""
+        return dpath, seldname
+
+    def _select_installedpaths(self, firstpath, seldname, paths):
+        self._update_saveddirstack()
+        lastscenario, lastscenariopath = self.get_selected()
+        if lastscenario:
+            dpath = cw.util.get_linktarget(self.nowdir)
+            if seldname:
+                lastscenario[-1] = seldname
+                lastscenario.append(os.path.basename(firstpath))
+            else:
+                lastscenario[-1] = os.path.basename(firstpath)
+        else:
+            dpath = cw.util.get_linktarget(self.scedir)
+            if seldname:
+                lastscenario = [seldname, os.path.basename(firstpath)]
+            else:
+                lastscenario = [os.path.basename(firstpath)]
+        lastscenariopath = os.path.abspath(firstpath)
+        self.set_selected(lastscenario, lastscenariopath, updatetree=True, findresults=paths)
+
+    def OnCreateDirBtn(self, event):
+        dpath, seldname = self._get_installtarget()
+
+        dpath = scenarioinstall.create_dir(self, dpath)
+        if dpath:
+            cw.cwpy.play_sound("harvest")
+            self._select_installedpaths(dpath, seldname, [])
 
     def _to_headers(self, paths):
+        scenarioinstall.to_scenarioheaders(paths, self.db, cw.cwpy.setting.skintype)
         headers = []
         for path in paths:
             if os.path.isfile(path) and not os.path.splitext(path)[1].lower() in (".wsn", ".zip", ".lzh", ".cab"):
@@ -1136,19 +1153,7 @@ class ScenarioSelect(select.Select):
             return
 
         # シナリオのインストール
-        dpath = self.nowdir
-        if isinstance(dpath, FindResult):
-            dpath = self.scedir
-            seldname = u""
-        if self.list:
-            sel = self.list[self.index]
-            if isinstance(sel, (FindResult, cw.header.ScenarioHeader)):
-                seldname = u""
-            else:
-                dpath = sel
-                seldname = os.path.basename(sel)
-        else:
-            seldname = u""
+        dpath, seldname = self._get_installtarget()
 
         cw.cwpy.play_sound("signal")
         if sys.platform == "win32" and os.path.isfile(dpath) and os.path.splitext(dpath)[1].lower() == ".lnk":
@@ -1158,7 +1163,10 @@ class ScenarioSelect(select.Select):
         if 1 < len(headers):
             s = u"%s本のシナリオを%sにインストールしますか？" % (len(headers), dname)
         else:
-            s = u"「%s」を%sにインストールしますか？" % (headers[0].name, dname)
+            name = headers[0].name
+            if headers[0].author:
+                name += u"(%s)" % headers[0].author
+            s = u"「%s」を%sにインストールしますか？" % (name, dname)
 
         dpath = cw.util.get_linktarget(dpath)
 
@@ -1176,173 +1184,15 @@ class ScenarioSelect(select.Select):
             return
 
         elif ret == wx.ID_YES:
+            failed, paths, cancelled = scenarioinstall.install_scenario(self, headers, dpath, self.db, cw.cwpy.setting.skintype)
 
-            # インストール済みの情報が見つかったシナリオ
-            db_exists = {}
-
-            for header in headers:
-                header2 = self.db.find_scenario(header.name, header.author, skintype=cw.cwpy.setting.skintype,
-                                                ignore_dpath=header.dpath, ignore_fname=header.fname)
-                if header2:
-                    db_exists[header.get_fpath()] = header2
-
-            if db_exists:
-                if 1 < len(db_exists):
-                    s = u"%s本のシナリオがすでにインストール済みです。\n以前インストールしたシナリオを置換しますか？" % (len(db_exists))
-                else:
-                    header2 = list(db_exists.itervalues())[0]
-                    sname = header2.name if header2.name else u"(無名のシナリオ)"
-                    if header2.author:
-                        sname += u"(%s)" % header2.author
-                    s = u"インストール済みの「%s」がシナリオデータベース上に見つかりました。\n以前インストールしたシナリオを置換しますか？" % (sname)
-                dlg = message.YesNoCancelMessage(self, cw.cwpy.msgs["message"], s)
-                cw.cwpy.frame.move_dlg(dlg)
-                ret = dlg.ShowModal()
-                dlg.Destroy()
-                if ret == wx.ID_CANCEL:
-                    return
-                elif ret <> wx.ID_YES:
-                    db_exists.clear()
-
-            # プログレスダイアログ表示
-            dlg = cw.dialog.progress.ProgressDialog(self, u"シナリオのインストール",
-                                                    "", maximum=len(headers), cancelable=True)
-
-            class InstallThread(threading.Thread):
-                def __init__(self, outer, headers, dstpath, db_exists):
-                    threading.Thread.__init__(self)
-                    self.outer = outer
-                    self.headers = headers
-                    self.dstpath = dstpath
-                    self.db_exists = db_exists
-                    self.num = 0
-                    self.msg = u""
-                    self.firstpath = u""
-                    self.failed = None
-                    self.updates = set()
-                    self.paths = []
-
-                def run(self):
-                    dstpath = os.path.normcase(os.path.normpath(os.path.abspath(self.dstpath)))
-                    allret = [None]
-                    for header in self.headers:
-                        if dlg.cancel:
-                            break
-                        try:
-                            self.msg = u"「%s」をコピーしています..." % (header.name)
-                            fpath = header.get_fpath()
-                            header2 = self.db_exists.get(fpath, None)
-                            rmpath = u""
-                            if header2:
-                                # DBに登録されている既存のシナリオを置換
-                                dst = cw.util.join_paths(header2.dpath, os.path.basename(fpath))
-                                rmpath = header2.get_fpath()
-                            else:
-                                # 指定箇所にインストール
-                                dst = cw.util.join_paths(self.dstpath, os.path.basename(fpath))
-                                if dstpath <> os.path.normcase(os.path.normpath(os.path.abspath(header.dpath))):
-                                    if os.path.exists(dst):
-                                        s = u"%sはすでに存在します。置換しますか？" % (os.path.basename(dst))
-                                        def func(self):
-                                            choices = (
-                                                (u"置換", wx.ID_YES, cw.wins(80)),
-                                                (u"名前変更", wx.ID_DUPLICATE, cw.wins(80)),
-                                                (u"スキップ", wx.ID_NO, cw.wins(80)),
-                                                (u"中止", wx.ID_CANCEL, cw.wins(80)),
-                                            )
-                                            dlg2 = message.Message(dlg, cw.cwpy.msgs["message"], s, mode=3, choices=choices)
-                                            cw.cwpy.frame.move_dlg(dlg2)
-                                            ret = dlg2.ShowModal()
-                                            dlg2.Destroy()
-                                            if wx.GetKeyState(wx.WXK_SHIFT):
-                                                allret[0] = ret
-
-                                            return ret
-
-                                        if allret[0] is None:
-                                            ret = cw.cwpy.frame.sync_exec(func, self.outer)
-                                        else:
-                                            ret = allret[0]
-
-                                        if ret == wx.ID_YES:
-                                            rmpath = dst
-                                        elif ret == wx.ID_NO:
-                                            self.num += 1
-                                            continue
-                                        elif ret == wx.ID_CANCEL:
-                                            break
-                                        else:
-                                            dst = cw.util.dupcheck_plus(dst, yado=False)
-
-                            if os.path.normcase(os.path.normpath(os.path.abspath(fpath))) <>\
-                                    os.path.normcase(os.path.normpath(os.path.abspath(dst))):
-                                if rmpath:
-                                    cw.util.remove(rmpath, trashbox=True)
-                                if cw.cwpy.setting.delete_sourceafterinstalled:
-                                    shutil.move(fpath, dst)
-                                elif os.path.isfile(fpath):
-                                    shutil.copy2(fpath, dst)
-                                else:
-                                    shutil.copytree(fpath, dst)
-
-                            self.updates.add(os.path.dirname(dst))
-
-                            if not self.firstpath:
-                                self.firstpath = dst
-                            self.paths.append(dst)
-                            self.num += 1
-                        except:
-                            cw.util.print_ex(file=sys.stderr)
-                            self.failed = header
-                            break
-
-            thread = InstallThread(self, headers, dpath, db_exists)
-            thread.start()
-
-            def progress():
-                while thread.is_alive():
-                    wx.CallAfter(dlg.Update, thread.num, thread.msg)
-                    time.sleep(0.001)
-                wx.CallAfter(dlg.Destroy)
-
-            thread2 = threading.Thread(target=progress)
-            thread2.start()
-            cw.cwpy.frame.move_dlg(dlg)
-            dlg.ShowModal()
-
-            if thread.failed:
-                s = u"「%s」のインストールに失敗しました。" % (thread.failed.name)
-                dlg = cw.dialog.message.ErrorMessage(self, s)
-                cw.cwpy.frame.move_dlg(dlg)
-                dlg.ShowModal()
-                dlg.Destroy()
-
-            elif thread.firstpath:
+            if paths:
+                firstpath = paths[0]
                 cw.cwpy.play_sound("harvest")
-
-                for dpath in thread.updates:
-                    self.db.update(dpath, skintype=cw.cwpy.setting.skintype)
-
-                self._update_saveddirstack()
-                lastscenario, lastscenariopath = self.get_selected()
-                if lastscenario:
-                    dpath = cw.util.get_linktarget(self.nowdir)
-                    if seldname:
-                        lastscenario[-1] = seldname
-                        lastscenario.append(os.path.basename(thread.firstpath))
-                    else:
-                        lastscenario[-1] = os.path.basename(thread.firstpath)
-                else:
-                    dpath = cw.util.get_linktarget(self.scedir)
-                    if seldname:
-                        lastscenario = [seldname, os.path.basename(thread.firstpath)]
-                    else:
-                        lastscenario = [os.path.basename(thread.firstpath)]
-                lastscenariopath = os.path.abspath(thread.firstpath)
                 self._processing = True
                 self.narrow.SetValue(u"")
                 self._processing = False
-                self.set_selected(lastscenario, lastscenariopath, updatetree=True, findresults=thread.paths)
+                self._select_installedpaths(firstpath, seldname, paths)
 
             return
 
@@ -2725,39 +2575,6 @@ class ScenarioSelect(select.Select):
             name = u"%s (%s)" % (name, author)
         self.SetTitle(name)
 
-    def get_dpaths(self, dpath):
-        """
-        クラシックなシナリオ以外のフォルダの一覧を返す。
-        (ショートカット類も含む)
-        """
-        seq = []
-
-        try:
-            dpath2 = cw.util.get_linktarget(dpath)
-            if os.path.isdir(dpath2):
-                for dname in os.listdir(dpath2):
-                    path = cw.util.join_paths(dpath2, dname)
-                    if self.is_listitem(path) and not self.is_scenario(path):
-                        seq.append(path)
-        except Exception:
-            cw.util.print_ex()
-
-        cw.util.sort_by_attr(seq)
-        return seq
-
-    def is_listitem(self, path):
-        """
-        指定されたパスが選択可能ならTrueを返す。
-        """
-        path = cw.util.get_linktarget(path)
-        return os.path.isdir(path) or self.is_scenario(path)
-
-    def is_scenario(self, path):
-        """
-        指定されたパスがシナリオならTrueを返す。
-        """
-        return cw.scenariodb.is_scenario(path)
-
     def get_texts(self):
         """
         選択中シナリオに同梱されている
@@ -3013,7 +2830,7 @@ class UpdateNamesThread(threading.Thread):
         self.nowdir = nowdir
         self.dpath = dpath
         self.dirstack = dirstack
-        self.dpaths = dlg.get_dpaths(dpath)
+        self.dpaths = scenarioinstall.get_dpaths(dpath)
         self.quit = False
         self.startdir = startdir
         self.expandedset = expandedset
