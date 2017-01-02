@@ -60,6 +60,7 @@ class ScenarioInstall(wx.Dialog):
         self.tree.root = self.tree.AddRoot(name, self.tree.imgidx_dir)
         self.tree.SetItemPyData(self.tree.root, scedir)
         self.tree.SetImageList(self.tree.imglist)
+        self.tree.SelectItem(self.tree.root)
 
         # 前回の選択を復元する
         dirstack = cw.cwpy.setting.installed_dir.get(scedir, [])
@@ -301,20 +302,18 @@ def to_scenarioheaders(paths, db, skintype):
     パスがシナリオか否かの判定にシナリオDBを使用する。
     """
     headers = []
-    def append(path):
-        if cw.scenariodb.is_scenario(path):
-            header = db.search_path(path, skintype=skintype)
-            if header:
-                headers.append(header)
-                return True
-        return False
 
     for path in paths:
-        if not append(path) and os.path.isdir(path):
-            for dpath, dnames, fnames in os.walk(path):
-                for fname in itertools.chain(dnames, fnames):
-                    path2 = cw.util.join_paths(dpath, fname)
-                    append(path2)
+        def recurse(path):
+            if cw.scenariodb.is_scenario(path):
+                header = db.search_path(path, skintype=skintype)
+                if header:
+                    headers.append(header)
+            elif os.path.isdir(path):
+                for fname in os.listdir(path):
+                    recurse(cw.util.join_paths(path, fname))
+
+        recurse(path)
 
     return headers
 
