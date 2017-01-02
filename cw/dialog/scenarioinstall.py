@@ -353,7 +353,7 @@ def install_scenario(parentdialog, headers, dstpath, db, skintype):
     db_exists = {}
 
     for header in headers:
-        header2 = db.find_scenario(header.name, header.author, skintype=cw.cwpy.setting.skintype,
+        header2 = db.find_scenario(header.name, header.author, skintype=skintype,
                                    ignore_dpath=header.dpath, ignore_fname=header.fname)
         if header2:
             db_exists[header.get_fpath()] = header2
