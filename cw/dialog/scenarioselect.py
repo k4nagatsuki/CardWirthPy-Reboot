@@ -2492,6 +2492,12 @@ class ScenarioSelect(select.Select):
             self.leftbtn.Disable()
             self.left2btn.Disable()
             self.SetTitle(cw.cwpy.msgs["select_scenario_title"])
+
+            if self.dirstack and not self.tree.IsShown():
+                self.nobtn.SetLabel(cw.cwpy.msgs["return"])
+            else:
+                self.nobtn.SetLabel(cw.cwpy.msgs["entry_cancel"])
+
             return
 
         self.texts = self.get_texts()
