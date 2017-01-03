@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os
@@ -49,7 +49,7 @@ tempdir_init = u"Data/Temp/Global"
 tempdir = tempdir_init
 
 # アプリケーション情報
-APP_VERSION = (1, "1")
+APP_VERSION = (2, "0 Alpha 1")
 APP_NAME = "CardWirthPy"
 
 # CardWirthの標準文字コード
