@@ -328,13 +328,14 @@ https://bitbucket.org/tachi_gigas/cardwirthpy-reboot-lessor
 Ganma Shadow(@GanmaShadow) は、いくつかの問題の報告を行った他、プレイヤーキャラクターの自動生成機能を提案し、Modern・School・Oedo・Monstersの各スキンタイプ向けに名前のリストを提供しました。
 
 https://bitbucket.org/akkw/cardwirthpy-reboot
- : 暗黒騎士(@akkw) は、バグの報告、CardWirthとの仕様の食い違いの指摘と調査などに加え、それらの問題の解消作業や、荷物袋からのカード使用に関するオプション、ボタンの連続押し機能の実装を行いました。
+ : 暗黒騎士(@akkw) は、スキン「JUDGMENT」の作者です。
+ : バグの報告、CardWirthとの仕様の食い違いの指摘と調査などに加え、それらの問題の解消作業や、荷物袋からのカード使用に関するオプション、ボタンの連続押し機能などの実装を行いました。
  : また、ファンタジーⅠ型やSFバリアント向けの名前のリストの提供も行っています。
 
 ハルキゲニア(@tekitoudesu) は、全てのWsn.2標準効果音の作者です。また、音声再生に関する問題の報告・提案を多数行い、付属のサウンドフォント`TimGM6mb.sf2`の65:AltoSax (TB)のE4のノートに音が設定されていない事を指摘して修正しました。
 
 https://irakat.bitbucket.io/
- : Iraka.T(@IrakaT)は、スキン「BloodWirth」の作者です。
+ : Iraka.T(@IrakaT) は、スキン「BloodWirth」の作者です。
  : CardWirthPy本体に対しても、いくつもの提案やバグ報告を行い、自ら修正も行っています。
 
 http://misica.lv9.org/
