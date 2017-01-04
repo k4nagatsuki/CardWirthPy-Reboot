@@ -1257,12 +1257,18 @@ def zoomcard(image, scale):
     w, h = image.get_size()
     w = int(w * scale)
     h = int(h * scale)
-    return smoothscale(image, (w, h), smoothing=smoothing)
+    return smoothscale(image, (w, h), smoothing=smoothing, iscard=True)
 
-def smoothscale(surface, size, smoothing=True):
+def smoothscale_card(surface, size, smoothing=True):
+    return smoothscale(surface, size, smoothing=smoothing, iscard=True)
+
+def smoothscale(surface, size, smoothing=True, iscard=False):
     """surfaceをリサイズする。
     可能であればスムージングする。
     """
+    if size == surface.get_size():
+        return surface
+
     if surface.get_height() <= 1:
         # FIXME: 環境によって、高さが1の画像に
         #        pygame.transform.smoothscale()を行うと
@@ -1273,9 +1279,28 @@ def smoothscale(surface, size, smoothing=True):
         smoothing = False
 
     if smoothing:
-        if surface.get_bitsize() < 24:
-            surface = surface.convert(24)
-        return pygame.transform.smoothscale(surface, size)
+        w, h = surface.get_size()
+        if iscard and w < size[0] and h < size[1]:
+            # FIXME: pygame.transform.smoothscale()で
+            #        右端・下端が欠けてしまう問題への対処。
+            #        右端・下端を二重化してから拡大・縮小する。
+            #        この処理によって他の問題が出るか、
+            #        pygame.transform.smoothscale()の問題が
+            #        解消された場合は以下の処理を削除する。
+            bmp = pygame.Surface((w+1, h+1)).convert(24)
+            bmp = pygame.transform.scale(surface, (w+1, h+1))
+            bmp.fill((0, 0, 0, 0))
+            bmp.blit(surface, (0, 0))
+            bmp.blit(surface.subsurface((w-1, 0, 1, h)), (w, 0))
+            bmp.blit(surface.subsurface((0, h-1, w, 1)), (h, 0))
+            bmp.set_at((w, h), surface.get_at((w-1, h-1)))
+        else:
+            if surface.get_bitsize() < 24:
+                bmp = surface.convert(24)
+            else:
+                bmp = surface
+
+        return pygame.transform.smoothscale(bmp, size)
     else:
         return pygame.transform.scale(surface, size)
 
