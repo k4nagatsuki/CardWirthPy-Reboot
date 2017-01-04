@@ -1036,7 +1036,7 @@ class CharacterCardImage(CardImage):
         index = 0
         for subimg in seq:
             pos = (x + index / 5 * cw.s(17), y - index * cw.s(17) + index / 5 * cw.s(85))
-            if type(subimg) is pygame.Surface:
+            if isinstance(subimg, pygame.Surface):
                 self.image.blit(subimg, pos)
                 index += 1
             else:
