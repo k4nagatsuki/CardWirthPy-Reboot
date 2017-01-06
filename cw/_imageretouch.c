@@ -19,7 +19,7 @@ intwrap(int i, int min, int max)
     return i;
 }
 
-#define colorwrap(i) intwrap(i, 0, 255)
+#define colorwrap(i) ((i) & 0xff)
 
 static PyObject *
 add_mosaic(PyObject *self, PyObject *args)
@@ -456,7 +456,7 @@ blend_add_1_50(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     Py_ssize_t dlen, slen;
-    int w, h, x, y, dr, dg, db, sr, sg, sb, sa;
+    int w, h, i, dr, dg, db, sr, sg, sb, sa;
     unsigned char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
@@ -469,30 +469,27 @@ blend_add_1_50(PyObject *self, PyObject *args)
 
     PyBytes_AsStringAndSize(string, (char**)&outdata, &dlen);
 
-    for (y = 0; y < h; y++)
+    for (i = 0; i < w * h; i++)
     {
-        for (x = 0; x < w; x++)
-        {
-            dr = (int) dest[0];
-            dg = (int) dest[1];
-            db = (int) dest[2];
-            sr = (int) source[0];
-            sg = (int) source[1];
-            sb = (int) source[2];
-            sa = (int) source[3];
+        dr = (int) dest[0];
+        dg = (int) dest[1];
+        db = (int) dest[2];
+        sr = (int) source[0];
+        sg = (int) source[1];
+        sb = (int) source[2];
+        sa = (int) source[3];
 
-            dr = colorwrap((dr * (255 - sa) >> 8) + (colorwrap(dr + sr) * sa >> 8));
-            dg = colorwrap((dg * (255 - sa) >> 8) + (colorwrap(dg + sg) * sa >> 8));
-            db = colorwrap((db * (255 - sa) >> 8) + (colorwrap(db + sb) * sa >> 8));
+        dr = colorwrap((dr * (255 - sa) >> 8) + (colorwrap(dr + sr) * sa >> 8));
+        dg = colorwrap((dg * (255 - sa) >> 8) + (colorwrap(dg + sg) * sa >> 8));
+        db = colorwrap((db * (255 - sa) >> 8) + (colorwrap(db + sb) * sa >> 8));
 
-            outdata[0] = (char) dr;
-            outdata[1] = (char) dg;
-            outdata[2] = (char) db;
+        outdata[0] = (char) dr;
+        outdata[1] = (char) dg;
+        outdata[2] = (char) db;
 
-            source += 4;
-            dest += 4;
-            outdata += 4;
-        }
+        source += 4;
+        dest += 4;
+        outdata += 4;
     }
     return string;
 }
@@ -506,7 +503,7 @@ blend_sub_1_50(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     Py_ssize_t dlen, slen;
-    int w, h, x, y, dr, dg, db, sr, sg, sb, sa, a, b;
+    int w, h, i, dr, dg, db, sr, sg, sb, sa, a, b;
     unsigned char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
@@ -519,36 +516,33 @@ blend_sub_1_50(PyObject *self, PyObject *args)
 
     PyBytes_AsStringAndSize(string, (char**)&outdata, &dlen);
 
-    for (y = 0; y < h; y++)
+    for (i = 0; i < w * h; i++)
     {
-        for (x = 0; x < w; x++)
-        {
-            dr = (int) dest[0];
-            dg = (int) dest[1];
-            db = (int) dest[2];
-            sr = (int) source[0];
-            sg = (int) source[1];
-            sb = (int) source[2];
-            sa = (int) source[3];
+        dr = (int) dest[0];
+        dg = (int) dest[1];
+        db = (int) dest[2];
+        sr = (int) source[0];
+        sg = (int) source[1];
+        sb = (int) source[2];
+        sa = (int) source[3];
 
-            a = colorwrap(dr * (255 - sa) >> 8);
-            b = colorwrap(dr - (sr * sa >> 8));
-            dr = max(a, b);
-            a = colorwrap(dg * (255 - sa) >> 8);
-            b = colorwrap(dg - (sg * sa >> 8));
-            dg = max(a, b);
-            a = colorwrap(db * (255 - sa) >> 8);
-            b = colorwrap(db - (sb * sa >> 8));
-            db = max(a, b);
+        a = colorwrap(dr * (255 - sa) >> 8);
+        b = colorwrap(dr - (sr * sa >> 8));
+        dr = max(a, b);
+        a = colorwrap(dg * (255 - sa) >> 8);
+        b = colorwrap(dg - (sg * sa >> 8));
+        dg = max(a, b);
+        a = colorwrap(db * (255 - sa) >> 8);
+        b = colorwrap(db - (sb * sa >> 8));
+        db = max(a, b);
 
-            outdata[0] = (char) dr;
-            outdata[1] = (char) dg;
-            outdata[2] = (char) db;
+        outdata[0] = (char) dr;
+        outdata[1] = (char) dg;
+        outdata[2] = (char) db;
 
-            source += 4;
-            dest += 4;
-            outdata += 4;
-        }
+        source += 4;
+        dest += 4;
+        outdata += 4;
     }
     return string;
 }
@@ -558,7 +552,7 @@ blend_mult_1_50(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     Py_ssize_t dlen, slen;
-    int w, h, x, y, dr, dg, db, sr, sg, sb, sa;
+    int w, h, i, dr, dg, db, sr, sg, sb, sa;
     unsigned char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
@@ -571,36 +565,33 @@ blend_mult_1_50(PyObject *self, PyObject *args)
 
     PyBytes_AsStringAndSize(string, (char**)&outdata, &dlen);
 
-    for (y = 0; y < h; y++)
+    for (i = 0; i < w * h; i++)
     {
-        for (x = 0; x < w; x++)
+        dr = (int) dest[0];
+        dg = (int) dest[1];
+        db = (int) dest[2];
+        sr = (int) source[0];
+        sg = (int) source[1];
+        sb = (int) source[2];
+        sa = (int) source[3];
+
+        if (sa != 255)
         {
-            dr = (int) dest[0];
-            dg = (int) dest[1];
-            db = (int) dest[2];
-            sr = (int) source[0];
-            sg = (int) source[1];
-            sb = (int) source[2];
-            sa = (int) source[3];
-
-            if (sa != 255)
-            {
-                sr = colorwrap(((sr * sa) + (((1 << 8) - sa) << 8)) >> 8);
-                sg = colorwrap(((sg * sa) + (((1 << 8) - sa) << 8)) >> 8);
-                sb = colorwrap(((sb * sa) + (((1 << 8) - sa) << 8)) >> 8);
-            }
-            dr = colorwrap(dr * sr >> 8);
-            dg = colorwrap(dg * sg >> 8);
-            db = colorwrap(db * sb >> 8);
-
-            outdata[0] = (char) dr;
-            outdata[1] = (char) dg;
-            outdata[2] = (char) db;
-
-            source += 4;
-            dest += 4;
-            outdata += 4;
+            sr = colorwrap(((sr * sa) + (((1 << 8) - sa) << 8)) >> 8);
+            sg = colorwrap(((sg * sa) + (((1 << 8) - sa) << 8)) >> 8);
+            sb = colorwrap(((sb * sa) + (((1 << 8) - sa) << 8)) >> 8);
         }
+        dr = colorwrap(dr * sr >> 8);
+        dg = colorwrap(dg * sg >> 8);
+        db = colorwrap(db * sb >> 8);
+
+        outdata[0] = (char) dr;
+        outdata[1] = (char) dg;
+        outdata[2] = (char) db;
+
+        source += 4;
+        dest += 4;
+        outdata += 4;
     }
     return string;
 }
@@ -610,7 +601,7 @@ blend_and(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     Py_ssize_t dlen, slen;
-    int w, h, x, y, dr, dg, db, sr, sg, sb, mask_r, mask_g, mask_b;
+    int w, h, i, dr, dg, db, sr, sg, sb, mask_r, mask_g, mask_b;
     unsigned char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
@@ -626,38 +617,35 @@ blend_and(PyObject *self, PyObject *args)
     mask_r = (int) source[0];
     mask_g = (int) source[1];
     mask_b = (int) source[2];
-    for (y = 0; y < h; y++)
+    for (i = 0; i < w * h; i++)
     {
-        for (x = 0; x < w; x++)
+        dr = (int) dest[0];
+        dg = (int) dest[1];
+        db = (int) dest[2];
+        sr = (int) source[0];
+        sg = (int) source[1];
+        sb = (int) source[2];
+        if (sr != mask_r || sg != mask_g || sb != mask_b)
         {
-            dr = (int) dest[0];
-            dg = (int) dest[1];
-            db = (int) dest[2];
-            sr = (int) source[0];
-            sg = (int) source[1];
-            sb = (int) source[2];
-            if (sr != mask_r || sg != mask_g || sb != mask_b)
-            {
-                dr = dr & sr;
-                dg = dg & sg;
-                db = db & sb;
-                outdata[0] = (char) dr;
-                outdata[1] = (char) dg;
-                outdata[2] = (char) db;
-                outdata[3] = (unsigned char) 255;
-            }
-            else
-            {
-                outdata[0] = (char) dr;
-                outdata[1] = (char) dg;
-                outdata[2] = (char) db;
-                outdata[3] = (unsigned char) 0;
-            }
-
-            source += 4;
-            dest += 4;
-            outdata += 4;
+            dr = dr & sr;
+            dg = dg & sg;
+            db = db & sb;
+            outdata[0] = (char) dr;
+            outdata[1] = (char) dg;
+            outdata[2] = (char) db;
+            outdata[3] = (unsigned char) 255;
         }
+        else
+        {
+            outdata[0] = (char) dr;
+            outdata[1] = (char) dg;
+            outdata[2] = (char) db;
+            outdata[3] = (unsigned char) 0;
+        }
+
+        source += 4;
+        dest += 4;
+        outdata += 4;
     }
     return string;
 }
@@ -667,7 +655,7 @@ blend_and_msg(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     Py_ssize_t dlen, slen;
-    int w, h, x, y, dr, dg, db, sr, sg, sb, mask_r, mask_g, mask_b, base_r, base_g, base_b, base_a;
+    int w, h, i, dr, dg, db, sr, sg, sb, mask_r, mask_g, mask_b, base_r, base_g, base_b, base_a;
     unsigned char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#(iiii)", &dest, &dlen, &w, &h, &source, &slen, &base_r, &base_g, &base_b, &base_a))
@@ -683,38 +671,35 @@ blend_and_msg(PyObject *self, PyObject *args)
     mask_r = (int) source[0];
     mask_g = (int) source[1];
     mask_b = (int) source[2];
-    for (y = 0; y < h; y++)
+    for (i = 0; i < w * h; i++)
     {
-        for (x = 0; x < w; x++)
+        dr = (int) dest[0];
+        dg = (int) dest[1];
+        db = (int) dest[2];
+        sr = (int) source[0];
+        sg = (int) source[1];
+        sb = (int) source[2];
+        if (sr != mask_r || sg != mask_g || sb != mask_b)
         {
-            dr = (int) dest[0];
-            dg = (int) dest[1];
-            db = (int) dest[2];
-            sr = (int) source[0];
-            sg = (int) source[1];
-            sb = (int) source[2];
-            if (sr != mask_r || sg != mask_g || sb != mask_b)
-            {
-                dr = base_a & sr;
-                dg = base_a & sg;
-                db = base_a & sb;
-                outdata[0] = (unsigned char) dr;
-                outdata[1] = (unsigned char) dg;
-                outdata[2] = (unsigned char) db;
-                outdata[3] = (unsigned char) max(base_a, 255 - (sr + sg + sb) / 3);
-            }
-            else
-            {
-                outdata[0] = (char) dr;
-                outdata[1] = (char) dg;
-                outdata[2] = (char) db;
-                outdata[3] = (unsigned char) 0;
-            }
-
-            source += 4;
-            dest += 4;
-            outdata += 4;
+            dr = base_a & sr;
+            dg = base_a & sg;
+            db = base_a & sb;
+            outdata[0] = (unsigned char) dr;
+            outdata[1] = (unsigned char) dg;
+            outdata[2] = (unsigned char) db;
+            outdata[3] = (unsigned char) max(base_a, 255 - (sr + sg + sb) / 3);
         }
+        else
+        {
+            outdata[0] = (char) dr;
+            outdata[1] = (char) dg;
+            outdata[2] = (char) db;
+            outdata[3] = (unsigned char) 0;
+        }
+
+        source += 4;
+        dest += 4;
+        outdata += 4;
     }
     return string;
 }

@@ -209,6 +209,9 @@ class CWPy(_Singleton, threading.Thread):
         # テキストログ
         self.advlog = cw.advlog.AdventurerLogger()
 
+        # 遅延再描画を行う場合はTrue
+        self._lazy_draw = False
+
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup, loadyado=True)
 
@@ -1059,7 +1062,13 @@ class CWPy(_Singleton, threading.Thread):
 
         return dirty_rects
 
+    def lazy_draw(self):
+        if self._lazy_draw:
+            self.draw()
+
     def draw(self, mainloop=False, clip=None):
+        if not clip:
+            self._lazy_draw = False
         if self.has_inputevent or not mainloop:
             # SpriteGroup描画
             # FIXME: 描画領域を絞り込むと時々カードの描画中に
@@ -1635,6 +1644,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.is_playingscenario():
             self.sdata.set_versionhint(cw.HINT_MESSAGE, None)
 
+        # 次のアニメーションの前に再描画を行う
+        self._lazy_draw = True
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
         # イベント強制終了用のエラーを送出する。

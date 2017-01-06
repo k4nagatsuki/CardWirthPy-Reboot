@@ -683,8 +683,13 @@ def blend_1_50(dest, pos, source, flag):
     flag: BLEND_ADDまたはBLEND_SUBまたはBLEND_MULT
     """
     w, h = source.get_size()
+
+    clip = dest.get_clip()
+    if not clip:
+        clip = dest.get_rect()
+
     rect = pygame.Rect(pos, (w, h))
-    rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)
+    rect = pygame.Rect(clip.topleft, clip.size).clip(rect)
     if rect.w <= 0 or rect.h <= 0:
         return
 
