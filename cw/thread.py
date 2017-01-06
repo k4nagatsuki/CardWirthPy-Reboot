@@ -3282,7 +3282,12 @@ class CWPy(_Singleton, threading.Thread):
             bmp = self.rsrc.pygamedialogs["REPLACE_POSITION"].convert_alpha()
             return cw.imageretouch.add_lightness(bmp, 64)
 
-        size_noscale = self.rsrc.pygamedialogs["REPLACE_POSITION_noscale"].get_size()
+        bmp = self.rsrc.pygamedialogs["REPLACE_POSITION_noscale"]
+        w, h = bmp.get_size()
+        scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+        w //= scr_scale
+        h //= scr_scale
+        size_noscale = (w, h)
         pcards = self.get_pcards()
 
         class Replace(object):
@@ -3336,7 +3341,12 @@ class CWPy(_Singleton, threading.Thread):
         def get_selimage():
             bmp = self.rsrc.pygamedialogs["REPLACE_CARDS"].convert_alpha()
             return cw.imageretouch.add_lightness(bmp, 64)
-        size_noscale = self.rsrc.pygamedialogs["REPLACE_CARDS_noscale"].get_size()
+        bmp = self.rsrc.pygamedialogs["REPLACE_CARDS_noscale"]
+        w, h = bmp.get_size()
+        scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+        w //= scr_scale
+        h //= scr_scale
+        size_noscale = (w, h)
         pcards = self.get_pcards()
 
         class ReplaceCards(object):
