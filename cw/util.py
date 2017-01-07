@@ -1673,8 +1673,12 @@ def get_materialpathfromskin(path, mtype, findskin=True):
                     path = cw.util.find_resource(cw.util.join_paths(dpath, "Table", fname), cw.cwpy.rsrc.ext_img)
                 elif mtype == cw.M_MSC:
                     path = cw.util.find_resource(cw.util.join_paths(dpath, "Bgm", fname), cw.cwpy.rsrc.ext_bgm)
+                    if not path:
+                        path = cw.util.find_resource(cw.util.join_paths(dpath, "BgmAndSound", fname), cw.cwpy.rsrc.ext_bgm)
                 elif mtype == cw.M_SND:
                     path = cw.util.find_resource(cw.util.join_paths(dpath, "Sound", fname), cw.cwpy.rsrc.ext_snd)
+                    if not path:
+                        path = cw.util.find_resource(cw.util.join_paths(dpath, "BgmAndSound", fname), cw.cwpy.rsrc.ext_snd)
 
                 if path:
                     break
@@ -2740,6 +2744,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                     with open(name, "rb") as f2:
                         data = f2.read()
                         f2.close()
+
+                if not data:
+                    return wx.EmptyBitmap(0, 0)
 
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, ok = cw.image.fix_cwnext16bitbitmap(data)

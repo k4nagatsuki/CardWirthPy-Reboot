@@ -713,11 +713,14 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
 
         return (fpath, can_loaded_scaledimage)
     elif dirtype == 5:
-        dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
-        mtype = get_mtype(filename)
-        fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
-        fpath = cw.util.find_resource(fpath, mtype)
-        return (fpath, True)
+        for dname in ("Sound", "BgmAndSound"):
+            dpath = cw.util.join_paths(cw.cwpy.skindir, dname)
+            mtype = get_mtype(filename)
+            fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
+            fpath = cw.util.find_resource(fpath, mtype)
+            if fpath:
+                return (fpath, True)
+        return (u"", True)
     elif dirtype == 6:
         if not configpath:
             return ("", False)

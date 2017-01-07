@@ -1211,6 +1211,11 @@ def create_colorcell(size, color1, gradient, color2):
               "None","LeftToRight","TopToBottom"のいずれか
     color2: 終端色
     """
+    key = (size, color1, gradient, color2)
+    image = cw.cwpy.sdata.resource_cache.get(key, None)
+    if image:
+        return image
+
     image = pygame.Surface(size).convert_alpha()
 
     def calc_per(mn, mx, per):
@@ -1239,6 +1244,8 @@ def create_colorcell(size, color1, gradient, color2):
             pygame.draw.line(image, (r, g, b, a), (0, y), (w, y), 1)
     else:
         image.fill(color1)
+
+    cw.cwpy.sdata.resource_cache[key] = image
     return image
 
 #-------------------------------------------------------------------------------
