@@ -2581,7 +2581,7 @@ class CWPy(_Singleton, threading.Thread):
                 continue
             imgpaths = []
             can_loaded_scaledimages = []
-            can_loaded_scaledimage = pcard.data.getbool(".", "scaledimage", False)
+            can_loaded_scaledimage = pcard.data.getbool(".", "scaledimage", False) if pcard else True
             update = False
             for i, info in enumerate(mcard.cardimg.paths):
                 # PC画像を更新
@@ -2596,7 +2596,11 @@ class CWPy(_Singleton, threading.Thread):
                     update = True
                 else:
                     imgpaths.append(info)
-                    can_loaded_scaledimages.append(mcard.cardimg.can_loaded_scaledimage[i])
+                    if isinstance(mcard.cardimg.can_loaded_scaledimage, (list, tuple)):
+                        can_loaded_scaledimages.append(mcard.cardimg.can_loaded_scaledimage[i])
+                    else:
+                        assert isinstance(mcard.cardimg.can_loaded_scaledimage, bool)
+                        can_loaded_scaledimages.append(mcard.cardimg.can_loaded_scaledimage)
             if not update:
                 continue
             mcard.cardimg.paths = imgpaths
