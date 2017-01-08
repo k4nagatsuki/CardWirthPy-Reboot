@@ -1119,17 +1119,7 @@ class ScenarioSelect(select.Select):
             self._select_installedpaths(dpath, seldname, [])
 
     def _to_headers(self, paths):
-        scenarioinstall.to_scenarioheaders(paths, self.db, cw.cwpy.setting.skintype)
-        headers = []
-        for path in paths:
-            if os.path.isfile(path) and not os.path.splitext(path)[1].lower() in (".wsn", ".zip", ".lzh", ".cab"):
-                path = os.path.dirname(path)
-            header = self.db.search_path(path)
-            if header:
-                headers.append(header)
-            elif os.path.isdir(path):
-                headers.extend(self.db.search_dpath(path))
-        return headers
+        return scenarioinstall.to_scenarioheaders(paths, self.db, cw.cwpy.setting.skintype)
 
     def _show_selectedscenario(self, headers):
         self._processing = True
