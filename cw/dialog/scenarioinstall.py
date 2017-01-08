@@ -451,7 +451,19 @@ def install_scenario(parentdialog, headers, dstpath, db, skintype):
                         if rmpath:
                             cw.util.remove(rmpath, trashbox=True)
                         if cw.cwpy.setting.delete_sourceafterinstalled:
-                            shutil.move(fpath, dst)
+                            try:
+                                shutil.move(fpath, dst)
+                            except:
+                                # FIXME: フォルダがロックされていて削除できない場合がある
+                                cw.util.print_ex()
+                                if os.path.isdir(fpath):
+                                    for dpath2, dnames, fnames in os.walk(fpath):
+                                        if fnames:
+                                            raise
+                                    else:
+                                        cw.util.remove(fpath, trashbox=True)
+                                else:
+                                    raise
                         elif os.path.isfile(fpath):
                             shutil.copy2(fpath, dst)
                         else:
