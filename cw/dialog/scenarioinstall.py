@@ -75,6 +75,7 @@ class ScenarioInstall(wx.Dialog):
 
         # インストール・キャンセルボタン
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), u"インストール")
+        self.yesbtn.SetToolTipString(create_installdesc(headers))
         self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["cancel"])
         self.buttons = (self.yesbtn, self.nobtn)
 
@@ -491,6 +492,24 @@ def install_scenario(parentdialog, headers, dstpath, db, skintype):
             db.update(dpath, skintype=skintype)
 
     return thread.failed, thread.paths, False
+
+
+def create_installdesc(headers):
+    if 1 < len(headers):
+        name = u"%s本のシナリオ" % (len(headers))
+    else:
+        name = headers[0].fname
+    if cw.cwpy.setting.delete_sourceafterinstalled:
+        desc = u"%sをコピーし、シナリオデータベースに登録します。\n" % (name) + \
+               u"インストール完了後のファイルを削除したい場合は、詳細設定の" + \
+               u"[シナリオ] > [詳細] > [シナリオのインストールに成功したら元ファイルを削除する]で" + \
+               u"設定を変更します。"
+    else:
+        desc = u"%sを移動し、シナリオデータベースに登録します。\n" % (name) + \
+               u"インストール完了後のファイルを削除したくない場合は、詳細設定の" + \
+               u"[シナリオ] > [詳細] > [シナリオのインストールに成功したら元ファイルを削除する]で" + \
+               u"設定を変更します。"
+    return desc
 
 
 def main():

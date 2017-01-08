@@ -47,8 +47,20 @@ class Message(wx.Dialog):
         elif self.mode == 3:
             # 任意
             self.buttons = []
-            for s, id, width in choices:
+            for d in choices:
+                if len(d) == 4:
+                    s, id, width, desc = d
+                elif len(d) == 3:
+                    s, id, width = d
+                    desc = u""
+                else:
+                    s, id = d
+                    desc = u""
+                    width = -1
+
                 button = cw.cwpy.rsrc.create_wxbutton(self, id, (width, cw.wins(30)), s)
+                if desc:
+                    button.SetToolTipString(desc)
                 self.buttons.append(button)
                 button.Bind(wx.EVT_BUTTON, self.OnButton)
         else:

@@ -1170,9 +1170,17 @@ class ScenarioSelect(select.Select):
 
         dpath = cw.util.get_linktarget(dpath)
 
+        if 1 < len(headers):
+            name = u"%s本のシナリオ" % (len(headers))
+        else:
+            if headers[0].author:
+                name = u"「%s(%s)」" % (headers[0].name, headers[0].author)
+            else:
+                name = u"「%s」" % (headers[0].name)
+        desc = scenarioinstall.create_installdesc(headers)
         choices = (
-            (u"インストール", wx.ID_YES, cw.wins(105)),
-            (u"表示のみ", wx.ID_NO, cw.wins(105)),
+            (u"インストール", wx.ID_YES, cw.wins(105), desc),
+            (u"表示のみ", wx.ID_NO, cw.wins(105), u"%sを検索結果として表示します。" % (name)),
             (u"キャンセル", wx.ID_CANCEL, cw.wins(105)),
         )
         dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=3, choices=choices)
