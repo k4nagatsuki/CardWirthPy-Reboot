@@ -1784,6 +1784,7 @@ class CWPy(_Singleton, threading.Thread):
         try:
             fpath = cw.util.join_paths(self.skindir, u"Resource/Xml/Animation/Opening.xml")
             anime = cw.sprite.animationcell.AnimationCell(fpath, cw.SIZE_AREA, (0, 0), self.topgrp, "title")
+            self.draw()
             cw.animation.animate_sprite(anime, "animation", clearevent=False)
 
             # スプライトを解除する
