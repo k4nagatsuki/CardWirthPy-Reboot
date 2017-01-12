@@ -1334,8 +1334,7 @@ def screenshot():
         else:
             os.makedirs(dpath)
         bmp, y = create_screenshot(titledic)
-        encoding = sys.getfilesystemencoding()
-        pygame.image.save(bmp, filename.encode(encoding))
+        pygame.image.save(bmp, filename.encode("utf-8"))
     except:
         s = u"スクリーンショットの保存に失敗しました。\n%s" % (filename)
         cw.cwpy.call_modaldlg("ERROR", text=s)
@@ -1386,8 +1385,7 @@ def card_screenshot():
                 else:
                     os.makedirs(dpath)
                 bmp = create_cardscreenshot(titledic)
-                encoding = sys.getfilesystemencoding()
-                pygame.image.save(bmp, filename.encode(encoding))
+                pygame.image.save(bmp, filename.encode("utf-8"))
             except:
                 s = u"スクリーンショットの保存に失敗しました。\n%s" % (filename)
                 cw.cwpy.call_modaldlg("ERROR", text=s)

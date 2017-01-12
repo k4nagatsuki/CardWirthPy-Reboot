@@ -965,14 +965,13 @@ class JpdcImage(cw.image.Image):
                 dpath = os.path.dirname(path)
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
-                encoding = sys.getfilesystemencoding()
                 cw.sprite.message.store_messagelogimage(path, True)
                 spext = os.path.splitext(path)
                 for scale in cw.SCALE_LIST:
                     pathxn = u"%s.x%d%s" % (spext[0], scale, spext[1])
                     if os.path.isfile(pathxn):
                         cw.util.remove(pathxn)
-                pygame.image.save(saveimage_noscale, path.encode(encoding))
+                pygame.image.save(saveimage_noscale, path.encode("utf-8"))
 
                 if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
                     inusecard = cw.cwpy.event.get_inusecard()
@@ -985,7 +984,7 @@ class JpdcImage(cw.image.Image):
                     rel2 = cw.util.relpath(path, temppath)
                     x2path = cw.util.join_paths(cw.cwpy.sdata.scedir, rel2)
                     if can_loaded_scaledimage or not os.path.isfile(x2path):
-                        pygame.image.save(saveimage, path.encode(encoding))
+                        pygame.image.save(saveimage, path.encode("utf-8"))
 
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
