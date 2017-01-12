@@ -111,6 +111,9 @@ class EventList(wx.TreeCtrl):
         self.imgidx_ignition = self.imglist.Add(cw.cwpy.rsrc.debugs["IGNITION"])
         self.imgidx_keycode = self.imglist.Add(cw.cwpy.rsrc.debugs["KEYCODE"])
         self.imgidx_round = self.imglist.Add(cw.cwpy.rsrc.debugs["ROUND"])
+        # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+        self.imgidx_cast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_CAST"])
+
         self.SetImageList(self.imglist)
         self.root = self.AddRoot(cw.cwpy.sdata.name)
 
@@ -196,7 +199,7 @@ class EventList(wx.TreeCtrl):
                         name = u"クリック"
                     else:
                         continue
-                elif tag == "EnemyCard":
+                elif tag == ("EnemyCard", "PlayerCardEvents"):
                     if keynum == 1:
                         name = u"死亡"
                     else:
@@ -223,6 +226,13 @@ class EventList(wx.TreeCtrl):
         data = cw.data.xml2etree(element=e)
         for ee in data.getfind("Events"):
             append(selitem, ee, data.getroot().tag)
+
+        # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+        for pe in data.getfind("PlayerCardEvents", False):
+            item = self.AppendItem(selitem, u"プレイヤーカード", self.imgidx_menucard)
+            for ee in pe:
+                append(item, ee, pe.tag)
+            self.Expand(item)
 
         for ce in itertools.chain(data.getfind("MenuCards", False), data.getfind("EnemyCards", False)):
             if self._showallcards or cw.sprite.card.CWPyCard.is_flagtrue_static(ce):

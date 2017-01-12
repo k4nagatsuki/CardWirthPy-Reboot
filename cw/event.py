@@ -7,7 +7,7 @@ import pygame
 import pygame.locals
 
 import cw
-from cw.character import Enemy
+from cw.character import Player, Enemy
 
 
 class EventInterface(object):
@@ -520,7 +520,7 @@ class EventEngine(object):
         """引数のEventsElementからEventインスタンスのリストを生成。
         data: Area, BattleのElementTree
         """
-        self.events = [Event(e) for e in data.getchildren()]
+        self.events = [Event(e) for e in data]
 
     def start(self, keynum=None, keycodes=[][:], isinsideevent=False, successevent=False):
         """発火条件に適合するイベント
@@ -880,10 +880,23 @@ class Event(object):
         elif cw.cwpy.is_gameover() and cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9 and 0 <= cw.cwpy.areaid:
             cw.cwpy.set_gameover()
 
-    def ignition_enemyevent(self, target, can_unconscious, keycodes):
+    def get_events(self, target):
+        """targetがEnemyであればtarget自身が持つEvents、
+        Playerであればエリアのプレイヤーカードイベント(Wsn.2)を返す。
+        """
+        if isinstance(target, Enemy):
+            return target.events
+        elif isinstance(target, Player):
+            # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+            return cw.cwpy.sdata.playerevents
+        else:
+            return None
+
+    def ignition_characterevent(self, target, can_unconscious, keycodes):
         """targetのキーコードイベントが発生可能か。"""
-        if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
-            return target.events.check_keycodes(keycodes)
+        events = self.get_events(target)
+        if events and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
+            return events.check_keycodes(keycodes)
         else:
             return None
 
@@ -893,8 +906,10 @@ class Event(object):
             # キーコード「逃走」付きのカードは死亡イベントを発生させない
             # (ただしカード名キーコードは除く)
             return None
-        if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
-            return target.events.check_keynum(1)
+
+        events = self.get_events(target)
+        if events and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
+            return events.check_keynum(1)
         else:
             return None
 
@@ -908,15 +923,16 @@ class Event(object):
                     keycodes2.append(keycode + u"×")
         return keycodes2
 
-    def ignition_successevent(self, target, successflag, can_unconscious, keycodes):
+    def ignition_successevent(self, target, successflag, keycodes):
         """targetのキーコード成功・失敗イベントが発生可能であれば該当イベントを返す。"""
-        if isinstance(target, Enemy):
+        events = self.get_events(target)
+        if events:
             keycodes = self._keycodes_for_successevent(keycodes, successflag)
-            return target.events.check_keycodes(keycodes=keycodes, successevent=True)
+            return events.check_keycodes(keycodes=keycodes, successevent=True)
         else:
             return None
 
-    def run_scenarioevent(self):
+    def run_scenarioevent(self, user=None):
         """効果コンテントなどの実行中に他のイベントを割り込ませる。"""
         event = cw.cwpy.event.get_event()
         versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
@@ -1325,18 +1341,18 @@ class CardEvent(Event, Targeting):
         cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
         self._restore_inusedata()
 
-    def run_enemyevent(self, target, can_unconscious):
+    def run_characterevent(self, target, can_unconscious):
         keycodes = self.inusecard.get_keycodes()
-        if self.ignition_enemyevent(target, can_unconscious, keycodes):
+        if self.ignition_characterevent(target, can_unconscious, keycodes):
             self._store_inusedata(selectuser=True)
-            target.events.start(keycodes=keycodes, isinsideevent=True)
+            self.get_events(target).start(keycodes=keycodes, isinsideevent=True)
             self._restore_inusedata()
 
     def run_deadevent(self, target):
         """targetの死亡イベントが発生可能であれば発生させる。"""
         if self.ignition_deadevent(target, self.inusecard.get_keycodes(with_name=False)):
             self._store_inusedata(selectuser=True)
-            r = target.events.start(1, isinsideevent=True)
+            r = self.get_events(target).start(1, isinsideevent=True)
             self._restore_inusedata()
             return r
 
@@ -1346,12 +1362,12 @@ class CardEvent(Event, Targeting):
         """
         # MenuCardのキーコードイベント発動。発動しなかったら、無効音。
         keycodes = self.inusecard.get_keycodes()
-        event = target.events.check_keycodes(keycodes)
+        event = self.get_events(target).check_keycodes(keycodes)
         if event:
             lock = cw.cwpy.lock_menucards
             cw.cwpy.lock_menucards = False
             self._store_inusedata(selectuser=False)
-            target.events.start(keycodes=keycodes)
+            self.get_events(target).start(keycodes=keycodes)
             self._restore_inusedata()
             cw.cwpy.lock_menucards = lock
             self.error = event.error
@@ -1359,12 +1375,12 @@ class CardEvent(Event, Targeting):
             cw.cwpy.play_sound("ineffective", True)
             cw.cwpy.advlog.effect_failed(target, ismenucard=True)
 
-    def run_successevent(self, target, successflag, can_unconscious):
+    def run_successevent(self, target, successflag):
         keycodes = self.inusecard.get_keycodes()
-        if self.ignition_successevent(target, successflag, can_unconscious, keycodes):
+        if self.ignition_successevent(target, successflag, keycodes):
             keycodes = self._keycodes_for_successevent(keycodes, successflag)
             self._store_inusedata(selectuser=True)
-            target.events.start(keycodes=keycodes, isinsideevent=True, successevent=True)
+            self.get_events(target).start(keycodes=keycodes, isinsideevent=True, successevent=True)
             self._restore_inusedata()
 
     def effect_cardmotion(self):
@@ -1465,13 +1481,13 @@ class CardEvent(Event, Targeting):
 
             unconscious_flag, paralyze_flag = get_effecttargetstatus(target, eff)
 
-            if isinstance(target, Enemy) and (not target.is_unconscious() or unconscious_flag):
+            if isinstance(target, cw.character.Character) and (not target.is_unconscious() or unconscious_flag):
                 if cw.cwpy.sdata.is_wsnversion('2'):
                     # イベント所持者を示すシステムクーポン(Wsn.2)
                     target.set_coupon(u"＠イベント対象", 0)
 
                 try:
-                    self.run_enemyevent(target, unconscious_flag)
+                    self.run_characterevent(target, unconscious_flag)
                     if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                         break
 
@@ -1495,23 +1511,21 @@ class CardEvent(Event, Targeting):
 
                     # 成功・失敗キーコードイベントより死亡イベントを優先
                     if not deadevent:
-                        self.run_successevent(target, success, unconscious_flag)
+                        self.run_successevent(target, success)
                         cw.cwpy.draw()
 
                 finally:
                     target.remove_coupon(u"＠イベント対象")
 
             else:
+                assert isinstance(target, cw.sprite.card.MenuCard)
+
                 target.clear_cardtarget()
 
-                if isinstance(target, cw.sprite.card.MenuCard):
-                    cw.cwpy.play_sound_with(eff.soundpath)
-                    eff.animate(target)
-                    self._mcards.discard(target)
-                    self.run_menucardevent(target)
-                elif d["target"] <> "None":
-                    eff.apply(target)
-                    target.remove_coupon(u"＠効果対象")
+                cw.cwpy.play_sound_with(eff.soundpath)
+                eff.animate(target)
+                self._mcards.discard(target)
+                self.run_menucardevent(target)
                 cw.cwpy.draw()
 
         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:

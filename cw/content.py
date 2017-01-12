@@ -1908,8 +1908,10 @@ class EffectContent(EventContentBase):
             event = cw.cwpy.event.get_event()
             if cw.cwpy.event.in_inusecardevent:
                 cardversion = cw.cwpy.event.get_inusecard().wsnversion
+                user = cw.cwpy.event.get_inusecard().user
             else:
                 cardversion = None
+                user = None
 
         def apply(target):
             unconscious_flag, paralyze_flag = cw.event.get_effecttargetstatus(target, self.eff)
@@ -1924,9 +1926,9 @@ class EffectContent(EventContentBase):
             try:
                 if self.ignite:
                     # キーコードイベント(Wsn.2)
-                    runevent = event.ignition_enemyevent(target, unconscious_flag, self.keycodes)
+                    runevent = event.ignition_characterevent(target, unconscious_flag, self.keycodes)
                     if runevent:
-                        runevent.run_scenarioevent()
+                        runevent.run_scenarioevent(user=user)
                         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                             target.remove_coupon(u"＠効果対象")
                             return
@@ -1948,15 +1950,15 @@ class EffectContent(EventContentBase):
                         runevent = event.ignition_deadevent(target, keycodes=self.keycodes)
                         if runevent:
                             deadevent = True
-                            runevent.run_scenarioevent()
+                            runevent.run_scenarioevent(user=user)
                             if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                                 return
 
                 # キーコード成功・失敗イベント(Wsn.2)
                 if self.ignite and not deadevent:
-                    runevent = event.ignition_successevent(target, success, unconscious_flag, self.keycodes)
+                    runevent = event.ignition_successevent(target, success, self.keycodes)
                     if runevent:
-                        runevent.run_scenarioevent()
+                        runevent.run_scenarioevent(user=user)
 
             finally:
                 if self.ignite:
@@ -1999,7 +2001,7 @@ class EffectContent(EventContentBase):
                 # エリアイベント(Wsn.2)
                 runevent = cw.cwpy.sdata.events.check_keycodes(self.keycodes)
                 if runevent:
-                    runevent.run_scenarioevent()
+                    runevent.run_scenarioevent(user=user)
 
                 tevent.waited = True
 
