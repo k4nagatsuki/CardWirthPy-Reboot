@@ -884,7 +884,7 @@ class Event(object):
         """targetがEnemyであればtarget自身が持つEvents、
         Playerであればエリアのプレイヤーカードイベント(Wsn.2)を返す。
         """
-        if isinstance(target, Enemy):
+        if isinstance(target, (Enemy, cw.sprite.card.MenuCard)):
             return target.events
         elif isinstance(target, Player):
             # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
@@ -932,7 +932,7 @@ class Event(object):
         else:
             return None
 
-    def run_scenarioevent(self, user=None):
+    def run_scenarioevent(self):
         """効果コンテントなどの実行中に他のイベントを割り込ませる。"""
         event = cw.cwpy.event.get_event()
         versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
