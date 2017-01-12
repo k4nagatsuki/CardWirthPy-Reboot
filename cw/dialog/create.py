@@ -2272,8 +2272,12 @@ class DesignPanel(AdventurerCreaterPage):
         # image
         x, y = (cwidth - cw.wins(74)) / 2, cw.wins(y2)
         dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
+        if self.is_changedimgpath():
+            can_loaded_scaledimage = True
+        else:
+            can_loaded_scaledimage = self.can_loaded_scaledimage
         for info in self.imgpaths:
-            bmp = cw.util.load_wxbmp(info.path, True, can_loaded_scaledimage=self.can_loaded_scaledimage)
+            bmp = cw.util.load_wxbmp(info.path, True, can_loaded_scaledimage=can_loaded_scaledimage)
             bmp2 = cw.wins(bmp)
 
             baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
