@@ -739,6 +739,11 @@ class Depth1Surface(pygame.Surface):
         bmp.bmpdepthis1 = self.bmpdepthis1
         return bmp
 
+    def convert_alpha(self):
+        bmp = Depth1Surface(pygame.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
+        bmp.bmpdepthis1 = False
+        return bmp
+
 def put_number(image, num):
     """アイコンサイズの画像imageの上に
     numの値を表示する。
