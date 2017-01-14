@@ -90,6 +90,9 @@ class Area(base.CWBinaryBase):
                         name = prop.text
             elif e.tag == "BgImages":
                 bgimgs = e
+            elif e.tag == "PlayerCardEvents":
+                if len(e):
+                    f.check_wsnversion("2")
             elif e.tag == "MenuCards":
                 mcards = e
                 spreadtype = base.CWBinaryBase.unconv_spreadtype(e.get("spreadtype"))
