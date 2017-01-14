@@ -152,6 +152,7 @@ class EventContentBase(object):
             "backpack" : u"荷物袋",
             "partyandbackpack" : u"パーティ全体(荷物袋含む)",
             "field" : u"フィールド全体",
+            "couponholder" : u"称号所有者", # Wsn.2
             # 対象メンバ
             "random" : u"ランダムメンバ",
             "selected" : u"選択中メンバ",
@@ -1892,10 +1893,13 @@ class EffectContent(EventContentBase):
             self.keycodes = self.data.gettext("KeyCodes", "")
             self.keycodes = cw.util.decodetextlist(self.keycodes) if self.keycodes else []
 
+        # 称号所有者が適用範囲の時の称号名(Wsn.2)
+        self.holdingcoupon = self.data.get("holdingcoupon", "")
+
     def action(self):
         """効果コンテント。"""
 
-        target = cw.cwpy.event.get_targetmember(self.targetm)
+        target = cw.cwpy.event.get_targetmember(self.targetm, coupon=self.holdingcoupon)
         if self.targetm == "Selected" and target and\
                 isinstance(target, cw.character.Enemy) and\
                 target.status == "hidden":
@@ -2086,8 +2090,12 @@ class EffectContent(EventContentBase):
                 "CancelAction": u"行動キャンセル",
                 "SummonBeast": u"召喚獣召喚", }
 
-        targetm = self.data.get("targetm", "Selected")
-        targetm = self.textdict.get(targetm.lower(), "")
+        targetm = self.textdict.get(self.targetm.lower(), "")
+        if self.targetm == "CouponHolder":
+            if self.holdingcoupon:
+                targetm += u"(%s)" % (self.holdingcoupon)
+            else:
+                targetm += u"(指定なし)"
         seq = []
         for e in self.data.getfind("Motions", raiseerror=False):
             mtype = dic.get(e.getattr(".", "type", ""), u"")

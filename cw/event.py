@@ -194,7 +194,7 @@ class EventInterface(object):
 
         return seq
 
-    def get_targetmember(self, targetm, unreversed=True):
+    def get_targetmember(self, targetm, unreversed=True, coupon=u""):
         """コンテントの適用メンバを返す関数。
         該当するCharacterインスタンスまたはCardHeaderインスタンスを返す。
         targetm: Random or Selected or Unselected or Inusecard or Party
@@ -220,6 +220,16 @@ class EventInterface(object):
         # パーティ先頭
         elif targetm == "First":
             target = self.get_firstmember(mode)
+        # 称号所有者
+        elif targetm == "CouponHolder":
+            if coupon:
+                seq = []
+                for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"), cw.cwpy.get_ecards("unreversed")):
+                    if ccard.has_coupon(coupon):
+                        seq.append(ccard)
+                target = seq
+            else:
+                target = []
         else:
             raise ValueError(targetm + " is invalid value.")
 

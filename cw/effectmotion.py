@@ -321,9 +321,9 @@ class Effect(object):
         if target.status == "hidden":
             if update_image:
                 target.update_image()
+                cw.cwpy.draw(clip=target.rect)
 
             if self.soundpath and cw.cwpy.has_sound(self.soundpath):
-                cw.cwpy.draw()
                 waitrate = (cw.cwpy.setting.get_dealspeed(battlespeed)+1) * 2
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
 
@@ -333,6 +333,7 @@ class Effect(object):
 
             if update_image:
                 target.update_image()
+                cw.cwpy.draw(clip=target.rect)
 
         # 縦振動(振動)
         elif self.visualeffect == "Vertical":
@@ -340,6 +341,7 @@ class Effect(object):
 
             if update_image:
                 target.update_image()
+                cw.cwpy.draw(clip=target.rect)
         # 反転
         elif self.visualeffect == "Reverse":
             target.hide_inusecardimg = False
@@ -354,7 +356,7 @@ class Effect(object):
         else:
             if update_image:
                 target.update_image()
-            cw.cwpy.draw()
+                cw.cwpy.draw(clip=target.rect)
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
 
     def check_enabledtarget(self, target, event=False):
