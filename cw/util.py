@@ -929,7 +929,7 @@ def load_bgm(path):
         assert threading.currentThread() == cw.cwpy
         # ファイルパスを渡して読込
         encoding = sys.getfilesystemencoding()
-        pygame.mixer.music.load(path.encode(encoding))
+        pygame.mixer.music.load(path.encode("utf-8"))
         return 0
     except Exception:
         cw.util.print_ex()
