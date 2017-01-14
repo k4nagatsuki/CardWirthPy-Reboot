@@ -170,7 +170,8 @@ class SystemData(object):
             for mcard in mcards:
                 mcard.update_scale()
         for log in self.backlog:
-            log.specialchars.reset()
+            if log.specialchars:
+                log.specialchars.reset()
 
     def start(self):
         pass
