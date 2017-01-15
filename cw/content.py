@@ -153,6 +153,7 @@ class EventContentBase(object):
             "partyandbackpack" : u"パーティ全体(荷物袋含む)",
             "field" : u"フィールド全体",
             "couponholder" : u"称号所有者", # Wsn.2
+            "cardtarget" : u"カードの使用対象", # Wsn.2
             # 対象メンバ
             "random" : u"ランダムメンバ",
             "selected" : u"選択中メンバ",
@@ -1899,72 +1900,94 @@ class EffectContent(EventContentBase):
     def action(self):
         """効果コンテント。"""
 
-        target = cw.cwpy.event.get_targetmember(self.targetm, coupon=self.holdingcoupon)
-        if self.targetm == "Selected" and target and\
-                isinstance(target, cw.character.Enemy) and\
-                target.status == "hidden":
-            # BUG: CardWirthではフラグによって隠蔽状態の敵に
-            #      効果を適用しようとした場合にメンバ選択が解除される
-            cw.cwpy.event.clear_selectedmember()
-            return 0
+        if self.targetm == "CardTarget":
+            # カードの使用対象(Wsn.2)
+            if cw.cwpy.event.in_inusecardevent:
+                e_effectevent = cw.cwpy.event.get_effectevent()
+                e_effectevent.update_targets()
+                target = e_effectevent.targets
+            else:
+                target = []
+        else:
+            target = cw.cwpy.event.get_targetmember(self.targetm, coupon=self.holdingcoupon)
+            if self.targetm == "Selected" and target and\
+                    isinstance(target, cw.character.Enemy) and\
+                    target.status == "hidden":
+                # BUG: CardWirthではフラグによって隠蔽状態の敵に
+                #      効果を適用しようとした場合にメンバ選択が解除される
+                cw.cwpy.event.clear_selectedmember()
+                return 0
 
         if self.ignite:
             event = cw.cwpy.event.get_event()
             if cw.cwpy.event.in_inusecardevent:
                 cardversion = cw.cwpy.event.get_inusecard().wsnversion
+
             else:
                 cardversion = None
 
         def apply(target):
-            unconscious_flag, paralyze_flag = cw.event.get_effecttargetstatus(target, self.eff)
-            if not (not target.is_unconscious() or unconscious_flag):
-                if self.ignite:
-                    target.remove_coupon(u"＠効果対象")
-                return
+            if isinstance(target, cw.character.Character):
+                unconscious_flag, paralyze_flag = cw.event.get_effecttargetstatus(target, self.eff)
 
-            if self.ignite:
-                # イベント所持者を示すシステムクーポン(Wsn.2)
-                target.set_coupon(u"＠イベント対象", 0)
-            try:
-                if self.ignite:
-                    # キーコードイベント(Wsn.2)
-                    runevent = event.ignition_characterevent(target, unconscious_flag, self.keycodes)
-                    if runevent:
-                        runevent.run_scenarioevent()
-                        if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
-                            target.remove_coupon(u"＠効果対象")
-                            return
-
-                        tevent.update_targets()
-
-                        if not target.has_coupon(u"＠効果対象"):
-                            return
-
-                success = self.eff.apply(target, event=True)
-                if self.ignite:
-                    target.remove_coupon(u"＠効果対象")
+                if not (not target.is_unconscious() or unconscious_flag):
+                    if self.ignite:
+                        target.remove_coupon(u"＠効果対象")
+                    return
 
                 if self.ignite:
-                    # 効果イベントで使用イベントを発生させる(Wsn.2)
-                    # 最初から意識不明・麻痺なら死亡イベント発生なし
-                    deadevent = False
-                    if event and not unconscious_flag and not paralyze_flag:
-                        runevent = event.ignition_deadevent(target, keycodes=self.keycodes)
+                    # イベント所持者を示すシステムクーポン(Wsn.2)
+                    target.set_coupon(u"＠イベント対象", 0)
+                try:
+                    if self.ignite:
+                        # キーコードイベント(Wsn.2)
+                        runevent = event.ignition_characterevent(target, unconscious_flag, self.keycodes)
                         if runevent:
-                            deadevent = True
                             runevent.run_scenarioevent()
                             if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+                                target.remove_coupon(u"＠効果対象")
                                 return
 
-                # キーコード成功・失敗イベント(Wsn.2)
-                if self.ignite and not deadevent:
-                    runevent = event.ignition_successevent(target, success, self.keycodes)
-                    if runevent:
-                        runevent.run_scenarioevent()
+                            tevent.update_targets()
 
-            finally:
-                if self.ignite:
-                    target.remove_coupon(u"＠イベント対象")
+                            if not target.has_coupon(u"＠効果対象"):
+                                return
+
+                    is_dead = target.is_unconscious() or target.is_paralyze()
+                    success = self.eff.apply(target, event=True)
+                    if self.ignite:
+                        target.remove_coupon(u"＠効果対象")
+
+                    if self.ignite:
+                        # 効果イベントで使用イベントを発生させる(Wsn.2)
+                        # 最初から意識不明・麻痺なら死亡イベント発生なし
+                        deadevent = False
+                        if event and not is_dead:
+                            runevent = event.ignition_deadevent(target, keycodes=self.keycodes)
+                            if runevent:
+                                deadevent = True
+                                runevent.run_scenarioevent()
+                                if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+                                    return
+
+                    # キーコード成功・失敗イベント(Wsn.2)
+                    if self.ignite and not deadevent:
+                        runevent = event.ignition_successevent(target, success, self.keycodes)
+                        if runevent:
+                            runevent.run_scenarioevent()
+
+                finally:
+                    if self.ignite:
+                        target.remove_coupon(u"＠イベント対象")
+            elif self.ignite:
+                assert isinstance(target, cw.sprite.card.MenuCard)
+                cw.cwpy.play_sound_with(self.eff.soundpath)
+                self.eff.animate(target)
+                cw.cwpy.draw(clip=target.rect)
+                cw.cwpy.event.get_effectevent().mcards.discard(target)
+                runevent = event.ignition_menucardevent(target, keycodes=self.keycodes)
+                if runevent:
+                    runevent.run_scenarioevent()
 
         # 対象メンバに効果モーションを適用
         if isinstance(target, list):
@@ -1982,6 +2005,7 @@ class EffectContent(EventContentBase):
                 if e_effectevent:
                     e_effectevent.update_targets()
                     e_targets = e_effectevent.targets
+                    e_mcards = e_effectevent.mcards
                     e_outoftargets = []
                     e_eventtarget = None
                     for t in e_effectevent.coupon_owners:
@@ -1993,9 +2017,13 @@ class EffectContent(EventContentBase):
                             t.remove_coupon(u"＠効果対象")
                             t.remove_coupon(u"＠効果対象外")
                             t.remove_coupon(u"＠イベント対象")
+                else:
+                    e_mcards = None
 
                 # 効果イベントの差し替え
                 tevent = cw.event.Targeting(None, targets, False)
+                if e_mcards:
+                    tevent.mcards = e_mcards
                 cw.cwpy.event.effectevent = tevent
 
                 tevent.targets_to_coupon()

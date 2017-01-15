@@ -748,7 +748,7 @@ class CWBinaryBase(object):
             return 4
         elif n == "Field":
             return 5
-        elif n == "CouponHolder":
+        elif n in ("CouponHolder", "CardTarget"):
             f.check_wsnversion("2")
             return 0
         else:
@@ -839,6 +839,9 @@ class CWBinaryBase(object):
             return 2
         elif n == "PartyAndBackpack":
             return 3
+        elif n in ("CouponHolder", "CardTarget"):
+            f.check_wsnversion("2")
+            return 0
         else:
             raise cw.binary.cwfile.UnsupportedError()
 

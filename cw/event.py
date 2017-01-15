@@ -923,6 +923,13 @@ class Event(object):
         else:
             return None
 
+    def ignition_menucardevent(self, target, keycodes):
+        events = self.get_events(target)
+        if events:
+            return events.check_keycodes(keycodes)
+        else:
+            return None
+
     def _keycodes_for_successevent(self, keycodes, successflag):
         keycodes2 = []
         for keycode in keycodes:
@@ -1120,7 +1127,7 @@ class Targeting(object):
         self._setcardtarget = setcardtarget
 
         self.coupon_owners = set()
-        self._mcards = set()
+        self.mcards = set()
         self._target_updated = False
         self._target_index = 0
 
@@ -1134,7 +1141,7 @@ class Targeting(object):
             if isinstance(target, cw.character.Character):
                 target.set_coupon(u"＠効果対象", 0)
             else:
-                self._mcards.add(target)
+                self.mcards.add(target)
             self.coupon_owners.add(target)
 
         self._target_updated = False
@@ -1178,7 +1185,7 @@ class Targeting(object):
                             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
                 else:
                     # メニューカード
-                    if ccard in self._mcards:
+                    if ccard in self.mcards:
                         self.targets.append(ccard)
             self._target_index = 0
         self._target_updated = False
@@ -1372,15 +1379,16 @@ class CardEvent(Event, Targeting):
         """
         # MenuCardのキーコードイベント発動。発動しなかったら、無効音。
         keycodes = self.inusecard.get_keycodes()
-        event = self.get_events(target).check_keycodes(keycodes)
-        if event:
+        if self.ignition_menucardevent(target, keycodes):
             lock = cw.cwpy.lock_menucards
             cw.cwpy.lock_menucards = False
-            self._store_inusedata(selectuser=False)
-            self.get_events(target).start(keycodes=keycodes)
-            self._restore_inusedata()
-            cw.cwpy.lock_menucards = lock
-            self.error = event.error
+            events = self.get_events(target)
+            try:
+                self._store_inusedata(selectuser=False)
+                events.start(keycodes=keycodes)
+            finally:
+                self._restore_inusedata()
+                cw.cwpy.lock_menucards = lock
         else:
             cw.cwpy.play_sound("ineffective", True)
             cw.cwpy.advlog.effect_failed(target, ismenucard=True)
@@ -1491,7 +1499,11 @@ class CardEvent(Event, Targeting):
 
             unconscious_flag, paralyze_flag = get_effecttargetstatus(target, eff)
 
-            if isinstance(target, cw.character.Character) and (not target.is_unconscious() or unconscious_flag):
+            if isinstance(target, cw.character.Character):
+                if not (not target.is_unconscious() or unconscious_flag):
+                    target.remove_coupon(u"＠効果対象")
+                    continue
+
                 if cw.cwpy.sdata.is_wsnversion('2'):
                     # イベント所持者を示すシステムクーポン(Wsn.2)
                     target.set_coupon(u"＠イベント対象", 0)
@@ -1508,11 +1520,12 @@ class CardEvent(Event, Targeting):
                         continue
 
                     target.clear_cardtarget()
+                    is_dead = target.is_unconscious() or target.is_paralyze()
                     success = eff.apply(target)
                     target.remove_coupon(u"＠効果対象")
 
                     # 最初から意識不明・麻痺なら死亡イベント発生なし
-                    if not unconscious_flag and not paralyze_flag:
+                    if not is_dead:
                         deadevent = self.run_deadevent(target)
                         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                             break
@@ -1534,9 +1547,9 @@ class CardEvent(Event, Targeting):
 
                 cw.cwpy.play_sound_with(eff.soundpath)
                 eff.animate(target)
-                self._mcards.discard(target)
+                cw.cwpy.draw(clip=target.rect)
+                self.mcards.discard(target)
                 self.run_menucardevent(target)
-                cw.cwpy.draw()
 
         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
             return
