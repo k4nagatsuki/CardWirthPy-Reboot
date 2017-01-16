@@ -1988,6 +1988,9 @@ class EffectContent(EventContentBase):
                 runevent = event.ignition_menucardevent(target, keycodes=self.keycodes)
                 if runevent:
                     runevent.run_scenarioevent()
+                else:
+                    cw.cwpy.play_sound("ineffective", True)
+                    cw.cwpy.advlog.effect_failed(target, ismenucard=True)
 
         # 対象メンバに効果モーションを適用
         if isinstance(target, list):
