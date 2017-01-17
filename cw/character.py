@@ -2594,9 +2594,6 @@ class Character(object):
             eff = True
         return eff
 
-    def is_target(self):
-        return self.has_coupon(u"＠効果対象")
-
     def can_addbeast(self):
         if self.is_unconscious():
             return False
