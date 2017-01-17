@@ -1500,7 +1500,7 @@ class CardEvent(Event, Targeting):
             unconscious_flag, paralyze_flag = get_effecttargetstatus(target, eff)
 
             if isinstance(target, cw.character.Character):
-                if not (not target.is_unconscious() or unconscious_flag):
+                if not (not target.is_unconscious() or unconscious_flag) or d["target"] == "None":
                     target.remove_coupon(u"＠効果対象")
                     continue
 
