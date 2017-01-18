@@ -19,7 +19,7 @@ intwrap(int i, int min, int max)
     return i;
 }
 
-#define colorwrap(i) ((i) & 0xff)
+#define colorwrap(i) intwrap(i, 0, 255)
 
 static PyObject *
 add_mosaic(PyObject *self, PyObject *args)
