@@ -575,7 +575,9 @@ def find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale):
     """
     scale = 1
     path = cw.util.join_paths(path)
-    if not noscale and (can_loaded_scaledimage or path.startswith(cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile/"))):
+    if not noscale and (can_loaded_scaledimage or\
+                        path.startswith(cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile") + u"/") or\
+                        path.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Table") + u"/")):
         scale =  int(math.pow(2, int(math.log(up_scr, 2))))
         spext = os.path.splitext(path)
         while 2 <= scale:
