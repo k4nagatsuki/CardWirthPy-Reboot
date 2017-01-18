@@ -2626,8 +2626,8 @@ class ScenarioSelect(select.Select):
 
                         for name in names:
                             data = z.read(name)
-                            name = os.path.basename(name)
                             name = cw.util.decode_zipname(name)
+                            name = os.path.basename(name)
                             seq.append(text.ReadmeData(name, data))
                         z.close()
 
