@@ -2430,7 +2430,27 @@ def is_hw(unichr):
     return not unicodedata.east_asian_width(unichr) in ('F', 'W', 'A')
 
 def get_strlen(s):
-    return reduce(lambda a, b: a + b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
+    return reduce(lambda a, b: a + b, map(lambda c: 1 if is_hw(c) else 2, s))
+
+def slice_str(s, width, get_width=None):
+    """
+    sをwidthの位置でスライスし、2つの文字列にして返す。
+    """
+    s = unicode(s)
+    if not get_width:
+        get_width = get_strlen
+    left = []
+    leftlen = 0
+    for c in s:
+        clen = get_width(c)
+        if width < leftlen+clen:
+            break
+        left.append(c)
+        leftlen += clen
+    return u"".join(left), s[len(left):]
+
+assert slice_str(u"ABC", 2) == (u"AB", u"C")
+assert slice_str(u"ABCあ", 4) == (u"ABC", u"あ")
 
 def rjustify(s, length, c):
     slen = cw.util.get_strlen(s)
@@ -2611,35 +2631,105 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
 
     return "".join(seq).rstrip()
 
-def wordwrap(s, width, get_width, wrapschars=WRAPS_CHARS):
+def _wordwrap_impl(s, width, get_width, open_chars, close_chars):
     """
     sをwidthの幅で折り返す。
     テキストの長さをは計る時にget_width(s)を使用する。
     """
-    r_wchar = re.compile(wrapschars)
-    lines = []
-    text = u""
-    for i, c in enumerate(s):
-        text2 = text + c
-        if width < get_width(text2):
-            if r_wchar.match(c.lower()):
-                if text:
-                    lines.append(text[:-1])
-                    text = text[-1] + c
-                else:
-                    lines.append(text2)
-                    text = u""
-            else:
-                lines.append(text)
-                text = c
-        else:
-            text = text2
+    s = unicode(s)
+    if not get_width:
+        get_width = get_strlen
 
-    lines.append(text)
+    lines = []
+    buf = []
+    buflen = 0
+    hw = get_width(u"#")
+    for word in re.findall(u"[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I):
+        wordlen = get_width(word)
+        if width < buflen+wordlen:
+            def append_word_wrap(buf, buflen, word):
+                while width < buflen+get_width(word):
+                    word2, word3 = slice_str(word, width-buflen, get_width)
+                    if word3 and 1 < len(word):
+                        word2 += u"-"
+                    buf.append(word2)
+                    word = word3
+                    lines.append(buf)
+                    buf = []
+                    buflen = 0
+                return [], 0, word
+
+            def break_before_openchar(buf2, buf, buflen, word):
+                while buf2 and open_chars.find(buf2[-1]) <> -1:
+                    buf2 = buf2[:-1]
+                if buf2:
+                    i = len(buf2)
+                    lines.append(buf[:i])
+                    buf = buf[i:]
+                    buflen = sum(map(lambda s: get_width(s), buf))
+                    return buf, buflen, word
+                else:
+                    return append_word_wrap(buf, buflen, word)
+
+            if 1 <= len(buf) and open_chars.find(buf[-1]) <> -1 and close_chars.find(buf[-1]) == -1:
+                buf, buflen, word = break_before_openchar(buf, buf, buflen, word)
+                wordlen = get_width(word)
+            elif not unicode.isspace(word):
+                if close_chars.find(word) <> -1:
+                    if width < buflen or (width == buflen and hw < wordlen):
+                        buf2 = buf
+                        while buf2 and close_chars.find(buf2[-1]) <> -1:
+                            buf2 = buf2[:-1]
+                        if not buf2 or (len(buf2) == 1 and open_chars.find(buf2[-1]) == -1):
+                            lines.append(buf)
+                            buf = []
+                            buflen = 0
+                        elif 2 <= len(buf2) and open_chars.find(buf2[-2]) == -1:
+                            i = len(buf2)-1
+                            lines.append(buf[:i])
+                            buf = buf[i:]
+                            buflen = sum(map(lambda s: get_width(s), buf))
+                        else:
+                            buf, buflen, word = break_before_openchar(buf2, buf, buflen, word)
+                            wordlen = get_width(word)
+                else:
+                    if buf:
+                        lines.append(buf)
+                        buf = []
+                        buflen = 0
+                    buf, buflen, word = append_word_wrap(buf, buflen, word)
+                    wordlen = get_width(word)
+        if word:
+            buf.append(word)
+            buflen += wordlen
+
+    if buf:
+        lines.append(buf)
+
+    return u"\n".join(map(lambda buf: u"".join(buf), lines))
+
+def wordwrap(s, width, get_width=None, open_chars=u"\"'(<[`{‘“〈《≪「『【〔（＜［｛｢",
+                                       close_chars=u"!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕゛°ゝゞヽヾ！），．：；＞？］｝｡｣､ﾞﾟ"):
+    lines = []
+    for line in s.splitlines():
+        lines.append(_wordwrap_impl(line, width, get_width, open_chars, close_chars))
+
     return u"\n".join(lines)
 
-assert wordwrap("ABC.DEFG.H,IKLM?", 3, lambda s: len(s), "\\.|,|\\?") == "AB\nC.D\nEF\nG.\nH,I\nKL\nM?"
-
+assert wordwrap("ABC.DEFG.H,IKLM?", 3) == "ABC.\nDEF-\nG.H,\nIKL-\nM?"
+assert wordwrap("[abc..]\ndefg", 3) == "[ab-\nc..]\ndef-\ng"
+assert wordwrap("abc..\ndefghij", 3) == "abc.\n.\ndef-\nghi-\nj"
+assert wordwrap("a bc..", 4) == "a \nbc.."
+assert wordwrap("a bc....],.\ndef", 4) == "a \nbc...\n.],.\ndef"
+assert wordwrap("[def]", 4) == "[def]"
+assert wordwrap("def[ghi]]", 4) == "def\n[ghi\n]]"
+assert wordwrap(u"あいうえお。かきくけこ", 11) == u"あいうえお。\nかきくけこ"
+assert wordwrap(u"あいうえAA。かきくけこ", 9) == u"あいうえ\nAA。かき\nくけこ"
+assert wordwrap("[[[[a", 4) == "[[[[\na"
+assert wordwrap("\"Let's it go!!\"", 4) == "\"Let'\ns it \ngo!!\""
+assert wordwrap(u"あいうえおA.かきくけこ", 11) == u"あいうえおA.\nかきくけこ"
+assert wordwrap(u"あいうえおA。かきくけこ", 11) == u"あいうえお\nA。かきくけ\nこ"
+assert wordwrap(u"ｐｑｒ pqr ＰＱＲ", 6) == u"ｐｑｒ \npqr \nＰＱＲ"
 
 def get_char(s, index):
     try:
