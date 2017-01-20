@@ -387,9 +387,9 @@ class Setting(object):
         self.show_debuglogdialog = False
         self.write_playlog = False
         self.move_repeat = 250 #移動ボタン押しっぱなしの速度
-        # ドロップによるシナリオのインストールを可能にする
+        # シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する
         # Falseの場合は常に検索結果として表示
-        self.can_installscenariofromdrop = True
+        self.can_installscenariofromdrop = False
         # シナリオのインストールに成功したら元ファイルを削除する
         self.delete_sourceafterinstalled = False
 

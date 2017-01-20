@@ -624,6 +624,8 @@ class SettingsPanel(wx.Panel):
             def func():
                 cw.cwpy.advlog.enable(setting.write_playlog)
             cw.cwpy.exec_func(func)
+        value = self.pane_scenario.cb_can_installscenariofromdrop.GetValue()
+        setting.can_installscenariofromdrop = value
         value = self.pane_scenario.cb_delete_sourceafterinstalled.GetValue()
         setting.delete_sourceafterinstalled = value
         value = self.pane_scenario.tx_filer_dir.GetValue()
@@ -2131,6 +2133,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
         self.cb_show_paperandtree = wx.CheckBox(self, -1, u"シナリオ選択ダイアログで貼紙と一覧を同時に表示する")
         self.cb_write_playlog = wx.CheckBox(self, -1, u"シナリオのプレイログを出力する")
+        self.cb_can_installscenariofromdrop = wx.CheckBox(self, -1, u"シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する")
         self.cb_delete_sourceafterinstalled = wx.CheckBox(self, -1, u"シナリオのインストールに成功したら元ファイルを削除する")
 
         # スキンタイプ毎の初期フォルダ
@@ -2192,6 +2195,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype)
         self.cb_show_paperandtree.SetValue(setting.show_paperandtree)
         self.cb_write_playlog.SetValue(setting.write_playlog)
+        self.cb_can_installscenariofromdrop.SetValue(setting.can_installscenariofromdrop)
         self.cb_delete_sourceafterinstalled.SetValue(setting.delete_sourceafterinstalled)
         if 0 < self.grid_folderoftype.GetNumberRows():
             self.grid_folderoftype.DeleteRows(0, self.grid_folderoftype.GetNumberRows())
@@ -2213,6 +2217,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype_init)
         self.cb_show_paperandtree.SetValue(setting.show_paperandtree_init)
         self.cb_write_playlog.SetValue(setting.write_playlog_init)
+        self.cb_can_installscenariofromdrop.SetValue(setting.can_installscenariofromdrop_init)
         self.cb_delete_sourceafterinstalled.SetValue(setting.delete_sourceafterinstalled_init)
         self.tx_filer_dir.SetValue(setting.filer_dir_init)
         self.tx_filer_file.SetValue(setting.filer_file_init)
@@ -2253,6 +2258,7 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_show_paperandtree, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_write_playlog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_can_installscenariofromdrop, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_delete_sourceafterinstalled, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.SetMinSize((_settings_width(), -1))
 
