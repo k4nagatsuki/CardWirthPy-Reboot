@@ -2631,7 +2631,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
 
     return "".join(seq).rstrip()
 
-def _wordwrap_impl(s, width, get_width, open_chars, close_chars):
+def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, resultindex, spcharinfo, spcharinfo2):
     """
     sをwidthの幅で折り返す。
     テキストの長さをは計る時にget_width(s)を使用する。
@@ -2640,19 +2640,73 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars):
     if not get_width:
         get_width = get_strlen
 
+    iter = re.findall(u"[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I)
+    if spcharinfo:
+        # 特殊文字と単語を分離しておく
+        iter2 = []
+        index = startindex
+        spc = None
+        for word in iter:
+            if spc:
+                iter2.append(spc + word[0])
+                if 1 < len(word):
+                    iter2.append(word[1:])
+                spc = None
+            elif index in spcharinfo:
+                spc = word
+            else:
+                iter2.append(word)
+            index += len(word)
+        assert spc is None
+        iter = iter2
+
     lines = []
     buf = []
     buflen = 0
     hw = get_width(u"#")
-    for word in re.findall(u"[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I):
+    index = startindex
+    for word in iter:
+        # 特殊文字か？
+        is_spchar = spcharinfo and index in spcharinfo
+
         wordlen = get_width(word)
         if width < buflen+wordlen:
+            def match_op(buf):
+                return not buf[1] and open_chars.find(buf[0]) <> -1
+
+            def match_cl(buf):
+                return not buf[1] and close_chars.find(buf[0]) <> -1
+
+            def match_last(bufs, matcher):
+                for i in xrange(len(bufs)):
+                    buf = bufs[-(1+i)]
+                    if buf[1] and buf[0][0] == '&':
+                        continue
+                    return matcher(buf)
+
+            def match_op_last(bufs):
+                # bufsの末尾部分がopen_charsに該当する文字ならTrue
+                # ただし色変更の特殊文字は無視する
+                return match_last(bufs, match_op)
+
+            def match_cl_last(bufs):
+                # bufsの末尾部分がclose_charsに該当する文字ならTrue
+                # ただし色変更の特殊文字は無視する
+                return match_last(bufs, match_cl)
+
+            assert match_op_last([("[", False), ("&R", True), ("&R", True)])
+            assert match_op_last([("[", False)])
+            assert not match_op_last([("[", False), ("&R", False), ("&R", True)])
+
             def append_word_wrap(buf, buflen, word):
+                # wordを強制的に折り返しながら行に加える
+                if is_spchar:
+                    return buf, buflen, word
                 while width < buflen+get_width(word):
                     word2, word3 = slice_str(word, width-buflen, get_width)
-                    if word3 and 1 < len(word):
+                    if word2:
                         word2 += u"-"
-                    buf.append(word2)
+                    buf.append((word2, False))
                     word = word3
                     lines.append(buf)
                     buf = []
@@ -2660,39 +2714,48 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars):
                 return [], 0, word
 
             def break_before_openchar(buf2, buf, buflen, word):
-                while buf2 and open_chars.find(buf2[-1]) <> -1:
+                # 行末禁止文字の位置まで遡って折り返す
+                while buf2 and match_op_last(buf2):
                     buf2 = buf2[:-1]
                 if buf2:
                     i = len(buf2)
                     lines.append(buf[:i])
                     buf = buf[i:]
-                    buflen = sum(map(lambda s: get_width(s), buf))
+                    buflen = sum(map(lambda s: get_width(s[0]), buf))
                     return buf, buflen, word
                 else:
                     return append_word_wrap(buf, buflen, word)
 
-            if 1 <= len(buf) and open_chars.find(buf[-1]) <> -1 and close_chars.find(buf[-1]) == -1:
+            if 1 <= len(buf) and match_op_last(buf) and not match_cl_last(buf):
+                # 末尾に行末禁止文字があるので折り返し可能な位置まで遡って折り返す
                 buf, buflen, word = break_before_openchar(buf, buf, buflen, word)
                 wordlen = get_width(word)
             elif not unicode.isspace(word):
-                if close_chars.find(word) <> -1:
+                # 空白文字は行末にいくつでも連ねるのでそれ以外の文字を処理
+                if match_cl((word, is_spchar)):
                     if width < buflen or (width == buflen and hw < wordlen):
+                        # 行頭禁止文字は1文字まではぶら下げるが、それ以上ある場合は
+                        # 折り返し可能な位置まで遡って折り返す
                         buf2 = buf
-                        while buf2 and close_chars.find(buf2[-1]) <> -1:
+                        while buf2 and match_cl_last(buf2):
                             buf2 = buf2[:-1]
-                        if not buf2 or (len(buf2) == 1 and open_chars.find(buf2[-1]) == -1):
+                        if not buf2 or (len(buf2) == 1 and not match_op_last(buf2)):
+                            # 折り返し可能な位置が無かった
                             lines.append(buf)
                             buf = []
                             buflen = 0
-                        elif 2 <= len(buf2) and open_chars.find(buf2[-2]) == -1:
+                        elif 2 <= len(buf2) and not match_op_last(buf2[:-1]):
+                            # 折り返し可能な位置が見つかった(折り返した箇所に行末禁止文字が無い)
                             i = len(buf2)-1
                             lines.append(buf[:i])
                             buf = buf[i:]
-                            buflen = sum(map(lambda s: get_width(s), buf))
+                            buflen = sum(map(lambda s: get_width(s[0]), buf))
                         else:
+                            # 折り返し可能な位置は行末禁止文字だった
                             buf, buflen, word = break_before_openchar(buf2, buf, buflen, word)
                             wordlen = get_width(word)
                 else:
+                    # 普通に折り返す
                     if buf:
                         lines.append(buf)
                         buf = []
@@ -2700,19 +2763,48 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars):
                     buf, buflen, word = append_word_wrap(buf, buflen, word)
                     wordlen = get_width(word)
         if word:
-            buf.append(word)
-            buflen += wordlen
+            buf.append((word, is_spchar))
+            if not is_spchar or word[0] <> '&':
+                buflen += wordlen
+        index += len(word)
 
     if buf:
         lines.append(buf)
 
-    return u"\n".join(map(lambda buf: u"".join(buf), lines))
+    if spcharinfo2 is None:
+        return u"\n".join(map(lambda buf: u"".join(map(lambda w: w[0], buf)), lines))
+    else:
+        seq = []
+        for buf in lines:
+            line = []
+            for word, is_spchar in buf:
+                if is_spchar:
+                    spcharinfo2.append(resultindex)
+                line.append(word)
+                resultindex += len(word)
+            seq.append(u"".join(line))
+            resultindex += len(u"\n")
+        return u"\n".join(seq)
 
 def wordwrap(s, width, get_width=None, open_chars=u"\"'(<[`{‘“〈《≪「『【〔（＜［｛｢",
-                                       close_chars=u"!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕゛°ゝゞヽヾ！），．：；＞？］｝｡｣､ﾞﾟ"):
+                                       close_chars=u"!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕゛°ゝゞヽヾ！），．：；＞？］｝｡｣､ﾞﾟ",
+                                       spcharinfo=None):
+    if spcharinfo:
+        spcharinfo2 = []
+    else:
+        spcharinfo2 = None
     lines = []
+    index = 0
+    resultindex = 0
     for line in s.splitlines():
-        lines.append(_wordwrap_impl(line, width, get_width, open_chars, close_chars))
+        wrapped = _wordwrap_impl(line, width, get_width, open_chars, close_chars, index, resultindex, spcharinfo, spcharinfo2)
+        lines.append(wrapped)
+        index += len(line)+len(u"\n")
+        resultindex += len(wrapped)+len(u"\n")
+
+    if spcharinfo:
+        spcharinfo.clear()
+        spcharinfo.update(spcharinfo2)
 
     return u"\n".join(lines)
 
@@ -2730,6 +2822,15 @@ assert wordwrap("\"Let's it go!!\"", 4) == "\"Let'\ns it \ngo!!\""
 assert wordwrap(u"あいうえおA.かきくけこ", 11) == u"あいうえおA.\nかきくけこ"
 assert wordwrap(u"あいうえおA。かきくけこ", 11) == u"あいうえお\nA。かきくけ\nこ"
 assert wordwrap(u"ｐｑｒ pqr ＰＱＲ", 6) == u"ｐｑｒ \npqr \nＰＱＲ"
+
+def _test_wordwrap(s, width, spcharinfo):
+    return wordwrap(s, width, spcharinfo=spcharinfo), spcharinfo
+
+assert _test_wordwrap(u"CARD #WIRTH SPECIA&L\nCHA&RACTER #TEST!", 8, spcharinfo=set([5, 18, 24, 32])) ==\
+       (u"CARD #W\nIRTH \nSPECIA&L\nCHA&RACTER \n#TEST!", set([5, 20, 26, 35]))
+assert wordwrap(u"[&Rabc..]", 3, spcharinfo=set([1])) == u"[&Rab-\nc..]"
+assert wordwrap(u"ab...", 3) == u"ab..\n."
+assert _test_wordwrap(u"ab..&R.", 3, spcharinfo=set([4])) == (u"ab..\n&R.", set([5]))
 
 def get_char(s, index):
     try:
