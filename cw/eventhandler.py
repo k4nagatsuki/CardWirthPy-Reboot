@@ -1448,6 +1448,7 @@ class EventHandlerForBacklog(EventHandler):
             # 次のログ
             self.mwin = self.backlog[self.index].create_message()
             self._page.update_page(self.index+1, self._get_maxpage())
+        cw.cwpy.draw()
 
 class EventHandlerForEffectBooster(EventHandler):
     def __init__(self):

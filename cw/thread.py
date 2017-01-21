@@ -1680,7 +1680,8 @@ class CWPy(_Singleton, threading.Thread):
             while self.is_running() and eventhandler.is_showing() and\
                     cw.cwpy.sdata.is_playing and self._is_showingbacklog:
                 self.sbargrp.update(self.scr_draw)
-                self.draw()
+                if self.has_inputevent:
+                    self.draw()
                 self.tick_clock()
                 self.input()
                 eventhandler.run()
