@@ -310,34 +310,7 @@ class CardHeader(object):
         適性値の段階値を返す。段階値は(0 > 1 > 2 > 3 > 4)の順
         enhance_act : 行動力を加味する場合、True
         """
-        value = self.get_vocation_val(owner, enhance_act)
-
-        if cw.cwpy.setting.vocation120:
-            # スキンによる互換機能
-            # 1.20相当の適性計算を行う
-            if value < 3:
-                value = 0
-            elif value < 7:
-                value = 1
-            elif value < 11:
-                value = 2
-            elif value < 15:
-                value = 3
-            else:
-                value = 4
-        else:
-            if value < 3:
-                value = 0
-            elif value < 9:
-                value = 1
-            elif value < 15:
-                value = 2
-            elif value < 20:
-                value = 3
-            else:
-                value = 4
-
-        return value
+        return cw.effectmotion.get_vocation_level(owner, self.vocation, enhance_act=enhance_act)
 
     def get_showed_vocation_level(self, owner):
         """
@@ -360,7 +333,6 @@ class CardHeader(object):
         else:
             return min(3, self.get_vocation_level(owner, enhance_act=False))
 
-
     def get_vocation_val(self, owner, enhance_act=False):
         """
         適性値(身体特性+精神特性の合計値)を返す。
@@ -368,26 +340,7 @@ class CardHeader(object):
         """
         if not owner:
             owner = self.get_owner()
-        physical = self.vocation[0]
-        mental = self.vocation[1].replace("un", "", 1)
-        physical = owner.data.getint("Property/Ability/Physical", physical, 0)
-        mental = owner.data.getint("Property/Ability/Mental", mental, 0)
-
-        if self.vocation[1].startswith("un"):
-            mental = -mental
-
-        if int(mental) <> mental:
-            if mental < 0:
-                mental += 0.5
-            else:
-                mental -= 0.5
-            mental = int(mental)
-
-        if enhance_act:
-            n = physical + mental + owner.data.getint("Property/Enhance/Action")
-        else:
-            n = physical + mental
-        return cw.util.numwrap(n, -65536, 65536)
+        return cw.effectmotion.get_vocation_val(owner, self.vocation, enhance_act=enhance_act)
 
     def get_uselimit_level(self):
         """

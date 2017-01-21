@@ -542,6 +542,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Wait" and ctype == "":
             f.write_dword(int(data.get("value")))
         elif tag == "Effect" and ctype == "":
+            if data.getbool(".", "refability", False):
+                f.check_wsnversion("2")
             if data.getbool(".", "ignite", False):
                 f.check_wsnversion("2")
             f.write_dword(int(data.get("level")))

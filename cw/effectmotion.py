@@ -86,16 +86,33 @@ class Effect(object):
         self.visualeffect = d.get("visualeffect", "None")
         self.battlespeed = battlespeed
 
+        # 選択メンバの能力参照(Wsn.2)
+        self.refability = d.get("refability", False)
+        if self.refability:
+            physical = d.get("physical", "Dex")
+            mental = d.get("mental", "Aggressive")
+            self.vocation = (physical.lower(), mental.lower())
+        else:
+            self.vocation = None
+
         # 行動力修正の影響を受けるか
         # アクションカードまたは特殊技能の場合のみ
         self.is_enhance_act = self.inusecard and self.inusecard.type in ("ActionCard", "SkillCard")
 
         if self.user and self.inusecard:
-            self.motions = [EffectMotion(e, self.user, self.inusecard)
+            self.motions = [EffectMotion(e, self.user, self.inusecard, refability=self.refability, vocation=self.vocation)
                                                             for e in motions]
         else:
-            self.motions = [EffectMotion(e, targetlevel=self.level)
+            self.motions = [EffectMotion(e, targetlevel=self.level, refability=self.refability, vocation=self.vocation)
                                                             for e in motions]
+
+    def get_level(self):
+        """使用者のレベルもしくは効果コンテントの対象レベル。"""
+        if self.refability:
+            ccard = cw.cwpy.event.get_selectedmember()
+            return ccard.level if ccard else 0
+        else:
+            return cw.util.numwrap(self.user.level if self.user else self.level, -65536, 65536)
 
     def apply(self, target, event=False):
         if isinstance(target, Character) and self.check_enabledtarget(target, event):
@@ -279,14 +296,17 @@ class Effect(object):
             elif targetbonus <= -10:
                 return False
 
-            if self.user and self.inusecard:
+            if self.refability:
+                ccard = cw.cwpy.event.get_selectedmember()
+                userbonus = ccard.get_bonus(self.vocation, enhance_act=True)
+            elif self.user and self.inusecard:
                 uservocation = self.inusecard.vocation
-                userbonus =  self.user.get_bonus(uservocation, enhance_act=self.is_enhance_act)
+                userbonus = self.user.get_bonus(uservocation, enhance_act=self.is_enhance_act)
             else:
                 userbonus = 4
 
             vocation = ("agl", "cautious")
-            level = self.user.level if self.user else self.level
+            level = self.user.level if self.user else self.get_level()
             return target.decide_outcome(level, vocation, userbonus, targetbonus, self.successrate)
 
         return False
@@ -299,14 +319,17 @@ class Effect(object):
             elif targetbonus <= -10:
                 return False
 
-            if self.user and self.inusecard:
+            if self.refability:
+                ccard = cw.cwpy.event.get_selectedmember()
+                userbonus = ccard.get_bonus(self.vocation, enhance_act=True)
+            elif self.user and self.inusecard:
                 uservocation = self.inusecard.vocation
                 userbonus =  self.user.get_bonus(uservocation, enhance_act=self.is_enhance_act)
             else:
                 userbonus = 4
 
             vocation = ("min", "brave")
-            level = self.user.level if self.user else self.level
+            level = self.user.level if self.user else self.get_level()
             return target.decide_outcome(level, vocation, userbonus, targetbonus, self.successrate)
 
         return False
@@ -419,7 +442,7 @@ class Effect(object):
 #-------------------------------------------------------------------------------
 
 class EffectMotion(object):
-    def __init__(self, data, user=None, header=None, targetlevel=0):
+    def __init__(self, data, user=None, header=None, targetlevel=0, refability=False, vocation=None):
         """
         効果モーションインスタンスを生成。MotionElementと
         user(PlayerCard, EnemyCard)とheader(CardHeader)を引数に取る。
@@ -445,19 +468,47 @@ class EffectMotion(object):
         self.is_enhance_act = header and header.type in ("ActionCard", "SkillCard")
         # 使用カード(CardHeader)
         self.cardheader = header
-        # 使用者の適性値(効果コンテントの場合は"4")
-        self.vocation_val = header.get_vocation_val(user) if header else 4
-        # 使用者の適性レベル(効果コンテントの場合は"2")
-        # スキルカードの場合は行動力修正の影響を受ける
-        self.vocation_level = header.get_vocation_level(user, enhance_act=self.is_enhance_act) if header else 2
-        # 使用者のレベルもしくは効果コンテントの対象レベル
-        self.level = cw.util.numwrap(user.level if user else targetlevel, -65536, 65536)
-
-        # 使用者の行動力修正(技能カード以外は全て"0")
-        if self.is_enhance_act:
-            self.enhance_act = user.get_enhance_act()
+        # 選択メンバの能力参照(Wsn.2)
+        self.refability = refability
+        if refability:
+            self._vocation = vocation
         else:
-            self.enhance_act = 0
+            # 使用者のレベルもしくは効果コンテントの対象レベル
+            self._targetlevel = targetlevel
+
+    def get_vocation_val(self):
+        """成功率や効果値の計算に使用する適性値を返す。"""
+        if self.refability:
+            ccard = cw.cwpy.event.get_selectedmember()
+            return get_vocation_val(ccard, self._vocation, enhance_act=True) if ccard else 4
+        else:
+            # 使用者の適性値(効果コンテントの場合は"4")
+            return self.cardheader.get_vocation_val(self.user) if self.cardheader else 4
+
+    def get_vocation_level(self):
+        """成功率や効果値の計算に使用するレベルを返す。"""
+        if self.refability:
+            ccard = cw.cwpy.event.get_selectedmember()
+            return get_vocation_level(ccard, self._vocation, enhance_act=True) if ccard else 2
+        else:
+            # 使用者の適性レベル(効果コンテントの場合は"2")
+            # スキルカードの場合は行動力修正の影響を受ける
+            return self.cardheader.get_vocation_level(self.user, enhance_act=self.is_enhance_act) if self.cardheader else 2
+
+    def get_enhance_act(self):
+        """使用者の行動力修正(技能カード以外は全て"0")。"""
+        if self.is_enhance_act and not self.refability:
+            return self.user.get_enhance_act()
+        else:
+            return 0
+
+    def get_level(self):
+        """使用者のレベルもしくは効果コンテントの対象レベル。"""
+        if self.refability:
+            ccard = cw.cwpy.event.get_selectedmember()
+            return ccard.level if ccard else 0
+        else:
+            return cw.util.numwrap(self.user.level if self.user else self._targetlevel, -65536, 65536)
 
     def is_effectcontent(self):
         return not bool(self.cardheader)
@@ -493,9 +544,9 @@ class EffectMotion(object):
 
         # レベル比の効果値を計算(レベル比じゃない場合はそのままの効果値)
         if self.damagetype == "LevelRatio":
-            bonus = self.vocation_val + self.enhance_act
+            bonus = self.get_vocation_val() + self.get_enhance_act()
             bonus = bonus // 2 + bonus % 2
-            value = value * (self.level + bonus)
+            value = value * (self.get_level() + bonus)
             value = value // 2 + value % 2
 
         # 弱点属性だったら効果値+10
@@ -534,7 +585,7 @@ class EffectMotion(object):
             minvalue = 1
 
         # 弱点属性だったら適性レベル+1のボーナス
-        vocation_level = self.vocation_level
+        vocation_level = self.get_vocation_level()
         if self.is_weakness(target):
             vocation_level += 1
 
@@ -1236,6 +1287,67 @@ class EffectMotion(object):
                 eff = True
 
         return eff
+
+def get_vocation_val(ccard, vocation, enhance_act=False):
+    """
+    適性値(身体特性+精神特性の合計値)を返す。
+    enhance_act : 行動力を加味する場合、True
+    """
+    physical = vocation[0]
+    mental = vocation[1].replace("un", "", 1)
+    physical = ccard.data.getint("Property/Ability/Physical", physical, 0)
+    mental = ccard.data.getint("Property/Ability/Mental", mental, 0)
+
+    if vocation[1].startswith("un"):
+        mental = -mental
+
+    if int(mental) <> mental:
+        if mental < 0:
+            mental += 0.5
+        else:
+            mental -= 0.5
+        mental = int(mental)
+
+    if enhance_act:
+        n = physical + mental + ccard.data.getint("Property/Enhance/Action")
+    else:
+        n = physical + mental
+
+    return cw.util.numwrap(n, -65536, 65536)
+
+def get_vocation_level(ccard, vocation, enhance_act=False):
+    """
+    適性値の段階値を返す。段階値は(0 > 1 > 2 > 3 > 4)の順
+    enhance_act : 行動力を加味する場合、True
+    """
+    value = get_vocation_val(ccard, vocation, enhance_act)
+
+    if cw.cwpy.setting.vocation120:
+        # スキンによる互換機能
+        # 1.20相当の適性計算を行う
+        if value < 3:
+            value = 0
+        elif value < 7:
+            value = 1
+        elif value < 11:
+            value = 2
+        elif value < 15:
+            value = 3
+        else:
+            value = 4
+    else:
+        if value < 3:
+            value = 0
+        elif value < 9:
+            value = 1
+        elif value < 15:
+            value = 2
+        elif value < 20:
+            value = 3
+        else:
+            value = 4
+
+    return value
 
 #-------------------------------------------------------------------------------
 # 有効な効果モーションのチェック用関数
