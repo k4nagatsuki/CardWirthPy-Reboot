@@ -35,6 +35,7 @@ import xmlcreater
 import bassplayer
 import binary
 import advlog
+import update
 
 import dialog
 import debug

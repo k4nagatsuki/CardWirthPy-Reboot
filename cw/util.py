@@ -1729,7 +1729,7 @@ def remove(path, trashbox=False):
     if os.path.isfile(path):
         remove_file(path, trashbox=trashbox)
     elif os.path.isdir(path):
-        if join_paths(path).lower().startswith("data/temp/"):
+        if join_paths(path).lower().startswith("data/temp/") and not trashbox:
             # Tempフォルダは、フォルダの内容さえ消えていれば
             # 空フォルダが残っていてもほとんど無害
             try:

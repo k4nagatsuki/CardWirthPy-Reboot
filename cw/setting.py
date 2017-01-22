@@ -392,6 +392,8 @@ class Setting(object):
         self.can_installscenariofromdrop = False
         # シナリオのインストールに成功したら元ファイルを削除する
         self.delete_sourceafterinstalled = False
+        # アップデートに伴うファイルの自動移動・削除を行う
+        self.auto_update_files = True
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = False
@@ -721,6 +723,9 @@ class Setting(object):
         # シナリオのインストールに成功したら元ファイルを削除する
         self.delete_sourceafterinstalled = data.getbool("DeleteSourceAfterInstalled", self.delete_sourceafterinstalled)
 
+        # アップデートに伴うファイルの自動移動・削除を行う
+        self.auto_update_files = data.getbool("AutoUpdateFiles", self.auto_update_files_init)
+
         # シナリオのインストール先(キー=ルートディレクトリ)
         e = data.find("InstalledPaths")
         if not e is None:
@@ -763,6 +768,8 @@ class Setting(object):
 
     def init_skin(self, basedata=None):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
+        if self.auto_update_files:
+            cw.update.update_files(self.skindir, self.skindirname)
         if not os.path.isdir(self.skindir):
             self.skindirname = "Classic"
             self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)

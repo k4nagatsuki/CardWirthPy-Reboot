@@ -114,6 +114,9 @@ class Frame(wx.Frame):
             self._setting.skindirname = self._skindirname
             self._setting.write()
             self._setting.init_settings()
+        if self._setting.auto_update_files:
+            # アップデートに伴うファイルの整理
+            cw.update.update_files(u"Data", u"Data", [u"../Scenario/"])
         # 起動直後のスレッド数を記憶
         self.initialThreadCount = threading.activeCount()
         # CWPyサブスレッド

@@ -560,6 +560,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("DeleteSourceAfterInstalled", str(setting.delete_sourceafterinstalled))
         element.append(e)
 
+    # アップデートに伴うファイルの自動移動・削除を行う
+    if setting.auto_update_files <> setting.auto_update_files_init:
+        e = cw.data.make_element("AutoUpdateFiles", str(setting.auto_update_files))
+        element.append(e)
+
     if writeplayingdata:
         # シナリオのインストール先(スキンタイプ毎)
         if setting.installed_dir:
