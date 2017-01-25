@@ -350,6 +350,7 @@ def _get_loopinfo(fpath, stream):
                 if start == -1 or end == -1 or end < start:
                     continue
                 line = line[start+1:end]
+                line = line.replace(" ", "")
                 secs = line.split(";")
                 loopstart = -1
                 loopend = -1
