@@ -33,6 +33,9 @@ if sys.platform == "win32":
     pythoncom = importlib.import_module("pythoncom")
     win32shell = importlib.import_module("win32com.shell.shell")
     import win32com.shell.shellcon
+    import win32file
+    import pywintypes
+    import ctypes.wintypes
 
 import wx
 import wx.lib.agw.aui.tabart
@@ -3839,28 +3842,52 @@ def create_mutex(dpath):
         dpath = os.path.abspath(dpath)
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
-    name = hashlib.md5(buffer(dpath)).hexdigest()
+    name = os.path.join(dpath, u".CardWirthPy.lock")
 
     # 二重起動防止 for Windows
     if sys.platform == "win32":
-        name = u"CardWirthPy/%s\0" % (name)
-        name = name.encode("utf-16")
-        ERROR_ALREADY_EXISTS = 183
-        kernel32 = ctypes.windll.kernel32
-        handle = kernel32.CreateMutexW(None, 1, name)
-        err = kernel32.GetLastError()
+        try:
+            # ロック済みの場合はここで例外が発生する
+            if os.path.isfile(name):
+                os.remove(name)
 
-        if err == ERROR_ALREADY_EXISTS or handle is None:
-            if handle:
-                kernel32.ReleaseMutex(handle)
-                kernel32.CloseHandle(handle)
-            handle = None
-        else:
-            _mutex.append((handle, name))
-            return True
+            # BUG: win32file.LockFileEx()とwin32file.UnlockFileEx()を使うと、
+            #      なぜかこの関数を抜けた後でロック解除がうまくいかなくなる
+            kernel32 = ctypes.windll.kernel32
+            class OVERLAPPED(ctypes.Structure):
+                _fields_ = [
+                    ('Internal', ctypes.wintypes.DWORD),
+                    ('InternalHigh', ctypes.wintypes.DWORD),
+                    ('Offset', ctypes.wintypes.DWORD),
+                    ('OffsetHigh', ctypes.wintypes.DWORD),
+                    ('hEvent', ctypes.wintypes.HANDLE),
+                ]
+
+            f = open(name, "w")
+            handle = win32file._get_osfhandle(f.fileno())
+            if kernel32.LockFileEx(handle,
+                                   win32con.LOCKFILE_FAIL_IMMEDIATELY|win32con.LOCKFILE_EXCLUSIVE_LOCK,
+                                   0, 0, 0xffff0000, ctypes.byref(OVERLAPPED())):
+                class Unlock(object):
+                    def __init__(self, name, f):
+                        self.name = name
+                        self.f = f
+
+                    def unlock(self):
+                        if self.f:
+                            handle = win32file._get_osfhandle(self.f.fileno())
+                            kernel32.UnlockFileEx(handle, 0, 0, 0xffff0000, ctypes.byref(OVERLAPPED()))
+                            self.f = None
+                            remove(self.name)
+
+                _mutex.append((Unlock(name, f), name))
+                return True
+            else:
+                return False
+        except:
+            return False
     else:
         # Posix
-        name = u"Data/Temp/Global/LockFiles/%s" % (name)
         try:
             if not os.path.isfile(name):
                 dpath = os.path.dirname(name)
@@ -3882,28 +3909,25 @@ def exists_mutex(dpath):
         dpath = os.path.abspath(dpath)
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
-    name = hashlib.md5(buffer(dpath)).hexdigest()
+    name = os.path.join(dpath, u".CardWirthPy.lock")
+    if name in map(lambda m: m[1], _mutex):
+        return False
 
     if sys.platform == "win32":
-        name = u"CardWirthPy/%s\0" % (name)
-        name = name.encode("utf-16")
-        MUTEX_ALL_ACCESS = 0x001F0001
-        _SYNCHRONIZE = 0x00100000
-        kernel32 = ctypes.windll.kernel32
-        handle = kernel32.OpenMutexW(MUTEX_ALL_ACCESS, 0, name)
-        if handle and not name in map(lambda m: m[1], _mutex):
-            kernel32.ReleaseMutex(handle)
-            kernel32.CloseHandle(handle)
+        try:
+            if not os.path.isfile(name):
+                return False
+
+            with open(name, "w") as f:
+                pass
+            remove(name)
+        except:
             return True
-        elif handle:
-            kernel32.CloseHandle(handle)
 
         return False
+
     else:
         # Posix
-        name = u"Data/Temp/Global/LockFiles/%s" % (name)
-        if name in map(lambda m: m[1], _mutex):
-            return False
         try:
             if not os.path.isfile(name):
                 dpath = os.path.dirname(name)
@@ -3923,9 +3947,7 @@ def release_mutex():
     global _mutex
     if _mutex:
         if sys.platform == "win32":
-            kernel32 = ctypes.windll.kernel32
-            kernel32.ReleaseMutex(_mutex[-1][0])
-            kernel32.CloseHandle(_mutex[-1][0])
+            _mutex[-1][0].unlock()
         else:
             fcntl.flock(_mutex[-1][0].fileno(), fcntl.LOCK_UN)
             _mutex[-1][0].close()
@@ -3937,9 +3959,7 @@ def clear_mutex():
     global _mutex
     for mutex, name in _mutex:
         if sys.platform == "win32":
-            kernel32 = ctypes.windll.kernel32
-            kernel32.ReleaseMutex(mutex)
-            kernel32.CloseHandle(mutex)
+            mutex.unlock()
         else:
             f = mutex
             fcntl.flock(f.fileno(), fcntl.LOCK_UN)

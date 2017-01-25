@@ -859,7 +859,8 @@ class Setting(object):
     def _update_skin(self, path):
         """旧バージョンのデータの誤りを訂正する。
         """
-        while not cw.util.create_mutex(path):
+        dpath = os.path.dirname(path)
+        while not cw.util.create_mutex(dpath):
             pass
 
         try:
