@@ -350,11 +350,11 @@ def _get_loopinfo(fpath, stream):
                 if start == -1 or end == -1 or end < start:
                     continue
                 line = line[start+1:end]
-                line = line.replace(" ", "")
                 secs = line.split(";")
                 loopstart = -1
                 loopend = -1
                 for sec in secs:
+                    sec = sec.strip()
                     if sec.startswith("From="):
                         loopend = int(sec[len("From="):])
                     if sec.startswith("To="):
