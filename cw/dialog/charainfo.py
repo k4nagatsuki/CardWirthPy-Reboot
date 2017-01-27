@@ -670,7 +670,6 @@ class TopPanel(wx.Panel):
         return u"\n".join(lines)
 
 
-
 class TitlePanel(wx.Panel):
     """
     タイトルバーを描画するパネルを作る。
@@ -688,7 +687,6 @@ class TitlePanel(wx.Panel):
 
     def draw(self, update=False):
         self.Refresh()
-
 
     def OnPaint(self, event):
         index = self.notebook.GetSelection()
@@ -708,6 +706,7 @@ class TitlePanel(wx.Panel):
         else:
             self.text = cw.cwpy.msgs["beastcard"]
 
+        dc = wx.PaintDC(self)
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         csize = self.GetClientSize()
