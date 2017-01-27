@@ -48,7 +48,7 @@ class CharaInfo(wx.Dialog):
         if len(self.list) <= 1:
             self.leftbtn.Disable()
             self.rightbtn.Disable()
-        
+
         # notebook
         self.notebook = wx.lib.agw.aui.auibook.AuiNotebook(self, -1, size=(self.width, cw.wins(203)),
                                                            agwStyle=aui.AUI_NB_BOTTOM|aui.AUI_NB_TAB_FIXED_WIDTH)
@@ -310,12 +310,11 @@ class CharaInfo(wx.Dialog):
 
         self.toppanel.ccard = self.ccard
         self.toppanel.Refresh()
-   
+
         for win in self.bottompanel:
             win.ccard = self.ccard
             win.headers = []
             win.draw(True)
-
 
     def OnClickRightBtn(self, event):
         if self.index == len(self.list) -1:

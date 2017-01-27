@@ -561,6 +561,7 @@ class CardControl(wx.Dialog):
                     def func():
                         self.rclick_event(header)
                     self.animate_click(header, func)
+                    return
         elif eid == self.leftkeyid:
             seq = self.get_headers()[:]
             seq.reverse()
