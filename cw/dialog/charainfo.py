@@ -24,7 +24,7 @@ class CharaInfo(wx.Dialog):
         dc = wx.ClientDC(parent)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         self.width = dc.GetTextExtent(u"―"*20)[0] + cw.wins(20)
-        self.width = max(cw.wins(300), self.width)
+        self.width = max(cw.wins(302), self.width)
 
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=(self.width, cw.wins(355)),
@@ -686,17 +686,11 @@ class TitlePanel(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.OnCancel)
 
+    def draw(self, update=False):
+        self.Refresh()
+
 
     def OnPaint(self, event):
-        self.draw()
-
-    def draw(self, update=False):
-        if update:
-            dc = wx.ClientDC(self)
-        else:
-            dc = wx.PaintDC(self)
-
-
         index = self.notebook.GetSelection()
         if index == 0:
             self.text = cw.cwpy.msgs["description"]
@@ -714,14 +708,13 @@ class TitlePanel(wx.Panel):
         else:
             self.text = cw.cwpy.msgs["beastcard"]
 
-
-       
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        x = (self.GetClientSize()[0]-dc.GetTextExtent(self.text)[0])/2
-        dc.DrawText(self.text, x, cw.wins(3))
-        if update:
-            self.Refresh()
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
+        csize = self.GetClientSize()
+        te = dc.GetTextExtent(self.text)
+        x = (csize[0] - te[0]) / 2
+        y = (csize[1] - te[1]) / 2
+        dc.DrawText(self.text, x, y)
 
 class DescPanel(wx.ScrolledWindow):
     """
