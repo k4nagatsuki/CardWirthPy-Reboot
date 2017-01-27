@@ -2209,7 +2209,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
 
                 def run(self):
                     for s in ss:
-                        p = subprocess.Popen(s.encode(encoding), shell=True)
+                        p = subprocess.Popen(s.encode(encoding), shell=True, close_fds=True)
                         r = p.poll()
                         while r is None:
                             if self.cancel:
@@ -2241,7 +2241,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                 return None
         else:
             for s in ss:
-                if subprocess.call(s.encode(encoding), shell=True) <> 0:
+                if subprocess.call(s.encode(encoding), shell=True, close_fds=True) <> 0:
                     return None
     except Exception:
         cw.util.print_ex()

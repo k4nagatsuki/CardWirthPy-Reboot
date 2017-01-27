@@ -1334,7 +1334,7 @@ class ScenarioSelect(select.Select):
                 fpath = fpath.encode(encoding)
                 seq = [filer, fpath]
                 try:
-                    subprocess.Popen(seq)
+                    subprocess.Popen(seq, close_fds=True)
                 except:
                     s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [ファイラー(ファイル用)] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.filer_file))
                     dlg = cw.dialog.message.ErrorMessage(self, s)
@@ -1362,7 +1362,7 @@ class ScenarioSelect(select.Select):
                 dpath = dpath.encode(encoding)
                 seq = [filer, dpath]
                 try:
-                    subprocess.Popen(seq)
+                    subprocess.Popen(seq, close_fds=True)
                 except:
                     s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [ファイラー(フォルダ用)] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.filer_dir))
                     dlg = cw.dialog.message.ErrorMessage(self, s)
@@ -1428,7 +1428,7 @@ class ScenarioSelect(select.Select):
         seq = [editor, fpath]
 
         try:
-            subprocess.Popen(seq)
+            subprocess.Popen(seq, close_fds=True)
         except:
             s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
             dlg = cw.dialog.message.ErrorMessage(self, s)
@@ -2603,7 +2603,7 @@ class ScenarioSelect(select.Select):
                     s = "expand \"%s\" -f:%s \"%s\"" % (path, "*.txt", dpath)
                     try:
                         encoding = sys.getfilesystemencoding()
-                        if subprocess.call(s.encode(encoding), shell=True) == 0:
+                        if subprocess.call(s.encode(encoding), shell=True, close_fds=True) == 0:
                             for dpath2, _dnames, fnames in os.walk(dpath):
                                 for fname in fnames:
                                     fname = cw.util.decode_zipname(fname)

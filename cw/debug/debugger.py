@@ -776,7 +776,7 @@ class Debugger(wx.Frame):
                     return
 
                 try:
-                    subprocess.Popen(seq)
+                    subprocess.Popen(seq, close_fds=True)
                 except:
                     s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
                     dlg = cw.dialog.message.ErrorMessage(self, s)
