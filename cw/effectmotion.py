@@ -864,7 +864,7 @@ class EffectMotion(object):
         oldduration = target.mentality_dur
         if self.type.title() == "Normal":
             duration = 0
-            eff = True
+            eff = target.mentality <> "Normal"
             target.set_mentality(self.type.title(), duration)
         else:
             duration = self.calc_durationvalue(target, False)
