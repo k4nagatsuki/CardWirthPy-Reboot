@@ -66,12 +66,16 @@ class CardInfo(wx.Dialog):
         self.leftpagekeyid = wx.NewId()
         self.rightpagekeyid = wx.NewId()
         copyid = wx.NewId()
+        esckeyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
+        self.Bind(wx.EVT_MENU, self.OnCancel, id=esckeyid)
         seq = [
             (wx.ACCEL_NORMAL, wx.WXK_LEFT, self.leftpagekeyid),
             (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.rightpagekeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_BACK, esckeyid),
+            (wx.ACCEL_NORMAL, ord('_'), esckeyid),
             (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftpagekeyid),
             (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
             (wx.ACCEL_CTRL, ord('C'), copyid),

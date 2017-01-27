@@ -22,10 +22,9 @@ class CharaInfo(wx.Dialog):
     def __init__(self, parent, redrawfunc, editable, party=None):
         # フォントサイズによってダイアログサイズを決定する
         dc = wx.ClientDC(parent)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        self.width = dc.GetTextExtent(u"―")[0] * 20
-        self.width = max(cw.wins(302), self.width)
-        
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
+        self.width = dc.GetTextExtent(u"―"*20)[0] + cw.wins(20)
+        self.width = max(cw.wins(300), self.width)
 
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=(self.width, cw.wins(355)),
@@ -60,30 +59,39 @@ class CharaInfo(wx.Dialog):
         cut= self.GetClientSize()[0] / 6 - 1
         self.notebook.SetMinMaxTabWidth(cut, cut)
 
+        self.bottompanel = []
+
         # 解説
         self.descpanel = DescPanel(self.notebook, self.ccard, editable)
+        self.bottompanel.append(self.descpanel)
         self.notebook.AddPage(self.descpanel, cw.cwpy.msgs["description"])
         # 経歴
         self.historypanel = HistoryPanel(self.notebook, self.ccard, editable)
+        self.bottompanel.append(self.historypanel)
         self.notebook.AddPage(self.historypanel,  cw.cwpy.msgs["history"])
         # 編集または状態
         if self.is_playingscenario:
             self.editpanel = StatusPanel(self.notebook, self.list, self.ccard, editable)
+            self.bottompanel.append(self.editpanel)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         elif editable:
             self.editpanel = EditPanel(self.notebook, self.list, self.ccard)
+            self.bottompanel.append(self.editpanel)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["edit"])
 
         # 各種所持カード
         if self.ccard.data.hasfind("SkillCards"):
             # 技能
             self.skillpanel = SkillPanel(self.notebook, self.ccard)
+            self.bottompanel.append(self.skillpanel)
             self.notebook.AddPage(self.skillpanel, cw.cwpy.msgs["skills"])
             # アイテム
             self.itempanel = ItemPanel(self.notebook, self.ccard)
+            self.bottompanel.append(self.itempanel)
             self.notebook.AddPage(self.itempanel,  cw.cwpy.msgs["items"])
             # 召喚獣
             self.beastpanel = BeastPanel(self.notebook, self.ccard)
+            self.bottompanel.append(self.beastpanel)
             self.notebook.AddPage(self.beastpanel, cw.cwpy.msgs["beasts"])
 
         # toppanel
@@ -92,9 +100,6 @@ class CharaInfo(wx.Dialog):
         # titlepanel
         self.titlepanel = TitlePanel(self, self.notebook)
 
-        # bottompanel
-        self.bottompanel = [self.descpanel,self.historypanel,self.editpanel,
-                            self.skillpanel,self.itempanel,self.beastpanel]
         # layout
         self._do_layout()
         # bind
@@ -114,6 +119,7 @@ class CharaInfo(wx.Dialog):
         self.enter = wx.NewId()
         self.openinfo = wx.NewId()
         copyid = wx.NewId()
+        esckeyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnUp, id=self.upkeyid)
@@ -125,6 +131,7 @@ class CharaInfo(wx.Dialog):
         self.Bind(wx.EVT_MENU, self.OnEnter, id=self.enter)
         self.Bind(wx.EVT_MENU, self.OnOpenInfo, id=self.openinfo)
         self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
+        self.Bind(wx.EVT_MENU, self.OnCancel, id=esckeyid)
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftpagekeyid),
             (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
@@ -135,6 +142,8 @@ class CharaInfo(wx.Dialog):
             (wx.ACCEL_NORMAL, wx.WXK_HOME, self.homekeyid),
             (wx.ACCEL_NORMAL, wx.WXK_END, self.endkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_RETURN, self.enter),
+            (wx.ACCEL_NORMAL, wx.WXK_BACK, esckeyid),
+            (wx.ACCEL_NORMAL, ord('_'), esckeyid),
             (wx.ACCEL_CTRL, wx.WXK_RETURN, self.openinfo),
             (wx.ACCEL_CTRL, ord('C'), copyid),
         ]
@@ -498,11 +507,12 @@ class TopPanel(wx.Panel):
 
         dc.BeginDrawing()
         # カード画像の後ろにある羽みたいなの
-        cw.util.draw_center(dc, self.wing, (self.Parent.width/2, cw.wins(50)))
+        cw.util.draw_center(dc, self.wing, (self.Parent.width/2, cw.wins(52)))
         # カード画像
         x = (dc.GetSize()[0] - cw.wins(74)) / 2
 
         infos = cw.image.get_imageinfos(self.ccard.data.find("Property"))
+        can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
         setpos = any(map(lambda info: not info.postype in (None, "Default"), infos))
 
         for info in infos:
@@ -513,8 +523,8 @@ class TopPanel(wx.Panel):
             elif not cw.binary.image.path_is_code(path):
                 path = cw.util.join_yadodir(path)
 
-            bmp = cw.util.load_wxbmp(path, True)
-            bmp2 = cw.wins((bmp, cw.SIZE_CARDIMAGE))
+            bmp = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
+            bmp2 = cw.wins(bmp)
 
             if setpos:
                 baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
@@ -720,9 +730,9 @@ class DescPanel(wx.ScrolledWindow):
     def __init__(self, parent, ccard, editable):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
+        self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(cw.wins(10), cw.wins(10))
-        self.csize = self.GetClientSize()
 
         # エレメントオブジェクト
         self.ccard = ccard
@@ -754,10 +764,9 @@ class DescPanel(wx.ScrolledWindow):
         self.text = self.ccard.data.gettext("Property/Description", "")
         self.text = cw.util.txtwrap(self.text, 4)
         dc = wx.ClientDC(self)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        _maxwidth, maxheight, _lineheight = dc.GetMultiLineTextExtent(self.text)
-        self.x = cw.wins(14) if maxheight <= self.csize[1] else cw.wins(7)
-        maxheight += cw.wins(10)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
+        maxheight = len(self.text.splitlines())*cw.wins(13)
+        maxheight += cw.wins(7)*2
         self.SetVirtualSize((-1, maxheight))
         self.Scroll(0, 0)
         self.Refresh()
@@ -767,22 +776,26 @@ class DescPanel(wx.ScrolledWindow):
             self._init_view()
 
     def OnPaint(self, event):
+        csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
         vy *= cw.wins(10)
 
         dc = wx.PaintDC(self)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
+        maxwidth = dc.GetTextExtent(u"―"*19)[0]
+        x = (csize[0]-maxwidth) / 2
 
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
         # 解説文
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
-        self.multi = dc.GetMultiLineTextExtent(self.text)[0]
-        cut = (self.GetClientSize()[0] - self.multi)/2
-        dc.DrawLabel(self.text, (cut, cw.wins(8) - vy, cw.wins(200), cw.wins(120)))
-        #dc.DrawLabel(self.text, (self.x - vx, cw.wins(10) - vy, cw.wins(200), cw.wins(120)))
+        x = x-vx
+        y = cw.wins(7) - vy
+        for line in self.text.splitlines():
+            dc.DrawText(line, x, y)
+            y += cw.wins(13)
 
     def get_detailtext(self):
         return self.text
@@ -877,7 +890,7 @@ class HistoryPanel(wx.ScrolledWindow):
 
         # maxheght, maxwidth計算
         dc = wx.ClientDC(self)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         h = self.gold.GetSize()[1]
         maxheight = (h + cw.wins(5)) * len(self.coupons) + cw.wins(10)
@@ -911,7 +924,7 @@ class HistoryPanel(wx.ScrolledWindow):
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
         # クーポン
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         lineheight = self.gold.GetSize()[1] + cw.wins(5)
 
@@ -1071,7 +1084,7 @@ class EditPanel(wx.Panel):
                 header.negaflag = False
                 dc = wx.ClientDC(self)
                 dc.SetTextForeground(wx.WHITE)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
         self.Refresh()
@@ -1092,7 +1105,7 @@ class EditPanel(wx.Panel):
 
     def draw_header(self, dc, header):
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         if header.negaflag:
             dc.SetTextForeground(wx.RED)
             dc.DrawText(header.name, header.textpos[0], header.textpos[1])
@@ -1145,7 +1158,7 @@ class EditPanel(wx.Panel):
 
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         # 編集アイコン
         bmp = cw.cwpy.rsrc.dialogs["STATUS12"]
@@ -1218,7 +1231,7 @@ class StatusPanel(wx.ScrolledWindow):
 
         # 状態
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         height = cw.wins(8)
 
@@ -1526,7 +1539,7 @@ class CardPanel(wx.Panel):
                 header.negaflag = False
                 dc = wx.ClientDC(self)
                 dc.SetTextForeground(wx.WHITE)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
         self.Refresh()
@@ -1553,7 +1566,7 @@ class CardPanel(wx.Panel):
             self.Refresh()
             return
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         if header.negaflag:
             dc.SetTextForeground(wx.RED)
             dc.DrawText(header.name, header.textpos[0], header.textpos[1])
@@ -1620,7 +1633,7 @@ class CardPanel(wx.Panel):
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
         # 所持スキル
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         if not self.headers:
             self.headers = self.ccard.cardpocket[self.pocket]
