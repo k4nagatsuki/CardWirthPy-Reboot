@@ -31,6 +31,7 @@ Wsn.2標準効果音
  * `lp_虫(合唱).ogg` → `l_chirr.ogg`
  * `lp_鐘Ａ.ogg` → `l_church_bell.ogg`
  * `lp_雨.ogg` → `l_rain.ogg`
+ * `lp_鳥(囀り).ogg` → `l_sing.ogg`
  * `lp_滝.ogg` → `l_waterfall.ogg`
  * `lp_風01.ogg` → `l_windstorm.ogg`
  * `lp_風02.ogg` → `l_wind_1.ogg`
