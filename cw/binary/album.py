@@ -169,7 +169,7 @@ class Album(base.CWBinaryBase):
                     if prop.tag == "Name":
                         name = prop.text
                     elif prop.tag in ("ImagePath", "ImagePaths"):
-                        image = base.CWBinaryBase.import_image(f, prop)
+                        image = base.CWBinaryBase.import_image(f, prop, defpostype="Center")
                     elif prop.tag == "Description":
                         description = prop.text
                     elif prop.tag == "Level":

@@ -191,8 +191,20 @@ class Character(object):
         etree = None
         eimg = None
         infos = self.get_imagepaths()
+        can_loaded_scaledimage = self.data.getattr(".", "scaledimage", False)
         if infos:
             if cw.cwpy.is_playingscenario():
+                # メッセージログのイメージが変化しないように
+                # ファイル上書き前に読み込んでおく
+                for info in infos:
+                    if not info.path:
+                        continue
+                    fpath = info.path
+                    fname = os.path.basename(fpath)
+                    fpath2 = cw.util.join_yadodir(fpath)
+                    if os.path.isfile(fpath2):
+                        cw.sprite.message.store_messagelogimage(fpath2, can_loaded_scaledimage)
+
                 # F9のためにシナリオ突入時の画像の記録を取る
                 name = os.path.splitext(os.path.basename(self.data.fpath))[0]
                 log = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face/Log.xml")
@@ -223,7 +235,7 @@ class Character(object):
                             fpath = cw.util.dupcheck_plus(fpath, yado=False)
                             if not os.path.isdir(dpath):
                                 os.makedirs(dpath)
-                            shutil.copy2(fpath2, fpath)
+                            cw.util.copy_scaledimagepaths(fpath2, fpath, can_loaded_scaledimage)
                             e2 = cw.data.make_element("ImagePath", os.path.basename(fpath))
                             info.set_attr(e2)
                             e.append(e2)
@@ -234,7 +246,8 @@ class Character(object):
                 if not info.path:
                     continue
                 fpath = cw.util.join_yadodir(info.path)
-                cw.cwpy.ydata.deletedpaths.add(fpath, forceyado=True)
+                for fpath, _scale in cw.util.get_scaledimagepaths(fpath, can_loaded_scaledimage):
+                    cw.cwpy.ydata.deletedpaths.add(fpath, forceyado=True)
 
         if not eimg is None:
             # 複数回変更された時は変更後ファイル情報を
@@ -244,7 +257,7 @@ class Character(object):
                     eimg.remove(e)
 
         # 新しいファイル群をコピー
-        newpaths = cw.xmlcreater.write_castimagepath(self.get_name(), paths)
+        newpaths = cw.xmlcreater.write_castimagepath(self.get_name(), paths, True)
         prop = self.data.find("Property")
         for ename in ("ImagePath", "ImagePaths"):
             e = prop.find(ename)
@@ -262,6 +275,9 @@ class Character(object):
                 if not eimg is None:
                     # F9時に変更後のイメージを削除するため、記録しておく
                     eimg.append(cw.data.make_element("NewImagePath", info.path))
+
+        # 外部から設定したイメージは常にスケーリング可能とする
+        self.data.edit(".", str(True), "scaledimage")
 
         self.data.is_edited = True
 
@@ -394,8 +410,13 @@ class Character(object):
         s.discard("")
         return s
 
-    def has_keycode(self, keycode, skill=True, item=True, beast=True):
+    def has_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
         """指定されたキーコードを所持しているか。"""
+        if hand and self.deck:
+            # 戦闘時の手札(Wsn.2)
+            for header in self.deck.get_hand(self):
+                if keycode in header.get_keycodes():
+                    return True
         if skill:
             for header in self.get_pocketcards(cw.POCKET_SKILL):
                 if keycode in header.get_keycodes():
@@ -868,12 +889,13 @@ class Character(object):
         specialchars = cw.cwpy.rsrc.specialchars
         specialchars_is_changed = cw.cwpy.rsrc.specialchars_is_changed
         e_mates = header.carddata.find("Property/Materials")
+        can_loaded_scaledimage = header.carddata.getbool(".", "scaledimage", False)
         if cw.cwpy.is_playingscenario() and not e_mates is None:
             specialchars = specialchars.copy()
             dpath = cw.util.join_yadodir(e_mates.text)
             if os.path.isdir(dpath):
                 for fname in os.listdir(dpath):
-                    cw.cwpy.sdata.eat_spchar(dpath, fname)
+                    cw.cwpy.sdata.eat_spchar(dpath, fname, can_loaded_scaledimage)
 
         try:
             # カードイベント開始
@@ -1465,6 +1487,12 @@ class Character(object):
 
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
+        elif self.deck and self.deck.get_used():
+            header = self.deck.get_used()
+        else:
+            header = None
+
+        if header:
             val4 = header.get_enhance_val_used()[enhindex]
             addval(header, val4, True)
 
@@ -1883,9 +1911,9 @@ class Character(object):
 
         if not removed:
             # 効果対象の変更(Wsn.2)
-            cardevent = cw.cwpy.event.get_cardevent()
-            if cardevent and name == u"＠効果対象":
-                cardevent.add_target(self)
+            effectevent = cw.cwpy.event.get_effectevent()
+            if effectevent and name == u"＠効果対象":
+                effectevent.add_target(self)
 
         # 隠蔽クーポンがあるため
         self.adjust_action()
@@ -1935,9 +1963,9 @@ class Character(object):
             self.reversed = False
 
         # 効果対象の変更(Wsn.2)
-        cardevent = cw.cwpy.event.get_cardevent()
-        if cardevent and name == u"＠効果対象":
-            cardevent.remove_target(self)
+        effectevent = cw.cwpy.event.get_effectevent()
+        if effectevent and name == u"＠効果対象":
+            effectevent.remove_target(self)
 
         return True
 

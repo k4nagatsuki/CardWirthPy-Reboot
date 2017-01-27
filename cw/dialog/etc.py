@@ -21,9 +21,8 @@ class BattleCommand(wx.Dialog):
         # 行動開始
         path = "Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        # TODO scaleinfo
         path = [cw.image.ImageInfo(path)]
-        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["start_action"])
+        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["start_action"], can_loaded_scaledimage=True)
         w = cw.scr2win_s(header.rect.width)
         h = cw.scr2win_s(header.rect.height)
         header.rect = pygame.Rect(cw.wins(5), cw.wins(5), w, h)
@@ -37,9 +36,8 @@ class BattleCommand(wx.Dialog):
         # 逃げる
         path = "Resource/Image/Card/ACTION9"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        # TODO scaleinfo
         path = [cw.image.ImageInfo(path)]
-        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"])
+        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"], can_loaded_scaledimage=True)
         header.rect = pygame.Rect((w+cw.wins(5))*1+cw.wins(5), cw.wins(5), w, h)
         header.clickedflag = False
         header.negaflag = False
@@ -48,9 +46,8 @@ class BattleCommand(wx.Dialog):
         # キャンセル
         path = "Resource/Image/Card/COMMAND1"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        # TODO scaleinfo
         path = [cw.image.ImageInfo(path)]
-        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["cancel"])
+        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["cancel"], can_loaded_scaledimage=True)
         header.rect = pygame.Rect((w+cw.wins(5))*2+cw.wins(5), cw.wins(5), w, h)
         header.clickedflag = False
         header.negaflag = False

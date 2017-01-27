@@ -4,7 +4,7 @@
 from string import Template
 
 
-Adventurer = """$indent<Adventurer>
+Adventurer = """$indent<Adventurer scaledimage="$scaledimage">
 $indent <Property>
 $indent  <Id>$id</Id>
 $indent  <Name>$name</Name>

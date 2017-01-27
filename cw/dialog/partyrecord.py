@@ -239,7 +239,7 @@ class SelectPartyRecord(select.Select):
         # 背景
         path = "Table/Book"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
+        bmp = cw.wins(cw.util.load_wxbmp(path, can_loaded_scaledimage=True))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 

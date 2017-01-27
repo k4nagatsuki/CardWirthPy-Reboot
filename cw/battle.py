@@ -167,6 +167,7 @@ class BattleEngine(object):
 
         # 行動内容のクリア
         for member in self.members:
+            member.deck.clear_used()
             member.clear_action()
 
         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:

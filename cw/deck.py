@@ -14,6 +14,30 @@ class Deck(object):
         self.talon = []
         # 定められた次のドローカード
         self.nextcards = []
+        # 手札が破棄されたか
+        self._throwaway = False
+        # BUG: CardWirth 1.50では使用済みの手札はカード消去効果を受けたり
+        #      行動不能になっても手札に残る事が分かっているので、
+        #      挙動を合わせるためここに保存しておく。
+        self._used = None
+
+    def get_hand(self, ccard):
+        """ccardの手札に存在すると仮定されるカードのlistを返す。"""
+        if self.is_throwed() or not ccard.is_active():
+            seq = []
+        else:
+            seq = self.hand[:]
+        if self._used:
+            seq.append(self._used)
+        return seq
+
+    def get_used(self):
+        """使用後の残存カードを返す。"""
+        return self._used
+
+    def clear_used(self):
+        """使用後の残存カードをクリアする。"""
+        self._used = None
 
     def get_actioncards(self, ccard):
         seq = []
@@ -217,10 +241,16 @@ class Deck(object):
         self.hand = []
         self.nextcards = []
         self._throwaway = False
+        self._used = None
         ccard.clear_action()
 
     def throwaway(self):
+        """手札消去効果を適用する。"""
         self._throwaway = True
+
+    def is_throwed(self):
+        """手札が消去されているか。"""
+        return self._throwaway
 
     def _remove(self, header):
         self.hand.remove(header)
@@ -232,6 +262,7 @@ class Deck(object):
             self.talon.append(header)
 
     def draw(self, ccard):
+        self._used = None
         maxn = self.get_handmaxnum(ccard)
         if self._throwaway:
             # 現在の手札を山札に戻す
@@ -291,6 +322,7 @@ class Deck(object):
         スキルカードは1枚消失する。
         アクションカードは山札に戻る。
         """
+        self._used = header
         if header in self.hand and not header.type == "ItemCard" and\
                 not (header.type == "ActionCard" and header.id == 0):
             self.hand.remove(header)

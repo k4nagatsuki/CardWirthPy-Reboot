@@ -7,7 +7,7 @@ import pygame
 import pygame.locals
 
 import cw
-from cw.character import Enemy
+from cw.character import Player, Enemy
 
 
 class EventInterface(object):
@@ -33,8 +33,8 @@ class EventInterface(object):
         # イベント実行中に操作を受け付けるためのタイマ
         self.eventtimer = 1
 
-        # 実行中のカードイベント
-        self.cardevent = None
+        # 実行中の効果イベント
+        self.effectevent = None
         # カードの効果実行中はTrue
         self.in_cardeffectmotion = False
         # 使用時イベントの実行中はTrue
@@ -81,9 +81,9 @@ class EventInterface(object):
         else:
             return None
 
-    def get_cardevent(self):
-        """カードイベントが実行中であれば返す。"""
-        return self.cardevent
+    def get_effectevent(self):
+        """カードなどの効果適用イベントが実行中であれば返す。"""
+        return self.effectevent
 
     def get_events(self):
         return self._nowrunningevents
@@ -121,7 +121,7 @@ class EventInterface(object):
     def clear(self):
         self.set_inusecard(None)
         self.in_inusecardevent = False
-        self.cardevent = None
+        self.effectevent = None
         self.clear_events()
         self.nowrunningpacks = {}
         self._stoped = False
@@ -194,7 +194,7 @@ class EventInterface(object):
 
         return seq
 
-    def get_targetmember(self, targetm, unreversed=True):
+    def get_targetmember(self, targetm, unreversed=True, coupon=u""):
         """コンテントの適用メンバを返す関数。
         該当するCharacterインスタンスまたはCardHeaderインスタンスを返す。
         targetm: Random or Selected or Unselected or Inusecard or Party
@@ -220,6 +220,16 @@ class EventInterface(object):
         # パーティ先頭
         elif targetm == "First":
             target = self.get_firstmember(mode)
+        # 称号所有者
+        elif targetm == "CouponHolder":
+            if coupon:
+                seq = []
+                for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"), cw.cwpy.get_ecards("unreversed")):
+                    if ccard.has_coupon(coupon):
+                        seq.append(ccard)
+                target = seq
+            else:
+                target = []
         else:
             raise ValueError(targetm + " is invalid value.")
 
@@ -520,7 +530,7 @@ class EventEngine(object):
         """引数のEventsElementからEventインスタンスのリストを生成。
         data: Area, BattleのElementTree
         """
-        self.events = [Event(e) for e in data.getchildren()]
+        self.events = [Event(e) for e in data]
 
     def start(self, keynum=None, keycodes=[][:], isinsideevent=False, successevent=False):
         """発火条件に適合するイベント
@@ -880,10 +890,23 @@ class Event(object):
         elif cw.cwpy.is_gameover() and cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9 and 0 <= cw.cwpy.areaid:
             cw.cwpy.set_gameover()
 
-    def ignition_enemyevent(self, target, can_unconscious, keycodes):
+    def get_events(self, target):
+        """targetがEnemyであればtarget自身が持つEvents、
+        Playerであればエリアのプレイヤーカードイベント(Wsn.2)を返す。
+        """
+        if isinstance(target, (Enemy, cw.sprite.card.MenuCard)):
+            return target.events
+        elif isinstance(target, Player):
+            # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+            return cw.cwpy.sdata.playerevents
+        else:
+            return None
+
+    def ignition_characterevent(self, target, can_unconscious, keycodes):
         """targetのキーコードイベントが発生可能か。"""
-        if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
-            return target.events.check_keycodes(keycodes)
+        events = self.get_events(target)
+        if events and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
+            return events.check_keycodes(keycodes)
         else:
             return None
 
@@ -893,8 +916,17 @@ class Event(object):
             # キーコード「逃走」付きのカードは死亡イベントを発生させない
             # (ただしカード名キーコードは除く)
             return None
-        if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
-            return target.events.check_keynum(1)
+
+        events = self.get_events(target)
+        if events and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
+            return events.check_keynum(1)
+        else:
+            return None
+
+    def ignition_menucardevent(self, target, keycodes):
+        events = self.get_events(target)
+        if events:
+            return events.check_keycodes(keycodes)
         else:
             return None
 
@@ -908,11 +940,12 @@ class Event(object):
                     keycodes2.append(keycode + u"×")
         return keycodes2
 
-    def ignition_successevent(self, target, successflag, can_unconscious, keycodes):
+    def ignition_successevent(self, target, successflag, keycodes):
         """targetのキーコード成功・失敗イベントが発生可能であれば該当イベントを返す。"""
-        if isinstance(target, Enemy):
+        events = self.get_events(target)
+        if events:
             keycodes = self._keycodes_for_successevent(keycodes, successflag)
-            return target.events.check_keycodes(keycodes=keycodes, successevent=True)
+            return events.check_keycodes(keycodes=keycodes, successevent=True)
         else:
             return None
 
@@ -1083,18 +1116,139 @@ class Event(object):
                 cw.cwpy.set_gameoverstatus(flag, force=False)
 
 
-class CardEvent(Event):
-    def __init__(self, event, inusecard, user, targets):
-        Event.__init__(self, event)
-        self.inusecard = inusecard
+class Targeting(object):
+    """
+    カード等の効果対象の処理を行う。
+    """
+    def __init__(self, user, targets, setcardtarget):
         self.user = user
         self.targets = targets
         self.waited = False
+        self._setcardtarget = setcardtarget
 
-        self._coupon_owners = set()
-        self._mcards = set()
+        self.coupon_owners = set()
+        self.mcards = set()
         self._target_updated = False
         self._target_index = 0
+
+    def targets_to_coupon(self):
+        self.update_targets()
+        self.clear_eventcoupons()
+        if self.user:
+            self.user.set_coupon(u"＠使用者", 0)
+
+        for target in self.targets:
+            if isinstance(target, cw.character.Character):
+                target.set_coupon(u"＠効果対象", 0)
+            else:
+                self.mcards.add(target)
+            self.coupon_owners.add(target)
+
+        self._target_updated = False
+        self._target_index = 0
+
+    def clear_eventcoupons(self):
+        self.update_targets()
+        if self.user:
+            self.user.remove_coupon(u"＠使用者")
+        for ccard in self.coupon_owners.copy():
+            if isinstance(ccard, cw.character.Character):
+                ccard.remove_coupon(u"＠効果対象")
+                ccard.remove_coupon(u"＠効果対象外")
+            if self._setcardtarget:
+                ccard.clear_cardtarget()
+        self.coupon_owners.clear()
+        self._target_updated = False
+
+    def in_effectmotionloop(self):
+        return self.waited
+
+    def update_targets(self):
+        if self._target_updated:
+            self.targets = []
+            for ccard in itertools.chain(cw.cwpy.get_pcards(),
+                                         cw.cwpy.get_mcards("visible"),
+                                         cw.cwpy.get_fcards()):
+                if isinstance(ccard, cw.character.Character):
+                    if ccard.has_coupon(u"＠効果対象"):
+                        self.targets.append(ccard)
+                        if self._setcardtarget and not ccard.cardtarget and self.in_effectmotionloop():
+                            # 反転状態を変更
+                            ccard.set_cardtarget()
+                            cw.cwpy.draw(clip=ccard.rect)
+                            cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
+                    else:
+                        if self._setcardtarget and ccard.cardtarget and self.in_effectmotionloop():
+                            # 反転状態を変更
+                            ccard.clear_cardtarget()
+                            cw.cwpy.draw(clip=ccard.rect)
+                            cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
+                else:
+                    # メニューカード
+                    if ccard in self.mcards:
+                        self.targets.append(ccard)
+            self._target_index = 0
+        self._target_updated = False
+
+    def get_nexttarget(self):
+        self.update_targets()
+        if self._target_index < len(self.targets):
+            target = self.targets[self._target_index]
+            self._target_index += 1
+            return target
+        else:
+            return None
+
+    def add_target(self, ccard):
+        """ccardを効果対象に追加する(Wsn.2)。
+        "＠効果対象"はあらかじめ付与しておく事。
+        """
+        assert ccard._has_coupon(u"＠効果対象")
+        self._target_updated = True
+        self.coupon_owners.add(ccard)
+
+    def remove_target(self, ccard):
+        """ccardを効果対象から外す(Wsn.2)。
+        "＠効果対象"はあらかじめ外しておく事。
+        """
+        assert not ccard._has_coupon(u"＠効果対象")
+        self._target_updated = True
+
+
+def _get_targetinfo():
+    """
+    デバッグ用に各システムクーポン所持者を取得する。
+    """
+    user = []
+    eventtarget = []
+    targets = []
+    outoftargets = []
+    for ccard in itertools.chain(cw.cwpy.get_pcards(), cw.cwpy.get_ecards(), cw.cwpy.get_fcards()):
+        if ccard.has_coupon(u"＠使用者"):
+            assert ccard in cw.cwpy.event.get_effectevent().coupon_owners
+            user.append(ccard.name)
+        if ccard.has_coupon(u"＠イベント対象"):
+            assert ccard in cw.cwpy.event.get_effectevent().coupon_owners
+            eventtarget.append(ccard.name)
+        if ccard.has_coupon(u"＠効果対象"):
+            assert ccard in cw.cwpy.event.get_effectevent().coupon_owners
+            targets.append(ccard.name)
+        if ccard.has_coupon(u"＠効果対象外"):
+            assert ccard in cw.cwpy.event.get_effectevent().coupon_owners
+            outoftargets.append(ccard.name)
+    seq = []
+    seq.append(u"User          : %s" % u", ".join(user))
+    seq.append(u"Event Target  : %s" % u", ".join(eventtarget))
+    seq.append(u"Targets       : %s" % u", ".join(targets))
+    seq.append(u"Out of Targets: %s" % u", ".join(outoftargets))
+    return seq
+
+
+class CardEvent(Event, Targeting):
+    def __init__(self, event, inusecard, user, targets):
+        Event.__init__(self, event)
+        Targeting.__init__(self, user, targets, True)
+        self.inusecard = inusecard
 
     def start(self):
         if cw.cwpy.is_playingscenario():
@@ -1124,94 +1278,12 @@ class CardEvent(Event):
         else:
             # 使用可能なのでイベント実行
             if cw.cwpy.sdata.is_wsnversion('2', self.inusecard.wsnversion):
-                self._targets_to_coupon()  # 対象にシステムクーポンを付与(Wsn.2)
+                self.targets_to_coupon()  # 対象にシステムクーポンを付与(Wsn.2)
 
             cw.cwpy.event.set_inusecard(self.inusecard)
-            cw.cwpy.event.cardevent = self
+            cw.cwpy.event.effectevent = self
             cw.cwpy.event.set_selectedmember(self.user)
             Event.start(self)
-
-    def _targets_to_coupon(self):
-        self._update_targets()
-        self._clear_eventcoupons()
-        if self.user:
-            self.user.set_coupon(u"＠使用者", 0)
-
-        for target in self.targets:
-            if isinstance(target, cw.character.Character):
-                target.set_coupon(u"＠効果対象", 0)
-            else:
-                self._mcards.add(target)
-            self._coupon_owners.add(target)
-
-        self._target_updated = False
-        self._target_index = 0
-
-    def _clear_eventcoupons(self):
-        self._update_targets()
-        self.user.remove_coupon(u"＠使用者")
-        for ccard in self._coupon_owners.copy():
-            if isinstance(ccard, cw.character.Character):
-                assert not ccard.has_coupon(u"＠使用者")
-                assert not ccard.has_coupon(u"＠イベント対象")
-                ccard.remove_coupon(u"＠効果対象")
-                ccard.remove_coupon(u"＠効果対象外")
-            ccard.clear_cardtarget()
-        self._coupon_owners.clear()
-
-    def in_effectmotionloop(self):
-        return self.waited
-
-    def _update_targets(self):
-        if self._target_updated:
-            self.targets = []
-            for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"),
-                                         cw.cwpy.get_mcards("unreversed"),
-                                         cw.cwpy.get_fcards("unreversed")):
-                if isinstance(ccard, cw.character.Character):
-                    if ccard.has_coupon(u"＠効果対象"):
-                        self.targets.append(ccard)
-                        if not ccard.cardtarget and self.in_effectmotionloop():
-                            # 反転状態を変更
-                            ccard.set_cardtarget()
-                            cw.cwpy.draw(clip=ccard.rect)
-                            cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
-                    else:
-                        if ccard.cardtarget and self.in_effectmotionloop():
-                            # 反転状態を変更
-                            ccard.clear_cardtarget()
-                            cw.cwpy.draw(clip=ccard.rect)
-                            cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
-                else:
-                    # メニューカード
-                    if ccard in self._mcards:
-                        self.targets.append(ccard)
-            self._target_index = 0
-        self._target_updated = False
-
-    def _get_nexttarget(self):
-        self._update_targets()
-        if self._target_index < len(self.targets):
-            target = self.targets[self._target_index]
-            self._target_index += 1
-            return target
-        else:
-            return None
-
-    def add_target(self, ccard):
-        """ccardを効果対象に追加する(Wsn.2)。
-        "＠効果対象"はあらかじめ付与しておく事。
-        """
-        assert ccard._has_coupon(u"＠効果対象")
-        self._target_updated = True
-        self._coupon_owners.add(ccard)
-
-    def remove_target(self, ccard):
-        """ccardを効果対象から外す(Wsn.2)。
-        "＠効果対象"はあらかじめ外しておく事。
-        """
-        assert not ccard._has_coupon(u"＠効果対象")
-        self._target_updated = True
 
     def run_exit(self):
         """イベント実行の最後に行う終了処理。
@@ -1222,9 +1294,9 @@ class CardEvent(Event):
             Event.run_exit(self)
 
             if cw.cwpy.sdata.is_wsnversion('2'):
-                self._targets_to_coupon()
+                self.targets_to_coupon()
             else:
-                self._clear_eventcoupons()
+                self.clear_eventcoupons()
 
             if cw.cwpy.is_playingscenario():
                 cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
@@ -1241,7 +1313,7 @@ class CardEvent(Event):
                 cw.cwpy.event.in_cardeffectmotion = False
 
         finally:
-            cw.cwpy.event.cardevent = None
+            cw.cwpy.event.effectevent = None
 
     def end(self):
         if cw.cwpy.is_playingscenario():
@@ -1275,7 +1347,7 @@ class CardEvent(Event):
         Event.end(self)
 
         # システムクーポン除去(Wsn.2)
-        self._clear_eventcoupons()
+        self.clear_eventcoupons()
 
         # 特殊エリア解除・カード選択ダイアログを開く
         cw.cwpy.clear_specialarea()
@@ -1286,18 +1358,18 @@ class CardEvent(Event):
         cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
         self._restore_inusedata()
 
-    def run_enemyevent(self, target, can_unconscious):
+    def run_characterevent(self, target, can_unconscious):
         keycodes = self.inusecard.get_keycodes()
-        if self.ignition_enemyevent(target, can_unconscious, keycodes):
+        if self.ignition_characterevent(target, can_unconscious, keycodes):
             self._store_inusedata(selectuser=True)
-            target.events.start(keycodes=keycodes, isinsideevent=True)
+            self.get_events(target).start(keycodes=keycodes, isinsideevent=True)
             self._restore_inusedata()
 
     def run_deadevent(self, target):
         """targetの死亡イベントが発生可能であれば発生させる。"""
         if self.ignition_deadevent(target, self.inusecard.get_keycodes(with_name=False)):
             self._store_inusedata(selectuser=True)
-            r = target.events.start(1, isinsideevent=True)
+            r = self.get_events(target).start(1, isinsideevent=True)
             self._restore_inusedata()
             return r
 
@@ -1307,30 +1379,31 @@ class CardEvent(Event):
         """
         # MenuCardのキーコードイベント発動。発動しなかったら、無効音。
         keycodes = self.inusecard.get_keycodes()
-        event = target.events.check_keycodes(keycodes)
-        if event:
+        if self.ignition_menucardevent(target, keycodes):
             lock = cw.cwpy.lock_menucards
             cw.cwpy.lock_menucards = False
-            self._store_inusedata(selectuser=False)
-            target.events.start(keycodes=keycodes)
-            self._restore_inusedata()
-            cw.cwpy.lock_menucards = lock
-            self.error = event.error
+            events = self.get_events(target)
+            try:
+                self._store_inusedata(selectuser=False)
+                events.start(keycodes=keycodes)
+            finally:
+                self._restore_inusedata()
+                cw.cwpy.lock_menucards = lock
         else:
             cw.cwpy.play_sound("ineffective", True)
             cw.cwpy.advlog.effect_failed(target, ismenucard=True)
 
-    def run_successevent(self, target, successflag, can_unconscious):
+    def run_successevent(self, target, successflag):
         keycodes = self.inusecard.get_keycodes()
-        if self.ignition_successevent(target, successflag, can_unconscious, keycodes):
+        if self.ignition_successevent(target, successflag, keycodes):
             keycodes = self._keycodes_for_successevent(keycodes, successflag)
             self._store_inusedata(selectuser=True)
-            target.events.start(keycodes=keycodes, isinsideevent=True, successevent=True)
+            self.get_events(target).start(keycodes=keycodes, isinsideevent=True, successevent=True)
             self._restore_inusedata()
 
     def effect_cardmotion(self):
         """カード効果発動。イベント実行の最後に行う。"""
-        self._update_targets()
+        self.update_targets()
         # ターゲットが存在しない場合は処理中断
         if not self.targets:
             return
@@ -1356,7 +1429,7 @@ class CardEvent(Event):
         eff = cw.effectmotion.Effect(motions, d, battlespeed=cw.cwpy.is_battlestatus())
 
         # ターゲット色反転＆ウェイト
-        self._update_targets()
+        self.update_targets()
         skipped = False
         if len(self.targets) == 1:
             if eff.check_enabledtarget(self.targets[0], False):
@@ -1403,7 +1476,7 @@ class CardEvent(Event):
             if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                 break
 
-            target = self._get_nexttarget()
+            target = self.get_nexttarget()
             if not target:
                 break
 
@@ -1426,28 +1499,33 @@ class CardEvent(Event):
 
             unconscious_flag, paralyze_flag = get_effecttargetstatus(target, eff)
 
-            if isinstance(target, Enemy) and (not target.is_unconscious() or unconscious_flag):
+            if isinstance(target, cw.character.Character):
+                if not (not target.is_unconscious() or unconscious_flag) or d["target"] == "None":
+                    target.remove_coupon(u"＠効果対象")
+                    continue
+
                 if cw.cwpy.sdata.is_wsnversion('2'):
                     # イベント所持者を示すシステムクーポン(Wsn.2)
                     target.set_coupon(u"＠イベント対象", 0)
 
                 try:
-                    self.run_enemyevent(target, unconscious_flag)
+                    self.run_characterevent(target, unconscious_flag)
                     if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                         break
 
-                    self._update_targets()
+                    self.update_targets()
 
                     if cw.cwpy.sdata.is_wsnversion('2') and not target.has_coupon(u"＠効果対象"):
                         clear_params(target)
                         continue
 
                     target.clear_cardtarget()
+                    is_dead = target.is_unconscious() or target.is_paralyze()
                     success = eff.apply(target)
                     target.remove_coupon(u"＠効果対象")
 
                     # 最初から意識不明・麻痺なら死亡イベント発生なし
-                    if not unconscious_flag and not paralyze_flag:
+                    if not is_dead:
                         deadevent = self.run_deadevent(target)
                         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                             break
@@ -1456,24 +1534,22 @@ class CardEvent(Event):
 
                     # 成功・失敗キーコードイベントより死亡イベントを優先
                     if not deadevent:
-                        self.run_successevent(target, success, unconscious_flag)
+                        self.run_successevent(target, success)
                         cw.cwpy.draw()
 
                 finally:
                     target.remove_coupon(u"＠イベント対象")
 
             else:
+                assert isinstance(target, cw.sprite.card.MenuCard)
+
                 target.clear_cardtarget()
 
-                if isinstance(target, cw.sprite.card.MenuCard):
-                    cw.cwpy.play_sound_with(eff.soundpath)
-                    eff.animate(target)
-                    self._mcards.discard(target)
-                    self.run_menucardevent(target)
-                elif d["target"] <> "None":
-                    eff.apply(target)
-                    target.remove_coupon(u"＠効果対象")
-                cw.cwpy.draw()
+                cw.cwpy.play_sound_with(eff.soundpath)
+                eff.animate(target)
+                cw.cwpy.draw(clip=target.rect)
+                self.mcards.discard(target)
+                self.run_menucardevent(target)
 
         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
             return

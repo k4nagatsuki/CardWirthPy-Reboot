@@ -512,7 +512,7 @@ class _JpySubImage(cw.image.Image):
 
     def load(self, doanime):
         """画像作成。"""
-        path = self.get_filepath()
+        path, can_loaded_scaledimage = self.get_filepath()
         ext = cw.util.splitext(path)[1].lower()
 
         # ファイル読み込み
@@ -565,7 +565,7 @@ class _JpySubImage(cw.image.Image):
                     cw.cwpy.sdata.resource_cache[cachekey] = (image.copy(), mtime)
                 # その他画像ファイル
                 else:
-                    image = cw.s(cw.util.load_image(path, False, isback=True))
+                    image = cw.s(cw.util.load_image(path, False, isback=True, can_loaded_scaledimage=can_loaded_scaledimage))
 
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:
@@ -624,12 +624,14 @@ class _JpySubImage(cw.image.Image):
                 dirtype = self.dirtype
             return get_filepath_s(self.configpath, self.configdepth, self.filename, dirtype)
         else:
-            return ""
+            return ("", False)
 
 def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
     """dirtypeに基づいて読み込むファイルのパスを取得する。"""
     if dirtype == -1:
         dirtype = 1
+
+    scedir = cw.cwpy.sdata.scedir
 
     def get_mtype(fpath):
         ext = os.path.splitext(fpath)[1].lower()
@@ -644,7 +646,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         if inusecardpath:
             fpath = inusecardpath
         else:
-            fpath = cw.util.get_materialpath(filename, mtype, scedir=dpath, findskin=False)
+            fpath = cw.util.get_materialpath(filename, mtype, findskin=False)
         fpath = cw.cwpy.rsrc.get_filepath(fpath)
         return fpath
 
@@ -652,12 +654,13 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         if configpath:
             dpath = os.path.dirname(configpath)
             fpath = cw.util.join_paths(dpath, filename)
+            filename = cw.util.relpath(fpath, scedir)
             fpath = find_materialpath(fpath)
         else:
             fpath = u""
         if not fpath or not os.path.isfile(fpath):
             # シナリオ内に存在しなかった
-            return ""
+            return ("", False)
         dpath = os.path.dirname(fpath)
         filename = os.path.basename(fpath)
     elif dirtype == 2:
@@ -665,18 +668,19 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         mtype = get_mtype(filename)
         fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
         fpath = cw.util.find_resource(fpath, mtype)
-        return fpath
+        return (fpath, True)
     elif dirtype == 3:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "EffectBooster")
         mtype = get_mtype(filename)
         fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
         fpath = cw.util.find_resource(fpath, mtype)
-        return fpath
+        return (fpath, True)
     elif dirtype == 4:
-        if cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard():
+        if cw.cwpy.is_runningevent() and cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
             inusecard = cw.cwpy.event.get_inusecard()
             if not inusecard.carddata.getbool(".", "scenariocard", False):
                 e_mates = inusecard.carddata.find("Property/Materials")
+                can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
                 if not e_mates is None:
                     dpath = e_mates.text
                     # dirtype=4にはdirdepthが影響する
@@ -686,7 +690,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
                     fpath = cw.util.join_paths(dpath, filename)
                     fpath = cw.util.join_yadodir(fpath)
                     if os.path.isfile(fpath):
-                        return fpath
+                        return (fpath, can_loaded_scaledimage)
 
         dpath = os.path.dirname(configpath)
         # dirtype=4にはdirdepthが影響する
@@ -694,21 +698,32 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
             dpath = os.path.dirname(dpath)
 
         fpath = cw.util.join_paths(dpath, filename)
+        filename = cw.util.relpath(fpath, scedir)
         fpath = find_materialpath(fpath)
         # 指定位置に存在しなかった
         if not os.path.isfile(fpath):
-            return u""
+            return (u"", False)
         cw.cwpy.background.store_filepath(fpath)
-        return fpath
+
+        if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
+            inusecard = cw.cwpy.event.get_inusecard()
+            can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
+        else:
+            can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
+
+        return (fpath, can_loaded_scaledimage)
     elif dirtype == 5:
-        dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
-        mtype = get_mtype(filename)
-        fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
-        fpath = cw.util.find_resource(fpath, mtype)
-        return fpath
+        for dname in ("Sound", "BgmAndSound"):
+            dpath = cw.util.join_paths(cw.cwpy.skindir, dname)
+            mtype = get_mtype(filename)
+            fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
+            fpath = cw.util.find_resource(fpath, mtype)
+            if fpath:
+                return (fpath, True)
+        return (u"", True)
     elif dirtype == 6:
         if not configpath:
-            return ""
+            return ("", False)
         dpath = os.path.dirname(os.path.dirname(configpath))
     elif dirtype == 7:
         dpath = ""
@@ -720,7 +735,14 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
     path = cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
     path = cw.cwpy.rsrc.get_filepath(path)
     cw.cwpy.background.store_filepath(path)
-    return path
+
+    if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
+        inusecard = cw.cwpy.event.get_inusecard()
+        can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
+    else:
+        can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
+
+    return (path, can_loaded_scaledimage)
 
 class JpyPartsImage(_JpySubImage):
     def __init__(self, config, section, cache, mask):
@@ -922,12 +944,11 @@ class JpdcImage(cw.image.Image):
                 else:
                     cw.cwpy.set_titlebar(filename + u" - " + cw.cwpy.create_title())
 
-            saveimage = self.image
+            saveimage_noscale = self.image
+            saveimage = None
             if cw.UP_SCR <> 1:
-                if cw.UP_SCR % 1 == 0:
-                    saveimage = pygame.transform.scale(saveimage, (w_noscale, h_noscale))
-                else:
-                    saveimage = cw.image.smoothscale(saveimage, (w_noscale, h_noscale))
+                saveimage_noscale = cw.image.smoothscale(saveimage_noscale, (w_noscale, h_noscale))
+                saveimage = self.image
 
             path = cw.util.join_paths(os.path.dirname(path), filename)
 
@@ -939,18 +960,37 @@ class JpdcImage(cw.image.Image):
             if cpath1.startswith(cpath2):
                 # シナリオの不変を保つためにScenarioLog内に保存
                 rel = cw.util.relpath(cpath1, cpath2)
-                path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile", rel)
+                temppath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile")
+                path = cw.util.join_paths(temppath, rel)
                 dpath = os.path.dirname(path)
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
-                encoding = sys.getfilesystemencoding()
-                pygame.image.save(saveimage, path.encode(encoding))
+                cw.sprite.message.store_messagelogimage(path, True)
+                spext = os.path.splitext(path)
+                for scale in cw.SCALE_LIST:
+                    pathxn = u"%s.x%d%s" % (spext[0], scale, spext[1])
+                    if os.path.isfile(pathxn):
+                        cw.util.remove(pathxn)
+                pygame.image.save(saveimage_noscale, path.encode("utf-8"))
+
+                if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
+                    inusecard = cw.cwpy.event.get_inusecard()
+                    can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
+                else:
+                    can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
+
+                if saveimage:
+                    path = u"%s.x%d%s" % (spext[0], cw.UP_SCR, spext[1])
+                    rel2 = cw.util.relpath(path, temppath)
+                    x2path = cw.util.join_paths(cw.cwpy.sdata.scedir, rel2)
+                    if can_loaded_scaledimage or not os.path.isfile(x2path):
+                        pygame.image.save(saveimage, path.encode("utf-8"))
 
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
                 removekeys = []
                 for cachekey in cw.cwpy.sdata.resource_cache.iterkeys():
-                    if isinstance(cachekey, tuple) and len(cachekey) == 4:
+                    if isinstance(cachekey, tuple) and len(cachekey) == 5:
                         if isinstance(cachekey[3], (str, unicode)) and\
                                 os.path.splitext(cachekey[3])[1].lower() == ".jpy1":
                             removekeys.append(cachekey)

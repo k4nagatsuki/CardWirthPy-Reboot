@@ -40,7 +40,11 @@ class ImageInfo(object):
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
         def getsize(resname):
-            return cw.cwpy.rsrc.cardbgs[resname].get_size()
+            if resname.endswith("_noscale"):
+                resname = resname[0:-len("_noscale")]
+                return cw.setting.SIZE_RESOURCES["CardBg/" + resname]
+            else:
+                return cw.s(cw.setting.SIZE_RESOURCES["CardBg/" + resname])
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
 
     def calc_basecardposition_wx(self, (imgwidth, imgheight), noscale=False, basecardtype=None, cardpostype=None):
@@ -48,7 +52,11 @@ class ImageInfo(object):
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
         def getsize(resname):
-            return cw.cwpy.rsrc.wxcardbgs[resname].GetSize()
+            if resname.endswith("_noscale"):
+                resname = resname[0:-len("_noscale")]
+                return cw.setting.SIZE_RESOURCES["CardBg/" + resname]
+            else:
+                return cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + resname])
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.wins, getsize)
 
     def _calc_basecardposition_impl(self, imgwidth, imgheight, noscale, basecardtype, cardpostype, ss, getsize):
@@ -199,8 +207,8 @@ class Image(object):
 #-------------------------------------------------------------------------------
 
 class CardImage(Image):
-    def __init__(self, paths, bgtype, name="", premium="", scaleinfo=None,
-                 is_scenariocard=False):
+    def __init__(self, paths, bgtype, name="", premium="", can_loaded_scaledimage=False,
+                 is_scenariocard=False, scedir=""):
         """
         カード画像と背景画像とカード名を合成・加工し、
         wxPythonとPygame両方で使える画像オブジェクトを生成する。
@@ -210,8 +218,9 @@ class CardImage(Image):
         self.bgtype = bgtype
         self.image_mtime = {}
         self.premium = premium
-        self.scaleinfo = scaleinfo
+        self.can_loaded_scaledimage = can_loaded_scaledimage
         self.is_scenariocard = is_scenariocard
+        self.scedir = scedir
 
         self.update_scale()
 
@@ -229,7 +238,7 @@ class CardImage(Image):
         self.image_mtime.clear()
 
     def _upwinmemo(self):
-        return (cw.UP_WIN, cw.cwpy.setting.fontsmoothing_cardname,
+        return (cw.UP_WIN, cw.UP_SCR, cw.cwpy.setting.fontsmoothing_cardname,
                  cw.cwpy.setting.basefont.copy(),
                  cw.cwpy.setting.fonttypes["cardname"],
                  cw.cwpy.setting.fonttypes["uselimit"])
@@ -252,7 +261,8 @@ class CardImage(Image):
                 path = cw.util.get_yadofilepath(path)
 
             if (not path or self.is_scenariocard) and not info.pcnumber:
-                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
+                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard,
+                                                scedir=self.scedir)
             if not os.path.isfile(path):
                 continue
 
@@ -261,7 +271,7 @@ class CardImage(Image):
         return False
 
     def get_image(self):
-        if self._bmp:
+        if self._bmp and not self.is_modifiedfile():
             return self._bmp.copy()
 
         image = self.cardbg.copy()
@@ -284,20 +294,25 @@ class CardImage(Image):
                 image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
 
         self.image_mtime.clear()
-        for info in self.paths:
+        for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc and not self.is_scenariocard:
+            if (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
             if (not path or self.is_scenariocard) and not info.pcnumber:
-                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
+                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard,
+                                                scedir=self.scedir)
 
             if not pisc and os.path.isfile(path):
                 self.image_mtime[path] = os.path.getmtime(path)
 
             if pisc or os.path.isfile(path):
-                subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
+                if isinstance(self.can_loaded_scaledimage, (list, tuple)):
+                    can_loaded_scaledimage = self.can_loaded_scaledimage[i]
+                else:
+                    can_loaded_scaledimage = self.can_loaded_scaledimage
+                subimg = cw.s(cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage))
 
                 baserect = info.calc_basecardposition(subimg.get_size(), noscale=False,
                                                       basecardtype="NormalCard",
@@ -447,7 +462,7 @@ class CardImage(Image):
         return pygame.transform.scale(negaimg, size)
 
     def get_wxbmp(self):
-        if self._wxbmp and self._upwin == self._upwinmemo():
+        if self._wxbmp and self._upwin == self._upwinmemo() and not self.is_modifiedfile():
             return cw.util.copy_wxbmp(self._wxbmp)
         self._upwin = self._upwinmemo()
 
@@ -472,20 +487,25 @@ class CardImage(Image):
                 dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
                 dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
 
-        for info in self.paths:
+        for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc and not self.is_scenariocard:
+            if (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
             if (not path or self.is_scenariocard) and not info.pcnumber:
-                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
+                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard,
+                                                scedir=self.scedir)
 
             if pisc or os.path.isfile(path):
-                subimg = cw.util.load_wxbmp(path, True)
-                subimg2 = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+                if isinstance(self.can_loaded_scaledimage, (list, tuple)):
+                    can_loaded_scaledimage = self.can_loaded_scaledimage[i]
+                else:
+                    can_loaded_scaledimage = self.can_loaded_scaledimage
+                subimg = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
+                subimg2 = cw.wins(subimg)
 
-                baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
+                baserect = info.calc_basecardposition_wx(subimg2.GetSize(), noscale=False,
                                                          basecardtype="NormalCard",
                                                          cardpostype="NormalCard")
 
@@ -493,7 +513,7 @@ class CardImage(Image):
                                                        bitsizekey=subimg)
 
         pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
-        if wx.VERSION[0] <= 3:
+        if wx.VERSION[0] < 3:
             pixelsize += 1
         if cw.cwpy.setting.fontsmoothing_cardname:
             font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(pixelsize)*2, adjustsizewx3=False)
@@ -533,7 +553,7 @@ class CardImage(Image):
                 pixelsize = cw.cwpy.setting.fonttypes["uselimit"][2]
                 bold = wx.BOLD if cw.cwpy.setting.fonttypes["uselimit"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
                 italic = wx.ITALIC if cw.cwpy.setting.fonttypes["uselimit"][5] else wx.NORMAL
-                if wx.VERSION[0] <= 3:
+                if wx.VERSION[0] < 3:
                     pixelsize += 1
                 font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(pixelsize), style=italic, weight=bold, adjustsizewx3=False)
                 dc.SetFont(font)
@@ -648,9 +668,10 @@ class CardImage(Image):
         pass
 
 class LargeCardImage(CardImage):
-    def __init__(self, paths, bgtype, name="", premium="", scaleinfo=None,
-                 is_scenariocard=False):
-        CardImage.__init__(self, paths, "LARGE", name, premium, scaleinfo, is_scenariocard)
+    def __init__(self, paths, bgtype, name="", premium="", can_loaded_scaledimage=False,
+                 is_scenariocard=False, scedir=""):
+        CardImage.__init__(self, paths, "LARGE", name, premium, can_loaded_scaledimage, is_scenariocard,
+                           scedir=scedir)
 
     def get_image(self):
         image = self.cardbg.copy()
@@ -671,17 +692,22 @@ class LargeCardImage(CardImage):
             image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
             image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
 
-        for info in self.paths:
+        for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc and not self.is_scenariocard:
+            if (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
             if (not path or self.is_scenariocard) and not info.pcnumber:
-                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
+                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard,
+                                                scedir=self.scedir)
 
             if pisc or os.path.isfile(path):
-                subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
+                if isinstance(self.can_loaded_scaledimage, (list, tuple)):
+                    can_loaded_scaledimage = self.can_loaded_scaledimage[i]
+                else:
+                    can_loaded_scaledimage = self.can_loaded_scaledimage
+                subimg = cw.s(cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage))
 
                 baserect = info.calc_basecardposition(subimg.get_size(), noscale=False,
                                                       basecardtype="LargeCard",
@@ -708,6 +734,7 @@ class LargeCardImage(CardImage):
                             image.blit(subimg2, (x, y))
 
             image.blit(subimg, cw.s((5, 5)))
+
         return image
 
     def get_wxbmp(self):
@@ -732,20 +759,25 @@ class LargeCardImage(CardImage):
             dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
             dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
 
-        for info in self.paths:
+        for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if not pisc and not self.is_scenariocard:
+            if (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
             if (not path or self.is_scenariocard) and not info.pcnumber:
-                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard)
+                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard,
+                                                scedir=self.scedir)
 
             if pisc or os.path.isfile(path):
-                subimg = cw.util.load_wxbmp(path, True)
-                subimg2 = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+                if isinstance(self.can_loaded_scaledimage, (list, tuple)):
+                    can_loaded_scaledimage = self.can_loaded_scaledimage[i]
+                else:
+                    can_loaded_scaledimage = self.can_loaded_scaledimage
+                subimg = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
+                subimg2 = cw.wins(subimg)
 
-                baserect = info.calc_basecardposition_wx(subimg.GetSize(), noscale=False,
+                baserect = info.calc_basecardposition_wx(subimg2.GetSize(), noscale=False,
                                                          basecardtype="LargeCard",
                                                          cardpostype="LargeCard")
 
@@ -753,7 +785,7 @@ class LargeCardImage(CardImage):
                                                        bitsizekey=subimg)
 
         pixelsize = cw.cwpy.setting.fonttypes["ccardname"][2]
-        if wx.VERSION[0] <= 3:
+        if wx.VERSION[0] < 3:
             pixelsize += 1
         if cw.cwpy.setting.fontsmoothing_cardname:
             font = cw.cwpy.rsrc.get_wxfont("ccardname", pixelsize=cw.wins(pixelsize)*2, adjustsizewx3=False)
@@ -772,40 +804,36 @@ class LargeCardImage(CardImage):
         return bmp
 
 class CharacterCardImage(CardImage):
-    def __init__(self, ccard, pos_noscale=(0, 0), scaleinfo=None, is_scenariocard=False):
+    def __init__(self, ccard, pos_noscale=(0, 0), can_loaded_scaledimage=False, is_scenariocard=False,
+                 scedir=""):
         self.ccard = ccard
         self._pos_noscale = pos_noscale
-        self.scaleinfo = scaleinfo
+        self.can_loaded_scaledimage = can_loaded_scaledimage
         self.is_scenariocard = is_scenariocard
         self.image_mtime = {}
+        self.scedir = scedir
         self.update_scale()
 
     def update_scale(self):
         # カード画像
-        self.set_faceimgs(self.ccard.imgpaths)
+        self.set_faceimgs(self.ccard.imgpaths, self.can_loaded_scaledimage)
         # フォント画像(カード名)
         self.set_nameimg(self.ccard.name)
         # フォント画像(レベル)
         self.set_levelimg(self.ccard.level)
-        # ライフバー画像
-        guagesize = cw.setting.SIZE_RESOURCES["Status/LIFEGUAGE"]
-        self.lifeimg = pygame.Surface(guagesize).convert()
-        guage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
-        self.lifeguage = guage
-        self.lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
-        self.lifeimg.set_colorkey(guage.get_at((0, 0)), pygame.locals.RLEACCEL)
         # rect
         self.rect = pygame.Rect(cw.s(self._pos_noscale), cw.s((95, 130)))
 
-    def set_faceimgs(self, paths):
+    def set_faceimgs(self, paths, can_loaded_scaledimage):
         self.paths = paths
+        self.can_loaded_scaledimage = can_loaded_scaledimage
         self.cardimgs = []
         for info in self.paths:
             path = info.path
             if not cw.binary.image.path_is_code(path) and isinstance(self.ccard, cw.sprite.card.PlayerCard) and\
                     not self.is_scenariocard:
                 path = cw.util.get_yadofilepath(path)
-            self.cardimgs.append(cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo)))
+            self.cardimgs.append(cw.s(cw.util.load_image(path, True, can_loaded_scaledimage=self.can_loaded_scaledimage)))
 
     def set_nameimg(self, name):
         if name:
@@ -914,13 +942,35 @@ class CharacterCardImage(CardImage):
                     nameimg = self.nameimg
                 self.image.blit(nameimg, cw.s((5, 5)))
 
-        # ライフ
+        # ライフバー
         if ccard.is_analyzable() and not ccard.is_unconscious():
-            guagesize = cw.setting.SIZE_RESOURCES["Status/LIFEGUAGE"]
-            lifeper = float(ccard.life) / ccard.maxlife
-            self.lifeimg.blit(self.lifebar, (int(lifeper*(guagesize[0]+1) + 0.5) - (guagesize[0]+1), 1))
-            self.lifeimg.blit(self.lifeguage, (0, 0))
-            self.image.blit(cw.s((self.lifeimg, guagesize)), cw.s((8, 110)))
+            def calc_barpos(guage):
+                w, h = guage.get_size()
+                lifeper = float(ccard.life) / ccard.maxlife
+                barpos = (int(lifeper*(w+cw.s(1)) + 0.5) - (w+cw.s(1)), cw.s(1))
+                return barpos
+
+            guage = cw.cwpy.rsrc.statuses["LIFEGUAGE2"]
+            lifemask = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"]
+            lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
+            if 1 < guage.get_width() and 1 < lifemask.get_width():
+                # LIFEGUAGE2がある場合、LIFEBARの上にLIFEGUAGE2を転写した上で
+                # LIFEGUAGE2_MASKのアルファ値を反映する
+                lifeimg = pygame.Surface(guage.get_size()).convert_alpha()
+                lifeimg.blit(lifebar, calc_barpos(guage))
+                lifeimg.blit(guage, (0, 0))
+                lifemask = lifemask.convert_alpha()
+                lifemask.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_MAX)
+                lifeimg.blit(lifemask, (0, 0), special_flags=pygame.locals.BLEND_RGBA_MULT)
+            else:
+                # LIFEGUAGEは(5, 5)の位置をマスク色とする。CardWirthのライフバーイメージと互換性がある
+                guage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
+                lifeimg = pygame.Surface(guage.get_size()).convert()
+                lifeimg.set_colorkey(guage.get_at((0, 0)), pygame.locals.RLEACCEL)
+                lifeimg.blit(lifebar, calc_barpos(guage))
+                lifeimg.blit(guage, (0, 0))
+
+            self.image.blit(lifeimg, cw.s((8, 110)))
 
         # ステータス画像追加
         self.update_statusimg(ccard)
@@ -986,7 +1036,7 @@ class CharacterCardImage(CardImage):
         index = 0
         for subimg in seq:
             pos = (x + index / 5 * cw.s(17), y - index * cw.s(17) + index / 5 * cw.s(85))
-            if type(subimg) is pygame.Surface:
+            if isinstance(subimg, pygame.Surface):
                 self.image.blit(subimg, pos)
                 index += 1
             else:
@@ -1161,6 +1211,11 @@ def create_colorcell(size, color1, gradient, color2):
               "None","LeftToRight","TopToBottom"のいずれか
     color2: 終端色
     """
+    key = (size, color1, gradient, color2)
+    image = cw.cwpy.sdata.resource_cache.get(key, None)
+    if image:
+        return image
+
     image = pygame.Surface(size).convert_alpha()
 
     def calc_per(mn, mx, per):
@@ -1189,6 +1244,8 @@ def create_colorcell(size, color1, gradient, color2):
             pygame.draw.line(image, (r, g, b, a), (0, y), (w, y), 1)
     else:
         image.fill(color1)
+
+    cw.cwpy.sdata.resource_cache[key] = image
     return image
 
 #-------------------------------------------------------------------------------
@@ -1207,12 +1264,18 @@ def zoomcard(image, scale):
     w, h = image.get_size()
     w = int(w * scale)
     h = int(h * scale)
-    return smoothscale(image, (w, h), smoothing=smoothing)
+    return smoothscale(image, (w, h), smoothing=smoothing, iscard=True)
 
-def smoothscale(surface, size, smoothing=True):
+def smoothscale_card(surface, size, smoothing=True):
+    return smoothscale(surface, size, smoothing=smoothing, iscard=True)
+
+def smoothscale(surface, size, smoothing=True, iscard=False):
     """surfaceをリサイズする。
     可能であればスムージングする。
     """
+    if size == surface.get_size():
+        return surface
+
     if surface.get_height() <= 1:
         # FIXME: 環境によって、高さが1の画像に
         #        pygame.transform.smoothscale()を行うと
@@ -1223,9 +1286,28 @@ def smoothscale(surface, size, smoothing=True):
         smoothing = False
 
     if smoothing:
-        if surface.get_bitsize() < 24:
-            surface = surface.convert(24)
-        return pygame.transform.smoothscale(surface, size)
+        w, h = surface.get_size()
+        if iscard and w < size[0] and h < size[1]:
+            # FIXME: pygame.transform.smoothscale()で
+            #        右端・下端が欠けてしまう問題への対処。
+            #        右端・下端を二重化してから拡大・縮小する。
+            #        この処理によって他の問題が出るか、
+            #        pygame.transform.smoothscale()の問題が
+            #        解消された場合は以下の処理を削除する。
+            bmp = pygame.Surface((w+1, h+1)).convert(24)
+            bmp = pygame.transform.scale(surface, (w+1, h+1))
+            bmp.fill((0, 0, 0, 0))
+            bmp.blit(surface, (0, 0))
+            bmp.blit(surface.subsurface((w-1, 0, 1, h)), (w, 0))
+            bmp.blit(surface.subsurface((0, h-1, w, 1)), (h, 0))
+            bmp.set_at((w, h), surface.get_at((w-1, h-1)))
+        else:
+            if surface.get_bitsize() < 24:
+                bmp = surface.convert(24)
+            else:
+                bmp = surface
+
+        return pygame.transform.smoothscale(bmp, size)
     else:
         return pygame.transform.scale(surface, size)
 

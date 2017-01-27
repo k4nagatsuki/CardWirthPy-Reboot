@@ -34,25 +34,6 @@ class AnimationCell(base.SelectableSprite):
         for anime in self._iter_animes(self.animations):
             self.end_frame = max(anime.startframe + anime.spawn + anime.duration, self.end_frame)
 
-        # 他セルの位置とサイズを参照する場合
-        for anime in self.refs:
-            if not isinstance(anime.pos_noscale[0], int):
-                a = anime.pos_noscale[0][len("Ref:"):]
-                anime.pos_noscale = (self.animation_table[a].pos_noscale[0], anime.pos_noscale[1])
-            if not isinstance(anime.pos_noscale[1], int):
-                a = anime.pos_noscale[1][len("Ref:"):]
-                anime.pos_noscale = (anime.pos_noscale[0], self.animation_table[a].pos_noscale[1])
-            if not isinstance(anime.size_noscale[0], int):
-                a = anime.size_noscale[0][len("Ref:"):]
-                anime.size_noscale = (self.animation_table[a].size_noscale[0], anime.size_noscale[1])
-            if not isinstance(anime.size_noscale[1], int):
-                a = anime.size_noscale[1][len("Ref:"):]
-                anime.size_noscale = (anime.size_noscale[0], self.animation_table[a].size_noscale[1])
-            anime.update_scale()
-
-        del self.refs[:]
-        self.animation_table.clear()
-
         self.update_scale()
 
         spritegrp.add(self, layer=layer)
@@ -69,6 +50,26 @@ class AnimationCell(base.SelectableSprite):
             yield anime
 
     def update_scale(self):
+        for anime in self._iter_animes(self.animations):
+            anime.load_cell()
+
+        # 他セルの位置とサイズを参照するものは全て読み込んだ後にここで再計算する
+        for anime in self.refs:
+            if not isinstance(anime.pos_noscale[0], int):
+                a = anime.pos_noscale[0][len("Ref:"):]
+                anime.pos_noscale = (self.animation_table[a].pos_noscale[0], anime.pos_noscale[1])
+            if not isinstance(anime.pos_noscale[1], int):
+                a = anime.pos_noscale[1][len("Ref:"):]
+                anime.pos_noscale = (anime.pos_noscale[0], self.animation_table[a].pos_noscale[1])
+            if not isinstance(anime.size_noscale[0], int):
+                a = anime.size_noscale[0][len("Ref:"):]
+                anime.size_noscale = (self.animation_table[a].size_noscale[0], anime.size_noscale[1])
+            if not isinstance(anime.size_noscale[1], int):
+                a = anime.size_noscale[1][len("Ref:"):]
+                anime.size_noscale = (anime.size_noscale[0], self.animation_table[a].size_noscale[1])
+
+        del self.refs[:]
+
         self.rect = pygame.Rect(cw.s(self.pos_noscale), cw.s(self.size_noscale))
         self.image = pygame.Surface(self.rect.size).convert()
         for anime in self._iter_animes(self.animations):
@@ -162,65 +163,10 @@ class _AnimationPart(object):
             top = data.getattr("Location", "top", "0")
             width = data.getattr("Size", "width", "Original")
             height = data.getattr("Size", "height", "Original")
-            if self.imgpath:
-                # 画像ファイル
-                self.mask = data.getbool("Mask", False)
-                key = os.path.normcase(os.path.normpath(os.path.abspath(self.imgpath)))
-                self.image_noscale = self.parent.cache.get(key, None)
-                if not self.image_noscale:
-                    self.image_noscale = cw.util.load_image(self.imgpath, self.mask)
-                    self.parent.cache[key] = self.image_noscale
-                self.fill_color = None
-                if width == "Original":
-                    width = self.image_noscale.get_width() if self.image_noscale.get_width() else self.parent.size_noscale[0]
-                if height == "Original":
-                    height = self.image_noscale.get_height() if self.image_noscale.get_height() else self.parent.size_noscale[1]
 
-            else:
-                # 塗り潰し
-                self.image_noscale = pygame.Surface((4, 4)).convert()
-                fill_color = data.getint("Fill", "r", 0), data.getint("Fill", "g", 0), data.getint("Fill", "b", 0)
-                self.image_noscale.fill(fill_color)
-                self.mask = False
-                if width == "Original":
-                    width = self.parent.size_noscale[0]
-                if height == "Original":
-                    height = self.parent.size_noscale[1]
-
-            self._has_alpha = (self.image_noscale.get_flags() & pygame.locals.SRCALPHA) <> 0
-
-            if width == "Max":
-                width = self.parent.size_noscale[0]
-            if height == "Max":
-                height = self.parent.size_noscale[1]
-
-            if left == "Center":
-                left = (self.parent.size_noscale[0]-width) // 2
-            if top == "Center":
-                top = (self.parent.size_noscale[1]-height) // 2
-
-            ref = False
-            if not isinstance(left, int) and left.startswith("Ref:"):
-                ref = True
-            else:
-                left = int(left)
-            if not isinstance(top, int) and top.startswith("Ref:"):
-                ref = True
-            else:
-                top = int(top)
-            if not isinstance(width, int) and width.startswith("Ref:"):
-                ref = True
-            else:
-                width = int(width)
-            if not isinstance(height, int) and height.startswith("Ref:"):
-                ref = True
-            else:
-                height = int(height)
-            if ref:
-                self.parent.refs.append(self)
-
-            self.pos_noscale = (left, top)
-            self.size_noscale = (width, height)
+            self._rect_str = (left, top, width, height)
+            self._fill_color = data.getint("Fill", "r", 0), data.getint("Fill", "g", 0), data.getint("Fill", "b", 0)
+            self.mask = data.getbool("Mask", False)
 
             self.animation_type = data.gettext("AnimationType", "None") # アニメーションのタイプ
             self.animation_frame = data.getint("AnimationType", "frame", 20) # アニメーションにかかる時間
@@ -235,15 +181,84 @@ class _AnimationPart(object):
 
             self.image = pygame.Surface((0, 0)).convert()
             self.rect = pygame.Rect(0, 0, 0, 0)
-            if not ref:
-                self.update_scale()
 
         else:
             raise Exception("Invalid animation: %s" % (data.tag))
 
+    def load_cell(self):
+        left, top, width, height = self._rect_str
+
+        if self.imgpath:
+            # 画像ファイル
+            key = (os.path.normcase(os.path.normpath(os.path.abspath(self.imgpath))), cw.UP_SCR)
+            self.image_noscale = self.parent.cache.get(key, None)
+            if not self.image_noscale:
+                self.image_noscale = cw.util.load_image(self.imgpath, self.mask, can_loaded_scaledimage=True)
+                self.parent.cache[key] = self.image_noscale
+            self.fill_color = None
+            scr_scale = self.image_noscale.scr_scale if hasattr(self.image_noscale, "scr_scale") else 1
+            if width == "Original":
+                width = self.image_noscale.get_width() if self.image_noscale.get_width() else self.parent.size_noscale[0]
+                width //= scr_scale
+            if height == "Original":
+                height = self.image_noscale.get_height() if self.image_noscale.get_height() else \
+                self.parent.size_noscale[1]
+                height //= scr_scale
+
+        else:
+            # 塗り潰し
+            self.image_noscale = pygame.Surface((4, 4)).convert()
+            self.image_noscale.fill(self._fill_color)
+            self.mask = False
+            if width == "Original":
+                width = self.parent.size_noscale[0]
+            if height == "Original":
+                height = self.parent.size_noscale[1]
+
+        self._has_alpha = (self.image_noscale.get_flags() & pygame.locals.SRCALPHA) <> 0
+
+        if width == "Max":
+            width = self.parent.size_noscale[0]
+        if height == "Max":
+            height = self.parent.size_noscale[1]
+
+        if left == "Center":
+            left = (self.parent.size_noscale[0] - width) // 2
+        if top == "Center":
+            top = (self.parent.size_noscale[1] - height) // 2
+
+        ref = False
+        if not isinstance(left, int) and left.startswith("Ref:"):
+            ref = True
+        else:
+            left = int(left)
+        if not isinstance(top, int) and top.startswith("Ref:"):
+            ref = True
+        else:
+            top = int(top)
+        if not isinstance(width, int) and width.startswith("Ref:"):
+            ref = True
+        else:
+            width = int(width)
+        if not isinstance(height, int) and height.startswith("Ref:"):
+            ref = True
+        else:
+            height = int(height)
+
+        if ref:
+            self.parent.refs.append(self)
+
+        self.pos_noscale = (left, top)
+        self.size_noscale = (width, height)
+
     def update_scale(self):
         if self.image_noscale.get_width():
-            if self.image_noscale.get_size() <> self.size_noscale:
+            w, h = self.image_noscale.get_size()
+            scr_scale = self.image_noscale.scr_scale if hasattr(self.image_noscale, "scr_scale") else 1
+            w //= scr_scale
+            h //= scr_scale
+            size = (w, h)
+            if size <> self.size_noscale:
                 size = cw.s(self.size_noscale)
                 if cw.cwpy.setting.smoothscale_bg and self.imgpath:
                     self._image = cw.image.smoothscale(self.image_noscale, size)

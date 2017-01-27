@@ -159,35 +159,82 @@ class Scenariodb(object):
                         dpath TEXT,
                         fname TEXT,
                         numorder INTEGER,
+                        scale INTEGER,
                         image BLOB,
                         imgpath TEXT,
                         postype TEXT,
-                        PRIMARY KEY (dpath, fname, numorder)
+                        PRIMARY KEY (dpath, fname, numorder, scale)
                     )
                 """
                 self.cur.execute(s)
 
             else:
-                # postype, imgpath列が存在しない場合は作成する(～1.1との互換性維持)
+                # postype, imgpath, scale列が存在しない場合は作成する(～1.1との互換性維持)
                 cur = self.con.execute("PRAGMA table_info('scenarioimage')")
                 res = cur.fetchall()
                 haspostype = False
                 hasimgpath = False
+                hasscale = False
                 for rec in res:
                     if rec[1] == "postype":
                         haspostype = True
                     elif rec[1] == "imgpath":
                         hasimgpath = True
-                    if all((haspostype, hasimgpath)):
+                    elif rec[1] == "scale":
+                        hasscale = True
+                    if all((haspostype, hasimgpath, hasscale)):
                         break
-                if not haspostype:
-                    # 値はNone(Default扱い)
-                    self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN postype TEXT")
+                if not hasscale:
+                    # SQLite3では主キーの変更ができないので作り直す
+                    s = """
+                        CREATE TABLE scenarioimage_temp (
+                            dpath TEXT,
+                            fname TEXT,
+                            numorder INTEGER,
+                            scale INTEGER,
+                            image BLOB,
+                            imgpath TEXT,
+                            postype TEXT,
+                            PRIMARY KEY (dpath, fname, numorder, scale)
+                        )
+                    """
+                    self.cur.execute(s)
+                    s = """
+                        INSERT INTO scenarioimage_temp (
+                            dpath,
+                            fname,
+                            numorder,
+                            scale,
+                            image,
+                            imgpath,
+                            postype
+                        )
+                        SELECT
+                            dpath,
+                            fname,
+                            numorder,
+                            1,
+                            image,
+                            imgpath,
+                            postype
+                        FROM
+                            scenarioimage
+                    """
+                    self.cur.execute(s)
+                    s = "DROP TABLE scenarioimage"
+                    self.cur.execute(s)
+                    s = "ALTER TABLE scenarioimage_temp RENAME TO scenarioimage"
+                    self.cur.execute(s)
                     needcommit = True
-                if not hasimgpath:
-                    # 値はNoneのままにしておく
-                    self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN imgpath TEXT")
-                    needcommit = True
+                else:
+                    if not haspostype:
+                        # 値はNone(Default扱い)
+                        self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN postype TEXT")
+                        needcommit = True
+                    if not hasimgpath:
+                        # 値はNoneのままにしておく
+                        self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN imgpath TEXT")
+                        needcommit = True
 
             if needcommit:
                 self.con.commit()
@@ -211,6 +258,7 @@ class Scenariodb(object):
                     dpath TEXT,
                     fname TEXT,
                     numorder INTEGER,
+                    scale INTEGER,
                     image BLOB,
                     imgpath TEXT,
                     postype TEXT,
@@ -365,10 +413,12 @@ class Scenariodb(object):
                     dpath,
                     fname,
                     numorder,
+                    scale,
                     image,
                     imgpath,
                     postype
                 ) VALUES (
+                    ?,
                     ?,
                     ?,
                     ?,
@@ -381,7 +431,7 @@ class Scenariodb(object):
                     postype = None
                 else:
                     postype = image[1].postype
-                self.cur.execute(s, (t[0], t[2], i, image[0], image[1].path, postype,))
+                self.cur.execute(s, (t[0], t[2], i, image[2], image[0], image[1].path, postype,))
 
         if commit:
             self.con.commit()
@@ -421,6 +471,7 @@ class Scenariodb(object):
         if data["image"] is None:
             s = """
                 SELECT
+                    scale,
                     image,
                     imgpath,
                     postype
@@ -511,9 +562,7 @@ class Scenariodb(object):
 
         return self.create_header(data, skintype=skintype)
 
-    def _fetch(self, dpath, fname, skintype):
-        if skintype:
-            s = "SELECT" +\
+    FETCH_SQL = "SELECT" +\
                 "     A.dpath," +\
                 "     A.type," +\
                 "     A.fname," +\
@@ -531,33 +580,33 @@ class Scenariodb(object):
                 "     A.mtime," +\
                 "     A.image," +\
                 "     A.imgpath," +\
-                "     A.wsnversion" +\
+                "     A.wsnversion"
+
+    def _fetch(self, dpath, fname, skintype):
+        if skintype:
+            s = Scenariodb.FETCH_SQL +\
                 " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE A.dpath=? AND A.fname=? AND (B.skintype=? OR B.skintype IS NULL)"
             self.cur.execute(s, (dpath, fname, skintype,))
         else:
-            s = "SELECT" +\
-                "     A.dpath," +\
-                "     A.type," +\
-                "     A.fname," +\
-                "     A.name," +\
-                "     A.author," +\
-                "     A.desc," +\
-                "     A.skintype," +\
-                "     A.levelmin," +\
-                "     A.levelmax," +\
-                "     A.coupons," +\
-                "     A.couponsnum," +\
-                "     A.startid," +\
-                "     A.tags," +\
-                "     A.ctime," +\
-                "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath," +\
-                "     A.wsnversion" +\
+            s = Scenariodb.FETCH_SQL +\
                 " FROM scenariodb A WHERE dpath=? AND fname=?"
             self.cur.execute(s, (dpath, fname,))
+
+    def _fetch_from_name(self, name, author, skintype):
+        if skintype:
+            s = Scenariodb.FETCH_SQL +\
+                " FROM scenariodb A LEFT JOIN scenariotype B" +\
+                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
+                " WHERE A.name=? AND A.author=? AND (B.skintype=? OR B.skintype IS NULL)" +\
+                " ORDER BY A.mtime DESC, A.dpath, A.fname"
+            self.cur.execute(s, (name, author, skintype,))
+        else:
+            s = Scenariodb.FETCH_SQL +\
+                " FROM scenariodb A WHERE name=? AND author=?" +\
+                " ORDER BY mtime DESC, dpath, fname"
+            self.cur.execute(s, (name, author,))
 
     @synclock(_lock)
     def search_dpath(self, dpath, create=False, skintype=u"", update=True):
@@ -776,6 +825,24 @@ class Scenariodb(object):
         return self.sort_headers(seq)
 
     @synclock(_lock)
+    def find_scenario(self, name, author, skintype, ignore_dpath=None, ignore_fname=None):
+        """
+        シナリオ名と作者名からシナリオDBを検索する。
+        ただしファイルパスがignore_dpathとignore_fnameにマッチするシナリオは無視する。
+        """
+        self._fetch_from_name(name, author, skintype)
+        data = self.cur.fetchall()
+        ignore_dpath = os.path.normcase(os.path.normpath(os.path.abspath(ignore_dpath)))
+        ignore_fname = os.path.normcase(ignore_fname)
+        for t in data:
+            dpath = os.path.normcase(os.path.normpath(os.path.abspath(t["dpath"])))
+            fname = os.path.normcase(t["fname"])
+            if dpath == ignore_dpath and fname == ignore_fname:
+                continue
+            return self.create_header(t, skintype=skintype)
+        return None
+
+    @synclock(_lock)
     def commit(self):
         self.con.commit()
 
@@ -836,7 +903,7 @@ def read_summary(basepath):
         if len(imgbufs) == 0:
             imgbuf = ""
             imgpath = None
-        elif len(imgbufs) == 1 and imgbufs[0][1].postype == "Default":
+        elif len(imgbufs) == 1 and imgbufs[0][1].postype == "Default" and imgbufs[0][2] == 1:
             imgbuf = imgbufs[0][0]
             imgpath = imgbufs[0][1].path
             imgbufs = []
@@ -862,18 +929,20 @@ def read_summary(basepath):
             if os.path.isfile(spath):
                 rootattrs = {}
                 e = cw.data.xml2element(spath, "Property", rootattrs=rootattrs)
+                can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
                 imgpaths, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath), rootattrs)
                 imgbufs = []
                 for info in imgpaths:
                     imgpath = cw.util.join_paths(path, info.path)
-                    if os.path.isfile(imgpath):
-                        with open(imgpath, "rb") as f2:
-                            imgbuf = f2.read()
-                            f2.close()
-                        imgbuf = buffer(imgbuf)
-                        imgbufs.append((imgbuf, info))
-                    else:
-                        imgbufs.append((None, info))
+                    for imgpath, scale in cw.util.get_scaledimagepaths(imgpath, can_loaded_scaledimage):
+                        if os.path.isfile(imgpath):
+                            with open(imgpath, "rb") as f2:
+                                imgbuf = f2.read()
+                                f2.close()
+                            imgbuf = buffer(imgbuf)
+                            imgbufs.append((imgbuf, info, scale))
+                        elif scale == 1:
+                            imgbufs.append((None, info, scale))
 
                 return imgbufs_to_result(summaryinfos, imgbufs)
         except:
@@ -928,6 +997,7 @@ def read_summary(basepath):
                         try:
                             rootattrs = {}
                             e = cw.data.xml2element(summpath2, "Property", rootattrs=rootattrs)
+                            can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
 
                             try:
                                 imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path), rootattrs)
@@ -937,18 +1007,19 @@ def read_summary(basepath):
                             imgbufs = []
                             for info in imgpaths:
                                 imgpath = cw.util.join_paths(scedir, info.path)
-                                s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath), dpath)
-                                encoding = sys.getfilesystemencoding()
-                                ret = subprocess.call(s.encode(encoding), shell=True)
-                                imgpath2 = cw.util.join_paths(dpath, imgpath)
-                                if ret == 0 and os.path.isfile(imgpath2):
-                                    with open(imgpath2, "rb") as f:
-                                        imgbuf = f.read()
-                                        f.close()
-                                    imgbuf = buffer(imgbuf)
-                                    imgbufs.append((imgbuf, info))
-                                else:
-                                    imgbufs.append((None, info))
+                                for imgpath, scale in cw.util.get_scaledimagepaths(imgpath, can_loaded_scaledimage):
+                                    s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath), dpath)
+                                    encoding = sys.getfilesystemencoding()
+                                    ret = subprocess.call(s.encode(encoding), shell=True)
+                                    imgpath2 = cw.util.join_paths(dpath, imgpath)
+                                    if ret == 0 and os.path.isfile(imgpath2):
+                                        with open(imgpath2, "rb") as f:
+                                            imgbuf = f.read()
+                                            f.close()
+                                        imgbuf = buffer(imgbuf)
+                                        imgbufs.append((imgbuf, info, scale))
+                                    elif scale == 1:
+                                        imgbufs.append((None, info, scale))
 
                             return imgbufs_to_result(summaryinfos, imgbufs)
 
@@ -997,20 +1068,22 @@ def read_summary(basepath):
             f.close()
 
         imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path), rootattrs)
+        can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
 
         imgbufs = []
         for info in imgpaths:
             imgpath = cw.util.join_paths(scedir, info.path)
-            imgpath = nametable.get(imgpath, "")
-            if imgpath:
-                imgbuf = cw.util.read_zipdata(z, imgpath)
-                if imgbuf:
-                    imgbuf = buffer(imgbuf)
-                    imgbufs.append((imgbuf, info))
-                else:
-                    imgbufs.append((None, info))
-            else:
-                imgbufs.append((None, info))
+            for imgpath, scale in cw.util.get_scaledimagepaths(imgpath, can_loaded_scaledimage):
+                imgpath = nametable.get(imgpath, "")
+                if imgpath:
+                    imgbuf = cw.util.read_zipdata(z, imgpath)
+                    if imgbuf:
+                        imgbuf = buffer(imgbuf)
+                        imgbufs.append((imgbuf, info, scale))
+                    else:
+                        imgbufs.append((None, info, scale))
+                elif scale == 1:
+                    imgbufs.append((None, info, scale))
 
         z.close()
 
@@ -1141,9 +1214,10 @@ def get_scenario(fpath):
     dbrec["imgpath"] = t[16]
     dbrec["wsnversion"] = t[17]
     imgdbrec = []
-    for (image, info) in images:
+    for image, info, scale in images:
         imgdbrec.append({
-            "image":image,
+            "scale": scale,
+            "image": image,
             "imgpath": info.path,
             "postype": info.postype
         })

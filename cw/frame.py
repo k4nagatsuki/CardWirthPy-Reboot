@@ -114,6 +114,9 @@ class Frame(wx.Frame):
             self._setting.skindirname = self._skindirname
             self._setting.write()
             self._setting.init_settings()
+        if self._setting.auto_update_files:
+            # アップデートに伴うファイルの整理
+            cw.update.update_files(u"Data", u"Data", [u"../Scenario/"])
         # 起動直後のスレッド数を記憶
         self.initialThreadCount = threading.activeCount()
         # CWPyサブスレッド
@@ -314,7 +317,7 @@ class Frame(wx.Frame):
             event.args = args
             event.kwargs = kwargs
             self.AddPendingEvent(event)
-            while cw.cwpy.is_running() and self.IsEnabled() and self._sync_running:
+            while cw.cwpy.is_running() and self._sync_running:
                 time.sleep(0)
             return self._sync_result
 
@@ -451,8 +454,8 @@ class Frame(wx.Frame):
         paths = event.GetFiles()
 
         for path in paths:
+            # スキンの自動生成
             if path.lower().endswith(".exe"):
-                # スキンの自動生成
                 dlg = cw.dialog.skin.SkinConversionDialog(self, path)
                 self.move_dlg(dlg)
                 dlg.ShowModal()
@@ -460,6 +463,23 @@ class Frame(wx.Frame):
                     cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname)
                 dlg.Destroy()
                 break
+        else:
+            # シナリオのインストール
+            db = self._open_scenariodb()
+            if not db:
+                return
+            try:
+                headers = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db, cw.cwpy.setting.skintype)
+                if not headers:
+                    return
+                cw.cwpy.play_sound("signal")
+                scedir = cw.cwpy.setting.get_scedir()
+                dlg = cw.dialog.scenarioinstall.ScenarioInstall(self, db, headers, cw.cwpy.setting.skintype, scedir)
+                self.move_dlg(dlg)
+                dlg.ShowModal()
+                self.kill_dlg(dlg)
+            finally:
+                db.close()
 
     def OnDestroy(self, event):
         if self.debugger:
@@ -614,22 +634,28 @@ class Frame(wx.Frame):
 
         cw.cwpy.exec_func(func)
 
-    def OnSCENARIOSELECT(self, event):
+    def _open_scenariodb(self):
         # Scenariodb更新用のサブスレッドの処理が終わるまで待機
         while not cw.scenariodb.ScenariodbUpdatingThread.is_finished():
             pass
 
+        if not os.path.isdir(u"Scenario"):
+            os.makedirs(u"Scenario")
+
         try:
-            db = cw.scenariodb.Scenariodb()
+            return cw.scenariodb.Scenariodb()
         except:
-            s = (u"データベースへの接続に失敗しました。\n"
+            s = (u"シナリオデータベースへの接続に失敗しました。\n"
                  u"しばらくしてからもう一度やり直してください。")
             event.args = {"text":s, "shutdown":False}
             self.OnERROR(event)
+            return None
+
+    def OnSCENARIOSELECT(self, event):
+        db = self._open_scenariodb()
+        if not db:
             return
 
-        if not os.path.exists(u"Scenario"):
-            os.makedirs(u"Scenario")
         dlg = cw.dialog.scenarioselect.ScenarioSelect(self, db, cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath)
         self.move_dlg(dlg)
 
@@ -640,13 +666,11 @@ class Frame(wx.Frame):
         sel, selpath = dlg.get_selected()
         cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
 
-        def func():
+        def func(header, sel, selpath):
             cw.cwpy.selectedscenario = header
             cw.cwpy.ydata.party.set_lastscenario(sel, selpath)
             cw.cwpy.change_area(4)
-        cw.cwpy.exec_func(func)
-
-        cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath, manualstart=True)
+        cw.cwpy.exec_func(func, header, sel, selpath)
 
         # FIXME: linuxでたまに操作不能になる
         #        Windowsでも環境によって落ちる事がある
@@ -1223,7 +1247,7 @@ class MyApp(wx.App):
         wx.Log.SetLogLevel(wx.LOG_Error)
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
-        skincount = get_skincount()
+        skincount = get_skincount()[0]
         exe = u""
         if len(cw.SKIN_CONV_ARGS) > 0 and cw.SKIN_CONV_ARGS[0].lower().endswith(".exe"):
             exe = cw.SKIN_CONV_ARGS[0]
@@ -1243,7 +1267,7 @@ class MyApp(wx.App):
     def OnCloseSkinDialog(self, event):
         # スキンが1つでもあればそのまま起動する
         self.skindlg.Destroy()
-        skincount = get_skincount()
+        skincount = get_skincount()[0]
 
         if 0 < skincount:
             if self.skindlg.select_skin:
@@ -1293,12 +1317,18 @@ class MyApp(wx.App):
 
 def get_skincount():
     skincount = 0
+    unknown_ver = 0
     if os.path.isdir(u"Data/Skin"):
         for name in os.listdir(u"Data/Skin"):
             skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
-            if os.path.exists(skinpath):
-                skincount += 1
-    return skincount
+            if os.path.isfile(skinpath):
+                prop = cw.header.GetProperty(skinpath)
+                skinversion = prop.attrs.get(None, {}).get(u"dataVersion", "0")
+                if skinversion in cw.SUPPORTED_SKIN:
+                    skincount += 1
+                else:
+                    unknown_ver += 1
+    return skincount, unknown_ver
 
 def main():
     pass

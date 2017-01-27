@@ -743,6 +743,11 @@
     <Message key="skillcard">技能カード</Message>
     <Message key="itemcard">アイテムカード</Message>
     <Message key="beastcard">召喚獣カード</Message>
+    <Message key="desc_base_money"><!-- 宿の共有資金です --></Message>
+    <Message key="desc_party_money"><!-- パーティの所持金です --></Message>
+    <Message key="install_scenario">シナリオのインストール</Message>
+    <Message key="create_directory">新規フォルダ</Message>
+    <Message key="re_deal_label">カード交換:</Message>
     <!-- 2.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />

@@ -342,7 +342,27 @@ class Content(base.CWBinaryBase):
                 self.properties["status"] = self.conv_statustype(f.byte())
         elif self.tag == "Branch" and self.type == "KeyCode": # 1.50
             self.properties["targetkc"] = self.conv_keycoderange(f.byte())
-            self.properties["effectCardType"] = self.conv_effectcardtype(f.byte())
+            ect = self.conv_effectcardtype(f.byte())
+            if ect == "All":
+                self.properties["skill"] = True
+                self.properties["item"] = True
+                self.properties["beast"] = True
+                self.properties["hand"] = True # BUG: CardWirth 1.50ではアイテムが対象にあると手札も検索される
+            elif ect == "Skill":
+                self.properties["skill"] = True
+                self.properties["item"] = False
+                self.properties["beast"] = False
+                self.properties["hand"] = False
+            elif ect == "Item":
+                self.properties["skill"] = False
+                self.properties["item"] = True
+                self.properties["beast"] = False
+                self.properties["hand"] = True # BUG: CardWirth 1.50ではアイテムが対象にあると手札も検索される
+            elif ect == "Beast":
+                self.properties["skill"] = False
+                self.properties["item"] = False
+                self.properties["beast"] = True
+                self.properties["hand"] = False
             self.properties["keyCode"] = f.string()
         elif self.tag == "Check" and self.type == "Step": # 1.50
             self.properties["step"] = f.string()
@@ -486,7 +506,21 @@ class Content(base.CWBinaryBase):
                 if e.tag == "Text":
                     text= e.text
                     break
-            f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
+
+            e_imgpaths = data.find("ImagePaths")
+            if not e_imgpaths is None:
+                if 1 < len(e_imgpaths):
+                    f.check_wsnversion("1")
+                base.CWBinaryBase.check_imgpath(f, e_imgpaths.find("ImagePath"), "TopLeft")
+                imgpath2 = prop.gettext("ImagePath", "")
+                if imgpath2:
+                    imgpath = base.CWBinaryBase.materialpath(imgpath2)
+                else:
+                    imgpath = u""
+            else:
+                base.CWBinaryBase.check_imgpath(f, data, "TopLeft")
+                imgpath = data.get("path")
+            f.write_string(base.CWBinaryBase.materialpath(imgpath))
             f.write_string(text, True)
         elif tag == "Play" and ctype == "Bgm":
             f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
@@ -508,6 +542,10 @@ class Content(base.CWBinaryBase):
         elif tag == "Wait" and ctype == "":
             f.write_dword(int(data.get("value")))
         elif tag == "Effect" and ctype == "":
+            if data.getbool(".", "refability", False):
+                f.check_wsnversion("2")
+            if data.getbool(".", "ignite", False):
+                f.check_wsnversion("2")
             f.write_dword(int(data.get("level")))
             f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
             f.write_byte(base.CWBinaryBase.unconv_card_effecttype(data.get("effecttype")))
@@ -569,10 +607,13 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Branch" and ctype == "Coupon":
+            base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(0)
             f.write_byte(base.CWBinaryBase.unconv_target_scope_coupon(data.get("targets"), f))
         elif tag == "Get" and ctype == "Cast":
+            if data.getattr(".", "startaction", "NextRound") <> "NextRound":
+                f.check_wsnversion("2")
             f.write_dword(int(data.get("id")))
         elif tag == "Get" and ctype == "Item":
             f.write_dword(int(data.get("id")))
@@ -591,6 +632,7 @@ class Content(base.CWBinaryBase):
         elif tag == "Get" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Get" and ctype == "Coupon":
+            base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(int(data.get("value")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
@@ -613,6 +655,7 @@ class Content(base.CWBinaryBase):
         elif tag == "Lose" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Lose" and ctype == "Coupon":
+            base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(0)
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
@@ -730,7 +773,43 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and ctype == "KeyCode": # 1.50
             f.check_version(1.50)
             f.write_byte(base.CWBinaryBase.unconv_keycoderange(data.get("targetkc")))
-            f.write_byte(base.CWBinaryBase.unconv_effectcardtype(data.get("effectCardType")))
+            # Wsn.1方式
+            etype = data.get("effectCardType", "All")
+            skill = False
+            item = False
+            beast = False
+            hand = False
+            if etype == "All":
+                skill = True
+                item = True
+                beast = True
+            elif etype == "Skill":
+                skill = True
+            elif etype == "Item":
+                item = True
+            elif etype == "Beast":
+                beast = True
+            # Wsn.2方式(任意の組み合わせ)
+            if "skill" in data.attrib:
+                skill = data.getbool(".", "skill")
+            if "item" in data.attrib:
+                item = data.getbool(".", "item")
+            if "beast" in data.attrib:
+                beast = data.getbool(".", "beast")
+            if "hand" in data.attrib:
+                hand = data.getbool(".", "hand")
+
+            if skill and item and beast and hand:
+                etype = "All"
+            elif skill and not item and not beast and not hand:
+                etype = "Skill"
+            elif not skill and item and not beast and hand:
+                etype = "Item"
+            elif not skill and not item and beast and not hand:
+                etype = "Beast"
+            else:
+                f.check_wsnversion("2")
+            f.write_byte(base.CWBinaryBase.unconv_effectcardtype(etype))
             f.write_string(data.get("keyCode"))
         elif tag == "Check" and ctype == "Step": # 1.50
             f.check_version(1.50)

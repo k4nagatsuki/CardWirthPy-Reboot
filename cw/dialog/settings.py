@@ -624,6 +624,10 @@ class SettingsPanel(wx.Panel):
             def func():
                 cw.cwpy.advlog.enable(setting.write_playlog)
             cw.cwpy.exec_func(func)
+        value = self.pane_scenario.cb_can_installscenariofromdrop.GetValue()
+        setting.can_installscenariofromdrop = value
+        value = self.pane_scenario.cb_delete_sourceafterinstalled.GetValue()
+        setting.delete_sourceafterinstalled = value
         value = self.pane_scenario.tx_filer_dir.GetValue()
         setting.filer_dir = value
         value = self.pane_scenario.tx_filer_file.GetValue()
@@ -837,8 +841,10 @@ class SkinPanel(wx.Panel):
 
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 try:
-                    self.skins.append(cw.header.GetName(skinpath).name)
-                    self.skindirs.append(name)
+                    prop = cw.header.GetProperty(skinpath)
+                    if prop.attrs.get(None, {}).get("dataVersion") in cw.SUPPORTED_SKIN:
+                        self.skins.append(prop.properties.get("Name", name))
+                        self.skindirs.append(name)
                 except:
                     # エラーのあるスキンは無視
                     cw.util.print_ex()
@@ -1035,7 +1041,7 @@ class ExpandPanel(wx.Panel):
                 self.ch_expanddrawing.Select(i)
             i += 1
             val *= 2
-            if nmax < val*10:
+            if nmax < val*10 and 2 < val:
                 break
         if nmax <= 10:
             self.sl_expand.SetMax(11)
@@ -1049,6 +1055,11 @@ class ExpandPanel(wx.Panel):
 
         if self.ch_expanddrawing.GetSelection() == -1:
             self.ch_expanddrawing.Select(0)
+
+        if nmax < int(2 ** (self.ch_expanddrawing.GetCount()-1)) * 10:
+            self.ch_expanddrawing.SetToolTipString(u"画面解像度を超える描画サイズは、環境によっては\n正常に機能しない可能性があります。")
+        else:
+            self.ch_expanddrawing.SetToolTipString(u"")
 
         self.make_expandinfo()
 
@@ -2122,6 +2133,8 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
         self.cb_show_paperandtree = wx.CheckBox(self, -1, u"シナリオ選択ダイアログで貼紙と一覧を同時に表示する")
         self.cb_write_playlog = wx.CheckBox(self, -1, u"シナリオのプレイログを出力する")
+        self.cb_can_installscenariofromdrop = wx.CheckBox(self, -1, u"シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する")
+        self.cb_delete_sourceafterinstalled = wx.CheckBox(self, -1, u"シナリオのインストールに成功したら元ファイルを削除する")
 
         # スキンタイプ毎の初期フォルダ
         self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
@@ -2182,6 +2195,8 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype)
         self.cb_show_paperandtree.SetValue(setting.show_paperandtree)
         self.cb_write_playlog.SetValue(setting.write_playlog)
+        self.cb_can_installscenariofromdrop.SetValue(setting.can_installscenariofromdrop)
+        self.cb_delete_sourceafterinstalled.SetValue(setting.delete_sourceafterinstalled)
         if 0 < self.grid_folderoftype.GetNumberRows():
             self.grid_folderoftype.DeleteRows(0, self.grid_folderoftype.GetNumberRows())
         self.grid_folderoftype.InsertRows(0, len(setting.folderoftype) + 1)
@@ -2200,8 +2215,10 @@ class ScenarioSettingPanel(wx.Panel):
     def init_values(self, setting):
         self.tx_editor.SetValue(setting.editor_init)
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype_init)
-        self.cb_show_paperandtree.SetValue(setting.show_paperandtree)
-        self.cb_write_playlog.SetValue(setting.write_playlog)
+        self.cb_show_paperandtree.SetValue(setting.show_paperandtree_init)
+        self.cb_write_playlog.SetValue(setting.write_playlog_init)
+        self.cb_can_installscenariofromdrop.SetValue(setting.can_installscenariofromdrop_init)
+        self.cb_delete_sourceafterinstalled.SetValue(setting.delete_sourceafterinstalled_init)
         self.tx_filer_dir.SetValue(setting.filer_dir_init)
         self.tx_filer_file.SetValue(setting.filer_file_init)
 
@@ -2241,6 +2258,8 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_show_paperandtree, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_write_playlog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_can_installscenariofromdrop, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_delete_sourceafterinstalled, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.SetMinSize((_settings_width(), -1))
 
         sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)

@@ -182,7 +182,7 @@ class CWPyCard(base.SelectableSprite):
                 # 最大の一枚のみは長時間表示される
                 # 可能性があるためスムージングする
                 if i + 1 == len(self.zoomimgs) and cw.cwpy.setting.smoothing_card_up:
-                    scale = cw.image.smoothscale
+                    scale = cw.image.smoothscale_card
                 else:
                     scale = pygame.transform.scale
                 img = scale(image, rect.size)
@@ -398,7 +398,7 @@ class CWPyCard(base.SelectableSprite):
         if (w, h) == (maxw, maxh) and cw.cwpy.setting.smoothing_card_up:
             # 最大の一枚のみは長時間表示される
             # 可能性があるためスムージングする
-            scale = cw.image.smoothscale
+            scale = cw.image.smoothscale_card
         else:
             scale = pygame.transform.scale
         self.image = scale(self.zoomimgs[0][0], (w, h))
@@ -568,7 +568,7 @@ class CWPyCard(base.SelectableSprite):
                 # 最大の一枚のみは長時間表示される
                 # 可能性があるためスムージングする
                 if i + 1 == len(self.zoomimgs)-1 and cw.cwpy.setting.smoothing_card_up:
-                    scale = cw.image.smoothscale
+                    scale = cw.image.smoothscale_card
                 else:
                     scale = pygame.transform.scale
                 image = scale(self._image, (w, h))
@@ -653,8 +653,8 @@ class PlayerCard(CWPyCard, character.Player):
             path = info.path
             self.imgpaths.append(cw.image.ImageInfo(cw.util.join_paths(cw.cwpy.yadodir, path), base=info))
 
-        # TODO scaleinfo
-        self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=pos_noscale)
+        can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
+        self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=pos_noscale, can_loaded_scaledimage=can_loaded_scaledimage)
         self.update_image()
         # 空のイメージ
         self.image = pygame.Surface(cw.s((0, 0))).convert()
@@ -697,7 +697,7 @@ class PlayerCard(CWPyCard, character.Player):
         self.imgpaths = []
         for info in paths:
             self.imgpaths.append(cw.image.ImageInfo(cw.util.join_paths(cw.cwpy.yadodir, info.path), base=info))
-        self.cardimg.set_faceimgs(self.imgpaths)
+        self.cardimg.set_faceimgs(self.imgpaths, can_loaded_scaledimage=True)
 
         def func():
             def func():
@@ -860,8 +860,10 @@ class PlayerCard(CWPyCard, character.Player):
             text = cw.cwpy.msgs["level_up"]
             names = [(0, cw.cwpy.msgs["ok"])]
             infos = []
+            can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
             for info in self.imgpaths:
-                infos.append(cw.image.ImageInfo(path=info.path, pcnumber=info.pcnumber, base=info, basecardtype="LargeCard"))
+                infos.append((cw.image.ImageInfo(path=info.path, pcnumber=info.pcnumber, base=info, basecardtype="LargeCard"),
+                              can_loaded_scaledimage, self, {}))
             mwin = cw.sprite.message.MessageWindow(text, names, infos, self,
                                                    versionhint=self.versionhint)
             cw.cwpy.show_message(mwin)
@@ -952,9 +954,9 @@ class EnemyCard(CWPyCard, character.Enemy):
         for info in cw.image.get_imageinfos(self.data.find("Property")):
             path = info.path
             self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
-        # TODO scaleinfo
+        can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
         self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=self._init_pos_noscale,
-                                                   is_scenariocard=True)
+                                                   can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=True)
         self.set_pos_noscale(pos_noscale=self._init_pos_noscale)
         self.update_image()
         # 空のイメージ
@@ -1038,8 +1040,8 @@ class FriendCard(CWPyCard, character.Friend):
         for info in cw.image.get_imageinfos(self.data.find("Property")):
             path = info.path
             self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
-        # TODO scaleinfo
-        self.cardimg = cw.image.CharacterCardImage(self, is_scenariocard=True)
+        can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
+        self.cardimg = cw.image.CharacterCardImage(self, can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=True)
         self.update_image()
         # 空のイメージ
         self.clear_image()
@@ -1151,31 +1153,34 @@ class MenuCard(CWPyCard):
         self.events = cw.event.EventEngine(self._data.getfind("Events"))
 
         is_scenariocard = 0 <= cw.cwpy.areaid and cw.cwpy.is_playingscenario()
+        infos = cw.image.get_imageinfos(self._data.find("Property"), pcnumber=True)
 
         # 通常イメージ。LargeMenuCardはサイズ大のメニューカード作成
         paths = []
-        for info in cw.image.get_imageinfos(self._data.find("Property"), pcnumber=True):
+        can_loaded_scaledimages = []
+        for info in infos:
             if info.path:
                 paths.append(cw.image.ImageInfo(info.path, base=info))
+                can_loaded_scaledimages.append(cw.cwpy.areaid < 0 or cw.cwpy.sdata.can_loaded_scaledimage)
             elif info.pcnumber:
                 # メニューカードにPCの画像を表示(1.30)
                 pcards = cw.cwpy.ydata.party.members
                 pi = info.pcnumber - 1
                 if 0 <= pi and pi < len(pcards):
+                    can_loaded_scaledimage = pcards[pi].getbool(".", "scaledimage", False)
                     for info2 in cw.image.get_imageinfos(pcards[pi].find("Property")):
                         path = info2.path
                         if path:
                             path = cw.util.join_yadodir(path)
                         paths.append(cw.image.ImageInfo(path, info.pcnumber, base=info2, basecardtype="LargeCard"))
+                        can_loaded_scaledimages.append(can_loaded_scaledimage)
 
         if self._data.tag == "LargeMenuCard":
-            # TODO scaleinfo
             self._cardimg = cw.image.LargeCardImage(paths, "NORMAL", self.name,
-                                                    is_scenariocard=is_scenariocard)
+                                                    can_loaded_scaledimage=can_loaded_scaledimages, is_scenariocard=is_scenariocard)
         else:
-            # TODO scaleinfo
             self._cardimg = cw.image.CardImage(paths, "NORMAL", self.name,
-                                               is_scenariocard=is_scenariocard)
+                                               can_loaded_scaledimage=can_loaded_scaledimages, is_scenariocard=is_scenariocard)
 
         self.update_image()
         # pos

@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os
 import sys
+import traceback
 
 import wx
 import pygame
@@ -34,6 +35,7 @@ import xmlcreater
 import bassplayer
 import binary
 import advlog
+import update
 
 import dialog
 import debug
@@ -48,7 +50,7 @@ tempdir_init = u"Data/Temp/Global"
 tempdir = tempdir_init
 
 # アプリケーション情報
-APP_VERSION = (1, "1")
+APP_VERSION = (2, "0 Alpha 1")
 APP_NAME = "CardWirthPy"
 
 # CardWirthの標準文字コード
@@ -71,6 +73,11 @@ RECT_STATUSBAR = (0, 420, 632, 33)
 
 # 対応するWSNデータバージョン
 SUPPORTED_WSN = ("", "1", "2")
+# 対応するスキンバージョン
+SUPPORTED_SKIN = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
+
+# スケーリングされたイメージファイルを検索する時、以下のスケール値を使用する
+SCALE_LIST = (2, 4, 8, 16)
 
 # 特殊エリアのID
 AREAS_SP = (-1, -2, -3, -4, -5)
@@ -279,6 +286,8 @@ def _s_impl(num, up_scr):
 
     elif isinstance(num, tuple):
         if len(num) == 3:
+            print "A scaleinfo is deprecated."
+            traceback.print_stack()
             scaleinfo = num[2]
         else:
             scaleinfo = None
@@ -289,7 +298,11 @@ def _s_impl(num, up_scr):
                 return bmp
             if scaleinfo:
                 # スケール情報のあるpygame.Surface
-                # TODO scaleinfo
+                # TODO scaleinfoは廃止
+                scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+                up_scr /= scr_scale
+                if up_scr == 1:
+                    return bmp
                 size = _s_impl(num[1], up_scr)
                 if size[0] % num[1] == 0:
                     result = pygame.transform.scale(bmp, size)
@@ -298,7 +311,7 @@ def _s_impl(num, up_scr):
                         bmp = bmp.convert_alpha()
                     result = image.smoothscale(bmp, size)
                 if isinstance(num[0], util.Depth1Surface):
-                    result = util.Depth1Surface(result)
+                    result = util.Depth1Surface(result, scr_scale)
                 return result
             else:
                 # スケール情報の無いpygame.Surface(単純拡大)
@@ -309,9 +322,13 @@ def _s_impl(num, up_scr):
                 return img
             if scaleinfo:
                 # スケール情報のあるwx.Image
-                # TODO scaleinfo
+                # TODO scaleinfoは廃止
                 bmpdepthis1 = hasattr(img, "bmpdepthis1")
                 maskcolour = img.maskcolour if hasattr(img, "maskcolour") else None
+                scr_scale = img.scr_scale if hasattr(img, "scr_scale") else 1
+                up_scr /= scr_scale
+                if up_scr == 1:
+                    return img
                 size = _s_impl(num[1], up_scr)
                 if size[0] % num[1] == 0 or bmpdepthis1:
                     result = img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
@@ -331,6 +348,10 @@ def _s_impl(num, up_scr):
             bmp = num[0]
             bmpdepthis1 = hasattr(bmp, "bmpdepthis1")
             maskcolour = bmp.maskcolour if hasattr(bmp, "maskcolour") else None
+            scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+            up_scr /= scr_scale
+            if up_scr == 1:
+                return bmp
             if bmp.GetWidth() <= 0 or bmp.GetHeight() <= 0:
                 return bmp
             # wx.Bitmap
@@ -361,6 +382,10 @@ def _s_impl(num, up_scr):
     elif isinstance(num, pygame.Surface):
         # スケール情報の無いpygame.Surface(単純拡大)
         bmp0 = num
+        scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1
+        up_scr /= scr_scale
+        if up_scr == 1:
+            return num
         w = int(num.get_width() * up_scr)
         h = int(num.get_height() * up_scr)
         if w <= 0 or h <= 0:
@@ -373,13 +398,17 @@ def _s_impl(num, up_scr):
                 num = num.convert_alpha()
             result = image.smoothscale(num, size)
         if isinstance(bmp0, util.Depth1Surface):
-            result = util.Depth1Surface(result)
+            result = util.Depth1Surface(result, scr_scale)
         return result
 
     elif isinstance(num, wx.Image):
         # スケール情報の無いwx.Image(単純拡大)
         bmpdepthis1 = hasattr(num, "bmpdepthis1")
         maskcolour = num.maskcolour if hasattr(num, "maskcolour") else None
+        scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1
+        up_scr /= scr_scale
+        if up_scr == 1:
+            return num
         w = int(num.GetWidth() * up_scr)
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
@@ -403,6 +432,10 @@ def _s_impl(num, up_scr):
         # スケール情報の無いwx.Bitmap(単純拡大)
         bmpdepthis1 = hasattr(num, "bmpdepthis1")
         maskcolour = num.maskcolour if hasattr(num, "maskcolour") else None
+        scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1
+        up_scr /= scr_scale
+        if up_scr == 1:
+            return num
         w = int(num.GetWidth() * up_scr)
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:

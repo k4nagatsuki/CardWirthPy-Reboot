@@ -152,6 +152,8 @@ class EventContentBase(object):
             "backpack" : u"荷物袋",
             "partyandbackpack" : u"パーティ全体(荷物袋含む)",
             "field" : u"フィールド全体",
+            "couponholder" : u"称号所有者", # Wsn.2
+            "cardtarget" : u"カードの使用対象", # Wsn.2
             # 対象メンバ
             "random" : u"ランダムメンバ",
             "selected" : u"選択中メンバ",
@@ -1015,9 +1017,10 @@ class BranchCouponContent(BranchContent):
 
         # 選択設定
         if scope <> "Selected":
-            if not selectedmember and scope == "Party" and not someone:
-                # パーティ全員を選択する場合は先頭のメンバが選択状態になる
-                selectedmember = cw.cwpy.event.get_targetmember("First", "unreversed")
+            if scope == "Party" and not someone and flag:
+                # BUG: CardWirthでは称号所持分岐と能力判定分岐で
+                #      「パーティ全員」判定が成功すると選択メンバがいなくなる
+                selectedmember = None
 
             if selectedmember:
                 cw.cwpy.event.set_selectedmember(selectedmember)
@@ -1360,6 +1363,11 @@ class BranchAbilityContent(BranchContent):
 
         # 選択設定
         if not targetm == "Selected":
+            if self.targetm == "Party" and not self.someone and flag:
+                # BUG: CardWirthでは称号所持分岐と能力判定分岐で
+                #      「パーティ全員」判定が成功すると選択メンバがいなくなる
+                selectedmember = None
+
             if selectedmember:
                 cw.cwpy.event.set_selectedmember(selectedmember)
             else:
@@ -1466,46 +1474,59 @@ class BranchKeyCodeContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
 
+        self.targetkc = self.data.get("targetkc", "Selected")
+        self.keycode = self.data.get("keyCode", "")
+
+        # 対象カード種別
+        # Wsn.1方式(1.50と同様の選択式)
+        etype = self.data.get("effectCardType", "All")
+        self.skill = False
+        self.item = False
+        self.beast = False
+        self.hand = False
+        if etype == "All":
+            self.skill = True
+            self.item = True
+            self.beast = True
+        elif etype == "Skill":
+            self.skill = True
+        elif etype == "Item":
+            self.item = True
+        elif etype == "Beast":
+            self.beast = True
+
+        # Wsn.2方式(任意の組み合わせ)
+        if "skill" in self.data.attrib:
+            self.skill = self.data.getbool(".", "skill")
+        if "item" in self.data.attrib:
+            self.item = self.data.getbool(".", "item")
+        if "beast" in self.data.attrib:
+            self.beast = self.data.getbool(".", "beast")
+        if "hand" in self.data.attrib:
+            self.hand = self.data.getbool(".", "hand")
+
     def action(self):
         """キーコード所持分岐コンテント(1.30)。"""
-        targetkc = self.data.get("targetkc", "Selected")
-        etype = self.data.get("effectCardType", "All")
-        keycode = self.data.get("keyCode", "")
 
         # 対象メンバ取得
         targets = []
-        if targetkc == "Selected":
-            targets.append(cw.cwpy.event.get_targetmember(targetkc))
-        elif targetkc == "Random":
+        if self.targetkc == "Selected":
+            targets.append(cw.cwpy.event.get_targetmember(self.targetkc))
+        elif self.targetkc == "Random":
             targets.extend(cw.cwpy.event.get_targetmember("Party"))
             cw.cwpy.dice.shuffle(targets)
-        elif targetkc == "Backpack":
+        elif self.targetkc == "Backpack":
             targets.append(cw.cwpy.ydata.party)
-        elif targetkc == "PartyAndBackpack":
+        elif self.targetkc == "PartyAndBackpack":
             targets.extend(cw.cwpy.event.get_targetmember("Party"))
             cw.cwpy.dice.shuffle(targets)
             targets.append(cw.cwpy.ydata.party)
-
-        # 対象カード種別
-        skill = False
-        item = False
-        beast = False
-        if etype == "All":
-            skill = True
-            item = True
-            beast = True
-        elif etype == "Skill":
-            skill = True
-        elif etype == "Item":
-            item = True
-        elif etype == "Beast":
-            beast = True
 
         # キーコード所持判定
         selectedmember = None
         flag = False
         for target in targets:
-            if target.has_keycode(keycode, skill, item, beast):
+            if target.has_keycode(self.keycode, self.skill, self.item, self.beast, self.hand):
                 if isinstance(target, cw.character.Character):
                     selectedmember = target
                 flag = True
@@ -1521,13 +1542,18 @@ class BranchKeyCodeContent(BranchContent):
         return u"キーコード所持分岐コンテント"
 
     def get_childname(self, child):
-        targetkc = self.data.get("targetkc", "Selected")
-        etype = self.data.get("effectCardType", "All")
-        keycode = self.data.get("keyCode", "")
-
-        s = self.textdict.get(targetkc.lower(), "")
-        s2 = self.textdict.get(etype.lower(), "")
-        s3 = keycode
+        s = self.textdict.get(self.targetkc.lower(), "")
+        types = []
+        if self.skill:
+            types.append(u"特殊技能")
+        if self.item:
+            types.append(u"アイテム")
+        if self.beast:
+            types.append(u"召喚獣")
+        if self.hand:
+            types.append(u"手札")
+        s2 = u"・".join(types) if types else u"(指定無し)"
+        s3 = self.keycode
 
         if self.get_contentname(child) == u"○":
             return u"%sの%sからキーコード『%s』の発見に成功" % (s, s2, s3)
@@ -1853,6 +1879,11 @@ class EffectContent(EventContentBase):
         d["fadein"] = self.data.getint(".", "fadein", 0)
         d["channel"] = self.data.getint(".", "channel", 0)
 
+        # 選択メンバの能力参照(Wsn.2)
+        d["refability"] = self.data.getbool(".", "refability", False)
+        d["physical"] = self.data.getattr(".", "physical", "Dex")
+        d["mental"] = self.data.getattr(".", "mental", "Aggressive")
+
         # Effectインスタンス作成
         motions = self.data.getfind("Motions").getchildren()
         self.eff = cw.effectmotion.Effect(motions, d, battlespeed=False)
@@ -1868,72 +1899,182 @@ class EffectContent(EventContentBase):
             self.keycodes = self.data.gettext("KeyCodes", "")
             self.keycodes = cw.util.decodetextlist(self.keycodes) if self.keycodes else []
 
+        # 称号所有者が適用範囲の時の称号名(Wsn.2)
+        self.holdingcoupon = self.data.get("holdingcoupon", "")
+
     def action(self):
         """効果コンテント。"""
-
-        target = cw.cwpy.event.get_targetmember(self.targetm)
-        if self.targetm == "Selected" and target and\
-                isinstance(target, cw.character.Enemy) and\
-                target.status == "hidden":
-            # BUG: CardWirthではフラグによって隠蔽状態の敵に
-            #      効果を適用しようとした場合にメンバ選択が解除される
-            cw.cwpy.event.clear_selectedmember()
-            return 0
+        if self.targetm == "CardTarget":
+            # カードの使用対象(Wsn.2)
+            if cw.cwpy.event.in_inusecardevent:
+                e_effectevent = cw.cwpy.event.get_effectevent()
+                e_effectevent.update_targets()
+                target = e_effectevent.targets
+            else:
+                target = []
+        else:
+            target = cw.cwpy.event.get_targetmember(self.targetm, coupon=self.holdingcoupon)
+            if self.targetm == "Selected" and target and\
+                    isinstance(target, cw.character.Enemy) and\
+                    target.status == "hidden":
+                # BUG: CardWirthではフラグによって隠蔽状態の敵に
+                #      効果を適用しようとした場合にメンバ選択が解除される
+                cw.cwpy.event.clear_selectedmember()
+                return 0
 
         if self.ignite:
             event = cw.cwpy.event.get_event()
+            if cw.cwpy.event.in_inusecardevent:
+                cardversion = cw.cwpy.event.get_inusecard().wsnversion
+
+            else:
+                cardversion = None
 
         def apply(target):
-            unconscious_flag, paralyze_flag = cw.event.get_effecttargetstatus(target, self.eff)
-            if cw.cwpy.sdata.is_wsnversion('2'):
-                # イベント所持者を示すシステムクーポン(Wsn.2)
-                target.set_coupon(u"＠イベント対象", 0)
-            try:
-                if self.ignite:
-                    # キーコードイベント(Wsn.2)
-                    runevent = event.ignition_enemyevent(target, unconscious_flag, self.keycodes)
-                    if runevent:
-                        runevent.run_scenarioevent()
-                        if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
-                            return
+            if isinstance(target, cw.character.Character):
+                unconscious_flag, paralyze_flag = cw.event.get_effecttargetstatus(target, self.eff)
 
-                success = self.eff.apply(target, event=True)
+                if not (not target.is_unconscious() or unconscious_flag):
+                    if self.ignite:
+                        target.remove_coupon(u"＠効果対象")
+                    return
 
                 if self.ignite:
-                    # 効果イベントで使用イベントを発生させる(Wsn.2)
-                    # 最初から意識不明・麻痺なら死亡イベント発生なし
-                    deadevent = False
-                    if event and not unconscious_flag and not paralyze_flag:
-                        runevent = event.ignition_deadevent(target, keycodes=self.keycodes)
+                    # イベント所持者を示すシステムクーポン(Wsn.2)
+                    target.set_coupon(u"＠イベント対象", 0)
+                try:
+                    if self.ignite:
+                        # キーコードイベント(Wsn.2)
+                        runevent = event.ignition_characterevent(target, unconscious_flag, self.keycodes)
                         if runevent:
-                            deadevent = True
                             runevent.run_scenarioevent()
                             if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+                                target.remove_coupon(u"＠効果対象")
                                 return
 
-                # キーコード成功・失敗イベント(Wsn.2)
-                if self.ignite and not deadevent:
-                    runevent = event.ignition_successevent(target, success, unconscious_flag, self.keycodes)
-                    if runevent:
-                        runevent.run_scenarioevent()
+                            tevent.update_targets()
 
-            finally:
-                target.remove_coupon(u"＠イベント対象")
+                            if not target.has_coupon(u"＠効果対象"):
+                                return
 
-        # エリアイベント(Wsn.2)
-        if self.ignite:
-            runevent = cw.cwpy.sdata.events.check_keycodes(self.keycodes)
-            if runevent:
-                runevent.run_scenarioevent()
+                    is_dead = target.is_unconscious() or target.is_paralyze()
+                    success = self.eff.apply(target, event=True)
+                    if self.ignite:
+                        target.remove_coupon(u"＠効果対象")
+
+                    if self.ignite:
+                        # 効果イベントで使用イベントを発生させる(Wsn.2)
+                        # 最初から意識不明・麻痺なら死亡イベント発生なし
+                        deadevent = False
+                        if event and not is_dead:
+                            runevent = event.ignition_deadevent(target, keycodes=self.keycodes)
+                            if runevent:
+                                deadevent = True
+                                runevent.run_scenarioevent()
+                                if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+                                    return
+
+                    # キーコード成功・失敗イベント(Wsn.2)
+                    if self.ignite and not deadevent:
+                        runevent = event.ignition_successevent(target, success, self.keycodes)
+                        if runevent:
+                            runevent.run_scenarioevent()
+
+                finally:
+                    if self.ignite:
+                        target.remove_coupon(u"＠イベント対象")
+            elif self.ignite:
+                assert isinstance(target, cw.sprite.card.MenuCard)
+                cw.cwpy.play_sound_with(self.eff.soundpath)
+                self.eff.animate(target)
+                cw.cwpy.draw(clip=target.rect)
+                cw.cwpy.event.get_effectevent().mcards.discard(target)
+                runevent = event.ignition_menucardevent(target, keycodes=self.keycodes)
+                if runevent:
+                    runevent.run_scenarioevent()
+                else:
+                    cw.cwpy.play_sound("ineffective", True)
+                    cw.cwpy.advlog.effect_failed(target, ismenucard=True)
 
         # 対象メンバに効果モーションを適用
         if isinstance(target, list):
-            for member in target:
+            targets = target
+        else:
+            targets = [target]
+
+        if self.ignite:
+            try:
+                # 実行中の効果イベントの"＠効果対象"関係のクーポンをクリアし、
+                # 効果イベントを新しいものに差し替える。
+                # 効果コンテントの処理終了後に状況を復元し、前の効果イベントへ差し戻す。
+                e_effectevent = cw.cwpy.event.get_effectevent()
+                cw.cwpy.event.effectevent = None
+                if e_effectevent:
+                    e_effectevent.update_targets()
+                    e_targets = e_effectevent.targets
+                    e_mcards = e_effectevent.mcards
+                    e_outoftargets = []
+                    e_eventtarget = None
+                    for t in e_effectevent.coupon_owners:
+                        if isinstance(t, cw.character.Character):
+                            if t.has_coupon(u"＠効果対象外"):
+                                e_outoftargets.append(t)
+                            if t.has_coupon(u"＠イベント対象"):
+                                e_eventtarget = t
+                            t.remove_coupon(u"＠効果対象")
+                            t.remove_coupon(u"＠効果対象外")
+                            t.remove_coupon(u"＠イベント対象")
+                else:
+                    e_mcards = None
+
+                # 効果イベントの差し替え
+                tevent = cw.event.Targeting(None, targets, False)
+                if e_mcards:
+                    tevent.mcards = e_mcards
+                cw.cwpy.event.effectevent = tevent
+
+                tevent.targets_to_coupon()
+
+                # エリアイベント(Wsn.2)
+                runevent = cw.cwpy.sdata.events.check_keycodes(self.keycodes)
+                if runevent:
+                    runevent.run_scenarioevent()
+
+                tevent.waited = True
+
+                # 効果の実行
+                while True:
+                    member = tevent.get_nexttarget()
+                    if member is None:
+                        break
+                    apply(member)
+                    if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+                        break
+
+            finally:
+                if self.ignite:
+                    # 状況を復元して効果イベントを元に戻す
+                    tevent.clear_eventcoupons()
+                    for t in e_targets:
+                        assert t in e_effectevent.coupon_owners
+                        if isinstance(t, cw.character.Character):
+                            t.set_coupon(u"＠効果対象", 0)
+                    for t in e_outoftargets:
+                        assert t in e_effectevent.coupon_owners
+                        if isinstance(t, cw.character.Character):
+                            t.set_coupon(u"＠効果対象外", 0)
+                    if e_eventtarget:
+                        assert e_eventtarget in e_effectevent.coupon_owners
+                        if isinstance(e_eventtarget, cw.character.Character):
+                            e_eventtarget.set_coupon(u"＠イベント対象", 0)
+                    cw.cwpy.event.effectevent = e_effectevent
+
+        else:
+            # イベントが発火しない場合の効果適用処理
+            for member in targets:
                 apply(member)
                 if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                     break
-        else:
-            apply(target)
 
         if cw.cwpy.is_gameover():
             # 効果中断。引き続き
@@ -1984,8 +2125,12 @@ class EffectContent(EventContentBase):
                 "CancelAction": u"行動キャンセル",
                 "SummonBeast": u"召喚獣召喚", }
 
-        targetm = self.data.get("targetm", "Selected")
-        targetm = self.textdict.get(targetm.lower(), "")
+        targetm = self.textdict.get(self.targetm.lower(), "")
+        if self.targetm == "CouponHolder":
+            if self.holdingcoupon:
+                targetm += u"(%s)" % (self.holdingcoupon)
+            else:
+                targetm += u"(指定なし)"
         seq = []
         for e in self.data.getfind("Motions", raiseerror=False):
             mtype = dic.get(e.getattr(".", "type", ""), u"")
@@ -2243,9 +2388,10 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
     if copymaterialfrom:
         # 素材ファイルコピー
         dstdir = cw.util.join_paths(cw.cwpy.ydata.yadodir,
-                                    "Material", header.type, name)
+                                    "Material", header.type, name if name else "noname")
         dstdir = cw.util.dupcheck_plus(dstdir)
-        cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom, importimage=from_scenario)
+        cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom, importimage=from_scenario,
+                               can_loaded_scaledimage=etree.getbool(".", "scaledimage", False))
         header.imgpaths = cw.image.get_imageinfos(etree.find("Property"))
 
     cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False, party=party, from_getcontent=from_getcontent)
@@ -2471,7 +2617,7 @@ def is_addablecoupon(coupon):
             cardversion = None
         if cw.cwpy.sdata.is_wsnversion('2', cardversion):
             # カードの効果対象を指定する(Wsn.2)
-            cardevent = cw.cwpy.event.get_cardevent()
+            cardevent = cw.cwpy.event.get_effectevent()
             if cardevent and coupon in (u'＠効果対象',):
                 return True
 
@@ -2492,7 +2638,7 @@ class GetCouponContent(GetContent):
 
         if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(scope, False)
-            cardevent = cw.cwpy.event.get_cardevent()
+            cardevent = cw.cwpy.event.get_effectevent()
             targetout = cardevent and cardevent.in_effectmotionloop() and coupon == u"＠効果対象"
 
             for target in targets:
@@ -2851,7 +2997,7 @@ class LoseCouponContent(LoseContent):
 
         if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(scope, False)
-            cardevent = cw.cwpy.event.get_cardevent()
+            cardevent = cw.cwpy.event.get_effectevent()
             targetout = cardevent and cardevent.in_effectmotionloop() and coupon == u"＠効果対象"
 
             for target in targets:
@@ -3289,6 +3435,11 @@ class TalkMessageContent(TalkContent):
                 talker = None
 
             if talker:
+                if talkeriscard:
+                    can_loaded_scaledimage = talker.carddata.getbool(".", "scaledimage", False)
+                else:
+                    assert isinstance(talker, cw.character.Character)
+                    can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
                 for base in talker.imgpaths:
                     imgpath = base.path
                     if talkeriscard:
@@ -3305,15 +3456,25 @@ class TalkMessageContent(TalkContent):
                         basecardtype = "LargeCard"
                     else:
                         basecardtype = "NormalCard"
-                    talkers.append(cw.image.ImageInfo(imgpath, base=base, basecardtype=basecardtype))
+                    talkers.append((cw.image.ImageInfo(imgpath, base=base, basecardtype=basecardtype),
+                                    can_loaded_scaledimage, talker, {}))
             elif imgpath:
                 inusepath = cw.util.get_inusecardmaterialpath(imgpath, cw.M_IMG)
                 if os.path.isfile(inusepath):
                     imgpath = inusepath
+                    inusecard = cw.cwpy.event.get_inusecard()
+                    assert inusecard
+                    can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
                 else:
                     imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG,
                                                        system=cw.cwpy.areaid < 0)
-                talkers.append(cw.image.ImageInfo(imgpath, base=info))
+                    if cw.cwpy.areaid < 0:
+                        can_loaded_scaledimage = True
+                    elif cw.cwpy.event.in_inusecardevent:
+                        can_loaded_scaledimage = cw.cwpy.event.get_inusecard().carddata.getbool(".", "scaledimage", False)
+                    else:
+                        can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
+                talkers.append((cw.image.ImageInfo(imgpath, base=info), can_loaded_scaledimage, None, {}))
 
             if not firsttalker:
                 firsttalker = talker
@@ -3415,9 +3576,11 @@ class TalkDialogContent(TalkContent):
 
         # 画像パス
         imgpaths = []
+        can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
         for base in talker.imgpaths:
             basecardtype = "LargeCard"
-            imgpaths.append(cw.image.ImageInfo(base.path, base=base, basecardtype=basecardtype))
+            imgpaths.append((cw.image.ImageInfo(base.path, base=base, basecardtype=basecardtype), can_loaded_scaledimage,
+                             talker, {}))
         # 対象メンバの所持クーポンの集合
         coupons = talker.get_coupons()
         # ダイアログリスト

@@ -360,15 +360,17 @@ class ExpandView(ProgressView):
         self.current = cw.cwpy.expanding_cur
         ProgressView.update(self, scr)
 
-class StatusBarPanel(base.CWPySprite):
-    def __init__(self, parent, color, pos, size=None, icon=None):
+class StatusBarPanel(base.MouseHandlerSprite):
+    def __init__(self, parent, color, pos, size=None, icon=None, desc=u""):
         self.parent = parent
         if size is None:
             size = cw.s((120, 22))
-        base.CWPySprite.__init__(self)
+        base.MouseHandlerSprite.__init__(self)
         # panelimg
         self._color = color
         self._create_paneimg(pos, size, icon)
+        self.desc = desc
+        self._desc = None
 
     def _create_paneimg(self, pos, size, icon):
         self.icon = icon
@@ -382,6 +384,7 @@ class StatusBarPanel(base.CWPySprite):
 
         if self.icon:
             self.panelimg.blit(self.icon, cw.s((3, 3)))
+            self.handling_rect = pygame.Rect(cw.s(3), cw.s(3), self.icon.get_width(), self.icon.get_height())
 
         # image
         self.image = self.panelimg.copy()
@@ -393,16 +396,40 @@ class StatusBarPanel(base.CWPySprite):
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_ITEM)
 
-    def update_image(self):
-        pass
-
     def get_icon(self):
         return None
 
     def reset(self, parent, pos, size):
         self.parent = parent
         self._create_paneimg(pos, size, self.get_icon())
+        if self._desc:
+            cw.cwpy.sbargrp.remove(self._desc)
+            cw.cwpy.draw(clip=self._desc.rect)
+            self._desc = None
         self.update_image()
+
+    def set_desc(self, desc):
+        self.desc = desc
+        if self._desc:
+            cw.cwpy.sbargrp.remove(self._desc)
+            rect = self._desc.rect
+            self._desc = None
+            self._desc = Desc(self, u"", self.desc, u"", arrowpos=cw.s(3)+self.icon.get_width()//2)
+            cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
+            cw.cwpy.draw(clip=self._desc.rect)
+
+    def update_image(self):
+        if cw.cwpy.setting.show_btndesc and self.handling and self.desc and not cw.cwpy.is_showingdlg():
+            if not self._desc:
+                self._desc = Desc(self, u"", self.desc, u"", arrowpos=cw.s(3)+self.icon.get_width()//2)
+                cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
+                cw.cwpy.draw(clip=self._desc.rect)
+        else:
+            if self._desc:
+                cw.cwpy.sbargrp.remove(self._desc)
+                cw.cwpy.draw(clip=self._desc.rect)
+                self._desc = None
+                cw.cwpy.has_inputevent = True
 
     def set_backcolor(self, color):
         self._color = color
@@ -453,7 +480,8 @@ def _draw_edge(image):
 class YadoMoneyPanel(StatusBarPanel):
     def __init__(self, parent, pos):
         image = cw.cwpy.rsrc.pygamedialogs["MONEYY"]
-        StatusBarPanel.__init__(self, parent, (0, 69, 0), pos, icon=image)
+        desc = cw.cwpy.msgs["desc_base_money"]
+        StatusBarPanel.__init__(self, parent, (0, 69, 0), pos, icon=image, desc=desc)
         self.text = self.get_money()
         self.currency = "%s"
         self.up_scr = 0
@@ -461,6 +489,7 @@ class YadoMoneyPanel(StatusBarPanel):
 
     def reset(self, parent, pos, size):
         self.text = self.get_money()
+        self.desc = cw.cwpy.msgs["desc_base_money"]
         self.update_color()
         StatusBarPanel.reset(self, parent, pos, size)
 
@@ -476,6 +505,8 @@ class YadoMoneyPanel(StatusBarPanel):
         self.up_scr = cw.UP_SCR
 
     def update(self, scr):
+        StatusBarPanel.update(self, scr)
+
         if self.status == "blink":
             return
 
@@ -487,6 +518,8 @@ class YadoMoneyPanel(StatusBarPanel):
         return cw.cwpy.ydata.money if cw.cwpy.ydata else 0
 
     def update_image(self):
+        StatusBarPanel.update_image(self)
+
         s = self.currency % (self.text)
         font = cw.cwpy.rsrc.fonts["sbarpanel"]
         image = font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
@@ -525,11 +558,16 @@ class YadoMoneyPanel(StatusBarPanel):
 class PartyMoneyPanel(YadoMoneyPanel):
     def __init__(self, parent, pos):
         image = cw.cwpy.rsrc.pygamedialogs["MONEYP"]
-        StatusBarPanel.__init__(self, parent, (0, 0, 128), pos, icon=image)
+        desc = cw.cwpy.msgs["desc_party_money"]
+        StatusBarPanel.__init__(self, parent, (0, 0, 128), pos, icon=image, desc=desc)
         self.text = self.get_money()
         self.currency = "%s"
         self.up_scr = 0
         self.update(None)
+
+    def reset(self, parent, pos, size):
+        self.desc = cw.cwpy.msgs["desc_party_money"]
+        StatusBarPanel.reset(self, parent, pos, size)
 
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["MONEYP"]
@@ -544,6 +582,8 @@ class PartyMoneyPanel(YadoMoneyPanel):
             self.set_backcolor((0, 0, 128))
 
     def update(self, scr):
+        StatusBarPanel.update(self, scr)
+
         if self.status == "blink":
             self.update_color()
             return
@@ -869,13 +909,14 @@ class StatusBarButton(base.SelectableSprite):
         pass
 
 class Desc(base.CWPySprite):
-    def __init__(self, parent, name, desc, hotkey):
+    def __init__(self, parent, name, desc, hotkey, arrowpos=None):
         base.CWPySprite.__init__(self)
         self.parent = parent
         self.name = name
         self.desc = desc
         self.hotkey = hotkey
-        title = u"%s(%s)" % (self.name, self.hotkey)
+        if self.name and self.hotkey:
+            title = u"%s(%s)" % (self.name, self.hotkey)
 
         font = cw.cwpy.rsrc.fonts["sbardesc"]
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
@@ -886,11 +927,12 @@ class Desc(base.CWPySprite):
         spx = cw.s(8)
         spy = cw.s(4)
         tw, th = cw.s(1), spy*2
-        th += cw.s(3) # 表題と本文の間
         # 表題
-        fw, fh = tfont.size(title)
-        tw = max(tw, fw + spx*2)
-        th += h
+        if self.name and self.hotkey:
+            th += cw.s(3)  # 表題と本文の間
+            fw, fh = tfont.size(title)
+            tw = max(tw, fw + spx*2)
+            th += h
         # 本文
         for line in lines:
             fw, fh = font.size(line)
@@ -908,12 +950,13 @@ class Desc(base.CWPySprite):
         cw.setting.Resource.draw_frame(self.image, pygame.Rect(cw.s(0), cw.s(0), tw, th), linecolor)
         self.rect = self.image.get_rect()
         x, y = spx, spy
-        # 表題
-        subimg = tfont.render(title, True, linecolor)
-        self.image.blit(subimg, (x, y))
-        y += tfont.get_height() + cw.s(1)
-        pygame.draw.line(self.image, linecolor, (x, y), (x+tw-spx*2, y), cw.s(1))
-        y += cw.s(2)
+        if self.name and self.hotkey:
+            # 表題
+            subimg = tfont.render(title, True, linecolor)
+            self.image.blit(subimg, (x, y))
+            y += tfont.get_height() + cw.s(1)
+            pygame.draw.line(self.image, linecolor, (x, y), (x+tw-spx*2, y), cw.s(1))
+            y += cw.s(2)
         # 本文
         for line in lines:
             subimg = font.render(line, True, linecolor)
@@ -921,8 +964,11 @@ class Desc(base.CWPySprite):
             y += h
 
         # ボタンに合わせて位置を調節
+        if arrowpos is None:
+            self.rect.center = self.parent.rect.center
+        else:
+            self.rect.left = self.parent.rect.left+arrowpos - self.rect.width//2
         _px, py = self.parent.rect.topleft
-        self.rect.center = self.parent.rect.center
         self.rect.top = py - th - cw.s(5)
 
         # 画面内に収める
@@ -933,7 +979,11 @@ class Desc(base.CWPySprite):
             self.rect.left = gw - cw.s(2) - self.rect.width
 
         # ボタンを指す部分
-        x = self.parent.rect.center[0]-self.rect.left
+        if arrowpos is None:
+            x = self.parent.rect.center[0]-self.rect.left
+        else:
+            x = self.parent.rect.left+arrowpos
+            x -= self.rect.left
         y = th-1
         pl = [(x-arroww/2, y), (x, y+arrowh), (x+arroww/2, y)]
         pygame.draw.polygon(self.image, color, pl)

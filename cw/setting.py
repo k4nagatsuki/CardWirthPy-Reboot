@@ -387,6 +387,13 @@ class Setting(object):
         self.show_debuglogdialog = False
         self.write_playlog = False
         self.move_repeat = 250 #移動ボタン押しっぱなしの速度
+        # シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する
+        # Falseの場合は常に検索結果として表示
+        self.can_installscenariofromdrop = False
+        # シナリオのインストールに成功したら元ファイルを削除する
+        self.delete_sourceafterinstalled = False
+        # アップデートに伴うファイルの自動移動・削除を行う
+        self.auto_update_files = True
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = False
@@ -411,6 +418,9 @@ class Setting(object):
         self.show_multipleparties = False
         self.show_multipleplayers = False
         self.show_scenariotree = False
+
+        # シナリオのインストール先(キー=ルートディレクトリ毎)
+        self.installed_dir = {}
 
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
@@ -708,6 +718,27 @@ class Setting(object):
         # プレイログのフォーマット
         self.playlogformat = data.gettext("PlayLogFormat", self.playlogformat)
 
+        # ドロップによるシナリオのインストールを可能にする
+        self.can_installscenariofromdrop = data.getbool("CanInstallScenarioFromDrop", self.can_installscenariofromdrop)
+        # シナリオのインストールに成功したら元ファイルを削除する
+        self.delete_sourceafterinstalled = data.getbool("DeleteSourceAfterInstalled", self.delete_sourceafterinstalled)
+
+        # アップデートに伴うファイルの自動移動・削除を行う
+        self.auto_update_files = data.getbool("AutoUpdateFiles", self.auto_update_files_init)
+
+        # シナリオのインストール先(キー=ルートディレクトリ)
+        e = data.find("InstalledPaths")
+        if not e is None:
+            for e_paths in e:
+                rootdir = e_paths.getattr(".", "root", "")
+                if not rootdir:
+                    continue
+                dirstack = []
+                for e_path in e_paths:
+                    if e_path.text:
+                        dirstack.append(e_path.text)
+                self.installed_dir[rootdir] = dirstack
+
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)
         if not loadfile:
@@ -737,6 +768,8 @@ class Setting(object):
 
     def init_skin(self, basedata=None):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
+        if self.auto_update_files:
+            cw.update.update_files(self.skindir, self.skindirname)
         if not os.path.isdir(self.skindir):
             self.skindirname = "Classic"
             self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
@@ -826,7 +859,8 @@ class Setting(object):
     def _update_skin(self, path):
         """旧バージョンのデータの誤りを訂正する。
         """
-        while not cw.util.create_mutex(path):
+        dpath = os.path.dirname(path)
+        while not cw.util.create_mutex(dpath):
             pass
 
         try:
@@ -1189,12 +1223,15 @@ class Setting(object):
         a = cw.util.numwrap(a, 0, 255)
         return (r, g, b, a)
 
-    def get_scedir(self):
+    def get_scedir(self, skintype=None):
+        if skintype is None:
+            skintype = self.skintype
+
         scedir = u"Scenario"
         # 設定に応じて初期位置を変更する
         if self.selectscenariofromtype:
-            for skintype, folder in self.folderoftype:
-                if skintype == self.skintype:
+            for skintype2, folder in self.folderoftype:
+                if skintype2 == skintype:
                     folder = cw.util.get_linktarget(folder)
                     if os.path.isdir(folder):
                         scedir = folder
@@ -1259,7 +1296,7 @@ class Resource(object):
             #        取得に失敗する事があるので、すべて小文字のパスをキーにして
             #        真のファイル名へのマッピングをしておく。
             #        主にこの問題は手書きされる'*.jpy1'内で発生する。
-            for res in ("Table", "Bgm", "Sound", "Resource/Image"):
+            for res in ("Table", "Bgm", "Sound", "BgmAndSound", "Resource/Image"):
                 resdir = cw.util.join_paths(self.skindir, res)
                 for dpath, dnames, fnames in os.walk(resdir):
                     for fname in fnames:
@@ -1840,7 +1877,7 @@ class Resource(object):
 
         return btn.copy() if btn else None
 
-    def get_resources(self, func, dpath1, dpath2, ext, mask=False, ss=None, noresize=(), nodbg=False, emptyfunc=None,
+    def get_resources(self, func, dpath1, dpath2, ext, mask=None, ss=None, noresize=(), nodbg=False, emptyfunc=None,
                       editor_res=None):
         """
         各種リソースデータを辞書で返す。
@@ -1849,10 +1886,12 @@ class Resource(object):
         def nokeyfunc(key):
             dbg = not nodbg and key.endswith("_dbg")
             noscale = key.endswith("_noscale")
+            up_scr = None
             fpath = ""
 
             if dbg:
                 key = key[:-len("_dbg")]
+                up_scr = cw.dpi_level
             if noscale:
                 key = key[:-len("_noscale")]
 
@@ -1869,18 +1908,17 @@ class Resource(object):
             if not fpath:
                 return emptyfunc()
 
-            if mask:
-                res = func(fpath, mask=mask)
-            else:
+            if mask is None:
                 res = func(fpath)
+            else:
+                if ss == cw.ppis and func == cw.util.load_wxbmp:
+                    res = func(fpath, mask=mask, can_loaded_scaledimage=True, up_scr=cw.dpi_level)
+                else:
+                    res = func(fpath, mask=mask, can_loaded_scaledimage=True, up_scr=up_scr)
 
             if not noscale:
                 if not dbg and ss and not key in noresize:
-                    ressize = get_resourcesize(fpath)
-                    if ressize is None:
-                        res = ss(res)
-                    else:
-                        res = ss((res, ressize))
+                    res = ss(res)
                 elif dbg and ss:
                     res = cw.ppis(res)
 
@@ -1909,7 +1947,12 @@ class Resource(object):
         pygameのsoundインスタンスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Sound")
-        return self.get_resources(cw.util.load_sound, "Data/SkinBase/Sound", dpath, self.ext_snd, emptyfunc=empty_sound)
+        d = self.get_resources(cw.util.load_sound, "Data/SkinBase/Sound", dpath, self.ext_snd, emptyfunc=empty_sound)
+        dpath = cw.util.join_paths(self.skindir, "BgmAndSound")
+        d2 = self.get_resources(cw.util.load_sound, "Data/SkinBase/BgmAndSound", dpath, self.ext_snd, emptyfunc=empty_sound)
+        d.merge(d2)
+
+        return d
 
     def get_msgs(self, setting):
         """
@@ -1981,22 +2024,26 @@ class Resource(object):
             ss = cw.s
             emptyfunc=empty_image
 
-        def load_image2(fpath, mask=False):
+        def load_image2(fpath, mask=False, can_loaded_scaledimage=True, up_scr=None):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
-                return load_image(fpath, mask=True, maskpos=(1, 1))
+                return load_image(fpath, mask=True, maskpos=(1, 1), can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             elif key == "TARGET":
-                return load_image(fpath, mask=True, maskpos="right")
+                return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             elif key == "LIFEGUAGE":
-                return load_image(fpath, mask=True, maskpos=(5, 5))
+                return load_image(fpath, mask=True, maskpos=(5, 5), can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
+            elif key == "LIFEGUAGE2":
+                return load_image(fpath, mask=True, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
+            elif key == "LIFEGUAGE2_MASK":
+                return load_image(fpath, mask=True, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             elif key == "LIFEBAR":
-                return load_image(fpath, mask=False)
+                return load_image(fpath, mask=False, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             else:
-                return load_image(fpath, mask=False)
+                return load_image(fpath, mask=False, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
-        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc)
+        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss, emptyfunc=emptyfunc)
 
     def get_dialogs(self, load_image):
         """
@@ -2010,17 +2057,17 @@ class Resource(object):
             ss = cw.s
             emptyfunc=empty_image
 
-        def load_image2(fpath, mask=False):
+        def load_image2(fpath, mask=False, can_loaded_scaledimage=True, up_scr=None):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("LINK", "MONEYY"):
-                return load_image(fpath, mask=False)
+                return load_image(fpath, mask=False, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             elif key == "STATUS8":
-                return load_image(fpath, mask=True, maskpos="right")
+                return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             elif key in ("CAUTION", "INVISIBLE"):
-                return load_image(fpath)
+                return load_image(fpath, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             else:
-                return load_image(fpath, mask=mask)
+                return load_image(fpath, mask=mask, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss, emptyfunc=emptyfunc)
@@ -2058,15 +2105,15 @@ class Resource(object):
             ss = cw.s
             emptyfunc=empty_image
 
-        def load_image2(fpath, mask=False):
+        def load_image2(fpath, mask=False, can_loaded_scaledimage=True, up_scr=None):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("HOLD", "PENALTY"):
-                return load_image(fpath, mask=True, maskpos="center")
+                return load_image(fpath, mask=True, maskpos="center", can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             elif key in ("PREMIER", "RARE"):
-                return load_image(fpath, mask=True, maskpos="right")
+                return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             else:
-                return load_image(fpath, mask=mask)
+                return load_image(fpath, mask=mask, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/CardBg", dpath, self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc)
@@ -2168,8 +2215,7 @@ class Resource(object):
         d = ResourceTable("Resource/Image/Font", {}.copy(), empty_image)
         def load(key, name):
             fpath = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)
-            image = cw.util.load_image(fpath)
-            image.set_colorkey((255, 255, 255))
+            image = cw.util.load_image(fpath, mask=True, can_loaded_scaledimage=True)
             return image, False
 
         for key, name in ndict.iteritems():
@@ -2487,6 +2533,11 @@ class ResourceTable(object):
     def reset(self):
         for lazy in self.dic.itervalues():
             lazy.clear()
+
+    def merge(self, d):
+        for key, value in self.dic.iteritems():
+            if not key in self.dic:
+                self.dic[key] = value
 
     def __getitem__(self, key):
         self._put_nokeyvalue(key)

@@ -58,6 +58,7 @@ class SystemData(object):
 
         self.is_playing = True
         self.events = None
+        self.playerevents = None # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
         self.deletedpaths = set()
         self.lostadventurers = set()
         self.gossips = {}
@@ -78,6 +79,9 @@ class SystemData(object):
         self.breakpoints = set()
         self.in_f9 = False
         self.background_image_mtime = {}
+
+        # "file.x2.bmp"などのスケーリングされたイメージを読み込むか
+        self.can_loaded_scaledimage = True
 
         # メッセージのバックログ
         self.backlog = []
@@ -165,6 +169,9 @@ class SystemData(object):
         for mcards in self.sparea_mcards.itervalues():
             for mcard in mcards:
                 mcard.update_scale()
+        for log in self.backlog:
+            if log.specialchars:
+                log.specialchars.reset()
 
     def start(self):
         pass
@@ -287,7 +294,7 @@ class SystemData(object):
         """
         return False
 
-    def _get_resdata(self, table, resid, tag, nocache, resname=u"?"):
+    def _get_resdata(self, table, resid, tag, nocache, resname=u"?", rootattrs=None):
         fpath0 = table.get(resid, (u"", u"(未定義の%s ID:%s)" % (resname, resid)))[1]
         fpath = self._get_resfpath(table, resid)
         if fpath is None:
@@ -298,7 +305,7 @@ class SystemData(object):
             ##cw.cwpy.call_modaldlg("ERROR", text=s)
             return None
         try:
-            return xml2element(fpath, tag, nocache=nocache)
+            return xml2element(fpath, tag, nocache=nocache, rootattrs=rootattrs)
         except:
             cw.util.print_ex()
             s = u"%s の読込に失敗しました。" % (os.path.basename(fpath0))
@@ -322,8 +329,8 @@ class SystemData(object):
     def _get_resids(self, table):
         return table.keys()
 
-    def get_areadata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._areas, resid, tag, nocache, resname=u"エリア")
+    def get_areadata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._areas, resid, tag, nocache, resname=u"エリア", rootattrs=rootattrs)
 
     def get_areaname(self, resid):
         return self._get_resname(self._areas, resid)
@@ -334,8 +341,8 @@ class SystemData(object):
     def get_areaids(self):
         return self._get_resids(self._areas)
 
-    def get_battledata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._battles, resid, tag, nocache, resname=u"バトル")
+    def get_battledata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._battles, resid, tag, nocache, resname=u"バトル", rootattrs=rootattrs)
 
     def get_battlename(self, resid):
         return self._get_resname(self._battles, resid)
@@ -346,8 +353,8 @@ class SystemData(object):
     def get_battleids(self):
         return self._get_resids(self._battles)
 
-    def get_packagedata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._packs, resid, tag, nocache, resname=u"パッケージ")
+    def get_packagedata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._packs, resid, tag, nocache, resname=u"パッケージ", rootattrs=rootattrs)
 
     def get_packagename(self, resid):
         return self._get_resname(self._packs, resid)
@@ -358,8 +365,8 @@ class SystemData(object):
     def get_packageids(self):
         return self._get_resids(self._packs)
 
-    def get_castdata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._casts, resid, tag, nocache, resname=u"キャスト")
+    def get_castdata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._casts, resid, tag, nocache, resname=u"キャスト", rootattrs=rootattrs)
 
     def get_castname(self, resid):
         return self._get_resname(self._casts, resid)
@@ -370,8 +377,8 @@ class SystemData(object):
     def get_castids(self):
         return self._get_resids(self._casts)
 
-    def get_skilldata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._skills, resid, tag, nocache, resname=u"特殊技能")
+    def get_skilldata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._skills, resid, tag, nocache, resname=u"特殊技能", rootattrs=rootattrs)
 
     def get_skillname(self, resid):
         return self._get_resname(self._skills, resid)
@@ -382,8 +389,8 @@ class SystemData(object):
     def get_skillids(self):
         return self._get_resids(self._skills)
 
-    def get_itemdata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._items, resid, tag, nocache, resname=u"アイテム")
+    def get_itemdata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._items, resid, tag, nocache, resname=u"アイテム", rootattrs=rootattrs)
 
     def get_itemname(self, resid):
         return self._get_resname(self._items, resid)
@@ -394,8 +401,8 @@ class SystemData(object):
     def get_itemids(self):
         return self._get_resids(self._items)
 
-    def get_beastdata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._beasts, resid, tag, nocache, resname=u"召喚獣")
+    def get_beastdata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._beasts, resid, tag, nocache, resname=u"召喚獣", rootattrs=rootattrs)
 
     def get_beastname(self, resid):
         return self._get_resname(self._beasts, resid)
@@ -406,8 +413,8 @@ class SystemData(object):
     def get_beastids(self):
         return self._get_resids(self._beasts)
 
-    def get_infodata(self, resid, tag="", nocache=False):
-        return self._get_resdata(self._infos, resid, tag, nocache, resname=u"情報")
+    def get_infodata(self, resid, tag="", nocache=False, rootattrs=None):
+        return self._get_resdata(self._infos, resid, tag, nocache, resname=u"情報", rootattrs=rootattrs)
 
     def get_infoname(self, resid):
         return self._get_resname(self._infos, resid)
@@ -463,8 +470,10 @@ class SystemData(object):
 
         dstpath = cw.util.join_paths(dstdir, dstpath)
         imgpaths[path] = dstpath
+        can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
 
-        cw.cwpy.copy_materials(data, dstdir, from_scenario=from_scenario, scedir=scedir, imgpaths=imgpaths)
+        cw.cwpy.copy_materials(data, dstdir, from_scenario=from_scenario, scedir=scedir, imgpaths=imgpaths,
+                               can_loaded_scaledimage=can_loaded_scaledimage)
         data.fpath = dstpath
         data.write_xml(True)
 
@@ -479,6 +488,8 @@ class SystemData(object):
             self.set_versionhint(cw.HINT_AREA, cw.cwpy.sct.from_basehint(self.data.getattr("Property", "versionHint", "")))
         cw.cwpy.event.refresh_areaname()
         self.events = cw.event.EventEngine(self.data.getfind("Events"))
+        # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+        self.playerevents = cw.event.EventEngine(self.data.getfind("PlayerCardEvents/Events", False))
         return True
 
     def start_event(self, keynum=None, keycodes=[][:]):
@@ -626,10 +637,11 @@ class SystemData(object):
                 header = self._infocard_cache[resid]
                 headers.append(header)
             elif resid in self.get_infoids():
-                e = self.get_infodata(resid, "Property")
+                rootattrs = {}
+                e = self.get_infodata(resid, "Property", rootattrs=rootattrs)
                 if e is None:
                     continue
-                header = cw.header.InfoCardHeader(e)
+                header = cw.header.InfoCardHeader(e, cw.util.str2bool(rootattrs.get("scaledimage", "False")))
                 self._infocard_cache[resid] = header
                 headers.append(header)
         return headers
@@ -651,6 +663,7 @@ class ScenarioData(SystemData):
         self.name = header.name
         self.author = header.author
         self.startid = header.startid
+        self.can_loaded_scaledimage = True
         if not cardonly:
             cw.cwpy.areaid = self.startid
         if os.path.isfile(self.fpath):
@@ -696,6 +709,8 @@ class ScenarioData(SystemData):
         # エリアデータ初期化
         self.data = None
         self.events = None
+        # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+        self.playerevents = None
         # シナリオプレイ中に削除されたファイルパスの集合
         self.deletedpaths = set()
         # ロストした冒険者のXMLファイルパスの集合
@@ -1041,7 +1056,7 @@ class ScenarioData(SystemData):
                     continue
 
                 # "font_*.*"のファイルパスの画像を特殊文字に指定
-                if self.eat_spchar(dpath, fname):
+                if self.eat_spchar(dpath, fname, self.can_loaded_scaledimage):
                     continue
                 else:
                     if not (lf.endswith(".xml") or lf.endswith(".wsm") or lf.endswith(".wid")):
@@ -1060,6 +1075,7 @@ class ScenarioData(SystemData):
                 if (lf == "summary.xml" or lf == "summary.wsm") and not self.summary:
                     self.scedir = dpath.replace("\\", "/")
                     self.summary = xml2etree(path)
+                    self.can_loaded_scaledimage = self.summary.getbool(".", "scaledimage", False)
                     continue
 
                 if isdatadir and lf.endswith(".xml"):
@@ -1120,14 +1136,14 @@ class ScenarioData(SystemData):
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 if os.path.isfile(cw.util.join_paths(dpath, fname)):
-                    self.eat_spchar(dpath, fname)
+                    self.eat_spchar(dpath, fname, self.can_loaded_scaledimage)
 
-    def eat_spchar(self, dpath, fname):
+    def eat_spchar(self, dpath, fname, can_loaded_scaledimage):
         # "font_*.*"のファイルパスの画像を特殊文字に指定
         if self._r_specialchar.match(fname.lower()):
             def load(dpath, fname):
                 path = cw.util.join_paths(dpath, fname)
-                image = cw.util.load_image(path, True)
+                image = cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                 return image, True
             m = self._r_specialchar.match(fname.lower())
             name = "#%s" % (m.group(1))
@@ -1673,7 +1689,27 @@ class YadoData(object):
 
         # スキン
         self.skindirname = self.environment.gettext("Property/Skin", cw.cwpy.setting.skindirname)
-        if not self.skindirname or not os.path.isfile(cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")):
+        skinpath = cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")
+        if not self.skindirname:
+            # スキン指定無し
+            supported_skin = False
+        elif not os.path.isfile(skinpath):
+            if cw.cwpy.setting.store_skinoneachbase:
+                s = u"スキン「%s」が見つかりません。" % (self.skindirname)
+                cw.cwpy.call_modaldlg("ERROR", text=s)
+            supported_skin = False
+        else:
+            prop = cw.header.GetProperty(skinpath)
+            if prop.attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN:
+                supported_skin = True
+            else:
+                if cw.cwpy.setting.store_skinoneachbase:
+                    skinname = prop.properties.get("Name", self.skindirname)
+                    s = u"「%s」は対応していないバージョンのスキンです。%sをアップデートしてください。" % (skinname, cw.APP_NAME)
+                cw.cwpy.call_modaldlg("ERROR", text=s)
+                supported_skin = False
+
+        if not supported_skin:
             self.skindirname = cw.cwpy.setting.skindirname
             e = self.environment.find("Property/Skin")
             if e is None:
@@ -2590,17 +2626,19 @@ class YadoData(object):
                     name = cw.util.repl_dischar(name)
                     # 素材ファイルコピー
                     dstdir = cw.util.join_paths(self.yadodir,
-                                                    "Material", cardtype, name)
+                                                    "Material", cardtype, name if name else"noname")
                     dstdir = cw.util.dupcheck_plus(dstdir)
-                    cw.cwpy.copy_materials(e, dstdir)
+                    can_loaded_scaledimage = e.getbool(".", "scaledimage", False)
+                    cw.cwpy.copy_materials(e, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)
 
             # カード画像コピー
-            name = cw.util.repl_dischar(fcard.name)
+            name = cw.util.repl_dischar(fcard.name) if fcard.name else "noname"
             e = data.getfind("Property")
             dstdir = cw.util.join_paths(self.yadodir,
                                                 "Material", "Adventurer", name)
             dstdir = cw.util.dupcheck_plus(dstdir)
-            cw.cwpy.copy_materials(e, dstdir)
+            can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
+            cw.cwpy.copy_materials(e, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)
             # xmlファイル書き込み
             data.getroot().tag = "Adventurer"
             path = cw.util.join_paths(self.tempdir, "Adventurer", name + ".xml")
@@ -2830,7 +2868,7 @@ class Party(object):
         s.discard("")
         return s
 
-    def has_keycode(self, keycode, skill=True, item=True, beast=True):
+    def has_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
         """指定されたキーコードを所持しているか。"""
         for header in self.backpack:
             if not skill and header.type == "SkillCard":
@@ -2887,7 +2925,6 @@ class Party(object):
         s = os.path.basename(header.fpath)
         s = cw.util.splitext(s)[0]
         e = self.data.make_element("Member", s)
-        self.data.append("Property/Members", e)
         if not data:
             data = yadoxml2etree(header.fpath)
         pcards = cw.cwpy.get_pcards()
@@ -2902,6 +2939,7 @@ class Party(object):
         else:
             index = 0
         self.members.insert(index, data)
+        self.data.insert("Property/Members", e, index)
         pos_noscale = (9 + 95 * index + 9 * index, 285)
         pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="deal", index=index)
         cw.animation.animate_sprite(pcard, "deal")
@@ -3373,6 +3411,9 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
                 pass
             elif e.tag in ("Adventurer", "CastCards", "System"):
                 break
+            elif e.tag == "PlayerCardEvents":
+                # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+                cwxpath.append("playercard:%s" % (e.cwxparent.index(e)))
             else:
                 # Content
                 assert not e.cwxparent is None, e.tag

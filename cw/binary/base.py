@@ -215,17 +215,37 @@ class CWBinaryBase(object):
         return util.repl_escapechar(path)
 
     @staticmethod
-    def import_image(f, imagepath, convertbitmap=True, fullpath=False):
+    def check_imgpath(f, e_imgpath, defpostype):
+        """ImagePath要素のWSNバージョンをチェックする。"""
+        if e_imgpath is None:
+            return
+        assert e_imgpath.tag in ("ImagePath", "Talk"), e_imgpath.tag
+        postype = e_imgpath.getattr(".", "positiontype", "Default")
+        if postype in (defpostype, "Default"):
+            return
+        f.check_wsnversion("2")
+
+    @staticmethod
+    def check_coupon(f, coupon):
+        """称号名couponがシステムクーポンであればWSNバージョンをチェックする。
+        """
+        if coupon in (u"＠効果対象", u"＠効果対象外", u"＠イベント対象", u"＠使用者"):
+            f.check_wsnversion("2")
+
+    @staticmethod
+    def import_image(f, imagepath, convertbitmap=True, fullpath=False, defpostype="TopLeft"):
         """imagepathの画像を読み込み、バイナリデータとして返す。
         ビットマップ以外であればビットマップに変換する。
         """
         if isinstance(imagepath, cw.data.CWPyElement):
             e = imagepath
             if e.tag == "ImagePath":
+                CWBinaryBase.check_imgpath(f, e, defpostype)
                 imagepath = e.text
             elif e.tag == "ImagePaths":
                 if 1 < len(e):
                     f.check_wsnversion("1")
+                CWBinaryBase.check_imgpath(f, e.find("ImagePath"), defpostype)
                 imagepath = e.gettext("ImagePath", "")
             else:
                 imagepath = ""
@@ -728,6 +748,9 @@ class CWBinaryBase(object):
             return 4
         elif n == "Field":
             return 5
+        elif n in ("CouponHolder", "CardTarget"):
+            f.check_wsnversion("2")
+            return 0
         else:
             raise cw.binary.cwfile.UnsupportedError()
 
@@ -816,6 +839,9 @@ class CWBinaryBase(object):
             return 2
         elif n == "PartyAndBackpack":
             return 3
+        elif n in ("CouponHolder", "CardTarget"):
+            f.check_wsnversion("2")
+            return 0
         else:
             raise cw.binary.cwfile.UnsupportedError()
 

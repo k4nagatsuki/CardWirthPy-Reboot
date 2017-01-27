@@ -354,6 +354,7 @@ def _get_loopinfo(fpath, stream):
                 loopstart = -1
                 loopend = -1
                 for sec in secs:
+                    sec = sec.strip()
                     if sec.startswith("From="):
                         loopend = int(sec[len("From="):])
                     if sec.startswith("To="):

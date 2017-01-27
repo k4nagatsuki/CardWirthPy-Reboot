@@ -272,12 +272,12 @@ class StatusEditDialog(wx.Dialog):
             duration = self._value(value, status.mentality_dur, (i == 0), 0)
 
         STATUSES = [
-            ("Normal",   u"正常", cw.cwpy.rsrc.wxstatuses["MIND0_dbg"]),
-            ("Sleep",    u"眠り", cw.cwpy.rsrc.wxstatuses["MIND1_dbg"]),
-            ("Confuse",  u"混乱", cw.cwpy.rsrc.wxstatuses["MIND2_dbg"]),
-            ("Overheat", u"激高", cw.cwpy.rsrc.wxstatuses["MIND3_dbg"]),
-            ("Brave",    u"勇敢", cw.cwpy.rsrc.wxstatuses["MIND4_dbg"]),
-            ("Panic",    u"恐慌", cw.cwpy.rsrc.wxstatuses["MIND5_dbg"]),
+            ("Normal",   u"正常", cw.cwpy.rsrc.wxstatuses["MIND0"]),
+            ("Sleep",    u"眠り", cw.cwpy.rsrc.wxstatuses["MIND1"]),
+            ("Confuse",  u"混乱", cw.cwpy.rsrc.wxstatuses["MIND2"]),
+            ("Overheat", u"激高", cw.cwpy.rsrc.wxstatuses["MIND3"]),
+            ("Brave",    u"勇敢", cw.cwpy.rsrc.wxstatuses["MIND4"]),
+            ("Panic",    u"恐慌", cw.cwpy.rsrc.wxstatuses["MIND5"]),
         ]
 
         seq = []

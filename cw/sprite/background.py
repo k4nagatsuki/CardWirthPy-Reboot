@@ -174,7 +174,8 @@ class BackGround(base.CWPySprite):
                     break
         return False
 
-    def load_surface(self, path, mask, size, flag, doanime, visible=True, nocheckvisible=False):
+    def load_surface(self, path, mask, smoothing, size, flag, doanime, visible=True, nocheckvisible=False,
+                     can_loaded_scaledimage=True):
         """背景サーフェスを作成。
         path: 背景画像ファイルのパス。
         mask: (0, 0)の色でマスクするか否か。透過画像を使う場合は無視。
@@ -199,8 +200,8 @@ class BackGround(base.CWPySprite):
             # 画像読み込み
             ext = cw.util.splitext(path)[1].lower()
 
-            if ext <> ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, mask) in cw.cwpy.sdata.resource_cache:
-                return cw.cwpy.sdata.resource_cache[(path, mtime, size, mask)].copy(), False, False
+            if ext <> ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, mask, smoothing) in cw.cwpy.sdata.resource_cache:
+                return cw.cwpy.sdata.resource_cache[(path, mtime, size, mask, smoothing)].copy(), False, False
 
             if ext == ".jptx":
                 image = cw.effectbooster.JptxImage(path, mask).get_image()
@@ -217,7 +218,7 @@ class BackGround(base.CWPySprite):
                 anime = jpy1.is_animated
                 image = jpy1.get_image()
             else:
-                image = cw.util.load_image(path, mask, isback=True)
+                image = cw.util.load_image(path, mask, isback=True, can_loaded_scaledimage=can_loaded_scaledimage)
         except cw.event.EffectBreakError, ex:
             raise ex
         except cw.effectbooster.ScreenRescale, ex:
@@ -235,6 +236,8 @@ class BackGround(base.CWPySprite):
             #        pygame.transform.smoothscale()を行うと
             #        稀にアクセス違反になる事がある
             smoothscale_bg = (cw.cwpy.setting.smoothscale_bg and 1 < image.get_height())
+            if smoothing <> "Default":
+                smoothscale_bg = cw.util.str2bool(smoothing)
             if smoothscale_bg and not (float(size[0]) % isize[0] == 0 and float(size[1]) % isize[1] == 0):
                 if not (image.get_flags() & pygame.locals.SRCALPHA) and image.get_colorkey():
                     image = image.convert_alpha()
@@ -243,7 +246,7 @@ class BackGround(base.CWPySprite):
                 image = pygame.transform.scale(image, size)
 
         if not anime and cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.resource_cache[(path, mtime, size, mask)] = image
+            cw.cwpy.sdata.resource_cache[(path, mtime, size, mask, smoothing)] = image
 
         return image, anime, True
 
@@ -434,6 +437,7 @@ class BackGround(base.CWPySprite):
         if e.tag == "BgImage":
             # 背景画像
             mask = e.getbool(".", "mask", False)
+            smoothing = e.getattr(".", "smoothing", "Default")
             path = e.gettext("ImagePath", "")
             if ignoreeffectbooster and os.path.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
                 # 背景置換コンテントでエフェクトブースターファイルが
@@ -443,11 +447,13 @@ class BackGround(base.CWPySprite):
             # 使用時イベント中なら使用したカードの素材から探す
             if e.getbool("ImagePath", "inusecard", False):
                 inusecard = True
+                scaledimage = e.getbool("ImagePath", "scaledimage", False)
             else:
                 imgpath = cw.util.get_inusecardmaterialpath(path, cw.M_IMG)
                 inusecard = os.path.isfile(imgpath)
+                scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
 
-            return (path, inusecard, mask, size, pos, flag, visible, layer, cellname)
+            return (path, inusecard, scaledimage, mask, smoothing, size, pos, flag, visible, layer, cellname)
 
         elif e.tag == "TextCell":
             # テキストセル
@@ -518,8 +524,9 @@ class BackGround(base.CWPySprite):
             # PCイメージセル
             pcnumber = e.getint("PCNumber", 0)
             expand = e.getbool(".", "expand", False)
+            smoothing = e.getattr(".", "smoothing", "Default")
 
-            return (pcnumber, expand, size, pos, flag, visible, layer, cellname)
+            return (pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname)
 
         else:
             assert False
@@ -747,7 +754,7 @@ class BackGround(base.CWPySprite):
         return (x, y)
 
     def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime, nocheckvisible=False):
-        path, inusecard, mask, size, pos, flag, visible, layer, cellname = d
+        path, inusecard, scaledimage, mask, smoothing, size, pos, flag, visible, layer, cellname = d
         basepath = path
         bginhrt = True
 
@@ -763,14 +770,16 @@ class BackGround(base.CWPySprite):
         if not os.path.isfile(path):
             return False, False, bginhrt
 
-        image, anime, update = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime, visible=visible, nocheckvisible=nocheckvisible)
+        image, anime, update = self.load_surface(path, mask, smoothing, cw.s(size), flag, doanime=doanime, visible=visible,
+                                                 nocheckvisible=nocheckvisible, can_loaded_scaledimage=scaledimage)
 
         ext = os.path.splitext(path)[1].lower()
         if not anime and ext <> ".jpdc" and pygame.Rect(pos, size).contains(pygame.Rect((0, 0), cw.SIZE_AREA)) and visible and not mask and not flag:
             if image and not image.get_colorkey() and not (image.get_flags() & pygame.locals.SRCALPHA):
                 # 背景を覆ったので非継承の背景を実際に削除する
-                del bgs[:self._inhrt_index]
-                del blitlist[:-1]
+                if 0 < self._inhrt_index:
+                    del bgs[:self._inhrt_index]
+                    del blitlist[:-1]
                 bginhrt = False
                 self._inhrt_index = 0
 
@@ -778,14 +787,14 @@ class BackGround(base.CWPySprite):
             self.store_filepath(path)
             d2 = (image, size, pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
-            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True, layer, cellname)))
+            bgs.append((BG_IMAGE, (basepath, inusecard, scaledimage, mask, smoothing, size, pos, flag, True, layer, cellname)))
         else:
             if nocheckvisible:
                 flagvalue = visible
             else:
                 flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
-            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue, layer, cellname)))
-            oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue, layer, cellname)))
+            bgs.append((BG_IMAGE, (basepath, inusecard, scaledimage, mask, smoothing, size, pos, flag, flagvalue, layer, cellname)))
+            oldbgs.append((BG_IMAGE, (basepath, inusecard, scaledimage, mask, smoothing, size, pos, flag, flagvalue, layer, cellname)))
 
         return anime, update, bginhrt
 
@@ -864,7 +873,7 @@ class BackGround(base.CWPySprite):
         return visible
 
     def _add_pccell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
-        pcnumber, expand, size, pos, flag, visible, layer, cellname = d
+        pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
@@ -875,22 +884,24 @@ class BackGround(base.CWPySprite):
         if visible:
             # PCのイメージを表示
             if pcnumber in self.pc_cache:
-                paths = self.pc_cache[pcnumber]
+                paths, can_loaded_scaledimage = self.pc_cache[pcnumber]
             else:
                 paths = []
+                can_loaded_scaledimage = False
                 pcards = cw.cwpy.ydata.party.members
                 pi = pcnumber - 1
                 if 0 <= pi and pi < len(pcards):
+                    can_loaded_scaledimage = pcards[pi].getbool(".", "scaledimage", False)
                     for info2 in cw.image.get_imageinfos(pcards[pi].find("Property")):
                         path = info2.path
                         if path:
                             path = cw.util.join_yadodir(path)
                             if path:
                                 paths.append((path, info2))
-                self.pc_cache[pcnumber] = paths
+                self.pc_cache[pcnumber] = (paths, can_loaded_scaledimage)
 
             if expand:
-                image = pygame.Surface(cw.SIZE_CARDIMAGE).convert_alpha()
+                image = pygame.Surface(cw.s(cw.SIZE_CARDIMAGE)).convert_alpha()
                 image.fill((0, 0, 0, 0))
 
                 for path, info in paths:
@@ -899,30 +910,41 @@ class BackGround(base.CWPySprite):
                     #      1.60ではPCイメージとしてそのようなイメージを表示すると、
                     #      マスクされた状態で表示される。従ってマスクの効く・効かないという
                     #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
-                    bmp = cw.util.load_image(path, True, isback=False)
-                    baserect = info.calc_basecardposition(bmp.get_size(), noscale=True,
+                    bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage)
+                    iw, ih = bmp.get_size()
+                    scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+                    iw //= scr_scale
+                    ih //= scr_scale
+                    baserect = info.calc_basecardposition((iw, ih), noscale=True,
                                                           basecardtype="LargeCard",
                                                           cardpostype="NotCard")
-                    image.blit(bmp, (baserect.x, baserect.y))
+                    image.blit(cw.s(bmp), (baserect.x, baserect.y))
 
-                if cw.cwpy.setting.smoothscale_bg:
-                    image = cw.image.smoothscale(image, size)
+                smoothscale_bg = cw.cwpy.setting.smoothscale_bg
+                if smoothing <> "Default":
+                    smoothscale_bg = cw.util.str2bool(smoothing)
+                if smoothscale_bg:
+                    image = cw.image.smoothscale(image, cw.s(size))
                 else:
-                    image = pygame.transform.scale(image, size)
+                    image = pygame.transform.scale(image, cw.s(size))
             else:
-                image = pygame.Surface(size).convert_alpha()
+                image = pygame.Surface(cw.s(size)).convert_alpha()
                 image.fill((0, 0, 0, 0))
 
                 for path, info in paths:
-                    bmp = cw.util.load_image(path, True, isback=False)
-                    baserect = info.calc_basecardposition(bmp.get_size(), noscale=True,
+                    bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage)
+                    iw, ih = bmp.get_size()
+                    scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+                    iw //= scr_scale
+                    ih //= scr_scale
+                    baserect = info.calc_basecardposition((iw, ih), noscale=True,
                                                           basecardtype="LargeCard",
                                                           cardpostype="NotCard")
-                    image.blit(bmp, (baserect.x, baserect.y))
+                    image.blit(cw.s(bmp), (baserect.x, baserect.y))
 
-            d2 = (cw.s(image), size, pos, 0)
+            d2 = (image, size, pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
-            bgs.append((BG_PC, (pcnumber, expand, size, pos, flag, True, layer, cellname)))
+            bgs.append((BG_PC, (pcnumber, expand, smoothing, size, pos, flag, True, layer, cellname)))
         else:
             bgs.append((BG_PC, d))
             oldbgs.append((BG_PC, d))
@@ -1133,8 +1155,7 @@ class BattleCardImage(card.CWPyCard):
         card.CWPyCard.__init__(self, "hidden")
         path = "Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        # TODO scaleinfo
-        cardimg = cw.image.CardImage([cw.image.ImageInfo(path)], "NORMAL", u"")
+        cardimg = cw.image.CardImage([cw.image.ImageInfo(path)], "NORMAL", u"", can_loaded_scaledimage=True)
         image = cardimg.get_image()
         self.image = self._image = self.image_unzoomed = image
         self.rect = self._rect = self.image.get_rect()

@@ -597,6 +597,13 @@ class Converter(threading.Thread):
                 "itemcard": "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Hint",
                 "beastcard": "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Hint",
             }
+            if ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
+                rsrcmsgs["desc_base_money"] = "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/Hint"
+                rsrcmsgs["desc_party_money"] = "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/Hint"
+            else:
+                rsrcmsgs["desc_base_money"] = "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/VaultPanel/Hint"
+                rsrcmsgs["desc_party_money"] = "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/Hint"
+
             rcdata = {}
             for key, path in rsrcmsgs.iteritems():
                 repls = []
@@ -1286,9 +1293,9 @@ class Converter(threading.Thread):
             if os.path.isfile(fpath):
                 data = cw.data.xml2etree(fpath)
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath, "Resource/Image/Other/TITLE_CELL3"), cw.M_IMG)
-                tsize = cw.util.load_wxbmp(fpath).GetSize()
+                tsize = cw.util.load_wxbmp(fpath, can_loaded_scaledimage=True).GetSize()
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath, "Resource/Image/Other/TITLE_VERSION"), cw.M_IMG)
-                vsize = cw.util.load_wxbmp(fpath).GetSize()
+                vsize = cw.util.load_wxbmp(fpath, can_loaded_scaledimage=True).GetSize()
 
                 tleft = (cw.SIZE_AREA[0]-tsize[0]) // 2
                 ttop = (cw.SIZE_AREA[1]-tsize[1]) // 2

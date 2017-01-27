@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="bb1348f4e85fe35c8e947b963d37a611">1.29</Scenario><!-- ネクロポリス/Area5.wid -->
+  <Scenario md5="bb1348f4e85fe35c8e947b963d37a611">1.29</Scenario><!-- ネクロポリス/Area2.wid -->
   <Scenario md5="8cbd407fe4e931e05c53d51274b8036a">1.20</Scenario><!-- 旅の終わりに… -->
   <Scenario md5="a7d264aff0cafe2755207cf72dd291b9">1.20</Scenario><!-- ☆ぴかくぽら☆ -->
   <Scenario md5="8633aaa9999372bdd1c585ac457f6128">1.20</Scenario><!-- 路傍の店 - 夢 - -->

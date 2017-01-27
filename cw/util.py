@@ -24,6 +24,7 @@ import array
 import unicodedata
 import functools
 import webbrowser
+import math
 
 if sys.platform == "win32":
     import win32api
@@ -31,6 +32,10 @@ if sys.platform == "win32":
     import importlib
     pythoncom = importlib.import_module("pythoncom")
     win32shell = importlib.import_module("win32com.shell.shell")
+    import win32com.shell.shellcon
+    import win32file
+    import pywintypes
+    import ctypes.wintypes
 
 import wx
 import wx.lib.agw.aui.tabart
@@ -538,7 +543,73 @@ def convert_maskpos(maskpos, width, height):
             raise Exception("Invalid maskpos: %s" % (maskpos))
     return maskpos
 
-def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False):
+
+def get_scaledimagepaths(path, can_loaded_scaledimage):
+    """(スケーリングされたファイル名, スケール)のlistを返す。
+    listには1倍スケールを示す(path, 1)が必ず含まれる。
+    """
+    seq = [(path, 1)]
+    if can_loaded_scaledimage:
+        spext = os.path.splitext(path)
+        for scale in cw.SCALE_LIST:
+            fname = u"%s.x%d%s" % (spext[0], scale, spext[1])
+            seq.append((fname, scale))
+    return seq
+
+def copy_scaledimagepaths(frompath, topath, can_loaded_scaledimage):
+    """frompathをtopathへコピーする。
+    その後、ファイル名に".xN"をつけたイメージを探し、
+    実際に存在するファイルであればコピーする。
+    """
+    shutil.copy2(frompath, topath)
+    fromspext = os.path.splitext(frompath)
+    if can_loaded_scaledimage and fromspext[1].lower() in cw.EXTS_IMG:
+        tospext = os.path.splitext(topath)
+        for scale in cw.SCALE_LIST:
+            fname = u"%s.x%d%s" % (fromspext[0], scale, fromspext[1])
+            fname = cw.cwpy.rsrc.get_filepath(fname)
+            if os.path.isfile(fname):
+                fname2 = u"%s.x%d%s" % (tospext[0], scale, tospext[1])
+                shutil.copy2(fname, fname2)
+
+def find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale):
+    """ファイル名に".xN"をつけたイメージを探して(ファイル名, スケール値)を返す。
+    例えば"file.bmp"に対する"file.x2.bmp"を探す。
+    """
+    scale = 1
+    path = cw.util.join_paths(path)
+    if not noscale and (can_loaded_scaledimage or\
+                        path.startswith(cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile") + u"/") or\
+                        path.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Table") + u"/")):
+        scale =  int(math.pow(2, int(math.log(up_scr, 2))))
+        spext = os.path.splitext(path)
+        while 2 <= scale:
+            fname = u"%s.x%d%s" % (spext[0], scale, spext[1])
+            fname = cw.cwpy.rsrc.get_filepath(fname)
+            if os.path.isfile(fname):
+                path = fname
+                break
+            scale /= 2
+    return path, scale
+
+
+def find_noscalepath(path):
+    """pathが"file.x2.bmp"のようなスケール付きイメージのものであれば
+    ".xN"の部分を取り除いて返す。
+    ただし取り除いた後のファイルが実在しない場合はそのまま返す。
+    """
+    scales = u"|".join(map(lambda s: str(s), cw.SCALE_LIST))
+    exts = u"|".join(map(lambda s: s.replace(".", "\\."), cw.EXTS_IMG))
+    result = re.match(u"\\A(.+)\.x(%s)(%s)\\Z" % (scales, exts), path, re.IGNORECASE)
+    if result:
+        fpath = result.group(1) + result.group(3)
+        if os.path.isfile(fpath):
+            path = fpath
+    return path
+
+
+def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False, can_loaded_scaledimage=True,
+               noscale=False, up_scr=None):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -546,6 +617,11 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
     #assert threading.currentThread() == cw.cwpy
     if cw.cwpy.rsrc:
         path = cw.cwpy.rsrc.get_filepath(path)
+
+    if up_scr is None:
+        up_scr = cw.UP_SCR
+    path, up_scr = find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale)
+
     bmpdepth = 0
     try:
         if f:
@@ -607,7 +683,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, _ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
-                    r = load_image(path, mask, maskpos, f2, False, isback=isback)
+                    r = load_image(path, mask, maskpos, f2, False, isback=isback, can_loaded_scaledimage=can_loaded_scaledimage,
+                                   noscale=noscale)
                     f2.close()
                 return r
             except:
@@ -649,16 +726,28 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
             image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
 
-    if bmpdepth == 1 and mask and not isback:
-        image = Depth1Surface(image)
+    if bmpdepth == 1 and mask and not isback or up_scr <> 1:
+        image = Depth1Surface(image, up_scr, bmpdepth)
     return image
 
 class Depth1Surface(pygame.Surface):
-    def __init__(self, surface):
-        pygame.Surface.__init__(self, surface.get_size())
+    def __init__(self, surface, scr_scale, bmpdepth=24):
+        pygame.Surface.__init__(self, surface.get_size(), surface.get_flags(), surface.get_bitsize(), surface.get_masks())
         self.blit(surface, (0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
-        self.set_colorkey(surface.get_colorkey())
-        self.bmpdepthis1 = True
+        colorkey = surface.get_colorkey()
+        self.set_colorkey(colorkey, pygame.locals.RLEACCEL)
+        self.bmpdepthis1 = surface.bmpdepthis1 if hasattr(surface, "bmpdepthis1") else (bmpdepth == 1)
+        self.scr_scale = scr_scale
+
+    def copy(self):
+        bmp = Depth1Surface(pygame.Surface.copy(self), self.scr_scale)
+        bmp.bmpdepthis1 = self.bmpdepthis1
+        return bmp
+
+    def convert_alpha(self):
+        bmp = Depth1Surface(pygame.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
+        bmp.bmpdepthis1 = False
+        return bmp
 
 def put_number(image, num):
     """アイコンサイズの画像imageの上に
@@ -788,12 +877,15 @@ def _get_facepaths(facedir, imgpaths, dpaths, passed):
 
         dpaths2 = [][:]
         seq = []
+        scales = u"|".join(map(lambda s: str(s), cw.SCALE_LIST))
+        re_xn = re.compile(u"\\A.+\.x(%s)\\Z" % (scales), re.IGNORECASE)
         for fname in os.listdir(dpath):
             path1 = join_paths(dpath, fname)
             path = get_linktarget(path1)
             if os.path.isfile(path):
-                ext = os.path.splitext(path)[1].lower()
-                if ext in cw.EXTS_IMG:
+                spext = os.path.splitext(path)
+                ext = spext[1].lower()
+                if ext in cw.EXTS_IMG and not re_xn.match(spext[0]):
                     seq.append(path)
             elif os.path.isdir(path):
                 showpath = join_paths(showdpath, fname)
@@ -842,7 +934,7 @@ def load_bgm(path):
         assert threading.currentThread() == cw.cwpy
         # ファイルパスを渡して読込
         encoding = sys.getfilesystemencoding()
-        pygame.mixer.music.load(path.encode(encoding))
+        pygame.mixer.music.load(path.encode("utf-8"))
         return 0
     except Exception:
         cw.util.print_ex()
@@ -1583,12 +1675,24 @@ def get_materialpathfromskin(path, mtype, findskin=True):
         else:
             fname = os.path.basename(path)
             fname = cw.util.splitext(fname)[0]
-            if mtype == cw.M_IMG:
-                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, "Table", fname), cw.cwpy.rsrc.ext_img)
-            elif mtype == cw.M_MSC:
-                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, "Bgm", fname), cw.cwpy.rsrc.ext_bgm)
-            elif mtype == cw.M_SND:
-                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, "Sound", fname), cw.cwpy.rsrc.ext_snd)
+            dpaths = [cw.cwpy.skindir]
+            if os.path.isdir(u"Data/Materials"):
+                dpaths.extend(map(lambda d: cw.util.join_paths(u"Data/Materials", d), os.listdir(u"Data/Materials")))
+            for dpath in dpaths:
+                if mtype == cw.M_IMG:
+                    path = cw.util.find_resource(cw.util.join_paths(dpath, "Table", fname), cw.cwpy.rsrc.ext_img)
+                elif mtype == cw.M_MSC:
+                    path = cw.util.find_resource(cw.util.join_paths(dpath, "Bgm", fname), cw.cwpy.rsrc.ext_bgm)
+                    if not path:
+                        path = cw.util.find_resource(cw.util.join_paths(dpath, "BgmAndSound", fname), cw.cwpy.rsrc.ext_bgm)
+                elif mtype == cw.M_SND:
+                    path = cw.util.find_resource(cw.util.join_paths(dpath, "Sound", fname), cw.cwpy.rsrc.ext_snd)
+                    if not path:
+                        path = cw.util.find_resource(cw.util.join_paths(dpath, "BgmAndSound", fname), cw.cwpy.rsrc.ext_snd)
+
+                if path:
+                    break
+
     return path
 
 def remove_temp():
@@ -1624,35 +1728,46 @@ def remove_temp():
     except:
         pass
 
-def remove(path):
+def remove(path, trashbox=False):
     if os.path.isfile(path):
-        remove_file(path)
+        remove_file(path, trashbox=trashbox)
     elif os.path.isdir(path):
-        if join_paths(path).lower().startswith("data/temp/"):
+        if join_paths(path).lower().startswith("data/temp/") and not trashbox:
             # Tempフォルダは、フォルダの内容さえ消えていれば
             # 空フォルダが残っていてもほとんど無害
             try:
-                remove_treefiles(path)
-                remove_tree(path, noretry=True)
+                remove_treefiles(path, trashbox=trashbox)
+                remove_tree(path, noretry=True, trashbox=trashbox)
             except:
                 # まれにフォルダ削除に失敗する環境がある
                 #print_ex(file=sys.stderr)
                 print_ex()
-                remove_treefiles(path)
+                remove_treefiles(path, trashbox=trashbox)
         else:
-            remove_treefiles(path)
-            remove_tree(path)
+            if trashbox:
+                try:
+                    remove_tree(path, trashbox=trashbox)
+                except:
+                    print_ex()
+                    remove_treefiles(path, trashbox=trashbox)
+                    remove_tree(path, trashbox=trashbox)
+            else:
+                remove_treefiles(path, trashbox=trashbox)
+                remove_tree(path, trashbox=trashbox)
 
-def remove_file(path, retry=0):
+def remove_file(path, retry=0, trashbox=False):
     try:
-        os.remove(path)
+        if trashbox:
+            send_trashbox(path)
+        else:
+            os.remove(path)
     except WindowsError, err:
         if err.errno == 13 and retry < 5:
             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
-            remove_file(path, retry + 1)
+            remove_file(path, retry + 1, trashbox=trashbox)
         elif retry < 5:
             time.sleep(1)
-            remove_tree(path, retry + 1)
+            remove_tree(path, retry + 1, trashbox=trashbox)
         else:
             raise err
 
@@ -1660,9 +1775,12 @@ def add_winauth(file):
     if os.path.isfile(file) and sys.platform == "win32":
         os.chmod(file, stat.S_IWRITE|stat.S_IREAD)
 
-def remove_tree(treepath, retry=0, noretry=False):
+def remove_tree(treepath, retry=0, noretry=False, trashbox=False):
     try:
-        shutil.rmtree(treepath)
+        if trashbox:
+            send_trashbox(treepath)
+        else:
+            shutil.rmtree(treepath)
     except WindowsError, err:
         if err.errno == 13 and retry < 5 and not noretry:
             for dpath, dnames, fnames in os.walk(treepath):
@@ -1673,7 +1791,7 @@ def remove_tree(treepath, retry=0, noretry=False):
                             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
                         except WindowsError, err:
                             time.sleep(1)
-                            remove_tree2(treepath)
+                            remove_tree2(treepath, trashbox=trashbox)
                             return
 
                 for fname in fnames:
@@ -1683,17 +1801,17 @@ def remove_tree(treepath, retry=0, noretry=False):
                             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
                         except WindowsError, err:
                             time.sleep(1)
-                            remove_tree2(treepath)
+                            remove_tree2(treepath, trashbox=trashbox)
                             return
 
-            remove_tree(treepath, retry + 1)
+            remove_tree(treepath, retry + 1, trashbox=trashbox)
         elif retry < 5 and not noretry:
             time.sleep(1)
-            remove_tree(treepath, retry + 1)
+            remove_tree(treepath, retry + 1, trashbox=trashbox)
         else:
-            remove_tree2(treepath)
+            remove_tree2(treepath, trashbox=trashbox)
 
-def remove_tree2(treepath):
+def remove_tree2(treepath, trashbox=False):
     # shutil.rmtree()で権限付与時にエラーになる事があるので
     # 削除方法を変えてみる
     for dpath, dnames, fnames in os.walk(treepath, topdown=False):
@@ -1704,10 +1822,13 @@ def remove_tree2(treepath):
         for fname in fnames:
             path = join_paths(dpath, fname)
             if os.path.isfile(path):
-                os.remove(path)
+                if trashbox:
+                    send_trashbox(path)
+                else:
+                    os.remove(path)
     os.rmdir(treepath)
 
-def remove_treefiles(treepath):
+def remove_treefiles(treepath, trashbox=False):
     # remove_tree2()でもたまにエラーになる環境があるらしいので、
     # せめてディレクトリだけでなくファイルだけでも削除を試みる
     for dpath, dnames, fnames in os.walk(treepath, topdown=False):
@@ -1715,16 +1836,19 @@ def remove_treefiles(treepath):
             path = join_paths(dpath, fname)
             if os.path.isfile(path):
                 add_winauth(path)
-                os.remove(path)
+                if trashbox:
+                    send_trashbox(path)
+                else:
+                    os.remove(path)
 
-def rename_file(path, dstpath):
+def rename_file(path, dstpath, trashbox=False):
     """pathをdstpathへ移動する。
     すでにdstpathがある場合は上書きされる。
     """
     if not os.path.isdir(os.path.dirname(dstpath)):
         os.makedirs(os.path.dirname(dstpath))
     if os.path.isfile(dstpath):
-        remove_file(dstpath)
+        remove_file(dstpath, trashbox=trashbox)
     try:
         shutil.move(path, dstpath)
     except OSError:
@@ -1737,7 +1861,24 @@ def rename_file(path, dstpath):
                 f2.flush()
                 f2.close()
             f1.close()
-        remove_file(path)
+        remove_file(path, trashbox=trashbox)
+
+def send_trashbox(path):
+    """
+    可能であればpathをゴミ箱へ送る。
+    """
+    if sys.platform == "win32":
+        path = os.path.normpath(os.path.abspath(path))
+        ope = win32com.shell.shellcon.FO_DELETE
+        flags = win32com.shell.shellcon.FOF_NOCONFIRMATION |\
+                win32com.shell.shellcon.FOF_ALLOWUNDO |\
+                win32com.shell.shellcon.FOF_SILENT
+        win32com.shell.shell.SHFileOperation((None, ope, path + '\0\0', None, flags, None, None))
+    elif os.path.isfile(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)
+
 
 #-------------------------------------------------------------------------------
 #　ZIPファイル関連
@@ -2047,7 +2188,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
         if not os.path.isdir(dstdir):
             os.makedirs(dstdir)
         ss = []
-        if sys.platform == "win32" and sys.getwindowsversion().major <= 5 or True:
+        if sys.platform == "win32" and sys.getwindowsversion().major <= 5:
             # バージョン5以前の`expand.exe`は`-f:*`でディレクトリ構造を無視してしまう
             for dname in cab_dpaths(path):
                 if not dname:
@@ -2233,7 +2374,7 @@ def cab_scdir(cab):
     """CABアーカイブ内でSummary.wsmまたは
     Summary.xmlが含まれるフォルダを返す。
     """
-    fpath = cab_hasfile(cab, ("Summary.xml", "Summary.wid"))
+    fpath = cab_hasfile(cab, ("Summary.xml", "Summary.wsm"))
     return os.path.dirname(fpath)
 
 #-------------------------------------------------------------------------------
@@ -2243,6 +2384,8 @@ def cab_scdir(cab):
 def encodewrap(s):
     """改行コードを\nに置換する。"""
     r = []
+    if not s:
+        return u""
     for c in s:
         if c == '\\':
             r.append("\\\\")
@@ -2290,7 +2433,27 @@ def is_hw(unichr):
     return not unicodedata.east_asian_width(unichr) in ('F', 'W', 'A')
 
 def get_strlen(s):
-    return reduce(lambda a, b: a + b, map(lambda c: 1 if cw.util.is_hw(c) else 2, s))
+    return reduce(lambda a, b: a + b, map(lambda c: 1 if is_hw(c) else 2, s))
+
+def slice_str(s, width, get_width=None):
+    """
+    sをwidthの位置でスライスし、2つの文字列にして返す。
+    """
+    s = unicode(s)
+    if not get_width:
+        get_width = get_strlen
+    left = []
+    leftlen = 0
+    for c in s:
+        clen = get_width(c)
+        if width < leftlen+clen:
+            break
+        left.append(c)
+        leftlen += clen
+    return u"".join(left), s[len(left):]
+
+assert slice_str(u"ABC", 2) == (u"AB", u"C")
+assert slice_str(u"ABCあ", 4) == (u"ABC", u"あ")
 
 def rjustify(s, length, c):
     slen = cw.util.get_strlen(s)
@@ -2471,6 +2634,207 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
 
     return "".join(seq).rstrip()
 
+def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, resultindex, spcharinfo, spcharinfo2):
+    """
+    sをwidthの幅で折り返す。
+    テキストの長さをは計る時にget_width(s)を使用する。
+    """
+    s = unicode(s)
+    if not get_width:
+        get_width = get_strlen
+
+    iter = re.findall(u"[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I)
+    if spcharinfo:
+        # 特殊文字と単語を分離しておく
+        iter2 = []
+        index = startindex
+        spc = None
+        for word in iter:
+            if spc:
+                iter2.append(spc + word[0])
+                if 1 < len(word):
+                    iter2.append(word[1:])
+                spc = None
+            elif index in spcharinfo:
+                spc = word
+            else:
+                iter2.append(word)
+            index += len(word)
+        assert spc is None
+        iter = iter2
+
+    lines = []
+    buf = []
+    buflen = 0
+    hw = get_width(u"#")
+    index = startindex
+    for word in iter:
+        # 特殊文字か？
+        is_spchar = spcharinfo and index in spcharinfo
+
+        wordlen = get_width(word)
+        if width < buflen+wordlen:
+            def match_op(buf):
+                return not buf[1] and open_chars.find(buf[0]) <> -1
+
+            def match_cl(buf):
+                return not buf[1] and close_chars.find(buf[0]) <> -1
+
+            def match_last(bufs, matcher):
+                for i in xrange(len(bufs)):
+                    buf = bufs[-(1+i)]
+                    if buf[1] and buf[0][0] == '&':
+                        continue
+                    return matcher(buf)
+
+            def match_op_last(bufs):
+                # bufsの末尾部分がopen_charsに該当する文字ならTrue
+                # ただし色変更の特殊文字は無視する
+                return match_last(bufs, match_op)
+
+            def match_cl_last(bufs):
+                # bufsの末尾部分がclose_charsに該当する文字ならTrue
+                # ただし色変更の特殊文字は無視する
+                return match_last(bufs, match_cl)
+
+            assert match_op_last([("[", False), ("&R", True), ("&R", True)])
+            assert match_op_last([("[", False)])
+            assert not match_op_last([("[", False), ("&R", False), ("&R", True)])
+
+            def append_word_wrap(buf, buflen, word):
+                # wordを強制的に折り返しながら行に加える
+                if is_spchar:
+                    return buf, buflen, word
+                while width < buflen+get_width(word):
+                    word2, word3 = slice_str(word, width-buflen, get_width)
+                    if word2:
+                        word2 += u"-"
+                    buf.append((word2, False))
+                    word = word3
+                    lines.append(buf)
+                    buf = []
+                    buflen = 0
+                return [], 0, word
+
+            def break_before_openchar(buf2, buf, buflen, word):
+                # 行末禁止文字の位置まで遡って折り返す
+                while buf2 and match_op_last(buf2):
+                    buf2 = buf2[:-1]
+                if buf2:
+                    i = len(buf2)
+                    lines.append(buf[:i])
+                    buf = buf[i:]
+                    buflen = sum(map(lambda s: get_width(s[0]), buf))
+                    return buf, buflen, word
+                else:
+                    return append_word_wrap(buf, buflen, word)
+
+            if 1 <= len(buf) and match_op_last(buf) and not match_cl_last(buf):
+                # 末尾に行末禁止文字があるので折り返し可能な位置まで遡って折り返す
+                buf, buflen, word = break_before_openchar(buf, buf, buflen, word)
+                wordlen = get_width(word)
+            elif not unicode.isspace(word):
+                # 空白文字は行末にいくつでも連ねるのでそれ以外の文字を処理
+                if match_cl((word, is_spchar)):
+                    if width < buflen or (width == buflen and hw < wordlen):
+                        # 行頭禁止文字は1文字まではぶら下げるが、それ以上ある場合は
+                        # 折り返し可能な位置まで遡って折り返す
+                        buf2 = buf
+                        while buf2 and match_cl_last(buf2):
+                            buf2 = buf2[:-1]
+                        if not buf2 or (len(buf2) == 1 and not match_op_last(buf2)):
+                            # 折り返し可能な位置が無かった
+                            lines.append(buf)
+                            buf = []
+                            buflen = 0
+                        elif 2 <= len(buf2) and not match_op_last(buf2[:-1]):
+                            # 折り返し可能な位置が見つかった(折り返した箇所に行末禁止文字が無い)
+                            i = len(buf2)-1
+                            lines.append(buf[:i])
+                            buf = buf[i:]
+                            buflen = sum(map(lambda s: get_width(s[0]), buf))
+                        else:
+                            # 折り返し可能な位置は行末禁止文字だった
+                            buf, buflen, word = break_before_openchar(buf2, buf, buflen, word)
+                            wordlen = get_width(word)
+                else:
+                    # 普通に折り返す
+                    if buf:
+                        lines.append(buf)
+                        buf = []
+                        buflen = 0
+                    buf, buflen, word = append_word_wrap(buf, buflen, word)
+                    wordlen = get_width(word)
+        if word:
+            buf.append((word, is_spchar))
+            if not is_spchar or word[0] <> '&':
+                buflen += wordlen
+        index += len(word)
+
+    if buf:
+        lines.append(buf)
+
+    if spcharinfo2 is None:
+        return u"\n".join(map(lambda buf: u"".join(map(lambda w: w[0], buf)), lines))
+    else:
+        seq = []
+        for buf in lines:
+            line = []
+            for word, is_spchar in buf:
+                if is_spchar:
+                    spcharinfo2.append(resultindex)
+                line.append(word)
+                resultindex += len(word)
+            seq.append(u"".join(line))
+            resultindex += len(u"\n")
+        return u"\n".join(seq)
+
+def wordwrap(s, width, get_width=None, open_chars=u"\"'(<[`{‘“〈《≪「『【〔（＜［｛｢",
+                                       close_chars=u"!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕゛°ゝゞヽヾ！），．：；＞？］｝｡｣､ﾞﾟ",
+                                       spcharinfo=None):
+    if spcharinfo:
+        spcharinfo2 = []
+    else:
+        spcharinfo2 = None
+    lines = []
+    index = 0
+    resultindex = 0
+    for line in s.splitlines():
+        wrapped = _wordwrap_impl(line, width, get_width, open_chars, close_chars, index, resultindex, spcharinfo, spcharinfo2)
+        lines.append(wrapped)
+        index += len(line)+len(u"\n")
+        resultindex += len(wrapped)+len(u"\n")
+
+    if spcharinfo:
+        spcharinfo.clear()
+        spcharinfo.update(spcharinfo2)
+
+    return u"\n".join(lines)
+
+assert wordwrap("ABC.DEFG.H,IKLM?", 3) == "ABC.\nDEF-\nG.H,\nIKL-\nM?"
+assert wordwrap("[abc..]\ndefg", 3) == "[ab-\nc..]\ndef-\ng"
+assert wordwrap("abc..\ndefghij", 3) == "abc.\n.\ndef-\nghi-\nj"
+assert wordwrap("a bc..", 4) == "a \nbc.."
+assert wordwrap("a bc....],.\ndef", 4) == "a \nbc...\n.],.\ndef"
+assert wordwrap("[def]", 4) == "[def]"
+assert wordwrap("def[ghi]]", 4) == "def\n[ghi\n]]"
+assert wordwrap(u"あいうえお。かきくけこ", 11) == u"あいうえお。\nかきくけこ"
+assert wordwrap(u"あいうえAA。かきくけこ", 9) == u"あいうえ\nAA。かき\nくけこ"
+assert wordwrap("[[[[a", 4) == "[[[[\na"
+assert wordwrap("\"Let's it go!!\"", 4) == "\"Let'\ns it \ngo!!\""
+assert wordwrap(u"あいうえおA.かきくけこ", 11) == u"あいうえおA.\nかきくけこ"
+assert wordwrap(u"あいうえおA。かきくけこ", 11) == u"あいうえお\nA。かきくけ\nこ"
+assert wordwrap(u"ｐｑｒ pqr ＰＱＲ", 6) == u"ｐｑｒ \npqr \nＰＱＲ"
+
+def _test_wordwrap(s, width, spcharinfo):
+    return wordwrap(s, width, spcharinfo=spcharinfo), spcharinfo
+
+assert _test_wordwrap(u"CARD #WIRTH SPECIA&L\nCHA&RACTER #TEST!", 8, spcharinfo=set([5, 18, 24, 32])) ==\
+       (u"CARD #W\nIRTH \nSPECIA&L\nCHA&RACTER \n#TEST!", set([5, 20, 26, 35]))
+assert wordwrap(u"[&Rabc..]", 3, spcharinfo=set([1])) == u"[&Rab-\nc..]"
+assert wordwrap(u"ab...", 3) == u"ab..\n."
+assert _test_wordwrap(u"ab..&R.", 3, spcharinfo=set([4])) == (u"ab..\n&R.", set([5]))
+
 def get_char(s, index):
     try:
         if 0 <= index and index < len(s):
@@ -2551,7 +2915,8 @@ def format_title(fmt, d):
 # wx汎用関数
 #-------------------------------------------------------------------------------
 
-def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True):
+def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True, can_loaded_scaledimage=True,
+               noscale=False, up_scr=None):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
     if sys.platform <> "win32":
         assert threading.currentThread() <> cw.cwpy
@@ -2560,6 +2925,11 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
 
     if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
+
+    if up_scr is None:
+        up_scr = cw.UP_SCR # ゲーム画面と合わせるため、ダイアログなどでも描画サイズのイメージを使用する
+    name, up_scr = find_scaledimagepath(name, up_scr, can_loaded_scaledimage, noscale)
+
     bmpdepth = 0
     maskcolour = None
     if mask:
@@ -2575,6 +2945,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                     with open(name, "rb") as f2:
                         data = f2.read()
                         f2.close()
+
+                if not data:
+                    return wx.EmptyBitmap(0, 0)
 
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, ok = cw.image.fix_cwnext16bitbitmap(data)
@@ -2635,6 +3008,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         wxbmp.bmpdepthis1 = True
     if maskcolour:
         wxbmp.maskcolour = maskcolour
+
+    wxbmp.scr_scale = up_scr
+
     return wxbmp
 
 def copy_wxbmp(bmp):
@@ -2918,7 +3294,11 @@ class CWPyStaticBitmap(wx.Panel):
         for i, (bmp, bmpdepthkey) in enumerate(zip(self.bmps, self.bmps_bmpdepthkey)):
             if self.infos:
                 info = self.infos[i]
-                baserect = info.calc_basecardposition_wx(bmpdepthkey.GetSize(), noscale=True,
+                w, h = bmpdepthkey.GetSize()
+                scr_scale = bmpdepthkey.scr_scale if hasattr(bmpdepthkey, "scr_scale") else 1
+                w /= scr_scale
+                h /= scr_scale
+                baserect = info.calc_basecardposition_wx((w, h), noscale=True,
                                                          basecardtype="LargeCard",
                                                          cardpostype="NotCard")
                 baserect = self.ss(baserect)
@@ -3462,28 +3842,52 @@ def create_mutex(dpath):
         dpath = os.path.abspath(dpath)
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
-    name = hashlib.md5(buffer(dpath)).hexdigest()
+    name = os.path.join(dpath, u".CardWirthPy.lock")
 
     # 二重起動防止 for Windows
     if sys.platform == "win32":
-        name = u"CardWirthPy/%s\0" % (name)
-        name = name.encode("utf-16")
-        ERROR_ALREADY_EXISTS = 183
-        kernel32 = ctypes.windll.kernel32
-        handle = kernel32.CreateMutexW(None, 1, name)
-        err = kernel32.GetLastError()
+        try:
+            # ロック済みの場合はここで例外が発生する
+            if os.path.isfile(name):
+                os.remove(name)
 
-        if err == ERROR_ALREADY_EXISTS or handle is None:
-            if handle:
-                kernel32.ReleaseMutex(handle)
-                kernel32.CloseHandle(handle)
-            handle = None
-        else:
-            _mutex.append((handle, name))
-            return True
+            # BUG: win32file.LockFileEx()とwin32file.UnlockFileEx()を使うと、
+            #      なぜかこの関数を抜けた後でロック解除がうまくいかなくなる
+            kernel32 = ctypes.windll.kernel32
+            class OVERLAPPED(ctypes.Structure):
+                _fields_ = [
+                    ('Internal', ctypes.wintypes.DWORD),
+                    ('InternalHigh', ctypes.wintypes.DWORD),
+                    ('Offset', ctypes.wintypes.DWORD),
+                    ('OffsetHigh', ctypes.wintypes.DWORD),
+                    ('hEvent', ctypes.wintypes.HANDLE),
+                ]
+
+            f = open(name, "w")
+            handle = win32file._get_osfhandle(f.fileno())
+            if kernel32.LockFileEx(handle,
+                                   win32con.LOCKFILE_FAIL_IMMEDIATELY|win32con.LOCKFILE_EXCLUSIVE_LOCK,
+                                   0, 0, 0xffff0000, ctypes.byref(OVERLAPPED())):
+                class Unlock(object):
+                    def __init__(self, name, f):
+                        self.name = name
+                        self.f = f
+
+                    def unlock(self):
+                        if self.f:
+                            handle = win32file._get_osfhandle(self.f.fileno())
+                            kernel32.UnlockFileEx(handle, 0, 0, 0xffff0000, ctypes.byref(OVERLAPPED()))
+                            self.f = None
+                            remove(self.name)
+
+                _mutex.append((Unlock(name, f), name))
+                return True
+            else:
+                return False
+        except:
+            return False
     else:
         # Posix
-        name = u"Data/Temp/Global/LockFiles/%s" % (name)
         try:
             if not os.path.isfile(name):
                 dpath = os.path.dirname(name)
@@ -3505,28 +3909,25 @@ def exists_mutex(dpath):
         dpath = os.path.abspath(dpath)
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
-    name = hashlib.md5(buffer(dpath)).hexdigest()
+    name = os.path.join(dpath, u".CardWirthPy.lock")
+    if name in map(lambda m: m[1], _mutex):
+        return False
 
     if sys.platform == "win32":
-        name = u"CardWirthPy/%s\0" % (name)
-        name = name.encode("utf-16")
-        MUTEX_ALL_ACCESS = 0x001F0001
-        _SYNCHRONIZE = 0x00100000
-        kernel32 = ctypes.windll.kernel32
-        handle = kernel32.OpenMutexW(MUTEX_ALL_ACCESS, 0, name)
-        if handle and not name in map(lambda m: m[1], _mutex):
-            kernel32.ReleaseMutex(handle)
-            kernel32.CloseHandle(handle)
+        try:
+            if not os.path.isfile(name):
+                return False
+
+            with open(name, "w") as f:
+                pass
+            remove(name)
+        except:
             return True
-        elif handle:
-            kernel32.CloseHandle(handle)
 
         return False
+
     else:
         # Posix
-        name = u"Data/Temp/Global/LockFiles/%s" % (name)
-        if name in map(lambda m: m[1], _mutex):
-            return False
         try:
             if not os.path.isfile(name):
                 dpath = os.path.dirname(name)
@@ -3546,9 +3947,7 @@ def release_mutex():
     global _mutex
     if _mutex:
         if sys.platform == "win32":
-            kernel32 = ctypes.windll.kernel32
-            kernel32.ReleaseMutex(_mutex[-1][0])
-            kernel32.CloseHandle(_mutex[-1][0])
+            _mutex[-1][0].unlock()
         else:
             fcntl.flock(_mutex[-1][0].fileno(), fcntl.LOCK_UN)
             _mutex[-1][0].close()
@@ -3560,9 +3959,7 @@ def clear_mutex():
     global _mutex
     for mutex, name in _mutex:
         if sys.platform == "win32":
-            kernel32 = ctypes.windll.kernel32
-            kernel32.ReleaseMutex(mutex)
-            kernel32.CloseHandle(mutex)
+            mutex.unlock()
         else:
             f = mutex
             fcntl.flock(f.fileno(), fcntl.LOCK_UN)

@@ -32,7 +32,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     skip = _get_skipstatus(clearevent)
 
-    cw.cwpy.draw()
+    cw.cwpy.lazy_draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
         clip = pygame.Rect(sprite.rect)
         sprite.skipped |= skip
@@ -115,7 +115,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
     animating = True
     skip = _get_skipstatus(clearevent)
 
-    cw.cwpy.draw()
+    cw.cwpy.lazy_draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
         clip = None
         upd = False

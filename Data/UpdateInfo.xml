@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<UpdateInfo>
+  <!-- moveto=移動先、remove="True"で削除。削除にはMD5ハッシュ値の一致が必要 -->
+  <UpdateFile moveto="Materials/Wsn.2/BgmAndSound/l_chirr.ogg" md5="c986cecac265bf16ad575732855c61ca">Materials/Wsn.2/Sound/l_chirr.ogg</UpdateFile>
+  <UpdateFile moveto="Materials/Wsn.2/BgmAndSound/l_rain.ogg" md5="ac67bb02e37eda25303d8a538a18e53d">Materials/Wsn.2/Sound/l_rain.ogg</UpdateFile>
+  <UpdateFile moveto="Materials/Wsn.2/BgmAndSound/l_sing.ogg" md5="47032f013eeb2b4b9f651e367bb53cc9">Materials/Wsn.2/Sound/l_sing.ogg</UpdateFile>
+</UpdateInfo>

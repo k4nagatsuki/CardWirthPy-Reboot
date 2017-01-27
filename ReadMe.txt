@@ -1,4 +1,4 @@
-﻿CardWirthPy ver.1.1
+﻿CardWirthPy ver.2α1
 ===============================
 
 作者
@@ -204,16 +204,16 @@ CardWirthPyでプレイ中か判定するイベントを作る方法について
 
 しかし、些細と見なされた仕様の違いやバグなどに引っかかってシナリオが正しく動かなくなるような事態は、どうしても稀に発生するものと思われます。そこで、CardWirthPy 0.12.2以降では、称号所持分岐によって、プレイヤーがCardWirthPyを使用中か、使用中であればどのバージョンであるかを判別できるようになりました。
 
-バージョン1.1現在、称号所持分岐で、次の2つの称号の所持判定は、実際に所持しているかどうかによらず必ず成功します。
+バージョン2現在、称号所持分岐で、次の2つの称号の所持判定は、実際に所持しているかどうかによらず必ず成功します。
 
- * ＠CardWirthPy Version.1.1
- * ＠CardWirthPy Version.1.1 Only
+ * ＠CardWirthPy Version.2.0
+ * ＠CardWirthPy Version.2.0 Only
 
 このうち、「Only」がついている称号は、CardWirthPyのバージョンアップ時に削除され、新しいバージョン固有の称号に差し替えられます。「Only」がついていない称号は、バージョンアップ後も残ります。
 
-CardWirthPyでプレイ中か判定する時やバージョンが1.1以降であるか判定する時には、「＠CardWirthPy Version.1.1」を使用して称号判定分岐を行ってください。
+CardWirthPyでプレイ中か判定する時やバージョンが2以降であるか判定する時には、「＠CardWirthPy Version.2.0」を使用して称号判定分岐を行ってください。
 
-CardWirthPy 1.1固有で将来修正される見込みのバグに対処したい場合などは、「＠CardWirthPy Version.1.1 Only」を使用してください。
+CardWirthPy 2固有で将来修正される見込みのバグに対処したい場合などは、「＠CardWirthPy Version.2.0 Only」を使用してください。
 
 使用可能な過去のバージョンの称号のリストは以下の通りです。
 
@@ -222,6 +222,17 @@ CardWirthPy 1.1固有で将来修正される見込みのバグに対処した�
  * ＠CardWirthPy Version.0.12.3b
  * ＠CardWirthPy Version.1.0
  * ＠CardWirthPy Version.1.1
+ * ＠CardWirthPy Version.2.0
+
+
+WSN形式の特定バージョンへの対応を示すクーポンについて
+--------------------------------------------------------------------------
+
+「WSN形式」とは、CardWirthPyが再生できるCardWirthシナリオのデータ形式の一つです。現時点ではCardWirthPy独自のデータ形式ですが、将来は他のCardWirthエンジンでも再生可能となる事を前提として、オープンな場で設計されています。
+
+WSN形式のバージョンの一つである「Wsn.2」では、対応するCardWirthエンジンが、称号判定分岐で`＠Wsn.2`というシステムクーポンの所持判定を行った時、実際に所持しているかいないかに関わらず必ず成功させるように求めています。従って、CardWirthPy 2はそのように動作します。
+
+`＠Wsn.2`による判定を行えば、現在プレイヤーが使用しているCardWirthエンジンが「Wsn.2」に対応しているかどうかを、シナリオ側から知る事が可能です。
 
 
 ライセンス
@@ -229,7 +240,7 @@ CardWirthPy 1.1固有で将来修正される見込みのバグに対処した�
 
 CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはpy2exeを使用しています。
 
-[Python ver2.7.12](http://www.python.org/)
+[Python ver2.7.13 (32bit版)](http://www.python.org/)
  : License: Python Software Foundation License
 
 [py2exe ver0.6.9](http://www.py2exe.org/)
@@ -239,7 +250,7 @@ CardWirthPyは以下のPythonの外部モジュールを使用しています。
 [wxPython ver3.0.2.0](http://www.wxpython.org/)
  : License: wxWindows Library License
 
-[Pygame ver1.9.1](http://www.pygame.org/)
+[pygame ver1.9.2](http://www.pygame.org/)
  : License: GNU Lesser General Public License
 
 [Python for Windows extensions Build 220](http://sourceforge.net/projects/pywin32/)
@@ -317,13 +328,14 @@ https://bitbucket.org/tachi_gigas/cardwirthpy-reboot-lessor
 Ganma Shadow(@GanmaShadow) は、いくつかの問題の報告を行った他、プレイヤーキャラクターの自動生成機能を提案し、Modern・School・Oedo・Monstersの各スキンタイプ向けに名前のリストを提供しました。
 
 https://bitbucket.org/akkw/cardwirthpy-reboot
- : 暗黒騎士(@akkw) は、バグの報告、CardWirthとの仕様の食い違いの指摘と調査などに加え、それらの問題の解消作業や、荷物袋からのカード使用に関するオプション、ボタンの連続押し機能の実装を行いました。
+ : 暗黒騎士(@akkw) は、スキン「JUDGMENT」の作者です。
+ : バグの報告、CardWirthとの仕様の食い違いの指摘と調査などに加え、それらの問題の解消作業や、荷物袋からのカード使用に関するオプション、ボタンの連続押し機能などの実装を行いました。
  : また、ファンタジーⅠ型やSFバリアント向けの名前のリストの提供も行っています。
 
-ハルキゲニア(@tekitoudesu) は、音声再生に関する問題の報告・提案を多数行い、付属のサウンドフォント`TimGM6mb.sf2`の65:AltoSax (TB)のE4のノートに音が設定されていない事を指摘して修正しました。
+ハルキゲニア(@tekitoudesu) は、全てのWsn.2標準効果音の作者です。また、音声再生に関する問題の報告・提案を多数行い、付属のサウンドフォント`TimGM6mb.sf2`の65:AltoSax (TB)のE4のノートに音が設定されていない事を指摘して修正しました。
 
 https://irakat.bitbucket.io/
- : Iraka.T(@IrakaT)は、スキン「BloodWirth」の作者です。
+ : Iraka.T(@IrakaT) は、スキン「BloodWirth」の作者です。
  : CardWirthPy本体に対しても、いくつもの提案やバグ報告を行い、自ら修正も行っています。
 
 http://misica.lv9.org/
