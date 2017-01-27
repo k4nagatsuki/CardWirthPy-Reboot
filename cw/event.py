@@ -1427,6 +1427,7 @@ class CardEvent(Event, Targeting):
         # Effectインスタンス作成
         motions = data.getfind("Motions").getchildren()
         eff = cw.effectmotion.Effect(motions, d, battlespeed=cw.cwpy.is_battlestatus())
+        eff.update_status()
 
         # ターゲット色反転＆ウェイト
         self.update_targets()

@@ -106,13 +106,18 @@ class Effect(object):
             self.motions = [EffectMotion(e, targetlevel=self.level, refability=self.refability, vocation=self.vocation)
                                                             for e in motions]
 
-    def get_level(self):
-        """使用者のレベルもしくは効果コンテントの対象レベル。"""
+    def update_status(self):
         if self.refability:
             ccard = cw.cwpy.event.get_selectedmember()
-            return ccard.level if ccard else 0
+            self._level = ccard.level if ccard else 0
         else:
-            return cw.util.numwrap(self.user.level if self.user else self.level, -65536, 65536)
+            self._level = cw.util.numwrap(self.user.level if self.user else self.level, -65536, 65536)
+        for motion in self.motions:
+            motion.update_status()
+
+    def get_level(self):
+        """使用者のレベルもしくは効果コンテントの対象レベル。"""
+        return self._level
 
     def apply(self, target, event=False):
         if isinstance(target, Character) and self.check_enabledtarget(target, event):
@@ -475,40 +480,41 @@ class EffectMotion(object):
         else:
             # 使用者のレベルもしくは効果コンテントの対象レベル
             self._targetlevel = targetlevel
+            self.update_status()
+
+    def update_status(self):
+        if self.refability:
+            self._enhance_act = 0
+            ccard = cw.cwpy.event.get_selectedmember()
+            self._vocation_val = get_vocation_val(ccard, self._vocation, enhance_act=True) if ccard else 4
+            self._vocation_level = get_vocation_level(ccard, self._vocation, enhance_act=True) if ccard else 2
+            self._level = ccard.level if ccard else 0
+        else:
+            # 使用者の行動力修正
+            self._enhance_act = self.user.get_enhance_act() if self.is_enhance_act else 0
+            # 使用者の適性値(効果コンテントの場合は"4")
+            self._vocation_val = self.cardheader.get_vocation_val(self.user) if self.cardheader else 4
+            # 使用者の適性レベル(効果コンテントの場合は"2")
+            # スキルカードの場合は行動力修正の影響を受ける
+            self._vocation_level = self.cardheader.get_vocation_level(self.user, enhance_act=self.is_enhance_act) if self.cardheader else 2
+            # 使用者のレベルもしくは効果コンテントの対象レベル
+            self._level = cw.util.numwrap(self.user.level if self.user else self._targetlevel, -65536, 65536)
 
     def get_vocation_val(self):
         """成功率や効果値の計算に使用する適性値を返す。"""
-        if self.refability:
-            ccard = cw.cwpy.event.get_selectedmember()
-            return get_vocation_val(ccard, self._vocation, enhance_act=True) if ccard else 4
-        else:
-            # 使用者の適性値(効果コンテントの場合は"4")
-            return self.cardheader.get_vocation_val(self.user) if self.cardheader else 4
+        return self._vocation_val
 
     def get_vocation_level(self):
         """成功率や効果値の計算に使用するレベルを返す。"""
-        if self.refability:
-            ccard = cw.cwpy.event.get_selectedmember()
-            return get_vocation_level(ccard, self._vocation, enhance_act=True) if ccard else 2
-        else:
-            # 使用者の適性レベル(効果コンテントの場合は"2")
-            # スキルカードの場合は行動力修正の影響を受ける
-            return self.cardheader.get_vocation_level(self.user, enhance_act=self.is_enhance_act) if self.cardheader else 2
+        return self._vocation_level
 
     def get_enhance_act(self):
         """使用者の行動力修正(技能カード以外は全て"0")。"""
-        if self.is_enhance_act and not self.refability:
-            return self.user.get_enhance_act()
-        else:
-            return 0
+        return self._enhance_act
 
     def get_level(self):
         """使用者のレベルもしくは効果コンテントの対象レベル。"""
-        if self.refability:
-            ccard = cw.cwpy.event.get_selectedmember()
-            return ccard.level if ccard else 0
-        else:
-            return cw.util.numwrap(self.user.level if self.user else self._targetlevel, -65536, 65536)
+        return self._level
 
     def is_effectcontent(self):
         return not bool(self.cardheader)

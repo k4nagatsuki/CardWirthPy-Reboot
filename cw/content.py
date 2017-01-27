@@ -1922,6 +1922,8 @@ class EffectContent(EventContentBase):
                 cw.cwpy.event.clear_selectedmember()
                 return 0
 
+        self.eff.update_status()
+
         if self.ignite:
             event = cw.cwpy.event.get_event()
             if cw.cwpy.event.in_inusecardevent:
