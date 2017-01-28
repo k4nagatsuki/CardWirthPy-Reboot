@@ -957,31 +957,17 @@ class BranchLevelContent(BranchContent):
 class BranchCouponContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.scope = self.data.get("targets")
+        self.scope, self.someone, self.unreversed = _get_couponscope(self.scope)
+        self.coupon = self.data.get("coupon")
 
     def action(self):
         """称号存在分岐コンテント。"""
-        coupon = self.data.get("coupon")
 
-        if cw.cwpy.syscoupons.match(coupon) or cw.cwpy.setting.skinsyscoupons.match(coupon):
+        if cw.cwpy.syscoupons.match(self.coupon) or cw.cwpy.setting.skinsyscoupons.match(self.coupon):
             return self.get_boolean_index(True)
 
-        scope = self.data.get("targets")
-
-        # 対象範囲修正
-        if scope == "Random":
-            scope = "Party"
-            someone = True
-            unreversed = False
-        elif scope == "Party":
-            someone = False
-            unreversed = True
-        elif scope == "Field":
-            scope = "FieldCasts"
-            someone = True
-            unreversed = False
-        else:
-            someone = True
-            unreversed = False
+        scope, someone, unreversed = self.scope, self.someone, self.unreversed
 
         # 互換動作: 1.20では選択中のメンバがいない状態で
         #           選択中のメンバでの所持判定を行うと
@@ -992,8 +978,6 @@ class BranchCouponContent(BranchContent):
 
         # 所持判定
         targets = cw.cwpy.event.get_targetscope(scope, unreversed)
-        flag = False
-        selectedmember = None
 
         # BUG: CardWirthでは複数の判定対象が想定される条件
         #      (「選択中のメンバ」以外)で、全員隠蔽等で
@@ -1004,28 +988,7 @@ class BranchCouponContent(BranchContent):
             cw.cwpy.event.clear_selectedmember()
             return self.get_boolean_index(scope <> "Selected")
 
-        for target in targets:
-            if not isinstance(target, list):
-                flag = target.has_coupon(coupon)
-
-                if flag and someone:
-                    selectedmember = target
-                    break
-                elif not flag and not someone:
-                    selectedmember = target
-                    break
-
-        # 選択設定
-        if scope <> "Selected":
-            if scope == "Party" and not someone and flag:
-                # BUG: CardWirthでは称号所持分岐と能力判定分岐で
-                #      「パーティ全員」判定が成功すると選択メンバがいなくなる
-                selectedmember = None
-
-            if selectedmember:
-                cw.cwpy.event.set_selectedmember(selectedmember)
-            else:
-                cw.cwpy.event.clear_selectedmember()
+        flag = _has_coupon(targets, self.coupon, scope, someone, False)
 
         return self.get_boolean_index(flag)
 
@@ -1594,13 +1557,64 @@ class BranchRoundContent(BranchContent):
             return u"%s %s 現在のバトルラウンドでない" % (round1, comparison)
 
 
+def _get_couponscope(scope):
+    if scope == "Random":
+        scope = "Party"
+        someone = True
+        unreversed = False
+    elif scope == "Party":
+        someone = False
+        unreversed = True
+    elif scope == "Field":
+        scope = "FieldCasts"
+        someone = True
+        unreversed = False
+    else:
+        someone = True
+        unreversed = False
+    return scope, someone, unreversed
+
+
+def _has_coupon(targets, coupon, scope, someone, multi):
+    flag = False
+    selectedmember = None
+    for target in targets:
+        if not isinstance(target, list):
+            flag = target.has_coupon(coupon)
+
+            if flag and someone:
+                selectedmember = target
+                break
+            elif not flag and not someone:
+                selectedmember = target
+                break
+
+    # 選択設定
+    if (not multi or flag) and scope <> "Selected":
+        if scope == "Party" and not someone and flag:
+            # BUG: CardWirthでは称号所持分岐と能力判定分岐で
+            #      「パーティ全員」判定が成功すると選択メンバがいなくなる
+            selectedmember = None
+
+        if selectedmember:
+            cw.cwpy.event.set_selectedmember(selectedmember)
+        else:
+            cw.cwpy.event.clear_selectedmember()
+
+    return flag
+
+
 class BranchMultiCouponContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.scope = self.data.get("targets", "Selected")
+        # 対象範囲修正
+        self.scope, self.someone, self.unreversed = _get_couponscope(self.scope)
 
     def action(self):
         """クーポン多岐分岐コンテント(Wsn.2)。"""
-        ccard = cw.cwpy.event.get_selectedmember()
+        # 所持判定
+        targets = cw.cwpy.event.get_targetscope(self.scope, self.unreversed)
 
         seq = []
         index = 0
@@ -1614,16 +1628,17 @@ class BranchMultiCouponContent(BranchContent):
                 if get_content(e).action() <> 0:
                     continue
 
-            name = e.get("name", "")
-            if name:
-                if ccard:
-                    if ccard.has_coupon(name):
-                        return index
+            coupon = e.get("name", "")
+            if coupon:
+                if _has_coupon(targets, coupon, self.scope, self.someone, True):
+                    return index
                 index += 1
             else:
                 # 「全て所有していない」分岐先
                 if idx_default == cw.IDX_TREEEND:
                     idx_default = index
+                if not targets:
+                    break
                 index += 1
 
         return idx_default
@@ -1633,10 +1648,14 @@ class BranchMultiCouponContent(BranchContent):
 
     def get_childname(self, child):
         name = self.get_contentname(child)
+
+        scope = self.data.get("targets", "Selected")
+        s2 = self.textdict.get(scope.lower(), "")
+
         if name:
-            return u"選択メンバが称号「%s」を所有している" % name
+            return u"%sが称号「%s」を所有している" % (s2, name)
         else:
-            return u"全て所有していない"
+            return u"%sが全ての称号を所有していない" % (s2)
 
 
 #-------------------------------------------------------------------------------
