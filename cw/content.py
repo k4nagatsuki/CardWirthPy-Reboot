@@ -1604,7 +1604,7 @@ class BranchMultiCouponContent(BranchContent):
 
         seq = []
         index = 0
-        defindex = cw.IDX_TREEEND
+        idx_default = cw.IDX_TREEEND
         for e in self.get_children():
             if e.tag == "ContentsLine":
                 e = e[0]
@@ -1622,10 +1622,11 @@ class BranchMultiCouponContent(BranchContent):
                 index += 1
             else:
                 # 「全て所有していない」分岐先
-                defindex = index
+                if idx_default == cw.IDX_TREEEND:
+                    idx_default = index
                 index += 1
 
-        return defindex
+        return idx_default
 
     def get_status(self):
         return u"クーポン多岐分岐コンテント"
