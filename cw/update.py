@@ -58,6 +58,9 @@ def update_files(dpath, rmname, permit=[]):
                     remove = True
                 else:
                     # ファイルの移動
+                    movetodir = os.path.dirname(moveto)
+                    if not os.path.isdir(movetodir):
+                        os.makedirs(movetodir)
                     shutil.move(fpath, moveto)
                     print u"Auto Update: Move from %s to %s." % (fpath, moveto)
                     continue
