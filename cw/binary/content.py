@@ -826,6 +826,8 @@ class Content(base.CWBinaryBase):
             f.check_wsnversion("1")
         elif tag == "Move" and ctype == "BgImage": # Wsn.1
             f.check_wsnversion("1")
+        elif tag == "Branch" and ctype == "MultiCoupon":  # Wsn.2
+            f.check_wsnversion("2")
         else:
             raise ValueError(tag + ", " + ctype)
 

@@ -1593,6 +1593,51 @@ class BranchRoundContent(BranchContent):
         else:
             return u"%s %s 現在のバトルラウンドでない" % (round1, comparison)
 
+
+class BranchMultiCouponContent(BranchContent):
+    def __init__(self, data):
+        BranchContent.__init__(self, data)
+
+    def action(self):
+        """クーポン多岐分岐コンテント(Wsn.2)。"""
+        ccard = cw.cwpy.event.get_selectedmember()
+
+        seq = []
+        index = 0
+        defindex = cw.IDX_TREEEND
+        for e in self.get_children():
+            if e.tag == "ContentsLine":
+                e = e[0]
+
+            # フラグ判定コンテントの場合、対応フラグがTrueだったら分岐先追加
+            if e.tag == "Check":
+                if get_content(e).action() <> 0:
+                    continue
+
+            name = e.get("name", "")
+            if name:
+                if ccard:
+                    if ccard.has_coupon(name):
+                        return index
+                index += 1
+            else:
+                # 「全て所有していない」分岐先
+                defindex = index
+                index += 1
+
+        return defindex
+
+    def get_status(self):
+        return u"クーポン多岐分岐コンテント"
+
+    def get_childname(self, child):
+        name = self.get_contentname(child)
+        if name:
+            return u"選択メンバが称号「%s」を所有している" % name
+        else:
+            return u"全て所有していない"
+
+
 #-------------------------------------------------------------------------------
 # Call系コンテント
 #-------------------------------------------------------------------------------

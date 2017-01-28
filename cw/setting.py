@@ -2435,6 +2435,7 @@ CWXEDITOR_RESOURCES = {
     "EVT_BRANCH_BEAST": "evt_br_beast.png",  # 召喚獣存在分岐
     "EVT_BRANCH_MONEY": "evt_br_money.png",  # 所持金分岐
     "EVT_BRANCH_COUPON": "evt_br_coupon.png",  # クーポン分岐
+    "EVT_BRANCH_MULTI_COUPON": "evt_br_multi_coupon.png",  # クーポン多岐分岐
     "EVT_BRANCH_COMPLETESTAMP": "evt_br_end.png",  # 終了済シナリオ分岐
     "EVT_BRANCH_GOSSIP": "evt_br_gossip.png",  # ゴシップ分岐
     "EVT_BRANCH_KEYCODE": "evt_br_keycode.png",  # キーコード所持分岐
