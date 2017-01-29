@@ -1184,7 +1184,7 @@ class ScenarioSelect(select.Select):
             return
 
         elif ret == wx.ID_YES:
-            failed, paths, cancelled = scenarioinstall.install_scenario(self, headers, dpath, self.db, cw.cwpy.setting.skintype)
+            failed, paths, cancelled = scenarioinstall.install_scenario(self, headers, self.scedir, dpath, self.db, cw.cwpy.setting.skintype)
 
             if paths:
                 firstpath = paths[0]

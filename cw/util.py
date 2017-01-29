@@ -3334,15 +3334,15 @@ def abbr_longstr(dc, text, w):
         text += u"..."
     return text
 
+
 class CheckableListCtrl(wx.ListCtrl,
                         wx.lib.mixins.listctrl.CheckListCtrlMixin,
                         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
     """チェックボックス付きのリスト。"""
-    def __init__(self, parent, cid, size, style, colpos=0):
+    def __init__(self, parent, cid, size, style, colpos=0, system=True):
         wx.ListCtrl.__init__(self, parent, cid, size=size, style=style|wx.LC_NO_HEADER)
         wx.lib.mixins.listctrl.CheckListCtrlMixin.__init__(self)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
-#        w, h = self.GetImageList(wx.IMAGE_LIST_SMALL).GetSize(0)
         for i in xrange(colpos+1):
             self.InsertColumn(i, u"")
 
@@ -3352,6 +3352,49 @@ class CheckableListCtrl(wx.ListCtrl,
         self.DeleteAllItems()
 
         self.resizeLastColumn(0)
+
+        self.imglist = self.GetImageList(wx.IMAGE_LIST_SMALL)
+        assert self.imglist.ImageCount == 2
+
+        if not system:
+            w, h = cw.cwpy.rsrc.debugs_noscale["NOCHECK"].GetSize()
+            w, h = cw.wins((w, h))
+
+            # CheckableListはImageListの0番と1番にチェックボックスの
+            # 画像を設定してチェックボックスが存在するように見せかけている
+            # そのため、他のアイコンのサイズがチェックボックス画像に一致しない
+            # 場合は独自のアイコンに差し替える必要がある
+            w2, h2 = self.imglist.GetSize(0)
+            if (w, h) <> (w2, h2):
+                self.imglist = wx.ImageList(w, h, True)
+                self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["NOCHECK"]))
+                self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["CHECK"]))
+                self.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
+
+        self._system = system
+        self._checking = False
+        self.OnCheckItem = self.DefaultOnCheckItem
+
+    def DefaultOnCheckItem(self, index, flag):
+        # チェック時に音を鳴らし、選択中のアイテムだった場合は
+        # 他の選択中のアイテムにもチェックを反映
+        if self._checking:
+            return
+        self._checking = True
+        if not self._system:
+            cw.cwpy.play_sound("page")
+        wx.lib.mixins.listctrl.CheckListCtrlMixin.OnCheckItem(self, index, flag)
+        i = self.GetNextItem(index-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+        if index == i:
+            index = -1
+            while True:
+                index = self.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+                if index < 0:
+                    break
+                if index <> i:
+                    self.CheckItem(index, flag)
+        self._checking = False
+
 
 class CWBackCheckBox(wx.CheckBox):
     def __init__(self, parent, id, text):

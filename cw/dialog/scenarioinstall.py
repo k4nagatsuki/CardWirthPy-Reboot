@@ -227,7 +227,7 @@ class ScenarioInstall(wx.Dialog):
         if not dstpath:
             return
 
-        failed, paths, cancelled = install_scenario(self, self.headers, dstpath, self.db, self.skintype)
+        failed, paths, cancelled = install_scenario(self, self.headers, self.scedir, dstpath, self.db, self.skintype)
 
         if paths:
             if 1 < len(paths):
@@ -303,13 +303,15 @@ def to_scenarioheaders(paths, db, skintype):
     パスがシナリオか否かの判定にシナリオDBを使用する。
     """
     headers = []
+    exists = set()
 
     for path in paths:
         def recurse(path):
             if cw.scenariodb.is_scenario(path):
                 header = db.search_path(path, skintype=skintype)
-                if header:
+                if header and not (header.name, header.author) in exists:
                     headers.append(header)
+                    exists.add((header.name, header.author))
             elif os.path.isdir(path):
                 for fname in os.listdir(path):
                     recurse(cw.util.join_paths(path, fname))
@@ -343,7 +345,7 @@ def create_dir(parentdialog, dpath):
         return u""
 
 
-def install_scenario(parentdialog, headers, dstpath, db, skintype):
+def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
     """
     headersをインストールする。
     進捗ダイアログが表示される。
@@ -360,33 +362,27 @@ def install_scenario(parentdialog, headers, dstpath, db, skintype):
             db_exists[header.get_fpath()] = header2
 
     if db_exists:
-        if 1 < len(db_exists):
-            s = u"%s本のシナリオがすでにインストール済みです。\n以前インストールしたシナリオを置換しますか？" % (len(db_exists))
-        else:
-            header2 = list(db_exists.itervalues())[0]
-            sname = header2.name if header2.name else u"(無名のシナリオ)"
-            if header2.author:
-                sname += u"(%s)" % header2.author
-            s = u"インストール済みの「%s」がシナリオデータベース上に見つかりました。\n以前インストールしたシナリオを置換しますか？" % (sname)
-        dlg = message.YesNoCancelMessage(parentdialog, cw.cwpy.msgs["message"], s)
+        dlg = OverwriteScenarioDialog(parentdialog, scedir, db_exists)
         cw.cwpy.frame.move_dlg(dlg)
         ret = dlg.ShowModal()
         dlg.Destroy()
-        if ret == wx.ID_CANCEL:
+        if ret <> wx.ID_OK:
             return True, [], True
-        elif ret <> wx.ID_YES:
-            db_exists.clear()
+        else:
+            db_repls = dlg.db_repls
+    else:
+        db_repls = {}
 
     # プログレスダイアログ表示
     dlg = cw.dialog.progress.ProgressDialog(parentdialog, u"シナリオのインストール",
                                             "", maximum=len(headers), cancelable=True)
 
     class InstallThread(threading.Thread):
-        def __init__(self, headers, dstpath, db_exists):
+        def __init__(self, headers, dstpath, db_repls):
             threading.Thread.__init__(self)
             self.headers = headers
             self.dstpath = dstpath
-            self.db_exists = db_exists
+            self.db_repls = db_repls
             self.num = 0
             self.msg = u""
             self.failed = None
@@ -402,12 +398,12 @@ def install_scenario(parentdialog, headers, dstpath, db, skintype):
                 try:
                     self.msg = u"「%s」をコピーしています..." % (header.name)
                     fpath = header.get_fpath()
-                    header2 = self.db_exists.get(fpath, None)
-                    rmpath = u""
-                    if header2:
+                    repls = self.db_repls.get(fpath, [])
+                    rmpaths = []
+                    if repls:
                         # DBに登録されている既存のシナリオを置換
-                        dst = cw.util.join_paths(header2.dpath, os.path.basename(fpath))
-                        rmpath = header2.get_fpath()
+                        dst = cw.util.join_paths(os.path.dirname(repls[0]), os.path.basename(fpath))
+                        rmpaths = list(repls)
                     else:
                         # 指定箇所にインストール
                         dst = cw.util.join_paths(self.dstpath, os.path.basename(fpath))
@@ -437,7 +433,7 @@ def install_scenario(parentdialog, headers, dstpath, db, skintype):
                                     ret = allret[0]
 
                                 if ret == wx.ID_YES:
-                                    rmpath = dst
+                                    rmpaths.append(dst)
                                 elif ret == wx.ID_NO:
                                     self.num += 1
                                     continue
@@ -448,7 +444,7 @@ def install_scenario(parentdialog, headers, dstpath, db, skintype):
 
                     if os.path.normcase(os.path.normpath(os.path.abspath(fpath))) <> \
                             os.path.normcase(os.path.normpath(os.path.abspath(dst))):
-                        if rmpath:
+                        for rmpath in rmpaths:
                             cw.util.remove(rmpath, trashbox=True)
                         if cw.cwpy.setting.delete_sourceafterinstalled:
                             try:
@@ -478,7 +474,7 @@ def install_scenario(parentdialog, headers, dstpath, db, skintype):
                     self.failed = header
                     break
 
-    thread = InstallThread(headers, dstpath, db_exists)
+    thread = InstallThread(headers, dstpath, db_repls)
     thread.start()
 
     def progress():
@@ -504,6 +500,137 @@ def install_scenario(parentdialog, headers, dstpath, db, skintype):
             db.update(dpath, skintype=skintype)
 
     return thread.failed, thread.paths, False
+
+
+class OverwriteScenarioDialog(wx.Dialog):
+    """
+    インストールして上書きするシナリオを選択するダイアログ
+    """
+    def __init__(self, parent, scedir, db_exists):
+        wx.Dialog.__init__(self, parent, -1, u"シナリオ置換対象の選択",
+                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER,
+                           size=cw.wins((500, 400)))
+        self.db_exists = db_exists
+        self.scedir = scedir
+        self.keys = []
+        self.db_repls = {}
+
+        # メッセージ
+        if 1 < len(self.db_exists):
+            s = u"%s本のシナリオがすでにインストール済みです。" % (len(self.db_exists))
+        else:
+            header2 = list(self.db_exists.itervalues())[0]
+            sname = header2[0].name if header2[0].name else u"(無名のシナリオ)"
+            if header2[0].author:
+                sname += u"(%s)" % header2[0].author
+            s = u"インストール済みの「%s」がシナリオデータベース上に見つかりました。" % (sname)
+        s += u"以前インストールしたシナリオを置換する場合は、置換対象をチェックしてください。"
+        if any(map(lambda headers : 1 < len(headers), db_exists.itervalues())):
+            s += u"\n同一のシナリオを複数チェックした場合は、最初の1件が置換され、残りは削除されます。"
+        self.text = s
+
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
+        self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((400, 400)),
+                                                  style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL,
+                                                  system=False)
+        self.datalist.SetFont(font)
+
+        for fpath in sorted(self.db_exists.iterkeys()):
+            self.keys.append(fpath)
+            headers = self.db_exists[fpath]
+            for index, header in enumerate(headers):
+                sname = header.name if header.name else u"(無名のシナリオ)"
+                if header.author:
+                    sname += u"(%s)" % header.author
+                fpath = header.get_fpath()
+                rel = cw.util.relpath(fpath, os.path.abspath(u"."))
+                if cw.util.join_paths(rel).startswith(u"../"):
+                    rel = header.get_fpath()
+                self.datalist.InsertStringItem(index, u"%s - %s" % (sname, cw.util.join_paths(rel)))
+                self.datalist.CheckItem(index, (index == 0))
+
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((100, 30)), cw.cwpy.msgs["cancel"])
+
+        # layout
+        self._resize()
+        self._do_layout()
+        # bind
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        for child in self.GetChildren():
+            child.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_SIZE, self.OnResize)
+
+    def OnResize(self, event):
+        if not self.datalist.IsShown():
+            return
+
+        self._resize()
+
+        self._do_layout()
+        self.Refresh()
+
+    def _resize(self):
+        """
+        テキストの折り返し位置を計算する。
+        """
+        dc = wx.ClientDC(self)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
+        csize = self.GetClientSize()
+        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20), lambda s: dc.GetTextExtent(s)[0])
+        _w, self._textheight, _lineheight = dc.GetMultiLineTextExtent(self._wrapped_text)
+
+    def OnOk(self, event):
+        cw.cwpy.play_sound("click")
+        self.db_repls = {}
+        index = 0
+        for fpath in self.keys:
+            headers = self.db_exists[fpath]
+            repls = []
+            for header in headers:
+                checked = self.datalist.IsChecked(index)
+                if checked:
+                    repls.append(header.get_fpath())
+                index += 1
+            if repls:
+                self.db_repls[fpath] = repls
+        self.EndModal(wx.ID_OK)
+
+    def OnCancel(self, event):
+        cw.cwpy.play_sound("click")
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+    def OnPaint(self, evt):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+        # massage
+        dc.SetTextForeground(wx.BLACK)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
+        dc.DrawLabel(self._wrapped_text, (cw.wins(10), cw.wins(12), csize[0], self._textheight), wx.ALIGN_LEFT)
+
+    def _do_layout(self):
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_1.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
+        csize = self.GetClientSize()
+
+        sizer_1.Add(self.datalist, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.wins(8))
+
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2.AddStretchSpacer(1)
+        for i, button in enumerate((self.okbtn, self.cnclbtn)):
+            sizer_2.Add(button, 0, 0, 0)
+            sizer_2.AddStretchSpacer(1)
+
+        sizer_1.Add(sizer_2, 0, wx.EXPAND|wx.TOP|wx.BOTTOM, cw.wins(12))
+
+        self.SetSizer(sizer_1)
+        self.Layout()
 
 
 def create_installdesc(headers):

@@ -41,23 +41,12 @@ class TransferYadoDataDialog(wx.Dialog):
 
         # 転送可能なデータリスト
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
-        self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((300, 300)), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL, colpos=1)
+        self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((300, 300)),
+                                                  style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL,
+                                                  colpos=1, system=False)
         self.datalist.SetFont(font)
-        self.imglist = self.datalist.GetImageList(wx.IMAGE_LIST_SMALL)
+        self.imglist = self.datalist.imglist
         assert self.imglist.ImageCount == 2
-
-        w, h = cw.cwpy.rsrc.debugs_noscale["NOCHECK"].GetSize()
-        w, h = cw.wins((w, h))
-
-        # CheckableListはImageListの0番と1番にチェックボックスの
-        # 画像を設定してチェックボックスが存在するように見せかけている
-        # そのため、他のアイコンのサイズがチェックボックス画像に一致しない
-        # 場合は独自のアイコンに差し替える必要がある
-        w2, h2 = self.imglist.GetSize(0)
-        if (w, h) <> (w2, h2):
-            self.imglist = wx.ImageList(w, h, True)
-            self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["NOCHECK"]))
-            self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["CHECK"]))
         self.imgidx_bookmark = self.imglist.Add(cw.cwpy.rsrc.dialogs["BOOKMARK"])
         self.imgidx_party = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["MEMBER"]))
         self.imgidx_standby = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_CAST"]))
@@ -72,26 +61,9 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imgidx_savedjpdcimage = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["JPDCIMAGE"]))
         self.datalist.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
 
-        self._checking = False
         def func(index, flag):
-            # チェック時に音を鳴らし、選択中のアイテムだった場合は
-            # 他の選択中のアイテムにもチェックを反映
-            if self._checking:
-                return
-            self._checking = True
-            cw.cwpy.play_sound("page")
-            cw.util.CheckableListCtrl.OnCheckItem(self.datalist, index, flag)
-            i = self.datalist.GetNextItem(index-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-            if index == i:
-                index = -1
-                while True:
-                    index = self.datalist.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-                    if index < 0:
-                        break
-                    if index <> i:
-                        self.datalist.CheckItem(index, flag)
+            self.datalist.DefaultOnCheckItem(index, flag)
             self._enable_btn()
-            self._checking = False
         self.datalist.OnCheckItem = func
 
         self.datalist.InsertImageStringItem(0, u"", 0)

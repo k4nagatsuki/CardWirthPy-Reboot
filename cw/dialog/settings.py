@@ -1963,7 +1963,9 @@ class AudioSettingPanel(wx.Panel):
         self.btn_rmvsoundfont = wx.Button(self, -1, u"削除")
         self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(cw.ppis(25), -1))
         self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(cw.ppis(25), -1))
-        self.list_soundfont = cw.util.CheckableListCtrl(self, -1, size=(_settings_width(), -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
+        self.list_soundfont = cw.util.CheckableListCtrl(self, -1, size=(_settings_width(), -1),
+                                                        style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL,
+                                                        system=True)
 
         self._do_layout()
         self._bind()
@@ -2006,6 +2008,7 @@ class AudioSettingPanel(wx.Panel):
         self.list_soundfont.OnCheckItem = self.OnGridCellChanged
 
     def OnGridCellChanged(self, index, flag):
+        self.list_soundfont.DefaultOnCheckItem(index, flag)
         self.GetTopLevelParent().applied()
 
     def _do_layout(self):
