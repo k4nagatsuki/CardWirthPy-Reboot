@@ -464,6 +464,9 @@ def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
                             shutil.copy2(fpath, dst)
                         else:
                             shutil.copytree(fpath, dst)
+                    elif repls:
+                        for rmpath in repls:
+                            cw.util.remove(rmpath, trashbox=True)
 
                     self.updates.add(os.path.dirname(dst))
 
