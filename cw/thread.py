@@ -423,42 +423,46 @@ class CWPy(_Singleton, threading.Thread):
         if self.rsrc:
             self.rsrc.dispose()
         self.rsrc = None
-        self.update_scale(cw.UP_WIN, changearea, rsrconly=True)
 
-        if self.is_battlestatus() and self.battle:
-            for ccard in self.get_pcards("unreversed"):
-                ccard.deck.set(ccard)
-                if self.battle.is_ready():
-                    ccard.decide_action()
-            for ccard in self.get_ecards("unreversed"):
-                ccard.deck.set(ccard)
-                if self.battle.is_ready():
-                    ccard.decide_action()
-            for ccard in self.get_fcards():
-                ccard.deck.set(ccard)
-                if self.battle.is_ready():
-                    ccard.decide_action()
+        def func():
+            assert self.rsrc
 
-        self.update_titlebar()
+            if self.is_battlestatus() and self.battle:
+                for ccard in self.get_pcards("unreversed"):
+                    ccard.deck.set(ccard)
+                    if self.battle.is_ready():
+                        ccard.decide_action()
+                for ccard in self.get_ecards("unreversed"):
+                    ccard.deck.set(ccard)
+                    if self.battle.is_ready():
+                        ccard.decide_action()
+                for ccard in self.get_fcards():
+                    ccard.deck.set(ccard)
+                    if self.battle.is_ready():
+                        ccard.decide_action()
 
-        if scedir <> self.setting.get_scedir():
-            self.setting.lastscenario = []
-            self.setting.lastscenariopath = u""
+            self.update_titlebar()
 
-        if self.ydata:
-            self.ydata._changed = changed
+            if scedir <> self.setting.get_scedir():
+                self.setting.lastscenario = []
+                self.setting.lastscenariopath = u""
 
-        if self.status == "Title" and restartop:
-            # タイトル画面にいる場合はロゴ表示前まで戻す
-            if self.topgrp.sprites():
-                # アニメーション中なら中止してから戻す
-                self.exec_func(self.startup, loadyado=False)
-                raise cw.event.EffectBreakError()
+            if self.ydata:
+                self.ydata._changed = changed
+
+            if self.status == "Title" and restartop:
+                # タイトル画面にいる場合はロゴ表示前まで戻す
+                if self.topgrp.sprites():
+                    # アニメーション中なら中止してから戻す
+                    self.exec_func(self.startup, loadyado=False)
+                    raise cw.event.EffectBreakError()
+                else:
+                    self.startup(loadyado=False)
             else:
-                self.startup(loadyado=False)
-        else:
-            for music in self.music:
-                music.play(music.path, updatepredata=False)
+                for music in self.music:
+                    music.play(music.path, updatepredata=False)
+
+        self.update_scale(cw.UP_WIN, changearea, rsrconly=True, afterfunc=func)
 
     def update_yadoinitial(self):
         if not self.ydata or self.ydata.party or self.is_playingscenario():
@@ -528,7 +532,7 @@ class CWPy(_Singleton, threading.Thread):
             return d
 
     def update_scale(self, scale, changearea=True, rsrconly=False, udpatedrawsize=True,
-                     displaysize=None):
+                     displaysize=None, afterfunc=None):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
@@ -536,7 +540,11 @@ class CWPy(_Singleton, threading.Thread):
         if displaysize is None and fullscreen:
             def func():
                 dsize = self.frame.get_displaysize()
-                self.exec_func(self.update_scale, scale, changearea, rsrconly, udpatedrawsize, dsize)
+                def func():
+                    self.update_scale(scale, changearea, rsrconly, udpatedrawsize, dsize)
+                    if afterfunc:
+                        afterfunc()
+                self.exec_func(func)
             self.frame.exec_func(func)
             return
 
@@ -625,6 +633,9 @@ class CWPy(_Singleton, threading.Thread):
         self.update_scaling = False
         if udpatedrawsize and not self.background.reload_jpdcimage and self.background.has_jpdcimage:
             self.background.reload(False, ttype=(None, None))
+
+        if afterfunc:
+            afterfunc()
 
         if changearea:
             def func():
