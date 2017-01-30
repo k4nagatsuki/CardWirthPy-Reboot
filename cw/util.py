@@ -33,9 +33,9 @@ if sys.platform == "win32":
     pythoncom = importlib.import_module("pythoncom")
     win32shell = importlib.import_module("win32com.shell.shell")
     import win32com.shell.shellcon
-    import win32file
     import pywintypes
     import ctypes.wintypes
+    import msvcrt
 
 import wx
 import wx.lib.agw.aui.tabart
@@ -3889,45 +3889,38 @@ def create_mutex(dpath):
 
     # 二重起動防止 for Windows
     if sys.platform == "win32":
-        try:
-            # ロック済みの場合はここで例外が発生する
-            if os.path.isfile(name):
-                os.remove(name)
+        # BUG: win32file.LockFileEx()とwin32file.UnlockFileEx()を使うと、
+        #      なぜかこの関数を抜けた後でロック解除がうまくいかなくなる
+        kernel32 = ctypes.windll.kernel32
+        class OVERLAPPED(ctypes.Structure):
+            _fields_ = [
+                ('Internal', ctypes.wintypes.DWORD),
+                ('InternalHigh', ctypes.wintypes.DWORD),
+                ('Offset', ctypes.wintypes.DWORD),
+                ('OffsetHigh', ctypes.wintypes.DWORD),
+                ('hEvent', ctypes.wintypes.HANDLE),
+            ]
 
-            # BUG: win32file.LockFileEx()とwin32file.UnlockFileEx()を使うと、
-            #      なぜかこの関数を抜けた後でロック解除がうまくいかなくなる
-            kernel32 = ctypes.windll.kernel32
-            class OVERLAPPED(ctypes.Structure):
-                _fields_ = [
-                    ('Internal', ctypes.wintypes.DWORD),
-                    ('InternalHigh', ctypes.wintypes.DWORD),
-                    ('Offset', ctypes.wintypes.DWORD),
-                    ('OffsetHigh', ctypes.wintypes.DWORD),
-                    ('hEvent', ctypes.wintypes.HANDLE),
-                ]
+        f = open(name, "w")
+        handle = msvcrt.get_osfhandle(f.fileno())
+        if kernel32.LockFileEx(handle,
+                               win32con.LOCKFILE_FAIL_IMMEDIATELY|win32con.LOCKFILE_EXCLUSIVE_LOCK,
+                               0, 0, 0xffff0000, ctypes.byref(OVERLAPPED())):
+            class Unlock(object):
+                def __init__(self, name, f):
+                    self.name = name
+                    self.f = f
 
-            f = open(name, "w")
-            handle = win32file._get_osfhandle(f.fileno())
-            if kernel32.LockFileEx(handle,
-                                   win32con.LOCKFILE_FAIL_IMMEDIATELY|win32con.LOCKFILE_EXCLUSIVE_LOCK,
-                                   0, 0, 0xffff0000, ctypes.byref(OVERLAPPED())):
-                class Unlock(object):
-                    def __init__(self, name, f):
-                        self.name = name
-                        self.f = f
+                def unlock(self):
+                    if self.f:
+                        handle = msvcrt.get_osfhandle(self.f.fileno())
+                        kernel32.UnlockFileEx(handle, 0, 0, 0xffff0000, ctypes.byref(OVERLAPPED()))
+                        self.f = None
+                        remove(self.name)
 
-                    def unlock(self):
-                        if self.f:
-                            handle = win32file._get_osfhandle(self.f.fileno())
-                            kernel32.UnlockFileEx(handle, 0, 0, 0xffff0000, ctypes.byref(OVERLAPPED()))
-                            self.f = None
-                            remove(self.name)
-
-                _mutex.append((Unlock(name, f), name))
-                return True
-            else:
-                return False
-        except:
+            _mutex.append((Unlock(name, f), name))
+            return True
+        else:
             return False
     else:
         # Posix
