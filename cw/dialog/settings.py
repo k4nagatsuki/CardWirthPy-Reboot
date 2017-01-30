@@ -3075,7 +3075,16 @@ class FontSettingPanel(wx.Panel):
         else:
             face = self.base.GetCellValue(self.bases.index(fonttype), 0)
         if face == self.str_default:
-            face = cw.cwpy.rsrc.fontnames_init[fonttype]
+            if cw.cwpy:
+                d = cw.cwpy.rsrc.fontnames_init
+            else:
+                d = {}
+                d["gothic"] = u"IPAゴシック"
+                d["uigothic"] = u"IPA UIゴシック"
+                d["mincho"] = u"IPA明朝"
+                d["pmincho"] = u"IPA P明朝"
+                d["pgothic"] = u"IPA Pゴシック"
+            face = d[fonttype]
         return face
 
     def _select_type(self, i):
