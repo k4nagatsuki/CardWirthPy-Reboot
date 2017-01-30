@@ -2001,6 +2001,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_gameover(self):
         """ゲームオーバー画面へ遷移。"""
+        cw.cwpy.sdata.in_endprocess = True
+
         cw.cwpy.advlog.gameover()
         self.set_status("GameOver")
         del self.pre_dialogs[:]
@@ -2039,6 +2041,8 @@ class CWPy(_Singleton, threading.Thread):
         """
         if load_failure == False and not self.is_playingscenario():
             return
+        if self.sdata.in_endprocess:
+            return
 
         self.clean_specials()
         def func():
@@ -2050,6 +2054,11 @@ class CWPy(_Singleton, threading.Thread):
         self.exec_func(func)
 
     def _f9impl(self, startotherscenario=False):
+        if self.sdata.in_endprocess:
+            return
+
+        self.sdata.in_endprocess = True
+
         cw.cwpy.advlog.f9()
         self.sdata.is_playing = False
         self.statusbar.change(False)

@@ -2286,6 +2286,10 @@ def end_scenario(complete):
     # メニューカード全て非表示
     cw.cwpy.hide_cards(True)
 
+    if cw.cwpy.sdata.in_f9:
+        return
+    cw.cwpy.sdata.in_endprocess = True
+
     # キャンセル可能な対象消去状態だったメンバを復元する(互換動作)
     if cw.cwpy.ydata.party.vanished_pcards:
         cw.util.sort_by_attr(cw.cwpy.ydata.party.vanished_pcards, "index")

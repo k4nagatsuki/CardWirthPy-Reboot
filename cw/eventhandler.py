@@ -501,7 +501,8 @@ class EventHandler(object):
             cw.cwpy.play_sound("signal")
             cw.cwpy.call_modaldlg("F9")
 
-        elif cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9 and not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
+        elif cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_endprocess and not cw.cwpy.sdata.in_f9 and\
+                not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
             fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
             path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party", fname)
             if os.path.isfile(path):

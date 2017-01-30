@@ -78,6 +78,7 @@ class SystemData(object):
         self.autostart_round = False
         self.breakpoints = set()
         self.in_f9 = False
+        self.in_endprocess = False
         self.background_image_mtime = {}
 
         # "file.x2.bmp"などのスケーリングされたイメージを読み込むか
@@ -657,6 +658,7 @@ class ScenarioData(SystemData):
         self.data = None
         self.is_playing = True
         self.in_f9 = False
+        self.in_endprocess = False
         self.background_image_mtime = {}
         self.fpath = cw.util.get_linktarget(header.get_fpath())
         self.mtime = os.path.getmtime(self.fpath)
