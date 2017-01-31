@@ -1678,7 +1678,10 @@ class BranchMultiRandomContent(BranchContent):
             
             targets.append(index)
             index += 1
-            
+
+        if not targets:
+            return cw.IDX_TREEEND
+
         return cw.cwpy.dice.choice(targets)
 
     def get_status(self):
