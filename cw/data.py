@@ -2282,6 +2282,12 @@ class YadoData(object):
             adventurerorder[fpath] = header.order
             adventurertable[fpath] = header
 
+        # アルバム(順序情報なし)
+        for header in self.album:
+            if not header.fpath.lower().startswith("yado"):
+                fpath = cw.util.relpath(header.fpath, self.tempdir)
+                header.fpath = header.fpath.replace(self.tempdir, self.yadodir, 1)
+
         # ScenarioLog更新
         if cw.cwpy.is_playingscenario():
             logfilepath = cw.cwpy.advlog.logfilepath
