@@ -3979,16 +3979,16 @@ def exists_mutex(dpath):
             return True
 
 @synclock(_lock_mutex)
-def release_mutex():
+def release_mutex(index=-1):
     global _mutex
     if _mutex:
         if sys.platform == "win32":
-            _mutex[-1][0].unlock()
+            _mutex[index][0].unlock()
         else:
-            fcntl.flock(_mutex[-1][0].fileno(), fcntl.LOCK_UN)
-            _mutex[-1][0].close()
-            remove(_mutex[-1][1])
-        del _mutex[-1]
+            fcntl.flock(_mutex[index][0].fileno(), fcntl.LOCK_UN)
+            _mutex[index][0].close()
+            remove(_mutex[index][1])
+        _mutex.pop(index)
 
 @synclock(_lock_mutex)
 def clear_mutex():

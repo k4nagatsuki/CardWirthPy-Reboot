@@ -15,6 +15,7 @@ import re
 import threading
 import copy
 import ConfigParser
+import time
 import wx
 import pygame
 import pygame.locals
@@ -861,7 +862,7 @@ class Setting(object):
         """
         dpath = os.path.dirname(path)
         while not cw.util.create_mutex(dpath):
-            pass
+            time.sleep(0.001)
 
         try:
             data = cw.data.xml2etree(path)

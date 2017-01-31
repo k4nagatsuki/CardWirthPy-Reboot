@@ -2358,12 +2358,24 @@ class CWPy(_Singleton, threading.Thread):
 
     def _load_yado(self, yadodir, createmutex):
         if createmutex:
-            if cw.util.create_mutex(yadodir):
-                cw.tempdir = cw.util.join_paths(u"Data/Temp/Local", yadodir)
+            if cw.util.create_mutex(u"Yado"):
+                if cw.util.create_mutex(yadodir):
+                    try:
+                        cw.tempdir = cw.util.join_paths(u"Data/Temp/Local", yadodir)
+                        return self._load_yado2(yadodir)
+                    finally:
+                        cw.util.release_mutex(-2)
+                else:
+                    cw.util.release_mutex()
+                    cw.cwpy.play_sound("error")
+                    return False
             else:
                 cw.cwpy.play_sound("error")
                 return False
+        else:
+            return self._load_yado2(yadodir)
 
+    def _load_yado2(self, yadodir):
         del self.pre_dialogs[:]
         del self.pre_areaids[:]
 
