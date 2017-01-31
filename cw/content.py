@@ -1658,6 +1658,33 @@ class BranchMultiCouponContent(BranchContent):
             return u"%sが全ての称号を所有していない" % (s2)
 
 
+class BranchMultiRandomContent(BranchContent):
+    def __init__(self, data):
+        BranchContent.__init__(self, data)
+
+    def action(self):
+        """ランダム多肢分岐コンテント(Wsn.2)。"""
+        
+        index = 0
+        targets = []
+        for e in self.get_children():
+            if e.tag == "ContentsLine":
+                e = e[0]
+
+            # フラグ判定コンテントの場合、対応フラグがTrueだったら分岐先追加
+            if e.tag == "Check":
+                if get_content(e).action() <> 0:
+                    continue
+            
+            targets.append(index)
+            index += 1
+            
+        return cw.cwpy.dice.choice(targets)
+
+    def get_status(self):
+        return u"ランダム多肢分岐コンテント"
+
+
 #-------------------------------------------------------------------------------
 # Call系コンテント
 #-------------------------------------------------------------------------------
