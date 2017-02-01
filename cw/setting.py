@@ -2419,6 +2419,7 @@ CWXEDITOR_RESOURCES = {
     "EVT_BRANCH_SELECT": "evt_br_member.png",  # メンバ選択
     "EVT_BRANCH_ABILITY": "evt_br_power.png",  # 能力判定分岐
     "EVT_BRANCH_RANDOM": "evt_br_random.png",  # ランダム分岐
+    "EVT_BRANCH_MULTI_RANDOM": "evt_br_multi_random.png",  # ランダム多岐分岐
     "EVT_BRANCH_LEVEL": "evt_br_level.png",  # レベル判定分岐
     "EVT_BRANCH_STATUS": "evt_br_state.png",  # 状態判定分岐
     "EVT_BRANCH_PARTYNUMBER": "evt_br_num.png",  # 人数判定
