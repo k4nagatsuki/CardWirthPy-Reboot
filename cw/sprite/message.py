@@ -212,6 +212,10 @@ class MessageWindow(base.CWPySprite):
             return
 
         if not self.charimgs:
+            self.is_drawing = False
+            cw.cwpy.has_inputevent = True
+            self.frame = 0
+            self.create_selectionbar()
             return
 
         if not self._fore:
