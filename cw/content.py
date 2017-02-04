@@ -1663,7 +1663,7 @@ class BranchMultiRandomContent(BranchContent):
         BranchContent.__init__(self, data)
 
     def action(self):
-        """ランダム多肢分岐コンテント(Wsn.2)。"""
+        """ランダム多岐分岐コンテント(Wsn.2)。"""
         
         index = 0
         targets = []
@@ -1685,7 +1685,7 @@ class BranchMultiRandomContent(BranchContent):
         return cw.cwpy.dice.choice(targets)
 
     def get_status(self):
-        return u"ランダム多肢分岐コンテント"
+        return u"ランダム多岐分岐コンテント"
 
 
 #-------------------------------------------------------------------------------
