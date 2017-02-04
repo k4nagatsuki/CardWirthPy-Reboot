@@ -15,8 +15,8 @@ class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, imgpaths=[][:], talker=None,
                  pos_noscale=None, size_noscale=None,
                  nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
-                 backlog=False, result=None, showing_result=-1, versionhint="", specialchars=None, textimg=None,
-                 trim_top_noscale=0, columns=1, spcharinfo=None):
+                 backlog=False, result=None, showing_result=-1, versionhint="", specialchars=None,
+                 trim_top_noscale=0, columns=1, spcharinfo=None, centering_y=False):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -24,6 +24,7 @@ class MessageWindow(base.CWPySprite):
             size_noscale = (470, 180)
         self.trim_top_noscale = trim_top_noscale
         self.columns = columns
+        self.centering_y = centering_y
 
         self.backlog = backlog
         self._barspchr = True
@@ -79,9 +80,9 @@ class MessageWindow(base.CWPySprite):
             cw.cwpy.index = -1
 
         # スピードが0かバックログの場合、最初から全て描画
-        if self.speed == 0 or self.backlog or textimg:
+        if self.speed == 0 or self.backlog:
             self.speed = 1
-            self.draw_all(textimg)
+            self.draw_all()
 
         # spritegroupに追加
         if self.backlog:
@@ -166,9 +167,8 @@ class MessageWindow(base.CWPySprite):
             y += baserect.y
             cw.imageretouch.blit_2bitbmp_to_message(self.image, talker_image, (x, y), wincolour)
 
-        self._fore = pygame.Surface(cw.s((470, 180))).convert_alpha()
-        self._fore.fill((0, 0, 0, 0))
-        self._back = self._fore.copy()
+        self._back = None
+        self._fore = None
 
     def update_scale(self):
         if self.specialchars:
@@ -202,23 +202,24 @@ class MessageWindow(base.CWPySprite):
         return (MessageWindow.is_sbold(), cw.cwpy.setting.fonttypes["message"],
                 cw.UP_SCR, cw.cwpy.setting.decorationfont)
 
-    def draw_all(self, textimg=None):
-        if textimg:
-            # ログなどですでに描画した文字列が存在する
-            self.is_drawing = False
-            cw.cwpy.has_inputevent = True
-            self.frame = 0
-            y = -cw.s(self.trim_top_noscale)
-            self.image.blit(textimg, (0, y))
-            self.create_selectionbar()
-        else:
-            while self.is_drawing:
-                self.draw_char()
+    def draw_all(self):
+        while self.is_drawing:
+            self.draw_char()
 
     def draw_char(self):
         if self.speed and self.frame % self.speed:
             self.frame += 1
             return
+
+        if not self.charimgs:
+            return
+
+        if not self._fore:
+            h = self.blockbottom_noscale-self.blocktop_noscale
+            h += 9
+            self._fore = pygame.Surface(cw.s((470, h))).convert_alpha()
+            self._fore.fill((0, 0, 0, 0))
+            self._back = self._fore.copy()
 
         font = cw.cwpy.rsrc.fonts["message"]
         lineheight = font.get_height()
@@ -228,12 +229,21 @@ class MessageWindow(base.CWPySprite):
             pos, txtimg, txtimg2, txtimg3 = self.charimgs[chridx]
             size = None
 
+            if self.centering_y:
+                shifty = cw.s((180 - (self.blockbottom_noscale-self.blocktop_noscale)) // 2)
+                shifty -= cw.s(self.blocktop_noscale)
+                bt = cw.s(self.blocktop_noscale)
+            else:
+                shifty = cw.s(0)
+                bt = cw.s(0)
+            tt = cw.s(self.trim_top_noscale)
+
             if txtimg2:
                 if self.backlog:
                     wincolour = cw.cwpy.setting.blwincolour
                 else:
                     wincolour = cw.cwpy.setting.mwincolour
-                pos2 = (pos[0], pos[1] - cw.s(self.trim_top_noscale))
+                pos2 = (pos[0], pos[1] - tt + shifty)
                 cw.imageretouch.blit_2bitbmp_to_message(self.image, txtimg2, pos2, wincolour)
                 size = txtimg2.get_size()
 
@@ -241,23 +251,26 @@ class MessageWindow(base.CWPySprite):
             if txtimg3:
                 for x in xrange(pos[0]-1, pos[0]+2):
                     for y in xrange(pos[1]-1, pos[1]+2):
-                        self._back.blit(txtimg3, (x, y))
+                        self._back.blit(txtimg3, (x, y-bt))
                         if sbold:
-                            self._back.blit(txtimg3, (x+1, y))
+                            self._back.blit(txtimg3, (x+1, y-bt))
 
             if txtimg:
-                self._fore.blit(txtimg, pos)
+                self._fore.blit(txtimg, (pos[0], pos[1]-bt))
                 if sbold:
-                    self._fore.blit(txtimg, (pos[0]+1, pos[1]))
+                    self._fore.blit(txtimg, (pos[0]+1, pos[1]-bt))
 
                 size = txtimg.get_size()
 
             if size:
                 area1 = pygame.Rect(pos[0]-1, pos[1]-1, size[0]+3, size[1]+2)
                 area2 = pygame.Rect(area1)
-                area1.top -= cw.s(self.trim_top_noscale)
-                self.image.blit(self._back, area1, area2)
-                self.image.blit(self._fore, area1, area2)
+                if self.centering_y:
+                    area2.top -= cw.s(self.blocktop_noscale)
+                    area1.top += shifty
+                area1.top -= tt
+                self.image.blit(self._back, area1.topleft, area2)
+                self.image.blit(self._fore, area1.topleft, area2)
             self.frame += 1
         else:
             self.is_drawing = False
@@ -307,7 +320,7 @@ class MessageWindow(base.CWPySprite):
                 w = max(map(calc_w, self.talker_image))
             else:
                 w = cw.s(74)
-            posp = pos = pos[0] + cw.s(26) + w, pos[1]
+            posp = pos = pos[0] + cw.s(25) + w, pos[1]
         else:
             if not self.backlog and init:
                 self.text, self.spcharinfo = self.rpl_specialstr(True, self.text)
@@ -333,12 +346,19 @@ class MessageWindow(base.CWPySprite):
         # 左右接続のために伸ばす文字
         r_join = re.compile(u"[―─＿￣]")
 
+        # 縦方向中央寄せのための基準位置
+        self.blocktop_noscale = 0x7fffffff
+        self.blockbottom_noscale = -0x7fffffff - 1
+
         bottom = self.rect_noscale[3]-yp_noscale-lineheight_noscale*7
         def put_topbottom(y, height):
             self.top_noscale = min(y-yp_noscale, self.top_noscale)
             self.bottom_noscale = max(y+height+bottom, self.bottom_noscale)
             self.top_noscale = max(0, self.top_noscale)
             self.bottom_noscale = min(self.rect_noscale[3], self.bottom_noscale)
+
+            self.blocktop_noscale = min(y, self.blocktop_noscale)
+            self.blockbottom_noscale = max(y+height, self.blockbottom_noscale)
 
         y_noscale = yp_noscale
         for index, char in enumerate(self.text):
@@ -350,7 +370,7 @@ class MessageWindow(base.CWPySprite):
                 log_seq.append(u"\n")
 
                 # 8行以下の文字列は表示しない
-                if cnt > 6:
+                if cnt > 6 and not self.centering_y:
                     break
                 else:
                     continue
@@ -435,8 +455,20 @@ class MessageWindow(base.CWPySprite):
 
             pos = pos[0] + cwidth, pos[1]
 
+        if self.centering_y:
+            top = (180 - (self.blockbottom_noscale - self.blocktop_noscale)) // 2
+            self.top_noscale = top - 9
+            self.bottom_noscale = top + (self.blockbottom_noscale - self.blocktop_noscale) + 9
+
+            self.top_noscale = max(0, self.top_noscale)
+            self.bottom_noscale = min(self.rect_noscale[3], self.bottom_noscale)
+
+        if self.blockbottom_noscale <= self.blocktop_noscale:
+            self.top_noscale = 9
+            self.bottom_noscale = self.rect_noscale[3] - bottom
+
         if self.bottom_noscale <= self.top_noscale:
-            self.top_noscale = cw.s(0)
+            self.top_noscale = 0
             self.bottom_noscale = yp_noscale + bottom
 
         self.text_log = u"".join(log_seq)
@@ -512,7 +544,7 @@ class MessageWindow(base.CWPySprite):
 
 class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos_noscale=None, size_noscale=None,
-                 backlog=False, result=None, showing_result=-1, textimg=None, columns=1):
+                 backlog=False, result=None, showing_result=-1, columns=1):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -520,6 +552,9 @@ class SelectWindow(MessageWindow):
             size_noscale = (470, 40)
         self.trim_top_noscale = 0
         self.columns = columns
+        self.centering_y = False
+        self.blocktop_noscale = 0
+        self.blockbottom_noscale = size_noscale[1]
 
         self.backlog = backlog
         self._barspchr = False
@@ -555,7 +590,7 @@ class SelectWindow(MessageWindow):
         # SelectionBarインスタンスリスト
         self.selections = []
         # メッセージ全て表示
-        self.draw_all(textimg)
+        self.draw_all()
         # spritegroupに追加
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
@@ -578,9 +613,8 @@ class SelectWindow(MessageWindow):
         # 外枠描画
         draw_frame(self.image, cw.s(size_noscale), cw.s((0, 0)), self.backlog)
 
-        self._fore = pygame.Surface(cw.s(size_noscale)).convert_alpha()
-        self._fore.fill((0, 0, 0, 0))
-        self._back = self._fore.copy()
+        self._back = None
+        self._fore = None
 
     def update_scale(self):
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
@@ -781,18 +815,7 @@ class BacklogData(object):
         self.showing_result = base.showing_result
         self.versionhint = base.versionhint
         self.specialchars = base.specialchars
-        self.create_cache(base)
-
-    def create_cache(self, base):
-        USE_CACHE = False # メモリ使用量が多すぎるのでオフにする
-        self.styledata = MessageWindow.get_messagestyledata()
-        if USE_CACHE:
-            self.textimg = pygame.Surface(base.rect.size).convert_alpha()
-            self.textimg.fill((0, 0, 0, 0))
-            self.textimg.blit(base._back, (0, 0))
-            self.textimg.blit(base._fore, (0, 0))
-        else:
-            self.textimg = None
+        self.centering_y = base.centering_y
 
     def get_height_noscale(self):
         """メッセージと選択肢の表示高さを計算して返す。
@@ -819,8 +842,6 @@ class BacklogData(object):
         return min(len(self.names_log), self._from_index + self.columns)
 
     def create_message(self):
-        if self.styledata <> MessageWindow.get_messagestyledata():
-            self.textimg = None
         if self.type == 0:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
                 size_noscale = (self.rect_noscale.width, min(self.rect_noscale.height, self.bottom_noscale-self.top_noscale))
@@ -842,8 +863,8 @@ class BacklogData(object):
                                  self.rect_noscale.topleft, size_noscale,
                                  self.name_table, self.name_subtable, self.flag_table, self.step_table,
                                  True, None, showing_result, self.versionhint, self.specialchars,
-                                 self.textimg, trim_top_noscale=trim_top, columns=self.columns,
-                                 spcharinfo=self.spcharinfo)
+                                 trim_top_noscale=trim_top, columns=self.columns,
+                                 spcharinfo=self.spcharinfo, centering_y=self.centering_y)
         else:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
                 names = self.names_log[self._from_index:self._to_index]
@@ -852,9 +873,7 @@ class BacklogData(object):
                 names = self.names_log
                 showing_result = self.showing_result
             base = SelectWindow(names, self.text, self.rect_noscale.topleft, self.rect_noscale.size,
-                                True, None, showing_result, self.textimg, columns=self.columns)
-        if not self.textimg:
-            self.create_cache(base)
+                                True, None, showing_result, columns=self.columns)
 
         return base
 
