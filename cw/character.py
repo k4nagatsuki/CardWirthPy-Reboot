@@ -2653,6 +2653,7 @@ class Character(object):
                 if self.status <> "reversed" and self.status <> "hidden":
                     cw.animation.animate_sprite(self, "lateralvibe", battlespeed=cw.cwpy.is_battlestatus())
                 self.update_image()
+                cw.cwpy.draw(clip=self.rect)
 
         # 麻痺
         if self.is_paralyze() and not self.is_petrified() and not self.is_unconscious():
