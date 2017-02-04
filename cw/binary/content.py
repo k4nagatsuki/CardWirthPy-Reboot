@@ -501,6 +501,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Talk" and ctype == "Message":
             if data.getint(".", "columns", 1) <> 1:
                 f.check_wsnversion("1")
+            if data.getbool(".", "centeringy", False):
+                f.check_wsnversion("2")
             text = ""
             for e in data:
                 if e.tag == "Text":
@@ -662,6 +664,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Talk" and ctype == "Dialog":
             if data.getint(".", "columns", 1) <> 1:
                 f.check_wsnversion("1")
+            if data.getbool(".", "centeringy", False):
+                f.check_wsnversion("2")
             targetm = data.get("targetm")
             f.write_byte(base.CWBinaryBase.unconv_target_member_dialog(targetm, f))
             if targetm == "Valued":
