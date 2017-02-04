@@ -135,6 +135,9 @@ class MessageWindow(base.CWPySprite):
                     h /= scr_scale
                     talkersize_noscale.append(((w, h), info))
 
+        self.talker_top_noscale = 0x7fffffff
+        self.talker_bottom_noscale = -0x7fffffff - 1
+
         for size, info in talkersize_noscale:
             tih = size[1]
             baserect = info.calc_basecardposition(size, noscale=True)
@@ -143,6 +146,9 @@ class MessageWindow(base.CWPySprite):
 
             self.top_noscale = max(0, min(y-9, self.top_noscale))
             self.bottom_noscale = min(size_noscale[1], max(y+tih+9, self.bottom_noscale))
+
+            self.talker_top_noscale = max(0, min(y, self.talker_top_noscale))
+            self.talker_bottom_noscale = min(size_noscale[1], max(y+tih, self.talker_bottom_noscale))
 
         xmove = cw.s(0)
         for talker_image, info in self.talker_image:
@@ -559,6 +565,8 @@ class SelectWindow(MessageWindow):
         self.centering_y = False
         self.blocktop_noscale = 0
         self.blockbottom_noscale = size_noscale[1]
+        self.talker_top_noscale = 0
+        self.talker_bottom_noscale = size_noscale[1]
 
         self.backlog = backlog
         self._barspchr = False
@@ -820,13 +828,16 @@ class BacklogData(object):
         self.versionhint = base.versionhint
         self.specialchars = base.specialchars
         self.centering_y = base.centering_y
+        self.talker_top_noscale = base.talker_top_noscale
+        self.talker_bottom_noscale = base.talker_bottom_noscale
 
     def get_height_noscale(self):
         """メッセージと選択肢の表示高さを計算して返す。
         """
         if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
             if self.type == 0:
-                height_noscale = min(self.rect_noscale.height, self.bottom_noscale-self.top_noscale)
+                h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9, self.top_noscale)
+                height_noscale = min(self.rect_noscale.height, h)
                 if len(self.names_log) == 1 and self.columns == 1 and self.names_log[0][1] == cw.cwpy.msgs["ok"]:
                     num = 0
                 else:
@@ -848,8 +859,10 @@ class BacklogData(object):
     def create_message(self):
         if self.type == 0:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
-                size_noscale = (self.rect_noscale.width, min(self.rect_noscale.height, self.bottom_noscale-self.top_noscale))
-                trim_top = self.top_noscale
+                h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9, self.top_noscale)
+                trim_top = min(self.talker_top_noscale-9, self.top_noscale)
+
+                size_noscale = (self.rect_noscale.width, min(self.rect_noscale.height, h))
                 if len(self.names_log) == 1 and self.columns == 1 and self.names_log[0][1] == cw.cwpy.msgs["ok"]:
                     # 高さ圧縮時はデフォルト選択肢を表示しない
                     names = []
