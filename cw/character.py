@@ -910,12 +910,12 @@ class Character(object):
             cw.cwpy.rsrc.specialchars = specialchars
             cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
 
-    def throwaway_card(self, header, from_event=True):
+    def throwaway_card(self, header, from_event=True, update_image=True):
         """
         引数のheaderのカードを破棄処理する。
         """
         if cw.cwpy.ydata:
-            cw.cwpy.trade("TRASHBOX", header=header, from_event=from_event)
+            cw.cwpy.trade("TRASHBOX", header=header, from_event=from_event, update_image=update_image)
         else:
             if header.type == "SkillCard":
                 index = 0
@@ -2583,14 +2583,14 @@ class Character(object):
         if vanish:
             for header in self.get_pocketcards(idx)[::-1]:
                 if not header.attachment:
-                    self.throwaway_card(header)
+                    self.throwaway_card(header, update_image=False)
                     eff = True
 
         elif self.can_addbeast():
             if self.is_unconscious():
                 return eff
             etree = cw.data.xml2etree(element=element, nocache=True)
-            cw.content.get_card(etree, self, not is_scenariocard)
+            cw.content.get_card(etree, self, not is_scenariocard, update_image=False)
             eff = True
         return eff
 

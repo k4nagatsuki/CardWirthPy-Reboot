@@ -2441,7 +2441,8 @@ class GetContent(EventContentBase):
                 get_card(etree, target, from_getcontent=True)
 
 def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None,
-             copymaterialfrom="", fromdebugger=False, from_getcontent=False, attachment=False):
+             copymaterialfrom="", fromdebugger=False, from_getcontent=False, attachment=False,
+             update_image=True):
     """対象インスタンスにカードを配布する。cwpy.trade()参照。
     etree: ElementTree or Element
     target: Character or list(Backpack, Storehouse)
@@ -2495,7 +2496,8 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
                                can_loaded_scaledimage=etree.getbool(".", "scaledimage", False))
         header.imgpaths = cw.image.get_imageinfos(etree.find("Property"))
 
-    cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False, party=party, from_getcontent=from_getcontent)
+    cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder,
+                  sort=False, party=party, from_getcontent=from_getcontent, update_image=update_image)
 
 class GetSkillContent(GetContent):
     def __init__(self, data):
