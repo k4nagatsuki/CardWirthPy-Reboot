@@ -1348,7 +1348,7 @@ def get_vocation_level(ccard, vocation, enhance_act=False):
             value = 1
         elif value < 15:
             value = 2
-        elif value < 20:
+        elif value < 21:
             value = 3
         else:
             value = 4
