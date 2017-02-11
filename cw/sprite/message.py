@@ -217,27 +217,25 @@ class MessageWindow(base.CWPySprite):
             self.frame += 1
             return
 
-        if not self.charimgs:
-            self.is_drawing = False
-            cw.cwpy.has_inputevent = True
-            self.frame = 0
-            self.create_selectionbar()
-            return
-
-        if not self._fore:
+        if self.charimgs and not self._fore:
             if self.centering_y:
+                # 中央寄せ時の縦幅 = 描画した文字の下端-上端
                 h = self.blockbottom_noscale-self.blocktop_noscale
             else:
+                # 通常描画時の縦幅 = メッセージウィンドウのサイズ
+                # ただしログ表示時はウィンドウの上下が削られて縮められているので
+                # 削られた上端の分だけは追加しておく
                 h = self.rect_noscale[3]
             self._fore = pygame.Surface(cw.s((470, h))).convert_alpha()
             self._fore.fill((0, 0, 0, 0))
             self._back = self._fore.copy()
 
-        font = cw.cwpy.rsrc.fonts["message"]
-        lineheight = font.get_height()
         chridx = self.frame / self.speed
-        sbold = MessageWindow.is_sbold()
         if chridx < len(self.charimgs):
+            font = cw.cwpy.rsrc.fonts["message"]
+            lineheight = font.get_height()
+            sbold = MessageWindow.is_sbold()
+
             pos, txtimg, txtimg2, txtimg3 = self.charimgs[chridx]
             size = None
 
@@ -247,7 +245,7 @@ class MessageWindow(base.CWPySprite):
                 bt = cw.s(self.blocktop_noscale)
             else:
                 shifty = cw.s(0)
-                bt = cw.s(0)
+                bt = cw.s(self.trim_top_noscale)
             tt = cw.s(self.trim_top_noscale)
 
             if txtimg2:
@@ -280,6 +278,8 @@ class MessageWindow(base.CWPySprite):
                 if self.centering_y:
                     area2.top -= cw.s(self.blocktop_noscale)
                     area1.top += shifty
+                else:
+                    area2.top -= cw.s(self.trim_top_noscale)
                 area1.top -= tt
                 self.image.blit(self._back, area1.topleft, area2)
                 self.image.blit(self._fore, area1.topleft, area2)
@@ -289,6 +289,8 @@ class MessageWindow(base.CWPySprite):
             cw.cwpy.has_inputevent = True
             self.frame = 0
             self.create_selectionbar()
+            self._fore = None
+            self._back = None
 
     def create_selectionbar(self):
         # SelectionBarを描画
