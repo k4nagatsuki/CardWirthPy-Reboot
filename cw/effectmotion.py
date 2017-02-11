@@ -308,7 +308,7 @@ class Effect(object):
                 uservocation = self.inusecard.vocation
                 userbonus = self.user.get_bonus(uservocation, enhance_act=self.is_enhance_act)
             else:
-                userbonus = 4
+                userbonus = 6
 
             vocation = ("agl", "cautious")
             level = self.user.level if self.user else self.get_level()
@@ -331,7 +331,7 @@ class Effect(object):
                 uservocation = self.inusecard.vocation
                 userbonus =  self.user.get_bonus(uservocation, enhance_act=self.is_enhance_act)
             else:
-                userbonus = 4
+                userbonus = 6
 
             vocation = ("min", "brave")
             level = self.user.level if self.user else self.get_level()
@@ -486,14 +486,14 @@ class EffectMotion(object):
         if self.refability:
             self._enhance_act = 0
             ccard = cw.cwpy.event.get_selectedmember()
-            self._vocation_val = get_vocation_val(ccard, self._vocation, enhance_act=True) if ccard else 4
+            self._vocation_val = get_vocation_val(ccard, self._vocation, enhance_act=True) if ccard else 6
             self._vocation_level = get_vocation_level(ccard, self._vocation, enhance_act=True) if ccard else 2
             self._level = ccard.level if ccard else 0
         else:
             # 使用者の行動力修正
             self._enhance_act = self.user.get_enhance_act() if self.is_enhance_act else 0
-            # 使用者の適性値(効果コンテントの場合は"4")
-            self._vocation_val = self.cardheader.get_vocation_val(self.user) if self.cardheader else 4
+            # 使用者の適性値(効果コンテントの場合は"6")
+            self._vocation_val = self.cardheader.get_vocation_val(self.user) if self.cardheader else 6
             # 使用者の適性レベル(効果コンテントの場合は"2")
             # スキルカードの場合は行動力修正の影響を受ける
             self._vocation_level = self.cardheader.get_vocation_level(self.user, enhance_act=self.is_enhance_act) if self.cardheader else 2
