@@ -2686,6 +2686,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                     if buf[1] and buf[0][0] == '&':
                         continue
                     return matcher(buf)
+                return False
 
             def match_op_last(bufs):
                 # bufsの末尾部分がopen_charsに該当する文字ならTrue
@@ -2790,7 +2791,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
         return u"\n".join(seq)
 
 def wordwrap(s, width, get_width=None, open_chars=u"\"'(<[`{‘“〈《≪「『【〔（＜［｛｢",
-                                       close_chars=u"!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕゛°ゝゞヽヾ！），．：；＞？］｝｡｣､ﾞﾟ",
+                                       close_chars=u"!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―",
                                        spcharinfo=None):
     if spcharinfo:
         spcharinfo2 = []

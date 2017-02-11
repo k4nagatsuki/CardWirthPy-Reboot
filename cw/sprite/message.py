@@ -16,7 +16,7 @@ class MessageWindow(base.CWPySprite):
                  pos_noscale=None, size_noscale=None,
                  nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
                  backlog=False, result=None, showing_result=-1, versionhint="", specialchars=None,
-                 trim_top_noscale=0, columns=1, spcharinfo=None, centering_y=False):
+                 trim_top_noscale=0, columns=1, spcharinfo=None, centering_y=False, boundarycheck=False):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -25,6 +25,7 @@ class MessageWindow(base.CWPySprite):
         self.trim_top_noscale = trim_top_noscale
         self.columns = columns
         self.centering_y = centering_y
+        self.boundarycheck = boundarycheck
 
         self.backlog = backlog
         self._barspchr = True
@@ -326,7 +327,10 @@ class MessageWindow(base.CWPySprite):
         if self.talker_image:
             if not self.backlog and init:
                 self.text, self.spcharinfo = self.rpl_specialstr(True, self.text)
-                self.text = cw.util.txtwrap(self.text, 2, encodedtext=False, spcharinfo=self.spcharinfo)
+                if self.boundarycheck:
+                    self.text = cw.util.wordwrap(self.text, 32+1, spcharinfo=self.spcharinfo)
+                else:
+                    self.text = cw.util.txtwrap(self.text, 2, encodedtext=False, spcharinfo=self.spcharinfo)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if cw.cwpy.sct.lessthan("1.28", self.versionhint):
                 def calc_w((bmp, info)):
@@ -338,7 +342,10 @@ class MessageWindow(base.CWPySprite):
         else:
             if not self.backlog and init:
                 self.text, self.spcharinfo = self.rpl_specialstr(True, self.text)
-                self.text = cw.util.txtwrap(self.text, 3, encodedtext=False, spcharinfo=self.spcharinfo)
+                if self.boundarycheck:
+                    self.text = cw.util.wordwrap(self.text, 42+1, spcharinfo=self.spcharinfo)
+                else:
+                    self.text = cw.util.txtwrap(self.text, 3, encodedtext=False, spcharinfo=self.spcharinfo)
             posp = pos
 
         yp_noscale = pos_noscale[1]
@@ -567,6 +574,7 @@ class SelectWindow(MessageWindow):
         self.trim_top_noscale = 0
         self.columns = columns
         self.centering_y = False
+        self.boundarycheck = False
         self.blocktop_noscale = 0
         self.blockbottom_noscale = size_noscale[1]
         self.talker_top_noscale = 0
@@ -832,6 +840,7 @@ class BacklogData(object):
         self.versionhint = base.versionhint
         self.specialchars = base.specialchars
         self.centering_y = base.centering_y
+        self.boundarycheck = base.boundarycheck
         self.talker_top_noscale = base.talker_top_noscale
         self.talker_bottom_noscale = base.talker_bottom_noscale
 
@@ -885,7 +894,8 @@ class BacklogData(object):
                                  self.name_table, self.name_subtable, self.flag_table, self.step_table,
                                  True, None, showing_result, self.versionhint, self.specialchars,
                                  trim_top_noscale=trim_top, columns=self.columns,
-                                 spcharinfo=self.spcharinfo, centering_y=self.centering_y)
+                                 spcharinfo=self.spcharinfo, centering_y=self.centering_y,
+                                 boundarycheck=self.boundarycheck)
         else:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
                 names = self.names_log[self._from_index:self._to_index]
