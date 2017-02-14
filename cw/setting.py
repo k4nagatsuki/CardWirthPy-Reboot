@@ -298,7 +298,7 @@ class Setting(object):
         self.no_levelup_in_debugmode = False
         self.play_bgm = True
         self.play_sound = True
-        self.vol_master = 0.5 # 少し大きい気がするので中間にしておく
+        self.vol_master = 0.75
         self.vol_bgm = 1.0
         self.vol_midi = 1.0
         self.vol_sound = 1.0
