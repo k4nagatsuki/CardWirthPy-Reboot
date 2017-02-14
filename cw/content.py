@@ -338,6 +338,7 @@ class BranchContent(EventContentBase):
                 i = 0
                 for checker, name in self._boolean_table:
                     if checker and checker.action() <> 0:
+                        i += 1
                         continue
                     if flag == name:
                         index = i
@@ -373,12 +374,14 @@ class BranchContent(EventContentBase):
             if name == u"○":
                 self._boolean_table.append((checker, True))
                 if checker and checker.action() <> 0:
+                    index += 1
                     continue
                 elif idx_true < 0:
                     idx_true = index
             elif name == u"×":
                 self._boolean_table.append((checker, False))
                 if checker and checker.action() <> 0:
+                    index += 1
                     continue
                 elif idx_false < 0:
                     idx_false = index
@@ -405,6 +408,7 @@ class BranchContent(EventContentBase):
                 i = 0
                 for checker, name in self._index_table:
                     if checker and checker.action() <> 0:
+                        i += 1
                         continue
                     if value == name:
                         index = i
@@ -455,6 +459,7 @@ class BranchContent(EventContentBase):
             checkedlist.append((checker, name))
 
             if checker and checker.action() <> 0:
+                index += 1
                 continue
 
             if idx_value < 0 and name == value:
@@ -487,6 +492,7 @@ class BranchContent(EventContentBase):
             # 対応フラグがTrueの場合のみ実行対象に
             if e.tag == "Check":
                 if cw.content.get_content(e).action() <> 0:
+                    index += 1
                     continue
 
             name = e.get("name", "")
@@ -1626,6 +1632,7 @@ class BranchMultiCouponContent(BranchContent):
             # フラグ判定コンテントの場合、対応フラグがTrueだったら分岐先追加
             if e.tag == "Check":
                 if get_content(e).action() <> 0:
+                    index += 1
                     continue
 
             coupon = e.get("name", "")
@@ -1674,6 +1681,7 @@ class BranchMultiRandomContent(BranchContent):
             # フラグ判定コンテントの場合、対応フラグがTrueだったら分岐先追加
             if e.tag == "Check":
                 if get_content(e).action() <> 0:
+                    index += 1
                     continue
             
             targets.append(index)
@@ -3471,6 +3479,7 @@ class TalkContent(EventContentBase):
             # フラグ判定コンテントの場合、対応フラグがTrueだったら選択肢追加
             if e.tag == "Check":
                 if get_content(e).action() <> 0:
+                    index += 1
                     continue
 
             if name:
