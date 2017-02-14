@@ -299,9 +299,9 @@ class Setting(object):
         self.play_bgm = True
         self.play_sound = True
         self.vol_master = 0.75
-        self.vol_bgm = 1.0
+        self.vol_bgm = 0.4
         self.vol_midi = 1.0
-        self.vol_sound = 1.0
+        self.vol_sound = 0.4
         self.soundfonts = [(cw.DEFAULT_SOUNDFONT, True)]
         self.messagespeed = 5
         self.dealspeed = 5
