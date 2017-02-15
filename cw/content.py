@@ -338,7 +338,6 @@ class BranchContent(EventContentBase):
                 i = 0
                 for checker, name in self._boolean_table:
                     if checker and checker.action() <> 0:
-                        i += 1
                         continue
                     if flag == name:
                         index = i
@@ -374,14 +373,12 @@ class BranchContent(EventContentBase):
             if name == u"○":
                 self._boolean_table.append((checker, True))
                 if checker and checker.action() <> 0:
-                    index += 1
                     continue
                 elif idx_true < 0:
                     idx_true = index
             elif name == u"×":
                 self._boolean_table.append((checker, False))
                 if checker and checker.action() <> 0:
-                    index += 1
                     continue
                 elif idx_false < 0:
                     idx_false = index
@@ -408,7 +405,6 @@ class BranchContent(EventContentBase):
                 i = 0
                 for checker, name in self._index_table:
                     if checker and checker.action() <> 0:
-                        i += 1
                         continue
                     if value == name:
                         index = i
@@ -459,7 +455,6 @@ class BranchContent(EventContentBase):
             checkedlist.append((checker, name))
 
             if checker and checker.action() <> 0:
-                index += 1
                 continue
 
             if idx_value < 0 and name == value:
@@ -492,7 +487,6 @@ class BranchContent(EventContentBase):
             # 対応フラグがTrueの場合のみ実行対象に
             if e.tag == "Check":
                 if cw.content.get_content(e).action() <> 0:
-                    index += 1
                     continue
 
             name = e.get("name", "")
@@ -965,13 +959,40 @@ class BranchCouponContent(BranchContent):
         BranchContent.__init__(self, data)
         self.scope = self.data.get("targets")
         self.scope, self.someone, self.unreversed = _get_couponscope(self.scope)
-        self.coupon = self.data.get("coupon")
+        
+        # Wsn.1方式(1.50と同様の１クーポン名)
+        coupon = self.data.get("coupon","")
+        # Wsn.2方式
+        names = self.data.get("couponnames","").split("\n")
+        if names and names[0]:
+            self.couponnames = names
+        else:
+            self.couponnames = []
+            if coupon:
+                self.couponnames = [ coupon ]
+        self.orflg = self.data.getbool(".", "orflg", False)
 
     def action(self):
         """称号存在分岐コンテント。"""
 
-        if cw.cwpy.syscoupons.match(self.coupon) or cw.cwpy.setting.skinsyscoupons.match(self.coupon):
-            return self.get_boolean_index(True)
+        if not self.couponnames:
+            return self.get_boolean_index(False)
+
+        # シャロ―コピー
+        names = self.couponnames[:]
+        # OR条件(か１クーポンの場合)
+        one_time_flg = len(self.couponnames) == 1 or self.orflg
+        
+        for coupon in self.couponnames:
+            if cw.cwpy.syscoupons.match(coupon) or cw.cwpy.setting.skinsyscoupons.match(coupon):
+                if one_time_flg:
+                    return self.get_boolean_index(True)
+                else:
+                    # 複数クーポン AND条件
+                    # 対象クーポンから除外(クーポン名に重複はないのでこれで大丈夫のはず)
+                    names.remove(coupon)
+                    if not names:
+                        return self.get_boolean_index(True)
 
         scope, someone, unreversed = self.scope, self.someone, self.unreversed
 
@@ -994,27 +1015,55 @@ class BranchCouponContent(BranchContent):
             cw.cwpy.event.clear_selectedmember()
             return self.get_boolean_index(scope <> "Selected")
 
-        flag = _has_coupon(targets, self.coupon, scope, someone, False)
+        if one_time_flg:
+            for coupon in names:
+                flag = _has_coupon(targets, coupon, scope, someone, False)
+                if flag:
+                     return self.get_boolean_index(True)
+        else:
+            return self.get_boolean_index(_has_coupon(targets, "", scope, someone, False, names))
 
-        return self.get_boolean_index(flag)
+        return self.get_boolean_index(False)
 
     def get_status(self):
-        coupon = self.data.get("coupon", "")
-
-        if coupon:
-            return u"称号『%s』分岐" % (coupon)
+        names = self.couponnames
+        orflg = self.orflg
+        if len(names) > 0 and names[0] <> "":
+            status = u"称号"
+            for index, name in enumerate(names):
+                status += "『" + name + "』"
+                if index < len(names) - 1:
+                    status += ","
+            if len(names) > 1:
+                if orflg:
+                    status += "どれかで"
+                else:
+                    status += "全部で"
+            status += "分岐"
+            return status
         else:
             return u"称号が指定されていません"
 
     def get_childname(self, child):
-        s = self.data.get("coupon", "")
+        names = self.couponnames
         scope = self.data.get("targets")
         s2 = self.textdict.get(scope.lower(), "")
-
+        orflg = self.orflg
+        childname = u"" + s2
+        childname += "が称号"
+        for index, name in enumerate(names):
+            childname += "『" + name + "』"
+            if index < len(names) - 1:
+                childname += ","
+        if len(names) > 1:
+            if orflg:
+                childname += "どれか"
+            else:
+                childname += "全部"
         if self.get_contentname(child) == u"○":
-            return u"%sが称号『%s』を所有している" % (s2, s)
+            return childname + "を所有している"
         else:
-            return u"%sが称号『%s』を所有していない" % (s2, s)
+            return childname + "を所有していない"
 
 class BranchSelectContent(BranchContent):
     def __init__(self, data):
@@ -1581,12 +1630,19 @@ def _get_couponscope(scope):
     return scope, someone, unreversed
 
 
-def _has_coupon(targets, coupon, scope, someone, multi):
+def _has_coupon(targets, coupon, scope, someone, multi, names = []):
     flag = False
     selectedmember = None
     for target in targets:
         if not isinstance(target, list):
-            flag = target.has_coupon(coupon)
+            if len(names) > 0:
+                # 複数クーポン（AND条件）(Wsn.2)
+                andflg = True
+                for name in names:
+                    andflg &= target.has_coupon(name)
+                flag = andflg
+            else:
+                flag = target.has_coupon(coupon)
 
             if flag and someone:
                 selectedmember = target
@@ -1632,7 +1688,6 @@ class BranchMultiCouponContent(BranchContent):
             # フラグ判定コンテントの場合、対応フラグがTrueだったら分岐先追加
             if e.tag == "Check":
                 if get_content(e).action() <> 0:
-                    index += 1
                     continue
 
             coupon = e.get("name", "")
@@ -1681,7 +1736,6 @@ class BranchMultiRandomContent(BranchContent):
             # フラグ判定コンテントの場合、対応フラグがTrueだったら分岐先追加
             if e.tag == "Check":
                 if get_content(e).action() <> 0:
-                    index += 1
                     continue
             
             targets.append(index)
@@ -3479,7 +3533,6 @@ class TalkContent(EventContentBase):
             # フラグ判定コンテントの場合、対応フラグがTrueだったら選択肢追加
             if e.tag == "Check":
                 if get_content(e).action() <> 0:
-                    index += 1
                     continue
 
             if name:
