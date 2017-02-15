@@ -963,7 +963,7 @@ class BranchCouponContent(BranchContent):
         # Wsn.1方式(1.50と同様の１クーポン名)
         coupon = self.data.get("coupon","")
         # Wsn.2方式
-        names = self.data.get("couponnames","").split("\n")
+        names = cw.util.decodewrap(self.data.get("couponnames","")).split("\n")
         if names and names[0]:
             self.couponnames = names
         else:
