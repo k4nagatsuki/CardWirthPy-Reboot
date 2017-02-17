@@ -1345,11 +1345,11 @@ class CardEvent(Event, Targeting):
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
 
-        # 通常イベントの終了処理
-        Event.end(self)
-
         # システムクーポン除去(Wsn.2)
         self.clear_eventcoupons()
+
+        # 通常イベントの終了処理
+        Event.end(self)
 
         # 特殊エリア解除・カード選択ダイアログを開く
         cw.cwpy.clear_specialarea()
