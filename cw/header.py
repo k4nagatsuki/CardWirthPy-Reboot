@@ -695,8 +695,12 @@ class CardHeader(object):
         owner = self.get_owner()
 
         if self.target == "Both":
-            targets = cw.cwpy.get_pcards("unreversed")[:]
-            targets.extend(cw.cwpy.get_ecards("unreversed"))
+            if isinstance(owner, cw.character.Enemy):
+                targets = cw.cwpy.get_ecards("unreversed")[:]
+                targets.extend(cw.cwpy.get_pcards("unreversed"))
+            else:
+                targets = cw.cwpy.get_pcards("unreversed")[:]
+                targets.extend(cw.cwpy.get_ecards("unreversed"))
         elif self.target == "Party":
             if isinstance(owner, cw.character.Enemy):
                 targets = cw.cwpy.get_ecards("unreversed")[:]
