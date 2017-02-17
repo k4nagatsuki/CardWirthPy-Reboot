@@ -252,7 +252,9 @@ class SystemData(object):
                             scenario = prop.properties.get("Scenario", "")
                             author = prop.properties.get("Author", "")
                             premium = prop.properties.get("Premium", "Normal")
-                            debuglog.add_lostcard(type, name, desc, scenario, author, premium)
+                            attachment = cw.util.str2bool(prop.properties.get("Attachment", "False"))
+                            if type <> "BeastCard" or attachment:
+                                debuglog.add_lostcard(type, name, desc, scenario, author, premium)
 
         cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
