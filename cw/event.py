@@ -1301,6 +1301,8 @@ class CardEvent(Event, Targeting):
             if cw.cwpy.is_playingscenario():
                 cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
 
+            cw.cwpy.show_party()
+
             # エリアのキーコードイベント
             if isinstance(self.user, cw.sprite.card.PlayerCard):
                 self.run_areaevent()
@@ -1357,6 +1359,7 @@ class CardEvent(Event, Targeting):
         self._store_inusedata(selectuser=True)
         cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
         self._restore_inusedata()
+        cw.cwpy.show_party()
 
     def run_characterevent(self, target, can_unconscious):
         keycodes = self.inusecard.get_keycodes()
@@ -1364,6 +1367,7 @@ class CardEvent(Event, Targeting):
             self._store_inusedata(selectuser=True)
             self.get_events(target).start(keycodes=keycodes, isinsideevent=True)
             self._restore_inusedata()
+            cw.cwpy.show_party()
 
     def run_deadevent(self, target):
         """targetの死亡イベントが発生可能であれば発生させる。"""
@@ -1371,6 +1375,7 @@ class CardEvent(Event, Targeting):
             self._store_inusedata(selectuser=True)
             r = self.get_events(target).start(1, isinsideevent=True)
             self._restore_inusedata()
+            cw.cwpy.show_party()
             return r
 
     def run_menucardevent(self, target):
@@ -1386,8 +1391,9 @@ class CardEvent(Event, Targeting):
             try:
                 self._store_inusedata(selectuser=False)
                 events.start(keycodes=keycodes)
-            finally:
                 self._restore_inusedata()
+                cw.cwpy.show_party()
+            finally:
                 cw.cwpy.lock_menucards = lock
         else:
             cw.cwpy.play_sound("ineffective", True)
@@ -1400,6 +1406,7 @@ class CardEvent(Event, Targeting):
             self._store_inusedata(selectuser=True)
             self.get_events(target).start(keycodes=keycodes, isinsideevent=True, successevent=True)
             self._restore_inusedata()
+            cw.cwpy.show_party()
 
     def effect_cardmotion(self):
         """カード効果発動。イベント実行の最後に行う。"""
