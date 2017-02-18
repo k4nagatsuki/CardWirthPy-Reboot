@@ -4176,8 +4176,9 @@ class CWPy(_Singleton, threading.Thread):
             assert not move
             # 付帯以外の召喚獣カードの場合
             if header.type == "BeastCard" and not header.attachment and\
-                    isinstance(owner, cw.character.Character) and update_image:
-                owner.update_image()
+                    isinstance(owner, cw.character.Character):
+                if update_image:
+                    owner.update_image()
             # シナリオで取得したカードじゃない場合、XMLの削除
             elif not header.scenariocard and header.moved == 0:
                 self.remove_xml(header)
@@ -4344,7 +4345,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             # Property/Materialsが無かった頃の互換動作
             for e in data.iter():
-                if e.tag == "ImagePath" and e.text:
+                if e.tag == "ImagePath" and e.text and not cw.binary.image.path_is_code(e.text):
                     path = cw.util.join_paths(self.yadodir, e.text)
                     temppath = cw.util.join_paths(self.tempdir, e.text)
 
