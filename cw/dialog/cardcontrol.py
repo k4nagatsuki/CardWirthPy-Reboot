@@ -758,6 +758,7 @@ class CardControl(wx.Dialog):
             self.combo.SetSelection(count - 1)
         else:
             self.combo.SetSelection(index - 1)
+        self.draw_cards()
 
     def OnClickRightBtn2(self, event):
         count = len(self.combo.GetItems())
@@ -766,6 +767,7 @@ class CardControl(wx.Dialog):
             self.combo.SetSelection(0)
         else:
             self.combo.SetSelection(index + 1)
+        self.draw_cards()
 
     def OnPaint2(self, event):
         if not self._redraw:
