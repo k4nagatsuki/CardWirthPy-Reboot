@@ -970,7 +970,7 @@ class BranchCouponContent(BranchContent):
             self.couponnames = []
             if coupon:
                 self.couponnames = [ coupon ]
-        self.orflg = self.data.getbool(".", "orflg", False)
+        self.matchingType = self.data.get("matchingType")
 
     def action(self):
         """称号存在分岐コンテント。"""
@@ -980,15 +980,15 @@ class BranchCouponContent(BranchContent):
 
         # シャロ―コピー
         names = self.couponnames[:]
-        # OR条件(か１クーポンの場合)
-        one_time_flg = len(self.couponnames) == 1 or self.orflg
+        # どれか一つに一致(か１クーポンの場合)
+        one_time_flg = len(self.couponnames) == 1 or self.matchingType == "Or"
         
         for coupon in self.couponnames:
             if cw.cwpy.syscoupons.match(coupon) or cw.cwpy.setting.skinsyscoupons.match(coupon):
                 if one_time_flg:
                     return self.get_boolean_index(True)
                 else:
-                    # 複数クーポン AND条件
+                    # 複数クーポン 全てに一致
                     # 対象クーポンから除外(クーポン名に重複はないのでこれで大丈夫のはず)
                     names.remove(coupon)
                     if not names:
@@ -1027,7 +1027,7 @@ class BranchCouponContent(BranchContent):
 
     def get_status(self):
         names = self.couponnames
-        orflg = self.orflg
+        matchingType = self.matchingType
         if len(names) > 0 and names[0] <> "":
             status = u"称号"
             for index, name in enumerate(names):
@@ -1035,10 +1035,10 @@ class BranchCouponContent(BranchContent):
                 if index < len(names) - 1:
                     status += ","
             if len(names) > 1:
-                if orflg:
-                    status += "どれかで"
-                else:
+                if matchingType == "And":
                     status += "全部で"
+                else:
+                    status += "どれかで"
             status += "分岐"
             return status
         else:
@@ -1048,7 +1048,7 @@ class BranchCouponContent(BranchContent):
         names = self.couponnames
         scope = self.data.get("targets")
         s2 = self.textdict.get(scope.lower(), "")
-        orflg = self.orflg
+        matchingType = self.matchingType
         childname = u"" + s2
         childname += "が称号"
         for index, name in enumerate(names):
@@ -1056,10 +1056,10 @@ class BranchCouponContent(BranchContent):
             if index < len(names) - 1:
                 childname += ","
         if len(names) > 1:
-            if orflg:
-                childname += "どれか"
-            else:
+            if matchingType == "And":
                 childname += "全部"
+            else:
+                childname += "どれか"
         if self.get_contentname(child) == u"○":
             return childname + "を所有している"
         else:
@@ -1636,7 +1636,7 @@ def _has_coupon(targets, coupon, scope, someone, multi, names = []):
     for target in targets:
         if not isinstance(target, list):
             if len(names) > 0:
-                # 複数クーポン（AND条件）(Wsn.2)
+                # 複数クーポン（全てに一致）(Wsn.2)
                 andflg = True
                 for name in names:
                     andflg &= target.has_coupon(name)
