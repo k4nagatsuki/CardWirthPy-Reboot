@@ -455,7 +455,7 @@ class CardEditDialog(wx.Dialog):
                             name = u"%sの荷物袋" % (party.name)
                             item = get_item(roots, (partyheader, -1), self.root, name, image)
 
-                            image = self._get_imgidx(data)
+                            image = self._get_imgidx(header)
                             name = header.name
                             item = self.targets.AppendItem(item, name, 1, image=image)
                             add_target(item, matcher, party, party, header, insce)
