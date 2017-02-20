@@ -612,7 +612,9 @@ class Content(base.CWBinaryBase):
             # Wsn.1方式
             coupon = data.get("coupon", "")
             # Wsn.2方式(couponnames)
-            names = cw.util.decodewrap(data.get("couponnames","")).split("\n")
+            names =[]
+            for e in data.getfind("Coupons", raiseerror=False):
+                names.append(e.text)
             if len(names) > 1:
                 f.check_wsnversion("2")
             elif len(names) == 1:

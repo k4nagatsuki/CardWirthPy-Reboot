@@ -963,14 +963,16 @@ class BranchCouponContent(BranchContent):
         # Wsn.1方式(1.50と同様の１クーポン名)
         coupon = self.data.get("coupon","")
         # Wsn.2方式
-        names = cw.util.decodewrap(self.data.get("couponnames","")).split("\n")
+        self.matchingType = self.data.get("matchingType")
+        names = []
+        for e in self.data.getfind("Coupons", raiseerror=False):
+            names.append(e.text)
         if names and names[0]:
             self.couponnames = names
         else:
             self.couponnames = []
             if coupon:
                 self.couponnames = [ coupon ]
-        self.matchingType = self.data.get("matchingType")
 
     def action(self):
         """称号存在分岐コンテント。"""
