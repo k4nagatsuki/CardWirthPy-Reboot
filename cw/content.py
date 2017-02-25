@@ -1033,18 +1033,14 @@ class BranchCouponContent(BranchContent):
         names = self.couponnames
         matchingType = self.matchingType
         if len(names) > 0 and names[0] <> "":
-            status = u"称号"
-            for index, name in enumerate(names):
-                status += "『" + name + "』"
-                if index < len(names) - 1:
-                    status += ","
+            s = u"』,『".join(names)
+            type = u""
             if len(names) > 1:
                 if matchingType == "And":
-                    status += "全部で"
+                    type = u"全部で"
                 else:
-                    status += "どれかで"
-            status += "分岐"
-            return status
+                    type = u"どれかで"
+            return u"称号『%s』%s分岐" % (s, type)
         else:
             return u"称号が指定されていません"
 
@@ -1053,21 +1049,19 @@ class BranchCouponContent(BranchContent):
         scope = self.data.get("targets")
         s2 = self.textdict.get(scope.lower(), "")
         matchingType = self.matchingType
-        childname = u"" + s2
-        childname += "が称号"
-        for index, name in enumerate(names):
-            childname += "『" + name + "』"
-            if index < len(names) - 1:
-                childname += ","
-        if len(names) > 1:
-            if matchingType == "And":
-                childname += "全部"
-            else:
-                childname += "どれか"
+        s = u""
+        if len(names) > 0 and names[0] <> "":
+            s = u"』,『".join(names)
+            type = u""
+            if len(names) > 1:
+                if matchingType == "And":
+                    type = u"全部"
+                else:
+                    type = u"どれか"
         if self.get_contentname(child) == u"○":
-            return childname + "を所有している"
+            return u"%sが称号『%s』を%s所有している" % (s2, s, type)
         else:
-            return childname + "を所有していない"
+            return u"%sが称号『%s』を%s所有していない" % (s2, s, type)
 
 class BranchSelectContent(BranchContent):
     def __init__(self, data):
