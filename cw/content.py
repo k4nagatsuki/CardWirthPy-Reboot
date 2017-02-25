@@ -976,9 +976,11 @@ class BranchCouponContent(BranchContent):
 
     def action(self):
         """称号存在分岐コンテント。"""
+        true_index = self.get_boolean_index(True)
+        false_index = self.get_boolean_index(False)
 
         if not self.couponnames:
-            return self.get_boolean_index(False)
+            return false_index
 
         # シャロ―コピー
         names = self.couponnames[:]
@@ -988,13 +990,13 @@ class BranchCouponContent(BranchContent):
         for coupon in self.couponnames:
             if cw.cwpy.syscoupons.match(coupon) or cw.cwpy.setting.skinsyscoupons.match(coupon):
                 if one_time_flg:
-                    return self.get_boolean_index(True)
+                    return true_index
                 else:
                     # 複数クーポン 全てに一致
                     # 対象クーポンから除外(クーポン名に重複はないのでこれで大丈夫のはず)
                     names.remove(coupon)
                     if not names:
-                        return self.get_boolean_index(True)
+                        return true_index
 
         scope, someone, unreversed = self.scope, self.someone, self.unreversed
 
@@ -1021,11 +1023,11 @@ class BranchCouponContent(BranchContent):
             for coupon in names:
                 flag = _has_coupon(targets, coupon, scope, someone, False)
                 if flag:
-                     return self.get_boolean_index(True)
+                     return true_index
         else:
             return self.get_boolean_index(_has_coupon(targets, "", scope, someone, False, names))
 
-        return self.get_boolean_index(False)
+        return false_index
 
     def get_status(self):
         names = self.couponnames
