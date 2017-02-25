@@ -932,9 +932,13 @@ class BranchLevelContent(BranchContent):
 
         if average:
             pcards = cw.cwpy.get_pcards("unreversed")
+            if not pcards:
+                return self.get_boolean_index(False)
             level = sum([pcard.level for pcard in pcards]) / len(pcards)
         else:
             pcard = cw.cwpy.event.get_targetmember("Selected")
+            if not pcard:
+                return self.get_boolean_index(False)
             level = pcard.level
 
         flag = bool(level >= value)
@@ -1474,7 +1478,10 @@ class BranchKeyCodeContent(BranchContent):
         # 対象メンバ取得
         targets = []
         if self.targetkc == "Selected":
-            targets.append(cw.cwpy.event.get_targetmember(self.targetkc))
+            target = cw.cwpy.event.get_targetmember(self.targetkc)
+            if target is None:
+                return self.get_boolean_index(False)
+            targets.append(target)
         elif self.targetkc == "Random":
             targets.extend(cw.cwpy.event.get_targetmember("Party"))
             cw.cwpy.dice.shuffle(targets)
