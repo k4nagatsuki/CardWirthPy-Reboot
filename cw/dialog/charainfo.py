@@ -701,7 +701,7 @@ class TitlePanel(wx.Panel):
         elif index == 3:
             self.text = cw.cwpy.msgs["skillcard"]
         elif index == 4:
-            self.text = cw.cwpy.msgs["itemcard"]        
+            self.text = cw.cwpy.msgs["itemcard"]
         else:
             self.text = cw.cwpy.msgs["beastcard"]
 

@@ -2749,7 +2749,7 @@ class FontSettingPanel(wx.Panel):
                       "uselimit", "numcards", "statusnum",
                       "sbarpanel", "sbarprogress", "sbarbtn", "sbardesctitle", "sbardesc", "screenshot",
                       "scenario", "targetlevel", "paneltitle", "paneltitle2", "dlgmsg", "dlgmsg2", "dlgtitle", "dlgtitle2",
-                      "createtitle", "dlglist", "inputname", "datadesc", "charadesc", "charaparam", "charaparam2",  "characre", 
+                      "createtitle", "dlglist", "inputname", "datadesc", "charadesc", "charaparam", "charaparam2",  "characre",
                       "button", "combo", "slider", "spin", "tree", "list", "tab", "menu")
 
         # フォント配列のロード

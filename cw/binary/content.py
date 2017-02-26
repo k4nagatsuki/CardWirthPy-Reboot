@@ -609,8 +609,18 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Branch" and ctype == "Coupon":
-            base.CWBinaryBase.check_coupon(f, data.get("coupon"))
-            f.write_string(data.get("coupon"))
+            # Wsn.1方式
+            coupon = data.get("coupon", "")
+            # Wsn.2方式(couponnames)
+            names =[coupon] if coupon else []
+            for e in data.getfind("Coupons", raiseerror=False):
+                names.append(e.text)
+            if len(names) > 1:
+                f.check_wsnversion("2")
+            elif len(names) == 1:
+                coupon = names[0]
+            base.CWBinaryBase.check_coupon(f, coupon)
+            f.write_string(coupon)
             f.write_dword(0)
             f.write_byte(base.CWBinaryBase.unconv_target_scope_coupon(data.get("targets"), f))
         elif tag == "Get" and ctype == "Cast":
