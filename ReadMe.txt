@@ -342,7 +342,7 @@ http://misica.lv9.org/
  : みしか は、付属のサウンドフォント`TimGM6mb.sf2`の79:Whistleの発音でノイズの発生と音程の狂いが生じる問題を修正しました。
 
 https://bitbucket.org/namereq/
- : name.req(@namereq) は、ランダム多岐分岐コンテントの実装者です。
+ : name.req(@namereq) は、ランダム多岐分岐コンテントやクーポン分岐の複数称号対応化の実装者です。
 
 
 謝辞
