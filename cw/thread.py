@@ -2289,6 +2289,7 @@ class CWPy(_Singleton, threading.Thread):
         # イベントを中止
         self.event._stoped = True
         self.event.breakwait = True
+        self.lock_menucards = True
         del self.pre_dialogs[:]
         del self.pre_areaids[:]
 
@@ -2304,6 +2305,7 @@ class CWPy(_Singleton, threading.Thread):
                         if self.is_showingdebugger() and self.event:
                             self.event.refresh_tools()
                     self.frame.exec_func(func)
+                    self.lock_menucards = False
                 self.exec_func(func)
             self.exec_func(func)
 
