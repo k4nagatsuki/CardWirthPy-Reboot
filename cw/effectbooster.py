@@ -549,6 +549,7 @@ class _JpySubImage(cw.image.Image):
                     jpy1 = JpyImage(path, cache=self.cache, doanime=doanime, mask=False, parent=self)
                     image = jpy1.get_image()
                     if jpy1.is_cacheable:
+                        cw.cwpy.sdata.sweep_resourcecache(cw.util.calc_imagesize(image))
                         cw.cwpy.sdata.resource_cache[cachekey] = (image.copy(), mtime)
                     else:
                         self.is_cacheable = False
@@ -562,6 +563,7 @@ class _JpySubImage(cw.image.Image):
                 # Jptxファイル
                 elif ext == ".jptx":
                     image = JptxImage(path, False).get_image()
+                    cw.cwpy.sdata.sweep_resourcecache(cw.util.calc_imagesize(image))
                     cw.cwpy.sdata.resource_cache[cachekey] = (image.copy(), mtime)
                 # その他画像ファイル
                 else:

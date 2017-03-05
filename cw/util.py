@@ -749,6 +749,14 @@ class Depth1Surface(pygame.Surface):
         bmp.bmpdepthis1 = False
         return bmp
 
+
+def calc_imagesize(image):
+    """imageのデータサイズを概算する。
+    結果は正確ではない。
+    """
+    return image.get_bitsize() * image.get_width() * image.get_height() // 8
+
+
 def put_number(image, num):
     """アイコンサイズの画像imageの上に
     numの値を表示する。
@@ -987,6 +995,7 @@ def load_sound(path):
         return SoundInterface()
 
     if cw.cwpy.is_playingscenario():
+        cw.cwpy.sdata.sweep_resourcecache(os.path.getsize(path) if os.path.isfile(path) else 0)
         cw.cwpy.sdata.resource_cache[path] = sound
 
     return sound

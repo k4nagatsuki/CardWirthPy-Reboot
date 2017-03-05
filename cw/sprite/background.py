@@ -246,6 +246,7 @@ class BackGround(base.CWPySprite):
                 image = pygame.transform.scale(image, size)
 
         if not anime and cw.cwpy.is_playingscenario():
+            cw.cwpy.sdata.sweep_resourcecache(cw.util.calc_imagesize(image))
             cw.cwpy.sdata.resource_cache[(path, mtime, size, mask, smoothing)] = image
 
         return image, anime, True

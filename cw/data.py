@@ -9,6 +9,7 @@ import copy
 import time
 import shutil
 import threading
+import ctypes
 import xml.parsers.expat
 from xml.etree.cElementTree import ElementTree
 from xml.etree.ElementTree import _ElementInterface
@@ -75,6 +76,7 @@ class SystemData(object):
         self.pre_battleareadata = None
         self.data_cache = {}
         self.resource_cache = {}
+        self.resource_cache_size = 0
         self.autostart_round = False
         self.breakpoints = set()
         self.in_f9 = False
@@ -173,6 +175,41 @@ class SystemData(object):
         for log in self.backlog:
             if log.specialchars:
                 log.specialchars.reset()
+
+    def sweep_resourcecache(self, size):
+        """新しくキャッシュを追加した時にメモリが不足しそうであれば
+        これまでのキャッシュをクリアする。
+        """
+        # 使用可能なヒープサイズの半分までをキャッシュに使用する"
+        if sys.platform == "win32":
+            class MEMORYSTATUSEX(ctypes.Structure):
+                _fields_ = [
+                    ("dwLength", ctypes.wintypes.DWORD),
+                    ("dwMemoryLoad", ctypes.wintypes.DWORD),
+                    ("ullTotalPhys", ctypes.c_ulonglong),
+                    ("ullAvailPhys", ctypes.c_ulonglong),
+                    ("ullTotalPageFile", ctypes.c_ulonglong),
+                    ("ullAvailPageFile", ctypes.c_ulonglong),
+                    ("ullTotalVirtual", ctypes.c_ulonglong),
+                    ("ullAvailVirtual", ctypes.c_ulonglong),
+                    ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+                ]
+
+            ms = MEMORYSTATUSEX()
+            ms.dwLength = ctypes.sizeof(ms)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(ms)):
+                limit = ms.ullTotalVirtual // 2
+            else:
+                limit = 1*1024*1024*1024
+        else:
+            import resource
+            limit = resource.getrlimit(resource.RLIMIT_DATA)[0] // 2
+
+        if min(limit, 2*1024*1024*1024) < self.resource_cache_size + size:
+            self.resource_cache.clear()
+            self.resource_cache_size = 0
+
+        self.resource_cache_size += size
 
     def start(self):
         pass
@@ -751,6 +788,7 @@ class ScenarioData(SystemData):
         self.data_cache = {}
         # ロードしたイメージ等のリソースのキャッシュ
         self.resource_cache = {}
+        self.resource_cache_size = 0
         # メッセージのバックログ
         self.backlog = []
 
@@ -983,6 +1021,7 @@ class ScenarioData(SystemData):
             stepvals[name] = step.value
         self.data_cache = {}
         self.resource_cache = {}
+        self.resource_cache_size = 0
         self._init_xmlpaths()
         self._init_flags()
         self._init_steps()

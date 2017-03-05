@@ -1245,6 +1245,7 @@ def create_colorcell(size, color1, gradient, color2):
     else:
         image.fill(color1)
 
+    cw.cwpy.sdata.sweep_resourcecache(cw.util.calc_imagesize(image))
     cw.cwpy.sdata.resource_cache[key] = image
     return image
 
