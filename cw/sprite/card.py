@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import math
 import pygame
 
 import cw
@@ -381,21 +382,18 @@ class CWPyCard(base.SelectableSprite):
             w = maxw
             h = maxh
         else:
-            value = zoom_w / (self._get_dealspeed()+1)
+            def calc_zoom(zoom_val):
+                # 線形に拡大するのではなく、末端で加減速する
+                ds = self._get_dealspeed()
+                return int(round((math.sin(-math.pi/2.0 + math.pi/(ds+1)*self.frame) + 1.0) / 2.0 * zoom_val))
 
-            if zoom_w % (self._get_dealspeed()+1):
-                value += 1
+            value = calc_zoom(zoom_w)
+            w = cw.util.numwrap(self._rect.w + value, 0, maxw)
 
-            w = cw.util.numwrap(self.rect.w + value, 0, maxw)
+            value = calc_zoom(zoom_h)
+            h = cw.util.numwrap(self._rect.h + value, 0, maxh)
 
-            value = zoom_h / (self._get_dealspeed()+1)
-
-            if zoom_h % (self._get_dealspeed()+1):
-                value += 1
-
-            h = cw.util.numwrap(self.rect.h + value, 0, maxh)
-
-        if (w, h) == (maxw, maxh) and cw.cwpy.setting.smoothing_card_up:
+        if maxw <= w and maxh <= h and cw.cwpy.setting.smoothing_card_up:
             # 最大の一枚のみは長時間表示される
             # 可能性があるためスムージングする
             scale = cw.image.smoothscale_card
@@ -407,7 +405,7 @@ class CWPyCard(base.SelectableSprite):
         self.zoomimgs.append((self.image, pygame.Rect(self.rect)))
         self.frame += 1
 
-        if (w, h) == (maxw, maxh):
+        if maxw <= w and maxh <= h:
             self.status = self.old_status
             self.frame = 0
             if self.status == "hidden":
