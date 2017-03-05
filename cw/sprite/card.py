@@ -382,15 +382,19 @@ class CWPyCard(base.SelectableSprite):
             w = maxw
             h = maxh
         else:
+            ds = self._get_dealspeed()
             def calc_zoom(zoom_val):
                 # 線形に拡大するのではなく、末端で加減速する
-                ds = self._get_dealspeed()
                 return int(round((math.sin(-math.pi/2.0 + math.pi/(ds+1)*self.frame) + 1.0) / 2.0 * zoom_val))
 
             value = calc_zoom(zoom_w)
+            if value % 2 == 1:
+                value += 1 if ds//2 < self.frame else -1
             w = cw.util.numwrap(self._rect.w + value, 0, maxw)
 
             value = calc_zoom(zoom_h)
+            if value % 2 == 1:
+                value += 1 if ds//2 < self.frame else -1
             h = cw.util.numwrap(self._rect.h + value, 0, maxh)
 
         if maxw <= w and maxh <= h and cw.cwpy.setting.smoothing_card_up:
