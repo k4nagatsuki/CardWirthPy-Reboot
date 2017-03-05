@@ -1206,7 +1206,7 @@ class InuseCardImage(card.CWPyCard):
         self.user = user
         self.header = header
         self.center = center
-        self.zoomsize_noscale = (32, 42)
+        self.zoomsize_noscale = (48, 66)
         self.alpha = alpha
 
         self.update_scale()

@@ -851,7 +851,7 @@ class Character(object):
             waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
             skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
             if not skipped and cw.cwpy.setting.wait_usecard:
-                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())*3
+                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())*4
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
             cw.animation.animate_sprite(inusecardimg, "zoomout", battlespeed=battlespeed)
             cw.animation.animate_sprite(inusecardimg, "hide", battlespeed=battlespeed)
