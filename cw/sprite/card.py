@@ -389,12 +389,12 @@ class CWPyCard(base.SelectableSprite):
 
             value = calc_zoom(zoom_w)
             if value % 2 == 1:
-                value += 1 if ds//2 < self.frame else -1
+                value += 1 if (ds+1)//2 <= self.frame else -1
             w = cw.util.numwrap(self._rect.w + value, 0, maxw)
 
             value = calc_zoom(zoom_h)
             if value % 2 == 1:
-                value += 1 if ds//2 < self.frame else -1
+                value += 1 if (ds+1)//2 <= self.frame else -1
             h = cw.util.numwrap(self._rect.h + value, 0, maxh)
 
         if maxw <= w and maxh <= h and cw.cwpy.setting.smoothing_card_up:
