@@ -371,6 +371,15 @@ class CWPyCard(base.SelectableSprite):
         """
         カードを拡大する。
         """
+        self._update_zoomin(self._get_dealspeed()+1)
+
+    def update_zoomin_slow(self):
+        """
+        カードをゆっくりと拡大する。
+        """
+        self._update_zoomin(self._get_dealspeed()*2+1)
+
+    def _update_zoomin(self, ds):
         if self.frame == 0:
             self.zoomimgs.append((self.get_animeimage(), pygame.Rect(self.get_animerect())))
 
@@ -382,22 +391,25 @@ class CWPyCard(base.SelectableSprite):
             w = maxw
             h = maxh
         else:
-            ds = self._get_dealspeed()
             def calc_zoom(zoom_val):
-                # 線形に拡大するのではなく、末端で加減速する
-                return int(round((math.sin(-math.pi/2.0 + math.pi/(ds+1)*self.frame) + 1.0) / 2.0 * zoom_val))
+                # 線形に拡大するのではなく、末端で減速する
+                return int(round(zoom_val * ((ds * 2 - self.frame + 1) * self.frame / 2.0) / ((ds + 1) * ds / 2.0)))
+                ## 減速もする場合
+                #return int(round((math.sin(-math.pi/2.0 + math.pi/ds*self.frame) + 1.0) / 2.0 * zoom_val))
 
             value = calc_zoom(zoom_w)
             if value % 2 == 1:
-                value += 1 if (ds+1)//2 <= self.frame else -1
+                value += 1 if ds//2 <= self.frame else -1
             w = cw.util.numwrap(self._rect.w + value, 0, maxw)
 
             value = calc_zoom(zoom_h)
             if value % 2 == 1:
-                value += 1 if (ds+1)//2 <= self.frame else -1
+                value += 1 if ds//2 <= self.frame else -1
             h = cw.util.numwrap(self._rect.h + value, 0, maxh)
 
-        if maxw <= w and maxh <= h and cw.cwpy.setting.smoothing_card_up:
+        self.frame += 1
+
+        if ds <= self.frame and cw.cwpy.setting.smoothing_card_up:
             # 最大の一枚のみは長時間表示される
             # 可能性があるためスムージングする
             scale = cw.image.smoothscale_card
@@ -407,9 +419,8 @@ class CWPyCard(base.SelectableSprite):
         self.rect = pygame.Rect(self.image.get_rect())
         self.rect.center = self.get_animerect().center
         self.zoomimgs.append((self.image, pygame.Rect(self.rect)))
-        self.frame += 1
 
-        if maxw <= w and maxh <= h:
+        if ds <= self.frame:
             self.status = self.old_status
             self.frame = 0
             if self.status == "hidden":
@@ -436,6 +447,14 @@ class CWPyCard(base.SelectableSprite):
         else:
             self.status = self.old_status
             self.frame = 0
+
+    def update_zoomout_slow(self):
+        """
+        カードをゆっくりと縮小する。
+        現状では拡大時の速度に合わせて動くので、
+        update_zoomout()と同じ結果になる。
+        """
+        self.update_zoomout()
 
     def update_shiftup(self):
         """下にさげていたカードを上にあげる。"""
