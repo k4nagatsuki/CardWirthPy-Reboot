@@ -847,13 +847,19 @@ class Character(object):
             cw.animation.animate_sprite(inusecardimg, "deal", battlespeed=battlespeed)
             # 効果音を鳴らす
             cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
-            cw.animation.animate_sprite(inusecardimg, "zoomin_slow", battlespeed=battlespeed)
-            waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
-            skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-            if not skipped and cw.cwpy.setting.wait_usecard:
-                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
-                cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-            cw.animation.animate_sprite(inusecardimg, "zoomout_slow", battlespeed=battlespeed)
+            if cw.cwpy.setting.wait_usecard:
+                cw.animation.animate_sprite(inusecardimg, "zoomin_slow", battlespeed=battlespeed)
+                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
+                skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+                if not skipped:
+                    waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
+                    cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+                cw.animation.animate_sprite(inusecardimg, "zoomout_slow", battlespeed=battlespeed)
+            else:
+                cw.animation.animate_sprite(inusecardimg, "zoomin", battlespeed=battlespeed)
+                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
+                skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+                cw.animation.animate_sprite(inusecardimg, "zoomout", battlespeed=battlespeed)
             cw.animation.animate_sprite(inusecardimg, "hide", battlespeed=battlespeed)
         elif isinstance(self, cw.character.Friend):
             self.set_pos_noscale(center_noscale=(316, 142))
