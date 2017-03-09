@@ -371,17 +371,30 @@ class CWPyCard(base.SelectableSprite):
         """
         カードを拡大する。
         """
-        self._update_zoomin(self._get_dealspeed()+1)
+        self._update_zoominout(self._get_dealspeed()+1, True)
 
     def update_zoomin_slow(self):
         """
         カードをゆっくりと拡大する。
         """
-        self._update_zoomin(self._get_dealspeed()*2+1)
+        self._update_zoominout(self._get_dealspeed()*2+1, True)
 
-    def _update_zoomin(self, ds):
+    def update_zoomout(self):
+        """
+        カードを縮小する。
+        """
+        self._update_zoominout(self._get_dealspeed()+1, False)
+
+    def update_zoomout_slow(self):
+        """
+        カードをゆっくりと縮小する。
+        """
+        self._update_zoominout(self._get_dealspeed()*2+1, False)
+
+    def _update_zoominout(self, ds, inout):
         if self.frame == 0:
-            self.zoomimgs.append((self.get_animeimage(), pygame.Rect(self.get_animerect())))
+            if inout:
+                self.zoomimgs.append((self.get_animeimage(), pygame.Rect(self.get_animerect())))
 
         zoom_w, zoom_h = cw.s(self.zoomsize_noscale)
         maxw = self._rect.w + zoom_w
@@ -392,10 +405,14 @@ class CWPyCard(base.SelectableSprite):
             h = maxh
         else:
             def calc_zoom(zoom_val):
+                if inout:
+                    # 拡大
+                    f = self.frame
+                else:
+                    # 縮小
+                    f = ds - self.frame - 1
                 # 線形に拡大するのではなく、末端で減速する
-                return int(round(zoom_val * ((ds * 2 - self.frame + 1) * self.frame / 2.0) / ((ds + 1) * ds / 2.0)))
-                ## 減速もする場合
-                #return int(round((math.sin(-math.pi/2.0 + math.pi/ds*self.frame) + 1.0) / 2.0 * zoom_val))
+                return int(round(zoom_val * ((ds * 2 - f + 1) * f / 2.0) / ((ds + 1) * ds / 2.0)))
 
             value = calc_zoom(zoom_w)
             if value % 2 == 1:
@@ -418,43 +435,16 @@ class CWPyCard(base.SelectableSprite):
         self.image = scale(self.zoomimgs[0][0], (w, h))
         self.rect = pygame.Rect(self.image.get_rect())
         self.rect.center = self.get_animerect().center
-        self.zoomimgs.append((self.image, pygame.Rect(self.rect)))
 
         if ds <= self.frame:
+            if inout:
+                self.zoomimgs.append((self.image, pygame.Rect(self.rect)))
+            else:
+                del self.zoomimgs[:]
             self.status = self.old_status
             self.frame = 0
             if self.status == "hidden":
                 self.clear_image(move=False)
-
-    def update_zoomout(self):
-        """
-        カードを縮小する。
-        """
-        if self.old_status == "hidden":
-            self.image, self.rect = self.zoomimgs[0]
-            self.zoomimgs = []
-            self.status = self.old_status
-            self.frame = 0
-            self.clear_image(move=False)
-        elif self.zoomimgs:
-            self.image, self.rect = self.zoomimgs.pop()
-            self.rect = pygame.Rect(self.rect)
-            self.frame += 1
-
-            if not self.zoomimgs:
-                self.status = self.old_status
-                self.frame = 0
-        else:
-            self.status = self.old_status
-            self.frame = 0
-
-    def update_zoomout_slow(self):
-        """
-        カードをゆっくりと縮小する。
-        現状では拡大時の速度に合わせて動くので、
-        update_zoomout()と同じ結果になる。
-        """
-        self.update_zoomout()
 
     def update_shiftup(self):
         """下にさげていたカードを上にあげる。"""
