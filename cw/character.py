@@ -856,6 +856,7 @@ class Character(object):
                     cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 cw.animation.animate_sprite(inusecardimg, "zoomout_slow", battlespeed=battlespeed)
             else:
+                inusecardimg.zoomsize_noscale = (16, 22)
                 cw.animation.animate_sprite(inusecardimg, "zoomin", battlespeed=battlespeed)
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                 skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
