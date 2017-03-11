@@ -558,7 +558,9 @@ class EventEngine(object):
 
                 # メニューカードの反転表示を解除する
                 if isinstance(cw.cwpy.selection, cw.sprite.card.MenuCard):
+                    rect = cw.cwpy.selection.rect
                     cw.cwpy.clear_selection()
+                    cw.cwpy.draw(clip=rect)
 
             # イベント実行
             if isinsideevent:
