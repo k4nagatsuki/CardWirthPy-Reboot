@@ -847,6 +847,7 @@ class NamePage(AdventurerCreaterPage):
         self.SetDoubleBuffered(True)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.DragAcceptFiles(True)
+        self.SetToolTipString(cw.cwpy.msgs["can_use_castimage_from_dropped"])
         self.textctrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.textctrl.SetMaxLength(14)
         self.textctrl.SetFocus()
@@ -2075,6 +2076,7 @@ class DesignPanel(AdventurerCreaterPage):
         self.SetDoubleBuffered(True)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.DragAcceptFiles(True)
+        self.SetToolTipString(cw.cwpy.msgs["can_use_castimage_from_dropped"])
 
         self.ccard = ccard
 
