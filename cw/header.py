@@ -474,9 +474,12 @@ class CardHeader(object):
                 if header.uselimit <= 0 and not header.recycle and header.get_owner() == owner:
                     # 召喚獣消去効果で消えてる場合もあるのでチェック
                     if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
-                        cw.animation.animate_sprite(owner, "hide", battlespeed=cw.cwpy.is_battlestatus())
-                        cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
-                        cw.animation.animate_sprite(owner, "deal", battlespeed=cw.cwpy.is_battlestatus())
+                        if owner.status == "hidden":
+                            cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
+                        else:
+                            cw.animation.animate_sprite(owner, "hide", battlespeed=cw.cwpy.is_battlestatus())
+                            cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
+                            cw.animation.animate_sprite(owner, "deal", battlespeed=cw.cwpy.is_battlestatus())
 
     def write(self, party=None, move=False, from_getcontent=False):
         def create_newpath(party):
