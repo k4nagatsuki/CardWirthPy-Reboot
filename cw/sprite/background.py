@@ -123,7 +123,7 @@ class BackGround(base.CWPySprite):
                     if 0 < subrect.width and 0 < subrect.height:
                         curtain.cutter = cutter.subsurface(subrect).copy()
                         curtain.cutter_pos = (max(0, -rect.left), max(0, -rect.top))
-                        cutter.fill((0, 0, 0, 255), rect)
+                        cutter.fill((0, 0, 0, 255), subrect)
 
                     curtain.update_scale()
 
