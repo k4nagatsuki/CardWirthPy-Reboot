@@ -2092,6 +2092,9 @@ class Character(object):
         self.maxlife += maxlife - self.maxlife
         self.data.edit("Property/Life", str(self.maxlife), "max")
         self.set_life(self.maxlife)
+        # 技能の使用回数
+        for header in self.cardpocket[0]:
+            header.get_uselimit(reset=True)
 
         if not regulate:
             # レベル原点・EPクーポン操作
