@@ -410,6 +410,7 @@ class CWPyCard(base.SelectableSprite):
         if self.old_status == "hidden":
             w = maxw
             h = maxh
+            self.frame = ds
         else:
             def calc_zoom(zoom_val):
                 if inout:
@@ -431,7 +432,7 @@ class CWPyCard(base.SelectableSprite):
                 value += 1 if ds//2 <= self.frame else -1
             h = cw.util.numwrap(self._rect.h + value, 0, maxh)
 
-        self.frame += 1
+            self.frame += 1
 
         if ds <= self.frame and cw.cwpy.setting.smoothing_card_up:
             # 最大の一枚のみは長時間表示される
