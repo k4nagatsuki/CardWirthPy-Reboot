@@ -3651,6 +3651,8 @@ class CWPy(_Singleton, threading.Thread):
 
             self._curtained = True
 
+            self.draw()
+
     def clear_curtain(self):
         """Curtainスプライトを解除する。"""
         if self.is_curtained():
@@ -3660,6 +3662,7 @@ class CWPy(_Singleton, threading.Thread):
             self._curtained = False
             self.is_pcardsselectable = self.ydata and self.ydata.party
             self.is_mcardsselectable = True
+            self.draw()
 
     def cancel_cardcontrol(self):
         """カードの移動や使用の対象選択をキャンセルする。"""
