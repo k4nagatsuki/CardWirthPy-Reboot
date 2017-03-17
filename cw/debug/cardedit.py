@@ -319,7 +319,7 @@ class CardEditDialog(wx.Dialog):
                     if not self._find:
                         break
                     set_status(u"%sの手札カードを検索中..." % (member.name))
-                    for cardpocket in [member.cardpocket[0], member.cardpocket[1], member.cardpocket[2]]:
+                    for cardpocket in (member.cardpocket[cw.POCKET_SKILL], member.cardpocket[cw.POCKET_ITEM], member.cardpocket[cw.POCKET_BEAST]):
                         for header in cardpocket:
                             matcher = self._get_matcher(header)
                             if matcher in cards:
