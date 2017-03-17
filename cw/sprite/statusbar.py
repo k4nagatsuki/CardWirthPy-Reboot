@@ -145,8 +145,9 @@ class StatusBar(base.CWPySprite):
 
         self.loading = False
 
-        # デバッガのツールが使用可能かどうかを更新
-        cw.cwpy.event.refresh_tools()
+        if not cw.cwpy.sdata or not cw.cwpy.sdata.in_f9:
+            # デバッガのツールが使用可能かどうかを更新
+            cw.cwpy.event.refresh_tools()
 
     def clear(self):
         cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_ITEM)

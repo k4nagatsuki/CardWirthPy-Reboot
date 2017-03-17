@@ -1636,6 +1636,7 @@ class Debugger(wx.Frame):
                 for bar in bars:
                     bar.Realize()
             cw.cwpy.frame.exec_func(func, self)
+
         cw.cwpy.exec_func(func, self)
 
     def refresh_showpartytools(self):
