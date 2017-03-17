@@ -288,7 +288,8 @@ class BackGround(base.CWPySprite):
         self._inhrt_index = 0
 
         bginhrt2 = bginhrt
-        if len(elements) and elements[0].tag == "BgImage":
+        delfores = not bginhrt
+        if bginhrt and len(elements) and elements[0].tag == "BgImage":
             e = elements[0]
             left = e.getint("Location", "left")
             top = e.getint("Location", "top")
@@ -306,20 +307,22 @@ class BackGround(base.CWPySprite):
                 # CWはこの状態で冒険を中断して再開すると事前に描画されていた背景が消えるが、
                 # CWPyでは実際に覆われて描画できなくなったもの以外は残すようにする
                 bginhrt2 = False
+                delfores = True
 
-                # 背景非継承の場合は手前のセルはすべて強制削除
-                bgs2 = []
-                for bgtype, d in self.bgs:
-                    if bgtype == BG_SEPARATOR:
+        if delfores:
+            # 背景非継承の場合は手前のセルはすべて強制削除
+            bgs2 = []
+            for bgtype, d in self.bgs:
+                if bgtype == BG_SEPARATOR:
+                    bgs2.append((bgtype, d))
+                else:
+                    layer = d[-2]
+                    if layer <> cw.LAYER_BACKGROUND:
                         bgs2.append((bgtype, d))
-                    else:
-                        layer = d[-2]
-                        if layer <> cw.LAYER_BACKGROUND:
-                            bgs2.append((bgtype, d))
-                self.bgs = bgs2
-                del self.foregroundlist[:]
+            self.bgs = bgs2
+            del self.foregroundlist[:]
 
-                self._inhrt_index = len(self.bgs)
+            self._inhrt_index = len(self.bgs)
 
         if bginhrt2:
             # 背景継承
