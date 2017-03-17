@@ -1825,6 +1825,10 @@ class CWPy(_Singleton, threading.Thread):
         self.change_area(1, ttype=ttype)
 
     def _init_attrs(self):
+        for i in xrange(len(self.lastsound_scenario)):
+            if self.lastsound_scenario[i]:
+                self.lastsound_scenario[i].stop(True)
+                self.lastsound_scenario[i] = None
         cw.util.remove_temp()
         self.yadodir = ""
         self.tempdir = ""
@@ -2295,6 +2299,10 @@ class CWPy(_Singleton, threading.Thread):
 
         def return_title():
             def func():
+                for i in xrange(len(self.lastsound_scenario)):
+                    if self.lastsound_scenario[i]:
+                        self.lastsound_scenario[i].stop(True)
+                        self.lastsound_scenario[i] = None
                 self.set_status("Title")
                 self.sdata = cw.data.SystemData()
                 cw.util.remove_temp()
@@ -2389,6 +2397,10 @@ class CWPy(_Singleton, threading.Thread):
         self.tempdir = self.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, u"Yado"), 1)
         for music in self.music:
             music.stop()
+        for i in xrange(len(self.lastsound_scenario)):
+            if self.lastsound_scenario[i]:
+                self.lastsound_scenario[i].stop(True)
+                self.lastsound_scenario[i] = None
         self.ydata = cw.data.YadoData(self.yadodir, self.tempdir)
         self.setting.lastyado = yadodirname
 
