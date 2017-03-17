@@ -2093,7 +2093,7 @@ class Character(object):
         self.data.edit("Property/Life", str(self.maxlife), "max")
         self.set_life(self.maxlife)
         # 技能の使用回数
-        for header in self.cardpocket[0]:
+        for header in self.cardpocket[cw.POCKET_SKILL]:
             header.get_uselimit(reset=True)
 
         if not regulate:
@@ -2134,7 +2134,7 @@ class Character(object):
                 cw.cwpy.ydata.party.sort_backpack()
             elif targettype_original == "STOREHOUSE":
                 cw.cwpy.ydata.sort_storehouse()
-            for header in self.cardpocket[0]:
+            for header in self.cardpocket[cw.POCKET_SKILL]:
                 header.get_uselimit(reset=True)
         elif 0 < uplevel and revert_cardpocket:
             # レベル調節で手放したカードを戻す
