@@ -745,27 +745,37 @@ class Setting(object):
         if not loadfile:
             self.init_skin(basedata=basedata)
 
-        # 設定バージョンの更新
-        if int(settings_version) < 1 and not loadfile:
-            # バージョン0ではスキンに
-            # 「メッセージでクラシックなフォントを使用する」が
-            # 存在するため、それを使用中の場合に限り
-            # デフォルトフォントをクラシックなものに初期化する
-            if self._classicstyletext:
-                self.local.fontsmoothing_message = False
-                self.local.fonttypes["message"] = self.local.fonttypes_init["message"]
-                self.local.fonttypes["selectionbar"] = self.local.fonttypes_init["selectionbar"]
-            else:
-                self.local.fontsmoothing_message = True
+            # 設定バージョンの更新
+            if int(settings_version) < 1:
+                # バージョン0ではスキンに
+                # 「メッセージでクラシックなフォントを使用する」が
+                # 存在するため、それを使用中の場合に限り
+                # デフォルトフォントをクラシックなものに初期化する
+                if self._classicstyletext:
+                    self.local.fontsmoothing_message = False
+                    self.local.fonttypes["message"] = self.local.fonttypes_init["message"]
+                    self.local.fonttypes["selectionbar"] = self.local.fonttypes_init["selectionbar"]
+                else:
+                    self.local.fontsmoothing_message = True
 
-        if int(settings_version) < 2 and not loadfile:
-            # バージョン1ではカード名のスムージングはデフォルトでオン
-            # スムージング設定がデフォルト値でカード名フォントの設定を
-            # 変更している場合は、スムージングを改めてオンにする
-            if not self.local.fontsmoothing_cardname and\
-                    (self.local.fonttypes["cardname"] <> self.local.fonttypes_init["cardname"] or \
-                     self.local.fonttypes["ccardname"] <> self.local.fonttypes_init["ccardname"]):
-                self.local.fontsmoothing_cardname = True
+            if int(settings_version) < 2:
+                # バージョン1ではカード名のスムージングはデフォルトでオン
+                # スムージング設定がデフォルト値でカード名フォントの設定を
+                # 変更している場合は、スムージングを改めてオンにする
+                if not self.local.fontsmoothing_cardname and\
+                        (self.local.fonttypes["cardname"] <> self.local.fonttypes_init["cardname"] or \
+                         self.local.fonttypes["ccardname"] <> self.local.fonttypes_init["ccardname"]):
+                    self.local.fontsmoothing_cardname = True
+
+            if int(settings_version) < 3:
+                # バージョン2→3でカードの回転速度を(dealspeed+1)*1.2からdealspeed+1に変更
+                if 4 <= self.dealspeed:
+                    self.dealspeed += 1
+                    self.dealspeed = cw.util.numwrap(self.dealspeed, 0, 10)
+                if 4 <= self.dealspeed_battle:
+                    self.dealspeed_battle += 1
+                    self.dealspeed_battle = cw.util.numwrap(self.dealspeed, 0, 10)
+                self.set_dealspeed(self.dealspeed, self.dealspeed_battle, self.use_battlespeed)
 
     def init_skin(self, basedata=None):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
@@ -1110,7 +1120,7 @@ class Setting(object):
     def set_dealspeed(self, value, battlevalue, usebattle):
         self.dealspeed = value
         self.dealspeed = cw.util.numwrap(self.dealspeed, 0, 10)
-        scales_len = int((self.dealspeed+1) * 1.2)
+        scales_len = self.dealspeed + 1
         self.dealing_scales = [
             int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
             for i in xrange(scales_len)
@@ -1119,7 +1129,7 @@ class Setting(object):
 
         self.dealspeed_battle = battlevalue
         self.dealspeed_battle = cw.util.numwrap(self.dealspeed_battle, 0, 10)
-        scales_len = int((self.dealspeed_battle+1) * 1.2)
+        scales_len = self.dealspeed_battle + 1
         self.dealing_scales_battle = [
             int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
             for i in xrange(scales_len)
