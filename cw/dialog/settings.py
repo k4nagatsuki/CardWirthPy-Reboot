@@ -650,6 +650,8 @@ class SettingsPanel(wx.Panel):
         setting.can_forwardmessage_with_wheel = value
         value = self.pane_ui.cb_wait_usecard.GetValue()
         setting.wait_usecard = value
+        value = self.pane_ui.cb_enlarge_beastcardzoomingratio.GetValue()
+        setting.enlarge_beastcardzoomingratio = value
         value = self.pane_ui.cb_can_repeatlclick.GetValue()
         setting.can_repeatlclick = value
         value = self.pane_ui.cb_autoenter_on_sprite.GetValue()
@@ -2416,6 +2418,9 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_wait_usecard = wx.CheckBox(
             panel, -1, u"カードの使用前に空白時間を入れる")
         panel.AddWindow(self.cb_wait_usecard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        self.cb_enlarge_beastcardzoomingratio = wx.CheckBox(
+            panel, -1, u"召喚獣カードの拡大率を大きくする")
+        panel.AddWindow(self.cb_enlarge_beastcardzoomingratio, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_can_repeatlclick = wx.CheckBox(
             panel, -1, u"マウスの左ボタンを押し続けた時は連打状態にする")
         panel.AddWindow(self.cb_can_repeatlclick, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
@@ -2574,6 +2579,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_can_skipwait_with_wheel.SetValue(setting.can_skipwait_with_wheel)
         self.cb_can_forwardmessage_with_wheel.SetValue(setting.can_forwardmessage_with_wheel)
         self.cb_wait_usecard.SetValue(setting.wait_usecard)
+        self.cb_enlarge_beastcardzoomingratio.SetValue(setting.enlarge_beastcardzoomingratio)
         self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick)
         self.cb_autoenter_on_sprite.SetValue(setting.autoenter_on_sprite)
 
@@ -2621,6 +2627,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_can_skipwait_with_wheel.SetValue(setting.can_skipwait_with_wheel_init)
         self.cb_can_forwardmessage_with_wheel.SetValue(setting.can_forwardmessage_with_wheel_init)
         self.cb_wait_usecard.SetValue(setting.wait_usecard_init)
+        self.cb_enlarge_beastcardzoomingratio.SetValue(setting.enlarge_beastcardzoomingratio_init)
         self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick_init)
         self.cb_autoenter_on_sprite.SetValue(setting.autoenter_on_sprite_init)
 

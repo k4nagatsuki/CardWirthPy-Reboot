@@ -847,11 +847,11 @@ class Character(object):
             cw.animation.animate_sprite(inusecardimg, "deal", battlespeed=battlespeed)
             # 効果音を鳴らす
             cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
-            if cw.cwpy.setting.wait_usecard:
+            if cw.cwpy.setting.enlarge_beastcardzoomingratio:
                 cw.animation.animate_sprite(inusecardimg, "zoomin_slow", battlespeed=battlespeed)
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                 skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-                if not skipped:
+                if not skipped and cw.cwpy.setting.wait_usecard:
                     waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
                     cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 cw.animation.animate_sprite(inusecardimg, "zoomout_slow", battlespeed=battlespeed)
