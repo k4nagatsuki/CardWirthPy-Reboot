@@ -1226,8 +1226,6 @@ class InuseCardImage(card.CWPyCard):
     def update_scale(self):
         self.header.negaflag = False
         image = self.header.get_cardimg()
-        if self.alpha < 255:
-            image.set_alpha(self.alpha)
         self.image = self._image = image
         self.rect = self._rect = image.get_rect()
 
@@ -1235,6 +1233,9 @@ class InuseCardImage(card.CWPyCard):
             scale = self.user.scale / 100.0
             self.image = cw.image.zoomcard(self.image, scale)
             self.rect.size = self.image.get_size()
+
+        if self.alpha < 255:
+            self.image.set_alpha(self.alpha)
 
         if self.center:
             self.set_pos_noscale(center_noscale=(316, 142))
