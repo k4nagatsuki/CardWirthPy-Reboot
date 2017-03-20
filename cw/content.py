@@ -3653,7 +3653,7 @@ class TalkMessageContent(TalkContent):
             return 0
 
         if firsttalker:
-            versionhint = talker.versionhint
+            versionhint = firsttalker.versionhint
         else:
             versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
 
