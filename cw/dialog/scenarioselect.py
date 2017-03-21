@@ -1878,26 +1878,27 @@ class ScenarioSelect(select.Select):
                     buttonlist[0].SetFocus()
 
     def _enable_btn2(self, header, dc=None):
-        bmpw = self.toppanel.GetClientSize()[0]
+        bmpw, bmph = self.toppanel.GetClientSize()
         if isinstance(header, cw.header.ScenarioHeader):
+            bmp = None
             # 進行中チェック
             if self.is_playing(header):
                 if dc:
                     bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
-                    w = bmp.GetSize()[0]
-                    dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(152), True)
+                    w, h = bmp.GetSize()
+                    dc.DrawBitmap(bmp, (bmpw-w)//2, (bmph-h)//2, True)
             # 済み印存在チェック
             elif self.is_complete(header):
                 if dc:
                     bmp = cw.cwpy.rsrc.dialogs["COMPLETE"]
-                    w = bmp.GetSize()[0]
-                    dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(175), True)
+                    w, h = bmp.GetSize()
+                    dc.DrawBitmap(bmp, cw.wins(150), cw.wins(200), True)
             # クーポン存在チェック
             elif self.is_invisible(header):
                 if dc:
                     bmp = cw.cwpy.rsrc.dialogs["INVISIBLE"]
-                    w = bmp.GetSize()[0]
-                    dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(100), True)
+                    w, h = bmp.GetSize()
+                    dc.DrawBitmap(bmp, cw.wins(84), cw.wins(110), True)
 
     def is_playing(self, header):
         p = cw.util.get_linktarget(header.get_fpath())
