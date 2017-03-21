@@ -1900,7 +1900,9 @@ class ScenarioSelect(select.Select):
                     dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(100), True)
 
     def is_playing(self, header):
-        return header.get_fpath() in self.nowplayingpaths
+        p = cw.util.get_linktarget(header.get_fpath())
+        p = os.path.normcase(os.path.normpath(os.path.abspath(p)))
+        return p in self.nowplayingpaths
 
     def is_complete(self, header):
         return header.name in self.stamps

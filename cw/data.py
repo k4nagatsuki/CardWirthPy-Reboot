@@ -2724,6 +2724,8 @@ class YadoData(object):
                         e = cw.util.get_elementfromzip(path, "ScenarioLog.xml",
                                                                     "Property")
                         path = e.gettext("WsnPath")
+                        path = cw.util.get_linktarget(path)
+                        path = os.path.normcase(os.path.normpath(os.path.abspath(path)))
                         seq.append(path)
 
         return set(seq)
