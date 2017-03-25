@@ -4475,7 +4475,7 @@ class CWPy(_Singleton, threading.Thread):
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado,
                                         can_loaded_scaledimage=can_loaded_scaledimage)
 
-            elif e.tag == "BeastCard" and from_scenario:
+            elif not e is data and e.tag == "BeastCard" and from_scenario:
                 self.sdata.copy_carddata(e, dstdir, from_scenario, scedir, imgpaths)
 
     def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material, yadodir, toyado,

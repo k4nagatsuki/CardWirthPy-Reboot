@@ -494,6 +494,7 @@ class SystemData(object):
             data = self.get_beastdata(resid)
             if data is None:
                 return
+            data = copy.deepcopy(data)
             data = xml2etree(element=data)
             dstpath = cw.util.relpath(path, self.tempdir)
         else:
@@ -503,6 +504,7 @@ class SystemData(object):
             except:
                 cw.util.print_ex()
                 return
+            data = copy.deepcopy(data)
             dstpath = cw.util.relpath(path, scedir)
 
         if path in imgpaths:
