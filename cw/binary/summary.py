@@ -193,6 +193,8 @@ class Step(base.CWBinaryBase):
     def unconv(f, data):
         name = ""
         default = int(data.get("default"))
+        if data.getbool(".", "spchars", False):
+            f.check_wsnversion("2")
         variable_names = [""] * 10
         for e in data:
             if e.tag == "Name":
@@ -231,6 +233,8 @@ class Flag(base.CWBinaryBase):
     def unconv(f, data):
         name = ""
         default = cw.util.str2bool(data.get("default"))
+        if data.getbool(".", "spchars", False):
+            f.check_wsnversion("2")
         variable_names = [""] * 2
         for e in data:
             if e.tag == "Name":

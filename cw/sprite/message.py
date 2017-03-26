@@ -501,41 +501,49 @@ class MessageWindow(base.CWPySprite):
         """
         if not nametable:
             nametable = self.name_table
-        text, spcharinfo, _namelist = _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue)
+        text, spcharinfo, _namelist, _namelistindex = _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue)
         if full:
             return text, spcharinfo
         else:
             return text
 
-    def get_stepvalue(self, key):
+    def get_stepvalue(self, key, full, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
         if self.backlog:
             if key in self.step_table:
-                return self.step_table[key]
+                v = self.step_table[key]
             else:
                 return None
-
-        if key in cw.cwpy.sdata.steps:
-            s = cw.cwpy.sdata.steps[key].get_valuename()
+        elif key in cw.cwpy.sdata.steps:
+            v = cw.cwpy.sdata.steps[key]
         else:
-            s = None
+            return None
 
-        self.step_table[key] = s
-        return s
+        self.step_table[key] = v
+        s = v.get_valuename()
+        if stack <= 0 and v.spchars:
+            # 特殊文字の展開(Wsn.2)
+            s, _, _, namelistindex = _rpl_specialstr(full, s, name_table, self.get_stepvalue, self.get_flagvalue,
+                                                     basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
+        return s, namelistindex
 
-    def get_flagvalue(self, key):
+    def get_flagvalue(self, key, full, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
         if self.backlog:
             if key in self.flag_table:
-                return self.flag_table[key]
+                v = self.flag_table[key]
             else:
                 return None
-
-        if key in cw.cwpy.sdata.flags:
-            s = cw.cwpy.sdata.flags[key].get_valuename()
+        elif key in cw.cwpy.sdata.flags:
+            v = cw.cwpy.sdata.flags[key]
         else:
-            s = None
+            return None
 
-        self.flag_table[key] = s
-        return s
+        self.flag_table[key] = v
+        s = v.get_valuename()
+        if stack <= 0 and v.spchars:
+            # 特殊文字の展開(Wsn.2)
+            s, _, _, namelistindex = _rpl_specialstr(full, s, name_table, self.get_stepvalue, self.get_flagvalue,
+                                                     basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
+        return s, namelistindex
 
     def get_fontcolour(self, s):
         """引数の文字列からフォントカラーを返す。"""
@@ -1156,49 +1164,62 @@ def _create_nametable(full, talker):
                 del name_table[key]
     return name_table
 
-def _get_stepvalue(key):
+def _get_stepvalue(key, full, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
     if key in cw.cwpy.sdata.steps:
-        s = cw.cwpy.sdata.steps[key].get_valuename()
+        v = cw.cwpy.sdata.steps[key]
     else:
-        s = None
-    return s
+        return None
 
-def _get_flagvalue(key):
+    s = v.get_valuename()
+    if stack <= 0 and v.spchars:
+        # 特殊文字の展開(Wsn.2)
+        s, _, _, namelistindex = _rpl_specialstr(full, s, name_table, _get_stepvalue, _get_flagvalue,
+                                                 basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
+    return s, namelistindex
+
+def _get_flagvalue(key, full, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
     if key in cw.cwpy.sdata.flags:
-        s = cw.cwpy.sdata.flags[key].get_valuename()
+        v = cw.cwpy.sdata.flags[key]
     else:
-        s = None
-    return s
+        return None
 
-def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None):
+    s = v.get_valuename()
+    if stack <= 0 and v.spchars:
+        # 特殊文字の展開(Wsn.2)
+        s, _, _, namelistindex = _rpl_specialstr(full, s, name_table, _get_stepvalue, _get_flagvalue,
+                                                 basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
+    return s, namelistindex
+
+def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None,
+                    startindex=0, spcharinfo=None, namelist=[], namelistindex=0, stack=0):
     """
     特殊文字列(#, $)を置換した文字列を返す。
     """
-    _reset_nametable(name_table)
+    if spcharinfo is None:
+        _reset_nametable(name_table)
     buf = []
-    buflen = 0
-    spcharinfo = set()
+    buflen = startindex
+    if spcharinfo is None:
+        spcharinfo = set()
     skip = 0
-    namelist = []
-    namelistindex = 0
     for i, c in enumerate(s):
         if 0 < skip:
             skip -= 1
             continue
 
-        def get_varvalue(get, c):
+        def get_varvalue(get, c, namelistindex):
             if i+1 == len(s):
-                return 0
+                return 0, namelistindex
             nextpos = s[i+1:].find(c)
             if nextpos < 0:
-                return 0
+                return 0, namelistindex
             fl = s[i+1:i+1+nextpos]
-            val = get(fl)
+            val, namelistindex = get(fl, full, name_table, basenamelist, buflen, spcharinfo, namelist, namelistindex, stack)
             if val is None:
-                return 0 if full else -1
+                return 0 if full else -1, namelistindex
             skip = 1 + nextpos
             buf.append(val)
-            return skip
+            return skip, namelistindex
 
         if c == '#':
             if i + 1 == len(s) or s[i+1] == '\n':
@@ -1237,14 +1258,14 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None):
                     buf.append(c)
                     buflen += len(c)
         elif c == '%':
-            skip = get_varvalue(get_flag, '%')
+            skip, namelistindex = get_varvalue(get_flag, '%', namelistindex)
             if skip:
                 buflen += len(buf[-1])
             else:
                 buf.append(c)
                 buflen += len(c)
         elif c == '$':
-            skip = get_varvalue(get_step, '$')
+            skip, namelistindex = get_varvalue(get_step, '$', namelistindex)
             if skip:
                 buflen += len(buf[-1])
             else:
@@ -1258,7 +1279,7 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None):
 
     if not basenamelist is None:
         namelist = basenamelist
-    return "".join(buf), spcharinfo, namelist
+    return "".join(buf), spcharinfo, namelist, namelistindex
 
 def get_messagelogtext(mwins, lastline=True):
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。

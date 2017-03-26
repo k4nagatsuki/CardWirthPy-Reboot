@@ -1210,7 +1210,9 @@ class ScenarioData(SystemData):
             name = e.gettext("Name", "")
             truename = e.gettext("True", "")
             falsename = e.gettext("False", "")
-            self.flags[name] = Flag(value, name, truename, falsename, defaultvalue=value)
+            spchars = e.getbool(".", "spchars", False)
+            self.flags[name] = Flag(value, name, truename, falsename, defaultvalue=value,
+                                    spchars=spchars)
 
     def _init_steps(self):
         """
@@ -1225,7 +1227,9 @@ class ScenarioData(SystemData):
             for ev in e:
                 if ev.tag.startswith("Value"):
                     valuenames.append(ev.text if ev.text else u"")
-            self.steps[name] = Step(value, name, valuenames, defaultvalue=value)
+            spchars = e.getbool(".", "spchars", False)
+            self.steps[name] = Step(value, name, valuenames, defaultvalue=value,
+                                    spchars=spchars)
 
     def reset_variables(self):
         """すべての状態変数を初期化する。"""
@@ -1540,12 +1544,13 @@ class ScenarioData(SystemData):
         self.friendcards = seq
 
 class Flag(object):
-    def __init__(self, value, name, truename, falsename, defaultvalue):
+    def __init__(self, value, name, truename, falsename, defaultvalue, spchars):
         self.value = value
         self.name = name
         self.truename = truename if truename else u""
         self.falsename = falsename if falsename else u""
         self.defaultvalue = defaultvalue
+        self.spchars = spchars
 
     def __nonzero__(self):
         return self.value
@@ -1602,11 +1607,12 @@ def redraw_cards(value, flag=""):
         cw.cwpy.hide_cards(updatelist=False, flag=flag)
 
 class Step(object):
-    def __init__(self, value, name, valuenames, defaultvalue):
+    def __init__(self, value, name, valuenames, defaultvalue, spchars):
         self.value = value
         self.name = name
         self.valuenames = valuenames
         self.defaultvalue = defaultvalue
+        self.spchars = spchars
 
     def set(self, value, updatedebugger=True):
         value = cw.util.numwrap(value, 0, len(self.valuenames)-1)
