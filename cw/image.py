@@ -1120,7 +1120,7 @@ def create_type2textcell(text, face, size, color,
         x = 0
     y = 0
     for line in lines:
-        subimg = font.render(line, True, color)
+        subimg = font.render(line, False, color)
         # 取消線
         if sline:
             subimg2 = font.render(u"―", False, color)
@@ -1160,7 +1160,7 @@ def draw_textcell(image, rect, text, face, size, color,
 
     for line in lines:
         if bcolor:
-            subimg = font.render(line, True, bcolor)
+            subimg = font.render(line, False, bcolor)
             if sline:
                 subimg2 = font.render(u"―", False, bcolor)
                 size = (subimg.get_width() + cw.s(10), lineheight)
@@ -1168,12 +1168,11 @@ def draw_textcell(image, rect, text, face, size, color,
                 subimg.blit(subimg2, cw.s((-5, 0)))
             if vertical:
                 subimg = pygame.transform.rotate(subimg, -90)
-            for xx in xrange(-1, 2):
-                for yy in xrange(-1, 2):
-                    if xx == 0 and yy == 0:
-                        continue
-                    img.blit(subimg, (x+xx, y+yy))
-        subimg = font.render(line, True, color)
+            img.blit(subimg, (x - 1, y - 1))
+            img.blit(subimg, (x + 1, y - 1))
+            img.blit(subimg, (x - 1, y + 1))
+            img.blit(subimg, (x + 1, y + 1))
+        subimg = font.render(line, False, color)
         if sline:
             subimg2 = font.render(u"―", False, color)
             size = (subimg.get_width() + cw.s(10), lineheight)
