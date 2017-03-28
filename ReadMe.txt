@@ -309,6 +309,8 @@ CardWirthPyの実行形式には以下のライセンスが適用されます。
 
 ここにはコードやデータを直接寄贈した方のみ掲載しています。この他にも多くの方から、テスト・バグ報告・提案などで貢献していただいているため、これは完全なリストではない事をお断りしておきます。
 
+名前のあとの「@...」は、[Bitbucket](https://bitbucket.org/)のユーザIDです。
+
 (順不同・敬称略)
 
 https://sites.google.com/site/cardwirthpy/
@@ -343,6 +345,10 @@ http://misica.lv9.org/
 
 https://bitbucket.org/namereq/
  : name.req(@namereq) は、ランダム多岐分岐コンテントやクーポン分岐の複数称号対応化の実装者です。
+
+http://www.geocities.jp/handmademidis/
+ : HAND(@hand_cw) は、テキストセルの描画をCardWirth 1.50に合わせる修正を行いました。
+ : Webサイトで公開されている、CardWirthの仕様に関する多くの検証結果と推察は、CardWirthPyの仕様の決定に大きく寄与しています。
 
 
 謝辞
