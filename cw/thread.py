@@ -2147,7 +2147,7 @@ class CWPy(_Singleton, threading.Thread):
         yadodir = self.ydata.party.get_yadodir()
         tempdir = self.ydata.party.get_tempdir()
 
-        for header in self.ydata.party.backpack + self.ydata.party.backpack_moved:
+        for header in itertools.chain(self.ydata.party.backpack, self.ydata.party.backpack_moved):
             if header.scenariocard:
                 header.contain_xml()
                 header.remove_importedmaterials()
@@ -3943,6 +3943,11 @@ class CWPy(_Singleton, threading.Thread):
         if not party:
             party = self.ydata.party
 
+        if party:
+            is_playingscenario = party.is_adventuring()
+        else:
+            is_playingscenario = self.is_playingscenario()
+
         if header.is_backpackheader() and party:
             owner = party.backpack
         else:
@@ -3952,7 +3957,7 @@ class CWPy(_Singleton, threading.Thread):
         # ファイルの移動だけで済む場合
         move = (targettype in ("BACKPACK", "STOREHOUSE")) and\
             ((owner == self.ydata.storehouse) or (party and owner == party.backpack)) and\
-            (not self.is_playingscenario())
+            (not is_playingscenario)
 
         # カード置場・荷物袋内での位置の移動の場合
         toself = (targettype == "BACKPACK" and party and owner == party.backpack) or\
@@ -4136,7 +4141,7 @@ class CWPy(_Singleton, threading.Thread):
                 # シナリオで入手したカードはそのまま削除してよい
                 header.contain_xml(load=not targettype in ("PAWNSHOP", "TRASHBOX"))
             else:
-                if self.is_playingscenario():
+                if is_playingscenario:
                     if not header.carddata:
                         e = cw.data.yadoxml2etree(header.fpath)
                         header.carddata = e.getroot()
@@ -4200,7 +4205,7 @@ class CWPy(_Singleton, threading.Thread):
             # シナリオで取得したカードじゃない場合、XMLの削除
             elif not header.scenariocard and header.moved == 0:
                 self.remove_xml(header)
-                if fromplayer and self.is_playingscenario():
+                if fromplayer and is_playingscenario:
                     # PCによってシナリオへ持ち込まれたカードを破棄する際は
                     # デバッグログに出すために記録しておく
                     # (荷物袋からの破棄・移動はbackpack_movedに入るため不要)
