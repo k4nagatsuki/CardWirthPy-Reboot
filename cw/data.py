@@ -937,7 +937,10 @@ class ScenarioData(SystemData):
 
     def get_versionhint(self, frompos=0):
         """現在有効になっている互換性マークを返す。"""
-        for hint in self.versionhint[frompos:]:
+        for i, hint in enumerate(self.versionhint[frompos:]):
+            if cw.HINT_AREA <= i + frompos and cw.cwpy.event.in_inusecardevent:
+                # 使用時イベント中であればエリア・シナリオの互換性情報は見ない
+                break
             if hint:
                 return hint
         return None
