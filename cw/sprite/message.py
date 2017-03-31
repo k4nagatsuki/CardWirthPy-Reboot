@@ -512,11 +512,13 @@ class MessageWindow(base.CWPySprite):
             if key in self.step_table:
                 v = self.step_table[key]
             else:
-                return None
+                return None, namelistindex
         elif key in cw.cwpy.sdata.steps:
             v = cw.cwpy.sdata.steps[key]
         else:
-            return None
+            v = _get_spstep(key)
+            if v is None:
+                return None, namelistindex
 
         self.step_table[key] = v
         s = v.get_valuename()
@@ -1168,7 +1170,9 @@ def _get_stepvalue(key, full, name_table, basenamelist, startindex, spcharinfo, 
     if key in cw.cwpy.sdata.steps:
         v = cw.cwpy.sdata.steps[key]
     else:
-        return None
+        v = _get_spstep(key)
+        if v is None:
+            return None, namelistindex
 
     s = v.get_valuename()
     if stack <= 0 and v.spchars:
@@ -1176,6 +1180,40 @@ def _get_stepvalue(key, full, name_table, basenamelist, startindex, spcharinfo, 
         s, _, _, namelistindex = _rpl_specialstr(full, s, name_table, _get_stepvalue, _get_flagvalue,
                                                  basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
     return s, namelistindex
+
+def _get_spstep(name):
+    if cw.cwpy.event.in_inusecardevent:
+        cardversion = cw.cwpy.event.get_inusecard().wsnversion
+    else:
+        cardversion = None
+
+    if cw.cwpy.sdata.is_wsnversion('2', cardversion):
+        lname = name.lower()
+        if lname in u"??selectedplayer":
+            # 選択メンバのパーティ内の番号(Wsn.2)
+            # パーティ内の選択メンバがいない場合は"0"
+            if cw.cwpy.event.has_selectedmember():
+                sel = cw.cwpy.event.get_selectedmember()
+            else:
+                sel = None
+            pcards = cw.cwpy.get_pcards()
+            if sel and sel in pcards:
+                pn = u"%d" % (pcards.index(sel)+1)
+                return cw.data.Step(0, u"", [pn], u"", False)
+            else:
+                return cw.data.Step(0, u"", [u"0"], u"", False)
+        else:
+            # プレイヤーキャラクターの名前(??Player1～6)(Wsn.2)
+            pcards = cw.cwpy.get_pcards()
+            players = map(lambda a: u"??player%d" % a, xrange(1, len(pcards)+1))
+            if lname in players:
+                pcard = pcards[players.index(lname)]
+                return cw.data.Step(0, u"", [pcard.name], u"", False)
+
+        if lname.startswith(u"??"):
+            return cw.data.Step(0, u"", [u""], u"", False)
+
+    return None
 
 def _get_flagvalue(key, full, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
     if key in cw.cwpy.sdata.flags:
