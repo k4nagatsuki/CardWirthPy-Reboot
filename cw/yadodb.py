@@ -120,6 +120,19 @@ class YadoDB(object):
                         self.cur.execute("ALTER TABLE adventurerimage ADD COLUMN postype TEXT")
                         reqcommit = True
 
+                # partyorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
+                cur = self.con.execute("PRAGMA table_info('partyorder')")
+                res = cur.fetchall()
+                if not res:
+                    s = """
+                        CREATE TABLE partyorder (
+                            fpath TEXT,
+                            numorder INTEGER,
+                            PRIMARY KEY (fpath)
+                        )
+                    """
+                    self.cur.execute(s)
+
             # moved列,scenariocard列,versionhint列,star列が存在しない
             # 場合は作成する(旧バージョンとの互換性維持)
             cur = self.con.execute("PRAGMA table_info('card')")
@@ -392,6 +405,16 @@ class YadoDB(object):
                 """
                 self.cur.execute(s)
 
+                # パーティの並び順
+                s = """
+                    CREATE TABLE partyorder (
+                        fpath TEXT,
+                        numorder INTEGER,
+                        PRIMARY KEY (fpath)
+                    )
+                """
+                self.cur.execute(s)
+
                 # パーティ記録
                 s = """
                     CREATE TABLE partyrecord (
@@ -425,7 +448,7 @@ class YadoDB(object):
 
     @synclock(_lock)
     def update(self, cards=True, adventurers=True, parties=True, cardorder={}.copy(),
-               adventurerorder={}.copy(), partyrecord=True, savedjpdcimage=True):
+               adventurerorder={}.copy(), partyorder={}.copy(), partyrecord=True, savedjpdcimage=True):
         """データベースを更新する。"""
         def walk(dpath, headertable, xmlname, insert, insertheader, *args):
             dname = cw.util.join_paths(self.ypath, dpath)
@@ -537,6 +560,22 @@ class YadoDB(object):
             for dpath in os.listdir(cw.util.join_paths(self.ypath, "Party")):
                 walk(cw.util.join_paths("Party", dpath), parties, "", self._insert_party, self._insert_partyheader, False)
 
+            if partyorder:
+                # 冒険者の並び順を登録する
+                s = "DELETE FROM partyorder"
+                self.cur.execute(s)
+                for fpath, orderc in partyorder.items():
+                    s = """
+                        INSERT OR REPLACE INTO partyorder VALUES(
+                            ?,
+                            ?
+                        )
+                    """
+                    self.cur.execute(s, (
+                        fpath,
+                        orderc,
+                    ))
+
         if self.mode == YADO and partyrecord:
             s = "SELECT fpath, mtime FROM partyrecord"
             self.cur.execute(s)
@@ -616,6 +655,8 @@ class YadoDB(object):
 
     def _delete_party(self, path, commit=True):
         s = "DELETE FROM party WHERE fpath=?"
+        self.cur.execute(s, (path,))
+        s = "DELETE FROM partyorder WHERE fpath=?"
         self.cur.execute(s, (path,))
         if commit:
             self.con.commit()
@@ -1113,10 +1154,10 @@ class YadoDB(object):
         return self.get_adventurers(True)
 
     @synclock(_lock)
-    def insert_partyheader(self, header, commit=True):
-        return self._insert_partyheader(header, commit)
+    def insert_partyheader(self, header, commit=True, partyorder=-1):
+        return self._insert_partyheader(header, commit, partyorder)
 
-    def _insert_partyheader(self, header, commit=True):
+    def _insert_partyheader(self, header, commit=True, partyorder=-1):
         """データベースにパーティを登録する。"""
         s = """
         INSERT OR REPLACE INTO party(
@@ -1148,26 +1189,49 @@ class YadoDB(object):
             mtime,
         ))
 
+        if -1 < partyorder:
+            s = """
+            INSERT OR REPLACE INTO partyorder VALUES(
+                ?,
+                ?
+            )
+            """
+            self.cur.execute(s, (
+                fpath,
+                partyorder,
+            ))
+
         if commit:
             self.con.commit()
 
     @synclock(_lock)
-    def insert_party(self, path, commit=True):
-        return self._insert_party(path, commit)
+    def insert_party(self, path, commit=True, partyorder=-1):
+        return self._insert_party(path, commit, partyorder)
 
-    def _insert_party(self, path, commit=True):
+    def _insert_party(self, path, commit=True, partyorder=-1):
         try:
             # 新フォーマット(ディレクトリ)
             data = cw.data.xml2etree(path)
             e = data.find("Property")
             header = cw.header.PartyHeader(e)
             header.fpath = path
-            return self._insert_partyheader(header, commit)
+            return self._insert_partyheader(header, commit, partyorder)
         except Exception:
             cw.util.print_ex()
 
     def get_parties(self):
-        s = "SELECT * FROM party ORDER BY name"
+        s = """
+        SELECT
+            *
+        FROM
+            party
+            LEFT OUTER JOIN
+                partyorder
+            ON
+                party.fpath = partyorder.fpath
+        ORDER BY
+            name
+        """
         self.cur.execute(s)
         headers = []
         for rec in self.cur:

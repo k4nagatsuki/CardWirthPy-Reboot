@@ -296,6 +296,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         if setting.standbys_narrowtype <> setting.standbys_narrowtype_init:
             e = cw.data.make_element("StandbysNarrowType", str(setting.standbys_narrowtype))
             element.append(e)
+        # パーティ絞込条件
+        if setting.parties_narrowtype <> setting.parties_narrowtype_init:
+            e = cw.data.make_element("PartiesNarrowType", str(setting.parties_narrowtype))
+            element.append(e)
         # カード絞込条件
         if setting.card_narrowtype <> setting.card_narrowtype_init:
             e = cw.data.make_element("CardNarrowType", str(setting.card_narrowtype))
@@ -602,6 +606,8 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         attrs = {}
         if setting.show_additional_player or setting.show_additional_player_init:
             attrs["player"] = str(setting.show_additional_player)
+        if setting.show_additional_party or setting.show_additional_party_init:
+            attrs["party"] = str(setting.show_additional_party)
         if setting.show_additional_scenario or setting.show_additional_scenario_init:
             attrs["scenario"] = str(setting.show_additional_scenario)
         if setting.show_additional_card or setting.show_additional_card_init:

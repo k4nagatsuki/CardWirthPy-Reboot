@@ -293,7 +293,7 @@ class Select(wx.Dialog):
         sizer_panel.Add(self.right2btn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
 
-    def _disable_btn(self, enables=[]):
+    def _disable_btn(self, enables=[][:]):
         lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
         for btn in itertools.chain(self.buttonlist, lrbtns):
             if btn in enables:
@@ -301,7 +301,7 @@ class Select(wx.Dialog):
             else:
                 btn.Disable()
 
-    def _enable_btn(self, disables=[]):
+    def _enable_btn(self, disables=[][:]):
         lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
         for btn in itertools.chain(self.buttonlist, lrbtns):
             if btn in disables:
@@ -1459,6 +1459,7 @@ class PartySelect(MultiViewSelect):
         # ダイアログボックス作成
         MultiViewSelect.__init__(self, parent, cw.cwpy.msgs["resume_adventure"], wx.ID_OK, 8,
                                  cw.cwpy.setting.show_multipleparties)
+        self._bg = None
         # パーティ情報
         self.list = cw.cwpy.ydata.partys
         self.index = 0
@@ -1472,6 +1473,38 @@ class PartySelect(MultiViewSelect):
         self.names = []
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((460, 280)))
+
+        # 絞込条件
+        choices = (cw.cwpy.msgs["narrow_party_name"],
+                   cw.cwpy.msgs["member_name"],
+                   cw.cwpy.msgs["description"],
+                   cw.cwpy.msgs["history"],
+                   cw.cwpy.msgs["character_attribute"],
+                   cw.cwpy.msgs["sort_level"])
+        self._init_narrowpanel(choices, u"", cw.cwpy.setting.parties_narrowtype)
+
+        # sort
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
+        self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title"])
+        self.sort_label.SetFont(font)
+        choices = (cw.cwpy.msgs["sort_no"],
+                   cw.cwpy.msgs["sort_name"],
+                   cw.cwpy.msgs["highest_level"],
+                   cw.cwpy.msgs["average_level"],
+                   cw.cwpy.msgs["money"])
+        self.sort = wx.Choice(self, size=cw.wins((-1, 20)), choices=choices)
+        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
+        if cw.cwpy.setting.sort_parties == "Name":
+            self.sort.Select(1)
+        elif cw.cwpy.setting.sort_parties == "HighestLevel":
+            self.sort.Select(2)
+        elif cw.cwpy.setting.sort_parties == "AverageLevel":
+            self.sort.Select(3)
+        elif cw.cwpy.setting.sort_parties == "Money":
+            self.sort.Select(4)
+        else:
+            self.sort.Select(0)
+
         width = 50
         # ok
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, cw.wins((width, 24)), cw.cwpy.msgs["decide"])
@@ -1492,6 +1525,23 @@ class PartySelect(MultiViewSelect):
         # close
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((width, 24)), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.closebtn)
+
+        # additionals
+        self.create_addctrlbtn(self.toppanel, self._get_bg(), cw.cwpy.setting.show_additional_party)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.AddStretchSpacer(1)
+        sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
+        self.toppanel.SetSizer(sizer)
+
+        self.additionals.append(self.narrow_label)
+        self.additionals.append(self.narrow)
+        self.additionals.append(self.narrow_type)
+        self.additionals.append(self.sort_label)
+        self.additionals.append(self.sort)
+        self.update_additionals()
+
+        self.update_narrowcondition()
+
         # enable btn
         self.enable_btn()
         # layout
@@ -1502,12 +1552,204 @@ class PartySelect(MultiViewSelect):
         self.Bind(wx.EVT_BUTTON, self.OnClickEditBtn, self.editbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickPartyRecordBtn, self.partyrecordbtn)
+        self.Bind(wx.EVT_CHOICE, self.OnSort, self.sort)
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+
+        seq = self.accels
+        self.sortkeydown = []
+        for i in xrange(0, 9):
+            sortkeydown = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
+            seq.append((wx.ACCEL_CTRL, ord('1')+i, sortkeydown))
+            self.sortkeydown.append(sortkeydown)
+            self.append_addctrlaccelerator(seq)
+        cw.util.set_acceleratortable(self, seq)
 
         self.draw(True)
 
     def save_views(self, multi):
         cw.cwpy.setting.show_multipleparties = multi
+
+    def update_additionals(self):
+        Select.update_additionals(self)
+        cw.cwpy.setting.show_additional_party = self.addctrlbtn.GetToggle()
+
+    def _add_topsizer(self):
+        nsizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        nsizer.Add(self.narrow_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
+        nsizer.Add(self.narrow, 1, wx.CENTER, 0)
+        nsizer.Add(self.narrow_type, 0, wx.CENTER|wx.EXPAND, cw.wins(3))
+
+        nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(3))
+        nsizer.Add(self.sort, 0, wx.CENTER|wx.EXPAND, 0)
+
+        self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
+
+    def _on_narrowcondition(self):
+        cw.cwpy.setting.parties_narrowtype = self.narrow_type.GetSelection()
+        self.update_narrowcondition()
+        self.draw(True)
+
+    def update_narrowcondition(self):
+        if 0 <= self.index and self.index < len(self.list):
+            selected = self.list[self.index]
+        else:
+            selected = None
+
+        self.list = cw.cwpy.ydata.partys[:]
+
+        narrow = self.narrow.GetValue().lower()
+        donarrow = self.narrow.IsShown() and bool(narrow)
+        ntype = self.narrow_type.GetSelection()
+
+        if donarrow and ntype == 5:
+            # レベル
+            try:
+                narrow = int(narrow)
+            except:
+                donarrow = False
+
+        if donarrow:
+            hiddens = set([u"＿", u"＠"])
+            attrs = set(cw.cwpy.setting.periodnames)
+            attrs.update(cw.cwpy.setting.sexnames)
+            attrs.update(cw.cwpy.setting.naturenames)
+            attrs.update(cw.cwpy.setting.makingnames)
+
+            seq = []
+            for header in self.list:
+                if ntype == 0:
+                    # パーティ名
+                    if not narrow in header.name.lower():
+                        continue
+
+                elif ntype == 1:
+                    # メンバー名
+                    for mname in header.get_membernames():
+                        if narrow in mname.lower():
+                            break
+                    else:
+                        continue
+
+                elif ntype == 2:
+                    # 解説
+                    for mdesc in header.get_memberdescs():
+                        if narrow in mdesc.lower():
+                            break
+                    else:
+                        continue
+
+                elif ntype == 3:
+                    # 経歴
+                    for coupons in header.get_membercoupons():
+                        for coupon in coupons:
+                            if coupon:
+                                if cw.cwpy.is_debugmode():
+                                    if coupon[0] == u"＿" and coupon[1:] in attrs:
+                                        continue
+                                else:
+                                    if coupon[0] in hiddens:
+                                        continue
+
+                                if narrow in coupon.lower():
+                                    break
+                        else:
+                            continue
+                        break
+                    else:
+                        continue
+
+                elif ntype == 4:
+                    # 特性
+                    for coupons in header.get_membercoupons():
+                        for coupon in coupons:
+                            if coupon and coupon[0] == u"＿":
+                                coupon = coupon[1:]
+                                if coupon in attrs:
+                                    if narrow in coupon.lower():
+                                        break
+                        else:
+                            continue
+                        break
+                    else:
+                        continue
+
+                elif ntype == 5:
+                    # レベル
+                    maxlevel = max(*header.get_memberlevels())
+                    minlevel = min(*header.get_memberlevels())
+                    if not (minlevel <= narrow <= maxlevel):
+                        continue
+
+                seq.append(header)
+            self.list = seq
+
+        if selected in self.list:
+            self.index = self.list.index(selected)
+        elif self.list:
+            self.index %= len(self.list)
+        else:
+            self.index = 0
+        self.enable_btn()
+
+    def _get_bg(self):
+        if self._bg:
+            return self._bg
+        path = "Table/Book"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
+        self._bg = cw.util.load_wxbmp(path, can_loaded_scaledimage=True)
+        return self._bg
+
+    def OnNumberKeyDown(self, event):
+        """
+        数値キー'1'～'9'までの押下を処理する。
+        PlayerSelectではソート条件の変更を行う。
+        """
+        if self._processing:
+            return
+
+        if self.sort.IsShown():
+            index = self.sortkeydown.index(event.GetId())
+            if index < self.sort.GetCount():
+                self.sort.SetSelection(index)
+                event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.sort.GetId())
+                self.ProcessEvent(event)
+
+    def OnSort(self, event):
+        if self._processing:
+            return
+
+        index = self.sort.GetSelection()
+        if index == 1:
+            sorttype = "Name"
+        elif index == 2:
+            sorttype = "HighestLevel"
+        elif index == 3:
+            sorttype = "AverageLevel"
+        elif index == 4:
+            sorttype = "Money"
+        else:
+            sorttype = "None"
+
+        if cw.cwpy.setting.sort_parties <> sorttype:
+            cw.cwpy.play_sound("page")
+            cw.cwpy.setting.sort_parties = sorttype
+            cw.cwpy.ydata.sort_parties()
+            self.update_narrowcondition()
+            self.draw(True)
+        self.left2btn.SetFocus()
+
+    def OnMouseWheel(self, event):
+        if self._processing:
+            return
+
+        if change_combo(self.narrow_type, event):
+            return
+        elif change_combo(self.sort, event):
+            return
+        else:
+            MultiViewSelect.OnMouseWheel(self, event)
 
     def OnClickInfoBtn(self, event):
         if not self.list:
@@ -1588,9 +1830,7 @@ class PartySelect(MultiViewSelect):
     def draw(self, update=False):
         dc = Select.draw(self, update)
         # 背景
-        path = "Table/Book"
-        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins(cw.util.load_wxbmp(path, can_loaded_scaledimage=True))
+        bmp = cw.wins(self._get_bg())
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -1842,7 +2082,7 @@ class PlayerSelect(MultiViewSelect):
         choices = (cw.cwpy.msgs["sort_no"],
                    cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["sort_level"])
-        self.sort = wx.Choice(self, size=cw.wins((75, 20)), choices=choices)
+        self.sort = wx.Choice(self, size=cw.wins((-1, 20)), choices=choices)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         if cw.cwpy.setting.sort_standbys == "Name":
             self.sort.Select(1)
@@ -2054,7 +2294,6 @@ class PlayerSelect(MultiViewSelect):
                 self.index = 0
         else:
             self._enable_btn(disables)
-
 
     def OnSort(self, event):
         if self._processing:

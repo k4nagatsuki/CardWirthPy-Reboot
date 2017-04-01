@@ -1261,6 +1261,7 @@ class PartyHeader(object):
         data: PartyのPropetyElement。
         dbrec: データベースから生成する場合は対象レコード。
         """
+        self.order = -1
         if dbrec:
             self.fpath = dbrec["fpath"]
             self.name = dbrec["name"]
@@ -1273,6 +1274,11 @@ class PartyHeader(object):
             self.members = [e.text for e in data.getfind("Members") if e.text]
 
         self.data = None
+        self._memberprops = None
+        self._membernames = None
+        self._memberdescs = None
+        self._membercoupons = None
+        self._memberlevels = None
 
     def is_adventuring(self):
         path = cw.util.splitext(self.fpath)[0] + ".wsl"
@@ -1315,13 +1321,55 @@ class PartyHeader(object):
 
         return seq
 
+    def _get_properties(self):
+        if self._memberprops is None:
+            self._memberprops = []
+            for fpath in self.get_memberpaths():
+                self._memberprops.append(GetProperty(fpath))
+        return self._memberprops
+
     def get_membernames(self):
-        seq = []
+        if self._membernames is None:
+            self._membernames = []
+            for prop in self._get_properties():
+                self._membernames.append(prop.properties.get("Name", u""))
+        return self._membernames
 
-        for fpath in self.get_memberpaths():
-            seq.append(GetName(fpath).name)
+    def get_memberdescs(self):
+        if self._memberdescs is None:
+            self._memberdescs = []
+            for prop in self._get_properties():
+                self._memberdescs.append(prop.properties.get("Description", u""))
+        return self._memberdescs
 
-        return seq
+    def get_membercoupons(self):
+        if self._membercoupons is None:
+            self._membercoupons = []
+            for prop in self._get_properties():
+                coupons = []
+                for _coupon, attrs, name in reversed(prop.third.get("Coupons", [])):
+                    if not name:
+                        continue
+                    coupons.append(name)
+                self._membercoupons.append(coupons)
+        return self._membercoupons
+
+    def get_memberlevels(self):
+        if self._memberlevels is None:
+            self._memberlevels = []
+            for prop in self._get_properties():
+                self._memberlevels.append(int(prop.properties.get("Level", u"1")))
+        return self._memberlevels
+
+    @property
+    def average_level(self):
+        levels = self.get_memberlevels()
+        return float(sum(levels))/len(levels) if len(levels) else 1
+
+    @property
+    def highest_level(self):
+        return max(self.get_memberlevels())
+
 
 class PartyRecordHeader(object):
     def __init__(self, fpath=None, dbrec=None, partyrecord=None):

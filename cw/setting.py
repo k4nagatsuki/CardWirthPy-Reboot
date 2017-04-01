@@ -322,12 +322,14 @@ class Setting(object):
         self.skindirname = "Classic"
         self.vocation120 = False
         self.sort_standbys = "None"
+        self.sort_parties = "None"
         self.sort_cards = "None"
         self.sort_cardswithstar = True
         self.card_narrow = ""
         self.card_narrowtype = 0
         self.edit_star = False
         self.standbys_narrowtype = 0
+        self.parties_narrowtype = 0
         self.infoview_narrowtype = 0
         self.backlogmax = 100
         self.messagelog_type = LOG_COMPRESS
@@ -399,6 +401,7 @@ class Setting(object):
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = False
+        self.show_additional_party = False
         self.show_additional_scenario = False
         self.show_additional_card = False
         # 表示有無切替ボタン自体の表示有無
@@ -563,10 +566,13 @@ class Setting(object):
         self.all_quickdeal = data.getbool("AllQuickDeal", self.all_quickdeal)
         # ソート基準
         self.sort_standbys = data.getattr("SortKey", "standbys", self.sort_standbys)
+        self.sort_parties = data.getattr("SortKey", "parties", self.sort_parties)
         self.sort_cards = data.getattr("SortKey", "cards", self.sort_cards)
         self.sort_cardswithstar = data.getbool("SortKey", "cardswithstar", self.sort_cardswithstar)
         # 宿帳絞込条件
         self.standbys_narrowtype = data.getint("StandbysNarrowType", self.standbys_narrowtype)
+        # パーティ絞込条件
+        self.parties_narrowtype = data.getint("PartiesNarrowType", self.parties_narrowtype)
         # カード絞込条件
         self.card_narrowtype = data.getint("CardNarrowType", self.card_narrowtype)
         # 情報カード絞込条件
@@ -712,6 +718,7 @@ class Setting(object):
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_player = data.getbool("ShowAdditionalControls", "player", self.show_additional_player)
+        self.show_additional_party = data.getbool("ShowAdditionalControls", "party", self.show_additional_party)
         self.show_additional_scenario = data.getbool("ShowAdditionalControls", "scenario", self.show_additional_scenario)
         self.show_additional_card = data.getbool("ShowAdditionalControls", "card", self.show_additional_card)
         # 絞り込み等の表示切替ボタンを表示する

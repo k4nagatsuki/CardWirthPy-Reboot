@@ -1787,6 +1787,7 @@ class YadoData(object):
         for party in self.partys:
             for fpath in party.get_memberpaths():
                 partypaths.add(fpath)
+        self.sort_parties()
 
         # 待機中冒険者(AdventurerHeader)
         self.standbys = []
@@ -2066,12 +2067,14 @@ class YadoData(object):
         cw.util.sort_by_attr(self.album, "name")
         return header
 
-    def add_party(self, party):
+    def add_party(self, party, sort=True):
         fpath = party.path
         header = self.create_partyheader(fpath)
         header.data = party # 保存時まで記憶しておく
         self.partys.append(header)
-        cw.util.sort_by_attr(self.partys, "name")
+        header.order = cw.util.new_order(self.partys)
+        if sort:
+            self.sort_parties()
         return header
 
     def add_partyrecord(self, partyrecord):
@@ -2301,6 +2304,18 @@ class YadoData(object):
         else:
             cw.util.sort_by_attr(self.standbys, "order")
 
+    def sort_parties(self):
+        if cw.cwpy.setting.sort_parties == "HighestLevel":
+            cw.util.sort_by_attr(self.partys, "highest_level", "average_level", "name", "order")
+        elif cw.cwpy.setting.sort_parties == "AverageLevel":
+            cw.util.sort_by_attr(self.partys, "average_level", "highest_level", "name", "order")
+        elif cw.cwpy.setting.sort_parties == "Name":
+            cw.util.sort_by_attr(self.partys, "name", "order")
+        elif cw.cwpy.setting.sort_parties == "Money":
+            cw.util.sort_by_attr(self.partys, "money", "name", "order")
+        else:
+            cw.util.sort_by_attr(self.partys, "order")
+
     def sort_storehouse(self):
         sort_cards(self.storehouse, cw.cwpy.setting.sort_cards, cw.cwpy.setting.sort_cardswithstar)
 
@@ -2380,12 +2395,14 @@ class YadoData(object):
             carddb.close()
         if self.party:
             update_backpack(self.party)
+        partyorder = {}
         for party in self.partys:
             if party.data:
                 update_backpack(party.data)
                 if party.fpath.lower().startswith(self.tempdir.lower()):
                     party.fpath = party.fpath.replace(self.tempdir, self.yadodir, 1)
                 party.data = None
+            partyorder[fpath] = party.order
 
         partyrecord = {}
         for header in self.partyrecord:
@@ -2413,6 +2430,7 @@ class YadoData(object):
                           adventurers=adventurertable,
                           cardorder=cardorder,
                           adventurerorder=adventurerorder,
+                          partyorder=partyorder,
                           partyrecord=partyrecord,
                           savedjpdcimage=savedjpdcimage)
             yadodb.close()

@@ -676,7 +676,7 @@
     <Message key="select_skin">スキン:</Message>
     <Message key="show_fcards">同行キャスト</Message>
     <Message key="random_team">自動編成</Message>
-    <Message key="random_team_description">現在待機中のメンバから、近いレベルで異なる特性を持ったメンバを探して自動的にパーティを編成します。</Message>
+    <Message key="random_team_description">現在待機中のメンバーから、近いレベルで異なる特性を持ったメンバーを探して自動的にパーティを編成します。</Message>
      <!-- 0.12.3 ここから -->
     <Message key="find_scenario">この条件でシナリオを検索</Message>
     <Message key="find_result">検索結果</Message>
@@ -750,6 +750,11 @@
     <Message key="re_deal_label">カード交換:</Message>
     <Message key="can_use_castimage_from_dropped">キャラクターのイメージにドラッグ&amp;ドロップした
 イメージファイルを使用できます</Message>
+    <Message key="narrow_party_name">パーティ名</Message>
+    <Message key="member_name">メンバー名</Message>
+    <Message key="highest_level">最高レベル</Message>
+    <Message key="average_level">平均レベル</Message>
+    <Message key="money">所持金</Message>
     <!-- 2.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
