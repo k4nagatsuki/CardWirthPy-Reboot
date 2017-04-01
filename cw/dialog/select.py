@@ -610,16 +610,41 @@ class YadoSelect(MultiViewSelect):
         MultiViewSelect.__init__(self, parent, cw.cwpy.msgs["select_base_title"], _okid, 6,
                                  cw.cwpy.setting.show_multiplebases, lines=3)
         self._lastbillskindir = None
+        self._bg = None
 
         # 宿情報
-        self.names, self.list, self.list2, self.skins, self.classic, self.isshortcuts = self.get_yadolist()
+        self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self.get_yadolist()
         self.index = 0
-        for index, path in enumerate(self.list):
+        for index, path in enumerate(self._list):
             if cw.cwpy.setting.lastyado == os.path.basename(path):
                 self.index = index
                 break
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((400, 370)))
+
+        # 絞込条件
+        choices = (cw.cwpy.msgs["sort_name"],
+                   cw.cwpy.msgs["member_name"],
+                   cw.cwpy.msgs["skin"])
+        self._init_narrowpanel(choices, u"", cw.cwpy.setting.yado_narrowtype)
+
+        # sort
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
+        self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title"])
+        self.sort_label.SetFont(font)
+        choices = (cw.cwpy.msgs["sort_name"],
+                   cw.cwpy.msgs["skin"])
+        self.sort = wx.Choice(self, size=(-1, cw.wins(20)), choices=choices)
+        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
+        if cw.cwpy.setting.sort_yado == "Name":
+            self.sort.Select(0)
+        elif cw.cwpy.setting.sort_yado == "Skin":
+            self.sort.Select(1)
+        else:
+            self.sort.Select(0)
+        self.list = self._list
+        self._sort_list()
+
         # ok
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, _okid, cw.wins((50, 24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.okbtn)
@@ -640,6 +665,23 @@ class YadoSelect(MultiViewSelect):
         self.enable_btn()
         # ドロップファイル機能ON
         self.DragAcceptFiles(True)
+
+        # additionals
+        self.create_addctrlbtn(self.toppanel, self._get_bg(), cw.cwpy.setting.show_additional_yado)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.AddStretchSpacer(1)
+        sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
+        self.toppanel.SetSizer(sizer)
+
+        self.additionals.append(self.narrow_label)
+        self.additionals.append(self.narrow)
+        self.additionals.append(self.narrow_type)
+        self.additionals.append(self.sort_label)
+        self.additionals.append(self.sort)
+        self.update_additionals()
+
+        self.update_narrowcondition()
+
         # layout
         self._do_layout()
         # bind
@@ -648,8 +690,181 @@ class YadoSelect(MultiViewSelect):
         self.Bind(wx.EVT_BUTTON, self.OnClickNewBtn, self.newbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickExBtn, self.exbtn)
+        self.Bind(wx.EVT_CHOICE, self.OnSort, self.sort)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+
+        seq = self.accels
+        self.sortkeydown = []
+        for i in xrange(0, 9):
+            sortkeydown = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
+            seq.append((wx.ACCEL_CTRL, ord('1')+i, sortkeydown))
+            self.sortkeydown.append(sortkeydown)
+            self.append_addctrlaccelerator(seq)
+        cw.util.set_acceleratortable(self, seq)
+
+    def update_additionals(self):
+        Select.update_additionals(self)
+        cw.cwpy.setting.show_additional_yado = self.addctrlbtn.GetToggle()
+
+    def _add_topsizer(self):
+        nsizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        nsizer.Add(self.narrow_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
+        nsizer.Add(self.narrow, 1, wx.CENTER, 0)
+        nsizer.Add(self.narrow_type, 0, wx.CENTER|wx.EXPAND, cw.wins(3))
+
+        nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(3))
+        nsizer.Add(self.sort, 0, wx.CENTER|wx.EXPAND, 0)
+
+        self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
+
+    def _on_narrowcondition(self):
+        cw.cwpy.setting.yado_narrowtype = self.narrow_type.GetSelection()
+        self.update_narrowcondition()
+        self.draw(True)
+
+    def update_narrowcondition(self):
+        if 0 <= self.index and self.index < len(self.list):
+            selected = self.list[self.index]
+        else:
+            selected = None
+
+        objs = self._list_to_obj()
+
+        narrow = self.narrow.GetValue().lower()
+        donarrow = self.narrow.IsShown() and bool(narrow)
+        ntype = self.narrow_type.GetSelection()
+
+        if donarrow:
+            seq = []
+            for obj in objs:
+                if ntype == 0:
+                    # 拠点名
+                    if not narrow in obj.name.lower():
+                        continue
+
+                elif ntype == 1:
+                    # メンバー名
+                    for advname in obj.advnames:
+                        if narrow in advname.lower():
+                            break
+                    else:
+                        continue
+
+                elif ntype == 2:
+                    # スキン
+                    if not narrow in obj.skin.lower():
+                        continue
+
+                seq.append(obj)
+            objs = seq
+
+        self._obj_to_list(objs)
+
+        if selected in self.list:
+            self.index = self.list.index(selected)
+        elif self.list:
+            self.index %= len(self.list)
+        else:
+            self.index = 0
+        self.enable_btn()
+
+    def _get_bg(self):
+        if self._bg:
+            return self._bg
+        path = "Table/Bill"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
+        self._bg = cw.util.load_wxbmp(path, can_loaded_scaledimage=True)
+        return self._bg
+
+    def OnNumberKeyDown(self, event):
+        """
+        数値キー'1'～'9'までの押下を処理する。
+        PlayerSelectではソート条件の変更を行う。
+        """
+        if self._processing:
+            return
+
+        if self.sort.IsShown():
+            index = self.sortkeydown.index(event.GetId())
+            if index < self.sort.GetCount():
+                self.sort.SetSelection(index)
+                event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.sort.GetId())
+                self.ProcessEvent(event)
+
+    def OnSort(self, event):
+        if self._processing:
+            return
+
+        index = self.sort.GetSelection()
+        if index == 0:
+            sorttype = "Name"
+        elif index == 1:
+            sorttype = "Skin"
+        else:
+            sorttype = "Name"
+
+        if cw.cwpy.setting.sort_yado <> sorttype:
+            cw.cwpy.play_sound("page")
+            cw.cwpy.setting.sort_yado = sorttype
+            self._sort_list()
+            self.update_narrowcondition()
+            self.draw(True)
+        self.left2btn.SetFocus()
+
+    def _sort_list(self):
+        objs = self._list_to_obj()
+        sorttype = cw.cwpy.setting.sort_yado
+        if sorttype == "Name":
+            cw.util.sort_by_attr(objs, "name", "skin", "yadodir")
+        elif sorttype == "Skin":
+            cw.util.sort_by_attr(objs, "skin", "name", "yadodir")
+        else:
+            cw.util.sort_by_attr(objs, "name", "skin", "yadodir")
+        self._obj_to_list(objs)
+
+    def OnMouseWheel(self, event):
+        if self._processing:
+            return
+
+        if change_combo(self.narrow_type, event):
+            return
+        elif change_combo(self.sort, event):
+            return
+        else:
+            MultiViewSelect.OnMouseWheel(self, event)
+
+    def _list_to_obj(self):
+        class YadoObj(object):
+            def __init__(self, name, yadodir, advnames, skin, classic, isshortcut):
+                self.name = name
+                self.yadodir = yadodir
+                self.advnames = advnames
+                self.skin = skin
+                self.classic = classic
+                self.isshortcut = isshortcut
+
+        seq = []
+        for t in zip(self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts):
+            seq.append(YadoObj(*t))
+        return seq
+
+    def _obj_to_list(self, objs):
+        self.names = []
+        self.list = []
+        self.list2 = []
+        self.skins = []
+        self.classic = []
+        self.isshortcuts = []
+        for obj in objs:
+            self.names.append(obj.name)
+            self.list.append(obj.yadodir)
+            self.list2.append(obj.advnames)
+            self.skins.append(obj.skin)
+            self.classic.append(obj.classic)
+            self.isshortcuts.append(obj.isshortcut)
 
     def save_views(self, multi):
         cw.cwpy.setting.show_multiplebases = multi
@@ -845,8 +1060,10 @@ class YadoSelect(MultiViewSelect):
                     dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
                     cw.cwpy.frame.move_dlg(dlg)
                     if dlg.ShowModal() == wx.ID_OK:
-                        self.names, self.list, self.list2, self.skins, self.classic, self.isshortcuts = self.get_yadolist()
-                        self.index = self.list.index(path)
+                        self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self._get_yadolist()
+                        self.index = self._list.index(path)
+                        self.list = self._list
+                        self._sort_list()
                         draw = True
                     dlg.Destroy()
                 if draw:
@@ -1295,12 +1512,15 @@ class YadoSelect(MultiViewSelect):
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
-        self.names, self.list, self.list2, self.skins, self.classic, self.isshortcuts = self.get_yadolist()
+        self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self._get_yadolist()
 
         try:
-            self.index = self.list.index(yadodir)
+            self.index = self._list.index(yadodir)
         except:
             self.index = 0
+
+        self.list = self._list
+        self._sort_list()
 
         self.draw(True)
         self.enable_btn()
@@ -1421,25 +1641,17 @@ class YadoSelect(MultiViewSelect):
                                 f.close()
                             for member in party.memberslist:
                                 seq.append(member)
-                        if 25 <= len(seq):
-                            seq = seq[:23]
-                            seq.append(cw.cwpy.msgs["scenario_etc"])
-                            break
                 except:
                     cw.util.print_ex()
 
             else:
                 yadodb = cw.yadodb.YadoDB(yadodir)
-                standbys = yadodb.get_standbynames(25)
+                standbys = yadodb.get_standbynames()
                 if len(standbys) == 0:
                     yadodb.update(cards=False, adventurers=True, parties=False)
-                    standbys = yadodb.get_standbynames(25)
+                    standbys = yadodb.get_standbynames()
 
-                if 25 <= len(standbys):
-                    seq = standbys[:23]
-                    seq.append(cw.cwpy.msgs["scenario_etc"])
-                else:
-                    seq = standbys
+                seq = standbys
                 yadodb.close()
 
             advnames.append(seq)

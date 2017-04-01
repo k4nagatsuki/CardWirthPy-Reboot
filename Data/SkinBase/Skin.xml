@@ -755,6 +755,7 @@
     <Message key="highest_level">最高レベル</Message>
     <Message key="average_level">平均レベル</Message>
     <Message key="money">所持金</Message>
+    <Message key="skin">スキン</Message>
     <!-- 2.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />

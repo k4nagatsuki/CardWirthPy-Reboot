@@ -1138,13 +1138,9 @@ class YadoDB(object):
     def get_standbys(self):
         return self.get_adventurers(False)
 
-    def get_standbynames(self, maxcount=0):
-        if 0 < maxcount:
-            s = "SELECT name FROM adventurer WHERE lost=0 AND album=? ORDER BY name"
-            self.cur.execute(s, (0,))
-        else:
-            s = "SELECT name FROM adventurer WHERE lost=0 AND album=? ORDER BY name LIMIT=?"
-            self.cur.execute(s, (0, maxcount,))
+    def get_standbynames(self):
+        s = "SELECT name FROM adventurer WHERE lost=0 AND album=? ORDER BY name"
+        self.cur.execute(s, (0,))
         names = []
         for rec in self.cur:
             names.append(rec[0])

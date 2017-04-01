@@ -321,6 +321,7 @@ class Setting(object):
         self.all_quickdeal = False
         self.skindirname = "Classic"
         self.vocation120 = False
+        self.sort_yado = "Name"
         self.sort_standbys = "None"
         self.sort_parties = "None"
         self.sort_cards = "None"
@@ -328,6 +329,7 @@ class Setting(object):
         self.card_narrow = ""
         self.card_narrowtype = 0
         self.edit_star = False
+        self.yado_narrowtype = 0
         self.standbys_narrowtype = 0
         self.parties_narrowtype = 0
         self.infoview_narrowtype = 0
@@ -400,6 +402,7 @@ class Setting(object):
         self.auto_update_files = True
 
         # 絞り込み・整列などのコントロールの表示有無
+        self.show_additional_yado = False
         self.show_additional_player = False
         self.show_additional_party = False
         self.show_additional_scenario = False
@@ -565,10 +568,13 @@ class Setting(object):
         # 全てのシステムカードを高速表示する
         self.all_quickdeal = data.getbool("AllQuickDeal", self.all_quickdeal)
         # ソート基準
+        self.sort_yado = data.getattr("SortKey", "yado", self.sort_yado)
         self.sort_standbys = data.getattr("SortKey", "standbys", self.sort_standbys)
         self.sort_parties = data.getattr("SortKey", "parties", self.sort_parties)
         self.sort_cards = data.getattr("SortKey", "cards", self.sort_cards)
         self.sort_cardswithstar = data.getbool("SortKey", "cardswithstar", self.sort_cardswithstar)
+        # 拠点絞込条件
+        self.yado_narrowtype = data.getint("YadoNarrowType", self.yado_narrowtype)
         # 宿帳絞込条件
         self.standbys_narrowtype = data.getint("StandbysNarrowType", self.standbys_narrowtype)
         # パーティ絞込条件
@@ -717,6 +723,7 @@ class Setting(object):
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
 
         # 絞り込み・整列などのコントロールの表示有無
+        self.show_additional_yado = data.getbool("ShowAdditionalControls", "yado", self.show_additional_yado)
         self.show_additional_player = data.getbool("ShowAdditionalControls", "player", self.show_additional_player)
         self.show_additional_party = data.getbool("ShowAdditionalControls", "party", self.show_additional_party)
         self.show_additional_scenario = data.getbool("ShowAdditionalControls", "scenario", self.show_additional_scenario)

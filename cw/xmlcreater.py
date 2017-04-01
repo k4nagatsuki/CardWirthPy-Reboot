@@ -284,6 +284,8 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if writeplayingdata:
         # ソート基準
         e = cw.data.make_element("SortKey")
+        if setting.sort_yado <> setting.sort_yado_init:
+            e.set("yado", setting.sort_yado)
         if setting.sort_standbys <> setting.sort_standbys_init:
             e.set("standbys", setting.sort_standbys)
         if setting.sort_cards <> setting.sort_cards_init:
@@ -291,6 +293,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         if setting.sort_cardswithstar <> setting.sort_cardswithstar_init:
             e.set("cardswithstar", str(setting.sort_cardswithstar))
         if e.attrib:
+            element.append(e)
+        # 拠点絞込条件
+        if setting.yado_narrowtype <> setting.yado_narrowtype_init:
+            e = cw.data.make_element("YadoNarrowType", str(setting.yado_narrowtype))
             element.append(e)
         # 宿帳絞込条件
         if setting.standbys_narrowtype <> setting.standbys_narrowtype_init:
@@ -604,6 +610,8 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
 
         # 絞り込み・整列などのコントロールの表示有無
         attrs = {}
+        if setting.show_additional_yado or setting.show_additional_yado_init:
+            attrs["yado"] = str(setting.show_additional_yado)
         if setting.show_additional_player or setting.show_additional_player_init:
             attrs["player"] = str(setting.show_additional_player)
         if setting.show_additional_party or setting.show_additional_party_init:
