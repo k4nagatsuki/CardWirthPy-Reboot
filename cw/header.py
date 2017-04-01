@@ -416,7 +416,7 @@ class CardHeader(object):
         else:
             return 0, 0, 0
 
-    def set_uselimit(self, value):
+    def set_uselimit(self, value, animate=False):
         """
         カードの使用回数を操作する。
         value: 増減値。
@@ -474,7 +474,7 @@ class CardHeader(object):
                 if header.uselimit <= 0 and not header.recycle and header.get_owner() == owner:
                     # 召喚獣消去効果で消えてる場合もあるのでチェック
                     if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
-                        if owner.status == "hidden":
+                        if not animate or owner.status == "hidden":
                             cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
                         else:
                             cw.animation.animate_sprite(owner, "hide", battlespeed=cw.cwpy.is_battlestatus())

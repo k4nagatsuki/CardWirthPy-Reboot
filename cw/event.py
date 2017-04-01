@@ -1325,7 +1325,7 @@ class CardEvent(Event, Targeting):
 
         # カードの使用回数減らす(シナリオ終了後に回数減らさないよう条件付き)
         if not isinstance(self.error, ScenarioEndError):
-            self.inusecard.set_uselimit(-1)
+            self.inusecard.set_uselimit(-1, animate=True)
 
         # effect_cardmotionでウェイトをとってない場合はここでとる
         if not self.waited:
