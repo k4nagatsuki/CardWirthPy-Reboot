@@ -1492,7 +1492,7 @@ class PartySelect(MultiViewSelect):
                    cw.cwpy.msgs["highest_level"],
                    cw.cwpy.msgs["average_level"],
                    cw.cwpy.msgs["money"])
-        self.sort = wx.Choice(self, size=cw.wins((-1, 20)), choices=choices)
+        self.sort = wx.Choice(self, size=(-1, cw.wins(20)), choices=choices)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         if cw.cwpy.setting.sort_parties == "Name":
             self.sort.Select(1)
@@ -2082,7 +2082,7 @@ class PlayerSelect(MultiViewSelect):
         choices = (cw.cwpy.msgs["sort_no"],
                    cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["sort_level"])
-        self.sort = wx.Choice(self, size=cw.wins((-1, 20)), choices=choices)
+        self.sort = wx.Choice(self, size=(-1, cw.wins(20)), choices=choices)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         if cw.cwpy.setting.sort_standbys == "Name":
             self.sort.Select(1)
