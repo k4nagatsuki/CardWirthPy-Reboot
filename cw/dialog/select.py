@@ -1065,7 +1065,7 @@ class YadoSelect(MultiViewSelect):
                     dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
                     cw.cwpy.frame.move_dlg(dlg)
                     if dlg.ShowModal() == wx.ID_OK:
-                        self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self._get_yadolist()
+                        self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self.get_yadolist()
                         self.index = self._list.index(path)
                         self.list = self._list
                         self._sort_list()
@@ -1517,7 +1517,7 @@ class YadoSelect(MultiViewSelect):
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
-        self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self._get_yadolist()
+        self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self.get_yadolist()
 
         try:
             self.index = self._list.index(yadodir)
