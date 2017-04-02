@@ -1521,13 +1521,11 @@ class YadoSelect(MultiViewSelect):
             self.narrow.SetValue(u"")
             self._processing = False
         self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self.get_yadolist()
-
-        try:
-            self.index = self._list.index(yadodir)
-        except:
-            self.index = 0
-
         self.list = self._list
+
+        if yadodir:
+            self.index = self.list.index(yadodir)
+
         self._sort_list()
         self.update_narrowcondition()
 
