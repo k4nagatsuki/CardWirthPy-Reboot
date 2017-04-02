@@ -975,7 +975,7 @@ class YadoSelect(MultiViewSelect):
                         cw.util.release_mutex()
                         cw.cwpy.play_sound("harvest")
                         cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
-                        self.update_list(dlg.yadodir)
+                        self.update_list(dlg.yadodir, clear_narrowcondition=True)
                     else:
                         cw.cwpy.play_sound("error")
                 finally:
@@ -1065,14 +1065,8 @@ class YadoSelect(MultiViewSelect):
                     dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
                     cw.cwpy.frame.move_dlg(dlg)
                     if dlg.ShowModal() == wx.ID_OK:
-                        self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self.get_yadolist()
-                        self.index = self._list.index(path)
-                        self.list = self._list
-                        self._sort_list()
-                        draw = True
+                        self.update_list()
                     dlg.Destroy()
-                if draw:
-                    self.draw(True)
             finally:
                 cw.util.release_mutex()
         else:
@@ -1131,7 +1125,7 @@ class YadoSelect(MultiViewSelect):
 
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.play_sound("harvest")
-            self.update_list(dlg.yadodir)
+            self.update_list(dlg.yadodir, clear_narrowcondition=True)
 
         dlg.Destroy()
 
@@ -1236,7 +1230,12 @@ class YadoSelect(MultiViewSelect):
             # 所属冒険者
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
             for idx, name in enumerate(self.list2[self.index]):
+                if 24 <= idx:
+                    break
                 name = cw.util.abbr_longstr(dc, name, cw.wins(90))
+                if 23 == idx:
+                    if 24 < len(self.list2[self.index]):
+                        name = cw.cwpy.msgs["scenario_etc"]
                 x = (bmpw - cw.wins(270)) / 2 + ((idx % 3) * cw.wins(95))
                 y = cw.wins(200) + (idx / 3) * cw.wins(16)
                 dc.DrawText(name, x, y)
@@ -1429,7 +1428,7 @@ class YadoSelect(MultiViewSelect):
                     shutil.move(path, topath)
 
                 cw.cwpy.play_sound("page")
-                self.update_list(yadodir)
+                self.update_list(yadodir, clear_narrowcondition=True)
             finally:
                 cw.util.release_mutex()
         else:
@@ -1512,11 +1511,15 @@ class YadoSelect(MultiViewSelect):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def update_list(self, yadodir=""):
+    def update_list(self, yadodir="", clear_narrowcondition=False):
         """
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
+        if clear_narrowcondition:
+            self._processing = True
+            self.narrow.SetValue(u"")
+            self._processing = False
         self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self.get_yadolist()
 
         try:
@@ -1526,6 +1529,7 @@ class YadoSelect(MultiViewSelect):
 
         self.list = self._list
         self._sort_list()
+        self.update_narrowcondition()
 
         self.draw(True)
         self.enable_btn()
