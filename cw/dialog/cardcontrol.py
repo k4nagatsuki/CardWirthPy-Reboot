@@ -180,6 +180,7 @@ class CardControl(wx.Dialog):
             self.narrow_type.SetSelection(narrow_sel)
         else:
             self.narrow_type.SetSelection(0)
+        self.update_narrowtooltip()
 
         def can_narrow():
             return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")
@@ -460,6 +461,9 @@ class CardControl(wx.Dialog):
         cw.cwpy.setting.show_additional_card = show
         self.set_cardpos()
 
+    def update_narrowtooltip(self):
+        self.narrow.SetToolTipString(cw.cwpy.msgs["narrow_hint"] % (self.narrow_type.GetValue()))
+
     def OnToggleAdditionalControls(self, event):
         if not self.addctrlbtn or not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return
@@ -494,6 +498,7 @@ class CardControl(wx.Dialog):
             cw.cwpy.setting.card_narrow = self.narrow.GetValue()
             cw.cwpy.setting.card_narrowtype = self.narrow_type.GetSelection()
             self.update_narrowcondition()
+            self.update_narrowtooltip()
             self.narrow.SetFocus()
         wx.CallAfter(func)
 
