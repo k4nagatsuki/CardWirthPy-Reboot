@@ -578,6 +578,7 @@ class OverwriteScenarioDialog(wx.Dialog):
                                                   system=False)
         self.datalist.SetFont(font)
 
+        index2 = 0
         for fpath in sorted(self.db_exists.iterkeys()):
             self.keys.append(fpath)
             headers = self.db_exists[fpath]
@@ -589,8 +590,9 @@ class OverwriteScenarioDialog(wx.Dialog):
                 rel = cw.util.relpath(fpath, os.path.abspath(u"."))
                 if cw.util.join_paths(rel).startswith(u"../"):
                     rel = header.get_fpath()
-                self.datalist.InsertStringItem(len(self.keys)-1, u"%s - %s" % (sname, cw.util.join_paths(rel)))
-                self.datalist.CheckItem(len(self.keys)-1, (index == 0))
+                self.datalist.InsertStringItem(index2, u"%s - %s" % (sname, cw.util.join_paths(rel)))
+                self.datalist.CheckItem(index2, (index == 0))
+                index2 += 1
 
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((100, 30)), cw.cwpy.msgs["decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((100, 30)), cw.cwpy.msgs["cancel"])
