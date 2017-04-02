@@ -166,7 +166,7 @@ class ScenarioSelect(select.Select):
                    cw.cwpy.msgs["author"],
                    cw.cwpy.msgs["file_name"],
                    cw.cwpy.msgs["modified_date"])
-        self.sort = wx.Choice(self, -1, size=(-1, -1), choices=choices)
+        self.sort = wx.Choice(self, -1, size=(-1, self.narrow.GetSize()[1]), choices=choices)
         self.sort.SetFont(font)
         self.sort.SetSelection(cw.cwpy.setting.scenario_sorttype)
 
