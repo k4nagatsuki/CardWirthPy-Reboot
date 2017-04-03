@@ -332,7 +332,7 @@ class Select(wx.Dialog):
             self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition2"])
             self.narrow_label.SetFont(font)
         cfont = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
-        self.narrow_type = wx.Choice(self, -1, size=(-1, self.narrow.GetSize()[1]), choices=choices)
+        self.narrow_type = wx.Choice(self, -1, size=(-1, self.narrow.GetBestSize()[1]), choices=choices)
         self.narrow_type.SetFont(cfont)
         self.narrow_type.SetSelection(narrowtype)
 
@@ -639,7 +639,7 @@ class YadoSelect(MultiViewSelect):
         self.sort_label.SetFont(font)
         choices = (cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["skin"])
-        self.sort = wx.Choice(self, size=(-1, self.narrow.GetSize()[1]), choices=choices)
+        self.sort = wx.Choice(self, size=(-1, self.narrow.GetBestSize()[1]), choices=choices)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         if cw.cwpy.setting.sort_yado == "Name":
             self.sort.Select(0)
@@ -817,7 +817,6 @@ class YadoSelect(MultiViewSelect):
             self._sort_list()
             self.update_narrowcondition()
             self.draw(True)
-        self.left2btn.SetFocus()
 
     def _sort_list(self):
         objs = self._list_to_obj()
@@ -1711,7 +1710,7 @@ class PartySelect(MultiViewSelect):
                    cw.cwpy.msgs["highest_level"],
                    cw.cwpy.msgs["average_level"],
                    cw.cwpy.msgs["money"])
-        self.sort = wx.Choice(self, size=(-1, self.narrow.GetSize()[1]), choices=choices)
+        self.sort = wx.Choice(self, size=(-1, self.narrow.GetBestSize()[1]), choices=choices)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         if cw.cwpy.setting.sort_parties == "Name":
             self.sort.Select(1)
@@ -1957,7 +1956,6 @@ class PartySelect(MultiViewSelect):
             cw.cwpy.ydata.sort_parties()
             self.update_narrowcondition()
             self.draw(True)
-        self.left2btn.SetFocus()
 
     def OnMouseWheel(self, event):
         if self._processing:
@@ -2301,7 +2299,7 @@ class PlayerSelect(MultiViewSelect):
         choices = (cw.cwpy.msgs["sort_no"],
                    cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["sort_level"])
-        self.sort = wx.Choice(self, size=(-1, self.narrow.GetSize()[1]), choices=choices)
+        self.sort = wx.Choice(self, size=(-1, self.narrow.GetBestSize()[1]), choices=choices)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         if cw.cwpy.setting.sort_standbys == "Name":
             self.sort.Select(1)
@@ -2534,7 +2532,6 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.ydata.sort_standbys()
             self.update_narrowcondition()
             self.draw(True)
-        self.left2btn.SetFocus()
 
     def can_clickcenter(self):
         return self.addbtn.IsEnabled()
