@@ -1932,7 +1932,7 @@ class AudioSettingPanel(wx.Panel):
             self, -1, u"効果音を再生する")
 
         # 全体音量
-        self.box_master = wx.StaticBox(self, -1, u"全体音量")
+        self.box_master = wx.StaticBox(self, -1, u"全体音量(マウスホイール+上下でも調節可能)")
         self.sl_master = wx.Slider(
             self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
