@@ -374,6 +374,7 @@ class Select(wx.Dialog):
         if self.addctrlbtn:
             self.addctrlbtn.Destroy()
         self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(parent, -1, None, size=cw.wins((24, 24)))
+        self.addctrlbtn.SetToolTipString(cw.cwpy.msgs["show_additional_controls"])
         if not cw.cwpy.setting.show_addctrlbtn:
             self.addctrlbtn.Hide()
         self.addctrlbtn.SetToggle(show)
