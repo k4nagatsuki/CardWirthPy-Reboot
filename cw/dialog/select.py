@@ -341,7 +341,9 @@ class Select(wx.Dialog):
         self.update_narrowtooltip()
 
     def update_narrowtooltip(self):
-        self.narrow.SetToolTipString(cw.cwpy.msgs["narrow_hint"] % (self.narrow_type.GetStringSelection()))
+        hint = cw.cwpy.msgs["narrow_hint"] % (self.narrow_type.GetStringSelection())
+        if hint <> self.narrow.GetToolTipString():
+            self.narrow.SetToolTipString(hint)
 
     def OnNarrowCondition(self, event):
         if self._processing:

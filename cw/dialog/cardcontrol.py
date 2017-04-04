@@ -462,7 +462,9 @@ class CardControl(wx.Dialog):
         self.set_cardpos()
 
     def update_narrowtooltip(self):
-        self.narrow.SetToolTipString(cw.cwpy.msgs["narrow_hint"] % (self.narrow_type.GetValue()))
+        hint = cw.cwpy.msgs["narrow_hint"] % (self.narrow_type.GetStringSelection())
+        if hint <> self.narrow.GetToolTipString():
+            self.narrow.SetToolTipString(hint)
 
     def OnToggleAdditionalControls(self, event):
         if not self.addctrlbtn or not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
