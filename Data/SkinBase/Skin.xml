@@ -756,7 +756,6 @@
     <Message key="average_level">平均レベル</Message>
     <Message key="money">所持金</Message>
     <Message key="skin">スキン</Message>
-    <Message key="narrow_hint">「%s」で絞り込みます</Message>
     <Message key="show_additional_controls">拡張機能欄を表示</Message>
     <!-- 2.0 ここまで -->
   </Messages>

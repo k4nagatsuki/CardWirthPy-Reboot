@@ -338,12 +338,6 @@ class Select(wx.Dialog):
 
         self.narrow.Bind(wx.EVT_TEXT, self.OnNarrowCondition)
         self.narrow_type.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
-        self.update_narrowtooltip()
-
-    def update_narrowtooltip(self):
-        hint = cw.cwpy.msgs["narrow_hint"] % (self.narrow_type.GetStringSelection())
-        if hint <> self.narrow.GetToolTipString():
-            self.narrow.SetToolTipString(hint)
 
     def OnNarrowCondition(self, event):
         if self._processing:
@@ -357,7 +351,6 @@ class Select(wx.Dialog):
         def func():
             if not self._reserved_narrowconditin:
                 return
-            self.update_narrowtooltip()
             self._on_narrowcondition()
             self._reserved_narrowconditin = False
         wx.CallAfter(func)
