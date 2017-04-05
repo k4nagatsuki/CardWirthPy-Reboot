@@ -863,7 +863,7 @@ class Setting(object):
         for e in data.getfind("Sounds"):
             self.sounds[e.getattr(".", "key", "")] = e.gettext(".", "")
         # メッセージ
-        self.msgs = {}
+        self.msgs = _MsgDict()
         for e in basedata.getfind("Messages"):
             self.msgs[e.getattr(".", "key", "")] = e.gettext(".", "")
         for e in data.getfind("Messages"):
@@ -1265,6 +1265,31 @@ class Setting(object):
                         scedir = folder
                     break
         return scedir
+
+class _MsgDict(dict):
+    def __init__(self):
+        """
+        存在しないメッセージIDが指定された時に
+        エラーダイアログを表示するための拡張dict。
+        """
+        dict.__init__(self)
+        self._error_keys = set()
+
+    def __getitem__(self, key):
+        if not key in self:
+            if not key in self._error_keys:
+                def func():
+                    if cw.cwpy.frame:
+                        s = u"メッセージID[%s]に該当するメッセージがありません。\n"\
+                            u"デイリービルド版でこのエラーが発生した場合は、" \
+                            u"「Data/SkinBase」以下のリソースが最新版になっていない"\
+                            u"可能性があります。" % (key)
+                        dlg = cw.dialog.message.ErrorMessage(None, s)
+                        dlg.ShowModal()
+                cw.cwpy.frame.exec_func(func)
+                self._error_keys.add(key)
+            return u"*ERROR*"
+        return dict.__getitem__(self, key)
 
 class Resource(object):
     def __init__(self, setting):

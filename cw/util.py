@@ -2481,7 +2481,7 @@ WRAPS_CHARS = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
 def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None):
     """引数の文字列を任意の文字数で改行する(全角は2文字として数える)。
     mode=1: カード解説。
-    mode=2: 画像付きメッセージ（台詞）用。
+    mode=2: 画像付きメッセージ(台詞)用。
     mode=3: 画像なしメッセージ用。
     mode=4: キャラクタ情報ダイアログの解説文・張り紙説明用。
     mode=5: 素質解説文用。

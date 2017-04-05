@@ -21,7 +21,7 @@ class Message(wx.Dialog):
                             style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.cwpy_debug = False
         self.basetext = text
-        self.text = cw.util.txtwrap(text, mode=6)
+        self.text = cw.util.wordwrap(text, 48)
         self.mode = mode
 
         dc = wx.ClientDC(self)
