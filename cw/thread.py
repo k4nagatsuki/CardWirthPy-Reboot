@@ -4241,7 +4241,7 @@ class CWPy(_Singleton, threading.Thread):
             # 使用回数を設定
             header.get_uselimit()
             if from_event and header.type == "SkillCard":
-                header.uselimit = header.maxuselimit
+                header.set_uselimit(header.maxuselimit)
             # カードのエレメントを追加
             path = "%ss" % header.type
             if toindex == -1:
