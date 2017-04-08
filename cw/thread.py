@@ -1900,8 +1900,13 @@ class CWPy(_Singleton, threading.Thread):
         self.battle = None
 
         if self.setting.store_skinoneachbase and self.ydata.skindirname <> cw.cwpy.setting.skindirname:
-            self.update_skin(self.ydata.skindirname, changearea=False)
+            def func():
+                self._set_scenario_impl(header, lastscenario, lastscenariopath, resume, manualstart)
+            self.update_skin(self.ydata.skindirname, changearea=False, afterfunc=func)
+        else:
+            self._set_scenario_impl(header, lastscenario, lastscenariopath, resume, manualstart)
 
+    def _set_scenario_impl(self, header, lastscenario, lastscenariopath, resume, manualstart):
         if header and not isinstance(self.sdata, cw.data.ScenarioData):
             def load_failure(showerror):
                 # 読込失敗(帰還)
