@@ -643,8 +643,6 @@ class YadoSelect(MultiViewSelect):
             self.sort.Select(1)
         else:
             self.sort.Select(0)
-        self.list = self._list
-        self._sort_list()
 
         # ok
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, _okid, cw.wins((50, 24)), cw.cwpy.msgs["decide"])
@@ -681,6 +679,7 @@ class YadoSelect(MultiViewSelect):
         self.additionals.append(self.sort)
         self.update_additionals()
 
+        self.list = self._list
         self.update_narrowcondition()
 
         # layout
@@ -762,6 +761,7 @@ class YadoSelect(MultiViewSelect):
                 seq.append(obj)
             objs = seq
 
+        self._sort_objs(objs)
         self._obj_to_list(objs)
 
         if selected in self.list:
@@ -810,12 +810,10 @@ class YadoSelect(MultiViewSelect):
         if cw.cwpy.setting.sort_yado <> sorttype:
             cw.cwpy.play_sound("page")
             cw.cwpy.setting.sort_yado = sorttype
-            self._sort_list()
             self.update_narrowcondition()
             self.draw(True)
 
-    def _sort_list(self):
-        objs = self._list_to_obj()
+    def _sort_objs(self, objs):
         sorttype = cw.cwpy.setting.sort_yado
         if sorttype == "Name":
             cw.util.sort_by_attr(objs, "name", "skin", "yadodir")
@@ -823,7 +821,6 @@ class YadoSelect(MultiViewSelect):
             cw.util.sort_by_attr(objs, "skin", "name", "yadodir")
         else:
             cw.util.sort_by_attr(objs, "name", "skin", "yadodir")
-        self._obj_to_list(objs)
 
     def OnMouseWheel(self, event):
         if self._processing:
@@ -1521,7 +1518,6 @@ class YadoSelect(MultiViewSelect):
         if yadodir:
             self.index = self.list.index(yadodir)
 
-        self._sort_list()
         self.update_narrowcondition()
 
         self.draw(True)
