@@ -327,7 +327,7 @@ class ExtensionDialog(wx.Dialog):
                 enable = True
             else:
                 name, _desc, _func, enable = t
-            btn = cw.cwpy.rsrc.create_wxbutton(self, -1, (cw.wins(100), cw.wins(24)), name=name)
+            btn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(24)), name=name)
             btn.Enable(enable)
             self.buttons.append(btn)
 

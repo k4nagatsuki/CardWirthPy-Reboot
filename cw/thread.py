@@ -372,7 +372,7 @@ class CWPy(_Singleton, threading.Thread):
         self.topgrp.set_clip(clip)
         self.backloggrp.set_clip(clip)
 
-    def update_skin(self, skindirname, changearea=True, restartop=True):
+    def update_skin(self, skindirname, changearea=True, restartop=True, afterfunc=None):
         self.file_updates.clear()
         if self.status == "Title" and restartop:
             changearea = False
@@ -426,6 +426,8 @@ class CWPy(_Singleton, threading.Thread):
 
         def func():
             assert self.rsrc
+            if afterfunc:
+                afterfunc()
 
             if self.is_battlestatus() and self.battle:
                 for ccard in self.get_pcards("unreversed"):
@@ -1876,8 +1878,7 @@ class CWPy(_Singleton, threading.Thread):
             self.is_pcardsselectable = self.ydata and self.ydata.party
 
         if self.setting.store_skinoneachbase and self.ydata.skindirname <> cw.cwpy.setting.skindirname:
-            self.update_skin(self.ydata.skindirname, changearea=False)
-            cw.cwpy.exec_func(change_area)
+            self.update_skin(self.ydata.skindirname, changearea=False, afterfunc=change_area)
         else:
             change_area()
 
