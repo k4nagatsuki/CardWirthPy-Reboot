@@ -1229,12 +1229,14 @@ def _get_flagvalue(key, full, name_table, basenamelist, startindex, spcharinfo, 
     return s, namelistindex
 
 def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None,
-                    startindex=0, spcharinfo=None, namelist=[], namelistindex=0, stack=0):
+                    startindex=0, spcharinfo=None, namelist=None, namelistindex=0, stack=0):
     """
     特殊文字列(#, $)を置換した文字列を返す。
     """
     if spcharinfo is None:
         _reset_nametable(name_table)
+    if namelist is None:
+        namelist = []
     buf = []
     buflen = startindex
     if spcharinfo is None:
