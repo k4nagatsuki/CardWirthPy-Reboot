@@ -835,8 +835,6 @@ class JpyImage(cw.image.Image):
 
             back.retouch()
             back.drawtemp(doanime)
-            if not parent:
-                cache.restore()
             if not back.is_cacheable:
                 self.is_cacheable = False
             if back.is_animated:
