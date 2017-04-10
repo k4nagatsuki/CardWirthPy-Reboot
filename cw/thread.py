@@ -973,6 +973,16 @@ class CWPy(_Singleton, threading.Thread):
         if not self.is_runningevent():
             if not self.is_showparty:
                 self.show_party()
+
+            if not cw.cwpy.sdata.infocards_beforeevent is None:
+                for _i in filter(lambda i: not i in cw.cwpy.sdata.infocards_beforeevent,
+                                 cw.cwpy.sdata.get_infocards(False)):
+                    # イベント開始前には持っていなかった情報カードを入手している
+                    cw.cwpy.sdata.notice_infoview = True
+                    cw.cwpy.statusbar.change()
+                    break
+                cw.cwpy.sdata.infocards_beforeevent = None
+
             if self._need_disposition:
                 self.disposition_pcards()
                 self.draw()

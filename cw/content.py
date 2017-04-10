@@ -2692,8 +2692,6 @@ class GetInfoContent(GetContent):
                 cw.cwpy.ydata.changed()
             if cw.cwpy.sdata.has_infocard(self.resid):
                 cw.cwpy.sdata.remove_infocard(self.resid)
-            else:
-                cw.cwpy.sdata.notice_infoview = True
 
             cw.cwpy.sdata.append_infocard(self.resid)
 

@@ -73,6 +73,7 @@ class SystemData(object):
         self.labels = {}
         self.ignorecase_table = {}
         self.notice_infoview = False
+        self.infocards_beforeevent = None
         self.pre_battleareadata = None
         self.data_cache = {}
         self.resource_cache = {}
@@ -775,6 +776,7 @@ class ScenarioData(SystemData):
         # 情報カードを手に入れてから
         # 情報カードビューを開くまでの間True
         self.notice_infoview = False
+        self.infocards_beforeevent = None # イベント開始前の所持情報カードのset
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
         self.pre_battleareadata = None
         # バトル中、自動で行動開始するか

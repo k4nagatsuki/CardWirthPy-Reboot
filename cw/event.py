@@ -744,6 +744,8 @@ class Event(object):
             showbuttons = not cw.cwpy.is_playingscenario() or\
                 cw.cwpy.areaid in cw.AREAS_SP
             cw.cwpy.statusbar.change(showbuttons)
+            if cw.cwpy.sdata.infocards_beforeevent is None:
+                cw.cwpy.sdata.infocards_beforeevent = set(cw.cwpy.sdata.get_infocards(False))
             cw.cwpy.draw(clip=cw.cwpy.statusbar.rect)
 
             self.run()
