@@ -85,6 +85,8 @@ class _JpySubImage(cw.image.Image):
         self.configpath = config.path
         self.configdepth = config.dirdepth
         self.cache = cache
+        # 画像加工などを開始したタイミング
+        self.starttick = None
         # image load
         self.dirtype = config.get_int(section, "dirtype", 1)
         self.filename = config.get(section, "filename", "")
@@ -151,7 +153,7 @@ class _JpySubImage(cw.image.Image):
 
         # 一時描画せずにウェイトだけ
         if self.animation == 4:
-            if doanime.countup():
+            if doanime.countup() and self.waittime <> 0:
                 cw.cwpy.draw()
             self.wait(doanime)
         # 一時描画
@@ -231,11 +233,15 @@ class _JpySubImage(cw.image.Image):
                             if self.animation == 1:
                                 self._drawtemp_impl(doanime, background, cw.s(pos_noscale), anime=True, nowait=True)
                             i += 1
+                        self.starttick = pygame.time.get_ticks()
 
             self.cache.save_position_noscale(pos_noscale)
 
     def _drawtemp_impl(self, doanime, background, pos, redraw=True, anime=False, waittime=None, nowait=False):
         """backgroundのposの位置に一時描画。"""
+        if waittime is None:
+            waittime = self.waittime
+
         self.cache.restore()
         image = self.get_image()
         image = self.clip_tempimg(image, pos)
@@ -258,12 +264,12 @@ class _JpySubImage(cw.image.Image):
                         self.cache.beforeback = background
                         self.cache.beforerect = rect
                     background.blit(image, pos, special_flags=blendmode)
-                    if not nowait and doanime.countup():
+                    if not nowait and doanime.countup() and waittime <> 0:
                         cw.cwpy.draw()
                 else:
                     if self.animation == 1:
                         background.blit(image, pos, special_flags=blendmode)
-                        if not nowait and doanime.countup():
+                        if not nowait and doanime.countup() and waittime <> 0:
                             cw.cwpy.draw()
 
             if not nowait:
@@ -304,7 +310,9 @@ class _JpySubImage(cw.image.Image):
             self.is_cacheable = False
             self.is_animated = True
             if doanime.countup():
-                wait_effectbooster(waittime, doanime=doanime)
+                waittime2 = self._cut_waittime(waittime)
+                if waittime2:
+                    wait_effectbooster(waittime2, doanime=doanime)
 
         # 右クリックするまで待機
         elif waittime < 0:
@@ -312,6 +320,16 @@ class _JpySubImage(cw.image.Image):
             self.is_animated = True
             if doanime.countup():
                 wait_effectbooster(0, doanime=doanime)
+
+    def _cut_waittime(self, waittime):
+        """
+        待機時間からイメージの加工等を行うのにかかった時間を差し引いて返す。
+        """
+        if 0 <= waittime:
+            tick = pygame.time.get_ticks()
+            if not self.starttick is None and self.starttick < tick:
+                waittime -= min(waittime, tick-self.starttick)
+        return waittime
 
     def retouch(self):
         """画像加工。"""
@@ -782,6 +800,7 @@ class JpyBackGroundImage(_JpySubImage):
 
 class JpyImage(cw.image.Image):
     def __init__(self, path, mask=False, cache=None, doanime=None, parent=None):
+        starttick = pygame.time.get_ticks()
         if not cache:
             cache = JpyCache()
         if not doanime:
@@ -819,6 +838,7 @@ class JpyImage(cw.image.Image):
                         # 実際にはwidthが0未満かつdirtype=2だと処理が中断される
                         break
                     parts.defaultcopymode = defaultcopymode
+                    parts.starttick = starttick
                     parts.load(doanime)
                     parts.retouch()
                     parts.drawtemp(doanime)
@@ -832,7 +852,9 @@ class JpyImage(cw.image.Image):
                     if parts.animation in (1, 2, 3):
                         defaultcopymode = 2
                     can_mask &= parts.can_mask
+                    starttick = pygame.time.get_ticks()
 
+            back.starttick = starttick
             back.retouch()
             back.drawtemp(doanime)
             if not back.is_cacheable:
