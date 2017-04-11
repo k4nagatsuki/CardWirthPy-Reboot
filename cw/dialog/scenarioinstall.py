@@ -35,7 +35,7 @@ class ScenarioInstall(wx.Dialog):
         self.scedir = scedir
 
         # メッセージ
-        if 1 < len(headers):
+        if 1 < len(headers_seq):
             self.text = u"%s本のシナリオのインストール先を選択してください。" % (len(headers_seq))
         else:
             name = headers_seq[0].name
