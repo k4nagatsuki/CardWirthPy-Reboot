@@ -475,8 +475,9 @@ class MessageWindow(base.CWPySprite):
             else:
                 cwidth = cw.s(20)
 
-            if char and not char.isspace():
+            if char:
                 put_xinfo(pos[0], cwidth)
+            if char and not char.isspace():
                 put_topbottom(y_noscale-1, lineheight_noscale+2)
 
                 # 通常文字
