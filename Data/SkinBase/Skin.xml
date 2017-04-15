@@ -757,6 +757,9 @@
     <Message key="money">所持金</Message>
     <Message key="skin">スキン</Message>
     <Message key="show_additional_controls">拡張機能欄を表示</Message>
+    <Message key="scenario_additional_menu">シナリオとフォルダの操作</Message>
+    <Message key="move">移動</Message>
+    <Message key="rename">名前の変更</Message>
     <!-- 2.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
