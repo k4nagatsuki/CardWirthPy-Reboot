@@ -846,6 +846,42 @@ class Scenariodb(object):
         return seq
 
     @synclock(_lock)
+    def rename_dir(self, before, after):
+        """
+        ディレクトリ名の変更を通知し、サブディレクトリ内の情報を更新する。
+        """
+        orig_before = before
+        orig_after = after
+        before = before.replace("%", "\\%")
+        before += u"/%"
+        after = after.replace("%", "\\%")
+        after += u"/%"
+
+        for tablename in ("scenariodb", "scenarioimage", "scenariotype"):
+            s = "SELECT * FROM %s WHERE dpath LIKE ? ESCAPE '\\'" % tablename
+            self.cur.execute(s, (before,))
+            for d in self.cur.fetchall():
+                s = "UPDATE %s SET dpath=? WHERE dpath=? AND fname=?" % tablename
+                ndpath = d["dpath"].replace(orig_before + u"/", orig_after + u"/", 1)
+                self.cur.execute(s, (ndpath,d["dpath"],d["fname"],))
+            s = "UPDATE %s SET dpath=? WHERE dpath=?" % tablename
+            self.cur.execute(s, (orig_after, orig_before,))
+
+    @synclock(_lock)
+    def remove_dir(self, dpath):
+        """
+        ディレクトリの削除を通知する。
+        """
+        orig_dpath = dpath
+        dpath = dpath.replace("%", "\\%")
+        dpath += u"/%"
+        for tablename in ("scenariodb", "scenarioimage", "scenariotype"):
+            s = "DELETE FROM %s WHERE dpath LIKE ? ESCAPE '\\'" % tablename
+            self.cur.execute(s, (dpath,))
+        s = "DELETE FROM %s WHERE dpath=?" % tablename
+        self.cur.execute(s, (orig_dpath,))
+
+    @synclock(_lock)
     def commit(self):
         self.con.commit()
 
