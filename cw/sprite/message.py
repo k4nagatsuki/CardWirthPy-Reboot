@@ -16,7 +16,8 @@ class MessageWindow(base.CWPySprite):
                  pos_noscale=None, size_noscale=None,
                  nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
                  backlog=False, result=None, showing_result=-1, versionhint="", specialchars=None,
-                 trim_top_noscale=0, columns=1, spcharinfo=None, centering_y=False, boundarycheck=False):
+                 trim_top_noscale=0, columns=1, spcharinfo=None, centering_x=False, centering_y=False,
+                 boundarycheck=False):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -24,6 +25,7 @@ class MessageWindow(base.CWPySprite):
             size_noscale = (470, 180)
         self.trim_top_noscale = trim_top_noscale
         self.columns = columns
+        self.centering_x = centering_x
         self.centering_y = centering_y
         self.boundarycheck = boundarycheck
 
@@ -237,8 +239,13 @@ class MessageWindow(base.CWPySprite):
             lineheight = font.get_height()
             sbold = MessageWindow.is_sbold()
 
-            pos, txtimg, txtimg2, txtimg3 = self.charimgs[chridx]
+            pos, txtimg, txtimg2, txtimg3, linerect = self.charimgs[chridx]
             size = None
+
+            if self.centering_x:
+                shiftx = (self.rect.width - linerect.width) // 2
+            else:
+                shiftx = 0
 
             if self.centering_y:
                 shifty = cw.s((180 - (self.blockbottom_noscale-self.blocktop_noscale)) // 2)
@@ -254,7 +261,7 @@ class MessageWindow(base.CWPySprite):
                     wincolour = cw.cwpy.setting.blwincolour
                 else:
                     wincolour = cw.cwpy.setting.mwincolour
-                pos2 = (pos[0], pos[1] - tt + shifty)
+                pos2 = (pos[0] + shiftx, pos[1] - tt + shifty)
                 cw.imageretouch.blit_2bitbmp_to_message(self.image, txtimg2, pos2, wincolour)
                 size = txtimg2.get_size()
 
@@ -281,6 +288,7 @@ class MessageWindow(base.CWPySprite):
                     area1.top += shifty
                 else:
                     area2.top -= cw.s(self.trim_top_noscale)
+                area1.left += shiftx
                 area1.top -= tt
                 self.image.blit(self._back, area1.topleft, area2)
                 self.image.blit(self._fore, area1.topleft, area2)
@@ -321,7 +329,10 @@ class MessageWindow(base.CWPySprite):
 
     def create_charimgs(self, pos_noscale=None, init=True):
         if pos_noscale is None:
-            pos_noscale = (14, 9)
+            if self.centering_x:
+                pos_noscale = (-1, 9)
+            else:
+                pos_noscale = (14, 9)
         pos = cw.s(pos_noscale)
         log_seq = []
         if self.talker_image:
@@ -338,7 +349,10 @@ class MessageWindow(base.CWPySprite):
                 w = max(map(calc_w, self.talker_image))
             else:
                 w = cw.s(74)
-            posp = pos = pos[0] + cw.s(25) + w, pos[1]
+            if self.centering_x:
+                posp = pos = cw.s(-26) + w, pos[1]
+            else:
+                posp = pos = pos[0] + cw.s(25) + w, pos[1]
         else:
             if not self.backlog and init:
                 self.text, self.spcharinfo = self.rpl_specialstr(True, self.text)
@@ -363,6 +377,7 @@ class MessageWindow(base.CWPySprite):
         cnt = 0
         skip = False
         images = []
+        self._linerect = None
 
         # 左右接続のために伸ばす文字
         r_join = re.compile(u"[―─＿￣]")
@@ -372,6 +387,14 @@ class MessageWindow(base.CWPySprite):
         self.blockbottom_noscale = -0x7fffffff - 1
 
         bottom = self.rect_noscale[3]-yp_noscale-lineheight_noscale*7
+
+        def put_xinfo(x, width):
+            linerect2 = pygame.Rect(x, 0, width, 1)
+            if self._linerect:
+                self._linerect.union_ip(linerect2)
+            else:
+                self._linerect = linerect2
+
         def put_topbottom(y, height):
             self.top_noscale = min(y-yp_noscale, self.top_noscale)
             self.bottom_noscale = max(y+height+bottom, self.bottom_noscale)
@@ -389,6 +412,7 @@ class MessageWindow(base.CWPySprite):
                 pos = posp[0], lineheight * cnt + posp[1]
                 y_noscale = lineheight_noscale * cnt + yp_noscale
                 log_seq.append(u"\n")
+                self._linerect = None
 
                 # 8行以下の文字列は表示しない
                 if cnt > 6 and not self.centering_y:
@@ -418,18 +442,20 @@ class MessageWindow(base.CWPySprite):
 
                         if userfont:
                             cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
+                            put_xinfo(pos[0], cw.s(charimg.get_width()))
                             put_topbottom(y_noscale+1, h)
-                            images.append((cpos, None, cw.s(charimg), None))
+                            images.append((cpos, None, cw.s(charimg), None, self._linerect))
                             pos = pos[0] + cw.s(20), pos[1]
                             skip = True
                             log_seq.append(orig_chars)
                             continue
 
+                        put_xinfo(pos[0], cw.s(charimg.get_width()))
                         put_topbottom(y_noscale-1, lineheight_noscale+2)
                         image2 = cw.s(charimg)
                         image2 = image2.convert_alpha()
                         image2.fill(colour, special_flags=pygame.locals.BLEND_RGBA_MULT)
-                        images.append((pos, None, decorate(image2, basecolour=colour), None))
+                        images.append((pos, None, decorate(image2, basecolour=colour), None, self._linerect))
                         pos = pos[0] + cw.s(20), pos[1]
                         skip = True
                         log_seq.append(orig_chars)
@@ -450,6 +476,7 @@ class MessageWindow(base.CWPySprite):
                 cwidth = cw.s(20)
 
             if char and not char.isspace():
+                put_xinfo(pos[0], cwidth)
                 put_topbottom(y_noscale-1, lineheight_noscale+2)
 
                 # 通常文字
@@ -472,7 +499,7 @@ class MessageWindow(base.CWPySprite):
                 if image:
                     px += (cwidth-image.get_width() + cw.s(2)) / 2
                 py += (lineheight-cheight) / 2
-                images.append(((px, py), image, image2, image3))
+                images.append(((px, py), image, image2, image3, self._linerect))
 
             pos = pos[0] + cwidth, pos[1]
 
@@ -493,6 +520,7 @@ class MessageWindow(base.CWPySprite):
             self.bottom_noscale = yp_noscale + bottom
 
         self.text_log = u"".join(log_seq)
+        self._linerect = None
         return images
 
     def rpl_specialstr(self, full, s, nametable=None):
@@ -583,6 +611,7 @@ class SelectWindow(MessageWindow):
             size_noscale = (470, 40)
         self.trim_top_noscale = 0
         self.columns = columns
+        self.centering_x = False
         self.centering_y = False
         self.boundarycheck = False
         self.blocktop_noscale = 0
@@ -849,6 +878,7 @@ class BacklogData(object):
         self.showing_result = base.showing_result
         self.versionhint = base.versionhint
         self.specialchars = base.specialchars
+        self.centering_x = base.centering_x
         self.centering_y = base.centering_y
         self.boundarycheck = base.boundarycheck
         self.talker_top_noscale = base.talker_top_noscale
@@ -904,7 +934,8 @@ class BacklogData(object):
                                  self.name_table, self.name_subtable, self.flag_table, self.step_table,
                                  True, None, showing_result, self.versionhint, self.specialchars,
                                  trim_top_noscale=trim_top, columns=self.columns,
-                                 spcharinfo=self.spcharinfo, centering_y=self.centering_y,
+                                 spcharinfo=self.spcharinfo,
+                                 centering_x=self.centering_x, centering_y=self.centering_y,
                                  boundarycheck=self.boundarycheck)
         else:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:

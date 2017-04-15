@@ -501,6 +501,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Talk" and ctype == "Message":
             if data.getint(".", "columns", 1) <> 1:
                 f.check_wsnversion("1")
+            if data.getbool(".", "centeringx", False):
+                f.check_wsnversion("2")
             if data.getbool(".", "centeringy", False):
                 f.check_wsnversion("2")
             text = ""
@@ -674,6 +676,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Talk" and ctype == "Dialog":
             if data.getint(".", "columns", 1) <> 1:
                 f.check_wsnversion("1")
+            if data.getbool(".", "centeringx", False):
+                f.check_wsnversion("2")
             if data.getbool(".", "centeringy", False):
                 f.check_wsnversion("2")
             targetm = data.get("targetm")

@@ -3557,6 +3557,8 @@ class TalkMessageContent(TalkContent):
         imgpaths = cw.image.get_imageinfos(self.data)
         # 選択肢列数(Wsn.1)
         columns = max(1, self.data.getint(".", "columns", 1))
+        # 横方向の中央寄せ(Wsn.2)
+        centering_x = self.data.getbool(".", "centeringx", False)
         # 縦方向の中央寄せ(Wsn.2)
         centering_y = self.data.getbool(".", "centeringy", False)
         # 禁則処理(Wsn.2)
@@ -3658,7 +3660,8 @@ class TalkMessageContent(TalkContent):
         # MessageWindow表示
         if text:
             mwin = cw.sprite.message.MessageWindow(text, names, talkers, firsttalker, columns=columns,
-                                                   versionhint=versionhint, centering_y=centering_y,
+                                                   versionhint=versionhint,
+                                                   centering_x=centering_x, centering_y=centering_y,
                                                    boundarycheck=boundarycheck)
             index = cw.cwpy.show_message(mwin)
         # テキストが存在せず、選択肢が複数存在する場合はSelectWindowを表示する
@@ -3753,6 +3756,8 @@ class TalkDialogContent(TalkContent):
         dialogs = self.get_dialogs()
         # 選択肢列数(Wsn.1)
         columns = max(1, self.data.getint(".", "columns", 1))
+        # 横方向の中央寄せ(Wsn.2)
+        centering_x = self.data.getbool(".", "centeringx", False)
         # 縦方向の中央寄せ(Wsn.2)
         centering_y = self.data.getbool(".", "centeringy", False)
         # 禁則処理(Wsn.2)
@@ -3766,7 +3771,8 @@ class TalkDialogContent(TalkContent):
         versionhint = talker.versionhint
         if dialogtext:
             mwin = cw.sprite.message.MessageWindow(dialogtext, names, imgpaths, talker, columns=columns,
-                                                   versionhint=versionhint, centering_y=centering_y,
+                                                   versionhint=versionhint,
+                                                   centering_x=centering_x, centering_y=centering_y,
                                                    boundarycheck=boundarycheck)
             index = cw.cwpy.show_message(mwin)
         elif not dialogtext is None and len(names) > 1:

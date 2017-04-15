@@ -886,7 +886,7 @@ class PlayerCard(CWPyCard, character.Player):
                               can_loaded_scaledimage, self, {}))
             mwin = cw.sprite.message.MessageWindow(text, names, infos, self,
                                                    versionhint=self.versionhint,
-                                                   centering_y=True, boundarycheck=True)
+                                                   centering_x=False, centering_y=True, boundarycheck=True)
             cw.cwpy.show_message(mwin)
             if base <> level or cw.cwpy.ydata.party.is_suspendlevelup:
                 # レベル調節中だった場合は再調節
