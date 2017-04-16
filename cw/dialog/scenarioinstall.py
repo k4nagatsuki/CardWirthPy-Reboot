@@ -14,34 +14,25 @@ import cw
 import message
 
 #-------------------------------------------------------------------------------
-#　シナリオインストールダイアログ
+#　シナリオフォルダ選択ダイアログ
 #-------------------------------------------------------------------------------
 
-class ScenarioInstall(wx.Dialog):
+class SelectScenarioDirectory(wx.Dialog):
     """
-    シナリオインストールダイアログ。
+    シナリオフォルダ選択ダイアログ。
     """
-    def __init__(self, parent, db, headers, skintype, scedir):
-        headers_seq = reduce(lambda a, b: a + b, headers.itervalues())
-        assert 0 < len(headers_seq)
-
+    def __init__(self, parent, title, text, db, skintype, scedir):
         # ダイアログボックス作成
-        wx.Dialog.__init__(self, parent, -1, u"シナリオのインストール", size=cw.wins((420, 400)),
+        wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((420, 400)),
                             style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         self.SetDoubleBuffered(True)
         self.db = db
         self.skintype = skintype
-        self.headers = headers
         self.scedir = scedir
+        self.path = u""
 
         # メッセージ
-        if 1 < len(headers_seq):
-            self.text = u"%s本のシナリオのインストール先を選択してください。" % (len(headers_seq))
-        else:
-            name = headers_seq[0].name
-            if headers_seq[0].author:
-                name += u"(%s)" % headers_seq[0].author
-            self.text = u"「%s」のインストール先を選択してください。" % (name)
+        self.text = text
 
         # フォルダの作成
         bmp = cw.cwpy.rsrc.dialogs["CREATE_DIRECTORY"]
@@ -74,11 +65,8 @@ class ScenarioInstall(wx.Dialog):
         self._create_treeitems(self.tree.root, dirstack)
         self.tree.Expand(self.tree.root)
 
-        # インストール・キャンセルボタン
-        self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), u"インストール")
-        self.yesbtn.SetToolTipString(create_installdesc(headers_seq))
-        self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["cancel"])
-        self.buttons = (self.yesbtn, self.nobtn)
+        # ボタン
+        self.create_buttons()
 
         # layout
         self._resize()
@@ -87,14 +75,21 @@ class ScenarioInstall(wx.Dialog):
         self.tree.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.OnTreeItemExpanded)
         self.tree.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnTreeItemCollapsed)
         self.createdirbtn.Bind(wx.EVT_BUTTON, self.OnCreateDirBtn)
-        self.yesbtn.Bind(wx.EVT_BUTTON, self.OnInstallBtn)
-        self.nobtn.Bind(wx.EVT_BUTTON, self.OnCancel)
 
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         for child in self.GetChildren():
             child.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_SIZE, self.OnResize)
+
+    def create_buttons(self):
+        # OK・キャンセルボタン
+        self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), cw.cwpy.msgs["ok"])
+        self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["cancel"])
+        self.buttons = (self.yesbtn, self.nobtn)
+
+        self.yesbtn.Bind(wx.EVT_BUTTON, self.OnOk)
+        self.nobtn.Bind(wx.EVT_BUTTON, self.OnCancel)
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -118,10 +113,12 @@ class ScenarioInstall(wx.Dialog):
         self.SetSizer(sizer_1)
         self.Layout()
 
-    def _create_treeitems(self, treeitem, dirstack=[]):
+    def _create_treeitems(self, treeitem, dirstack=None):
         """treeitemが示すディレクトリのサブディレクトリを読み込む。
         シナリオフォルダは除外される。
         """
+        if dirstack is None:
+            dirstack = []
         self.tree.Freeze()
         self.tree.DeleteChildren(treeitem)
         dpath = self.tree.GetItemPyData(treeitem)
@@ -152,6 +149,20 @@ class ScenarioInstall(wx.Dialog):
         item = event.GetItem()
         self.tree.DeleteChildren(item)
         self.tree.AppendItem(item, u"読込中...")
+
+    def OnOk(self, event):
+        selitem = self.tree.GetSelection()
+        if not selitem.IsOk():
+            return
+        dstpath = self.tree.GetItemPyData(selitem)
+        if not dstpath:
+            return
+        self.path = dstpath
+        self.dirstack = self.get_dirstack(selitem)
+        cw.cwpy.setting.installed_dir[self.scedir] = self.get_dirstack(selitem)
+        self.SetReturnCode(wx.ID_OK)
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
@@ -220,6 +231,60 @@ class ScenarioInstall(wx.Dialog):
 
                 item, cookie = self.tree.GetNextChild(selitem, cookie)
 
+    def get_dirstack(self, paritem):
+        """指定されたアイテムまでの経路を返す。
+        """
+        dirstack = []
+        while paritem and paritem.IsOk():
+            selpath = self.tree.GetItemPyData(paritem)
+            selpath = os.path.basename(selpath)
+            dirstack.append(selpath)
+            paritem = self.tree.GetItemParent(paritem)
+
+        dirstack.reverse()
+        return dirstack[1:]
+
+
+#-------------------------------------------------------------------------------
+#　シナリオインストールダイアログ
+#-------------------------------------------------------------------------------
+
+class ScenarioInstall(SelectScenarioDirectory):
+    """
+    シナリオインストールダイアログ。
+    """
+    def __init__(self, parent, db, headers, skintype, scedir):
+        headers_seq = reduce(lambda a, b: a + b, headers.itervalues())
+        assert 0 < len(headers_seq)
+
+        # メッセージ
+        if 1 < len(headers_seq):
+            s = u"%s本のシナリオのインストール先を選択してください。" % (len(headers_seq))
+        else:
+            name = headers_seq[0].name
+            if headers_seq[0].author:
+                name += u"(%s)" % headers_seq[0].author
+            s = u"「%s」のインストール先を選択してください。" % (name)
+
+        self.headers = headers
+
+        # ダイアログボックス作成
+        SelectScenarioDirectory.__init__(self, parent, u"シナリオのインストール", s,
+                                         db, skintype, scedir)
+
+    def create_buttons(self):
+        headers_seq = reduce(lambda a, b: a + b, self.headers.itervalues())
+        assert 0 < len(headers_seq)
+
+        # インストール・キャンセルボタン
+        self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), u"インストール")
+        self.yesbtn.SetToolTipString(create_installdesc(headers_seq))
+        self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["cancel"])
+        self.buttons = (self.yesbtn, self.nobtn)
+
+        self.yesbtn.Bind(wx.EVT_BUTTON, self.OnInstallBtn)
+        self.nobtn.Bind(wx.EVT_BUTTON, self.OnCancel)
+
     def OnInstallBtn(self, event):
         selitem = self.tree.GetSelection()
         if not selitem.IsOk():
@@ -254,19 +319,6 @@ class ScenarioInstall(wx.Dialog):
         cw.cwpy.setting.installed_dir[self.scedir] = self.get_dirstack(selitem)
 
         self.Close()
-
-    def get_dirstack(self, paritem):
-        """指定されたアイテムまでの経路を返す。
-        """
-        dirstack = []
-        while paritem and paritem.IsOk():
-            selpath = self.tree.GetItemPyData(paritem)
-            selpath = os.path.basename(selpath)
-            dirstack.append(selpath)
-            paritem = self.tree.GetItemParent(paritem)
-
-        dirstack.reverse()
-        return dirstack[1:]
 
 
 def get_dpaths(dpath):
@@ -308,6 +360,9 @@ def to_scenarioheaders(paths, db, skintype):
         return headers
 
     exists = set()
+
+    if os.path.isfile(paths[0]) and os.path.splitext(paths[0])[1].lower() in (u".xml", u".wsm"):
+        paths = [os.path.dirname(paths[0])]
 
     allparent = os.path.dirname(paths[0])
 

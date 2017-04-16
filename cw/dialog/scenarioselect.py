@@ -263,7 +263,7 @@ class ScenarioSelect(select.Select):
         self.Bind(wx.EVT_CLOSE, self.OnCancel2)
 
         if lastscenario or lastscenariopath:
-            self.set_selected(lastscenario, lastscenariopath)
+            self.set_selected(lastscenario, lastscenariopath, opendir=True)
         else:
             self.draw(True)
 
@@ -682,9 +682,10 @@ class ScenarioSelect(select.Select):
             if self._editor:
                 self.Bind(wx.EVT_MENU, lambda event: self.open_with_editor(), self._editor)
 
+        findresult = not self.dirstack or self.dirstack[0][1] <> u"/find_result"
         self._install.Enable(True)
-        self._createdir.Enable(True)
-        scenarioordir = bool(self.list) and not isinstance(self.list[self.index], FindResult)
+        self._createdir.Enable(findresult)
+        scenarioordir = bool(self.list) and not isinstance(self.list[self.index], FindResult) and findresult
         self._move.Enable(scenarioordir)
         self._delete.Enable(scenarioordir)
         self._rename.Enable(scenarioordir)
@@ -1089,7 +1090,8 @@ class ScenarioSelect(select.Select):
                             if item.IsOk():
                                 self.tree.SelectItem(item)
                                 if not isinstance(sel, cw.header.ScenarioHeader):
-                                    self.tree.Expand(item)
+                                    if opendir:
+                                        self.tree.Expand(item)
                                     self.create_treeitems(item)
                         break
 
@@ -1165,14 +1167,15 @@ class ScenarioSelect(select.Select):
             else:
                 lastscenario = [os.path.basename(firstpath)]
         lastscenariopath = os.path.abspath(firstpath)
-        self.set_selected(lastscenario, lastscenariopath, updatetree=True, findresults=paths)
+        self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=paths)
 
     def OnCreateDirBtn(self, event):
         dpath, seldname = self._get_installtarget()
 
-        dpath = scenarioinstall.create_dir(self, dpath)
+        dpath = scenarioinstall.create_dir(self, self.nowdir)
         if dpath:
             cw.cwpy.play_sound("harvest")
+            seldname = u""
             self._select_installedpaths(dpath, seldname, [])
 
     def OnMoveBtn(self, event):
@@ -1181,7 +1184,76 @@ class ScenarioSelect(select.Select):
         header = self.list[self.index]
         if isinstance(header, FindResult):
             return
-        pass # TODO
+
+        cw.cwpy.play_sound("click")
+        if isinstance(header, cw.header.ScenarioHeader):
+            fpath = header.get_fpath()
+            name = header.name
+            if header.author:
+                name += u"(%s)" % header.author
+            s = u"「%s」の移動先を選択してください。" % name
+        else:
+            fpath = header
+            name = os.path.basename(fpath)
+            s = u"「%s」の移動先を選択してください。\n大量のシナリオやサブフォルダがある場合、移動には時間がかかる可能性があります。" % name
+
+        dlg = scenarioinstall.SelectScenarioDirectory(self, u"移動先の選択", s,
+                                                      self.db, cw.cwpy.setting.skintype, self.scedir)
+        cw.cwpy.frame.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            dlg.Destroy()
+
+            dstdir = dlg.path
+            dirstack = dlg.dirstack
+            dst = cw.util.join_paths(cw.util.get_linktarget(dstdir), os.path.basename(fpath))
+            adst = cw.util.relpath(dst, fpath)
+            if adst in (u"", "."):
+                cw.cwpy.play_sound("harvest")
+                return
+            if os.path.isdir(fpath):
+                if cw.util.relpath(fpath, dst) == u"..":
+                    cw.cwpy.play_sound("error")
+                    s = u"移動対象と移動先は同じフォルダです。"
+                    dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
+                    cw.cwpy.frame.move_dlg(dlg)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    return
+                if not os.path.normcase(adst).startswith(u".." + os.path.sep):
+                    cw.cwpy.play_sound("error")
+                    s = u"移動先は移動対象のサブフォルダです。"
+                    dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
+                    cw.cwpy.frame.move_dlg(dlg)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    return
+            dst = cw.util.dupcheck_plus(dst, yado=False)
+            try:
+                cw.util.rename_file(fpath, dst)
+                if os.path.isdir(dst):
+                    self.db.rename_dir(fpath, dst)
+                self.db.update(self.nowdir, cw.cwpy.setting.skintype)
+                self.db.update(dstdir, cw.cwpy.setting.skintype)
+                cw.cwpy.play_sound("harvest")
+                self.list.pop(self.index)
+                if self.list and len(self.list) <= self.index:
+                    self.index = len(self.list)-1
+                self.scetable[self.nowdir] = self.list
+                self.scetable[dstdir] = self._get_nowlist(dstdir, update=True)
+                self._update_narrowcondition_impl()
+                lastscenario = dirstack
+                lastscenario.append(os.path.basename(dst))
+                lastscenariopath = dst
+                self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True)
+            except:
+                cw.util.print_ex()
+                s = u"%sの移動に失敗しました。" % fpath
+                dlg = cw.dialog.message.ErrorMessage(self, s)
+                cw.cwpy.frame.move_dlg(dlg)
+                dlg.ShowModal()
+                dlg.Destroy()
+        else:
+            dlg.Destroy()
 
     def OnDeleteBtn(self, event):
         if not self.list:
@@ -1194,14 +1266,16 @@ class ScenarioSelect(select.Select):
         if isinstance(header, cw.header.ScenarioHeader):
             fpath = header.get_fpath()
             name = header.name
-            if sys.platform == "win32" and fpath.lower().endswith(".lnk"):
+            if header.author:
+                name += u"(%s)" % header.author
+            if sys.platform == "win32" and os.path.isfile(fpath) and fpath.lower().endswith(".lnk"):
                 s = u"「%s」のショートカットを削除します。\nよろしいですか？" % name
             else:
                 s = u"「%s」を削除します。\nよろしいですか？" % name
         else:
             fpath = header
             name = os.path.basename(fpath)
-            if os.path.isfile(fpath) and sys.platform == "win32" and name.lower().endswith(".lnk"):
+            if sys.platform == "win32" and os.path.isfile(fpath) and name.lower().endswith(".lnk"):
                 name = os.path.splitext(name)[0]
                 s = u"ショートカット「%s」を削除します。\nよろしいですか？" % name
             else:
@@ -1226,8 +1300,10 @@ class ScenarioSelect(select.Select):
             self.list.pop(self.index)
             if self.list and len(self.list) <= self.index:
                 self.index = len(self.list)-1
+            self.scetable[self.nowdir] = self.list
             self._update_narrowcondition_impl()
         except:
+            cw.util.print_ex()
             s = u"%sの削除に失敗しました。" % fpath
             dlg = cw.dialog.message.ErrorMessage(self, s)
             cw.cwpy.frame.move_dlg(dlg)
@@ -1260,6 +1336,7 @@ class ScenarioSelect(select.Select):
                                              text=fname)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
+            dlg.Destroy()
             dpath, seldname = self._get_installtarget()
 
             dst = cw.util.join_paths(self.nowdir, dlg.text)
@@ -1274,11 +1351,14 @@ class ScenarioSelect(select.Select):
                 cw.cwpy.play_sound("harvest")
                 self._select_installedpaths(dst, seldname, [])
             except:
+                cw.util.print_ex()
                 s = u"%sの名前の変更に失敗しました。" % fpath
                 dlg = cw.dialog.message.ErrorMessage(self, s)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
+        else:
+            dlg.Destroy()
 
     def _to_headers(self, paths):
         return scenarioinstall.to_scenarioheaders(paths, self.db, cw.cwpy.setting.skintype)
@@ -2113,11 +2193,11 @@ class ScenarioSelect(select.Select):
                         index, header = data
                         if isinstance(header, cw.header.ScenarioHeader):
                             delitems.append(item)
-                        elif isinstance(header, FindResult) or self.tree.IsExpanded(item):
-                            if not isinstance(header, FindResult) and not os.path.isdir(header):
+                        else:
+                            if not isinstance(header, FindResult) and not os.path.exists(header):
                                 # 削除されたディレクトリ
                                 delitems.append(item)
-                            else:
+                            elif isinstance(header, FindResult) or self.tree.IsExpanded(item):
                                 recurse(item)
                     item, cookie = self.tree.GetNextChild(parent, cookie)
                 for item in delitems:
