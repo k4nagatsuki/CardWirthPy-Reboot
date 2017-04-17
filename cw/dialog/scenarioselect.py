@@ -1528,13 +1528,12 @@ class ScenarioSelect(select.Select):
 
         cw.cwpy.play_sound("equipment")
         if self.tree.IsShown():
+            self.toppanel.Freeze()
             self.tree.Hide()
             self.toppanel.Show()
-            selitem = self.tree.GetSelection()
-            if selitem and self.tree.IsExpanded(selitem):
-                self._update_narrowcondition_impl()
-            else:
-                self.draw(True)
+            self._update_narrowcondition_impl()
+            self.draw(True)
+            self.toppanel.Thaw()
             cw.cwpy.setting.show_scenariotree = False
         else:
             self.show_tree()
@@ -2320,7 +2319,9 @@ class ScenarioSelect(select.Select):
             image = self.tree.imgidx_complete
         elif self.is_invisible(header):
             image = self.tree.imgidx_invisible
-        if header.levelmin <> 0 or header.levelmax <> 0:
+
+        if self.sort.GetSelection() == 0 and (header.levelmin <> 0 or header.levelmax <> 0):
+            # 対象レベルによる整列中
             if header.levelmin == header.levelmax:
                 name = u"[    %2d] %s" % (header.levelmin, name)
             else:
