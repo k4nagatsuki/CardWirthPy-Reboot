@@ -35,6 +35,7 @@ class ScenarioSelect(select.Select):
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
         self.SetDoubleBuffered(True)
         self._bg = None
+        self._bg_scaled = None
         self._quit = False
 
         self._last_narrowparams = None
@@ -1738,6 +1739,12 @@ class ScenarioSelect(select.Select):
         self._bg = cw.util.load_wxbmp(path, can_loaded_scaledimage=True)
         return self._bg
 
+    def _get_bg_scaled(self):
+        if self._bg_scaled:
+            return self._bg_scaled
+        self._bg_scaled = cw.wins(self._bg)
+        return self._bg_scaled
+
     def get_detailtext(self):
         lines = []
         if cw.cwpy.setting.show_paperandtree or not (self.tree and self.tree.IsShown()):
@@ -1909,7 +1916,7 @@ class ScenarioSelect(select.Select):
         dc.SetPen(wx.Pen(colour))
         dc.SetBrush(wx.Brush(colour))
         dc.DrawRectangle(0, 0, csize[0], csize[1])
-        bmp = cw.wins(self._get_bg())
+        bmp = self._get_bg_scaled()
         bmpw, bmph = bmp.GetSize()
         dc.DrawBitmap(bmp, 0, yp, False)
 
