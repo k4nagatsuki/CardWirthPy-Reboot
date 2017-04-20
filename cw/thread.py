@@ -3245,8 +3245,12 @@ class CWPy(_Singleton, threading.Thread):
             self.selectedheader = None
             areaid, data = self.pre_areaids.pop()
 
-            # キャンプ時は常にカーテン表示
+            if areaid == cw.AREA_CAMP:
+                # キャンプ解除でスキルカードの使用回数消滅を確定
+                self.sdata.uselimit_table.clear()
+
             if areaid <> cw.AREA_CAMP:
+                # キャンプ時以外であればカーテン解除
                 self.clear_curtain()
 
             # パーティ解散エリア解除の場合
@@ -4136,6 +4140,12 @@ class CWPy(_Singleton, threading.Thread):
 
             # スキルの場合は使用回数を0にする
             if header.type == "SkillCard" and owner <> target:
+                if self.is_playingscenario() and not from_event and self.areaid == cw.AREA_TRADE3 and\
+                        isinstance(owner, cw.character.Player) and header.uselimit and\
+                        not (owner, header) in self.sdata.uselimit_table:
+                    # キャンプ中は元々の使用回数を記憶しておき、
+                    # 元の所有者の手許に戻ったら使用回数を復元する
+                    self.sdata.uselimit_table[(owner, header)] = header.uselimit
                 header.maxuselimit = 0
                 header.uselimit = 0
                 header.carddata.getfind("Property/UseLimit").text = "0"
@@ -4259,8 +4269,13 @@ class CWPy(_Singleton, threading.Thread):
             header.set_hold(hold)
             # 使用回数を設定
             header.get_uselimit()
-            if from_event and header.type == "SkillCard":
-                header.set_uselimit(header.maxuselimit)
+            if header.type == "SkillCard":
+                if from_event:
+                    header.set_uselimit(header.maxuselimit)
+                elif self.is_playingscenario() and self.areaid == cw.AREA_TRADE3 and\
+                        (target, header) in self.sdata.uselimit_table:
+                    uselimit = self.sdata.uselimit_table[(target, header)]
+                    header.set_uselimit(uselimit-header.uselimit)
             # カードのエレメントを追加
             path = "%ss" % header.type
             if toindex == -1:

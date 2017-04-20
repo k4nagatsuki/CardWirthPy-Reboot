@@ -89,6 +89,8 @@ class SystemData(object):
 
         # メッセージのバックログ
         self.backlog = []
+        # キャンプ中に移動したカードの使用回数の記憶
+        self.uselimit_table = {}
 
         # シナリオごとのブレークポイントを保存する
         if isinstance(cw.cwpy.sdata, ScenarioData):
@@ -795,6 +797,8 @@ class ScenarioData(SystemData):
         self.resource_cache_size = 0
         # メッセージのバックログ
         self.backlog = []
+        # キャンプ中に移動したカードの使用回数の記憶
+        self.uselimit_table = {}
 
         # イベントが任意箇所に到達した時に実行を停止するためのブレークポイント
         self.breakpoints = cw.cwpy.breakpoint_table.get((self.name, self.author), set())
