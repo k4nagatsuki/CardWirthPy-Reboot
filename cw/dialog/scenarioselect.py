@@ -1742,7 +1742,7 @@ class ScenarioSelect(select.Select):
     def _get_bg_scaled(self):
         if self._bg_scaled:
             return self._bg_scaled
-        self._bg_scaled = cw.wins(self._bg)
+        self._bg_scaled = cw.wins(self._get_bg())
         return self._bg_scaled
 
     def get_detailtext(self):
