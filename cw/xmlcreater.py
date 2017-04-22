@@ -497,6 +497,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.can_repeatlclick <> setting.can_repeatlclick_init:
         e = cw.data.make_element("CanRepeatLClick", str(setting.can_repeatlclick))
         element.append(e)
+    # 方向キーやホイールの選択中にマウスカーソルの移動を検知しない半径
+    if setting.radius_notdetectmovement <> setting.radius_notdetectmovement_init:
+        e = cw.data.make_element("RadiusForNotDetectMovement", str(setting.radius_notdetectmovement))
+        element.append(e)
     # カーソルタイプ
     if setting.cursor_type <> setting.cursor_type_init:
         e = cw.data.make_element("CursorType", setting.cursor_type)

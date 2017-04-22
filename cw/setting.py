@@ -385,6 +385,7 @@ class Setting(object):
         self.show_cardkind = True
         self.show_premiumicon = False
         self.can_clicksidesofcardcontrol = True
+        self.radius_notdetectmovement = 0
         self.show_paperandtree = False
         self.filer_dir = ""
         self.filer_file = ""
@@ -681,6 +682,8 @@ class Setting(object):
         self.can_forwardmessage_with_wheel = data.getbool("CanForwardMessageWithWheel", self.can_forwardmessage_with_wheel)
         # マウスの左ボタンを押し続けた時は連打状態にする
         self.can_repeatlclick = data.getbool("CanRepeatLClick", self.can_repeatlclick)
+        # 方向キーやホイールの選択中にマウスカーソルの移動を検知しない半径
+        self.radius_notdetectmovement = data.getint("RadiusForNotDetectMovement", self.radius_notdetectmovement)
         # カーソルタイプ
         self.cursor_type = data.gettext("CursorType", self.cursor_type)
         # 連打状態の時、カードなどの選択を自動的に決定する

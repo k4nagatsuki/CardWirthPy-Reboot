@@ -127,6 +127,8 @@ class EventHandler(object):
             return event.key == K_RETURN
 
     def check_puressedbutton(self, event):
+        cw.cwpy.wheelmode_cursorpos = (-1, -1)
+
         if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
             return
 
@@ -183,6 +185,7 @@ class EventHandler(object):
             if not cw.cwpy.index < 0:
                 sprite = cw.cwpy.list[cw.cwpy.index]
                 cw.cwpy.change_selection(sprite)
+                cw.cwpy.wheelmode_cursorpos = cw.cwpy.mousepos
 
         elif y:
             def get_mcards():
@@ -246,6 +249,7 @@ class EventHandler(object):
                     cw.cwpy.index = 0
                 sprite = cw.cwpy.list[cw.cwpy.index]
                 cw.cwpy.change_selection(sprite)
+                cw.cwpy.wheelmode_cursorpos = cw.cwpy.mousepos
 
     def _update_selection(self):
         # マウスポインタの移動を検知する前にクリックイベントが
@@ -897,6 +901,7 @@ class EventHandlerForMessageWindow(EventHandler):
 
             sbar = cw.cwpy.list[cw.cwpy.index]
             cw.cwpy.change_selection(sbar)
+            cw.cwpy.wheelmode_cursorpos = cw.cwpy.mousepos
 
     def keydown_event(self, key):
         """その他のKEYDOWNイベント。"""

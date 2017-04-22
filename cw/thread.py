@@ -10,6 +10,7 @@ import threading
 import traceback
 import shutil
 import re
+import math
 import wx
 import pygame
 from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
@@ -165,6 +166,8 @@ class CWPy(_Singleton, threading.Thread):
         # list, index(キーボードでのカード選択に使う)
         self.list = []
         self.index = -1
+        # 方向キーやマウスホイールで選択が変更された瞬間のカーソルの位置
+        self.wheelmode_cursorpos = (-1, -1)
         # メニューカードのフラグごとの辞書
         self._mcardtable = {}
         # イベント終了時にメニューカードのリストを
@@ -888,7 +891,19 @@ class CWPy(_Singleton, threading.Thread):
                 self.mousein = pygame.mouse.get_pressed()
             mousepos = self.mousepos
             if self.update_mousepos():
-                self.mousemotion = False if self.mousepos == mousepos else True
+                # カーソルの移動を検出
+                mousemotion2 = self.mousepos <> mousepos
+                if self.wheelmode_cursorpos <> (-1, -1) and self.mousepos <> (-1, -1) and mousepos <> (-1, -1):
+                    # 方向キーやホイールで選択を変更中は、マウスが多少ぶれても移動を検出しないようにする
+                    # (元々の位置からの半径で検出)
+                    ax, ay = self.wheelmode_cursorpos
+                    bx, by = self.mousepos
+                    self.mousemotion = self.setting.radius_notdetectmovement < abs(math.hypot(ax-bx, ay-by))
+                    if self.mousemotion:
+                        self.wheelmode_cursorpos = (-1, -1)
+                else:
+                    self.mousemotion = mousemotion2
+                    self.wheelmode_cursorpos = (-1, -1)
 
             if self.mousemotion:
                 for i in xrange(len(self.keyevent.mousein)):
@@ -899,7 +914,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and self.battle.is_ready():
                 # パーティ領域より上へマウスカーソルが行ったら戦闘行動表示をクリア
-                if self.mousemotion and self._in_partyarea(mousepos) <> self._in_partyarea(self.mousepos):
+                if mousemotion2 and self._in_partyarea(mousepos) <> self._in_partyarea(self.mousepos):
                     self._show_allselectedcards = True
                     self.change_selection(self.selection)
                     self.draw()
