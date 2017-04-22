@@ -2248,6 +2248,7 @@ class ScenarioSelect(select.Select):
             if self.toppanel.IsShown():
                 self.draw(True)
 
+        self._no_treechangedsound = False
         self._update_saveddirstack()
         self._update_pagelabel()
 
