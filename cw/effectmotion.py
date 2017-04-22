@@ -1294,6 +1294,13 @@ class EffectMotion(object):
 
         return eff
 
+    #-----------------------------------------------------------------------
+    #「効果無し」効果
+    #-----------------------------------------------------------------------
+    def noeffect_motion(self, target, success_res):
+        return True
+
+
 def get_vocation_val(ccard, vocation, enhance_act=False):
     """
     適性値(身体特性+精神特性の合計値)を返す。

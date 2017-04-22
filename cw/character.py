@@ -808,6 +808,8 @@ class Character(object):
             return self.is_active()
         elif mtype == "SummonBeast":
             return self.can_addbeast()
+        elif mtype == "NoEffect": # Wsn.2
+            return not self.is_unconscious()
         else:
             # VanishTarget: 常に有効
             return True

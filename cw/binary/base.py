@@ -1355,6 +1355,10 @@ class CWBinaryBase(object):
         elif n == "SummonBeast":
             return 8, 0
 
+        elif n == "NoEffect":
+            f.check_wsnversion("2")
+            return 0, 1
+
         else:
             raise cw.binary.cwfile.UnsupportedError()
 
