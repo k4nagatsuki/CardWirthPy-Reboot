@@ -3913,10 +3913,18 @@ class SubstituteStepContent(EventContentBase):
 
         if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
             cw.cwpy.sdata.steps[tostep].set(cw.cwpy.sdata.steps[fromstep].value)
-        elif fromstep == "??Random":
+        elif fromstep.lower() == "??random":
             if tostep in cw.cwpy.sdata.steps:
                 sides = len(cw.cwpy.sdata.steps[tostep].valuenames)
                 cw.cwpy.sdata.steps[tostep].set(cw.cwpy.dice.roll(1, sides)-1)
+        elif fromstep.lower() == "??selectedplayer":
+            if tostep in cw.cwpy.sdata.steps:
+                n = 0
+                if cw.cwpy.event.has_selectedmember():
+                    selected = cw.cwpy.event.get_targetmember("Selected")
+                    if isinstance(selected, cw.sprite.card.PlayerCard):
+                        n = selected.index + 1
+                cw.cwpy.sdata.steps[tostep].set(n)
 
         return 0
 

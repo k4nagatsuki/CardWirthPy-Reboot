@@ -757,6 +757,8 @@ class Content(base.CWBinaryBase):
             f.write_string(data.get("flag"))
         elif tag == "Substitute" and ctype == "Step": # 1.30
             f.check_version(1.30)
+            if data.get("from", "").lower() == "??selectedplayer":
+                f.check_wsnversion("2")
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Substitute" and ctype == "Flag": # 1.30
