@@ -1135,6 +1135,7 @@ class Targeting(object):
         self.mcards = set()
         self._target_updated = False
         self._target_index = 0
+        self.eff = None
 
     def targets_to_coupon(self):
         self.update_targets()
@@ -1175,7 +1176,7 @@ class Targeting(object):
                                          cw.cwpy.get_mcards("visible"),
                                          cw.cwpy.get_fcards()):
                 if isinstance(ccard, cw.character.Character):
-                    if ccard.has_coupon(u"＠効果対象"):
+                    if ccard.has_coupon(u"＠効果対象") and (not self.eff or self.eff.check_enabledtarget(ccard, False)):
                         self.targets.append(ccard)
                         if self._setcardtarget and not ccard.cardtarget and self.in_effectmotionloop():
                             # 反転状態を変更
@@ -1439,6 +1440,7 @@ class CardEvent(Event, Targeting):
         # Effectインスタンス作成
         motions = data.getfind("Motions").getchildren()
         eff = cw.effectmotion.Effect(motions, d, battlespeed=cw.cwpy.is_battlestatus())
+        self.eff = eff
         eff.update_status()
 
         # ターゲット色反転＆ウェイト
@@ -1452,7 +1454,6 @@ class CardEvent(Event, Targeting):
                 skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 targets = self.targets
             else:
-                self.targets[0].remove_coupon(u"＠効果対象")
                 targets = []
         else:
             path = data.gettext("Property/SoundPath", "")
@@ -1470,8 +1471,6 @@ class CardEvent(Event, Targeting):
                     waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                     skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                     targets.append(target)
-                else:
-                    target.remove_coupon(u"＠効果対象")
 
         if not skipped and cw.cwpy.setting.wait_usecard:
             waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
