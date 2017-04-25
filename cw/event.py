@@ -1452,6 +1452,7 @@ class CardEvent(Event, Targeting):
                 skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 targets = self.targets
             else:
+                self.targets[0].remove_coupon(u"＠効果対象")
                 targets = []
         else:
             path = data.gettext("Property/SoundPath", "")
@@ -1469,6 +1470,8 @@ class CardEvent(Event, Targeting):
                     waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                     skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                     targets.append(target)
+                else:
+                    target.remove_coupon(u"＠効果対象")
 
         if not skipped and cw.cwpy.setting.wait_usecard:
             waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
