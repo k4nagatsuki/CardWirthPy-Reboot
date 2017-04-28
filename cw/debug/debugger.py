@@ -179,6 +179,7 @@ class Debugger(wx.Frame):
         self.mi_area = wx.MenuItem(scenario_menu, ID_AREA, u"エリア(&A)",
                          u"エリアを選択して場面を変更します。")
         self.mi_area.SetBitmap(rsrc["AREA"])
+        self._mi_area_index = scenario_menu.GetMenuItemCount()
         scenario_menu.AppendItem(self.mi_area)
         self.mi_battle = wx.MenuItem(scenario_menu, ID_BATTLE, u"戦闘(&B)",
                          u"バトルを選択して戦闘を開始します。")
@@ -1461,19 +1462,32 @@ class Debugger(wx.Frame):
         if force or cw.cwpy.is_battlestatus() <> self.tl_area._battletool:
             if cw.cwpy.is_battlestatus():
                 bmp = cw.cwpy.rsrc.debugs["BATTLECANCEL"]
-                self.mi_area.SetBitmap(bmp)
-                self.mi_area.SetText(u"戦闘中断(&A)")
-                self.tl_area.SetBitmap1(bmp)
-                self.tl_area.SetShortHelp(u"戦闘を中断します。")
-                self.tl_area._battletool = True
+                if self.mi_area.GetBitmap() <> bmp:
+                    scenario_menu = self.mi_area.GetMenu()
+                    scenario_menu.RemoveItem(self.mi_area)
+                    self.mi_area = wx.MenuItem(scenario_menu, ID_AREA, u"戦闘中断(&A)",
+                             u"戦闘を中断します。")
+                    self.mi_area.SetBitmap(bmp)
+                    scenario_menu.InsertItem(self._mi_area_index, self.mi_area)
+
+                    self.tl_area.SetBitmap1(bmp)
+                    self.tl_area.SetShortHelp(u"戦闘を中断します。")
+                    self.tl_area._battletool = True
+                    self.tb_area.Realize()
             else:
                 bmp = cw.cwpy.rsrc.debugs["AREA"]
-                self.mi_area.SetBitmap(bmp)
-                self.mi_area.SetText(u"エリア(&A)")
-                self.tl_area.SetBitmap1(bmp)
-                self.tl_area.SetShortHelp(u"エリアを選択して場面を変更します。")
-                self.tl_area._battletool = False
-            self.tb_area.Realize()
+                if self.mi_area.GetBitmap() <> bmp:
+                    scenario_menu = self.mi_area.GetMenu()
+                    scenario_menu.RemoveItem(self.mi_area)
+                    self.mi_area = wx.MenuItem(scenario_menu, ID_AREA, u"エリア(&A)",
+                             u"エリアを選択して場面を変更します。")
+                    self.mi_area.SetBitmap(bmp)
+                    scenario_menu.InsertItem(self._mi_area_index, self.mi_area)
+
+                    self.tl_area.SetBitmap1(bmp)
+                    self.tl_area.SetShortHelp(u"エリアを選択して場面を変更します。")
+                    self.tl_area._battletool = False
+                    self.tb_area.Realize()
 
     def refresh_selectedmembername(self):
         assert threading.currentThread() <> cw.cwpy
