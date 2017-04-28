@@ -663,7 +663,13 @@ class SettingsPanel(wx.Panel):
         setting.all_quickdeal = value
         value = self.pane_ui.cb_showallselectedcards.GetValue()
         setting.show_allselectedcards = value
-        value = self.pane_ui.cb_showstatustime.GetValue()
+        value = self.pane_ui.ch_show_statustime.GetSelection()
+        if value == 0:
+            value = "NotEventTime"
+        elif value == 1:
+            value = "True"
+        else:
+            value = "False"
         if setting.show_statustime <> value:
             setting.show_statustime = value
             updatecardimg = True
@@ -2441,15 +2447,25 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showallselectedcards = wx.CheckBox(
             panel, -1, u"戦闘行動を全員分表示する")
         panel.AddWindow(self.cb_showallselectedcards, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
-        self.cb_showstatustime = wx.CheckBox(
-            panel, -1, u"状態の残り時間をカード上に表示する")
-        panel.AddWindow(self.cb_showstatustime, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_show_cardkind = wx.CheckBox(
             panel, -1, u"カード置場と荷物袋でカードの種類を表示する")
         panel.AddWindow(self.cb_show_cardkind, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_show_premiumicon = wx.CheckBox(
             panel, -1, u"カードの希少度をアイコンで表示する")
         panel.AddWindow(self.cb_show_premiumicon, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+
+        panel_show_statustime = wx.Panel(panel, -1)
+        self.st_panel_show_statustime = wx.StaticText(panel_show_statustime, -1,
+                                                      u"状態の残り時間:")
+        choices = [u"イベント中でなければ表示", u"常に表示", u"表示しない"]
+        self.ch_show_statustime = wx.Choice(panel_show_statustime, -1, choices=choices)
+        bsizer_show_statustime = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_show_statustime.Add(self.st_panel_show_statustime, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
+        bsizer_show_statustime.Add(self.ch_show_statustime, 0, wx.ALIGN_CENTER, cw.ppis(0))
+        panel_show_statustime.SetSizer(bsizer_show_statustime)
+        panel_show_statustime.SetSize(bsizer_show_statustime.CalcMin())
+        panel.AddWindow(panel_show_statustime, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+
         spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
         panel.AddWindow(spacer, spacing=cw.ppis(3))
 
@@ -2586,7 +2602,12 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_quickdeal.SetValue(setting.quickdeal)
         self.cb_allquickdeal.SetValue(setting.all_quickdeal)
         self.cb_showallselectedcards.SetValue(setting.show_allselectedcards)
-        self.cb_showstatustime.SetValue(setting.show_statustime)
+        if setting.show_statustime == "NotEventTime":
+            self.ch_show_statustime.SetSelection(0)
+        elif setting.show_statustime == "True":
+            self.ch_show_statustime.SetSelection(1)
+        else:
+            self.ch_show_statustime.SetSelection(2)
         self.cb_show_cardkind.SetValue(setting.show_cardkind)
         self.cb_show_premiumicon.SetValue(setting.show_premiumicon)
 
@@ -2634,7 +2655,12 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_quickdeal.SetValue(setting.quickdeal_init)
         self.cb_allquickdeal.SetValue(setting.all_quickdeal_init)
         self.cb_showallselectedcards.SetValue(setting.show_allselectedcards_init)
-        self.cb_showstatustime.SetValue(setting.show_statustime_init)
+        if setting.show_statustime_init == "NotEventTime":
+            self.ch_show_statustime.SetSelection(0)
+        elif setting.show_statustime_init == "True":
+            self.ch_show_statustime.SetSelection(1)
+        else:
+            self.ch_show_statustime.SetSelection(2)
         self.cb_show_cardkind.SetValue(setting.show_cardkind_init)
         self.cb_show_premiumicon.SetValue(setting.show_premiumicon_init)
         self.cb_showroundautostartbutton.SetValue(setting.show_roundautostartbutton_init)

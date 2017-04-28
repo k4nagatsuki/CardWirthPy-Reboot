@@ -146,6 +146,10 @@ class BattleEngine(object):
         elif self.check_win():
             raise BattleWinError()
 
+        clip = cw.cwpy.update_statusimgs(is_runningevent=True)
+        if clip:
+            cw.cwpy.draw(clip=clip)
+
         # 戦闘行動ループ
         for member in self.members:
             member.actionend = False

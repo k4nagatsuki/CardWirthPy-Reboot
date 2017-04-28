@@ -741,12 +741,19 @@ class Event(object):
 
     def start(self):
         try:
+            # ステータスバーの色を変更
             showbuttons = not cw.cwpy.is_playingscenario() or\
                 cw.cwpy.areaid in cw.AREAS_SP
             cw.cwpy.statusbar.change(showbuttons)
+
+            # ステータスアイコンの数値描画を更新
+            clip = pygame.Rect(cw.cwpy.statusbar.rect)
+            clip = cw.cwpy.update_statusimgs(is_runningevent=True, clip=clip)
+            cw.cwpy.set_lazydraw()
+
+            # イベント開始前の情報カード所持状況を記憶しておく
             if cw.cwpy.sdata.infocards_beforeevent is None:
                 cw.cwpy.sdata.infocards_beforeevent = set(cw.cwpy.sdata.get_infocards(False))
-            cw.cwpy.draw(clip=cw.cwpy.statusbar.rect)
 
             self.run()
 
@@ -1315,6 +1322,8 @@ class CardEvent(Event, Targeting):
 
             # カード効果
             cw.cwpy.event.in_cardeffectmotion = True
+            if not cw.cwpy.is_battlestatus():
+                cw.cwpy.update_statusimgs(is_runningevent=False)
             try:
                 self.effect_cardmotion()
             finally:

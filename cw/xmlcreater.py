@@ -369,7 +369,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         element.append(e)
     # 各種ステータスの残り時間を表示する
     if setting.show_statustime <> setting.show_statustime_init:
-        e = cw.data.make_element("ShowStatusTime", str(setting.show_statustime))
+        e = cw.data.make_element("ShowStatusTime", setting.show_statustime)
         element.append(e)
     # 不可能な行動を選択した時に警告を表示
     if setting.noticeimpossibleaction <> setting.noticeimpossibleaction_init:

@@ -215,6 +215,9 @@ class CWPy(_Singleton, threading.Thread):
         # 遅延再描画を行う場合はTrue
         self._lazy_draw = False
 
+        # 時間経過処理中か
+        self._elapse_time = False
+
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup, loadyado=True)
 
@@ -989,20 +992,43 @@ class CWPy(_Singleton, threading.Thread):
             if not self.is_showparty:
                 self.show_party()
 
+            clip = None
             if not cw.cwpy.sdata.infocards_beforeevent is None:
                 for _i in filter(lambda i: not i in cw.cwpy.sdata.infocards_beforeevent,
                                  cw.cwpy.sdata.get_infocards(False)):
                     # イベント開始前には持っていなかった情報カードを入手している
                     cw.cwpy.sdata.notice_infoview = True
                     cw.cwpy.statusbar.change()
+                    clip = pygame.Rect(cw.cwpy.statusbar.rect)
                     break
+
+                clip = self.update_statusimgs(False, clip=clip)
+
                 cw.cwpy.sdata.infocards_beforeevent = None
 
             if self._need_disposition:
                 self.disposition_pcards()
                 self.draw()
+            elif clip:
+                self.draw(clip=clip)
 
         self.update_groups()
+
+    def update_statusimgs(self, is_runningevent, clip=None):
+        """
+        キャラクターのステータス時間の表示の更新が必要であれば更新する。
+        """
+        if cw.cwpy.setting.show_statustime == "NotEventTime":
+            clip = pygame.Rect(cw.cwpy.statusbar.rect)
+            for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"), cw.cwpy.get_ecards("unreversed")):
+                if ccard.is_analyzable():
+                    clip2 = ccard.update_image(update_statusimg=True, is_runningevent=is_runningevent)
+                    if clip2:
+                        if clip:
+                            clip.union_ip(clip2)
+                        else:
+                            clip = pygame.Rect(clip2)
+        return clip
 
     def update_groups(self):
         self.cardgrp.update(self.scr_draw)
@@ -1103,6 +1129,9 @@ class CWPy(_Singleton, threading.Thread):
     def lazy_draw(self):
         if self._lazy_draw:
             self.draw()
+
+    def set_lazydraw(self):
+        self._lazy_draw = True
 
     def draw(self, mainloop=False, clip=None):
         if not clip:
@@ -1494,6 +1523,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.lock_menucards = False
                     return
 
+            self.update_statusimgs(is_runningevent=False)
             self.call_modaldlg(callname)
 
         else:
@@ -3732,6 +3762,7 @@ class CWPy(_Singleton, threading.Thread):
     def elapse_time(self, playeronly=False):
         """時間経過。"""
         cw.cwpy.advlog.start_timeelapse()
+        self._elapse_time = True
 
         ccards = self.get_pcards("unreversed")
         if not playeronly:
@@ -3747,6 +3778,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if ccards:
             self.draw()
+        self._elapse_time = False
 
     def interrupt_adventure(self):
         """冒険の中断。宿画面に遷移する。"""
@@ -4654,7 +4686,7 @@ class CWPy(_Singleton, threading.Thread):
             self.event.get_effectevent() or\
             pygame.event.peek(USEREVENT) or\
             (self.is_battlestatus() and not (self.battle and self.battle.is_ready())) or\
-            self.is_decompressing
+            self.is_decompressing or self._elapse_time
 
     def is_showingdlg(self):
         return 0 < self._showingdlg

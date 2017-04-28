@@ -347,7 +347,7 @@ class Setting(object):
         self.show_savedmessage = True
         self.show_backpackcard = True
         self.show_backpackcardatend = False
-        self.show_statustime = True
+        self.show_statustime = "NotEventTime"
         self.noticeimpossibleaction = True
         self.initmoneyamount = basedata.getint("Property/InitialCash", 4000)
         self.initmoneyisinitialcash = True
@@ -619,7 +619,7 @@ class Setting(object):
         # 荷物袋カードを最後に配置する
         self.show_backpackcardatend = data.getbool("ShowBackpackCardAtEnd", self.show_backpackcardatend)
         # 各種ステータスの残り時間を表示する
-        self.show_statustime = data.getbool("ShowStatusTime", self.show_statustime)
+        self.show_statustime = data.gettext("ShowStatusTime", self.show_statustime)
 
         # パーティ結成時の持出金額
         self.initmoneyamount = data.getint("InitialMoneyAmount", self.initmoneyamount)

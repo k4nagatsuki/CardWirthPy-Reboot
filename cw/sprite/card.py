@@ -541,18 +541,24 @@ class CWPyCard(base.SelectableSprite):
         if self.status == "hidden":
             self.clear_image(True)
 
-    def update_image(self):
+    def update_image(self, update_statusimg=False, is_runningevent=None):
         """
         画像を再構成する。
         """
         if not self.cardimg:
-            return
+            return None
 
         # 画像参照
-        if hasattr(self, "test_aptitude"):
-            self.cardimg.update(self, self.test_aptitude)
+        if update_statusimg:
+            clip = self.cardimg.update_statusimg(self, is_runningevent=is_runningevent)
+            if not clip:
+                return None
         else:
-            self.cardimg.update(self)
+            if hasattr(self, "test_aptitude"):
+                self.cardimg.update(self, self.test_aptitude)
+            else:
+                self.cardimg.update(self)
+            clip = pygame.Rect(self.rect)
 
         image = self.cardimg.get_image().copy()
         image.set_alpha(self.alpha)
@@ -606,6 +612,8 @@ class CWPyCard(base.SelectableSprite):
 
         if self in cw.cwpy.file_updates:
             cw.cwpy.file_updates.remove(self)
+
+        return clip
 
     def clear_image(self, move=True):
         self.image = pygame.Surface(cw.s((0, 0))).convert()
