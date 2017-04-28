@@ -816,10 +816,18 @@ class Converter(threading.Thread):
             for key, msg in cribs2.iteritems():
                 msgtable[key] = msg.strip(u" 　")
 
-            for e in self.data.getfind("Messages"):
+            e_message = self.data.find("Messages")
+            removelist = set(e_message)
+            for e in e_message:
                 key = e.get("key")
                 if key in msgtable:
-                    e.text = msgtable[key]
+                    if e.text <> msgtable[key]:
+                        # ベースからメッセージを変更
+                        e.text = msgtable[key]
+                        removelist.discard(e)
+            # ベースと同じメッセージは定義不要
+            for e in removelist:
+                e_message.remove(e)
 
         except Exception:
             cw.util.print_ex()
