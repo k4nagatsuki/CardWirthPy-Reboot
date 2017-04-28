@@ -773,7 +773,7 @@
     <Message key="middle_penalty">%s中ペナルティ</Message>
     <Message key="small_penalty">%s小ペナルティ</Message>
     <Message key="unconscious">意識不明</Message>
-    <Message key="heavy_injured">重症</Message>
+    <Message key="heavy_injured">重傷</Message>
     <Message key="injured">負傷</Message>
     <Message key="fine">正常</Message>
     <Message key="poison">中毒</Message>
