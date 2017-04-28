@@ -275,7 +275,7 @@ class StatusEditDialog(wx.Dialog):
             ("Normal",   u"正常", cw.cwpy.rsrc.wxstatuses["MIND0"]),
             ("Sleep",    u"眠り", cw.cwpy.rsrc.wxstatuses["MIND1"]),
             ("Confuse",  u"混乱", cw.cwpy.rsrc.wxstatuses["MIND2"]),
-            ("Overheat", u"激高", cw.cwpy.rsrc.wxstatuses["MIND3"]),
+            ("Overheat", u"激昂", cw.cwpy.rsrc.wxstatuses["MIND3"]),
             ("Brave",    u"勇敢", cw.cwpy.rsrc.wxstatuses["MIND4"]),
             ("Panic",    u"恐慌", cw.cwpy.rsrc.wxstatuses["MIND5"]),
         ]
@@ -644,7 +644,7 @@ class StatusButton(wx.BitmapButton):
             elif self.value == "Overheat":
                 # 激高
                 image = cw.cwpy.rsrc.wxstatuses["MIND3_dbg"]
-                self.text1 = u"激高"
+                self.text1 = u"激昂"
             elif self.value == "Brave":
                 # 勇猛
                 image = cw.cwpy.rsrc.wxstatuses["MIND4_dbg"]

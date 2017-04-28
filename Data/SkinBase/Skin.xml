@@ -781,7 +781,7 @@
     <Message key="petrified">石化</Message>
     <Message key="sleep">眠り状態</Message>
     <Message key="confuse">混乱状態</Message>
-    <Message key="overheat">激高状態</Message>
+    <Message key="overheat">激昂状態</Message>
     <Message key="brave">勇敢状態</Message>
     <Message key="panic">恐慌状態</Message>
     <Message key="bind">呪縛状態</Message>
