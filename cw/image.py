@@ -981,7 +981,7 @@ class CharacterCardImage(CardImage):
         self._no_statusimg = self.image
 
         # ステータス画像追加
-        self.update_statusimg(ccard)
+        self.update_statusimg(ccard, False)
 
     def update_statusimg(self, ccard, is_runningevent=None):
         """
