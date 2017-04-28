@@ -874,7 +874,8 @@ class YadoSelect(MultiViewSelect):
             buttonlist[0].SetFocus()
 
     def can_clickcenter(self):
-        return (self.okbtn.IsEnabled() or (self.list and self.classic[self.index])) and os.path.isdir(self.list[self.index])
+        return (self.okbtn.IsEnabled() or (self.list and self.classic[self.index])) and os.path.isdir(self.list[self.index]) or\
+                self.newbtn.IsEnabled() and not self._list
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
@@ -895,6 +896,13 @@ class YadoSelect(MultiViewSelect):
 
         if self.list and (cw.util.exists_mutex(self.list[self.index]) or not os.path.isdir(self.list[self.index])):
             self.okbtn.Disable()
+
+    def OnSelect(self, event):
+        if self.okbtn.IsEnabled():
+            MultiViewSelect.OnSelect(self, event)
+        elif not self._list and self.newbtn.IsEnabled():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.newbtn.GetId())
+            self.ProcessEvent(btnevent)
 
     def OnOk(self, event):
         if not self.list:
@@ -2526,7 +2534,7 @@ class PlayerSelect(MultiViewSelect):
             self.draw(True)
 
     def can_clickcenter(self):
-        return self.addbtn.IsEnabled()
+        return self.addbtn.IsEnabled() or not cw.cwpy.ydata.standbys
 
     def OnLeftDClick(self, event):
         # 一覧表示の場合はダブルクリックで編入
@@ -2550,10 +2558,16 @@ class PlayerSelect(MultiViewSelect):
     def OnSelect(self, event):
         if self._processing:
             return
-        if self.views == 1:
-            # 一人だけ表示している場合は編入
-            if not self.list or len(cw.cwpy.get_pcards()) == 6:
-                return
+
+        if self.addbtn.IsEnabled():
+            if self.views == 1:
+                # 一人だけ表示している場合は編入
+                if not self.list or len(cw.cwpy.get_pcards()) == 6:
+                    return
+        elif not cw.cwpy.ydata.standbys and self.newbtn.IsEnabled():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.newbtn.GetId())
+            self.ProcessEvent(btnevent)
+            return
 
         MultiViewSelect.OnSelect(self, event)
 
@@ -2638,6 +2652,7 @@ class PlayerSelect(MultiViewSelect):
                             panel.index = 0
                         panel.enable_btn()
                         panel.draw(True)
+                        panel._update_mousepos()
                 cw.cwpy.frame.exec_func(func, panel)
             else:
                 def func(panel):
