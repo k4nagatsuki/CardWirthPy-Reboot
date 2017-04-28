@@ -3082,17 +3082,22 @@ class FontSettingPanel(wx.Panel):
 
     def _select_base(self, i):
         if 0 <= i:
+            self.Freeze()
             self.st_example.SetLabel(self.get_basefontface(self.bases[i]))
             font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
                            face=self.st_example.GetLabel())
             self.st_example.SetFont(font)
             self.Layout()
+            self.Thaw()
 
     def OnCellChangeBase(self, event):
         self._select_base(self.base.GetGridCursorRow())
 
     def OnSelectFontBase(self, event):
-        self._select_base(event.TopRow)
+        def func(self):
+            if self:
+                self._select_base(self.base.GetGridCursorRow())
+        cw.cwpy.frame.exec_func(func, self)
         event.Skip()
 
     def OnEditorCreatedBase(self, event):
@@ -3122,17 +3127,22 @@ class FontSettingPanel(wx.Panel):
 
     def _select_type(self, i):
         if 0 <= i:
+            self.Freeze()
             self.st_example.SetLabel(self.get_typefontface(self.types[i]))
             font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
                            face=self.st_example.GetLabel())
             self.st_example.SetFont(font)
             self.Layout()
+            self.Thaw()
 
     def OnCellChangeType(self, event):
         self._select_type(self.type.GetGridCursorRow())
 
     def OnSelectFontType(self, event):
-        self._select_type(event.TopRow)
+        def func(self):
+            if self:
+                self._select_type(self.type.GetGridCursorRow())
+        cw.cwpy.frame.exec_func(func, self)
         event.Skip()
 
     def OnEditorCreatedType(self, event):
