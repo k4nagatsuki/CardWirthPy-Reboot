@@ -295,6 +295,10 @@ class ScenarioSelect(select.Select):
         self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
         seq.append((wx.ACCEL_CTRL, ord('C'), copyid))
 
+        debugid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnDebugMode, id=debugid)
+        seq.append((wx.ACCEL_CTRL, ord('D'), debugid))
+
         self.narrowkeydown = []
         self.sortkeydown = []
         for i in xrange(0, 9):
@@ -362,6 +366,20 @@ class ScenarioSelect(select.Select):
             return
         cw.cwpy.play_sound("equipment")
         cw.util.to_clipboard(s)
+
+    def OnDebugMode(self, event):
+        def func(self):
+            cw.cwpy.play_sound("page")
+            value = not cw.cwpy.is_debugmode()
+            cw.cwpy.set_debug(value)
+            def func(self):
+                if not self:
+                    return
+                self.addmenu = None
+                self.enable_btn()
+                self._update_mousepos()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
 
     def OnEscape(self, event):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
