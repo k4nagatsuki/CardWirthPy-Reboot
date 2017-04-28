@@ -1261,13 +1261,13 @@ class StatusPanel(wx.ScrolledWindow):
             height = self._draw_status(dc, self._get_antimagic(), "MAGIC3", height)
 
         # 能力ボーナス・ペナルティ
-        height = self._draw_enhance(dc, u"行動力", self.ccard.enhance_act,
+        height = self._draw_enhance(dc, cw.cwpy.msgs["enhance_action"], self.ccard.enhance_act,
                                     self.ccard.enhance_act_dur, "UP0", "DOWN0", height)
-        height = self._draw_enhance(dc, u"回避力", self.ccard.enhance_avo,
+        height = self._draw_enhance(dc, cw.cwpy.msgs["enhance_avoid"], self.ccard.enhance_avo,
                                     self.ccard.enhance_avo_dur, "UP1", "DOWN1", height)
-        height = self._draw_enhance(dc, u"抵抗力", self.ccard.enhance_res,
+        height = self._draw_enhance(dc, cw.cwpy.msgs["enhance_resist"], self.ccard.enhance_res,
                                     self.ccard.enhance_res_dur, "UP2", "DOWN2", height)
-        height = self._draw_enhance(dc, u"防御力", self.ccard.enhance_def,
+        height = self._draw_enhance(dc, cw.cwpy.msgs["enhance_defense"], self.ccard.enhance_def,
                                     self.ccard.enhance_def_dur, "UP3", "DOWN3", height)
 
         self.SetVirtualSize((-1, height - cw.wins(17) + cw.wins(8)))
@@ -1305,19 +1305,19 @@ class StatusPanel(wx.ScrolledWindow):
             lines.append(self._get_antimagic())
 
         # 能力ボーナス・ペナルティ
-        _colour, _bmp, msg = self._get_enhance(u"行動力", self.ccard.enhance_act,
+        _colour, _bmp, msg = self._get_enhance(cw.cwpy.msgs["enhance_action"], self.ccard.enhance_act,
                                     self.ccard.enhance_act_dur, "UP0", "DOWN0")
         if msg:
             lines.append(msg)
-        _colour, _bmp, msg = self._get_enhance(u"回避力", self.ccard.enhance_avo,
+        _colour, _bmp, msg = self._get_enhance(cw.cwpy.msgs["enhance_avoid"], self.ccard.enhance_avo,
                                     self.ccard.enhance_avo_dur, "UP1", "DOWN1")
         if msg:
             lines.append(msg)
-        _colour, _bmp, msg = self._get_enhance(u"抵抗力", self.ccard.enhance_res,
+        _colour, _bmp, msg = self._get_enhance(cw.cwpy.msgs["enhance_resist"], self.ccard.enhance_res,
                                     self.ccard.enhance_res_dur, "UP2", "DOWN2")
         if msg:
             lines.append(msg)
-        _colour, _bmp, msg = self._get_enhance(u"防御力", self.ccard.enhance_def,
+        _colour, _bmp, msg = self._get_enhance(cw.cwpy.msgs["enhance_defense"], self.ccard.enhance_def,
                                     self.ccard.enhance_def_dur, "UP3", "DOWN3")
         if msg:
             lines.append(msg)
@@ -1327,52 +1327,53 @@ class StatusPanel(wx.ScrolledWindow):
     def _get_life(self):
         if self.ccard.is_unconscious():
             colour = wx.Colour(0, 0, 128)
-            msg = u"意識不明"
+            msg = cw.cwpy.msgs["unconscious"]
         elif self.ccard.is_heavyinjured():
             colour = wx.Colour(127, 0, 0)
-            msg = u"重症"
+            msg = cw.cwpy.msgs["heavy_injured"]
         elif self.ccard.is_injured():
             colour = wx.Colour(0, 153, 187)
-            msg = u"負傷"
+            msg = cw.cwpy.msgs["injured"]
         else:
             colour = wx.Colour(192, 192, 192)
-            msg = u"正常"
+            msg = cw.cwpy.msgs["fine"]
         return colour, msg
 
     def _get_poison(self):
-        return u"中毒 (%s)" % (self.ccard.poison)
+        return u"%s (%s)" % (cw.cwpy.msgs["poison"], cw.cwpy.msgs["intensity"] % self.ccard.poison)
 
     def _get_paralyze(self):
-        return u"麻痺 (%s)" % (self.ccard.paralyze)
+        return u"%s (%s)" % (cw.cwpy.msgs["paralyze"], cw.cwpy.msgs["intensity"] % self.ccard.paralyze)
 
     def _get_petrified(self):
-        return u"石化 (%s)" % (self.ccard.paralyze)
+        return u"%s (%s)" % (cw.cwpy.msgs["petrified"], cw.cwpy.msgs["intensity"] % self.ccard.paralyze)
 
     def _get_mentality(self):
+        dur = cw.cwpy.msgs["duration"] % self.ccard.mentality_dur
         if self.ccard.is_sleep():
-            return u"眠り状態 (%s)" % (self.ccard.mentality_dur), "MIND1"
+            return u"%s (%s)" % (cw.cwpy.msgs["sleep"], dur), "MIND1"
         elif self.ccard.is_confuse():
-            return u"混乱状態 (%s)" % (self.ccard.mentality_dur), "MIND2"
+            return u"%s (%s)" % (cw.cwpy.msgs["confuse"], dur), "MIND2"
         elif self.ccard.is_overheat():
-            return u"激高状態 (%s)" % (self.ccard.mentality_dur), "MIND3"
+            return u"%s (%s)" % (cw.cwpy.msgs["overheat"], dur), "MIND3"
         elif self.ccard.is_brave():
-            return u"勇敢状態 (%s)" % (self.ccard.mentality_dur), "MIND4"
+            return u"%s (%s)" % (cw.cwpy.msgs["brave"], dur), "MIND4"
         elif self.ccard.is_panic():
-            return u"恐慌状態 (%s)" % (self.ccard.mentality_dur), "MIND5"
+            return u"%s (%s)" % (cw.cwpy.msgs["panic"], dur), "MIND5"
         else:
             return u"", ""
 
     def _get_bind(self):
-        return u"呪縛状態 (%s)" % (self.ccard.bind)
+        return u"%s (%s)" % (cw.cwpy.msgs["bind"], cw.cwpy.msgs["duration"] % self.ccard.bind)
 
     def _get_silence(self):
-        return u"沈黙状態 (%s)" % (self.ccard.silence)
+        return u"%s (%s)" % (cw.cwpy.msgs["silence"], cw.cwpy.msgs["duration"] % self.ccard.silence)
 
     def _get_faceup(self):
-        return u"暴露状態 (%s)" % (self.ccard.faceup)
+        return u"%s (%s)" % (cw.cwpy.msgs["faceup"], cw.cwpy.msgs["duration"] % self.ccard.faceup)
 
     def _get_antimagic(self):
-        return u"完全魔法防御状態 (%s)" % (self.ccard.antimagic)
+        return u"%s (%s)" % (cw.cwpy.msgs["antimagic"], cw.cwpy.msgs["duration"] % self.ccard.antimagic)
 
     def _draw_status(self, dc, msg, imgname, height):
         bmp = cw.cwpy.rsrc.wxstatuses[imgname]
@@ -1385,38 +1386,40 @@ class StatusPanel(wx.ScrolledWindow):
         if 0 == value:
             return None, None, u""
 
+        dur = cw.cwpy.msgs["duration"] % dur
+
         if 10 <= value:
             colour = wx.Colour(255, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = u"%s最大ボーナス (%d)" % (enhname, dur)
+            msg = (cw.cwpy.msgs["maximum_bonus"] + u" (%s)") % (enhname, dur)
         elif 7 <= value:
             colour = wx.Colour(175, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = u"%s大ボーナス (%d)" % (enhname, dur)
+            msg = (cw.cwpy.msgs["big_bonus"] + u" (%s)") % (enhname, dur)
         elif 4 <= value:
             colour = wx.Colour(127, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = u"%s中ボーナス (%d)" % (enhname, dur)
+            msg = (cw.cwpy.msgs["middle_bonus"] + u" (%s)") % (enhname, dur)
         elif 1 <= value:
             colour = wx.Colour(79, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = u"%s小ボーナス (%d)" % (enhname, dur)
+            msg = (cw.cwpy.msgs["small_bonus"] + u" (%s)") % (enhname, dur)
         elif -10 >= value:
             colour = wx.Colour(0, 0, 51)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = u"%s最大ペナルティ (%d)" % (enhname, dur)
+            msg = (cw.cwpy.msgs["maximum_penalty"] + u" (%s)") % (enhname, dur)
         elif -7 >= value:
             colour = wx.Colour(0, 0, 85)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = u"%s大ペナルティ (%d)" % (enhname, dur)
+            msg = (cw.cwpy.msgs["big_penalty"] + u" (%s)") % (enhname, dur)
         elif -4 >= value:
             colour = wx.Colour(0, 0, 136)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = u"%s中ペナルティ (%d)" % (enhname, dur)
+            msg = (cw.cwpy.msgs["middle_penalty"] + u" (%s)") % (enhname, dur)
         elif -1 >= value:
             colour = wx.Colour(0, 0, 187)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = u"%s小ペナルティ (%d)" % (enhname, dur)
+            msg = (cw.cwpy.msgs["small_penalty"] + u" (%s)") % (enhname, dur)
 
         return colour, bmp, msg
 

@@ -760,6 +760,36 @@
     <Message key="scenario_additional_menu">シナリオとフォルダの操作</Message>
     <Message key="move">移動</Message>
     <Message key="rename">名前の変更</Message>
+    <Message key="enhance_action">行動力</Message>
+    <Message key="enhance_avoid">回避力</Message>
+    <Message key="enhance_defense">抵抗力</Message>
+    <Message key="enhance_resist">防御力</Message>
+    <Message key="maximum_bonus">%s最大ボーナス</Message>
+    <Message key="big_bonus">%s大ボーナス</Message>
+    <Message key="middle_bonus">%s中ボーナス</Message>
+    <Message key="small_bonus">%s小ボーナス</Message>
+    <Message key="maximum_penalty">%s最大ペナルティ</Message>
+    <Message key="big_penalty">%s大ペナルティ</Message>
+    <Message key="middle_penalty">%s中ペナルティ</Message>
+    <Message key="small_penalty">%s小ペナルティ</Message>
+    <Message key="unconscious">意識不明</Message>
+    <Message key="heavy_injured">重症</Message>
+    <Message key="injured">負傷</Message>
+    <Message key="fine">正常</Message>
+    <Message key="poison">中毒</Message>
+    <Message key="paralyze">麻痺</Message>
+    <Message key="petrified">石化</Message>
+    <Message key="sleep">眠り状態</Message>
+    <Message key="confuse">混乱状態</Message>
+    <Message key="overheat">激高状態</Message>
+    <Message key="brave">勇敢状態</Message>
+    <Message key="panic">恐慌状態</Message>
+    <Message key="bind">呪縛状態</Message>
+    <Message key="silence">沈黙状態</Message>
+    <Message key="faceup">暴露状態</Message>
+    <Message key="antimagic">完全魔法防御状態</Message>
+    <Message key="intensity">強度%s</Message>
+    <Message key="duration">%sラウンド</Message>
     <!-- 2.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
