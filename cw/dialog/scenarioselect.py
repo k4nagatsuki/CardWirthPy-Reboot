@@ -1248,12 +1248,16 @@ class ScenarioSelect(select.Select):
                     return
             dst = cw.util.dupcheck_plus(dst, yado=False)
             try:
+                cw.cwpy.play_sound("harvest")
                 cw.util.rename_file(fpath, dst)
                 if os.path.isdir(dst):
                     self.db.rename_dir(fpath, dst)
                 self.db.update(self.nowdir, cw.cwpy.setting.skintype)
                 self.db.update(dstdir, cw.cwpy.setting.skintype)
-                cw.cwpy.play_sound("harvest")
+
+                if self.tree.IsShown():
+                    self._remove_treeitem(self.tree.GetSelection())
+
                 self.list.pop(self.index)
                 if self.list and len(self.list) <= self.index:
                     self.index = len(self.list)-1
@@ -1310,12 +1314,16 @@ class ScenarioSelect(select.Select):
         dlg.Destroy()
 
         try:
+            cw.cwpy.play_sound("dump")
             isdir = os.path.isdir(fpath)
             cw.util.remove(fpath, trashbox=True)
             if isdir:
                 self.db.remove_dir(fpath)
             self.db.update(self.nowdir, cw.cwpy.setting.skintype)
-            cw.cwpy.play_sound("dump")
+
+            if self.tree.IsShown():
+                self._remove_treeitem(self.tree.GetSelection())
+
             self.list.pop(self.index)
             if self.list and len(self.list) <= self.index:
                 self.index = len(self.list)-1
@@ -1328,6 +1336,16 @@ class ScenarioSelect(select.Select):
             cw.cwpy.frame.move_dlg(dlg)
             dlg.ShowModal()
             dlg.Destroy()
+
+    def _remove_treeitem(self, item):
+        assert item.IsOk()
+        item = self.tree.GetNextSibling(item)
+        while item and item.IsOk():
+            data = self.tree.GetItemPyData(item)
+            if data:
+                index, header = data
+                self.tree.SetItemPyData(item, (index - 1, header))
+            item = self.tree.GetNextSibling(item)
 
     def OnRenameBtn(self, event):
         """シナリオのファイル・フォルダの名前を変更する。"""
