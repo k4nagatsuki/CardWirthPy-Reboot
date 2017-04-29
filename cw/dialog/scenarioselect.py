@@ -638,6 +638,8 @@ class ScenarioSelect(select.Select):
         self.addmenubtn.PopupMenu(self.addmenu)
 
     def OnAdditionalMenu2(self, event):
+        if not self.addmenubtn.IsShown():
+            return
         cw.cwpy.play_sound("page")
         self._create_addmenu()
 
@@ -721,6 +723,8 @@ class ScenarioSelect(select.Select):
         self.bookmark.PopupMenu(self.bookmarkmenu)
 
     def OnBookmark2(self, event):
+        if not self.bookmark.IsShown():
+            return
         cw.cwpy.play_sound("page")
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
