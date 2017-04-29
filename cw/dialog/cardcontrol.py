@@ -157,16 +157,19 @@ class CardControl(wx.Dialog):
         self.narrow.SetValue(cw.cwpy.setting.card_narrow)
         self.narrow.SetFont(font)
         if self.callname == "INFOVIEW":
-            choices = (cw.cwpy.msgs["card_name"],
+            choices = (cw.cwpy.msgs["all"],
+                       cw.cwpy.msgs["card_name"],
                        cw.cwpy.msgs["description"])
         elif cw.cwpy.is_debugmode():
-            choices = (cw.cwpy.msgs["card_name"],
+            choices = (cw.cwpy.msgs["all"],
+                       cw.cwpy.msgs["card_name"],
                        cw.cwpy.msgs["description"],
                        cw.cwpy.msgs["scenario_name"],
                        cw.cwpy.msgs["author"],
                        cw.cwpy.msgs["key_code"])
         else:
-            choices = (cw.cwpy.msgs["card_name"],
+            choices = (cw.cwpy.msgs["all"],
+                       cw.cwpy.msgs["card_name"],
                        cw.cwpy.msgs["description"],
                        cw.cwpy.msgs["scenario_name"],
                        cw.cwpy.msgs["author"])
@@ -180,7 +183,7 @@ class CardControl(wx.Dialog):
         if narrow_sel < self.narrow_type.GetCount():
             self.narrow_type.SetSelection(narrow_sel)
         else:
-            self.narrow_type.SetSelection(0)
+            self.narrow_type.SetSelection(1)
 
         def can_narrow():
             return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")
@@ -2161,22 +2164,39 @@ class CardHolder(CardControl):
         if not narrow and all(show):
             return self._fulllist
 
+        _NARROW_ALL = 0
+        _NARROW_NAME = 1
+        _NARROW_DESC = 2
+        _NARROW_SCENARIO = 3
+        _NARROW_AUTHOR = 4
+        _NARROW_KEYCODE = 5
+
+        ntypes = set()
+
         seq = []
         if self.callname == "INFOVIEW":
+            if ntype == _NARROW_ALL:
+                ntypes.add(_NARROW_NAME)
+                ntypes.add(_NARROW_DESC)
+            else:
+                ntypes.add(ntype)
+
             for header in self._fulllist:
-                t = ""
-                if ntype == 0:
-                    # カード名
-                    t = header.name
-                elif ntype == 1:
-                    # 解説
-                    t = header.desc
-                else:
-                    assert False
-                if narrow in t.lower():
+                if (_NARROW_NAME in ntypes and narrow in header.name.lower()) or \
+                        (_NARROW_DESC in ntypes and narrow in header.desc.lower()):
                     seq.append(header)
 
         else:
+            if ntype == _NARROW_ALL:
+                ntypes.add(_NARROW_NAME)
+                ntypes.add(_NARROW_DESC)
+                ntypes.add(_NARROW_SCENARIO)
+                ntypes.add(_NARROW_AUTHOR)
+                if cw.cwpy.is_debugmode():
+                    ntypes.add(_NARROW_KEYCODE)
+            else:
+                ntypes.add(ntype)
+
             for header in self._fulllist:
                 if header.type == "SkillCard" and not show[cw.POCKET_SKILL]:
                     continue
@@ -2184,35 +2204,23 @@ class CardHolder(CardControl):
                     continue
                 if header.type == "BeastCard" and not show[cw.POCKET_BEAST]:
                     continue
-                if ntype in (0, 1, 2, 3):
-                    if ntype == 0:
-                        # カード名
-                        t = header.name
-                    elif ntype == 1:
-                        # 解説
-                        t = header.desc
-                    elif ntype == 2:
-                        # シナリオ名
-                        t = header.scenario
-                    elif ntype == 3:
-                        # 作者名
-                        t = header.author
-                    else:
-                        assert False
-                    if narrow in t.lower():
-                        seq.append(header)
-                elif ntype == 4:
-                    # キーコード(デバッグ時のみ)
-                    if narrow == header.name.lower():
+
+                def match_keycode():
+                    if narrow in header.name.lower():
                         # カード名もキーコードになる
-                        seq.append(header)
+                        return True
                     else:
                         for keycode in header.keycodes:
                             if narrow in keycode.lower():
-                                seq.append(header)
-                                break
-                else:
-                    assert False
+                                return True
+                    return False
+
+                if (_NARROW_NAME in ntypes and narrow in header.name.lower()) or\
+                        (_NARROW_DESC in ntypes and narrow in header.desc.lower()) or\
+                        (_NARROW_SCENARIO in ntypes and narrow in header.scenario.lower()) or\
+                        (_NARROW_AUTHOR in ntypes and narrow in header.author.lower()) or\
+                        (_NARROW_KEYCODE in ntypes and match_keycode()):
+                    seq.append(header)
 
         return seq
 

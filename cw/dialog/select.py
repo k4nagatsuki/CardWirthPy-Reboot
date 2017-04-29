@@ -624,7 +624,8 @@ class YadoSelect(MultiViewSelect):
         self.toppanel = wx.Panel(self, -1, size=cw.wins((400, 370)))
 
         # 絞込条件
-        choices = (cw.cwpy.msgs["sort_name"],
+        choices = (cw.cwpy.msgs["all"],
+                   cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["member_name"],
                    cw.cwpy.msgs["skin"])
         self._init_narrowpanel(choices, u"", cw.cwpy.setting.yado_narrowtype)
@@ -735,30 +736,35 @@ class YadoSelect(MultiViewSelect):
 
         narrow = self.narrow.GetValue().lower()
         donarrow = self.narrow.IsShown() and bool(narrow)
-        ntype = self.narrow_type.GetSelection()
 
         if donarrow:
+            _NARROW_ALL = 0
+            _NARROW_NAME = 1
+            _NARROW_MEMBER = 2
+            _NARROW_SKIN = 3
+
+            ntype = self.narrow_type.GetSelection()
+
+            ntypes = set()
+            if ntype == _NARROW_ALL:
+                ntypes.add(_NARROW_NAME)
+                ntypes.add(_NARROW_MEMBER)
+                ntypes.add(_NARROW_SKIN)
+            else:
+                ntypes.add(ntype)
+
             seq = []
             for obj in objs:
-                if ntype == 0:
-                    # 拠点名
-                    if not narrow in obj.name.lower():
-                        continue
-
-                elif ntype == 1:
-                    # メンバー名
+                def has_advname():
                     for advname in obj.advnames:
                         if narrow in advname.lower():
-                            break
-                    else:
-                        continue
+                            return True
+                    return False
 
-                elif ntype == 2:
-                    # スキン
-                    if not narrow in obj.skin.lower():
-                        continue
-
-                seq.append(obj)
+                if (_NARROW_NAME in ntypes and narrow in obj.name.lower()) or \
+                        (_NARROW_MEMBER in ntypes and has_advname()) or \
+                        (_NARROW_SKIN in ntypes and narrow in obj.skin.lower()):
+                    seq.append(obj)
             objs = seq
 
         self._sort_objs(objs)
@@ -1693,7 +1699,8 @@ class PartySelect(MultiViewSelect):
         self.toppanel = wx.Panel(self, -1, size=cw.wins((460, 280)))
 
         # 絞込条件
-        choices = (cw.cwpy.msgs["narrow_party_name"],
+        choices = (cw.cwpy.msgs["all"],
+                   cw.cwpy.msgs["narrow_party_name"],
                    cw.cwpy.msgs["member_name"],
                    cw.cwpy.msgs["description"],
                    cw.cwpy.msgs["history"],
@@ -1821,13 +1828,6 @@ class PartySelect(MultiViewSelect):
         donarrow = self.narrow.IsShown() and bool(narrow)
         ntype = self.narrow_type.GetSelection()
 
-        if donarrow and ntype == 5:
-            # レベル
-            try:
-                narrow = int(narrow)
-            except:
-                donarrow = False
-
         if donarrow:
             hiddens = set([u"＿", u"＠"])
             attrs = set(cw.cwpy.setting.periodnames)
@@ -1835,31 +1835,47 @@ class PartySelect(MultiViewSelect):
             attrs.update(cw.cwpy.setting.naturenames)
             attrs.update(cw.cwpy.setting.makingnames)
 
+            _NARROW_ALL = 0
+            _NARROW_NAME = 1
+            _NARROW_MEMBER = 2
+            _NARROW_DESC = 3
+            _NARROW_HISTORY = 4
+            _NARROW_FEATURES = 5
+            _NARROW_LEVEL = 6
+
+            if ntype in (_NARROW_LEVEL, _NARROW_ALL):
+                # レベル
+                try:
+                    intnarrow = int(narrow)
+                except:
+                    intnarrow = None
+
+            ntypes = set()
+            if ntype == _NARROW_ALL:
+                ntypes.add(_NARROW_NAME)
+                ntypes.add(_NARROW_MEMBER)
+                ntypes.add(_NARROW_DESC)
+                ntypes.add(_NARROW_HISTORY)
+                ntypes.add(_NARROW_FEATURES)
+                ntypes.add(_NARROW_LEVEL)
+            else:
+                ntypes.add(ntype)
+
             seq = []
             for header in self.list:
-                if ntype == 0:
-                    # パーティ名
-                    if not narrow in header.name.lower():
-                        continue
-
-                elif ntype == 1:
-                    # メンバー名
+                def has_membername():
                     for mname in header.get_membernames():
                         if narrow in mname.lower():
-                            break
-                    else:
-                        continue
+                            return True
+                    return False
 
-                elif ntype == 2:
-                    # 解説
+                def has_memberdesc():
                     for mdesc in header.get_memberdescs():
                         if narrow in mdesc.lower():
-                            break
-                    else:
-                        continue
+                            return True
+                    return False
 
-                elif ntype == 3:
-                    # 経歴
+                def has_memberhistory():
                     for coupons in header.get_membercoupons():
                         for coupon in coupons:
                             if coupon:
@@ -1871,36 +1887,34 @@ class PartySelect(MultiViewSelect):
                                         continue
 
                                 if narrow in coupon.lower():
-                                    break
-                        else:
-                            continue
-                        break
-                    else:
-                        continue
+                                    return True
+                    return False
 
-                elif ntype == 4:
-                    # 特性
+                def has_memberfeatures():
                     for coupons in header.get_membercoupons():
                         for coupon in coupons:
                             if coupon and coupon[0] == u"＿":
                                 coupon = coupon[1:]
                                 if coupon in attrs:
                                     if narrow in coupon.lower():
-                                        break
-                        else:
-                            continue
-                        break
-                    else:
-                        continue
+                                        return True
+                    return False
 
-                elif ntype == 5:
-                    # レベル
+                def has_memberlevel():
+                    if intnarrow is None:
+                        return False
                     maxlevel = max(*header.get_memberlevels())
                     minlevel = min(*header.get_memberlevels())
-                    if not (minlevel <= narrow <= maxlevel):
-                        continue
+                    return (minlevel <= intnarrow <= maxlevel)
 
-                seq.append(header)
+                if (_NARROW_NAME in ntypes and narrow in header.name.lower()) or\
+                        (_NARROW_MEMBER in ntypes and has_membername()) or \
+                        (_NARROW_DESC in ntypes and has_memberdesc()) or \
+                        (_NARROW_HISTORY in ntypes and has_memberhistory()) or \
+                        (_NARROW_FEATURES in ntypes and has_memberfeatures()) or \
+                        (_NARROW_LEVEL in ntypes and has_memberlevel()):
+                    seq.append(header)
+
             self.list = seq
 
         if selected in self.list:
@@ -2285,11 +2299,12 @@ class PlayerSelect(MultiViewSelect):
         self.toppanel.SetMinSize(cw.wins((460, 280)))
 
         # 絞込条件
-        choices = [cw.cwpy.msgs["sort_name"],
+        choices = (cw.cwpy.msgs["all"],
+                   cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["description"],
                    cw.cwpy.msgs["history"],
                    cw.cwpy.msgs["character_attribute"],
-                   cw.cwpy.msgs["sort_level"]]
+                   cw.cwpy.msgs["sort_level"])
         self._init_narrowpanel(choices, u"", cw.cwpy.setting.standbys_narrowtype)
 
         # sort
@@ -2409,14 +2424,6 @@ class PlayerSelect(MultiViewSelect):
 
         narrow = self.narrow.GetValue().lower()
         donarrow = self.narrow.IsShown() and bool(narrow)
-        ntype = self.narrow_type.GetSelection()
-
-        if donarrow and ntype == 4:
-            # レベル
-            try:
-                narrow = int(narrow)
-            except:
-                donarrow = False
 
         if donarrow:
             hiddens = set([u"＿", u"＠"])
@@ -2425,20 +2432,35 @@ class PlayerSelect(MultiViewSelect):
             attrs.update(cw.cwpy.setting.naturenames)
             attrs.update(cw.cwpy.setting.makingnames)
 
+            _NARROW_ALL = 0
+            _NARROW_NAME = 1
+            _NARROW_DESC = 2
+            _NARROW_HISTORY = 3
+            _NARROW_FEATURES = 4
+            _NARROW_LEVEL = 5
+
+            ntype = self.narrow_type.GetSelection()
+
+            if ntype in (_NARROW_LEVEL, _NARROW_ALL):
+                # レベル
+                try:
+                    intnarrow = int(narrow)
+                except:
+                    intnarrow = None
+
+            ntypes = set()
+            if ntype == _NARROW_ALL:
+                ntypes.add(_NARROW_NAME)
+                ntypes.add(_NARROW_DESC)
+                ntypes.add(_NARROW_HISTORY)
+                ntypes.add(_NARROW_FEATURES)
+                ntypes.add(_NARROW_LEVEL)
+            else:
+                ntypes.add(ntype)
+
             seq = []
             for header in self.list:
-                if ntype == 0:
-                    # 名前
-                    if not narrow in header.name.lower():
-                        continue
-
-                elif ntype == 1:
-                    # 解説
-                    if not narrow in header.desc.lower():
-                        continue
-
-                elif ntype == 2:
-                    # 経歴
+                def has_history():
                     for coupon in header.history:
                         if coupon:
                             if cw.cwpy.is_debugmode():
@@ -2449,27 +2471,25 @@ class PlayerSelect(MultiViewSelect):
                                     continue
 
                             if narrow in coupon.lower():
-                                break
-                    else:
-                        continue
+                                return True
+                    return False
 
-                elif ntype == 3:
-                    # 特性
+                def has_features():
                     for coupon in header.history:
                         if coupon and coupon[0] == u"＿":
                             coupon = coupon[1:]
                             if coupon in attrs:
                                 if narrow in coupon.lower():
-                                    break
-                    else:
-                        continue
+                                    return True
+                    return False
 
-                elif ntype == 4:
-                    # レベル
-                    if header.level <> narrow:
-                        continue
+                if (_NARROW_NAME in ntypes and narrow in header.name.lower()) or\
+                        (_NARROW_DESC in ntypes and narrow in header.desc.lower()) or\
+                        (_NARROW_HISTORY in ntypes and has_history()) or\
+                        (_NARROW_FEATURES in ntypes and has_features()) or\
+                        (_NARROW_LEVEL in ntypes and not intnarrow is None and header.level == intnarrow):
+                    seq.append(header)
 
-                seq.append(header)
             self.list = seq
 
         if selected in self.list:

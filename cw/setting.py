@@ -327,12 +327,12 @@ class Setting(object):
         self.sort_cards = "None"
         self.sort_cardswithstar = True
         self.card_narrow = ""
-        self.card_narrowtype = 0
+        self.card_narrowtype = 1
         self.edit_star = False
-        self.yado_narrowtype = 0
-        self.standbys_narrowtype = 0
-        self.parties_narrowtype = 0
-        self.infoview_narrowtype = 0
+        self.yado_narrowtype = 1
+        self.standbys_narrowtype = 1
+        self.parties_narrowtype = 1
+        self.infoview_narrowtype = 1
         self.backlogmax = 100
         self.messagelog_type = LOG_COMPRESS
         self.showfps = False
@@ -355,7 +355,7 @@ class Setting(object):
         self.overwrite_partyrecord = True
         self.folderoftype = []
         self.scenario_narrow = ""
-        self.scenario_narrowtype = 0
+        self.scenario_narrowtype = 1
         self.scenario_sorttype = 0
         self.ssinfoformat = u"[%scenario%[(%author%)] - ][%party% at ]%yado%"
         self.ssfnameformat = u"ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"

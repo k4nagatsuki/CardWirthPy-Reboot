@@ -707,19 +707,9 @@ class Scenariodb(object):
         return None
 
     @synclock(_lock)
-    def find_headers(self, ftype, value, skintype=u""):
-        if ftype == DATA_TITLE:
-            where = "name LIKE ? ESCAPE '\\'"
-        elif ftype == DATA_DESC:
-            where = "desc LIKE ? ESCAPE '\\'"
-        elif ftype == DATA_AUTHOR:
-            where = "author LIKE ? ESCAPE '\\'"
-        elif ftype == DATA_LEVEL:
-            where = "levelmin <= ? AND ? <= levelmax"
-        elif ftype == DATA_FNAME:
-            where = "A.fname LIKE ? ESCAPE '\\'"
-        else:
-            raise Exception()
+    def find_headers(self, ftypes, value, skintype=u""):
+        where = []
+        values = []
 
         def encode_like(value):
             value2 = value.replace("\\", "\\\\")
@@ -727,6 +717,32 @@ class Scenariodb(object):
             value2 = value2.replace("_", "\\_")
             value2 = '%' + value2 + '%'
             return value2
+
+        for ftype in ftypes:
+            if ftype == DATA_TITLE:
+                where.append("name LIKE ? ESCAPE '\\'")
+                values.append(encode_like(value))
+            elif ftype == DATA_DESC:
+                where.append("desc LIKE ? ESCAPE '\\'")
+                values.append(encode_like(value))
+            elif ftype == DATA_AUTHOR:
+                where.append("author LIKE ? ESCAPE '\\'")
+                values.append(encode_like(value))
+            elif ftype == DATA_LEVEL:
+                try:
+                    intv = int(value)
+                    where.append("levelmin <= ? AND ? <= levelmax")
+                    values.append(intv)
+                    values.append(intv)
+                except:
+                    intv = None
+            elif ftype == DATA_FNAME:
+                where.append("A.fname LIKE ? ESCAPE '\\'")
+                values.append(encode_like(value))
+            else:
+                raise Exception()
+
+        where = "(" + ") OR (".join(where) + ")"
 
         if skintype:
             s = "SELECT" +\
@@ -750,12 +766,9 @@ class Scenariodb(object):
                 "     A.wsnversion" +\
                 " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
-                " WHERE " + where +\
+                " WHERE (" + where + ")"\
                 "     AND (B.skintype=? OR B.skintype IS NULL)"
-            if ftype == DATA_LEVEL:
-                values = (value, value, skintype,)
-            else:
-                values = (encode_like(value), skintype,)
+            values = tuple(values) + (skintype,)
         else:
             s = "SELECT" +\
                 "     A.dpath," +\
@@ -776,51 +789,32 @@ class Scenariodb(object):
                 "     A.image," +\
                 "     A.imgpath," +\
                 "     A.wsnversion" +\
-                " FROM scenariodb A WHERE " + where
-            if ftype == DATA_LEVEL:
-                values = (value, value,)
-            else:
-                values = (encode_like(value),)
-
-        if ftype == DATA_LEVEL:
-            v = value
-        else:
-            v = value.lower()
+                " FROM scenariodb A WHERE (" + where + ")"
+            values = tuple(values) + ()
 
         self.cur.execute(s, values)
         data = self.cur.fetchall()
         # 検索ではスキン情報は更新しない
         headers, _names = self.create_headers(data, skintype=u"")
 
+        v = value.lower()
+
         # 情報が更新されている可能性があるため再チェック
         paths = set()
         seq = []
         for header in headers:
-            if ftype == DATA_TITLE:
-                if not v in header.name.lower():
-                    continue
-            elif ftype == DATA_AUTHOR:
-                if not v in header.author.lower():
-                    continue
-            elif ftype == DATA_DESC:
-                if not v in header.desc.lower():
-                    continue
-            elif ftype == DATA_LEVEL:
-                if not (header.levelmin <= v <= header.levelmax):
-                    continue
-            elif ftype == DATA_FNAME:
-                if not v in header.fname.lower():
-                    continue
-            else:
-                assert False
-
-            fpath = header.get_fpath()
-            fpath = os.path.abspath(fpath)
-            fpath = os.path.normpath(fpath)
-            fpath = os.path.normcase(fpath)
-            if not fpath in paths:
-                paths.add(fpath)
-                seq.append(header)
+            if (DATA_TITLE in ftypes and v in header.name.lower()) or\
+                    (DATA_AUTHOR in ftypes and v in header.author.lower()) or\
+                    (DATA_DESC in ftypes and v in header.desc.lower()) or\
+                    (DATA_LEVEL in ftypes and not intv is None and (header.levelmin <= intv <= header.levelmax)) or\
+                    (DATA_FNAME in ftypes and v in header.fname.lower()):
+                fpath = header.get_fpath()
+                fpath = os.path.abspath(fpath)
+                fpath = os.path.normpath(fpath)
+                fpath = os.path.normcase(fpath)
+                if not fpath in paths:
+                    paths.add(fpath)
+                    seq.append(header)
 
         return self.sort_headers(seq)
 

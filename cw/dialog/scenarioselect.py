@@ -22,6 +22,14 @@ from cw.util import synclock
 
 _lockupdatescenario = threading.Lock()
 
+_NARROW_ALL = 0
+_NARROW_TITLE = 1
+_NARROW_DESC = 2
+_NARROW_AUTHOR = 3
+_NARROW_LEVEL = 4
+_NARROW_FNAME = 5
+
+
 #-------------------------------------------------------------------------------
 #　貼り紙選択ダイアログ
 #-------------------------------------------------------------------------------
@@ -131,7 +139,8 @@ class ScenarioSelect(select.Select):
         self._no_treechangedsound = False
 
         # 絞込条件
-        choices = (cw.cwpy.msgs["title"],
+        choices = (cw.cwpy.msgs["all"],
+                   cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["description"],
                    cw.cwpy.msgs["author"],
                    cw.cwpy.msgs["target_level"],
@@ -551,24 +560,31 @@ class ScenarioSelect(select.Select):
             cw.cwpy.play_sound("error")
             return
         narrow = self.narrow_type.GetSelection()
-        if narrow == 0:
-            ftype = cw.scenariodb.DATA_TITLE
-        elif narrow == 1:
-            ftype = cw.scenariodb.DATA_DESC
-        elif narrow == 2:
-            ftype = cw.scenariodb.DATA_AUTHOR
-        elif narrow == 3:
-            ftype = cw.scenariodb.DATA_LEVEL
+        ftypes = set()
+        if narrow == _NARROW_ALL:
+            ftypes.add(cw.scenariodb.DATA_TITLE)
+            ftypes.add(cw.scenariodb.DATA_DESC)
+            ftypes.add(cw.scenariodb.DATA_AUTHOR)
+            ftypes.add(cw.scenariodb.DATA_LEVEL)
+            ftypes.add(cw.scenariodb.DATA_FNAME)
+        elif narrow == _NARROW_TITLE:
+            ftypes.add(cw.scenariodb.DATA_TITLE)
+        elif narrow == _NARROW_DESC:
+            ftypes.add(cw.scenariodb.DATA_DESC)
+        elif narrow == _NARROW_AUTHOR:
+            ftypes.add(cw.scenariodb.DATA_AUTHOR)
+        elif narrow == _NARROW_LEVEL:
+            ftypes.add(cw.scenariodb.DATA_LEVEL)
             try:
-                value = int(value)
+                _v = int(value)
             except:
                 cw.cwpy.play_sound("error")
                 return
-        elif narrow == 4:
-            ftype = cw.scenariodb.DATA_FNAME
+        elif narrow == _NARROW_FNAME:
+            ftypes.add(cw.scenariodb.DATA_FNAME)
         else:
             assert False
-        headers = self.db.find_headers(ftype, value, skintype=cw.cwpy.setting.skintype)
+        headers = self.db.find_headers(ftypes, value, skintype=cw.cwpy.setting.skintype)
         cw.cwpy.play_sound("harvest")
         self._set_findresult(headers, False)
 
@@ -2672,11 +2688,11 @@ class ScenarioSelect(select.Select):
 
     def _narrow_scenario(self, headers):
         """設定に応じて表示しないシナリオを除去する。"""
-        ntype, narrow, donarrow, level, _unfitness, _complete, _invisible, _sort = self._get_narrowparams()
+        ntypes, narrow, intnarrow, donarrow, level, _unfitness, _complete, _invisible, _sort = self._get_narrowparams()
         dseq = []
         seq = []
         for header in headers:
-            if not self._is_showing(header, ntype, narrow, donarrow, level):
+            if not self._is_showing(header, ntypes, narrow, intnarrow, donarrow, level):
                 continue
             if isinstance(header, cw.header.ScenarioHeader):
                 seq.append(header)
@@ -2694,8 +2710,8 @@ class ScenarioSelect(select.Select):
             return True
 
     def is_showing(self, header):
-        ntype, narrow, donarrow, level, _unfitness, _complete, _invisible, _sort = self._get_narrowparams()
-        return self._is_showing(header, ntype, narrow, donarrow, level)
+        ntypes, narrow, intnarrow, donarrow, level, _unfitness, _complete, _invisible, _sort = self._get_narrowparams()
+        return self._is_showing(header, ntypes, narrow, intnarrow, donarrow, level)
 
     def _get_narrowparams(self):
         if cw.cwpy.setting.show_unfitnessscenario:
@@ -2707,19 +2723,32 @@ class ScenarioSelect(select.Select):
         narrow = self.narrow.GetValue().lower()
         donarrow = bool(narrow) and self.narrow.IsShown()
         ntype = self.narrow_type.GetSelection()
-        if ntype == 3 and donarrow:
+        ntypes = set()
+        if ntype == _NARROW_ALL:
+            ntypes.add(_NARROW_TITLE)
+            ntypes.add(_NARROW_DESC)
+            ntypes.add(_NARROW_AUTHOR)
+            ntypes.add(_NARROW_LEVEL)
+            ntypes.add(_NARROW_FNAME)
+        else:
+            ntypes.add(ntype)
+
+        if _NARROW_LEVEL in ntypes and donarrow:
             # レベル
             try:
-                narrow = int(narrow)
+                intnarrow = int(narrow)
             except:
-                narrow = ""
-        return ntype, narrow, donarrow, level, cw.cwpy.setting.show_unfitnessscenario,\
+                intnarrow = None
+        else:
+            intnarrow = None
+
+        return ntypes, narrow, intnarrow, donarrow, level, cw.cwpy.setting.show_unfitnessscenario,\
                cw.cwpy.setting.show_completedscenario, cw.cwpy.setting.show_invisiblescenario, \
                self.sort.GetSelection()
 
-    def _is_showing(self, header, ntype, narrow, donarrow, level):
+    def _is_showing(self, header, ntypes, narrow, intnarrow, donarrow, level):
         if isinstance(header, cw.header.ScenarioHeader):
-            if not cw.cwpy.setting.show_unfitnessscenario and not (ntype == 3 and donarrow) and\
+            if not cw.cwpy.setting.show_unfitnessscenario and not (ntypes == set([_NARROW_LEVEL]) and donarrow) and\
                     ((header.levelmin <> 0 and level < header.levelmin) or\
                      (header.levelmax <> 0 and header.levelmax < level)):
                 return False
@@ -2729,28 +2758,14 @@ class ScenarioSelect(select.Select):
                 return False
 
             if donarrow:
-                if ntype == 0:
-                    # タイトルで絞り込み
-                    if not narrow in header.name.lower():
-                        return False
-                elif ntype == 1:
-                    # 解説で絞り込み
-                    if not narrow in header.desc.lower():
-                        return False
-                elif ntype == 2:
-                    # 作者名で絞り込み
-                    if not narrow in header.author.lower():
-                        return False
-                elif ntype == 3:
-                    # 対象レベルで絞り込み
-                    if not (header.levelmin <= narrow <= header.levelmax):
-                        return False
-                elif ntype == 4:
-                    # ファイル名で絞り込み
-                    if not narrow in header.fname.lower():
-                        return False
-                else:
-                    assert False
+                if (_NARROW_TITLE in ntypes and narrow in header.name.lower()) or\
+                        (_NARROW_DESC in ntypes and narrow in header.desc.lower()) or\
+                        (_NARROW_AUTHOR in ntypes and narrow in header.author.lower()) or\
+                        (_NARROW_LEVEL in ntypes and not intnarrow is None and (header.levelmin <= intnarrow <= header.levelmax)) or\
+                        (_NARROW_FNAME in ntypes and narrow in header.fname.lower()):
+                    return True
+                return False
+
         return True
 
     def _sort_headers(self, seq):

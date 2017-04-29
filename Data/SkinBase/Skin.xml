@@ -790,6 +790,7 @@
     <Message key="antimagic">完全魔法防御状態</Message>
     <Message key="intensity">強度%s</Message>
     <Message key="duration">%sラウンド</Message>
+    <Message key="all">全て</Message>
     <!-- 2.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
