@@ -975,19 +975,7 @@ class YadoSelect(MultiViewSelect):
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            if cw.util.create_mutex(u"Yado"):
-                try:
-                    if cw.util.create_mutex(self.list[self.index]):
-                        cw.util.release_mutex()
-                        cw.cwpy.play_sound("harvest")
-                        cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
-                        self.update_list(dlg.yadodir, clear_narrowcondition=True)
-                    else:
-                        cw.cwpy.play_sound("error")
-                finally:
-                    cw.util.release_mutex()
-            else:
-                cw.cwpy.play_sound("error")
+            self.update_list(dlg.yadodir, clear_narrowcondition=True)
 
         dlg.Destroy()
 

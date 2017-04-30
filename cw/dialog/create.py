@@ -1788,7 +1788,27 @@ class YadoCreater(wx.Dialog):
         cw.xmlcreater.create_environment(name, self.yadodir, skindirname, is_autoloadparty)
 
     def edit_yado(self):
-        cw.cwpy.play_sound("harvest")
+        if cw.util.create_mutex(u"Yado"):
+            try:
+                if cw.util.create_mutex(self.yadodir):
+                    cw.cwpy.play_sound("harvest")
+                    self._edit_yado_impl()
+                    cw.util.rename_file(cw.util.join_paths(self.yadodir, "Environment.xml"),
+                                        cw.util.join_paths(self.yadodir, "Environment.xml.tmp"))
+                    cw.util.release_mutex()
+                    self._move_dir()
+                    cw.util.rename_file(cw.util.join_paths(self.yadodir, "Environment.xml.tmp"),
+                                        cw.util.join_paths(self.yadodir, "Environment.xml"))
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+                    self.ProcessEvent(btnevent)
+                else:
+                    cw.cwpy.play_sound("error")
+            finally:
+                cw.util.release_mutex()
+        else:
+            cw.cwpy.play_sound("error")
+
+    def _edit_yado_impl(self):
         name = self.textctrl.GetValue().strip()
         skindirname = self.skindirnames[self.skin.GetSelection()]
         is_autoloadparty = self.autoload_party.GetValue()
@@ -1808,6 +1828,11 @@ class YadoCreater(wx.Dialog):
 
             self.data.write()
 
+    def _move_dir(self):
+        name = self.textctrl.GetValue().strip()
+        olddname = os.path.basename(self.yadodir)
+        cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", olddname))
+
         if name <> self.name:
             # ディレクトリの移動
             yadodir = os.path.dirname(self.yadodir)
@@ -1823,9 +1848,6 @@ class YadoCreater(wx.Dialog):
                         cw.cwpy.setting.lastyado = os.path.basename(self.yadodir)
                 except Exception:
                     cw.util.print_ex()
-
-        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-        self.ProcessEvent(btnevent)
 
     def OnInput(self, event):
         name = self.textctrl.GetValue().strip()
