@@ -87,6 +87,10 @@ class EventListDialog(wx.Dialog):
             cw.cwpy.play_sound("signal")
             self.start_event = False
             self.EndModal(wx.ID_OK)
+        elif isinstance(event, wx.MouseEvent):
+            selitem = self.events.GetSelection()
+            if selitem and selitem.IsOk() and not self.events.IsExpanded(selitem):
+                self.events.Expand(selitem)
 
 class EventList(wx.TreeCtrl):
     """シナリオに含まれるイベントをリストし、
@@ -98,6 +102,7 @@ class EventList(wx.TreeCtrl):
         currentfpath: 最初から選択状態にするエリア等のファイルパス。
         """
         wx.TreeCtrl.__init__(self, parent, -1, size=size, style=wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
+        self.SetDoubleBuffered(True)
         self._showallcards = showhiddencards
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         imgidx_area = self.imglist.Add(cw.cwpy.rsrc.debugs["AREA"])
@@ -157,7 +162,7 @@ class EventList(wx.TreeCtrl):
     def OnTreeItemExpanded(self, event):
         self._expand_item(event.GetItem())
 
-    def _expand_item(self, selitem):
+    def _expand_item(self, selitem, virtual=False):
         # エリア・バトル・パッケージ・カードに含まれる
         # イベント情報をツリーに追加する
         paritem = self.GetItemParent(selitem)
@@ -226,29 +231,34 @@ class EventList(wx.TreeCtrl):
         data = cw.data.xml2etree(element=e)
         for ee in data.getfind("Events"):
             append(selitem, ee, data.getroot().tag)
+            if virtual:
+                break
 
-        # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
-        for pe in data.getfind("PlayerCardEvents", False):
-            item = self.AppendItem(selitem, u"プレイヤーカード", self.imgidx_menucard)
-            for ee in pe:
-                append(item, ee, pe.tag)
-            self.Expand(item)
-
-        for ce in itertools.chain(data.getfind("MenuCards", False), data.getfind("EnemyCards", False)):
-            if self._showallcards or cw.sprite.card.CWPyCard.is_flagtrue_static(ce):
-                if ce.tag == "EnemyCard":
-                    cardid = ce.getint("Property/Id", 0)
-                    cardname = cw.cwpy.sdata.get_castname(cardid)
-                    if  cardname is None:
-                        cardname = u"(未設定)"
-                else:
-                    cardname = ce.gettext("Property/Name", u"")
-                item = self.AppendItem(selitem, cardname, self.imgidx_menucard)
-                for ee in ce.getfind("Events"):
-                    append(item, ee, ce.tag)
+        if not virtual:
+            # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+            for pe in data.getfind("PlayerCardEvents", False):
+                item = self.AppendItem(selitem, u"プレイヤーカード", self.imgidx_menucard)
+                for ee in pe:
+                    append(item, ee, pe.tag)
                 self.Expand(item)
 
-        self.SetItemPyData(selitem, (name, resid, getdata, getfpath, True))
+            for ce in itertools.chain(data.getfind("MenuCards", False), data.getfind("EnemyCards", False)):
+                if self._showallcards or cw.sprite.card.CWPyCard.is_flagtrue_static(ce):
+                    if ce.tag == "EnemyCard":
+                        cardid = ce.getint("Property/Id", 0)
+                        cardname = cw.cwpy.sdata.get_castname(cardid)
+                        if  cardname is None:
+                            cardname = u"(未設定)"
+                    else:
+                        cardname = ce.gettext("Property/Name", u"")
+                    item = self.AppendItem(selitem, cardname, self.imgidx_menucard)
+                    for ee in ce.getfind("Events"):
+                        append(item, ee, ce.tag)
+                    self.Expand(item)
+
+        self.SetItemPyData(selitem, (name, resid, getdata, getfpath, not virtual))
+        if not self.ItemHasChildren(selitem):
+            self.AppendItem(selitem, u"読込中...")
 
     def set_showallcards(self, value):
         """フラグがオフのカードをリストに表示するか設定する。
@@ -258,6 +268,7 @@ class EventList(wx.TreeCtrl):
         if self._showallcards <> value:
             self._showallcards = value
             item, cookie = self.GetFirstChild(self.root)
+            self.Freeze()
             while item.IsOk():
                 name, resid, getdata, getfpath, expanded = self.GetItemPyData(item)
                 self.SetItemPyData(item, (name, resid, getdata, getfpath, False))
@@ -268,6 +279,7 @@ class EventList(wx.TreeCtrl):
                         self.DeleteChildren(item)
                         self.AppendItem(item, u"読込中...")
                 item, cookie = self.GetNextChild(self.root, cookie)
+            self.Thaw()
 
     def get_selectedevent(self):
         """選択中のイベントを返す。"""
@@ -278,7 +290,20 @@ class EventList(wx.TreeCtrl):
         if isinstance(data, cw.event.Event):
             return data
         else:
-            return None
+            data = self.GetItemPyData(selitem)
+            if not data is None:
+                name, resid, getdata, getfpath, expanded = data
+                if not expanded:
+                    self.Freeze()
+                    self._expand_item(selitem, virtual=True)
+                    self.Thaw()
+            child, _cookie = self.GetFirstChild(selitem)
+            if child and child.IsOk():
+                data = self.GetItemPyData(child)
+                if isinstance(data, cw.event.Event):
+                    return data
+
+        return None
 
     def get_currentfpath(self):
         """選択中のイベントが属するファイルのパスを返す。"""
