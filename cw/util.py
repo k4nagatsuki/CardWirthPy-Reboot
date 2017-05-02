@@ -3735,15 +3735,26 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
     """
     def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
         # テキストを一旦空にして背景だけ描画させる
-        caption = page.caption
+        self._cwtabart_caption = page.caption
+        self._tab_size = self.GetTabSize(dc, wnd, page.caption, page.bitmap, page.active, close_button_state, page.control)[0]
         page.caption = u""
         r = super(CWTabArt, self).DrawTab(dc, wnd, page, in_rect, close_button_state, paint_control)
-        page.caption = caption
+        page.caption = self._cwtabart_caption
         # テキストを描画
         te = dc.GetTextExtent(page.caption)
         rect = r[0]
-        dc.DrawText(page.caption, rect.X + (rect.Width - te[0]) / 2, in_rect.Y + (in_rect.Height - te[1]) / 2)
+        x = rect.X + (rect.Width - te[0]) / 2
+        y = in_rect.Y + (in_rect.Height - te[1]) / 2
+        dc.DrawText(page.caption, x, y)
+        if not (self.GetAGWFlags() & wx.lib.agw.aui.tabart.AUI_NB_NO_TAB_FOCUS) and page.active and wx.Window.FindFocus() is wnd:
+            dc.SetBrush(wx.TRANSPARENT_BRUSH)
+            dc.SetPen(self._focusPen)
+            rect = wx.Rect(x-2, y-1, te[0]+4, te[1]+2)
+            dc.DrawRoundedRectangleRect(rect, 0)
         return r
+
+    def DrawFocusRectangle(self, dc, page, wnd, draw_text, text_offset, bitmap_offset, drawn_tab_yoff, drawn_tab_height, textx, texty):
+        return
 
 
 #-------------------------------------------------------------------------------
