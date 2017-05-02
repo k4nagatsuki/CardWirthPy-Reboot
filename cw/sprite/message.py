@@ -1288,6 +1288,10 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None,
             fl = s[i+1:i+1+nextpos]
             val, namelistindex = get(fl, full, name_table, basenamelist, buflen, spcharinfo, namelist, namelistindex, stack)
             if val is None:
+                if not full:
+                    # BUG: 存在しない状態変数を表示しようとすると
+                    #      先頭の文字が欠ける(CardWirth 1.50)
+                    buf.append(c[1:])
                 return 0 if full else -1, namelistindex
             skip = 1 + nextpos
             buf.append(val)
