@@ -217,6 +217,8 @@ class CWPy(_Singleton, threading.Thread):
 
         # 時間経過処理中か
         self._elapse_time = False
+        # 強制ロード処理中か
+        self._reloading = False
 
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup, loadyado=True)
@@ -1011,6 +1013,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.draw()
             elif clip:
                 self.draw(clip=clip)
+
+            self._reloading = False
 
         self.update_groups()
 
@@ -2358,6 +2362,7 @@ class CWPy(_Singleton, threading.Thread):
         self.event._stoped = True
         self.event.breakwait = True
         self.lock_menucards = True
+        self._reloading = True
         del self.pre_dialogs[:]
         del self.pre_areaids[:]
 
@@ -4687,6 +4692,9 @@ class CWPy(_Singleton, threading.Thread):
             pygame.event.peek(USEREVENT) or\
             (self.is_battlestatus() and not (self.battle and self.battle.is_ready())) or\
             self.is_decompressing or self._elapse_time
+
+    def is_reloading(self):
+        return self._reloading
 
     def is_showingdlg(self):
         return 0 < self._showingdlg

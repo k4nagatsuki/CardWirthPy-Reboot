@@ -981,7 +981,7 @@ class CharacterCardImage(CardImage):
         self._no_statusimg = self.image
 
         # ステータス画像追加
-        self.update_statusimg(ccard, False)
+        self.update_statusimg(ccard, None)
 
     def update_statusimg(self, ccard, is_runningevent=None):
         """
@@ -1066,6 +1066,7 @@ class CharacterCardImage(CardImage):
         is_runningevent &= cw.cwpy.is_playingscenario()
         is_runningevent &= not cw.cwpy.areaid in cw.AREAS_SP
         is_runningevent &= not (cw.cwpy.event.in_cardeffectmotion and not cw.cwpy.is_battlestatus())
+        is_runningevent &= not cw.cwpy.is_reloading()
         if (always or cw.cwpy.setting.show_statustime == "True" or\
                     (cw.cwpy.setting.show_statustime == "NotEventTime" and not is_runningevent)) and num:
             image = cw.util.put_number(image, num)
