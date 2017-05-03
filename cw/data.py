@@ -607,15 +607,25 @@ class SystemData(object):
     def get_bgmpaths(self):
         """現在使用可能なBGMのパスのリストを返す。"""
         seq = []
-        dpath = cw.util.join_paths(cw.cwpy.skindir, "Bgm")
-        for dpath2, _dnames, fnames in os.walk(dpath):
-            for fname in fnames:
-                if cw.util.splitext(fname)[1].lower() in (".ogg", ".mp3", ".mid", ".wav"):
-                    if dpath2 == dpath:
-                        dname = ""
-                    else:
-                        dname = cw.util.relpath(dpath2, dpath)
-                    seq.append(cw.util.join_paths(dname, fname))
+        dpaths = [cw.util.join_paths(cw.cwpy.skindir, u"Bgm"), cw.util.join_paths(cw.cwpy.skindir, u"BgmAndSound")]
+        for dpath2 in os.listdir(u"Data/Materials"):
+            dpath2 = cw.util.join_paths(u"Data/Materials", dpath2)
+            if os.path.isdir(dpath2):
+                dpath3 = cw.util.join_paths(dpath2, u"Bgm")
+                if os.path.isdir(dpath3):
+                    dpaths.append(dpath3)
+                dpath3 = cw.util.join_paths(dpath2, u"BgmAndSound")
+                if os.path.isdir(dpath3):
+                    dpaths.append(dpath3)
+        for dpath in dpaths:
+            for dpath2, _dnames, fnames in os.walk(dpath):
+                for fname in fnames:
+                    if cw.util.splitext(fname)[1].lower() in (".ogg", ".mp3", ".mid", ".wav"):
+                        if dpath2 == dpath:
+                            dname = ""
+                        else:
+                            dname = cw.util.relpath(dpath2, dpath)
+                        seq.append(cw.util.join_paths(dname, fname))
         return seq
 
     def fullrecovery_fcards(self):

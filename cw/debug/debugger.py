@@ -1230,7 +1230,7 @@ class Debugger(wx.Frame):
                 path = ""
             def func(path):
                 if not cw.cwpy.is_playingscenario():
-                    path = cw.util.join_paths(u"Bgm", path)
+                    path = cw.util.get_materialpathfromskin(path, cw.M_MSC)
                 for music in cw.cwpy.music:
                     music.stop()
                 cw.cwpy.music[0].play(path)
