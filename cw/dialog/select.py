@@ -622,6 +622,7 @@ class YadoSelect(MultiViewSelect):
                 break
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((400, 370)))
+        self.toppanel.SetMinSize(cw.wins((400, 370)))
 
         # 絞込条件
         choices = (cw.cwpy.msgs["all"],
@@ -1685,6 +1686,7 @@ class PartySelect(MultiViewSelect):
         self.names = []
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((460, 280)))
+        self.toppanel.SetMinSize(cw.wins((460, 280)))
 
         # 絞込条件
         choices = (cw.cwpy.msgs["all"],
