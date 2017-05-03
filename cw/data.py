@@ -3777,10 +3777,10 @@ def copydata(data):
     if isinstance(data, CWPyElementTree):
         return CWPyElementTree(element=copydata(data.getroot()))
 
-    if data.tag in ("Motions", "Events", "Id", "Name", "ImagePath", "ImagePaths",
+    if data.tag in ("Motions", "Events", "Id", "Name",
                     "Description", "Scenario", "Author", "Level", "Ability",
-                    "Target", "EffectType", "ResistType", "SuccessRate", "VisualEffect",
-                    "Enhance", "SoundPath", "SoundPath2", "KeyCodes", "Premium",
+                    "Target", "EffectType", "ResistType", "SuccessRate",
+                    "VisualEffect", "Enhance", "KeyCodes", "Premium",
                     "EnhanceOwner", "Price"):
         # 不変
         return data
