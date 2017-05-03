@@ -117,7 +117,8 @@ class CharaInfo(wx.Dialog):
             panel.AcceptsFocusRecursively = lambda: False
             panel.SetFocus = lambda: None
             panel.SetFocusFromKeyboard = lambda: None
-            panel.SetCanFocus(False)
+            if  3 <= wx.VERSION[0]:
+                panel.SetCanFocus(False)
             def onfocus(event):
                 self.closebtn.SetFocus()
             panel.Bind(wx.EVT_SET_FOCUS, onfocus)
@@ -217,6 +218,7 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x, y - 1)
+            page.Refresh()
 
     def OnPageUp(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
@@ -224,12 +226,14 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x, y - 10)
+            page.Refresh()
 
     def OnHome(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if isinstance(page, wx.ScrolledWindow):
             x = page.GetScrollPos(wx.HORIZONTAL)
             page.Scroll(x, 0)
+            page.Refresh()
 
     def OnDown(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
@@ -239,6 +243,7 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x, y + 1)
+            page.Refresh()
 
     def OnPageDown(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
@@ -246,6 +251,7 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x, y + 10)
+            page.Refresh()
 
     def OnLeftKey(self, event):
         event.Skip()
@@ -255,6 +261,7 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x - 1, y)
+            page.Refresh()
             if x <> page.GetScrollPos(wx.HORIZONTAL):
                 return
         self.notebook.SetSelection(index-1 if 0 < index else len(self.bottompanel)-1)
@@ -267,6 +274,7 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x + 1, y)
+            page.Refresh()
             if x <> page.GetScrollPos(wx.HORIZONTAL):
                 return
         self.notebook.SetSelection((index+1) % len(self.bottompanel))
@@ -276,16 +284,19 @@ class CharaInfo(wx.Dialog):
         if isinstance(page, wx.ScrolledWindow):
             x = page.GetScrollPos(wx.HORIZONTAL)
             page.Scroll(x, page.GetVirtualSize()[1])
+            page.Refresh()
 
     def up(self):
         x = self.GetScrollPos(wx.HORIZONTAL)
         y = self.GetScrollPos(wx.VERTICAL)
         self.Scroll(x, y - 1)
+        self.Refresh()
 
     def down(self):
         x = self.GetScrollPos(wx.HORIZONTAL)
         y = self.GetScrollPos(wx.VERTICAL)
         self.Scroll(x, y + 1)
+        self.Refresh()
 
     def OnMouseWheel(self, event):
         rect = self.GetClientRect()
