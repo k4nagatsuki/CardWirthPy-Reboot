@@ -3037,8 +3037,11 @@ def convert_to_image(bmp):
     w = bmp.GetWidth()
     h = bmp.GetHeight()
     buf = array.array('B', [0] * (w*h * 3))
-    bmp.CopyToBuffer(buf)
-    img = wx.ImageFromBuffer(w, h, buf)
+    try:
+        bmp.CopyToBuffer(buf)
+        img = wx.ImageFromBuffer(w, h, buf)
+    except:
+        img = bmp.ConvertToImage()
     if hasattr(bmp, "bmpdepthis1"):
         img.bmpdepthis1 = bmp.bmpdepthis1
     if hasattr(bmp, "maskcolour"):
