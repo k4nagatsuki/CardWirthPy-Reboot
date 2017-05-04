@@ -430,6 +430,7 @@ class AdventurerCreater(wx.Dialog):
         self.cwpy_debug = False
         self.header = None
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
+        self._init_pages()
         if cw.cwpy.setting.show_autobuttoninentrydialog:
             btnwidth = 75
         else:
@@ -447,11 +448,34 @@ class AdventurerCreater(wx.Dialog):
                                                             cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_decide"])
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
                                                             cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_cancel"])
-        self._init_pages()
         self.enable_btn()
         self.nextbtn.Disable()
         self._do_layout()
         self._bind()
+
+        nupkeyid = wx.NewId()
+        self.shifttabkeyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=nupkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=self.shifttabkeyid)
+        seq = [
+            (wx.ACCEL_NORMAL, wx.WXK_UP, nupkeyid),
+            (wx.ACCEL_SHIFT, wx.WXK_TAB, self.shifttabkeyid),
+        ]
+        cw.util.set_acceleratortable(self.autobtn, seq)
+        cw.util.set_acceleratortable(self.prevbtn, seq)
+
+        self.autobtn.MoveBeforeInTabOrder(self.nextbtn)
+        self.prevbtn.MoveBeforeInTabOrder(self.autobtn)
+
+    def OnNUpKeyDown(self, event):
+        fc = wx.Window.FindFocus()
+        if self.page.AcceptsFocusFromKeyboard():
+            if (fc is self.autobtn and not self.prevbtn.IsEnabled()) or fc is self.prevbtn:
+                self.page.SetFocusIgnoringChildren()
+                if event.GetId() <> self.shifttabkeyid:
+                    self.page.move_up()
+                return
+        fc.Navigate(wx.NavigationKeyEvent.IsBackward)
 
     def _init_pages(self):
         self.page1 = NamePage(self)
@@ -629,6 +653,9 @@ class AdventurerCreaterPage(wx.Panel):
         self.prev = None
         # key: name, value: (pygame.Rect, 実行するメソッド)の辞書
         self.clickables = {}
+        # キー操作で選択しているアイテム(name)
+        self.selected_clickable = None
+        self.clickable_table = []
 
         self.imgpathlist = {}
         self.imgdpath = -1
@@ -638,9 +665,20 @@ class AdventurerCreaterPage(wx.Panel):
         self.age = ""
         self._dropkey = (-1, u"<ドロップされたイメージ>", "/drop_files")
 
+        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
+
         if freeze:
             self.Freeze()
             self.Hide()
+
+    def OnSetFocus(self, event):
+        self.selected_clickable = self._find_nextclickable_h(None)
+        self.Refresh()
+
+    def OnKillFocus(self, event):
+        self.selected_clickable = None
+        self.Refresh()
 
     def _bind(self):
         self.Bind(wx.EVT_PAINT, self.OnPaint2)
@@ -648,15 +686,180 @@ class AdventurerCreaterPage(wx.Panel):
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.OnCancel)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
     def _do_layout(self):
         pass
+
+    def set_normalacceleratortable(self):
+        nleftkeyid = wx.NewId()
+        nrightkeyid = wx.NewId()
+        nupkeyid = wx.NewId()
+        ndownkeyid = wx.NewId()
+        self.shifttabkeyid = wx.NewId()
+        self.tabkeyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnNLeftKeyDown, id=nleftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNRightKeyDown, id=nrightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=nupkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=ndownkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=self.shifttabkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.tabkeyid)
+        seq = [
+            (wx.ACCEL_NORMAL, wx.WXK_LEFT, nleftkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_RIGHT, nrightkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_UP, nupkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_DOWN, ndownkeyid),
+            (wx.ACCEL_SHIFT, wx.WXK_TAB, self.shifttabkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_TAB, self.tabkeyid),
+        ]
+        cw.util.set_acceleratortable(self, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
+
+    def AcceptsFocus(self):
+        return True
+
+    def AcceptsFocusFromKeyboard(self):
+        return True
+
+    def AcceptsFocusRecursively(self):
+        return True
 
     def OnEraseBackground(self, evt):
         """
         画面のちらつき防止。
         """
         pass
+
+    def OnNLeftKeyDown(self, event):
+        if wx.Window.FindFocus() is self:
+            self.move_left()
+            event.Skip()
+
+    def OnNRightKeyDown(self, event):
+        if wx.Window.FindFocus() is self:
+            self.move_right()
+            event.Skip()
+
+    def OnNUpKeyDown(self, event):
+        if wx.Window.FindFocus() is self:
+            if (self.selected_clickable and self.is_selectionstart()) or\
+                    event.GetId() == self.shifttabkeyid:
+                self.Navigate(wx.NavigationKeyEvent.IsBackward)
+            else:
+                self.move_up()
+            event.Skip()
+
+    def OnNDownKeyDown(self, event):
+        if wx.Window.FindFocus() is self:
+            if self.selected_clickable and self.is_selectionend() or\
+                    event.GetId() == self.tabkeyid:
+                self.Navigate(wx.NavigationKeyEvent.IsForward)
+            else:
+                self.move_down()
+            event.Skip()
+
+    def move_right(self):
+        self.selected_clickable = self._find_nextclickable_h(self.selected_clickable)
+        self.Refresh()
+
+    def move_left(self):
+        self.selected_clickable = self._find_prevclickable_h(self.selected_clickable)
+        self.Refresh()
+
+    def move_down(self):
+        self.selected_clickable = self._find_nextclickable_v(self.selected_clickable)
+        self.Refresh()
+
+    def move_up(self):
+        self.selected_clickable = self._find_prevclickable_v(self.selected_clickable)
+        self.Refresh()
+
+    def is_selectionstart(self):
+        i, j = self._find_prevclickable_v(self.selected_clickable)
+        return (i, j) == self._find_prevclickable_v(None)
+
+    def is_selectionend(self):
+        i, j = self._find_nextclickable_v(self.selected_clickable)
+        return (i, j) == self._find_nextclickable_v(None)
+
+    def _find_nextclickable_h(self, current):
+        if not self.clickable_table:
+            return None
+        if current is None:
+            i, j = len(self.clickable_table)-1, len(self.clickable_table[-1])-1
+        else:
+            i, j = current
+        # 次のNoneでないアイテムを探す
+        while True:
+            if len(self.clickable_table[i]) <= j+1:
+                # 次の行の最初のアイテム
+                i = (i+1)%len(self.clickable_table)
+                j = 0
+            else:
+                # 行内の次のアイテム
+                j += 1
+            if self.clickable_table[i][j]:
+                return (i, j)
+
+    def _find_prevclickable_h(self, current):
+        if not self.clickable_table:
+            return None
+        if current is None:
+            i, j = 0, 0
+        else:
+            i, j = current
+        # 前のNoneでないアイテムを探す
+        while True:
+            if j <= 0:
+                # 前の行の最後のアイテム
+                i -= 1
+                if i < 0:
+                    i = len(self.clickable_table)-1
+                j = len(self.clickable_table[i])-1
+            else:
+                # 行内の前のアイテム
+                j -= 1
+            if self.clickable_table[i][j]:
+                return (i, j)
+
+    def _find_nextclickable_v(self, current):
+        if not self.clickable_table:
+            return None
+        if current is None:
+            i, j = len(self.clickable_table)-1, len(self.clickable_table[-1])-1
+        else:
+            i, j = current
+        # 次のNoneでないアイテムを探す
+        while True:
+            if len(self.clickable_table) <= i+1:
+                # 次の列の最初のアイテム
+                i = 0
+                j = (j+1)%len(self.clickable_table[i])
+            else:
+                # 列内の次のアイテム
+                i += 1
+            if self.clickable_table[i][j]:
+                return (i, j)
+
+    def _find_prevclickable_v(self, current):
+        if not self.clickable_table:
+            return None
+        if current is None:
+            i, j = 0, 0
+        else:
+            i, j = current
+        # 前のNoneでないアイテムを探す
+        while True:
+            if i <= 0:
+                # 前の列の最後のアイテム
+                i = len(self.clickable_table)-1
+                j -= 1
+                if j < 0:
+                    j = len(self.clickable_table[i])-1
+            else:
+                # 行内の前のアイテム
+                i -= 1
+            if self.clickable_table[i][j]:
+                return (i, j)
 
     def OnDropFiles(self, event):
         """
@@ -695,7 +898,14 @@ class AdventurerCreaterPage(wx.Panel):
         pass
 
     def OnPaint2(self, event):
-        self.draw()
+        dc = self.draw()
+        if self.selected_clickable:
+            i, j = self.selected_clickable
+            name = self.clickable_table[i][j]
+            rect = self.clickables[name][0]
+            dc.SetPen(wx.Pen(wx.Colour(0, 0, 0), 1, wx.DOT))
+            dc.SetBrush(wx.TRANSPARENT_BRUSH)
+            dc.DrawRectangle(rect[0], rect[1], rect[2], rect[3])
 
     def OnLeftUp(self, event):
         mousepos = event.GetPosition()
@@ -705,6 +915,14 @@ class AdventurerCreaterPage(wx.Panel):
 
             if method and rect.collidepoint(mousepos):
                 method(key)
+
+    def OnKeyDown(self, event):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_SPACE and self.selected_clickable:
+            i, j = self.selected_clickable
+            key = self.clickable_table[i][j]
+            _rect, method, _wheelmethod = self.clickables[key]
+            method(key)
 
     def OnMouseWheel(self, event):
         mousepos = event.GetPosition()
@@ -886,13 +1104,37 @@ class NamePage(AdventurerCreaterPage):
 
         self.upkeyid = wx.NewId()
         self.downkeyid = wx.NewId()
+        ctrlleftkeyid = wx.NewId()
+        ctrlrightkeyid = wx.NewId()
+        nleftkeyid = wx.NewId()
+        nrightkeyid = wx.NewId()
+        nupkeyid = wx.NewId()
+        ndownkeyid = wx.NewId()
+        self.shifttabkeyid = wx.NewId()
+        self.tabkeyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnUpKeyDown, id=self.upkeyid)
         self.Bind(wx.EVT_MENU, self.OnDownKeyDown, id=self.downkeyid)
+        self.Bind(wx.EVT_MENU, self.OnCtrlLeftKeyDown, id=ctrlleftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnCtrlRightKeyDown, id=ctrlrightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNLeftKeyDown, id=nleftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNRightKeyDown, id=nrightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=nupkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=ndownkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=self.shifttabkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.tabkeyid)
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_LEFT, ctrlleftkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_RIGHT, ctrlrightkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_LEFT, nleftkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_RIGHT, nrightkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_UP, nupkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_DOWN, ndownkeyid),
+            (wx.ACCEL_SHIFT, wx.WXK_TAB, self.shifttabkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_TAB, self.tabkeyid),
         ]
-        cw.util.set_acceleratortable(self, seq)
+        cw.util.set_acceleratortable(self, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
 
     def _bind(self):
         AdventurerCreaterPage._bind(self)
@@ -901,6 +1143,38 @@ class NamePage(AdventurerCreaterPage):
         if self.autoname:
             self.Bind(wx.EVT_BUTTON, self.OnAutoName, self.autoname)
         self.ch_imgdpath.Bind(wx.EVT_CHOICE, self.OnChoiceImgDPath)
+
+    def OnCtrlLeftKeyDown(self, event):
+        _rect, method, _wheelmethod = self.clickables["PrevImage"]
+        method("PrevImage")
+
+    def OnCtrlRightKeyDown(self, event):
+        _rect, method, _wheelmethod = self.clickables["NextImage"]
+        method("NextImage")
+
+    def OnNDownKeyDown(self, event):
+        fc = wx.Window.FindFocus()
+        if fc is self.textctrl:
+            self.autoname.SetFocus()
+        elif fc is self.autoname:
+            self.SetFocusIgnoringChildren()
+        elif fc is self and ((self.selected_clickable and self.is_selectionend()) or\
+                event.GetId() == self.tabkeyid):
+            self.Navigate(wx.NavigationKeyEvent.IsForward)
+        else:
+            AdventurerCreaterPage.OnNDownKeyDown(self, event)
+
+    def OnNUpKeyDown(self, event):
+        fc = wx.Window.FindFocus()
+        if fc is self.autoname:
+            self.textctrl.SetFocus()
+        elif fc is self.textctrl:
+            self.Parent.closebtn.SetFocus()
+        elif fc is self and ((self.selected_clickable and self.is_selectionstart()) or \
+                 event.GetId() == self.shifttabkeyid):
+            self.autoname.SetFocus()
+        else:
+            AdventurerCreaterPage.OnNUpKeyDown(self, event)
 
     def OnMouseWheel(self, event):
         if self.ch_imgdpath.GetRect().Contains(event.GetPosition()):
@@ -1010,6 +1284,9 @@ class NamePage(AdventurerCreaterPage):
         dc.SetFont(font)
         xx = [cw.wins(90), cw.wins(155)]
 
+        self.clickable_table = []
+        clickableline = [None, None, None, None]
+
         # 性別
         x = xx[0]
         y = cw.wins(145)
@@ -1020,8 +1297,14 @@ class NamePage(AdventurerCreaterPage):
             if xx[1] == x:
                 x = xx[0]
                 y += cw.wins(15)
+                clickableline[1] = u"＿" + sex.name
+                self.clickable_table.append(clickableline)
+                clickableline = [None, None, None, None]
             else:
                 x = xx[1]
+                clickableline[0] = u"＿" + sex.name
+        if any(clickableline):
+            self.clickable_table.append(clickableline)
 
         # 年代
         x = xx[0]
@@ -1033,8 +1316,14 @@ class NamePage(AdventurerCreaterPage):
             if xx[1] == x:
                 x = xx[0]
                 y += cw.wins(20)
+                clickableline[1] = u"＿" + period.name
+                self.clickable_table.append(clickableline)
+                clickableline = [None, None, None, None]
             else:
                 x = xx[1]
+                clickableline[0] = u"＿" + period.name
+        if any(clickableline):
+            self.clickable_table.append(clickableline)
 
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
@@ -1052,6 +1341,10 @@ class NamePage(AdventurerCreaterPage):
             cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, cw.wins(275), cw.wins(130), True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea(cw.wins((275, 130)), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
+
+        self.clickable_table.append([None, None, "PrevImage", "NextImage"])
+
+        return dc
 
     def set_sex(self, name):
         if not self.sex == name:
@@ -1199,6 +1492,12 @@ class RacePage(AdventurerCreaterPage):
         self._bind()
         self._do_layout()
 
+    def AcceptsFocus(self):
+        return False
+
+    def AcceptsFocusFromKeyboard(self):
+        return False
+
     def _bind(self):
         AdventurerCreaterPage._bind(self)
         self.Bind(wx.EVT_CHOICE, self.OnChoice)
@@ -1250,6 +1549,8 @@ class RacePage(AdventurerCreaterPage):
         dc.SetFont(font)
         dc.DrawLabel(s, cw.wins((107, 130, 200, 110)))
 
+        return dc
+
     def get_race(self):
         """
         現在選択中の種族のElementを返す。
@@ -1274,10 +1575,13 @@ class RacePage(AdventurerCreaterPage):
 class RelationPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
+        self.SetDoubleBuffered(True)
         self.set_parents()
         self.father = None
         self.mother = None
         self._bind()
+
+        self.set_normalacceleratortable()
 
     def draw(self, update=False):
         dc = AdventurerCreaterPage.draw(self, update)
@@ -1322,6 +1626,8 @@ class RelationPage(AdventurerCreaterPage):
             bmp = cw.cwpy.rsrc.buttons["RMOVE"]
             pos = cw.wins((370, 150))
             self.draw_clickablebmp(dc, bmp, pos, "NextMother", self.set_nextmother, None)
+
+        self.clickable_table = [["PrevFather", "NextFather", "PrevMother", "NextMother"]]
 
         # 父親画像
         if self.father:
@@ -1413,6 +1719,8 @@ class RelationPage(AdventurerCreaterPage):
 
             s = cw.cwpy.msgs["consumption_ep"] % (ep, self.mother.ep)
             cw.util.draw_center(dc, s, cw.wins((315, 240)))
+
+        return dc
 
     def set_nextfather(self, name):
         if 1 < len(self.fathers):
@@ -1516,8 +1824,11 @@ class RelationPage(AdventurerCreaterPage):
 class TalentPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
+        self.SetDoubleBuffered(True)
         self.talent = u"＿" + cw.cwpy.setting.natures[0].name
         self._bind()
+
+        self.set_normalacceleratortable()
 
     def draw(self, update=False):
         dc = AdventurerCreaterPage.draw(self, update)
@@ -1539,6 +1850,8 @@ class TalentPage(AdventurerCreaterPage):
 
         natures = filter(lambda n: not n.special, cw.cwpy.setting.natures)
         xx = [cw.wins(65), cw.wins(255)]
+        self.clickable_table = []
+        clickableline = [None, None]
         x = xx[0]
         y = cw.wins(87)
         yd = cw.wins(18)
@@ -1560,8 +1873,16 @@ class TalentPage(AdventurerCreaterPage):
             if x == xx[1]:
                 x = xx[0]
                 y += yp
+                clickableline[1] = u"＿" + nature.name
+                self.clickable_table.append(clickableline)
+                clickableline = [None, None]
             else:
+                clickableline[0] = u"＿" + nature.name
                 x = xx[1]
+        if any(clickableline):
+            self.clickable_table.append(clickableline)
+
+        return dc
 
     def set_talent(self, name):
         if not self.talent == name:
@@ -1582,8 +1903,11 @@ class TalentPage(AdventurerCreaterPage):
 class AttrPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
+        self.SetDoubleBuffered(True)
         self.couponsdata = {}
         self._bind()
+
+        self.set_normalacceleratortable()
 
     def draw(self, update=False):
         dc = AdventurerCreaterPage.draw(self, update)
@@ -1607,10 +1931,15 @@ class AttrPage(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
         dc.SetFont(font)
 
-        yp = cw.wins(192 / ((len(cw.cwpy.setting.makings)+3)/4))
+        self.clickable_table = []
+        for _i in xrange((len(cw.cwpy.setting.makings)+3)//4):
+            self.clickable_table.append([None, None, None, None])
+
+        yp = cw.wins(192 // ((len(cw.cwpy.setting.makings)+3)//4))
         for index in xrange(0, len(cw.cwpy.setting.makings), 2):
             column = index % 4
-            pos = cw.wins(67 + column * 86), cw.wins(64) + (index / 4) * yp
+            row = index // 4
+            pos = cw.wins(67 + column * 86), cw.wins(64) + (index // 4) * yp
             m1 = cw.cwpy.setting.makings[index]
             s = m1.name
             if index + 1 < len(cw.cwpy.setting.makings):
@@ -1620,11 +1949,15 @@ class AttrPage(AdventurerCreaterPage):
                 coupons = (m1.name)
             name = (u"＿" + s, coupons)
             self.draw_clickabletext(dc, s, pos, name, self.set_coupon, None)
+            self.clickable_table[row][column] = name
             if index + 1 < len(cw.cwpy.setting.makings):
                 pos = pos[0] + cw.wins(86), pos[1]
                 s = m2.name
                 name = (u"＿" + s, coupons)
                 self.draw_clickabletext(dc, s, pos, name, self.set_coupon, None)
+                self.clickable_table[row][column+1] = name
+
+        return dc
 
     def draw_clickabletext(self, dc, s, pos, name, method, wheelmethod, setname=None):
         size = dc.GetTextExtent(s)
@@ -2144,13 +2477,47 @@ class DesignPanel(AdventurerCreaterPage):
 
         self.upkeyid = wx.NewId()
         self.downkeyid = wx.NewId()
+        ctrlleftkeyid = wx.NewId()
+        ctrlrightkeyid = wx.NewId()
+        self.shifttabkeyid = wx.NewId()
+        self.tabkeyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnUpKeyDown, id=self.upkeyid)
         self.Bind(wx.EVT_MENU, self.OnDownKeyDown, id=self.downkeyid)
+        self.Bind(wx.EVT_MENU, self.OnCtrlLeftKeyDown, id=ctrlleftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnCtrlRightKeyDown, id=ctrlrightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnShiftTab, id=self.shifttabkeyid)
+        self.Bind(wx.EVT_MENU, self.OnTab, id=self.tabkeyid)
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_LEFT, ctrlleftkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_RIGHT, ctrlrightkeyid),
+            (wx.ACCEL_SHIFT, wx.WXK_TAB, self.shifttabkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_TAB, self.tabkeyid),
         ]
-        cw.util.set_acceleratortable(self, seq)
+        cw.util.set_acceleratortable(self, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
+
+    def OnShiftTab(self, event):
+        fc = wx.Window.FindFocus()
+        if fc is self.descctrl:
+            self.namectrl.SetFocus()
+        else:
+            fc.Navigate(wx.NavigationKeyEvent.IsBackward)
+
+    def OnTab(self, event):
+        fc = wx.Window.FindFocus()
+        if fc is self.namectrl:
+            self.descctrl.SetFocus()
+        else:
+            fc.Navigate(wx.NavigationKeyEvent.IsForward)
+
+    def OnCtrlLeftKeyDown(self, event):
+        _rect, method, _wheelmethod = self.clickables["PrevImage"]
+        method("PrevImage")
+
+    def OnCtrlRightKeyDown(self, event):
+        _rect, method, _wheelmethod = self.clickables["NextImage"]
+        method("NextImage")
 
     def is_changedimgpath(self):
         return self._oldimgpath <> self.imgpaths
@@ -2311,6 +2678,10 @@ class DesignPanel(AdventurerCreaterPage):
             cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x+baserect.x, y+baserect.y, True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea((x, y), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
+
+        self.clickable_table = [["PrevImage", "NextImage"]]
+
+        return dc
 
     def on_mousewheel(self, name, rotate):
         if rotate < 0:
