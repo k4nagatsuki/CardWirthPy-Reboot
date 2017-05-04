@@ -1127,30 +1127,35 @@ class NamePage(AdventurerCreaterPage):
         self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.ndownkeyid)
         self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=self.shifttabkeyid)
         self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.tabkeyid)
-        self._set_acceleratortable(False)
+        self._set_acceleratortable(False, True)
         def OnTextCtrlSetFocus(event):
-            self._set_acceleratortable(False)
+            self._set_acceleratortable(False, True)
             event.Skip(True)
         self.textctrl.Bind(wx.EVT_SET_FOCUS, OnTextCtrlSetFocus)
-        def OnTextCtrlKillFocus(event):
-            self._set_acceleratortable(True)
+        def OnChoiceSetFocus(event):
+            self._set_acceleratortable(True, False)
             event.Skip(True)
-        self.textctrl.Bind(wx.EVT_KILL_FOCUS, OnTextCtrlKillFocus)
+        self.ch_imgdpath.Bind(wx.EVT_SET_FOCUS, OnChoiceSetFocus)
+        def OnKillFocus(event):
+            self._set_acceleratortable(True, True)
+            event.Skip(True)
+        self.textctrl.Bind(wx.EVT_KILL_FOCUS, OnKillFocus)
 
-    def _set_acceleratortable(self, leftright):
+    def _set_acceleratortable(self, leftright, updown):
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
             (wx.ACCEL_CTRL, wx.WXK_LEFT, self.ctrlleftkeyid),
             (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.ctrlrightkeyid),
-            (wx.ACCEL_NORMAL, wx.WXK_UP, self.nupkeyid),
-            (wx.ACCEL_NORMAL, wx.WXK_DOWN, self.ndownkeyid),
             (wx.ACCEL_SHIFT, wx.WXK_TAB, self.shifttabkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_TAB, self.tabkeyid),
         ]
         if leftright:
             seq.append((wx.ACCEL_NORMAL, wx.WXK_LEFT, self.nleftkeyid))
             seq.append((wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.nrightkeyid))
+        if updown:
+            seq.append((wx.ACCEL_NORMAL, wx.WXK_UP, self.nupkeyid))
+            seq.append((wx.ACCEL_NORMAL, wx.WXK_DOWN, self.ndownkeyid))
         cw.util.set_acceleratortable(self, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
 
     def _bind(self):
@@ -1178,6 +1183,8 @@ class NamePage(AdventurerCreaterPage):
         elif fc is self and ((self.selected_clickable and self.is_selectionend()) or\
                 event.GetId() == self.tabkeyid):
             self.Navigate(wx.NavigationKeyEvent.IsForward)
+        elif event.GetId() == self.tabkeyid and fc is self.ch_imgdpath:
+            self.Navigate(wx.NavigationKeyEvent.IsForward)
         else:
             AdventurerCreaterPage.OnNDownKeyDown(self, event)
 
@@ -1190,8 +1197,24 @@ class NamePage(AdventurerCreaterPage):
         elif fc is self and ((self.selected_clickable and self.is_selectionstart()) or \
                  event.GetId() == self.shifttabkeyid):
             self.autoname.SetFocus()
+        elif event.GetId() == self.shifttabkeyid and fc is self.ch_imgdpath:
+            self.SetFocusIgnoringChildren()
         else:
             AdventurerCreaterPage.OnNUpKeyDown(self, event)
+
+    def OnNLeftKeyDown(self, event):
+        if wx.Window.FindFocus() is self.ch_imgdpath:
+            _rect, method, _wheelmethod = self.clickables["PrevImage"]
+            method("PrevImage")
+        else:
+            AdventurerCreaterPage.OnNLeftKeyDown(self, event)
+
+    def OnNRightKeyDown(self, event):
+        if wx.Window.FindFocus() is self.ch_imgdpath:
+            _rect, method, _wheelmethod = self.clickables["NextImage"]
+            method("NextImage")
+        else:
+            AdventurerCreaterPage.OnNRightKeyDown(self, event)
 
     def OnMouseWheel(self, event):
         if self.ch_imgdpath.GetRect().Contains(event.GetPosition()):
@@ -1260,7 +1283,6 @@ class NamePage(AdventurerCreaterPage):
         self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
         self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
         self.draw(True)
-        self.textctrl.SetFocus()
 
     def _do_layout(self):
         csize = self.GetClientSize()
@@ -2515,19 +2537,28 @@ class DesignPanel(AdventurerCreaterPage):
         self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.ndownkeyid)
         self.Bind(wx.EVT_MENU, self.OnShiftTab, id=self.shifttabkeyid)
         self.Bind(wx.EVT_MENU, self.OnTab, id=self.tabkeyid)
-        self._set_acceleratortable(False)
-        def OnTextCtrlSetFocus(event):
-            self._set_acceleratortable(False)
+        self._set_acceleratortable(False, True)
+        def OnLeftRightSetFocus(event):
+            self._set_acceleratortable(False, True)
             event.Skip(True)
-        self.namectrl.Bind(wx.EVT_SET_FOCUS, OnTextCtrlSetFocus)
-        self.descctrl.Bind(wx.EVT_SET_FOCUS, OnTextCtrlSetFocus)
-        def OnTextCtrlKillFocus(event):
-            self._set_acceleratortable(True)
+        self.namectrl.Bind(wx.EVT_SET_FOCUS, OnLeftRightSetFocus)
+        def OnArrowsSetFocus(event):
+            self._set_acceleratortable(False, False)
             event.Skip(True)
-        self.namectrl.Bind(wx.EVT_KILL_FOCUS, OnTextCtrlKillFocus)
-        self.descctrl.Bind(wx.EVT_KILL_FOCUS, OnTextCtrlKillFocus)
+            print 1
+        self.descctrl.Bind(wx.EVT_SET_FOCUS, OnArrowsSetFocus)
+        def OnUpDownSetFocus(event):
+            self._set_acceleratortable(True, False)
+            event.Skip(True)
+        self.ch_imgdpath.Bind(wx.EVT_SET_FOCUS, OnUpDownSetFocus)
+        def OnKillFocus(event):
+            self._set_acceleratortable(True, True)
+            event.Skip(True)
+        self.namectrl.Bind(wx.EVT_KILL_FOCUS, OnKillFocus)
+        self.descctrl.Bind(wx.EVT_KILL_FOCUS, OnKillFocus)
+        self.ch_imgdpath.Bind(wx.EVT_KILL_FOCUS, OnKillFocus)
 
-    def _set_acceleratortable(self, arrowkey):
+    def _set_acceleratortable(self, leftright, updown):
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
@@ -2536,9 +2567,10 @@ class DesignPanel(AdventurerCreaterPage):
             (wx.ACCEL_SHIFT, wx.WXK_TAB, self.shifttabkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_TAB, self.tabkeyid),
         ]
-        if arrowkey:
+        if leftright:
             seq.append((wx.ACCEL_NORMAL, wx.WXK_LEFT, self.nleftkeyid))
             seq.append((wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.nrightkeyid))
+        if updown:
             seq.append((wx.ACCEL_NORMAL, wx.WXK_UP, self.nupkeyid))
             seq.append((wx.ACCEL_NORMAL, wx.WXK_DOWN, self.ndownkeyid))
         cw.util.set_acceleratortable(self, list(seq), ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
@@ -2557,6 +2589,8 @@ class DesignPanel(AdventurerCreaterPage):
             self.SetFocusIgnoringChildren()
         elif fc is self:
             self.namectrl.SetFocus()
+        elif fc is self.ch_imgdpath:
+            self.SetFocusIgnoringChildren()
         else:
             fc.Navigate(wx.NavigationKeyEvent.IsBackward)
 
@@ -2565,6 +2599,8 @@ class DesignPanel(AdventurerCreaterPage):
         if fc is self.namectrl:
             self.SetFocusIgnoringChildren()
         elif fc is self:
+            self.descctrl.SetFocus()
+        elif fc is self.ch_imgdpath:
             self.descctrl.SetFocus()
         else:
             fc.Navigate(wx.NavigationKeyEvent.IsForward)
@@ -2576,6 +2612,20 @@ class DesignPanel(AdventurerCreaterPage):
     def OnCtrlRightKeyDown(self, event):
         _rect, method, _wheelmethod = self.clickables["NextImage"]
         method("NextImage")
+
+    def OnNLeftKeyDown(self, event):
+        if wx.Window.FindFocus() is self.ch_imgdpath:
+            _rect, method, _wheelmethod = self.clickables["PrevImage"]
+            method("PrevImage")
+        else:
+            AdventurerCreaterPage.OnNLeftKeyDown(self, event)
+
+    def OnNRightKeyDown(self, event):
+        if wx.Window.FindFocus() is self.ch_imgdpath:
+            _rect, method, _wheelmethod = self.clickables["NextImage"]
+            method("NextImage")
+        else:
+            AdventurerCreaterPage.OnNRightKeyDown(self, event)
 
     def is_changedimgpath(self):
         return self._oldimgpath <> self.imgpaths
@@ -2646,7 +2696,6 @@ class DesignPanel(AdventurerCreaterPage):
             self.can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
         self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
         self.draw(True)
-        self.namectrl.SetFocus()
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
