@@ -730,12 +730,14 @@ class AdventurerCreaterPage(wx.Panel):
         pass
 
     def OnNLeftKeyDown(self, event):
-        if wx.Window.FindFocus() is self:
+        fc = wx.Window.FindFocus()
+        if fc is self:
             self.move_left()
             event.Skip()
 
     def OnNRightKeyDown(self, event):
-        if wx.Window.FindFocus() is self:
+        fc = wx.Window.FindFocus()
+        if fc is self:
             self.move_right()
             event.Skip()
 
@@ -1102,38 +1104,53 @@ class NamePage(AdventurerCreaterPage):
         self._bind()
         self._do_layout()
 
+        # FIXME: アクセラレータに設定した上下左右キーがTextCtrl内で
+        #        一切効かなくなるので、TextCtrlがフォーカスを得た時点で
+        #        左右キーのアクセラレータを取り除いたテーブルに差し替える
         self.upkeyid = wx.NewId()
         self.downkeyid = wx.NewId()
-        ctrlleftkeyid = wx.NewId()
-        ctrlrightkeyid = wx.NewId()
-        nleftkeyid = wx.NewId()
-        nrightkeyid = wx.NewId()
-        nupkeyid = wx.NewId()
-        ndownkeyid = wx.NewId()
+        self.ctrlleftkeyid = wx.NewId()
+        self.ctrlrightkeyid = wx.NewId()
+        self.nleftkeyid = wx.NewId()
+        self.nrightkeyid = wx.NewId()
+        self.nupkeyid = wx.NewId()
+        self.ndownkeyid = wx.NewId()
         self.shifttabkeyid = wx.NewId()
         self.tabkeyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnUpKeyDown, id=self.upkeyid)
         self.Bind(wx.EVT_MENU, self.OnDownKeyDown, id=self.downkeyid)
-        self.Bind(wx.EVT_MENU, self.OnCtrlLeftKeyDown, id=ctrlleftkeyid)
-        self.Bind(wx.EVT_MENU, self.OnCtrlRightKeyDown, id=ctrlrightkeyid)
-        self.Bind(wx.EVT_MENU, self.OnNLeftKeyDown, id=nleftkeyid)
-        self.Bind(wx.EVT_MENU, self.OnNRightKeyDown, id=nrightkeyid)
-        self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=nupkeyid)
-        self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=ndownkeyid)
+        self.Bind(wx.EVT_MENU, self.OnCtrlLeftKeyDown, id=self.ctrlleftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnCtrlRightKeyDown, id=self.ctrlrightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNLeftKeyDown, id=self.nleftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNRightKeyDown, id=self.nrightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=self.nupkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.ndownkeyid)
         self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=self.shifttabkeyid)
         self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.tabkeyid)
+        self._set_acceleratortable(False)
+        def OnTextCtrlSetFocus(event):
+            self._set_acceleratortable(False)
+            event.Skip(True)
+        self.textctrl.Bind(wx.EVT_SET_FOCUS, OnTextCtrlSetFocus)
+        def OnTextCtrlKillFocus(event):
+            self._set_acceleratortable(True)
+            event.Skip(True)
+        self.textctrl.Bind(wx.EVT_KILL_FOCUS, OnTextCtrlKillFocus)
+
+    def _set_acceleratortable(self, leftright):
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
-            (wx.ACCEL_CTRL, wx.WXK_LEFT, ctrlleftkeyid),
-            (wx.ACCEL_CTRL, wx.WXK_RIGHT, ctrlrightkeyid),
-            (wx.ACCEL_NORMAL, wx.WXK_LEFT, nleftkeyid),
-            (wx.ACCEL_NORMAL, wx.WXK_RIGHT, nrightkeyid),
-            (wx.ACCEL_NORMAL, wx.WXK_UP, nupkeyid),
-            (wx.ACCEL_NORMAL, wx.WXK_DOWN, ndownkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_LEFT, self.ctrlleftkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.ctrlrightkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_UP, self.nupkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_DOWN, self.ndownkeyid),
             (wx.ACCEL_SHIFT, wx.WXK_TAB, self.shifttabkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_TAB, self.tabkeyid),
         ]
+        if leftright:
+            seq.append((wx.ACCEL_NORMAL, wx.WXK_LEFT, self.nleftkeyid))
+            seq.append((wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.nrightkeyid))
         cw.util.set_acceleratortable(self, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
 
     def _bind(self):
@@ -2475,31 +2492,70 @@ class DesignPanel(AdventurerCreaterPage):
         self._bind()
         self._do_layout()
 
+        # FIXME: アクセラレータに設定した矢印キーがTextCtrl内で
+        #        一切効かなくなるので、TextCtrlがフォーカスを得た時点で
+        #        矢印キーのアクセラレータを取り除いたテーブルに差し替える
         self.upkeyid = wx.NewId()
         self.downkeyid = wx.NewId()
-        ctrlleftkeyid = wx.NewId()
-        ctrlrightkeyid = wx.NewId()
+        self.ctrlleftkeyid = wx.NewId()
+        self.ctrlrightkeyid = wx.NewId()
+        self.nleftkeyid = wx.NewId()
+        self.nrightkeyid = wx.NewId()
+        self.nupkeyid = wx.NewId()
+        self.ndownkeyid = wx.NewId()
         self.shifttabkeyid = wx.NewId()
         self.tabkeyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnUpKeyDown, id=self.upkeyid)
         self.Bind(wx.EVT_MENU, self.OnDownKeyDown, id=self.downkeyid)
-        self.Bind(wx.EVT_MENU, self.OnCtrlLeftKeyDown, id=ctrlleftkeyid)
-        self.Bind(wx.EVT_MENU, self.OnCtrlRightKeyDown, id=ctrlrightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnCtrlLeftKeyDown, id=self.ctrlleftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnCtrlRightKeyDown, id=self.ctrlrightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNLeftKeyDown, id=self.nleftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNRightKeyDown, id=self.nrightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=self.nupkeyid)
+        self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.ndownkeyid)
         self.Bind(wx.EVT_MENU, self.OnShiftTab, id=self.shifttabkeyid)
         self.Bind(wx.EVT_MENU, self.OnTab, id=self.tabkeyid)
+        self._set_acceleratortable(False)
+        def OnTextCtrlSetFocus(event):
+            self._set_acceleratortable(False)
+            event.Skip(True)
+        self.namectrl.Bind(wx.EVT_SET_FOCUS, OnTextCtrlSetFocus)
+        self.descctrl.Bind(wx.EVT_SET_FOCUS, OnTextCtrlSetFocus)
+        def OnTextCtrlKillFocus(event):
+            self._set_acceleratortable(True)
+            event.Skip(True)
+        self.namectrl.Bind(wx.EVT_KILL_FOCUS, OnTextCtrlKillFocus)
+        self.descctrl.Bind(wx.EVT_KILL_FOCUS, OnTextCtrlKillFocus)
+
+    def _set_acceleratortable(self, arrowkey):
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
-            (wx.ACCEL_CTRL, wx.WXK_LEFT, ctrlleftkeyid),
-            (wx.ACCEL_CTRL, wx.WXK_RIGHT, ctrlrightkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_LEFT, self.ctrlleftkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.ctrlrightkeyid),
             (wx.ACCEL_SHIFT, wx.WXK_TAB, self.shifttabkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_TAB, self.tabkeyid),
         ]
-        cw.util.set_acceleratortable(self, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
+        if arrowkey:
+            seq.append((wx.ACCEL_NORMAL, wx.WXK_LEFT, self.nleftkeyid))
+            seq.append((wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.nrightkeyid))
+            seq.append((wx.ACCEL_NORMAL, wx.WXK_UP, self.nupkeyid))
+            seq.append((wx.ACCEL_NORMAL, wx.WXK_DOWN, self.ndownkeyid))
+        cw.util.set_acceleratortable(self, list(seq), ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
+
+    def is_selectionstart(self):
+        # 常にFalseを返す事で矢印キーによるフォーカス移動を行わせない
+        return False
+
+    def is_selectionend(self):
+        # 常にFalseを返す事で矢印キーによるフォーカス移動を行わせない
+        return False
 
     def OnShiftTab(self, event):
         fc = wx.Window.FindFocus()
         if fc is self.descctrl:
+            self.SetFocusIgnoringChildren()
+        elif fc is self:
             self.namectrl.SetFocus()
         else:
             fc.Navigate(wx.NavigationKeyEvent.IsBackward)
@@ -2507,6 +2563,8 @@ class DesignPanel(AdventurerCreaterPage):
     def OnTab(self, event):
         fc = wx.Window.FindFocus()
         if fc is self.namectrl:
+            self.SetFocusIgnoringChildren()
+        elif fc is self:
             self.descctrl.SetFocus()
         else:
             fc.Navigate(wx.NavigationKeyEvent.IsForward)
