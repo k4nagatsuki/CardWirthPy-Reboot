@@ -448,6 +448,7 @@ class AdventurerCreater(wx.Dialog):
                                                             cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_decide"])
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
                                                             cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_cancel"])
+        self.SetEscapeId(self.closebtn.GetId())
         self.enable_btn()
         self.nextbtn.Disable()
         self._do_layout()
@@ -553,8 +554,7 @@ class AdventurerCreater(wx.Dialog):
     def OnCancel(self, event):
         if not self.page1.name:
             cw.cwpy.play_sound("click")
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
-            self.ProcessEvent(btnevent)
+            self.Destroy()
             return
 
         cw.cwpy.play_sound("signal")
@@ -563,8 +563,7 @@ class AdventurerCreater(wx.Dialog):
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
-            self.ProcessEvent(btnevent)
+            self.Destroy()
 
         dlg.Destroy()
 
