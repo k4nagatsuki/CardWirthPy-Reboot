@@ -2684,6 +2684,7 @@ class YadoData(object):
         """
         シナリオのNPCを宿に連れ込む。
         """
+        r_gene = re.compile(u"＠Ｇ\d{10}$")
         for fcard in cw.cwpy.get_fcards():
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
@@ -2707,9 +2708,14 @@ class YadoData(object):
                     break
 
             fcard.set_coupon(u"＠本来の上限", value)
-            gene = cw.header.Gene()
-            gene.set_talentbit(talent)
-            fcard.set_coupon(u"＠Ｇ" + gene.get_str(), 0)
+            for coupon in fcard.get_coupons():
+                if r_gene.match(coupon):
+                    break
+            else:
+                gene = cw.header.Gene()
+                gene.set_talentbit(talent)
+                fcard.set_coupon(u"＠Ｇ" + gene.get_str(), 0)
+
             data = fcard.data
 
             # 所持カードの素材ファイルコピー

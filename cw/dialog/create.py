@@ -313,6 +313,7 @@ class AdventurerData(object):
             self.has_parents = True
             father.made_baby()
             fgene = father.gene
+            fgene = fgene.rotate_father()
             self.set_coupon(cw.cwpy.msgs["father_coupon"] % (father.name), 0)
         else:
             fgene = cw.header.Gene()
@@ -323,7 +324,7 @@ class AdventurerData(object):
             if not father is mother:
                 mother.made_baby()
             mgene = mother.gene
-            mgene = mgene.rotate()
+            mgene = mgene.rotate_mother()
             self.set_coupon(cw.cwpy.msgs["mother_coupon"] % (mother.name), 0)
         else:
             mgene = cw.header.Gene()

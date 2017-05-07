@@ -981,17 +981,23 @@ class AdventurerHeader(object):
         data = cw.data.yadoxml2etree(self.fpath)
         r_gene = re.compile(u"＠Ｇ\d{10}$")
 
-        for e in data.getfind("Property/Coupons"):
+        ep = False
+        gene = False
+        for e in data.find("Property/Coupons"):
+            if ep and gene:
+                break
             if not e.text:
                 continue
 
             # EP減少
-            if e.text == u"＠ＥＰ":
+            if e.text == u"＠ＥＰ" and not ep:
                 e.attrib["value"] = str(e.getint(".", "value") - n)
+                ep = True
             # 子作り回数加算
-            elif r_gene.match(e.text):
-                e.attrib["value"] = str(e.getint(".", "value") + 1)
-                self.gene.count += 1
+            elif r_gene.match(e.text) and not gene:
+                self.gene.count = e.getint(".", "value") + 1
+                e.attrib["value"] = str(self.gene.count)
+                gene = True
 
         data.write_xml(True)
 
@@ -1081,24 +1087,28 @@ class AdventurerHeader(object):
         return cw.cwpy.setting.unknown_race
 
 class Gene(object):
-    def __init__(self, bits=[][:]):
+    def __init__(self, bits=[][:], count=0):
         if bits:
             self.bits = bits
         else:
             self.bits = [0 for _cnt in xrange(10)]
 
-        self.count = 0
+        self.count = count
 
     def get_str(self):
         return "".join([str(bit) for bit in self.bits])
 
     def set_str(self, s, count=0):
         self.bits = [int(char) for char in s]
-        self.count += count
+        self.count = count
 
-    def set_bit(self, index, value=1):
-        index = cw.util.numwrap(index, 0, 9)
-        self.bits[index] = 1 if value else 0
+    def reverse_bit(self, index):
+        if 0 <= index < 10:
+            self.bits[index] = 0 if self.bits[index] else 1
+
+    def set_bit(self, index, value):
+        if 0 <= index < 10:
+            self.bits[index] = 1 if value else 0
 
     def set_randombit(self):
         n = cw.cwpy.dice.roll(sided=10)
@@ -1107,10 +1117,13 @@ class Gene(object):
     def set_talentbit(self, talent, oldtalent=""):
         for nature in cw.cwpy.setting.natures:
             if u"＿" + nature.name == talent:
+                # 型に対応する型のbitを1にする
                 for index in xrange(len(nature.genepattern)):
                     if nature.genepattern[index] == '1':
-                        self.set_bit(index)
+                        self.set_bit(index, 1)
                 if nature.genecount == 0:
+                    # 最弱遺伝子型(凡庸)
+                    # 選択した型のbitも1にする
                     self.set_talentbit(oldtalent)
                 break
 
@@ -1126,29 +1139,23 @@ class Gene(object):
         bits = [bit1 ^ bit2 for bit1, bit2 in zip(self.bits, gene.bits)]
         return Gene(bits)
 
-    def rotate(self):
-        # 母親の遺伝情報のローテート
-        n = self.count % 7
-        if n == 0:
-            count = 3
-        elif n == 1:
-            count = 0
-        elif n == 2:
-            count = 4
-        elif n == 3:
-            count = 1
-        elif n == 4:
-            count = 5
-        elif n == 5:
-            count = 2
-        else:
-            count = 6
-        bits_l = self.bits[:7]
-        bits_r = self.bits[7:]
-        bits = bits_l[:count]
-        bits.extend(bits_l[count:])
-        bits.extend(bits_r)
+    def rotate_father(self):
+        # 父親の遺伝情報のローテート(左へ)
+        count = (self.count-1) % 10
+        bits = self.bits[count:]
+        bits.extend(self.bits[:count])
         return Gene(bits)
+
+    def rotate_mother(self):
+        # 母親の遺伝情報のローテート(右へ)
+        count = (10 - (self.count-1)%10) % 10
+        bits = self.bits[count:]
+        bits.extend(self.bits[:count])
+        return Gene(bits)
+
+assert Gene([0, 1, 1, 0, 1, 0, 1, 0, 1, 1], 4).rotate_father().get_str() == "0101011011"
+assert Gene([0, 1, 1, 0, 0, 0, 0, 0, 0, 1], 3).rotate_mother().get_str() == "0101100000"
+
 
 class ScenarioHeader(object):
     def __init__(self, dbrec, imgdbrec):
