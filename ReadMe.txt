@@ -388,4 +388,6 @@ CardWirthPyを開発するにあたって、お世話になった方々に、心
 
 [HAND様](http://www.geocities.jp/handmademidis/)
 
+[FooKe様](http://www7b.biglobe.ne.jp/~fooke/CW/cwtop.html)
+
 その他、バグ報告・仕様提案などご意見くださったすべての方々
