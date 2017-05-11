@@ -385,7 +385,7 @@ class Setting(object):
         self.show_cardkind = True
         self.show_premiumicon = False
         self.can_clicksidesofcardcontrol = True
-        self.radius_notdetectmovement = 0
+        self.radius_notdetectmovement = 5
         self.show_paperandtree = False
         self.filer_dir = ""
         self.filer_file = ""

@@ -745,6 +745,8 @@ class SettingsPanel(wx.Panel):
         setting.protect_staredcard = value
         value = self.pane_ui.cb_protect_premiercard.GetValue()
         setting.protect_premiercard = value
+        value = self.pane_ui.sc_radius_notdetectmovement.GetValue()
+        setting.radius_notdetectmovement = value
 
         # 背景の更新
         if update and updatebg:
@@ -2477,15 +2479,9 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showbackpackcardatend = wx.CheckBox(
             panel, -1, u"荷物袋カードを最後に配置する")
         panel.AddWindow(self.cb_showbackpackcardatend, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
-        self.cb_can_clicksidesofcardcontrol = wx.CheckBox(
-            panel, -1, u"カード選択ダイアログの背景クリックで左右移動を行う")
-        panel.AddWindow(self.cb_can_clicksidesofcardcontrol, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_revertcardpocket = wx.CheckBox(
             panel, -1, u"レベル調節で手放したカードを自動的に戻す")
         panel.AddWindow(self.cb_revertcardpocket, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
-        self.cb_showlogwithwheelup = wx.CheckBox(
-            panel, -1, u"マウスホイールを上に回すとログを表示")
-        panel.AddWindow(self.cb_showlogwithwheelup, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_showroundautostartbutton = wx.CheckBox(
             panel, -1, u"バトルで自動的に行動を開始できるようにする")
         panel.AddWindow(self.cb_showroundautostartbutton, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
@@ -2499,6 +2495,28 @@ class UISettingPanel(wx.ScrolledWindow):
             panel, -1, u"プレミアカードの売却や破棄を禁止する")
         panel.AddWindow(self.cb_protect_premiercard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
+        self.cb_can_clicksidesofcardcontrol = wx.CheckBox(
+            panel, -1, u"カード選択ダイアログの背景クリックで左右移動を行う")
+        panel.AddWindow(self.cb_can_clicksidesofcardcontrol, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+        self.cb_showlogwithwheelup = wx.CheckBox(
+            panel, -1, u"マウスホイールを上に回すとログを表示")
+        panel.AddWindow(self.cb_showlogwithwheelup, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+
+        panel_radius_notdetectmovement = wx.Panel(panel, -1)
+        self.st_panel_radius_notdetectmovement = wx.StaticText(panel_radius_notdetectmovement, -1,
+                                                      u"マウスホイールでのカードの選択中にカーソルの小さな動きを無視する:")
+        self.sc_radius_notdetectmovement = wx.SpinCtrl(panel_radius_notdetectmovement, -1, "", size=(cw.ppis(50), -1))
+        self.sc_radius_notdetectmovement.SetRange(0, 50)
+        self.st_panel_radius_notdetectmovement_2 = wx.StaticText(panel_radius_notdetectmovement, -1,
+                                                      u"ピクセルまで")
+        bsizer_radius_notdetectmovement = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_radius_notdetectmovement.Add(self.st_panel_radius_notdetectmovement, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
+        bsizer_radius_notdetectmovement.Add(self.sc_radius_notdetectmovement, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
+        bsizer_radius_notdetectmovement.Add(self.st_panel_radius_notdetectmovement_2, 0, wx.ALIGN_CENTER, cw.ppis(0))
+        panel_radius_notdetectmovement.SetSizer(bsizer_radius_notdetectmovement)
+        panel_radius_notdetectmovement.SetSize(bsizer_radius_notdetectmovement.CalcMin())
+        panel.AddWindow(panel_radius_notdetectmovement, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+
         panel.AddWindow(spacer, spacing=cw.ppis(3))
 
         # 通知オプション
@@ -2620,6 +2638,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog)
         self.cb_protect_staredcard.SetValue(setting.protect_staredcard)
         self.cb_protect_premiercard.SetValue(setting.protect_premiercard)
+        self.sc_radius_notdetectmovement.SetValue(setting.radius_notdetectmovement)
 
         self.cb_show_btndesc.SetValue(setting.show_btndesc)
         self.cb_statusbarmask.SetValue(setting.statusbarmask)
@@ -2667,6 +2686,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog_init)
         self.cb_protect_staredcard.SetValue(setting.protect_staredcard_init)
         self.cb_protect_premiercard.SetValue(setting.protect_premiercard_init)
+        self.sc_radius_notdetectmovement.SetValue(setting.radius_notdetectmovement_init)
 
         self.cb_show_btndesc.SetValue(setting.show_btndesc_init)
         self.cb_statusbarmask.SetValue(setting.statusbarmask_init)
