@@ -628,6 +628,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             e = cw.data.make_element("ShowAdditionalControls", "" if setting.show_addctrlbtn else "Hidden", attrs=attrs)
             element.append(e)
 
+    # フォントサンプルのフォーマット
+    if setting.fontexampleformat <> setting.fontexampleformat_init:
+        e = cw.data.make_element("FontExampleFormat", setting.fontexampleformat)
+        element.append(e)
+
     # ファイル書き込み
     path = fpath
     etree = cw.data.xml2etree(element=element)

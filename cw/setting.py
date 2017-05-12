@@ -401,6 +401,8 @@ class Setting(object):
         self.delete_sourceafterinstalled = False
         # アップデートに伴うファイルの自動移動・削除を行う
         self.auto_update_files = True
+        # フォント表示例のフォーマット
+        self.fontexampleformat = "%fontface%"
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_yado = False
@@ -746,6 +748,9 @@ class Setting(object):
 
         # アップデートに伴うファイルの自動移動・削除を行う
         self.auto_update_files = data.getbool("AutoUpdateFiles", self.auto_update_files_init)
+
+        # フォント表示例のフォーマット
+        self.fontexampleformat = data.gettext("FontExampleFormat", self.fontexampleformat_init)
 
         # シナリオのインストール先(キー=ルートディレクトリ)
         e = data.find("InstalledPaths")

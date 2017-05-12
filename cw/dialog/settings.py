@@ -2975,10 +2975,12 @@ class FontSettingPanel(wx.Panel):
 
         self._select_base(self.base.GetGridCursorRow())
 
+        face = self.get_basefontface(self.bases[0])
         font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-                       face=self.st_example.GetLabel())
+                       face=face)
         self.st_example.SetFont(font)
-        self.st_example.SetLabel(self.get_basefontface(self.bases[0]))
+        s = cw.util.format_title(setting.fontexampleformat, {"fontface":face})
+        self.st_example.SetLabel(s)
 
         self._update_enabled()
         self.Layout()
@@ -3103,9 +3105,10 @@ class FontSettingPanel(wx.Panel):
     def _select_base(self, i):
         if 0 <= i:
             self.Freeze()
-            self.st_example.SetLabel(self.get_basefontface(self.bases[i]))
-            font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-                           face=self.st_example.GetLabel())
+            face = self.get_basefontface(self.bases[i])
+            s = cw.util.format_title(cw.cwpy.setting.fontexampleformat, {"fontface":face})
+            self.st_example.SetLabel(s)
+            font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, face=face)
             self.st_example.SetFont(font)
             self.Layout()
             self.Thaw()
@@ -3148,9 +3151,10 @@ class FontSettingPanel(wx.Panel):
     def _select_type(self, i):
         if 0 <= i:
             self.Freeze()
-            self.st_example.SetLabel(self.get_typefontface(self.types[i]))
-            font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-                           face=self.st_example.GetLabel())
+            face = self.get_typefontface(self.types[i])
+            s = cw.util.format_title(cw.cwpy.setting.fontexampleformat, {"fontface":face})
+            self.st_example.SetLabel(s)
+            font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, face=face)
             self.st_example.SetFont(font)
             self.Layout()
             self.Thaw()
