@@ -2517,6 +2517,7 @@ class UISettingPanel(wx.ScrolledWindow):
         panel_radius_notdetectmovement.SetSize(bsizer_radius_notdetectmovement.CalcMin())
         panel.AddWindow(panel_radius_notdetectmovement, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
 
+        spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
         panel.AddWindow(spacer, spacing=cw.ppis(3))
 
         # 通知オプション
@@ -2825,7 +2826,8 @@ class FontSettingPanel(wx.Panel):
 
         # フォント表示サンプル
         self.box_example = wx.StaticBox(self, -1, u"表示例")
-        self.st_example = wx.StaticText(self, -1, size=cw.ppis((100, 35)), style=wx.ALIGN_CENTER)
+        ln = len(cw.cwpy.setting.fontexampleformat.splitlines())
+        self.st_example = wx.StaticText(self, -1, size=cw.ppis((100, 24*ln+11)), style=wx.ALIGN_CENTER)
         self.st_example.SetDoubleBuffered(True)
 
         # 描画オプション
