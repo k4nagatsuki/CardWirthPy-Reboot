@@ -146,7 +146,7 @@ class SimpleSettingsPanel(wx.Panel):
 
         # デバッグモード
         self.box_debug = wx.StaticBox(self.panel, -1, u"デバッグ")
-        self.cb_debug = wx.CheckBox(self.panel, -1, u"デバッグモードでプレイする")
+        self.cb_debug = wx.CheckBox(self.panel, -1, u"デバッグモードでプレイする(Ctrl+Dでも切替可)")
         self.cb_debug.SetValue(cw.cwpy.debug)
 
         # スキン
@@ -1156,7 +1156,7 @@ class GeneralSettingPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         # デバッグモード
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        self.cb_debug = wx.CheckBox(self, -1, u"デバッグモードでプレイする")
+        self.cb_debug = wx.CheckBox(self, -1, u"デバッグモードでプレイする(Ctrl+Dでも切替可)")
         self.cb_debug.SetValue(cw.cwpy.debug)
         self.cb_show_debuglogdialog = wx.CheckBox(
             self, -1, u"シナリオの終了時にデバッグ情報を表示する")
