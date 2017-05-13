@@ -3735,7 +3735,16 @@ class TalkDialogContent(TalkContent):
         # 対象メンバ取得
         targetm = self.data.get("targetm", "")
         if targetm == "Valued":
-            talker = self.get_valuedmember("active", silenced_member=False)
+            self.init_values()
+            if self.coupons:
+                talker = self.get_valuedmember("active", silenced_member=False)
+            else:
+                seq = []
+                for pcard in cw.cwpy.get_pcards("active"):
+                    if pcard.is_silence():
+                        continue
+                    seq.append(pcard)
+                talker = cw.cwpy.dice.choice(seq)
         else:
             talker = cw.cwpy.event.get_targetmember(targetm)
 
