@@ -598,6 +598,14 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             if len(e):
                 element.append(e)
 
+        # カード編集ダイアログのブックマーク
+        if setting.bookmarks_for_cardedit:
+            e = cw.data.make_element("BookmarksForCardEditor")
+            for bookmarkpath, scname in setting.bookmarks_for_cardedit:
+                e_bookmark = cw.data.make_element("Bookmark", bookmarkpath, attrs={"name": scname})
+                e.append(e_bookmark)
+            element.append(e)
+
         # 一覧表示
         attrs = {}
         if setting.show_multiplebases or setting.show_multiplebases_init:

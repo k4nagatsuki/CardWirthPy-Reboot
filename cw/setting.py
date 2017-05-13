@@ -433,6 +433,9 @@ class Setting(object):
         # シナリオのインストール先(キー=ルートディレクトリ毎)
         self.installed_dir = {}
 
+        # カード編集ダイアログのブックマーク
+        self.bookmarks_for_cardedit = []
+
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
                 if isinstance(t[1], list):
@@ -764,6 +767,14 @@ class Setting(object):
                     if e_path.text:
                         dirstack.append(e_path.text)
                 self.installed_dir[rootdir] = dirstack
+
+        # カード編集ダイアログのブックマーク
+        e = data.find("BookmarksForCardEditor")
+        if not e is None:
+            for e_bookmark in e:
+                fpath = e_bookmark.text
+                name = e_bookmark.getattr(".", "name", u"")
+                self.bookmarks_for_cardedit.append((fpath, name))
 
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)
