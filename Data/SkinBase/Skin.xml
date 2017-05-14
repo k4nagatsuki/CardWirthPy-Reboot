@@ -712,9 +712,6 @@
     <Message key="create_debug">簡易方式</Message>
     <Message key="create_debug_description">簡易方式でキャラクターを作成します。血縁関係など、一部設定は省略されます。</Message>
     <Message key="file_name">ファイル名</Message>
-    <Message key="show_skillcards">特殊技能カードを表示</Message>
-    <Message key="show_itemcards">アイテムカードを表示</Message>
-    <Message key="show_beastcards">召喚獣カードを表示</Message>
     <Message key="suspend_levelup">レベルアップを停止する</Message>
     <Message key="suspend_levelup_description">レベルが上昇した時、現在のレベルが維持されるように自動的にレベル調節を行います。</Message>
     <Message key="settings">設定の変更</Message>
@@ -791,6 +788,7 @@
     <Message key="intensity">強度%s</Message>
     <Message key="duration">%sラウンド</Message>
     <Message key="all">全て</Message>
+    <Message key="show_object">%sを表示</Message>
     <!-- 2.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />

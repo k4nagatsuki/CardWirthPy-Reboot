@@ -103,9 +103,10 @@ class CardControl(wx.Dialog):
         self.show = [None] * 3
         self._typeicon_e = [None] * 3
         self._typeicon_d = [None] * 3
-        for cardtype, bmp, msg in ((cw.POCKET_SKILL, cw.cwpy.rsrc.dialogs["STATUS8"], cw.cwpy.msgs["show_skillcards"]),
-                                   (cw.POCKET_ITEM, cw.cwpy.rsrc.dialogs["STATUS9"], cw.cwpy.msgs["show_itemcards"]),
-                                   (cw.POCKET_BEAST, cw.cwpy.rsrc.dialogs["STATUS10"], cw.cwpy.msgs["show_beastcards"])):
+        show = (cw.cwpy.msgs["show_object"])
+        for cardtype, bmp, msg in ((cw.POCKET_SKILL, cw.cwpy.rsrc.dialogs["STATUS8"], (show % cw.cwpy.msgs["skillcard"])),
+                                   (cw.POCKET_ITEM, cw.cwpy.rsrc.dialogs["STATUS9"], (show % cw.cwpy.msgs["itemcard"])),
+                                   (cw.POCKET_BEAST, cw.cwpy.rsrc.dialogs["STATUS10"], (show % cw.cwpy.msgs["beastcard"]))):
             btn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
             self._typeicon_e[cardtype] = bmp
             dbmp = cw.imageretouch.to_disabledimage(bmp, maskpos=(bmp.GetWidth()-1, 0))
