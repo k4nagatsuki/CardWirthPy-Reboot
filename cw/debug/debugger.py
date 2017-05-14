@@ -71,8 +71,8 @@ class Debugger(wx.Frame):
         self._mgr = wx.aui.AuiManager()
         self._mgr.SetManagedWindow(self)
         # create status bar
-        self.statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
-        self.statusbar.SetStatusWidths([cw.ppis(0), -1])
+        self.statusbar = self.CreateStatusBar(1, wx.ST_SIZEGRIP)
+        self.statusbar.SetStatusWidths([-1])
 
         # 最後に強制実行したイベントが属するファイルパス
         self._currentfpath = ""
@@ -2116,7 +2116,7 @@ class EventView(wx.ScrolledWindow):
             content = cw.content.get_content(item.content)
             self.set_selectionitem(item)
             self.selectionindex = index
-            self.Parent.statusbar.SetStatusText(content.get_status(), 1)
+            self.Parent.statusbar.SetStatusText(content.get_status(), 0)
             self.Refresh()
 
     def OnDClick(self, event):
@@ -2178,7 +2178,7 @@ class EventView(wx.ScrolledWindow):
 
         if self.selectionitem and keycode in (wx.WXK_LEFT, wx.WXK_UP, wx.WXK_RIGHT, wx.WXK_DOWN):
             content = cw.content.get_content(self.selectionitem.content)
-            self.Parent.statusbar.SetStatusText(content.get_status(), 1)
+            self.Parent.statusbar.SetStatusText(content.get_status(), 0)
 
     def OnKeyUp(self, event):
         if not self.itemlist:
@@ -2231,10 +2231,10 @@ class EventView(wx.ScrolledWindow):
                     self.activeitem = self.items[cur_content]
                     self.show_item(self.activeitem)
                     s = cw.content.get_content(self.current_content).get_status()
-                    self.Parent.statusbar.SetStatusText(s, 1)
+                    self.Parent.statusbar.SetStatusText(s, 0)
                 else:
                     self.current_content = None
-                    self.Parent.statusbar.SetStatusText(u"", 1)
+                    self.Parent.statusbar.SetStatusText(u"", 0)
                 self.Refresh()
                 if self.Parent.view_stacktrace:
                     self.Parent.view_stacktrace.refresh_activeitem(nowrunning, cur_content)
@@ -2322,7 +2322,7 @@ class EventView(wx.ScrolledWindow):
             trees = nowrunning.trees
             self.current_event = nowrunning
             self.current_tree = trees
-            self.Parent.statusbar.SetStatusText(u"", 1)
+            self.Parent.statusbar.SetStatusText(u"", 0)
             self.activeitem = None
             self.set_selectionitem(None)
             self.selectionindex = -1
