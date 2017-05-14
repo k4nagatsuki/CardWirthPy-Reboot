@@ -533,7 +533,8 @@ class Frame(wx.Frame):
         while cw.cwpy.is_processing and not cw.cwpy.is_decompressing:
             pass
 
-        if cw.cwpy.setting.caution_beforesaving and cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
+        if (cw.cwpy.setting.caution_beforesaving and cw.cwpy.ydata and cw.cwpy.ydata.is_changed()) or\
+                cw.cwpy.is_runningevent():
             if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
                 s = cw.cwpy.msgs["confirm_quit_changed"]
             else:

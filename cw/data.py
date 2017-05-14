@@ -607,15 +607,25 @@ class SystemData(object):
     def get_bgmpaths(self):
         """現在使用可能なBGMのパスのリストを返す。"""
         seq = []
-        dpath = cw.util.join_paths(cw.cwpy.skindir, "Bgm")
-        for dpath2, _dnames, fnames in os.walk(dpath):
-            for fname in fnames:
-                if cw.util.splitext(fname)[1].lower() in (".ogg", ".mp3", ".mid", ".wav"):
-                    if dpath2 == dpath:
-                        dname = ""
-                    else:
-                        dname = cw.util.relpath(dpath2, dpath)
-                    seq.append(cw.util.join_paths(dname, fname))
+        dpaths = [cw.util.join_paths(cw.cwpy.skindir, u"Bgm"), cw.util.join_paths(cw.cwpy.skindir, u"BgmAndSound")]
+        for dpath2 in os.listdir(u"Data/Materials"):
+            dpath2 = cw.util.join_paths(u"Data/Materials", dpath2)
+            if os.path.isdir(dpath2):
+                dpath3 = cw.util.join_paths(dpath2, u"Bgm")
+                if os.path.isdir(dpath3):
+                    dpaths.append(dpath3)
+                dpath3 = cw.util.join_paths(dpath2, u"BgmAndSound")
+                if os.path.isdir(dpath3):
+                    dpaths.append(dpath3)
+        for dpath in dpaths:
+            for dpath2, _dnames, fnames in os.walk(dpath):
+                for fname in fnames:
+                    if cw.util.splitext(fname)[1].lower() in (".ogg", ".mp3", ".mid", ".wav"):
+                        if dpath2 == dpath:
+                            dname = ""
+                        else:
+                            dname = cw.util.relpath(dpath2, dpath)
+                        seq.append(cw.util.join_paths(dname, fname))
         return seq
 
     def fullrecovery_fcards(self):
@@ -2674,6 +2684,7 @@ class YadoData(object):
         """
         シナリオのNPCを宿に連れ込む。
         """
+        r_gene = re.compile(u"＠Ｇ\d{10}$")
         for fcard in cw.cwpy.get_fcards():
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
@@ -2697,9 +2708,14 @@ class YadoData(object):
                     break
 
             fcard.set_coupon(u"＠本来の上限", value)
-            gene = cw.header.Gene()
-            gene.set_talentbit(talent)
-            fcard.set_coupon(u"＠Ｇ" + gene.get_str(), 0)
+            for coupon in fcard.get_coupons():
+                if r_gene.match(coupon):
+                    break
+            else:
+                gene = cw.header.Gene()
+                gene.set_talentbit(talent)
+                fcard.set_coupon(u"＠Ｇ" + gene.get_str(), 0)
+
             data = fcard.data
 
             # 所持カードの素材ファイルコピー
@@ -3767,10 +3783,10 @@ def copydata(data):
     if isinstance(data, CWPyElementTree):
         return CWPyElementTree(element=copydata(data.getroot()))
 
-    if data.tag in ("Motions", "Events", "Id", "Name", "ImagePath", "ImagePaths",
+    if data.tag in ("Motions", "Events", "Id", "Name",
                     "Description", "Scenario", "Author", "Level", "Ability",
-                    "Target", "EffectType", "ResistType", "SuccessRate", "VisualEffect",
-                    "Enhance", "SoundPath", "SoundPath2", "KeyCodes", "Premium",
+                    "Target", "EffectType", "ResistType", "SuccessRate",
+                    "VisualEffect", "Enhance", "KeyCodes", "Premium",
                     "EnhanceOwner", "Price"):
         # 不変
         return data

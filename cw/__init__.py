@@ -116,11 +116,11 @@ HINT_SCENARIO = 3   # シナリオ本体
 DEFAULT_SOUNDFONT = "Data/SoundFont/TimGM6mb.sf2"
 
 # 表示レイヤ
-LTYPE_MESSAGE = 0
-LTYPE_BACKGROUND = 1
-LTYPE_MCARDS = 2
-LTYPE_PCARDS = 3
-LTYPE_FCARDS = 5
+LTYPE_MESSAGE = 1
+LTYPE_BACKGROUND = 2
+LTYPE_MCARDS = 3
+LTYPE_PCARDS = 4
+LTYPE_FCARDS = 0
 LTYPE_SPMCARDS = 0x7fffffff
 
 LAYER_BACKGROUND = 0 # 背景
@@ -128,7 +128,7 @@ LAYER_MCARDS = 100 # メニューカード・エネミーカード
 LAYER_PCARDS = 200 # プレイヤーカード
 LAYER_MCARDS_120 = 300 # CardWirth 1.20でのメニューカード(PCより手前に表示)
 LAYER_FCARDS_T = 0x7fffffff # デバッグモードで表示される戦闘中の同行キャスト
-LAYER_FCARDS = 0x7fffffff # 同行キャスト
+LAYER_FCARDS = 1000 # 同行キャスト
 LAYER_SPMCARDS = 0x7fffffff # 特殊エリアのメニューカード
 
 # (layer, index, kind)

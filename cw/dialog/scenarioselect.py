@@ -736,6 +736,7 @@ class ScenarioSelect(select.Select):
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
         self._add_bookmark.Enable(not self._is_specialselected())
+        self._arrange_bookmark.Enable(bool(cw.cwpy.ydata.bookmarks))
         self.bookmark.PopupMenu(self.bookmarkmenu)
 
     def OnBookmark2(self, event):
@@ -746,6 +747,7 @@ class ScenarioSelect(select.Select):
             self.create_bookmarkmenu()
         size = self.bookmark.GetSize()
         self._add_bookmark.Enable(not self._is_specialselected())
+        self._arrange_bookmark.Enable(bool(cw.cwpy.ydata.bookmarks))
         self.bookmark.PopupMenuXY(self.bookmarkmenu, size[0] / 2, size[1] / 2)
 
     def _is_specialselected(self):
@@ -772,11 +774,11 @@ class ScenarioSelect(select.Select):
         menu.AppendItem(self._add_bookmark)
         menu.Bind(wx.EVT_MENU, self.OnAddBookmark, self._add_bookmark)
 
-        arrange = wx.MenuItem(menu, -1, cw.cwpy.msgs["arrange_bookmark"])
-        arrange.SetBitmap(icon_arrange)
-        arrange.SetFont(font)
-        menu.AppendItem(arrange)
-        menu.Bind(wx.EVT_MENU, self.OnArrangeBookmark, arrange)
+        self._arrange_bookmark = wx.MenuItem(menu, -1, cw.cwpy.msgs["arrange_bookmark"])
+        self._arrange_bookmark.SetBitmap(icon_arrange)
+        self._arrange_bookmark.SetFont(font)
+        menu.AppendItem(self._arrange_bookmark)
+        menu.Bind(wx.EVT_MENU, self.OnArrangeBookmark, self._arrange_bookmark)
 
         # ブックマークを開くためのユーティリティクラス
         class OpenBookmark(object):

@@ -1693,7 +1693,7 @@ class CWPy(_Singleton, threading.Thread):
         self.lock_menucards = locks
 
         # バックログの保存
-        if self.setting.backlogmax and isinstance(mwin.result, int) and\
+        if self.is_playingscenario() and self.setting.backlogmax and isinstance(mwin.result, int) and\
                 not isinstance(mwin, cw.sprite.message.MemberSelectWindow):
             if self.setting.backlogmax <= len(self.sdata.backlog):
                 self.sdata.backlog.pop(0)
@@ -4860,7 +4860,7 @@ def post_pygameevent(event):
         pygame.event.post(event)
     except:
         # 入力イベントが輻輳している場合はクリアする
-        self.clear_inputevents()
+        cw.cwpy.clear_inputevents()
         pygame.event.post(event)
 
 

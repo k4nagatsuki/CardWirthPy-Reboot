@@ -385,7 +385,7 @@ class Setting(object):
         self.show_cardkind = True
         self.show_premiumicon = False
         self.can_clicksidesofcardcontrol = True
-        self.radius_notdetectmovement = 0
+        self.radius_notdetectmovement = 5
         self.show_paperandtree = False
         self.filer_dir = ""
         self.filer_file = ""
@@ -401,6 +401,8 @@ class Setting(object):
         self.delete_sourceafterinstalled = False
         # アップデートに伴うファイルの自動移動・削除を行う
         self.auto_update_files = True
+        # フォント表示例のフォーマット
+        self.fontexampleformat = "%fontface%"
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_yado = False
@@ -430,6 +432,9 @@ class Setting(object):
 
         # シナリオのインストール先(キー=ルートディレクトリ毎)
         self.installed_dir = {}
+
+        # カード編集ダイアログのブックマーク
+        self.bookmarks_for_cardedit = []
 
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
@@ -747,6 +752,9 @@ class Setting(object):
         # アップデートに伴うファイルの自動移動・削除を行う
         self.auto_update_files = data.getbool("AutoUpdateFiles", self.auto_update_files_init)
 
+        # フォント表示例のフォーマット
+        self.fontexampleformat = data.gettext("FontExampleFormat", self.fontexampleformat_init)
+
         # シナリオのインストール先(キー=ルートディレクトリ)
         e = data.find("InstalledPaths")
         if not e is None:
@@ -759,6 +767,14 @@ class Setting(object):
                     if e_path.text:
                         dirstack.append(e_path.text)
                 self.installed_dir[rootdir] = dirstack
+
+        # カード編集ダイアログのブックマーク
+        e = data.find("BookmarksForCardEditor")
+        if not e is None:
+            for e_bookmark in e:
+                fpath = e_bookmark.text
+                name = e_bookmark.getattr(".", "name", u"")
+                self.bookmarks_for_cardedit.append((fpath, name))
 
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)

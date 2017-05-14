@@ -11,7 +11,11 @@ from ctypes import c_size_t, c_long, c_void_p, c_longlong, c_float
 import cw
 from cw.util import synclock
 
-BASS_DEVICE_DEFAULT = 2
+BASS_DEVICE_DEFAULT = 0
+BASS_DEVICE_8BITS = 1
+BASS_DEVICE_MONO = 2
+BASS_DEVICE_3D = 4
+
 BASS_DEFAULT = 0
 BASS_SAMPLE_LOOP = 4
 BASS_MUSIC_RAMP = 0x200
@@ -182,7 +186,7 @@ def init_bass(soundfonts):
     if not _bass:
         return False
 
-    if not _bass.BASS_Init(-1, 44100, BASS_DEFAULT, None, None):
+    if not _bass.BASS_Init(-1, 44100, BASS_DEVICE_DEFAULT, None, None):
         dispose_bass()
         return False
 
@@ -216,7 +220,9 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     """
     global _bass, _bassmidi, _bassfx, _sfonts
     encoding = sys.getfilesystemencoding()
-    flag = BASS_STREAM_DECODE|BASS_MUSIC_RAMP|BASS_MUSIC_POSRESET|BASS_MUSIC_PRESCAN
+    flag = BASS_MUSIC_STOPBACK|BASS_MUSIC_POSRESET|BASS_MUSIC_PRESCAN
+    if tempo <> 0 or pitch <> 0:
+        flag |= BASS_STREAM_DECODE
 
     _BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ismidi = False
@@ -265,7 +271,8 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
                     loopinfo = (pos, -1)
                     break
 
-    stream = _bassfx.BASS_FX_TempoCreate(stream, BASS_FX_FREESOURCE)
+    if tempo <> 0 or pitch <> 0:
+        stream = _bassfx.BASS_FX_TempoCreate(stream, BASS_FX_FREESOURCE)
 
     _loopcounts[streamindex] = loopcount
     if loopinfo:

@@ -50,6 +50,11 @@ class CardEditDialog(wx.Dialog):
 
         self.scenario = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"(シナリオ未選択)")
 
+        bmp = cw.cwpy.rsrc.dialogs["BOOKMARK_dbg"]
+        self.bookmark = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), bmp=bmp)
+        self.bookmark.SetToolTip(wx.ToolTip(u"ブックマーク"))
+        self.bookmarkmenu = None
+
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL_dbg"])
         self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM_dbg"])
@@ -129,6 +134,7 @@ class CardEditDialog(wx.Dialog):
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnScenario, self.scenario)
+        self.Bind(wx.EVT_BUTTON, self.OnBookmark, self.bookmark)
         self.Bind(wx.EVT_BUTTON, self.OnDetailBtn, self.dtlbtn)
         self.Bind(wx.EVT_BUTTON, self.OnDealBtn, self.dealbtn)
         self.Bind(wx.EVT_BUTTON, self.OnFindBtn, self.findbtn)
@@ -141,7 +147,12 @@ class CardEditDialog(wx.Dialog):
 
     def _do_layout(self):
         sizer_cards = wx.StaticBoxSizer(self.cardsbox, wx.VERTICAL)
-        sizer_cards.Add(self.scenario, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
+
+        sizer_scenario = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_scenario.Add(self.scenario, 1, wx.EXPAND, 0)
+        sizer_scenario.Add(self.bookmark, 0, wx.EXPAND, 0)
+
+        sizer_cards.Add(sizer_scenario, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
         sizer_cards.Add(self.cards, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
 
         sizer_dealtarg = wx.StaticBoxSizer(self.dealtargbox, wx.HORIZONTAL)
@@ -226,6 +237,80 @@ class CardEditDialog(wx.Dialog):
 
             self.Enable(False)
             cw.cwpy.exec_func(func, self)
+
+    def select_scenario(self, fpath):
+        try:
+            scdata = cw.scenariodb.get_scenario(fpath)
+            if scdata:
+                self.scpath = fpath
+                self.scdata = scdata
+                self._update_cards()
+        except:
+            cw.util.print_ex(file=sys.stderr)
+
+    def OnBookmark(self, event):
+        """ブックマークメニューを生成して表示する。"""
+        cw.cwpy.play_sound("page")
+        if not self.bookmarkmenu:
+            self.create_bookmarkmenu()
+        self._add_bookmark.Enable(not self.scdata is None)
+        self._arrange_bookmark.Enable(bool(cw.cwpy.setting.bookmarks_for_cardedit))
+        self.bookmark.PopupMenu(self.bookmarkmenu)
+
+    def create_bookmarkmenu(self):
+        if self.bookmarkmenu:
+            self.bookmarkmenu.Destroy()
+        menu = wx.Menu()
+        self.bookmarkmenu = menu
+        icon_add = cw.cwpy.rsrc.dialogs["BOOKMARK_dbg"]
+        icon_arrange = cw.cwpy.rsrc.dialogs["ARRANGE_BOOKMARK_dbg"]
+        icon_summary = cw.cwpy.rsrc.dialogs["SUMMARY_dbg"]
+
+        self._add_bookmark = wx.MenuItem(menu, -1, u"ブックマークの登録")
+        self._add_bookmark.SetBitmap(icon_add)
+        menu.AppendItem(self._add_bookmark)
+        menu.Bind(wx.EVT_MENU, self.OnAddBookmark, self._add_bookmark)
+
+        self._arrange_bookmark = wx.MenuItem(menu, -1, u"ブックマークの整理")
+        self._arrange_bookmark.SetBitmap(icon_arrange)
+        menu.AppendItem(self._arrange_bookmark)
+        menu.Bind(wx.EVT_MENU, self.OnArrangeBookmark, self._arrange_bookmark)
+
+        # ブックマークを開くためのユーティリティクラス
+        class OpenBookmark(object):
+            def __init__(self, outer, bookmarkpath):
+                self.outer = outer
+                self.bookmarkpath = bookmarkpath
+
+            def OnOpen(self, event):
+                self.outer.select_scenario(self.bookmarkpath)
+
+        if cw.cwpy.setting.bookmarks_for_cardedit:
+            menu.AppendSeparator()
+            for bookmarkpath, name in cw.cwpy.setting.bookmarks_for_cardedit:
+                fname = os.path.basename(bookmarkpath)
+                if name:
+                    s = "%s(%s)" % (name, fname)
+                else:
+                    s = fname
+                item = wx.MenuItem(menu, -1, s.replace("&", "&&"))
+                item.SetBitmap(icon_summary)
+                openbookmark = OpenBookmark(self, bookmarkpath)
+                menu.AppendItem(item)
+                menu.Bind(wx.EVT_MENU, openbookmark.OnOpen, item)
+
+    def OnAddBookmark(self, event):
+        if self.scdata:
+            cw.cwpy.setting.bookmarks_for_cardedit.append((self.scpath, self.scdata.name))
+            self.create_bookmarkmenu()
+
+    def OnArrangeBookmark(self, event):
+        dlg = cw.debug.edit.EditBookmarksForCardEditDialog(self, cw.cwpy.setting.bookmarks_for_cardedit)
+        cw.cwpy.frame.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            cw.cwpy.setting.bookmarks_for_cardedit = dlg.list
+            self.create_bookmarkmenu()
+        dlg.Destroy()
 
     def OnDetailBtn(self, event):
         """カードの情報を表示する。"""
@@ -738,7 +823,16 @@ class CardEditDialog(wx.Dialog):
         append_cards(self.scdata.get_itemids, self.scdata.get_itemdata, self.imgidx_item)
         append_cards(self.scdata.get_beastids, self.scdata.get_beastdata, self.imgidx_beast)
 
+        self._update_bookmarkname()
         self._update_enable()
+
+    def _update_bookmarkname(self):
+        if self.scpath:
+            scpath = os.path.normcase(os.path.normpath(os.path.abspath(self.scpath)))
+            for i, (fpath, name) in enumerate(cw.cwpy.setting.bookmarks_for_cardedit):
+                scpath2 = os.path.normcase(os.path.normpath(os.path.abspath(fpath)))
+                if scpath == scpath2:
+                    cw.cwpy.setting.bookmarks_for_cardedit[i] = (fpath, self.scdata.name)
 
     def _update_enable(self):
         """各ボタンの押下可否を状況に応じて変更する。"""

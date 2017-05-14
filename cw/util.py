@@ -3037,8 +3037,11 @@ def convert_to_image(bmp):
     w = bmp.GetWidth()
     h = bmp.GetHeight()
     buf = array.array('B', [0] * (w*h * 3))
-    bmp.CopyToBuffer(buf)
-    img = wx.ImageFromBuffer(w, h, buf)
+    try:
+        bmp.CopyToBuffer(buf)
+        img = wx.ImageFromBuffer(w, h, buf)
+    except:
+        img = bmp.ConvertToImage()
     if hasattr(bmp, "bmpdepthis1"):
         img.bmpdepthis1 = bmp.bmpdepthis1
     if hasattr(bmp, "maskcolour"):
@@ -3498,7 +3501,7 @@ def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
     toppanel.Bind(wx.EVT_MOTION, OnMotion)
     toppanel.Bind(wx.EVT_LEFT_UP, OnLeftUp)
 
-def set_acceleratortable(panel, seq):
+def set_acceleratortable(panel, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog, wx.Panel)):
     """panelにseqから生成したAcceleratorTableを設定する。
     """
     # テキスト入力欄に限り左右キーを取り除く
@@ -3510,7 +3513,7 @@ def set_acceleratortable(panel, seq):
     accel1 = wx.AcceleratorTable(seq)
     accel2 = wx.AcceleratorTable(seq2)
     def recurse(widget):
-        if isinstance(widget, (wx.TextCtrl, wx.Dialog, wx.Panel)):
+        if isinstance(widget, ignoreleftrightkeys):
             widget.SetAcceleratorTable(accel2)
         else:
             widget.SetAcceleratorTable(accel1)

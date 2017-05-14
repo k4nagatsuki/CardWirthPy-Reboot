@@ -106,8 +106,24 @@ class CharaInfo(wx.Dialog):
         self._bind()
         cw.util.add_sideclickhandlers(self.toppanel, self.leftbtn, self.rightbtn)
 
-        tab = self.notebook.GetActiveTabCtrl()
-        tab.SetFocus()
+        for i in xrange(len(self.bottompanel)):
+            tabctrl = self.notebook.FindTab(self.notebook.GetPage(i))[0]
+            def onfocus(event):
+                self.closebtn.SetFocus()
+            tabctrl.Bind(wx.EVT_SET_FOCUS, onfocus)
+        for panel in self.bottompanel:
+            panel.AcceptsFocus = lambda: False
+            panel.AcceptsFocusFromKeyboard = lambda: False
+            panel.AcceptsFocusRecursively = lambda: False
+            panel.SetFocus = lambda: None
+            panel.SetFocusFromKeyboard = lambda: None
+            if  3 <= wx.VERSION[0]:
+                panel.SetCanFocus(False)
+            def onfocus(event):
+                self.closebtn.SetFocus()
+            panel.Bind(wx.EVT_SET_FOCUS, onfocus)
+
+        self.closebtn.SetFocus()
 
         self.leftpagekeyid = wx.NewId()
         self.rightpagekeyid = wx.NewId()
@@ -121,6 +137,8 @@ class CharaInfo(wx.Dialog):
         self.openinfo = wx.NewId()
         copyid = wx.NewId()
         esckeyid = wx.NewId()
+        leftkeyid = wx.NewId()
+        rightkeyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnUp, id=self.upkeyid)
@@ -133,6 +151,8 @@ class CharaInfo(wx.Dialog):
         self.Bind(wx.EVT_MENU, self.OnOpenInfo, id=self.openinfo)
         self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
         self.Bind(wx.EVT_MENU, self.OnCancel, id=esckeyid)
+        self.Bind(wx.EVT_MENU, self.OnLeftKey, id=leftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnRightKey, id=rightkeyid)
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftpagekeyid),
             (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
@@ -147,6 +167,8 @@ class CharaInfo(wx.Dialog):
             (wx.ACCEL_NORMAL, ord('_'), esckeyid),
             (wx.ACCEL_CTRL, wx.WXK_RETURN, self.openinfo),
             (wx.ACCEL_CTRL, ord('C'), copyid),
+            (wx.ACCEL_NORMAL, wx.WXK_LEFT, leftkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_RIGHT, rightkeyid),
         ]
         cw.util.set_acceleratortable(self, seq)
 
@@ -196,6 +218,7 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x, y - 1)
+            page.Refresh()
 
     def OnPageUp(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
@@ -203,12 +226,14 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x, y - 10)
+            page.Refresh()
 
     def OnHome(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if isinstance(page, wx.ScrolledWindow):
             x = page.GetScrollPos(wx.HORIZONTAL)
             page.Scroll(x, 0)
+            page.Refresh()
 
     def OnDown(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
@@ -218,6 +243,7 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x, y + 1)
+            page.Refresh()
 
     def OnPageDown(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
@@ -225,22 +251,52 @@ class CharaInfo(wx.Dialog):
             x = page.GetScrollPos(wx.HORIZONTAL)
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x, y + 10)
+            page.Refresh()
+
+    def OnLeftKey(self, event):
+        event.Skip()
+        index = self.notebook.GetSelection()
+        page = self.notebook.GetPage(index)
+        if isinstance(page, wx.ScrolledWindow):
+            x = page.GetScrollPos(wx.HORIZONTAL)
+            y = page.GetScrollPos(wx.VERTICAL)
+            page.Scroll(x - 1, y)
+            page.Refresh()
+            if x <> page.GetScrollPos(wx.HORIZONTAL):
+                return
+        self.notebook.SetSelection(index-1 if 0 < index else len(self.bottompanel)-1)
+
+    def OnRightKey(self, event):
+        event.Skip()
+        index = self.notebook.GetSelection()
+        page = self.notebook.GetPage(index)
+        if isinstance(page, wx.ScrolledWindow):
+            x = page.GetScrollPos(wx.HORIZONTAL)
+            y = page.GetScrollPos(wx.VERTICAL)
+            page.Scroll(x + 1, y)
+            page.Refresh()
+            if x <> page.GetScrollPos(wx.HORIZONTAL):
+                return
+        self.notebook.SetSelection((index+1) % len(self.bottompanel))
 
     def OnEnd(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if isinstance(page, wx.ScrolledWindow):
             x = page.GetScrollPos(wx.HORIZONTAL)
             page.Scroll(x, page.GetVirtualSize()[1])
+            page.Refresh()
 
     def up(self):
         x = self.GetScrollPos(wx.HORIZONTAL)
         y = self.GetScrollPos(wx.VERTICAL)
         self.Scroll(x, y - 1)
+        self.Refresh()
 
     def down(self):
         x = self.GetScrollPos(wx.HORIZONTAL)
         y = self.GetScrollPos(wx.VERTICAL)
         self.Scroll(x, y + 1)
+        self.Refresh()
 
     def OnMouseWheel(self, event):
         rect = self.GetClientRect()
@@ -724,7 +780,7 @@ class DescPanel(wx.ScrolledWindow):
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
-        self.SetScrollRate(cw.wins(10), cw.wins(10))
+        self.SetScrollRate(cw.wins(10), cw.wins(13))
 
         # エレメントオブジェクト
         self.ccard = ccard
@@ -802,7 +858,6 @@ class HistoryPanel(wx.ScrolledWindow):
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
-        self.SetScrollRate(cw.wins(10), cw.wins(10))
         # エレメントオブジェクト
         self.ccard = ccard
         # bmp
@@ -820,6 +875,8 @@ class HistoryPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
         # create buffer
         self.draw(True)
+
+        self.SetScrollRate(cw.wins(10), self.gold.GetSize()[1] + cw.wins(5))
 
         if cw.cwpy.debug and editable and isinstance(ccard, cw.sprite.card.PlayerCard):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
