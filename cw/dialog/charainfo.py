@@ -780,7 +780,6 @@ class DescPanel(wx.ScrolledWindow):
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
-        self.SetScrollRate(cw.wins(10), cw.wins(13))
 
         # エレメントオブジェクト
         self.ccard = ccard
@@ -814,7 +813,12 @@ class DescPanel(wx.ScrolledWindow):
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         maxheight = len(self.text.splitlines())*cw.wins(13)
-        maxheight += cw.wins(7)*2
+        maxheight += cw.wins(7)+cw.wins(2)
+
+        self._ratey = cw.wins(13)
+        maxheight = (maxheight + self._ratey - 1) // self._ratey * self._ratey
+        self.SetScrollRate(cw.wins(10), self._ratey)
+
         self.SetVirtualSize((-1, maxheight))
         self.Scroll(0, 0)
         self.Refresh()
@@ -827,7 +831,7 @@ class DescPanel(wx.ScrolledWindow):
         csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
-        vy *= cw.wins(10)
+        vy *= self._ratey
 
         dc = wx.PaintDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
@@ -875,8 +879,6 @@ class HistoryPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
         # create buffer
         self.draw(True)
-
-        self.SetScrollRate(cw.wins(10), self.gold.GetSize()[1] + cw.wins(5))
 
         if cw.cwpy.debug and editable and isinstance(ccard, cw.sprite.card.PlayerCard):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
@@ -942,7 +944,7 @@ class HistoryPanel(wx.ScrolledWindow):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         h = self.gold.GetSize()[1]
-        maxheight = (h + cw.wins(5)) * len(self.coupons) + cw.wins(10)
+        maxheight = (h + cw.wins(5)) * len(self.coupons)
         maxwidth = 0
         for coupon in self.coupons:
             maxwidth = max(dc.GetTextExtent(coupon[0])[0] + cw.wins(32)+cw.wins(12), maxwidth)
@@ -951,6 +953,14 @@ class HistoryPanel(wx.ScrolledWindow):
             maxwidth = -1
         if maxheight <= csize[1]:
             maxheight = -1
+
+        if maxwidth <> -1:
+            maxheight += cw.ppis(5)+cw.wins(2)
+
+        self._ratey = self.gold.GetSize()[1] + cw.wins(5)
+        if maxheight <> -1:
+            maxheight = (maxheight + self._ratey - 1) // self._ratey * self._ratey
+        self.SetScrollRate(cw.wins(10), self._ratey)
 
         self.SetVirtualSize((maxwidth, maxheight))
         self.Scroll(0, 0)
@@ -965,7 +975,7 @@ class HistoryPanel(wx.ScrolledWindow):
         csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
-        vy *= cw.wins(10)
+        vy *= self._ratey
 
         dc = wx.PaintDC(self)
 
@@ -1240,7 +1250,6 @@ class StatusPanel(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
-        self.SetScrollRate(cw.wins(10), cw.wins(10))
         self.csize = self.GetClientSize()
         self.list = mlist
         # エレメントオブジェクト
@@ -1255,6 +1264,8 @@ class StatusPanel(wx.ScrolledWindow):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
+        self.draw(True)
+
     def OnLeftUp(self, event):
         cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
@@ -1264,17 +1275,55 @@ class StatusPanel(wx.ScrolledWindow):
         if dlg.ShowModal() == wx.ID_OK:
             self.draw(True)
 
-    def OnPaint(self, event):
-        self.draw()
+    def _init_view(self):
+        maxheight = cw.wins(0)
+        ln = cw.wins(17)
+        maxheight += ln
+        if self.ccard.is_poison():
+            maxheight += ln
+        if self.ccard.is_paralyze():
+            maxheight += ln
+        if self.ccard.mentality_dur and self.ccard.mentality <> "Normal":
+            maxheight += ln
+        if self.ccard.is_bind():
+            maxheight += ln
+        if self.ccard.is_silence():
+            maxheight += ln
+        if self.ccard.is_faceup():
+            maxheight += ln
+        if self.ccard.is_antimagic():
+            maxheight += ln
+        if self.ccard.enhance_act and self.ccard.enhance_act_dur:
+            maxheight += ln
+        if self.ccard.enhance_avo and self.ccard.enhance_avo_dur:
+            maxheight += ln
+        if self.ccard.enhance_res and self.ccard.enhance_res_dur:
+            maxheight += ln
+        if self.ccard.enhance_def and self.ccard.enhance_def_dur:
+            maxheight += ln
+
+        maxheight+cw.wins(2)
+
+        self._ratey = cw.wins(17)
+        maxheight = (maxheight + self._ratey - 1) // self._ratey * self._ratey
+        self.SetScrollRate(cw.wins(10), self._ratey)
+
+        self.SetVirtualSize((-1, maxheight))
+        self.Scroll(0, 0)
+        self.Refresh()
 
     def draw(self, update=False):
         if update:
-            dc = wx.ClientDC(self)
-            self.ClearBackground()
-        else:
-            dc = wx.PaintDC(self)
+            self._init_view()
 
-        dc.BeginDrawing()
+    def OnPaint(self, event):
+        csize = self.GetClientSize()
+        vx, vy = self.GetViewStart()
+        vx *= cw.wins(10)
+        vy *= self._ratey
+
+        dc = wx.PaintDC(self)
+
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
@@ -1282,7 +1331,7 @@ class StatusPanel(wx.ScrolledWindow):
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
-        height = cw.wins(8)
+        height = cw.wins(8) - vy
 
         # 生命力の割合
         bmp = cw.cwpy.rsrc.wxstatuses["LIFE"]
@@ -1327,11 +1376,6 @@ class StatusPanel(wx.ScrolledWindow):
                                     self.ccard.enhance_res_dur, "UP2", "DOWN2", height)
         height = self._draw_enhance(dc, cw.cwpy.msgs["enhance_defense"], self.ccard.enhance_def,
                                     self.ccard.enhance_def_dur, "UP3", "DOWN3", height)
-
-        self.SetVirtualSize((-1, height - cw.wins(17) + cw.wins(8)))
-        if update:
-            self.Scroll(0, 0)
-            self.Refresh()
 
     def get_detailtext(self):
         lines = []
