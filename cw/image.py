@@ -1377,8 +1377,8 @@ def fix_cwnext16bitbitmap(data):
             data = cw.image.patch_rle4bitmap(data)
             with io.BytesIO(data) as f:
                 try:
-                    pygame.image.load(f)
-                    return data, True
+                    bmp = pygame.image.load(f)
+                    return conv2wximage(bmp, biBitCount), True
                 except:
                     pass
                 f.close()
@@ -1397,6 +1397,21 @@ def fix_cwnext16bitbitmap(data):
         return data, False
     data = cw.image.patch_rle4bitmap(data)
     return data, True
+
+def conv2wximage(image, biBitCount):
+    """pygame.Surfaceをwx.Bitmapに変換する。
+    image: pygame.Surface
+    """
+    w, h = image.get_size()
+
+    if 32 <= biBitCount:
+        buf = pygame.image.tostring(image, "RGBA")
+        image = wx.ImageFromBufferRGBA(w, h, buf)
+    else:
+        buf = pygame.image.tostring(image, "RGB")
+        image = wx.ImageFromBuffer(w, h, buf)
+
+    return image
 
 def patch_rle4bitmap(data):
     if len(data) < 14 + 40:
@@ -1454,9 +1469,30 @@ def get_bmpdepth(data):
         return 0
     if s[1] <> ord('M'):
         return 0
-    biBitCount = s[10]
+    if 40 <= s[6]:
+        biBitCount = s[10]
+    else:
+        s = struct.unpack("<BBIhhIIHhHH", data[0:14+12])
+        biBitCount = s[10]
     return biBitCount
 
+
+def get_pngdepth(data):
+    """
+    PNGデータのビット深度値を返す。
+    正常なPNGデータでない場合は0を返す。
+    """
+    if len(data) < 8 + 25:
+        return 0
+    s = struct.unpack(">BBBBBBBBIBBBBIIBBBBBI", data[0:8+25])
+    if s[0] <> 0x89 or s[1] <> 0x50 or s[2] <> 0x4E or s[3] <> 0x47 or\
+            s[4] <> 0x0D or s[5] <> 0x0A or s[6] <> 0x1A or s[7] <> 0x0A:
+        return 0
+    if s[8] <> 13:
+        return 0
+    if s[9] <> ord('I') or s[10] <> ord('H') or s[11] <> ord('D') or s[12] <> ord('R'):
+        return 0
+    return s[15]
 
 def get_1bitpalette(data):
     s = struct.unpack("<BBIhhII", data[0:14+4])

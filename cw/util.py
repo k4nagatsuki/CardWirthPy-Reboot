@@ -639,6 +639,9 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             if ext == ".bmp":
                 data = cw.image.patch_rle4bitmap(data)
                 bmpdepth = cw.image.get_bmpdepth(data)
+            elif ispng:
+                # PNGイメージを読み込むと全てα値ありになる
+                bmpdepth = cw.image.get_pngdepth(data)
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
                 f2.close()
@@ -661,7 +664,12 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 if ext == ".bmp":
                     image = cw.imageretouch.patch_alphadata(image)
             else:
-                with io.BufferedReader(io.FileIO(path)) as f2:
+                with open(path, "rb") as f2:
+                    data = f2.read()
+                    f2.close()
+                if ispng:
+                    bmpdepth = cw.image.get_pngdepth(data)
+                with io.BytesIO(data) as f2:
                     image = pygame.image.load(f2)
                     f2.close()
     except:
@@ -680,7 +688,10 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                     with open(path, "rb") as f2:
                         data = f2.read()
                         f2.close()
-                bmpdepth = cw.image.get_bmpdepth(data)
+                if ispng:
+                    bmpdepth = cw.image.get_pngdepth(data)
+                else:
+                    bmpdepth = cw.image.get_bmpdepth(data)
                 data, _ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
                     r = load_image(path, mask, maskpos, f2, False, isback=isback, can_loaded_scaledimage=can_loaded_scaledimage,
@@ -694,7 +705,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
 
     # アルファチャンネルを持った透過画像を読み込んだ場合は
     # SRCALPHA(0x00010000)のフラグがONになっている
-    if image.get_flags() & pygame.locals.SRCALPHA:
+    if (bmpdepth in (0, 32)) and (image.get_flags() & pygame.locals.SRCALPHA):
         image = image.convert_alpha()
     else:
         imageb = image
@@ -726,7 +737,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
             image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
 
-    if bmpdepth == 1 and mask and not isback or up_scr <> 1:
+    if not ispng and bmpdepth == 1 and mask and not isback or up_scr <> 1:
         image = Depth1Surface(image, up_scr, bmpdepth)
     return image
 
@@ -2961,7 +2972,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
 
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, ok = cw.image.fix_cwnext16bitbitmap(data)
-                if name and ok and not cw.binary.image.path_is_code(name):
+                if isinstance(data, wx.Image):
+                    image = data
+                elif name and ok and not cw.binary.image.path_is_code(name):
                     # BUG: io.BytesIO()を用いてのwx.ImageFromStream()は、
                     #      二重にファイルを読む処理よりなお10倍も遅い
                     image = wx.Image(name)
