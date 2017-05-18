@@ -1022,6 +1022,9 @@ class JpdcImage(cw.image.Image):
                 for key in removekeys:
                     del cw.cwpy.sdata.resource_cache[key]
 
+                if cw.cwpy.is_playingscenario():
+                    cw.cwpy.rsrc.specialchars.reset()
+
                 # メニューカードが更新されるものを更新リストに登録する
                 if not cw.cwpy.update_scaling:
                     for mcard in cw.cwpy.get_mcards():

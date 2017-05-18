@@ -1408,16 +1408,18 @@ def store_messagelogimage(path, can_loaded_scaledimage):
     if path.startswith(cw.cwpy.tempdir):
         path = path.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
     dict = None
+    fdict = None
+
     for log in cw.cwpy.sdata.backlog:
         for i, (info, can_loaded_scaledimage2, basetalker, scaledimagedict) in enumerate(log.imgpaths):
-            if os.path.normcase(info.path) == os.path.normcase(path):
+            def load_with_scaled(dict, scaledimagedict):
                 scaledimagedict.clear()
                 if dict:
                     for key, value in dict.iteritems():
                         scaledimagedict[key] = value
                 else:
                     dict = scaledimagedict
-                    fpath = info.path
+                    fpath = path
                     if not cw.binary.image.path_is_code(fpath):
                         lpath = fpath.lower()
                         if lpath.startswith(cw.cwpy.yadodir.lower()) or \
@@ -1432,8 +1434,32 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                             if os.path.isfile(fname):
                                 bmp = cw.util.Depth1Surface(cw.util.load_image(fname, True, noscale=True), scale)
                                 scaledimagedict[scale] = bmp
+                return dict
+
+            if os.path.normcase(info.path) == os.path.normcase(path):
+                dict = load_with_scaled(dict, scaledimagedict)
                 log.imgpaths[i] = (info, can_loaded_scaledimage, basetalker, scaledimagedict)
 
+            if cw.cwpy.is_playingscenario():
+                for name in list(log.specialchars.iterkeys()):
+                    fpath = u"font_%s.bmp" % name[1]
+                    fpath = cw.util.get_materialpath(fpath, cw.M_IMG, scedir=cw.cwpy.sdata.scedir, findskin=False)
+                    # リソースの読込メソッドの差し替えを行い、予めメモリ上に読み込んだ実体を返すようにする
+                    # 以前に差し替えが行われているかどうかをLazyResource#argsの長さで見分ける
+                    if os.path.normcase(path) == os.path.normcase(fpath) and len(log.specialchars.dic[name].args):
+                        fdict2 = {}
+                        fdict = load_with_scaled(fdict, fdict2)
+                        def load():
+                            image_noscale = fdict2.get(1, None)
+                            scale = int(math.pow(2, int(math.log(cw.UP_SCR, 2))))
+                            while 2 <= scale:
+                                if scale in fdict2:
+                                    image_noscale = fdict2[scale]
+                                    break
+                                scale /= 2
+                            return image_noscale, True
+                        log.specialchars.set(name, load)
+                        break
 
 def main():
     pass

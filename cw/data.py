@@ -1206,7 +1206,7 @@ class ScenarioData(SystemData):
         # "font_*.*"のファイルパスの画像を特殊文字に指定
         if self._r_specialchar.match(fname.lower()):
             def load(dpath, fname):
-                path = cw.util.join_paths(dpath, fname)
+                path = cw.util.get_materialpath(fname, cw.M_IMG, scedir=dpath, findskin=False)
                 image = cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                 return image, True
             m = self._r_specialchar.match(fname.lower())
