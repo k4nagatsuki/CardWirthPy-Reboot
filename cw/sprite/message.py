@@ -1310,7 +1310,6 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None,
                 continue
             if full:
                 if nc in ('m', 'r', 'u', 'c', 'i', 't', 'y'):
-                    spcharinfo.add(buflen)
                     if basenamelist is None:
                         buf.append(_get_namefromtable(nc, name_table, namelist))
                     else:
