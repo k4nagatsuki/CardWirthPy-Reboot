@@ -355,6 +355,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.show_savedmessage <> setting.show_savedmessage_init:
         e = cw.data.make_element("ShowSavedMessage", str(setting.show_savedmessage))
         element.append(e)
+    # カードの売却と破棄で確認ダイアログを表示
+    if setting.confirm_dumpcard <> setting.confirm_dumpcard_init:
+        e = cw.data.make_element("ConfirmBeforeDumpCard", setting.confirm_dumpcard)
+        element.append(e)
     # 荷物袋のカードを一時的に取り出して使えるようにする
     if setting.show_backpackcard <> setting.show_backpackcard_init:
         e = cw.data.make_element("ShowBackpackCard", str(setting.show_backpackcard))

@@ -66,6 +66,11 @@ CONFIRM_BEFORESAVING_YES = "True"
 CONFIRM_BEFORESAVING_NO = "False"
 CONFIRM_BEFORESAVING_BASE = "BaseOnly" # 宿にいる時に限り表示
 
+# カードの売却・破棄確認ダイアログ表示の有無
+CONFIRM_DUMPCARD_ALWAYS = "Always"
+CONFIRM_DUMPCARD_SENDTO = "SendOnly"
+CONFIRM_DUMPCARD_NO = "False"
+
 # ステータスバーのボタン状態
 SB_PRESSED   = 0b00000001 # 押下
 SB_CURRENT   = 0b00000010 # カーソル下
@@ -343,6 +348,7 @@ class Setting(object):
         self.show_allselectedcards = True
         self.confirm_beforeusingcard = True
         self.confirm_beforesaving = CONFIRM_BEFORESAVING_YES
+        self.confirm_dumpcard = CONFIRM_DUMPCARD_ALWAYS
         self.show_savedmessage = True
         self.show_backpackcard = True
         self.show_backpackcardatend = False
@@ -612,6 +618,8 @@ class Setting(object):
         self.confirm_beforesaving = data.gettext("ConfirmBeforeSaving", self.confirm_beforesaving)
         # セーブ完了時に確認ダイアログを表示
         self.show_savedmessage = data.getbool("ShowSavedMessage", self.show_savedmessage)
+        # カードの売却と破棄で確認ダイアログを表示
+        self.confirm_dumpcard = data.gettext("ConfirmBeforeDumpCard", self.confirm_dumpcard_init)
 
         # 不可能な行動を選択した時に警告を表示
         self.noticeimpossibleaction = data.getbool("NoticeImpossibleAction", self.noticeimpossibleaction)

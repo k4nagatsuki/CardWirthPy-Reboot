@@ -724,6 +724,13 @@ class SettingsPanel(wx.Panel):
             setting.confirm_beforesaving = cw.setting.CONFIRM_BEFORESAVING_YES
         value = self.pane_ui.cb_showsavedmessage.GetValue()
         setting.show_savedmessage = value
+        value = self.pane_ui.ch_confirm_dumpcard.GetSelection()
+        if value == 2:
+            setting.confirm_dumpcard = cw.setting.CONFIRM_DUMPCARD_NO
+        elif value == 1:
+            setting.confirm_dumpcard = cw.setting.CONFIRM_DUMPCARD_SENDTO
+        else:
+            setting.confirm_dumpcard = cw.setting.CONFIRM_DUMPCARD_ALWAYS
         value = self.pane_ui.cb_confirmbeforeusingcard.GetValue()
         setting.confirm_beforeusingcard = value
         value = self.pane_ui.cb_noticeimpossibleaction.GetValue()
@@ -2516,7 +2523,19 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_protect_premiercard = wx.CheckBox(
             panel, -1, u"プレミアカードの売却や破棄を禁止する")
         panel.AddWindow(self.cb_protect_premiercard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
-        spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
+
+        panel_confirm = wx.Panel(panel, -1)
+        self.st_confirm_dumpcard = wx.StaticText(panel_confirm, -1,
+                                                     u"カードの売却と破棄の確認ダイアログ:")
+        choices = [u"常に表示", u"「送り先」の使用時のみ表示", u"表示しない"]
+        self.ch_confirm_dumpcard = wx.Choice(panel_confirm, -1, choices=choices)
+        bsizer_confirm_dumpcard = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_confirm_dumpcard.Add(self.st_confirm_dumpcard, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
+        bsizer_confirm_dumpcard.Add(self.ch_confirm_dumpcard, 0, wx.ALIGN_CENTER, cw.ppis(0))
+        panel_confirm.SetSizer(bsizer_confirm_dumpcard)
+        panel_confirm.SetSize(bsizer_confirm_dumpcard.CalcMin())
+        panel.AddWindow(panel_confirm, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+
         self.cb_can_clicksidesofcardcontrol = wx.CheckBox(
             panel, -1, u"カード選択ダイアログの背景クリックで左右移動を行う")
         panel.AddWindow(self.cb_can_clicksidesofcardcontrol, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
@@ -2565,6 +2584,7 @@ class UISettingPanel(wx.ScrolledWindow):
 
         # セーブとロードオプション
         panel = self.panel.AddFoldPanel(caption=u"セーブとロード")
+
         panel_confirm = wx.Panel(panel, -1)
         self.st_confirm_beforesaving = wx.StaticText(panel_confirm, -1,
                                                      u"セーブ前の確認ダイアログ:")
@@ -2576,12 +2596,14 @@ class UISettingPanel(wx.ScrolledWindow):
         panel_confirm.SetSizer(bsizer_confirm_beforesaving)
         panel_confirm.SetSize(bsizer_confirm_beforesaving.CalcMin())
         panel.AddWindow(panel_confirm, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+
         self.cb_showsavedmessage = wx.CheckBox(
             panel, -1, u"セーブ完了時に確認ダイアログを表示")
         panel.AddWindow(self.cb_showsavedmessage, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_cautionbeforesaving = wx.CheckBox(
             panel, -1, u"保存せずに終了しようとしたら警告する")
         panel.AddWindow(self.cb_cautionbeforesaving, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
+
         spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
         panel.AddWindow(spacer, spacing=cw.ppis(3))
 
@@ -2658,6 +2680,14 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog)
         self.cb_protect_staredcard.SetValue(setting.protect_staredcard)
         self.cb_protect_premiercard.SetValue(setting.protect_premiercard)
+
+        if setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_SENDTO:
+            self.ch_confirm_dumpcard.SetSelection(1)
+        elif setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_NO:
+            self.ch_confirm_dumpcard.SetSelection(2)
+        else:
+            self.ch_confirm_dumpcard.SetSelection(0)
+
         self.sc_radius_notdetectmovement.SetValue(setting.radius_notdetectmovement)
 
         self.cb_show_btndesc.SetValue(setting.show_btndesc)
@@ -2705,6 +2735,14 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog_init)
         self.cb_protect_staredcard.SetValue(setting.protect_staredcard_init)
         self.cb_protect_premiercard.SetValue(setting.protect_premiercard_init)
+
+        if cw.setting.CONFIRM_DUMPCARD_SENDTO == setting.confirm_dumpcard_init:
+            self.ch_confirm_dumpcard.SetSelection(1)
+        elif cw.setting.CONFIRM_DUMPCARD_NO == setting.confirm_dumpcard_init:
+            self.ch_confirm_dumpcard.SetSelection(2)
+        else:
+            self.ch_confirm_dumpcard.SetSelection(0)
+
         self.sc_radius_notdetectmovement.SetValue(setting.radius_notdetectmovement_init)
 
         self.cb_show_btndesc.SetValue(setting.show_btndesc_init)
