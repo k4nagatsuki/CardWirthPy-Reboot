@@ -8,7 +8,7 @@ import copy
 class Dice(object):
     def roll(self, times=1, sided=6):
         if sided <= 1:
-            return 1
+            return times
 
         n = 0
 
