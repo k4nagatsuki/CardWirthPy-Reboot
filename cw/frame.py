@@ -1181,25 +1181,21 @@ class Frame(wx.Frame):
                     centery = (crect.Y + crect.Height / 2.0) / frect.Height
 
                     # 全体スクリーンショットへ描画
-                    mem3 = wx.MemoryDC()
                     pixelsize = int(cw.cwpy.setting.fonttypes["screenshot"][2] * 0.8)
                     font = cw.cwpy.rsrc.get_wxfont("screenshot", pixelsize=cw.s(pixelsize)*2, adjustsizewx3=False)
-                    mem3.SetFont(font)
+                    mem.SetFont(font)
                     title = child.GetTitle()
                     white = fore[:3] == (255, 255, 255)
                     if 20 <= cw.s(pixelsize) or wx.VERSION[0] < 3:
                         quality = wx.IMAGE_QUALITY_HIGH
                     else:
                         quality = wx.IMAGE_QUALITY_BILINEAR
-                    titleimg = cw.util.render_antialiasedtext(mem3, title, white, ww,
-                                                              cw.s(5), quality)
-                    del mem3
 
                     # 位置の決定(画面外には出さない)
                     ww, wh = bmp.GetSize()
                     wh += cw.s(pixelsize+2) + 2
-                    xx = (w * centerx) - (ww / 2)
-                    yy = (h * centery) - (wh / 2) + y
+                    xx = (w * centerx) - (ww // 2)
+                    yy = (h * centery) - (wh // 2) + y
                     if w <= xx + (ww+2): xx = w - (ww+2)
                     if h <= yy+y + (wh+2): yy = h+y - (wh+2)
                     if xx < 2: xx = 2
@@ -1207,7 +1203,10 @@ class Frame(wx.Frame):
 
                     mem.DrawRectangle(xx - 2, yy - 2, ww + 4, bmp.GetHeight() + 4 + cw.s(pixelsize + 2) + 2)
                     mem.DrawBitmap(bmp, xx, yy + cw.s(pixelsize + 2) + 2, False)
-                    mem.DrawBitmap(titleimg, xx + cw.s(5), yy + 1, False)
+
+                    cw.util.draw_antialiasedtext(mem, title, int(xx + cw.s(5)), int(yy + 1),
+                                                 white, ww, cw.s(5),
+                                                 quality=quality, bordering=True)
                     recurse(child)
         recurse(self)
         mem.SelectObject(wx.NullBitmap)

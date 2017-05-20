@@ -1329,15 +1329,19 @@ def screenshot_header(title, w):
     """スクリーンショット情報の書き出し。
     """
     fore = cw.cwpy.setting.ssinfofontcolor
+    back = cw.cwpy.setting.ssinfobackcolor
     font = cw.cwpy.rsrc.fonts["screenshot"]
     fh = font.size("#")[1]
     lh = fh + 2
-    subimg = font.render(title, True, fore)
-    swmax = w - cw.s(10)*2
-    if swmax < subimg.get_width():
-        size = (swmax, subimg.get_height())
-        subimg = cw.image.smoothscale(subimg, size)
-    return subimg, fh, lh
+    imgs = []
+    for color in (fore, back):
+        subimg = font.render(title, True, color)
+        swmax = w - cw.s(10)*2
+        if swmax < subimg.get_width():
+            size = (swmax, subimg.get_height())
+            subimg = cw.image.smoothscale(subimg, size)
+        imgs.append(subimg)
+    return imgs[0], imgs[1], fh, lh
 
 def screenshot():
     """スクリーンショットをファイルへ書き出す。
@@ -1375,13 +1379,18 @@ def create_screenshot(titledic):
     if title:
         back = cw.cwpy.setting.ssinfobackcolor
         w = cw.s(cw.SIZE_GAME[0])
-        subimg, fh, lh = screenshot_header(title, w)
+        subimg, subimg2, fh, lh = screenshot_header(title, w)
         h = cw.s(cw.SIZE_GAME[1]) + lh
         bmp = pygame.Surface((w, h)).convert()
         bmp.fill(back, rect=pygame.Rect(cw.s(0), cw.s(0), w, lh))
         bmp.blit(scr, (cw.s(0), lh))
+        x = cw.s(10)
         y = (lh - fh) / 2
-        bmp.blit(subimg, (cw.s(10), y))
+        for xx in xrange(-1, 1+1):
+            for yy in xrange(-1, 1+1):
+                if xx <> x or yy <> y:
+                    bmp.blit(subimg2, (x+xx, y+yy))
+        bmp.blit(subimg, (x, y))
         y = lh
     else:
         bmp = scr
@@ -1442,7 +1451,7 @@ def create_cardscreenshot(titledic):
         h = cw.s((130 + 2 * margin) * len(pcards))
         title = screenshot_title(titledic)
         if title:
-            subimg, fh, lh = screenshot_header(title, w)
+            subimg, subimg2, fh, lh = screenshot_header(title, w)
             h += lh
         bmp = pygame.Surface((w, h)).convert()
         bmp.fill(cw.cwpy.setting.ssinfobackcolor, rect=pygame.Rect(cw.s(0), cw.s(0), w, h))
@@ -1450,7 +1459,12 @@ def create_cardscreenshot(titledic):
         # イメージの作成
         sy = cw.s(0)
         if title:
-            bmp.blit(subimg, (cw.s(10), (lh - fh) / 2))
+            x, y = cw.s(10), (lh - fh) / 2
+            for xx in xrange(-1, 1+1):
+                for yy in xrange(-1, 1+1):
+                    if xx <> x or yy <> y:
+                        bmp.blit(subimg2, (x+xx, y+yy))
+            bmp.blit(subimg, (x, y))
             sy += lh
 
         for i in range(len(pcards)):
