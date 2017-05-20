@@ -1477,6 +1477,25 @@ def get_bmpdepth(data):
     return biBitCount
 
 
+def has_pngalpha(data):
+    """
+    PNGデータがα値を持つかを返す。
+    正常なPNGデータでない場合はFalseを返す。
+    """
+    if len(data) < 8 + 25:
+        return 0
+    s = struct.unpack(">BBBBBBBBIBBBBIIBBBBBI", data[0:8+25])
+    if s[0] <> 0x89 or s[1] <> 0x50 or s[2] <> 0x4E or s[3] <> 0x47 or\
+            s[4] <> 0x0D or s[5] <> 0x0A or s[6] <> 0x1A or s[7] <> 0x0A:
+        return 0
+    if s[8] <> 13:
+        return 0
+    if s[9] <> ord('I') or s[10] <> ord('H') or s[11] <> ord('D') or s[12] <> ord('R'):
+        return 0
+    colortype = s[16]
+    return colortype in (4, 6)
+
+
 def get_1bitpalette(data):
     s = struct.unpack("<BBIhhII", data[0:14+4])
     biSize = s[6]

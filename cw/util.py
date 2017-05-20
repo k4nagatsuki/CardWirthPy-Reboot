@@ -642,7 +642,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
                 f2.close()
-            if ext in (".bmp", ".png"):
+            if ext == ".bmp":
                 image = cw.imageretouch.patch_alphadata(image, ext)
         else:
             if not os.path.isfile(path):
@@ -665,7 +665,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 with io.BytesIO(data) as f2:
                     image = pygame.image.load(f2)
                     f2.close()
-            if ext in (".bmp", ".png"):
+            if ext == ".bmp":
                 image = cw.imageretouch.patch_alphadata(image, ext)
     except:
         print_ex()
@@ -2944,6 +2944,8 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         up_scr = cw.UP_SCR # ゲーム画面と合わせるため、ダイアログなどでも描画サイズのイメージを使用する
     name, up_scr = find_scaledimagepath(name, up_scr, can_loaded_scaledimage, noscale)
 
+    ext = ""
+    haspngalpha = False
     bmpdepth = 0
     maskcolour = None
     if mask:
@@ -2963,6 +2965,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                 if not data:
                     return wx.EmptyBitmap(0, 0)
 
+                ext = get_imageext(data)
+                if ext == ".png":
+                    haspngalpha = cw.image.has_pngalpha(data)
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, ok = cw.image.fix_cwnext16bitbitmap(data)
                 if isinstance(data, wx.Image):
@@ -2988,7 +2993,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             image.SetMaskColour(r, g, b)
             return (r, g, b)
 
-        if not image.HasAlpha() and not image.HasMask():
+        if not haspngalpha and not image.HasAlpha() and not image.HasMask():
             maskcolour = set_mask(image, maskpos)
 
         wxbmp = image.ConvertToBitmap()
