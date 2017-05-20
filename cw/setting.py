@@ -369,6 +369,7 @@ class Setting(object):
         self.playlogformat = u"PlayLog/%yado%/%party%_%year%%month%%day%_%hour%%minute%%second%_%scenario%.txt"
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
+        self.ssinfobackimage = u""
         self.show_fcardsinbattle = False
         self.statusbarmask = True
         self.show_experiencebar = True
@@ -661,6 +662,8 @@ class Setting(object):
         g = data.getint("ScreenShotInformationBackgroundColor", "green", self.ssinfobackcolor[1])
         b = data.getint("ScreenShotInformationBackgroundColor", "blue", self.ssinfobackcolor[2])
         self.ssinfobackcolor = (r, g, b, 255)
+        # スクリーンショット情報の背景イメージ
+        self.ssinfobackimage = data.gettext("ScreenShotInformationBackgroundImage", self.ssinfobackimage_init)
 
         # スクリーンショットのファイル名
         self.ssfnameformat = data.gettext("ScreenShotFileNameFormat", self.ssfnameformat)

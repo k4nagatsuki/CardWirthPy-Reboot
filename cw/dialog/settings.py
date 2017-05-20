@@ -463,6 +463,8 @@ class SettingsPanel(wx.Panel):
         else:
             setting.ssinfofontcolor = (0, 0, 0)
             setting.ssinfobackcolor = (255, 255, 255)
+        value = self.pane_gene.tx_ssinfobackimage.GetValue()
+        setting.ssinfobackimage = value
         value = self.pane_gene.ch_messagelog_type.GetSelection()
         if value == 0:
             value = cw.setting.LOG_SINGLE
@@ -1227,6 +1229,14 @@ class GeneralSettingPanel(wx.Panel):
         choices = [u"黒文字", u"白文字"]
         self.ch_ssinfocolor = wx.Choice(self, -1, size=(-1, -1), choices=choices)
 
+        # 背景イメージ
+        self.st_ssinfobackimage = wx.StaticText(self, -1, u"背景画像:")
+        self.tx_ssinfobackimage = wx.TextCtrl(self, -1, size=(-1, -1))
+        self.ref_ssinfobackimage = cw.util.create_fileselection(self,
+            target=self.tx_ssinfobackimage,
+            message=u"スクリーンショット情報の背景にするファイルを選択",
+            wildcard=u"画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
+
         # スクリーンショットのファイル名
         self.st_ssfnameformat = wx.StaticText(self, -1, u"ファイル名:")
         self.tx_ssfnameformat = wx.TextCtrl(self, -1, size=(cw.ppis(150), -1))
@@ -1323,6 +1333,7 @@ class GeneralSettingPanel(wx.Panel):
             self.ch_ssinfocolor.Select(1)
         else:
             self.ch_ssinfocolor.Select(0)
+        self.tx_ssinfobackimage.SetValue(setting.ssinfobackimage)
         self.expand.load(setting)
 
     def init_values(self, setting):
@@ -1358,6 +1369,7 @@ class GeneralSettingPanel(wx.Panel):
         self.tx_ssfnameformat.SetValue(setting.ssfnameformat_init)
         self.tx_cardssfnameformat.SetValue(setting.cardssfnameformat_init)
         self.ch_ssinfocolor.Select(1 if setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
+        self.tx_ssinfobackimage.SetValue(setting.ssinfobackimage_init)
 
     def OnSSTool(self, event):
         if self.ti_ssins.GetId() == event.GetId():
@@ -1434,16 +1446,23 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_ssl = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_ssl.Add(self.tx_ssinfoformat, 1, wx.RIGHT|wx.CENTER, cw.ppis(3))
         bsizer_ssl.Add(self.ch_ssinfocolor, 0, wx.CENTER, cw.ppis(3))
-        bsizer_ss.Add(bsizer_ssl, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        bsizer_ss.Add(bsizer_ssl, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(2))
+
+        ssinfobackimage_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        ssinfobackimage_sizer.Add(self.tx_ssinfobackimage, 1, wx.RIGHT|wx.CENTER, cw.ppis(3))
+        ssinfobackimage_sizer.Add(self.ref_ssinfobackimage, 0, wx.CENTER, cw.ppis(0))
 
         gsizer_fname = wx.GridBagSizer()
-        gsizer_fname.Add(self.st_ssfnameformat, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
-        gsizer_fname.Add(self.tx_ssfnameformat, pos=(0, 1), flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=cw.ppis(3))
-        gsizer_fname.Add(self.st_cardssfnameformat, pos=(1, 0), flag=wx.TOP|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
-        gsizer_fname.Add(self.tx_cardssfnameformat, pos=(1, 1), flag=wx.TOP|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=cw.ppis(3))
-        gsizer_fname.AddGrowableCol(1, 1)
+        gsizer_fname.Add(self.st_ssinfobackimage, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
+        gsizer_fname.Add(ssinfobackimage_sizer, pos=(0, 1), flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=cw.ppis(3))
+        gsizer_fname.Add((0, cw.ppis(3)), pos=(1, 0))
+        gsizer_fname.Add(self.st_ssfnameformat, pos=(2, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
+        gsizer_fname.Add(self.tx_ssfnameformat, pos=(2, 1), flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=cw.ppis(3))
+        gsizer_fname.Add(self.st_cardssfnameformat, pos=(3, 0), flag=wx.TOP|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
+        gsizer_fname.Add(self.tx_cardssfnameformat, pos=(3, 1), flag=wx.TOP|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border=cw.ppis(3))
+        gsizer_fname.AddGrowableCol(1, 3)
 
-        bsizer_ss.Add(gsizer_fname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
+        bsizer_ss.Add(gsizer_fname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(2)-1)
         bsizer_ss.Add(self.st_ssinfo_brackets, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(3))
         bsizer_ss.Add(self.sstoolbar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(3))
 
