@@ -639,14 +639,11 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             if ext == ".bmp":
                 data = cw.image.patch_rle4bitmap(data)
                 bmpdepth = cw.image.get_bmpdepth(data)
-            elif ispng:
-                # PNGイメージを読み込むと全てα値ありになる
-                bmpdepth = cw.image.get_pngdepth(data)
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
                 f2.close()
-            if ext == ".bmp":
-                image = cw.imageretouch.patch_alphadata(image)
+            if ext in (".bmp", ".png"):
+                image = cw.imageretouch.patch_alphadata(image, ext)
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
@@ -661,17 +658,15 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 with io.BytesIO(data) as f2:
                     image = pygame.image.load(f2)
                     f2.close()
-                if ext == ".bmp":
-                    image = cw.imageretouch.patch_alphadata(image)
             else:
                 with open(path, "rb") as f2:
                     data = f2.read()
                     f2.close()
-                if ispng:
-                    bmpdepth = cw.image.get_pngdepth(data)
                 with io.BytesIO(data) as f2:
                     image = pygame.image.load(f2)
                     f2.close()
+            if ext in (".bmp", ".png"):
+                image = cw.imageretouch.patch_alphadata(image, ext)
     except:
         print_ex()
         #print u"画像が読み込めません(load_image)。リトライします", path
@@ -688,9 +683,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                     with open(path, "rb") as f2:
                         data = f2.read()
                         f2.close()
-                if ispng:
-                    bmpdepth = cw.image.get_pngdepth(data)
-                else:
+                if not ispng:
                     bmpdepth = cw.image.get_bmpdepth(data)
                 data, _ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:

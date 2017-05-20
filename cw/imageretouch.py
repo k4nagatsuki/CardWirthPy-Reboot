@@ -854,15 +854,22 @@ def colorwrap(num):
 def decode_rle4data(data, h, bpl):
     return _imageretouch.decode_rle4data(data, h, bpl)
 
-def patch_alphadata(image):
+def patch_alphadata(image, ext):
     """CardWirthのビットマップデコーダは、32ビットイメージの
     各ピクセルの4バイト中、予備領域に1件でも0以外のデータがある時に限り
     予備領域をアルファ値として使用するので、それに合わせる。
+    PNGイメージの場合は全て255の場合にアルファ無しと見なす。
     """
     if image.get_bitsize() == 32:
         buf = pygame.image.tostring(image, "RGBA")
         assert len(buf) % 4 == 0
-        if not _imageretouch.has_alpha(buf):
+
+        if ext == ".bmp":
+            has_alpha = _imageretouch.has_alphabmp32
+        else:
+            has_alpha = _imageretouch.has_alpha
+
+        if not has_alpha(buf):
             # アルファ値が存在しないので予備領域を無視
             image = pygame.image.fromstring(buf, image.get_size(), "RGBX")
     return image
