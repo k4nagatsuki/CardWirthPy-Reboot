@@ -881,8 +881,9 @@ class YadoSelect(MultiViewSelect):
             buttonlist[0].SetFocus()
 
     def can_clickcenter(self):
-        return (self.okbtn.IsEnabled() or (self.list and self.classic[self.index])) and os.path.isdir(self.list[self.index]) or\
-                self.newbtn.IsEnabled() and not self._list
+        return self.views == 1 and\
+                ((self.okbtn.IsEnabled() or (self.list and self.classic[self.index])) and os.path.isdir(self.list[self.index]) or\
+                 self.newbtn.IsEnabled() and not self._list)
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
@@ -905,9 +906,9 @@ class YadoSelect(MultiViewSelect):
             self.okbtn.Disable()
 
     def OnSelect(self, event):
-        if self.okbtn.IsEnabled():
+        if self._list:
             MultiViewSelect.OnSelect(self, event)
-        elif not self._list and self.newbtn.IsEnabled():
+        elif self.newbtn.IsEnabled():
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.newbtn.GetId())
             self.ProcessEvent(btnevent)
 
