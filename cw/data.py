@@ -1759,34 +1759,45 @@ class YadoData(object):
 
         # スキン
         self.skindirname = self.environment.gettext("Property/Skin", cw.cwpy.setting.skindirname)
+        skintype = self.environment.gettext("Property/Type", cw.cwpy.setting.skintype)
         skinpath = cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")
         if not self.skindirname:
             # スキン指定無し
             supported_skin = False
         elif not os.path.isfile(skinpath):
-            if cw.cwpy.setting.store_skinoneachbase:
-                s = u"スキン「%s」が見つかりません。" % (self.skindirname)
-                cw.cwpy.call_modaldlg("ERROR", text=s)
+            s = u"スキン「%s」が見つかりません。" % (self.skindirname)
+            cw.cwpy.call_modaldlg("ERROR", text=s)
             supported_skin = False
         else:
             prop = cw.header.GetProperty(skinpath)
             if prop.attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN:
                 supported_skin = True
             else:
-                if cw.cwpy.setting.store_skinoneachbase:
-                    skinname = prop.properties.get("Name", self.skindirname)
-                    s = u"「%s」は対応していないバージョンのスキンです。%sをアップデートしてください。" % (skinname, cw.APP_NAME)
+                skinname = prop.properties.get("Name", self.skindirname)
+                s = u"「%s」は対応していないバージョンのスキンです。%sをアップデートしてください。" % (skinname, cw.APP_NAME)
                 cw.cwpy.call_modaldlg("ERROR", text=s)
                 supported_skin = False
 
         if not supported_skin:
-            self.skindirname = cw.cwpy.setting.skindirname
-            e = self.environment.find("Property/Skin")
-            if e is None:
-                e = make_element("Skin", self.skindirname)
-                self.environment.append("Property", e)
+            for name in os.listdir(u"Data/Skin"):
+                path = cw.util.join_paths(u"Data/Skin", name)
+                skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+
+                if os.path.isdir(path) and os.path.isfile(skinpath):
+                    try:
+                        prop = cw.header.GetProperty(skinpath)
+                        if skintype and prop.properties.get("Type", "") <> skintype:
+                            continue
+                        self.skindirname = name
+                        break
+                    except:
+                        # エラーのあるスキンは無視
+                        cw.util.print_ex()
             else:
-                self.environment.edit("Property/Skin", self.skindirname)
+                self.skindirname = cw.cwpy.setting.skindirname
+                skintype = cw.cwpy.setting.skintype
+
+            self.set_skinname(self.skindirname, skintype)
 
         dataversion = self.environment.getattr(".", "dataVersion", 0)
         if dataversion < 1:
@@ -2017,7 +2028,7 @@ class YadoData(object):
                     self.album or self.partyrecord or self.savedjpdcimage or\
                     self.get_gossips() or self.get_compstamps())
 
-    def set_skinname(self, skindirname):
+    def set_skinname(self, skindirname, skintype):
         self.skindirname = skindirname
         e = self.environment.find("Property/Skin")
         if e is None:
@@ -2025,6 +2036,14 @@ class YadoData(object):
             prop.append(make_element("Skin", skindirname))
         else:
             e.text = skindirname
+
+        e = self.environment.find("Property/Type")
+        if e is None:
+            prop = self.environment.find("Property")
+            prop.append(make_element("Type", skintype))
+        else:
+            e.text = skintype
+
         self.environment.is_edited = True
 
     def load_party(self, header=None):

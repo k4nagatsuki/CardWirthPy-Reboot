@@ -1549,24 +1549,21 @@ class YadoSelect(MultiViewSelect):
                     name = os.path.basename(dname)
                 names.append(name)
 
-                if cw.cwpy.setting.store_skinoneachbase:
-                    skin = prop.properties.get(u"Skin", u"Classic")
-                    skin = cw.util.join_paths(u"Data/Skin", skin)
-                    skinxml = cw.util.join_paths(skin, u"Skin.xml")
+                skin = prop.properties.get(u"Skin", u"Classic")
+                skin = cw.util.join_paths(u"Data/Skin", skin)
+                skinxml = cw.util.join_paths(skin, u"Skin.xml")
 
-                    if skinxml in skin_support:
-                        supported_skin = skin_support[skinxml]
+                if skinxml in skin_support:
+                    supported_skin = skin_support[skinxml]
+                else:
+                    if not os.path.isfile(skinxml):
+                        supported_skin = False
                     else:
-                        if not os.path.isfile(skinxml):
-                            supported_skin = False
-                        else:
-                            supported_skin = cw.header.GetProperty(skinxml).attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN
-                        skin_support[skinxml] = supported_skin
+                        supported_skin = cw.header.GetProperty(skinxml).attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN
+                    skin_support[skinxml] = supported_skin
 
-                    if supported_skin:
-                        skins.append(skin)
-                    else:
-                        skins.append(cw.cwpy.skindir)
+                if supported_skin:
+                    skins.append(skin)
                 else:
                     skins.append(cw.cwpy.skindir)
 

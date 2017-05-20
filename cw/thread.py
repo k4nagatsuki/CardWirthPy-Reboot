@@ -388,12 +388,12 @@ class CWPy(_Singleton, threading.Thread):
             self.background.bgs = []
 
         changed = self.ydata and self.ydata.is_changed()
-        if self.ydata and self.setting.skindirname <> skindirname:
-            self.ydata.set_skinname(skindirname)
         scedir = self.setting.get_scedir()
         oldskindirname = self.setting.skindirname
         self.setting.skindirname = skindirname
         self.setting.init_skin()
+        if self.ydata:
+            self.ydata.set_skinname(skindirname, self.setting.skintype)
         self.skindir = self.setting.skindir
         oldskindir = cw.util.join_paths("Data/Skin", oldskindirname)
         newskindir = cw.util.join_paths("Data/Skin", skindirname)
@@ -1936,7 +1936,7 @@ class CWPy(_Singleton, threading.Thread):
             self.change_area(areaid)
             self.is_pcardsselectable = self.ydata and self.ydata.party
 
-        if self.setting.store_skinoneachbase and self.ydata.skindirname <> cw.cwpy.setting.skindirname:
+        if self.ydata.skindirname <> cw.cwpy.setting.skindirname:
             self.update_skin(self.ydata.skindirname, changearea=False, afterfunc=change_area)
         else:
             change_area()
@@ -1958,7 +1958,7 @@ class CWPy(_Singleton, threading.Thread):
         self.set_status("Scenario")
         self.battle = None
 
-        if self.setting.store_skinoneachbase and self.ydata.skindirname <> cw.cwpy.setting.skindirname:
+        if self.ydata.skindirname <> cw.cwpy.setting.skindirname:
             def func():
                 self._set_scenario_impl(header, lastscenario, lastscenariopath, resume, manualstart)
             self.update_skin(self.ydata.skindirname, changearea=False, afterfunc=func)

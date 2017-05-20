@@ -315,7 +315,6 @@ class Setting(object):
         self.smoothing_card_up = True
         self.smoothing_card_down = True
         self.caution_beforesaving = True
-        self.store_skinoneachbase = True
         self.revert_cardpocket = True
         self.quickdeal = True
         self.all_quickdeal = False
@@ -565,8 +564,6 @@ class Setting(object):
         self.smoothing_card_down = data.getbool("SmoothScaling", "downcard", self.smoothing_card_down)
         # 保存せずに終了しようとしたら警告
         self.caution_beforesaving = data.getbool("CautionBeforeSaving", self.caution_beforesaving)
-        # 拠点ごとにスキンを記憶
-        self.store_skinoneachbase = data.getbool("StoreSkinOnEachBase", self.store_skinoneachbase)
         # レベル調節で手放したカードを自動的に戻す
         self.revert_cardpocket = data.getbool("RevertCardPocket", self.revert_cardpocket)
         # キャンプ等に高速で切り替える

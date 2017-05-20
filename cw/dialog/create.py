@@ -2086,6 +2086,7 @@ class YadoCreater(wx.Dialog):
             self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["create_base_message_2"], 0, 32)
             skin = cw.cwpy.setting.skindirname
             is_autoloadparty = True
+            skintype = u""
         else:
             fpath = cw.util.join_paths(self.yadodir, "Environment.xml")
             self.data = cw.data.xml2etree(fpath)
@@ -2095,6 +2096,11 @@ class YadoCreater(wx.Dialog):
             self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["edit_base_message_2"], 0, 32)
             self.skindirname = self.data.gettext("Property/Skin", cw.cwpy.setting.skindirname)
             skin = self.skindirname
+            skinpath = cw.util.join_paths(u"Data/Skin", self.skindirname, "Skin.xml")
+            if os.path.isfile(skinpath):
+                skintype = cw.header.GetProperty(skinpath).properties.get(u"Type", u"")
+            else:
+                skintype = self.data.gettext("Property/Type", u"")
             self.is_autoloadparty = self.data.getbool("Property/NowSelectingParty", "autoload", True)
             is_autoloadparty = self.is_autoloadparty
 
@@ -2109,6 +2115,8 @@ class YadoCreater(wx.Dialog):
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 try:
                     prop = cw.header.GetProperty(skinpath)
+                    if skintype and prop.properties.get("Type", u"") <> skintype:
+                        continue
                     choices.append(prop.properties[u"Name"])
                     self.command0s.append([cw.util.find_resource(cw.util.join_paths(path, u"Resource/Image/Card/COMMAND0"), cw.M_IMG), None])
                     self.cautions.append([cw.util.find_resource(cw.util.join_paths(path, u"Resource/Image/Dialog/CAUTION"), cw.M_IMG), None])

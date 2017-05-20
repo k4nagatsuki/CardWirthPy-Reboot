@@ -265,10 +265,6 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.caution_beforesaving <> setting.caution_beforesaving_init:
         e = cw.data.make_element("CautionBeforeSaving", str(setting.caution_beforesaving))
         element.append(e)
-    # 拠点ごとにスキンを記憶
-    if setting.store_skinoneachbase <> setting.store_skinoneachbase_init:
-        e = cw.data.make_element("StoreSkinOnEachBase", str(setting.store_skinoneachbase))
-        element.append(e)
     # レベル調節で手放したカードを自動的に戻す
     if setting.revert_cardpocket <> setting.revert_cardpocket_init:
         e = cw.data.make_element("RevertCardPocket", str(setting.revert_cardpocket))

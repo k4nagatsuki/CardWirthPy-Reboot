@@ -322,7 +322,7 @@ class SkinEditDialog(wx.Dialog):
         self.pane_font = cw.dialog.settings.FontSettingPanel(self.note, for_local=True,
                                                              get_localsettings=get_localsettings,
                                                              use_copybase=True)
-        self.pane_font.load(None, self.local)
+        self.pane_font.load(cw.cwpy.setting, self.local)
 
         self.note.AddPage(self.pane_info, u"基本")
         self.note.AddPage(self.pane_draw, u"描画")

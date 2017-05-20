@@ -707,8 +707,6 @@ class SettingsPanel(wx.Panel):
         setting.show_experiencebar = value
         value = self.pane_ui.cb_cautionbeforesaving.GetValue()
         setting.caution_beforesaving = value
-        value = self.pane_ui.cb_store_skinoneachbase.GetValue()
-        setting.store_skinoneachbase = value
         value = self.pane_ui.cb_showbackpackcard.GetValue()
         setting.show_backpackcard = value
         value = self.pane_ui.cb_showbackpackcardatend.GetValue()
@@ -826,6 +824,13 @@ class SkinPanel(wx.Panel):
             self.btn_editskin = wx.Button(self, -1, u"編集...")
             self.btn_deleteskin = wx.Button(self, -1, u"削除")
 
+            self.cb_show_allskin = wx.CheckBox(self, -1, u"異なる種別のスキンを表示する")
+            if not cw.cwpy.ydata:
+                self.cb_show_allskin.SetValue(True)
+                self.cb_show_allskin.Enable(False)
+        else:
+            self.cb_show_allskin = None
+
         prop = cw.header.GetProperty(u"Data/SkinBase/Skin.xml")
         self.basecash = int(prop.properties.get(u"InitialCash", "4000"))
         self.update_skins(cw.cwpy.setting.skindirname)
@@ -839,11 +844,18 @@ class SkinPanel(wx.Panel):
             self.btn_convertskin.Bind(wx.EVT_BUTTON, self.OnConvertSkin)
             self.btn_editskin.Bind(wx.EVT_BUTTON, self.OnEditSkin)
             self.btn_deleteskin.Bind(wx.EVT_BUTTON, self.OnDeleteSkin)
+            self.cb_show_allskin.Bind(wx.EVT_CHECKBOX, self.OnShowAllSkin)
 
     def update_skins(self, skindirname, applied=True):
+        self.ch_skin.Freeze()
         self.skins = []
         self.skindirs = []
         self.skin_summarys = {}
+
+        if not cw.cwpy.ydata or (self.cb_show_allskin and self.cb_show_allskin.GetValue()):
+            skintype = u""
+        else:
+            skintype = cw.cwpy.setting.skintype
 
         for name in os.listdir(u"Data/Skin"):
             path = cw.util.join_paths(u"Data/Skin", name)
@@ -852,6 +864,8 @@ class SkinPanel(wx.Panel):
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 try:
                     prop = cw.header.GetProperty(skinpath)
+                    if skintype and prop.properties.get("Type", "") <> skintype:
+                        continue
                     if prop.attrs.get(None, {}).get("dataVersion") in cw.SUPPORTED_SKIN:
                         self.skins.append(prop.properties.get("Name", name))
                         self.skindirs.append(name)
@@ -860,9 +874,12 @@ class SkinPanel(wx.Panel):
                     cw.util.print_ex()
 
         self.ch_skin.SetItems(self.skins)
+        if not skindirname in self.skindirs:
+            skindirname = cw.cwpy.setting.skindirname
         n = self.skindirs.index(skindirname)
         self.ch_skin.SetSelection(n)
         self._choice_skin(applied=applied)
+        self.ch_skin.Thaw()
 
     def load_allskins(self):
         for skin in self.skindirs:
@@ -955,6 +972,10 @@ class SkinPanel(wx.Panel):
             if self.pane_scenario:
                 self.pane_scenario.celleditor = None
 
+    def OnShowAllSkin(self, event):
+        skin = self.skindirs[self.ch_skin.GetSelection()]
+        self.update_skins(skin, applied=False)
+
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -968,6 +989,7 @@ class SkinPanel(wx.Panel):
         sizer.Add(self.st_skin, 1, wx.CENTER|wx.TOP, cw.ppis(3))
         if self.editbuttons:
             sizer.Add(bsizer_skinbtn, 0, wx.ALIGN_RIGHT|wx.TOP, cw.ppis(3))
+            sizer.Add(self.cb_show_allskin, 0, wx.ALIGN_RIGHT|wx.TOP, cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -2560,9 +2582,6 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_cautionbeforesaving = wx.CheckBox(
             panel, -1, u"保存せずに終了しようとしたら警告する")
         panel.AddWindow(self.cb_cautionbeforesaving, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
-        self.cb_store_skinoneachbase = wx.CheckBox(
-            panel, -1, u"拠点ごとにスキンを記憶する")
-        panel.AddWindow(self.cb_store_skinoneachbase, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         spacer = wx.Panel(panel, -1, size=(-1, cw.ppis(0)))
         panel.AddWindow(spacer, spacing=cw.ppis(3))
 
@@ -2654,7 +2673,6 @@ class UISettingPanel(wx.ScrolledWindow):
             self.ch_confirm_beforesaving.SetSelection(0)
         self.cb_cautionbeforesaving.SetValue(setting.caution_beforesaving)
         self.cb_showsavedmessage.SetValue(setting.show_savedmessage)
-        self.cb_store_skinoneachbase.SetValue(setting.store_skinoneachbase)
 
         self.cb_show_advancedsettings.SetValue(setting.show_advancedsettings)
         self.cb_show_addctrlbtn.SetValue(setting.show_addctrlbtn)
@@ -2706,7 +2724,6 @@ class UISettingPanel(wx.ScrolledWindow):
             self.ch_confirm_beforesaving.SetSelection(0)
         self.cb_showsavedmessage.SetValue(setting.show_savedmessage_init)
         self.cb_cautionbeforesaving.SetValue(setting.caution_beforesaving_init)
-        self.cb_store_skinoneachbase.SetValue(setting.store_skinoneachbase_init)
 
         self.cb_showbackpackcard.SetValue(setting.show_backpackcard_init)
         self.cb_showbackpackcardatend.SetValue(setting.show_backpackcardatend_init)
@@ -2826,7 +2843,10 @@ class FontSettingPanel(wx.Panel):
 
         # フォント表示サンプル
         self.box_example = wx.StaticBox(self, -1, u"表示例")
-        ln = len(cw.cwpy.setting.fontexampleformat.splitlines())
+        if cw.cwpy:
+            ln = len(cw.cwpy.setting.fontexampleformat.splitlines())
+        else:
+            ln = 1
         self.st_example = wx.StaticText(self, -1, size=cw.ppis((100, 24*ln+11)), style=wx.ALIGN_CENTER)
         self.st_example.SetDoubleBuffered(True)
 
@@ -2981,7 +3001,12 @@ class FontSettingPanel(wx.Panel):
         font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
                        face=face)
         self.st_example.SetFont(font)
-        s = cw.util.format_title(setting.fontexampleformat, {"fontface":face})
+        if not setting and cw.cwpy:
+            setting = cw.cwpy.setting
+        if setting:
+            s = cw.util.format_title(setting.fontexampleformat, {"fontface":face})
+        else:
+            s = cw.util.format_title(u"%fontface%", {"fontface": face})
         self.st_example.SetLabel(s)
 
         self._update_enabled()
