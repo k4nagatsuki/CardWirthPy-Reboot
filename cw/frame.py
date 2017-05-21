@@ -1207,12 +1207,12 @@ class Frame(wx.Frame):
                         mem.SetClippingRect(wx.Rect(rx, ry, rw, rh))
                         backimage = cw.util.load_wxbmp(cw.cwpy.setting.ssinfobackimage, False)
                         cw.util.fill_bitmap(mem, cw.s(backimage), csize=(rw, rh), cpos=(rx, ry))
-                        mem.SetClippingRect(wx.Rect(0, y, w, h))
+                        mem.DestroyClippingRegion()
                     mem.DrawBitmap(bmp, xx, yy + cw.s(pixelsize + 2) + 2, False)
 
                     cw.util.draw_antialiasedtext(mem, title, int(xx + cw.s(5)), int(yy + 1),
                                                  white, ww, cw.s(5),
-                                                 quality=quality, bordering=True)
+                                                 quality=quality, bordering=True, alpha=255)
                     recurse(child)
         recurse(self)
         mem.SelectObject(wx.NullBitmap)
