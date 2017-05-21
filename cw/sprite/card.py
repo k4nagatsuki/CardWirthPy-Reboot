@@ -407,7 +407,7 @@ class CWPyCard(base.SelectableSprite):
         maxw = self._rect.w + zoom_w
         maxh = self._rect.h + zoom_h
 
-        if self.old_status == "hidden":
+        if self.old_status == "hidden" or ds <= 1:
             w = maxw
             h = maxh
             self.frame = ds
