@@ -881,9 +881,9 @@ class YadoSelect(MultiViewSelect):
             buttonlist[0].SetFocus()
 
     def can_clickcenter(self):
-        return self.views == 1 and\
-                ((self.okbtn.IsEnabled() or (self.list and self.classic[self.index])) and os.path.isdir(self.list[self.index]) or\
-                 self.newbtn.IsEnabled() and not self._list)
+        return not (self.views == 1 and self._list and not self.okbtn.IsEnabled()) and\
+                ((self.list and self._list and os.path.isdir(self.list[self.index])) or\
+                (self.newbtn.IsEnabled() and not self._list))
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
