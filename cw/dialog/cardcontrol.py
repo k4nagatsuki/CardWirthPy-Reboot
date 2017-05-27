@@ -476,6 +476,7 @@ class CardControl(wx.Dialog):
 
     def _additional_controls(self):
         cw.cwpy.play_sound("equipment")
+        self.Freeze()
         self._redraw = False
         self.update_additionals()
         # GTKで表示・非表示状態の反映が遅延する事があるので、
@@ -484,6 +485,7 @@ class CardControl(wx.Dialog):
             self._do_layout()
             self._redraw = True
             self.update_narrowcondition()
+            self.Thaw()
         cw.cwpy.frame.exec_func(func)
 
     def OnNarrowCondition(self, event):
@@ -1800,6 +1802,7 @@ class CardHolder(CardControl):
             CardControl.OnCancel(self, event)
 
     def _change_callname(self, old_callname):
+        self.Freeze()
         self._load_index()
 
         if self.callname == "CARDPOCKET":
@@ -1832,6 +1835,7 @@ class CardHolder(CardControl):
             self.closebtn.SetLabel(cw.cwpy.msgs["return"])
         else:
             self.closebtn.SetLabel(cw.cwpy.msgs["close"])
+        self.Thaw()
 
     def _enable_updown(self):
         # リストが空か1ページ分しかなかったら上下ボタンを無効化
