@@ -1454,6 +1454,68 @@ class NumberOfCards(base.CWPySprite):
         self.rect.left = self.pcard.rect.left + bmpw/2 - self.rect.width/2
         self.rect.top = self.pcard.rect.top - (h+1) - cw.s(5)
 
+class PriceOfCard(base.CWPySprite):
+    def __init__(self, mcard, header, spritegrp):
+        """カード価格を表示するスプライト。
+        mcard: 「売却」カード。
+        header: 対象カード。
+        spritegrp: 登録するSpriteGroup。
+        """
+        base.CWPySprite.__init__(self)
+        self.mcard = mcard
+        self.header = header
+        self.update_scale()
+        # spritegroupに追加
+        self.layer = (mcard.layer[0], mcard.layer[1], mcard.layer[2], mcard.layer[3]+1)
+        spritegrp.add(self, layer=self.layer) # TODO: layer
+
+    def set_header(self, header):
+        self.header = header
+        self.update_scale()
+
+    def update_scale(self):
+        if not self.header:
+            self.rect = pygame.Rect(0, 0, 0, 0)
+            self.image = pygame.Surface(cw.s((0, 0))).convert()
+            return
+
+        padw = cw.s(2)
+        padh = cw.s(2)
+        margw = cw.s(5)
+        margh = cw.s(5)
+
+        x, y, w, h = self.mcard.rect
+        font = cw.cwpy.rsrc.fonts["price"]
+        s = u"%s" % (self.header.sellingprice if self.header.can_selling() else u"---")
+
+        _pw, ph = font.size_withoutoverhang(s)
+        maxwidth = w - margw*2
+
+        py = y + h - ph - (margh+padh*2)
+
+        self.rect = pygame.Rect(x+margw, py, maxwidth, ph+padh*2)
+        self.image = pygame.Surface(self.rect.size).convert_alpha()
+        self.image.fill((255, 255, 255, 160))
+
+        fore = (0, 0, 0)
+        back = (255, 255, 255)
+        imgs = []
+        for color in (fore, back):
+            subimg = font.render(s, True, color)
+            if self.rect.width-padw*2 < subimg.get_width():
+                size = (self.rect.width-padw*2, subimg.get_height())
+                subimg = cw.image.smoothscale(subimg, size)
+            imgs.append(subimg)
+        subimg, subimg2 = imgs
+
+        px = (self.rect.width-subimg.get_width())//2
+        for xx in xrange(-1, 2):
+            for yy in xrange(-1, 2):
+                if xx <> x or yy <> y:
+                    self.image.blit(subimg2, (px+xx, padh+yy))
+        self.image.blit(subimg, (px, padh))
+
+
 def main():
     pass
 

@@ -782,6 +782,7 @@ class CardControl(wx.Dialog):
 
         basebmp = wx.EmptyBitmap(tsize[0], tsize[1])
         dc = wx.MemoryDC(basebmp)
+        gcdc = wx.GCDC(dc)
         dc.SetClippingRect(self.toppanel.GetUpdateClientRect())
         bcolor = self.toppanel.GetBackgroundColour()
         dc.SetBrush(wx.Brush(bcolor))
@@ -839,6 +840,15 @@ class CardControl(wx.Dialog):
             size = self.narrow.GetSize()
             dc.DrawText(s, pos[0]-te[0]-cw.wins(3), (size[1]-te[1])/2 + pos[1])
 
+        price = (self.combo and self.combo.IsShown() and self.combo.GetSelection() == self._combo_shelf) or\
+                (self.sort and self.sort.IsShown() and cw.cwpy.setting.sort_cards == "Price")
+        if price:
+            pixelsize = cw.cwpy.setting.fonttypes["price"][2]
+            font2x = cw.cwpy.rsrc.get_wxfont("price", pixelsize=cw.wins(pixelsize)*2, adjustsizewx3=False)
+            dc.SetFont(font2x)
+            gcdc.SetBrush(wx.Brush(wx.Colour(255, 255, 255, 160)))
+            gcdc.SetPen(wx.TRANSPARENT_PEN)
+
         # カードの描画
         mousepos = self.toppanel.ScreenToClient(wx.GetMousePosition())
         for header, data in self._drawlist.iteritems():
@@ -850,25 +860,58 @@ class CardControl(wx.Dialog):
             x += (header.wxrect.width-w) / 2
             y += (header.wxrect.height-h) / 2
             dc.DrawBitmap(bmp, x, y, usemask)
-            if self._show_star(header):
-                rect, x, y = self._get_starrect(header)
-                if self.editstar.GetToggle() and rect.Contains(mousepos):
-                    bmp = self.starlight
-                elif header.star:
-                    bmp = self.star
-                elif self.editstar.GetToggle():
-                    bmp = self.nostar
-                else:
-                    bmp = None
 
-                if bmp:
-                    if self._starclickedflag:
-                        w, h = bmp.GetSize()
-                        w2, h2 = int(w*0.9), int(h*0.9)
-                        bmp = bmp.ConvertToImage().Rescale(w2, h2).ConvertToBitmap()
-                        dc.DrawBitmap(bmp, x + (w-w2)/2, y + (h-h2)/2, True)
+            def draw_price():
+                if price:
+                    s = u"%s" % (header.sellingprice if header.can_selling() else u"---")
+                    padw = cw.wins(2)
+                    padh = cw.wins(2)
+                    margw = cw.wins(2)
+                    margh = cw.wins(2)
+
+                    pw, ph = dc.GetTextExtent(s)
+                    pw //= 2
+                    ph //= 2
+                    maxwidth = w - (padw*2 + margw*2)
+                    py = y + h - ph - (margh + padh*2)
+
+                    gcdc.DrawRectangle(x+padw+margw, py-padh, maxwidth, ph+padh*2)
+
+                    px = x + padw+margh + (maxwidth - min(maxwidth, pw)) // 2
+
+                    quality = wx.IMAGE_QUALITY_HIGH
+                    cw.util.draw_antialiasedtext(dc, s, px, py, False, maxwidth-padw,
+                                                 cw.wins(0), quality=quality, scaledown=True,
+                                                 alpha=255, bordering=True)
+
+            def draw_star():
+                if self._show_star(header):
+                    rect, x, y = self._get_starrect(header)
+                    if self.editstar.GetToggle() and rect.Contains(mousepos):
+                        bmp = self.starlight
+                    elif header.star:
+                        bmp = self.star
+                    elif self.editstar.GetToggle():
+                        bmp = self.nostar
                     else:
-                        dc.DrawBitmap(bmp, x, y, True)
+                        bmp = None
+
+                    if bmp:
+                        if self._starclickedflag:
+                            w, h = bmp.GetSize()
+                            w2, h2 = int(w*0.9), int(h*0.9)
+                            bmp = bmp.ConvertToImage().Rescale(w2, h2).ConvertToBitmap()
+                            dc.DrawBitmap(bmp, x + (w-w2)/2, y + (h-h2)/2, True)
+                        else:
+                            dc.DrawBitmap(bmp, x, y, True)
+
+            if cw.cwpy.setting.edit_star:
+                # スターの編集中は価格より上に表示
+                draw_price()
+                draw_star()
+            else:
+                draw_star()
+                draw_price()
 
         # カード枚数のフォント設定
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(17)))
@@ -1169,6 +1212,9 @@ class CardControl(wx.Dialog):
                     pcard.update_image()
                 # 枚数表示
                 cw.cwpy.show_numberofcards(header.type)
+                # 売却価格表示
+                for poc in cw.cwpy.pricesprites:
+                    poc.set_header(header)
             cw.cwpy.exec_func(test_aptitude, header)
         # OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
@@ -1274,13 +1320,15 @@ class CardHolder(CardControl):
         else:
             status = "active"
 
-        # 適性表示と枚数表示を除去
+        # 適性・枚数・価格の表示を除去
         def func():
             for pcard in cw.cwpy.get_pcards():
                 if pcard.test_aptitude:
                     pcard.test_aptitude = None
                     pcard.update_image()
                 cw.cwpy.clear_numberofcards()
+            for poc in cw.cwpy.pricesprites:
+                poc.set_header(None)
             cw.cwpy.draw()
         cw.cwpy.exec_func(func)
 

@@ -788,6 +788,36 @@ class CardHeader(object):
             data.write_xml()
             self.fpath = data.fpath
 
+    @property
+    def sellingprice(self):
+        """カードの売却価格。"""
+        # 互換動作: 1.30以前ではカードの売値は常に半額
+        if cw.cwpy.sct.lessthan("1.30", self.versionhint):
+            price = self.price // 2
+        elif self.premium == "Normal":
+            price = self.price // 2
+        else:
+            price = int(self.price * 0.75)
+
+        if self.type == "ItemCard" and (0 < self.maxuselimit or self.recycle):
+            # 使用回数がある場合は使うほど売値が減る
+            price = price * self.uselimit // self.maxuselimit
+
+        return price
+
+    def can_selling(self):
+        """売却可能か？"""
+        # プレミアカードは売却・破棄できない(イベントからの呼出以外)
+        if not cw.cwpy.debug and cw.cwpy.setting.protect_premiercard and\
+                self.premium == "Premium":
+            return False
+
+        # スターつきのカードは売却・破棄できない(イベントからの呼出以外)
+        if cw.cwpy.setting.protect_staredcard and self.star:
+            return False
+
+        return True
+
 class InfoCardHeader(object):
     def __init__(self, data, can_loaded_scaledimage):
         """

@@ -358,36 +358,6 @@ class CardImage(Image):
         if not hasattr(header, "type"):
             return image
 
-        uselimith = cw.s(0)
-        if header.type in ("ItemCard", "BeastCard"):
-            uselimit, maxn = header.get_uselimit()
-
-            # 使用回数(数字)
-            if maxn or header.recycle or (header.type == "BeastCard" and maxn):
-                font = cw.cwpy.rsrc.fonts["card_uselimit"]
-                s = str(uselimit)
-                pos = (cw.s(5), self.rect[3] - font.get_height() - cw.s(4))
-                for c in s:
-                    subimg = font.render(c, True, (0, 0, 0))
-                    image.blit(subimg, (pos[0]+1, pos[1]-1))
-                    image.blit(subimg, (pos[0],   pos[1]-1))
-                    image.blit(subimg, (pos[0]-1, pos[1]-1))
-                    image.blit(subimg, (pos[0]-1, pos[1]))
-                    image.blit(subimg, (pos[0]+1, pos[1]))
-                    image.blit(subimg, (pos[0]+1, pos[1]+1))
-                    image.blit(subimg, (pos[0],   pos[1]+1))
-                    image.blit(subimg, (pos[0]-1, pos[1]+1))
-
-                    if header.recycle:
-                        colour = (255, 255, 0)
-                    else:
-                        colour = (255, 255, 255)
-
-                    subimg = font.render(c, True, colour)
-                    image.blit(subimg, pos)
-                    pos = pos[0] + cw.s(10), pos[1]
-                uselimith = cw.s(font.get_height() - 2)
-
         owner = header.get_owner()
         icony = cw.s(90)
         if isinstance(owner, cw.character.Character):
@@ -418,6 +388,36 @@ class CardImage(Image):
             if owner.is_autoselectedpenalty(header):
                 subimg = cw.cwpy.rsrc.pygamedialogs["FIXED"]
                 image.blit(subimg, cw.s((20, 0)))
+
+        uselimith = cw.s(0)
+        if header.type in ("ItemCard", "BeastCard"):
+            uselimit, maxn = header.get_uselimit()
+
+            # 使用回数(数字)
+            if maxn or header.recycle or (header.type == "BeastCard" and maxn):
+                font = cw.cwpy.rsrc.fonts["card_uselimit"]
+                s = str(uselimit)
+                pos = (cw.s(5), self.rect[3] - font.get_height() - cw.s(4))
+                for c in s:
+                    subimg = font.render(c, True, (0, 0, 0))
+                    image.blit(subimg, (pos[0]+1, pos[1]-1))
+                    image.blit(subimg, (pos[0],   pos[1]-1))
+                    image.blit(subimg, (pos[0]-1, pos[1]-1))
+                    image.blit(subimg, (pos[0]-1, pos[1]))
+                    image.blit(subimg, (pos[0]+1, pos[1]))
+                    image.blit(subimg, (pos[0]+1, pos[1]+1))
+                    image.blit(subimg, (pos[0],   pos[1]+1))
+                    image.blit(subimg, (pos[0]-1, pos[1]+1))
+
+                    if header.recycle:
+                        colour = (255, 255, 0)
+                    else:
+                        colour = (255, 255, 255)
+
+                    subimg = font.render(c, True, colour)
+                    image.blit(subimg, pos)
+                    pos = pos[0] + cw.s(10), pos[1]
+                uselimith = cw.s(font.get_height() - 2)
 
         if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or\
                                              (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):
@@ -544,41 +544,6 @@ class CardImage(Image):
         dc = wx.MemoryDC()
         dc.SelectObject(image)
 
-        uselimith = cw.wins(0)
-        if header.type in ("ItemCard", "BeastCard"):
-            uselimit, maxn = header.get_uselimit()
-
-            # 使用回数(数字)
-            if maxn or header.recycle or (header.type == "BeastCard" and maxn):
-                pixelsize = cw.cwpy.setting.fonttypes["uselimit"][2]
-                bold = wx.BOLD if cw.cwpy.setting.fonttypes["uselimit"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
-                italic = wx.ITALIC if cw.cwpy.setting.fonttypes["uselimit"][5] else wx.NORMAL
-                if wx.VERSION[0] < 3:
-                    pixelsize += 1
-                font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(pixelsize), style=italic, weight=bold, adjustsizewx3=False)
-                dc.SetFont(font)
-                s = str(uselimit)
-                pos = (cw.wins(5), self.wxrect[3] - cw.wins(pixelsize) - cw.wins(4))
-                for c in s:
-                    dc.SetTextForeground(wx.BLACK)
-                    dc.DrawText(c, pos[0]+1, pos[1]-1)
-                    dc.DrawText(c, pos[0],   pos[1]-1)
-                    dc.DrawText(c, pos[0]-1, pos[1]-1)
-                    dc.DrawText(c, pos[0]-1, pos[1])
-                    dc.DrawText(c, pos[0]+1, pos[1])
-                    dc.DrawText(c, pos[0]+1, pos[1]+1)
-                    dc.DrawText(c, pos[0],   pos[1]+1)
-                    dc.DrawText(c, pos[0]-1, pos[1]+1)
-
-                    if header.recycle:
-                        dc.SetTextForeground(wx.YELLOW)
-                    else:
-                        dc.SetTextForeground(wx.WHITE)
-
-                    dc.DrawText(c, pos[0], pos[1])
-                    pos = pos[0] + cw.wins(10), pos[1]
-                uselimith = cw.wins(pixelsize - 2)
-
         owner = header.get_owner()
         icony = cw.wins(90)
         if isinstance(owner, cw.character.Character):
@@ -613,6 +578,41 @@ class CardImage(Image):
             if owner.is_autoselectedpenalty(header):
                 subimg = cw.cwpy.rsrc.dialogs["FIXED"]
                 dc.DrawBitmap(subimg, cw.wins(20), cw.wins(0), True)
+
+        uselimith = cw.wins(0)
+        if header.type in ("ItemCard", "BeastCard"):
+            uselimit, maxn = header.get_uselimit()
+
+            # 使用回数(数字)
+            if maxn or header.recycle or (header.type == "BeastCard" and maxn):
+                pixelsize = cw.cwpy.setting.fonttypes["uselimit"][2]
+                bold = wx.BOLD if cw.cwpy.setting.fonttypes["uselimit"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
+                italic = wx.ITALIC if cw.cwpy.setting.fonttypes["uselimit"][5] else wx.NORMAL
+                if wx.VERSION[0] < 3:
+                    pixelsize += 1
+                font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(pixelsize), style=italic, weight=bold, adjustsizewx3=False)
+                dc.SetFont(font)
+                s = str(uselimit)
+                pos = (cw.wins(5), self.wxrect[3] - cw.wins(pixelsize) - cw.wins(4))
+                for c in s:
+                    dc.SetTextForeground(wx.BLACK)
+                    dc.DrawText(c, pos[0]+1, pos[1]-1)
+                    dc.DrawText(c, pos[0],   pos[1]-1)
+                    dc.DrawText(c, pos[0]-1, pos[1]-1)
+                    dc.DrawText(c, pos[0]-1, pos[1])
+                    dc.DrawText(c, pos[0]+1, pos[1])
+                    dc.DrawText(c, pos[0]+1, pos[1]+1)
+                    dc.DrawText(c, pos[0],   pos[1]+1)
+                    dc.DrawText(c, pos[0]-1, pos[1]+1)
+
+                    if header.recycle:
+                        dc.SetTextForeground(wx.YELLOW)
+                    else:
+                        dc.SetTextForeground(wx.WHITE)
+
+                    dc.DrawText(c, pos[0], pos[1])
+                    pos = pos[0] + cw.wins(10), pos[1]
+                uselimith = cw.wins(pixelsize - 2)
 
         if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or\
                                              (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):

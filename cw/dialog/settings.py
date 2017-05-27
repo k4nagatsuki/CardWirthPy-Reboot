@@ -2858,6 +2858,7 @@ class FontSettingPanel(wx.Panel):
                           "cardname"     : u"カード名",
                           "ccardname"    : u"キャストカード名",
                           "level"        : u"カードレベル",
+                          "price"        : u"カード価格",
                           "numcards"     : u"カード枚数",
                           "message"      : u"メッセージ",
                           "selectionbar" : u"選択肢",
@@ -2874,7 +2875,7 @@ class FontSettingPanel(wx.Panel):
         self.bases = ("gothic", "pgothic", "mincho", "pmincho", "uigothic")
         self.types = ("cardname", "ccardname", "level",
                       "message", "selectionbar", "logpage",
-                      "uselimit", "numcards", "statusnum",
+                      "uselimit", "price", "numcards", "statusnum",
                       "sbarpanel", "sbarprogress", "sbarbtn", "sbardesctitle", "sbardesc", "screenshot",
                       "scenario", "targetlevel", "paneltitle", "paneltitle2", "dlgmsg", "dlgmsg2", "dlgtitle", "dlgtitle2",
                       "createtitle", "dlglist", "inputname", "datadesc", "charadesc", "charaparam", "charaparam2",  "characre",

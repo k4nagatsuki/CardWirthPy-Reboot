@@ -3296,7 +3296,7 @@ def sort_cards(cards, condition, withstar):
         seq.append("negastar")
 
     def addetckey():
-        for key in ("name", "scenario", "author", "type_id", "level", "price"):
+        for key in ("name", "scenario", "author", "type_id", "level", "sellingprice"):
             if key <> seq[0]:
                 seq.append(key)
 
@@ -3310,7 +3310,7 @@ def sort_cards(cards, condition, withstar):
         seq.append("type_id")
         addetckey()
     elif condition == "Price":
-        seq.append("price")
+        seq.append("sellingprice")
         addetckey()
     elif condition == "Scenario":
         seq.append("scenario")

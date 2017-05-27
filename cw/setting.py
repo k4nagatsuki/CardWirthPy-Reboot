@@ -137,6 +137,7 @@ class LocalSetting(object):
             "cardname": ("uigothic", "", 12, True, True, False),
             "ccardname": ("uigothic", "", 12, True, True, False),
             "level": ("mincho", "", 33, False, False, True),
+            "price": ("mincho", "", 16, True, True, False),
             "numcards": ("uigothic", "", 18, False, False, False),
             "message": ("mincho", "", 22, True, True, False),
             "selectionbar": ("uigothic", "", 14, True, True, False),
@@ -1637,6 +1638,9 @@ class Resource(object):
         # メッセージログのページ表示描画用
         t = self.setting().fonttypes["logpage"]
         fonts.set("backlog_page", self.create_font, "logpage", t[0], t[1], t[2], t[3], t[4], t[5])
+        # カード価格表示用
+        t = self.setting().fonttypes["price"]
+        fonts.set("price", self.create_font, "price", t[0], t[1], t[2], t[3], t[4], t[5])
         # カード枚数描画用
         t = self.setting().fonttypes["numcards"]
         fonts.set("numcards", self.create_font, "numcards", t[0], t[1], t[2], t[3], t[4], t[5])

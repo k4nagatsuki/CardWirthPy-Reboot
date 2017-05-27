@@ -141,6 +141,7 @@ class CWPy(_Singleton, threading.Thread):
         self.cardgrp = pygame.sprite.LayeredDirty()
         self.pcards = []
         self.mcards = []
+        self.pricesprites = []
         self.curtains = []
         self.topgrp = pygame.sprite.LayeredDirty()
         self.backloggrp = pygame.sprite.LayeredDirty()
@@ -3225,6 +3226,12 @@ class CWPy(_Singleton, threading.Thread):
                     mcards = self.get_mcards("flagtrue")
                     self.set_autospread(mcards, 6, False, anime=False)
 
+                if self.areaid in cw.AREAS_TRADE:
+                    for mcard in self.get_mcards("visible"):
+                        if mcard.command == "MoveCard" and mcard.arg == "PAWNSHOP":
+                            poc = cw.sprite.background.PriceOfCard(mcard, None, self.cardgrp)
+                            self.pricesprites.append(poc)
+
                 self.list = self.get_mcards("visible")
                 self.index = -1
                 self.set_curtain(move_bgcells=True)
@@ -3317,6 +3324,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.change_data(areaid, data=data)
                 self.cardgrp.remove(self.mcards)
                 self.mcards = []
+                self.cardgrp.remove(self.pricesprites)
+                self.pricesprites = []
                 self.file_updates.clear()
                 for mcard in self.pre_mcards.pop():
                     self.cardgrp.add(mcard, layer=mcard.layer)
@@ -4074,27 +4083,7 @@ class CWPy(_Singleton, threading.Thread):
                 return
 
             if targettype == "PAWNSHOP":
-                def calc_price(header):
-                    # 互換動作: 1.30以前ではカードの売値は常に半額
-                    if cw.cwpy.sct.lessthan("1.30", header.versionhint):
-                        return header.price / 2
-
-                    if header.premium == "Normal":
-                        return header.price / 2
-                    else:
-                        return int(header.price * 0.75)
-                if header.type == "SkillCard":
-                    price = calc_price(header)
-                elif header.type == "ItemCard":
-                    if header.maxuselimit == 0:
-                        price = calc_price(header)
-                    else:
-                        # 使用回数がある場合は使うほど売値が減る
-                        price = calc_price(header) * header.uselimit
-                        if header.maxuselimit:
-                            price /=  header.maxuselimit
-                elif header.type == "BeastCard":
-                    price = calc_price(header)
+                price = header.sellingprice
                 if not from_event and (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_ALWAYS or\
                                         (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_SENDTO and parentdialog)):
                     if sound:
