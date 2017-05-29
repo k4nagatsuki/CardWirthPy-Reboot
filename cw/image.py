@@ -957,6 +957,7 @@ class CharacterCardImage(CardImage):
                 # LIFEGUAGE2がある場合、LIFEBARの上にLIFEGUAGE2を転写した上で
                 # LIFEGUAGE2_MASKのアルファ値を反映する
                 lifeimg = pygame.Surface(guage.get_size()).convert_alpha()
+                lifeimg.fill((0, 0, 0, 0))
                 lifeimg.blit(lifebar, calc_barpos(guage))
                 lifeimg.blit(guage, (0, 0))
                 lifemask = lifemask.convert_alpha()
