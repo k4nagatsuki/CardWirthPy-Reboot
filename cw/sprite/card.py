@@ -460,7 +460,7 @@ class CWPyCard(base.SelectableSprite):
 
     def update_shiftup(self):
         """下にさげていたカードを上にあげる。"""
-        speed = (self._get_dealspeed()+1) * 3
+        speed = self._get_dealspeed()*3 + 1
         if self.frame == 0:
             self.image = self.get_animeimage()
 
@@ -490,7 +490,7 @@ class CWPyCard(base.SelectableSprite):
 
     def update_shiftdown(self):
         """上にあげていたカードを下にさげる。"""
-        speed = (self._get_dealspeed()+1) * 3
+        speed = self._get_dealspeed()*3 + 1
 
         shift = int(float(cw.s(150)) / speed * self.frame)
         y = self._rect[1] + shift
