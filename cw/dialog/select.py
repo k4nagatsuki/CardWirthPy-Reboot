@@ -1179,6 +1179,21 @@ class YadoSelect(MultiViewSelect):
         if not self.list:
             return
 
+        def get_playingbmp():
+            fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING_YADO"), cw.M_IMG)
+            if os.path.isfile(fpath):
+                return cw.wins((cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True),
+                                cw.setting.SIZE_RESOURCES["Dialog/PLAYING_YADO"]))
+            else:
+                fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING"), cw.M_IMG)
+                if os.path.isfile(fpath):
+                    return cw.wins((cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True),
+                                    cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
+                elif "PLAYING_YADO" in cw.cwpy.rsrc.dialogs:
+                    return cw.cwpy.rsrc.dialogs["PLAYING_YADO"]
+                else:
+                    return cw.cwpy.rsrc.dialogs["PLAYING"]
+
         if self.views == 1:
             # 単独表示
             if self.classic[self.index]:
@@ -1238,13 +1253,9 @@ class YadoSelect(MultiViewSelect):
 
             # 使用中マーク
             if cw.util.exists_mutex(self.list[self.index]):
-                fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING"), cw.M_IMG)
-                if os.path.isfile(fpath):
-                    bmp = cw.wins((cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True), cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
-                else:
-                    bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
-                w = bmp.GetSize()[0]
-                dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(152), True)
+                bmp = get_playingbmp()
+                w, h = bmp.GetSize()
+                dc.DrawBitmap(bmp, (bmpw-w)//2, (bmph-h)//2, True)
         else:
             # 一覧表示
             pindex = self.views * self.get_page()
@@ -1314,11 +1325,7 @@ class YadoSelect(MultiViewSelect):
                 skindir = self.skins[index]
 
                 if cw.util.exists_mutex(self.list[index]):
-                    fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING"), cw.M_IMG)
-                    if os.path.isfile(fpath):
-                        bmp = cw.wins((cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True), cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
-                    else:
-                        bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
+                    bmp = get_playingbmp()
                     w, h = bmp.GetSize()
                     dc.DrawBitmap(bmp, (aw-w)//2+x, (ah-h)//2+y, True)
                 if (index-pindex) % 2 == 1:
