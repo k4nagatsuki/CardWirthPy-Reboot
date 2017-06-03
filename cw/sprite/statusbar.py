@@ -143,7 +143,8 @@ class StatusBar(base.CWPySprite):
         if self.infocards and not cw.cwpy.is_playingscenario():
             self.infocards.notice = False
 
-        self.loading = False
+        if showbuttons:
+            self.loading = False
 
         if not cw.cwpy.sdata or not cw.cwpy.sdata.in_f9:
             # デバッガのツールが使用可能かどうかを更新
@@ -191,15 +192,14 @@ class StatusBar(base.CWPySprite):
             self.partymoney = PartyMoneyPanel(self, pos)
 
     def _create_infocards(self, pos):
-        is_camp = cw.cwpy.areaid in (-4, -5)
         if self.infocards:
             notice = self.infocards.notice
             self.infocards.reset(pos)
-            if not self.loading and notice <> self.infocards.notice and self.infocards.notice and not is_camp:
+            if not self.loading and notice <> self.infocards.notice and self.infocards.notice:
                 cw.animation.start_animation(self.infocards, "blink")
         else:
             self.infocards = InfoCardsButton(self, pos)
-            if not self.loading and self.infocards.notice and not is_camp:
+            if not self.loading and self.infocards.notice:
                 cw.animation.start_animation(self.infocards, "blink")
 
     def _create_friendcards(self, pos):
