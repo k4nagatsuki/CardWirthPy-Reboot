@@ -1237,7 +1237,10 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(func, areaid)
             return areaid
         elif cw.cwpy.is_playingscenario() and cw.cwpy.areaid == cw.AREA_CAMP:
-            cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.AREA_TRADE3)
+            def func():
+                cw.cwpy.change_specialarea(cw.AREA_TRADE3)
+                cw.cwpy.statusbar.change()
+            cw.cwpy.exec_func(func)
             return cw.AREA_TRADE3
         return cw.cwpy.areaid
 

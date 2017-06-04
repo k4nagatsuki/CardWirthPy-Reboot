@@ -57,7 +57,8 @@ class StatusBar(base.CWPySprite):
 
     def change(self, showbuttons=True, encounter=False):
         self.clear()
-        if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT) or cw.cwpy.expanding):
+        in_camp = cw.cwpy.areaid in (cw.AREA_CAMP, cw.AREA_TRADE3)
+        if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT) or cw.cwpy.expanding) and not in_camp:
             showbuttons = False
 
         statusbarmask = cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()
@@ -1089,11 +1090,11 @@ class RunAwayButton(StatusBarButton):
 
 class CancelButton(StatusBarButton):
     def __init__(self, parent, pos):
-        if cw.cwpy.areaid == -3:
-            msg = "complete"
+        if cw.cwpy.areaid == cw.AREA_BREAKUP:
+            msg = cw.cwpy.msgs["complete"]
         else:
-            msg = "entry_cancel"
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs[msg], pos)
+            msg = cw.cwpy.msgs["entry_cancel"]
+        StatusBarButton.__init__(self, parent, s, pos)
         self.selectable_on_event = False
 
     def lclick_event(self):
