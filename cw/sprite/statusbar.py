@@ -1089,7 +1089,11 @@ class RunAwayButton(StatusBarButton):
 
 class CancelButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["entry_cancel"], pos)
+        if cw.cwpy.areaid == -3:
+            msg = "complete"
+        else:
+            msg = "entry_cancel"
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs[msg], pos)
         self.selectable_on_event = False
 
     def lclick_event(self):

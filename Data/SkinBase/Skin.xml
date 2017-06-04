@@ -789,6 +789,7 @@
     <Message key="duration">%sラウンド</Message>
     <Message key="all">全て</Message>
     <Message key="show_object">%sを表示</Message>
+    <Message key="complete">終了</Message>
     <!-- 2.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
