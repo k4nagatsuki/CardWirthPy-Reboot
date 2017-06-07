@@ -121,7 +121,8 @@ LTYPE_BACKGROUND = 2
 LTYPE_MCARDS = 3
 LTYPE_PCARDS = 4
 LTYPE_FCARDS = 0
-LTYPE_SPMCARDS = 0x7fffffff
+LTYPE_SPMESSAGE = 1
+LTYPE_SPMCARDS = 3
 
 LAYER_BACKGROUND = 0 # 背景
 LAYER_MCARDS = 100 # メニューカード・エネミーカード
@@ -129,7 +130,7 @@ LAYER_PCARDS = 200 # プレイヤーカード
 LAYER_MCARDS_120 = 300 # CardWirth 1.20でのメニューカード(PCより手前に表示)
 LAYER_FCARDS_T = 0x7fffffff # デバッグモードで表示される戦闘中の同行キャスト
 LAYER_FCARDS = 1000 # 同行キャスト
-LAYER_SPMCARDS = 0x7fffffff # 特殊エリアのメニューカード
+LAYER_SPMCARDS = 0x70000100 # 特殊エリアのメニューカード
 
 # (layer, index, kind)
 LAYER_FRONT_INUSECARD = (0x7fffffff, 0x7fffffff-2, 0x7fffffff, 0x7fffffff) # カーソル下のカードの使用カード
@@ -137,6 +138,7 @@ LAYER_TARGET_ARROW = (0x7fffffff, 0x7fffffff-1, 0x7fffffff, 0x7fffffff) # 対象
 
 # index=-1は背景セル
 LAYER_MESSAGE = (1000, LTYPE_MESSAGE, 0, 0) # メッセージ
+LAYER_SPMESSAGE = (0x70001000, LTYPE_SPMESSAGE, 0, 0) #特殊エリアのメッセージ
 LAYER_SELECTIONBAR_1 = (1000, LTYPE_MESSAGE, 1, 0) # メッセージ選択肢
 LAYER_SELECTIONBAR_2 = (1000, LTYPE_MESSAGE, 2, 0) # メッセージ選択肢(クリック中)
 

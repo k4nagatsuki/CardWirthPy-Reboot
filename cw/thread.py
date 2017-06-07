@@ -662,7 +662,8 @@ class CWPy(_Singleton, threading.Thread):
     def update_messagestyle(self):
         """メッセージの描画形式の変更を反映する。"""
         cw.sprite.message.MessageWindow.clear_selections()
-        for sprite in self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
+        for sprite in itertools.chain(self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE),
+                                      self.cardgrp.get_sprites_from_layer(cw.LAYER_SPMESSAGE)):
             sprite.update_scale()
         if self._log_handler:
             self._log_handler.update_sprites(clearcache=True)
@@ -1709,6 +1710,7 @@ class CWPy(_Singleton, threading.Thread):
         self.index = -1
         # スプライト削除
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
+        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPMESSAGE)
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
         self.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
@@ -4755,10 +4757,13 @@ class CWPy(_Singleton, threading.Thread):
 
     def get_messagewindow(self):
         """MessageWindow or SelectWindowインスタンスを返す。"""
-        try:
-            return self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)[0]
-        except:
-            return None
+        sprites = self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)
+        if sprites:
+            return sprites[0]
+        sprites = self.cardgrp.get_sprites_from_layer(cw.LAYER_SPMESSAGE)
+        if sprites:
+            return sprites[0]
+        return None
 
     def get_mcards(self, mode="", flag=""):
         """MenuCardインスタンスのリストを返す。

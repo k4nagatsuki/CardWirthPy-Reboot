@@ -91,7 +91,11 @@ class MessageWindow(base.CWPySprite):
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
         else:
-            cw.cwpy.cardgrp.add(self, layer=cw.LAYER_MESSAGE)
+            if cw.cwpy.areaid < 0:
+                layer = cw.LAYER_SPMESSAGE
+            else:
+                layer = cw.LAYER_MESSAGE
+            cw.cwpy.cardgrp.add(self, layer=layer)
 
     def _init_image(self, size_noscale, pos_noscale):
         # image
@@ -659,7 +663,11 @@ class SelectWindow(MessageWindow):
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
         else:
-            cw.cwpy.cardgrp.add(self, layer=cw.LAYER_MESSAGE)
+            if cw.cwpy.areaid < 0:
+                layer = cw.LAYER_SPMESSAGE
+            else:
+                layer = cw.LAYER_MESSAGE
+            cw.cwpy.cardgrp.add(self, layer=layer)
 
     def _init_image(self, size_noscale, pos_noscale):
         # image
