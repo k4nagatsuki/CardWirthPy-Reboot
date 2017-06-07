@@ -1712,7 +1712,9 @@ class CWPy(_Singleton, threading.Thread):
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPMESSAGE)
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_1)
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_2)
         self.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
 
         # 互換性マーク削除

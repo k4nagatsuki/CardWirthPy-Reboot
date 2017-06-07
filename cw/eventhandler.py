@@ -971,19 +971,23 @@ class EventHandlerForMessageWindow(EventHandler):
                 cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
                 cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPMESSAGE)
                 cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_1)
                 cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_2)
                 cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
                 if redraw:
                     cw.cwpy.draw()
         else:
             if not self._has_message():
-                if cw.cwpy.areaid < 0:
+                if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
                     layer = cw.LAYER_SPMESSAGE
+                    sellayer = cw.LAYER_SELECTIONBAR_1
                 else:
                     layer = cw.LAYER_MESSAGE
+                    sellayer = cw.LAYER_SELECTIONBAR_1
                 cw.cwpy.cardgrp.add(self.mwin, layer=layer)
                 for sbar in self.mwin.selections:
-                    cw.cwpy.cardgrp.add(sbar, layer=cw.LAYER_SELECTIONBAR_1)
+                    cw.cwpy.cardgrp.add(sbar, layer=sellayer)
                     if cw.s(cw.SIZE_AREA[1]) <= sbar.rect.bottom:
                         cw.cwpy.sbargrp.add(sbar, layer=cw.sprite.statusbar.LAYER_MESSAGE)
                 if redraw:

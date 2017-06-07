@@ -91,7 +91,7 @@ class MessageWindow(base.CWPySprite):
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
         else:
-            if cw.cwpy.areaid < 0:
+            if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
                 layer = cw.LAYER_SPMESSAGE
             else:
                 layer = cw.LAYER_MESSAGE
@@ -197,7 +197,9 @@ class MessageWindow(base.CWPySprite):
     @staticmethod
     def clear_selections():
         cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_1)
         cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_2)
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
@@ -663,7 +665,7 @@ class SelectWindow(MessageWindow):
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
         else:
-            if cw.cwpy.areaid < 0:
+            if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
                 layer = cw.LAYER_SPMESSAGE
             else:
                 layer = cw.LAYER_MESSAGE
@@ -744,7 +746,11 @@ class SelectionBar(base.SelectableSprite):
             self.group.add(self, layer=cw.LAYER_LOG_BAR)
         else:
             self.group = cw.cwpy.cardgrp
-            self.group.add(self, layer=cw.LAYER_SELECTIONBAR_1)
+            if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
+                layer = cw.LAYER_SPSELECTIONBAR_1
+            else:
+                layer = cw.LAYER_SELECTIONBAR_1
+            self.group.add(self, layer=layer)
 
         # 半ば画面外へ出る選択肢は特別措置としてステータスバー上にも表示する
         if cw.s(cw.SIZE_AREA[1]) <= self.rect.bottom:
@@ -786,15 +792,21 @@ class SelectionBar(base.SelectableSprite):
         左クリック時のアニメーションを呼び出すメソッド。
         軽く下に押すアニメーション。
         """
+        if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
+            layer1 = cw.LAYER_SPSELECTIONBAR_1
+            layer2 = cw.LAYER_SPSELECTIONBAR_2
+        else:
+            layer1 = cw.LAYER_SELECTIONBAR_1
+            layer2 = cw.LAYER_SELECTIONBAR_2
         if self.frame == 0:
             self.rect.move_ip(cw.s(0), cw.s(+1))
             self.status = "click"
-            self.group.change_layer(self, cw.LAYER_SELECTIONBAR_2)
+            self.group.change_layer(self, layer2)
         elif self.frame == 6:
             self.status = "normal"
             self.rect.move_ip(cw.s(0), cw.s(-1))
             self.frame = 0
-            self.group.change_layer(self, cw.LAYER_SELECTIONBAR_1)
+            self.group.change_layer(self, layer1)
             return
 
         self.frame += 1

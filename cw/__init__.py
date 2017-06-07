@@ -140,9 +140,12 @@ LAYER_TARGET_ARROW = (0x7fffffff, 0x7fffffff-1, 0x7fffffff, 0x7fffffff) # 対象
 
 # index=-1は背景セル
 LAYER_MESSAGE = (1000, LTYPE_MESSAGE, 0, 0) # メッセージ
-LAYER_SPMESSAGE = (LAYER_SP_LAYER+1000, LTYPE_SPMESSAGE, 0, 0) #特殊エリアのメッセージ
 LAYER_SELECTIONBAR_1 = (1000, LTYPE_MESSAGE, 1, 0) # メッセージ選択肢
 LAYER_SELECTIONBAR_2 = (1000, LTYPE_MESSAGE, 2, 0) # メッセージ選択肢(クリック中)
+
+LAYER_SPMESSAGE = (LAYER_SP_LAYER+1000, LTYPE_SPMESSAGE, 0, 0) # 特殊エリアのメッセージ
+LAYER_SPSELECTIONBAR_1 = (LAYER_SP_LAYER+1000, LTYPE_MESSAGE, 1, 0) # 特殊エリアのメッセージ選択肢
+LAYER_SPSELECTIONBAR_2 = (LAYER_SP_LAYER+1000, LTYPE_MESSAGE, 2, 0) # 特殊エリアのメッセージ選択肢(クリック中)
 
 LAYER_TRANSITION = (0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff) # 背景遷移用
 
