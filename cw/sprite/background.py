@@ -38,10 +38,6 @@ class BackGround(base.CWPySprite):
         self._inhrt_index = 0
         # spritegroupに追加
         self.layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0, 0)
-        # 全背景にカーテンがかかっている時のレイヤ
-        # このレイヤにスプライトが存在するか検査する事で、
-        # 前面背景にもカーテンがかかっている状態か確認できる
-        self.curtain_layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0x7fffffff, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
         # レイヤ0以外に配置した背景セル
         self.foregrounds = set()
@@ -53,7 +49,7 @@ class BackGround(base.CWPySprite):
 
         self.curtained = False
         self._curtains = []
-        self._curtain_move_bgcells = False
+        self.curtain_all = False
 
         self.pc_cache = {}
 
@@ -78,28 +74,30 @@ class BackGround(base.CWPySprite):
                     # 再実行
                     self._reload(doanime=doanime, ttype=ttype, redraw=True, force=False)
                 if self.curtained:
-                    self.set_curtain(move_bgcells=self._curtain_move_bgcells)
+                    self.set_curtain(curtain_all=self.curtain_all)
             cw.cwpy.exec_func(func)
         else:
             self.image.fill((0, 0, 0))
             self._reload(doanime=cw.effectbooster.CutAnimation(), ttype=("None", "None"), redraw=False, force=True, nocheckvisible=True)
             if self.curtained:
-                self.set_curtain(move_bgcells=self._curtain_move_bgcells)
+                self.set_curtain(curtain_all=self.curtain_all)
 
     def update_skin(self, oldskindir, newskindir):
         pass
 
-    def set_curtain(self, move_bgcells):
+    def set_curtain(self, curtain_all):
         self.clear_curtain()
         self.curtained = True
         self._curtains = []
-        self._curtain_move_bgcells = move_bgcells
-        if move_bgcells:
-            maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp,
-                                                       layer=self.curtain_layer)
+        self.curtain_all = curtain_all
+        if curtain_all:
+            layer = (cw.LAYER_SPBACKGROUND, cw.LTYPE_BACKGROUND, 0, 0)
+            maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp, layer=layer)
             self._curtains.append(maincurtain)
-            for bgcell in self.foregrounds:
-                cw.cwpy.cardgrp.change_layer(bgcell, bgcell.curtained_layer)
+            for pcard in cw.cwpy.get_pcards():
+                layer, ltype, index, subtype = pcard.layer
+                pcard.layer = (layer+cw.LAYER_SP_LAYER, ltype, index, subtype)
+                cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
         else:
             if self.foregrounds:
                 cutter = pygame.Surface(cw.s(cw.SIZE_AREA)).convert_alpha()
@@ -137,11 +135,19 @@ class BackGround(base.CWPySprite):
                 self._curtains.append(maincurtain)
 
     def clear_curtain(self):
+        if not self.curtained:
+            return
+
         self.curtained = False
+        if self.curtain_all:
+            for pcard in cw.cwpy.get_pcards():
+                layer, ltype, index, subtype = pcard.layer
+                assert cw.LAYER_SP_LAYER < layer
+                pcard.layer = (layer-cw.LAYER_SP_LAYER, ltype, index, subtype)
+                cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
+            self.curtain_all = False
         cw.cwpy.cardgrp.remove(self._curtains)
         self._curtains = []
-        for bgcell in self.foregrounds:
-            cw.cwpy.cardgrp.change_layer(bgcell, bgcell.normal_layer)
 
     def store_filepath(self, path):
         if not cw.cwpy.is_playingscenario():
@@ -998,12 +1004,7 @@ class BackGround(base.CWPySprite):
                     sprite = BgCell(bgtype, d2, flag, layer, i)
                     self.foregrounds.add(sprite)
                     self.foregroundlist.append(t)
-                    if cw.cwpy.cardgrp.get_sprites_from_layer(self.curtain_layer):
-                        # キャンプ中など、前面背景にもカーテンがかかっている状態
-                        cw.cwpy.cardgrp.add(sprite, layer=sprite.curtained_layer)
-                    else:
-                        # カーテンがかかっていないか前面背景はカーテンで覆わない状態
-                        cw.cwpy.cardgrp.add(sprite, layer=sprite.normal_layer)
+                    cw.cwpy.cardgrp.add(sprite, layer=sprite.layer)
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -1064,12 +1065,7 @@ class BgCell(base.CWPySprite):
         self.bgtype = bgtype
         self.d = d
         self.flag = flag
-        # 通常時(背景にカーテンがかかっていない時)のレイヤ
-        self.normal_layer = (layer, cw.LTYPE_BACKGROUND, -1, index)
-        # 前面背景にもカーテンがかかっている時のレイヤ
-        self.curtained_layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, layer, index)
-
-        self.layer = self.normal_layer
+        self.layer = (layer, cw.LTYPE_BACKGROUND, -1, index)
 
         if bgtype == BG_IMAGE:
             # 背景画像、カラーセル、縁取り形式2のテキストセル

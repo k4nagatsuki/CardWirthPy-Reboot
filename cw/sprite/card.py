@@ -710,7 +710,10 @@ class PlayerCard(CWPyCard, character.Player):
 
         # spritegroupに追加
         self.index = index
-        self.layer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, self.index, 0)
+        if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
+            self.layer = (cw.LAYER_PCARDS+cw.LAYER_SP_LAYER, cw.LTYPE_PCARDS, self.index, 0)
+        else:
+            self.layer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, self.index, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
         cw.cwpy.pcards.insert(index, self)
 
@@ -950,15 +953,19 @@ class EnemyCard(CWPyCard, character.Enemy):
                 raise
 
         layer = mcarddata.getint("Property/Layer", -1)
-        if 0 <= layer:
-            self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)
-        else:
+        if layer < 0:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
                                   cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
-                self.layer = (cw.LAYER_MCARDS_120, cw.LTYPE_MCARDS, self.index, 0)
+                layer = cw.LAYER_MCARDS_120
             else:
-                self.layer = (cw.LAYER_MCARDS, cw.LTYPE_MCARDS, self.index, 0)
+                layer = cw.LAYER_MCARDS
+
+        if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
+            self.layer = (layer+cw.LAYER_SP_LAYER, cw.LTYPE_MCARDS, self.index, 0)
+        else:
+            self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)
+
         if addgroup:
             # spritegroupに追加
             cw.cwpy.cardgrp.add(self, layer=self.layer)
@@ -1161,17 +1168,19 @@ class MenuCard(CWPyCard):
             self.initialize()
 
         layer = data.getint("Property/Layer", -1)
-        if 0 <= layer:
-            self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)
-        elif cw.cwpy.areaid in cw.AREAS_SP:
-            self.layer = (cw.LAYER_SPMCARDS, cw.LTYPE_SPMCARDS, self.index, 0)
-        else:
+        if layer < 0:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
                                   cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
-                self.layer = (cw.LAYER_MCARDS_120, cw.LTYPE_MCARDS, self.index, 0)
+                layer = cw.LAYER_MCARDS_120
             else:
-                self.layer = (cw.LAYER_MCARDS, cw.LTYPE_MCARDS, self.index, 0)
+                layer = cw.LAYER_MCARDS
+
+        if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
+            self.layer = (layer+cw.LAYER_SP_LAYER, cw.LTYPE_MCARDS, self.index, 0)
+        else:
+            self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)
+
         if addgroup:
             # spritegroupに追加
             cw.cwpy.cardgrp.add(self, layer=self.layer)
