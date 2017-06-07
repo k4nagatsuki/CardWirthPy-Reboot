@@ -2999,7 +2999,8 @@ class CWPy(_Singleton, threading.Thread):
     def change_area(self, areaid, eventstarting=True,
                           bginhrt=False, ttype=("Default", "Default"),
                           quickdeal=False, specialarea=False, startbattle=False,
-                          doanime=True, data=None, nocheckvisible=False):
+                          doanime=True, data=None, nocheckvisible=False,
+                          clear_curtain=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -3025,9 +3026,14 @@ class CWPy(_Singleton, threading.Thread):
         if not self.sdata.change_data(areaid, data=data):
             raise cw.event.EffectBreakError()
         bginhrt |= bool(self.areaid < 0)
-        self.hide_cards(True, quickhide=quickdeal)
-        self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime, data=data,
-                         nocheckvisible=nocheckvisible)
+        if self.sdata.in_f9:
+            self.hide_cards(True, quickhide=quickdeal)
+        else:
+            self.hide_cards(True, quickhide=quickdeal)
+            if clear_curtain:
+                self.clear_curtain()
+            self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime, data=data,
+                             nocheckvisible=nocheckvisible)
 
         if not self.is_playingscenario() and not self.is_showparty:
             # 宿にいる場合は常に全回復状態にする
@@ -3060,7 +3066,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.draw()
 
             self.sdata.start_event(keynum=1)
-        else:
+        elif not self.sdata.in_f9:
             self.deal_cards(quickdeal=quickdeal, startbattle=startbattle)
             if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
                 self.show_party()
@@ -3308,9 +3314,8 @@ class CWPy(_Singleton, threading.Thread):
                 # キャンプ解除でスキルカードの使用回数消滅を確定
                 self.sdata.uselimit_table.clear()
 
-            if areaid <> cw.AREA_CAMP:
-                # キャンプ時以外であればカーテン解除
-                self.clear_curtain()
+            # キャンプ時以外であればカーテン解除
+            clear_curtain = areaid <> cw.AREA_CAMP
 
             # パーティ解散エリア解除の場合
             if self.areaid == cw.AREA_BREAKUP:
@@ -3329,6 +3334,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.cardgrp.remove(self.pricesprites)
                 self.pricesprites = []
                 self.file_updates.clear()
+                if clear_curtain:
+                    self.clear_curtain()
                 for mcard in self.pre_mcards.pop():
                     self.cardgrp.add(mcard, layer=mcard.layer)
                     self.mcards.append(mcard)
@@ -3338,7 +3345,8 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
-                self.change_area(areaid, data=data, quickdeal=True, specialarea=True)
+                self.change_area(areaid, data=data, quickdeal=True, specialarea=True,
+                                 clear_curtain=clear_curtain)
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata._changed = changed
         elif self.is_battlestatus():
