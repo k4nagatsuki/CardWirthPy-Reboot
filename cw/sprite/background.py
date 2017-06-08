@@ -100,9 +100,6 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
         else:
             if self.foregrounds:
-                cutter = pygame.Surface(cw.s(cw.SIZE_AREA)).convert_alpha()
-                cutter.fill((0, 0, 0, 0))
-
                 layers = []
                 for sprite in reversed(cw.cwpy.cardgrp.sprites()):
                     if isinstance(sprite, cw.sprite.background.Curtain):
@@ -117,18 +114,11 @@ class BackGround(base.CWPySprite):
                     else:
                         continue
 
-                    subrect = cutter.get_rect().clip(rect)
-                    if 0 < subrect.width and 0 < subrect.height:
-                        curtain.cutter = cutter.subsurface(subrect).copy()
-                        curtain.cutter_pos = (max(0, -rect.left), max(0, -rect.top))
-                        cutter.fill((0, 0, 0, 255), subrect)
-
                     curtain.update_scale()
 
                 maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp,
                                                            initialize=False)
                 self._curtains.append(maincurtain)
-                maincurtain.cutter = cutter
                 maincurtain.update_scale()
             else:
                 maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp)
@@ -1110,8 +1100,6 @@ class Curtain(base.SelectableSprite):
         color: カーテン色(不透明度含む)。
         """
         base.SelectableSprite.__init__(self)
-        self.cutter = None
-        self.cutter_pos = (0, 0)
         self._is_selectable = is_selectable
 
         if color:
@@ -1135,8 +1123,6 @@ class Curtain(base.SelectableSprite):
         self.image = pygame.Surface(self.target.rect.size).convert_alpha()
         self.image.fill(self.color)
         self.rect = pygame.Rect(self.target.rect)
-        #if self.cutter:
-        #    self.image.blit(self.cutter, self.cutter_pos, special_flags=pygame.locals.BLEND_RGBA_SUB)
 
         if isinstance(self.target, BgCell):
             if self.target.bgtype == BG_TEXT:
