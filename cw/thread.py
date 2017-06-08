@@ -2639,6 +2639,7 @@ class CWPy(_Singleton, threading.Thread):
         # プレイヤカードを下げる
         if self.ydata and hideparty:
             if not self.ydata.party or self.ydata.party.is_loading():
+                self.draw(clip=self.statusbar.rect)
                 self.hide_party()
 
         # list, indexセット
@@ -4698,6 +4699,10 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_reloading(self):
         return self._reloading
+
+    def is_statusbarmask(self):
+        return cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario() and\
+               not self.is_processing and self.ydata and self.ydata.party and not self.ydata.party.is_loading()
 
     def is_showingdlg(self):
         return 0 < self._showingdlg

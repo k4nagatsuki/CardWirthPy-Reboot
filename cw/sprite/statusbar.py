@@ -43,7 +43,7 @@ class StatusBar(base.CWPySprite):
     def _init_image(self):
         self.image = pygame.Surface(cw.s((632, 33))).convert()
         subimg = cw.cwpy.rsrc.get_statusbtnbmp(2, 0)
-        if not self.showbuttons and self._statusbarmask:
+        if not self.showbuttons and self._statusbarmask and cw.cwpy.is_statusbarmask():
             subimg.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
         self.image.fill((240, 240, 240))
         self.image.blit(subimg, cw.s((0, 0)))
@@ -61,7 +61,7 @@ class StatusBar(base.CWPySprite):
         if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT) or cw.cwpy.expanding) and not in_camp:
             showbuttons = False
 
-        statusbarmask = cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()
+        statusbarmask = cw.cwpy.is_statusbarmask()
 
         if self.showbuttons <> showbuttons or self._statusbarmask <> statusbarmask:
             self.showbuttons = showbuttons
@@ -569,6 +569,7 @@ class PartyMoneyPanel(YadoMoneyPanel):
         self.update(None)
 
     def reset(self, parent, pos, size):
+        self.text = self.get_money()
         self.desc = cw.cwpy.msgs["desc_party_money"]
         StatusBarPanel.reset(self, parent, pos, size)
 
@@ -681,8 +682,7 @@ class StatusBarButton(base.SelectableSprite):
     def _create_paneimg(self, pos, icon):
         # ボタン画像
         self.btnimg = {}
-        self._statusbarmask = (cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()) or\
-                              cw.cwpy.statusbar._statusbarmask
+        self._statusbarmask = cw.cwpy.statusbar._statusbarmask
 
         # ボタンアイコン・ラベル
         if icon:
@@ -723,8 +723,7 @@ class StatusBarButton(base.SelectableSprite):
             return self.notice
 
     def get_btnimg(self, flags):
-        statusbarmask = (cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()) or\
-                        cw.cwpy.statusbar._statusbarmask
+        statusbarmask = cw.cwpy.statusbar._statusbarmask
 
         if self._statusbarmask <> statusbarmask:
             self._statusbarmask = statusbarmask
