@@ -1135,8 +1135,32 @@ class Curtain(base.SelectableSprite):
         self.image = pygame.Surface(self.target.rect.size).convert_alpha()
         self.image.fill(self.color)
         self.rect = pygame.Rect(self.target.rect)
-        if self.cutter:
-            self.image.blit(self.cutter, self.cutter_pos, special_flags=pygame.locals.BLEND_RGBA_SUB)
+        #if self.cutter:
+        #    self.image.blit(self.cutter, self.cutter_pos, special_flags=pygame.locals.BLEND_RGBA_SUB)
+
+        if isinstance(self.target, BgCell):
+            if self.target.bgtype == BG_TEXT:
+                # 縁取り形式2以外のテキストセル
+                text, face, tsize, color, bold, italic, underline, strike, vertical, bcolor, size, _pos = self.target.d
+                rect = cw.s(pygame.Rect(cw.s((0, 0)), size))
+                subimg = pygame.Surface(rect.size).convert_alpha()
+                subimg.fill((0, 0, 0, 0))
+                cw.image.draw_textcell(subimg, rect, text, face,
+                                       cw.s(tsize), color, bold, italic, underline, strike, vertical, bcolor)
+            else:
+                subimg = self.target.d[0]
+                if not (subimg.get_flags() & pygame.locals.SRCALPHA):
+                    return
+                subimg = subimg.copy()
+        else:
+            subimg = self.target.image
+            if not (subimg.get_flags() & pygame.locals.SRCALPHA):
+                return
+            subimg = subimg.copy()
+
+        subimg = subimg.copy()
+        subimg.fill((0, 0, 0, 255), special_flags=pygame.locals.BLEND_RGBA_MIN)
+        self.image.blit(subimg, (0, 0), special_flags=pygame.locals.BLEND_RGBA_MULT)
 
     def rclick_event(self):
         cw.cwpy.cancel_cardcontrol()
