@@ -76,7 +76,7 @@ class StatusBar(base.CWPySprite):
         if cw.cwpy.expanding:
             ExpandView(self, cw.s((10, 6)))
 
-        showbuttons &= not cw.cwpy.is_showingbacklog()
+        showbuttons &= not cw.cwpy.is_showingbacklog() and not cw.cwpy.sdata.in_f9
 
         left = cw.s(602)
         rmargin = cw.s(0)

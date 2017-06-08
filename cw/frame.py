@@ -1232,7 +1232,9 @@ class Frame(wx.Frame):
         if cw.cwpy.areaid in cw.AREAS_TRADE:
             return cw.cwpy.areaid
         elif cw.cwpy.status == "Yado":
-            func = cw.cwpy.change_specialarea
+            def func(areaid):
+                cw.cwpy.change_specialarea(areaid)
+                cw.cwpy.statusbar.change()
             areaid = -cw.cwpy.areaid
             cw.cwpy.exec_func(func, areaid)
             return areaid
