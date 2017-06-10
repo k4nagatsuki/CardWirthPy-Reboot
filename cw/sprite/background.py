@@ -100,6 +100,11 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
         else:
             if self.foregrounds:
+                # 他のスプライトがすでに配置されている箇所に多重にカーテンがかかってしまうのを
+                # 避けるため、カーテンから他スプライトの位置をカットするための情報を作成する
+                cutter = pygame.Surface(cw.s(cw.SIZE_AREA)).convert_alpha()
+                cutter.fill((0, 0, 0, 0))
+
                 layers = []
                 for sprite in reversed(cw.cwpy.cardgrp.sprites()):
                     if isinstance(sprite, cw.sprite.background.Curtain):
@@ -114,11 +119,29 @@ class BackGround(base.CWPySprite):
                     else:
                         continue
 
+                    subrect = cutter.get_rect().clip(rect)
+                    if 0 < subrect.width and 0 < subrect.height:
+                        curtain.cutter = cutter.subsurface(subrect).copy()
+                        curtain.cutter_pos = (max(0, -rect.left), max(0, -rect.top))
+                        if isinstance(sprite, BgCell) and sprite.bgtype == BG_IMAGE and sprite.d[-1] in (BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT):
+                            # ブレンドモードが加算・減算・乗算の場合、背景との合成が発生するので
+                            # 全体をカットしておかないと合成結果がおかしくなる
+                            cutter.fill((0, 0, 0, 255), subrect)
+                        else:
+                            mask = curtain.create_mask()
+                            if mask:
+                                # 透明部分だけカットする
+                                mask.fill((0, 0, 0, 255), special_flags=pygame.locals.BLEND_RGBA_MIN)
+                                cutter.blit(mask, rect.topleft, special_flags=pygame.locals.BLEND_RGBA_MAX)
+                            else:
+                                cutter.fill((0, 0, 0, 255), subrect)
+
                     curtain.update_scale()
 
                 maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp,
                                                            initialize=False)
                 self._curtains.append(maincurtain)
+                maincurtain.cutter = cutter
                 maincurtain.update_scale()
             else:
                 maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp)
@@ -1100,6 +1123,8 @@ class Curtain(base.SelectableSprite):
         color: カーテン色(不透明度含む)。
         """
         base.SelectableSprite.__init__(self)
+        self.cutter = None
+        self.cutter_pos = (0, 0)
         self._is_selectable = is_selectable
 
         if color:
@@ -1123,7 +1148,16 @@ class Curtain(base.SelectableSprite):
         self.image = pygame.Surface(self.target.rect.size).convert_alpha()
         self.image.fill(self.color)
         self.rect = pygame.Rect(self.target.rect)
+        if self.cutter:
+            self.image.blit(self.cutter, self.cutter_pos, special_flags=pygame.locals.BLEND_RGBA_SUB)
 
+        mask = self.create_mask()
+        if mask:
+            mask.fill((0, 0, 0, 255), special_flags=pygame.locals.BLEND_RGBA_MIN)
+            mask.fill(self.color[:3] + (0,), special_flags=pygame.locals.BLEND_RGBA_ADD)
+            self.image.blit(mask, (0, 0), special_flags=pygame.locals.BLEND_RGBA_MIN)
+
+    def create_mask(self):
         if isinstance(self.target, BgCell):
             if self.target.bgtype == BG_TEXT:
                 # 縁取り形式2以外のテキストセル
@@ -1133,20 +1167,20 @@ class Curtain(base.SelectableSprite):
                 subimg.fill((0, 0, 0, 0))
                 cw.image.draw_textcell(subimg, rect, text, face,
                                        cw.s(tsize), color, bold, italic, underline, strike, vertical, bcolor)
+            elif self.target.d[-1] in (BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT):
+                return None
             else:
                 subimg = self.target.d[0]
                 if not (subimg.get_flags() & pygame.locals.SRCALPHA):
-                    return
+                    return None
                 subimg = subimg.copy()
         else:
             subimg = self.target.image
             if not (subimg.get_flags() & pygame.locals.SRCALPHA):
-                return
+                return None
             subimg = subimg.copy()
 
-        subimg = subimg.copy()
-        subimg.fill((0, 0, 0, 255), special_flags=pygame.locals.BLEND_RGBA_MIN)
-        self.image.blit(subimg, (0, 0), special_flags=pygame.locals.BLEND_RGBA_MULT)
+        return subimg
 
     def rclick_event(self):
         cw.cwpy.cancel_cardcontrol()
