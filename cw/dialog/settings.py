@@ -634,6 +634,8 @@ class SettingsPanel(wx.Panel):
         setting.filer_dir = value
         value = self.pane_scenario.tx_filer_file.GetValue()
         setting.filer_file = value
+        value = self.pane_scenario.cb_open_lastscenario.GetValue()
+        setting.open_lastscenario = value
 
         setting.folderoftype = []
         for row in xrange(self.pane_scenario.grid_folderoftype.GetNumberRows() - 1):
@@ -2196,6 +2198,8 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_write_playlog = wx.CheckBox(self, -1, u"シナリオのプレイログを出力する")
         self.cb_can_installscenariofromdrop = wx.CheckBox(self, -1, u"シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する")
         self.cb_delete_sourceafterinstalled = wx.CheckBox(self, -1, u"シナリオのインストールに成功したら元ファイルを削除する")
+        self.cb_open_lastscenario = wx.CheckBox(
+            self, -1, u"最後に選んだシナリオをシナリオの選択開始位置にする")
 
         # スキンタイプ毎の初期フォルダ
         self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
@@ -2258,6 +2262,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_write_playlog.SetValue(setting.write_playlog)
         self.cb_can_installscenariofromdrop.SetValue(setting.can_installscenariofromdrop)
         self.cb_delete_sourceafterinstalled.SetValue(setting.delete_sourceafterinstalled)
+        self.cb_open_lastscenario.SetValue(setting.open_lastscenario)
         if 0 < self.grid_folderoftype.GetNumberRows():
             self.grid_folderoftype.DeleteRows(0, self.grid_folderoftype.GetNumberRows())
         self.grid_folderoftype.InsertRows(0, len(setting.folderoftype) + 1)
@@ -2280,6 +2285,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_write_playlog.SetValue(setting.write_playlog_init)
         self.cb_can_installscenariofromdrop.SetValue(setting.can_installscenariofromdrop_init)
         self.cb_delete_sourceafterinstalled.SetValue(setting.delete_sourceafterinstalled_init)
+        self.cb_open_lastscenario.SetValue(setting.open_lastscenario_init)
         self.tx_filer_dir.SetValue(setting.filer_dir_init)
         self.tx_filer_file.SetValue(setting.filer_file_init)
 
@@ -2317,6 +2323,7 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_folderoftype = wx.StaticBoxSizer(self.box_folderoftype, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_gene.Add(self.cb_open_lastscenario, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_show_paperandtree, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_write_playlog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_can_installscenariofromdrop, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))

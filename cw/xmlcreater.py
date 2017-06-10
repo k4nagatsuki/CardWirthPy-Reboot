@@ -572,6 +572,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("WritePlayLog", str(setting.write_playlog))
         element.append(e)
 
+    #  最後に選んだシナリオを開始地点にする
+    if setting.open_lastscenario <> setting.open_lastscenario_init:
+        e = cw.data.make_element("OpenLastScenario", str(setting.open_lastscenario))
+        element.append(e)
+
     # ドロップによるシナリオのインストールを可能にする
     if setting.can_installscenariofromdrop <> setting.can_installscenariofromdrop_init:
         e = cw.data.make_element("CanInstallScenarioFromDrop", str(setting.can_installscenariofromdrop))

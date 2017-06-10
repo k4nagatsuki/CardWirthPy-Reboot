@@ -272,7 +272,7 @@ class ScenarioSelect(select.Select):
         self.Bind(wx.EVT_BUTTON, self.OnCancel2, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_CLOSE, self.OnCancel2)
 
-        if lastscenario or lastscenariopath:
+        if cw.cwpy.setting.open_lastscenario and (lastscenario or lastscenariopath):
             self.set_selected(lastscenario, lastscenariopath, opendir=True)
         else:
             self.draw(True)

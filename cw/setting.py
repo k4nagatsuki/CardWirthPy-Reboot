@@ -401,6 +401,7 @@ class Setting(object):
         self.show_debuglogdialog = False
         self.write_playlog = False
         self.move_repeat = 250 #移動ボタン押しっぱなしの速度
+        self.open_lastscenario = True # 最後に表示したシナリオを開くか
         # シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する
         # Falseの場合は常に検索結果として表示
         self.can_installscenariofromdrop = False
@@ -753,6 +754,8 @@ class Setting(object):
         # プレイログのフォーマット
         self.playlogformat = data.gettext("PlayLogFormat", self.playlogformat)
 
+        # 最後に選んだシナリオを開始位置にする
+        self.open_lastscenario = data.getbool("OpenLastScenario", self.open_lastscenario)
         # ドロップによるシナリオのインストールを可能にする
         self.can_installscenariofromdrop = data.getbool("CanInstallScenarioFromDrop", self.can_installscenariofromdrop)
         # シナリオのインストールに成功したら元ファイルを削除する
