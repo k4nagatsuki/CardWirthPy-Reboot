@@ -946,6 +946,7 @@ class CharaRequirementPanel(wx.Panel):
         self.set_random()
 
     def _update_images(self, img=[][:]):
+        self.Freeze()
         fpaths = set()
         if not img:
             if 0 >= self.imgcombo.GetSelection():
@@ -979,6 +980,7 @@ class CharaRequirementPanel(wx.Panel):
             # 一覧に選択済みのイメージが無ければ[変更しない]を選択
             self.imgcombo.SetSelection(0)
         self._select_image()
+        self.Thaw()
 
     def _select_image(self):
         infos = self._get_infos()

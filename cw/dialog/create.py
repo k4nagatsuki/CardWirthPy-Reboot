@@ -1021,6 +1021,7 @@ class AdventurerCreaterPage(wx.Panel):
         self._update_imgdpaths()
 
     def _update_imgdpaths(self):
+        self.Freeze()
         self.ch_imgdpath.Clear()
         if 1 < len(self.imgpathlist):
             choices = []
@@ -1038,6 +1039,7 @@ class AdventurerCreaterPage(wx.Panel):
         self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
         cw.util.adjust_dropdownwidth(self.ch_imgdpath)
         self._do_layout()
+        self.Thaw()
 
     def draw(self, update=False):
         if update:
