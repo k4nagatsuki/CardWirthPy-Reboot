@@ -759,8 +759,8 @@
     <Message key="rename">名前の変更</Message>
     <Message key="enhance_action">行動力</Message>
     <Message key="enhance_avoid">回避力</Message>
-    <Message key="enhance_defense">抵抗力</Message>
-    <Message key="enhance_resist">防御力</Message>
+    <Message key="enhance_defense">防御力</Message>
+    <Message key="enhance_resist">抵抗力</Message>
     <Message key="maximum_bonus">%s最大ボーナス</Message>
     <Message key="big_bonus">%s大ボーナス</Message>
     <Message key="middle_bonus">%s中ボーナス</Message>
