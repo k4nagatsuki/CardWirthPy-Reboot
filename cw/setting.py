@@ -1315,6 +1315,7 @@ class _MsgDict(dict):
                             u"デイリービルド版でこのエラーが発生した場合は、" \
                             u"「Data/SkinBase」以下のリソースが最新版になっていない"\
                             u"可能性があります。" % (key)
+                        sys.stderr.write(s.replace(u"\n", u""))
                         dlg = cw.dialog.message.ErrorMessage(None, s)
                         dlg.ShowModal()
                 cw.cwpy.frame.exec_func(func)
@@ -1993,6 +1994,16 @@ class Resource(object):
             if not fpath:
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath1, key), ext)
             if not fpath:
+                def errfunc(dname, key):
+                    if cw.cwpy.frame:
+                        s = u"リソース [%s/%s] が見つかりません。\n"\
+                            u"デイリービルド版でこのエラーが発生した場合は、" \
+                            u"「Data/SkinBase」以下のリソースが最新版になっていない"\
+                            u"可能性があります。" % (dname, key)
+                        sys.stderr.write(s.replace(u"\n", u""))
+                        dlg = cw.dialog.message.ErrorMessage(None, s)
+                        dlg.ShowModal()
+                cw.cwpy.frame.exec_func(errfunc, os.path.basename(dpath1), key)
                 return emptyfunc()
 
             if mask is None:
@@ -2220,6 +2231,8 @@ class Resource(object):
     def calc_cardnamecolorhint(self, bmp):
         """文字描画領域の色を平均化した値を返す。
         """
+        if bmp.get_width() <= cw.s(10) or bmp.get_height() <= cw.s(20):
+            return
         rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
         sub = bmp.subsurface(rect)
         buf = pygame.image.tostring(sub, "RGB")
@@ -2230,6 +2243,8 @@ class Resource(object):
     def calc_wxcardnamecolorhint(self, wxbmp):
         """文字描画領域の色を平均化した値を返す。
         """
+        if bmp.GetWidth() <= cw.s(10) or bmp.GetHeight() <= cw.s(20):
+            return
         rect = wx.Rect(cw.s(5), cw.s(5), wxbmp.GetWidth() - cw.s(10), cw.s(15))
         sub = wxbmp.GetSubBitmap(rect)
         buf = array.array('B', '\0' * (rect[2] * rect[3] * 3))
@@ -2670,7 +2685,6 @@ class ResourceTable(object):
         self.dic[key] = LazyResource(func, args, kwargs)
 
     def __contains__(self, key):
-        self._put_nokeyvalue(key)
         return key in self.dic
 
     def copy(self):

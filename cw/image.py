@@ -950,10 +950,10 @@ class CharacterCardImage(CardImage):
                 barpos = (int(lifeper*(w+cw.s(1)) + 0.5) - (w+cw.s(1)), cw.s(1))
                 return barpos
 
-            guage = cw.cwpy.rsrc.statuses["LIFEGUAGE2"]
-            lifemask = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"]
+            guage = cw.cwpy.rsrc.statuses["LIFEGUAGE2"] if "LIFEGUAGE2" in cw.cwpy.rsrc.statuses else None
+            lifemask = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"] if "LIFEGUAGE2_MASK" in cw.cwpy.rsrc.statuses else None
             lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
-            if 1 < guage.get_width() and 1 < lifemask.get_width():
+            if guage and lifemask:
                 # LIFEGUAGE2がある場合、LIFEBARの上にLIFEGUAGE2を転写した上で
                 # LIFEGUAGE2_MASKのアルファ値を反映する
                 lifeimg = pygame.Surface(guage.get_size()).convert_alpha()
@@ -1301,6 +1301,7 @@ def smoothscale(surface, size, smoothing=True, iscard=False):
     """
     if size == surface.get_size():
         return surface
+    size = map(lambda a: max(1, a), size)
 
     if surface.get_height() <= 1:
         # FIXME: 環境によって、高さが1の画像に
