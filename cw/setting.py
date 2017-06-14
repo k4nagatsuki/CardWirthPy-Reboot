@@ -1315,7 +1315,7 @@ class _MsgDict(dict):
                             u"デイリービルド版でこのエラーが発生した場合は、" \
                             u"「Data/SkinBase」以下のリソースが最新版になっていない"\
                             u"可能性があります。" % (key)
-                        sys.stderr.write(s.replace(u"\n", u""))
+                        sys.stderr.write("Message [%s] is not found." % key)
                         dlg = cw.dialog.message.ErrorMessage(None, s)
                         dlg.ShowModal()
                 cw.cwpy.frame.exec_func(func)
@@ -2000,7 +2000,7 @@ class Resource(object):
                             u"デイリービルド版でこのエラーが発生した場合は、" \
                             u"「Data/SkinBase」以下のリソースが最新版になっていない"\
                             u"可能性があります。" % (dname, key)
-                        sys.stderr.write(s.replace(u"\n", u""))
+                        sys.stderr.write("Resource [%s/%s] is not found." % (dname, key))
                         dlg = cw.dialog.message.ErrorMessage(None, s)
                         dlg.ShowModal()
                 cw.cwpy.frame.exec_func(errfunc, os.path.basename(dpath1), key)
