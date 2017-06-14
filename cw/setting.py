@@ -1318,6 +1318,7 @@ class _MsgDict(dict):
                         sys.stderr.write("Message [%s] is not found." % key)
                         dlg = cw.dialog.message.ErrorMessage(None, s)
                         dlg.ShowModal()
+                        dlg.Destroy()
                 cw.cwpy.frame.exec_func(func)
                 self._error_keys.add(key)
             return u"*ERROR*"
@@ -2003,6 +2004,7 @@ class Resource(object):
                         sys.stderr.write("Resource [%s/%s] is not found." % (dname, key))
                         dlg = cw.dialog.message.ErrorMessage(None, s)
                         dlg.ShowModal()
+                        dlg.Destroy()
                 cw.cwpy.frame.exec_func(errfunc, os.path.basename(dpath1), key)
                 return emptyfunc()
 
