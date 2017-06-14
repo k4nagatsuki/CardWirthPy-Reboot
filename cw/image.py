@@ -950,8 +950,8 @@ class CharacterCardImage(CardImage):
                 barpos = (int(lifeper*(w+cw.s(1)) + 0.5) - (w+cw.s(1)), cw.s(1))
                 return barpos
 
-            guage = cw.cwpy.rsrc.statuses["LIFEGUAGE2"] if "LIFEGUAGE2" in cw.cwpy.rsrc.statuses else None
-            lifemask = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"] if "LIFEGUAGE2_MASK" in cw.cwpy.rsrc.statuses else None
+            guage = cw.cwpy.rsrc.statuses["LIFEGUAGE2"] if "LIFEGUAGE2" in cw.cwpy.rsrc.statuses.dic else None
+            lifemask = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"] if "LIFEGUAGE2_MASK" in cw.cwpy.rsrc.statuses.dic else None
             lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
             if guage and lifemask:
                 # LIFEGUAGE2がある場合、LIFEBARの上にLIFEGUAGE2を転写した上で

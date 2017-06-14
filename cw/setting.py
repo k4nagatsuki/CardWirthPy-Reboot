@@ -2687,6 +2687,7 @@ class ResourceTable(object):
         self.dic[key] = LazyResource(func, args, kwargs)
 
     def __contains__(self, key):
+        self._put_nokeyvalue(key)
         return key in self.dic
 
     def copy(self):
