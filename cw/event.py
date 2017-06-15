@@ -1445,6 +1445,7 @@ class CardEvent(Event, Targeting):
         d["fadein"] = data.getint("Property/SoundPath2", "fadein", 0)
         d["visualeffect"] = data.gettext("Property/VisualEffect", "None")
         d["target"] = data.gettext("Property/Target", "None")
+        d["allrange"] = data.getbool("Property/Target", "allrange", False)
 
         # Effectインスタンス作成
         motions = data.getfind("Motions").getchildren()
@@ -1455,15 +1456,16 @@ class CardEvent(Event, Targeting):
         # ターゲット色反転＆ウェイト
         self.update_targets()
         skipped = False
-        if len(self.targets) == 1:
+        if not d["allrange"]:
+            self.targets[0].set_cardtarget()
+            cw.cwpy.draw()
+            waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1) * 2
+            skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
             if eff.check_enabledtarget(self.targets[0], False):
-                self.targets[0].set_cardtarget()
-                cw.cwpy.draw()
-                waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1) * 2
-                skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 targets = self.targets
             else:
                 targets = []
+                self.targets[0].clear_cardtarget()
         else:
             path = data.gettext("Property/SoundPath", "")
             volume = data.getint("Property/SoundPath", "volume", 100)
