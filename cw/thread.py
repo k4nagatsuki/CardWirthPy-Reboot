@@ -3986,7 +3986,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def _play_sound_with(self, path, from_scenario, inusecard=None, subvolume=100, loopcount=1, channel=0, fade=0):
         if not path:
-            return True
+            return False
         inusesoundpath = cw.util.get_inusecardmaterialpath(path, cw.M_SND, inusecard)
         if os.path.isfile(inusesoundpath):
             path = inusesoundpath
