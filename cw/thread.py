@@ -3985,6 +3985,8 @@ class CWPy(_Singleton, threading.Thread):
         self.sounds[name].play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
 
     def _play_sound_with(self, path, from_scenario, inusecard=None, subvolume=100, loopcount=1, channel=0, fade=0):
+        if not path:
+            return True
         inusesoundpath = cw.util.get_inusecardmaterialpath(path, cw.M_SND, inusecard)
         if os.path.isfile(inusesoundpath):
             path = inusesoundpath
@@ -3999,6 +4001,8 @@ class CWPy(_Singleton, threading.Thread):
         """効果音を再生する。
         シナリオ効果音・スキン効果音を適宜使い分ける。
         """
+        if not path:
+            return
         if channel < 0 or cw.bassplayer.MAX_SOUND_CHANNELS <= channel:
             return
         if self._play_sound_with(path, True, inusecard, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade):
@@ -4010,6 +4014,9 @@ class CWPy(_Singleton, threading.Thread):
             self.skinsounds[name].play(True, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
 
     def has_sound(self, path):
+        if not path:
+            return False
+
         path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)
 
         if os.path.isfile(path):

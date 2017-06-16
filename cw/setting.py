@@ -1967,7 +1967,7 @@ class Resource(object):
         return btn.copy() if btn else None
 
     def get_resources(self, func, dpath1, dpath2, ext, mask=None, ss=None, noresize=(), nodbg=False, emptyfunc=None,
-                      editor_res=None):
+                      editor_res=None, warning=True):
         """
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
@@ -1995,17 +1995,18 @@ class Resource(object):
             if not fpath:
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath1, key), ext)
             if not fpath:
-                def errfunc(dname, key):
-                    if cw.cwpy.frame:
-                        s = u"リソース [%s/%s] が見つかりません。\n"\
-                            u"デイリービルド版でこのエラーが発生した場合は、" \
-                            u"「Data/SkinBase」以下のリソースが最新版になっていない"\
-                            u"可能性があります。" % (dname, key)
-                        sys.stderr.write("Resource [%s/%s] is not found." % (dname, key))
-                        dlg = cw.dialog.message.ErrorMessage(None, s)
-                        dlg.ShowModal()
-                        dlg.Destroy()
-                cw.cwpy.frame.exec_func(errfunc, os.path.basename(dpath1), key)
+                if warning:
+                    def errfunc(dname, key):
+                        if cw.cwpy.frame:
+                            s = u"リソース [%s/%s] が見つかりません。\n"\
+                                u"デイリービルド版でこのエラーが発生した場合は、" \
+                                u"「Data/SkinBase」以下のリソースが最新版になっていない"\
+                                u"可能性があります。" % (dname, key)
+                            sys.stderr.write("Resource [%s/%s] is not found." % (dname, key))
+                            dlg = cw.dialog.message.ErrorMessage(None, s)
+                            dlg.ShowModal()
+                            dlg.Destroy()
+                    cw.cwpy.frame.exec_func(errfunc, os.path.basename(dpath1), key)
                 return emptyfunc()
 
             if mask is None:
@@ -2047,9 +2048,11 @@ class Resource(object):
         pygameのsoundインスタンスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Sound")
-        d = self.get_resources(cw.util.load_sound, "Data/SkinBase/Sound", dpath, self.ext_snd, emptyfunc=empty_sound)
+        d = self.get_resources(cw.util.load_sound, "Data/SkinBase/Sound", dpath, self.ext_snd,
+                               emptyfunc=empty_sound, warning=False)
         dpath = cw.util.join_paths(self.skindir, "BgmAndSound")
-        d2 = self.get_resources(cw.util.load_sound, "Data/SkinBase/BgmAndSound", dpath, self.ext_snd, emptyfunc=empty_sound)
+        d2 = self.get_resources(cw.util.load_sound, "Data/SkinBase/BgmAndSound", dpath, self.ext_snd,
+                                emptyfunc=empty_sound, warning=False)
         d.merge(d2)
 
         return d
