@@ -570,6 +570,7 @@ class SliderWithButton(wx.Panel):
         self._enable()
 
     def set_max(self, value):
+        self.Freeze()
         maxvalue = value
         minvalue = self.slider.GetMin()
         self.is_enabled = minvalue < maxvalue
@@ -577,21 +578,39 @@ class SliderWithButton(wx.Panel):
             self.slider.SetRange(minvalue, minvalue+1)
             self.slider.SetValue(minvalue)
             self._enable()
+            self.Thaw()
             return
         n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
         self.slider.SetTickFreq(n, 1)
         self.slider.SetMax(value)
+
+        # FIXME: 数値の桁数が変わった時、一度サイズを変えないと表示がおかしくなる
+        size = self.slider.GetSize()
+        self.slider.SetSize((0, 0))
+        self.slider.SetSize(size)
+        self.Layout()
+
         self._enable()
+        self.Thaw()
 
     def set_min(self, value):
         if not self.is_enabled:
             return
+        self.Freeze()
         maxvalue = self.slider.GetMax()
         minvalue = value
         n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
         self.slider.SetTickFreq(n, 1)
         self.slider.SetMin(value)
+
+        # FIXME: 数値の桁数が変わった時、一度サイズを変えないと表示がおかしくなる
+        size = self.slider.GetSize()
+        self.slider.SetSize((0, 0))
+        self.slider.SetSize(size)
+        self.Layout()
+
         self._enable()
+        self.Thaw()
 
     def _enable(self):
         self.slider.Enable(self.is_enabled)
