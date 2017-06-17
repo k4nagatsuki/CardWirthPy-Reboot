@@ -160,7 +160,7 @@ class MessageWindow(base.CWPySprite):
         xmove = cw.s(0)
         for talker_image, info in self.talker_image:
             baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
-            if info.basecardtype == "LargeCard":
+            if info.basecardtype == "LargeCard" and info.postype <> "Center":
                 baserect.x -= cw.s(11) # LargeCardとNormalCardのサイズ差に合わせた調節
             xmove = max(-baserect.x, xmove)
 
