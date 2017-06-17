@@ -1385,7 +1385,7 @@ class NamePage(AdventurerCreaterPage):
         self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg, None)
         # NextImage
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        pos = (x+cw.wins(cw.SIZE_CARDIMAGE[0]+cw.wins(20)), y+(cw.wins(cw.SIZE_CARDIMAGE[1])-bmp.GetHeight())//2)
+        pos = (x+cw.wins(cw.SIZE_CARDIMAGE[0]+20), y+(cw.wins(cw.SIZE_CARDIMAGE[1])-bmp.GetHeight())//2)
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
 
         # image
@@ -2797,7 +2797,7 @@ class DesignPanel(AdventurerCreaterPage):
         self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg, None)
         # NextImage
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        pos = (x+cw.wins(cw.SIZE_CARDIMAGE[0]+cw.wins(20)), y+(cw.wins(cw.SIZE_CARDIMAGE[1])-bmp.GetHeight())//2)
+        pos = (x+cw.wins(cw.SIZE_CARDIMAGE[0]+20), y+(cw.wins(cw.SIZE_CARDIMAGE[1])-bmp.GetHeight())//2)
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
         dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
