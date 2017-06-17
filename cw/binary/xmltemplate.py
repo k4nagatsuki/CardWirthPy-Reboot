@@ -50,7 +50,7 @@ $indent <BeastCards>$beasts
 $indent </BeastCards>
 $indent</Adventurer>"""
 
-ImagePath = """$indent<ImagePath>$path</ImagePath>"""
+ImagePath = """$indent<ImagePath positiontype="$postype">$path</ImagePath>"""
 
 Album = """$indent<Album>
 $indent <Property>

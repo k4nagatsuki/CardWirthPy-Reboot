@@ -651,6 +651,8 @@ class AdventurerCreaterPage(wx.Panel):
         self.SetMinSize(size)
         self.next = None
         self.prev = None
+        # ツールチップヒント(wx.Rect, テキスト)
+        self.tooltips = []
         # key: name, value: (pygame.Rect, 実行するメソッド)の辞書
         self.clickables = {}
         # キー操作で選択しているアイテム(name)
@@ -687,6 +689,7 @@ class AdventurerCreaterPage(wx.Panel):
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.OnCancel)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_MOTION, self.OnMotion)
 
     def _do_layout(self):
         pass
@@ -728,6 +731,15 @@ class AdventurerCreaterPage(wx.Panel):
         画面のちらつき防止。
         """
         pass
+
+    def OnMotion(self, event):
+        x, y = event.GetPosition()
+        s = u""
+        for rect, tooltip in self.tooltips:
+            if rect.Contains((x, y)):
+                s = tooltip
+        if s <> self.GetToolTipString():
+            self.SetToolTipString(s)
 
     def OnNLeftKeyDown(self, event):
         fc = wx.Window.FindFocus()
@@ -1060,7 +1072,7 @@ class AdventurerCreaterPage(wx.Panel):
 
 def _path_to_imageinfo(path):
     if isinstance(path, (str, unicode)):
-        return [cw.image.ImageInfo(path)]
+        return [cw.image.ImageInfo(path, postype="Center")]
     return path
 
 class NamePage(AdventurerCreaterPage):
@@ -1069,7 +1081,6 @@ class NamePage(AdventurerCreaterPage):
         self.SetDoubleBuffered(True)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.DragAcceptFiles(True)
-        self.SetToolTipString(cw.cwpy.msgs["can_use_castimage_from_dropped"])
         self.textctrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.textctrl.SetMaxLength(14)
         self.textctrl.SetFocus()
@@ -1366,22 +1377,32 @@ class NamePage(AdventurerCreaterPage):
         if any(clickableline):
             self.clickable_table.append(clickableline)
 
+        x, y = cw.wins(275), cw.wins(130)
+
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        pos = cw.wins((250, 170))
+        pos = (x-cw.wins(20)-bmp.GetWidth(), y+(cw.wins(cw.SIZE_CARDIMAGE[1])-bmp.GetHeight())//2)
         self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg, None)
         # NextImage
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        pos = cw.wins((365, 170))
+        pos = (x+cw.wins(cw.SIZE_CARDIMAGE[0]+cw.wins(20)), y+(cw.wins(cw.SIZE_CARDIMAGE[1])-bmp.GetHeight())//2)
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
+
         # image
-        dc.SetClippingRect(wx.Rect(cw.wins(275), cw.wins(130), cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
+        dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
+        basecardtype = "LargeCard"
         for info in self.imgpaths:
             bmp = cw.util.load_wxbmp(info.path, True, can_loaded_scaledimage=True)
             bmp2 = cw.wins(bmp)
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, cw.wins(275), cw.wins(130), True, bitsizekey=bmp)
+            baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
+                                                     basecardtype=basecardtype,
+                                                     cardpostype="NotCard")
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x + baserect.x, y + baserect.y, True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea(cw.wins((275, 130)), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
+
+        self.tooltips = [(wx.Rect(x-cw.wins(5), y-cw.wins(5), cw.wins(cw.SIZE_CARDIMAGE[1]+10), cw.wins(cw.SIZE_CARDIMAGE[1]+10)),
+                          cw.cwpy.msgs["can_use_castimage_from_dropped"])]
 
         self.clickable_table.append([None, None, "PrevImage", "NextImage"])
 
@@ -2480,7 +2501,6 @@ class DesignPanel(AdventurerCreaterPage):
         self.SetDoubleBuffered(True)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.DragAcceptFiles(True)
-        self.SetToolTipString(cw.cwpy.msgs["can_use_castimage_from_dropped"])
 
         self.ccard = ccard
 
@@ -2769,16 +2789,17 @@ class DesignPanel(AdventurerCreaterPage):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, y)
 
+        x, y = (cwidth - cw.wins(cw.SIZE_CARDIMAGE[0])) / 2, cw.wins(y2)
+
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        pos = cw.wins((135, y2+34))
+        pos = (x-cw.wins(20)-bmp.GetWidth(), y+(cw.wins(cw.SIZE_CARDIMAGE[1])-bmp.GetHeight())//2)
         self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg, None)
         # NextImage
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        pos = cw.wins((260, y2+34))
+        pos = (x+cw.wins(cw.SIZE_CARDIMAGE[0]+cw.wins(20)), y+(cw.wins(cw.SIZE_CARDIMAGE[1])-bmp.GetHeight())//2)
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
-        x, y = (cwidth - cw.wins(74)) / 2, cw.wins(y2)
         dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         if self.is_changedimgpath():
             can_loaded_scaledimage = True
@@ -2795,6 +2816,9 @@ class DesignPanel(AdventurerCreaterPage):
             cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x+baserect.x, y+baserect.y, True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea((x, y), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
+
+        self.tooltips = [(wx.Rect(x-cw.wins(5), y-cw.wins(5), cw.wins(cw.SIZE_CARDIMAGE[0]+10), cw.wins(cw.SIZE_CARDIMAGE[1]+10)),
+                          cw.cwpy.msgs["can_use_castimage_from_dropped"])]
 
         self.clickable_table = [["PrevImage", "NextImage"]]
 

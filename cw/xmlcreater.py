@@ -844,7 +844,9 @@ def create_adventurer(data):
     advname = cw.util.repl_dischar(d["name"])
     infos = write_castimagepath(advname, paths, True)
     imgpaths = map(lambda info: cw.binary.xmltemplate.get_xmltext("ImagePath",
-                    {"path":cw.binary.util.repl_escapechar(info.path), "indent": "   "}), infos)
+                    {"path":cw.binary.util.repl_escapechar(info.path),
+                     "postype": info.postype,
+                     "indent": "   "}), infos)
     d["imgpaths"] = "\n" + "\n".join(imgpaths)
     d["scaledimage"] = str(True)
 

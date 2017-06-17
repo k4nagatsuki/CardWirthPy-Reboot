@@ -352,7 +352,7 @@ class CharaInfo(object):
         faces = []
         for values in cw.util.get_facepaths(self.sex, self.age).itervalues():
             faces.extend(values)
-        self.imgpaths = [cw.image.ImageInfo(cw.cwpy.dice.choice(faces))] if faces else []
+        self.imgpaths = [cw.image.ImageInfo(cw.cwpy.dice.choice(faces), postype="Center")] if faces else []
         self.can_loaded_scaledimage = True
 
         natures = []
@@ -900,7 +900,7 @@ class CharaRequirementPanel(wx.Panel):
         else:
             fpath = self.imgpathlist[self.imgcombo.GetSelection()-1]
             for info in infos:
-                info.imgpaths = [cw.image.ImageInfo(fpath)]
+                info.imgpaths = [cw.image.ImageInfo(fpath, postype="Center")]
                 info.can_loaded_scaledimage = True
 
         self._select_image()
@@ -916,7 +916,7 @@ class CharaRequirementPanel(wx.Panel):
 
         if seq:
             self._dropfiles = seq
-            img = [cw.image.ImageInfo(seq[0])]
+            img = [cw.image.ImageInfo(seq[0], postype="Center")]
             self._update_images(img)
             infos = self._get_infos()
             for info in infos:
@@ -952,7 +952,7 @@ class CharaRequirementPanel(wx.Panel):
             if 0 >= self.imgcombo.GetSelection():
                 img = []
             else:
-                img = [cw.image.ImageInfo(self.imgpathlist[self.imgcombo.GetSelection()-1])]
+                img = [cw.image.ImageInfo(self.imgpathlist[self.imgcombo.GetSelection()-1], postype="Center")]
 
         infos = self._get_infos()
 
@@ -1014,7 +1014,7 @@ class CharaRequirementPanel(wx.Panel):
             # パスを選択
             img = self.imgpathlist[self.imgcombo.GetSelection()-1]
             bmp = cw.util.load_wxbmp(img, mask=True, can_loaded_scaledimage=True, up_scr=cw.dpi_level)
-            self.img.SetBitmap([cw.ppis(bmp)], [bmp])
+            self.img.SetBitmap([cw.ppis(bmp)], [bmp], infos=[cw.image.ImageInfo(img, postype="Center")])
 
     def _get_infos(self):
         if self.cindex == 0:
@@ -1129,7 +1129,7 @@ class CharaRequirementPanel(wx.Panel):
                 seq.extend(paths)
 
             fpath = cw.cwpy.dice.choice(seq)
-            info.imgpaths = [cw.image.ImageInfo(fpath)]
+            info.imgpaths = [cw.image.ImageInfo(fpath, postype="Center")]
             info.can_loaded_scaledimage = True
 
             if not info.input_name:
