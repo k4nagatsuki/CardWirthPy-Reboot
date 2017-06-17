@@ -997,6 +997,7 @@ class AdventurerCreaterPage(wx.Panel):
         return False
 
     def set_imgpathlist(self, reset=True):
+        self.Freeze()
         drop = self.imgpathlist.get(self._dropkey, None)
         if reset or not self.imgpaths:
             self.imgpathlist = {}
@@ -1010,7 +1011,7 @@ class AdventurerCreaterPage(wx.Panel):
 
         adddefaults = reset or not self.imgpaths
         imgpathlist = cw.util.get_facepaths(self.sex, self.age, adddefaults=adddefaults)
-        if 1 == len(imgpathlist):
+        if 1 == len(imgpathlist) and not drop:
             if self.imgpathlist:
                 self.imgpathlist[None].extend(imgpathlist.values()[0])
             else:
@@ -1031,6 +1032,7 @@ class AdventurerCreaterPage(wx.Panel):
                 self.imgdpath = 0
 
         self._update_imgdpaths()
+        self.Thaw()
 
     def _update_imgdpaths(self):
         self.Freeze()
