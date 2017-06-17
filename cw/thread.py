@@ -1959,7 +1959,9 @@ class CWPy(_Singleton, threading.Thread):
         """シナリオ画面へ遷移。
         header: ScenarioHeader
         """
-        self.is_processing = True
+        if self.battle:
+            # バトルエリア解除の時
+            self.is_processing = True
         self.set_status("Scenario")
         self.battle = None
 
@@ -2066,7 +2068,7 @@ class CWPy(_Singleton, threading.Thread):
                 # 読込失敗(帰還)
                 cw.util.print_ex()
                 self.exec_func(load_failure, True)
-        else:
+        elif self.is_processing:
             self.statusbar.change(False)
             self.is_processing = False
 
