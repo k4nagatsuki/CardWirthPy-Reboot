@@ -1459,11 +1459,13 @@ class CardEvent(Event, Targeting):
         if not d["allrange"]:
             self.targets[0].set_cardtarget()
             cw.cwpy.draw()
-            waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1) * 2
-            skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
             if eff.check_enabledtarget(self.targets[0], False):
+                waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1) * 2
+                skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 targets = self.targets
             else:
+                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1
+                skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 targets = []
                 self.targets[0].clear_cardtarget()
         else:
