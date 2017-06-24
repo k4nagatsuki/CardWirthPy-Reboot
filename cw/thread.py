@@ -215,6 +215,8 @@ class CWPy(_Singleton, threading.Thread):
 
         # 遅延再描画を行う場合はTrue
         self._lazy_draw = False
+        # 次の描画処理で再描画するべき領域
+        self._lazy_clip = None
 
         # 時間経過処理中か
         self._elapse_time = False
@@ -1139,6 +1141,12 @@ class CWPy(_Singleton, threading.Thread):
     def set_lazydraw(self):
         self._lazy_draw = True
 
+    def add_lazydraw(self, clip):
+        if self._lazy_clip:
+            self._lazy_clip.union_ip(clip)
+        else:
+            self._lazy_clip = pygame.Rect(clip)
+
     def draw(self, mainloop=False, clip=None):
         if not clip:
             self._lazy_draw = False
@@ -1147,11 +1155,14 @@ class CWPy(_Singleton, threading.Thread):
             # FIXME: 描画領域を絞り込むと時々カードの描画中に
             #        次に表示される背景が映り込んでしまう
             if clip:
+                if self._lazy_clip:
+                    clip = self._lazy_clip.union_ip(clip)
                 self.scr_draw.set_clip(clip)
                 self.cardgrp.set_clip(clip)
                 self.topgrp.set_clip(clip)
                 self.backloggrp.set_clip(clip)
                 self.sbargrp.set_clip(clip)
+            self._lazy_clip = None
 
             dirty_rects = self.draw_to(self.scr_draw, True)
 
@@ -3659,6 +3670,7 @@ class CWPy(_Singleton, threading.Thread):
             if user.inusecardimg:
                 user.inusecardimg.group.remove(user.inusecardimg) # TODO: layer
                 self.inusecards.remove(user.inusecardimg)
+                self.add_lazydraw(user.inusecardimg.rect)
                 user.inusecardimg = None
         else:
             for card in self.get_pcards():
@@ -3668,6 +3680,7 @@ class CWPy(_Singleton, threading.Thread):
 
             for card in self.inusecards:
                 card.group.remove(card) # TODO: layer
+                self.add_lazydraw(card.rect)
             self.inusecards = []
 
     def clear_inusecardimgfromheader(self, header):
@@ -3684,6 +3697,7 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     card.group.remove(card) # TODO: layer
                     self.inusecards.remove(card)
+                    self.add_lazydraw(card.rect)
 
     def set_guardcardimg(self, owner, header):
         """PlayerCardの前に回避・抵抗ボーナスカードの画像を表示。"""
