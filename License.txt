@@ -1,4 +1,4 @@
-﻿CardWirthPy Licenses
+CardWirthPy Licenses
 
 Index:
   1. Python Software Foundation License
@@ -2162,7 +2162,7 @@ IPAは一切の責任を負いません。
 
 The MIT License
 
-Copyright (c) <year> <copyright holders>
+Copyright (c) 2017 logの中の人ならびにコントリビューター一同
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

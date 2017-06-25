@@ -299,7 +299,7 @@ Data/SkinBase 以下にあるすべての画像及び音声ファイル
  : "Sound/System_ScreenShot.wav"は、CardWirth 1.50のパッケージに含まれるPublic Domainのファイル"システム・スクリーンショット.wav"を流用したものです。
  : License: Public Domain
 
-"src.zip"に同梱しているプログラミングコードの著作権は作者が保持し、以下のライセンスが適用されます。
+"src.zip"に同梱しているリソースの著作権はそれぞれの作者が保持し、以下のライセンスが適用されます。
 
 [The MIT License](http://www.opensource.org/licenses/mit-license.php)
 
