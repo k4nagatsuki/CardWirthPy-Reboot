@@ -1,0 +1,20 @@
+
+005.6mg_Aspirin_Stereo_V1.2_Bank.sf2
+====================================
+
+CardWirth 1.50に`Default.sf2`という名前で添付されているサウンドフォントです。
+
+Public Domainで配布されていたものなので、そのように扱ってください。
+
+配布元(消滅):
+http://www.sf2midi.com/soundfonts/file-detail/005-6mg-aspirin-stereo-v1-2-bank-sf2-178.html
+
+以下は配布元に記載されていた情報です。
+
+Size: 5.8 MB
+Date: 1997-01-01
+User: - Host -
+HW: E-mu 10K1
+Editor: Vienna ver 2.03:SFEDT v1.29:
+
+MD5: 8D51E24AEB50ACC9BE2B087EFB19ECF4
