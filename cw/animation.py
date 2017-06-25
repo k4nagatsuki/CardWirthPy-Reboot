@@ -47,7 +47,9 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
         skip |= _get_skipstatus(clearevent)
 
-        if not skip:
+        if skip:
+            cw.cwpy.add_lazydraw(clip)
+        else:
             clip = _inputevent(clip, clearevent, statusbutton)
             if background:
                 cw.cwpy.draw()
@@ -137,7 +139,9 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
 
         skip |= _get_skipstatus(clearevent)
 
-        if not skip:
+        if skip:
+            cw.cwpy.add_lazydraw(clip)
+        else:
             clip = _inputevent(clip, clearevent, False)
             cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
