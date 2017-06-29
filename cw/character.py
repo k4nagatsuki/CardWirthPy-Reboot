@@ -924,7 +924,6 @@ class Character(object):
             if removeafter:
                 # NPC消去
                 battlespeed = cw.cwpy.is_battlestatus()
-                cw.animation.animate_sprite(self, "zoomout", battlespeed=battlespeed)
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                 cw.cwpy.cardgrp.remove(self)
             # 特殊文字を元に戻す
