@@ -950,12 +950,14 @@ class CharacterCardImage(CardImage):
                 barpos = (int(lifeper*(w+cw.s(1)) + 0.5) - (w+cw.s(1)), cw.s(1))
                 return barpos
 
-            guage = cw.cwpy.rsrc.statuses["LIFEGUAGE2"] if "LIFEGUAGE2" in cw.cwpy.rsrc.statuses.dic else None
-            lifemask = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"] if "LIFEGUAGE2_MASK" in cw.cwpy.rsrc.statuses.dic else None
             lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
-            if guage and lifemask:
+            fpath_guage = cw.util.join_paths(cw.cwpy.skindir, "Resource/Image/Status/LIFEGUAGE2")
+            fpath_lifemask = cw.util.join_paths(cw.cwpy.skindir, "Resource/Image/Status/LIFEGUAGE2_MASK")
+            if cw.util.find_resource(fpath_guage, cw.M_IMG) and cw.util.find_resource(fpath_lifemask, cw.M_IMG):
                 # LIFEGUAGE2がある場合、LIFEBARの上にLIFEGUAGE2を転写した上で
                 # LIFEGUAGE2_MASKのアルファ値を反映する
+                guage = cw.cwpy.rsrc.statuses["LIFEGUAGE2"]
+                lifemask = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"]
                 lifeimg = pygame.Surface(guage.get_size()).convert_alpha()
                 lifeimg.fill((0, 0, 0, 0))
                 lifeimg.blit(lifebar, calc_barpos(guage))
