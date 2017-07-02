@@ -568,11 +568,11 @@ class MessageWindow(base.CWPySprite):
             if key in self.flag_table:
                 v = self.flag_table[key]
             else:
-                return None
+                return None, namelistindex
         elif key in cw.cwpy.sdata.flags:
             v = cw.cwpy.sdata.flags[key]
         else:
-            return None
+            return None, namelistindex
 
         self.flag_table[key] = v
         s = v.get_valuename()
@@ -1271,7 +1271,7 @@ def _get_flagvalue(key, full, name_table, basenamelist, startindex, spcharinfo, 
     if key in cw.cwpy.sdata.flags:
         v = cw.cwpy.sdata.flags[key]
     else:
-        return None
+        return None, namelistindex
 
     s = v.get_valuename()
     if stack <= 0 and v.spchars:
