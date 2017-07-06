@@ -759,6 +759,9 @@ class Event(object):
 
         except EventError, err:
             self.error = err
+            eff = cw.cwpy.event.get_effectevent()
+            if eff:
+                eff.error = err
             self.stop()
 
         if cw.cwpy.event.exit_func:
