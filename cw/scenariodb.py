@@ -963,7 +963,7 @@ def read_summary(basepath):
                 rootattrs = {}
                 e = cw.data.xml2element(spath, "Property", rootattrs=rootattrs)
                 can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
-                imgpaths, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath), rootattrs)
+                imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, os.path.getmtime(spath), rootattrs)
                 imgbufs = []
                 for info in imgpaths:
                     imgpath = cw.util.join_paths(path, info.path)
@@ -1033,7 +1033,7 @@ def read_summary(basepath):
                             can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
 
                             try:
-                                imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path), rootattrs)
+                                imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, os.path.getmtime(path), rootattrs)
                             except:
                                 return None, []
 
@@ -1100,7 +1100,7 @@ def read_summary(basepath):
         finally:
             f.close()
 
-        imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path), rootattrs)
+        imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, os.path.getmtime(path), rootattrs)
         can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
 
         imgbufs = []
@@ -1129,7 +1129,7 @@ def read_summary(basepath):
 
     return imgbufs_to_result(summaryinfos, imgbufs)
 
-def parse_summarydata(basepath, data, scetype, archive, mtime, rootattrs):
+def parse_summarydata(basepath, data, scetype, mtime, rootattrs):
     e = data.find("ImagePath")
     wsnversion = rootattrs.get("dataVersion", "")
     imgpaths = []
@@ -1162,10 +1162,7 @@ def parse_summarydata(basepath, data, scetype, archive, mtime, rootattrs):
     tags = e.text or ""
     tags = cw.util.decodewrap(tags)
     ctime = time.time()
-    if archive:
-        dpath, fname = os.path.split(basepath)
-    else:
-        dpath, fname = os.path.split(os.path.dirname(basepath))
+    dpath, fname = os.path.split(basepath)
     return (imgpaths,
              [dpath, scetype, fname, name, author, desc, skintype, levelmin,
               levelmax, coupons, couponsnum, startid, tags, ctime, mtime, wsnversion])
