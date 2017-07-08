@@ -3867,7 +3867,7 @@ def get_linktarget(fpath):
     except Exception:
         print_ex()
         return fpath
-    return join_paths(fpath)
+    return get_linktarget(join_paths(fpath))
 
 def create_link(shortcutpath, targetpath):
     """targetpathへのショートカットを
