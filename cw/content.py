@@ -1425,7 +1425,7 @@ class BranchRandomSelectContent(BranchContent):
         targets = []
         for scope in ("Party", "Enemy", "Npc"): # 順序はPC→敵→同行NPCに固定
             if scope in ranges:
-                targets.extend(cw.cwpy.event.get_targetscope(scope, False))
+                targets.extend(cw.cwpy.event.get_targetscope(scope, True))
 
         # レベル・状態判定
         targets2 = []
