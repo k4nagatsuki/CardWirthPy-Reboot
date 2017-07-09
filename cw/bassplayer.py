@@ -284,8 +284,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
             _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, c_void_p(streamindex))
     else:
         _loopstarts[streamindex] = 0
-        if 1 < loopcount:
-            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, c_void_p(streamindex))
+        _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, c_void_p(streamindex))
 
     if tempo <> 0:
         _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO, c_float(tempo)) # -95%...0...+5000%
