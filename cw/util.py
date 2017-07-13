@@ -1158,7 +1158,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UnicodeWarning)
 
 def relpath(path, start):
-    if len(start) < len(path) and path.startswith(start):
+    if len(start) < len(path) and path.startswith(start) and start <> "":
         path2 = path[len(start):]
         if path2[0] == '/' or (sys.platform == "win32" and path2[0] == '\\'):
             return path2[1:]
