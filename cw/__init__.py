@@ -113,7 +113,7 @@ HINT_AREA = 2       # エリア・バトル・パッケージ
 HINT_SCENARIO = 3   # シナリオ本体
 
 # 標準のサウンドフォント
-DEFAULT_SOUNDFONT = u"005.6mg_Aspirin_Stereo_V1.2_Bank.sf2"
+DEFAULT_SOUNDFONT = u"Data/SoundFont/005.6mg_Aspirin_Stereo_V1.2_Bank.sf2"
 
 # 表示レイヤ
 LTYPE_MESSAGE = 1

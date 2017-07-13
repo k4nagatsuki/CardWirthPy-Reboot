@@ -184,6 +184,14 @@ class Scenariodb(object):
                         hasscale = True
                     if all((haspostype, hasimgpath, hasscale)):
                         break
+                if not haspostype:
+                    # 値はNone(Default扱い)
+                    self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN postype TEXT")
+                    needcommit = True
+                if not hasimgpath:
+                    # 値はNoneのままにしておく
+                    self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN imgpath TEXT")
+                    needcommit = True
                 if not hasscale:
                     # SQLite3では主キーの変更ができないので作り直す
                     s = """
@@ -226,15 +234,6 @@ class Scenariodb(object):
                     s = "ALTER TABLE scenarioimage_temp RENAME TO scenarioimage"
                     self.cur.execute(s)
                     needcommit = True
-                else:
-                    if not haspostype:
-                        # 値はNone(Default扱い)
-                        self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN postype TEXT")
-                        needcommit = True
-                    if not hasimgpath:
-                        # 値はNoneのままにしておく
-                        self.cur.execute("ALTER TABLE scenarioimage ADD COLUMN imgpath TEXT")
-                        needcommit = True
 
             if needcommit:
                 self.con.commit()
