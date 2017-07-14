@@ -2067,6 +2067,7 @@ class CWPy(_Singleton, threading.Thread):
                         # 読込失敗(帰還)
                         cw.util.print_ex()
                         self.exec_func(load_failure, True)
+                self.clear_inputevents()
                 self.exec_func(func, loaded, musicpaths, areaid)
             except cw.event.EffectBreakError:
                 # 手動で中止

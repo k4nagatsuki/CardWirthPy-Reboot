@@ -2577,7 +2577,6 @@ class DesignPanel(AdventurerCreaterPage):
         def OnArrowsSetFocus(event):
             self._set_acceleratortable(False, False)
             event.Skip(True)
-            print 1
         self.descctrl.Bind(wx.EVT_SET_FOCUS, OnArrowsSetFocus)
         def OnUpDownSetFocus(event):
             self._set_acceleratortable(True, False)
