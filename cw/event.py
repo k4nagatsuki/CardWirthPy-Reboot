@@ -983,7 +983,7 @@ class Event(object):
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint_base)
 
-        event._store_inusedata(selectuser=False)
+        event._store_inusedata(selectuser=True)
         try:
             event.run(isinside=True)
         finally:
@@ -1407,7 +1407,7 @@ class CardEvent(Event, Targeting):
             cw.cwpy.lock_menucards = False
             events = self.get_events(target)
             try:
-                self._store_inusedata(selectuser=False)
+                self._store_inusedata(selectuser=True)
                 events.start(keycodes=keycodes)
                 self._restore_inusedata()
                 cw.cwpy.show_party()
