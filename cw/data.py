@@ -3805,7 +3805,7 @@ def copydata(data):
     if data.tag in ("Motions", "Events", "Id", "Name",
                     "Description", "Scenario", "Author", "Level", "Ability",
                     "Target", "EffectType", "ResistType", "SuccessRate",
-                    "VisualEffect", "Enhance", "KeyCodes", "Premium",
+                    "VisualEffect", "KeyCodes", "Premium",
                     "EnhanceOwner", "Price"):
         # 不変
         return data
