@@ -864,6 +864,24 @@ exit_error:
 }
 
 static PyObject *
+has_alphabmp32(PyObject *self, PyObject *args)
+{
+    Py_ssize_t i, slen;
+    unsigned char *source;
+
+    if (!PyArg_ParseTuple(args, "s#", &source, &slen))
+        return NULL;
+
+    for (i = 0; i < slen; i += 4) {
+        if (source[i + 3] != 0) {
+            Py_RETURN_TRUE;
+        }
+    }
+
+    Py_RETURN_FALSE;
+}
+
+static PyObject *
 has_alpha(PyObject *self, PyObject *args)
 {
     Py_ssize_t i, slen;
@@ -873,7 +891,7 @@ has_alpha(PyObject *self, PyObject *args)
         return NULL;
 
     for (i = 0; i < slen; i += 4) {
-        if (!(source[i + 3] == 255 || source[i + 3] == 0)) {
+        if (source[i + 3] != 255) {
             Py_RETURN_TRUE;
         }
     }
@@ -1380,6 +1398,8 @@ _imageretouchMethods[] =
         "to_disabledimage(char*, size)"},
     {"decode_rle4data", decode_rle4data, METH_VARARGS,
         "decode_rle4data(char*, h, bpl)"},
+    {"has_alphabmp32", has_alphabmp32, METH_VARARGS,
+        "has_alphabmp32(char*)"},
     {"has_alpha", has_alpha, METH_VARARGS,
         "has_alpha(char*)"},
     {"mul_alphaonly", mul_alphaonly, METH_VARARGS,

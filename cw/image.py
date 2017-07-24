@@ -1481,6 +1481,26 @@ def get_bmpdepth(data):
     return biBitCount
 
 
+def get_bicompression(data):
+    """
+    Bitmapデータの圧縮方式値を返す。
+    正常なBitmapデータでない場合はNoneを返す。
+    """
+    if len(data) < 14 + 40:
+        return 0
+    s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
+    if s[0] <> ord('B'):
+        return 0
+    if s[1] <> ord('M'):
+        return 0
+    if 40 <= s[6]:
+        biCompression = s[11]
+    else:
+        biCompression = None
+
+    return biCompression
+
+
 def has_pngalpha(data):
     """
     PNGデータがα値を持つかを返す。

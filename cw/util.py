@@ -643,7 +643,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 image = pygame.image.load(f2)
                 f2.close()
             if ext == ".bmp":
-                image = cw.imageretouch.patch_alphadata(image, ext)
+                image = cw.imageretouch.patch_alphadata(image, ext, data)
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
@@ -666,7 +666,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                     image = pygame.image.load(f2)
                     f2.close()
             if ext == ".bmp":
-                image = cw.imageretouch.patch_alphadata(image, ext)
+                image = cw.imageretouch.patch_alphadata(image, ext, data)
     except:
         print_ex()
         #print u"画像が読み込めません(load_image)。リトライします", path
