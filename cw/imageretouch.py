@@ -871,6 +871,8 @@ def patch_alphadata(image, ext, data):
 
         if (ext == ".bmp" and cw.image.get_bicompression(data) == 3) or not has_alpha(buf):
             # アルファ値が存在しないので予備領域を無視
+            # CW 1.50ではビットフィールド方式のイメージも
+            # α値が無視されるのでそれにも合わせる
             image = pygame.image.fromstring(buf, image.get_size(), "RGBX")
     return image
 
