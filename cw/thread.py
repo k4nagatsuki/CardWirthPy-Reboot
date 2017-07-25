@@ -4549,6 +4549,7 @@ class CWPy(_Singleton, threading.Thread):
             scedir = self.sdata.scedir
 
         for e in data.iter():
+            e.content = None # イベントコンテントのキャッシュは削除しておく
             if e.tag == "ImagePath" and importimage:
                 # ImagePathはcarddata無しでの表示に必要となるので取り込んでおく
                 if e.text and not cw.binary.image.path_is_code(e.text):
