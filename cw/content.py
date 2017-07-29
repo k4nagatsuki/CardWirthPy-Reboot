@@ -2212,19 +2212,20 @@ class EffectContent(EventContentBase):
                 if self.ignite:
                     # 状況を復元して効果イベントを元に戻す
                     tevent.clear_eventcoupons()
-                    for t in e_targets:
-                        assert t in e_effectevent.coupon_owners
-                        if isinstance(t, cw.character.Character):
-                            t.set_coupon(u"＠効果対象", 0)
-                    for t in e_outoftargets:
-                        assert t in e_effectevent.coupon_owners
-                        if isinstance(t, cw.character.Character):
-                            t.set_coupon(u"＠効果対象外", 0)
-                    if e_eventtarget:
-                        assert e_eventtarget in e_effectevent.coupon_owners
-                        if isinstance(e_eventtarget, cw.character.Character):
-                            e_eventtarget.set_coupon(u"＠イベント対象", 0)
-                    cw.cwpy.event.effectevent = e_effectevent
+                    if e_effectevent:
+                        for t in e_targets:
+                            assert t in e_effectevent.coupon_owners
+                            if isinstance(t, cw.character.Character):
+                                t.set_coupon(u"＠効果対象", 0)
+                        for t in e_outoftargets:
+                            assert t in e_effectevent.coupon_owners
+                            if isinstance(t, cw.character.Character):
+                                t.set_coupon(u"＠効果対象外", 0)
+                        if e_eventtarget:
+                            assert e_eventtarget in e_effectevent.coupon_owners
+                            if isinstance(e_eventtarget, cw.character.Character):
+                                e_eventtarget.set_coupon(u"＠イベント対象", 0)
+                        cw.cwpy.event.effectevent = e_effectevent
 
         else:
             # イベントが発火しない場合の効果適用処理
