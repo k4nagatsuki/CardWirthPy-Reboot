@@ -5,6 +5,7 @@ import sys
 import os
 import time
 import datetime
+import subprocess
 import threading
 import wx
 import pygame
@@ -40,19 +41,10 @@ class Frame(wx.Frame):
         self.kill_list = []
 
         # トップフレーム
-        setfullscreensize = False
         self.style = wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX & ~wx.RESIZE_BORDER
         if sys.platform == "win32":
             wx.Frame.__init__(self, None, -1, cw.APP_NAME, style=self.style)
             self.SetClientSize(cw.wins(cw.SIZE_GAME))
-        else:
-            wx.Frame.__init__(self, None, -1, cw.APP_NAME)
-            if self._setting.is_expanded and self._setting.expandmode == "FullScreen":
-                setfullscreensize = True
-            else:
-                self.SetClientSize(cw.wins(cw.SIZE_GAME))
-                self.SetMinSize(self.GetBestSize())
-                self.SetMaxSize(self.GetBestSize())
 
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         pixels = font.GetPixelSize()[1]
@@ -61,8 +53,38 @@ class Frame(wx.Frame):
         self.thread = threading.currentThread()
         self._skindirname = skindirname
 
+        if sys.platform == "win32":
+            self._start_wx()
+        else:
+            # Xではウィンドウが表示されるまでウィンドウハンドルが取れない
+            wx.Frame.__init__(self, None, -1, cw.APP_NAME)
+            self.Show()
+            wx.CallAfter(self._start_wx)
+
+    def _start_wx(self):
         # SDLを描画するパネル
         self.panel = wx.Panel(self, -1, size=cw.wins(cw.SIZE_GAME), style=wx.NO_BORDER)
+        if sys.platform <> "win32" and not self.panel.GetHandle():
+            # BUG: 高い確率で次のような警告が出てハンドルが取得できない。何度やっても取得できないのでアプリケーションごと起動し直す。
+            #      Gdk-WARNING **: /build/gtk+2.0-iF66VY/gtk+2.0-2.24.30/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window
+            self.Destroy()
+            seq = []
+            if os.path.splitext(sys.argv[0])[1].lower() == ".py":
+                seq.append("python")
+            seq.extend(sys.argv)
+            subprocess.Popen(seq, close_fds=True)
+            return
+
+        setfullscreensize = False
+        if sys.platform <> "win32":
+            if self._setting.is_expanded and self._setting.expandmode == "FullScreen":
+                setfullscreensize = True
+            else:
+                self.SetClientSize(cw.wins(cw.SIZE_GAME))
+
+        if sys.platform <> "win32" and not setfullscreensize:
+                self.SetMinSize(self.GetBestSize())
+                self.SetMaxSize(self.GetBestSize())
 
         def adjust_position():
             if not (self._setting.window_position[0] is None and self._setting.window_position[1] is None):
@@ -94,10 +116,6 @@ class Frame(wx.Frame):
                 self.SetMaxSize(self.GetBestSize())
             self.panel.SetSize(cw.wins(cw.SIZE_GAME))
             adjust_position()
-
-        if sys.platform <> "win32":
-            # Xではウィンドウが表示されるまでウィンドウハンドルが取れない
-            self.Show()
 
         os.environ["SDL_WINDOWID"] = str(self.panel.GetHandle())
         if sys.platform == "win32":
@@ -351,9 +369,14 @@ class Frame(wx.Frame):
         if sys.platform <> "win32":
             if self.IsActive():
                 state = wx.GetMouseState()
-                l = state.LeftDown()
-                m = state.MiddleDown()
-                r = state.RightDown()
+                if 3 <= wx.VERSION[0]:
+                    l = state.LeftDown
+                    m = state.MiddleDown
+                    r = state.RightDown
+                else:
+                    l = state.LeftDown()
+                    m = state.MiddleDown()
+                    r = state.RightDown()
                 cw.cwpy.mousein = (l, m, r)
             else:
                 cw.cwpy.mousein = (0, 0, 0)
