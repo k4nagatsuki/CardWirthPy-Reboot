@@ -2502,6 +2502,8 @@ class ReplCardHolder(CardControl):
         CardControl.draw_cards(self, update, mode)
 
     def get_headers(self):
+        if self.cardtype == cw.POCKET_BEAST:
+            return filter(lambda c: c.attachment, self.list)
         return self.list
 
     def lclick_event(self, header):
