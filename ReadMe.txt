@@ -1,4 +1,4 @@
-CardWirthPy ver.2β3
+CardWirthPy ver.2β4
 ===============================
 
 作者
