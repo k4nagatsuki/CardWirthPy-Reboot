@@ -1072,7 +1072,6 @@ class JptxImage(cw.image.Image):
             text = text.replace("\n", "")
 
         text = text.replace("\t", "")
-        text = re.sub(r"<[bB][rR]>\n?", "\n", text)
         # image
         width = backwidth if backwidth > cw.s(0) else cw.s(cw.SIZE_AREA[0])
         height = backheight if backheight > cw.s(0) else cw.s(cw.SIZE_AREA[0])
@@ -1216,7 +1215,9 @@ class JptxImage(cw.image.Image):
         face_def = fontface
         color_def = fontcolor
 
-        for char in text:
+        i = 0
+        while i < len(text):
+            char = text[i]
             if char == "\n":
                 info.render()
                 info.x = 0
@@ -1236,7 +1237,16 @@ class JptxImage(cw.image.Image):
                 start, name, attrs = self.parse_tag(info.tag)
                 name = name.lower()
 
-                if name == "b":
+                if name == "br":
+                    info.render()
+                    info.x = 0
+                    info.y = info.y + info.calc_lineheight()
+                    info.h = int(info.y)
+                    info.nolinedata = True
+                    info.tagonly = True
+                    if i+1 < len(text) and text[i+1] == "\n":
+                        i += 1
+                elif name == "b":
                     bold = start
                     info.font.set_bold(start)
                     info.font2.set_bold(start)
@@ -1315,6 +1325,7 @@ class JptxImage(cw.image.Image):
                 info.chars.append(char)
                 info.nolinedata = False
                 info.tagonly = False
+            i += 1
 
         if info.chars or not info.nolinedata:
             info.render()
