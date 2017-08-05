@@ -1193,7 +1193,7 @@ class JptxImage(cw.image.Image):
                     else:
                         # 1倍で描画した時のサイズに合せる
                         size = cw.s(info.font_noscale.size(chars))
-                        subimg = cw.image.smoothscale(subimg, size)
+                        subimg = cw.image.smoothscale(subimg, size, smoothing=antialias2)
                         width = cw.s(info.font_noscale.size_withoutoverhang(chars))[0]
                     yp = cw.s(1)
 
