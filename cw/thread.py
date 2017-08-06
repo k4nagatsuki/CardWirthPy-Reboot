@@ -3723,10 +3723,12 @@ class CWPy(_Singleton, threading.Thread):
         """
         if not self.cardgrp.get_sprites_from_layer(cw.LAYER_TARGET_ARROW):
             if not isinstance(targets, (list, tuple)):
-                cw.sprite.background.TargetArrow(targets)
+                if targets.status <> "hidden":
+                    cw.sprite.background.TargetArrow(targets)
             else:
                 for target in targets:
-                    cw.sprite.background.TargetArrow(target)
+                    if target.status <> "hidden":
+                        cw.sprite.background.TargetArrow(target)
 
     def clear_targetarrow(self):
         """対象選択の指矢印の画像を削除。"""
