@@ -1206,7 +1206,7 @@ class BattleCardImage(card.CWPyCard):
         self.set_pos_noscale(center_noscale=(316, 142))
         self.clear_image()
         # spritegroupに追加
-        cw.cwpy.topgrp.add(self, layer="battlecard") # TODO: layer
+        cw.cwpy.cardgrp.add(self, layer=cw.LAYER_BATTLE_START)
 
     def update_battlestart(self):
         self.highspeed = True

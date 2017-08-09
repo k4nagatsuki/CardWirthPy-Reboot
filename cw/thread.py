@@ -3133,7 +3133,7 @@ class CWPy(_Singleton, threading.Thread):
         self.set_battle()
         self.change_area(areaid, False, bginhrt=True, ttype=("None", "Default"), startbattle=True)
         cw.animation.animate_sprite(sprite, "hide")
-        sprite.remove(cw.cwpy.topgrp) # TODO: layer
+        sprite.remove(cw.cwpy.cardgrp)
 
         self.sdata.pre_battleareadata = (oldareaid, oldbgmpath, (music.path, music.subvolume, music.loopcount, music.channel))
         self.battle = cw.battle.BattleEngine()
