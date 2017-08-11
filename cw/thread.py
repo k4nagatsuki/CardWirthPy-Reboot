@@ -1720,20 +1720,23 @@ class CWPy(_Singleton, threading.Thread):
         self.list = self.get_mcards("visible")
         self.index = -1
         # スプライト削除
-        self.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
-        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPMESSAGE)
-        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
-        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_1)
-        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
-        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_2)
-        self.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
+        seq = []
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPMESSAGE))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_1))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_2))
+        seq.extend(self.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE))
 
         # 互換性マーク削除
         if self.is_playingscenario():
             self.sdata.set_versionhint(cw.HINT_MESSAGE, None)
 
         # 次のアニメーションの前に再描画を行う
-        self._lazy_draw = True
+        for sprite in seq:
+            self.add_lazydraw(sprite.rect)
+        self.set_lazydraw()
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
         # イベント強制終了用のエラーを送出する。
