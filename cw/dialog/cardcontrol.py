@@ -1466,6 +1466,7 @@ class CardHolder(CardControl):
         self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp, chain=True)
         # ページ指定
         self.page = wx.lib.intctrl.IntCtrl(self.toppanel, -1, style=wx.TE_RIGHT, size=cw.wins((-1, 22)))
+        self._proc_page = False
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(17))
         self.page.SetFont(font)
         self.page.SetValue(1)
@@ -1921,12 +1922,14 @@ class CardHolder(CardControl):
     def _update_page(self):
         index = self.index
         max = (len(self.list)+9)/10 if len(self.list) > 0 else 1
-        self.page.SetMax(max)
         index = min(index, max-1)
         page = index+1
+        self._on_pagenum(page)
         self.index = index
+        self._proc_page = True
+        self.page.SetMax(max)
         self.page.SetValue(page)
-        self._on_pagenum()
+        self._proc_page = False
 
     def _set_backpacklist(self, narrow=True):
         if cw.cwpy.setting.last_cardpocket == cw.POCKET_SKILL:
@@ -2034,8 +2037,10 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
+        self._proc_page = True
         self.page.SetValue(self.index+1)
-        self._on_pagenum()
+        self._proc_page = False
+        self._on_pagenum(self.index+1)
 
         self.draw_cards()
 
@@ -2060,12 +2065,16 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
+        self._proc_page = True
         self.page.SetValue(self.index+1)
-        self._on_pagenum()
+        self._proc_page = False
+        self._on_pagenum(self.index+1)
 
         self.draw_cards()
 
     def OnPageNum(self, event):
+        if self._proc_page:
+            return
         if self.page.GetValue() < self.page.GetMin():
             return
         if self.page.GetMax() < self.page.GetValue():
@@ -2073,10 +2082,10 @@ class CardHolder(CardControl):
         index = self.page.GetValue()-1
         if self.index <> index:
             cw.cwpy.play_sound("page")
-            self._on_pagenum()
+            self._on_pagenum(self.index+1)
 
-    def _on_pagenum(self):
-        index = self.page.GetValue()-1
+    def _on_pagenum(self, page):
+        index = page-1
         negaindex = -1
         if not negaindex == -1:
             for index, header in enumerate(self.get_headers()):
