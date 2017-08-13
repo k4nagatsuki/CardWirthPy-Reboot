@@ -1926,6 +1926,7 @@ class CardHolder(CardControl):
         page = index+1
         self.index = index
         self.page.SetValue(page)
+        self._on_pagenum()
 
     def _set_backpacklist(self, narrow=True):
         if cw.cwpy.setting.last_cardpocket == cw.POCKET_SKILL:
@@ -2034,6 +2035,7 @@ class CardHolder(CardControl):
                     header.negaflag = True
 
         self.page.SetValue(self.index+1)
+        self._on_pagenum()
 
         self.draw_cards()
 
@@ -2059,6 +2061,7 @@ class CardHolder(CardControl):
                     header.negaflag = True
 
         self.page.SetValue(self.index+1)
+        self._on_pagenum()
 
         self.draw_cards()
 
@@ -2070,13 +2073,17 @@ class CardHolder(CardControl):
         index = self.page.GetValue()-1
         if self.index <> index:
             cw.cwpy.play_sound("page")
-            negaindex = -1
-            if not negaindex == -1:
-                for index, header in enumerate(self.get_headers()):
-                    if index == negaindex:
-                        header.negaflag = True
-            self.index = index
-            self.draw_cards()
+            self._on_pagenum()
+
+    def _on_pagenum(self):
+        index = self.page.GetValue()-1
+        negaindex = -1
+        if not negaindex == -1:
+            for index, header in enumerate(self.get_headers()):
+                if index == negaindex:
+                    header.negaflag = True
+        self.index = index
+        self.draw_cards()
 
     def OnMouseWheel(self, event):
         mousepos = event.GetPosition()
