@@ -2082,7 +2082,7 @@ class CardHolder(CardControl):
         index = self.page.GetValue()-1
         if self.index <> index:
             cw.cwpy.play_sound("page")
-            self._on_pagenum(self.index+1)
+            self._on_pagenum(index+1)
 
     def _on_pagenum(self, page):
         index = page-1
