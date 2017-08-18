@@ -1204,6 +1204,12 @@ class Setting(object):
         else:
             return self.skin_local
 
+    def get_inusecardalpha(self, sprite):
+        alpha = 160
+        if not sprite.alpha is None:
+            alpha = min(alpha, sprite.alpha)
+        return alpha
+
     @property
     def mwincolour(self):
         return self.get_drawsetting().mwincolour

@@ -878,18 +878,26 @@ class Frame(wx.Frame):
             # 味方全員が対象
             cw.cwpy.clear_selection()
             targets = cw.cwpy.get_pcards("unreversed")
+        elif header.target == "User":
+            targets = [owner]
+        elif header.target == "None":
+            targets = []
         else:
             targets = [cw.cwpy.selection]
 
         cw.cwpy.exec_func(cw.cwpy.clear_curtain)
-        cw.cwpy.exec_func(cw.cwpy.set_inusecardimg, owner, header)
-        if not cw.cwpy.setting.confirm_beforeusingcard or header.target == "None":
-            cw.cwpy.exec_func(cw.cwpy.clear_targetarrow)
-        else:
-            cw.cwpy.exec_func(cw.cwpy.set_targetarrow, targets)
-        cw.cwpy.exec_func(cw.cwpy.draw)
+
+        def func(owner, header, targets):
+            alpha = cw.cwpy.setting.get_inusecardalpha(owner)
+            cw.cwpy.set_inusecardimg(owner, header, alpha=alpha)
+            if not cw.cwpy.setting.confirm_beforeusingcard or header.target == "None":
+                cw.cwpy.clear_targetarrow()
+            else:
+                cw.cwpy.set_targetarrow(targets)
+            cw.cwpy.draw()
 
         if cw.cwpy.setting.confirm_beforeusingcard:
+            cw.cwpy.exec_func(func, owner, header, targets)
             s = cw.cwpy.msgs["confirm_use_card"] % header.name
             dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
             self.move_dlg(dlg)

@@ -3222,6 +3222,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def change_specialarea(self, areaid):
         """特殊エリア(エリアIDが負の数)に移動する。"""
+        updatestatusbar = True
         if areaid < 0:
             self.pre_areaids.append((self.areaid, self.sdata.data))
 
@@ -3301,19 +3302,26 @@ class CWPy(_Singleton, threading.Thread):
 
                 self.lock_menucards = False
 
-            elif cardtarget == "User" or cardtarget == "None":
+            elif cardtarget in ("User", "None"):
                 if self.status == "Scenario":
-                    self.change_selection(owner)
-                    self.call_modaldlg("USECARD")
+                    if cw.cwpy.setting.confirm_beforeusingcard:
+                        owner.image = owner.get_selectedimage()
+                    def func(owner):
+                        if cw.cwpy.setting.confirm_beforeusingcard:
+                            self.change_selection(owner)
+                        self.call_modaldlg("USECARD")
+                    self.exec_func(func, owner)
                 elif self.is_battlestatus():
                     owner.set_action(owner, header)
                     self.clear_specialarea()
                     self.lock_menucards = False
+                updatestatusbar = False
 
             else:
                 self.lock_menucards = False
 
-        self.exec_func(self.statusbar.change, True)
+        if updatestatusbar:
+            self.exec_func(self.statusbar.change, True)
         self.disposition_pcards()
 
     def clear_specialarea(self, redraw=True):
@@ -3652,9 +3660,7 @@ class CWPy(_Singleton, threading.Thread):
                     elif targets:
                         self.set_targetarrow(targets)
                 elif self.setting.show_allselectedcards or selowner:
-                    alpha = 160
-                    if not sprite.alpha is None:
-                        alpha = min(alpha, sprite.alpha)
+                    alpha = cw.cwpy.setting.get_inusecardalpha(sprite)
                     self.set_inusecardimg(sprite, header, alpha=alpha)
 
                 if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
