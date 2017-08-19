@@ -1459,6 +1459,11 @@ def create_cardscreenshot(titledic):
         bmp = pygame.Surface((w, h)).convert()
         bmp.fill(cw.cwpy.setting.ssinfobackcolor, rect=pygame.Rect(cw.s(0), cw.s(0), w, h))
 
+        # 背景画像
+        if title and cw.cwpy.setting.ssinfobackimage and os.path.isfile(cw.cwpy.setting.ssinfobackimage):
+            subimg3 = load_image(cw.cwpy.setting.ssinfobackimage, False)
+            fill_image(bmp, cw.s(subimg3), (w, lh))
+
         # イメージの作成
         sy = cw.s(0)
         if title:
