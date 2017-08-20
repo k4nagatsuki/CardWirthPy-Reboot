@@ -502,7 +502,19 @@ class CardImage(Image):
                     can_loaded_scaledimage = self.can_loaded_scaledimage[i]
                 else:
                     can_loaded_scaledimage = self.can_loaded_scaledimage
-                subimg = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
+
+                # FIXME: wxPythonのメモリ上のデータからのwx.Image生成は
+                #        異常に重いのでキャッシングする
+                cachepath = path if not pisc else u""
+                md5 = cw.util.get_md5_from_data(path) if pisc else u""
+                cachekey = (cachepath, md5, cw.UP_WIN, can_loaded_scaledimage)
+                if cachekey in cw.cwpy.sdata.resource_cache:
+                    subimg = cw.cwpy.sdata.resource_cache[cachekey]
+                else:
+                    subimg = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
+                    cw.cwpy.sdata.sweep_resourcecache(cw.util.calc_wxbmpsize(subimg))
+                    cw.cwpy.sdata.resource_cache[cachekey] = subimg
+
                 subimg2 = cw.wins(subimg)
 
                 baserect = info.calc_basecardposition_wx(subimg2.GetSize(), noscale=False,

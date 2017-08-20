@@ -761,6 +761,13 @@ def calc_imagesize(image):
     return image.get_bitsize() * image.get_width() * image.get_height() // 8
 
 
+def calc_wxbmpsize(wxbmp):
+    """wx.Bitmapのデータサイズを概算する。
+    結果は正確ではない。
+    """
+    return wxbmp.GetDepth() * wxbmp.GetWidth() * wxbmp.GetHeight() // 8
+
+
 def put_number(image, num):
     """アイコンサイズの画像imageの上に
     numの値を表示する。
@@ -1293,6 +1300,14 @@ def get_md5(path):
             m.update(data)
         f.close()
 
+    return m.hexdigest()
+
+def get_md5_from_data(data):
+    """MD5を使ったハッシュ値を返す。
+    path: ハッシュ値を求めるファイルのパス。
+    """
+    m = hashlib.md5()
+    m.update(data)
     return m.hexdigest()
 
 def number_normalization(value, fromvalue, tovalue):
