@@ -207,6 +207,28 @@ def init_bass(soundfonts):
 
     return True
 
+def change_soundfonts(soundfonts):
+    """サウンドフォントの差し替えを行う。"""
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
+    if _bassmidi:
+        for i in xrange(0, len(_sfonts), 4*3):
+            sfont = struct.unpack("@Iii", _sfonts[i:i+4*3])
+            _bassmidi.BASS_MIDI_FontFree(sfont[0])
+
+        _sfonts = ""
+        encoding = sys.getfilesystemencoding()
+        for soundfont in soundfonts:
+            sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
+            if not sfont:
+                print "BASS_MIDI_FontInit() failure: %s" % (soundfont)
+                return False
+            _sfonts += struct.pack("@iii", sfont, -1, 0)
+
+        if not _sfonts:
+            return False
+
+    return True
+
 def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     """
     BASS Audioによってfileを演奏する。

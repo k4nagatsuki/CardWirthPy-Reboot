@@ -799,7 +799,7 @@ class CardHeader(object):
         else:
             price = int(self.price * 0.75)
 
-        if self.type == "ItemCard" and (0 < self.maxuselimit or self.recycle):
+        if self.type == "ItemCard" and 0 < self.maxuselimit:
             # 使用回数がある場合は使うほど売値が減る
             price = price * self.uselimit // self.maxuselimit
 

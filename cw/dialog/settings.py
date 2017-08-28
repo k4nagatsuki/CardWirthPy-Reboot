@@ -568,6 +568,12 @@ class SettingsPanel(wx.Panel):
             if update and sfonts1 <> sfonts2:
                 def func():
                     if cw.bassplayer.is_alivable():
+                        if cw.bassplayer.change_soundfonts(sfonts1):
+                            for music in cw.cwpy.music:
+                                music.play(music.path, updatepredata=False, restart=True)
+                            return
+
+                    if cw.bassplayer.is_alivable():
                         cw.bassplayer.dispose_bass()
                     if pygame.mixer.get_init():
                         pygame.mixer.quit()
