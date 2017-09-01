@@ -96,9 +96,9 @@ class MusicInterface(object):
         else:
             assert threading.currentThread() == cw.cwpy
 
-            self.set_volume()
             if restart or self.fpath <> fpath:
                 self._stop(fade, stopfadeout=False, updatepredata=False)
+                self.set_volume()
                 self._winmm = False
                 self._bass = False
                 bgmtype = load_bgm(fpath)
@@ -166,6 +166,8 @@ class MusicInterface(object):
                 if self.subvolume <> subvolume:
                     self.subvolume = subvolume
                     self.set_volume(fade=fade)
+                else:
+                    self.set_volume()
                 if self._bass:
                     # ループ回数は常に設定する
                     cw.bassplayer.set_bgmloopcount(loopcount, channel=self.channel)
