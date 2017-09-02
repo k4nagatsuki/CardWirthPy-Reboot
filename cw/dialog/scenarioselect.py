@@ -445,7 +445,7 @@ class ScenarioSelect(select.Select):
         if wx.Window.FindFocus() is self.tree:
             selitem = self.tree.GetSelection()
             if selitem:
-                self._expand_tree(selitem)
+                self.tree.Expand(selitem)
                 return
         select.Select.OnNextButton(self, event)
 
@@ -2515,6 +2515,10 @@ class ScenarioSelect(select.Select):
         data = self.tree.GetItemPyData(item)
         if data and isinstance(data[1], FindResult):
             # 検索結果はクリアしない
+            self.tree.Collapse(item)
+            return
+        if data and isinstance(data[1], cw.header.ScenarioHeader):
+            self.tree.Collapse(item)
             return
         nowdir = self._get_linktarget(data[1])
         if not nowdir in self.scetable:
@@ -2609,6 +2613,7 @@ class ScenarioSelect(select.Select):
         if not self.tree.IsShownOnScreen():
             return
 
+        focus = wx.Window.FindFocus()
         # dpathからツリーアイテムを検索
         parent = self.tree.root
         item = None
@@ -2644,7 +2649,10 @@ class ScenarioSelect(select.Select):
             # ディレクトリの内容を表示
             self.create_treeitems(item)
 
-        # 次のディレクトリを展開する
+        if focus:
+            focus.SetFocus()
+
+            # 次のディレクトリを展開する
         ##baseitem = item
         ##
         ##def expand(item):

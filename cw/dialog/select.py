@@ -155,6 +155,8 @@ class Select(wx.Dialog):
             self.clickmode = 0
 
     def OnClickLeftBtn(self, evt):
+        if len(self.list) <= 1:
+            return
         if self.index == 0:
             self.index = len(self.list) -1
         else:
@@ -165,6 +167,8 @@ class Select(wx.Dialog):
         self.index_changed()
 
     def OnClickLeft2Btn(self, evt):
+        if len(self.list) <= 1:
+            return
         if self.index == 0:
             self.index = len(self.list) -1
         elif self.index - 10 < 0:
@@ -177,6 +181,8 @@ class Select(wx.Dialog):
         self.index_changed()
 
     def OnClickRightBtn(self, evt):
+        if len(self.list) <= 1:
+            return
         if self.index == len(self.list) -1:
             self.index = 0
         else:
@@ -187,6 +193,8 @@ class Select(wx.Dialog):
         self.index_changed()
 
     def OnClickRight2Btn(self, evt):
+        if len(self.list) <= 1:
+            return
         if self.index == len(self.list) -1:
             self.index = 0
         elif self.index + 10 > len(self.list) -1:
