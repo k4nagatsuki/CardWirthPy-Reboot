@@ -726,7 +726,7 @@ class Event(object):
         self.starttree = event.starttree
 
     def _store_inusedata(self, selectuser):
-        if selectuser:
+        if selectuser and isinstance(self, CardEvent):
             cw.cwpy.event.set_selectedmember(self.user)
         self._stored_in_cardeffectmotion = cw.cwpy.event.in_cardeffectmotion
         cw.cwpy.event.in_cardeffectmotion = False
