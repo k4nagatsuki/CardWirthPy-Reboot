@@ -134,7 +134,6 @@ def _loop(handle, channel, data, streamindex):
                 _fadeoutstreams[streamindex] = (channel, loops - 1, pos)
             else:
                 _loopcounts[streamindex] = loops - 1
-        pos = _loopstarts[streamindex]
         _bass.BASS_ChannelSetPosition(c_long(channel), c_longlong(pos), c_long(BASS_POS_BYTE))
 
 def is_alivable():
