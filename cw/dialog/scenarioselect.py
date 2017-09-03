@@ -1015,15 +1015,22 @@ class ScenarioSelect(select.Select):
         exists_spaths = bool(spaths)
         spath = self.scedir
         updatetreeitem = None
-        for path in spaths:
-            if path.startswith("/"):
+
+        if fullpath and cw.scenariodb.is_scenario(fullpath):
+            header = self.db.search_path(fullpath)
+            if not self.is_showing(header):
                 exists_spaths = False
-                break
-            spath = cw.util.join_paths(spath, path)
-            spath = cw.util.get_linktarget(spath)
-            if not os.path.exists(spath):
-                exists_spaths = False
-                break
+
+        if exists_spaths:
+            for path in spaths:
+                if path.startswith("/"):
+                    exists_spaths = False
+                    break
+                spath = cw.util.join_paths(spath, path)
+                spath = cw.util.get_linktarget(spath)
+                if not os.path.exists(spath):
+                    exists_spaths = False
+                    break
 
         selfullpath = False
         if not exists_spaths:
