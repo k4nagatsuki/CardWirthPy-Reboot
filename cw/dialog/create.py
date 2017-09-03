@@ -685,6 +685,7 @@ class AdventurerCreaterPage(wx.Panel):
     def _bind(self):
         self.Bind(wx.EVT_PAINT, self.OnPaint2)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.OnCancel)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
@@ -921,6 +922,9 @@ class AdventurerCreaterPage(wx.Panel):
             dc.SetBrush(wx.TRANSPARENT_BRUSH)
             dc.DrawRectangle(rect[0], rect[1], rect[2], rect[3])
 
+    def OnLeftDown(self, event):
+        pass
+
     def OnLeftUp(self, event):
         mousepos = event.GetPosition()
 
@@ -929,6 +933,7 @@ class AdventurerCreaterPage(wx.Panel):
 
             if method and rect.collidepoint(mousepos):
                 method(key)
+                break
 
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
