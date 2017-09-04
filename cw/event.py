@@ -1582,7 +1582,8 @@ class CardEvent(Event, Targeting):
 
                 target.clear_cardtarget()
 
-                cw.cwpy.play_sound_with(eff.soundpath)
+                cw.cwpy.play_sound_with(eff.soundpath, subvolume=self.eff.volume, loopcount=self.eff.loopcount,
+                                        channel=self.eff.channel, fade=self.eff.fade)
                 eff.animate(target)
                 cw.cwpy.draw(clip=target.rect)
                 self.mcards.discard(target)

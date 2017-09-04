@@ -2142,7 +2142,8 @@ class EffectContent(EventContentBase):
                         target.remove_coupon(u"＠イベント対象")
             elif self.ignite:
                 assert isinstance(target, cw.sprite.card.MenuCard)
-                cw.cwpy.play_sound_with(self.eff.soundpath)
+                cw.cwpy.play_sound_with(self.eff.soundpath, subvolume=self.eff.volume, loopcount=self.eff.loopcount,
+                                    channel=self.eff.channel, fade=self.eff.fade)
                 self.eff.animate(target)
                 cw.cwpy.draw(clip=target.rect)
                 cw.cwpy.event.get_effectevent().mcards.discard(target)
