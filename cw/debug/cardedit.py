@@ -207,7 +207,7 @@ class CardEditDialog(wx.Dialog):
             dpath = ""
             fpath = ""
         dlg = wx.FileDialog(self, u"シナリオの選択", dpath, fpath,
-                            u"シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab; Summary.xml)|*.wsn;*.wsm;*.zip;*.cab;Summary.xml",
+                            u"シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab; Summary.xml)|*.wsn;*.wsm;*.zip;*.lzh;*.cab;Summary.xml",
                             wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             fpath = dlg.GetPath()
