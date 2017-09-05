@@ -289,6 +289,8 @@ class CardEditDialog(wx.Dialog):
             menu.AppendSeparator()
             for bookmarkpath, name in cw.cwpy.setting.bookmarks_for_cardedit:
                 fname = os.path.basename(bookmarkpath)
+                if fname.lower() in ("summary.xml", "summary.wsm"):
+                    fname = os.path.basename(os.path.dirname(bookmarkpath))
                 if name:
                     s = "%s(%s)" % (name, fname)
                 else:
