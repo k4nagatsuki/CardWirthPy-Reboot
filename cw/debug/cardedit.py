@@ -356,7 +356,8 @@ class CardEditDialog(wx.Dialog):
             notscenariocard = not cw.cwpy.is_playingscenario()
             data = cw.data.copydata(self.datalist[index])
             header = self.list[index]
-            cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir, fromdebugger=True)
+            cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir, fromdebugger=True,
+                                anotherscenariocard=True)
             count += 1
 
         if 0 < count:
@@ -591,11 +592,14 @@ class CardEditDialog(wx.Dialog):
                 name = data.gettext("Property/Name", "")
                 attachment = header2.attachment if header2.type == "BeastCard" else False
                 if cw.cwpy.ydata.storehouse is owner:
-                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir, attachment=attachment)
+                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir, attachment=attachment,
+                                        anotherscenariocard=True)
                 elif isinstance(owner, cw.data.Party):
-                    cw.content.get_card(data, owner.backpack, notscenariocard=notscenariocard, toindex=index, insertorder=order, party=owner, copymaterialfrom=header.scedir, attachment=attachment)
+                    cw.content.get_card(data, owner.backpack, notscenariocard=notscenariocard, toindex=index, insertorder=order, party=owner, copymaterialfrom=header.scedir, attachment=attachment,
+                                        anotherscenariocard=True)
                 elif isinstance(owner, cw.character.Character):
-                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir, attachment=attachment)
+                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir, attachment=attachment,
+                                        anotherscenariocard=True)
                 else:
                     assert False
 
