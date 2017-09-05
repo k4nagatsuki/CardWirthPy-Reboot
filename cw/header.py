@@ -596,8 +596,10 @@ class CardHeader(object):
             # シナリオ取得フラグクリア
             self.scenariocard = False
             self.scedir = ""
-            self.carddata.attrib.pop("scenariocard")
-            self.carddata.attrib.pop("anotherscenariocard")
+            if "scenariocard" in self.carddata.attrib:
+                self.carddata.attrib.pop("scenariocard")
+            if "anotherscenariocard" in self.carddata.attrib:
+                self.carddata.attrib.pop("anotherscenariocard")
             # 画像コピー
             dstdir = cw.util.join_paths(cw.cwpy.yadodir,
                                             "Material", self.type, self.name if self.name else "noname")
