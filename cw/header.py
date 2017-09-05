@@ -225,7 +225,7 @@ class CardHeader(object):
             return 0
         return -self.star
 
-    def set_cardimg(self, imgpaths, can_loaded_scaledimage):
+    def set_cardimg(self, imgpaths, can_loaded_scaledimage, anotherscenariocard):
         paths = []
         for info in imgpaths:
             path = info.path
@@ -233,6 +233,8 @@ class CardHeader(object):
                 if self.type in ("ActionCard", "UseCardInBackpack"):
                     path = cw.util.join_paths(cw.cwpy.skindir, path)
                     path = cw.util.get_materialpathfromskin(path, cw.M_IMG)
+                elif anotherscenariocard:
+                    path = cw.util.join_yadodir(path)
                 elif self.scenariocard or self.scedir:
                     path = path
                 elif not self.scenariocard:
@@ -241,7 +243,7 @@ class CardHeader(object):
 
         self._cardimg = cw.image.CardImage(paths, self.get_bgtype(), self.name, self.premium,
                                            can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=self.scenariocard,
-                                           scedir=self.scedir)
+                                           anotherscenariocard=anotherscenariocard, scedir=self.scedir)
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
         self.wxrect = pygame.Rect(self._cardimg.wxrect)
@@ -282,10 +284,13 @@ class CardHeader(object):
                 self._bordering_cardname <> cw.cwpy.setting.bordering_cardname or\
                 self._show_premiumicon <> cw.cwpy.setting.show_premiumicon:
             if self.carddata is None:
-                can_loaded_scaledimage = cw.util.str2bool(GetRootAttribute(self.fpath).attrs.get("scaledimage", "False"))
+                rootattrs = GetRootAttribute(self.fpath)
+                can_loaded_scaledimage = cw.util.str2bool(rootattrs.attrs.get("scaledimage", "False"))
+                anotherscenariocard = cw.util.str2bool(rootattrs.attrs.get("anotherscenariocard", "False"))
             else:
                 can_loaded_scaledimage = self.carddata.getbool(".", "scaledimage", False)
-            self.set_cardimg(self.imgpaths, can_loaded_scaledimage)
+                anotherscenariocard = self.carddata.getbool(".", "anotherscenariocard", False)
+            self.set_cardimg(self.imgpaths, can_loaded_scaledimage, anotherscenariocard)
         return self._cardimg
 
     def get_cardwxbmp(self, test_aptitude=None):
@@ -572,7 +577,8 @@ class CardHeader(object):
             owner.data.is_edited = True
         elif self.is_backpackheader() and self.scenariocard and self.carddata:
             imgpaths = cw.image.get_imageinfos(self.carddata.find("Property"))
-            self.set_cardimg(imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False))
+            self.set_cardimg(imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False),
+                             anotherscenariocard=self.carddata.getbool(".", "anotherscenariocard", False))
 
     def set_scenarioend(self):
         """
@@ -591,6 +597,7 @@ class CardHeader(object):
             self.scenariocard = False
             self.scedir = ""
             self.carddata.attrib.pop("scenariocard")
+            self.carddata.attrib.pop("anotherscenariocard")
             # 画像コピー
             dstdir = cw.util.join_paths(cw.cwpy.yadodir,
                                             "Material", self.type, self.name if self.name else "noname")
@@ -599,7 +606,8 @@ class CardHeader(object):
             cw.cwpy.copy_materials(self.carddata, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)
             # 画像更新
             self.imgpaths = cw.image.get_imageinfos(self.carddata.find("Property"))
-            self.set_cardimg(self.imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False))
+            self.set_cardimg(self.imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False),
+                             anotherscenariocard=False)
             if self.is_backpackheader():
                 self.write()
                 self.carddata = None
@@ -622,7 +630,8 @@ class CardHeader(object):
         CardImageインスタンスを新しく生成して返す。
         """
         header = copy.copy(self)
-        header.set_cardimg(self.imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False))
+        header.set_cardimg(self.imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False),
+                           anotherscenariocard=self.carddata.getbool(".", "anotherscenariocard", False))
         return header
 
     def is_ccardheader(self):
@@ -833,15 +842,17 @@ class InfoCardHeader(object):
         imgpaths = cw.image.get_imageinfos(data)
         self.imgpaths = imgpaths
         self.can_loaded_scaledimage = can_loaded_scaledimage
-        self.set_cardimg(self.can_loaded_scaledimage)
+        self.set_cardimg(self.can_loaded_scaledimage, False)
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
 
-    def set_cardimg(self, can_loaded_scaledimage):
+    def set_cardimg(self, can_loaded_scaledimage, anotherscenariocard):
         self.can_loaded_scaledimage = can_loaded_scaledimage
+        self.anotherscenariocard = anotherscenariocard
         self._cardimg = cw.image.CardImage(self.imgpaths, "INFO", self.name,
-                                           can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=True)
+                                           can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=True,
+                                           anotherscenariocard=anotherscenariocard)
         self.rect = self._cardimg.rect
         self.wxrect = self._cardimg.wxrect
         self._cardscale = cw.UP_SCR
@@ -855,7 +866,7 @@ class InfoCardHeader(object):
                 self._wxcardscale <> cw.UP_WIN or\
                 self._skindirname <> cw.cwpy.setting.skindirname or\
                 self._bordering_cardname <> cw.cwpy.setting.bordering_cardname:
-            self.set_cardimg(self.can_loaded_scaledimage)
+            self.set_cardimg(self.can_loaded_scaledimage, False)
         return self._cardimg
 
     def get_cardwxbmp(self, test_aptitude=None):

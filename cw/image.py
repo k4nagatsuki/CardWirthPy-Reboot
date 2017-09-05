@@ -208,7 +208,7 @@ class Image(object):
 
 class CardImage(Image):
     def __init__(self, paths, bgtype, name="", premium="", can_loaded_scaledimage=False,
-                 is_scenariocard=False, scedir=""):
+                 is_scenariocard=False, scedir="", anotherscenariocard=False):
         """
         カード画像と背景画像とカード名を合成・加工し、
         wxPythonとPygame両方で使える画像オブジェクトを生成する。
@@ -219,6 +219,7 @@ class CardImage(Image):
         self.image_mtime = {}
         self.premium = premium
         self.can_loaded_scaledimage = can_loaded_scaledimage
+        self.anotherscenariocard = anotherscenariocard
         self.is_scenariocard = is_scenariocard
         self.scedir = scedir
 
@@ -297,10 +298,10 @@ class CardImage(Image):
         for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if (not pisc and not self.is_scenariocard) or info.pcnumber:
+            if (not pisc and self.anotherscenariocard) or (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
-            if (not path or self.is_scenariocard) and not info.pcnumber:
+            if (not path or (self.is_scenariocard and not self.anotherscenariocard)) and not info.pcnumber:
                 path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard,
                                                 scedir=self.scedir)
 
@@ -490,10 +491,10 @@ class CardImage(Image):
         for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if (not pisc and not self.is_scenariocard) or info.pcnumber:
+            if (not pisc and self.anotherscenariocard) or (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
-            if (not path or self.is_scenariocard) and not info.pcnumber:
+            if (not path or (self.is_scenariocard and not self.anotherscenariocard)) and not info.pcnumber:
                 path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard,
                                                 scedir=self.scedir)
 
@@ -684,9 +685,9 @@ class CardImage(Image):
 
 class LargeCardImage(CardImage):
     def __init__(self, paths, bgtype, name="", premium="", can_loaded_scaledimage=False,
-                 is_scenariocard=False, scedir=""):
+                 is_scenariocard=False, scedir="", anotherscenariocard=False):
         CardImage.__init__(self, paths, "LARGE", name, premium, can_loaded_scaledimage, is_scenariocard,
-                           scedir=scedir)
+                           scedir=scedir, anotherscenariocard=anotherscenariocard)
 
     def get_image(self):
         image = self.cardbg.copy()
@@ -710,10 +711,10 @@ class LargeCardImage(CardImage):
         for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if (not pisc and not self.is_scenariocard) or info.pcnumber:
+            if (not pisc and self.anotherscenariocard) or (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
-            if (not path or self.is_scenariocard) and not info.pcnumber:
+            if (not path or (self.is_scenariocard and not self.anotherscenariocard)) and not info.pcnumber:
                 path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard,
                                                 scedir=self.scedir)
 
@@ -780,10 +781,10 @@ class LargeCardImage(CardImage):
         for i, info in enumerate(self.paths):
             path = info.path
             pisc = cw.binary.image.path_is_code(path)
-            if (not pisc and not self.is_scenariocard) or info.pcnumber:
+            if (not pisc and self.anotherscenariocard) or (not pisc and not self.is_scenariocard) or info.pcnumber:
                 path = cw.util.get_yadofilepath(path)
 
-            if (not path or self.is_scenariocard) and not info.pcnumber:
+            if (not path or (self.is_scenariocard and not self.anotherscenariocard)) and not info.pcnumber:
                 path = cw.util.get_materialpath(info.path, cw.M_IMG, system=not self.is_scenariocard,
                                                 scedir=self.scedir)
 
@@ -830,6 +831,7 @@ class CharacterCardImage(CardImage):
         self.ccard = ccard
         self._pos_noscale = pos_noscale
         self.can_loaded_scaledimage = can_loaded_scaledimage
+        self.anotherscenariocard = False
         self.is_scenariocard = is_scenariocard
         self.image_mtime = {}
         self.scedir = scedir
