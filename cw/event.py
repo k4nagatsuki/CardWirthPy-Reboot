@@ -1357,7 +1357,7 @@ class CardEvent(Event, Targeting):
 
         # ズームアウトアニメーション
         if self.user.zoomimgs:
-            cw.animation.animate_sprite(self.user, "zoomout")
+            cw.animation.animate_sprite(self.user, "zoomout", battlespeed=cw.cwpy.is_battlestatus())
 
         # 互換性マークを削除
         if cw.cwpy.is_playingscenario():
