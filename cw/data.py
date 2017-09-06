@@ -1148,7 +1148,7 @@ class ScenarioData(SystemData):
                     resid = e.getint("Id", -1)
                     name = e.gettext("Name", "")
                 else:
-                    if not path.endswith(".wid"):
+                    if not lf.endswith(".wid"):
                         continue
                     # クラシックなシナリオの基本要素一覧情報
                     wdata, _filedata = cw.cwpy.classicdata.load_file(path, nameonly=True)
