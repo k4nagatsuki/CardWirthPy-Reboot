@@ -610,7 +610,8 @@ class MessageWindow(base.CWPySprite):
 
 class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos_noscale=None, size_noscale=None,
-                 backlog=False, result=None, showing_result=-1, columns=1):
+                 backlog=False, result=None, showing_result=-1, columns=1, barspchr=True,
+                 nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy()):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -626,12 +627,17 @@ class SelectWindow(MessageWindow):
         self.talker_top_noscale = 0
         self.talker_bottom_noscale = size_noscale[1]
 
+        self.name_table = nametable
+        self.name_subtable = namesubtable
+        self.flag_table = flagtable
+        self.step_table = steptable
+
         self.backlog = backlog
-        self._barspchr = False
-        self.name_table = {}
-        self.name_subtable = {}
-        self.flag_table = {}
-        self.step_table = {}
+        self._barspchr = barspchr
+        if not self.name_table:
+            self.name_table = _create_nametable(True, None)
+        if not self.name_subtable:
+            self.name_subtable = _create_nametable(False, None)
         self.talker_image = []
         self.versionhint = None
         self.specialchars = None
@@ -713,7 +719,7 @@ class MemberSelectWindow(SelectWindow):
                         for index, pcard in enumerate(self.selectmembers)]
         names.append((len(names), cw.cwpy.msgs["cancel"]))
         text = cw.cwpy.msgs["select_member_message"]
-        SelectWindow.__init__(self, names, text, pos_noscale, size_noscale)
+        SelectWindow.__init__(self, names, text, pos_noscale, size_noscale, barspchr=False)
 
 class SelectionBar(base.SelectableSprite):
     def __init__(self, showing_index, name, pos_noscale, size_noscale, backlog=False, selected=False):
@@ -966,7 +972,9 @@ class BacklogData(object):
                 names = self.names_log
                 showing_result = self.showing_result
             base = SelectWindow(names, self.text, self.rect_noscale.topleft, self.rect_noscale.size,
-                                True, None, showing_result, columns=self.columns)
+                                True, None, showing_result, columns=self.columns,
+                                nametable=self.name_table, namesubtable=self.name_subtable,
+                                flagtable=self.flag_table, steptable=self.step_table)
 
         return base
 
