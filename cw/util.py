@@ -3612,6 +3612,8 @@ def adjust_dropdownwidth(choice):
         win32api.SendMessage(choice.GetHandle(), win32con.CB_SETDROPPEDWIDTH, w, 0)
 
 class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
+    _search_engines = None
+
     def __init__(self, parent, id, text="", size=(-1, -1), style=0, searchmenu=False):
         wx.richtext.RichTextCtrl.__init__(self, parent, id, text, size=size, style=style)
 
@@ -3633,11 +3635,21 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         if searchmenu:
             if os.path.isfile(u"Data/SearchEngines.xml"):
                 try:
+                    if CWPyRichTextCtrl._search_engines is None:
+                        CWPyRichTextCtrl._search_engines = []
+                        data = cw.data.xml2element(u"Data/SearchEngines.xml")
+                        for e in data:
+                            if e.tag == u"SearchEngine":
+                                url = e.getattr(".", "url", "")
+                                name = e.text
+                                if url and name:
+                                    menuid = wx.NewId()
+                                    CWPyRichTextCtrl._search_engines.append((url, name, menuid))
+
                     class SearchEngine(object):
-                        def __init__(self, parent, url, name):
+                        def __init__(self, parent, url, name, menuid):
                             self.parent = parent
                             self.url = url
-                            menuid = wx.NewId()
                             self.mi = wx.MenuItem(self.parent.popup_menu, menuid, name)
                             self.parent.popup_menu.AppendItem(self.mi)
                             self.parent.Bind(wx.EVT_MENU, self.OnSearch, id=menuid)
@@ -3648,17 +3660,12 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
                             except:
                                 cw.util.print_ex(file=sys.stderr)
 
-                    data = cw.data.xml2element(u"Data/SearchEngines.xml")
                     separator = False
-                    for e in data:
-                        if e.tag == u"SearchEngine":
-                            if not separator:
-                                separator = True
-                                self.popup_menu.AppendSeparator()
-                            url = e.getattr(".", "url", "")
-                            name = e.text
-                            if url and name:
-                                self.search_engines.append(SearchEngine(self, url, name))
+                    for url, name, menuid in CWPyRichTextCtrl._search_engines:
+                        if not separator:
+                            separator = True
+                            self.popup_menu.AppendSeparator()
+                        self.search_engines.append(SearchEngine(self, url, name, menuid))
                 except:
                     cw.util.print_ex(file=sys.stderr)
 
