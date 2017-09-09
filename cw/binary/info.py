@@ -15,10 +15,10 @@ class InfoCard(base.CWBinaryBase):
         self.name = f.string()
         idl = f.dword()
 
-        if idl < 19999:
+        if idl <= 19999:
             _dataversion = 0
             self.id = idl
-        elif idl < 39999:
+        elif idl <= 39999:
             _dataversion = 2
             self.id = idl - 20000
         else:

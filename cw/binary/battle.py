@@ -19,7 +19,7 @@ class Battle(base.CWBinaryBase):
             f.read(69) # 不明
             self.name = f.string()
             idl = f.dword()
-            if idl < 19999:
+            if idl <= 19999:
                 dataversion = 0
                 self.id = idl
             else:

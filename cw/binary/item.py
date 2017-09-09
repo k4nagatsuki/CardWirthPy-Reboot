@@ -20,13 +20,13 @@ class ItemCard(base.CWBinaryBase):
         self.name = f.string()
         idl = f.dword()
 
-        if idl < 19999:
+        if idl <= 19999:
             dataversion = 0
             self.id = idl
-        elif idl < 39999:
+        elif idl <= 39999:
             dataversion = 2
             self.id = idl - 20000
-        elif idl < 49999:
+        elif idl <= 49999:
             dataversion = 4
             self.id = idl - 40000
         else:

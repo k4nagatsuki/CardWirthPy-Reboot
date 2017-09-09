@@ -23,12 +23,12 @@ class Summary(base.CWBinaryBase):
         self.required_coupons = f.string(True)
         self.required_coupons_num = f.dword()
         self.area_id = f.dword()
-        if self.area_id < 19999:
+        if self.area_id <= 19999:
             self.version = 0
-        elif self.area_id < 39999:
+        elif self.area_id <= 39999:
             self.version = 2
             self.area_id = self.area_id - 20000
-        elif self.area_id < 49999:
+        elif self.area_id <= 49999:
             self.version = 4
             self.area_id = self.area_id - 40000
         else:
