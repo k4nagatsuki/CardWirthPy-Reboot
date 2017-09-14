@@ -2635,9 +2635,9 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
             seq.append(char)
             seqlen += len(char)
             cnt += 1
-            if not (mode in (2, 3)) and not (mode == 1 and index+1 < len(s) and not is_hw(s[index+1])):
+            if not (mode in (2, 3) or (mode in (1, 4) and char == ' ')) and not (mode == 1 and index+1 < len(s) and not is_hw(s[index+1])):
                 asciicnt += 1
-            if spchar2 or not (mode in (2, 3)) or len(s) <= index+1 or is_hw(s[index+1]):
+            if spchar2 or not (mode in (2, 3) or (mode in (1, 4) and char == ' ')) or len(s) <= index+1 or is_hw(s[index+1]):
                 width2 += 1
             wrapafter = False
 
@@ -2653,8 +2653,8 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
 
         # 互換動作: 1.28以降は行末に半角スペースがあると折り返し位置が変わる
         #           (イベントによるメッセージのみ)
-        if cw.cwpy.sdata and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
-            if not wrapafter2 and index+1 < len(s) and s[index+1] == " " and mode in (2, 3):
+        if mode in (3, 4) or cw.cwpy.sdata and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
+            if not wrapafter2 and index+1 < len(s) and s[index+1] == " " and mode in (1, 2, 3, 4):
                 width2 += 1
                 asciicnt = 0
 
