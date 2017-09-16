@@ -2377,9 +2377,8 @@ class CWPy(_Singleton, threading.Thread):
         if not self.is_showparty:
             self._show_party()
 
-        if not startotherscenario:
-            self.set_yado()
-
+        for music in self.music:
+            music.stop()
         for i in xrange(len(self.lastsound_scenario)):
             if self.lastsound_scenario[i]:
                 self.lastsound_scenario[i].stop(True)
@@ -2387,6 +2386,9 @@ class CWPy(_Singleton, threading.Thread):
         if self.lastsound_system:
             self.lastsound_system.stop(False)
             self.lastsound_system = None
+
+        if not startotherscenario:
+            self.set_yado()
 
     def reload_yado(self):
         """現在の宿をロード。"""
