@@ -389,6 +389,8 @@ class CWPy(_Singleton, threading.Thread):
             changearea = False
             self.cardgrp.remove(self.mcards)
             self.background.bgs = []
+        elif self.status == "GameOver":
+            changearea = False
 
         changed = self.ydata and self.ydata.is_changed()
         scedir = self.setting.get_scedir()
