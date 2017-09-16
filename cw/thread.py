@@ -3176,15 +3176,11 @@ class CWPy(_Singleton, threading.Thread):
 
             for pcard in self.get_pcards():
                 pcard.deck.clear(pcard)
-
-                if not pcard.is_reversed():
-                    pcard.remove_timedcoupons(True)
+                pcard.remove_timedcoupons(True)
 
             for fcard in self.get_fcards():
                 fcard.deck.clear(fcard)
-
-                if not fcard.is_reversed():
-                    fcard.remove_timedcoupons(True)
+                fcard.remove_timedcoupons(True)
 
             areaid, bgmpath, _battlebgmpath = self.sdata.pre_battleareadata
             if not startnextbattle:
