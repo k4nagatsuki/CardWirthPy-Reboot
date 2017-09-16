@@ -2113,6 +2113,14 @@ class CWPy(_Singleton, threading.Thread):
         self.ydata.party.lost()
         del self.sdata.friendcards[:]
         self.sdata.end()
+
+        for music in self.music:
+            music.stop()
+        for i in xrange(len(self.lastsound_scenario)):
+            if self.lastsound_scenario[i]:
+                self.lastsound_scenario[i].stop(True)
+                self.lastsound_scenario[i] = None
+
         self.ydata.load_party(None)
         msglog = self.sdata.backlog
         self.sdata = cw.data.SystemData()
