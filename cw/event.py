@@ -948,11 +948,11 @@ class Event(object):
     def _keycodes_for_successevent(self, keycodes, successflag):
         keycodes2 = []
         for keycode in keycodes:
-            if keycode:
-                if successflag:
-                    keycodes2.append(keycode + u"○")
-                else:
-                    keycodes2.append(keycode + u"×")
+            # BUG: CardWirthでは空文字列キーコードも成功・失敗判定の対象になる
+            if successflag:
+                keycodes2.append(keycode + u"○")
+            else:
+                keycodes2.append(keycode + u"×")
         return keycodes2
 
     def ignition_successevent(self, target, successflag, keycodes):
