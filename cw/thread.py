@@ -3840,21 +3840,19 @@ class CWPy(_Singleton, threading.Thread):
             ccards.extend(self.get_ecards("unreversed"))
             ccards.extend(self.get_fcards())
 
-        for ccard in ccards:
-            try:
-                ccard.set_timeelapse(fromevent=fromevent)
-            except cw.event.EffectBreakError:
-                # 効果中断されても以降のキャラクターの処理は継続
-                pass
-            except:
-                # バトル開始など
-                self.draw()
-                self._elapse_time = False
-                raise
-
-        if ccards:
-            self.draw()
-        self._elapse_time = False
+        try:
+            for ccard in ccards:
+                try:
+                    ccard.set_timeelapse(fromevent=fromevent)
+                except cw.event.EffectBreakError:
+                    if fromevent:
+                        raise
+                    else:
+                        # 時間経過コンテント以外で時間経過が起きている場合、
+                        # 効果中断されても以降のキャラクターの処理は継続
+                        pass
+        finally:
+            self._elapse_time = False
 
     def interrupt_adventure(self):
         """冒険の中断。宿画面に遷移する。"""

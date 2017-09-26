@@ -2813,6 +2813,7 @@ class Character(object):
                     self.update_image()
             else:
                 self.update_image()
+            cw.cwpy.draw(clip=self.rect)
 
         # エネミーまたはプレイヤー(Wsn.2)が中毒効果で死亡していたら、死亡イベント開始
         if isinstance(self, (Player, Enemy)) and self.is_dead() and oldalive:
@@ -2832,19 +2833,21 @@ class Character(object):
                                 t.remove_coupon(u"＠イベント対象")
                                 break
 
-                if cw.cwpy.sdata.is_wsnversion('2'):
-                    # イベント所持者を示すシステムクーポン(Wsn.2)
-                    self.set_coupon(u"＠イベント対象", 0)
-                if fromevent:
-                    event = events.check_keynum(1)
-                    if event:
-                        event.run_scenarioevent()
-                else:
-                    events.start(1, isinsideevent=False)
-                self.remove_coupon(u"＠イベント対象")
+                try:
+                    if cw.cwpy.sdata.is_wsnversion('2'):
+                        # イベント所持者を示すシステムクーポン(Wsn.2)
+                        self.set_coupon(u"＠イベント対象", 0)
+                    if fromevent:
+                        event = events.check_keynum(1)
+                        if event:
+                            event.run_scenarioevent()
+                    else:
+                        events.start(1, isinsideevent=False)
+                finally:
+                    self.remove_coupon(u"＠イベント対象")
 
-                if e_eventtarget:
-                    e_eventtarget.set_coupon(u"＠イベント対象", 0)
+                    if e_eventtarget:
+                        e_eventtarget.set_coupon(u"＠イベント対象", 0)
 
     def set_hold_all(self, pocket, value):
         self.hold_all[pocket] = value
