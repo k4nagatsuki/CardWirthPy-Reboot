@@ -573,10 +573,12 @@ class AdventurerCreater(wx.Dialog):
 
         if nextpage:
             cw.cwpy.play_sound("page")
-            self.page.Freeze()
+            # XXX CHECK, below code freeze whole this dialog on mac/XQuartz
+            #self.page.Freeze()
             self.page.Hide()
             self.page = nextpage
-            self.page.Thaw()
+            while self.page.IsFrozen():
+                self.page.Thaw()
             self.page.Show()
             self.enable_btn()
 
@@ -585,10 +587,12 @@ class AdventurerCreater(wx.Dialog):
 
         if prevpage:
             cw.cwpy.play_sound("page")
-            self.page.Freeze()
+            # XXX CHECK, below code freeze whole this dialog on mac/XQuartz
+            #self.page.Freeze()
             self.page.Hide()
             self.page = prevpage
-            self.page.Thaw()
+            while self.page.IsFrozen():
+                self.page.Thaw()
             self.page.Show()
             self.enable_btn()
 

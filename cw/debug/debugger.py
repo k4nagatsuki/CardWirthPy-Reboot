@@ -230,9 +230,8 @@ class Debugger(wx.Frame):
                          u"イベントを一時停止します。", kind=wx.ITEM_CHECK)
         bmp1 = rsrc["EVTCTRL_PLAY"]
         bmp2 = rsrc["EVTCTRL_PAUSE"]
-        self.mi_pause.SetBitmaps(bmp1, bmp2)
-        if sys.platform <> "win32":
-            self.mi_pause.SetCheckable(False)
+        if sys.platform == "win32":
+            self.mi_pause.SetBitmaps(bmp1, bmp2)
         run_menu.AppendItem(self.mi_pause)
         self.mi_stop = wx.MenuItem(run_menu, ID_STOP, u"イベント強制終了(&E)\tF12",
                          u"イベントを強制終了します。")
@@ -251,7 +250,8 @@ class Debugger(wx.Frame):
         self.mi_showstacktrace = wx.MenuItem(run_menu, ID_SHOW_STACK_TRACE, u"呼び出し履歴の表示(&S)\tCtrl+T",
                          u"呼び出し履歴を表示します。", kind=wx.ITEM_CHECK)
         bmp = rsrc["STACK_TRACE"]
-        self.mi_showstacktrace.SetBitmaps(bmp, bmp)
+        if sys.platform == "win32":
+            self.mi_showstacktrace.SetBitmaps(bmp, bmp)
         run_menu.AppendItem(self.mi_showstacktrace)
         run_menu.AppendSeparator()
         self.mi_select = wx.MenuItem(run_menu, ID_SELECTION, u"選択メンバ(&S)",
@@ -1435,7 +1435,7 @@ class Debugger(wx.Frame):
     def _refresh_areaname(self, force=False):
         assert threading.currentThread() <> cw.cwpy
         s = cw.cwpy.sdata.get_currentareaname()
-        if sys.platform.startswith("linux"):
+        if sys.platform != "win32":
             dc = wx.ClientDC(self)
         else:
             dc = wx.ClientDC(self.st_area)
@@ -1494,7 +1494,7 @@ class Debugger(wx.Frame):
         if cw.cwpy.frame.debugger is None:
             return
         s = cw.cwpy.event.get_selectedmembername()
-        if sys.platform.startswith("linux"):
+        if sys.platform != "win32":
             dc = wx.ClientDC(self)
         else:
             dc = wx.ClientDC(self.st_select)

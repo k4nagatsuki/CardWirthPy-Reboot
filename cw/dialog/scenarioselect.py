@@ -1783,7 +1783,11 @@ class ScenarioSelect(select.Select):
         self.update_narrowcondition()
 
     def draw(self, update=False):
-        self._draw_impl(update)
+        if not self.IsShown():
+            self.Show()
+            wx.CallAfter(self._draw_impl, update)
+        else:
+            self._draw_impl(update)
 
     def _update_pagelabel(self):
         if self.list:
