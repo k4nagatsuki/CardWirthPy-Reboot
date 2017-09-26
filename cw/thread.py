@@ -3830,7 +3830,7 @@ class CWPy(_Singleton, threading.Thread):
 # プレイ用メソッド
 #-------------------------------------------------------------------------------
 
-    def elapse_time(self, playeronly=False):
+    def elapse_time(self, playeronly=False, fromevent=False):
         """時間経過。"""
         cw.cwpy.advlog.start_timeelapse()
         self._elapse_time = True
@@ -3842,10 +3842,15 @@ class CWPy(_Singleton, threading.Thread):
 
         for ccard in ccards:
             try:
-                ccard.set_timeelapse()
+                ccard.set_timeelapse(fromevent=fromevent)
             except cw.event.EffectBreakError:
                 # 効果中断されても以降のキャラクターの処理は継続
                 pass
+            except:
+                # バトル開始など
+                self.draw()
+                self._elapse_time = False
+                raise
 
         if ccards:
             self.draw()
