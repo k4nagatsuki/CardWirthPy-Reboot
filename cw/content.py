@@ -2189,7 +2189,6 @@ class EffectContent(EventContentBase):
                     for t in itertools.chain(cw.cwpy.get_pcards(), cw.cwpy.get_ecards(), cw.cwpy.get_fcards()):
                         if isinstance(t, cw.character.Character):
                             if t.has_coupon(u"＠イベント対象"):
-                                print t.name
                                 e_eventtarget = t
                                 t.remove_coupon(u"＠イベント対象")
                                 break
@@ -2237,9 +2236,7 @@ class EffectContent(EventContentBase):
                                 e_eventtarget.set_coupon(u"＠イベント対象", 0)
                         cw.cwpy.event.effectevent = e_effectevent
                     else:
-                        print 1
                         if e_eventtarget and isinstance(e_eventtarget, cw.character.Character):
-                            print 2
                             e_eventtarget.set_coupon(u"＠イベント対象", 0)
 
         else:

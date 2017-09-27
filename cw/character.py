@@ -2483,7 +2483,6 @@ class Character(object):
                         if item.data is self:
                             # テキストセルに表示中の名前
                             # 対象消去された場合は最後に表示された文字列に固定する
-                            print item.data.name
                             item.data = None
 
             cw.cwpy.ydata.party.remove(self)
