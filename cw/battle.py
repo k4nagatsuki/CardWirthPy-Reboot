@@ -323,6 +323,7 @@ class BattleEngine(object):
                     member.clear_action()
                 cw.cwpy.play_sound("run")
                 self.end()
+                cw.cwpy.statusbar.change()
             else:
                 cw.cwpy.advlog.runaway(False)
                 cw.cwpy.play_sound("error")
