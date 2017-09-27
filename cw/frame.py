@@ -867,7 +867,7 @@ class Frame(wx.Frame):
             if cw.cwpy.battle:
                 cw.cwpy.exec_func(cw.cwpy.battle.runaway)
 
-        self.kill_dlg(dlg)
+        self.kill_dlg(dlg, redraw=False)
 
     def OnUSECARD(self, event):
         header = cw.cwpy.selectedheader
@@ -1062,16 +1062,17 @@ class Frame(wx.Frame):
         # モニタ内に収める
         cw.util.adjust_position(dlg)
 
-    def kill_dlg(self, dlg=None, lockmenucard=False):
+    def kill_dlg(self, dlg=None, lockmenucard=False, redraw=True):
         if dlg:
             dlg.Destroy()
 
-        def func(lockmenucard):
+        def func(lockmenucard, redraw):
             # (-1, -1)にすると次のマウス移動判定で
             # cw.cwpy.mousemotionがFalseになるため、
             # 異なる値を設定する
             cw.cwpy.mousepos = (-2, -2)
-            cw.cwpy.draw()
+            if redraw:
+                cw.cwpy.draw()
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False
         cw.cwpy.kill_showingdlg()
@@ -1095,7 +1096,7 @@ class Frame(wx.Frame):
             if state.RightDown():
                 cw.cwpy.keyevent.mouse_buttondown[2] = True
 
-        cw.cwpy.exec_func(func, lockmenucard)
+        cw.cwpy.exec_func(func, lockmenucard, redraw)
 
     def can_screenshot(self):
         """スクリーンショットの撮影が可能か。
