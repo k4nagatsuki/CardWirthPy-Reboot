@@ -3,6 +3,7 @@
 
 import os
 import sys
+import itertools
 import pygame
 
 import cw
@@ -2184,6 +2185,14 @@ class EffectContent(EventContentBase):
                             t.remove_coupon(u"＠イベント対象")
                 else:
                     e_mcards = None
+                    e_eventtarget = None
+                    for t in itertools.chain(cw.cwpy.get_pcards(), cw.cwpy.get_ecards(), cw.cwpy.get_fcards()):
+                        if isinstance(t, cw.character.Character):
+                            if t.has_coupon(u"＠イベント対象"):
+                                print t.name
+                                e_eventtarget = t
+                                t.remove_coupon(u"＠イベント対象")
+                                break
 
                 # 効果イベントの差し替え
                 tevent = cw.event.Targeting(None, targets, False)
@@ -2227,6 +2236,11 @@ class EffectContent(EventContentBase):
                             if isinstance(e_eventtarget, cw.character.Character):
                                 e_eventtarget.set_coupon(u"＠イベント対象", 0)
                         cw.cwpy.event.effectevent = e_effectevent
+                    else:
+                        print 1
+                        if e_eventtarget and isinstance(e_eventtarget, cw.character.Character):
+                            print 2
+                            e_eventtarget.set_coupon(u"＠イベント対象", 0)
 
         else:
             # イベントが発火しない場合の効果適用処理
