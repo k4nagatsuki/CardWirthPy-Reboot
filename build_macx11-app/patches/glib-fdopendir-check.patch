@@ -1,0 +1,15 @@
+--- glib-2.54.0/gio/glocalfile.c.orig	2017-08-07 23:58:31.000000000 +0900
++++ glib-2.54.0/gio/glocalfile.c	2017-09-30 19:33:02.000000000 +0900
+@@ -91,6 +91,12 @@
+ #endif
+ #endif
+ 
++#if defined(__APPLE__) && defined(AT_FDCWD)
++# include <Availability.h>
++# if __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_10
++#  undef AT_FDCWD
++# endif
++#endif
+ 
+ static void g_local_file_file_iface_init (GFileIface *iface);
+ 

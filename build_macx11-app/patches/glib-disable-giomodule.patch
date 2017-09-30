@@ -1,0 +1,32 @@
+--- glib-2.54.0/gio/giomodule.c.orig	2017-09-18 13:26:29.000000000 +0900
++++ glib-2.54.0/gio/giomodule.c	2017-09-21 22:23:07.000000000 +0900
+@@ -1025,6 +1025,7 @@
+   G_UNLOCK (registered_extensions);
+ }
+ 
++#if 0
+ static gchar *
+ get_gio_module_dir (void)
+ {
+@@ -1057,6 +1058,7 @@
+ 
+   return module_dir;
+ }
++#endif
+ 
+ void
+ _g_io_modules_ensure_loaded (void)
+@@ -1093,11 +1095,13 @@
+ 	  g_strfreev (paths);
+ 	}
+ 
++#if 0
+       /* Then load the compiled in path */
+       module_dir = get_gio_module_dir ();
+ 
+       g_io_modules_scan_all_in_directory_with_scope (module_dir, scope);
+       g_free (module_dir);
++#endif
+ 
+       g_io_module_scope_free (scope);
+ 

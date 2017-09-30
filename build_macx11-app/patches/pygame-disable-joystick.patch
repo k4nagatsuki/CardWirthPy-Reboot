@@ -1,0 +1,215 @@
+--- pygame-1.9.3/src/joystick.c.orig	2016-05-04 23:04:03.000000000 +0900
++++ pygame-1.9.3/src/joystick.c	2017-09-17 22:14:00.000000000 +0900
+@@ -37,13 +37,17 @@
+     int loop;
+     for (loop = 0; loop < JOYSTICK_MAXSTICKS; ++loop) {
+         if (joystick_stickdata[loop]) {
++#if 0
+             SDL_JoystickClose (joystick_stickdata[loop]);
++#endif
+             joystick_stickdata[loop] = NULL;
+         }
+     }
+ 
+     if (SDL_WasInit (SDL_INIT_JOYSTICK)) {
++#if 0
+         SDL_JoystickEventState (SDL_ENABLE);
++#endif
+         SDL_QuitSubSystem (SDL_INIT_JOYSTICK);
+     }
+ }
+@@ -55,7 +59,9 @@
+         if (SDL_InitSubSystem (SDL_INIT_JOYSTICK)) {
+             return PyInt_FromLong (0);
+         }
++#if 0
+         SDL_JoystickEventState (SDL_ENABLE);
++#endif
+         PyGame_RegisterQuit (joy_autoquit);
+     }
+     return PyInt_FromLong (1);
+@@ -113,7 +119,11 @@
+ get_count (PyObject* self)
+ {
+     JOYSTICK_INIT_CHECK ();
++#if 0
+     return PyInt_FromLong (SDL_NumJoysticks ());
++#else
++    return PyInt_FromLong (0);
++#endif
+ }
+ 
+ static PyObject*
+@@ -123,10 +133,12 @@
+ 
+     JOYSTICK_INIT_CHECK ();
+     if (!joystick_stickdata[joy_id]) {
++#if 0
+         joystick_stickdata[joy_id] = SDL_JoystickOpen (joy_id);
+         if (!joystick_stickdata[joy_id]) {
+             return RAISE (PyExc_SDLError, SDL_GetError ());
+         }
++#endif
+     }
+     Py_RETURN_NONE;
+ }
+@@ -139,7 +151,9 @@
+     JOYSTICK_INIT_CHECK ();
+ 
+     if (joystick_stickdata[joy_id]) {
++#if 0
+         SDL_JoystickClose (joystick_stickdata[joy_id]);
++#endif
+         joystick_stickdata[joy_id] = NULL;
+     }
+     Py_RETURN_NONE;
+@@ -164,7 +178,11 @@
+ {
+     int joy_id = PyJoystick_AsID (self);
+     JOYSTICK_INIT_CHECK ();
++#if 0
+     return Text_FromUTF8 (SDL_JoystickName (joy_id));
++#else
++    return Text_FromUTF8 ("");
++#endif
+ }
+ 
+ static PyObject*
+@@ -178,7 +196,11 @@
+         return RAISE (PyExc_SDLError, "Joystick not initialized");
+     }
+ 
++#if 0
+     return PyInt_FromLong (SDL_JoystickNumAxes (joy));
++#else
++    return PyInt_FromLong (0);
++#endif
+ }
+ 
+ static PyObject*
+@@ -196,6 +218,7 @@
+     if (!joy) {
+         return RAISE (PyExc_SDLError, "Joystick not initialized");
+     }
++#if 0
+     if (axis < 0 || axis >= SDL_JoystickNumAxes (joy)) {
+         return RAISE (PyExc_SDLError, "Invalid joystick axis");
+     }
+@@ -206,6 +229,9 @@
+ #endif
+ 
+     return PyFloat_FromDouble (value / 32768.0);
++#else
++    return RAISE (PyExc_SDLError, "Invalid joystick axis");
++#endif
+ }
+ 
+ static PyObject*
+@@ -219,7 +245,11 @@
+         return RAISE (PyExc_SDLError, "Joystick not initialized");
+     }
+ 
++#if 0
+     return PyInt_FromLong (SDL_JoystickNumButtons (joy));
++#else
++    return PyInt_FromLong (0);
++#endif
+ }
+ 
+ static PyObject*
+@@ -237,6 +267,7 @@
+     if (!joy) {
+         return RAISE (PyExc_SDLError, "Joystick not initialized");
+     }
++#if 0
+     if (_index < 0 || _index >= SDL_JoystickNumButtons (joy)) {
+         return RAISE (PyExc_SDLError, "Invalid joystick button");
+     }
+@@ -246,6 +277,9 @@
+     /*printf("SDL_JoystickGetButton value:%d:\n", value);*/
+ #endif
+     return PyInt_FromLong (value);
++#else
++    return RAISE (PyExc_SDLError, "Invalid joystick button");
++#endif
+ }
+ 
+ static PyObject*
+@@ -259,7 +293,11 @@
+         return RAISE (PyExc_SDLError, "Joystick not initialized");
+     }
+ 
++#if 0
+     return PyInt_FromLong (SDL_JoystickNumBalls (joy));
++#else
++    return PyInt_FromLong (0);
++#endif
+ }
+ 
+ static PyObject*
+@@ -278,6 +316,7 @@
+     if (!joy) {
+         return RAISE (PyExc_SDLError, "Joystick not initialized");
+     }
++#if 0
+     value = SDL_JoystickNumBalls (joy);
+ #ifdef DEBUG
+     /*printf("SDL_JoystickNumBalls value:%d:\n", value);*/
+@@ -288,6 +327,9 @@
+ 
+     SDL_JoystickGetBall (joy, _index, &dx, &dy);
+     return Py_BuildValue ("(ii)", dx, dy);
++#else
++    return RAISE (PyExc_SDLError, "Invalid joystick trackball");
++#endif
+ }
+ 
+ static PyObject*
+@@ -302,7 +344,11 @@
+         return RAISE (PyExc_SDLError, "Joystick not initialized");
+     }
+ 
++#if 0
+     value = SDL_JoystickNumHats (joy);
++#else
++    value = 0;
++#endif
+ #ifdef DEBUG
+     /*printf("SDL_JoystickNumHats value:%d:\n", value);*/
+ #endif
+@@ -325,6 +371,7 @@
+     if (!joy) {
+         return RAISE (PyExc_SDLError, "Joystick not initialized");
+     }
++#if 0
+     if (_index < 0 || _index >= SDL_JoystickNumHats (joy)) {
+         return RAISE(PyExc_SDLError, "Invalid joystick hat");
+     }
+@@ -348,6 +395,9 @@
+     }
+ 
+     return Py_BuildValue ("(ii)", px, py);
++#else
++    return RAISE(PyExc_SDLError, "Invalid joystick hat");
++#endif
+ }
+ 
+ static PyMethodDef joy_methods[] =
+@@ -424,6 +474,7 @@
+ {
+     PyJoystickObject* joy;
+ 
++#if 0
+     if (id < 0 || id >= JOYSTICK_MAXSTICKS || id >= SDL_NumJoysticks ()) {
+         return RAISE (PyExc_SDLError, "Invalid joystick device number");
+     }
+@@ -436,6 +487,9 @@
+     joy->id = id;
+ 
+     return (PyObject*)joy;
++#else
++    return RAISE (PyExc_SDLError, "Invalid joystick device number");
++#endif
+ }
+ 
+ static PyMethodDef _joystick_methods[] =

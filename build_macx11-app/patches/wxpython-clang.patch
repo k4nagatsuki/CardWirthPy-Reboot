@@ -1,0 +1,16 @@
+--- wxPython-src-3.0.2.0/src/stc/scintilla/src/Editor.cxx.orig	2013-02-28 05:04:10.000000000 +0900
++++ wxPython-src-3.0.2.0/src/stc/scintilla/src/Editor.cxx	2017-09-22 08:41:56.000000000 +0900
+@@ -5840,10 +5840,11 @@
+ 	EnsureCaretVisible();
+ }
+ 
++#include <math.h>
+ static bool Close(Point pt1, Point pt2) {
+-	if (abs(pt1.x - pt2.x) > 3)
++	if (fabs(pt1.x - pt2.x) > 3)
+ 		return false;
+-	if (abs(pt1.y - pt2.y) > 3)
++	if (fabs(pt1.y - pt2.y) > 3)
+ 		return false;
+ 	return true;
+ }

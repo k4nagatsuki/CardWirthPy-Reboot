@@ -1,0 +1,11 @@
+--- gettext-0.19.8.1/gettext-runtime/intl/Makefile.in.orig	2016-06-11 16:37:41.000000000 +0900
++++ gettext-0.19.8.1/gettext-runtime/intl/Makefile.in	2017-10-01 00:38:30.000000000 +0900
+@@ -97,7 +97,7 @@
+ 
+ # -DBUILDING_LIBINTL: Change expansion of LIBINTL_DLL_EXPORTED macro.
+ # -DBUILDING_DLL: Change expansion of RELOCATABLE_DLL_EXPORTED macro.
+-DEFS = -DLOCALEDIR=\"$(localedir)\" -DLOCALE_ALIAS_PATH=\"$(aliaspath)\" \
++DEFS = -DLOCALEDIR=\"/usr/share/locale\" -DLOCALE_ALIAS_PATH=\"/usr/share/locale/locale.alias\" \
+ -DLIBDIR=\"$(libdir)\" -DBUILDING_LIBINTL -DBUILDING_DLL -DIN_LIBINTL \
+ -DENABLE_RELOCATABLE=1 -DIN_LIBRARY -DINSTALLDIR=\"$(libdir)\" -DNO_XMALLOC \
+ -Dset_relocation_prefix=libintl_set_relocation_prefix \
