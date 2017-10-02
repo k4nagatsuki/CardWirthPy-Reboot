@@ -1427,7 +1427,13 @@ _imageretouchMethods[] =
 #endif
 };
 
-#ifdef __x86_64__
+#if defined(__APPLE__)
+PyMODINIT_FUNC
+init_imageretouch_mac(void)
+{
+    (void) Py_InitModule("_imageretouch_mac", _imageretouchMethods);
+}
+#elif defined(__x86_64__)
 PyMODINIT_FUNC
 init_imageretouch64(void)
 {

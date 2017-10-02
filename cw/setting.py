@@ -28,21 +28,29 @@ class NoFontError(ValueError):
 
 if sys.platform <> "win32":
     # wx.Appのロード前にフォントをインストールしなければならない
-    try:
-        fontconfig = ctypes.CDLL("libfontconfig.so")
-    except:
+    if sys.platform == "darwin":
         try:
-            fontconfig = ctypes.CDLL("libfontconfig.so.1")
+            fontconfig = ctypes.CDLL("/opt/X11/lib/libfontconfig.dylib")
         except:
             fontconfig = None
+    else:
+        try:
+            fontconfig = ctypes.CDLL("libfontconfig.so")
+        except:
+            try:
+                fontconfig = ctypes.CDLL("libfontconfig.so.1")
+            except:
+                fontconfig = None
     if fontconfig:
+        encoding = sys.getfilesystemencoding()
+        fontconfig.FcConfigGetCurrent.restype = ctypes.c_void_p
         fcconfig = fontconfig.FcConfigGetCurrent()
         for dpath, dnames, fnames in os.walk(u"Data"):
             for fname in fnames:
                 if fname.lower().endswith(".ttf"):
                     path = os.path.join(dpath, fname)
                     if os.path.isfile(path):
-                        fontconfig.FcConfigAppFontAddFile(fcconfig, path)
+                        fontconfig.FcConfigAppFontAddFile(ctypes.c_void_p(fcconfig), ctypes.c_char_p(path.encode(encoding)))
 
 # マウスホイールを上回転させた時の挙動
 WHEEL_SELECTION = "Selection" # カードや選択肢を選ぶ

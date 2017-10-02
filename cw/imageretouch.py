@@ -12,7 +12,9 @@ from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND
 import cw
 
 try:
-    if sys.maxsize == 0x7fffffff:
+    if sys.platform == "darwin":
+        import _imageretouch_mac as _imageretouch
+    elif sys.maxsize == 0x7fffffff:
         import _imageretouch32 as _imageretouch
     elif sys.maxsize == 0x7fffffffffffffff:
         import _imageretouch64 as _imageretouch

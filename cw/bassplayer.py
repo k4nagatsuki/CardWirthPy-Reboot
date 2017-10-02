@@ -6,10 +6,35 @@ import sys
 import struct
 import ctypes
 import threading
-from ctypes import c_size_t, c_long, c_void_p, c_longlong, c_float
+from ctypes import c_int, c_uint8, c_uint16, c_uint32, c_uint64, c_float, c_void_p, c_char_p
 
 import cw
 from cw.util import synclock
+
+# typedef を間違えないように...
+c_BYTE = c_uint8
+c_WORD = c_uint16
+c_DWORD = c_uint32
+c_QWORD = c_uint64
+c_BOOL = c_int
+
+c_HMUSIC = c_DWORD
+c_HSAMPLE = c_DWORD
+c_HCHANNEL = c_DWORD
+c_HSTREAM = c_DWORD
+c_HSYNC = c_DWORD
+c_HPLUGIN = c_DWORD
+c_HSOUNDFONT = c_DWORD
+
+class BASS_CHANNELINFO(ctypes.Structure):
+    _fields_ = [("freq", c_DWORD),
+                ("chans", c_DWORD),
+                ("flags", c_DWORD),
+                ("ctype", c_DWORD),
+                ("origres", c_DWORD),
+                ("plugin", c_HPLUGIN),
+                ("sample", c_HSAMPLE),
+                ("filename", c_char_p)]
 
 BASS_DEVICE_DEFAULT = 0
 BASS_DEVICE_8BITS = 1
@@ -83,9 +108,9 @@ _lock = threading.Lock()
 _fadeoutlock = threading.Lock()
 
 if sys.platform == "win32":
-    SYNCPROC = ctypes.WINFUNCTYPE(None, c_size_t, c_long, c_long, c_void_p)
+    SYNCPROC = ctypes.WINFUNCTYPE(None, c_HSYNC, c_DWORD, c_DWORD, c_void_p)
 else:
-    SYNCPROC = ctypes.CFUNCTYPE(None, c_size_t, c_long, c_long, c_void_p)
+    SYNCPROC = ctypes.CFUNCTYPE(None, c_HSYNC, c_DWORD, c_DWORD, c_void_p)
 
 def _cc111loop(handle, channel, data, streamindex):
     """CC#111の位置へシークし、再び演奏を始める。"""
@@ -134,7 +159,7 @@ def _loop(handle, channel, data, streamindex):
                 _fadeoutstreams[streamindex] = (channel, loops - 1, pos)
             else:
                 _loopcounts[streamindex] = loops - 1
-        _bass.BASS_ChannelSetPosition(c_long(channel), c_longlong(pos), c_long(BASS_POS_BYTE))
+        _bass.BASS_ChannelSetPosition(channel, pos, BASS_POS_BYTE)
 
 def is_alivable():
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
@@ -170,6 +195,26 @@ def init_bass(soundfonts):
             _bass = ctypes.windll.LoadLibrary("bass.dll")
             _bassmidi = ctypes.windll.LoadLibrary("bassmidi.dll")
             _bassfx = ctypes.windll.LoadLibrary("bass_fx.dll")
+        elif sys.platform == "darwin":
+            if ('RESOURCEPATH' in os.environ and
+                os.path.exists(
+                    os.path.join(os.environ['RESOURCEPATH'], 'libbass.dylib'))):
+                _bass = ctypes.CDLL(
+                    os.path.join(os.environ['RESOURCEPATH'], "libbass.dylib"),
+                    mode=ctypes.RTLD_GLOBAL)
+                _bassmidi = ctypes.CDLL(
+                    os.path.join(os.environ['RESOURCEPATH'],
+                                 "libbassmidi.dylib"))
+                _bassfx = ctypes.CDLL(
+                    os.path.join(os.environ['RESOURCEPATH'],
+                                 "libbass_fx.dylib"))
+            else:
+                _bass = ctypes.CDLL(
+                    "./lib/libbass.dylib", mode=ctypes.RTLD_GLOBAL)
+                _bassmidi = ctypes.CDLL(
+                    "./lib/libbassmidi.dylib")
+                _bassfx = ctypes.CDLL(
+                    "./lib/libbass_fx.dylib")
         else:
             if sys.maxsize == 0x7fffffff:
                 _bass = ctypes.CDLL("./lib/libbass32.so", mode=ctypes.RTLD_GLOBAL)
@@ -184,6 +229,50 @@ def init_bass(soundfonts):
 
     if not _bass:
         return False
+
+    # 使用している関数の argtypes と restype の設定
+    _bass.BASS_Init.argtypes = [ c_int, c_DWORD, c_DWORD, c_void_p, c_void_p ]
+    _bass.BASS_Init.restype = c_BOOL
+    _bass.BASS_Free.argtypes = []
+    _bass.BASS_Free.restype = c_BOOL
+    _bass.BASS_StreamCreateFile.argtypes = [ c_BOOL, c_char_p, c_QWORD, c_QWORD, c_DWORD ]
+    _bass.BASS_StreamCreateFile.restype = c_HSTREAM
+    _bass.BASS_StreamFree.argtypes = [ c_HSTREAM ]
+    _bass.BASS_StreamFree.restype = c_BOOL
+    _bass.BASS_ChannelIsActive.argtypes = [ c_DWORD ]
+    _bass.BASS_ChannelIsActive.restype = c_DWORD
+    _bass.BASS_ChannelGetInfo.argtypes = [ c_DWORD, ctypes.POINTER(BASS_CHANNELINFO) ]
+    _bass.BASS_ChannelGetInfo.restype = c_BOOL
+    _bass.BASS_ChannelGetTags.argtypes = [ c_DWORD, c_DWORD ]
+    _bass.BASS_ChannelGetTags.restype = c_void_p
+    _bass.BASS_ChannelPlay.argtypes = [ c_DWORD, c_BOOL ]
+    _bass.BASS_ChannelPlay.restype = c_BOOL
+    _bass.BASS_ChannelStop.argtypes = [ c_DWORD ]
+    _bass.BASS_ChannelStop.restype = c_BOOL
+    _bass.BASS_ChannelPause.argtypes = [ c_DWORD ]
+    _bass.BASS_ChannelPause.restype = c_BOOL
+    _bass.BASS_ChannelSetAttribute.argtypes = [ c_DWORD, c_DWORD, c_float ]
+    _bass.BASS_ChannelSetAttribute.restype = c_BOOL
+    _bass.BASS_ChannelGetAttribute.argtypes = [ c_DWORD, c_DWORD, ctypes.POINTER(c_float) ]
+    _bass.BASS_ChannelGetAttribute.restype = c_BOOL
+    _bass.BASS_ChannelSlideAttribute.argtypes = [ c_DWORD, c_DWORD, c_float, c_DWORD ]
+    _bass.BASS_ChannelSlideAttribute.restype = c_BOOL
+    _bass.BASS_ChannelSetPosition.argtypes = [ c_DWORD, c_QWORD, c_DWORD ]
+    _bass.BASS_ChannelSetPosition.restype = c_BOOL
+    _bass.BASS_ChannelSetSync.argtypes = [ c_DWORD, c_DWORD, c_QWORD, SYNCPROC, c_void_p ]
+    _bass.BASS_ChannelSetSync.restype = c_HSYNC
+    _bassmidi.BASS_MIDI_FontInit.argtypes = [ c_char_p, c_DWORD ]
+    _bassmidi.BASS_MIDI_FontInit.restype = c_HSOUNDFONT
+    _bassmidi.BASS_MIDI_FontFree.argtypes = [ c_HSOUNDFONT ]
+    _bassmidi.BASS_MIDI_FontFree.restype = c_BOOL
+    _bassmidi.BASS_MIDI_StreamCreateFile.argtypes = [ c_BOOL, c_char_p, c_QWORD, c_QWORD, c_DWORD, c_DWORD ]
+    _bassmidi.BASS_MIDI_StreamCreateFile.restype = c_HSTREAM
+    _bassmidi.BASS_MIDI_StreamSetFonts.argtypes =  [ c_HSTREAM, c_char_p, c_DWORD ]
+    _bassmidi.BASS_MIDI_StreamSetFonts.restype = c_BOOL
+    _bassmidi.BASS_MIDI_StreamGetEvents.argtypes = [ c_HSTREAM, c_int, c_DWORD, c_void_p ]
+    _bassmidi.BASS_MIDI_StreamGetEvents.restype = c_DWORD
+    _bassfx.BASS_FX_TempoCreate.argtypes = [ c_DWORD, c_DWORD ]
+    _bassfx.BASS_FX_TempoCreate.restype = c_HSTREAM
 
     if not _bass.BASS_Init(-1, 44100, BASS_DEVICE_DEFAULT, None, None):
         dispose_bass()
@@ -255,7 +344,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     if ismidi:
         if not is_alivablemidi():
             return
-        stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), c_longlong(0), c_longlong(0), flag, 44100)
+        stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag, 44100)
         if stream:
             if _sfonts:
                 _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) / (4*3))
@@ -265,7 +354,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
             raise ValueError("_play() failure: %s" % (fpath))
 
     else:
-        stream = _bass.BASS_StreamCreateFile(False, fpath.encode(encoding), c_longlong(0), c_longlong(0), flag)
+        stream = _bass.BASS_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag)
         if not stream:
             raise ValueError("_play() failure: %s" % (fpath))
 
@@ -300,44 +389,32 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
         loopstart, loopend = loopinfo
         _loopstarts[streamindex] = loopstart
         if 0 <= loopend:
-            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_POS|BASS_SYNC_MIXTIME, c_longlong(loopend), CC111LOOP, c_void_p(streamindex))
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_POS|BASS_SYNC_MIXTIME, loopend, CC111LOOP, streamindex)
         else:
-            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, c_void_p(streamindex))
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, 0, CC111LOOP, streamindex)
     else:
         _loopstarts[streamindex] = 0
-        _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, c_void_p(streamindex))
+        _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, 0, CC111LOOP, streamindex)
 
     if tempo <> 0:
-        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO, c_float(tempo)) # -95%...0...+5000%
+        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO, tempo) # -95%...0...+5000%
     if pitch <> 0:
-        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO_PITCH, c_float(pitch)) # -60...0...+60
+        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO_PITCH, pitch) # -60...0...+60
 
     if 0 < fade:
-        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(0))
-        _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(volume), c_long(fade))
+        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, 0)
+        _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, volume, fade)
     else:
-        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(volume))
+        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, volume)
     _bass.BASS_ChannelPlay(stream, False)
 
     return stream
 
 def _get_attribute(stream, flag):
     global _bass
-    class ATTR(ctypes.Structure):
-        _fields_ = [("value", ctypes.c_float)]
-    attr = ATTR()
+    attr = c_float()
     _bass.BASS_ChannelGetAttribute(stream, flag, ctypes.byref(attr))
     return attr.value
-
-class BASS_CHANNELINFO(ctypes.Structure):
-    _fields_ = [("freq", ctypes.c_int),
-                ("chans", ctypes.c_int),
-                ("flags", ctypes.c_int),
-                ("ctype", ctypes.c_int),
-                ("origres", ctypes.c_int),
-                ("plugin", ctypes.c_void_p),
-                ("sample", ctypes.c_void_p),
-                ("filename", ctypes.c_char_p)]
 
 def _get_loopinfo(fpath, stream):
     """吉里吉里もしくはRPGツクール形式の
@@ -346,8 +423,7 @@ def _get_loopinfo(fpath, stream):
     global _bass
 
     info = BASS_CHANNELINFO()
-    pinfo = ctypes.byref(info)
-    if not _bass.BASS_ChannelGetInfo(stream, pinfo):
+    if not _bass.BASS_ChannelGetInfo(stream, ctypes.byref(info)):
         return None
 
     sampperbytes = 44100.0 / info.freq
@@ -511,8 +587,8 @@ def _stop(streamindex, fade, stopfadeout):
         if 0 < fade:
             _free_fadeoutstream(streamindex)
 
-            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_SLIDE, c_longlong(0), FREE_CHANNEL, c_void_p(streamindex))
-            _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(0), c_long(fade))
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_SLIDE, 0, FREE_CHANNEL, streamindex)
+            _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, 0, fade)
             @synclock(_fadeoutlock)
             def func(stream):
                 _fadeoutstreams[streamindex] = (stream, _loopcounts[streamindex], _loopstarts[streamindex])
@@ -556,7 +632,7 @@ def _set_volume(volume, streamindex, fade):
         _fadeoutstreams[streamindex] = None
 
     if _streams[streamindex]:
-        _bass.BASS_ChannelSlideAttribute(_streams[streamindex], BASS_ATTRIB_VOL, c_float(volume), c_long(fade))
+        _bass.BASS_ChannelSlideAttribute(_streams[streamindex], BASS_ATTRIB_VOL, volume, fade)
 
 def set_bgmvolume(volume, channel=0, fade=0):
     """BGMの音量を変更する。"""
