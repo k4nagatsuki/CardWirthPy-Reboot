@@ -42,10 +42,6 @@ Yado フォルダがある場所に置きます。一番簡単なのは、window
 CardWirthPy fullpack をダウンロードして展開し、
 `CardWirthPy.exe` がある場所に `CardWirthPy.app` を置くことです。
 
-初回インストール時は、フォントのインストールが必要です。
-`CardWrithPy.app` と同じフォルダにある `install_font.command` をダ
-ブルクリックしてください。二回目以降は必要ありません。
-
 後は、 `CardWirthPy.app` をダブルクリックして実行すれば、
 **CardWirth** を楽しめます。
 

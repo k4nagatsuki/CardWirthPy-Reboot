@@ -1,7 +1,7 @@
 #! /bin/sh
 
 APP="../CardWirthPy.app"
-DOCS="../ReadMe.txt ../ChangeLog.txt LICENSE_mac.txt README_mac.md install_font.command"
+DOCS="../ReadMe.txt ../ChangeLog.txt LICENSE_mac.txt README_mac.md"
 WORKDIR=`pwd`/dmg_work
 HGTMPDIR=`pwd`/tmp
 

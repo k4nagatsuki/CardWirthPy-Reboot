@@ -28,11 +28,20 @@ class NoFontError(ValueError):
 
 if sys.platform <> "win32":
     # wx.Appのロード前にフォントをインストールしなければならない
+    DATA_PATH = u"Data"
+    encoding = sys.getfilesystemencoding()
     if sys.platform == "darwin":
         try:
             fontconfig = ctypes.CDLL("/opt/X11/lib/libfontconfig.dylib")
         except:
             fontconfig = None
+        # application bundle に入っている場合は、application bundle と同じ位置にあるDataディレクトリを使う
+        if 'RESOURCEPATH' in os.environ:
+            data_path = os.path.join(
+                unicode(os.environ['RESOURCEPATH'], encoding),
+                u'..', u'..', u'..', u'Data')
+            if os.path.isdir(data_path):
+                DATA_PATH = data_path
     else:
         try:
             fontconfig = ctypes.CDLL("libfontconfig.so")
@@ -42,10 +51,9 @@ if sys.platform <> "win32":
             except:
                 fontconfig = None
     if fontconfig:
-        encoding = sys.getfilesystemencoding()
         fontconfig.FcConfigGetCurrent.restype = ctypes.c_void_p
         fcconfig = fontconfig.FcConfigGetCurrent()
-        for dpath, dnames, fnames in os.walk(u"Data"):
+        for dpath, dnames, fnames in os.walk(DATA_PATH):
             for fname in fnames:
                 if fname.lower().endswith(".ttf"):
                     path = os.path.join(dpath, fname)
