@@ -573,8 +573,9 @@ class AdventurerCreater(wx.Dialog):
 
         if nextpage:
             cw.cwpy.play_sound("page")
-            # XXX CHECK, below code freeze whole this dialog on mac/XQuartz
-            #self.page.Freeze()
+            if sys.platform == "win32":
+                # Windows 以外ではこの Freeze() があるとダイアログ全体の描画が止まる
+                self.page.Freeze()
             self.page.Hide()
             self.page = nextpage
             while self.page.IsFrozen():
@@ -587,8 +588,9 @@ class AdventurerCreater(wx.Dialog):
 
         if prevpage:
             cw.cwpy.play_sound("page")
-            # XXX CHECK, below code freeze whole this dialog on mac/XQuartz
-            #self.page.Freeze()
+            if sys.platform == "win32":
+                # Windows 以外ではこの Freeze() があるとダイアログ全体の描画が止まる
+                self.page.Freeze()
             self.page.Hide()
             self.page = prevpage
             while self.page.IsFrozen():

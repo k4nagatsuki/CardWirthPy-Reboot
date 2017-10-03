@@ -1035,7 +1035,7 @@ class Frame(wx.Frame):
         dlg: wx.Window
         point: 中央以外の位置に移動させたい場合、指定する。
         """
-        if sys.platform != "darwin" and self.IsIconized():
+        if sys.platform == "win32" and self.IsIconized():
             self.Iconize(False)
         if hasattr(dlg, "pre_pos") and dlg.pre_pos:
             dlg.SetPosition(dlg.pre_pos)
