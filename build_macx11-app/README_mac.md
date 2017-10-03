@@ -106,7 +106,9 @@ CardWirtyPy を全面的に書き換えないと修正できないためです�
 mac ビルド環境 & パッチ作成者
 -----------------------------
 
-* MURAMATSU Atsushi (@amuramatsu) <amura@tomato.sakura.ne.jp>
+* MURAMATSU Atsushi (@amuramatsu) <amura@tomato.sakura.ne.jp>  
+  amuramatsu が作成したビルド環境は、全て CardWirthPy と同じ MIT
+  ライセンスとします。
 
 
 ACKNOWLEDGEMENTS

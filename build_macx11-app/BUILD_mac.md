@@ -64,4 +64,9 @@ $ python cardwirth.py
 mac ビルド環境 & パッチ作成者
 -----------------------------
 
-* MURAMATSU Atsushi (@amuramatsu) <amura@tomato.sakura.ne.jp>
+* MURAMATSU Atsushi (@amuramatsu) <amura@tomato.sakura.ne.jp>  
+  amuramatsu が作成したビルド環境は、全て CardWirthPy と同じ MIT
+  ライセンスとします。  
+  各パッチについては、パッチ先のライセンスに従います。詳細は、
+  "patches/LISENCE_patch.md" をご覧ください。
+
