@@ -1,10 +1,10 @@
-Patch¤Î¥é¥¤¥»¥ó¥¹
+Patchã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹
 =================
 
-³Æ¥Ñ¥Ã¥Á¤Ï¡¢¥Ñ¥Ã¥ÁÀè¤Î¥é¥¤¥»¥ó¥¹¤Ë½¾¤¤¤Ş¤¹¡£
-¡ÊUnified patch ·Á¼°¤òÍøÍÑ¤·¤Æ¤ª¤ê¡¢¥Ñ¥Ã¥ÁÀè¤Î¥½¡¼¥¹¥³¡¼¥É¤Î°ìÉô¤¬
-  ´Ş¤Ş¤ì¤ë¤¿¤á¡Ë
-Ãíµ­¤¬¤Ê¤¤Êª¤ÏMURAMATSU Atsushi¤¬ºîÀ®¤·¤Æ¤¤¤Ş¤¹¡£
+å„ãƒ‘ãƒƒãƒã¯ã€ãƒ‘ãƒƒãƒå…ˆã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã«å¾“ã„ã¾ã™ã€‚
+ï¼ˆUnified patch å½¢å¼ã‚’åˆ©ç”¨ã—ã¦ãŠã‚Šã€ãƒ‘ãƒƒãƒå…ˆã®ã‚½ãƒ¼ã‚¹ã‚³ãƒ¼ãƒ‰ã®ä¸€éƒ¨ãŒ
+  å«ã¾ã‚Œã‚‹ãŸã‚ï¼‰
+æ³¨è¨˜ãŒãªã„ç‰©ã¯MURAMATSU AtsushiãŒä½œæˆã—ã¦ã„ã¾ã™ã€‚
 
 * gettext-use-system-localedir.patch
   GNU Lesser General Public License
@@ -20,19 +20,19 @@ Patch¤Î¥é¥¤¥»¥ó¥¹
 
 * libsdl-1.2.15-const-xdata32.patch  
   GNU Lesser General Public License
-  ¤³¤Î¥Ñ¥Ã¥Á¤Ï¡¢
-  [gentoo ¤Î¥ì¥İ¥¸¥È¥ê](https://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/media-libs/libsdl/files/libsdl-1.2.15-const-xdata32.patch)
-  ¤«¤éÌã¤Ã¤Æ¤­¤Æ¤¤¤Ş¤¹¡£
+  ã“ã®ãƒ‘ãƒƒãƒã¯ã€
+  [gentoo ã®ãƒ¬ãƒã‚¸ãƒˆãƒª](https://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/media-libs/libsdl/files/libsdl-1.2.15-const-xdata32.patch)
+  ã‹ã‚‰è²°ã£ã¦ãã¦ã„ã¾ã™ã€‚
 
 * libsdl-1.2.15-without-macframework.patch  
   GNU Lesser General Public License
 
 * pygame-disable-joystick.patch  
   GNU Lesser General Public License
-  
+
 * pygame-without-cocoa-carbon.patch  
   GNU Lesser General Public License
-  
+
 * wxpython-clang.patch  
   wxWindows Library License
 

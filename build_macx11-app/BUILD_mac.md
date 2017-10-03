@@ -4,7 +4,7 @@ Mac版ビルド情報
 必要環境
 --------
 
-* Xcode 
+* Xcode
 * autoconf-2.59 or later
 * pkg-config
 * XQuartz

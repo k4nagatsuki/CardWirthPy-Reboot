@@ -25,7 +25,7 @@ logの中の人 氏が作成し、現在 k4nagatsuki 氏が中心となって開
   （Early 2006 の iMac、MacBook、MacBook pro、
     Early/Late 2006 Mac mini は残念ながら 64bit サポートがないため
     動作しません）
-    
+
 * [XQuartz](https://www.xquartz.org)  
   どのバージョンから動くか分かりませんが、少なくとも 2.7.11 なら動
   作します。
