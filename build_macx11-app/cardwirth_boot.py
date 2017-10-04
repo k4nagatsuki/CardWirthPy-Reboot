@@ -15,7 +15,7 @@ from PyObjCTools import AppHelper
 ALWAYS_LOG_OUTPUT = False
 EXEC_FILE = "cardwirthpy"
 XQUARTZ_IDENT = "org.macosforge.xquartz.X11"
- 
+
 APP_DIR = None
 TOP_DIR = None
 TERMINATE = None
@@ -31,63 +31,71 @@ def check_x11():
         alert.runModal()
         sys.exit(1)
 
+def set_env(varname, value):
+    if isinstance(value, unicode):
+        os.environ[varname] = value.encode('utf-8')
+    else:
+        os.environ[varname] = value
+def get_env_unicode(varname):
+    return unicode(os.environ[varname], 'utf-8')
+
 def set_environment(argv0):
     global APP_DIR, TOP_DIR
-    TOP_DIR = os.path.abspath(os.environ["RESOURCEPATH"])
-    APP_DIR = os.path.dirname(os.path.abspath(os.path.join(
-        TOP_DIR, "..")))
+    TOP_DIR = os.path.abspath(get_env_unicode("RESOURCEPATH"))
+    APP_DIR = os.path.dirname(os.path.abspath(os.path.join(TOP_DIR, "..")))
     
-    os.environ["PYTHONPATH"] = ':'.join(sys.path)
-    os.environ["PYTHONHOME"] = TOP_DIR
+    set_env("PYTHONPATH", ':'.join(sys.path))
+    set_env("PYTHONHOME", TOP_DIR)
     
-    os.environ["ARGVZERO"] = os.path.abspath(
-        os.path.join(TOP_DIR, EXEC_FILE))
-    os.environ["_PYTHON_EXEC"] = os.path.abspath(
-        os.path.join(TOP_DIR, "..", "MacOS", "python"))
+    set_env("ARGVZERO", os.path.abspath(os.path.join(TOP_DIR, EXEC_FILE)))
+    set_env("_PYTHON_EXEC", os.path.abspath(
+        os.path.join(TOP_DIR, "..", "MacOS", "python")))
 
-    os.environ["GTK_IM_MODULE_FILE"] = "/dev/null"
-    os.environ["GDK_PIXBUF_MODULE_FILE"] = "/dev/null"
-    os.environ["GTK_DATA_PREFIX"] = TOP_DIR
-    os.environ["GTK_EXE_PREFIX"] = TOP_DIR
-    os.environ["GTK_PATH"] = TOP_DIR
-    if not os.path.exists(os.path.join(os.environ["HOME"], ".gtkrc-2.0")):
-        os.environ["GTK2_RC_FILES"] = os.path.join(
-            TOP_DIR, "etc", "gtk-2.0", "gtkrc")
+    set_env("GTK_IM_MODULE_FILE", "/dev/null")
+    set_env("GDK_PIXBUF_MODULE_FILE", "/dev/null")
+    set_env("GTK_DATA_PREFIX", TOP_DIR)
+    set_env("GTK_EXE_PREFIX", TOP_DIR)
+    set_env("GTK_PATH", TOP_DIR)
+    if not os.path.exists(os.path.join(unicode(os.environ["HOME"], 'utf-8'),
+                                       ".gtkrc-2.0")):
+        set_env("GTK2_RC_FILES", os.path.join(
+            TOP_DIR, "etc", "gtk-2.0", "gtkrc"))
 
-    os.environ["PANGO_RC_FILE"] = os.path.join(
-        TOP_DIR, "etc", "pango", "pangorc")
-    os.environ["PANGO_SYSCONFDIR"] = os.path.join(TOP_DIR, "etc")
+    set_env("PANGO_RC_FILE", os.path.join(TOP_DIR, "etc", "pango", "pangorc"))
+    set_env("PANGO_SYSCONFDIR", os.path.join(TOP_DIR, "etc"))
 
-    os.environ["GIO_USE_VFS"] = "local"
+    set_env("GIO_USE_VFS", "local")
 
-    os.environ["SDL_AUDIODRIVER"] = "disk"
-    os.environ["SDL_DISKAUDIOFILE"] = "/dev/null"
+    set_env("SDL_AUDIODRIVER", "disk")
+    set_env("SDL_DISKAUDIOFILE", "/dev/null")
 
-    os.environ["XDG_DATA_DIRS"] = os.path.join(TOP_DIR, "share")
-    os.environ["XDG_RUNTIME_DIR"] = os.environ["TMPDIR"]
+    set_env("XDG_DATA_DIRS", os.path.join(TOP_DIR, "share"))
+    set_env("XDG_RUNTIME_DIR", os.environ["TMPDIR"])
 
-    os.environ["PATH"] = "/bin:/sbin:/usr/bin:/usr/sbin:/opt/X11/bin"
-    os.environ["LANG"] = "ja_JP.UTF-8"
+    set_env("PATH", "/bin:/sbin:/usr/bin:/usr/sbin:/opt/X11/bin")
+    set_env("LANG", "ja_JP.UTF-8")
 
 class MainThread(Thread):
     def __init__(self, script, timer):
         Thread.__init__(self)
         self.script = script
         self.timer = timer
-    
+
     def run(self):
         global TERMINATE
         try:
             error = False
             s = ""
             try:
-                s = subprocess.check_output(
-                    [ os.environ["ARGVZERO"],
+                s = subprocess.call(
+                    [ os.getenv("ARGVZERO"),
                       os.path.abspath(os.path.join(
-                          os.environ["RESOURCEPATH"], self.script))
+                          get_env_unicode("RESOURCEPATH"), self.script)
+                      ).encode('utf-8')
                     ] + sys.argv[1:],
                     stderr=subprocess.STDOUT
                 )
+                s = ""
             except:
                 error = True
             if re.sub(r'\s', '', s) != '':
@@ -111,14 +119,14 @@ class ActivateCheck(object):
         if self.timer is not None:
             self.timer.invalidate()
             self.timer = None
-    
+
     def reset_timer(self):
         if self.timer is not None:
             self.timer.invalidate()
         s = objc.selector(self.activecheck, signature='v@:')
         self.timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
             0.2, self, s, None, True)
-    
+
     def activecheck(self):
         workspace = NSWorkspace.sharedWorkspace()
         pid = workspace.activeApplication()['NSApplicationProcessIdentifier']
@@ -136,7 +144,7 @@ def cocoa_main():
     if TERMINATE is None:
         TERMINATE = False
         AppHelper.runConsoleEventLoop(installInterrupt=True)
-            
+
 if __name__ == '__main__':
     check_x11()
     set_environment(sys.argv[0])
