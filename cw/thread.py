@@ -1954,7 +1954,7 @@ class CWPy(_Singleton, threading.Thread):
             areaid = 3
 
         def change_area():
-            self.change_area(areaid)
+            self.change_area(areaid, force_updatebg=True)
             self.is_pcardsselectable = self.ydata and self.ydata.party
 
         if self.ydata.skindirname <> cw.cwpy.setting.skindirname:
@@ -3034,7 +3034,7 @@ class CWPy(_Singleton, threading.Thread):
                           bginhrt=False, ttype=("Default", "Default"),
                           quickdeal=False, specialarea=False, startbattle=False,
                           doanime=True, data=None, nocheckvisible=False,
-                          clear_curtain=False):
+                          clear_curtain=False, force_updatebg=True):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -3055,11 +3055,13 @@ class CWPy(_Singleton, threading.Thread):
 
         # 背景継承を行うかどうかのbool値
         bginhrt |= bool(self.areaid < 0 and self.areaid <> cw.AREA_BREAKUP)
+        bginhrt &= not force_updatebg
         oldareaid = self.areaid
         self.areaid = areaid
         if not self.sdata.change_data(areaid, data=data):
             raise cw.event.EffectBreakError()
         bginhrt |= bool(self.areaid < 0)
+        bginhrt &= not force_updatebg
         if self.sdata.in_f9:
             self.hide_cards(True, quickhide=quickdeal)
         else:
