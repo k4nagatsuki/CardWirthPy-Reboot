@@ -3034,7 +3034,7 @@ class CWPy(_Singleton, threading.Thread):
                           bginhrt=False, ttype=("Default", "Default"),
                           quickdeal=False, specialarea=False, startbattle=False,
                           doanime=True, data=None, nocheckvisible=False,
-                          clear_curtain=False, force_updatebg=True):
+                          clear_curtain=False, force_updatebg=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
