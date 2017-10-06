@@ -1503,6 +1503,8 @@ def create_cardscreenshot(titledic):
 
             def blit_card(headers, x, sy):
                 for header in headers:
+                    if header.negaflag:
+                        header.negaflag = False
                     bmp.blit(header.cardimg.get_cardimg(header), (cw.s(x), sy + cw.s(10 + margin)))
                     x += 80 + margin
 
