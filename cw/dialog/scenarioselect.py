@@ -1783,7 +1783,7 @@ class ScenarioSelect(select.Select):
         self.update_narrowcondition()
 
     def draw(self, update=False):
-        if not self.IsShown():
+        if sys.platform <> "win32" and not self.IsShown():
             self.Show()
             wx.CallAfter(self._draw_impl, update)
         else:
