@@ -73,6 +73,10 @@ class MusicInterface(object):
             self._movie.set_display(self.movie_scr, rect)
 
     def play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0):
+        if not updatepredata:
+            # サウンドフォントやスキンの変更等で鳴らし直す場合
+            subvolume = self.subvolume
+            loopcount = self.loopcount
         self._play(path, updatepredata, restart, inusecard, subvolume, loopcount, fade)
 
     def _play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0):
