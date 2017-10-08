@@ -3136,6 +3136,7 @@ class CWPy(_Singleton, threading.Thread):
         fade = data.getint("Property/MusicPath", "fadein", 0)
 
         music = self.music[channel]
+        self.set_battle()
 
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
@@ -3149,7 +3150,6 @@ class CWPy(_Singleton, threading.Thread):
         # 戦闘音楽を流す
         music.play(path, subvolume=volume, loopcount=loopcount, fade=fade)
 
-        self.set_battle()
         self.change_area(areaid, False, bginhrt=True, ttype=("None", "Default"), startbattle=True)
         cw.animation.animate_sprite(sprite, "hide")
         sprite.remove(cw.cwpy.cardgrp)
