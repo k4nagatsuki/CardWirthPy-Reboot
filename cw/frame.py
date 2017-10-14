@@ -1290,6 +1290,7 @@ class MyApp(wx.App):
         wx.Log.SetLogLevel(wx.LOG_Error)
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
+        self.call_filterevent = False
         skincount = get_skincount()[0]
         exe = u""
         if len(cw.SKIN_CONV_ARGS) > 0 and cw.SKIN_CONV_ARGS[0].lower().endswith(".exe"):
@@ -1325,6 +1326,9 @@ class MyApp(wx.App):
             return -1
 
         if not event:
+            return -1
+
+        if self.call_filterevent:
             return -1
 
         if cw.cwpy.frame.filter_event:

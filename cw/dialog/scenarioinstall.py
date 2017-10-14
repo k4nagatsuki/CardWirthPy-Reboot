@@ -740,7 +740,10 @@ def create_installdesc(headers_seq):
     if 1 < len(headers_seq):
         name = u"%s本のシナリオ" % (len(headers_seq))
     else:
-        name = headers_seq[0].fname
+        name = headers_seq[0].name if headers_seq[0].name else u"(無名のシナリオ)"
+        if headers_seq[0].author:
+            name += u"(%s)" % headers_seq[0].author
+        name = u"「%s」" % name
     if cw.cwpy.setting.delete_sourceafterinstalled:
         desc = u"%sをコピーし、シナリオデータベースに登録します。\n" % (name) + \
                u"インストール完了後のファイルを削除したい場合は、詳細設定の" + \
