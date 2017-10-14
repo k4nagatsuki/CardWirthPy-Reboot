@@ -828,11 +828,16 @@ class Scenariodb(object):
         ignore_dpath = os.path.normcase(os.path.normpath(os.path.abspath(ignore_dpath)))
         ignore_fname = os.path.normcase(ignore_fname)
         seq = []
+        paths = set()
         for t in data:
             dpath = os.path.normcase(os.path.normpath(os.path.abspath(t["dpath"])))
             fname = os.path.normcase(t["fname"])
             if dpath == ignore_dpath and fname == ignore_fname:
                 continue
+            fpath = os.path.join(dpath, fname)
+            if fpath in paths:
+                continue
+                paths.add(fpath)
             header = self.create_header(t, skintype=skintype)
             if header:
                 seq.append(header)
