@@ -577,6 +577,7 @@ class PartyMoneyPanel(YadoMoneyPanel):
     def reset(self, parent, pos, size):
         self.text = self.get_money()
         self.desc = cw.cwpy.msgs["desc_party_money"]
+        self.update_color()
         StatusBarPanel.reset(self, parent, pos, size)
 
     def get_icon(self):
