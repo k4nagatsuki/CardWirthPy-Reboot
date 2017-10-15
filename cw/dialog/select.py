@@ -330,10 +330,11 @@ class Select(wx.Dialog):
         if tworows:
             self.keyword_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_keyword"])
             self.keyword_label.SetFont(font)
+            self.narrow = wx.TextCtrl(self, -1, size=(cw.wins(0), -1), style= wx.TE_PROCESS_ENTER)
         else:
             self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition"])
             self.narrow_label.SetFont(font)
-        self.narrow = wx.TextCtrl(self, -1, size=(cw.wins(0), -1))
+            self.narrow = wx.TextCtrl(self, -1, size=(cw.wins(0), -1))
         self.narrow.SetFont(font)
         self.narrow.SetValue(narrowtext)
         if tworows:
@@ -345,7 +346,11 @@ class Select(wx.Dialog):
         self.narrow_type.SetSelection(narrowtype)
 
         self.narrow.Bind(wx.EVT_TEXT, self.OnNarrowCondition)
+        self.narrow.Bind(wx.EVT_TEXT_ENTER, self.OnFind)
         self.narrow_type.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
+
+    def OnFind(self, event):
+        pass
 
     def OnNarrowCondition(self, event):
         if self._processing:
