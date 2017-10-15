@@ -2074,6 +2074,7 @@ class AudioSettingPanel(wx.Panel):
         self.grid_soundfont.AppendRows(len(soundfonts))
         for row, soundfont in enumerate(soundfonts):
             self.set_soundfont(row, soundfont)
+        self._select_changed_soundfonts()
 
     def set_soundfont(self, row, soundfont):
         sfont, use, volume = soundfont
@@ -2100,6 +2101,7 @@ class AudioSettingPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnRemoveSoundFontBtn, self.btn_rmvsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnUpSoundFontBtn, self.btn_upsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnDownSoundFontBtn, self.btn_downsoundfont)
+        self.grid_soundfont.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnGridRangeSelect)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2148,6 +2150,17 @@ class AudioSettingPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
+    def OnGridRangeSelect(self, event):
+        wx.CallAfter(self._select_changed_soundfonts)
+
+    def _select_changed_soundfonts(self):
+        indexes = self.grid_soundfont.GetSelectedRows()
+        indexes.sort()
+        lcount = self.grid_soundfont.GetNumberRows()
+        self.btn_rmvsoundfont.Enable(bool(indexes))
+        self.btn_upsoundfont.Enable(bool(indexes and 0 < indexes[0]))
+        self.btn_downsoundfont.Enable(bool(indexes and indexes[-1] + 1 < lcount))
+
     def OnAddSoundFontBtn(self, event):
         dlg = wx.FileDialog(self.GetTopLevelParent(), u"MIDIの演奏に使用するサウンドフォント選択", u"Data/SoundFont", "", "*.sf2", wx.FD_OPEN|wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
@@ -2173,11 +2186,13 @@ class AudioSettingPanel(wx.Panel):
                 self.grid_soundfont.AppendRows(1)
                 self.set_soundfont(row, (fpath, True, 100))
                 self.GetTopLevelParent().applied()
+            self._select_changed_soundfonts()
 
     def OnRemoveSoundFontBtn(self, event):
         indexes = self.grid_soundfont.GetSelectedRows()
         for index in reversed(sorted(indexes)):
             self.grid_soundfont.DeleteRows(index)
+        self._select_changed_soundfonts()
         self.GetTopLevelParent().applied()
 
     def OnUpSoundFontBtn(self, event):
@@ -2193,6 +2208,7 @@ class AudioSettingPanel(wx.Panel):
             self.set_soundfont(row-1, soundfont2)
             self.set_soundfont(row, soundfont1)
             self.grid_soundfont.SelectRow(row-1, True)
+        self._select_changed_soundfonts()
         self.GetTopLevelParent().applied()
         self.grid_soundfont.MakeCellVisible(indexes[0]-1, 0)
 
@@ -2209,6 +2225,7 @@ class AudioSettingPanel(wx.Panel):
             self.set_soundfont(row, soundfont2)
             self.set_soundfont(row+1, soundfont1)
             self.grid_soundfont.SelectRow(row+1, True)
+        self._select_changed_soundfonts()
         self.GetTopLevelParent().applied()
         self.grid_soundfont.MakeCellVisible(indexes[-1]+1, 0)
 
@@ -2237,7 +2254,7 @@ class ScenarioSettingPanel(wx.Panel):
 
         self.grid_folderoftype = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.grid_folderoftype.CreateGrid(0, 2)
-        #self.grid_folderoftype.SetSelectionMode(wx.grid.Grid.wxGridSelectRows)
+        self.grid_folderoftype.SetSelectionMode(wx.grid.Grid.SelectRows)
 
         self.celleditor = None
 
@@ -2302,6 +2319,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.tx_editor.SetValue(setting.editor)
         self.tx_filer_dir.SetValue(setting.filer_dir)
         self.tx_filer_file.SetValue(setting.filer_file)
+        self._select_changed_folderoftype()
 
     def init_values(self, setting):
         self.tx_editor.SetValue(setting.editor_init)
@@ -2313,9 +2331,11 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_open_lastscenario.SetValue(setting.open_lastscenario_init)
         self.tx_filer_dir.SetValue(setting.filer_dir_init)
         self.tx_filer_file.SetValue(setting.filer_file_init)
+        self._select_changed_folderoftype()
 
     def OnGirdSelectCell(self, event):
         if self.celleditor:
+            wx.CallAfter(self._select_changed_folderoftype)
             return
         types = set()
         self.Parent.Parent.pane_gene.skin.load_allskins()
@@ -2330,6 +2350,16 @@ class ScenarioSettingPanel(wx.Panel):
         self.celleditor = wx.grid.GridCellChoiceEditor(types, allowOthers=True)
         colattr.SetEditor(self.celleditor)
         self.grid_folderoftype.SetColAttr(0, colattr)
+
+        wx.CallAfter(self._select_changed_folderoftype)
+
+    def _select_changed_folderoftype(self):
+        row = self.grid_folderoftype.GetGridCursorRow()
+        lcount = self.grid_folderoftype.GetNumberRows()
+        self.btn_reffolder.Enable(row <> -1)
+        self.btn_removefolder.Enable(bool(row <> -1 and row < lcount-1))
+        self.btn_upfolder.Enable(bool(row <> -1 and 1 <= row and row < lcount-1))
+        self.btn_downfolder.Enable(bool(row <> -1 and row + 2 < lcount))
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnRefFolderBtn, self.btn_reffolder)
@@ -2417,6 +2447,7 @@ class ScenarioSettingPanel(wx.Panel):
             if not relpath.startswith(".."):
                 dpath = relpath
             self.grid_folderoftype.SetCellValue(row, 1, cw.util.join_paths(dpath))
+            self._select_changed_folderoftype()
             self.GetTopLevelParent().applied()
 
     def OnRemoveFolderBtn(self, event):
@@ -2424,6 +2455,7 @@ class ScenarioSettingPanel(wx.Panel):
         if row == -1 or row + 1 == self.grid_folderoftype.GetNumberRows():
             return
         self.grid_folderoftype.DeleteRows(row)
+        self._select_changed_folderoftype()
         self.GetTopLevelParent().applied()
 
     def OnUpFolderBtn(self, event):
@@ -2435,8 +2467,10 @@ class ScenarioSettingPanel(wx.Panel):
             value2 = self.grid_folderoftype.GetCellValue(row - 1, col)
             self.grid_folderoftype.SetCellValue(row, col, value2)
             self.grid_folderoftype.SetCellValue(row - 1, col, value1)
+            self.grid_folderoftype.SelectRow(row - 1)
             self.GetTopLevelParent().applied()
         self.grid_folderoftype.SetGridCursor(row - 1, self.grid_folderoftype.GetGridCursorCol())
+        self._select_changed_folderoftype()
         self.grid_folderoftype.MakeCellVisible(row - 1, 0)
 
     def OnDownFolderBtn(self, event):
@@ -2448,8 +2482,10 @@ class ScenarioSettingPanel(wx.Panel):
             value2 = self.grid_folderoftype.GetCellValue(row + 1, col)
             self.grid_folderoftype.SetCellValue(row, col, value2)
             self.grid_folderoftype.SetCellValue(row + 1, col, value1)
+            self.grid_folderoftype.SelectRow(row + 1)
             self.GetTopLevelParent().applied()
         self.grid_folderoftype.SetGridCursor(row + 1, self.grid_folderoftype.GetGridCursorCol())
+        self._select_changed_folderoftype()
         self.grid_folderoftype.MakeCellVisible(row + 1, 0)
 
     def OnConstructDBBtn(self, event):
