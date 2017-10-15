@@ -1502,7 +1502,7 @@ class CWPy(_Singleton, threading.Thread):
                 # BUG: シナリオインストールダイアログを開いたあとで
                 #      フィルタイベントの挙動がおかしくなる
                 #self.frame.app.SetCallFilterEvent(True)
-                self.frame.app.call_filterevent = True
+                pass
             self.frame.exec_func(func)
             self.frame.AddPendingEvent(event)
             if sys.platform == "win32":
@@ -1512,7 +1512,6 @@ class CWPy(_Singleton, threading.Thread):
             # BUG: シナリオインストールダイアログを開いたあとで
             #      フィルタイベントの挙動がおかしくなる
             #self.frame.app.SetCallFilterEvent(True)
-            self.frame.app.call_filterevent = True
             self.frame.ProcessEvent(event)
 
     def call_modaldlg(self, name, **kwargs):
@@ -1560,7 +1559,6 @@ class CWPy(_Singleton, threading.Thread):
             # BUG: シナリオインストールダイアログを開いたあとで
             #      フィルタイベントの挙動がおかしくなる
             #self.frame.app.SetCallFilterEvent(False)
-            self.frame.app.call_filterevent = False
             if not self.is_runningevent():
                 self.exec_func(self.clear_selection)
 
