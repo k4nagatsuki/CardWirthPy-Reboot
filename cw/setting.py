@@ -1697,15 +1697,17 @@ class Resource(object):
         return fonts
 
     def create_wxbutton(self, parent, cid, size, name=None, bmp=None , chain=False):
-        if name:
-            button = wx.Button(parent, cid, name, size=size)
-            button.SetMinSize(size)
-            button.SetFont(self.get_wxfont("button"))
-        elif bmp:
+        if bmp:
             button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
+            if name:
+                button.SetToolTipString(name)
+        else:
+            button = wx.Button(parent, cid, name, size=size)
+            button.SetMinSize(size)
+            button.SetFont(self.get_wxfont("button"))
 
         if chain:
             # ボタンを押し続けた時に一定間隔で押下イベントを発生させる
@@ -1738,15 +1740,17 @@ class Resource(object):
         return button
 
     def create_wxbutton_dbg(self, parent, cid, size, name=None, bmp=None):
-        if name:
-            button = wx.Button(parent, cid, name, size=size)
-            button.SetMinSize(size)
-            button.SetFont(self.get_wxfont("button", pointsize=9))
-        elif bmp:
+        if bmp:
             button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
+            if name:
+                button.SetToolTipString(name)
+        else:
+            button = wx.Button(parent, cid, name, size=size)
+            button.SetMinSize(size)
+            button.SetFont(self.get_wxfont("button", pointsize=9))
 
         return button
 

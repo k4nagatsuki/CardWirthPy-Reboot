@@ -87,12 +87,18 @@ class CouponEditDialog(wx.Dialog):
         self.valbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"得点")
         # 全て複製
         self.copybtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"全て複製")
+        # 最上段へ
+        bmp = cw.cwpy.rsrc.buttons["UP_TO_TOP_dbg"]
+        self.up2btn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), bmp=bmp, name=u"最上段へ")
         # 上へ
         bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
-        self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp)
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp, name=u"上へ")
         # 下へ
         bmp = cw.cwpy.rsrc.buttons["DOWN_dbg"]
-        self.downbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_DOWN, (-1, -1), bmp=bmp, name=u"下へ")
+        # 最下段へ
+        bmp = cw.cwpy.rsrc.buttons["DOWN_TO_BOTTOM_dbg"]
+        self.down2btn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), bmp=bmp, name=u"最下段へ")
 
         # 決定
         self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
@@ -114,8 +120,10 @@ class CouponEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
         self.Bind(wx.EVT_BUTTON, self.OnValueBtn, self.valbtn)
         self.Bind(wx.EVT_BUTTON, self.OnCopyBtn, self.copybtn)
+        self.Bind(wx.EVT_BUTTON, self.OnUp2Btn, self.up2btn)
         self.Bind(wx.EVT_BUTTON, self.OnUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnDownBtn, self.downbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnDown2Btn, self.down2btn)
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndLabelEdit, self.values)
 
@@ -136,8 +144,10 @@ class CouponEditDialog(wx.Dialog):
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.Add(self.valbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.Add(self.copybtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.up2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.down2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
         sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
@@ -263,6 +273,9 @@ class CouponEditDialog(wx.Dialog):
             # 全員を選択中
             return
 
+        indexes = self.get_selectedindexes()
+        if not indexes or indexes[0] < 1:
+            return
         index = -1
         while True:
             index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -270,6 +283,7 @@ class CouponEditDialog(wx.Dialog):
                 break
             self._swap(index, index-1)
         self._item_selected()
+        self.values.EnsureVisible(indexes[0]-1)
 
     def OnDownBtn(self, event):
         if self.target.GetSelection() == 0:
@@ -283,6 +297,7 @@ class CouponEditDialog(wx.Dialog):
         for index in indexes:
             self._swap(index, index+1)
         self._item_selected()
+        self.values.EnsureVisible(indexes[-1]+1)
 
     def _swap(self, index1, index2):
         cindex = self.target.GetSelection()
@@ -304,6 +319,28 @@ class CouponEditDialog(wx.Dialog):
         set_item(index1)
         set_item(index2)
         self._processing = False
+
+    def OnUp2Btn(self, event):
+        cindex = self.target.GetSelection()
+        if cindex == 0:
+            # 全員を選択中
+            return
+
+        self._processing = True
+        up_to_top(self.values, self.coupons[cindex - 1], self.get_selectedindexes())
+        self._processing = False
+        self._item_selected()
+
+    def OnDown2Btn(self, event):
+        cindex = self.target.GetSelection()
+        if cindex == 0:
+            # 全員を選択中
+            return
+
+        self._processing = True
+        down_to_bottom(self.values, self.coupons[cindex - 1], self.get_selectedindexes())
+        self._processing = False
+        self._item_selected()
 
     def OnEndLabelEdit(self, event):
         index = event.GetIndex()
@@ -403,6 +440,7 @@ class CouponEditDialog(wx.Dialog):
         return seq
 
     def _item_selected(self):
+        self.Freeze()
         indexes = self.get_selectedindexes()
         focus = wx.Window.FindFocus()
         if not indexes:
@@ -410,11 +448,16 @@ class CouponEditDialog(wx.Dialog):
             self.valbtn.Enable(False)
             self.upbtn.Enable(False)
             self.downbtn.Enable(False)
+            self.up2btn.Enable(False)
+            self.down2btn.Enable(False)
         else:
             self.rmvbtn.Enable(True)
             self.valbtn.Enable(True)
+            lcount = self.values.GetItemCount()
             self.upbtn.Enable(0 < indexes[0])
-            self.downbtn.Enable(indexes[-1] + 1 < self.values.GetItemCount())
+            self.downbtn.Enable(indexes[-1] + 1 < lcount)
+            self.up2btn.Enable(indexes <> range(0, len(indexes)))
+            self.down2btn.Enable(indexes <> range(lcount-len(indexes), lcount))
 
         if self.target.GetSelection() == 0:
             # 全員を選択中
@@ -449,6 +492,7 @@ class CouponEditDialog(wx.Dialog):
 
         if focus and focus.GetParent() == self and not focus.IsEnabled():
             self.values.SetFocus()
+        self.Thaw()
 
     def _set_name(self, index, oldname, newname):
         self.values.SetStringItem(index, 0, newname)
@@ -511,12 +555,18 @@ class ListEditDialog(wx.Dialog):
         self.addbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_ADD, (-1, -1), name=u"追加")
         # 削除
         self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
+        # 最上段へ
+        bmp = cw.cwpy.rsrc.buttons["UP_TO_TOP_dbg"]
+        self.up2btn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), bmp=bmp, name=u"最上段へ")
         # 上へ
         bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
-        self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp)
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp, name=u"上へ")
         # 下へ
         bmp = cw.cwpy.rsrc.buttons["DOWN_dbg"]
-        self.downbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_DOWN, (-1, -1), bmp=bmp, name=u"下へ")
+        # 最下段へ
+        bmp = cw.cwpy.rsrc.buttons["DOWN_TO_BOTTOM_dbg"]
+        self.down2btn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), bmp=bmp, name=u"最下段へ")
 
         # 決定
         self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
@@ -538,8 +588,10 @@ class ListEditDialog(wx.Dialog):
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_BUTTON, self.OnAddBtn, self.addbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnUp2Btn, self.up2btn)
         self.Bind(wx.EVT_BUTTON, self.OnUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnDownBtn, self.downbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnDown2Btn, self.down2btn)
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndLabelEdit, self.values)
 
@@ -551,8 +603,10 @@ class ListEditDialog(wx.Dialog):
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.addbtn, 0, wx.EXPAND)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.up2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.down2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
         sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
@@ -594,6 +648,9 @@ class ListEditDialog(wx.Dialog):
         self._item_selected()
 
     def OnUpBtn(self, event):
+        indexes = self.get_selectedindexes()
+        if not indexes or indexes[0] < 1:
+            return
         index = -1
         while True:
             index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -601,6 +658,7 @@ class ListEditDialog(wx.Dialog):
                 break
             self._swap(index, index-1)
         self._item_selected()
+        self.values.EnsureVisible(indexes[0]-1)
 
     def OnDownBtn(self, event):
         indexes = self.get_selectedindexes()
@@ -611,6 +669,7 @@ class ListEditDialog(wx.Dialog):
         for index in indexes:
             self._swap(index, index+1)
         self._item_selected()
+        self.values.EnsureVisible(indexes[-1]+1)
 
     def _swap(self, index1, index2):
         self._processing = True
@@ -623,6 +682,18 @@ class ListEditDialog(wx.Dialog):
         self.values.SetStringItem(index1, 0, self.list[index1])
         self.values.SetStringItem(index2, 0, self.list[index2])
         self._processing = False
+
+    def OnUp2Btn(self, event):
+        self._processing = True
+        up_to_top(self.values, self.list, self.get_selectedindexes())
+        self._processing = False
+        self._item_selected()
+
+    def OnDown2Btn(self, event):
+        self._processing = True
+        down_to_bottom(self.values, self.list, self.get_selectedindexes())
+        self._processing = False
+        self._item_selected()
 
     def OnEndLabelEdit(self, event):
         index = event.GetIndex()
@@ -652,19 +723,26 @@ class ListEditDialog(wx.Dialog):
         return indexes
 
     def _item_selected(self):
+        self.Freeze()
         focus = wx.Window.FindFocus()
         indexes = self.get_selectedindexes()
         if not indexes:
             self.rmvbtn.Enable(False)
             self.upbtn.Enable(False)
             self.downbtn.Enable(False)
+            self.up2btn.Enable(False)
+            self.down2btn.Enable(False)
         else:
             self.rmvbtn.Enable(True)
+            lcount = self.values.GetItemCount()
             self.upbtn.Enable(0 < indexes[0])
-            self.downbtn.Enable(indexes[-1] + 1 < self.values.GetItemCount())
+            self.downbtn.Enable(indexes[-1] + 1 < lcount)
+            self.up2btn.Enable(indexes <> range(0, len(indexes)))
+            self.down2btn.Enable(indexes <> range(lcount-len(indexes), lcount))
 
         if focus and focus.GetParent() == self and not focus.IsEnabled():
             self.values.SetFocus()
+        self.Thaw()
 
 class GossipEditDialog(ListEditDialog):
     def __init__(self, parent):
@@ -963,10 +1041,10 @@ class FindPanel(wx.Panel):
 
         # up
         bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
-        self.findup = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
+        self.findup = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp, name=u"上を検索")
         # down
         bmp = cw.cwpy.rsrc.buttons["DOWN_dbg"]
-        self.finddown = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
+        self.finddown = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp, name=u"下を検索")
 
         self.findup.Disable()
         self.finddown.Disable()
@@ -1114,12 +1192,18 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         self.updatebtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"名前の更新")
         # 削除
         self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
+        # 最上段へ
+        bmp = cw.cwpy.rsrc.buttons["UP_TO_TOP_dbg"]
+        self.up2btn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), bmp=bmp, name=u"最上段へ")
         # 上へ
         bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
-        self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp)
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp, name=u"上へ")
         # 下へ
         bmp = cw.cwpy.rsrc.buttons["DOWN_dbg"]
-        self.downbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_DOWN, (-1, -1), bmp=bmp, name=u"下へ")
+        # 最下段へ
+        bmp = cw.cwpy.rsrc.buttons["DOWN_TO_BOTTOM_dbg"]
+        self.down2btn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), bmp=bmp, name=u"最下段へ")
 
         # 決定
         self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
@@ -1140,8 +1224,10 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnUpdateBtn, self.updatebtn)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnUp2Btn, self.up2btn)
         self.Bind(wx.EVT_BUTTON, self.OnUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnDownBtn, self.downbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnDown2Btn, self.down2btn)
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
@@ -1153,8 +1239,10 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.updatebtn, 0, wx.EXPAND)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.up2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.down2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
         sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
@@ -1198,6 +1286,9 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         self._item_selected()
 
     def OnUpBtn(self, event):
+        indexes = self.get_selectedindexes()
+        if not indexes or indexes[0] < 1:
+            return
         index = -1
         while True:
             index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -1205,6 +1296,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
                 break
             self._swap(index, index-1)
         self._item_selected()
+        self.values.EnsureVisible(indexes[0]-1)
 
     def OnDownBtn(self, event):
         indexes = self.get_selectedindexes()
@@ -1214,6 +1306,19 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         indexes.reverse()
         for index in indexes:
             self._swap(index, index+1)
+        self._item_selected()
+        self.values.EnsureVisible(indexes[-1]+1)
+
+    def OnUp2Btn(self, event):
+        self._processing = True
+        up_to_top(self.values, self.list, self.get_selectedindexes())
+        self._processing = False
+        self._item_selected()
+
+    def OnDown2Btn(self, event):
+        self._processing = True
+        down_to_bottom(self.values, self.list, self.get_selectedindexes())
+        self._processing = False
         self._item_selected()
 
     def _swap(self, index1, index2):
@@ -1251,6 +1356,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         return indexes
 
     def _item_selected(self):
+        self.Freeze()
         self.updatebtn.Enable(bool(self.list))
 
         indexes = self.get_selectedindexes()
@@ -1258,10 +1364,107 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
             self.rmvbtn.Enable(False)
             self.upbtn.Enable(False)
             self.downbtn.Enable(False)
+            self.up2btn.Enable(False)
+            self.down2btn.Enable(False)
         else:
             self.rmvbtn.Enable(True)
+            lcount = self.values.GetItemCount()
             self.upbtn.Enable(0 < indexes[0])
-            self.downbtn.Enable(indexes[-1] + 1 < self.values.GetItemCount())
+            self.downbtn.Enable(indexes[-1] + 1 < lcount)
+            self.up2btn.Enable(indexes <> range(0, len(indexes)))
+            self.down2btn.Enable(indexes <> range(lcount-len(indexes), lcount))
+        self.Thaw()
+
+
+def _get_iteminfos(values):
+    names = []
+    images = []
+    for index in xrange(values.GetItemCount()):
+        item = values.GetItem(index)
+        ss = []
+        for colindex in xrange(values.GetColumnCount()):
+            ss.append(values.GetItem(index, colindex).GetText())
+        names.append(ss)
+        images.append(item.GetImage())
+    return names, images
+
+
+def up_to_top(values, seq, indexes):
+    """
+    indexesが指すseq内のアイテムを最上段へ移動し、
+    移動結果によってvalues(wx.ListCtrl)を更新する。
+    """
+    if not indexes:
+        return
+
+    names, images = _get_iteminfos(values)
+
+    seq2 = []
+    names2 = []
+    images2 = []
+    for index in reversed(indexes):
+        seq2.append(seq.pop(index))
+        names2.append(names.pop(index))
+        images2.append(images.pop(index))
+    seq3 = list(seq)
+
+    del seq[:]
+    seq.extend(reversed(seq2))
+    seq.extend(seq3)
+    names2.reverse()
+    names2.extend(names)
+    images2.reverse()
+    images2.extend(images)
+
+    for index, t in enumerate(seq):
+        for colindex in xrange(values.GetColumnCount()):
+            values.SetStringItem(index, colindex, names2[index][colindex])
+        values.SetItemImage(index, images2[index])
+
+        if index < len(seq2):
+            values.SetItemState(index, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+        else:
+            values.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
+
+    values.EnsureVisible(0)
+
+
+def down_to_bottom(values, seq, indexes):
+    """
+    indexesが指すseq内のアイテムを最下段へ移動し、
+    移動結果によってvalues(wx.ListCtrl)を更新する。
+    """
+    if not indexes:
+        return
+
+    names, images = _get_iteminfos(values)
+
+    seq2 = []
+    names2 = []
+    images2 = []
+    for index in reversed(indexes):
+        seq2.append(seq.pop(index))
+        names2.append(names.pop(index))
+        images2.append(images.pop(index))
+    seq3 = list(seq)
+
+    del seq[:]
+    seq.extend(seq3)
+    seq.extend(reversed(seq2))
+    names.extend(reversed(names2))
+    images.extend(reversed(images2))
+
+    for index, t in enumerate(seq):
+        for colindex in xrange(values.GetColumnCount()):
+            values.SetStringItem(index, colindex, names[index][colindex])
+        values.SetItemImage(index, images[index])
+
+        if len(seq3) <= index:
+            values.SetItemState(index, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+        else:
+            values.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
+
+    values.EnsureVisible(values.GetItemCount() - 1)
 
 
 def main():
