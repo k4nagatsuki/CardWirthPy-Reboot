@@ -558,6 +558,8 @@ class ScenarioSelect(select.Select):
         value = self.narrow.GetValue()
         if not value:
             cw.cwpy.play_sound("error")
+            self.OnNextButton(event)
+            #ENTERから呼ばれた場合に操作性が悪化するのでFocusを飛ばす
             return
         narrow = self.narrow_type.GetSelection()
         ftypes = set()
@@ -584,12 +586,14 @@ class ScenarioSelect(select.Select):
             ftypes.add(cw.scenariodb.DATA_FNAME)
         else:
             assert False
+        self._no_treechangedsound = True
         headers = self.db.find_headers(ftypes, value, skintype=cw.cwpy.setting.skintype)
         cw.cwpy.play_sound("harvest")
         self._set_findresult(headers, False)
 
         if cw.cwpy.setting.show_paperandtree or not (self.tree and self.tree.IsShown()):
             self.draw(True)
+        self._no_treechangedsound = False
 
     def _set_findresult(self, headers, selfirstheader):
         list = self.scetable[self._get_linktarget(self.scedir)]
