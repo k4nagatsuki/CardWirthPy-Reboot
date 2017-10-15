@@ -1115,10 +1115,10 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         # 削除
         self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
         # 上へ
-        bmp = cw.cwpy.rsrc.buttons["UP"]
+        bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
         self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp)
         # 下へ
-        bmp = cw.cwpy.rsrc.buttons["DOWN"]
+        bmp = cw.cwpy.rsrc.buttons["DOWN_dbg"]
         self.downbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
 
         # 決定
