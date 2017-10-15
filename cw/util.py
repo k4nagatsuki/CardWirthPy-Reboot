@@ -519,8 +519,8 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None, fullscr
 
     # BASS Audioを初期化(使用できない事もある)
     if soundfonts is None:
-        soundfonts = [(cw.DEFAULT_SOUNDFONT, True)]
-    soundfonts = [sfont[0] for sfont in soundfonts if sfont[1]]
+        soundfonts = [(cw.DEFAULT_SOUNDFONT, True, 100)]
+    soundfonts = [(sfont[0], sfont[2]/100.0) for sfont in soundfonts if sfont[1]]
     if not cw.bassplayer.init_bass(soundfonts):
         # BASS Audioが使用できない場合に限りpygame.mixerを初期化
         # (BASSとpygame.mixerを同時に初期化した場合、

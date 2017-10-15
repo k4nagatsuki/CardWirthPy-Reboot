@@ -263,6 +263,8 @@ def init_bass(soundfonts):
     _bass.BASS_ChannelSetSync.restype = c_HSYNC
     _bassmidi.BASS_MIDI_FontInit.argtypes = [ c_char_p, c_DWORD ]
     _bassmidi.BASS_MIDI_FontInit.restype = c_HSOUNDFONT
+    _bassmidi.BASS_MIDI_FontSetVolume.argtypes = [ c_HSOUNDFONT, c_float ]
+    _bassmidi.BASS_MIDI_FontSetVolume.restype = c_BOOL
     _bassmidi.BASS_MIDI_FontFree.argtypes = [ c_HSOUNDFONT ]
     _bassmidi.BASS_MIDI_FontFree.restype = c_BOOL
     _bassmidi.BASS_MIDI_StreamCreateFile.argtypes = [ c_BOOL, c_char_p, c_QWORD, c_QWORD, c_DWORD, c_DWORD ]
@@ -282,12 +284,15 @@ def init_bass(soundfonts):
     _sfonts = ""
     encoding = sys.getfilesystemencoding()
     if _bassmidi:
-        for soundfont in soundfonts:
+        for soundfont, volume in soundfonts:
             sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
             if not sfont:
                 print "BASS_MIDI_FontInit() failure: %s" % (soundfont)
                 return False
-            _sfonts += struct.pack("@iii", sfont, -1, 0)
+            if not _bassmidi.BASS_MIDI_FontSetVolume(sfont, volume):
+                print "BASS_MIDI_FontSetVolume() failure: %s, %s" % (soundfont, volume)
+                return False
+            _sfonts += struct.pack("@Iii", sfont, -1, 0)
 
         if not _sfonts:
             dispose_bass()
@@ -305,12 +310,15 @@ def change_soundfonts(soundfonts):
 
         _sfonts = ""
         encoding = sys.getfilesystemencoding()
-        for soundfont in soundfonts:
+        for soundfont, volume in soundfonts:
             sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
             if not sfont:
                 print "BASS_MIDI_FontInit() failure: %s" % (soundfont)
                 return False
-            _sfonts += struct.pack("@iii", sfont, -1, 0)
+            if not _bassmidi.BASS_MIDI_FontSetVolume(sfont, volume):
+                print "BASS_MIDI_FontSetVolume() failure: %s, %s" % (soundfont, volume)
+                return False
+            _sfonts += struct.pack("@Iii", sfont, -1, 0)
 
         if not _sfonts:
             return False
@@ -656,7 +664,7 @@ def set_soundvolume(volume, fromscenario=False, channel=0, fade=0):
 def main():
     import time
     print "Test BASS Audio. Sound Font: %s, File: %s, %s" % (sys.argv[1], sys.argv[2], sys.argv[3])
-    init_bass([sys.argv[1]])
+    init_bass([sys.argv[1], 1.0])
     play_bgm(sys.argv[2])
     time.sleep(200)
     play_sound(sys.argv[3])

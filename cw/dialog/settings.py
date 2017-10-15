@@ -557,13 +557,12 @@ class SettingsPanel(wx.Panel):
                 cw.cwpy.lastsound_system.set_mastervolume(False, volume)
                 cw.cwpy.lastsound_system.set_volume(False)
         soundfonts = []
-        for index in xrange(self.pane_sound.list_soundfont.GetItemCount()):
-            soundfont = self.pane_sound.list_soundfont.GetItemText(index)
-            use = self.pane_sound.list_soundfont.IsChecked(index)
-            soundfonts.append((soundfont, use))
+        for row in xrange(self.pane_sound.grid_soundfont.GetNumberRows()):
+            soundfont = self.pane_sound.get_soundfont(row)
+            soundfonts.append(soundfont)
         if setting.soundfonts <> soundfonts:
-            sfonts1 = [sfont[0] for sfont in soundfonts if sfont[1]]
-            sfonts2 = [sfont[0] for sfont in setting.soundfonts if sfont[1]]
+            sfonts1 = [(sfont[0], sfont[2]/100.0) for sfont in soundfonts if sfont[1]]
+            sfonts2 = [(sfont[0], sfont[2]/100.0) for sfont in setting.soundfonts if sfont[1]]
             setting.soundfonts = soundfonts
             if update and sfonts1 <> sfonts2:
                 def func():
@@ -2029,9 +2028,20 @@ class AudioSettingPanel(wx.Panel):
         self.btn_rmvsoundfont = wx.Button(self, -1, u"削除")
         self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(cw.ppis(25), -1))
         self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(cw.ppis(25), -1))
-        self.list_soundfont = cw.util.CheckableListCtrl(self, -1, size=(_settings_width(), -1),
-                                                        style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL,
-                                                        system=True)
+
+        self.grid_soundfont = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
+        self.grid_soundfont.SetDoubleBuffered(True)
+        self.grid_soundfont.CreateGrid(0, 3)
+        self.grid_soundfont.DisableDragRowSize()
+        self.grid_soundfont.SetSelectionMode(wx.grid.Grid.SelectRows)
+        self.grid_soundfont.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
+        self.grid_soundfont.SetRowLabelSize(cw.ppis(0))
+        self.grid_soundfont.SetColLabelValue(0, u"使用")
+        self.grid_soundfont.SetColSize(0, cw.ppis(40))
+        self.grid_soundfont.SetColLabelValue(1, u"ファイル")
+        self.grid_soundfont.SetColSize(1, cw.ppis(210))
+        self.grid_soundfont.SetColLabelValue(2, u"音量(%)")
+        self.grid_soundfont.SetColSize(2, cw.ppis(50))
 
         self._do_layout()
         self._bind()
@@ -2047,11 +2057,7 @@ class AudioSettingPanel(wx.Panel):
         self.sl_midi.SetValue(n)
         n = int(setting.vol_sound * 100)
         self.sl_sound.SetValue(n)
-        self.list_soundfont.DeleteAllItems()
-        for index, soundfont in enumerate(setting.soundfonts):
-            sfont, use = soundfont
-            self.list_soundfont.InsertStringItem(index, sfont)
-            self.list_soundfont.CheckItem(index, use)
+        self._init_soundfont(setting.soundfonts)
 
     def init_values(self, setting):
         self.cb_playbgm.SetValue(setting.play_bgm_init)
@@ -2060,22 +2066,40 @@ class AudioSettingPanel(wx.Panel):
         self.sl_music.SetValue(int(setting.vol_bgm_init * 100))
         self.sl_midi.SetValue(int(setting.vol_midi_init * 100))
         self.sl_sound.SetValue(int(setting.vol_sound_init * 100))
-        self.list_soundfont.DeleteAllItems()
-        for index, soundfont in enumerate(setting.soundfonts_init):
-            sfont, use = soundfont
-            self.list_soundfont.InsertStringItem(index, sfont)
-            self.list_soundfont.CheckItem(index, use)
+        self._init_soundfont(setting.soundfonts_init)
+
+    def _init_soundfont(self, soundfonts):
+        if 0 < self.grid_soundfont.GetNumberRows():
+            self.grid_soundfont.DeleteRows(0, self.grid_soundfont.GetNumberRows())
+        self.grid_soundfont.AppendRows(len(soundfonts))
+        for row, soundfont in enumerate(soundfonts):
+            self.set_soundfont(row, soundfont)
+
+    def set_soundfont(self, row, soundfont):
+        sfont, use, volume = soundfont
+        self.grid_soundfont.SetCellValue(row, 0, u"1" if use else u"")
+        self.grid_soundfont.SetCellValue(row, 1, sfont)
+        self.grid_soundfont.SetCellValue(row, 2, str(volume))
+        self.grid_soundfont.SetCellEditor(row, 0, wx.grid.GridCellBoolEditor())
+        self.grid_soundfont.SetCellRenderer(row, 0, wx.grid.GridCellBoolRenderer())
+        self.grid_soundfont.SetCellEditor(row, 2, wx.grid.GridCellNumberEditor(0, 100))
+        self.grid_soundfont.SetCellRenderer(row, 2, wx.grid.GridCellNumberRenderer())
+        self.grid_soundfont.SetCellAlignment(row, 0, wx.ALIGN_CENTER, 0)
+        self.grid_soundfont.SetCellAlignment(row, 1, wx.ALIGN_LEFT, 0)
+        self.grid_soundfont.SetCellAlignment(row, 2, wx.ALIGN_CENTER, 0)
+        self.grid_soundfont.SetReadOnly(row, 1, True)
+
+    def get_soundfont(self, row):
+        sfont = self.grid_soundfont.GetCellValue(row, 1)
+        use = self.grid_soundfont.GetCellValue(row, 0) <> u""
+        volume = int(self.grid_soundfont.GetCellValue(row, 2))
+        return (sfont, use, volume)
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnAddSoundFontBtn, self.btn_addsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveSoundFontBtn, self.btn_rmvsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnUpSoundFontBtn, self.btn_upsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnDownSoundFontBtn, self.btn_downsoundfont)
-        self.list_soundfont.OnCheckItem = self.OnGridCellChanged
-
-    def OnGridCellChanged(self, index, flag):
-        self.list_soundfont.DefaultOnCheckItem(index, flag)
-        self.GetTopLevelParent().applied()
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2106,7 +2130,7 @@ class AudioSettingPanel(wx.Panel):
         bsizer_midi.Add(self.sl_midi, 0, wx.EXPAND, cw.ppis(0))
         bsizer_sound.Add(self.sl_sound, 0, wx.EXPAND, cw.ppis(0))
         bsizer_soundfont.Add(sizer_soundfontbtns, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
-        bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, cw.ppis(3))
+        bsizer_soundfont.Add(self.grid_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, cw.ppis(3))
 
         sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
         sizer_left.Add(bsizer_master, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
@@ -2129,8 +2153,8 @@ class AudioSettingPanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             exists = set()
             index = -1
-            for index in xrange(self.list_soundfont.GetItemCount()):
-                soundfont = self.list_soundfont.GetItemText(index)
+            for index in xrange(self.grid_soundfont.GetNumberRows()):
+                soundfont = self.grid_soundfont.GetCellValue(index, 1)
                 exists.add(soundfont.lower())
 
             for fname in dlg.GetFilenames():
@@ -2144,54 +2168,49 @@ class AudioSettingPanel(wx.Panel):
                 fpath = cw.util.join_paths(fpath)
                 if fpath.lower() in exists:
                     continue
-                index = self.list_soundfont.GetItemCount()
-                self.list_soundfont.InsertStringItem(index, fpath)
-                self.list_soundfont.CheckItem(index, True)
+
+                row = self.grid_soundfont.GetNumberRows()
+                self.grid_soundfont.AppendRows(1)
+                self.set_soundfont(row, (fpath, True, 100))
                 self.GetTopLevelParent().applied()
 
     def OnRemoveSoundFontBtn(self, event):
-        while True:
-            index = self.list_soundfont.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-            if index < 0:
-                break
-            self.list_soundfont.DeleteItem(index)
-            self.GetTopLevelParent().applied()
+        indexes = self.grid_soundfont.GetSelectedRows()
+        for index in reversed(sorted(indexes)):
+            self.grid_soundfont.DeleteRows(index)
+        self.GetTopLevelParent().applied()
 
     def OnUpSoundFontBtn(self, event):
-        index = -1
-        while True:
-            index = self.list_soundfont.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-            if index <= 0:
-                break
-            item = self.list_soundfont.GetItemText(index)
-            use = self.list_soundfont.IsChecked(index)
-            self.list_soundfont.DeleteItem(index)
-            self.list_soundfont.InsertStringItem(index - 1, item)
-            self.list_soundfont.CheckItem(index - 1, use)
-            self.list_soundfont.Select(index - 1)
-            self.GetTopLevelParent().applied()
+        indexes = self.grid_soundfont.GetSelectedRows()
+        indexes.sort()
+        if not indexes or indexes[0] < 1:
+            return
+        sels = []
+        self.grid_soundfont.ClearSelection()
+        for row in indexes:
+            soundfont1 = self.get_soundfont(row-1)
+            soundfont2 = self.get_soundfont(row)
+            self.set_soundfont(row-1, soundfont2)
+            self.set_soundfont(row, soundfont1)
+            self.grid_soundfont.SelectRow(row-1, True)
+        self.GetTopLevelParent().applied()
+        self.grid_soundfont.MakeCellVisible(indexes[0]-1, 0)
 
     def OnDownSoundFontBtn(self, event):
-        indexes = []
-        index = -1
-        while True:
-            index = self.list_soundfont.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-            if index < 0:
-                break
-            indexes.append(index)
-
-        if not indexes or self.list_soundfont.GetItemCount() <= indexes[-1] + 1:
+        indexes = self.grid_soundfont.GetSelectedRows()
+        indexes.sort()
+        if not indexes or self.grid_soundfont.GetNumberRows() <= indexes[-1] + 1:
             return
-
-        indexes.reverse()
-        for index in indexes:
-            item = self.list_soundfont.GetItemText(index)
-            use = self.list_soundfont.IsChecked(index)
-            self.list_soundfont.DeleteItem(index)
-            self.list_soundfont.InsertStringItem(index + 1, item)
-            self.list_soundfont.CheckItem(index + 1, use)
-            self.list_soundfont.Select(index + 1)
-            self.GetTopLevelParent().applied()
+        sels = []
+        self.grid_soundfont.ClearSelection()
+        for row in reversed(indexes):
+            soundfont1 = self.get_soundfont(row)
+            soundfont2 = self.get_soundfont(row+1)
+            self.set_soundfont(row, soundfont2)
+            self.set_soundfont(row+1, soundfont1)
+            self.grid_soundfont.SelectRow(row+1, True)
+        self.GetTopLevelParent().applied()
+        self.grid_soundfont.MakeCellVisible(indexes[-1]+1, 0)
 
 class ScenarioSettingPanel(wx.Panel):
     def __init__(self, parent):
@@ -2216,7 +2235,7 @@ class ScenarioSettingPanel(wx.Panel):
 
         self.btn_constructdb = wx.Button(self, -1, u"データベース構築...", size=(-1, -1))
 
-        self.grid_folderoftype = wx.grid.Grid(self, -1, style=wx.BORDER)
+        self.grid_folderoftype = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.grid_folderoftype.CreateGrid(0, 2)
         #self.grid_folderoftype.SetSelectionMode(wx.grid.Grid.wxGridSelectRows)
 
@@ -2418,6 +2437,7 @@ class ScenarioSettingPanel(wx.Panel):
             self.grid_folderoftype.SetCellValue(row - 1, col, value1)
             self.GetTopLevelParent().applied()
         self.grid_folderoftype.SetGridCursor(row - 1, self.grid_folderoftype.GetGridCursorCol())
+        self.grid_folderoftype.MakeCellVisible(row - 1, 0)
 
     def OnDownFolderBtn(self, event):
         row = self.grid_folderoftype.GetGridCursorRow()
@@ -2430,6 +2450,7 @@ class ScenarioSettingPanel(wx.Panel):
             self.grid_folderoftype.SetCellValue(row + 1, col, value1)
             self.GetTopLevelParent().applied()
         self.grid_folderoftype.SetGridCursor(row + 1, self.grid_folderoftype.GetGridCursorCol())
+        self.grid_folderoftype.MakeCellVisible(row + 1, 0)
 
     def OnConstructDBBtn(self, event):
         d = {}
@@ -2957,7 +2978,7 @@ class FontSettingPanel(wx.Panel):
         self.type.SetDoubleBuffered(True)
         self.choicetypes = create_grid(self.type, self.types, self._types, 5, cw.ppis(120))
 
-        self.type.SetColLabelValue(1, u"サイズ")
+        self.type.SetColLabelValue(1, u"サイズ\n(ピクセル)")
         self.type.SetColSize(1, cw.ppis(80))
         self.type.SetColLabelValue(2, u"太字\n(通常)")
         self.type.SetColSize(2, cw.ppis(70))
@@ -3025,7 +3046,7 @@ class FontSettingPanel(wx.Panel):
 
         create_grid(self.type, self.types)
 
-        self.type.SetColLabelValue(1, u"サイズ")
+        self.type.SetColLabelValue(1, u"サイズ\n(ピクセル)")
         self.type.SetColSize(1, cw.ppis(80))
         self.type.SetColLabelValue(2, u"太字\n(通常)")
         self.type.SetColSize(2, cw.ppis(70))
