@@ -2146,7 +2146,7 @@ class CWPy(_Singleton, threading.Thread):
         if force:
             self._forcegameover = gameover
 
-    def f9(self, load_failure=False):
+    def f9(self, load_failure=False, loadyado=False):
         """cw.data.ScenarioDataのf9()から呼び出され、
         緊急避難処理の続きを行う。
         """
@@ -2158,13 +2158,13 @@ class CWPy(_Singleton, threading.Thread):
         self.clean_specials()
         def func():
             if cw.cwpy.is_runningevent():
-                self.exec_func(self._f9impl)
+                self.exec_func(self._f9impl, False, loadyado)
                 raise cw.event.EffectBreakError()
             else:
-                self._f9impl()
+                self._f9impl(False, loadyado)
         self.exec_func(func)
 
-    def _f9impl(self, startotherscenario=False):
+    def _f9impl(self, startotherscenario=False, loadyado=False):
         if self.sdata.in_endprocess:
             return
 
@@ -2324,6 +2324,12 @@ class CWPy(_Singleton, threading.Thread):
         else:
             elog = None
 
+        if loadyado and not self.is_showparty:
+            # シナリオ読込失敗で宿のロードと同時に帰還する場合に限り
+            # パーティ出現アニメーションを行う
+            status = "hidden"
+        else:
+            status = "normal"
         for idx, data in enumerate(self.ydata.party.members):
             if idx < len(pcards):
                 pcard = pcards[idx]
@@ -2331,7 +2337,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.pcards.remove(pcard)
 
             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
-            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal", index=idx)
+            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status=status, index=idx)
 
             # カード画像が変更されているPCは戻す
             if not elog is None:
@@ -2383,7 +2389,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.ydata.party._loading = False
 
-        if not self.is_showparty:
+        if not self.is_showparty and not loadyado:
             self._show_party()
 
         for music in self.music:
@@ -2567,7 +2573,7 @@ class CWPy(_Singleton, threading.Thread):
 
                 if self.get_yesnoresult() == wx.ID_OK:
                     self.exec_func(self.sdata.set_log)
-                    self.exec_func(self.f9, True)
+                    self.exec_func(self.f9, True, True)
                 else:
                     self.exec_func(self.ydata.load_party, None)
                     self.exec_func(self.set_yado)
@@ -2797,9 +2803,10 @@ class CWPy(_Singleton, threading.Thread):
         self._show_party()
 
     def _show_party(self):
-        self.is_showparty = True
-        self.input(True)
-        self.event.refresh_showpartytools()
+        if self.ydata and self.ydata.party and not self.ydata.party.is_loading():
+            self.is_showparty = True
+            self.input(True)
+            self.event.refresh_showpartytools()
 
     def hide_party(self):
         """PlayerCardを非表示にする。"""
