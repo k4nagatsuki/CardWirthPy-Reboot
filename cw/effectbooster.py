@@ -934,7 +934,7 @@ class JpdcImage(cw.image.Image):
 
         x, y, w, h = cw.s((x_noscale, y_noscale, w_noscale, h_noscale))
         rect = pygame.Rect(x, y, w, h)
-        self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
+        self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert_alpha()
         copymode = config.get_int("jpdc:init", "copymode", 0)
 
         # 互換動作: 1.50では`copymode=1`指定は`copymode=2`指定のように動く
@@ -960,7 +960,7 @@ class JpdcImage(cw.image.Image):
         else:
             # 画面外
             image = self.image
-            self.image = pygame.Surface(rect.size).convert()
+            self.image = pygame.Surface(rect.size).convert_alpha()
             self.image.fill((255, 255, 255))
             if rect2.colliderect(rect):
                 self.image.blit(image.subsurface(rect2.clip(rect)), cw.s((0, 0)))
