@@ -924,9 +924,17 @@ class JpdcImage(cw.image.Image):
             doanime = AnimationCounter()
         config = EffectBoosterConfig(path, "jpdc:init")
         x_noscale, y_noscale, w_noscale, h_noscale = config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420))
+
+        x_noscale = max(0, x_noscale)
+        y_noscale = max(0, y_noscale)
+        if w_noscale <= 0:
+            w_noscale = cw.SIZE_AREA[0]
+        if h_noscale <= 0:
+            h_noscale = cw.SIZE_AREA[1]
+
         x, y, w, h = cw.s((x_noscale, y_noscale, w_noscale, h_noscale))
         rect = pygame.Rect(x, y, w, h)
-        self.image = pygame.Surface(cw.s(cw.SIZE_AREA))
+        self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         copymode = config.get_int("jpdc:init", "copymode", 0)
 
         # 互換動作: 1.50では`copymode=1`指定は`copymode=2`指定のように動く
@@ -946,7 +954,16 @@ class JpdcImage(cw.image.Image):
                     self.image.blit(sprite.image, sprite.rect.topleft)
             cw.cwpy.background.reload_jpdcimage = False
 
-        self.image = self.image.subsurface(rect)
+        rect2 = self.image.get_rect()
+        if rect2.contains(rect):
+            self.image = self.image.subsurface(rect)
+        else:
+            # 画面外
+            image = self.image
+            self.image = pygame.Surface(rect.size).convert()
+            self.image.fill((255, 255, 255))
+            if rect2.colliderect(rect):
+                self.image.blit(image.subsurface(rect2.clip(rect)), cw.s((0, 0)))
 
         if mask:
             self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)

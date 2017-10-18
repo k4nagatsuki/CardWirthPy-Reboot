@@ -209,6 +209,7 @@ class BackGround(base.CWPySprite):
             if not cw.cwpy.sdata.flags.get(flag, True):
                 return None, False, False
         anime = False
+        cachable = True
 
         try:
             if os.path.isfile(path):
@@ -235,6 +236,7 @@ class BackGround(base.CWPySprite):
             elif ext == ".jpy1":
                 jpy1 = cw.effectbooster.JpyImage(path, mask, doanime=doanime)
                 anime = jpy1.is_animated
+                cachable = jpy1.is_cacheable
                 image = jpy1.get_image()
             else:
                 image = cw.util.load_image(path, mask, isback=True, can_loaded_scaledimage=can_loaded_scaledimage)
@@ -264,7 +266,7 @@ class BackGround(base.CWPySprite):
             else:
                 image = pygame.transform.scale(image, size)
 
-        if not anime and cw.cwpy.is_playingscenario():
+        if not anime and cachable and cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.sweep_resourcecache(cw.util.calc_imagesize(image))
             cw.cwpy.sdata.resource_cache[(path, mtime, size, mask, smoothing)] = image
 
