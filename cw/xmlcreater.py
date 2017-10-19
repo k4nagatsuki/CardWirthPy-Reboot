@@ -224,6 +224,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
                                                                           "volume": str(volume)})
             e.append(e_soundfont)
         element.append(e)
+    # MIDI32bit隠しオプション
+    if setting.bassmidi_sample32bit <> setting.bassmidi_sample32bit_init:
+        e = cw.data.make_element("Bassmidi32bit", str(setting.bassmidi_sample32bit))
+        element.append(e)
     # メッセージスピード(数字が小さいほど速い)(0～100)
     if setting.messagespeed <> setting.messagespeed_init:
         e = cw.data.make_element("MessageSpeed", str(setting.messagespeed))

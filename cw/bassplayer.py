@@ -341,6 +341,8 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     flag = BASS_MUSIC_STOPBACK|BASS_MUSIC_POSRESET|BASS_MUSIC_PRESCAN
     if tempo <> 0 or pitch <> 0:
         flag |= BASS_STREAM_DECODE
+    if cw.cwpy.setting.bassmidi_sample32bit:
+        flag |= BASS_SAMPLE_FLOAT
 
     _BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ismidi = False
