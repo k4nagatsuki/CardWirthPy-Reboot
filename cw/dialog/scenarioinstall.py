@@ -529,6 +529,9 @@ def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
                             os.path.normcase(os.path.normpath(os.path.abspath(dst))):
                         for rmpath in rmpaths:
                             cw.util.remove(rmpath, trashbox=True)
+                        dstdir = os.path.dirname(dst)
+                        if not os.path.isdir(dstdir):
+                            os.makedirs(dstdir)
                         if cw.cwpy.setting.delete_sourceafterinstalled:
                             try:
                                 shutil.move(fpath, dst)
