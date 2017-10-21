@@ -579,6 +579,10 @@ def find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale):
     例えば"file.bmp"に対する"file.x2.bmp"を探す。
     """
     scale = 1
+
+    if cw.binary.image.path_is_code(path):
+        return path, scale
+
     path = cw.util.join_paths(path)
     if not noscale and (can_loaded_scaledimage or\
                         path.startswith(cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile") + u"/") or\
