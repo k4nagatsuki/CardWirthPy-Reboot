@@ -2107,6 +2107,7 @@ class CWPy(_Singleton, threading.Thread):
         cw.cwpy.sdata.in_endprocess = True
 
         cw.cwpy.advlog.gameover()
+        self.hide_party()
         self.set_status("GameOver")
         del self.pre_dialogs[:]
         del self.pre_areaids[:]
@@ -2116,7 +2117,6 @@ class CWPy(_Singleton, threading.Thread):
         self.card_takenouttemporarily = None
         self.clear_inputevents()
         pygame.event.clear()
-        self.hide_party()
         if self._need_disposition:
             self.disposition_pcards()
         self.ydata.party.lost()
