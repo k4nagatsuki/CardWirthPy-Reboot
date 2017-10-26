@@ -92,7 +92,7 @@ class Area(base.CWBinaryBase):
                 bgimgs = e
             elif e.tag == "PlayerCardEvents":
                 if len(e):
-                    f.check_wsnversion("2")
+                    f.check_wsnversion("2", u"プレイヤーカードイベント")
             elif e.tag == "MenuCards":
                 mcards = e
                 spreadtype = base.CWBinaryBase.unconv_spreadtype(e.get("spreadtype"))
@@ -191,14 +191,14 @@ class MenuCard(base.CWBinaryBase):
                         imgpath = base.CWBinaryBase.materialpath(prop.text)
                     elif prop.tag == "ImagePaths":
                         if 1 < len(prop):
-                            f.check_wsnversion("1")
+                            f.check_wsnversion("1", u"複合イメージ")
                         else:
                             base.CWBinaryBase.check_imgpath(f, prop.find("ImagePath"), "TopLeft")
                             imgpath2 = prop.gettext("ImagePath", "")
                             if imgpath2:
                                 imgpath = base.CWBinaryBase.materialpath(imgpath2)
                     elif prop.tag == "PCNumber":
-                        f.check_version(1.50)
+                        f.check_version(1.50, u"メニューカードへのプレイヤーキャラクター表示")
                         imgpath = prop.text
                     elif prop.tag == "Description":
                         description = prop.text

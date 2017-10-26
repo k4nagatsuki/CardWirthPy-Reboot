@@ -394,11 +394,11 @@ class PartyMembers(base.CWBinaryBase):
                 if i + 1 < len(adventurers):
                     f.write_byte(0) # 不明
                 advnum += 1
-            except cw.binary.cwfile.UnsupportedError:
+            except cw.binary.cwfile.UnsupportedError, ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = member.gettext("Property/Name", "")
-                    s = u"%s の %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                    s = u"%s の %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     errorlog.append(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
@@ -438,11 +438,11 @@ class PartyMembers(base.CWBinaryBase):
                     if i + 1 < len(vanisheds):
                         f.write_byte(0) # 不明
                     vannum += 1
-                except cw.binary.cwfile.UnsupportedError:
+                except cw.binary.cwfile.UnsupportedError, ex:
                     f.seek(pos)
                     if f.write_errorlog:
                         cardname = member.gettext("Property/Name", "")
-                        s = u"%s の %s(消去前データ) は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                        s = u"%s の %s(消去前データ) は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                         f.write_errorlog(s)
                 except Exception:
                     cw.util.print_ex(file=sys.stderr)

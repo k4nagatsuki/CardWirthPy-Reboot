@@ -476,11 +476,11 @@ class CastCard(base.CWBinaryBase):
                 pos = f.tell()
                 item.ItemCard.unconv(f, card, False)
                 cardslen += 1
-            except cw.binary.cwfile.UnsupportedError:
+            except cw.binary.cwfile.UnsupportedError, ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                    s = u"%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     f.write_errorlog(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
@@ -502,11 +502,11 @@ class CastCard(base.CWBinaryBase):
                 pos = f.tell()
                 skill.SkillCard.unconv(f, card, False)
                 cardslen += 1
-            except cw.binary.cwfile.UnsupportedError:
+            except cw.binary.cwfile.UnsupportedError, ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                    s = u"%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     f.write_errorlog(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
@@ -528,11 +528,11 @@ class CastCard(base.CWBinaryBase):
                 pos = f.tell()
                 beast.BeastCard.unconv(f, card, False)
                 cardslen += 1
-            except cw.binary.cwfile.UnsupportedError:
+            except cw.binary.cwfile.UnsupportedError, ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                    s = u"%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     f.write_errorlog(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)

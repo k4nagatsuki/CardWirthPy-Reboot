@@ -55,12 +55,14 @@ class Event(base.CWBinaryBase):
                     if ig.tag == "Number":
                         for num in cw.util.decodetextlist(ig.text):
                             ignitionnum = int(num)
-                            if ignitionnum in (4, 5):
-                                f.check_version(1.50)
+                            if ignitionnum == 4:
+                                f.check_version(1.50, u"毎ラウンド発火条件")
+                            if ignitionnum == 5:
+                                f.check_version(1.50, u"バトル開始発火条件")
                             ignitions.append(ignitionnum)
                     elif ig.tag == "KeyCodes":
                         if matching == "And":
-                            f.check_version(1.50)
+                            f.check_version(1.50, u"キーコード全てに一致で発火")
                             array = ["MatchingType=All"]
                             array.extend(cw.util.decodetextlist(ig.text))
                             keycodes = cw.util.encodetextlist(array)

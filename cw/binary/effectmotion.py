@@ -114,7 +114,7 @@ class EffectMotion(base.CWBinaryBase):
         # 技能
         elif tabtype == 2:
             if not data.get("damagetype", "Max") in ("", "Max"):
-                f.check_wsnversion("1")
+                f.check_wsnversion("1", u"技能使用回数回復・喪失量の指定")
         # 消滅, カード
         elif tabtype in (6, 7):
             pass

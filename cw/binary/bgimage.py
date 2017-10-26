@@ -174,7 +174,7 @@ class BgImage(base.CWBinaryBase):
         unknown = 0
 
         if data.get("cellname", ""):
-            f.check_wsnversion("1")
+            f.check_wsnversion("1", u"セル名称")
 
         # 背景画像
         imgpath = ""
@@ -222,7 +222,7 @@ class BgImage(base.CWBinaryBase):
                     imgpath = e.text
 
             elif data.tag == "TextCell":
-                f.check_version(1.50)
+                f.check_version(1.50, u"テキストセル")
                 if e.tag == "Text":
                     text = e.text
                 elif e.tag == "Font":
@@ -245,7 +245,7 @@ class BgImage(base.CWBinaryBase):
                             bcolor = getcolor(e_bdr, bcolor)
 
             elif data.tag == "ColorCell":
-                f.check_version(1.50)
+                f.check_version(1.50, u"カラーセル")
                 if e.tag == "BlendMode":
                     blend = base.CWBinaryBase.unconv_blendmode(e.text)
                 elif e.tag == "Color":
@@ -257,7 +257,7 @@ class BgImage(base.CWBinaryBase):
                             color2 = getcolor(e_grd, color2)
 
             elif data.tag == "PCCell":
-                f.check_wsnversion("1")
+                f.check_wsnversion("1", u"プレイヤーキャラクターセル")
 
         if data.tag == "BgImage":
             f.write_dword(left)
@@ -270,7 +270,7 @@ class BgImage(base.CWBinaryBase):
             f.write_byte(unknown)
 
         elif data.tag == "TextCell":
-            f.check_version(1.50)
+            f.check_version(1.50, u"テキストセル")
             f.write_dword(left)
             f.write_dword(top)
             f.write_dword(width + 60000)
@@ -307,7 +307,7 @@ class BgImage(base.CWBinaryBase):
             f.write_byte(unknown)
 
         elif data.tag == "ColorCell":
-            f.check_version(1.50)
+            f.check_version(1.50, u"カラーセル")
             f.write_byte(blend)
             f.write_byte(gradient)
             f.write_ubyte(color1[2]) # RGBの順序が逆
@@ -323,7 +323,7 @@ class BgImage(base.CWBinaryBase):
             f.write_byte(unknown)
 
         elif data.tag == "PCCell":
-            f.check_wsnversion("1")
+            f.check_wsnversion("1", u"プレイヤーキャラクターセル")
 
 def main():
     pass

@@ -194,7 +194,7 @@ class Step(base.CWBinaryBase):
         name = ""
         default = int(data.get("default"))
         if data.getbool(".", "spchars", False):
-            f.check_wsnversion("2")
+            f.check_wsnversion("2", u"ステップ値中の特殊文字の展開")
         variable_names = [""] * 10
         for e in data:
             if e.tag == "Name":
@@ -234,7 +234,7 @@ class Flag(base.CWBinaryBase):
         name = ""
         default = cw.util.str2bool(data.get("default"))
         if data.getbool(".", "spchars", False):
-            f.check_wsnversion("2")
+            f.check_wsnversion("2", u"フラグ値中の特殊文字の展開")
         variable_names = [""] * 2
         for e in data:
             if e.tag == "Name":

@@ -256,7 +256,7 @@ class ItemCard(base.CWBinaryBase):
                             for keycode in keycodes:
                                 if keycode:
                                     if 5 <= len(keycodes2):
-                                        f.check_wsnversion("")
+                                        f.check_wsnversion("", u"5件を超えるキーコード指定")
                                         break
                                     else:
                                         keycodes2.append(keycode)
@@ -280,7 +280,7 @@ class ItemCard(base.CWBinaryBase):
                         enhance_defense2 = int(prop.get("defense"))
                     elif prop.tag == "LinkId":
                         if prop.text and prop.text <> "0":
-                            f.check_wsnversion("1")
+                            f.check_wsnversion("1", u"カード参照")
             elif e.tag == "Motions":
                 motions = e
             elif e.tag == "Events":

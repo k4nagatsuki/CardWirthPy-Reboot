@@ -496,15 +496,15 @@ class Content(base.CWBinaryBase):
             pass
         elif tag == "Change" and ctype == "Area":
             if data.get("transition", "Default") <> "Default":
-                f.check_wsnversion("")
+                f.check_wsnversion("", u"背景切替方式の指定")
             f.write_dword(int(data.get("id")))
         elif tag == "Talk" and ctype == "Message":
             if data.getint(".", "columns", 1) <> 1:
-                f.check_wsnversion("1")
+                f.check_wsnversion("1", u"複数列選択肢")
             if data.getbool(".", "centeringx", False):
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"横方向の中央寄せ")
             if data.getbool(".", "centeringy", False):
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"縦方向の中央寄せ")
             text = ""
             for e in data:
                 if e.tag == "Text":
@@ -514,9 +514,9 @@ class Content(base.CWBinaryBase):
             e_imgpaths = data.find("ImagePaths")
             if not e_imgpaths is None:
                 if 1 < len(e_imgpaths):
-                    f.check_wsnversion("1")
+                    f.check_wsnversion("1", u"複合イメージ")
                 base.CWBinaryBase.check_imgpath(f, e_imgpaths.find("ImagePath"), "TopLeft")
-                imgpath2 = prop.gettext("ImagePath", "")
+                imgpath2 = e_imgpaths.gettext("ImagePath", "")
                 if imgpath2:
                     imgpath = base.CWBinaryBase.materialpath(imgpath2)
                 else:
@@ -531,7 +531,7 @@ class Content(base.CWBinaryBase):
             f.check_bgmoptions(data)
         elif tag == "Change" and ctype == "BgImage":
             if data.get("transition", "Default") <> "Default":
-                f.check_wsnversion("")
+                f.check_wsnversion("", u"背景切替方式の指定")
             bgimgs = []
             for e in data:
                 if e.tag == "BgImages":
@@ -547,11 +547,11 @@ class Content(base.CWBinaryBase):
             f.write_dword(int(data.get("value")))
         elif tag == "Effect" and ctype == "":
             if data.getbool(".", "refability", False):
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"選択メンバの能力参照")
             if data.getbool(".", "ignite", False):
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"効果コンテントによるイベント発火")
             f.write_dword(int(data.get("level")))
-            f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
+            f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm"), f, effectcontent=True))
             f.write_byte(base.CWBinaryBase.unconv_card_effecttype(data.get("effecttype")))
             f.write_byte(base.CWBinaryBase.unconv_card_resisttype(data.get("resisttype")))
             f.write_dword(int(data.get("successrate")))
@@ -571,13 +571,13 @@ class Content(base.CWBinaryBase):
             if "method" in data.attrib:
                 smethod = data.get("method")
                 if not smethod in ("Manual", "Random"):
-                    f.check_wsnversion("1")
+                    f.check_wsnversion("1", u"メンバ選択分岐の評価条件")
                 f.write_bool(smethod == "Random")
             else:
                 f.write_bool(cw.util.str2bool(data.get("random")))
         elif tag == "Branch" and ctype == "Ability":
             f.write_dword(int(data.get("value")))
-            f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
+            f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm"), f))
             f.write_dword(base.CWBinaryBase.unconv_card_physicalability(data.get("physical")))
             f.write_dword(base.CWBinaryBase.unconv_card_mentalability(data.get("mental")))
         elif tag == "Branch" and ctype == "Random":
@@ -597,17 +597,17 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and ctype == "Item":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Branch" and ctype == "Skill":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Branch" and ctype == "Info":
             f.write_dword(int(data.get("id")))
         elif tag == "Branch" and ctype == "Beast":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Branch" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Branch" and ctype == "Coupon":
@@ -618,7 +618,7 @@ class Content(base.CWBinaryBase):
             for e in data.getfind("Coupons", raiseerror=False):
                 names.append(e.text)
             if len(names) > 1:
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"複数クーポンの指定")
             elif len(names) == 1:
                 coupon = names[0]
             base.CWBinaryBase.check_coupon(f, coupon)
@@ -627,59 +627,59 @@ class Content(base.CWBinaryBase):
             f.write_byte(base.CWBinaryBase.unconv_target_scope_coupon(data.get("targets"), f))
         elif tag == "Get" and ctype == "Cast":
             if data.getattr(".", "startaction", "NextRound") <> "NextRound":
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"行動タイミングの指定")
             f.write_dword(int(data.get("id")))
         elif tag == "Get" and ctype == "Item":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Get" and ctype == "Skill":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Get" and ctype == "Info":
             f.write_dword(int(data.get("id")))
         elif tag == "Get" and ctype == "Beast":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Get" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Get" and ctype == "Coupon":
             base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(int(data.get("value")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Lose" and ctype == "Cast":
             f.write_dword(int(data.get("id")))
         elif tag == "Lose" and ctype == "Item":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Lose" and ctype == "Skill":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Lose" and ctype == "Info":
             f.write_dword(int(data.get("id")))
         elif tag == "Lose" and ctype == "Beast":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Lose" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Lose" and ctype == "Coupon":
             base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(0)
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Talk" and ctype == "Dialog":
             if data.getint(".", "columns", 1) <> 1:
-                f.check_wsnversion("1")
+                f.check_wsnversion("1", u"複数列選択肢")
             if data.getbool(".", "centeringx", False):
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"横方向の中央寄せ")
             if data.getbool(".", "centeringy", False):
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"縦方向の中央寄せ")
             targetm = data.get("targetm")
             f.write_byte(base.CWBinaryBase.unconv_target_member_dialog(targetm, f))
             if targetm == "Valued":
@@ -717,7 +717,7 @@ class Content(base.CWBinaryBase):
             f.write_dword(int(data.get("value")))
         elif tag == "Branch" and ctype == "Status":
             f.write_byte(base.CWBinaryBase.unconv_statustype(data.get("status"), f))
-            f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
+            f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm"), f))
         elif tag == "Branch" and ctype == "PartyNumber":
             f.write_dword(int(data.get("value")))
         elif tag == "Show" and ctype == "Party":
@@ -752,29 +752,29 @@ class Content(base.CWBinaryBase):
             pass
         elif tag == "Redisplay" and ctype == "":
             if data.get("transition", "Default") <> "Default":
-                f.check_version("CardWirthPy 0.12")
+                f.check_wsnversion("", u"背景切替方式の指定")
         elif tag == "Check" and ctype == "Flag":
             f.write_string(data.get("flag"))
         elif tag == "Substitute" and ctype == "Step": # 1.30
-            f.check_version(1.30)
+            f.check_version(1.30, u"ステップ代入コンテント")
             if data.get("from", "").lower() == "??selectedplayer":
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"選択メンバ番号のステップ値への代入")
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Substitute" and ctype == "Flag": # 1.30
-            f.check_version(1.30)
+            f.check_version(1.30, u"フラグ代入コンテント")
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Branch" and ctype == "StepValue": # 1.30
-            f.check_version(1.30)
+            f.check_version(1.30, u"ステップ比較分岐コンテント")
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Branch" and ctype == "FlagValue": # 1.30
-            f.check_version(1.30)
+            f.check_version(1.30, u"フラグ比較分岐コンテント")
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Branch" and ctype == "RandomSelect": # 1.30
-            f.check_version(1.30)
+            f.check_version(1.30, u"ランダム選択コンテント")
             f.write_byte(base.CWBinaryBase.unconv_castranges(data.find("CastRanges")))
             levelmin = data.get("levelmin", None)
             levelmax = data.get("levelmax", None)
@@ -791,7 +791,7 @@ class Content(base.CWBinaryBase):
             if (style & 0b10) <> 0:
                 f.write_byte(base.CWBinaryBase.unconv_statustype(status, f))
         elif tag == "Branch" and ctype == "KeyCode": # 1.50
-            f.check_version(1.50)
+            f.check_version(1.50, u"キーコード所持分岐コンテント")
             f.write_byte(base.CWBinaryBase.unconv_keycoderange(data.get("targetkc")))
             # Wsn.1方式
             etype = data.get("effectCardType", "All")
@@ -828,28 +828,28 @@ class Content(base.CWBinaryBase):
             elif not skill and not item and beast and not hand:
                 etype = "Beast"
             else:
-                f.check_wsnversion("2")
+                f.check_wsnversion("2", u"キーコードを手札から検索")
             f.write_byte(base.CWBinaryBase.unconv_effectcardtype(etype))
             f.write_string(data.get("keyCode"))
         elif tag == "Check" and ctype == "Step": # 1.50
-            f.check_version(1.50)
+            f.check_version(1.50, u"ステップ判定コンテント")
             f.write_string(data.get("step"))
             f.write_dword(int(data.get("value")))
             f.write_byte(base.CWBinaryBase.unconv_comparison4(data.get("comparison")))
         elif tag == "Branch" and ctype == "Round": # 1.50
-            f.check_version(1.50)
+            f.check_version(1.50, u"ラウンド分岐コンテント")
             f.write_byte(base.CWBinaryBase.unconv_comparison3(data.get("comparison")))
             f.write_dword(int(data.get("round")))
         elif tag == "Replace" and ctype == "BgImage": # Wsn.1
-            f.check_wsnversion("1")
+            f.check_wsnversion("1", u"背景置換コンテント")
         elif tag == "Lose" and ctype == "BgImage": # Wsn.1
-            f.check_wsnversion("1")
+            f.check_wsnversion("1", u"背景削除コンテント")
         elif tag == "Move" and ctype == "BgImage": # Wsn.1
-            f.check_wsnversion("1")
+            f.check_wsnversion("1", u"背景再配置コンテント")
         elif tag == "Branch" and ctype == "MultiCoupon":  # Wsn.2
-            f.check_wsnversion("2")
+            f.check_wsnversion("2", u"クーポン多岐分岐")
         elif tag == "Branch" and ctype == "MultiRandom":  # Wsn.2
-            f.check_wsnversion("2")
+            f.check_wsnversion("2", u"ランダム多岐分岐")
         else:
             raise ValueError(tag + ", " + ctype)
 

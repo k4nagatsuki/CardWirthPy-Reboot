@@ -92,7 +92,7 @@ class Battle(base.CWBinaryBase):
                         f.check_bgmoptions(prop)
             elif e.tag == "PlayerCardEvents":
                 if len(e):
-                    f.check_wsnversion("2")
+                    f.check_wsnversion("2", u"プレイヤーカードイベント")
             elif e.tag == "EnemyCards":
                 ecards = e
                 spreadtype = base.CWBinaryBase.unconv_spreadtype(e.get("spreadtype"))
