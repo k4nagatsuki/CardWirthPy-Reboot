@@ -613,7 +613,8 @@ class UnconvCWYado(object):
                     f.close()
                 return data, fpath
             except Exception, ex:
-                cw.util.print_ex(file=sys.stderr)
+                if not isinstance(ex, cw.binary.cwfile.UnsupportedError):
+                    cw.util.print_ex(file=sys.stderr)
                 cw.util.remove(fpath)
                 raise ex
 
