@@ -482,7 +482,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_contenttype(ctype, n):
+    def unconv_contenttype(ctype, n, f):
         if ctype == "Start" and n == "":
             return 0
         elif ctype == "Link" and n == "Start":
@@ -631,6 +631,21 @@ class CWBinaryBase(object):
             return 72
         elif ctype == "Branch" and n == "Round": # 1.50
             return 73
+        elif ctype == "Replace" and n == "BgImage": # Wsn.1
+            f.check_wsnversion("1", u"背景置換コンテント")
+            return 0
+        elif ctype == "Lose" and n == "BgImage": # Wsn.1
+            f.check_wsnversion("1", u"背景削除コンテント")
+            return 0
+        elif ctype == "Move" and n == "BgImage": # Wsn.1
+            f.check_wsnversion("1", u"背景再配置コンテント")
+            return 0
+        elif ctype == "Branch" and n == "MultiCoupon":  # Wsn.2
+            f.check_wsnversion("2", u"クーポン多岐分岐コンテント")
+            return 0
+        elif ctype == "Branch" and n == "MultiRandom":  # Wsn.2
+            f.check_wsnversion("2", u"ランダム多岐分岐コンテント")
+            return 0
         else:
             raise ValueError(ctype + ", " + n)
 

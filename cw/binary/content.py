@@ -472,7 +472,7 @@ class Content(base.CWBinaryBase):
         tag = data.tag
         ctype = data.get("type", "")
         name = data.get("name", "")
-        f.write_byte(base.CWBinaryBase.unconv_contenttype(tag, ctype))
+        f.write_byte(base.CWBinaryBase.unconv_contenttype(tag, ctype, f))
         f.write_string(name)
 
     @staticmethod
@@ -847,9 +847,9 @@ class Content(base.CWBinaryBase):
         elif tag == "Move" and ctype == "BgImage": # Wsn.1
             f.check_wsnversion("1", u"背景再配置コンテント")
         elif tag == "Branch" and ctype == "MultiCoupon":  # Wsn.2
-            f.check_wsnversion("2", u"クーポン多岐分岐")
+            f.check_wsnversion("2", u"クーポン多岐分岐コンテント")
         elif tag == "Branch" and ctype == "MultiRandom":  # Wsn.2
-            f.check_wsnversion("2", u"ランダム多岐分岐")
+            f.check_wsnversion("2", u"ランダム多岐分岐コンテント")
         else:
             raise ValueError(tag + ", " + ctype)
 
