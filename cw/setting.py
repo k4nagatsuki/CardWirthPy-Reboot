@@ -2278,7 +2278,7 @@ class Resource(object):
     def calc_wxcardnamecolorhint(self, wxbmp):
         """文字描画領域の色を平均化した値を返す。
         """
-        if bmp.GetWidth() <= cw.s(10) or bmp.GetHeight() <= cw.s(20):
+        if wxbmp.GetWidth() <= cw.s(10) or wxbmp.GetHeight() <= cw.s(20):
             return
         rect = wx.Rect(cw.s(5), cw.s(5), wxbmp.GetWidth() - cw.s(10), cw.s(15))
         sub = wxbmp.GetSubBitmap(rect)
@@ -2780,6 +2780,28 @@ class RecentHistory(object):
                         cw.util.remove(path)
 
         self.set_limit(limit)
+
+    def update_scenariopath(self, from_normpath, to_path):
+        seq = []
+
+        s = set()
+        for path, md5, temppath in self.scelist:
+            normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+            if normpath2 == from_normpath:
+                if normpath2 in s:
+                    cw.util.remove(temppath)
+                    continue
+                else:
+                    s.add(normpath2)
+                    path = to_path
+                    if os.path.isfile(from_normpath):
+                        md5 = cw.util.get_md5(from_normpath)
+                    elif os.path.isfile(to_path):
+                        md5 = cw.util.get_md5(to_path)
+
+            seq.append((path, md5, temppath))
+        self.scelist = seq
+        self.write()
 
     def write(self):
         # シナリオ履歴

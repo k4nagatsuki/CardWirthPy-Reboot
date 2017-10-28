@@ -488,6 +488,9 @@ class Frame(wx.Frame):
                 break
         else:
             # シナリオのインストール
+            if cw.cwpy.is_decompressing:
+                cw.cwpy.play_sound("error")
+                return
             db = self._open_scenariodb()
             if not db:
                 return
