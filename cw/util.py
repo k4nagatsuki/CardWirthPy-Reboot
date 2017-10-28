@@ -1730,12 +1730,18 @@ def get_materialpathfromskin(path, mtype, findskin=True):
                 path = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_snd)
         else:
             fname = os.path.basename(path)
-            fname = cw.util.splitext(fname)[0]
+            lfname = fname.lower()
+            eb = lfname.endswith(".jpy1") or lfname.endswith(".jptx") or lfname.endswith(".jpdc")
+            if not eb:
+                fname = cw.util.splitext(fname)[0]
             dpaths = [cw.cwpy.skindir]
             if os.path.isdir(u"Data/Materials"):
                 dpaths.extend(map(lambda d: cw.util.join_paths(u"Data/Materials", d), os.listdir(u"Data/Materials")))
             for dpath in dpaths:
-                if mtype == cw.M_IMG:
+                if eb:
+                    # エフェクトブースターのファイルは他の拡張子への付替を行わない
+                    path = cw.cwpy.rsrc.get_filepath(cw.util.join_paths(dpath, "Table", fname))
+                elif mtype == cw.M_IMG:
                     path = cw.util.find_resource(cw.util.join_paths(dpath, "Table", fname), cw.cwpy.rsrc.ext_img)
                 elif mtype == cw.M_MSC:
                     path = cw.util.find_resource(cw.util.join_paths(dpath, "Bgm", fname), cw.cwpy.rsrc.ext_bgm)
