@@ -685,15 +685,25 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         filename = os.path.basename(fpath)
     elif dirtype == 2:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
-        mtype = get_mtype(filename)
-        fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
-        fpath = cw.util.find_resource(fpath, mtype)
+        lfname = filename.lower()
+        if lfname.endswith(".jpy1") or lfname.endswith(".jptx") or lfname.endswith(".jpdc"):
+            fpath = cw.util.join_paths(dpath, filename)
+            fpath = cw.cwpy.rsrc.get_filepath(fpath)
+        else:
+            mtype = get_mtype(filename)
+            fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
+            fpath = cw.util.find_resource(fpath, mtype)
         return (fpath, True)
     elif dirtype == 3:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "EffectBooster")
-        mtype = get_mtype(filename)
-        fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
-        fpath = cw.util.find_resource(fpath, mtype)
+        lfname = filename.lower()
+        if lfname.endswith(".jpy1") or lfname.endswith(".jptx") or lfname.endswith(".jpdc"):
+            fpath = cw.util.join_paths(dpath, filename)
+            fpath = cw.cwpy.rsrc.get_filepath(fpath)
+        else:
+            mtype = get_mtype(filename)
+            fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
+            fpath = cw.util.find_resource(fpath, mtype)
         return (fpath, True)
     elif dirtype == 4:
         if cw.cwpy.is_runningevent() and cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
