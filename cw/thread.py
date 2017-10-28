@@ -711,7 +711,8 @@ class CWPy(_Singleton, threading.Thread):
 
         if not self.is_decompressing:
             cw.data.redraw_cards(debug)
-        self.clear_selection()
+        if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
+            self.clear_selection()
         self.draw()
 
     def update_infocard(self):

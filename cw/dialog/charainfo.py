@@ -170,6 +170,11 @@ class CharaInfo(wx.Dialog):
             (wx.ACCEL_NORMAL, wx.WXK_LEFT, leftkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_RIGHT, rightkeyid),
         ]
+
+        debugid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnDebugMode, id=debugid)
+        seq.append((wx.ACCEL_CTRL, ord('D'), debugid))
+
         cw.util.set_acceleratortable(self, seq)
 
     def _bind(self):
@@ -331,6 +336,33 @@ class CharaInfo(wx.Dialog):
             #btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, self.notebook.GetId())
             #self.ProcessEvent(btnevent)
 
+    def OnDebugMode(self, event):
+        def func(self):
+            cw.cwpy.play_sound("page")
+            value = not cw.cwpy.is_debugmode()
+            cw.cwpy.set_debug(value)
+            def func(self):
+                if not self:
+                    return
+                self.update_debug()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+
+    def update_debug(self):
+        if not self:
+            return
+        if self.descpanel.IsShown():
+            self.descpanel.update_cursor()
+        self.historypanel.draw(True)
+        if self.historypanel.IsShown():
+            self.historypanel.update_cursor()
+        if self.is_playingscenario and self.editpanel.IsShown():
+            self.editpanel.update_cursor()
+        if self.ccard.data.hasfind("SkillCards"):
+            self.skillpanel.update_debug()
+            self.itempanel.update_debug()
+            self.beastpanel.update_debug()
+
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
@@ -482,6 +514,18 @@ class ActiveCharaInfo(CharaInfo):
         self.is_playingscenario = cw.cwpy.is_playingscenario()
         self.ccard = cw.cwpy.selection
 
+        self._update_list()
+        CharaInfo.__init__(self, parent, None, True)
+
+    def update_debug(self):
+        CharaInfo.update_debug(self)
+        if self._update_list():
+            self.leftbtn.Enable(1 < len(self.list))
+            self.rightbtn.Enable(1 < len(self.list))
+        else:
+            self.Close()
+
+    def _update_list(self):
         if isinstance(self.ccard, cw.character.Player):
             if cw.cwpy.is_debugmode():
                 self.list = cw.cwpy.get_pcards()
@@ -499,8 +543,11 @@ class ActiveCharaInfo(CharaInfo):
             self.list = cw.cwpy.get_fcards()[:]
             self.list.reverse()
 
-        self.index = self.list.index(self.ccard)
-        CharaInfo.__init__(self, parent, None, True)
+        if self.ccard in self.list:
+            self.index = self.list.index(self.ccard)
+            return True
+        else:
+            return False
 
 class TopPanel(wx.Panel):
     """
@@ -780,6 +827,7 @@ class DescPanel(wx.ScrolledWindow):
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
+        self._editable = editable
 
         # エレメントオブジェクト
         self.ccard = ccard
@@ -790,13 +838,20 @@ class DescPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        if cw.cwpy.debug and editable and isinstance(ccard, cw.sprite.card.PlayerCard):
-            self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
-            self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.update_cursor()
+        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
         self.draw(True)
 
+    def update_cursor(self):
+        if cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.sprite.card.PlayerCard):
+            self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
+        else:
+            self.SetCursor(wx.NullCursor)
+
     def OnLeftUp(self, event):
+        if not (cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.sprite.card.PlayerCard)):
+            return
         cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
@@ -862,6 +917,7 @@ class HistoryPanel(wx.ScrolledWindow):
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
+        self._editable = editable
         # エレメントオブジェクト
         self.ccard = ccard
         # bmp
@@ -880,9 +936,8 @@ class HistoryPanel(wx.ScrolledWindow):
         # create buffer
         self.draw(True)
 
-        if cw.cwpy.debug and editable and isinstance(ccard, cw.sprite.card.PlayerCard):
-            self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
-            self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.update_cursor()
+        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
     def _get_bmps(self, name):
         bmp = cw.cwpy.rsrc.dialogs[name]
@@ -902,7 +957,15 @@ class HistoryPanel(wx.ScrolledWindow):
         dc.SelectObject(wx.NullBitmap)
         return wxbmp
 
+    def update_cursor(self):
+        if cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.sprite.card.PlayerCard):
+            self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
+        else:
+            self.SetCursor(wx.NullCursor)
+
     def OnLeftUp(self, event):
+        if not (cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.sprite.card.PlayerCard)):
+            return
         cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
@@ -935,7 +998,7 @@ class HistoryPanel(wx.ScrolledWindow):
             if coupon.text and not coupon.text.startswith(u"＠"):
                 if isalbum and (coupon.text.startswith(u"：") or coupon.text.startswith(u"；")):
                     continue
-                if cw.cwpy.debug or not self.is_hidden(coupon.text):
+                if cw.cwpy.is_debugmode() or not self.is_hidden(coupon.text):
                     self.coupons.append((coupon.text, int(coupon.get("value"))))
         self.coupons.reverse()
 
@@ -1252,6 +1315,7 @@ class StatusPanel(wx.ScrolledWindow):
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
         self.list = mlist
+        self._editable = editable
         # エレメントオブジェクト
         self.ccard = ccard
         # bmp
@@ -1260,13 +1324,20 @@ class StatusPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        if cw.cwpy.debug and editable and not isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
-            self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
-            self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.update_cursor()
+        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
         self.draw(True)
 
+    def update_cursor(self):
+        if cw.cwpy.is_debugmode() and self._editable and not isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
+            self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
+        else:
+            self.SetCursor(wx.NullCursor)
+
     def OnLeftUp(self, event):
+        if not (cw.cwpy.is_debugmode() and self._editable and not isinstance(self.Parent.Parent, StandbyPartyCharaInfo)):
+            return
         cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
@@ -1551,11 +1622,7 @@ class CardPanel(wx.Panel):
         self.headers = []
         # bmp
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
-        # 「全てホールド」の領域
-        if self.pocket <> cw.POCKET_BEAST and (cw.cwpy.debug or isinstance(self.ccard, cw.character.Player)):
-            self.hold_all = HoldAll()
-        else:
-            self.hold_all = None
+        self._update_debug()
         # bind
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_MOTION, self.OnMove)
@@ -1564,6 +1631,21 @@ class CardPanel(wx.Panel):
         self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
+
+    def _update_debug(self):
+        # 「全てホールド」の領域
+        if self.pocket <> cw.POCKET_BEAST and (cw.cwpy.is_debugmode() or isinstance(self.ccard, cw.character.Player)):
+            self.hold_all = HoldAll()
+        else:
+            self.hold_all = None
+        dc = wx.ClientDC(self)
+        self._update_rects(dc)
+        dc.Destroy()
+
+    def update_debug(self):
+        self._update_debug()
+        mousepos = self.ScreenToClient(wx.GetMousePosition())
+        self._update_mousepos(mousepos)
 
     def OnDestroy(self, event):
         for header in self.headers:
@@ -1579,7 +1661,7 @@ class CardPanel(wx.Panel):
             self._switch_hold()
 
     def _switch_hold(self):
-        if not cw.cwpy.debug and not isinstance(self.ccard, cw.character.Player):
+        if not cw.cwpy.is_debugmode() and not isinstance(self.ccard, cw.character.Player):
             # ホールド不可
             self._open_cardinfo()
             return
@@ -1641,9 +1723,11 @@ class CardPanel(wx.Panel):
         self.Refresh()
 
     def OnMove(self, event):
-        dc = wx.ClientDC(self)
         mousepos = event.GetPosition()
+        self._update_mousepos(mousepos)
 
+    def _update_mousepos(self, mousepos):
+        dc = wx.ClientDC(self)
         if self.hold_all:
             self.hold_all.negaflag = self.hold_all.subrect.collidepoint(mousepos)
 
@@ -1714,37 +1798,11 @@ class CardPanel(wx.Panel):
         header.negaflag = True
         self.draw_header(dc, header)
 
-    def OnPaint(self, event):
-        self.draw()
-
-    def draw(self, update=False):
-        if update:
-            dc = wx.ClientDC(self)
-            self.ClearBackground()
-        else:
-            dc = wx.PaintDC(self)
-
-        dc.BeginDrawing()
-        # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
-        # 所持スキル
-        dc.SetTextForeground(wx.WHITE)
+    def _update_rects(self, dc):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
-
-        if not self.headers:
-            self.headers = self.ccard.cardpocket[self.pocket]
-
-        fw = dc.GetTextExtent(u"―")[0]
-
         if self.hold_all:
             yp = 20
             s = cw.cwpy.msgs["hold_all"]
-            if self.hold_all.negaflag:
-                dc.SetTextForeground(wx.RED)
-                dc.DrawText(s, cw.wins(30), cw.wins(30))
-                dc.SetTextForeground(wx.WHITE)
-            else:
-                dc.DrawText(s, cw.wins(30), cw.wins(30))
             if self.ccard.hold_all[self.pocket]:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
             else:
@@ -1764,6 +1822,57 @@ class CardPanel(wx.Panel):
             # カード名
             s = header.name
             size = dc.GetTextExtent(s)
+
+            # rect
+            header.textpos = pos
+            header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1), size[0] + cw.wins(20), size[1] + cw.wins(2))
+
+    def OnPaint(self, event):
+        self.draw()
+
+    def draw(self, update=False):
+        if update:
+            dc = wx.ClientDC(self)
+            self.ClearBackground()
+        else:
+            dc = wx.PaintDC(self)
+
+        dc.BeginDrawing()
+        # 背景の透かし
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
+        # 所持スキル
+        dc.SetTextForeground(wx.WHITE)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
+
+        if not self.headers:
+            self.headers = self.ccard.cardpocket[self.pocket]
+            self._update_rects(dc)
+
+        fw = dc.GetTextExtent(u"―")[0]
+
+        if self.hold_all:
+            yp = 20
+            s = cw.cwpy.msgs["hold_all"]
+            if self.hold_all.negaflag:
+                dc.SetTextForeground(wx.RED)
+                dc.DrawText(s, cw.wins(30), cw.wins(30))
+                dc.SetTextForeground(wx.WHITE)
+            else:
+                dc.DrawText(s, cw.wins(30), cw.wins(30))
+            if self.ccard.hold_all[self.pocket]:
+                bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
+            else:
+                bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
+            dc.DrawBitmap(bmp, cw.wins(10), cw.wins(29), True)
+        else:
+            yp = 0
+
+        for index, header in enumerate(self.headers):
+            pos = header.textpos
+
+            # カード名
+            s = header.name
+            size = dc.GetTextExtent(s)
             if header.type in ("ItemCard", "BeastCard") and (header.uselimit or header.recycle):
                 s += "(%d)" % header.uselimit
 
@@ -1775,8 +1884,6 @@ class CardPanel(wx.Panel):
                 dc.DrawText(s, pos[0], pos[1])
 
             # rect
-            header.textpos = pos
-            header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1), size[0] + cw.wins(20), size[1] + cw.wins(2))
             if header.type == "SkillCard":
                 # 適性値
                 key = "HAND%s" % (header.get_showed_vocation_level(self.ccard))
@@ -1797,7 +1904,7 @@ class CardPanel(wx.Panel):
                 # ホールドまたはペナルティ
                 if header.penalty:
                     bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
-                elif header.hold:
+                elif header.hold or (self.hold_all is None and self.ccard.hold_all[self.pocket]):
                     bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
                 else:
                     bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
