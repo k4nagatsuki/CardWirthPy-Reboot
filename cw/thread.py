@@ -713,6 +713,7 @@ class CWPy(_Singleton, threading.Thread):
             cw.data.redraw_cards(debug)
         if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
             self.clear_selection()
+        self.change_selection(self.selection)
         self.draw()
 
     def update_infocard(self):
