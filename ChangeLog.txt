@@ -4,6 +4,20 @@
 2017/**/** ver.2.2 (Reboot)
 --------------------------------------------------------------------------
 
+### WSNシナリオ形式の仕様変更(Wsn.2)
+
+ * issue #435 / 以下の標準音声の音量とエフェクトを調節。
+    * `l_church_bell.ogg`
+    * `s_bell_of_buddhist_altar.ogg`
+    * `s_breath_a.ogg`
+    * `s_breath_e.ogg`
+    * `s_breath_i.ogg`
+    * `s_breath_o.ogg`
+    * `s_breath_u.ogg`
+    * `s_idea.ogg`
+    * `s_metal_bat.ogg`
+    * `s_question.ogg`
+
 ### 追加
 
 追加はありません。
