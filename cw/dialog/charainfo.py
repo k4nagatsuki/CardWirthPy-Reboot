@@ -883,6 +883,7 @@ class DescPanel(wx.ScrolledWindow):
             self._init_view()
 
     def OnPaint(self, event):
+        self.update_cursor()
         csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
@@ -1035,6 +1036,7 @@ class HistoryPanel(wx.ScrolledWindow):
                coupon.startswith(u"；")
 
     def OnPaint(self, event):
+        self.update_cursor()
         csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
@@ -1388,6 +1390,7 @@ class StatusPanel(wx.ScrolledWindow):
             self._init_view()
 
     def OnPaint(self, event):
+        self.update_cursor()
         csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
