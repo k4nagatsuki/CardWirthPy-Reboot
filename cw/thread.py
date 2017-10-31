@@ -4058,7 +4058,7 @@ class CWPy(_Singleton, threading.Thread):
             if self._play_sound_with(path, from_scenario, inusecard=inusecard, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade):
                 return
 
-        self.sounds[name].play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
+        self.sounds[name].copy().play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
 
     def _play_sound_with(self, path, from_scenario, inusecard=None, subvolume=100, loopcount=1, channel=0, fade=0):
         if not path:
@@ -4087,7 +4087,7 @@ class CWPy(_Singleton, threading.Thread):
         name = cw.util.splitext(os.path.basename(path))[0]
 
         if name in self.skinsounds:
-            self.skinsounds[name].play(True, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
+            self.skinsounds[name].copy().play(True, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
 
     def has_sound(self, path):
         if not path:

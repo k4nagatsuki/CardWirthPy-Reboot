@@ -298,6 +298,16 @@ class SoundInterface(object):
         self._type = -1
         self.mastervolume = 0
 
+    def copy(self):
+        sound = SoundInterface()
+        sound._sound = self._sound
+        sound._path = self._path
+        sound.subvolume = self.subvolume
+        sound.channel = self.channel
+        sound._type = self._type
+        sound.mastervolume = self.mastervolume
+        return sound
+
     def get_path(self):
         return self._path
 
@@ -992,7 +1002,7 @@ def load_sound(path):
         return SoundInterface()
 
     if cw.cwpy.is_playingscenario() and path in cw.cwpy.sdata.resource_cache:
-        return cw.cwpy.sdata.resource_cache[path]
+        return cw.cwpy.sdata.resource_cache[path].copy()
 
     try:
         assert threading.currentThread() == cw.cwpy
@@ -1019,7 +1029,7 @@ def load_sound(path):
         cw.cwpy.sdata.sweep_resourcecache(os.path.getsize(path) if os.path.isfile(path) else 0)
         cw.cwpy.sdata.resource_cache[path] = sound
 
-    return sound
+    return sound.copy()
 
 def get_soundfilepath(basedir, path):
     """宿のフォルダにある場合は問題が出るため、
