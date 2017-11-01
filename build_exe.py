@@ -46,7 +46,7 @@ class BuildExe(object):
         self.project_url = "https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot/"
 
         #Version of program
-        self.project_version = "2.1"
+        self.project_version = "2.2"
 
         #License of the program
         self.license = "LGPL"

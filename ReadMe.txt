@@ -1,4 +1,4 @@
-CardWirthPy Version.2.1
+CardWirthPy Version.2.2
 ===============================
 
 作者
@@ -212,16 +212,16 @@ CardWirthPyでプレイ中か判定するイベントを作る方法について
 
 しかし、些細と見なされた仕様の違いやバグなどに引っかかってシナリオが正しく動かなくなるような事態は、どうしても稀に発生するものと思われます。そこで、CardWirthPy 0.12.2以降では、称号所持分岐によって、プレイヤーがCardWirthPyを使用中か、使用中であればどのバージョンであるかを判別できるようになりました。
 
-バージョン2.1現在、称号所持分岐で、次の2つの称号の所持判定は、実際に所持しているかどうかによらず必ず成功します。
+バージョン2.2現在、称号所持分岐で、次の2つの称号の所持判定は、実際に所持しているかどうかによらず必ず成功します。
 
- * ＠CardWirthPy Version.2.1
- * ＠CardWirthPy Version.2.1 Only
+ * ＠CardWirthPy Version.2.2
+ * ＠CardWirthPy Version.2.2 Only
 
 このうち、「Only」がついている称号は、CardWirthPyのバージョンアップ時に削除され、新しいバージョン固有の称号に差し替えられます。「Only」がついていない称号は、バージョンアップ後も残ります。
 
-CardWirthPyでプレイ中か判定する時やバージョンが2以降であるか判定する時には、「＠CardWirthPy Version.2.1」を使用して称号判定分岐を行ってください。
+CardWirthPyでプレイ中か判定する時やバージョンが2以降であるか判定する時には、「＠CardWirthPy Version.2.2」を使用して称号判定分岐を行ってください。
 
-CardWirthPy 2固有で将来修正される見込みのバグに対処したい場合などは、「＠CardWirthPy Version.2.1 Only」を使用してください。
+CardWirthPy 2固有で将来修正される見込みのバグに対処したい場合などは、「＠CardWirthPy Version.2.2 Only」を使用してください。
 
 使用可能な過去のバージョンの称号のリストは以下の通りです。
 
@@ -232,6 +232,7 @@ CardWirthPy 2固有で将来修正される見込みのバグに対処したい�
  * ＠CardWirthPy Version.1.1
  * ＠CardWirthPy Version.2.0
  * ＠CardWirthPy Version.2.1
+ * ＠CardWirthPy Version.2.2
 
 
 WSN形式の特定バージョンへの対応を示すクーポンについて
