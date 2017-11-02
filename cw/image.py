@@ -1417,7 +1417,7 @@ def fix_cwnext16bitbitmap(data):
         if biBitCount in (1, 4, 8):
             if biClrUsed == 0:
                 biClrUsed = biBitCount * biBitCount
-            bfOffBits += biClrUsed * 4
+        bfOffBits += biClrUsed * 4
         b = struct.pack("<I", bfOffBits)
         data = data[0:10] + b + data[14:]
         data = cw.image.patch_rle4bitmap(data)
