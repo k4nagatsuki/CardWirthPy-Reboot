@@ -1428,6 +1428,18 @@ def get_messagelogtext(mwins, lastline=True):
     return u"\n".join(lines)
 
 
+def update_scenariopath_for_log(normpath, dst):
+    for log in cw.cwpy.sdata.backlog:
+        for i, (info, can_loaded_scaledimage, basetalker, scaledimagedict) in enumerate(log.imgpaths[:]):
+            if not info.path or cw.binary.image.path_is_code(info.path):
+                continue
+            rel = cw.util.is_descendant(path=info.path, start=normpath)
+            if not rel:
+                continue
+            info.path = cw.util.join_paths(dst, rel)
+            log.imgpaths[i] = (info, can_loaded_scaledimage, basetalker, scaledimagedict)
+
+
 def store_messagelogimage(path, can_loaded_scaledimage):
     """メッセージログ内でpathが使用されている箇所があれば
     pathが上書きされた場合に備えて各スケールのイメージを読み込んでおく。

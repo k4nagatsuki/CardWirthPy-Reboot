@@ -622,10 +622,9 @@ def update_scenariolog(normpath, dst, dstisfile):
         return
 
     if cw.cwpy.is_playingscenario():
-        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(cw.cwpy.sdata.fpath)))
-        if normpath == normpath2:
-            cw.cwpy.ydata.changed()
-            cw.cwpy.sdata.fpath = dst
+        cw.cwpy.sdata.update_scenariopath(normpath, dst, dstisfile)
+    if not dstisfile:
+        cw.sprite.message.update_scenariopath_for_log(normpath, dst)
 
     for header in cw.cwpy.ydata.partys:
         dpath = os.path.dirname(header.fpath)
@@ -655,6 +654,11 @@ def update_scenariolog(normpath, dst, dstisfile):
 
     if dstisfile:
         cw.cwpy.ydata.recenthistory.update_scenariopath(normpath, dst)
+    elif cw.cwpy.ydata.party:
+        for header in cw.cwpy.ydata.party.get_allcardheaders():
+            if not header.scenariocard:
+                continue
+            header.update_scenariopath(normpath, dst) # 次の表示で再初期化
 
 
 class OverwriteScenarioDialog(wx.Dialog):

@@ -253,6 +253,15 @@ class CardHeader(object):
         self._bordering_cardname = cw.cwpy.setting.bordering_cardname
         self._show_premiumicon = cw.cwpy.setting.show_premiumicon
 
+    def update_scenariopath(self, normpath, dst):
+        if not self.scenariocard:
+            return
+        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(self.scedir)))
+        if normpath <> normpath2:
+            return
+        self._cardimg = None
+        self.scedir = dst
+
     def get_owner(self):
         if self._owner == "BACKPACK":
             return cw.cwpy.ydata.party.backpack

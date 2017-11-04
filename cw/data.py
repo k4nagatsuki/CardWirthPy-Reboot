@@ -129,6 +129,40 @@ class SystemData(object):
                     if not resid in self._areas:
                         self._areas[resid] = (name, path)
 
+    def update_scenariopath(self, normpath, dst, dstisfile):
+        if not self.fpath:
+            return
+        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(self.fpath)))
+        if normpath <> normpath2:
+            return
+
+        cw.cwpy.ydata.changed()
+        self.fpath = dst
+        if not dstisfile:
+            self.tempdir = dst
+            self.scedir = dst
+
+        def update_table(table):
+            d = table.copy()
+            table.clear()
+            for resid, (name, path) in d.iteritems():
+                rel = cw.util.is_descendant(path=path, start=normpath)
+                if rel:
+                    path = cw.util.join_paths(dst, rel)
+                table[resid] = (name, path)
+        update_table(self._areas)
+        update_table(self._battles)
+        update_table(self._packs)
+        update_table(self._casts)
+        update_table(self._infos)
+        update_table(self._items)
+        update_table(self._skills)
+        update_table(self._beasts)
+
+        self.data_cache = {}
+        self.resource_cache = {}
+        self.resource_cache_size = 0
+
     def _init_sparea_mcards(self):
         """
         カード移動操作エリアのメニューカードを作成する。

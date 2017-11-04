@@ -1190,6 +1190,7 @@ def relpath(path, start):
         if path2[0] == '/' or (sys.platform == "win32" and path2[0] == '\\'):
             return path2[1:]
     try:
+        path = os.path.abspath(path)
         return os.path.relpath(path, start)
     except:
         return path
@@ -1203,6 +1204,20 @@ assert relpath("/a", "..").replace("\\", "/") == os.path.relpath("/a", "..").rep
 assert relpath("a", "../bcde").replace("\\", "/") == os.path.relpath("a", "../bcde").replace("\\", "/")
 assert relpath("../a", "../bcde").replace("\\", "/") == os.path.relpath("../a", "../bcde").replace("\\", "/")
 assert relpath("../a", "../").replace("\\", "/") == os.path.relpath("../a", "../").replace("\\", "/")
+
+def is_descendant(path, start):
+    """
+    pathはstartのサブディレクトリにあるか。
+    ある場合は相対パスを返す。
+    """
+    if not path or not start:
+        return False
+    rel = join_paths(relpath(path, start))
+    if os.path.isabs(rel):
+        return False
+    if rel.startswith("../"):
+        return False
+    return rel
 
 def splitext(p):
     """パスの拡張子以外の部分と拡張子部分の分割。
