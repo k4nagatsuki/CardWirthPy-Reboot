@@ -877,6 +877,8 @@ class CWPy(_Singleton, threading.Thread):
                     continue
                 elif e.type in (KEYDOWN, KEYUP) and not hasattr(e, "key"):
                     continue
+                elif e.type <> USEREVENT and self.is_showingdlg():
+                    continue
                 # ---
                 return e
             else:

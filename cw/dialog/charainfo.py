@@ -304,6 +304,9 @@ class CharaInfo(wx.Dialog):
         self.Refresh()
 
     def OnMouseWheel(self, event):
+        if cw.util.has_modalchild(self):
+            return
+
         rect = self.GetClientRect()
         # ダイアログの上半分でホイールを回した場合は
         # 表示メンバを交代し、下半分の場合は

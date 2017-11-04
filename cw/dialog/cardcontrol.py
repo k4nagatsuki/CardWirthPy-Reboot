@@ -637,6 +637,9 @@ class CardControl(wx.Dialog):
         return rect.x + rect.width / 4 * 3 < x and self.rightbtn.IsEnabled()
 
     def OnMouseWheel(self, event):
+        if cw.util.has_modalchild(self):
+            return
+
         if cw.util.get_wheelrotation(event) > 0:
             if self.leftbtn.IsEnabled():
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
@@ -2095,6 +2098,9 @@ class CardHolder(CardControl):
         self.draw_cards()
 
     def OnMouseWheel(self, event):
+        if cw.util.has_modalchild(self):
+            return
+
         mousepos = event.GetPosition()
         lwidth = cw.wins(80)
         def selcombo(combo):

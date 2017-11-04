@@ -3637,6 +3637,15 @@ def adjust_dropdownwidth(choice):
         # 幅を設定
         win32api.SendMessage(choice.GetHandle(), win32con.CB_SETDROPPEDWIDTH, w, 0)
 
+
+def has_modalchild(frame):
+    """frame.TopLevelParentにモーダル表示中のサブウィンドウがあればTrue。"""
+    for child in frame.TopLevelParent.GetChildren():
+        if isinstance(child, wx.Dialog) and child.IsShown() and child.IsModal():
+            return True
+    return False
+
+
 class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
     _search_engines = None
 
@@ -3760,6 +3769,9 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         self.ShowPosition(0)
 
     def OnMouseWheel(self, event):
+        if has_modalchild(self):
+            return
+
         y = self.GetScrollPos(wx.VERTICAL)
 
         if sys.platform == "win32":

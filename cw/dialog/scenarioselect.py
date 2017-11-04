@@ -450,6 +450,9 @@ class ScenarioSelect(select.Select):
         select.Select.OnNextButton(self, event)
 
     def OnMouseWheel(self, event):
+        if cw.util.has_modalchild(self):
+            return
+
         if self._processing:
             return
 

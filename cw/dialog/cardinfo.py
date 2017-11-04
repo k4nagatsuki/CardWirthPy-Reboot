@@ -105,6 +105,9 @@ class CardInfo(wx.Dialog):
         cw.util.to_clipboard(u"\n".join(lines))
 
     def OnMouseWheel(self, event):
+        if cw.util.has_modalchild(self):
+            return
+
         if len(self.list) == 1:
             return
 

@@ -89,6 +89,9 @@ class BattleCommand(wx.Dialog):
         self.SetAcceleratorTable(accel)
 
     def OnMouseWheel(self, event):
+        if cw.util.has_modalchild(self):
+            return
+
         if not self.toppanel.IsEnabled():
             return
         if cw.util.get_wheelrotation(event) > 0:

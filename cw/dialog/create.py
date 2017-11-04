@@ -951,6 +951,9 @@ class AdventurerCreaterPage(wx.Panel):
             method(key)
 
     def OnMouseWheel(self, event):
+        if cw.util.has_modalchild(self):
+            return
+
         mousepos = event.GetPosition()
 
         for key, value in self.clickables.iteritems():
@@ -1244,6 +1247,9 @@ class NamePage(AdventurerCreaterPage):
             AdventurerCreaterPage.OnNRightKeyDown(self, event)
 
     def OnMouseWheel(self, event):
+        if cw.util.has_modalchild(self):
+            return
+
         if self.ch_imgdpath.GetRect().Contains(event.GetPosition()):
             if cw.util.get_wheelrotation(event) < 0:
                 self._up_imgd()
@@ -2680,6 +2686,9 @@ class DesignPanel(AdventurerCreaterPage):
         self.ch_imgdpath.Bind(wx.EVT_CHOICE, self.OnChoiceImgDPath)
 
     def OnMouseWheel(self, event):
+        if cw.util.has_modalchild(self):
+            return
+
         if self.ch_imgdpath.GetRect().Contains(event.GetPosition()):
             if cw.util.get_wheelrotation(event) < 0:
                 self._up_imgd()
