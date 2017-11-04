@@ -135,7 +135,7 @@ def add_mosaic(image, value):
     """
     try:
         func = _imageretouch.add_mosaic
-    except NameError:
+    except:
         return _add_mosaic(image, value)
 
     return _retouch(func, image, value)
@@ -171,7 +171,7 @@ def to_binaryformat(image, value, basecolor=(255, 255, 255)):
     """
     try:
         func = _imageretouch.to_binaryformat
-    except NameError:
+    except:
         return _to_binaryformat(image, value, basecolor)
 
     return _retouch(func, image, value, basecolor)
@@ -216,7 +216,7 @@ def add_noise(image, value, colornoise=False):
     """
     try:
         func = _imageretouch.add_noise
-    except NameError:
+    except:
         return _add_noise(image, value, colornoise)
 
     return _retouch(func, image, value, colornoise)
@@ -281,7 +281,7 @@ def exchange_rgbcolor(image, colormodel):
 
     try:
         func = _imageretouch.exchange_rgbcolor
-    except NameError:
+    except:
         return _exchange_rgbcolor(image, colormodel)
 
     return _retouch(func, image, colormodel)
@@ -324,7 +324,7 @@ def to_grayscale(image):
     """
     try:
         func = _imageretouch.to_sepiatone
-    except NameError:
+    except:
         return to_sepiatone(image, (0, 0, 0))
 
     return _retouch(func, image, (0, 0, 0))
@@ -336,7 +336,7 @@ def to_sepiatone(image, color=(30, 0, -30)):
     """
     try:
         func = _imageretouch.to_sepiatone
-    except NameError:
+    except:
         return _to_sepiatone(image, color)
 
     return _retouch(func, image, color)
@@ -393,7 +393,7 @@ def spread_pixels(image):
     """
     try:
         func = _imageretouch.spread_pixels
-    except NameError:
+    except:
         return _spread_pixels(image)
 
     return _retouch(func, image)
@@ -429,7 +429,7 @@ def _filter(image, weight, offset=0, div=1):
     """
     try:
         func = _imageretouch.filter
-    except NameError:
+    except:
         return __filter(image, weight, offset, div)
 
     return _retouch(func, image, weight, offset, div)
@@ -615,7 +615,7 @@ def add_border(img, bordercolor, borderwidth):
     """
     try:
         func = _imageretouch.bordering
-    except NameError:
+    except:
         func = _bordering
 
     buf = pygame.image.tostring(img, "RGBA")
@@ -801,7 +801,7 @@ def to_disabledimage(wxbmp, maskpos=(0, 0)):
     """
     try:
         func = _imageretouch.to_disabledimage
-    except NameError:
+    except:
         func = _to_disabledimage
 
     wximg = wxbmp.ConvertToImage().ConvertToGreyscale()
@@ -839,6 +839,35 @@ def to_disabledsurface(image):
     image = image.copy()
     image.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
     return to_grayscale(image)
+
+def add_lightness_for_wxbmp(wxbmp, lightness, maskpos=(0, 0)):
+    """
+    通常時のボタン画像からdisabled用の画像を作る。
+    RGB値の範囲を 0～255 から min～max に変更する。
+    wxbmp: wx.Bitmap
+    """
+    try:
+        func = _imageretouch.add_lightness
+    except:
+        func = _add_lightness
+
+    wximg = wxbmp.ConvertToImage().ConvertToGreyscale()
+    buf = str(wximg.GetDataBuffer())
+    alphabuf = wximg.GetAlphaBuffer()
+    buf = bytearray(buf)
+    w = wximg.GetWidth()
+    h = wximg.GetHeight()
+    func(buf, (w, h), lightness)
+
+    wximg = wx.ImageFromBuffer(w, h, buffer(buf), alphaBuffer=alphabuf)
+    wxbmp = wx.BitmapFromImage(wximg)
+    x, y = maskpos
+    wxbmp.SetMaskColour((wximg.GetRed(x, y), wximg.GetGreen(x, y), wximg.GetBlue(x, y)))
+    return wxbmp
+
+def _add_lightness(buf, (w, h), lightness):
+    for i, v in enumerate(buf):
+        buf[i] = cw.util.numwrap(v + lightness, 0, 255)
 
 def hex2color(hexnum):
     """RGBデータの16進数を(r, g, b)のタプルで返す。

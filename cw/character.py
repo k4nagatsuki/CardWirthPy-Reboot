@@ -393,6 +393,23 @@ class Character(object):
 
         return tuple(cardpocket)
 
+    def replace_cardposition(self, cardtype, header1, header2):
+        seq = self.cardpocket[cardtype]
+        index1 = seq.index(header1)
+        index2 = seq.index(header2)
+        seq[index2] = header1
+        seq[index1] = header2
+        if cardtype == cw.POCKET_SKILL:
+            e = self.data.find("SkillCards")
+        elif cardtype == cw.POCKET_ITEM:
+            e = self.data.find("ItemCards")
+        elif cardtype == cw.POCKET_BEAST:
+            e = self.data.find("BeastCards")
+        if e is None:
+            return
+        e[index1], e[index2] = e[index2], e[index1]
+        self.data.is_edited = True
+
     def get_keycodes(self, skill=True, item=True, beast=True):
         """所持カードのキーコード一覧を返す。"""
         s = set()

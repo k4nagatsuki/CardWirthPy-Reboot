@@ -680,6 +680,17 @@ class CardImage(Image):
         image = image.Rescale(size[0], size[1], quality=cw.RESCALE_QUALITY)
         return image.ConvertToBitmap()
 
+    def get_wxdealingbmp(self, header, wxbmp, n, test_aptitude=None):
+        size = (self.wxrect.width * n // 100, self.wxrect.height)
+        if wxbmp:
+            image = wxbmp
+        else:
+            image = self.get_cardwxbmp(header, test_aptitude=test_aptitude)
+
+        image = cw.util.convert_to_image(image)
+        image = image.Rescale(size[0], size[1], quality=cw.RESCALE_QUALITY)
+        return image.ConvertToBitmap()
+
     def update(self, card):
         pass
 

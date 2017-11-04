@@ -192,6 +192,7 @@ class CardHeader(object):
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
+        self.deal_per = 100
 
         # 特殊なキーコード
         self.penalty = bool(cw.cwpy.msgs["penalty_keycode"] in self.keycodes)

@@ -738,6 +738,25 @@ to_disabledimage(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+add_lightness(PyObject *self, PyObject *args)
+{
+    int i, w, h, lightness;
+    Py_buffer buf;
+    unsigned char *dest;
+
+    if (!PyArg_ParseTuple(args, "s*(ii)i", &buf, &w, &h, &lightness))
+        return NULL;
+
+    dest = buf.buf;
+    for (i = 0; i < buf.len; i++)
+    {
+        dest[i] = (unsigned char)intwrap(dest[i] + lightness, 0, 255);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
 decode_rle4data(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
@@ -1396,6 +1415,8 @@ _imageretouchMethods[] =
         "blend_and_msg(rgba_str, size, rgba_str, rgba)"},
     {"to_disabledimage", to_disabledimage, METH_VARARGS,
         "to_disabledimage(char*, size)"},
+    {"add_lightness", add_lightness, METH_VARARGS,
+        "add_lightness(char*, size, lightness)"},
     {"decode_rle4data", decode_rle4data, METH_VARARGS,
         "decode_rle4data(char*, h, bpl)"},
     {"has_alphabmp32", has_alphabmp32, METH_VARARGS,
