@@ -136,6 +136,7 @@ class SettingsDialog(wx.Dialog):
         # モニタ内に収める
         cw.util.adjust_position(self)
 
+
 class SimpleSettingsPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
@@ -1982,6 +1983,7 @@ class DrawingSettingPanel(wx.Panel):
         local.important_draw = True
         self.load(None, local)
 
+
 class AudioSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -2080,6 +2082,7 @@ class AudioSettingPanel(wx.Panel):
         sfont, use, volume = soundfont
         self.grid_soundfont.SetCellValue(row, 0, u"1" if use else u"")
         self.grid_soundfont.SetCellValue(row, 1, sfont)
+        self.grid_soundfont.SetCellRenderer(row, 1, cw.util.FilePathRenderer(True, False))
         self.grid_soundfont.SetCellValue(row, 2, str(volume))
         self.grid_soundfont.SetCellEditor(row, 0, wx.grid.GridCellBoolEditor())
         self.grid_soundfont.SetCellRenderer(row, 0, wx.grid.GridCellBoolRenderer())
@@ -2307,15 +2310,17 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_open_lastscenario.SetValue(setting.open_lastscenario)
         if 0 < self.grid_folderoftype.GetNumberRows():
             self.grid_folderoftype.DeleteRows(0, self.grid_folderoftype.GetNumberRows())
-        self.grid_folderoftype.InsertRows(0, len(setting.folderoftype) + 1)
         self.grid_folderoftype.SetColLabelSize(cw.ppis(0))
         self.grid_folderoftype.SetRowLabelSize(cw.ppis(0))
         self.grid_folderoftype.SetColSize(0, cw.ppis(100))
         self.grid_folderoftype.SetColSize(1, cw.ppis(370))
-        for row in xrange(self.grid_folderoftype.GetNumberRows() - 1):
-            skintype, folder = setting.folderoftype[row]
+        for row, (skintype, folder) in enumerate(setting.folderoftype):
+            self.grid_folderoftype.AppendRows(1)
             self.grid_folderoftype.SetCellValue(row, 0, skintype)
             self.grid_folderoftype.SetCellValue(row, 1, folder)
+            # FIXME: 末尾の列にFilePathRendererを設定すると選択表示が1つ上の行になってしまう
+            #self.grid_folderoftype.SetCellRenderer(row, 1, cw.util.FilePathRenderer(False, True))
+        self.grid_folderoftype.AppendRows(1)
         self.tx_editor.SetValue(setting.editor)
         self.tx_filer_dir.SetValue(setting.filer_dir)
         self.tx_filer_file.SetValue(setting.filer_file)
@@ -2429,6 +2434,7 @@ class ScenarioSettingPanel(wx.Panel):
         if event.Col == 0 and event.Row + 1 == self.grid_folderoftype.GetNumberRows() and\
                 self.grid_folderoftype.GetCellValue(event.Row, 0):
             self.grid_folderoftype.AppendRows(1)
+            self.grid_folderoftype.SetCellRenderer(event.Row+1, 1, cw.util.FilePathRenderer(False, True))
 
     def OnRefFolderBtn(self, event):
         row = self.grid_folderoftype.GetGridCursorRow()
@@ -2514,6 +2520,7 @@ class ScenarioSettingPanel(wx.Panel):
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
+
 
 class UISettingPanel(wx.ScrolledWindow):
     def __init__(self, parent):

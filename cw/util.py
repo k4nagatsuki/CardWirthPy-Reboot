@@ -41,6 +41,7 @@ import wx
 import wx.lib.agw.aui.tabart
 import wx.lib.mixins.listctrl
 import wx.richtext
+import wx.grid
 import pygame
 import pygame.image
 from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
@@ -3011,6 +3012,7 @@ def format_title(fmt, d):
 
     return do_format(l)[0]
 
+
 #-------------------------------------------------------------------------------
 # wx汎用関数
 #-------------------------------------------------------------------------------
@@ -3120,11 +3122,13 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
 
     return wxbmp
 
+
 def copy_wxbmp(bmp):
     """wx.Bitmapのコピーを生成する。"""
     w = bmp.GetWidth()
     h = bmp.GetHeight()
     return bmp.GetSubBitmap((0, 0, w, h))
+
 
 def convert_to_image(bmp):
     """wx.Bitmapをwx.Imageに変換する。
@@ -3146,6 +3150,7 @@ def convert_to_image(bmp):
         img.SetMaskColour(r, g, b)
     return img
 
+
 def fill_image(img, surface, csize, ctrlpos=(0, 0), cpos=(0, 0)):
     """引数のsurfaceをimg上に敷き詰める。"""
     imgsize = surface.get_size()
@@ -3161,6 +3166,7 @@ def fill_image(img, surface, csize, ctrlpos=(0, 0), cpos=(0, 0)):
             img.blit(surface, (x+cpos[0], y+cpos[1]))
             y += h
         x += w
+
 
 def fill_bitmap(dc, bmp, csize, ctrlpos=(0, 0), cpos=(0, 0)):
     """引数のbmpを敷き詰める。"""
@@ -3178,12 +3184,14 @@ def fill_bitmap(dc, bmp, csize, ctrlpos=(0, 0), cpos=(0, 0)):
             y += h
         x += w
 
+
 def get_centerposition(size, targetpos, targetsize=(1, 1)):
     """中央取りのpositionを計算して返す。"""
     top, left = targetsize[0] / 2 , targetsize[1] / 2
     top, left = targetpos[0] + top, targetpos[1] + left
     top, left = top - size[0] / 2, left - size[1] /2
     return (top, left)
+
 
 def draw_center(dc, target, pos, mask=True):
     """指定した座標にBitmap・テキストの中央を合わせて描画。
@@ -3198,6 +3206,7 @@ def draw_center(dc, target, pos, mask=True):
         pos = get_centerposition(size, pos)
         dc.DrawBitmap(target, pos[0], pos[1], mask)
 
+
 def draw_height(dc, target, height, mask=True):
     """高さのみ指定して、横幅は背景の中央に合わせてBitmap・テキストを描画。
     target: wx.Bitmapかstrかunicode
@@ -3208,6 +3217,7 @@ def draw_height(dc, target, height, mask=True):
     elif isinstance(target, wx.Bitmap):
         width = (dc.GetSize()[0] - target.GetSize()[0]) / 2
         dc.DrawBitmap(target, width, height, mask)
+
 
 def draw_box(dc, pos, size):
     """dcでStaticBoxの囲いを描画する。"""
@@ -3222,6 +3232,7 @@ def draw_box(dc, pos, size):
     box = get_boxpointlist(pos, size)
     dc.DrawLineList(box)
 
+
 def draw_witharound_simple(dc, s, x, y, aroundcolor):
     """テキストsを縁取りしながら描画する。"""
     oldcolor = dc.GetTextForeground()
@@ -3233,11 +3244,13 @@ def draw_witharound_simple(dc, s, x, y, aroundcolor):
     dc.SetTextForeground(oldcolor)
     dc.DrawText(s, x, y)
 
+
 def draw_witharound(dc, s, x, y, maxwidth=0):
     """テキストsを縁取りしながら描画する。
     フォントのスムージングを行う。
     """
     draw_antialiasedtext(dc, s, x, y, False, maxwidth, 0, scaledown=False, bordering=True)
+
 
 def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
                          quality=None, scaledown=True, alpha=64,
@@ -3252,6 +3265,7 @@ def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
     subimg = cw.util.render_antialiasedtext(dc, text, white, maxwidth, padding,
                                             scaledown=scaledown, quality=quality)
     dc.DrawBitmap(subimg, x, y)
+
 
 def render_antialiasedtext(basedc, text, white, maxwidth, padding,
                            quality=None, scaledown=True, alpha=255):
@@ -3314,6 +3328,7 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     subimg = subimg.ConvertToBitmap()
     return subimg
 
+
 def get_boxpointlist(pos, size):
     """StaticBoxの囲い描画用のposlistを返す。"""
     x, y = pos
@@ -3324,6 +3339,7 @@ def get_boxpointlist(pos, size):
     poslist.append((x + width, y, x + width, y + height))
     poslist.append((x, y + height, x + width, y + height))
     return poslist
+
 
 def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, getbasedir=None, callback=None, winsize=False):
     """ファイルまたはディレクトリを選択する
@@ -3375,6 +3391,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
     parent.Bind(wx.EVT_BUTTON, OnOpen, button)
     return button
 
+
 def adjust_position(frame):
     """frameの位置がいずれかのモニタ内に収まるように調節する。
     サイズ変更は行わない。
@@ -3390,6 +3407,7 @@ def adjust_position(frame):
     if x < cax: x = cax
     if y < cay: y = cay
     frame.SetPosition((x, y))
+
 
 class CWPyStaticBitmap(wx.Panel):
     """wx.StaticBitmapはアルファチャンネル付きの画像を
@@ -3441,6 +3459,7 @@ class CWPyStaticBitmap(wx.Panel):
 
     def GetBitmap(self, bmps):
         return self.bmps
+
 
 def abbr_longstr(dc, text, w):
     """ClientDCを使って長い文字列を省略して末尾に三点リーダを付ける。
@@ -3576,6 +3595,7 @@ class CWBackCheckBox(wx.CheckBox):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(basebmp, 0, 0)
 
+
 def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
     """toppanelの左右の領域をクリックすると
     leftbtnまたはrightbtnのイベントが実行されるように
@@ -3614,6 +3634,7 @@ def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
     toppanel.Bind(wx.EVT_MOTION, OnMotion)
     toppanel.Bind(wx.EVT_LEFT_UP, OnLeftUp)
 
+
 def set_acceleratortable(panel, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog, wx.Panel)):
     """panelにseqから生成したAcceleratorTableを設定する。
     """
@@ -3633,6 +3654,7 @@ def set_acceleratortable(panel, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog
         for child in widget.GetChildren():
             recurse(child)
     recurse(panel)
+
 
 def adjust_dropdownwidth(choice):
     """wx.Choiceまたはwx.ComboBoxのドロップダウンリストの
@@ -3890,6 +3912,33 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
 
     def DrawFocusRectangle(self, dc, page, wnd, draw_text, text_offset, bitmap_offset, drawn_tab_yoff, drawn_tab_height, textx, texty):
         return
+
+
+class FilePathRenderer(wx.grid.PyGridCellRenderer):
+    def __init__(self, can_file=True, can_dir=True):
+        wx.grid.PyGridCellRenderer.__init__(self)
+        self._can_file = can_file
+        self._can_dir = can_dir
+
+    def Clone(self):
+        return FilePathRenderer(self._can_file, self._can_dir)
+
+    def Draw(self, grid, attr, dc, rect, row, col, is_selected):
+        dc.DrawRectangle(rect.X, rect.Y, rect.Width, rect.Height)
+        fpath = grid.GetCellValue(row, col)
+        if not fpath:
+            return
+        x = rect.X + cw.ppis(2)
+        if not ((self._can_file and os.path.isfile(fpath)) or \
+                        (self._can_dir and os.path.isdir(fpath))):
+            bmp = cw.cwpy.rsrc.debugs["WARNING_dbg"]
+            y = rect.Y + (rect.Height - bmp.GetHeight()) // 2
+            dc.DrawBitmap(bmp, x, y, True)
+            x += bmp.GetWidth() + cw.ppis(2)
+        dc.SetClippingRect(rect)
+        y = rect.Y + (rect.Height - dc.GetTextExtent(fpath)[1]) // 2
+        dc.DrawText(fpath, x, y)
+        dc.DestroyClippingRegion()
 
 
 #-------------------------------------------------------------------------------
