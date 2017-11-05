@@ -487,7 +487,8 @@ class SoundInterface(object):
 #　汎用関数
 #-------------------------------------------------------------------------------
 
-def init(size_noscale=None, title="", fullscreen=False, soundfonts=None, fullscreensize=(0, 0)):
+def init(size_noscale=None, title="", fullscreen=False, soundfonts=None, fullscreensize=(0, 0),
+         sdlmixer_enabled=False):
     """pygame初期化。"""
     if sys.platform == "win32":
         # FIXME: SDLがWindowsの言語設定に勝手にUSキーボード設定を追加してしまうので
@@ -535,7 +536,7 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None, fullscr
         soundfonts = [(cw.DEFAULT_SOUNDFONT, True, 100)]
     soundfonts = [(sfont[0], sfont[2]/100.0) for sfont in soundfonts if sfont[1]]
     if not cw.bassplayer.init_bass(soundfonts):
-        if cw.cwpy.setting.sdlmixer_enabled:
+        if sdlmixer_enabled:
             # BASS Audioが使用できない場合に限りpygame.mixerを初期化
             # (BASSとpygame.mixerを同時に初期化した場合、
             # 環境によっては音が出なくなるなどの不具合が出る)

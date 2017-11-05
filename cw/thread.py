@@ -68,7 +68,8 @@ class CWPy(_Singleton, threading.Thread):
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
         self.scr, self.scr_draw, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen, self.setting.soundfonts,
-                                                                                fullscreensize=self.frame.get_displaysize())
+                                                                                fullscreensize=self.frame.get_displaysize(),
+                                                                                sdlmixer_enabled=self.setting.sdlmixer_enabled)
         if fullscreen:
             self.set_fullscreen(True)
         # 背景
