@@ -326,6 +326,7 @@ class Setting(object):
         self.vol_sound = 0.4
         self.soundfonts = [(cw.DEFAULT_SOUNDFONT, True, 100)]
         self.bassmidi_sample32bit = True
+        self.sdlmixer_enabled = False
         self.messagespeed = 5
         self.dealspeed = 5
         self.dealspeed_battle = 5
@@ -570,6 +571,8 @@ class Setting(object):
                 self.soundfonts.append((e.text, use, volume))
         # 32bitオプションでMIDIを再生する
         self.bassmidi_sample32bit = data.getbool("Bassmidi32bit", self.bassmidi_sample32bit)
+        # BASS Audioが使えない時にSDL_mixerを使用する
+        self.sdlmixer_enabled = data.getbool("SDLMixerIsEnabled", self.sdlmixer_enabled)
         # メッセージスピード(数字が小さいほど速い)(0～100)
         self.messagespeed = data.getint("MessageSpeed", self.messagespeed)
         self.messagespeed = cw.util.numwrap(self.messagespeed, 0, 100)

@@ -228,6 +228,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.bassmidi_sample32bit <> setting.bassmidi_sample32bit_init:
         e = cw.data.make_element("Bassmidi32bit", str(setting.bassmidi_sample32bit))
         element.append(e)
+    # BASS Audioが使えない時にSDL_mixerを使用する
+    if setting.sdlmixer_enabled <> setting.sdlmixer_enabled_init:
+        e = cw.data.make_element("SDLMixerIsEnabled", str(setting.sdlmixer_enabled))
+        element.append(e)
     # メッセージスピード(数字が小さいほど速い)(0～100)
     if setting.messagespeed <> setting.messagespeed_init:
         e = cw.data.make_element("MessageSpeed", str(setting.messagespeed))

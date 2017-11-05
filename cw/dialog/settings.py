@@ -574,12 +574,12 @@ class SettingsPanel(wx.Panel):
 
                     if cw.bassplayer.is_alivable():
                         cw.bassplayer.dispose_bass()
-                    if pygame.mixer.get_init():
+                    if cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init():
                         pygame.mixer.quit()
 
                     if sfonts1:
                         cw.bassplayer.init_bass(sfonts1)
-                    else:
+                    elif cw.cwpy.setting.sdlmixer_enabled:
                         cw.util.sdlmixer_init()
 
                     if bool(sfonts1) <> bool(sfonts2):
