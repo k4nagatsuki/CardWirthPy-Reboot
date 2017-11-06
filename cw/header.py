@@ -858,6 +858,7 @@ class InfoCardHeader(object):
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
+        self.deal_per = 100
 
     def set_cardimg(self, can_loaded_scaledimage, anotherscenariocard):
         self.can_loaded_scaledimage = can_loaded_scaledimage
