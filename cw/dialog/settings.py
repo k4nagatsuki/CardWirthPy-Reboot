@@ -844,11 +844,14 @@ class SkinPanel(wx.Panel):
             self.btn_deleteskin = wx.Button(self, -1, u"削除")
 
             self.cb_show_allskin = wx.CheckBox(self, -1, u"異なる種別のスキンを表示する")
+            self.cb_show_allskin.SetToolTipString(u"スキンはそれぞれ独自のシステムを持つ場合があるため、異なる種別のスキンに切り替えると、キャラクターの情報がおかしくなったり、シナリオが正常に動かなくなるなどの問題が発生する可能性があります。")
             if not cw.cwpy.ydata:
                 self.cb_show_allskin.SetValue(True)
                 self.cb_show_allskin.Enable(False)
         else:
             self.cb_show_allskin = None
+            if cw.cwpy.ydata:
+                self.ch_skin.SetToolTipString(u"異なる種別のスキンに切り替えたい場合は、タイトル画面に戻るか、詳細設定で「異なる種別のスキンを表示する」にチェックを入れてください。")
 
         prop = cw.header.GetProperty(u"Data/SkinBase/Skin.xml")
         self.basecash = int(prop.properties.get(u"InitialCash", "4000"))
