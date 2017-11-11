@@ -488,6 +488,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             e = cw.data.make_element("UnconvertTargetFolder", setting.unconvert_targetfolder)
             element.append(e)
 
+    # タブレットモード
+    if setting.tablet_mode <> setting.tablet_mode_init:
+        e = cw.data.make_element("TabletMode", str(setting.tablet_mode))
+        element.append(e)
+
     # 空白時間をスキップ可能にする
     if setting.can_skipwait <> setting.can_skipwait_init:
         e = cw.data.make_element("CanSkipWait", str(setting.can_skipwait))

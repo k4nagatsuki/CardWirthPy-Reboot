@@ -1292,7 +1292,19 @@ class Frame(wx.Frame):
         return (size[0] - csize[0]) + pos[0], (size[1] - csize[1]) + pos[1]
 
 
+FLICK_NONE = 0
+FLICK_START = 1
+
+
 class MyApp(wx.App):
+
+    def __init__(self):
+        wx.App.__init__(self, 0)
+        self.flick_status = FLICK_NONE
+        self.flick_window = None
+        self.flick_start_pos = (-1, -1)
+        self.flick_start_time = 0
+
     def OnInit(self):
         wx.Log.SetLogLevel(wx.LOG_Error)
         self.SetAppName(cw.APP_NAME)
@@ -1345,11 +1357,39 @@ class MyApp(wx.App):
         if not cw.cwpy.is_showingdlg():
             return -1
 
-        if not isinstance(event, wx.KeyEvent):
+        if not isinstance(event, (wx.KeyEvent, wx.MouseEvent)):
             return -1
 
         if not event.GetEventObject():
             return -1
+
+        # ダイアログ上でのフリック操作
+        # フリック開始位置で右クリックを発生させる
+        if cw.cwpy and cw.cwpy.setting.tablet_mode and isinstance(event, wx.MouseEvent):
+            if event.GetEventType() == wx.EVT_LEFT_DOWN.typeId:
+                window = event.GetEventObject()
+                if isinstance(window, wx.Window):
+                    self.flick_status = FLICK_START
+                    self.flick_window = window
+                    self.flick_start_pos = wx.GetMousePosition()
+                    self.flick_start_time = time.time()
+            elif self.flick_status == FLICK_START and event.GetEventType() == wx.EVT_LEFT_UP.typeId:
+                mousepos = wx.GetMousePosition()
+                xmove = cw.ppis(mousepos[0] - self.flick_start_pos[0])
+                ymove = cw.ppis(mousepos[1] - self.flick_start_pos[1])
+                dur = time.time() - self.flick_start_time
+                exit = -1
+                if self.flick_window and cw.ppis(cw.cwpy.setting.flick_distance) < xmove and\
+                                         dur < cw.cwpy.setting.flick_time_msec/1000.0:
+                    event2 = wx.PyCommandEvent(wx.wxEVT_RIGHT_UP, wx.ID_UP)
+                    self.flick_window.ProcessEvent(event2)
+                    exit = True
+
+                self.flick_status = FLICK_NONE
+                self.flick_window = None
+                self.flick_start_pos = (-1, -1)
+                self.flick_start_time = 0
+                return exit
 
         # スクリーンショットの撮影
         if isinstance(event, wx.KeyEvent) and\

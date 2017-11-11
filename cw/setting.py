@@ -395,6 +395,9 @@ class Setting(object):
         self.show_roundautostartbutton = True
         self.show_autobuttoninentrydialog = True
         self.unconvert_targetfolder = u"UnconvertedYado"
+        self.tablet_mode = True
+        self.flick_time_msec = 500
+        self.flick_distance = 20
         self.can_skipwait = True
         self.can_skipanimation = True
         self.can_skipwait_with_wheel = True
@@ -709,6 +712,9 @@ class Setting(object):
 
         # 逆変換先ディレクトリ
         self.unconvert_targetfolder = data.gettext("UnconvertTargetFolder", self.unconvert_targetfolder)
+
+        # タブレットモード
+        self.tablet_mode = data.getbool("TabletMode", self.tablet_mode_init)
 
         # 空白時間をスキップ可能にする
         self.can_skipwait = data.getbool("CanSkipWait", self.can_skipwait)

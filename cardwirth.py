@@ -24,7 +24,7 @@ def main():
             os.path.abspath(os.environ["RESOURCEPATH"]) == os.path.dirname(os.path.abspath(sys.argv[0]))):
             os.chdir(os.path.join(os.environ["RESOURCEPATH"], "..", "..", ".."))
     try:
-        app = cw.frame.MyApp(0)
+        app = cw.frame.MyApp()
         app.MainLoop()
     finally:
         cw.util.clear_mutex()
