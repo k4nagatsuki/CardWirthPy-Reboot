@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import time
 import pygame
 
 import cw
@@ -107,16 +108,23 @@ class SelectableSprite(CWPySprite):
         # イベント中時、メッセージ選択バー以外
         elif cw.cwpy.is_runningevent() and not self.selectable_on_event:
             return False
-        # 通常の衝突判定
-        elif not cw.cwpy.mousemotion and cw.cwpy.index >= 0 and cw.cwpy.index < len(cw.cwpy.list):
-            if self is cw.cwpy.list[cw.cwpy.index]:
-                return True
 
-        elif 0 <= cw.cwpy.mousepos[0] and 0 <= cw.cwpy.mousepos[1] and\
-                self.rect.collidepoint(cw.cwpy.mousepos):
-            if cw.cwpy.mousemotion:
-                cw.cwpy.index = -1
-            return True
+        elif cw.cwpy.keyevent.flick_status == cw.frame.FLICK_START and\
+                time.time()-cw.cwpy.keyevent.flick_start_time <= cw.cwpy.setting.flick_time_msec/1000.0:
+            # フリック操作中
+            return self is cw.cwpy.keyevent.flick_sprite
+
+        else:
+            # 通常の衝突判定
+            if not cw.cwpy.mousemotion and cw.cwpy.index >= 0 and cw.cwpy.index < len(cw.cwpy.list):
+                if self is cw.cwpy.list[cw.cwpy.index]:
+                    return True
+
+            elif 0 <= cw.cwpy.mousepos[0] and 0 <= cw.cwpy.mousepos[1] and\
+                    self.rect.collidepoint(cw.cwpy.mousepos):
+                if cw.cwpy.mousemotion:
+                    cw.cwpy.index = -1
+                return True
 
         return False
 

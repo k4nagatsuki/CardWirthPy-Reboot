@@ -147,7 +147,7 @@ class SimpleSettingsPanel(wx.Panel):
 
         # デバッグモード
         self.box_debug = wx.StaticBox(self.panel, -1, u"デバッグ")
-        self.cb_debug = wx.CheckBox(self.panel, -1, u"デバッグモードでプレイする(Ctrl+Dでも切替可)")
+        self.cb_debug = wx.CheckBox(self.panel, -1, u"デバッグモード(Ctrl+Dでも切替可)")
         self.cb_debug.SetValue(cw.cwpy.debug)
 
         # スキン
@@ -439,6 +439,8 @@ class SettingsPanel(wx.Panel):
             if not value == cw.cwpy.setting.debug:
                 cw.cwpy.exec_func(cw.cwpy.set_debug, value)
 
+        value = self.pane_gene.cb_tablet_mode.GetValue()
+        setting.tablet_mode = value
         value = self.pane_gene.cb_show_debuglogdialog.GetValue()
         setting.show_debuglogdialog = value
         value = self.pane_gene.cb_nolevelup.GetValue()
@@ -1200,7 +1202,9 @@ class GeneralSettingPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         # デバッグモード
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        self.cb_debug = wx.CheckBox(self, -1, u"デバッグモードでプレイする(Ctrl+Dでも切替可)")
+        self.cb_tablet_mode = wx.CheckBox(self, -1, u"タブレットモード(タッチ操作向け)")
+        self.cb_tablet_mode.SetToolTipString(u"右フリック = カード情報表示・キャンセルなど")
+        self.cb_debug = wx.CheckBox(self, -1, u"デバッグモード(Ctrl+Dでも切替可)")
         self.cb_debug.SetValue(cw.cwpy.debug)
         self.cb_show_debuglogdialog = wx.CheckBox(
             self, -1, u"シナリオの終了時にデバッグ情報を表示する")
@@ -1320,6 +1324,7 @@ class GeneralSettingPanel(wx.Panel):
             tx.Bind(wx.EVT_KILL_FOCUS, self.OnSSFocus)
 
     def load(self, setting):
+        self.cb_tablet_mode.SetValue(setting.tablet_mode)
         self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog)
         self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode)
         if setting.messagelog_type == cw.setting.LOG_SINGLE:
@@ -1350,6 +1355,7 @@ class GeneralSettingPanel(wx.Panel):
         self.expand.load(setting)
 
     def init_values(self, setting):
+        self.cb_tablet_mode.SetValue(setting.tablet_mode_init)
         self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog_init)
 
         self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode_init)
@@ -1422,6 +1428,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
 
+        bsizer_gene.Add(self.cb_tablet_mode, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_show_debuglogdialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))

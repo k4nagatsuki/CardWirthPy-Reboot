@@ -1379,8 +1379,8 @@ class MyApp(wx.App):
                 ymove = cw.ppis(mousepos[1] - self.flick_start_pos[1])
                 dur = time.time() - self.flick_start_time
                 exit = -1
-                if self.flick_window and cw.ppis(cw.cwpy.setting.flick_distance) < xmove and\
-                                         dur < cw.cwpy.setting.flick_time_msec/1000.0:
+                if self.flick_window and cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and\
+                                         dur <= cw.cwpy.setting.flick_time_msec/1000.0:
                     event2 = wx.PyCommandEvent(wx.wxEVT_RIGHT_UP, wx.ID_UP)
                     self.flick_window.ProcessEvent(event2)
                     exit = True

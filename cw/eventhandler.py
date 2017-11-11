@@ -3,6 +3,8 @@
 
 import os
 import bisect
+import sys
+import time
 
 import pygame
 from pygame.locals import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
@@ -35,7 +37,8 @@ class EventHandler(object):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
-            self.check_puressedbutton(event)
+            if not self.check_puressedbutton(event):
+                continue
 
             if event.type == KEYDOWN:
                 # 上方向キー
@@ -130,7 +133,43 @@ class EventHandler(object):
         cw.cwpy.wheelmode_cursorpos = (-1, -1)
 
         if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
-            return
+            return True
+
+        # フリック操作
+        # フリック開始位置で右クリックイベントを発生させる
+        if cw.cwpy.setting.tablet_mode and event.button == 1:
+            selection = cw.cwpy.selection
+            pos = pygame.mouse.get_pos()
+            if pos[0] == cw.s(cw.SIZE_AREA[0])-1 and not pygame.mouse.get_focused():
+                # FIXME: カーソルが画面外に出ているとpos[0]が右端の位置になってしまう。
+                #        wx側の機能を使うわけにもいかないので、苦肉の策として
+                #        画面外にカーソルが出ていたらフリック距離分だけ移動した状態と見なす。
+                pos = (cw.cwpy.keyevent.flick_start_pos[0]+cw.ppis(cw.cwpy.setting.flick_distance), pos[1])
+
+            if event.type == MOUSEBUTTONDOWN:
+                cw.cwpy.keyevent.flick_status = cw.frame.FLICK_START
+                cw.cwpy.keyevent.flick_sprite = selection
+                cw.cwpy.keyevent.flick_start_pos = pos
+                cw.cwpy.keyevent.flick_start_time = time.time()
+            elif cw.cwpy.keyevent.flick_status == cw.frame.FLICK_START and event.type == MOUSEBUTTONUP:
+                xmove = cw.ppis(pos[0] - cw.cwpy.keyevent.flick_start_pos[0])
+                ymove = cw.ppis(pos[1] - cw.cwpy.keyevent.flick_start_pos[1])
+                dur = time.time() - cw.cwpy.keyevent.flick_start_time
+                flick = False
+                if cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and dur <= cw.cwpy.setting.flick_time_msec/1000.0:
+                    cw.cwpy.has_inputevent = False
+                    cw.cwpy.change_selection(cw.cwpy.keyevent.flick_sprite)
+                    cw.cwpy.mousepos = cw.s(cw.cwpy.keyevent.flick_start_pos)
+                    flick = True
+
+                cw.cwpy.keyevent.flick_status = cw.frame.FLICK_NONE
+                cw.cwpy.keyevent.flick_sprite = None
+                cw.cwpy.keyevent.flick_start_pos = (-1, -1)
+                cw.cwpy.keyevent.flick_start_time = 0
+
+                if flick:
+                    self.rclick_event(flick=True)
+                    return False
 
         button = event.button - 1
         if 0 <= button and button < len(cw.cwpy.keyevent.mousein):
@@ -138,6 +177,8 @@ class EventHandler(object):
                 cw.cwpy.keyevent.mousein[button] = pygame.time.get_ticks()
             elif event.type == MOUSEBUTTONUP and not hasattr(event, "ignoreup"):
                 cw.cwpy.keyevent.mousein[button] = 0
+
+        return True
 
     def calc_index(self, value):
         length = len(cw.cwpy.list)
@@ -284,17 +325,18 @@ class EventHandler(object):
             # メニューカードの表示を待っている場合は表示
             cw.cwpy.deal_cards(quickdeal=cw.cwpy.setting.all_quickdeal)
 
-    def rclick_event(self):
+    def rclick_event(self, flick=False):
         """
         右クリックイベント。
         """
-        if cw.cwpy.statusbar.clear_volumebar():
+        if not flick and cw.cwpy.statusbar.clear_volumebar():
             return
 
         if cw.cwpy.is_showingdlg():
             return
 
-        self._update_selection()
+        if not flick:
+            self._update_selection()
 
         if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
@@ -661,7 +703,8 @@ class EventHandlerForMessageWindow(EventHandler):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
-            self.check_puressedbutton(event)
+            if not self.check_puressedbutton(event):
+                continue
 
             if event.type == KEYDOWN:
                 # 上方向キー
@@ -807,11 +850,11 @@ class EventHandlerForMessageWindow(EventHandler):
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event(skip=True)
 
-    def rclick_event(self):
+    def rclick_event(self, flick=False):
         """
         右クリックイベント。
         """
-        if cw.cwpy.statusbar.clear_volumebar():
+        if not flick and cw.cwpy.statusbar.clear_volumebar():
             if not self._has_message():
                 self.shiftkey_event(False)
             return
@@ -819,7 +862,8 @@ class EventHandlerForMessageWindow(EventHandler):
         if not self.can_input():
             return
 
-        self._update_selection()
+        if not flick:
+            self._update_selection()
 
         if cw.cwpy.selection:
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
@@ -1123,7 +1167,8 @@ class EventHandlerForBacklog(EventHandler):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
-            self.check_puressedbutton(event)
+            if not self.check_puressedbutton(event):
+                continue
 
             if event.type == KEYDOWN:
                 # 上方向キー
@@ -1233,18 +1278,19 @@ class EventHandlerForBacklog(EventHandler):
         """
         self.lclick_event()
 
-    def rclick_event(self):
+    def rclick_event(self, flick=False):
         """
         右クリックイベント。
         バックログ終了。
         """
-        if cw.cwpy.statusbar.clear_volumebar():
+        if not flick and cw.cwpy.statusbar.clear_volumebar():
             return
 
         if not self.can_input():
             return
 
-        self._update_selection()
+        if not flick:
+            self._update_selection()
 
         if cw.cwpy.selection:
             cw.cwpy.has_inputevent = True
@@ -1495,7 +1541,8 @@ class EventHandlerForEffectBooster(EventHandler):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
-            self.check_puressedbutton(event)
+            if not self.check_puressedbutton(event):
+                continue
 
             if event.type == KEYDOWN:
                 # ESCAPEキー
@@ -1570,17 +1617,18 @@ class EventHandlerForEffectBooster(EventHandler):
         """
         self.rclick_event()
 
-    def rclick_event(self):
+    def rclick_event(self, flick=False):
         """
         右クリックイベント。
         """
-        if cw.cwpy.statusbar.clear_volumebar():
+        if not flick and cw.cwpy.statusbar.clear_volumebar():
             return
 
         if not self.can_input():
             return
 
-        self._update_selection()
+        if not flick:
+            self._update_selection()
 
         if cw.cwpy.selection:
             cw.cwpy.has_inputevent = True

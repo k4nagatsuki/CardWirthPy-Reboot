@@ -60,6 +60,12 @@ class KeyEventRelay(object):
         # このフラグが立っている時に限り当該処理を行わない
         self.nokeyupevent = False
 
+        # フリック関係
+        self.flick_status = cw.frame.FLICK_NONE
+        self.flick_sprite = None
+        self.flick_start_pos = (-1, -1)
+        self.flick_start_time = 0
+
     def clear(self):
         self.keyin = [0 for _cnt in xrange(322)]
         self.mousein = [0, 0, 0]

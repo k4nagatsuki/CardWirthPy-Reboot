@@ -288,12 +288,12 @@ class LocalSetting(object):
 
 class Setting(object):
     def __init__(self, loadfile=None, init=True):
-        # Settings
-        self.init_settings(loadfile, init=init)
         # フレームレート
         self.fps = 60
         # 1frame分のmillseconds
         self.frametime = 1000 / self.fps
+        # Settings
+        self.init_settings(loadfile, init=init)
 
     def init_settings(self, loadfile=None, init=True):
         path = cw.util.join_paths("Data/SkinBase/Skin.xml")
@@ -395,8 +395,8 @@ class Setting(object):
         self.show_roundautostartbutton = True
         self.show_autobuttoninentrydialog = True
         self.unconvert_targetfolder = u"UnconvertedYado"
-        self.tablet_mode = True
-        self.flick_time_msec = 500
+        self.tablet_mode = False
+        self.flick_time_msec = 300
         self.flick_distance = 20
         self.can_skipwait = True
         self.can_skipanimation = True
