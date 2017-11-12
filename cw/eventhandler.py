@@ -159,7 +159,13 @@ class EventHandler(object):
                 if cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and dur <= cw.cwpy.setting.flick_time_msec/1000.0:
                     cw.cwpy.has_inputevent = False
                     cw.cwpy.change_selection(cw.cwpy.keyevent.flick_sprite)
-                    cw.cwpy.mousepos = cw.cwpy.keyevent.flick_start_pos
+                    if cw.cwpy.scr_fullscreen:
+                        mousepos = cw.cwpy.keyevent.flick_start_pos
+                        x = int((mousepos[0] - cw.cwpy.scr_pos[0]) / cw.cwpy.scr_scale)
+                        y = int((mousepos[1] - cw.cwpy.scr_pos[1]) / cw.cwpy.scr_scale)
+                        cw.cwpy.mousepos = (x, y)
+                    else:
+                        cw.cwpy.mousepos = cw.mwin2scr_s(cw.cwpy.keyevent.flick_start_pos)
                     flick = True
 
                 cw.cwpy.keyevent.flick_status = cw.frame.FLICK_NONE
