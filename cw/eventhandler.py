@@ -159,7 +159,7 @@ class EventHandler(object):
                 if cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and dur <= cw.cwpy.setting.flick_time_msec/1000.0:
                     cw.cwpy.has_inputevent = False
                     cw.cwpy.change_selection(cw.cwpy.keyevent.flick_sprite)
-                    cw.cwpy.mousepos = cw.s(cw.cwpy.keyevent.flick_start_pos)
+                    cw.cwpy.mousepos = cw.cwpy.keyevent.flick_start_pos
                     flick = True
 
                 cw.cwpy.keyevent.flick_status = cw.frame.FLICK_NONE
