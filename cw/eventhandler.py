@@ -140,7 +140,7 @@ class EventHandler(object):
         if cw.cwpy.setting.tablet_mode and event.button == 1:
             selection = cw.cwpy.selection
             pos = pygame.mouse.get_pos()
-            if not cw.cwpy.scr_fullscreen and pos[0] == cw.s(cw.SIZE_AREA[0])-1 and not pygame.mouse.get_focused():
+            if not cw.cwpy.scr_fullscreen and pos[0] == cw.scr2mwin_s(cw.s(cw.SIZE_AREA[0]))-1 and not pygame.mouse.get_focused():
                 # FIXME: カーソルが画面外に出ているとpos[0]が右端の位置になってしまう。
                 #        wx側の機能を使うわけにもいかないので、苦肉の策として
                 #        画面外にカーソルが出ていたらフリック距離分だけ移動した状態と見なす。
