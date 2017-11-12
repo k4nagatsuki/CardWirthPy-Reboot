@@ -161,13 +161,13 @@ class MessageWindow(base.CWPySprite):
         for talker_image, info in self.talker_image:
             baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
             if info.basecardtype == "LargeCard":
-                baserect.x -= cw.s(11) # LargeCardとNormalCardのサイズ差に合わせた調節
+                baserect.x -= cw.s(10) # LargeCardとNormalCardのサイズ差に合わせた調節
             xmove = max(-baserect.x, xmove)
 
         for talker_image, info in self.talker_image:
             baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
             if info.basecardtype == "LargeCard":
-                baserect.x -= cw.s(11) # LargeCardとNormalCardのサイズ差に合わせた調節
+                baserect.x -= cw.s(10) # LargeCardとNormalCardのサイズ差に合わせた調節
             y = (cw.s(180) - baserect.height) // 2
             y -= cw.s(self.trim_top_noscale)
             if info.basecardtype:
