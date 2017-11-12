@@ -1382,6 +1382,7 @@ class MyApp(wx.App):
                 if self.flick_window and cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and\
                                          dur <= cw.cwpy.setting.flick_time_msec/1000.0:
                     event2 = wx.PyCommandEvent(wx.wxEVT_RIGHT_UP, wx.ID_UP)
+                    event2.GetPosition = lambda: self.flick_window.ScreenToClient(self.flick_start_pos)
                     self.flick_window.ProcessEvent(event2)
                     exit = True
 
@@ -1390,6 +1391,13 @@ class MyApp(wx.App):
                 self.flick_start_pos = (-1, -1)
                 self.flick_start_time = 0
                 return exit
+
+        if cw.cwpy and cw.cwpy.setting.tablet_mode and isinstance(event, wx.MouseEvent):
+            if self.flick_status == FLICK_START and event.GetEventType() == wx.EVT_MOTION.typeId:
+                # フリックの制限時間が経過済みでない場合はポインタ移動イベントをキャンセルする
+                dur = time.time() - self.flick_start_time
+                if dur < cw.cwpy.setting.flick_time_msec/1000.0:
+                    return True
 
         # スクリーンショットの撮影
         if isinstance(event, wx.KeyEvent) and\

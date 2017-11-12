@@ -768,6 +768,8 @@ class CardControl(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnMove(self, event):
+        if self._proc:
+            return
         mousepos = event.GetPosition()
         self._on_move(mousepos=mousepos)
 
