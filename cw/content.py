@@ -1756,21 +1756,20 @@ class BranchMultiRandomContent(BranchContent):
 class CallStartContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data)
+        self.startname = self.data.get("call")
+        self.is_call = 0 < self.get_children_num()
 
     def action(self):
         """スタートコールコンテント。
         別のスタートコンテントのツリーイベントをコールする。
         """
-        startname = self.data.get("call")
         event = cw.cwpy.event.get_event()
         trees = cw.cwpy.event.get_trees()
 
-        if startname in trees:
+        if self.startname in trees:
             event = cw.cwpy.event.get_event()
 
-            call = 0 < self.get_children_num()
-
-            if call:
+            if self.is_call:
                 if cw.LIMIT_RECURSE <= cw.cwpy.event.get_currentstack():
                     s = u"イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
                     cw.cwpy.call_modaldlg("ERROR", text=s)
@@ -1778,7 +1777,7 @@ class CallStartContent(EventContentBase):
                 event.nowrunningcontents.append((None, event.cur_content, event.line_index, None))
                 item = (cw.cwpy.event.get_nowrunningevent(), event.cur_content, event.line_index)
                 cw.cwpy.event.append_stackinfo(item)
-            event.cur_content = trees[startname]
+            event.cur_content = trees[self.startname]
             event.line_index = 0
 
         return 0
@@ -2916,6 +2915,11 @@ class LoseContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data)
 
+        # 各種属性値取得
+        self.resid = self.data.getint(".", "id", 0)
+        self.num = self.data.getint(".", "number", 0)
+        self.scope = self.data.get("targets")
+
     def lose_cards(self, cardtype):
         """対象範囲のインスタンスに設定枚数のカードを削除する。
         numが0の場合は全対象カード削除。
@@ -2923,11 +2927,6 @@ class LoseContent(EventContentBase):
         """
         if self.is_differentscenario():
             return 0
-
-        # 各種属性値取得
-        resid = self.data.getint(".", "id", 0)
-        num = self.data.getint(".", "number", 0)
-        scope = self.data.get("targets")
 
         # 対象カードのxmlファイルのパス
         if cardtype == "SkillCard":
@@ -2943,21 +2942,21 @@ class LoseContent(EventContentBase):
             raise ValueError("%s is invalid cardtype" % cardtype)
 
         # 対象カードデータ取得
-        e = getdata(resid, "Property")
+        e = getdata(self.resid, "Property")
         if e is None:
             return 0
         name = e.gettext("Name", "")
         desc = e.gettext("Description", "")
-        if num == 0:
-            num = 0x7fffffff
+        if self.num == 0:
+            self.num = 0x7fffffff
 
-        for target in cw.cwpy.event.get_targetscope(scope):
+        for target in cw.cwpy.event.get_targetscope(self.scope):
             if isinstance(target, cw.character.Character):
                 target = target.get_pocketcards(index)
 
-            _headers, losenum = self.lose_card(name, desc, target, num)
-            num -= losenum
-            if num <= 0:
+            _headers, losenum = self.lose_card(name, desc, target, self.num)
+            self.num -= losenum
+            if self.num <= 0:
                 break
 
     def lose_card(self, name, desc, target, num):
@@ -3056,9 +3055,7 @@ class LoseCastContent(LoseContent):
         if self.is_differentscenario():
             return 0
 
-        resid = self.data.getint(".", "id", 0)
-
-        fcards = [i for i in cw.cwpy.sdata.friendcards if i.id == resid]
+        fcards = [i for i in cw.cwpy.sdata.friendcards if i.id == self.resid]
 
         if fcards:
             if cw.cwpy.ydata:
@@ -3083,14 +3080,14 @@ class LoseInfoContent(LoseContent):
     def __init__(self, data):
         LoseContent.__init__(self, data)
         self.resid = self.data.getint(".", "id", 0)
+        self.name = cw.cwpy.sdata.get_infoname(self.resid)
 
     def action(self):
         """情報喪失コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        name = cw.cwpy.sdata.get_infoname(self.resid)
-        if not name is None:
+        if not self.name is None:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             cw.cwpy.sdata.remove_infocard(self.resid)
