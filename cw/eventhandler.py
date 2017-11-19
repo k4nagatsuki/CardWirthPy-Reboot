@@ -129,8 +129,16 @@ class EventHandler(object):
         if event.type in (KEYDOWN, KEYUP):
             return event.key == K_RETURN
 
+    def clear_touchmenu(self):
+        if cw.cwpy.statusbar and\
+                not isinstance(cw.cwpy.selection, cw.sprite.touchbutton.TouchButton) and\
+                not cw.cwpy.statusbar.touchmenu is cw.cwpy.selection:
+            cw.cwpy.statusbar.hide_touchbuttons(redraw=True)
+
     def check_puressedbutton(self, event):
         cw.cwpy.wheelmode_cursorpos = (-1, -1)
+
+        self.clear_touchmenu()
 
         if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
             return True
@@ -380,6 +388,7 @@ class EventHandler(object):
 
     def background_event(self):
         # シナリオプレイ時、キャンプモード切替
+        cw.cwpy.statusbar.hide_touchbuttons()
         if not cw.cwpy.is_runningevent():
 
             # 選択エリアの時、キャンセル

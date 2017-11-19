@@ -440,7 +440,10 @@ class SettingsPanel(wx.Panel):
                 cw.cwpy.exec_func(cw.cwpy.set_debug, value)
 
         value = self.pane_gene.cb_tablet_mode.GetValue()
-        setting.tablet_mode = value
+        if value <> setting.tablet_mode:
+            setting.tablet_mode = value
+            updatestatusbar = True
+
         value = self.pane_gene.cb_show_debuglogdialog.GetValue()
         setting.show_debuglogdialog = value
         value = self.pane_gene.cb_nolevelup.GetValue()

@@ -3839,7 +3839,9 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_lockmenucards(self, sprite):
         """メニューカードをクリック出来ない状態か。"""
-        if isinstance(sprite, (cw.sprite.statusbar.StatusBarButton, cw.sprite.animationcell.AnimationCell)) and\
+        if isinstance(sprite, (cw.sprite.statusbar.StatusBarButton,
+                               cw.sprite.touchbutton.TouchButton,
+                               cw.sprite.animationcell.AnimationCell)) and\
                 sprite.selectable_on_event:
             return False
         return self.lock_menucards or\

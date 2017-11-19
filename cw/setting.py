@@ -396,8 +396,9 @@ class Setting(object):
         self.show_autobuttoninentrydialog = True
         self.unconvert_targetfolder = u"UnconvertedYado"
         self.tablet_mode = False
+        self.shiftup_touchbutton = True # タッチボタンをスライド表示する
         self.flick_time_msec = 300
-        self.flick_distance = 20
+        self.flick_distance = 30
         self.can_skipwait = True
         self.can_skipanimation = True
         self.can_skipwait_with_wheel = True

@@ -21,8 +21,10 @@ class ConvertingThread(threading.Thread):
         self.path = self.cwdata.convert()
         self.complete = True
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()
