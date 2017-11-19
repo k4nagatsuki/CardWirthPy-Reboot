@@ -276,6 +276,7 @@ class StatusBar(base.CWPySprite):
         if btns:
             if redraw:
                 cw.cwpy.play_sound("click")
+            cw.cwpy.pointed_tile = None
             rect = None
             for btn in btns:
                 cw.cwpy.stop_animation(btn)
@@ -999,7 +1000,7 @@ class Desc(base.CWPySprite):
             th += cw.s(3)  # 表題と本文の間
             fw, fh = tfont.size(title)
             tw = max(tw, fw + spx*2)
-            th += h
+            th += fh
         # 本文
         for line in lines:
             fw, fh = font.size(line)
@@ -1412,6 +1413,16 @@ class TouchMenuButton(StatusBarButton):
 
         self.set_desc(u"")
 
+        def lclick():
+            if cw.cwpy.index <> -1:
+                event = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
+                cw.cwpy.events.insert(0, event)
+
+        def rclick():
+            if cw.cwpy.index <> -1:
+                event = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=3)
+                cw.cwpy.events.insert(0, event)
+
         def f4():
             cw.cwpy.play_sound("click")
             event = pygame.event.Event(pygame.locals.KEYDOWN, key=pygame.locals.K_F4)
@@ -1448,20 +1459,42 @@ class TouchMenuButton(StatusBarButton):
         bw = cw.s(0)
         for icon, name, desc, hotkey, _func in params:
             bw = max(bw, cw.sprite.touchbutton.TouchButton.calc_width(icon, name, desc, hotkey))
+        bw += 4 - bw%4 # 4で割り切れるようにする
 
         btns = []
+        x = cw.s(cw.SIZE_AREA[0]) - bw
+        y = cw.s(cw.SIZE_AREA[1])
         for icon, name, desc, hotkey, func in params:
             btn = cw.sprite.touchbutton.TouchButton(icon, name, desc, hotkey, func,
                                                     width=bw)
             cw.cwpy.sbargrp.add(btn, layer=LAYER_TOUCH_BUTTON)
-            cw.cwpy.add_lazydraw(clip=btn.rect)
-            btn.rect.topleft = (cw.s(cw.SIZE_AREA[0])-bw, cw.s(cw.SIZE_AREA[1]))
+            btn.rect.topleft = (x, y)
             btns.append(btn)
+
+        icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_LEFT"]
+        lbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=-1, width=bw//4)
+
+        name = cw.cwpy.msgs["touch_lclick"]
+        lclick_btn = cw.sprite.touchbutton.SimplePointableTile(name, lclick, width=bw//4)
+
+        name = cw.cwpy.msgs["touch_rclick"]
+        rclick_btn = cw.sprite.touchbutton.SimplePointableTile(name, rclick, width=bw//4)
+
+        icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_RIGHT"]
+        rbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=1, width=bw//4)
 
         # 各ボタンを下からスライドして表示
         y = cw.s(cw.SIZE_AREA[1])
         for btn in reversed(btns):
             y -= btn.rect.height
+            btn.shift_top = y
+            cw.animation.start_animation(btn, "shiftup")
+
+        y -= lbtn.rect.height
+
+        for i, btn in enumerate((lbtn, lclick_btn, rclick_btn, rbtn)):
+            cw.cwpy.sbargrp.add(btn, layer=LAYER_TOUCH_BUTTON)
+            btn.rect.topleft = (x + bw//4*i, cw.s(cw.SIZE_AREA[1]))
             btn.shift_top = y
             cw.animation.start_animation(btn, "shiftup")
 

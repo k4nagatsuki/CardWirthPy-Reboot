@@ -15,8 +15,6 @@ class TouchButton(base.SelectableSprite):
     """
 
     def __init__(self, icon, name, desc, hotkey, func, width=0):
-        assert name
-        assert desc
         assert func
 
         base.SelectableSprite.__init__(self)
@@ -62,7 +60,7 @@ class TouchButton(base.SelectableSprite):
         for line in lines:
             fw, fh = font.size(line)
             tw = max(tw, fw + spx*2)
-            th += h
+            th += fh
 
         # 画像を作成
         self.image = pygame.Surface((tw, th)).convert_alpha()
@@ -140,15 +138,132 @@ class TouchButton(base.SelectableSprite):
 
     def lclick_event(self):
         """左クリックイベント。"""
-        cw.cwpy.stop_animation(self)
         cw.cwpy.statusbar.hide_touchbuttons()
         self.func()
 
     def rclick_event(self):
         """右クリックイベント。"""
         cw.cwpy.play_sound(u"click")
-        cw.cwpy.stop_animation(self)
         cw.cwpy.statusbar.hide_touchbuttons()
+
+
+class _PointableTile(TouchButton):
+    """
+    通常の選択は発生せず、マウスポインタが合った時に
+    self.is_pointedがTrueになるタイル。
+    """
+    def __init__(self, icon, name, desc, hotkey, func, width=0):
+        TouchButton.__init__(self, icon, name, desc, hotkey, func, width)
+
+    def update_selection(self):
+        if not cw.cwpy.is_lockmenucards(self):
+            if self.is_pointed <> self.is_selection():
+                self.is_pointed = not self.is_pointed
+                if self.is_pointed:
+                    self.image = self.get_selectedimage()
+                    cw.cwpy.pointed_tile = self
+                    if cw.cwpy.index == -1:
+                        cw.cwpy.clear_selection()
+                else:
+                    self.image = self.get_unselectedimage()
+                    if cw.cwpy.pointed_tile is self:
+                        cw.cwpy.pointed_tile = None
+                cw.cwpy.draw(clip=self.rect)
+
+    def is_selection(self):
+        # 通常の衝突判定
+        if 0 <= cw.cwpy.mousepos[0] and 0 <= cw.cwpy.mousepos[1] and\
+                self.rect.collidepoint(cw.cwpy.mousepos):
+            return True
+        return False
+
+
+class SwitchSpriteTile(_PointableTile):
+    """
+    画面上のスプライトを順番に選択するタイル。
+    """
+    def __init__(self, icon, move_count, width=0):
+        _PointableTile.__init__(self, icon, u"", u"", u"", lambda: None, width=width)
+        self.move_count = move_count
+
+    def update_scale(self):
+        font = cw.cwpy.rsrc.fonts["sbardesc"]
+        tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
+
+        # 必要サイズを計算
+        spy = cw.s(4)
+        th = spy*2
+        # 表題
+        th += cw.s(3)
+        fh = tfont.size("#")[1]
+        h = font.get_height()
+        th += h
+        # 本文
+        th += h
+
+        # 画像を作成
+        self.image = pygame.Surface((self.width, th)).convert_alpha()
+        color = (0, 0, 0, 192)
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+        iw, ih = self.icon.get_size()
+        x = (self.width-iw)//2
+        y = (th-ih)//2
+        self.image.blit(self.icon, (x, y))
+
+        self._unselectedimage = self.image
+        self._selectedimage = self.image.copy()
+        self._selectedimage.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
+
+    def lclick_event(self):
+        """左クリックイベント。"""
+        cw.cwpy.play_sound("page")
+        if cw.cwpy.interrupt_eventhandler:
+            eventhandler = cw.cwpy.interrupt_eventhandler
+        else:
+            eventhandler = cw.cwpy.eventhandler
+        eventhandler.dirkey_event(x=self.move_count, sidechange=True)
+        self.is_pointed = False
+        self.update_selection()
+
+
+class SimplePointableTile(_PointableTile):
+    """
+    選択されたスプライトのクリックイベントを発生させるタイル。
+    """
+    def __init__(self, name, func, width=0):
+        _PointableTile.__init__(self, None, name, u"", u"", func, width=width)
+
+    def update_scale(self):
+        font = cw.cwpy.rsrc.fonts["sbardesc"]
+        tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
+
+        # 必要サイズを計算
+        spy = cw.s(4)
+        th = spy*2
+        # 表題
+        th += cw.s(3)
+        fh = tfont.size("#")[1]
+        h = font.get_height()
+        th += h
+        # 本文
+        th += h
+
+        # 画像を作成
+        self.image = pygame.Surface((self.width, th)).convert_alpha()
+        color = (0, 0, 0, 192)
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+        iw, ih = font.size(self.name)
+        x = (self.width-iw)//2
+        y = (th-ih)//2
+        tcolor = (255, 255, 255)
+        subimg = tfont.render(self.name, True, tcolor)
+        self.image.blit(subimg, (x, y))
+
+        self._unselectedimage = self.image
+        self._selectedimage = self.image.copy()
+        self._selectedimage.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
 
 
 def main():

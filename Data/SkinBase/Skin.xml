@@ -794,6 +794,8 @@
     <!-- 3.0 ここから -->
     <Message key="touch_menu">タッチメニュー</Message>
     <Message key="desc_touch_menu">タッチ操作メニューを表示します</Message>
+    <Message key="touch_lclick">選択</Message>
+    <Message key="touch_rclick">解説</Message>
     <Message key="switch_expanded_mode">拡大モード</Message>
     <Message key="desc_switch_expanded_mode">画面の拡大・縮小を行います</Message>
     <Message key="f9">緊急避難</Message>

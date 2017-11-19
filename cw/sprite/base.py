@@ -70,6 +70,11 @@ class SelectableSprite(CWPySprite):
         self.is_statusctrl = False
         CWPySprite.__init__(self, *groups)
 
+        # 通常のスプライト選択処理の外にある
+        # スプライトが選択状態にあるか。
+        # タッチ操作用のタイルで使用する。
+        self.is_pointed = False
+
     def lclick_event(self):
         """左クリックイベント。"""
         pass
@@ -90,8 +95,10 @@ class SelectableSprite(CWPySprite):
 
     def update_selection(self):
         if not cw.cwpy.is_lockmenucards(self):
+            if cw.cwpy.pointed_tile:
+                return
             if self.is_selection():
-                if self is not cw.cwpy.selection:
+                if self is not cw.cwpy.selection and not self.is_pointed:
                     cw.cwpy.change_selection(self)
 
             elif self is cw.cwpy.selection:
@@ -110,7 +117,7 @@ class SelectableSprite(CWPySprite):
         elif cw.cwpy.is_runningevent() and not self.selectable_on_event:
             return False
 
-        elif cw.cwpy.keyevent.flick_status == cw.frame.FLICK_START and\
+        elif not self.is_pointed and cw.cwpy.keyevent.flick_status == cw.frame.FLICK_START and\
                 time.time()-cw.cwpy.keyevent.flick_start_time <= cw.cwpy.setting.flick_time_msec/1000.0:
             # フリック操作中
             return self is cw.cwpy.keyevent.flick_sprite

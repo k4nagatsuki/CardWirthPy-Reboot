@@ -25,6 +25,7 @@ def wait_effectbooster(waittime, doanime):
     try:
         doanime.time_elapsed = 0
         eventhandler = cw.eventhandler.EventHandlerForEffectBooster()
+        cw.cwpy.interrupt_eventhandler = eventhandler
         cw.cwpy.clear_selection()
         while cw.cwpy.is_running() and\
                 (waittime <= 0 or pygame.time.get_ticks() < tick) and\
@@ -48,6 +49,7 @@ def wait_effectbooster(waittime, doanime):
     finally:
         if not tick:
             cw.cwpy.change_cursor()
+        cw.cwpy.interrupt_eventhandler = None
 
 class AnimationCounter(object):
     def __init__(self):

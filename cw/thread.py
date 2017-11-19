@@ -76,6 +76,8 @@ class CWPy(_Singleton, threading.Thread):
         self.background = None
         # ステータスバー
         self.statusbar = None
+        # マウスポインタが合っているタイル
+        self.pointed_tile = None
         # キー入力捕捉用インスタンス(キー入力は全てwx側で捕捉)
         self.keyevent = cw.eventrelay.KeyEventRelay()
         # Diceインスタンス(いろいろなランダム処理に使う)
@@ -179,6 +181,7 @@ class CWPy(_Singleton, threading.Thread):
         self.classicdata = None
         # イベントハンドラ
         self.eventhandler = cw.eventhandler.EventHandler()
+        self.interrupt_eventhandler = None
         self._log_handler = None # メッセージログ表示中のハンドラ
         # 設定ダイアログのタブ位置
         self.settingtab = 0
@@ -1696,6 +1699,7 @@ class CWPy(_Singleton, threading.Thread):
         mwin: MessageWindowインスタンス。
         """
         eventhandler = cw.eventhandler.EventHandlerForMessageWindow(mwin)
+        self.intterupt_eventhandler = eventhandler
         self.clear_selection()
         locks = self.lock_menucards
         self.lock_menucards = False
@@ -1703,18 +1707,21 @@ class CWPy(_Singleton, threading.Thread):
         if self.is_showingdebugger() and self.event and self.event.is_stepexec():
             self.event.refresh_tools()
 
-        self.event.refresh_activeitem()
-        self.input()
-        while self.is_running() and mwin.result is None:
-            self.update()
-
-            if mwin.result is None:
-                self.input()
-                self.draw(not mwin.is_drawing or self.has_inputevent)
-
-            self.tick_clock()
+        try:
+            self.event.refresh_activeitem()
             self.input()
-            eventhandler.run()
+            while self.is_running() and mwin.result is None:
+                self.update()
+
+                if mwin.result is None:
+                    self.input()
+                    self.draw(not mwin.is_drawing or self.has_inputevent)
+
+                self.tick_clock()
+                self.input()
+                eventhandler.run()
+        finally:
+            self.intterupt_eventhandler = None
 
         self.clear_selection()
         self.lock_menucards = locks
@@ -1778,6 +1785,7 @@ class CWPy(_Singleton, threading.Thread):
         index = length - 1 - n
 
         eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
+        self.intterupt_eventhandler = eventhandler
         cursor = self.cursor
         self.change_cursor()
         self._log_handler = eventhandler
@@ -1801,6 +1809,7 @@ class CWPy(_Singleton, threading.Thread):
                     eventhandler.update_sprites()
         finally:
             self._log_handler = None
+            self.intterupt_eventhandler = None
             self.change_cursor(cursor)
             # 表示終了
             eventhandler.exit_backlog(playsound=False)

@@ -130,6 +130,9 @@ class EventHandler(object):
             return event.key == K_RETURN
 
     def clear_touchmenu(self):
+        if cw.cwpy.pointed_tile:
+            return
+
         if cw.cwpy.statusbar and\
                 not isinstance(cw.cwpy.selection, cw.sprite.touchbutton.TouchButton) and\
                 not cw.cwpy.statusbar.touchmenu is cw.cwpy.selection:
@@ -311,9 +314,14 @@ class EventHandler(object):
         # マウスポインタの移動を検知する前にクリックイベントが
         # 発生する可能性があるので、キーボード等で選択された
         # 状態でなければ、選択状態を更新しておく
+
+        if cw.cwpy.pointed_tile:
+            return cw.cwpy.pointed_tile
+
         if cw.cwpy.index == -1 and not cw.cwpy.is_runningevent() and not self.is_processing():
             cw.cwpy.update_mousepos()
             cw.cwpy.update_groups()
+        return cw.cwpy.selection
 
     def lclick_event(self):
         """
@@ -322,19 +330,19 @@ class EventHandler(object):
         if cw.cwpy.is_showingdlg():
             return
 
-        self._update_selection()
+        selection = self._update_selection()
 
         if (cw.cwpy.is_runningevent() and\
-                not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl and\
-                     cw.cwpy.selection.selectable_on_event)) or\
+                not (selection and selection.is_statusctrl and \
+                             selection.selectable_on_event)) or\
                 self.is_processing():
             return
 
-        if cw.cwpy.selection:
-            if cw.cwpy.is_lockmenucards(cw.cwpy.selection):
+        if selection:
+            if cw.cwpy.is_lockmenucards(selection):
                 return
             cw.cwpy.has_inputevent = True
-            cw.cwpy.selection.lclick_event()
+            selection.lclick_event()
 
         elif cw.cwpy.wait_showcards:
             # メニューカードの表示を待っている場合は表示
@@ -350,20 +358,22 @@ class EventHandler(object):
         if cw.cwpy.is_showingdlg():
             return
 
-        if not flick:
-            self._update_selection()
+        if flick:
+            selection = cw.cwpy.selection
+        else:
+            selection = self._update_selection()
 
         if (cw.cwpy.is_runningevent() and\
-                not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl and\
-                     cw.cwpy.selection.selectable_on_event)) or\
+                not (selection and selection.is_statusctrl and \
+                     selection.selectable_on_event)) or\
                 self.is_processing():
             return
 
-        if cw.cwpy.selection:
-            if cw.cwpy.is_lockmenucards(cw.cwpy.selection):
+        if selection:
+            if cw.cwpy.is_lockmenucards(selection):
                 return
             cw.cwpy.has_inputevent = True
-            cw.cwpy.selection.rclick_event()
+            selection.rclick_event()
         elif cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
             if cw.cwpy.is_lockmenucards(None):
                 return
@@ -833,13 +843,13 @@ class EventHandlerForMessageWindow(EventHandler):
         if not self.can_input():
             return
 
-        self._update_selection()
+        selection = self._update_selection()
 
-        if cw.cwpy.selection:
-            if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos) or\
-                    isinstance(cw.cwpy.selection, cw.sprite.message.SelectionBar):
+        if selection:
+            if selection.rect.collidepoint(cw.cwpy.mousepos) or\
+                    isinstance(selection, cw.sprite.message.SelectionBar):
                 cw.cwpy.has_inputevent = True
-                cw.cwpy.selection.lclick_event()
+                selection.lclick_event()
 
         elif cw.cwpy.list and (len(cw.cwpy.list) == 1 or cw.cwpy.index >= 0) and\
                 self._has_message():
@@ -860,11 +870,11 @@ class EventHandlerForMessageWindow(EventHandler):
         if not self.can_input():
             return
 
-        self._update_selection()
+        selection = self._update_selection()
 
-        if cw.cwpy.selection and len(cw.cwpy.list) > 1:
+        if selection and len(cw.cwpy.list) > 1:
             cw.cwpy.has_inputevent = True
-            cw.cwpy.selection.lclick_event(skip=True)
+            selection.lclick_event(skip=True)
 
     def rclick_event(self, flick=False):
         """
@@ -878,13 +888,15 @@ class EventHandlerForMessageWindow(EventHandler):
         if not self.can_input():
             return
 
-        if not flick:
-            self._update_selection()
+        if flick:
+            selection = cw.cwpy.selection
+        else:
+            selection = self._update_selection()
 
-        if cw.cwpy.selection:
-            if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
+        if selection:
+            if selection.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
-                cw.cwpy.selection.rclick_event()
+                selection.rclick_event()
         elif not self._has_message():
             self.shiftkey_event(False)
 
@@ -1305,12 +1317,14 @@ class EventHandlerForBacklog(EventHandler):
         if not self.can_input():
             return
 
-        if not flick:
-            self._update_selection()
+        if flick:
+            selection = cw.cwpy.selection
+        else:
+            selection = self._update_selection()
 
-        if cw.cwpy.selection:
+        if selection:
             cw.cwpy.has_inputevent = True
-            cw.cwpy.selection.rclick_event()
+            selection.rclick_event()
             return
         self.exit_backlog()
 
@@ -1441,7 +1455,7 @@ class EventHandlerForBacklog(EventHandler):
         # ステータスボタンを除き、ログ表示中はアニメーションを止める
         # (開始時間をずらして調節する)
         for sprite in cw.cwpy.cardgrp.sprites():
-            if sprite.start_animation and not sprite.is_statusctrl:
+            if sprite.start_animation and not cw.cwpy.selection.is_statusctrl:
                 elapse = pygame.time.get_ticks() - self._start_ticks
                 if 0 < elapse:
                     sprite.start_animation += elapse
@@ -1643,12 +1657,14 @@ class EventHandlerForEffectBooster(EventHandler):
         if not self.can_input():
             return
 
-        if not flick:
-            self._update_selection()
+        if flick:
+            selection = cw.cwpy.selection
+        else:
+            selection = self._update_selection()
 
-        if cw.cwpy.selection:
+        if selection:
             cw.cwpy.has_inputevent = True
-            cw.cwpy.selection.lclick_event()
+            selection.lclick_event()
             return
 
         self.running = False
