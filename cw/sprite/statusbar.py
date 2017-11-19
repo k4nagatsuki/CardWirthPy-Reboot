@@ -1421,6 +1421,10 @@ class TouchMenuButton(StatusBarButton):
             event = pygame.event.Event(pygame.locals.KEYDOWN, key=pygame.locals.K_F9)
             cw.cwpy.events.insert(0, event)
 
+        def debug_mode():
+            cw.cwpy.play_sound("page")
+            cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
+
         f4btn = (None, cw.cwpy.msgs["switch_expanded_mode"],
                  cw.cwpy.msgs["desc_switch_expanded_mode"], u"F4",
                  f4)
@@ -1433,10 +1437,13 @@ class TouchMenuButton(StatusBarButton):
         sshbtn = (None, cw.cwpy.msgs["screenshot_hands"],
                   cw.cwpy.msgs["desc_screenshot_hands"], u"Shift+PrtScn",
                   cw.util.card_screenshot)
+        dbgbtn = (None, cw.cwpy.msgs["toggle_debug_mode"],
+                  cw.cwpy.msgs["desc_toggle_debug_mode"], u"Ctrl+D",
+                  debug_mode)
         if cw.cwpy.is_playingscenario():
-            params = (f4btn, f9btn, ssbtn, sshbtn)
+            params = (f4btn, f9btn, ssbtn, sshbtn, dbgbtn)
         else:
-            params = (f4btn, ssbtn, sshbtn)
+            params = (f4btn, ssbtn, sshbtn, dbgbtn)
 
         bw = cw.s(0)
         for icon, name, desc, hotkey, _func in params:

@@ -794,7 +794,7 @@
     <!-- 3.0 ここから -->
     <Message key="touch_menu">タッチメニュー</Message>
     <Message key="desc_touch_menu">タッチ操作メニューを表示します</Message>
-    <Message key="switch_expanded_mode">拡大モード切り替え</Message>
+    <Message key="switch_expanded_mode">拡大モード</Message>
     <Message key="desc_switch_expanded_mode">画面の拡大・縮小を行います</Message>
     <Message key="f9">緊急避難</Message>
     <Message key="desc_f9">シナリオを中止して脱出します</Message>
@@ -802,6 +802,8 @@
     <Message key="desc_screenshot">画面を撮影します</Message>
     <Message key="screenshot_hands">所持カード撮影</Message>
     <Message key="desc_screenshot_hands">所持カードの一覧を撮影します</Message>
+    <Message key="toggle_debug_mode">デバッグモード</Message>
+    <Message key="desc_toggle_debug_mode">デバッグモードを開始・終了します</Message>
     <!-- 3.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
