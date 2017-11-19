@@ -1292,7 +1292,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.cursor = name
 
-        if isinstance(self.selection, cw.sprite.statusbar.StatusBarButton):
+        if self.selection and self.selection.is_statusctrl:
             name = "arrow"
 
         if name == "arrow":
@@ -1494,7 +1494,7 @@ class CWPy(_Singleton, threading.Thread):
         self.input(eventclear=True)
         self._showingdlg += 1
         self.statusbar.clear_volumebar()
-        if isinstance(self.selection, cw.sprite.statusbar.StatusBarButton):
+        if self.selection and self.selection.is_statusctrl:
             # 表示が乱れる場合があるので
             # ステータスバーのボタンからフォーカスを外しておく
             self.mousepos = (-1, -1)
@@ -3603,8 +3603,8 @@ class CWPy(_Singleton, threading.Thread):
         sprite: SelectableSprite
         """
         self.has_inputevent = True
-        sbarbtn1 = isinstance(self.selection, cw.sprite.statusbar.StatusBarButton)
-        sbarbtn2 = isinstance(sprite, cw.sprite.statusbar.StatusBarButton)
+        sbarbtn1 = self.selection and self.selection.is_statusctrl
+        sbarbtn2 = sprite and sprite.is_statusctrl
 
         # 現在全員の戦闘行動を表示中か
         show_allselectedcards = self._show_allselectedcards
@@ -3839,9 +3839,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_lockmenucards(self, sprite):
         """メニューカードをクリック出来ない状態か。"""
-        if isinstance(sprite, (cw.sprite.statusbar.StatusBarButton,
-                               cw.sprite.touchbutton.TouchButton,
-                               cw.sprite.animationcell.AnimationCell)) and\
+        if (isinstance(sprite, cw.sprite.animationcell.AnimationCell) or\
+                    (sprite and sprite.is_statusctrl)) and\
                 sprite.selectable_on_event:
             return False
         return self.lock_menucards or\

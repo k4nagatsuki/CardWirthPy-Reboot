@@ -138,7 +138,8 @@ class EventHandler(object):
     def check_puressedbutton(self, event):
         cw.cwpy.wheelmode_cursorpos = (-1, -1)
 
-        self.clear_touchmenu()
+        if not event.type == USEREVENT:
+            self.clear_touchmenu()
 
         if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
             return True
@@ -324,7 +325,7 @@ class EventHandler(object):
         self._update_selection()
 
         if (cw.cwpy.is_runningevent() and\
-                not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
+                not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl and\
                      cw.cwpy.selection.selectable_on_event)) or\
                 self.is_processing():
             return
@@ -353,7 +354,7 @@ class EventHandler(object):
             self._update_selection()
 
         if (cw.cwpy.is_runningevent() and\
-                not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
+                not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl and\
                      cw.cwpy.selection.selectable_on_event)) or\
                 self.is_processing():
             return
@@ -578,7 +579,7 @@ class EventHandler(object):
         if not self.can_input():
             return
         if (cw.cwpy.is_runningevent() or self.is_processing()) and\
-                not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
+                not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl and\
                      cw.cwpy.selection.selectable_on_event):
             return
 
@@ -1440,7 +1441,7 @@ class EventHandlerForBacklog(EventHandler):
         # ステータスボタンを除き、ログ表示中はアニメーションを止める
         # (開始時間をずらして調節する)
         for sprite in cw.cwpy.cardgrp.sprites():
-            if sprite.start_animation and not isinstance(sprite, cw.sprite.statusbar.StatusBarButton):
+            if sprite.start_animation and not sprite.is_statusctrl:
                 elapse = pygame.time.get_ticks() - self._start_ticks
                 if 0 < elapse:
                     sprite.start_animation += elapse

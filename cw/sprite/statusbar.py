@@ -174,7 +174,6 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_ITEM)
         cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_PROGRESS)
         cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_DESC)
-        self.hide_touchbuttons()
 
     def _create_autostart(self, pos):
         if self.autostart:
@@ -279,6 +278,7 @@ class StatusBar(base.CWPySprite):
                 cw.cwpy.play_sound("click")
             rect = None
             for btn in btns:
+                cw.cwpy.stop_animation(btn)
                 cw.cwpy.add_lazydraw(clip=btn.rect)
                 if rect:
                     rect.union_ip(btn.rect)
@@ -714,6 +714,7 @@ class StatusBarButton(base.SelectableSprite):
                  notice=False, number=None, is_emphasize=False,
                  desc=u"", hotkey=u""):
         base.SelectableSprite.__init__(self)
+        self.is_statusctrl = True
         self.parent = parent
         # 各種データ
         self.name = name

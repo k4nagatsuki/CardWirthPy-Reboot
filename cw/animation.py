@@ -16,8 +16,6 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
         print sprite
         return
 
-    cw.cwpy.statusbar.hide_touchbuttons()
-
     if clearevent:
         lock_menucards = cw.cwpy.lock_menucards
         cw.cwpy.lock_menucards = True
@@ -100,8 +98,6 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
             print "Not found " + anitype + " animation."
             print sprandanimes
             return
-
-    cw.cwpy.statusbar.hide_touchbuttons()
 
     if clearevent:
         lock_menucards = cw.cwpy.lock_menucards

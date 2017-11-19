@@ -21,6 +21,7 @@ class TouchButton(base.SelectableSprite):
 
         base.SelectableSprite.__init__(self)
         self.selectable_on_event = True
+        self.is_statusctrl = True
         self.status = "normal"
         self.frame = 0
 

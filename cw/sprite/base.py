@@ -67,6 +67,7 @@ class MouseHandlerSprite(CWPySprite):
 class SelectableSprite(CWPySprite):
     def __init__(self, *groups):
         self.selectable_on_event = False
+        self.is_statusctrl = False
         CWPySprite.__init__(self, *groups)
 
     def lclick_event(self):
