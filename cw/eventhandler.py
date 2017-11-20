@@ -1455,7 +1455,7 @@ class EventHandlerForBacklog(EventHandler):
         # ステータスボタンを除き、ログ表示中はアニメーションを止める
         # (開始時間をずらして調節する)
         for sprite in cw.cwpy.cardgrp.sprites():
-            if sprite.start_animation and not cw.cwpy.selection.is_statusctrl:
+            if sprite.start_animation and not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl):
                 elapse = pygame.time.get_ticks() - self._start_ticks
                 if 0 < elapse:
                     sprite.start_animation += elapse
