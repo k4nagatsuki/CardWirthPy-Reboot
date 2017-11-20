@@ -1010,6 +1010,7 @@ class CWPy(_Singleton, threading.Thread):
 
             clip = None
             if not cw.cwpy.sdata.infocards_beforeevent is None:
+                # このブロックはイベント終了直後に一回だけ実行される
                 for _i in filter(lambda i: not i in cw.cwpy.sdata.infocards_beforeevent,
                                  cw.cwpy.sdata.get_infocards(False)):
                     # イベント開始前には持っていなかった情報カードを入手している
@@ -1699,7 +1700,8 @@ class CWPy(_Singleton, threading.Thread):
         mwin: MessageWindowインスタンス。
         """
         eventhandler = cw.eventhandler.EventHandlerForMessageWindow(mwin)
-        self.intterupt_eventhandler = eventhandler
+        ie = self.interrupt_eventhandler
+        self.interrupt_eventhandler = eventhandler
         self.clear_selection()
         locks = self.lock_menucards
         self.lock_menucards = False
@@ -1707,6 +1709,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.is_showingdebugger() and self.event and self.event.is_stepexec():
             self.event.refresh_tools()
 
+        self.statusbar.update_tiles()
         try:
             self.event.refresh_activeitem()
             self.input()
@@ -1721,7 +1724,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.input()
                 eventhandler.run()
         finally:
-            self.intterupt_eventhandler = None
+            self.interrupt_eventhandler = ie
 
         self.clear_selection()
         self.lock_menucards = locks
@@ -1785,6 +1788,7 @@ class CWPy(_Singleton, threading.Thread):
         index = length - 1 - n
 
         eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
+        ie = self.intterupt_eventhandler
         self.intterupt_eventhandler = eventhandler
         cursor = self.cursor
         self.change_cursor()
@@ -1809,7 +1813,7 @@ class CWPy(_Singleton, threading.Thread):
                     eventhandler.update_sprites()
         finally:
             self._log_handler = None
-            self.intterupt_eventhandler = None
+            self.intterupt_eventhandler = ie
             self.change_cursor(cursor)
             # 表示終了
             eventhandler.exit_backlog(playsound=False)
@@ -3602,7 +3606,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def clear_selection(self):
         """全ての選択状態を解除する。"""
-        self.change_selection(None)
+        if self.selection:
+            self.change_selection(None)
 
         cw.cwpy.update_mousepos()
         cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)

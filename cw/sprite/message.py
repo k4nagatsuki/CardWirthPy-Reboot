@@ -785,12 +785,10 @@ class SelectionBar(base.SelectableSprite):
             return
 
         if self.status == "normal":       # 通常表示
-            self.update_selection()
-
-            if cw.cwpy.selection == self:
-                cw.cwpy.index = cw.cwpy.list.index(self)
+            base.SelectableSprite.update(self, scr)
 
         elif self.status == "click":     # 左クリック時
+            cw.cwpy.index = cw.cwpy.list.index(self)
             self.update_click()
 
     def update_click(self):

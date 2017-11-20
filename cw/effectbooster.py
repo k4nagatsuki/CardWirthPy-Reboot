@@ -25,6 +25,7 @@ def wait_effectbooster(waittime, doanime):
     try:
         doanime.time_elapsed = 0
         eventhandler = cw.eventhandler.EventHandlerForEffectBooster()
+        ie = cw.cwpy.interrupt_eventhandler
         cw.cwpy.interrupt_eventhandler = eventhandler
         cw.cwpy.clear_selection()
         while cw.cwpy.is_running() and\
@@ -49,7 +50,7 @@ def wait_effectbooster(waittime, doanime):
     finally:
         if not tick:
             cw.cwpy.change_cursor()
-        cw.cwpy.interrupt_eventhandler = None
+        cw.cwpy.interrupt_eventhandler = ie
 
 class AnimationCounter(object):
     def __init__(self):

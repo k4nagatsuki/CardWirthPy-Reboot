@@ -14,8 +14,9 @@ class TouchButton(base.SelectableSprite):
     アイコン、ボタン名、簡単な解説を表示する。
     """
 
-    def __init__(self, icon, name, desc, hotkey, func, width=0):
+    def __init__(self, icon, name, desc, hotkey, func, is_enabled, width=0):
         assert func
+        assert is_enabled
 
         base.SelectableSprite.__init__(self)
         self.selectable_on_event = True
@@ -28,6 +29,7 @@ class TouchButton(base.SelectableSprite):
         self.desc = desc
         self.hotkey = hotkey
         self.func = func
+        self.is_enabled = is_enabled
         self.width = width
 
         self.shift_top = cw.s(0)
@@ -85,12 +87,25 @@ class TouchButton(base.SelectableSprite):
         self._unselectedimage = self.image
         self._selectedimage = self.image.copy()
         self._selectedimage.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
+        self._disabledimage = self.image.copy()
+        self._disabledimage.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
+        if not self.is_enabled():
+            self.image = self._disabledimage
 
     def get_selectedimage(self):
         return self._selectedimage
 
     def get_unselectedimage(self):
         return self._unselectedimage
+
+    def update_image(self):
+        if self.is_enabled():
+            if self.is_selection():
+                self.image = self._selectedimage
+            else:
+                self.image = self._unselectedimage
+        else:
+            self.image = self._disabledimage
 
     @staticmethod
     def calc_width(icon, name, desc, hotkey):
@@ -113,10 +128,13 @@ class TouchButton(base.SelectableSprite):
 
     def update_selection(self):
         base.SelectableSprite.update_selection(self)
-        if cw.cwpy.selection is self:
-            self.image = self.get_selectedimage()
+        if self.is_enabled():
+            if cw.cwpy.selection is self:
+                self.image = self.get_selectedimage()
+            else:
+                self.image = self.get_unselectedimage()
         else:
-            self.image = self.get_unselectedimage()
+            self.image = self._disabledimage
 
     def update_shiftup(self):
         FRAME = 5
@@ -138,8 +156,9 @@ class TouchButton(base.SelectableSprite):
 
     def lclick_event(self):
         """左クリックイベント。"""
-        cw.cwpy.statusbar.hide_touchbuttons()
-        self.func()
+        if self.is_enabled():
+            cw.cwpy.statusbar.hide_touchbuttons()
+            self.func()
 
     def rclick_event(self):
         """右クリックイベント。"""
@@ -152,8 +171,8 @@ class _PointableTile(TouchButton):
     通常の選択は発生せず、マウスポインタが合った時に
     self.is_pointedがTrueになるタイル。
     """
-    def __init__(self, icon, name, desc, hotkey, func, width=0):
-        TouchButton.__init__(self, icon, name, desc, hotkey, func, width)
+    def __init__(self, icon, name, desc, hotkey, func, is_enabled, width=0):
+        TouchButton.__init__(self, icon, name, desc, hotkey, func, is_enabled, width)
 
     def update_selection(self):
         if not cw.cwpy.is_lockmenucards(self):
@@ -168,6 +187,13 @@ class _PointableTile(TouchButton):
                     self.image = self.get_unselectedimage()
                     if cw.cwpy.pointed_tile is self:
                         cw.cwpy.pointed_tile = None
+                        def func():
+                            if cw.cwpy.pointed_tile is None:
+                                cw.cwpy.index = -1
+                                cw.cwpy.statusbar.update_tiles()
+                        cw.cwpy.exec_func(func)
+                if not self.is_enabled():
+                    self.image = self._disabledimage
                 cw.cwpy.draw(clip=self.rect)
 
     def is_selection(self):
@@ -183,7 +209,7 @@ class SwitchSpriteTile(_PointableTile):
     画面上のスプライトを順番に選択するタイル。
     """
     def __init__(self, icon, move_count, width=0):
-        _PointableTile.__init__(self, icon, u"", u"", u"", lambda: None, width=width)
+        _PointableTile.__init__(self, icon, u"", u"", u"", lambda: None, can_selectsprite, width=width)
         self.move_count = move_count
 
     def update_scale(self):
@@ -214,25 +240,31 @@ class SwitchSpriteTile(_PointableTile):
         self._unselectedimage = self.image
         self._selectedimage = self.image.copy()
         self._selectedimage.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
+        self._disabledimage = self.image.copy()
+        self._disabledimage.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
+        if not self.is_enabled():
+            self.image = self._disabledimage
 
     def lclick_event(self):
         """左クリックイベント。"""
-        cw.cwpy.play_sound("page")
-        if cw.cwpy.interrupt_eventhandler:
-            eventhandler = cw.cwpy.interrupt_eventhandler
-        else:
-            eventhandler = cw.cwpy.eventhandler
-        eventhandler.dirkey_event(x=self.move_count, sidechange=True)
-        self.is_pointed = False
-        self.update_selection()
+        if self.is_enabled():
+            cw.cwpy.play_sound("page")
+            if cw.cwpy.interrupt_eventhandler:
+                eventhandler = cw.cwpy.interrupt_eventhandler
+            else:
+                eventhandler = cw.cwpy.eventhandler
+            eventhandler.dirkey_event(x=self.move_count, sidechange=True)
+            self.is_pointed = False
+            self.update_selection()
+            cw.cwpy.statusbar.update_tiles()
 
 
 class SimplePointableTile(_PointableTile):
     """
     選択されたスプライトのクリックイベントを発生させるタイル。
     """
-    def __init__(self, name, func, width=0):
-        _PointableTile.__init__(self, None, name, u"", u"", func, width=width)
+    def __init__(self, icon, name, func, is_enabled, width=0):
+        _PointableTile.__init__(self, icon, name, u"", u"", func, is_enabled, width=width)
 
     def update_scale(self):
         font = cw.cwpy.rsrc.fonts["sbardesc"]
@@ -255,15 +287,33 @@ class SimplePointableTile(_PointableTile):
         self.image.fill(color)
         self.rect = self.image.get_rect()
         iw, ih = font.size(self.name)
+        if self.icon:
+            iw += cw.s(2) + self.icon.get_width()
         x = (self.width-iw)//2
         y = (th-ih)//2
         tcolor = (255, 255, 255)
+        if self.icon:
+            self.image.blit(self.icon, (x, (th-self.icon.get_height())//2))
+            x += cw.s(2) + self.icon.get_width()
         subimg = tfont.render(self.name, True, tcolor)
         self.image.blit(subimg, (x, y))
 
         self._unselectedimage = self.image
         self._selectedimage = self.image.copy()
         self._selectedimage.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
+        self._disabledimage = self.image.copy()
+        self._disabledimage.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
+        if not self.is_enabled():
+            self.image = self._disabledimage
+
+
+def can_selectsprite():
+    if cw.cwpy.is_showingbacklog():
+        return False
+    elif cw.cwpy.is_showingmessage():
+        return True
+    else:
+        return not cw.cwpy.is_runningevent()
 
 
 def main():
