@@ -1788,8 +1788,8 @@ class CWPy(_Singleton, threading.Thread):
         index = length - 1 - n
 
         eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
-        ie = self.intterupt_eventhandler
-        self.intterupt_eventhandler = eventhandler
+        ie = self.interrupt_eventhandler
+        self.interrupt_eventhandler = eventhandler
         cursor = self.cursor
         self.change_cursor()
         self._log_handler = eventhandler
@@ -1813,7 +1813,7 @@ class CWPy(_Singleton, threading.Thread):
                     eventhandler.update_sprites()
         finally:
             self._log_handler = None
-            self.intterupt_eventhandler = ie
+            self.interrupt_eventhandler = ie
             self.change_cursor(cursor)
             # 表示終了
             eventhandler.exit_backlog(playsound=False)
