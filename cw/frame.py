@@ -944,6 +944,8 @@ class Frame(wx.Frame):
         pos = wx.GetMousePosition()
         pos = pos[0] - cw.wins(50), pos[1] - cw.wins(60)
         dlg.Move(pos)
+        cw.util.adjust_position(dlg)
+        cw.dialog.etc.show_touchtools(dlg)
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
@@ -1071,6 +1073,8 @@ class Frame(wx.Frame):
         # モニタ内に収める
         cw.util.adjust_position(dlg)
 
+        cw.dialog.etc.show_touchtools(dlg)
+
     def kill_dlg(self, dlg=None, lockmenucard=False, redraw=True):
         if dlg:
             dlg.Destroy()
@@ -1131,6 +1135,7 @@ class Frame(wx.Frame):
                 if hasattr(top, "cwpy_debug") and top.cwpy_debug:
                     return False
                 fc = fc.GetParent()
+
             # ダイアログを表示中の場合
             def func(self):
                 cw.cwpy.play_sound("screenshot")
@@ -1196,7 +1201,8 @@ class Frame(wx.Frame):
             for child in win.GetChildren():
                 if not hasattr(child, "cwpy_debug"):
                     continue
-                if child.IsTopLevel() and not child.IsIconized() and not child.cwpy_debug:
+                if child.IsTopLevel() and not child.IsIconized() and\
+                        not child.cwpy_debug and not isinstance(child, cw.dialog.etc.TouchTools):
                     # ダイアログを描画
                     dc = wx.ClientDC(child)
                     rect = child.GetClientRect()

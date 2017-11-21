@@ -805,8 +805,84 @@ class ConvertYadoDialog(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
 
+
+class TouchTools(wx.MiniFrame):
+    """
+    任意のダイアログにくっついて動くタッチ操作用ツールウィンドウ。
+    現在はスクリーンショットの撮影のみ行える。
+    """
+    def __init__(self, parent):
+        wx.MiniFrame.__init__(self, parent, style=wx.BORDER)
+        self.cwpy_debug = False
+
+        self._tb = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
+        self._ssbtn = self._tb.AddLabelTool(-1, u"撮影(PrtScn)",
+                                            cw.cwpy.rsrc.dialogs["SCREENSHOT"])
+        self._tb.Realize()
+        # FIXME: なぜかツールボタンのツールチップが表示されないのでその対策
+        self._tb.SetToolTipString(u"撮影(PrtScn)")
+        self.SetTransparent(128)
+
+        self._do_layout()
+        self._bind()
+
+        self._move_pos()
+
+    def _do_layout(self):
+        sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add(self._tb, 0, 0, cw.wins(0))
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+
+    def _bind(self):
+        self.Bind(wx.EVT_MENU, self.OnScreenShot, id=self._ssbtn.GetId())
+        self.GetParent().Bind(wx.EVT_MOVE, self.OnMove)
+        self._tb.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
+        self._tb.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
+
+    def OnScreenShot(self, event):
+        cw.cwpy.frame.save_screenshot()
+
+    def OnMove(self, event):
+        self._move_pos()
+
+    def _move_pos(self):
+        pos = self.GetParent().GetPosition()
+        size = self.GetParent().GetSize()
+        x = pos[0]+size[0]-1
+        y = pos[1]+size[1] - self.GetSize()[1]-1-cw.wins(10)
+        self.SetPosition((x, y))
+
+    def OnEnterWindow(self, event):
+        self.SetTransparent(255)
+
+    def OnLeaveWindow(self, event):
+        self.SetTransparent(128)
+
+
+def show_touchtools(dlg):
+    if not cw.cwpy.setting.tablet_mode:
+        return False
+    if hasattr(dlg, "cwpy_debug") and dlg.cwpy_debug:
+        return False
+
+    top = dlg
+    fc = dlg
+    while fc and top.GetTopLevelParent():
+        top = fc.GetTopLevelParent()
+        if hasattr(top, "cwpy_debug") and top.cwpy_debug:
+            return False
+        fc = fc.GetParent()
+
+    touchtools = cw.dialog.etc.TouchTools(dlg)
+    wx.CallAfter(touchtools.Show, True)
+    return True
+
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()
