@@ -83,6 +83,10 @@ class SelectableSprite(CWPySprite):
         """右クリックイベント。"""
         pass
 
+    def ldown_event(self):
+        """マウス左ボタン押下イベント。"""
+        pass
+
     def get_selectedimage(self):
         return self.image
 

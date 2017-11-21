@@ -93,6 +93,11 @@ class EventHandler(object):
                 else:
                     self.keyup_event(event.key)
 
+            elif event.type == MOUSEBUTTONDOWN:
+                # 左ボタン押下イベント
+                if event.button == 1:
+                    self.ldown_event()
+
             elif event.type == MOUSEBUTTONUP:
                 # 左クリックイベント
                 if event.button == 1:
@@ -322,6 +327,27 @@ class EventHandler(object):
             cw.cwpy.update_mousepos()
             cw.cwpy.update_groups()
         return cw.cwpy.selection
+
+    def ldown_event(self):
+        """
+        マウス左ボタン押下イベント。
+        """
+        if cw.cwpy.is_showingdlg():
+            return
+
+        selection = self._update_selection()
+
+        if (cw.cwpy.is_runningevent() and\
+                not (selection and selection.is_statusctrl and \
+                             selection.selectable_on_event)) or\
+                self.is_processing():
+            return
+
+        if selection:
+            if cw.cwpy.is_lockmenucards(selection):
+                return
+            cw.cwpy.has_inputevent = True
+            selection.ldown_event()
 
     def lclick_event(self):
         """
@@ -789,16 +815,19 @@ class EventHandlerForMessageWindow(EventHandler):
                     self.keyup_event(event.key)
 
             elif event.type == MOUSEBUTTONDOWN:
-                # 右クリックイベント
                 if event.button == 3 and cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
+                    # 右クリックイベント
                     self.shiftkey_event(True)
+                elif event.button == 1:
+                    # 左ボタン押下イベント
+                    self.ldown_event()
 
             elif event.type == MOUSEBUTTONUP:
                 # マウスボタン押下(文字描画中のみ)
                 if self.mwin.is_drawing and\
                         cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos) and\
                         not (event.button == 4 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG):
-                    self.mouse_event()
+                    self.mouse_event(event.button)
                 # 左クリック
                 elif event.button == 1:
                     self.lclick_event()
@@ -827,7 +856,7 @@ class EventHandlerForMessageWindow(EventHandler):
         if exception:
             raise exception
 
-    def mouse_event(self):
+    def mouse_event(self, button):
         """
         全てのマウスボタン押下イベント。
         文字全て描画。
@@ -835,11 +864,20 @@ class EventHandlerForMessageWindow(EventHandler):
         if self.mwin.is_drawing:
             cw.cwpy.has_inputevent = True
             self.mwin.draw_all()
+        elif button == 1:
+            EventHandler.ldown_event()
+
+    def ldown_event(self):
+        if cw.cwpy.setting.tablet_mode and\
+                not self.mwin.rect.collidepoint(cw.cwpy.mousepos) and\
+                not self._update_selection():
+            self.shiftkey_event(True)
 
     def lclick_event(self):
         """
         左クリックイベント。
         """
+        self.shiftkey_event(False)
         if not self.can_input():
             return
 
@@ -1611,6 +1649,11 @@ class EventHandlerForEffectBooster(EventHandler):
                     self.printkey_event()
                 else:
                     self.keyup_event(event.key)
+
+            elif event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    # 左ボタン押下イベント
+                    self.ldown_event()
 
             elif event.type == MOUSEBUTTONUP:
                 # 左クリック
