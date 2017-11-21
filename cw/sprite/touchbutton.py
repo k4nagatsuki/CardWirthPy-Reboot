@@ -204,6 +204,24 @@ class _PointableTile(TouchButton):
         return False
 
 
+def _calc_singlelinetileheight():
+    """
+    タイルの縦幅を普通のタイルに合わせて計算する。
+    """
+    font = cw.cwpy.rsrc.fonts["sbardesc"]
+    tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
+    spy = cw.s(4)
+    th = spy*2
+    # 表題
+    th += cw.s(3)
+    fh = tfont.size("#")[1]
+    h = font.get_height()
+    th += h
+    # 本文
+    th += h
+    return th
+
+
 class SwitchSpriteTile(_PointableTile):
     """
     画面上のスプライトを順番に選択するタイル。
@@ -213,19 +231,7 @@ class SwitchSpriteTile(_PointableTile):
         self.move_count = move_count
 
     def update_scale(self):
-        font = cw.cwpy.rsrc.fonts["sbardesc"]
-        tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
-
-        # 必要サイズを計算
-        spy = cw.s(4)
-        th = spy*2
-        # 表題
-        th += cw.s(3)
-        fh = tfont.size("#")[1]
-        h = font.get_height()
-        th += h
-        # 本文
-        th += h
+        th = _calc_singlelinetileheight()
 
         # 画像を作成
         self.image = pygame.Surface((self.width, th)).convert_alpha()
@@ -267,26 +273,15 @@ class SimplePointableTile(_PointableTile):
         _PointableTile.__init__(self, icon, name, u"", u"", func, is_enabled, width=width)
 
     def update_scale(self):
-        font = cw.cwpy.rsrc.fonts["sbardesc"]
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
-
-        # 必要サイズを計算
-        spy = cw.s(4)
-        th = spy*2
-        # 表題
-        th += cw.s(3)
-        fh = tfont.size("#")[1]
-        h = font.get_height()
-        th += h
-        # 本文
-        th += h
+        th = _calc_singlelinetileheight()
 
         # 画像を作成
         self.image = pygame.Surface((self.width, th)).convert_alpha()
         color = (0, 0, 0, 192)
         self.image.fill(color)
         self.rect = self.image.get_rect()
-        iw, ih = font.size(self.name)
+        iw, ih = tfont.size(self.name)
         if self.icon:
             iw += cw.s(2) + self.icon.get_width()
         x = (self.width-iw)//2
@@ -308,12 +303,103 @@ class SimplePointableTile(_PointableTile):
 
 
 def can_selectsprite():
+    """
+    画面上のスプライトがマウスやキーボードで選択可能な状態か。
+    """
     if cw.cwpy.is_showingbacklog():
         return False
     elif cw.cwpy.is_showingmessage():
         return True
     else:
         return not cw.cwpy.is_runningevent()
+
+
+class VolumeTile(TouchButton):
+    """
+    タッチ操作で音量調節を行うタイル。
+    """
+
+    def __init__(self, width=0):
+        icon = cw.cwpy.rsrc.pygamedialogs["VOLUME"]
+        TouchButton.__init__(self, icon, u"", u"", u"", lambda: None, lambda: True, width=width)
+
+    def update_scale(self):
+        font = cw.cwpy.rsrc.fonts["sbarprogress"]
+        spx = cw.s(10)
+        spx2 = cw.s(5)
+        spy = cw.s(5)
+        fspy = cw.s(1)
+        h = max(cw.s(16), font.get_height()+fspy*2, self.icon.get_height()) + spy*2
+
+        # 画像を作成
+        self.image = pygame.Surface((self.width, h+cw.s(2))).convert_alpha()
+        color = (0, 0, 0, 192)
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+
+        # アイコン
+        self.image.blit(self.icon, (spx, (h-self.icon.get_height())//2))
+
+        # バーの配置
+        padx = spx+self.icon.get_width()+spx2
+        pady = spy
+        padw = self.rect.width - padx - spx
+        padh = h - spy*2
+        self.padrect = pygame.Rect(padx, pady, padw, padh)
+
+        self._selectedimage = self.image.copy()
+        self._unselectedimage = self.image
+        self._disabledimage = self.image
+
+    def update_image(self):
+        font = cw.cwpy.rsrc.fonts["sbarprogress"]
+        volrect = self.padrect.copy()  # 現在の音量
+        volrect.width = int(volrect.width * cw.cwpy.setting.vol_master)
+
+        for padcolor, volcolor, image in (((0, 0, 0, 232), (0, 128, 128, 232), self.image),
+                                           ((16, 16, 16, 232), (64, 192, 192, 232), self._selectedimage)):
+            # バーを描画
+            image.fill(padcolor, self.padrect)
+            image.fill(volcolor, volrect)
+
+            # 音量文字列
+            s = u"%s%%" % int(cw.cwpy.setting.vol_master*100)
+            tw, th = font.size(s)
+            tx = self.padrect.x + (self.padrect.width-tw)//2
+            ty = self.padrect.y + (self.padrect.height-th)//2
+            subimg = font.render(s, True, (0, 0, 0))
+            subimg.fill((0, 0, 0, 96), special_flags=pygame.locals.BLEND_RGBA_SUB)
+            for tx2 in (-1, 0, 1):
+                for ty2 in (-1, 0, 1):
+                    if tx2 <> 0 or ty2 <> 0:
+                        image.blit(subimg, (tx+tx2, ty+ty2))
+            subimg = font.render(s, True, (255, 255, 255))
+            image.blit(subimg, (tx, ty))
+
+    def update_selection(self):
+        if cw.cwpy.mousemotion and cw.cwpy.mousein[0]:
+            self.ldown_event()
+        TouchButton.update_selection(self)
+
+    def ldown_event(self):
+        x, y = cw.cwpy.mousepos
+        x -= self.rect.x
+        x -= self.padrect.x
+        y -= self.rect.y
+        y -= self.padrect.y
+
+        volume = 1.0 - float(self.padrect.width-x)/self.padrect.width
+        volume = cw.util.numwrap(volume, 0.0, 1.0)
+        volume = round(volume, 2)
+        cw.cwpy.setting.vol_master = volume
+
+        volume = int(cw.cwpy.setting.vol_master*100)
+        cw.cwpy.set_mastervolume(volume)
+
+        self.update_image()
+
+    def lclick_event(self):
+        pass # 何もしない
 
 
 def main():

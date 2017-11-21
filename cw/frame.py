@@ -38,6 +38,7 @@ class Frame(wx.Frame):
             cw.UP_SCR = 1
         cw.UP_WIN_M = cw.UP_WIN
 
+        self.is_iconized = False
         self.kill_list = []
 
         # トップフレーム
@@ -523,7 +524,8 @@ class Frame(wx.Frame):
 
     def OnIconize(self, event):
         """最小化イベント。最小化したときBGMの音も消す。"""
-        if event.Iconized():
+        self.is_iconized = event.Iconized()
+        if self.is_iconized:
             def func():
                 for music in cw.cwpy.music:
                     music.set_mastervolume(0)

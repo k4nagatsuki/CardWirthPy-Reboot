@@ -1493,6 +1493,9 @@ class TouchMenuButton(StatusBarButton):
 
         lclick_btn.rect.width += bw - sum(map(lambda a: a.rect.width, (lbtn, lclick_btn, rclick_btn, rbtn)))
 
+        volbar = cw.sprite.touchbutton.VolumeTile(width=bw)
+        btns.append(volbar)
+
         # 各ボタンを下からスライドして表示
         y = cw.s(cw.SIZE_AREA[1])
         for btn in reversed(btns):

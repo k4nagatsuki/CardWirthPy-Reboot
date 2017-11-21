@@ -4058,6 +4058,19 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.ydata.add_partyrecord(partyrecord)
 
+    def set_mastervolume(self, volume):
+        for music in cw.cwpy.music:
+            if not cw.cwpy.frame.is_iconized:
+                music.set_mastervolume(volume)
+            music.set_volume()
+        for sound in cw.cwpy.lastsound_scenario:
+            if sound:
+                sound.set_mastervolume(True, volume)
+                sound.set_volume(True)
+        if cw.cwpy.lastsound_system:
+            cw.cwpy.lastsound_system.set_mastervolume(False, volume)
+            cw.cwpy.lastsound_system.set_volume(False)
+
     def play_sound(self, name, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0, material_override=False):
         if channel < 0 or cw.bassplayer.MAX_SOUND_CHANNELS <= channel:
             return
