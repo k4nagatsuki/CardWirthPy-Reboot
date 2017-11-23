@@ -940,12 +940,7 @@ class Frame(wx.Frame):
 
     def OnBATTLECOMMAND(self, event):
         dlg = cw.dialog.etc.BattleCommand(self)
-        # マウスカーソルの位置に行動開始ボタンがくるよう位置調整
-        pos = wx.GetMousePosition()
-        pos = pos[0] - cw.wins(50), pos[1] - cw.wins(60)
-        dlg.Move(pos)
-        cw.util.adjust_position(dlg)
-        cw.dialog.etc.show_touchtools(dlg)
+        self.move_dlg(dlg)
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
@@ -1048,31 +1043,31 @@ class Frame(wx.Frame):
         """
         if sys.platform == "win32" and self.IsIconized():
             self.Iconize(False)
+
         if hasattr(dlg, "pre_pos") and dlg.pre_pos:
             dlg.SetPosition(dlg.pre_pos)
-            return
 
-        if self.IsFullScreen() and dlg.Parent == self:
-            d = wx.Display.GetFromWindow(self)
-            if d == wx.NOT_FOUND: d = 0
-            carea = wx.Display(d).GetGeometry()
-            x = carea[0] + (carea[2] - dlg.GetSize()[0]) / 2
-            y = carea[1] + (carea[3] - dlg.GetSize()[1]) / 2
         else:
-            x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) / 2
-            y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) / 2
-            x += dlg.Parent.GetPosition()[0]
-            y += dlg.Parent.GetPosition()[1]
+            if self.IsFullScreen() and dlg.Parent == self:
+                d = wx.Display.GetFromWindow(self)
+                if d == wx.NOT_FOUND: d = 0
+                carea = wx.Display(d).GetGeometry()
+                x = carea[0] + (carea[2] - dlg.GetSize()[0]) / 2
+                y = carea[1] + (carea[3] - dlg.GetSize()[1]) / 2
+            else:
+                x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) / 2
+                y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) / 2
+                x += dlg.Parent.GetPosition()[0]
+                y += dlg.Parent.GetPosition()[1]
 
-        # pointの数値だけ中央から移動
-        x += int(point[0] * cw.cwpy.scr_scale)
-        y += int(point[1] * cw.cwpy.scr_scale)
+            # pointの数値だけ中央から移動
+            x += int(point[0] * cw.cwpy.scr_scale)
+            y += int(point[1] * cw.cwpy.scr_scale)
 
-        dlg.MoveXY(x, y)
+            dlg.MoveXY(x, y)
 
         # モニタ内に収める
         cw.util.adjust_position(dlg)
-
         cw.dialog.etc.show_touchtools(dlg)
 
     def kill_dlg(self, dlg=None, lockmenucard=False, redraw=True):

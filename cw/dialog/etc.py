@@ -57,6 +57,11 @@ class BattleCommand(wx.Dialog):
         self._do_layout()
         self._bind()
 
+        # マウスカーソルの位置に行動開始ボタンがくるよう位置調整
+        pos = wx.GetMousePosition()
+        pos = pos[0] - cw.wins(50), pos[1] - cw.wins(60)
+        self.pre_pos = pos
+
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(self.toppanel, 1, wx.EXPAND, cw.wins(0))
@@ -816,11 +821,13 @@ class TouchTools(wx.MiniFrame):
         self.cwpy_debug = False
 
         self._tb = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
-        self._ssbtn = self._tb.AddLabelTool(-1, u"撮影(PrtScn)",
-                                            cw.cwpy.rsrc.dialogs["SCREENSHOT"])
+        s = u"%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"],
+                         cw.cwpy.msgs["desc_screenshot"])
+        bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
+        self._ssbtn = self._tb.AddLabelTool(-1, s, bmp)
         self._tb.Realize()
         # FIXME: なぜかツールボタンのツールチップが表示されないのでその対策
-        self._tb.SetToolTipString(u"撮影(PrtScn)")
+        self._tb.SetToolTipString(s)
         self.SetTransparent(128)
 
         self._do_layout()
