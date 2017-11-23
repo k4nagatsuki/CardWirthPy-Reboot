@@ -41,7 +41,6 @@ class ScenarioSelect(select.Select):
     def __init__(self, parent, db, lastscenario, lastscenariopath):
         # ダイアログボックス作成
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
-        self.SetDoubleBuffered(True)
         self._bg = None
         self._bg_scaled = None
         self._quit = False
@@ -100,7 +99,7 @@ class ScenarioSelect(select.Select):
                                                                              cw.cwpy.rsrc.dialogs["SUMMARY_INVISIBLE"],
                                                                              cw.cwpy.setting.show_invisiblescenario)
 
-        self.pagelabel = wx.StaticText(self, -1, u"1/1")
+        self.pagelabel = wx.StaticText(self, -1, u"1/1", style=wx.ALIGN_RIGHT|wx.ST_NO_AUTORESIZE)
         self.pagelabel.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(15)))
 
         # 追加メニュー
@@ -120,10 +119,8 @@ class ScenarioSelect(select.Select):
         else:
             self.toppanel = wx.Panel(self, -1, size=(cw.wins(400), cw.wins(370)+2))
             size = (cw.wins(400), cw.wins(370)+2)
-            self.toppanel.SetDoubleBuffered(True)
         self.tree = wx.TreeCtrl(self, -1, size=size,
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
-        self.tree.SetDoubleBuffered(True)
         self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1))
         self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
         self.tree.imgidx_summary = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY"])
@@ -280,6 +277,9 @@ class ScenarioSelect(select.Select):
         self.addmenu = None
         self.bookmarkmenu = None
 
+        for btn in self.GetChildren():
+            btn.SetDoubleBuffered(True)
+
         seq = self.accels
         upkey = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnUpKeyDown, id=upkey)
@@ -324,7 +324,6 @@ class ScenarioSelect(select.Select):
         cw.util.set_acceleratortable(self, seq)
 
     def update_additionals(self):
-        self.addctrlbtn.SetDoubleBuffered(False)
         if self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree:
             self.addctrlbtn.Reparent(self)
         else:
@@ -345,7 +344,6 @@ class ScenarioSelect(select.Select):
             self.addctrlbtn.SetBackgroundColour(self.GetBackgroundColour())
         else:
             self.addctrlbtn.SetBackgroundColour(self._addctrlbg)
-            self.addctrlbtn.SetDoubleBuffered(True)
 
         if cw.cwpy.setting.show_scenariotree and not self.addctrlbtn.GetToggle():
             h = size[1]
@@ -528,8 +526,7 @@ class ScenarioSelect(select.Select):
         hsizer1.Add(self.unfitness, 0, 0, 0)
         hsizer1.Add(self.completed, 0, 0, 0)
         hsizer1.Add(self.invisible, 0, 0, 0)
-        hsizer1.AddStretchSpacer(1)
-        hsizer1.Add(self.pagelabel, 0, wx.CENTER|wx.RIGHT, cw.wins(5))
+        hsizer1.Add(self.pagelabel, 1, wx.CENTER|wx.RIGHT, cw.wins(5))
         hsizer1.Add(self.addmenubtn, 0, 0, 0)
         if self.addctrlbtn and (self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree):
             hsizer1.Add(self.addctrlbtn, 0, 0, 0)
@@ -1602,15 +1599,13 @@ class ScenarioSelect(select.Select):
 
         cw.cwpy.play_sound("equipment")
         if self.tree.IsShown():
-            self.toppanel.Freeze()
             self.tree.Hide()
             self.toppanel.Show()
             self._update_narrowcondition_impl()
             self.draw(True)
-            self.toppanel.Thaw()
             cw.cwpy.setting.show_scenariotree = False
         else:
-            self.show_tree()
+            self.show_tree(freeze=False)
             selitem = self.tree.GetSelection()
             if selitem and selitem.IsOk() and not self.tree.IsVisible(selitem):
                 self.tree.ScrollTo(selitem)
@@ -1802,11 +1797,6 @@ class ScenarioSelect(select.Select):
             self.pagelabel.SetLabel("%s/%s" % (self.index+1, len(self.list)))
         else:
             self.pagelabel.SetLabel("1/1")
-        dc = wx.ClientDC(self.pagelabel)
-        w, h, _lh = dc.GetMultiLineTextExtent(self.pagelabel.GetLabel())
-        self.pagelabel.SetSize((w, h))
-        self.pagelabel.SetMinSize((w, h))
-        self.Layout()
 
     def _get_bg(self):
         if self._bg:
@@ -1982,6 +1972,8 @@ class ScenarioSelect(select.Select):
 
         if not dc:
             dc = select.Select.draw(self, update)
+            if not dc:
+                return
 
         # 背景
         if cw.cwpy.setting.show_paperandtree or (self.addctrlbtn and not self.addctrlbtn.GetToggle()):
@@ -2293,12 +2285,14 @@ class ScenarioSelect(select.Select):
                                 selected.dpath == header.dpath and selected.fname == header.fname:
                             self.tree.SelectItem(item)
 
+            self.SetDoubleBuffered(True)
             self.Freeze()
             self.tree.Hide()
             recurse(self.tree.root)
             self.tree.Show()
             self.Thaw()
             self.Layout()
+            self.SetDoubleBuffered(False)
             # スクロールしないほうが操作性がよい
             #item = self.tree.GetSelection()
             #if item and not self.tree.IsVisible(item):
@@ -2329,12 +2323,14 @@ class ScenarioSelect(select.Select):
         self._update_saveddirstack()
         self._update_pagelabel()
 
-    def create_treeitems(self, treeitem):
-        # 再描画を抑止して軽くする
-        # self.tree.Freeze()にはほとんど効果が認められなかったので
-        # 予めツリーを閉じるようにする
-        self.tree.Freeze()
-        self.tree.Hide()
+    def create_treeitems(self, treeitem, freeze=True):
+        if freeze:
+            # 再描画を抑止して軽くする
+            # self.tree.Freeze()にはほとんど効果が認められなかったので
+            # 予めツリーを閉じるようにする
+            self.SetDoubleBuffered(True)
+            self.tree.Freeze()
+            self.tree.Hide()
 
         self.tree.DeleteChildren(treeitem)
         index, nowdir = self.tree.GetItemPyData(treeitem)
@@ -2370,9 +2366,12 @@ class ScenarioSelect(select.Select):
         if not treeitem is self.tree.root:
             if treeitem.IsOk() and not self.tree.IsExpanded(treeitem):
                 self.tree.Expand(treeitem)
-        self.tree.Show()
-        self.tree.Thaw()
-        self.Layout()
+
+        if freeze:
+            self.tree.Show()
+            self.tree.Thaw()
+            self.Layout()
+            self.SetDoubleBuffered(False)
 
         return itemlist, dpaths
 
@@ -2431,7 +2430,7 @@ class ScenarioSelect(select.Select):
         self.tree.SetItemPyData(item, (index, header))
         return item
 
-    def show_tree(self):
+    def show_tree(self, freeze=True):
         # ツリーを初期化する
         self.tree.DeleteChildren(self.tree.root)
 
@@ -2439,7 +2438,7 @@ class ScenarioSelect(select.Select):
         itemlist = []
         dirstack = self.dirstack[:]
         while True:
-            itemlist, dpaths = self.create_treeitems(treeitem)
+            itemlist, dpaths = self.create_treeitems(treeitem, freeze=freeze)
 
             if dirstack:
                 _pardir, selname = dirstack.pop(0)
@@ -2820,7 +2819,6 @@ class ScenarioSelect(select.Select):
         if self._processing:
             return
 
-        self.Freeze()
         # リストが空だったらボタンを無効化
         if not self.list:
             self.yesbtn.Enable(False)
@@ -2839,7 +2837,6 @@ class ScenarioSelect(select.Select):
             else:
                 self.nobtn.SetLabel(cw.cwpy.msgs["entry_cancel"])
 
-            self.Thaw()
             return
 
         self.texts = self.get_texts()
@@ -2922,7 +2919,6 @@ class ScenarioSelect(select.Select):
         if author:
             name = u"%s (%s)" % (name, author)
         self.SetTitle(name)
-        self.Thaw()
 
     def get_texts(self):
         """
