@@ -42,6 +42,10 @@ class EventInterface(object):
         # 終了時実行関数。F9用
         self.exit_func = None
 
+        # イベントを実行した結果、状況に変化が生じたか
+        # カード消費判定に使用される
+        self.is_changestate = False
+
     def get_selectedmembername(self):
         """選択中メンバの名前を返す。"""
         try:
@@ -796,6 +800,7 @@ class Event(object):
         必要な処置である。
         """
         if not isinside:
+            cw.cwpy.event.is_changestate = False
             cw.cwpy.event.clear_stackinfo()
             cw.cwpy.event.append_stackinfo(self)
 
@@ -1011,7 +1016,10 @@ class Event(object):
         content = cw.content.get_content(cur_content)
         # cw.util.t_start()
         if content:
-            self.index = content.action()
+            try:
+                self.index = content.action()
+            finally:
+                cw.cwpy.event.is_changestate |= content.is_changestate
         else:
             self.index = 0
         # cw.util.td_end(content.data.tag + content.data.get("type", ""))
@@ -1285,6 +1293,7 @@ class CardEvent(Event, Targeting):
 
         if flag:
             cw.cwpy.play_sound("confuse", True)
+            cw.cwpy.event.is_changestate = True
             battlespeed = cw.cwpy.is_battlestatus()
             cw.animation.animate_sprite(self.user, "axialvibe", battlespeed=battlespeed)
             cw.animation.animate_sprite(self.user, "hide", battlespeed=battlespeed)
@@ -1340,8 +1349,10 @@ class CardEvent(Event, Targeting):
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
 
         # カードの使用回数減らす(シナリオ終了後に回数減らさないよう条件付き)
-        if not isinstance(self.error, ScenarioEndError):
+        if not isinstance(self.error, ScenarioEndError) and\
+                (cw.cwpy.setting.spend_noeffectcard or cw.cwpy.event.is_changestate):
             self.inusecard.set_uselimit(-1, animate=True)
+        cw.cwpy.event.is_changestate = False
 
         # effect_cardmotionでウェイトをとってない場合はここでとる
         if not self.waited:
@@ -1437,6 +1448,8 @@ class CardEvent(Event, Targeting):
         self.update_targets()
         # ターゲットが存在しない場合は処理中断
         if not self.targets:
+            # 対象無しカードを消費する
+            cw.cwpy.event.is_changestate = True
             return
 
         # 各種データ取得
@@ -1517,7 +1530,10 @@ class CardEvent(Event, Targeting):
             if not target:
                 break
 
-            if not isinstance(target, cw.sprite.card.MenuCard) and\
+            is_menucard = isinstance(target, cw.sprite.card.MenuCard)
+            cw.cwpy.event.is_changestate |= not is_menucard
+
+            if not is_menucard and\
                     target.is_unconscious() and\
                     not eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS):
                 # 意識不明者に有効な効果が含まれていない場合は
@@ -1529,8 +1545,7 @@ class CardEvent(Event, Targeting):
                 # 非表示の場合は何もしない
                 clear_params(target)
                 continue
-            if not isinstance(target, cw.sprite.card.MenuCard) and\
-                    target.is_vanished():
+            if not is_menucard and target.is_vanished():
                 clear_params(target)
                 continue
 

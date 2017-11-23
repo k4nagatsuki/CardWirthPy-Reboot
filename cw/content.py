@@ -10,11 +10,12 @@ import cw
 
 
 class EventContentBase(object):
-    def __init__(self, data):
+    def __init__(self, data, is_changestate):
         self.data = data
         self._author = None
         self._scenario = None
         self._inusecard = False
+        self.is_changestate = is_changestate
 
     def action(self):
         return 0
@@ -223,7 +224,7 @@ class EventContentBase(object):
 
 class BranchContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
         self._boolean_checked = False
         self._boolean_table = None
         self._index_checked = False
@@ -1755,7 +1756,7 @@ class BranchMultiRandomContent(BranchContent):
 
 class CallStartContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
         self.startname = self.data.get("call")
         self.is_call = 0 < self.get_children_num()
 
@@ -1792,7 +1793,7 @@ class CallStartContent(EventContentBase):
 
 class CallPackageContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
         """パッケージコールコンテント。
@@ -1873,7 +1874,7 @@ def call_package(resid, call):
 
 class ChangeBgImageContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """背景変更コンテント。"""
@@ -1918,7 +1919,7 @@ class ChangeBgImageContent(EventContentBase):
 
 class ChangeAreaContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """エリア変更コンテント。"""
@@ -1952,7 +1953,7 @@ class ChangeAreaContent(EventContentBase):
 
 class CheckFlagContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
         """フラグ判定コンテント。"""
@@ -1976,7 +1977,7 @@ class CheckFlagContent(EventContentBase):
 
 class CheckStepContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
         """ステップ判定コンテント(1.50)。"""
@@ -2020,7 +2021,7 @@ class CheckStepContent(EventContentBase):
 
 class EffectContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
         # 各種データ取得
         d = {}.copy()
         d["level"] = self.data.getint(".", "level", 0)
@@ -2075,6 +2076,7 @@ class EffectContent(EventContentBase):
                 # BUG: CardWirthではフラグによって隠蔽状態の敵に
                 #      効果を適用しようとした場合にメンバ選択が解除される
                 cw.cwpy.event.clear_selectedmember()
+                cw.cwpy.event.is_changestate = True
                 return 0
 
         self.eff.update_status()
@@ -2089,6 +2091,7 @@ class EffectContent(EventContentBase):
 
         def apply(target):
             if isinstance(target, cw.character.Character):
+                cw.cwpy.event.is_changestate = True
                 unconscious_flag, paralyze_flag = cw.event.get_effecttargetstatus(target, self.eff)
 
                 if not (not target.is_unconscious() or unconscious_flag):
@@ -2313,7 +2316,7 @@ class EffectContent(EventContentBase):
 
 class EffectBreakContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
         """効果中断コンテント。"""
@@ -2328,7 +2331,7 @@ class EffectBreakContent(EventContentBase):
 
 class ElapseTimeContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """ターン数経過コンテント。"""
@@ -2344,7 +2347,7 @@ class ElapseTimeContent(EventContentBase):
 
 class EndContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """シナリオ終了コンテント。
@@ -2437,7 +2440,7 @@ def end_scenario(complete):
 
 class EndBadEndContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """シナリオ終了コンテント。
@@ -2469,7 +2472,7 @@ class EndBadEndContent(EventContentBase):
 
 class GetContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def get_cards(self, cardtype):
         """対象範囲のインスタンスに設定枚数のカードを配布する。
@@ -2844,7 +2847,7 @@ class GetCouponContent(GetContent):
 
 class HidePartyContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
         """パーティ非表示コンテント。"""
@@ -2860,7 +2863,7 @@ class HidePartyContent(EventContentBase):
 
 class LinkStartContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
         self.startname = self.data.get("link")
 
     def action(self):
@@ -2886,7 +2889,7 @@ class LinkStartContent(EventContentBase):
 
 class LinkPackageContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
         self.resid = self.data.getint(".", "link", 0)
 
     def action(self):
@@ -2913,7 +2916,7 @@ class LinkPackageContent(EventContentBase):
 
 class LoseContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
         # 各種属性値取得
         self.resid = self.data.getint(".", "id", 0)
@@ -3196,7 +3199,7 @@ class LoseCouponContent(LoseContent):
 
 class LoseBgImageContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
         self.cellname = data.getattr(".", "cellname", u"")
         # CWNext 1.60ではアニメーションあり・エフェクトブースター無視となる
         self.doanime = data.getbool(".", "doanime", True)
@@ -3227,7 +3230,7 @@ class LoseBgImageContent(EventContentBase):
 
 class PlayBgmContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """BGMコンテント。"""
@@ -3266,7 +3269,7 @@ class PlayBgmContent(EventContentBase):
 
 class PlaySoundContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
         """効果音コンテント。"""
@@ -3305,7 +3308,7 @@ class PlaySoundContent(EventContentBase):
 
 class RedisplayContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """画面再構築コンテント。"""
@@ -3328,7 +3331,7 @@ class RedisplayContent(EventContentBase):
 
 class ReverseFlagContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """フラグ反転コンテント。"""
@@ -3358,7 +3361,7 @@ class ReverseFlagContent(EventContentBase):
 
 class SetFlagContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
         self.flag = self.data.get("flag")
         self.value = self.data.getbool(".", "value", False)
 
@@ -3389,7 +3392,7 @@ class SetFlagContent(EventContentBase):
 
 class SetStepContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
         self.step = self.data.get("step")
         self.value = self.data.getint(".", "value", 0)
 
@@ -3416,7 +3419,7 @@ class SetStepContent(EventContentBase):
 
 class SetStepUpContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
         self.step = self.data.get("step")
 
     def action(self):
@@ -3440,7 +3443,7 @@ class SetStepUpContent(EventContentBase):
 
 class SetStepDownContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
         self.step = self.data.get("step")
 
     def action(self):
@@ -3468,7 +3471,7 @@ class SetStepDownContent(EventContentBase):
 
 class ShowPartyContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
         """パーティ表示コンテント。"""
@@ -3484,7 +3487,7 @@ class ShowPartyContent(EventContentBase):
 
 class StartContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     """スタートコンテント"""
     def get_status(self):
@@ -3526,7 +3529,7 @@ class StartBattleContent(StartContent):
 
 class TalkContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def get_selections_and_indexes(self):
         """メッセージウィンドウの選択肢データ(index, name)のリストを返す。"""
@@ -3881,7 +3884,7 @@ class TalkDialogContent(TalkContent):
 
 class WaitContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
         """時間経過コンテント。
@@ -3922,7 +3925,7 @@ class WaitContent(EventContentBase):
 
 class SubstituteStepContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """ステップ代入コンテント。"""
@@ -3962,7 +3965,7 @@ class SubstituteStepContent(EventContentBase):
 
 class SubstituteFlagContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """フラグ代入コンテント。"""
@@ -4093,8 +4096,8 @@ class BranchFlagValueContent(BranchContent):
 #-------------------------------------------------------------------------------
 
 class MoveBgImageContent(EventContentBase):
-    def __init__(self, data):
-        EventContentBase.__init__(self, data)
+    def __init__(self, data, is_changestate=True):
+        EventContentBase.__init__(self, data, is_changestate=True)
         self.cellname = data.getattr(".", "cellname", u"")
         self.positiontype = data.getattr(".", "positiontype", u"")
         self.x = data.getint(".", "x", 0)
@@ -4157,7 +4160,7 @@ class MoveBgImageContent(EventContentBase):
 
 class ReplaceBgImageContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
         self.cellname = data.getattr(".", "cellname", u"")
         # CWNext 1.60ではアニメーション無し・エフェクトブースター無視となる
         self.doanime = data.getbool(".", "doanime", True)
@@ -4227,7 +4230,7 @@ methoddict = {
 
 class PostEventContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
         """CWPyのメソッド実行用コンテント。

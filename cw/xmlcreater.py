@@ -581,6 +581,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("VolumeIncrement", setting.volume_increment)
         element.append(e)
 
+    # キーコード等の効果が無くても常にカードを消費するか
+    if setting.spend_noeffectcard <> setting.spend_noeffectcard_init:
+        e = cw.data.make_element("SpendNoEffectCard", setting.spend_noeffectcard)
+        element.append(e)
+
     # シナリオのプレイログを出力する
     if setting.write_playlog <> setting.write_playlog_init:
         e = cw.data.make_element("WritePlayLog", str(setting.write_playlog))

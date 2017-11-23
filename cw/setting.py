@@ -424,6 +424,7 @@ class Setting(object):
         self.write_playlog = False
         self.move_repeat = 250 #移動ボタン押しっぱなしの速度
         self.open_lastscenario = True # 最後に表示したシナリオを開くか
+        self.spend_noeffectcard = False # キーコード等の効果が無くても常にカードを消費するか
         # シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する
         # Falseの場合は常に検索結果として表示
         self.can_installscenariofromdrop = False
@@ -760,6 +761,9 @@ class Setting(object):
 
         # マウスホイールによる全体音量の増減量
         self.volume_increment = data.getint("VolumeIncrement", self.volume_increment)
+
+        # キーコード等の効果が無くても常にカードを消費するか
+        self.spend_noeffectcard = data.getbool("SpendNoEffectCard", self.spend_noeffectcard_init)
 
         # 一覧表示
         self.show_multiplebases = data.getbool("ShowMultipleItems", "base", self.show_multiplebases)
