@@ -869,7 +869,7 @@ class EventHandlerForMessageWindow(EventHandler):
 
     def ldown_event(self):
         if cw.cwpy.setting.tablet_mode and\
-                not self.mwin.rect.collidepoint(cw.cwpy.mousepos) and\
+                cw.cwpy.statusbar.rect.collidepoint(cw.cwpy.mousepos) and\
                 not self._update_selection():
             self.shiftkey_event(True)
 
@@ -877,7 +877,10 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         左クリックイベント。
         """
-        self.shiftkey_event(False)
+        if not self._has_message():
+            self.shiftkey_event(False)
+            return
+
         if not self.can_input():
             return
 
