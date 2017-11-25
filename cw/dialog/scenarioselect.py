@@ -698,6 +698,17 @@ class ScenarioSelect(select.Select):
             self._rename.SetBitmap(cw.cwpy.rsrc.dialogs["RENAME_FILE"])
             self._rename.SetFont(font)
             menu.AppendItem(self._rename)
+            if sys.platform == "win32":
+                # ショートカットの作成
+                menu.AppendSeparator()
+                self._create_link_to_scenario = wx.MenuItem(menu, -1, cw.cwpy.msgs["create_link_to_scenario"])
+                self._create_link_to_scenario.SetBitmap(cw.cwpy.rsrc.dialogs["CREATE_LINK_TO_SCENARIO"])
+                self._create_link_to_scenario.SetFont(font)
+                menu.AppendItem(self._create_link_to_scenario)
+                self._create_link_to_dir = wx.MenuItem(menu, -1, cw.cwpy.msgs["create_link_to_directory"])
+                self._create_link_to_dir.SetBitmap(cw.cwpy.rsrc.dialogs["CREATE_LINK_TO_DIRECTORY"])
+                self._create_link_to_dir.SetFont(font)
+                menu.AppendItem(self._create_link_to_dir)
             # エクスプローラーで開く
             menu.AppendSeparator()
             self._opendir = wx.MenuItem(menu, -1, cw.cwpy.msgs["open_directory"])
@@ -719,6 +730,9 @@ class ScenarioSelect(select.Select):
             self.Bind(wx.EVT_MENU, self.OnMoveBtn, self._move)
             self.Bind(wx.EVT_MENU, self.OnDeleteBtn, self._delete)
             self.Bind(wx.EVT_MENU, self.OnRenameBtn, self._rename)
+            if self._create_link_to_scenario:
+                self.Bind(wx.EVT_MENU, self.OnCreateLinkToScenario, self._create_link_to_scenario)
+                self.Bind(wx.EVT_MENU, self.OnCreateLinkToDirectory, self._create_link_to_dir)
             self.Bind(wx.EVT_MENU, lambda event: self.open_directory(), self._opendir)
             if self._editor:
                 self.Bind(wx.EVT_MENU, lambda event: self.open_with_editor(), self._editor)
@@ -730,6 +744,9 @@ class ScenarioSelect(select.Select):
         self._move.Enable(scenarioordir)
         self._delete.Enable(scenarioordir)
         self._rename.Enable(scenarioordir)
+        if self._create_link_to_scenario:
+            self._create_link_to_scenario.Enable(scenarioordir)
+            self._create_link_to_dir.Enable(scenarioordir)
         self._opendir.Enable(self._can_opendir())
         if self._editor:
             self._editor.Enable(self._can_editor())
@@ -1166,14 +1183,14 @@ class ScenarioSelect(select.Select):
 
     def OnDropFiles(self, event):
         paths = event.GetFiles()
-        headers = self._to_headers(paths)
+        headers, notscenariofiles = self._to_headers(paths)
 
         if not headers:
             cw.cwpy.play_sound("error")
             return
 
         if cw.cwpy.setting.can_installscenariofromdrop:
-            self._install_scenario(headers)
+            self._install_scenario(headers, notscenariofiles)
         else:
             self._show_selectedscenario(headers)
 
@@ -1182,9 +1199,9 @@ class ScenarioSelect(select.Select):
         dlg = wx.FileDialog(self, u"インストールするシナリオを選択", wildcard=wildcard, style=wx.FD_OPEN|wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
-            headers = self._to_headers(paths)
+            headers, notscenariofiles = self._to_headers(paths)
             if headers:
-                self._install_scenario(headers)
+                self._install_scenario(headers, notscenariofiles)
 
     def _get_installtarget(self):
         dpath = self.nowdir
@@ -1431,6 +1448,53 @@ class ScenarioSelect(select.Select):
         else:
             dlg.Destroy()
 
+    def OnCreateLinkToScenario(self, event):
+        cw.cwpy.play_sound("click")
+        wildcard = u"シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab; Summary.xml)|*.wsn;*.wsm;*.zip;*.lzh;*.cab;Summary.xml"
+        dlg = wx.FileDialog(self, u"リンク先のシナリオを選択", wildcard=wildcard, style=wx.FD_OPEN|wx.FD_MULTIPLE)
+        if dlg.ShowModal() == wx.ID_OK:
+            paths = dlg.GetPaths()
+            headers, notscenariofiles = self._to_headers(paths)
+            headers = reduce(lambda a, b: a + b, headers.itervalues())
+            if headers:
+                cw.cwpy.play_sound("harvest")
+                dpath, _seldname = self._get_installtarget()
+                link0 = None
+                for header in headers:
+                    fpath = header.get_fpath()
+                    link = cw.util.join_paths(cw.util.get_linktarget(dpath), os.path.basename(fpath)) + u".lnk"
+                    link = cw.binary.util.check_duplicate(link)
+                    cw.util.create_link(link, cw.util.get_linktarget(fpath))
+                    if not link0:
+                        link0 = link
+
+                self._update_nowdir(dpath, link0)
+
+    def OnCreateLinkToDirectory(self, event):
+        if self.nowdir == "/find_result":
+            return
+        cw.cwpy.play_sound("click")
+        dlg = wx.DirDialog(self.TopLevelParent, u"リンク先のフォルダを選択", style=wx.DD_DIR_MUST_EXIST)
+        if dlg.ShowModal() == wx.ID_OK:
+            cw.cwpy.play_sound("harvest")
+            dpath, _seldname = self._get_installtarget()
+            dpath2 = dlg.GetPath()
+            link = cw.util.join_paths(cw.util.get_linktarget(dpath), os.path.basename(dpath2)) + u".lnk"
+            link = cw.binary.util.check_duplicate(link)
+            cw.util.create_link(link, cw.util.get_linktarget(dpath2))
+
+            self._update_nowdir(dpath, link)
+
+    def _update_nowdir(self, dpath, selection):
+        self.scetable[self._get_linktarget(dpath)] = self._get_nowlist(dpath, update=True)
+        self._update_saveddirstack()
+        lastscenario, lastscenariopath = self.get_selected()
+        if cw.scenariodb.is_scenario(lastscenariopath):
+            lastscenario.pop()
+        lastscenario.append(os.path.basename(selection))
+        lastscenariopath = selection
+        self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=[])
+
     def _to_headers(self, paths):
         return scenarioinstall.to_scenarioheaders(paths, self.db, cw.cwpy.setting.skintype)
 
@@ -1447,7 +1511,7 @@ class ScenarioSelect(select.Select):
             self.draw(True)
         self.enable_btn()
 
-    def _install_scenario(self, headers):
+    def _install_scenario(self, headers, notscenariofiles):
         """
         headersを選択中のディレクトリにインストールする。
         シナリオDB内に同じ名前・作者のシナリオがあった場合は
@@ -1497,7 +1561,7 @@ class ScenarioSelect(select.Select):
             return
 
         elif ret == wx.ID_YES:
-            failed, paths, cancelled = scenarioinstall.install_scenario(self, headers, self.scedir, dpath, self.db, cw.cwpy.setting.skintype)
+            failed, paths, _filepaths, cancelled = scenarioinstall.install_scenario(self, headers, notscenariofiles, self.scedir, dpath, self.db, cw.cwpy.setting.skintype)
 
             if paths:
                 firstpath = paths[0]

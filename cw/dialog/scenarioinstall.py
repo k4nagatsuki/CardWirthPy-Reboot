@@ -253,7 +253,7 @@ class ScenarioInstall(SelectScenarioDirectory):
     """
     シナリオインストールダイアログ。
     """
-    def __init__(self, parent, db, headers, skintype, scedir):
+    def __init__(self, parent, db, headers, notscenariofiles, skintype, scedir):
         headers_seq = reduce(lambda a, b: a + b, headers.itervalues())
         assert 0 < len(headers_seq)
 
@@ -267,6 +267,7 @@ class ScenarioInstall(SelectScenarioDirectory):
             s = u"「%s」のインストール先を選択してください。" % (name)
 
         self.headers = headers
+        self.notscenariofiles = notscenariofiles
 
         # ダイアログボックス作成
         SelectScenarioDirectory.__init__(self, parent, u"シナリオのインストール", s,
@@ -293,7 +294,7 @@ class ScenarioInstall(SelectScenarioDirectory):
         if not dstpath:
             return
 
-        failed, paths, cancelled = install_scenario(self, self.headers, self.scedir, dstpath, self.db, self.skintype)
+        failed, paths, _filepaths, cancelled = install_scenario(self, self.headers, self.notscenariofiles, self.scedir, dstpath, self.db, self.skintype)
 
         if paths:
             if 1 < len(paths):
@@ -356,8 +357,9 @@ def to_scenarioheaders(paths, db, skintype):
     パスがシナリオか否かの判定にシナリオDBを使用する。
     """
     headers = {}
+    notscenariofiles = {}
     if not paths:
-        return headers
+        return headers, notscenariofiles
 
     exists = set()
 
@@ -368,25 +370,40 @@ def to_scenarioheaders(paths, db, skintype):
 
     for path in paths:
         def recurse(parent, path):
+            hparent = cw.util.relpath(parent, allparent)
+            if hparent.startswith(u".." + os.path.sep):
+                hparent = u""
+            parentinfo = (parent, hparent)
+
             if cw.scenariodb.is_scenario(path):
                 header = db.search_path(path, skintype=skintype)
                 if header and not (header.name, header.author) in exists:
-                    hparent = cw.util.relpath(parent, allparent)
-                    if hparent.startswith(u".." + os.path.sep):
-                        hparent = u""
-                    parentinfo = (parent, hparent)
                     seq = headers.get(parentinfo, [])
                     if not seq:
                         headers[parentinfo] = seq
                     seq.append(header)
                     exists.add((header.name, header.author))
-            elif os.path.isdir(path):
-                for fname in os.listdir(path):
-                    recurse(path, cw.util.join_paths(path, fname))
+                    return True
+            elif os.path.exists(path):
+                if os.path.isdir(path):
+                    copyfile = False
+                    for fname in os.listdir(path):
+                        copyfile |= recurse(path, cw.util.join_paths(path, fname))
+                    if copyfile:
+                        return True
+
+                # ファイルまたは空ディレクトリ
+                seq = notscenariofiles.get(parentinfo, [])
+                if not seq:
+                    notscenariofiles[parentinfo] = seq
+                seq.append(path)
+                return True
+
+            return False
 
         recurse(allparent, path)
 
-    return headers
+    return headers, notscenariofiles
 
 
 def create_dir(parentdialog, dpath):
@@ -413,12 +430,15 @@ def create_dir(parentdialog, dpath):
         return u""
 
 
-def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
+def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, db, skintype):
     """
     headersをインストールする。
     進捗ダイアログが表示される。
     """
     dstpath = cw.util.get_linktarget(dstpath)
+
+    if not cw.cwpy.setting.install_notscenariofiles:
+        notscenariofiles = {}
 
     # インストール済みの情報が見つかったシナリオ
     db_exists = {}
@@ -432,13 +452,16 @@ def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
             if header2:
                 db_exists[header.get_fpath()] = header2
 
+    for files_seq in notscenariofiles.itervalues():
+        headers_len += len(files_seq)
+
     if db_exists:
         dlg = OverwriteScenarioDialog(parentdialog, scedir, db_exists)
         cw.cwpy.frame.move_dlg(dlg)
         ret = dlg.ShowModal()
         dlg.Destroy()
         if ret <> wx.ID_OK:
-            return True, [], True
+            return True, [], [], True
         else:
             db_repls = dlg.db_repls
     else:
@@ -449,9 +472,10 @@ def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
                                             "", maximum=headers_len, cancelable=True)
 
     class InstallThread(threading.Thread):
-        def __init__(self, headers, dstpath, db_repls):
+        def __init__(self, headers, notscenariofiles, dstpath, db_repls):
             threading.Thread.__init__(self)
             self.headers = headers
+            self.notscenariofiles = notscenariofiles
             self.dstpath = dstpath
             self.db_repls = db_repls
             self.num = 0
@@ -459,18 +483,44 @@ def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
             self.failed = None
             self.updates = set()
             self.paths = []
+            self.filepaths = []
 
         def run(self):
             dstpath = os.path.normcase(os.path.normpath(os.path.abspath(self.dstpath)))
             allret = [None]
             for (_parent, relparent), headers_seq in self.headers.iteritems():
                 self._install(relparent, headers_seq, dstpath, allret)
+            for (_parent, relparent), file_seq in self.notscenariofiles.iteritems():
+                self._install_files(relparent, file_seq, dstpath, allret)
 
             if cw.cwpy.setting.delete_sourceafterinstalled:
                 # 不要になったインストール元のディレクトリを削除
                 for parent, relparent in self.headers.iterkeys():
                     if not (relparent in (u"", u".") or relparent.startswith(u".." + os.path.sep)):
                         _remove_emptydir(parent)
+
+        def _confirm_overwrite(self, dlg, s, allret):
+            def func():
+                choices = (
+                    (u"置換", wx.ID_YES, cw.wins(80)),
+                    (u"名前変更", wx.ID_DUPLICATE, cw.wins(80)),
+                    (u"スキップ", wx.ID_NO, cw.wins(80)),
+                    (u"中止", wx.ID_CANCEL, cw.wins(80)),
+                )
+                dlg2 = message.Message(dlg, cw.cwpy.msgs["message"], s, mode=3, choices=choices)
+                cw.cwpy.frame.move_dlg(dlg2)
+                ret = dlg2.ShowModal()
+                dlg2.Destroy()
+                if wx.GetKeyState(wx.WXK_SHIFT):
+                    allret[0] = ret
+
+                return ret
+
+            if allret[0] is None:
+                ret = cw.cwpy.frame.sync_exec(func)
+            else:
+                ret = allret[0]
+            return ret
 
         def _install(self, parent, headers_seq, dstpath, allret):
             if parent == ".":
@@ -492,29 +542,8 @@ def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
                         dst = cw.util.join_paths(self.dstpath, parent, os.path.basename(fpath))
                         if dstpath <> os.path.normcase(os.path.normpath(os.path.abspath(header.dpath))):
                             if os.path.exists(dst):
-                                s = u"%sはすでに存在します。置換しますか？" % (os.path.basename(dst))
-
-                                def func():
-                                    choices = (
-                                        (u"置換", wx.ID_YES, cw.wins(80)),
-                                        (u"名前変更", wx.ID_DUPLICATE, cw.wins(80)),
-                                        (u"スキップ", wx.ID_NO, cw.wins(80)),
-                                        (u"中止", wx.ID_CANCEL, cw.wins(80)),
-                                    )
-                                    dlg2 = message.Message(dlg, cw.cwpy.msgs["message"], s, mode=3, choices=choices)
-                                    cw.cwpy.frame.move_dlg(dlg2)
-                                    ret = dlg2.ShowModal()
-                                    dlg2.Destroy()
-                                    if wx.GetKeyState(wx.WXK_SHIFT):
-                                        allret[0] = ret
-
-                                    return ret
-
-                                if allret[0] is None:
-                                    ret = cw.cwpy.frame.sync_exec(func)
-                                else:
-                                    ret = allret[0]
-
+                                s = u"%s はすでに存在します。置換しますか？" % (os.path.basename(dst))
+                                ret = self._confirm_overwrite(dlg, s, allret)
                                 if ret == wx.ID_YES:
                                     rmpaths.append(dst)
                                 elif ret == wx.ID_NO:
@@ -571,7 +600,77 @@ def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
                     self.failed = header
                     break
 
-    thread = InstallThread(headers, dstpath, db_repls)
+        def _install_files(self, parent, files_seq, dstpath, allret):
+            if parent == ".":
+                parent = u""
+            for fpath in files_seq:
+                if dlg.cancel:
+                    break
+                try:
+                    rmpaths = []
+                    self.msg = u"ファイル「%s」をコピーしています..." % (os.path.basename(fpath))
+
+                    # ファイルをコピー
+                    dst = cw.util.join_paths(self.dstpath, parent, os.path.basename(fpath))
+                    normpath1 = os.path.normcase(os.path.normpath(os.path.abspath(fpath)))
+                    normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
+                    if normpath1 <> normpath2:
+                        if os.path.exists(dst):
+                            s = u"%s はすでに存在します。置換しますか？" % (os.path.basename(dst))
+                            ret = self._confirm_overwrite(dlg, s, allret)
+                            if ret == wx.ID_YES:
+                                rmpaths.append(dst)
+                            elif ret == wx.ID_NO:
+                                self.num += 1
+                                continue
+                            elif ret == wx.ID_CANCEL:
+                                break
+                            else:
+                                dst = cw.util.dupcheck_plus(dst, yado=False)
+
+                            if ret == wx.ID_YES:
+                                rmpaths.append(dst)
+                            elif ret == wx.ID_NO:
+                                self.num += 1
+                                continue
+                            elif ret == wx.ID_CANCEL:
+                                break
+                            else:
+                                dst = cw.util.dupcheck_plus(dst, yado=False)
+
+                    for rmpath in rmpaths:
+                        cw.util.remove(rmpath, trashbox=True)
+                    dstdir = os.path.dirname(dst)
+                    if not os.path.isdir(dstdir):
+                        os.makedirs(dstdir)
+                    if cw.cwpy.setting.delete_sourceafterinstalled:
+                        try:
+                            shutil.move(fpath, dst)
+                        except:
+                            # FIXME: フォルダがロックされていて削除できない場合がある
+                            cw.util.print_ex()
+                            if os.path.isdir(fpath):
+                                for dpath2, dnames, fnames in os.walk(fpath):
+                                    if fnames:
+                                        raise
+                                else:
+                                    cw.util.remove(fpath, trashbox=True)
+                            else:
+                                raise
+                    elif os.path.isfile(fpath):
+                        shutil.copy2(fpath, dst)
+                    else:
+                        shutil.copytree(fpath, dst)
+
+                    self.updates.add(os.path.dirname(dst))
+                    self.filepaths.append(dst)
+                    self.num += 1
+                except:
+                    cw.util.print_ex(file=sys.stderr)
+                    self.failed = header
+                    break
+
+    thread = InstallThread(headers, notscenariofiles, dstpath, db_repls)
     thread.start()
 
     def progress():
@@ -596,7 +695,7 @@ def install_scenario(parentdialog, headers, scedir, dstpath, db, skintype):
         for dpath in thread.updates:
             db.update(dpath, skintype=skintype)
 
-    return thread.failed, thread.paths, False
+    return thread.failed, thread.paths, thread.filepaths, False
 
 
 def _remove_emptydir(dpath):

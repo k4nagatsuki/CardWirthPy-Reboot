@@ -499,12 +499,13 @@ class Frame(wx.Frame):
             if not db:
                 return
             try:
-                headers = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db, cw.cwpy.setting.skintype)
+                headers, notscenariofiles = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db, cw.cwpy.setting.skintype)
                 if not headers:
                     return
                 cw.cwpy.play_sound("signal")
                 scedir = cw.cwpy.setting.get_scedir()
-                dlg = cw.dialog.scenarioinstall.ScenarioInstall(self, db, headers, cw.cwpy.setting.skintype, scedir)
+                dlg = cw.dialog.scenarioinstall.ScenarioInstall(self, db, headers, notscenariofiles,
+                                                                cw.cwpy.setting.skintype, scedir)
                 self.move_dlg(dlg)
                 dlg.ShowModal()
                 self.kill_dlg(dlg)

@@ -430,6 +430,8 @@ class Setting(object):
         self.can_installscenariofromdrop = False
         # シナリオのインストールに成功したら元ファイルを削除する
         self.delete_sourceafterinstalled = False
+        # シナリオのインストール時にシナリオ以外のファイルもコピーする
+        self.install_notscenariofiles = True
         # アップデートに伴うファイルの自動移動・削除を行う
         self.auto_update_files = True
         # フォント表示例のフォーマット
@@ -794,6 +796,8 @@ class Setting(object):
         self.can_installscenariofromdrop = data.getbool("CanInstallScenarioFromDrop", self.can_installscenariofromdrop)
         # シナリオのインストールに成功したら元ファイルを削除する
         self.delete_sourceafterinstalled = data.getbool("DeleteSourceAfterInstalled", self.delete_sourceafterinstalled)
+        # シナリオのインストール時にシナリオ以外のファイルもコピーする
+        self.install_notscenariofiles = data.getbool("InstallNotScenarioFiles", self.install_notscenariofiles)
 
         # アップデートに伴うファイルの自動移動・削除を行う
         self.auto_update_files = data.getbool("AutoUpdateFiles", self.auto_update_files_init)

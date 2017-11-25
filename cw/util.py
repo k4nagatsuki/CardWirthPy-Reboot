@@ -4013,9 +4013,13 @@ def create_link(shortcutpath, targetpath):
     """
     if sys.platform <> "win32":
         return
+    shortcutpath = os.path.abspath(shortcutpath)
     dpath = os.path.dirname(shortcutpath)
     if not os.path.exists(dpath):
         os.makedirs(dpath)
+
+    shortcutpath = os.path.normpath(shortcutpath)
+    targetpath = os.path.normpath(targetpath)
 
     _co_initialize()
     targetpath = os.path.abspath(targetpath)

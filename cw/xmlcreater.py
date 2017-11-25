@@ -606,6 +606,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("DeleteSourceAfterInstalled", str(setting.delete_sourceafterinstalled))
         element.append(e)
 
+    # シナリオのインストール時にシナリオ以外のファイルもコピーする
+    if setting.install_notscenariofiles <> setting.install_notscenariofiles_init:
+        e = cw.data.make_element("InstallNotScenarioFiles", str(setting.install_notscenariofiles))
+        element.append(e)
+
     # アップデートに伴うファイルの自動移動・削除を行う
     if setting.auto_update_files <> setting.auto_update_files_init:
         e = cw.data.make_element("AutoUpdateFiles", str(setting.auto_update_files))
