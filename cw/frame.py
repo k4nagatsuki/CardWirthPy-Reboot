@@ -1371,6 +1371,26 @@ class MyApp(wx.App):
         # ダイアログ上でのフリック操作
         # フリック開始位置で右クリックを発生させる
         if cw.cwpy and cw.cwpy.setting.tablet_mode and isinstance(event, wx.MouseEvent):
+
+            def end_flick():
+                mousepos = wx.GetMousePosition()
+                xmove = cw.ppis(mousepos[0] - self.flick_start_pos[0])
+                ymove = cw.ppis(mousepos[1] - self.flick_start_pos[1])
+                dur = time.time() - self.flick_start_time
+                exit_value = -1
+                if self.flick_window and cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and\
+                                         dur <= cw.cwpy.setting.flick_time_msec/1000.0:
+                    event2 = wx.PyCommandEvent(wx.wxEVT_RIGHT_UP, wx.ID_UP)
+                    event2.GetPosition = lambda: self.flick_window.ScreenToClient(self.flick_start_pos)
+                    self.flick_window.ProcessEvent(event2)
+                    exit_value = True
+
+                self.flick_status = FLICK_NONE
+                self.flick_window = None
+                self.flick_start_pos = (-1, -1)
+                self.flick_start_time = 0
+                return exit_value
+
             if event.GetEventType() == wx.EVT_LEFT_DOWN.typeId:
                 window = event.GetEventObject()
                 if isinstance(window, wx.Window):
@@ -1378,24 +1398,26 @@ class MyApp(wx.App):
                     self.flick_window = window
                     self.flick_start_pos = wx.GetMousePosition()
                     self.flick_start_time = time.time()
-            elif self.flick_status == FLICK_START and event.GetEventType() == wx.EVT_LEFT_UP.typeId:
-                mousepos = wx.GetMousePosition()
-                xmove = cw.ppis(mousepos[0] - self.flick_start_pos[0])
-                ymove = cw.ppis(mousepos[1] - self.flick_start_pos[1])
-                dur = time.time() - self.flick_start_time
-                exit = -1
-                if self.flick_window and cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and\
-                                         dur <= cw.cwpy.setting.flick_time_msec/1000.0:
-                    event2 = wx.PyCommandEvent(wx.wxEVT_RIGHT_UP, wx.ID_UP)
-                    event2.GetPosition = lambda: self.flick_window.ScreenToClient(self.flick_start_pos)
-                    self.flick_window.ProcessEvent(event2)
-                    exit = True
 
-                self.flick_status = FLICK_NONE
-                self.flick_window = None
-                self.flick_start_pos = (-1, -1)
-                self.flick_start_time = 0
-                return exit
+                    # 画面外にマウスポインタが出ていった時に
+                    # マウスボタンアップを検知できないので
+                    # 1フレームごとにマウスボタンの状態を確認し、
+                    # フリック中かつボタンが押されていなければ
+                    # フリックイベントを発生させる。
+                    def watch_mousebutton():
+                        if self.flick_status <> FLICK_START:
+                            return
+                        dur = time.time() - self.flick_start_time
+                        if cw.cwpy.setting.flick_time_msec / 1000.0 <= dur:
+                            return
+                        if not wx.GetMouseState().LeftIsDown():
+                            end_flick()
+                        else:
+                            wx.CallLater(cw.cwpy.setting.frametime, watch_mousebutton)
+                    wx.CallLater(cw.cwpy.setting.frametime, watch_mousebutton)
+
+            elif self.flick_status == FLICK_START and event.GetEventType() == wx.EVT_LEFT_UP.typeId:
+                return end_flick()
 
         if cw.cwpy and cw.cwpy.setting.tablet_mode and isinstance(event, wx.MouseEvent):
             if self.flick_status == FLICK_START and event.GetEventType() == wx.EVT_MOTION.typeId:
