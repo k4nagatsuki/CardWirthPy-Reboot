@@ -347,14 +347,16 @@ class VolumeTile(TouchButton):
         padh = h - spy*2
         self.padrect = pygame.Rect(padx, pady, padw, padh)
 
-        self._selectedimage = self.image.copy()
-        self._unselectedimage = self.image
-        self._disabledimage = self.image
+        self.update_image()
 
     def update_image(self):
         font = cw.cwpy.rsrc.fonts["sbarprogress"]
         volrect = self.padrect.copy()  # 現在の音量
         volrect.width = int(volrect.width * cw.cwpy.setting.vol_master)
+
+        self._selectedimage = self.image.copy()
+        self._unselectedimage = self.image
+        self._disabledimage = self.image
 
         for padcolor, volcolor, image in (((0, 0, 0, 232), (0, 128, 128, 232), self.image),
                                            ((16, 16, 16, 232), (64, 192, 192, 232), self._selectedimage)):
@@ -376,12 +378,21 @@ class VolumeTile(TouchButton):
             subimg = font.render(s, True, (255, 255, 255))
             image.blit(subimg, (tx, ty))
 
+        if self.is_selection():
+            self.image = self._selectedimage
+        else:
+            self.image = self._unselectedimage
+
     def update_selection(self):
-        if cw.cwpy.mousemotion and cw.cwpy.mousein[0]:
-            self.ldown_event()
         TouchButton.update_selection(self)
+        if cw.cwpy.mousemotion and cw.cwpy.mousein[0]:
+            if cw.cwpy.selection is self:
+                self._moved()
 
     def ldown_event(self):
+        self._moved()
+
+    def _moved(self):
         x, y = cw.cwpy.mousepos
         x -= self.rect.x
         x -= self.padrect.x
@@ -397,6 +408,7 @@ class VolumeTile(TouchButton):
         cw.cwpy.set_mastervolume(volume)
 
         self.update_image()
+        cw.cwpy.draw(clip=self.rect)
 
     def lclick_event(self):
         pass # 何もしない
