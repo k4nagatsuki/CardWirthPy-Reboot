@@ -713,6 +713,8 @@ class Frame(wx.Frame):
 
     @synclock(_killlist_mutex)
     def append_killlist(self, dlg):
+        if hasattr(dlg, "touchtools"):
+            dlg.touchtools.Destroy()
         self.kill_list.append(dlg)
 
     @synclock(_killlist_mutex)

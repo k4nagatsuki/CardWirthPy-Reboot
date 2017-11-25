@@ -882,8 +882,8 @@ def show_touchtools(dlg):
             return False
         fc = fc.GetParent()
 
-    touchtools = cw.dialog.etc.TouchTools(dlg)
-    wx.CallAfter(touchtools.Show, True)
+    dlg.touchtools = cw.dialog.etc.TouchTools(dlg)
+    wx.CallAfter(dlg.touchtools.Show, True)
     return True
 
 
