@@ -1394,7 +1394,7 @@ class MyApp(wx.App):
 
             if event.GetEventType() == wx.EVT_LEFT_DOWN.typeId:
                 window = event.GetEventObject()
-                if isinstance(window, wx.Window):
+                if isinstance(window, wx.Window) and not isinstance(window, wx.Slider):
                     self.flick_status = FLICK_START
                     self.flick_window = window
                     self.flick_start_pos = wx.GetMousePosition()
