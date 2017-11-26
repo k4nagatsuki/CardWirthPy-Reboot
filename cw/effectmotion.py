@@ -131,10 +131,14 @@ class Effect(object):
         """
         # 反転状態だったら処理中止
         if not event and target.is_reversed():
-            return
+            if cw.cwpy.is_battlestatus():
+                cw.cwpy.event.is_changestate = True
+            return False
 
         if target.is_unconscious() and not self.has_motions(CAN_UNCONSCIOUS):
-            return
+            if cw.cwpy.is_battlestatus():
+                cw.cwpy.event.is_changestate = True
+            return False
 
         # 各種判定処理
         allmissed = self.successrate <= -5
@@ -242,12 +246,14 @@ class Effect(object):
                     cw.cwpy.advlog.effect_failed(target)
                 else:
                     cw.cwpy.advlog.avoid(target)
+            cw.cwpy.event.is_changestate = True
             return False
         elif noeffect or (success_res and not hasdamage):
             cw.cwpy.play_sound("ineffective", True)
             self.animate(target, True)
             if self.motions:
                 cw.cwpy.advlog.noeffect(target)
+            cw.cwpy.event.is_changestate = True
             return False
 
         # 効果モーションを発動
