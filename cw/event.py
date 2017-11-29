@@ -1460,7 +1460,7 @@ class CardEvent(Event, Targeting):
         d["successrate"] = data.getint("Property/SuccessRate", 0)
         d["effecttype"] = data.gettext("Property/EffectType", "Physic")
         d["resisttype"] = data.gettext("Property/ResistType", "Avoid")
-        d["soundpath"] = data.gettext("Property/SoundPath2", "")
+        d["soundpath"] = cw.util.validate_filepath(data.gettext("Property/SoundPath2", ""))
         d["volume"] = data.getint("Property/SoundPath2", "volume", 100)
         d["loopcount"] = data.getint("Property/SoundPath2", "loopcount", 1)
         d["channel"] = data.getint("Property/SoundPath2", "channel", 0)
@@ -1491,7 +1491,7 @@ class CardEvent(Event, Targeting):
                 targets = []
                 self.targets[0].clear_cardtarget()
         else:
-            path = data.gettext("Property/SoundPath", "")
+            path = cw.util.validate_filepath(data.gettext("Property/SoundPath", ""))
             volume = data.getint("Property/SoundPath", "volume", 100)
             loopcount = data.getint("Property/SoundPath", "loopcount", 1)
             channel = data.getint("Property/SoundPath", "channel", 0)

@@ -27,7 +27,7 @@ class BgImage(base.CWBinaryBase):
         self.height = f.dword()
         if dataversion <= 5:
             self.type = cw.sprite.background.BG_IMAGE
-            self.imgpath = f.string()
+            self.imgpath = cw.util.validate_filepath(f.string())
             self.mask = f.bool()
             if 2 < dataversion:
                 self.flag = f.string()

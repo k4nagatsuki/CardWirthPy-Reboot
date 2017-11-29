@@ -850,7 +850,7 @@ class Character(object):
         # TargetArrow削除
         cw.cwpy.clear_targetarrow()
         # 効果音ファイルのパスを取得
-        soundpath = data.gettext("Property/SoundPath", "")
+        soundpath = cw.util.validate_filepath(data.gettext("Property/SoundPath", ""))
         volume = data.getint("Property/SoundPath", "volume", 100)
         loopcount = data.getint("Property/SoundPath", "loopcount", 1)
         channel = data.getint("Property/SoundPath", "channel", 0)

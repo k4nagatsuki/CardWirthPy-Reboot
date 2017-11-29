@@ -132,7 +132,7 @@ def get_imageinfos(data, pcnumber=False):
         if data.tag == "ImagePaths":
             for e in data: # 複数イメージの指定
                 if e.tag == "ImagePath":
-                    path = e.gettext(".", "")
+                    path = cw.util.validate_filepath(e.gettext(".", ""))
                     if path:
                         postype = e.getattr(".", "positiontype", "Default")
                         seq.append(ImageInfo(path=path, postype=postype))
@@ -142,6 +142,7 @@ def get_imageinfos(data, pcnumber=False):
                         seq.append(ImageInfo(pcnumber=pcn))
         else:
             path = data.getattr(".", "path", "") # イベントコンテントでの画像指定
+            path = cw.util.validate_filepath(path)
             if path:
                 postype = data.getattr(".", "positiontype", "Default")
                 seq.append(ImageInfo(path=path, postype=postype))
@@ -150,6 +151,7 @@ def get_imageinfos(data, pcnumber=False):
                 if pcn:
                     seq.append(ImageInfo(pcnumber=pcn))
             path = data.gettext("ImagePath", "") # 単一のパス指定
+            path = cw.util.validate_filepath(path)
             if path:
                 postype = data.getattr("ImagePath", "positiontype", "Default")
                 seq.append(ImageInfo(path=path, postype=postype))
@@ -171,7 +173,7 @@ def get_imageinfos_p(prop, pcnumber=False):
     ImageInfoのlistを生成する。
     """
     imgpaths = []
-    imgpath = prop.properties.get("ImagePath", "")
+    imgpath = cw.util.validate_filepath(prop.properties.get("ImagePath", ""))
     if imgpath:
         postype = prop.attrs.get("ImagePath", {}).get("positiontype", "Default")
         imgpaths.append(ImageInfo(imgpath, postype=postype))
@@ -181,6 +183,7 @@ def get_imageinfos_p(prop, pcnumber=False):
             imgpaths.append(ImageInfo(pcnumber=int(pcn)))
     for eimg, attrs, imgpath in prop.third.get("ImagePaths", []):
         if eimg == "ImagePath":
+            imgpath = cw.util.validate_filepath(imgpath)
             if imgpath:
                 postype = attrs.get("positiontype", "Default")
                 imgpaths.append(ImageInfo(imgpath, postype=postype))

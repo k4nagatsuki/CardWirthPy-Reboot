@@ -319,7 +319,7 @@ class BackGround(base.CWPySprite):
             height = e.getint("Size", "height")
             size = (width, height)
             mask = e.getbool(".", "mask", False)
-            path = e.gettext("ImagePath", "")
+            path = cw.util.validate_filepath(e.gettext("ImagePath", ""))
             flag = e.gettext("Flag", "")
             cellname = e.getattr(".", "cellname", "")
             if pos == (0, 0) and size == cw.SIZE_AREA and not mask and path and not flag and not cellname:
@@ -463,7 +463,7 @@ class BackGround(base.CWPySprite):
             # 背景画像
             mask = e.getbool(".", "mask", False)
             smoothing = e.getattr(".", "smoothing", "Default")
-            path = e.gettext("ImagePath", "")
+            path = cw.util.validate_filepath(e.gettext("ImagePath", ""))
             if ignoreeffectbooster and os.path.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
                 # 背景置換コンテントでエフェクトブースターファイルが
                 # 完全に無視される(CWNext 1.60との互換動作)

@@ -155,7 +155,7 @@ class _AnimationPart(object):
             if self.id:
                 self.parent.animation_table[self.id] = self
 
-            self.imgpath = data.gettext("ImagePath", "")
+            self.imgpath = cw.util.validate_filepath(data.gettext("ImagePath", ""))
             if self.imgpath:
                 self.imgpath = cw.util.join_paths(cw.cwpy.skindir, self.imgpath)
                 self.imgpath = cw.util.get_materialpathfromskin(self.imgpath, cw.M_IMG)

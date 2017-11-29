@@ -293,6 +293,7 @@ class CWBinaryBase(object):
         if path == u"（なし）":
             return ""
         mdir = self.get_materialdir()
+        path = cw.util.validate_filepath(path)
         if mdir == "":
             return path
         elif path:
@@ -306,6 +307,7 @@ class CWBinaryBase(object):
         if not path:
             return ""
 
+        path = cw.util.validate_filepath(path)
         if path.startswith("Material/"):
             return path[9:]
         else:

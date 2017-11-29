@@ -1895,7 +1895,7 @@ class ChangeBgImageContent(EventContentBase):
 
         for e in self.data.getfind("BgImages", raiseerror=False):
             if e.tag == "BgImage":
-                path = e.gettext("ImagePath", "")
+                path = cw.util.validate_filepath(e.gettext("ImagePath", ""))
                 if path:
                     seq.append(path)
             elif e.tag == "TextCell":
@@ -2028,7 +2028,7 @@ class EffectContent(EventContentBase):
         d["successrate"] = self.data.getint(".", "successrate", 0)
         d["effecttype"] = self.data.get("effecttype", "Physic")
         d["resisttype"] = self.data.get("resisttype", "Avoid")
-        d["soundpath"] = self.data.get("sound", "")
+        d["soundpath"] = cw.util.validate_filepath(self.data.get("sound", ""))
         d["visualeffect"] = self.data.get("visual", "None")
         d["volume"] = self.data.getint(".", "volume", 100)
         d["loopcount"] = self.data.getint(".", "loopcount", 1)
@@ -3234,7 +3234,7 @@ class PlayBgmContent(EventContentBase):
 
     def action(self):
         """BGMコンテント。"""
-        path = self.data.get("path", "")
+        path = cw.util.validate_filepath(self.data.get("path", ""))
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 0)
         channel = self.data.getint(".", "channel", 0)
@@ -3273,7 +3273,7 @@ class PlaySoundContent(EventContentBase):
 
     def action(self):
         """効果音コンテント。"""
-        path = self.data.get("path", "")
+        path = cw.util.validate_filepath(self.data.get("path", ""))
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 1)
         channel = self.data.getint(".", "channel", 0)
@@ -3694,7 +3694,7 @@ class TalkMessageContent(TalkContent):
         Falseが返される状況の場合、メッセージは飛ばされる。
         """
         # 画像パス取得
-        imgpath = self.data.get("path", "")
+        imgpath = cw.util.validate_filepath(self.data.get("path", ""))
 
         # 選択外メンバ
         if imgpath.endswith("??Unselected"):
@@ -4190,7 +4190,7 @@ class ReplaceBgImageContent(EventContentBase):
 
         for e in self.data.getfind("BgImages", raiseerror=False):
             if e.tag == "BgImage":
-                path = e.gettext("ImagePath", "")
+                path = cw.util.validate_filepath(e.gettext("ImagePath", ""))
                 seq.append(path)
             elif e.tag == "TextCell":
                 text = e.gettext("Text", "")

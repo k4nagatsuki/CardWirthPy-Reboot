@@ -3161,7 +3161,7 @@ class CWPy(_Singleton, threading.Thread):
         self.play_sound("battle", from_scenario=True, material_override=True)
         self.statusbar.change(False, encounter=True)
 
-        path = data.gettext("Property/MusicPath", "")
+        path = cw.util.validate_filepath(data.gettext("Property/MusicPath", ""))
         volume = data.getint("Property/MusicPath", "volume", 100)
         loopcount = data.getint("Property/MusicPath", "loopcount", 0)
         channel = data.getint("Property/MusicPath", "channel", 0)
@@ -4572,9 +4572,10 @@ class CWPy(_Singleton, threading.Thread):
         else:
             # Property/Materialsが無かった頃の互換動作
             for e in data.iter():
-                if e.tag == "ImagePath" and e.text and not cw.binary.image.path_is_code(e.text):
-                    path = cw.util.join_paths(self.yadodir, e.text)
-                    temppath = cw.util.join_paths(self.tempdir, e.text)
+                etext = cw.util.validate_filepath(e.text)
+                if e.tag == "ImagePath" and etext and not cw.binary.image.path_is_code(etext):
+                    path = cw.util.join_paths(self.yadodir, etext)
+                    temppath = cw.util.join_paths(self.tempdir, etext)
 
                     if os.path.isfile(path):
                         self.ydata.deletedpaths.add(path)
@@ -4641,15 +4642,16 @@ class CWPy(_Singleton, threading.Thread):
             e.content = None # イベントコンテントのキャッシュは削除しておく
             if e.tag == "ImagePath" and importimage:
                 # ImagePathはcarddata無しでの表示に必要となるので取り込んでおく
-                if e.text and not cw.binary.image.path_is_code(e.text):
-                    path = cw.util.join_paths(orig_scedir, e.text)
+                etext = cw.util.validate_filepath(e.text)
+                if etext and not cw.binary.image.path_is_code(etext):
+                    path = cw.util.join_paths(orig_scedir, etext)
                     if os.path.isfile(path):
                         with open(path, "rb") as f:
                             imagedata = f.read()
                             f.close()
                         e.text = cw.binary.image.data_to_code(imagedata)
             elif e.tag in ("ImagePath", "SoundPath", "SoundPath2"):
-                path = e.text
+                path = cw.util.validate_filepath(e.text)
                 if path:
                     if yadodir and mdir:
                         path = cw.util.relpath(path, mdir)
@@ -4658,7 +4660,7 @@ class CWPy(_Singleton, threading.Thread):
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado,
                                         can_loaded_scaledimage=can_loaded_scaledimage)
             elif e.tag in ("Play", "Talk"):
-                path = e.getattr(".", "path", "")
+                path = cw.util.validate_filepath(e.getattr(".", "path", ""))
                 if path:
                     if yadodir and mdir:
                         path = cw.util.relpath(path, mdir)
@@ -4676,7 +4678,7 @@ class CWPy(_Singleton, threading.Thread):
                                             can_loaded_scaledimage=can_loaded_scaledimage)
 
             elif e.tag == "Effect":
-                path = e.getattr(".", "sound", "")
+                path = cw.util.validate_filepath(e.getattr(".", "sound", ""))
                 if path:
                     if yadodir and mdir:
                         path = cw.util.relpath(path, mdir)

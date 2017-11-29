@@ -1186,11 +1186,13 @@ def join_paths(*paths):
     """
     return "/".join(filter(lambda a: a, paths)).replace("\\", "/").rstrip("/")
 
+
 # FIXME: パスによって以下のような警告が標準エラー出力に出るようだが、詳細が分からない。
 #        ***\ntpath.py:533: UnicodeWarning: Unicode unequal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
 #        おそらく実際的な問題は発生しないので、とりあえず警告を無効化する。
 import warnings
 warnings.filterwarnings("ignore", category=UnicodeWarning)
+
 
 def relpath(path, start):
     if len(start) < len(path) and path.startswith(start) and start <> "":
@@ -1212,6 +1214,34 @@ assert relpath("/a", "..").replace("\\", "/") == os.path.relpath("/a", "..").rep
 assert relpath("a", "../bcde").replace("\\", "/") == os.path.relpath("a", "../bcde").replace("\\", "/")
 assert relpath("../a", "../bcde").replace("\\", "/") == os.path.relpath("../a", "../bcde").replace("\\", "/")
 assert relpath("../a", "../").replace("\\", "/") == os.path.relpath("../a", "../").replace("\\", "/")
+
+
+def validate_filepath(fpath):
+    """
+    fpathが絶対パスまたは外部ディレクトリを指定する
+    相対パスであれば空文字列に置換する。
+    """
+    if isinstance(fpath, list):
+        seq = []
+        for f in fpath:
+            f = validate_filepath(f)
+            if f:
+                seq.append(f)
+        return seq
+    else:
+        if not fpath:
+            return u""
+        if os.path.isabs(fpath):
+            return u""
+        else:
+            n = join_paths(os.path.normpath(fpath))
+            if n == ".." or n.startswith("../"):
+                return u""
+        return fpath
+
+assert validate_filepath([u"/test/abc", None, u"test/../test", u"test/../../abc", u"../abc"]) ==\
+            [u"test/../test"]
+
 
 def is_descendant(path, start):
     """
