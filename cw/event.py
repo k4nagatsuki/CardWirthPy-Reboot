@@ -1465,7 +1465,7 @@ class CardEvent(Event, Targeting):
         # ターゲット色反転＆ウェイト
         self.update_targets()
         skipped = False
-        if not d["allrange"] and self.targets:
+        if not d["allrange"] and len(self.targets) == 1:
             self.targets[0].set_cardtarget()
             cw.cwpy.draw()
             if eff.check_enabledtarget(self.targets[0], False):
