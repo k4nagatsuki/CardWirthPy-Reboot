@@ -1758,7 +1758,6 @@ class CallStartContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=False)
         self.startname = self.data.get("call")
-        self.is_call = 0 < self.get_children_num()
 
     def action(self):
         """スタートコールコンテント。
@@ -1770,7 +1769,7 @@ class CallStartContent(EventContentBase):
         if self.startname in trees:
             event = cw.cwpy.event.get_event()
 
-            if self.is_call:
+            if 0 < self.get_children_num():
                 if cw.LIMIT_RECURSE <= cw.cwpy.event.get_currentstack():
                     s = u"イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
                     cw.cwpy.call_modaldlg("ERROR", text=s)
