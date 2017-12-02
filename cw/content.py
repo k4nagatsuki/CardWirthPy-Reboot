@@ -2949,16 +2949,17 @@ class LoseContent(EventContentBase):
             return 0
         name = e.gettext("Name", "")
         desc = e.gettext("Description", "")
-        if self.num == 0:
-            self.num = 0x7fffffff
+        num = self.num
+        if num == 0:
+            num = 0x7fffffff
 
         for target in cw.cwpy.event.get_targetscope(self.scope):
             if isinstance(target, cw.character.Character):
                 target = target.get_pocketcards(index)
 
-            _headers, losenum = self.lose_card(name, desc, target, self.num)
-            self.num -= losenum
-            if self.num <= 0:
+            _headers, losenum = self.lose_card(name, desc, target, num)
+            num -= losenum
+            if num <= 0:
                 break
 
     def lose_card(self, name, desc, target, num):
