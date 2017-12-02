@@ -248,6 +248,10 @@ class Deck(object):
         """手札消去効果を適用する。"""
         self._throwaway = True
 
+    def clear_nextcards(self):
+        """配付予約されていたカードをクリアする。"""
+        self.nextcards = []
+
     def is_throwed(self):
         """手札が消去されているか。"""
         return self._throwaway

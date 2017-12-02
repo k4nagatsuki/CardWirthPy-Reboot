@@ -1065,6 +1065,11 @@ class Character(object):
         if self.is_inactive(check_reversed=False):
             self.deck.throwaway()
 
+        if self.is_unconscious() or self.is_paralyze() or self.is_sleep():
+            # 意識不明・麻痺・睡眠であれば手札の配付予約はキャンセルされる
+            # 呪縛はキャンセルされない(CardWirth 1.50)
+            self.deck.clear_nextcards()
+
     def clear_action(self):
         self.actiondata = None
         self.actionautoselected = False
