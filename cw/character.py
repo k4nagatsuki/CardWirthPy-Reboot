@@ -1311,7 +1311,7 @@ class Character(object):
             elif 1 <= per:
                 bonus = 6 + (11 - per)
             else:
-                bonus = 100
+                bonus = max(17, self.maxlife)
 
         elif mtype == "Runaway":
             per = self.get_lifeper()
