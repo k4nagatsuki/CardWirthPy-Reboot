@@ -1134,12 +1134,13 @@ def read_summary(basepath):
     return imgbufs_to_result(summaryinfos, imgbufs)
 
 def parse_summarydata(basepath, data, scetype, mtime, rootattrs):
-    e = data.find("ImagePath")
     wsnversion = rootattrs.get("dataVersion", "")
     imgpaths = []
-    etext = cw.util.validate_filepath(e.text)
-    if not e is None and etext:
-        imgpaths.append(cw.image.ImageInfo(path=etext, postype=e.getattr(".", "positiontype", "Default")))
+    e = data.find("ImagePath")
+    if not e is None:
+        etext = cw.util.validate_filepath(e.text)
+        if etext:
+            imgpaths.append(cw.image.ImageInfo(path=etext, postype=e.getattr(".", "positiontype", "Default")))
     e = data.find("ImagePaths")
     if not e is None:
         for e2 in e:
