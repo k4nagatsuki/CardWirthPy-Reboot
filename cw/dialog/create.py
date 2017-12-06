@@ -2491,20 +2491,22 @@ class AdventurerDesignDialog(wx.Dialog):
     def OnOk(self, event):
         name = self.toppanel.namectrl.GetValue()
         desc = self.toppanel.descctrl.GetValue()
-        self.ccard.set_name(name)
-        self.ccard.set_description(desc)
-        if self.toppanel.is_changedimgpath():
-            self.ccard.set_images(self.toppanel.imgpaths)
-        self.ccard.data.is_edited = True
-        self.ccard.data.write_xml()
+        is_changedimgpath = self.toppanel.is_changedimgpath()
+        imgpaths = self.toppanel.imgpaths
 
-        def func(ccard):
+        def func(ccard, name, desc, is_changedimgpath, imgpaths):
             cw.cwpy.play_sound("harvest")
+            ccard.set_name(name)
+            ccard.set_description(desc)
+            if is_changedimgpath:
+                ccard.set_images(imgpaths)
+                ccard.data.is_edited = True
+                ccard.data.write_xml()
             if isinstance(ccard, cw.sprite.card.CWPyCard):
                 cw.animation.animate_sprite(ccard, "hide")
                 ccard.update_image()
                 cw.animation.animate_sprite(ccard, "deal")
-        cw.cwpy.exec_func(func, self.ccard)
+        cw.cwpy.exec_func(func, self.ccard, name, desc, is_changedimgpath, imgpaths)
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
