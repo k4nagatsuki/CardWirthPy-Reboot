@@ -1589,7 +1589,7 @@ def create_cardscreenshot(titledic):
             sy += cw.s(130 + 2 * margin)
 
     else:
-        raise
+        raise Exception()
 
     return bmp
 
