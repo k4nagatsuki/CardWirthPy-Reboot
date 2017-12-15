@@ -434,6 +434,13 @@ class Character(object):
             for header in self.deck.get_hand(self):
                 if keycode in header.get_keycodes():
                     return True
+            if self.actiondata and self.actiondata[1]:
+                header = self.actiondata[1]
+                if header and keycode in header.get_keycodes():
+                    return True
+            header = self.deck.get_used()
+            if header and keycode in header.get_keycodes():
+                return True
         if skill:
             for header in self.get_pocketcards(cw.POCKET_SKILL):
                 if keycode in header.get_keycodes():
