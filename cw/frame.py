@@ -1353,6 +1353,13 @@ class MyApp(wx.App):
         if not event:
             return -1
 
+        # BUG: wx._core.PyAssertionError: C++ assertion "GetEventHandler() == this" failed at ..\..\src\common\wincmn.cpp(478) in wxWindowBase::~wxWindowBase(): any pushed event handlers must have been removed
+        #      wxPython 3.0.2.0
+        try:
+            event.GetEventObject()
+        except:
+            return
+
         if cw.cwpy.frame.filter_event:
             if not event.GetEventObject():
                 return -1
