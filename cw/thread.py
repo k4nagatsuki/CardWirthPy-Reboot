@@ -1481,7 +1481,7 @@ class CWPy(_Singleton, threading.Thread):
                 cursor = pygame.cursors.compile(s, ".", "#", "o")
             pygame.mouse.set_cursor((len(s[0]), len(s)), point, *cursor)
 
-        if not force:
+        if not force and not self.is_showingdlg():
             # FIXME: 一度マウスポインタを移動しないと変更されない
             pos = pygame.mouse.get_pos()
             x = pos[0] - 1 if 0 < pos[0] else pos[0] + 1
@@ -1638,8 +1638,9 @@ class CWPy(_Singleton, threading.Thread):
                 s = u"デバッガ表示中はフルスクリーン化できません。"
                 self.call_modaldlg("MESSAGE", text=s)
             else:
-                pos = pygame.mouse.get_pos()
-                pygame.mouse.set_pos([-1, -1])
+                if not self.is_showingdlg():
+                    pos = pygame.mouse.get_pos()
+                    pygame.mouse.set_pos([-1, -1])
 
                 self.setting.is_expanded = flag
                 if flag:
@@ -1664,10 +1665,11 @@ class CWPy(_Singleton, threading.Thread):
                 while not self.frame.IsFullScreen() == flag:
                     pass
 
-                # 一度マウスポインタを画面外へ出さないと
-                # フォーカスを失うことがある
-                pygame.mouse.set_pos(pos)
-                self.clear_inputevents()
+                if not self.is_showingdlg():
+                    # 一度マウスポインタを画面外へ出さないと
+                    # フォーカスを失うことがある
+                    pygame.mouse.set_pos(pos)
+                    self.clear_inputevents()
 
         else:
             # 拡大
