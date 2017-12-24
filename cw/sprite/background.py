@@ -1173,9 +1173,10 @@ class Curtain(base.SelectableSprite):
                 return None
             else:
                 subimg = self.target.d[0]
-                if not (subimg.get_flags() & pygame.locals.SRCALPHA):
-                    return None
-                subimg = subimg.copy()
+                if (subimg.get_flags() & pygame.locals.SRCALPHA):
+                    subimg = subimg.copy()
+                else:
+                    subimg = subimg.convert_alpha()
         else:
             subimg = self.target.image
             if not (subimg.get_flags() & pygame.locals.SRCALPHA):
