@@ -1302,6 +1302,8 @@ class CardEvent(Event, Targeting):
             self.end()
         else:
             # 使用可能なのでイベント実行
+            if cw.cwpy.is_battlestatus():
+                cw.cwpy.event.is_changestate = True
             if cw.cwpy.sdata.is_wsnversion('2', self.inusecard.wsnversion):
                 self.targets_to_coupon()  # 対象にシステムクーポンを付与(Wsn.2)
 
