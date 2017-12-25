@@ -2162,6 +2162,10 @@ class EffectContent(EventContentBase):
         else:
             targets = [target]
 
+        if not targets:
+            # 対象無しの場合は無条件に消費する
+            cw.cwpy.event.is_changestate = True
+
         if self.ignite:
             try:
                 # 実行中の効果イベントの"＠効果対象"関係のクーポンをクリアし、
