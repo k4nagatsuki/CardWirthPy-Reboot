@@ -759,6 +759,7 @@ class Event(object):
             if cw.cwpy.sdata.infocards_beforeevent is None:
                 cw.cwpy.sdata.infocards_beforeevent = set(cw.cwpy.sdata.get_infocards(False))
 
+            cw.cwpy.event.is_changestate = False
             self.run()
 
         except EventError, err:
@@ -800,7 +801,6 @@ class Event(object):
         必要な処置である。
         """
         if not isinside:
-            cw.cwpy.event.is_changestate = False
             cw.cwpy.event.clear_stackinfo()
             cw.cwpy.event.append_stackinfo(self)
 
@@ -1277,6 +1277,7 @@ class CardEvent(Event, Targeting):
     def start(self):
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, self.inusecard.versionhint)
+        cw.cwpy.event.is_changestate = False
 
         data = self.inusecard.carddata
         if self.inusecard.type == "SkillCard":
