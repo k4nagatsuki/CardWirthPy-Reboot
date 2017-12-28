@@ -4,6 +4,7 @@
 import math
 import os
 import re
+import itertools
 import pygame
 import pygame.locals
 
@@ -1427,7 +1428,12 @@ def get_messagelogtext(mwins, lastline=True):
 
 
 def update_scenariopath_for_log(normpath, dst):
-    for log in cw.cwpy.sdata.backlog:
+    if cw.cwpy.is_showingmessage():
+        logs = itertools.chain([cw.cwpy.get_messagewindow()], cw.cwpy.sdata.backlog)
+    else:
+        logs = cw.cwpy.sdata.backlog
+
+    for log in logs:
         for i, (info, can_loaded_scaledimage, basetalker, scaledimagedict) in enumerate(log.imgpaths[:]):
             if not info.path or cw.binary.image.path_is_code(info.path):
                 continue
@@ -1436,6 +1442,18 @@ def update_scenariopath_for_log(normpath, dst):
                 continue
             info.path = cw.util.join_paths(dst, rel)
             log.imgpaths[i] = (info, can_loaded_scaledimage, basetalker, scaledimagedict)
+        update_scenariopath_for_spchars(log.specialchars, normpath, dst)
+
+
+def update_scenariopath_for_spchars(restbl, normpath, dst):
+    restbl.reset()
+    for lazyres in restbl.dic.itervalues():
+        dpath = lazyres.args[0]
+        rel = cw.util.is_descendant(path=dpath, start=normpath)
+        if not rel:
+            continue
+        dpath = cw.util.join_paths(dst, rel)
+        lazyres.args = (dpath,) + lazyres.args[1:]
 
 
 def store_messagelogimage(path, can_loaded_scaledimage):

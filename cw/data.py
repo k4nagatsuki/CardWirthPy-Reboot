@@ -163,6 +163,18 @@ class SystemData(object):
         self.resource_cache = {}
         self.resource_cache_size = 0
 
+    def update_scenariopath2(self, normpath, dst, dstisfile):
+        if not self.fpath:
+            return
+        if dstisfile:
+            return
+        dst = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
+        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(self.fpath)))
+        if dst <> normpath2:
+            return
+        cw.cwpy.rsrc.specialchars.reset()
+        self.update_scale()
+
     def _init_sparea_mcards(self):
         """
         カード移動操作エリアのメニューカードを作成する。

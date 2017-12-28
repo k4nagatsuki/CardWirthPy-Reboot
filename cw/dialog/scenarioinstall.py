@@ -583,6 +583,8 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                             shutil.copy2(fpath, dst)
                         else:
                             shutil.copytree(fpath, dst)
+                        update_scenariolog2(normpath1, dst, dstisfile)
+
                     elif repls:
                         for rmpath in repls:
                             cw.util.remove(rmpath, trashbox=True)
@@ -758,6 +760,16 @@ def update_scenariolog(normpath, dst, dstisfile):
             if not header.scenariocard:
                 continue
             header.update_scenariopath(normpath, dst) # 次の表示で再初期化
+
+
+def update_scenariolog2(normpath, dst, dstisfile):
+    """
+    インストールに伴うシナリオの移動を追跡する。
+    移動後の処理。
+    """
+    if not dstisfile and cw.cwpy.is_playingscenario():
+        # 特殊文字の更新
+        cw.cwpy.sdata.update_scenariopath2(normpath, dst, dstisfile)
 
 
 class OverwriteScenarioDialog(wx.Dialog):

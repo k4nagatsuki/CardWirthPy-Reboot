@@ -894,7 +894,7 @@ class Setting(object):
             dlg = wx.MessageDialog(None, err, u"スキンチェックエラー", wx.OK|wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
-            raise
+            raise Exception()
         self.skinname = data.gettext("Property/Name", "")
         self.skintype = data.gettext("Property/Type", "")
         self.vocation120 = data.getbool("Property/CW120VocationLevel", False)
