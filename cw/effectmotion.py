@@ -140,6 +140,8 @@ class Effect(object):
                 cw.cwpy.event.is_changestate = True
             return False
 
+        cw.cwpy.event.is_changestate = True
+
         # 各種判定処理
         allmissed = self.successrate <= -5
         allsuccess = self.successrate >= 5

@@ -1534,7 +1534,8 @@ class CardEvent(Event, Targeting):
                 break
 
             is_menucard = isinstance(target, cw.sprite.card.MenuCard)
-            cw.cwpy.event.is_changestate |= not is_menucard
+            cw.cwpy.event.is_changestate |= not is_menucard and\
+                                            not isinstance(target, cw.character.Player)
 
             if not is_menucard and\
                     target.is_unconscious() and\
