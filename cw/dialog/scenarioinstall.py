@@ -442,15 +442,25 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
 
     # インストール済みの情報が見つかったシナリオ
     db_exists = {}
+    links = [] # ショートカットファイルのリスト
 
     headers_len = 0
     for headers_seq in headers.itervalues():
         headers_len += len(headers_seq)
         for header in headers_seq:
+            fpath = header.get_fpath()
+
             header2 = db.find_scenario(header.name, header.author, skintype=skintype,
                                        ignore_dpath=header.dpath, ignore_fname=header.fname)
-            if header2:
-                db_exists[header.get_fpath()] = header2
+            seq = []
+            for header3 in header2:
+                fpath = header3.get_fpath()
+                if sys.platform == "win32" and fpath.lower().endswith(".lnk") and os.path.isfile(fpath):
+                    links.append(fpath)
+                    continue
+                seq.append(header3)
+            if seq:
+                db_exists[header.get_fpath()] = seq
 
     for files_seq in notscenariofiles.itervalues():
         headers_len += len(files_seq)
@@ -484,6 +494,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
             self.updates = set()
             self.paths = []
             self.filepaths = []
+            self.repl_links = {}
 
         def run(self):
             dstpath = os.path.normcase(os.path.normpath(os.path.abspath(self.dstpath)))
@@ -592,8 +603,10 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                     for path in repls:
                         normpath3 = os.path.normcase(os.path.normpath(os.path.abspath(path)))
                         update_scenariolog(normpath3, dst, dstisfile)
+                        self.repl_links[normpath3] = dst
 
                     self.updates.add(os.path.dirname(dst))
+                    self.repl_links[normpath1] = dst
 
                     self.paths.append(dst)
                     self.num += 1
@@ -609,6 +622,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                 if dlg.cancel:
                     break
                 try:
+                    repl_links = {}
                     rmpaths = []
                     self.msg = u"ファイル「%s」をコピーしています..." % (os.path.basename(fpath))
 
@@ -693,6 +707,17 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
         dlg.ShowModal()
         dlg.Destroy()
 
+    # ショートカットの張り替え
+    for fpath in links:
+        try:
+            oldtarget = cw.util.get_linktarget(fpath)
+            normpath = os.path.normcase(os.path.normpath(os.path.abspath(oldtarget)))
+            newtarget = thread.repl_links.get(normpath, None)
+            if newtarget:
+                cw.util.set_linktarget(fpath, newtarget)
+        except:
+            cw.util.print_ex(file=sys.stderr)
+
     if not thread.failed and thread.paths:
         for dpath in thread.updates:
             db.update(dpath, skintype=skintype)
@@ -722,6 +747,7 @@ def update_scenariolog(normpath, dst, dstisfile):
     if normpath == normpath2:
         return
 
+    cw.cwpy.ydata.changed()
     if cw.cwpy.is_playingscenario():
         cw.cwpy.sdata.update_scenariopath(normpath, dst, dstisfile)
     if not dstisfile:

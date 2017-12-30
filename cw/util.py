@@ -3994,12 +3994,14 @@ def synclock(l):
         return acquire
     return synclock
 
+
 #-------------------------------------------------------------------------------
 #  ショートカット関係
 #-------------------------------------------------------------------------------
 
 # CoInitialize()を呼び出し終えたスレッドのset
 _cominit_table = set()
+
 
 def _co_initialize():
     """スレッドごとにCoInitialize()を呼び出す。"""
@@ -4015,6 +4017,7 @@ def _co_initialize():
     for thr2 in _cominit_table.copy():
         if not thr2.isAlive():
             _cominit_table.remove(thr2)
+
 
 def get_linktarget(fpath):
     """fileがショートカットだった場合はリンク先を、
@@ -4036,6 +4039,28 @@ def get_linktarget(fpath):
         print_ex()
         return fpath
     return get_linktarget(join_paths(fpath))
+
+
+def set_linktarget(fpath, targetpath):
+    """fpathがショートカットだった場合は
+    リンク先をtargetpathに変更する。
+    """
+    if sys.platform <> "win32" or not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
+        return fpath
+
+    _co_initialize()
+    shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
+                                          pythoncom.CLSCTX_INPROC_SERVER,
+                                          win32shell.IID_IShellLink)
+    try:
+        encoding = sys.getfilesystemencoding()
+        STGM_READ = 0x00000000
+        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath.encode(encoding), STGM_READ)
+        shortcut.SetPath(targetpath.encode(encoding))
+        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(fpath.encode(encoding), 0)
+    except Exception:
+        print_ex()
+
 
 def create_link(shortcutpath, targetpath):
     """targetpathへのショートカットを
@@ -4059,6 +4084,7 @@ def create_link(shortcutpath, targetpath):
     encoding = sys.getfilesystemencoding()
     shortcut.SetPath(targetpath.encode(encoding))
     shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath.encode(encoding), 0)
+
 
 #-------------------------------------------------------------------------------
 #  パフォーマンスカウンタ
