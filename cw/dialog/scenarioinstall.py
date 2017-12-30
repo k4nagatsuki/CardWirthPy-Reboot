@@ -744,11 +744,31 @@ def update_scenariolog(normpath, dst, dstisfile):
     """
     インストールに伴うシナリオの移動を追跡する。
     """
-    if not cw.cwpy.ydata:
-        return
     normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
     if normpath == normpath2:
         return
+
+    for i, (bookmarkpath, name) in enumerate(cw.cwpy.setting.bookmarks_for_cardedit[:]):
+        fname = os.path.basename(bookmarkpath)
+        lfname = fname.lower()
+        if lfname in (u"summary.wsm", u"summary.xml"):
+            bookmarkpath = os.path.dirname(bookmarkpath)
+        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(bookmarkpath)))
+        if normpath == normpath2:
+            cw.cwpy.setting.bookmarks_for_cardedit[i] = ((dst, name))
+
+    if not cw.cwpy.ydata:
+        return
+
+    for i, (bookmark, bookmarkpath) in enumerate(cw.cwpy.ydata.bookmarks[:]):
+        fname = os.path.basename(bookmarkpath)
+        lfname = fname.lower()
+        if lfname in (u"summary.wsm", u"summary.xml"):
+            bookmarkpath = os.path.dirname(bookmarkpath)
+        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(bookmarkpath)))
+        if normpath == normpath2:
+            cw.cwpy.ydata.changed()
+            cw.cwpy.ydata.bookmarks[i] = (([], dst))
 
     cw.cwpy.ydata.changed()
     if cw.cwpy.is_playingscenario():

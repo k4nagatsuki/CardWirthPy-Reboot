@@ -303,7 +303,13 @@ class CardEditDialog(wx.Dialog):
 
     def OnAddBookmark(self, event):
         if self.scdata:
-            cw.cwpy.setting.bookmarks_for_cardedit.append((self.scpath, self.scdata.name))
+            fname = os.path.basename(self.scpath)
+            lfname = fname.lower()
+            if lfname in (u"summary.wsm", u"summary.xml"):
+                scpath = os.path.dirname(self.scpath)
+            else:
+                scpath = self.scpath
+            cw.cwpy.setting.bookmarks_for_cardedit.append((scpath, self.scdata.name))
             self.create_bookmarkmenu()
 
     def OnArrangeBookmark(self, event):
