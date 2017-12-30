@@ -3497,9 +3497,9 @@ class StartContent(EventContentBase):
     def get_status(self):
         return u"スタートコンテント: " + self.data.get("name", "")
 
-class StartBattleContent(StartContent):
+class StartBattleContent(EventContentBase):
     def __init__(self, data):
-        StartContent.__init__(self, data)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """
