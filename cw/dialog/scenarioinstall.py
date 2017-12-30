@@ -369,7 +369,7 @@ def to_scenarioheaders(paths, db, skintype):
     allparent = os.path.dirname(paths[0])
 
     for path in paths:
-        def recurse(parent, path):
+        def recurse(parent, path, depth):
             hparent = cw.util.relpath(parent, allparent)
             if hparent.startswith(u".." + os.path.sep):
                 hparent = u""
@@ -388,9 +388,12 @@ def to_scenarioheaders(paths, db, skintype):
                 if os.path.isdir(path):
                     copyfile = False
                     for fname in os.listdir(path):
-                        copyfile |= recurse(path, cw.util.join_paths(path, fname))
+                        copyfile |= recurse(path, cw.util.join_paths(path, fname), depth + 1)
                     if copyfile:
                         return True
+                elif depth == 0:
+                    # トップレベルのファイルは無視する
+                    return False
 
                 # ファイルまたは空ディレクトリ
                 seq = notscenariofiles.get(parentinfo, [])
@@ -401,7 +404,7 @@ def to_scenarioheaders(paths, db, skintype):
 
             return False
 
-        recurse(allparent, path)
+        recurse(allparent, path, 0)
 
     return headers, notscenariofiles
 
