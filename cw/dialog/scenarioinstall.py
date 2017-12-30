@@ -748,6 +748,13 @@ def update_scenariolog(normpath, dst, dstisfile):
     if normpath == normpath2:
         return
 
+    # 最終シナリオ
+    normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(cw.cwpy.setting.lastscenariopath)))
+    if normpath == normpath2:
+        cw.cwpy.setting.lastscenario = []
+        cw.cwpy.setting.lastscenariopath = dst
+
+    # カード編集ダイアログのブックマーク
     for i, (bookmarkpath, name) in enumerate(cw.cwpy.setting.bookmarks_for_cardedit[:]):
         fname = os.path.basename(bookmarkpath)
         lfname = fname.lower()
@@ -760,6 +767,7 @@ def update_scenariolog(normpath, dst, dstisfile):
     if not cw.cwpy.ydata:
         return
 
+    # 宿のブックマーク
     for i, (bookmark, bookmarkpath) in enumerate(cw.cwpy.ydata.bookmarks[:]):
         fname = os.path.basename(bookmarkpath)
         lfname = fname.lower()
@@ -771,11 +779,14 @@ def update_scenariolog(normpath, dst, dstisfile):
             cw.cwpy.ydata.bookmarks[i] = (([], dst))
 
     cw.cwpy.ydata.changed()
+
+    # メッセージログ
     if cw.cwpy.is_playingscenario():
         cw.cwpy.sdata.update_scenariopath(normpath, dst, dstisfile)
     if not dstisfile:
         cw.sprite.message.update_scenariopath_for_log(normpath, dst)
 
+    # パーティのプレイ中情報
     for header in cw.cwpy.ydata.partys:
         dpath = os.path.dirname(header.fpath)
         wsl = os.path.splitext(header.fpath)[0] + u".wsl"
@@ -802,9 +813,18 @@ def update_scenariolog(normpath, dst, dstisfile):
         finally:
             cw.util.remove(tempdir)
 
+    # パーティの最終シナリオ
+    if cw.cwpy.ydata.party:
+        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(cw.cwpy.ydata.party.lastscenariopath)))
+        if normpath == normpath2:
+            cw.cwpy.ydata.party.lastscenario = []
+            cw.cwpy.ydata.party.lastscenariopath = dst
+
     if dstisfile:
+        # 圧縮シナリオの展開履歴
         cw.cwpy.ydata.recenthistory.update_scenariopath(normpath, dst)
     elif cw.cwpy.ydata.party:
+        # カードイメージ
         for header in cw.cwpy.ydata.party.get_allcardheaders():
             if not header.scenariocard:
                 continue
