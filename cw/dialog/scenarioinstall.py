@@ -778,8 +778,6 @@ def update_scenariolog(normpath, dst, dstisfile):
             cw.cwpy.ydata.changed()
             cw.cwpy.ydata.bookmarks[i] = (([], dst))
 
-    cw.cwpy.ydata.changed()
-
     # メッセージログ
     if cw.cwpy.is_playingscenario():
         cw.cwpy.sdata.update_scenariopath(normpath, dst, dstisfile)
