@@ -1443,6 +1443,9 @@ class TouchMenuButton(StatusBarButton):
             cw.cwpy.play_sound("page")
             cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
 
+        def copy_text():
+            cw.cwpy.interrupt_eventhandler.copy_text()
+
         f4btn = (None, cw.cwpy.msgs["switch_expanded_mode"],
                  cw.cwpy.msgs["desc_switch_expanded_mode"], u"F4",
                  f4, lambda: True)
@@ -1452,13 +1455,18 @@ class TouchMenuButton(StatusBarButton):
         sshbtn = (None, cw.cwpy.msgs["screenshot_hands"],
                   cw.cwpy.msgs["desc_screenshot_hands"], u"Shift+PrtScn",
                   cw.util.card_screenshot, lambda: cw.cwpy.ydata and cw.cwpy.ydata.party)
+        copybtn = (None, cw.cwpy.msgs["copy_text"],
+                   cw.cwpy.msgs["desc_copy_text"], u"Ctrl+C",
+                   copy_text, lambda: cw.cwpy.interrupt_eventhandler and\
+                                      hasattr(cw.cwpy.interrupt_eventhandler, "can_copytext") and\
+                                      cw.cwpy.interrupt_eventhandler.can_copytext)
         f9btn = (None, cw.cwpy.msgs["f9"],
                  cw.cwpy.msgs["desc_f9"], u"F9",
                  f9, cw.cwpy.is_playingscenario)
         dbgbtn = (None, cw.cwpy.msgs["toggle_debug_mode"],
                   cw.cwpy.msgs["desc_toggle_debug_mode"], u"Ctrl+D",
                   debug_mode, lambda: True)
-        params = (f4btn, ssbtn, sshbtn, f9btn, dbgbtn)
+        params = (f4btn, ssbtn, sshbtn, copybtn, f9btn, dbgbtn)
 
         bw = cw.s(150)
         for icon, name, desc, hotkey, _func, _is_enabled in params:

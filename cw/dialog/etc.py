@@ -820,14 +820,34 @@ class TouchTools(wx.MiniFrame):
         wx.MiniFrame.__init__(self, parent, style=wx.BORDER)
         self.cwpy_debug = False
 
-        self._tb = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
+        self._tb = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_VERTICAL)
         s = u"%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"],
                          cw.cwpy.msgs["desc_screenshot"])
         bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
         self._ssbtn = self._tb.AddLabelTool(-1, s, bmp)
+        if cw.cwpy.ydata and cw.cwpy.ydata.party:
+            s = u"%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
+                                     cw.cwpy.msgs["desc_screenshot_hands"])
+            bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT_HANDS"]
+            self._sshbtn = self._tb.AddLabelTool(-1, s, bmp)
+        else:
+            self._sshbtn = None
+        if hasattr(parent, "copy_detail"):
+            s = u"%s(Ctrl+C)\n%s" % (cw.cwpy.msgs["copy_dialog"],
+                                        cw.cwpy.msgs["desc_copy_dialog"])
+            bmp = cw.cwpy.rsrc.dialogs["COPY"]
+            self._copybtn = self._tb.AddLabelTool(-1, s, bmp)
+        else:
+            self._copybtn = None
         self._tb.Realize()
+
         # FIXME: なぜかツールボタンのツールチップが表示されないのでその対策
-        self._tb.SetToolTipString(s)
+        def OnMove(event):
+            x, y = event.GetPosition()
+            item = self._tb.FindToolForPosition(x, y)
+            if item and self._tb.GetToolTipString() <> item.GetLabel():
+                self._tb.SetToolTipString(item.GetLabel())
+        self._tb.Bind(wx.EVT_MOTION, OnMove)
         self.SetTransparent(128)
 
         self._do_layout()
@@ -844,12 +864,22 @@ class TouchTools(wx.MiniFrame):
 
     def _bind(self):
         self.Bind(wx.EVT_MENU, self.OnScreenShot, id=self._ssbtn.GetId())
+        if self._sshbtn:
+            self.Bind(wx.EVT_MENU, self.OnScreenShotHands, id=self._sshbtn.GetId())
+        if self._copybtn:
+            self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=self._copybtn.GetId())
         self.GetParent().Bind(wx.EVT_MOVE, self.OnMove)
         self._tb.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
         self._tb.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
 
     def OnScreenShot(self, event):
         cw.cwpy.frame.save_screenshot()
+
+    def OnScreenShotHands(self, event):
+        cw.cwpy.exec_func(cw.util.card_screenshot)
+
+    def OnCopyDetail(self, event):
+        self.GetParent().copy_detail()
 
     def OnMove(self, event):
         self._move_pos()

@@ -368,8 +368,12 @@ class ScenarioSelect(select.Select):
         return cw.util.get_linktarget(path)
 
     def OnCopyDetail(self, event):
+        self.copy_detail()
+
+    def copy_detail(self):
         s = self.get_detailtext()
         if not s:
+            cw.cwpy.play_sound("error")
             return
         cw.cwpy.play_sound("equipment")
         cw.util.to_clipboard(s)

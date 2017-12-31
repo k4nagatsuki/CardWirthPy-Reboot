@@ -88,6 +88,9 @@ class CardInfo(wx.Dialog):
             self.SetBackgroundColour(self.GetBackgroundColour())
 
     def OnCopyDetail(self, event):
+        self.copy_detail()
+
+    def copy_detail(self):
         if not self.selection:
             return
 

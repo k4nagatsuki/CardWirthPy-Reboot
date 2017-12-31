@@ -804,6 +804,10 @@
     <Message key="desc_screenshot">画面を撮影します</Message>
     <Message key="screenshot_hands">所持カード撮影</Message>
     <Message key="desc_screenshot_hands">所持カードの一覧を撮影します</Message>
+    <Message key="copy_text">コピー</Message>
+    <Message key="desc_copy_text">メッセージをコピーします</Message>
+    <Message key="copy_dialog">コピー</Message>
+    <Message key="desc_copy_dialog">ダイアログの内容をコピーします</Message>
     <Message key="toggle_debug_mode">デバッグモード</Message>
     <Message key="desc_toggle_debug_mode">デバッグモードを開始・終了します</Message>
     <Message key="create_link_to_scenario">シナリオへのリンク</Message>

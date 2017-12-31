@@ -189,6 +189,9 @@ class CharaInfo(wx.Dialog):
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
     def OnCopyDetail(self, event):
+        self.copy_detail()
+
+    def copy_detail(self):
         cw.cwpy.play_sound("equipment")
         page = self.notebook.GetPage(self.notebook.GetSelection())
         lines = []

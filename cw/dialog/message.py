@@ -82,6 +82,9 @@ class Message(wx.Dialog):
         cw.util.set_acceleratortable(self, seq)
 
     def OnCopyDetail(self, event):
+        self.copy_detail()
+
+    def copy_detail(self):
         cw.cwpy.play_sound("equipment")
         s = [u"[Window Title]", self.GetTitle(), u"", u"[Content]", self.basetext, u""]
         b = []

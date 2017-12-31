@@ -1030,12 +1030,18 @@ class EventHandlerForMessageWindow(EventHandler):
 
         ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
 
-        if ctrldown and key == ord('C') and not self.mwin.is_drawing:
-            cw.cwpy.play_sound("equipment")
-            s = cw.sprite.message.get_messagelogtext((self.mwin,))
-            cw.cwpy.frame.exec_func(cw.util.to_clipboard, s)
+        if ctrldown and key == ord('C') and self.can_copytext():
+            self.copy_text()
             return False
         return True
+
+    def can_copytext(self):
+        return not self.mwin.is_drawing
+
+    def copy_text(self):
+        cw.cwpy.play_sound("equipment")
+        s = cw.sprite.message.get_messagelogtext((self.mwin,))
+        cw.cwpy.frame.exec_func(cw.util.to_clipboard, s)
 
     def wheel_event(self, y=0):
         """
@@ -1511,10 +1517,8 @@ class EventHandlerForBacklog(EventHandler):
             return
 
         ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
-        if self.can_input() and ctrldown and key == ord('C'):
-            cw.cwpy.play_sound("equipment")
-            s = cw.sprite.message.get_messagelogtext(self.backlog_all)
-            cw.cwpy.frame.exec_func(cw.util.to_clipboard, s)
+        if ctrldown and key == ord('C') and self.can_copytext():
+            self.copy_text()
             return False
 
         if not cw.cwpy.setting.is_logscrollable():
@@ -1530,6 +1534,14 @@ class EventHandlerForBacklog(EventHandler):
             self._scrollbar.set_pos(self._scrollbar.scrsize_noscale-cw.SIZE_AREA[1], lazy=True)
 
         return False
+
+    def can_copytext(self):
+        return self.can_input()
+
+    def copy_text(self):
+        cw.cwpy.play_sound("equipment")
+        s = cw.sprite.message.get_messagelogtext(self.backlog_all)
+        cw.cwpy.frame.exec_func(cw.util.to_clipboard, s)
 
     def _get_maxpage(self):
         if not self.backlog:
