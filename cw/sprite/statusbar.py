@@ -1472,26 +1472,31 @@ class TouchMenuButton(StatusBarButton):
                                                     width=bw)
             btns.append(btn)
 
+        lbtn_w = bw//32*7
+        lclick_btn_w = bw//32*10
+        rclick_btn_w = bw//32*8
+        rbtn_w = bw//32*7
+        lclick_btn_w += bw - sum((lbtn_w, lclick_btn_w, rclick_btn_w, rbtn_w))
+
         icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_LEFT"]
-        lbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=-1, width=bw//32*7)
+        lbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=-1, width=lbtn_w)
 
         name = cw.cwpy.msgs["touch_lclick"]
         icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_LCLICK"]
         lclick_btn = cw.sprite.touchbutton.SimplePointableTile(icon, name, lclick,
                                                                lambda: touchbutton.can_selectsprite and cw.cwpy.index <> -1,
-                                                               width=bw//32*10)
+                                                               width=lclick_btn_w)
 
         name = cw.cwpy.msgs["touch_rclick"]
         icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_RCLICK"]
         rclick_btn = cw.sprite.touchbutton.SimplePointableTile(icon, name, rclick,
                                                                lambda: not cw.cwpy.is_showingmessage() and\
                                                                        touchbutton.can_selectsprite and cw.cwpy.index <> -1,
-                                                               width=bw//32*8)
+                                                               width=rclick_btn_w)
 
         icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_RIGHT"]
-        rbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=1, width=bw//32*7)
+        rbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=1, width=rbtn_w)
 
-        lclick_btn.rect.width += bw - sum(map(lambda a: a.rect.width, (lbtn, lclick_btn, rclick_btn, rbtn)))
 
         volbar = cw.sprite.touchbutton.VolumeTile(width=bw)
         btns.append(volbar)
