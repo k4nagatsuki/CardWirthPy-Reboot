@@ -48,7 +48,7 @@ class AdventurerLogger(object):
             for pocket, pname in ((cw.POCKET_SKILL, "Skill"),
                                   (cw.POCKET_ITEM, "Item"),
                                   (cw.POCKET_BEAST, "Beast")):
-                cards = pcard.get_cardpocket()[pocket]
+                cards = pcard.cardpocket[pocket]
                 if cards:
                     cnames = []
                     for header in cards:

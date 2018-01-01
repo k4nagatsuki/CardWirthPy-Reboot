@@ -320,13 +320,16 @@ class Deck(object):
             if cw.cwpy.dice.roll(1, 3)>1:
                 self._set_nextcard(-1)
 
+    def set_used(self, header):
+        """使用したカードをそのラウンド中記憶する。"""
+        self._used = header
+
     def use(self, header):
         """headerを使用する。
         アイテムカードまたはカード交換は手札に残る。
         スキルカードは1枚消失する。
         アクションカードは山札に戻る。
         """
-        self._used = header
         if header in self.hand and not header.type == "ItemCard" and\
                 not (header.type == "ActionCard" and header.id == 0):
             self.hand.remove(header)

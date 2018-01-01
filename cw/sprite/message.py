@@ -1203,7 +1203,7 @@ def _create_nametable(full, talker):
                if cw.cwpy.event.has_selectedmember() else u""
     unselected = cw.cwpy.event.get_targetmember("Unselected")
     if full:
-        inusecard = cw.cwpy.event.get_targetmember("Inusecard")
+        inusecard = cw.cwpy.event.get_targetmember("Selectedcard")
     party = cw.cwpy.ydata.party
     yado = cw.cwpy.ydata
 

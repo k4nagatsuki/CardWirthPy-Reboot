@@ -3609,7 +3609,7 @@ class TalkMessageContent(TalkContent):
 
             # 使用中カード
             elif imgpath.endswith("??Card"):
-                talker = cw.cwpy.event.get_targetmember("Inusecard")
+                talker = cw.cwpy.event.get_targetmember("Selectedcard")
                 talkeriscard = True
 
                 # 使用中カードがなかったらスキップ
@@ -3708,7 +3708,7 @@ class TalkMessageContent(TalkContent):
                 return False
         # 使用中カード
         elif imgpath.endswith("??Card"):
-            talker = cw.cwpy.event.get_targetmember("Inusecard")
+            talker = cw.cwpy.event.get_targetmember("Selectedcard")
             # 使用中カードがなかったらスキップ
             if not talker:
                 return False

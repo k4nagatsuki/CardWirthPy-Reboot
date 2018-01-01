@@ -3261,6 +3261,7 @@ class CWPy(_Singleton, threading.Thread):
             if eventkeynum:
                 # 勝利イベント開始
                 self.event.clear_selectedmember()
+                self.event.clear_selectedcard()
                 battleevents.start(keynum=eventkeynum)
                 self.winevent_areaid = None
 
@@ -3887,11 +3888,14 @@ class CWPy(_Singleton, threading.Thread):
                             cw.cwpy.event.set_selectedmember(None)
                         else:
                             selmember = None
+                        selcard = cw.cwpy.event.get_selectedcard()
+                        cw.cwpy.event.set_selectedcard(cw.cwpy.event.get_inusecard())
 
                     ccard.set_timeelapse(fromevent=fromevent)
 
                     if fromevent:
                         cw.cwpy.event.set_selectedmember(selmember)
+                        cw.cwpy.event.set_selectedcard(selcard)
 
                 except cw.event.EffectBreakError:
                     if fromevent:
@@ -4283,6 +4287,9 @@ class CWPy(_Singleton, threading.Thread):
 
         hold = header.hold
         fromplayer = isinstance(owner, cw.character.Player)
+
+        if cw.cwpy.event.get_selectedcard() and header.ref_original() == cw.cwpy.event.get_selectedcard().ref_original():
+            cw.cwpy.event.set_selectedcard(cw.cwpy.event.get_inusecard())
 
         # 移動元がCharacterだった場合
         if isinstance(owner, cw.character.Character):

@@ -16,6 +16,8 @@ class EventInterface(object):
         self._selectedmember = None
         # イベントの使用中カード(CardHeader)
         self._inusecard = None
+        # イベントの選択カード(Wsn.3) (CardHeader)
+        self._selectedcard = None
         # 現在起動中のイベントのリスト(Event)
         self._nowrunningevents = []
         # 現在起動中のパッケージイベントの辞書(EventEngine, keyはID)
@@ -52,6 +54,20 @@ class EventInterface(object):
             return self._selectedmember.name
         except:
             return u"選択メンバ未定"
+
+    def get_selectedcardname(self):
+        """選択カードの名前を返す(Wsn.3)。"""
+        try:
+            return self._selectedcard.name
+        except:
+            return u"選択カード未定"
+
+    def get_selectedcardtype(self):
+        """選択カードのタイプを返す(Wsn.3)。"""
+        try:
+            return self._selectedcard.type
+        except:
+            return None
 
     def pop_event(self):
         event = self._nowrunningevents.pop()
@@ -140,6 +156,7 @@ class EventInterface(object):
         header: CardHeader or None
         """
         self._inusecard = header
+        self.set_selectedcard(header)
 
     def set_selectedmember(self, ccard):
         """選択メンバを変更する。
@@ -147,6 +164,11 @@ class EventInterface(object):
         """
         self._selectedmember = ccard
         self.refresh_selectedmembername()
+
+    def set_selectedcard(self, header):
+        """選択カードを変更する(Wsn.3)。"""
+        self._selectedcard = header
+        self.refresh_selectedcardname()
 
     def get_targetscope(self, scope, unreversed=True, cards=True):
         """
@@ -215,9 +237,9 @@ class EventInterface(object):
         # 選択外メンバ
         elif targetm == "Unselected":
             target = self.get_unselectedmember()
-        # 使用中カード
-        elif targetm == "Inusecard":
-            target = self.get_inusecard()
+        # 選択カード(Wsn.2以前は使用中カード)
+        elif targetm == "Selectedcard":
+            target = self.get_selectedcard()
         # パーティ全体(※リストで返す)
         elif targetm == "Party":
             target = cw.cwpy.get_pcards(mode)
@@ -298,6 +320,16 @@ class EventInterface(object):
         card = self._inusecard
         return card
 
+    def get_selectedcard(self):
+        """選択カード(CardHeaderインスタンス)を返す(Wsn.3)。"""
+        card = self._selectedcard
+        return card
+
+    def clear_selectedcard(self):
+        """選択中のメンバをクリアする。"""
+        self._selectedcard = self._inusecard
+        self.refresh_selectedcardname()
+
     #---------------------------------------------------------------------------
     # デバッガ更新用メソッド
     #---------------------------------------------------------------------------
@@ -335,6 +367,13 @@ class EventInterface(object):
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
             func = dbg.refresh_selectedmembername
+            cw.cwpy.frame.exec_func(func)
+
+    def refresh_selectedcardname(self):
+        """デバッガの選択カードツールバーの表示を更新する。"""
+        dbg = cw.cwpy.frame.debugger
+        if cw.cwpy.is_showingdebugger():
+            func = dbg.refresh_selectedcardname
             cw.cwpy.frame.exec_func(func)
 
     def refresh_areaname(self):
@@ -732,6 +771,7 @@ class Event(object):
     def _store_inusedata(self, selectuser):
         if selectuser and isinstance(self, CardEvent):
             cw.cwpy.event.set_selectedmember(self.user)
+            cw.cwpy.event.set_inusecard(self.inusecard)
         self._stored_in_cardeffectmotion = cw.cwpy.event.in_cardeffectmotion
         cw.cwpy.event.in_cardeffectmotion = False
         self._stored_in_inusecardevent = cw.cwpy.event.in_inusecardevent

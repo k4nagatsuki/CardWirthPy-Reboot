@@ -9,6 +9,7 @@ import statusedit
 import recording
 import event
 import logging
+import selectedcard
 
 
 def main():
