@@ -3036,8 +3036,11 @@ class Party(object):
         s.discard("")
         return s
 
-    def has_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
-        """指定されたキーコードを所持しているか。"""
+    def find_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
+        """指定されたキーコードを所持しているか。
+        当該キーコードを含むカードを返す。
+        見つからなかった場合はNoneを返す。
+        """
         for header in self.backpack:
             if not skill and header.type == "SkillCard":
                 continue
@@ -3047,9 +3050,9 @@ class Party(object):
                 continue
 
             if keycode in header.get_keycodes():
-                return True
+                return header
 
-        return False
+        return None
 
     def get_relpath(self):
         ppath = os.path.dirname(self.path)

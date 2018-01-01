@@ -1521,6 +1521,9 @@ class BranchKeyCodeContent(BranchContent):
         if "hand" in self.data.attrib:
             self.hand = self.data.getbool(".", "hand")
 
+        # 見つかったカードを選択状態にする(Wsn.3)
+        self.selectcard = self.data.getbool(".", "selectcard")
+
     def action(self):
         """キーコード所持分岐コンテント(1.30)。"""
 
@@ -1543,19 +1546,22 @@ class BranchKeyCodeContent(BranchContent):
 
         # キーコード所持判定
         selectedmember = None
-        flag = False
+        header = None
         for target in targets:
-            if target.has_keycode(self.keycode, self.skill, self.item, self.beast, self.hand):
+            header = target.find_keycode(self.keycode, self.skill, self.item, self.beast, self.hand)
+            if header:
                 if isinstance(target, cw.character.Character):
                     selectedmember = target
-                flag = True
                 break
 
         # 選択設定
         if selectedmember:
             cw.cwpy.event.set_selectedmember(selectedmember)
 
-        return self.get_boolean_index(flag)
+        if header and self.selectcard:
+            cw.cwpy.event.set_selectedcard(header)
+
+        return self.get_boolean_index(not header is None)
 
     def get_status(self):
         return u"キーコード所持分岐コンテント"

@@ -427,34 +427,37 @@ class Character(object):
         s.discard("")
         return s
 
-    def has_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
-        """指定されたキーコードを所持しているか。"""
+    def find_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
+        """指定されたキーコードを所持しているか。
+        当該キーコードを含むカードを返す。
+        見つからなかった場合はNoneを返す。
+        """
         if hand and self.deck:
             # 戦闘時の手札(Wsn.2)
             for header in self.deck.get_hand(self):
                 if keycode in header.get_keycodes():
-                    return True
+                    return header
             if self.actiondata and self.actiondata[1]:
                 header = self.actiondata[1]
                 if header and keycode in header.get_keycodes():
-                    return True
+                    return header
             header = self.deck.get_used()
             if header and keycode in header.get_keycodes():
-                return True
+                return header
         if skill:
             for header in self.get_pocketcards(cw.POCKET_SKILL):
                 if keycode in header.get_keycodes():
-                    return True
+                    return header
         if item:
             for header in self.get_pocketcards(cw.POCKET_ITEM):
                 if keycode in header.get_keycodes():
-                    return True
+                    return header
         if beast:
             for header in self.get_pocketcards(cw.POCKET_BEAST):
                 if keycode in header.get_keycodes():
-                    return True
+                    return header
 
-        return False
+        return None
 
     def lost(self):
         """
