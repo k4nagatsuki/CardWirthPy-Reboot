@@ -1618,6 +1618,9 @@ class CardHolder(CardControl):
             name = cw.cwpy.msgs["cards_backpack"]
             self.list2 = cw.cwpy.get_pcards(status)
             self.bgcolour = wx.Colour(0, 0, 128)
+            if self.areaid in cw.AREAS_TRADE:
+                r, g, b = cw.cwpy.setting.trademode_cardholder_color
+                self.bgcolour = wx.Colour(r, g, b)
             self.list = cw.cwpy.ydata.party.backpack
             sendto = True
         elif self.callname == "STOREHOUSE":
@@ -1673,6 +1676,9 @@ class CardHolder(CardControl):
         if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
             name =  cw.cwpy.msgs["cards_hand"] % (self.selection.name)
             self.bgcolour = wx.Colour(0, 0, 128)
+            if self.areaid in cw.AREAS_TRADE:
+                r, g, b = cw.cwpy.setting.trademode_cardholder_color
+                self.bgcolour = wx.Colour(r, g, b)
             sendto = (not cw.cwpy.is_playingscenario()\
                         or self.areaid == cw.AREA_CAMP or self.areaid in cw.AREAS_TRADE)\
                         and isinstance(self.selection, cw.character.Player)
@@ -2107,6 +2113,10 @@ class CardHolder(CardControl):
                 self.bgcolour = wx.Colour(0, 69, 0)
                 self.list = self._narrow(cw.cwpy.ydata.storehouse)
             self.selection = None
+
+        if self.callname in ("CARDPOCKET", "CARDPOCKETB", "BACKPACK") and  self.areaid in cw.AREAS_TRADE:
+            r, g, b = cw.cwpy.setting.trademode_cardholder_color
+            self.bgcolour = wx.Colour(r, g, b)
 
         for ctrl in self.change_bgs:
             ctrl.SetBackgroundColour(self.bgcolour)
@@ -2796,7 +2806,8 @@ class ReplCardHolder(CardControl):
         self.list = self.selection.cardpocket[self.cardtype]
         # ダイアログ作成
         name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
-        self.bgcolour = wx.Colour(0, 0, 128)
+        r, g, b = cw.cwpy.setting.trademode_cardholder_color
+        self.bgcolour = wx.Colour(r, g, b)
         CardControl.__init__(self, parent, name, False, False)
         # 選択中カード色反転
         self.Parent.change_selection(self.selection)

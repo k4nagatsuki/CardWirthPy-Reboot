@@ -446,6 +446,9 @@ class Setting(object):
         # 表示有無切替ボタン自体の表示有無
         self.show_addctrlbtn = True
 
+        # カード選択ダイアログの移動モードの背景色を変更する
+        self.trademode_cardholder_color = (32, 32, 64)
+
         # カード種の表示・非表示
         self.show_cardtype = [True] * 3
         # カード選択ダイアログで選択中のカード種別
