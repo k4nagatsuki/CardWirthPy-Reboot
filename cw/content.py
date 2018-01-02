@@ -3588,9 +3588,12 @@ class TalkMessageContent(TalkContent):
         centering_y = self.data.getbool(".", "centeringy", False)
         # 禁則処理(Wsn.2)
         boundarycheck = self.data.getbool(".", "boundarycheck", False)
+        # 話者を選択状態にする(Wsn.3)
+        selecttalker = self.data.getbool(".", "selecttalker", False)
 
         talkers = []
         firsttalker = None
+        firstchartalker = None
         talk = bool(not len(imgpaths))
 
         for i, info in enumerate(imgpaths):
@@ -3671,6 +3674,9 @@ class TalkMessageContent(TalkContent):
             if not firsttalker:
                 firsttalker = talker
 
+            if not firstchartalker and isinstance(talker, cw.character.Character):
+                firstchartalker = talker
+
             talk = True
 
         # 話者無し
@@ -3696,6 +3702,9 @@ class TalkMessageContent(TalkContent):
         # それ以外
         else:
             index = 0
+
+        if selecttalker and isinstance(firstchartalker, cw.character.Character):
+            cw.cwpy.event.set_selectedmember(firstchartalker)
 
         return index
 
@@ -3796,6 +3805,8 @@ class TalkDialogContent(TalkContent):
         centering_y = self.data.getbool(".", "centeringy", False)
         # 禁則処理(Wsn.2)
         boundarycheck = self.data.getbool(".", "boundarycheck", False)
+        # 話者を選択状態にする(Wsn.3)
+        selecttalker = self.data.getbool(".", "selecttalker", False)
 
         # 対象メンバが必須クーポンを所持していたら、
         # その必須クーポンに対応するテキストを優先して表示させる
@@ -3817,6 +3828,9 @@ class TalkDialogContent(TalkContent):
         else:
             # どのDialogも選択されなかった場合は常に最初の分岐
             index = 0
+
+        if selecttalker and isinstance(talker, cw.character.Character):
+            cw.cwpy.event.set_selectedmember(talker)
 
         return index
 
