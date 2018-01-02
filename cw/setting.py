@@ -331,6 +331,7 @@ class Setting(object):
         self.dealspeed = 5
         self.dealspeed_battle = 5
         self.wait_usecard = True
+        self.zoomout_friend = True
         self.enlarge_beastcardzoomingratio = True
         self.use_battlespeed = False
         self.transition = "Fade"
@@ -594,6 +595,8 @@ class Setting(object):
         self.set_dealspeed(dealspeed, dealspeed_battle, use_battlespeed)
         # カードの使用前に空白時間を入れる
         self.wait_usecard = data.getbool("WaitUseCard", self.wait_usecard)
+        # 同行キャストの行動後に縮小処理を行う
+        self.zoomout_friend = data.getbool("ZoomOutFriendCard", self.zoomout_friend)
         # 召喚獣カードの拡大率を大きくする
         self.enlarge_beastcardzoomingratio = data.getbool("EnlargeBeastCardZoomingRatio", self.enlarge_beastcardzoomingratio)
         # トランジション効果の種類

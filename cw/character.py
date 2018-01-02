@@ -917,8 +917,10 @@ class Character(object):
             cw.cwpy.clear_inusecardimg(self)
             # 自分が対象の時でなければNPC消去
             if not self in targets:
-                cw.animation.animate_sprite(self, "zoomout", battlespeed=battlespeed)
+                if cw.cwpy.setting.zoomout_friend:
+                    cw.animation.animate_sprite(self, "zoomout", battlespeed=battlespeed)
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
+                self.clear_zoomimgs()
                 cw.cwpy.cardgrp.remove(self)
             else:
                 removeafter = True
@@ -952,6 +954,7 @@ class Character(object):
                 # NPC消去
                 battlespeed = cw.cwpy.is_battlestatus()
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
+                self.clear_zoomimgs()
                 cw.cwpy.cardgrp.remove(self)
             # 特殊文字を元に戻す
             cw.cwpy.rsrc.specialchars = specialchars

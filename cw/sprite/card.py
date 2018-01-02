@@ -81,7 +81,7 @@ class CWPyCard(base.SelectableSprite):
 
     def set_alpha(self, alpha):
         self.alpha = alpha
-        for img in self.zoomimgs:
+        for img, _rect in self.zoomimgs:
             img.set_alpha(alpha)
         self.image.set_alpha(alpha)
         self._image.set_alpha(alpha)
@@ -457,6 +457,11 @@ class CWPyCard(base.SelectableSprite):
             self.frame = 0
             if self.status == "hidden":
                 self.clear_image(move=False)
+
+    def clear_zoomimgs(self):
+        del self.zoomimgs[:]
+        if self.status == "hidden":
+            self.clear_image(move=False)
 
     def update_shiftup(self):
         """下にさげていたカードを上にあげる。"""

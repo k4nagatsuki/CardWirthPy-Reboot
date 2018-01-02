@@ -249,6 +249,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.wait_usecard <> setting.wait_usecard_init:
         e = cw.data.make_element("WaitUseCard", str(setting.wait_usecard))
         element.append(e)
+    # 同行キャストの行動後に縮小処理を行う
+    if setting.zoomout_friend <> setting.zoomout_friend_init:
+        e = cw.data.make_element("ZoomOutFriendCard", str(setting.zoomout_friend))
+        element.append(e)
     # 召喚獣カードの拡大率を大きくする
     if setting.enlarge_beastcardzoomingratio <> setting.enlarge_beastcardzoomingratio_init:
         e = cw.data.make_element("EnlargeBeastCardZoomingRatio", str(setting.enlarge_beastcardzoomingratio))

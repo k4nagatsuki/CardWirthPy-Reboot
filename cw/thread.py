@@ -2899,6 +2899,7 @@ class CWPy(_Singleton, threading.Thread):
             fcard.set_pos_noscale(pos)
             fcard.status = status
             fcard.set_alpha(alpha)
+            self.add_lazydraw(clip=fcard.rect)
             if fcard.status == "hidden":
                 fcard.clear_image()
                 fcard.layer = (cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, fcard.index, 0)
@@ -2923,6 +2924,7 @@ class CWPy(_Singleton, threading.Thread):
                 fcard.hide()
                 fcards.append(fcard)
                 self.mcards.remove(fcard)
+                self.add_lazydraw(clip=fcard.rect)
         self.cardgrp.remove(fcards)
         self.list = self.get_mcards("visible")
         self.index = -1

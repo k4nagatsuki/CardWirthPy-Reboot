@@ -1097,6 +1097,8 @@ class Debugger(wx.Frame):
                             # バトル中は同行キャストの表示更新
                             cw.cwpy.battle.update_showfcards()
                             cw.cwpy.statusbar.change()
+                            if cw.cwpy.battle:
+                                cw.cwpy.battle.set_members()
                         cw.cwpy.draw()
                     cw.cwpy.exec_func(func, friendids, seq, dlg.GetSelections())
 
