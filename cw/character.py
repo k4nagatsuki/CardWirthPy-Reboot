@@ -1023,7 +1023,7 @@ class Character(object):
                     self.deck.set_used(header)
                     try:
                         self.use_card(targets, header)
-                    except:
+                    finally:
                         self.deck.use(header)
 
     def set_action(self, target, header, beasts=[][:], auto=False):
