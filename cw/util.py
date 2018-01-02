@@ -3717,6 +3717,8 @@ def has_modalchild(frame):
     for child in frame.TopLevelParent.GetChildren():
         if isinstance(child, wx.Dialog) and child.IsShown() and child.IsModal():
             return True
+    if frame is cw.cwpy.frame and cw.cwpy.frame.debugger and has_modalchild(cw.cwpy.frame.debugger):
+        return True
     return False
 
 
