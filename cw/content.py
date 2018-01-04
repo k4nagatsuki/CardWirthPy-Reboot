@@ -1522,7 +1522,7 @@ class BranchKeyCodeContent(BranchContent):
             self.hand = self.data.getbool(".", "hand")
 
         # 見つかったカードを選択状態にする(Wsn.3)
-        self.selectcard = self.data.getbool(".", "selectcard")
+        self.selectcard = self.data.getbool(".", "selectcard", False)
 
     def action(self):
         """キーコード所持分岐コンテント(1.30)。"""
