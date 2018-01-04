@@ -505,6 +505,8 @@ class Content(base.CWBinaryBase):
                 f.check_wsnversion("2", u"横方向の中央寄せ")
             if data.getbool(".", "centeringy", False):
                 f.check_wsnversion("2", u"縦方向の中央寄せ")
+            if data.getbool(".", "selecttalker", False):
+                f.check_wsnversion("3", u"話者の選択")
             text = ""
             for e in data:
                 if e.tag == "Text":
@@ -680,6 +682,8 @@ class Content(base.CWBinaryBase):
                 f.check_wsnversion("2", u"横方向の中央寄せ")
             if data.getbool(".", "centeringy", False):
                 f.check_wsnversion("2", u"縦方向の中央寄せ")
+            if data.getbool(".", "selecttalker", False):
+                f.check_wsnversion("3", u"話者の選択")
             targetm = data.get("targetm")
             f.write_byte(base.CWBinaryBase.unconv_target_member_dialog(targetm, f))
             if targetm == "Valued":
@@ -792,6 +796,8 @@ class Content(base.CWBinaryBase):
                 f.write_byte(base.CWBinaryBase.unconv_statustype(status, f))
         elif tag == "Branch" and ctype == "KeyCode": # 1.50
             f.check_version(1.50, u"キーコード所持分岐コンテント")
+            if data.getbool(".", "selectcard", False):
+                f.check_wsnversion("3", u"カードの選択")
             f.write_byte(base.CWBinaryBase.unconv_keycoderange(data.get("targetkc")))
             # Wsn.1方式
             etype = data.get("effectCardType", "All")
