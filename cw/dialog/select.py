@@ -988,7 +988,6 @@ class YadoSelect(MultiViewSelect):
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
-        dlg.Destroy()
 
     def rename_yado(self):
         """
@@ -2630,7 +2629,6 @@ class PlayerSelect(MultiViewSelect):
             dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
             cw.cwpy.frame.move_dlg(dlg)
             dlg.ShowModal()
-            dlg.Destroy()
         else:
             self._create_normal()
 
@@ -2749,7 +2747,6 @@ class PlayerSelect(MultiViewSelect):
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
-        dlg.Destroy()
 
     def grow_adventurer(self):
         """冒険者を成長させる。
