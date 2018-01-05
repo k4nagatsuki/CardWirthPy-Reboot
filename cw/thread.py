@@ -1090,12 +1090,15 @@ class CWPy(_Singleton, threading.Thread):
 
     def proc_animation(self):
         removes = set()
+        clip = None
         for sprite in self.animations:
             if sprite.status <> sprite.anitype:
                 removes.add(sprite)
                 continue # アニメーション終了
 
-            clip = pygame.Rect(sprite.rect)
+            if not clip:
+                clip = pygame.Rect(sprite.rect)
+            clip.union_ip(sprite.rect)
             ticks = pygame.time.get_ticks()
             if ticks < sprite.start_animation:
                 sprite.start_animation = ticks
@@ -1110,9 +1113,11 @@ class CWPy(_Singleton, threading.Thread):
                 removes.add(sprite)
                 continue # アニメーション中止
             clip.union_ip(sprite.rect)
-            self.draw(clip=clip)
             if sprite.status <> sprite.anitype:
                 removes.add(sprite) # アニメーション終了
+
+        if clip:
+            self.draw(clip=clip)
 
         for sprite in removes:
             self.stop_animation(sprite)

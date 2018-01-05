@@ -961,7 +961,6 @@ class StatusBarButton(base.SelectableSprite):
             flags |= cw.setting.SB_PRESSED
         if self.is_selection():
             flags |= cw.setting.SB_CURRENT
-            cw.cwpy.has_inputevent = True
         if self._is_notice():
             flags |= cw.setting.SB_NOTICE
         if self.is_emphasize:
@@ -1398,6 +1397,9 @@ class TouchMenuButton(StatusBarButton):
                                  is_pushed=False, desc=desc, hotkey=u"")
         self.selectable_on_event = True
 
+        self._touchbuttons = []
+        self._cachekey = None
+
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["SHOW_CONTROLS"]
 
@@ -1410,6 +1412,13 @@ class TouchMenuButton(StatusBarButton):
             self.set_desc(cw.cwpy.msgs["desc_touch_menu"])
         self.update_image()
 
+    def _upscrmemo(self):
+        return (cw.UP_SCR,
+                 cw.cwpy.setting.basefont.copy(),
+                 cw.cwpy.setting.fonttypes["sbardesc"],
+                 cw.cwpy.setting.fonttypes["sbardesctitle"],
+                 cw.cwpy.setting.fonttypes["sbarprogress"])
+
     def lclick_event(self):
         cw.cwpy.play_sound("page")
         self.is_pushed = self.is_pushed
@@ -1420,113 +1429,125 @@ class TouchMenuButton(StatusBarButton):
 
         self.set_desc(u"")
 
-        def lclick():
-            if cw.cwpy.index <> -1:
-                event = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
+        cachekey = self._upscrmemo()
+        if self._cachekey <> cachekey:
+            self._touchbuttons = []
+            self._cachekey = cachekey
+
+        if not self._touchbuttons:
+            def lclick():
+                if cw.cwpy.index <> -1:
+                    event = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
+                    cw.cwpy.events.insert(0, event)
+
+            def rclick():
+                if cw.cwpy.index <> -1:
+                    event = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=3)
+                    cw.cwpy.events.insert(0, event)
+
+            def f4():
+                cw.cwpy.play_sound("click")
+                event = pygame.event.Event(pygame.locals.KEYDOWN, key=pygame.locals.K_F4)
                 cw.cwpy.events.insert(0, event)
 
-        def rclick():
-            if cw.cwpy.index <> -1:
-                event = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=3)
+            def f9():
+                event = pygame.event.Event(pygame.locals.KEYDOWN, key=pygame.locals.K_F9)
                 cw.cwpy.events.insert(0, event)
 
-        def f4():
-            cw.cwpy.play_sound("click")
-            event = pygame.event.Event(pygame.locals.KEYDOWN, key=pygame.locals.K_F4)
-            cw.cwpy.events.insert(0, event)
+            def debug_mode():
+                cw.cwpy.play_sound("page")
+                cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
 
-        def f9():
-            event = pygame.event.Event(pygame.locals.KEYDOWN, key=pygame.locals.K_F9)
-            cw.cwpy.events.insert(0, event)
+            def copy_text():
+                cw.cwpy.interrupt_eventhandler.copy_text()
 
-        def debug_mode():
-            cw.cwpy.play_sound("page")
-            cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
+            f4btn = (None, cw.cwpy.msgs["switch_expanded_mode"],
+                     cw.cwpy.msgs["desc_switch_expanded_mode"], u"F4",
+                     f4, lambda: True)
+            ssbtn = (None, cw.cwpy.msgs["screenshot"],
+                     cw.cwpy.msgs["desc_screenshot"], u"PrtScn",
+                     cw.util.screenshot, lambda: True)
+            sshbtn = (None, cw.cwpy.msgs["screenshot_hands"],
+                      cw.cwpy.msgs["desc_screenshot_hands"], u"Shift+PrtScn",
+                      cw.util.card_screenshot, lambda: cw.cwpy.ydata and cw.cwpy.ydata.party)
+            copybtn = (None, cw.cwpy.msgs["copy_text"],
+                       cw.cwpy.msgs["desc_copy_text"], u"Ctrl+C",
+                       copy_text, lambda: cw.cwpy.interrupt_eventhandler and\
+                                          hasattr(cw.cwpy.interrupt_eventhandler, "can_copytext") and\
+                                          cw.cwpy.interrupt_eventhandler.can_copytext)
+            f9btn = (None, cw.cwpy.msgs["f9"],
+                     cw.cwpy.msgs["desc_f9"], u"F9",
+                     f9, cw.cwpy.is_playingscenario)
+            dbgbtn = (None, cw.cwpy.msgs["toggle_debug_mode"],
+                      cw.cwpy.msgs["desc_toggle_debug_mode"], u"Ctrl+D",
+                      debug_mode, lambda: True)
+            params = (f4btn, ssbtn, sshbtn, copybtn, f9btn, dbgbtn)
 
-        def copy_text():
-            cw.cwpy.interrupt_eventhandler.copy_text()
+            bw = cw.s(150)
+            for icon, name, desc, hotkey, _func, _is_enabled in params:
+                bw = max(bw, cw.sprite.touchbutton.TouchButton.calc_width(icon, name, desc, hotkey))
 
-        f4btn = (None, cw.cwpy.msgs["switch_expanded_mode"],
-                 cw.cwpy.msgs["desc_switch_expanded_mode"], u"F4",
-                 f4, lambda: True)
-        ssbtn = (None, cw.cwpy.msgs["screenshot"],
-                 cw.cwpy.msgs["desc_screenshot"], u"PrtScn",
-                 cw.util.screenshot, lambda: True)
-        sshbtn = (None, cw.cwpy.msgs["screenshot_hands"],
-                  cw.cwpy.msgs["desc_screenshot_hands"], u"Shift+PrtScn",
-                  cw.util.card_screenshot, lambda: cw.cwpy.ydata and cw.cwpy.ydata.party)
-        copybtn = (None, cw.cwpy.msgs["copy_text"],
-                   cw.cwpy.msgs["desc_copy_text"], u"Ctrl+C",
-                   copy_text, lambda: cw.cwpy.interrupt_eventhandler and\
-                                      hasattr(cw.cwpy.interrupt_eventhandler, "can_copytext") and\
-                                      cw.cwpy.interrupt_eventhandler.can_copytext)
-        f9btn = (None, cw.cwpy.msgs["f9"],
-                 cw.cwpy.msgs["desc_f9"], u"F9",
-                 f9, cw.cwpy.is_playingscenario)
-        dbgbtn = (None, cw.cwpy.msgs["toggle_debug_mode"],
-                  cw.cwpy.msgs["desc_toggle_debug_mode"], u"Ctrl+D",
-                  debug_mode, lambda: True)
-        params = (f4btn, ssbtn, sshbtn, copybtn, f9btn, dbgbtn)
+            btns = []
+            x = cw.s(cw.SIZE_AREA[0]) - bw
+            y = cw.s(cw.SIZE_AREA[1])
+            for icon, name, desc, hotkey, func, is_enabled in params:
+                btn = cw.sprite.touchbutton.TouchButton(icon, name, desc, hotkey, func, is_enabled,
+                                                        width=bw)
+                btns.append(btn)
 
-        bw = cw.s(150)
-        for icon, name, desc, hotkey, _func, _is_enabled in params:
-            bw = max(bw, cw.sprite.touchbutton.TouchButton.calc_width(icon, name, desc, hotkey))
+            lbtn_w = bw//32*7
+            lclick_btn_w = bw//32*10
+            rclick_btn_w = bw//32*8
+            rbtn_w = bw//32*7
+            lclick_btn_w += bw - sum((lbtn_w, lclick_btn_w, rclick_btn_w, rbtn_w))
 
-        btns = []
-        x = cw.s(cw.SIZE_AREA[0]) - bw
-        y = cw.s(cw.SIZE_AREA[1])
-        for icon, name, desc, hotkey, func, is_enabled in params:
-            btn = cw.sprite.touchbutton.TouchButton(icon, name, desc, hotkey, func, is_enabled,
-                                                    width=bw)
-            btns.append(btn)
+            icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_LEFT"]
+            lbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=-1, width=lbtn_w)
 
-        lbtn_w = bw//32*7
-        lclick_btn_w = bw//32*10
-        rclick_btn_w = bw//32*8
-        rbtn_w = bw//32*7
-        lclick_btn_w += bw - sum((lbtn_w, lclick_btn_w, rclick_btn_w, rbtn_w))
+            name = cw.cwpy.msgs["touch_lclick"]
+            icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_LCLICK"]
+            lclick_btn = cw.sprite.touchbutton.SimplePointableTile(icon, name, lclick,
+                                                                   lambda: touchbutton.can_selectsprite and cw.cwpy.index <> -1,
+                                                                   width=lclick_btn_w)
 
-        icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_LEFT"]
-        lbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=-1, width=lbtn_w)
+            name = cw.cwpy.msgs["touch_rclick"]
+            icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_RCLICK"]
+            rclick_btn = cw.sprite.touchbutton.SimplePointableTile(icon, name, rclick,
+                                                                   lambda: not cw.cwpy.is_showingmessage() and\
+                                                                           touchbutton.can_selectsprite and cw.cwpy.index <> -1,
+                                                                   width=rclick_btn_w)
 
-        name = cw.cwpy.msgs["touch_lclick"]
-        icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_LCLICK"]
-        lclick_btn = cw.sprite.touchbutton.SimplePointableTile(icon, name, lclick,
-                                                               lambda: touchbutton.can_selectsprite and cw.cwpy.index <> -1,
-                                                               width=lclick_btn_w)
-
-        name = cw.cwpy.msgs["touch_rclick"]
-        icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_RCLICK"]
-        rclick_btn = cw.sprite.touchbutton.SimplePointableTile(icon, name, rclick,
-                                                               lambda: not cw.cwpy.is_showingmessage() and\
-                                                                       touchbutton.can_selectsprite and cw.cwpy.index <> -1,
-                                                               width=rclick_btn_w)
-
-        icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_RIGHT"]
-        rbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=1, width=rbtn_w)
+            icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_RIGHT"]
+            rbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=1, width=rbtn_w)
 
 
-        volbar = cw.sprite.touchbutton.VolumeTile(width=bw)
-        btns.append(volbar)
+            volbar = cw.sprite.touchbutton.VolumeTile(width=bw)
+            btns.append(volbar)
 
-        # 各ボタンを下からスライドして表示
-        y = cw.s(cw.SIZE_AREA[1])
-        for btn in reversed(btns):
-            y -= btn.rect.height
+            # 各ボタンを下からスライドして表示
+            y = cw.s(cw.SIZE_AREA[1])
+            for btn in reversed(btns):
+                self._touchbuttons.append(btn)
+                y -= btn.rect.height
+                btn.rect.left = x
+                btn.shift_top = y
+
+            y -= lbtn.rect.height
+
+            x = cw.s(cw.SIZE_AREA[0])-bw
+            for i, btn in enumerate((lbtn, lclick_btn, rclick_btn, rbtn)):
+                self._touchbuttons.append(btn)
+                btn.rect.left = x
+                btn.shift_top = y
+                x += btn.rect.width
+
+        elif cw.cwpy.sbargrp.get_sprites_from_layer(LAYER_TOUCH_BUTTON):
+            return
+
+        for btn in self._touchbuttons:
+            btn.rect.top = cw.s(cw.SIZE_AREA[1])
             cw.cwpy.sbargrp.add(btn, layer=LAYER_TOUCH_BUTTON)
-            btn.rect.topleft = (x, cw.s(cw.SIZE_AREA[1]))
-            btn.shift_top = y
             cw.animation.start_animation(btn, "shiftup")
-
-        y -= lbtn.rect.height
-
-        x = cw.s(cw.SIZE_AREA[0])-bw
-        for i, btn in enumerate((lbtn, lclick_btn, rclick_btn, rbtn)):
-            cw.cwpy.sbargrp.add(btn, layer=LAYER_TOUCH_BUTTON)
-            btn.rect.topleft = (x, cw.s(cw.SIZE_AREA[1]))
-            btn.shift_top = y
-            cw.animation.start_animation(btn, "shiftup")
-            x += btn.rect.width
 
 
 def main():

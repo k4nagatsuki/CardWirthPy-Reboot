@@ -175,6 +175,9 @@ class _PointableTile(TouchButton):
         TouchButton.__init__(self, icon, name, desc, hotkey, func, is_enabled, width)
 
     def update_selection(self):
+        if self.status <> "normal":
+            return
+
         if not cw.cwpy.is_lockmenucards(self):
             if self.is_pointed <> self.is_selection():
                 self.is_pointed = not self.is_pointed
@@ -254,7 +257,6 @@ class SwitchSpriteTile(_PointableTile):
     def lclick_event(self):
         """左クリックイベント。"""
         if self.is_enabled():
-            cw.cwpy.play_sound("page")
             if cw.cwpy.interrupt_eventhandler:
                 eventhandler = cw.cwpy.interrupt_eventhandler
             else:
