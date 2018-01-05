@@ -396,7 +396,9 @@ class ExtensionDialog(wx.Dialog):
     def OnBotton(self, event):
         index = self.buttons.index(event.GetEventObject())
         cw.cwpy.frame.exec_func(self.items[index][2])
-        self.Destroy()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+        self.DestroyChildren()
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
