@@ -1446,6 +1446,8 @@ def update_scenariopath_for_log(normpath, dst):
 
 
 def update_scenariopath_for_spchars(restbl, normpath, dst):
+    if not restbl:
+        return
     restbl.reset()
     for lazyres in restbl.dic.itervalues():
         dpath = lazyres.args[0]
