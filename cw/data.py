@@ -3580,7 +3580,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
             elif e.tag in ("SkillCards", "ItemCards", "BeastCards", "Beasts", "Motions",
                            "Contents", "Events", "MenuCards", "EnemyCards"):
                 pass
-            elif e.tag in ("Adventurer", "CastCards", "System"):
+            elif e.tag in ("Adventurer", "CastCards", "System", "ActionCard"):
                 break
             elif e.tag == "PlayerCardEvents":
                 # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
