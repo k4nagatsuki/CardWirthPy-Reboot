@@ -464,20 +464,37 @@ class AdventurerCreater(wx.Dialog):
             (wx.ACCEL_NORMAL, wx.WXK_UP, nupkeyid),
             (wx.ACCEL_SHIFT, wx.WXK_TAB, self.shifttabkeyid),
         ]
-        cw.util.set_acceleratortable(self.autobtn, seq)
         cw.util.set_acceleratortable(self.prevbtn, seq)
+        if self.autobtn:
+            cw.util.set_acceleratortable(self.autobtn, seq)
 
-        self.autobtn.MoveBeforeInTabOrder(self.nextbtn)
-        self.prevbtn.MoveBeforeInTabOrder(self.autobtn)
+            self.autobtn.MoveBeforeInTabOrder(self.nextbtn)
+            self.prevbtn.MoveBeforeInTabOrder(self.autobtn)
+        else:
+            cw.util.set_acceleratortable(self.nextbtn, seq)
+            cw.util.set_acceleratortable(self.closebtn, seq)
+            self.prevbtn.MoveBeforeInTabOrder(self.nextbtn)
 
     def OnNUpKeyDown(self, event):
         fc = wx.Window.FindFocus()
         if self.page.AcceptsFocusFromKeyboard():
-            if (fc is self.autobtn and not self.prevbtn.IsEnabled()) or fc is self.prevbtn:
-                self.page.SetFocusIgnoringChildren()
-                if event.GetId() <> self.shifttabkeyid:
-                    self.page.move_up()
-                return
+            if self.autobtn:
+                if (fc is self.autobtn and not self.prevbtn.IsEnabled()) or fc is self.prevbtn:
+                    self.page.SetFocusIgnoringChildren()
+                    if event.GetId() <> self.shifttabkeyid:
+                        self.page.move_up()
+                    return
+            else:
+                fcs = (self.prevbtn, self.nextbtn, self.postbtn, self.closebtn)
+                for i, c in enumerate(fcs):
+                    if c.IsEnabled():
+                        if c is fc:
+                            self.page.SetFocusIgnoringChildren()
+                            if event.GetId() <> self.shifttabkeyid:
+                                self.page.move_up()
+                            return
+                        else:
+                            break
         fc.Navigate(wx.NavigationKeyEvent.IsBackward)
 
     def _init_pages(self):
@@ -1207,7 +1224,10 @@ class NamePage(AdventurerCreaterPage):
     def OnNDownKeyDown(self, event):
         fc = wx.Window.FindFocus()
         if fc is self.textctrl:
-            self.autoname.SetFocus()
+            if self.autoname:
+                self.autoname.SetFocus()
+            else:
+                self.SetFocusIgnoringChildren()
         elif fc is self.autoname:
             self.SetFocusIgnoringChildren()
         elif fc is self and ((self.selected_clickable and self.is_selectionend()) or\
@@ -1226,7 +1246,10 @@ class NamePage(AdventurerCreaterPage):
             self.Parent.closebtn.SetFocus()
         elif fc is self and ((self.selected_clickable and self.is_selectionstart()) or \
                  event.GetId() == self.shifttabkeyid):
-            self.autoname.SetFocus()
+            if self.autoname:
+                self.autoname.SetFocus()
+            else:
+                self.textctrl.SetFocus()
         elif event.GetId() == self.shifttabkeyid and fc is self.ch_imgdpath:
             self.SetFocusIgnoringChildren()
         else:
