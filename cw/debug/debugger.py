@@ -707,7 +707,7 @@ class Debugger(wx.Frame):
         if not cw.cwpy.ydata.party:
             return
         dlg = cw.dialog.edit.NumberEditDialog(self, u"所持金の変更",
-                                              cw.cwpy.ydata.party.money, 0, 9999999)
+                                              cw.cwpy.ydata.party.money, 0, 9999999, 1000)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             def func(value):
@@ -725,7 +725,7 @@ class Debugger(wx.Frame):
         if not cw.cwpy.is_battlestatus():
             return
         dlg = cw.dialog.edit.NumberEditDialog(self, u"バトルラウンドの変更",
-                                              cw.cwpy.battle.round, 1, 1000)
+                                              cw.cwpy.battle.round, 1, 1000, 5)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             def func(value):

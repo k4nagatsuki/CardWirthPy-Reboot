@@ -883,7 +883,7 @@ class CharaRequirementPanel(wx.Panel):
                 break
 
         dlg = cw.dialog.edit.NumberEditDialog(self.TopLevelParent,
-                                              u"レベルの設定", level, 1, 15)
+                                              u"レベルの設定", level, 1, 15, 2)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for info in infos:

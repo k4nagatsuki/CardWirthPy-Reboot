@@ -257,7 +257,7 @@ class CouponEditDialog(wx.Dialog):
             return
         value = int(self.values.GetItem(index, 1).GetText())
 
-        dlg = cw.dialog.edit.NumberEditDialog(self, u"得点の設定", value, -9, 9)
+        dlg = cw.dialog.edit.NumberEditDialog(self, u"得点の設定", value, -9, 9, 1)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             index = -1
