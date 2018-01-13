@@ -1086,6 +1086,22 @@ def create_scenariolog(sdata, path, recording, logfilepath):
 
         e_bgimgs.append(e_bgimg)
 
+    # カード再配置情報
+    if cw.cwpy.sdata.moved_mcards:
+        e_movedmcards = cw.data.make_element("MovedCards")
+        for (cardgroup, index), (x, y, scale, layer) in cw.cwpy.sdata.moved_mcards.iteritems():
+            e_movedmcard = cw.data.make_element("MovedCard", attrs={"cardgroup":cardgroup,
+                                                                    "index":str(index)})
+            e_movedmcard.append(cw.data.make_element("Location", attrs={"left":str(x),
+                                                                        "top":str(y)}))
+            if scale <> -1:
+                e_movedmcard.append(cw.data.make_element("Size", attrs={"scale":str(scale)}))
+            if layer <> -1:
+                e_movedmcard.append(cw.data.make_element("Layer", str(layer)))
+            if len(e_movedmcard):
+                e_movedmcards.append(e_movedmcard)
+        element.append(e_movedmcards)
+
     # flag
     e_flag = cw.data.make_element("Flags")
     element.append(e_flag)

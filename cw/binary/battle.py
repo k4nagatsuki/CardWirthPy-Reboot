@@ -179,6 +179,10 @@ class EnemyCard(base.CWBinaryBase):
                             scale = int(scale[:-1])
                         else:
                             scale = int(scale)
+                    elif prop.tag == "Layer" and int(prop.text) <> cw.LAYER_MCARDS:
+                        f.check_wsnversion("1", u"レイヤ")
+                    elif prop.tag == "CardGroup" and prop.text:
+                        f.check_wsnversion("3", u"カードグループ")
             elif e.tag == "Events":
                 events = e
 

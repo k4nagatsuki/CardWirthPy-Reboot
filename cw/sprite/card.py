@@ -573,10 +573,9 @@ class CWPyCard(base.SelectableSprite):
         image.set_alpha(self.alpha)
         rect = self.cardimg.rect
 
-        if not self.scale == 100:
-            scale = self.scale / 100.0
-            image = cw.image.zoomcard(image, scale)
-            rect.size = image.get_size()
+        scale = self.scale / 100.0
+        image = cw.image.zoomcard(image, scale)
+        rect.size = image.get_size()
 
         if self.cardtarget:
             image = cw.imageretouch.to_negative_for_card(image)
@@ -661,6 +660,15 @@ class CWPyCard(base.SelectableSprite):
 
     def get_pos_noscale(self):
         return self._pos_noscale
+
+    def set_scale(self, scale):
+        if scale == self.scale:
+            return
+        for image, zrect in self.zoomimgs:
+            zrect.width *= float(scale) / self.scale
+            zrect.height *= float(scale) / self.scale
+        self.scale = scale
+        self.update_image()
 
     def set_cardtarget(self):
         if not self.cardtarget:
@@ -929,19 +937,27 @@ class PlayerCard(CWPyCard, character.Player):
 #-------------------------------------------------------------------------------
 
 class EnemyCard(CWPyCard, character.Enemy):
-    def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0):
+    def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0,
+                 moveddata=None):
         CWPyCard.__init__(self, status)
         self.zoomsize_noscale = (16, 22)
         self.index = index
         self.mcarddata = mcarddata
-        self._init_pos_noscale = pos_noscale
+        if moveddata:
+            self._init_pos_noscale = (moveddata[0], moveddata[1])
+        else:
+            self._init_pos_noscale = pos_noscale
         # フラグ
         self.flag = mcarddata.gettext("Property/Flag", "")
+        # カードグループ
+        self.cardgroup = mcarddata.gettext("Property/CardGroup", "")
         # 逃走の有無
         self.escape = mcarddata.getbool(".", "escape", False)
 
         # スケール
-        if cw.cwpy.is_autospread():
+        if moveddata and moveddata[2] <> -1:
+            self.scale = moveddata[2]
+        elif cw.cwpy.is_autospread():
             self.scale = 100
         else:
             s = mcarddata.getattr("Property/Size", "scale", "100%")
@@ -955,9 +971,12 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.clear_image()
         else:
             if not self.initialize():
-                raise
+                raise Exception()
 
-        layer = mcarddata.getint("Property/Layer", -1)
+        if moveddata and moveddata[3] <> -1:
+            layer = moveddata[3]
+        else:
+            layer = mcarddata.getint("Property/Layer", -1)
         if layer < 0:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
@@ -1061,6 +1080,25 @@ class EnemyCard(CWPyCard, character.Enemy):
         if self.is_analyzable():
             cw.cwpy.call_modaldlg("CHARAINFO")
 
+    def get_pos_noscale(self):
+        if self.is_initialized():
+            return CWPyCard.get_pos_noscale(self)
+        else:
+            return self._init_pos_noscale
+
+    def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
+        if self.is_initialized():
+            CWPyCard.set_pos_noscale(self, pos_noscale, center_noscale)
+        else:
+            self._init_pos_noscale = pos_noscale
+
+    def set_scale(self, scale):
+        if self.is_initialized():
+            CWPyCard.set_scale(self, scale)
+        else:
+            self.scale = scale
+
+
 #-------------------------------------------------------------------------------
 #　フレンドカードスプライト
 #-------------------------------------------------------------------------------
@@ -1128,12 +1166,14 @@ class FriendCard(CWPyCard, character.Friend):
         if self.is_analyzable():
             cw.cwpy.call_modaldlg("CHARAINFO")
 
+
 #-------------------------------------------------------------------------------
 #　メニューカードスプライト
 #-------------------------------------------------------------------------------
 
 class MenuCard(CWPyCard):
-    def __init__(self, data, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0):
+    def __init__(self, data, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0,
+                 moveddata=None):
         """
         メニューカード用のスプライトを作成。
         """
@@ -1142,10 +1182,14 @@ class MenuCard(CWPyCard):
         # カード情報
         self.index = index
         self._data = data
-        self._pos_noscale2 = pos_noscale
+        if moveddata:
+            self._pos_noscale2 = (moveddata[0], moveddata[1])
+        else:
+            self._pos_noscale2 = pos_noscale
         self.name = data.gettext("Property/Name", "")
         self.desc = data.gettext("Property/Description", "")
         self.flag = data.gettext("Property/Flag", "")
+        self.cardgroup = data.gettext("Property/CardGroup", "")
         self.debug_only = data.getbool(".", "debugOnly", False)
         self.author = ""
         self.scenario = ""
@@ -1157,7 +1201,9 @@ class MenuCard(CWPyCard):
         self.arg = data.getattr(".", "arg", "")
 
         # スケール
-        if cw.cwpy.is_autospread():
+        if moveddata and moveddata[2] <> -1:
+            self.scale = moveddata[2]
+        elif cw.cwpy.is_autospread():
             self.scale = 100
         else:
             s = data.getattr("Property/Size", "scale", "100%")
@@ -1172,7 +1218,10 @@ class MenuCard(CWPyCard):
         else:
             self.initialize()
 
-        layer = data.getint("Property/Layer", -1)
+        if moveddata and moveddata[3] <> -1:
+            layer = moveddata[3]
+        else:
+            layer = data.getint("Property/Layer", -1)
         if layer < 0:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
@@ -1318,6 +1367,25 @@ class MenuCard(CWPyCard):
             cw.animation.animate_sprite(self, "click")
             if self.desc:
                 cw.cwpy.call_modaldlg("MENUCARDINFO")
+
+    def get_pos_noscale(self):
+        if self.is_initialized():
+            return CWPyCard.get_pos_noscale(self)
+        else:
+            return self._pos_noscale2
+
+    def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
+        if self.is_initialized():
+            CWPyCard.set_pos_noscale(self, pos_noscale, center_noscale)
+        else:
+            self._pos_noscale2 = pos_noscale
+
+    def set_scale(self, scale):
+        if self.is_initialized():
+            CWPyCard.set_scale(self, scale)
+        else:
+            self.scale = scale
+
 
 def main():
     pass

@@ -856,6 +856,8 @@ class Content(base.CWBinaryBase):
             f.check_wsnversion("2", u"クーポン多岐分岐コンテント")
         elif tag == "Branch" and ctype == "MultiRandom":  # Wsn.2
             f.check_wsnversion("2", u"ランダム多岐分岐コンテント")
+        elif tag == "Move" and ctype == "Card":  # Wsn.3
+            f.check_wsnversion("3", u"カード再配置コンテント")
         else:
             raise ValueError(tag + ", " + ctype)
 

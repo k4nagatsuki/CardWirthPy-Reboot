@@ -83,6 +83,7 @@ class SystemData(object):
         self.in_f9 = False
         self.in_endprocess = False
         self.background_image_mtime = {}
+        self.moved_mcards = {}
 
         # "file.x2.bmp"などのスケーリングされたイメージを読み込むか
         self.can_loaded_scaledimage = True
@@ -855,6 +856,8 @@ class ScenarioData(SystemData):
         self.backlog = []
         # キャンプ中に移動したカードの使用回数の記憶
         self.uselimit_table = {}
+        # カード再配置コンテントで移動されたメニューカード
+        self.moved_mcards = {}
 
         # イベントが任意箇所に到達した時に実行を停止するためのブレークポイント
         self.breakpoints = cw.cwpy.breakpoint_table.get((self.name, self.author), set())
@@ -1533,6 +1536,21 @@ class ScenarioData(SystemData):
         elements = cw.cwpy.sdata.get_bgdata(e)
         ttype = ("Default", "Default")
         cw.cwpy.background.load(elements, False, ttype, bginhrt=False, nocheckvisible=True)
+
+        e_movedcards = etree.find("MovedCards")
+        self.moved_mcards = {}
+        if not e_movedcards is None:
+            for e in e_movedcards:
+                cardgroup = e.getattr(".", "cardgroup", "")
+                index = e.getint(".", "index", -1)
+                if cardgroup == "" or index == -1:
+                    continue
+                x = e.getint("Location", "left", 0)
+                y = e.getint("Location", "top", 0)
+                scale = e.getint("Size", "scale", -1)
+                layer = e.getint("Layer", -1)
+                self.moved_mcards[(cardgroup, index)] = (x, y, scale, layer)
+
         self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")
 
         logfilepath = etree.gettext("Property/LogFile", u"")
@@ -1663,6 +1681,7 @@ def redraw_cards(value, flag=""):
                 drawflag = True
 
         if drawflag:
+            cw.cwpy.sdata.moved_mcards = {} # 再配置情報を破棄
             cw.cwpy.hide_cards(True, flag=flag)
             cw.cwpy.deal_cards(flag=flag)
 

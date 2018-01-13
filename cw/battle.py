@@ -245,6 +245,7 @@ class BattleEngine(object):
             ecards = cw.cwpy.get_mcards("flagtrue")
             if self.numenemy <> len(ecards):
                 self.numenemy = len(ecards)
+                cw.cwpy.sdata.moved_mcards = {} # 再配置情報を破棄
                 cw.cwpy.set_autospread(ecards, 6, False, anime=True)
         cw.cwpy.show_party()
         cw.cwpy.disposition_pcards()

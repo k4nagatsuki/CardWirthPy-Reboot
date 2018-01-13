@@ -4178,6 +4178,93 @@ class MoveBgImageContent(EventContentBase):
 
         return u" ".join(seq)
 
+class MoveCardContent(EventContentBase):
+    def __init__(self, data, is_changestate=True):
+        EventContentBase.__init__(self, data, is_changestate=True)
+        self.cardgroup = data.getattr(".", "cardgroup", u"")
+        self.positiontype = data.getattr(".", "positiontype", u"")
+        self.x = data.getint(".", "x", 0)
+        self.y = data.getint(".", "y", 0)
+        self.scale = data.getint(".", "scale", -1)
+        self.layer = data.getint(".", "layer", -1)
+
+    def action(self):
+        """カード再配置コンテント(Wsn.3)。"""
+        if not self.cardgroup or (self.positiontype == u"None" and self.scale == -1 and self.layer == -1):
+            return 0
+
+        i = 0
+        deals = []
+        for mcard in cw.cwpy.get_mcards():
+            if mcard.cardgroup <> self.cardgroup:
+                continue
+
+            x, y = mcard.get_pos_noscale()
+            scale = mcard.scale
+            layer = mcard.layer[0]
+            if self.positiontype == "Absolute":
+                x = self.x
+                y = self.y
+            elif self.positiontype == "Relative":
+                x += self.x
+                y += self.y
+            elif self.positiontype == "Percentage":
+                x = x * self.x // 100
+                y = x * self.y // 100
+
+            if self.scale <> -1:
+                scale = self.scale
+
+            if self.layer <> -1:
+                layer = self.layer
+
+            shown = mcard.status <> "hidden"
+            if shown:
+                cw.animation.animate_sprite(mcard, "hide")
+
+            mcard.set_pos_noscale((x, y))
+            mcard.set_scale(scale)
+            mcard.layer = (layer,) + mcard.layer[1:]
+            cw.cwpy.cardgrp.change_layer(mcard, mcard.layer)
+
+            if shown:
+                deals.append(mcard)
+
+            if isinstance(mcard, cw.sprite.card.MenuCard):
+                # 移動後の情報をグループごとのindexで記憶する
+                if cw.cwpy.ydata:
+                    cw.cwpy.ydata.changed()
+                cw.cwpy.sdata.moved_mcards[(self.cardgroup, i)] = (x, y, scale, layer)
+            i += 1
+
+        for mcard in deals:
+            cw.animation.animate_sprite(mcard, "deal")
+
+        return 0
+
+    def get_status(self):
+        seq = []
+        seq.append(u"カードグループ = 【%s】" % (self.cardgroup))
+        if self.positiontype <> "None":
+            if self.positiontype == "Absolute":
+                s = u"(%s, %s)pxへ移動" % (self.x, self.y)
+            elif self.positiontype == "Relative":
+                s = u"現在位置+(%s, %s)pxへ移動" % (self.x, self.y)
+            elif self.positiontype == "Percentage":
+                s = u"現在位置×(%s, %s)%%へ移動" % (self.x, self.y)
+            else:
+                s = u""
+            if s:
+                seq.append(s)
+
+        if self.scale == -1:
+            seq.append(u"拡大率 = %s%%" % (self.scale))
+
+        if self.layer == -1:
+            seq.append(u"レイヤ = %s" % (self.layer))
+
+        return u" ".join(seq)
+
 #-------------------------------------------------------------------------------
 # 置換系コンテント (Wsn.1～)
 #-------------------------------------------------------------------------------

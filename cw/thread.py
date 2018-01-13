@@ -2956,9 +2956,18 @@ class CWPy(_Singleton, threading.Thread):
             n = maxw + 5
             x = (632 - n * len(mcards) + 5) / 2
 
+            grpidx = {}
             for mcard in mcards:
-                w, h = get_size_noscale(mcard)
-                mcard.set_pos_noscale((x + maxw - w, y + maxh - h))
+                if mcard.cardgroup:
+                    gi = grpidx.get(mcard.cardgroup, 0)
+                # カード再配置の対象になっている場合は整列しない
+                if not mcard.cardgroup or not (mcard.cardgroup, gi) in self.sdata.moved_mcards:
+                    w, h = get_size_noscale(mcard)
+                    if mcard.scale <> 100:
+                        mcard.set_scale(100)
+                    mcard.set_pos_noscale((x + maxw - w, y + maxh - h))
+                if mcard.cardgroup:
+                    grpidx[(mcard.cardgroup, gi)] = gi + 1
                 x += n
 
         maxw = 0
@@ -3014,7 +3023,10 @@ class CWPy(_Singleton, threading.Thread):
         status = "hidden" if dealanime else "normal"
         seq = []
 
+        grpidx = {}
+        moved_mcards = {} # 不要な再配置情報を削除するため再構築する
         for i, e in enumerate(elements):
+            cardgroup = e.gettext("Property/CardGroup", "")
             if stype == "Auto":
                 pos_noscale = (0, 0)
             else:
@@ -3027,17 +3039,33 @@ class CWPy(_Singleton, threading.Thread):
                 if not cw.sprite.card.CWPyCard.is_flagtrue_static(e):
                     status2 = "hidden"
 
+            if cardgroup:
+                gi = grpidx.get(cardgroup, 0)
+                moveddata = self.sdata.moved_mcards.get((cardgroup, gi), None)
+            else:
+                moveddata = None
+
             if e.tag == "EnemyCard":
                 if self.sdata.get_castname(e.getint("Property/Id", -1)) is None:
                     continue
-                mcard = cw.sprite.card.EnemyCard(e, pos_noscale, status2, addgroup, i)
+                mcard = cw.sprite.card.EnemyCard(e, pos_noscale, status2, addgroup, i,
+                                                 moveddata=moveddata)
             else:
-                mcard = cw.sprite.card.MenuCard(e, pos_noscale, status2, addgroup, i)
+                mcard = cw.sprite.card.MenuCard(e, pos_noscale, status2, addgroup, i,
+                                                moveddata=moveddata)
 
             if not mcard.is_flagtrue():
                 mcard.status = "hidden"
 
+            if cardgroup:
+                if moveddata:
+                    moved_mcards[(cardgroup, gi)] = moveddata
+                grpidx[cardgroup] = gi + 1
+
             seq.append(mcard)
+
+        if 0 <= self.areaid:
+            self.sdata.moved_mcards = moved_mcards
 
         return seq
 
@@ -3099,6 +3127,11 @@ class CWPy(_Singleton, threading.Thread):
         bginhrt &= not force_updatebg
         oldareaid = self.areaid
         self.areaid = areaid
+
+        if 0 <= oldareaid and 0 <= self.areaid:
+            # カード再配置情報を破棄
+            self.moved_mcards = {}
+
         if not self.sdata.change_data(areaid, data=data):
             raise cw.event.EffectBreakError()
         bginhrt |= bool(self.areaid < 0)
