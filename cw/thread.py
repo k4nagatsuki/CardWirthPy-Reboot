@@ -799,6 +799,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def _quit(self):
         self.advlog.end_scenario(False, False)
+        if self.sdata:
+            self.sdata.sleep_timekeeper()
         for music in self.music:
             music.stop()
         for i in xrange(len(self.lastsound_scenario)):
@@ -1957,6 +1959,7 @@ class CWPy(_Singleton, threading.Thread):
     def set_yado(self):
         """宿画面へ遷移。"""
         self.set_status("Yado")
+        self.sdata.sleep_timekeeper()
         msglog = self.sdata.backlog
         self.sdata = cw.data.SystemData()
         self.sdata.backlog = msglog
@@ -2087,6 +2090,10 @@ class CWPy(_Singleton, threading.Thread):
                                 if music.path <> music.get_path(musicpath, inusecard):
                                     music.stop()
 
+                        if resume:
+                            self.sdata.resume_timekeeper()
+                        else:
+                            self.sdata.start_timekeeper()
                         self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal, doanime=not resume)
 
                         if musicpaths:
@@ -2129,9 +2136,10 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_gameover(self):
         """ゲームオーバー画面へ遷移。"""
-        cw.cwpy.sdata.in_endprocess = True
+        self.sdata.in_endprocess = True
 
-        cw.cwpy.advlog.gameover()
+        self.advlog.gameover()
+        self.sdata.sleep_timekeeper()
         self.hide_party()
         self.set_status("GameOver")
         del self.pre_dialogs[:]
@@ -2146,6 +2154,7 @@ class CWPy(_Singleton, threading.Thread):
             self.disposition_pcards()
         self.ydata.party.lost()
         del self.sdata.friendcards[:]
+        self.sdata.sleep_timekeeper()
         self.sdata.end()
 
         for music in self.music:
@@ -2196,6 +2205,7 @@ class CWPy(_Singleton, threading.Thread):
         self.sdata.in_endprocess = True
 
         cw.cwpy.advlog.f9()
+        cw.cwpy.sdata.sleep_timekeeper()
         self.sdata.is_playing = False
         self.statusbar.change(False)
         self.pre_dialogs = []
@@ -2549,6 +2559,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.ydata.party:
             header = self.ydata.party.get_sceheader()
+            resume = True
 
             if optscenario:
                 if os.path.isabs(optscenario):
@@ -2572,6 +2583,7 @@ class CWPy(_Singleton, threading.Thread):
                             self.setting.lastscenario = []
                             self.setting.lastscenariopath = optscenario
                             self._f9impl(startotherscenario=True)
+                            resume = False
                     else:
                         for idx, data in enumerate(self.ydata.party.members):
                             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
@@ -2585,11 +2597,14 @@ class CWPy(_Singleton, threading.Thread):
                         self.setting.lastscenario = []
                         self.setting.lastscenariopath = optscenario
                         self._show_party()
+                        resume = False
                     header = header2
+                else:
+                    resume = False
 
             # シナリオプレイ途中から再開
             if header:
-                self.exec_func(self.set_scenario, header, resume=True)
+                self.exec_func(self.set_scenario, header, resume=resume)
             # シナリオロードに失敗
             elif self.ydata.party.is_adventuring():
                 self.play_sound("error")
@@ -3950,6 +3965,7 @@ class CWPy(_Singleton, threading.Thread):
     def interrupt_adventure(self):
         """冒険の中断。宿画面に遷移する。"""
         if self.status == "Scenario":
+            self.sdata.sleep_timekeeper()
             self.sdata.update_log()
             for music in self.music:
                 music.stop()

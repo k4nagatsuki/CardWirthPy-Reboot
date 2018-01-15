@@ -2010,6 +2010,17 @@ def send_trashbox(path):
     elif os.path.isdir(path):
         shutil.rmtree(path)
 
+def remove_emptydir(dpath):
+    """
+    dpathが中身の無いディレクトリであれば削除する。
+    """
+    if os.path.isdir(dpath):
+        for dpath2, dnames, fnames in os.walk(dpath):
+            if len(fnames):
+                # 中身が存在する
+                return
+        remove(dpath)
+
 
 #-------------------------------------------------------------------------------
 #　ZIPファイル関連

@@ -422,6 +422,7 @@ class Setting(object):
         self.recenthistory_limit = 5 # 展開したシナリオを取っておく数
         self.volume_increment = 5 # ホイールによる全体音量調節での増減量
         self.show_debuglogdialog = False
+        self.enabled_timekeeper = True
         self.write_playlog = False
         self.move_repeat = 250 #移動ボタン押しっぱなしの速度
         self.open_lastscenario = True # 最後に表示したシナリオを開くか
@@ -553,7 +554,9 @@ class Setting(object):
                 self.debug = True
             cw.OPTIONS.debug = False
         # シナリオの終了時にデバッグ情報を表示する
-        self.show_debuglogdialog = data.getbool("ShowDebugLogDialog", self.show_debuglogdialog)
+        self.show_debuglogdialog = data.getbool("ShowDebugLogDialog", self.show_debuglogdialog_init)
+        # シナリオのプレイ時間を記録する(隠しオプション)
+        self.enabled_timekeeper = data.getbool("EnabledTimekeepr", self.enabled_timekeeper_init)
         # デバッグ時はレベル上昇しない
         self.no_levelup_in_debugmode = data.getbool("NoLevelUpInDebugMode", self.no_levelup_in_debugmode)
         # 音楽を再生する

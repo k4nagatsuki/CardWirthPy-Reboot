@@ -10,6 +10,7 @@ import time
 import shutil
 import threading
 import ctypes
+import datetime
 import xml.parsers.expat
 from xml.etree.cElementTree import ElementTree
 from xml.etree.ElementTree import _ElementInterface
@@ -268,6 +269,21 @@ class SystemData(object):
         pass
 
     def save_breakpoints(self):
+        pass
+
+    def get_totalpyaingtime(self):
+        return 0
+
+    def get_pausedtime(self):
+        return 0
+
+    def start_timekeeper(self):
+        pass
+
+    def resume_timekeeper(self):
+        pass
+
+    def sleep_timekeeper(self):
         pass
 
     def set_log(self):
@@ -873,6 +889,11 @@ class ScenarioData(SystemData):
         if cw.cwpy.classicdata:
             self.versionhint[cw.HINT_SCENARIO] = cw.cwpy.classicdata.versionhint
 
+        # プレイ開始時間
+        self._start_datetime = None
+        # 停止時間(秒)
+        self._paused_time = 0
+
         self.ignorecase_table = {}
         # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
         #        取得に失敗する事があるので、すべて小文字のパスをキーにして
@@ -1072,6 +1093,146 @@ class ScenarioData(SystemData):
             cw.cwpy.breakpoint_table[key] = self.breakpoints
         elif key in cw.cwpy.breakpoint_table:
             del cw.cwpy.breakpoint_table[key]
+
+    def get_startdatetime(self):
+        return self._start_datetime
+
+    def get_totalpyaingtime(self):
+        return (datetime.datetime.today()-self._start_datetime).total_seconds() - self._paused_time
+
+    def get_pausedtime(self):
+        return self._paused_time
+
+    def start_timekeeper(self):
+        if not cw.cwpy.setting.enabled_timekeeper:
+            return
+        if not (cw.cwpy.ydata and cw.cwpy.ydata.party):
+            return
+
+        dpath = os.path.dirname(cw.cwpy.ydata.party.path)
+        if not dpath.lower().startswith("yado"):
+            dpath = dpath.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
+        dpath = cw.util.join_paths(dpath, "Debug")
+        fpath = cw.util.join_paths(dpath, "Timekeeper.xml")
+        if os.path.isfile(fpath):
+            # タイムキーパーはセーブ・ロードしても時間計測を継続するが、
+            # シナリオA内でセーブしてからクリアし、シナリオBを開始した
+            # というような場合に計測結果がおかしくなるのを避けるため、
+            # 次にロードした時にTimekeeper.xmlをロールバックできるように
+            # コピーしておく。
+            # セーブ操作が行われた時は、ロールバックは不要になるため、
+            # OldTimekeeper.xmlを削除する。
+            dst = cw.util.join_paths(dpath, "OldTimekeeper.xml")
+            if not os.path.isfile(dst):
+                shutil.move(fpath, dst)
+        self.resume_timekeeper()
+
+    def resume_timekeeper(self):
+        if not cw.cwpy.setting.enabled_timekeeper:
+            return
+        if not (cw.cwpy.ydata and cw.cwpy.ydata.party):
+            return
+
+        if not self._start_datetime is None:
+            return
+
+        dpath = os.path.dirname(cw.cwpy.ydata.party.path)
+        if not dpath.lower().startswith("yado"):
+            dpath = dpath.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
+        dpath = cw.util.join_paths(dpath, "Debug")
+        fpath = cw.util.join_paths(dpath, "Timekeeper.xml")
+        if os.path.isfile(fpath):
+            # 休止からの再開(休止時間を加算)
+            try:
+                etree = xml2etree(fpath)
+                spath = etree.getattr(".", "wsnpath")
+                if spath <> self.fpath:
+                    self._start_datetime = datetime.datetime.today()
+                    self._paused_time = 0
+                    return
+
+                def parse_datetime(tag):
+                    year = etree.getint(tag, "year")
+                    month = etree.getint(tag, "month")
+                    day = etree.getint(tag, "day")
+                    hour = etree.getint(tag, "hour")
+                    minute = etree.getint(tag, "minute")
+                    second = etree.getint(tag, "second")
+                    return datetime.datetime(year, month, day, hour, minute, second)
+                self._start_datetime = parse_datetime("StartTime")
+
+                date = datetime.datetime.today()
+                paused = etree.getint("PauseTime")
+                self._paused_time = paused + (date-parse_datetime("PauseTime")).total_seconds()
+
+            except:
+                cw.util.print_ex(file=sys.stderr)
+                self._start_datetime = datetime.datetime.today()
+                self._paused_time = 0
+            finally:
+                cw.util.remove(fpath)
+                cw.util.remove_emptydir(dpath)
+        else:
+            self._start_datetime = datetime.datetime.today()
+            self._paused_time = 0
+
+    def sleep_timekeeper(self):
+        if not cw.cwpy.setting.enabled_timekeeper:
+            return
+        if not (cw.cwpy.ydata and cw.cwpy.ydata.party):
+            return
+
+        if self._start_datetime is None:
+            return
+
+        dpath = os.path.dirname(cw.cwpy.ydata.party.path)
+        if not dpath.lower().startswith("yado"):
+            dpath = dpath.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
+        dpath = cw.util.join_paths(dpath, "Debug")
+        fpath = cw.util.join_paths(dpath, "Timekeeper.xml")
+        if os.path.isfile(fpath):
+            cw.util.remove(fpath)
+            cw.util.remove_emptydir(dpath)
+            return
+
+        element = cw.data.make_element("Timekeeper", attrs={"wsnpath":self.fpath})
+        date = self._start_datetime
+        self._start_datetime = None
+        year = date.strftime("%Y")
+        month = date.strftime("%m")
+        day = date.strftime("%d")
+        hour = date.strftime("%H")
+        minute = date.strftime("%M")
+        second = date.strftime("%S")
+        e = cw.data.make_element("StartTime",
+                                 attrs={"year":str(year),
+                                        "month":str(month),
+                                        "day":str(day),
+                                        "hour":str(hour),
+                                        "minute":str(minute),
+                                        "second":str(second),
+                                        "paused":str(self._paused_time)})
+        element.append(e)
+
+        date = datetime.datetime.today()
+        year = date.strftime("%Y")
+        month = date.strftime("%m")
+        day = date.strftime("%d")
+        hour = date.strftime("%H")
+        minute = date.strftime("%M")
+        second = date.strftime("%S")
+        e = cw.data.make_element("PauseTime", str(self._paused_time),
+                                 attrs={"year":str(year),
+                                        "month":str(month),
+                                        "day":str(day),
+                                        "hour":str(hour),
+                                        "minute":str(minute),
+                                        "second":str(second)})
+        element.append(e)
+
+        etree = cw.data.xml2etree(element=element)
+        etree.write(fpath)
+        cw.cwpy.ydata.deletedpaths.discard(fpath)
 
     def change_data(self, resid, data=None):
         if data is None:
@@ -1390,12 +1551,17 @@ class ScenarioData(SystemData):
         cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
 
         if debuglog:
-            def func(sname, debuglog):
-                dlg = cw.debug.logging.DebugLogDialog(cw.cwpy.frame, sname, debuglog)
+            def func(sname, debuglog, startdatetime, pausedtime):
+                dlg = cw.debug.logging.DebugLogDialog(cw.cwpy.frame, sname, debuglog, startdatetime, pausedtime)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
-            cw.cwpy.frame.exec_func(func, self.name, debuglog)
+            startdatetime = cw.cwpy.sdata.get_startdatetime()
+            pausedtime = cw.cwpy.sdata.get_pausedtime()
+            cw.cwpy.sdata.sleep_timekeeper()
+            cw.cwpy.frame.exec_func(func, self.name, debuglog, startdatetime, pausedtime)
+        else:
+            cw.cwpy.sdata.sleep_timekeeper()
 
     def f9(self):
         """
@@ -1877,6 +2043,14 @@ class YadoData(object):
         self.partys = self.yadodb.get_parties()
         partypaths = set()
         for party in self.partys:
+            dpath = os.path.dirname(party.fpath)
+            dpath = cw.util.join_paths(dpath, "Debug")
+            fpath = cw.util.join_paths(dpath, "OldTimekeeper.xml")
+            if os.path.isfile(fpath):
+                # タイムキーパーをロールバック
+                dst = cw.util.join_paths(dpath, "Timekeeper.xml")
+                shutil.move(fpath, dst)
+
             for fpath in party.get_memberpaths():
                 partypaths.add(fpath)
         self.sort_parties()
@@ -2473,6 +2647,21 @@ class YadoData(object):
 
         self._transfer_temp()
 
+        def commit_timekeeper(ppath, is_adventuring):
+            # タイムキーパーをコミット
+            dpath = os.path.dirname(ppath)
+            if not dpath.lower().startswith("yado"):
+                dpath = dpath.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
+            dpath = cw.util.join_paths(dpath, "Debug")
+            fpath = cw.util.join_paths(dpath, "OldTimekeeper.xml")
+            if os.path.isfile(fpath):
+                cw.util.remove(fpath)
+            if not is_adventuring or not cw.cwpy.setting.enabled_timekeeper:
+                fpath = cw.util.join_paths(dpath, "Timekeeper.xml")
+                if os.path.isfile(fpath):
+                    cw.util.remove(fpath)
+            cw.util.remove_emptydir(dpath)
+
         # 各パーティの荷物袋のデータを保存する
         def update_backpack(party):
             # カード置場の順序を記憶しておく
@@ -2495,9 +2684,11 @@ class YadoData(object):
             carddb.update(cards=cardtable, cardorder=cardorder)
             carddb.close()
         if self.party:
+            commit_timekeeper(self.party.path, cw.cwpy.is_playingscenario())
             update_backpack(self.party)
         partyorder = {}
         for party in self.partys:
+            commit_timekeeper(party.fpath, party.is_adventuring())
             if party.data:
                 update_backpack(party.data)
                 if party.fpath.lower().startswith(self.tempdir.lower()):

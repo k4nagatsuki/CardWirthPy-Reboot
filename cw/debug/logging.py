@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
 import wx
 
 import cw
@@ -11,7 +12,7 @@ import cw
 
 class DebugLogDialog(wx.Dialog):
 
-    def __init__(self, parent, sname, debuglog):
+    def __init__(self, parent, sname, debuglog, startdatetime, pausedtime):
         """集計したデバッグ情報をリッチテキストで表示する。"""
         wx.Dialog.__init__(self, parent, -1, u"「%s」のプレイ結果" % (sname),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
@@ -20,6 +21,41 @@ class DebugLogDialog(wx.Dialog):
 
         self.text = cw.util.CWPyRichTextCtrl(self, -1, size=cw.ppis((400, 380)))
         self.text.SetEditable(False)
+
+        # プレイ時間
+        if startdatetime:
+            date = datetime.datetime.today()
+            s = u"プレイ開始 : %s" % startdatetime.strftime("%Y-%m-%d %H:%M:%S")
+            self.text.WriteText(s)
+            self.text.Newline()
+            self.plain_text.append(s)
+            s = u"プレイ終了 : %s" % date.strftime("%Y-%m-%d %H:%M:%S")
+            self.text.WriteText(s)
+            self.text.Newline()
+            self.plain_text.append(s)
+
+            def timestr(sec):
+                sec = int(round(sec))
+                hour = sec // 3600
+                minute = sec % 3600 // 60
+                if hour:
+                    return u"%s時間%s分%s秒" % (hour, minute, sec)
+                elif minute:
+                    return u"%s分%s秒" % (minute, sec)
+                else:
+                    return u"%s秒" % (sec)
+            total = date - startdatetime
+            s = u"総プレイ時間 : %s" % (timestr(total.total_seconds()-pausedtime))
+            self.text.WriteText(s)
+            self.text.Newline()
+            self.plain_text.append(s)
+
+            if pausedtime:
+                total = datetime.timedelta(seconds=pausedtime)
+                s = u"中断時間 : %s" % (timestr(total.total_seconds()))
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
 
         # 連れ込み
         for name in debuglog.friend:

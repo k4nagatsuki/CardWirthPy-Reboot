@@ -511,7 +511,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                 # 不要になったインストール元のディレクトリを削除
                 for parent, relparent in self.headers.iterkeys():
                     if not (relparent in (u"", u".") or relparent.startswith(u".." + os.path.sep)):
-                        _remove_emptydir(parent)
+                        cw.util.remove_emptydir(parent)
 
         def _confirm_overwrite(self, dlg, s, allret):
             def func():
@@ -726,18 +726,6 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
             db.update(dpath, skintype=skintype)
 
     return thread.failed, thread.paths, thread.filepaths, False
-
-
-def _remove_emptydir(dpath):
-    """
-    dpathが中身の無いディレクトリであれば削除する。
-    """
-    if os.path.isdir(dpath):
-        for dpath2, dnames, fnames in os.walk(dpath):
-            if len(fnames):
-                # 中身が存在する
-                return
-        cw.util.remove(dpath)
 
 
 def update_scenariolog(normpath, dst, dstisfile):

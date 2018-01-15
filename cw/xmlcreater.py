@@ -182,6 +182,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.show_debuglogdialog <> setting.show_debuglogdialog_init:
         e = cw.data.make_element("ShowDebugLogDialog", str(setting.show_debuglogdialog))
         element.append(e)
+    # シナリオのプレイ時間を記録する(隠しオプション)
+    if setting.enabled_timekeeper <> setting.enabled_timekeeper_init:
+        e = cw.data.make_element("EnabledTimekeepr", str(setting.enabled_timekeeper))
+        element.append(e)
     # デバッグ時はレベル上昇しない
     if setting.no_levelup_in_debugmode <> setting.no_levelup_in_debugmode_init:
         e = cw.data.make_element("NoLevelUpInDebugMode", str(setting.no_levelup_in_debugmode))
