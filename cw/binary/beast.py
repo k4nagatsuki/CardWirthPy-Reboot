@@ -246,6 +246,26 @@ class BeastCard(base.CWBinaryBase):
                     elif prop.tag == "SoundPath2":
                         sound_effect2 = base.CWBinaryBase.materialpath(prop.text)
                         f.check_soundoptions(prop)
+                    elif prop.tag == "InvocationCondition":
+                        # Wsn.3以降のデータに存在する
+                        # 省略されている場合は"Alive"単一
+                        if len(prop) <> 1:
+                            f.check_wsnversion("3", u"発動条件")
+                        e_ic = prop.find("Status")
+                        if e_ic is None:
+                            f.check_wsnversion("3", u"発動条件")
+                        elif e_ic.text <> "Alive":
+                            f.check_wsnversion("3", u"発動条件")
+                    elif prop.tag == "RemovalCondition":
+                        # Wsn.3以降のデータに存在する
+                        # 省略されている場合は"Unconscious"単一
+                        if len(prop) <> 1:
+                            f.check_wsnversion("3", u"消滅条件")
+                        e_ic = prop.find("Status")
+                        if e_ic is None:
+                            f.check_wsnversion("3", u"消滅条件")
+                        elif e_ic.text <> "Unconscious":
+                            f.check_wsnversion("3", u"消滅条件")
                     elif prop.tag == "KeyCodes":
                         keycodes = cw.util.decodetextlist(prop.text)
                         # 5件まで絞り込む

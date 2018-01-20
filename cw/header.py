@@ -839,6 +839,44 @@ class CardHeader(object):
 
         return True
 
+    def is_removewithstatus(self, ccard):
+        """召喚獣カードが消滅する状態か？"""
+        assert not self.carddata is None
+        return is_removewithstatus(self.carddata, ccard)
+
+    def is_activewithstatus(self, ccard):
+        """ccardはこの召喚獣カードが発動可能な状態か？"""
+        assert not self.carddata is None
+        e = self.carddata.find("Property/InvocationCondition")
+        if e is None:
+            return ccard.is_alive()
+        for e_status in e:
+            if e_status.tag == "Status" and e_status.text:
+                methodname = "is_" + e_status.text.lower()
+                if hasattr(ccard, methodname) and getattr(ccard, methodname)():
+                    return True
+        return False
+
+
+def is_removewithstatus(carddata, target):
+    """targetはcarddataの召喚獣カードが消滅する状態か？"""
+    e = carddata.find("Property/RemovalCondition")
+    if e is None:
+        # 消滅条件が設定されていない場合は意識不明の時に消滅
+        return target.is_unconscious()
+    for e2 in e:
+        if e2.tag == "Status" and e2.text:
+            if e2.text <> "Unconscious":
+                # Wsn.3以前では仕様上意識不明以外の消滅条件は指定不可であるため
+                # ここで弾いておく
+                continue
+            methodname = "is_" + e2.text.lower()
+            if hasattr(target, methodname) and getattr(target, methodname)():
+                # 消滅条件に引っかかる(Wsn.3)
+                return True
+    return False
+
+
 class InfoCardHeader(object):
     def __init__(self, data, can_loaded_scaledimage):
         """

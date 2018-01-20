@@ -135,7 +135,7 @@ class Effect(object):
                 cw.cwpy.event.is_changestate = True
             return False
 
-        if target.is_unconscious() and not self.has_motions(CAN_UNCONSCIOUS):
+        if target.is_unconscious() and not self.has_motions(CAN_UNCONSCIOUS) and not self.has_addablebeast(target):
             if cw.cwpy.is_battlestatus():
                 cw.cwpy.event.is_changestate = True
             return False
@@ -411,13 +411,21 @@ class Effect(object):
                 # 回復等が含まれていない場合、意識不明の対象は対象外に
                 flag = False
                 for eff in self.motions:
-                    if target.is_unconscious() and not eff.type in CAN_UNCONSCIOUS:
+                    if target.is_unconscious() and not eff.type in CAN_UNCONSCIOUS and not eff.has_addablebeast(target):
                         continue
                     flag = True
                     break
             return flag
         else:
             return True
+
+    def has_addablebeast(self, target):
+        """意識不明状態でも消滅しない召喚獣を所持しているか。"""
+        for motion in self.motions:
+            if motion.has_addablebeast(target):
+                return True
+
+        return False
 
     def has_motions(self, motiontypes):
         for motiontype in motiontypes:
@@ -655,10 +663,21 @@ class EffectMotion(object):
             return False
 
         # 意識不明だったら一部効果の処理中止
-        if target.is_unconscious() and not self.type in CAN_UNCONSCIOUS:
+        if target.is_unconscious() and not self.type in CAN_UNCONSCIOUS and not self.has_addablebeast(target):
             return False
 
         return True
+
+    def has_addablebeast(self, target):
+        """targetに付与可能な召喚獣の召喚があるか。"""
+        if self.type == "SummonBeast" and not self.beasts is None:
+            for e in self.beasts:
+                e2 = cw.cwpy.sdata.get_carddata(e)
+                if e2 is None:
+                    continue
+                if not cw.header.is_removewithstatus(e2, target):
+                    return True
+        return False
 
     def apply(self, target, success_res):
         """

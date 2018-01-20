@@ -188,7 +188,7 @@ class StatusEditDialog(wx.Dialog):
         self._update_status()
 
     def OnOkBtn(self, event):
-        def func(pcards, oldactive, updates):
+        def func(pcards, updates):
             for i in updates:
                 pcard = pcards[i]
                 cw.cwpy.play_sound("harvest")
@@ -202,29 +202,24 @@ class StatusEditDialog(wx.Dialog):
                     pcard.update_image()
                     cw.animation.animate_sprite(pcard, "deal", battlespeed=battlespeed)
 
-                if cw.cwpy.is_battlestatus() and oldactive[i] <> pcard.is_active():
-                    # アクティブ状態が変わったので
-                    # 行動の再選択か、キャンセルを行う
+                if cw.cwpy.is_battlestatus():
+                    # 状態が変わったので行動の再選択か、キャンセルを行う
                     if pcard.is_active():
                         pcard.deck.set(pcard)
-                        pcard.decide_action()
                     else:
-                        pcard.clear_action()
                         cw.cwpy.clear_inusecardimg(pcard)
+                    pcard.decide_action()
 
             if not updates:
                 cw.cwpy.play_sound("harvest")
 
         updates = []
-        oldactive = []
         for i, status in enumerate(self.statuses):
             pcard = self.pcards[i]
-            oldactive.append(pcard.is_active())
-
             if status.put_status(pcard):
                 updates.append(i)
 
-        cw.cwpy.exec_func(func, self.pcards, oldactive, updates)
+        cw.cwpy.exec_func(func, self.pcards, updates)
 
         self.EndModal(wx.ID_OK)
 

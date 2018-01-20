@@ -316,6 +316,8 @@ class Character(object):
         if self.data.getattr("Property/Life", "coefficient", 0):
             self.data.remove("Property/Life", attrname="coefficient")
 
+        self.adjust_beast()
+
     def set_physical(self, name, value):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
@@ -834,7 +836,11 @@ class Character(object):
         elif mtype == "CancelAction": # 1.50
             return self.is_active()
         elif mtype == "SummonBeast":
-            return self.can_addbeast()
+            for beast in motion.getfind("Beasts", raiseerror=False):
+                e = cw.cwpy.sdata.get_carddata(beast)
+                if not e is None and self.can_addbeast(e):
+                    return True
+            return False
         elif mtype == "NoEffect": # Wsn.2
             return not self.is_unconscious()
         else:
@@ -992,8 +998,10 @@ class Character(object):
             else:
                 ishidden = self.status == "hidden"
 
-            if self.is_alive() and not ishidden and self.status <> "reversed":
+            if not ishidden and self.status <> "reversed":
                 for targets_b, header_b in beasts[:]:
+                    if not header_b.is_activewithstatus(self):
+                        continue
                     inarr = False
                     for _targets_c, header_c in self.actiondata[2]:
                         if header_c == header_b:
@@ -1072,9 +1080,7 @@ class Character(object):
         麻痺・死亡状態であれば召喚獣も動けない。
         """
         if self.actiondata:
-            if self.is_unconscious():
-                self.clear_action()
-            elif self.is_inactive(check_reversed=False):
+            if self.is_inactive(check_reversed=False):
                 _target, _header, beasts = self.actiondata
                 self.set_action(None, None, beasts, True)
 
@@ -1171,14 +1177,14 @@ class Character(object):
         自動手札選択。
         """
         self.clear_action()
-        if self.is_dead() or not cw.cwpy.status == "ScenarioBattle":
+        if not cw.cwpy.status == "ScenarioBattle":
             return
 
         # 召喚獣カード
         beasts = []
 
         for header in self.get_pocketcards(cw.POCKET_BEAST):
-            if header.is_autoselectable():
+            if header.is_autoselectable() and header.is_activewithstatus(self):
                 targets, effectivetargets = header.get_targets()
 
                 if effectivetargets:
@@ -2288,7 +2294,12 @@ class Character(object):
         self.set_enhance_res(0, 0)
         self.set_enhance_def(0, 0)
         if clearbeast:
-            self.set_beast(vanish=True)
+            self.adjust_beast()
+
+    def adjust_beast(self):
+        for header in self.get_pocketcards(cw.POCKET_BEAST)[::-1]:
+            if not header.attachment and header.is_removewithstatus(self):
+                self.throwaway_card(header, update_image=False)
 
     def set_fullrecovery(self, decideaction=False):
         """
@@ -2328,6 +2339,8 @@ class Character(object):
         self.adjust_action()
         if self.is_unconscious():
             self.set_unconsciousstatus()
+        else:
+            self.adjust_beast()
         return self.life - oldlife
 
     def set_paralyze(self, value):
@@ -2344,6 +2357,7 @@ class Character(object):
             self.set_mentality("Normal", 0)
         self.data.edit("Property/Status/Paralyze", str(self.paralyze))
         self.adjust_action()
+        self.adjust_beast()
         return self.paralyze - old
 
     def set_poison(self, value):
@@ -2357,6 +2371,7 @@ class Character(object):
         self.poison += value
         self.poison = cw.util.numwrap(self.poison, 0, 40)
         self.data.edit("Property/Status/Poison", str(self.poison))
+        self.adjust_beast()
         return self.poison - old
 
     def set_mentality(self, name, value, overwrite=True):
@@ -2386,6 +2401,7 @@ class Character(object):
         self.data.edit(path, self.mentality)
         self.data.edit(path, str(self.mentality_dur), "duration")
         self.adjust_action()
+        self.adjust_beast()
 
     def set_bind(self, value, overwrite=True):
         """
@@ -2403,6 +2419,7 @@ class Character(object):
         self.bind = cw.util.numwrap(self.bind, 0, 999)
         self.data.edit("Property/Status/Bind", str(self.bind), "duration")
         self.adjust_action()
+        self.adjust_beast()
 
     def set_silence(self, value, overwrite=True):
         """
@@ -2419,6 +2436,7 @@ class Character(object):
             self.silence = max(self.silence, value)
         self.silence = cw.util.numwrap(self.silence, 0, 999)
         self.data.edit("Property/Status/Silence", str(self.silence), "duration")
+        self.adjust_beast()
 
     def set_faceup(self, value, overwrite=True):
         """
@@ -2435,6 +2453,7 @@ class Character(object):
             self.faceup = max(self.faceup, value)
         self.faceup = cw.util.numwrap(self.faceup, 0, 999)
         self.data.edit("Property/Status/FaceUp", str(self.faceup), "duration")
+        self.adjust_beast()
 
     def set_antimagic(self, value, overwrite=True):
         """
@@ -2451,6 +2470,7 @@ class Character(object):
             self.antimagic = max(self.antimagic, value)
         self.antimagic = cw.util.numwrap(self.antimagic, 0, 999)
         self.data.edit("Property/Status/AntiMagic", str(self.antimagic), "duration")
+        self.adjust_beast()
 
     def set_vanish(self, battlespeed=False):
         """
@@ -2548,6 +2568,7 @@ class Character(object):
         path = "Property/Enhance/Action"
         self.data.edit(path, str(self.enhance_act))
         self.data.edit(path, str(self.enhance_act_dur), "duration")
+        self.adjust_beast()
 
     def set_enhance_avo(self, value, duration):
         """
@@ -2570,6 +2591,7 @@ class Character(object):
         path = "Property/Enhance/Avoid"
         self.data.edit(path, str(self.enhance_avo))
         self.data.edit(path, str(self.enhance_avo_dur), "duration")
+        self.adjust_beast()
 
     def set_enhance_res(self, value, duration):
         """
@@ -2592,6 +2614,7 @@ class Character(object):
         path = "Property/Enhance/Resist"
         self.data.edit(path, str(self.enhance_res))
         self.data.edit(path, str(self.enhance_res_dur), "duration")
+        self.adjust_beast()
 
     def set_enhance_def(self, value, duration):
         """
@@ -2614,6 +2637,7 @@ class Character(object):
         path = "Property/Enhance/Defense"
         self.data.edit(path, str(self.enhance_def))
         self.data.edit(path, str(self.enhance_def_dur), "duration")
+        self.adjust_beast()
 
     def set_skillpower(self, value=999):
         """
@@ -2646,19 +2670,17 @@ class Character(object):
                     self.throwaway_card(header, update_image=False)
                     eff = True
 
-        elif self.can_addbeast():
-            if self.is_unconscious():
-                return eff
+        elif self.can_addbeast(element):
             etree = cw.data.xml2etree(element=element, nocache=True)
             cw.content.get_card(etree, self, not is_scenariocard, update_image=False)
             eff = True
         return eff
 
-    def can_addbeast(self):
-        if self.is_unconscious():
-            return False
+    def can_addbeast(self, carddata):
         idx = cw.POCKET_BEAST
-        return len(self.get_pocketcards(idx)) < self.get_cardpocketspace()[idx]
+        if self.get_cardpocketspace()[idx] <= len(self.get_pocketcards(idx)):
+            return False
+        return not cw.header.is_removewithstatus(carddata, self)
 
     def decrease_physical(self, stype, time):
         """中毒麻痺の時間経過による軽減。"""
@@ -2678,6 +2700,7 @@ class Character(object):
                     self.set_poison(-1)
                 else:
                     self.set_paralyze(-1)
+        self.adjust_beast()
 
     def set_timeelapse(self, time=1, fromevent=False):
         """時間経過。"""
@@ -2837,6 +2860,8 @@ class Character(object):
         # 中毒効果で死亡していたら、ステータスを元に戻す
         if self.is_unconscious():
             self.set_unconsciousstatus()
+        else:
+            self.adjust_beast()
 
         # 画像更新
         if flag or updateimage:
@@ -2897,6 +2922,7 @@ class Character(object):
         else:
             assert False
         self.data.edit(type, str(value), "hold_all")
+
 
 class Player(Character):
     def lost(self):
