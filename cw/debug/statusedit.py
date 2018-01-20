@@ -26,18 +26,18 @@ class StatusEditDialog(wx.Dialog):
             self.statuses.append(Status(pcard))
             self.statuses_backup.append(Status(pcard))
 
-        self.life      = StatusButton(self, 0, self._is_dead, size=cw.ppis((45, 45)))
-        self.poison    = StatusButton(self, 1, self._is_dead, size=cw.ppis((45, 45)))
-        self.paralyze  = StatusButton(self, 2, self._is_dead, size=cw.ppis((45, 45)))
-        self.mentality = StatusButton(self, 3, self._is_dead, size=cw.ppis((45, 60)))
-        self.bind      = StatusButton(self, 4, self._is_dead, size=cw.ppis((45, 45)))
-        self.silence   = StatusButton(self, 5, self._is_dead, size=cw.ppis((45, 45)))
-        self.faceup    = StatusButton(self, 6, self._is_dead, size=cw.ppis((45, 45)))
-        self.antimagic = StatusButton(self, 7, self._is_dead, size=cw.ppis((45, 45)))
-        self.action    = StatusButton(self, 8, self._is_dead, size=cw.ppis((45, 60)))
-        self.avoid     = StatusButton(self, 9, self._is_dead, size=cw.ppis((45, 60)))
-        self.resist    = StatusButton(self, 10, self._is_dead, size=cw.ppis((45, 60)))
-        self.defense   = StatusButton(self, 11, self._is_dead, size=cw.ppis((45, 60)))
+        self.life      = StatusButton(self, 0, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.poison    = StatusButton(self, 1, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.paralyze  = StatusButton(self, 2, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.mentality = StatusButton(self, 3, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
+        self.bind      = StatusButton(self, 4, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.silence   = StatusButton(self, 5, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.faceup    = StatusButton(self, 6, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.antimagic = StatusButton(self, 7, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.action    = StatusButton(self, 8, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
+        self.avoid     = StatusButton(self, 9, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
+        self.resist    = StatusButton(self, 10, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
+        self.defense   = StatusButton(self, 11, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
         self.statusbtns = [self.life, self.poison, self.paralyze,
                            self.mentality, self.bind, self.silence,
                            self.faceup, self.antimagic, self.action,
@@ -422,6 +422,12 @@ class StatusEditDialog(wx.Dialog):
                 return False
         return True
 
+    def _is_unconscious(self):
+        for status in self._get_statuses():
+            if not status.is_unconscious():
+                return False
+        return True
+
     def _update_status(self):
         for i, status in enumerate(self._get_statuses()):
             force = (i == 0)
@@ -512,6 +518,9 @@ class Status(object):
     def is_dead(self):
         return self.life == 0 or 0 < self.paralyze
 
+    def is_unconscious(self):
+        return self.life == 0
+
     def put_status(self, pcard):
         update = False
         s = Status(pcard)
@@ -577,7 +586,7 @@ class Status(object):
 
 class StatusButton(wx.BitmapButton):
 
-    def __init__(self, parent, mode, is_dead, size):
+    def __init__(self, parent, mode, is_dead, is_unconscious, size):
         """
         mode: 0=ライフ, 1=中毒, 2=麻痺, 3=精神状態,
               4=呪縛, 5=沈黙, 6=暴露, 7=魔法無効,
@@ -588,6 +597,7 @@ class StatusButton(wx.BitmapButton):
 
         self.mode = mode
         self.is_dead = is_dead
+        self.is_unconscious = is_unconscious
 
         if self.mode == 3:
             self.value = "Normal"
@@ -706,7 +716,7 @@ class StatusButton(wx.BitmapButton):
             # 魔法効果
             if not self.duration is None and 0 < self.duration:
                 self.text1 = "%sr" % (self.duration)
-                if 0 < self.duration and not self.is_dead():
+                if 0 < self.duration and not self.is_unconscious():
                     enable = True
 
         elif self.mode == 8 or self.mode == 9 or self.mode == 10 or self.mode == 11:
@@ -721,7 +731,7 @@ class StatusButton(wx.BitmapButton):
                 self.text2 = "%sr" % (self.duration)
 
             if not self.value is None and not self.duration is None:
-                if 0 != self.value and 0 < self.duration and not self.is_dead():
+                if 0 != self.value and 0 < self.duration and not self.is_unconscious():
                     enable = True
 
             colour = wx.Colour(192, 192, 192)
