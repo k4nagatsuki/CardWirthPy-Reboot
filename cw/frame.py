@@ -214,16 +214,20 @@ class Frame(wx.Frame):
         def activate_app(event):
             if not cw.cwpy:
                 return
+            if not cw.cwpy.sdata:
+                return
             if not cw.cwpy.is_running():
                 return
 
             if event.GetActive():
                 def func():
-                    cw.cwpy.sdata.resume_timekeeper()
+                    if cw.cwpy.sdata:
+                        cw.cwpy.sdata.resume_timekeeper()
                 cw.cwpy.exec_func(func)
             else:
                 def func():
-                    cw.cwpy.sdata.sleep_timekeeper()
+                    if cw.cwpy.sdata:
+                        cw.cwpy.sdata.sleep_timekeeper()
                 cw.cwpy.exec_func(func)
 
         self.app.Bind(wx.EVT_ACTIVATE_APP, activate_app)
@@ -545,7 +549,10 @@ class Frame(wx.Frame):
         self.is_iconized = event.Iconized()
         if self.is_iconized:
             def func():
-                self.sdata.sleep_timekeeper()
+                if not cw.cwpy:
+                    return
+                if cw.cwpy.sdata:
+                    cw.cwpy.sdata.sleep_timekeeper()
                 for music in cw.cwpy.music:
                     music.set_mastervolume(0)
                 for sound in cw.cwpy.lastsound_scenario:
@@ -556,7 +563,10 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(func)
         else:
             def func():
-                self.sdata.resume_timekeeper()
+                if not cw.cwpy:
+                    return
+                if cw.cwpy.sdata:
+                    cw.cwpy.sdata.resume_timekeeper()
                 volume = int(cw.cwpy.setting.vol_master*100)
                 for music in cw.cwpy.music:
                     music.set_mastervolume(volume)
