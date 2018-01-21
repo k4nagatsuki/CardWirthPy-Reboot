@@ -244,7 +244,6 @@ class MessageWindow(base.CWPySprite):
         if chridx < len(self.charimgs):
             font = cw.cwpy.rsrc.fonts["message"]
             lineheight = font.get_height()
-            sbold = MessageWindow.is_sbold()
 
             pos, txtimg, txtimg2, txtimg3, linerect = self.charimgs[chridx]
             size = None
@@ -277,14 +276,9 @@ class MessageWindow(base.CWPySprite):
                 for x in xrange(pos[0]-1, pos[0]+2):
                     for y in xrange(pos[1]-1, pos[1]+2):
                         self._back.blit(txtimg3, (x, y-bt))
-                        if sbold:
-                            self._back.blit(txtimg3, (x+1, y-bt))
 
             if txtimg:
                 self._fore.blit(txtimg, (pos[0], pos[1]-bt))
-                if sbold:
-                    self._fore.blit(txtimg, (pos[0]+1, pos[1]-bt))
-
                 size = txtimg.get_size()
 
             if size:
@@ -488,9 +482,14 @@ class MessageWindow(base.CWPySprite):
                 put_topbottom(y_noscale-1, lineheight_noscale+2)
 
                 # 通常文字
-                image = font.render(char, cw.cwpy.setting.fontsmoothing_message, colour)
+                if MessageWindow.is_sbold():
+                    image = font.render_sbold(char, cw.cwpy.setting.fontsmoothing_message, colour)
+                    image3 = font.render_sbold(char, cw.cwpy.setting.fontsmoothing_message, (0, 0, 0))
+                else:
+                    image = font.render(char, cw.cwpy.setting.fontsmoothing_message, colour)
+                    image3 = font.render(char, cw.cwpy.setting.fontsmoothing_message, (0, 0, 0))
+
                 image = decorate(image, basecolour=colour)
-                image3 = font.render(char, cw.cwpy.setting.fontsmoothing_message, (0, 0, 0))
 
                 # u"―"の場合、左右の線が繋がるように補完する
                 if r_join.match(char):

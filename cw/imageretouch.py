@@ -1176,6 +1176,12 @@ class Font(object):
             return _imageretouch.font_size(self.fontinfo, text.encode("utf-8"))
 
     def render(self, text, antialias, colour):
+        return self._render_impl(text, antialias, colour, False)
+
+    def render_sbold(self, text, antialias, colour):
+        return self._render_impl(text, antialias, colour, True)
+
+    def _render_impl(self, text, antialias, colour, sbold):
         cachable = self._is_cachable(text)
         if cachable:
             key = (text, antialias, colour)
@@ -1186,9 +1192,26 @@ class Font(object):
             if antialias:
                 image = self.font2x.render(text, antialias, colour)
                 size = self.size(text)
+                if sbold:
+                    size2 = image.get_size()
+                    size2 = (size2[0]+4, size2[1])
+                    image2 = pygame.Surface(size2).convert_alpha()
+                    image2.fill((0, 0, 0, 0))
+                    for x in xrange(4):
+                        image2.blit(image, (x, 0))
+                    image = image2
+                    size = (size[0]+1, size[1])
                 bmp = pygame.transform.smoothscale(image, size)
             else:
                 bmp = self.font.render(text, antialias, colour)
+                if sbold:
+                    size = bmp.get_size()
+                    size = (size[0]+1, size[1])
+                    image2 = pygame.Surface(size).convert_alpha()
+                    image2.fill((0, 0, 0, 0))
+                    image2.blit(bmp, (0, 0))
+                    image2.blit(bmp, (1, 0))
+                    bmp = image2
         elif antialias:
             text = text.encode("utf-8")
             size = _imageretouch.font_imagesize(self.fontinfo2x, text, antialias)
@@ -1196,6 +1219,15 @@ class Font(object):
             assert len(buf) == size[0]*size[1]*4
             image = pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
             size2 = _imageretouch.font_imagesize(self.fontinfo, text, antialias)
+            if sbold:
+                size = (size[0]+4, size[1])
+                image2 = pygame.Surface(size).convert_alpha()
+                image2.fill((0, 0, 0, 0))
+                for x in xrange(4):
+                    image2.blit(image, (x, 0))
+                image = image2
+                size2 = (size2[0]+1, size2[1])
+
             bmp = pygame.transform.smoothscale(image, size2)
         else:
             text = text.encode("utf-8")
@@ -1207,6 +1239,14 @@ class Font(object):
             buf = _imageretouch.font_render(self.fontinfo, text, antialias, colour[:3])
             assert len(buf) == size[0]*size[1]*4
             bmp = pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
+            if sbold:
+                size = bmp.get_size()
+                size = (size[0]+1, size[1])
+                image2 = pygame.Surface(size).convert_alpha()
+                image2.fill((0, 0, 0, 0))
+                image2.blit(bmp, (0, 0))
+                image2.blit(bmp, (1, 0))
+                bmp = image2
 
         if cachable:
             self._cache[key] = bmp.copy()
