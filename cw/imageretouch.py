@@ -1216,6 +1216,9 @@ class Font(object):
             text = text.encode("utf-8")
             size = _imageretouch.font_imagesize(self.fontinfo2x, text, antialias)
             buf = _imageretouch.font_render(self.fontinfo2x, text, antialias, colour[:3])
+            # BUG: Windows 10 1709で、フォント「游明朝」で「ーム」を含む文字列のサイズが
+            #      ランダムに変動してしまう不具合を暫定的に回避する
+            size = (len(buf) // size[1] // 4, size[1])
             assert len(buf) == size[0]*size[1]*4
             image = pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
             size2 = _imageretouch.font_imagesize(self.fontinfo, text, antialias)
@@ -1234,9 +1237,12 @@ class Font(object):
             # BUG: font_render()からタプルを返そうとするとbufがGCで
             #      回収されなくなってしまうため、bufのみを返すようにし、
             #      (w, h)取得用にfont_imagesize()を用意してある
-#            buf, size = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
+            #buf, size = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
             size = _imageretouch.font_imagesize(self.fontinfo, text, antialias)
             buf = _imageretouch.font_render(self.fontinfo, text, antialias, colour[:3])
+            # BUG: Windows 10 1709で、フォント「游明朝」で「ーム」を含む文字列のサイズが
+            #      ランダムに変動してしまう不具合を暫定的に回避する
+            size = (len(buf) // size[1] // 4, size[1])
             assert len(buf) == size[0]*size[1]*4
             bmp = pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
             if sbold:
