@@ -1279,24 +1279,32 @@ class ScenarioHeader(object):
             self.images[1] = [image]
             self.imgpaths.append(cw.image.ImageInfo(path=imgpath if imgpath else ""))
         if imgdbrec:
+            # 最大のindex
+            maxorder = 0
+            recs = []
             for imgrec in imgdbrec:
-                scale = imgrec["scale"]
+                order = imgrec["numorder"]
+                maxorder = max(maxorder, order)
+                recs.append((imgrec["scale"], imgrec["imgpath"], imgrec["image"], imgrec["postype"], order))
+
+            for scale, imgpath, image, postype, order in recs:
                 if scale in self.images:
                     seq = self.images[scale]
+                    if not seq:
+                        seq.extend([None] * (maxorder+1))
                 else:
-                    seq = []
+                    seq = [None] * (maxorder+1)
                     self.images[scale] = seq
-                seq.append(imgrec["image"])
-                postype = imgrec["postype"]
+                seq[order] = image
                 if not postype:
                     postype = "Default"
-                imgpath = imgrec["imgpath"]
                 if not imgpath:
                     imgpath = ""
                 self.imgpaths.append(cw.image.ImageInfo(path=imgpath, postype=postype))
 
         self._wxbmps = None
         self._wxbmps_noscale = None
+        self._imginfos = None
         self.skindir = None
         self._up_win = None
         self._up_scr = None
@@ -1316,17 +1324,18 @@ class ScenarioHeader(object):
             self._up_scr = cw.UP_SCR
             self._wxbmps = []
             self._wxbmps_noscale = []
+            self._imginfos = []
 
-            images = self.images[1]
-            imagesx1 = images
-            scale = int(math.pow(2, int(math.log(cw.UP_SCR, 2))))
-            while 2 <= scale:
-                if scale in self.images:
-                    images = self.images[scale]
-                    break
-                scale /= 2
+            imagesx1 = self.images[1]
+            scale_s = int(math.pow(2, int(math.log(cw.UP_SCR, 2))))
 
-            for image, imagex1, info in zip(images, imagesx1, self.imgpaths):
+            for i, (imagex1, info) in enumerate(zip(imagesx1, self.imgpaths)):
+                scale = scale_s
+                while 1 <= scale:
+                    if scale in self.images:
+                        image = self.images[scale][i]
+                        break
+                    scale //= 2
                 if image:
                     with io.BytesIO(str(imagex1)) as f:
                         bmp_noscale = cw.util.load_wxbmp(f=f, mask=mask)
@@ -1342,6 +1351,7 @@ class ScenarioHeader(object):
                         bmp = cw.wins(bmp)
                     self._wxbmps_noscale.append(bmp_noscale)
                     self._wxbmps.append(bmp)
+                    self._imginfos.append(info)
                 elif info.path:
                     # スキンのTableフォルダを指定している場合はDBにバイナリが無い
                     path = cw.util.get_materialpathfromskin(info.path, cw.M_IMG)
@@ -1351,8 +1361,9 @@ class ScenarioHeader(object):
                         if not cw.UP_SCR == 1:
                             bmp = cw.util.load_wxbmp(path, mask=mask, can_loaded_scaledimage=True)
                         self._wxbmps.append(cw.wins(bmp))
+                        self._imginfos.append(info)
 
-        return self._wxbmps, self._wxbmps_noscale
+        return self._wxbmps, self._wxbmps_noscale, self._imginfos
 
 class PartyHeader(object):
     def __init__(self, data=None, dbrec=None):

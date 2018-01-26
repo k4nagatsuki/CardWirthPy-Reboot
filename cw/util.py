@@ -3123,6 +3123,9 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             image.SetMaskColour(r, g, b)
             return (r, g, b)
 
+        if not image.IsOk():
+            return wx.EmptyBitmap(0, 0)
+
         if not haspngalpha and not image.HasAlpha() and not image.HasMask():
             maskcolour = set_mask(image, maskpos)
 

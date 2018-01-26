@@ -473,7 +473,8 @@ class Scenariodb(object):
                     scale,
                     image,
                     imgpath,
-                    postype
+                    postype,
+                    numorder
                 FROM
                     scenarioimage
                 WHERE

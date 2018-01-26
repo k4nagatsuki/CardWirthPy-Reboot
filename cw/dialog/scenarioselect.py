@@ -2195,7 +2195,7 @@ class ScenarioSelect(select.Select):
 
             # 見出し画像
             wxbmps = header.get_wxbmps()
-            for bmp, bmp_noscale, info in zip(wxbmps[0], wxbmps[1], header.imgpaths):
+            for bmp, bmp_noscale, info in zip(wxbmps[0], wxbmps[1], wxbmps[2]):
                 # デフォルトは左上位置固定(CardWirthとの互換性維持)
                 if info.postype == "Center":
                     bx = (bmpw-bmp.GetWidth()) // 2

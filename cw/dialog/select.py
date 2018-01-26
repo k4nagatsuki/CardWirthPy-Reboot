@@ -2096,8 +2096,7 @@ class PartySelect(MultiViewSelect):
             sceheader = header.get_sceheader()
 
             if sceheader:
-                bmp, bmp_noscale = sceheader.get_wxbmps()
-                imgpaths = sceheader.imgpaths
+                bmp, bmp_noscale, imgpaths = sceheader.get_wxbmps()
             else:
                 path = "Resource/Image/Card/COMMAND0"
                 path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
