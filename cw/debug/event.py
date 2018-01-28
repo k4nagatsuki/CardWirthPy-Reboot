@@ -14,7 +14,7 @@ import cw
 class EventListDialog(wx.Dialog):
     def __init__(self, parent, currentfpath, showhiddencards):
         wx.Dialog.__init__(self, parent, -1, u"実行するイベントの選択",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.events = EventList(self, cw.ppis((250, 300)), currentfpath, showhiddencards)
         self.showhiddencards = showhiddencards

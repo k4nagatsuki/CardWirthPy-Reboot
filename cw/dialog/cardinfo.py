@@ -19,7 +19,7 @@ class CardInfo(wx.Dialog):
     def __init__(self, parent, scedir=""):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=cw.wins((380, 200)),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.csize = self.GetClientSize()
         self.scedir = scedir

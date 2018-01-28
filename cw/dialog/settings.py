@@ -62,10 +62,12 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.frame.filter_event = self.OnFilterEvent
         self.panel = None
         if cw.cwpy.setting.show_advancedsettings:
-            wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + u"の設定(詳細モード)")
+            wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + u"の設定(詳細モード)",
+                               style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
             self.panel = SettingsPanel(self)
         else:
-            wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + u"の設定")
+            wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + u"の設定",
+                               style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
             self.panel = SimpleSettingsPanel(self)
         self.cwpy_debug = True # このダイアログではスクリーンショットの撮影を行わない
 

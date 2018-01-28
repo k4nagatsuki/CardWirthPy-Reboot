@@ -14,7 +14,8 @@ import cw
 
 class BattleCommand(wx.Dialog):
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["select_battle_action"])
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["select_battle_action"],
+                           style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.list = []
 
@@ -301,7 +302,8 @@ class BattleCommand(wx.Dialog):
 
 class ErrorLogDialog(wx.Dialog):
     def __init__(self, parent, log):
-        wx.Dialog.__init__(self, parent, -1, u"エラーログ")
+        wx.Dialog.__init__(self, parent, -1, u"エラーログ",
+                           style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.tc = wx.TextCtrl(
             self, -1, log, size=cw.ppis((250, 200)),
@@ -324,7 +326,8 @@ class ExtensionDialog(wx.Dialog):
     items: (name, description, func)のlist。
     """
     def __init__(self, parent, title, items):
-        wx.Dialog.__init__(self, parent, -1, title)
+        wx.Dialog.__init__(self, parent, -1, title,
+                           style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.items = items
 
@@ -411,7 +414,7 @@ class BookmarkDialog(wx.Dialog):
     """
     def __init__(self, parent, scedir, db):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["arrange_bookmark"],
-                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
 
         # リスト
@@ -677,7 +680,7 @@ class ConvertYadoDialog(wx.Dialog):
     """
     def __init__(self, parent, yadoname):
         wx.Dialog.__init__(self, parent, -1, u"拠点の逆変換",
-                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.message = u"%s を逆変換し、\n新規作成したフォルダへ格納します。" % (yadoname)
         dc = wx.ClientDC(self)

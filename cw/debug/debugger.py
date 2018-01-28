@@ -1006,8 +1006,9 @@ class Debugger(wx.Frame):
             dlg = wx.MultiChoiceDialog(
                 self, u"チェックマークの付け外しで情報カードの" +
                 u"取得・破棄ができます",
-                u"情報カードの選択", choices)
+                u"情報カードの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
             dlg.SetSelections(selections)
+            self._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
                 hasids = set()
@@ -1058,8 +1059,9 @@ class Debugger(wx.Frame):
             dlg = wx.MultiChoiceDialog(
                 self, u"チェックマークの付け外しでキャストの" +
                 u"加入・離脱ができます",
-                u"キャストの選択", choices)
+                u"キャストの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
             dlg.SetSelections(selections)
+            self._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
                 if len(dlg.GetSelections()) > 6:
@@ -1117,7 +1119,8 @@ class Debugger(wx.Frame):
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
                 self, u"開始するバトルを選択してください。",
-                u"バトルの選択", choices)
+                u"バトルの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+            self._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.exec_func(cw.cwpy.clean_specials)
@@ -1143,7 +1146,8 @@ class Debugger(wx.Frame):
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
                 self, u"実行するパッケージを選択してください。",
-                u"パッケージの選択", choices)
+                u"パッケージの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+            self._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.exec_func(cw.cwpy.clean_specials)
@@ -1194,8 +1198,9 @@ class Debugger(wx.Frame):
                     choices.append(s)
                 dlg = wx.SingleChoiceDialog(
                     self, u"移動するエリアを選択してください。",
-                    u"エリアの選択", choices)
+                    u"エリアの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
                 dlg.SetSelection(selected)
+                self._iconize_event(dlg)
 
                 if dlg.ShowModal() == wx.ID_OK:
                     cw.cwpy.exec_func(cw.cwpy.clean_specials)
@@ -1225,7 +1230,8 @@ class Debugger(wx.Frame):
 
             dlg = wx.SingleChoiceDialog(
                 self, u"キャラクターを選択してください。",
-                u"メンバの選択", choices)
+                u"メンバの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+            self._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.event.set_selectedmember(ccards[dlg.GetSelection()])
@@ -1275,12 +1281,19 @@ class Debugger(wx.Frame):
     def OnHidePartyTool(self, event):
         cw.cwpy.exec_func(cw.cwpy.hide_party)
 
+    def _iconize_event(self, dlg):
+        def OnIconize(event):
+            cw.cwpy.frame.Iconize(event.IsIconized())
+            event.Skip(False)
+        dlg.Bind(wx.EVT_ICONIZE, OnIconize)
+
     def OnBgmTool(self, event):
         choices = [u"[BGM停止]"]
         choices.extend(cw.cwpy.sdata.get_bgmpaths())
         dlg = wx.SingleChoiceDialog(
             self, u"再生するBGMを選択してください。",
-            u"BGMの選択", choices)
+            u"BGMの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+        self._iconize_event(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
             index = dlg.GetSelection()
@@ -1840,7 +1853,8 @@ class VariableListCtrl(wx.ListCtrl):
                 choices = item.valuenames
 
             s = u"変更したい値を選択してください。"
-            dlg = wx.SingleChoiceDialog(self.Parent, s, item.name, choices)
+            dlg = wx.SingleChoiceDialog(self.Parent, s, item.name, choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+            self._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
                 if isinstance(item, cw.data.Flag):

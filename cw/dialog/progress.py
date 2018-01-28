@@ -13,7 +13,7 @@ import cw
 class ProgressDialog(wx.Dialog):
     def __init__(self, parent, title, message, maximum=100, minimum=0, cancelable=False, width_noscale=300):
         wx.Dialog.__init__(self, parent, -1, title,
-                           style=wx.DEFAULT_DIALOG_STYLE)
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.SetClientSize(cw.wins((width_noscale, 60)))
         self.EnableCloseButton(cancelable)
@@ -87,7 +87,7 @@ class ProgressDialog(wx.Dialog):
 class SysProgressDialog(wx.Dialog):
     def __init__(self, parent, title, message, maximum=100, minimum=0, cancelable=False, width=380):
         wx.Dialog.__init__(self, parent, -1, title,
-                           style=wx.DEFAULT_DIALOG_STYLE)
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.SetClientSize(cw.ppis((width+20, 80)))
         self.EnableCloseButton(cancelable)

@@ -23,7 +23,7 @@ import charainfo
 class Select(wx.Dialog):
     def __init__(self, parent, name):
         wx.Dialog.__init__(self, parent, -1, name,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self._processing = False
         self.list = []

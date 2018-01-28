@@ -576,6 +576,8 @@ class Frame(wx.Frame):
                 if cw.cwpy.lastsound_system:
                     cw.cwpy.lastsound_system.set_mastervolume(False, volume)
             cw.cwpy.exec_func(func)
+            if self.debugger:
+                self.debugger.Iconize(False)
 
     def OnCloseFromFrame(self, event):
         # Escapeキー以外で閉じようとした
@@ -1101,6 +1103,11 @@ class Frame(wx.Frame):
         # モニタ内に収める
         cw.util.adjust_position(dlg)
         cw.dialog.etc.show_touchtools(dlg)
+
+        def OnIconize(event):
+            self.Iconize(event.IsIconized())
+            event.Skip(False)
+        dlg.Bind(wx.EVT_ICONIZE, OnIconize)
 
     def kill_dlg(self, dlg=None, lockmenucard=False, redraw=True):
         if dlg:

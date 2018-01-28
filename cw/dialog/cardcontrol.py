@@ -29,7 +29,7 @@ class CardControl(wx.Dialog):
     def __init__(self, parent, name, sendto, sort, areaid=None, drawcards=True):
         # ダイアログ作成
         wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.SetDoubleBuffered(True)
         self.additionals = []

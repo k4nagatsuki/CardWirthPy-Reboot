@@ -17,7 +17,7 @@ class CouponEditDialog(wx.Dialog):
 
     def __init__(self, parent, selected=-1):
         wx.Dialog.__init__(self, parent, -1, u"キャラクターの経歴の編集",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
         self._processing = False
@@ -533,7 +533,7 @@ class ListEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, mlist, image):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.list = mlist
 
@@ -798,7 +798,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 
     def __init__(self, parent, savedjpdcimage):
         wx.Dialog.__init__(self, parent, -1, u"JPDCイメージを保存したシナリオ",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         keys = savedjpdcimage.iterkeys()
         self.list = list(cw.util.sorted_by_attr(keys))
@@ -911,7 +911,7 @@ class BreakpointEditDialog(wx.Dialog):
 
     def __init__(self, parent, breakpoint_table):
         wx.Dialog.__init__(self, parent, -1, u"ブレークポイントを設定したシナリオ",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         keys = breakpoint_table.iterkeys()
         self.list = list(cw.util.sorted_by_attr(keys))
@@ -1172,7 +1172,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
 
     def __init__(self, parent, bookmarks):
         wx.Dialog.__init__(self, parent, -1, u"ブックマーク",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.list = bookmarks[:]
         self._removed = []

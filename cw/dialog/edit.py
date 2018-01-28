@@ -17,7 +17,7 @@ import cw
 class PartyEditor(wx.Dialog):
     def __init__(self, parent, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["party_information"],
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         if party:
             self.party = party
@@ -281,7 +281,7 @@ class NumberEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, value, minvalue, maxvalue, page):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.value = value
 
@@ -344,7 +344,7 @@ class Number2EditDialog(wx.Dialog):
                  label1, value1, minvalue1, maxvalue1, page1,
                  label2, value2, minvalue2, maxvalue2, page2):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.value1 = value1
         self.value2 = value2
@@ -423,7 +423,7 @@ class NumberComboEditDialog(wx.Dialog):
                  label1, mlist, selected,
                  label2, value, minvalue, maxvalue, page):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.selected = value
         self.value = value
@@ -786,7 +786,7 @@ class ComboEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, label, mlist, selected):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.selected = selected
 
@@ -880,7 +880,7 @@ class ComboEditDialog(wx.Dialog):
 class ComboEditDialog2(wx.Dialog):
     def __init__(self, parent, title, message, choices):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((-1, -1)),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.message = cw.util.txtwrap(message, 0, width=40, wrapschars=cw.util.WRAPS_CHARS)
         self.cwpy_debug = False
 
@@ -960,7 +960,7 @@ class ComboEditDialog2(wx.Dialog):
 class LevelEditDialog(wx.Dialog):
     def __init__(self, parent, mlist, selected, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
@@ -1131,7 +1131,7 @@ class LevelEditDialog(wx.Dialog):
 class InputTextDialog(wx.Dialog):
     def __init__(self, parent, title, msg, text="", maxlength=0, addition="", addition_func=None):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         msg = cw.util.txtwrap(msg, mode=6)
         self.msg = msg

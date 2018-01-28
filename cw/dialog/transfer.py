@@ -18,7 +18,7 @@ class TransferYadoDataDialog(wx.Dialog):
     """
     def __init__(self, parent, yadodirs, yadonames, selected):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["transfer_title"],
-                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
 
         self.yadodirs = yadodirs

@@ -19,7 +19,7 @@ class ConstructScenarioDB(wx.Dialog):
         シナリオDBに登録する。
         """
         wx.Dialog.__init__(self, parent, -1, u"シナリオデータベースの構築",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.dpaths = dpaths
         self._message = u"フォルダの一覧を作成しています..."

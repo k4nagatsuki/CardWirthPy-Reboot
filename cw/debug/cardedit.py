@@ -19,7 +19,7 @@ class CardEditDialog(wx.Dialog):
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, u"手札カードの編集",
-                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
         self.party = cw.cwpy.ydata.party

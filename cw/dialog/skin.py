@@ -17,7 +17,7 @@ import cw
 class SkinConversionDialog(wx.Dialog):
     def __init__(self, parent, exe, from_settings=False, get_localsettings=None):
         wx.Dialog.__init__(self, parent, -1, u"スキンの自動生成",
-                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
         if get_localsettings:
@@ -281,7 +281,7 @@ class SkinConversionDialog(wx.Dialog):
 class SkinEditDialog(wx.Dialog):
     def __init__(self, parent, skindirname, skinsummary, get_localsettings):
         wx.Dialog.__init__(self, parent, -1, u"スキンの編集",
-                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
         self.skindirname = skindirname

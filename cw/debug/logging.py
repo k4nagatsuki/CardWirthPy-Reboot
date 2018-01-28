@@ -15,7 +15,7 @@ class DebugLogDialog(wx.Dialog):
     def __init__(self, parent, sname, debuglog, startdatetime, pausedtime):
         """集計したデバッグ情報をリッチテキストで表示する。"""
         wx.Dialog.__init__(self, parent, -1, u"「%s」のプレイ結果" % (sname),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.plain_text = [u"「%s」のプレイ結果" % (sname), u"========================================", ""]
 
