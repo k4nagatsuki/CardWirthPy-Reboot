@@ -322,8 +322,9 @@ class Setting(object):
         self.play_sound = True
         self.vol_master = 0.75
         self.vol_bgm = 0.4
-        self.vol_midi = 1.0
+        self.vol_bgm_midi = 0.4
         self.vol_sound = 0.4
+        self.vol_sound_midi = 0.4
         self.soundfonts = [(cw.DEFAULT_SOUNDFONT, True, 100)]
         self.bassmidi_sample32bit = True
         self.sdlmixer_enabled = False
@@ -570,11 +571,14 @@ class Setting(object):
         self.vol_bgm = data.getint("BgmVolume", int(self.vol_bgm*100))
         self.vol_bgm = Setting.wrap_volumevalue(self.vol_bgm)
         # midi音楽のボリューム(0～1.0)
-        self.vol_midi = data.getint("BgmVolume", "midi", int(self.vol_midi*100))
-        self.vol_midi = Setting.wrap_volumevalue(self.vol_midi)
+        self.vol_bgm_midi = data.getint("BgmVolume", "midi", self.vol_bgm)
+        self.vol_bgm_midi = Setting.wrap_volumevalue(self.vol_bgm_midi)
         # 効果音ボリューム
         self.vol_sound = data.getint("SoundVolume", int(self.vol_sound*100))
         self.vol_sound = Setting.wrap_volumevalue(self.vol_sound)
+        # midi効果音のボリューム(0～1.0)
+        self.vol_sound_midi = data.getint("SoundVolume", "midi", self.vol_sound)
+        self.vol_sound_midi = Setting.wrap_volumevalue(self.vol_sound_midi)
         # MIDIサウンドフォント
         elements = data.find("SoundFonts", False)
         if not elements is None:
@@ -871,6 +875,11 @@ class Setting(object):
                     self.dealspeed_battle += 1
                     self.dealspeed_battle = cw.util.numwrap(self.dealspeed, 0, 10)
                 self.set_dealspeed(self.dealspeed, self.dealspeed_battle, self.use_battlespeed)
+
+            if int(settings_version) < 4:
+                # バージョン3→4でMIDI音量をその他の音量と独立した設定に変更
+                # 以前の設定に合わせた音量に変更していおく
+                self.vol_bgm_midi = self.vol_bgm * self.vol_bgm_midi
 
     def init_skin(self, basedata=None):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)

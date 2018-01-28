@@ -173,7 +173,7 @@ def is_alivablemidi():
 
 def is_alivablewithpath(path):
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
-    if os.path.splitext(path)[1].lower() in (".mid", ".midi"):
+    if cw.util.is_midi(path):
         return is_alivablemidi()
     else:
         return is_alivable()

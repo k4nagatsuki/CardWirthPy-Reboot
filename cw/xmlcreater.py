@@ -122,7 +122,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     writeplayingdata: デバッグ状態やスキンの選択状態などを保存するか。
     fpath: 保存先のファイルパス。
     """
-    element = cw.data.make_element("Settings", attrs={"dataVersion": "3"})
+    element = cw.data.make_element("Settings", attrs={"dataVersion": "4"})
 
     create_localsettings(element, setting.local)
 
@@ -210,15 +210,22 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         element.append(e)
     # 音楽のボリューム(0～1.0)
     if setting.vol_bgm <> setting.vol_bgm_init or\
-            setting.vol_midi <> setting.vol_midi_init:
+            setting.vol_bgm_midi <> setting.vol_bgm_midi_init:
         n = int(setting.vol_bgm * 100)
-        n2 = int(setting.vol_midi * 100)
-        e = cw.data.make_element("BgmVolume", str(n), {"midi": str(n2)})
+        n2 = int(setting.vol_bgm_midi * 100)
+        if n <> n2:
+            e = cw.data.make_element("BgmVolume", str(n), {"midi": str(n2)})
+        else:
+            e = cw.data.make_element("BgmVolume", str(n))
         element.append(e)
     # 効果音のボリューム(0～1.0)
     if setting.vol_sound <> setting.vol_sound_init:
         n = int(setting.vol_sound * 100)
-        e = cw.data.make_element("SoundVolume", str(n))
+        n2 = int(setting.vol_sound_midi * 100)
+        if n <> n2:
+            e = cw.data.make_element("SoundVolume", str(n), {"midi": str(n2)})
+        else:
+            e = cw.data.make_element("SoundVolume", str(n))
         element.append(e)
     # MIDIサウンドフォント
     if setting.soundfonts <> setting.soundfonts_init:
