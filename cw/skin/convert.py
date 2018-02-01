@@ -44,6 +44,8 @@ class Converter(threading.Thread):
 
             self.res = cw.skin.win32res.Win32Res(self.exe)
             self.version = self.res.get_rcdata(cw.skin.win32res.RT_VERSION, 1)
+            if not self.version:
+                raise Exception()
             self.version = struct.Struct("<HHHH").unpack(self.version[48:56])
             self.version = (self.version[1], self.version[0], self.version[3], self.version[2])
 

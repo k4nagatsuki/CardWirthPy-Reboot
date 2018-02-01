@@ -16,6 +16,7 @@ import cw
 
 class SkinConversionDialog(wx.Dialog):
     def __init__(self, parent, exe, from_settings=False, get_localsettings=None):
+        self.conv = cw.skin.convert.Converter(exe)
         wx.Dialog.__init__(self, parent, -1, u"スキンの自動生成",
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -37,7 +38,6 @@ class SkinConversionDialog(wx.Dialog):
         self.skindirname = ""
         self.from_settings = from_settings
 
-        self.conv = cw.skin.convert.Converter(exe)
 
         skincount, unknown_ver = cw.frame.get_skincount()
         if skincount == 0:

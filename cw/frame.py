@@ -504,13 +504,16 @@ class Frame(wx.Frame):
         for path in paths:
             # スキンの自動生成
             if path.lower().endswith(".exe"):
-                dlg = cw.dialog.skin.SkinConversionDialog(self, path)
-                self.move_dlg(dlg)
-                dlg.ShowModal()
-                if dlg.select_skin:
-                    cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname)
-                dlg.Destroy()
-                break
+                try:
+                    dlg = cw.dialog.skin.SkinConversionDialog(self, path)
+                    self.move_dlg(dlg)
+                    dlg.ShowModal()
+                    if dlg.select_skin:
+                        cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname)
+                    dlg.Destroy()
+                    break
+                except:
+                    cw.util.print_ex()
         else:
             # シナリオのインストール
             if cw.cwpy.is_decompressing:
@@ -1357,10 +1360,13 @@ class MyApp(wx.App):
             exe = cw.SKIN_CONV_ARGS[0]
         if skincount == 0 or exe:
             # スキンの自動生成
-            self.skindlg = cw.dialog.skin.SkinConversionDialog(None, exe)
-            self.SetTopWindow(self.skindlg)
-            self.skindlg.Bind(wx.EVT_CLOSE, self.OnCloseSkinDialog, self.skindlg)
-            self.skindlg.Show()
+            try:
+                self.skindlg = cw.dialog.skin.SkinConversionDialog(None, exe)
+                self.SetTopWindow(self.skindlg)
+                self.skindlg.Bind(wx.EVT_CLOSE, self.OnCloseSkinDialog, self.skindlg)
+                self.skindlg.Show()
+            except:
+                cw.util.print_ex()
         else:
             # 通常起動
             frame = Frame(self)
