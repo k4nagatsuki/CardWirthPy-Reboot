@@ -24,7 +24,8 @@ class SelectScenarioDirectory(wx.Dialog):
     def __init__(self, parent, title, text, db, skintype, scedir):
         # ダイアログボックス作成
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((420, 400)),
-                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+        self.cwpy_debug = False
         self.SetDoubleBuffered(True)
         self.db = db
         self.skintype = skintype
@@ -833,8 +834,9 @@ class OverwriteScenarioDialog(wx.Dialog):
     """
     def __init__(self, parent, scedir, db_exists):
         wx.Dialog.__init__(self, parent, -1, u"シナリオ置換対象の選択",
-                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER,
+                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX,
                            size=cw.wins((500, 400)))
+        self.cwpy_debug = False
         self.db_exists = db_exists
         self.scedir = scedir
         self.keys = []
