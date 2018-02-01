@@ -370,7 +370,8 @@ def to_scenarioheaders(paths, db, skintype):
     allparent = os.path.dirname(paths[0])
 
     for path in paths:
-        def recurse(parent, path, depth):
+        def recurse(parent, path, notscenariofiles2):
+            # pathまたはサブディレクトリにシナリオを持つ場合はTrueを返す
             hparent = cw.util.relpath(parent, allparent)
             if hparent.startswith(u".." + os.path.sep):
                 hparent = u""
@@ -386,26 +387,35 @@ def to_scenarioheaders(paths, db, skintype):
                     exists.add((header.name, header.author))
                     return True
             elif os.path.exists(path):
+                copyfile = False
                 if os.path.isdir(path):
-                    copyfile = False
+                    haschildren = False
                     for fname in os.listdir(path):
-                        copyfile |= recurse(path, cw.util.join_paths(path, fname), depth + 1)
-                    if copyfile:
-                        return True
-                elif depth == 0:
-                    # トップレベルのファイルは無視する
-                    return False
+                        copyfile |= recurse(path, cw.util.join_paths(path, fname), notscenariofiles2)
+                        haschildren = True
+                    if haschildren:
+                        # 空ディレクトリ以外は下の階層のファイル・ディレクトリの
+                        # コピー時に親ディレクトリが生成される処理に任せる
+                        return copyfile
 
-                # ファイルまたは空ディレクトリ
-                seq = notscenariofiles.get(parentinfo, [])
-                if not seq:
-                    notscenariofiles[parentinfo] = seq
-                seq.append(path)
-                return True
+                # ファイルまたはディレクトリをインストール対象として記憶する
+                s = notscenariofiles2.get(parentinfo, None)
+                if s is None:
+                    s = []
+                    notscenariofiles2[parentinfo] = s
+                s.append(path)
+                return copyfile
 
             return False
 
-        recurse(allparent, path, 0)
+        notscenariofiles2 = {}
+        if recurse(allparent, path, notscenariofiles2):
+            for key, value in notscenariofiles2.iteritems():
+                s = notscenariofiles.get(key, None)
+                if s is None:
+                    notscenariofiles[key] = value
+                else:
+                    s.extend(value)
 
     return headers, notscenariofiles
 
@@ -505,8 +515,8 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
             allret = [None]
             for (_parent, relparent), headers_seq in self.headers.iteritems():
                 self._install(relparent, headers_seq, dstpath, allret)
-            for (_parent, relparent), file_seq in self.notscenariofiles.iteritems():
-                self._install_files(relparent, file_seq, dstpath, allret)
+            for (_parent, relparent), files_seq in self.notscenariofiles.iteritems():
+                self._install_files(relparent, files_seq, dstpath, allret)
 
             if cw.cwpy.setting.delete_sourceafterinstalled:
                 # 不要になったインストール元のディレクトリを削除
