@@ -721,6 +721,8 @@ class Event(object):
         # 実行後に互換性情報を書き戻す必要があれば設定
         self._versionhint_base = None
 
+        self._reset_changestate = True
+
         if event is not None:
             if event.hasfind("Ignitions//Number"):
                 s = event.gettext("Ignitions//Number", "")
@@ -799,7 +801,8 @@ class Event(object):
             if cw.cwpy.sdata.infocards_beforeevent is None:
                 cw.cwpy.sdata.infocards_beforeevent = set(cw.cwpy.sdata.get_infocards(False))
 
-            cw.cwpy.event.is_changestate = False
+            if self._reset_changestate:
+                cw.cwpy.event.is_changestate = False
             self.run()
 
         except EventError, err:
@@ -1313,6 +1316,7 @@ class CardEvent(Event, Targeting):
         Event.__init__(self, event)
         Targeting.__init__(self, user, targets, True)
         self.inusecard = inusecard
+        self._reset_changestate = False
 
     def start(self):
         if cw.cwpy.is_playingscenario():
