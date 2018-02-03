@@ -41,7 +41,6 @@ ID_INFO = wx.NewId()
 ID_SAVE = wx.NewId()
 ID_LOAD = wx.NewId()
 ID_LOAD_YADO = wx.NewId()
-ID_RESET = wx.NewId()
 ID_STEPRETURN = wx.NewId()
 ID_STEPOVER = wx.NewId()
 ID_STEPIN = wx.NewId()
@@ -108,11 +107,6 @@ class Debugger(wx.Frame):
                          u"状況を再現します。")
         self.mi_load.SetBitmap(rsrc["LOAD"])
         file_menu.AppendItem(self.mi_load)
-        file_menu.AppendSeparator()
-        self.mi_reset = wx.MenuItem(file_menu, ID_RESET, u"リセット(&R)",
-                         u"初期状態に戻します。")
-        self.mi_reset.SetBitmap(rsrc["RESET"])
-        file_menu.AppendItem(self.mi_reset)
         file_menu.AppendSeparator()
         self.mi_loadyado = wx.MenuItem(file_menu, ID_LOAD_YADO, u"最終セーブに戻す(&R)\tCtrl+L",
                          u"最後にセーブした状態に戻します。")
@@ -345,9 +339,9 @@ class Debugger(wx.Frame):
             ID_LOAD, u"ロード", rsrc["LOAD"],
             shortHelp=u"状況を再現します。")
         self.tb2.AddSeparator()
-        self.tl_reset = self.tb2.AddLabelTool(
-            ID_RESET, u"リセット", rsrc["RESET"],
-            shortHelp=u"初期状態に戻します。")
+        self.tl_initvars = self.tb2.AddLabelTool(
+            ID_INIT_VARIABLES, u"状態変数の初期化", rsrc["INIT_VARIABLES"],
+            shortHelp=u"全ての状態変数を初期値に戻します。")
         self.tb2.AddSeparator()
         self.tl_loadyado = self.tb2.AddLabelTool(
             ID_LOAD_YADO, u"最終セーブに戻す", rsrc["LOAD_YADO"],
@@ -551,7 +545,6 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnUpdateTool, id=ID_UPDATE)
         self.Bind(wx.EVT_MENU, self.OnRedisplayTool, id=ID_REDISPLAY)
         self.Bind(wx.EVT_MENU, self.OnBreakTool, id=ID_BREAK)
-        self.Bind(wx.EVT_MENU, self.OnResetTool, id=ID_RESET)
         self.Bind(wx.EVT_MENU, self.OnSaveTool, id=ID_SAVE)
         self.Bind(wx.EVT_MENU, self.OnLoadTool, id=ID_LOAD)
         self.Bind(wx.EVT_MENU, self.OnLoadYadoTool, id=ID_LOAD_YADO)
@@ -644,11 +637,6 @@ class Debugger(wx.Frame):
         # Destroyイベントが呼ばれるようなので、それと区別
         if self.IsBeingDeleted():
             cw.cwpy.frame.debugger = None
-
-    def OnResetTool(self, event):
-        if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
-            func = cw.cwpy.sdata.reset_variables
-            cw.cwpy.exec_func(func)
 
     def OnBreakTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent()\
@@ -1659,7 +1647,6 @@ class Debugger(wx.Frame):
                 enabled[self.mi_save.GetId()] = (self.mi_save, self.tl_save, False)
                 enabled[self.mi_load.GetId()] = (self.mi_load, self.tl_load, False)
                 enabled[self.mi_loadyado.GetId()] = (self.mi_loadyado, self.tl_loadyado, False)
-                enabled[self.mi_reset.GetId()] = (self.mi_reset, self.tl_reset, False)
                 enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, False)
                 enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, False)
                 enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, False)
@@ -1673,7 +1660,7 @@ class Debugger(wx.Frame):
                 enabled[self.mi_breakpoint.GetId()] = (self.mi_breakpoint, self.tl_breakpoint, False)
                 enabled[self.mi_clear_breakpoint.GetId()] = (self.mi_clear_breakpoint, self.tl_clear_breakpoint, False)
                 enabled[self.mi_bgm.GetId()] = (self.mi_bgm, self.tl_bgm, True)
-                enabled[self.mi_initvars.GetId()] = ((self.mi_initvars, self.view_var.mi_initvars), None, False)
+                enabled[self.mi_initvars.GetId()] = ((self.mi_initvars, self.view_var.mi_initvars), self.tl_initvars, False)
                 enabled[self.mi_selectedcard.GetId()] = (self.mi_selectedcard, self.tl_selectedcard, False)
 
                 if ydata:
@@ -1717,10 +1704,9 @@ class Debugger(wx.Frame):
                             enabled[self.mi_pack.GetId()] = (self.mi_pack,self.tl_pack, True)
                             enabled[self.mi_friend.GetId()] = (self.mi_friend, self.tl_friend, True)
                             enabled[self.mi_info.GetId()] = (self.mi_info, self.tl_info, True)
-                            enabled[self.mi_reset.GetId()] = (self.mi_reset, self.tl_reset, True)
                             enabled[self.mi_area.GetId()] = (self.mi_area, self.tl_area, True)
                             enabled[self.mi_startevent.GetId()] = (self.mi_startevent, self.tl_startevent, True)
-                    enabled[self.mi_initvars.GetId()] = ((self.mi_initvars, self.view_var.mi_initvars), None, True)
+                    enabled[self.mi_initvars.GetId()] = ((self.mi_initvars, self.view_var.mi_initvars), self.tl_initvars, True)
 
                 else:
                     enabled[self.mi_pause.GetId()] = (self.mi_pause, self.tl_pause, True)
