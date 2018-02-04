@@ -860,6 +860,8 @@ class CardHeader(object):
 
 def is_removewithstatus(carddata, target):
     """targetはcarddataの召喚獣カードが消滅する状態か？"""
+    if not isinstance(target, cw.character.Character):
+        return False
     e = carddata.find("Property/RemovalCondition")
     if e is None:
         # 消滅条件が設定されていない場合は意識不明の時に消滅
