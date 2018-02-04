@@ -713,6 +713,16 @@ class CWPy(_Singleton, threading.Thread):
         if not debug and self.is_showingdebugger():
             self.frame.exec_func(self.frame.debugger.Close)
 
+        if debug and self.sdata.debuglog:
+            # 前回終了したシナリオのデバッグログ
+            def func(debuglog):
+                dlg = cw.debug.logging.DebugLogDialog(cw.cwpy.frame, debuglog)
+                cw.cwpy.frame.move_dlg(dlg)
+                dlg.ShowModal()
+                dlg.Destroy()
+            cw.cwpy.frame.exec_func(func, self.sdata.debuglog)
+            self.sdata.debuglog = None
+
         if not self.is_decompressing:
             cw.data.redraw_cards(debug)
         if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
@@ -1961,8 +1971,10 @@ class CWPy(_Singleton, threading.Thread):
         self.set_status("Yado")
         self.sdata.sleep_timekeeper()
         msglog = self.sdata.backlog
+        debuglog = self.sdata.debuglog
         self.sdata = cw.data.SystemData()
         self.sdata.backlog = msglog
+        self.sdata.debuglog = debuglog
         self.update_titlebar()
         # 冒険の中断やF9時のためにカーテン消去
         self.clear_curtain()

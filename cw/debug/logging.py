@@ -12,20 +12,20 @@ import cw
 
 class DebugLogDialog(wx.Dialog):
 
-    def __init__(self, parent, sname, debuglog, startdatetime, pausedtime):
+    def __init__(self, parent, debuglog):
         """集計したデバッグ情報をリッチテキストで表示する。"""
-        wx.Dialog.__init__(self, parent, -1, u"「%s」のプレイ結果" % (sname),
+        wx.Dialog.__init__(self, parent, -1, u"「%s」のプレイ結果" % (debuglog.sname),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
-        self.plain_text = [u"「%s」のプレイ結果" % (sname), u"========================================", ""]
+        self.plain_text = [u"「%s」のプレイ結果" % (debuglog.sname), u"========================================", ""]
 
         self.text = cw.util.CWPyRichTextCtrl(self, -1, size=cw.ppis((400, 380)))
         self.text.SetEditable(False)
 
         # プレイ時間
-        if startdatetime:
+        if debuglog.startdatetime:
             date = datetime.datetime.today()
-            s = u"プレイ開始 : %s" % startdatetime.strftime("%Y-%m-%d %H:%M:%S")
+            s = u"プレイ開始 : %s" % debuglog.startdatetime.strftime("%Y-%m-%d %H:%M:%S")
             self.text.WriteText(s)
             self.text.Newline()
             self.plain_text.append(s)
@@ -44,14 +44,14 @@ class DebugLogDialog(wx.Dialog):
                     return u"%s分%s秒" % (minute, sec)
                 else:
                     return u"%s秒" % (sec)
-            total = date - startdatetime
-            s = u"総プレイ時間 : %s" % (timestr(total.total_seconds()-pausedtime))
+            total = date - debuglog.startdatetime
+            s = u"総プレイ時間 : %s" % (timestr(total.total_seconds()-debuglog.pausedtime))
             self.text.WriteText(s)
             self.text.Newline()
             self.plain_text.append(s)
 
-            if pausedtime:
-                total = datetime.timedelta(seconds=pausedtime)
+            if debuglog.pausedtime:
+                total = datetime.timedelta(seconds=debuglog.pausedtime)
                 s = u"中断時間 : %s" % (timestr(total.total_seconds()))
                 self.text.WriteText(s)
                 self.text.Newline()
@@ -304,8 +304,9 @@ class DebugLogDialog(wx.Dialog):
         self.Layout()
 
 class DebugLog(object):
-    def __init__(self):
+    def __init__(self, sname):
         """シナリオプレイ結果を通知するために各種情報をまとめる。"""
+        self.sname = sname
         self.friend = []
         self.lost_player = []
         self.player = []
@@ -315,6 +316,8 @@ class DebugLog(object):
         self.compstamp = []
         self.gossip = []
         self.jpdc_image = []
+        self.startdatetime = None
+        self.pausedtime = None
 
     def add_friend(self, fcard):
         """連れ込む同行キャストの情報を追加する。"""
@@ -353,3 +356,7 @@ class DebugLog(object):
     def add_jpdcimage(self, fname):
         """保存されたJPDCイメージの情報を追加する。"""
         self.jpdc_image.append(fname)
+
+    def set_times(self, startdatetime, pausedtime):
+        self.startdatetime = startdatetime
+        self.pausedtime = pausedtime

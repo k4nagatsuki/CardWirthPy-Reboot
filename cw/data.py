@@ -86,6 +86,9 @@ class SystemData(object):
         self.background_image_mtime = {}
         self.moved_mcards = {}
 
+        # クリア時のデバッグ情報。デバッグ情報ダイアログ表示で削除
+        self.debuglog = None
+
         # "file.x2.bmp"などのスケーリングされたイメージを読み込むか
         self.can_loaded_scaledimage = True
 
@@ -878,6 +881,9 @@ class ScenarioData(SystemData):
         # イベントが任意箇所に到達した時に実行を停止するためのブレークポイント
         self.breakpoints = cw.cwpy.breakpoint_table.get((self.name, self.author), set())
 
+        # クリア時のデバッグ情報。デバッグ情報ダイアログ表示で削除
+        self.debuglog = None
+
         # 各段階の互換性マーク
         self.versionhint = [
             None, # メッセージ表示時の話者(キャストまたはカード)
@@ -1488,10 +1494,9 @@ class ScenarioData(SystemData):
         シナリオの正規終了時の共通処理をまとめたもの。
         冒険の中断時やF9時には呼ばない。
         """
-        putdebuglog = showdebuglog and cw.cwpy.is_debugmode() and cw.cwpy.setting.show_debuglogdialog
         debuglog = None
-        if putdebuglog:
-            debuglog = cw.debug.logging.DebugLog()
+        if showdebuglog:
+            debuglog = cw.debug.logging.DebugLog(self.name)
 
         if debuglog:
             for fcard in cw.cwpy.get_fcards():
@@ -1550,18 +1555,21 @@ class ScenarioData(SystemData):
         self.remove_log(debuglog)
         cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
 
-        if debuglog:
-            def func(sname, debuglog, startdatetime, pausedtime):
-                dlg = cw.debug.logging.DebugLogDialog(cw.cwpy.frame, sname, debuglog, startdatetime, pausedtime)
+        startdatetime = cw.cwpy.sdata.get_startdatetime()
+        pausedtime = cw.cwpy.sdata.get_pausedtime()
+        cw.cwpy.sdata.sleep_timekeeper()
+        debuglog.set_times(startdatetime, pausedtime)
+
+        if showdebuglog and cw.cwpy.is_debugmode():
+            def func(debuglog):
+                dlg = cw.debug.logging.DebugLogDialog(cw.cwpy.frame, debuglog)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
-            startdatetime = cw.cwpy.sdata.get_startdatetime()
-            pausedtime = cw.cwpy.sdata.get_pausedtime()
-            cw.cwpy.sdata.sleep_timekeeper()
-            cw.cwpy.frame.exec_func(func, self.name, debuglog, startdatetime, pausedtime)
+            cw.cwpy.frame.exec_func(func, debuglog)
+            self.debuglog = None
         else:
-            cw.cwpy.sdata.sleep_timekeeper()
+            self.debuglog = debuglog
 
     def f9(self):
         """
