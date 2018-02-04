@@ -427,7 +427,7 @@ class Setting(object):
         self.write_playlog = False
         self.move_repeat = 250 #移動ボタン押しっぱなしの速度
         self.open_lastscenario = True # 最後に表示したシナリオを開くか
-        self.spend_noeffectcard = False # キーコード等の効果が無くても常にカードを消費するか
+        self.spend_noeffectcard = True # キーコード等の効果が無くても常にカードを消費するか
         # シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する
         # Falseの場合は常に検索結果として表示
         self.can_installscenariofromdrop = False

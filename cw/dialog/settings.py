@@ -759,6 +759,8 @@ class SettingsPanel(wx.Panel):
         setting.protect_staredcard = value
         value = self.pane_ui.cb_protect_premiercard.GetValue()
         setting.protect_premiercard = value
+        value = self.pane_ui.cb_spend_noeffectcard.GetValue()
+        setting.spend_noeffectcard = value
         value = self.pane_ui.sc_radius_notdetectmovement.GetValue()
         setting.radius_notdetectmovement = value
 
@@ -2607,6 +2609,9 @@ class UISettingPanel(wx.ScrolledWindow):
 
         # インタフェースオプション
         panel = self.panel.AddFoldPanel(caption=u"操作")
+        self.cb_spend_noeffectcard = wx.CheckBox(
+            panel, -1, u"意味の無いカード使用で使用回数を消費する")
+        panel.AddWindow(self.cb_spend_noeffectcard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
         self.cb_showbackpackcard = wx.CheckBox(
             panel, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
         panel.AddWindow(self.cb_showbackpackcard, spacing=cw.ppis(3), leftSpacing=cw.ppis(10))
@@ -2776,6 +2781,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_show_cardkind.SetValue(setting.show_cardkind)
         self.cb_show_premiumicon.SetValue(setting.show_premiumicon)
 
+        self.cb_spend_noeffectcard.SetValue(setting.spend_noeffectcard)
         self.cb_showbackpackcard.SetValue(setting.show_backpackcard)
         self.cb_showbackpackcardatend.SetValue(setting.show_backpackcardatend)
         self.cb_can_clicksidesofcardcontrol.SetValue(setting.can_clicksidesofcardcontrol)
@@ -2840,6 +2846,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog_init)
         self.cb_protect_staredcard.SetValue(setting.protect_staredcard_init)
         self.cb_protect_premiercard.SetValue(setting.protect_premiercard_init)
+        self.cb_spend_noeffectcard.SetValue(setting.spend_noeffectcard_init)
 
         if cw.setting.CONFIRM_DUMPCARD_SENDTO == setting.confirm_dumpcard_init:
             self.ch_confirm_dumpcard.SetSelection(1)

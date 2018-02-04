@@ -598,7 +598,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
 
     # キーコード等の効果が無くても常にカードを消費するか
     if setting.spend_noeffectcard <> setting.spend_noeffectcard_init:
-        e = cw.data.make_element("SpendNoEffectCard", setting.spend_noeffectcard)
+        e = cw.data.make_element("SpendNoEffectCard", str(setting.spend_noeffectcard))
         element.append(e)
 
     # シナリオのプレイログを出力する
