@@ -1654,7 +1654,7 @@ class Resource(object):
             if (name in ("tree", "slider") or adjustsize) and 15 < pixelsize and pixelsize % 2 == 1:
                 pixelsize += 1
 
-            wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)
+            wxfont = wx.Font(wx.Size(0, pixelsize), family, style, weight, 0, fontname, encoding)
 
         else:
             wxfont = wx.Font(pointsize, family, style, weight, 0, fontname, encoding)
@@ -1744,7 +1744,7 @@ class Resource(object):
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
             if name:
-                button.SetToolTipString(name)
+                button.SetToolTip(name)
         else:
             button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
@@ -1787,7 +1787,7 @@ class Resource(object):
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
             if name:
-                button.SetToolTipString(name)
+                button.SetToolTip(name)
         else:
             button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
@@ -2152,17 +2152,17 @@ class Resource(object):
                 if os.path.isfile(fpath):
                     return wx.Cursor(fpath, wx.BITMAP_TYPE_CUR)
             if name == "CURSOR_BACK":
-                return wx.StockCursor(wx.CURSOR_POINT_LEFT)
+                return wx.Cursor(wx.CURSOR_POINT_LEFT)
             elif name == "CURSOR_FORE":
-                return wx.StockCursor(wx.CURSOR_POINT_RIGHT)
+                return wx.Cursor(wx.CURSOR_POINT_RIGHT)
             elif name == "CURSOR_FINGER":
-                return wx.StockCursor(wx.CURSOR_HAND)
+                return wx.Cursor(wx.CURSOR_HAND)
             elif name == "CURSOR_ARROW":
                 return wx.NullCursor
             else:
                 return wx.NullCursor
 
-        d = ResourceTable("Resource/Image/Cursor", {}.copy(), lambda: wx.StockCursor(wx.CURSOR_ARROW), nokeyfunc=get_cursor)
+        d = ResourceTable("Resource/Image/Cursor", {}.copy(), lambda: wx.Cursor(wx.CURSOR_ARROW), nokeyfunc=get_cursor)
         return d
 
     def get_stones(self):
@@ -2651,7 +2651,7 @@ CWXEDITOR_RESOURCES = {
 
 def empty_wxbmp():
     """空のwx.Bitmapを返す。"""
-    wxbmp = wx.EmptyBitmap(1, 1)
+    wxbmp = cw.util.empty_bitmap(1, 1)
     image = wxbmp.ConvertToImage()
     r = image.GetRed(0, 0)
     g = image.GetGreen(0, 0)

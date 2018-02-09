@@ -6,7 +6,7 @@ import itertools
 import os
 import sys
 import wx
-import wx.combo
+import wx.adv
 import wx.lib.buttons
 import wx.lib.intctrl
 
@@ -86,10 +86,10 @@ class CardControl(wx.Dialog):
         self.sort = wx.ComboBox(self.toppanel, -1, size=cw.wins((75, 24)), choices=choices, style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         self.sortwithstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
-        self.sortwithstar.SetToolTipString(cw.cwpy.msgs["sort_with_star"])
+        self.sortwithstar.SetToolTip(cw.cwpy.msgs["sort_with_star"])
         self._update_sortwithstar()
         self.editstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
-        self.editstar.SetToolTipString(cw.cwpy.msgs["edit_star"])
+        self.editstar.SetToolTip(cw.cwpy.msgs["edit_star"])
         self.editstar.SetToggle(cw.cwpy.setting.edit_star)
         self._update_editstar()
         if not sort or not cw.cwpy.setting.show_additional_card:
@@ -123,7 +123,7 @@ class CardControl(wx.Dialog):
             btn.SetBitmapFocus(bmp)
             btn.SetBitmapLabel(bmp, False)
             btn.SetBitmapSelected(bmp)
-            btn.SetToolTipString(msg)
+            btn.SetToolTip(msg)
             self.show[cardtype] = btn
             if not self.callname in ("BACKPACK", "STOREHOUSE") or\
                     not cw.cwpy.setting.show_additional_card:
@@ -135,7 +135,7 @@ class CardControl(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
         self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp, chain=True)
         # sendto
-        self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((100, 24)), style=wx.CB_READONLY)
+        self.combo = wx.adv.BitmapComboBox(self.toppanel, size=cw.wins((100, 24)), style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
@@ -148,7 +148,7 @@ class CardControl(wx.Dialog):
         # 追加的コントロールの表示切替
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB", "INFOVIEW"):
             self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
-            self.addctrlbtn.SetToolTipString(cw.cwpy.msgs["show_additional_controls"])
+            self.addctrlbtn.SetToolTip(cw.cwpy.msgs["show_additional_controls"])
             self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_card)
             self.change_bgs.append(self.addctrlbtn)
             if not cw.cwpy.setting.show_addctrlbtn:
@@ -813,9 +813,9 @@ class CardControl(wx.Dialog):
 
         if lastrepls <> self._lastrepls:
             if lastrepls:
-                self.toppanel.Refresh(rect=self._get_replsrect(lastrepls)[0])
+                self.toppanel.RefreshRect(rect=self._get_replsrect(lastrepls)[0])
             if self._lastrepls:
-                self.toppanel.Refresh(rect=self._get_replsrect(self._lastrepls)[0])
+                self.toppanel.RefreshRect(rect=self._get_replsrect(self._lastrepls)[0])
 
         self._laststar = laststar
         self._lastrepls = lastrepls
@@ -868,10 +868,10 @@ class CardControl(wx.Dialog):
         self.set_cardpos()
         tsize = self.toppanel.GetClientSize()
 
-        basebmp = wx.EmptyBitmap(tsize[0], tsize[1])
+        basebmp = cw.util.empty_bitmap(tsize[0], tsize[1])
         dc = wx.MemoryDC(basebmp)
         gcdc = wx.GCDC(dc)
-        dc.SetClippingRect(self.toppanel.GetUpdateClientRect())
+        dc.SetClippingRegion(*self.toppanel.GetUpdateClientRect())
         bcolor = self.toppanel.GetBackgroundColour()
         dc.SetBrush(wx.Brush(bcolor))
         dc.SetPen(wx.Pen(bcolor))
@@ -882,10 +882,10 @@ class CardControl(wx.Dialog):
         size = bmp.GetSize()
         dc.DrawBitmap(bmp, (tsize[0]-size[0])/2, (tsize[1]-size[1])/2, True)
         # ライン
-        colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DHIGHLIGHT)
+        colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DHIGHLIGHT)
         dc.SetPen(wx.Pen(colour, cw.wins(1), wx.SOLID))
         dc.DrawLine(cw.wins(0), cw.wins(25), cw.wins(520), cw.wins(25))
-        colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DSHADOW)
+        colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DSHADOW)
         dc.SetPen(wx.Pen(colour, 1, wx.SOLID))
         dc.DrawLine(cw.wins(0), cw.wins(26), cw.wins(520), cw.wins(26))
         # モード見出し
@@ -1235,7 +1235,7 @@ class CardControl(wx.Dialog):
         elif header.deal_per <> 100:
             bmp = header.cardimg.get_wxdealingbmp(header, bmp, n=header.deal_per, test_aptitude=test_aptitude)
         self._drawlist[header] = (bmp, False)
-        self.toppanel.Refresh(rect=header.wxrect)
+        self.toppanel.RefreshRect(rect=wx.Rect(*header.wxrect))
 
     def get_posmode(self):
         if self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
@@ -1329,7 +1329,7 @@ class CardControl(wx.Dialog):
         self._cancel_animation = False
 
         self._replclickedflag = True
-        self.Refresh(rect=self._get_replsrect(header)[0])
+        self.RefreshRect(rect=self._get_replsrect(header)[0])
         def func2():
             if not self or self._cancel_animation:
                 self._replclickedflag = False
@@ -1337,7 +1337,7 @@ class CardControl(wx.Dialog):
                 return
             cw.cwpy.frame.wait_frame(4)
             self._replclickedflag = False
-            self.Refresh(rect=self._get_replsrect(header)[0])
+            self.RefreshRect(rect=self._get_replsrect(header)[0])
             def func3():
                 if not self or self._cancel_animation:
                     self._replclickedflag = False
@@ -2688,7 +2688,7 @@ class HandView(CardControl):
         if cw.cwpy.is_debugmode():
             bmp = cw.cwpy.rsrc.dialogs["HAND"]
             self.redeal = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((24, 24)), bmp=bmp)
-            self.redeal.SetToolTipString(cw.cwpy.msgs["re_deal"])
+            self.redeal.SetToolTip(cw.cwpy.msgs["re_deal"])
         else:
             self.redeal = None
 

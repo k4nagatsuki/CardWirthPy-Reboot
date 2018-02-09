@@ -799,11 +799,15 @@ class CWPy(_Singleton, threading.Thread):
 
     def quit(self):
         # トップフレームから閉じて終了。cw.frame.OnDestroy参照。
+        if not self.frame:
+            return
         event = wx.PyCommandEvent(wx.wxEVT_DESTROY)
         self.frame.AddPendingEvent(event)
 
     def quit2(self):
         self.ydata = None
+        if not self.frame:
+            return
         event = wx.PyCommandEvent(wx.wxEVT_CLOSE_WINDOW)
         self.frame.AddPendingEvent(event)
 
@@ -1523,11 +1527,12 @@ class CWPy(_Singleton, threading.Thread):
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])
         event.args = kwargs
         if threading.currentThread() == self:
+            if not self.frame:
+                return
             self.draw()
             def func():
                 # BUG: シナリオインストールダイアログを開いたあとで
                 #      フィルタイベントの挙動がおかしくなる
-                #self.frame.app.SetCallFilterEvent(True)
                 pass
             self.frame.exec_func(func)
             self.frame.AddPendingEvent(event)
@@ -1537,7 +1542,6 @@ class CWPy(_Singleton, threading.Thread):
         else:
             # BUG: シナリオインストールダイアログを開いたあとで
             #      フィルタイベントの挙動がおかしくなる
-            #self.frame.app.SetCallFilterEvent(True)
             self.frame.ProcessEvent(event)
 
     def call_modaldlg(self, name, **kwargs):
@@ -1582,9 +1586,6 @@ class CWPy(_Singleton, threading.Thread):
     def kill_showingdlg(self):
         self._showingdlg -= 1
         if self._showingdlg <= 0:
-            # BUG: シナリオインストールダイアログを開いたあとで
-            #      フィルタイベントの挙動がおかしくなる
-            #self.frame.app.SetCallFilterEvent(False)
             if not self.is_runningevent():
                 self.exec_func(self.clear_selection)
 

@@ -44,7 +44,7 @@ class CouponEditDialog(wx.Dialog):
             self.coupons.append(seq)
 
         # リスト
-        self.values = EditableListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE)
+        self.values = EditableListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT)
         self.values.imglist = wx.ImageList(cw.ppis(14), cw.ppis(14))
         self.values.imgidx_2 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS3_dbg"])
         self.values.imgidx_1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS2_dbg"])
@@ -204,8 +204,8 @@ class CouponEditDialog(wx.Dialog):
         else:
             # 誰か一人
             self.coupons[cindex-1].insert(0, (name, 0))
-        self.values.InsertStringItem(0, name)
-        self.values.SetStringItem(0, 1, str(0))
+        self.values.InsertItem(0, name)
+        self.values.SetItem(0, 1, str(0))
         self.values.SetItemImage(0, self._get_valueimage(0))
         self._item_selected()
 
@@ -313,8 +313,8 @@ class CouponEditDialog(wx.Dialog):
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
         def set_item(index):
-            self.values.SetStringItem(index, 0, seq[index][0])
-            self.values.SetStringItem(index, 1, str(seq[index][1]))
+            self.values.SetItem(index, 0, seq[index][0])
+            self.values.SetItem(index, 1, str(seq[index][1]))
             self.values.SetItemImage(index, self._get_valueimage(seq[index][1]))
         set_item(index1)
         set_item(index2)
@@ -405,8 +405,8 @@ class CouponEditDialog(wx.Dialog):
     def _append_couponlist(self, name, value):
         # リストに称号を追加する
         index = self.values.GetItemCount()
-        self.values.InsertStringItem(index, name)
-        self.values.SetStringItem(index, 1, str(value))
+        self.values.InsertItem(index, name)
+        self.values.SetItem(index, 1, str(value))
         self.values.SetItemImage(index, self._get_valueimage(value))
 
     def _select_target(self):
@@ -495,7 +495,7 @@ class CouponEditDialog(wx.Dialog):
         self.Thaw()
 
     def _set_name(self, index, oldname, newname):
-        self.values.SetStringItem(index, 0, newname)
+        self.values.SetItem(index, 0, newname)
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員
@@ -510,7 +510,7 @@ class CouponEditDialog(wx.Dialog):
             seq[index] = (newname, seq[index][1])
 
     def _set_value(self, index, value):
-        self.values.SetStringItem(index, 1, str(value))
+        self.values.SetItem(index, 1, str(value))
         self.values.SetItemImage(index, self._get_valueimage(value))
         cindex = self.target.GetSelection()
         name = self.values.GetItem(index, 0).GetText()
@@ -540,7 +540,7 @@ class ListEditDialog(wx.Dialog):
         self._processing = False
 
         # リスト
-        self.values = EditableListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER)
+        self.values = EditableListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
@@ -578,7 +578,7 @@ class ListEditDialog(wx.Dialog):
 
         for name in self.list:
             index = self.values.GetItemCount()
-            self.values.InsertStringItem(index, name)
+            self.values.InsertItem(index, name)
             self.values.SetItemImage(index, self.values.imgidx)
 
         self._item_selected()
@@ -632,7 +632,7 @@ class ListEditDialog(wx.Dialog):
             num += 1
 
         self.list.insert(0, name)
-        self.values.InsertStringItem(0, name)
+        self.values.InsertItem(0, name)
         self.values.SetItemImage(0, self.values.imgidx)
         self._item_selected()
 
@@ -679,8 +679,8 @@ class ListEditDialog(wx.Dialog):
         temp = self.values.GetItemState(index1, mask)
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
-        self.values.SetStringItem(index1, 0, self.list[index1])
-        self.values.SetStringItem(index2, 0, self.list[index2])
+        self.values.SetItem(index1, 0, self.list[index1])
+        self.values.SetItem(index2, 0, self.list[index2])
         self._processing = False
 
     def OnUp2Btn(self, event):
@@ -699,7 +699,7 @@ class ListEditDialog(wx.Dialog):
         index = event.GetIndex()
         newname = event.GetText()
         if newname and -1 >= self.values.FindItem(-1, newname):
-            self.values.SetStringItem(index, 0, newname)
+            self.values.SetItem(index, 0, newname)
             self.list[index] = newname
         else:
             event.Veto()
@@ -806,7 +806,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 
         # リスト
         image = cw.cwpy.rsrc.debugs["JPDCIMAGE_dbg"]
-        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER|wx.BORDER)
+        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.BORDER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
@@ -834,7 +834,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
                 s = u"%s(%s)" % (name, author)
             else:
                 s = u"%s" % (name)
-            self.values.InsertStringItem(index, s)
+            self.values.InsertItem(index, s)
             self.values.SetItemImage(index, self.values.imgidx)
 
         self._item_selected()
@@ -919,7 +919,7 @@ class BreakpointEditDialog(wx.Dialog):
 
         # リスト
         image = cw.cwpy.rsrc.debugs["BREAKPOINT_dbg"]
-        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER|wx.BORDER)
+        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.BORDER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
@@ -947,7 +947,7 @@ class BreakpointEditDialog(wx.Dialog):
                 s = u"%s(%s)" % (name, author)
             else:
                 s = u"%s" % (name)
-            self.values.InsertStringItem(index, s)
+            self.values.InsertItem(index, s)
             self.values.SetItemImage(index, self.values.imgidx)
 
         self._item_selected()
@@ -1179,7 +1179,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
 
         # リスト
         image = cw.cwpy.rsrc.dialogs["SUMMARY_dbg"]
-        self.values = wx.ListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.BORDER)
+        self.values = wx.ListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.BORDER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
@@ -1215,8 +1215,8 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
 
         for fpath, name in self.list:
             index = self.values.GetItemCount()
-            self.values.InsertStringItem(index, name)
-            self.values.SetStringItem(index, 1, fpath)
+            self.values.InsertItem(index, name)
+            self.values.SetItem(index, 1, fpath)
             self.values.SetItemImage(index, self.values.imgidx)
 
         self._item_selected()
@@ -1262,7 +1262,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         else:
             flag = wx.LIST_STATE_DONTCARE
 
-        self.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
+        self.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
         index = -1
         while True:
             index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, flag)
@@ -1270,10 +1270,10 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
                 break
             try:
                 scdata = cw.scenariodb.get_scenario(self.values.GetItem(index, 1).GetText())
-                self.values.SetStringItem(index, 0, scdata.name)
+                self.values.SetItem(index, 0, scdata.name)
                 self.list[index] = (self.list[index][0], scdata.name)
             except:
-                self.values.SetStringItem(index, 0, u"*読込失敗*")
+                self.values.SetItem(index, 0, u"*読込失敗*")
         self.SetCursor(wx.NullCursor)
 
     def OnRemoveBtn(self, event):
@@ -1329,8 +1329,8 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
         def set_item(index, string, image):
-            self.values.SetStringItem(index, 0, string[0])
-            self.values.SetStringItem(index, 1, string[1])
+            self.values.SetItem(index, 0, string[0])
+            self.values.SetItem(index, 1, string[1])
             self.values.SetItemImage(index, image)
         string1 = self.values.GetItemText(index1), self.values.GetItem(index1, 1).GetText()
         string2 = self.values.GetItemText(index2), self.values.GetItem(index2, 1).GetText()
@@ -1418,7 +1418,7 @@ def up_to_top(values, seq, indexes):
 
     for index, t in enumerate(seq):
         for colindex in xrange(values.GetColumnCount()):
-            values.SetStringItem(index, colindex, names2[index][colindex])
+            values.SetItem(index, colindex, names2[index][colindex])
         values.SetItemImage(index, images2[index])
 
         if index < len(seq2):
@@ -1456,7 +1456,7 @@ def down_to_bottom(values, seq, indexes):
 
     for index, t in enumerate(seq):
         for colindex in xrange(values.GetColumnCount()):
-            values.SetStringItem(index, colindex, names[index][colindex])
+            values.SetItem(index, colindex, names[index][colindex])
         values.SetItemImage(index, images[index])
 
         if len(seq3) <= index:

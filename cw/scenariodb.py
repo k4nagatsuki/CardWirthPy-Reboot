@@ -1252,12 +1252,13 @@ def get_scenario(fpath):
     dbrec["imgpath"] = t[16]
     dbrec["wsnversion"] = t[17]
     imgdbrec = []
-    for image, info, scale in images:
+    for numorder, (image, info, scale) in enumerate(images):
         imgdbrec.append({
             "scale": scale,
             "image": image,
             "imgpath": info.path,
-            "postype": info.postype
+            "postype": info.postype,
+            "numorder": numorder
         })
 
     header = cw.header.ScenarioHeader(dbrec=dbrec, imgdbrec=imgdbrec)

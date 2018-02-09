@@ -258,7 +258,7 @@ CardWirthPyはプログラミング言語Pythonで書かれました。実行フ
 
 CardWirthPyは以下のPythonの外部モジュールを使用しています。
 
-[wxPython ver3.0.2.0](http://www.wxpython.org/)
+[wxPython 4.0.1](http://www.wxpython.org/)
  : License: wxWindows Library License
 
 [pygame ver1.9.2](http://www.pygame.org/)

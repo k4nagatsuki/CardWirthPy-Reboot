@@ -5,7 +5,7 @@ import os
 import sys
 import shutil
 import wx
-import wx.combo
+import wx.adv
 
 import cw
 
@@ -39,7 +39,7 @@ class PartyEditor(wx.Dialog):
 
         # レベルアップの停止
         self.suspend_levelup = cw.util.CWBackCheckBox(self, -1, cw.cwpy.msgs["suspend_levelup"])
-        self.suspend_levelup.SetToolTipString(cw.cwpy.msgs["suspend_levelup_description"])
+        self.suspend_levelup.SetToolTip(cw.cwpy.msgs["suspend_levelup_description"])
         self.suspend_levelup.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15)))
         self.suspend_levelup.SetValue(self.party.is_suspendlevelup)
 
@@ -437,7 +437,7 @@ class NumberComboEditDialog(wx.Dialog):
         # コンボボックス
         if 1 <= len(mlist) and not isinstance(mlist[0], (str, unicode)):
             self._combo_panel = wx.Panel(self.panel, -1, size=(-1, cw.wins(24)))
-            self.combo = wx.combo.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
+            self.combo = wx.adv.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
         else:
             self._combo_panel = None
             self.combo = wx.ComboBox(self.panel, -1, style=wx.CB_READONLY)
@@ -583,7 +583,7 @@ class SliderWithButton(wx.Panel):
             self.Thaw()
             return
         n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
-        self.slider.SetTickFreq(n, 1)
+        self.slider.SetTickFreq(n)
         self.slider.SetMax(value)
 
         # FIXME: 数値の桁数が変わった時、一度サイズを変えないと表示がおかしくなる
@@ -602,7 +602,7 @@ class SliderWithButton(wx.Panel):
         maxvalue = self.slider.GetMax()
         minvalue = value
         n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
-        self.slider.SetTickFreq(n, 1)
+        self.slider.SetTickFreq(n)
         self.slider.SetMin(value)
 
         # FIXME: 数値の桁数が変わった時、一度サイズを変えないと表示がおかしくなる
@@ -797,7 +797,7 @@ class ComboEditDialog(wx.Dialog):
         # コンボボックス
         if 1 <= len(mlist) and not isinstance(mlist[0], (str, unicode)):
             self._combo_panel = wx.Panel(self.panel, -1, size=(-1, cw.wins(24)))
-            self.combo = wx.combo.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
+            self.combo = wx.adv.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
         else:
             self._combo_panel = None
             self.combo = wx.ComboBox(self.panel, -1, style=wx.CB_READONLY)
@@ -923,7 +923,7 @@ class ComboEditDialog2(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = self.message
-        w, _h, _lineheight = dc.GetMultiLineTextExtent(s)
+        w, _h, _lineheight = dc.GetFullMultiLineTextExtent(s)
         dc.DrawText(s, (csize[0]-w)/2, cw.wins(10))
 
     def _bind(self):
@@ -933,7 +933,7 @@ class ComboEditDialog2(wx.Dialog):
 
     def _do_layout(self):
         dc = wx.ClientDC(self)
-        self._textwidth, self._textheight, _lineheight = dc.GetMultiLineTextExtent(self.message)
+        self._textwidth, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self.message)
 
         csize = cw.wins(318), cw.wins(0)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -1138,7 +1138,7 @@ class InputTextDialog(wx.Dialog):
 
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
-        w, h, _lineheight = dc.GetMultiLineTextExtent(self.msg)
+        w, h, _lineheight = dc.GetFullMultiLineTextExtent(self.msg)
         self._textheight = h
         self.SetClientSize((max(w + cw.wins(10)*2, cw.wins(312)), cw.wins(97)+h))
 
@@ -1202,7 +1202,7 @@ class InputTextDialog(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = self.msg
-        w, h, _lineheight = dc.GetMultiLineTextExtent(self.msg)
+        w, h, _lineheight = dc.GetFullMultiLineTextExtent(self.msg)
         dc.DrawLabel(self.msg, (0, cw.wins(10), csize[0], h), wx.ALIGN_CENTER)
 
     def _bind(self):

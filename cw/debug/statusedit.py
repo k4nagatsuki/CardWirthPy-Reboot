@@ -754,14 +754,12 @@ class StatusButton(wx.BitmapButton):
             # 背景色の変更
             w = self.image.GetWidth()
             h = self.image.GetHeight()
-            canvas = wx.EmptyBitmapRGBA(w, h)
+            canvas = cw.util.empty_bitmap_rgba(w, h)
             bdc = wx.MemoryDC(canvas)
-            bdc.BeginDrawing()
             bdc.SetPen(wx.Pen(colour))
             bdc.SetBrush(wx.Brush(colour))
             bdc.DrawRectangle(0, 0, w, h)
             bdc.DrawBitmap(self.image, 0, 0, True)
-            bdc.EndDrawing()
             self.image = canvas
 
         # 半透明化
@@ -769,15 +767,14 @@ class StatusButton(wx.BitmapButton):
         h = self.image.GetHeight()
         image = cw.util.convert_to_image(self.image)
         if not enable:
-            image.SetAlphaData(chr(128) * (w*h))
+            image.SetAlphaBuffer(chr(128) * (w*h))
         self.image = image.ConvertToBitmap()
 
         csize = self.GetClientSize()
 
-        canvas = wx.EmptyBitmap(csize[0], csize[1])
+        canvas = cw.util.empty_bitmap(csize[0], csize[1])
 
         dc = wx.MemoryDC(canvas)
-        dc.BeginDrawing()
         colour = self.GetBackgroundColour()
         dc.SetPen(wx.Pen(colour))
         dc.SetBrush(wx.Brush(colour))
@@ -807,8 +804,6 @@ class StatusButton(wx.BitmapButton):
             x = (csize[0] - size2[0]) / 2
             dc.DrawText(self.text2, x, y)
             y += size2[1] + SPACER
-
-        dc.EndDrawing()
 
         canvas = canvas.ConvertToImage()
         canvas.SetMaskColour(colour[0], colour[1], colour[2])

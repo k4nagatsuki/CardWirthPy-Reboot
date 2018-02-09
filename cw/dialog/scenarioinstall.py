@@ -51,7 +51,7 @@ class SelectScenarioDirectory(wx.Dialog):
         if sys.platform == "win32" and name.lower().endswith(".lnk"):
             name = cw.util.splitext(name)[0]
         self.tree.root = self.tree.AddRoot(name, self.tree.imgidx_dir)
-        self.tree.SetItemPyData(self.tree.root, scedir)
+        self.tree.SetItemData(self.tree.root, scedir)
         self.tree.SetImageList(self.tree.imglist)
         self.tree.SelectItem(self.tree.root)
 
@@ -122,7 +122,7 @@ class SelectScenarioDirectory(wx.Dialog):
             dirstack = []
         self.tree.Freeze()
         self.tree.DeleteChildren(treeitem)
-        dpath = self.tree.GetItemPyData(treeitem)
+        dpath = self.tree.GetItemData(treeitem)
 
         for dir in get_dpaths(dpath):
             name = os.path.basename(dir)
@@ -130,7 +130,7 @@ class SelectScenarioDirectory(wx.Dialog):
             if sys.platform == "win32" and name.lower().endswith(".lnk"):
                 name = cw.util.splitext(name)[0]
             item = self.tree.AppendItem(treeitem, name, image)
-            self.tree.SetItemPyData(item, dir)
+            self.tree.SetItemData(item, dir)
             if dirstack and os.path.normcase(os.path.basename(dir)) == os.path.normcase(dirstack[0]):
                 if 1 < len(dirstack):
                     self._create_treeitems(item, dirstack[1:])
@@ -155,7 +155,7 @@ class SelectScenarioDirectory(wx.Dialog):
         selitem = self.tree.GetSelection()
         if not selitem.IsOk():
             return
-        dstpath = self.tree.GetItemPyData(selitem)
+        dstpath = self.tree.GetItemData(selitem)
         if not dstpath:
             return
         self.path = dstpath
@@ -188,7 +188,7 @@ class SelectScenarioDirectory(wx.Dialog):
         csize = self.GetClientSize()
         btnw = self.createdirbtn.GetSize()[0]
         self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20)-btnw-cw.wins(10), lambda s: dc.GetTextExtent(s)[0])
-        _w, self._textheight, _lineheight = dc.GetMultiLineTextExtent(self._wrapped_text)
+        _w, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self._wrapped_text)
 
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
@@ -205,7 +205,7 @@ class SelectScenarioDirectory(wx.Dialog):
         selitem = self.tree.GetSelection()
         if not selitem.IsOk():
             return
-        dpath = self.tree.GetItemPyData(selitem)
+        dpath = self.tree.GetItemData(selitem)
         if not dpath:
             return
 
@@ -220,7 +220,7 @@ class SelectScenarioDirectory(wx.Dialog):
 
             item, cookie = self.tree.GetFirstChild(selitem)
             while item.IsOk():
-                dpath2 = self.tree.GetItemPyData(item)
+                dpath2 = self.tree.GetItemData(item)
                 dpath2 = os.path.abspath(dpath2)
                 dpath2 = os.path.normpath(dpath2)
                 dpath2 = os.path.normcase(dpath2)
@@ -237,7 +237,7 @@ class SelectScenarioDirectory(wx.Dialog):
         """
         dirstack = []
         while paritem and paritem.IsOk():
-            selpath = self.tree.GetItemPyData(paritem)
+            selpath = self.tree.GetItemData(paritem)
             selpath = os.path.basename(selpath)
             dirstack.append(selpath)
             paritem = self.tree.GetItemParent(paritem)
@@ -280,7 +280,7 @@ class ScenarioInstall(SelectScenarioDirectory):
 
         # インストール・キャンセルボタン
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), u"インストール")
-        self.yesbtn.SetToolTipString(create_installdesc(headers_seq))
+        self.yesbtn.SetToolTip(create_installdesc(headers_seq))
         self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["cancel"])
         self.buttons = (self.yesbtn, self.nobtn)
 
@@ -291,7 +291,7 @@ class ScenarioInstall(SelectScenarioDirectory):
         selitem = self.tree.GetSelection()
         if not selitem.IsOk():
             return
-        dstpath = self.tree.GetItemPyData(selitem)
+        dstpath = self.tree.GetItemData(selitem)
         if not dstpath:
             return
 
@@ -868,7 +868,7 @@ class OverwriteScenarioDialog(wx.Dialog):
 
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((400, 400)),
-                                                  style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL,
+                                                  style=wx.LC_REPORT|wx.VSCROLL|wx.HSCROLL,
                                                   system=False)
         self.datalist.SetFont(font)
 
@@ -884,7 +884,7 @@ class OverwriteScenarioDialog(wx.Dialog):
                 rel = cw.util.relpath(fpath, os.path.abspath(u"."))
                 if cw.util.join_paths(rel).startswith(u"../"):
                     rel = header.get_fpath()
-                self.datalist.InsertStringItem(index2, u"%s - %s" % (sname, cw.util.join_paths(rel)))
+                self.datalist.InsertItem(index2, u"%s - %s" % (sname, cw.util.join_paths(rel)))
                 self.datalist.CheckItem(index2, (index == 0))
                 index2 += 1
 
@@ -919,7 +919,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         csize = self.GetClientSize()
         self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20), lambda s: dc.GetTextExtent(s)[0])
-        _w, self._textheight, _lineheight = dc.GetMultiLineTextExtent(self._wrapped_text)
+        _w, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self._wrapped_text)
 
     def OnOk(self, event):
         cw.cwpy.play_sound("click")

@@ -97,7 +97,7 @@ class BuildExe(object):
             "Data/Face/Male", "Data/Face/Male-ADT", "Data/Face/Male-CHD", "Data/Face/Male-OLD", "Data/Face/Male-YNG"]
 
         #Additional modules
-        self.includes = ["win32com.shell.shell", "win32com.client"]
+        self.includes = ["win32com.shell.shell", "win32com.client", "wx._html", "wx._xml"]
 
         self.dllincludes_ex = [
             "jpeg.dll",

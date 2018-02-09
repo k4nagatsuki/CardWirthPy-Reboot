@@ -418,7 +418,7 @@ class BookmarkDialog(wx.Dialog):
         self.cwpy_debug = False
 
         # リスト
-        self.values = AutoListCtrl(self, -1, size=cw.wins((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER)
+        self.values = AutoListCtrl(self, -1, size=cw.wins((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER)
         self.values.SetDoubleBuffered(True)
         self.values.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
         self.values.imgidx_summary = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY"])
@@ -464,7 +464,7 @@ class BookmarkDialog(wx.Dialog):
                     p = u""
 
             if header:
-                item = self.values.InsertStringItem(i, header.name)
+                item = self.values.InsertItem(i, header.name)
                 if self.Parent.is_playing(header):
                     self.values.SetItemImage(item, self.values.imgidx_playing)
                 elif self.Parent.is_complete(header):
@@ -481,7 +481,7 @@ class BookmarkDialog(wx.Dialog):
                     sp = os.path.splitext(p)
                     if sp[1].lower() == ".lnk":
                         p = sp[0]
-                item = self.values.InsertStringItem(i, p)
+                item = self.values.InsertItem(i, p)
                 self.values.SetItemImage(item, self.values.imgidx_dir)
 
         # 削除
@@ -622,7 +622,7 @@ class BookmarkDialog(wx.Dialog):
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
         def set_item(index, string, image):
-            self.values.SetStringItem(index, 0, string)
+            self.values.SetItem(index, 0, string)
             self.values.SetItemImage(index, image)
         string1 = self.values.GetItemText(index1)
         string2 = self.values.GetItemText(index2)
@@ -686,7 +686,7 @@ class ConvertYadoDialog(wx.Dialog):
         dc = wx.ClientDC(self)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
-        w, _h, _lh = dc.GetMultiLineTextExtent(self.message)
+        w, _h, _lh = dc.GetFullMultiLineTextExtent(self.message)
         self.SetClientSize((w + cw.wins(50), cw.wins(156)))
 
         self.targetengine = 1.50
@@ -753,7 +753,7 @@ class ConvertYadoDialog(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
         s = self.message
-        w, h, _lh = dc.GetMultiLineTextExtent(s)
+        w, h, _lh = dc.GetFullMultiLineTextExtent(s)
         dc.DrawLabel(s, ((csize[0]-w)/2, cw.wins(10), w, h))
 
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
@@ -828,19 +828,19 @@ class TouchTools(wx.MiniFrame):
         s = u"%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"],
                          cw.cwpy.msgs["desc_screenshot"])
         bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
-        self._ssbtn = self._tb.AddLabelTool(-1, s, bmp)
+        self._ssbtn = self._tb.AddTool(-1, s, bmp)
         if cw.cwpy.ydata and cw.cwpy.ydata.party:
             s = u"%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
                                      cw.cwpy.msgs["desc_screenshot_hands"])
             bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT_HANDS"]
-            self._sshbtn = self._tb.AddLabelTool(-1, s, bmp)
+            self._sshbtn = self._tb.AddTool(-1, s, bmp)
         else:
             self._sshbtn = None
         if hasattr(parent, "copy_detail"):
             s = u"%s(Ctrl+C)\n%s" % (cw.cwpy.msgs["copy_dialog"],
                                         cw.cwpy.msgs["desc_copy_dialog"])
             bmp = cw.cwpy.rsrc.dialogs["COPY"]
-            self._copybtn = self._tb.AddLabelTool(-1, s, bmp)
+            self._copybtn = self._tb.AddTool(-1, s, bmp)
         else:
             self._copybtn = None
         self._tb.Realize()
@@ -849,8 +849,8 @@ class TouchTools(wx.MiniFrame):
         def OnMove(event):
             x, y = event.GetPosition()
             item = self._tb.FindToolForPosition(x, y)
-            if item and self._tb.GetToolTipString() <> item.GetLabel():
-                self._tb.SetToolTipString(item.GetLabel())
+            if item and self._tb.GetToolTipText() <> item.GetLabel():
+                self._tb.SetToolTip(item.GetLabel())
         self._tb.Bind(wx.EVT_MOTION, OnMove)
         self.SetTransparent(128)
 

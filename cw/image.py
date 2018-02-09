@@ -471,7 +471,7 @@ class CardImage(Image):
         self._upwin = self._upwinmemo()
 
         w, h = self.wxrect.size
-        bmp = wx.EmptyBitmap(w, h)
+        bmp = cw.util.empty_bitmap(w, h)
         dc = wx.MemoryDC()
         dc.SelectObject(bmp)
         dc.DrawBitmap(self.wxcardbg, 0, 0, False)
@@ -773,7 +773,7 @@ class LargeCardImage(CardImage):
     def get_wxbmp(self):
         w = self.wxcardbg.GetWidth()
         h = self.wxcardbg.GetHeight()
-        bmp = wx.EmptyBitmap(w, h)
+        bmp = cw.util.empty_bitmap(w, h)
         dc = wx.MemoryDC()
         dc.SelectObject(bmp)
         dc.DrawBitmap(self.wxcardbg, 0, 0, False)

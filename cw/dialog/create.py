@@ -763,8 +763,8 @@ class AdventurerCreaterPage(wx.Panel):
         for rect, tooltip in self.tooltips:
             if rect.Contains((x, y)):
                 s = tooltip
-        if s <> self.GetToolTipString():
-            self.SetToolTipString(s)
+        if s <> self.GetToolTipText():
+            self.SetToolTip(s)
 
     def OnNLeftKeyDown(self, event):
         fc = wx.Window.FindFocus()
@@ -1082,7 +1082,7 @@ class AdventurerCreaterPage(wx.Panel):
         else:
             self.ch_imgdpath.Hide()
 
-        self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+        self.ch_imgdpath.SetToolTip(self.ch_imgdpath.GetLabelText())
         cw.util.adjust_dropdownwidth(self.ch_imgdpath)
         self._do_layout()
         self.Thaw()
@@ -1337,7 +1337,7 @@ class NamePage(AdventurerCreaterPage):
         self.imgdpath = index
         key = self.imgdpaths[index]
         self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
-        self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+        self.ch_imgdpath.SetToolTip(self.ch_imgdpath.GetLabelText())
         self.draw(True)
 
     def _do_layout(self):
@@ -1432,7 +1432,7 @@ class NamePage(AdventurerCreaterPage):
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
 
         # image
-        dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
+        dc.SetClippingRegion(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1]))
         basecardtype = "LargeCard"
         for info in self.imgpaths:
             bmp = cw.util.load_wxbmp(info.path, True, can_loaded_scaledimage=True)
@@ -1506,7 +1506,7 @@ class NamePage(AdventurerCreaterPage):
         else:
             self.imgdpath = ""
             self.imgpaths = []
-        self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+        self.ch_imgdpath.SetToolTip(self.ch_imgdpath.GetLabelText())
 
         self.draw(True)
 
@@ -1747,7 +1747,7 @@ class RelationPage(AdventurerCreaterPage):
             basecardtype = "NormalCard"
 
         def draw_paths(pos, paths, can_loaded_scaledimage):
-            dc.SetClippingRect(wx.Rect(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
+            dc.SetClippingRegion(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1]))
             for info in paths:
                 if info.path:
                     bmp = cw.util.load_wxbmp(info.path, True, can_loaded_scaledimage=can_loaded_scaledimage)
@@ -2205,7 +2205,7 @@ class YadoCreater(wx.Dialog):
 
         # パーティのオートロード
         self.autoload_party = cw.util.CWBackCheckBox(self, -1, cw.cwpy.msgs["autoload_party"])
-        self.autoload_party.SetToolTipString(cw.cwpy.msgs["autoload_party_description"])
+        self.autoload_party.SetToolTip(cw.cwpy.msgs["autoload_party_description"])
         self.autoload_party.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15)))
         self.autoload_party.SetValue(is_autoloadparty)
         self.autoload_party.set_background(self._load_caution())
@@ -2357,7 +2357,7 @@ class YadoCreater(wx.Dialog):
         dc.DrawText(s, bmpw+cw.wins(20), y)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(16))
         dc.SetFont(font)
-        _w, h, _lineheight = dc.GetMultiLineTextExtent(s)
+        _w, h, _lineheight = dc.GetFullMultiLineTextExtent(s)
         y += h + cw.wins(5)
         s = self._msg2
         dc.DrawText(s, bmpw+cw.wins(20), y)
@@ -2405,11 +2405,11 @@ class YadoCreater(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
         s = self._msg1
-        w1, h1, _lineheight = dc.GetMultiLineTextExtent(s)
+        w1, h1, _lineheight = dc.GetFullMultiLineTextExtent(s)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(16))
         dc.SetFont(font)
         s = self._msg2
-        w2, h2, _lineheight = dc.GetMultiLineTextExtent(s)
+        w2, h2, _lineheight = dc.GetFullMultiLineTextExtent(s)
         mw = max(w1, w2)
 
         sizer_1.Add((cardw+mw+cw.wins(30), h1+h2+cw.wins(25)), 0, 0, 0)
@@ -2771,7 +2771,7 @@ class DesignPanel(AdventurerCreaterPage):
             self.can_loaded_scaledimage = True
         else:
             self.can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
-        self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+        self.ch_imgdpath.SetToolTip(self.ch_imgdpath.GetLabelText())
         self.draw(True)
 
     def _do_layout(self):
@@ -2847,7 +2847,7 @@ class DesignPanel(AdventurerCreaterPage):
         pos = (x+cw.wins(cw.SIZE_CARDIMAGE[0]+20), y+(cw.wins(cw.SIZE_CARDIMAGE[1])-bmp.GetHeight())//2)
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
-        dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
+        dc.SetClippingRegion(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1]))
         if self.is_changedimgpath():
             can_loaded_scaledimage = True
         else:

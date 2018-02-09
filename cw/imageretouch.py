@@ -95,7 +95,7 @@ def to_negative_for_wxcard(wxbmp, framewidth=0):
     w, h = wxbmp.GetWidth(), wxbmp.GetHeight()
 
     dc = wx.MemoryDC()
-    image = wx.EmptyBitmap(w, h)
+    image = cw.util.empty_bitmap(w, h)
     dc.SelectObject(image)
     dc.DrawBitmap(wxbmp, cw.wins(0), cw.wins(0))
     if cw.wins(1 + framewidth*2) <= w and cw.wins(1 + framewidth*2) <= h:
@@ -805,14 +805,14 @@ def to_disabledimage(wxbmp, maskpos=(0, 0)):
         func = _to_disabledimage
 
     wximg = wxbmp.ConvertToImage().ConvertToGreyscale()
-    buf = str(wximg.GetDataBuffer())
+    buf = wximg.GetDataBuffer()
     buf = bytearray(buf)
     w = wximg.GetWidth()
     h = wximg.GetHeight()
     func(buf, (w, h))
 
-    wximg = wx.ImageFromBuffer(w, h, buffer(buf))
-    wxbmp = wx.BitmapFromImage(wximg)
+    wximg = wx.ImageFromBuffer(w, h, buf)
+    wxbmp = wx.Bitmap(wximg)
     x, y = maskpos
     wxbmp.SetMaskColour((wximg.GetRed(x, y), wximg.GetGreen(x, y), wximg.GetBlue(x, y)))
     return wxbmp
@@ -852,7 +852,7 @@ def add_lightness_for_wxbmp(wxbmp, lightness, maskpos=(0, 0)):
         func = _add_lightness
 
     wximg = wxbmp.ConvertToImage().ConvertToGreyscale()
-    buf = str(wximg.GetDataBuffer())
+    buf = wximg.GetDataBuffer()
     alphabuf = wximg.GetAlphaBuffer()
     buf = bytearray(buf)
     w = wximg.GetWidth()
@@ -860,7 +860,7 @@ def add_lightness_for_wxbmp(wxbmp, lightness, maskpos=(0, 0)):
     func(buf, (w, h), lightness)
 
     wximg = wx.ImageFromBuffer(w, h, buffer(buf), alphaBuffer=alphabuf)
-    wxbmp = wx.BitmapFromImage(wximg)
+    wxbmp = wx.Bitmap(wximg)
     x, y = maskpos
     wxbmp.SetMaskColour((wximg.GetRed(x, y), wximg.GetGreen(x, y), wximg.GetBlue(x, y)))
     return wxbmp
@@ -909,10 +909,13 @@ def patch_alphadata(image, ext, data):
 
 def mul_wxalpha(wximg, alpha):
     """alpha/255分まで、wximgのアルファ値を減少させる。"""
-    buf = wximg.GetAlphaData()
+    if not wximg.HasAlpha():
+        wximg.InitAlpha()
+    buf = bytearray(wximg.GetAlphaBuffer())
     assert len(buf) == wximg.GetWidth() * wximg.GetHeight()
+    buf = str(buf)
     buf = _imageretouch.mul_alphaonly(buf, alpha)
-    wximg.SetAlphaData(buf)
+    wximg.SetAlphaBuffer(buf)
     return wximg
 
 def mul_alpha(image, alpha):

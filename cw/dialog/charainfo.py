@@ -614,7 +614,6 @@ class TopPanel(wx.Panel):
 
         backcolor = self.GetBackgroundColour()
 
-        dc.BeginDrawing()
         # カード画像の後ろにある羽みたいなの
         cw.util.draw_center(dc, self.wing, (self.Parent.width/2, cw.wins(52)))
         # カード画像
@@ -717,7 +716,6 @@ class TopPanel(wx.Panel):
             gcdc.SetPen(wx.Pen(linecolour))
             gcdc.SetBrush(wx.TRANSPARENT_BRUSH)
             gcdc.DrawRoundedRectangle(x-1, y-1, w+2, h+2, rad)
-            gcdc.EndDrawing()
 
         self.baselevel = baselevel
 
@@ -755,7 +753,6 @@ class TopPanel(wx.Panel):
             s = self.age + self.sex
             w = dc.GetTextExtent(s)[0]
             cw.util.draw_witharound_simple(dc, s, width2 - w, cw.wins(82), backcolor)
-            dc.EndDrawing()
 
         # 親ウィンドウの再描画を行える場合は呼び出し
         if self.redrawfunc:
@@ -952,9 +949,9 @@ class HistoryPanel(wx.ScrolledWindow):
         w, h = bmp.GetWidth(), bmp.GetHeight()
 
         img = bmp.ConvertToImage()
-        img.SetAlphaData(chr(128) * (w*h))
+        img.SetAlphaBuffer(chr(128) * (w*h))
         bmp = img.ConvertToBitmap()
-        wxbmp = wx.EmptyBitmap(w, h)
+        wxbmp = cw.util.empty_bitmap(w, h)
         dc = wx.MemoryDC()
         dc.SelectObject(wxbmp)
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 255)))
@@ -1282,7 +1279,6 @@ class EditPanel(wx.Panel):
         else:
             dc = wx.PaintDC(self)
 
-        dc.BeginDrawing()
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
@@ -1847,7 +1843,6 @@ class CardPanel(wx.Panel):
         else:
             dc = wx.PaintDC(self)
 
-        dc.BeginDrawing()
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
         # 所持スキル
@@ -1922,7 +1917,6 @@ class CardPanel(wx.Panel):
 
         # カード枚数
         dc.DrawText(self._get_cardnum(), cw.wins(10), cw.wins(10))
-        dc.EndDrawing()
 
         if update:
             self.Refresh()

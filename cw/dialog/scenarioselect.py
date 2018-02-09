@@ -87,7 +87,7 @@ class ScenarioSelect(select.Select):
             btn.SetBitmapFocus(bmp2)
             btn.SetBitmapLabel(bmp2, False)
             btn.SetBitmapSelected(bmp2)
-            btn.SetToolTipString(msg)
+            btn.SetToolTip(msg)
             return btn, bmp, dbmp
         self.unfitness, self.bmp_unfitness, self.dbmp_unfitness = create_btn(cw.cwpy.msgs["show_unfitness_scenario"],
                                                                              cw.cwpy.rsrc.dialogs["SUMMARY_UNFITNESS"],
@@ -130,7 +130,7 @@ class ScenarioSelect(select.Select):
         self.tree.imgidx_dir = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["DIRECTORY"])
         self.tree.imgidx_findresult = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["FIND_SCENARIO"])
         self.tree.root = self.tree.AddRoot(self.scedir)
-        self.tree.SetItemPyData(self.tree.root, (0, self.scedir))
+        self.tree.SetItemData(self.tree.root, (0, self.scedir))
         self.tree.SetImageList(self.tree.imglist)
         self.tree.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self._no_treechangedsound = False
@@ -622,7 +622,7 @@ class ScenarioSelect(select.Select):
         if self.tree and self.tree.IsShown():
             item, _cookie = self.tree.GetFirstChild(self.tree.root)
             if item and item.IsOk():
-                data = self.tree.GetItemPyData(item)
+                data = self.tree.GetItemData(item)
                 if data and isinstance(data[1], FindResult):
                     self.tree.Delete(item)
             item = self._create_findresultitem(0, self.tree.root, findresult)
@@ -630,10 +630,10 @@ class ScenarioSelect(select.Select):
             self.tree.Expand(item)
             item = self.tree.GetNextSibling(item)
             while item and item.IsOk():
-                data = self.tree.GetItemPyData(item)
+                data = self.tree.GetItemData(item)
                 if data and updateindex:
                     index, header = data
-                    self.tree.SetItemPyData(item, (index+1, header))
+                    self.tree.SetItemData(item, (index+1, header))
                 item = self.tree.GetNextSibling(item)
             if headers and selfirstheader:
                 item, _cookie = self.tree.GetFirstChild(parent)
@@ -680,52 +680,52 @@ class ScenarioSelect(select.Select):
             self._install = wx.MenuItem(menu, -1, cw.cwpy.msgs["install_scenario"])
             self._install.SetBitmap(cw.cwpy.rsrc.dialogs["INSTALL_SCENARIO"])
             self._install.SetFont(font)
-            menu.AppendItem(self._install)
+            menu.Append(self._install)
             # フォルダの作成
             menu.AppendSeparator()
             self._createdir = wx.MenuItem(menu, -1, cw.cwpy.msgs["create_directory"])
             self._createdir.SetBitmap(cw.cwpy.rsrc.dialogs["CREATE_DIRECTORY"])
             self._createdir.SetFont(font)
-            menu.AppendItem(self._createdir)
+            menu.Append(self._createdir)
             # 移動
             self._move = wx.MenuItem(menu, -1, cw.cwpy.msgs["move"])
             self._move.SetBitmap(cw.cwpy.rsrc.dialogs["MOVE_FILE"])
             self._move.SetFont(font)
-            menu.AppendItem(self._move)
+            menu.Append(self._move)
             # 削除
             self._delete = wx.MenuItem(menu, -1, cw.cwpy.msgs["delete"])
             self._delete.SetBitmap(cw.cwpy.rsrc.dialogs["DELETE_FILE"])
             self._delete.SetFont(font)
-            menu.AppendItem(self._delete)
+            menu.Append(self._delete)
             # 名前の変更
             self._rename = wx.MenuItem(menu, -1, cw.cwpy.msgs["rename"])
             self._rename.SetBitmap(cw.cwpy.rsrc.dialogs["RENAME_FILE"])
             self._rename.SetFont(font)
-            menu.AppendItem(self._rename)
+            menu.Append(self._rename)
             if sys.platform == "win32":
                 # ショートカットの作成
                 menu.AppendSeparator()
                 self._create_link_to_scenario = wx.MenuItem(menu, -1, cw.cwpy.msgs["create_link_to_scenario"])
                 self._create_link_to_scenario.SetBitmap(cw.cwpy.rsrc.dialogs["CREATE_LINK_TO_SCENARIO"])
                 self._create_link_to_scenario.SetFont(font)
-                menu.AppendItem(self._create_link_to_scenario)
+                menu.Append(self._create_link_to_scenario)
                 self._create_link_to_dir = wx.MenuItem(menu, -1, cw.cwpy.msgs["create_link_to_directory"])
                 self._create_link_to_dir.SetBitmap(cw.cwpy.rsrc.dialogs["CREATE_LINK_TO_DIRECTORY"])
                 self._create_link_to_dir.SetFont(font)
-                menu.AppendItem(self._create_link_to_dir)
+                menu.Append(self._create_link_to_dir)
             # エクスプローラーで開く
             menu.AppendSeparator()
             self._opendir = wx.MenuItem(menu, -1, cw.cwpy.msgs["open_directory"])
             self._opendir.SetBitmap(cw.cwpy.rsrc.dialogs["DIRECTORY"])
             self._opendir.SetFont(font)
-            menu.AppendItem(self._opendir)
+            menu.Append(self._opendir)
             # エディタで開く
             if cw.cwpy.is_debugmode():
                 menu.AppendSeparator()
                 self._editor = wx.MenuItem(menu, -1, cw.cwpy.msgs["open_with_editor"])
                 self._editor.SetBitmap(cw.cwpy.rsrc.dialogs["EDITOR"])
                 self._editor.SetFont(font)
-                menu.AppendItem(self._editor)
+                menu.Append(self._editor)
             else:
                 self._editor = None
 
@@ -796,13 +796,13 @@ class ScenarioSelect(select.Select):
         self._add_bookmark = wx.MenuItem(menu, -1, cw.cwpy.msgs["add_bookmark"])
         self._add_bookmark.SetBitmap(icon_add)
         self._add_bookmark.SetFont(font)
-        menu.AppendItem(self._add_bookmark)
+        menu.Append(self._add_bookmark)
         menu.Bind(wx.EVT_MENU, self.OnAddBookmark, self._add_bookmark)
 
         self._arrange_bookmark = wx.MenuItem(menu, -1, cw.cwpy.msgs["arrange_bookmark"])
         self._arrange_bookmark.SetBitmap(icon_arrange)
         self._arrange_bookmark.SetFont(font)
-        menu.AppendItem(self._arrange_bookmark)
+        menu.Append(self._arrange_bookmark)
         menu.Bind(wx.EVT_MENU, self.OnArrangeBookmark, self._arrange_bookmark)
 
         # ブックマークを開くためのユーティリティクラス
@@ -876,7 +876,7 @@ class ScenarioSelect(select.Select):
                     item.SetBitmap(icon_dir)
 
                 openbookmark = OpenBookmark(self, bookmark, bookmarkpath)
-                menu.AppendItem(item)
+                menu.Append(item)
                 menu.Bind(wx.EVT_MENU, openbookmark.OnOpen, item)
 
     def OnAddBookmark(self, event):
@@ -944,7 +944,7 @@ class ScenarioSelect(select.Select):
         selitem = self.tree.GetSelection()
         if not selitem:
             return
-        data = self.tree.GetItemPyData(selitem)
+        data = self.tree.GetItemData(selitem)
         if not data:
             return
         _index, pathorheader = data
@@ -972,7 +972,7 @@ class ScenarioSelect(select.Select):
         selitem = self.tree.GetSelection()
         if not selitem:
             return
-        data = self.tree.GetItemPyData(selitem)
+        data = self.tree.GetItemData(selitem)
         if not data:
             return
         _index, pathorheader = data
@@ -1108,7 +1108,7 @@ class ScenarioSelect(select.Select):
                         paritem = treeitem
                         item, cookie = self.tree.GetFirstChild(paritem)
                         while item.IsOk():
-                            data = self.tree.GetItemPyData(item)
+                            data = self.tree.GetItemData(item)
                             assert not data is None
                             index, header = data
                             if not isinstance(header, cw.header.ScenarioHeader) and\
@@ -1118,7 +1118,7 @@ class ScenarioSelect(select.Select):
                                 treeitem = item
                                 if not self.tree.IsExpanded(item) or\
                                         (self.tree.GetChildrenCount(item, False) and\
-                                         not self.tree.GetItemPyData(self.tree.GetFirstChild(item)[0])):
+                                         not self.tree.GetItemData(self.tree.GetFirstChild(item)[0])):
                                     self.tree.Expand(item)
                                     self.create_treeitems(item)
                                     updatetree = False
@@ -1396,10 +1396,10 @@ class ScenarioSelect(select.Select):
         assert item.IsOk()
         item = self.tree.GetNextSibling(item)
         while item and item.IsOk():
-            data = self.tree.GetItemPyData(item)
+            data = self.tree.GetItemData(item)
             if data:
                 index, header = data
-                self.tree.SetItemPyData(item, (index - 1, header))
+                self.tree.SetItemData(item, (index - 1, header))
             item = self.tree.GetNextSibling(item)
 
     def OnRenameBtn(self, event):
@@ -1607,7 +1607,7 @@ class ScenarioSelect(select.Select):
                 self._no_treechangedsound = True
                 selitem = self.tree.GetSelection()
                 item = self.tree.GetFirstChild(selitem)[0]
-                if not item.IsOk() or not self.tree.GetItemPyData(item):
+                if not item.IsOk() or not self.tree.GetItemData(item):
                     self.create_treeitems(selitem)
                     item = self.tree.GetFirstChild(selitem)[0]
                 if item.IsOk():
@@ -1844,7 +1844,7 @@ class ScenarioSelect(select.Select):
 
     def OnDestroy(self, event):
         self.db.close()
-        if self.bookmarkmenu:
+        if self and self.bookmarkmenu:
             self.bookmarkmenu.Destroy()
 
     def _on_narrowcondition(self):
@@ -2002,7 +2002,7 @@ class ScenarioSelect(select.Select):
                 item, cookie = self.tree.GetFirstChild(parent)
                 while item.IsOk():
                     s = self.tree.GetItemText(item)
-                    data = self.tree.GetItemPyData(item)
+                    data = self.tree.GetItemData(item)
                     if not data is None:
                         index, header = data
                         if not isinstance(header, cw.header.ScenarioHeader):
@@ -2323,7 +2323,7 @@ class ScenarioSelect(select.Select):
                 return
             paritem = self.tree.GetItemParent(selitem)
             def recurse(parent):
-                index, nowdir = self.tree.GetItemPyData(parent)
+                index, nowdir = self.tree.GetItemData(parent)
                 nowdir = self._get_linktarget(nowdir)
                 if not nowdir in self.scetable:
                     return
@@ -2331,7 +2331,7 @@ class ScenarioSelect(select.Select):
                 item, cookie = self.tree.GetFirstChild(parent)
                 delitems = []
                 while item.IsOk():
-                    data = self.tree.GetItemPyData(item)
+                    data = self.tree.GetItemData(item)
                     if not data is None:
                         index, header = data
                         if isinstance(header, cw.header.ScenarioHeader):
@@ -2401,7 +2401,7 @@ class ScenarioSelect(select.Select):
             self.tree.Hide()
 
         self.tree.DeleteChildren(treeitem)
-        index, nowdir = self.tree.GetItemPyData(treeitem)
+        index, nowdir = self.tree.GetItemData(treeitem)
         nowdir = self._get_linktarget(nowdir)
         itemlist = []
         dpaths = []
@@ -2424,9 +2424,9 @@ class ScenarioSelect(select.Select):
                 if sys.platform == "win32" and name.lower().endswith(".lnk"):
                     name = cw.util.splitext(name)[0]
                 item = self.tree.AppendItem(treeitem, name, image)
-                self.tree.SetItemPyData(item, (index, dpath))
+                self.tree.SetItemData(item, (index, dpath))
                 child = self.tree.AppendItem(item, u"読込中...")
-                self.tree.SetItemPyData(child, None)
+                self.tree.SetItemData(child, None)
                 self.tree.Collapse(item)
                 itemlist.append(item)
                 dpaths.append(dpath)
@@ -2445,13 +2445,13 @@ class ScenarioSelect(select.Select):
 
     def _create_findresultitem(self, index, treeitem, findresult):
         image = self.tree.imgidx_findresult
-        item = self.tree.InsertItemBefore(treeitem, index, cw.cwpy.msgs["find_result"], image)
-        self.tree.SetItemPyData(item, (index, findresult))
+        item = self.tree.InsertItem(treeitem, index, cw.cwpy.msgs["find_result"], image)
+        self.tree.SetItemData(item, (index, findresult))
         if findresult.headers:
             self.create_treeitems(item)
         else:
             child = self.tree.AppendItem(item, cw.cwpy.msgs["find_notfound"])
-            self.tree.SetItemPyData(child, None)
+            self.tree.SetItemData(child, None)
         return item
 
     def _formatted_mtime(self, mtime, showtime):
@@ -2495,7 +2495,7 @@ class ScenarioSelect(select.Select):
             name = u"%s (%s)" % (name, header.author)
 
         item = self.tree.AppendItem(treeitem, name, image)
-        self.tree.SetItemPyData(item, (index, header))
+        self.tree.SetItemData(item, (index, header))
         return item
 
     def show_tree(self, freeze=True):
@@ -2533,7 +2533,7 @@ class ScenarioSelect(select.Select):
                         self._tree_selchanged()
 
                 # 検索結果ディレクトリを選択中であれば展開する
-                data = self.tree.GetItemPyData(treeitem)
+                data = self.tree.GetItemData(treeitem)
                 if data and isinstance(data[1], FindResult):
                     self.tree.Expand(treeitem)
                 break
@@ -2546,7 +2546,7 @@ class ScenarioSelect(select.Select):
         self._expand_tree(selitem)
 
     def _expand_tree(self, selitem):
-        data = self.tree.GetItemPyData(selitem)
+        data = self.tree.GetItemData(selitem)
         if data is None or isinstance(data[1], FindResult):
             return
         _index, dpath = data
@@ -2558,18 +2558,18 @@ class ScenarioSelect(select.Select):
         if self._processing:
             return
 
-        data = self.tree.GetItemPyData(selitem)
+        data = self.tree.GetItemData(selitem)
         if data and isinstance(data[1], FindResult):
             # 検索結果に対しては何もしない
             return
 
         item, _cookie = self.tree.GetFirstChild(selitem)
-        data = self.tree.GetItemPyData(item)
+        data = self.tree.GetItemData(item)
         if not data is None:
             # 読込済み
             return
 
-        _index, dpath = self.tree.GetItemPyData(selitem)
+        _index, dpath = self.tree.GetItemData(selitem)
         ndpath = cw.util.get_linktarget(dpath)
         ndpath = os.path.abspath(ndpath)
         ndpath = os.path.normpath(ndpath)
@@ -2598,7 +2598,7 @@ class ScenarioSelect(select.Select):
 
     def _collapse_tree(self, item):
         # 一旦リストをクリアして次に開いた時に再読込を行う
-        data = self.tree.GetItemPyData(item)
+        data = self.tree.GetItemData(item)
         if data and isinstance(data[1], FindResult):
             # 検索結果はクリアしない
             self.tree.Collapse(item)
@@ -2613,7 +2613,7 @@ class ScenarioSelect(select.Select):
         del self.scetable[nowdir]
         self.tree.DeleteChildren(item)
         child = self.tree.AppendItem(item, u"読込中...")
-        self.tree.SetItemPyData(child, None)
+        self.tree.SetItemData(child, None)
         self.tree.Collapse(item)
 
     def OnTreeSelChanged(self, event):
@@ -2636,15 +2636,15 @@ class ScenarioSelect(select.Select):
             return
         paritem = self.tree.GetItemParent(selitem)
 
-        if self.tree.GetItemPyData(selitem) is None:
+        if self.tree.GetItemData(selitem) is None:
             # "読込中..."なので一つ上の階層を選択
             selitem = paritem
             paritem = self.tree.GetItemParent(selitem)
         if not paritem:
             return
 
-        _index, self.nowdir = self.tree.GetItemPyData(paritem)
-        self.index, _pathorheader = self.tree.GetItemPyData(selitem)
+        _index, self.nowdir = self.tree.GetItemData(paritem)
+        self.index, _pathorheader = self.tree.GetItemData(selitem)
 
         self.list = self._get_nowlist(update=False)
         self.scetable[self._get_linktarget(self.nowdir)] = self.list
@@ -2659,8 +2659,8 @@ class ScenarioSelect(select.Select):
     def get_dirstack(self, paritem):
         dirstack = []
         while paritem:
-            _i, parpath = self.tree.GetItemPyData(paritem)
-            _i, selpath = self.tree.GetItemPyData(paritem)
+            _i, parpath = self.tree.GetItemData(paritem)
+            _i, selpath = self.tree.GetItemData(paritem)
             if isinstance(parpath, FindResult):
                 parpath = self.scedir
             else:
@@ -2712,7 +2712,7 @@ class ScenarioSelect(select.Select):
 
             parent = None
             while item.IsOk():
-                _i, data = self.tree.GetItemPyData(item)
+                _i, data = self.tree.GetItemData(item)
                 if not data:
                     break
                 if isinstance(data, (cw.header.ScenarioHeader, FindResult)):
@@ -2742,7 +2742,7 @@ class ScenarioSelect(select.Select):
         ##baseitem = item
         ##
         ##def expand(item):
-        ##    data = self.tree.GetItemPyData(item)
+        ##    data = self.tree.GetItemData(item)
         ##    if not data is None:
         ##        index, header = data
         ##        if not isinstance(header, (cw.header.ScenarioHeader, FindResult)):
@@ -2771,7 +2771,7 @@ class ScenarioSelect(select.Select):
         ### サブディレクトリがない場合は次のアイテムを選択
         ### それもない場合は上位ディレクトリへ遡る
         ##while baseitem and baseitem.IsOk():
-        ##    data = self.tree.GetItemPyData(baseitem)
+        ##    data = self.tree.GetItemData(baseitem)
         ##    if data and data[1] == startdir:
         ##        return
         ##
@@ -3201,7 +3201,7 @@ class ScenarioSelect(select.Select):
             else:
                 item = self.tree.AppendItem(parent, name, image)
             self.tree.SelectItem(item)
-            self.tree.SetItemPyData(item, (self.index, header))
+            self.tree.SetItemData(item, (self.index, header))
 
         cw.cwpy.play_sound("page")
         self.draw(True)

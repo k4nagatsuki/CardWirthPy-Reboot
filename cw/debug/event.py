@@ -69,6 +69,8 @@ class EventListDialog(wx.Dialog):
             self.startbtn.Disable()
 
     def OnTreeSelChanged(self, event):
+        if not self:
+            return
         self._changed_selection()
 
     def OnShowAllCards(self, event):
@@ -135,7 +137,7 @@ class EventList(wx.TreeCtrl):
                 if fpath is None:
                     continue
                 item = self.AppendItem(self.root, name, imgidx)
-                self.SetItemPyData(item, (name, resid, getdata, getfpath, False))
+                self.SetItemData(item, (name, resid, getdata, getfpath, False))
                 if os.path.normcase(currentfpath) == os.path.normcase(fpath):
                     self._expand_item(item)
                     self.Expand(item)
@@ -168,7 +170,7 @@ class EventList(wx.TreeCtrl):
         paritem = self.GetItemParent(selitem)
         if paritem <> self.root:
             return
-        name, resid, getdata, getfpath, expanded = self.GetItemPyData(selitem)
+        name, resid, getdata, getfpath, expanded = self.GetItemData(selitem)
         if expanded:
             return
 
@@ -178,7 +180,7 @@ class EventList(wx.TreeCtrl):
             if len(e.treekeys) == 0:
                 return
             item = self.AppendItem(parent, e.treekeys[0], self.imgidx_event)
-            self.SetItemPyData(item, e)
+            self.SetItemData(item, e)
             for keynum in e.keynums:
                 if keynum < 0: continue
                 if tag == "Area":
@@ -212,17 +214,17 @@ class EventList(wx.TreeCtrl):
                 else:
                     continue
                 child = self.AppendItem(item, name, self.imgidx_ignition)
-                self.SetItemPyData(child, e)
+                self.SetItemData(child, e)
             for keycode in e.keycodes:
                 if keycode == "MatchingType=All": continue
                 name = keycode
                 child = self.AppendItem(item, name, self.imgidx_keycode)
-                self.SetItemPyData(child, e)
+                self.SetItemData(child, e)
             for keynum in e.keynums:
                 if 0 <= keynum: continue
                 name = u"ラウンド %s" % (-keynum)
                 child = self.AppendItem(item, name, self.imgidx_round)
-                self.SetItemPyData(child, e)
+                self.SetItemData(child, e)
 
         e = getdata(resid)
         if e is None:
@@ -256,7 +258,7 @@ class EventList(wx.TreeCtrl):
                         append(item, ee, ce.tag)
                     self.Expand(item)
 
-        self.SetItemPyData(selitem, (name, resid, getdata, getfpath, not virtual))
+        self.SetItemData(selitem, (name, resid, getdata, getfpath, not virtual))
         if not self.ItemHasChildren(selitem):
             self.AppendItem(selitem, u"読込中...")
 
@@ -270,8 +272,8 @@ class EventList(wx.TreeCtrl):
             item, cookie = self.GetFirstChild(self.root)
             self.Freeze()
             while item.IsOk():
-                name, resid, getdata, getfpath, expanded = self.GetItemPyData(item)
-                self.SetItemPyData(item, (name, resid, getdata, getfpath, False))
+                name, resid, getdata, getfpath, expanded = self.GetItemData(item)
+                self.SetItemData(item, (name, resid, getdata, getfpath, False))
                 if self.IsExpanded(item):
                     self._expand_item(item)
                 else:
@@ -286,11 +288,11 @@ class EventList(wx.TreeCtrl):
         selitem = self.GetSelection()
         if not selitem:
             return None
-        data = self.GetItemPyData(selitem)
+        data = self.GetItemData(selitem)
         if isinstance(data, cw.event.Event):
             return data
         else:
-            data = self.GetItemPyData(selitem)
+            data = self.GetItemData(selitem)
             if not data is None:
                 name, resid, getdata, getfpath, expanded = data
                 if not expanded:
@@ -299,7 +301,7 @@ class EventList(wx.TreeCtrl):
                     self.Thaw()
             child, _cookie = self.GetFirstChild(selitem)
             if child and child.IsOk():
-                data = self.GetItemPyData(child)
+                data = self.GetItemData(child)
                 if isinstance(data, cw.event.Event):
                     return data
 
@@ -315,5 +317,5 @@ class EventList(wx.TreeCtrl):
             selitem = parent
             parent = self.GetItemParent(selitem)
 
-        _name, resid, _getdata, getfpath, _expanded = self.GetItemPyData(selitem)
+        _name, resid, _getdata, getfpath, _expanded = self.GetItemData(selitem)
         return getfpath(resid)

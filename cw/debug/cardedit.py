@@ -5,7 +5,7 @@ import os
 import sys
 import threading
 import wx
-import wx.combo
+import wx.adv
 import wx.lib.agw.customtreectrl
 
 import cw
@@ -61,7 +61,7 @@ class CardEditDialog(wx.Dialog):
         self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST_dbg"])
 
         self.cards = wx.ListCtrl(self, -1, size=cw.ppis((200, 250)),
-            style=wx.LC_REPORT)
+            style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
         self.cards.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.cards.InsertColumn(0, "ID")
         self.cards.InsertColumn(1, u"カード名")
@@ -70,7 +70,7 @@ class CardEditDialog(wx.Dialog):
         self.cards.SetColumnWidth(1, cw.ppis(85))
         self.cards.SetColumnWidth(2, cw.ppis(110))
 
-        self.dealtarg = wx.combo.BitmapComboBox(self, -1, style=wx.CB_READONLY)
+        self.dealtarg = wx.adv.BitmapComboBox(self, -1, style=wx.CB_READONLY)
         self.notcast = 0
         if not (cw.cwpy.ydata.party and\
                 cw.cwpy.ydata.party.is_adventuring()):
@@ -268,12 +268,12 @@ class CardEditDialog(wx.Dialog):
 
         self._add_bookmark = wx.MenuItem(menu, -1, u"ブックマークの登録")
         self._add_bookmark.SetBitmap(icon_add)
-        menu.AppendItem(self._add_bookmark)
+        menu.Append(self._add_bookmark)
         menu.Bind(wx.EVT_MENU, self.OnAddBookmark, self._add_bookmark)
 
         self._arrange_bookmark = wx.MenuItem(menu, -1, u"ブックマークの整理")
         self._arrange_bookmark.SetBitmap(icon_arrange)
-        menu.AppendItem(self._arrange_bookmark)
+        menu.Append(self._arrange_bookmark)
         menu.Bind(wx.EVT_MENU, self.OnArrangeBookmark, self._arrange_bookmark)
 
         # ブックマークを開くためのユーティリティクラス
@@ -298,7 +298,7 @@ class CardEditDialog(wx.Dialog):
                 item = wx.MenuItem(menu, -1, s.replace("&", "&&"))
                 item.SetBitmap(icon_summary)
                 openbookmark = OpenBookmark(self, bookmarkpath)
-                menu.AppendItem(item)
+                menu.Append(item)
                 menu.Bind(wx.EVT_MENU, openbookmark.OnOpen, item)
 
     def OnAddBookmark(self, event):
@@ -824,9 +824,9 @@ class CardEditDialog(wx.Dialog):
 
                 header = cw.header.CardHeader(carddata=data.getroot(), from_scenario=True, scedir=self.scdata.scedir)
                 header.negaflag = False
-                self.cards.InsertStringItem(index, str(header.id))
-                self.cards.SetStringItem(index, 1, header.name)
-                self.cards.SetStringItem(index, 2, header.desc.replace("\\n", ""))
+                self.cards.InsertItem(index, str(header.id))
+                self.cards.SetItem(index, 1, header.name)
+                self.cards.SetItem(index, 2, header.desc.replace("\\n", ""))
                 self.cards.SetItemImage(index, image, image)
                 self.list.append(header)
                 self.datalist.append(data)

@@ -128,7 +128,7 @@ class SkinConversionDialog(wx.Dialog):
         y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) / 2
         x += dlg.Parent.GetPosition()[0]
         y += dlg.Parent.GetPosition()[1]
-        dlg.MoveXY(x, y)
+        dlg.SetPosition((x, y))
 
         def progress():
             while not self.conv.complete:
@@ -786,7 +786,7 @@ class SkinFeaturePanel(wx.Panel):
             row = get_rowdata(data, row)
 
     def _do_layout(self):
-        sizer = wx.GridSizer(1, 1)
+        sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
         sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -828,7 +828,7 @@ class SkinSoundPanel(wx.Panel):
             e.text = self.grid.GetCellValue(row, 0)
 
     def _do_layout(self):
-        sizer = wx.GridSizer(1, 1)
+        sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
         sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -951,7 +951,7 @@ class SkinMessagePanel(wx.Panel):
         row += 1
 
     def _do_layout(self):
-        sizer = wx.GridSizer(1, 1)
+        sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
         sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -1083,7 +1083,7 @@ class SkinCardPanel(wx.Panel):
         row = get_areacards(conv.gameover, row)
 
     def _do_layout(self):
-        sizer = wx.GridSizer(1, 1)
+        sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
         sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)

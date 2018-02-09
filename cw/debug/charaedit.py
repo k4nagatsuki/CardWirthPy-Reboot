@@ -784,7 +784,7 @@ class CharaRequirementPanel(wx.Panel):
 
     def _do_layout(self):
         sizer_name = wx.StaticBoxSizer(self.namebox, wx.HORIZONTAL)
-        sizer_name.AddSpacer(cw.ppis((5, 0)))
+        sizer_name.Add(cw.ppis(5), 0, 0)
         sizer_name.Add(self.name, 1, wx.RIGHT|wx.BOTTOM|wx.CENTER, cw.ppis(2))
         sizer_name.Add(self.autoname, 0, wx.RIGHT|wx.BOTTOM|wx.CENTER, cw.ppis(5))
 

@@ -48,7 +48,7 @@ class ProgressDialog(wx.Dialog):
 
     def OnPaint(self, event):
         csize = self.GetClientSize()
-        wxbmp = wx.EmptyBitmap(csize[0], csize[1])
+        wxbmp = cw.util.empty_bitmap(csize[0], csize[1])
         dc = wx.MemoryDC(wxbmp)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]

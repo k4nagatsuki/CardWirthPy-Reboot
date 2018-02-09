@@ -273,10 +273,10 @@ class CWBinaryBase(object):
 
         if convertbitmap and cw.util.get_imageext(image) <> ".bmp":
             with io.BytesIO(image) as f:
-                data = wx.ImageFromStream(f)
+                data = wx.Image(f)
                 f.close()
             with io.BytesIO() as f:
-                data.SaveStream(f, wx.BITMAP_TYPE_BMP)
+                data.SaveFile(f, wx.BITMAP_TYPE_BMP)
                 image = f.getvalue()
                 f.close()
 

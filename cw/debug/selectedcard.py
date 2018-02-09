@@ -45,7 +45,7 @@ class SelectedCardDialog(wx.Dialog):
                 else:
                     assert False, header.type
                 citem = self.cards.AppendItem(item, header.name, icon)
-                self.cards.SetItemPyData(citem, header)
+                self.cards.SetItemData(citem, header)
                 if header == self._selectedcard:
                     self.cards.SelectItem(citem)
             if 0 < i:
@@ -84,12 +84,12 @@ class SelectedCardDialog(wx.Dialog):
 
     def _bind(self):
         self.cards.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
-        self.cards.Bind(wx.EVT_LEFT_DCLICK, self.OnOkBtn)
+        self.cards.Bind(wx.EVT_LEFT_DCLICK, self.OnTreeDClick)
 
     def _changed_selection(self):
         selitem = self.cards.GetSelection()
         if selitem:
-            header = self.cards.GetItemPyData(selitem)
+            header = self.cards.GetItemData(selitem)
         else:
             header = None
 
@@ -101,7 +101,16 @@ class SelectedCardDialog(wx.Dialog):
             self.okbtn.Disable()
 
     def OnTreeSelChanged(self, event):
+        if not self:
+            return
         self._changed_selection()
+
+    def OnTreeDClick(self, event):
+        selitem = self.cards.GetSelection()
+        if selitem:
+            header = self.cards.GetItemData(selitem)
+            if header:
+                self.EndModal(wx.ID_OK)
 
     def OnOkBtn(self, event):
         self.EndModal(wx.ID_OK)

@@ -152,7 +152,6 @@ class Frame(wx.Frame):
     def set_icon(self, win):
         if sys.platform == "win32":
             icon = wx.Icon(sys.executable, wx.BITMAP_TYPE_ICO)
-            icon.SetSize(wx.ArtProvider.GetSizeHint(wx.ART_FRAME_ICON))
             win.SetIcon(icon)
 
     def get_displaysize(self):
@@ -316,12 +315,12 @@ class Frame(wx.Frame):
                 cw.cwpy.exec_func(func)
             dlg.Show()
 
-    @synclock(cw.debug.debugger.mutex)
     def close_debugger(self):
         """デバッガ閉じる。"""
         if self.debugger:
-            self.debugger.Destroy()
+            debugger = self.debugger
             self.debugger = None
+            debugger.Close()
             def func():
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
                 cw.cwpy.draw()
@@ -331,6 +330,8 @@ class Frame(wx.Frame):
         """wxPythonスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
         """
+        if not self:
+            return
         event = wx.PyCommandEvent(self._EVTTYPE_EXECFUNC)
         event.func = func
         event.args = args
@@ -345,6 +346,8 @@ class Frame(wx.Frame):
         if self.thread == threading.currentThread():
             return func(*args, **kwargs)
         else:
+            if not self:
+                return
             self._sync_result = None
             self._sync_running = True
             def func2(*args, **kwargs):
@@ -537,9 +540,6 @@ class Frame(wx.Frame):
                 db.close()
 
     def OnDestroy(self, event):
-        if self.debugger:
-            self.debugger.Destroy()
-
         cw.cwpy._running = False
 
         while threading.activeCount() > self.initialThreadCount:
@@ -587,6 +587,8 @@ class Frame(wx.Frame):
         if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
             self.OnCLOSE(event)
         else:
+            if self.debugger:
+                self.debugger.Close()
             self.Destroy()
 
     def OnMove(self, event):
@@ -614,6 +616,8 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg)
         if result == wx.ID_OK:
+            if self.debugger:
+                self.debugger.Close()
             self.Destroy()
 
     def OnSETTINGS(self, event):
@@ -1028,6 +1032,8 @@ class Frame(wx.Frame):
             parent.after_message()
 
         if shutdown:
+            if self.debugger:
+                self.debugger.Close()
             self.Destroy()
         else:
             self.kill_dlg(dlg)
@@ -1101,7 +1107,7 @@ class Frame(wx.Frame):
             x += int(point[0] * cw.cwpy.scr_scale)
             y += int(point[1] * cw.cwpy.scr_scale)
 
-            dlg.MoveXY(x, y)
+            dlg.SetPosition((x, y))
 
         # モニタ内に収める
         cw.util.adjust_position(dlg)
@@ -1230,7 +1236,7 @@ class Frame(wx.Frame):
         mem = wx.MemoryDC(bmp)
         h -= y
         # タイトルバー以外の領域に描画する
-        mem.SetClippingRect(wx.Rect(0, y, w, h))
+        mem.SetClippingRegion(0, y, w, h)
         mem.SetBrush(wx.Brush(back))
         mem.SetPen(wx.Pen(back))
         frect = self.GetRect()
@@ -1245,7 +1251,7 @@ class Frame(wx.Frame):
                     rect = child.GetClientRect()
                     ww = rect[2]
                     wh = rect[3]
-                    bmp = wx.EmptyBitmap(ww, wh)
+                    bmp = cw.util.empty_bitmap(ww, wh)
                     mem2 = wx.MemoryDC(bmp)
                     mem2.Blit(0, 0, ww, wh, dc, 0, 0)
                     del dc
@@ -1288,7 +1294,7 @@ class Frame(wx.Frame):
                     rx, ry, rw, rh = xx - 2, yy - 2, ww + 4, bmp.GetHeight() + 4 + cw.s(pixelsize + 2) + 2
                     mem.DrawRectangle(rx, ry, rw, rh)
                     if cw.cwpy.setting.ssinfobackimage and os.path.isfile(cw.cwpy.setting.ssinfobackimage):
-                        mem.SetClippingRect(wx.Rect(rx, ry, rw, rh))
+                        mem.SetClippingRegion(rx, ry, rw, rh)
                         backimage = cw.util.load_wxbmp(cw.cwpy.setting.ssinfobackimage, False)
                         cw.util.fill_bitmap(mem, cw.s(backimage), csize=(rw, rh), cpos=(rx, ry))
                         mem.DestroyClippingRegion()
@@ -1372,7 +1378,6 @@ class MyApp(wx.App):
             frame = Frame(self)
             self.SetTopWindow(frame)
             frame.Show()
-            self.SetCallFilterEvent(True)
         return True
 
     def OnCloseSkinDialog(self, event):
@@ -1389,9 +1394,6 @@ class MyApp(wx.App):
             frame.Show()
 
     def FilterEvent(self, event):
-        if not (cw.cwpy and cw.cwpy.frame):
-            return -1
-
         if not event:
             return -1
 
@@ -1400,7 +1402,13 @@ class MyApp(wx.App):
         try:
             event.GetEventObject()
         except:
-            return
+            cw.util.print_ex()
+            return -1
+
+        if cw.cwpy and not cw.cwpy._running:
+            return -1
+        if not (cw.cwpy and cw.cwpy.frame):
+            return -1
 
         if cw.cwpy.frame.filter_event:
             if not event.GetEventObject():

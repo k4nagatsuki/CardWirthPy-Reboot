@@ -61,7 +61,7 @@ class Debugger(wx.Frame):
     def __init__(self, parent):
         wx.Frame.__init__(
             self, parent, -1, u"CardWirthPy Debugger", size=wx.DefaultSize,
-            style=wx.CLIP_CHILDREN|wx.CAPTION|wx.RESIZE_BOX|
+            style=wx.CLIP_CHILDREN|wx.CAPTION|
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         self.cwpy_debug = True
         self.SetClientSize((cw.ppis(635), cw.cwpy.frame.GetClientSize()[1]))
@@ -71,7 +71,7 @@ class Debugger(wx.Frame):
         self._mgr = wx.aui.AuiManager()
         self._mgr.SetManagedWindow(self)
         # create status bar
-        self.statusbar = self.CreateStatusBar(1, wx.ST_SIZEGRIP)
+        self.statusbar = self.CreateStatusBar(1, wx.STB_SIZEGRIP)
         self.statusbar.SetStatusWidths([-1])
 
         # 最後に強制実行したイベントが属するファイルパス
@@ -97,129 +97,129 @@ class Debugger(wx.Frame):
         self.mi_editor = wx.MenuItem(file_menu, ID_EDITOR, u"エディタで開く(&O)\tCtrl+E",
                          u"シナリオをエディタで開きます。")
         self.mi_editor.SetBitmap(rsrc["EDITOR"])
-        file_menu.AppendItem(self.mi_editor)
+        file_menu.Append(self.mi_editor)
         file_menu.AppendSeparator()
         self.mi_save = wx.MenuItem(file_menu, ID_SAVE, u"セーブ(&S)\tCtrl+S",
                          u"状況を記録します。")
         self.mi_save.SetBitmap(rsrc["SAVE"])
-        file_menu.AppendItem(self.mi_save)
+        file_menu.Append(self.mi_save)
         self.mi_load = wx.MenuItem(file_menu, ID_LOAD, u"ロード(&L)\tCtrl+O",
                          u"状況を再現します。")
         self.mi_load.SetBitmap(rsrc["LOAD"])
-        file_menu.AppendItem(self.mi_load)
+        file_menu.Append(self.mi_load)
         file_menu.AppendSeparator()
         self.mi_loadyado = wx.MenuItem(file_menu, ID_LOAD_YADO, u"最終セーブに戻す(&R)\tCtrl+L",
                          u"最後にセーブした状態に戻します。")
         self.mi_loadyado.SetBitmap(rsrc["LOAD_YADO"])
-        file_menu.AppendItem(self.mi_loadyado)
+        file_menu.Append(self.mi_loadyado)
         file_menu.AppendSeparator()
         self.mi_break = wx.MenuItem(file_menu, ID_BREAK, u"シナリオ中断(&E)\tCtrl+X",
                          u"シナリオを中断して、冒険者の宿に戻ります。")
         self.mi_break.SetBitmap(rsrc["BREAK"])
-        file_menu.AppendItem(self.mi_break)
+        file_menu.Append(self.mi_break)
         file_menu.AppendSeparator()
         self.mi_quit_debugmode = wx.MenuItem(file_menu, ID_QUIT_DEBUG_MODE, u"デバッグモードの終了(&Q)\tCtrl+D",
                          u"デバッガを閉じてデバッグモードを終了します。")
         self.mi_quit_debugmode.SetBitmap(rsrc["QUIT_DEBUG_MODE"])
-        file_menu.AppendItem(self.mi_quit_debugmode)
+        file_menu.Append(self.mi_quit_debugmode)
 
         self.mi_comp = wx.MenuItem(edit_menu, ID_COMPSTAMP, u"終了印(&O)",
                          u"終了印リストを編集します。")
         self.mi_comp.SetBitmap(rsrc["COMPSTAMP"])
-        edit_menu.AppendItem(self.mi_comp)
+        edit_menu.Append(self.mi_comp)
         self.mi_gossip = wx.MenuItem(edit_menu, ID_GOSSIP, u"ゴシップ(&G)",
                          u"ゴシップリストを編集します。")
         self.mi_gossip.SetBitmap(rsrc["GOSSIP"])
-        edit_menu.AppendItem(self.mi_gossip)
+        edit_menu.Append(self.mi_gossip)
         self.mi_savedjpdcimage = wx.MenuItem(edit_menu, ID_SAVEDJPDCIMAGE, u"保存済みJPDCイメージ(&G)",
                          u"保存されたJPDCイメージを整理します。")
         self.mi_savedjpdcimage.SetBitmap(rsrc["JPDCIMAGE"])
-        edit_menu.AppendItem(self.mi_savedjpdcimage)
+        edit_menu.Append(self.mi_savedjpdcimage)
         self.mi_money = wx.MenuItem(edit_menu, ID_MONEY, u"所持金(&M)",
                          u"所持金を変更します。")
         self.mi_money.SetBitmap(rsrc["MONEY"])
-        edit_menu.AppendItem(self.mi_money)
+        edit_menu.Append(self.mi_money)
         self.mi_card = wx.MenuItem(edit_menu, ID_CARD, u"手札配布(&D)",
                          u"手札カードを配布します。")
         self.mi_card.SetBitmap(rsrc["CARD"])
-        edit_menu.AppendItem(self.mi_card)
+        edit_menu.Append(self.mi_card)
         edit_menu.AppendSeparator()
         self.mi_member = wx.MenuItem(edit_menu, ID_MEMBER, u"冒険者(&A)",
                          u"冒険者の情報を編集します。")
         self.mi_member.SetBitmap(rsrc["MEMBER"])
-        edit_menu.AppendItem(self.mi_member)
+        edit_menu.Append(self.mi_member)
         self.mi_coupon = wx.MenuItem(edit_menu, ID_COUPON, u"経歴(&C)",
                          u"冒険者の経歴を編集します。")
         self.mi_coupon.SetBitmap(rsrc["COUPON"])
-        edit_menu.AppendItem(self.mi_coupon)
+        edit_menu.Append(self.mi_coupon)
         self.mi_status = wx.MenuItem(edit_menu, ID_STATUS, u"状態(&S)",
                          u"冒険者の状態を編集します。")
         self.mi_status.SetBitmap(rsrc["STATUS"])
-        edit_menu.AppendItem(self.mi_status)
+        edit_menu.Append(self.mi_status)
         self.mi_recovery = wx.MenuItem(edit_menu, ID_RECOVERY, u"全回復(&L)\tCtrl+R",
                          u"全冒険者を全回復させます。")
         self.mi_recovery.SetBitmap(rsrc["RECOVERY"])
-        edit_menu.AppendItem(self.mi_recovery)
+        edit_menu.Append(self.mi_recovery)
 
         self.mi_update = wx.MenuItem(scenario_menu, ID_UPDATE, u"再読込(&R)\tCtrl+F5",
                          u"最新の情報に更新します。")
         self.mi_update.SetBitmap(rsrc["UPDATE"])
-        scenario_menu.AppendItem(self.mi_update)
+        scenario_menu.Append(self.mi_update)
         scenario_menu.AppendSeparator()
         self.mi_redisplay = wx.MenuItem(scenario_menu, ID_REDISPLAY, u"背景更新(&D)\tCtrl+I",
                          u"背景を更新します。")
         self.mi_redisplay.SetBitmap(rsrc["EVT_REDISPLAY"])
-        scenario_menu.AppendItem(self.mi_redisplay)
+        scenario_menu.Append(self.mi_redisplay)
         scenario_menu.AppendSeparator()
         self.mi_area = wx.MenuItem(scenario_menu, ID_AREA, u"エリア(&A)",
                          u"エリアを選択して場面を変更します。")
         self.mi_area.SetBitmap(rsrc["AREA"])
         self._mi_area_index = scenario_menu.GetMenuItemCount()
-        scenario_menu.AppendItem(self.mi_area)
+        scenario_menu.Append(self.mi_area)
         self.mi_battle = wx.MenuItem(scenario_menu, ID_BATTLE, u"戦闘(&B)",
                          u"バトルを選択して戦闘を開始します。")
         self.mi_battle.SetBitmap(rsrc["BATTLE"])
-        scenario_menu.AppendItem(self.mi_battle)
+        scenario_menu.Append(self.mi_battle)
         self.mi_pack = wx.MenuItem(scenario_menu, ID_PACK, u"パッケージ(&P)",
                          u"パッケージを選択してイベントを開始します。")
         self.mi_pack.SetBitmap(rsrc["PACK"])
-        scenario_menu.AppendItem(self.mi_pack)
+        scenario_menu.Append(self.mi_pack)
         scenario_menu.AppendSeparator()
         self.mi_friend = wx.MenuItem(scenario_menu, ID_FRIEND, u"同行者(&F)",
                          u"同行者カードの取得・破棄を行います。")
         self.mi_friend.SetBitmap(rsrc["FRIEND"])
-        scenario_menu.AppendItem(self.mi_friend)
+        scenario_menu.Append(self.mi_friend)
         self.mi_info = wx.MenuItem(scenario_menu, ID_INFO, u"情報(&I)",
                          u"情報カードの取得・破棄を行います。")
         self.mi_info.SetBitmap(rsrc["INFO"])
-        scenario_menu.AppendItem(self.mi_info)
+        scenario_menu.Append(self.mi_info)
         scenario_menu.AppendSeparator()
         self.mi_round = wx.MenuItem(scenario_menu, ID_ROUND, u"ラウンド(&T)",
                          u"バトルラウンドを変更します。")
         self.mi_round.SetBitmap(rsrc["ROUND"])
-        scenario_menu.AppendItem(self.mi_round)
+        scenario_menu.Append(self.mi_round)
         scenario_menu.AppendSeparator()
         self.mi_initvars = wx.MenuItem(scenario_menu, ID_INIT_VARIABLES, u"状態変数の初期化(&V)")
         self.mi_initvars.SetBitmap(rsrc["INIT_VARIABLES"])
-        scenario_menu.AppendItem(self.mi_initvars)
+        scenario_menu.Append(self.mi_initvars)
 
         self.mi_startevent = wx.MenuItem(run_menu, ID_STARTEVENT, u"イベントの実行(&E)",
                          u"イベントを選択して実行します。")
         self.mi_startevent.SetBitmap(rsrc["EVENT"])
-        run_menu.AppendItem(self.mi_startevent)
+        run_menu.Append(self.mi_startevent)
         run_menu.AppendSeparator()
         self.mi_stepreturn = wx.MenuItem(run_menu, ID_STEPRETURN, u"ステップリターン(&R)\tCtrl+Shift+F11",
                          u"イベントのサブルーチンを抜けます。")
         self.mi_stepreturn.SetBitmap(rsrc["EVTCTRL_STEPRETURN"])
-        run_menu.AppendItem(self.mi_stepreturn)
+        run_menu.Append(self.mi_stepreturn)
         self.mi_stepover = wx.MenuItem(run_menu, ID_STEPOVER, u"ステップオーバー(&I)\tF11",
                          u"イベントを1コンテントだけ実行します。サブルーチンには入りません。")
         self.mi_stepover.SetBitmap(rsrc["EVTCTRL_STEPOVER"])
-        run_menu.AppendItem(self.mi_stepover)
+        run_menu.Append(self.mi_stepover)
         self.mi_stepin = wx.MenuItem(run_menu, ID_STEPIN, u"ステップイン(&R)\tCtrl+F11",
                          u"イベントを1コンテントだけ実行します。サブルーチンに入ります。")
         self.mi_stepin.SetBitmap(rsrc["EVTCTRL_STEPIN"])
-        run_menu.AppendItem(self.mi_stepin)
+        run_menu.Append(self.mi_stepin)
         run_menu.AppendSeparator()
         self.mi_pause = wx.MenuItem(run_menu, ID_PAUSE, u"イベント一時停止(&P)\tF10",
                          u"イベントを一時停止します。", kind=wx.ITEM_CHECK)
@@ -227,84 +227,84 @@ class Debugger(wx.Frame):
         bmp2 = rsrc["EVTCTRL_PAUSE"]
         if sys.platform == "win32":
             self.mi_pause.SetBitmaps(bmp1, bmp2)
-        run_menu.AppendItem(self.mi_pause)
+        run_menu.Append(self.mi_pause)
         self.mi_stop = wx.MenuItem(run_menu, ID_STOP, u"イベント強制終了(&E)\tF12",
                          u"イベントを強制終了します。")
         self.mi_stop.SetBitmap(rsrc["EVTCTRL_STOP"])
-        run_menu.AppendItem(self.mi_stop)
+        run_menu.Append(self.mi_stop)
         run_menu.AppendSeparator()
         self.mi_breakpoint = wx.MenuItem(run_menu, ID_BREAKPOINT, u"ブレークポイントの切替(&W)\tCtrl+B",
                          u"ブレークポイントを設定、または解除します。")
         self.mi_breakpoint.SetBitmap(rsrc["BREAKPOINT"])
-        run_menu.AppendItem(self.mi_breakpoint)
+        run_menu.Append(self.mi_breakpoint)
         self.mi_clear_breakpoint = wx.MenuItem(run_menu, ID_CLEAR_BREAKPOINT, u"ブレークポイントの整理(&C)",
                          u"シナリオごとのブレークポイントをクリアします。")
         self.mi_clear_breakpoint.SetBitmap(rsrc["CLEAR_BREAKPOINT"])
-        run_menu.AppendItem(self.mi_clear_breakpoint)
+        run_menu.Append(self.mi_clear_breakpoint)
         run_menu.AppendSeparator()
         self.mi_showstacktrace = wx.MenuItem(run_menu, ID_SHOW_STACK_TRACE, u"呼び出し履歴の表示(&S)\tCtrl+T",
                          u"呼び出し履歴を表示します。", kind=wx.ITEM_CHECK)
         bmp = rsrc["STACK_TRACE"]
         if sys.platform == "win32":
             self.mi_showstacktrace.SetBitmaps(bmp, bmp)
-        run_menu.AppendItem(self.mi_showstacktrace)
+        run_menu.Append(self.mi_showstacktrace)
         run_menu.AppendSeparator()
         self.mi_select = wx.MenuItem(run_menu, ID_SELECTION, u"選択メンバ(&S)",
                          u"選択中のキャラクターを変更します。")
         self.mi_select.SetBitmap(rsrc["SELECTION"])
-        run_menu.AppendItem(self.mi_select)
+        run_menu.Append(self.mi_select)
         run_menu.AppendSeparator()
         self.mi_showparty = wx.MenuItem(run_menu, ID_SHOW_PARTY, u"パーティ出現(&P)",
                          u"パーティを出現させます。")
         self.mi_showparty.SetBitmap(rsrc["EVT_SHOW_PARTY"])
-        run_menu.AppendItem(self.mi_showparty)
+        run_menu.Append(self.mi_showparty)
         self.mi_hideparty = wx.MenuItem(run_menu, ID_HIDE_PARTY, u"パーティ隠蔽(&H)",
                          u"パーティを隠蔽します。")
         self.mi_hideparty.SetBitmap(rsrc["EVT_HIDE_PARTY"])
-        run_menu.AppendItem(self.mi_hideparty)
+        run_menu.Append(self.mi_hideparty)
         run_menu.AppendSeparator()
         self.mi_bgm = wx.MenuItem(run_menu, ID_BGM, u"&BGM変更",
                          u"BGMを変更します。")
         self.mi_bgm.SetBitmap(rsrc["EVT_PLAY_BGM"])
-        run_menu.AppendItem(self.mi_bgm)
+        run_menu.Append(self.mi_bgm)
         run_menu.AppendSeparator()
         self.mi_selectedcard = wx.MenuItem(run_menu, ID_SELECTEDCARD, u"選択カード(&A)",
                          u"選択中のカードを変更します。")
         self.mi_selectedcard.SetBitmap(rsrc["CARD"])
-        run_menu.AppendItem(self.mi_selectedcard)
+        run_menu.Append(self.mi_selectedcard)
 
         self.SetMenuBar(mb)
 
         # create main toolbar
         self.tb1 = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb1.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
-        self.tl_comp = self.tb1.AddLabelTool(
+        self.tl_comp = self.tb1.AddTool(
             ID_COMPSTAMP, u"終了印", rsrc["COMPSTAMP"],
             shortHelp=u"終了印リストを編集します。")
-        self.tl_gossip = self.tb1.AddLabelTool(
+        self.tl_gossip = self.tb1.AddTool(
             ID_GOSSIP, u"ゴシップ", rsrc["GOSSIP"],
             shortHelp=u"ゴシップリストを編集します。")
-        self.tl_savedjpdcimage = self.tb1.AddLabelTool(
+        self.tl_savedjpdcimage = self.tb1.AddTool(
             ID_SAVEDJPDCIMAGE, u"保存済みJPDCイメージ", rsrc["JPDCIMAGE"],
             shortHelp=u"保存されたJPDCイメージを整理します。")
-        self.tl_money = self.tb1.AddLabelTool(
+        self.tl_money = self.tb1.AddTool(
             ID_MONEY, u"所持金", rsrc["MONEY"],
             shortHelp=u"所持金を変更します。")
-        self.tl_card = self.tb1.AddLabelTool(
+        self.tl_card = self.tb1.AddTool(
             ID_CARD, u"手札配布", rsrc["CARD"],
             shortHelp=u"手札カードを配布します。")
         self.tb1.AddSeparator()
         self.tb1.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
-        self.tl_member = self.tb1.AddLabelTool(
+        self.tl_member = self.tb1.AddTool(
             ID_MEMBER, u"冒険者", rsrc["MEMBER"],
             shortHelp=u"冒険者の情報を編集します。")
-        self.tl_coupon = self.tb1.AddLabelTool(
+        self.tl_coupon = self.tb1.AddTool(
             ID_COUPON, u"経歴", rsrc["COUPON"],
             shortHelp=u"冒険者の経歴を編集します。")
-        self.tl_status = self.tb1.AddLabelTool(
+        self.tl_status = self.tb1.AddTool(
             ID_STATUS, u"状態", rsrc["STATUS"],
             shortHelp=u"冒険者の状態を編集します。")
-        self.tl_recovery = self.tb1.AddLabelTool(
+        self.tl_recovery = self.tb1.AddTool(
             ID_RECOVERY, u"全回復", rsrc["RECOVERY"],
             shortHelp=u"全冒険者を全回復させます。")
         self.tb1.Realize()
@@ -312,46 +312,46 @@ class Debugger(wx.Frame):
         # create scenario toolbar
         self.tb2 = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb2.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
-        self.tl_update = self.tb2.AddLabelTool(
+        self.tl_update = self.tb2.AddTool(
             ID_UPDATE, u"再読込", rsrc["UPDATE"],
             shortHelp=u"最新の情報に更新します。")
         self.tb2.AddSeparator()
-        self.tl_redisplay = self.tb2.AddLabelTool(
+        self.tl_redisplay = self.tb2.AddTool(
             ID_REDISPLAY, u"背景更新", rsrc["EVT_REDISPLAY"],
             shortHelp=u"背景を更新します。")
         self.tb2.AddSeparator()
-        self.tl_friend = self.tb2.AddLabelTool(
+        self.tl_friend = self.tb2.AddTool(
             ID_FRIEND, u"同行者", rsrc["FRIEND"],
             shortHelp=u"同行者カードの取得・破棄を行います。")
-        self.tl_info = self.tb2.AddLabelTool(
+        self.tl_info = self.tb2.AddTool(
             ID_INFO, u"情報", rsrc["INFO"],
             shortHelp=u"情報カードの取得・破棄を行います。")
         self.tb2.AddSeparator()
-        self.tl_round = self.tb2.AddLabelTool(
+        self.tl_round = self.tb2.AddTool(
             ID_ROUND, u"ラウンド", rsrc["ROUND"],
             shortHelp=u"バトルラウンドを変更します。")
         self.tb2.AddSeparator()
         self.tb2.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
-        self.tl_save = self.tb2.AddLabelTool(
+        self.tl_save = self.tb2.AddTool(
             ID_SAVE, u"セーブ", rsrc["SAVE"],
             shortHelp=u"状況を記録します。")
-        self.tl_load = self.tb2.AddLabelTool(
+        self.tl_load = self.tb2.AddTool(
             ID_LOAD, u"ロード", rsrc["LOAD"],
             shortHelp=u"状況を再現します。")
         self.tb2.AddSeparator()
-        self.tl_initvars = self.tb2.AddLabelTool(
+        self.tl_initvars = self.tb2.AddTool(
             ID_INIT_VARIABLES, u"状態変数の初期化", rsrc["INIT_VARIABLES"],
             shortHelp=u"全ての状態変数を初期値に戻します。")
         self.tb2.AddSeparator()
-        self.tl_loadyado = self.tb2.AddLabelTool(
+        self.tl_loadyado = self.tb2.AddTool(
             ID_LOAD_YADO, u"最終セーブに戻す", rsrc["LOAD_YADO"],
             shortHelp=u"最後にセーブした状態に戻します。")
         self.tb2.AddSeparator()
-        self.tl_break = self.tb2.AddLabelTool(
+        self.tl_break = self.tb2.AddTool(
             ID_BREAK, u"シナリオ中断", rsrc["BREAK"],
             shortHelp=u"シナリオを中断して、冒険者の宿に戻ります。")
         self.tb2.AddSeparator()
-        self.tl_editor = self.tb2.AddLabelTool(
+        self.tl_editor = self.tb2.AddTool(
             ID_EDITOR, u"エディタで開く", rsrc["EDITOR"],
             shortHelp=u"シナリオをエディタで開きます。")
         self.tb2.Realize()
@@ -360,35 +360,35 @@ class Debugger(wx.Frame):
         self.tb_event = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb_event.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
 
-        self.tl_startevent = self.tb_event.AddLabelTool(
+        self.tl_startevent = self.tb_event.AddTool(
             ID_STARTEVENT, u"イベントの実行", rsrc["EVENT"],
             shortHelp=u"イベントを選択して実行します。")
         self.tb_event.AddSeparator()
-        self.tl_stepreturn = self.tb_event.AddLabelTool(
+        self.tl_stepreturn = self.tb_event.AddTool(
             ID_STEPRETURN, u"ステップリターン", rsrc["EVTCTRL_STEPRETURN"],
             shortHelp=u"イベントのサブルーチンを抜けます。")
-        self.tl_stepover = self.tb_event.AddLabelTool(
+        self.tl_stepover = self.tb_event.AddTool(
             ID_STEPOVER, u"ステップオーバー", rsrc["EVTCTRL_STEPOVER"],
             shortHelp=u"イベントを1コンテントだけ実行します。サブルーチンには入りません。")
-        self.tl_stepin = self.tb_event.AddLabelTool(
+        self.tl_stepin = self.tb_event.AddTool(
             ID_STEPIN, u"ステップイン", rsrc["EVTCTRL_STEPIN"],
             shortHelp=u"イベントを1コンテントだけ実行します。サブルーチンに入ります。")
         self.tb_event.AddSeparator()
-        self.tl_pause = self.tb_event.AddCheckLabelTool(
+        self.tl_pause = self.tb_event.AddCheckTool(
             ID_PAUSE, u"イベント一時停止", rsrc["EVTCTRL_PAUSE"],
             shortHelp=u"イベントを一時停止します。")
-        self.tl_stop = self.tb_event.AddLabelTool(
+        self.tl_stop = self.tb_event.AddTool(
             ID_STOP, u"イベント強制終了", rsrc["EVTCTRL_STOP"],
             shortHelp=u"イベントを強制終了します。")
         self.tb_event.AddSeparator()
-        self.tl_breakpoint = self.tb_event.AddLabelTool(
+        self.tl_breakpoint = self.tb_event.AddTool(
             ID_BREAKPOINT, u"ブレークポイントの切替", rsrc["BREAKPOINT"],
             shortHelp=u"ブレークポイントを設定、または解除します。")
-        self.tl_clear_breakpoint = self.tb_event.AddLabelTool(
+        self.tl_clear_breakpoint = self.tb_event.AddTool(
             ID_CLEAR_BREAKPOINT, u"ブレークポイントの整理", rsrc["CLEAR_BREAKPOINT"],
             shortHelp=u"シナリオごとのブレークポイントをクリアします。")
         self.tb_event.AddSeparator()
-        self.tl_showstacktrace = self.tb_event.AddCheckLabelTool(
+        self.tl_showstacktrace = self.tb_event.AddCheckTool(
             ID_SHOW_STACK_TRACE, u"呼び出し履歴の表示", rsrc["STACK_TRACE"],
             shortHelp=u"呼び出し履歴を表示します。")
         self.tb_event.AddSeparator()
@@ -405,7 +405,7 @@ class Debugger(wx.Frame):
         # create area toolbar
         self.tb_area = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb_area.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
-        self.tl_area = self.tb_area.AddLabelTool(
+        self.tl_area = self.tb_area.AddTool(
             ID_AREA, u"エリア", rsrc["AREA"],
             shortHelp=u"エリアを選択して場面を変更します。")
 
@@ -417,10 +417,10 @@ class Debugger(wx.Frame):
         self.tb_area.AddControl(self.st_area)
 
         self.tb_area.AddSeparator()
-        self.tl_battle = self.tb_area.AddLabelTool(
+        self.tl_battle = self.tb_area.AddTool(
             ID_BATTLE, u"戦闘", rsrc["BATTLE"],
             shortHelp=u"バトルを選択して戦闘を開始します。")
-        self.tl_pack = self.tb_area.AddLabelTool(
+        self.tl_pack = self.tb_area.AddTool(
             ID_PACK, u"パッケージ", rsrc["PACK"],
             shortHelp=u"パッケージを選択してイベントを開始します。")
 
@@ -429,7 +429,7 @@ class Debugger(wx.Frame):
         # create selection toolbar
         self.tb_select = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb_select.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
-        self.tl_select = self.tb_select.AddLabelTool(
+        self.tl_select = self.tb_select.AddTool(
             ID_SELECTION, u"選択メンバ",
             rsrc["SELECTION"], shortHelp=u"選択中のキャラクターを変更します。")
         self.st_select = wx.StaticText(
@@ -437,15 +437,15 @@ class Debugger(wx.Frame):
             size=(cw.ppis(100), -1))
         self.tb_select.AddControl(self.st_select)
         self.tb_select.AddSeparator()
-        self.tl_showparty = self.tb_select.AddLabelTool(
+        self.tl_showparty = self.tb_select.AddTool(
             ID_SHOW_PARTY, u"パーティ出現",
             rsrc["EVT_SHOW_PARTY"], shortHelp=u"パーティを出現させます。")
-        self.tl_hideparty = self.tb_select.AddLabelTool(
+        self.tl_hideparty = self.tb_select.AddTool(
             ID_HIDE_PARTY, u"パーティ隠蔽",
             rsrc["EVT_HIDE_PARTY"], shortHelp=u"パーティを隠蔽します。")
         self.tb_select.Realize()
         self.tb_select.AddSeparator()
-        self.tl_bgm = self.tb_select.AddLabelTool(
+        self.tl_bgm = self.tb_select.AddTool(
             ID_BGM, u"BGM変更",
             rsrc["EVT_PLAY_BGM"], shortHelp=u"BGMを変更します。")
         self.tb_select.Realize()
@@ -453,7 +453,7 @@ class Debugger(wx.Frame):
         # create selection card toolbar
         self.tb_selectedcard = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb_selectedcard.SetToolBitmapSize(wx.Size(cw.ppis(20), cw.ppis(20)))
-        self.tl_selectedcard = self.tb_selectedcard.AddLabelTool(
+        self.tl_selectedcard = self.tb_selectedcard.AddTool(
             ID_SELECTEDCARD, u"選択カード",
             rsrc["CARD"], shortHelp=u"選択中のカードを変更します。")
         self.st_selectedcard = wx.StaticText(
@@ -627,15 +627,15 @@ class Debugger(wx.Frame):
 
     @synclock(mutex)
     def OnClose(self, event):
-        cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
         self.Destroy()
         cw.cwpy.frame.debugger = None
+        cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
 
     @synclock(mutex)
     def OnDestroy(self, event):
         # デタッチしていたAuiToolBarをメインフレームにドッキングすると
         # Destroyイベントが呼ばれるようなので、それと区別
-        if self.IsBeingDeleted():
+        if self and self.IsBeingDeleted():
             cw.cwpy.frame.debugger = None
 
     def OnBreakTool(self, event):
@@ -994,7 +994,7 @@ class Debugger(wx.Frame):
             dlg = wx.MultiChoiceDialog(
                 self, u"チェックマークの付け外しで情報カードの" +
                 u"取得・破棄ができます",
-                u"情報カードの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+                u"情報カードの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.OK|wx.CANCEL|wx.MINIMIZE_BOX)
             dlg.SetSelections(selections)
             self._iconize_event(dlg)
 
@@ -1047,7 +1047,7 @@ class Debugger(wx.Frame):
             dlg = wx.MultiChoiceDialog(
                 self, u"チェックマークの付け外しでキャストの" +
                 u"加入・離脱ができます",
-                u"キャストの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+                u"キャストの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.OK|wx.CANCEL|wx.MINIMIZE_BOX)
             dlg.SetSelections(selections)
             self._iconize_event(dlg)
 
@@ -1107,7 +1107,7 @@ class Debugger(wx.Frame):
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
                 self, u"開始するバトルを選択してください。",
-                u"バトルの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+                u"バトルの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.OK|wx.CANCEL|wx.MINIMIZE_BOX)
             self._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
@@ -1134,7 +1134,8 @@ class Debugger(wx.Frame):
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
                 self, u"実行するパッケージを選択してください。",
-                u"パッケージの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+                u"パッケージの選択", choices,
+                style=wx.DEFAULT_DIALOG_STYLE|wx.OK|wx.CANCEL|wx.MINIMIZE_BOX)
             self._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
@@ -1186,7 +1187,8 @@ class Debugger(wx.Frame):
                     choices.append(s)
                 dlg = wx.SingleChoiceDialog(
                     self, u"移動するエリアを選択してください。",
-                    u"エリアの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+                    u"エリアの選択", choices,
+                    style=wx.DEFAULT_DIALOG_STYLE|wx.OK|wx.CANCEL|wx.MINIMIZE_BOX)
                 dlg.SetSelection(selected)
                 self._iconize_event(dlg)
 
@@ -1218,7 +1220,8 @@ class Debugger(wx.Frame):
 
             dlg = wx.SingleChoiceDialog(
                 self, u"キャラクターを選択してください。",
-                u"メンバの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+                u"メンバの選択", choices,
+                style=wx.DEFAULT_DIALOG_STYLE|wx.OK|wx.CANCEL|wx.MINIMIZE_BOX)
             self._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
@@ -1280,7 +1283,8 @@ class Debugger(wx.Frame):
         choices.extend(cw.cwpy.sdata.get_bgmpaths())
         dlg = wx.SingleChoiceDialog(
             self, u"再生するBGMを選択してください。",
-            u"BGMの選択", choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
+            u"BGMの選択", choices,
+            style=wx.DEFAULT_DIALOG_STYLE|wx.OK|wx.CANCEL|wx.MINIMIZE_BOX)
         self._iconize_event(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -1405,7 +1409,7 @@ class Debugger(wx.Frame):
             text = u"イベント一時停止(&P)\tF10"
             helptext = u"イベントを一時停止します。"
         self.mi_pause.SetText(text)
-        self.tl_pause.SetBitmap1(bmp)
+        self.tl_pause.SetNormalBitmap(bmp)
         self.tl_pause.SetShortHelp(helptext)
 
         self.tb_event.Realize()
@@ -1515,9 +1519,9 @@ class Debugger(wx.Frame):
             s2 = cw.util.abbr_longstr(dc, s2, w)
         self.st_area.SetLabel(s2)
         if s == s2:
-            self.st_area.SetToolTipString("")
+            self.st_area.SetToolTip("")
         else:
-            self.st_area.SetToolTipString(s)
+            self.st_area.SetToolTip(s)
 
         # ツールボタンの表示を切り替えるかどうか
         if force or cw.cwpy.is_battlestatus() <> self.tl_area._battletool:
@@ -1525,13 +1529,13 @@ class Debugger(wx.Frame):
                 bmp = cw.cwpy.rsrc.debugs["BATTLECANCEL"]
                 if self.mi_area.GetBitmap() <> bmp:
                     scenario_menu = self.mi_area.GetMenu()
-                    scenario_menu.RemoveItem(self.mi_area)
+                    scenario_menu.Remove(self.mi_area)
                     self.mi_area = wx.MenuItem(scenario_menu, ID_AREA, u"戦闘中断(&A)",
                              u"戦闘を中断します。")
                     self.mi_area.SetBitmap(bmp)
-                    scenario_menu.InsertItem(self._mi_area_index, self.mi_area)
+                    scenario_menu.Insert(self._mi_area_index, self.mi_area)
 
-                    self.tl_area.SetBitmap1(bmp)
+                    self.tl_area.SetNormalBitmap(bmp)
                     self.tl_area.SetShortHelp(u"戦闘を中断します。")
                     self.tl_area._battletool = True
                     self.tb_area.Realize()
@@ -1539,13 +1543,13 @@ class Debugger(wx.Frame):
                 bmp = cw.cwpy.rsrc.debugs["AREA"]
                 if self.mi_area.GetBitmap() <> bmp:
                     scenario_menu = self.mi_area.GetMenu()
-                    scenario_menu.RemoveItem(self.mi_area)
+                    scenario_menu.Remove(self.mi_area)
                     self.mi_area = wx.MenuItem(scenario_menu, ID_AREA, u"エリア(&A)",
                              u"エリアを選択して場面を変更します。")
                     self.mi_area.SetBitmap(bmp)
-                    scenario_menu.InsertItem(self._mi_area_index, self.mi_area)
+                    scenario_menu.Insert(self._mi_area_index, self.mi_area)
 
-                    self.tl_area.SetBitmap1(bmp)
+                    self.tl_area.SetNormalBitmap(bmp)
                     self.tl_area.SetShortHelp(u"エリアを選択して場面を変更します。")
                     self.tl_area._battletool = False
                     self.tb_area.Realize()
@@ -1562,9 +1566,9 @@ class Debugger(wx.Frame):
         s2 = cw.util.abbr_longstr(dc, s, self.st_select.GetClientSize()[0])
         self.st_select.SetLabel(s2)
         if s == s2:
-            self.st_select.SetToolTipString("")
+            self.st_select.SetToolTip("")
         else:
-            self.st_select.SetToolTipString(s)
+            self.st_select.SetToolTip(s)
 
     def refresh_selectedcardname(self):
         assert threading.currentThread() <> cw.cwpy
@@ -1572,15 +1576,15 @@ class Debugger(wx.Frame):
             return
 
         type = cw.cwpy.event.get_selectedcardtype()
-        bitmap1 = self.tl_selectedcard.GetBitmap1()
+        bitmap1 = self.tl_selectedcard.GetNormalBitmap()
         if type == "SkillCard":
-            self.tl_selectedcard.SetBitmap1(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"])
+            self.tl_selectedcard.SetNormalBitmap(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"])
         elif type == "ItemCard":
-            self.tl_selectedcard.SetBitmap1(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
+            self.tl_selectedcard.SetNormalBitmap(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
         elif type == "BeastCard":
-            self.tl_selectedcard.SetBitmap1(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
+            self.tl_selectedcard.SetNormalBitmap(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
         else:
-            self.tl_selectedcard.SetBitmap1(cw.cwpy.rsrc.debugs["CARD"])
+            self.tl_selectedcard.SetNormalBitmap(cw.cwpy.rsrc.debugs["CARD"])
 
         s = cw.cwpy.event.get_selectedcardname()
         if sys.platform != "win32":
@@ -1590,11 +1594,11 @@ class Debugger(wx.Frame):
         s2 = cw.util.abbr_longstr(dc, s, self.st_selectedcard.GetClientSize()[0])
         self.st_selectedcard.SetLabel(s2)
         if s == s2:
-            self.st_selectedcard.SetToolTipString("")
+            self.st_selectedcard.SetToolTip("")
         else:
-            self.st_selectedcard.SetToolTipString(s)
+            self.st_selectedcard.SetToolTip(s)
 
-        if bitmap1 <> self.tl_selectedcard.GetBitmap1():
+        if bitmap1 <> self.tl_selectedcard.GetNormalBitmap():
             self.tb_selectedcard.Realize()
 
     def refresh_tools(self):
@@ -1779,7 +1783,7 @@ class VariableListCtrl(wx.ListCtrl):
     def __init__(self, parent):
         wx.ListCtrl.__init__(
             self, parent, -1, style=wx.LC_REPORT|wx.BORDER_NONE|
-            wx.LC_SORT_ASCENDING|wx.LC_VIRTUAL)
+            wx.LC_SORT_ASCENDING|wx.LC_VIRTUAL|wx.LC_SINGLE_SEL)
         self.list = []
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         self.imgidx_flag = self.imglist.Add(cw.cwpy.rsrc.debugs["FLAG"])
@@ -1793,7 +1797,7 @@ class VariableListCtrl(wx.ListCtrl):
         self.popup_menu = wx.Menu()
         self.mi_initvars = wx.MenuItem(self.popup_menu, ID_INIT_VARIABLES, u"状態変数の初期化(&V)")
         self.mi_initvars.SetBitmap(cw.cwpy.rsrc.debugs["INIT_VARIABLES"])
-        self.popup_menu.AppendItem(self.mi_initvars)
+        self.popup_menu.Append(self.mi_initvars)
 
         self._refresh_variablelist()
         self._bind()
@@ -1839,8 +1843,9 @@ class VariableListCtrl(wx.ListCtrl):
                 choices = item.valuenames
 
             s = u"変更したい値を選択してください。"
-            dlg = wx.SingleChoiceDialog(self.Parent, s, item.name, choices, style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
-            self._iconize_event(dlg)
+            dlg = wx.SingleChoiceDialog(self.Parent, s, item.name, choices,
+                                        style=wx.DEFAULT_DIALOG_STYLE|wx.OK|wx.CANCEL|wx.MINIMIZE_BOX)
+            self.Parent._iconize_event(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
                 if isinstance(item, cw.data.Flag):
@@ -2040,7 +2045,7 @@ class EventView(wx.ScrolledWindow):
 
             clippingrect = wx.Rect(self.leftbarwidth + 1, 0,
                                    csize[0] - self.leftbarwidth + 1, csize[1])
-            dc.SetClippingRect(clippingrect)
+            dc.SetClippingRegion(*clippingrect)
 
             # イベントコンテントを結ぶ線
             if item.parent is None and item <> self.itemlist[0]:
@@ -2053,7 +2058,7 @@ class EventView(wx.ScrolledWindow):
                 dc.SetBrush(bpbrush)
                 circlesize = cw.ppis(6)
                 dc.DrawCircle(self.leftbarwidth-circlesize-cw.ppis(5), item.pos[1]-ytop+self.lineheight/2, circlesize)
-                dc.SetClippingRect(clippingrect)
+                dc.SetClippingRegion(*clippingrect)
                 dc.SetPen(wx.TRANSPARENT_PEN)
                 dc.SetBrush(bpbackbrush)
                 dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
@@ -2545,7 +2550,7 @@ def get_contenticon(content):
 class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
     def __init__(self, parent):
         wx.ListCtrl.__init__(self, parent, -1, size=(-1, cw.ppis(80)),
-                             style=wx.LC_REPORT|wx.LC_NO_HEADER)
+                             style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.LC_SINGLE_SEL)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
         self.list = []
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
@@ -2595,14 +2600,14 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                     name, icon, data = self._get_item(evt)
                     if not data:
                         continue
-                    self.InsertImageStringItem(self.GetItemCount(), name, icon)
+                    self.InsertItem(self.GetItemCount(), name, icon)
                     self.list.append(data)
 
                 if cur_content is None:
                     self._has_curcontent = False
                 else:
                     name, icon = self._get_info(cur_content)
-                    self.InsertImageStringItem(self.GetItemCount(), name, icon)
+                    self.InsertItem(self.GetItemCount(), name, icon)
                     self.list.append((nowrunning, cur_content))
                     self._has_curcontent = True
 
@@ -2708,7 +2713,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                 index -= 1
             else:
                 self.list.append(data)
-            self.InsertImageStringItem(index, name, icon)
+            self.InsertItem(index, name, icon)
 
         cw.cwpy.frame.exec_func(func, self, item)
 
@@ -2763,7 +2768,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
             self.SetItemImage(self.GetItemCount()-1, icon)
             self.list[-1] = (nowrunning, cur_content)
         else:
-            self.InsertImageStringItem(self.GetItemCount(), name, icon)
+            self.InsertItem(self.GetItemCount(), name, icon)
             self.list.append((nowrunning, cur_content))
             self._has_curcontent = True
 

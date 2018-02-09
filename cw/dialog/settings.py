@@ -6,7 +6,7 @@ import sys
 import itertools
 import wx
 import wx.grid
-import wx.lib.foldpanelbar
+import wx.lib.agw.foldpanelbar
 import pygame
 
 import cw
@@ -33,7 +33,7 @@ def create_versioninfo(parent):
     parent.versioninfo = wx.TextCtrl(parent, -1, s, size=(-1, -1), style=wx.TE_READONLY|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.NO_BORDER)
     parent.versioninfo.SetBackgroundColour(parent.GetBackgroundColour())
     dc = wx.ClientDC(parent.versioninfo)
-    w, h, _lh = dc.GetMultiLineTextExtent(s)
+    w, h, _lh = dc.GetFullMultiLineTextExtent(s)
     parent.versioninfo.SetMinSize((w + cw.ppis(15), h))
 
 
@@ -95,7 +95,7 @@ class SettingsDialog(wx.Dialog):
                                     wx.EVT_SLIDER.typeId,
                                     wx.EVT_CHOICE.typeId,
                                     wx.EVT_COLOURPICKER_CHANGED.typeId,
-                                    wx.grid.EVT_GRID_CELL_CHANGE.typeId,
+                                    wx.grid.EVT_GRID_CELL_CHANGED.typeId,
                                     wx.grid.EVT_GRID_EDITOR_SHOWN.typeId):
             obj = event.GetEventObject()
             if wx.grid.EVT_GRID_EDITOR_SHOWN.typeId and isinstance(obj, wx.grid.Grid):
@@ -324,10 +324,10 @@ class SettingsPanel(wx.Panel):
         h = self.btn_dflt.GetBestSize()[1]
 
         self.btn_save = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_SAVE"])
-        self.btn_save.SetToolTipString(u"設定の保存")
+        self.btn_save.SetToolTip(u"設定の保存")
         self.btn_save.SetMinSize((cw.ppis(32), h))
         self.btn_load = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_LOAD"])
-        self.btn_load.SetToolTipString(u"設定の読み込み")
+        self.btn_load.SetToolTip(u"設定の読み込み")
         self.btn_load.SetMinSize((cw.ppis(32), h))
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
@@ -845,14 +845,14 @@ class SkinPanel(wx.Panel):
             self.btn_deleteskin = wx.Button(self, -1, u"削除")
 
             self.cb_show_allskin = wx.CheckBox(self, -1, u"異なる種別のスキンを表示する")
-            self.cb_show_allskin.SetToolTipString(u"スキンはそれぞれ独自のシステムを持つ場合があるため、異なる種別のスキンに切り替えると、キャラクターの情報がおかしくなったり、シナリオが正常に動かなくなるなどの問題が発生する可能性があります。")
+            self.cb_show_allskin.SetToolTip(u"スキンはそれぞれ独自のシステムを持つ場合があるため、異なる種別のスキンに切り替えると、キャラクターの情報がおかしくなったり、シナリオが正常に動かなくなるなどの問題が発生する可能性があります。")
             if not cw.cwpy.ydata:
                 self.cb_show_allskin.SetValue(True)
                 self.cb_show_allskin.Enable(False)
         else:
             self.cb_show_allskin = None
             if cw.cwpy.ydata:
-                self.ch_skin.SetToolTipString(u"異なる種別のスキンに切り替えたい場合は、タイトル画面に戻るか、詳細設定で「異なる種別のスキンを表示する」にチェックを入れてください。")
+                self.ch_skin.SetToolTip(u"異なる種別のスキンに切り替えたい場合は、タイトル画面に戻るか、詳細設定で「異なる種別のスキンを表示する」にチェックを入れてください。")
 
         prop = cw.header.GetProperty(u"Data/SkinBase/Skin.xml")
         self.basecash = int(prop.properties.get(u"InitialCash", "4000"))
@@ -1112,9 +1112,9 @@ class ExpandPanel(wx.Panel):
             self.ch_expanddrawing.Select(0)
 
         if nmax < int(2 ** (self.ch_expanddrawing.GetCount()-1)) * 10:
-            self.ch_expanddrawing.SetToolTipString(u"画面解像度を超える描画サイズは、環境によっては\n正常に機能しない可能性があります。")
+            self.ch_expanddrawing.SetToolTip(u"画面解像度を超える描画サイズは、環境によっては\n正常に機能しない可能性があります。")
         else:
-            self.ch_expanddrawing.SetToolTipString(u"")
+            self.ch_expanddrawing.SetToolTip(u"")
 
         self.make_expandinfo()
 
@@ -1202,7 +1202,7 @@ class GeneralSettingPanel(wx.Panel):
         # デバッグモード
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
         self.cb_tablet_mode = wx.CheckBox(self, -1, u"タブレットモード(タッチ操作向け)")
-        self.cb_tablet_mode.SetToolTipString(u"右フリック = カード情報表示・キャンセルなど")
+        self.cb_tablet_mode.SetToolTip(u"右フリック = カード情報表示・キャンセルなど")
         self.cb_debug = wx.CheckBox(self, -1, u"デバッグモード(Ctrl+Dでも切替可)")
         self.cb_debug.SetValue(cw.cwpy.debug)
         self.cb_show_debuglogdialog = wx.CheckBox(
@@ -1269,8 +1269,8 @@ class GeneralSettingPanel(wx.Panel):
 
         self.sstoolbar = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_HORZ_TEXT|wx.TB_NOICONS)
         self.sstoolbar.SetToolBitmapSize(wx.Size(cw.ppis(0), cw.ppis(0)))
-        self.ti_ssins = self.sstoolbar.AddLabelTool(
-            -1, u"各種情報の挿入", wx.EmptyBitmap(cw.ppis(0), cw.ppis(0)),
+        self.ti_ssins = self.sstoolbar.AddTool(
+            -1, u"各種情報の挿入", cw.util.empty_bitmap(cw.ppis(0), cw.ppis(0)),
             shortHelp=u"状況によって動的に変化する情報を挿入します。")
         self.sstoolbar.Realize()
 
@@ -1520,14 +1520,14 @@ class SpeedPanel(wx.Panel):
         self.sl_tran = wx.Slider(
             self, -1, 0, 0, 10,
             size=(_settings_width()-cw.ppis(10), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
-        self.sl_tran.SetTickFreq(1, 1)
+        self.sl_tran.SetTickFreq(1)
         # カード描画速度
         self.box_deal = wx.StaticBox(
             self, -1, u"カード描画速度(速い⇔遅い)")
         self.sl_deal = wx.Slider(
             self, -1, 0, 0, 10, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
-        self.sl_deal.SetTickFreq(1, 1)
+        self.sl_deal.SetTickFreq(1)
         if self.battlespeed:
             # 戦闘行動描画速度
             self.box_deal_battle = wx.StaticBox(
@@ -1535,7 +1535,7 @@ class SpeedPanel(wx.Panel):
             self.sl_deal_battle = wx.Slider(
                 self, -1, 0, 0, 10, size=(_settings_width()-cw.ppis(10), -1),
                 style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
-            self.sl_deal_battle.SetTickFreq(1, 1)
+            self.sl_deal_battle.SetTickFreq(1)
             self.cb_use_battlespeed = wx.CheckBox(
                 self, -1, u"カード描画速度に合わせる")
         # メッセージ表示速度
@@ -1544,7 +1544,7 @@ class SpeedPanel(wx.Panel):
         self.sl_msgs = wx.Slider(
             self, -1, 0, 0, 10, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
-        self.sl_msgs.SetTickFreq(1, 1)
+        self.sl_msgs.SetTickFreq(1)
 
         self._do_layout()
         self._bind()
@@ -2012,28 +2012,28 @@ class AudioSettingPanel(wx.Panel):
         self.sl_master = wx.Slider(
             self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.sl_master.SetTickFreq(10, 1)
+        self.sl_master.SetTickFreq(10)
 
         # 音量
         self.box_music = wx.StaticBox(self, -1, u"ミュージック音量")
         self.sl_music = wx.Slider(
             self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.sl_music.SetTickFreq(10, 1)
+        self.sl_music.SetTickFreq(10)
 
         # midi音量
         self.box_midi = wx.StaticBox(self, -1, u"MIDIミュージック音量")
         self.sl_midi = wx.Slider(
             self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.sl_midi.SetTickFreq(10, 1)
+        self.sl_midi.SetTickFreq(10)
 
         # 効果音音量
         self.box_sound = wx.StaticBox(self, -1, u"効果音音量")
         self.sl_sound = wx.Slider(
             self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.sl_sound.SetTickFreq(10, 1)
+        self.sl_sound.SetTickFreq(10)
 
         # サウンドフォント
         self.box_soundfont = wx.StaticBox(self, -1, u"MIDIサウンドフォント")
@@ -2303,7 +2303,7 @@ class ScenarioSettingPanel(wx.Panel):
         w, h, _lh = 0, 0, 0
         for obj in (self.st_editor, self.st_filer_dir, self.st_filer_file):
             dc = wx.ClientDC(obj)
-            w2, h2, _lh = dc.GetMultiLineTextExtent(obj.GetLabel())
+            w2, h2, _lh = dc.GetFullMultiLineTextExtent(obj.GetLabel())
             w = max(w, w2)
             h = max(h, h2)
         for obj in (self.st_editor, self.st_filer_dir, self.st_filer_file):
@@ -2383,7 +2383,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnUpFolderBtn, self.btn_upfolder)
         self.Bind(wx.EVT_BUTTON, self.OnDownFolderBtn, self.btn_downfolder)
         self.Bind(wx.EVT_BUTTON, self.OnConstructDBBtn, self.btn_constructdb)
-        self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnGridCellChange, self.grid_folderoftype)
+        self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChange, self.grid_folderoftype)
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGirdSelectCell, self.grid_folderoftype)
 
     def _do_layout(self):
@@ -2542,8 +2542,8 @@ class UISettingPanel(wx.ScrolledWindow):
         self.SetScrollRate(1, cw.ppis(15))
         self.SetScrollPageSize(1, cw.ppis(250))
 
-        self.panel = wx.lib.foldpanelbar.FoldPanelBar(self, -1,
-                                                      agwStyle=wx.lib.foldpanelbar.FPB_VERTICAL)
+        self.panel = wx.lib.agw.foldpanelbar.FoldPanelBar(self, -1,
+                                                          agwStyle=wx.lib.agw.foldpanelbar.FPB_VERTICAL)
 
         # 空白時間オプション
         panel = self.panel.AddFoldPanel(caption=u"スキップと空白時間")
@@ -2740,8 +2740,8 @@ class UISettingPanel(wx.ScrolledWindow):
         self._do_layout()
         self._bind()
 
-        cbstyle = wx.lib.foldpanelbar.CaptionBarStyle()
-        cbstyle.SetCaptionStyle(wx.lib.foldpanelbar.CAPTIONBAR_GRADIENT_H)
+        cbstyle = wx.lib.agw.foldpanelbar.CaptionBarStyle()
+        cbstyle.SetCaptionStyle(wx.lib.agw.foldpanelbar.CAPTIONBAR_GRADIENT_H)
         self.panel.ApplyCaptionStyleAll(cbstyle)
         self._calc_scrollsize()
 
@@ -2901,7 +2901,7 @@ class UISettingPanel(wx.ScrolledWindow):
     def _bind(self):
         self.Bind(wx.EVT_CHECKBOX, self.OnQuickDeal, self.cb_quickdeal)
         self.Bind(wx.EVT_CHECKBOX, self.OnAllQuickDeal, self.cb_allquickdeal)
-        self.panel.Bind(wx.lib.foldpanelbar.EVT_CAPTIONBAR, self.OnCaptionBar)
+        self.panel.Bind(wx.lib.agw.foldpanelbar.EVT_CAPTIONBAR, self.OnCaptionBar)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -3149,8 +3149,8 @@ class FontSettingPanel(wx.Panel):
         self._select_base(self.base.GetGridCursorRow())
 
         face = self.get_basefontface(self.bases[0])
-        font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-                       face=face)
+        font = wx.Font(pointSize=18, family=wx.DEFAULT, style=wx.FONTSTYLE_NORMAL,
+                       weight=wx.FONTWEIGHT_NORMAL, faceName=face)
         self.st_example.SetFont(font)
         if not setting and cw.cwpy:
             setting = cw.cwpy.setting
@@ -3269,10 +3269,10 @@ class FontSettingPanel(wx.Panel):
 
     def _bind(self):
         self.base.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontBase)
-        self.base.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChangeBase)
+        self.base.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnCellChangeBase)
         self.base.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnEditorCreatedBase)
         self.type.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontType)
-        self.type.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChangeType)
+        self.type.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnCellChangeType)
         self.type.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnEditorCreatedType)
         if self._for_local:
             self.cb_important.Bind(wx.EVT_CHECKBOX, self.OnImportant)
@@ -3286,7 +3286,8 @@ class FontSettingPanel(wx.Panel):
             face = self.get_basefontface(self.bases[i])
             s = cw.util.format_title(cw.cwpy.setting.fontexampleformat, {"fontface":face})
             self.st_example.SetLabel(s)
-            font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, face=face)
+            font = wx.Font(pointSize=18, family=wx.DEFAULT, style=wx.FONTSTYLE_NORMAL,
+                           weight=wx.FONTWEIGHT_NORMAL, faceName=face)
             self.st_example.SetFont(font)
             self.Layout()
             self.Thaw()
@@ -3332,7 +3333,8 @@ class FontSettingPanel(wx.Panel):
             face = self.get_typefontface(self.types[i])
             s = cw.util.format_title(cw.cwpy.setting.fontexampleformat, {"fontface":face})
             self.st_example.SetLabel(s)
-            font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, face=face)
+            font = wx.Font(pointSize=18, family=wx.DEFAULT, style=wx.FONTSTYLE_NORMAL,
+                           weight=wx.FONTWEIGHT_NORMAL, faceName=face)
             self.st_example.SetFont(font)
             self.Layout()
             self.Thaw()

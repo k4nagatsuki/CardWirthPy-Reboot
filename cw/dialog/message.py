@@ -26,7 +26,7 @@ class Message(wx.Dialog):
 
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
-        w, h, _lineheight = dc.GetMultiLineTextExtent(self.text)
+        w, h, _lineheight = dc.GetFullMultiLineTextExtent(self.text)
         self._textheight = h
         dw = cw.wins(349)
         dh = cw.wins(68)
@@ -60,7 +60,7 @@ class Message(wx.Dialog):
 
                 button = cw.cwpy.rsrc.create_wxbutton(self, id, (width, cw.wins(30)), s)
                 if desc:
-                    button.SetToolTipString(desc)
+                    button.SetToolTip(desc)
                 self.buttons.append(button)
                 button.Bind(wx.EVT_BUTTON, self.OnButton)
         else:

@@ -42,7 +42,7 @@ class TransferYadoDataDialog(wx.Dialog):
         # 転送可能なデータリスト
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((300, 300)),
-                                                  style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL,
+                                                  style=wx.LC_REPORT|wx.VSCROLL|wx.HSCROLL,
                                                   colpos=1, system=False)
         self.datalist.SetFont(font)
         self.imglist = self.datalist.imglist
@@ -66,7 +66,7 @@ class TransferYadoDataDialog(wx.Dialog):
             self._enable_btn()
         self.datalist.OnCheckItem = func
 
-        self.datalist.InsertImageStringItem(0, u"", 0)
+        self.datalist.InsertItem(0, u"", 0)
         rect = self.datalist.GetItemRect(0, wx.LIST_RECT_LABEL)
         self.datalist.SetColumnWidth(0, rect.x)
         self.datalist.DeleteAllItems()
@@ -90,8 +90,8 @@ class TransferYadoDataDialog(wx.Dialog):
         data = cw.data.xml2etree(cw.util.join_paths(yadodir, u"Environment.xml"))
         bookmark = data.find("Bookmarks")
         if not bookmark is None:
-            self.datalist.InsertStringItem(i, u"")
-            self.datalist.SetStringItem(i, 1, cw.cwpy.msgs["bookmark"])
+            self.datalist.InsertItem(i, u"")
+            self.datalist.SetItem(i, 1, cw.cwpy.msgs["bookmark"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_bookmark)
             self.datalist.CheckItem(i, False)
             self.data.append(bookmark)
@@ -99,8 +99,8 @@ class TransferYadoDataDialog(wx.Dialog):
 
         cashbox = data.getint("Property/Cashbox", 0)
         if cashbox:
-            self.datalist.InsertStringItem(i, u"")
-            self.datalist.SetStringItem(i, 1, cw.cwpy.msgs["currency"] % (cashbox))
+            self.datalist.InsertItem(i, u"")
+            self.datalist.SetItem(i, 1, cw.cwpy.msgs["currency"] % (cashbox))
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_money)
             self.datalist.CheckItem(i, False)
             self.data.append(cashbox)
@@ -108,8 +108,8 @@ class TransferYadoDataDialog(wx.Dialog):
 
         gossips = data.find("Gossips")
         if not gossips is None and len(gossips):
-            self.datalist.InsertStringItem(i, u"")
-            self.datalist.SetStringItem(i, 1, cw.cwpy.msgs["gossip"])
+            self.datalist.InsertItem(i, u"")
+            self.datalist.SetItem(i, 1, cw.cwpy.msgs["gossip"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_gossip)
             self.datalist.CheckItem(i, False)
             self.data.append(gossips)
@@ -117,8 +117,8 @@ class TransferYadoDataDialog(wx.Dialog):
 
         completestamp = data.find("CompleteStamps")
         if not completestamp is None and len(completestamp):
-            self.datalist.InsertStringItem(i, u"")
-            self.datalist.SetStringItem(i, 1, cw.cwpy.msgs["complete_stamp"])
+            self.datalist.InsertItem(i, u"")
+            self.datalist.SetItem(i, 1, cw.cwpy.msgs["complete_stamp"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_completestamp)
             self.datalist.CheckItem(i, False)
             self.data.append(completestamp)
@@ -136,16 +136,16 @@ class TransferYadoDataDialog(wx.Dialog):
         partymembers = set()
 
         if album:
-            self.datalist.InsertStringItem(i, u"")
-            self.datalist.SetStringItem(i, 1, cw.cwpy.msgs["album"])
+            self.datalist.InsertItem(i, u"")
+            self.datalist.SetItem(i, 1, cw.cwpy.msgs["album"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_album)
             self.datalist.CheckItem(i, False)
             self.data.append(album)
             i += 1
 
         if partyrecord:
-            self.datalist.InsertStringItem(i, u"")
-            self.datalist.SetStringItem(i, 1, cw.cwpy.msgs["select_party_record"])
+            self.datalist.InsertItem(i, u"")
+            self.datalist.SetItem(i, 1, cw.cwpy.msgs["select_party_record"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_partyrecord)
             self.datalist.CheckItem(i, False)
             self.data.append(partyrecord)
@@ -154,12 +154,12 @@ class TransferYadoDataDialog(wx.Dialog):
         keys = savedjpdcimage.keys()
         for key in cw.util.sorted_by_attr(keys):
             header = savedjpdcimage[key]
-            self.datalist.InsertStringItem(i, u"")
+            self.datalist.InsertItem(i, u"")
             if header.scenarioauthor:
                 s = u"JPDC - %s(%s)" % (header.scenarioname, header.scenarioauthor)
             else:
                 s = u"JPDC - %s" % (header.scenarioname)
-            self.datalist.SetStringItem(i, 1, s)
+            self.datalist.SetItem(i, 1, s)
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_savedjpdcimage)
             self.datalist.CheckItem(i, False)
             self.data.append(header)
@@ -185,16 +185,16 @@ class TransferYadoDataDialog(wx.Dialog):
                     assert False
             else:
                 assert False
-            self.datalist.InsertStringItem(i, u"")
-            self.datalist.SetStringItem(i, 1, header.name)
+            self.datalist.InsertItem(i, u"")
+            self.datalist.SetItem(i, 1, header.name)
             self.datalist.SetItemColumnImage(i, 1, image)
             self.datalist.CheckItem(i, False)
             self.data.append(header)
             i += 1
 
         if not self.data:
-            self.datalist.InsertStringItem(i, u"")
-            self.datalist.SetStringItem(i, 1, cw.cwpy.msgs["transfer_no_item"])
+            self.datalist.InsertItem(i, u"")
+            self.datalist.SetItem(i, 1, cw.cwpy.msgs["transfer_no_item"])
 
         self._enable_btn()
 
@@ -772,8 +772,8 @@ class TransferYadoDataDialog(wx.Dialog):
         dc = wx.ClientDC(self)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(16))
         dc.SetFont(font)
-        w = dc.GetMultiLineTextExtent(cw.cwpy.msgs["transfer_from_base"])[0]
-        w = max(w, dc.GetMultiLineTextExtent(cw.cwpy.msgs["transfer_to_base"])[0])
+        w = dc.GetFullMultiLineTextExtent(cw.cwpy.msgs["transfer_from_base"])[0]
+        w = max(w, dc.GetFullMultiLineTextExtent(cw.cwpy.msgs["transfer_to_base"])[0])
         w += cw.wins(3)
 
         sizer_h1.Add((w, cw.wins(0)), 0, wx.RIGHT, cw.wins(3))

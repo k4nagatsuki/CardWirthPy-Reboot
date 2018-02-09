@@ -3077,7 +3077,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     if sys.platform <> "win32":
         assert threading.currentThread() <> cw.cwpy
     if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
-        return wx.EmptyBitmap(0, 0)
+        return empty_bitmap(0, 0)
 
     if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
@@ -3099,13 +3099,13 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                     data = cw.binary.image.code_to_data(name)
                 else:
                     if not os.path.isfile(name):
-                        return wx.EmptyBitmap(0, 0)
+                        return empty_bitmap(0, 0)
                     with open(name, "rb") as f2:
                         data = f2.read()
                         f2.close()
 
                 if not data:
-                    return wx.EmptyBitmap(0, 0)
+                    return empty_bitmap(0, 0)
 
                 ext = get_imageext(data)
                 if ext == ".png":
@@ -3120,25 +3120,30 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                     image = wx.Image(name)
                 else:
                     with io.BytesIO(data) as f2:
-                        image = wx.ImageFromStream(f2, wx.BITMAP_TYPE_ANY, -1)
+                        image = wx.Image(f2, wx.BITMAP_TYPE_ANY, -1)
                         f2.close()
             except:
                 print_ex()
                 print u"画像が読み込めません(load_wxbmp)", name
-                return wx.EmptyBitmap(0, 0)
+                return empty_bitmap(0, 0)
 
         def set_mask(image, maskpos):
-            maskpos = convert_maskpos(maskpos, image.Width, image.Height)
-            r = image.GetRed(maskpos[0], maskpos[1])
-            g = image.GetGreen(maskpos[0], maskpos[1])
-            b = image.GetBlue(maskpos[0], maskpos[1])
+            if image.HasAlpha():
+                r = image.GetMaskRed()
+                g = image.GetMaskGreen()
+                b = image.GetMaskBlue()
+            else:
+                maskpos = convert_maskpos(maskpos, image.Width, image.Height)
+                r = image.GetRed(maskpos[0], maskpos[1])
+                g = image.GetGreen(maskpos[0], maskpos[1])
+                b = image.GetBlue(maskpos[0], maskpos[1])
             image.SetMaskColour(r, g, b)
             return (r, g, b)
 
         if not image.IsOk():
-            return wx.EmptyBitmap(0, 0)
+            return empty_bitmap(0, 0)
 
-        if not haspngalpha and not image.HasAlpha() and not image.HasMask():
+        if not haspngalpha and not image.HasAlpha():
             maskcolour = set_mask(image, maskpos)
 
         wxbmp = image.ConvertToBitmap()
@@ -3148,7 +3153,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         # その場合は通常通り左上の色をマスク色とする
         # 将来、もしこの処理の結果問題が起きた場合は
         # このif文以降の処理を削除する必要がある
-        if mask and image.HasMask() and image.CountColours() <= 255:
+        if mask and image.HasMask() and wxbmp.GetDepth() <= 8:
             palette = wxbmp.GetPalette()
             if not palette is None:
                 mask = (image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue())
@@ -3168,7 +3173,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             wxbmp = wx.Bitmap(name)
         except:
             print u"画像が読み込めません(load_wxbmp)", name
-            return wx.EmptyBitmap(0, 0)
+            return empty_bitmap(0, 0)
 
     if bmpdepth == 1 and mask:
         wxbmp.bmpdepthis1 = True
@@ -3178,6 +3183,16 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     wxbmp.scr_scale = up_scr
 
     return wxbmp
+
+
+def empty_bitmap(w, h):
+    """空のビットマップを返す。"""
+    return wx.Bitmap(w, h, depth=24)
+
+
+def empty_bitmap_rgba(w, h):
+    """空のビットマップ(アルファ値あり)を返す。"""
+    return wx.Bitmap(w, h, depth=32)
 
 
 def copy_wxbmp(bmp):
@@ -3345,22 +3360,31 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
         underline = font.GetUnderlined()
         facename = font.GetFaceName()
         encoding = font.GetEncoding()
-        font = wx.FontFromPixelSize((0, pixelsize*2), family, style, weight, 0, facename, encoding)
+        font = wx.Font(wx.Size(0, pixelsize*2), family, style, weight, 0, facename, encoding)
         basedc.SetFont(font)
         w, h = basedc.GetTextExtent(text)
-    subimg = wx.EmptyBitmap(w, h)
-    dc = wx.MemoryDC(subimg)
+    wxbmp = empty_bitmap(w, h)
+    dc = wx.MemoryDC(wxbmp)
     dc.SetFont(font)
     dc.SetBrush(wx.BLACK_BRUSH)
     dc.SetPen(wx.BLACK_PEN)
     dc.DrawRectangle(-1, -1, w + 2, h + 2)
     dc.SetTextForeground(wx.WHITE)
     dc.DrawText(text, 0, 0)
-    subimg = subimg.ConvertToImage()
+    subimg = convert_to_image(wxbmp)
+    redbuf = bytearray(subimg.GetDataBuffer())[::3]
     if white:
-        subimg.ConvertColourToAlpha(255, 255, 255)
+        brush = wx.WHITE_BRUSH
+        pen = wx.WHITE_PEN
     else:
-        subimg.ConvertColourToAlpha(0, 0, 0)
+        brush = wx.BLACK_BRUSH
+        pen = wx.BLACK_PEN
+    dc.SetBrush(brush)
+    dc.SetPen(pen)
+    dc.DrawRectangle(-1, -1, w + 2, h + 2)
+    subimg = convert_to_image(wxbmp)
+    subimg.InitAlpha()
+    subimg.SetAlphaBuffer(redbuf)
 
     dc.SelectObject(wx.NullBitmap)
 
@@ -3379,7 +3403,7 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
         cw.imageretouch.mul_wxalpha(subimg, alpha)
 
     if upfont:
-        font = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, facename, encoding)
+        font = wx.Font(wx.Size(0, pixelsize), family, style, weight, 0, facename, encoding)
         basedc.SetFont(font)
 
     subimg = subimg.ConvertToBitmap()
@@ -3542,13 +3566,13 @@ class CheckableListCtrl(wx.ListCtrl,
                         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
     """チェックボックス付きのリスト。"""
     def __init__(self, parent, cid, size, style, colpos=0, system=True):
-        wx.ListCtrl.__init__(self, parent, cid, size=size, style=style|wx.LC_NO_HEADER)
+        wx.ListCtrl.__init__(self, parent=parent, id=cid, size=size, style=style|wx.LC_NO_HEADER)
         wx.lib.mixins.listctrl.CheckListCtrlMixin.__init__(self)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
         for i in xrange(colpos+1):
             self.InsertColumn(i, u"")
 
-        self.InsertImageStringItem(0, u"", 0)
+        self.InsertItem(0, u"", 0)
         rect = self.GetItemRect(0, wx.LIST_RECT_LABEL)
         self.SetColumnWidth(0, rect.x)
         self.DeleteAllItems()
@@ -3629,7 +3653,7 @@ class CWBackCheckBox(wx.CheckBox):
 
     def OnPaint(self, event):
         size = self.GetSize()
-        basebmp = wx.EmptyBitmap(size[0], size[1])
+        basebmp = empty_bitmap(size[0], size[1])
         dc = wx.MemoryDC(basebmp)
         # background
         bmp = self.background
@@ -3758,13 +3782,11 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         self.popup_menu = wx.Menu()
         self.mi_copy = wx.MenuItem(self.popup_menu, wx.ID_COPY, u"コピー(&C)")
         self.mi_selectall = wx.MenuItem(self.popup_menu, wx.ID_SELECTALL, u"すべて選択(&A)")
-        self.popup_menu.AppendItem(self.mi_copy)
-        self.popup_menu.AppendItem(self.mi_selectall)
+        self.popup_menu.Append(self.mi_copy)
+        self.popup_menu.Append(self.mi_selectall)
 
         self.Bind(wx.EVT_TEXT_URL, self.OnURL)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
-        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
-        self.Bind(wx.EVT_MOTION, self.OnMotion)
         self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU, self.OnSelectAll, id=wx.ID_SELECTALL)
 
@@ -3788,7 +3810,7 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
                             self.parent = parent
                             self.url = url
                             self.mi = wx.MenuItem(self.parent.popup_menu, menuid, name)
-                            self.parent.popup_menu.AppendItem(self.mi)
+                            self.parent.popup_menu.Append(self.mi)
                             self.parent.Bind(wx.EVT_MENU, self.OnSearch, id=menuid)
 
                         def OnSearch(self, event):
@@ -3870,41 +3892,6 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
 
         self.ShowPosition(0)
 
-    def OnMouseWheel(self, event):
-        if has_modalchild(self):
-            return
-
-        y = self.GetScrollPos(wx.VERTICAL)
-
-        if sys.platform == "win32":
-            import win32gui
-            SPI_GETDESKWALLPAPER = 104
-            value = win32gui.SystemParametersInfo(SPI_GETDESKWALLPAPER)
-            line_height = self.GetFont().GetPixelSize()[1]
-            value *= line_height
-            value /= self.GetScrollPixelsPerUnit()[1]
-        else:
-            value = cw.wins(4)
-
-        if get_wheelrotation(event) > 0:
-            self.Scroll(0, y - value)
-        else:
-            self.Scroll(0, y + value)
-        self.Refresh()
-
-    def OnMotion(self, event):
-        # 画面外へのドラッグによるスクロール処理だが、マウス入力の分岐は不要？
-        mousey = event.GetPosition()[1]
-        y = self.GetScrollPos(wx.VERTICAL)
-        if mousey < cw.wins(0):
-            self.Scroll(0, y - cw.wins(4))
-            self.Refresh()
-        elif mousey > self.GetSize()[1]:
-            self.Scroll(0, y + cw.wins(4))
-            self.Refresh()
-
-        event.Skip()
-
     def OnContextMenu(self, event):
         self.mi_copy.Enable(self.HasSelection())
         for searchengine in self.search_engines:
@@ -3973,9 +3960,9 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
         return
 
 
-class FilePathRenderer(wx.grid.PyGridCellRenderer):
+class FilePathRenderer(wx.grid.GridCellRenderer):
     def __init__(self, can_file=True, can_dir=True):
-        wx.grid.PyGridCellRenderer.__init__(self)
+        wx.grid.GridCellRenderer.__init__(self)
         self._can_file = can_file
         self._can_dir = can_dir
 
@@ -3994,7 +3981,7 @@ class FilePathRenderer(wx.grid.PyGridCellRenderer):
             y = rect.Y + (rect.Height - bmp.GetHeight()) // 2
             dc.DrawBitmap(bmp, x, y, True)
             x += bmp.GetWidth() + cw.ppis(2)
-        dc.SetClippingRect(rect)
+        dc.SetClippingRegion(*rect)
         y = rect.Y + (rect.Height - dc.GetTextExtent(fpath)[1]) // 2
         dc.DrawText(fpath, x, y)
         dc.DestroyClippingRegion()

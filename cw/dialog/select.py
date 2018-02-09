@@ -386,7 +386,7 @@ class Select(wx.Dialog):
         if self.addctrlbtn:
             self.addctrlbtn.Destroy()
         self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(parent, -1, None, size=cw.wins((24, 24)))
-        self.addctrlbtn.SetToolTipString(cw.cwpy.msgs["show_additional_controls"])
+        self.addctrlbtn.SetToolTip(cw.cwpy.msgs["show_additional_controls"])
         if not cw.cwpy.setting.show_addctrlbtn:
             self.addctrlbtn.Hide()
         self.addctrlbtn.SetToggle(show)
@@ -396,7 +396,7 @@ class Select(wx.Dialog):
         colour = wx.Colour(r, g, b)
         self.addctrlbtn.SetBackgroundColour(colour)
         self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
-        self.addctrlbtn.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        self.addctrlbtn.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
 
     def update_additionals(self):
         """表示状態の切り替え時に呼び出される。"""
@@ -2179,7 +2179,7 @@ class PartySelect(MultiViewSelect):
             bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
             ix = (bmpw-cw.wins(74))//2
             iy = cw.wins(125)
-            dc.SetClippingRect((ix, iy, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
+            dc.SetClippingRegion(ix, iy, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1]))
             for b, bns, info in zip(bmp, bmp_noscale, imgpaths):
                 baserect = info.calc_basecardposition_wx(b.GetSize(), noscale=False,
                                                          basecardtype="Bill",
@@ -2191,7 +2191,7 @@ class PartySelect(MultiViewSelect):
             py = cw.wins(125+47)
             pw = cw.wins(cw.SIZE_CARDIMAGE[0])
             ph = cw.wins(cw.SIZE_CARDIMAGE[1])
-            dc.SetClippingRect(wx.Rect(px, py, pw//2, ph//2))
+            dc.SetClippingRegion(px, py, pw//2, ph//2)
             for bmp3, bmp4, info in bmp2:
                 iw, ih = bmp3.GetSize()
                 scr_scale = bmp3.scr_scale if hasattr(bmp3, "scr_scale") else 1
@@ -2240,7 +2240,7 @@ class PartySelect(MultiViewSelect):
                 bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
                 ix = x + (rw - cw.wins(72)) / 2
                 iy = y + cw.s(5)
-                dc.SetClippingRect((ix, iy, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
+                dc.SetClippingRegion(ix, iy, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1]))
                 for b, bns, info in zip(bmp, bmp_noscale, imgpaths):
                     baserect = info.calc_basecardposition_wx(b.GetSize(), noscale=False,
                                                              basecardtype="Bill",
@@ -2252,7 +2252,7 @@ class PartySelect(MultiViewSelect):
                 py = iy + cw.wins(47)
                 pw = cw.wins(cw.SIZE_CARDIMAGE[0])
                 ph = cw.wins(cw.SIZE_CARDIMAGE[1])
-                dc.SetClippingRect(wx.Rect(px, py, pw//2, ph//2))
+                dc.SetClippingRegion(px, py, pw//2, ph//2)
                 for bmp3, bmp4, info in bmp2:
                     iw, ih = bmp3.GetSize()
                     scr_scale = bmp3.scr_scale if hasattr(bmp3, "scr_scale") else 1
@@ -3078,7 +3078,7 @@ class PlayerSelect(MultiViewSelect):
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(125) - w / 2, cw.wins(67))
                 # Image
-                dc.SetClippingRect(cw.wins((88, 90, 74, 94)))
+                dc.SetClippingRegion(cw.wins(88), cw.wins(90), cw.wins(74), cw.wins(94))
                 can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
                 for info in header.imgpaths:
                     path = cw.util.join_yadodir(info.path)
@@ -3145,7 +3145,7 @@ class PlayerSelect(MultiViewSelect):
                     # Image
                     ix = x + (rw - cw.wins(72)) / 2
                     iy = y + 5
-                    dc.SetClippingRect((ix, iy, cw.wins(74), cw.wins(94)))
+                    dc.SetClippingRegion(ix, iy, cw.wins(74), cw.wins(94))
                     can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
                     for info in header.imgpaths:
                         path = cw.util.join_yadodir(info.path)
