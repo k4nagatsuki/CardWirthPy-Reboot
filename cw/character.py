@@ -1474,23 +1474,6 @@ class Character(object):
         """
         return self._get_enhance_impl("avoid", self.enhance_avo, 0)
 
-    def _calc_enhancevalue(self, header, value):
-        """使用・所持ボーナス値に適性による補正を加える。
-        BUG: CardWirthではアイテムの所持ボーナスに限り
-              最低適性(level=0)の時に補正係数が50%となるが、
-             それ以外の全てのパターンではそのような計算が
-             行われないため、バグと思われる
-        """
-        if value <= 0:
-            return value
-        level = header.get_vocation_level(self, enhance_act=False)
-        if level <= 2:
-            value2 = cw.util.numwrap(value, -10, 10)
-        else:
-            value2 = cw.util.numwrap(value * 150 / 100, -10, 10)
-
-        return value2
-
     def _get_enhance_impl(self, name, initvalue, enhindex):
         """
         現在かけられている全ての能力修正値の合計を返す(ただし単純な加算ではない)。
@@ -1502,52 +1485,50 @@ class Character(object):
         val2 = int(initvalue)
         val2 = cw.util.numwrap(val2, -10, 10)
         seq = [val1, val2]
+        seq10 = [val1, val2]
         pvals = []
         def add_pval(val):
             if 0 < val and val < 10:
                 pvals.append(int(val))
 
         def addval(header, val, using=False):
-            if name == "defense":
-                val = int(val)
-                val2 = val
-                if header.type == "SkillCard":
-                    # 特殊技能使用
-                    assert using
-                    level = header.get_vocation_level(self, enhance_act=False)
-                    if 2 <= level:
-                        val = val * 120 // 100
+            val = int(val)
+            val2 = val
+            if header.type == "SkillCard":
+                # 特殊技能使用
+                assert using
+                level = header.get_vocation_level(self, enhance_act=False)
+                if 2 <= level:
+                    val = int(val * 120 / 100.0)
+                add_pval(val)
+                val = val2
+            elif header.type == "ItemCard" and using:
+                # アイテム使用
+                add_pval(val)
+            elif header.type == "ItemCard":
+                # アイテム所持
+                level = header.get_vocation_level(self, enhance_act=False)
+                if val < 0:
+                    if 3 <= level:
+                        val = int(val * 80 / 100.0)
+                    elif level <= 0:
+                        val = int(val * 150 / 100.0)
                     add_pval(val)
-                    val = val2
-                elif header.type == "ItemCard" and using:
-                    # アイテム使用
+                elif 0 < val:
+                    if level <= 0:
+                        val = int(val * 50 / 100.0)
+                    elif level <= 1:
+                        val = int(val * 80 / 100.0)
                     add_pval(val)
-                elif header.type == "ItemCard":
-                    # アイテム所持
-                    level = header.get_vocation_level(self, enhance_act=False)
-                    if val < 0:
-                        if 3 <= level:
-                            val = val * 80 // 100
-                        elif level <= 0:
-                            val = val * 150 // 100
-                        add_pval(val)
-                    elif 0 < val:
-                        if level <= 0:
-                            val = val * 50 // 100
-                        elif level <= 1:
-                            val = val * 80 // 100
-                        add_pval(val)
-                elif header.type == "BeastCard":
-                    # 召喚獣所持
-                    add_pval(val)
-                else:
-                    assert header.type == "ActionCard"
-                    add_pval(val)
+            elif header.type == "BeastCard":
+                # 召喚獣所持
+                add_pval(val)
             else:
-                val = self._calc_enhancevalue(header, val)
+                assert header.type == "ActionCard"
                 add_pval(val)
             val = int(val)
             seq.append(val)
+            seq10.append(val2)
 
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
@@ -1572,8 +1553,6 @@ class Character(object):
         b = 0
         ac = 0
         bc = 0
-        max10 = 0
-        max10counter = 0
         maxval = 0
         minval = 0
         for val in seq:
@@ -1584,15 +1563,30 @@ class Character(object):
                     a *= (10 + val)
                 ac += 1
                 minval = min(minval, val)
-                max10counter += -val//6 + 1
             elif 0 < val:
                 if b == 0:
                     b = (10 - val)
                 else:
                     b *= (10 - val)
                 bc += 1
-                max10 += val // 10
                 maxval = max(maxval, val)
+        if ac:
+            a /= math.pow(10, ac-1)
+            a = 10 - a
+            a = max(-minval, a)
+        if bc:
+            b /= math.pow(10, bc-1)
+            b = 10 - b
+            b = max(maxval, b)
+
+        max10 = 0
+        max10counter = 0
+        for val in seq10:
+            if val < 0:
+                max10counter += -val//6 + 1
+            elif 0 < val:
+                max10 += val // 10
+
         if ac:
             a /= math.pow(10, ac-1)
             a = 10 - a
@@ -1622,14 +1616,11 @@ class Character(object):
             max10 -= max10counter
 
         value = int(b) - int(a)
-        if name == "defense":
-            if 0 < max10:
-                value = 10
-            else:
-                # 防御ボーナスは単体の+10がない限り最大で+9になる
-                value = cw.util.numwrap(value, -10, 9)
+        if 0 < max10:
+            value = 10
         else:
-            value = cw.util.numwrap(value, -10, 10)
+            # ボーナスは単体の+10がない限り最大で+9になる
+            value = cw.util.numwrap(value, -10, 9)
 
         return value
 
