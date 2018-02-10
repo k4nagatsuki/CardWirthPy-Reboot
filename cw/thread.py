@@ -750,8 +750,6 @@ class CWPy(_Singleton, threading.Thread):
                 self._run()
             except CWPyRunningError:
                 self.quit()
-            except wx.PyDeadObjectError:
-                pass
 
             self._quit()
         except:

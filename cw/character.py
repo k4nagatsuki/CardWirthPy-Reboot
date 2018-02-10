@@ -1485,11 +1485,18 @@ class Character(object):
         val2 = int(initvalue)
         val2 = cw.util.numwrap(val2, -10, 10)
         seq = [val1, val2]
-        seq10 = [val1, val2]
         pvals = []
         def add_pval(val):
             if 0 < val and val < 10:
                 pvals.append(int(val))
+
+        def wrap_enhval(val, orig_val):
+            if orig_val < 0:
+                return cw.util.numwrap(val, -10, -1)
+            elif 0 < orig_val:
+                return cw.util.numwrap(val, 1, 10)
+            else:
+                return 0
 
         def addval(header, val, using=False):
             val = int(val)
@@ -1497,9 +1504,10 @@ class Character(object):
             if header.type == "SkillCard":
                 # 特殊技能使用
                 assert using
-                level = header.get_vocation_level(self, enhance_act=False)
-                if 2 <= level:
-                    val = int(val * 120 / 100.0)
+                if val < 10:
+                    level = header.get_vocation_level(self, enhance_act=False)
+                    if 2 <= level:
+                        val = int(val * 120 / 100.0)
                 add_pval(val)
                 val = val2
             elif header.type == "ItemCard" and using:
@@ -1507,19 +1515,19 @@ class Character(object):
                 add_pval(val)
             elif header.type == "ItemCard":
                 # アイテム所持
-                level = header.get_vocation_level(self, enhance_act=False)
-                if val < 0:
-                    if 3 <= level:
-                        val = int(val * 80 / 100.0)
-                    elif level <= 0:
-                        val = int(val * 150 / 100.0)
-                    add_pval(val)
-                elif 0 < val:
-                    if level <= 0:
-                        val = int(val * 50 / 100.0)
-                    elif level <= 1:
-                        val = int(val * 80 / 100.0)
-                    add_pval(val)
+                if val < 10:
+                    level = header.get_vocation_level(self, enhance_act=False)
+                    if val < 0:
+                        if 3 <= level:
+                            val = int(val * 80 / 100.0)
+                        elif level <= 0:
+                            val = int(val * 120 / 100.0)
+                    elif 0 < val:
+                        if level <= 0:
+                            val = int(val * 50 / 100.0)
+                        elif level <= 1:
+                            val = int(val * 80 / 100.0)
+                add_pval(val)
             elif header.type == "BeastCard":
                 # 召喚獣所持
                 add_pval(val)
@@ -1527,8 +1535,7 @@ class Character(object):
                 assert header.type == "ActionCard"
                 add_pval(val)
             val = int(val)
-            seq.append(val)
-            seq10.append(val2)
+            seq.append(wrap_enhval(val, val2))
 
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
@@ -1555,6 +1562,8 @@ class Character(object):
         bc = 0
         maxval = 0
         minval = 0
+        max10 = 0
+        max10counter = 0
         for val in seq:
             if val < 0:
                 if a == 0:
@@ -1563,6 +1572,7 @@ class Character(object):
                     a *= (10 + val)
                 ac += 1
                 minval = min(minval, val)
+                max10counter += -val//6 + 1
             elif 0 < val:
                 if b == 0:
                     b = (10 - val)
@@ -1570,21 +1580,6 @@ class Character(object):
                     b *= (10 - val)
                 bc += 1
                 maxval = max(maxval, val)
-        if ac:
-            a /= math.pow(10, ac-1)
-            a = 10 - a
-            a = max(-minval, a)
-        if bc:
-            b /= math.pow(10, bc-1)
-            b = 10 - b
-            b = max(maxval, b)
-
-        max10 = 0
-        max10counter = 0
-        for val in seq10:
-            if val < 0:
-                max10counter += -val//6 + 1
-            elif 0 < val:
                 max10 += val // 10
 
         if ac:
