@@ -1402,7 +1402,11 @@ class MyApp(wx.App):
 
         if cw.cwpy and not cw.cwpy._running:
             return -1
-        if not (cw.cwpy and cw.cwpy.frame):
+        try:
+            if not (cw.cwpy and cw.cwpy.frame):
+                return -1
+        except:
+            cw.util.print_ex()
             return -1
 
         if cw.cwpy.frame.filter_event:

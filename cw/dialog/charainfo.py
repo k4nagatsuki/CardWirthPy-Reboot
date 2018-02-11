@@ -712,10 +712,9 @@ class TopPanel(wx.Panel):
                     dc.SetBrush(wx.Brush(lcolor))
                     dc.DrawRectangle(x, y+hr, w2, h-hr)
                 linecolour = wx.Colour(128, 128, 128)
-            gcdc = wx.GCDC(dc)
-            gcdc.SetPen(wx.Pen(linecolour))
-            gcdc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gcdc.DrawRoundedRectangle(x-1, y-1, w+2, h+2, rad)
+            dc.SetPen(wx.Pen(linecolour))
+            dc.SetBrush(wx.TRANSPARENT_BRUSH)
+            dc.DrawRoundedRectangle(x-1, y-1, w+2, h+2, rad)
 
         self.baselevel = baselevel
 

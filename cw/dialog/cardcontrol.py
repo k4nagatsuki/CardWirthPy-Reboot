@@ -870,7 +870,6 @@ class CardControl(wx.Dialog):
 
         basebmp = cw.util.empty_bitmap(tsize[0], tsize[1])
         dc = wx.MemoryDC(basebmp)
-        gcdc = wx.GCDC(dc)
         dc.SetClippingRegion(*self.toppanel.GetUpdateClientRect())
         bcolor = self.toppanel.GetBackgroundColour()
         dc.SetBrush(wx.Brush(bcolor))
@@ -934,6 +933,7 @@ class CardControl(wx.Dialog):
             pixelsize = cw.cwpy.setting.fonttypes["price"][2]
             font2x = cw.cwpy.rsrc.get_wxfont("price", pixelsize=cw.wins(pixelsize)*2, adjustsizewx3=False)
             dc.SetFont(font2x)
+            gcdc = wx.GCDC(dc)
             gcdc.SetBrush(wx.Brush(wx.Colour(255, 255, 255, 160)))
             gcdc.SetPen(wx.TRANSPARENT_PEN)
 

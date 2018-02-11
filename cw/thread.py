@@ -711,7 +711,12 @@ class CWPy(_Singleton, threading.Thread):
                     sprite.update_scale()
 
         if not debug and self.is_showingdebugger():
-            self.frame.exec_func(self.frame.debugger.Close)
+            def func():
+                def func():
+                    if self.frame:
+                        self.frame.debugger.Close()
+                self.frame.exec_func(func)
+            self.exec_func(func)
 
         if debug and self.sdata.debuglog:
             # 前回終了したシナリオのデバッグログ

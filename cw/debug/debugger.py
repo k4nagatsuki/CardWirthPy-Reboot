@@ -1986,10 +1986,11 @@ class EventView(wx.ScrolledWindow):
         dc = wx.PaintDC(self)
 
         if sys.platform <> "win32" or 6 <= sys.getwindowsversion().major:
-            try:
-                dc = wx.GCDC(dc)
-            except:
-                pass
+            if cw.dpi_level <= 1:
+                try:
+                    dc = wx.GCDC(dc)
+                except:
+                    pass
 
         if sys.platform.startswith("linux"):
             # FIXME: なぜか文字化けするので
