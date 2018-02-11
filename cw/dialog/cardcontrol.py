@@ -331,7 +331,7 @@ class CardControl(wx.Dialog):
         # 表示有無を切り替えた時に多少綺麗に再配置されるように、
         # 非表示のコントロールは画面外へ出しておく
         for ctrl in self.toppanel.GetChildren():
-            if not ctrl.IsShown():
+            if not ctrl.IsShown() and 0 <= ctrl.GetSize()[0]:
                 ctrl.SetPosition((cwidth, cw.wins(0)))
 
         # toppanelはSizerを使わず自前で座標を計算
@@ -351,12 +351,12 @@ class CardControl(wx.Dialog):
                 y = cw.wins(40)
             else:
                 y = cw.wins(50)
-            self.upbtn.SetPosition((x, y))
             self.upbtn.SetSize(cw.wins((70, 40)))
+            self.upbtn.SetPosition((x, y))
             y += self.upbtn.GetSize()[1]
             y += cw.wins(240-110)
-            self.downbtn.SetPosition((x, y))
             self.downbtn.SetSize(cw.wins((70, 40)))
+            self.downbtn.SetPosition((x, y))
 
             # ページ番号入力欄
             psize = (cw.wins(34), self.page.GetSize()[1])
@@ -372,8 +372,8 @@ class CardControl(wx.Dialog):
             sx = cw.wins(40)-te[0]/2+cw.wins(7)
             y += te[1] / 2
             y -= psize[1]/2
-            self.page.SetPosition((sx-psize[0], y))
             self.page.SetSize(psize)
+            self.page.SetPosition((sx-psize[0], y))
 
         # 絞込条件
         if self.narrow.IsShown():

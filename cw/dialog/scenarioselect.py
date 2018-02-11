@@ -3226,8 +3226,11 @@ class ScenarioSelect(select.Select):
 
         # キャンセルしても最後の選択は記憶する
         cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = self.get_selected()
-        cw.cwpy.frame.kill_dlg(None)
-        cw.cwpy.frame.append_killlist(self)
+        if sys.platform == "win32":
+            cw.cwpy.frame.kill_dlg(None)
+            cw.cwpy.frame.append_killlist(self)
+        else:
+            cw.cwpy.frame.kill_dlg(self)
 
 
 class FindResult(object):

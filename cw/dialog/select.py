@@ -432,16 +432,16 @@ class Select(wx.Dialog):
 
     def _additional_controls(self):
         cw.cwpy.play_sound("equipment")
+        self.Freeze()
         self.update_additionals()
         self.update_narrowcondition()
-        # GTKで表示・非表示状態の反映が遅延する事があるので、
-        # 再レイアウト以降の処理を遅延実行する
-        def func():
-            self._do_layout()
-            self.toppanel.Refresh()
-            self.panel.Refresh()
-            self.Refresh()
-        cw.cwpy.frame.exec_func(func)
+
+        self._do_layout()
+        self.toppanel.Refresh()
+        self.panel.Refresh()
+        self.Refresh()
+        self.Thaw()
+
 
 #-------------------------------------------------------------------------------
 #　一覧表示可能な選択ダイアログ(抽象クラス)

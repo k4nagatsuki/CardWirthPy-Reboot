@@ -55,25 +55,27 @@ class Frame(wx.Frame):
         self._skindirname = skindirname
 
         if sys.platform == "win32":
+            self.panel = wx.Panel(self, -1, size=cw.wins(cw.SIZE_GAME), style=wx.NO_BORDER)
             self._start_wx()
         else:
             # Xではウィンドウが表示されるまでウィンドウハンドルが取れない
             wx.Frame.__init__(self, None, -1, cw.APP_NAME)
+            self.panel = wx.Panel(self, -1, size=cw.wins(cw.SIZE_GAME), style=wx.NO_BORDER)
+            self.panel.SetDoubleBuffered(False)
             self.Show()
-            wx.CallAfter(self._start_wx)
+            self._retry_count = 0
+            wx.CallLater(100, self._start_wx)
 
     def _start_wx(self):
         # SDLを描画するパネル
-        self.panel = wx.Panel(self, -1, size=cw.wins(cw.SIZE_GAME), style=wx.NO_BORDER)
         if sys.platform <> "win32" and not self.panel.GetHandle():
-            # BUG: 高い確率で次のような警告が出てハンドルが取得できない。何度やっても取得できないのでアプリケーションごと起動し直す。
-            #      Gdk-WARNING **: /build/gtk+2.0-iF66VY/gtk+2.0-2.24.30/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window
-            self.Destroy()
-            seq = []
-            if os.path.splitext(sys.argv[0])[1].lower() == ".py":
-                seq.append("python")
-            seq.extend(sys.argv)
-            subprocess.Popen(seq, close_fds=True)
+            if self._retry_count < 100:
+                self._retry_count += 1
+                wx.CallLater(100, self._start_wx)
+            else:
+                wx.MessageBox(u"CardWirthPyの起動に失敗しました。\nパネルのハンドルが取得できません。", u"エラー - CardWirthPy",
+                              style=wx.OK|wx.CENTRE|wx.ICON_ERROR, parent=self)
+                self.Destroy()
             return
 
         setfullscreensize = False
@@ -202,8 +204,6 @@ class Frame(wx.Frame):
                     self.panel.Unbind(wx.EVT_KEY_DOWN, handler=self.OnKeyDown)
             self.panel.Bind(wx.EVT_KILL_FOCUS, panel_killfocus)
             def activate(event):
-                self.SetFocus()
-                self.panel.SetFocus()
                 if not self._keybind:
                     self._keybind = True
                     self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
@@ -394,14 +394,9 @@ class Frame(wx.Frame):
         if sys.platform <> "win32":
             if self.IsActive():
                 state = wx.GetMouseState()
-                if 3 <= wx.VERSION[0]:
-                    l = state.LeftDown
-                    m = state.MiddleDown
-                    r = state.RightDown
-                else:
-                    l = state.LeftDown()
-                    m = state.MiddleDown()
-                    r = state.RightDown()
+                l = state.LeftIsDown
+                m = state.MiddleIsDown
+                r = state.RightIsDown
                 cw.cwpy.mousein = (l, m, r)
             else:
                 cw.cwpy.mousein = (0, 0, 0)

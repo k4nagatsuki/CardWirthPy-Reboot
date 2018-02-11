@@ -3209,11 +3209,14 @@ def convert_to_image(bmp):
     """
     w = bmp.GetWidth()
     h = bmp.GetHeight()
-    buf = array.array('B', [0] * (w*h * 3))
-    try:
-        bmp.CopyToBuffer(buf)
-        img = wx.ImageFromBuffer(w, h, buf)
-    except:
+    if sys.platform == "win32":
+        buf = array.array('B', [0] * (w*h * 3))
+        try:
+            bmp.CopyToBuffer(buf)
+            img = wx.ImageFromBuffer(w, h, buf)
+        except:
+            img = bmp.ConvertToImage()
+    else:
         img = bmp.ConvertToImage()
     if hasattr(bmp, "bmpdepthis1"):
         img.bmpdepthis1 = bmp.bmpdepthis1
@@ -3371,6 +3374,8 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     dc.DrawRectangle(-1, -1, w + 2, h + 2)
     dc.SetTextForeground(wx.WHITE)
     dc.DrawText(text, 0, 0)
+    dc.SelectObject(wx.NullBitmap)
+    dc.Destroy()
     subimg = convert_to_image(wxbmp)
     redbuf = bytearray(subimg.GetDataBuffer())[::3]
     if white:
@@ -3379,14 +3384,16 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     else:
         brush = wx.BLACK_BRUSH
         pen = wx.BLACK_PEN
+    wxbmp = empty_bitmap_rgba(w, h)
+    dc = wx.MemoryDC(wxbmp)
+    dc.SetFont(font)
     dc.SetBrush(brush)
     dc.SetPen(pen)
     dc.DrawRectangle(-1, -1, w + 2, h + 2)
-    subimg = convert_to_image(wxbmp)
-    subimg.InitAlpha()
-    subimg.SetAlphaBuffer(redbuf)
-
     dc.SelectObject(wx.NullBitmap)
+    dc.Destroy()
+    subimg = convert_to_image(wxbmp)
+    subimg.SetAlphaBuffer(redbuf)
 
     if scaledown:
         if 0 < maxwidth and w/2 + padding*2 > maxwidth:

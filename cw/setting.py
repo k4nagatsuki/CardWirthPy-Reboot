@@ -1655,7 +1655,6 @@ class Resource(object):
                 pixelsize += 1
 
             wxfont = wx.Font(wx.Size(0, pixelsize), family, style, weight, 0, fontname, encoding)
-
         else:
             wxfont = wx.Font(pointsize, family, style, weight, 0, fontname, encoding)
 
