@@ -3794,6 +3794,8 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
 
         self.Bind(wx.EVT_TEXT_URL, self.OnURL)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        self.Bind(wx.EVT_MOTION, self.OnMotion)
         self.Bind(wx.EVT_MENU, self.OnCopy, id=wx.ID_COPY)
         self.Bind(wx.EVT_MENU, self.OnSelectAll, id=wx.ID_SELECTALL)
 
@@ -3898,6 +3900,33 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
                 self.WriteText("\n")
 
         self.ShowPosition(0)
+
+    def OnMouseWheel(self, event):
+        if has_modalchild(self):
+            return
+
+        if sys.platform == "win32":
+            import win32gui
+            SPI_GETDESKWALLPAPER = 104
+            value = win32gui.SystemParametersInfo(SPI_GETDESKWALLPAPER)
+            value = cw.wins(value*8)
+        else:
+            value = cw.wins(4*8)
+
+        if get_wheelrotation(event) > 0:
+            self.ScrollLines(-value)
+        else:
+            self.ScrollLines(value)
+
+    def OnMotion(self, event):
+        # 画面外へのドラッグによるスクロール処理
+        mousey = event.GetPosition()[1]
+        if mousey < cw.wins(0):
+            self.ScrollLines(-cw.wins(4))
+        elif mousey > self.GetSize()[1]:
+            self.ScrollLines(cw.wins(4))
+
+        event.Skip()
 
     def OnContextMenu(self, event):
         self.mi_copy.Enable(self.HasSelection())
