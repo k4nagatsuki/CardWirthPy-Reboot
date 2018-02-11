@@ -38,6 +38,7 @@ class DebugLogDialog(wx.Dialog):
                 sec = int(round(sec))
                 hour = sec // 3600
                 minute = sec % 3600 // 60
+                sec %= 60
                 if hour:
                     return u"%s時間%s分%s秒" % (hour, minute, sec)
                 elif minute:

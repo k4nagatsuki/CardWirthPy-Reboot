@@ -2047,8 +2047,7 @@ class AudioSettingPanel(wx.Panel):
         self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(cw.ppis(25), -1))
         self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(cw.ppis(25), -1))
 
-        self.grid_soundfont = wx.grid.Grid(self, -1, size=(-1, -1), style=wx.BORDER)
-        self.grid_soundfont.SetSize((1, 1))
+        self.grid_soundfont = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.grid_soundfont.SetDoubleBuffered(True)
         self.grid_soundfont.CreateGrid(0, 3)
         self.grid_soundfont.DisableDragRowSize()
