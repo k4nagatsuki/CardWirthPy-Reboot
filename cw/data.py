@@ -1555,10 +1555,11 @@ class ScenarioData(SystemData):
         self.remove_log(debuglog)
         cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
 
-        startdatetime = cw.cwpy.sdata.get_startdatetime()
-        pausedtime = cw.cwpy.sdata.get_pausedtime()
-        cw.cwpy.sdata.sleep_timekeeper()
-        debuglog.set_times(startdatetime, pausedtime)
+        if debuglog:
+            startdatetime = cw.cwpy.sdata.get_startdatetime()
+            pausedtime = cw.cwpy.sdata.get_pausedtime()
+            cw.cwpy.sdata.sleep_timekeeper()
+            debuglog.set_times(startdatetime, pausedtime)
 
         if showdebuglog and cw.cwpy.is_debugmode():
             def func(debuglog):
