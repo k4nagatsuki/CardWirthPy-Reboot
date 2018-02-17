@@ -166,10 +166,7 @@ UP_WIN = 1
 UP_WIN_M = 1
 
 # wxPythonでイメージをスムージングしつつサイズ変更する際に用いるフラグ
-if 3 <= wx.VERSION[0]:
-    RESCALE_QUALITY = wx.IMAGE_QUALITY_BILINEAR
-else:
-    RESCALE_QUALITY = wx.IMAGE_QUALITY_HIGH
+RESCALE_QUALITY = wx.IMAGE_QUALITY_BILINEAR
 
 # プレイログの区切り線の長さ
 LOG_SEPARATOR_LEN_LONG = 80

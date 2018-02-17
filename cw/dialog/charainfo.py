@@ -117,8 +117,7 @@ class CharaInfo(wx.Dialog):
             panel.AcceptsFocusRecursively = lambda: False
             panel.SetFocus = lambda: None
             panel.SetFocusFromKeyboard = lambda: None
-            if  3 <= wx.VERSION[0]:
-                panel.SetCanFocus(False)
+            panel.SetCanFocus(False)
             def onfocus(event):
                 self.closebtn.SetFocus()
             panel.Bind(wx.EVT_SET_FOCUS, onfocus)

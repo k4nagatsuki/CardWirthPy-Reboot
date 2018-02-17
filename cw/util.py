@@ -3346,10 +3346,7 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
                            quality=None, scaledown=True, alpha=255):
     """スムージングが施された、背景が透明なテキストを描画して返す。"""
     if quality is None:
-        if 3 <= wx.VERSION[0]:
-            quality = wx.IMAGE_QUALITY_BICUBIC
-        else:
-            quality = wx.IMAGE_QUALITY_NORMAL
+        quality = wx.IMAGE_QUALITY_BICUBIC
     w, h = basedc.GetTextExtent(text)
     font = basedc.GetFont()
     upfont = 0 < maxwidth and maxwidth < w and not scaledown
@@ -3961,7 +3958,7 @@ def get_wheelrotation(event):
     取得できる回転量の値は直感と逆転しているので
     この関数をラッパとして反転した値を取得する。
     """
-    if 3 <= wx.VERSION[0] and event.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
+    if event.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
         return -event.GetWheelRotation()
     else:
         return event.GetWheelRotation()

@@ -1132,20 +1132,12 @@ class Frame(wx.Frame):
         if wx.GetKeyState(wx.WXK_RETURN):
             cw.cwpy.keyevent.nokeyupevent = True
         state = wx.GetMouseState()
-        if 3 <= wx.VERSION[0]:
-            if state.LeftIsDown():
-                cw.cwpy.keyevent.mouse_buttondown[0] = True
-            if state.MiddleIsDown():
-                cw.cwpy.keyevent.mouse_buttondown[1] = True
-            if state.RightIsDown():
-                cw.cwpy.keyevent.mouse_buttondown[2] = True
-        else:
-            if state.LeftDown():
-                cw.cwpy.keyevent.mouse_buttondown[0] = True
-            if state.MiddleDown():
-                cw.cwpy.keyevent.mouse_buttondown[1] = True
-            if state.RightDown():
-                cw.cwpy.keyevent.mouse_buttondown[2] = True
+        if state.LeftIsDown():
+            cw.cwpy.keyevent.mouse_buttondown[0] = True
+        if state.MiddleIsDown():
+            cw.cwpy.keyevent.mouse_buttondown[1] = True
+        if state.RightIsDown():
+            cw.cwpy.keyevent.mouse_buttondown[2] = True
 
         cw.cwpy.exec_func(func, lockmenucard, redraw)
 
@@ -1271,7 +1263,7 @@ class Frame(wx.Frame):
                     mem.SetFont(font)
                     title = child.GetTitle()
                     white = fore[:3] == (255, 255, 255)
-                    if 20 <= cw.s(pixelsize) or wx.VERSION[0] < 3:
+                    if 20 <= cw.s(pixelsize):
                         quality = wx.IMAGE_QUALITY_HIGH
                     else:
                         quality = wx.IMAGE_QUALITY_BILINEAR
