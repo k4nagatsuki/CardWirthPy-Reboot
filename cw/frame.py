@@ -1338,7 +1338,6 @@ class MyApp(wx.App):
 
     def __init__(self):
         # BUG: 日本語パス以下にバイナリを置くとエラーになる。wxPython 4.0.1
-        prefix = sys.prefix
         sys.prefix = sys.prefix.decode(sys.getfilesystemencoding())
         sys.executable = sys.executable.decode(sys.getfilesystemencoding())
 
