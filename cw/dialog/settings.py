@@ -54,6 +54,12 @@ def apply_levelupparams(can_levelup):
     cw.cwpy.exec_func(check_levelup, can_levelup)
 
 
+if sys.platform == "win32":
+    _spin_w_addition = 0
+else:
+    _spin_w_addition = 70
+
+
 class SettingsDialog(wx.Dialog):
     def __init__(self, parent):
         """設定ダイアログ。
@@ -1221,7 +1227,7 @@ class GeneralSettingPanel(wx.Panel):
         self.st_messagelog_type = wx.StaticText(self, -1, u"表示形式:")
         self.ch_messagelog_type = wx.Choice(self, -1, choices=[u"1件ずつ表示", u"並べて表示", u"高さを圧縮"])
         self.st_backlogmax = wx.StaticText(self, -1, u"最大数:")
-        self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(cw.ppis(80), -1), max=9999, min=0)
+        self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(cw.ppis(80+_spin_w_addition), -1), max=9999, min=0)
 
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
@@ -1234,7 +1240,7 @@ class GeneralSettingPanel(wx.Panel):
         # 持出金額
         self.box_party = wx.StaticBox(self, -1, u"パーティ")
         self.st_initmoneyamount = wx.StaticText(self, -1, u"結成時の持出金額:")
-        self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(cw.ppis(80), -1), min=0, max=999999)
+        self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(cw.ppis(80+_spin_w_addition), -1), min=0, max=999999)
         self.cb_initmoneyisinitialcash = wx.CheckBox(self, -1, u"初期資金と同額")
 
         self.cb_autosavepartyrecord = wx.CheckBox(
@@ -1650,7 +1656,7 @@ class DrawingSettingPanel(wx.Panel):
         self.st_blwin = wx.StaticText(self, -1, u"ログ")
         self.cs_blwin = wx.ColourPickerCtrl(self, -1)
         self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50), -1))
+        self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_mwin.SetRange(0, 255)
         # メッセージウィンドウ枠色
         self.box_mframe = wx.StaticBox(self, -1, u"メッセージウィンドウ枠")
@@ -1659,7 +1665,7 @@ class DrawingSettingPanel(wx.Panel):
         self.st_blframe = wx.StaticText(self, -1, u"ログ")
         self.cs_blframe = wx.ColourPickerCtrl(self, -1)
         self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50), -1))
+        self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_mframe.SetRange(0, 255)
 
         # メッセージログカーテン色
@@ -1667,7 +1673,7 @@ class DrawingSettingPanel(wx.Panel):
         self.st_blcurtain = wx.StaticText(self, -1, u"カラー")
         self.cs_blcurtain = wx.ColourPickerCtrl(self, -1)
         self.st_blcurtain2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_blcurtain = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50), -1))
+        self.sc_blcurtain = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_blcurtain.SetRange(0, 255)
 
         # カーテン色
@@ -1675,7 +1681,7 @@ class DrawingSettingPanel(wx.Panel):
         self.st_curtain = wx.StaticText(self, -1, u"カラー")
         self.cs_curtain = wx.ColourPickerCtrl(self, -1)
         self.st_curtain2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_curtain = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50), -1))
+        self.sc_curtain = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_curtain.SetRange(0, 255)
 
         # フルスクリーンの背景
@@ -2626,7 +2632,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.panel_radius_notdetectmovement = wx.Panel(self, -1)
         self.st_panel_radius_notdetectmovement = wx.StaticText(self.panel_radius_notdetectmovement, -1,
                                                       u"マウスホイールでのカードの選択中にカーソルの小さな動きを無視する:")
-        self.sc_radius_notdetectmovement = wx.SpinCtrl(self.panel_radius_notdetectmovement, -1, "", size=(cw.ppis(50), -1))
+        self.sc_radius_notdetectmovement = wx.SpinCtrl(self.panel_radius_notdetectmovement, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_radius_notdetectmovement.SetRange(0, 50)
         self.st_panel_radius_notdetectmovement_2 = wx.StaticText(self.panel_radius_notdetectmovement, -1,
                                                       u"ピクセルまで")

@@ -3390,6 +3390,16 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     dc.SelectObject(wx.NullBitmap)
     dc.Destroy()
     subimg = convert_to_image(wxbmp)
+
+    # BUG: wxGTK 4.0.1でランダムに背景が真っ白になる問題への対策
+    if sys.platform <> "win32":
+        if sys.platform == "darwin":
+            import _imageretouch_mac as _imageretouch
+        elif sys.maxsize == 0x7fffffff:
+            import _imageretouch32 as _imageretouch
+        elif sys.maxsize == 0x7fffffffffffffff:
+            import _imageretouch64 as _imageretouch
+        redbuf = _imageretouch.mul_alphaonly(str(redbuf), alpha)
     subimg.SetAlphaBuffer(redbuf)
 
     if scaledown:
@@ -3403,8 +3413,10 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
             size = (maxwidth - padding*2, h)
             subimg = subimg.Rescale(size[0], h, quality=quality)
 
-    if alpha <> 255:
-        cw.imageretouch.mul_wxalpha(subimg, alpha)
+    # BUG: wxGTK 4.0.1でランダムに背景が真っ白になる問題への対策
+    if sys.platform == "win32":
+        if alpha <> 255:
+            cw.imageretouch.mul_wxalpha(subimg, alpha)
 
     if upfont:
         font = wx.Font(wx.Size(0, pixelsize), family, style, weight, 0, facename, encoding)
