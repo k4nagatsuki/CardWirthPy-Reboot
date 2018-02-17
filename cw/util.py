@@ -3330,6 +3330,8 @@ def draw_witharound(dc, s, x, y, maxwidth=0):
 def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
                          quality=None, scaledown=True, alpha=64,
                          bordering=False):
+    if not text:
+        return
     if bordering:
         subimg = cw.util.render_antialiasedtext(dc, text, not white, maxwidth, padding,
                                                 scaledown=scaledown, quality=quality, alpha=alpha)
@@ -3348,6 +3350,8 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     if quality is None:
         quality = wx.IMAGE_QUALITY_BICUBIC
     w, h = basedc.GetTextExtent(text)
+    if w <= 0 or h <= 0:
+        return empty_bitmap(w, h)
     font = basedc.GetFont()
     upfont = 0 < maxwidth and maxwidth < w and not scaledown
     if upfont:
@@ -3363,6 +3367,8 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
         font = wx.Font(wx.Size(0, pixelsize*2), family, style, weight, 0, facename, encoding)
         basedc.SetFont(font)
         w, h = basedc.GetTextExtent(text)
+    if w <= 0 or h <= 0:
+        return empty_bitmap(w, h)
     wxbmp = empty_bitmap(w, h)
     dc = wx.MemoryDC(wxbmp)
     dc.SetFont(font)
