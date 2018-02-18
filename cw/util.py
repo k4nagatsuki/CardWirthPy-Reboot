@@ -3076,8 +3076,19 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
     if sys.platform <> "win32":
         assert threading.currentThread() <> cw.cwpy
+
+    def masked_empty_bitmap():
+        image = wx.Image(1, 1)
+        if image.HasAlpha():
+            image.ClearAlpha()
+        r = image.GetRed(0, 0)
+        g = image.GetGreen(0, 0)
+        b = image.GetBlue(0, 0)
+        image.SetMaskColour(r, g, b)
+        return image.ConvertToBitmap()
+
     if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
-        return empty_bitmap(0, 0)
+        return masked_empty_bitmap()
 
     if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
@@ -3099,13 +3110,13 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                     data = cw.binary.image.code_to_data(name)
                 else:
                     if not os.path.isfile(name):
-                        return empty_bitmap(0, 0)
+                        return masked_empty_bitmap()
                     with open(name, "rb") as f2:
                         data = f2.read()
                         f2.close()
 
                 if not data:
-                    return empty_bitmap(0, 0)
+                    return masked_empty_bitmap()
 
                 ext = get_imageext(data)
                 if ext == ".png":
@@ -3125,7 +3136,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             except:
                 print_ex()
                 print u"画像が読み込めません(load_wxbmp)", name
-                return empty_bitmap(0, 0)
+                return masked_empty_bitmap()
 
         def set_mask(image, maskpos):
             if image.HasAlpha():
@@ -3141,7 +3152,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             return (r, g, b)
 
         if not image.IsOk():
-            return empty_bitmap(0, 0)
+            return masked_empty_bitmap()
 
         if not haspngalpha and not image.HasAlpha():
             maskcolour = set_mask(image, maskpos)
@@ -3173,7 +3184,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             wxbmp = wx.Bitmap(name)
         except:
             print u"画像が読み込めません(load_wxbmp)", name
-            return empty_bitmap(0, 0)
+            return masked_empty_bitmap()
 
     if bmpdepth == 1 and mask:
         wxbmp.bmpdepthis1 = True
@@ -3209,7 +3220,9 @@ def convert_to_image(bmp):
     """
     w = bmp.GetWidth()
     h = bmp.GetHeight()
-    if sys.platform == "win32":
+    if w <= 0 or h <= 0:
+        img = wx.Image(w, h)
+    elif sys.platform == "win32":
         buf = array.array('B', [0] * (w*h * 3))
         try:
             bmp.CopyToBuffer(buf)

@@ -2054,7 +2054,7 @@ class ScenarioSelect(select.Select):
         dc.SetBrush(wx.Brush(colour))
         dc.DrawRectangle(0, 0, csize[0], csize[1])
         bmp = self._get_bg_scaled()
-        bmpw, bmph = bmp.GetSize()
+        bmpw, bmph = self.toppanel.GetClientSize()
         dc.DrawBitmap(bmp, 0, yp, False)
 
         # リストが空だったら描画終了

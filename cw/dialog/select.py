@@ -391,7 +391,7 @@ class Select(wx.Dialog):
             self.addctrlbtn.Hide()
         self.addctrlbtn.SetToggle(show)
         img = cw.util.convert_to_image(bg)
-        x, y = img.GetWidth()-12, 0
+        x, y = max(0, img.GetWidth()-12), 0
         r, g, b = img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y)
         colour = wx.Colour(r, g, b)
         self.addctrlbtn.SetBackgroundColour(colour)
@@ -1197,7 +1197,7 @@ class YadoSelect(MultiViewSelect):
         path = "Table/Bill"
         path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins(cw.util.load_wxbmp(path, can_loaded_scaledimage=True))
-        bmpw, bmph = bmp.GetSize()
+        bmpw, bmph = self.toppanel.GetClientSize()
         dc.DrawBitmap(bmp, 0, 0, False)
 
         # リストが空だったら描画終了
@@ -2085,7 +2085,7 @@ class PartySelect(MultiViewSelect):
         dc = Select.draw(self, update)
         # 背景
         bmp = cw.wins(self._get_bg())
-        bmpw = bmp.GetSize()[0]
+        bmpw = self.toppanel.GetClientSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
         # リストが空だったら描画終了
@@ -3048,7 +3048,7 @@ class PlayerSelect(MultiViewSelect):
         dc = MultiViewSelect.draw(self, update)
         # 背景
         bmp = cw.wins(self._get_bg())
-        bmpw = bmp.GetSize()[0]
+        bmpw = self.toppanel.GetClientSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
         if self.list:
