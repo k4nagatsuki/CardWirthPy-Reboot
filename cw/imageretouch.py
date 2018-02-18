@@ -859,7 +859,7 @@ def add_lightness_for_wxbmp(wxbmp, lightness, maskpos=(0, 0)):
     h = wximg.GetHeight()
     func(buf, (w, h), lightness)
 
-    wximg = wx.ImageFromBuffer(w, h, buffer(buf), alphaBuffer=bytearray(alphabuf))
+    wximg = wx.ImageFromBuffer(w, h, buffer(buf), alphaBuffer=bytearray(alphabuf) if alphabuf else None)
     wxbmp = wx.Bitmap(wximg)
     x, y = maskpos
     wxbmp.SetMaskColour((wximg.GetRed(x, y), wximg.GetGreen(x, y), wximg.GetBlue(x, y)))
