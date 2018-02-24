@@ -87,7 +87,7 @@ class StatusBar(base.CWPySprite):
         left = cw.s(602)
         rmargin = cw.s(0)
 
-        if cw.cwpy.setting.tablet_mode:
+        if cw.cwpy.setting.show_tiles:
             self._create_touchmenu((left, cw.s(3)))
             left -= cw.s(28)
             rmargin += cw.s(28)

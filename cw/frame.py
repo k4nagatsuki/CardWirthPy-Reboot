@@ -1423,7 +1423,7 @@ class MyApp(wx.App):
 
         # ダイアログ上でのフリック操作
         # フリック開始位置で右クリックを発生させる
-        if cw.cwpy and cw.cwpy.setting.tablet_mode and isinstance(event, wx.MouseEvent):
+        if cw.cwpy and cw.cwpy.setting.enabled_right_flick and isinstance(event, wx.MouseEvent):
 
             def end_flick():
                 mousepos = wx.GetMousePosition()
@@ -1472,7 +1472,7 @@ class MyApp(wx.App):
             elif self.flick_status == FLICK_START and event.GetEventType() == wx.EVT_LEFT_UP.typeId:
                 return end_flick()
 
-        if cw.cwpy and cw.cwpy.setting.tablet_mode and isinstance(event, wx.MouseEvent):
+        if cw.cwpy and cw.cwpy.setting.enabled_right_flick and isinstance(event, wx.MouseEvent):
             if self.flick_status == FLICK_START and event.GetEventType() == wx.EVT_MOTION.typeId:
                 # フリックの制限時間が経過済みでない場合はポインタ移動イベントをキャンセルする
                 dur = time.time() - self.flick_start_time

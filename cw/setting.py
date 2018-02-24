@@ -397,7 +397,9 @@ class Setting(object):
         self.show_roundautostartbutton = True
         self.show_autobuttoninentrydialog = True
         self.unconvert_targetfolder = u"UnconvertedYado"
-        self.tablet_mode = False
+        self.show_tiles = False
+        self.enabled_right_flick = False
+        self.can_repeatlclick = False
         self.shiftup_touchbutton = True # タッチボタンをスライド表示する
         self.flick_time_msec = 300
         self.flick_distance = 30
@@ -405,7 +407,6 @@ class Setting(object):
         self.can_skipanimation = True
         self.can_skipwait_with_wheel = True
         self.can_forwardmessage_with_wheel = True
-        self.can_repeatlclick = False
         self.cursor_type = CURSOR_WHITE
         self.autoenter_on_sprite = False
         self.blink_statusbutton = True
@@ -731,8 +732,12 @@ class Setting(object):
         # 逆変換先ディレクトリ
         self.unconvert_targetfolder = data.gettext("UnconvertTargetFolder", self.unconvert_targetfolder)
 
-        # タブレットモード
-        self.tablet_mode = data.getbool("TabletMode", self.tablet_mode_init)
+        # タッチ操作用のタイルを表示する
+        self.show_tiles = data.getbool("ShowTiles", self.show_tiles_init)
+        # 右フリックで右クリック相当の操作を行う
+        self.enabled_right_flick = data.getbool("EnabledRightFlick", self.enabled_right_flick_init)
+        # 一定時間タッチし続けた時は連打状態にする
+        self.can_repeatlclick = data.getbool("CanRepeatLClick", self.can_repeatlclick_init)
 
         # 空白時間をスキップ可能にする
         self.can_skipwait = data.getbool("CanSkipWait", self.can_skipwait)
@@ -742,8 +747,6 @@ class Setting(object):
         self.can_skipwait_with_wheel = data.getbool("CanSkipWaitWithWheel", self.can_skipwait_with_wheel)
         # マウスのホイールでメッセージ送りを行う
         self.can_forwardmessage_with_wheel = data.getbool("CanForwardMessageWithWheel", self.can_forwardmessage_with_wheel)
-        # マウスの左ボタンを押し続けた時は連打状態にする
-        self.can_repeatlclick = data.getbool("CanRepeatLClick", self.can_repeatlclick)
         # 方向キーやホイールの選択中にマウスカーソルの移動を検知しない半径
         self.radius_notdetectmovement = data.getint("RadiusForNotDetectingCursorMovement", self.radius_notdetectmovement)
         # カーソルタイプ

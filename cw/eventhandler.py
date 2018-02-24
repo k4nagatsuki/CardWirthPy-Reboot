@@ -154,7 +154,7 @@ class EventHandler(object):
 
         # フリック操作
         # フリック開始位置で右クリックイベントを発生させる
-        if cw.cwpy.setting.tablet_mode and event.button == 1:
+        if cw.cwpy.setting.enabled_right_flick and event.button == 1:
             selection = cw.cwpy.selection
             pos = pygame.mouse.get_pos()
             if not cw.cwpy.scr_fullscreen and pos[0] == cw.scr2mwin_s(cw.s(cw.SIZE_AREA[0]))-1 and not pygame.mouse.get_focused():
@@ -868,7 +868,7 @@ class EventHandlerForMessageWindow(EventHandler):
             EventHandler.ldown_event()
 
     def ldown_event(self):
-        if cw.cwpy.setting.tablet_mode and\
+        if cw.cwpy.setting.enabled_right_flick and\
                 cw.cwpy.statusbar.rect.collidepoint(cw.cwpy.mousepos) and\
                 not self._update_selection():
             self.shiftkey_event(True)

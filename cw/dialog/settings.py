@@ -451,10 +451,14 @@ class SettingsPanel(wx.Panel):
             if not value == cw.cwpy.setting.debug:
                 cw.cwpy.exec_func(cw.cwpy.set_debug, value)
 
-        value = self.pane_gene.cb_tablet_mode.GetValue()
-        if value <> setting.tablet_mode:
-            setting.tablet_mode = value
+        value = self.pane_gene.cb_show_tiles.GetValue()
+        if value <> setting.show_tiles:
+            setting.show_tiles = value
             updatestatusbar = True
+        value = self.pane_gene.cb_enabled_right_flick.GetValue()
+        setting.enabled_right_flick = value
+        value = self.pane_gene.cb_can_repeatlclick.GetValue()
+        setting.can_repeatlclick = value
 
         value = self.pane_gene.cb_show_debuglogdialog.GetValue()
         setting.show_debuglogdialog = value
@@ -671,8 +675,6 @@ class SettingsPanel(wx.Panel):
         setting.wait_usecard = value
         value = self.pane_ui.cb_enlarge_beastcardzoomingratio.GetValue()
         setting.enlarge_beastcardzoomingratio = value
-        value = self.pane_ui.cb_can_repeatlclick.GetValue()
-        setting.can_repeatlclick = value
         value = self.pane_ui.cb_autoenter_on_sprite.GetValue()
         setting.autoenter_on_sprite = value
 
@@ -1209,10 +1211,15 @@ class ExpandPanel(wx.Panel):
 class GeneralSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
+
+        # タブレットモード
+        self.box_tablet = wx.StaticBox(self, -1, u"タブレットモード")
+        self.cb_show_tiles = wx.CheckBox(self, -1, u"タッチ操作用のタイルを表示する")
+        self.cb_enabled_right_flick = wx.CheckBox(self, -1, u"右フリックで右クリック相当の操作を行う")
+        self.cb_can_repeatlclick = wx.CheckBox(self, -1, u"一定時間タッチし続けた時は連打状態にする")
+
         # デバッグモード
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        self.cb_tablet_mode = wx.CheckBox(self, -1, u"タブレットモード(タッチ操作向け)")
-        self.cb_tablet_mode.SetToolTip(u"右フリック = カード情報表示・キャンセルなど")
         self.cb_debug = wx.CheckBox(self, -1, u"デバッグモード(Ctrl+Dでも切替可)")
         self.cb_debug.SetValue(cw.cwpy.debug)
         self.cb_show_debuglogdialog = wx.CheckBox(
@@ -1333,7 +1340,9 @@ class GeneralSettingPanel(wx.Panel):
             tx.Bind(wx.EVT_KILL_FOCUS, self.OnSSFocus)
 
     def load(self, setting):
-        self.cb_tablet_mode.SetValue(setting.tablet_mode)
+        self.cb_show_tiles.SetValue(setting.show_tiles)
+        self.cb_enabled_right_flick.SetValue(setting.enabled_right_flick)
+        self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick)
         self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog)
         self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode)
         if setting.messagelog_type == cw.setting.LOG_SINGLE:
@@ -1364,7 +1373,9 @@ class GeneralSettingPanel(wx.Panel):
         self.expand.load(setting)
 
     def init_values(self, setting):
-        self.cb_tablet_mode.SetValue(setting.tablet_mode_init)
+        self.cb_show_tiles.SetValue(setting.show_tiles_init)
+        self.cb_enabled_right_flick.SetValue(setting.enabled_right_flick_init)
+        self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick_init)
         self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog_init)
 
         self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode_init)
@@ -1433,11 +1444,15 @@ class GeneralSettingPanel(wx.Panel):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_right = wx.BoxSizer(wx.VERTICAL)
 
+        bsizer_tablet = wx.StaticBoxSizer(self.box_tablet, wx.VERTICAL)
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
 
-        bsizer_gene.Add(self.cb_tablet_mode, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_tablet.Add(self.cb_show_tiles, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_tablet.Add(self.cb_enabled_right_flick, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        bsizer_tablet.Add(self.cb_can_repeatlclick, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+
         bsizer_gene.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_show_debuglogdialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
@@ -1495,6 +1510,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_ss.Add(self.st_ssinfo_brackets, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(3))
         bsizer_ss.Add(self.sstoolbar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(3))
 
+        sizer_left.Add(bsizer_tablet, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
         sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
         sizer_left.Add(bsizer_log, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
         sizer_left.Add(bsizer_skin, 1, wx.EXPAND, cw.ppis(3))
@@ -2565,8 +2581,6 @@ class UISettingPanel(wx.ScrolledWindow):
             self, -1, u"カードの使用前に空白時間を入れる")
         self.cb_enlarge_beastcardzoomingratio = wx.CheckBox(
             self, -1, u"召喚獣カードの拡大率を大きくする")
-        self.cb_can_repeatlclick = wx.CheckBox(
-            self, -1, u"マウスの左ボタンを押し続けた時は連打状態にする")
         self.cb_autoenter_on_sprite = wx.CheckBox(
             self, -1, u"連打状態の時、カードなどの選択を自動的に決定する")
 
@@ -2700,7 +2714,6 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_can_forwardmessage_with_wheel.SetValue(setting.can_forwardmessage_with_wheel)
         self.cb_wait_usecard.SetValue(setting.wait_usecard)
         self.cb_enlarge_beastcardzoomingratio.SetValue(setting.enlarge_beastcardzoomingratio)
-        self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick)
         self.cb_autoenter_on_sprite.SetValue(setting.autoenter_on_sprite)
 
         self.cb_quickdeal.SetValue(setting.quickdeal)
@@ -2762,7 +2775,6 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_can_forwardmessage_with_wheel.SetValue(setting.can_forwardmessage_with_wheel_init)
         self.cb_wait_usecard.SetValue(setting.wait_usecard_init)
         self.cb_enlarge_beastcardzoomingratio.SetValue(setting.enlarge_beastcardzoomingratio_init)
-        self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick_init)
         self.cb_autoenter_on_sprite.SetValue(setting.autoenter_on_sprite_init)
 
         self.cb_quickdeal.SetValue(setting.quickdeal_init)
@@ -2847,7 +2859,6 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_skip_and_wait.Add(self.cb_can_forwardmessage_with_wheel, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_skip_and_wait.Add(self.cb_wait_usecard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_skip_and_wait.Add(self.cb_enlarge_beastcardzoomingratio, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
-        bsizer_skip_and_wait.Add(self.cb_can_repeatlclick, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_skip_and_wait.Add(self.cb_autoenter_on_sprite, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         sizer_2.Add(bsizer_skip_and_wait, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(3))
 

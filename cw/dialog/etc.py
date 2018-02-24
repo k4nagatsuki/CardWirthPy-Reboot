@@ -903,7 +903,7 @@ class TouchTools(wx.MiniFrame):
 
 
 def show_touchtools(dlg):
-    if not cw.cwpy.setting.tablet_mode:
+    if not cw.cwpy.setting.show_tiles:
         return False
     if hasattr(dlg, "cwpy_debug") and dlg.cwpy_debug:
         return False

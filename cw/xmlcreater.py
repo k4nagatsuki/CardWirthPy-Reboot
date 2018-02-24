@@ -503,9 +503,17 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             e = cw.data.make_element("UnconvertTargetFolder", setting.unconvert_targetfolder)
             element.append(e)
 
-    # タブレットモード
-    if setting.tablet_mode <> setting.tablet_mode_init:
-        e = cw.data.make_element("TabletMode", str(setting.tablet_mode))
+    # タッチ操作用のタイルを表示する
+    if setting.show_tiles <> setting.show_tiles_init:
+        e = cw.data.make_element("ShowTiles", str(setting.show_tiles))
+        element.append(e)
+    # 右フリックを右クリック相当の操作を行う
+    if setting.enabled_right_flick <> setting.show_tiles_init:
+        e = cw.data.make_element("EnabledRightFlick", str(setting.enabled_right_flick))
+        element.append(e)
+    # 一定時間タッチし続けた時は連打状態にする
+    if setting.can_repeatlclick <> setting.can_repeatlclick_init:
+        e = cw.data.make_element("CanRepeatLClick", str(setting.can_repeatlclick))
         element.append(e)
 
     # 空白時間をスキップ可能にする
@@ -526,10 +534,6 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("CanForwardMessageWithWheel", str(setting.can_forwardmessage_with_wheel))
         element.append(e)
 
-    # マウスの左ボタンを押し続けた時は連打状態にする
-    if setting.can_repeatlclick <> setting.can_repeatlclick_init:
-        e = cw.data.make_element("CanRepeatLClick", str(setting.can_repeatlclick))
-        element.append(e)
     # 方向キーやホイールの選択中にマウスカーソルの移動を検知しない半径
     if setting.radius_notdetectmovement <> setting.radius_notdetectmovement_init:
         e = cw.data.make_element("RadiusForNotDetectingCursorMovement", str(setting.radius_notdetectmovement))
