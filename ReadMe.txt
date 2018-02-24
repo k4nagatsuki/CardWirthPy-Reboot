@@ -251,7 +251,7 @@ WSN形式のバージョンの一つである「Wsn.2」では、対応するCar
 
 CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはpy2exeを使用しています。
 
-[Python ver2.7.13 (32bit版)](http://www.python.org/)
+[Python ver2.7.14 (32bit版)](http://www.python.org/)
  : License: Python Software Foundation License
 
 [py2exe ver0.6.9](http://www.py2exe.org/)
@@ -261,13 +261,13 @@ CardWirthPyは以下のPythonの外部モジュールを使用しています。
 [wxPython 4.0.1](http://www.wxpython.org/)
  : License: wxWindows Library License
 
-[pygame ver1.9.2](http://www.pygame.org/)
+[pygame ver1.9.3](http://www.pygame.org/)
  : License: GNU Lesser General Public License
 
-[Python for Windows extensions Build 220](http://sourceforge.net/projects/pywin32/)
+[Python for Windows Extensions Build 220](http://sourceforge.net/projects/pywin32/)
  : License: Python Software Foundation License
 
-[lhafile 0.1](http://trac.neotitans.net/wiki/lhafile)
+[lhafile 2.2](https://fengestad.no/python-lhafile/)
  : License: 修正BSDライセンス
 
 CardWirthPyは以下のMicrosoftのライブラリを同梱しています。
