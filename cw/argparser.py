@@ -3,6 +3,7 @@
 
 import sys
 
+
 class ArgParser(object):
     def __init__(self, appname="", description=""):
         """argparse.ArgumentParserが'-'で始まる
@@ -16,7 +17,7 @@ class ArgParser(object):
         self.args = {}
         self.largs = []
 
-    def add_argument(self, arg, type, nargs, help, arg2="", default=None):
+    def add_argument(self, arg, type, nargs, help, arg2="", default=None, metavar=None):
         """オプションの情報を追加する。
         arg: '-'で始まるオプション名。
         type: オプションの型。str, int, boolのいずれか。
@@ -24,8 +25,9 @@ class ArgParser(object):
         help: オプションの解説。
         arg2: '--'で始まるオプション名。
         default: オプションのデフォルト値。
+        metavar: ヘルプで表示される引数値。
         """
-        argobj = Arg(arg, type, nargs, help, arg2, default)
+        argobj = Arg(arg, type, nargs, help, arg2, default, metavar)
         self.args[arg] = argobj
         if arg2:
             self.args[arg2] = argobj
@@ -47,24 +49,26 @@ class ArgParser(object):
                 if arg in self.args:
                     argobj = self.args[arg]
                     val = argobj.eat(args)
-                    setattr(r, argobj.arg[1:], val)
-                    keys.remove(arg)
+                    if argobj.arg:
+                        setattr(r, argobj.arg.lstrip(u"-").replace(u"-", u"_"), val)
+                        keys.remove(argobj.arg)
                     if argobj.arg2:
-                        setattr(r, argobj.arg2[2:], val)
+                        setattr(r, argobj.arg2.lstrip(u"-").replace(u"-", u"_"), val)
                         keys.remove(argobj.arg2)
                 else:
                     r.leftovers.append(arg)
         except:
-            print u"起動引数が正しくありません: %s" % (arg)
+            sys.stderr.write(u"起動引数が正しくありません: %s\n" % (arg))
             print
             self.print_help()
             return None
 
         for key in keys:
             argobj = self.args[key]
-            setattr(r, argobj.arg[1:], argobj.default)
+            if argobj.arg:
+                setattr(r, argobj.arg.lstrip(u"-").replace(u"-", u"_"), argobj.default)
             if argobj.arg2:
-                setattr(r, argobj.arg2[2:], argobj.default)
+                setattr(r, argobj.arg2.lstrip(u"-").replace(u"-", u"_"), argobj.default)
 
         return r
 
@@ -89,6 +93,7 @@ class ArgParser(object):
             s = s.ljust(mlen)
             print "  %s  %s" % (s, ('\n' + ' '*(mlen+4)).join(arg.help.splitlines()))
 
+
 class ArgResult(object):
     def __init__(self):
         """起動オプションを解析した結果を持つオブジェクト。
@@ -96,8 +101,9 @@ class ArgResult(object):
         """
         self.leftovers = []
 
+
 class Arg(object):
-    def __init__(self, arg, type, nargs, help, arg2="", default=None):
+    def __init__(self, arg, type, nargs, help, arg2="", default=None, metavar=None):
         """オプション情報。
         arg: '-'で始まるオプション名。
         type: オプションの型。str, int, boolのいずれか。
@@ -105,6 +111,7 @@ class Arg(object):
         help: オプションの解説。
         arg2: '--'で始まるオプション名。
         default: オプションのデフォルト値。
+        metavar: ヘルプで表示される引数値。
         """
         self.arg = arg
         self.arg2 = arg2
@@ -112,6 +119,7 @@ class Arg(object):
         self.nargs = nargs
         self.help = help
         self.default = default
+        self.metavar = metavar
 
     def eat(self, args):
         """argsからオプション引数を得る。
@@ -142,9 +150,14 @@ class Arg(object):
         if self.arg2:
             s = "%s%s%s" % (s, sep, self.arg2)
         if self.nargs:
-            return "%s <%s>" % (s, self.arg[1:].upper())
+            if self.metavar:
+                metavar = self.metavar
+            else:
+                metavar = self.arg[1:].upper()
+            return "%s <%s>" % (s, metavar)
         else:
             return s
+
 
 def main():
     parser = ArgParser(appname="args.py", description="Process some integers.")
@@ -164,6 +177,7 @@ def main():
     print "-y  :", args.y
     print "-dbg:", args.dbg
     print "    :", args.leftovers
+
 
 if __name__ == "__main__":
     main()

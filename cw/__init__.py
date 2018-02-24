@@ -181,13 +181,20 @@ _argparser.add_argument("-h", type=bool, nargs=0,
 _argparser.add_argument("-debug", type=bool, nargs=0,
     help=u"デバッグモードで起動します。")
 _argparser.add_argument("-yado", type=str, nargs=1, default="",
-    help=u"起動と同時に<YADO>のパスにある宿を読み込みます。")
+    help=u"起動と同時に<YADO>のパスにある拠点を読み込みます。")
 _argparser.add_argument("-party", type=str, nargs=1, default="",
     help=u"起動と同時に<PARTY>のパスにあるパーティを読み込みます。\n"
        + u"-yadoと同時に指定しなかった場合は無視されます。")
 _argparser.add_argument("-scenario", type=str, nargs=1, default="",
     help=u"起動と同時に<SCENARIO>のパスにあるシナリオを開始します。\n"
        + u"-yado及び-partyと同時に指定しなかった場合は無視されます。")
+_argparser.add_argument("-skin", type=str, nargs=1, default="",
+    help=u"<SKIN>のパスにあるスキンで起動します。\n"
+       + u"起動と同時に拠点が開かれる場合は拠点のスキンが優先されます。")
+_argparser.add_argument("--force-skin", type=str, nargs=1, default="", metavar="SKIN",
+    help=u"<SKIN>のパスにあるスキンで起動します。\n"
+       + u"拠点のスキンや、-skinよりも優先されます。")
+
 OPTIONS = _argparser.parse_args(sys.argv[1:])
 if OPTIONS.help:
     _argparser.print_help()
@@ -197,6 +204,10 @@ _encoding = sys.getfilesystemencoding()
 OPTIONS.yado = OPTIONS.yado.decode(_encoding)
 OPTIONS.party = OPTIONS.party.decode(_encoding)
 OPTIONS.scenario = OPTIONS.scenario.decode(_encoding)
+OPTIONS.skin = OPTIONS.skin.decode(_encoding)
+OPTIONS.force_skin = OPTIONS.force_skin.decode(_encoding)
+if OPTIONS.force_skin:
+    OPTIONS.skin = OPTIONS.force_skin
 
 # 起動オプション(スキン自動生成元)
 SKIN_CONV_ARGS = []

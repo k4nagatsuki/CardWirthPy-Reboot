@@ -1909,6 +1909,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.set_status("Title")
                 self._init_attrs()
                 if self.load_yado(optyado):
+                    cw.OPTIONS.force_skin = u""
                     return
                 else:
                     name = cw.header.GetName(env).name
@@ -1919,6 +1920,7 @@ class CWPy(_Singleton, threading.Thread):
         # これらのオプションは無効
         cw.OPTIONS.party = ""
         cw.OPTIONS.scenario = ""
+        cw.OPTIONS.force_skin = u""
 
         self.sdata = cw.data.SystemData()
         self.statusbar.change()

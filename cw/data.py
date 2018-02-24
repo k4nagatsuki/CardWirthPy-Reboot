@@ -2001,6 +2001,19 @@ class YadoData(object):
         self.skindirname = self.environment.gettext("Property/Skin", cw.cwpy.setting.skindirname)
         skintype = self.environment.gettext("Property/Type", cw.cwpy.setting.skintype)
         skinpath = cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")
+
+        # 起動オプション
+        optskin = cw.OPTIONS.force_skin
+        cw.OPTIONS.force_skin = u""
+        if optskin:
+            skinpath2 = cw.util.join_paths("Data/Skin", optskin, "Skin.xml")
+            if os.path.isfile(skinpath2):
+                self.skindirname = optskin
+            else:
+                s = u"スキン「%s」が見つかりません。" % (optskin)
+                cw.cwpy.call_modaldlg("ERROR", text=s)
+                supported_skin = False
+
         if not self.skindirname:
             # スキン指定無し
             supported_skin = False

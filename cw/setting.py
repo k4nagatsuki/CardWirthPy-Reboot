@@ -842,6 +842,7 @@ class Setting(object):
 
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)
+
         if not loadfile:
             self.init_skin(basedata=basedata)
 
@@ -883,6 +884,14 @@ class Setting(object):
                 self.vol_bgm_midi = self.vol_bgm * self.vol_bgm_midi
 
     def init_skin(self, basedata=None):
+        optskin = cw.OPTIONS.skin
+        cw.OPTIONS.skin = u""
+        if optskin:
+            # 起動オプションで差し替え
+            skinpath = cw.util.join_paths("Data/Skin", optskin, "Skin.xml")
+            if os.path.isfile(skinpath):
+                self.skindirname = optskin
+
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
         if self.auto_update_files:
             cw.update.update_files(self.skindir, self.skindirname)
