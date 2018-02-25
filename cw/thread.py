@@ -244,14 +244,15 @@ class CWPy(_Singleton, threading.Thread):
                 if fullscreen:
                     dsize = self.frame.get_displaysize()
                     self.frame.SetClientSize(dsize)
-                    self.frame.panel.SetSize(dsize)
                     self.frame.SetMaxSize(self.frame.GetBestSize())
                     self.frame.SetMinSize(self.frame.GetBestSize())
+                    self.frame.panel.SetSize(dsize)
                 else:
                     self.frame.SetClientSize(cw.wins(cw.SIZE_GAME))
-                    self.frame.panel.SetSize(cw.wins(cw.SIZE_GAME))
                     self.frame.SetMaxSize(self.frame.GetBestSize())
                     self.frame.SetMinSize(self.frame.GetBestSize())
+                    self.frame.panel.SetSize(cw.wins(cw.SIZE_GAME))
+                self.frame.SetSize(self.frame.GetBestSize())
 
         self.frame.exec_func(func)
 
@@ -261,6 +262,8 @@ class CWPy(_Singleton, threading.Thread):
             if sys.platform <> "win32":
                 self.frame.SetMaxSize((-1, -1))
                 self.frame.SetMinSize((-1, -1))
+                ws = self.frame.GetSize()[0] - self.frame.GetClientSize()[0]
+                hs = self.frame.GetSize()[1] - self.frame.GetClientSize()[1]
             self.frame.SetClientSize(size)
             self.frame.panel.SetSize(size)
             if sys.platform <> "win32":
@@ -269,8 +272,13 @@ class CWPy(_Singleton, threading.Thread):
                     self.frame.SetMaxSize(dsize)
                     self.frame.SetMinSize(dsize)
                 else:
-                    self.frame.SetMaxSize(self.frame.GetBestSize())
-                    self.frame.SetMinSize(self.frame.GetBestSize())
+                    # BUG: BestSizeが変化しない wxPython 4.0.1
+                    #assert size[0] <= self.frame.GetBestSize()[0]
+                    #assert size[1] <= self.frame.GetBestSize()[1]
+                    size2 = size[0]+ws, size[1]+hs
+                    self.frame.SetMaxSize(size2)
+                    self.frame.SetMinSize(size2)
+                    self.frame.SetSize(size2)
                 self.exec_func(self.draw)
 
         self.frame.exec_func(func)

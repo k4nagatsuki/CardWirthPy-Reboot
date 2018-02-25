@@ -86,8 +86,8 @@ class Frame(wx.Frame):
                 self.SetClientSize(cw.wins(cw.SIZE_GAME))
 
         if sys.platform <> "win32" and not setfullscreensize:
-                self.SetMinSize(self.GetBestSize())
-                self.SetMaxSize(self.GetBestSize())
+            self.SetMinSize(self.GetBestSize())
+            self.SetMaxSize(self.GetBestSize())
 
         def adjust_position():
             if not (self._setting.window_position[0] is None and self._setting.window_position[1] is None):

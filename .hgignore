@@ -6,6 +6,7 @@ syntax: regexp
 .*\.log$
 \.DS_Store$
 .*~$
+.idea/.*
 ^dailybuild\.log$
 ^cardwirthpy_.*\.zip$
 ^performance\.txt$
