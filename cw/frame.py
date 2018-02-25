@@ -394,9 +394,9 @@ class Frame(wx.Frame):
         if sys.platform <> "win32":
             if self.IsActive():
                 state = wx.GetMouseState()
-                l = state.LeftIsDown
-                m = state.MiddleIsDown
-                r = state.RightIsDown
+                l = state.LeftIsDown()
+                m = state.MiddleIsDown()
+                r = state.RightIsDown()
                 cw.cwpy.mousein = (l, m, r)
             else:
                 cw.cwpy.mousein = (0, 0, 0)
