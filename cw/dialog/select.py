@@ -262,17 +262,29 @@ class Select(wx.Dialog):
     def OnPaint2(self, event):
         self.draw()
 
+    def draw2(self, update=False):
+        if not self.toppanel.IsShown():
+            return None, None
+        dest = wx.Bitmap(self.toppanel.GetClientSize())
+        dc = wx.MemoryDC(dest)
+        dc.Clear()
+        return dc, dest
+
     def draw(self, update=False):
         if not self.toppanel.IsShown():
             return None
 
+        dc, dest = self.draw2(update)
+        self.draw3(dc, dest, update)
+
+    def draw3(self, dc, dest, update):
+        dc.SelectObject(wx.NullBitmap)
         if update:
             dc = wx.ClientDC(self.toppanel)
-            dc = wx.BufferedDC(dc, self.toppanel.GetSize())
+            dc = wx.BufferedDC(dc, self.toppanel.GetClientSize())
         else:
             dc = wx.BufferedPaintDC(self.toppanel)
-
-        return dc
+        dc.DrawBitmap(dest, cw.wins(0), cw.wins(0))
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -1183,7 +1195,7 @@ class YadoSelect(MultiViewSelect):
             dlg.Destroy()
 
     def draw(self, update=False):
-        dc = Select.draw(self, update)
+        dc, dest = self.draw2(update)
 
         if self.views <> 1 and not self._lastbillskindir is None:
             skindir = self._lastbillskindir
@@ -1202,6 +1214,7 @@ class YadoSelect(MultiViewSelect):
 
         # リストが空だったら描画終了
         if not self.list:
+            self.draw3(dc, dest, update)
             return
 
         def get_playingbmp():
@@ -1371,6 +1384,8 @@ class YadoSelect(MultiViewSelect):
                     y += ah
                 else:
                     x += aw
+
+        self.draw3(dc, dest, update)
 
     def conv_yado(self, path, ok=False, moveconverted=False, deletepath=""):
         """
@@ -2082,7 +2097,7 @@ class PartySelect(MultiViewSelect):
             self.partyrecordbtn.Disable()
 
     def draw(self, update=False):
-        dc = Select.draw(self, update)
+        dc, dest = self.draw2(update)
         # 背景
         bmp = cw.wins(self._get_bg())
         bmpw = self.toppanel.GetClientSize()[0]
@@ -2090,6 +2105,7 @@ class PartySelect(MultiViewSelect):
 
         # リストが空だったら描画終了
         if not self.list:
+            self.draw3(dc, dest, update)
             return
 
         def get_image(header):
@@ -2184,7 +2200,7 @@ class PartySelect(MultiViewSelect):
                 baserect = info.calc_basecardposition_wx(b.GetSize(), noscale=False,
                                                          basecardtype="Bill",
                                                          cardpostype="NotCard")
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, ix+baserect.x, iy+baserect.y, True, bitsizekey=bns)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, b, ix+baserect.x, iy+baserect.y, True, bitsizekey=bns)
             dc.DestroyClippingRegion()
             # パーティの先頭メンバを小さく表示する
             px = bmpw/2
@@ -2203,7 +2219,7 @@ class PartySelect(MultiViewSelect):
                 baserect = cw.wins(baserect)
                 baserect.x //= 2
                 baserect.y //= 2
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp4, px+baserect.x, py+baserect.y, True, bitsizekey=bmp3)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp4, px+baserect.x, py+baserect.y, True, bitsizekey=bmp3)
             dc.DestroyClippingRegion()
 
             # シナリオ・宿名
@@ -2245,7 +2261,7 @@ class PartySelect(MultiViewSelect):
                     baserect = info.calc_basecardposition_wx(b.GetSize(), noscale=False,
                                                              basecardtype="Bill",
                                                              cardpostype="NotCard")
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, b, ix+baserect.x, iy+baserect.y, True, bitsizekey=bns)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, b, ix+baserect.x, iy+baserect.y, True, bitsizekey=bns)
                 dc.DestroyClippingRegion()
                 # パーティの先頭メンバを小さく表示する
                 px = ix + cw.wins(37)
@@ -2264,7 +2280,7 @@ class PartySelect(MultiViewSelect):
                     baserect = cw.wins(baserect)
                     baserect.x //= 2
                     baserect.y //= 2
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp4, px+baserect.x, py+baserect.y, True, bitsizekey=bmp3)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp4, px+baserect.x, py+baserect.y, True, bitsizekey=bmp3)
                 dc.DestroyClippingRegion()
 
                 # パーティ名
@@ -2297,6 +2313,9 @@ class PartySelect(MultiViewSelect):
             s = str(page+1) if page > 0 else str(-page + 1)
             s = s + "/" + str(self.get_pagecount())
             cw.util.draw_witharound(dc, s, cw.wins(5), cw.wins(5))
+
+        self.draw3(dc, dest, update)
+
 
 #-------------------------------------------------------------------------------
 #　冒険者選択ダイアログ
@@ -3045,7 +3064,7 @@ class PlayerSelect(MultiViewSelect):
         return self._bg
 
     def draw(self, update=False):
-        dc = MultiViewSelect.draw(self, update)
+        dc, dest = self.draw2(update)
         # 背景
         bmp = cw.wins(self._get_bg())
         bmpw = self.toppanel.GetClientSize()[0]
@@ -3089,7 +3108,7 @@ class PlayerSelect(MultiViewSelect):
                                                              basecardtype="LargeCard",
                                                              cardpostype="NotCard")
 
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, cw.wins(88)+baserect.x, cw.wins(90)+baserect.y, True, bitsizekey=bmp)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, cw.wins(88)+baserect.x, cw.wins(90)+baserect.y, True, bitsizekey=bmp)
                 dc.DestroyClippingRegion()
                 # Age
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
@@ -3154,7 +3173,7 @@ class PlayerSelect(MultiViewSelect):
                         baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                                  basecardtype="LargeCard",
                                                                  cardpostype="NotCard")
-                        cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, ix+baserect.x, iy+baserect.y, True, bitsizekey=bmp)
+                        cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, ix+baserect.x, iy+baserect.y, True, bitsizekey=bmp)
                     dc.DestroyClippingRegion()
 
                     # Name
@@ -3193,6 +3212,9 @@ class PlayerSelect(MultiViewSelect):
                 s = str(page+1) if page > 0 else str(-page + 1)
                 s = s + "/" + str(self.get_pagecount())
                 cw.util.draw_witharound(dc, s, cw.wins(5), cw.wins(5))
+
+        self.draw3(dc, dest, update)
+
 
 #-------------------------------------------------------------------------------
 #　アルバムダイアログ
@@ -3277,6 +3299,7 @@ class Album(PlayerSelect):
     def OnSelect(self, event):
         pass
 
+
 def change_combo(combo, event):
     if combo and combo.IsShown() and combo.GetRect().Contains(event.GetPosition()):
         index = combo.GetSelection()
@@ -3298,8 +3321,10 @@ def change_combo(combo, event):
     else:
         return False
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

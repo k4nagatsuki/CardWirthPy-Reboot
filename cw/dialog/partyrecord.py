@@ -235,7 +235,7 @@ class SelectPartyRecord(select.Select):
     def draw(self, update=False):
         assert len(self.list)
 
-        dc = select.Select.draw(self, update)
+        dc, dest = self.draw2(update)
         # 背景
         path = "Table/Book"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
@@ -337,6 +337,8 @@ class SelectPartyRecord(select.Select):
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, cw.wins(250))
+
+        self.draw3(dc, dest, update)
 
         if update:
             self.enable_btn()

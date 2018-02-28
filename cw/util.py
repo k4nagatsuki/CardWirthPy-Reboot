@@ -3550,7 +3550,10 @@ class CWPyStaticBitmap(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def OnPaint(self, event):
-        dc = wx.PaintDC(self)
+        dest = wx.Bitmap(self.GetClientSize())
+        dc = wx.MemoryDC(dest)
+        clear_background(dc, self)
+
         for i, (bmp, bmpdepthkey) in enumerate(zip(self.bmps, self.bmps_bmpdepthkey)):
             if self.infos:
                 info = self.infos[i]
@@ -3565,7 +3568,10 @@ class CWPyStaticBitmap(wx.Panel):
                 x, y = baserect.x, baserect.y
             else:
                 x, y = 0, 0
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, x, y, True, bitsizekey=bmpdepthkey)
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp, x, y, True, bitsizekey=bmpdepthkey)
+
+        dc = wx.PaintDC(self)
+        dc.DrawBitmap(dest, cw.wins(0), cw.wins(0))
 
     def SetBitmap(self, bmps, bmps_bmpdepthkey, infos=None):
         self.bmps = bmps
@@ -3575,6 +3581,38 @@ class CWPyStaticBitmap(wx.Panel):
 
     def GetBitmap(self, bmps):
         return self.bmps
+
+
+def clear_background(dc, window):
+    """windowの背景色によって塗り潰す。"""
+    colour = get_backgroundcolour(window)
+    b = dc.GetBrush()
+    p = dc.GetPen()
+    dc.SetBrush(wx.Brush(colour))
+    dc.SetPen(wx.Pen(colour))
+    w, h = window.GetClientSize()
+    dc.DrawRectangle(0, 0, w, h)
+    dc.SetBrush(b)
+    dc.SetPen(p)
+
+
+def get_backgroundcolour(window):
+    """windowの実際の背景色を返す。"""
+    notebook = None
+    window2 = window
+    while window.HasTransparentBackground() or isinstance(window, wx.Panel):
+        window = window.GetParent()
+        if isinstance(window, wx.Notebook):
+            notebook = window
+            colour = notebook.GetThemeBackgroundColour()
+            if colour.IsOk():
+                return colour
+            break
+
+    while window2.HasTransparentBackground():
+        window2 = window2.GetParent()
+
+    return window2.GetBackgroundColour()
 
 
 def abbr_longstr(dc, text, w):

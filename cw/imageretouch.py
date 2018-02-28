@@ -101,10 +101,19 @@ def to_negative_for_wxcard(wxbmp, framewidth=0):
     if cw.wins(1 + framewidth*2) <= w and cw.wins(1 + framewidth*2) <= h:
         x, y, w, h = wx.Rect(cw.wins(framewidth), cw.wins(framewidth),
                              w - cw.wins(framewidth*2), h - cw.wins(framewidth*2))
-        sourcedc = wx.MemoryDC()
-        sourcedc.SelectObject(wxbmp)
-        dc.Blit(x, y, w, h, sourcedc, x, y, wx.INVERT)
-        sourcedc.SelectObject(wx.NullBitmap)
+        subbmp = wxbmp.GetSubBitmap(wx.Rect(x, y, w, h))
+        wximg = cw.util.convert_to_image(subbmp)
+        buf = wximg.GetDataBuffer()
+        buf = bytearray(buf)
+        try:
+            func = _imageretouch.to_negative
+            func(buf, (w, h))
+        except Exception:
+            buf = bytearray(map(lambda a: 255-a, buf))
+        wximg = wx.ImageFromBuffer(w, h, buf)
+        subbmp = wx.Bitmap(wximg)
+        dc.DrawBitmap(subbmp, x, y)
+
     dc.SelectObject(wx.NullBitmap)
     return image
 
@@ -987,19 +996,64 @@ def blit_2bitbmp_to_message(dest, source, pos, wincolour):
     dest.blit(source, pos)
 
 
-def wxblit_2bitbmp_to_card(dc, wxbmp, x, y, useMask, bitsizekey=None):
+def wxblit_2bitbmp_to_card(dc, dest, wxbmp, x, y, useMask, bitsizekey=None):
     """
     blit_2bitbmp_to_card()のwx版。
     """
+    assert isinstance(dc, wx.MemoryDC)
     if bitsizekey is None:
         bitsizekey = wxbmp
 
     if useMask and hasattr(bitsizekey, "bmpdepthis1"):
+        dw = dest.GetWidth()
+        dh = dest.GetHeight()
+        drect = wx.Rect(0, 0, dw, dh)
+        crect = dc.GetClippingRect()
+        if crect:
+            drect = drect.Intersect(crect)
+
         w, h = wxbmp.GetWidth(), wxbmp.GetHeight()
-        sourcedc = wx.MemoryDC()
-        sourcedc.SelectObject(wxbmp)
-        dc.Blit(x, y, w, h, sourcedc, 0, 0, wx.AND)
-        sourcedc.SelectObject(wx.NullBitmap)
+        rect = wx.Rect(x, y, w, h)
+        rect = drect.Intersect(rect)
+        if rect.Width <= 0 or rect.Height <= 0:
+            return
+
+        dc.SelectObject(wx.NullBitmap)
+
+        if rect == wx.Rect(0, 0, dw, dh):
+            sub = dest
+        else:
+            sub = dest.GetSubBitmap(rect)
+
+        rect2 = wx.Rect(max(0, -x), max(0, -y), rect.Width, rect.Height)
+        if rect2 == wx.Rect(0, 0, w, h):
+            wxbmp2 = wxbmp
+        else:
+            wxbmp2 = wxbmp.GetSubBitmap(rect2)
+
+        wximg = wxbmp2.ConvertToImage()
+        if not wximg.HasAlpha():
+            wximg.InitAlpha()
+        buf = wximg.GetDataBuffer()
+        alphabuf = wximg.GetAlphaBuffer()
+        dbuf = sub.ConvertToImage().GetDataBuffer()
+
+        dbuf = bytearray(dbuf)
+        buf = bytearray(buf)
+        assert len(dbuf) == len(buf)
+        assert len(dbuf) == len(alphabuf)*3
+        try:
+            func = _imageretouch.blend_and_rgb
+            func(dbuf, (w, h), buf)
+
+        except Exception:
+            dbuf = bytearray(map(lambda (a, b): a&b, zip(buf, dbuf)))
+
+        wximg = wx.ImageFromBuffer(rect.Width, rect.Height, dbuf, alphaBuffer=bytearray(alphabuf) if alphabuf else None)
+        wxbmp = wx.Bitmap(wximg)
+        dc.SelectObject(dest)
+        dc.DrawBitmap(wxbmp, rect.X, rect.Y)
+
         return
 
     dc.DrawBitmap(wxbmp, x, y, useMask)

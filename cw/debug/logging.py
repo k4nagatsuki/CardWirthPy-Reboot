@@ -59,9 +59,11 @@ class DebugLogDialog(wx.Dialog):
                 self.plain_text.append(s)
 
         # 連れ込み
-        for name in debuglog.friend:
+        for i, name in enumerate(debuglog.friend):
+            if self.text.GetValue() and i == 0:
+                self.text.Newline()
             s = u"「%s」を宿帳に登録します。" % (name)
-            self.text.WriteBitmap(cw.cwpy.rsrc.debugs["FRIEND"])
+            self.text.WriteImage(cw.cwpy.rsrc.debugs["FRIEND"])
             self.text.WriteText(s)
             self.text.Newline()
             self.plain_text.append(s)
@@ -76,14 +78,14 @@ class DebugLogDialog(wx.Dialog):
             v1 = cw.cwpy.msgs["currency"] % (v)
             v2 = cw.cwpy.msgs["currency"] % (debuglog.money[0])
             v3 = cw.cwpy.msgs["currency"] % (debuglog.money[1])
-            self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_GET_MONEY"])
+            self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_GET_MONEY"])
             s = u"所持金が %s 増加しています: %s → %s" % (v1, v2, v3)
         elif debuglog.money[1] < debuglog.money[0]:
             v = debuglog.money[0] - debuglog.money[1]
             v1 = cw.cwpy.msgs["currency"] % (v)
             v2 = cw.cwpy.msgs["currency"] % (debuglog.money[0])
             v3 = cw.cwpy.msgs["currency"] % (debuglog.money[1])
-            self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_MONEY"])
+            self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_LOSE_MONEY"])
             s = u"所持金が %s 減少しています: %s → %s" % (v1, v2, v3)
         else:
             s = u"所持金に変更はありません。"
@@ -97,13 +99,13 @@ class DebugLogDialog(wx.Dialog):
                 self.text.Newline()
                 self.plain_text.append(u"")
             for gossip in cw.util.sorted_by_attr(filter(lambda a: a[1], debuglog.gossip)):
-                self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_GET_GOSSIP"])
+                self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_GET_GOSSIP"])
                 s = u"ゴシップ「%s」を追加しました。" % (gossip[0])
                 self.text.WriteText(s)
                 self.text.Newline()
                 self.plain_text.append(s)
             for gossip in cw.util.sorted_by_attr(filter(lambda a: not a[1], debuglog.gossip)):
-                self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_GOSSIP"])
+                self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_LOSE_GOSSIP"])
                 s = u"ゴシップ「%s」を削除しました。" % (gossip[0])
                 self.text.WriteText(s)
                 self.text.Newline()
@@ -115,13 +117,13 @@ class DebugLogDialog(wx.Dialog):
                 self.text.Newline()
                 self.plain_text.append(u"")
             for compstamp in cw.util.sorted_by_attr(filter(lambda a: a[1], debuglog.compstamp)):
-                self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_GET_COMPLETESTAMP"])
+                self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_GET_COMPLETESTAMP"])
                 s = u"終了印「%s」を追加しました。" % (compstamp[0])
                 self.text.WriteText(s)
                 self.text.Newline()
                 self.plain_text.append(s)
             for compstamp in cw.util.sorted_by_attr(filter(lambda a: not a[1], debuglog.compstamp)):
-                self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_COMPLETESTAMP"])
+                self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_LOSE_COMPLETESTAMP"])
                 s = u"終了印「%s」を削除しました。" % (compstamp[0])
                 self.text.WriteText(s)
                 self.text.Newline()
@@ -147,7 +149,7 @@ class DebugLogDialog(wx.Dialog):
                         typename = u"召喚獣"
                     else:
                         assert False
-                    self.text.WriteBitmap(bmp)
+                    self.text.WriteImage(bmp)
                     if premium == "Normal":
                         s = u"%s「%s」を%s枚獲得しました。" % (typename, name, num)
                         self.text.WriteText(s)
@@ -163,7 +165,7 @@ class DebugLogDialog(wx.Dialog):
                         else:
                             assert False
                         self.text.WriteText(u"%s「%s" % (typename, name))
-                        self.text.WriteBitmap(picon)
+                        self.text.WriteImage(picon)
                         self.text.WriteText(u"」を%s枚獲得しました。" % (num))
                         self.text.Newline()
 
@@ -190,7 +192,7 @@ class DebugLogDialog(wx.Dialog):
                         typename = u"召喚獣"
                     else:
                         assert False
-                    self.text.WriteBitmap(bmp)
+                    self.text.WriteImage(bmp)
                     s = u"%s「%s」を%s枚喪失しました。" % (typename, name, num)
                     self.text.WriteText(s)
                     self.text.Newline()
@@ -232,13 +234,13 @@ class DebugLogDialog(wx.Dialog):
                         else:
                             bmp = cw.cwpy.rsrc.debugs["COUPON"]
                             value = "+%s" % (value)
-                        self.text.WriteBitmap(bmp)
+                        self.text.WriteImage(bmp)
                         s = u"「%s(%s)」を獲得" % (coupon, value)
                         self.text.WriteText(s)
                         self.text.Newline()
                         self.plain_text.append("    * " + s)
                     for coupon, _value in lost_coupons:
-                        self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_COUPON"])
+                        self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_LOSE_COUPON"])
                         s = u"「%s」を喪失" % (coupon)
                         self.text.WriteText(s)
                         self.text.Newline()
@@ -256,7 +258,7 @@ class DebugLogDialog(wx.Dialog):
                 self.text.Newline()
                 self.plain_text.append(u"")
             for fname in debuglog.jpdc_image:
-                self.text.WriteBitmap(cw.cwpy.rsrc.debugs["JPDCIMAGE"])
+                self.text.WriteImage(cw.cwpy.rsrc.debugs["JPDCIMAGE"])
                 s = u"JPDCイメージ「%s」を保存しました。" % (fname)
                 self.text.WriteText(s)
                 self.text.Newline()

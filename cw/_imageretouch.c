@@ -705,6 +705,29 @@ blend_and_msg(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+blend_and_rgb(PyObject *self, PyObject *args)
+{
+    Py_buffer buf1, buf2;
+    int w, h, i;
+    unsigned char *dest, *source;
+
+    if (!PyArg_ParseTuple(args, "s*(ii)s*", &buf1, &w, &h, &buf2))
+        return NULL;
+
+    dest = buf1.buf;
+    source = buf2.buf;
+    for (i = 0; i < buf1.len; i++)
+    {
+        *dest &= *source;
+
+        source++;
+        dest++;
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
 to_disabledimage(PyObject *self, PyObject *args)
 {
     int px, w, h, keyR, keyG, keyB;
@@ -732,6 +755,26 @@ to_disabledimage(PyObject *self, PyObject *args)
         dest[px+0] = (unsigned char)(r * (max - min) / 255 + min);
         dest[px+1] = (unsigned char)(g * (max - min) / 255 + min);
         dest[px+2] = (unsigned char)(b * (max - min) / 255 + min);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+to_negative(PyObject *self, PyObject *args)
+{
+    int px, w, h;
+    Py_buffer buf;
+    unsigned char *dest;
+
+    if (!PyArg_ParseTuple(args, "s*(ii)", &buf, &w, &h))
+        return NULL;
+
+    dest = buf.buf;
+    for (px = 0; px <= buf.len; px++)
+    {
+        *dest = ~(*dest);
+        dest++;
     }
 
     Py_RETURN_NONE;
@@ -1413,8 +1456,12 @@ _imageretouchMethods[] =
         "blend_and(rgba_str, size, rgba_str)"},
     {"blend_and_msg", blend_and_msg, METH_VARARGS,
         "blend_and_msg(rgba_str, size, rgba_str, rgba)"},
+    {"blend_and_rgb", blend_and_rgb, METH_VARARGS,
+        "blend_and_rgb(rgb_str, size, rgb_str)"},
     {"to_disabledimage", to_disabledimage, METH_VARARGS,
         "to_disabledimage(char*, size)"},
+    {"to_negative", to_negative, METH_VARARGS,
+        "to_negative(char*, size)"},
     {"add_lightness", add_lightness, METH_VARARGS,
         "add_lightness(char*, size, lightness)"},
     {"decode_rle4data", decode_rle4data, METH_VARARGS,

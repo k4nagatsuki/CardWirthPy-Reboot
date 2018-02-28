@@ -2023,7 +2023,7 @@ class ScenarioSelect(select.Select):
 
         return u"\n".join(lines)
 
-    def _draw_impl(self, update=False, dc=None):
+    def _draw_impl(self, update=False):
         if update:
             self._update_pagelabel()
             self.enable_btn()
@@ -2038,10 +2038,9 @@ class ScenarioSelect(select.Select):
                     self.select_treeitem(self.index)
                     return
 
+        dc, dest = self.draw2(update)
         if not dc:
-            dc = select.Select.draw(self, update)
-            if not dc:
-                return
+            return
 
         # 背景
         if cw.cwpy.setting.show_paperandtree or (self.addctrlbtn and not self.addctrlbtn.GetToggle()):
@@ -2059,6 +2058,7 @@ class ScenarioSelect(select.Select):
 
         # リストが空だったら描画終了
         if not self.list:
+            self.draw3(dc, dest, update)
             return
 
         if not isinstance(self.list[self.index], cw.header.ScenarioHeader):
@@ -2089,7 +2089,7 @@ class ScenarioSelect(select.Select):
                 size = bmp2.GetSize()
                 pos = (cw.wins(200), cw.wins(60)+yp)
                 pos = cw.util.get_centerposition(size, pos)
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, pos[0], pos[1], True, bitsizekey=folder_bmp)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, pos[0], pos[1], True, bitsizekey=folder_bmp)
 
             else:
                 # ディレクトリ名
@@ -2200,11 +2200,11 @@ class ScenarioSelect(select.Select):
                 if info.postype == "Center":
                     bx = (bmpw-bmp.GetWidth()) // 2
                     by = (bmph-bmp.GetHeight()) // 2
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, bx, by+yp, True,
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp, bx, by+yp, True,
                                                            bitsizekey=bmp_noscale)
                 else:
                     # info.postype in ("TopLeft", "Default")
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, cw.wins(163), cw.wins(70)+yp, True,
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp, cw.wins(163), cw.wins(70)+yp, True,
                                                            bitsizekey=bmp_noscale)
 
             # シナリオ名
@@ -2256,6 +2256,8 @@ class ScenarioSelect(select.Select):
                 x = bmpw-cw.wins(5)
                 y = bmph-cw.wins(5)
             cw.util.draw_witharound(dc, page, x, y, 0)
+
+        self.draw3(dc, dest, update)
 
         if update:
             fc = wx.Window.FindFocus()
@@ -2376,9 +2378,7 @@ class ScenarioSelect(select.Select):
         if selected and selected in self.list:
             self.index = self.list.index(selected)
             if self.toppanel.IsShown():
-                dc = wx.ClientDC(self.toppanel)
-                dc = wx.BufferedDC(dc)
-                self._draw_impl(False, dc)
+                self.Refresh()
         elif cw.cwpy.setting.show_paperandtree:
             self._tree_selchanged()
             self.draw(True)

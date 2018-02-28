@@ -605,11 +605,9 @@ class TopPanel(wx.Panel):
             self.ep = u""
             self.race = cw.cwpy.setting.unknown_race
 
-        if update:
-            dc = wx.ClientDC(self)
-            self.ClearBackground()
-        else:
-            dc = wx.PaintDC(self)
+        dest = wx.Bitmap(self.GetClientSize())
+        dc = wx.MemoryDC(dest)
+        cw.util.clear_background(dc, self)
 
         backcolor = self.GetBackgroundColour()
 
@@ -640,7 +638,7 @@ class TopPanel(wx.Panel):
             else:
                 baserect = cw.wins(pygame.Rect(0, 0, 0, 0))
 
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x+baserect.x, cw.wins(5)+baserect.y, True, bitsizekey=bmp)
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, x+baserect.x, cw.wins(5)+baserect.y, True, bitsizekey=bmp)
 
         # レベル
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam" , pixelsize=cw.wins(16)))
@@ -755,6 +753,13 @@ class TopPanel(wx.Panel):
         # 親ウィンドウの再描画を行える場合は呼び出し
         if self.redrawfunc:
             self.redrawfunc()
+
+        dc.SelectObject(wx.NullBitmap)
+        if update:
+            dc = wx.ClientDC(self)
+        else:
+            dc = wx.PaintDC(self)
+        dc.DrawBitmap(dest, cw.wins(0), cw.wins(0))
 
         if update:
             self.Refresh()

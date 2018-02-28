@@ -1087,19 +1087,27 @@ class AdventurerCreaterPage(wx.Panel):
         self._do_layout()
         self.Thaw()
 
-    def draw(self, update=False):
-        if update:
-            dc = wx.ClientDC(self)
-            dc = wx.BufferedDC(dc, self.GetSize())
-        else:
-            dc = wx.PaintDC(self)
+    def draw2(self, update=False):
+        dest = wx.Bitmap(self.GetClientSize())
+        dc = wx.MemoryDC(dest)
+        dc.Clear()
 
         # 共通背景
         path = "Table/Book"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins(cw.util.load_wxbmp(path, can_loaded_scaledimage=True))
         dc.DrawBitmap(bmp, 0, 0, False)
-        return dc
+        return dc, dest
+
+    def draw(self, update=False):
+        dc, dest = self.draw2(update)
+        dc.SelectObject(wx.NullBitmap)
+        if update:
+            dc = wx.ClientDC(self)
+            dc = wx.BufferedDC(dc, self.GetClientSize())
+        else:
+            dc = wx.PaintDC(self)
+        dc.DrawBitmap(dest, cw.wins(0), cw.wins(0))
 
     def select_autofeatures(self):
         pass
@@ -1353,8 +1361,8 @@ class NamePage(AdventurerCreaterPage):
         x = cw.wins(275) + cw.wins(cw.SIZE_CARDIMAGE[0])/2 - w2/2
         self.ch_imgdpath.SetPosition((x, cw.wins(225)))
 
-    def draw(self, update=False):
-        dc = AdventurerCreaterPage.draw(self, update)
+    def draw2(self, update=False):
+        dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
         # welcome to the adventurers inn
         dc.SetTextForeground(wx.BLACK)
@@ -1440,7 +1448,7 @@ class NamePage(AdventurerCreaterPage):
             baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                      basecardtype=basecardtype,
                                                      cardpostype="NotCard")
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x + baserect.x, y + baserect.y, True, bitsizekey=bmp)
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, x + baserect.x, y + baserect.y, True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea(cw.wins((275, 130)), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
@@ -1449,7 +1457,7 @@ class NamePage(AdventurerCreaterPage):
 
         self.clickable_table.append([None, None, "PrevImage", "NextImage"])
 
-        return dc
+        return dc, dest
 
     def set_sex(self, name):
         if not self.sex == name:
@@ -1627,8 +1635,8 @@ class RacePage(AdventurerCreaterPage):
         sizer_1.Fit(self)
         self.Layout()
 
-    def draw(self, update=False):
-        dc = AdventurerCreaterPage.draw(self, update)
+    def draw2(self, update=False):
+        dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
         # 種族
         dc.SetTextForeground(wx.BLACK)
@@ -1654,7 +1662,7 @@ class RacePage(AdventurerCreaterPage):
         dc.SetFont(font)
         dc.DrawLabel(s, cw.wins((107, 130, 200, 110)))
 
-        return dc
+        return dc, dest
 
     def get_race(self):
         """
@@ -1688,8 +1696,8 @@ class RelationPage(AdventurerCreaterPage):
 
         self.set_normalacceleratortable()
 
-    def draw(self, update=False):
-        dc = AdventurerCreaterPage.draw(self, update)
+    def draw2(self, update=False):
+        dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
         # 血縁
         dc.SetTextForeground(wx.BLACK)
@@ -1755,7 +1763,7 @@ class RelationPage(AdventurerCreaterPage):
                     baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                              basecardtype=basecardtype,
                                                              cardpostype="NotCard")
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, pos[0]+baserect.x, pos[1]+baserect.y, True, bitsizekey=bmp)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, pos[0]+baserect.x, pos[1]+baserect.y, True, bitsizekey=bmp)
             dc.DestroyClippingRegion()
 
         pos = cw.wins((100, 110))
@@ -1825,7 +1833,7 @@ class RelationPage(AdventurerCreaterPage):
             s = cw.cwpy.msgs["consumption_ep"] % (ep, self.mother.ep)
             cw.util.draw_center(dc, s, cw.wins((315, 240)))
 
-        return dc
+        return dc, dest
 
     def set_nextfather(self, name):
         if 1 < len(self.fathers):
@@ -1935,8 +1943,8 @@ class TalentPage(AdventurerCreaterPage):
 
         self.set_normalacceleratortable()
 
-    def draw(self, update=False):
-        dc = AdventurerCreaterPage.draw(self, update)
+    def draw2(self, update=False):
+        dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
         # 素質
         dc.SetTextForeground(wx.BLACK)
@@ -1987,7 +1995,7 @@ class TalentPage(AdventurerCreaterPage):
         if any(clickableline):
             self.clickable_table.append(clickableline)
 
-        return dc
+        return dc, dest
 
     def set_talent(self, name):
         if not self.talent == name:
@@ -2014,8 +2022,8 @@ class AttrPage(AdventurerCreaterPage):
 
         self.set_normalacceleratortable()
 
-    def draw(self, update=False):
-        dc = AdventurerCreaterPage.draw(self, update)
+    def draw2(self, update=False):
+        dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
         # 特性
         dc.SetTextForeground(wx.BLACK)
@@ -2062,7 +2070,7 @@ class AttrPage(AdventurerCreaterPage):
                 self.draw_clickabletext(dc, s, pos, name, self.set_coupon, None)
                 self.clickable_table[row][column+1] = name
 
-        return dc
+        return dc, dest
 
     def draw_clickabletext(self, dc, s, pos, name, method, wheelmethod, setname=None):
         size = dc.GetTextExtent(s)
@@ -2791,8 +2799,8 @@ class DesignPanel(AdventurerCreaterPage):
         sizer_1.Fit(self)
         self.Layout()
 
-    def draw(self, update=False):
-        dc = AdventurerCreaterPage.draw(self, update)
+    def draw2(self, update=False):
+        dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
 
         # 背景
@@ -2860,7 +2868,7 @@ class DesignPanel(AdventurerCreaterPage):
                                                      basecardtype="LargeCard",
                                                      cardpostype="NotCard")
 
-            cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp2, x+baserect.x, y+baserect.y, True, bitsizekey=bmp)
+            cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, x+baserect.x, y+baserect.y, True, bitsizekey=bmp)
         dc.DestroyClippingRegion()
         self.set_clickablearea((x, y), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
@@ -2869,7 +2877,7 @@ class DesignPanel(AdventurerCreaterPage):
 
         self.clickable_table = [["PrevImage", "NextImage"]]
 
-        return dc
+        return dc, dest
 
     def on_mousewheel(self, name, rotate):
         if rotate < 0:
