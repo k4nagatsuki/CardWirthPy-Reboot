@@ -312,7 +312,7 @@ class ScenarioInstall(SelectScenarioDirectory):
             cw.cwpy.play_sound("harvest")
             dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
             self.Parent.move_dlg(dlg)
-            ret = dlg.ShowModal()
+            dlg.ShowModal()
             dlg.Destroy()
 
         if cancelled:
@@ -437,10 +437,12 @@ def create_dir(parentdialog, dpath):
     cw.cwpy.frame.move_dlg(dlg)
     if dlg.ShowModal() == wx.ID_OK:
         dpath = cw.util.join_paths(dpath, dlg.text)
+        dlg.Destroy()
         dpath = cw.util.dupcheck_plus(dpath, yado=False)
         os.makedirs(dpath)
         return dpath
     else:
+        dlg.Destroy()
         return u""
 
 

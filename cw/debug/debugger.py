@@ -675,6 +675,7 @@ class Debugger(wx.Frame):
         dlg = cw.debug.edit.GossipEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        dlg.Destroy()
         cw.cwpy.exec_func(cw.cwpy.update_yadoinitial)
 
     def OnSavedJPDCImageTool(self, event):
@@ -688,6 +689,7 @@ class Debugger(wx.Frame):
                 dlg = cw.debug.edit.SavedJPDCImageEditDialog(self, savedjpdcimage)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
+                dlg.Destroy()
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)
 
@@ -702,11 +704,13 @@ class Debugger(wx.Frame):
                 cw.cwpy.ydata.party.set_money(value - cw.cwpy.ydata.party.money, blink=True)
                 cw.cwpy.draw()
             cw.cwpy.exec_func(func, dlg.value)
+        dlg.Destroy()
 
     def OnCardTool(self, event):
         dlg = cw.debug.cardedit.CardEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        dlg.Destroy()
         cw.cwpy.exec_func(cw.cwpy.update_yadoinitial)
 
     def OnRoundTool(self, event):
@@ -721,6 +725,7 @@ class Debugger(wx.Frame):
                 cw.cwpy.statusbar.change()
                 cw.cwpy.draw()
             cw.cwpy.exec_func(func, dlg.value)
+        dlg.Destroy()
 
     def OnEditorTool(self, event):
         if not cw.cwpy.setting.editor:
@@ -890,6 +895,7 @@ class Debugger(wx.Frame):
             def func(path):
                 cw.debug.recording.save(path)
             cw.cwpy.exec_func(func, path)
+        dlg.Destroy()
 
     def OnLoadTool(self, event):
         if not cw.cwpy.is_playingscenario():
@@ -909,6 +915,7 @@ class Debugger(wx.Frame):
                     self.view_var.refresh_variablelist()
                 cw.cwpy.frame.exec_func(func)
             cw.cwpy.exec_func(func, path)
+        dlg.Destroy()
 
     def OnLoadYadoTool(self, event):
         cw.cwpy.is_debuggerprocessing = True
@@ -922,22 +929,26 @@ class Debugger(wx.Frame):
         dlg = cw.debug.edit.CompStampEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        dlg.Destroy()
         cw.cwpy.exec_func(cw.cwpy.update_yadoinitial)
 
     def OnMemberTool(self, event):
         dlg = cw.debug.charaedit.CharacterEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        dlg.Destroy()
 
     def OnCouponTool(self, event):
         dlg = cw.debug.edit.CouponEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        dlg.Destroy()
 
     def OnStatusTool(self, event):
         dlg = cw.debug.statusedit.StatusEditDialog(self, cw.cwpy.get_pcards())
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        dlg.Destroy()
 
     def OnRecoveryTool(self, event):
         if cw.cwpy.is_playingscenario() and not self._recovering:
@@ -1477,6 +1488,7 @@ class Debugger(wx.Frame):
                                     self.refresh_clearbreakpointtool()
                             cw.cwpy.frame.exec_func(func, self)
                     cw.cwpy.exec_func(func, self)
+                dlg.Destroy()
 
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)

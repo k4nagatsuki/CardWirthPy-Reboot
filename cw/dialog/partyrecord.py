@@ -73,6 +73,7 @@ class SelectPartyRecord(select.Select):
         if not dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
             return
+        dlg.Destroy()
 
         def func(panel, header, index):
             cw.cwpy.play_sound("harvest")
@@ -107,6 +108,7 @@ class SelectPartyRecord(select.Select):
             if not dlg.ShowModal() == wx.ID_OK:
                 dlg.Destroy()
                 return
+            dlg.Destroy()
 
         def func(header, panel, parent, selected):
             cw.cwpy.play_sound("harvest")
@@ -146,6 +148,7 @@ class SelectPartyRecord(select.Select):
         if not dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
             return
+        dlg.Destroy()
 
         cw.cwpy.play_sound("dump")
         def func(header):

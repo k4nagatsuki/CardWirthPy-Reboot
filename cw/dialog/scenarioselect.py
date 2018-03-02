@@ -1206,6 +1206,7 @@ class ScenarioSelect(select.Select):
             headers, notscenariofiles = self._to_headers(paths)
             if headers:
                 self._install_scenario(headers, notscenariofiles)
+        dlg.Destroy()
 
     def _get_installtarget(self):
         dpath = self.nowdir
@@ -1473,6 +1474,7 @@ class ScenarioSelect(select.Select):
                         link0 = link
 
                 self._update_nowdir(dpath, link0)
+        dlg.Destroy()
 
     def OnCreateLinkToDirectory(self, event):
         if self.nowdir == "/find_result":
@@ -1488,6 +1490,7 @@ class ScenarioSelect(select.Select):
             cw.util.create_link(link, cw.util.get_linktarget(dpath2))
 
             self._update_nowdir(dpath, link)
+        dlg.Destroy()
 
     def _update_nowdir(self, dpath, selection):
         self.scetable[self._get_linktarget(dpath)] = self._get_nowlist(dpath, update=True)

@@ -3484,6 +3484,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
                 target.SetValue(dpath)
                 if callback:
                     callback(dpath)
+            dlg.Destroy()
         else:
             dpath = os.path.dirname(fpath)
             fpath = os.path.basename(fpath)
@@ -3498,6 +3499,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
                 target.SetValue(fpath)
                 if callback:
                     callback(fpath)
+            dlg.Destroy()
 
     if winsize:
         size = (cw.wins(25), -1)

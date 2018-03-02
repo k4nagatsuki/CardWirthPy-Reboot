@@ -250,6 +250,7 @@ class CouponEditDialog(wx.Dialog):
                 # 誰か一人
                 self.coupons[cindex-1] = coupons[:]
             self._select_target()
+        dlg.Destroy()
 
     def OnValueBtn(self, event):
         index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -267,6 +268,7 @@ class CouponEditDialog(wx.Dialog):
                     break
                 self._set_value(index, dlg.value)
             self._item_selected()
+        dlg.Destroy()
 
     def OnUpBtn(self, event):
         if self.target.GetSelection() == 0:

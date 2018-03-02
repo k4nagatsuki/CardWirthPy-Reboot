@@ -211,6 +211,7 @@ class CardEditDialog(wx.Dialog):
                             wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             fpath = dlg.GetPath()
+            dlg.Destroy()
 
             def func(self):
                 try:
@@ -237,6 +238,8 @@ class CardEditDialog(wx.Dialog):
 
             self.Enable(False)
             cw.cwpy.exec_func(func, self)
+        else:
+            dlg.Destroy()
 
     def select_scenario(self, fpath):
         try:
@@ -334,6 +337,7 @@ class CardEditDialog(wx.Dialog):
                                               scedir=self.scdata.tempdir)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        dlg.Destroy()
 
     def draw(self, update):
         for i, header in enumerate(self.list):

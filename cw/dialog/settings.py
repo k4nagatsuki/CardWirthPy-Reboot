@@ -382,6 +382,7 @@ class SettingsPanel(wx.Panel):
                 cw.util.print_ex()
                 s = u"%sの保存に失敗しました。" % (os.path.basename(fpath))
                 wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_WARNING, self.GetTopLevelParent())
+        dlg.Destroy()
 
     def OnLoad(self, event):
         dlg = wx.FileDialog(self.GetTopLevelParent(), u"設定ファイルの読み込み",
@@ -397,6 +398,7 @@ class SettingsPanel(wx.Panel):
                 cw.util.print_ex()
                 s = u"%sの読み込みに失敗しました。" % (os.path.basename(fpath))
                 wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_WARNING, self.GetTopLevelParent())
+        dlg.Destroy()
 
     def OnDefault(self, event):
         selpane = self.note.GetSelection()
@@ -1006,6 +1008,7 @@ class SkinPanel(wx.Panel):
             self.update_skins(cw.cwpy.setting.skindirname)
             if self.pane_scenario:
                 self.pane_scenario.celleditor = None
+        dlg.Destroy()
 
     def OnShowAllSkin(self, event):
         skin = self.skindirs[self.ch_skin.GetSelection()]
@@ -2227,6 +2230,7 @@ class AudioSettingPanel(wx.Panel):
                 self.set_soundfont(row, (fpath, True, 100))
                 self.GetTopLevelParent().applied()
             self._select_changed_soundfonts()
+        dlg.Destroy()
 
     def OnRemoveSoundFontBtn(self, event):
         indexes = self.grid_soundfont.GetSelectedRows()
@@ -2482,8 +2486,9 @@ class ScenarioSettingPanel(wx.Panel):
         if not skintype:
             skintype = u"(指定無し)"
 
-        dpath = os.path.abspath("Scenario")
-        dlg = wx.DirDialog(self.TopLevelParent, u"「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください。" % (skintype), dpath, style=wx.DD_DIR_MUST_EXIST)
+        dpath = os.path.abspath(u"Scenario")
+        s = u"「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください。" % (skintype)
+        dlg = wx.DirDialog(self.TopLevelParent, s, dpath, style=wx.DD_DIR_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             dpath = dlg.GetPath()
             relpath = cw.util.relpath(dpath, ".")
@@ -2492,6 +2497,7 @@ class ScenarioSettingPanel(wx.Panel):
             self.grid_folderoftype.SetCellValue(row, 1, cw.util.join_paths(dpath))
             self._select_changed_folderoftype()
             self.GetTopLevelParent().applied()
+        dlg.Destroy()
 
     def OnRemoveFolderBtn(self, event):
         row = self.grid_folderoftype.GetGridCursorRow()

@@ -2036,6 +2036,7 @@ class PartySelect(MultiViewSelect):
             self.list[self.index] = header
             cw.cwpy.ydata.partys[self.index] = header
             self.draw(True)
+        dlg.Destroy()
 
     def OnClickEditBtn(self, event):
         if not self.list:
@@ -2802,6 +2803,7 @@ class PlayerSelect(MultiViewSelect):
                 dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s, 2)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
+                dlg.Destroy()
 
                 self._move_allcards(header)
                 if not header.leavenoalbum:

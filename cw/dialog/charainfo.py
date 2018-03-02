@@ -867,6 +867,7 @@ class DescPanel(wx.ScrolledWindow):
             self.Parent.Parent.toppanel.Refresh()
             self.draw(True)
             self.Parent.Parent.historypanel.draw(True)
+        dlg.Destroy()
 
     def _init_view(self):
         self.text = self.ccard.data.gettext("Property/Description", "")
@@ -988,6 +989,7 @@ class HistoryPanel(wx.ScrolledWindow):
                         pass
                 cw.cwpy.frame.exec_func(func, panel)
             cw.cwpy.exec_func(func, self)
+        dlg.Destroy()
 
     def draw(self, update=False):
         if update:
@@ -1353,6 +1355,7 @@ class StatusPanel(wx.ScrolledWindow):
         if dlg.ShowModal() == wx.ID_OK:
             self.draw(True)
             self.Parent.Parent.beastpanel.draw(True)
+        dlg.Destroy()
 
     def _init_view(self):
         maxheight = cw.wins(0)

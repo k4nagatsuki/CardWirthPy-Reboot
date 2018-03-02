@@ -234,6 +234,7 @@ class StatusEditDialog(wx.Dialog):
             for status in self._get_statuses():
                 status.life = dlg.value
             self._update_status()
+        dlg.Destroy()
 
     def OnPoison(self, event):
         value = 0
@@ -246,6 +247,7 @@ class StatusEditDialog(wx.Dialog):
             for status in self._get_statuses():
                 status.poison = dlg.value
             self._update_status()
+        dlg.Destroy()
 
     def OnParalyze(self, event):
         value = 0
@@ -258,6 +260,7 @@ class StatusEditDialog(wx.Dialog):
             for status in self._get_statuses():
                 status.paralyze = dlg.value
             self._update_status()
+        dlg.Destroy()
 
     def OnMentality(self, event):
         value = "Normal"
@@ -291,6 +294,7 @@ class StatusEditDialog(wx.Dialog):
                 status.mentality = STATUSES[dlg.selected][0]
                 status.mentality_dur = dlg.value
             self._update_status()
+        dlg.Destroy()
 
     def OnBind(self, event):
         value = 0
@@ -303,6 +307,7 @@ class StatusEditDialog(wx.Dialog):
             for status in self._get_statuses():
                 status.bind = dlg.value
             self._update_status()
+        dlg.Destroy()
 
     def OnSilence(self, event):
         value = 0
@@ -315,6 +320,7 @@ class StatusEditDialog(wx.Dialog):
             for status in self._get_statuses():
                 status.silence = dlg.value
             self._update_status()
+        dlg.Destroy()
 
     def OnFaceUp(self, event):
         value = 0
@@ -327,6 +333,7 @@ class StatusEditDialog(wx.Dialog):
             for status in self._get_statuses():
                 status.faceup = dlg.value
             self._update_status()
+        dlg.Destroy()
 
     def OnAntiMagic(self, event):
         value = 0
@@ -339,6 +346,7 @@ class StatusEditDialog(wx.Dialog):
             for status in self._get_statuses():
                 status.antimagic = dlg.value
             self._update_status()
+        dlg.Destroy()
 
     def OnAction(self, event):
         value = 0
@@ -356,6 +364,7 @@ class StatusEditDialog(wx.Dialog):
                 status.enhance_act = dlg.value1
                 status.enhance_act_dur = dlg.value2
             self._update_status()
+        dlg.Destroy()
 
     def OnAvoid(self, event):
         value = 0
@@ -373,6 +382,7 @@ class StatusEditDialog(wx.Dialog):
                 status.enhance_avo = dlg.value1
                 status.enhance_avo_dur = dlg.value2
             self._update_status()
+        dlg.Destroy()
 
     def OnResist(self, event):
         value = 0
@@ -390,6 +400,7 @@ class StatusEditDialog(wx.Dialog):
                 status.enhance_res = dlg.value1
                 status.enhance_res_dur = dlg.value2
             self._update_status()
+        dlg.Destroy()
 
     def OnDefense(self, event):
         value = 0
@@ -407,6 +418,7 @@ class StatusEditDialog(wx.Dialog):
                 status.enhance_def = dlg.value1
                 status.enhance_def_dur = dlg.value2
             self._update_status()
+        dlg.Destroy()
 
     def _select_target(self):
         self._update_status()

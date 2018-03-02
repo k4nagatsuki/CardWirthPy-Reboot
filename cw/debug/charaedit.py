@@ -196,6 +196,7 @@ class CharacterEditDialog(wx.Dialog):
             else:
                 self.infos[cindex-1].type = ctype
             self.pane_req.select_target(cindex)
+        dlg.Destroy()
 
     def OnAutoBtn(self, event):
         self.pane_req.set_random()
@@ -889,6 +890,7 @@ class CharaRequirementPanel(wx.Panel):
             for info in infos:
                 info.level = dlg.value
             self.levelbtn.SetLabel("Lv %s" % (dlg.value))
+        dlg.Destroy()
 
     def OnSelectImage(self, event):
         infos = self._get_infos()
