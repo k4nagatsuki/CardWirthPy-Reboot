@@ -1494,6 +1494,7 @@ class ScenarioData(SystemData):
         シナリオの正規終了時の共通処理をまとめたもの。
         冒険の中断時やF9時には呼ばない。
         """
+        showdebuglog &= cw.cwpy.setting.show_debuglogdialog
         debuglog = None
         if showdebuglog:
             debuglog = cw.debug.logging.DebugLog(self.name)
