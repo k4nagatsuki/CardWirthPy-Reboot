@@ -3585,10 +3585,40 @@ class CWPyStaticBitmap(wx.Panel):
 
 def clear_background(dc, window):
     """windowの背景色によって塗り潰す。"""
-    cdc = wx.ClientDC(window)
-    w, h = window.GetClientSize()
-    dc.Blit(0, 0, w, h, cdc, 0, 0)
-    del cdc
+    if sys.platform == "win32":
+        colour = get_backgroundcolour(window)
+        b = dc.GetBrush()
+        p = dc.GetPen()
+        dc.SetBrush(wx.Brush(colour))
+        dc.SetPen(wx.Pen(colour))
+        w, h = window.GetClientSize()
+        dc.DrawRectangle(0, 0, w, h)
+        dc.SetBrush(b)
+        dc.SetPen(p)
+    else:
+        cdc = wx.ClientDC(window)
+        w, h = window.GetClientSize()
+        dc.Blit(0, 0, w, h, cdc, 0, 0)
+        del cdc
+
+
+def get_backgroundcolour(window):
+    """windowの実際の背景色を返す。"""
+    notebook = None
+    window2 = window
+    while window.HasTransparentBackground() or isinstance(window, wx.Panel):
+        window = window.GetParent()
+        if isinstance(window, wx.Notebook):
+            notebook = window
+            colour = notebook.GetThemeBackgroundColour()
+            if colour.IsOk():
+                return colour
+            break
+
+    while window2.HasTransparentBackground():
+        window2 = window2.GetParent()
+
+    return window2.GetBackgroundColour()
 
 
 def abbr_longstr(dc, text, w):
