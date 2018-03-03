@@ -815,87 +815,223 @@ class ConvertYadoDialog(wx.Dialog):
         self.Layout()
 
 
-class TouchTools(wx.MiniFrame):
-    """
-    任意のダイアログにくっついて動くタッチ操作用ツールウィンドウ。
-    現在はスクリーンショットの撮影のみ行える。
-    """
-    def __init__(self, parent):
-        wx.MiniFrame.__init__(self, parent, style=wx.BORDER)
-        self.cwpy_debug = False
+if sys.platform == "win32":
+    class TouchTools(wx.MiniFrame):
+        """
+        任意のダイアログにくっついて動くタッチ操作用ツールウィンドウ。
+        現在はスクリーンショットの撮影のみ行える。
+        """
+        def __init__(self, parent):
+            wx.MiniFrame.__init__(self, parent, style=wx.BORDER)
+            self.cwpy_debug = False
 
-        self._tb = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_VERTICAL)
-        s = u"%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"],
-                         cw.cwpy.msgs["desc_screenshot"])
-        bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
-        self._ssbtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
-        if cw.cwpy.ydata and cw.cwpy.ydata.party:
-            s = u"%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
-                                     cw.cwpy.msgs["desc_screenshot_hands"])
-            bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT_HANDS"]
-            self._sshbtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
-        else:
-            self._sshbtn = None
-        if hasattr(parent, "copy_detail"):
-            s = u"%s(Ctrl+C)\n%s" % (cw.cwpy.msgs["copy_dialog"],
-                                        cw.cwpy.msgs["desc_copy_dialog"])
-            bmp = cw.cwpy.rsrc.dialogs["COPY"]
-            self._copybtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
-        else:
-            self._copybtn = None
-        self._tb.Realize()
+            self._tb = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_VERTICAL)
+            s = u"%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"],
+                             cw.cwpy.msgs["desc_screenshot"])
+            bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
+            self._ssbtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
+            if cw.cwpy.ydata and cw.cwpy.ydata.party:
+                s = u"%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
+                                         cw.cwpy.msgs["desc_screenshot_hands"])
+                bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT_HANDS"]
+                self._sshbtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
+            else:
+                self._sshbtn = None
+            if hasattr(parent, "copy_detail"):
+                s = u"%s(Ctrl+C)\n%s" % (cw.cwpy.msgs["copy_dialog"],
+                                            cw.cwpy.msgs["desc_copy_dialog"])
+                bmp = cw.cwpy.rsrc.dialogs["COPY"]
+                self._copybtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
+            else:
+                self._copybtn = None
+            self._tb.Realize()
 
-        self.SetTransparent(128)
+            self.SetTransparent(128)
 
-        self._do_layout()
-        self._bind()
+            self._do_layout()
+            self._bind()
 
-        self._move_pos()
+            self._move_pos()
 
-    def _do_layout(self):
-        sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(self._tb, 0, 0, cw.wins(0))
-        self.SetSizer(sizer_1)
-        sizer_1.Fit(self)
-        self.Layout()
+        def _do_layout(self):
+            sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
+            sizer_1.Add(self._tb, 0, 0, cw.wins(0))
+            self.SetSizer(sizer_1)
+            sizer_1.Fit(self)
+            self.Layout()
 
-    def _bind(self):
-        self.Bind(wx.EVT_MENU, self.OnScreenShot, id=self._ssbtn.GetId())
-        if self._sshbtn:
-            self.Bind(wx.EVT_MENU, self.OnScreenShotHands, id=self._sshbtn.GetId())
-        if self._copybtn:
-            self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=self._copybtn.GetId())
-        self.GetParent().Bind(wx.EVT_MOVE, self.OnMove)
-        self._tb.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
-        self._tb.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
+        def _bind(self):
+            self.Bind(wx.EVT_MENU, self.OnScreenShot, id=self._ssbtn.GetId())
+            if self._sshbtn:
+                self.Bind(wx.EVT_MENU, self.OnScreenShotHands, id=self._sshbtn.GetId())
+            if self._copybtn:
+                self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=self._copybtn.GetId())
+            self.GetParent().Bind(wx.EVT_MOVE, self.OnMove)
+            self._tb.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
+            self._tb.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
 
-    def OnScreenShot(self, event):
-        cw.cwpy.frame.save_screenshot()
+        def OnScreenShot(self, event):
+            cw.cwpy.frame.save_screenshot()
 
-    def OnScreenShotHands(self, event):
-        cw.cwpy.exec_func(cw.util.card_screenshot)
+        def OnScreenShotHands(self, event):
+            cw.cwpy.exec_func(cw.util.card_screenshot)
 
-    def OnCopyDetail(self, event):
-        self.GetParent().copy_detail()
+        def OnCopyDetail(self, event):
+            self.GetParent().copy_detail()
 
-    def OnMove(self, event):
-        self._move_pos()
+        def OnMove(self, event):
+            self._move_pos()
 
-    def _move_pos(self):
-        pos = self.GetParent().GetPosition()
-        size = self.GetParent().GetSize()
-        x = pos[0]+size[0]-1
-        y = pos[1]+size[1] - self.GetSize()[1]-1-cw.wins(10)
-        self.SetPosition((x, y))
+        def _move_pos(self):
+            pos = self.GetParent().GetPosition()
+            size = self.GetParent().GetSize()
+            x = pos[0]+size[0]-1
+            y = pos[1]+size[1] - self.GetSize()[1]-1-cw.wins(10)
+            self.SetPosition((x, y))
 
-    def OnEnterWindow(self, event):
-        self.SetTransparent(255)
+        def OnEnterWindow(self, event):
+            self.SetTransparent(255)
 
-    def OnLeaveWindow(self, event):
-        self.SetTransparent(128)
+        def OnLeaveWindow(self, event):
+            self.SetTransparent(128)
+else:
+    class TouchTools(wx.PopupWindow):
+        """
+        任意のダイアログにくっついて動くタッチ操作用ツールウィンドウ。
+        現在はスクリーンショットの撮影のみ行える。
+        FIXME: ShowModal()されたダイアログに付属させると
+               一切操作が効かなくなるので、
+               FilterEventとの連携で強引に動作させる。
+               wxGTK 4.0.1
+        """
+        def __init__(self, parent):
+            wx.PopupWindow.__init__(self, parent)
+            self.cwpy_debug = False
+
+            self._selected_index = -1
+            self._ldown = False
+            self._animate_down = False
+
+            self._buttons = []
+            s = u"%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"],
+                             cw.cwpy.msgs["desc_screenshot"])
+            bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
+            self._buttons.append((s, bmp, cw.cwpy.frame.save_screenshot))
+            if cw.cwpy.ydata and cw.cwpy.ydata.party:
+                s = u"%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
+                                         cw.cwpy.msgs["desc_screenshot_hands"])
+                bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT_HANDS"]
+                self._buttons.append((s, bmp, lambda: cw.cwpy.exec_func(cw.util.card_screenshot)))
+            if hasattr(parent, "copy_detail"):
+                s = u"%s(Ctrl+C)\n%s" % (cw.cwpy.msgs["copy_dialog"],
+                                            cw.cwpy.msgs["desc_copy_dialog"])
+                bmp = cw.cwpy.rsrc.dialogs["COPY"]
+                self._buttons.append((s, bmp, self.GetParent().copy_detail))
+
+            self._do_layout()
+            self._bind()
+
+            self._move_pos()
+
+        def _do_layout(self):
+            w = max(map(lambda t: t[1].GetWidth(), self._buttons)) + cw.wins(6)
+            h = sum(map(lambda t: t[1].GetHeight(), self._buttons))
+            h += cw.wins(3)*2 + cw.wins(6)*(len(self._buttons)-1)
+            self.SetSize((w, h))
+
+        def _bind(self):
+            self.Bind(wx.EVT_PAINT, self.OnPaint)
+            self.GetParent().Bind(wx.EVT_MOVE, self.OnMove)
+
+        def on_motion(self):
+            index = self._selected_index
+            x, y = wx.GetMousePosition()
+            fc = wx.Window.FindFocus()
+            if fc and fc.GetTopLevelParent() is self.GetParent() and self.GetRect().Contains(x, y):
+                _x, y = self.ScreenToClient((x, y))
+                self._selected_index = y // (self._buttons[0][1].GetHeight() + cw.wins(6))
+                if self._selected_index < 0 or len(self._buttons) <= self._selected_index:
+                    self._selected_index = -1
+                if self._selected_index <> index:
+                    self._update_tooltip()
+                    self.Refresh()
+                self._check_click()
+                return True
+            else:
+                self._selected_index = -1
+                if self._selected_index <> index:
+                    self._update_tooltip()
+                    self.Refresh()
+                self._check_click()
+                return False
+
+        def _update_tooltip(self):
+            if self._selected_index == -1:
+                s = u""
+            else:
+                s = self._buttons[self._selected_index][0]
+            if s <> self.GetToolTipText():
+                self.SetToolTip(s)
+
+        def _check_click(self):
+            if self._selected_index == -1:
+                ldown = False
+            else:
+                state = wx.GetMouseState()
+                ldown = state.LeftIsDown()
+
+            if self._ldown <> ldown:
+                self._ldown = ldown
+                if ldown:
+                    self._animate_down = True
+                    wx.CallLater(cw.cwpy.setting.frametime*4, self._clicked)
+                self.Refresh()
+
+        def _clicked(self):
+            if not self:
+                return
+            self._animate_down = False
+            if self._selected_index <> -1:
+                _s, _bmp, func = self._buttons[self._selected_index]
+                func()
+
+        def OnPaint(self, event):
+            y = cw.wins(3)
+            dc = wx.PaintDC(self)
+            colour = wx.Colour(222, 222, 222)
+            dc.SetPen(wx.Pen(colour))
+            dc.SetBrush(wx.Brush(colour))
+            dc.DrawRectangle(self.GetClientRect())
+            for i, (_s, bmp, _func) in enumerate(self._buttons):
+                if i == self._selected_index:
+                    scolour = wx.Colour(255, 255, 255)
+                    dc.SetPen(wx.Pen(scolour))
+                    dc.SetBrush(wx.Brush(scolour))
+                    dc.DrawRectangle(cw.wins(0), y - cw.wins(3),
+                                     bmp.GetHeight()+cw.wins(6), bmp.GetWidth()+cw.wins(6))
+
+                if i == self._selected_index and self._animate_down:
+                    dc.DrawBitmap(bmp, cw.wins(4), y + cw.wins(1), True)
+                else:
+                    dc.DrawBitmap(bmp, cw.wins(3), y, True)
+                y += bmp.GetHeight() + cw.wins(6)
+
+        def OnMove(self, event):
+            self._move_pos()
+
+        def _move_pos(self):
+            pos = self.GetParent().GetPosition()
+            size = self.GetParent().GetSize()
+            x = pos[0]+size[0]-1
+            y = pos[1]+size[1] - self.GetSize()[1]-1-cw.wins(10)
+            self.SetPosition((x, y))
+
+        def IsIconized(self):
+            return False
 
 
 def show_touchtools(dlg):
+    """dlgに付属するTouchToolsを表示する。"""
     if not cw.cwpy.setting.show_tiles:
         return False
     if hasattr(dlg, "cwpy_debug") and dlg.cwpy_debug:

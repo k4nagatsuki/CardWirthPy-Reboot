@@ -1188,9 +1188,9 @@ class Frame(wx.Frame):
 
                 def func(w, h, alpha, buf, colorkey, titledicfn, y, fore, back):
                     if alpha:
-                        bmp = wx.BitmapFromBufferRGBA(w, h, buf)
+                        bmp = wx.Bitmap.FromBufferRGBA(w, h, buf)
                     else:
-                        bmp = wx.BitmapFromBuffer(w, h, buf)
+                        bmp = wx.Bitmap.FromBuffer(w, h, buf)
                     self._put_dlgscreenshots(bmp, y, fore, back)
                     if colorkey:
                         r, g, b, a = colorkey
@@ -1413,6 +1413,13 @@ class MyApp(wx.App):
                 return True
 
         if not cw.cwpy.is_showingdlg():
+            return -1
+
+        if sys.platform <> "win32" and isinstance(event, wx.UpdateUIEvent):
+            touchtools = event.GetEventObject()
+            if isinstance(touchtools, cw.dialog.etc.TouchTools):
+                if touchtools.on_motion():
+                    return True
             return -1
 
         if not isinstance(event, (wx.KeyEvent, wx.MouseEvent)):
