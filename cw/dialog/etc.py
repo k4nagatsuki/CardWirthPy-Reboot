@@ -828,30 +828,23 @@ class TouchTools(wx.MiniFrame):
         s = u"%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"],
                          cw.cwpy.msgs["desc_screenshot"])
         bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
-        self._ssbtn = self._tb.AddTool(-1, s, bmp)
+        self._ssbtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
         if cw.cwpy.ydata and cw.cwpy.ydata.party:
             s = u"%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
                                      cw.cwpy.msgs["desc_screenshot_hands"])
             bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT_HANDS"]
-            self._sshbtn = self._tb.AddTool(-1, s, bmp)
+            self._sshbtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
         else:
             self._sshbtn = None
         if hasattr(parent, "copy_detail"):
             s = u"%s(Ctrl+C)\n%s" % (cw.cwpy.msgs["copy_dialog"],
                                         cw.cwpy.msgs["desc_copy_dialog"])
             bmp = cw.cwpy.rsrc.dialogs["COPY"]
-            self._copybtn = self._tb.AddTool(-1, s, bmp)
+            self._copybtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
         else:
             self._copybtn = None
         self._tb.Realize()
 
-        # FIXME: なぜかツールボタンのツールチップが表示されないのでその対策
-        def OnMove(event):
-            x, y = event.GetPosition()
-            item = self._tb.FindToolForPosition(x, y)
-            if item and self._tb.GetToolTipText() <> item.GetLabel():
-                self._tb.SetToolTip(item.GetLabel())
-        self._tb.Bind(wx.EVT_MOTION, OnMove)
         self.SetTransparent(128)
 
         self._do_layout()
