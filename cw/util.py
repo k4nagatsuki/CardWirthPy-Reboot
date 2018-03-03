@@ -3222,19 +3222,17 @@ def convert_to_image(bmp):
     h = bmp.GetHeight()
     if w <= 0 or h <= 0:
         img = wx.Image(w, h)
-    elif sys.platform == "win32":
-        buf = array.array('B', [0] * (w*h * 3))
-        try:
-            bmp.CopyToBuffer(buf)
-            img = wx.ImageFromBuffer(w, h, buf)
-        except:
-            img = bmp.ConvertToImage()
-    else:
+    buf = array.array('B', [0] * (w*h * 3))
+    try:
+        bmp.CopyToBuffer(buf)
+        img = wx.ImageFromBuffer(w, h, buf)
+    except:
         img = bmp.ConvertToImage()
     if hasattr(bmp, "bmpdepthis1"):
         img.bmpdepthis1 = bmp.bmpdepthis1
     if hasattr(bmp, "maskcolour"):
         r, g, b = bmp.maskcolour
+        img.maskcolour = bmp.maskcolour
         img.SetMaskColour(r, g, b)
     return img
 

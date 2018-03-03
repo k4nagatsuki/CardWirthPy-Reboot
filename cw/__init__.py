@@ -357,6 +357,8 @@ def _s_impl(num, up_scr):
                     result.bmpdepthis1 = bmpdepthis1
                 if maskcolour:
                     result.maskcolour = maskcolour
+                    r, g, b = maskcolour
+                    result.SetMaskColour(r, g, b)
                 return result
             else:
                 # スケール情報の無いwx.Image(単純拡大)
@@ -443,6 +445,8 @@ def _s_impl(num, up_scr):
             result.bmpdepthis1 = bmpdepthis1
         if maskcolour:
             result.maskcolour = maskcolour
+            r, g, b = maskcolour
+            result.SetMaskColour(r, g, b)
 
         return result
 
