@@ -1312,7 +1312,7 @@ class TargetArrow(base.CWPySprite):
     def update_scale(self):
         self.image = cw.cwpy.rsrc.statuses["TARGET"]
         self.rect = self.image.get_rect()
-        self.rect.topleft = (self.target.rect.right - cw.s(30), self.target.rect.bottom - cw.s(30))
+        self.rect.topleft = (self.target.rect.right - cw.s(20), self.target.rect.bottom - cw.s(20))
 
 class Jpy1TemporalSprite(base.CWPySprite):
     def __init__(self, background):

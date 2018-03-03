@@ -1378,7 +1378,7 @@ class YadoSelect(MultiViewSelect):
             for index in xrange(pindex, min(pindex+self.views, len(self.list))):
                 if index == self.index:
                     bmp = cw.cwpy.rsrc.wxstatuses["TARGET"]
-                    dc.DrawBitmap(bmp, cw.wins(158)+x, cw.wins(80)+y, True)
+                    dc.DrawBitmap(bmp, cw.wins(180)-bmp.GetWidth()+x, cw.wins(102)-bmp.GetHeight()+y, True)
                 if (index-pindex) % 2 == 1:
                     x = 0
                     y += ah
@@ -2301,7 +2301,7 @@ class PartySelect(MultiViewSelect):
                 # 選択マーク
                 if sindex + i == self.index:
                     bmp = cw.cwpy.rsrc.wxstatuses["TARGET"]
-                    dc.DrawBitmap(bmp, ix + cw.wins(58), iy + cw.wins(80), True)
+                    dc.DrawBitmap(bmp, ix + cw.wins(90) - bmp.GetWidth(), iy + cw.wins(102) - bmp.GetHeight(), True)
 
                 if self.views / 2 == i + 1:
                     x = 0
@@ -3201,7 +3201,7 @@ class PlayerSelect(MultiViewSelect):
                     # Selected
                     if sindex + i == self.index:
                         bmp = cw.cwpy.rsrc.wxstatuses["TARGET"]
-                        dc.DrawBitmap(bmp, ix + cw.wins(58), iy + cw.wins(80), True)
+                        dc.DrawBitmap(bmp, ix + cw.wins(80) - bmp.GetWidth(), iy + cw.wins(102) - bmp.GetHeight(), True)
 
                     if self.views / 2 == i + 1:
                         x = 0
