@@ -328,6 +328,7 @@ def _s_impl(num, up_scr):
                     result = image.smoothscale(bmp, size)
                 if isinstance(num[0], util.Depth1Surface):
                     result = util.Depth1Surface(result, scr_scale)
+                    result.bmpdepthis1 = num[0].bmpdepthis1
                 return result
             else:
                 # スケール情報の無いpygame.Surface(単純拡大)
@@ -415,6 +416,7 @@ def _s_impl(num, up_scr):
             result = image.smoothscale(num, size)
         if isinstance(bmp0, util.Depth1Surface):
             result = util.Depth1Surface(result, scr_scale)
+            result.bmpdepthis1 = bmp0.bmpdepthis1
         return result
 
     elif isinstance(num, wx.Image):
