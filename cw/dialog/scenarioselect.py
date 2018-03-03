@@ -713,6 +713,9 @@ class ScenarioSelect(select.Select):
                 self._create_link_to_dir.SetBitmap(cw.cwpy.rsrc.dialogs["CREATE_LINK_TO_DIRECTORY"])
                 self._create_link_to_dir.SetFont(font)
                 menu.Append(self._create_link_to_dir)
+            else:
+                self._create_link_to_scenario = None
+                self._create_link_to_dir = None
             # エクスプローラーで開く
             menu.AppendSeparator()
             self._opendir = wx.MenuItem(menu, -1, cw.cwpy.msgs["open_directory"])
