@@ -895,7 +895,7 @@ if sys.platform == "win32":
         def OnLeaveWindow(self, event):
             self.SetTransparent(128)
 else:
-    class TouchTools(wx.PopupWindow):
+    class TouchTools(wx.MiniFrame):
         """
         任意のダイアログにくっついて動くタッチ操作用ツールウィンドウ。
         現在はスクリーンショットの撮影のみ行える。
@@ -905,7 +905,7 @@ else:
                wxGTK 4.0.1
         """
         def __init__(self, parent):
-            wx.PopupWindow.__init__(self, parent)
+            wx.MiniFrame.__init__(self, parent, style=wx.NO_BORDER)
             self.cwpy_debug = False
 
             self._selected_index = -1
@@ -937,7 +937,7 @@ else:
             w = max(map(lambda t: t[1].GetWidth(), self._buttons)) + cw.wins(6)
             h = sum(map(lambda t: t[1].GetHeight(), self._buttons))
             h += cw.wins(3)*2 + cw.wins(6)*(len(self._buttons)-1)
-            self.SetSize((w, h))
+            self.SetClientSize((w, h))
 
         def _bind(self):
             self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -946,12 +946,15 @@ else:
         def on_motion(self):
             index = self._selected_index
             x, y = wx.GetMousePosition()
-            fc = wx.Window.FindFocus()
-            if fc and fc.GetTopLevelParent() is self.GetParent() and self.GetRect().Contains(x, y):
+            parent = self.GetParent()
+            if self.GetRect().Contains(x, y) and not any(filter(lambda c: isinstance(c, wx.TopLevelWindow) and not c is self, parent.GetChildren())):
                 _x, y = self.ScreenToClient((x, y))
+                y -= (self.GetSize()[1]-self.GetClientSize()[1]) // 2
                 self._selected_index = y // (self._buttons[0][1].GetHeight() + cw.wins(6))
-                if self._selected_index < 0 or len(self._buttons) <= self._selected_index:
-                    self._selected_index = -1
+                if self._selected_index < 0:
+                    self._selected_index = 0
+                if len(self._buttons) <= self._selected_index:
+                    self._selected_index = len(self._buttons)-1
                 if self._selected_index <> index:
                     self._update_tooltip()
                     self.Refresh()
