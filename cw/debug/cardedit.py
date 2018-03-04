@@ -172,6 +172,7 @@ class CardEditDialog(wx.Dialog):
 
         sizer_targets = wx.StaticBoxSizer(self.targetsbox, wx.VERTICAL)
         sizer_targets.Add(self.targets, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, cw.ppis(5))
+        sizer_targets.Add(cw.ppis((0, 2)), 0, 0, 0)
         sizer_targets.Add(self.status, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
 
         sizer_middle = wx.BoxSizer(wx.VERTICAL)
@@ -559,13 +560,14 @@ class CardEditDialog(wx.Dialog):
                             add_target(item, matcher, party, party, header, insce)
                         wx.CallAfter(func, roots, items, matcher, partyheader, party, header, insce)
 
-            count = 0
-            for array in self.target_table.values():
-                count += len(array)
-            set_status(u"%s件のカードが見つかりました。" % (count))
-
             cw.cwpy.play_sound("signal")
+
             def update_enable():
+                count = 0
+                for array in self.target_table.itervalues():
+                    count += len(array)
+                self.status.SetLabel(u"%s件のカードが見つかりました。" % (count))
+
                 self._find = False
                 self._update_enable()
             wx.CallAfter(update_enable)
