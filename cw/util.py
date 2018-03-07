@@ -2265,18 +2265,21 @@ def decode_text(name):
                 name = name.decode("utf-8")
             except UnicodeDecodeError:
                 try:
-                    name = name.decode("utf-16")
+                    name = name.decode("shift_jis")
                 except UnicodeDecodeError:
                     try:
-                        name = name.decode("utf-32")
+                        name = name.decode("utf-16")
                     except UnicodeDecodeError:
                         try:
-                            name = name.decode(cw.MBCS)
+                            name = name.decode("utf-32")
                         except UnicodeDecodeError:
                             try:
-                                name = name.decode("euc-jp")
+                                name = name.decode(cw.MBCS)
                             except UnicodeDecodeError:
-                                name = name
+                                try:
+                                    name = name.decode("euc-jp")
+                                except UnicodeDecodeError:
+                                    name = name
 
     return name
 
