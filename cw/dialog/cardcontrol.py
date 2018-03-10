@@ -1355,13 +1355,7 @@ class CardControl(wx.Dialog):
         self._cancel_animation = False
 
         self._animate_frame = 0
-        n = dealing_scales[self._animate_frame]
-        header1.deal_per = n
-        if header2:
-            header2.deal_per = n
-        self.draw_card(header1, fromkeyevent=True)
-        if header2:
-            self.draw_card(header2, fromkeyevent=True)
+
         def func2():
             if not self or self._cancel_animation:
                 header1.deal_per = 100
@@ -1398,7 +1392,18 @@ class CardControl(wx.Dialog):
                     self._animate_frame = 0
                     func()
                 self._after_event = func3
-        self._after_event = func2
+
+        if dealing_scales:
+            n = dealing_scales[self._animate_frame]
+            header1.deal_per = n
+            if header2:
+                header2.deal_per = n
+            self.draw_card(header1, fromkeyevent=True)
+            if header2:
+                self.draw_card(header2, fromkeyevent=True)
+            self._after_event = func2
+        else:
+            func2()
 
     def animate_hide(self, header1, header2, func):
         self._animate_dealhide(header1, header2, func, cw.cwpy.setting.dealing_scales, 0)
