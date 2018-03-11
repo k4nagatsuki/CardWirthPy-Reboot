@@ -474,6 +474,7 @@ class EventHandler(object):
         def func():
             if not cw.cwpy.frame:
                 return
+            cw.cwpy.play_sound("click")
 
             if sys.platform == "win32":
                 chm = cw.util.join_paths(os.path.dirname(cw.exepath), u"CardWirthPy.chm")
