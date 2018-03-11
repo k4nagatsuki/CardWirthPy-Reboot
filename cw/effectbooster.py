@@ -463,7 +463,7 @@ class _JpySubImage(cw.image.Image):
                 image = cw.imageretouch.add_mosaic(image, self.noisepoint)
 
         # マスク
-        if self.transparent and self.can_mask:
+        if self.transparent and self.can_mask and 0 < self.image.get_width():
             if self.clip:
                 colorkey = image.get_at(self.clip[:2])
             else:
@@ -484,14 +484,13 @@ class _JpySubImage(cw.image.Image):
         if self.clip:
             x, y, w, h = self.clip
             rect = pygame.Rect((x, y), (w, h))
+            clip = pygame.Rect((0, 0), image.get_size())
+            clip = clip.clip(rect)
 
-            if pygame.Rect((0, 0), image.get_size()).contains(rect):
-                image = image.subsurface(rect)
+            if 0 < clip.width and 0 < clip.height:
+                image = image.subsurface(clip)
             else:
-                w = image.get_width() if image.get_width() > w + x else w + x
-                h = image.get_height() if image.get_height() > h + y else h + y
-                image = pygame.transform.scale(image, (w, h))
-                image = image.subsurface(rect)
+                image = pygame.Surface(cw.s((0, 0))).convert()
 
         # リサイズ for JpyPartsImage
         if not hasattr(self, "backcolor"):
@@ -880,7 +879,8 @@ class JpyImage(cw.image.Image):
             # 互換動作: 1.30以前はレタッチ内容によってセルとして配置した時に
             #           指定したマスク設定が無効にされてしまう場合があるが、
             #           1.50では無効にならない
-            if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+            if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)) and\
+                    0 < self.image.get_width():
                 if mask and can_mask:
                     self.image = self.image.convert()
                     self.image.set_colorkey(self.image.get_at((0, 0)))
@@ -1156,8 +1156,8 @@ class JptxImage(cw.image.Image):
                 pixels = self.fontpixels_noscale
                 if (pixels+2) % 4 == 0:
                     pixels += 1
-                points2 = (pixels * 72 / 96) * 2
-                pixels_aa = points2 * 96 / 72
+                points2 = (pixels * 72 // 96) * 2
+                pixels_aa = points2 * 96 // 72
                 if (pixels-1) % 4 == 0:
                     pixels_aa += 3
                 # -- サイズ補正ここまで
