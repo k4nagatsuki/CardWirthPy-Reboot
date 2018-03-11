@@ -99,6 +99,7 @@ class StatusBar(base.CWPySprite):
 
         self._create_help((left, cw.s(3)))
         left -= cw.s(28)
+        rmargin += cw.s(28)
 
         self._create_settings((left, cw.s(3)))
 
