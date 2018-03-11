@@ -4016,19 +4016,28 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         self.SelectAll()
 
     def go_url(self, url):
-        try:
-            webbrowser.open(url)
-        except:
-            s = u"「%s」が開けませんでした。インターネットブラウザが正常に関連付けされているか確認して下さい。" % url
-            dlg = cw.dialog.message.ErrorMessage(self, s)
-            cw.cwpy.frame.move_dlg(dlg)
-            dlg.ShowModal()
-            dlg.Destroy()
+        open_url(self, url)
 
     def OnURL(self, event):
         # 文字列選択中はブラウザ起動しない
         if not self.HasSelection():
             self.go_url(event.GetString())
+
+
+def open_url(parentdlg, url):
+    """urlをWebブラウザで開く。"""
+    if threading.currentThread() is cw.cwpy:
+        cw.cwpy.frame.exec_func(open_url, parentdlg, url)
+        return
+
+    try:
+        webbrowser.open(url)
+    except Exception:
+        s = u"「%s」が開けませんでした。インターネットブラウザが正常に関連付けされているか確認して下さい。" % url
+        dlg = cw.dialog.message.ErrorMessage(parentdlg, s)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+        dlg.Destroy()
 
 
 def get_wheelrotation(event):

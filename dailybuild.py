@@ -33,14 +33,22 @@ if __name__ == '__main__':
     dir = "."
     if 1 < len(sys.argv):
         dir = sys.argv[1]
-        sys.argv.pop()
+        sys.argv.pop(1)
 
-    sys.argv = [sys.argv[0], 'py2exe']
+    for arg in sys.argv[1:]:
+        if arg.startswith("-chm="):
+            chmfile = arg[5:].strip("\"")
+            sys.argv.remove(arg)
+            break
+    else:
+        chmfile = u""
+
+    sys.argv = [sys.argv[0], "py2exe"]
 
     build_exe.create_versioninfo()
 
     try:
-        exe = build_exe.BuildExe()
+        exe = build_exe.BuildExe(chmfile)
         exe.run()
     finally:
         build_exe.remove_versioninfo()

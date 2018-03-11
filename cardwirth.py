@@ -1,17 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
+import codecs
 import os
+import sys
 
 import cw
 
+
+encoding = sys.getfilesystemencoding()
+try:
+    cw.exepath = __file__.decode(encoding)
+except NameError:
+    cw.exepath = sys.executable.decode(encoding)
+
+
 sys.setrecursionlimit(1073741824)
-if sys.platform != 'win32':
+
+if sys.platform <> "win32":
     # リダイレクトした場合でも UnicodeError を起こさないように
-    import codecs
     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
     sys.stderr = codecs.getwriter('utf8')(sys.stderr)
+
 
 def main():
     if len(cw.SKIN_CONV_ARGS) > 0:
@@ -28,6 +38,7 @@ def main():
         app.MainLoop()
     finally:
         cw.util.clear_mutex()
+
 
 if __name__ == "__main__":
     main()

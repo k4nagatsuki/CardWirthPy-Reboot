@@ -43,6 +43,10 @@ import sprite
 
 import argparser
 
+
+# 実行ファイルのパス
+exepath = u""
+
 # CWPyThread
 cwpy = None
 

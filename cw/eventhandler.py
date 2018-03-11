@@ -467,9 +467,31 @@ class EventHandler(object):
 
     def f1key_event(self):
         """
-        F1キーイベント。ヘルプが無いので何もしない。
+        F1キーイベント。
+        コンパイル済みヘルプファイルCardWirthPy.chm
+        またはオンラインヘルプを開く。
         """
-        pass
+        def func():
+            if not cw.cwpy.frame:
+                return
+
+            if sys.platform == "win32":
+                chm = cw.util.join_paths(os.path.dirname(cw.exepath), u"CardWirthPy.chm")
+                if os.path.isfile(chm):
+                    try:
+                        import win32help
+                        encoding = sys.getfilesystemencoding()
+                        chm = chm.encode(encoding)
+                        win32help.HtmlHelp(cw.cwpy.frame.GetHandle(), chm, win32help.HH_DISPLAY_TOC)
+                        return
+                    except Exception:
+                        cw.util.print_ex()
+
+            etree = cw.data.xml2etree(u"Data/Sites.xml")
+            url = etree.getattr("OnlineHelp", "url")
+            if url:
+                cw.util.open_url(cw.cwpy.frame, url)
+        cw.cwpy.frame.exec_func(func)
 
     def f2key_event(self):
         """

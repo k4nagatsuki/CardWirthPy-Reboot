@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+import os
 import pygame
 import pygame.locals
 
@@ -30,6 +32,7 @@ class StatusBar(base.CWPySprite):
         self.debugger = None
         self.backlog = None
         self.settings = None
+        self.help = None
         self.touchmenu = None
         self.infocards = None
         self.friendcards = None
@@ -93,6 +96,9 @@ class StatusBar(base.CWPySprite):
             rmargin += cw.s(28)
         else:
             self.hide_touchbuttons()
+
+        self._create_help((left, cw.s(3)))
+        left -= cw.s(28)
 
         self._create_settings((left, cw.s(3)))
 
@@ -200,6 +206,12 @@ class StatusBar(base.CWPySprite):
             self.settings.reset(pos)
         else:
             self.settings = SettingsButton(self, pos)
+
+    def _create_help(self, pos):
+        if self.help:
+            self.help.reset(pos)
+        else:
+            self.help = HelpButton(self, pos)
 
     def _create_touchmenu(self, pos):
         if self.touchmenu:
@@ -1304,6 +1316,28 @@ class SettingsButton(StatusBarButton):
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
         cw.cwpy.eventhandler.f2key_event()
+
+
+class HelpButton(StatusBarButton):
+    def __init__(self, parent, pos):
+        image = cw.cwpy.rsrc.pygamedialogs["HELP"]
+        name = u"ヘルプ"
+        if sys.platform == "win32" and\
+                os.path.isfile(cw.util.join_paths(os.path.dirname(cw.exepath), u"CardWirthPy.chm")):
+            desc = u"ヘルプを開きます"
+        else:
+            desc = u"オンラインヘルプを開きます"
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc, hotkey=u"F1")
+        self.selectable_on_event = True
+        if self.is_selection():
+            self.update_image()
+
+    def get_icon(self):
+        return cw.cwpy.rsrc.pygamedialogs["HELP"]
+
+    def lclick_event(self):
+        StatusBarButton.lclick_event(self)
+        cw.cwpy.eventhandler.f1key_event()
 
 
 class DebuggerButton(StatusBarButton):

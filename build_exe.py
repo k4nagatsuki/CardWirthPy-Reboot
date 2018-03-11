@@ -35,7 +35,7 @@ for extra in ["win32com.shell"]:
 
 
 class BuildExe(object):
-    def __init__(self):
+    def __init__(self, chmfile):
         #Name of starting .py
         self.script = "cardwirth.py"
 
@@ -44,6 +44,9 @@ class BuildExe(object):
 
         #Project url
         self.project_url = "https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot/"
+
+        #Help file
+        self.chmfile = chmfile
 
         #Version of program
         self.project_version = "2.3"
@@ -266,6 +269,11 @@ class BuildExe(object):
         if os.path.isdir('build'): #Clean up build dir
             shutil.rmtree('build')
 
+        if self.chmfile:
+            path = os.path.basename(self.chmfile)
+            path = os.path.join(self.dist_dir, path)
+            shutil.copy(self.chmfile, path)
+
 def compress_src(zpath):
     fnames = ["cardwirth.py", "build_exe.py", "CardWirthPy.ico",
               "CardWirthPy.manifest"]
@@ -313,11 +321,18 @@ if __name__ == '__main__':
     if "-nokey" in sys.argv:
         nokey = True
         sys.argv.remove("-nokey")
+    for arg in sys.argv[1:]:
+        if arg.startswith("-chm="):
+            chmfile = arg[5:].strip("\"")
+            sys.argv.remove(arg)
+            break
+    else:
+        chmfile = u""
 
     create_versioninfo()
 
     try:
-        BuildExe().run() #Run generation
+        BuildExe(chmfile).run() #Run generation
     finally:
         remove_versioninfo()
 
