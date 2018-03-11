@@ -1334,7 +1334,10 @@ def get_fontface(fontface):
     elif fontface in (u"ＭＳ ＵＩゴシック", "MS UI Gothic"):
         return cw.cwpy.rsrc.fontnames_init["uigothic"]
     else:
-        return cw.cwpy.rsrc.fontnames_init["uigothic"]
+        if u"ＭＳ Ｐゴシック" in cw.cwpy.rsrc.facenames:
+            return u"ＭＳ Ｐゴシック"
+        else:
+            return cw.cwpy.rsrc.fontnames_init["gothic"]
 
 def main():
     pass
