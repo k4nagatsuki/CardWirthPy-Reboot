@@ -597,16 +597,22 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and ctype == "Cast":
             f.write_dword(int(data.get("id")))
         elif tag == "Branch" and ctype == "Item":
+            if data.getbool(".", "selectcard", False):
+                f.check_wsnversion("3", u"カードの選択")
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Branch" and ctype == "Skill":
+            if data.getbool(".", "selectcard", False):
+                f.check_wsnversion("3", u"カードの選択")
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))
         elif tag == "Branch" and ctype == "Info":
             f.write_dword(int(data.get("id")))
         elif tag == "Branch" and ctype == "Beast":
+            if data.getbool(".", "selectcard", False):
+                f.check_wsnversion("3", u"カードの選択")
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets"), f))

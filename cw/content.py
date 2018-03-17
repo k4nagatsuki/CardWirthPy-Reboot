@@ -243,6 +243,7 @@ class BranchContent(EventContentBase):
         resid = self.data.getint(".", "id", 0)
         num = self.data.getint(".", "number", 0)
         scope = self.data.get("targets")
+        selectcard = self.data.getbool(".", "selectcard", False)
 
         # 対象カードのxmlファイルのパス
         if cardtype == "SkillCard":
@@ -290,6 +291,7 @@ class BranchContent(EventContentBase):
             selectedmember = None
             targets = cw.cwpy.event.get_targetscope(scope)
             cardnum = 0
+            header = None
 
             for target in targets:
                 # 対象カード所持判定
@@ -302,6 +304,8 @@ class BranchContent(EventContentBase):
 
                 for h in targetheaders:
                     if h.name == cardname and h.desc == carddesc:
+                        if not header:
+                            header = h
                         headers.append(h)
 
                 # 判定結果
@@ -324,6 +328,10 @@ class BranchContent(EventContentBase):
             # パーティ全体での所持数判定
             if scope == "PartyAndBackpack":
                 flag = bool(cardnum >= num)
+
+            if flag and header and selectcard:
+                # 見つかったカードの選択(Wsn.3)
+                cw.cwpy.event.set_selectedcard(header)
 
             # 選択設定
             if not scope == "Selected":
