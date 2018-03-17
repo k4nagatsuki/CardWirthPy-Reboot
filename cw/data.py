@@ -2717,7 +2717,7 @@ class YadoData(object):
                 if party.fpath.lower().startswith(self.tempdir.lower()):
                     party.fpath = party.fpath.replace(self.tempdir, self.yadodir, 1)
                 party.data = None
-            partyorder[party.fpath] = party.order
+            partyorder[cw.util.relpath(party.fpath, self.yadodir)] = party.order
 
         partyrecord = {}
         for header in self.partyrecord:

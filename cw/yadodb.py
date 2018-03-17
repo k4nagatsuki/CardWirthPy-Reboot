@@ -1226,13 +1226,15 @@ class YadoDB(object):
             ON
                 party.fpath = partyorder.fpath
         ORDER BY
+            numorder,
             name
         """
         self.cur.execute(s)
         headers = []
-        for rec in self.cur:
+        for order, rec in enumerate(self.cur):
             header = cw.header.PartyHeader(dbrec=rec)
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
+            header.order = order
             headers.append(header)
         return headers
 
