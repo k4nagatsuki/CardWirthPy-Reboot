@@ -3250,30 +3250,22 @@ class Party(object):
                         self.backpack_moved.append(header)
                 carddb.close()
             self.sort_backpack()
+            self.sorted_backpack_by_order = False
 
-    def sort_backpack(self):
-        sort_cards(self.backpack, cw.cwpy.setting.sort_cards, cw.cwpy.setting.sort_cardswithstar)
-
-    def get_backpackkeycodes(self, skill=True, item=True, beast=True):
-        """荷物袋内のキーコード一覧を返す。"""
-        s = set()
-        for header in self.backpack:
-            if not skill and header.type == "SkillCard":
-                continue
-            elif not item and header.type == "ItemCard":
-                continue
-            elif not beast and header.type == "BeastCard":
-                continue
-            s.update(header.get_keycodes())
-
-        s.discard("")
-        return s
+    def sort_backpack(self, sorttype=None):
+        if sorttype is None:
+            sorttype = cw.cwpy.setting.sort_cards
+        sort_cards(self.backpack, sorttype, cw.cwpy.setting.sort_cardswithstar)
+        self.sorted_backpack_by_order = (sorttype == "order")
 
     def find_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
         """指定されたキーコードを所持しているか。
         当該キーコードを含むカードを返す。
         見つからなかった場合はNoneを返す。
         """
+        if not self.sorted_backpack_by_order:
+            self.sort_backpack(sorttype="order")
+
         for header in self.backpack:
             if not skill and header.type == "SkillCard":
                 continue

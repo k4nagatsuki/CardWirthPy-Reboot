@@ -158,10 +158,15 @@ class Deck(object):
 
     def remove(self, ccard, header):
         if cw.cwpy.battle:
-            self.hand = [h for h in self.hand
-                                if not h.ref_original == header.ref_original]
-            self.talon = [h for h in self.talon
-                                if not h.ref_original == header.ref_original]
+            if header.type == "ActionCard":
+                for h in self.hand[1:]:
+                    if h == header:
+                        self._remove(h)
+            else:
+                self.hand = [h for h in self.hand
+                                    if not h.ref_original == header.ref_original]
+                self.talon = [h for h in self.talon
+                                    if not h.ref_original == header.ref_original]
 
     def get_skillpower(self, ccard):
         # 一旦山札から全てのスキルを取り除く

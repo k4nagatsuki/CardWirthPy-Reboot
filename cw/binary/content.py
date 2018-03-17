@@ -798,7 +798,7 @@ class Content(base.CWBinaryBase):
             f.check_version(1.50, u"キーコード所持分岐コンテント")
             if data.getbool(".", "selectcard", False):
                 f.check_wsnversion("3", u"カードの選択")
-            f.write_byte(base.CWBinaryBase.unconv_keycoderange(data.get("targetkc")))
+            f.write_byte(base.CWBinaryBase.unconv_keycoderange(data.get("targetkc"), f))
             # Wsn.1方式
             etype = data.get("effectCardType", "All")
             skill = False
