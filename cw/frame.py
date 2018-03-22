@@ -1126,7 +1126,7 @@ class Frame(wx.Frame):
             # cw.cwpy.mousemotionがFalseになるため、
             # 異なる値を設定する
             cw.cwpy.mousepos = (-2, -2)
-            if redraw:
+            if redraw and not cw.cwpy.is_updating_skin:
                 cw.cwpy.draw()
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False

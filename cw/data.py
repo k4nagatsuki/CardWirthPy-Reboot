@@ -603,7 +603,7 @@ class SystemData(object):
         self.playerevents = cw.event.EventEngine(self.data.getfind("PlayerCardEvents/Events", False))
         return True
 
-    def start_event(self, keynum=None, keycodes=[][:]):
+    def start_event(self, keynum=None, keycodes=[][:], redraw=True):
         cw.cwpy.statusbar.change(False)
         self.events.start(keynum=keynum, keycodes=keycodes)
         if not cw.cwpy.is_dealing() and not cw.cwpy.battle:
@@ -611,7 +611,8 @@ class SystemData(object):
             if not (pygame.event.peek(pygame.locals.USEREVENT)):
                 cw.cwpy.show_party()
                 cw.cwpy.disposition_pcards()
-                cw.cwpy.draw()
+                if redraw:
+                    cw.cwpy.draw()
 
     def get_currentareaname(self):
         """現在滞在中のエリアの名前を返す"""

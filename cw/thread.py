@@ -62,6 +62,7 @@ class CWPy(_Singleton, threading.Thread):
         self.is_processing = False # シナリオ読込中か
         self.is_debuggerprocessing = False # デバッガの処理が進行中か(宿の再ロードなど)
         self.is_decompressing = False # アーカイブ展開中か
+        self.is_updating_skin = False # スキン切替中か
 
         self.update_scaling = False # 画面スケール変更中か
 
@@ -396,6 +397,10 @@ class CWPy(_Singleton, threading.Thread):
         self.backloggrp.set_clip(clip)
 
     def update_skin(self, skindirname, changearea=True, restartop=True, afterfunc=None):
+        self.is_updating_skin = True
+        if self.areaid == cw.AREA_BREAKUP:
+            self.clear_specialarea(redraw=False)
+
         self.file_updates.clear()
         if self.status == "Title" and restartop:
             changearea = False
@@ -442,7 +447,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.background.load(self.sdata.get_bgdata(), False, ("None", "None"), redraw=False)
             if not self.is_playingscenario():
-                self.sdata.start_event(keynum=1)
+                self.sdata.start_event(keynum=1, redraw=False)
 
         self.clear_selection()
         if self.rsrc:
@@ -488,6 +493,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 for music in self.music:
                     music.play(music.path, updatepredata=False)
+            self.is_updating_skin = False
 
         self.update_scale(cw.UP_WIN, changearea, rsrconly=True, afterfunc=func)
 
@@ -582,7 +588,6 @@ class CWPy(_Singleton, threading.Thread):
         else:
             changed = False
 
-        resizewin = False
         if not rsrconly:
             cw.UP_SCR = scale
             flags = 0
@@ -598,7 +603,6 @@ class CWPy(_Singleton, threading.Thread):
                     self.scr_draw = self.scr
                 else:
                     self.scr_draw = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
-                resizewin = True
 
         if udpatedrawsize:
             self._init_resources()
@@ -610,6 +614,9 @@ class CWPy(_Singleton, threading.Thread):
                 if self.pre_mcards:
                     mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1][0], self.pre_areaids[-1][1])
                     self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
+                if self.pre_areaids:
+                    for i, (preareaid, _predata) in enumerate(self.pre_areaids[:]):
+                        self.pre_areaids[i] = (preareaid, self.sdata.get_areadata(preareaid))
             self._update_clip()
 
             cw.sprite.message.MessageWindow.clear_selections()
@@ -3502,8 +3509,14 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
-                self.change_area(areaid, data=data, quickdeal=True, specialarea=True,
-                                 clear_curtain=clear_curtain)
+                if redraw:
+                    self.change_area(areaid, data=data, quickdeal=True, specialarea=True,
+                                     clear_curtain=clear_curtain)
+                else:
+                    self.areaid = areaid
+                    self.sdata.change_data(areaid)
+                    if clear_curtain:
+                        self.clear_curtain(redraw=redraw)
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata._changed = changed
         elif self.is_battlestatus():
@@ -3528,7 +3541,8 @@ class CWPy(_Singleton, threading.Thread):
                 (targetselectionarea and not self.is_runningevent()) or\
                 (self.is_battlestatus() and self.battle.is_ready())
             self.statusbar.change(showbuttons)
-            self.draw()
+            if redraw:
+                self.draw()
         self.exec_func(func)
 
         self.disposition_pcards()
@@ -3911,7 +3925,7 @@ class CWPy(_Singleton, threading.Thread):
 
             self.draw()
 
-    def clear_curtain(self):
+    def clear_curtain(self, redraw=True):
         """Curtainスプライトを解除する。"""
         if self.is_curtained():
             self.background.clear_curtain()
@@ -3920,7 +3934,8 @@ class CWPy(_Singleton, threading.Thread):
             self._curtained = False
             self.is_pcardsselectable = self.ydata and self.ydata.party
             self.is_mcardsselectable = True
-            self.draw()
+            if redraw:
+                self.draw()
 
     def cancel_cardcontrol(self):
         """カードの移動や使用の対象選択をキャンセルする。"""
