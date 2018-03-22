@@ -660,8 +660,9 @@ class CWPy(_Singleton, threading.Thread):
             # 一度マウスポインタを画面外へ出さないと
             # フォーカスを失うことがある
             pos = pygame.mouse.get_pos()
-            pygame.mouse.set_pos([-1, -1])
-            pygame.mouse.set_pos(pos)
+            if -1 < pos[0] and -1 < pos[1] and pygame.mouse.get_focused():
+                pygame.mouse.set_pos([-1, -1])
+                pygame.mouse.set_pos(pos)
         self.change_cursor(self.cursor, force=True)
 
         self.update_scaling = False
@@ -1523,10 +1524,11 @@ class CWPy(_Singleton, threading.Thread):
         if not force and not self.is_showingdlg():
             # FIXME: 一度マウスポインタを移動しないと変更されない
             pos = pygame.mouse.get_pos()
-            x = pos[0] - 1 if 0 < pos[0] else pos[0] + 1
-            y = pos[1] - 1 if 0 < pos[1] else pos[1] + 1
-            pygame.mouse.set_pos(x, y)
-            pygame.mouse.set_pos(pos)
+            if -1 < pos[0] and -1 < pos[1] and pygame.mouse.get_focused():
+                x = pos[0] - 1 if 0 < pos[0] else pos[0] + 1
+                y = pos[1] - 1 if 0 < pos[1] else pos[1] + 1
+                pygame.mouse.set_pos(x, y)
+                pygame.mouse.set_pos(pos)
 
     def call_dlg(self, name, **kwargs):
         """ダイアログを開く。
@@ -1676,7 +1678,8 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 if not self.is_showingdlg():
                     pos = pygame.mouse.get_pos()
-                    pygame.mouse.set_pos([-1, -1])
+                    if -1 < pos[0] and -1 < pos[1] and pygame.mouse.get_focused():
+                        pygame.mouse.set_pos([-1, -1])
 
                 self.setting.is_expanded = flag
                 if flag:
@@ -1704,7 +1707,8 @@ class CWPy(_Singleton, threading.Thread):
                 if not self.is_showingdlg():
                     # 一度マウスポインタを画面外へ出さないと
                     # フォーカスを失うことがある
-                    pygame.mouse.set_pos(pos)
+                    if -1 < pos[0] and -1 < pos[1] and pygame.mouse.get_focused():
+                        pygame.mouse.set_pos(pos)
                     self.clear_inputevents()
 
         else:
