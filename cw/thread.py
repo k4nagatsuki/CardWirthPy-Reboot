@@ -398,8 +398,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def update_skin(self, skindirname, changearea=True, restartop=True, afterfunc=None):
         self.is_updating_skin = True
-        if self.areaid == cw.AREA_BREAKUP:
-            self.clear_specialarea(redraw=False)
+        if self.status == "Yado" and self.pre_areaids:
+            self.clean_specials(silent=True)
 
         self.file_updates.clear()
         if self.status == "Title" and restartop:
@@ -493,6 +493,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 for music in self.music:
                     music.play(music.path, updatepredata=False)
+
             self.is_updating_skin = False
 
         self.update_scale(cw.UP_WIN, changearea, rsrconly=True, afterfunc=func)
@@ -3461,7 +3462,7 @@ class CWPy(_Singleton, threading.Thread):
             self.exec_func(self.statusbar.change, True)
         self.disposition_pcards()
 
-    def clear_specialarea(self, redraw=True):
+    def clear_specialarea(self, redraw=True, silent=False):
         """特殊エリアに移動する前のエリアに戻る。
         areaidが-3(パーティ解散)の場合はエリアチェンジする。
         """
@@ -3513,7 +3514,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
-                if redraw:
+                if not silent:
                     self.change_area(areaid, data=data, quickdeal=True, specialarea=True,
                                      clear_curtain=clear_curtain)
                 else:
@@ -3545,7 +3546,7 @@ class CWPy(_Singleton, threading.Thread):
                 (targetselectionarea and not self.is_runningevent()) or\
                 (self.is_battlestatus() and self.battle.is_ready())
             self.statusbar.change(showbuttons)
-            if redraw:
+            if not silent:
                 self.draw()
         self.exec_func(func)
 
@@ -3553,13 +3554,13 @@ class CWPy(_Singleton, threading.Thread):
         if not callpredlg:
             self.change_selection(self.selection)
 
-        if oldareaid <> cw.AREA_CAMP and redraw:
+        if oldareaid <> cw.AREA_CAMP and redraw and not silent:
             self.draw()
 
         if callpredlg:
             self.call_predlg()
 
-    def clean_specials(self):
+    def clean_specials(self, redraw=True, silent=False):
         """デバッガやF9で強制的なエリア移動等を発生させる時、
         特殊エリアにいたりバックログを開いていたりした場合は
         クリアして通常状態へ戻す。
@@ -3570,7 +3571,7 @@ class CWPy(_Singleton, threading.Thread):
             self.pre_dialogs = []
             if self.areaid in cw.AREAS_TRADE:
                 self.topgrp.empty()
-            self.clear_specialarea()
+            self.clear_specialarea(redraw=redraw, silent=silent)
 
     def check_level(self, fromscenario):
         """PCの経験点を確認し、条件を満たしていれば
