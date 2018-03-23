@@ -205,6 +205,7 @@ class _AnimationPart(object):
                 self.parent.size_noscale[1]
                 height //= scr_scale
 
+            self._has_alpha = (self.image_noscale.get_flags() & pygame.locals.SRCALPHA) <> 0
         else:
             # 塗り潰し
             self.image_noscale = pygame.Surface((4, 4)).convert()
@@ -215,7 +216,7 @@ class _AnimationPart(object):
             if height == "Original":
                 height = self.parent.size_noscale[1]
 
-        self._has_alpha = (self.image_noscale.get_flags() & pygame.locals.SRCALPHA) <> 0
+            self._has_alpha = False
 
         if width == "Max":
             width = self.parent.size_noscale[0]
