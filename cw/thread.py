@@ -490,6 +490,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if self.status == "Title" and restartop:
                 # タイトル画面にいる場合はロゴ表示前まで戻す
+                self.is_updating_skin = False
                 if self.topgrp.sprites():
                     # アニメーション中なら中止してから戻す
                     self.exec_func(self.startup, loadyado=False)
@@ -506,13 +507,13 @@ class CWPy(_Singleton, threading.Thread):
                     else:
                         music.play(music.path, updatepredata=False)
 
-            if not oldareaid is None:
-                self.selectedheader = selectedheader
-                self.pre_dialogs = pre_dialogs
-                self.change_specialarea(oldareaid, silent=True)
-                self.statusbar.change(showbuttons=True)
+                if not oldareaid is None:
+                    self.selectedheader = selectedheader
+                    self.pre_dialogs = pre_dialogs
+                    self.change_specialarea(oldareaid, silent=True)
+                    self.statusbar.change(showbuttons=True)
 
-            self.is_updating_skin = False
+                self.is_updating_skin = False
 
         self.update_scale(cw.UP_WIN, changearea, rsrconly=True, afterfunc=func)
 
