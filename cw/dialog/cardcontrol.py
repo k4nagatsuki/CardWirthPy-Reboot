@@ -1487,19 +1487,10 @@ class CardControl(wx.Dialog):
 
         # カード操作用データ(移動元データ, CardHeader)を設定
         cw.cwpy.selectedheader = header
-        cw.cwpy.exec_func(cw.cwpy.update_selectablelist)
-        if self.areaid in cw.AREAS_TRADE:
-            def test_aptitude(header):
-                # 能力適性表示
-                for pcard in cw.cwpy.get_pcards("unreversed"):
-                    pcard.test_aptitude = header
-                    pcard.update_image()
-                # 枚数表示
-                cw.cwpy.show_numberofcards(header.type)
-                # 売却価格表示
-                for poc in cw.cwpy.pricesprites:
-                    poc.set_header(header)
-            cw.cwpy.exec_func(test_aptitude, header)
+        def func():
+            cw.cwpy.set_testaptitude(cw.cwpy.selectedheader)
+            cw.cwpy.update_selectablelist()
+        cw.cwpy.exec_func(func)
         # OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)

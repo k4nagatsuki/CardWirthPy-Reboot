@@ -911,7 +911,8 @@ class Event(object):
                 cw.cwpy.status <> "Title":
             if not cw.cwpy.is_gameover() and not cw.cwpy.event.is_stoped():
                 cw.cwpy.show_party()
-                cw.cwpy.disposition_pcards()
+                if not cw.cwpy.is_updating_skin:
+                    cw.cwpy.disposition_pcards()
                 cw.cwpy.background.reload_jpdcimage = True
 
         if not isinstance(self.error, AreaChangeError):

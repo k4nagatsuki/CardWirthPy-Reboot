@@ -73,16 +73,19 @@ class MusicInterface(object):
             rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
             self._movie.set_display(self.movie_scr, rect)
 
-    def play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0):
+    def play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0,
+             fullpath=""):
         if not updatepredata:
             # サウンドフォントやスキンの変更等で鳴らし直す場合
             subvolume = self.subvolume
             loopcount = self.loopcount
-        self._play(path, updatepredata, restart, inusecard, subvolume, loopcount, fade)
+        self._play(path, updatepredata, restart, inusecard, subvolume, loopcount, fade, fullpath=fullpath)
 
-    def _play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0):
+    def _play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0,
+              fullpath=""):
         if threading.currentThread() <> cw.cwpy:
-            cw.cwpy.exec_func(self._play, path, updatepredata, restart, inusecard, subvolume, loopcount, fade)
+            cw.cwpy.exec_func(self._play, path, updatepredata, restart, inusecard, subvolume, loopcount, fade,
+                              fullpath)
             return
 
         assert threading.currentThread() == cw.cwpy
@@ -95,6 +98,9 @@ class MusicInterface(object):
 
         if cw.cwpy.rsrc:
             fpath = cw.cwpy.rsrc.get_filepath(fpath)
+
+        if not fpath:
+            fpath = fullpath
 
         if not os.path.isfile(fpath):
             self._stop(fade, stopfadeout=False, updatepredata=False)

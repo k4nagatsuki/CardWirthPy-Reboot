@@ -610,8 +610,8 @@ class SystemData(object):
             cw.cwpy.statusbar.change()
             if not (pygame.event.peek(pygame.locals.USEREVENT)):
                 cw.cwpy.show_party()
-                cw.cwpy.disposition_pcards()
                 if redraw:
+                    cw.cwpy.disposition_pcards()
                     cw.cwpy.draw()
 
     def get_currentareaname(self):
@@ -1745,8 +1745,9 @@ class ScenarioData(SystemData):
                 subvolume = e.getint(".", "volume", 100)
                 loopcount = e.getint(".", "loopcount", 0)
                 inusecard = e.getbool(".", "inusecard", False)
+                fullpath = e.getattr(".", "path", "")
                 if 0 <= channel and channel < len(musicpaths):
-                    musicpaths[channel] = (path, subvolume, loopcount, inusecard)
+                    musicpaths[channel] = (path, subvolume, loopcount, inusecard, fullpath)
         else:
             # BGMが1CHのみだった頃の互換性維持
             e = etree.find("Property/MusicPath")
@@ -1756,8 +1757,9 @@ class ScenarioData(SystemData):
                 subvolume = e.getint(".", "volume", 100)
                 loopcount = e.getint(".", "loopcount", 0)
                 inusecard = e.getbool(".", "inusecard", False)
+                fullpath = e.getattr(".", "path", "")
                 if 0 <= channel and channel < len(musicpaths):
-                    musicpaths[channel] = (path, subvolume, loopcount, inusecard)
+                    musicpaths[channel] = (path, subvolume, loopcount, inusecard, fullpath)
         return musicpaths
 
     def update_log(self):

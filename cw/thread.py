@@ -396,10 +396,16 @@ class CWPy(_Singleton, threading.Thread):
         self.topgrp.set_clip(clip)
         self.backloggrp.set_clip(clip)
 
-    def update_skin(self, skindirname, changearea=True, restartop=True, afterfunc=None):
+    def update_skin(self, skindirname, changearea=True, restartop=True, afterfunc=None,
+                    switch_skin=False):
         self.is_updating_skin = True
         if self.status == "Yado" and self.pre_areaids:
-            self.clean_specials(silent=True)
+            oldareaid = self.areaid
+            selectedheader = self.selectedheader
+            pre_dialogs = self.pre_dialogs[:]
+            self.clean_specials(redraw=False, silent=True)
+        else:
+            oldareaid = None
 
         self.file_updates.clear()
         if self.status == "Title" and restartop:
@@ -492,7 +498,19 @@ class CWPy(_Singleton, threading.Thread):
                     self.startup(loadyado=False)
             else:
                 for music in self.music:
-                    music.play(music.path, updatepredata=False)
+                    if switch_skin:
+                        fpath = music.get_path(music.path, music.inusecard)
+                        fpath = self.rsrc.get_filepath(fpath)
+                        if os.path.isfile(fpath):
+                            music.play(music.path, updatepredata=False)
+                    else:
+                        music.play(music.path, updatepredata=False)
+
+            if not oldareaid is None:
+                self.selectedheader = selectedheader
+                self.pre_dialogs = pre_dialogs
+                self.change_specialarea(oldareaid, silent=True)
+                self.statusbar.change(showbuttons=True)
 
             self.is_updating_skin = False
 
@@ -2123,7 +2141,7 @@ class CWPy(_Singleton, threading.Thread):
                                 pcard.update_image()
 
                         if musicpaths:
-                            for i, (musicpath, _subvolume, _loopcount, inusecard) in enumerate(musicpaths):
+                            for i, (musicpath, _subvolume, _loopcount, inusecard, fullpath) in enumerate(musicpaths):
                                 music = self.music[i]
                                 if music.path <> music.get_path(musicpath, inusecard):
                                     music.stop()
@@ -2135,9 +2153,10 @@ class CWPy(_Singleton, threading.Thread):
                         self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal, doanime=not resume)
 
                         if musicpaths:
-                            for i, (musicpath, subvolume, loopcount, inusecard) in enumerate(musicpaths):
+                            for i, (musicpath, subvolume, loopcount, inusecard, fullpath) in enumerate(musicpaths):
                                 music = self.music[i]
-                                music.play(musicpath, subvolume=subvolume, loopcount=loopcount, inusecard=inusecard)
+                                music.play(musicpath, subvolume=subvolume, loopcount=loopcount, inusecard=inusecard,
+                                           fullpath=fullpath)
 
                         if self.is_showingdebugger() and self.event:
                             self.event.refresh_variablelist()
@@ -2672,7 +2691,7 @@ class CWPy(_Singleton, threading.Thread):
 # エリアチェンジ関係メソッド
 #-------------------------------------------------------------------------------
 
-    def deal_cards(self, quickdeal=False, updatelist=True, flag="", startbattle=False):
+    def deal_cards(self, quickdeal=False, updatelist=True, flag="", startbattle=False, silent=False):
         """hidden状態のMenuCard(対応フラグがFalseだったら表示しない)と
         PlayerCardを全て表示する。
         quickdeal: 全カードを同時に表示する。
@@ -2705,10 +2724,13 @@ class CWPy(_Singleton, threading.Thread):
         deals = []
         for mcard in mcardsinv:
             if mcard.is_flagtrue():
-                if quickdeal:
+                if quickdeal and not silent:
                     deals.append(mcard)
                 else:
-                    cw.animation.animate_sprite(mcard, "deal")
+                    if silent:
+                        mcard.deal()
+                    else:
+                        cw.animation.animate_sprite(mcard, "deal")
                     if self.is_playingscenario() and self.sdata.in_f9:
                         # カード描画中にF9された場合はここへ来る
                         return
@@ -2726,7 +2748,8 @@ class CWPy(_Singleton, threading.Thread):
         self._dealing = False
         self.wait_showcards = False
 
-    def hide_cards(self, hideall=False, hideparty=True, quickhide=False, updatelist=True, flag=""):
+    def hide_cards(self, hideall=False, hideparty=True, quickhide=False, updatelist=True, flag="",
+                   silent=False):
         """
         カードを非表示にする(表示中だったカードはhidden状態になる)。
         各カードのhidecards()の最後に呼ばれる。
@@ -2749,10 +2772,13 @@ class CWPy(_Singleton, threading.Thread):
             if hideall or not mcard.is_flagtrue():
                 if mcard.inusecardimg:
                     self.clear_inusecardimg(mcard)
-                if quickhide:
+                if quickhide and not silent:
                     hide = True
                 else:
-                    cw.animation.animate_sprite(mcard, "hide")
+                    if silent:
+                        mcard.hide()
+                    else:
+                        cw.animation.animate_sprite(mcard, "hide")
                 if isinstance(mcard, cw.character.Character):
                     mcard.clear_action()
         if hide:
@@ -2915,7 +2941,7 @@ class CWPy(_Singleton, threading.Thread):
     def set_sprites(self, dealanime=True,
                     bginhrt=False, ttype=("Default", "Default"),
                     doanime=True, data=None,
-                    nocheckvisible=False):
+                    nocheckvisible=False, silent=False):
         """エリアにスプライトをセットする。
         bginhrt: Trueの時は背景継承。
         """
@@ -2936,7 +2962,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 特殊エリア(キャンプ・メンバー解散)だったら背景にカーテンを追加。
         if self.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
-            self.set_curtain(curtain_all=True)
+            self.set_curtain(curtain_all=True, redraw=not silent)
 
         # メニューカードスプライト作成
         self.set_mcards(self.sdata.get_mcarddata(data=data), dealanime)
@@ -3156,7 +3182,7 @@ class CWPy(_Singleton, threading.Thread):
                           bginhrt=False, ttype=("Default", "Default"),
                           quickdeal=False, specialarea=False, startbattle=False,
                           doanime=True, data=None, nocheckvisible=False,
-                          clear_curtain=False, force_updatebg=False):
+                          clear_curtain=False, force_updatebg=False, silent=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -3173,7 +3199,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # デバッガ等で強制的にエリア移動するときは特殊エリアを解除する
         if not specialarea:
-            self.clean_specials()
+            self.clean_specials(silent=silent)
 
         # 背景継承を行うかどうかのbool値
         bginhrt |= bool(self.areaid < 0 and self.areaid <> cw.AREA_BREAKUP)
@@ -3190,13 +3216,13 @@ class CWPy(_Singleton, threading.Thread):
         bginhrt |= bool(self.areaid < 0)
         bginhrt &= not force_updatebg
         if self.sdata.in_f9:
-            self.hide_cards(True, quickhide=quickdeal)
+            self.hide_cards(True, quickhide=quickdeal, silent=silent)
         else:
-            self.hide_cards(True, quickhide=quickdeal)
+            self.hide_cards(True, quickhide=quickdeal, silent=silent)
             if clear_curtain:
-                self.clear_curtain()
+                self.clear_curtain(redraw=not silent)
             self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime, data=data,
-                             nocheckvisible=nocheckvisible)
+                             nocheckvisible=nocheckvisible, silent=silent)
 
         if not self.is_playingscenario() and not self.is_showparty:
             # 宿にいる場合は常に全回復状態にする
@@ -3204,17 +3230,17 @@ class CWPy(_Singleton, threading.Thread):
                 pcard.set_fullrecovery()
                 pcard.update_image()
 
-        if not self.is_playingscenario():
+        if not self.is_playingscenario() and not silent:
             self.disposition_pcards()
 
         if 0 <= oldareaid and self.ydata and self.is_playingscenario():
             self.ydata.changed()
 
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
-        if eventstarting and oldareaid >= 0:
+        if eventstarting and oldareaid >= 0 and not self.is_updating_skin:
             if not self.wait_showcards:
-                self.deal_cards(quickdeal=quickdeal, startbattle=startbattle)
-            else:
+                self.deal_cards(quickdeal=quickdeal, startbattle=startbattle, silent=silent)
+            elif not silent:
                 self.draw()
 
             if self.is_playingscenario() and self.sdata.in_f9:
@@ -3224,17 +3250,17 @@ class CWPy(_Singleton, threading.Thread):
             if self.areaid >= 0 and self.status == "Scenario":
                 self.elapse_time()
 
-            if self._need_disposition:
+            if self._need_disposition and not silent:
                 self.disposition_pcards()
                 self.draw()
 
             self.sdata.start_event(keynum=1)
         elif not self.sdata.in_f9:
-            self.deal_cards(quickdeal=quickdeal, startbattle=startbattle)
+            self.deal_cards(quickdeal=quickdeal, startbattle=startbattle, silent=silent)
             if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
                 self.show_party()
 
-            if self._need_disposition:
+            if self._need_disposition and not silent:
                 self.disposition_pcards()
                 self.draw()
 
@@ -3358,7 +3384,7 @@ class CWPy(_Singleton, threading.Thread):
                 battleevents.start(keynum=eventkeynum)
                 self.winevent_areaid = None
 
-    def change_specialarea(self, areaid):
+    def change_specialarea(self, areaid, silent=False):
         """特殊エリア(エリアIDが負の数)に移動する。"""
         updatestatusbar = True
         if areaid < 0:
@@ -3368,7 +3394,7 @@ class CWPy(_Singleton, threading.Thread):
             if areaid in (cw.AREA_BREAKUP, cw.AREA_CAMP):
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
-                self.change_area(areaid, quickdeal=True, specialarea=True)
+                self.change_area(areaid, quickdeal=True, specialarea=True, silent=silent)
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata._changed = changed
                 if areaid == cw.AREA_BREAKUP:
@@ -3396,9 +3422,11 @@ class CWPy(_Singleton, threading.Thread):
                     self.set_autospread(mcards, 6, False, anime=False)
 
                 if self.areaid in cw.AREAS_TRADE:
+                    if self.selectedheader:
+                        self.set_testaptitude(self.selectedheader)
                     for mcard in self.get_mcards("visible"):
                         if mcard.command == "MoveCard" and mcard.arg == "PAWNSHOP":
-                            poc = cw.sprite.background.PriceOfCard(mcard, None, self.cardgrp)
+                            poc = cw.sprite.background.PriceOfCard(mcard, self.selectedheader, self.cardgrp)
                             self.pricesprites.append(poc)
 
                 self.list = self.get_mcards("visible")
@@ -3460,7 +3488,23 @@ class CWPy(_Singleton, threading.Thread):
 
         if updatestatusbar:
             self.exec_func(self.statusbar.change, True)
-        self.disposition_pcards()
+        if not silent:
+            self.disposition_pcards()
+
+    def set_testaptitude(self, header):
+        assert self.areaid in cw.AREAS_TRADE
+        # 能力適性表示
+        for pcard in self.get_pcards("unreversed"):
+            pcard.test_aptitude = header
+            pcard.update_image()
+            # カード種類アイコン表示切替
+            if pcard.inusecardimg:
+                pcard.inusecardimg.update_scale()
+        # 枚数表示
+        self.show_numberofcards(header.type)
+        # 売却価格表示
+        for poc in self.pricesprites:
+            poc.set_header(header)
 
     def clear_specialarea(self, redraw=True, silent=False):
         """特殊エリアに移動する前のエリアに戻る。
@@ -3492,7 +3536,8 @@ class CWPy(_Singleton, threading.Thread):
                     pcard.index = i
                     pcard.layer = (pcard.layer[0], pcard.layer[1], i, pcard.layer[3])
                     self.cardgrp.change_layer(pcard, pcard.layer)
-                self.disposition_pcards()
+                if not silent:
+                    self.disposition_pcards()
 
             # カード移動操作エリアを解除の場合
             if oldareaid in cw.AREAS_TRADE:
@@ -3504,7 +3549,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.pricesprites = []
                 self.file_updates.clear()
                 if clear_curtain:
-                    self.clear_curtain()
+                    self.clear_curtain(redraw=not silent)
                 for mcard in self.pre_mcards.pop():
                     self.cardgrp.add(mcard, layer=mcard.layer)
                     self.mcards.append(mcard)
@@ -3550,7 +3595,9 @@ class CWPy(_Singleton, threading.Thread):
                 self.draw()
         self.exec_func(func)
 
-        self.disposition_pcards()
+        if not silent:
+            self.disposition_pcards()
+
         if not callpredlg:
             self.change_selection(self.selection)
 
@@ -3905,7 +3952,7 @@ class CWPy(_Singleton, threading.Thread):
             self.list = []
         self.index = -1
 
-    def set_curtain(self, target="Both", curtain_all=False):
+    def set_curtain(self, target="Both", curtain_all=False, redraw=True):
         """Curtainスプライトをセットする。"""
         if not self.is_curtained():
             self.is_pcardsselectable = target in ("Both", "Party")
@@ -3928,7 +3975,8 @@ class CWPy(_Singleton, threading.Thread):
 
             self._curtained = True
 
-            self.draw()
+            if redraw:
+                self.draw()
 
     def clear_curtain(self, redraw=True):
         """Curtainスプライトを解除する。"""

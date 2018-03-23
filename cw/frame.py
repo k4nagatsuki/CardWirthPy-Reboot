@@ -507,7 +507,7 @@ class Frame(wx.Frame):
                     self.move_dlg(dlg)
                     dlg.ShowModal()
                     if dlg.select_skin:
-                        cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname)
+                        cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname, switch_skin=True)
                     dlg.Destroy()
                     break
                 except:

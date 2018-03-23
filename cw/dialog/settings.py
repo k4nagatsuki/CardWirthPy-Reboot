@@ -1039,7 +1039,8 @@ class SkinPanel(wx.Panel):
         if forceupdate or cw.cwpy.setting.skindirname <> skinname:
             if self.editbuttons:
                 self.btn_deleteskin.Disable()
-            cw.cwpy.exec_func(cw.cwpy.update_skin, skinname, restartop=cw.cwpy.setting.skindirname <> skinname)
+            cw.cwpy.exec_func(cw.cwpy.update_skin, skinname, restartop=cw.cwpy.setting.skindirname <> skinname,
+                              switch_skin=True)
             return True
         return False
 

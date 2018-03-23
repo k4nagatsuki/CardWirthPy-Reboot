@@ -387,7 +387,7 @@ class SkinEditDialog(wx.Dialog):
             cw.cwpy.exec_func(func, self.local, skinname, vocation120, initialcash)
 
             if updatefont:
-                cw.cwpy.exec_func(cw.cwpy.update_skin, self.skindirname, restartop=False)
+                cw.cwpy.exec_func(cw.cwpy.update_skin, self.skindirname, restartop=False, switch_skin=True)
             else:
                 if updatemessage:
                     cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
