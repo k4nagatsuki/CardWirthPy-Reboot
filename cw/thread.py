@@ -515,6 +515,10 @@ class CWPy(_Singleton, threading.Thread):
                     self.change_specialarea(oldareaid, silent=True)
                     self.statusbar.change(showbuttons=True)
 
+                if self.is_playingscenario() and self.areaid in cw.AREAS_TRADE and self.selectedheader:
+                    self.topgrp.empty()
+                    self.show_numberofcards(self.selectedheader.type)
+
                 self.is_updating_skin = False
 
         self.update_scale(cw.UP_WIN, changearea, rsrconly=True, afterfunc=func)
@@ -3511,7 +3515,8 @@ class CWPy(_Singleton, threading.Thread):
             self.disposition_pcards()
 
     def set_testaptitude(self, header):
-        assert self.areaid in cw.AREAS_TRADE
+        if not self.areaid in cw.AREAS_TRADE:
+            return
         # 能力適性表示
         for pcard in self.get_pcards("unreversed"):
             pcard.test_aptitude = header
