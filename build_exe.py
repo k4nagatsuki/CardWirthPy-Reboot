@@ -49,7 +49,7 @@ class BuildExe(object):
         self.chmfile = chmfile
 
         #Version of program
-        self.project_version = "2.3"
+        self.project_version = "3.0"
 
         #License of the program
         self.license = "LGPL"
