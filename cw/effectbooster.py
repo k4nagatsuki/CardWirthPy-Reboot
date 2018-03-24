@@ -17,9 +17,8 @@ class ScreenRescale(Exception):
 def wait_effectbooster(waittime, doanime):
     if 0 < waittime:
         start_ticks = pygame.time.get_ticks() - doanime.time_elapsed
-        tick = start_ticks + waittime
+        stw = cw.sprite.base.StopTheWorld(start_ticks, waittime)
     else:
-        tick = 0
         cw.cwpy.change_cursor("mouse")
 
     try:
@@ -29,7 +28,7 @@ def wait_effectbooster(waittime, doanime):
         cw.cwpy.interrupt_eventhandler = eventhandler
         cw.cwpy.clear_selection()
         while cw.cwpy.is_running() and\
-                (waittime <= 0 or pygame.time.get_ticks() < tick) and\
+                (waittime <= 0 or stw.is_waiting()) and\
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
             selection = cw.cwpy.selection
@@ -48,7 +47,7 @@ def wait_effectbooster(waittime, doanime):
             doanime.time_elapsed = 0
         raise ex
     finally:
-        if not tick:
+        if waittime <= 0:
             cw.cwpy.change_cursor()
         cw.cwpy.interrupt_eventhandler = ie
 

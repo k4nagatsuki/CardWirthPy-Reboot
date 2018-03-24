@@ -196,6 +196,8 @@ class CWPy(_Singleton, threading.Thread):
         self._load_breakpoints()
         # アニメーション中のスプライト
         self.animations = set()
+        # 最小化によるアニメーションの停止時間
+        self._stop_animations = None
 
         # JPDC撮影などで表示内容が変化するべきスプライト
         self.file_updates = set()
@@ -876,11 +878,12 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.clock.tick(self.setting.fps)
 
-    def wait_frame(self, count, canskip):
+    def wait_frame(self, count, canskip, stoptheworld=None):
         """countフレーム分待機する。"""
         self.event.eventtimer = 0
         skip = False
-        for _i in xrange(count):
+        i = 0
+        while i < count:
             if canskip:
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
                 if self.keyevent.is_keyin(pygame.locals.K_RETURN) or self.keyevent.is_mousein():
@@ -892,13 +895,17 @@ class CWPy(_Singleton, threading.Thread):
                 if sel <> self.selection:
                     cw.cwpy.draw(clip=self.statusbar.rect)
                 breakflag = self.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)
-                self.input(inputonly=True)
+                self.input()
                 self.eventhandler.run()
                 if breakflag:
                     skip = True
                     break
 
+            if stoptheworld:
+                stoptheworld.is_waiting()
             self.tick_clock()
+            if not (self.setting.stop_the_world_with_iconized and self.frame.is_iconized):
+                i += 1
         return skip
 
     def get_breakflag(self, handle_wheel=True):
@@ -1144,6 +1151,16 @@ class CWPy(_Singleton, threading.Thread):
             assert not self.file_updates # deal処理内で除去されるはず
 
     def proc_animation(self):
+        if self.setting.stop_the_world_with_iconized:
+            if self.frame.is_iconized:
+                if self._stop_animations is None:
+                    self._stop_animations = pygame.time.get_ticks()
+                return
+            elif not self._stop_animations is None:
+                for sprite in self.animations:
+                    sprite.start_animation += pygame.time.get_ticks() - self._stop_animations
+                self._stop_animations = None
+
         removes = set()
         clip = None
         for sprite in self.animations:
@@ -1861,6 +1878,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sbargrp.update(self.scr_draw)
                 if self.has_inputevent:
                     self.draw()
+                eventhandler.stw.is_waiting()
                 self.tick_clock()
                 self.input()
                 eventhandler.run()

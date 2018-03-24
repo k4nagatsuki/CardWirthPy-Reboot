@@ -497,6 +497,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("PlayLogFormat", setting.playlogformat)
         element.append(e)
 
+    # 最小化中に完全に停止する
+    if setting.stop_the_world_with_iconized <> setting.stop_the_world_with_iconized_init:
+        e = cw.data.make_element("StopTheWorldWithIconization", str(setting.stop_the_world_with_iconized))
+        element.append(e)
+
     if writeplayingdata:
         # 逆変換先ディレクトリ
         if setting.unconvert_targetfolder <> setting.unconvert_targetfolder_init:

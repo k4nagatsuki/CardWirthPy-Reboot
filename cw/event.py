@@ -480,20 +480,22 @@ class EventInterface(object):
                 # ステップ実行中
                 self._paused = True
 
-            tick = pygame.time.get_ticks()
-            tick += cw.cwpy.frame.debugger.sc_waittime.GetValue() * 100
-            while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
-                        pygame.time.get_ticks() < tick and not self._stoped:
-                if not self.get_event().force_nextcontent is None:
-                    break
-                if cnt == 0:
-                    self.refresh_tools()
-                    self.refresh_activeitem()
-                cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-                cw.cwpy.input()
-                cw.cwpy.eventhandler.run()
-                cw.cwpy.wait_frame(1, False)
-                cnt += 1
+            waittime = cw.cwpy.frame.debugger.sc_waittime.GetValue()
+            if waittime:
+                tick = pygame.time.get_ticks()
+                stw = cw.sprite.base.StopTheWorld(tick, waittime * 100)
+                while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
+                            stw.is_waiting() and not self._stoped:
+                    if not self.get_event().force_nextcontent is None:
+                        break
+                    if cnt == 0:
+                        self.refresh_tools()
+                        self.refresh_activeitem()
+                    cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
+                    cw.cwpy.input()
+                    cw.cwpy.eventhandler.run()
+                    cw.cwpy.wait_frame(1, False, stoptheworld=stw)
+                    cnt += 1
 
             cnt = 0
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\

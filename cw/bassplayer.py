@@ -98,6 +98,7 @@ _bass = None
 _bassmidi = None
 _bassfx = None
 _sfonts = []
+_paused = False
 
 _streams = [0, 0, 0, 0, 0]
 _fadeoutstreams = [None, None, None, None, None]
@@ -235,6 +236,10 @@ def init_bass(soundfonts):
     _bass.BASS_Init.restype = c_BOOL
     _bass.BASS_Free.argtypes = []
     _bass.BASS_Free.restype = c_BOOL
+    _bass.BASS_Pause.argtypes = []
+    _bass.BASS_Pause.restype = c_BOOL
+    _bass.BASS_Start.argtypes = []
+    _bass.BASS_Start.restype = c_BOOL
     _bass.BASS_StreamCreateFile.argtypes = [ c_BOOL, c_char_p, c_QWORD, c_QWORD, c_DWORD ]
     _bass.BASS_StreamCreateFile.restype = c_HSTREAM
     _bass.BASS_StreamFree.argtypes = [ c_HSTREAM ]
@@ -325,6 +330,28 @@ def change_soundfonts(soundfonts):
 
     return True
 
+def pause():
+    """
+    全てのチャネルを一時停止する。
+    """
+    global _bass, _paused
+    if _bass.BASS_Pause():
+        _paused = True
+        return True
+    else:
+        return False
+
+def start():
+    """
+    一時停止を解除する。
+    """
+    global _bass, _paused
+    if _bass.BASS_Start():
+        _paused = False
+        return True
+    else:
+        return False
+
 def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     """
     BASS Audioによってfileを演奏する。
@@ -336,7 +363,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     tempo: テンポを変更する場合は-95%～5000%の値を指定。
     pitch: ピッチを変更する場合は-60～60の値を指定。
     """
-    global _bass, _bassmidi, _bassfx, _sfonts
+    global _bass, _bassmidi, _bassfx, _sfonts, _paused
     encoding = sys.getfilesystemencoding()
     flag = BASS_MUSIC_STOPBACK|BASS_MUSIC_POSRESET|BASS_MUSIC_PRESCAN
     if tempo <> 0 or pitch <> 0:
@@ -411,12 +438,25 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     if pitch <> 0:
         _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO_PITCH, pitch) # -60...0...+60
 
-    if 0 < fade:
+    if _paused:
+        # 一時停止中に再生しようとすると失敗してしまうので、
+        # 一時停止を解除し、音量ゼロで再生開始してからすぐまた一時停止する
+        start()
         _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, 0)
-        _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, volume, fade)
+        _bass.BASS_ChannelPlay(stream, False)
+        pause()
+        if 0 < fade:
+            _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, volume, fade)
+        else:
+            _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, volume)
     else:
-        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, volume)
-    _bass.BASS_ChannelPlay(stream, False)
+        if 0 < fade:
+            _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, 0)
+            _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, volume, fade)
+        else:
+            _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, volume)
+
+        _bass.BASS_ChannelPlay(stream, False)
 
     return stream
 

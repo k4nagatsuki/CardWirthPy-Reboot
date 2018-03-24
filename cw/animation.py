@@ -25,6 +25,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
     sprite.status = anitype
     sprite.skipped = False
     sprite.start_animation = pygame.time.get_ticks()
+    stw = cw.sprite.base.StopTheWorld(sprite.start_animation, 0)
 
     if battlespeed:
         if hasattr(sprite, "battlespeed"):
@@ -34,6 +35,14 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     cw.cwpy.lazy_draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
+        stw.is_waiting()
+        if cw.cwpy.setting.stop_the_world_with_iconized and cw.cwpy.frame.is_iconized:
+            cw.cwpy.input(inputonly=clearevent)
+            cw.cwpy.eventhandler.run()
+            cw.cwpy.tick_clock()
+            continue
+        sprite.start_animation = stw.start_ticks
+
         clip = pygame.Rect(sprite.rect)
         sprite.skipped |= skip
         sprite.update(cw.cwpy.scr_draw)
@@ -105,6 +114,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
         selection = cw.cwpy.selection
 
     tick = pygame.time.get_ticks()
+    stw = cw.sprite.base.StopTheWorld(tick, 0)
     for sprite, anitype in sprandanimes:
         sprite.old_status = sprite.status
         sprite.status = anitype
@@ -119,9 +129,17 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
 
     cw.cwpy.lazy_draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
+        stw.is_waiting()
+        if cw.cwpy.setting.stop_the_world_with_iconized and cw.cwpy.frame.is_iconized:
+            cw.cwpy.input(inputonly=clearevent)
+            cw.cwpy.eventhandler.run()
+            cw.cwpy.tick_clock()
+            continue
+
         clip = None
         upd = False
         for sprite, anitype in sprandanimes:
+            sprite.start_animation = stw.start_ticks
             if sprite.status <> anitype:
                 continue
             if clip:

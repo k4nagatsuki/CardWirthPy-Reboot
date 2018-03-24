@@ -440,6 +440,8 @@ class Setting(object):
         self.auto_update_files = True
         # フォント表示例のフォーマット
         self.fontexampleformat = "%fontface%"
+        # 最小化中に完全に停止する
+        self.stop_the_world_with_iconized = True
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_yado = False
@@ -806,6 +808,9 @@ class Setting(object):
         self.write_playlog = data.getbool("WritePlayLog", self.write_playlog)
         # プレイログのフォーマット
         self.playlogformat = data.gettext("PlayLogFormat", self.playlogformat)
+
+        # 最小化中に完全に停止する
+        self.stop_the_world_with_iconized = data.getbool("StopTheWorldWithIconization", self.stop_the_world_with_iconized_init)
 
         # 最後に選んだシナリオを開始位置にする
         self.open_lastscenario = data.getbool("OpenLastScenario", self.open_lastscenario)

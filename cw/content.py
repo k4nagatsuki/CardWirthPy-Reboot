@@ -4027,9 +4027,10 @@ class WaitContent(EventContentBase):
         cw.cwpy.draw()
         value = self.data.getint(".", "value", 0)
 
-        tick = pygame.time.get_ticks() + (value * 100)
+        tick = pygame.time.get_ticks()
+        stw = cw.sprite.base.StopTheWorld(tick, value * 100)
         cw.cwpy.event.breakwait = False
-        while cw.cwpy.is_running() and pygame.time.get_ticks() < tick and not cw.cwpy.event.is_stoped():
+        while cw.cwpy.is_running() and stw.is_waiting() and not cw.cwpy.event.is_stoped():
             if cw.cwpy.setting.can_skipwait:
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
                 if cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein() or cw.cwpy.event.breakwait:
@@ -4044,7 +4045,7 @@ class WaitContent(EventContentBase):
             if breakflag:
                 break
 
-            cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipwait)
+            cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipwait, stoptheworld=stw)
 
         return 0
 

@@ -551,13 +551,16 @@ class Frame(wx.Frame):
                     return
                 if cw.cwpy.sdata:
                     cw.cwpy.sdata.sleep_timekeeper()
-                for music in cw.cwpy.music:
-                    music.set_mastervolume(0)
-                for sound in cw.cwpy.lastsound_scenario:
-                    if sound:
-                        sound.set_mastervolume(True, 0)
-                if cw.cwpy.lastsound_system:
-                    cw.cwpy.lastsound_system.set_mastervolume(False, 0)
+                if cw.cwpy.setting.stop_the_world_with_iconized:
+                    cw.bassplayer.pause()
+                else:
+                    for music in cw.cwpy.music:
+                        music.set_mastervolume(0)
+                    for sound in cw.cwpy.lastsound_scenario:
+                        if sound:
+                            sound.set_mastervolume(True, 0)
+                    if cw.cwpy.lastsound_system:
+                        cw.cwpy.lastsound_system.set_mastervolume(False, 0)
             cw.cwpy.exec_func(func)
         else:
             def func():
@@ -565,6 +568,7 @@ class Frame(wx.Frame):
                     return
                 if cw.cwpy.sdata:
                     cw.cwpy.sdata.resume_timekeeper()
+                cw.bassplayer.start()
                 volume = int(cw.cwpy.setting.vol_master*100)
                 for music in cw.cwpy.music:
                     music.set_mastervolume(volume)

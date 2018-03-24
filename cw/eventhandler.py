@@ -1157,7 +1157,7 @@ class EventHandlerForBacklog(EventHandler):
         self._sbarbar = None
         self._update_posdata(init=True)
 
-        self._start_ticks = pygame.time.get_ticks()
+        self.stw = cw.sprite.base.StopTheWorld(pygame.time.get_ticks(), 0)
 
     def _update_posdata(self, init):
         sbarbar = cw.cwpy.sbargrp.get_sprites_from_layer(cw.sprite.statusbar.LAYER_MESSAGE)
@@ -1526,7 +1526,7 @@ class EventHandlerForBacklog(EventHandler):
         # (開始時間をずらして調節する)
         for sprite in cw.cwpy.cardgrp.sprites():
             if sprite.start_animation and not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl):
-                elapse = pygame.time.get_ticks() - self._start_ticks
+                elapse = pygame.time.get_ticks() - self.stw.start_ticks
                 if 0 < elapse:
                     sprite.start_animation += elapse
 

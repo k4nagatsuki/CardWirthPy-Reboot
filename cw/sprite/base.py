@@ -40,6 +40,36 @@ class CWPySprite(pygame.sprite.DirtySprite):
             p_frame = max(self.frame+1, p_frame)
         return p_frame
 
+
+class StopTheWorld(object):
+    """最小化時にカウントを止める機能を持つ経過時間カウンタ。"""
+    def __init__(self, start_ticks, waittime):
+        self.start_ticks = start_ticks
+        self.waittime = waittime
+        self._stop_tick = None
+
+    def is_waiting(self):
+        return not self.is_done()
+
+    def is_done(self):
+        if cw.cwpy.setting.stop_the_world_with_iconized:
+            if cw.cwpy.frame.is_iconized:
+                self._stop()
+                return False
+            elif not self._stop_tick is None:
+                self._resume()
+        return self.start_ticks + self.waittime <= pygame.time.get_ticks()
+
+    def _stop(self):
+        if self._stop_tick is None:
+            self._stop_tick = pygame.time.get_ticks()
+
+    def _resume(self):
+        if not self._stop_tick is None and cw.cwpy.setting.stop_the_world_with_iconized:
+            self.start_ticks += pygame.time.get_ticks() - self._stop_tick
+        self._stop_tick = None
+
+
 class MouseHandlerSprite(CWPySprite):
     def __init__(self, *groups):
         CWPySprite.__init__(self, *groups)
