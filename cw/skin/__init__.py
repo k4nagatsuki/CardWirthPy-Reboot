@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import convert
-import win32res
+from . import convert
+from . import win32res
 
 
 def main():

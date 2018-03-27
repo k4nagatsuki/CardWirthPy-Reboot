@@ -1,7 +1,7 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals, print_function
+
 
 from setuptools import setup
 from glob import glob
@@ -23,12 +23,12 @@ import time
 APP_VERSION = "2.1"
 APP_NAME = "CardWirthPy"
 APP_IDENT = "org.bitbucket.k4nagatsuki.cardwirth-py"
-APP_COPYRIGHT = u"Copyright © 2008-2010,2014-2017 logの中の人, k4nagatsuki and contributers, All Rights Reserved"
+APP_COPYRIGHT = "Copyright © 2008-2010,2014-2017 logの中の人, k4nagatsuki and contributers, All Rights Reserved"
 
-build_dir = u"build"
-dist_dir = u"."
+build_dir = "build"
+dist_dir = "."
 dist_contents = os.path.join(
-    dist_dir, u"%s.app" % APP_NAME, "Contents")
+    dist_dir, "%s.app" % APP_NAME, "Contents")
 dist_resources = os.path.join(
     dist_contents, "Resources")
 
@@ -106,7 +106,7 @@ def py2app_hack(app_bundle):
     replace_loader("cw/_imageretouch_mac.so", site_package)
 
 def boot_py_hack(filename):
-    u"""
+    """
     __boot__.pyを書き換えて、非asciiなパスにおいても実行できるようにする。
     """
     tmpfd, tmpfile = tempfile.mkstemp(dir=os.path.dirname(filename))
@@ -131,7 +131,7 @@ def boot_py_hack(filename):
     os.rename(tmpfile, filename)
 
 def replace_loader(ext, site_package):
-    u"""
+    """
     py2app が .so を読み出すのに使っている loader スクリプトを置き換えて、
     非asciiパスでも実行できるようにする。
     """

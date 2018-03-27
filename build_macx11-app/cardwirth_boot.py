@@ -24,20 +24,20 @@ def check_x11():
     if not os.path.exists("/opt/X11/lib/libX11.dylib"):
         alert = NSAlert.alloc().init()
         alert.setMessageText_(
-            u"XQuartz が見つかりません\n\n"
-            u"このアプリケーションを実行する前に、https://www.xquartz.org "
-            u"から XQuartz の最新版をダウンロードして、インストールしてください"
+            "XQuartz が見つかりません\n\n"
+            "このアプリケーションを実行する前に、https://www.xquartz.org "
+            "から XQuartz の最新版をダウンロードして、インストールしてください"
             )
         alert.runModal()
         sys.exit(1)
 
 def set_env(varname, value):
-    if isinstance(value, unicode):
+    if isinstance(value, str):
         os.environ[varname] = value.encode('utf-8')
     else:
         os.environ[varname] = value
 def get_env_unicode(varname):
-    return unicode(os.environ[varname], 'utf-8')
+    return str(os.environ[varname], 'utf-8')
 
 def set_environment(argv0):
     global APP_DIR, TOP_DIR
@@ -56,7 +56,7 @@ def set_environment(argv0):
     set_env("GTK_DATA_PREFIX", TOP_DIR)
     set_env("GTK_EXE_PREFIX", TOP_DIR)
     set_env("GTK_PATH", TOP_DIR)
-    if not os.path.exists(os.path.join(unicode(os.environ["HOME"], 'utf-8'),
+    if not os.path.exists(os.path.join(str(os.environ["HOME"], 'utf-8'),
                                        ".gtkrc-2.0")):
         set_env("GTK2_RC_FILES", os.path.join(
             TOP_DIR, "etc", "gtk-2.0", "gtkrc"))

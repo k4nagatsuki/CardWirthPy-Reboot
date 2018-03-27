@@ -13,7 +13,7 @@ import cw
 
 class SelectedCardDialog(wx.Dialog):
     def __init__(self, parent, ccards, selectedcard):
-        wx.Dialog.__init__(self, parent, -1, u"選択カードの変更",
+        wx.Dialog.__init__(self, parent, -1, "選択カードの変更",
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self._selectedcard = selectedcard
@@ -29,7 +29,7 @@ class SelectedCardDialog(wx.Dialog):
         imgidx_item = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
         imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
         self.cards.SetImageList(self.imglist)
-        root = self.cards.AddRoot(u"")
+        root = self.cards.AddRoot("")
 
         for i, (ccardname, hand) in enumerate(ccards):
             item = self.cards.AppendItem(root, ccardname, imgidx_cast if 0 < i else imgidx_sack)

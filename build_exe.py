@@ -22,8 +22,8 @@ try:
     import zipfile
     import py2exe.mf
     import win32com
-except ImportError, message:
-    raise SystemExit,  "Unable to load module. %s" % message
+except ImportError as message:
+    raise SystemExit("Unable to load module. %s" % message)
 
 for p in win32com.__path__[1:]:
     py2exe.mf.AddPackagePath("win32com", p)
@@ -183,7 +183,7 @@ class BuildExe(object):
         if os.path.isdir(self.dist_dir): #Erase previous destination dir
             try:
                 shutil.rmtree(self.dist_dir)
-            except Exception, ex:
+            except Exception as ex:
                 if sys.platform == "win32":
                     os.system("rmdir /S /Q %s" % (self.dist_dir))
                 else:
@@ -259,11 +259,11 @@ class BuildExe(object):
         py2exe.build_exe.isSystemDLL = issystemdll
 
         #Create new directory
-        print "\n*** creating new directory ***"
+        print("\n*** creating new directory ***")
 
         for dname in self.extra_dirs:
             path = os.path.join(self.dist_dir, dname)
-            print "creating %s" % (os.path.abspath(path))
+            print("creating %s" % (os.path.abspath(path)))
             os.makedirs(path)
 
         if os.path.isdir('build'): #Clean up build dir
@@ -303,14 +303,14 @@ def compress_src(zpath):
 
 def create_versioninfo():
     # ビルド情報を生成する
-    print "Create versioninfo.py."
+    print("Create versioninfo.py.")
     date = datetime.datetime.today()
     s = "build_datetime = \"%s\"\n" % (date.strftime("%Y-%m-%d %H:%M:%S"))
     with open("versioninfo.py", "w") as f:
         f.write(s)
 
 def remove_versioninfo():
-    print "Remove versioninfo.py."
+    print("Remove versioninfo.py.")
     os.remove("versioninfo.py")
 
 if __name__ == '__main__':
@@ -327,7 +327,7 @@ if __name__ == '__main__':
             sys.argv.remove(arg)
             break
     else:
-        chmfile = u""
+        chmfile = ""
 
     create_versioninfo()
 
@@ -337,6 +337,6 @@ if __name__ == '__main__':
         remove_versioninfo()
 
     if not nokey:
-        raw_input("\nPress any key to continue") #Pause to let user see that things ends
+        input("\nPress any key to continue") #Pause to let user see that things ends
     else:
-        print "\nCompleted build."
+        print("\nCompleted build.")

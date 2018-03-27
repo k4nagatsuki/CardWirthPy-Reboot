@@ -154,7 +154,7 @@ def _loop(handle, channel, data, streamindex):
         loops = _loopcounts[streamindex]
         pos = _loopstarts[streamindex]
 
-    if loops <> 1:
+    if loops != 1:
         if 0 < loops:
             if fadeouting:
                 _fadeoutstreams[streamindex] = (channel, loops - 1, pos)
@@ -292,10 +292,10 @@ def init_bass(soundfonts):
         for soundfont, volume in soundfonts:
             sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
             if not sfont:
-                print "BASS_MIDI_FontInit() failure: %s" % (soundfont)
+                print("BASS_MIDI_FontInit() failure: %s" % (soundfont))
                 return False
             if not _bassmidi.BASS_MIDI_FontSetVolume(sfont, volume):
-                print "BASS_MIDI_FontSetVolume() failure: %s, %s" % (soundfont, volume)
+                print("BASS_MIDI_FontSetVolume() failure: %s, %s" % (soundfont, volume))
                 return False
             _sfonts += struct.pack("@Iii", sfont, -1, 0)
 
@@ -309,7 +309,7 @@ def change_soundfonts(soundfonts):
     """サウンドフォントの差し替えを行う。"""
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if _bassmidi:
-        for i in xrange(0, len(_sfonts), 4*3):
+        for i in range(0, len(_sfonts), 4*3):
             sfont = struct.unpack("@Iii", _sfonts[i:i+4*3])
             _bassmidi.BASS_MIDI_FontFree(sfont[0])
 
@@ -318,10 +318,10 @@ def change_soundfonts(soundfonts):
         for soundfont, volume in soundfonts:
             sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
             if not sfont:
-                print "BASS_MIDI_FontInit() failure: %s" % (soundfont)
+                print("BASS_MIDI_FontInit() failure: %s" % (soundfont))
                 return False
             if not _bassmidi.BASS_MIDI_FontSetVolume(sfont, volume):
-                print "BASS_MIDI_FontSetVolume() failure: %s, %s" % (soundfont, volume)
+                print("BASS_MIDI_FontSetVolume() failure: %s, %s" % (soundfont, volume))
                 return False
             _sfonts += struct.pack("@Iii", sfont, -1, 0)
 
@@ -366,7 +366,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     global _bass, _bassmidi, _bassfx, _sfonts, _paused
     encoding = sys.getfilesystemencoding()
     flag = BASS_MUSIC_STOPBACK|BASS_MUSIC_POSRESET|BASS_MUSIC_PRESCAN
-    if tempo <> 0 or pitch <> 0:
+    if tempo != 0 or pitch != 0:
         flag |= BASS_STREAM_DECODE
     if cw.cwpy.setting.bassmidi_sample32bit:
         flag |= BASS_SAMPLE_FLOAT
@@ -395,7 +395,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
         if not stream:
             raise ValueError("_play() failure: %s" % (fpath))
 
-    if loopcount <> 1:
+    if loopcount != 1:
         loopinfo = _get_loopinfo(fpath, stream)
     else:
         loopinfo = None
@@ -407,7 +407,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
         if count:
             events = "\0" * (count*4*5)
             count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
-            for i in xrange(0, count, 4*5):
+            for i in range(0, count, 4*5):
                 bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])
                 _event = bassMidiEvent[0] # 使用しない
                 param = bassMidiEvent[1]
@@ -418,7 +418,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
                     loopinfo = (pos, -1)
                     break
 
-    if tempo <> 0 or pitch <> 0:
+    if tempo != 0 or pitch != 0:
         stream = _bassfx.BASS_FX_TempoCreate(stream, BASS_FX_FREESOURCE)
 
     _loopcounts[streamindex] = loopcount
@@ -433,9 +433,9 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
         _loopstarts[streamindex] = 0
         _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, 0, CC111LOOP, streamindex)
 
-    if tempo <> 0:
+    if tempo != 0:
         _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO, tempo) # -95%...0...+5000%
-    if pitch <> 0:
+    if pitch != 0:
         _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO_PITCH, pitch) # -60...0...+60
 
     if _paused:
@@ -572,7 +572,7 @@ def dispose_bass():
         return
 
     if _bassmidi:
-        for i in xrange(0, len(_sfonts), 4*3):
+        for i in range(0, len(_sfonts), 4*3):
             sfont = struct.unpack("@Iii", _sfonts[i:i+4*3])
             _bassmidi.BASS_MIDI_FontFree(sfont[0])
 
@@ -599,7 +599,7 @@ def play_bgm(fpath, volume=1.0, loopcount=0, channel=0, fade=0):
     stop_bgm(channel, fade=fade)
     channel += STREAM_BGM
     _streams[channel] = _play(fpath, volume, loopcount, channel, fade)
-    return _streams[channel] <> 0
+    return _streams[channel] != 0
 
 def set_bgmloopcount(loopcount, channel=0):
     set_loopcount(loopcount, STREAM_BGM+channel)
@@ -621,10 +621,10 @@ def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1, channel=0, fa
     if fromscenario:
         channel += STREAM_SOUND1
         _streams[channel] = _play(fpath, volume, loopcount, channel, fade)
-        return _streams[channel] <> 0
+        return _streams[channel] != 0
     else:
         _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2, fade)
-        return _streams[STREAM_SOUND2] <> 0
+        return _streams[STREAM_SOUND2] != 0
 
 def _stop(streamindex, fade, stopfadeout):
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
@@ -705,7 +705,7 @@ def set_soundvolume(volume, fromscenario=False, channel=0, fade=0):
 
 def main():
     import time
-    print "Test BASS Audio. Sound Font: %s, File: %s, %s" % (sys.argv[1], sys.argv[2], sys.argv[3])
+    print("Test BASS Audio. Sound Font: %s, File: %s, %s" % (sys.argv[1], sys.argv[2], sys.argv[3]))
     init_bass([sys.argv[1], 1.0])
     play_bgm(sys.argv[2])
     time.sleep(200)

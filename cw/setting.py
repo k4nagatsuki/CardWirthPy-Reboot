@@ -14,7 +14,7 @@ import array
 import re
 import threading
 import copy
-import ConfigParser
+import configparser
 import time
 import wx
 import pygame
@@ -26,9 +26,9 @@ import cw
 class NoFontError(ValueError):
     pass
 
-if sys.platform <> "win32":
+if sys.platform != "win32":
     # wx.Appのロード前にフォントをインストールしなければならない
-    DATA_PATH = u"Data"
+    DATA_PATH = "Data"
     encoding = sys.getfilesystemencoding()
     if sys.platform == "darwin":
         try:
@@ -38,8 +38,8 @@ if sys.platform <> "win32":
         # application bundle に入っている場合は、application bundle と同じ位置にあるDataディレクトリを使う
         if 'RESOURCEPATH' in os.environ:
             data_path = os.path.join(
-                unicode(os.environ['RESOURCEPATH'], encoding),
-                u'..', u'..', u'..', u'Data')
+                str(os.environ['RESOURCEPATH'], encoding),
+                '..', '..', '..', 'Data')
             if os.path.isdir(data_path):
                 DATA_PATH = data_path
     else:
@@ -109,7 +109,7 @@ class LocalSetting(object):
         self.curtaincolour = (0, 0, 80, 128)
         self.blcurtaincolour = (0, 0, 0, 192)
         self.fullscreenbackgroundtype = 2
-        self.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+        self.fullscreenbackgroundfile = "Resource/Image/Dialog/PAD"
 
         self.decorationfont = False
         self.bordering_cardname = True
@@ -168,16 +168,16 @@ class LocalSetting(object):
         }
 
         # Windowsのフォントが使用可能であれば標準フォントを差し替える
-        if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
-            self.basefont["uigothic"] = u"MS UI Gothic"
-        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
-            self.basefont["mincho"] = u"ＭＳ 明朝"
-        if u"ＭＳ Ｐ明朝" in wx.FontEnumerator.GetFacenames():
-            self.basefont["pmincho"] = u"ＭＳ Ｐ明朝"
-        if u"ＭＳ ゴシック" in wx.FontEnumerator.GetFacenames():
-            self.basefont["gothic"] = u"ＭＳ ゴシック"
-        if u"ＭＳ Ｐゴシック" in wx.FontEnumerator.GetFacenames():
-            self.basefont["pgothic"] = u"ＭＳ Ｐゴシック"
+        if "MS UI Gothic" in wx.FontEnumerator.GetFacenames():
+            self.basefont["uigothic"] = "MS UI Gothic"
+        if "ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
+            self.basefont["mincho"] = "ＭＳ 明朝"
+        if "ＭＳ Ｐ明朝" in wx.FontEnumerator.GetFacenames():
+            self.basefont["pmincho"] = "ＭＳ Ｐ明朝"
+        if "ＭＳ ゴシック" in wx.FontEnumerator.GetFacenames():
+            self.basefont["gothic"] = "ＭＳ ゴシック"
+        if "ＭＳ Ｐゴシック" in wx.FontEnumerator.GetFacenames():
+            self.basefont["pgothic"] = "ＭＳ Ｐゴシック"
 
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
@@ -258,7 +258,7 @@ class LocalSetting(object):
             _deftype, _defname, defpixels, defbold, defbold_upscr, defitalic = self.fonttypes_init[key]
 
             fonttype = e.getattr(".", "type", "")
-            name = e.text if e.text else u""
+            name = e.text if e.text else ""
             pixels = e.getint(".", "pixels", defpixels)
             bold = e.getattr(".", "bold", "")
             if bold == "":
@@ -383,20 +383,20 @@ class Setting(object):
         self.scenario_narrow = ""
         self.scenario_narrowtype = 1
         self.scenario_sorttype = 0
-        self.ssinfoformat = u"[%scenario%[(%author%)] - ][%party% at ]%yado%"
-        self.ssfnameformat = u"ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
-        self.cardssfnameformat = u"ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
-        self.titleformat = u"%application% %skin%[ - %yado%[ %scenario%]]"
-        self.playlogformat = u"PlayLog/%yado%/%party%_%year%%month%%day%_%hour%%minute%%second%_%scenario%.txt"
+        self.ssinfoformat = "[%scenario%[(%author%)] - ][%party% at ]%yado%"
+        self.ssfnameformat = "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
+        self.cardssfnameformat = "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
+        self.titleformat = "%application% %skin%[ - %yado%[ %scenario%]]"
+        self.playlogformat = "PlayLog/%yado%/%party%_%year%%month%%day%_%hour%%minute%%second%_%scenario%.txt"
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
-        self.ssinfobackimage = u""
+        self.ssinfobackimage = ""
         self.show_fcardsinbattle = False
         self.statusbarmask = True
         self.show_experiencebar = True
         self.show_roundautostartbutton = True
         self.show_autobuttoninentrydialog = True
-        self.unconvert_targetfolder = u"UnconvertedYado"
+        self.unconvert_targetfolder = "UnconvertedYado"
         self.show_tiles = False
         self.enabled_right_flick = False
         self.can_repeatlclick = False
@@ -524,11 +524,11 @@ class Setting(object):
         self.lastscenario = []
         self.lastscenariopath = "" # 経路が辿れない時に使用するフルパス
         # ウィンドウ位置
-        win_x = data.getint("WindowPosition", "left", -sys.maxint-1)
-        win_y = data.getint("WindowPosition", "top", -sys.maxint-1)
-        if -sys.maxint-1 == win_x:
+        win_x = data.getint("WindowPosition", "left", -sys.maxsize-1)
+        win_y = data.getint("WindowPosition", "top", -sys.maxsize-1)
+        if -sys.maxsize-1 == win_x:
             win_x = None
-        if -sys.maxint-1 == win_y:
+        if -sys.maxsize-1 == win_y:
             win_y = None
         self.window_position = (win_x, win_y)
         # 拡大モード
@@ -802,7 +802,7 @@ class Setting(object):
         self.show_additional_scenario = data.getbool("ShowAdditionalControls", "scenario", self.show_additional_scenario)
         self.show_additional_card = data.getbool("ShowAdditionalControls", "card", self.show_additional_card)
         # 絞り込み等の表示切替ボタンを表示する
-        self.show_addctrlbtn = data.gettext("ShowAdditionalControls", "" if self.show_addctrlbtn else "Hidden") <> "Hidden"
+        self.show_addctrlbtn = data.gettext("ShowAdditionalControls", "" if self.show_addctrlbtn else "Hidden") != "Hidden"
 
         # シナリオのプレイログを出力する
         self.write_playlog = data.getbool("WritePlayLog", self.write_playlog)
@@ -845,7 +845,7 @@ class Setting(object):
         if not e is None:
             for e_bookmark in e:
                 fpath = e_bookmark.text
-                name = e_bookmark.getattr(".", "name", u"")
+                name = e_bookmark.getattr(".", "name", "")
                 self.bookmarks_for_cardedit.append((fpath, name))
 
         # スキン
@@ -872,8 +872,8 @@ class Setting(object):
                 # スムージング設定がデフォルト値でカード名フォントの設定を
                 # 変更している場合は、スムージングを改めてオンにする
                 if not self.local.fontsmoothing_cardname and\
-                        (self.local.fonttypes["cardname"] <> self.local.fonttypes_init["cardname"] or \
-                         self.local.fonttypes["ccardname"] <> self.local.fonttypes_init["ccardname"]):
+                        (self.local.fonttypes["cardname"] != self.local.fonttypes_init["cardname"] or \
+                         self.local.fonttypes["ccardname"] != self.local.fonttypes_init["ccardname"]):
                     self.local.fontsmoothing_cardname = True
 
             if int(settings_version) < 3:
@@ -893,24 +893,24 @@ class Setting(object):
 
     def init_skin(self, basedata=None):
         optskin = cw.OPTIONS.skin
-        cw.OPTIONS.skin = u""
+        cw.OPTIONS.skin = ""
         if optskin:
             # 起動オプションで差し替え
             skinpath = cw.util.join_paths("Data/Skin", optskin, "Skin.xml")
             if os.path.isfile(skinpath):
                 self.skindirname = optskin
 
-        self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
+        self.skindir = cw.util.join_paths("Data/Skin", self.skindirname)
         if self.auto_update_files:
             cw.update.update_files(self.skindir, self.skindirname)
         if not os.path.isdir(self.skindir):
             self.skindirname = "Classic"
-            self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
+            self.skindir = cw.util.join_paths("Data/Skin", self.skindirname)
 
             if not os.path.isdir(self.skindir):
                 # Classicが無いので手当たり次第にスキンを探す
-                for path in os.listdir(u"Data/Skin"):
-                    dpath = cw.util.join_paths(u"Data/Skin", path)
+                for path in os.listdir("Data/Skin"):
+                    dpath = cw.util.join_paths("Data/Skin", path)
                     fpath = cw.util.join_paths(dpath, "Skin.xml")
                     if os.path.isfile(fpath):
                         self.skindirname = path
@@ -927,7 +927,7 @@ class Setting(object):
         data = self._update_skin(path)
         err = self._check_skin()
         if err:
-            dlg = wx.MessageDialog(None, err, u"スキンチェックエラー", wx.OK|wx.ICON_ERROR)
+            dlg = wx.MessageDialog(None, err, "スキンチェックエラー", wx.OK|wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
             raise Exception()
@@ -943,17 +943,17 @@ class Setting(object):
         self.sexes = [cw.features.Sex(e) for e in data.getfind("Sexes")]
         self.sexnames = [f.name for f in self.sexes]
         self.sexsubnames = [f.subname for f in self.sexes]
-        self.sexcoupons = [u"＿" + f.name for f in self.sexes]
+        self.sexcoupons = ["＿" + f.name for f in self.sexes]
         self.periods = [cw.features.Period(e) for e in data.getfind("Periods")]
         self.periodnames = [f.name for f in self.periods]
         self.periodsubnames = [f.subname for f in self.periods]
-        self.periodcoupons = [u"＿" + f.name for f in self.periods]
+        self.periodcoupons = ["＿" + f.name for f in self.periods]
         self.natures = [cw.features.Nature(e) for e in data.getfind("Natures")]
         self.naturenames = [f.name for f in self.natures]
-        self.naturecoupons = [u"＿" + f.name for f in self.natures]
+        self.naturecoupons = ["＿" + f.name for f in self.natures]
         self.makings = [cw.features.Making(e) for e in data.getfind("Makings")]
         self.makingnames = [f.name for f in self.makings]
-        self.makingcoupons = [u"＿" + f.name for f in self.makings]
+        self.makingcoupons = ["＿" + f.name for f in self.makings]
 
         # デバグ宿で簡易生成を行う際の能力型
         self.sampletypes = [cw.features.SampleType(e) for e in data.getfind("SampleTypes")]
@@ -1029,12 +1029,12 @@ class Setting(object):
                     return ste.gettext("Name") == name and\
                            ste.getfloat("Mental", "cautious") == cautious and\
                            ste.getfloat("Mental", "cheerful") == cheerful
-                if len(ste) <> 5 or\
-                   not check_sampletype(ste[0], u"バランス", 0.0, 0.0) or\
-                   not check_sampletype(ste[1], u"ファイター", -0.5, 0.0) or\
-                   not check_sampletype(ste[2], u"シーフ", 0.5, 0.0) or\
-                   not check_sampletype(ste[3], u"プリースト", 0.0, 0.5) or\
-                   not check_sampletype(ste[4], u"メイジ", 0.5, -0.5):
+                if len(ste) != 5 or\
+                   not check_sampletype(ste[0], "バランス", 0.0, 0.0) or\
+                   not check_sampletype(ste[1], "ファイター", -0.5, 0.0) or\
+                   not check_sampletype(ste[2], "シーフ", 0.5, 0.0) or\
+                   not check_sampletype(ste[3], "プリースト", 0.0, 0.5) or\
+                   not check_sampletype(ste[4], "メイジ", 0.5, -0.5):
                     # SkinBaseの内容そのままでない場合は入れ替え発生
                     for e in ste:
                         update_mental(e)
@@ -1062,32 +1062,32 @@ class Setting(object):
                 iver = skinversion
                 if iver % 1 == 0:
                     iver = int(iver)
-                for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
-                    dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
+                for dname in ("GameOver", "Scenario", "Title", "Yado"):
+                    dpath = cw.util.join_paths(self.skindir, "Resource/Xml", dname)
                     dst = "%s_v%s" % (dpath, iver)
                     dst = cw.util.dupcheck_plus(dst, yado=False)
                     shutil.copytree(dpath, dst)
 
-                for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
-                    dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
+                for dname in ("GameOver", "Scenario", "Title", "Yado"):
+                    dpath = cw.util.join_paths(self.skindir, "Resource/Xml", dname)
                     for fname in os.listdir(dpath):
                         ext = os.path.splitext(fname)[1].lower()
-                        if ext <> ".xml":
+                        if ext != ".xml":
                             continue
                         fpath = cw.util.join_paths(dpath, fname)
                         e = cw.data.xml2etree(fpath)
                         updatemcards = False
                         for me in e.getfind("MenuCards"):
                             events = me.getfind("Events")
-                            if 1 <> len(events):
+                            if 1 != len(events):
                                 continue
                             ignum = events.gettext("Event/Ignitions/Number", "")
                             igkeycode = events.gettext("Event/Ignitions/KeyCodes", "")
-                            if ignum <> "1" or igkeycode <> "":
+                            if ignum != "1" or igkeycode != "":
                                 continue
                             post = me.find("Events/Event/Contents/Start/Contents/Post")
                             posttype = post.getattr(".", "type", "")
-                            if posttype <> "Event":
+                            if posttype != "Event":
                                 continue
                             command = post.getattr(".", "command", "")
                             arg = post.getattr(".", "arg", "")
@@ -1111,7 +1111,7 @@ class Setting(object):
                 iver = skinversion
                 if iver % 1 == 0:
                     iver = int(iver)
-                fpath = cw.util.join_paths(self.skindir, u"Resource/Xml/ActionCard/-1_Confuse.xml")
+                fpath = cw.util.join_paths(self.skindir, "Resource/Xml/ActionCard/-1_Confuse.xml")
                 dst = "%s.v%s" % (fpath, iver)
                 dst = cw.util.dupcheck_plus(dst, yado=False)
                 shutil.copy2(fpath, dst)
@@ -1130,7 +1130,7 @@ class Setting(object):
                 # タイトル画面のカード位置も調節する。
                 update = True
 
-                fpath = cw.util.join_paths(self.skindir, u"Resource/Xml/Title/01_Title.xml")
+                fpath = cw.util.join_paths(self.skindir, "Resource/Xml/Title/01_Title.xml")
                 if os.path.isfile(fpath):
                     # タイトル画面のカード位置を調節
                     e = cw.data.xml2etree(fpath)
@@ -1154,11 +1154,11 @@ class Setting(object):
                         e.edit("MenuCards/MenuCard[2]/Property/Location", "150", "top")
                         e.write()
 
-                fpath1 = u"Data/SkinBase/Resource/Xml/Yado/03_YadoInitial.xml"
-                fpath2 = cw.util.join_paths(self.skindir, u"Resource/Xml/Yado/03_YadoInitial.xml")
+                fpath1 = "Data/SkinBase/Resource/Xml/Yado/03_YadoInitial.xml"
+                fpath2 = cw.util.join_paths(self.skindir, "Resource/Xml/Yado/03_YadoInitial.xml")
                 if not os.path.isfile(fpath2):
                     shutil.copy2(fpath1, fpath2)
-                    fpath3 = cw.util.join_paths(self.skindir, u"Resource/Xml/Yado/01_Yado.xml")
+                    fpath3 = cw.util.join_paths(self.skindir, "Resource/Xml/Yado/01_Yado.xml")
                     if os.path.isfile(fpath3):
                         e = cw.data.xml2etree(fpath2)
                         e3 = cw.data.xml2etree(fpath3)
@@ -1196,8 +1196,8 @@ class Setting(object):
                         e.write()
 
             if skinversion <= 9:
-                fpath1 = u"Data/SkinBase/Resource/Xml/Animation/Opening.xml"
-                fpath2 = cw.util.join_paths(self.skindir, u"Resource/Xml/Animation/Opening.xml")
+                fpath1 = "Data/SkinBase/Resource/Xml/Animation/Opening.xml"
+                fpath2 = cw.util.join_paths(self.skindir, "Resource/Xml/Animation/Opening.xml")
                 if not os.path.isfile(fpath2):
                     dpath = os.path.dirname(fpath2)
                     if not os.path.isdir(dpath):
@@ -1220,24 +1220,24 @@ class Setting(object):
         今のところ、全てのリソースをチェックしているのではなく、
         過去のアップデートで追加されたリソースのみ確認している。
         """
-        dpath = cw.util.join_paths(self.skindir, u"Resource/Xml/Yado")
+        dpath = cw.util.join_paths(self.skindir, "Resource/Xml/Yado")
         for fname in os.listdir(dpath):
             fpath = cw.util.join_paths(dpath, fname)
             id = int(cw.header.GetName(fpath, tagname="Id").name)
             if id == 3:
                 break
         else:
-            return u"スキンにデータバージョン「9」で導入された「初期拠点」エリアが存在しません。\n" +\
-                   u"スキンの自動アップデートに失敗した可能性があります。\n" +\
-                   u"手動での修復を試みるか、スキンを再導入してください。"
+            return "スキンにデータバージョン「9」で導入された「初期拠点」エリアが存在しません。\n" +\
+                   "スキンの自動アップデートに失敗した可能性があります。\n" +\
+                   "手動での修復を試みるか、スキンを再導入してください。"
 
-        fpath = cw.util.join_paths(self.skindir, u"Resource/Xml/Animation/Opening.xml")
+        fpath = cw.util.join_paths(self.skindir, "Resource/Xml/Animation/Opening.xml")
         if not os.path.isfile(fpath):
-            return u"スキンにデータバージョン「10」で導入されたオープニングアニメーション定義が存在しません。\n" + \
-                   u"スキンの自動アップデートに失敗した可能性があります。\n" + \
-                   u"手動での修復を試みるか、スキンを再導入してください。"
+            return "スキンにデータバージョン「10」で導入されたオープニングアニメーション定義が存在しません。\n" + \
+                   "スキンの自動アップデートに失敗した可能性があります。\n" + \
+                   "手動での修復を試みるか、スキンを再導入してください。"
 
-        return u""
+        return ""
 
     def set_dealspeed(self, value, battlevalue, usebattle):
         self.dealspeed = value
@@ -1245,7 +1245,7 @@ class Setting(object):
         scales_len = self.dealspeed + 1
         self.dealing_scales = [
             int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
-            for i in xrange(scales_len)
+            for i in range(scales_len)
                 if i
         ]
 
@@ -1254,7 +1254,7 @@ class Setting(object):
         scales_len = self.dealspeed_battle + 1
         self.dealing_scales_battle = [
             int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
-            for i in xrange(scales_len)
+            for i in range(scales_len)
                 if i
         ]
 
@@ -1345,7 +1345,7 @@ class Setting(object):
         return self.get_fontsetting().fonttypes
 
     def is_logscrollable(self):
-        return self.messagelog_type <> LOG_SINGLE
+        return self.messagelog_type != LOG_SINGLE
 
     def write(self):
         cw.xmlcreater.create_settings(self)
@@ -1366,7 +1366,7 @@ class Setting(object):
         if skintype is None:
             skintype = self.skintype
 
-        scedir = u"Scenario"
+        scedir = "Scenario"
         # 設定に応じて初期位置を変更する
         if self.selectscenariofromtype:
             for skintype2, folder in self.folderoftype:
@@ -1391,17 +1391,17 @@ class _MsgDict(dict):
             if not key in self._error_keys:
                 def func():
                     if cw.cwpy.frame:
-                        s = u"メッセージID[%s]に該当するメッセージがありません。\n"\
-                            u"デイリービルド版でこのエラーが発生した場合は、" \
-                            u"「Data/SkinBase」以下のリソースが最新版になっていない"\
-                            u"可能性があります。" % (key)
+                        s = "メッセージID[%s]に該当するメッセージがありません。\n"\
+                            "デイリービルド版でこのエラーが発生した場合は、" \
+                            "「Data/SkinBase」以下のリソースが最新版になっていない"\
+                            "可能性があります。" % (key)
                         sys.stderr.write("Message [%s] is not found." % key)
                         dlg = cw.dialog.message.ErrorMessage(None, s)
                         dlg.ShowModal()
                         dlg.Destroy()
                 cw.cwpy.frame.exec_func(func)
                 self._error_keys.add(key)
-            return u"*ERROR*"
+            return "*ERROR*"
         return dict.__getitem__(self, key)
 
 class Resource(object):
@@ -1457,7 +1457,7 @@ class Resource(object):
         self.ignorecase_table = {}
 
         cw.cwpy.frame.exec_func(self.init_wxresources)
-        if sys.platform <> "win32":
+        if sys.platform != "win32":
             # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
             #        取得に失敗する事があるので、すべて小文字のパスをキーにして
             #        真のファイル名へのマッピングをしておく。
@@ -1484,7 +1484,7 @@ class Resource(object):
         return fpath
 
     def dispose(self):
-        for key in self.fonts.iterkeys():
+        for key in self.fonts.keys():
             if self.fonts.is_loaded(key):
                 font = self.fonts[key]
                 if isinstance(font, cw.imageretouch.Font):
@@ -1567,14 +1567,14 @@ class Resource(object):
             winplatform = sys.getwindowsversion()[3]
             self.facenames = set(wx.FontEnumerator().GetFacenames())
 
-            for name, path in self.fontpaths.iteritems():
+            for name, path in self.fontpaths.items():
                 fontname = cw.util.get_truetypefontname(path)
                 if fontname in self.facenames or\
-                        fontname == u"IPAUIGothic" and (u"IPA UIゴシック" in self.facenames) or\
-                        fontname == u"IPAGothic" and (u"IPAゴシック" in self.facenames) or\
-                        fontname == u"IPAPGothic" and (u"IPA Pゴシック" in self.facenames) or\
-                        fontname == u"IPAMincho" and (u"IPA明朝" in self.facenames) or\
-                        fontname == u"IPAPMincho" and (u"IPA P明朝" in self.facenames):
+                        fontname == "IPAUIGothic" and ("IPA UIゴシック" in self.facenames) or\
+                        fontname == "IPAGothic" and ("IPAゴシック" in self.facenames) or\
+                        fontname == "IPAPGothic" and ("IPA Pゴシック" in self.facenames) or\
+                        fontname == "IPAMincho" and ("IPA明朝" in self.facenames) or\
+                        fontname == "IPAPMincho" and ("IPA P明朝" in self.facenames):
                     d[name] = fontname
                     continue
 
@@ -1598,20 +1598,20 @@ class Resource(object):
             self.facenames = set(wx.FontEnumerator().GetFacenames())
         else:
             self.facenames = set(wx.FontEnumerator().GetFacenames())
-            d["gothic"] = u"IPAゴシック"
-            d["uigothic"] = u"IPA UIゴシック"
-            d["mincho"] = u"IPA明朝"
-            d["pmincho"] = u"IPA P明朝"
-            d["pgothic"] = u"IPA Pゴシック"
+            d["gothic"] = "IPAゴシック"
+            d["uigothic"] = "IPA UIゴシック"
+            d["mincho"] = "IPA明朝"
+            d["pmincho"] = "IPA P明朝"
+            d["pgothic"] = "IPA Pゴシック"
 
-            for value in d.itervalues():
+            for value in d.values():
                 if not value in self.facenames:
-                    raise ValueError(u"IPA font not found: " + value)
+                    raise ValueError("IPA font not found: " + value)
 
         init = d.copy()
 
         # 設定に応じた差し替え
-        for basetype in d.iterkeys():
+        for basetype in d.keys():
             font = self.setting().local.basefont[basetype]
             if font:
                 d[basetype] = font
@@ -1622,7 +1622,7 @@ class Resource(object):
         if sys.platform == "win32" and not sys.getwindowsversion()[3] == 2:
             gdi32 = ctypes.windll.gdi32
 
-            for path in self.fontpaths.itervalues():
+            for path in self.fontpaths.values():
                 gdi32.RemoveFontResourceA(path)
 
             user32 = ctypes.windll.user32
@@ -1909,7 +1909,7 @@ class Resource(object):
                 r1 = g1 = b1 = 255
                 r2 = g2 = b2 = 232
             mid = h / 2
-            for y in xrange(0, mid+1, 1):
+            for y in range(0, mid+1, 1):
                 bmp.fill((r1-y/4, g1-y/4, b1-y/4), pygame.Rect(0, mid-y, w, 1))
                 bmp.fill((r2-y, g2-y, b2-y), pygame.Rect(0, mid+y, w, 1))
 
@@ -2081,10 +2081,10 @@ class Resource(object):
                 if warning:
                     def errfunc(dname, key):
                         if cw.cwpy.frame:
-                            s = u"リソース [%s/%s] が見つかりません。\n"\
-                                u"デイリービルド版でこのエラーが発生した場合は、" \
-                                u"「Data/SkinBase」以下のリソースが最新版になっていない"\
-                                u"可能性があります。" % (dname, key)
+                            s = "リソース [%s/%s] が見つかりません。\n"\
+                                "デイリービルド版でこのエラーが発生した場合は、" \
+                                "「Data/SkinBase」以下のリソースが最新版になっていない"\
+                                "可能性があります。" % (dname, key)
                             sys.stderr.write("Resource [%s/%s] is not found." % (dname, key))
                             dlg = cw.dialog.message.ErrorMessage(None, s)
                             dlg.ShowModal()
@@ -2117,7 +2117,7 @@ class Resource(object):
         pygameのsoundインスタンスの辞書で返す。
         """
         d = ResourceTable("SystemSound", {}.copy(), empty_sound)
-        for key, sound in setting.sounds.items():
+        for key, sound in list(setting.sounds.items()):
             if sound in skinsounds:
                 f = lambda sound: d.set(key, lambda: skinsounds[sound])
                 f(sound)
@@ -2268,7 +2268,7 @@ class Resource(object):
         else:
             emptyfunc=empty_image
 
-        dpath = u"Data/Debugger"
+        dpath = "Data/Debugger"
 
         # 可能ならcwxeditor/resourceからアイコンを読み込む
         editor_res = os.path.dirname(os.path.abspath(self.setting().editor))
@@ -2366,7 +2366,7 @@ class Resource(object):
         fpath = cw.util.join_paths(self.skindir, "Resource/Xml/SpecialCard/UseCardInBackpack.xml")
         if not os.path.isfile(fpath):
             # 旧バージョンのスキンには存在しないのでSkinBaseを使用
-            fpath = u"Data/SkinBase/Resource/Xml/SpecialCard/UseCardInBackpack.xml"
+            fpath = "Data/SkinBase/Resource/Xml/SpecialCard/UseCardInBackpack.xml"
         carddata = cw.data.xml2element(fpath)
 
         d = {}
@@ -2408,7 +2408,7 @@ class Resource(object):
             image = cw.util.load_image(fpath, mask=True, can_loaded_scaledimage=True)
             return image, False
 
-        for key, name in ndict.iteritems():
+        for key, name in ndict.items():
             d.set(name, load, key, name)
 
         return d
@@ -2726,11 +2726,11 @@ class ResourceTable(object):
         self.defload = False
 
     def reset(self):
-        for lazy in self.dic.itervalues():
+        for lazy in self.dic.values():
             lazy.clear()
 
     def merge(self, d):
-        for key, value in self.dic.iteritems():
+        for key, value in self.dic.items():
             if not key in self.dic:
                 self.dic[key] = value
 
@@ -2742,14 +2742,14 @@ class ResourceTable(object):
             val = lazy.get_res()
             if lazy.failure:
                 if first:
-                    s = u"リソース [%s/%s] の読み込みに失敗しました。\n" % (self.name, key)
+                    s = "リソース [%s/%s] の読み込みに失敗しました。\n" % (self.name, key)
                     sys.stderr.write(s)
                 return self.get_defvalue()
             else:
                 return val
         else:
             if not self.defload:
-                s = u"リソース [%s/%s] が見つかりません。\n" % (self.name, key)
+                s = "リソース [%s/%s] が見つかりません。\n" % (self.name, key)
                 sys.stderr.write(s)
             val = self.get_defvalue()
 
@@ -2783,7 +2783,7 @@ class ResourceTable(object):
         return tbl
 
     def iterkeys(self):
-        for key in self.dic.iterkeys():
+        for key in self.dic.keys():
             yield key
 
     def is_loaded(self, key):
@@ -2965,7 +2965,7 @@ class SystemCoupons(object):
     シナリオ側からのエンジンのバージョン判定等に利用する。
     CardWirth由来の"＿１"～"＿６"や"＠ＭＰ３"は含まれない。
     """
-    def __init__(self, fpath=u"Data/SystemCoupons.xml", data=None):
+    def __init__(self, fpath="Data/SystemCoupons.xml", data=None):
         self._normal = set() # 固定値
         self._regexes = [] # 正規表現
         self._ats = True # u"＠"で始まる称号のみが含まれる場合はTrue
@@ -2973,7 +2973,7 @@ class SystemCoupons(object):
             data = cw.data.xml2element(path=fpath)
         if not data is None:
             for e in data:
-                if self._ats and not e.text.startswith(u"＠"):
+                if self._ats and not e.text.startswith("＠"):
                     self._ats = False
 
                 regex = e.getbool(".", "regex", False)
@@ -2985,7 +2985,7 @@ class SystemCoupons(object):
     def match(self, coupon):
         """couponがシステムクーポンに含まれている場合はTrueを返す。
         """
-        if self._ats and not coupon.startswith(u"＠"):
+        if self._ats and not coupon.startswith("＠"):
             return False
         if coupon in self._normal:
             return True
@@ -3143,7 +3143,7 @@ class ScenarioCompatibilityTable(object):
         互換性情報が無いか、読込に失敗した場合はNoneを返す。
         """
         try:
-            conf = ConfigParser.SafeConfigParser()
+            conf = configparser.SafeConfigParser()
             conf.read(fpath)
 
             try:

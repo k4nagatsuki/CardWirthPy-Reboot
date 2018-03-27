@@ -33,14 +33,14 @@ def wait_effectbooster(waittime, doanime):
                 cw.cwpy.is_playingscenario():
             selection = cw.cwpy.selection
             cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-            if selection <> cw.cwpy.selection:
+            if selection != cw.cwpy.selection:
                 cw.cwpy.draw()
             cw.cwpy.tick_clock(1000)
             cw.cwpy.input()
             eventhandler.run()
 
         doanime.time_elapsed = 0
-    except ScreenRescale, ex:
+    except ScreenRescale as ex:
         if 0 < waittime:
             doanime.time_elapsed = pygame.time.get_ticks() - start_ticks
         else:
@@ -135,7 +135,7 @@ class _JpySubImage(cw.image.Image):
             elif self.paintmode == 2:
                 self.is_cacheable = False
                 back.image.blit(image, self.position, None, pygame.locals.BLEND_ADD)
-            elif self.paintmode <> 4:
+            elif self.paintmode != 4:
                 back.image.blit(image, self.position)
                 # CardWirthでは透過ライン部分は強制的に透明となる
                 # (アルファ値上書き？)
@@ -155,7 +155,7 @@ class _JpySubImage(cw.image.Image):
 
         # 一時描画せずにウェイトだけ
         if self.animation == 4:
-            if doanime.countup() and self.waittime <> 0:
+            if doanime.countup() and self.waittime != 0:
                 cw.cwpy.draw()
             self.wait(doanime)
         # 一時描画
@@ -259,19 +259,19 @@ class _JpySubImage(cw.image.Image):
             blendmode = 0
 
         if 0 < rect[2] and 0 < rect[3]:
-            if self.paintmode <> 4:
+            if self.paintmode != 4:
                 if redraw:
                     if not self.animation == 1:
                         self.cache.before = background.subsurface(rect).copy()
                         self.cache.beforeback = background
                         self.cache.beforerect = rect
                     background.blit(image, pos, special_flags=blendmode)
-                    if not nowait and doanime.countup() and waittime <> 0:
+                    if not nowait and doanime.countup() and waittime != 0:
                         cw.cwpy.draw()
                 else:
                     if self.animation == 1:
                         background.blit(image, pos, special_flags=blendmode)
-                        if not nowait and doanime.countup() and waittime <> 0:
+                        if not nowait and doanime.countup() and waittime != 0:
                             cw.cwpy.draw()
 
             if not nowait:
@@ -362,27 +362,27 @@ class _JpySubImage(cw.image.Image):
         # フィルタ
         if self.filter:
             if self.filter == 1:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.filter_shape(image)
             elif self.filter == 2:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.filter_sharpness(image)
             elif self.filter == 3:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.filter_sunpower(image)
             elif self.filter == 4:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.filter_coloremboss(image)
             elif self.filter == 5:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.filter_darkemboss(image)
             elif self.filter == 6:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.filter_electrical(image)
             elif self.filter == 7:
@@ -390,17 +390,17 @@ class _JpySubImage(cw.image.Image):
             elif self.filter == 8:
                 image = cw.imageretouch.spread_pixels(image)
             elif self.filter == 9:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.to_negative(image)
             elif self.filter == 10:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.filter_emboss(image)
 
         # 色調変化
         if self.colormap:
-            if self.paintmode <> 3:
+            if self.paintmode != 3:
                 self.can_mask = False
             if self.colormap == 1:      # グレイスケール
                 image = cw.imageretouch.to_grayscale(image)
@@ -440,25 +440,25 @@ class _JpySubImage(cw.image.Image):
         # ノイズ
         if self.noise:
             if self.noise == 1:
-                if self.noisepoint <> 0 and self.paintmode <> 3:
+                if self.noisepoint != 0 and self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.add_lightness(image, self.noisepoint)
             elif self.noise == 2:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 if self.noisepoint < 0:
                     image.fill((255, 255, 255))
                 else:
                     image = cw.imageretouch.to_binaryformat(image, self.noisepoint)
             elif self.noise == 3:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.add_noise(image, self.noisepoint)
             elif self.noise == 4:
-                if self.paintmode <> 3:
+                if self.paintmode != 3:
                     self.can_mask = False
                 image = cw.imageretouch.add_noise(image, self.noisepoint, True)
-            elif self.noise == 5 and self.filter <> 7:
+            elif self.noise == 5 and self.filter != 7:
                 image = cw.imageretouch.add_mosaic(image, self.noisepoint)
 
         # マスク
@@ -678,7 +678,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
             filename = cw.util.relpath(fpath, scedir)
             fpath = find_materialpath(fpath)
         else:
-            fpath = u""
+            fpath = ""
         if not fpath or not os.path.isfile(fpath):
             # シナリオ内に存在しなかった
             return ("", False)
@@ -715,7 +715,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
                 if not e_mates is None:
                     dpath = e_mates.text
                     # dirtype=4にはdirdepthが影響する
-                    for _i in xrange(dirdepth):
+                    for _i in range(dirdepth):
                         dpath = os.path.dirname(dpath)
 
                     fpath = cw.util.join_paths(dpath, filename)
@@ -725,7 +725,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
 
         dpath = os.path.dirname(configpath)
         # dirtype=4にはdirdepthが影響する
-        for _i in xrange(dirdepth):
+        for _i in range(dirdepth):
             dpath = os.path.dirname(dpath)
 
         fpath = cw.util.join_paths(dpath, filename)
@@ -733,7 +733,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
         fpath = find_materialpath(fpath)
         # 指定位置に存在しなかった
         if not os.path.isfile(fpath):
-            return (u"", False)
+            return ("", False)
         cw.cwpy.background.store_filepath(fpath)
 
         if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
@@ -751,7 +751,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
             fpath = cw.util.find_resource(fpath, mtype)
             if fpath:
                 return (fpath, True)
-        return (u"", True)
+        return ("", True)
     elif dirtype == 6:
         if not configpath:
             return ("", False)
@@ -991,13 +991,13 @@ class JpdcImage(cw.image.Image):
 
             if doanime and not doanime.all_cut:
                 if savecomment:
-                    cw.cwpy.set_titlebar(savecomment + u" - " + cw.cwpy.create_title())
+                    cw.cwpy.set_titlebar(savecomment + " - " + cw.cwpy.create_title())
                 else:
-                    cw.cwpy.set_titlebar(filename + u" - " + cw.cwpy.create_title())
+                    cw.cwpy.set_titlebar(filename + " - " + cw.cwpy.create_title())
 
             saveimage_noscale = self.image
             saveimage = None
-            if cw.UP_SCR <> 1:
+            if cw.UP_SCR != 1:
                 saveimage_noscale = cw.image.smoothscale(saveimage_noscale, (w_noscale, h_noscale))
                 saveimage = self.image
 
@@ -1011,7 +1011,7 @@ class JpdcImage(cw.image.Image):
             if cpath1.startswith(cpath2):
                 # シナリオの不変を保つためにScenarioLog内に保存
                 rel = cw.util.relpath(cpath1, cpath2)
-                temppath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile")
+                temppath = cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile")
                 path = cw.util.join_paths(temppath, rel)
                 dpath = os.path.dirname(path)
                 if not os.path.isdir(dpath):
@@ -1019,7 +1019,7 @@ class JpdcImage(cw.image.Image):
                 cw.sprite.message.store_messagelogimage(path, True)
                 spext = os.path.splitext(path)
                 for scale in cw.SCALE_LIST:
-                    pathxn = u"%s.x%d%s" % (spext[0], scale, spext[1])
+                    pathxn = "%s.x%d%s" % (spext[0], scale, spext[1])
                     if os.path.isfile(pathxn):
                         cw.util.remove(pathxn)
                 pygame.image.save(saveimage_noscale, path.encode("utf-8"))
@@ -1031,7 +1031,7 @@ class JpdcImage(cw.image.Image):
                     can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
 
                 if saveimage:
-                    path = u"%s.x%d%s" % (spext[0], cw.UP_SCR, spext[1])
+                    path = "%s.x%d%s" % (spext[0], cw.UP_SCR, spext[1])
                     rel2 = cw.util.relpath(path, temppath)
                     x2path = cw.util.join_paths(cw.cwpy.sdata.scedir, rel2)
                     if can_loaded_scaledimage or not os.path.isfile(x2path):
@@ -1040,12 +1040,12 @@ class JpdcImage(cw.image.Image):
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
                 removekeys = []
-                for cachekey in cw.cwpy.sdata.resource_cache.iterkeys():
+                for cachekey in cw.cwpy.sdata.resource_cache.keys():
                     if isinstance(cachekey, tuple) and len(cachekey) == 5:
-                        if isinstance(cachekey[3], (str, unicode)) and\
+                        if isinstance(cachekey[3], str) and\
                                 os.path.splitext(cachekey[3])[1].lower() == ".jpy1":
                             removekeys.append(cachekey)
-                        elif isinstance(cachekey[0], (str, unicode)) and\
+                        elif isinstance(cachekey[0], str) and\
                                 os.path.splitext(cachekey[0])[1].lower() == ".jpy1":
                             removekeys.append(cachekey)
                 for key in removekeys:
@@ -1092,7 +1092,7 @@ class JptxImage(cw.image.Image):
         fontpixels_noscale = config.get_int("jptx:init", "fontpixels", 12)
         fontpixels = cw.s(fontpixels_noscale)
         fontcolor = config.get_color("jptx:init", "fontcolor", (255, 255, 255))
-        fontface = config.get("jptx:init", "fontface", u"ＭＳ Ｐゴシック")
+        fontface = config.get("jptx:init", "fontface", "ＭＳ Ｐゴシック")
         antialias = config.get_bool("jptx:init", "antialias", False)
         fonttransparent = config.get_bool("jptx:init", "fonttransparent", False)
         text = config.get("jptx:begin", "jptx:end", "")
@@ -1191,7 +1191,7 @@ class JptxImage(cw.image.Image):
                     rect = pygame.Rect(int(info.x), int(info.y)+yp, width, height)
                     rect = rect.clip(self.outer.image.get_rect())
                     if 0 < rect.width and 0 < rect.height:
-                        if cw.UP_SCR <> 1 and subimg.get_size() <> size:
+                        if cw.UP_SCR != 1 and subimg.get_size() != size:
                             # 1倍で描画した時のサイズに合せる
                             subimg = pygame.transform.smoothscale(subimg, size)
                         # 拡大した背景にBlitし、その後縮小する
@@ -1210,7 +1210,7 @@ class JptxImage(cw.image.Image):
                         width = cw.s(info.font2_noscale.size_withoutoverhang(chars))[0] / 2
                 else:
                     if not antialias and 22 < info.fontpixels_noscale and\
-                            fontface in (u"ＭＳ Ｐ明朝", u"ＭＳ 明朝", u"ＭＳ Ｐゴシック", u"ＭＳ ゴシック", u"MS UI Gothic"):
+                            fontface in ("ＭＳ Ｐ明朝", "ＭＳ 明朝", "ＭＳ Ｐゴシック", "ＭＳ ゴシック", "MS UI Gothic"):
                         # cwconv.dllのバグで常にアンチエイリアスがかかる
                         antialias2 = True
                     else:
@@ -1228,7 +1228,7 @@ class JptxImage(cw.image.Image):
 
                 # 取消線
                 if info.strike:
-                    subimg2 = info.font.render(u"―", False, info.fontcolor)
+                    subimg2 = info.font.render("―", False, info.fontcolor)
                     size = (int(width + cw.s(10)), info.get_height())
                     subimg2 = pygame.transform.scale(subimg2, size)
                     subimg.blit(subimg2, cw.s((-5, 0)))
@@ -1279,21 +1279,21 @@ class JptxImage(cw.image.Image):
                     bold = start
                     info.font.set_bold(start)
                     info.font2.set_bold(start)
-                    if cw.UP_SCR <> 1:
+                    if cw.UP_SCR != 1:
                         info.font_noscale.set_bold(start)
                         info.font2_noscale.set_bold(start)
                 elif name == "u":
                     underline = start
                     info.font.set_underline(start)
                     info.font2.set_underline(start)
-                    if cw.UP_SCR <> 1:
+                    if cw.UP_SCR != 1:
                         info.font_noscale.set_underline(start)
                         info.font2_noscale.set_underline(start)
                 elif name == "i":
                     italic= start
                     info.font.set_italic(start)
                     info.font2.set_italic(start)
-                    if cw.UP_SCR <> 1:
+                    if cw.UP_SCR != 1:
                         info.font_noscale.set_italic(start)
                         info.font2_noscale.set_italic(start)
                 elif name == "s":
@@ -1332,17 +1332,17 @@ class JptxImage(cw.image.Image):
                         info.fontcolor = color
                     info.font.set_bold(bold)
                     info.font2.set_bold(bold)
-                    if cw.UP_SCR <> 1:
+                    if cw.UP_SCR != 1:
                         info.font_noscale.set_bold(bold)
                         info.font2_noscale.set_bold(bold)
                     info.font.set_italic(italic)
                     info.font2.set_italic(italic)
-                    if cw.UP_SCR <> 1:
+                    if cw.UP_SCR != 1:
                         info.font_noscale.set_italic(italic)
                         info.font2_noscale.set_italic(italic)
                     info.font.set_underline(underline)
                     info.font2.set_underline(underline)
-                    if cw.UP_SCR <> 1:
+                    if cw.UP_SCR != 1:
                         info.font_noscale.set_underline(underline)
                         info.font2_noscale.set_underline(underline)
 
@@ -1516,7 +1516,7 @@ class EffectBoosterConfig(object):
         if jptxtxt:
             self._sections["jptx:begin"] = {"jptx:end": "".join(jptxtxt)}
 
-        if not self._sections and firstsection <> "":
+        if not self._sections and firstsection != "":
             cur_sec = {}
             self._sections[firstsection] = cur_sec
             self._orderedsecs.append(firstsection)

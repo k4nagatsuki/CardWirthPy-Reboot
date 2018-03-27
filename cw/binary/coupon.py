@@ -3,11 +3,11 @@
 
 import re
 
-import base
+from . import base
 
 import cw
 
-_120gene = re.compile(ur"\A＠Ｇ[01]{10}-[0-9]+\Z")
+_120gene = re.compile(r"\A＠Ｇ[01]{10}-[0-9]+\Z")
 
 class Coupon(base.CWBinaryBase):
     """クーポンデータ。"""

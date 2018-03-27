@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
-import beast
+from . import base
+from . import beast
 
 import cw
 
@@ -17,7 +17,7 @@ class EffectMotion(base.CWBinaryBase):
 
         if 2 < dataversion:
             # 不明なバイト列(8,5,0,0,0)。読み飛ばし。
-            for _cnt in xrange(5):
+            for _cnt in range(5):
                 _b = f.byte()
 
         self.element = f.byte()
@@ -57,7 +57,7 @@ class EffectMotion(base.CWBinaryBase):
         elif self.tabtype == 8:
             beasts_num = f.dword()
             self.beasts = [beast.BeastCard(self, f, summoneffect=True)
-                                            for _cnt in xrange(beasts_num)]
+                                            for _cnt in range(beasts_num)]
         else:
             raise ValueError(self.fpath)
 
@@ -68,8 +68,8 @@ class EffectMotion(base.CWBinaryBase):
             self.data = cw.data.make_element("Motion")
             self.data.set("type", self.conv_effectmotion_type(self.tabtype, self.type))
             self.data.set("element", self.conv_effectmotion_element(self.element))
-            for key, value in self.properties.iteritems():
-                if isinstance(value, (str, unicode)):
+            for key, value in self.properties.items():
+                if isinstance(value, str):
                     self.data.set(key, value)
                 else:
                     self.data.set(key, str(value))
@@ -97,7 +97,7 @@ class EffectMotion(base.CWBinaryBase):
         f.write_byte(element)
 
         # 大分類が召喚の場合は、typeを飛ばす
-        if tabtype <> 8:
+        if tabtype != 8:
             f.write_byte(mtype)
 
         # 生命力, 肉体
@@ -114,7 +114,7 @@ class EffectMotion(base.CWBinaryBase):
         # 技能
         elif tabtype == 2:
             if not data.get("damagetype", "Max") in ("", "Max"):
-                f.check_wsnversion("1", u"技能使用回数回復・喪失量の指定")
+                f.check_wsnversion("1", "技能使用回数回復・喪失量の指定")
         # 消滅, カード
         elif tabtype in (6, 7):
             pass

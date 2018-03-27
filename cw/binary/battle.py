@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
-import event
+from . import base
+from . import event
 
 import cw
 
@@ -37,10 +37,10 @@ class Battle(base.CWBinaryBase):
             return
 
         events_num = f.dword()
-        self.events = [event.Event(self, f) for _cnt in xrange(events_num)]
+        self.events = [event.Event(self, f) for _cnt in range(events_num)]
         self.spreadtype = f.byte()
         ecards_num = f.dword()
-        self.ecards = [EnemyCard(self, f) for _cnt in xrange(ecards_num)]
+        self.ecards = [EnemyCard(self, f) for _cnt in range(ecards_num)]
         if 0 < dataversion:
             self.bgm = f.string()
         else:
@@ -92,7 +92,7 @@ class Battle(base.CWBinaryBase):
                         f.check_bgmoptions(prop)
             elif e.tag == "PlayerCardEvents":
                 if len(e):
-                    f.check_wsnversion("2", u"プレイヤーカードイベント")
+                    f.check_wsnversion("2", "プレイヤーカードイベント")
             elif e.tag == "EnemyCards":
                 ecards = e
                 spreadtype = base.CWBinaryBase.unconv_spreadtype(e.get("spreadtype"))
@@ -121,7 +121,7 @@ class EnemyCard(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.cast_id = f.dword()
         events_num = f.dword()
-        self.events = [event.Event(self, f) for _cnt in xrange(events_num)]
+        self.events = [event.Event(self, f) for _cnt in range(events_num)]
         self.flag = f.string()
         self.scale = f.dword()
         self.left = f.dword()
@@ -179,10 +179,10 @@ class EnemyCard(base.CWBinaryBase):
                             scale = int(scale[:-1])
                         else:
                             scale = int(scale)
-                    elif prop.tag == "Layer" and int(prop.text) <> cw.LAYER_MCARDS:
-                        f.check_wsnversion("1", u"レイヤ")
+                    elif prop.tag == "Layer" and int(prop.text) != cw.LAYER_MCARDS:
+                        f.check_wsnversion("1", "レイヤ")
                     elif prop.tag == "CardGroup" and prop.text:
-                        f.check_wsnversion("3", u"カードグループ")
+                        f.check_wsnversion("3", "カードグループ")
             elif e.tag == "Events":
                 events = e
 

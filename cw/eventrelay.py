@@ -48,7 +48,7 @@ class KeyEventRelay(object):
             ord('P') : ord('P'), # スクリーンショット
             ord('C') : ord('C')} # メッセージのコピー
         # キー入力(pygame用)
-        self.keyin = [0 for _cnt in xrange(322)]
+        self.keyin = [0 for _cnt in range(322)]
         # マウス入力。EventHandlerから受信
         self.mousein = [0, 0, 0]
         # マウスが押下状態か
@@ -67,7 +67,7 @@ class KeyEventRelay(object):
         self.flick_start_time = 0
 
     def clear(self):
-        self.keyin = [0 for _cnt in xrange(322)]
+        self.keyin = [0 for _cnt in range(322)]
         self.mousein = [0, 0, 0]
         self.nokeyupevent = False
 
@@ -129,10 +129,10 @@ class KeyEventRelay(object):
         if cw.cwpy.setting.can_repeatlclick:
             button -= 1
             pressed = cw.cwpy.mousein[:]
-            if 0 <= button and button < len(self.mousein) and 0 <> self.mousein[button]:
+            if 0 <= button and button < len(self.mousein) and 0 != self.mousein[button]:
                 if 0 <= button and button < len(pressed) and pressed[button]:
                     # マウスボタン押下時間閾値
-                    if -1 <> self.mousein[button]:
+                    if -1 != self.mousein[button]:
                         mousethreshold = 1.0 / cw.cwpy.setting.fps * 1000 * 40
                         if self.mousein[button] + mousethreshold <= pygame.time.get_ticks():
                             # 最初の1回のみMouseUpしたかのように動作する

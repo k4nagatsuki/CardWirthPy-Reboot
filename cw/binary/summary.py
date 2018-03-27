@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
+from . import base
 
 import cw
 
@@ -36,9 +36,9 @@ class Summary(base.CWBinaryBase):
             self.version = 7
             self.area_id = self.area_id - 70000
         steps_num = f.dword()
-        self.steps = [Step(self, f) for _cnt in xrange(steps_num)]
+        self.steps = [Step(self, f) for _cnt in range(steps_num)]
         flags_num = f.dword()
-        self.flags = [Flag(self, f) for _cnt in xrange(flags_num)]
+        self.flags = [Flag(self, f) for _cnt in range(flags_num)]
         if wpt120:
             return
         _w = f.dword() # 不明
@@ -157,7 +157,7 @@ class Step(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = f.string()
         self.default = f.dword()
-        self.variable_names = [f.string() for _cnt in xrange(10)]
+        self.variable_names = [f.string() for _cnt in range(10)]
 
         self.data = None
 
@@ -194,7 +194,7 @@ class Step(base.CWBinaryBase):
         name = ""
         default = int(data.get("default"))
         if data.getbool(".", "spchars", False):
-            f.check_wsnversion("2", u"ステップ値中の特殊文字の展開")
+            f.check_wsnversion("2", "ステップ値中の特殊文字の展開")
         variable_names = [""] * 10
         for e in data:
             if e.tag == "Name":
@@ -213,7 +213,7 @@ class Flag(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = f.string()
         self.default = f.bool()
-        self.variable_names = [f.string() for _cnt in xrange(2)]
+        self.variable_names = [f.string() for _cnt in range(2)]
 
         self.data = None
 
@@ -234,7 +234,7 @@ class Flag(base.CWBinaryBase):
         name = ""
         default = cw.util.str2bool(data.get("default"))
         if data.getbool(".", "spchars", False):
-            f.check_wsnversion("2", u"フラグ値中の特殊文字の展開")
+            f.check_wsnversion("2", "フラグ値中の特殊文字の展開")
         variable_names = [""] * 2
         for e in data:
             if e.tag == "Name":

@@ -4,7 +4,7 @@
 import pygame
 
 import cw
-import base
+from . import base
 
 
 class Transition(base.CWPySprite):
@@ -70,8 +70,8 @@ class PixelDissolve(Transition):
         self.rect_sec = pygame.Rect(0, 0, self.sec_w, self.sec_h)
         self.poslist = []
 
-        for x in xrange(cw.s(cw.SIZE_GAME[0]) / self.sec_w + 1):
-            for y in xrange(cw.s(cw.SIZE_GAME[1]) / self.sec_h + 1):
+        for x in range(cw.s(cw.SIZE_GAME[0]) / self.sec_w + 1):
+            for y in range(cw.s(cw.SIZE_GAME[1]) / self.sec_h + 1):
                 self.poslist.append((x * self.sec_w, y * self.sec_h))
 
         self.poslist = cw.cwpy.dice.shuffle(self.poslist)
@@ -81,7 +81,7 @@ class PixelDissolve(Transition):
     def update_transition(self, scr):
         p_frame = self.get_frame()
 
-        for _cnt in xrange(self.variation * (p_frame - self.frame)):
+        for _cnt in range(self.variation * (p_frame - self.frame)):
             if self.poslist:
                 x, y = self.poslist.pop()
                 self.rect_sec.topleft = (x, y)
@@ -106,7 +106,7 @@ class Blinds(Transition):
         self.w_blinds = cw.SIZE_GAME[0] / self.num_split
         self.rect_blinds = pygame.Rect(0, 0, self.w_blinds, cw.SIZE_GAME[1])
 
-        for n in xrange(self.num_split + 2):
+        for n in range(self.num_split + 2):
             self.poslist.append((n * self.w_blinds, 0))
 
         self.image = self.image.convert_alpha()
@@ -129,10 +129,11 @@ class Blinds(Transition):
                 self.frame = 0
                 self.status = "hidden"
 
-def get_transition((name, speed)):
+def get_transition(xxx_todo_changeme):
     """現在表示中の背景を元にしたトランジションスプライトを返す。
     transitiontype: トランジション効果の種類名と速度のタプル。
     """
+    (name, speed) = xxx_todo_changeme
     if name == "Default":
         name = cw.cwpy.setting.transition
 

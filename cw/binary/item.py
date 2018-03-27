@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
-import effectmotion
-import event
+from . import base
+from . import effectmotion
+from . import event
 
 import cw
 
@@ -51,19 +51,19 @@ class ItemCard(base.CWBinaryBase):
         self.visual_effect = f.byte()
         motions_num = f.dword()
         self.motions = [effectmotion.EffectMotion(self, f, dataversion=dataversion)
-                                          for _cnt in xrange(motions_num)]
+                                          for _cnt in range(motions_num)]
         self.enhance_avoid = f.dword()
         self.enhance_resist = f.dword()
         self.enhance_defense = f.dword()
         self.sound_effect = f.string()
         self.sound_effect2 = f.string()
-        self.keycodes = [f.string() for _cnt in xrange(5)]
+        self.keycodes = [f.string() for _cnt in range(5)]
         if 2 < dataversion:
             self.premium = f.byte()
             self.scenario_name = f.string()
             self.scenario_author = f.string()
             events_num = f.dword()
-            self.events = [event.SimpleEvent(self, f) for _cnt in xrange(events_num)]
+            self.events = [event.SimpleEvent(self, f) for _cnt in range(events_num)]
             self.hold = f.bool()
         else:
             self.scenario_name = ""
@@ -256,7 +256,7 @@ class ItemCard(base.CWBinaryBase):
                             for keycode in keycodes:
                                 if keycode:
                                     if 5 <= len(keycodes2):
-                                        f.check_wsnversion("", u"5件を超えるキーコード指定")
+                                        f.check_wsnversion("", "5件を超えるキーコード指定")
                                         break
                                     else:
                                         keycodes2.append(keycode)
@@ -279,8 +279,8 @@ class ItemCard(base.CWBinaryBase):
                         enhance_resist2 = int(prop.get("resist"))
                         enhance_defense2 = int(prop.get("defense"))
                     elif prop.tag == "LinkId":
-                        if prop.text and prop.text <> "0":
-                            f.check_wsnversion("1", u"カード参照")
+                        if prop.text and prop.text != "0":
+                            f.check_wsnversion("1", "カード参照")
             elif e.tag == "Motions":
                 motions = e
             elif e.tag == "Events":

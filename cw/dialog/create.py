@@ -236,7 +236,7 @@ class AdventurerData(object):
                     d[name] = str(i)
                 elif isinstance(i, float):
                     d[name] = str(int(i))
-                elif isinstance(i, (str, unicode)):
+                elif isinstance(i, str):
                     d[name] = i
 
         return d
@@ -247,7 +247,7 @@ class AdventurerData(object):
         if not name in self.couponnames:
             self.couponnames[name] = len(self.coupons)
             self.coupons.append(coupon)
-        elif name == u"＠レベル上限":
+        elif name == "＠レベル上限":
             # レベル上限に限っては、種族によって
             # 高めに設定されている場合があるので、
             # 最も高いものを使用する
@@ -262,14 +262,14 @@ class AdventurerData(object):
 
     def set_sex(self, sex):
         for f in cw.cwpy.setting.sexes:
-            if sex == u"＿" + f.name:
+            if sex == "＿" + f.name:
                 self.set_coupon(sex, 0)
                 f.modulate(self)
                 break
 
     def set_age(self, age):
         for f in cw.cwpy.setting.periods:
-            if age == u"＿" + f.name:
+            if age == "＿" + f.name:
                 self.level = f.level
                 self.set_coupon(age, 0)
                 f.modulate(self)
@@ -313,7 +313,7 @@ class AdventurerData(object):
         self.maxmin = race.min + 6
 
         if not isinstance(race, cw.header.UnknownRaceHeader):
-            self.set_coupon(u"＠Ｒ" + race.name, 0)
+            self.set_coupon("＠Ｒ" + race.name, 0)
 
         for name, value in race.coupons:
             self.set_coupon(name, value)
@@ -362,24 +362,24 @@ class AdventurerData(object):
                 if nature.genecount == 0:
                     # 遺伝子の1が0個の場合。例えば凡庸型
                     if n == 0:
-                        talent = u"＿" + nature.name
+                        talent = "＿" + nature.name
                         break
                 elif n >= nature.genecount and (0 == len(nature.basenatures)
                                     or talent[1:] in nature.basenatures):
                     # 遺伝子の1が素質の条件個数以上の場合
                     # 特定の素質のみから派生する素質も存在する
-                    talent = u"＿" + nature.name
+                    talent = "＿" + nature.name
                     self.gene = self.gene.reverse()
                     break
 
         for nature in cw.cwpy.setting.natures:
-               if u"＿" + nature.name == talent:
+               if "＿" + nature.name == talent:
                    nature.modulate(self)
-                   self.set_coupon(u"＠レベル上限", nature.levelmax)
+                   self.set_coupon("＠レベル上限", nature.levelmax)
                    break
 
         self.gene.set_talentbit(talent, oldtalent)
-        self.set_coupon(u"＠Ｇ" + self.gene.get_str(), 0)
+        self.set_coupon("＠Ｇ" + self.gene.get_str(), 0)
 
         return talent
 
@@ -388,7 +388,7 @@ class AdventurerData(object):
 
     def set_aging(self, age):
         for f in cw.cwpy.setting.periods:
-            if age == u"＿" + f.name:
+            if age == "＿" + f.name:
                 self.level = f.level
                 for coupon in f.coupons:
                     self.set_coupon(coupon[0], coupon[1])
@@ -396,7 +396,7 @@ class AdventurerData(object):
 
     def set_attributes(self, attrs):
         for attr in cw.cwpy.setting.makings:
-            coupon = u"＿" + attr.name
+            coupon = "＿" + attr.name
             if coupon in attrs:
                 attr.modulate(self)
                 self.set_coupon(coupon, 0)
@@ -406,15 +406,15 @@ class AdventurerData(object):
         self.description = cw.util.encodewrap(desc)
 
     def set_specialcoupon(self):
-        self.set_coupon(u"＠ＥＰ", 0)
-        self.set_coupon(u"＠レベル原点", self.level)
+        self.set_coupon("＠ＥＰ", 0)
+        self.set_coupon("＠レベル原点", self.level)
 
     def set_life(self):
         self.life = cw.character.calc_maxlife(self.vit, self.min, self.level)
         self.maxlife = self.life
 
 def create_description(talent, attrs):
-    seq = [u"　" * 8 + talent[1:] + "\n\n"]
+    seq = ["　" * 8 + talent[1:] + "\n\n"]
 
     index = 0
     for making in cw.cwpy.setting.makingcoupons:
@@ -427,7 +427,7 @@ def create_description(talent, attrs):
             elif n == 2:
                 s += "\n"
             else:
-                s += u"　" * (7 - len(s))
+                s += "　" * (7 - len(s))
 
             seq.append(s)
             index += 1
@@ -490,7 +490,7 @@ class AdventurerCreater(wx.Dialog):
             if self.autobtn:
                 if (fc is self.autobtn and not self.prevbtn.IsEnabled()) or fc is self.prevbtn:
                     self.page.SetFocusIgnoringChildren()
-                    if event.GetId() <> self.shifttabkeyid:
+                    if event.GetId() != self.shifttabkeyid:
                         self.page.move_up()
                     return
             else:
@@ -499,7 +499,7 @@ class AdventurerCreater(wx.Dialog):
                     if c.IsEnabled():
                         if c is fc:
                             self.page.SetFocusIgnoringChildren()
-                            if event.GetId() <> self.shifttabkeyid:
+                            if event.GetId() != self.shifttabkeyid:
                                 self.page.move_up()
                             return
                         else:
@@ -698,7 +698,7 @@ class AdventurerCreaterPage(wx.Panel):
         self.ch_imgdpath = None
         self.sex = ""
         self.age = ""
-        self._dropkey = (-1, u"<ドロップされたイメージ>", "/drop_files")
+        self._dropkey = (-1, "<ドロップされたイメージ>", "/drop_files")
 
         self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
         self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
@@ -768,11 +768,11 @@ class AdventurerCreaterPage(wx.Panel):
 
     def OnMotion(self, event):
         x, y = event.GetPosition()
-        s = u""
+        s = ""
         for rect, tooltip in self.tooltips:
             if rect.Contains((x, y)):
                 s = tooltip
-        if s <> self.GetToolTipText():
+        if s != self.GetToolTipText():
             self.SetToolTip(s)
 
     def OnNLeftKeyDown(self, event):
@@ -961,7 +961,7 @@ class AdventurerCreaterPage(wx.Panel):
     def OnLeftUp(self, event):
         mousepos = event.GetPosition()
 
-        for key, value in self.clickables.iteritems():
+        for key, value in self.clickables.items():
             rect, method, _wheelmethod = value
 
             if method and rect.collidepoint(mousepos):
@@ -982,7 +982,7 @@ class AdventurerCreaterPage(wx.Panel):
 
         mousepos = event.GetPosition()
 
-        for key, value in self.clickables.iteritems():
+        for key, value in self.clickables.items():
             rect, _method, wheelmethod = value
 
             if wheelmethod and rect.collidepoint(mousepos):
@@ -1023,10 +1023,10 @@ class AdventurerCreaterPage(wx.Panel):
         self.prev = page
 
     def get_next(self):
-        if self.next and self.next.is_skip():
+        if self.__next__ and self.next.is_skip():
             return self.next.get_next()
         else:
-            return self.next
+            return self.__next__
 
     def get_prev(self):
         if self.prev and self.prev.is_skip():
@@ -1054,13 +1054,13 @@ class AdventurerCreaterPage(wx.Panel):
         imgpathlist = cw.util.get_facepaths(self.sex, self.age, adddefaults=adddefaults)
         if 1 == len(imgpathlist) and not drop:
             if self.imgpathlist:
-                self.imgpathlist[None].extend(imgpathlist.values()[0])
+                self.imgpathlist[None].extend(list(imgpathlist.values())[0])
             else:
                 self.imgpathlist.update(imgpathlist)
         else:
             self.imgpathlist.update(imgpathlist)
 
-        self.imgdpaths = self.imgpathlist.keys()
+        self.imgdpaths = list(self.imgpathlist.keys())
         cw.util.sort_by_attr(self.imgdpaths)
 
         if self.imgpathlist and (reset or not self.imgpaths):
@@ -1122,7 +1122,7 @@ class AdventurerCreaterPage(wx.Panel):
         pass
 
 def _path_to_imageinfo(path):
-    if isinstance(path, (str, unicode)):
+    if isinstance(path, str):
         return [cw.image.ImageInfo(path, postype="Center")]
     return path
 
@@ -1159,7 +1159,7 @@ class NamePage(AdventurerCreaterPage):
         self.age = cw.cwpy.setting.periodcoupons[0]
         for period in cw.cwpy.setting.periods:
             if period.firstselect:
-                self.age = u"＿" + period.name
+                self.age = "＿" + period.name
                 break
         self._update_sex()
         self.imgpaths = []
@@ -1345,7 +1345,7 @@ class NamePage(AdventurerCreaterPage):
 
     def OnChoiceImgDPath(self, event):
         index = self.ch_imgdpath.GetSelection()
-        if index <> self.imgdpath:
+        if index != self.imgdpath:
             cw.cwpy.play_sound("page")
             self._choice_imgdpath()
 
@@ -1405,16 +1405,16 @@ class NamePage(AdventurerCreaterPage):
         for sex in cw.cwpy.setting.sexes:
             s = sex.subname
             pos = (x, y)
-            self.draw_clickabletext(dc, s, pos, u"＿" + sex.name, self.set_sex, None, self.sex)
+            self.draw_clickabletext(dc, s, pos, "＿" + sex.name, self.set_sex, None, self.sex)
             if xx[1] == x:
                 x = xx[0]
                 y += cw.wins(15)
-                clickableline[1] = u"＿" + sex.name
+                clickableline[1] = "＿" + sex.name
                 self.clickable_table.append(clickableline)
                 clickableline = [None, None, None, None]
             else:
                 x = xx[1]
-                clickableline[0] = u"＿" + sex.name
+                clickableline[0] = "＿" + sex.name
         if any(clickableline):
             self.clickable_table.append(clickableline)
 
@@ -1424,16 +1424,16 @@ class NamePage(AdventurerCreaterPage):
         for period in cw.cwpy.setting.periods:
             s = period.subname
             pos = (x, y)
-            self.draw_clickabletext(dc, s, pos, u"＿" + period.name, self.set_age, None, self.age)
+            self.draw_clickabletext(dc, s, pos, "＿" + period.name, self.set_age, None, self.age)
             if xx[1] == x:
                 x = xx[0]
                 y += cw.wins(20)
-                clickableline[1] = u"＿" + period.name
+                clickableline[1] = "＿" + period.name
                 self.clickable_table.append(clickableline)
                 clickableline = [None, None, None, None]
             else:
                 x = xx[1]
-                clickableline[0] = u"＿" + period.name
+                clickableline[0] = "＿" + period.name
         if any(clickableline):
             self.clickable_table.append(clickableline)
 
@@ -1533,11 +1533,11 @@ def get_randomname(sex):
     場合は空文字列を返す。
     """
     names = set()
-    fnames = [u"CommonNames.txt"]
+    fnames = ["CommonNames.txt"]
     if sex:
-        fnames.append(sex + u"Names.txt")
+        fnames.append(sex + "Names.txt")
     for fname in fnames:
-        fpath = cw.util.join_paths(cw.cwpy.skindir, u"Name",  fname)
+        fpath = cw.util.join_paths(cw.cwpy.skindir, "Name",  fname)
         names.update(_read_names(fpath))
 
     if not names:
@@ -1556,22 +1556,22 @@ def get_randomname(sex):
             names = names2
         return cw.cwpy.dice.choice(list(names))
     else:
-        return u""
+        return ""
 
 def _get_randomnamefromexample(sex, skintype):
     """Exampleフォルダにスキンタイプに該当するファイルがあったら
     その内容を取得する。
     """
     names = set()
-    exdirpath = u"Data/SkinBase/Name/Example"
+    exdirpath = "Data/SkinBase/Name/Example"
     if os.path.isdir(exdirpath):
-        fnames = [u"CommonNames.txt"]
+        fnames = ["CommonNames.txt"]
         if sex:
-            fnames.append(sex + u"Names.txt")
+            fnames.append(sex + "Names.txt")
         for fname in fnames:
             if fname in names:
                 continue
-            sfname = os.path.splitext(fname)[0] + u"_"
+            sfname = os.path.splitext(fname)[0] + "_"
             for fname2 in os.listdir(exdirpath):
                 if fname2.startswith(sfname):
                     types = os.path.splitext(fname2[len(sfname):])[0]
@@ -1822,7 +1822,7 @@ class RelationPage(AdventurerCreaterPage):
                 ep = 10
             else:
                 for period in cw.cwpy.setting.periods:
-                    if self.father.age == u"＿" + period.name:
+                    if self.father.age == "＿" + period.name:
                         ep = period.spendep
                         break
 
@@ -1835,7 +1835,7 @@ class RelationPage(AdventurerCreaterPage):
                 ep = 10
             else:
                 for period in cw.cwpy.setting.periods:
-                    if self.mother.age == u"＿" + period.name:
+                    if self.mother.age == "＿" + period.name:
                         ep = period.spendep
                         break
 
@@ -1907,7 +1907,7 @@ class RelationPage(AdventurerCreaterPage):
     def set_parents(self):
         def append_header(self, header):
             for sex in cw.cwpy.setting.sexes:
-                if header.sex == u"＿" + sex.name:
+                if header.sex == "＿" + sex.name:
                     if sex.father:
                         self.fathers.append(header)
                     if sex.mother:
@@ -1922,7 +1922,7 @@ class RelationPage(AdventurerCreaterPage):
 
         for header in cw.cwpy.ydata.standbys:
             for period in cw.cwpy.setting.periods:
-                if period.spendep > 0 and header.age == u"＿" + period.name and header.ep >= period.spendep:
+                if period.spendep > 0 and header.age == "＿" + period.name and header.ep >= period.spendep:
                     append_header(self, header)
                     break
 
@@ -1947,7 +1947,7 @@ class TalentPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
         self.SetDoubleBuffered(True)
-        self.talent = u"＿" + cw.cwpy.setting.natures[0].name
+        self.talent = "＿" + cw.cwpy.setting.natures[0].name
         self._bind()
 
         self.set_normalacceleratortable()
@@ -1970,7 +1970,7 @@ class TalentPage(AdventurerCreaterPage):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
 
-        natures = filter(lambda n: not n.special, cw.cwpy.setting.natures)
+        natures = [n for n in cw.cwpy.setting.natures if not n.special]
         xx = [cw.wins(65), cw.wins(255)]
         self.clickable_table = []
         clickableline = [None, None]
@@ -1990,16 +1990,16 @@ class TalentPage(AdventurerCreaterPage):
             dc.SetFont(font2)
             s = nature.name
             pos = (x, y)
-            self.draw_clickabletext(dc, s, pos, u"＿" + nature.name, self.set_talent, None, self.talent)
+            self.draw_clickabletext(dc, s, pos, "＿" + nature.name, self.set_talent, None, self.talent)
 
             if x == xx[1]:
                 x = xx[0]
                 y += yp
-                clickableline[1] = u"＿" + nature.name
+                clickableline[1] = "＿" + nature.name
                 self.clickable_table.append(clickableline)
                 clickableline = [None, None]
             else:
-                clickableline[0] = u"＿" + nature.name
+                clickableline[0] = "＿" + nature.name
                 x = xx[1]
         if any(clickableline):
             self.clickable_table.append(clickableline)
@@ -2017,7 +2017,7 @@ class TalentPage(AdventurerCreaterPage):
         talents = []
         for talent in cw.cwpy.setting.natures:
             if not talent.special:
-                talents.append(u"＿" + talent.name)
+                talents.append("＿" + talent.name)
         self.talent = cw.cwpy.dice.choice(talents)
 
         self.draw(True)
@@ -2054,11 +2054,11 @@ class AttrPage(AdventurerCreaterPage):
         dc.SetFont(font)
 
         self.clickable_table = []
-        for _i in xrange((len(cw.cwpy.setting.makings)+3)//4):
+        for _i in range((len(cw.cwpy.setting.makings)+3)//4):
             self.clickable_table.append([None, None, None, None])
 
         yp = cw.wins(192 // ((len(cw.cwpy.setting.makings)+3)//4))
-        for index in xrange(0, len(cw.cwpy.setting.makings), 2):
+        for index in range(0, len(cw.cwpy.setting.makings), 2):
             column = index % 4
             row = index // 4
             pos = cw.wins(67 + column * 86), cw.wins(64) + (index // 4) * yp
@@ -2069,13 +2069,13 @@ class AttrPage(AdventurerCreaterPage):
                 coupons = (m1.name, m2.name)
             else:
                 coupons = (m1.name)
-            name = (u"＿" + s, coupons)
+            name = ("＿" + s, coupons)
             self.draw_clickabletext(dc, s, pos, name, self.set_coupon, None)
             self.clickable_table[row][column] = name
             if index + 1 < len(cw.cwpy.setting.makings):
                 pos = pos[0] + cw.wins(86), pos[1]
                 s = m2.name
-                name = (u"＿" + s, coupons)
+                name = ("＿" + s, coupons)
                 self.draw_clickabletext(dc, s, pos, name, self.set_coupon, None)
                 self.clickable_table[row][column+1] = name
 
@@ -2111,7 +2111,7 @@ class AttrPage(AdventurerCreaterPage):
         self.draw(True)
 
     def get_coupons(self):
-        return set(value for value in self.couponsdata.itervalues() if value)
+        return set(value for value in self.couponsdata.values() if value)
 
     def select_autofeatures(self):
         cw.cwpy.play_sound("signal")
@@ -2124,20 +2124,20 @@ def _get_randommakingsandpair():
 
     makings = {}
     mlen = len(cw.cwpy.setting.makingnames)
-    for i in xrange(0, mlen, 2):
+    for i in range(0, mlen, 2):
         if i + 1 < mlen:
             pair = cw.cwpy.setting.makingnames[i:i+2]
         else:
             pair = cw.cwpy.setting.makingnames[i:i+1]
         n = cw.cwpy.dice.roll(1, len(pair) + nv) - 1
         if n < len(pair):
-            makings[tuple(pair)] = u"＿" + pair[n]
+            makings[tuple(pair)] = "＿" + pair[n]
     return makings
 
 def get_randommakings():
     """ランダムに選ばれた特徴のsetを返す。"""
     makings = _get_randommakingsandpair()
-    return set(makings.itervalues())
+    return set(makings.values())
 
 #-------------------------------------------------------------------------------
 # 宿の登録ダイアログ
@@ -2169,7 +2169,7 @@ class YadoCreater(wx.Dialog):
             self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["create_base_message_2"], 0, 32)
             skin = cw.cwpy.setting.skindirname
             is_autoloadparty = True
-            skintype = u""
+            skintype = ""
         else:
             fpath = cw.util.join_paths(self.yadodir, "Environment.xml")
             self.data = cw.data.xml2etree(fpath)
@@ -2179,11 +2179,11 @@ class YadoCreater(wx.Dialog):
             self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["edit_base_message_2"], 0, 32)
             self.skindirname = self.data.gettext("Property/Skin", cw.cwpy.setting.skindirname)
             skin = self.skindirname
-            skinpath = cw.util.join_paths(u"Data/Skin", self.skindirname, "Skin.xml")
+            skinpath = cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")
             if os.path.isfile(skinpath):
-                skintype = cw.header.GetProperty(skinpath).properties.get(u"Type", u"")
+                skintype = cw.header.GetProperty(skinpath).properties.get("Type", "")
             else:
-                skintype = self.data.gettext("Property/Type", u"")
+                skintype = self.data.gettext("Property/Type", "")
             self.is_autoloadparty = self.data.getbool("Property/NowSelectingParty", "autoload", True)
             is_autoloadparty = self.is_autoloadparty
 
@@ -2191,18 +2191,18 @@ class YadoCreater(wx.Dialog):
         self.command0s = []
         self.cautions = []
         self.skindirnames = []
-        for name in os.listdir(u"Data/Skin"):
-            path = cw.util.join_paths(u"Data/Skin", name)
-            skinpath = cw.util.join_paths(u"Data/Skin", name, u"Skin.xml")
+        for name in os.listdir("Data/Skin"):
+            path = cw.util.join_paths("Data/Skin", name)
+            skinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml")
 
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 try:
                     prop = cw.header.GetProperty(skinpath)
-                    if skintype and prop.properties.get("Type", u"") <> skintype:
+                    if skintype and prop.properties.get("Type", "") != skintype:
                         continue
-                    choices.append(prop.properties[u"Name"])
-                    self.command0s.append([cw.util.find_resource(cw.util.join_paths(path, u"Resource/Image/Card/COMMAND0"), cw.M_IMG), None])
-                    self.cautions.append([cw.util.find_resource(cw.util.join_paths(path, u"Resource/Image/Dialog/CAUTION"), cw.M_IMG), None])
+                    choices.append(prop.properties["Name"])
+                    self.command0s.append([cw.util.find_resource(cw.util.join_paths(path, "Resource/Image/Card/COMMAND0"), cw.M_IMG), None])
+                    self.cautions.append([cw.util.find_resource(cw.util.join_paths(path, "Resource/Image/Dialog/CAUTION"), cw.M_IMG), None])
                     self.skindirnames.append(name)
                 except Exception:
                     # エラーのあるスキンは無視
@@ -2251,7 +2251,7 @@ class YadoCreater(wx.Dialog):
         cw.xmlcreater.create_environment(name, self.yadodir, skindirname, is_autoloadparty)
 
     def edit_yado(self):
-        if cw.util.create_mutex(u"Yado"):
+        if cw.util.create_mutex("Yado"):
             try:
                 if cw.util.create_mutex(self.yadodir):
                     cw.cwpy.play_sound("harvest")
@@ -2276,9 +2276,9 @@ class YadoCreater(wx.Dialog):
         skindirname = self.skindirnames[self.skin.GetSelection()]
         is_autoloadparty = self.autoload_party.GetValue()
 
-        if name <> self.name or\
-                skindirname <> self.skindirname or\
-                is_autoloadparty <> self.is_autoloadparty:
+        if name != self.name or\
+                skindirname != self.skindirname or\
+                is_autoloadparty != self.is_autoloadparty:
             # データ上の編集
             if not self.data.find("Property/Name") is None:
                 self.data.edit("Property/Name", name)
@@ -2294,14 +2294,14 @@ class YadoCreater(wx.Dialog):
     def _move_dir(self):
         name = self.textctrl.GetValue().strip()
         olddname = os.path.basename(self.yadodir)
-        cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", olddname))
+        cw.util.remove(cw.util.join_paths("Data/Temp/Local", olddname))
 
-        if name <> self.name:
+        if name != self.name:
             # ディレクトリの移動
             yadodir = os.path.dirname(self.yadodir)
             olddname = os.path.basename(self.yadodir)
             dname = cw.binary.util.check_filename(name)
-            if os.path.normcase(os.path.basename(self.yadodir)) <> os.path.normcase(dname):
+            if os.path.normcase(os.path.basename(self.yadodir)) != os.path.normcase(dname):
                 yadodir = cw.util.join_paths(yadodir, dname)
                 yadodir = cw.binary.util.check_duplicate(yadodir)
                 try:
@@ -2343,7 +2343,7 @@ class YadoCreater(wx.Dialog):
         imgdata = self.cautions[index]
         bmp = imgdata[1]
         if not bmp:
-            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], False, can_loaded_scaledimage=True), cw.setting.SIZE_RESOURCES[u"Dialog/CAUTION"]))
+            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], False, can_loaded_scaledimage=True), cw.setting.SIZE_RESOURCES["Dialog/CAUTION"]))
             imgdata[1] = bmp
         return bmp
 
@@ -2719,7 +2719,7 @@ class DesignPanel(AdventurerCreaterPage):
             AdventurerCreaterPage.OnNRightKeyDown(self, event)
 
     def is_changedimgpath(self):
-        return self._oldimgpath <> self.imgpaths
+        return self._oldimgpath != self.imgpaths
 
     def _bind(self):
         AdventurerCreaterPage._bind(self)
@@ -2775,7 +2775,7 @@ class DesignPanel(AdventurerCreaterPage):
 
     def OnChoiceImgDPath(self, event):
         index = self.ch_imgdpath.GetSelection()
-        if index <> self.imgdpath:
+        if index != self.imgdpath:
             cw.cwpy.play_sound("page")
             self._choice_imgdpath()
 

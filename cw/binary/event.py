@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
-import content
+from . import base
+from . import content
 
 import cw
 
@@ -13,9 +13,9 @@ class Event(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         contents_num = f.dword()
         self.contents = [content.Content(self, f, 0)
-                                            for _cnt in xrange(contents_num)]
+                                            for _cnt in range(contents_num)]
         ignitions_num = f.dword()
-        self.ignitions = [f.dword() for _cnt in xrange(ignitions_num)]
+        self.ignitions = [f.dword() for _cnt in range(ignitions_num)]
         self.keycodes = f.string(True)
 
         self.data = None
@@ -56,13 +56,13 @@ class Event(base.CWBinaryBase):
                         for num in cw.util.decodetextlist(ig.text):
                             ignitionnum = int(num)
                             if ignitionnum == 4:
-                                f.check_version(1.50, u"毎ラウンド発火条件")
+                                f.check_version(1.50, "毎ラウンド発火条件")
                             if ignitionnum == 5:
-                                f.check_version(1.50, u"バトル開始発火条件")
+                                f.check_version(1.50, "バトル開始発火条件")
                             ignitions.append(ignitionnum)
                     elif ig.tag == "KeyCodes":
                         if matching == "And":
-                            f.check_version(1.50, u"キーコード全てに一致で発火")
+                            f.check_version(1.50, "キーコード全てに一致で発火")
                             array = ["MatchingType=All"]
                             array.extend(cw.util.decodetextlist(ig.text))
                             keycodes = cw.util.encodetextlist(array)
@@ -87,7 +87,7 @@ class SimpleEvent(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         contents_num = f.dword()
         self.contents = [content.Content(self, f, 0)
-                                            for _cnt in xrange(contents_num)]
+                                            for _cnt in range(contents_num)]
 
         self.data = None
 

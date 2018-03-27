@@ -68,24 +68,24 @@ class Frame(wx.Frame):
 
     def _start_wx(self):
         # SDLを描画するパネル
-        if sys.platform <> "win32" and not self.panel.GetHandle():
+        if sys.platform != "win32" and not self.panel.GetHandle():
             if self._retry_count < 100:
                 self._retry_count += 1
                 wx.CallLater(100, self._start_wx)
             else:
-                wx.MessageBox(u"CardWirthPyの起動に失敗しました。\nパネルのハンドルが取得できません。", u"エラー - CardWirthPy",
+                wx.MessageBox("CardWirthPyの起動に失敗しました。\nパネルのハンドルが取得できません。", "エラー - CardWirthPy",
                               style=wx.OK|wx.CENTRE|wx.ICON_ERROR, parent=self)
                 self.Destroy()
             return
 
         setfullscreensize = False
-        if sys.platform <> "win32":
+        if sys.platform != "win32":
             if self._setting.is_expanded and self._setting.expandmode == "FullScreen":
                 setfullscreensize = True
             else:
                 self.SetClientSize(cw.wins(cw.SIZE_GAME))
 
-        if sys.platform <> "win32" and not setfullscreensize:
+        if sys.platform != "win32" and not setfullscreensize:
             self.SetMinSize(self.GetBestSize())
             self.SetMaxSize(self.GetBestSize())
 
@@ -114,7 +114,7 @@ class Frame(wx.Frame):
             cw.UP_WIN_M = cw.UP_WIN
             cw.UP_SCR = 1
             self.SetClientSize(cw.wins(cw.SIZE_GAME))
-            if sys.platform <> "win32":
+            if sys.platform != "win32":
                 self.SetMinSize(self.GetBestSize())
                 self.SetMaxSize(self.GetBestSize())
             self.panel.SetSize(cw.wins(cw.SIZE_GAME))
@@ -137,7 +137,7 @@ class Frame(wx.Frame):
             self._setting.init_settings()
         if self._setting.auto_update_files:
             # アップデートに伴うファイルの整理
-            cw.update.update_files(u"Data", u"Data", [u"../Scenario/"])
+            cw.update.update_files("Data", "Data", ["../Scenario/"])
         # 起動直後のスレッド数を記憶
         self.initialThreadCount = threading.activeCount()
         # CWPyサブスレッド
@@ -288,7 +288,7 @@ class Frame(wx.Frame):
         time.sleep(1.0 / framerate)
 
     def wait_frame(self, count):
-        for _i in xrange(count):
+        for _i in range(count):
             self.tick_clock()
 
     @synclock(cw.debug.debugger.mutex)
@@ -368,7 +368,7 @@ class Frame(wx.Frame):
         try:
             func = event.func
         except:
-            print "failed to execute function on main thread."
+            print("failed to execute function on main thread.")
             return
 
         func(*event.args, **event.kwargs)
@@ -391,7 +391,7 @@ class Frame(wx.Frame):
                 cw.cwpy.keyevent.keyup(wx.WXK_CONTROL)
 
     def _update_mousepressed(self):
-        if sys.platform <> "win32":
+        if sys.platform != "win32":
             if self.IsActive():
                 state = wx.GetMouseState()
                 l = state.LeftIsDown()
@@ -407,7 +407,7 @@ class Frame(wx.Frame):
 
     def OnKeyUp(self, event):
         keycode = event.GetKeyCode()
-        if keycode <> wx.WXK_CONTROL:
+        if keycode != wx.WXK_CONTROL:
             self.update_keystate()
         if keycode == ord('P') and event.ControlDown():
             keycode = wx.WXK_SNAPSHOT
@@ -417,7 +417,7 @@ class Frame(wx.Frame):
         keycode = event.GetKeyCode()
         if sys.platform == "win32" and keycode == wx.WXK_F4 and event.AltDown():
             return # WindowsではAlt+F4はウィンドウを閉じる操作
-        if keycode <> wx.WXK_CONTROL:
+        if keycode != wx.WXK_CONTROL:
             self.update_keystate()
 
         if self.debugger:
@@ -700,7 +700,7 @@ class Frame(wx.Frame):
             else:
                 areaid = 3
 
-            if areaid <> cw.cwpy.areaid:
+            if areaid != cw.cwpy.areaid:
                 if cw.cwpy.ydata.party:
                     cw.cwpy.ydata.party._loading = False
                 if cw.cwpy.areaid in (1, 2, 3):
@@ -713,14 +713,14 @@ class Frame(wx.Frame):
         while not cw.scenariodb.ScenariodbUpdatingThread.is_finished():
             pass
 
-        if not os.path.isdir(u"Scenario"):
-            os.makedirs(u"Scenario")
+        if not os.path.isdir("Scenario"):
+            os.makedirs("Scenario")
 
         try:
             return cw.scenariodb.Scenariodb()
         except:
-            s = (u"シナリオデータベースへの接続に失敗しました。\n"
-                 u"しばらくしてからもう一度やり直してください。")
+            s = ("シナリオデータベースへの接続に失敗しました。\n"
+                 "しばらくしてからもう一度やり直してください。")
             event = object()
             event.args = {"text":s, "shutdown":False}
             self.OnERROR(event)
@@ -909,7 +909,7 @@ class Frame(wx.Frame):
         else:
             areaid = 3
 
-        if areaid <> cw.cwpy.areaid:
+        if areaid != cw.cwpy.areaid:
             if cw.cwpy.ydata.party:
                 cw.cwpy.ydata.party._loading = False
             cw.cwpy.change_area(areaid)
@@ -1183,7 +1183,7 @@ class Frame(wx.Frame):
                 titledic, titledicfn = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
                 image, y = cw.util.create_screenshot(titledic)
                 w, h = image.get_size()
-                if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey() or sys.platform <> "win32":
+                if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey() or sys.platform != "win32":
                     # linuxでは画像が壊れるので常にこちら
                     buf = pygame.image.tostring(image, "RGBA")
                     alpha = True
@@ -1215,7 +1215,7 @@ class Frame(wx.Frame):
                             os.makedirs(dpath)
                         bmp.SaveFile(filename, wx.BITMAP_TYPE_PNG)
                     except:
-                        s = u"スクリーンショットの保存に失敗しました。\n%s" % (filename)
+                        s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
                         cw.cwpy.call_modaldlg("ERROR", text=s)
 
                 fore = cw.cwpy.setting.ssinfofontcolor
@@ -1348,10 +1348,6 @@ FLICK_START = 1
 class MyApp(wx.App):
 
     def __init__(self):
-        # BUG: 日本語パス以下にバイナリを置くとエラーになる。wxPython 4.0.1
-        sys.prefix = sys.prefix.decode(sys.getfilesystemencoding())
-        sys.executable = sys.executable.decode(sys.getfilesystemencoding())
-
         wx.App.__init__(self, 0)
         self.flick_status = FLICK_NONE
         self.flick_window = None
@@ -1363,7 +1359,7 @@ class MyApp(wx.App):
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
         skincount = get_skincount()[0]
-        exe = u""
+        exe = ""
         if len(cw.SKIN_CONV_ARGS) > 0 and cw.SKIN_CONV_ARGS[0].lower().endswith(".exe"):
             exe = cw.SKIN_CONV_ARGS[0]
         if skincount == 0 or exe:
@@ -1426,7 +1422,7 @@ class MyApp(wx.App):
         if not cw.cwpy.is_showingdlg():
             return -1
 
-        if sys.platform <> "win32" and isinstance(event, wx.UpdateUIEvent):
+        if sys.platform != "win32" and isinstance(event, wx.UpdateUIEvent):
             touchtools = event.GetEventObject()
             if isinstance(touchtools, cw.dialog.etc.TouchTools):
                 if touchtools.on_motion():
@@ -1476,7 +1472,7 @@ class MyApp(wx.App):
                     # フリック中かつボタンが押されていなければ
                     # フリックイベントを発生させる。
                     def watch_mousebutton():
-                        if self.flick_status <> FLICK_START:
+                        if self.flick_status != FLICK_START:
                             return
                         dur = time.time() - self.flick_start_time
                         if cw.cwpy.setting.flick_time_msec / 1000.0 <= dur:
@@ -1518,12 +1514,12 @@ class MyApp(wx.App):
 def get_skincount():
     skincount = 0
     unknown_ver = 0
-    if os.path.isdir(u"Data/Skin"):
-        for name in os.listdir(u"Data/Skin"):
-            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+    if os.path.isdir("Data/Skin"):
+        for name in os.listdir("Data/Skin"):
+            skinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml")
             if os.path.isfile(skinpath):
                 prop = cw.header.GetProperty(skinpath)
-                skinversion = prop.attrs.get(None, {}).get(u"dataVersion", "0")
+                skinversion = prop.attrs.get(None, {}).get("dataVersion", "0")
                 if skinversion in cw.SUPPORTED_SKIN:
                     skincount += 1
                 else:

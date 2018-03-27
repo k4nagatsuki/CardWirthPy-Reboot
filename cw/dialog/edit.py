@@ -94,14 +94,14 @@ class PartyEditor(wx.Dialog):
 
         def func(self, party, suspend_levelup):
             update = False
-            if name <> party.name:
+            if name != party.name:
                 party.set_name(name)
                 update = True
 
-            if suspend_levelup <> party.suspend_levelup:
+            if suspend_levelup != party.suspend_levelup:
                 party.suspend_levelup(suspend_levelup)
 
-            if money <> party.money:
+            if money != party.money:
                 pmoney = money - party.money
                 ymoney = party.money - money
                 cw.cwpy.ydata.set_money(ymoney, blink=True)
@@ -435,7 +435,7 @@ class NumberComboEditDialog(wx.Dialog):
         self.box2.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(12)))
 
         # コンボボックス
-        if 1 <= len(mlist) and not isinstance(mlist[0], (str, unicode)):
+        if 1 <= len(mlist) and not isinstance(mlist[0], str):
             self._combo_panel = wx.Panel(self.panel, -1, size=(-1, cw.wins(24)))
             self.combo = wx.adv.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
         else:
@@ -443,7 +443,7 @@ class NumberComboEditDialog(wx.Dialog):
             self.combo = wx.ComboBox(self.panel, -1, style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         for li in mlist:
-            if isinstance(li, (str, unicode)):
+            if isinstance(li, str):
                 self.combo.Append(li)
             else:
                 self.combo.Append(li[0], li[1])
@@ -655,7 +655,7 @@ class SliderWithButton(wx.Panel):
 
     def OnKillFocusBtn(self, event):
         f = wx.Window.FindFocus()
-        if f <> self.leftbtn and f <> self.rightbtn:
+        if f != self.leftbtn and f != self.rightbtn:
             self._end()
         event.Skip()
 
@@ -719,7 +719,7 @@ class NumberEditor(wx.Panel):
         self.slider = SliderWithButton(self, value, minvalue, maxvalue, page, cw.wins(200))
 
         # スピン
-        self.spinlabel = wx.StaticText(self, -1, u"直接入力:")
+        self.spinlabel = wx.StaticText(self, -1, "直接入力:")
         self.spinlabel.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14)))
         self.spinctrl = wx.SpinCtrl(self, -1, "", size=(cw.wins(80), -1))
         self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14)))
@@ -795,7 +795,7 @@ class ComboEditDialog(wx.Dialog):
         self.box.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(12)))
 
         # コンボボックス
-        if 1 <= len(mlist) and not isinstance(mlist[0], (str, unicode)):
+        if 1 <= len(mlist) and not isinstance(mlist[0], str):
             self._combo_panel = wx.Panel(self.panel, -1, size=(-1, cw.wins(24)))
             self.combo = wx.adv.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
         else:
@@ -803,7 +803,7 @@ class ComboEditDialog(wx.Dialog):
             self.combo = wx.ComboBox(self.panel, -1, style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         for li in mlist:
-            if isinstance(li, (str, unicode)):
+            if isinstance(li, str):
                 self.combo.Append(li)
             else:
                 self.combo.Append(li[0], li[1])
@@ -969,7 +969,7 @@ class LevelEditDialog(wx.Dialog):
         self.party = party
 
         # 対象者
-        self.targets = [u"全員"]
+        self.targets = ["全員"]
         for ccard in self.list:
             self.targets.append(ccard.get_name())
         self.target = wx.ComboBox(self.panel, -1, choices=self.targets, style=wx.CB_READONLY)
@@ -1012,7 +1012,7 @@ class LevelEditDialog(wx.Dialog):
         for ccard in self.get_selected():
             if level is None:
                 level = ccard.level
-            elif level <> ccard.level:
+            elif level != ccard.level:
                 level = None
                 break
 
@@ -1187,7 +1187,7 @@ class InputTextDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        self.text = u""
+        self.text = ""
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 

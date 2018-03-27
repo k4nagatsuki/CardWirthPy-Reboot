@@ -14,7 +14,7 @@ import operator
 import threading
 import hashlib
 import subprocess
-import StringIO
+import io
 import io
 import traceback
 import datetime
@@ -25,6 +25,7 @@ import unicodedata
 import functools
 import webbrowser
 import math
+from functools import reduce
 
 if sys.platform == "win32":
     import win32api
@@ -83,7 +84,7 @@ class MusicInterface(object):
 
     def _play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0,
               fullpath=""):
-        if threading.currentThread() <> cw.cwpy:
+        if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self._play, path, updatepredata, restart, inusecard, subvolume, loopcount, fade,
                               fullpath)
             return
@@ -107,13 +108,13 @@ class MusicInterface(object):
         else:
             assert threading.currentThread() == cw.cwpy
 
-            if restart or self.fpath <> fpath:
+            if restart or self.fpath != fpath:
                 self._stop(fade, stopfadeout=False, updatepredata=False)
                 self.set_volume()
                 self._winmm = False
                 self._bass = False
                 bgmtype = load_bgm(fpath)
-                if bgmtype <> -1:
+                if bgmtype != -1:
                     filesize = 0
                     if os.path.isfile(fpath):
                         try:
@@ -132,12 +133,12 @@ class MusicInterface(object):
                         if sys.platform == "win32":
                             name = "cwbgm_" + str(self.channel)
                             mciSendStringW = ctypes.windll.winmm.mciSendStringW
-                            mciSendStringW(u'open "%s" alias %s' % (fpath, name), 0, 0, 0)
+                            mciSendStringW('open "%s" alias %s' % (fpath, name), 0, 0, 0)
                             volume = cw.cwpy.setting.vol_bgm_midi if is_midi(fpath) else cw.cwpy.setting.vol_bgm
                             volume = int(volume * 1000)
                             volume = volume * subvolume / 100
-                            mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
-                            mciSendStringW(u"play %s" % (name), 0, 0, 0)
+                            mciSendStringW("setaudio %s volume to %s" % (name, volume), 0, 0, 0)
+                            mciSendStringW("play %s" % (name), 0, 0, 0)
                             self._winmm = True
                         elif cw.util.splitext(fpath)[1].lower() in (".mpg", ".mpeg"):
                             try:
@@ -176,7 +177,7 @@ class MusicInterface(object):
                         elif pygame.mixer.get_init():
                             pygame.mixer.music.play(-1)
             else:
-                if self.subvolume <> subvolume:
+                if self.subvolume != subvolume:
                     self.subvolume = subvolume
                     self.set_volume(fade=fade)
                 else:
@@ -196,13 +197,13 @@ class MusicInterface(object):
             cw.cwpy.sdata.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
     def stop(self, fade=0):
-        if threading.currentThread() <> cw.cwpy:
+        if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.stop, fade)
             return
         self._stop(fade=fade, stopfadeout=True, updatepredata=True)
 
     def _stop(self, fade, stopfadeout, updatepredata=True):
-        if threading.currentThread() <> cw.cwpy:
+        if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self._stop, fade, stopfadeout)
             return
 
@@ -217,8 +218,8 @@ class MusicInterface(object):
         if self._winmm:
             name = "cwbgm_" + str(self.channel)
             mciSendStringW = ctypes.windll.winmm.mciSendStringW
-            mciSendStringW(u"stop %s" % (name), 0, 0, 0)
-            mciSendStringW(u"close %s" % (name), 0, 0, 0)
+            mciSendStringW("stop %s" % (name), 0, 0, 0)
+            mciSendStringW("close %s" % (name), 0, 0, 0)
             self._winmm = False
         elif self._movie:
             assert self.movie_scr
@@ -243,7 +244,7 @@ class MusicInterface(object):
 
         if updatepredata and cw.cwpy.sdata and cw.cwpy.sdata.pre_battleareadata and cw.cwpy.sdata.pre_battleareadata[1][3] == self.channel:
             areaid, bgmpath, battlebgmpath = cw.cwpy.sdata.pre_battleareadata
-            bgmpath = (u"", 100, 0, self.channel)
+            bgmpath = ("", 100, 0, self.channel)
             cw.cwpy.sdata.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
     def _get_volumevalue(self, fpath):
@@ -258,7 +259,7 @@ class MusicInterface(object):
         return volume * self.mastervolume / 100
 
     def set_volume(self, volume=None, fade=0):
-        if threading.currentThread() <> cw.cwpy:
+        if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_volume, volume)
             return
 
@@ -275,7 +276,7 @@ class MusicInterface(object):
             pygame.mixer.music.set_volume(volume)
 
     def set_mastervolume(self, volume):
-        if threading.currentThread() <> cw.cwpy:
+        if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_mastervolume, volume)
             return
 
@@ -349,7 +350,7 @@ class SoundInterface(object):
                 volume = 0
 
             if cw.bassplayer.is_alivablewithpath(self._path):
-                if threading.currentThread() <> cw.cwpy:
+                if threading.currentThread() != cw.cwpy:
                     cw.cwpy.exec_func(self.play, from_scenario, subvolume, loopcount, channel, fade)
                     return
                 assert threading.currentThread() == cw.cwpy
@@ -360,11 +361,11 @@ class SoundInterface(object):
                     self._type = 0
                 except Exception:
                     cw.util.print_ex()
-            elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
+            elif sys.platform == "win32" and isinstance(self._sound, str):
                 if threading.currentThread() == cw.cwpy:
                     cw.cwpy.frame.exec_func(self.play, from_scenario, subvolume, loopcount, channel, fade)
                     return
-                assert threading.currentThread() <> cw.cwpy
+                assert threading.currentThread() != cw.cwpy
                 tempbasedir = self._play_before(from_scenario, channel, fade)
                 if from_scenario:
                     name = "cwsnd1_" + str(channel)
@@ -373,13 +374,13 @@ class SoundInterface(object):
 
                 mciSendStringW = ctypes.windll.winmm.mciSendStringW
                 path = get_soundfilepath(tempbasedir, self._sound)
-                mciSendStringW(u'open "%s" alias %s' % (path, name), 0, 0, 0)
+                mciSendStringW('open "%s" alias %s' % (path, name), 0, 0, 0)
                 volume = int(volume * 1000)
-                mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
-                mciSendStringW(u"play %s" % (name), 0, 0, 0)
+                mciSendStringW("setaudio %s volume to %s" % (name, volume), 0, 0, 0)
+                mciSendStringW("play %s" % (name), 0, 0, 0)
                 self._type = 1
             else:
-                if threading.currentThread() <> cw.cwpy:
+                if threading.currentThread() != cw.cwpy:
                     cw.cwpy.exec_func(self.play, from_scenario, subvolume, loopcount, channel, fade)
                     return
                 assert threading.currentThread() == cw.cwpy
@@ -399,14 +400,14 @@ class SoundInterface(object):
 
     def _stop(self, from_scenario, fade, stopfadeout):
         self.mastervolume = 0
-        if self._type <> -1 and self._sound and 0 <= self.channel and self.channel < cw.bassplayer.MAX_SOUND_CHANNELS:
+        if self._type != -1 and self._sound and 0 <= self.channel and self.channel < cw.bassplayer.MAX_SOUND_CHANNELS:
             if from_scenario:
                 tempbasedir = "Sound"
             else:
                 tempbasedir = "SystemSound"
 
             if self._type == 0:
-                if threading.currentThread() <> cw.cwpy:
+                if threading.currentThread() != cw.cwpy:
                     cw.cwpy.exec_func(self._stop, from_scenario, fade, stopfadeout)
                     return
                 assert threading.currentThread() == cw.cwpy
@@ -419,18 +420,18 @@ class SoundInterface(object):
                 if threading.currentThread() == cw.cwpy:
                     cw.cwpy.frame.exec_func(self._stop, from_scenario, fade, stopfadeout)
                     return
-                assert threading.currentThread() <> cw.cwpy
+                assert threading.currentThread() != cw.cwpy
                 if from_scenario:
                     name = "cwsnd1_" + str(self.channel)
                 else:
                     name = "cwsnd2"
 
                 mciSendStringW = ctypes.windll.winmm.mciSendStringW
-                mciSendStringW(u"stop %s" % (name), 0, 0, 0)
-                mciSendStringW(u"close %s" % (name), 0, 0, 0)
+                mciSendStringW("stop %s" % (name), 0, 0, 0)
+                mciSendStringW("close %s" % (name), 0, 0, 0)
                 remove_soundtempfile(tempbasedir)
             else:
-                if threading.currentThread() <> cw.cwpy:
+                if threading.currentThread() != cw.cwpy:
                     cw.cwpy.exec_func(self._stop, from_scenario, fade, stopfadeout)
                     return
                 assert threading.currentThread() == cw.cwpy
@@ -457,7 +458,7 @@ class SoundInterface(object):
         return volume * self.mastervolume / 100.0
 
     def set_mastervolume(self, from_scenario, volume):
-        if threading.currentThread() <> cw.cwpy:
+        if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_mastervolume, from_scenario, volume)
             return
 
@@ -465,7 +466,7 @@ class SoundInterface(object):
         self.set_volume(from_scenario)
 
     def set_volume(self, from_scenario, volume=None):
-        if threading.currentThread() <> cw.cwpy:
+        if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_volume, from_scenario, volume)
             return
         if self._type == -1:
@@ -485,7 +486,7 @@ class SoundInterface(object):
                 name = "cwsnd1_" + str(self.channel)
             else:
                 name = "cwsnd2"
-            mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
+            mciSendStringW("setaudio %s volume to %s" % (name, volume), 0, 0, 0)
         elif self._type == 2:
             self._sound.set_volume(volume)
 
@@ -579,7 +580,7 @@ def get_scaledimagepaths(path, can_loaded_scaledimage):
     if can_loaded_scaledimage:
         spext = os.path.splitext(path)
         for scale in cw.SCALE_LIST:
-            fname = u"%s.x%d%s" % (spext[0], scale, spext[1])
+            fname = "%s.x%d%s" % (spext[0], scale, spext[1])
             seq.append((fname, scale))
     return seq
 
@@ -593,10 +594,10 @@ def copy_scaledimagepaths(frompath, topath, can_loaded_scaledimage):
     if can_loaded_scaledimage and fromspext[1].lower() in cw.EXTS_IMG:
         tospext = os.path.splitext(topath)
         for scale in cw.SCALE_LIST:
-            fname = u"%s.x%d%s" % (fromspext[0], scale, fromspext[1])
+            fname = "%s.x%d%s" % (fromspext[0], scale, fromspext[1])
             fname = cw.cwpy.rsrc.get_filepath(fname)
             if os.path.isfile(fname):
-                fname2 = u"%s.x%d%s" % (tospext[0], scale, tospext[1])
+                fname2 = "%s.x%d%s" % (tospext[0], scale, tospext[1])
                 shutil.copy2(fname, fname2)
 
 def find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale):
@@ -610,12 +611,12 @@ def find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale):
 
     path = cw.util.join_paths(path)
     if not noscale and (can_loaded_scaledimage or\
-                        path.startswith(cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile") + u"/") or\
-                        path.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Table") + u"/")):
+                        path.startswith(cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile") + "/") or\
+                        path.startswith(cw.util.join_paths(cw.cwpy.skindir, "Table") + "/")):
         scale =  int(math.pow(2, int(math.log(up_scr, 2))))
         spext = os.path.splitext(path)
         while 2 <= scale:
-            fname = u"%s.x%d%s" % (spext[0], scale, spext[1])
+            fname = "%s.x%d%s" % (spext[0], scale, spext[1])
             fname = cw.cwpy.rsrc.get_filepath(fname)
             if os.path.isfile(fname):
                 path = fname
@@ -629,9 +630,9 @@ def find_noscalepath(path):
     ".xN"の部分を取り除いて返す。
     ただし取り除いた後のファイルが実在しない場合はそのまま返す。
     """
-    scales = u"|".join(map(lambda s: str(s), cw.SCALE_LIST))
-    exts = u"|".join(map(lambda s: s.replace(".", "\\."), cw.EXTS_IMG))
-    result = re.match(u"\\A(.+)\.x(%s)(%s)\\Z" % (scales, exts), path, re.IGNORECASE)
+    scales = "|".join([str(s) for s in cw.SCALE_LIST])
+    exts = "|".join([s.replace(".", "\\.") for s in cw.EXTS_IMG])
+    result = re.match("\\A(.+)\.x(%s)(%s)\\Z" % (scales, exts), path, re.IGNORECASE)
     if result:
         fpath = result.group(1) + result.group(3)
         if os.path.isfile(fpath):
@@ -761,7 +762,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
             image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
 
-    if not ispng and bmpdepth == 1 and mask and not isback or up_scr <> 1:
+    if not ispng and bmpdepth == 1 and mask and not isback or up_scr != 1:
         image = Depth1Surface(image, up_scr, bmpdepth)
     return image
 
@@ -862,17 +863,17 @@ def get_facepaths(sexcoupon, agecoupon, adddefaults=True):
 
     sex = ""
     for f in cw.cwpy.setting.sexes:
-        if sexcoupon == u"＿" + f.name:
+        if sexcoupon == "＿" + f.name:
             sex = f.subname
 
     age = ""
     for f in cw.cwpy.setting.periods:
-        if agecoupon == u"＿" + f.name:
+        if agecoupon == "＿" + f.name:
             age = f.abbr
 
     dpaths = [] # (実際のパス, 表示するパス)
-    facedir1 = cw.util.join_paths(cw.cwpy.skindir, u"Face") # スキン付属
-    facedir2 = u"Data/Face" # 全スキン共通
+    facedir1 = cw.util.join_paths(cw.cwpy.skindir, "Face") # スキン付属
+    facedir2 = "Data/Face" # 全スキン共通
 
     for i, facedir in enumerate((facedir1, facedir2)):
         def add(weight, dpath1):
@@ -881,26 +882,26 @@ def get_facepaths(sexcoupon, agecoupon, adddefaults=True):
                 name = cw.cwpy.setting.skinname
             else:
                 name = cw.cwpy.msgs["common"]
-            dpaths.append((i * 10 + weight, u"<%s> %s" % (name, dpath1), dpath))
+            dpaths.append((i * 10 + weight, "<%s> %s" % (name, dpath1), dpath))
         # 性別・年代限定
         if sex and age:
-            add(0, sex + u"-" + age)
+            add(0, sex + "-" + age)
         # 性別限定
         if sex:
             add(1, sex)
         # 年代限定
         if age:
-            add(2, u"Common-" + age)
+            add(2, "Common-" + age)
         # 汎用
-        add(3, u"Common")
+        add(3, "Common")
 
     passed = set()
     _get_facepaths(facedir, imgpaths, dpaths, passed)
     if not imgpaths and adddefaults:
         seq = []
-        dpath = join_paths(cw.cwpy.skindir, u"Resource/Image/Card")
+        dpath = join_paths(cw.cwpy.skindir, "Resource/Image/Card")
         for sex in cw.cwpy.setting.sexes:
-            if u"＿" + sex.name == sexcoupon:
+            if "＿" + sex.name == sexcoupon:
                 if sex.father:
                     fpath = join_paths(dpath, "FATHER")
                     fpath = find_resource(fpath, cw.M_IMG)
@@ -911,7 +912,7 @@ def get_facepaths(sexcoupon, agecoupon, adddefaults=True):
                     seq.append(fpath)
                 break
         if seq:
-            imgpaths[(dpath, u"Resource/Image/Card")] = seq
+            imgpaths[(dpath, "Resource/Image/Card")] = seq
     return imgpaths
 
 def _get_facepaths(facedir, imgpaths, dpaths, passed):
@@ -927,8 +928,8 @@ def _get_facepaths(facedir, imgpaths, dpaths, passed):
 
         dpaths2 = [][:]
         seq = []
-        scales = u"|".join(map(lambda s: str(s), cw.SCALE_LIST))
-        re_xn = re.compile(u"\\A.+\.x(%s)\\Z" % (scales), re.IGNORECASE)
+        scales = "|".join([str(s) for s in cw.SCALE_LIST])
+        re_xn = re.compile("\\A.+\.x(%s)\\Z" % (scales), re.IGNORECASE)
         for fname in os.listdir(dpath):
             path1 = join_paths(dpath, fname)
             path = get_linktarget(path1)
@@ -939,7 +940,7 @@ def _get_facepaths(facedir, imgpaths, dpaths, passed):
                     seq.append(path)
             elif os.path.isdir(path):
                 showpath = join_paths(showdpath, fname)
-                if sys.platform == "win32" and path1 <> path and showpath.lower().endswith(".lnk"):
+                if sys.platform == "win32" and path1 != path and showpath.lower().endswith(".lnk"):
                     showpath = os.path.splitext(showpath)[0]
                 dpaths2.append((sortkey, showpath, path))
 
@@ -960,7 +961,7 @@ def load_bgm(path):
     失敗した場合は-1を返す。
     path: 音楽ファイルのパス。
     """
-    if threading.currentThread() <> cw.cwpy:
+    if threading.currentThread() != cw.cwpy:
         raise Exception()
 
     if cw.cwpy.rsrc:
@@ -998,7 +999,7 @@ def load_bgm(path):
                 return 0
             except Exception:
                 cw.util.print_ex()
-                print u"BGMが読み込めません", path
+                print("BGMが読み込めません", path)
     return -1
 
 def load_sound(path):
@@ -1006,7 +1007,7 @@ def load_sound(path):
     読み込めなかった場合は、無音で再生するSoundInterfaceを返す。
     path: 効果音ファイルのパス。
     """
-    if threading.currentThread() <> cw.cwpy:
+    if threading.currentThread() != cw.cwpy:
         raise Exception()
 
     if cw.cwpy.rsrc:
@@ -1036,7 +1037,7 @@ def load_sound(path):
         else:
             return SoundInterface()
     except:
-        print u"サウンドが読み込めません", path
+        print("サウンドが読み込めません", path)
         return SoundInterface()
 
     if cw.cwpy.is_playingscenario():
@@ -1063,7 +1064,7 @@ def get_soundfilepath(basedir, path):
     """
     if path and cw.cwpy.ydata and (path.startswith(cw.cwpy.ydata.yadodir) or\
                                    path.startswith(cw.cwpy.ydata.tempdir)):
-        dpath = join_paths(cw.tempdir, u"Playing", basedir)
+        dpath = join_paths(cw.tempdir, "Playing", basedir)
         fpath = os.path.basename(path)
         fpath = join_paths(dpath, fpath)
         fpath = cw.binary.util.check_duplicate(fpath)
@@ -1076,10 +1077,10 @@ def get_soundfilepath(basedir, path):
 def remove_soundtempfile(basedir):
     """再生用のコピーを削除する。
     """
-    dpath = join_paths(cw.tempdir, u"Playing", basedir)
+    dpath = join_paths(cw.tempdir, "Playing", basedir)
     if os.path.isdir(dpath):
         remove(dpath)
-        if not os.listdir(join_paths(cw.tempdir, u"Playing")):
+        if not os.listdir(join_paths(cw.tempdir, "Playing")):
             remove(dpath)
 
 def _sorted_by_attr_impl(d, seq, *attr):
@@ -1087,7 +1088,7 @@ def _sorted_by_attr_impl(d, seq, *attr):
         get = operator.attrgetter(*attr)
     else:
         get = lambda a: a
-    re_num = re.compile(u"( *[0-9]+ *)| +")
+    re_num = re.compile("( *[0-9]+ *)| +")
     str_table = {}
 
     class LogicalStr(object):
@@ -1097,7 +1098,7 @@ def _sorted_by_attr_impl(d, seq, *attr):
                 return
             pos = 0
             self.s = s
-            while s <> u"":
+            while s != "":
                 m = re_num.search(s, pos=pos)
                 if m is None:
                     self.seq.append(s[pos:].lower())
@@ -1112,14 +1113,23 @@ def _sorted_by_attr_impl(d, seq, *attr):
                     self.seq.append((int(ss), ss))
                 pos = ei
 
-        def __cmp__(self, other):
-            r = cmp(self.seq, other.seq)
-            if r:
-                return r
-            return cmp(self.s, other.s)
+        def __lt__(self, other):
+            if self.seq < other.seq:
+                return True
+            elif other.seq < self.seq:
+                return False
+            return self.s < other.s
+
+        def __eq__(self, other):
+            return self.seq == other.seq and self.s == other.s
+
+    assert LogicalStr("a1234b") > LogicalStr("a12b")
+    assert LogicalStr("a12b") < LogicalStr("a1234b")
+    assert LogicalStr("a12b") != LogicalStr("a1234b")
+
 
     def logical_cmp_str(a, b):
-        if not (isinstance(a, (str, unicode)) and isinstance(b, (str, unicode))):
+        if not (isinstance(a, str) and isinstance(b, str)):
             return cmp(a, b)
         if a in str_table:
             al = str_table[a]
@@ -1137,7 +1147,7 @@ def _sorted_by_attr_impl(d, seq, *attr):
         if (isinstance(a, tuple) and isinstance(b, tuple)) or\
                 (isinstance(a, list) and isinstance(b, list)):
             r = 0
-            for i in xrange(max(len(a), len(b))):
+            for i in range(max(len(a), len(b))):
                 if len(a) <= i:
                     return -1
                 if len(b) <= i:
@@ -1145,7 +1155,7 @@ def _sorted_by_attr_impl(d, seq, *attr):
                 aval = a[i]
                 bval = b[i]
                 r = logical_cmp_impl(aval, bval)
-                if r <> 0:
+                if r != 0:
                     break
             return r
         else:
@@ -1163,12 +1173,28 @@ def _sorted_by_attr_impl(d, seq, *attr):
     else:
         return sorted(seq, key=functools.cmp_to_key(logical_cmp))
 
+
+def cmp(a, b):
+    if a is None and b is None:
+        return 0
+    elif a is None:
+        return -1
+    elif b is None:
+        return 1
+    elif a < b:
+        return -1
+    elif b < a:
+        return 1
+    return 0
+
+
 def sorted_by_attr(seq, *attr):
     """非破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
     """
     return _sorted_by_attr_impl(False, seq, *attr)
+
 
 def sort_by_attr(seq, *attr):
     """破壊的にオブジェクトの属性でソートする。
@@ -1177,9 +1203,11 @@ def sort_by_attr(seq, *attr):
     """
     return _sorted_by_attr_impl(True, seq, *attr)
 
+
 assert sort_by_attr(["a1234b", "a12b", "a1234b"]) == ["a12b", "a1234b", "a1234b"]
 assert sort_by_attr(["a12b", "a1234b", "a1b", "a9b", "a01234b", "a1234b", "a-."]) == ["a1b", "a9b", "a12b", "a01234b", "a1234b", "a1234b", "a-."]
 assert sort_by_attr([(1, "a"), None, (0, "b"), (0, "c")]) == [None, (0, "b"), (0, "c"), (1, "a")]
+
 
 def new_order(seq, mode=1):
     """order属性を持つアイテムのlistを
@@ -1197,12 +1225,13 @@ def new_order(seq, mode=1):
             item.order += 1
         return 0
 
+
 def join_paths(*paths):
     """パス結合。ディレクトリの区切り文字はプラットホームに関わらず"/"固定。
     セキュリティ上の問題を避けるため、あえて絶対パスは取り扱わない。
     *paths: パス結合する文字列
     """
-    return "/".join(filter(lambda a: a, paths)).replace("\\", "/").rstrip("/")
+    return "/".join([a for a in paths if a]).replace("\\", "/").rstrip("/")
 
 
 # FIXME: パスによって以下のような警告が標準エラー出力に出るようだが、詳細が分からない。
@@ -1213,7 +1242,7 @@ warnings.filterwarnings("ignore", category=UnicodeWarning)
 
 
 def relpath(path, start):
-    if len(start) < len(path) and path.startswith(start) and start <> "":
+    if len(start) < len(path) and path.startswith(start) and start != "":
         path2 = path[len(start):]
         if path2[0] == '/' or (sys.platform == "win32" and path2[0] == '\\'):
             return path2[1:]
@@ -1248,17 +1277,17 @@ def validate_filepath(fpath):
         return seq
     else:
         if not fpath:
-            return u""
+            return ""
         if os.path.isabs(fpath):
-            return u""
+            return ""
         else:
             n = join_paths(os.path.normpath(fpath))
             if n == ".." or n.startswith("../"):
-                return u""
+                return ""
         return fpath
 
-assert validate_filepath([u"/test/abc", None, u"test/../test", u"test/../../abc", u"../abc"]) ==\
-            [u"test/../test"]
+assert validate_filepath(["/test/abc", None, "test/../test", "test/../../abc", "../abc"]) ==\
+            ["test/../test"]
 
 
 def is_descendant(path, start):
@@ -1344,7 +1373,7 @@ def get_truetypefontname(path):
         #font directory
         stable= struct.Struct( ">4sIII" )
         ftable= f.read( stable.size* dhead[ 1 ] )
-        for i in xrange( dhead[1] ): #directory records
+        for i in range( dhead[1] ): #directory records
             dtable= stable.unpack_from(
                     ftable, i* stable.size )
             if dtable[0]== "name": break
@@ -1359,7 +1388,7 @@ def get_truetypefontname(path):
         sname= struct.Struct( ">HHHHHH" )
         fontname = ""
 
-        for i in xrange( dnamehead[1] ): #name table records
+        for i in range( dnamehead[1] ): #name table records
             dname= sname.unpack_from(fnametable, snamehead.size+ i* sname.size )
 
             if dname[3]== 4: #key == 4: "full name of font"
@@ -1465,7 +1494,7 @@ def screenshot():
         encoding = sys.getfilesystemencoding()
         pygame.image.save(bmp, filename.encode(encoding))
     except:
-        s = u"スクリーンショットの保存に失敗しました。\n%s" % (filename)
+        s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
         cw.cwpy.call_modaldlg("ERROR", text=s)
 
 def create_screenshotfilename(titledic):
@@ -1495,9 +1524,9 @@ def create_screenshot(titledic):
         bmp.blit(scr, (cw.s(0), lh))
         x = cw.s(10)
         y = (lh - fh) / 2
-        for xx in xrange(-1, 1+1):
-            for yy in xrange(-1, 1+1):
-                if xx <> x or yy <> y:
+        for xx in range(-1, 1+1):
+            for yy in range(-1, 1+1):
+                if xx != x or yy != y:
                     bmp.blit(subimg2, (x+xx, y+yy))
         bmp.blit(subimg, (x, y))
         y = lh
@@ -1525,7 +1554,7 @@ def card_screenshot():
                 encoding = sys.getfilesystemencoding()
                 pygame.image.save(bmp, filename.encode(encoding))
             except:
-                s = u"スクリーンショットの保存に失敗しました。\n%s" % (filename)
+                s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
                 cw.cwpy.call_modaldlg("ERROR", text=s)
             return True
     return False
@@ -1548,8 +1577,8 @@ def create_cardscreenshot(titledic):
         margin = 2
         # 背景のタイル色
         # タイトルバーに馴染む色にする
-        back = [map(lambda n: min(255, max(0, n / 2 + 88)), cw.cwpy.setting.ssinfobackcolor),
-                map(lambda n: min(255, max(0, n / 2 + 40)), cw.cwpy.setting.ssinfobackcolor)]
+        back = [[min(255, max(0, n / 2 + 88)) for n in cw.cwpy.setting.ssinfobackcolor],
+                [min(255, max(0, n / 2 + 40)) for n in cw.cwpy.setting.ssinfobackcolor]]
 
         # カード数によってタイルのサイズを決定
         for pcard in pcards:
@@ -1574,9 +1603,9 @@ def create_cardscreenshot(titledic):
         sy = cw.s(0)
         if title:
             x, y = cw.s(10), (lh - fh) / 2
-            for xx in xrange(-1, 1+1):
-                for yy in xrange(-1, 1+1):
-                    if xx <> x or yy <> y:
+            for xx in range(-1, 1+1):
+                for yy in range(-1, 1+1):
+                    if xx != x or yy != y:
                         bmp.blit(subimg2, (x+xx, y+yy))
             bmp.blit(subimg, (x, y))
             sy += lh
@@ -1631,7 +1660,7 @@ def dupcheck_plus(path, yado=True):
     宿のファイルパスの場合は、"Data/Temp/Yado"ディレクトリの重複もチェックする。
     """
 
-    tempyado = cw.util.join_paths(cw.tempdir, u"Yado")
+    tempyado = cw.util.join_paths(cw.tempdir, "Yado")
     dpath, basename = os.path.split(path)
     fname, ext = cw.util.splitext(basename)
     fname = cw.binary.util.check_filename(fname.strip())
@@ -1645,7 +1674,7 @@ def dupcheck_plus(path, yado=True):
         elif path.startswith(tempyado):
             temppath = path.replace(tempyado, "Yado", 1)
         else:
-            print u"宿パスの重複チェック失敗", path
+            print("宿パスの重複チェック失敗", path)
             temppath = ""
 
     else:
@@ -1663,7 +1692,7 @@ def dupcheck_plus(path, yado=True):
             elif path.startswith(tempyado):
                 temppath = path.replace(tempyado, "Yado", 1)
             else:
-                print u"宿パスの重複チェック失敗", path
+                print("宿パスの重複チェック失敗", path)
                 temppath = ""
 
         count += 1
@@ -1675,11 +1704,11 @@ def repl_dischar(fname):
     ファイル名使用不可文字を代替文字に置換し、
     両端に空白があった場合は削除する。
     """
-    d = {'\\': u'￥', '/': u'／', ':': u'：', ',': u'，', ';': u'；',
-         '*': u'＊', '?': u'？','"': u'”', '<': u'＜', '>': u'＞',
-         '|': u'｜'}
+    d = {'\\': '￥', '/': '／', ':': '：', ',': '，', ';': '；',
+         '*': '＊', '?': '？','"': '”', '<': '＜', '>': '＞',
+         '|': '｜'}
 
-    for key, value in d.iteritems():
+    for key, value in d.items():
         fname = fname.replace(key, value)
 
     fname = fname.strip()
@@ -1749,7 +1778,7 @@ def find_resource(path, mtype):
     else:
         assert False, mtype
 
-    if os.path.normcase("A") <> os.path.normcase("a"):
+    if os.path.normcase("A") != os.path.normcase("a"):
         seq = []
         for t2 in t[:]:
             seq.append(t2)
@@ -1762,7 +1791,7 @@ def find_resource(path, mtype):
             path2 = cw.cwpy.rsrc.get_filepath(path2)
         if os.path.isfile(path2):
             return path2
-    return u""
+    return ""
 
 def get_inusecardmaterialpath(path, mtype, inusecard=None, findskin=True):
     """pathが宿からシナリオへ持ち込んだカードの
@@ -1788,7 +1817,7 @@ def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
     if mtype == cw.M_IMG and cw.binary.image.path_is_code(path):
         return path
     if not system and (cw.cwpy.is_playingscenario() or scedir):
-        tpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile", path)
+        tpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile", path)
         tpath = cw.cwpy.rsrc.get_filepath(tpath)
         if os.path.isfile(tpath):
             path = tpath
@@ -1822,8 +1851,8 @@ def get_materialpathfromskin(path, mtype, findskin=True):
             if not eb:
                 fname = cw.util.splitext(fname)[0]
             dpaths = [cw.cwpy.skindir]
-            if os.path.isdir(u"Data/Materials"):
-                dpaths.extend(map(lambda d: cw.util.join_paths(u"Data/Materials", d), os.listdir(u"Data/Materials")))
+            if os.path.isdir("Data/Materials"):
+                dpaths.extend([cw.util.join_paths("Data/Materials", d) for d in os.listdir("Data/Materials")])
             for dpath in dpaths:
                 if eb:
                     # エフェクトブースターのファイルは他の拡張子への付替を行わない
@@ -1865,7 +1894,7 @@ def remove_temp():
                 print_ex()
                 remove_treefiles(path)
 
-    if removeall and cw.tempdir <> cw.tempdir_init:
+    if removeall and cw.tempdir != cw.tempdir_init:
         try:
             remove(cw.tempdir)
         except:
@@ -1873,7 +1902,7 @@ def remove_temp():
             remove_treefiles(cw.tempdir)
 
     try:
-        remove(u"Data/Temp/Global/Deleted")
+        remove("Data/Temp/Global/Deleted")
     except:
         pass
 
@@ -1910,7 +1939,7 @@ def remove_file(path, retry=0, trashbox=False):
             send_trashbox(path)
         else:
             os.remove(path)
-    except WindowsError, err:
+    except WindowsError as err:
         if err.errno == 13 and retry < 5:
             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
             remove_file(path, retry + 1, trashbox=trashbox)
@@ -1930,7 +1959,7 @@ def remove_tree(treepath, retry=0, noretry=False, trashbox=False):
             send_trashbox(treepath)
         else:
             shutil.rmtree(treepath)
-    except WindowsError, err:
+    except WindowsError as err:
         if err.errno == 13 and retry < 5 and not noretry:
             for dpath, dnames, fnames in os.walk(treepath):
                 for dname in dnames:
@@ -1938,7 +1967,7 @@ def remove_tree(treepath, retry=0, noretry=False, trashbox=False):
                     if os.path.isdir(path):
                         try:
                             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
-                        except WindowsError, err:
+                        except WindowsError as err:
                             time.sleep(1)
                             remove_tree2(treepath, trashbox=trashbox)
                             return
@@ -1948,7 +1977,7 @@ def remove_tree(treepath, retry=0, noretry=False, trashbox=False):
                     if os.path.isfile(path):
                         try:
                             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
-                        except WindowsError, err:
+                        except WindowsError as err:
                             time.sleep(1)
                             remove_tree2(treepath, trashbox=trashbox)
                             return
@@ -2071,10 +2100,13 @@ class _LhafileWrapper(lhafile.Lhafile):
 
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
     def close(self):
         self.f.close()
+
 
 def zip_file(path, mode):
     """zipfile.ZipFileのインスタンスを生成する。
@@ -2085,7 +2117,10 @@ def zip_file(path, mode):
     まったくスレッドセーフではない悪い方法だが、
     それを回避するには一時的にos.sepを'/'にして凌ぐしかない。"""
     if path.lower().endswith(".lzh"):
-        return _LhafileWrapper(path, mode)
+        if lhafile:
+            return _LhafileWrapper(path, mode)
+        else:
+            raise Exception("Module lhafile is not found.")
     else:
         sep = os.sep
         os.sep = "/"
@@ -2108,7 +2143,7 @@ def compress_zip(path, zpath, unicodefilename=False):
     z = zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED)
     rpl_dir = path + "/"
 
-    for dpath, dnames, fnames in os.walk(unicode(path)):
+    for dpath, dnames, fnames in os.walk(str(path)):
         for dname in dnames:
             fpath = join_paths(dpath, dname)
             if os.path.isdir(fpath):
@@ -2193,7 +2228,7 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
                 # 上書き先を改名して対処する
                 # (再生中のBGMが上書きできない場合など)
                 paths.add(os.path.normcase(os.path.normpath(os.path.abspath(fpath))))
-                if not os.path.isfile(fpath) or os.path.getmtime(fpath) <> mtime:
+                if not os.path.isfile(fpath) or os.path.getmtime(fpath) != mtime:
                     data = z.read(zname)
                     try:
                         with open(fpath, "wb") as f:
@@ -2203,10 +2238,10 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
                     except:
                         # 改名してリトライ
                         if os.path.isfile(fpath):
-                            dst = join_paths(u"Data/Temp/Global/Deleted", os.path.basename(fpath))
+                            dst = join_paths("Data/Temp/Global/Deleted", os.path.basename(fpath))
                             dst = dupcheck_plus(dst, False)
-                            if not os.path.isdir(u"Data/Temp/Global/Deleted"):
-                                os.makedirs(u"Data/Temp/Global/Deleted")
+                            if not os.path.isdir("Data/Temp/Global/Deleted"):
+                                os.makedirs("Data/Temp/Global/Deleted")
                             rename_file(fpath, dst)
                         with open(fpath, "wb") as f:
                             f.write(data)
@@ -2239,7 +2274,7 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
     return dstdir
 
 def decode_zipname(name):
-    if not isinstance(name, unicode):
+    if not isinstance(name, str):
         try:
             name = name.decode("utf_8_sig")
         except UnicodeDecodeError:
@@ -2263,7 +2298,7 @@ def decode_zipname(name):
     return name
 
 def decode_text(name):
-    if not isinstance(name, unicode):
+    if not isinstance(name, str):
         try:
             name = name.decode("utf_8_sig")
         except UnicodeDecodeError:
@@ -2310,7 +2345,7 @@ def get_elementfromzip(zpath, name, tag=""):
     with zip_file(zpath, "r") as z:
         data = read_zipdata(z, name)
         z.close()
-    f = StringIO.StringIO(data)
+    f = io.StringIO(data)
     try:
         element = cw.data.xml2element(name, tag, stream=f)
     finally:
@@ -2334,9 +2369,9 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
         for dpath, _dnames, fnames in os.walk(dstdir):
             for fname in fnames:
                 fpath = join_paths(dpath, fname)
-                dst = join_paths(u"Data/Temp/Global/Deleted", fname)
-                if not os.path.isdir(u"Data/Temp/Global/Deleted"):
-                    os.makedirs(u"Data/Temp/Global/Deleted")
+                dst = join_paths("Data/Temp/Global/Deleted", fname)
+                if not os.path.isdir("Data/Temp/Global/Deleted"):
+                    os.makedirs("Data/Temp/Global/Deleted")
                 dst = dupcheck_plus(dst)
                 rename_file(fpath, dst)
                 remove(dst)
@@ -2379,7 +2414,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                                 p.kill()
                             time.sleep(0.001)
                             r = p.poll()
-                        if r <> 0:
+                        if r != 0:
                             return # 失敗
                     self.result = dstdir
 
@@ -2393,7 +2428,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                 count = 0
                 for dpath, _dnames, fnames in os.walk(dstdir):
                     count += len(fnames)
-                if last_count <> count:
+                if last_count != count:
                     if progress(count):
                         prog.cancel = True
                 p = time.time() + 0.1
@@ -2404,7 +2439,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                 return None
         else:
             for s in ss:
-                if subprocess.call(s.encode(encoding), shell=True, close_fds=True) <> 0:
+                if subprocess.call(s.encode(encoding), shell=True, close_fds=True) != 0:
                     return None
     except Exception:
         cw.util.print_ex()
@@ -2423,7 +2458,7 @@ def cab_filenum(cab):
             # ヘッダ
             buf = f.read(36)
             f.close()
-            if buf[:4] <> "MSCF":
+            if buf[:4] != "MSCF":
                 return 0
 
             cfiles = word.unpack(buf[28:30])[0]
@@ -2439,7 +2474,7 @@ def cab_hasfile(cab, fname):
 
     dword = struct.Struct("<l")
     word = struct.Struct("<h")
-    if isinstance(fname, (str, unicode)):
+    if isinstance(fname, str):
         fname = os.path.normcase(fname)
     else:
         s = set()
@@ -2452,7 +2487,7 @@ def cab_hasfile(cab, fname):
         with io.BufferedReader(io.FileIO(cab, "rb")) as f:
             # ヘッダ
             buf = f.read(36)
-            if buf[:4] <> "MSCF":
+            if buf[:4] != "MSCF":
                 f.close()
                 return ""
 
@@ -2460,7 +2495,7 @@ def cab_hasfile(cab, fname):
             cfiles = word.unpack(buf[28:30])[0]
             f.seek(cofffiles)
 
-            for _i in xrange(cfiles):
+            for _i in range(cfiles):
                 buf = f.read(16)
                 attribs = word.unpack(buf[14:16])[0]
                 name = []
@@ -2472,8 +2507,8 @@ def cab_hasfile(cab, fname):
                 name = "".join(name)
                 _A_NAME_IS_UTF = 0x80
                 if not (attribs & _A_NAME_IS_UTF):
-                    name = unicode(name, encoding)
-                if isinstance(fname, (str, unicode)):
+                    name = str(name, encoding)
+                if isinstance(fname, str):
                     if fname == os.path.normcase(os.path.basename(name)):
                         f.close()
                         return name
@@ -2501,7 +2536,7 @@ def cab_dpaths(cab):
         with io.BufferedReader(io.FileIO(cab, "rb")) as f:
             # ヘッダ
             buf = f.read(36)
-            if buf[:4] <> "MSCF":
+            if buf[:4] != "MSCF":
                 f.close()
                 return ""
 
@@ -2509,7 +2544,7 @@ def cab_dpaths(cab):
             cfiles = word.unpack(buf[28:30])[0]
             f.seek(cofffiles)
 
-            for _i in xrange(cfiles):
+            for _i in range(cfiles):
                 buf = f.read(16)
                 attribs = word.unpack(buf[14:16])[0]
                 name = []
@@ -2521,10 +2556,10 @@ def cab_dpaths(cab):
                 name = "".join(name)
                 _A_NAME_IS_UTF = 0x80
                 if not (attribs & _A_NAME_IS_UTF):
-                    name = unicode(name, encoding)
-                i = name.rfind(u"\\")
+                    name = str(name, encoding)
+                i = name.rfind("\\")
                 if i == -1:
-                    r.add(u"")
+                    r.add("")
                 else:
                     dname = name[:i]
                     r.add(dname)
@@ -2548,7 +2583,7 @@ def encodewrap(s):
     """改行コードを\nに置換する。"""
     r = []
     if not s:
-        return u""
+        return ""
     for c in s:
         if c == '\\':
             r.append("\\\\")
@@ -2563,7 +2598,7 @@ def encodewrap(s):
 def decodewrap(s, code="\n"):
     """\nを改行コードに戻す。"""
     if not s:
-        return u""
+        return ""
     r = []
     bs = False
     for c in s:
@@ -2591,18 +2626,18 @@ def decodetextlist(s):
         return []
     return decodewrap(s).split("\n")
 
-def is_hw(unichr):
+def is_hw(chr):
     """unichrが半角文字であればTrueを返す。"""
-    return not unicodedata.east_asian_width(unichr) in ('F', 'W', 'A')
+    return not unicodedata.east_asian_width(chr) in ('F', 'W', 'A')
 
 def get_strlen(s):
-    return reduce(lambda a, b: a + b, map(lambda c: 1 if is_hw(c) else 2, s))
+    return reduce(lambda a, b: a + b, [1 if is_hw(c) else 2 for c in s])
 
 def slice_str(s, width, get_width=None):
     """
     sをwidthの位置でスライスし、2つの文字列にして返す。
     """
-    s = unicode(s)
+    s = str(s)
     if not get_width:
         get_width = get_strlen
     left = []
@@ -2613,10 +2648,10 @@ def slice_str(s, width, get_width=None):
             break
         left.append(c)
         leftlen += clen
-    return u"".join(left), s[len(left):]
+    return "".join(left), s[len(left):]
 
-assert slice_str(u"ABC", 2) == (u"AB", u"C")
-assert slice_str(u"ABCあ", 4) == (u"ABC", u"あ")
+assert slice_str("ABC", 2) == ("AB", "C")
+assert slice_str("ABCあ", 4) == ("ABC", "あ")
 
 def rjustify(s, length, c):
     slen = cw.util.get_strlen(s)
@@ -2630,7 +2665,7 @@ def ljustify(s, length, c):
         s = (c * (length - slen)) + s
     return s
 
-WRAPS_CHARS = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
+WRAPS_CHARS = "｡|､|，|、|。|．|）|」|』|〕|｝|】"
 
 def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None):
     """引数の文字列を任意の文字数で改行する(全角は2文字として数える)。
@@ -2685,7 +2720,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
             index = len(seq) + index
         seq.insert(index, char)
         if spcharinfo:
-            for i in reversed(xrange(len(spcharinfo2))):
+            for i in reversed(range(len(spcharinfo2))):
                 spi = spcharinfo2[i]
                 if spi < index:
                     break
@@ -2773,12 +2808,12 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
         if not spchar and cnt > width2:
             if defspchar2 and width2+1 < cnt:
                 index = -(cnt - (width+1))
-                if seq[-index] <> "\n":
+                if seq[-index] != "\n":
                     seq_insert(index, "\n")
                     seqlen += len("\n")
                 cnt = 1
             elif width2 >= asciicnt > 0 and not defspchar2:
-                if not get_char(s, index + 1) == "\n" and seq[-asciicnt] <> "\n":
+                if not get_char(s, index + 1) == "\n" and seq[-asciicnt] != "\n":
                     seq_insert(-asciicnt, "\n")
                     seqlen += len("\n")
                 cnt = asciicnt
@@ -2802,11 +2837,11 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
     sをwidthの幅で折り返す。
     テキストの長さをは計る時にget_width(s)を使用する。
     """
-    s = unicode(s)
+    s = str(s)
     if not get_width:
         get_width = get_strlen
 
-    iter = re.findall(u"[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I)
+    iter = re.findall("[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I)
     if spcharinfo:
         # 特殊文字と単語を分離しておく
         iter2 = []
@@ -2829,7 +2864,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
     lines = []
     buf = []
     buflen = 0
-    hw = get_width(u"#")
+    hw = get_width("#")
     index = startindex
     for word in iter:
         # 特殊文字か？
@@ -2838,13 +2873,13 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
         wordlen = get_width(word)
         if width < buflen+wordlen:
             def match_op(buf):
-                return not buf[1] and open_chars.find(buf[0]) <> -1
+                return not buf[1] and open_chars.find(buf[0]) != -1
 
             def match_cl(buf):
-                return not buf[1] and close_chars.find(buf[0]) <> -1
+                return not buf[1] and close_chars.find(buf[0]) != -1
 
             def match_last(bufs, matcher):
-                for i in xrange(len(bufs)):
+                for i in range(len(bufs)):
                     buf = bufs[-(1+i)]
                     if buf[1] and buf[0][0] == '&':
                         continue
@@ -2872,7 +2907,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                 while width < buflen+get_width(word):
                     word2, word3 = slice_str(word, width-buflen, get_width)
                     if word2:
-                        word2 += u"-"
+                        word2 += "-"
                     buf.append((word2, False))
                     word = word3
                     lines.append(buf)
@@ -2888,7 +2923,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                     i = len(buf2)
                     lines.append(buf[:i])
                     buf = buf[i:]
-                    buflen = sum(map(lambda s: get_width(s[0]), buf))
+                    buflen = sum([get_width(s[0]) for s in buf])
                     return buf, buflen, word
                 else:
                     return append_word_wrap(buf, buflen, word)
@@ -2897,7 +2932,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                 # 末尾に行末禁止文字があるので折り返し可能な位置まで遡って折り返す
                 buf, buflen, word = break_before_openchar(buf, buf, buflen, word)
                 wordlen = get_width(word)
-            elif not unicode.isspace(word):
+            elif not str.isspace(word):
                 # 空白文字は行末にいくつでも連ねるのでそれ以外の文字を処理
                 if match_cl((word, is_spchar)):
                     if width < buflen or (width == buflen and hw < wordlen):
@@ -2916,7 +2951,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                             i = len(buf2)-1
                             lines.append(buf[:i])
                             buf = buf[i:]
-                            buflen = sum(map(lambda s: get_width(s[0]), buf))
+                            buflen = sum([get_width(s[0]) for s in buf])
                         else:
                             # 折り返し可能な位置は行末禁止文字だった
                             buf, buflen, word = break_before_openchar(buf2, buf, buflen, word)
@@ -2931,7 +2966,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                     wordlen = get_width(word)
         if word:
             buf.append((word, is_spchar))
-            if not is_spchar or word[0] <> '&':
+            if not is_spchar or word[0] != '&':
                 buflen += wordlen
         index += len(word)
 
@@ -2939,7 +2974,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
         lines.append(buf)
 
     if spcharinfo2 is None:
-        return u"\n".join(map(lambda buf: u"".join(map(lambda w: w[0], buf)), lines))
+        return "\n".join(["".join([w[0] for w in buf]) for buf in lines])
     else:
         seq = []
         for buf in lines:
@@ -2949,12 +2984,12 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                     spcharinfo2.append(resultindex)
                 line.append(word)
                 resultindex += len(word)
-            seq.append(u"".join(line))
-            resultindex += len(u"\n")
-        return u"\n".join(seq)
+            seq.append("".join(line))
+            resultindex += len("\n")
+        return "\n".join(seq)
 
-def wordwrap(s, width, get_width=None, open_chars=u"\"'(<[`{‘“〈《≪「『【〔（＜［｛｢",
-                                       close_chars=u"!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ",
+def wordwrap(s, width, get_width=None, open_chars="\"'(<[`{‘“〈《≪「『【〔（＜［｛｢",
+                                       close_chars="!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ",
                                        spcharinfo=None):
     if spcharinfo:
         spcharinfo2 = []
@@ -2966,14 +3001,14 @@ def wordwrap(s, width, get_width=None, open_chars=u"\"'(<[`{‘“〈《≪「�
     for line in s.splitlines():
         wrapped = _wordwrap_impl(line, width, get_width, open_chars, close_chars, index, resultindex, spcharinfo, spcharinfo2)
         lines.append(wrapped)
-        index += len(line)+len(u"\n")
-        resultindex += len(wrapped)+len(u"\n")
+        index += len(line)+len("\n")
+        resultindex += len(wrapped)+len("\n")
 
     if spcharinfo:
         spcharinfo.clear()
         spcharinfo.update(spcharinfo2)
 
-    return u"\n".join(lines)
+    return "\n".join(lines)
 
 assert wordwrap("ABC.DEFG.H,IKLM?", 3) == "ABC.\nDEF-\nG.H,\nIKL-\nM?"
 assert wordwrap("[abc..]\ndefg", 3) == "[ab-\nc..]\ndef-\ng"
@@ -2982,22 +3017,22 @@ assert wordwrap("a bc..", 4) == "a \nbc.."
 assert wordwrap("a bc....],.\ndef", 4) == "a \nbc...\n.],.\ndef"
 assert wordwrap("[def]", 4) == "[def]"
 assert wordwrap("def[ghi]]", 4) == "def\n[ghi\n]]"
-assert wordwrap(u"あいうえお。かきくけこ", 11) == u"あいうえお。\nかきくけこ"
-assert wordwrap(u"あいうえAA。かきくけこ", 9) == u"あいうえ\nAA。かき\nくけこ"
+assert wordwrap("あいうえお。かきくけこ", 11) == "あいうえお。\nかきくけこ"
+assert wordwrap("あいうえAA。かきくけこ", 9) == "あいうえ\nAA。かき\nくけこ"
 assert wordwrap("[[[[a", 4) == "[[[[\na"
 assert wordwrap("\"Let's it go!!\"", 4) == "\"Let'\ns it \ngo!!\""
-assert wordwrap(u"あいうえおA.かきくけこ", 11) == u"あいうえおA.\nかきくけこ"
-assert wordwrap(u"あいうえおA。かきくけこ", 11) == u"あいうえお\nA。かきくけ\nこ"
-assert wordwrap(u"ｐｑｒ pqr ＰＱＲ", 6) == u"ｐｑｒ \npqr \nＰＱＲ"
+assert wordwrap("あいうえおA.かきくけこ", 11) == "あいうえおA.\nかきくけこ"
+assert wordwrap("あいうえおA。かきくけこ", 11) == "あいうえお\nA。かきくけ\nこ"
+assert wordwrap("ｐｑｒ pqr ＰＱＲ", 6) == "ｐｑｒ \npqr \nＰＱＲ"
 
 def _test_wordwrap(s, width, spcharinfo):
     return wordwrap(s, width, spcharinfo=spcharinfo), spcharinfo
 
-assert _test_wordwrap(u"CARD #WIRTH SPECIA&L\nCHA&RACTER #TEST!", 8, spcharinfo=set([5, 18, 24, 32])) ==\
-       (u"CARD #W\nIRTH \nSPECIA&L\nCHA&RACTER \n#TEST!", set([5, 20, 26, 35]))
-assert wordwrap(u"[&Rabc..]", 3, spcharinfo=set([1])) == u"[&Rab-\nc..]"
-assert wordwrap(u"ab...", 3) == u"ab..\n."
-assert _test_wordwrap(u"ab..&R.", 3, spcharinfo=set([4])) == (u"ab..\n&R.", set([5]))
+assert _test_wordwrap("CARD #WIRTH SPECIA&L\nCHA&RACTER #TEST!", 8, spcharinfo=set([5, 18, 24, 32])) ==\
+       ("CARD #W\nIRTH \nSPECIA&L\nCHA&RACTER \n#TEST!", set([5, 20, 26, 35]))
+assert wordwrap("[&Rabc..]", 3, spcharinfo=set([1])) == "[&Rab-\nc..]"
+assert wordwrap("ab...", 3) == "ab..\n."
+assert _test_wordwrap("ab..&R.", 3, spcharinfo=set([4])) == ("ab..\n&R.", set([5]))
 
 def get_char(s, index):
     try:
@@ -3042,7 +3077,7 @@ def format_title(fmt, d):
                 return fmt, seq
             elif c == "%":
                 ci = fmt.find("%")
-                if ci <> -1:
+                if ci != -1:
                     seq.append(_FormatPart(fmt[:ci]))
                     fmt = fmt[ci+1:]
             elif c == "[":
@@ -3083,8 +3118,8 @@ def format_title(fmt, d):
 def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True, can_loaded_scaledimage=True,
                noscale=False, up_scr=None):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
-    if sys.platform <> "win32":
-        assert threading.currentThread() <> cw.cwpy
+    if sys.platform != "win32":
+        assert threading.currentThread() != cw.cwpy
 
     def masked_empty_bitmap():
         image = wx.Image(1, 1)
@@ -3144,7 +3179,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                         f2.close()
             except:
                 print_ex()
-                print u"画像が読み込めません(load_wxbmp)", name
+                print("画像が読み込めません(load_wxbmp)", name)
                 return masked_empty_bitmap()
 
         def set_mask(image, maskpos):
@@ -3178,7 +3213,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             if not palette is None:
                 mask = (image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue())
                 maskok = False
-                for pixel in xrange(palette.GetColoursCount()):
+                for pixel in range(palette.GetColoursCount()):
                     if palette.GetRGB(pixel) == mask:
                         maskok = True
                         break
@@ -3192,7 +3227,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         try:
             wxbmp = wx.Bitmap(name)
         except:
-            print u"画像が読み込めません(load_wxbmp)", name
+            print("画像が読み込めません(load_wxbmp)", name)
             return masked_empty_bitmap()
 
     if bmpdepth == 1 and mask:
@@ -3292,7 +3327,7 @@ def draw_center(dc, target, pos, mask=True):
     """指定した座標にBitmap・テキストの中央を合わせて描画。
     target: wx.Bitmapかstrかunicode
     """
-    if isinstance(target, (str, unicode)):
+    if isinstance(target, str):
         size = dc.GetTextExtent(target)
         pos = get_centerposition(size, pos)
         dc.DrawText(target, pos[0], pos[1])
@@ -3306,7 +3341,7 @@ def draw_height(dc, target, height, mask=True):
     """高さのみ指定して、横幅は背景の中央に合わせてBitmap・テキストを描画。
     target: wx.Bitmapかstrかunicode
     """
-    if isinstance(target, (str, unicode)):
+    if isinstance(target, str):
         width = (dc.GetSize()[0] - dc.GetTextExtent(target)[0]) / 2
         dc.DrawText(target, width, height)
     elif isinstance(target, wx.Bitmap):
@@ -3332,9 +3367,9 @@ def draw_witharound_simple(dc, s, x, y, aroundcolor):
     """テキストsを縁取りしながら描画する。"""
     oldcolor = dc.GetTextForeground()
     dc.SetTextForeground(aroundcolor)
-    for xx in xrange(x-1, x+2):
-        for yy in xrange(y-1, y+2):
-            if xx <> x or yy <> y:
+    for xx in range(x-1, x+2):
+        for yy in range(y-1, y+2):
+            if xx != x or yy != y:
                 dc.DrawText(s, xx, yy)
     dc.SetTextForeground(oldcolor)
     dc.DrawText(s, x, y)
@@ -3355,9 +3390,9 @@ def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
     if bordering:
         subimg = cw.util.render_antialiasedtext(dc, text, not white, maxwidth, padding,
                                                 scaledown=scaledown, quality=quality, alpha=alpha)
-        for xx in xrange(x-1, x+2):
-            for yy in xrange(y-1, y+2):
-                if xx <> x or yy <> y:
+        for xx in range(x-1, x+2):
+            for yy in range(y-1, y+2):
+                if xx != x or yy != y:
                     dc.DrawBitmap(subimg, xx, yy)
     subimg = cw.util.render_antialiasedtext(dc, text, white, maxwidth, padding,
                                             scaledown=scaledown, quality=quality)
@@ -3418,13 +3453,13 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     subimg = convert_to_image(wxbmp)
 
     # BUG: wxGTK 4.0.1でランダムに背景が真っ白になる問題への対策
-    if sys.platform <> "win32":
+    if sys.platform != "win32":
         if sys.platform == "darwin":
-            import _imageretouch_mac as _imageretouch
+            from . import _imageretouch_mac as _imageretouch
         elif sys.maxsize == 0x7fffffff:
-            import _imageretouch32 as _imageretouch
+            from . import _imageretouch32 as _imageretouch
         elif sys.maxsize == 0x7fffffffffffffff:
-            import _imageretouch64 as _imageretouch
+            from . import _imageretouch64 as _imageretouch
         redbuf = _imageretouch.mul_alphaonly(str(redbuf), alpha)
     subimg.SetAlphaBuffer(redbuf)
 
@@ -3441,7 +3476,7 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
 
     # BUG: wxGTK 4.0.1でランダムに背景が真っ白になる問題への対策
     if sys.platform == "win32":
-        if alpha <> 255:
+        if alpha != 255:
             cw.imageretouch.mul_wxalpha(subimg, alpha)
 
     if upfont:
@@ -3512,7 +3547,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
         size = (cw.wins(25), -1)
     else:
         size = (cw.ppis(25), -1)
-    button = wx.Button(parent, size=size, label=u"...")
+    button = wx.Button(parent, size=size, label="...")
     parent.Bind(wx.EVT_BUTTON, OnOpen, button)
     return button
 
@@ -3637,15 +3672,15 @@ def abbr_longstr(dc, text, w):
     w: 目標文字列長(pixel)
     """
     if w <= 0 and text:
-        if dc.GetTextExtent(text)[0] <= dc.GetTextExtent(u"...")[0]:
+        if dc.GetTextExtent(text)[0] <= dc.GetTextExtent("...")[0]:
             return text
         else:
-            return u"..."
+            return "..."
     width = dc.GetTextExtent(text)[0]
     if width > w:
-        while text and dc.GetTextExtent(text + u"...")[0] > w:
+        while text and dc.GetTextExtent(text + "...")[0] > w:
             text = text[:-1]
-        text += u"..."
+        text += "..."
     return text
 
 
@@ -3657,10 +3692,10 @@ class CheckableListCtrl(wx.ListCtrl,
         wx.ListCtrl.__init__(self, parent=parent, id=cid, size=size, style=style|wx.LC_NO_HEADER)
         wx.lib.mixins.listctrl.CheckListCtrlMixin.__init__(self)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
-        for i in xrange(colpos+1):
-            self.InsertColumn(i, u"")
+        for i in range(colpos+1):
+            self.InsertColumn(i, "")
 
-        self.InsertItem(0, u"", 0)
+        self.InsertItem(0, "", 0)
         rect = self.GetItemRect(0, wx.LIST_RECT_LABEL)
         self.SetColumnWidth(0, rect.x)
         self.DeleteAllItems()
@@ -3679,7 +3714,7 @@ class CheckableListCtrl(wx.ListCtrl,
             # そのため、他のアイコンのサイズがチェックボックス画像に一致しない
             # 場合は独自のアイコンに差し替える必要がある
             w2, h2 = self.imglist.GetSize(0)
-            if (w, h) <> (w2, h2):
+            if (w, h) != (w2, h2):
                 self.imglist = wx.ImageList(w, h, True)
                 self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["NOCHECK"]))
                 self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["CHECK"]))
@@ -3705,7 +3740,7 @@ class CheckableListCtrl(wx.ListCtrl,
                 index = self.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
                 if index < 0:
                     break
-                if index <> i:
+                if index != i:
                     self.CheckItem(index, flag)
         self._checking = False
 
@@ -3868,8 +3903,8 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
 
         # popup menu
         self.popup_menu = wx.Menu()
-        self.mi_copy = wx.MenuItem(self.popup_menu, wx.ID_COPY, u"コピー(&C)")
-        self.mi_selectall = wx.MenuItem(self.popup_menu, wx.ID_SELECTALL, u"すべて選択(&A)")
+        self.mi_copy = wx.MenuItem(self.popup_menu, wx.ID_COPY, "コピー(&C)")
+        self.mi_selectall = wx.MenuItem(self.popup_menu, wx.ID_SELECTALL, "すべて選択(&A)")
         self.popup_menu.Append(self.mi_copy)
         self.popup_menu.Append(self.mi_selectall)
 
@@ -3882,13 +3917,13 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
 
         self.search_engines = []
         if searchmenu:
-            if os.path.isfile(u"Data/SearchEngines.xml"):
+            if os.path.isfile("Data/SearchEngines.xml"):
                 try:
                     if CWPyRichTextCtrl._search_engines is None:
                         CWPyRichTextCtrl._search_engines = []
-                        data = cw.data.xml2element(u"Data/SearchEngines.xml")
+                        data = cw.data.xml2element("Data/SearchEngines.xml")
                         for e in data:
-                            if e.tag == u"SearchEngine":
+                            if e.tag == "SearchEngine":
                                 url = e.getattr(".", "url", "")
                                 name = e.text
                                 if url and name:
@@ -4039,7 +4074,7 @@ def open_url(parentdlg, url):
     try:
         webbrowser.open(url)
     except Exception:
-        s = u"「%s」が開けませんでした。インターネットブラウザが正常に関連付けされているか確認して下さい。" % url
+        s = "「%s」が開けませんでした。インターネットブラウザが正常に関連付けされているか確認して下さい。" % url
         dlg = cw.dialog.message.ErrorMessage(parentdlg, s)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
@@ -4066,7 +4101,7 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
         # テキストを一旦空にして背景だけ描画させる
         self._cwtabart_caption = page.caption
         self._tab_size = self.GetTabSize(dc, wnd, page.caption, page.bitmap, page.active, close_button_state, page.control)[0]
-        page.caption = u""
+        page.caption = ""
         r = super(CWTabArt, self).DrawTab(dc, wnd, page, in_rect, close_button_state, paint_control)
         page.caption = self._cwtabart_caption
         # テキストを描画
@@ -4147,7 +4182,7 @@ _cominit_table = set()
 def _co_initialize():
     """スレッドごとにCoInitialize()を呼び出す。"""
     global _cominit_table
-    if sys.platform <> "win32":
+    if sys.platform != "win32":
         return
     thr = threading.currentThread()
     if thr in _cominit_table:
@@ -4164,7 +4199,7 @@ def get_linktarget(fpath):
     """fileがショートカットだった場合はリンク先を、
     そうでない場合はfileを返す。
     """
-    if sys.platform <> "win32" or not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
+    if sys.platform != "win32" or not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
         return fpath
 
     _co_initialize()
@@ -4186,7 +4221,7 @@ def set_linktarget(fpath, targetpath):
     """fpathがショートカットだった場合は
     リンク先をtargetpathに変更する。
     """
-    if sys.platform <> "win32" or not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
+    if sys.platform != "win32" or not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
         return fpath
 
     _co_initialize()
@@ -4207,7 +4242,7 @@ def create_link(shortcutpath, targetpath):
     """targetpathへのショートカットを
     shortcutpathに作成する。
     """
-    if sys.platform <> "win32":
+    if sys.platform != "win32":
         return
     shortcutpath = os.path.abspath(shortcutpath)
     dpath = os.path.dirname(shortcutpath)
@@ -4254,7 +4289,7 @@ def td_end(key):
 
 def t_reset():
     global times, dictimes
-    times = map(lambda v: 0, times)
+    times = [0 for v in times]
     dictimes.clear()
 
 def t_print():
@@ -4262,17 +4297,17 @@ def t_print():
     lines = []
     for i, t in enumerate(times):
         if 0 < t:
-            s = u"time[%s] = %s" % (i, t)
+            s = "time[%s] = %s" % (i, t)
             lines.append(s)
-            print s
-    for key, t in dictimes.iteritems():
+            print(s)
+    for key, t in dictimes.items():
         if 0 < t:
-            s = u"time[%s] = %s" % (key, t)
+            s = "time[%s] = %s" % (key, t)
             lines.append(s)
-            print s
+            print(s)
     if lines:
         with open("performance.txt", "w") as f:
-            f.write(u"\n".join(lines))
+            f.write("\n".join(lines))
             f.flush()
             f.close()
 
@@ -4282,7 +4317,7 @@ def t_print():
 
 _lock_mutex = threading.Lock()
 _mutex = []
-if sys.platform <> "win32":
+if sys.platform != "win32":
     import fcntl
 
 @synclock(_lock_mutex)
@@ -4292,7 +4327,7 @@ def create_mutex(dpath):
         dpath = os.path.abspath(dpath)
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
-    name = os.path.join(dpath, u".CardWirthPy.lock")
+    name = os.path.join(dpath, ".CardWirthPy.lock")
 
     # 二重起動防止 for Windows
     if sys.platform == "win32":
@@ -4352,8 +4387,8 @@ def exists_mutex(dpath):
         dpath = os.path.abspath(dpath)
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
-    name = os.path.join(dpath, u".CardWirthPy.lock")
-    if name in map(lambda m: m[1], _mutex):
+    name = os.path.join(dpath, ".CardWirthPy.lock")
+    if name in [m[1] for m in _mutex]:
         return False
 
     if sys.platform == "win32":

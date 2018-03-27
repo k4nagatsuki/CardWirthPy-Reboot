@@ -13,7 +13,6 @@ import ctypes
 import datetime
 import xml.parsers.expat
 from xml.etree.cElementTree import ElementTree
-from xml.etree.ElementTree import _ElementInterface
 
 import pygame
 
@@ -120,8 +119,8 @@ class SystemData(object):
         self._items.clear()
         self._skills.clear()
         self._beasts.clear()
-        dpaths = (cw.util.join_paths(cw.cwpy.skindir, u"Resource/Xml", cw.cwpy.status),
-                  cw.util.join_paths(u"Data/SkinBase/Resource/Xml", cw.cwpy.status))
+        dpaths = (cw.util.join_paths(cw.cwpy.skindir, "Resource/Xml", cw.cwpy.status),
+                  cw.util.join_paths("Data/SkinBase/Resource/Xml", cw.cwpy.status))
 
         for dpath in dpaths:
             for fname in os.listdir(dpath):
@@ -138,7 +137,7 @@ class SystemData(object):
         if not self.fpath:
             return
         normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(self.fpath)))
-        if normpath <> normpath2:
+        if normpath != normpath2:
             return
 
         cw.cwpy.ydata.changed()
@@ -150,7 +149,7 @@ class SystemData(object):
         def update_table(table):
             d = table.copy()
             table.clear()
-            for resid, (name, path) in d.iteritems():
+            for resid, (name, path) in d.items():
                 rel = cw.util.is_descendant(path=path, start=normpath)
                 if rel:
                     path = cw.util.join_paths(dst, rel)
@@ -175,7 +174,7 @@ class SystemData(object):
             return
         dst = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
         normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(self.fpath)))
-        if dst <> normpath2:
+        if dst != normpath2:
             return
         cw.cwpy.rsrc.specialchars.reset()
         self.update_scale()
@@ -187,7 +186,7 @@ class SystemData(object):
         """
         d = {}
 
-        for key in self._areas.iterkeys():
+        for key in self._areas.keys():
             if key in cw.AREAS_TRADE:
                 data = self.get_mcarddata(key, battlestatus=False)
                 areaid = cw.cwpy.areaid
@@ -223,7 +222,7 @@ class SystemData(object):
         pass
 
     def update_scale(self):
-        for mcards in self.sparea_mcards.itervalues():
+        for mcards in self.sparea_mcards.values():
             for mcard in mcards:
                 mcard.update_scale()
         for log in self.backlog:
@@ -295,13 +294,13 @@ class SystemData(object):
         読み込みを行った場合はTrue、新規作成を行った場合はFalseを返す。
         """
         cw.cwpy.set_pcards()
-        cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
+        cw.util.remove(cw.util.join_paths(cw.tempdir, "ScenarioLog"))
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         path = cw.util.get_yadofilepath(path)
 
         if path:
             cw.util.decompress_zip(path, cw.tempdir, "ScenarioLog")
-            musicpaths = self.load_log(cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)
+            musicpaths = self.load_log(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"), False)
             return True, musicpaths
         else:
             self.create_log()
@@ -309,7 +308,7 @@ class SystemData(object):
 
     def remove_log(self, debuglog):
         if debuglog:
-            dpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members")
+            dpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Members")
             for pcard in cw.cwpy.get_pcards():
                 fname = os.path.basename(pcard.data.fpath)
                 fpath = cw.util.join_paths(dpath, fname)
@@ -329,7 +328,7 @@ class SystemData(object):
                         get_coupons.append((name, value))
                 debuglog.add_player(pcard, get_coupons, lose_coupons)
 
-            dpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party")
+            dpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party")
             for fname in os.listdir(dpath):
                 if fname.lower().endswith(".xml"):
                     prop = cw.header.GetProperty(cw.util.join_paths(dpath, fname))
@@ -337,17 +336,17 @@ class SystemData(object):
                     debuglog.set_money(money, cw.cwpy.ydata.party.money)
                     break
 
-            data = xml2etree(cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"))
+            data = xml2etree(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"))
 
-            for gossip, get in cw.util.sorted_by_attr(self.gossips.iteritems()):
+            for gossip, get in cw.util.sorted_by_attr(iter(self.gossips.items())):
                 debuglog.add_gossip(gossip, get)
 
-            for compstamp, get in cw.util.sorted_by_attr(self.compstamps.iteritems()):
+            for compstamp, get in cw.util.sorted_by_attr(iter(self.compstamps.items())):
                 debuglog.add_compstamp(compstamp, get)
 
             for type in ("SkillCard", "ItemCard", "BeastCard"):
                 dname = "Deleted" + type
-                dpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party", dname)
+                dpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party", dname)
                 if os.path.isdir(dpath):
                     for fname in os.listdir(dpath):
                         if fname.lower().endswith(".xml"):
@@ -359,10 +358,10 @@ class SystemData(object):
                             author = prop.properties.get("Author", "")
                             premium = prop.properties.get("Premium", "Normal")
                             attachment = cw.util.str2bool(prop.properties.get("Attachment", "False"))
-                            if type <> "BeastCard" or attachment:
+                            if type != "BeastCard" or attachment:
                                 debuglog.add_lostcard(type, name, desc, scenario, author, premium)
 
-        cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
+        cw.util.remove(cw.util.join_paths(cw.tempdir, "ScenarioLog"))
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         cw.cwpy.ydata.deletedpaths.add(path)
 
@@ -403,8 +402,8 @@ class SystemData(object):
         """
         return False
 
-    def _get_resdata(self, table, resid, tag, nocache, resname=u"?", rootattrs=None):
-        fpath0 = table.get(resid, (u"", u"(未定義の%s ID:%s)" % (resname, resid)))[1]
+    def _get_resdata(self, table, resid, tag, nocache, resname="?", rootattrs=None):
+        fpath0 = table.get(resid, ("", "(未定義の%s ID:%s)" % (resname, resid)))[1]
         fpath = self._get_resfpath(table, resid)
         if fpath is None:
             # イベント中に存在しないリソースを読み込もうとする
@@ -417,7 +416,7 @@ class SystemData(object):
             return xml2element(fpath, tag, nocache=nocache, rootattrs=rootattrs)
         except:
             cw.util.print_ex()
-            s = u"%s の読込に失敗しました。" % (os.path.basename(fpath0))
+            s = "%s の読込に失敗しました。" % (os.path.basename(fpath0))
             cw.cwpy.call_modaldlg("ERROR", text=s)
             return None
 
@@ -436,10 +435,10 @@ class SystemData(object):
         return fpath[1]
 
     def _get_resids(self, table):
-        return table.keys()
+        return list(table.keys())
 
     def get_areadata(self, resid, tag="", nocache=False, rootattrs=None):
-        return self._get_resdata(self._areas, resid, tag, nocache, resname=u"エリア", rootattrs=rootattrs)
+        return self._get_resdata(self._areas, resid, tag, nocache, resname="エリア", rootattrs=rootattrs)
 
     def get_areaname(self, resid):
         return self._get_resname(self._areas, resid)
@@ -451,7 +450,7 @@ class SystemData(object):
         return self._get_resids(self._areas)
 
     def get_battledata(self, resid, tag="", nocache=False, rootattrs=None):
-        return self._get_resdata(self._battles, resid, tag, nocache, resname=u"バトル", rootattrs=rootattrs)
+        return self._get_resdata(self._battles, resid, tag, nocache, resname="バトル", rootattrs=rootattrs)
 
     def get_battlename(self, resid):
         return self._get_resname(self._battles, resid)
@@ -463,7 +462,7 @@ class SystemData(object):
         return self._get_resids(self._battles)
 
     def get_packagedata(self, resid, tag="", nocache=False, rootattrs=None):
-        return self._get_resdata(self._packs, resid, tag, nocache, resname=u"パッケージ", rootattrs=rootattrs)
+        return self._get_resdata(self._packs, resid, tag, nocache, resname="パッケージ", rootattrs=rootattrs)
 
     def get_packagename(self, resid):
         return self._get_resname(self._packs, resid)
@@ -475,7 +474,7 @@ class SystemData(object):
         return self._get_resids(self._packs)
 
     def get_castdata(self, resid, tag="", nocache=False, rootattrs=None):
-        return self._get_resdata(self._casts, resid, tag, nocache, resname=u"キャスト", rootattrs=rootattrs)
+        return self._get_resdata(self._casts, resid, tag, nocache, resname="キャスト", rootattrs=rootattrs)
 
     def get_castname(self, resid):
         return self._get_resname(self._casts, resid)
@@ -487,7 +486,7 @@ class SystemData(object):
         return self._get_resids(self._casts)
 
     def get_skilldata(self, resid, tag="", nocache=False, rootattrs=None):
-        return self._get_resdata(self._skills, resid, tag, nocache, resname=u"特殊技能", rootattrs=rootattrs)
+        return self._get_resdata(self._skills, resid, tag, nocache, resname="特殊技能", rootattrs=rootattrs)
 
     def get_skillname(self, resid):
         return self._get_resname(self._skills, resid)
@@ -499,7 +498,7 @@ class SystemData(object):
         return self._get_resids(self._skills)
 
     def get_itemdata(self, resid, tag="", nocache=False, rootattrs=None):
-        return self._get_resdata(self._items, resid, tag, nocache, resname=u"アイテム", rootattrs=rootattrs)
+        return self._get_resdata(self._items, resid, tag, nocache, resname="アイテム", rootattrs=rootattrs)
 
     def get_itemname(self, resid):
         return self._get_resname(self._items, resid)
@@ -511,7 +510,7 @@ class SystemData(object):
         return self._get_resids(self._items)
 
     def get_beastdata(self, resid, tag="", nocache=False, rootattrs=None):
-        return self._get_resdata(self._beasts, resid, tag, nocache, resname=u"召喚獣", rootattrs=rootattrs)
+        return self._get_resdata(self._beasts, resid, tag, nocache, resname="召喚獣", rootattrs=rootattrs)
 
     def get_beastname(self, resid):
         return self._get_resname(self._beasts, resid)
@@ -523,7 +522,7 @@ class SystemData(object):
         return self._get_resids(self._beasts)
 
     def get_infodata(self, resid, tag="", nocache=False, rootattrs=None):
-        return self._get_resdata(self._infos, resid, tag, nocache, resname=u"情報", rootattrs=rootattrs)
+        return self._get_resdata(self._infos, resid, tag, nocache, resname="情報", rootattrs=rootattrs)
 
     def get_infoname(self, resid):
         return self._get_resname(self._infos, resid)
@@ -543,7 +542,7 @@ class SystemData(object):
                 continue
             fpath = cw.util.join_paths(dpath, fpath)
             idstr = cw.header.GetName(fpath, tagname="Id").name
-            if not idstr or int(idstr) <> resid:
+            if not idstr or int(idstr) != resid:
                 continue
             return fpath
 
@@ -621,7 +620,7 @@ class SystemData(object):
         else:
             name = self.get_areaname(cw.cwpy.areaid)
         if name is None:
-            name = u"(読込失敗)"
+            name = "(読込失敗)"
         return name
 
     def get_bgdata(self, e=None):
@@ -674,14 +673,14 @@ class SystemData(object):
     def get_bgmpaths(self):
         """現在使用可能なBGMのパスのリストを返す。"""
         seq = []
-        dpaths = [cw.util.join_paths(cw.cwpy.skindir, u"Bgm"), cw.util.join_paths(cw.cwpy.skindir, u"BgmAndSound")]
-        for dpath2 in os.listdir(u"Data/Materials"):
-            dpath2 = cw.util.join_paths(u"Data/Materials", dpath2)
+        dpaths = [cw.util.join_paths(cw.cwpy.skindir, "Bgm"), cw.util.join_paths(cw.cwpy.skindir, "BgmAndSound")]
+        for dpath2 in os.listdir("Data/Materials"):
+            dpath2 = cw.util.join_paths("Data/Materials", dpath2)
             if os.path.isdir(dpath2):
-                dpath3 = cw.util.join_paths(dpath2, u"Bgm")
+                dpath3 = cw.util.join_paths(dpath2, "Bgm")
                 if os.path.isdir(dpath3):
                     dpaths.append(dpath3)
-                dpath3 = cw.util.join_paths(dpath2, u"BgmAndSound")
+                dpath3 = cw.util.join_paths(dpath2, "BgmAndSound")
                 if os.path.isdir(dpath3):
                     dpaths.append(dpath3)
         for dpath in dpaths:
@@ -705,7 +704,7 @@ class SystemData(object):
 
     def _tidying_infocards(self):
         """情報カードの情報を整理する。"""
-        nums = filter(lambda a: 0 < a, self.infocards)
+        nums = [a for a in self.infocards if 0 < a]
         indexes = {}
         for i, num in enumerate(sorted(nums)):
             indexes[num] = i + 1
@@ -727,7 +726,7 @@ class SystemData(object):
         if not order:
             return infotable
 
-        return map(lambda a: a[1], reversed(sorted(infotable)))
+        return [a[1] for a in reversed(sorted(infotable))]
 
     def append_infocard(self, resid):
         """情報カードを追加する。"""
@@ -797,7 +796,7 @@ class ScenarioData(SystemData):
                 cw.cwpy.ydata.recenthistory.moveend(self.fpath)
                 self._find_summaryintemp()
             else:
-                self.tempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
+                self.tempdir = cw.util.join_paths(cw.tempdir, "Scenario")
                 orig_tempdir = self._decompress(False)
                 cw.cwpy.ydata.recenthistory.append(self.fpath, orig_tempdir)
         else:
@@ -806,7 +805,7 @@ class ScenarioData(SystemData):
 
         if cw.scenariodb.TYPE_CLASSIC == header.type:
             cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
-                self.tempdir, cw.util.join_paths(cw.tempdir, u"OldScenario"), cw.cwpy.setting.skintype,
+                self.tempdir, cw.util.join_paths(cw.tempdir, "OldScenario"), cw.cwpy.setting.skintype,
                 materialdir="", image_export=False)
 
         # 特殊文字の画像パスの集合(正規表現)
@@ -921,7 +920,7 @@ class ScenarioData(SystemData):
             return
 
         mtime = os.path.getmtime(self.fpath)
-        if self.mtime <> mtime:
+        if self.mtime != mtime:
             self._decompress(True)
             self.mtime = mtime
             if reload:
@@ -936,12 +935,12 @@ class ScenarioData(SystemData):
         # 展開を別スレッドで実行し、進捗をステータスバーに表示
         self._progress = False
         self._arcname = os.path.basename(self.fpath)
-        self._format = u""
+        self._format = ""
         self._cancel_decompress = False
         def startup(filenum):
             def func():
                 self._filenum = filenum
-                self._format = u"%%sを展開中... (%%%ds/%%s)" % len(str(self._filenum))
+                self._format = "%%sを展開中... (%%%ds/%%s)" % len(str(self._filenum))
                 cw.cwpy.expanding = self._format % (self._arcname, 0, self._filenum)
                 cw.cwpy.expanding_max = self._filenum
                 cw.cwpy.expanding_min = 0
@@ -970,7 +969,7 @@ class ScenarioData(SystemData):
                 self.tempdir = decompress(self.fpath, self.tempdir,
                                           startup=startup, progress=progress,
                                           overwrite=overwrite)
-            except Exception, e:
+            except Exception as e:
                 cw.util.print_ex(file=sys.stderr)
                 self._error = e
 
@@ -984,7 +983,7 @@ class ScenarioData(SystemData):
                 cw.cwpy.tick_clock()
                 cw.cwpy.input()
             cw.cwpy.eventhandler.run()
-        except cw.event.EffectBreakError, ex:
+        except cw.event.EffectBreakError as ex:
             self._cancel_decompress = True
             thr.join()
             raise ex
@@ -992,7 +991,7 @@ class ScenarioData(SystemData):
             cw.cwpy.is_decompressing = False
             if not cw.cwpy.is_runningstatus():
                 raise cw.event.EffectBreakError()
-            cw.cwpy.expanding = u""
+            cw.cwpy.expanding = ""
             cw.cwpy.expanding_max = 100
             cw.cwpy.expanding_min = 0
             cw.cwpy.expanding_cur = 0
@@ -1021,7 +1020,7 @@ class ScenarioData(SystemData):
             else:
                 # "Summary.wsm"がキャメルケースでない場合、見つからない可能性がある
                 for dpath, _dnames, fnames in os.walk(self.tempdir):
-                    fnames = map(lambda f: f.lower(), fnames)
+                    fnames = [f.lower() for f in fnames]
                     if "summary.wsm" in fnames or "summary.xml" in fnames:
                         # アーカイヴのサブフォルダにシナリオがある
                         self.tempdir = dpath
@@ -1042,7 +1041,7 @@ class ScenarioData(SystemData):
         """互換性モードを設定する。"""
         last = self.get_versionhint()
         self.versionhint[pos] = hint
-        if cw.HINT_AREA <= pos and cw.cwpy.sct.to_basehint(last) <> cw.cwpy.sct.to_basehint(self.get_versionhint()):
+        if cw.HINT_AREA <= pos and cw.cwpy.sct.to_basehint(last) != cw.cwpy.sct.to_basehint(self.get_versionhint()):
             cw.cwpy.update_titlebar()
 
     def get_carddata(self, linkdata, inusecard=True):
@@ -1153,7 +1152,7 @@ class ScenarioData(SystemData):
             try:
                 etree = xml2etree(fpath)
                 spath = etree.getattr(".", "wsnpath")
-                if spath <> self.fpath:
+                if spath != self.fpath:
                     self._start_datetime = datetime.datetime.today()
                     self._paused_time = 0
                     return
@@ -1253,9 +1252,9 @@ class ScenarioData(SystemData):
     def _reload(self):
         flagvals = {}
         stepvals = {}
-        for name, flag in self.flags.items():
+        for name, flag in list(self.flags.items()):
             flagvals[name] = flag.value
-        for name, step in self.steps.items():
+        for name, step in list(self.steps.items()):
             stepvals[name] = step.value
         self.data_cache = {}
         self.resource_cache = {}
@@ -1264,13 +1263,13 @@ class ScenarioData(SystemData):
         self._init_flags()
         self._init_steps()
 
-        for name, value in flagvals.items():
+        for name, value in list(flagvals.items()):
             if name in self.flags:
                 flag = self.flags[name]
-                if flag.value <> value:
+                if flag.value != value:
                     flag.value = value
                     flag.redraw_cards()
-        for name, value in stepvals.items():
+        for name, value in list(stepvals.items()):
             if name in self.steps:
                 self.steps[name].value = value
 
@@ -1301,7 +1300,7 @@ class ScenarioData(SystemData):
                     return True
                 datafilenames.add(path)
 
-        return datafilenames <> self._datafilenames
+        return datafilenames != self._datafilenames
 
     def _init_xmlpaths(self, xmlonly=False):
         """
@@ -1343,7 +1342,7 @@ class ScenarioData(SystemData):
                     if not (lf.endswith(".xml") or lf.endswith(".wsm") or lf.endswith(".wid")):
                         # シナリオファイル以外はここで処理終わり
                         continue
-                    if (lf.endswith(".wsm") or lf.endswith(".wid")) and dpath <> self.tempdir:
+                    if (lf.endswith(".wsm") or lf.endswith(".wid")) and dpath != self.tempdir:
                         # クラシックなシナリオはディレクトリ直下のみ読み込む
                         continue
 
@@ -1396,7 +1395,7 @@ class ScenarioData(SystemData):
             raise ValueError("Summary file is not found.")
 
         # 特殊エリアのxmlファイルのパスを設定
-        dpath = cw.util.join_paths(cw.cwpy.skindir, u"Resource/Xml/Scenario")
+        dpath = cw.util.join_paths(cw.cwpy.skindir, "Resource/Xml/Scenario")
 
         for fname in os.listdir(dpath):
             path = cw.util.join_paths(dpath, fname)
@@ -1462,7 +1461,7 @@ class ScenarioData(SystemData):
             valuenames = []
             for ev in e:
                 if ev.tag.startswith("Value"):
-                    valuenames.append(ev.text if ev.text else u"")
+                    valuenames.append(ev.text if ev.text else "")
             spchars = e.getbool(".", "spchars", False)
             self.steps[name] = Step(value, name, valuenames, defaultvalue=value,
                                     spchars=spchars)
@@ -1509,7 +1508,7 @@ class ScenarioData(SystemData):
 
         self.is_playing = False
 
-        cw.cwpy.ydata.party.set_lastscenario([], u"")
+        cw.cwpy.ydata.party.set_lastscenario([], "")
 
         # ロストした冒険者を削除
         for path in self.lostadventurers:
@@ -1521,7 +1520,7 @@ class ScenarioData(SystemData):
                 debuglog.add_lostplayer(ccard)
 
             # "＿消滅予約"を持ってない場合、アルバムに残す
-            if not ccard.has_coupon(u"＿消滅予約"):
+            if not ccard.has_coupon("＿消滅予約"):
                 path = cw.xmlcreater.create_albumpage(ccard.data.fpath, True)
                 cw.cwpy.ydata.add_album(path)
 
@@ -1586,22 +1585,22 @@ class ScenarioData(SystemData):
         cw.cwpy.advlog.start_scenario()
 
         # log
-        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False,
+        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"), False,
                                          cw.cwpy.advlog.logfilepath)
         # Party and members xml update
         cw.cwpy.ydata.party.write()
         # party
-        os.makedirs(cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party"))
+        os.makedirs(cw.util.join_paths(cw.tempdir, "ScenarioLog/Party"))
         path = cw.util.get_yadofilepath(cw.cwpy.ydata.party.data.fpath)
-        dstpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party",
+        dstpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party",
                                                     os.path.basename(path))
         shutil.copy2(path, dstpath)
         # member
-        os.makedirs(cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members"))
+        os.makedirs(cw.util.join_paths(cw.tempdir, "ScenarioLog/Members"))
 
         for data in cw.cwpy.ydata.party.members:
             path = cw.util.get_yadofilepath(data.fpath)
-            dstpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members",
+            dstpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Members",
                                                     os.path.basename(path))
             shutil.copy2(path, dstpath)
 
@@ -1618,18 +1617,18 @@ class ScenarioData(SystemData):
                 fpath = cw.util.relpath(header.fpath, tempdir)
             fpath = cw.util.join_paths(fpath)
             element.append(cw.data.make_element("File", fpath))
-        path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Backpack.xml")
+        path = cw.util.join_paths(cw.tempdir, "ScenarioLog/Backpack.xml")
         etree = cw.data.xml2etree(element=element)
         etree.write(path)
 
         # JPDCイメージ
-        dpath1 = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile")
+        dpath1 = cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile")
         key = (self.name, self.author)
         header = cw.cwpy.ydata.savedjpdcimage.get(key, None)
         if header:
-            dpath2 = cw.util.join_paths(cw.cwpy.tempdir, u"SavedJPDCImage", header.dpath)
+            dpath2 = cw.util.join_paths(cw.cwpy.tempdir, "SavedJPDCImage", header.dpath)
             for fpath in header.fpaths:
-                frompath = cw.util.join_paths(dpath2, u"Materials", fpath)
+                frompath = cw.util.join_paths(dpath2, "Materials", fpath)
                 frompath = cw.util.get_yadofilepath(frompath)
                 if not frompath:
                     continue
@@ -1645,7 +1644,7 @@ class ScenarioData(SystemData):
         if path.startswith(cw.cwpy.yadodir):
             path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
 
-        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path, unicodefilename=True)
+        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, "ScenarioLog"), path, unicodefilename=True)
         cw.cwpy.ydata.deletedpaths.discard(path)
 
     def load_log(self, path, recording):
@@ -1730,7 +1729,7 @@ class ScenarioData(SystemData):
 
         self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")
 
-        logfilepath = etree.gettext("Property/LogFile", u"")
+        logfilepath = etree.gettext("Property/LogFile", "")
         cw.cwpy.advlog.resume_scenario(logfilepath)
 
         musicpaths = []
@@ -1763,7 +1762,7 @@ class ScenarioData(SystemData):
         return musicpaths
 
     def update_log(self):
-        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False,
+        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"), False,
                                          cw.cwpy.advlog.logfilepath)
         cw.cwpy.advlog.end_scenario(False, False)
 
@@ -1772,7 +1771,7 @@ class ScenarioData(SystemData):
         if path.startswith("Yado"):
             path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
 
-        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path, unicodefilename=True)
+        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, "ScenarioLog"), path, unicodefilename=True)
 
     def get_bgmpaths(self):
         """現在使用可能なBGMのパスのリストを返す。"""
@@ -1809,12 +1808,12 @@ class Flag(object):
     def __init__(self, value, name, truename, falsename, defaultvalue, spchars):
         self.value = value
         self.name = name
-        self.truename = truename if truename else u""
-        self.falsename = falsename if falsename else u""
+        self.truename = truename if truename else ""
+        self.falsename = falsename if falsename else ""
         self.defaultvalue = defaultvalue
         self.spchars = spchars
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.value
 
     def redraw_cards(self):
@@ -1822,7 +1821,7 @@ class Flag(object):
         cw.data.redraw_cards(self.value, flag=self.name)
 
     def set(self, value, updatedebugger=True):
-        if self.value <> value:
+        if self.value != value:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.value = value
@@ -1842,7 +1841,7 @@ class Flag(object):
             s = self.falsename
 
         if s is None:
-            return u""
+            return ""
         else:
             return s
 
@@ -1879,7 +1878,7 @@ class Step(object):
 
     def set(self, value, updatedebugger=True):
         value = cw.util.numwrap(value, 0, len(self.valuenames)-1)
-        if self.value <> value:
+        if self.value != value:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.value = value
@@ -1901,7 +1900,7 @@ class Step(object):
 
         s = self.valuenames[value]
         if s is None:
-            return u""
+            return ""
         else:
             return s
 
@@ -1918,19 +1917,19 @@ class YadoDeletedPathSet(set):
     def write_list(self):
         if not os.path.isdir(self.tempdir):
             os.makedirs(self.tempdir)
-        fpath = cw.util.join_paths(self.tempdir, u"~DeletedPaths.temp")
+        fpath = cw.util.join_paths(self.tempdir, "~DeletedPaths.temp")
         with open(fpath, "w") as f:
-            f.write("\n".join(map(lambda u: u.encode("utf-8"), self)))
+            f.write("\n".join([u.encode("utf-8") for u in self]))
             f.flush()
             f.close()
-        dstpath = cw.util.join_paths(self.tempdir, u"DeletedPaths.temp")
+        dstpath = cw.util.join_paths(self.tempdir, "DeletedPaths.temp")
         cw.util.rename_file(fpath, dstpath)
 
     def read_list(self):
-        fpath = cw.util.join_paths(self.tempdir, u"DeletedPaths.temp")
+        fpath = cw.util.join_paths(self.tempdir, "DeletedPaths.temp")
         if os.path.isfile(fpath):
             with open(fpath, "r") as f:
-                for s in f.xreadlines():
+                for s in f:
                     s = s.rstrip('\n')
                     if s:
                         self.add(s.decode("utf-8"))
@@ -2008,13 +2007,13 @@ class YadoData(object):
 
         # 起動オプション
         optskin = cw.OPTIONS.force_skin
-        cw.OPTIONS.force_skin = u""
+        cw.OPTIONS.force_skin = ""
         if optskin:
             skinpath2 = cw.util.join_paths("Data/Skin", optskin, "Skin.xml")
             if os.path.isfile(skinpath2):
                 self.skindirname = optskin
             else:
-                s = u"スキン「%s」が見つかりません。" % (optskin)
+                s = "スキン「%s」が見つかりません。" % (optskin)
                 cw.cwpy.call_modaldlg("ERROR", text=s)
                 supported_skin = False
 
@@ -2022,28 +2021,28 @@ class YadoData(object):
             # スキン指定無し
             supported_skin = False
         elif not os.path.isfile(skinpath):
-            s = u"スキン「%s」が見つかりません。" % (self.skindirname)
+            s = "スキン「%s」が見つかりません。" % (self.skindirname)
             cw.cwpy.call_modaldlg("ERROR", text=s)
             supported_skin = False
         else:
             prop = cw.header.GetProperty(skinpath)
-            if prop.attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN:
+            if prop.attrs.get(None, {}).get("dataVersion", "0") in cw.SUPPORTED_SKIN:
                 supported_skin = True
             else:
                 skinname = prop.properties.get("Name", self.skindirname)
-                s = u"「%s」は対応していないバージョンのスキンです。%sをアップデートしてください。" % (skinname, cw.APP_NAME)
+                s = "「%s」は対応していないバージョンのスキンです。%sをアップデートしてください。" % (skinname, cw.APP_NAME)
                 cw.cwpy.call_modaldlg("ERROR", text=s)
                 supported_skin = False
 
         if not supported_skin:
-            for name in os.listdir(u"Data/Skin"):
-                path = cw.util.join_paths(u"Data/Skin", name)
-                skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+            for name in os.listdir("Data/Skin"):
+                path = cw.util.join_paths("Data/Skin", name)
+                skinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml")
 
                 if os.path.isdir(path) and os.path.isfile(skinpath):
                     try:
                         prop = cw.header.GetProperty(skinpath)
-                        if skintype and prop.properties.get("Type", "") <> skintype:
+                        if skintype and prop.properties.get("Type", "") != skintype:
                             continue
                         self.skindirname = name
                         break
@@ -2107,7 +2106,7 @@ class YadoData(object):
         # ブックマーク
         self.bookmarks = []
         for be in self.environment.getfind("Bookmarks", raiseerror=False):
-            if be.tag <> "Bookmark":
+            if be.tag != "Bookmark":
                 continue
             bookmark = []
             for e in be.getfind("."):
@@ -2124,7 +2123,7 @@ class YadoData(object):
             self.bookmarks.append((bookmark, bookmarkpath))
 
         # シナリオ履歴
-        sctempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
+        sctempdir = cw.util.join_paths(cw.tempdir, "Scenario")
         self.recenthistory = cw.setting.RecentHistory(sctempdir)
 
         # 現在選択中のパーティをセット
@@ -2136,10 +2135,10 @@ class YadoData(object):
             pname = self.environment.gettext("Property/NowSelectingParty", "")
             if optparty:
                 # 起動オプションでパーティが選択されている
-                pdppath = cw.util.join_paths(self.yadodir, u"Party")
+                pdppath = cw.util.join_paths(self.yadodir, "Party")
                 pdpath = cw.util.join_paths(pdppath, optparty)
                 if os.path.isdir(pdpath):
-                    pfile = cw.util.join_paths(pdpath, u"Party.xml")
+                    pfile = cw.util.join_paths(pdpath, "Party.xml")
                     if not os.path.isfile(pfile):
                         # 古いデータではParty.xmlでない場合があるのでXMLファイルを探す
                         for fname in os.listdir(pdpath):
@@ -2197,7 +2196,7 @@ class YadoData(object):
 
                 # 荷物袋内のカード群(ファイルパスのみ)
                 files = cw.data.make_element("BackpackFiles")
-                party = xml2etree(cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party", os.path.basename(fpath)))
+                party = xml2etree(cw.util.join_paths(cw.tempdir, "ScenarioLog/Party", os.path.basename(fpath)))
                 for e in party.getfind("Backpack"):
                     # まだ所持しているカードとシナリオ内で
                     # 失われたカードを判別できないので、
@@ -2222,17 +2221,17 @@ class YadoData(object):
                     files.append(cw.data.make_element("File", path))
 
                 # 新フォーマットの荷物袋ログ
-                path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Backpack.xml")
+                path = cw.util.join_paths(cw.tempdir, "ScenarioLog/Backpack.xml")
                 etree = CWPyElementTree(element=files)
                 etree.write(path)
 
                 party.getroot().remove(party.find("Backpack"))
                 party.write()
-                shutil.move(party.fpath, cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party/Party.xml"))
+                shutil.move(party.fpath, cw.util.join_paths(cw.tempdir, "ScenarioLog/Party/Party.xml"))
 
                 wslpath2 = cw.util.join_paths(dpath, "Party.wsl")
-                cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), wslpath2, unicodefilename=True)
-                cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
+                cw.util.compress_zip(cw.util.join_paths(cw.tempdir, "ScenarioLog"), wslpath2, unicodefilename=True)
+                cw.util.remove(cw.util.join_paths(cw.tempdir, "ScenarioLog"))
 
             # 現状のパーティデータ
             data = xml2etree(fpath)
@@ -2510,7 +2509,7 @@ class YadoData(object):
         # それで見つからない場合はカード名と解説のみで検索する。
         e = yadoxml2etree(partyrecordheader.fpath, tag="BackpackRecord")
         for ce in e.getfind("."):
-            if ce.tag <> "CardRecord":
+            if ce.tag != "CardRecord":
                 continue
             get = False
             name = ce.getattr(".", "name", "")
@@ -2732,7 +2731,7 @@ class YadoData(object):
             partyrecord[fpath] = header
 
         savedjpdcimage = {}
-        for header in self.savedjpdcimage.itervalues():
+        for header in self.savedjpdcimage.values():
             if header.fpath.lower().startswith("yado"):
                 fpath = cw.util.relpath(header.fpath, self.yadodir)
             else:
@@ -2767,7 +2766,7 @@ class YadoData(object):
 
     def _transfer_temp(self):
         # TEMPのファイルを移動
-        deltempfpath = cw.util.join_paths(self.deletedpaths.tempdir, u"DeletedPaths.temp")
+        deltempfpath = cw.util.join_paths(self.deletedpaths.tempdir, "DeletedPaths.temp")
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 path = cw.util.join_paths(dpath, fname)
@@ -2965,7 +2964,7 @@ class YadoData(object):
         """金庫に入っている金額を変更する。
         現在の所持金にvalue値をプラスするので注意。
         """
-        if value <> 0:
+        if value != 0:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.money += value
@@ -2986,7 +2985,7 @@ class YadoData(object):
         """
         シナリオのNPCを宿に連れ込む。
         """
-        r_gene = re.compile(u"＠Ｇ\d{10}$")
+        r_gene = re.compile("＠Ｇ\d{10}$")
         for fcard in cw.cwpy.get_fcards():
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
@@ -2998,25 +2997,25 @@ class YadoData(object):
                 cw.cwpy.call_modaldlg("DATACOMP", ccard=fcard)
 
             # システムクーポン
-            fcard.set_coupon(u"＿" + fcard.name, fcard.level * (fcard.level-1))
-            fcard.set_coupon(u"＠レベル原点", fcard.level)
-            fcard.set_coupon(u"＠ＥＰ", 0)
+            fcard.set_coupon("＿" + fcard.name, fcard.level * (fcard.level-1))
+            fcard.set_coupon("＠レベル原点", fcard.level)
+            fcard.set_coupon("＠ＥＰ", 0)
             talent = fcard.get_talent()
 
             value = 10
             for nature in cw.cwpy.setting.natures:
-                if u"＿" + nature.name == talent:
+                if "＿" + nature.name == talent:
                     value = nature.levelmax
                     break
 
-            fcard.set_coupon(u"＠本来の上限", value)
+            fcard.set_coupon("＠本来の上限", value)
             for coupon in fcard.get_coupons():
                 if r_gene.match(coupon):
                     break
             else:
                 gene = cw.header.Gene()
                 gene.set_talentbit(talent)
-                fcard.set_coupon(u"＠Ｇ" + gene.get_str(), 0)
+                fcard.set_coupon("＠Ｇ" + gene.get_str(), 0)
 
             data = fcard.data
 
@@ -3061,7 +3060,7 @@ class YadoData(object):
         seq = []
 
         for dpath in (self.yadodir, self.tempdir):
-            dpath = cw.util.join_paths(dpath, u"Party")
+            dpath = cw.util.join_paths(dpath, "Party")
             if not os.path.isdir(dpath):
                 continue
 
@@ -3189,7 +3188,7 @@ def find_scefullpath(scepath, spaths):
     辿った結果得られたフルパスを返す。
     辿れなかった場合は""を返す。
     """
-    bookmarkpath = u""
+    bookmarkpath = ""
     for p in spaths:
         scepath = cw.util.get_linktarget(scepath)
         scepath = cw.util.join_paths(scepath, p)
@@ -3330,7 +3329,7 @@ class Party(object):
         if pcards:
             # 欠けているindexがあったら隙間に挿入する
             for i, pcard in enumerate(pcards):
-                if i <> pcard.index:
+                if i != pcard.index:
                     index = i
                     break
             else:
@@ -3397,7 +3396,7 @@ class Party(object):
         """
         パーティ名を変更する。
         """
-        if self.name <> name:
+        if self.name != name:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             oldname = self.name
@@ -3410,7 +3409,7 @@ class Party(object):
         """
         パーティの所持金を変更する。
         """
-        if value <> 0:
+        if value != 0:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.money += value
@@ -3428,7 +3427,7 @@ class Party(object):
         """
         レベルアップの可否を設定する。
         """
-        if suspend <> self.is_suspendlevelup:
+        if suspend != self.is_suspendlevelup:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.is_suspendlevelup = suspend
@@ -3444,12 +3443,12 @@ class Party(object):
         """
         番号クーポンを配布する。
         """
-        names = [cw.cwpy.msgs["number_1_coupon"], u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"]
+        names = [cw.cwpy.msgs["number_1_coupon"], "＿２", "＿３", "＿４", "＿５", "＿６"]
 
         for index, pcard in enumerate(cw.cwpy.get_pcards()):
             pcard.remove_numbercoupon()
             pcard.set_coupon(names[index], 0)
-            pcard.set_coupon(u"＠ＭＰ３", 0) # 1.29
+            pcard.set_coupon("＠ＭＰ３", 0) # 1.29
 
     def remove_numbercoupon(self):
         """
@@ -3575,7 +3574,7 @@ def sort_cards(cards, condition, withstar):
 
     def addetckey():
         for key in ("name", "scenario", "author", "type_id", "level", "sellingprice"):
-            if key <> seq[0]:
+            if key != seq[0]:
                 seq.append(key)
 
     if condition == "Level":
@@ -3643,7 +3642,7 @@ class _CWPyElementInterface(object):
         else:
             text = e.text
             if text is None:
-                text = u""
+                text = ""
 
         if text is None:
             self._raiseerror(path)
@@ -3711,10 +3710,10 @@ class _CWPyElementInterface(object):
     def make_element(self, *args, **kwargs):
         return make_element(*args, **kwargs)
 
-class CWPyElement(_ElementInterface, _CWPyElementInterface):
+class CWPyElement(xml.etree.ElementTree.Element, _CWPyElementInterface):
 
     def __init__(self, tag, attrib={}.copy()):
-        _ElementInterface.__init__(self, tag, attrib)
+        xml.etree.ElementTree.Element.__init__(self, tag, attrib)
         # CWXパスを構築するための親要素情報
         self.cwxparent = None
         self.content = None
@@ -3725,26 +3724,26 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
 
     def append(self, subelement):
         subelement.cwxparent = self
-        return _ElementInterface.append(self, subelement)
+        return xml.etree.ElementTree.Element.append(self, subelement)
 
     def extend(self, subelements):
         for subelement in subelements:
             subelement.cwxparent = self
-        return _ElementInterface.extend(self, subelements)
+        return xml.etree.ElementTree.Element.extend(self, subelements)
 
     def insert(self, index, subelement):
         subelement.cwxparent = self
-        return _ElementInterface.insert(self, index, subelement)
+        return xml.etree.ElementTree.Element.insert(self, index, subelement)
 
     def remove(self, subelement):
         if subelement.cwxparent is self:
             subelement.cwxparent = None
-        return _ElementInterface.remove(self, subelement)
+        return xml.etree.ElementTree.Element.remove(self, subelement)
 
     def clear(self):
         for subelement in self:
             subelement.cwxparent = None
-        return _ElementInterface.clear(self)
+        return xml.etree.ElementTree.Element.clear(self)
 
     def index(self, subelement):
         for i, e in enumerate(self):
@@ -3822,7 +3821,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
                         for i, line_child in enumerate(e.cwxparent):
                             line_child._cwxline_index = i
                     assert not e._cwxline_index is None
-                    for _i in xrange(e._cwxline_index):
+                    for _i in range(e._cwxline_index):
                         cwxpath.append(":0")
                 else:
                     cwxpath.append(":%s" % (e.cwxparent.index(e)))
@@ -3875,7 +3874,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
                     f.flush()
                     f.close()
                     break
-            except IOError, ex:
+            except IOError as ex:
                 if 5 <= retry:
                     raise ex
                 cw.util.print_ex()
@@ -3897,12 +3896,12 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
 
     def edit(self, path, value, attrname=None):
         """パスのエレメントを編集。"""
-        if not isinstance(value, (str, unicode)):
+        if not isinstance(value, str):
             try:
                 value = str(value)
             except:
                 t = (self.fpath, path, value, attrname)
-                print u"エレメント編集失敗 (%s, %s, %s, %s)" % t
+                print("エレメント編集失敗 (%s, %s, %s, %s)" % t)
                 return
 
         if attrname:
@@ -3974,7 +3973,7 @@ def yadoxml2etree(path, tag="", rootattrs=None):
     return CWPyElementTree(element=element)
 
 def yadoxml2element(path, tag="", rootattrs=None):
-    yadodir = cw.util.join_paths(cw.tempdir, u"Yado")
+    yadodir = cw.util.join_paths(cw.tempdir, "Yado")
     if path.startswith("Yado"):
         temppath = path.replace("Yado", yadodir, 1)
     elif path.startswith(yadodir):
@@ -4009,7 +4008,7 @@ def xml2element(path="", tag="", stream=None, nocache=False, rootattrs=None):
         if mtime <= cachedata.mtime:
             data = cachedata.data
             if not rootattrs is None:
-                for key, value in data.attrib.iteritems():
+                for key, value in data.attrib.items():
                     rootattrs[key] = value
             if tag:
                 data = data.find(tag)
@@ -4050,7 +4049,7 @@ def xml2element(path="", tag="", stream=None, nocache=False, rootattrs=None):
 
     basedata = data
     if not rootattrs is None:
-        for key, value in data.attrib.iteritems():
+        for key, value in data.attrib.items():
             rootattrs[key] = value
     if tag:
         data = data.find(tag)
@@ -4130,7 +4129,7 @@ class SimpleXmlParser(object):
         """要素の開始。"""
         if not self.currenttags:
             if not self.rootattrs is None:
-                for key, value in attrs.iteritems():
+                for key, value in attrs.items():
                     self.rootattrs[key] = value
 
         self.currenttags.append(name)
@@ -4193,10 +4192,10 @@ class SimpleXmlParser(object):
             self._parse_file(fname)
         except EndTargetTagException:
             pass
-        except xml.parsers.expat.ExpatError, err:
+        except xml.parsers.expat.ExpatError as err:
             # エラーになったファイルのパスを付け加える
-            s = u". file: " + self.fpath
-            err.args = (err.args[0] + s.encode(u"utf-8"), )
+            s = ". file: " + self.fpath
+            err.args = (err.args[0] + s.encode("utf-8"), )
             raise err
 
     def _create_parser(self):

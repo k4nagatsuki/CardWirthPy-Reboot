@@ -90,7 +90,7 @@ class MouseHandlerSprite(CWPySprite):
         else:
             handling = False
 
-        if handling <> self.handling:
+        if handling != self.handling:
             self.handling = handling
             self.update_image()
 

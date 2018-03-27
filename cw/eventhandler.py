@@ -119,7 +119,7 @@ class EventHandler(object):
             elif event.type == USEREVENT and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
-                except cw.event.EventError, ex:
+                except cw.event.EventError as ex:
                     # 全てのイベントを確実に実行するため
                     # 例外はここでキャッチしておき、最後に投げる
                     exception = ex
@@ -429,7 +429,7 @@ class EventHandler(object):
         if not cw.cwpy.is_runningevent():
 
             # 選択エリアの時、キャンセル
-            if ((cw.cwpy.is_curtained() and cw.cwpy.areaid <> cw.AREA_CAMP) or cw.cwpy.selectedheader) and\
+            if ((cw.cwpy.is_curtained() and cw.cwpy.areaid != cw.AREA_CAMP) or cw.cwpy.selectedheader) and\
                     cw.cwpy.statusbar.showbuttons:
                 cw.cwpy.cancel_cardcontrol()
                 return
@@ -477,7 +477,7 @@ class EventHandler(object):
             cw.cwpy.play_sound("click")
 
             if sys.platform == "win32":
-                chm = cw.util.join_paths(os.path.dirname(cw.exepath), u"CardWirthPy.chm")
+                chm = cw.util.join_paths(os.path.dirname(cw.exepath), "CardWirthPy.chm")
                 if os.path.isfile(chm):
                     try:
                         import win32help
@@ -488,7 +488,7 @@ class EventHandler(object):
                     except Exception:
                         cw.util.print_ex()
 
-            etree = cw.data.xml2etree(u"Data/Sites.xml")
+            etree = cw.data.xml2etree("Data/Sites.xml")
             url = etree.getattr("OnlineHelp", "url")
             if url:
                 cw.util.open_url(cw.cwpy.frame, url)
@@ -625,7 +625,7 @@ class EventHandler(object):
         elif cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_endprocess and not cw.cwpy.sdata.in_f9 and\
                 not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
             fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
-            path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party", fname)
+            path = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party", fname)
             if os.path.isfile(path):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.play_sound("signal")
@@ -699,7 +699,7 @@ class EventHandler(object):
         return
 
     def change_volume(self, val):
-        if val <> 0 and cw.cwpy.mousein[2]:
+        if val != 0 and cw.cwpy.mousein[2]:
             # 右クリック+ホイール。音量の変更
             for music in cw.cwpy.music:
                 volume = music.mastervolume + val * cw.cwpy.setting.volume_increment
@@ -871,7 +871,7 @@ class EventHandlerForMessageWindow(EventHandler):
             elif event.type == USEREVENT and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
-                except cw.event.EventError, ex:
+                except cw.event.EventError as ex:
                     # 全てのイベントを確実に実行するため
                     # 例外はここでキャッチしておき、最後に投げる
                     exception = ex
@@ -1340,7 +1340,7 @@ class EventHandlerForBacklog(EventHandler):
                     self.executing_event(event)
                     if not cw.cwpy.is_showingbacklog():
                         self.exit_backlog(False)
-                except cw.event.EventError, ex:
+                except cw.event.EventError as ex:
                     # 全てのイベントを確実に実行するため
                     # 例外はここでキャッチしておき、最後に投げる
                     exception = ex
@@ -1488,7 +1488,7 @@ class EventHandlerForBacklog(EventHandler):
                 self.update_sprites()
 
     def _check_updatesettings(self):
-        if self._upscr <> cw.UP_SCR or self._messagelog_type <> cw.cwpy.setting.messagelog_type:
+        if self._upscr != cw.UP_SCR or self._messagelog_type != cw.cwpy.setting.messagelog_type:
             self._upscr = cw.UP_SCR
             self._messagelog_type = cw.cwpy.setting.messagelog_type
             self._update_posdata(init=False)
@@ -1597,7 +1597,7 @@ class EventHandlerForBacklog(EventHandler):
             bottom = top + cw.SIZE_AREA[1]
             f = bisect.bisect_right(self._bottom_noscale, top)
             l = min(len(self.backlog)-1, bisect.bisect_left(self._pos_noscale, bottom))
-            for i in xrange(f, l+1):
+            for i in range(f, l+1):
                 # まだ表示されていないスプライトがあれば追加
                 if not self._mwins[i]:
                     self._mwins[i] = self.backlog[i].create_message()
@@ -1615,7 +1615,7 @@ class EventHandlerForBacklog(EventHandler):
                     cw.cwpy.backloggrp.add(sbar, layer=cw.LAYER_LOG_BAR)
             # ページ表示の更新
             f2 = bisect.bisect_left(self._pos_noscale, top)
-            if f2 <> self.index:
+            if f2 != self.index:
                 self.index = f2
                 self._page.update_page(self.index+1, self._get_maxpage())
         else:
@@ -1714,7 +1714,7 @@ class EventHandlerForEffectBooster(EventHandler):
             elif event.type == USEREVENT and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
-                except cw.event.EventError, ex:
+                except cw.event.EventError as ex:
                     # 全てのイベントを確実に実行するため
                     # 例外はここでキャッチしておき、最後に投げる
                     exception = ex
@@ -1790,7 +1790,7 @@ class EventHandlerForEffectBooster(EventHandler):
         if not self.can_input():
             return
         cw.cwpy.exec_func(EventHandler.f4key_event, self)
-        if cw.cwpy.setting.expanddrawing <> 1:
+        if cw.cwpy.setting.expanddrawing != 1:
             raise cw.effectbooster.ScreenRescale()
 
 def main():

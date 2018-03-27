@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import message
-import cardinfo
-import cardcontrol
-import select
-import scenarioselect
-import scenarioinstall
-import charainfo
-import text
-import create
-import edit
-import etc
-import settings
-import skin
-import partyrecord
-import transfer
-import progress
+from . import message
+from . import cardinfo
+from . import cardcontrol
+from . import select
+from . import scenarioselect
+from . import scenarioinstall
+from . import charainfo
+from . import text
+from . import create
+from . import edit
+from . import etc
+from . import settings
+from . import skin
+from . import partyrecord
+from . import transfer
+from . import progress
 
 
 def main():

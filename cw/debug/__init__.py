@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import debugger
-import edit
-import cardedit
-import charaedit
-import statusedit
-import recording
-import event
-import logging
-import selectedcard
+from . import debugger
+from . import edit
+from . import cardedit
+from . import charaedit
+from . import statusedit
+from . import recording
+from . import event
+from . import logging
+from . import selectedcard
 
 
 def main():

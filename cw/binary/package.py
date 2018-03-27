@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
-import event
+from . import base
+from . import event
 
 import cw
 
@@ -20,7 +20,7 @@ class Package(base.CWBinaryBase):
         if nameonly:
             return
         events_num = f.dword()
-        self.events = [event.SimpleEvent(self, f) for _cnt in xrange(events_num)]
+        self.events = [event.SimpleEvent(self, f) for _cnt in range(events_num)]
 
         self.data = None
 

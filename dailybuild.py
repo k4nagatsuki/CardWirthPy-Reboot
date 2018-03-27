@@ -41,7 +41,7 @@ if __name__ == '__main__':
             sys.argv.remove(arg)
             break
     else:
-        chmfile = u""
+        chmfile = ""
 
     sys.argv = [sys.argv[0], "py2exe"]
 
@@ -78,6 +78,6 @@ if __name__ == '__main__':
     fpath = os.path.join(dir, fpath)
     compress_all(fpath, exe.dist_dir)
 
-    print ""
-    print "Created %s." % (fpath)
-    print "Completed daily build."
+    print("")
+    print("Created %s." % (fpath))
+    print("Completed daily build.")

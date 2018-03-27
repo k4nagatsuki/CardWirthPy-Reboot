@@ -6,17 +6,17 @@ import shutil
 
 import cw
 
-import util
-import cwfile
-import summary
-import area
-import battle
-import cast
-import item
-import info
-import package
-import skill
-import beast
+from . import util
+from . import cwfile
+from . import summary
+from . import area
+from . import battle
+from . import cast
+from . import item
+from . import info
+from . import package
+from . import skill
+from . import beast
 
 
 class CWScenario(object):
@@ -115,13 +115,13 @@ class CWScenario(object):
                 data, _filedata = self.load_file(path)
                 if data is None:
                     s = os.path.basename(path)
-                    s = u"%s は読込できませんでした。\n" % (s)
+                    s = "%s は読込できませんでした。\n" % (s)
                     self.write_errorlog(s)
                 else:
                     self.datalist.append(data)
             except:
                 s = os.path.basename(path)
-                s = u"%s は読込できませんでした。\n" % (s)
+                s = "%s は読込できませんでした。\n" % (s)
                 self.write_errorlog(s)
 
         self.maxnum = len(self.datalist)
@@ -202,7 +202,7 @@ class CWScenario(object):
 
         # シナリオファイルをxmlに変換
         for data in self.datalist:
-            self.message = u"%s を変換中..." % (os.path.basename(data.fpath))
+            self.message = "%s を変換中..." % (os.path.basename(data.fpath))
             self.curnum += 1
 
             try:
@@ -210,7 +210,7 @@ class CWScenario(object):
             except Exception:
                 cw.util.print_ex()
                 s = os.path.basename(data.fpath)
-                s = u"%s は変換できませんでした。\n" % (s)
+                s = "%s は変換できませんでした。\n" % (s)
                 self.write_errorlog(s)
 
         # 素材ファイルをMaterialディレクトリにコピー
@@ -220,7 +220,7 @@ class CWScenario(object):
             os.makedirs(materialdir)
 
         for path in self.materials:
-            self.message = u"%s をコピー中..." % (os.path.basename(path))
+            self.message = "%s をコピー中..." % (os.path.basename(path))
             self.curnum += 1
             dst = util.join_paths(materialdir, os.path.basename(path))
             dst = util.check_duplicate(dst)
@@ -228,7 +228,7 @@ class CWScenario(object):
 
         # その他のファイルをシナリオディレクトリにコピー
         for path in self.otherfiles:
-            self.message = u"%s をコピー中..." % (os.path.basename(path))
+            self.message = "%s をコピー中..." % (os.path.basename(path))
             self.curnum += 1
             dst = util.join_paths(self.dir, os.path.basename(path))
             dst = util.check_duplicate(dst)
@@ -236,7 +236,7 @@ class CWScenario(object):
 
         # ディレクトリをシナリオディレクトリにコピー
         for path in self.otherdirs:
-            self.message = u"%s をコピー中..." % (os.path.basename(path))
+            self.message = "%s をコピー中..." % (os.path.basename(path))
             self.curnum += 1
             dst = util.join_paths(self.dir, os.path.basename(path))
             dst = util.check_duplicate(dst)

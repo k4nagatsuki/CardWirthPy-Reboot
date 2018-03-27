@@ -4,8 +4,8 @@
 import wx
 
 import cw
-import select
-import message
+from . import select
+from . import message
 
 #-------------------------------------------------------------------------------
 #　パーティの記録
@@ -184,7 +184,7 @@ class SelectPartyRecord(select.Select):
         self.savebtn.Enable(bool(cw.cwpy.ydata.party))
         self.restorebtn.Enable(bool(self.list[self.index] and self.restorable[self.index][0]))
         self.deletebtn.Enable(bool(self.list[self.index]))
-        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        buttonlist = [button for button in self.buttonlist if button.IsEnabled()]
         if buttonlist:
             buttonlist[0].SetFocus()
 
@@ -208,7 +208,7 @@ class SelectPartyRecord(select.Select):
         e = cw.data.yadoxml2etree(header.fpath, tag="BackpackRecord")
         removed = set()
         for i, ce in enumerate(e.getfind(".")):
-            if ce.tag <> "CardRecord":
+            if ce.tag != "CardRecord":
                 continue
             if 4 * 6 <= i:
                 break
@@ -265,7 +265,7 @@ class SelectPartyRecord(select.Select):
         if header:
             s = cw.cwpy.msgs["adventurers_money"] % (header.money)
         else:
-            s = cw.cwpy.msgs["adventurers_money"] % (u"---")
+            s = cw.cwpy.msgs["adventurers_money"] % ("---")
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, cw.wins(60))
 

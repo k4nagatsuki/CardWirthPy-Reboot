@@ -8,12 +8,12 @@ import cw
 
 
 def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbutton=False, battlespeed=False):
-    if threading.currentThread() <> cw.cwpy:
+    if threading.currentThread() != cw.cwpy:
         raise Exception()
 
     if not hasattr(sprite, "update_" + anitype):
-        print "Not found " + anitype + " animation."
-        print sprite
+        print("Not found " + anitype + " animation.")
+        print(sprite)
         return
 
     if clearevent:
@@ -47,7 +47,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
         sprite.skipped |= skip
         sprite.update(cw.cwpy.scr_draw)
         clip.union_ip(sprite.rect)
-        if sprite.status <> anitype:
+        if sprite.status != anitype:
             if background:
                 cw.cwpy.draw()
             else:
@@ -84,7 +84,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
-    if clearevent and selection and cw.cwpy.selection <> selection:
+    if clearevent and selection and cw.cwpy.selection != selection:
         cw.cwpy.change_selection(selection)
 
     return skip
@@ -93,19 +93,19 @@ def animate_sprites(sprites, anitype, clearevent=True, battlespeed=False):
     """spritesに含まれる全てのスプライトをanitypeの
     アニメーションで動かす。
     """
-    sprandanimes = map(lambda s: (s, anitype), sprites)
+    sprandanimes = [(s, anitype) for s in sprites]
     animate_sprites2(sprandanimes, clearevent, battlespeed)
 
 def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
     """スプライト毎にアニメーション内容を指定する。
     """
-    if threading.currentThread() <> cw.cwpy:
+    if threading.currentThread() != cw.cwpy:
         raise Exception()
 
     for spr, anitype in sprandanimes:
         if not hasattr(spr, "update_" + anitype):
-            print "Not found " + anitype + " animation."
-            print sprandanimes
+            print("Not found " + anitype + " animation.")
+            print(sprandanimes)
             return
 
     if clearevent:
@@ -140,7 +140,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
         upd = False
         for sprite, anitype in sprandanimes:
             sprite.start_animation = stw.start_ticks
-            if sprite.status <> anitype:
+            if sprite.status != anitype:
                 continue
             if clip:
                 clip.union_ip(sprite.rect)
@@ -198,7 +198,7 @@ def _inputevent(clip, clearevent, statusbutton):
         cw.cwpy.update_mousepos()
         sel = cw.cwpy.selection
         cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-        if sel <> cw.cwpy.selection:
+        if sel != cw.cwpy.selection:
             clip.union_ip(cw.cwpy.statusbar.rect)
         cw.cwpy.input(inputonly=clearevent)
         cw.cwpy.eventhandler.run()
@@ -211,12 +211,12 @@ def start_animation(sprite, anitype):
     場合があるので、update_<anitype>()の実装は、そうした場合でも
     正しく動くように行わなければならない。
     """
-    if threading.currentThread() <> cw.cwpy:
+    if threading.currentThread() != cw.cwpy:
         raise Exception()
 
     if not hasattr(sprite, "update_" + anitype):
-        print "Not found " + anitype + " animation."
-        print sprite
+        print("Not found " + anitype + " animation.")
+        print(sprite)
         return
 
     if sprite.anitype == "":

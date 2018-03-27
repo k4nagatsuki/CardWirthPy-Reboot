@@ -27,7 +27,7 @@ class ProgressDialog(wx.Dialog):
                               style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
 
         if cancelable:
-            self.btn_cncl = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((80, 30)), u"中止")
+            self.btn_cncl = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((80, 30)), "中止")
             self.SetClientSize((cw.wins(width_noscale+20), cw.wins(60)+self.btn_cncl.GetBestSize()[1]+cw.wins(4)))
         else:
             self.btn_cncl = None
@@ -41,7 +41,7 @@ class ProgressDialog(wx.Dialog):
 
     def Update(self, value, message):
         value -= self.minimum
-        if value <> self.gauge.GetValue() or self.text <> message:
+        if value != self.gauge.GetValue() or self.text != message:
             self.gauge.SetValue(value-self.minimum)
             self.text = message
             self.Refresh()
@@ -105,7 +105,7 @@ class SysProgressDialog(wx.Dialog):
         self.message.SetDoubleBuffered(True)
 
         if cancelable:
-            self.btn_cncl = wx.Button(self, -1, u"中止")
+            self.btn_cncl = wx.Button(self, -1, "中止")
             self.SetClientSize((cw.ppis(width+20), cw.ppis(60)+self.btn_cncl.GetBestSize()[1]+cw.ppis(5)))
         else:
             self.btn_cncl = None
@@ -117,7 +117,7 @@ class SysProgressDialog(wx.Dialog):
 
     def Update(self, value, message):
         value -= self.minimum
-        if value <> self.gauge.GetValue() or self.text <> message:
+        if value != self.gauge.GetValue() or self.text != message:
             self.gauge.SetValue(value-self.minimum)
             self.text = message
             self.message.SetLabel(self.text)

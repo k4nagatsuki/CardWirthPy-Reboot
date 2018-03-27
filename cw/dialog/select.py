@@ -13,8 +13,8 @@ import cw.binary.cwfile
 import cw.binary.environment
 import cw.binary.party
 import cw.binary.adventurer
-import message
-import charainfo
+from . import message
+from . import charainfo
 
 #-------------------------------------------------------------------------------
 #　選択ダイアログ スーパークラス
@@ -100,7 +100,7 @@ class Select(wx.Dialog):
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint2)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMotion)
 
-        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        buttonlist = [button for button in self.buttonlist if button.IsEnabled()]
         if buttonlist:
             buttonlist[0].SetFocus()
 
@@ -109,7 +109,7 @@ class Select(wx.Dialog):
 
     def OnPrevButton(self, event):
         focus = wx.Window.FindFocus()
-        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        buttonlist = [button for button in self.buttonlist if button.IsEnabled()]
         if buttonlist:
             if focus in buttonlist:
                 index = buttonlist.index(focus)
@@ -119,7 +119,7 @@ class Select(wx.Dialog):
 
     def OnNextButton(self, event):
         focus = wx.Window.FindFocus()
-        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        buttonlist = [button for button in self.buttonlist if button.IsEnabled()]
         if buttonlist:
             if focus in buttonlist:
                 index = buttonlist.index(focus)
@@ -232,7 +232,7 @@ class Select(wx.Dialog):
     def OnSelectBase(self, event):
         if self._processing:
             return
-        if self._downbutton <> event.GetButton():
+        if self._downbutton != event.GetButton():
             self._downbutton = -1
             return
         self._downbutton = -1
@@ -377,7 +377,7 @@ class Select(wx.Dialog):
         # 日本語入力で一度に何度もイベントが発生する
         # 事があるので絞り込み実施を遅延する
         self._reserved_narrowconditin = True
-        if wx.Window.FindFocus() <> self.narrow:
+        if wx.Window.FindFocus() != self.narrow:
             self.toppanel.SetFocus()
         def func():
             if not self._reserved_narrowconditin:
@@ -517,7 +517,7 @@ class MultiViewSelect(Select):
     def OnClickLeftBtn(self, evt):
         if self._processing:
             return
-        if self.views == 1 or evt.GetEventObject() <> self.leftbtn or len(self.list) <= self.views:
+        if self.views == 1 or evt.GetEventObject() != self.leftbtn or len(self.list) <= self.views:
             Select.OnClickLeftBtn(self, evt)
             return
         self.index = cw.util.number_normalization(self.index - self.views, 0, self.get_pagecount() * self.views)
@@ -530,7 +530,7 @@ class MultiViewSelect(Select):
     def OnClickLeft2Btn(self, evt):
         if self._processing:
             return
-        if self.views == 1 or evt.GetEventObject() <> self.left2btn or len(self.list) <= self.views:
+        if self.views == 1 or evt.GetEventObject() != self.left2btn or len(self.list) <= self.views:
             Select.OnClickLeft2Btn(self, evt)
             return
         if self.get_page() == 0:
@@ -546,7 +546,7 @@ class MultiViewSelect(Select):
     def OnClickRightBtn(self, evt):
         if self._processing:
             return
-        if self.views == 1 or evt.GetEventObject() <> self.rightbtn or len(self.list) <= self.views:
+        if self.views == 1 or evt.GetEventObject() != self.rightbtn or len(self.list) <= self.views:
             Select.OnClickRightBtn(self, evt)
             return
         self.index = cw.util.number_normalization(self.index + self.views, 0, self.get_pagecount() * self.views)
@@ -559,7 +559,7 @@ class MultiViewSelect(Select):
     def OnClickRight2Btn(self, evt):
         if self._processing:
             return
-        if self.views == 1 or evt.GetEventObject() <> self.right2btn or len(self.list) <= self.views:
+        if self.views == 1 or evt.GetEventObject() != self.right2btn or len(self.list) <= self.views:
             Select.OnClickRight2Btn(self, evt)
             return
         if self.get_page() == self.get_pagecount()-1:
@@ -593,7 +593,7 @@ class MultiViewSelect(Select):
             page = self.get_page()
             index = page * self.views + sindex
             index = min(index, len(self.list)-1)
-            if self.index <> index:
+            if self.index != index:
                 self.index = index
                 cw.cwpy.play_sound("click")
                 self.index_changed()
@@ -663,7 +663,7 @@ class YadoSelect(MultiViewSelect):
                    cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["member_name"],
                    cw.cwpy.msgs["skin"])
-        self._init_narrowpanel(choices, u"", cw.cwpy.setting.yado_narrowtype)
+        self._init_narrowpanel(choices, "", cw.cwpy.setting.yado_narrowtype)
 
         # sort
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
@@ -732,7 +732,7 @@ class YadoSelect(MultiViewSelect):
 
         seq = self.accels
         self.sortkeydown = []
-        for i in xrange(0, 9):
+        for i in range(0, 9):
             sortkeydown = wx.NewId()
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
             seq.append((wx.ACCEL_CTRL, ord('1')+i, sortkeydown))
@@ -848,7 +848,7 @@ class YadoSelect(MultiViewSelect):
         else:
             sorttype = "Name"
 
-        if cw.cwpy.setting.sort_yado <> sorttype:
+        if cw.cwpy.setting.sort_yado != sorttype:
             cw.cwpy.play_sound("page")
             cw.cwpy.setting.sort_yado = sorttype
             self.update_narrowcondition()
@@ -913,7 +913,7 @@ class YadoSelect(MultiViewSelect):
     def index_changed(self):
         MultiViewSelect.index_changed(self)
         self.enable_btn()
-        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        buttonlist = [button for button in self.buttonlist if button.IsEnabled()]
         if buttonlist:
             buttonlist[0].SetFocus()
 
@@ -930,7 +930,7 @@ class YadoSelect(MultiViewSelect):
             return
 
         if self.classic[self.index]:
-            self.okbtn.SetLabel(u"変換")
+            self.okbtn.SetLabel("変換")
         else:
             self.okbtn.SetLabel(cw.cwpy.msgs["decide"])
 
@@ -993,8 +993,8 @@ class YadoSelect(MultiViewSelect):
             (cw.cwpy.msgs["settings"], cw.cwpy.msgs["edit_base_description"], self.rename_yado, not classic and hasmutexlocal),
             (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado, not classic and hasmutexlocal),
             (cw.cwpy.msgs["transfer"], cw.cwpy.msgs["transfer_base_description"], self.trasnfer_yadodata, cantransfer),
-            (u"変換", u"CardWirth用の宿データをCardWirthPy用の拠点データに変換します。", self._conv_yado, not cw.util.exists_mutex(cw.tempdir_init)),
-            (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado, not classic and hasmutexlocal),
+            ("変換", "CardWirth用の宿データをCardWirthPy用の拠点データに変換します。", self._conv_yado, not cw.util.exists_mutex(cw.tempdir_init)),
+            ("逆変換", "選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado, not classic and hasmutexlocal),
             (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado, hasmutexlocal),
         ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
@@ -1032,14 +1032,14 @@ class YadoSelect(MultiViewSelect):
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            if cw.util.create_mutex(u"Yado"):
+            if cw.util.create_mutex("Yado"):
                 try:
                     if cw.util.create_mutex(self.list[self.index]):
                         cw.util.release_mutex()
                         env = cw.util.join_paths(path, "Environment.xml")
                         data = cw.data.xml2etree(env)
                         name = data.gettext("Property/Name", os.path.basename(path))
-                        name = u"コピー - %s" % (name)
+                        name = "コピー - %s" % (name)
                         if not data.find("Property/Name") is None:
                             data.edit("Property/Name", name)
                         else:
@@ -1069,7 +1069,7 @@ class YadoSelect(MultiViewSelect):
         """
         if not os.path.isdir(self.list[self.index]):
             return
-        if cw.util.create_mutex(u"Yado"):
+        if cw.util.create_mutex("Yado"):
             try:
                 mutexes = 0
                 for path in self.list:
@@ -1079,11 +1079,11 @@ class YadoSelect(MultiViewSelect):
                         break
                 draw = False
                 try:
-                    if mutexes <> len(self.list):
+                    if mutexes != len(self.list):
                         cw.cwpy.play_sound("error")
                         return
                 finally:
-                    for i in xrange(mutexes):
+                    for i in range(mutexes):
                         cw.util.release_mutex()
 
                 path = self.list[self.index]
@@ -1111,14 +1111,14 @@ class YadoSelect(MultiViewSelect):
         """
         if not os.path.isdir(self.list[self.index]):
             return
-        if cw.util.create_mutex(u"Yado"):
+        if cw.util.create_mutex("Yado"):
             try:
                 if cw.util.create_mutex(self.list[self.index]):
                     cw.util.release_mutex()
                     cw.cwpy.play_sound("signal")
                     path = self.list[self.index]
                     if self.isshortcuts[self.index]:
-                        yname = u"%sへのショートカット" % (self.names[self.index])
+                        yname = "%sへのショートカット" % (self.names[self.index])
                     else:
                         yname = self.names[self.index]
                     s = cw.cwpy.msgs["delete_base"] % (yname)
@@ -1131,7 +1131,7 @@ class YadoSelect(MultiViewSelect):
                         else:
                             cw.util.remove(path, trashbox=True)
                         if not self.classic[self.index]:
-                            cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
+                            cw.util.remove(cw.util.join_paths("Data/Temp/Local", path))
                         cw.cwpy.play_sound("dump")
                         if self.index+1 < len(self.list):
                             self.update_list(self.list[self.index+1])
@@ -1167,10 +1167,10 @@ class YadoSelect(MultiViewSelect):
         CardWirthの宿データを変換。
         """
         # ディレクトリ選択ダイアログ
-        s = (u"CardWirthの宿のデータをCardWirthPy用に変換します。" +
-              u"\n変換する宿のフォルダを選択してください。")
+        s = ("CardWirthの宿のデータをCardWirthPy用に変換します。" +
+              "\n変換する宿のフォルダを選択してください。")
         dlg = wx.DirDialog(self, s, style=wx.DD_DIR_MUST_EXIST)
-        dlg.SetPath(os.getcwdu())
+        dlg.SetPath(os.getcwd())
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1183,7 +1183,7 @@ class YadoSelect(MultiViewSelect):
         if not (self.list and self.classic[self.index]):
             return
         yname = self.names[self.index]
-        s = u"%sをCardWirthPy用に変換します。\nよろしいですか？" % yname
+        s = "%sをCardWirthPy用に変換します。\nよろしいですか？" % yname
         dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.Parent.move_dlg(dlg)
         cw.cwpy.play_sound("click")
@@ -1197,7 +1197,7 @@ class YadoSelect(MultiViewSelect):
     def draw(self, update=False):
         dc, dest = self.draw2(update)
 
-        if self.views <> 1 and not self._lastbillskindir is None:
+        if self.views != 1 and not self._lastbillskindir is None:
             skindir = self._lastbillskindir
         elif self.list and self.views == 1:
             skindir = self.skins[self.index]
@@ -1238,7 +1238,7 @@ class YadoSelect(MultiViewSelect):
                 # 変換が必要な場合
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16)))
                 dc.SetTextForeground(wx.RED)
-                s = u"変換が必要です"
+                s = "変換が必要です"
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, (bmpw-w)/2, cw.wins(20))
 
@@ -1301,7 +1301,7 @@ class YadoSelect(MultiViewSelect):
             y = 0
             aw = bmpw // 2
             ah = bmph // 3
-            for index in xrange(pindex, min(pindex+self.views, len(self.list))):
+            for index in range(pindex, min(pindex+self.views, len(self.list))):
                 skindir = self.skins[index]
 
                 # 宿画像
@@ -1327,7 +1327,7 @@ class YadoSelect(MultiViewSelect):
                     # 変換が必要な場合
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14)))
                     dc.SetTextForeground(wx.RED)
-                    s = u"変換が必要です"
+                    s = "変換が必要です"
                     w = dc.GetTextExtent(s)[0]
                     dc.DrawText(s, cw.wins(84)+x, cw.wins(22)+y)
                     yy += cw.wins(15)
@@ -1352,14 +1352,14 @@ class YadoSelect(MultiViewSelect):
 
             # ページ番号
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(13)))
-            s = u"%s/%s" % (self.get_page()+1, self.get_pagecount())
+            s = "%s/%s" % (self.get_page()+1, self.get_pagecount())
             w = dc.GetTextExtent(s)[0]
             cw.util.draw_witharound(dc, s, (bmpw-w)/2, cw.wins(355))
 
             # 使用中マーク
             x = 0
             y = 0
-            for index in xrange(pindex, min(pindex+self.views, len(self.list))):
+            for index in range(pindex, min(pindex+self.views, len(self.list))):
                 skindir = self.skins[index]
 
                 if cw.util.exists_mutex(self.list[index]):
@@ -1375,7 +1375,7 @@ class YadoSelect(MultiViewSelect):
             # Selected
             x = 0
             y = 0
-            for index in xrange(pindex, min(pindex+self.views, len(self.list))):
+            for index in range(pindex, min(pindex+self.views, len(self.list))):
                 if index == self.index:
                     bmp = cw.cwpy.rsrc.wxstatuses["TARGET"]
                     dc.DrawBitmap(bmp, cw.wins(180)-bmp.GetWidth()+x, cw.wins(102)-bmp.GetHeight()+y, True)
@@ -1393,7 +1393,7 @@ class YadoSelect(MultiViewSelect):
         """
         # カードワースの宿か確認
         if not os.path.exists(cw.util.join_paths(path, "Environment.wyd")):
-            s = u"CardWirthの宿のディレクトリではありません。"
+            s = "CardWirthの宿のディレクトリではありません。"
             dlg = message.ErrorMessage(self, s)
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
@@ -1403,7 +1403,7 @@ class YadoSelect(MultiViewSelect):
         # 変換確認ダイアログ
         if not ok:
             cw.cwpy.play_sound("click")
-            s = os.path.basename(path) + u" を変換します。\nよろしいですか？"
+            s = os.path.basename(path) + " を変換します。\nよろしいですか？"
             dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
             self.Parent.move_dlg(dlg)
 
@@ -1419,20 +1419,20 @@ class YadoSelect(MultiViewSelect):
 
         # 変換可能なデータかどうか確認
         if not cwdata.is_convertible():
-            s = u"CardWirth ver.1.20-1.50の宿しか変換できません。"
+            s = "CardWirth ver.1.20-1.50の宿しか変換できません。"
             dlg = message.ErrorMessage(self, s)
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
             dlg.Destroy()
             return
 
-        if cw.util.create_mutex(u"Yado"):
+        if cw.util.create_mutex("Yado"):
             try:
                 thread = cw.binary.ConvertingThread(cwdata)
                 thread.start()
 
                 # プログレスダイアログ表示
-                dlg = cw.dialog.progress.ProgressDialog(self, cwdata.name + u"の変換", "",
+                dlg = cw.dialog.progress.ProgressDialog(self, cwdata.name + "の変換", "",
                                                         maximum=100)
                 def progress():
                     while not thread.complete:
@@ -1455,7 +1455,7 @@ class YadoSelect(MultiViewSelect):
 
                 # 変換完了ダイアログ
                 cw.cwpy.play_sound("harvest")
-                s = u"データの変換が完了しました。"
+                s = "データの変換が完了しました。"
                 dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
                 self.Parent.move_dlg(dlg)
                 dlg.ShowModal()
@@ -1464,9 +1464,9 @@ class YadoSelect(MultiViewSelect):
                 if deletepath:
                     cw.util.remove(deletepath)
                 elif moveconverted:
-                    if not os.path.isdir(u"ConvertedYado"):
-                        os.makedirs(u"ConvertedYado")
-                    topath = cw.util.join_paths(u"ConvertedYado", os.path.basename(path))
+                    if not os.path.isdir("ConvertedYado"):
+                        os.makedirs("ConvertedYado")
+                    topath = cw.util.join_paths("ConvertedYado", os.path.basename(path))
                     topath = cw.binary.util.check_duplicate(topath)
                     shutil.move(path, topath)
 
@@ -1502,7 +1502,7 @@ class YadoSelect(MultiViewSelect):
                 os.makedirs(dstpath)
         except:
             cw.util.print_ex()
-            s = u"フォルダ %s を生成できません。" % (dstpath)
+            s = "フォルダ %s を生成できません。" % (dstpath)
             dlg = message.ErrorMessage(self, s)
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
@@ -1513,7 +1513,7 @@ class YadoSelect(MultiViewSelect):
 
         # 宿データ
         cw.cwpy.yadodir = cw.util.join_paths(yadodir)
-        cw.cwpy.tempdir = cw.cwpy.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, u"Yado"), 1)
+        cw.cwpy.tempdir = cw.cwpy.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, "Yado"), 1)
         try:
             ydata = cw.data.YadoData(cw.cwpy.yadodir, cw.cwpy.tempdir, loadparty=False)
 
@@ -1524,7 +1524,7 @@ class YadoSelect(MultiViewSelect):
             thread.start()
 
             # プログレスダイアログ表示
-            dlg = cw.dialog.progress.ProgressDialog(self, u"%sの逆変換" % (yadoname), "",
+            dlg = cw.dialog.progress.ProgressDialog(self, "%sの逆変換" % (yadoname), "",
                                                     maximum=unconv.maxnum)
             def progress():
                 while not thread.complete:
@@ -1548,7 +1548,7 @@ class YadoSelect(MultiViewSelect):
 
         # 変換完了ダイアログ
         cw.cwpy.play_sound("harvest")
-        s = u"データの逆変換が完了しました。\n%s" % (unconv.dir)
+        s = "データの逆変換が完了しました。\n%s" % (unconv.dir)
         dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -1561,7 +1561,7 @@ class YadoSelect(MultiViewSelect):
         """
         if clear_narrowcondition:
             self._processing = True
-            self.narrow.SetValue(u"")
+            self.narrow.SetValue("")
             self._processing = False
         self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts = self.get_yadolist()
         self.list = self._list
@@ -1584,22 +1584,22 @@ class YadoSelect(MultiViewSelect):
 
         skin_support = {}
 
-        if not os.path.exists(u"Yado"):
-            os.makedirs(u"Yado")
+        if not os.path.exists("Yado"):
+            os.makedirs("Yado")
 
-        for dname in os.listdir(u"Yado"):
-            path  = cw.util.join_paths(u"Yado", dname, u"Environment.xml")
+        for dname in os.listdir("Yado"):
+            path  = cw.util.join_paths("Yado", dname, "Environment.xml")
 
             if os.path.isfile(path):
                 prop = cw.header.GetProperty(path)
-                name = prop.properties.get(u"Name", u"")
+                name = prop.properties.get("Name", "")
                 if not name:
                     name = os.path.basename(dname)
                 names.append(name)
 
-                skin = prop.properties.get(u"Skin", u"Classic")
-                skin = cw.util.join_paths(u"Data/Skin", skin)
-                skinxml = cw.util.join_paths(skin, u"Skin.xml")
+                skin = prop.properties.get("Skin", "Classic")
+                skin = cw.util.join_paths("Data/Skin", skin)
+                skinxml = cw.util.join_paths(skin, "Skin.xml")
 
                 if skinxml in skin_support:
                     supported_skin = skin_support[skinxml]
@@ -1607,7 +1607,7 @@ class YadoSelect(MultiViewSelect):
                     if not os.path.isfile(skinxml):
                         supported_skin = False
                     else:
-                        supported_skin = cw.header.GetProperty(skinxml).attrs.get(None, {}).get(u"dataVersion", "0") in cw.SUPPORTED_SKIN
+                        supported_skin = cw.header.GetProperty(skinxml).attrs.get(None, {}).get("dataVersion", "0") in cw.SUPPORTED_SKIN
                     skin_support[skinxml] = supported_skin
 
                 if supported_skin:
@@ -1615,18 +1615,18 @@ class YadoSelect(MultiViewSelect):
                 else:
                     skins.append(cw.cwpy.skindir)
 
-                path  = cw.util.join_paths(u"Yado", dname)
+                path  = cw.util.join_paths("Yado", dname)
                 yadodirs.append(path)
                 classic.append(False)
                 isshortcuts.append("")
                 continue
 
-            path = cw.util.join_paths(u"Yado", dname)
+            path = cw.util.join_paths("Yado", dname)
             path2 = cw.util.get_linktarget(path)
-            isshortcut = path2 <> path
+            isshortcut = path2 != path
             if isshortcut:
                 path = path2
-            path = cw.util.join_paths(path, u"Environment.wyd")
+            path = cw.util.join_paths(path, "Environment.wyd")
             if os.path.isfile(path):
                 # クラシックな宿
                 name = os.path.basename(path2)
@@ -1635,7 +1635,7 @@ class YadoSelect(MultiViewSelect):
                 yadodirs.append(path2)
                 classic.append(True)
                 if isshortcut:
-                    isshortcuts.append(cw.util.join_paths(u"Yado", dname))
+                    isshortcuts.append(cw.util.join_paths("Yado", dname))
                 else:
                     isshortcuts.append("")
                 continue
@@ -1648,9 +1648,9 @@ class YadoSelect(MultiViewSelect):
             if classic[i]:
                 # クラシックな宿
                 try:
-                    wyd = cw.util.join_paths(yadodir, u"Environment.wyd")
+                    wyd = cw.util.join_paths(yadodir, "Environment.wyd")
                     if not os.path.isfile(wyd):
-                        advnames.append([u"*読込失敗*"])
+                        advnames.append(["*読込失敗*"])
                         continue
 
                     with cw.binary.cwfile.CWFile(wyd, "rb") as f:
@@ -1658,7 +1658,7 @@ class YadoSelect(MultiViewSelect):
                         f.close()
                     if 13 <= wyd.dataversion_int:
                         # 1.50まで
-                        advnames.append([u"*読込失敗*"])
+                        advnames.append(["*読込失敗*"])
                         continue
 
                     # 1.20のアルバムデータは時間がかかる可能性があるため
@@ -1741,7 +1741,7 @@ class PartySelect(MultiViewSelect):
                    cw.cwpy.msgs["history"],
                    cw.cwpy.msgs["character_attribute"],
                    cw.cwpy.msgs["sort_level"])
-        self._init_narrowpanel(choices, u"", cw.cwpy.setting.parties_narrowtype)
+        self._init_narrowpanel(choices, "", cw.cwpy.setting.parties_narrowtype)
 
         # sort
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
@@ -1817,7 +1817,7 @@ class PartySelect(MultiViewSelect):
 
         seq = self.accels
         self.sortkeydown = []
-        for i in xrange(0, 9):
+        for i in range(0, 9):
             sortkeydown = wx.NewId()
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
             seq.append((wx.ACCEL_CTRL, ord('1')+i, sortkeydown))
@@ -1864,7 +1864,7 @@ class PartySelect(MultiViewSelect):
         ntype = self.narrow_type.GetSelection()
 
         if donarrow:
-            hiddens = set([u"＿", u"＠"])
+            hiddens = set(["＿", "＠"])
             attrs = set(cw.cwpy.setting.periodnames)
             attrs.update(cw.cwpy.setting.sexnames)
             attrs.update(cw.cwpy.setting.naturenames)
@@ -1915,7 +1915,7 @@ class PartySelect(MultiViewSelect):
                         for coupon in coupons:
                             if coupon:
                                 if cw.cwpy.is_debugmode():
-                                    if coupon[0] == u"＿" and coupon[1:] in attrs:
+                                    if coupon[0] == "＿" and coupon[1:] in attrs:
                                         continue
                                 else:
                                     if coupon[0] in hiddens:
@@ -1928,7 +1928,7 @@ class PartySelect(MultiViewSelect):
                 def has_memberfeatures():
                     for coupons in header.get_membercoupons():
                         for coupon in coupons:
-                            if coupon and coupon[0] == u"＿":
+                            if coupon and coupon[0] == "＿":
                                 coupon = coupon[1:]
                                 if coupon in attrs:
                                     if narrow in coupon.lower():
@@ -1999,7 +1999,7 @@ class PartySelect(MultiViewSelect):
         else:
             sorttype = "None"
 
-        if cw.cwpy.setting.sort_parties <> sorttype:
+        if cw.cwpy.setting.sort_parties != sorttype:
             cw.cwpy.play_sound("page")
             cw.cwpy.setting.sort_parties = sorttype
             cw.cwpy.ydata.sort_parties()
@@ -2347,7 +2347,7 @@ class PlayerSelect(MultiViewSelect):
                    cw.cwpy.msgs["history"],
                    cw.cwpy.msgs["character_attribute"],
                    cw.cwpy.msgs["sort_level"])
-        self._init_narrowpanel(choices, u"", cw.cwpy.setting.standbys_narrowtype)
+        self._init_narrowpanel(choices, "", cw.cwpy.setting.standbys_narrowtype)
 
         # sort
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
@@ -2421,7 +2421,7 @@ class PlayerSelect(MultiViewSelect):
 
         seq = self.accels
         self.sortkeydown = []
-        for i in xrange(0, 9):
+        for i in range(0, 9):
             sortkeydown = wx.NewId()
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
             seq.append((wx.ACCEL_CTRL, ord('1')+i, sortkeydown))
@@ -2468,7 +2468,7 @@ class PlayerSelect(MultiViewSelect):
         donarrow = self.narrow.IsShown() and bool(narrow)
 
         if donarrow:
-            hiddens = set([u"＿", u"＠"])
+            hiddens = set(["＿", "＠"])
             attrs = set(cw.cwpy.setting.periodnames)
             attrs.update(cw.cwpy.setting.sexnames)
             attrs.update(cw.cwpy.setting.naturenames)
@@ -2506,7 +2506,7 @@ class PlayerSelect(MultiViewSelect):
                     for coupon in header.history:
                         if coupon:
                             if cw.cwpy.is_debugmode():
-                                if coupon[0] == u"＿" and coupon[1:] in attrs:
+                                if coupon[0] == "＿" and coupon[1:] in attrs:
                                     continue
                             else:
                                 if coupon[0] in hiddens:
@@ -2518,7 +2518,7 @@ class PlayerSelect(MultiViewSelect):
 
                 def has_features():
                     for coupon in header.history:
-                        if coupon and coupon[0] == u"＿":
+                        if coupon and coupon[0] == "＿":
                             coupon = coupon[1:]
                             if coupon in attrs:
                                 if narrow in coupon.lower():
@@ -2588,7 +2588,7 @@ class PlayerSelect(MultiViewSelect):
         else:
             sorttype = "None"
 
-        if cw.cwpy.setting.sort_standbys <> sorttype:
+        if cw.cwpy.setting.sort_standbys != sorttype:
             cw.cwpy.play_sound("page")
             cw.cwpy.setting.sort_standbys = sorttype
             cw.cwpy.ydata.sort_standbys()
@@ -2941,11 +2941,11 @@ class PlayerSelect(MultiViewSelect):
         header = cw.cwpy.ydata.add_standbys(fpath)
 
         # リスト更新
-        self.narrow.SetValue(u"")
+        self.narrow.SetValue("")
         self.update_narrowcondition()
         if header in self.list:
             self.index = self.list.index(header)
-        chgviews = self.views <> 1
+        chgviews = self.views != 1
         if chgviews:
             self.change_view()
         self.draw(True)
@@ -3043,14 +3043,14 @@ class PlayerSelect(MultiViewSelect):
                         talent = coupon
                         break
                 val = types.get(talent, 0)
-                for _i in xrange(val):
+                for _i in range(val):
                     need *= 2
 
                 # レベルが離れているほど必要度を下げる
                 val = level - header.level
                 if val < 0:
                     val = -val
-                for _i in xrange(int(val+0.5)):
+                for _i in range(int(val+0.5)):
                     need *= 4
                 seq.append((int(need), header))
             return seq
@@ -3127,7 +3127,7 @@ class PlayerSelect(MultiViewSelect):
                 dc.DrawText(s, cw.wins(127) - w / 2, cw.wins(225))
 
                 # クーポン(新しい順から9つ)
-                hiddens = set([u"＿", u"＠"])
+                hiddens = set(["＿", "＠"])
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_history"]
                 w = dc.GetTextExtent(s)[0]

@@ -7,7 +7,7 @@ import pygame
 import pygame.locals
 
 import cw
-import base
+from . import base
 
 
 class AnimationCell(base.SelectableSprite):
@@ -82,7 +82,7 @@ class AnimationCell(base.SelectableSprite):
         self.frame = 0
 
     def update(self, scr):
-        if cw.cwpy.selection <> self:
+        if cw.cwpy.selection != self:
             # 他の選択がなされていない場合は常にAnimationCellを選択状態にする
             self.update_selection()
         if not cw.cwpy.selection:
@@ -93,7 +93,7 @@ class AnimationCell(base.SelectableSprite):
             method()
 
     def update_normal(self):
-        if cw.cwpy.selection <> self:
+        if cw.cwpy.selection != self:
             # 他の選択がなされていない場合は常にAnimationCellを選択状態にする
             self.update_selection()
         if not cw.cwpy.selection:
@@ -176,8 +176,7 @@ class _AnimationPart(object):
             self.duration = data.getint("Duration", 20) # 存在期間
 
             if self.animation_type == "Rotate":
-                self.dealing_scales = map(lambda i: int(math.sin(math.radians(180.0 * i / self.animation_frame)) * 100),
-                                          xrange(self.animation_frame))
+                self.dealing_scales = [int(math.sin(math.radians(180.0 * i / self.animation_frame)) * 100) for i in range(self.animation_frame)]
 
             self.image = pygame.Surface((0, 0)).convert()
             self.rect = pygame.Rect(0, 0, 0, 0)
@@ -205,7 +204,7 @@ class _AnimationPart(object):
                 self.parent.size_noscale[1]
                 height //= scr_scale
 
-            self._has_alpha = (self.image_noscale.get_flags() & pygame.locals.SRCALPHA) <> 0
+            self._has_alpha = (self.image_noscale.get_flags() & pygame.locals.SRCALPHA) != 0
         else:
             # 塗り潰し
             self.image_noscale = pygame.Surface((4, 4)).convert()
@@ -259,7 +258,7 @@ class _AnimationPart(object):
             w //= scr_scale
             h //= scr_scale
             size = (w, h)
-            if size <> self.size_noscale:
+            if size != self.size_noscale:
                 size = cw.s(self.size_noscale)
                 if cw.cwpy.setting.smoothscale_bg and self.imgpath:
                     self._image = cw.image.smoothscale(self.image_noscale, size)
@@ -328,7 +327,7 @@ class _AnimationPart(object):
                 self.image.fill((255, 255, 255, alpha), special_flags=pygame.locals.BLEND_RGBA_MULT)
             else:
                 self.image = self._image
-                if self.image.get_alpha() <> alpha:
+                if self.image.get_alpha() != alpha:
                     self.image.set_alpha(alpha)
 
         elif self.animation_type == "Rotate":

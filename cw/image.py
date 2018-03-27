@@ -5,7 +5,7 @@ import os
 import io
 import struct
 import threading
-import cStringIO
+import io
 import wx
 import pygame
 
@@ -35,10 +35,11 @@ class ImageInfo(object):
         if not self.postype in ("Default", None):
             e.set("positiontype", self.postype)
 
-    def calc_basecardposition(self, (imgwidth, imgheight), noscale=False, basecardtype=None, cardpostype=None):
+    def calc_basecardposition(self, xxx_todo_changeme, noscale=False, basecardtype=None, cardpostype=None):
         """カードに配置した時の描画位置を返す。
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
+        (imgwidth, imgheight) = xxx_todo_changeme
         def getsize(resname):
             if resname.endswith("_noscale"):
                 resname = resname[0:-len("_noscale")]
@@ -47,10 +48,11 @@ class ImageInfo(object):
                 return cw.s(cw.setting.SIZE_RESOURCES["CardBg/" + resname])
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
 
-    def calc_basecardposition_wx(self, (imgwidth, imgheight), noscale=False, basecardtype=None, cardpostype=None):
+    def calc_basecardposition_wx(self, xxx_todo_changeme1, noscale=False, basecardtype=None, cardpostype=None):
         """カードに配置した時の描画位置を返す。
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
+        (imgwidth, imgheight) = xxx_todo_changeme1
         def getsize(resname):
             if resname.endswith("_noscale"):
                 resname = resname[0:-len("_noscale")]
@@ -270,7 +272,7 @@ class CardImage(Image):
             if not os.path.isfile(path):
                 continue
 
-            if self.image_mtime.get(path, 0) <> os.path.getmtime(path):
+            if self.image_mtime.get(path, 0) != os.path.getmtime(path):
                 return True
         return False
 
@@ -344,9 +346,9 @@ class CardImage(Image):
                 else:
                     subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
                 subimg2 = cw.imageretouch.mul_alpha(subimg2, 92)
-                for x in xrange(cw.s(5)-1, cw.s(5)+2):
-                    for y in xrange(cw.s(5)-1, cw.s(5)+2):
-                        if x <> cw.s(5) or y <> cw.s(5):
+                for x in range(cw.s(5)-1, cw.s(5)+2):
+                    for y in range(cw.s(5)-1, cw.s(5)+2):
+                        if x != cw.s(5) or y != cw.s(5):
                             image.blit(subimg2, (x, y))
 
             image.blit(subimg, (left, cw.s(5)))
@@ -512,8 +514,8 @@ class CardImage(Image):
 
                 # FIXME: wxPythonのメモリ上のデータからのwx.Image生成は
                 #        異常に重いのでキャッシングする
-                cachepath = path if not pisc else u""
-                md5 = cw.util.get_md5_from_data(path) if pisc else u""
+                cachepath = path if not pisc else ""
+                md5 = cw.util.get_md5_from_data(path) if pisc else ""
                 cachekey = (cachepath, md5, cw.UP_WIN, can_loaded_scaledimage)
                 if cachekey in cw.cwpy.sdata.resource_cache:
                     subimg = cw.cwpy.sdata.resource_cache[cachekey]
@@ -757,9 +759,9 @@ class LargeCardImage(CardImage):
                 subimg2 = subimg.convert_alpha()
                 subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
                 subimg2 = cw.imageretouch.mul_alpha(subimg2, 92)
-                for x in xrange(cw.s(5)-1, cw.s(5)+2):
-                    for y in xrange(cw.s(5)-1, cw.s(5)+2):
-                        if x <> cw.s(5) or y <> cw.s(5):
+                for x in range(cw.s(5)-1, cw.s(5)+2):
+                    for y in range(cw.s(5)-1, cw.s(5)+2):
+                        if x != cw.s(5) or y != cw.s(5):
                             image.blit(subimg2, (x, y))
 
             image.blit(subimg, cw.s((5, 5)))
@@ -886,7 +888,7 @@ class CharacterCardImage(CardImage):
 
         overhang = 0
         h = 0
-        for n in xrange(10):
+        for n in range(10):
             c = str(n)
             size = font.size(c)
             h = max(h, size[1])
@@ -904,10 +906,10 @@ class CharacterCardImage(CardImage):
 
         top = 0x7fffffff
         right = 0
-        for x in xrange(size[0]):
-            for y in xrange(size[1]):
+        for x in range(size[0]):
+            for y in range(size[1]):
                 color = self.levelimg.get_at((x, y))
-                if color[3] <> 0:
+                if color[3] != 0:
                     color[3] = color[3] / 2
                     self.levelimg.set_at((x, y), color)
                     right = max(x, right)
@@ -960,9 +962,9 @@ class CharacterCardImage(CardImage):
                     nameimg1, nameimg2 = nameimg2, nameimg1
                     nameimg2 = nameimg2.convert_alpha()
                 nameimg2 = cw.imageretouch.mul_alpha(nameimg2, 92)
-                for x in xrange(cw.s(5)-1, cw.s(5)+2):
-                    for y in xrange(cw.s(5)-1, cw.s(5)+2):
-                        if x <> cw.s(5) or y <> cw.s(5):
+                for x in range(cw.s(5)-1, cw.s(5)+2):
+                    for y in range(cw.s(5)-1, cw.s(5)+2):
+                        if x != cw.s(5) or y != cw.s(5):
                             self.image.blit(nameimg2, (x, y))
                 self.image.blit(nameimg1, cw.s((5, 5)))
             else:
@@ -1182,7 +1184,7 @@ def create_type2textcell(text, face, size, color,
         subimg = font.render(line, False, color)
         # 取消線
         if sline:
-            subimg2 = font.render(u"―", False, color)
+            subimg2 = font.render("―", False, color)
             size = (subimg.get_width() + cw.s(10), subimg.get_height())
             subimg2 = pygame.transform.scale(subimg2, size)
             subimg.blit(subimg2, cw.s((-5, 0)))
@@ -1221,7 +1223,7 @@ def draw_textcell(image, rect, text, face, size, color,
         if bcolor:
             subimg = font.render(line, False, bcolor)
             if sline:
-                subimg2 = font.render(u"―", False, bcolor)
+                subimg2 = font.render("―", False, bcolor)
                 size = (subimg.get_width() + cw.s(10), lineheight)
                 subimg2 = pygame.transform.scale(subimg2, size)
                 subimg.blit(subimg2, cw.s((-5, 0)))
@@ -1233,7 +1235,7 @@ def draw_textcell(image, rect, text, face, size, color,
             img.blit(subimg, (x + 1, y + 1))
         subimg = font.render(line, False, color)
         if sline:
-            subimg2 = font.render(u"―", False, color)
+            subimg2 = font.render("―", False, color)
             size = (subimg.get_width() + cw.s(10), lineheight)
             subimg2 = pygame.transform.scale(subimg2, size)
             subimg.blit(subimg2, cw.s((-5, 0)))
@@ -1285,7 +1287,7 @@ def create_colorcell(size, color1, gradient, color2):
     w = image.get_width()
     h = image.get_height()
     if gradient == "LeftToRight":
-        for x in xrange(w):
+        for x in range(w):
             per = float(x) / w
             r = calc_per(color1[0], color2[0], per)
             g = calc_per(color1[1], color2[1], per)
@@ -1293,7 +1295,7 @@ def create_colorcell(size, color1, gradient, color2):
             a = calc_per(color1[3], color2[3], per)
             pygame.draw.line(image, (r, g, b, a), (x, 0), (x, h), 1)
     elif gradient == "TopToBottom":
-        for y in xrange(h):
+        for y in range(h):
             per = float(h - y) / h
             r = calc_per(color2[0], color1[0], per) # 縦グラデーションは色の方向が逆
             g = calc_per(color2[1], color1[1], per)
@@ -1334,7 +1336,7 @@ def smoothscale(surface, size, smoothing=True, iscard=False):
     """
     if size == surface.get_size():
         return surface
-    size = map(lambda a: max(1, a), size)
+    size = [max(1, a) for a in size]
 
     if surface.get_height() <= 1:
         # FIXME: 環境によって、高さが1の画像に
@@ -1380,9 +1382,9 @@ def fix_cwnext16bitbitmap(data):
     if len(data) < 14 + 40:
         return data, True
     s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
-    if s[0] <> ord('B'):
+    if s[0] != ord('B'):
         return data, True
-    if s[1] <> ord('M'):
+    if s[1] != ord('M'):
         return data, True
     _bfSize = s[2]
     _bfReserved1 = s[3]
@@ -1391,7 +1393,7 @@ def fix_cwnext16bitbitmap(data):
     if bfOffBits == 0:
         return data, True
     biSize = s[6]
-    if biSize <> 40:
+    if biSize != 40:
         return data, True
     biWidth = s[7]
     biHeight = s[8]
@@ -1405,8 +1407,8 @@ def fix_cwnext16bitbitmap(data):
     _biClrImporant = s[16]
     lineSize = ((biWidth * biBitCount + 31) / 32) * 4
     height = -biHeight if biHeight < 0 else biHeight
-    if len(data) - bfOffBits <> lineSize * height:
-        if threading.currentThread() <> cw.cwpy:
+    if len(data) - bfOffBits != lineSize * height:
+        if threading.currentThread() != cw.cwpy:
             # wxPythonは無理やり読み込んで壊れた画像を作ってしまうので
             # pygame側でエラーが出るか調べる
             data = cw.image.patch_rle4bitmap(data)
@@ -1452,9 +1454,9 @@ def patch_rle4bitmap(data):
     if len(data) < 14 + 40:
         return data
     s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
-    if s[0] <> ord('B'):
+    if s[0] != ord('B'):
         return data
-    if s[1] <> ord('M'):
+    if s[1] != ord('M'):
         return data
     _bfSize = s[2]
     _bfReserved1 = s[3]
@@ -1463,7 +1465,7 @@ def patch_rle4bitmap(data):
     if bfOffBits == 0:
         return data
     biSize = s[6]
-    if biSize <> 40:
+    if biSize != 40:
         return data
     biWidth = s[7]
     biHeight = s[8]
@@ -1478,7 +1480,7 @@ def patch_rle4bitmap(data):
         h = -biHeight if biHeight < 0 else biHeight
         bmpdata = cw.imageretouch.decode_rle4data(bmpdata, h, bpl)
 
-        f = cStringIO.StringIO()
+        f = io.StringIO()
         f.write(data[:2])
         f.write(struct.pack("<I", bfOffBits + len(bmpdata)))
         f.write(data[2+4:2+4+8+16])
@@ -1500,9 +1502,9 @@ def get_bmpdepth(data):
     if len(data) < 14 + 40:
         return 0
     s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
-    if s[0] <> ord('B'):
+    if s[0] != ord('B'):
         return 0
-    if s[1] <> ord('M'):
+    if s[1] != ord('M'):
         return 0
     if 40 <= s[6]:
         biBitCount = s[10]
@@ -1520,9 +1522,9 @@ def get_bicompression(data):
     if len(data) < 14 + 40:
         return 0
     s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
-    if s[0] <> ord('B'):
+    if s[0] != ord('B'):
         return 0
-    if s[1] <> ord('M'):
+    if s[1] != ord('M'):
         return 0
     if 40 <= s[6]:
         biCompression = s[11]
@@ -1540,12 +1542,12 @@ def has_pngalpha(data):
     if len(data) < 8 + 25:
         return 0
     s = struct.unpack(">BBBBBBBBIBBBBIIBBBBBI", data[0:8+25])
-    if s[0] <> 0x89 or s[1] <> 0x50 or s[2] <> 0x4E or s[3] <> 0x47 or\
-            s[4] <> 0x0D or s[5] <> 0x0A or s[6] <> 0x1A or s[7] <> 0x0A:
+    if s[0] != 0x89 or s[1] != 0x50 or s[2] != 0x4E or s[3] != 0x47 or\
+            s[4] != 0x0D or s[5] != 0x0A or s[6] != 0x1A or s[7] != 0x0A:
         return 0
-    if s[8] <> 13:
+    if s[8] != 13:
         return 0
-    if s[9] <> ord('I') or s[10] <> ord('H') or s[11] <> ord('D') or s[12] <> ord('R'):
+    if s[9] != ord('I') or s[10] != ord('H') or s[11] != ord('D') or s[12] != ord('R'):
         return 0
     colortype = s[16]
     return colortype in (4, 6)

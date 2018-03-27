@@ -5,9 +5,9 @@ import os
 import io
 import sys
 
-import base
-import adventurer
-import util
+from . import base
+from . import adventurer
+from . import util
 
 import cw
 import cw.binary.cwfile
@@ -16,7 +16,7 @@ import cw.binary.album
 import cw.binary.skill
 import cw.binary.item
 import cw.binary.beast
-import bgimage
+from . import bgimage
 
 
 class Party(base.CWBinaryBase):
@@ -37,7 +37,7 @@ class Party(base.CWBinaryBase):
             f.image() # 宿の埋め込み画像は破棄
             self.memberslist = []
             for member in cw.util.decodetextlist(f.string(True)):
-                if member <> "":
+                if member != "":
                     self.memberslist.append(util.check_filename(member))
             self.name = f.string()
             self.money = f.dword() # 冒険中の現在値
@@ -46,7 +46,7 @@ class Party(base.CWBinaryBase):
             # 1.20
             self.memberslist = []
             for member in cw.util.decodetextlist(f.string(True)):
-                if member <> "":
+                if member != "":
                     self.memberslist.append(util.check_filename(member))
             dataversion_str = f.string()
             _scenarioname = f.string() # プレイ中のシナリオ名
@@ -162,7 +162,7 @@ class PartyMembers(base.CWBinaryBase):
         _b = f.byte() # 不明(5)
         self.adventurers = []
         vanisheds_num = 0
-        for i in xrange(adventurers_num):
+        for i in range(adventurers_num):
             self.adventurers.append(adventurer.AdventurerWithImage(self, f))
             if 10 <= dataversion:
                 vanisheds_num = f.byte() # 最後のメンバが消滅メンバの数を持っている？
@@ -171,7 +171,7 @@ class PartyMembers(base.CWBinaryBase):
         self.vanisheds = []
         if 0 < vanisheds_num:
             _dw = f.dword() # 不明(0)
-            for i in xrange(vanisheds_num):
+            for i in range(vanisheds_num):
                 self.vanisheds.append(adventurer.AdventurerWithImage(self, f))
                 if i + 1 < vanisheds_num:
                     _b = f.byte()
@@ -185,16 +185,16 @@ class PartyMembers(base.CWBinaryBase):
             self.name = f.string() # パーティ名
             # 荷物袋にあるカードリスト
             cards_num = f.dword()
-            self.cards = [BackpackCard(self, f) for _cnt in xrange(cards_num)]
+            self.cards = [BackpackCard(self, f) for _cnt in range(cards_num)]
         else:
             # 1.20
             f.seek(-4, io.SEEK_CUR)
             # パーティ名
-            self.name = self.adventurers[0].adventurer.name + u"一行"
+            self.name = self.adventurers[0].adventurer.name + "一行"
             # 荷物袋にあるカードリスト
             cards_num = f.dword()
             self.cards = []
-            for _cnt in xrange(cards_num):
+            for _cnt in range(cards_num):
                 type = f.byte()
                 if type == 2:
                     carddata = cw.binary.item.ItemCard(None, f, True)
@@ -235,7 +235,7 @@ class PartyMembers(base.CWBinaryBase):
                 self.infocards = self.split_ids(f.rawstring())
                 self.music = f.rawstring()
                 bgimgs_num = f.dword()
-                self.bgimgs = [bgimage.BgImage(self, f) for _cnt in xrange(bgimgs_num)]
+                self.bgimgs = [bgimage.BgImage(self, f) for _cnt in range(bgimgs_num)]
         else:
             # 1.20以前では個人別に所持金があるためパーティの財布に集める
             self.money = 0
@@ -246,7 +246,7 @@ class PartyMembers(base.CWBinaryBase):
 
             self.nowadventuring = f.bool()
             if self.nowadventuring: #冒険中か
-                self.scenariopath = u""
+                self.scenariopath = ""
                 summary = cw.binary.summary.Summary(None, f, True, wpt120=True)
                 self.steps = {}.copy()
                 for step in summary.steps:
@@ -261,21 +261,21 @@ class PartyMembers(base.CWBinaryBase):
                 self.areaid = f.dword()
                 self.friendcards = []
                 fcardnum = f.dword()
-                for _i in xrange(fcardnum):
+                for _i in range(fcardnum):
                     self.friendcards.append(f.dword())
                 self.infocards = []
                 infonum = f.dword()
-                for _i in xrange(infonum):
+                for _i in range(infonum):
                     self.infocards.append(f.dword())
                 self.music = f.rawstring()
                 bgimgs_num = f.dword()
-                self.bgimgs = [bgimage.BgImage(self, f) for _cnt in xrange(bgimgs_num)]
+                self.bgimgs = [bgimage.BgImage(self, f) for _cnt in range(bgimgs_num)]
 
     def split_variables(self, text, step):
         d = {}
         for l in text.splitlines():
             index = l.rfind('=')
-            if index <> -1:
+            if index != -1:
                 if step:
                     d[l[:index]] = int(l[index+1:])
                 else:
@@ -394,22 +394,22 @@ class PartyMembers(base.CWBinaryBase):
                 if i + 1 < len(adventurers):
                     f.write_byte(0) # 不明
                 advnum += 1
-            except cw.binary.cwfile.UnsupportedError, ex:
+            except cw.binary.cwfile.UnsupportedError as ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = member.gettext("Property/Name", "")
-                    s = u"%s の %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                    s = "%s の %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     errorlog.append(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = member.gettext("Property/Name", "")
-                    s = u"%s の %s は変換できませんでした。\n" % (name, cardname)
+                    s = "%s の %s は変換できませんでした。\n" % (name, cardname)
                     errorlog.append(s)
 
         if advnum == 0:
-            s = u"%s は全メンバが変換に失敗したため、変換しません。\n" % (name)
+            s = "%s は全メンバが変換に失敗したため、変換しません。\n" % (name)
             raise cw.binary.cwfile.UnsupportedError(s)
 
         if f.write_errorlog:
@@ -438,18 +438,18 @@ class PartyMembers(base.CWBinaryBase):
                     if i + 1 < len(vanisheds):
                         f.write_byte(0) # 不明
                     vannum += 1
-                except cw.binary.cwfile.UnsupportedError, ex:
+                except cw.binary.cwfile.UnsupportedError as ex:
                     f.seek(pos)
                     if f.write_errorlog:
                         cardname = member.gettext("Property/Name", "")
-                        s = u"%s の %s(消去前データ) は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                        s = "%s の %s(消去前データ) は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                         f.write_errorlog(s)
                 except Exception:
                     cw.util.print_ex(file=sys.stderr)
                     f.seek(pos)
                     if f.write_errorlog:
                         cardname = member.gettext("Property/Name", "")
-                        s = u"%s の %s(消去前データ) は変換できませんでした。\n" % (name, cardname)
+                        s = "%s の %s(消去前データ) は変換できませんでした。\n" % (name, cardname)
                         f.write_errorlog(s)
             tell = f.tell()
             f.seek(vannumpos)
@@ -511,7 +511,7 @@ class BackpackCard(base.CWBinaryBase):
             self.uselimit = f.dword()
             self.mine = f.bool()
         else:
-            self.fname = u""
+            self.fname = ""
             self.uselimit = 0
             self.mine = False
         self.data = None
@@ -544,7 +544,7 @@ def load_album120(parent, f):
     cardnum = f.dword() # アルバム人数
     cards = []
     albums = []
-    for _i in xrange(cardnum):
+    for _i in range(cardnum):
         card = cw.binary.adventurer.AdventurerCard(parent, None, True)
         card.fname = f.name
         card.adventurer = cw.binary.adventurer.Adventurer(card, f, True, album120=True)

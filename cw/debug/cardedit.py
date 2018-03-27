@@ -18,7 +18,7 @@ import cw
 class CardEditDialog(wx.Dialog):
 
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, u"手札カードの編集",
+        wx.Dialog.__init__(self, parent, -1, "手札カードの編集",
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
@@ -43,16 +43,16 @@ class CardEditDialog(wx.Dialog):
         self.target_cards = {}
         self.target_table = {}
 
-        self.cardsbox = wx.StaticBox(self, -1, u"カードの選択")
-        self.dealtargbox = wx.StaticBox(self, -1, u"配付先")
-        self.methodbox = wx.StaticBox(self, -1, u"照合方法")
-        self.targetsbox = wx.StaticBox(self, -1, u"処理対象")
+        self.cardsbox = wx.StaticBox(self, -1, "カードの選択")
+        self.dealtargbox = wx.StaticBox(self, -1, "配付先")
+        self.methodbox = wx.StaticBox(self, -1, "照合方法")
+        self.targetsbox = wx.StaticBox(self, -1, "処理対象")
 
-        self.scenario = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"(シナリオ未選択)")
+        self.scenario = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="(シナリオ未選択)")
 
         bmp = cw.cwpy.rsrc.dialogs["BOOKMARK_dbg"]
         self.bookmark = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), bmp=bmp)
-        self.bookmark.SetToolTip(wx.ToolTip(u"ブックマーク"))
+        self.bookmark.SetToolTip(wx.ToolTip("ブックマーク"))
         self.bookmarkmenu = None
 
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
@@ -64,8 +64,8 @@ class CardEditDialog(wx.Dialog):
             style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
         self.cards.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.cards.InsertColumn(0, "ID")
-        self.cards.InsertColumn(1, u"カード名")
-        self.cards.InsertColumn(2, u"解説")
+        self.cards.InsertColumn(1, "カード名")
+        self.cards.InsertColumn(2, "解説")
         self.cards.SetColumnWidth(0, cw.ppis(40))
         self.cards.SetColumnWidth(1, cw.ppis(85))
         self.cards.SetColumnWidth(2, cw.ppis(110))
@@ -75,34 +75,34 @@ class CardEditDialog(wx.Dialog):
         if not (cw.cwpy.ydata.party and\
                 cw.cwpy.ydata.party.is_adventuring()):
             bmp = cw.cwpy.rsrc.buttons["DECK_dbg"]
-            self.dealtarg.Append(u"カード置場", bmp)
+            self.dealtarg.Append("カード置場", bmp)
             self.notcast += 1
         if cw.cwpy.ydata.party:
             bmp = cw.cwpy.rsrc.buttons["SACK_dbg"]
-            self.dealtarg.Append(u"荷物袋", bmp)
+            self.dealtarg.Append("荷物袋", bmp)
             self.notcast += 1
         bmp = cw.cwpy.rsrc.buttons["CAST_dbg"]
         for member in cw.cwpy.get_pcards():
             self.dealtarg.Append(member.name, bmp)
         # 配付先のデフォルトは荷物袋。なければカード置場
         if cw.cwpy.ydata.party:
-            self.dealtarg.SetStringSelection(u"荷物袋")
+            self.dealtarg.SetStringSelection("荷物袋")
         else:
-            self.dealtarg.SetStringSelection(u"カード置場")
+            self.dealtarg.SetStringSelection("カード置場")
 
-        self.dtlbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"情報")
-        self.dealbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"配付")
-        self.findbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"検索")
-        self.stopbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"中断")
-        self.updbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"更新")
-        self.delbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"除去")
+        self.dtlbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="情報")
+        self.dealbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="配付")
+        self.findbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="検索")
+        self.stopbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="中断")
+        self.updbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="更新")
+        self.delbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="除去")
 
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), name=u"閉じる")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), name="閉じる")
 
-        self.mname = wx.CheckBox(self, -1, u"カード名")
-        self.mdesc = wx.CheckBox(self, -1, u"解説")
-        self.mscenario = wx.CheckBox(self, -1, u"シナリオ")
-        self.mauthor = wx.CheckBox(self, -1, u"作者")
+        self.mname = wx.CheckBox(self, -1, "カード名")
+        self.mdesc = wx.CheckBox(self, -1, "解説")
+        self.mscenario = wx.CheckBox(self, -1, "シナリオ")
+        self.mauthor = wx.CheckBox(self, -1, "作者")
 
         self.timglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         self.timgidx_storehouse = self.timglist.Add(cw.cwpy.rsrc.buttons["DECK_dbg"])
@@ -120,9 +120,9 @@ class CardEditDialog(wx.Dialog):
             wx.lib.agw.customtreectrl.TR_AUTO_CHECK_CHILD|\
             wx.lib.agw.customtreectrl.TR_AUTO_CHECK_PARENT)
         self.targets.SetImageList(self.timglist)
-        self.status = wx.StaticText(self, -1, label=u"対象はありません", style=wx.ST_NO_AUTORESIZE)
+        self.status = wx.StaticText(self, -1, label="対象はありません", style=wx.ST_NO_AUTORESIZE)
 
-        self.root = self.targets.AddRoot(u"")
+        self.root = self.targets.AddRoot("")
 
         self.mname.SetValue(True)
         self.mdesc.SetValue(True)
@@ -207,8 +207,8 @@ class CardEditDialog(wx.Dialog):
         else:
             dpath = ""
             fpath = ""
-        dlg = wx.FileDialog(self, u"シナリオの選択", dpath, fpath,
-                            u"シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab; Summary.xml)|*.wsn;*.wsm;*.zip;*.lzh;*.cab;Summary.xml",
+        dlg = wx.FileDialog(self, "シナリオの選択", dpath, fpath,
+                            "シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab; Summary.xml)|*.wsn;*.wsm;*.zip;*.lzh;*.cab;Summary.xml",
                             wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             fpath = dlg.GetPath()
@@ -270,12 +270,12 @@ class CardEditDialog(wx.Dialog):
         icon_arrange = cw.cwpy.rsrc.dialogs["ARRANGE_BOOKMARK_dbg"]
         icon_summary = cw.cwpy.rsrc.dialogs["SUMMARY_dbg"]
 
-        self._add_bookmark = wx.MenuItem(menu, -1, u"ブックマークの登録")
+        self._add_bookmark = wx.MenuItem(menu, -1, "ブックマークの登録")
         self._add_bookmark.SetBitmap(icon_add)
         menu.Append(self._add_bookmark)
         menu.Bind(wx.EVT_MENU, self.OnAddBookmark, self._add_bookmark)
 
-        self._arrange_bookmark = wx.MenuItem(menu, -1, u"ブックマークの整理")
+        self._arrange_bookmark = wx.MenuItem(menu, -1, "ブックマークの整理")
         self._arrange_bookmark.SetBitmap(icon_arrange)
         menu.Append(self._arrange_bookmark)
         menu.Bind(wx.EVT_MENU, self.OnArrangeBookmark, self._arrange_bookmark)
@@ -309,7 +309,7 @@ class CardEditDialog(wx.Dialog):
         if self.scdata:
             fname = os.path.basename(self.scpath)
             lfname = fname.lower()
-            if lfname in (u"summary.wsm", u"summary.xml"):
+            if lfname in ("summary.wsm", "summary.xml"):
                 scpath = os.path.dirname(self.scpath)
             else:
                 scpath = self.scpath
@@ -350,9 +350,9 @@ class CardEditDialog(wx.Dialog):
     def OnDealBtn(self, event):
         """選択したカードを配付する。"""
         cname = self.dealtarg.GetStringSelection()
-        if cname == u"カード置場":
+        if cname == "カード置場":
             target = cw.cwpy.ydata.storehouse
-        elif cname == u"荷物袋":
+        elif cname == "荷物袋":
             target = self.party.backpack
         else:
             cindex = self.dealtarg.GetSelection()
@@ -417,7 +417,7 @@ class CardEditDialog(wx.Dialog):
                 for member in cw.cwpy.get_pcards():
                     if not self._find:
                         break
-                    set_status(u"%sの手札カードを検索中..." % (member.name))
+                    set_status("%sの手札カードを検索中..." % (member.name))
                     for cardpocket in (member.cardpocket[cw.POCKET_SKILL], member.cardpocket[cw.POCKET_ITEM], member.cardpocket[cw.POCKET_BEAST]):
                         for header in cardpocket:
                             matcher = self._get_matcher(header)
@@ -439,7 +439,7 @@ class CardEditDialog(wx.Dialog):
                                     add_target(item, matcher, member, member, header, cw.cwpy.is_playingscenario())
                                 wx.CallAfter(func, roots, items, matcher, member, header)
 
-                set_status(u"荷物袋を検索中...")
+                set_status("荷物袋を検索中...")
                 for header in cw.cwpy.ydata.party.backpack:
                     if not self._find:
                         break
@@ -451,7 +451,7 @@ class CardEditDialog(wx.Dialog):
                             party = cw.cwpy.ydata.party
 
                             image = self.timgidx_backpack
-                            name = u"荷物袋"
+                            name = "荷物袋"
                             root = get_item(roots, "BACKPACK", self.root, name, image)
 
                             image = self._get_imgidx(header)
@@ -459,7 +459,7 @@ class CardEditDialog(wx.Dialog):
                             add_target(item, matcher, None, party, header, cw.cwpy.is_playingscenario())
                         wx.CallAfter(func, roots, items, matcher, header)
 
-            set_status(u"カード置場を検索中...")
+            set_status("カード置場を検索中...")
             for header in cw.cwpy.ydata.storehouse:
                 if not self._find:
                     break
@@ -469,7 +469,7 @@ class CardEditDialog(wx.Dialog):
                         if not self._find:
                             return
                         image = self.timgidx_storehouse
-                        name = u"カード置場"
+                        name = "カード置場"
                         root = get_item(roots, "STOREHOUSE", self.root, name, image)
 
                         image = self._get_imgidx(header)
@@ -481,7 +481,7 @@ class CardEditDialog(wx.Dialog):
                 if not self._find:
                     break
                 member = cw.data.yadoxml2etree(header.fpath)
-                set_status(u"%sの手札カードを検索中..." % (header.name))
+                set_status("%sの手札カードを検索中..." % (header.name))
                 pcard = None
                 for cardpocket in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
                     for data in cardpocket:
@@ -491,7 +491,7 @@ class CardEditDialog(wx.Dialog):
                                 if not self._find:
                                     return
                                 image = self.timgidx_yado
-                                name = u"待機中のメンバー"
+                                name = "待機中のメンバー"
                                 root = get_item(roots, "STANDBYS", self.root, name, image)
 
                                 image = self.timgidx_member
@@ -511,7 +511,7 @@ class CardEditDialog(wx.Dialog):
                     break
                 insce = partyheader.is_adventuring()
                 party = cw.data.Party(partyheader)
-                set_status(u"%sの手札カードを検索中..." % (party.name))
+                set_status("%sの手札カードを検索中..." % (party.name))
                 for index, member in enumerate(party.members):
                     if not self._find:
                         break
@@ -539,7 +539,7 @@ class CardEditDialog(wx.Dialog):
                                     pcard = cw.character.Character(data=member)
                                 wx.CallAfter(func, roots, items, matcher, party, index, pcard, cardpocket, data, insce)
 
-                set_status(u"%sの荷物袋を検索中..." % (party.name))
+                set_status("%sの荷物袋を検索中..." % (party.name))
                 for header in party.backpack:
                     if not self._find:
                         break
@@ -551,7 +551,7 @@ class CardEditDialog(wx.Dialog):
                             partyheader.data = party
 
                             image = self.timgidx_backpack
-                            name = u"%sの荷物袋" % (party.name)
+                            name = "%sの荷物袋" % (party.name)
                             item = get_item(roots, (partyheader, -1), self.root, name, image)
 
                             image = self._get_imgidx(header)
@@ -564,9 +564,9 @@ class CardEditDialog(wx.Dialog):
 
             def update_enable():
                 count = 0
-                for array in self.target_table.itervalues():
+                for array in self.target_table.values():
                     count += len(array)
-                self.status.SetLabel(u"%s件のカードが見つかりました。" % (count))
+                self.status.SetLabel("%s件のカードが見つかりました。" % (count))
 
                 self._find = False
                 self._update_enable()
@@ -583,8 +583,8 @@ class CardEditDialog(wx.Dialog):
         """カードの更新。"""
         writes = set()
         count = 0
-        for matcher, infos in self.target_table.items():
-            for item, info in infos.items():
+        for matcher, infos in list(self.target_table.items()):
+            for item, info in list(infos.items()):
                 toplevel = info[0]
                 owner = info[1]
                 data = info[2]
@@ -615,7 +615,7 @@ class CardEditDialog(wx.Dialog):
                 else:
                     assert False
 
-                self.targets.SetItemText(item, u"%s[更新]" % (name))
+                self.targets.SetItemText(item, "%s[更新]" % (name))
 
                 if toplevel:
                     writes.add(toplevel)
@@ -624,7 +624,7 @@ class CardEditDialog(wx.Dialog):
 
         self._write_results(writes)
 
-        self.status.SetLabel(u"%s件のカードを更新しました。" % (count))
+        self.status.SetLabel("%s件のカードを更新しました。" % (count))
 
         self._update_enable()
         cw.cwpy.play_sound("harvest")
@@ -633,8 +633,8 @@ class CardEditDialog(wx.Dialog):
         """カードの除去。"""
         writes = set()
         count = 0
-        for matcher, infos in self.target_table.items():
-            for item, info in infos.items():
+        for matcher, infos in list(self.target_table.items()):
+            for item, info in list(infos.items()):
                 toplevel = info[0]
                 owner = info[1]
                 data = info[2]
@@ -646,7 +646,7 @@ class CardEditDialog(wx.Dialog):
                     name = data.name
                 else:
                     name = data.gettext("Property/Name", "")
-                self.targets.SetItemText(item, u"%s[削除済み]" % (name))
+                self.targets.SetItemText(item, "%s[削除済み]" % (name))
 
                 index = self._indexof(matcher, owner, data)
                 self._remove(owner, data, index)
@@ -656,7 +656,7 @@ class CardEditDialog(wx.Dialog):
 
         self._write_results(writes)
 
-        self.status.SetLabel(u"%s件のカードを除去しました。" % (count))
+        self.status.SetLabel("%s件のカードを除去しました。" % (count))
 
         self._update_enable()
         cw.cwpy.play_sound("harvest")
@@ -814,7 +814,7 @@ class CardEditDialog(wx.Dialog):
         self.datalist = []
 
         if not self.scdata:
-            self.scenario.SetLabel(u"(シナリオ未選択)")
+            self.scenario.SetLabel("(シナリオ未選択)")
             self._update_enable()
             return
 
@@ -860,7 +860,7 @@ class CardEditDialog(wx.Dialog):
         self.dealbtn.Enable(selected)
 
         hascard = False
-        for array in self.target_table.values():
+        for array in list(self.target_table.values()):
             if 0 < len(array):
                 hascard = True
                 break

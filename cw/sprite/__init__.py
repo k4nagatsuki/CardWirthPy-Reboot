@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
-import card
-import background
-import message
-import scrollbar
-import statusbar
-import touchbutton
-import transition
-import animationcell
+from . import base
+from . import card
+from . import background
+from . import message
+from . import scrollbar
+from . import statusbar
+from . import touchbutton
+from . import transition
+from . import animationcell
 
 
 def main():

@@ -5,7 +5,7 @@ import os
 import io
 import sys
 import time
-import StringIO
+import io
 import sqlite3
 import threading
 import subprocess
@@ -28,7 +28,7 @@ DATA_FNAME = 4
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
 
-    def __init__(self, setting, vacuum=False, dpath=u"Scenario", skintype=u""):
+    def __init__(self, setting, vacuum=False, dpath="Scenario", skintype=""):
         threading.Thread.__init__(self)
         self.setting = setting
         self._vacuum = vacuum
@@ -278,7 +278,7 @@ class Scenariodb(object):
             self.cur.execute("CREATE INDEX scenariotype_index1 ON scenariodb(dpath, fname)")
 
     @synclock(_lock)
-    def update(self, dpath=u"Scenario", skintype=u"", commit=True, update=True):
+    def update(self, dpath="Scenario", skintype="", commit=True, update=True):
         """データベースを更新する。"""
         if not update:
             return
@@ -387,7 +387,7 @@ class Scenariodb(object):
         if commit:
             self.con.commit()
 
-    def insert(self, t, images, commit=True, skintype=u""):
+    def insert(self, t, images, commit=True, skintype=""):
         s = """INSERT OR REPLACE INTO scenariodb(
                     dpath, type, fname, name, author, desc, skintype,
                     levelmin, levelmax, coupons, couponsnum,
@@ -436,17 +436,17 @@ class Scenariodb(object):
             self.con.commit()
 
     @synclock(_lock)
-    def insert_scenario(self, path, commit=True, skintype=u""):
+    def insert_scenario(self, path, commit=True, skintype=""):
         """データベースにシナリオを登録する。"""
         self._insert_scenario(path, commit, skintype=skintype)
 
-    def _insert_scenario(self, path, commit=True, skintype=u""):
+    def _insert_scenario(self, path, commit=True, skintype=""):
         t, images = read_summary(path)
 
         if t:
             self.insert(t, images, commit, skintype=skintype)
             return True
-        elif path.startswith(u"Scenario"):
+        elif path.startswith("Scenario"):
             # 登録できなかったファイルを移動
             # (Scenarioフォルダ内のみ)
             ##dname = "UnregisteredScenario"
@@ -459,7 +459,7 @@ class Scenariodb(object):
             ##shutil.move(path, dst)
             return False
 
-    def create_header(self, data, skintype=u"", update=True):
+    def create_header(self, data, skintype="", update=True):
         """
         データベース内のシナリオ情報からヘッダ部分を返す。
         情報が古くなっている場合は更新する。
@@ -523,7 +523,7 @@ class Scenariodb(object):
 
         return header
 
-    def create_headers(self, data, skintype=u"", update=True):
+    def create_headers(self, data, skintype="", update=True):
         """
         データベース内のシナリオ群のヘッダを返す。
         その際、情報が古くなっている場合は更新する。
@@ -545,10 +545,10 @@ class Scenariodb(object):
         return headers
 
     @synclock(_lock)
-    def search_path(self, path, skintype=u""):
+    def search_path(self, path, skintype=""):
         return self._search_path(path, skintype=skintype)
 
-    def _search_path(self, path, skintype=u""):
+    def _search_path(self, path, skintype=""):
         path = path.replace("\\", "/")
         dpath, fname = os.path.split(path)
         self._fetch(dpath, fname, skintype)
@@ -609,7 +609,7 @@ class Scenariodb(object):
             self.cur.execute(s, (name, author,))
 
     @synclock(_lock)
-    def search_dpath(self, dpath, create=False, skintype=u"", update=True):
+    def search_dpath(self, dpath, create=False, skintype="", update=True):
         dpath = cw.util.get_linktarget(dpath).replace("\\", "/")
 
         if skintype:
@@ -676,7 +676,7 @@ class Scenariodb(object):
         if not os.path.isdir(dpath):
             return []
 
-        for name in os.listdir(unicode(dpath)):
+        for name in os.listdir(str(dpath)):
             if name in names:
                 continue
             path = cw.util.join_paths(dpath, name)
@@ -697,7 +697,7 @@ class Scenariodb(object):
         return self.sort_headers(headers)
 
     @synclock(_lock)
-    def get_header(self, path, skintype=u""):
+    def get_header(self, path, skintype=""):
         dpath = os.path.dirname(path)
         fname = os.path.basename(path)
         self._fetch(dpath, fname, skintype)
@@ -707,7 +707,7 @@ class Scenariodb(object):
         return None
 
     @synclock(_lock)
-    def find_headers(self, ftypes, value, skintype=u""):
+    def find_headers(self, ftypes, value, skintype=""):
         where = []
         values = []
 
@@ -795,7 +795,7 @@ class Scenariodb(object):
         self.cur.execute(s, values)
         data = self.cur.fetchall()
         # 検索ではスキン情報は更新しない
-        headers, _names = self.create_headers(data, skintype=u"")
+        headers, _names = self.create_headers(data, skintype="")
 
         v = value.lower()
 
@@ -852,16 +852,16 @@ class Scenariodb(object):
         orig_before = before
         orig_after = after
         before = before.replace("%", "\\%")
-        before += u"/%"
+        before += "/%"
         after = after.replace("%", "\\%")
-        after += u"/%"
+        after += "/%"
 
         for tablename in ("scenariodb", "scenarioimage", "scenariotype"):
             s = "SELECT * FROM %s WHERE dpath LIKE ? ESCAPE '\\'" % tablename
             self.cur.execute(s, (before,))
             for d in self.cur.fetchall():
                 s = "UPDATE %s SET dpath=? WHERE dpath=? AND fname=?" % tablename
-                ndpath = d["dpath"].replace(orig_before + u"/", orig_after + u"/", 1)
+                ndpath = d["dpath"].replace(orig_before + "/", orig_after + "/", 1)
                 self.cur.execute(s, (ndpath,d["dpath"],d["fname"],))
             s = "UPDATE %s SET dpath=? WHERE dpath=?" % tablename
             self.cur.execute(s, (orig_after, orig_before,))
@@ -873,7 +873,7 @@ class Scenariodb(object):
         """
         orig_dpath = dpath
         dpath = dpath.replace("%", "\\%")
-        dpath += u"/%"
+        dpath += "/%"
         for tablename in ("scenariodb", "scenarioimage", "scenariotype"):
             s = "DELETE FROM %s WHERE dpath LIKE ? ESCAPE '\\'" % tablename
             self.cur.execute(s, (dpath,))
@@ -996,7 +996,7 @@ def read_summary(basepath):
                 #      5ではCABアーカイブ内のパスを指定しなければ失敗し、
                 #      6ではパスを指定すると失敗しファイル名を指定すると成功する。
                 #      ワイルドカード指定はどちらでも成功する。
-                dpath = cw.util.join_paths(cw.tempdir, u"Cab")
+                dpath = cw.util.join_paths(cw.tempdir, "Cab")
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
                 s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, "*.wsm", dpath)
@@ -1024,7 +1024,7 @@ def read_summary(basepath):
                 summpath = cw.util.cab_hasfile(path, "Summary.xml")
                 if summpath:
                     scedir = os.path.dirname(summpath)
-                    dpath = cw.util.join_paths(cw.tempdir, u"Cab")
+                    dpath = cw.util.join_paths(cw.tempdir, "Cab")
                     if not os.path.isdir(dpath):
                         os.makedirs(dpath)
                     s = "expand \"%s\" -f:%s \"%s\"" % (path, "Summary.xml", dpath)
@@ -1097,7 +1097,7 @@ def read_summary(basepath):
         scedir = os.path.dirname(name)
         scedir = cw.util.decode_zipname(scedir)
         fdata = z.read(name)
-        f = StringIO.StringIO(fdata)
+        f = io.StringIO(fdata)
 
         try:
             rootattrs = {}
@@ -1127,7 +1127,7 @@ def read_summary(basepath):
 
     except:
         cw.util.print_ex()
-        print path
+        print(path)
         if z:
             z.close()
         return None, []

@@ -89,14 +89,14 @@ def create_environment(name, dpath, skindirname, is_autoloadparty):
     dpath: "Environment.xml"を作成する宿のディレクトリパス。
     宿のデータを納める"Environment.xml"を作る。
     """
-    skintype = u"MedievalFantasy"
-    prop = cw.header.GetProperty(u"Data/SkinBase/Skin.xml")
-    cashbox = int(prop.properties.get(u"InitialCash", "4000"))
+    skintype = "MedievalFantasy"
+    prop = cw.header.GetProperty("Data/SkinBase/Skin.xml")
+    cashbox = int(prop.properties.get("InitialCash", "4000"))
     try:
-        fpath = cw.util.join_paths(u"Data/Skin", skindirname, u"Skin.xml")
+        fpath = cw.util.join_paths("Data/Skin", skindirname, "Skin.xml")
         prop = cw.header.GetProperty(fpath)
-        skintype = prop.properties.get(u"Type", skintype)
-        cashbox = int(prop.properties.get(u"InitialCash", str(cashbox)))
+        skintype = prop.properties.get("Type", skintype)
+        cashbox = int(prop.properties.get("InitialCash", str(cashbox)))
     except:
         cw.util.print_ex()
 
@@ -127,33 +127,33 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     create_localsettings(element, setting.local)
 
     # 最初から詳細モードで設定を行う
-    if setting.show_advancedsettings <> setting.show_advancedsettings_init:
+    if setting.show_advancedsettings != setting.show_advancedsettings_init:
         e = cw.data.make_element("ShowAdvancedSettings", str(setting.show_advancedsettings))
         element.append(e)
     # シナリオエディタ
-    if setting.editor <> setting.editor_init:
+    if setting.editor != setting.editor_init:
         e = cw.data.make_element("ScenarioEditor", setting.editor)
         element.append(e)
     # 起動時の動作
-    if setting.startupscene <> setting.startupscene_init:
+    if setting.startupscene != setting.startupscene_init:
         e = cw.data.make_element("StartupScene", setting.startupscene)
         element.append(e)
     if writeplayingdata:
         # 最後に選択した宿
-        if setting.lastyado <> setting.lastyado_init:
+        if setting.lastyado != setting.lastyado_init:
             e = cw.data.make_element("LastYado", setting.lastyado)
             element.append(e)
         # ウィンドウ位置
-        if setting.window_position <> setting.window_position_init:
+        if setting.window_position != setting.window_position_init:
             e = cw.data.make_element("WindowPosition", attrs={"left":str(setting.window_position[0]),
                                                                 "top":str(setting.window_position[1])})
             element.append(e)
     # 拡大モード
     if writeplayingdata:
-        if setting.expanddrawing <> setting.expanddrawing_init or\
-                setting.expandmode <> setting.expandmode_init or\
-                setting.is_expanded <> setting.is_expanded_init or\
-                setting.smoothexpand <> setting.smoothexpand_init:
+        if setting.expanddrawing != setting.expanddrawing_init or\
+                setting.expandmode != setting.expandmode_init or\
+                setting.is_expanded != setting.is_expanded_init or\
+                setting.smoothexpand != setting.smoothexpand_init:
             # 描画倍率
             e = cw.data.make_element("ExpandDrawing", str(setting.expanddrawing))
             element.append(e)
@@ -163,9 +163,9 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
                                             "smooth":str(setting.smoothexpand)})
             element.append(e)
     else:
-        if setting.expanddrawing <> setting.expanddrawing_init or\
-                setting.expandmode <> setting.expandmode_init or\
-                setting.smoothexpand <> setting.smoothexpand_init:
+        if setting.expanddrawing != setting.expanddrawing_init or\
+                setting.expandmode != setting.expandmode_init or\
+                setting.smoothexpand != setting.smoothexpand_init:
             # 描画倍率
             e = cw.data.make_element("ExpandDrawing", str(setting.expanddrawing))
             element.append(e)
@@ -175,60 +175,60 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             element.append(e)
     if writeplayingdata:
         # デバッグモードかどうか
-        if setting.debug_saved <> setting.debug_init:
+        if setting.debug_saved != setting.debug_init:
             e = cw.data.make_element("DebugMode", str(setting.debug_saved))
             element.append(e)
     # シナリオの終了時にデバッグ情報を表示する
-    if setting.show_debuglogdialog <> setting.show_debuglogdialog_init:
+    if setting.show_debuglogdialog != setting.show_debuglogdialog_init:
         e = cw.data.make_element("ShowDebugLogDialog", str(setting.show_debuglogdialog))
         element.append(e)
     # シナリオのプレイ時間を記録する(隠しオプション)
-    if setting.enabled_timekeeper <> setting.enabled_timekeeper_init:
+    if setting.enabled_timekeeper != setting.enabled_timekeeper_init:
         e = cw.data.make_element("EnabledTimekeepr", str(setting.enabled_timekeeper))
         element.append(e)
     # デバッグ時はレベル上昇しない
-    if setting.no_levelup_in_debugmode <> setting.no_levelup_in_debugmode_init:
+    if setting.no_levelup_in_debugmode != setting.no_levelup_in_debugmode_init:
         e = cw.data.make_element("NoLevelUpInDebugMode", str(setting.no_levelup_in_debugmode))
         element.append(e)
     if writeplayingdata:
         # スキン
-        if setting.skindirname <> setting.skindirname_init:
+        if setting.skindirname != setting.skindirname_init:
             e = cw.data.make_element("Skin", setting.skindirname)
             element.append(e)
     # 音楽を再生する
-    if setting.play_bgm <> setting.play_bgm_init:
+    if setting.play_bgm != setting.play_bgm_init:
         e = cw.data.make_element("PlayBgm", str(setting.play_bgm))
         element.append(e)
     # 効果音を再生する
-    if setting.play_sound <> setting.play_sound_init:
+    if setting.play_sound != setting.play_sound_init:
         e = cw.data.make_element("PlaySound", str(setting.play_sound))
         element.append(e)
     # 音声全体のボリューム(0～1.0)
-    if setting.vol_master <> setting.vol_master_init:
+    if setting.vol_master != setting.vol_master_init:
         n = int(setting.vol_master * 100)
         e = cw.data.make_element("MasterVolume", str(n))
         element.append(e)
     # 音楽のボリューム(0～1.0)
-    if setting.vol_bgm <> setting.vol_bgm_init or\
-            setting.vol_bgm_midi <> setting.vol_bgm_midi_init:
+    if setting.vol_bgm != setting.vol_bgm_init or\
+            setting.vol_bgm_midi != setting.vol_bgm_midi_init:
         n = int(setting.vol_bgm * 100)
         n2 = int(setting.vol_bgm_midi * 100)
-        if n <> n2:
+        if n != n2:
             e = cw.data.make_element("BgmVolume", str(n), {"midi": str(n2)})
         else:
             e = cw.data.make_element("BgmVolume", str(n))
         element.append(e)
     # 効果音のボリューム(0～1.0)
-    if setting.vol_sound <> setting.vol_sound_init:
+    if setting.vol_sound != setting.vol_sound_init:
         n = int(setting.vol_sound * 100)
         n2 = int(setting.vol_sound_midi * 100)
-        if n <> n2:
+        if n != n2:
             e = cw.data.make_element("SoundVolume", str(n), {"midi": str(n2)})
         else:
             e = cw.data.make_element("SoundVolume", str(n))
         element.append(e)
     # MIDIサウンドフォント
-    if setting.soundfonts <> setting.soundfonts_init:
+    if setting.soundfonts != setting.soundfonts_init:
         e = cw.data.make_element("SoundFonts")
         for soundfont, use, volume in setting.soundfonts:
             e_soundfont = cw.data.make_element("SoundFont", soundfont, {"enabled": str(use),
@@ -236,189 +236,189 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             e.append(e_soundfont)
         element.append(e)
     # MIDI32bit隠しオプション
-    if setting.bassmidi_sample32bit <> setting.bassmidi_sample32bit_init:
+    if setting.bassmidi_sample32bit != setting.bassmidi_sample32bit_init:
         e = cw.data.make_element("Bassmidi32bit", str(setting.bassmidi_sample32bit))
         element.append(e)
     # BASS Audioが使えない時にSDL_mixerを使用する
-    if setting.sdlmixer_enabled <> setting.sdlmixer_enabled_init:
+    if setting.sdlmixer_enabled != setting.sdlmixer_enabled_init:
         e = cw.data.make_element("SDLMixerIsEnabled", str(setting.sdlmixer_enabled))
         element.append(e)
     # メッセージスピード(数字が小さいほど速い)(0～100)
-    if setting.messagespeed <> setting.messagespeed_init:
+    if setting.messagespeed != setting.messagespeed_init:
         e = cw.data.make_element("MessageSpeed", str(setting.messagespeed))
         element.append(e)
     # カードの表示スピード(数字が小さいほど速い)(1～100)
-    if setting.dealspeed <> setting.dealspeed_init:
+    if setting.dealspeed != setting.dealspeed_init:
         e = cw.data.make_element("CardDealingSpeed", str(setting.dealspeed))
         element.append(e)
     # 戦闘行動の表示スピード(数字が小さいほど速い)(1～100)
-    if setting.dealspeed_battle <> setting.dealspeed_battle_init or setting.use_battlespeed <> setting.use_battlespeed_init:
+    if setting.dealspeed_battle != setting.dealspeed_battle_init or setting.use_battlespeed != setting.use_battlespeed_init:
         e = cw.data.make_element("CardDealingSpeedInBattle", str(setting.dealspeed_battle),
                                  attrs={"enabled":str(setting.use_battlespeed)})
         element.append(e)
     # カードの使用前に空白時間を入れる
-    if setting.wait_usecard <> setting.wait_usecard_init:
+    if setting.wait_usecard != setting.wait_usecard_init:
         e = cw.data.make_element("WaitUseCard", str(setting.wait_usecard))
         element.append(e)
     # 同行キャストの行動後に縮小処理を行う
-    if setting.zoomout_friend <> setting.zoomout_friend_init:
+    if setting.zoomout_friend != setting.zoomout_friend_init:
         e = cw.data.make_element("ZoomOutFriendCard", str(setting.zoomout_friend))
         element.append(e)
     # 召喚獣カードの拡大率を大きくする
-    if setting.enlarge_beastcardzoomingratio <> setting.enlarge_beastcardzoomingratio_init:
+    if setting.enlarge_beastcardzoomingratio != setting.enlarge_beastcardzoomingratio_init:
         e = cw.data.make_element("EnlargeBeastCardZoomingRatio", str(setting.enlarge_beastcardzoomingratio))
         element.append(e)
     # トランジション効果の種類
-    if setting.transition <> setting.transition_init or\
-            setting.transitionspeed <> setting.transitionspeed_init:
+    if setting.transition != setting.transition_init or\
+            setting.transitionspeed != setting.transitionspeed_init:
         e = cw.data.make_element("Transition", setting.transition,
                                     {"speed": str(setting.transitionspeed)})
         element.append(e)
     # 背景のスムーススケーリング
     attrs = {}
-    if setting.smoothscale_bg <> setting.smoothscale_bg_init:
+    if setting.smoothscale_bg != setting.smoothscale_bg_init:
         attrs["bg"] = str(setting.smoothscale_bg)
-    if setting.smoothing_card_up <> setting.smoothing_card_up_init:
+    if setting.smoothing_card_up != setting.smoothing_card_up_init:
         attrs["upcard"] = str(setting.smoothing_card_up)
-    if setting.smoothing_card_down <> setting.smoothing_card_down_init:
+    if setting.smoothing_card_down != setting.smoothing_card_down_init:
         attrs["downcard"] = str(setting.smoothing_card_down)
     if attrs:
-        e = cw.data.make_element("SmoothScaling", u"", attrs=attrs)
+        e = cw.data.make_element("SmoothScaling", "", attrs=attrs)
         element.append(e)
     # 保存せずに終了しようとしたら警告
-    if setting.caution_beforesaving <> setting.caution_beforesaving_init:
+    if setting.caution_beforesaving != setting.caution_beforesaving_init:
         e = cw.data.make_element("CautionBeforeSaving", str(setting.caution_beforesaving))
         element.append(e)
     # レベル調節で手放したカードを自動的に戻す
-    if setting.revert_cardpocket <> setting.revert_cardpocket_init:
+    if setting.revert_cardpocket != setting.revert_cardpocket_init:
         e = cw.data.make_element("RevertCardPocket", str(setting.revert_cardpocket))
         element.append(e)
     # キャンプ等に高速で切り替える
-    if setting.quickdeal <> setting.quickdeal_init:
+    if setting.quickdeal != setting.quickdeal_init:
         e = cw.data.make_element("QuickDeal", str(setting.quickdeal))
         element.append(e)
     # 全てのシステムカードを高速表示する
-    if setting.all_quickdeal <> setting.all_quickdeal_init:
+    if setting.all_quickdeal != setting.all_quickdeal_init:
         e = cw.data.make_element("AllQuickDeal", str(setting.all_quickdeal))
         element.append(e)
     if writeplayingdata:
         # ソート基準
         e = cw.data.make_element("SortKey")
-        if setting.sort_yado <> setting.sort_yado_init:
+        if setting.sort_yado != setting.sort_yado_init:
             e.set("yado", setting.sort_yado)
-        if setting.sort_standbys <> setting.sort_standbys_init:
+        if setting.sort_standbys != setting.sort_standbys_init:
             e.set("standbys", setting.sort_standbys)
-        if setting.sort_cards <> setting.sort_cards_init:
+        if setting.sort_cards != setting.sort_cards_init:
             e.set("cards", setting.sort_cards)
-        if setting.sort_cardswithstar <> setting.sort_cardswithstar_init:
+        if setting.sort_cardswithstar != setting.sort_cardswithstar_init:
             e.set("cardswithstar", str(setting.sort_cardswithstar))
         if e.attrib:
             element.append(e)
         # 拠点絞込条件
-        if setting.yado_narrowtype <> setting.yado_narrowtype_init:
+        if setting.yado_narrowtype != setting.yado_narrowtype_init:
             e = cw.data.make_element("YadoNarrowType", str(setting.yado_narrowtype))
             element.append(e)
         # 宿帳絞込条件
-        if setting.standbys_narrowtype <> setting.standbys_narrowtype_init:
+        if setting.standbys_narrowtype != setting.standbys_narrowtype_init:
             e = cw.data.make_element("StandbysNarrowType", str(setting.standbys_narrowtype))
             element.append(e)
         # パーティ絞込条件
-        if setting.parties_narrowtype <> setting.parties_narrowtype_init:
+        if setting.parties_narrowtype != setting.parties_narrowtype_init:
             e = cw.data.make_element("PartiesNarrowType", str(setting.parties_narrowtype))
             element.append(e)
         # カード絞込条件
-        if setting.card_narrowtype <> setting.card_narrowtype_init:
+        if setting.card_narrowtype != setting.card_narrowtype_init:
             e = cw.data.make_element("CardNarrowType", str(setting.card_narrowtype))
             element.append(e)
         # 情報カード絞込条件
-        if setting.infoview_narrowtype <> setting.infoview_narrowtype_init:
+        if setting.infoview_narrowtype != setting.infoview_narrowtype_init:
             e = cw.data.make_element("InfoViewNarrowType", str(setting.infoview_narrowtype))
             element.append(e)
     # メッセージログ最大数
-    if setting.backlogmax <> setting.backlogmax_init:
+    if setting.backlogmax != setting.backlogmax_init:
         e = cw.data.make_element("MessageLogMax", str(setting.backlogmax))
         element.append(e)
     # メッセージログ表示形式
-    if setting.messagelog_type <> setting.messagelog_type_init:
+    if setting.messagelog_type != setting.messagelog_type_init:
         e = cw.data.make_element("MessageLogType", setting.messagelog_type)
         element.append(e)
 
     # スキンによってシナリオの選択開始位置を変更する
-    if setting.selectscenariofromtype <> setting.selectscenariofromtype_init:
+    if setting.selectscenariofromtype != setting.selectscenariofromtype_init:
         e = cw.data.make_element("SelectScenarioFromType", str(setting.selectscenariofromtype))
         element.append(e)
     # 適正レベル以外のシナリオを表示する
-    if setting.show_unfitnessscenario <> setting.show_unfitnessscenario_init:
+    if setting.show_unfitnessscenario != setting.show_unfitnessscenario_init:
         e = cw.data.make_element("ShowUnfitnessScenario", str(setting.show_unfitnessscenario))
         element.append(e)
     # 隠蔽シナリオを表示する
-    if setting.show_completedscenario <> setting.show_completedscenario_init:
+    if setting.show_completedscenario != setting.show_completedscenario_init:
         e = cw.data.make_element("ShowCompletedScenario", str(setting.show_completedscenario))
         element.append(e)
     # 終了済シナリオを表示する
-    if setting.show_invisiblescenario <> setting.show_invisiblescenario_init:
+    if setting.show_invisiblescenario != setting.show_invisiblescenario_init:
         e = cw.data.make_element("ShowInvisibleScenario", str(setting.show_invisiblescenario))
         element.append(e)
     # マウスホイールを上回転させた時の挙動
-    if setting.wheelup_operation <> setting.wheelup_operation_init:
+    if setting.wheelup_operation != setting.wheelup_operation_init:
         e = cw.data.make_element("WheelUpOperation", setting.wheelup_operation)
         element.append(e)
     # 戦闘行動を全員分表示する
-    if setting.show_allselectedcards <> setting.show_allselectedcards_init:
+    if setting.show_allselectedcards != setting.show_allselectedcards_init:
         e = cw.data.make_element("ShowAllSelectedCards", str(setting.show_allselectedcards))
         element.append(e)
     # カード使用時に確認ダイアログを表示
-    if setting.confirm_beforeusingcard <> setting.confirm_beforeusingcard_init:
+    if setting.confirm_beforeusingcard != setting.confirm_beforeusingcard_init:
         e = cw.data.make_element("ConfirmBeforeUsingCard", str(setting.confirm_beforeusingcard))
         element.append(e)
     # セーブ前に確認ダイアログを表示
-    if setting.confirm_beforesaving <> setting.confirm_beforesaving_init:
+    if setting.confirm_beforesaving != setting.confirm_beforesaving_init:
         e = cw.data.make_element("ConfirmBeforeSaving", setting.confirm_beforesaving)
         element.append(e)
     # セーブ完了時に確認ダイアログを表示
-    if setting.show_savedmessage <> setting.show_savedmessage_init:
+    if setting.show_savedmessage != setting.show_savedmessage_init:
         e = cw.data.make_element("ShowSavedMessage", str(setting.show_savedmessage))
         element.append(e)
     # カードの売却と破棄で確認ダイアログを表示
-    if setting.confirm_dumpcard <> setting.confirm_dumpcard_init:
+    if setting.confirm_dumpcard != setting.confirm_dumpcard_init:
         e = cw.data.make_element("ConfirmBeforeDumpCard", setting.confirm_dumpcard)
         element.append(e)
     # 荷物袋のカードを一時的に取り出して使えるようにする
-    if setting.show_backpackcard <> setting.show_backpackcard_init:
+    if setting.show_backpackcard != setting.show_backpackcard_init:
         e = cw.data.make_element("ShowBackpackCard", str(setting.show_backpackcard))
         element.append(e)
     # 荷物袋カードを最後に配置する
-    if setting.show_backpackcardatend <> setting.show_backpackcardatend_init:
+    if setting.show_backpackcardatend != setting.show_backpackcardatend_init:
         e = cw.data.make_element("ShowBackpackCardAtEnd", str(setting.show_backpackcardatend))
         element.append(e)
     # 各種ステータスの残り時間を表示する
-    if setting.show_statustime <> setting.show_statustime_init:
+    if setting.show_statustime != setting.show_statustime_init:
         e = cw.data.make_element("ShowStatusTime", setting.show_statustime)
         element.append(e)
     # 不可能な行動を選択した時に警告を表示
-    if setting.noticeimpossibleaction <> setting.noticeimpossibleaction_init:
+    if setting.noticeimpossibleaction != setting.noticeimpossibleaction_init:
         e = cw.data.make_element("NoticeImpossibleAction", str(setting.noticeimpossibleaction))
         element.append(e)
 
     # パーティ結成時の持出金額
-    if setting.initmoneyamount <> setting.initmoneyamount_init or setting.initmoneyisinitialcash <> setting.initmoneyisinitialcash_init:
+    if setting.initmoneyamount != setting.initmoneyamount_init or setting.initmoneyisinitialcash != setting.initmoneyisinitialcash_init:
         attrs = {}
-        if setting.initmoneyisinitialcash <> setting.initmoneyisinitialcash_init:
+        if setting.initmoneyisinitialcash != setting.initmoneyisinitialcash_init:
             attrs["sameasbase"] = str(setting.initmoneyisinitialcash)
         e = cw.data.make_element("InitialMoneyAmount", str(setting.initmoneyamount), attrs=attrs)
         element.append(e)
 
     # 解散時、自動的にパーティ情報を記録する
-    if setting.autosave_partyrecord <> setting.autosave_partyrecord_init:
+    if setting.autosave_partyrecord != setting.autosave_partyrecord_init:
         e = cw.data.make_element("AutoSavePartyRecord", str(setting.autosave_partyrecord))
         element.append(e)
     # 自動記録時、同名のパーティ記録へ上書きする
-    if setting.overwrite_partyrecord <> setting.overwrite_partyrecord_init:
+    if setting.overwrite_partyrecord != setting.overwrite_partyrecord_init:
         e = cw.data.make_element("OverwritePartyRecord", str(setting.overwrite_partyrecord))
         element.append(e)
 
     # シナリオフォルダ(スキンタイプ別)
-    if setting.folderoftype <> setting.folderoftype_init:
+    if setting.folderoftype != setting.folderoftype_init:
         e = cw.data.make_element("ScenarioFolderOfSkinType")
         for skintype, folder in setting.folderoftype:
             e_folder = cw.data.make_element("Folder", folder, {"skintype": skintype})
@@ -427,26 +427,26 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
 
     if writeplayingdata:
         # シナリオ絞込・整列条件
-        if setting.scenario_narrowtype <> setting.scenario_narrowtype_init:
+        if setting.scenario_narrowtype != setting.scenario_narrowtype_init:
             e = cw.data.make_element("ScenarioNarrowType", str(setting.scenario_narrowtype))
             element.append(e)
-        if setting.scenario_sorttype <> setting.scenario_sorttype_init:
+        if setting.scenario_sorttype != setting.scenario_sorttype_init:
             e = cw.data.make_element("ScenarioSortType", str(setting.scenario_sorttype))
             element.append(e)
 
     # スクリーンショット情報
-    if setting.ssinfoformat <> setting.ssinfoformat_init:
+    if setting.ssinfoformat != setting.ssinfoformat_init:
         e = cw.data.make_element("ScreenShotInformationFormat", setting.ssinfoformat)
         element.append(e)
     # スクリーンショット情報の色
-    if setting.ssinfofontcolor <> setting.ssinfofontcolor_init:
+    if setting.ssinfofontcolor != setting.ssinfofontcolor_init:
         d = {"red": str(setting.ssinfofontcolor[0]),
              "green": str(setting.ssinfofontcolor[1]),
              "blue": str(setting.ssinfofontcolor[2])
              }
         e = cw.data.make_element("ScreenShotInformationFontColor", "", d)
         element.append(e)
-    if setting.ssinfobackcolor <> setting.ssinfobackcolor_init:
+    if setting.ssinfobackcolor != setting.ssinfobackcolor_init:
         d = {"red": str(setting.ssinfobackcolor[0]),
              "green": str(setting.ssinfobackcolor[1]),
              "blue": str(setting.ssinfobackcolor[2])
@@ -454,189 +454,189 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("ScreenShotInformationBackgroundColor", "", d)
         element.append(e)
     # スクリーンショット情報の背景イメージ
-    if setting.ssinfobackimage <> setting.ssinfobackimage_init:
+    if setting.ssinfobackimage != setting.ssinfobackimage_init:
         e = cw.data.make_element("ScreenShotInformationBackgroundImage", setting.ssinfobackimage)
         element.append(e)
 
     # スクリーンショットのファイル名
-    if setting.ssfnameformat <> setting.ssfnameformat_init:
+    if setting.ssfnameformat != setting.ssfnameformat_init:
         e = cw.data.make_element("ScreenShotFileNameFormat", setting.ssfnameformat)
         element.append(e)
     # 所持カード撮影情報のファイル名
-    if setting.cardssfnameformat <> setting.cardssfnameformat_init:
+    if setting.cardssfnameformat != setting.cardssfnameformat_init:
         e = cw.data.make_element("ScreenShotOfCardsFileNameFormat", setting.cardssfnameformat)
         element.append(e)
 
     # イベント中にステータスバーの色を変える
-    if setting.statusbarmask <> setting.statusbarmask_init:
+    if setting.statusbarmask != setting.statusbarmask_init:
         e = cw.data.make_element("StatusBarMask", str(setting.statusbarmask))
         element.append(e)
 
     # 次のレベルアップまでの割合を表示する
-    if setting.show_experiencebar <> setting.show_experiencebar_init:
+    if setting.show_experiencebar != setting.show_experiencebar_init:
         e = cw.data.make_element("ShowExperienceBar", str(setting.show_experiencebar))
         element.append(e)
 
     # バトルラウンドを自動開始可能にする
-    if setting.show_roundautostartbutton <> setting.show_roundautostartbutton_init:
+    if setting.show_roundautostartbutton != setting.show_roundautostartbutton_init:
         e = cw.data.make_element("ShowRoundAutoStartButton", str(setting.show_roundautostartbutton))
         element.append(e)
 
     # 新規登録ダイアログに自動ボタンを表示する
-    if setting.show_autobuttoninentrydialog <> setting.show_autobuttoninentrydialog_init:
+    if setting.show_autobuttoninentrydialog != setting.show_autobuttoninentrydialog_init:
         e = cw.data.make_element("ShowAutoButtonInEntryDialog", str(setting.show_autobuttoninentrydialog))
         element.append(e)
 
     # タイトルバーの表示内容
-    if setting.titleformat <> setting.titleformat_init:
+    if setting.titleformat != setting.titleformat_init:
         e = cw.data.make_element("TitleFormat", setting.titleformat)
         element.append(e)
 
     # プレイログの表示内容
-    if setting.playlogformat <> setting.playlogformat_init:
+    if setting.playlogformat != setting.playlogformat_init:
         e = cw.data.make_element("PlayLogFormat", setting.playlogformat)
         element.append(e)
 
     # 最小化中に完全に停止する
-    if setting.stop_the_world_with_iconized <> setting.stop_the_world_with_iconized_init:
+    if setting.stop_the_world_with_iconized != setting.stop_the_world_with_iconized_init:
         e = cw.data.make_element("StopTheWorldWithIconization", str(setting.stop_the_world_with_iconized))
         element.append(e)
 
     if writeplayingdata:
         # 逆変換先ディレクトリ
-        if setting.unconvert_targetfolder <> setting.unconvert_targetfolder_init:
+        if setting.unconvert_targetfolder != setting.unconvert_targetfolder_init:
             e = cw.data.make_element("UnconvertTargetFolder", setting.unconvert_targetfolder)
             element.append(e)
 
     # タッチ操作用のタイルを表示する
-    if setting.show_tiles <> setting.show_tiles_init:
+    if setting.show_tiles != setting.show_tiles_init:
         e = cw.data.make_element("ShowTiles", str(setting.show_tiles))
         element.append(e)
     # 右フリックを右クリック相当の操作を行う
-    if setting.enabled_right_flick <> setting.show_tiles_init:
+    if setting.enabled_right_flick != setting.show_tiles_init:
         e = cw.data.make_element("EnabledRightFlick", str(setting.enabled_right_flick))
         element.append(e)
     # 一定時間タッチし続けた時は連打状態にする
-    if setting.can_repeatlclick <> setting.can_repeatlclick_init:
+    if setting.can_repeatlclick != setting.can_repeatlclick_init:
         e = cw.data.make_element("CanRepeatLClick", str(setting.can_repeatlclick))
         element.append(e)
 
     # 空白時間をスキップ可能にする
-    if setting.can_skipwait <> setting.can_skipwait_init:
+    if setting.can_skipwait != setting.can_skipwait_init:
         e = cw.data.make_element("CanSkipWait", str(setting.can_skipwait))
         element.append(e)
     # アニメーションをスキップ可能にする
-    if setting.can_skipanimation <> setting.can_skipanimation_init:
+    if setting.can_skipanimation != setting.can_skipanimation_init:
         e = cw.data.make_element("CanSkipAnimation", str(setting.can_skipanimation))
         element.append(e)
 
     # マウスのホイールで空白時間とアニメーションをスキップする
-    if setting.can_skipwait_with_wheel <> setting.can_skipwait_with_wheel_init:
+    if setting.can_skipwait_with_wheel != setting.can_skipwait_with_wheel_init:
         e = cw.data.make_element("CanSkipWaitWithWheel", str(setting.can_skipwait_with_wheel))
         element.append(e)
     # マウスのホイールでメッセージ送りを行う
-    if setting.can_forwardmessage_with_wheel <> setting.can_forwardmessage_with_wheel_init:
+    if setting.can_forwardmessage_with_wheel != setting.can_forwardmessage_with_wheel_init:
         e = cw.data.make_element("CanForwardMessageWithWheel", str(setting.can_forwardmessage_with_wheel))
         element.append(e)
 
     # 方向キーやホイールの選択中にマウスカーソルの移動を検知しない半径
-    if setting.radius_notdetectmovement <> setting.radius_notdetectmovement_init:
+    if setting.radius_notdetectmovement != setting.radius_notdetectmovement_init:
         e = cw.data.make_element("RadiusForNotDetectingCursorMovement", str(setting.radius_notdetectmovement))
         element.append(e)
     # カーソルタイプ
-    if setting.cursor_type <> setting.cursor_type_init:
+    if setting.cursor_type != setting.cursor_type_init:
         e = cw.data.make_element("CursorType", setting.cursor_type)
         element.append(e)
     # 連打状態の時、カードなどの選択を自動的に決定する
-    if setting.autoenter_on_sprite <> setting.autoenter_on_sprite_init:
+    if setting.autoenter_on_sprite != setting.autoenter_on_sprite_init:
         e = cw.data.make_element("AutoEnterOnSprite", str(setting.autoenter_on_sprite))
         element.append(e)
     # 通知のあるステータスボタンを点滅させる
-    if setting.blink_statusbutton <> setting.blink_statusbutton_init:
+    if setting.blink_statusbutton != setting.blink_statusbutton_init:
         e = cw.data.make_element("BlinkStatusButton", str(setting.blink_statusbutton))
         element.append(e)
     # 所持金が増減した時に所持金欄を点滅させる
-    if setting.blink_partymoney <> setting.blink_partymoney_init:
+    if setting.blink_partymoney != setting.blink_partymoney_init:
         e = cw.data.make_element("BlinkPartyMoney", str(setting.blink_partymoney))
         element.append(e)
     # ステータスバーのボタンの解説を表示する
-    if setting.show_btndesc <> setting.show_btndesc_init:
+    if setting.show_btndesc != setting.show_btndesc_init:
         e = cw.data.make_element("ShowButtonDescription", str(setting.show_btndesc))
         element.append(e)
     # スターつきのカードの売却や破棄を禁止する
-    if setting.protect_staredcard <> setting.protect_staredcard_init:
+    if setting.protect_staredcard != setting.protect_staredcard_init:
         e = cw.data.make_element("ProtectStaredCard", str(setting.protect_staredcard))
         element.append(e)
     # プレミアカードの売却や破棄を禁止する
-    if setting.protect_premiercard <> setting.protect_premiercard_init:
+    if setting.protect_premiercard != setting.protect_premiercard_init:
         e = cw.data.make_element("ProtectPremierCard", str(setting.protect_premiercard))
         element.append(e)
     # カード置場と荷物袋でカードの種類を表示する
-    if setting.show_cardkind <> setting.show_cardkind_init:
+    if setting.show_cardkind != setting.show_cardkind_init:
         e = cw.data.make_element("ShowCardKind", str(setting.show_cardkind))
         element.append(e)
     # カードの希少度をアイコンで表示する
-    if setting.show_premiumicon <> setting.show_premiumicon_init:
+    if setting.show_premiumicon != setting.show_premiumicon_init:
         e = cw.data.make_element("ShowPremiumIcon", str(setting.show_premiumicon))
         element.append(e)
     # カード選択ダイアログの背景クリックで左右移動を行う
-    if setting.can_clicksidesofcardcontrol <> setting.can_clicksidesofcardcontrol_init:
+    if setting.can_clicksidesofcardcontrol != setting.can_clicksidesofcardcontrol_init:
         e = cw.data.make_element("CanClickSidesOfCardControl", str(setting.can_clicksidesofcardcontrol))
         element.append(e)
     # シナリオ選択ダイアログで貼紙と一覧を同時に表示する
-    if setting.show_paperandtree <> setting.show_paperandtree_init:
+    if setting.show_paperandtree != setting.show_paperandtree_init:
         e = cw.data.make_element("ShowPaperAndTree", str(setting.show_paperandtree))
         element.append(e)
     # シナリオ選択ダイアログでのファイラー
-    if setting.filer_dir <> setting.filer_dir_init:
+    if setting.filer_dir != setting.filer_dir_init:
         e = cw.data.make_element("FilerDirectory", setting.filer_dir)
         element.append(e)
-    if setting.filer_file <> setting.filer_file_init:
+    if setting.filer_file != setting.filer_file_init:
         e = cw.data.make_element("FilerFile", setting.filer_file)
         element.append(e)
 
     # 圧縮されたシナリオの展開データ保存数
-    if setting.recenthistory_limit <> setting.recenthistory_limit_init:
+    if setting.recenthistory_limit != setting.recenthistory_limit_init:
         e = cw.data.make_element("RecentHistoryLimit", setting.recenthistory_limit)
         element.append(e)
 
     # マウスホイールによる全体音量の増減量
-    if setting.volume_increment <> setting.volume_increment_init:
+    if setting.volume_increment != setting.volume_increment_init:
         e = cw.data.make_element("VolumeIncrement", setting.volume_increment)
         element.append(e)
 
     # キーコード等の効果が無くても常にカードを消費するか
-    if setting.spend_noeffectcard <> setting.spend_noeffectcard_init:
+    if setting.spend_noeffectcard != setting.spend_noeffectcard_init:
         e = cw.data.make_element("SpendNoEffectCard", str(setting.spend_noeffectcard))
         element.append(e)
 
     # シナリオのプレイログを出力する
-    if setting.write_playlog <> setting.write_playlog_init:
+    if setting.write_playlog != setting.write_playlog_init:
         e = cw.data.make_element("WritePlayLog", str(setting.write_playlog))
         element.append(e)
 
     #  最後に選んだシナリオを開始地点にする
-    if setting.open_lastscenario <> setting.open_lastscenario_init:
+    if setting.open_lastscenario != setting.open_lastscenario_init:
         e = cw.data.make_element("OpenLastScenario", str(setting.open_lastscenario))
         element.append(e)
 
     # ドロップによるシナリオのインストールを可能にする
-    if setting.can_installscenariofromdrop <> setting.can_installscenariofromdrop_init:
+    if setting.can_installscenariofromdrop != setting.can_installscenariofromdrop_init:
         e = cw.data.make_element("CanInstallScenarioFromDrop", str(setting.can_installscenariofromdrop))
         element.append(e)
 
     #  シナリオのインストールに成功したら元ファイルを削除する
-    if setting.delete_sourceafterinstalled <> setting.delete_sourceafterinstalled_init:
+    if setting.delete_sourceafterinstalled != setting.delete_sourceafterinstalled_init:
         e = cw.data.make_element("DeleteSourceAfterInstalled", str(setting.delete_sourceafterinstalled))
         element.append(e)
 
     # シナリオのインストール時にシナリオ以外のファイルもコピーする
-    if setting.install_notscenariofiles <> setting.install_notscenariofiles_init:
+    if setting.install_notscenariofiles != setting.install_notscenariofiles_init:
         e = cw.data.make_element("InstallNotScenarioFiles", str(setting.install_notscenariofiles))
         element.append(e)
 
     # アップデートに伴うファイルの自動移動・削除を行う
-    if setting.auto_update_files <> setting.auto_update_files_init:
+    if setting.auto_update_files != setting.auto_update_files_init:
         e = cw.data.make_element("AutoUpdateFiles", str(setting.auto_update_files))
         element.append(e)
 
@@ -644,7 +644,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         # シナリオのインストール先(スキンタイプ毎)
         if setting.installed_dir:
             e = cw.data.make_element("InstalledPaths")
-            for rootdir, dirstack in setting.installed_dir.iteritems():
+            for rootdir, dirstack in setting.installed_dir.items():
                 if not os.path.isdir(rootdir):
                     continue
                 e_path = cw.data.make_element("InstalledPath", attrs={"root": rootdir})
@@ -689,12 +689,12 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             attrs["scenario"] = str(setting.show_additional_scenario)
         if setting.show_additional_card or setting.show_additional_card_init:
             attrs["card"] = str(setting.show_additional_card)
-        if attrs or setting.show_addctrlbtn <> setting.show_addctrlbtn_init:
+        if attrs or setting.show_addctrlbtn != setting.show_addctrlbtn_init:
             e = cw.data.make_element("ShowAdditionalControls", "" if setting.show_addctrlbtn else "Hidden", attrs=attrs)
             element.append(e)
 
     # フォントサンプルのフォーマット
-    if setting.fontexampleformat <> setting.fontexampleformat_init:
+    if setting.fontexampleformat != setting.fontexampleformat_init:
         e = cw.data.make_element("FontExampleFormat", setting.fontexampleformat)
         element.append(e)
 
@@ -705,13 +705,13 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     return path
 
 def create_localsettings(element, local):
-    if local.important_draw <> local.important_draw_init:
+    if local.important_draw != local.important_draw_init:
         element.set("importantdrawing", str(local.important_draw))
-    if local.important_font <> local.important_font_init:
+    if local.important_font != local.important_font_init:
         element.set("importantfont", str(local.important_font))
 
     # メッセージウィンドウの色と透明度
-    if local.mwincolour <> local.mwincolour_init:
+    if local.mwincolour != local.mwincolour_init:
         d = {"red": str(local.mwincolour[0]),
              "green": str(local.mwincolour[1]),
              "blue": str(local.mwincolour[2]),
@@ -719,7 +719,7 @@ def create_localsettings(element, local):
              }
         e = cw.data.make_element("MessageWindowColor", "", d)
         element.append(e)
-    if local.mwinframecolour <> local.mwinframecolour_init:
+    if local.mwinframecolour != local.mwinframecolour_init:
         d = {"red": str(local.mwinframecolour[0]),
              "green": str(local.mwinframecolour[1]),
              "blue": str(local.mwinframecolour[2]),
@@ -728,7 +728,7 @@ def create_localsettings(element, local):
         e = cw.data.make_element("MessageWindowFrameColor", "", d)
         element.append(e)
     # バックログウィンドウの色と透明度
-    if local.blwincolour <> local.blwincolour_init:
+    if local.blwincolour != local.blwincolour_init:
         d = {"red": str(local.blwincolour[0]),
              "green": str(local.blwincolour[1]),
              "blue": str(local.blwincolour[2]),
@@ -736,7 +736,7 @@ def create_localsettings(element, local):
              }
         e = cw.data.make_element("MessageLogWindowColor", "", d)
         element.append(e)
-    if local.blwinframecolour <> local.blwinframecolour_init:
+    if local.blwinframecolour != local.blwinframecolour_init:
         d = {"red": str(local.blwinframecolour[0]),
              "green": str(local.blwinframecolour[1]),
              "blue": str(local.blwinframecolour[2]),
@@ -745,7 +745,7 @@ def create_localsettings(element, local):
         e = cw.data.make_element("MessageLogWindowFrameColor", "", d)
         element.append(e)
     # メッセージログカーテン色
-    if local.blcurtaincolour <> local.blcurtaincolour_init:
+    if local.blcurtaincolour != local.blcurtaincolour_init:
         d = {"red": str(local.blcurtaincolour[0]),
              "green": str(local.blcurtaincolour[1]),
              "blue": str(local.blcurtaincolour[2]),
@@ -754,7 +754,7 @@ def create_localsettings(element, local):
         e = cw.data.make_element("MessageLogCurtainColor", "", d)
         element.append(e)
     # カーテン色
-    if local.curtaincolour <> local.curtaincolour_init:
+    if local.curtaincolour != local.curtaincolour_init:
         d = {"red": str(local.curtaincolour[0]),
              "green": str(local.curtaincolour[1]),
              "blue": str(local.curtaincolour[2]),
@@ -764,55 +764,55 @@ def create_localsettings(element, local):
         element.append(e)
 
     # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
-    if local.fullscreenbackgroundtype <> local.fullscreenbackgroundtype_init:
+    if local.fullscreenbackgroundtype != local.fullscreenbackgroundtype_init:
         e = cw.data.make_element("FullScreenBackgroundType", str(local.fullscreenbackgroundtype))
         element.append(e)
-    if local.fullscreenbackgroundfile <> local.fullscreenbackgroundfile_init:
+    if local.fullscreenbackgroundfile != local.fullscreenbackgroundfile_init:
         e = cw.data.make_element("FullScreenBackgroundFile", local.fullscreenbackgroundfile)
         element.append(e)
 
     # カード名を縁取りする
-    if local.bordering_cardname <> local.bordering_cardname_init:
+    if local.bordering_cardname != local.bordering_cardname_init:
         e = cw.data.make_element("BorderingCardName", str(local.bordering_cardname))
         element.append(e)
     # メッセージで装飾フォントを使用する
-    if local.decorationfont <> local.decorationfont_init:
+    if local.decorationfont != local.decorationfont_init:
         e = cw.data.make_element("DecorationFont", str(local.decorationfont))
         element.append(e)
     # メッセージの文字を滑らかにする
-    if local.fontsmoothing_message <> local.fontsmoothing_message_init:
+    if local.fontsmoothing_message != local.fontsmoothing_message_init:
         e = cw.data.make_element("FontSmoothingMessage", str(local.fontsmoothing_message))
         element.append(e)
     # カード名の文字を滑らかにする
-    if local.fontsmoothing_cardname <> local.fontsmoothing_cardname_init:
+    if local.fontsmoothing_cardname != local.fontsmoothing_cardname_init:
         e = cw.data.make_element("FontSmoothingCardName", str(local.fontsmoothing_cardname))
         element.append(e)
     # ステータスバーの文字を滑らかにする
-    if local.fontsmoothing_statusbar <> local.fontsmoothing_statusbar_init:
+    if local.fontsmoothing_statusbar != local.fontsmoothing_statusbar_init:
         e = cw.data.make_element("FontSmoothingStatusBar", str(local.fontsmoothing_statusbar))
         element.append(e)
 
     # 基本フォント(空白時デフォルト)
-    if local.basefont["gothic"] <> local.basefont_init["gothic"]:
+    if local.basefont["gothic"] != local.basefont_init["gothic"]:
         e = cw.data.make_element("FontGothic", local.basefont["gothic"])
         element.append(e)
-    if local.basefont["uigothic"] <> local.basefont_init["uigothic"]:
+    if local.basefont["uigothic"] != local.basefont_init["uigothic"]:
         e = cw.data.make_element("FontUIGothic", local.basefont["uigothic"])
         element.append(e)
-    if local.basefont["mincho"] <> local.basefont_init["mincho"]:
+    if local.basefont["mincho"] != local.basefont_init["mincho"]:
         e = cw.data.make_element("FontMincho", local.basefont["mincho"])
         element.append(e)
-    if local.basefont["pmincho"] <> local.basefont_init["pmincho"]:
+    if local.basefont["pmincho"] != local.basefont_init["pmincho"]:
         e = cw.data.make_element("FontPMincho", local.basefont["pmincho"])
         element.append(e)
-    if local.basefont["pgothic"] <> local.basefont_init["pgothic"]:
+    if local.basefont["pgothic"] != local.basefont_init["pgothic"]:
         e = cw.data.make_element("FontPGothic", local.basefont["pgothic"])
         element.append(e)
 
     # 役割別フォント
     e = cw.data.make_element("Fonts")
-    for key, value in local.fonttypes.iteritems():
-        if value <> local.fonttypes_init[key]:
+    for key, value in local.fonttypes.items():
+        if value != local.fonttypes_init[key]:
             fonttype, name, pixels, bold, bold_upscr, italic = value
             attrs = {"key": key}.copy()
             if fonttype:
@@ -884,17 +884,17 @@ def create_adventurer(data):
     """
     d = data.get_d()
 
-    for key, value in d.items():
+    for key, value in list(d.items()):
         d[key] = cw.binary.util.repl_escapechar(value)
 
     # 画像パス
     paths = data.imgpaths
     advname = cw.util.repl_dischar(d["name"])
     infos = write_castimagepath(advname, paths, True)
-    imgpaths = map(lambda info: cw.binary.xmltemplate.get_xmltext("ImagePath",
+    imgpaths = [cw.binary.xmltemplate.get_xmltext("ImagePath",
                     {"path":cw.binary.util.repl_escapechar(info.path),
                      "postype": info.postype,
-                     "indent": "   "}), infos)
+                     "indent": "   "}) for info in infos]
     d["imgpaths"] = "\n" + "\n".join(imgpaths)
     d["scaledimage"] = str(True)
 
@@ -1004,7 +1004,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
             attrs = {"mask": str(mask), "visible": str(visible)}
             if cellname:
                 attrs["cellname"] = cellname
-            if smoothing <> "Default":
+            if smoothing != "Default":
                 attrs["smoothing"] = smoothing
             e_bgimg = cw.data.make_element("BgImage", attrs=attrs)
 
@@ -1037,7 +1037,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
             e = make_colorelement("Color", color)
             e_bgimg.append(e)
 
-            if btype <> "None":
+            if btype != "None":
                 e = cw.data.make_element("Bordering", attrs={"type": btype,
                                                              "width": str(bwidth)})
                 e.append(make_colorelement("Color", bcolor))
@@ -1069,7 +1069,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
             e = make_colorelement("Color", color1)
             e_bgimg.append(e)
 
-            if gradient <> "None":
+            if gradient != "None":
                 e = cw.data.make_element("Gradient", attrs={"direction": gradient})
                 e.append(make_colorelement("EndColor", color2))
                 e_bgimg.append(e)
@@ -1080,7 +1080,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
                      "expand": str(expand)}
             if cellname:
                 attrs["cellname"] = cellname
-            if smoothing <> "Default":
+            if smoothing != "Default":
                 attrs["smoothing"] = smoothing
             e_bgimg = cw.data.make_element("PCCell", attrs=attrs)
 
@@ -1101,7 +1101,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
         e = cw.data.make_element("Size",
                         attrs={"width": str(size[0]), "height": str(size[1])})
         e_bgimg.append(e)
-        if layer <> cw.LAYER_BACKGROUND:
+        if layer != cw.LAYER_BACKGROUND:
             e = cw.data.make_element("Layer", str(layer))
             e_bgimg.append(e)
 
@@ -1110,14 +1110,14 @@ def create_scenariolog(sdata, path, recording, logfilepath):
     # カード再配置情報
     if cw.cwpy.sdata.moved_mcards:
         e_movedmcards = cw.data.make_element("MovedCards")
-        for (cardgroup, index), (x, y, scale, layer) in cw.cwpy.sdata.moved_mcards.iteritems():
+        for (cardgroup, index), (x, y, scale, layer) in cw.cwpy.sdata.moved_mcards.items():
             e_movedmcard = cw.data.make_element("MovedCard", attrs={"cardgroup":cardgroup,
                                                                     "index":str(index)})
             e_movedmcard.append(cw.data.make_element("Location", attrs={"left":str(x),
                                                                         "top":str(y)}))
-            if scale <> -1:
+            if scale != -1:
                 e_movedmcard.append(cw.data.make_element("Size", attrs={"scale":str(scale)}))
-            if layer <> -1:
+            if layer != -1:
                 e_movedmcard.append(cw.data.make_element("Layer", str(layer)))
             if len(e_movedmcard):
                 e_movedmcards.append(e_movedmcard)
@@ -1127,7 +1127,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
     e_flag = cw.data.make_element("Flags")
     element.append(e_flag)
 
-    for name, flag in sdata.flags.iteritems():
+    for name, flag in sdata.flags.items():
         e = cw.data.make_element("Flag", name, {"value": str(flag.value)})
         e_flag.append(e)
 
@@ -1135,7 +1135,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
     e_step = cw.data.make_element("Steps")
     element.append(e_step)
 
-    for name, step in sdata.steps.iteritems():
+    for name, step in sdata.steps.items():
         e = cw.data.make_element("Step", name, {"value": str(step.value)})
         e_step.append(e)
 
@@ -1144,7 +1144,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
         e_gossip = cw.data.make_element("Gossips")
         element.append(e_gossip)
 
-        for key, value in sdata.gossips.iteritems():
+        for key, value in sdata.gossips.items():
             e = cw.data.make_element("Gossip", key, {"value": str(value)})
             e_gossip.append(e)
 
@@ -1152,7 +1152,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
         e_compstamp = cw.data.make_element("CompleteStamps")
         element.append(e_compstamp)
 
-        for key, value in sdata.compstamps.iteritems():
+        for key, value in sdata.compstamps.items():
             e = cw.data.make_element("CompleteStamp", key, {"value": str(value)})
             e_compstamp.append(e)
 

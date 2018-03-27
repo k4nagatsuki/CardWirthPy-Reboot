@@ -13,12 +13,12 @@ import cw
 
 class EventListDialog(wx.Dialog):
     def __init__(self, parent, currentfpath, showhiddencards):
-        wx.Dialog.__init__(self, parent, -1, u"実行するイベントの選択",
+        wx.Dialog.__init__(self, parent, -1, "実行するイベントの選択",
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.events = EventList(self, cw.ppis((250, 300)), currentfpath, showhiddencards)
         self.showhiddencards = showhiddencards
-        self.showallcards = wx.CheckBox(self, -1, u"表示フラグがオフのカードも表示する")
+        self.showallcards = wx.CheckBox(self, -1, "表示フラグがオフのカードも表示する")
         self.showallcards.SetValue(self.showhiddencards)
         self.start_event = False
 
@@ -143,7 +143,7 @@ class EventList(wx.TreeCtrl):
                     self.Expand(item)
                     self.SelectItem(item, True)
                 else:
-                    self.AppendItem(item, u"読込中...")
+                    self.AppendItem(item, "読込中...")
 
         append_item(cw.cwpy.sdata.get_areaids, cw.cwpy.sdata.get_areaname, cw.cwpy.sdata.get_areadata, cw.cwpy.sdata.get_areafpath, imgidx_area)
         append_item(cw.cwpy.sdata.get_battleids, cw.cwpy.sdata.get_battlename, cw.cwpy.sdata.get_battledata, cw.cwpy.sdata.get_battlefpath, imgidx_battle)
@@ -168,7 +168,7 @@ class EventList(wx.TreeCtrl):
         # エリア・バトル・パッケージ・カードに含まれる
         # イベント情報をツリーに追加する
         paritem = self.GetItemParent(selitem)
-        if paritem <> self.root:
+        if paritem != self.root:
             return
         name, resid, getdata, getfpath, expanded = self.GetItemData(selitem)
         if expanded:
@@ -185,30 +185,30 @@ class EventList(wx.TreeCtrl):
                 if keynum < 0: continue
                 if tag == "Area":
                     if keynum == 1:
-                        name = u"到着"
+                        name = "到着"
                     else:
                         continue
                 elif tag == "Battle":
                     if keynum == 1:
-                        name = u"勝利"
+                        name = "勝利"
                     elif keynum == 2:
-                        name = u"逃走"
+                        name = "逃走"
                     elif keynum == 3:
-                        name = u"敗北"
+                        name = "敗北"
                     elif keynum == 4:
-                        name = u"毎ラウンド"
+                        name = "毎ラウンド"
                     elif keynum == 5:
-                        name = u"バトル開始"
+                        name = "バトル開始"
                     else:
                         continue
                 elif tag in ("MenuCard", "LargeMenuCard"):
                     if keynum == 1:
-                        name = u"クリック"
+                        name = "クリック"
                     else:
                         continue
                 elif tag == ("EnemyCard", "PlayerCardEvents"):
                     if keynum == 1:
-                        name = u"死亡"
+                        name = "死亡"
                     else:
                         continue
                 else:
@@ -222,13 +222,13 @@ class EventList(wx.TreeCtrl):
                 self.SetItemData(child, e)
             for keynum in e.keynums:
                 if 0 <= keynum: continue
-                name = u"ラウンド %s" % (-keynum)
+                name = "ラウンド %s" % (-keynum)
                 child = self.AppendItem(item, name, self.imgidx_round)
                 self.SetItemData(child, e)
 
         e = getdata(resid)
         if e is None:
-            self.AppendItem(selitem, u"読込に失敗しました")
+            self.AppendItem(selitem, "読込に失敗しました")
             return
         data = cw.data.xml2etree(element=e)
         for ee in data.getfind("Events"):
@@ -239,7 +239,7 @@ class EventList(wx.TreeCtrl):
         if not virtual:
             # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
             for pe in data.getfind("PlayerCardEvents", False):
-                item = self.AppendItem(selitem, u"プレイヤーカード", self.imgidx_menucard)
+                item = self.AppendItem(selitem, "プレイヤーカード", self.imgidx_menucard)
                 for ee in pe:
                     append(item, ee, pe.tag)
                 self.Expand(item)
@@ -250,9 +250,9 @@ class EventList(wx.TreeCtrl):
                         cardid = ce.getint("Property/Id", 0)
                         cardname = cw.cwpy.sdata.get_castname(cardid)
                         if  cardname is None:
-                            cardname = u"(未設定)"
+                            cardname = "(未設定)"
                     else:
-                        cardname = ce.gettext("Property/Name", u"")
+                        cardname = ce.gettext("Property/Name", "")
                     item = self.AppendItem(selitem, cardname, self.imgidx_menucard)
                     for ee in ce.getfind("Events"):
                         append(item, ee, ce.tag)
@@ -260,14 +260,14 @@ class EventList(wx.TreeCtrl):
 
         self.SetItemData(selitem, (name, resid, getdata, getfpath, not virtual))
         if not self.ItemHasChildren(selitem):
-            self.AppendItem(selitem, u"読込中...")
+            self.AppendItem(selitem, "読込中...")
 
     def set_showallcards(self, value):
         """フラグがオフのカードをリストに表示するか設定する。
         value: Trueの場合はフラグがオフのカードも
                含めてすべてのカードを表示する。
         """
-        if self._showallcards <> value:
+        if self._showallcards != value:
             self._showallcards = value
             item, cookie = self.GetFirstChild(self.root)
             self.Freeze()
@@ -279,7 +279,7 @@ class EventList(wx.TreeCtrl):
                 else:
                     if expanded:
                         self.DeleteChildren(item)
-                        self.AppendItem(item, u"読込中...")
+                        self.AppendItem(item, "読込中...")
                 item, cookie = self.GetNextChild(self.root, cookie)
             self.Thaw()
 
@@ -313,7 +313,7 @@ class EventList(wx.TreeCtrl):
         if not selitem:
             return
         parent = self.GetItemParent(selitem)
-        while parent <> self.root:
+        while parent != self.root:
             selitem = parent
             parent = self.GetItemParent(selitem)
 

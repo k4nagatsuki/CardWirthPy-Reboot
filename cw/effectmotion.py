@@ -201,8 +201,8 @@ class Effect(object):
                 header = None
             if header:
                 avoid, resist, defense = header.get_enhance_val_used()
-                if (0 <> avoid and self.resisttype == "Avoid") or\
-                   (0 <> resist and self.resisttype == "Resist"):
+                if (0 != avoid and self.resisttype == "Avoid") or\
+                   (0 != resist and self.resisttype == "Resist"):
                     guardcard = header
 
         # 所有ボーナス(アイテムは消耗しない)
@@ -210,8 +210,8 @@ class Effect(object):
         if not allsuccess:
             for header in cards:
                 avoid, resist, defense = header.get_enhance_val()
-                if (0 <> avoid and self.resisttype == "Avoid") or\
-                   (0 <> resist and self.resisttype == "Resist"):
+                if (0 != avoid and self.resisttype == "Avoid") or\
+                   (0 != resist and self.resisttype == "Resist"):
                     if not guardcard:
                         guardcard = header
                     if not allsuccess:
@@ -268,7 +268,7 @@ class Effect(object):
                 consume.clear()
                 for header in cards:
                     avoid, resist, defense = header.get_enhance_val()
-                    if 0 <> defense:
+                    if 0 != defense:
                         consume.add(header)
 
                 for header in consume:
@@ -723,12 +723,12 @@ class EffectMotion(object):
             value = int(value / 2.0 + 0.5)
 
         # 防御修正
-        if self.damagetype <> "Fixed":
+        if self.damagetype != "Fixed":
             # 互換動作: 1.20以前は最大値ダメージも防御修正による影響を受ける
             if cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
                 value = self.calc_defensedvalue(value, target)
             else:
-                if self.damagetype <> "Max":
+                if self.damagetype != "Max":
                     value = self.calc_defensedvalue(value, target)
 
         oldlife = target.life
@@ -755,12 +755,12 @@ class EffectMotion(object):
             value = int(value / 2.0 + 0.5)
 
         # 防御修正
-        if self.damagetype <> "Fixed":
+        if self.damagetype != "Fixed":
             # 互換動作: 1.20以前は最大値ダメージも防御修正による影響を受ける
             if cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
                 value = self.calc_defensedvalue(value, target)
             else:
-                if self.damagetype <> "Max":
+                if self.damagetype != "Max":
                     value = self.calc_defensedvalue(value, target)
 
         oldlife = target.life
@@ -897,15 +897,15 @@ class EffectMotion(object):
         oldduration = target.mentality_dur
         if self.type.title() == "Normal":
             duration = 0
-            eff = target.mentality <> "Normal"
+            eff = target.mentality != "Normal"
             target.set_mentality(self.type.title(), duration)
         else:
             duration = self.calc_durationvalue(target, False)
             if duration == 0:
-                eff = target.mentality <> "Normal"
+                eff = target.mentality != "Normal"
                 target.set_mentality("Normal", duration)
             else:
-                eff = target.mentality <> self.type.title() or target.mentality_dur < duration
+                eff = target.mentality != self.type.title() or target.mentality_dur < duration
                 target.set_mentality(self.type.title(), duration, overwrite=False)
         if eff:
             cw.cwpy.advlog.mentality_motion(target, self.type.title(), duration, oldmentality, oldduration)
@@ -1050,12 +1050,12 @@ class EffectMotion(object):
         if success_res:
             return False
         value = cw.util.numwrap(self.value, -10, 10)
-        if value <> 0:
+        if value != 0:
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
         oldvalue = target.enhance_act
-        eff = target.enhance_act <> value or target.enhance_act_dur < duration
+        eff = target.enhance_act != value or target.enhance_act_dur < duration
         if eff:
             target.set_enhance_act(value, duration)
             cw.cwpy.advlog.enhanceaction_motion(target, target.enhance_act, oldvalue)
@@ -1068,12 +1068,12 @@ class EffectMotion(object):
         if success_res:
             return False
         value = cw.util.numwrap(self.value, -10, 10)
-        if value <> 0:
+        if value != 0:
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
         oldvalue = target.enhance_avo
-        eff = target.enhance_avo <> value or target.enhance_avo_dur < duration
+        eff = target.enhance_avo != value or target.enhance_avo_dur < duration
         if eff:
             target.set_enhance_avo(value, duration)
             cw.cwpy.advlog.enhanceavoid_motion(target, target.enhance_avo, oldvalue)
@@ -1086,12 +1086,12 @@ class EffectMotion(object):
         if success_res:
             return False
         value = cw.util.numwrap(self.value, -10, 10)
-        if value <> 0:
+        if value != 0:
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
         oldvalue = target.enhance_res
-        eff = target.enhance_res <> value or target.enhance_res_dur < duration
+        eff = target.enhance_res != value or target.enhance_res_dur < duration
         if eff:
             target.set_enhance_res(value, duration)
             cw.cwpy.advlog.enhanceresist_motion(target, target.enhance_res, oldvalue)
@@ -1104,12 +1104,12 @@ class EffectMotion(object):
         if success_res:
             return False
         value = cw.util.numwrap(self.value, -10, 10)
-        if value <> 0:
+        if value != 0:
             duration = self.calc_durationvalue(target, True)
         else:
             duration = 0
         oldvalue = target.enhance_def
-        eff = target.enhance_def <> value or target.enhance_def_dur < duration
+        eff = target.enhance_def != value or target.enhance_def_dur < duration
         if eff:
             target.set_enhance_def(value, duration)
             cw.cwpy.advlog.enhancedefense_motion(target, target.enhance_def, oldvalue)
@@ -1308,7 +1308,7 @@ class EffectMotion(object):
             if cwxpath:
                 e.attrib["cwxpath"] = cwxpath
             self.duration = e.getint("Property/UseLimit")
-            recycle = cw.cwpy.msgs["recycle_keycode"] in cw.util.decodetextlist(e.gettext("Property/KeyCodes", u""))
+            recycle = cw.cwpy.msgs["recycle_keycode"] in cw.util.decodetextlist(e.gettext("Property/KeyCodes", ""))
             duration = self.calc_durationvalue(target, recycle)
             e.find("Property/UseLimit").text = str(duration)
             header = self.cardheader
@@ -1341,7 +1341,7 @@ def get_vocation_val(ccard, vocation, enhance_act=False):
     if vocation[1].startswith("un"):
         mental = -mental
 
-    if int(mental) <> mental:
+    if int(mental) != mental:
         if mental < 0:
             mental += 0.5
         else:

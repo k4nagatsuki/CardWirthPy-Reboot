@@ -3,11 +3,11 @@
 
 import sys
 
-import base
-import item
-import skill
-import beast
-import coupon
+from . import base
+from . import item
+from . import skill
+from . import beast
+from . import coupon
 
 import cw
 
@@ -21,11 +21,11 @@ class Adventurer(base.CWBinaryBase):
 
         def add_128coupons():
             epc = coupon.Coupon(self, None)
-            epc.name = u"＠ＥＰ"
+            epc.name = "＠ＥＰ"
             epc.value = max(0, self.level - 1) * 10
             self.coupons.insert(0, epc)
             lbc = coupon.Coupon(self, None)
-            lbc.name = u"＠レベル原点"
+            lbc.name = "＠レベル原点"
             lbc.value = self.level
             self.coupons.insert(0, lbc)
 
@@ -93,9 +93,9 @@ class Adventurer(base.CWBinaryBase):
             self.is_dead = False
             coupons_num = f.dword()
             self.coupons = []
-            for _cnt in xrange(coupons_num):
+            for _cnt in range(coupons_num):
                 c = coupon.Coupon(self, f, dataversion=4)
-                if c.name == u"＿死亡":
+                if c.name == "＿死亡":
                     self.is_dead = True
                 self.coupons.append(c)
             add_128coupons()
@@ -223,15 +223,15 @@ class Adventurer(base.CWBinaryBase):
 
         # 所持カード
         items_num = f.dword()
-        self.items = [item.ItemCard(self, f) for _cnt in xrange(items_num)]
+        self.items = [item.ItemCard(self, f) for _cnt in range(items_num)]
         skills_num = f.dword()
-        self.skills = [skill.SkillCard(self, f) for _cnt in xrange(skills_num)]
+        self.skills = [skill.SkillCard(self, f) for _cnt in range(skills_num)]
         beasts_num = f.dword()
-        self.beasts = [beast.BeastCard(self, f) for _cnt in xrange(beasts_num)]
+        self.beasts = [beast.BeastCard(self, f) for _cnt in range(beasts_num)]
 
         # クーポン
         coupons_num = f.dword()
-        self.coupons = [coupon.Coupon(self, f, dataversion=dataversion) for _cnt in xrange(coupons_num)]
+        self.coupons = [coupon.Coupon(self, f, dataversion=dataversion) for _cnt in range(coupons_num)]
         if dataversion <= 4:
             add_128coupons()
 
@@ -359,7 +359,7 @@ class Adventurer(base.CWBinaryBase):
             ce = cw.data.make_element("Coupons")
             if f9data:
                 # u"＿１"などの番号クーポン以降を除去
-                numcoupons = set([u"＿１", u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"])
+                numcoupons = set(["＿１", "＿２", "＿３", "＿４", "＿５", "＿６"])
                 coupons = self.coupons
                 cut = False
                 for i, coupon in enumerate(coupons):
@@ -368,7 +368,7 @@ class Adventurer(base.CWBinaryBase):
                         cut = True
                         break
 
-                if not cut and cw.cwpy.msgs["number_1_coupon"] <> u"＿１":
+                if not cut and cw.cwpy.msgs["number_1_coupon"] != "＿１":
                     # バリアントによってはu"＿１"が別の文字列に置換されている
                     # 可能性があるので、それを加えて再度判断する
                     numcoupons.add(cw.cwpy.msgs["number_1_coupon"])
@@ -379,7 +379,7 @@ class Adventurer(base.CWBinaryBase):
 
                 # '＾'で始まるクーポンは'＾'を取り除く
                 for coupon in coupons:
-                    if coupon.name.startswith(u"＾"):
+                    if coupon.name.startswith("＾"):
                         cdata = coupon.get_data()
                         cdata.text = coupon.name[1:]
                         ce.append(cdata)
@@ -388,7 +388,7 @@ class Adventurer(base.CWBinaryBase):
             else:
                 # '＾'で始まるクーポンはシナリオ内で削除済みのもの
                 for coupon in self.coupons:
-                    if not coupon.name.startswith(u"＾"):
+                    if not coupon.name.startswith("＾"):
                         ce.append(coupon.get_data())
 
             prop.append(ce)
@@ -454,7 +454,7 @@ class Adventurer(base.CWBinaryBase):
                     del coupons1[e.text]
                 else:
                     # 削除されたクーポン
-                    coupons.append(cw.data.make_element("Coupon", u"＾" + e.text, { "value":e.get("value", "0") }))
+                    coupons.append(cw.data.make_element("Coupon", "＾" + e.text, { "value":e.get("value", "0") }))
             # 追加されたクーポン
             for e in data.getfind("Property/Coupons"):
                 if e in coupons2:
@@ -630,7 +630,7 @@ class Adventurer(base.CWBinaryBase):
         f.write_bool(weakness_ice)
 
         f.write_dword(level)
-        f.write_string("TEXT\n" + (description if description else u""), True)
+        f.write_string("TEXT\n" + (description if description else ""), True)
         f.write_dword(life)
         f.write_dword(maxlife)
 
@@ -679,18 +679,18 @@ class Adventurer(base.CWBinaryBase):
                 pos = f.tell()
                 item.ItemCard.unconv(f, card, True)
                 cardslen += 1
-            except cw.binary.cwfile.UnsupportedError, ex:
+            except cw.binary.cwfile.UnsupportedError as ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     f.write_errorlog(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
                     f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
@@ -705,18 +705,18 @@ class Adventurer(base.CWBinaryBase):
                 pos = f.tell()
                 skill.SkillCard.unconv(f, card, True)
                 cardslen += 1
-            except cw.binary.cwfile.UnsupportedError, ex:
+            except cw.binary.cwfile.UnsupportedError as ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     f.write_errorlog(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
                     f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
@@ -731,18 +731,18 @@ class Adventurer(base.CWBinaryBase):
                 pos = f.tell()
                 beast.BeastCard.unconv(f, card, True)
                 cardslen += 1
-            except cw.binary.cwfile.UnsupportedError, ex:
+            except cw.binary.cwfile.UnsupportedError as ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     f.write_errorlog(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
                     f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
@@ -764,7 +764,7 @@ class AdventurerCard(base.CWBinaryBase):
 
         if f:
             # 不明(0,0,0,0,0)
-            for _cnt in xrange(5):
+            for _cnt in range(5):
                 _b = f.byte()
 
             self.adventurer = Adventurer(self, f, yadodata=yadodata)
@@ -866,7 +866,7 @@ class AdventurerHeader(base.CWBinaryBase):
             _dw = f.dword() # 不明(F)
             self.coupons = []
             couponnum = f.dword()
-            for _i in xrange(couponnum):
+            for _i in range(couponnum):
                 self.coupons.append(f.string())
             self.ep = self.level * 10
 
@@ -906,7 +906,7 @@ class AdventurerHeader(base.CWBinaryBase):
                         seq = []
                         for ce in prop:
                             seq.append(ce.text)
-                            if ce.text == u"＠ＥＰ":
+                            if ce.text == "＠ＥＰ":
                                 ep = int(ce.get("value", "0"))
                         coupons = cw.util.encodetextlist(seq)
 

@@ -9,14 +9,14 @@ import cw
 
 def join_paths(*paths):
     """パス結合。"""
-    return "/".join(filter(lambda a: a, paths)).replace("\\", "/").strip("/")
+    return "/".join([a for a in paths if a]).replace("\\", "/").strip("/")
 
 def check_filename(name):
     """ファイル名として適切かどうかチェックして返す。
     name: チェックするファイルネーム
     """
     # 空白のみの名前かどうかチェックし、その場合は"noname"を返す
-    if re.match(ur"^[\s　]+$", name):
+    if re.match(r"^[\s　]+$", name):
         return "noname"
 
     # エスケープしていたxmlの制御文字を元に戻し、
@@ -26,18 +26,18 @@ def check_filename(name):
            ("&gt;", ">"),
            ("&quot;", '"'),
            ("&apos;", "'"),
-           ('\\', u'￥'),
-           ('/', u'／'),
-           (':', u'：'),
-           (',', u'，'),
-           (';', u'；'),
-           ('*', u'＊'),
-           ('?', u'？'),
-           ('"', u'”'),
-           ('<', u'＜'),
-           ('>', u'＞'),
-           ('|', u'｜'),
-           ('"', u'”'))
+           ('\\', '￥'),
+           ('/', '／'),
+           (':', '：'),
+           (',', '，'),
+           (';', '；'),
+           ('*', '＊'),
+           ('?', '？'),
+           ('"', '”'),
+           ('<', '＜'),
+           ('>', '＞'),
+           ('|', '｜'),
+           ('"', '”'))
 
     for s, s2 in seq:
         name = name.replace(s, s2)
@@ -83,7 +83,7 @@ def repl_specialchar(s):
     s: エスケープ処理を行う文字列。
     """
     def repl_metachar(m):
-        return m.group(0).replace("\\", u"￥")
+        return m.group(0).replace("\\", "￥")
 
     return re.sub(r"\\[a-zA-Z0-9]", repl_metachar, s)
 

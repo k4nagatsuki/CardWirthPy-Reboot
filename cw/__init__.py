@@ -8,49 +8,49 @@ import traceback
 import wx
 import pygame
 
-import util
-import battle
-import yadodb
-import data
-import dice
-import effectmotion
-import event
-import eventhandler
-import eventrelay
-import features
-import scenariodb
-import setting
-import skin
-import animation
-import thread
-import header
-import image
-import imageretouch
-import frame
-import deck
-import character
-import effectbooster
-import content
-import xmlcreater
-import bassplayer
-import binary
-import advlog
-import update
+from . import util
+from . import battle
+from . import yadodb
+from . import data
+from . import dice
+from . import effectmotion
+from . import event
+from . import eventhandler
+from . import eventrelay
+from . import features
+from . import scenariodb
+from . import setting
+from . import skin
+from . import animation
+from . import thread
+from . import header
+from . import image
+from . import imageretouch
+from . import frame
+from . import deck
+from . import character
+from . import effectbooster
+from . import content
+from . import xmlcreater
+from . import bassplayer
+from . import binary
+from . import advlog
+from . import update
 
-import dialog
-import debug
-import sprite
+from . import dialog
+from . import debug
+from . import sprite
 
-import argparser
+from . import argparser
 
 
 # 実行ファイルのパス
-exepath = u""
+exepath = ""
 
 # CWPyThread
 cwpy = None
 
-tempdir_init = u"Data/Temp/Global"
+tempdir_init = "Data/Temp/Global"
 tempdir = tempdir_init
 
 # アプリケーション情報
@@ -117,7 +117,7 @@ HINT_AREA = 2       # エリア・バトル・パッケージ
 HINT_SCENARIO = 3   # シナリオ本体
 
 # 標準のサウンドフォント
-DEFAULT_SOUNDFONT = u"Data/SoundFont/005.6mg_Aspirin_Stereo_V1.2_Bank.sf2"
+DEFAULT_SOUNDFONT = "Data/SoundFont/005.6mg_Aspirin_Stereo_V1.2_Bank.sf2"
 
 # 表示レイヤ
 LTYPE_MESSAGE = 1
@@ -179,37 +179,31 @@ LOG_SEPARATOR_LEN_SHORT = 45
 
 # 起動オプション
 _argparser = argparser.ArgParser(appname=APP_NAME,
-    description=u"%s %s\n\nオープンソースのCardWirthエンジン" % (APP_NAME, ".".join(map(lambda a: str(a), APP_VERSION))))
+    description="%s %s\n\nオープンソースのCardWirthエンジン" % (APP_NAME, ".".join([str(a) for a in APP_VERSION])))
 _argparser.add_argument("-h", type=bool, nargs=0,
-    help=u"このメッセージを表示して終了します。", arg2="--help")
+    help="このメッセージを表示して終了します。", arg2="--help")
 _argparser.add_argument("-debug", type=bool, nargs=0,
-    help=u"デバッグモードで起動します。")
+    help="デバッグモードで起動します。")
 _argparser.add_argument("-yado", type=str, nargs=1, default="",
-    help=u"起動と同時に<YADO>のパスにある拠点を読み込みます。")
+    help="起動と同時に<YADO>のパスにある拠点を読み込みます。")
 _argparser.add_argument("-party", type=str, nargs=1, default="",
-    help=u"起動と同時に<PARTY>のパスにあるパーティを読み込みます。\n"
-       + u"-yadoと同時に指定しなかった場合は無視されます。")
+    help="起動と同時に<PARTY>のパスにあるパーティを読み込みます。\n"
+       + "-yadoと同時に指定しなかった場合は無視されます。")
 _argparser.add_argument("-scenario", type=str, nargs=1, default="",
-    help=u"起動と同時に<SCENARIO>のパスにあるシナリオを開始します。\n"
-       + u"-yado及び-partyと同時に指定しなかった場合は無視されます。")
+    help="起動と同時に<SCENARIO>のパスにあるシナリオを開始します。\n"
+       + "-yado及び-partyと同時に指定しなかった場合は無視されます。")
 _argparser.add_argument("-skin", type=str, nargs=1, default="",
-    help=u"<SKIN>のパスにあるスキンで起動します。\n"
-       + u"起動と同時に拠点が開かれる場合は拠点のスキンが優先されます。")
+    help="<SKIN>のパスにあるスキンで起動します。\n"
+       + "起動と同時に拠点が開かれる場合は拠点のスキンが優先されます。")
 _argparser.add_argument("--force-skin", type=str, nargs=1, default="", metavar="SKIN",
-    help=u"<SKIN>のパスにあるスキンで起動します。\n"
-       + u"拠点のスキンや、-skinよりも優先されます。")
+    help="<SKIN>のパスにあるスキンで起動します。\n"
+       + "拠点のスキンや、-skinよりも優先されます。")
 
 OPTIONS = _argparser.parse_args(sys.argv[1:])
 if OPTIONS.help:
     _argparser.print_help()
     sys.exit(0)
 
-_encoding = sys.getfilesystemencoding()
-OPTIONS.yado = OPTIONS.yado.decode(_encoding)
-OPTIONS.party = OPTIONS.party.decode(_encoding)
-OPTIONS.scenario = OPTIONS.scenario.decode(_encoding)
-OPTIONS.skin = OPTIONS.skin.decode(_encoding)
-OPTIONS.force_skin = OPTIONS.force_skin.decode(_encoding)
 if OPTIONS.force_skin:
     OPTIONS.skin = OPTIONS.force_skin
 
@@ -306,7 +300,7 @@ def _s_impl(num, up_scr):
 
     elif isinstance(num, tuple):
         if len(num) == 3:
-            print "A scaleinfo is deprecated."
+            print("A scaleinfo is deprecated.")
             traceback.print_stack()
             scaleinfo = num[2]
         else:

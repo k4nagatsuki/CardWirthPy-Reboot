@@ -3,11 +3,11 @@
 
 import sys
 
-import base
-import item
-import skill
-import beast
-import coupon
+from . import base
+from . import item
+from . import skill
+from . import beast
+from . import coupon
 
 import cw
 
@@ -98,16 +98,16 @@ class CastCard(base.CWBinaryBase):
 
         # 所持カード
         items_num = f.dword()
-        self.items = [item.ItemCard(self, f) for _cnt in xrange(items_num)]
+        self.items = [item.ItemCard(self, f) for _cnt in range(items_num)]
         skills_num = f.dword()
-        self.skills = [skill.SkillCard(self, f) for _cnt in xrange(skills_num)]
+        self.skills = [skill.SkillCard(self, f) for _cnt in range(skills_num)]
         beasts_num = f.dword()
-        self.beasts = [beast.BeastCard(self, f) for _cnt in xrange(beasts_num)]
+        self.beasts = [beast.BeastCard(self, f) for _cnt in range(beasts_num)]
 
         if 0 < dataversion:
             # クーポン
             coupons_num = f.dword()
-            self.coupons = [coupon.Coupon(self, f) for _cnt in xrange(coupons_num)]
+            self.coupons = [coupon.Coupon(self, f) for _cnt in range(coupons_num)]
         else:
             self.coupons = []
 
@@ -427,7 +427,7 @@ class CastCard(base.CWBinaryBase):
 
         f.write_dword(level)
         f.write_dword(money)
-        f.write_string("TEXT\n" + (description if description else u""), True)
+        f.write_string("TEXT\n" + (description if description else ""), True)
         f.write_dword(life)
         f.write_dword(maxlife)
 
@@ -476,18 +476,18 @@ class CastCard(base.CWBinaryBase):
                 pos = f.tell()
                 item.ItemCard.unconv(f, card, False)
                 cardslen += 1
-            except cw.binary.cwfile.UnsupportedError, ex:
+            except cw.binary.cwfile.UnsupportedError as ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     f.write_errorlog(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
                     f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
@@ -502,18 +502,18 @@ class CastCard(base.CWBinaryBase):
                 pos = f.tell()
                 skill.SkillCard.unconv(f, card, False)
                 cardslen += 1
-            except cw.binary.cwfile.UnsupportedError, ex:
+            except cw.binary.cwfile.UnsupportedError as ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     f.write_errorlog(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
                     f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
@@ -528,18 +528,18 @@ class CastCard(base.CWBinaryBase):
                 pos = f.tell()
                 beast.BeastCard.unconv(f, card, False)
                 cardslen += 1
-            except cw.binary.cwfile.UnsupportedError, ex:
+            except cw.binary.cwfile.UnsupportedError as ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
                     f.write_errorlog(s)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = card.gettext("Property/Name", "")
-                    s = u"%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
                     f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)

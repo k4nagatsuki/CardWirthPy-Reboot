@@ -42,7 +42,7 @@ class ArgParser(object):
         else:
             args = args[:]
         r = ArgResult()
-        keys = self.args.keys()
+        keys = list(self.args.keys())
         try:
             while args:
                 arg = args.pop(0)
@@ -50,25 +50,25 @@ class ArgParser(object):
                     argobj = self.args[arg]
                     val = argobj.eat(args)
                     if argobj.arg:
-                        setattr(r, argobj.arg.lstrip(u"-").replace(u"-", u"_"), val)
+                        setattr(r, argobj.arg.lstrip("-").replace("-", "_"), val)
                         keys.remove(argobj.arg)
                     if argobj.arg2:
-                        setattr(r, argobj.arg2.lstrip(u"-").replace(u"-", u"_"), val)
+                        setattr(r, argobj.arg2.lstrip("-").replace("-", "_"), val)
                         keys.remove(argobj.arg2)
                 else:
                     r.leftovers.append(arg)
         except:
-            sys.stderr.write(u"起動引数が正しくありません: %s\n" % (arg))
-            print
+            sys.stderr.write("起動引数が正しくありません: %s\n" % (arg))
+            print()
             self.print_help()
             return None
 
         for key in keys:
             argobj = self.args[key]
             if argobj.arg:
-                setattr(r, argobj.arg.lstrip(u"-").replace(u"-", u"_"), argobj.default)
+                setattr(r, argobj.arg.lstrip("-").replace("-", "_"), argobj.default)
             if argobj.arg2:
-                setattr(r, argobj.arg2.lstrip(u"-").replace(u"-", u"_"), argobj.default)
+                setattr(r, argobj.arg2.lstrip("-").replace("-", "_"), argobj.default)
 
         return r
 
@@ -79,11 +79,11 @@ class ArgParser(object):
         for arg in self.largs:
             help = arg.get_help("|")
             s.append("[%s]" % (help))
-        print " ".join(s)
-        print
-        print self.desc
-        print
-        print u"オプション:"
+        print(" ".join(s))
+        print()
+        print(self.desc)
+        print()
+        print("オプション:")
         mlen = 0
         for arg in self.largs:
             help = arg.get_help()
@@ -91,7 +91,7 @@ class ArgParser(object):
         for arg in self.largs:
             s = arg.get_help()
             s = s.ljust(mlen)
-            print "  %s  %s" % (s, ('\n' + ' '*(mlen+4)).join(arg.help.splitlines()))
+            print("  %s  %s" % (s, ('\n' + ' '*(mlen+4)).join(arg.help.splitlines())))
 
 
 class ArgResult(object):
@@ -130,7 +130,7 @@ class Arg(object):
             return self.parse(args.pop(0))
         elif 1 < self.nargs:
             seq = []
-            for _i in xrange(len(self.nargs)):
+            for _i in range(len(self.nargs)):
                 seq.append(self.parse(args.pop(0)))
             return seq
         else:
@@ -162,7 +162,7 @@ class Arg(object):
 def main():
     parser = ArgParser(appname="args.py", description="Process some integers.")
     parser.add_argument("-h", type=bool, nargs=0,
-                       help=u"このメッセージを表示して終了します。", arg2="--help", default=False)
+                       help="このメッセージを表示して終了します。", arg2="--help", default=False)
     parser.add_argument("-y", type=str, nargs=1,
                        help="help1\nhelp2", default="bbb")
     parser.add_argument("-dbg", type=str, nargs=0,
@@ -174,9 +174,9 @@ def main():
     if args.help:
         parser.print_help()
         return
-    print "-y  :", args.y
-    print "-dbg:", args.dbg
-    print "    :", args.leftovers
+    print("-y  :", args.y)
+    print("-dbg:", args.dbg)
+    print("    :", args.leftovers)
 
 
 if __name__ == "__main__":

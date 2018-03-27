@@ -92,17 +92,17 @@ class Character(object):
         e = self.data.getfind("Property/Ability/Enhance")
         self.enhance = copy.copy(e.attrib)
 
-        for key, value in self.physical.iteritems():
+        for key, value in self.physical.items():
             try:
                 self.physical[key] = cw.util.numwrap(float(value), 0, 65536)
             except:
                 self.physical[key] = 0
-        for key, value in self.mental.iteritems():
+        for key, value in self.mental.items():
             try:
                 self.mental[key] = cw.util.numwrap(float(value), -65536, 65536)
             except:
                 self.mental[key] = 0
-        for key, value in self.enhance.iteritems():
+        for key, value in self.enhance.items():
             try:
                 self.enhance[key] = cw.util.numwrap(float(value), -10, 10)
             except:
@@ -119,7 +119,7 @@ class Character(object):
         self.weakness = copy.copy(e.attrib)
 
         for d in (self.feature, self.noeffect, self.resist, self.weakness):
-            for key, value in d.iteritems():
+            for key, value in d.items():
                 try:
                     d[key] = cw.util.str2bool(value)
                 except:
@@ -143,7 +143,7 @@ class Character(object):
             if not e.text:
                 continue
 
-            if e.text in (u"＠効果対象", u"イベント対象", u"使用者"):
+            if e.text in ("＠効果対象", "イベント対象", "使用者"):
                 # 効果・イベント対象に付与されるシステムクーポン(Wsn.2)
                 continue
 
@@ -151,7 +151,7 @@ class Character(object):
                 self.coupons[e.text] = int(e.get("value")), e
             except:
                 self.coupons[e.text] = 0, e
-            if e.text == u"：Ｒ":
+            if e.text == "：Ｒ":
                 self.reversed = True
         # 時限クーポンのデータのリスト(name, flag_countable)
         self.timedcoupons = self.get_timedcoupons()
@@ -207,7 +207,7 @@ class Character(object):
 
                 # F9のためにシナリオ突入時の画像の記録を取る
                 name = os.path.splitext(os.path.basename(self.data.fpath))[0]
-                log = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face/Log.xml")
+                log = cw.util.join_paths(cw.tempdir, "ScenarioLog/Face/Log.xml")
                 if os.path.isfile(log):
                     etree = cw.data.xml2etree(log)
                 else:
@@ -221,9 +221,9 @@ class Character(object):
                         eimg = e
                         break
                 else:
-                    e = cw.data.make_element("ImagePaths", u"", {"member":name})
+                    e = cw.data.make_element("ImagePaths", "", {"member":name})
                     eimg = e
-                    dpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face")
+                    dpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Face")
                     for info in infos:
                         if not info.path:
                             continue
@@ -309,7 +309,7 @@ class Character(object):
         v = float(self.life) / self.maxlife
         self.maxlife = value
         self.data.edit("Property/Life", str(int(value)), "max")
-        if self.life <> 0:
+        if self.life != 0:
             self.life = max(1, int(self.maxlife * v))
             self.data.edit("Property/Life", str(int(self.maxlife)))
 
@@ -674,16 +674,16 @@ class Character(object):
         return len([h for h in self.get_pocketcards(cw.POCKET_BEAST) if not h.attachment])
 
     def is_enhanced_act(self):
-        return self.enhance_act <> 0 and 0 < self.enhance_act_dur
+        return self.enhance_act != 0 and 0 < self.enhance_act_dur
 
     def is_enhanced_res(self):
-        return self.enhance_res <> 0 and 0 < self.enhance_res_dur
+        return self.enhance_res != 0 and 0 < self.enhance_res_dur
 
     def is_enhanced_avo(self):
-        return self.enhance_avo <> 0 and 0 < self.enhance_avo_dur
+        return self.enhance_avo != 0 and 0 < self.enhance_avo_dur
 
     def is_enhanced_def(self):
-        return self.enhance_def <> 0 and 0 < self.enhance_def_dur
+        return self.enhance_def != 0 and 0 < self.enhance_def_dur
 
     def is_upaction(self):
         return self.enhance_act > 0 and 0 < self.enhance_act_dur
@@ -998,7 +998,7 @@ class Character(object):
             else:
                 ishidden = self.status == "hidden"
 
-            if not ishidden and self.status <> "reversed":
+            if not ishidden and self.status != "reversed":
                 for targets_b, header_b in beasts[:]:
                     if not header_b.is_activewithstatus(self):
                         continue
@@ -1028,9 +1028,9 @@ class Character(object):
                         break
 
             # 手札カードの使用
-            if self.is_alive() and not ishidden and self.status <> "reversed" and self.actiondata and cw.cwpy.is_battlestatus():
+            if self.is_alive() and not ishidden and self.status != "reversed" and self.actiondata and cw.cwpy.is_battlestatus():
                 targets, header, beasts = self.actiondata
-                if header and self.is_active() and not ishidden and self.status <> "reversed":
+                if header and self.is_active() and not ishidden and self.status != "reversed":
                     self.deck.set_used(header)
                     try:
                         self.use_card(targets, header)
@@ -1433,7 +1433,7 @@ class Character(object):
         if vocation[1].find("un") > -1:
             mental = -mental
 
-        if int(mental) <> mental:
+        if int(mental) != mental:
             if mental < 0:
                 mental += 0.5
             else:
@@ -1630,7 +1630,7 @@ class Character(object):
         """
         return self._get_coupons()
     def _get_coupons(self):
-        return set(self.coupons.iterkeys())
+        return set(self.coupons.keys())
 
     @synclock(_couponlock)
     def get_couponvalue(self, name, raiseerror=True):
@@ -1669,8 +1669,8 @@ class Character(object):
         """
         cnt = 0
 
-        for coupon, data in self.coupons.iteritems():
-            if coupon and not coupon[0] in (u"＠", u"：", u"；"):
+        for coupon, data in self.coupons.items():
+            if coupon and not coupon[0] in ("＠", "：", "；"):
                 value = data[0]
                 cnt += value
 
@@ -1687,8 +1687,8 @@ class Character(object):
     def _get_specialcoupons(self):
         d = {}
 
-        for coupon, data in self.coupons.iteritems():
-            if coupon and coupon.startswith(u"＠"):
+        for coupon, data in self.coupons.items():
+            if coupon and coupon.startswith("＠"):
                 value = data[0]
                 d[coupon] = value
 
@@ -1704,15 +1704,15 @@ class Character(object):
                     システムクーポンとして処理対象外にする
         """
         old_coupons = {}
-        for name, (value, e) in self.coupons.iteritems():
+        for name, (value, e) in self.coupons.items():
             old_coupons[name] = value
         revcoupon_old = False
         revcoupon_new = False
         # システムクーポン以外を一旦除去
         for name in self._get_coupons():
-            if syscoupons is None or not (name.startswith(u"＠") or name in syscoupons):
+            if syscoupons is None or not (name.startswith("＠") or name in syscoupons):
                 self._remove_coupon(name, False)
-            revcoupon_old |= (name == u"：Ｒ")
+            revcoupon_old |= (name == "：Ｒ")
 
         sexcoupons = set(cw.cwpy.setting.sexcoupons)
         periodcoupons = set(cw.cwpy.setting.periodcoupons)
@@ -1735,10 +1735,10 @@ class Character(object):
                     self._remove_coupon(old)
 
             self._set_coupon(name, coupon[1], False)
-            revcoupon_new |= (name == u"：Ｒ")
+            revcoupon_new |= (name == "：Ｒ")
 
         # 隠蔽クーポン
-        if revcoupon_old <> revcoupon_new:
+        if revcoupon_old != revcoupon_new:
             self.reversed = revcoupon_old
             if self.status == "hidden":
                 self.reverse()
@@ -1746,9 +1746,9 @@ class Character(object):
                 cw.animation.animate_sprite(self, "reverse")
 
         new_coupons = {}
-        for name, (value, e) in self.coupons.iteritems():
+        for name, (value, e) in self.coupons.items():
             new_coupons[name] = value
-        return new_coupons <> old_coupons
+        return new_coupons != old_coupons
 
     @synclock(_couponlock)
     def get_sex(self):
@@ -1887,9 +1887,9 @@ class Character(object):
         if race == old:
             return
         if not isinstance(old, cw.header.UnknownRaceHeader):
-            self._remove_coupon(u"＠Ｒ" + old.name)
+            self._remove_coupon("＠Ｒ" + old.name)
         if not isinstance(race, cw.header.UnknownRaceHeader):
-            self._set_coupon(u"＠Ｒ" + race.name, 0)
+            self._set_coupon("＠Ｒ" + race.name, 0)
 
     @synclock(_couponlock)
     def get_race(self):
@@ -1897,7 +1897,7 @@ class Character(object):
 
     def _get_race(self):
         for race in cw.cwpy.setting.races:
-            if self._has_coupon(u"＠Ｒ" + race.name):
+            if self._has_coupon("＠Ｒ" + race.name):
                 return race
         return cw.cwpy.setting.unknown_race
 
@@ -1947,11 +1947,11 @@ class Character(object):
         self.coupons[name] = value, e
 
         # 時限クーポン
-        if name.startswith(u"：") or name.startswith(u"；"):
+        if name.startswith("：") or name.startswith("；"):
             self.timedcoupons.add(name)
 
         # 隠蔽クーポン
-        if name == u"：Ｒ" and not self.is_reversed():
+        if name == "：Ｒ" and not self.is_reversed():
             if update and not removed:
                 if self.status == "hidden":
                     self.reverse()
@@ -1962,7 +1962,7 @@ class Character(object):
         if not removed:
             # 効果対象の変更(Wsn.2)
             effectevent = cw.cwpy.event.get_effectevent()
-            if effectevent and name == u"＠効果対象":
+            if effectevent and name == "＠効果対象":
                 effectevent.add_target(self)
 
         # 隠蔽クーポンがあるため
@@ -1975,8 +1975,8 @@ class Character(object):
         """
         s = set()
 
-        for coupon in self.coupons.iterkeys():
-            if coupon.startswith(u"：") or coupon.startswith(u"；"):
+        for coupon in self.coupons.keys():
+            if coupon.startswith("：") or coupon.startswith("；"):
                 s.add(coupon)
 
         return s
@@ -2004,7 +2004,7 @@ class Character(object):
             self.timedcoupons.remove(name)
 
         # 隠蔽クーポン
-        if name == u"：Ｒ" and self.is_reversed():
+        if name == "：Ｒ" and self.is_reversed():
             if update:
                 if self.status == "hidden":
                     self.reverse()
@@ -2014,7 +2014,7 @@ class Character(object):
 
         # 効果対象の変更(Wsn.2)
         effectevent = cw.cwpy.event.get_effectevent()
-        if effectevent and name == u"＠効果対象":
+        if effectevent and name == "＠効果対象":
             effectevent.remove_target(self)
 
         return True
@@ -2026,7 +2026,7 @@ class Character(object):
         battleonly: Trueの場合は"；"の時限クーポンのみ削除。
         """
         for name in set(self.timedcoupons):
-            if not battleonly or name.startswith(u"；"):
+            if not battleonly or name.startswith("；"):
                 self._remove_coupon(name, False)
 
     @synclock(_couponlock)
@@ -2035,7 +2035,7 @@ class Character(object):
         "＿１"等の番号クーポンを削除。
         """
         # u"＠ＭＰ３"はCardWirth 1.29以降で配布されるクーポン
-        names = [cw.cwpy.msgs["number_1_coupon"], u"＿１", u"＿２", u"＿３", u"＿４", u"＿５", u"＿６", u"＠ＭＰ３"]
+        names = [cw.cwpy.msgs["number_1_coupon"], "＿１", "＿２", "＿３", "＿４", "＿５", "＿６", "＠ＭＰ３"]
 
         for name in names:
             self._remove_coupon(name)
@@ -2050,7 +2050,7 @@ class Character(object):
         return self._get_limitlevel()
 
     def _get_limitlevel(self):
-        l = self._get_couponvalue(u"＠レベル原点", raiseerror=False)
+        l = self._get_couponvalue("＠レベル原点", raiseerror=False)
         if not l is None:
             return max(self.level, l)
         else:
@@ -2059,11 +2059,11 @@ class Character(object):
     @synclock(_couponlock)
     def check_level(self):
         coupons = self._get_specialcoupons()
-        level = coupons[u"＠レベル原点"]
+        level = coupons["＠レベル原点"]
 
         limit = self._get_levelmax(coupons)
-        if not u"＠レベル上限" in coupons:
-            self._set_coupon(u"＠レベル上限", limit)
+        if not "＠レベル上限" in coupons:
+            self._set_coupon("＠レベル上限", limit)
 
         # 解の公式で現在の経験点で到達できるレベルを算出
         cnt = max(1, self._get_couponsvalue())
@@ -2078,11 +2078,11 @@ class Character(object):
         return self._get_levelmax(coupons)
 
     def _get_levelmax(self, coupons):
-        if u"＠レベル上限" in coupons:
-            limit = coupons[u"＠レベル上限"]
-        elif u"＠本来の上限" in coupons:
-            limit = coupons[u"＠本来の上限"]
-            self._set_coupon(u"＠レベル上限", limit)
+        if "＠レベル上限" in coupons:
+            limit = coupons["＠レベル上限"]
+        elif "＠本来の上限" in coupons:
+            limit = coupons["＠本来の上限"]
+            self._set_coupon("＠レベル上限", limit)
         else:
             limit = 10
         return limit
@@ -2129,7 +2129,7 @@ class Character(object):
         self.data.edit("Property/Level", str(self.level))
         # 最大HPとHP
         maxlife = calc_maxlife(vit, minval, self.level)
-        if coeff <> 1:
+        if coeff != 1:
             maxlife = round(maxlife * coeff)
         maxlife = int(max(1, maxlife))
         self.maxlife += maxlife - self.maxlife
@@ -2145,10 +2145,10 @@ class Character(object):
                 if not e.text:
                     continue
 
-                if e.text == u"＠レベル原点":
+                if e.text == "＠レベル原点":
                     e.attrib["value"] = str(self.level)
                     self.coupons[e.text] = self.level, e
-                elif e.text == u"＠ＥＰ":
+                elif e.text == "＠ＥＰ":
                     value = e.getint(".", "value", 0) + (value - limit) * 10
                     e.attrib["value"] = str(value)
                     self.coupons[e.text] = value, e
@@ -2169,7 +2169,7 @@ class Character(object):
                         targettype = "TRASHBOX"
                     else:
                         targettype = targettype_original
-                    if regulate and targettype <> "TRASHBOX":
+                    if regulate and targettype != "TRASHBOX":
                         self.add_cardpocketmemory(header)
                     cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party, sort=False)
                     n -= 1
@@ -2195,9 +2195,9 @@ class Character(object):
         e.append(cw.data.make_element("Description", header.desc))
         e.append(cw.data.make_element("Scenario", header.scenario))
         e.append(cw.data.make_element("Author", header.author))
-        if type <> "BeastCard":
+        if type != "BeastCard":
             e.append(cw.data.make_element("Hold", str(header.hold)))
-        if header.type <> "SkillCard":
+        if header.type != "SkillCard":
             e.append(cw.data.make_element("UseLimit", str(header.uselimit)))
         memories.append(e)
 
@@ -2251,7 +2251,7 @@ class Character(object):
                         n[index] += 1
                         cw.cwpy.trade("PLAYERCARD", target=self, header=header, from_event=True, party=backpack_party)
                         seq.remove(header)
-                        if cardtype <> "BeastCard":
+                        if cardtype != "BeastCard":
                             hold = e.getbool("./Hold", False)
                             header.set_hold(hold)
                         break
@@ -2376,7 +2376,7 @@ class Character(object):
         elif value == 0:
             name = "Normal"
 
-        if not overwrite and name == self.mentality and name <> "Normal":
+        if not overwrite and name == self.mentality and name != "Normal":
             # 長い方の効果時間を優先
             self.mentality_dur = max(self.mentality_dur, value)
         else:
@@ -2511,7 +2511,7 @@ class Character(object):
                         cw.cwpy.trade("BACKPACK", header=card, from_event=True, sort=False)
 
             index = cw.cwpy.ydata.party.members.index(self.data)
-            for i in xrange(index, len(cw.cwpy.ydata.party.members)):
+            for i in range(index, len(cw.cwpy.ydata.party.members)):
                 pi = i + 1
                 cw.cwpy.file_updates.update(cw.cwpy.update_pcimage(pi, deal=False))
 
@@ -2670,7 +2670,7 @@ class Character(object):
 
     def decrease_physical(self, stype, time):
         """中毒麻痺の時間経過による軽減。"""
-        for _t in xrange(time):
+        for _t in range(time):
             uvalue = cw.util.div_vocation(self.get_vocation_val(("vit", "aggressive"))) + self.level + cw.cwpy.dice.roll(2)
             tvalue = (self.poison if stype == "Poison" else self.paralyze) + cw.cwpy.dice.roll(2)
 
@@ -2719,7 +2719,7 @@ class Character(object):
                 value = self.set_life(-value)
                 cw.cwpy.advlog.poison_damage(self, value, self.life, oldlife)
 
-                if self.status <> "reversed" and self.status <> "hidden":
+                if self.status != "reversed" and self.status != "hidden":
                     cw.animation.animate_sprite(self, "lateralvibe", battlespeed=cw.cwpy.is_battlestatus())
                 self.update_image()
                 cw.cwpy.draw(clip=self.rect)
@@ -2851,7 +2851,7 @@ class Character(object):
 
         # 画像更新
         if flag or updateimage:
-            if self.status <> "reversed" and self.status <> "hidden":
+            if self.status != "reversed" and self.status != "hidden":
                 if flag:
                     battlespeed = cw.cwpy.is_battlestatus()
                     cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
@@ -2876,15 +2876,15 @@ class Character(object):
                 if fromevent:
                     for t in itertools.chain(cw.cwpy.get_pcards(), cw.cwpy.get_ecards(), cw.cwpy.get_fcards()):
                         if isinstance(t, cw.character.Character):
-                            if t.has_coupon(u"＠イベント対象"):
+                            if t.has_coupon("＠イベント対象"):
                                 e_eventtarget = t
-                                t.remove_coupon(u"＠イベント対象")
+                                t.remove_coupon("＠イベント対象")
                                 break
 
                 try:
                     if cw.cwpy.sdata.is_wsnversion('2'):
                         # イベント所持者を示すシステムクーポン(Wsn.2)
-                        self.set_coupon(u"＠イベント対象", 0)
+                        self.set_coupon("＠イベント対象", 0)
                     if fromevent:
                         event = events.check_keynum(1)
                         if event:
@@ -2892,10 +2892,10 @@ class Character(object):
                     else:
                         events.start(1, isinsideevent=False)
                 finally:
-                    self.remove_coupon(u"＠イベント対象")
+                    self.remove_coupon("＠イベント対象")
 
                     if e_eventtarget:
-                        e_eventtarget.set_coupon(u"＠イベント対象", 0)
+                        e_eventtarget.set_coupon("＠イベント対象", 0)
 
     def set_hold_all(self, pocket, value):
         self.hold_all[pocket] = value
@@ -2980,7 +2980,7 @@ class AlbumPage(object):
 
         for e in self.data.getfind("Property/Coupons"):
             coupon = e.text
-            if coupon and coupon.startswith(u"＠"):
+            if coupon and coupon.startswith("＠"):
                 d[coupon] = int(e.get("value", "0"))
 
         return d

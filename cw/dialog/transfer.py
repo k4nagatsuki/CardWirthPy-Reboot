@@ -66,7 +66,7 @@ class TransferYadoDataDialog(wx.Dialog):
             self._enable_btn()
         self.datalist.OnCheckItem = func
 
-        self.datalist.InsertItem(0, u"", 0)
+        self.datalist.InsertItem(0, "", 0)
         rect = self.datalist.GetItemRect(0, wx.LIST_RECT_LABEL)
         self.datalist.SetColumnWidth(0, rect.x)
         self.datalist.DeleteAllItems()
@@ -87,10 +87,10 @@ class TransferYadoDataDialog(wx.Dialog):
         self.datalist.DeleteAllItems()
 
         yadodir = self.yadodirs[self.index]
-        data = cw.data.xml2etree(cw.util.join_paths(yadodir, u"Environment.xml"))
+        data = cw.data.xml2etree(cw.util.join_paths(yadodir, "Environment.xml"))
         bookmark = data.find("Bookmarks")
         if not bookmark is None:
-            self.datalist.InsertItem(i, u"")
+            self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["bookmark"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_bookmark)
             self.datalist.CheckItem(i, False)
@@ -99,7 +99,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         cashbox = data.getint("Property/Cashbox", 0)
         if cashbox:
-            self.datalist.InsertItem(i, u"")
+            self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["currency"] % (cashbox))
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_money)
             self.datalist.CheckItem(i, False)
@@ -108,7 +108,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         gossips = data.find("Gossips")
         if not gossips is None and len(gossips):
-            self.datalist.InsertItem(i, u"")
+            self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["gossip"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_gossip)
             self.datalist.CheckItem(i, False)
@@ -117,7 +117,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         completestamp = data.find("CompleteStamps")
         if not completestamp is None and len(completestamp):
-            self.datalist.InsertItem(i, u"")
+            self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["complete_stamp"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_completestamp)
             self.datalist.CheckItem(i, False)
@@ -136,7 +136,7 @@ class TransferYadoDataDialog(wx.Dialog):
         partymembers = set()
 
         if album:
-            self.datalist.InsertItem(i, u"")
+            self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["album"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_album)
             self.datalist.CheckItem(i, False)
@@ -144,21 +144,21 @@ class TransferYadoDataDialog(wx.Dialog):
             i += 1
 
         if partyrecord:
-            self.datalist.InsertItem(i, u"")
+            self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["select_party_record"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_partyrecord)
             self.datalist.CheckItem(i, False)
             self.data.append(partyrecord)
             i += 1
 
-        keys = savedjpdcimage.keys()
+        keys = list(savedjpdcimage.keys())
         for key in cw.util.sorted_by_attr(keys):
             header = savedjpdcimage[key]
-            self.datalist.InsertItem(i, u"")
+            self.datalist.InsertItem(i, "")
             if header.scenarioauthor:
-                s = u"JPDC - %s(%s)" % (header.scenarioname, header.scenarioauthor)
+                s = "JPDC - %s(%s)" % (header.scenarioname, header.scenarioauthor)
             else:
-                s = u"JPDC - %s" % (header.scenarioname)
+                s = "JPDC - %s" % (header.scenarioname)
             self.datalist.SetItem(i, 1, s)
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_savedjpdcimage)
             self.datalist.CheckItem(i, False)
@@ -185,7 +185,7 @@ class TransferYadoDataDialog(wx.Dialog):
                     assert False
             else:
                 assert False
-            self.datalist.InsertItem(i, u"")
+            self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, header.name)
             self.datalist.SetItemColumnImage(i, 1, image)
             self.datalist.CheckItem(i, False)
@@ -193,16 +193,16 @@ class TransferYadoDataDialog(wx.Dialog):
             i += 1
 
         if not self.data:
-            self.datalist.InsertItem(i, u"")
+            self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["transfer_no_item"])
 
         self._enable_btn()
 
     def _enable_btn(self):
-        btn = self.fromyado.GetSelection() <> self.toyado.GetSelection()
+        btn = self.fromyado.GetSelection() != self.toyado.GetSelection()
         if btn:
             btn = False
-            for index in xrange(self.datalist.GetItemCount()):
+            for index in range(self.datalist.GetItemCount()):
                 if self.datalist.IsChecked(index):
                     btn = True
                     break
@@ -230,7 +230,7 @@ class TransferYadoDataDialog(wx.Dialog):
         name1 = self.yadonames[index1]
         name2 = self.yadonames[index2]
         seq = []
-        for i in xrange(self.datalist.GetItemCount()):
+        for i in range(self.datalist.GetItemCount()):
             if self.datalist.IsChecked(i):
                 seq.append(self.data[i])
         s = cw.cwpy.msgs["confirm_transfer"] % (name1, len(seq), name2)
@@ -239,7 +239,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         result = dlg.ShowModal()
         dlg.Destroy()
-        if result <> wx.ID_OK:
+        if result != wx.ID_OK:
             return
 
         fromyado = self.yadodirs[index1]
@@ -263,7 +263,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 counter += 1 # 全体情報
                 counter += 1 # 冒険中情報
                 counter += len(data.members)
-                for cardtype in (u"SkillCard", u"ItemCard", u"BeastCard"):
+                for cardtype in ("SkillCard", "ItemCard", "BeastCard"):
                     dpath = cw.util.join_paths(os.path.dirname(data.fpath), cardtype)
                     if os.path.isdir(dpath):
                         counter += len(os.listdir(dpath))
@@ -285,10 +285,10 @@ class TransferYadoDataDialog(wx.Dialog):
                 self.outer = outer
 
                 def _skindir_to_scedir(skindir):
-                    scedir = u"Scenario"
+                    scedir = "Scenario"
                     if skindir:
-                        skindir = cw.util.join_paths(u"Data/Skin", skindir)
-                        fpath = cw.util.join_paths(skindir, u"Skin.xml")
+                        skindir = cw.util.join_paths("Data/Skin", skindir)
+                        fpath = cw.util.join_paths(skindir, "Skin.xml")
                         if os.path.isfile(fpath):
                             prop = cw.header.GetProperty(fpath)
                             skintype = prop.properties.get("Type", "")
@@ -299,15 +299,15 @@ class TransferYadoDataDialog(wx.Dialog):
                                         break
                     return scedir
 
-                prop = cw.header.GetProperty(cw.util.join_paths(fromyado, u"Environment.xml"))
+                prop = cw.header.GetProperty(cw.util.join_paths(fromyado, "Environment.xml"))
                 skindir = prop.properties.get("Skin", "")
                 self.fromscedir = _skindir_to_scedir(skindir)
-                self.environment = cw.data.xml2etree(cw.util.join_paths(toyado, u"Environment.xml"))
-                self.toscedir = _skindir_to_scedir(self.environment.gettext("Property/Skin", u""))
+                self.environment = cw.data.xml2etree(cw.util.join_paths(toyado, "Environment.xml"))
+                self.toscedir = _skindir_to_scedir(self.environment.gettext("Property/Skin", ""))
                 self.imgpaths = {}
                 self.membertable = {}
                 self.num = 0
-                self.msg = u""
+                self.msg = ""
 
             def run(self):
                 seq2 = []
@@ -337,9 +337,9 @@ class TransferYadoDataDialog(wx.Dialog):
                         elif isinstance(data, cw.header.SavedJPDCImageHeader):
                             # 保存されたJPDCイメージ
                             if data.scenarioauthor:
-                                name = u"JPDC - %s(%s)" % (data.scenarioname, data.scenarioauthor)
+                                name = "JPDC - %s(%s)" % (data.scenarioname, data.scenarioauthor)
                             else:
-                                name = u"JPDC - %s" % (data.scenarioname)
+                                name = "JPDC - %s" % (data.scenarioname)
                         else:
                             name = data.name
                         self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
@@ -430,7 +430,7 @@ class TransferYadoDataDialog(wx.Dialog):
         data = counter.environment
         bookmark = data.find("Bookmarks")
         if bookmark is None:
-            bookmark = cw.data.make_element("Bookmarks", u"")
+            bookmark = cw.data.make_element("Bookmarks", "")
             data.getroot().append(bookmark)
         else:
             for e in bookmark:
@@ -512,7 +512,7 @@ class TransferYadoDataDialog(wx.Dialog):
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
         if not os.path.isdir(dstdir):
             os.makedirs(dstdir)
-        pdata.fpath = cw.util.join_paths(dstdir, u"Party.xml")
+        pdata.fpath = cw.util.join_paths(dstdir, "Party.xml")
         pdata.write()
         counter.num += 1
 
@@ -527,7 +527,7 @@ class TransferYadoDataDialog(wx.Dialog):
             cardtype = cardheader.type
             basename = os.path.basename(fpath)
             e = cw.data.xml2etree(fpath)
-            e.fpath = u""
+            e.fpath = ""
             self.transfer_card(fromyado, toyado, e, None, counter=counter)
             e.fpath = cw.util.join_paths(dstdir, cardtype, basename)
             e.fpath = cw.util.dupcheck_plus(e.fpath, yado=False)
@@ -542,7 +542,7 @@ class TransferYadoDataDialog(wx.Dialog):
             # 冒険中情報
             cw.util.decompress_zip(wsl, cw.tempdir, "ScenarioLog")
 
-            fname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml")
+            fname = cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml")
             etree = cw.data.xml2etree(fname)
             e = etree.find("Property/MusicPath")
             if not e is None:
@@ -559,7 +559,7 @@ class TransferYadoDataDialog(wx.Dialog):
                     e.text = counter.imgpaths.get(e.text, e.text)
             etree.write()
 
-            fname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face/Log.xml")
+            fname = cw.util.join_paths(cw.tempdir, "ScenarioLog/Face/Log.xml")
             if os.path.isfile(fname):
                 etree = cw.data.xml2etree(fname)
                 for e in etree.getfind("."):
@@ -574,7 +574,7 @@ class TransferYadoDataDialog(wx.Dialog):
                             e2.text = counter.imgpaths.get(e2.text, e2.text)
                 etree.write()
 
-            dname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party")
+            dname = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party")
             etree = None
             for p in os.listdir(dname):
                 if p.lower().endswith(".xml"):
@@ -584,8 +584,8 @@ class TransferYadoDataDialog(wx.Dialog):
                 e.text = counter.membertable[e.text]
             etree.write()
 
-            dname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members")
-            dname2 = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members2")
+            dname = cw.util.join_paths(cw.tempdir, "ScenarioLog/Members")
+            dname2 = cw.util.join_paths(cw.tempdir, "ScenarioLog/Members2")
             if not os.path.isdir(dname2):
                 os.makedirs(dname2)
             for p in os.listdir(dname):
@@ -598,9 +598,9 @@ class TransferYadoDataDialog(wx.Dialog):
             cw.util.remove(dname)
             shutil.move(dname2, dname)
 
-            wsl = cw.util.join_paths(dstdir, u"Party.wsl")
-            cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), wsl, unicodefilename=True)
-            cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
+            wsl = cw.util.join_paths(dstdir, "Party.wsl")
+            cw.util.compress_zip(cw.util.join_paths(cw.tempdir, "ScenarioLog"), wsl, unicodefilename=True)
+            cw.util.remove(cw.util.join_paths(cw.tempdir, "ScenarioLog"))
         counter.num += 1
 
         # 宿DBへ追加
@@ -612,7 +612,7 @@ class TransferYadoDataDialog(wx.Dialog):
         for header in album:
             data = cw.data.xml2etree(header.fpath)
             cname = data.gettext("Property/Name", "")
-            dstdir = cw.util.join_paths(toyado, u"Material", u"Album", cname if cname else "noname")
+            dstdir = cw.util.join_paths(toyado, "Material", "Album", cname if cname else "noname")
             can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
             cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado,
                                    toyado=toyado, adventurer=True, imgpaths=counter.imgpaths,
@@ -629,7 +629,7 @@ class TransferYadoDataDialog(wx.Dialog):
         if isinstance(data, cw.header.AdventurerHeader):
             data = cw.data.xml2etree(data.fpath)
         cname = data.gettext("Property/Name", "")
-        dstdir = cw.util.join_paths(toyado, u"Material", u"Adventurer", cname if cname else "noname")
+        dstdir = cw.util.join_paths(toyado, "Material", "Adventurer", cname if cname else "noname")
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
         can_loaded_scaledimage = data.getbool(".", "scaledimage", False)
         cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado,
@@ -642,7 +642,7 @@ class TransferYadoDataDialog(wx.Dialog):
         for e in itertools.chain(data.getfind("SkillCards"),
                                  data.getfind("ItemCards"),
                                  data.getfind("BeastCards")):
-            e.fpath = u""
+            e.fpath = ""
             self.transfer_card(fromyado, toyado, cw.data.xml2etree(element=e), yadodb=None, counter=counter)
 
         data.write()
@@ -659,7 +659,7 @@ class TransferYadoDataDialog(wx.Dialog):
         e = data.find("Property/Materials")
         if e is None:
             cname = data.gettext("Property/Name", "")
-            dstdir = cw.util.join_paths(toyado, u"Material", data.getroot().tag, data.gettext("Property/Name", cname if cname else "noname"))
+            dstdir = cw.util.join_paths(toyado, "Material", data.getroot().tag, data.gettext("Property/Name", cname if cname else "noname"))
         else:
             dstdir = cw.util.join_paths(toyado, e.text if e.text else "noname")
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
@@ -693,9 +693,9 @@ class TransferYadoDataDialog(wx.Dialog):
     def transfer_savedjpdcimage(self, fromyado, toyado, header, yadodb, table, counter):
         # 保存されたJPDCイメージの転送
         key = (header.scenarioname, header.scenarioauthor)
-        savejpdcdir = cw.util.join_paths(toyado, u"SavedJPDCImage")
+        savejpdcdir = cw.util.join_paths(toyado, "SavedJPDCImage")
 
-        fromdir = cw.util.join_paths(fromyado, u"SavedJPDCImage", header.dpath)
+        fromdir = cw.util.join_paths(fromyado, "SavedJPDCImage", header.dpath)
         todir = cw.util.join_paths(savejpdcdir, header.dpath)
         todir = cw.util.dupcheck_plus(todir, yado=False)
 
@@ -706,18 +706,18 @@ class TransferYadoDataDialog(wx.Dialog):
 
         toheader = table.get(key, None)
         if toheader:
-            dpath = cw.util.join_paths(toyado, u"SavedJPDCImage", toheader.dpath)
+            dpath = cw.util.join_paths(toyado, "SavedJPDCImage", toheader.dpath)
             cw.util.remove(dpath)
             if yadodb:
-                fpath = cw.util.join_paths(u"SavedJPDCImage", toheader.dpath, u"SavedJPDCImage.xml")
+                fpath = cw.util.join_paths("SavedJPDCImage", toheader.dpath, "SavedJPDCImage.xml")
                 yadodb.delete_savedjpdcimage(fpath, commit=False)
 
         header.dpath = cw.util.relpath(todir, savejpdcdir)
-        header.fpath = cw.util.join_paths(todir, u"SavedJPDCImage.xml")
+        header.fpath = cw.util.join_paths(todir, "SavedJPDCImage.xml")
 
-        data = cw.data.xml2etree(cw.util.join_paths(fromdir, u"SavedJPDCImage.xml"))
+        data = cw.data.xml2etree(cw.util.join_paths(fromdir, "SavedJPDCImage.xml"))
         data.edit("Materials", header.dpath, "dpath")
-        data.fpath = cw.util.join_paths(todir, u"SavedJPDCImage.xml")
+        data.fpath = cw.util.join_paths(todir, "SavedJPDCImage.xml")
         data.write()
 
         if yadodb:

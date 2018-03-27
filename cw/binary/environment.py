@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import base
+from . import base
 
 import cw
 
@@ -58,10 +58,10 @@ class Environment(base.CWBinaryBase):
             # カード置場のカードデータ
             unusedcards_num = f.dword()
             self.unusedcards = [UnusedCard(self, f)
-                                        for _cnt in xrange(unusedcards_num)]
+                                        for _cnt in range(unusedcards_num)]
             # カード置場と荷物袋のカードヘッダ
             yadocards_num = f.dword()
-            self.yadocards = [YadoCard(self, f) for _cnt in xrange(yadocards_num)]
+            self.yadocards = [YadoCard(self, f) for _cnt in range(yadocards_num)]
             # 宿の資金
             self.money = f.dword()
         else:
@@ -221,7 +221,7 @@ class Environment(base.CWBinaryBase):
             UnusedCard.unconv(f, card, fname)
         yadocards = table["yadocards"]
         f.write_dword(len(yadocards))
-        for fname, card in yadocards.values():
+        for fname, card in list(yadocards.values()):
             YadoCard.unconv(f, card, fname)
         f.write_dword(money)
         f.write_string(partyname)

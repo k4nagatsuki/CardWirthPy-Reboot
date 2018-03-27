@@ -13,13 +13,13 @@ import cw
 
 try:
     if sys.platform == "darwin":
-        import _imageretouch_mac as _imageretouch
+        from . import _imageretouch_mac as _imageretouch
     elif sys.maxsize == 0x7fffffff:
-        import _imageretouch32 as _imageretouch
+        from . import _imageretouch32 as _imageretouch
     elif sys.maxsize == 0x7fffffffffffffff:
-        import _imageretouch64 as _imageretouch
-except ImportError, ex:
-    print "failed to load _imageretouch module. %s" % (ex.message)
+        from . import _imageretouch64 as _imageretouch
+except ImportError as ex:
+    print("failed to load _imageretouch module. %s" % (ex.message))
     _imageretouch = object()
 
 
@@ -109,7 +109,7 @@ def to_negative_for_wxcard(wxbmp, framewidth=0):
             func = _imageretouch.to_negative
             func(buf, (w, h))
         except Exception:
-            buf = bytearray(map(lambda a: 255-a, buf))
+            buf = bytearray([255-a for a in buf])
         wximg = wx.ImageFromBuffer(w, h, buf)
         subbmp = wx.Bitmap(wximg)
         dc.DrawBitmap(subbmp, x, y)
@@ -413,12 +413,12 @@ def _spread_pixels(image):
     pxarray = pygame.PixelArray(image)
     w, h = image.get_size()
 
-    for x in xrange(w):
+    for x in range(w):
         n = int(x - random.randint(0, 4) + 2)
         n = cw.util.numwrap(n, 0, w - 1)
         seq = []
 
-        for y in xrange(h):
+        for y in range(h):
             n2 = int(y - random.randint(0, 4) + 2)
             n2 = cw.util.numwrap(n2, 0, h - 1)
             seq.append(pxarray[n][n2])
@@ -449,14 +449,14 @@ def __filter(image, weight, offset=0, div=1):
     pxarray = pygame.PixelArray(image)
     w, h = image.get_size()
 
-    for x in xrange(w):
+    for x in range(w):
         seq = []
 
-        for y in xrange(h):
+        for y in range(h):
             r, g, b = 0, 0, 0
 
-            for n in xrange(3):
-                for n2 in xrange(3):
+            for n in range(3):
+                for n2 in range(3):
                     try:
                         temp_px = pxarray[x + n - 1]
                     except:
@@ -581,12 +581,12 @@ def add_transparentline(image, vline, hline, rect=None, setalpha=False):
 
     x0, y0, w, h = rect
     if vline:
-        for cnt in xrange(w / 2 - 1):
+        for cnt in range(w / 2 - 1):
             x = cnt * 2 + x0
             pygame.draw.line(image, color, (x, 0), (x, h))
 
     if hline:
-        for cnt in xrange(h / 2 - 1):
+        for cnt in range(h / 2 - 1):
             y = cnt * 2 + y0
             pygame.draw.line(image, color, (0, y), (w, y))
 
@@ -607,7 +607,7 @@ def add_transparentmesh(image, rect=None, setalpha=False):
     clip = image.get_clip()
     image.set_clip(rect)
     x0, y0, w, h = rect
-    for cnt in xrange(0, w + h, 2):
+    for cnt in range(0, w + h, 2):
         pos1 = (x0 + cnt, y0)
         pos2 = (x0 + cnt - h, y0 + h)
         pygame.draw.line(image, color, pos1, pos2)
@@ -630,7 +630,7 @@ def add_border(img, bordercolor, borderwidth):
     buf = pygame.image.tostring(img, "RGBA")
     points = func(buf, img.get_size())
     hbw = borderwidth / 2
-    for i in xrange(0, len(points), 2):
+    for i in range(0, len(points), 2):
         x = points[i+0]
         y = points[i+1]
         if borderwidth == 1:
@@ -649,7 +649,7 @@ def _bordering(data, size):
     right = 0
     top = h
     bottom = 0
-    for i in xrange(w * h):
+    for i in range(w * h):
         iData = i * 4
         color[i] = ord(data[iData+3]) == 0
         if color[i]:
@@ -664,8 +664,8 @@ def _bordering(data, size):
         return []
 
     seq = []
-    for x in xrange(left, right):
-        for y in xrange(top, bottom):
+    for x in range(left, right):
+        for y in range(top, bottom):
             yi = y * w
             i = x + yi
             if color[i]:
@@ -741,7 +741,7 @@ def _blend_add_1_50(dest, source):
     sbuf = pygame.image.tostring(source, "RGBA")
 
     buf = []
-    for i in xrange(0, len(dbuf), 4):
+    for i in range(0, len(dbuf), 4):
         dr, dg, db, da = ord(dbuf[i+0]), ord(dbuf[i+1]), ord(dbuf[i+2]), ord(dbuf[i+3])
         sr, sg, sb, sa = ord(sbuf[i+0]), ord(sbuf[i+1]), ord(sbuf[i+2]), ord(sbuf[i+3])
 
@@ -762,7 +762,7 @@ def _blend_sub_1_50(dest, source):
     sbuf = pygame.image.tostring(source, "RGBA")
 
     buf = []
-    for i in xrange(0, len(dbuf), 4):
+    for i in range(0, len(dbuf), 4):
         dr, dg, db, da = ord(dbuf[i+0]), ord(dbuf[i+1]), ord(dbuf[i+2]), ord(dbuf[i+3])
         sr, sg, sb, sa = ord(sbuf[i+0]), ord(sbuf[i+1]), ord(sbuf[i+2]), ord(sbuf[i+3])
 
@@ -783,11 +783,11 @@ def _blend_mult_1_50(dest, source):
     sbuf = pygame.image.tostring(source, "RGBA")
 
     buf = []
-    for i in xrange(0, len(dbuf), 4):
+    for i in range(0, len(dbuf), 4):
         dr, dg, db, da = ord(dbuf[i+0]), ord(dbuf[i+1]), ord(dbuf[i+2]), ord(dbuf[i+3])
         sr, sg, sb, sa = ord(sbuf[i+0]), ord(sbuf[i+1]), ord(sbuf[i+2]), ord(sbuf[i+3])
 
-        if sa <> 255:
+        if sa != 255:
             sr = colorwrap(((sr * sa) + (((1 << 8) - sa) << 8)) >> 8)
             sg = colorwrap(((sg * sa) + (((1 << 8) - sa) << 8)) >> 8)
             sb = colorwrap(((sb * sa) + (((1 << 8) - sa) << 8)) >> 8)
@@ -837,8 +837,8 @@ def _to_disabledimage(buf, size):
 
     colorkey = (buf[0], buf[1], buf[2])
 
-    for px in xrange(0, len(buf), 3):
-        if (buf[px], buf[px+1], buf[px+2]) <> colorkey:
+    for px in range(0, len(buf), 3):
+        if (buf[px], buf[px+1], buf[px+2]) != colorkey:
             buf[px+0] = buf[px+0] * (nmax - nmin) / 255  + nmin
             buf[px+1] = buf[px+1] * (nmax - nmin) / 255  + nmin
             buf[px+2] = buf[px+2] * (nmax - nmin) / 255  + nmin
@@ -874,7 +874,8 @@ def add_lightness_for_wxbmp(wxbmp, lightness, maskpos=(0, 0)):
     wxbmp.SetMaskColour((wximg.GetRed(x, y), wximg.GetGreen(x, y), wximg.GetBlue(x, y)))
     return wxbmp
 
-def _add_lightness(buf, (w, h), lightness):
+def _add_lightness(buf, xxx_todo_changeme, lightness):
+    (w, h) = xxx_todo_changeme
     for i, v in enumerate(buf):
         buf[i] = cw.util.numwrap(v + lightness, 0, 255)
 
@@ -1047,7 +1048,7 @@ def wxblit_2bitbmp_to_card(dc, dest, wxbmp, x, y, useMask, bitsizekey=None):
             func(dbuf, (w, h), buf)
 
         except Exception:
-            dbuf = bytearray(map(lambda (a, b): a&b, zip(buf, dbuf)))
+            dbuf = bytearray([a_b[0]&a_b[1] for a_b in zip(buf, dbuf)])
 
         wximg = wx.ImageFromBuffer(rect.Width, rect.Height, dbuf, alphaBuffer=bytearray(alphabuf) if alphabuf else None)
         wxbmp = wx.Bitmap(wximg)
@@ -1104,14 +1105,14 @@ class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
         self._cache = {}
 
-        d = {(u"IPAゴシック", u"IPAGothic"):"gothic.ttf",
-             (u"IPA UIゴシック", u"IPAUIGothic"):"uigothic.ttf",
-             (u"IPA明朝", u"IPAMincho"):"mincho.ttf",
-             (u"IPA P明朝", u"IPAPMincho"):"pmincho.ttf",
-             (u"IPA Pゴシック", u"IPAPGothic"):"pgothic.ttf"}
-        for names, ttf in d.iteritems():
+        d = {("IPAゴシック", "IPAGothic"):"gothic.ttf",
+             ("IPA UIゴシック", "IPAUIGothic"):"uigothic.ttf",
+             ("IPA明朝", "IPAMincho"):"mincho.ttf",
+             ("IPA P明朝", "IPAPMincho"):"pmincho.ttf",
+             ("IPA Pゴシック", "IPAPGothic"):"pgothic.ttf"}
+        for names, ttf in d.items():
             if face in names:
-                path = cw.util.join_paths(u"Data/Font", ttf)
+                path = cw.util.join_paths("Data/Font", ttf)
                 if os.path.isfile(path):
                     self.font, self.font2x, self.font_notitalic = _create_mfont(path, pixels, bold, italic, sys=False)
                     return
@@ -1140,8 +1141,8 @@ class Font(object):
             self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
 
     def _is_cachable(self, s):
-        s = unicode(s)
-        return len(s) == 1 and ((u'ぁ' <= s <= u'ヶ') or (0 <= ord(s) <= 255) or (u'！' <= s <= u'ﾟ'))
+        s = str(s)
+        return len(s) == 1 and (('ぁ' <= s <= 'ヶ') or (0 <= ord(s) <= 255) or ('！' <= s <= 'ﾟ'))
 
     def dispose(self):
         if not self.font and self.fontinfo:
@@ -1254,7 +1255,7 @@ class Font(object):
                     size2 = (size2[0]+4, size2[1])
                     image2 = pygame.Surface(size2).convert_alpha()
                     image2.fill((0, 0, 0, 0))
-                    for x in xrange(4):
+                    for x in range(4):
                         image2.blit(image, (x, 0))
                     image = image2
                     size = (size[0]+1, size[1])
@@ -1283,7 +1284,7 @@ class Font(object):
                 size = (size[0]+4, size[1])
                 image2 = pygame.Surface(size).convert_alpha()
                 image2.fill((0, 0, 0, 0))
-                for x in xrange(4):
+                for x in range(4):
                     image2.blit(image, (x, 0))
                 image = image2
                 size2 = (size2[0]+1, size2[1])
@@ -1323,19 +1324,19 @@ def get_fontface(fontface):
     if not cw.cwpy.rsrc or fontface in cw.cwpy.rsrc.facenames:
         return fontface
 
-    if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
+    if fontface in ("ＭＳ Ｐゴシック", "MS PGothic"):
         return cw.cwpy.rsrc.fontnames_init["pgothic"]
-    elif fontface in (u"ＭＳ Ｐ明朝", "MS PMincho"):
+    elif fontface in ("ＭＳ Ｐ明朝", "MS PMincho"):
         return cw.cwpy.rsrc.fontnames_init["pmincho"]
-    elif fontface in (u"ＭＳ ゴシック", "MS Gothic"):
+    elif fontface in ("ＭＳ ゴシック", "MS Gothic"):
         return cw.cwpy.rsrc.fontnames_init["gothic"]
-    elif fontface in (u"ＭＳ 明朝", "MS Mincho"):
+    elif fontface in ("ＭＳ 明朝", "MS Mincho"):
         return cw.cwpy.rsrc.fontnames_init["mincho"]
-    elif fontface in (u"ＭＳ ＵＩゴシック", "MS UI Gothic"):
+    elif fontface in ("ＭＳ ＵＩゴシック", "MS UI Gothic"):
         return cw.cwpy.rsrc.fontnames_init["uigothic"]
     else:
-        if u"ＭＳ Ｐゴシック" in cw.cwpy.rsrc.facenames:
-            return u"ＭＳ Ｐゴシック"
+        if "ＭＳ Ｐゴシック" in cw.cwpy.rsrc.facenames:
+            return "ＭＳ Ｐゴシック"
         else:
             return cw.cwpy.rsrc.fontnames_init["gothic"]
 

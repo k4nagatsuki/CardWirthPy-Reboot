@@ -15,7 +15,7 @@ class Converter(threading.Thread):
 
         self.maximum = 100
         self.curnum = 0
-        self.message = u"変換を開始しています..."
+        self.message = "変換を開始しています..."
         self.failure = False
         self.complete = False
         self.errormessage = ""
@@ -55,19 +55,19 @@ class Converter(threading.Thread):
         self.skintype = self.find_type()
         self.initialcash = self.find_initialcash()
 
-        self.data = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
+        self.data = cw.data.xml2etree("Data/SkinBase/Skin.xml")
         self.data.find("Property/Name").text = self.find_skinname()
         self.data.find("Property/Type").text = self.skintype
         self.data.find("Property/Author").text = self.find_author()
         self.data.find("Property/Description").text = cw.util.encodewrap(self.find_description())
         self.data.find("Property/InitialCash").text = str(self.initialcash)
 
-        self.actioncard = self._get_resources(u"ActionCard")
-        self.gameover = self._get_resources(u"GameOver")
-        self.scenario = self._get_resources(u"Scenario")
-        self.title = self._get_resources(u"Title")
-        self.yado = self._get_resources(u"Yado")
-        self.specialcard = self._get_resources(u"SpecialCard")
+        self.actioncard = self._get_resources("ActionCard")
+        self.gameover = self._get_resources("GameOver")
+        self.scenario = self._get_resources("Scenario")
+        self.title = self._get_resources("Title")
+        self.yado = self._get_resources("Yado")
+        self.specialcard = self._get_resources("SpecialCard")
 
         self._get_features()
         self._get_sounds()
@@ -79,7 +79,7 @@ class Converter(threading.Thread):
         self._get_partyinfo()
 
     def _get_resources(self, dpath):
-        dpath = cw.util.join_paths(u"Data/SkinBase/Resource/Xml/", dpath)
+        dpath = cw.util.join_paths("Data/SkinBase/Resource/Xml/", dpath)
         rsrc = {}
         for path in os.listdir(dpath):
             if path.lower().endswith(".xml"):
@@ -89,8 +89,8 @@ class Converter(threading.Thread):
         return rsrc
 
     def _write_data(self, dpath, table):
-        for data in table.values():
-            data.fpath = cw.util.join_paths(dpath, cw.util.relpath(data.fpath, u"Data/SkinBase/"))
+        for data in list(table.values()):
+            data.fpath = cw.util.join_paths(dpath, cw.util.relpath(data.fpath, "Data/SkinBase/"))
             data.write()
 
     def find_skinname(self):
@@ -103,19 +103,19 @@ class Converter(threading.Thread):
     def find_description(self):
         if self.exe:
             exebasename = os.path.basename(self.exe)
-            return (u"%sをベースに自動生成したスキン。") % exebasename
+            return ("%sをベースに自動生成したスキン。") % exebasename
         else:
-            return u""
+            return ""
 
     def find_datadir(self):
         if self.exe and ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             key = "\\Midi\\DefReset.mid"
             index = self.exebinary.find(key)
             try:
-                return unicode(self.exebinary[index-4:index], cw.MBCS)
+                return str(self.exebinary[index-4:index], cw.MBCS)
             except:
                 pass
-        return u"Data"
+        return "Data"
 
     def find_scenariodir(self):
         if self.exe and ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
@@ -123,10 +123,10 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             try:
                 index = index + len(key)
-                return unicode(self.exebinary[index:index+8], cw.MBCS)
+                return str(self.exebinary[index:index+8], cw.MBCS)
             except:
                 pass
-        return u"Scenario"
+        return "Scenario"
 
     def find_yadodir(self):
         if self.exe and ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
@@ -134,10 +134,10 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             try:
                 index = index + len(key)
-                return unicode(self.exebinary[index-len(key)-4:index-len(key)], cw.MBCS)
+                return str(self.exebinary[index-len(key)-4:index-len(key)], cw.MBCS)
             except:
                 pass
-        return u"Yado"
+        return "Yado"
 
     def find_type(self):
         if self.exe:
@@ -153,14 +153,14 @@ class Converter(threading.Thread):
                 return "Oedo"
             elif 0 <= os.path.dirname(self.exe).lower().find("sfv"):
                 return "ScienceFiction"
-        return u"MedievalFantasy"
+        return "MedievalFantasy"
 
     def find_author(self):
-        return u""
+        return ""
 
     def find_initialcash(self):
-        prop = cw.header.GetProperty(u"Data/SkinBase/Skin.xml")
-        cash = int(prop.properties.get(u"InitialCash", "4000"))
+        prop = cw.header.GetProperty("Data/SkinBase/Skin.xml")
+        cash = int(prop.properties.get("InitialCash", "4000"))
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return cash
         if len(self.exebinary) < 0x31d97+4:
@@ -187,7 +187,7 @@ class Converter(threading.Thread):
                     name = n[:i]
                 else:
                     name = n
-                data.find("./Name").text = unicode(name, cw.MBCS).strip(u" 　")
+                data.find("./Name").text = str(name, cw.MBCS).strip(" 　")
 
                 # 身体能力
                 p = physical.unpack(self.exebinary[index:index+2*6])
@@ -304,13 +304,13 @@ class Converter(threading.Thread):
                 index = self.exebinary.find(key)
                 if 0 <= index:
                     index -= less
-                    e.text = unicode(self.exebinary[index-length:index], cw.MBCS)
+                    e.text = str(self.exebinary[index-length:index], cw.MBCS)
             def get_keyafter(e, key, length, than=0):
                 index = self.exebinary.find(key)
                 if 0 <= index:
                     index += len(key)
                     index += than
-                    e.text = unicode(self.exebinary[index:index+length], cw.MBCS)
+                    e.text = str(self.exebinary[index:index+length], cw.MBCS)
 
             # システム・エラー
             # ".wav\0は、行動不能です。"
@@ -367,8 +367,8 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key) + 98
-                s = unicode(self.exebinary[index:index+12], cw.MBCS)
-                if s <> "IMAGE_FATHER":
+                s = str(self.exebinary[index:index+12], cw.MBCS)
+                if s != "IMAGE_FATHER":
                     self.partyinfo_res = s
         except Exception:
             cw.util.print_ex()
@@ -390,7 +390,7 @@ class Converter(threading.Thread):
                     sound1, index = self._get_text(index)
                     sound2, index = self._get_text(index)
                     keycodes = []
-                    for _i in xrange(0, keycodenum):
+                    for _i in range(0, keycodenum):
                         keycode, index = self._get_text(index)
                         keycodes.append(keycode)
                     data = self.actioncard[cardkey]
@@ -607,7 +607,7 @@ class Converter(threading.Thread):
                 rsrcmsgs["desc_party_money"] = "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/Hint"
 
             rcdata = {}
-            for key, path in rsrcmsgs.iteritems():
+            for key, path in rsrcmsgs.items():
                 repls = []
                 if not isinstance(path, str):
                     repls = path[1:]
@@ -620,7 +620,7 @@ class Converter(threading.Thread):
                     table = self.res.get_tpf0form(path[0])
                     rcdata[path[0]] = table
                 if table:
-                    for i in xrange(1, len(path)):
+                    for i in range(1, len(path)):
                         if path[i] in table:
                             table = table[path[i]]
                         else:
@@ -629,7 +629,7 @@ class Converter(threading.Thread):
                     if table:
                         for repl in repls:
                             table = table.replace(repl[0], repl[1])
-                        msgtable[key] = table.strip(u" 　")
+                        msgtable[key] = table.strip(" 　")
 
             # バイナリ断片を手がかりにメッセージを取得
             # (key, 0=keyの前方を探す/1=後方を探す, index移動量, Prefix)
@@ -652,7 +652,7 @@ class Converter(threading.Thread):
                 "lost_coupon_1": ("\x81\x46\x83\x8C\x83\x78\x83\x8B\x95\xE2\x90\xB3\x92\x86\x00\x81\x51\x8F\xC1\x96\xC5\x97\x5C\x96\xF1\x00\x81\x51\x8E\x80\x96\x53\x00", 1, 0),
                 "currency": ("\x96\x7B\x83\x41\x83\x76\x83\x8A\x83\x50\x81\x5B\x83\x56\x83\x87\x83\x93\x82\xCD\x81\x77\x8F\xAC\x82\xB3\x82\xA2\x83\x74\x83\x48\x83\x93\x83\x67\x81\x78\x82\xC9\x91\xCE\x89\x9E\x82\xB5\x82\xC4\x82\xA2\x82\xDC\x82\xB7\x81\x42\x89\xE6\x96\xCA\x82\xCC\x83\x76\x83\x8D\x83\x70\x83\x65\x83\x42\x82\xF0\x8A\x4A\x82\xAB\x81\x41\x83\x74\x83\x48\x83\x93\x83\x67\x83\x54\x83\x43\x83\x59\x82\xF0\x81\x77\x8F\xAC\x82\xB3\x82\xA2\x83\x74\x83\x48\x83\x93\x83\x67\x81\x78\x82\xC9\x8E\x77\x92\xE8\x82\xB5\x82\xC4\x83\x51\x81\x5B\x83\x80\x82\xF0\x8D\xC4\x8A\x4A\x82\xB5\x82\xC4\x82\xAD\x82\xBE\x82\xB3\x82\xA2\x81\x42\x00", 1, 187, "%s"),
             }
-            for key, data in cribs.iteritems():
+            for key, data in cribs.items():
                 cribs[key] = None
                 index = self.exebinary.find(data[0])
                 if 0 <= index:
@@ -664,7 +664,7 @@ class Converter(threading.Thread):
                     s, index = self._get_text(index)
                     if len(data) >= 4:
                         s = data[3] + s
-                    msgtable[key] = s.strip(u" 　")
+                    msgtable[key] = s.strip(" 　")
 
             # 一分テキストの調整
             for key in ("cards_backpack", "cards_storehouse", "info_card"):
@@ -681,7 +681,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in xrange(71):
+                for i in range(71):
                     s, index = self._get_text(index, True)
                     msglist1.append(s)
 
@@ -690,7 +690,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in xrange(50):
+                for i in range(50):
                     s, index = self._get_text(index, True)
                     msglist2.append(s)
 
@@ -699,7 +699,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in xrange(62):
+                for i in range(62):
                     s, index = self._get_text(index, True)
                     msglist3.append(s)
 
@@ -708,7 +708,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in xrange(30):
+                for i in range(30):
                     s, index = self._get_text(index, True)
                     msglist4.append(s)
 
@@ -717,7 +717,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in xrange(100):
+                for i in range(100):
                     s, index = self._get_text(index, True)
                     msglist5.append(s)
 
@@ -726,7 +726,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in xrange(86):
+                for i in range(86):
                     s, index = self._get_text(index, True)
                     msglist6.append(s)
 
@@ -735,7 +735,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in xrange(8):
+                for i in range(8):
                     s, index = self._get_text(index, True)
                     msglist7.append(s)
 
@@ -744,7 +744,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in xrange(8):
+                for i in range(8):
                     s, index = self._get_text(index, True)
                     msglist8.append(s)
 
@@ -753,7 +753,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in xrange(19):
+                for i in range(19):
                     s, index = self._get_text(index, True)
                     msglist9.append(s)
 
@@ -785,7 +785,7 @@ class Converter(threading.Thread):
                 "character_age": msglist5[9] + ":%s",
                 "character_sex": msglist5[14] + ":%s",
                 "character_ep": msglist5[16] + ":%s",
-                "character_history": u"【" + msglist5[21] + u"】",
+                "character_history": "【" + msglist5[21] + "】",
                 "history_etc": msglist5[20],
                 "confirm_grow": msglist5[32] + "%s" + msglist5[33] + msglist5[34].replace(msglist6[2][1:], "%s").replace(msglist6[3][1:], "%s") + msglist5[38],
                 "confirm_die": msglist5[32] + "%s" + msglist5[33] + msglist5[37] + msglist5[38],
@@ -794,7 +794,7 @@ class Converter(threading.Thread):
                 "resume_adventure": msglist5[64],
                 "select_scenario_title": msglist3[20],
                 "target_level_1": msglist3[49] + " %s",
-                "target_level_2": msglist3[49] + u" %s～%s",
+                "target_level_2": msglist3[49] + " %s～%s",
                 "contents": msglist3[61],
                 "confirm_save": msglist1[52],
                 "saved": msglist1[54],
@@ -815,15 +815,15 @@ class Converter(threading.Thread):
                 "level_up": "\n\n\n#I" + msglist1[69],
                 "extension_title": msglist9[2] + "%s" + msglist9[3],
             }
-            for key, msg in cribs2.iteritems():
-                msgtable[key] = msg.strip(u" 　")
+            for key, msg in cribs2.items():
+                msgtable[key] = msg.strip(" 　")
 
             e_message = self.data.find("Messages")
             removelist = set(e_message)
             for e in e_message:
                 key = e.get("key")
                 if key in msgtable:
-                    if e.text <> msgtable[key]:
+                    if e.text != msgtable[key]:
                         # ベースからメッセージを変更
                         e.text = msgtable[key]
                         removelist.discard(e)
@@ -836,7 +836,7 @@ class Converter(threading.Thread):
 
     def _get_text(self, index, cutzero=False):
         end = self.exebinary.find('\0', index)
-        s = unicode(self.exebinary[index:end], cw.MBCS)
+        s = str(self.exebinary[index:end], cw.MBCS)
         index = end + 1
         if cutzero:
             while self.exebinary[index] == '\0':
@@ -846,29 +846,29 @@ class Converter(threading.Thread):
     def run(self):
         """クラシックなエンジンからリソースを取り出し、新規スキンを生成する。"""
         self.curnum = 0
-        self.message = u"スキンのベースをコピー中..."
+        self.message = "スキンのベースをコピー中..."
 
         dpath = self.data.gettext("Property/Name", "")
         dpath = cw.binary.util.check_filename(dpath)
-        dpath = cw.util.join_paths(u"Data/Skin", dpath)
+        dpath = cw.util.join_paths("Data/Skin", dpath)
         dpath = cw.binary.util.check_duplicate(dpath)
         self.skindirname = os.path.basename(dpath)
-        if not os.path.exists(u"Data/Skin"):
-            os.makedirs(u"Data/Skin")
-        shutil.copytree(u"Data/SkinBase", dpath)
+        if not os.path.exists("Data/Skin"):
+            os.makedirs("Data/Skin")
+        shutil.copytree("Data/SkinBase", dpath)
         f = None
         try:
-            renames = {u"Sound/System_ScreenShot.wav":u"Sound/システム・スクリーンショット.wav"}
-            for key, value in renames.iteritems():
+            renames = {"Sound/System_ScreenShot.wav":"Sound/システム・スクリーンショット.wav"}
+            for key, value in renames.items():
                 fpath1 = cw.util.join_paths(dpath, key)
                 fpath2 = cw.util.join_paths(dpath, value)
                 shutil.move(fpath1, fpath2)
 
             # Resource
             self.curnum = 10
-            self.message = u"リソースを抽出中..."
+            self.message = "リソースを抽出中..."
 
-            self.data.fpath = cw.util.join_paths(dpath, u"Skin.xml")
+            self.data.fpath = cw.util.join_paths(dpath, "Skin.xml")
             self.data.write()
 
             self._write_data(dpath, self.actioncard)
@@ -1127,12 +1127,12 @@ class Converter(threading.Thread):
                 }
 
             # Resource/Image/*
-            for resname, target in imgtbl.iteritems():
+            for resname, target in imgtbl.items():
                 res = self.res.get_bitmap(resname)
                 if res is None:
-                    print "Resource not found: %s" % (resname)
+                    print("Resource not found: %s" % (resname))
                     continue
-                if isinstance(target, (str, unicode)):
+                if isinstance(target, str):
                     targets = [target]
                 else:
                     targets = target
@@ -1147,10 +1147,10 @@ class Converter(threading.Thread):
                         f.close()
                     f = None
 
-            for resname, target in curtbl.iteritems():
+            for resname, target in curtbl.items():
                 res = self.res.get_cursor(resname)
                 if res is None:
-                    print "Cursor not found: %s" % (resname)
+                    print("Cursor not found: %s" % (resname))
                     continue
                 fpath = cw.util.join_paths(dpath, "Resource/Image", target + ".cur")
                 resdir = os.path.dirname(fpath)
@@ -1162,7 +1162,7 @@ class Converter(threading.Thread):
                     f.close()
                 f = None
 
-            for respath, target in glyphtbl.iteritems():
+            for respath, target in glyphtbl.items():
                 respaths = respath.split("/")
                 resname = respaths[0]
                 res = self.res.get_tpf0form(resname)
@@ -1195,9 +1195,9 @@ class Converter(threading.Thread):
 
             # Bgm
             self.curnum = 20
-            self.message = u"BGMフォルダをコピー中..."
-            folder = cw.util.join_paths(datadir, u"Midi")
-            target = cw.util.join_paths(dpath, u"Bgm")
+            self.message = "BGMフォルダをコピー中..."
+            folder = cw.util.join_paths(datadir, "Midi")
+            target = cw.util.join_paths(dpath, "Bgm")
             if os.path.isdir(folder):
                 shutil.copytree(folder, target)
             else:
@@ -1205,9 +1205,9 @@ class Converter(threading.Thread):
 
             # Face
             self.curnum = 30
-            self.message = u"カード画像フォルダをコピー中..."
-            folder = cw.util.join_paths(datadir, u"Face")
-            target = cw.util.join_paths(dpath, u"Face")
+            self.message = "カード画像フォルダをコピー中..."
+            folder = cw.util.join_paths(datadir, "Face")
+            target = cw.util.join_paths(dpath, "Face")
             if os.path.isdir(folder):
                 shutil.copytree(folder, target)
             else:
@@ -1215,9 +1215,9 @@ class Converter(threading.Thread):
 
             # Wave
             self.curnum = 40
-            self.message = u"効果音フォルダをコピー中..."
-            folder = cw.util.join_paths(datadir, u"Wave")
-            target = cw.util.join_paths(dpath, u"Sound")
+            self.message = "効果音フォルダをコピー中..."
+            folder = cw.util.join_paths(datadir, "Wave")
+            target = cw.util.join_paths(dpath, "Sound")
             if os.path.isdir(folder):
                 for fname in os.listdir(folder):
                     fpath1 = cw.util.join_paths(folder, fname)
@@ -1229,9 +1229,9 @@ class Converter(threading.Thread):
 
             # Table
             self.curnum = 50
-            self.message = u"背景画像フォルダをコピー中..."
-            folder = cw.util.join_paths(datadir, u"Table")
-            target = cw.util.join_paths(dpath, u"Table")
+            self.message = "背景画像フォルダをコピー中..."
+            folder = cw.util.join_paths(datadir, "Table")
+            target = cw.util.join_paths(dpath, "Table")
             if os.path.isdir(folder):
                 for fname in os.listdir(folder):
                     fpath1 = cw.util.join_paths(folder, fname)
@@ -1243,9 +1243,9 @@ class Converter(threading.Thread):
 
             # Scheme
             self.curnum = 60
-            self.message = u"エフェクトブースターファイルをコピー中..."
-            folder = cw.util.join_paths(os.path.dirname(self.exe), u"Scheme")
-            target = cw.util.join_paths(dpath, u"EffectBooster")
+            self.message = "エフェクトブースターファイルをコピー中..."
+            folder = cw.util.join_paths(os.path.dirname(self.exe), "Scheme")
+            target = cw.util.join_paths(dpath, "EffectBooster")
             if os.path.isdir(folder):
                 for fname in os.listdir(folder):
                     fpath1 = cw.util.join_paths(folder, fname)
@@ -1257,8 +1257,8 @@ class Converter(threading.Thread):
 
             # Name
             self.curnum = 70
-            self.message = u"名前のリストをコピー中..."
-            target = cw.util.join_paths(dpath, u"Name")
+            self.message = "名前のリストをコピー中..."
+            target = cw.util.join_paths(dpath, "Name")
             if not os.path.isdir(target):
                 os.makedirs(target)
             names = set()
@@ -1270,15 +1270,15 @@ class Converter(threading.Thread):
 
             # Exampleフォルダは不要なので削除
             self.curnum = 75
-            exdirpath = cw.util.join_paths(dpath, u"Name/Example")
+            exdirpath = cw.util.join_paths(dpath, "Name/Example")
             if os.path.isdir(exdirpath):
                 shutil.rmtree(exdirpath)
 
             # リソースオーバーライド
             self.curnum = 80
-            self.message = u"オーバーライドされたリソースをコピー中..."
-            resdir = cw.util.join_paths(datadir, u"Resource")
-            for key, target in imgtbl.iteritems():
+            self.message = "オーバーライドされたリソースをコピー中..."
+            resdir = cw.util.join_paths(datadir, "Resource")
+            for key, target in imgtbl.items():
                 fpath = cw.util.join_paths(resdir, key + ".bmp")
                 if os.path.isfile(fpath):
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
@@ -1291,7 +1291,7 @@ class Converter(threading.Thread):
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
                     if os.path.isfile(dist):
                         cw.util.remove(dist)
-            for key, target in curtbl.iteritems():
+            for key, target in curtbl.items():
                 fpath = cw.util.join_paths(resdir, key + ".cur")
                 if os.path.isfile(fpath):
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".cur")
@@ -1313,21 +1313,21 @@ class Converter(threading.Thread):
                 vtop = ttop + tsize[1] + 12
 
                 # TITLE_SHADOW
-                if tsize[0] <> 0:
+                if tsize[0] != 0:
                     data.edit("BgImages/BgImage[2]/Location", str(tleft), "left")
                     data.edit("BgImages/BgImage[2]/Location", str(ttop), "top")
                     data.edit("BgImages/BgImage[2]/Size", str(tsize[0]), "width")
                     data.edit("BgImages/BgImage[2]/Size", str(tsize[1]), "height")
 
                 # TITLE_CELL3
-                if tsize[0] <> 0:
+                if tsize[0] != 0:
                     data.edit("BgImages/BgImage[3]/Location", str(tleft), "left")
                     data.edit("BgImages/BgImage[3]/Location", str(ttop), "top")
                     data.edit("BgImages/BgImage[3]/Size", str(tsize[0]), "width")
                     data.edit("BgImages/BgImage[3]/Size", str(tsize[1]), "height")
 
                 # TITLE_VERSION
-                if vsize[0] <> 0:
+                if vsize[0] != 0:
                     data.edit("BgImages/BgImage[4]/Location", str(vleft), "left")
                     data.edit("BgImages/BgImage[4]/Location", str(vtop), "top")
                     data.edit("BgImages/BgImage[4]/Size", str(vsize[0]), "width")
@@ -1341,12 +1341,12 @@ class Converter(threading.Thread):
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/02_Yado2.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
-                    data.edit("MenuCards/MenuCard[8]/Property/ImagePath", cw.util.join_paths(u"Resource/Image", partyinfo))
+                    data.edit("MenuCards/MenuCard[8]/Property/ImagePath", cw.util.join_paths("Resource/Image", partyinfo))
                     data.write()
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Scenario/-4_Camp.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
-                    data.edit("MenuCards/MenuCard[3]/Property/ImagePath", cw.util.join_paths(u"Resource/Image", partyinfo))
+                    data.edit("MenuCards/MenuCard[3]/Property/ImagePath", cw.util.join_paths("Resource/Image", partyinfo))
                     data.write()
 
             # 妖魔バリアントでAdventurersInn.bmpが
@@ -1355,29 +1355,29 @@ class Converter(threading.Thread):
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/01_Yado.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
-                    data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths(u"Table", self.adventurersinn))
+                    data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths("Table", self.adventurersinn))
                     data.write()
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/02_Yado2.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
-                    data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths(u"Table", self.adventurersinn))
+                    data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths("Table", self.adventurersinn))
                     data.write()
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/03_YadoInitial.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
-                    data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths(u"Table", self.adventurersinn))
+                    data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths("Table", self.adventurersinn))
                     data.write()
 
             self.curnum = 100
-            self.message = u"スキンの生成が完了しました。"
+            self.message = "スキンの生成が完了しました。"
 
             self.complete = True
 
-        except Exception, ex:
+        except Exception as ex:
             cw.util.print_ex(file=sys.stderr)
             self.failure = True
             self.complete = True
-            self.errormessage = u"スキンの自動生成に失敗しました。"
+            self.errormessage = "スキンの自動生成に失敗しました。"
             shutil.rmtree(dpath)
             raise ex
 

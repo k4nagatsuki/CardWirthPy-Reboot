@@ -74,13 +74,13 @@ class Win32Res(object):
         uint16 = struct.Struct("<H")
 
         # MZ header
-        if "MZ" <> data[:2]:
+        if "MZ" != data[:2]:
             raise Exception("")
         e_lfanew = uint32.unpack(data[60:64])[0]
         data = data[e_lfanew:]
 
         # PE header
-        if "PE\0\0" <> data[:4]:
+        if "PE\0\0" != data[:4]:
             raise Exception("")
         data = data[4:]
         number_of_section = uint16.unpack(data[2:4])[0]
@@ -92,7 +92,7 @@ class Win32Res(object):
         data = data[size_of_option_header:]
         res_size = 0
         res_addr = 0
-        for _i in xrange(number_of_section):
+        for _i in range(number_of_section):
             rva = uint32.unpack(data[12:16])[0]
             if ".rsrc" == data[:5] or res_addr_rva == rva:
                 res_addr_rva = rva
@@ -108,7 +108,7 @@ class Win32Res(object):
         num_name = uint16.unpack(data[12:14])[0]
         num_id = uint16.unpack(data[14:16])[0]
         data = data[16:]
-        for _i in xrange(num_name + num_id):
+        for _i in range(num_name + num_id):
             # IMAGE_RESOURCE_DIRECTORY_ENTRY (Frame 1)
             w1 = uint32.unpack(data[:4])[0]
             w2 = uint32.unpack(data[4:8])[0]
@@ -122,7 +122,7 @@ class Win32Res(object):
             num_name = uint16.unpack(data2[12:14])[0]
             num_id = uint16.unpack(data2[14:16])[0]
             data2 = data2[16:]
-            for _j in xrange(num_name + num_id):
+            for _j in range(num_name + num_id):
                 # IMAGE_RESOURCE_DIRECTORY_ENTRY (Frame 2)
                 w1 = uint32.unpack(data2[:4])[0]
                 w2 = uint32.unpack(data2[4:8])[0]
@@ -143,7 +143,7 @@ class Win32Res(object):
                 # IMAGE_RESOURCE_DIRECTORY_ENTRY (Frame 3)
                 # ignore w1
                 w2 = uint32.unpack(data3[4:8])[0]
-                if 0 <> (w2 & 0x80000000):
+                if 0 != (w2 & 0x80000000):
                     raise Exception("")
 
                 # IMAGE_RESOURCE_DATA_ENTRY
@@ -163,7 +163,7 @@ class Win32Res(object):
             offset = (w1 & ~0x80000000) + res_addr
             length = uint16.unpack(base[offset:offset+2])[0]
             # wide chars
-            return unicode(base[(offset+2):(offset+2)+(length*2)], "utf-16")
+            return str(base[(offset+2):(offset+2)+(length*2)], "utf-16")
         else:
             # ID
             return w1
@@ -178,9 +178,9 @@ class Win32Res(object):
     def get_rcdata(self, valtype, name):
         if self._winhandle:
             k = ctypes.windll.kernel32
-            if isinstance(valtype, (str, unicode)):
+            if isinstance(valtype, str):
                 valtype = ctypes.create_string_buffer(valtype)
-            if isinstance(name, (str, unicode)):
+            if isinstance(name, str):
                 name = ctypes.create_string_buffer(name)
             hsrc = k.FindResourceA(self._winhandle, name, valtype)
             if hsrc:
@@ -206,7 +206,7 @@ class Win32Res(object):
         uint16 = struct.Struct("<H")
         uint8 = struct.Struct("<B")
 
-        if isinstance(number, (str, unicode)):
+        if isinstance(number, str):
             data = self.get_rcdata(RT_GROUP_CURSOR, number)
             if not data:
                 return None
@@ -222,7 +222,7 @@ class Win32Res(object):
         data = data[4:]
 
         header_size = uint32.unpack(data[:4])[0]
-        if header_size <> 40:
+        if header_size != 40:
             raise Exception(header_size)
 
         width = uint32.unpack(data[4:8])[0]
@@ -265,7 +265,7 @@ class Win32Res(object):
 
         # BITMAPINFOHEADER
         header_size = uint32.unpack(data[:4])[0]
-        if header_size <> 40:
+        if header_size != 40:
             raise Exception(header_size)
         bit_count = uint16.unpack(data[14:16])[0]
         clr_used = uint32.unpack(data[32:36])[0]
@@ -295,7 +295,7 @@ class Win32Res(object):
         data = self.get_rcdata(RT_RCDATA, name)
         if not data:
             return None
-        if data[:4] <> "TPF0":
+        if data[:4] != "TPF0":
             return None
         data = data[4:]
 
@@ -342,7 +342,7 @@ class Win32Res(object):
                             data = data[3:]
                         elif ord(dt) == 6:
                             length = ord(data[1])
-                            value.append(unicode(data[2:2+length], cw.MBCS))
+                            value.append(str(data[2:2+length], cw.MBCS))
                             data = data[2+length:]
                     data = data[1:]
                 elif valtype == 0x02: # signed byte
@@ -353,7 +353,7 @@ class Win32Res(object):
                     data = data[2:]
                 elif valtype == 0x06: # string
                     length = ord(data[0])
-                    value = unicode(data[1:1+length], cw.MBCS)
+                    value = str(data[1:1+length], cw.MBCS)
                     data = data[1+length:]
                 elif valtype == 0x07: # name
                     length = ord(data[0])

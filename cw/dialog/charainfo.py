@@ -7,7 +7,7 @@ import wx
 import pygame
 
 import cw
-import cardinfo
+from . import cardinfo
 
 import wx.lib.agw.aui as aui
 
@@ -23,14 +23,14 @@ class CharaInfo(wx.Dialog):
         # フォントサイズによってダイアログサイズを決定する
         dc = wx.ClientDC(parent)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
-        self.width = dc.GetTextExtent(u"―"*20)[0] + cw.wins(20)
+        self.width = dc.GetTextExtent("―"*20)[0] + cw.wins(20)
         self.width = max(cw.wins(302), self.width)
 
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=(self.width, cw.wins(355)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
-        if sys.platform <> "win32":
+        if sys.platform != "win32":
             self.SetDoubleBuffered(True)
         self.party = party
         self.csize = self.GetClientSize()
@@ -106,7 +106,7 @@ class CharaInfo(wx.Dialog):
         self._bind()
         cw.util.add_sideclickhandlers(self.toppanel, self.leftbtn, self.rightbtn)
 
-        for i in xrange(len(self.bottompanel)):
+        for i in range(len(self.bottompanel)):
             tabctrl = self.notebook.FindTab(self.notebook.GetPage(i))[0]
             def onfocus(event):
                 self.closebtn.SetFocus()
@@ -195,12 +195,12 @@ class CharaInfo(wx.Dialog):
         page = self.notebook.GetPage(self.notebook.GetSelection())
         lines = []
         lines.append(self.toppanel.get_detailtext())
-        lines.append(u"-" * 40)
+        lines.append("-" * 40)
         s = page.get_detailtext()
         if s:
             lines.append(s)
-        lines.append(u"")
-        cw.util.to_clipboard(u"\n".join(lines))
+        lines.append("")
+        cw.util.to_clipboard("\n".join(lines))
 
     def OnEnter(self, event):
         page = self.notebook.GetPage(self.notebook.GetSelection())
@@ -269,7 +269,7 @@ class CharaInfo(wx.Dialog):
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x - 1, y)
             page.Refresh()
-            if x <> page.GetScrollPos(wx.HORIZONTAL):
+            if x != page.GetScrollPos(wx.HORIZONTAL):
                 return
         self.notebook.SetSelection(index-1 if 0 < index else len(self.bottompanel)-1)
 
@@ -282,7 +282,7 @@ class CharaInfo(wx.Dialog):
             y = page.GetScrollPos(wx.VERTICAL)
             page.Scroll(x + 1, y)
             page.Refresh()
-            if x <> page.GetScrollPos(wx.HORIZONTAL):
+            if x != page.GetScrollPos(wx.HORIZONTAL):
                 return
         self.notebook.SetSelection((index+1) % len(self.bottompanel))
 
@@ -589,20 +589,20 @@ class TopPanel(wx.Panel):
 
             for coupon in self.ccard.data.getfind("Property/Coupons"):
                 if coupon.text in ages:
-                    self.age = coupon.text.replace(u"＿", "", 1)
+                    self.age = coupon.text.replace("＿", "", 1)
                 elif coupon.text in sexs:
-                    self.sex = coupon.text.replace(u"＿", "", 1)
-                elif coupon.text == u"＠ＥＰ":
+                    self.sex = coupon.text.replace("＿", "", 1)
+                elif coupon.text == "＠ＥＰ":
                     self.ep = coupon.get("value")
-                elif coupon.text.startswith(u"＠Ｒ"):
+                elif coupon.text.startswith("＠Ｒ"):
                     for race in cw.cwpy.setting.races:
-                        if coupon.text == u"＠Ｒ" + race.name:
+                        if coupon.text == "＠Ｒ" + race.name:
                             self.race = race
                             break
         else:
-            self.sex = u""
-            self.age = u""
-            self.ep = u""
+            self.sex = ""
+            self.age = ""
+            self.ep = ""
             self.race = cw.cwpy.setting.unknown_race
 
         dest = wx.Bitmap(self.GetClientSize())
@@ -618,7 +618,7 @@ class TopPanel(wx.Panel):
 
         infos = cw.image.get_imageinfos(self.ccard.data.find("Property"))
         can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
-        setpos = any(map(lambda info: not info.postype in (None, "Default"), infos))
+        setpos = any([not info.postype in (None, "Default") for info in infos])
 
         for info in infos:
             path = info.path
@@ -645,12 +645,12 @@ class TopPanel(wx.Panel):
         coupons = self.ccard.get_specialcoupons()
         maxlevel = False
         baselevel = self.ccard.level
-        if u"＠レベル原点" in coupons and self.ccard.level <> coupons[u"＠レベル原点"]:
-            baselevel = coupons[u"＠レベル原点"]
+        if "＠レベル原点" in coupons and self.ccard.level != coupons["＠レベル原点"]:
+            baselevel = coupons["＠レベル原点"]
             s = "Level: %d / %d" % (self.ccard.level, baselevel)
         else:
             s = "Level: %d" % (self.ccard.level)
-        if u"＠レベル上限" in coupons and coupons[u"＠レベル上限"] <= baselevel:
+        if "＠レベル上限" in coupons and coupons["＠レベル上限"] <= baselevel:
             # max
             dc.SetTextForeground(wx.RED)
             if 1 < len(cw.cwpy.setting.races):
@@ -766,17 +766,17 @@ class TopPanel(wx.Panel):
 
     def get_detailtext(self):
         lines = []
-        level = u"%s" % (self.ccard.level)
-        s = u"[ %s ] Level %s" % (self.ccard.name, level)
+        level = "%s" % (self.ccard.level)
+        s = "[ %s ] Level %s" % (self.ccard.name, level)
         if not isinstance(self.race, cw.header.UnknownRaceHeader):
-            s += u" / %s" % (self.race.name)
+            s += " / %s" % (self.race.name)
         if self.sex or self.age:
-            s += u" / %s%s" % (self.age, self.sex)
+            s += " / %s%s" % (self.age, self.sex)
         if self.ep:
-            s += u" / EP %s" % self.ep
+            s += " / EP %s" % self.ep
         lines.append(s)
 
-        return u"\n".join(lines)
+        return "\n".join(lines)
 
 
 class TitlePanel(wx.Panel):
@@ -898,7 +898,7 @@ class DescPanel(wx.ScrolledWindow):
 
         dc = wx.PaintDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
-        maxwidth = dc.GetTextExtent(u"―"*19)[0]
+        maxwidth = dc.GetTextExtent("―"*19)[0]
         x = (csize[0]-maxwidth) / 2
 
         # 背景の透かし
@@ -1004,8 +1004,8 @@ class HistoryPanel(wx.ScrolledWindow):
         isalbum = self.ccard.data.getroot().tag == "Album"
 
         for coupon in self.ccard.data.getfind("Property/Coupons"):
-            if coupon.text and not coupon.text.startswith(u"＠"):
-                if isalbum and (coupon.text.startswith(u"：") or coupon.text.startswith(u"；")):
+            if coupon.text and not coupon.text.startswith("＠"):
+                if isalbum and (coupon.text.startswith("：") or coupon.text.startswith("；")):
                     continue
                 if cw.cwpy.is_debugmode() or not self.is_hidden(coupon.text):
                     self.coupons.append((coupon.text, int(coupon.get("value"))))
@@ -1026,11 +1026,11 @@ class HistoryPanel(wx.ScrolledWindow):
         if maxheight <= csize[1]:
             maxheight = -1
 
-        if maxwidth <> -1:
+        if maxwidth != -1:
             maxheight += cw.ppis(5)+cw.wins(2)
 
         self._ratey = self.gold.GetSize()[1] + cw.wins(5)
-        if maxheight <> -1:
+        if maxheight != -1:
             maxheight = (maxheight + self._ratey - 1) // self._ratey * self._ratey
         self.SetScrollRate(cw.wins(10), self._ratey)
 
@@ -1039,9 +1039,9 @@ class HistoryPanel(wx.ScrolledWindow):
         self.Refresh()
 
     def is_hidden(self, coupon):
-        return coupon.startswith(u"＿") or\
-               coupon.startswith(u"：") or\
-               coupon.startswith(u"；")
+        return coupon.startswith("＿") or\
+               coupon.startswith("：") or\
+               coupon.startswith("；")
 
     def OnPaint(self, event):
         self.update_cursor()
@@ -1099,11 +1099,11 @@ class HistoryPanel(wx.ScrolledWindow):
         lines = []
         for text, value in self.coupons:
             if 0 <= value:
-                lines.append(u"%s (+%s)" % (text, value))
+                lines.append("%s (+%s)" % (text, value))
             else:
-                lines.append(u"%s (%s)" % (text, value))
+                lines.append("%s (%s)" % (text, value))
 
-        return u"\n".join(lines)
+        return "\n".join(lines)
 
 
 class EditButton():
@@ -1314,7 +1314,7 @@ class EditPanel(wx.Panel):
             self.Refresh()
 
     def get_detailtext(self):
-        return u""
+        return ""
 
 
 class StatusPanel(wx.ScrolledWindow):
@@ -1365,7 +1365,7 @@ class StatusPanel(wx.ScrolledWindow):
             maxheight += ln
         if self.ccard.is_paralyze():
             maxheight += ln
-        if self.ccard.mentality_dur and self.ccard.mentality <> "Normal":
+        if self.ccard.mentality_dur and self.ccard.mentality != "Normal":
             maxheight += ln
         if self.ccard.is_bind():
             maxheight += ln
@@ -1507,7 +1507,7 @@ class StatusPanel(wx.ScrolledWindow):
         if msg:
             lines.append(msg)
 
-        return u"\n".join(lines)
+        return "\n".join(lines)
 
     def _get_life(self):
         if self.ccard.is_unconscious():
@@ -1525,40 +1525,40 @@ class StatusPanel(wx.ScrolledWindow):
         return colour, msg
 
     def _get_poison(self):
-        return u"%s (%s)" % (cw.cwpy.msgs["poison"], cw.cwpy.msgs["intensity"] % self.ccard.poison)
+        return "%s (%s)" % (cw.cwpy.msgs["poison"], cw.cwpy.msgs["intensity"] % self.ccard.poison)
 
     def _get_paralyze(self):
-        return u"%s (%s)" % (cw.cwpy.msgs["paralyze"], cw.cwpy.msgs["intensity"] % self.ccard.paralyze)
+        return "%s (%s)" % (cw.cwpy.msgs["paralyze"], cw.cwpy.msgs["intensity"] % self.ccard.paralyze)
 
     def _get_petrified(self):
-        return u"%s (%s)" % (cw.cwpy.msgs["petrified"], cw.cwpy.msgs["intensity"] % self.ccard.paralyze)
+        return "%s (%s)" % (cw.cwpy.msgs["petrified"], cw.cwpy.msgs["intensity"] % self.ccard.paralyze)
 
     def _get_mentality(self):
         dur = cw.cwpy.msgs["duration"] % self.ccard.mentality_dur
         if self.ccard.is_sleep():
-            return u"%s (%s)" % (cw.cwpy.msgs["sleep"], dur), "MIND1"
+            return "%s (%s)" % (cw.cwpy.msgs["sleep"], dur), "MIND1"
         elif self.ccard.is_confuse():
-            return u"%s (%s)" % (cw.cwpy.msgs["confuse"], dur), "MIND2"
+            return "%s (%s)" % (cw.cwpy.msgs["confuse"], dur), "MIND2"
         elif self.ccard.is_overheat():
-            return u"%s (%s)" % (cw.cwpy.msgs["overheat"], dur), "MIND3"
+            return "%s (%s)" % (cw.cwpy.msgs["overheat"], dur), "MIND3"
         elif self.ccard.is_brave():
-            return u"%s (%s)" % (cw.cwpy.msgs["brave"], dur), "MIND4"
+            return "%s (%s)" % (cw.cwpy.msgs["brave"], dur), "MIND4"
         elif self.ccard.is_panic():
-            return u"%s (%s)" % (cw.cwpy.msgs["panic"], dur), "MIND5"
+            return "%s (%s)" % (cw.cwpy.msgs["panic"], dur), "MIND5"
         else:
-            return u"", ""
+            return "", ""
 
     def _get_bind(self):
-        return u"%s (%s)" % (cw.cwpy.msgs["bind"], cw.cwpy.msgs["duration"] % self.ccard.bind)
+        return "%s (%s)" % (cw.cwpy.msgs["bind"], cw.cwpy.msgs["duration"] % self.ccard.bind)
 
     def _get_silence(self):
-        return u"%s (%s)" % (cw.cwpy.msgs["silence"], cw.cwpy.msgs["duration"] % self.ccard.silence)
+        return "%s (%s)" % (cw.cwpy.msgs["silence"], cw.cwpy.msgs["duration"] % self.ccard.silence)
 
     def _get_faceup(self):
-        return u"%s (%s)" % (cw.cwpy.msgs["faceup"], cw.cwpy.msgs["duration"] % self.ccard.faceup)
+        return "%s (%s)" % (cw.cwpy.msgs["faceup"], cw.cwpy.msgs["duration"] % self.ccard.faceup)
 
     def _get_antimagic(self):
-        return u"%s (%s)" % (cw.cwpy.msgs["antimagic"], cw.cwpy.msgs["duration"] % self.ccard.antimagic)
+        return "%s (%s)" % (cw.cwpy.msgs["antimagic"], cw.cwpy.msgs["duration"] % self.ccard.antimagic)
 
     def _draw_status(self, dc, msg, imgname, height):
         bmp = cw.cwpy.rsrc.wxstatuses[imgname]
@@ -1569,42 +1569,42 @@ class StatusPanel(wx.ScrolledWindow):
 
     def _get_enhance(self, enhname, value, dur, enhimage, pnlimage):
         if 0 == value:
-            return None, None, u""
+            return None, None, ""
 
         dur = cw.cwpy.msgs["duration"] % dur
 
         if 10 <= value:
             colour = wx.Colour(255, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = (cw.cwpy.msgs["maximum_bonus"] + u" (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["maximum_bonus"] + " (%s)") % (enhname, dur)
         elif 7 <= value:
             colour = wx.Colour(175, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = (cw.cwpy.msgs["big_bonus"] + u" (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["big_bonus"] + " (%s)") % (enhname, dur)
         elif 4 <= value:
             colour = wx.Colour(127, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = (cw.cwpy.msgs["middle_bonus"] + u" (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["middle_bonus"] + " (%s)") % (enhname, dur)
         elif 1 <= value:
             colour = wx.Colour(79, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = (cw.cwpy.msgs["small_bonus"] + u" (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["small_bonus"] + " (%s)") % (enhname, dur)
         elif -10 >= value:
             colour = wx.Colour(0, 0, 51)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = (cw.cwpy.msgs["maximum_penalty"] + u" (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["maximum_penalty"] + " (%s)") % (enhname, dur)
         elif -7 >= value:
             colour = wx.Colour(0, 0, 85)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = (cw.cwpy.msgs["big_penalty"] + u" (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["big_penalty"] + " (%s)") % (enhname, dur)
         elif -4 >= value:
             colour = wx.Colour(0, 0, 136)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = (cw.cwpy.msgs["middle_penalty"] + u" (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["middle_penalty"] + " (%s)") % (enhname, dur)
         elif -1 >= value:
             colour = wx.Colour(0, 0, 187)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = (cw.cwpy.msgs["small_penalty"] + u" (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["small_penalty"] + " (%s)") % (enhname, dur)
 
         return colour, bmp, msg
 
@@ -1646,7 +1646,7 @@ class CardPanel(wx.Panel):
 
     def _update_debug(self):
         # 「全てホールド」の領域
-        if self.pocket <> cw.POCKET_BEAST and (cw.cwpy.is_debugmode() or isinstance(self.ccard, cw.character.Player)):
+        if self.pocket != cw.POCKET_BEAST and (cw.cwpy.is_debugmode() or isinstance(self.ccard, cw.character.Player)):
             self.hold_all = HoldAll()
         else:
             self.hold_all = None
@@ -1859,7 +1859,7 @@ class CardPanel(wx.Panel):
             self.headers = self.ccard.cardpocket[self.pocket]
             self._update_rects(dc)
 
-        fw = dc.GetTextExtent(u"―")[0]
+        fw = dc.GetTextExtent("―")[0]
 
         if self.hold_all:
             yp = 20
@@ -1935,36 +1935,36 @@ class CardPanel(wx.Panel):
     def get_detailtext(self):
         lines = []
         if self.ccard.hold_all[self.pocket]:
-            lines.append(u"%s <%s>" % (self._get_cardnum(), cw.cwpy.msgs["hold_all"]))
+            lines.append("%s <%s>" % (self._get_cardnum(), cw.cwpy.msgs["hold_all"]))
         else:
             lines.append(self._get_cardnum())
 
         for header in self.headers:
             if header.penalty:
-                s = u"X"
+                s = "X"
             elif header.hold:
-                s = u"#"
-            elif header.type == u"SkillCard":
-                s = u"S"
-            elif header.type == u"ItemCard":
-                s = u"I"
-            elif header.type == u"BeastCard":
+                s = "#"
+            elif header.type == "SkillCard":
+                s = "S"
+            elif header.type == "ItemCard":
+                s = "I"
+            elif header.type == "BeastCard":
                 if header.attachment:
-                    s = u"A"
+                    s = "A"
                 else:
-                    s = u"B"
+                    s = "B"
 
-            s = u"[%s] %s" % (s, header.name)
+            s = "[%s] %s" % (s, header.name)
             slen = cw.util.get_strlen(s)
             if slen < 26:
-                s += u" " * (26-slen)
-            vocation = u"|" * (header.get_showed_vocation_level(self.ccard)+1)
-            uselimit = u"|" * header.get_uselimit_level()
-            s = u"%s [%s] [%s]" % (s, vocation.ljust(4), uselimit.ljust(4))
+                s += " " * (26-slen)
+            vocation = "|" * (header.get_showed_vocation_level(self.ccard)+1)
+            uselimit = "|" * header.get_uselimit_level()
+            s = "%s [%s] [%s]" % (s, vocation.ljust(4), uselimit.ljust(4))
 
             lines.append(s)
 
-        return u"\n".join(lines)
+        return "\n".join(lines)
 
 class HoldAll(object):
     def __init__(self):

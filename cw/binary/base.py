@@ -5,7 +5,7 @@ import os
 import io
 import weakref
 
-import util
+from . import util
 import wx
 
 import cw
@@ -223,13 +223,13 @@ class CWBinaryBase(object):
         postype = e_imgpath.getattr(".", "positiontype", "Default")
         if postype in (defpostype, "Default"):
             return
-        f.check_wsnversion("2", u"イメージ位置の指定")
+        f.check_wsnversion("2", "イメージ位置の指定")
 
     @staticmethod
     def check_coupon(f, coupon):
         """称号名couponがシステムクーポンであればWSNバージョンをチェックする。
         """
-        if coupon in (u"＠効果対象", u"＠効果対象外", u"＠イベント対象", u"＠使用者"):
+        if coupon in ("＠効果対象", "＠効果対象外", "＠イベント対象", "＠使用者"):
             f.check_wsnversion("2", coupon)
 
     @staticmethod
@@ -244,7 +244,7 @@ class CWBinaryBase(object):
                 imagepath = e.text
             elif e.tag == "ImagePaths":
                 if 1 < len(e):
-                    f.check_wsnversion("1", u"複合イメージ")
+                    f.check_wsnversion("1", "複合イメージ")
                 CWBinaryBase.check_imgpath(f, e.find("ImagePath"), defpostype)
                 imagepath = e.gettext("ImagePath", "")
             else:
@@ -271,7 +271,7 @@ class CWBinaryBase(object):
                 image = f.read()
                 f.close()
 
-        if convertbitmap and cw.util.get_imageext(image) <> ".bmp":
+        if convertbitmap and cw.util.get_imageext(image) != ".bmp":
             with io.BytesIO(image) as f:
                 data = wx.Image(f)
                 f.close()
@@ -290,7 +290,7 @@ class CWBinaryBase(object):
         """引数のパスを素材ディレクトリに関連づける。
         dpath: 素材ファイルのパス。
         """
-        if path == u"（なし）":
+        if path == "（なし）":
             return ""
         mdir = self.get_materialdir()
         path = cw.util.validate_filepath(path)
@@ -321,7 +321,7 @@ class CWBinaryBase(object):
         """XMLエレメントのプロパティ文字列を返す。"""
         s = ""
 
-        for key, value in d.iteritems():
+        for key, value in d.items():
             s += ' %s="%s"' % (key, value)
 
         return s
@@ -634,19 +634,19 @@ class CWBinaryBase(object):
         elif ctype == "Branch" and n == "Round": # 1.50
             return 73
         elif ctype == "Replace" and n == "BgImage": # Wsn.1
-            f.check_wsnversion("1", u"背景置換コンテント")
+            f.check_wsnversion("1", "背景置換コンテント")
             return 0
         elif ctype == "Lose" and n == "BgImage": # Wsn.1
-            f.check_wsnversion("1", u"背景削除コンテント")
+            f.check_wsnversion("1", "背景削除コンテント")
             return 0
         elif ctype == "Move" and n == "BgImage": # Wsn.1
-            f.check_wsnversion("1", u"背景再配置コンテント")
+            f.check_wsnversion("1", "背景再配置コンテント")
             return 0
         elif ctype == "Branch" and n == "MultiCoupon":  # Wsn.2
-            f.check_wsnversion("2", u"クーポン多岐分岐コンテント")
+            f.check_wsnversion("2", "クーポン多岐分岐コンテント")
             return 0
         elif ctype == "Branch" and n == "MultiRandom":  # Wsn.2
-            f.check_wsnversion("2", u"ランダム多岐分岐コンテント")
+            f.check_wsnversion("2", "ランダム多岐分岐コンテント")
             return 0
         else:
             raise ValueError(ctype + ", " + n)
@@ -697,15 +697,15 @@ class CWBinaryBase(object):
             return 2
         elif n == "CouponHolder":
             if effectcontent:
-                f.check_wsnversion("2", u"任意の称号所持者の指定")
+                f.check_wsnversion("2", "任意の称号所持者の指定")
             else:
-                f.check_wsnversion("3", u"任意の称号所持者の指定")
+                f.check_wsnversion("3", "任意の称号所持者の指定")
             return 0
         elif n == "CardTarget" and effectcontent:
-            f.check_wsnversion("2", u"カードの効果対象の指定")
+            f.check_wsnversion("2", "カードの効果対象の指定")
             return 0
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"対象「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="対象「%s」" % n)
 
     def conv_target_member_dialog(self, n):
         """引数の値から、台詞コンテントの話者を返す。
@@ -734,10 +734,10 @@ class CWBinaryBase(object):
         elif n == "Unselected":
             return 2
         elif n == "Valued":
-            f.check_version(1.50, u"評価メンバ")
+            f.check_version(1.50, "評価メンバ")
             return 3
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"話者「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="話者「%s」" % n)
 
     def conv_target_scope(self, n):
         """引数の値から、「適用範囲」の種類を返す。
@@ -775,13 +775,13 @@ class CWBinaryBase(object):
         elif n == "Field":
             return 5
         elif n == "CouponHolder":
-            f.check_wsnversion("3", u"任意の称号所持者の指定")
+            f.check_wsnversion("3", "任意の称号所持者の指定")
             return 0
         elif n == "SelectedCard":
-            f.check_wsnversion("3", u"範囲に選択カードを指定")
+            f.check_wsnversion("3", "範囲に選択カードを指定")
             return 0
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"対象「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="対象「%s」" % n)
 
     def conv_target_scope_coupon(self, n):
         """引数の値から、「適用範囲」の種類を返す(1.30～のクーポン分岐)。
@@ -808,10 +808,10 @@ class CWBinaryBase(object):
         elif n == "Party":
             return 2
         elif n == "Field":
-            f.check_version(1.30, u"クーポン所持分岐のフィールド全体指定")
+            f.check_version(1.30, "クーポン所持分岐のフィールド全体指定")
             return 3
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"クーポン検索範囲「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="クーポン検索範囲「%s」" % n)
 
     def conv_castranges(self, n):
         """引数の値から、「適用メンバ」の種類をsetで返す(1.30)。
@@ -820,11 +820,11 @@ class CWBinaryBase(object):
         0b0100:同行NPC
         """
         s = set()
-        if (n & 0b0001) <> 0:
+        if (n & 0b0001) != 0:
             s.add("Party")
-        if (n & 0b0010) <> 0:
+        if (n & 0b0010) != 0:
             s.add("Enemy")
-        if (n & 0b0100) <> 0:
+        if (n & 0b0100) != 0:
             s.add("Npc")
         return s
 
@@ -839,7 +839,7 @@ class CWBinaryBase(object):
             elif n.text == "Npc":
                 value |= 0b0100
             else:
-                raise cw.binary.cwfile.UnsupportedError(funcname=u"ランダム選択範囲「%s」" % n)
+                raise cw.binary.cwfile.UnsupportedError(funcname="ランダム選択範囲「%s」" % n)
         return value
 
     def conv_keycoderange(self, n):
@@ -869,13 +869,13 @@ class CWBinaryBase(object):
         elif n == "PartyAndBackpack":
             return 3
         elif n in ("CouponHolder", "CardTarget"):
-            f.check_wsnversion("2", u"キーコードを手札から検索")
+            f.check_wsnversion("2", "キーコードを手札から検索")
             return 0
         elif n == "SelectedCard":
-            f.check_wsnversion("3", u"範囲に選択カードを指定")
+            f.check_wsnversion("3", "範囲に選択カードを指定")
             return 0
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"キーコード検索範囲「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="キーコード検索範囲「%s」" % n)
 
 #-------------------------------------------------------------------------------
 # コンテント系
@@ -897,7 +897,7 @@ class CWBinaryBase(object):
         elif n == "Custom":
             return 1
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"カード配置タイプ「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="カード配置タイプ「%s」" % n)
 
     def conv_statustype(self, n):
         """引数の値から、状態を返す。
@@ -998,52 +998,52 @@ class CWBinaryBase(object):
         elif n == "Paralyze":
             return 11
         elif n == "Confuse":
-            f.check_version(1.30, u"混乱ステータスの判別")
+            f.check_version(1.30, "混乱ステータスの判別")
             return 12
         elif n == "Overheat":
-            f.check_version(1.30, u"激昂ステータスの判別")
+            f.check_version(1.30, "激昂ステータスの判別")
             return 13
         elif n == "Brave":
-            f.check_version(1.30, u"勇敢ステータスの判別")
+            f.check_version(1.30, "勇敢ステータスの判別")
             return 14
         elif n == "Panic":
-            f.check_version(1.30, u"恐慌ステータスの判別")
+            f.check_version(1.30, "恐慌ステータスの判別")
             return 15
         elif n == "Silence":
-            f.check_version(1.50, u"沈黙ステータスの判別")
+            f.check_version(1.50, "沈黙ステータスの判別")
             return 16
         elif n == "FaceUp":
-            f.check_version(1.50, u"暴露ステータスの判別")
+            f.check_version(1.50, "暴露ステータスの判別")
             return 17
         elif n == "AntiMagic":
-            f.check_version(1.50, u"魔法無効化ステータスの判別")
+            f.check_version(1.50, "魔法無効化ステータスの判別")
             return 18
         elif n == "UpAction":
-            f.check_version(1.50, u"行動力上昇ステータスの判別")
+            f.check_version(1.50, "行動力上昇ステータスの判別")
             return 19
         elif n == "UpAvoid":
-            f.check_version(1.50, u"回避力上昇ステータスの判別")
+            f.check_version(1.50, "回避力上昇ステータスの判別")
             return 20
         elif n == "UpResist":
-            f.check_version(1.50, u"抵抗力上昇ステータスの判別")
+            f.check_version(1.50, "抵抗力上昇ステータスの判別")
             return 21
         elif n == "UpDefense":
-            f.check_version(1.50, u"防御力上昇ステータスの判別")
+            f.check_version(1.50, "防御力上昇ステータスの判別")
             return 22
         elif n == "DownAction":
-            f.check_version(1.50, u"行動力低下ステータスの判別")
+            f.check_version(1.50, "行動力低下ステータスの判別")
             return 23
         elif n == "DownAvoid":
-            f.check_version(1.50, u"回避力低下ステータスの判別")
+            f.check_version(1.50, "回避力低下ステータスの判別")
             return 24
         elif n == "DownResist":
-            f.check_version(1.50, u"抵抗力低下ステータスの判別")
+            f.check_version(1.50, "抵抗力低下ステータスの判別")
             return 25
         elif n == "DownDefense":
-            f.check_version(1.50, u"防御力低下ステータスの判別")
+            f.check_version(1.50, "防御力低下ステータスの判別")
             return 26
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"ステータス「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="ステータス「%s」" % n)
 
     def conv_effectcardtype(self, n):
         """引数の値から、「カード種別」を返す(1.50～のキーコード所持分岐)。
@@ -1071,7 +1071,7 @@ class CWBinaryBase(object):
         elif n == "Beast":
             return 3
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"カードタイプ「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="カードタイプ「%s」" % n)
 
     def conv_comparison4(self, n):
         """引数の値から、「4路選択条件」を返す(1.50～のステップ判定)。
@@ -1100,7 +1100,7 @@ class CWBinaryBase(object):
         elif n == ">":
             return 3
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"比較結果「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="比較結果「%s」" % n)
 
     def conv_comparison3(self, n):
         """引数の値から、「3路選択条件」を返す(1.50～のラウンド判定)。
@@ -1124,7 +1124,7 @@ class CWBinaryBase(object):
         elif n == ">":
             return 2
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"比較判定結果「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="比較判定結果「%s」" % n)
 
 #-------------------------------------------------------------------------------
 # 効果モーション関連
@@ -1169,7 +1169,7 @@ class CWBinaryBase(object):
         elif n == "Ice":
             return 6
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"効果属性「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="効果属性「%s」" % n)
 
     def conv_effectmotion_type(self, tabn, n):
         """引数の値から、効果モーションの「種類」を返す。
@@ -1388,11 +1388,11 @@ class CWBinaryBase(object):
             return 8, 0
 
         elif n == "NoEffect":
-            f.check_wsnversion("2", u"効果無し効果")
+            f.check_wsnversion("2", "効果無し効果")
             return 0, 1
 
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"効果「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="効果「%s」" % n)
 
     def conv_effectmotion_damagetype(self, n):
         """引数の値から、効果モーションの「属性」を返す。
@@ -1416,7 +1416,7 @@ class CWBinaryBase(object):
         elif n == "Max":
             return 2
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"効果量計算タイプ「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="効果量計算タイプ「%s」" % n)
 
 #-------------------------------------------------------------------------------
 # スキル・アイテム・召喚獣関連
@@ -1453,7 +1453,7 @@ class CWBinaryBase(object):
         elif n == "None":
             return 4
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"基本効果属性「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="基本効果属性「%s」" % n)
 
     def conv_card_resisttype(self, n):
         """引数の値から、「抵抗属性」の種類を返す。
@@ -1477,7 +1477,7 @@ class CWBinaryBase(object):
         elif n == "Unfail":
             return 2
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"回避属性「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="回避属性「%s」" % n)
 
     def conv_card_visualeffect(self, n):
         """引数の値から、「視覚的効果」の種類を返す。
@@ -1506,7 +1506,7 @@ class CWBinaryBase(object):
         elif n == "Vertical":
             return 3
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"カード視覚効果「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="カード視覚効果「%s」" % n)
 
     def conv_card_physicalability(self, n):
         """引数の値から、身体的要素の種類を返す。
@@ -1543,7 +1543,7 @@ class CWBinaryBase(object):
         elif n == "Min":
             return 5
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"身体能力「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="身体能力「%s」" % n)
 
     def conv_card_mentalability(self, n):
         """引数の値から、精神的要素の種類を返す。
@@ -1597,7 +1597,7 @@ class CWBinaryBase(object):
         elif n == "Untrickish":
             return -5
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"精神傾向「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="精神傾向「%s」" % n)
 
     def conv_card_target(self, n):
         """引数の値から、効果目標の種類を返す。
@@ -1630,7 +1630,7 @@ class CWBinaryBase(object):
         elif n == "Both":
             return 4
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"効果目標「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="効果目標「%s」" % n)
 
     def conv_card_premium(self, n):
         """引数の値から、希少度の種類を返す。
@@ -1655,7 +1655,7 @@ class CWBinaryBase(object):
         elif n == "Premium":
             return 2
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"カード価値「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="カード価値「%s」" % n)
 
 #-------------------------------------------------------------------------------
 #　キャラクター関連
@@ -1695,7 +1695,7 @@ class CWBinaryBase(object):
         elif n == "Panic":
             return 5
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"精神状態「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="精神状態「%s」" % n)
 
 #-------------------------------------------------------------------------------
 #　宿データ関連
@@ -1719,7 +1719,7 @@ class CWBinaryBase(object):
         elif n == "Debug":
             return 2
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"宿タイプ「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="宿タイプ「%s」" % n)
 
     def conv_yado_summaryview(self, n):
         """引数の値から、張り紙の表示の種類を返す。
@@ -1748,7 +1748,7 @@ class CWBinaryBase(object):
         elif n == "ShowFittingScenario":
             return 3
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"シナリオ表示タイプ「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="シナリオ表示タイプ「%s」" % n)
 
     def conv_yado_bgchange(self, n):
         """引数の値から、背景の切り替え方式の種類を返す。
@@ -1777,7 +1777,7 @@ class CWBinaryBase(object):
         elif n == "ReplaceDot":
             return 3
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"背景切替方式「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="背景切替方式「%s」" % n)
 
 #-------------------------------------------------------------------------------
 #　特殊セル関連(1.50～)
@@ -1801,7 +1801,7 @@ class CWBinaryBase(object):
         elif n == "Inline":
             return 1
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"縁取りタイプ「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="縁取りタイプ「%s」" % n)
 
     def conv_blendmode(self, n):
         """引数の値から、カラーセルの合成方法を返す。
@@ -1829,7 +1829,7 @@ class CWBinaryBase(object):
         elif n == "Multiply":
             return 4
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"合成方法「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="合成方法「%s」" % n)
 
     def conv_gradientdir(self, n):
         """引数の値から、グラデーション方向を返す。
@@ -1853,7 +1853,7 @@ class CWBinaryBase(object):
         elif n == "TopToBottom":
             return 2
         else:
-            raise cw.binary.cwfile.UnsupportedError(funcname=u"グラデーション方向「%s」" % n)
+            raise cw.binary.cwfile.UnsupportedError(funcname="グラデーション方向「%s」" % n)
 
 def main():
     pass

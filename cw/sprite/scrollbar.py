@@ -4,7 +4,7 @@
 import pygame
 
 import cw
-import base
+from . import base
 
 
 class ScrollBar(base.CWPySprite):
@@ -33,7 +33,7 @@ class ScrollBar(base.CWPySprite):
         y = int(y)
         if lazy:
             self.lazypos_noscale = y
-            if self.status <> "lazyscroll":
+            if self.status != "lazyscroll":
                 self._skipcount = 0
                 cw.animation.start_animation(self, "lazyscroll")
         elif self.status == "lazyscroll":
@@ -69,7 +69,7 @@ class ScrollBar(base.CWPySprite):
         if 0 < self._skipcount:
             self._skipcount = 0
             pos = int(self.scrpos_noscale - (self.scrpos_noscale-self.lazypos_noscale)/float(scrframe-self.frame))
-            if pos <> self.scrpos_noscale:
+            if pos != self.scrpos_noscale:
                 self.set_params(pos, self.scrsize_noscale)
                 if self.lazyscroll_func:
                     self.lazyscroll_func()
@@ -77,7 +77,7 @@ class ScrollBar(base.CWPySprite):
     def set_pos(self, scrpos_noscale, lazy):
         if lazy:
             self.lazypos_noscale = scrpos_noscale
-            if self.status <> "lazyscroll":
+            if self.status != "lazyscroll":
                 self._skipcount = 0
                 cw.animation.start_animation(self, "lazyscroll")
         else:

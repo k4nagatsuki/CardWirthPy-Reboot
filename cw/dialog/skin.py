@@ -17,7 +17,7 @@ import cw
 class SkinConversionDialog(wx.Dialog):
     def __init__(self, parent, exe, from_settings=False, get_localsettings=None):
         self.conv = cw.skin.convert.Converter(exe)
-        wx.Dialog.__init__(self, parent, -1, u"スキンの自動生成",
+        wx.Dialog.__init__(self, parent, -1, "スキンの自動生成",
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
@@ -42,9 +42,9 @@ class SkinConversionDialog(wx.Dialog):
         skincount, unknown_ver = cw.frame.get_skincount()
         if skincount == 0:
             if unknown_ver:
-                s = u"インストールされているスキンは未知のバージョンです。\n%sをアップデートするか、対応バージョンのスキンをインストールするか、スキンの自動生成を行ってください。" % cw.APP_NAME
+                s = "インストールされているスキンは未知のバージョンです。\n%sをアップデートするか、対応バージョンのスキンをインストールするか、スキンの自動生成を行ってください。" % cw.APP_NAME
             else:
-                s = u"スキンがインストールされていません。\nスキンを入手してインストールするか、自動生成を行なってください。"
+                s = "スキンがインストールされていません。\nスキンを入手してインストールするか、自動生成を行なってください。"
             self.warning = wx.StaticText(self, -1, s)
             font = self.warning.GetFont()
             font = wx.Font(font.GetPointSize(), font.GetFamily(), font.GetStyle(), wx.BOLD)
@@ -66,18 +66,18 @@ class SkinConversionDialog(wx.Dialog):
                                                              get_localsettings=get_localsettings,
                                                              use_copybase=use_copybase)
         self.pane_font.load(None, self.local)
-        self.note.AddPage(self.pane_base, u"基本")
-        self.note.AddPage(self.pane_feature, u"特性")
-        self.note.AddPage(self.pane_sound, u"サウンド")
-        self.note.AddPage(self.pane_message, u"メッセージ")
-        self.note.AddPage(self.pane_card, u"カード")
-        self.note.AddPage(self.pane_draw, u"描画")
-        self.note.AddPage(self.pane_font, u"フォント")
+        self.note.AddPage(self.pane_base, "基本")
+        self.note.AddPage(self.pane_feature, "特性")
+        self.note.AddPage(self.pane_sound, "サウンド")
+        self.note.AddPage(self.pane_message, "メッセージ")
+        self.note.AddPage(self.pane_card, "カード")
+        self.note.AddPage(self.pane_draw, "描画")
+        self.note.AddPage(self.pane_font, "フォント")
 
-        self.btn_ok = wx.Button(self, wx.ID_OK, u"決定")
+        self.btn_ok = wx.Button(self, wx.ID_OK, "決定")
         if not exe:
             self.btn_ok.Disable()
-        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"中止")
+        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, "中止")
 
         self._do_layout()
         self._bind()
@@ -123,7 +123,7 @@ class SkinConversionDialog(wx.Dialog):
 
         # プログレスダイアログ表示
         dlg = cw.dialog.progress.SysProgressDialog(self,
-            u"スキンの変換 [%s]" % (self.conv.exe), "", maximum=self.conv.maximum)
+            "スキンの変換 [%s]" % (self.conv.exe), "", maximum=self.conv.maximum)
         x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) / 2
         y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) / 2
         x += dlg.Parent.GetPosition()[0]
@@ -174,10 +174,10 @@ class SkinConversionDialog(wx.Dialog):
                     if scpath.startswith(".."):
                         scpath = path1
 
-                    for skindir in os.listdir(u"Data/Skin"):
+                    for skindir in os.listdir("Data/Skin"):
                         if skindir == self.conv.skindirname:
                             continue
-                        dpath = cw.util.join_paths(u"Data/Skin", skindir)
+                        dpath = cw.util.join_paths("Data/Skin", skindir)
                         if not os.path.isdir(dpath):
                             continue
                         fpath = cw.util.join_paths(dpath, "Skin.xml")
@@ -203,20 +203,20 @@ class SkinConversionDialog(wx.Dialog):
                     targ = os.path.join(os.path.dirname(self.conv.exe), self.conv.yadodir)
 
                 exists = set()
-                if not os.path.isdir(u"Yado"):
-                    os.makedirs(u"Yado")
-                for fpath in os.listdir(u"Yado"):
-                    fpath = cw.util.join_paths(u"Yado", fpath)
+                if not os.path.isdir("Yado"):
+                    os.makedirs("Yado")
+                for fpath in os.listdir("Yado"):
+                    fpath = cw.util.join_paths("Yado", fpath)
                     exists.add(os.path.normcase(os.path.abspath(os.path.normpath(cw.util.get_linktarget(fpath)))))
 
                 if os.path.isdir(targ):
                     for fpath in os.listdir(targ):
                         dpath = cw.util.join_paths(targ, fpath)
                         fpath = cw.util.join_paths(dpath, "Environment.wyd")
-                        cwyado = cw.binary.cwyado.CWYado(dpath, u"Yado")
+                        cwyado = cw.binary.cwyado.CWYado(dpath, "Yado")
                         if cwyado.is_convertible() and not os.path.normcase(os.path.abspath(os.path.normpath(dpath))) in exists:
                             link = os.path.basename(dpath)
-                            link = cw.util.join_paths(u"Yado", link + ".lnk")
+                            link = cw.util.join_paths("Yado", link + ".lnk")
                             link = cw.binary.util.check_duplicate(link)
                             cw.util.create_link(link, dpath)
 
@@ -225,7 +225,7 @@ class SkinConversionDialog(wx.Dialog):
 
         if self.conv.failure:
             s = self.conv.errormessage
-            wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_EXCLAMATION, self)
+            wx.MessageBox(s, "メッセージ", wx.OK|wx.ICON_EXCLAMATION, self)
         elif self.from_settings:
             self.successful = True
             self.select_skin = True
@@ -236,8 +236,8 @@ class SkinConversionDialog(wx.Dialog):
         else:
             self.successful = True
             if 1 < cw.frame.get_skincount()[0]:
-                s = u"スキンの自動生成に成功しました。生成したスキンに切り替えますか？"
-                if wx.MessageBox(s, u"メッセージ", wx.YES_NO|wx.ICON_QUESTION, self) == wx.YES:
+                s = "スキンの自動生成に成功しました。生成したスキンに切り替えますか？"
+                if wx.MessageBox(s, "メッセージ", wx.YES_NO|wx.ICON_QUESTION, self) == wx.YES:
                     self.select_skin = True
                     self.skindirname = self.conv.skindirname
             else:
@@ -280,7 +280,7 @@ class SkinConversionDialog(wx.Dialog):
 
 class SkinEditDialog(wx.Dialog):
     def __init__(self, parent, skindirname, skinsummary, get_localsettings):
-        wx.Dialog.__init__(self, parent, -1, u"スキンの編集",
+        wx.Dialog.__init__(self, parent, -1, "スキンの編集",
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
@@ -290,7 +290,7 @@ class SkinEditDialog(wx.Dialog):
         if cw.cwpy.setting.skindirname == self.skindirname:
             self.local = cw.cwpy.setting.skin_local
         else:
-            data = cw.data.xml2element(cw.util.join_paths(u"Data/Skin", skindirname, u"Skin.xml"))
+            data = cw.data.xml2element(cw.util.join_paths("Data/Skin", skindirname, "Skin.xml"))
             e = data.find("Settings")
             if e is None:
                 self.local = get_localsettings()
@@ -298,14 +298,14 @@ class SkinEditDialog(wx.Dialog):
                 self.local = cw.setting.LocalSetting()
                 self.local.load(e)
 
-        self.warning = wx.StaticText(self, -1, u"ここでの編集結果は、設定ダイアログでのOK・キャンセルの選択に関わらず即時に反映されます。")
+        self.warning = wx.StaticText(self, -1, "ここでの編集結果は、設定ダイアログでのOK・キャンセルの選択に関わらず即時に反映されます。")
         font = self.warning.GetFont()
         font = wx.Font(font.GetPointSize(), font.GetFamily(), font.GetStyle(), wx.BOLD)
         self.warning.SetFont(font)
 
         self.note = wx.Notebook(self)
         self.pane_info = wx.Panel(self.note, -1)
-        self.box_info = wx.StaticBox(self.pane_info, -1, u"スキン情報")
+        self.box_info = wx.StaticBox(self.pane_info, -1, "スキン情報")
         self.info = SkinInfoPanel(self.pane_info)
         skintype, skinname, author, desc, vocation120, initialcash = self.skinsummary
         self.info.typectrl.SetValue(skintype)
@@ -324,12 +324,12 @@ class SkinEditDialog(wx.Dialog):
                                                              use_copybase=True)
         self.pane_font.load(cw.cwpy.setting, self.local)
 
-        self.note.AddPage(self.pane_info, u"基本")
-        self.note.AddPage(self.pane_draw, u"描画")
-        self.note.AddPage(self.pane_font, u"フォント")
+        self.note.AddPage(self.pane_info, "基本")
+        self.note.AddPage(self.pane_draw, "描画")
+        self.note.AddPage(self.pane_font, "フォント")
 
-        self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
-        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
+        self.btn_ok = wx.Button(self, wx.ID_OK, "OK")
+        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, "キャンセル")
 
         self._do_layout()
         self._bind()
@@ -346,7 +346,7 @@ class SkinEditDialog(wx.Dialog):
         initialcash = self.info.initialcash.GetValue()
         self.skinsummary = (skintype, skinname, author, desc, vocation120, initialcash)
 
-        skinpath = cw.util.join_paths(u"Data/Skin", self.skindirname, u"Skin.xml")
+        skinpath = cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")
         e = cw.data.xml2etree(skinpath)
         e.edit("Property/Type", skintype)
         e.edit("Property/Name", skinname)
@@ -429,47 +429,47 @@ class SkinBasePanel(wx.Panel):
         self.conv = conv
         self.exe = self.conv.exe
 
-        self.box_base = wx.StaticBox(self, -1, u"本体とフォルダ")
+        self.box_base = wx.StaticBox(self, -1, "本体とフォルダ")
 
         # 実行ファイルのパス
-        self.exelabel = wx.StaticText(self, -1, u"本体")
+        self.exelabel = wx.StaticText(self, -1, "本体")
         self.exectrl = wx.TextCtrl(self)
         self.exectrl.SetValue(conv.exe)
         self.exeref = cw.util.create_fileselection(self,
             target=self.exectrl,
-            message=u"スキン生成元となるカードワース本体の選択",
-            wildcard=u"カードワース本体 (*.exe)|*.exe|全てのファイル (*.*)|*.*",
+            message="スキン生成元となるカードワース本体の選択",
+            wildcard="カードワース本体 (*.exe)|*.exe|全てのファイル (*.*)|*.*",
             seldir=False,
             callback=self._selected_exe)
         # Dataディレクトリの名前
-        self.datalabel = wx.StaticText(self, -1, u"データ")
+        self.datalabel = wx.StaticText(self, -1, "データ")
         self.datactrl = wx.TextCtrl(self)
         self.datactrl.SetValue(conv.datadir)
         self.dataref = cw.util.create_fileselection(self,
              target=self.datactrl,
-             message=u"スキン生成元のデータフォルダを選択してください。",
+             message="スキン生成元のデータフォルダを選択してください。",
              seldir=True,
              getbasedir=self._get_basedir)
         # Scenarioディレクトリの名前
-        self.scenariolabel = wx.StaticText(self, -1, u"シナリオ")
+        self.scenariolabel = wx.StaticText(self, -1, "シナリオ")
         self.scenarioctrl = wx.TextCtrl(self)
         self.scenarioctrl.SetValue(conv.scenariodir)
         self.scenarioref = cw.util.create_fileselection(self,
              target=self.scenarioctrl,
-             message=u"スキン生成元のシナリオフォルダを選択してください。",
+             message="スキン生成元のシナリオフォルダを選択してください。",
              seldir=True,
              getbasedir=self._get_basedir)
         # Yadoディレクトリの名前
-        self.yadolabel = wx.StaticText(self, -1, u"宿")
+        self.yadolabel = wx.StaticText(self, -1, "宿")
         self.yadoctrl = wx.TextCtrl(self)
         self.yadoctrl.SetValue(conv.yadodir)
         self.yadoref = cw.util.create_fileselection(self,
              target=self.yadoctrl,
-             message=u"スキン生成元の宿フォルダを選択してください。",
+             message="スキン生成元の宿フォルダを選択してください。",
              seldir=True,
              getbasedir=self._get_basedir)
 
-        self.box_info = wx.StaticBox(self, -1, u"スキン情報")
+        self.box_info = wx.StaticBox(self, -1, "スキン情報")
         self.info = SkinInfoPanel(self)
         self.info.typectrl.SetValue(conv.data.gettext("Property/Type", ""))
         self.info.namectrl.SetValue(conv.data.gettext("Property/Name", ""))
@@ -545,8 +545,8 @@ class SkinBasePanel(wx.Panel):
             return
         self.exe = exe
 
-        s = u"%sの情報を自動抽出しますか？" % (os.path.basename(exe))
-        if wx.YES <> wx.MessageBox(s, u"メッセージ", wx.YES_NO|wx.ICON_QUESTION, self):
+        s = "%sの情報を自動抽出しますか？" % (os.path.basename(exe))
+        if wx.YES != wx.MessageBox(s, "メッセージ", wx.YES_NO|wx.ICON_QUESTION, self):
             return
 
         self.conv.init(exe)
@@ -596,10 +596,10 @@ class SkinInfoPanel(wx.Panel):
             "School",
             "ScienceFiction",
         ])
-        if os.path.exists(u"Data/Skin"):
-            for name in os.listdir(u"Data/Skin"):
-                path = cw.util.join_paths(u"Data/Skin", name)
-                skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+        if os.path.exists("Data/Skin"):
+            for name in os.listdir("Data/Skin"):
+                path = cw.util.join_paths("Data/Skin", name)
+                skinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml")
                 if os.path.isdir(path) and os.path.isfile(skinpath):
                     e = cw.data.xml2element(skinpath, "Property")
                     self.types.add(e.gettext("Type", ""))
@@ -607,22 +607,22 @@ class SkinInfoPanel(wx.Panel):
         cw.util.sort_by_attr(self.types)
 
         # 種別
-        self.typelabel = wx.StaticText(self, -1, u"種別")
+        self.typelabel = wx.StaticText(self, -1, "種別")
         self.typectrl = wx.ComboBox(self, choices=self.types, style=wx.CB_DROPDOWN)
         # 名前
-        self.namelabel = wx.StaticText(self, -1, u"名前")
+        self.namelabel = wx.StaticText(self, -1, "名前")
         self.namectrl = wx.TextCtrl(self)
         # 作者
-        self.authorlabel = wx.StaticText(self, -1, u"作者")
+        self.authorlabel = wx.StaticText(self, -1, "作者")
         self.authorctrl = wx.TextCtrl(self)
         # 解説
-        self.desclabel = wx.StaticText(self, -1, u"解説")
+        self.desclabel = wx.StaticText(self, -1, "解説")
         self.descctrl = wx.TextCtrl(self, size=cw.ppis((400, 100)), style=wx.TE_MULTILINE)
         # 初期資金
-        self.initialcashlabel = wx.StaticText(self, -1, u"初期資金")
+        self.initialcashlabel = wx.StaticText(self, -1, "初期資金")
         self.initialcash = wx.SpinCtrl(self, -1, max=999999, min=0)
         # カードの適性計算をCardWirth 1.20に合わせるか
-        self.vocation120 = wx.CheckBox(self, -1, u"CardWirth 1.20相当のカード適性計算を行う")
+        self.vocation120 = wx.CheckBox(self, -1, "CardWirth 1.20相当のカード適性計算を行う")
 
         self._do_layout()
         self._bind()
@@ -674,7 +674,7 @@ class SkinFeaturePanel(wx.Panel):
     def __init__(self, parent, conv):
         wx.Panel.__init__(self, parent)
 
-        base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
+        base = cw.data.xml2etree("Data/SkinBase/Skin.xml")
         basesexes = base.getfind("Sexes")
         baseperiods = base.getfind("Periods")
         basenatures = base.getfind("Natures")
@@ -685,29 +685,29 @@ class SkinFeaturePanel(wx.Panel):
                              len(basenatures) + len(basemakings), 12)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
-        self.grid.SetColLabelValue(0, u"名称")
-        self.grid.SetColLabelValue(1, u"器用")
-        self.grid.SetColLabelValue(2, u"敏捷")
-        self.grid.SetColLabelValue(3, u"知力")
-        self.grid.SetColLabelValue(4, u"筋力")
-        self.grid.SetColLabelValue(5, u"生命")
-        self.grid.SetColLabelValue(6, u"精神")
-        self.grid.SetColLabelValue(7, u"好戦")
-        self.grid.SetColLabelValue(8, u"社交")
-        self.grid.SetColLabelValue(9, u"勇猛")
-        self.grid.SetColLabelValue(10, u"慎重")
-        self.grid.SetColLabelValue(11, u"狡猾")
+        self.grid.SetColLabelValue(0, "名称")
+        self.grid.SetColLabelValue(1, "器用")
+        self.grid.SetColLabelValue(2, "敏捷")
+        self.grid.SetColLabelValue(3, "知力")
+        self.grid.SetColLabelValue(4, "筋力")
+        self.grid.SetColLabelValue(5, "生命")
+        self.grid.SetColLabelValue(6, "精神")
+        self.grid.SetColLabelValue(7, "好戦")
+        self.grid.SetColLabelValue(8, "社交")
+        self.grid.SetColLabelValue(9, "勇猛")
+        self.grid.SetColLabelValue(10, "慎重")
+        self.grid.SetColLabelValue(11, "狡猾")
 
         self.grid.SetColSize(0, cw.ppis(80))
-        for col in xrange(1, 7):
+        for col in range(1, 7):
             self.grid.SetColFormatNumber(col)
             self.grid.SetColSize(col, cw.ppis(40))
-            for row in xrange(0, self.grid.GetNumberRows()):
+            for row in range(0, self.grid.GetNumberRows()):
                 self.grid.SetCellEditor(row, col, wx.grid.GridCellNumberEditor(-99, 99))
-        for col in xrange(7, 12):
+        for col in range(7, 12):
             self.grid.SetColFormatFloat(col, 2, 1)
             self.grid.SetColSize(col, cw.ppis(40))
-            for row in xrange(0, self.grid.GetNumberRows()):
+            for row in range(0, self.grid.GetNumberRows()):
                 self.grid.SetCellEditor(row, col, wx.grid.GridCellFloatEditor(4, 1))
 
         row = 0
@@ -800,14 +800,14 @@ class SkinSoundPanel(wx.Panel):
     def __init__(self, parent, conv):
         wx.Panel.__init__(self, parent)
 
-        base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
+        base = cw.data.xml2etree("Data/SkinBase/Skin.xml")
         basesounds = base.find("Sounds")
 
         self.grid = wx.grid.Grid(self, -1, size=cw.ppis((200, 200)), style=wx.BORDER)
         self.grid.CreateGrid(len(basesounds), 1)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
-        self.grid.SetColLabelValue(0, u"ファイル名(拡張子を除く)")
+        self.grid.SetColLabelValue(0, "ファイル名(拡張子を除く)")
         self.grid.SetColSize(0, cw.ppis(170))
 
         for row, e in enumerate(basesounds):
@@ -842,7 +842,7 @@ class SkinMessagePanel(wx.Panel):
     def __init__(self, parent, conv):
         wx.Panel.__init__(self, parent)
 
-        base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
+        base = cw.data.xml2etree("Data/SkinBase/Skin.xml")
         basemsgs = base.find("Messages")
 
         self.grid = wx.grid.Grid(self, -1, size=cw.ppis((200, 200)), style=wx.BORDER)
@@ -850,7 +850,7 @@ class SkinMessagePanel(wx.Panel):
         self.grid.SetRowLabelSize(cw.ppis(150))
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
-        self.grid.SetColLabelValue(0, u"メッセージ(\\n=改行, \\\\=\\)")
+        self.grid.SetColLabelValue(0, "メッセージ(\\n=改行, \\\\=\\)")
         self.grid.SetColSize(0, cw.ppis(380))
 
         row = 0
@@ -858,7 +858,7 @@ class SkinMessagePanel(wx.Panel):
             if e.text:
                 s = cw.util.encodewrap(e.text)
             else:
-                s = u"(空のテキスト)"
+                s = "(空のテキスト)"
             self.grid.SetRowLabelValue(row, s)
             row += 1
 
@@ -875,7 +875,7 @@ class SkinMessagePanel(wx.Panel):
         self.grid.SetRowLabelValue(row, cw.util.encodewrap(e.text))
         row += 1
 
-        basegameover = cw.data.xml2etree(u"Data/SkinBase/Resource/Xml/GameOver/01_GameOver.xml")
+        basegameover = cw.data.xml2etree("Data/SkinBase/Resource/Xml/GameOver/01_GameOver.xml")
         e = basegameover.find("Events/Event//Talk")
         self.grid.SetRowLabelValue(row, e.find("Text").text)
         row += 1
@@ -970,27 +970,27 @@ class SkinCardPanel(wx.Panel):
         self.grid.CreateGrid(0, 2)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
-        self.grid.SetColLabelValue(0, u"名称")
-        self.grid.SetColLabelValue(1, u"解説(\\n=改行, \\\\=\\)")
+        self.grid.SetColLabelValue(0, "名称")
+        self.grid.SetColLabelValue(1, "解説(\\n=改行, \\\\=\\)")
         self.grid.SetColSize(0, cw.ppis(80))
         self.grid.SetColSize(1, cw.ppis(300))
 
         row = 0
         self.grid.InsertRows(row, len(baseconv.actioncard), False)
-        for key in cw.util.sorted_by_attr(baseconv.actioncard.iterkeys()):
+        for key in cw.util.sorted_by_attr(iter(baseconv.actioncard.keys())):
             e = baseconv.actioncard[key]
             name = e.gettext("Property/Name", "")
-            self.grid.SetRowLabelValue(row, u"アクション:" + name)
+            self.grid.SetRowLabelValue(row, "アクション:" + name)
             row += 1
         self.grid.InsertRows(row, len(baseconv.specialcard), False)
-        for key in cw.util.sorted_by_attr(baseconv.specialcard.iterkeys()):
+        for key in cw.util.sorted_by_attr(iter(baseconv.specialcard.keys())):
             e = baseconv.specialcard[key]
             name = e.gettext("Property/Name", "")
-            self.grid.SetRowLabelValue(row, u"特殊カード:" + name)
+            self.grid.SetRowLabelValue(row, "特殊カード:" + name)
             row += 1
 
         def put_areacards(table, row):
-            for key in cw.util.sorted_by_attr(table.iterkeys()):
+            for key in cw.util.sorted_by_attr(iter(table.keys())):
                 data = table[key]
                 areaname = data.gettext("Property/Name", "")
                 cards = data.getfind("MenuCards")
@@ -1016,14 +1016,14 @@ class SkinCardPanel(wx.Panel):
 
     def set_values(self, conv):
         row = 0
-        for key in cw.util.sorted_by_attr(conv.actioncard.iterkeys()):
+        for key in cw.util.sorted_by_attr(iter(conv.actioncard.keys())):
             e = conv.actioncard[key]
             name = e.gettext("Property/Name", "")
             desc = e.gettext("Property/Description", "")
             self.grid.SetCellValue(row, 0, name)
             self.grid.SetCellValue(row, 1, desc)
             row += 1
-        for key in cw.util.sorted_by_attr(conv.specialcard.iterkeys()):
+        for key in cw.util.sorted_by_attr(iter(conv.specialcard.keys())):
             e = conv.specialcard[key]
             name = e.gettext("Property/Name", "")
             desc = e.gettext("Property/Description", "")
@@ -1032,7 +1032,7 @@ class SkinCardPanel(wx.Panel):
             row += 1
 
         def put_areacards(table, row):
-            for key in cw.util.sorted_by_attr(table.iterkeys()):
+            for key in cw.util.sorted_by_attr(iter(table.keys())):
                 data = table[key]
                 cards = data.getfind("MenuCards")
                 for e in cards:
@@ -1050,14 +1050,14 @@ class SkinCardPanel(wx.Panel):
 
     def get_values(self, conv):
         row = 0
-        for key in cw.util.sorted_by_attr(conv.actioncard.iterkeys()):
+        for key in cw.util.sorted_by_attr(iter(conv.actioncard.keys())):
             e = conv.actioncard[key]
             name = self.grid.GetCellValue(row, 0)
             desc = self.grid.GetCellValue(row, 1)
             name = e.find("Property/Name").text = name
             desc = e.find("Property/Description").text = desc
             row += 1
-        for key in cw.util.sorted_by_attr(conv.specialcard.iterkeys()):
+        for key in cw.util.sorted_by_attr(iter(conv.specialcard.keys())):
             e = conv.specialcard[key]
             name = self.grid.GetCellValue(row, 0)
             desc = self.grid.GetCellValue(row, 1)
@@ -1066,7 +1066,7 @@ class SkinCardPanel(wx.Panel):
             row += 1
 
         def get_areacards(table, row):
-            for key in cw.util.sorted_by_attr(table.iterkeys()):
+            for key in cw.util.sorted_by_attr(iter(table.keys())):
                 data = table[key]
                 cards = data.getfind("MenuCards")
                 for e in cards:

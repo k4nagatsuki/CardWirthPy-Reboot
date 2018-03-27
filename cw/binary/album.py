@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
-import coupon
+from . import base
+from . import coupon
 
 import cw
 
@@ -58,7 +58,7 @@ class Album(base.CWBinaryBase):
             self.description = f.string(True).replace("TEXT\\n", "", 1)
             # クーポン
             coupons_num = f.dword()
-            self.coupons = [coupon.Coupon(self, f) for _cnt in xrange(coupons_num)]
+            self.coupons = [coupon.Coupon(self, f) for _cnt in range(coupons_num)]
         else:
             self.name = 0
             self.image = 0
@@ -77,7 +77,7 @@ class Album(base.CWBinaryBase):
             self.avoid = 0
             self.resist = 0
             self.defense = 0
-            self.description = u""
+            self.description = ""
             self.coupons = []
 
         self.data = None
@@ -219,7 +219,7 @@ class Album(base.CWBinaryBase):
         f.write_word(resist)
         f.write_word(defense)
         f.write_dword(0)
-        f.write_string("TEXT\n" + (description if description else u""), True)
+        f.write_string("TEXT\n" + (description if description else ""), True)
         f.write_dword(len(coupons))
         for cp in coupons:
             coupon.Coupon.unconv(f, cp)

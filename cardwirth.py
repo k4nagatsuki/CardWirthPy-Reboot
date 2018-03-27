@@ -8,16 +8,15 @@ import sys
 import cw
 
 
-encoding = sys.getfilesystemencoding()
 try:
-    cw.exepath = __file__.decode(encoding)
+    cw.exepath = __file__
 except NameError:
-    cw.exepath = sys.executable.decode(encoding)
+    cw.exepath = sys.executable
 
 
 sys.setrecursionlimit(1073741824)
 
-if sys.platform <> "win32":
+if sys.platform != "win32":
     # リダイレクトした場合でも UnicodeError を起こさないように
     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
     sys.stderr = codecs.getwriter('utf8')(sys.stderr)

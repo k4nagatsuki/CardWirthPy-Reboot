@@ -12,7 +12,7 @@ class Dice(object):
 
         n = 0
 
-        for _i in xrange(times):
+        for _i in range(times):
             # BUG: random.randrange()は著しく遅い
             #n += random.randrange(1, sided + 1)
 

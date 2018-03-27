@@ -52,10 +52,10 @@ class Message(wx.Dialog):
                     s, id, width, desc = d
                 elif len(d) == 3:
                     s, id, width = d
-                    desc = u""
+                    desc = ""
                 else:
                     s, id = d
-                    desc = u""
+                    desc = ""
                     width = -1
 
                 button = cw.cwpy.rsrc.create_wxbutton(self, id, (width, cw.wins(30)), s)
@@ -86,12 +86,12 @@ class Message(wx.Dialog):
 
     def copy_detail(self):
         cw.cwpy.play_sound("equipment")
-        s = [u"[Window Title]", self.GetTitle(), u"", u"[Content]", self.basetext, u""]
+        s = ["[Window Title]", self.GetTitle(), "", "[Content]", self.basetext, ""]
         b = []
         for button in self.buttons:
-            b.append(u"[%s]" % button.GetLabelText())
-        s.append(u" ".join(b))
-        cw.util.to_clipboard(u"\n".join(s))
+            b.append("[%s]" % button.GetLabelText())
+        s.append(" ".join(b))
+        cw.util.to_clipboard("\n".join(s))
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
@@ -149,9 +149,9 @@ class YesNoMessage(Message):
 class YesNoCancelMessage(Message):
     def __init__(self, parent, name, text):
         choices = (
-            (u"はい", wx.ID_YES, cw.wins(105)),
-            (u"いいえ", wx.ID_NO, cw.wins(105)),
-            (u"キャンセル", wx.ID_CANCEL, cw.wins(105)),
+            ("はい", wx.ID_YES, cw.wins(105)),
+            ("いいえ", wx.ID_NO, cw.wins(105)),
+            ("キャンセル", wx.ID_CANCEL, cw.wins(105)),
         )
         Message.__init__(self, parent, name, text, 3, choices=choices)
 

@@ -433,8 +433,8 @@ bordering(PyObject *self, PyObject *args)
 
                 if (find)
                 {
-                    PyList_Append(points, PyInt_FromSize_t(x));
-                    PyList_Append(points, PyInt_FromSize_t(y));
+                    PyList_Append(points, PyLong_FromSize_t(x));
+                    PyList_Append(points, PyLong_FromSize_t(y));
                 }
             }
             data += 4;
@@ -1495,22 +1495,40 @@ _imageretouchMethods[] =
 #endif
 };
 
+static struct PyModuleDef _imageretouchModuleDef = {
+    PyModuleDef_HEAD_INIT,
+#if defined(__APPLE__)
+    "_imageretouch_mac",
+#elif defined(__x86_64__)
+    "_imageretouch64",
+#else
+    "_imageretouch32",
+#endif
+    NULL,
+    -1,
+    _imageretouchMethods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
 #if defined(__APPLE__)
 PyMODINIT_FUNC
-init_imageretouch_mac(void)
+PyInit__imageretouch_mac(void)
 {
-    (void) Py_InitModule("_imageretouch_mac", _imageretouchMethods);
+    return PyModule_Create(&_imageretouchModuleDef);
 }
 #elif defined(__x86_64__)
 PyMODINIT_FUNC
-init_imageretouch64(void)
+PyInit__imageretouch64(void)
 {
-    (void) Py_InitModule("_imageretouch64", _imageretouchMethods);
+    return PyModule_Create(&_imageretouchModuleDef);
 }
 #else
 PyMODINIT_FUNC
-init_imageretouch32(void)
+PyInit__imageretouch32(void)
 {
-    (void) Py_InitModule("_imageretouch32", _imageretouchMethods);
+    return PyModule_Create(&_imageretouchModuleDef);
 }
 #endif

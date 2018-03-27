@@ -3,11 +3,11 @@
 
 import threading
 
-import cwscenario
-import cwyado
-import xmltemplate
-import image
-import util
+from . import cwscenario
+from . import cwyado
+from . import xmltemplate
+from . import image
+from . import util
 
 
 class ConvertingThread(threading.Thread):

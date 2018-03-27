@@ -11,7 +11,8 @@ import wx
 
 import cw
 
-import message
+from . import message
+from functools import reduce
 
 #-------------------------------------------------------------------------------
 #　シナリオフォルダ選択ダイアログ
@@ -30,7 +31,7 @@ class SelectScenarioDirectory(wx.Dialog):
         self.db = db
         self.skintype = skintype
         self.scedir = scedir
-        self.path = u""
+        self.path = ""
 
         # メッセージ
         self.text = text
@@ -59,7 +60,7 @@ class SelectScenarioDirectory(wx.Dialog):
         dirstack = cw.cwpy.setting.installed_dir.get(scedir, [])
         if not dirstack and os.path.normcase("A") == os.path.normcase("a"):
             # 大文字・小文字を区別しないファイルシステム
-            for key, value in cw.cwpy.setting.installed_dir.iteritems():
+            for key, value in cw.cwpy.setting.installed_dir.items():
                 if os.path.normcase(key) == os.path.normcase(scedir):
                     dirstack = value
                     break
@@ -137,7 +138,7 @@ class SelectScenarioDirectory(wx.Dialog):
                     self.tree.Expand(item)
                     continue
                 self.tree.SelectItem(item)
-            self.tree.AppendItem(item, u"読込中...")
+            self.tree.AppendItem(item, "読込中...")
         self.tree.Thaw()
 
     def OnTreeItemExpanded(self, event):
@@ -149,7 +150,7 @@ class SelectScenarioDirectory(wx.Dialog):
             return
         item = event.GetItem()
         self.tree.DeleteChildren(item)
-        self.tree.AppendItem(item, u"読込中...")
+        self.tree.AppendItem(item, "読込中...")
 
     def OnOk(self, event):
         selitem = self.tree.GetSelection()
@@ -255,31 +256,31 @@ class ScenarioInstall(SelectScenarioDirectory):
     シナリオインストールダイアログ。
     """
     def __init__(self, parent, db, headers, notscenariofiles, skintype, scedir):
-        headers_seq = reduce(lambda a, b: a + b, headers.itervalues())
+        headers_seq = reduce(lambda a, b: a + b, iter(headers.values()))
         assert 0 < len(headers_seq)
 
         # メッセージ
         if 1 < len(headers_seq):
-            s = u"%s本のシナリオのインストール先を選択してください。" % (len(headers_seq))
+            s = "%s本のシナリオのインストール先を選択してください。" % (len(headers_seq))
         else:
             name = headers_seq[0].name
             if headers_seq[0].author:
-                name += u"(%s)" % headers_seq[0].author
-            s = u"「%s」のインストール先を選択してください。" % (name)
+                name += "(%s)" % headers_seq[0].author
+            s = "「%s」のインストール先を選択してください。" % (name)
 
         self.headers = headers
         self.notscenariofiles = notscenariofiles
 
         # ダイアログボックス作成
-        SelectScenarioDirectory.__init__(self, parent, u"シナリオのインストール", s,
+        SelectScenarioDirectory.__init__(self, parent, "シナリオのインストール", s,
                                          db, skintype, scedir)
 
     def create_buttons(self):
-        headers_seq = reduce(lambda a, b: a + b, self.headers.itervalues())
+        headers_seq = reduce(lambda a, b: a + b, iter(self.headers.values()))
         assert 0 < len(headers_seq)
 
         # インストール・キャンセルボタン
-        self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), u"インストール")
+        self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), "インストール")
         self.yesbtn.SetToolTip(create_installdesc(headers_seq))
         self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["cancel"])
         self.buttons = (self.yesbtn, self.nobtn)
@@ -299,15 +300,15 @@ class ScenarioInstall(SelectScenarioDirectory):
 
         if paths:
             if 1 < len(paths):
-                s = u"%s本のシナリオをインストールしました。" % (len(paths))
+                s = "%s本のシナリオをインストールしました。" % (len(paths))
             else:
                 header = self.db.search_path(paths[0])
                 if not header:
                     return
                 name = header.name
                 if header.author:
-                    name += u"(%s)" % header.author
-                s = u"「%s」をインストールしました。" % (name)
+                    name += "(%s)" % header.author
+                s = "「%s」をインストールしました。" % (name)
 
             cw.cwpy.play_sound("harvest")
             dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
@@ -364,7 +365,7 @@ def to_scenarioheaders(paths, db, skintype):
 
     exists = set()
 
-    if os.path.isfile(paths[0]) and os.path.splitext(paths[0])[1].lower() in (u".xml", u".wsm"):
+    if os.path.isfile(paths[0]) and os.path.splitext(paths[0])[1].lower() in (".xml", ".wsm"):
         paths = [os.path.dirname(paths[0])]
 
     allparent = os.path.dirname(paths[0])
@@ -373,8 +374,8 @@ def to_scenarioheaders(paths, db, skintype):
         def recurse(parent, path, notscenariofiles2):
             # pathまたはサブディレクトリにシナリオを持つ場合はTrueを返す
             hparent = cw.util.relpath(parent, allparent)
-            if hparent.startswith(u".." + os.path.sep):
-                hparent = u""
+            if hparent.startswith(".." + os.path.sep):
+                hparent = ""
             parentinfo = (parent, hparent)
 
             if cw.scenariodb.is_scenario(path):
@@ -410,7 +411,7 @@ def to_scenarioheaders(paths, db, skintype):
 
         notscenariofiles2 = {}
         if recurse(allparent, path, notscenariofiles2):
-            for key, value in notscenariofiles2.iteritems():
+            for key, value in notscenariofiles2.items():
                 s = notscenariofiles.get(key, None)
                 if s is None:
                     notscenariofiles[key] = value
@@ -427,11 +428,11 @@ def create_dir(parentdialog, dpath):
         name = cw.util.splitext(name)[0]
     dpath = cw.util.get_linktarget(dpath)
 
-    s = u"%sに作成する新しいフォルダの名前を入力してください。" % (name)
-    dname = cw.util.join_paths(dpath, u"新規フォルダ")
+    s = "%sに作成する新しいフォルダの名前を入力してください。" % (name)
+    dname = cw.util.join_paths(dpath, "新規フォルダ")
     dname = cw.util.dupcheck_plus(dname, yado=False)
     dname = os.path.basename(dname)
-    dlg = cw.dialog.edit.InputTextDialog(parentdialog, u"新規フォルダ",
+    dlg = cw.dialog.edit.InputTextDialog(parentdialog, "新規フォルダ",
                                          msg=s,
                                          text=dname)
     cw.cwpy.frame.move_dlg(dlg)
@@ -443,7 +444,7 @@ def create_dir(parentdialog, dpath):
         return dpath
     else:
         dlg.Destroy()
-        return u""
+        return ""
 
 
 def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, db, skintype):
@@ -461,7 +462,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
     links = [] # ショートカットファイルのリスト
 
     headers_len = 0
-    for headers_seq in headers.itervalues():
+    for headers_seq in headers.values():
         headers_len += len(headers_seq)
         for header in headers_seq:
             fpath = header.get_fpath()
@@ -478,7 +479,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
             if seq:
                 db_exists[header.get_fpath()] = seq
 
-    for files_seq in notscenariofiles.itervalues():
+    for files_seq in notscenariofiles.values():
         headers_len += len(files_seq)
 
     if db_exists:
@@ -486,7 +487,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
         cw.cwpy.frame.move_dlg(dlg)
         ret = dlg.ShowModal()
         dlg.Destroy()
-        if ret <> wx.ID_OK:
+        if ret != wx.ID_OK:
             return True, [], [], True
         else:
             db_repls = dlg.db_repls
@@ -494,7 +495,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
         db_repls = {}
 
     # プログレスダイアログ表示
-    dlg = cw.dialog.progress.ProgressDialog(parentdialog, u"シナリオのインストール",
+    dlg = cw.dialog.progress.ProgressDialog(parentdialog, "シナリオのインストール",
                                             "", maximum=headers_len, cancelable=True)
 
     class InstallThread(threading.Thread):
@@ -505,7 +506,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
             self.dstpath = dstpath
             self.db_repls = db_repls
             self.num = 0
-            self.msg = u""
+            self.msg = ""
             self.failed = None
             self.updates = set()
             self.paths = []
@@ -515,24 +516,24 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
         def run(self):
             dstpath = os.path.normcase(os.path.normpath(os.path.abspath(self.dstpath)))
             allret = [None]
-            for (_parent, relparent), headers_seq in self.headers.iteritems():
+            for (_parent, relparent), headers_seq in self.headers.items():
                 self._install(relparent, headers_seq, dstpath, allret)
-            for (_parent, relparent), files_seq in self.notscenariofiles.iteritems():
+            for (_parent, relparent), files_seq in self.notscenariofiles.items():
                 self._install_files(relparent, files_seq, dstpath, allret)
 
             if cw.cwpy.setting.delete_sourceafterinstalled:
                 # 不要になったインストール元のディレクトリを削除
-                for parent, relparent in self.headers.iterkeys():
-                    if not (relparent in (u"", u".") or relparent.startswith(u".." + os.path.sep)):
+                for parent, relparent in self.headers.keys():
+                    if not (relparent in ("", ".") or relparent.startswith(".." + os.path.sep)):
                         cw.util.remove_emptydir(parent)
 
         def _confirm_overwrite(self, dlg, s, allret):
             def func():
                 choices = (
-                    (u"置換", wx.ID_YES, cw.wins(80)),
-                    (u"名前変更", wx.ID_DUPLICATE, cw.wins(80)),
-                    (u"スキップ", wx.ID_NO, cw.wins(80)),
-                    (u"中止", wx.ID_CANCEL, cw.wins(80)),
+                    ("置換", wx.ID_YES, cw.wins(80)),
+                    ("名前変更", wx.ID_DUPLICATE, cw.wins(80)),
+                    ("スキップ", wx.ID_NO, cw.wins(80)),
+                    ("中止", wx.ID_CANCEL, cw.wins(80)),
                 )
                 dlg2 = message.Message(dlg, cw.cwpy.msgs["message"], s, mode=3, choices=choices)
                 cw.cwpy.frame.move_dlg(dlg2)
@@ -551,12 +552,12 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
 
         def _install(self, parent, headers_seq, dstpath, allret):
             if parent == ".":
-                parent = u""
+                parent = ""
             for header in headers_seq:
                 if dlg.cancel:
                     break
                 try:
-                    self.msg = u"「%s」をコピーしています..." % (header.name)
+                    self.msg = "「%s」をコピーしています..." % (header.name)
                     fpath = header.get_fpath()
                     repls = self.db_repls.get(fpath, [])
                     rmpaths = []
@@ -567,9 +568,9 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                     else:
                         # 指定箇所にインストール
                         dst = cw.util.join_paths(self.dstpath, parent, os.path.basename(fpath))
-                        if dstpath <> os.path.normcase(os.path.normpath(os.path.abspath(header.dpath))):
+                        if dstpath != os.path.normcase(os.path.normpath(os.path.abspath(header.dpath))):
                             if os.path.exists(dst):
-                                s = u"%s はすでに存在します。置換しますか？" % (os.path.basename(dst))
+                                s = "%s はすでに存在します。置換しますか？" % (os.path.basename(dst))
                                 ret = self._confirm_overwrite(dlg, s, allret)
                                 if ret == wx.ID_YES:
                                     rmpaths.append(dst)
@@ -585,7 +586,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                     normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
                     dstisfile = os.path.isfile(fpath)
 
-                    if normpath1 <> normpath2:
+                    if normpath1 != normpath2:
                         update_scenariolog(normpath1, dst, dstisfile)
                         for rmpath in rmpaths:
                             cw.util.remove(rmpath, trashbox=True)
@@ -633,22 +634,22 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
 
         def _install_files(self, parent, files_seq, dstpath, allret):
             if parent == ".":
-                parent = u""
+                parent = ""
             for fpath in files_seq:
                 if dlg.cancel:
                     break
                 try:
                     repl_links = {}
                     rmpaths = []
-                    self.msg = u"ファイル「%s」をコピーしています..." % (os.path.basename(fpath))
+                    self.msg = "ファイル「%s」をコピーしています..." % (os.path.basename(fpath))
 
                     # ファイルをコピー
                     dst = cw.util.join_paths(self.dstpath, parent, os.path.basename(fpath))
                     normpath1 = os.path.normcase(os.path.normpath(os.path.abspath(fpath)))
                     normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
-                    if normpath1 <> normpath2:
+                    if normpath1 != normpath2:
                         if os.path.exists(dst):
-                            s = u"%s はすでに存在します。置換しますか？" % (os.path.basename(dst))
+                            s = "%s はすでに存在します。置換しますか？" % (os.path.basename(dst))
                             ret = self._confirm_overwrite(dlg, s, allret)
                             if ret == wx.ID_YES:
                                 rmpaths.append(dst)
@@ -717,7 +718,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
     dlg.ShowModal()
 
     if thread.failed:
-        s = u"「%s」のインストールに失敗しました。" % (thread.failed.name)
+        s = "「%s」のインストールに失敗しました。" % (thread.failed.name)
         dlg = cw.dialog.message.ErrorMessage(parentdialog, s)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
@@ -759,7 +760,7 @@ def update_scenariolog(normpath, dst, dstisfile):
     for i, (bookmarkpath, name) in enumerate(cw.cwpy.setting.bookmarks_for_cardedit[:]):
         fname = os.path.basename(bookmarkpath)
         lfname = fname.lower()
-        if lfname in (u"summary.wsm", u"summary.xml"):
+        if lfname in ("summary.wsm", "summary.xml"):
             bookmarkpath = os.path.dirname(bookmarkpath)
         normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(bookmarkpath)))
         if normpath == normpath2:
@@ -772,7 +773,7 @@ def update_scenariolog(normpath, dst, dstisfile):
     for i, (bookmark, bookmarkpath) in enumerate(cw.cwpy.ydata.bookmarks[:]):
         fname = os.path.basename(bookmarkpath)
         lfname = fname.lower()
-        if lfname in (u"summary.wsm", u"summary.xml"):
+        if lfname in ("summary.wsm", "summary.xml"):
             bookmarkpath = os.path.dirname(bookmarkpath)
         normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(bookmarkpath)))
         if normpath == normpath2:
@@ -788,14 +789,14 @@ def update_scenariolog(normpath, dst, dstisfile):
     # パーティのプレイ中情報
     for header in cw.cwpy.ydata.partys:
         dpath = os.path.dirname(header.fpath)
-        wsl = os.path.splitext(header.fpath)[0] + u".wsl"
+        wsl = os.path.splitext(header.fpath)[0] + ".wsl"
         wsl = cw.util.get_yadofilepath(wsl)
         if not os.path.isfile(wsl):
             continue
 
-        tempdir = cw.util.join_paths(cw.tempdir, u"ScenarioLogTemp")
+        tempdir = cw.util.join_paths(cw.tempdir, "ScenarioLogTemp")
         dstdir = cw.util.decompress_zip(wsl, tempdir)
-        fpath = cw.util.join_paths(dstdir, u"ScenarioLog.xml")
+        fpath = cw.util.join_paths(dstdir, "ScenarioLog.xml")
         try:
             etree = cw.data.xml2etree(fpath)
             e = etree.find("Property/WsnPath")
@@ -845,7 +846,7 @@ class OverwriteScenarioDialog(wx.Dialog):
     インストールして上書きするシナリオを選択するダイアログ
     """
     def __init__(self, parent, scedir, db_exists):
-        wx.Dialog.__init__(self, parent, -1, u"シナリオ置換対象の選択",
+        wx.Dialog.__init__(self, parent, -1, "シナリオ置換対象の選択",
                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX,
                            size=cw.wins((500, 400)))
         self.cwpy_debug = False
@@ -856,16 +857,16 @@ class OverwriteScenarioDialog(wx.Dialog):
 
         # メッセージ
         if 1 < len(self.db_exists):
-            s = u"%s本のシナリオがすでにインストール済みです。" % (len(self.db_exists))
+            s = "%s本のシナリオがすでにインストール済みです。" % (len(self.db_exists))
         else:
-            header2 = list(self.db_exists.itervalues())[0]
-            sname = header2[0].name if header2[0].name else u"(無名のシナリオ)"
+            header2 = list(self.db_exists.values())[0]
+            sname = header2[0].name if header2[0].name else "(無名のシナリオ)"
             if header2[0].author:
-                sname += u"(%s)" % header2[0].author
-            s = u"インストール済みの「%s」がシナリオデータベース上に見つかりました。" % (sname)
-        s += u"以前インストールしたシナリオを置換する場合は、置換対象をチェックしてください。"
-        if any(map(lambda headers : 1 < len(headers), db_exists.itervalues())):
-            s += u"\n同一のシナリオを複数チェックした場合は、最初の1件が置換され、残りは削除されます。"
+                sname += "(%s)" % header2[0].author
+            s = "インストール済みの「%s」がシナリオデータベース上に見つかりました。" % (sname)
+        s += "以前インストールしたシナリオを置換する場合は、置換対象をチェックしてください。"
+        if any([1 < len(headers) for headers in iter(db_exists.values())]):
+            s += "\n同一のシナリオを複数チェックした場合は、最初の1件が置換され、残りは削除されます。"
         self.text = s
 
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
@@ -875,18 +876,18 @@ class OverwriteScenarioDialog(wx.Dialog):
         self.datalist.SetFont(font)
 
         index2 = 0
-        for fpath in sorted(self.db_exists.iterkeys()):
+        for fpath in sorted(self.db_exists.keys()):
             self.keys.append(fpath)
             headers = self.db_exists[fpath]
             for index, header in enumerate(headers):
-                sname = header.name if header.name else u"(無名のシナリオ)"
+                sname = header.name if header.name else "(無名のシナリオ)"
                 if header.author:
-                    sname += u"(%s)" % header.author
+                    sname += "(%s)" % header.author
                 fpath = header.get_fpath()
-                rel = cw.util.relpath(fpath, os.path.abspath(u"."))
-                if cw.util.join_paths(rel).startswith(u"../"):
+                rel = cw.util.relpath(fpath, os.path.abspath("."))
+                if cw.util.join_paths(rel).startswith("../"):
                     rel = header.get_fpath()
-                self.datalist.InsertItem(index2, u"%s - %s" % (sname, cw.util.join_paths(rel)))
+                self.datalist.InsertItem(index2, "%s - %s" % (sname, cw.util.join_paths(rel)))
                 self.datalist.CheckItem(index2, (index == 0))
                 index2 += 1
 
@@ -976,22 +977,22 @@ class OverwriteScenarioDialog(wx.Dialog):
 
 def create_installdesc(headers_seq):
     if 1 < len(headers_seq):
-        name = u"%s本のシナリオ" % (len(headers_seq))
+        name = "%s本のシナリオ" % (len(headers_seq))
     else:
-        name = headers_seq[0].name if headers_seq[0].name else u"(無名のシナリオ)"
+        name = headers_seq[0].name if headers_seq[0].name else "(無名のシナリオ)"
         if headers_seq[0].author:
-            name += u"(%s)" % headers_seq[0].author
-        name = u"「%s」" % name
+            name += "(%s)" % headers_seq[0].author
+        name = "「%s」" % name
     if cw.cwpy.setting.delete_sourceafterinstalled:
-        desc = u"%sをコピーし、シナリオデータベースに登録します。\n" % (name) + \
-               u"インストール完了後のファイルを削除したい場合は、詳細設定の" + \
-               u"[シナリオ] > [詳細] > [シナリオのインストールに成功したら元ファイルを削除する]で" + \
-               u"設定を変更します。"
+        desc = "%sをコピーし、シナリオデータベースに登録します。\n" % (name) + \
+               "インストール完了後のファイルを削除したい場合は、詳細設定の" + \
+               "[シナリオ] > [詳細] > [シナリオのインストールに成功したら元ファイルを削除する]で" + \
+               "設定を変更します。"
     else:
-        desc = u"%sを移動し、シナリオデータベースに登録します。\n" % (name) + \
-               u"インストール完了後のファイルを削除したくない場合は、詳細設定の" + \
-               u"[シナリオ] > [詳細] > [シナリオのインストールに成功したら元ファイルを削除する]で" + \
-               u"設定を変更します。"
+        desc = "%sを移動し、シナリオデータベースに登録します。\n" % (name) + \
+               "インストール完了後のファイルを削除したくない場合は、詳細設定の" + \
+               "[シナリオ] > [詳細] > [シナリオのインストールに成功したら元ファイルを削除する]で" + \
+               "設定を変更します。"
     return desc
 
 

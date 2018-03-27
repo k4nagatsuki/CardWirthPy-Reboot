@@ -5,7 +5,7 @@ import math
 import pygame
 
 import cw
-import base
+from . import base
 from .. import character
 
 
@@ -332,7 +332,7 @@ class CWPyCard(base.SelectableSprite):
         n = (self._get_dealspeed()+1) * 3
         if self.frame >= n:
             self.rect = pygame.Rect(self.get_animerect())
-            if self.image.get_size() <> self.rect.size:
+            if self.image.get_size() != self.rect.size:
                 self.image = pygame.transform.scale(self.get_animeimage(), self.rect.size)
             self.status = self.old_status
             self.frame = 0
@@ -529,7 +529,7 @@ class CWPyCard(base.SelectableSprite):
         zoom = 0 < len(self.zoomimgs)
 
         if zoom and not self.status in ("zoomin", "zoomout"):
-            if self.status <> "zoomout":
+            if self.status != "zoomout":
                 self.old_status = self.status
                 self.status = "zoomout"
             while self.status == "zoomout":
@@ -541,7 +541,7 @@ class CWPyCard(base.SelectableSprite):
             self.set_pos_noscale(self._pos_noscale, self._center_noscale)
 
         if zoom and not self.status in ("zoomin", "zoomout"):
-            if self.status <> "zoomin":
+            if self.status != "zoomin":
                 self.old_status = self.status
                 self.status = "zoomin"
             while self.status == "zoomin":
@@ -713,11 +713,11 @@ class PlayerCard(CWPyCard, character.Player):
         # スキンの種族設定とキャラクター編集ダイアログでの
         # 編集の噛み合わせで"＠ＥＰ"が消えてしまうバグがあったので
         # ここで修復する(issue #416)
-        if not self.has_coupon(u"＠ＥＰ"):
-            self.set_coupon(u"＠ＥＰ", 0)
+        if not self.has_coupon("＠ＥＰ"):
+            self.set_coupon("＠ＥＰ", 0)
 
         # "：Ｒ"クーポンを所持していたら反転フラグON
-        if self.has_coupon(u"：Ｒ"):
+        if self.has_coupon("：Ｒ"):
             self.reversed = True
             self._reverse()
 
@@ -875,14 +875,14 @@ class PlayerCard(CWPyCard, character.Player):
         level = self.level # 再調節に使用
 
         # レベルアップ
-        if levelup <> 0:
-            base = self.get_specialcoupons()[u"＠レベル原点"]
+        if levelup != 0:
+            base = self.get_specialcoupons()["＠レベル原点"]
             n = base + levelup
             if fromscenario:
                 if 1 < levelup:
                     # 複数回レベルアップした場合はその分回転表示する
                     cw.animation.animate_sprite(self, "levelup")
-                    for i in xrange(levelup - 1):
+                    for i in range(levelup - 1):
                         cw.animation.animate_sprite(self, "hide")
                         self.set_level(base + i + 1, revert_cardpocket=False)
                         cw.animation.animate_sprite(self, "deal")
@@ -894,7 +894,7 @@ class PlayerCard(CWPyCard, character.Player):
                 self.set_level(n, revert_cardpocket=False)
 
         # 回復処理
-        if fromscenario or levelup <> 0:
+        if fromscenario or levelup != 0:
             result = True
             cw.cwpy.play_sound("harvest", True)
             cw.animation.animate_sprite(self, "hide")
@@ -916,7 +916,7 @@ class PlayerCard(CWPyCard, character.Player):
                                                    versionhint=self.versionhint,
                                                    centering_x=False, centering_y=True, boundarycheck=True)
             cw.cwpy.show_message(mwin)
-            if base <> level or cw.cwpy.ydata.party.is_suspendlevelup:
+            if base != level or cw.cwpy.ydata.party.is_suspendlevelup:
                 # レベル調節中だった場合は再調節
                 # レベルアップ停止中であれば元のレベルへ調節
                 cw.animation.animate_sprite(self, "hide")
@@ -955,7 +955,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.escape = mcarddata.getbool(".", "escape", False)
 
         # スケール
-        if moveddata and moveddata[2] <> -1:
+        if moveddata and moveddata[2] != -1:
             self.scale = moveddata[2]
         elif cw.cwpy.is_autospread():
             self.scale = 100
@@ -973,7 +973,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             if not self.initialize():
                 raise Exception()
 
-        if moveddata and moveddata[3] <> -1:
+        if moveddata and moveddata[3] != -1:
             layer = moveddata[3]
         else:
             layer = mcarddata.getint("Property/Layer", -1)
@@ -1034,7 +1034,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         return self._init
 
     def update(self, scr):
-        if self.status <> "hidden" and not self._init:
+        if self.status != "hidden" and not self._init:
             if not self.initialize():
                 return
         CWPyCard.update(self, scr)
@@ -1201,7 +1201,7 @@ class MenuCard(CWPyCard):
         self.arg = data.getattr(".", "arg", "")
 
         # スケール
-        if moveddata and moveddata[2] <> -1:
+        if moveddata and moveddata[2] != -1:
             self.scale = moveddata[2]
         elif cw.cwpy.is_autospread():
             self.scale = 100
@@ -1218,7 +1218,7 @@ class MenuCard(CWPyCard):
         else:
             self.initialize()
 
-        if moveddata and moveddata[3] <> -1:
+        if moveddata and moveddata[3] != -1:
             layer = moveddata[3]
         else:
             layer = data.getint("Property/Layer", -1)
@@ -1310,7 +1310,7 @@ class MenuCard(CWPyCard):
         return self._is_storehouse
 
     def update(self, scr):
-        if self.status <> "hidden" and not self._init:
+        if self.status != "hidden" and not self._init:
             self.initialize()
         CWPyCard.update(self, scr)
 

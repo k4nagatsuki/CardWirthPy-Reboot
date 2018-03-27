@@ -28,7 +28,7 @@ class CardInfo(wx.Dialog):
         dc = wx.ClientDC(self)
         font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(13))
         dc.SetFont(font)
-        size = dc.GetTextExtent(u"―"*19)
+        size = dc.GetTextExtent("―"*19)
         self.textwidth = size[0]
         self.textheight = size[1] * 9
 
@@ -82,7 +82,7 @@ class CardInfo(wx.Dialog):
         ]
         cw.util.set_acceleratortable(self, seq)
 
-        if sys.platform <> "win32":
+        if sys.platform != "win32":
             # BUG: SetBackgroundColour()を呼ばないと色が変わってしまう(Gtk)
             self.toppanel.SetBackgroundColour(self.toppanel.GetBackgroundColour())
             self.SetBackgroundColour(self.GetBackgroundColour())
@@ -97,15 +97,15 @@ class CardInfo(wx.Dialog):
         cw.cwpy.play_sound("equipment")
         s = self.get_source()
         if s:
-            s = u"[ %s ] %s" % (self.selection.name, s)
+            s = "[ %s ] %s" % (self.selection.name, s)
         else:
-            s = u"[ %s ]" % (self.selection.name)
+            s = "[ %s ]" % (self.selection.name)
 
         lines = []
         lines.append(s)
         lines.append(self.get_desc())
-        lines.append(u"")
-        cw.util.to_clipboard(u"\n".join(lines))
+        lines.append("")
+        cw.util.to_clipboard("\n".join(lines))
 
     def OnMouseWheel(self, event):
         if cw.util.has_modalchild(self):
@@ -132,13 +132,13 @@ class CardInfo(wx.Dialog):
     def get_source(self):
         scenario = self.selection.scenario
         author = self.selection.author
-        author = u"(" + author + u")" if author else u""
+        author = "(" + author + ")" if author else ""
         return scenario + author
 
     def get_desc(self):
         s = cw.util.txtwrap(self.selection.desc, 1)
-        if s.count(u"\n") > 8:
-            s = u"\n".join(s.split(u"\n")[0:9])
+        if s.count("\n") > 8:
+            s = "\n".join(s.split("\n")[0:9])
         return s
 
     def draw(self, update=False):
@@ -222,7 +222,7 @@ class MenuCardInfo(CardInfo):
     def __init__(self, parent):
         # カード情報
         self.selection = cw.cwpy.selection
-        self.list = filter(lambda mcard: mcard.desc, cw.cwpy.get_mcards("visiblemenucards"))
+        self.list = [mcard for mcard in cw.cwpy.get_mcards("visiblemenucards") if mcard.desc]
         self.index = self.list.index(self.selection)
         # ダイアログ作成
         CardInfo.__init__(self, parent)

@@ -9,7 +9,7 @@ import pygame
 import pygame.locals
 
 import cw
-import base
+from . import base
 
 
 class MessageWindow(base.CWPySprite):
@@ -47,7 +47,7 @@ class MessageWindow(base.CWPySprite):
         self.names_log = []
         self.imgpaths = imgpaths
         self.text = text
-        self.text_log = u""
+        self.text_log = ""
         self.spcharinfo = spcharinfo
 
         # 話者(CardHeader or Character)
@@ -273,8 +273,8 @@ class MessageWindow(base.CWPySprite):
 
             # 通常のテキスト描画
             if txtimg3:
-                for x in xrange(pos[0]-1, pos[0]+2):
-                    for y in xrange(pos[1]-1, pos[1]+2):
+                for x in range(pos[0]-1, pos[0]+2):
+                    for y in range(pos[1]-1, pos[1]+2):
                         self._back.blit(txtimg3, (x, y-bt))
 
             if txtimg:
@@ -345,9 +345,10 @@ class MessageWindow(base.CWPySprite):
                     self.text = cw.util.txtwrap(self.text, 2, encodedtext=False, spcharinfo=self.spcharinfo)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if cw.cwpy.sct.lessthan("1.28", self.versionhint):
-                def calc_w((bmp, info)):
+                def calc_w(xxx_todo_changeme):
+                    (bmp, info) = xxx_todo_changeme
                     return bmp.get_width()
-                w = max(map(calc_w, self.talker_image))
+                w = max(list(map(calc_w, self.talker_image)))
             else:
                 w = cw.s(74)
             if self.centering_x:
@@ -381,7 +382,7 @@ class MessageWindow(base.CWPySprite):
         self._linerect = None
 
         # 左右接続のために伸ばす文字
-        r_join = re.compile(u"[―─＿￣]")
+        r_join = re.compile("[―─＿￣]")
 
         # 縦方向中央寄せのための基準位置
         self.blocktop_noscale = 0x7fffffff
@@ -412,7 +413,7 @@ class MessageWindow(base.CWPySprite):
                 cnt += 1
                 pos = posp[0], lineheight * cnt + posp[1]
                 y_noscale = lineheight_noscale * cnt + yp_noscale
-                log_seq.append(u"\n")
+                log_seq.append("\n")
                 self._linerect = None
 
                 # 8行以下の文字列は表示しない
@@ -465,7 +466,7 @@ class MessageWindow(base.CWPySprite):
                 # 文字色変更
                 elif r_changecolour.match(chars):
                     colour = self.get_fontcolour(chars[1])
-                    if chars[1] <> '\n':
+                    if chars[1] != '\n':
                         skip = True
                     continue
 
@@ -526,7 +527,7 @@ class MessageWindow(base.CWPySprite):
             self.top_noscale = 0
             self.bottom_noscale = yp_noscale + bottom
 
-        self.text_log = u"".join(log_seq)
+        self.text_log = "".join(log_seq)
         self._linerect = None
         return images
 
@@ -650,7 +651,7 @@ class SelectWindow(MessageWindow):
         self.names_log = []
         self.imgpaths = []
         self.text = cw.cwpy.msgs["select_message"] if not text else text
-        self.text_log = u""
+        self.text_log = ""
         self.spcharinfo = set()
         self.talker = None
         self.talker_name = None
@@ -1037,9 +1038,9 @@ class BacklogPage(base.CWPySprite):
         x = 1
         y = 1
         subimg = font.render(s, True, (0, 0, 0))
-        for xi in xrange(x-1, x+2):
-            for yi in xrange(y-1, y+2):
-                if xi <> x or yi <> y:
+        for xi in range(x-1, x+2):
+            for yi in range(y-1, y+2):
+                if xi != x or yi != y:
                     self.image.blit(subimg, (xi, yi))
         subimg = font.render(s, True, (255, 255, 255))
         self.image.blit(subimg, (x, y))
@@ -1061,7 +1062,7 @@ def decorate(image, angle=8, basecolour=(255, 255, 255)):
     """
     global _decorate_cache, _decorate_cache_upscr
 
-    if _decorate_cache_upscr <> cw.UP_SCR:
+    if _decorate_cache_upscr != cw.UP_SCR:
         _decorate_cache_upscr = cw.UP_SCR
         _decorate_cache = {}
 
@@ -1081,11 +1082,11 @@ def decorate(image, angle=8, basecolour=(255, 255, 255)):
                 # 暗くなりすぎると見えなくなるので明るくしておく
                 decoimg.fill((16, 16, 16, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
 
-            for y in xrange(1, mid, 1):
+            for y in range(1, mid, 1):
                 # グラデーション
                 rect = (0, mid-y, w, 1)
                 c = max(0, y-cw.s(1))*angle
-                if cw.UP_SCR <> 1:
+                if cw.UP_SCR != 1:
                     c = int(float(c) / cw.UP_SCR)
                 color = (c, c, c, 0)
                 decoimg.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
@@ -1159,7 +1160,7 @@ class _NameGetter(object):
         return name
 
 def _reset_nametable(nametable):
-    for name in nametable.itervalues():
+    for name in nametable.values():
         if isinstance(name, _NameGetter):
             name.reset()
 
@@ -1174,7 +1175,7 @@ class NameListItem(object):
 
 def _get_namefromlist(index, namelist):
     item = namelist[index]
-    if isinstance(item.data, (str, unicode)):
+    if isinstance(item.data, str):
         name = item.data
     else:
         name = item.data.name if not item.data is None else item.name
@@ -1182,11 +1183,11 @@ def _get_namefromlist(index, namelist):
     return index, name
 
 def _get_namefromtable(nc, nametable, namelist):
-    data = nametable.get(u"#" + nc, "")
+    data = nametable.get("#" + nc, "")
     if isinstance(data, _NameGetter):
         data = data.get_name()
 
-    if isinstance(data, (str, unicode)):
+    if isinstance(data, str):
         name = data
     else:
         name = data.name if not data is None else ""
@@ -1199,7 +1200,7 @@ def _create_nametable(full, talker):
     def get_random():
         return cw.cwpy.event.get_targetmember("Random")
     selected = cw.cwpy.event.get_targetmember("Selected")\
-               if cw.cwpy.event.has_selectedmember() else u""
+               if cw.cwpy.event.has_selectedmember() else ""
     unselected = cw.cwpy.event.get_targetmember("Unselected")
     if full:
         inusecard = cw.cwpy.event.get_targetmember("Selectedcard")
@@ -1219,7 +1220,7 @@ def _create_nametable(full, talker):
 
     if full:
         # シナリオ内の画像で上書き
-        for key in cw.cwpy.rsrc.specialchars.iterkeys():
+        for key in cw.cwpy.rsrc.specialchars.keys():
             if key in name_table:
                 del name_table[key]
     return name_table
@@ -1247,7 +1248,7 @@ def _get_spstep(name):
 
     if cw.cwpy.sdata.is_wsnversion('2', cardversion):
         lname = name.lower()
-        if lname in u"??selectedplayer":
+        if lname in "??selectedplayer":
             # 選択メンバのパーティ内の番号(Wsn.2)
             # パーティ内の選択メンバがいない場合は"0"
             if cw.cwpy.event.has_selectedmember():
@@ -1256,20 +1257,20 @@ def _get_spstep(name):
                 sel = None
             pcards = cw.cwpy.get_pcards()
             if sel and sel in pcards:
-                pn = u"%d" % (pcards.index(sel)+1)
-                return cw.data.Step(0, u"", [pn], u"", False)
+                pn = "%d" % (pcards.index(sel)+1)
+                return cw.data.Step(0, "", [pn], "", False)
             else:
-                return cw.data.Step(0, u"", [u"0"], u"", False)
+                return cw.data.Step(0, "", ["0"], "", False)
         else:
             # プレイヤーキャラクターの名前(??Player1～6)(Wsn.2)
             pcards = cw.cwpy.get_pcards()
-            players = map(lambda a: u"??player%d" % a, xrange(1, len(pcards)+1))
+            players = ["??player%d" % a for a in range(1, len(pcards)+1)]
             if lname in players:
                 pcard = pcards[players.index(lname)]
-                return cw.data.Step(0, u"", [pcard.name], u"", False)
+                return cw.data.Step(0, "", [pcard.name], "", False)
 
-        if lname.startswith(u"??"):
-            return cw.data.Step(0, u"", [u""], u"", False)
+        if lname.startswith("??"):
+            return cw.data.Step(0, "", [""], "", False)
 
     return None
 
@@ -1394,36 +1395,36 @@ def get_messagelogtext(mwins, lastline=True):
                 if info.path:
                     seq.append(os.path.basename(info.path))
             if seq:
-                name = u" ".join(seq)
+                name = " ".join(seq)
 
         if name:
-            s = u"--< %s >--" % (name)
+            s = "--< %s >--" % (name)
         else:
-            s = u"--"
+            s = "--"
 
         slen = cw.util.get_strlen(s)
         if slen < cw.LOG_SEPARATOR_LEN_SHORT:
-            s += u"-" * (cw.LOG_SEPARATOR_LEN_SHORT-slen)
+            s += "-" * (cw.LOG_SEPARATOR_LEN_SHORT-slen)
         lines.append(s)
-        lines.append(mwin.text_log.strip(u"\n"))
+        lines.append(mwin.text_log.strip("\n"))
         if mwin.names_log and not (len(mwin.names_log) == 1 and mwin.columns == 1 and mwin.names_log[0][1] == cw.cwpy.msgs["ok"]):
             lines.append("")
             for i, sel in enumerate(mwin.names_log):
                 if i == mwin.showing_result and 1 < len(mwin.names_log):
-                    s = u">>[ %s " % (sel[1])
+                    s = ">>[ %s " % (sel[1])
                 else:
-                    s = u"  [ %s " % (sel[1])
+                    s = "  [ %s " % (sel[1])
                 slen = cw.util.get_strlen(s)
                 if slen < (cw.LOG_SEPARATOR_LEN_SHORT-1):
-                    s += u" " * ((cw.LOG_SEPARATOR_LEN_SHORT-1)-slen)
-                s += u"]"
+                    s += " " * ((cw.LOG_SEPARATOR_LEN_SHORT-1)-slen)
+                s += "]"
                 lines.append(s)
 
     if lastline:
-        lines.append(u"-" * cw.LOG_SEPARATOR_LEN_SHORT)
+        lines.append("-" * cw.LOG_SEPARATOR_LEN_SHORT)
         lines.append("")
 
-    return u"\n".join(lines)
+    return "\n".join(lines)
 
 
 def update_scenariopath_for_log(normpath, dst):
@@ -1448,7 +1449,7 @@ def update_scenariopath_for_spchars(restbl, normpath, dst):
     if not restbl:
         return
     restbl.reset()
-    for lazyres in restbl.dic.itervalues():
+    for lazyres in restbl.dic.values():
         dpath = lazyres.args[0]
         rel = cw.util.is_descendant(path=dpath, start=normpath)
         if not rel:
@@ -1471,7 +1472,7 @@ def store_messagelogimage(path, can_loaded_scaledimage):
             def load_with_scaled(dict, scaledimagedict):
                 scaledimagedict.clear()
                 if dict:
-                    for key, value in dict.iteritems():
+                    for key, value in dict.items():
                         scaledimagedict[key] = value
                 else:
                     dict = scaledimagedict
@@ -1486,7 +1487,7 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                     if can_loaded_scaledimage2:
                         spext = os.path.splitext(fpath)
                         for scale in cw.SCALE_LIST:
-                            fname = u"%s.x%s%s" % (spext[0], scale, spext[1])
+                            fname = "%s.x%s%s" % (spext[0], scale, spext[1])
                             if os.path.isfile(fname):
                                 bmp = cw.util.Depth1Surface(cw.util.load_image(fname, True, noscale=True), scale)
                                 scaledimagedict[scale] = bmp
@@ -1497,8 +1498,8 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                 log.imgpaths[i] = (info, can_loaded_scaledimage, basetalker, scaledimagedict)
 
             if cw.cwpy.is_playingscenario():
-                for name in list(log.specialchars.iterkeys()):
-                    fpath = u"font_%s.bmp" % name[1]
+                for name in list(log.specialchars.keys()):
+                    fpath = "font_%s.bmp" % name[1]
                     fpath = cw.util.get_materialpath(fpath, cw.M_IMG, scedir=cw.cwpy.sdata.scedir, findskin=False)
                     # リソースの読込メソッドの差し替えを行い、予めメモリ上に読み込んだ実体を返すようにする
                     # 以前に差し替えが行われているかどうかをLazyResource#argsの長さで見分ける

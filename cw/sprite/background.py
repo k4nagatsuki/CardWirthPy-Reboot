@@ -7,8 +7,8 @@ import pygame
 from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT
 
 import cw
-import base
-import card
+from . import base
+from . import card
 
 
 #-------------------------------------------------------------------------------
@@ -171,10 +171,10 @@ class BackGround(base.CWPySprite):
         if not os.path.isfile(path):
             return
 
-        for dpath in (cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile"), cw.cwpy.sdata.scedir):
+        for dpath in (cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile"), cw.cwpy.sdata.scedir):
             dpath = cw.util.join_paths(dpath)
             if not dpath.endswith("/"):
-                dpath += u"/"
+                dpath += "/"
             if path.startswith(dpath):
                 rel = cw.util.relpath(path, dpath)
                 cw.cwpy.sdata.background_image_mtime[cw.util.join_paths(rel).lower()] = (rel, os.path.getmtime(path))
@@ -184,11 +184,11 @@ class BackGround(base.CWPySprite):
         if not cw.cwpy.is_playingscenario():
             return False
 
-        for key, (rel, mtime) in cw.cwpy.sdata.background_image_mtime.iteritems():
-            for dpath in (cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile"), cw.cwpy.sdata.scedir):
+        for key, (rel, mtime) in cw.cwpy.sdata.background_image_mtime.items():
+            for dpath in (cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile"), cw.cwpy.sdata.scedir):
                 fpath = cw.util.join_paths(dpath, rel)
                 if os.path.isfile(fpath):
-                    if mtime <> os.path.getmtime(fpath):
+                    if mtime != os.path.getmtime(fpath):
                         return True
                     break
         return False
@@ -220,7 +220,7 @@ class BackGround(base.CWPySprite):
             # 画像読み込み
             ext = cw.util.splitext(path)[1].lower()
 
-            if ext <> ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, mask, smoothing) in cw.cwpy.sdata.resource_cache:
+            if ext != ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, mask, smoothing) in cw.cwpy.sdata.resource_cache:
                 return cw.cwpy.sdata.resource_cache[(path, mtime, size, mask, smoothing)].copy(), False, False
 
             if ext == ".jptx":
@@ -240,9 +240,9 @@ class BackGround(base.CWPySprite):
                 image = jpy1.get_image()
             else:
                 image = cw.util.load_image(path, mask, isback=True, can_loaded_scaledimage=can_loaded_scaledimage)
-        except cw.event.EffectBreakError, ex:
+        except cw.event.EffectBreakError as ex:
             raise ex
-        except cw.effectbooster.ScreenRescale, ex:
+        except cw.effectbooster.ScreenRescale as ex:
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
             self._in_playing = True
             raise ex
@@ -257,7 +257,7 @@ class BackGround(base.CWPySprite):
             #        pygame.transform.smoothscale()を行うと
             #        稀にアクセス違反になる事がある
             smoothscale_bg = (cw.cwpy.setting.smoothscale_bg and 1 < image.get_height())
-            if smoothing <> "Default":
+            if smoothing != "Default":
                 smoothscale_bg = cw.util.str2bool(smoothing)
             if smoothscale_bg and not (float(size[0]) % isize[0] == 0 and float(size[1]) % isize[1] == 0):
                 if not (image.get_flags() & pygame.locals.SRCALPHA) and image.get_colorkey():
@@ -332,7 +332,7 @@ class BackGround(base.CWPySprite):
                 delfores = True
                 if flag:
                     # フラグは指定されていても無視される(CardWirth 1.28～1.50)
-                    e.find("Flag").text = u""
+                    e.find("Flag").text = ""
 
         if delfores:
             # 背景非継承の場合は手前のセルはすべて強制削除
@@ -342,7 +342,7 @@ class BackGround(base.CWPySprite):
                     bgs2.append((bgtype, d))
                 else:
                     layer = d[-2]
-                    if layer <> cw.LAYER_BACKGROUND:
+                    if layer != cw.LAYER_BACKGROUND:
                         bgs2.append((bgtype, d))
             self.bgs = bgs2
             del self.foregroundlist[:]
@@ -417,7 +417,7 @@ class BackGround(base.CWPySprite):
                 animated = False
                 afterseps = True
 
-        update |= self.bgs <> oldbgs
+        update |= self.bgs != oldbgs
 
         if update:
             self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, True and redraw, False)
@@ -438,7 +438,7 @@ class BackGround(base.CWPySprite):
         return update
 
     def _create_bgdata(self, e, ignoreeffectbooster=False):
-        assert e.tag <> "Redisplay"
+        assert e.tag != "Redisplay"
         left = e.getint("Location", "left")
         top = e.getint("Location", "top")
         pos = (left, top)
@@ -448,11 +448,11 @@ class BackGround(base.CWPySprite):
         flag = e.gettext("Flag", "")
         layer = e.getint("Layer", cw.LAYER_BACKGROUND)
         visible = e.getattr(".", "visible", "")
-        hasvisible = visible <> ""
-        if visible in (u"True", u"False"):
-            visible = visible == u"True"
+        hasvisible = visible != ""
+        if visible in ("True", "False"):
+            visible = visible == "True"
         else:
-            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+            visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         cellname = e.getattr(".", "cellname", "")
 
@@ -521,7 +521,7 @@ class BackGround(base.CWPySprite):
                 namelist = []
                 for e_name in e_names:
                     type = e_name.getattr(".", "type", "")
-                    name = e_name.text if e_name.text else u""
+                    name = e_name.text if e_name.text else ""
                     if type == "Yado":
                         data = cw.cwpy.ydata
                     elif type == "Party":
@@ -560,13 +560,13 @@ class BackGround(base.CWPySprite):
         else:
             assert False
 
-    def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, cellname=u"", repldata=None,
+    def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, cellname="", repldata=None,
                movedata=None, ignoreeffectbooster=False, nocheckvisible=False):
         return self._reload(doanime, ttype, redraw, False, redisplay=False, cellname=cellname, repldata=repldata,
                             movedata=movedata, ignoreeffectbooster=ignoreeffectbooster, nocheckvisible=nocheckvisible)
 
     def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False,
-                redisplay=True, beforeload=False, cellname=u"", repldata=None, movedata=None, ignoreeffectbooster=False):
+                redisplay=True, beforeload=False, cellname="", repldata=None, movedata=None, ignoreeffectbooster=False):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
@@ -698,7 +698,7 @@ class BackGround(base.CWPySprite):
                     cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
                 animated = False
 
-        update |= self.bgs <> bgs
+        update |= self.bgs != bgs
 
         if bginhrt and not blitlist:
             update = False
@@ -744,7 +744,7 @@ class BackGround(base.CWPySprite):
         if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR, BG_PC):
             visible = d[-3]
             flag = d[-4]
-            return bool(visible) <> bool(cw.cwpy.sdata.flags.get(flag, True))
+            return bool(visible) != bool(cw.cwpy.sdata.flags.get(flag, True))
         else:
             return False
 
@@ -752,7 +752,7 @@ class BackGround(base.CWPySprite):
         if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR, BG_PC):
             return d[-1]
         else:
-            return u""
+            return ""
 
     def _move_bgdata(self, bgtype, d, movedata):
         positiontype, x, y, sizetype, width, height = movedata
@@ -803,7 +803,7 @@ class BackGround(base.CWPySprite):
                                                  nocheckvisible=nocheckvisible, can_loaded_scaledimage=scaledimage)
 
         ext = os.path.splitext(path)[1].lower()
-        if not anime and ext <> ".jpdc" and pygame.Rect(pos, size).contains(pygame.Rect((0, 0), cw.SIZE_AREA)) and visible and not mask and not flag:
+        if not anime and ext != ".jpdc" and pygame.Rect(pos, size).contains(pygame.Rect((0, 0), cw.SIZE_AREA)) and visible and not mask and not flag:
             if image and not image.get_colorkey() and not (image.get_flags() & pygame.locals.SRCALPHA):
                 # 背景を覆ったので非継承の背景を実際に削除する
                 if 0 < self._inhrt_index:
@@ -812,7 +812,7 @@ class BackGround(base.CWPySprite):
                 bginhrt = False
                 self._inhrt_index = 0
 
-        if image and image.get_size() <> (0, 0):
+        if image and image.get_size() != (0, 0):
             self.store_filepath(path)
             d2 = (image, size, pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
@@ -831,7 +831,7 @@ class BackGround(base.CWPySprite):
         text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,\
             btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
-            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+            visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
         if flagvalue and not loaded:
@@ -856,7 +856,7 @@ class BackGround(base.CWPySprite):
                 d2 = (image, size, pos, 0)
             else:
                 # アンチエイリアスの関係で後から描画
-                if btype <> "Outline":
+                if btype != "Outline":
                     bcolor = None
                 bgtype = BG_TEXT
                 d2 = (text2, face, tsize, color, bold, italic, underline, strike, vertical,
@@ -873,7 +873,7 @@ class BackGround(base.CWPySprite):
     def _add_colorcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
         blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
-            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+            visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         if nocheckvisible:
             flagvalue = visible
@@ -887,7 +887,7 @@ class BackGround(base.CWPySprite):
             elif blend == "Subtract":
                 blendflag = BLEND_SUB
             elif blend == "Multiply":
-                if color1[3] <> 255 or (gradient in ("LeftToRight", "TopToBottom") and color2[3] <> 255):
+                if color1[3] != 255 or (gradient in ("LeftToRight", "TopToBottom") and color2[3] != 255):
                     blendflag = BLEND_RGBA_MULT
                 else:
                     blendflag = BLEND_MULT
@@ -904,7 +904,7 @@ class BackGround(base.CWPySprite):
     def _add_pccell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
         pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
-            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+            visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         if nocheckvisible:
             flagvalue = visible
@@ -950,7 +950,7 @@ class BackGround(base.CWPySprite):
                     image.blit(cw.s(bmp), (baserect.x, baserect.y))
 
                 smoothscale_bg = cw.cwpy.setting.smoothscale_bg
-                if smoothing <> "Default":
+                if smoothing != "Default":
                     smoothscale_bg = cw.util.str2bool(smoothing)
                 if smoothscale_bg:
                     image = cw.image.smoothscale(image, cw.s(size))
@@ -1206,7 +1206,7 @@ class BattleCardImage(card.CWPyCard):
         card.CWPyCard.__init__(self, "hidden")
         path = "Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        cardimg = cw.image.CardImage([cw.image.ImageInfo(path)], "NORMAL", u"", can_loaded_scaledimage=True)
+        cardimg = cw.image.CardImage([cw.image.ImageInfo(path)], "NORMAL", "", can_loaded_scaledimage=True)
         image = cardimg.get_image()
         self.image = self._image = self.image_unzoomed = image
         self.rect = self._rect = self.image.get_rect()
@@ -1487,9 +1487,9 @@ class NumberOfCards(base.CWPySprite):
 
         self.image = pygame.Surface((w+2, h+2)).convert_alpha()
         self.image.fill((0, 0, 0, 0))
-        for x in xrange(3):
-            for y in xrange(3):
-                if x <> 1 or y <> 1:
+        for x in range(3):
+            for y in range(3):
+                if x != 1 or y != 1:
                     self.image.blit(image, (x, y))
         image.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
         self.image.blit(image, (1, 1))
@@ -1533,7 +1533,7 @@ class PriceOfCard(base.CWPySprite):
 
         x, y, w, h = self.mcard.rect
         font = cw.cwpy.rsrc.fonts["price"]
-        s = u"%s" % (self.header.sellingprice if self.header.can_selling() else u"---")
+        s = "%s" % (self.header.sellingprice if self.header.can_selling() else "---")
 
         _pw, ph = font.size_withoutoverhang(s)
         maxwidth = w - margw*2
@@ -1556,9 +1556,9 @@ class PriceOfCard(base.CWPySprite):
         subimg, subimg2 = imgs
 
         px = (self.rect.width-subimg.get_width())//2
-        for xx in xrange(-1, 2):
-            for yy in xrange(-1, 2):
-                if xx <> x or yy <> y:
+        for xx in range(-1, 2):
+            for yy in range(-1, 2):
+                if xx != x or yy != y:
                     self.image.blit(subimg2, (px+xx, padh+yy))
         self.image.blit(subimg, (px, padh))
 

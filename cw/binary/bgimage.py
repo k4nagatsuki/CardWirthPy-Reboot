@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
+from . import base
 
 import cw
 
@@ -50,12 +50,12 @@ class BgImage(base.CWBinaryBase):
                 a = f.ubyte()
                 self.color = (r, g, b, a)
                 style = f.byte()
-                self.bold      = (style & 0b00000001) <> 0
-                self.italic    = (style & 0b00000010) <> 0
-                self.underline = (style & 0b00000100) <> 0
-                self.strike    = (style & 0b00001000) <> 0
-                self.bordering = (style & 0b00010000) <> 0
-                self.vertical  = (style & 0b00100000) <> 0
+                self.bold      = (style & 0b00000001) != 0
+                self.italic    = (style & 0b00000010) != 0
+                self.underline = (style & 0b00000100) != 0
+                self.strike    = (style & 0b00001000) != 0
+                self.bordering = (style & 0b00010000) != 0
+                self.vertical  = (style & 0b00100000) != 0
                 if self.bordering:
                     self.btype = f.byte()
                     r = f.ubyte()
@@ -85,7 +85,7 @@ class BgImage(base.CWBinaryBase):
                 r = f.ubyte()
                 a = f.ubyte()
                 self.color1 = (r, g, b, a)
-                if self.gradient <> 0:
+                if self.gradient != 0:
                     b = f.ubyte() # RGBの順序が逆
                     g = f.ubyte()
                     r = f.ubyte()
@@ -146,7 +146,7 @@ class BgImage(base.CWBinaryBase):
                 e = makecolor("Color", self.color1)
                 self.data.append(e)
 
-                if self.gradient <> 0:
+                if self.gradient != 0:
                     dire = self.conv_gradientdir(self.gradient)
                     e = cw.data.make_element("Gradient", attrs={"direction": dire})
                     e.append(makecolor("EndColor", self.color2))
@@ -174,7 +174,7 @@ class BgImage(base.CWBinaryBase):
         unknown = 0
 
         if data.get("cellname", ""):
-            f.check_wsnversion("1", u"セル名称")
+            f.check_wsnversion("1", "セル名称")
 
         # 背景画像
         imgpath = ""
@@ -222,7 +222,7 @@ class BgImage(base.CWBinaryBase):
                     imgpath = e.text
 
             elif data.tag == "TextCell":
-                f.check_version(1.50, u"テキストセル")
+                f.check_version(1.50, "テキストセル")
                 if e.tag == "Text":
                     text = e.text
                 elif e.tag == "Font":
@@ -245,7 +245,7 @@ class BgImage(base.CWBinaryBase):
                             bcolor = getcolor(e_bdr, bcolor)
 
             elif data.tag == "ColorCell":
-                f.check_version(1.50, u"カラーセル")
+                f.check_version(1.50, "カラーセル")
                 if e.tag == "BlendMode":
                     blend = base.CWBinaryBase.unconv_blendmode(e.text)
                 elif e.tag == "Color":
@@ -257,7 +257,7 @@ class BgImage(base.CWBinaryBase):
                             color2 = getcolor(e_grd, color2)
 
             elif data.tag == "PCCell":
-                f.check_wsnversion("1", u"プレイヤーキャラクターセル")
+                f.check_wsnversion("1", "プレイヤーキャラクターセル")
 
         if data.tag == "BgImage":
             f.write_dword(left)
@@ -270,7 +270,7 @@ class BgImage(base.CWBinaryBase):
             f.write_byte(unknown)
 
         elif data.tag == "TextCell":
-            f.check_version(1.50, u"テキストセル")
+            f.check_version(1.50, "テキストセル")
             f.write_dword(left)
             f.write_dword(top)
             f.write_dword(width + 60000)
@@ -289,10 +289,10 @@ class BgImage(base.CWBinaryBase):
             if italic:      style |= 0b00000010
             if underline:   style |= 0b00000100
             if strike:      style |= 0b00001000
-            if btype <> -1: style |= 0b00010000
+            if btype != -1: style |= 0b00010000
             if vertical:    style |= 0b00100000
             f.write_byte(style)
-            if btype <> -1:
+            if btype != -1:
                 f.write_byte(btype)
                 f.write_ubyte(bcolor[0])
                 f.write_ubyte(bcolor[1])
@@ -307,14 +307,14 @@ class BgImage(base.CWBinaryBase):
             f.write_byte(unknown)
 
         elif data.tag == "ColorCell":
-            f.check_version(1.50, u"カラーセル")
+            f.check_version(1.50, "カラーセル")
             f.write_byte(blend)
             f.write_byte(gradient)
             f.write_ubyte(color1[2]) # RGBの順序が逆
             f.write_ubyte(color1[1])
             f.write_ubyte(color1[0])
             f.write_ubyte(color1[3])
-            if gradient <> 0:
+            if gradient != 0:
                 f.write_ubyte(color2[2]) # RGBの順序が逆
                 f.write_ubyte(color2[1])
                 f.write_ubyte(color2[0])
@@ -323,7 +323,7 @@ class BgImage(base.CWBinaryBase):
             f.write_byte(unknown)
 
         elif data.tag == "PCCell":
-            f.check_wsnversion("1", u"プレイヤーキャラクターセル")
+            f.check_wsnversion("1", "プレイヤーキャラクターセル")
 
 def main():
     pass

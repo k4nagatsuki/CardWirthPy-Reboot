@@ -13,7 +13,7 @@ class UnsupportedError(Exception):
     """指定されたエンジンバージョンで使用できない機能を
     逆変換しようとした際に投げられる。
     """
-    def __init__(self, msg=None, funcname=u""):
+    def __init__(self, msg=None, funcname=""):
         Exception.__init__(self)
         self.msg = msg
         self.funcname = funcname
@@ -60,7 +60,7 @@ class CWFile(io.BufferedReader):
         dword = self.dword()
 
         if dword:
-            return unicode(self.read(dword), cw.MBCS).strip("\x00")
+            return str(self.read(dword), cw.MBCS).strip("\x00")
         else:
             return ""
 
@@ -117,43 +117,43 @@ class CWFileWriter(io.BufferedWriter):
         self.targetengine = targetengine
         self.write_errorlog = write_errorlog
 
-    def check_version(self, engineversion, funcname=u""):
+    def check_version(self, engineversion, funcname=""):
         """指定されたエンジンバージョンよりもengineversionが
         新しければUnsupportedErrorを投げる。
         """
         if self.targetengine is None:
             return
-        if isinstance(engineversion, (str, unicode)):
+        if isinstance(engineversion, str):
             raise UnsupportedError(funcname=funcname)
         else:
             if self.targetengine < engineversion:
                 raise UnsupportedError(funcname=funcname)
 
-    def check_wsnversion(self, wsnversion, funcname=u""):
+    def check_wsnversion(self, wsnversion, funcname=""):
         """指定されたWSNデータバージョンにかかわらず
         UnsupportedErrorを投げる。
         """
         raise UnsupportedError(funcname=funcname)
 
     def check_bgmoptions(self, data):
-        if data.getint(".", "volume", 100) <> 100:
-            self.check_wsnversion("1", u"BGM音量の指定")
-        if data.getint(".", "loopcount", 0) <> 0:
-            self.check_wsnversion("1", u"BGMループ回数の指定")
-        if data.getint(".", "channel", 0) <> 0:
-            self.check_wsnversion("1", u"BGM再生チャンネルの指定")
-        if data.getint(".", "fadein", 0) <> 0:
-            self.check_wsnversion("1", u"BGMフェードイン")
+        if data.getint(".", "volume", 100) != 100:
+            self.check_wsnversion("1", "BGM音量の指定")
+        if data.getint(".", "loopcount", 0) != 0:
+            self.check_wsnversion("1", "BGMループ回数の指定")
+        if data.getint(".", "channel", 0) != 0:
+            self.check_wsnversion("1", "BGM再生チャンネルの指定")
+        if data.getint(".", "fadein", 0) != 0:
+            self.check_wsnversion("1", "BGMフェードイン")
 
     def check_soundoptions(self, data):
-        if data.getint(".", "volume", 100) <> 100:
-            self.check_wsnversion("1", u"効果音音量の指定")
-        if data.getint(".", "loopcount", 1) <> 1:
-            self.check_wsnversion("1", u"効果音ループ回数の指定")
-        if data.getint(".", "channel", 0) <> 0:
-            self.check_wsnversion("1", u"効果音再生チャンネルの指定")
-        if data.getint(".", "fadein", 0) <> 0:
-            self.check_wsnversion("1", u"効果音フェードイン")
+        if data.getint(".", "volume", 100) != 100:
+            self.check_wsnversion("1", "効果音音量の指定")
+        if data.getint(".", "loopcount", 1) != 1:
+            self.check_wsnversion("1", "効果音ループ回数の指定")
+        if data.getint(".", "channel", 0) != 0:
+            self.check_wsnversion("1", "効果音再生チャンネルの指定")
+        if data.getint(".", "fadein", 0) != 0:
+            self.check_wsnversion("1", "効果音フェードイン")
 
     def write_bool(self, b):
         self.write_byte(1 if b else 0)

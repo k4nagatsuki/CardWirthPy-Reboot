@@ -42,11 +42,11 @@ class Deck(object):
     def get_actioncards(self, ccard):
         seq = []
 
-        for resid, header in cw.cwpy.rsrc.actioncards.iteritems():
+        for resid, header in cw.cwpy.rsrc.actioncards.items():
             if resid == 7 and not ccard.escape:
                 continue # 逃走しない
             if resid > 0:
-                for _cnt in xrange(header.uselimit):
+                for _cnt in range(header.uselimit):
                     seq.append(header)
 
         return seq
@@ -57,7 +57,7 @@ class Deck(object):
         for header in ccard.get_pocketcards(cw.POCKET_SKILL):
             uselimit, _maxn = header.get_uselimit()
 
-            for _cnt in xrange(uselimit - handcounts.get(header, 0)):
+            for _cnt in range(uselimit - handcounts.get(header, 0)):
                 seq.append(header)
 
         return seq
@@ -151,7 +151,7 @@ class Deck(object):
         elif header.type == "SkillCard":
             uselimit, _maxn = header.get_uselimit()
 
-            for _cnt in xrange(uselimit):
+            for _cnt in range(uselimit):
                 self.talon.append(header)
 
             self.shuffle()
@@ -172,7 +172,7 @@ class Deck(object):
         # 一旦山札から全てのスキルを取り除く
         talon = []
         for header in self.talon:
-            if header.type <> "SkillCard":
+            if header.type != "SkillCard":
                 talon.append(header)
         self.talon = talon
 

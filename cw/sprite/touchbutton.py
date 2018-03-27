@@ -5,7 +5,7 @@ import pygame
 import pygame.locals
 
 import cw
-import base
+from . import base
 
 
 class TouchButton(base.SelectableSprite):
@@ -40,7 +40,7 @@ class TouchButton(base.SelectableSprite):
     def update_scale(self):
         assert self.name
         if self.hotkey:
-            title = u"%s(%s)" % (self.name, self.hotkey)
+            title = "%s(%s)" % (self.name, self.hotkey)
         else:
             title = self.name
 
@@ -122,7 +122,7 @@ class TouchButton(base.SelectableSprite):
         return tw
 
     def update(self, scr):
-        if self.status <> "shiftup":
+        if self.status != "shiftup":
             self._shift_start_top = None
         base.SelectableSprite.update(self, scr)
 
@@ -162,7 +162,7 @@ class TouchButton(base.SelectableSprite):
 
     def rclick_event(self):
         """右クリックイベント。"""
-        cw.cwpy.play_sound(u"click")
+        cw.cwpy.play_sound("click")
         cw.cwpy.statusbar.hide_touchbuttons()
 
 
@@ -175,11 +175,11 @@ class _PointableTile(TouchButton):
         TouchButton.__init__(self, icon, name, desc, hotkey, func, is_enabled, width)
 
     def update_selection(self):
-        if self.status <> "normal":
+        if self.status != "normal":
             return
 
         if not cw.cwpy.is_lockmenucards(self):
-            if self.is_pointed <> self.is_selection():
+            if self.is_pointed != self.is_selection():
                 self.is_pointed = not self.is_pointed
                 if self.is_pointed:
                     self.image = self.get_selectedimage()
@@ -230,7 +230,7 @@ class SwitchSpriteTile(_PointableTile):
     画面上のスプライトを順番に選択するタイル。
     """
     def __init__(self, icon, move_count, width=0):
-        _PointableTile.__init__(self, icon, u"", u"", u"", lambda: None, can_selectsprite, width=width)
+        _PointableTile.__init__(self, icon, "", "", "", lambda: None, can_selectsprite, width=width)
         self.move_count = move_count
 
     def update_scale(self):
@@ -272,7 +272,7 @@ class SimplePointableTile(_PointableTile):
     選択されたスプライトのクリックイベントを発生させるタイル。
     """
     def __init__(self, icon, name, func, is_enabled, width=0):
-        _PointableTile.__init__(self, icon, name, u"", u"", func, is_enabled, width=width)
+        _PointableTile.__init__(self, icon, name, "", "", func, is_enabled, width=width)
 
     def update_scale(self):
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
@@ -323,7 +323,7 @@ class VolumeTile(TouchButton):
 
     def __init__(self, width=0):
         icon = cw.cwpy.rsrc.pygamedialogs["VOLUME"]
-        TouchButton.__init__(self, icon, u"", u"", u"", lambda: None, lambda: True, width=width)
+        TouchButton.__init__(self, icon, "", "", "", lambda: None, lambda: True, width=width)
 
     def update_scale(self):
         font = cw.cwpy.rsrc.fonts["sbarprogress"]
@@ -367,7 +367,7 @@ class VolumeTile(TouchButton):
             image.fill(volcolor, volrect)
 
             # 音量文字列
-            s = u"%s%%" % int(cw.cwpy.setting.vol_master*100)
+            s = "%s%%" % int(cw.cwpy.setting.vol_master*100)
             tw, th = font.size(s)
             tx = self.padrect.x + (self.padrect.width-tw)//2
             ty = self.padrect.y + (self.padrect.height-th)//2
@@ -375,7 +375,7 @@ class VolumeTile(TouchButton):
             subimg.fill((0, 0, 0, 96), special_flags=pygame.locals.BLEND_RGBA_SUB)
             for tx2 in (-1, 0, 1):
                 for ty2 in (-1, 0, 1):
-                    if tx2 <> 0 or ty2 <> 0:
+                    if tx2 != 0 or ty2 != 0:
                         image.blit(subimg, (tx+tx2, ty+ty2))
             subimg = font.render(s, True, (255, 255, 255))
             image.blit(subimg, (tx, ty))

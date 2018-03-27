@@ -243,7 +243,7 @@ class BattleEngine(object):
 
         if cw.cwpy.is_autospread():
             ecards = cw.cwpy.get_mcards("flagtrue")
-            if self.numenemy <> len(ecards):
+            if self.numenemy != len(ecards):
                 self.numenemy = len(ecards)
                 cw.cwpy.sdata.moved_mcards = {} # 再配置情報を破棄
                 cw.cwpy.set_autospread(ecards, 6, False, anime=True)
@@ -426,7 +426,7 @@ class BattleEngine(object):
             bisect.insort(members, o)
 
         assert len(members) == len(self.members)
-        self.members = map(lambda o: o[2], members)
+        self.members = [o[2] for o in members]
 
     def set_action(self):
         """戦闘参加メンバ全員、行動自動選択。"""

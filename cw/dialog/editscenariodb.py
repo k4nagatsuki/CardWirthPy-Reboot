@@ -18,23 +18,23 @@ class ConstructScenarioDB(wx.Dialog):
         """シナリオ検索の始点から見つかる全てのシナリオを
         シナリオDBに登録する。
         """
-        wx.Dialog.__init__(self, parent, -1, u"シナリオデータベースの構築",
+        wx.Dialog.__init__(self, parent, -1, "シナリオデータベースの構築",
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.dpaths = dpaths
-        self._message = u"フォルダの一覧を作成しています..."
+        self._message = "フォルダの一覧を作成しています..."
         self._curnum = 0
         self._complete = False
         self._cancel = False
         self._clear = False
 
-        self.text = wx.StaticText(self, -1, u"シナリオフォルダを起点として発見できる全てのシナリオを\nシナリオデータベースに登録します。\nデータベースに登録されたシナリオはシナリオ選択ダイアログで\n高速に表示できる他、検索で発見できるようになります。\nシナリオデータベースの構築を開始しますか？")
+        self.text = wx.StaticText(self, -1, "シナリオフォルダを起点として発見できる全てのシナリオを\nシナリオデータベースに登録します。\nデータベースに登録されたシナリオはシナリオ選択ダイアログで\n高速に表示できる他、検索で発見できるようになります。\nシナリオデータベースの構築を開始しますか？")
 
-        self.clear = wx.CheckBox(self, -1, u"構築前にデータベースを初期化する")
+        self.clear = wx.CheckBox(self, -1, "構築前にデータベースを初期化する")
 
         # btn
-        self.okbtn = wx.Button(self, -1, u"構築開始...")
-        self.cnclbtn = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
+        self.okbtn = wx.Button(self, -1, "構築開始...")
+        self.cnclbtn = wx.Button(self, wx.ID_CANCEL, "キャンセル")
 
         self._do_layout()
         self._bind()
@@ -63,7 +63,7 @@ class ConstructScenarioDB(wx.Dialog):
         self.Layout()
 
     def construct_scenariodb(self):
-        self._message = u"フォルダの一覧を作成しています..."
+        self._message = "フォルダの一覧を作成しています..."
         self._curnum = 0
 
         while not cw.scenariodb.ScenariodbUpdatingThread.is_finished():
@@ -71,10 +71,10 @@ class ConstructScenarioDB(wx.Dialog):
 
         d = {}
         count = 0
-        for i, (skintype, dpaths) in enumerate(self.dpaths.iteritems()):
+        for i, (skintype, dpaths) in enumerate(self.dpaths.items()):
             if self._cancel:
                 break
-            self._message = u"フォルダの一覧を作成しています... (%s/%s)" % (i+1, len(self.dpaths))
+            self._message = "フォルダの一覧を作成しています... (%s/%s)" % (i+1, len(self.dpaths))
             if skintype in d:
                 s = d[skintype]
             else:
@@ -93,13 +93,13 @@ class ConstructScenarioDB(wx.Dialog):
             db.delete_all(commit=False)
 
         completed = 0
-        for skintype, dpaths in d.iteritems():
+        for skintype, dpaths in d.items():
             if self._cancel:
                 break
             for dpath in dpaths:
                 if self._cancel:
                     break
-                self._message = u"シナリオを登録しています... (%s/%s)" % (completed+1, count)
+                self._message = "シナリオを登録しています... (%s/%s)" % (completed+1, count)
                 db.update(dpath=dpath, skintype=skintype, commit=False)
                 completed += 1
                 self._curnum = len(self.dpaths) + int((float(completed)/count)*100)
@@ -107,7 +107,7 @@ class ConstructScenarioDB(wx.Dialog):
         if not self._cancel:
             db.commit()
 
-            self._message = u"データベース内の空領域を再編成しています..."
+            self._message = "データベース内の空領域を再編成しています..."
             db.vacuum()
 
         db.close()
@@ -117,12 +117,12 @@ class ConstructScenarioDB(wx.Dialog):
     def OnClickOkBtn(self, event):
         # プログレスダイアログ表示
         dlg = cw.dialog.progress.SysProgressDialog(self,
-            u"シナリオデータベースの構築", u"",
+            "シナリオデータベースの構築", "",
             maximum=100+len(self.dpaths)+1,
             cancelable=True)
         cw.cwpy.frame.move_dlg(dlg)
 
-        self._message = u"フォルダの一覧を作成しています..."
+        self._message = "フォルダの一覧を作成しています..."
         self._curnum = 0
         self._complete = False
         self._cancel = False
@@ -146,6 +146,6 @@ class ConstructScenarioDB(wx.Dialog):
         thread2.join()
 
         if not self._cancel:
-            s = u"データベースの構築が完了しました。"
-            wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_INFORMATION, self)
+            s = "データベースの構築が完了しました。"
+            wx.MessageBox(s, "メッセージ", wx.OK|wx.ICON_INFORMATION, self)
             self.Destroy()

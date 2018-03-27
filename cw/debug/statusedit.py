@@ -13,7 +13,7 @@ import cw
 class StatusEditDialog(wx.Dialog):
 
     def __init__(self, parent, mlist, selected=-1):
-        wx.Dialog.__init__(self, parent, -1, u"キャラクターの状態の編集",
+        wx.Dialog.__init__(self, parent, -1, "キャラクターの状態の編集",
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.SetDoubleBuffered(True)
@@ -44,7 +44,7 @@ class StatusEditDialog(wx.Dialog):
                            self.avoid, self.resist, self.defense]
 
         # 対象者
-        self.targets = [u"全員"]
+        self.targets = ["全員"]
         for pcard in self.pcards:
             self.targets.append(pcard.get_name())
         self.target = wx.ComboBox(self, -1, choices=self.targets, style=wx.CB_READONLY)
@@ -57,9 +57,9 @@ class StatusEditDialog(wx.Dialog):
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
 
         # 全快
-        self.rcvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"全快")
+        self.rcvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="全快")
         # 復旧
-        self.restorebtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"復旧")
+        self.restorebtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="復旧")
 
         # 決定
         self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
@@ -132,7 +132,7 @@ class StatusEditDialog(wx.Dialog):
 
     @staticmethod
     def _value(oldvalue, newvalue, force=True, defvalue=None):
-        if not force and oldvalue <> newvalue:
+        if not force and oldvalue != newvalue:
             return defvalue
         return newvalue
 
@@ -228,7 +228,7 @@ class StatusEditDialog(wx.Dialog):
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.life, (i == 0), 100)
 
-        dlg = cw.dialog.edit.NumberEditDialog(self, u"現生命点(%)", value, 0, 100, 10)
+        dlg = cw.dialog.edit.NumberEditDialog(self, "現生命点(%)", value, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -241,7 +241,7 @@ class StatusEditDialog(wx.Dialog):
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.poison, (i == 0), 0)
 
-        dlg = cw.dialog.edit.NumberEditDialog(self, u"毒性値(中毒)", value, 0, 40, 5)
+        dlg = cw.dialog.edit.NumberEditDialog(self, "毒性値(中毒)", value, 0, 40, 5)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -254,7 +254,7 @@ class StatusEditDialog(wx.Dialog):
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.paralyze, (i == 0), 0)
 
-        dlg = cw.dialog.edit.NumberEditDialog(self, u"毒性値(麻痺)", value, 0, 40, 5)
+        dlg = cw.dialog.edit.NumberEditDialog(self, "毒性値(麻痺)", value, 0, 40, 5)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -270,12 +270,12 @@ class StatusEditDialog(wx.Dialog):
             duration = self._value(value, status.mentality_dur, (i == 0), 0)
 
         STATUSES = [
-            ("Normal",   u"正常", cw.cwpy.rsrc.wxstatuses["MIND0"]),
-            ("Sleep",    u"眠り", cw.cwpy.rsrc.wxstatuses["MIND1"]),
-            ("Confuse",  u"混乱", cw.cwpy.rsrc.wxstatuses["MIND2"]),
-            ("Overheat", u"激昂", cw.cwpy.rsrc.wxstatuses["MIND3"]),
-            ("Brave",    u"勇敢", cw.cwpy.rsrc.wxstatuses["MIND4"]),
-            ("Panic",    u"恐慌", cw.cwpy.rsrc.wxstatuses["MIND5"]),
+            ("Normal",   "正常", cw.cwpy.rsrc.wxstatuses["MIND0"]),
+            ("Sleep",    "眠り", cw.cwpy.rsrc.wxstatuses["MIND1"]),
+            ("Confuse",  "混乱", cw.cwpy.rsrc.wxstatuses["MIND2"]),
+            ("Overheat", "激昂", cw.cwpy.rsrc.wxstatuses["MIND3"]),
+            ("Brave",    "勇敢", cw.cwpy.rsrc.wxstatuses["MIND4"]),
+            ("Panic",    "恐慌", cw.cwpy.rsrc.wxstatuses["MIND5"]),
         ]
 
         seq = []
@@ -285,9 +285,9 @@ class StatusEditDialog(wx.Dialog):
             if stdata[0] == value:
                 selected = i
 
-        dlg = cw.dialog.edit.NumberComboEditDialog(self, u"精神状態",
-                                                   u"精神状態", seq, selected,
-                                                   u"継続時間", duration, 0, 100, 10)
+        dlg = cw.dialog.edit.NumberComboEditDialog(self, "精神状態",
+                                                   "精神状態", seq, selected,
+                                                   "継続時間", duration, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -301,7 +301,7 @@ class StatusEditDialog(wx.Dialog):
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.bind, (i == 0), 0)
 
-        dlg = cw.dialog.edit.NumberEditDialog(self, u"継続時間(呪縛)", value, 0, 100, 10)
+        dlg = cw.dialog.edit.NumberEditDialog(self, "継続時間(呪縛)", value, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -314,7 +314,7 @@ class StatusEditDialog(wx.Dialog):
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.silence, (i == 0), 0)
 
-        dlg = cw.dialog.edit.NumberEditDialog(self, u"継続時間(沈黙)", value, 0, 100, 10)
+        dlg = cw.dialog.edit.NumberEditDialog(self, "継続時間(沈黙)", value, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -327,7 +327,7 @@ class StatusEditDialog(wx.Dialog):
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.faceup, (i == 0), 0)
 
-        dlg = cw.dialog.edit.NumberEditDialog(self, u"継続時間(暴露)", value, 0, 100, 10)
+        dlg = cw.dialog.edit.NumberEditDialog(self, "継続時間(暴露)", value, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -340,7 +340,7 @@ class StatusEditDialog(wx.Dialog):
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.antimagic, (i == 0), 0)
 
-        dlg = cw.dialog.edit.NumberEditDialog(self, u"継続時間(魔法無効)", value, 0, 100, 10)
+        dlg = cw.dialog.edit.NumberEditDialog(self, "継続時間(魔法無効)", value, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -355,9 +355,9 @@ class StatusEditDialog(wx.Dialog):
             value = self._value(value, status.enhance_act, (i == 0), 0)
             duration = self._value(duration, status.enhance_act_dur, (i == 0), 0)
 
-        dlg = cw.dialog.edit.Number2EditDialog(self, u"行動力修正",
-                                               u"修正値", value, -10, 10, 2,
-                                               u"継続時間", duration, 0, 100, 10)
+        dlg = cw.dialog.edit.Number2EditDialog(self, "行動力修正",
+                                               "修正値", value, -10, 10, 2,
+                                               "継続時間", duration, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -373,9 +373,9 @@ class StatusEditDialog(wx.Dialog):
             value = self._value(value, status.enhance_avo, (i == 0), 0)
             duration = self._value(duration, status.enhance_avo_dur, (i == 0), 0)
 
-        dlg = cw.dialog.edit.Number2EditDialog(self, u"回避力修正",
-                                               u"修正値", value, -10, 10, 2,
-                                               u"継続時間", duration, 0, 100, 10)
+        dlg = cw.dialog.edit.Number2EditDialog(self, "回避力修正",
+                                               "修正値", value, -10, 10, 2,
+                                               "継続時間", duration, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -391,9 +391,9 @@ class StatusEditDialog(wx.Dialog):
             value = self._value(value, status.enhance_res, (i == 0), 0)
             duration = self._value(duration, status.enhance_res_dur, (i == 0), 0)
 
-        dlg = cw.dialog.edit.Number2EditDialog(self, u"抵抗力修正",
-                                               u"修正値", value, -10, 10, 2,
-                                               u"継続時間", duration, 0, 100, 10)
+        dlg = cw.dialog.edit.Number2EditDialog(self, "抵抗力修正",
+                                               "修正値", value, -10, 10, 2,
+                                               "継続時間", duration, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -409,9 +409,9 @@ class StatusEditDialog(wx.Dialog):
             value = self._value(value, status.enhance_def, (i == 0), 0)
             duration = self._value(duration, status.enhance_def_dur, (i == 0), 0)
 
-        dlg = cw.dialog.edit.Number2EditDialog(self, u"防御力修正",
-                                               u"修正値", value, -10, 10, 2,
-                                               u"継続時間", duration, 0, 100, 10)
+        dlg = cw.dialog.edit.Number2EditDialog(self, "防御力修正",
+                                               "修正値", value, -10, 10, 2,
+                                               "継続時間", duration, 0, 100, 10)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for status in self._get_statuses():
@@ -481,7 +481,7 @@ class Status(object):
             self.life = pcard.life
         # 精神状態
         self.mentality = pcard.mentality
-        if self.mentality <> "Normal":
+        if self.mentality != "Normal":
             self.mentality_dur = pcard.mentality_dur
         else:
             self.mentality_dur = 0
@@ -499,25 +499,25 @@ class Status(object):
         self.antimagic = pcard.antimagic
         # 行動力強化値
         self.enhance_act = pcard.enhance_act
-        if self.enhance_act <> 0:
+        if self.enhance_act != 0:
             self.enhance_act_dur = pcard.enhance_act_dur
         else:
             self.enhance_act_dur = 0
         # 回避力強化値
         self.enhance_avo = pcard.enhance_avo
-        if self.enhance_avo <> 0:
+        if self.enhance_avo != 0:
             self.enhance_avo_dur = pcard.enhance_avo_dur
         else:
             self.enhance_avo_dur = 0
         # 抵抗力強化値
         self.enhance_res = pcard.enhance_res
-        if self.enhance_res <> 0:
+        if self.enhance_res != 0:
             self.enhance_res_dur = pcard.enhance_res_dur
         else:
             self.enhance_res_dur = 0
         # 防御力強化値
         self.enhance_def = pcard.enhance_def
-        if self.enhance_def <> 0:
+        if self.enhance_def != 0:
             self.enhance_def_dur = pcard.enhance_def_dur
         else:
             self.enhance_def_dur = 0
@@ -532,7 +532,7 @@ class Status(object):
         update = False
         s = Status(pcard)
 
-        if s.life <> self.life:
+        if s.life != self.life:
             life = int(pcard.maxlife / 100.0 * self.life) - pcard.life
             if pcard.life + life <= 0 and 0 < self.life:
                 # 0%でない場合は最小値を1にする
@@ -540,52 +540,52 @@ class Status(object):
             pcard.set_life(life)
             update = True
 
-        if self.mentality <> s.mentality or\
-                self.mentality_dur <> s.mentality_dur:
+        if self.mentality != s.mentality or\
+                self.mentality_dur != s.mentality_dur:
             pcard.set_mentality(self.mentality, self.mentality_dur)
             update = True
 
-        if self.paralyze <> s.paralyze:
+        if self.paralyze != s.paralyze:
             pcard.set_paralyze(self.paralyze - pcard.paralyze)
             update = True
 
-        if self.poison <> s.poison:
+        if self.poison != s.poison:
             pcard.set_poison(self.poison - pcard.poison)
             update = True
 
-        if self.bind <> s.bind:
+        if self.bind != s.bind:
             pcard.set_bind(self.bind)
             update = True
 
-        if self.silence <> s.silence:
+        if self.silence != s.silence:
             pcard.set_silence(self.silence)
             update = True
 
-        if self.faceup <> s.faceup:
+        if self.faceup != s.faceup:
             pcard.set_faceup(self.faceup)
             update = True
 
-        if self.antimagic <> s.antimagic:
+        if self.antimagic != s.antimagic:
             pcard.set_antimagic(self.antimagic)
             update = True
 
-        if self.enhance_act <> s.enhance_act or\
-                self.enhance_act_dur <> s.enhance_act_dur:
+        if self.enhance_act != s.enhance_act or\
+                self.enhance_act_dur != s.enhance_act_dur:
             pcard.set_enhance_act(self.enhance_act, self.enhance_act_dur)
             update = True
 
-        if self.enhance_avo <> s.enhance_avo or\
-                self.enhance_avo_dur <> s.enhance_avo_dur:
+        if self.enhance_avo != s.enhance_avo or\
+                self.enhance_avo_dur != s.enhance_avo_dur:
             pcard.set_enhance_avo(self.enhance_avo, self.enhance_avo_dur)
             update = True
 
-        if self.enhance_res <> s.enhance_res or\
-                self.enhance_res_dur <> s.enhance_res_dur:
+        if self.enhance_res != s.enhance_res or\
+                self.enhance_res_dur != s.enhance_res_dur:
             pcard.set_enhance_res(self.enhance_res, self.enhance_res_dur)
             update = True
 
-        if self.enhance_def <> s.enhance_def or\
-                self.enhance_def_dur <> s.enhance_def_dur:
+        if self.enhance_def != s.enhance_def or\
+                self.enhance_def_dur != s.enhance_def_dur:
             pcard.set_enhance_def(self.enhance_def, self.enhance_def_dur)
             update = True
 
@@ -653,23 +653,23 @@ class StatusButton(wx.BitmapButton):
             elif self.value == "Sleep":
                 # 眠り
                 image = cw.cwpy.rsrc.wxstatuses["MIND1_dbg"]
-                self.text1 = u"眠り"
+                self.text1 = "眠り"
             elif self.value == "Confuse":
                 # 混乱
                 image = cw.cwpy.rsrc.wxstatuses["MIND2_dbg"]
-                self.text1 = u"混乱"
+                self.text1 = "混乱"
             elif self.value == "Overheat":
                 # 激高
                 image = cw.cwpy.rsrc.wxstatuses["MIND3_dbg"]
-                self.text1 = u"激昂"
+                self.text1 = "激昂"
             elif self.value == "Brave":
                 # 勇猛
                 image = cw.cwpy.rsrc.wxstatuses["MIND4_dbg"]
-                self.text1 = u"勇猛"
+                self.text1 = "勇猛"
             elif self.value == "Panic":
                 # 恐慌
                 image = cw.cwpy.rsrc.wxstatuses["MIND5_dbg"]
-                self.text1 = u"恐慌"
+                self.text1 = "恐慌"
 
             if not self.duration is None and 0 < self.duration:
                 self.text2 = "%sr" % (self.duration)

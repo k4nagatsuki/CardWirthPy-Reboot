@@ -15,7 +15,7 @@ import cw
 class CharacterEditDialog(wx.Dialog):
 
     def __init__(self, parent, selected=-1, create=False):
-        wx.Dialog.__init__(self, parent, -1, u"キャラクターの情報の編集",
+        wx.Dialog.__init__(self, parent, -1, "キャラクターの情報の編集",
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.SetDoubleBuffered(True)
@@ -29,7 +29,7 @@ class CharacterEditDialog(wx.Dialog):
             self.infos = [CharaInfo(pcard) for pcard in self.pcards]
 
         # 対象者
-        self.targets = [u"全員"]
+        self.targets = ["全員"]
         for info in self.infos:
             self.targets.append(info.name)
         self.target = wx.ComboBox(self, -1, choices=self.targets, style=wx.CB_READONLY)
@@ -48,25 +48,25 @@ class CharacterEditDialog(wx.Dialog):
         self.note = wx.Notebook(self)
         self.pane_req = CharaRequirementPanel(self.note, self.infos, self.create)
         self.pane_sel = CharaSelectablePanel(self.note, self.infos, self.create)
-        self.note.AddPage(self.pane_req, u"必須情報")
-        self.note.AddPage(self.pane_sel, u"選択情報")
+        self.note.AddPage(self.pane_req, "必須情報")
+        self.note.AddPage(self.pane_sel, "選択情報")
 
         if self.create:
             self.recalc_maxlife = None
             self.recalc_parameter = None
             self.recalc_coupons = None
         else:
-            self.recalc_maxlife = wx.CheckBox(self, -1, u"生命点を新しい情報に合わせて再設定する",
+            self.recalc_maxlife = wx.CheckBox(self, -1, "生命点を新しい情報に合わせて再設定する",
                                                 style=wx.CHK_3STATE)
-            self.recalc_parameter = wx.CheckBox(self, -1, u"能力値(カスタムの場合のみ)と属性を新しい情報に合わせて再設定する",
+            self.recalc_parameter = wx.CheckBox(self, -1, "能力値(カスタムの場合のみ)と属性を新しい情報に合わせて再設定する",
                                                 style=wx.CHK_3STATE)
-            self.recalc_coupons = wx.CheckBox(self, -1, u"初期クーポンを新しい情報に合わせて再設定する",
+            self.recalc_coupons = wx.CheckBox(self, -1, "初期クーポンを新しい情報に合わせて再設定する",
                                               style=wx.CHK_3STATE)
 
         # 標準
-        self.stdbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"標準")
+        self.stdbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="標準")
         # 自動
-        self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"自動")
+        self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="自動")
 
         # 決定
         self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
@@ -175,14 +175,14 @@ class CharacterEditDialog(wx.Dialog):
         self.select_target()
 
     def OnStandardType(self, event):
-        seq = [u"カスタム"]
+        seq = ["カスタム"]
         for sample in cw.cwpy.setting.sampletypes:
             seq.append(sample.name)
         selected = seq.index(self.pane_req.type.GetLabel())
         if selected <= -1:
             selected = 0
-        dlg = cw.dialog.edit.ComboEditDialog(self.TopLevelParent, u"能力型",
-                                             u"能力型", seq, selected)
+        dlg = cw.dialog.edit.ComboEditDialog(self.TopLevelParent, "能力型",
+                                             "能力型", seq, selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             cindex = self.target.GetSelection()
@@ -236,17 +236,17 @@ class CharacterEditDialog(wx.Dialog):
         for info in self._get_infos():
             if recalc_maxlife is None:
                 recalc_maxlife = info.recalc_maxlife
-            elif recalc_maxlife <> info.recalc_maxlife:
+            elif recalc_maxlife != info.recalc_maxlife:
                 recalc_maxlife = wx.CHK_UNDETERMINED
 
             if recalc_parameter is None:
                 recalc_parameter = info.recalc_parameter
-            elif recalc_parameter <> info.recalc_parameter:
+            elif recalc_parameter != info.recalc_parameter:
                 recalc_parameter = wx.CHK_UNDETERMINED
 
             if recalc_coupons is None:
                 recalc_coupons = info.recalc_coupons
-            elif recalc_coupons <> info.recalc_coupons:
+            elif recalc_coupons != info.recalc_coupons:
                 recalc_coupons = wx.CHK_UNDETERMINED
 
         if self.recalc_maxlife:
@@ -311,13 +311,13 @@ class CharaInfo(object):
             for coupon in self.race.coupons:
                 init_coupons[coupon[0]] = coupon[1]
             for f in cw.cwpy.setting.periods:
-                if self.age == u"＿" + f.name:
+                if self.age == "＿" + f.name:
                     for coupon in f.coupons:
                         init_coupons[coupon[0]] = coupon[1]
                     break
             self.recalc_coupons = True
-            for coupon, value in init_coupons.iteritems():
-                if not pcard.has_coupon(coupon) or pcard.get_couponvalue(coupon) <> value:
+            for coupon, value in init_coupons.items():
+                if not pcard.has_coupon(coupon) or pcard.get_couponvalue(coupon) != value:
                     self.recalc_coupons = False
                     break
         else:
@@ -351,7 +351,7 @@ class CharaInfo(object):
         self.sex = cw.cwpy.dice.choice(cw.cwpy.setting.sexcoupons)
         self.age = cw.cwpy.dice.choice(cw.cwpy.setting.periodcoupons)
         faces = []
-        for values in cw.util.get_facepaths(self.sex, self.age).itervalues():
+        for values in cw.util.get_facepaths(self.sex, self.age).values():
             faces.extend(values)
         self.imgpaths = [cw.image.ImageInfo(cw.cwpy.dice.choice(faces), postype="Center")] if faces else []
         self.can_loaded_scaledimage = True
@@ -360,7 +360,7 @@ class CharaInfo(object):
         for nature in cw.cwpy.setting.natures:
             if not nature.special:
                 natures.append(nature)
-        self.talent = u"＿" + cw.cwpy.dice.choice(natures).name
+        self.talent = "＿" + cw.cwpy.dice.choice(natures).name
 
         self.makings.clear()
         self.makings.update(cw.dialog.create.get_randommakings())
@@ -417,19 +417,19 @@ class CharaInfo(object):
             self.cheerful   = race.cheerful
             self.trickish   = race.trickish
             for f in cw.cwpy.setting.sexes:
-                if self.sex == u"＿" + f.name:
+                if self.sex == "＿" + f.name:
                     f.modulate(self)
                     break
             for f in cw.cwpy.setting.periods:
-                if self.age == u"＿" + f.name:
+                if self.age == "＿" + f.name:
                     f.modulate(self)
                     break
             for f in cw.cwpy.setting.natures:
-                if self.talent == u"＿" + f.name:
+                if self.talent == "＿" + f.name:
                     f.modulate(self)
                     break
             for f in cw.cwpy.setting.makings:
-                if u"＿" + f.name in self.makings:
+                if "＿" + f.name in self.makings:
                     f.modulate(self)
         cw.features.wrap_ability(self)
 
@@ -451,13 +451,13 @@ class CharaInfo(object):
 
         self.levelmax = 10
         for f in cw.cwpy.setting.natures:
-            if self.talent == u"＿" + f.name:
+            if self.talent == "＿" + f.name:
                 self.levelmax = f.levelmax
                 break
         for f in cw.cwpy.setting.races:
             if race == f:
                 for coupon in f.coupons:
-                    if coupon[0] == u"＠レベル上限":
+                    if coupon[0] == "＠レベル上限":
                         self.levelmax = max(self.levelmax, coupon[1])
                         break
                 break
@@ -467,22 +467,22 @@ class CharaInfo(object):
 
         updatebase = (self.recalc_parameter and not self.recalc_parameter_init) or\
                      (self.recalc_coupons and not self.recalc_coupons_init) or\
-                     self.race <> pcard.get_race() or\
-                     self.sex <> pcard.get_sex() or\
-                     self.age <> pcard.get_age() or\
-                     self.talent <> pcard.get_talent() or\
-                     self.makings <> pcard.get_makings() or\
-                     self.type <> self.get_paramtype(pcard)
-        updateetc  = self.name <> pcard.name or\
-                     self.imgpaths <> self.imgpaths_base or\
-                     self.can_loaded_scaledimage <> self.can_loaded_scaledimage_base or\
-                     self.level <> pcard.level
+                     self.race != pcard.get_race() or\
+                     self.sex != pcard.get_sex() or\
+                     self.age != pcard.get_age() or\
+                     self.talent != pcard.get_talent() or\
+                     self.makings != pcard.get_makings() or\
+                     self.type != self.get_paramtype(pcard)
+        updateetc  = self.name != pcard.name or\
+                     self.imgpaths != self.imgpaths_base or\
+                     self.can_loaded_scaledimage != self.can_loaded_scaledimage_base or\
+                     self.level != pcard.level
 
         if updatebase:
             racecoupons = set()
             for period in itertools.chain(cw.cwpy.setting.periods, cw.cwpy.setting.races):
                 for coupon in period.coupons:
-                    if coupon[0] == u"＠ＥＰ":
+                    if coupon[0] == "＠ＥＰ":
                         # "＠ＥＰ"は種族を変更しても変化しない
                         continue
                     racecoupons.add(coupon[0])
@@ -511,13 +511,13 @@ class CharaInfo(object):
             setlevelmax = False
             for e in pcard.data.getfind("Property/Coupons"):
                 name = e.text
-                if name in syscoupons or name.startswith(u"＠Ｒ"):
-                    if not (self.recalc_parameter and name == u"＠レベル上限"):
+                if name in syscoupons or name.startswith("＠Ｒ"):
+                    if not (self.recalc_parameter and name == "＠レベル上限"):
                         continue
 
                 value = e.getint(".", "value", 0)
 
-                if self.recalc_parameter and name == u"＠レベル上限":
+                if self.recalc_parameter and name == "＠レベル上限":
                     value = self.levelmax
                     setlevelmax = True
 
@@ -528,16 +528,16 @@ class CharaInfo(object):
                     elif name.startswith(mother_m[0]) and name.endswith(mother_m[1]):
                         parentcoupons.append((name, value))
                         continue
-                    elif not name.startswith(u"＠"):
+                    elif not name.startswith("＠"):
                         throughted_parents = True
 
                 etccoupons.append((name, value))
 
             if not setlevelmax:
                 if self.recalc_parameter:
-                    etccoupons.append((u"＠レベル上限", self.levelmax))
+                    etccoupons.append(("＠レベル上限", self.levelmax))
                 else:
-                    etccoupons.append((u"＠レベル上限", pcard.get_levelmax()))
+                    etccoupons.append(("＠レベル上限", pcard.get_levelmax()))
 
             desc_bef = pcard.get_description()
             desc_bef_d = cw.dialog.create.create_description(pcard.get_talent(), pcard.get_makings())
@@ -600,7 +600,7 @@ class CharaInfo(object):
             seq.append((self.sex, 0))
             seq.append((self.age, 0))
             if not isinstance(self.race, cw.header.UnknownRaceHeader):
-                seq.append((u"＠Ｒ" + self.race.name, 0))
+                seq.append(("＠Ｒ" + self.race.name, 0))
             if self.recalc_coupons:
                 for coupon in self.race.coupons:
                     seq.append(coupon)
@@ -611,13 +611,13 @@ class CharaInfo(object):
 
             if self.recalc_coupons:
                 for f in cw.cwpy.setting.periods:
-                    if self.age == u"＿" + f.name:
+                    if self.age == "＿" + f.name:
                         for coupon in f.coupons:
                             seq.append(coupon)
                         break
 
                 for coupon in etccoupons:
-                    if not coupon[0] in racecoupons or coupon[0] == u"＠レベル上限":
+                    if not coupon[0] in racecoupons or coupon[0] == "＠レベル上限":
                         seq.append(coupon)
 
             else:
@@ -630,18 +630,18 @@ class CharaInfo(object):
             self.recalc_parameter_init = self.recalc_parameter
             self.recalc_coupons_init = self.recalc_coupons
 
-        if self.name <> pcard.name:
+        if self.name != pcard.name:
             pcard.set_name(self.name)
 
-        if self.imgpaths <> self.imgpaths_base or self.can_loaded_scaledimage <> self.can_loaded_scaledimage_base:
+        if self.imgpaths != self.imgpaths_base or self.can_loaded_scaledimage != self.can_loaded_scaledimage_base:
             pcard.set_images(self.imgpaths)
 
-        if updatebase or self.level <> pcard.level:
+        if updatebase or self.level != pcard.level:
             pcard.set_level(self.level, debugedit=True)
 
         if self.recalc_maxlife:
             maxlife = cw.character.calc_maxlife(pcard.physical["vit"], pcard.physical["min"], pcard.level)
-            updatelife = pcard.maxlife <> maxlife
+            updatelife = pcard.maxlife != maxlife
             if updatelife:
                 pcard.set_maxlife(maxlife)
         else:
@@ -714,20 +714,20 @@ class CharaRequirementPanel(wx.Panel):
         specialtalents = set()
         for f in cw.cwpy.setting.natures:
             if f.special:
-                specialtalents.add(u"＿" + f.name)
+                specialtalents.add("＿" + f.name)
         for info in infos:
             if info.talent in specialtalents:
                 self.show_specialtalent = True
                 break
 
-        self.namebox = wx.StaticBox(self, -1, u"名前")
+        self.namebox = wx.StaticBox(self, -1, "名前")
         self.name = wx.TextCtrl(self, size=(cw.ppis(125), -1))
         self.name.SetMaxLength(14)
-        self.autoname = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (cw.ppis(50), -1), name=u"自動")
+        self.autoname = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (cw.ppis(50), -1), name="自動")
 
-        self.imgbox = wx.StaticBox(self, -1, u"イメージ")
+        self.imgbox = wx.StaticBox(self, -1, "イメージ")
         self.imgbox.DragAcceptFiles(True)
-        path = u"Resource/Image/Card/BATTLE"
+        path = "Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         self.defaultface = cw.ppis(cw.util.load_wxbmp(path, mask=True, can_loaded_scaledimage=True, up_scr=cw.dpi_level))
         self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.ppis(cw.SIZE_CARDIMAGE),
@@ -735,37 +735,37 @@ class CharaRequirementPanel(wx.Panel):
         self.imgcombo = wx.ComboBox(self, -1, size=(cw.ppis(125), -1), style=wx.CB_READONLY)
         self.imgpathlist = []
 
-        self.lvlbox = wx.StaticBox(self, -1, u"レベル")
-        self.levelbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"Lv ―")
+        self.lvlbox = wx.StaticBox(self, -1, "レベル")
+        self.levelbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="Lv ―")
 
-        self.typbox = wx.StaticBox(self, -1, u"能力型")
-        self.type = wx.StaticText(self, -1, u"―――", size=(cw.ppis(80), -1), style=wx.ALIGN_CENTRE|wx.ST_NO_AUTORESIZE)
+        self.typbox = wx.StaticBox(self, -1, "能力型")
+        self.type = wx.StaticText(self, -1, "―――", size=(cw.ppis(80), -1), style=wx.ALIGN_CENTRE|wx.ST_NO_AUTORESIZE)
 
         assert 1 <= len(cw.cwpy.setting.races)
         if 1 == len(cw.cwpy.setting.races) and isinstance(cw.cwpy.setting.races[0], cw.header.UnknownRaceHeader):
             self.racebox = None
             self.race = None
         else:
-            self.racebox = wx.StaticBox(self, -1, u"種族")
-            array = map(lambda race: race.name, cw.cwpy.setting.races)
+            self.racebox = wx.StaticBox(self, -1, "種族")
+            array = [race.name for race in cw.cwpy.setting.races]
             self.race = wx.Choice(self, -1, choices=array)
 
         array = [f.name for f in cw.cwpy.setting.sexes]
-        self.sexes = wx.RadioBox(self, -1, u"性別", choices=array,
+        self.sexes = wx.RadioBox(self, -1, "性別", choices=array,
                                  style=wx.RA_VERTICAL, majorDimension=2)
 
         array = [f.name for f in cw.cwpy.setting.periods]
-        self.periods = wx.RadioBox(self, -1, u"年代", choices=array,
+        self.periods = wx.RadioBox(self, -1, "年代", choices=array,
                                    style=wx.RA_VERTICAL, majorDimension=2)
 
         array = []
         for f in cw.cwpy.setting.natures:
             if not f.special or self.show_specialtalent:
                 array.append(f.name)
-        self.natures = wx.RadioBox(self, -1, u"素質", choices=array,
+        self.natures = wx.RadioBox(self, -1, "素質", choices=array,
                                    style=wx.RA_VERTICAL, majorDimension=len(array)/3)
 
-        self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), u"自動選択")
+        self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), "自動選択")
 
         self._bind()
         self._do_layout()
@@ -858,11 +858,11 @@ class CharaRequirementPanel(wx.Panel):
                 randomname = cw.dialog.create.get_randomname(cw.cwpy.setting.sexsubnames[sindex])
                 if randomname:
                     info.name = randomname
-                    info.input_name = u""
+                    info.input_name = ""
             if name is None:
                 name = info.name
-            if name <> info.name:
-                name = u""
+            if name != info.name:
+                name = ""
         self.name.SetValue(name)
         self._update_okbtn()
         self._proc = False
@@ -879,12 +879,12 @@ class CharaRequirementPanel(wx.Panel):
             force = (i == 0)
             if force:
                 level = info.level
-            elif level <> info.level:
+            elif level != info.level:
                 level = 1
                 break
 
         dlg = cw.dialog.edit.NumberEditDialog(self.TopLevelParent,
-                                              u"レベルの設定", level, 1, 15, 2)
+                                              "レベルの設定", level, 1, 15, 2)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             for info in infos:
@@ -931,17 +931,17 @@ class CharaRequirementPanel(wx.Panel):
 
     def OnSelectSex(self, event):
         for info in self._get_infos():
-            info.sex = u"＿" + self.sexes.GetStringSelection()
+            info.sex = "＿" + self.sexes.GetStringSelection()
         self._update_images()
 
     def OnSelectAge(self, event):
         for info in self._get_infos():
-            info.age = u"＿" + self.periods.GetStringSelection()
+            info.age = "＿" + self.periods.GetStringSelection()
         self._update_images()
 
     def OnSelectTalent(self, event):
         for info in self._get_infos():
-            info.talent = u"＿" + self.natures.GetStringSelection()
+            info.talent = "＿" + self.natures.GetStringSelection()
         self._update_images()
 
     def OnAutoBtn(self, event):
@@ -961,16 +961,16 @@ class CharaRequirementPanel(wx.Panel):
         # 使用可能なイメージの一覧を取得
         drops = []
         for drop in self._dropfiles:
-            key = (u"/drop_files", u"<ドロップされたイメージ> %s" % (os.path.basename(drop)), drop)
+            key = ("/drop_files", "<ドロップされたイメージ> %s" % (os.path.basename(drop)), drop)
             drops.append(key)
         for info in infos:
-            for dpaths, paths in cw.util.get_facepaths(info.sex, info.age).iteritems():
-                fpaths.update(map(lambda a: (dpaths[0], cw.util.join_paths(dpaths[1], os.path.basename(a)), a), paths))
+            for dpaths, paths in cw.util.get_facepaths(info.sex, info.age).items():
+                fpaths.update([(dpaths[0], cw.util.join_paths(dpaths[1], os.path.basename(a)), a) for a in paths])
         flist = list(fpaths)
         cw.util.sort_by_attr(flist)
         flist = drops + flist
-        self.imgpathlist = map(lambda a: a[2], flist)
-        flist = map(lambda a: a[1], flist)
+        self.imgpathlist = [a[2] for a in flist]
+        flist = [a[1] for a in flist]
         flist.insert(0, cw.cwpy.msgs["no_change"])
         self.imgcombo.SetItems(flist)
         cw.util.adjust_dropdownwidth(self.imgcombo)
@@ -996,7 +996,7 @@ class CharaRequirementPanel(wx.Panel):
                 if force:
                     img = info.imgpaths
                     can_loaded_scaledimage = info.can_loaded_scaledimage
-                elif img <> info.imgpaths or can_loaded_scaledimage <> info.can_loaded_scaledimage:
+                elif img != info.imgpaths or can_loaded_scaledimage != info.can_loaded_scaledimage:
                     img = []
                     can_loaded_scaledimage = False
                     break
@@ -1030,7 +1030,7 @@ class CharaRequirementPanel(wx.Panel):
         self._proc = True
         self.cindex = cindex
         name = ""
-        level = u"―"
+        level = "―"
         imgpaths = []
         ctype = None
         sex = ""
@@ -1052,21 +1052,21 @@ class CharaRequirementPanel(wx.Panel):
                 talent = info.talent
                 race = info.race
             else:
-                if name <> info.name:
+                if name != info.name:
                     name = ""
-                if level <> str(info.level):
-                    level = u"―"
-                if imgpaths <> info.imgpaths:
+                if level != str(info.level):
+                    level = "―"
+                if imgpaths != info.imgpaths:
                     imgpaths = []
-                if ctype <> info.type:
-                    ctype = u"―――"
-                if sex <> info.sex:
+                if ctype != info.type:
+                    ctype = "―――"
+                if sex != info.sex:
                     sex = ""
-                if age <> info.age:
+                if age != info.age:
                     age = ""
-                if talent <> info.talent:
+                if talent != info.talent:
                     talent = ""
-                if race <> info.race:
+                if race != info.race:
                     race = cw.cwpy.setting.unknown_race
 
         self.name.SetValue(name)
@@ -1076,7 +1076,7 @@ class CharaRequirementPanel(wx.Panel):
         elif ctype:
             self.type.SetLabel(ctype)
         else:
-            self.type.SetLabel(u"カスタム")
+            self.type.SetLabel("カスタム")
 
         if self.race:
             index = cw.cwpy.setting.races.index(race)
@@ -1123,11 +1123,11 @@ class CharaRequirementPanel(wx.Panel):
             arr = []
             for nature in cw.cwpy.setting.natures:
                 if not nature.special or self.show_specialtalent:
-                    arr.append(u"＿" + nature.name)
+                    arr.append("＿" + nature.name)
             info.talent = arr[cw.cwpy.dice.roll(1, len(arr))-1]
 
             seq = []
-            for paths in cw.util.get_facepaths(info.sex, info.age).itervalues():
+            for paths in cw.util.get_facepaths(info.sex, info.age).values():
                 seq.extend(paths)
 
             fpath = cw.cwpy.dice.choice(seq)
@@ -1136,7 +1136,7 @@ class CharaRequirementPanel(wx.Panel):
 
             if not info.input_name:
                 for sex in cw.cwpy.setting.sexes:
-                    if info.sex == u"＿" + sex.name:
+                    if info.sex == "＿" + sex.name:
                         name = cw.dialog.create.get_randomname(sex.subname)
                         if name:
                             info.name = name
@@ -1153,15 +1153,15 @@ class CharaSelectablePanel(wx.Panel):
         self.create = create
         self.cindex = 0
 
-        self.mkgbox = wx.StaticBox(self, -1, u"特性")
+        self.mkgbox = wx.StaticBox(self, -1, "特性")
 
         self.makings = []
         for f in cw.cwpy.setting.makings:
             check = wx.CheckBox(self, -1, f.name, style=wx.CHK_3STATE)
             self.makings.append(check)
 
-        self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), u"自動選択")
-        self.clearbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), u"クリア")
+        self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), "自動選択")
+        self.clearbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), "クリア")
 
         self._bind()
         self._do_layout()
@@ -1207,7 +1207,7 @@ class CharaSelectablePanel(wx.Panel):
 
         infos = self._get_infos()
 
-        making = u"＿" + check.GetLabel()
+        making = "＿" + check.GetLabel()
         for info in infos:
             if making in info.makings and not value:
                 info.makings.remove(making)
@@ -1223,7 +1223,7 @@ class CharaSelectablePanel(wx.Panel):
             if index < len(self.makings):
                 check = self.makings[index]
                 check.SetValue(False)
-                making = u"＿" + check.GetLabel()
+                making = "＿" + check.GetLabel()
                 for info in infos:
                     if making in info.makings:
                         info.makings.remove(making)
@@ -1251,17 +1251,17 @@ class CharaSelectablePanel(wx.Panel):
             for i, _info in enumerate(self.infos):
                 force = (i == 0)
                 for check in self.makings:
-                    making = u"＿" + check.GetLabel()
+                    making = "＿" + check.GetLabel()
                     value = making in self.infos[cindex-1].makings
                     if force:
                         check.SetValue(value)
-                    elif check.GetValue() <> value:
+                    elif check.GetValue() != value:
                         check.Set3StateValue(wx.CHK_UNDETERMINED)
                         break
         else:
             # 誰か一人
             for check in self.makings:
-                making = u"＿" + check.GetLabel()
+                making = "＿" + check.GetLabel()
                 check.SetValue(making in self.infos[cindex-1].makings)
 
     def set_random(self):

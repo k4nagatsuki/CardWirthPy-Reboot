@@ -492,7 +492,7 @@ class YadoDB(object):
                 # カードの並び順を登録する
                 s = "DELETE FROM cardorder"
                 self.cur.execute(s)
-                for fpath, orderc in cardorder.items():
+                for fpath, orderc in list(cardorder.items()):
                     s = """
                         INSERT OR REPLACE INTO cardorder VALUES(
                             ?,
@@ -528,7 +528,7 @@ class YadoDB(object):
                 # 冒険者の並び順を登録する
                 s = "DELETE FROM adventurerorder"
                 self.cur.execute(s)
-                for fpath, orderc in adventurerorder.items():
+                for fpath, orderc in list(adventurerorder.items()):
                     s = """
                         INSERT OR REPLACE INTO adventurerorder VALUES(
                             ?,
@@ -564,7 +564,7 @@ class YadoDB(object):
                 # 冒険者の並び順を登録する
                 s = "DELETE FROM partyorder"
                 self.cur.execute(s)
-                for fpath, orderc in partyorder.items():
+                for fpath, orderc in list(partyorder.items()):
                     s = """
                         INSERT OR REPLACE INTO partyorder VALUES(
                             ?,
@@ -612,7 +612,7 @@ class YadoDB(object):
                             self._insert_savedjpdcimageheader(savedjpdcimage[t[0]], False)
                         else:
                             self._insert_savedjpdcimage(path, False)
-            walk("SavedJPDCImage", savedjpdcimage, u"SavedJPDCImage.xml", self._insert_savedjpdcimage, self._insert_savedjpdcimageheader, False)
+            walk("SavedJPDCImage", savedjpdcimage, "SavedJPDCImage.xml", self._insert_savedjpdcimage, self._insert_savedjpdcimageheader, False)
 
         self.con.commit()
 

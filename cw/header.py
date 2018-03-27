@@ -31,7 +31,7 @@ def to_imgpaths(dbrec, imgdbrec):
         imgpaths.append(cw.image.ImageInfo(path, postype=postype))
     if imgdbrec:
         for imgrec in imgdbrec:
-            postype = imgrec["postype"] if "postype" in imgrec.keys() else "Default"
+            postype = imgrec["postype"] if "postype" in list(imgrec.keys()) else "Default"
             if postype is None:
                 postype = "Default"
             imgpaths.append(cw.image.ImageInfo(imgrec["imgpath"], postype=postype))
@@ -258,7 +258,7 @@ class CardHeader(object):
         if not self.scenariocard:
             return
         normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(self.scedir)))
-        if normpath <> normpath2:
+        if normpath != normpath2:
             return
         self._cardimg = None
         self.scedir = dst
@@ -288,11 +288,11 @@ class CardHeader(object):
 
     @property
     def cardimg(self):
-        if not self._cardimg or self._cardscale <> cw.UP_SCR or\
-                self._wxcardscale <> cw.UP_WIN or\
-                self._skindirname <> cw.cwpy.setting.skindirname or\
-                self._bordering_cardname <> cw.cwpy.setting.bordering_cardname or\
-                self._show_premiumicon <> cw.cwpy.setting.show_premiumicon:
+        if not self._cardimg or self._cardscale != cw.UP_SCR or\
+                self._wxcardscale != cw.UP_WIN or\
+                self._skindirname != cw.cwpy.setting.skindirname or\
+                self._bordering_cardname != cw.cwpy.setting.bordering_cardname or\
+                self._show_premiumicon != cw.cwpy.setting.show_premiumicon:
             if self.carddata is None:
                 rootattrs = GetRootAttribute(self.fpath)
                 can_loaded_scaledimage = cw.util.str2bool(rootattrs.attrs.get("scaledimage", "False"))
@@ -665,9 +665,9 @@ class CardHeader(object):
         else:
             pocket = -1
 
-        if pocket <> -1:
+        if pocket != -1:
             owner = self.get_owner()
-            if (self.hold or (owner and owner.hold_all[pocket])) and not self.penalty and self.type <> "BeastCard":
+            if (self.hold or (owner and owner.hold_all[pocket])) and not self.penalty and self.type != "BeastCard":
                 # ホールド(ペナルティカード以外)
                 return True
         return False
@@ -695,7 +695,7 @@ class CardHeader(object):
             spell = card.carddata.getbool("Property/EffectType", "spell", False)
             silence |= owner.is_silence() and spell
 
-            if card.type <> "BeastCard":
+            if card.type != "BeastCard":
                 # 魔法無効状態
                 effecttype = card.carddata.gettext("Property/EffectType", "")
                 magic = effecttype in ("Magic", "PhysicalMagic")
@@ -704,9 +704,9 @@ class CardHeader(object):
         if not silence:
             # 使用時ボーナス・ペナルティがあるカードは効果がなくても選択可能
             # ただしCardWirthでは沈黙・魔法無効化の影響は受ける
-            if card.enhance_avo_used <> 0 or\
-               card.enhance_res_used <> 0 or\
-               card.enhance_def_used <> 0:
+            if card.enhance_avo_used != 0 or\
+               card.enhance_res_used != 0 or\
+               card.enhance_def_used != 0:
                 return True
 
         return not (noeffect or silence)
@@ -868,7 +868,7 @@ def is_removewithstatus(carddata, target):
         return target.is_unconscious()
     for e2 in e:
         if e2.tag == "Status" and e2.text:
-            if e2.text <> "Unconscious":
+            if e2.text != "Unconscious":
                 # Wsn.3以前では仕様上意識不明以外の消滅条件は指定不可であるため
                 # ここで弾いておく
                 continue
@@ -915,10 +915,10 @@ class InfoCardHeader(object):
 
     @property
     def cardimg(self):
-        if self._cardscale <> cw.UP_SCR or\
-                self._wxcardscale <> cw.UP_WIN or\
-                self._skindirname <> cw.cwpy.setting.skindirname or\
-                self._bordering_cardname <> cw.cwpy.setting.bordering_cardname:
+        if self._cardscale != cw.UP_SCR or\
+                self._wxcardscale != cw.UP_WIN or\
+                self._skindirname != cw.cwpy.setting.skindirname or\
+                self._bordering_cardname != cw.cwpy.setting.bordering_cardname:
             self.set_cardimg(self.can_loaded_scaledimage, False)
         return self._cardimg
 
@@ -976,7 +976,7 @@ class AdventurerHeader(object):
 
             ages = set(cw.cwpy.setting.periodcoupons)
             sexs = set(cw.cwpy.setting.sexcoupons)
-            r_gene = re.compile(u"＠Ｇ\d{10}$")
+            r_gene = re.compile("＠Ｇ\d{10}$")
 
             self.sex = cw.cwpy.setting.sexcoupons[0]
             self.age = cw.cwpy.setting.periodcoupons[0]
@@ -997,13 +997,13 @@ class AdventurerHeader(object):
                     self.age = name
                 elif name in sexs:
                     self.sex = name
-                elif name == u"＠ＥＰ":
+                elif name == "＠ＥＰ":
                     self.ep = int(attrs.get("value", 0))
-                elif name == u"＿消滅予約":
+                elif name == "＿消滅予約":
                     self.leavenoalbum = True
                 elif r_gene.match(name):
                     self.gene.set_str(name[2:], int(attrs.get("value", 0)))
-                elif name.startswith(u"＠Ｒ"):
+                elif name.startswith("＠Ｒ"):
                     self.race = name[2:]
 
                 self.history.append(name)
@@ -1025,7 +1025,7 @@ class AdventurerHeader(object):
             # クーポンにある各種変数取得
             ages = set(cw.cwpy.setting.periodcoupons)
             sexs = set(cw.cwpy.setting.sexcoupons)
-            r_gene = re.compile(u"＠Ｇ\d{10}$")
+            r_gene = re.compile("＠Ｇ\d{10}$")
             self.sex = cw.cwpy.setting.sexcoupons[0]
             self.age = cw.cwpy.setting.periodcoupons[0]
             self.ep = 0
@@ -1045,13 +1045,13 @@ class AdventurerHeader(object):
                     self.age = e.text
                 elif e.text in sexs:
                     self.sex = e.text
-                elif e.text == u"＠ＥＰ":
+                elif e.text == "＠ＥＰ":
                     self.ep = int(e.get("value", 0))
-                elif e.text == u"＿消滅予約":
+                elif e.text == "＿消滅予約":
                     self.leavenoalbum = True
                 elif r_gene.match(e.text):
                     self.gene.set_str(e.text[2:], int(e.get("value", 0)))
-                elif e.text.startswith(u"＠Ｒ"):
+                elif e.text.startswith("＠Ｒ"):
                     self.race = e.text[2:]
 
                 self.history.append(e.text)
@@ -1065,7 +1065,7 @@ class AdventurerHeader(object):
         else:
             n = 0
             for period in cw.cwpy.setting.periods:
-                if self.age == u"＿" + period.name:
+                if self.age == "＿" + period.name:
                     n = period.spendep
                     break
             if n == 0:
@@ -1073,7 +1073,7 @@ class AdventurerHeader(object):
 
         self.ep -= n
         data = cw.data.yadoxml2etree(self.fpath)
-        r_gene = re.compile(u"＠Ｇ\d{10}$")
+        r_gene = re.compile("＠Ｇ\d{10}$")
 
         ep = False
         gene = False
@@ -1084,7 +1084,7 @@ class AdventurerHeader(object):
                 continue
 
             # EP減少
-            if e.text == u"＠ＥＰ" and not ep:
+            if e.text == "＠ＥＰ" and not ep:
                 e.attrib["value"] = str(e.getint(".", "value") - n)
                 ep = True
             # 子作り回数加算
@@ -1147,7 +1147,7 @@ class AdventurerHeader(object):
         p.set("min", str(int(data.min)))
 
         for e in data.getfind("Property/Coupons"):
-            if e.text <> self.age:
+            if e.text != self.age:
                 continue
             # 年代クーポンを上書き
             e.text = nextage
@@ -1163,13 +1163,13 @@ class AdventurerHeader(object):
 
     def get_age(self):
         for period in cw.cwpy.setting.periods:
-            if self.age == u"＿" + period.name:
+            if self.age == "＿" + period.name:
                 return period.subname
         return ""
 
     def get_sex(self):
         for sex in cw.cwpy.setting.sexes:
-            if self.sex == u"＿" + sex.name:
+            if self.sex == "＿" + sex.name:
                 return sex.subname
         return ""
 
@@ -1185,7 +1185,7 @@ class Gene(object):
         if bits:
             self.bits = bits
         else:
-            self.bits = [0 for _cnt in xrange(10)]
+            self.bits = [0 for _cnt in range(10)]
 
         self.count = count
 
@@ -1210,9 +1210,9 @@ class Gene(object):
 
     def set_talentbit(self, talent, oldtalent=""):
         for nature in cw.cwpy.setting.natures:
-            if u"＿" + nature.name == talent:
+            if "＿" + nature.name == talent:
                 # 型に対応する型のbitを1にする
-                for index in xrange(len(nature.genepattern)):
+                for index in range(len(nature.genepattern)):
                     if nature.genepattern[index] == '1':
                         self.set_bit(index, 1)
                 if nature.genecount == 0:
@@ -1320,7 +1320,7 @@ class ScenarioHeader(object):
         return "/".join([self.dpath, self.fname])
 
     def get_wxbmps(self, mask=True):
-        if self._wxbmps is None or self.skindir <> cw.cwpy.skindir or self._up_win <> cw.UP_WIN or self._up_scr <> cw.UP_SCR:
+        if self._wxbmps is None or self.skindir != cw.cwpy.skindir or self._up_win != cw.UP_WIN or self._up_scr != cw.UP_SCR:
             self.skindir = cw.cwpy.skindir
             self._up_win = cw.UP_WIN
             self._up_scr = cw.UP_SCR
@@ -1444,14 +1444,14 @@ class PartyHeader(object):
         if self._membernames is None:
             self._membernames = []
             for prop in self._get_properties():
-                self._membernames.append(prop.properties.get("Name", u""))
+                self._membernames.append(prop.properties.get("Name", ""))
         return self._membernames
 
     def get_memberdescs(self):
         if self._memberdescs is None:
             self._memberdescs = []
             for prop in self._get_properties():
-                self._memberdescs.append(prop.properties.get("Description", u""))
+                self._memberdescs.append(prop.properties.get("Description", ""))
         return self._memberdescs
 
     def get_membercoupons(self):
@@ -1470,7 +1470,7 @@ class PartyHeader(object):
         if self._memberlevels is None:
             self._memberlevels = []
             for prop in self._get_properties():
-                self._memberlevels.append(int(prop.properties.get("Level", u"1")))
+                self._memberlevels.append(int(prop.properties.get("Level", "1")))
         return self._memberlevels
 
     @property
@@ -1497,7 +1497,7 @@ class PartyRecordHeader(object):
             self.members = dbrec["members"].split("\n")
             self.membernames = dbrec["membernames"].split("\n")
             if len(self.membernames) < len(self.members):
-                self.membernames.extend([u""] * (len(self.members)-len(self.membernames)))
+                self.membernames.extend([""] * (len(self.members)-len(self.membernames)))
             self.backpack = dbrec["backpack"].split("\n")
         elif partyrecord:
             self.fpath = partyrecord.fpath
@@ -1509,7 +1509,7 @@ class PartyRecordHeader(object):
                 s = os.path.basename(member.fpath)
                 s = cw.util.splitext(s)[0]
                 self.members.append(s)
-                self.membernames.append(member.gettext("Property/Name", u""))
+                self.membernames.append(member.gettext("Property/Name", ""))
             self.backpack = [header.name for header in partyrecord.backpack]
         else:
             data = cw.data.xml2etree(fpath)
@@ -1520,7 +1520,7 @@ class PartyRecordHeader(object):
             self.membernames = []
             for e in data.getfind("Property/Members"):
                 self.members.append(e.text if e.text else "")
-                self.membernames.append(e.getattr(".", "name", u""))
+                self.membernames.append(e.getattr(".", "name", ""))
             self.backpack = [e.get("name", "") for e in data.getfind("BackpackRecord")]
 
     def rename_member(self, fpath, name):
@@ -1543,15 +1543,15 @@ class PartyRecordHeader(object):
             self.members[index] = ""
             data = cw.data.xml2etree(self.fpath)
             ename = "Property/Members/Member[%s]" % (index+1)
-            data.edit(ename, u"")
+            data.edit(ename, "")
 
             # 互換性維持の処理
             # 過去のデータでname属性が無い場合がある
-            name = data.getattr(ename, u"name", u"")
+            name = data.getattr(ename, "name", "")
             if not name:
                 name = GetName(fpath).name
                 self.membernames[index] = name
-                data.edit(ename, u"", u"name")
+                data.edit(ename, "", "name")
 
             data.write_xml()
 
@@ -1584,7 +1584,7 @@ class PartyRecordHeader(object):
             else:
                 # name情報もなく本人も消滅済み
                 # (互換性維持)
-                seq.append(u"<Vanished>")
+                seq.append("<Vanished>")
 
         return seq
 
@@ -1607,8 +1607,8 @@ class SavedJPDCImageHeader(object):
         elif fpath:
             self.fpath = fpath
             data = cw.data.xml2etree(fpath)
-            self.scenarioname = data.gettext("Property/ScenarioName", u"")
-            self.scenarioauthor = data.gettext("Property/ScenarioAuthor", u"")
+            self.scenarioname = data.gettext("Property/ScenarioName", "")
+            self.scenarioauthor = data.gettext("Property/ScenarioAuthor", "")
             self.dpath = data.getattr("Materials", "dpath", "")
             self.fpaths = []
             if self.dpath:
@@ -1622,8 +1622,8 @@ class SavedJPDCImageHeader(object):
         <Yado>/SavedJPDCImageに保存する。
         """
         cw.cwpy.ydata.changed()
-        savedjpdcimage = cw.util.join_paths(cw.cwpy.tempdir, u"SavedJPDCImage")
-        tempfilepath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile")
+        savedjpdcimage = cw.util.join_paths(cw.cwpy.tempdir, "SavedJPDCImage")
+        tempfilepath = cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile")
 
         # ヘッダを構築
         key = (cw.cwpy.sdata.name, cw.cwpy.sdata.author)
@@ -1648,7 +1648,7 @@ class SavedJPDCImageHeader(object):
                     if not os.path.isfile(frompath):
                         continue
                     relpathbase = cw.util.relpath(frompath, tempfilepath)
-                    relpath = cw.util.join_paths(u"Materials", relpathbase)
+                    relpath = cw.util.join_paths("Materials", relpathbase)
                     topath = cw.util.join_paths(sdpath, relpath)
                     dpath2 = os.path.dirname(topath)
 
@@ -1660,15 +1660,15 @@ class SavedJPDCImageHeader(object):
 
         if header.fpaths:
             # 情報ファイル作成
-            fpath = cw.util.join_paths(sdpath, u"SavedJPDCImage.xml")
+            fpath = cw.util.join_paths(sdpath, "SavedJPDCImage.xml")
             element = cw.data.make_element("SavedJPDCImage")
-            prop = cw.data.make_element("Property", u"")
+            prop = cw.data.make_element("Property", "")
             e = cw.data.make_element("ScenarioName", cw.cwpy.sdata.name)
             prop.append(e)
             e = cw.data.make_element("ScenarioAuthor", cw.cwpy.sdata.author)
             prop.append(e)
             element.append(prop)
-            mates = cw.data.make_element("Materials", u"", attrs={"dpath": header.dpath})
+            mates = cw.data.make_element("Materials", "", attrs={"dpath": header.dpath})
             for mfpath in header.fpaths:
                 e = cw.data.make_element("Material", mfpath)
                 mates.append(e)
@@ -1694,8 +1694,8 @@ class SavedJPDCImageHeader(object):
         保存済みJPDCイメージを全て削除する。
         """
         cw.cwpy.ydata.changed()
-        dpath1 = cw.util.join_paths(cw.cwpy.yadodir, u"SavedJPDCImage", self.dpath)
-        dpath2 = cw.util.join_paths(cw.cwpy.tempdir, u"SavedJPDCImage", self.dpath)
+        dpath1 = cw.util.join_paths(cw.cwpy.yadodir, "SavedJPDCImage", self.dpath)
+        dpath2 = cw.util.join_paths(cw.cwpy.tempdir, "SavedJPDCImage", self.dpath)
         for dpath3 in (dpath1, dpath2):
             if os.path.isdir(dpath3):
                 for dpath, dnames, fnames in os.walk(dpath3):

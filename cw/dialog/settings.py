@@ -9,7 +9,7 @@ import wx.grid
 import pygame
 
 import cw
-import editscenariodb
+from . import editscenariodb
 
 
 # build_exe.pyによって作られる一時モジュール
@@ -26,7 +26,7 @@ def _settings_width():
 
 def create_versioninfo(parent):
     """バージョン情報を表示するwx.TextCtrlを生成する。"""
-    s = "%s %s" % (cw.APP_NAME, ".".join(map(lambda a: str(a), cw.APP_VERSION)))
+    s = "%s %s" % (cw.APP_NAME, ".".join([str(a) for a in cw.APP_VERSION]))
     if versioninfo:
         s = "%s\nBuild: %s" % (s, versioninfo.build_datetime)
     parent.versioninfo = wx.TextCtrl(parent, -1, s, size=(-1, -1), style=wx.TE_READONLY|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.NO_BORDER)
@@ -67,11 +67,11 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.frame.filter_event = self.OnFilterEvent
         self.panel = None
         if cw.cwpy.setting.show_advancedsettings:
-            wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + u"の設定(詳細モード)",
+            wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + "の設定(詳細モード)",
                                style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
             self.panel = SettingsPanel(self)
         else:
-            wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + u"の設定",
+            wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + "の設定",
                                style=wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX)
             self.panel = SimpleSettingsPanel(self)
         self.cwpy_debug = True # このダイアログではスクリーンショットの撮影を行わない
@@ -138,7 +138,7 @@ class SettingsDialog(wx.Dialog):
         simple.Destroy()
         self._do_layout()
 
-        self.SetTitle(cw.APP_NAME + u"の設定(詳細モード)")
+        self.SetTitle(cw.APP_NAME + "の設定(詳細モード)")
 
         # モニタ内に収める
         cw.util.adjust_position(self)
@@ -153,16 +153,16 @@ class SimpleSettingsPanel(wx.Panel):
             self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNHIGHLIGHT))
 
         # デバッグモード
-        self.box_debug = wx.StaticBox(self.panel, -1, u"デバッグ")
-        self.cb_debug = wx.CheckBox(self.panel, -1, u"デバッグモード(Ctrl+Dでも切替可)")
+        self.box_debug = wx.StaticBox(self.panel, -1, "デバッグ")
+        self.cb_debug = wx.CheckBox(self.panel, -1, "デバッグモード(Ctrl+Dでも切替可)")
         self.cb_debug.SetValue(cw.cwpy.debug)
 
         # スキン
-        self.box_skin = wx.StaticBox(self.panel, -1, u"スキン")
+        self.box_skin = wx.StaticBox(self.panel, -1, "スキン")
         self.skin = SkinPanel(self.panel, False)
 
         # 拡大表示モード
-        self.box_expandmode = wx.StaticBox(self.panel, -1, u"拡大表示方式(F4キーで拡大)")
+        self.box_expandmode = wx.StaticBox(self.panel, -1, "拡大表示方式(F4キーで拡大)")
         self.expand = ExpandPanel(self.panel, False)
         self.expand.load(cw.cwpy.setting)
 
@@ -170,20 +170,20 @@ class SimpleSettingsPanel(wx.Panel):
         self.speed = SpeedPanel(self.panel, False)
         self.speed.load(cw.cwpy.setting)
 
-        self.box_audio = wx.StaticBox(self.panel, -1, u"音声")
+        self.box_audio = wx.StaticBox(self.panel, -1, "音声")
         # 音楽を再生する
-        self.cb_playbgm = wx.CheckBox(self.panel, -1, u"音楽を再生する")
+        self.cb_playbgm = wx.CheckBox(self.panel, -1, "音楽を再生する")
         self.cb_playbgm.SetValue(cw.cwpy.setting.play_bgm)
         # 効果音を再生する
-        self.cb_playsound = wx.CheckBox(self.panel, -1, u"効果音を再生する")
+        self.cb_playsound = wx.CheckBox(self.panel, -1, "効果音を再生する")
         self.cb_playsound.SetValue(cw.cwpy.setting.play_sound)
 
         create_versioninfo(self)
 
-        self.btn_details = wx.Button(self, wx.NewId(), u"詳細設定...")
-        self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
-        self.btn_apply = wx.Button(self, wx.ID_APPLY, u"適用")
-        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
+        self.btn_details = wx.Button(self, wx.NewId(), "詳細設定...")
+        self.btn_ok = wx.Button(self, wx.ID_OK, "OK")
+        self.btn_apply = wx.Button(self, wx.ID_APPLY, "適用")
+        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, "キャンセル")
 
         self.btn_apply.Disable()
 
@@ -317,29 +317,29 @@ class SettingsPanel(wx.Panel):
                                           use_copybase=True)
         self.pane_scenario = ScenarioSettingPanel(self.note)
         self.pane_ui = UISettingPanel(self.note)
-        self.note.AddPage(self.pane_gene, u"一般")
-        self.note.AddPage(self.pane_draw, u"描画")
-        self.note.AddPage(self.pane_sound, u"音声")
-        self.note.AddPage(self.pane_font, u"フォント")
-        self.note.AddPage(self.pane_scenario, u"シナリオ")
-        self.note.AddPage(self.pane_ui, u"詳細")
+        self.note.AddPage(self.pane_gene, "一般")
+        self.note.AddPage(self.pane_draw, "描画")
+        self.note.AddPage(self.pane_sound, "音声")
+        self.note.AddPage(self.pane_font, "フォント")
+        self.note.AddPage(self.pane_scenario, "シナリオ")
+        self.note.AddPage(self.pane_ui, "詳細")
         self.pane_gene.skin.pane_scenario = self.pane_scenario
 
         create_versioninfo(self)
 
-        self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
+        self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, "デフォルト")
         h = self.btn_dflt.GetBestSize()[1]
 
         self.btn_save = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_SAVE"])
-        self.btn_save.SetToolTip(u"設定の保存")
+        self.btn_save.SetToolTip("設定の保存")
         self.btn_save.SetMinSize((cw.ppis(32), h))
         self.btn_load = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_LOAD"])
-        self.btn_load.SetToolTip(u"設定の読み込み")
+        self.btn_load.SetToolTip("設定の読み込み")
         self.btn_load.SetMinSize((cw.ppis(32), h))
 
-        self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
-        self.btn_apply = wx.Button(self, wx.ID_APPLY, u"適用")
-        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
+        self.btn_ok = wx.Button(self, wx.ID_OK, "OK")
+        self.btn_apply = wx.Button(self, wx.ID_APPLY, "適用")
+        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, "キャンセル")
 
         self.note.SetSelection(cw.cwpy.settingtab)
 
@@ -369,8 +369,8 @@ class SettingsPanel(wx.Panel):
         self.pane_ui.load(setting)
 
     def OnSave(self, event):
-        dlg = wx.FileDialog(self.GetTopLevelParent(), u"設定ファイルの保存",
-                            "", u"新規設定.wssx", u"CardWirthPy設定ファイル (*.wssx)|*.wssx|XMLドキュメント (*.xml)|*.xml|すべてのファイル (*.*)|*.*",
+        dlg = wx.FileDialog(self.GetTopLevelParent(), "設定ファイルの保存",
+                            "", "新規設定.wssx", "CardWirthPy設定ファイル (*.wssx)|*.wssx|XMLドキュメント (*.xml)|*.xml|すべてのファイル (*.*)|*.*",
                             wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             fpath = dlg.GetPath()
@@ -380,13 +380,13 @@ class SettingsPanel(wx.Panel):
                 cw.xmlcreater.create_settings(setting, writeplayingdata=False, fpath=fpath)
             except:
                 cw.util.print_ex()
-                s = u"%sの保存に失敗しました。" % (os.path.basename(fpath))
-                wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_WARNING, self.GetTopLevelParent())
+                s = "%sの保存に失敗しました。" % (os.path.basename(fpath))
+                wx.MessageBox(s, "メッセージ", wx.OK|wx.ICON_WARNING, self.GetTopLevelParent())
         dlg.Destroy()
 
     def OnLoad(self, event):
-        dlg = wx.FileDialog(self.GetTopLevelParent(), u"設定ファイルの読み込み",
-                            "", "", u"CardWirthPy設定ファイル (*.wssx)|*.wssx|XMLドキュメント (*.xml)|*.xml|すべてのファイル (*.*)|*.*",
+        dlg = wx.FileDialog(self.GetTopLevelParent(), "設定ファイルの読み込み",
+                            "", "", "CardWirthPy設定ファイル (*.wssx)|*.wssx|XMLドキュメント (*.xml)|*.xml|すべてのファイル (*.*)|*.*",
                             wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             fpath = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
@@ -396,8 +396,8 @@ class SettingsPanel(wx.Panel):
                 self.GetTopLevelParent().applied()
             except:
                 cw.util.print_ex()
-                s = u"%sの読み込みに失敗しました。" % (os.path.basename(fpath))
-                wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_WARNING, self.GetTopLevelParent())
+                s = "%sの読み込みに失敗しました。" % (os.path.basename(fpath))
+                wx.MessageBox(s, "メッセージ", wx.OK|wx.ICON_WARNING, self.GetTopLevelParent())
         dlg.Destroy()
 
     def OnDefault(self, event):
@@ -454,7 +454,7 @@ class SettingsPanel(wx.Panel):
                 cw.cwpy.exec_func(cw.cwpy.set_debug, value)
 
         value = self.pane_gene.cb_show_tiles.GetValue()
-        if value <> setting.show_tiles:
+        if value != setting.show_tiles:
             setting.show_tiles = value
             updatestatusbar = True
         value = self.pane_gene.cb_enabled_right_flick.GetValue()
@@ -504,7 +504,7 @@ class SettingsPanel(wx.Panel):
             value = cw.setting.OPEN_LAST_BASE
         setting.startupscene = value
         value = self.pane_gene.sc_backlogmax.GetValue()
-        if value <> setting.backlogmax:
+        if value != setting.backlogmax:
             if update:
                 def func(backlogmax):
                     cw.cwpy.set_backlogmax(backlogmax)
@@ -519,17 +519,17 @@ class SettingsPanel(wx.Panel):
         # 描画
         updatebg = False
         value = self.pane_draw.cb_smooth_bg.GetValue()
-        if setting.smoothscale_bg <> value:
+        if setting.smoothscale_bg != value:
             updatebg = True
             setting.smoothscale_bg = value
 
         value = self.pane_draw.cb_smoothing_card_up.GetValue()
-        if setting.smoothing_card_up <> value:
+        if setting.smoothing_card_up != value:
             updatemcardimg = True
             updatecardimg = True
             setting.smoothing_card_up = value
         value = self.pane_draw.cb_smoothing_card_down.GetValue()
-        if setting.smoothing_card_down <> value:
+        if setting.smoothing_card_down != value:
             updatemcardimg = True
             updatecardimg = True
             setting.smoothing_card_down = value
@@ -537,7 +537,7 @@ class SettingsPanel(wx.Panel):
         self.pane_draw.speed.apply_speed(setting)
 
         value = self.pane_draw.cb_whitecursor.GetValue()
-        if value <> (setting.cursor_type == cw.setting.CURSOR_WHITE):
+        if value != (setting.cursor_type == cw.setting.CURSOR_WHITE):
             if value:
                 setting.cursor_type = cw.setting.CURSOR_WHITE
             else:
@@ -557,7 +557,7 @@ class SettingsPanel(wx.Panel):
         setting.vol_master = value
         value = self.pane_sound.sl_sound.GetValue()
         value = cw.setting.Setting.wrap_volumevalue(value)
-        if setting.vol_sound <> value:
+        if setting.vol_sound != value:
             setting.vol_sound = value
             setting.vol_sound_midi = value
         value = self.pane_sound.sl_midi.GetValue()
@@ -573,14 +573,14 @@ class SettingsPanel(wx.Panel):
             volume = int(setting.vol_master*100)
             cw.cwpy.exec_func(cw.cwpy.set_mastervolume, volume)
         soundfonts = []
-        for row in xrange(self.pane_sound.grid_soundfont.GetNumberRows()):
+        for row in range(self.pane_sound.grid_soundfont.GetNumberRows()):
             soundfont = self.pane_sound.get_soundfont(row)
             soundfonts.append(soundfont)
-        if setting.soundfonts <> soundfonts:
+        if setting.soundfonts != soundfonts:
             sfonts1 = [(sfont[0], sfont[2]/100.0) for sfont in soundfonts if sfont[1]]
             sfonts2 = [(sfont[0], sfont[2]/100.0) for sfont in setting.soundfonts if sfont[1]]
             setting.soundfonts = soundfonts
-            if update and sfonts1 <> sfonts2:
+            if update and sfonts1 != sfonts2:
                 def func():
                     if cw.bassplayer.is_alivable():
                         if cw.bassplayer.change_soundfonts(sfonts1):
@@ -598,7 +598,7 @@ class SettingsPanel(wx.Panel):
                     elif cw.cwpy.setting.sdlmixer_enabled:
                         cw.util.sdlmixer_init()
 
-                    if bool(sfonts1) <> bool(sfonts2):
+                    if bool(sfonts1) != bool(sfonts2):
                         cw.cwpy.init_sounds()
                     for music in cw.cwpy.music:
                         music.play(music.path, updatepredata=False, restart=True)
@@ -642,7 +642,7 @@ class SettingsPanel(wx.Panel):
         if setting.show_paperandtree:
             setting.show_scenariotree = False
         value = self.pane_scenario.cb_write_playlog.GetValue()
-        if value <> setting.write_playlog:
+        if value != setting.write_playlog:
             setting.write_playlog = value
             def func():
                 cw.cwpy.advlog.enable(setting.write_playlog)
@@ -659,7 +659,7 @@ class SettingsPanel(wx.Panel):
         setting.open_lastscenario = value
 
         setting.folderoftype = []
-        for row in xrange(self.pane_scenario.grid_folderoftype.GetNumberRows() - 1):
+        for row in range(self.pane_scenario.grid_folderoftype.GetNumberRows() - 1):
             skintype = self.pane_scenario.grid_folderoftype.GetCellValue(row, 0)
             folder = self.pane_scenario.grid_folderoftype.GetCellValue(row, 1)
             setting.folderoftype.append((skintype, folder))
@@ -693,15 +693,15 @@ class SettingsPanel(wx.Panel):
             value = "True"
         else:
             value = "False"
-        if setting.show_statustime <> value:
+        if setting.show_statustime != value:
             setting.show_statustime = value
             updatecardimg = True
         value = self.pane_ui.cb_show_cardkind.GetValue()
-        if setting.show_cardkind <> value:
+        if setting.show_cardkind != value:
             setting.show_cardkind = value
             updatemcardimg = True
         value = self.pane_ui.cb_show_premiumicon.GetValue()
-        if setting.show_premiumicon <> value:
+        if setting.show_premiumicon != value:
             setting.show_premiumicon = value
             updatemcardimg = True
 
@@ -714,7 +714,7 @@ class SettingsPanel(wx.Panel):
         value = self.pane_ui.cb_show_btndesc.GetValue()
         setting.show_btndesc = value
         value = self.pane_ui.cb_statusbarmask.GetValue()
-        if value <> setting.statusbarmask:
+        if value != setting.statusbarmask:
             setting.statusbarmask = value
             updatestatusbar = True
         value = self.pane_ui.cb_blink_statusbutton.GetValue()
@@ -759,7 +759,7 @@ class SettingsPanel(wx.Panel):
         value = self.pane_ui.cb_noticeimpossibleaction.GetValue()
         setting.noticeimpossibleaction = value
         value = self.pane_ui.cb_showroundautostartbutton.GetValue()
-        if setting.show_roundautostartbutton <> value:
+        if setting.show_roundautostartbutton != value:
             setting.show_roundautostartbutton = value
             updatestatusbar = True
             if update and not setting.show_roundautostartbutton:
@@ -854,22 +854,22 @@ class SkinPanel(wx.Panel):
         self.tx_skin.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
 
         if self.editbuttons:
-            self.btn_convertskin = wx.Button(self, -1, u"自動生成...")
-            self.btn_editskin = wx.Button(self, -1, u"編集...")
-            self.btn_deleteskin = wx.Button(self, -1, u"削除")
+            self.btn_convertskin = wx.Button(self, -1, "自動生成...")
+            self.btn_editskin = wx.Button(self, -1, "編集...")
+            self.btn_deleteskin = wx.Button(self, -1, "削除")
 
-            self.cb_show_allskin = wx.CheckBox(self, -1, u"異なる種別のスキンを表示する")
-            self.cb_show_allskin.SetToolTip(u"スキンはそれぞれ独自のシステムを持つ場合があるため、異なる種別のスキンに切り替えると、キャラクターの情報がおかしくなったり、シナリオが正常に動かなくなるなどの問題が発生する可能性があります。")
+            self.cb_show_allskin = wx.CheckBox(self, -1, "異なる種別のスキンを表示する")
+            self.cb_show_allskin.SetToolTip("スキンはそれぞれ独自のシステムを持つ場合があるため、異なる種別のスキンに切り替えると、キャラクターの情報がおかしくなったり、シナリオが正常に動かなくなるなどの問題が発生する可能性があります。")
             if not cw.cwpy.ydata:
                 self.cb_show_allskin.SetValue(True)
                 self.cb_show_allskin.Enable(False)
         else:
             self.cb_show_allskin = None
             if cw.cwpy.ydata:
-                self.ch_skin.SetToolTip(u"異なる種別のスキンに切り替えたい場合は、タイトル画面に戻るか、詳細設定で「異なる種別のスキンを表示する」にチェックを入れてください。")
+                self.ch_skin.SetToolTip("異なる種別のスキンに切り替えたい場合は、タイトル画面に戻るか、詳細設定で「異なる種別のスキンを表示する」にチェックを入れてください。")
 
-        prop = cw.header.GetProperty(u"Data/SkinBase/Skin.xml")
-        self.basecash = int(prop.properties.get(u"InitialCash", "4000"))
+        prop = cw.header.GetProperty("Data/SkinBase/Skin.xml")
+        self.basecash = int(prop.properties.get("InitialCash", "4000"))
         self.update_skins(cw.cwpy.setting.skindirname)
 
         self._do_layout()
@@ -890,18 +890,18 @@ class SkinPanel(wx.Panel):
         self.skin_summarys = {}
 
         if not cw.cwpy.ydata or (self.cb_show_allskin and self.cb_show_allskin.GetValue()):
-            skintype = u""
+            skintype = ""
         else:
             skintype = cw.cwpy.setting.skintype
 
-        for name in os.listdir(u"Data/Skin"):
-            path = cw.util.join_paths(u"Data/Skin", name)
-            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+        for name in os.listdir("Data/Skin"):
+            path = cw.util.join_paths("Data/Skin", name)
+            skinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml")
 
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 try:
                     prop = cw.header.GetProperty(skinpath)
-                    if skintype and prop.properties.get("Type", "") <> skintype:
+                    if skintype and prop.properties.get("Type", "") != skintype:
                         continue
                     if prop.attrs.get(None, {}).get("dataVersion") in cw.SUPPORTED_SKIN:
                         self.skins.append(prop.properties.get("Name", name))
@@ -925,7 +925,7 @@ class SkinPanel(wx.Panel):
     def _load_skinproperties(self, name):
         if name in self.skin_summarys:
             return
-        skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+        skinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml")
         try:
             prop = cw.header.GetProperty(skinpath)
             skintype = prop.properties.get("Type", "")
@@ -938,10 +938,10 @@ class SkinPanel(wx.Panel):
         except Exception:
             # エラーのあるスキン
             cw.util.print_ex()
-            skintype = u"*読込エラー*"
-            skinname = u"*読込エラー*"
-            author = u""
-            desc = u"Skin.xmlの読み込みでエラーが発生しました。"
+            skintype = "*読込エラー*"
+            skinname = "*読込エラー*"
+            author = ""
+            desc = "Skin.xmlの読み込みでエラーが発生しました。"
             vocation120 = False
             initialcash = self.basecash
             self.skin_summarys[name] = (skintype, skinname, author, desc, vocation120, initialcash)
@@ -951,14 +951,14 @@ class SkinPanel(wx.Panel):
 
     def _choice_skin(self, init=False, applied=True):
         skin = self.skindirs[self.ch_skin.GetSelection()]
-        s = u"種別: %s\n場所: %s\n作者: %s\n" + u"-" * 45 + u"\n%s"
+        s = "種別: %s\n場所: %s\n作者: %s\n" + "-" * 45 + "\n%s"
         if not skin in self.skin_summarys:
             self._load_skinproperties(skin)
         skintype, _skinname, author, desc, _vocation120, _initialcash = self.skin_summarys[skin]
         desc = cw.util.txtwrap(desc, 1)
-        self.tx_skin.SetValue(s % (skintype, cw.util.join_paths(u"Data/Skin", skin), author, desc))
+        self.tx_skin.SetValue(s % (skintype, cw.util.join_paths("Data/Skin", skin), author, desc))
         if self.editbuttons:
-            self.btn_deleteskin.Enable(cw.cwpy.setting.skindirname <> skin)
+            self.btn_deleteskin.Enable(cw.cwpy.setting.skindirname != skin)
         if not init and applied:
             self.GetTopLevelParent().applied()
 
@@ -969,7 +969,7 @@ class SkinPanel(wx.Panel):
         return local
 
     def OnConvertSkin(self, event):
-        dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe=u"", from_settings=True,
+        dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe="", from_settings=True,
                                                   get_localsettings=self._get_localsettings)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
@@ -997,13 +997,13 @@ class SkinPanel(wx.Panel):
         skin = self.skindirs[self.ch_skin.GetSelection()]
         if cw.cwpy.setting.skindirname == skin:
             return
-        s = u"スキンを削除すると元に戻すことはできません。\n%sを削除しますか？" % (skin)
+        s = "スキンを削除すると元に戻すことはできません。\n%sを削除しますか？" % (skin)
         dlg = cw.dialog.message.YesNoMessage(self.TopLevelParent, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
         cw.cwpy.play_sound("signal")
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.play_sound("dump")
-            dpath = cw.util.join_paths(u"Data/Skin", skin)
+            dpath = cw.util.join_paths("Data/Skin", skin)
             cw.util.remove(dpath)
             self.update_skins(cw.cwpy.setting.skindirname)
             if self.pane_scenario:
@@ -1036,10 +1036,10 @@ class SkinPanel(wx.Panel):
     def apply_skin(self, forceupdate):
         skinname = self.ch_skin.GetSelection()
         skinname = self.skindirs[skinname]
-        if forceupdate or cw.cwpy.setting.skindirname <> skinname:
+        if forceupdate or cw.cwpy.setting.skindirname != skinname:
             if self.editbuttons:
                 self.btn_deleteskin.Disable()
-            cw.cwpy.exec_func(cw.cwpy.update_skin, skinname, restartop=cw.cwpy.setting.skindirname <> skinname,
+            cw.cwpy.exec_func(cw.cwpy.update_skin, skinname, restartop=cw.cwpy.setting.skindirname != skinname,
                               switch_skin=True)
             return True
         return False
@@ -1057,8 +1057,8 @@ class ExpandPanel(wx.Panel):
 
         # 拡大表示モード
         self._expand_enable = True
-        self.st_expandscr = wx.StaticText(self, -1, u"描画倍率:")
-        self.st_expandwin = wx.StaticText(self, -1, u"表示倍率:")
+        self.st_expandscr = wx.StaticText(self, -1, "描画倍率:")
+        self.st_expandwin = wx.StaticText(self, -1, "表示倍率:")
 
         self.ch_expanddrawing = wx.ComboBox(self, -1, style=wx.CB_DROPDOWN|wx.CB_READONLY)
 
@@ -1067,15 +1067,15 @@ class ExpandPanel(wx.Panel):
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.st_expand = wx.StaticText(self, -1)
         dc = wx.ClientDC(self.st_expand)
-        s = u"9倍 (9999x9999)_"
+        s = "9倍 (9999x9999)_"
         self.st_expand.SetMinSize((dc.GetTextExtent(s)[0], -1))
 
-        self.cb_fullscreen = wx.CheckBox(self, -1, u"フルスクリーン")
+        self.cb_fullscreen = wx.CheckBox(self, -1, "フルスクリーン")
 
         if self.options:
             self.ln_expand = wx.StaticLine(self, -1, style=wx.HORIZONTAL)
             self.cb_smoothexpand = wx.CheckBox(self, -1,
-                                               u"拡大後の画面を滑らかにする")
+                                               "拡大後の画面を滑らかにする")
 
         self._do_layout()
         self._bind()
@@ -1107,7 +1107,7 @@ class ExpandPanel(wx.Panel):
         val = 1
         self.ch_expanddrawing.Clear()
         while True:
-            self.ch_expanddrawing.Append(u"%s倍" % (val))
+            self.ch_expanddrawing.Append("%s倍" % (val))
             if setting.expanddrawing == val:
                 self.ch_expanddrawing.Select(i)
             i += 1
@@ -1128,22 +1128,22 @@ class ExpandPanel(wx.Panel):
             self.ch_expanddrawing.Select(0)
 
         if nmax < int(2 ** (self.ch_expanddrawing.GetCount()-1)) * 10:
-            self.ch_expanddrawing.SetToolTip(u"画面解像度を超える描画サイズは、環境によっては\n正常に機能しない可能性があります。")
+            self.ch_expanddrawing.SetToolTip("画面解像度を超える描画サイズは、環境によっては\n正常に機能しない可能性があります。")
         else:
-            self.ch_expanddrawing.SetToolTip(u"")
+            self.ch_expanddrawing.SetToolTip("")
 
         self.make_expandinfo()
 
     def make_expandinfo(self):
         if self.cb_fullscreen.IsChecked():
             self.sl_expand.Disable()
-            self.st_expand.SetLabel(u"フルスクリーン")
+            self.st_expand.SetLabel("フルスクリーン")
         else:
             self.sl_expand.Enable(self._expand_enable)
             n = self.sl_expand.GetValue()
             x = cw.SIZE_GAME[0] * n / 10
             y = cw.SIZE_GAME[1] * n / 10
-            s = u"%d.%d倍 (%dx%d)" % (n/10, n%10, x, y)
+            s = "%d.%d倍 (%dx%d)" % (n/10, n%10, x, y)
             self.st_expand.SetLabel(s)
 
     def OnExpandChange(self, event):
@@ -1184,7 +1184,7 @@ class ExpandPanel(wx.Panel):
         else:
             value = float(self.sl_expand.GetValue()) / 10
         expanddrawing = int(2 ** self.ch_expanddrawing.GetSelection())
-        if str(value) <> str(setting.expandmode) or expanddrawing <> setting.expanddrawing:
+        if str(value) != str(setting.expandmode) or expanddrawing != setting.expanddrawing:
             if update and cw.cwpy.is_expanded():
                 # 設定が変更されたので拡大状態を切り替え
                 def func(value):
@@ -1217,68 +1217,68 @@ class GeneralSettingPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         # タブレットモード
-        self.box_tablet = wx.StaticBox(self, -1, u"タブレットモード")
-        self.cb_show_tiles = wx.CheckBox(self, -1, u"タッチ操作用のタイルを表示する")
-        self.cb_enabled_right_flick = wx.CheckBox(self, -1, u"右フリックで右クリック相当の操作を行う")
-        self.cb_can_repeatlclick = wx.CheckBox(self, -1, u"一定時間タッチし続けた時は連打状態にする")
+        self.box_tablet = wx.StaticBox(self, -1, "タブレットモード")
+        self.cb_show_tiles = wx.CheckBox(self, -1, "タッチ操作用のタイルを表示する")
+        self.cb_enabled_right_flick = wx.CheckBox(self, -1, "右フリックで右クリック相当の操作を行う")
+        self.cb_can_repeatlclick = wx.CheckBox(self, -1, "一定時間タッチし続けた時は連打状態にする")
 
         # デバッグモード
-        self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        self.cb_debug = wx.CheckBox(self, -1, u"デバッグモード(Ctrl+Dでも切替可)")
+        self.box_gene = wx.StaticBox(self, -1, "詳細")
+        self.cb_debug = wx.CheckBox(self, -1, "デバッグモード(Ctrl+Dでも切替可)")
         self.cb_debug.SetValue(cw.cwpy.debug)
         self.cb_show_debuglogdialog = wx.CheckBox(
-            self, -1, u"シナリオの終了時にデバッグ情報を表示する")
+            self, -1, "シナリオの終了時にデバッグ情報を表示する")
         self.cb_nolevelup = wx.CheckBox(
-            self, -1, u"デバッグ中はレベル上昇を抑止する")
+            self, -1, "デバッグ中はレベル上昇を抑止する")
 
-        self.st_startupscene = wx.StaticText(self, -1, u"起動時の動作:")
-        self.ch_startupscene = wx.Choice(self, -1, choices=[u"タイトル画面を開く", u"最後に選択した拠点を開く"])
+        self.st_startupscene = wx.StaticText(self, -1, "起動時の動作:")
+        self.ch_startupscene = wx.Choice(self, -1, choices=["タイトル画面を開く", "最後に選択した拠点を開く"])
 
-        self.box_messagelog = wx.StaticBox(self, -1, u"メッセージログ(F5キーで表示)")
-        self.st_messagelog_type = wx.StaticText(self, -1, u"表示形式:")
-        self.ch_messagelog_type = wx.Choice(self, -1, choices=[u"1件ずつ表示", u"並べて表示", u"高さを圧縮"])
-        self.st_backlogmax = wx.StaticText(self, -1, u"最大数:")
+        self.box_messagelog = wx.StaticBox(self, -1, "メッセージログ(F5キーで表示)")
+        self.st_messagelog_type = wx.StaticText(self, -1, "表示形式:")
+        self.ch_messagelog_type = wx.Choice(self, -1, choices=["1件ずつ表示", "並べて表示", "高さを圧縮"])
+        self.st_backlogmax = wx.StaticText(self, -1, "最大数:")
         self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(cw.ppis(80+_spin_w_addition), -1), max=9999, min=0)
 
         # スキン
-        self.box_skin = wx.StaticBox(self, -1, u"スキン",)
+        self.box_skin = wx.StaticBox(self, -1, "スキン",)
         self.skin = SkinPanel(self, True)
 
         # 拡大表示モード
-        self.box_expandmode = wx.StaticBox(self, -1, u"拡大表示方式(F4キーで拡大)")
+        self.box_expandmode = wx.StaticBox(self, -1, "拡大表示方式(F4キーで拡大)")
         self.expand = ExpandPanel(self, True)
 
         # 持出金額
-        self.box_party = wx.StaticBox(self, -1, u"パーティ")
-        self.st_initmoneyamount = wx.StaticText(self, -1, u"結成時の持出金額:")
+        self.box_party = wx.StaticBox(self, -1, "パーティ")
+        self.st_initmoneyamount = wx.StaticText(self, -1, "結成時の持出金額:")
         self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(cw.ppis(80+_spin_w_addition), -1), min=0, max=999999)
-        self.cb_initmoneyisinitialcash = wx.CheckBox(self, -1, u"初期資金と同額")
+        self.cb_initmoneyisinitialcash = wx.CheckBox(self, -1, "初期資金と同額")
 
         self.cb_autosavepartyrecord = wx.CheckBox(
-            self, -1, u"解散時、自動的にパーティ情報を記録する")
+            self, -1, "解散時、自動的にパーティ情報を記録する")
         self.cb_overwritepartyrecord = wx.CheckBox(
-            self, -1, u"自動記録時、同名のパーティ記録へ上書きする")
+            self, -1, "自動記録時、同名のパーティ記録へ上書きする")
 
         # スクリーンショット情報
-        self.box_ss = wx.StaticBox(self, -1, u"スクリーンショット情報(画像上部に表示)")
+        self.box_ss = wx.StaticBox(self, -1, "スクリーンショット情報(画像上部に表示)")
         self.tx_ssinfoformat = wx.TextCtrl(self, -1, size=(cw.ppis(150), -1))
         # スクリーンショット情報の色
-        choices = [u"黒文字", u"白文字"]
+        choices = ["黒文字", "白文字"]
         self.ch_ssinfocolor = wx.Choice(self, -1, size=(-1, -1), choices=choices)
 
         # 背景イメージ
-        self.st_ssinfobackimage = wx.StaticText(self, -1, u"背景画像:")
+        self.st_ssinfobackimage = wx.StaticText(self, -1, "背景画像:")
         self.tx_ssinfobackimage = wx.TextCtrl(self, -1, size=(-1, -1))
         self.ref_ssinfobackimage = cw.util.create_fileselection(self,
             target=self.tx_ssinfobackimage,
-            message=u"スクリーンショット情報の背景にするファイルを選択",
-            wildcard=u"画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
+            message="スクリーンショット情報の背景にするファイルを選択",
+            wildcard="画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
 
         # スクリーンショットのファイル名
-        self.st_ssfnameformat = wx.StaticText(self, -1, u"ファイル名:")
+        self.st_ssfnameformat = wx.StaticText(self, -1, "ファイル名:")
         self.tx_ssfnameformat = wx.TextCtrl(self, -1, size=(cw.ppis(150), -1))
         # 所持カード撮影情報のファイル名
-        self.st_cardssfnameformat = wx.StaticText(self, -1, u"所持カード:")
+        self.st_cardssfnameformat = wx.StaticText(self, -1, "所持カード:")
         self.tx_cardssfnameformat = wx.TextCtrl(self, -1, size=(cw.ppis(150), -1))
 
         self.ss_tx = set()
@@ -1286,47 +1286,47 @@ class GeneralSettingPanel(wx.Panel):
         self.ss_tx.add(self.tx_ssfnameformat)
         self.ss_tx.add(self.tx_cardssfnameformat)
 
-        self.st_ssinfo_brackets = wx.StaticText(self, -1, u"[ ] 内は、各種情報がある場合のみ挿入されます")
+        self.st_ssinfo_brackets = wx.StaticText(self, -1, "[ ] 内は、各種情報がある場合のみ挿入されます")
 
         self.sstoolbar = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_HORZ_TEXT|wx.TB_NOICONS)
         self.sstoolbar.SetToolBitmapSize(wx.Size(cw.ppis(0), cw.ppis(0)))
         self.ti_ssins = self.sstoolbar.AddTool(
-            -1, u"各種情報の挿入", cw.util.empty_bitmap(cw.ppis(0), cw.ppis(0)),
-            shortHelp=u"状況によって動的に変化する情報を挿入します。")
+            -1, "各種情報の挿入", cw.util.empty_bitmap(cw.ppis(0), cw.ppis(0)),
+            shortHelp="状況によって動的に変化する情報を挿入します。")
         self.sstoolbar.Realize()
 
         ssdic = [
-            (u"application", u"アプリケーション名"),
-            (u"version", u"バージョン情報"),
+            ("application", "アプリケーション名"),
+            ("version", "バージョン情報"),
             None,
-            (u"skin", u"スキン名"),
-            (u"yado", u"拠点名"),
-            (u"party", u"パーティ名"),
+            ("skin", "スキン名"),
+            ("yado", "拠点名"),
+            ("party", "パーティ名"),
             None,
-            (u"scenario", u"シナリオ名"),
-            (u"author", u"作者名"),
-            (u"path", u"シナリオのファイルパス"),
-            (u"file", u"シナリオのファイル名"),
-            (u"compatibility", u"互換モード"),
+            ("scenario", "シナリオ名"),
+            ("author", "作者名"),
+            ("path", "シナリオのファイルパス"),
+            ("file", "シナリオのファイル名"),
+            ("compatibility", "互換モード"),
             None,
-            (u"date", u"日付"),
-            (u"time", u"時刻"),
-            (u"year", u"年"),
-            (u"month", u"月"),
-            (u"day", u"日"),
-            (u"hour", u"時"),
-            (u"minute", u"分"),
-            (u"second", u"秒"),
-            (u"millisecond", u"ミリ秒"),
+            ("date", "日付"),
+            ("time", "時刻"),
+            ("year", "年"),
+            ("month", "月"),
+            ("day", "日"),
+            ("hour", "時"),
+            ("minute", "分"),
+            ("second", "秒"),
+            ("millisecond", "ミリ秒"),
         ]
         if versioninfo:
-            ssdic.insert(2, (u"build", u"ビルド情報"))
+            ssdic.insert(2, ("build", "ビルド情報"))
         self.ssdic = {}
         self.ssinsmenu = wx.Menu()
         for t in ssdic:
             if t:
                 p, name = t
-                mi = self.ssinsmenu.Append(-1, u"%%%s%% = %s" % (p, name))
+                mi = self.ssinsmenu.Append(-1, "%%%s%% = %s" % (p, name))
                 self.ssdic[mi.GetId()] = (mi.GetId(), p, name)
             else:
                 self.ssinsmenu.AppendSeparator()
@@ -1425,7 +1425,7 @@ class GeneralSettingPanel(wx.Panel):
             f = wx.Window.FindFocus()
             for tx in self.ss_tx:
                 if tx is f:
-                    tx.WriteText(u"%%%s%%" % (p))
+                    tx.WriteText("%%%s%%" % (p))
 
     def OnSSFocus(self, event):
         self._ss_focus()
@@ -1539,12 +1539,12 @@ class SpeedPanel(wx.Panel):
 
         # トランジション効果
         self.box_tran = wx.StaticBox(
-            self, -1, u"背景の切り替え方式(速い⇔遅い)")
+            self, -1, "背景の切り替え方式(速い⇔遅い)")
         self.transitions = [
             "None", "Blinds", "PixelDissolve", "Fade"]
         self.choices_tran = [
-            u"アニメーションなし", u"短冊(スレッド)式", u"ドット置換(シェーブ)式",
-            u"色置換(フェード)式"]
+            "アニメーションなし", "短冊(スレッド)式", "ドット置換(シェーブ)式",
+            "色置換(フェード)式"]
         self.ch_tran = wx.Choice(
             self, -1, size=(-1, -1), choices=self.choices_tran)
         self.sl_tran = wx.Slider(
@@ -1553,7 +1553,7 @@ class SpeedPanel(wx.Panel):
         self.sl_tran.SetTickFreq(1)
         # カード描画速度
         self.box_deal = wx.StaticBox(
-            self, -1, u"カード描画速度(速い⇔遅い)")
+            self, -1, "カード描画速度(速い⇔遅い)")
         self.sl_deal = wx.Slider(
             self, -1, 0, 0, 10, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
@@ -1561,16 +1561,16 @@ class SpeedPanel(wx.Panel):
         if self.battlespeed:
             # 戦闘行動描画速度
             self.box_deal_battle = wx.StaticBox(
-                self, -1, u"戦闘行動描画速度(速い⇔遅い)")
+                self, -1, "戦闘行動描画速度(速い⇔遅い)")
             self.sl_deal_battle = wx.Slider(
                 self, -1, 0, 0, 10, size=(_settings_width()-cw.ppis(10), -1),
                 style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
             self.sl_deal_battle.SetTickFreq(1)
             self.cb_use_battlespeed = wx.CheckBox(
-                self, -1, u"カード描画速度に合わせる")
+                self, -1, "カード描画速度に合わせる")
         # メッセージ表示速度
         self.box_msgs = wx.StaticBox(
-            self, -1, u"メッセージ表示速度(速い⇔遅い)")
+            self, -1, "メッセージ表示速度(速い⇔遅い)")
         self.sl_msgs = wx.Slider(
             self, -1, 0, 0, 10, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
@@ -1657,69 +1657,69 @@ class DrawingSettingPanel(wx.Panel):
         self._get_localsettings = get_localsettings
 
         if self._for_local:
-            self.cb_important = wx.CheckBox(self, -1, u"このスキンの描画設定を基本設定よりも優先して使用する")
+            self.cb_important = wx.CheckBox(self, -1, "このスキンの描画設定を基本設定よりも優先して使用する")
         else:
             self.cb_important = None
-            self.box_gene = wx.StaticBox(self, -1, u"詳細")
-            self.cb_smoothing_card_up = wx.CheckBox(self, -1, u"拡大したカード画像を滑らかにする")
-            self.cb_smoothing_card_down = wx.CheckBox(self, -1, u"縮小したカード画像を滑らかにする")
-            self.cb_smooth_bg = wx.CheckBox(self, -1, u"拡大・縮小した背景画像を滑らかにする")
-            self.cb_whitecursor = wx.CheckBox(self, -1, u"メイン画面で白いカーソルを使用する")
+            self.box_gene = wx.StaticBox(self, -1, "詳細")
+            self.cb_smoothing_card_up = wx.CheckBox(self, -1, "拡大したカード画像を滑らかにする")
+            self.cb_smoothing_card_down = wx.CheckBox(self, -1, "縮小したカード画像を滑らかにする")
+            self.cb_smooth_bg = wx.CheckBox(self, -1, "拡大・縮小した背景画像を滑らかにする")
+            self.cb_whitecursor = wx.CheckBox(self, -1, "メイン画面で白いカーソルを使用する")
 
             # 背景切替方式と各種速度
             self.speed = SpeedPanel(self, True)
 
         # メッセージウィンドウ背景色
-        self.box_mwin = wx.StaticBox(self, -1, u"メッセージウィンドウ背景")
-        self.st_mwin = wx.StaticText(self, -1, u"カラー")
+        self.box_mwin = wx.StaticBox(self, -1, "メッセージウィンドウ背景")
+        self.st_mwin = wx.StaticText(self, -1, "カラー")
         self.cs_mwin = wx.ColourPickerCtrl(self, -1)
-        self.st_blwin = wx.StaticText(self, -1, u"ログ")
+        self.st_blwin = wx.StaticText(self, -1, "ログ")
         self.cs_blwin = wx.ColourPickerCtrl(self, -1)
-        self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値")
+        self.st_mwin2 = wx.StaticText(self, -1, "アルファ値")
         self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_mwin.SetRange(0, 255)
         # メッセージウィンドウ枠色
-        self.box_mframe = wx.StaticBox(self, -1, u"メッセージウィンドウ枠")
-        self.st_mframe = wx.StaticText(self, -1, u"カラー")
+        self.box_mframe = wx.StaticBox(self, -1, "メッセージウィンドウ枠")
+        self.st_mframe = wx.StaticText(self, -1, "カラー")
         self.cs_mframe = wx.ColourPickerCtrl(self, -1)
-        self.st_blframe = wx.StaticText(self, -1, u"ログ")
+        self.st_blframe = wx.StaticText(self, -1, "ログ")
         self.cs_blframe = wx.ColourPickerCtrl(self, -1)
-        self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値")
+        self.st_mframe2 = wx.StaticText(self, -1, "アルファ値")
         self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_mframe.SetRange(0, 255)
 
         # メッセージログカーテン色
-        self.box_blcurtain = wx.StaticBox(self, -1, u"メッセージログの背景")
-        self.st_blcurtain = wx.StaticText(self, -1, u"カラー")
+        self.box_blcurtain = wx.StaticBox(self, -1, "メッセージログの背景")
+        self.st_blcurtain = wx.StaticText(self, -1, "カラー")
         self.cs_blcurtain = wx.ColourPickerCtrl(self, -1)
-        self.st_blcurtain2 = wx.StaticText(self, -1, u"アルファ値")
+        self.st_blcurtain2 = wx.StaticText(self, -1, "アルファ値")
         self.sc_blcurtain = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_blcurtain.SetRange(0, 255)
 
         # カーテン色
-        self.box_curtain = wx.StaticBox(self, -1, u"カーテン(選択モードの背景効果)")
-        self.st_curtain = wx.StaticText(self, -1, u"カラー")
+        self.box_curtain = wx.StaticBox(self, -1, "カーテン(選択モードの背景効果)")
+        self.st_curtain = wx.StaticText(self, -1, "カラー")
         self.cs_curtain = wx.ColourPickerCtrl(self, -1)
-        self.st_curtain2 = wx.StaticText(self, -1, u"アルファ値")
+        self.st_curtain2 = wx.StaticText(self, -1, "アルファ値")
         self.sc_curtain = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_curtain.SetRange(0, 255)
 
         # フルスクリーンの背景
-        self.box_fscrback = wx.StaticBox(self, -1, u"フルスクリーンの背景")
-        choices = [u"<背景なし>", u"<ファイルから選択>", u"ダイアログの壁紙", u"スキンのロゴ"]
+        self.box_fscrback = wx.StaticBox(self, -1, "フルスクリーンの背景")
+        choices = ["<背景なし>", "<ファイルから選択>", "ダイアログの壁紙", "スキンのロゴ"]
         self.ch_fscrbacktype = wx.Choice(self, -1, size=(-1, -1), choices=choices)
         self.tx_fscrbackfile = wx.TextCtrl(self, -1, size=(cw.ppis(150), -1))
         self.ref_fscrbackfile = cw.util.create_fileselection(self,
             target=self.tx_fscrbackfile,
-            message=u"フルスクリーンの背景にするファイルを選択",
-            wildcard=u"画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
+            message="フルスクリーンの背景にするファイルを選択",
+            wildcard="画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
 
         if self._for_local:
             if use_copybase:
-                self.copybtn = wx.Button(self, -1, u"基本設定をコピー")
+                self.copybtn = wx.Button(self, -1, "基本設定をコピー")
             else:
                 self.copybtn = None
-            self.initbtn = wx.Button(self, -1, u"デフォルト")
+            self.initbtn = wx.Button(self, -1, "デフォルト")
 
         self._do_layout()
         self._bind()
@@ -1748,20 +1748,20 @@ class DrawingSettingPanel(wx.Panel):
 
         if local.fullscreenbackgroundtype == 0:
             self.ch_fscrbacktype.SetSelection(0)
-            self.tx_fscrbackfile.SetValue(u"")
+            self.tx_fscrbackfile.SetValue("")
         elif local.fullscreenbackgroundtype == 1:
             self.ch_fscrbacktype.SetSelection(1)
             self.tx_fscrbackfile.SetValue(local.fullscreenbackgroundfile)
         elif local.fullscreenbackgroundtype == 2:
-            if local.fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
+            if local.fullscreenbackgroundfile == "Resource/Image/Dialog/CAUTION":
                 self.ch_fscrbacktype.SetSelection(2)
-                self.tx_fscrbackfile.SetValue(u"")
-            elif local.fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
+                self.tx_fscrbackfile.SetValue("")
+            elif local.fullscreenbackgroundfile == "Resource/Image/Dialog/PAD":
                 self.ch_fscrbacktype.SetSelection(3)
-                self.tx_fscrbackfile.SetValue(u"")
+                self.tx_fscrbackfile.SetValue("")
             else:
                 self.ch_fscrbacktype.SetSelection(0)
-                self.tx_fscrbackfile.SetValue(u"")
+                self.tx_fscrbackfile.SetValue("")
 
         self._update_enabled()
 
@@ -1791,7 +1791,7 @@ class DrawingSettingPanel(wx.Panel):
 
         if local.fullscreenbackgroundtype_init == 2:
             self.tx_fscrbackfile.SetValue("")
-            if local.fullscreenbackgroundfile_init == u"Resource/Image/Dialog/CAUTION":
+            if local.fullscreenbackgroundfile_init == "Resource/Image/Dialog/CAUTION":
                 self.ch_fscrbacktype.Select(2)
             else:
                 self.ch_fscrbacktype.Select(3)
@@ -1809,23 +1809,23 @@ class DrawingSettingPanel(wx.Panel):
         alpha = self.sc_mwin.GetValue()
         colour = self.cs_mwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= local.mwincolour <> colour
+        updatemessage |= local.mwincolour != colour
         local.mwincolour = colour
         alpha = self.sc_mframe.GetValue()
         colour = self.cs_mframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= local.mwinframecolour <> colour
+        updatemessage |= local.mwinframecolour != colour
         local.mwinframecolour = colour
         # 配色(バックログ)
         alpha = self.sc_mwin.GetValue()
         colour = self.cs_blwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= local.blwincolour <> colour
+        updatemessage |= local.blwincolour != colour
         local.blwincolour = colour
         alpha = self.sc_mframe.GetValue()
         colour = self.cs_blframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= local.blwinframecolour <> colour
+        updatemessage |= local.blwinframecolour != colour
         local.blwinframecolour = colour
 
         updatecurtain = False
@@ -1833,13 +1833,13 @@ class DrawingSettingPanel(wx.Panel):
         alpha = self.sc_blcurtain.GetValue()
         colour = self.cs_blcurtain.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatecurtain |= local.blcurtaincolour <> colour
+        updatecurtain |= local.blcurtaincolour != colour
         local.blcurtaincolour = colour
         # 配色(選択モードカーテン)
         alpha = self.sc_curtain.GetValue()
         colour = self.cs_curtain.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatecurtain |= local.curtaincolour <> colour
+        updatecurtain |= local.curtaincolour != colour
         local.curtaincolour = colour
 
         # フルスクリーンの背景
@@ -1847,25 +1847,25 @@ class DrawingSettingPanel(wx.Panel):
         fullscreenbackgroundfile = local.fullscreenbackgroundfile
         fullscreenbackgroundtype = local.fullscreenbackgroundtype
         if value == 0:
-            fullscreenbackgroundfile = u""
+            fullscreenbackgroundfile = ""
             fullscreenbackgroundtype = 0
         elif value == 1:
             fullscreenbackgroundfile = self.tx_fscrbackfile.GetValue()
             fullscreenbackgroundtype = 1
         elif value == 2:
-            fullscreenbackgroundfile = u"Resource/Image/Dialog/CAUTION"
+            fullscreenbackgroundfile = "Resource/Image/Dialog/CAUTION"
             fullscreenbackgroundtype = 2
         elif value == 3:
-            fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+            fullscreenbackgroundfile = "Resource/Image/Dialog/PAD"
             fullscreenbackgroundtype = 2
 
-        updatefullscreen = fullscreenbackgroundfile <> local.fullscreenbackgroundfile or\
-                           fullscreenbackgroundtype <> local.fullscreenbackgroundtype
+        updatefullscreen = fullscreenbackgroundfile != local.fullscreenbackgroundfile or\
+                           fullscreenbackgroundtype != local.fullscreenbackgroundtype
 
         local.fullscreenbackgroundfile = fullscreenbackgroundfile
         local.fullscreenbackgroundtype = fullscreenbackgroundtype
 
-        if self.cb_important and self.cb_important.GetValue() <> local.important_draw:
+        if self.cb_important and self.cb_important.GetValue() != local.important_draw:
             local.important_draw = self.cb_important.GetValue()
             updatemessage = True
             updatecurtain = True
@@ -2029,48 +2029,48 @@ class AudioSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
-        self.box_gene = wx.StaticBox(self, -1, u"詳細")
+        self.box_gene = wx.StaticBox(self, -1, "詳細")
         # 音楽を再生する
         self.cb_playbgm = wx.CheckBox(
-            self, -1, u"音楽を再生する")
+            self, -1, "音楽を再生する")
         # 効果音を再生する
         self.cb_playsound = wx.CheckBox(
-            self, -1, u"効果音を再生する")
+            self, -1, "効果音を再生する")
 
         # 全体音量
-        self.box_master = wx.StaticBox(self, -1, u"全体音量(右クリック+ホイールでも調節可能)")
+        self.box_master = wx.StaticBox(self, -1, "全体音量(右クリック+ホイールでも調節可能)")
         self.sl_master = wx.Slider(
             self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_master.SetTickFreq(10)
 
         # 音量
-        self.box_music = wx.StaticBox(self, -1, u"ミュージック音量")
+        self.box_music = wx.StaticBox(self, -1, "ミュージック音量")
         self.sl_music = wx.Slider(
             self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_music.SetTickFreq(10)
 
         # midi音量
-        self.box_midi = wx.StaticBox(self, -1, u"MIDIミュージック音量")
+        self.box_midi = wx.StaticBox(self, -1, "MIDIミュージック音量")
         self.sl_midi = wx.Slider(
             self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_midi.SetTickFreq(10)
 
         # 効果音音量
-        self.box_sound = wx.StaticBox(self, -1, u"効果音音量")
+        self.box_sound = wx.StaticBox(self, -1, "効果音音量")
         self.sl_sound = wx.Slider(
             self, -1, 0, 0, 100, size=(_settings_width()-cw.ppis(10), -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_sound.SetTickFreq(10)
 
         # サウンドフォント
-        self.box_soundfont = wx.StaticBox(self, -1, u"MIDIサウンドフォント")
-        self.btn_addsoundfont = wx.Button(self, -1, u"追加...")
-        self.btn_rmvsoundfont = wx.Button(self, -1, u"削除")
-        self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(cw.ppis(25), -1))
-        self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(cw.ppis(25), -1))
+        self.box_soundfont = wx.StaticBox(self, -1, "MIDIサウンドフォント")
+        self.btn_addsoundfont = wx.Button(self, -1, "追加...")
+        self.btn_rmvsoundfont = wx.Button(self, -1, "削除")
+        self.btn_upsoundfont = wx.Button(self, -1, "↑", size=(cw.ppis(25), -1))
+        self.btn_downsoundfont = wx.Button(self, -1, "↓", size=(cw.ppis(25), -1))
 
         self.grid_soundfont = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.grid_soundfont.SetDoubleBuffered(True)
@@ -2079,11 +2079,11 @@ class AudioSettingPanel(wx.Panel):
         self.grid_soundfont.SetSelectionMode(wx.grid.Grid.SelectRows)
         self.grid_soundfont.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
         self.grid_soundfont.SetRowLabelSize(cw.ppis(0))
-        self.grid_soundfont.SetColLabelValue(0, u"使用")
+        self.grid_soundfont.SetColLabelValue(0, "使用")
         self.grid_soundfont.SetColSize(0, cw.ppis(40))
-        self.grid_soundfont.SetColLabelValue(1, u"ファイル")
+        self.grid_soundfont.SetColLabelValue(1, "ファイル")
         self.grid_soundfont.SetColSize(1, cw.ppis(210))
-        self.grid_soundfont.SetColLabelValue(2, u"音量(%)")
+        self.grid_soundfont.SetColLabelValue(2, "音量(%)")
         self.grid_soundfont.SetColSize(2, cw.ppis(50))
 
         self._do_layout()
@@ -2121,7 +2121,7 @@ class AudioSettingPanel(wx.Panel):
 
     def set_soundfont(self, row, soundfont):
         sfont, use, volume = soundfont
-        self.grid_soundfont.SetCellValue(row, 0, u"1" if use else u"")
+        self.grid_soundfont.SetCellValue(row, 0, "1" if use else "")
         self.grid_soundfont.SetCellValue(row, 1, sfont)
         self.grid_soundfont.SetCellRenderer(row, 1, cw.util.FilePathRenderer(True, False))
         self.grid_soundfont.SetCellValue(row, 2, str(volume))
@@ -2136,7 +2136,7 @@ class AudioSettingPanel(wx.Panel):
 
     def get_soundfont(self, row):
         sfont = self.grid_soundfont.GetCellValue(row, 1)
-        use = self.grid_soundfont.GetCellValue(row, 0) <> u""
+        use = self.grid_soundfont.GetCellValue(row, 0) != ""
         volume = int(self.grid_soundfont.GetCellValue(row, 2))
         return (sfont, use, volume)
 
@@ -2206,19 +2206,19 @@ class AudioSettingPanel(wx.Panel):
         self.btn_downsoundfont.Enable(bool(indexes and indexes[-1] + 1 < lcount))
 
     def OnAddSoundFontBtn(self, event):
-        dlg = wx.FileDialog(self.GetTopLevelParent(), u"MIDIの演奏に使用するサウンドフォント選択", u"Data/SoundFont", "", "*.sf2", wx.FD_OPEN|wx.FD_MULTIPLE)
+        dlg = wx.FileDialog(self.GetTopLevelParent(), "MIDIの演奏に使用するサウンドフォント選択", "Data/SoundFont", "", "*.sf2", wx.FD_OPEN|wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
             exists = set()
             index = -1
-            for index in xrange(self.grid_soundfont.GetNumberRows()):
+            for index in range(self.grid_soundfont.GetNumberRows()):
                 soundfont = self.grid_soundfont.GetCellValue(index, 1)
                 exists.add(soundfont.lower())
 
             for fname in dlg.GetFilenames():
                 fpath = os.path.join(dlg.GetDirectory(), fname)
                 try:
-                    rel = cw.util.relpath(fpath, u"")
-                    if not rel.startswith(u".."):
+                    rel = cw.util.relpath(fpath, "")
+                    if not rel.startswith(".."):
                         fpath = rel
                 except:
                     cw.util.print_ex()
@@ -2279,23 +2279,23 @@ class ScenarioSettingPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         # シナリオのオプション
-        self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
-        self.cb_show_paperandtree = wx.CheckBox(self, -1, u"シナリオ選択ダイアログで貼紙と一覧を同時に表示する")
-        self.cb_write_playlog = wx.CheckBox(self, -1, u"シナリオのプレイログを出力する")
-        self.cb_can_installscenariofromdrop = wx.CheckBox(self, -1, u"シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する")
-        self.cb_delete_sourceafterinstalled = wx.CheckBox(self, -1, u"シナリオのインストールに成功したら元ファイルを削除する")
+        self.box_gene = wx.StaticBox(self, -1, "詳細")
+        self.cb_selectscenariofromtype = wx.CheckBox(self, -1, "シナリオの選択開始位置をスキン毎に変更する")
+        self.cb_show_paperandtree = wx.CheckBox(self, -1, "シナリオ選択ダイアログで貼紙と一覧を同時に表示する")
+        self.cb_write_playlog = wx.CheckBox(self, -1, "シナリオのプレイログを出力する")
+        self.cb_can_installscenariofromdrop = wx.CheckBox(self, -1, "シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する")
+        self.cb_delete_sourceafterinstalled = wx.CheckBox(self, -1, "シナリオのインストールに成功したら元ファイルを削除する")
         self.cb_open_lastscenario = wx.CheckBox(
-            self, -1, u"最後に選んだシナリオをシナリオの選択開始位置にする")
+            self, -1, "最後に選んだシナリオをシナリオの選択開始位置にする")
 
         # スキンタイプ毎の初期フォルダ
-        self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
-        self.btn_reffolder = wx.Button(self, -1, u"参照...")
-        self.btn_removefolder = wx.Button(self, -1, u"削除")
-        self.btn_upfolder = wx.Button(self, -1, u"↑", size=(cw.ppis(25), -1))
-        self.btn_downfolder = wx.Button(self, -1, u"↓", size=(cw.ppis(25), -1))
+        self.box_folderoftype = wx.StaticBox(self, -1, "シナリオフォルダ(スキンタイプ別)")
+        self.btn_reffolder = wx.Button(self, -1, "参照...")
+        self.btn_removefolder = wx.Button(self, -1, "削除")
+        self.btn_upfolder = wx.Button(self, -1, "↑", size=(cw.ppis(25), -1))
+        self.btn_downfolder = wx.Button(self, -1, "↓", size=(cw.ppis(25), -1))
 
-        self.btn_constructdb = wx.Button(self, -1, u"データベース構築...", size=(-1, -1))
+        self.btn_constructdb = wx.Button(self, -1, "データベース構築...", size=(-1, -1))
 
         self.grid_folderoftype = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.grid_folderoftype.CreateGrid(0, 2)
@@ -2304,31 +2304,31 @@ class ScenarioSettingPanel(wx.Panel):
         self.celleditor = None
 
         # シナリオエディタ
-        self.box_application = wx.StaticBox(self, -1, u"外部アプリ")
-        self.st_editor = wx.StaticText(self, -1, u"エディタ")
+        self.box_application = wx.StaticBox(self, -1, "外部アプリ")
+        self.st_editor = wx.StaticText(self, -1, "エディタ")
         self.tx_editor = wx.TextCtrl(self, -1, size=(-1, -1))
         if sys.platform == "win32":
-            wildcard = u"実行可能ファイル (*.exe)|*.exe|全てのファイル (*.*)|*.*"
+            wildcard = "実行可能ファイル (*.exe)|*.exe|全てのファイル (*.*)|*.*"
         else:
-            wildcard = u"全てのファイル (*.*)|*.*"
+            wildcard = "全てのファイル (*.*)|*.*"
         self.ref_editor = cw.util.create_fileselection(self,
             target=self.tx_editor,
-            message=u"CardWirthのシナリオエディタを選択",
+            message="CardWirthのシナリオエディタを選択",
             wildcard=wildcard)
 
         # シナリオ選択ダイアログでのファイラー(フォルダ用)
-        self.st_filer_dir = wx.StaticText(self, -1, u"ファイラー(フォルダ用)")
+        self.st_filer_dir = wx.StaticText(self, -1, "ファイラー(フォルダ用)")
         self.tx_filer_dir = wx.TextCtrl(self, -1, size=(-1, -1))
         self.ref_filer_dir = cw.util.create_fileselection(self,
             target=self.tx_filer_dir,
-            message=u"シナリオの場所を開くためのファイラー(フォルダ用)を選択",
+            message="シナリオの場所を開くためのファイラー(フォルダ用)を選択",
             wildcard=wildcard)
         # シナリオ選択ダイアログでのファイラー(ファイル用)
-        self.st_filer_file = wx.StaticText(self, -1, u"ファイラー(ファイル用)")
+        self.st_filer_file = wx.StaticText(self, -1, "ファイラー(ファイル用)")
         self.tx_filer_file = wx.TextCtrl(self, -1, size=(-1, -1))
         self.ref_filer_file = cw.util.create_fileselection(self,
             target=self.tx_filer_file,
-            message=u"シナリオの場所を開くためのファイラー(ファイル用)を選択",
+            message="シナリオの場所を開くためのファイラー(ファイル用)を選択",
             wildcard=wildcard)
 
         w, h, _lh = 0, 0, 0
@@ -2386,7 +2386,7 @@ class ScenarioSettingPanel(wx.Panel):
             return
         types = set()
         self.Parent.Parent.pane_gene.skin.load_allskins()
-        for t in self.Parent.Parent.pane_gene.skin.skin_summarys.itervalues():
+        for t in self.Parent.Parent.pane_gene.skin.skin_summarys.values():
             skintype, _skinname, _author, _desc, _vocation120, _initialcash = t
             types.add(skintype)
 
@@ -2403,10 +2403,10 @@ class ScenarioSettingPanel(wx.Panel):
     def _select_changed_folderoftype(self):
         row = self.grid_folderoftype.GetGridCursorRow()
         lcount = self.grid_folderoftype.GetNumberRows()
-        self.btn_reffolder.Enable(row <> -1)
-        self.btn_removefolder.Enable(bool(row <> -1 and row < lcount-1))
-        self.btn_upfolder.Enable(bool(row <> -1 and 1 <= row and row < lcount-1))
-        self.btn_downfolder.Enable(bool(row <> -1 and row + 2 < lcount))
+        self.btn_reffolder.Enable(row != -1)
+        self.btn_removefolder.Enable(bool(row != -1 and row < lcount-1))
+        self.btn_upfolder.Enable(bool(row != -1 and 1 <= row and row < lcount-1))
+        self.btn_downfolder.Enable(bool(row != -1 and row + 2 < lcount))
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnRefFolderBtn, self.btn_reffolder)
@@ -2485,10 +2485,10 @@ class ScenarioSettingPanel(wx.Panel):
 
         skintype = self.grid_folderoftype.GetCellValue(row, 0)
         if not skintype:
-            skintype = u"(指定無し)"
+            skintype = "(指定無し)"
 
-        dpath = os.path.abspath(u"Scenario")
-        s = u"「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください。" % (skintype)
+        dpath = os.path.abspath("Scenario")
+        s = "「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください。" % (skintype)
         dlg = wx.DirDialog(self.TopLevelParent, s, dpath, style=wx.DD_DIR_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             dpath = dlg.GetPath()
@@ -2512,7 +2512,7 @@ class ScenarioSettingPanel(wx.Panel):
         row = self.grid_folderoftype.GetGridCursorRow()
         if row == -1 or row == 0:
             return
-        for col in xrange(self.grid_folderoftype.GetNumberCols()):
+        for col in range(self.grid_folderoftype.GetNumberCols()):
             value1 = self.grid_folderoftype.GetCellValue(row, col)
             value2 = self.grid_folderoftype.GetCellValue(row - 1, col)
             self.grid_folderoftype.SetCellValue(row, col, value2)
@@ -2527,7 +2527,7 @@ class ScenarioSettingPanel(wx.Panel):
         row = self.grid_folderoftype.GetGridCursorRow()
         if row == -1 or self.grid_folderoftype.GetNumberRows() <= row + 2:
             return
-        for col in xrange(self.grid_folderoftype.GetNumberCols()):
+        for col in range(self.grid_folderoftype.GetNumberCols()):
             value1 = self.grid_folderoftype.GetCellValue(row, col)
             value2 = self.grid_folderoftype.GetCellValue(row + 1, col)
             self.grid_folderoftype.SetCellValue(row, col, value2)
@@ -2540,7 +2540,7 @@ class ScenarioSettingPanel(wx.Panel):
 
     def OnConstructDBBtn(self, event):
         d = {}
-        for row in xrange(self.grid_folderoftype.GetNumberRows()):
+        for row in range(self.grid_folderoftype.GetNumberRows()):
             skintype = self.grid_folderoftype.GetCellValue(row, 0)
             dpath = self.grid_folderoftype.GetCellValue(row, 1)
             if not dpath:
@@ -2554,11 +2554,11 @@ class ScenarioSettingPanel(wx.Panel):
             if os.path.isdir(dpath):
                 s.add(dpath)
 
-        if os.path.isdir(u"Scenario"):
+        if os.path.isdir("Scenario"):
             if not cw.cwpy.setting.skintype in d:
-                d[cw.cwpy.setting.skintype] = set([u"Scenario"])
+                d[cw.cwpy.setting.skintype] = set(["Scenario"])
             elif not d:
-                d[u""] = set([u"Scenario"])
+                d[""] = set(["Scenario"])
 
         dlg = editscenariodb.ConstructScenarioDB(self.TopLevelParent, dpaths=d)
         cw.cwpy.frame.move_dlg(dlg)
@@ -2575,39 +2575,39 @@ class UISettingPanel(wx.ScrolledWindow):
         self.SetScrollPageSize(1, cw.ppis(200))
 
         # 空白時間オプション
-        self.box_skip_and_wait = wx.StaticBox(self, -1, u"スキップと空白時間")
+        self.box_skip_and_wait = wx.StaticBox(self, -1, "スキップと空白時間")
         self.cb_can_skipwait = wx.CheckBox(
-            self, -1, u"空白時間をスキップ可能にする")
+            self, -1, "空白時間をスキップ可能にする")
         self.cb_can_skipanimation = wx.CheckBox(
-            self, -1, u"アニメーションをスキップ可能にする")
+            self, -1, "アニメーションをスキップ可能にする")
         self.cb_can_skipwait_with_wheel = wx.CheckBox(
-            self, -1, u"マウスのホイールで空白時間とアニメーションをスキップする")
+            self, -1, "マウスのホイールで空白時間とアニメーションをスキップする")
         self.cb_can_forwardmessage_with_wheel = wx.CheckBox(
-            self, -1, u"マウスのホイールでメッセージ送りを行う")
+            self, -1, "マウスのホイールでメッセージ送りを行う")
         self.cb_wait_usecard = wx.CheckBox(
-            self, -1, u"カードの使用前に空白時間を入れる")
+            self, -1, "カードの使用前に空白時間を入れる")
         self.cb_enlarge_beastcardzoomingratio = wx.CheckBox(
-            self, -1, u"召喚獣カードの拡大率を大きくする")
+            self, -1, "召喚獣カードの拡大率を大きくする")
         self.cb_autoenter_on_sprite = wx.CheckBox(
-            self, -1, u"連打状態の時、カードなどの選択を自動的に決定する")
+            self, -1, "連打状態の時、カードなどの選択を自動的に決定する")
 
         # 描画オプション
-        self.box_card = wx.StaticBox(self, -1, u"カード")
+        self.box_card = wx.StaticBox(self, -1, "カード")
         self.cb_quickdeal = wx.CheckBox(
-            self, -1, u"キャンプモードへ高速で切り替える")
+            self, -1, "キャンプモードへ高速で切り替える")
         self.cb_allquickdeal = wx.CheckBox(
-            self, -1, u"全てのシステムカードを高速表示する")
+            self, -1, "全てのシステムカードを高速表示する")
         self.cb_showallselectedcards = wx.CheckBox(
-            self, -1, u"戦闘行動を全員分表示する")
+            self, -1, "戦闘行動を全員分表示する")
         self.cb_show_cardkind = wx.CheckBox(
-            self, -1, u"カード置場と荷物袋でカードの種類を表示する")
+            self, -1, "カード置場と荷物袋でカードの種類を表示する")
         self.cb_show_premiumicon = wx.CheckBox(
-            self, -1, u"カードの希少度をアイコンで表示する")
+            self, -1, "カードの希少度をアイコンで表示する")
 
         self.panel_show_statustime = wx.Panel(self, -1)
         self.st_panel_show_statustime = wx.StaticText(self.panel_show_statustime, -1,
-                                                      u"状態の残り時間:")
-        choices = [u"イベント中でなければ表示", u"常に表示", u"表示しない"]
+                                                      "状態の残り時間:")
+        choices = ["イベント中でなければ表示", "常に表示", "表示しない"]
         self.ch_show_statustime = wx.Choice(self.panel_show_statustime, -1, choices=choices)
         bsizer_show_statustime = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_show_statustime.Add(self.st_panel_show_statustime, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
@@ -2616,28 +2616,28 @@ class UISettingPanel(wx.ScrolledWindow):
         self.panel_show_statustime.SetSize(bsizer_show_statustime.CalcMin())
 
         # インタフェースオプション
-        self.box_control = wx.StaticBox(self, -1, u"操作")
+        self.box_control = wx.StaticBox(self, -1, "操作")
         #self.cb_spend_noeffectcard = wx.CheckBox(
         #    self, -1, u"意味の無いカード使用で使用回数を消費する")
         self.cb_showbackpackcard = wx.CheckBox(
-            self, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
+            self, -1, "荷物袋のカードを一時的に取り出して使えるようにする")
         self.cb_showbackpackcardatend = wx.CheckBox(
-            self, -1, u"荷物袋カードを最後に配置する")
+            self, -1, "荷物袋カードを最後に配置する")
         self.cb_revertcardpocket = wx.CheckBox(
-            self, -1, u"レベル調節で手放したカードを自動的に戻す")
+            self, -1, "レベル調節で手放したカードを自動的に戻す")
         self.cb_showroundautostartbutton = wx.CheckBox(
-            self, -1, u"バトルで自動的に行動を開始できるようにする")
+            self, -1, "バトルで自動的に行動を開始できるようにする")
         self.cb_showautobuttoninentrydialog = wx.CheckBox(
-            self, -1, u"新規登録ダイアログに自動ボタンを表示する")
+            self, -1, "新規登録ダイアログに自動ボタンを表示する")
         self.cb_protect_staredcard = wx.CheckBox(
-            self, -1, u"スターつきのカードの売却や破棄を禁止する")
+            self, -1, "スターつきのカードの売却や破棄を禁止する")
         self.cb_protect_premiercard = wx.CheckBox(
-            self, -1, u"プレミアカードの売却や破棄を禁止する")
+            self, -1, "プレミアカードの売却や破棄を禁止する")
 
         self.panel_confirm_dumpcard = wx.Panel(self, -1)
         self.st_confirm_dumpcard = wx.StaticText(self.panel_confirm_dumpcard, -1,
-                                                     u"カードの売却と破棄の確認ダイアログ:")
-        choices = [u"常に表示", u"「送り先」の使用時のみ表示", u"表示しない"]
+                                                     "カードの売却と破棄の確認ダイアログ:")
+        choices = ["常に表示", "「送り先」の使用時のみ表示", "表示しない"]
         self.ch_confirm_dumpcard = wx.Choice(self.panel_confirm_dumpcard, -1, choices=choices)
         bsizer_confirm_dumpcard = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_confirm_dumpcard.Add(self.st_confirm_dumpcard, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
@@ -2646,17 +2646,17 @@ class UISettingPanel(wx.ScrolledWindow):
         self.panel_confirm_dumpcard.SetSize(bsizer_confirm_dumpcard.CalcMin())
 
         self.cb_can_clicksidesofcardcontrol = wx.CheckBox(
-            self, -1, u"カード選択ダイアログの背景クリックで左右移動を行う")
+            self, -1, "カード選択ダイアログの背景クリックで左右移動を行う")
         self.cb_showlogwithwheelup = wx.CheckBox(
-            self, -1, u"マウスホイールを上に回すとログを表示")
+            self, -1, "マウスホイールを上に回すとログを表示")
 
         self.panel_radius_notdetectmovement = wx.Panel(self, -1)
         self.st_panel_radius_notdetectmovement = wx.StaticText(self.panel_radius_notdetectmovement, -1,
-                                                      u"マウスホイールでのカードの選択中にカーソルの小さな動きを無視する:")
+                                                      "マウスホイールでのカードの選択中にカーソルの小さな動きを無視する:")
         self.sc_radius_notdetectmovement = wx.SpinCtrl(self.panel_radius_notdetectmovement, -1, "", size=(cw.ppis(50+_spin_w_addition), -1))
         self.sc_radius_notdetectmovement.SetRange(0, 50)
         self.st_panel_radius_notdetectmovement_2 = wx.StaticText(self.panel_radius_notdetectmovement, -1,
-                                                      u"ピクセルまで")
+                                                      "ピクセルまで")
         bsizer_radius_notdetectmovement = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_radius_notdetectmovement.Add(self.st_panel_radius_notdetectmovement, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
         bsizer_radius_notdetectmovement.Add(self.sc_radius_notdetectmovement, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
@@ -2665,27 +2665,27 @@ class UISettingPanel(wx.ScrolledWindow):
         self.panel_radius_notdetectmovement.SetSize(bsizer_radius_notdetectmovement.CalcMin())
 
         # 通知オプション
-        self.box_confirm_and_description = wx.StaticBox(self, -1, u"通知と解説")
+        self.box_confirm_and_description = wx.StaticBox(self, -1, "通知と解説")
         # ステータスバーのボタンの解説を表示する
         self.cb_show_btndesc = wx.CheckBox(
-            self, -1, u"ステータスバーのボタンの解説を表示する")
+            self, -1, "ステータスバーのボタンの解説を表示する")
         # イベント中にステータスバーの色を変える
         self.cb_statusbarmask = wx.CheckBox(
-            self, -1, u"イベント中にステータスバーの色を変える")
+            self, -1, "イベント中にステータスバーの色を変える")
         # 通知のあるステータスボタンを点滅させる
         self.cb_blink_statusbutton = wx.CheckBox(
-            self, -1, u"通知のあるステータスボタンを点滅させる")
+            self, -1, "通知のあるステータスボタンを点滅させる")
         # 所持金が増減した時に所持金欄を点滅させる
         self.cb_blink_partymoney = wx.CheckBox(
-            self, -1, u"所持金が増減した時に所持金欄を点滅させる")
+            self, -1, "所持金が増減した時に所持金欄を点滅させる")
 
         # セーブとロードオプション
-        self.box_save_and_load = wx.StaticBox(self, -1, u"セーブとロード")
+        self.box_save_and_load = wx.StaticBox(self, -1, "セーブとロード")
 
         self.panel_confirm_beforesaving = wx.Panel(self, -1)
         self.st_confirm_beforesaving = wx.StaticText(self.panel_confirm_beforesaving, -1,
-                                                     u"セーブ前の確認ダイアログ:")
-        choices = [u"常に表示", u"拠点にいる時だけ表示", u"表示しない"]
+                                                     "セーブ前の確認ダイアログ:")
+        choices = ["常に表示", "拠点にいる時だけ表示", "表示しない"]
         self.ch_confirm_beforesaving = wx.Choice(self.panel_confirm_beforesaving, -1, choices=choices)
         bsizer_confirm_beforesaving = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_confirm_beforesaving.Add(self.st_confirm_beforesaving, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(3))
@@ -2694,22 +2694,22 @@ class UISettingPanel(wx.ScrolledWindow):
         self.panel_confirm_beforesaving.SetSize(bsizer_confirm_beforesaving.CalcMin())
 
         self.cb_showsavedmessage = wx.CheckBox(
-            self, -1, u"セーブ完了時に確認ダイアログを表示")
+            self, -1, "セーブ完了時に確認ダイアログを表示")
         self.cb_cautionbeforesaving = wx.CheckBox(
-            self, -1, u"保存せずに終了しようとしたら警告する")
+            self, -1, "保存せずに終了しようとしたら警告する")
 
         # ダイアログオプション
-        self.box_dialog = wx.StaticBox(self, -1, u"ダイアログ")
+        self.box_dialog = wx.StaticBox(self, -1, "ダイアログ")
         self.cb_show_advancedsettings = wx.CheckBox(
-            self, -1, u"最初から詳細モードで設定を行う")
+            self, -1, "最初から詳細モードで設定を行う")
         self.cb_show_addctrlbtn = wx.CheckBox(
-            self, -1, u"絞り込み等の表示切替ボタンを表示する(非表示時はCtrl+Fで切替可能)")
+            self, -1, "絞り込み等の表示切替ボタンを表示する(非表示時はCtrl+Fで切替可能)")
         self.cb_show_experiencebar = wx.CheckBox(
-            self, -1, u"キャラクター情報に次のレベルアップまでの割合を表示する")
+            self, -1, "キャラクター情報に次のレベルアップまでの割合を表示する")
         self.cb_confirmbeforeusingcard = wx.CheckBox(
-            self, -1, u"カード使用時に確認ダイアログを表示")
+            self, -1, "カード使用時に確認ダイアログを表示")
         self.cb_noticeimpossibleaction = wx.CheckBox(
-            self, -1, u"不可能な行動を選択した時に警告を表示")
+            self, -1, "不可能な行動を選択した時に警告を表示")
 
         self._do_layout()
         self._bind()
@@ -2926,51 +2926,51 @@ class FontSettingPanel(wx.Panel):
         self.SetDoubleBuffered(True)
         self._for_local = for_local
         self._get_localsettings = get_localsettings
-        self.typenames = {"gothic"       : u"等幅ゴシック",
-                          "uigothic"     : u"UI用",
-                          "mincho"       : u"等幅明朝",
-                          "pmincho"      : u"可変幅明朝",
-                          "pgothic"      : u"可変幅ゴシック",
-                          "button"       : u"ボタン",
-                          "combo"        : u"コンボボックス",
-                          "slider"       : u"スライダ",
-                          "spin"         : u"スピナ",
-                          "tree"         : u"ツリー",
-                          "list"         : u"リスト",
-                          "tab"          : u"タブ",
-                          "menu"         : u"メニュー",
-                          "scenario"     : u"貼紙見出し",
-                          "targetlevel"  : u"対象レベル",
-                          "paneltitle"   : u"パネル見出し1",
-                          "paneltitle2"  : u"パネル見出し2",
-                          "dlgmsg"       : u"ダイアログテキスト1",
-                          "dlgmsg2"      : u"ダイアログテキスト2",
-                          "dlgtitle"     : u"英文見出し1",
-                          "dlgtitle2"    : u"英文見出し2",
-                          "createtitle"  : u"登録見出し",
-                          "inputname"    : u"名前入力欄",
-                          "datadesc"     : u"データ解説文",
-                          "charaparam"   : u"キャラクター見出し1",
-                          "charaparam2"  : u"キャラクター見出し2",
-                          "charadesc"    : u"キャラクター解説文",
-                          "characre"     : u"キャラクター登録",
-                          "dlglist"      : u"ダイアログリスト",
-                          "uselimit"     : u"カード残り回数",
-                          "cardname"     : u"カード名",
-                          "ccardname"    : u"キャストカード名",
-                          "level"        : u"カードレベル",
-                          "price"        : u"カード価格",
-                          "numcards"     : u"カード枚数",
-                          "message"      : u"メッセージ",
-                          "selectionbar" : u"選択肢",
-                          "logpage"      : u"メッセージログ頁",
-                          "sbarpanel"    : u"ステータスパネル",
-                          "sbarprogress" : u"進行状況・音量バー",
-                          "sbarbtn"      : u"ステータスボタン",
-                          "sbardesctitle": u"ボタン解説の表題",
-                          "sbardesc"     : u"ボタン解説",
-                          "statusnum"    : u"状態値",
-                          "screenshot"   : u"撮影情報",
+        self.typenames = {"gothic"       : "等幅ゴシック",
+                          "uigothic"     : "UI用",
+                          "mincho"       : "等幅明朝",
+                          "pmincho"      : "可変幅明朝",
+                          "pgothic"      : "可変幅ゴシック",
+                          "button"       : "ボタン",
+                          "combo"        : "コンボボックス",
+                          "slider"       : "スライダ",
+                          "spin"         : "スピナ",
+                          "tree"         : "ツリー",
+                          "list"         : "リスト",
+                          "tab"          : "タブ",
+                          "menu"         : "メニュー",
+                          "scenario"     : "貼紙見出し",
+                          "targetlevel"  : "対象レベル",
+                          "paneltitle"   : "パネル見出し1",
+                          "paneltitle2"  : "パネル見出し2",
+                          "dlgmsg"       : "ダイアログテキスト1",
+                          "dlgmsg2"      : "ダイアログテキスト2",
+                          "dlgtitle"     : "英文見出し1",
+                          "dlgtitle2"    : "英文見出し2",
+                          "createtitle"  : "登録見出し",
+                          "inputname"    : "名前入力欄",
+                          "datadesc"     : "データ解説文",
+                          "charaparam"   : "キャラクター見出し1",
+                          "charaparam2"  : "キャラクター見出し2",
+                          "charadesc"    : "キャラクター解説文",
+                          "characre"     : "キャラクター登録",
+                          "dlglist"      : "ダイアログリスト",
+                          "uselimit"     : "カード残り回数",
+                          "cardname"     : "カード名",
+                          "ccardname"    : "キャストカード名",
+                          "level"        : "カードレベル",
+                          "price"        : "カード価格",
+                          "numcards"     : "カード枚数",
+                          "message"      : "メッセージ",
+                          "selectionbar" : "選択肢",
+                          "logpage"      : "メッセージログ頁",
+                          "sbarpanel"    : "ステータスパネル",
+                          "sbarprogress" : "進行状況・音量バー",
+                          "sbarbtn"      : "ステータスボタン",
+                          "sbardesctitle": "ボタン解説の表題",
+                          "sbardesc"     : "ボタン解説",
+                          "statusnum"    : "状態値",
+                          "screenshot"   : "撮影情報",
                           }
 
         self.bases = ("gothic", "pgothic", "mincho", "pmincho", "uigothic")
@@ -2985,23 +2985,23 @@ class FontSettingPanel(wx.Panel):
         # フォント配列のロード
         facenames = list(wx.FontEnumerator().GetFacenames())
         cw.util.sort_by_attr(facenames)
-        self.str_default = u"[付属フォント]" # デフォルトフォント名
+        self.str_default = "[付属フォント]" # デフォルトフォント名
         self._fontface_array = [self.str_default]
         self._types = []
         for base in self.bases:
-            self._types.append(u"[%s]" % (self.typenames[base]))
+            self._types.append("[%s]" % (self.typenames[base]))
         for name in facenames:
-            if not name.startswith(u"@"):
+            if not name.startswith("@"):
                 self._fontface_array.append(name)
                 self._types.append(name)
 
         if self._for_local:
-            self.cb_important = wx.CheckBox(self, -1, u"このスキンのフォント設定を基本設定よりも優先して使用する")
+            self.cb_important = wx.CheckBox(self, -1, "このスキンのフォント設定を基本設定よりも優先して使用する")
         else:
             self.cb_important = None
 
         # フォント表示サンプル
-        self.box_example = wx.StaticBox(self, -1, u"表示例")
+        self.box_example = wx.StaticBox(self, -1, "表示例")
         if cw.cwpy:
             ln = len(cw.cwpy.setting.fontexampleformat.splitlines())
         else:
@@ -3010,12 +3010,12 @@ class FontSettingPanel(wx.Panel):
         self.st_example.SetDoubleBuffered(True)
 
         # 描画オプション
-        self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        self.cb_bordering_cardname = wx.CheckBox(self, -1, u"カード名を縁取りする")
-        self.cb_decorationfont = wx.CheckBox(self, -1, u"メッセージで装飾フォントを使用する")
-        self.cb_fontsmoothingmessage = wx.CheckBox(self, -1, u"メッセージの文字を滑らかにする")
-        self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
-        self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
+        self.box_gene = wx.StaticBox(self, -1, "詳細")
+        self.cb_bordering_cardname = wx.CheckBox(self, -1, "カード名を縁取りする")
+        self.cb_decorationfont = wx.CheckBox(self, -1, "メッセージで装飾フォントを使用する")
+        self.cb_fontsmoothingmessage = wx.CheckBox(self, -1, "メッセージの文字を滑らかにする")
+        self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, "カード名の文字を滑らかにする")
+        self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, "ステータスバーの文字を滑らかにする")
 
         def create_grid(grid, seq, faces, cols, rowlblsize):
             grid.CreateGrid(len(seq), cols)
@@ -3023,7 +3023,7 @@ class FontSettingPanel(wx.Panel):
             grid.SetSelectionMode(wx.grid.Grid.SelectRows)
             grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
             grid.SetRowLabelSize(rowlblsize)
-            grid.SetColLabelValue(0, u"フォント名")
+            grid.SetColLabelValue(0, "フォント名")
             grid.SetColSize(0, cw.ppis(150))
             editors = []
             for i, name in enumerate(seq):
@@ -3033,25 +3033,25 @@ class FontSettingPanel(wx.Panel):
             return editors
 
         # 基本フォント
-        self.box_base = wx.StaticBox(self, -1, u"基本フォント")
+        self.box_base = wx.StaticBox(self, -1, "基本フォント")
         self.base = wx.grid.Grid(self, -1, size=(-1, -1), style=wx.BORDER)
         self.base.SetDoubleBuffered(True)
         self.choicebases = create_grid(self.base, self.bases, self._fontface_array, 1, cw.ppis(100))
         self.base.SetMinSize(self.base.GetBestSize())
 
         # 役割別フォント
-        self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
+        self.box_type = wx.StaticBox(self, -1, "役割別フォント")
         self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.type.SetDoubleBuffered(True)
         self.choicetypes = create_grid(self.type, self.types, self._types, 5, cw.ppis(120))
 
-        self.type.SetColLabelValue(1, u"サイズ\n(ピクセル)")
+        self.type.SetColLabelValue(1, "サイズ\n(ピクセル)")
         self.type.SetColSize(1, cw.ppis(80))
-        self.type.SetColLabelValue(2, u"太字\n(通常)")
+        self.type.SetColLabelValue(2, "太字\n(通常)")
         self.type.SetColSize(2, cw.ppis(70))
-        self.type.SetColLabelValue(3, u"太字\n(拡大)")
+        self.type.SetColLabelValue(3, "太字\n(拡大)")
         self.type.SetColSize(3, cw.ppis(70))
-        self.type.SetColLabelValue(4, u"斜体")
+        self.type.SetColLabelValue(4, "斜体")
         self.type.SetColSize(4, cw.ppis(70))
         local = cw.setting.LocalSetting()
         for i, name in enumerate(self.types):
@@ -3083,10 +3083,10 @@ class FontSettingPanel(wx.Panel):
 
         if self._for_local:
             if use_copybase:
-                self.copybtn = wx.Button(self, -1, u"基本設定をコピー")
+                self.copybtn = wx.Button(self, -1, "基本設定をコピー")
             else:
                 self.copybtn = None
-            self.initbtn = wx.Button(self, -1, u"デフォルト")
+            self.initbtn = wx.Button(self, -1, "デフォルト")
 
         self._do_layout()
         self._bind()
@@ -3113,13 +3113,13 @@ class FontSettingPanel(wx.Panel):
 
         create_grid(self.type, self.types)
 
-        self.type.SetColLabelValue(1, u"サイズ\n(ピクセル)")
+        self.type.SetColLabelValue(1, "サイズ\n(ピクセル)")
         self.type.SetColSize(1, cw.ppis(80))
-        self.type.SetColLabelValue(2, u"太字\n(通常)")
+        self.type.SetColLabelValue(2, "太字\n(通常)")
         self.type.SetColSize(2, cw.ppis(70))
-        self.type.SetColLabelValue(3, u"太字\n(拡大)")
+        self.type.SetColLabelValue(3, "太字\n(拡大)")
         self.type.SetColSize(3, cw.ppis(70))
-        self.type.SetColLabelValue(4, u"斜体")
+        self.type.SetColLabelValue(4, "斜体")
         self.type.SetColSize(4, cw.ppis(70))
 
         for i, name, in enumerate(self.bases):
@@ -3132,27 +3132,27 @@ class FontSettingPanel(wx.Panel):
             _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.fonttypes_init[name]
             fonttype, face, pixels, bold, bold_upscr, italic = local.fonttypes[name]
             if fonttype:
-                self.type.SetCellValue(i, 0, u"[%s]" % (self.typenames[fonttype]))
+                self.type.SetCellValue(i, 0, "[%s]" % (self.typenames[fonttype]))
             else:
                 self.type.SetCellValue(i, 0, face)
 
             if 0 < defpixels:
                 self.type.SetCellValue(i, 1, str(pixels))
             else:
-                self.type.SetCellValue(i, 1, u"-")
+                self.type.SetCellValue(i, 1, "-")
             if not defbold is None:
-                self.type.SetCellValue(i, 2, u"1" if bold else u"")
+                self.type.SetCellValue(i, 2, "1" if bold else "")
             else:
-                self.type.SetCellValue(i, 2, u"-")
+                self.type.SetCellValue(i, 2, "-")
 
             if not defbold_upscr is None:
-                self.type.SetCellValue(i, 3, u"1" if bold_upscr else u"")
+                self.type.SetCellValue(i, 3, "1" if bold_upscr else "")
             else:
-                self.type.SetCellValue(i, 3, u"-")
+                self.type.SetCellValue(i, 3, "-")
             if not defitalic is None:
-                self.type.SetCellValue(i, 4, u"1" if italic else u"")
+                self.type.SetCellValue(i, 4, "1" if italic else "")
             else:
-                self.type.SetCellValue(i, 4, u"-")
+                self.type.SetCellValue(i, 4, "-")
 
         self._select_base(self.base.GetGridCursorRow())
 
@@ -3165,7 +3165,7 @@ class FontSettingPanel(wx.Panel):
         if setting:
             s = cw.util.format_title(setting.fontexampleformat, {"fontface":face})
         else:
-            s = cw.util.format_title(u"%fontface%", {"fontface": face})
+            s = cw.util.format_title("%fontface%", {"fontface": face})
         self.st_example.SetLabel(s)
 
         self._update_enabled()
@@ -3180,12 +3180,12 @@ class FontSettingPanel(wx.Panel):
         for i, typename in enumerate(self.types):
             fonttype, name, pixels, bold, bold_upscr, italic = local.fonttypes_init[typename]
             if fonttype:
-                name = u"[%s]" % (self.typenames[fonttype])
+                name = "[%s]" % (self.typenames[fonttype])
             self.type.SetCellValue(i, 0, name)
-            self.type.SetCellValue(i, 1, str(pixels) if 0 < pixels else u"-")
-            self.type.SetCellValue(i, 2, (u"1" if bold else u"") if not bold is None else u"-")
-            self.type.SetCellValue(i, 3, (u"1" if bold_upscr else u"") if not bold_upscr is None else u"-")
-            self.type.SetCellValue(i, 4, (u"1" if italic else u"") if not italic is None else u"-")
+            self.type.SetCellValue(i, 1, str(pixels) if 0 < pixels else "-")
+            self.type.SetCellValue(i, 2, ("1" if bold else "") if not bold is None else "-")
+            self.type.SetCellValue(i, 3, ("1" if bold_upscr else "") if not bold_upscr is None else "-")
+            self.type.SetCellValue(i, 4, ("1" if italic else "") if not italic is None else "-")
 
         self.cb_bordering_cardname.SetValue(local.bordering_cardname_init)
         self.cb_decorationfont.SetValue(local.decorationfont_init)
@@ -3200,24 +3200,24 @@ class FontSettingPanel(wx.Panel):
         flag_fontupdate = False  # フォントの変更があるか
 
         value = self.cb_bordering_cardname.GetValue()
-        if local.bordering_cardname <> value:
+        if local.bordering_cardname != value:
             local.bordering_cardname = value
             updatecardimg = True
             updatemcardimg = True
         value = self.cb_decorationfont.GetValue()
-        if value <> local.decorationfont:
+        if value != local.decorationfont:
             local.decorationfont = value
             updatemessage = True
         value = self.cb_fontsmoothingmessage.GetValue()
-        if value <> local.fontsmoothing_message:
+        if value != local.fontsmoothing_message:
             local.fontsmoothing_message = value
             updatemessage = True
         value = self.cb_fontsmoothingcardname.GetValue()
-        if value <> local.fontsmoothing_cardname:
+        if value != local.fontsmoothing_cardname:
             local.fontsmoothing_cardname = value
             flag_fontupdate = True
         value = self.cb_fontsmoothingstatusbar.GetValue()
-        if value <> local.fontsmoothing_statusbar:
+        if value != local.fontsmoothing_statusbar:
             local.fontsmoothing_statusbar = value
             flag_fontupdate = True
 
@@ -3226,50 +3226,50 @@ class FontSettingPanel(wx.Panel):
         for i, basename in enumerate(self.bases):
             value = self.base.GetCellValue(i, 0)
             if value == self.str_default:
-                value = u""
+                value = ""
             basefont[basename] = value
-            basetable[u"[%s]" % (self.typenames[basename])] = basename
+            basetable["[%s]" % (self.typenames[basename])] = basename
         fonttypes = {}
         for i, typename in enumerate(self.types):
             value = self.type.GetCellValue(i, 0)
             pixels = self.type.GetCellValue(i, 1)
             try:
-                if pixels <> u"-":
+                if pixels != "-":
                     pixels = int(pixels)
                 else:
                     pixels = -1
             except:
                 pixels = -1
             bold = self.type.GetCellValue(i, 2)
-            if bold in (u"1", u""):
-                bold = bold == u"1"
+            if bold in ("1", ""):
+                bold = bold == "1"
             else:
                 bold = None
             bold_upscr = self.type.GetCellValue(i, 3)
-            if bold_upscr in (u"1", u""):
-                bold_upscr = bold_upscr == u"1"
+            if bold_upscr in ("1", ""):
+                bold_upscr = bold_upscr == "1"
             else:
                 bold_upscr = None
             italic = self.type.GetCellValue(i, 4)
-            if italic in (u"1", u""):
-                italic = italic == u"1"
+            if italic in ("1", ""):
+                italic = italic == "1"
             else:
                 italic = None
             fonttype = basetable.get(value, "")
             if fonttype:
-                fonttypes[typename] = (fonttype, u"", pixels, bold, bold_upscr, italic)
+                fonttypes[typename] = (fonttype, "", pixels, bold, bold_upscr, italic)
             else:
-                fonttypes[typename] = (u"", value, pixels, bold, bold_upscr, italic)
+                fonttypes[typename] = ("", value, pixels, bold, bold_upscr, italic)
 
         # フォント変更チェック
-        if basefont <> local.basefont:
+        if basefont != local.basefont:
             local.basefont = basefont
             flag_fontupdate = True
-        if fonttypes <> local.fonttypes:
+        if fonttypes != local.fonttypes:
             local.fonttypes = fonttypes
             flag_fontupdate = True
 
-        if self.cb_important and self.cb_important.GetValue() <> local.important_font:
+        if self.cb_important and self.cb_important.GetValue() != local.important_font:
             local.important_font = self.cb_important.GetValue()
             flag_fontupdate = True
 
@@ -3316,8 +3316,7 @@ class FontSettingPanel(wx.Panel):
                 editor.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeBase)
 
     def get_basefontface(self, fonttype):
-        editors = filter(lambda choice: choice.GetControl() and choice.GetControl().IsShown(),
-                         self.choicebases)
+        editors = [choice for choice in self.choicebases if choice.GetControl() and choice.GetControl().IsShown()]
         if editors:
             face = editors[0].GetControl().GetValue()
         else:
@@ -3327,11 +3326,11 @@ class FontSettingPanel(wx.Panel):
                 d = cw.cwpy.rsrc.fontnames_init
             else:
                 d = {}
-                d["gothic"] = u"IPAゴシック"
-                d["uigothic"] = u"IPA UIゴシック"
-                d["mincho"] = u"IPA明朝"
-                d["pmincho"] = u"IPA P明朝"
-                d["pgothic"] = u"IPA Pゴシック"
+                d["gothic"] = "IPAゴシック"
+                d["uigothic"] = "IPA UIゴシック"
+                d["mincho"] = "IPA明朝"
+                d["pmincho"] = "IPA P明朝"
+                d["pgothic"] = "IPA Pゴシック"
             face = d[fonttype]
         return face
 
@@ -3364,14 +3363,13 @@ class FontSettingPanel(wx.Panel):
                ctrl.Bind(wx.EVT_COMBOBOX, self.OnCellChangeType)
 
     def get_typefontface(self, fonttype):
-        editors = filter(lambda choice: choice.GetControl() and choice.GetControl().IsShown(),
-                         self.choicetypes)
+        editors = [choice for choice in self.choicetypes if choice.GetControl() and choice.GetControl().IsShown()]
         if editors:
             face = editors[0].GetControl().GetValue()
         else:
             face = self.type.GetCellValue(self.types.index(fonttype), 0)
         for basename in self.bases:
-            if u"[%s]" % self.typenames[basename] == face:
+            if "[%s]" % self.typenames[basename] == face:
                 face = self.get_basefontface(basename)
                 break
         return face

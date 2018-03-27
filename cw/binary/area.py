@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
-import event
-import bgimage
+from . import base
+from . import event
+from . import bgimage
 
 import cw
 
@@ -38,12 +38,12 @@ class Area(base.CWBinaryBase):
             return
 
         events_num = f.dword()
-        self.events = [event.Event(self, f) for _cnt in xrange(events_num)]
+        self.events = [event.Event(self, f) for _cnt in range(events_num)]
         self.spreadtype = f.byte()
         mcards_num = f.dword()
-        self.mcards = [MenuCard(self, f, dataversion=dataversion) for _cnt in xrange(mcards_num)]
+        self.mcards = [MenuCard(self, f, dataversion=dataversion) for _cnt in range(mcards_num)]
         bgimgs_num = f.dword()
-        self.bgimgs = [bgimage.BgImage(self, f) for _cnt in xrange(bgimgs_num)]
+        self.bgimgs = [bgimage.BgImage(self, f) for _cnt in range(bgimgs_num)]
 
         self.data = None
 
@@ -92,7 +92,7 @@ class Area(base.CWBinaryBase):
                 bgimgs = e
             elif e.tag == "PlayerCardEvents":
                 if len(e):
-                    f.check_wsnversion("2", u"プレイヤーカードイベント")
+                    f.check_wsnversion("2", "プレイヤーカードイベント")
             elif e.tag == "MenuCards":
                 mcards = e
                 spreadtype = base.CWBinaryBase.unconv_spreadtype(e.get("spreadtype"))
@@ -124,7 +124,7 @@ class MenuCard(base.CWBinaryBase):
         _dw = f.dword() # 不明
         self.description = f.string(True)
         events_num = f.dword()
-        self.events = [event.Event(self, f) for _cnt in xrange(events_num)]
+        self.events = [event.Event(self, f) for _cnt in range(events_num)]
         self.flag = f.string()
         self.scale = f.dword()
         self.left = f.dword()
@@ -192,14 +192,14 @@ class MenuCard(base.CWBinaryBase):
                         imgpath = base.CWBinaryBase.materialpath(prop.text)
                     elif prop.tag == "ImagePaths":
                         if 1 < len(prop):
-                            f.check_wsnversion("1", u"複合イメージ")
+                            f.check_wsnversion("1", "複合イメージ")
                         else:
                             base.CWBinaryBase.check_imgpath(f, prop.find("ImagePath"), "TopLeft")
                             imgpath2 = prop.gettext("ImagePath", "")
                             if imgpath2:
                                 imgpath = base.CWBinaryBase.materialpath(imgpath2)
                     elif prop.tag == "PCNumber":
-                        f.check_version(1.50, u"メニューカードへのプレイヤーキャラクター表示")
+                        f.check_version(1.50, "メニューカードへのプレイヤーキャラクター表示")
                         imgpath = prop.text
                     elif prop.tag == "Description":
                         description = prop.text
@@ -214,10 +214,10 @@ class MenuCard(base.CWBinaryBase):
                             scale = int(scale[:-1])
                         else:
                             scale = int(scale)
-                    elif prop.tag == "Layer" and int(prop.text) <> cw.LAYER_MCARDS:
-                        f.check_wsnversion("1", u"レイヤ")
+                    elif prop.tag == "Layer" and int(prop.text) != cw.LAYER_MCARDS:
+                        f.check_wsnversion("1", "レイヤ")
                     elif prop.tag == "CardGroup" and prop.text:
-                        f.check_wsnversion("3", u"カードグループ")
+                        f.check_wsnversion("3", "カードグループ")
             elif e.tag == "Events":
                 events = e
 

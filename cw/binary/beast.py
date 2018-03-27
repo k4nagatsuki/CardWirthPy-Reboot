@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base
-import effectmotion
-import event
+from . import base
+from . import effectmotion
+from . import event
 
 import cw
 
@@ -54,19 +54,19 @@ class BeastCard(base.CWBinaryBase):
         self.visual_effect = f.byte()
         motions_num = f.dword()
         self.motions = [effectmotion.EffectMotion(self, f, dataversion=dataversion)
-                                          for _cnt in xrange(motions_num)]
+                                          for _cnt in range(motions_num)]
         self.enhance_avoid = f.dword()
         self.enhance_resist = f.dword()
         self.enhance_defense = f.dword()
         self.sound_effect = f.string()
         self.sound_effect2 = f.string()
-        self.keycodes = [f.string() for _cnt in xrange(5)]
+        self.keycodes = [f.string() for _cnt in range(5)]
         if 2 < dataversion:
             self.premium = f.byte()
             self.scenario_name = f.string()
             self.scenario_author = f.string()
             events_num = f.dword()
-            self.events = [event.SimpleEvent(self, f) for _cnt in xrange(events_num)]
+            self.events = [event.SimpleEvent(self, f) for _cnt in range(events_num)]
             self.hold = f.bool()
         else:
             self.scenario_name = ""
@@ -90,7 +90,7 @@ class BeastCard(base.CWBinaryBase):
         elif self.get_root().is_yadodata():
             if isinstance(parent, cw.binary.adventurer.Adventurer):
                 # キャラクターが所持
-                self.attachment = bool(self.limit <> 0)
+                self.attachment = bool(self.limit != 0)
             elif parent:
                 # 召喚獣召喚効果
                 self.attachment = True
@@ -249,23 +249,23 @@ class BeastCard(base.CWBinaryBase):
                     elif prop.tag == "InvocationCondition":
                         # Wsn.3以降のデータに存在する
                         # 省略されている場合は"Alive"単一
-                        if len(prop) <> 1:
-                            f.check_wsnversion("3", u"発動条件")
+                        if len(prop) != 1:
+                            f.check_wsnversion("3", "発動条件")
                         e_ic = prop.find("Status")
                         if e_ic is None:
-                            f.check_wsnversion("3", u"発動条件")
-                        elif e_ic.text <> "Alive":
-                            f.check_wsnversion("3", u"発動条件")
+                            f.check_wsnversion("3", "発動条件")
+                        elif e_ic.text != "Alive":
+                            f.check_wsnversion("3", "発動条件")
                     elif prop.tag == "RemovalCondition":
                         # Wsn.3以降のデータに存在する
                         # 省略されている場合は"Unconscious"単一
-                        if len(prop) <> 1:
-                            f.check_wsnversion("3", u"消滅条件")
+                        if len(prop) != 1:
+                            f.check_wsnversion("3", "消滅条件")
                         e_ic = prop.find("Status")
                         if e_ic is None:
-                            f.check_wsnversion("3", u"消滅条件")
-                        elif e_ic.text <> "Unconscious":
-                            f.check_wsnversion("3", u"消滅条件")
+                            f.check_wsnversion("3", "消滅条件")
+                        elif e_ic.text != "Unconscious":
+                            f.check_wsnversion("3", "消滅条件")
                     elif prop.tag == "KeyCodes":
                         keycodes = cw.util.decodetextlist(prop.text)
                         # 5件まで絞り込む
@@ -274,7 +274,7 @@ class BeastCard(base.CWBinaryBase):
                             for keycode in keycodes:
                                 if keycode:
                                     if 5 <= len(keycodes2):
-                                        f.check_wsnversion("", u"5件を超えるキーコード指定")
+                                        f.check_wsnversion("", "5件を超えるキーコード指定")
                                         break
                                     else:
                                         keycodes2.append(keycode)
@@ -292,8 +292,8 @@ class BeastCard(base.CWBinaryBase):
                     elif prop.tag == "Attachment":
                         attachment = cw.util.str2bool(prop.text)
                     elif prop.tag == "LinkId":
-                        if prop.text and prop.text <> "0":
-                            f.check_wsnversion("1", u"カード参照")
+                        if prop.text and prop.text != "0":
+                            f.check_wsnversion("1", "カード参照")
             elif e.tag == "Motions":
                 motions = e
             elif e.tag == "Events":
