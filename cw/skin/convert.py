@@ -819,17 +819,11 @@ class Converter(threading.Thread):
                 msgtable[key] = msg.strip(u" 　")
 
             e_message = self.data.find("Messages")
-            removelist = set(e_message)
             for e in e_message:
                 key = e.get("key")
                 if key in msgtable:
-                    if e.text <> msgtable[key]:
-                        # ベースからメッセージを変更
-                        e.text = msgtable[key]
-                        removelist.discard(e)
-            # ベースと同じメッセージは定義不要
-            for e in removelist:
-                e_message.remove(e)
+                    # ベースからメッセージを変更
+                    e.text = msgtable[key]
 
         except Exception:
             cw.util.print_ex()
@@ -867,6 +861,23 @@ class Converter(threading.Thread):
             # Resource
             self.curnum = 10
             self.message = u"リソースを抽出中..."
+
+            # SkinBaseから変更の無いメッセージは削除しておく
+            basedata = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
+            base_message = basedata.find("Messages")
+            e_message = self.data.find("Messages")
+            assert len(base_message) == len(e_message)
+            removelist = []
+            msgtable = {}
+            for e in base_message:
+                key = e.get("key")
+                msgtable[key] = e.text
+            for e in e_message:
+                key = e.get("key")
+                if key in msgtable and msgtable[key] == e.text:
+                    removelist.append(e)
+            for e in removelist:
+                e_message.remove(e)
 
             self.data.fpath = cw.util.join_paths(dpath, u"Skin.xml")
             self.data.write()
