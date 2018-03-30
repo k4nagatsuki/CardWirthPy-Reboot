@@ -460,7 +460,7 @@ class CardImage(Image):
         if not rect:
             rect = self.rect
 
-        size = (rect.w * 9 / 10, rect.h * 9 / 10)
+        size = (rect.w * 9 // 10, rect.h * 9 // 10)
         if image:
             negaimg = image
         else:
@@ -671,7 +671,7 @@ class CardImage(Image):
         return cw.imageretouch.to_negative_for_wxcard(image)
 
     def get_wxclickedbmp(self, header, wxbmp, test_aptitude=None):
-        size = (self.wxrect.width * 9 / 10, self.wxrect.height * 9 / 10)
+        size = (self.wxrect.width * 9 // 10, self.wxrect.height * 9 // 10)
         if wxbmp:
             negaimg = wxbmp
         else:
@@ -910,7 +910,7 @@ class CharacterCardImage(CardImage):
             for y in range(size[1]):
                 color = self.levelimg.get_at((x, y))
                 if color[3] != 0:
-                    color[3] = color[3] / 2
+                    color[3] = color[3] // 2
                     self.levelimg.set_at((x, y), color)
                     right = max(x, right)
                     top = min(y, top)
@@ -1078,7 +1078,7 @@ class CharacterCardImage(CardImage):
         clip = None
         index = 0
         for subimg in seq:
-            pos = (x + index / 5 * cw.s(17), y - index * cw.s(17) + index / 5 * cw.s(85))
+            pos = (x + index // 5 * cw.s(17), y - index * cw.s(17) + index // 5 * cw.s(85))
             if isinstance(subimg, pygame.Surface):
                 self.image.blit(subimg, pos)
                 index += 1
@@ -1405,7 +1405,7 @@ def fix_cwnext16bitbitmap(data):
     _biYPixPerMeter = s[14]
     biClrUsed = s[15]
     _biClrImporant = s[16]
-    lineSize = ((biWidth * biBitCount + 31) / 32) * 4
+    lineSize = ((biWidth * biBitCount + 31) // 32) * 4
     height = -biHeight if biHeight < 0 else biHeight
     if len(data) - bfOffBits != lineSize * height:
         if threading.currentThread() != cw.cwpy:
@@ -1476,7 +1476,7 @@ def patch_rle4bitmap(data):
         # FIXME: RLE4の場合、メモリアクセス違反が発生する事がある(SDL_imageのバグ？)
         #        問題を避けるために予め展開する
         bmpdata = data[bfOffBits:]
-        bpl = ((biWidth * biBitCount + 31) / 32) * 4
+        bpl = ((biWidth * biBitCount + 31) // 32) * 4
         h = -biHeight if biHeight < 0 else biHeight
         bmpdata = cw.imageretouch.decode_rle4data(bmpdata, h, bpl)
 

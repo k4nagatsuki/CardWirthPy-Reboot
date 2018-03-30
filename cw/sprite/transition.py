@@ -70,8 +70,8 @@ class PixelDissolve(Transition):
         self.rect_sec = pygame.Rect(0, 0, self.sec_w, self.sec_h)
         self.poslist = []
 
-        for x in range(cw.s(cw.SIZE_GAME[0]) / self.sec_w + 1):
-            for y in range(cw.s(cw.SIZE_GAME[1]) / self.sec_h + 1):
+        for x in range(cw.s(cw.SIZE_GAME[0]) // self.sec_w + 1):
+            for y in range(cw.s(cw.SIZE_GAME[1]) // self.sec_h + 1):
                 self.poslist.append((x * self.sec_w, y * self.sec_h))
 
         self.poslist = cw.cwpy.dice.shuffle(self.poslist)
@@ -103,7 +103,7 @@ class Blinds(Transition):
         self.variation = (11 - self.speed)
         self.num_split = 30
         self.poslist = []
-        self.w_blinds = cw.SIZE_GAME[0] / self.num_split
+        self.w_blinds = cw.SIZE_GAME[0] // self.num_split
         self.rect_blinds = pygame.Rect(0, 0, self.w_blinds, cw.SIZE_GAME[1])
 
         for n in range(self.num_split + 2):
@@ -116,7 +116,7 @@ class Blinds(Transition):
         p_frame = self.get_frame()
         self.frame = p_frame
 
-        w = (p_frame * self.variation) / 5
+        w = (p_frame * self.variation) // 5
 
         if not self.rect_blinds.w == w:
             self.rect_blinds.size = (w, cw.SIZE_GAME[1])

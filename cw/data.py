@@ -3599,6 +3599,7 @@ def sort_cards(cards, condition, withstar):
 
     cw.util.sort_by_attr(cards, *seq)
 
+
 #-------------------------------------------------------------------------------
 #  CWPyElement
 #-------------------------------------------------------------------------------
@@ -3710,6 +3711,7 @@ class _CWPyElementInterface(object):
     def make_element(self, *args, **kwargs):
         return make_element(*args, **kwargs)
 
+
 class CWPyElement(xml.etree.ElementTree.Element, _CWPyElementInterface):
 
     def __init__(self, tag, attrib={}.copy()):
@@ -3721,6 +3723,18 @@ class CWPyElement(xml.etree.ElementTree.Element, _CWPyElementInterface):
         self.needcheck = None
         self.cwxpath = None
         self._cwxline_index = None
+
+    # BUG: xml.etree.ElementTree.Element.find(self, path, namespaces)
+    #      だと相対パスの結果がおかしくなる
+    #      Python 3.6.4
+    def find(self, path, namespaces=None):
+        return xml.etree.ElementTree.ElementPath.find(self, path, namespaces)
+
+    # BUG: xml.etree.ElementTree.Element.findall(self, tag, namespaces)
+    #      だとElementName[n]の結果がおかしくなる
+    #      Python 3.6.4
+    def findall(self, tag, namespaces=None):
+        return xml.etree.ElementTree.ElementPath.findall(self, tag, namespaces)
 
     def append(self, subelement):
         subelement.cwxparent = self
@@ -3835,6 +3849,18 @@ class CWPyElement(xml.etree.ElementTree.Element, _CWPyElementInterface):
 
         return self.cwxpath
 
+    def __delitem__(self, key):
+        return xml.etree.ElementTree.Element.__delitem__(self, key)
+
+    def __getitem__(self, key):
+        return xml.etree.ElementTree.Element.__getitem__(self, key)
+
+    def __setitem__(self, key, value):
+        return xml.etree.ElementTree.Element.__setitem__(self, key, value)
+
+    def __len__(self):
+        return xml.etree.ElementTree.Element.__len__(self)
+
 
 #-------------------------------------------------------------------------------
 #  CWPyElementTree
@@ -3865,7 +3891,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         while retry < 5:
             try:
                 with io.BytesIO() as f:
-                    f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
+                    f.write('<?xml version="1.0" encoding="utf-8" ?>\n'.encode("utf-8"))
                     ElementTree.write(self, f, "utf-8")
                     sbytes = f.getvalue()
                     f.close()
@@ -4223,6 +4249,7 @@ class SimpleXmlParser(object):
             return "/".join(self.currenttags[1:])
         else:
             return ""
+
 
 def main():
     pass

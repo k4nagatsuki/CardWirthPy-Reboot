@@ -972,7 +972,7 @@ class BranchLevelContent(BranchContent):
             pcards = cw.cwpy.get_pcards("unreversed")
             if not pcards:
                 return self.get_boolean_index(False)
-            level = sum([pcard.level for pcard in pcards]) / len(pcards)
+            level = sum([pcard.level for pcard in pcards]) // len(pcards)
         else:
             pcard = cw.cwpy.event.get_targetmember("Selected")
             if not pcard:

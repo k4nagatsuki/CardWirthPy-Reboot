@@ -612,15 +612,15 @@ class EffectMotion(object):
             vocation_level += 1
 
         if vocation_level <= 0:
-            return cw.util.numwrap(self.duration * 50 / 100, minvalue, 999)
+            return cw.util.numwrap(self.duration * 50 // 100, minvalue, 999)
         elif vocation_level == 1:
-            return cw.util.numwrap(self.duration * 80 / 100, minvalue, 999)
+            return cw.util.numwrap(self.duration * 80 // 100, minvalue, 999)
         elif vocation_level == 2:
             return cw.util.numwrap(self.duration, minvalue, 999)
         elif vocation_level == 3:
-            return cw.util.numwrap(self.duration * 120 / 100, minvalue, 999)
+            return cw.util.numwrap(self.duration * 120 // 100, minvalue, 999)
         elif vocation_level >= 4:
-            return cw.util.numwrap(self.duration * 150 / 100, minvalue, 999)
+            return cw.util.numwrap(self.duration * 150 // 100, minvalue, 999)
         else:
             assert False
 
@@ -635,7 +635,7 @@ class EffectMotion(object):
             return 0
         elif enhance_def <= -10:
             return value * 4
-        return max(1, (value * (100 - enhance_def * 10)) / 100)
+        return max(1, (value * (100 - enhance_def * 10)) // 100)
 
     def is_noeffect(self, target):
         """

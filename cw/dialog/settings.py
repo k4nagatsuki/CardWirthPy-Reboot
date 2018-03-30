@@ -1091,8 +1091,8 @@ class ExpandPanel(wx.Panel):
 
         # 最大倍率を概算
         x, y = cw.cwpy.frame.get_displaysize()
-        x = 10 * x / cw.SIZE_SCR[0]
-        y = 10 * y / cw.SIZE_SCR[1]
+        x = 10 * x // cw.SIZE_SCR[0]
+        y = 10 * y // cw.SIZE_SCR[1]
         if setting.expandmode == "FullScreen" or setting.expandmode == "None":
             n = 10 # FullScreen中はスライドを1.0倍に仮設定
         else:
@@ -1141,9 +1141,9 @@ class ExpandPanel(wx.Panel):
         else:
             self.sl_expand.Enable(self._expand_enable)
             n = self.sl_expand.GetValue()
-            x = cw.SIZE_GAME[0] * n / 10
-            y = cw.SIZE_GAME[1] * n / 10
-            s = "%d.%d倍 (%dx%d)" % (n/10, n%10, x, y)
+            x = cw.SIZE_GAME[0] * n // 10
+            y = cw.SIZE_GAME[1] * n // 10
+            s = "%d.%d倍 (%dx%d)" % (n//10, n%10, x, y)
             self.st_expand.SetLabel(s)
 
     def OnExpandChange(self, event):
@@ -1180,9 +1180,9 @@ class ExpandPanel(wx.Panel):
         elif self.sl_expand.GetValue() == 10: # 1倍 == 拡大なし
             value = "None"
         elif self.sl_expand.GetValue() % 10 == 0: # 整数倍
-            value = self.sl_expand.GetValue() / 10
+            value = self.sl_expand.GetValue() // 10
         else:
-            value = float(self.sl_expand.GetValue()) / 10
+            value = float(self.sl_expand.GetValue()) // 10
         expanddrawing = int(2 ** self.ch_expanddrawing.GetSelection())
         if str(value) != str(setting.expandmode) or expanddrawing != setting.expanddrawing:
             if update and cw.cwpy.is_expanded():

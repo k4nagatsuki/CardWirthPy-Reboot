@@ -125,7 +125,7 @@ class MessageWindow(base.CWPySprite):
                         if scale in scaledimagedict:
                             talker_image_noscale = scaledimagedict[scale]
                             break
-                        scale /= 2
+                        scale //= 2
                 else:
                     path = info.path
                     if not cw.binary.image.path_is_code(path):
@@ -139,8 +139,8 @@ class MessageWindow(base.CWPySprite):
                     self.talker_image.append((cw.s(talker_image_noscale), info))
                     w, h = talker_image_noscale.get_size()
                     scr_scale = talker_image_noscale.scr_scale if hasattr(talker_image_noscale, "scr_scale") else 1
-                    w /= scr_scale
-                    h /= scr_scale
+                    w //= scr_scale
+                    h //= scr_scale
                     talkersize_noscale.append(((w, h), info))
 
         self.talker_top_noscale = 0x7fffffff
@@ -240,7 +240,7 @@ class MessageWindow(base.CWPySprite):
             self._fore.fill((0, 0, 0, 0))
             self._back = self._fore.copy()
 
-        chridx = self.frame / self.speed
+        chridx = self.frame // self.speed
         if chridx < len(self.charimgs):
             font = cw.cwpy.rsrc.fonts["message"]
             lineheight = font.get_height()
@@ -505,8 +505,8 @@ class MessageWindow(base.CWPySprite):
                 py = pos[1]
 
                 if image:
-                    px += (cwidth-image.get_width() + cw.s(2)) / 2
-                py += (lineheight-cheight) / 2
+                    px += (cwidth-image.get_width() + cw.s(2)) // 2
+                py += (lineheight-cheight) // 2
                 images.append(((px, py), image, image2, image3, self._linerect))
 
             pos = pos[0] + cwidth, pos[1]
@@ -835,7 +835,7 @@ class SelectionBar(base.SelectableSprite):
             nameimg = cw.image.smoothscale(nameimg, (w, nameimg.get_height()))
             nameimg2 = cw.image.smoothscale(nameimg2, (w, nameimg2.get_height()))
         w, h = nameimg.get_size()
-        pos = (cw.s(self.size_noscale[0])-w)/2, (cw.s(self.size_noscale[1])-h)/2
+        pos = (cw.s(self.size_noscale[0])-w)//2, (cw.s(self.size_noscale[1])-h)//2
         image.blit(nameimg2, (pos[0]+1, pos[1]))
         image.blit(nameimg2, (pos[0]-1, pos[1]))
         image.blit(nameimg2, (pos[0], pos[1]+1))
@@ -1076,7 +1076,7 @@ def decorate(image, angle=8, basecolour=(255, 255, 255)):
             decoimg.fill(basecolour)
 
             w = decoimg.get_width()
-            mid = decoimg.get_height()/2
+            mid = decoimg.get_height()//2
 
             if sum(basecolour) < 128*3:
                 # 暗くなりすぎると見えなくなるので明るくしておく
@@ -1513,7 +1513,7 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                                 if scale in fdict2:
                                     image_noscale = fdict2[scale]
                                     break
-                                scale /= 2
+                                scale //= 2
                             return image_noscale, True
                         log.specialchars.set(name, load)
                         break

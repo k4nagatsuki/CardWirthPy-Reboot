@@ -1424,7 +1424,7 @@ class ClickableSprite(base.SelectableSprite):
 
         n = cw.cwpy.setting.dealing_scales[self.frame]
         rect = self.rect
-        size = rect.w * n / 100, rect.h
+        size = rect.w * n // 100, rect.h
         if cw.cwpy.selection == self:
             self.image = self.get_selectedimage()
         else:
@@ -1480,7 +1480,7 @@ class NumberOfCards(base.CWPySprite):
         subimg1 = font.render(str(num), True, (0, 0, 0))
         subimg2 = font.render("/", True, (0, 0, 0))
         subimg3 = font.render(str(cap), True, (0, 0, 0))
-        x = (w-subimg2.get_width()) / 2
+        x = (w-subimg2.get_width()) // 2
         image.blit(subimg1, (x-subimg1.get_width(), 0))
         image.blit(subimg2, (x, 0))
         image.blit(subimg3, (x+subimg2.get_width(), 0))
@@ -1497,8 +1497,8 @@ class NumberOfCards(base.CWPySprite):
         self.rect = self.image.get_rect()
         bmpw = self.pcard.rect.width
         if num:
-            bmpw -= cw.cwpy.rsrc.pygamedialogs["REPLACE_CARDS"].get_width()/2
-        self.rect.left = self.pcard.rect.left + bmpw/2 - self.rect.width/2
+            bmpw -= cw.cwpy.rsrc.pygamedialogs["REPLACE_CARDS"].get_width()//2
+        self.rect.left = self.pcard.rect.left + bmpw//2 - self.rect.width//2
         self.rect.top = self.pcard.rect.top - (h+1) - cw.s(5)
 
 class PriceOfCard(base.CWPySprite):

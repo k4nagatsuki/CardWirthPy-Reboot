@@ -924,7 +924,7 @@ class ComboEditDialog2(wx.Dialog):
         dc.SetFont(font)
         s = self.message
         w, _h, _lineheight = dc.GetFullMultiLineTextExtent(s)
-        dc.DrawText(s, (csize[0]-w)/2, cw.wins(10))
+        dc.DrawText(s, (csize[0]-w)//2, cw.wins(10))
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
@@ -938,11 +938,11 @@ class ComboEditDialog2(wx.Dialog):
         csize = cw.wins(318), cw.wins(0)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add((cw.wins(0), cw.wins(20)+self._textheight), 0, 0, cw.wins(0))
-        margin = (csize[0] - self.combo.GetSize()[0]) / 2
+        margin = (csize[0] - self.combo.GetSize()[0]) // 2
         sizer_1.Add(self.combo, 0, wx.LEFT|wx.RIGHT, margin)
         sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
 
-        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
+        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) // 3
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
         sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
@@ -1221,7 +1221,7 @@ class InputTextDialog(wx.Dialog):
         tw = self.textctrl.GetSize()[0]
         if self.addition:
             tw += self.addition.GetSize()[0]
-        margin = (csize[0] - tw) / 2
+        margin = (csize[0] - tw) // 2
         if self.addition:
             sizer_h = wx.BoxSizer(wx.HORIZONTAL)
             sizer_h.Add(self.textctrl, 0, wx.CENTER, cw.wins(0))
@@ -1232,7 +1232,7 @@ class InputTextDialog(wx.Dialog):
         sizer_1.Add(cw.wins((0, 12)), 0, 0, cw.wins(0))
         sizer_1.Add(sizer_2, 1, wx.EXPAND, cw.wins(0))
 
-        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
+        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) // 3
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
         sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
 

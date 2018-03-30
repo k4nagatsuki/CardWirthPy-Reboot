@@ -2054,7 +2054,7 @@ class EventView(wx.ScrolledWindow):
             dc.SetTextForeground(wx.Colour(64, 64, 64))
             linestr = "%s" % (linenum)
             ts = dc.GetTextExtent(linestr)
-            dc.DrawText(linestr, self.leftbarwidth-cw.ppis(6*2+5+5)-ts[0], item.pos[1]-ytop+(self.lineheight-ts[1])/2)
+            dc.DrawText(linestr, self.leftbarwidth-cw.ppis(6*2+5+5)-ts[0], item.pos[1]-ytop+(self.lineheight-ts[1])//2)
 
             clippingrect = wx.Rect(self.leftbarwidth + 1, 0,
                                    csize[0] - self.leftbarwidth + 1, csize[1])
@@ -2070,7 +2070,7 @@ class EventView(wx.ScrolledWindow):
                 dc.SetPen(bppen)
                 dc.SetBrush(bpbrush)
                 circlesize = cw.ppis(6)
-                dc.DrawCircle(self.leftbarwidth-circlesize-cw.ppis(5), item.pos[1]-ytop+self.lineheight/2, circlesize)
+                dc.DrawCircle(self.leftbarwidth-circlesize-cw.ppis(5), item.pos[1]-ytop+self.lineheight//2, circlesize)
                 dc.SetClippingRegion(*clippingrect)
                 dc.SetPen(wx.TRANSPARENT_PEN)
                 dc.SetBrush(bpbackbrush)
@@ -2113,8 +2113,8 @@ class EventView(wx.ScrolledWindow):
             ix, iy = item.pos
             ix -= xtop
             iy -= ytop
-            cx = ix + iw/2 + self.leftbarwidth
-            cy = iy + self.lineheight/2
+            cx = ix + iw//2 + self.leftbarwidth
+            cy = iy + self.lineheight//2
             if item.nextlen == 0:
                 bottom = cy+self.lineheight-cw.ppis(4)
                 dc.DrawLine(cx, cy, cx, bottom)
@@ -2125,10 +2125,10 @@ class EventView(wx.ScrolledWindow):
                         child = child[0]
                     child = self.items[child]
                     if child.pos[0] == item.pos[0]:
-                        bottom = child.pos[1]-ytop + self.lineheight/2
+                        bottom = child.pos[1]-ytop + self.lineheight//2
                         dc.DrawLine(cx, cy, cx, bottom)
                     else:
-                        bottom = child.pos[1]-ytop-self.lineheight/2
+                        bottom = child.pos[1]-ytop-self.lineheight//2
                         if cy < bottom:
                             dc.DrawLine(cx, cy, cx, bottom)
                             circles.append((cx, bottom+cw.ppis(2)))
@@ -2141,7 +2141,7 @@ class EventView(wx.ScrolledWindow):
         for cx, cy in circles:
             dc.DrawCircle(cx, cy, cw.ppis(6))
 
-        yg = (self.lineheight - dc.GetTextExtent("#")[1]) / 2
+        yg = (self.lineheight - dc.GetTextExtent("#")[1]) // 2
         for item in self.itemlist[y:]:
             if item.image:
                 dc.DrawBitmap(item.image, item.pos[0]-xtop+self.leftbarwidth, item.pos[1]-ytop, True)
@@ -2174,18 +2174,18 @@ class EventView(wx.ScrolledWindow):
         index = -1
         seq = self.itemlist
         ii = 0
-        i = len(seq) / 2
+        i = len(seq) // 2
         while 0 <= i and i < len(seq):
             if seq[i].is_contains(pos):
                 index = i
                 break
             elif y < seq[i].pos[1]:
                 seq = seq[:i]
-                i = len(seq) / 2
+                i = len(seq) // 2
             elif seq[i].pos[1] + seq[i].height <= y:
                 seq = seq[i+1:]
                 ii += i + 1
-                i = len(seq) / 2
+                i = len(seq) // 2
         return index + ii
 
     def set_selectionitem(self, item):
@@ -2309,11 +2309,11 @@ class EventView(wx.ScrolledWindow):
         ytop = y * self.scrollrate_y
         if item.pos[1] + item.height < ytop:
             ytop = item.pos[1]
-            y = ytop / self.scrollrate_y
+            y = ytop // self.scrollrate_y
             self.Scroll(x, y)
         elif ytop + h <= item.pos[1] + item.height:
-            y = (item.pos[1] + item.height) / self.scrollrate_y
-            y -= h / self.scrollrate_y
+            y = (item.pos[1] + item.height) // self.scrollrate_y
+            y -= h // self.scrollrate_y
             self.Scroll(x, y)
 
     def refresh_activeitem(self):

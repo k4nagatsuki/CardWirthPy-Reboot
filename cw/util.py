@@ -136,7 +136,7 @@ class MusicInterface(object):
                             mciSendStringW('open "%s" alias %s' % (fpath, name), 0, 0, 0)
                             volume = cw.cwpy.setting.vol_bgm_midi if is_midi(fpath) else cw.cwpy.setting.vol_bgm
                             volume = int(volume * 1000)
-                            volume = volume * subvolume / 100
+                            volume = volume * subvolume // 100
                             mciSendStringW("setaudio %s volume to %s" % (name, volume), 0, 0, 0)
                             mciSendStringW("play %s" % (name), 0, 0, 0)
                             self._winmm = True
@@ -256,7 +256,7 @@ class MusicInterface(object):
         else:
             volume = cw.cwpy.setting.vol_bgm
 
-        return volume * self.mastervolume / 100
+        return volume * self.mastervolume // 100
 
     def set_volume(self, volume=None, fade=0):
         if threading.currentThread() != cw.cwpy:
@@ -564,7 +564,7 @@ def convert_maskpos(maskpos, width, height):
     """
     if isinstance(maskpos, str):
         if maskpos == "center":
-            maskpos = (width / 2, height / 2)
+            maskpos = (width // 2, height // 2)
         elif maskpos == "right":
             maskpos = (width - 1, 0)
         else:
@@ -621,7 +621,7 @@ def find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale):
             if os.path.isfile(fname):
                 path = fname
                 break
-            scale /= 2
+            scale //= 2
     return path, scale
 
 
@@ -813,7 +813,7 @@ def put_number(image, num):
     else:
         font = cw.cwpy.rsrc.fonts["statusimg3"]
     h = font.get_height()
-    w = (h+1) / 2
+    w = (h+1) // 2
     subimg = pygame.Surface((len(s)*w, h)).convert_alpha()
     subimg.fill((0, 0, 0, 0))
     x = image.get_width() - subimg.get_width() - cw.s(1)
@@ -1376,8 +1376,8 @@ def get_truetypefontname(path):
         for i in range( dhead[1] ): #directory records
             dtable= stable.unpack_from(
                     ftable, i* stable.size )
-            if dtable[0]== "name": break
-        assert dtable[0]== "name"
+            if dtable[0]== b"name": break
+        assert dtable[0]== b"name"
 
         #name table
         f.seek( dtable[2] ) #at offset
@@ -1398,11 +1398,11 @@ def get_truetypefontname(path):
                 if dname[:3] == (1, 0, 0):
                     fontname = s
                 elif dname[:3] == (3, 1, 1033):
-                    s = s.split("\x00")
-                    fontname = "".join(s)
+                    s = s.split(b"\x00")
+                    fontname = b"".join(s)
         f.close()
 
-    return fontname
+    return str(fontname, "ascii")
 
 def get_md5(path):
     """MD5を使ったハッシュ値を返す。
@@ -1523,7 +1523,7 @@ def create_screenshot(titledic):
             fill_image(bmp, cw.s(subimg3), (w, lh))
         bmp.blit(scr, (cw.s(0), lh))
         x = cw.s(10)
-        y = (lh - fh) / 2
+        y = (lh - fh) // 2
         for xx in range(-1, 1+1):
             for yy in range(-1, 1+1):
                 if xx != x or yy != y:
@@ -1577,8 +1577,8 @@ def create_cardscreenshot(titledic):
         margin = 2
         # 背景のタイル色
         # タイトルバーに馴染む色にする
-        back = [[min(255, max(0, n / 2 + 88)) for n in cw.cwpy.setting.ssinfobackcolor],
-                [min(255, max(0, n / 2 + 40)) for n in cw.cwpy.setting.ssinfobackcolor]]
+        back = [[min(255, max(0, n // 2 + 88)) for n in cw.cwpy.setting.ssinfobackcolor],
+                [min(255, max(0, n // 2 + 40)) for n in cw.cwpy.setting.ssinfobackcolor]]
 
         # カード数によってタイルのサイズを決定
         for pcard in pcards:
@@ -1602,7 +1602,7 @@ def create_cardscreenshot(titledic):
         # イメージの作成
         sy = cw.s(0)
         if title:
-            x, y = cw.s(10), (lh - fh) / 2
+            x, y = cw.s(10), (lh - fh) // 2
             for xx in range(-1, 1+1):
                 for yy in range(-1, 1+1):
                     if xx != x or yy != y:
@@ -1630,7 +1630,7 @@ def create_cardscreenshot(titledic):
                 backindex = (index + i) % 2
                 bmp.fill(back[backindex], rect=pygame.Rect(cw.s(current_x), sy, cw.s(next_x), cw.s(130 + 2 * margin)))
                 adjust_x = (max_card[index] - len(pcards[i].cardpocket[index]))
-                x = current_x + adjust_x * 40 + margin * (2 + adjust_x) / 2
+                x = current_x + adjust_x * 40 + margin * (2 + adjust_x) // 2
                 blit_card(pcards[i].cardpocket[index], x, sy)
 
             sy += cw.s(130 + 2 * margin)
@@ -3317,9 +3317,9 @@ def fill_bitmap(dc, bmp, csize, ctrlpos=(0, 0), cpos=(0, 0)):
 
 def get_centerposition(size, targetpos, targetsize=(1, 1)):
     """中央取りのpositionを計算して返す。"""
-    top, left = targetsize[0] / 2 , targetsize[1] / 2
+    top, left = targetsize[0] // 2 , targetsize[1] // 2
     top, left = targetpos[0] + top, targetpos[1] + left
-    top, left = top - size[0] / 2, left - size[1] /2
+    top, left = top - size[0] // 2, left - size[1] // 2
     return (top, left)
 
 
@@ -3342,10 +3342,10 @@ def draw_height(dc, target, height, mask=True):
     target: wx.Bitmapかstrかunicode
     """
     if isinstance(target, str):
-        width = (dc.GetSize()[0] - dc.GetTextExtent(target)[0]) / 2
+        width = (dc.GetSize()[0] - dc.GetTextExtent(target)[0]) // 2
         dc.DrawText(target, width, height)
     elif isinstance(target, wx.Bitmap):
-        width = (dc.GetSize()[0] - target.GetSize()[0]) / 2
+        width = (dc.GetSize()[0] - target.GetSize()[0]) // 2
         dc.DrawBitmap(target, width, height, mask)
 
 
@@ -3464,11 +3464,11 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     subimg.SetAlphaBuffer(redbuf)
 
     if scaledown:
-        if 0 < maxwidth and w/2 + padding*2 > maxwidth:
-            size = (maxwidth - padding*2, h/2)
-            subimg = subimg.Rescale(size[0], h/2, quality=quality)
+        if 0 < maxwidth and w//2 + padding*2 > maxwidth:
+            size = (maxwidth - padding*2, h//2)
+            subimg = subimg.Rescale(size[0], h//2, quality=quality)
         else:
-            subimg = subimg.Rescale(w/2, h/2, quality=quality)
+            subimg = subimg.Rescale(w//2, h//2, quality=quality)
     else:
         if 0 < maxwidth and w + padding*2 > maxwidth:
             size = (maxwidth - padding*2, h)
@@ -3603,8 +3603,8 @@ class CWPyStaticBitmap(wx.Panel):
                 info = self.infos[i]
                 w, h = bmpdepthkey.GetSize()
                 scr_scale = bmpdepthkey.scr_scale if hasattr(bmpdepthkey, "scr_scale") else 1
-                w /= scr_scale
-                h /= scr_scale
+                w //= scr_scale
+                h //= scr_scale
                 baserect = info.calc_basecardposition_wx((w, h), noscale=True,
                                                          basecardtype="LargeCard",
                                                          cardpostype="NotCard")
@@ -3787,13 +3787,13 @@ class CWBackCheckBox(wx.CheckBox):
             bmp = self._check
         else:
             bmp = self._nocheck
-        dc.DrawBitmap(bmp, cw.wins(2), (csize[1]-bmp.GetHeight()) / 2, True)
+        dc.DrawBitmap(bmp, cw.wins(2), (csize[1]-bmp.GetHeight()) // 2, True)
         # text
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15)))
         s = self.GetLabel()
         tsize = dc.GetTextExtent(s)
-        dc.DrawText(s, bmp.GetWidth()+cw.wins(4), (csize[1]-tsize[1]) / 2)
+        dc.DrawText(s, bmp.GetWidth()+cw.wins(4), (csize[1]-tsize[1]) // 2)
         dc.SelectObject(wx.NullBitmap)
 
         dc = wx.PaintDC(self)
@@ -3808,12 +3808,12 @@ def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
     def _is_cursorinleft():
         rect = toppanel.GetClientRect()
         x, _y = toppanel.ScreenToClient(wx.GetMousePosition())
-        return x < rect.x + rect.width / 4 and leftbtn.IsEnabled()
+        return x < rect.x + rect.width // 4 and leftbtn.IsEnabled()
 
     def _is_cursorinright():
         rect = toppanel.GetClientRect()
         x, _y = toppanel.ScreenToClient(wx.GetMousePosition())
-        return rect.x + rect.width / 4 * 3 < x and rightbtn.IsEnabled()
+        return rect.x + rect.width // 4 * 3 < x and rightbtn.IsEnabled()
 
     def _update_mousepos():
         if _is_cursorinleft():
@@ -4107,8 +4107,8 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
         # テキストを描画
         te = dc.GetTextExtent(page.caption)
         rect = r[0]
-        x = rect.X + (rect.Width - te[0]) / 2
-        y = in_rect.Y + (in_rect.Height - te[1]) / 2
+        x = rect.X + (rect.Width - te[0]) // 2
+        y = in_rect.Y + (in_rect.Height - te[1]) // 2
         dc.DrawText(page.caption, x, y)
         if not (self.GetAGWFlags() & wx.lib.agw.aui.tabart.AUI_NB_NO_TAB_FOCUS) and page.active and wx.Window.FindFocus() is wnd:
             dc.SetBrush(wx.TRANSPARENT_BRUSH)

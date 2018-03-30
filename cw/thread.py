@@ -1313,8 +1313,8 @@ class CWPy(_Singleton, threading.Thread):
             b = float(fsize[1]) / ssize[1]
             scale = min(a, b)
             size = (int(ssize[0] * scale), int(ssize[1] * scale))
-            x = (fsize[0] - size[0]) / 2
-            y = (fsize[1] - size[1]) / 2
+            x = (fsize[0] - size[0]) // 2
+            y = (fsize[1] - size[1]) // 2
             self.scr_size = size
             self.scr_scale = scale
             self.scr_pos = (x, y)
@@ -1359,8 +1359,8 @@ class CWPy(_Singleton, threading.Thread):
                             self.scr_fullscreen.blit(back, (x, y))
 
             width = 16
-            x = self.scr_pos[0] - width/2-1
-            y = self.scr_pos[1] - width/2-1
+            x = self.scr_pos[0] - width//2-1
+            y = self.scr_pos[1] - width//2-1
             w = self.scr_size[0] + width+1
             h = self.scr_size[1] + width+1
             sur = pygame.Surface((w, h)).convert_alpha()
@@ -3056,7 +3056,7 @@ class CWPy(_Singleton, threading.Thread):
         def set_mcardpos_noscale(mcards, xxx_todo_changeme, y):
             (maxw, maxh) = xxx_todo_changeme
             n = maxw + 5
-            x = (632 - n * len(mcards) + 5) / 2
+            x = (632 - n * len(mcards) + 5) // 2
 
             grpidx = {}
             for mcard in mcards:
@@ -3087,15 +3087,15 @@ class CWPy(_Singleton, threading.Thread):
         n = len(mcards)
 
         if campwithfriend:
-            y = (145 - maxh) / 2 + 140 - 2
+            y = (145 - maxh) // 2 + 140 - 2
             set_mcardpos_noscale(mcards, (maxw, maxh), y)
         elif n <= maxcol:
-            y = (285 - maxh) / 2 - 2
+            y = (285 - maxh) // 2 - 2
             set_mcardpos_noscale(mcards, (maxw, maxh), y)
         else:
-            y = (285 - 10 - maxh * 2) / 2
+            y = (285 - 10 - maxh * 2) // 2
             y2 = y + maxh + 5
-            p = n / 2 + n % 2
+            p = n // 2 + n % 2
             set_mcardpos_noscale(mcards[:p], (maxw, maxh), y)
             set_mcardpos_noscale(mcards[p:], (maxw, maxh), y2)
 
@@ -3695,7 +3695,7 @@ class CWPy(_Singleton, threading.Thread):
         for i, pcard in enumerate(pcards[0:-1]):
             replace = Replace(self, i)
             pos_noscale = pcard.get_pos_noscale()
-            x_noscale = pos_noscale[0] + 95+9/2 - size_noscale[0]/2
+            x_noscale = pos_noscale[0] + 95+9//2 - size_noscale[0]//2
             y_noscale = pos_noscale[1] - size_noscale[1] - 5
             sprite = cw.sprite.background.ClickableSprite(get_image, get_selimage,
                                                           (x_noscale, y_noscale),

@@ -754,7 +754,7 @@ class ConvertYadoDialog(wx.Dialog):
         dc.SetFont(font)
         s = self.message
         w, h, _lh = dc.GetFullMultiLineTextExtent(s)
-        dc.DrawLabel(s, ((csize[0]-w)/2, cw.wins(10), w, h))
+        dc.DrawLabel(s, ((csize[0]-w)//2, cw.wins(10), w, h))
 
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
@@ -763,14 +763,14 @@ class ConvertYadoDialog(wx.Dialog):
         tw, th = dc.GetTextExtent(s)
         x, y, w, h = self.target.GetRect()
         x -= tw + cw.wins(5)
-        y += (h-th) / 2
+        y += (h-th) // 2
         dc.DrawText(s, x, y)
 
         s = "生成先:"
         tw, th = dc.GetTextExtent(s)
         _x2, y, _w2, h = self.reffolder.GetRect()
         h = max(h, self.folder.GetRect()[3])
-        y += (h-th) / 2
+        y += (h-th) // 2
         dc.DrawText(s, x, y)
 
     def _bind(self):
@@ -803,7 +803,7 @@ class ConvertYadoDialog(wx.Dialog):
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
 
-        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
+        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) // 3
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
         sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
         sizer_1.Add(sizer_2, 1, wx.EXPAND, cw.wins(0))

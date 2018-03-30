@@ -157,8 +157,8 @@ class CardInfo(wx.Dialog):
 
         cwidth = bmp.GetWidth()
         cheight = bmp.GetHeight()
-        x = (cw.wins(113)-cwidth) / 2
-        y = (self.toppanel.GetClientSize()[1] - cheight) / 2
+        x = (cw.wins(113)-cwidth) // 2
+        y = (self.toppanel.GetClientSize()[1] - cheight) // 2
         dc.DrawBitmap(bmp, x, y, True)
 
         # 説明文を囲うボックス
@@ -173,7 +173,7 @@ class CardInfo(wx.Dialog):
         dc.SetPen(wx.Pen((255, 255, 255), cw.wins(1), wx.TRANSPARENT))
         colour = self.toppanel.GetBackgroundColour()
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
-        y = cw.wins(9) - size[1]/2
+        y = cw.wins(9) - size[1]//2
         dc.DrawRectangle(cw.wins(122), y, size[0], size[1])
         dc.DrawText(s, cw.wins(122), y)
         # 説明文
@@ -189,7 +189,7 @@ class CardInfo(wx.Dialog):
             font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
             dc.SetFont(font)
             size = dc.GetTextExtent(s)
-            y = (cw.wins(9)+rectsize[1]) - size[1]/2
+            y = (cw.wins(9)+rectsize[1]) - size[1]//2
             dc.DrawRectangle(cw.wins(113)+rectsize[0]-cw.wins(5)-size[0], y, size[0], size[1])
             dc.DrawText(s, cw.wins(113)+rectsize[0]-cw.wins(5)-size[0], y)
 

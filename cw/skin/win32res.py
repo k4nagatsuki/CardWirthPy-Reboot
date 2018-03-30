@@ -178,9 +178,9 @@ class Win32Res(object):
     def get_rcdata(self, valtype, name):
         if self._winhandle:
             k = ctypes.windll.kernel32
-            if isinstance(valtype, str):
+            if isinstance(valtype, bytes):
                 valtype = ctypes.create_string_buffer(valtype)
-            if isinstance(name, str):
+            if isinstance(name, bytes):
                 name = ctypes.create_string_buffer(name)
             hsrc = k.FindResourceA(self._winhandle, name, valtype)
             if hsrc:
@@ -189,7 +189,7 @@ class Win32Res(object):
                 p = k.LockResource(hglobal)
                 data = (ctypes.c_byte * size)()
                 ctypes.memmove(data, p, size)
-                return str(buffer(data))
+                return bytes(data)
         else:
             if valtype in self._table:
                 table = self._table[valtype]
@@ -207,7 +207,7 @@ class Win32Res(object):
         uint8 = struct.Struct("<B")
 
         if isinstance(number, str):
-            data = self.get_rcdata(RT_GROUP_CURSOR, number)
+            data = self.get_rcdata(RT_GROUP_CURSOR, number.encode("utf-8"))
             if not data:
                 return None
             number = uint16.unpack(data[18:20])[0]
@@ -234,7 +234,7 @@ class Win32Res(object):
         if bcbitcount == 1 and copmression == 0 and clrimportant == 0:
             # bcbitcount == 1の場合はXORマスクとANDマスクが
             # 縦に並んでいるため、高さが2倍になっている
-            height /= 2
+            height //= 2
             bcbitcount = 0
 
         size = len(data)
@@ -256,7 +256,7 @@ class Win32Res(object):
         BITMAPFILEHEADER_SIZE = 14
         RGBQUAD_SIZE = 4
 
-        data = self.get_rcdata(RT_BITMAP, name)
+        data = self.get_rcdata(RT_BITMAP, name.encode("utf-8"))
         if not data:
             return None
 
@@ -286,7 +286,7 @@ class Win32Res(object):
         size = BITMAPFILEHEADER_SIZE + len(data) # file size
 
         # BITMAPFILEHEADER
-        header = "BM" + uint32.pack(size) + uint16.pack(0) + uint16.pack(0) + uint32.pack(header_size)
+        header = b"BM" + uint32.pack(size) + uint16.pack(0) + uint16.pack(0) + uint32.pack(header_size)
         assert len(header) == BITMAPFILEHEADER_SIZE
 
         return header + data
@@ -295,11 +295,10 @@ class Win32Res(object):
         data = self.get_rcdata(RT_RCDATA, name)
         if not data:
             return None
-        if data[:4] != "TPF0":
+        if data[:4] != b"TPF0":
             return None
         data = data[4:]
 
-        data = buffer(data)
         table = {}
         stack = [table]
         int8 = struct.Struct("b") # int8
@@ -308,56 +307,56 @@ class Win32Res(object):
         uint32 = struct.Struct("<I") # uint32(little endian)
 
         while 0 < len(data):
-            length = ord(data[0])
+            length = data[0]
             if length == 0:
                 data = data[1:]
                 stack.pop()
                 continue
             _classname = data[1:1+length]
             data = data[1+length:]
-            length = ord(data[0])
+            length = data[0]
             name = data[1:1+length]
             data = data[1+length:]
             c = {}
-            stack[-1][name] = c
+            stack[-1][str(name, cw.MBCS)] = c
             stack.append(c)
             while True:
-                length = ord(data[0])
+                length = data[0]
                 if length == 0:
                     data = data[1:]
                     break
                 key = data[1:1+length]
                 data = data[1+length:]
-                valtype = ord(data[0])
+                valtype = data[0]
                 data = data[1:]
                 if valtype == 0x01: # strings
                     value = []
-                    while ord(data[0]) in (2, 3, 6):
+                    while data[0] in (2, 3, 6):
                         dt = data[0]
-                        if ord(dt) == 2:
+                        if dt == 2:
                             value.append(uint8.unpack(data[1:2])[0])
                             data = data[2:]
-                        elif ord(dt) == 3:
+                        elif dt == 3:
                             value.append(uint16.unpack(data[1:3])[0])
                             data = data[3:]
-                        elif ord(dt) == 6:
-                            length = ord(data[1])
+                        elif dt == 6:
+                            length = data[1]
                             value.append(str(data[2:2+length], cw.MBCS))
                             data = data[2+length:]
                     data = data[1:]
                 elif valtype == 0x02: # signed byte
-                    value = int8.unpack(data[0])[0]
+                    value = int8.unpack(data[:1])[0]
                     data = data[1:]
                 elif valtype == 0x03: # unsigned short
                     value = uint16.unpack(data[:2])[0]
                     data = data[2:]
                 elif valtype == 0x06: # string
-                    length = ord(data[0])
+                    length = data[0]
                     value = str(data[1:1+length], cw.MBCS)
                     data = data[1+length:]
                 elif valtype == 0x07: # name
-                    length = ord(data[0])
-                    value = data[1:1+length]
+                    length = data[0]
+                    value = str(data[1:1+length], cw.MBCS)
                     data = data[1+length:]
                 elif valtype == 0x08: # False
                     value = False
@@ -369,8 +368,8 @@ class Win32Res(object):
                     data = data[4+length:]
                 elif valtype == 0x0b: # array
                     value = []
-                    while 0 < ord(data[0]):
-                        length = ord(data[0])
+                    while 0 < data[0]:
+                        length = data[0]
                         value.append(data[1:1+length])
                         data = data[1+length:]
                     data = data[1:]
@@ -380,7 +379,7 @@ class Win32Res(object):
                     value = data[4:4+length].decode("utf-16")
                     data = data[4+length:]
                 else:
-                    raise Exception("value type: %s (%s, %s)" % (name, key, valtype))
-                stack[-1][key] = value
+                    raise Exception("value type: %s (%s, %s)" % (str(name, cw.MBCS), str(key, cw.MBCS), valtype))
+                stack[-1][str(key, cw.MBCS)] = value
 
         return table

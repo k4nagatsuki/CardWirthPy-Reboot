@@ -124,8 +124,8 @@ class SkinConversionDialog(wx.Dialog):
         # プログレスダイアログ表示
         dlg = cw.dialog.progress.SysProgressDialog(self,
             "スキンの変換 [%s]" % (self.conv.exe), "", maximum=self.conv.maximum)
-        x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) / 2
-        y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) / 2
+        x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) // 2
+        y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) // 2
         x += dlg.Parent.GetPosition()[0]
         y += dlg.Parent.GetPosition()[1]
         dlg.SetPosition((x, y))
@@ -212,6 +212,8 @@ class SkinConversionDialog(wx.Dialog):
                 if os.path.isdir(targ):
                     for fpath in os.listdir(targ):
                         dpath = cw.util.join_paths(targ, fpath)
+                        if not os.path.isdir(dpath):
+                            continue
                         fpath = cw.util.join_paths(dpath, "Environment.wyd")
                         cwyado = cw.binary.cwyado.CWYado(dpath, "Yado")
                         if cwyado.is_convertible() and not os.path.normcase(os.path.abspath(os.path.normpath(dpath))) in exists:

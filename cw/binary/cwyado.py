@@ -112,7 +112,7 @@ class CWYado(object):
             data.yadodb = yadodb
             self.message = "%s を変換中..." % (os.path.basename(data.fpath))
             self.curnum_n += 1
-            self.curnum = min(99, 50 + self.curnum_n * 50 / self.maxnum)
+            self.curnum = min(99, 50 + self.curnum_n * 50 // self.maxnum)
 
             try:
                 fpath = data.create_xml(self.dir)
@@ -138,7 +138,7 @@ class CWYado(object):
         for partyinfo, partymembers in self.nowadventuringparties:
             self.message = "%s の冒険中情報を変換中..." % (partyinfo.name)
             self.curnum_n += 1
-            self.curnum = min(99, 50 + self.curnum_n * 50 / self.maxnum)
+            self.curnum = min(99, 50 + self.curnum_n * 50 // self.maxnum)
 
             try:
                 self.create_log(partyinfo, partymembers)
@@ -156,7 +156,7 @@ class CWYado(object):
         for path in self.otherfiles:
             self.message = "%s をコピー中..." % (os.path.basename(path))
             self.curnum_n += 1
-            self.curnum = min(99, 50 + self.curnum_n * 50 / self.maxnum)
+            self.curnum = min(99, 50 + self.curnum_n * 50 // self.maxnum)
             dst = util.join_paths(self.dir, os.path.basename(path))
             dst = util.check_duplicate(dst)
             shutil.copy2(path, dst)
@@ -168,7 +168,7 @@ class CWYado(object):
         for path in self.otherdirs:
             self.message = "%s をコピー中..." % (os.path.basename(path))
             self.curnum_n += 1
-            self.curnum = min(99, 50 + self.curnum_n * 50 / self.maxnum)
+            self.curnum = min(99, 50 + self.curnum_n * 50 // self.maxnum)
             dst = util.join_paths(self.dir, os.path.basename(path))
             dst = util.check_duplicate(dst)
             shutil.copytree(path, dst)
@@ -211,7 +211,7 @@ class CWYado(object):
         for path in self.yadofiles:
             self.message = "%s を読込中..." % (os.path.basename(path))
             self.curnum_n += 1
-            self.curnum = self.curnum_n * 50 / self.maxnum
+            self.curnum = self.curnum_n * 50 // self.maxnum
             try:
                 data = self.load_yadofile(path)
             except Exception:
@@ -235,7 +235,7 @@ class CWYado(object):
         for path in self.cardfiles:
             self.message = "%s を読込中..." % (os.path.basename(path))
             self.curnum_n += 1
-            self.curnum = self.curnum_n * 50 / self.maxnum
+            self.curnum = self.curnum_n * 50 // self.maxnum
             try:
                 data = self.load_cardfile(path, cardtypes)
                 carddatadict[data.fname] = data
@@ -251,7 +251,7 @@ class CWYado(object):
 
         self.message = "データリストを作成中..."
         self.curnum_n += 1
-        self.curnum = self.curnum_n * 50 / self.maxnum
+        self.curnum = self.curnum_n * 50 // self.maxnum
 
         # wchの埋め込み画像をwcpに格納する
         for wcp in self.wcps:

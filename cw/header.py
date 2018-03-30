@@ -364,7 +364,7 @@ class CardHeader(object):
         limit, maxlimit = self.get_uselimit()
         if maxlimit <= 0:
             return 0
-        limitper = 100 * limit / maxlimit
+        limitper = 100 * limit // maxlimit
 
         if maxlimit <= limit:
             value = 4
@@ -374,7 +374,7 @@ class CardHeader(object):
             value = 3
         elif 50 >= limitper > 0:
             value = 2
-        elif limitper ==   0:
+        elif limitper == 0:
             value = 0
 
         return value
@@ -1716,10 +1716,10 @@ class GetName(object):
         parser.EndElementHandler = self.end_element
         parser.CharacterDataHandler = self.character_data
 
-        with open(fpath, "r") as f:
+        with open(fpath, "rb") as f:
             try:
                 parser.ParseFile(f)
-            except Exception:
+            except Exception as _ex:
                 pass
             f.close()
 

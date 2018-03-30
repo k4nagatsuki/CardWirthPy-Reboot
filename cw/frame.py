@@ -299,7 +299,7 @@ class Frame(wx.Frame):
             dlg = cw.debug.debugger.Debugger(self)
             # メインフレームの真横に表示
             w = dlg.GetSize()[0]
-            w -= (w - self.GetSize()[0]) / 2
+            w -= (w - self.GetSize()[0]) // 2
             self.move_dlg(dlg, (w, cw.ppis(0)))
             self.debugger = dlg
             def func():
@@ -1101,11 +1101,11 @@ class Frame(wx.Frame):
                 d = wx.Display.GetFromWindow(self)
                 if d == wx.NOT_FOUND: d = 0
                 carea = wx.Display(d).GetGeometry()
-                x = carea[0] + (carea[2] - dlg.GetSize()[0]) / 2
-                y = carea[1] + (carea[3] - dlg.GetSize()[1]) / 2
+                x = carea[0] + (carea[2] - dlg.GetSize()[0]) // 2
+                y = carea[1] + (carea[3] - dlg.GetSize()[1]) // 2
             else:
-                x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) / 2
-                y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) / 2
+                x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) // 2
+                y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) // 2
                 x += dlg.Parent.GetPosition()[0]
                 y += dlg.Parent.GetPosition()[1]
 

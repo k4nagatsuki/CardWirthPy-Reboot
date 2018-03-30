@@ -366,12 +366,12 @@ class CardControl(wx.Dialog):
             top = rect[1] + rect[3]
             btm = self.downbtn.GetPosition()[1]
             h = dc.GetTextExtent("#")[1] + cw.wins(1) + cw.wins(cw.SIZE_CARDIMAGE[1])
-            y = top + (btm-top-h)/2
+            y = top + (btm-top-h)//2
             y += cw.wins(cw.SIZE_CARDIMAGE[1])+cw.wins(1)
             te = dc.GetTextExtent("/")
-            sx = cw.wins(40)-te[0]/2+cw.wins(7)
-            y += te[1] / 2
-            y -= psize[1]/2
+            sx = cw.wins(40)-te[0]//2+cw.wins(7)
+            y += te[1] // 2
+            y -= psize[1]//2
             self.page.SetSize(psize)
             self.page.SetPosition((sx-psize[0], y))
 
@@ -382,7 +382,7 @@ class CardControl(wx.Dialog):
             x = cwidth - cw.wins(5)
             x -= cw.wins(90)
             self.narrow_type.SetSize(cw.wins((90, 20)))
-            yc = y + (cw.wins(20)-self.narrow_type.GetSize()[1]) / 2
+            yc = y + (cw.wins(20)-self.narrow_type.GetSize()[1]) // 2
             self.narrow_type.SetPosition((x, yc))
             x -= cw.wins(100)
             x -= cw.wins(2)
@@ -402,7 +402,7 @@ class CardControl(wx.Dialog):
                 import win32api
                 CB_SETITEMHEIGHT = 0x153
                 win32api.SendMessage(self.combo.Handle, CB_SETITEMHEIGHT, -1, cw.wins(24))
-            yc = y + (cw.wins(24)-self.combo.GetSize()[1]) / 2
+            yc = y + (cw.wins(24)-self.combo.GetSize()[1]) // 2
             self.combo.SetPosition((x, yc))
 
             x -= cw.wins(20)
@@ -433,7 +433,7 @@ class CardControl(wx.Dialog):
             self.sortwithstar.SetSize(cw.wins((24, 24)))
             x -= cw.wins(77)
             self.sort.SetSize(cw.wins((75, 24)))
-            yc = y + (cw.wins(24)-self.sort.GetSize()[1]) / 2
+            yc = y + (cw.wins(24)-self.sort.GetSize()[1]) // 2
             self.sort.SetPosition((x, yc))
 
         # 追加的コントロールの表示
@@ -638,14 +638,14 @@ class CardControl(wx.Dialog):
             return False
         rect = self.toppanel.GetClientRect()
         x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
-        return x < rect.x + rect.width / 4 and self.leftbtn.IsEnabled()
+        return x < rect.x + rect.width // 4 and self.leftbtn.IsEnabled()
 
     def _is_cursorinright(self):
         if not self._can_sideclick():
             return False
         rect = self.toppanel.GetClientRect()
         x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
-        return rect.x + rect.width / 4 * 3 < x and self.rightbtn.IsEnabled()
+        return rect.x + rect.width // 4 * 3 < x and self.rightbtn.IsEnabled()
 
     def OnMouseWheel(self, event):
         if cw.util.has_modalchild(self):
@@ -879,7 +879,7 @@ class CardControl(wx.Dialog):
         # 背景の透かし
         bmp = cw.cwpy.rsrc.dialogs["PAD"]
         size = bmp.GetSize()
-        dc.DrawBitmap(bmp, (tsize[0]-size[0])/2, (tsize[1]-size[1])/2, True)
+        dc.DrawBitmap(bmp, (tsize[0]-size[0])//2, (tsize[1]-size[1])//2, True)
         # ライン
         colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DHIGHLIGHT)
         dc.SetPen(wx.Pen(colour, cw.wins(1), wx.SOLID))
@@ -902,12 +902,12 @@ class CardControl(wx.Dialog):
         else:
             s = cw.cwpy.msgs["mode_use"]
         fh = dc.GetTextExtent("#")[1]
-        fy = (cw.wins(24)-fh) / 2
+        fy = (cw.wins(24)-fh) // 2
         dc.DrawText(s, cw.wins(8), fy)
 
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
         fh = dc.GetTextExtent("#")[1]
-        fy = (cw.wins(24)-fh) / 2
+        fy = (cw.wins(24)-fh) // 2
         if self.sort.IsShown():
             s = cw.cwpy.msgs["sort_title"]
             x = self.sort.GetPosition()[0] - dc.GetTextExtent(s)[0] - cw.wins(2)
@@ -925,7 +925,7 @@ class CardControl(wx.Dialog):
             te = dc.GetTextExtent(s)
             pos = self.narrow.GetPosition()
             size = self.narrow.GetSize()
-            dc.DrawText(s, pos[0]-te[0]-cw.wins(3), (size[1]-te[1])/2 + pos[1])
+            dc.DrawText(s, pos[0]-te[0]-cw.wins(3), (size[1]-te[1])//2 + pos[1])
 
         price = (self.combo and self.combo.IsShown() and self.combo.GetSelection() == self._combo_shelf) or\
                 (self.sort and self.sort.IsShown() and cw.cwpy.setting.sort_cards == "Price")
@@ -947,8 +947,8 @@ class CardControl(wx.Dialog):
             y = header.wxrect.top
             w = bmp.GetWidth()
             h = bmp.GetHeight()
-            x += (header.wxrect.width-w) / 2
-            y += (header.wxrect.height-h) / 2
+            x += (header.wxrect.width-w) // 2
+            y += (header.wxrect.height-h) // 2
             dc.DrawBitmap(bmp, x, y, usemask)
 
             def draw_price():
@@ -1024,7 +1024,7 @@ class CardControl(wx.Dialog):
                     w, h = bmp.GetSize()
                     w2, h2 = int(w * 0.9), int(h * 0.9)
                     bmp = bmp.ConvertToImage().Rescale(w2, h2).ConvertToBitmap()
-                    dc.DrawBitmap(bmp, x + (w - w2) / 2, y + (h - h2) / 2, True)
+                    dc.DrawBitmap(bmp, x + (w - w2) // 2, y + (h - h2) // 2, True)
                 else:
                     dc.DrawBitmap(bmp, x, y, True)
 
@@ -1038,8 +1038,8 @@ class CardControl(wx.Dialog):
             btm = self.downbtn.GetPosition()[1]
             for leftmark in self._leftmarks:
                 h = dc.GetTextExtent("#")[1] + cw.wins(1) + leftmark.GetHeight()
-                y = top + (btm-top-h)/2
-                x = rect.X + rect.Width / 2 - leftmark.GetWidth() / 2
+                y = top + (btm-top-h)//2
+                x = rect.X + rect.Width // 2 - leftmark.GetWidth() // 2
                 dc.DrawBitmap(leftmark, x, y, True)
 
         if self.callname == "CARDPOCKET":
@@ -1050,16 +1050,16 @@ class CardControl(wx.Dialog):
             w = dc.GetTextExtent(s)[0]
             rect = self.beastbtn.GetRect()
             y = rect[1] + rect[3] + cw.wins(5)
-            dc.DrawText(s, cw.wins(45)-w/2, y)
+            dc.DrawText(s, cw.wins(45)-w//2, y)
         elif self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
             # カード置き場、荷物袋、情報カード
             if self._leftmarks:
                 # ページ番号
-                maxpage = (len(self.list)+9)/10 if len(self.list) > 0 else 1
+                maxpage = (len(self.list)+9)//10 if len(self.list) > 0 else 1
                 s = "/"
                 sw = dc.GetTextExtent(s)[0]
                 w = sw
-                sx = cw.wins(40)-w/2+cw.wins(7)
+                sx = cw.wins(40)-w//2+cw.wins(7)
                 sy = y+max([wxbmp.GetHeight() for wxbmp in self._leftmarks])+cw.wins(1)
                 dc.DrawText(s, sx, sy)
                 s = str(maxpage)
@@ -1712,8 +1712,8 @@ class CardHolder(CardControl):
         self.list = self._narrow(self.list)
         # カード移動等でページ数が減っていた場合はself.indexを補正
         if self.callname != "CARDPOCKET" and 0 < self.index:
-            if (len(self.list)+9) / 10 <= self.index:
-                self.index = (len(self.list)+9) / 10 - 1
+            if (len(self.list)+9) // 10 <= self.index:
+                self.index = (len(self.list)+9) // 10 - 1
                 if self.index < 0:
                     self.index = 0
         self.draw_cards()
@@ -2213,7 +2213,7 @@ class CardHolder(CardControl):
 
     def _update_page(self):
         index = self.index
-        max = (len(self.list)+9)/10 if len(self.list) > 0 else 1
+        max = (len(self.list)+9)//10 if len(self.list) > 0 else 1
         index = min(index, max-1)
         page = index+1
         self._on_pagenum(page)
@@ -2323,7 +2323,7 @@ class CardHolder(CardControl):
                 header.negaflag = False
                 negaindex = index
 
-        n = (len(self.list)+9)/10 if len(self.list) > 0 else 1
+        n = (len(self.list)+9)//10 if len(self.list) > 0 else 1
 
         if self.index == 0:
             self.index = n - 1
@@ -2352,7 +2352,7 @@ class CardHolder(CardControl):
                 header.negaflag = False
                 negaindex = index
 
-        n = (len(self.list)+9)/10 if len(self.list) > 0 else 1
+        n = (len(self.list)+9)//10 if len(self.list) > 0 else 1
 
         if self.index == n - 1:
             self.index = 0
@@ -2457,8 +2457,8 @@ class CardHolder(CardControl):
 
     def draw_cards(self, update=True, mode=-1):
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
-            if (len(self.list)+9) / 10 <= self.index:
-                self.index = (len(self.list)+9) / 10 - 1
+            if (len(self.list)+9) // 10 <= self.index:
+                self.index = (len(self.list)+9) // 10 - 1
                 if self.index < 0:
                     self.index = 0
         self._store_index()
@@ -2764,7 +2764,7 @@ class HandView(CardControl):
     def _draw_additionals(self, dc):
         if self.redeal and self.redeal.IsShown():
             fh = dc.GetTextExtent("#")[1]
-            fy = (cw.wins(24) - fh) / 2
+            fy = (cw.wins(24) - fh) // 2
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
             s = cw.cwpy.msgs["re_deal_label"]
             x = self.redeal.GetPosition()[0] - dc.GetTextExtent(s)[0] - cw.wins(2)
@@ -2962,15 +2962,15 @@ def get_poslist(num, mode=1):
             leftm = cw.wins(0)
 
         if num < numb or mode == 3 and num == numb:
-            x = (w - cw.wins(83) * num) / 2 + leftm
+            x = (w - cw.wins(83) * num) // 2 + leftm
             y = cw.wins(95)
             poslist = [(x + (cw.wins(83) * cnt), y) for cnt in range(num)]
         else:
-            row1, row2 = num / 2 + num % 2, num / 2
-            x = (w - cw.wins(83) * row1) / 2 + leftm
+            row1, row2 = num // 2 + num % 2, num // 2
+            x = (w - cw.wins(83) * row1) // 2 + leftm
             y = cw.wins(40)
             row1list = [(x + (cw.wins(83) * cnt), y) for cnt in range(row1)]
-            x = (w - cw.wins(83) * row2) / 2 + leftm
+            x = (w - cw.wins(83) * row2) // 2 + leftm
             y = cw.wins(160)
             row2list = [(x + (cw.wins(83) * cnt), y) for cnt in range(row2)]
             poslist = row1list + row2list

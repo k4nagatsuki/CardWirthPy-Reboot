@@ -668,7 +668,7 @@ class ScenarioSelect(select.Select):
         self._create_addmenu()
 
         size = self.addmenubtn.GetSize()
-        self.addmenubtn.PopupMenuXY(self.addmenu, size[0] / 2, size[1] / 2)
+        self.addmenubtn.PopupMenuXY(self.addmenu, size[0] // 2, size[1] // 2)
 
     def _create_addmenu(self):
         if not self.addmenu:
@@ -776,7 +776,7 @@ class ScenarioSelect(select.Select):
         size = self.bookmark.GetSize()
         self._add_bookmark.Enable(not self._is_specialselected())
         self._arrange_bookmark.Enable(bool(cw.cwpy.ydata.bookmarks))
-        self.bookmark.PopupMenuXY(self.bookmarkmenu, size[0] / 2, size[1] / 2)
+        self.bookmark.PopupMenuXY(self.bookmarkmenu, size[0] // 2, size[1] // 2)
 
     def _is_specialselected(self):
         return not self.list or isinstance(self.list[self.index], FindResult)
@@ -2125,7 +2125,7 @@ class ScenarioSelect(select.Select):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16)))
             s = cw.cwpy.msgs["contents"]
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(110)+yp)
+            dc.DrawText(s, (bmpw-w)//2, cw.wins(110)+yp)
             # 中身
             font = cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14), adjustsize=True)
             font2 = cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(12))
@@ -2178,10 +2178,10 @@ class ScenarioSelect(select.Select):
                 if addition:
                     dc.SetFont(font2)
                     size2 = dc.GetTextExtent(addition)
-                    x = (bmpw - (size[0]+space+size2[0])) / 2
+                    x = (bmpw - (size[0]+space+size2[0])) // 2
                     x += cw.wins(10) # 左に寄って見えるので若干右寄りにする
                 else:
-                    x = (bmpw - size[0]) / 2
+                    x = (bmpw - size[0]) // 2
 
                 dc.SetFont(font)
                 dc.DrawText(name, x, y+yp)
@@ -2190,7 +2190,7 @@ class ScenarioSelect(select.Select):
                     dc.SetFont(font2)
                     dc.SetTextForeground((128, 128, 128))
                     x2 = x + space + size[0]
-                    y2 = y + ((size[1] - size2[1]) / 2) + 1
+                    y2 = y + ((size[1] - size2[1]) // 2) + 1
                     dc.DrawText(addition, x2, y2+yp)
 
                 y += cw.wins(15)
@@ -2221,7 +2221,7 @@ class ScenarioSelect(select.Select):
             if maxwidth < w:
                 cw.util.draw_witharound(dc, s, cw.wins(5), cw.wins(35)+yp, maxwidth=maxwidth)
             else:
-                cw.util.draw_witharound(dc, s, (bmpw-w)/2, cw.wins(35)+yp)
+                cw.util.draw_witharound(dc, s, (bmpw-w)//2, cw.wins(35)+yp)
 
             # 解説文
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
@@ -2244,7 +2244,7 @@ class ScenarioSelect(select.Select):
                     s = cw.cwpy.msgs["target_level_2"] % (levelmin, levelmax)
 
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, (bmpw-w)/2, cw.wins(15)+yp)
+                dc.DrawText(s, (bmpw-w)//2, cw.wins(15)+yp)
 
             self._enable_btn2(header, dc=dc)
 
@@ -2820,7 +2820,7 @@ class ScenarioSelect(select.Select):
             level = 0
         else:
             pcards = cw.cwpy.get_pcards("unreversed")
-            level = sum([pcard.level for pcard in pcards]) / len(pcards)
+            level = sum([pcard.level for pcard in pcards]) // len(pcards)
 
         narrow = self.narrow.GetValue().lower()
         donarrow = bool(narrow) and self.narrow.IsShown()

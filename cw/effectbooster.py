@@ -1185,8 +1185,8 @@ class JptxImage(cw.image.Image):
                         size = info.font2.size(chars)
                     else:
                         size = cw.s(info.font2_noscale.size(chars))
-                    width = size[0] / 2
-                    height = size[1] / 2
+                    width = size[0] // 2
+                    height = size[1] // 2
                     yp = 0
                     rect = pygame.Rect(int(info.x), int(info.y)+yp, width, height)
                     rect = rect.clip(self.outer.image.get_rect())
@@ -1205,9 +1205,9 @@ class JptxImage(cw.image.Image):
                         subimg = pygame.transform.smoothscale(subimg2, (w, h))
 
                     if cw.UP_SCR == 1:
-                        width = info.font2.size_withoutoverhang(chars)[0] / 2
+                        width = info.font2.size_withoutoverhang(chars)[0] // 2
                     else:
-                        width = cw.s(info.font2_noscale.size_withoutoverhang(chars))[0] / 2
+                        width = cw.s(info.font2_noscale.size_withoutoverhang(chars))[0] // 2
                 else:
                     if not antialias and 22 < info.fontpixels_noscale and\
                             fontface in ("ＭＳ Ｐ明朝", "ＭＳ 明朝", "ＭＳ Ｐゴシック", "ＭＳ ゴシック", "MS UI Gothic"):

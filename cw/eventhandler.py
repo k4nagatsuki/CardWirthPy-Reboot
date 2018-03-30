@@ -1548,9 +1548,9 @@ class EventHandlerForBacklog(EventHandler):
             return True
 
         if key == pygame.locals.K_PAGEUP:
-            self._scrollbar.set_pos(self._scrollbar.get_pos()-cw.SIZE_AREA[1]*80/100, lazy=True)
+            self._scrollbar.set_pos(self._scrollbar.get_pos()-cw.SIZE_AREA[1]*80//100, lazy=True)
         elif key == pygame.locals.K_PAGEDOWN:
-            self._scrollbar.set_pos(self._scrollbar.get_pos()+cw.SIZE_AREA[1]*80/100, lazy=True)
+            self._scrollbar.set_pos(self._scrollbar.get_pos()+cw.SIZE_AREA[1]*80//100, lazy=True)
         elif key == pygame.locals.K_HOME:
             self._scrollbar.set_pos(0, lazy=True)
         elif key == pygame.locals.K_END:

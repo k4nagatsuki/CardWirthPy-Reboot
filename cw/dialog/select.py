@@ -141,10 +141,10 @@ class Select(wx.Dialog):
 
         rect = self.toppanel.GetClientRect()
         x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
-        if x < rect.x + rect.width / 4 and self.leftbtn.IsEnabled():
+        if x < rect.x + rect.width // 4 and self.leftbtn.IsEnabled():
             self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_BACK"])
             self.clickmode = wx.LEFT
-        elif rect.x + rect.width / 4 * 3 < x and self.rightbtn.IsEnabled():
+        elif rect.x + rect.width // 4 * 3 < x and self.rightbtn.IsEnabled():
             self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FORE"])
             self.clickmode = wx.RIGHT
         else:
@@ -622,10 +622,10 @@ class MultiViewSelect(Select):
         pass
 
     def get_page(self):
-        return self.index / self.views
+        return self.index // self.views
 
     def get_pagecount(self):
-        return (len(self.list) + self.views - 1) / self.views
+        return (len(self.list) + self.views - 1) // self.views
 
     def save_views(self, multi):
         pass
@@ -1240,16 +1240,16 @@ class YadoSelect(MultiViewSelect):
                 dc.SetTextForeground(wx.RED)
                 s = "変換が必要です"
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, (bmpw-w)/2, cw.wins(20))
+                dc.DrawText(s, (bmpw-w)//2, cw.wins(20))
 
             # 宿画像
             path = "Resource/Image/Card/COMMAND0"
             path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
             bmp = cw.wins(cw.util.load_wxbmp(path, True, can_loaded_scaledimage=True))
-            dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(70), True)
+            dc.DrawBitmap(bmp, (bmpw-cw.wins(74))//2, cw.wins(70), True)
             if self.isshortcuts[self.index]:
                 bmp = cw.cwpy.rsrc.dialogs["LINK"]
-                dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2-cw.wins(3), cw.wins(135), True)
+                dc.DrawBitmap(bmp, (bmpw-cw.wins(74))//2-cw.wins(3), cw.wins(135), True)
 
             # 宿名前
             dc.SetTextForeground(wx.BLACK)
@@ -1263,18 +1263,18 @@ class YadoSelect(MultiViewSelect):
             if maxwidth < w:
                 cw.util.draw_witharound(dc, s, cw.wins(5), cw.wins(40), maxwidth=maxwidth)
             else:
-                cw.util.draw_witharound(dc, s, (bmpw-w)/2, cw.wins(40))
+                cw.util.draw_witharound(dc, s, (bmpw-w)//2, cw.wins(40))
 
             # ページ番号
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(15)))
             s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
             s = s + "/" + str(len(self.list))
             w = dc.GetTextExtent(s)[0]
-            cw.util.draw_witharound(dc, s, (bmpw-w)/2, cw.wins(338))
+            cw.util.draw_witharound(dc, s, (bmpw-w)//2, cw.wins(338))
             # Adventurers
             s = cw.cwpy.msgs["adventurers"]
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(175))
+            dc.DrawText(s, (bmpw-w)//2, cw.wins(175))
 
             # 所属冒険者
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
@@ -1285,8 +1285,8 @@ class YadoSelect(MultiViewSelect):
                 if 23 == idx:
                     if 24 < len(self.list2[self.index]):
                         name = cw.cwpy.msgs["scenario_etc"]
-                x = (bmpw - cw.wins(270)) / 2 + ((idx % 3) * cw.wins(95))
-                y = cw.wins(200) + (idx / 3) * cw.wins(16)
+                x = (bmpw - cw.wins(270)) // 2 + ((idx % 3) * cw.wins(95))
+                y = cw.wins(200) + (idx // 3) * cw.wins(16)
                 dc.DrawText(name, x, y)
 
             # 使用中マーク
@@ -1354,7 +1354,7 @@ class YadoSelect(MultiViewSelect):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(13)))
             s = "%s/%s" % (self.get_page()+1, self.get_pagecount())
             w = dc.GetTextExtent(s)[0]
-            cw.util.draw_witharound(dc, s, (bmpw-w)/2, cw.wins(355))
+            cw.util.draw_witharound(dc, s, (bmpw-w)//2, cw.wins(355))
 
             # 使用中マーク
             x = 0
@@ -2163,11 +2163,11 @@ class PartySelect(MultiViewSelect):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
             s = cw.cwpy.msgs["adventurers_team"]
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(25))
+            dc.DrawText(s, (bmpw-w)//2, cw.wins(25))
             # 所持金
             s = cw.cwpy.msgs["adventurers_money"] % (header.money)
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(60))
+            dc.DrawText(s, (bmpw-w)//2, cw.wins(60))
 
             # メンバ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
@@ -2183,15 +2183,15 @@ class PartySelect(MultiViewSelect):
             for index, s in enumerate(self.names):
                 s = cw.util.abbr_longstr(dc, s, cw.wins(90))
                 if index < 3:
-                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])/2+w*index, cw.wins(85), w, cw.wins(15)), wx.ALIGN_CENTER)
+                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])//2+w*index, cw.wins(85), w, cw.wins(15)), wx.ALIGN_CENTER)
                 else:
-                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])/2+w*(index-3), cw.wins(105), w, cw.wins(15)), wx.ALIGN_CENTER)
+                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])//2+w*(index-3), cw.wins(105), w, cw.wins(15)), wx.ALIGN_CENTER)
 
             # パーティ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(20)))
             s = header.name
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
+            dc.DrawText(s, (bmpw-w)//2, cw.wins(40))
             # シナリオ・宿画像
             bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
             ix = (bmpw-cw.wins(74))//2
@@ -2204,7 +2204,7 @@ class PartySelect(MultiViewSelect):
                 cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, b, ix+baserect.x, iy+baserect.y, True, bitsizekey=bns)
             dc.DestroyClippingRegion()
             # パーティの先頭メンバを小さく表示する
-            px = bmpw/2
+            px = bmpw//2
             py = cw.wins(125+47)
             pw = cw.wins(cw.SIZE_CARDIMAGE[0])
             ph = cw.wins(cw.SIZE_CARDIMAGE[1])
@@ -2232,13 +2232,13 @@ class PartySelect(MultiViewSelect):
                 s = cw.cwpy.ydata.name
 
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(225))
+            dc.DrawText(s, (bmpw-w)//2, cw.wins(225))
             # ページ番号
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
             s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
             s = s + "/" + str(len(self.list))
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(250))
+            dc.DrawText(s, (bmpw-w)//2, cw.wins(250))
 
         else:
             # 一覧表示
@@ -2249,13 +2249,13 @@ class PartySelect(MultiViewSelect):
             x = 0
             y = 0
             size = self.toppanel.GetSize()
-            rw = size[0] / (self.views / 2)
-            rh = size[1] / 2
+            rw = size[0] // (self.views // 2)
+            rh = size[1] // 2
             dc.SetTextForeground(wx.BLACK)
             for i, header in enumerate(seq):
                 # 宿・シナリオイメージ
                 bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
-                ix = x + (rw - cw.wins(72)) / 2
+                ix = x + (rw - cw.wins(72)) // 2
                 iy = y + cw.s(5)
                 dc.SetClippingRegion(ix, iy, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1]))
                 for b, bns, info in zip(bmp, bmp_noscale, imgpaths):
@@ -2289,21 +2289,21 @@ class PartySelect(MultiViewSelect):
                 s = header.name
                 s = cw.util.abbr_longstr(dc, s, rw)
                 w = dc.GetTextExtent(s)[0]
-                cw.util.draw_witharound(dc, s, x + (rw - w) / 2, y + cw.wins(105))
+                cw.util.draw_witharound(dc, s, x + (rw - w) // 2, y + cw.wins(105))
 
                 # シナリオ・宿名
                 if sceheader:
                     s = sceheader.name
                     s = cw.util.abbr_longstr(dc, s, rw)
                     w = dc.GetTextExtent(s)[0]
-                    cw.util.draw_witharound(dc, s, x + (rw - w) / 2, y + cw.wins(120))
+                    cw.util.draw_witharound(dc, s, x + (rw - w) // 2, y + cw.wins(120))
 
                 # 選択マーク
                 if sindex + i == self.index:
                     bmp = cw.cwpy.rsrc.wxstatuses["TARGET"]
                     dc.DrawBitmap(bmp, ix + cw.wins(90) - bmp.GetWidth(), iy + cw.wins(102) - bmp.GetHeight(), True)
 
-                if self.views / 2 == i + 1:
+                if self.views // 2 == i + 1:
                     x = 0
                     y += rh
                 else:
@@ -3032,7 +3032,7 @@ class PlayerSelect(MultiViewSelect):
                 val = types.get(talent, 0)
                 val += 1
                 types[talent] = val
-            level /= len(cw.cwpy.ydata.party.members)
+            level //= len(cw.cwpy.ydata.party.members)
 
             for header in mlist:
                 # 同型のメンバの数だけ必要度を下げる
@@ -3097,7 +3097,7 @@ class PlayerSelect(MultiViewSelect):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(22)))
                 s = header.name
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(125) - w / 2, cw.wins(67))
+                dc.DrawText(s, cw.wins(125) - w // 2, cw.wins(67))
                 # Image
                 dc.SetClippingRegion(cw.wins(88), cw.wins(90), cw.wins(74), cw.wins(94))
                 can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
@@ -3116,22 +3116,22 @@ class PlayerSelect(MultiViewSelect):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_age"] % (header.get_age())
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(127) - w / 2, cw.wins(195))
+                dc.DrawText(s, cw.wins(127) - w // 2, cw.wins(195))
                 # Sex
                 s = cw.cwpy.msgs["character_sex"] % (header.get_sex())
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(127) - w / 2, cw.wins(210))
+                dc.DrawText(s, cw.wins(127) - w // 2, cw.wins(210))
                 # EP
                 s = cw.cwpy.msgs["character_ep"] % (header.ep)
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(127) - w / 2, cw.wins(225))
+                dc.DrawText(s, cw.wins(127) - w // 2, cw.wins(225))
 
                 # クーポン(新しい順から9つ)
                 hiddens = set(["＿", "＠"])
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_history"]
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(320) - w / 2, cw.wins(65))
+                dc.DrawText(s, cw.wins(320) - w // 2, cw.wins(65))
 
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 history = []
@@ -3143,14 +3143,14 @@ class PlayerSelect(MultiViewSelect):
                             break
                 for index, s in enumerate(history):
                     w = dc.GetTextExtent(s)[0]
-                    dc.DrawText(s, cw.wins(320) - w / 2, cw.wins(95) + cw.wins(14) * index)
+                    dc.DrawText(s, cw.wins(320) - w // 2, cw.wins(95) + cw.wins(14) * index)
 
                 # ページ番号
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
                 s = s + "/" + str(len(self.list))
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, (bmpw-w)/2, cw.wins(250))
+                dc.DrawText(s, (bmpw-w)//2, cw.wins(250))
             else:
                 page = self.get_page()
 
@@ -3159,12 +3159,12 @@ class PlayerSelect(MultiViewSelect):
                 x = 0
                 y = 0
                 size = self.toppanel.GetSize()
-                rw = size[0] / (self.views / 2)
-                rh = size[1] / 2
+                rw = size[0] // (self.views // 2)
+                rh = size[1] // 2
                 dc.SetTextForeground(wx.BLACK)
                 for i, header in enumerate(seq):
                     # Image
-                    ix = x + (rw - cw.wins(72)) / 2
+                    ix = x + (rw - cw.wins(72)) // 2
                     iy = y + 5
                     dc.SetClippingRegion(ix, iy, cw.wins(74), cw.wins(94))
                     can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
@@ -3183,7 +3183,7 @@ class PlayerSelect(MultiViewSelect):
                     s = header.name
                     s = cw.util.abbr_longstr(dc, s, rw)
                     w = dc.GetTextExtent(s)[0]
-                    cw.util.draw_witharound(dc, s, x + (rw - w) / 2, y + cw.wins(105))
+                    cw.util.draw_witharound(dc, s, x + (rw - w) // 2, y + cw.wins(105))
                     # Level
                     space = cw.wins(5)
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
@@ -3192,7 +3192,7 @@ class PlayerSelect(MultiViewSelect):
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(17)))
                     s2 = str(header.level)
                     w2, h2 = dc.GetTextExtent(s2)
-                    sx = x + (rw - (w1+cw.wins(5)+w2+space)) / 2
+                    sx = x + (rw - (w1+cw.wins(5)+w2+space)) // 2
                     sy = y + cw.wins(120)
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                     cw.util.draw_witharound(dc, s1, sx, sy + (h2-h1))
@@ -3203,7 +3203,7 @@ class PlayerSelect(MultiViewSelect):
                         bmp = cw.cwpy.rsrc.wxstatuses["TARGET"]
                         dc.DrawBitmap(bmp, ix + cw.wins(80) - bmp.GetWidth(), iy + cw.wins(102) - bmp.GetHeight(), True)
 
-                    if self.views / 2 == i + 1:
+                    if self.views // 2 == i + 1:
                         x = 0
                         y += rh
                     else:

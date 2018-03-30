@@ -159,11 +159,11 @@ def _add_mosaic(image, value):
     pxarray = pygame.PixelArray(image)
 
     for x, pxs in enumerate(pxarray):
-        n = (x / value) * value
+        n = (x // value) * value
         seq = []
 
         for y, _px in enumerate(pxs):
-            n2 = (y / value) * value
+            n2 = (y // value) * value
             seq.append(pxarray[n][n2])
 
         pxarray[x] = seq
@@ -472,9 +472,9 @@ def __filter(image, weight, offset=0, div=1):
                     g += temp_g * weight[n][n2]
                     b += temp_b * weight[n][n2]
 
-            r = r / div + offset
-            g = g / div + offset
-            b = b / div + offset
+            r = r // div + offset
+            g = g // div + offset
+            b = b // div + offset
             r = cw.util.numwrap(r, 0, 255)
             g = cw.util.numwrap(g, 0, 255)
             b = cw.util.numwrap(b, 0, 255)
@@ -581,12 +581,12 @@ def add_transparentline(image, vline, hline, rect=None, setalpha=False):
 
     x0, y0, w, h = rect
     if vline:
-        for cnt in range(w / 2 - 1):
+        for cnt in range(w // 2 - 1):
             x = cnt * 2 + x0
             pygame.draw.line(image, color, (x, 0), (x, h))
 
     if hline:
-        for cnt in range(h / 2 - 1):
+        for cnt in range(h // 2 - 1):
             y = cnt * 2 + y0
             pygame.draw.line(image, color, (0, y), (w, y))
 
@@ -629,7 +629,7 @@ def add_border(img, bordercolor, borderwidth):
 
     buf = pygame.image.tostring(img, "RGBA")
     points = func(buf, img.get_size())
-    hbw = borderwidth / 2
+    hbw = borderwidth // 2
     for i in range(0, len(points), 2):
         x = points[i+0]
         y = points[i+1]
@@ -654,7 +654,7 @@ def _bordering(data, size):
         color[i] = ord(data[iData+3]) == 0
         if color[i]:
             x = i % w
-            y = i / w
+            y = i // w
             left = min(left, max(x - 1, 0))
             right = max(right, min(x + 2, w))
             top = min(top, max(y - 1, 0))
@@ -839,9 +839,9 @@ def _to_disabledimage(buf, size):
 
     for px in range(0, len(buf), 3):
         if (buf[px], buf[px+1], buf[px+2]) != colorkey:
-            buf[px+0] = buf[px+0] * (nmax - nmin) / 255  + nmin
-            buf[px+1] = buf[px+1] * (nmax - nmin) / 255  + nmin
-            buf[px+2] = buf[px+2] * (nmax - nmin) / 255  + nmin
+            buf[px+0] = buf[px+0] * (nmax - nmin) // 255 + nmin
+            buf[px+1] = buf[px+1] * (nmax - nmin) // 255 + nmin
+            buf[px+2] = buf[px+2] * (nmax - nmin) // 255 + nmin
 
 def to_disabledsurface(image):
     """_to_disabledimage()のpygame.Surface版。"""

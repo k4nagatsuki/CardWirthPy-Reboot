@@ -307,7 +307,7 @@ class BattleEngine(object):
             # 判定値を算出
             ecards = cw.cwpy.get_ecards("active")
             level = sum([ecard.level for ecard in ecards])
-            level = level / len(ecards) if ecards else 0
+            level = level // len(ecards) if ecards else 0
             vocation = ("agl", "trickish")
             enemybonus = len(ecards) + 3
             # パーティ全員で敏捷・狡猾の行為判定
@@ -317,7 +317,7 @@ class BattleEngine(object):
                                                         for pcard in pcards].count(True)
 
             # 逃走成功・失敗時の処理
-            if pcards and success > len(pcards) / 2:
+            if pcards and success > len(pcards) // 2:
                 cw.cwpy.advlog.runaway(True)
                 # 行動内容のクリア
                 for member in self.members:

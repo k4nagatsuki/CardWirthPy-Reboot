@@ -745,7 +745,7 @@ class TransferYadoDataDialog(wx.Dialog):
         _tw, th = dc.GetTextExtent(s)
         _x, y, _w, h = self.fromyado.GetRect()
         x = cw.wins(5)
-        y += (h-th) / 2
+        y += (h-th) // 2
         dc.DrawText(s, x, y)
 
         # 転送先
@@ -753,7 +753,7 @@ class TransferYadoDataDialog(wx.Dialog):
         _tw, th = dc.GetTextExtent(s)
         x, y, _w, h = self.toyado.GetRect()
         x = cw.wins(5)
-        y += (h-th) / 2
+        y += (h-th) // 2
         dc.DrawText(s, x, y)
 
     def _bind(self):

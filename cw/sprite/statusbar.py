@@ -346,9 +346,9 @@ class VolumeBar(base.CWPySprite):
         self.image.fill((0, 128, 128, 192), pygame.Rect(cw.s(padw)+cw.s(1), cw.s(padh)*2+tsize[1]+cw.s(1)+n, self.rect.width-cw.s(padw)*2-cw.s(2), cw.s(barh)-n))
 
         subimg = font.render("%s%%" % (int(cw.cwpy.setting.vol_master * 100)), True, (255, 255, 255))
-        self.image.blit(subimg, ((self.rect.width-tsize[0])/2+tsize[0]-subimg.get_width(), cw.s(padh)*2+tsize[1]+cw.s(barh)+cw.s(padh)))
+        self.image.blit(subimg, ((self.rect.width-tsize[0])//2+tsize[0]-subimg.get_width(), cw.s(padh)*2+tsize[1]+cw.s(barh)+cw.s(padh)))
         subimg = font.render("音量", True, (255, 255, 255))
-        self.image.blit(subimg, ((self.rect.width-tsize2[0])/2, cw.s(padh)))
+        self.image.blit(subimg, ((self.rect.width-tsize2[0])//2, cw.s(padh)))
 
         cw.cwpy.draw(clip=self.rect)
 
@@ -401,8 +401,8 @@ class ProgressView(base.CWPySprite):
         if w-cw.s(4) < subimg.get_width():
             subimg = cw.image.smoothscale(subimg.convert_alpha(), (w-cw.s(4), subimg.get_height()),
                                           smoothing=cw.cwpy.setting.fontsmoothing_statusbar)
-        x = (image.get_width() - subimg.get_width()) / 2
-        y = (image.get_height() - subimg.get_height()) / 2
+        x = (image.get_width() - subimg.get_width()) // 2
+        y = (image.get_height() - subimg.get_height()) // 2
 
         g = w / float(self.max - self.min)
         curw = int(self.current * g) + cw.s(1)
@@ -603,7 +603,7 @@ class YadoMoneyPanel(StatusBarPanel):
 
         rect = image.get_rect()
         rect.left = self.rect.w - (rect.w + cw.s(5))
-        rect.top = (self.rect.h - rect.h) / 2
+        rect.top = (self.rect.h - rect.h) // 2
 
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
@@ -619,7 +619,7 @@ class YadoMoneyPanel(StatusBarPanel):
             self.update_image()
             return
 
-        if self.frame / 5 % 2 == 1:
+        if self.frame // 5 % 2 == 1:
             text = ""
             currency = "%s"
         else:
@@ -695,8 +695,8 @@ class EncounterPanel(StatusBarPanel):
         image = font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
         image = self.get_scaledimage(image)
         rect = image.get_rect()
-        rect.left = (self.rect.w - rect.w) / 2
-        rect.top = (self.rect.h - rect.h) / 2
+        rect.left = (self.rect.w - rect.w) // 2
+        rect.top = (self.rect.h - rect.h) // 2
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
 
@@ -723,8 +723,8 @@ class RoundCounterPanel(YadoMoneyPanel):
         image = font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
         image = self.get_scaledimage(image)
         rect = image.get_rect()
-        rect.left = (self.rect.w - rect.w) / 2
-        rect.top = (self.rect.h - rect.h) / 2
+        rect.left = (self.rect.w - rect.w) // 2
+        rect.top = (self.rect.h - rect.h) // 2
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
 
@@ -913,7 +913,7 @@ class StatusBarButton(base.SelectableSprite):
             self.update_image()
             return
 
-        blink_notice = self.frame / 5 % 2 == 0
+        blink_notice = self.frame // 5 % 2 == 0
 
         if self.need_update(blink_notice) or update:
             self.put_updatekey(blink_notice)
@@ -1072,7 +1072,7 @@ class Desc(base.CWPySprite):
             x = self.parent.rect.left+arrowpos
             x -= self.rect.left
         y = th-1
-        pl = [(x-arroww/2, y), (x, y+arrowh), (x+arroww/2, y)]
+        pl = [(x-arroww//2, y), (x, y+arrowh), (x+arroww//2, y)]
         pygame.draw.polygon(self.image, color, pl)
         pygame.draw.aalines(self.image, linecolor, False, pl)
 

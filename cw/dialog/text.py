@@ -210,7 +210,7 @@ class Text(wx.Dialog):
             s = "No Text File"
             size = dc.GetTextExtent(s)
             size2 = self.toppanel.GetSize()
-            pos = (size2[0]-size[0])/2, (size2[1]-size[1])/2
+            pos = (size2[0]-size[0])//2, (size2[1]-size[1])//2
             dc.DrawText(s, pos[0], pos[1])
             # ボックス
             size = size[0] + cw.wins(60), size[1] + cw.wins(20)

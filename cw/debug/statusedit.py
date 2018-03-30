@@ -473,7 +473,7 @@ class Status(object):
     def __init__(self, pcard):
         # 現在ライフ・最大ライフ
         if hasattr(pcard, "maxlife"):
-            self.life = int(100 * pcard.life / pcard.maxlife)
+            self.life = int(100 * pcard.life // pcard.maxlife)
             if self.life == 0 and 0 < pcard.life:
                 # 1点でもライフがある場合は最小で1%にする
                 self.life = 1
@@ -802,18 +802,18 @@ class StatusButton(wx.BitmapButton):
             size2 = dc.GetTextExtent(self.text2)
             height += SPACER + size2[1]
 
-        y = (csize[1] - height) / 2
+        y = (csize[1] - height) // 2
 
-        x = (csize[0] - self.image.GetWidth()) / 2
+        x = (csize[0] - self.image.GetWidth()) // 2
         dc.DrawBitmap(self.image, x, y)
         y += self.image.GetHeight() + SPACER
 
         if self.text1:
-            x = (csize[0] - size1[0]) / 2
+            x = (csize[0] - size1[0]) // 2
             dc.DrawText(self.text1, x, y)
             y += size1[1] + SPACER
         if self.text2:
-            x = (csize[0] - size2[0]) / 2
+            x = (csize[0] - size2[0]) // 2
             dc.DrawText(self.text2, x, y)
             y += size2[1] + SPACER
 

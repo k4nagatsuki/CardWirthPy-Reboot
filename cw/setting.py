@@ -291,7 +291,7 @@ class Setting(object):
         # フレームレート
         self.fps = 60
         # 1frame分のmillseconds
-        self.frametime = 1000 / self.fps
+        self.frametime = 1000 // self.fps
         # Settings
         self.init_settings(loadfile, init=init)
 
@@ -584,7 +584,7 @@ class Setting(object):
         self.vol_sound = Setting.wrap_volumevalue(self.vol_sound)
         self.vol_sound_midi = Setting.wrap_volumevalue(self.vol_sound_midi)
         # MIDIサウンドフォント
-        elements = data.find("SoundFonts", False)
+        elements = data.find("SoundFonts")
         if not elements is None:
             self.soundfonts = []
             for e in elements:
@@ -1908,9 +1908,9 @@ class Resource(object):
             else:
                 r1 = g1 = b1 = 255
                 r2 = g2 = b2 = 232
-            mid = h / 2
+            mid = h // 2
             for y in range(0, mid+1, 1):
-                bmp.fill((r1-y/4, g1-y/4, b1-y/4), pygame.Rect(0, mid-y, w, 1))
+                bmp.fill((r1-y//4, g1-y//4, b1-y//4), pygame.Rect(0, mid-y, w, 1))
                 bmp.fill((r2-y, g2-y, b2-y), pygame.Rect(0, mid+y, w, 1))
 
         # 枠の部分。四隅には角丸の画像を描写する
@@ -2325,7 +2325,7 @@ class Resource(object):
         sub = bmp.subsurface(rect)
         buf = pygame.image.tostring(sub, "RGB")
         buf = array.array('B', buf)
-        rgb = sum(buf) / len(buf)
+        rgb = sum(buf) // len(buf)
         return rgb
 
     def calc_wxcardnamecolorhint(self, wxbmp):
@@ -2337,7 +2337,7 @@ class Resource(object):
         sub = wxbmp.GetSubBitmap(rect)
         buf = array.array('B', '\0' * (rect[2] * rect[3] * 3))
         sub.CopyToBuffer(buf, format=wx.BitmapBufferFormat_RGB)
-        rgb = sum(buf) / len(buf)
+        rgb = sum(buf) // len(buf)
         return rgb
 
     def get_actioncards(self):

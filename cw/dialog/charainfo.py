@@ -56,7 +56,7 @@ class CharaInfo(wx.Dialog):
         self.notebook.SetArtProvider(cw.util.CWTabArt())
         self.notebook.SetFont(cw.cwpy.rsrc.get_wxfont("tab", pixelsize=cw.wins(13)))
 
-        cut= self.GetClientSize()[0] / 6 - 1
+        cut= self.GetClientSize()[0] // 6 - 1
         self.notebook.SetMinMaxTabWidth(cut, cut)
 
         self.bottompanel = []
@@ -313,7 +313,7 @@ class CharaInfo(wx.Dialog):
         # ダイアログの上半分でホイールを回した場合は
         # 表示メンバを交代し、下半分の場合は
         # 情報タブの切り替えを行う
-        rect = wx.Rect(rect[0], rect[1], rect[2], rect[3] / 2)
+        rect = wx.Rect(rect[0], rect[1], rect[2], rect[3] // 2)
         if rect.Contains(event.GetPosition()) and self.leftbtn.IsEnabled():
             if cw.util.get_wheelrotation(event) > 0:
                 if self.leftbtn.IsEnabled():
@@ -612,9 +612,9 @@ class TopPanel(wx.Panel):
         backcolor = self.GetBackgroundColour()
 
         # カード画像の後ろにある羽みたいなの
-        cw.util.draw_center(dc, self.wing, (self.Parent.width/2, cw.wins(52)))
+        cw.util.draw_center(dc, self.wing, (self.Parent.width//2, cw.wins(52)))
         # カード画像
-        x = (dc.GetSize()[0] - cw.wins(74)) / 2
+        x = (dc.GetSize()[0] - cw.wins(74)) // 2
 
         infos = cw.image.get_imageinfos(self.ccard.data.find("Property"))
         can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
@@ -673,7 +673,7 @@ class TopPanel(wx.Panel):
             y = cw.wins(23)+1
             w = cw.wins(42)-2
             h = cw.wins(5)-2
-            hr = max(2, h/3)
+            hr = max(2, h//3)
             rad = math.radians(45)
             colour = wx.Colour(216, 216, 216)
             dc.SetPen(wx.Pen(colour))
@@ -820,8 +820,8 @@ class TitlePanel(wx.Panel):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         csize = self.GetClientSize()
         te = dc.GetTextExtent(self.text)
-        x = (csize[0] - te[0]) / 2
-        y = (csize[1] - te[1]) / 2
+        x = (csize[0] - te[0]) // 2
+        y = (csize[1] - te[1]) // 2
         dc.DrawText(self.text, x, y)
 
 class DescPanel(wx.ScrolledWindow):
@@ -899,10 +899,11 @@ class DescPanel(wx.ScrolledWindow):
         dc = wx.PaintDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         maxwidth = dc.GetTextExtent("―"*19)[0]
-        x = (csize[0]-maxwidth) / 2
+        x = (csize[0]-maxwidth) // 2
 
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())//2,
+                                      (self.csize[1]-self.watermark.GetHeight())//2, True)
 
         # 解説文
         dc.SetTextForeground(wx.WHITE)
@@ -1053,7 +1054,8 @@ class HistoryPanel(wx.ScrolledWindow):
         dc = wx.PaintDC(self)
 
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())//2,
+                                      (self.csize[1]-self.watermark.GetHeight())//2, True)
 
         # クーポン
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
@@ -1285,7 +1287,8 @@ class EditPanel(wx.Panel):
             dc = wx.PaintDC(self)
 
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())//2,
+                                      (self.csize[1]-self.watermark.GetHeight())//2, True)
 
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
@@ -1408,7 +1411,8 @@ class StatusPanel(wx.ScrolledWindow):
         dc = wx.PaintDC(self)
 
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())//2,
+                                      (self.csize[1]-self.watermark.GetHeight())//2, True)
 
         # 状態
         dc.SetTextForeground(wx.WHITE)
@@ -1829,7 +1833,7 @@ class CardPanel(wx.Panel):
             if index < 5:
                 pos = cw.wins((30, 30+yp+17*index))
             else:
-                pos = (self.csize[0]/2+cw.wins(30-6), cw.wins(30+yp+17*(index-5)))
+                pos = (self.csize[0]//2+cw.wins(30-6), cw.wins(30+yp+17*(index-5)))
 
             # カード名
             s = header.name
@@ -1850,7 +1854,8 @@ class CardPanel(wx.Panel):
             dc = wx.PaintDC(self)
 
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())//2,
+                                      (self.csize[1]-self.watermark.GetHeight())//2, True)
         # 所持スキル
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))

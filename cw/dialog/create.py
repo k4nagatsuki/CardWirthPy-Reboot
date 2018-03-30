@@ -535,7 +535,7 @@ class AdventurerCreater(wx.Dialog):
             btncount = 4
             space = 40
         w = self.closebtn.GetSize()[0] * btncount
-        margin = (cw.wins(460 - space*2) - w) / 3
+        margin = (cw.wins(460 - space*2) - w) // 3
         sizer_panel.Add(cw.wins((space, 0)), 0, 0, 0)
         sizer_panel.Add(self.prevbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((margin, 0), 0, 0, 0)
@@ -1362,12 +1362,12 @@ class NamePage(AdventurerCreaterPage):
         w1, _h1 = self.textctrl.GetSize()
         w2, _h2 = self.ch_imgdpath.GetSize()
 
-        self.textctrl.SetPosition(((csize[0]-w1)/2, cw.wins(90)))
+        self.textctrl.SetPosition(((csize[0]-w1)//2, cw.wins(90)))
         if self.autoname:
             x, y, w, h = self.textctrl.GetRect()
-            self.autoname.SetPosition((x+w+cw.wins(1), y-(self.autoname.GetSize()[1]-h)/2))
+            self.autoname.SetPosition((x+w+cw.wins(1), y-(self.autoname.GetSize()[1]-h)//2))
 
-        x = cw.wins(275) + cw.wins(cw.SIZE_CARDIMAGE[0])/2 - w2/2
+        x = cw.wins(275) + cw.wins(cw.SIZE_CARDIMAGE[0])//2 - w2//2
         self.ch_imgdpath.SetPosition((x, cw.wins(225)))
 
     def draw2(self, update=False):
@@ -1378,7 +1378,7 @@ class NamePage(AdventurerCreaterPage):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20)))
         s = cw.cwpy.msgs["entry_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(35))
         # Name
         font = cw.cwpy.rsrc.get_wxfont("characre", pixelsize=cw.wins(16))
         font.SetUnderlined(True)
@@ -1636,7 +1636,7 @@ class RacePage(AdventurerCreaterPage):
         csize = self.GetClientSize()
         sizer_1.Add((csize[0], cw.wins(90)), 0, 0, 0)
         w, h = self.choice.GetSize()
-        margin = (csize[0] - w) / 2
+        margin = (csize[0] - w) // 2
         sizer_1.Add(self.choice, 0, wx.RIGHT|wx.LEFT, margin)
         margin = csize[1] - cw.wins(90) - h
         sizer_1.Add((csize[0], margin), 0, 0, 0)
@@ -1653,13 +1653,13 @@ class RacePage(AdventurerCreaterPage):
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_title"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(35))
         # 新規冒険者の種族を決定します。
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(60))
         # 説明
         s = self.get_race().desc
         s = cw.util.txtwrap(s, 1)
@@ -1714,13 +1714,13 @@ class RelationPage(AdventurerCreaterPage):
         dc.SetFont(font)
         s = cw.cwpy.msgs["relation_title"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(35))
         # 親となる条件を満たしている冒険者が宿にいます。
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = cw.cwpy.msgs["relation_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(60))
         # Father
         font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(16))
         font.SetUnderlined(True)
@@ -1961,14 +1961,14 @@ class TalentPage(AdventurerCreaterPage):
         dc.SetFont(font)
         s = cw.cwpy.msgs["nature_title"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(35))
         # 新規冒険者の傾向を選択して下さい。
         font1 = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         font2 = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15))
         dc.SetFont(font1)
         s = cw.cwpy.msgs["nature_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(60))
 
         natures = [n for n in cw.cwpy.setting.natures if not n.special]
         xx = [cw.wins(65), cw.wins(255)]
@@ -2040,13 +2040,13 @@ class AttrPage(AdventurerCreaterPage):
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_title"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(20))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(20))
         # 新規冒険者の生まれや性格などの個性を決定します。
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(43))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(43))
         # 特性
         colour = wx.Colour(128, 128, 128)
         dc.SetTextForeground(colour)
@@ -2361,7 +2361,7 @@ class YadoCreater(wx.Dialog):
             bmp = cw.wins(cw.util.load_wxbmp(imgdata[0], True, can_loaded_scaledimage=True))
             imgdata[1] = bmp
         bmph = bmp.GetHeight()
-        y = (self._inputareaheight-bmph) / 2
+        y = (self._inputareaheight-bmph) // 2
         dc.DrawBitmap(bmp, cw.wins(10), y, True)
         bmpw = bmp.GetWidth()
 
@@ -2389,13 +2389,13 @@ class YadoCreater(wx.Dialog):
         s = cw.cwpy.msgs["input_name"]
         x, y, w, h = self.textctrl.GetRect()
         x -= tw + cw.wins(5)
-        y += (h-th1) / 2
+        y += (h-th1) // 2
         dc.DrawText(s, x, y)
 
         s = cw.cwpy.msgs["select_skin"]
         x, y, w, h = self.skin.GetRect()
         x -= tw + cw.wins(5)
-        y += (h-th2) / 2
+        y += (h-th2) // 2
         dc.DrawText(s, x, y)
 
     def _bind(self):
@@ -2460,7 +2460,7 @@ class YadoCreater(wx.Dialog):
         csize = sizer_1.CalcMin()
         self._inputareaheight = csize[1]
 
-        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
+        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) // 3
         sizer_4.Add(self.okbtn, 0, wx.LEFT, margin)
         sizer_4.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
         sizer_1.Add(sizer_4, 1, wx.EXPAND, 0)
@@ -2513,7 +2513,7 @@ class AdventurerDesignDialog(wx.Dialog):
         # button間のマージン値を求める
         width = cw.wins(400 - 6)
         btnwidth = self.buttonlist[0].GetSize()[0] * len(self.buttonlist)
-        margin = (width - btnwidth) / (len(self.buttonlist)+1)
+        margin = (width - btnwidth) // (len(self.buttonlist)+1)
         margin2 = margin + (width - btnwidth) % (len(self.buttonlist)+1)
 
         # sizer_panelにbuttonを設定
@@ -2824,7 +2824,7 @@ class DesignPanel(AdventurerCreaterPage):
         dc.SetTextForeground(wx.BLACK)
         s = cw.cwpy.msgs["edit_character_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(15))
+        dc.DrawText(s, (cwidth - w) // 2, cw.wins(15))
 
         if self.ch_imgdpath.IsShown():
             y = cw.wins(40)
@@ -2838,12 +2838,12 @@ class DesignPanel(AdventurerCreaterPage):
         dc.SetFont(font)
         s = cw.cwpy.msgs["entry_name"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, y)
+        dc.DrawText(s, (cwidth - w) // 2, y)
         # Image
         y += cw.wins(50)
         s = cw.cwpy.msgs["entry_image"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, y)
+        dc.DrawText(s, (cwidth - w) // 2, y)
         # Comment
         if self.ch_imgdpath.IsShown():
             y += cw.wins(145)
@@ -2851,9 +2851,9 @@ class DesignPanel(AdventurerCreaterPage):
             y += cw.wins(125)
         s = cw.cwpy.msgs["entry_comment"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, y)
+        dc.DrawText(s, (cwidth - w) // 2, y)
 
-        x, y = (cwidth - cw.wins(cw.SIZE_CARDIMAGE[0])) / 2, cw.wins(y2)
+        x, y = (cwidth - cw.wins(cw.SIZE_CARDIMAGE[0])) // 2, cw.wins(y2)
 
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]

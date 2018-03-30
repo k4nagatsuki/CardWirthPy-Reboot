@@ -286,7 +286,7 @@ def init_bass(soundfonts):
         return False
 
     # サウンドフォントのロード
-    _sfonts = ""
+    _sfonts = b""
     encoding = sys.getfilesystemencoding()
     if _bassmidi:
         for soundfont, volume in soundfonts:
@@ -384,7 +384,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
         stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag, 44100)
         if stream:
             if _sfonts:
-                _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) / (4*3))
+                _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) // (4*3))
             else:
                 raise ValueError("sound font not found: %s" % (fpath))
         else:
@@ -514,10 +514,10 @@ def _get_loopinfo(fpath, stream):
                     if sec.startswith("To="):
                         loopstart = int(sec[len("To="):])
                 if 0 <= loopstart:
-                    loopstart = loopstart / sampperbytes
+                    loopstart = loopstart // sampperbytes
                     loopstart *= samptobytes
                     if 0 <= loopend:
-                        loopend = loopend / sampperbytes
+                        loopend = loopend // sampperbytes
                         loopend *= samptobytes
                     return (int(loopstart), int(loopend))
 
@@ -540,11 +540,11 @@ def _get_loopinfo(fpath, stream):
         if 0 <= loopstart:
             if 0 <= looplength:
                 loopend = loopstart + looplength
-                loopend = loopend / sampperbytes
+                loopend = loopend // sampperbytes
                 loopend *= samptobytes
             else:
                 loopend = -1
-            loopstart = loopstart / sampperbytes
+            loopstart = loopstart // sampperbytes
             loopstart *= samptobytes
             return (int(loopstart), int(loopend))
 

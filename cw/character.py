@@ -1384,9 +1384,9 @@ class Character(object):
         最大所持カード枚数を
         (スキルカード, アイテムカード, 召喚獣カード)のタプルで返す
         """
-        maxskillnum = self.level / 2 + self.level % 2 + 2
+        maxskillnum = self.level // 2 + self.level % 2 + 2
         maxskillnum = cw.util.numwrap(maxskillnum, 1, 10)
-        maxbeastnum = (self.level + 2) / 4
+        maxbeastnum = (self.level + 2) // 4
 
         if (self.level + 2) % 4:
             maxbeastnum += 1
@@ -2708,7 +2708,7 @@ class Character(object):
             else:
                 cw.cwpy.play_sound("dump")
                 value = 1 * self.poison
-                n = value / 5
+                n = value // 5
                 n2 = value % 5 * 2
                 value = cw.cwpy.dice.roll(n, 10)
 

@@ -260,14 +260,14 @@ class SelectPartyRecord(select.Select):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
         s = cw.cwpy.msgs["adventurers_team_record"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, cw.wins(25))
+        dc.DrawText(s, (bmpw-w)//2, cw.wins(25))
         # 所持金
         if header:
             s = cw.cwpy.msgs["adventurers_money"] % (header.money)
         else:
             s = cw.cwpy.msgs["adventurers_money"] % ("---")
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, cw.wins(60))
+        dc.DrawText(s, (bmpw-w)//2, cw.wins(60))
 
         # メンバ名
         if update:
@@ -290,9 +290,9 @@ class SelectPartyRecord(select.Select):
 
             s = cw.util.abbr_longstr(dc, s, cw.wins(95))
             if index < 3:
-                dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])/2+w*index, cw.wins(85), w, cw.wins(15)), wx.ALIGN_CENTER)
+                dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])//2+w*index, cw.wins(85), w, cw.wins(15)), wx.ALIGN_CENTER)
             else:
-                dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])/2+w*(index-3), cw.wins(105), w, cw.wins(15)), wx.ALIGN_CENTER)
+                dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])//2+w*(index-3), cw.wins(105), w, cw.wins(15)), wx.ALIGN_CENTER)
 
         # パーティ名
         dc.SetTextForeground((0, 0, 0))
@@ -302,13 +302,13 @@ class SelectPartyRecord(select.Select):
         else:
             s = cw.cwpy.msgs["new_party_record"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
+        dc.DrawText(s, (bmpw-w)//2, cw.wins(40))
 
         # 所持カード
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16)))
         s = cw.cwpy.msgs["backpack_record"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, cw.wins(130))
+        dc.DrawText(s, (bmpw-w)//2, cw.wins(130))
 
         if header:
             llen = min(4, len(header.backpack))
@@ -331,7 +331,7 @@ class SelectPartyRecord(select.Select):
                 s = cw.util.abbr_longstr(dc, s, cw.wins(84))
                 ypos = y + cw.wins(16) * int(index/llen)
                 xpos = index % llen
-                dc.DrawLabel(s, wx.Rect((bmpw-w*llen)/2+w*xpos+cw.wins(10), ypos, w, cw.wins(15)), wx.ALIGN_LEFT)
+                dc.DrawLabel(s, wx.Rect((bmpw-w*llen)//2+w*xpos+cw.wins(10), ypos, w, cw.wins(15)), wx.ALIGN_LEFT)
 
         # ページ番号
         dc.SetTextForeground((0, 0, 0))
@@ -339,7 +339,7 @@ class SelectPartyRecord(select.Select):
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, cw.wins(250))
+        dc.DrawText(s, (bmpw-w)//2, cw.wins(250))
 
         self.draw3(dc, dest, update)
 

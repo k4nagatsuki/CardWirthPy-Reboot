@@ -227,7 +227,7 @@ class CWPyCard(base.SelectableSprite):
 
         n = self._get_dealingscales()[::-1][self.frame]
         rect = self.get_animerect()
-        size = rect.w * n / 100, rect.h
+        size = rect.w * n // 100, rect.h
         self.image = pygame.transform.scale(self.get_animeimage(), size)
 
         # 反転表示中
@@ -265,7 +265,7 @@ class CWPyCard(base.SelectableSprite):
 
         n = self._get_dealingscales()[self.frame]
         rect = self.get_animerect()
-        size = rect.w * n / 100, rect.h
+        size = rect.w * n // 100, rect.h
         self.image = pygame.transform.scale(self.get_animeimage(), size)
 
         # 反転表示中
@@ -346,7 +346,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             count = 4
         nb = n / (count*2.0)
-        mx = self._rect.width / 20 # 最大縮小量
+        mx = self._rect.width // 20 # 最大縮小量
         f = max(0, int(round(self.frame / nb)) - 1)
         nx = (self.frame - nb*f) / nb * mx
         f %= 2

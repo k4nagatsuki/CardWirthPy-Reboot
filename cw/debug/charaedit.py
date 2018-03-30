@@ -763,7 +763,7 @@ class CharaRequirementPanel(wx.Panel):
             if not f.special or self.show_specialtalent:
                 array.append(f.name)
         self.natures = wx.RadioBox(self, -1, "素質", choices=array,
-                                   style=wx.RA_VERTICAL, majorDimension=len(array)/3)
+                                   style=wx.RA_VERTICAL, majorDimension=len(array)//3)
 
         self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), "自動選択")
 
@@ -1176,7 +1176,7 @@ class CharaSelectablePanel(wx.Panel):
         cols = 4
         sizer_checks = wx.GridBagSizer()
         for i, check in enumerate(self.makings):
-            row = i / cols
+            row = i // cols
             col = i % cols
             flag = wx.EXPAND
             if 0 < row:
