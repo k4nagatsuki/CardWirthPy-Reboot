@@ -954,17 +954,8 @@ class HistoryPanel(wx.ScrolledWindow):
         w, h = bmp.GetWidth(), bmp.GetHeight()
 
         img = bmp.ConvertToImage()
-        img.SetAlphaBuffer(b'\u128' * (w*h))
-        bmp = img.ConvertToBitmap()
-        wxbmp = cw.util.empty_bitmap(w, h)
-        dc = wx.MemoryDC()
-        dc.SelectObject(wxbmp)
-        dc.SetBrush(wx.Brush(wx.Colour(0, 0, 255)))
-        dc.SetPen(wx.Pen(wx.Colour(0, 0, 255)))
-        dc.DrawRectangle(-1, -1, w+2, h+2)
-        dc.DrawBitmap(bmp, x, y)
-        dc.SelectObject(wx.NullBitmap)
-        return wxbmp
+        img = cw.imageretouch.mul_wxalpha(img, 128)
+        return img.ConvertToBitmap()
 
     def update_cursor(self):
         if cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.sprite.card.PlayerCard):

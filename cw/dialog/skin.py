@@ -214,7 +214,6 @@ class SkinConversionDialog(wx.Dialog):
                         dpath = cw.util.join_paths(targ, fpath)
                         if not os.path.isdir(dpath):
                             continue
-                        fpath = cw.util.join_paths(dpath, "Environment.wyd")
                         cwyado = cw.binary.cwyado.CWYado(dpath, "Yado")
                         if cwyado.is_convertible() and not os.path.normcase(os.path.abspath(os.path.normpath(dpath))) in exists:
                             link = os.path.basename(dpath)

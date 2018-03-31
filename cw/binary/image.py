@@ -14,10 +14,10 @@ def code_to_data(code):
     """テキスト表現codeをバイナリイメージへ変換する。"""
     if path_is_code(code):
         return base64.b64decode(code[len(BINARY_HEADER):])
-    return ""
+    return b""
 
 def data_to_code(data):
     """バイナリイメージdataをテキスト表現へ変換する。"""
     if len(data):
-        return BINARY_HEADER + base64.b64encode(data)
+        return BINARY_HEADER + str(base64.b64encode(data), "ascii")
     return ""

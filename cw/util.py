@@ -2344,7 +2344,7 @@ def get_elementfromzip(zpath, name, tag=""):
     with zip_file(zpath, "r") as z:
         data = read_zipdata(z, name)
         z.close()
-    f = io.StringIO(data)
+    f = io.BytesIO(data)
     try:
         element = cw.data.xml2element(name, tag, stream=f)
     finally:
@@ -4211,10 +4211,9 @@ def get_linktarget(fpath):
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32shell.IID_IShellLink)
     try:
-        encoding = cw.filesystem_encoding
         STGM_READ = 0x00000000
-        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath.encode(encoding), STGM_READ)
-        fpath = shortcut.GetPath(win32shell.SLGP_UNCPRIORITY)[0].decode(encoding)
+        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath, STGM_READ)
+        fpath = shortcut.GetPath(win32shell.SLGP_UNCPRIORITY)[0]
     except Exception:
         print_ex()
         return fpath
@@ -4233,11 +4232,10 @@ def set_linktarget(fpath, targetpath):
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32shell.IID_IShellLink)
     try:
-        encoding = cw.filesystem_encoding
         STGM_READ = 0x00000000
-        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath.encode(encoding), STGM_READ)
-        shortcut.SetPath(targetpath.encode(encoding))
-        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(fpath.encode(encoding), 0)
+        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath, STGM_READ)
+        shortcut.SetPath(targetpath)
+        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(fpath, 0)
     except Exception:
         print_ex()
 
@@ -4262,8 +4260,8 @@ def create_link(shortcutpath, targetpath):
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32shell.IID_IShellLink)
     encoding = cw.filesystem_encoding
-    shortcut.SetPath(targetpath.encode(encoding))
-    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath.encode(encoding), 0)
+    shortcut.SetPath(targetpath)
+    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath, 0)
 
 
 #-------------------------------------------------------------------------------

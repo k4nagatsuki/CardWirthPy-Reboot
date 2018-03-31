@@ -837,7 +837,7 @@ class Converter(threading.Thread):
         s = str(self.exebinary[index:end], cw.MBCS)
         index = end + 1
         if cutzero:
-            while self.exebinary[index] == '\0':
+            while self.exebinary[index:index+1] == b'\0':
                 index += 1
         return s, index
 
@@ -867,7 +867,6 @@ class Converter(threading.Thread):
             self.message = "リソースを抽出中..."
 
             # SkinBaseから変更の無いメッセージは削除しておく
-<<<<<<< working copy
             basedata = cw.data.xml2etree("Data/SkinBase/Skin.xml")
             base_message = basedata.find("Messages")
             e_message = self.data.find("Messages")
@@ -885,25 +884,7 @@ class Converter(threading.Thread):
                 e_message.remove(e)
 
             self.data.fpath = cw.util.join_paths(dpath, "Skin.xml")
-=======
-            basedata = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
-            base_message = basedata.find("Messages")
-            e_message = self.data.find("Messages")
-            assert len(base_message) == len(e_message)
-            removelist = []
-            msgtable = {}
-            for e in base_message:
-                key = e.get("key")
-                msgtable[key] = e.text
-            for e in e_message:
-                key = e.get("key")
-                if key in msgtable and msgtable[key] == e.text:
-                    removelist.append(e)
-            for e in removelist:
-                e_message.remove(e)
 
-            self.data.fpath = cw.util.join_paths(dpath, u"Skin.xml")
->>>>>>> merge rev
             self.data.write()
 
             self._write_data(dpath, self.actioncard)

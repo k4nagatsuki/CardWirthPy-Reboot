@@ -1484,7 +1484,7 @@ class Resource(object):
         return fpath
 
     def dispose(self):
-        for key in self.fonts.dic.keys():
+        for key in self.fonts.keys():
             if self.fonts.is_loaded(key):
                 font = self.fonts[key]
                 if isinstance(font, cw.imageretouch.Font):
@@ -2789,6 +2789,10 @@ class ResourceTable(object):
     def is_loaded(self, key):
         self._put_nokeyvalue(key)
         return self.dic[key].load
+
+    def keys(self):
+        return self.dic.keys()
+
 
 class RecentHistory(object):
     def __init__(self, tempdir):

@@ -189,7 +189,7 @@ class CWScenario(object):
                 f.read()
 
             f.close()
-            return data, "".join(f.filedata)
+            return data, b"".join(f.filedata)
         except:
             cw.util.print_ex()
             return None, None

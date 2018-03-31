@@ -515,7 +515,7 @@ class CardImage(Image):
                 # FIXME: wxPythonのメモリ上のデータからのwx.Image生成は
                 #        異常に重いのでキャッシングする
                 cachepath = path if not pisc else ""
-                md5 = cw.util.get_md5_from_data(path) if pisc else ""
+                md5 = cw.util.get_md5_from_data(cw.binary.image.code_to_data(path)) if pisc else ""
                 cachekey = (cachepath, md5, cw.UP_WIN, can_loaded_scaledimage)
                 if cachekey in cw.cwpy.sdata.resource_cache:
                     subimg = cw.cwpy.sdata.resource_cache[cachekey]

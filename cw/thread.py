@@ -2072,13 +2072,8 @@ class CWPy(_Singleton, threading.Thread):
             self.change_area(areaid, force_updatebg=True)
             self.is_pcardsselectable = self.ydata and self.ydata.party
 
-<<<<<<< working copy
         if self.ydata.skindirname != cw.cwpy.setting.skindirname:
-            self.update_skin(self.ydata.skindirname, changearea=False, afterfunc=change_area)
-=======
-        if self.ydata.skindirname <> cw.cwpy.setting.skindirname:
             self.update_skin(self.ydata.skindirname, changearea=False, switch_yado=True, afterfunc=change_area)
->>>>>>> merge rev
         else:
             change_area()
 

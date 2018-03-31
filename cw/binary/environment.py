@@ -78,7 +78,7 @@ class Environment(base.CWBinaryBase):
         # スキンタイプ。読み込み後に操作する
         self.skintype = ""
         # スキンディレクトリ。現在の設定を使用
-        self.skinname = cw.cwpy.setting.skindirname
+        self.skinname = cw.cwpy.setting.skindirname if cw.cwpy and cw.cwpy.setting else ""
         # データの取得に失敗したカード。変換時に追加する
         self.errorcards = []
 
