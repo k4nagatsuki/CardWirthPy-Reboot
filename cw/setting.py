@@ -29,7 +29,7 @@ class NoFontError(ValueError):
 if sys.platform != "win32":
     # wx.Appのロード前にフォントをインストールしなければならない
     DATA_PATH = "Data"
-    encoding = sys.getfilesystemencoding()
+    encoding = cw.filesystem_encoding
     if sys.platform == "darwin":
         try:
             fontconfig = ctypes.CDLL("/opt/X11/lib/libfontconfig.dylib")
@@ -1484,7 +1484,7 @@ class Resource(object):
         return fpath
 
     def dispose(self):
-        for key in self.fonts.keys():
+        for key in self.fonts.dic.keys():
             if self.fonts.is_loaded(key):
                 font = self.fonts[key]
                 if isinstance(font, cw.imageretouch.Font):

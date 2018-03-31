@@ -144,7 +144,7 @@ class MusicInterface(object):
                             try:
                                 if cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init():
                                     pygame.mixer.quit()
-                                encoding = sys.getfilesystemencoding()
+                                encoding = cw.filesystem_encoding
                                 self._movie = pygame.movie.Movie(fpath.encode(encoding))
                                 volume = self._get_volumevalue(fpath) * subvolume / 100.0
                                 self._movie.set_volume(volume)
@@ -256,7 +256,7 @@ class MusicInterface(object):
         else:
             volume = cw.cwpy.setting.vol_bgm
 
-        return volume * self.mastervolume // 100
+        return volume * self.mastervolume / 100.0
 
     def set_volume(self, volume=None, fade=0):
         if threading.currentThread() != cw.cwpy:
@@ -835,18 +835,18 @@ def put_number(image, num):
 
 def get_imageext(b):
     """dataが画像であれば対応する拡張子を返す。"""
-    if 22 < len(b) and 'B' == b[0] and 'M' == b[1]:
+    if 22 < len(b) and ord('B') == b[0] and ord('M') == b[1]:
         return ".bmp"
-    if 25 <= len(b) and 0x89 == ord(b[0]) and 'P' == b[1] and 'N' == b[2] and 'G' == b[3]:
+    if 25 <= len(b) and 0x89 == b[0] and ord('P') == b[1] and ord('N') == b[2] and ord('G') == b[3]:
         return ".png"
-    if 10 <= len(b) and 'G' == b[0] and 'I' == b[1] and 'F' == b[2]:
+    if 10 <= len(b) and ord('G') == b[0] and ord('I') == b[1] and ord('F') == b[2]:
         return ".gif"
-    if 6 <= len(b) and 0xFF == ord(b[0]) and 0xD8 == ord(b[1]):
+    if 6 <= len(b) and 0xFF == b[0] and 0xD8 == b[1]:
         return ".jpg"
     if 10 <= len(b):
-        if 'M' == b[0] and 'M' == b[1] and 42 == ord(b[3]):
+        if ord('M') == b[0] and ord('M') == b[1] and 42 == b[3]:
             return ".tiff"
-        elif 'I' == b[0] and 'I' == b[1] and 42 == ord(b[2]):
+        elif ord('I') == b[0] and ord('I') == b[1] and 42 == b[2]:
             return ".tiff"
     return ""
 
@@ -987,7 +987,6 @@ def load_bgm(path):
         try:
             assert threading.currentThread() == cw.cwpy
             # ファイルパスを渡して読込
-            encoding = sys.getfilesystemencoding()
             pygame.mixer.music.load(path.encode("utf-8"))
             return 0
         except Exception:
@@ -1052,7 +1051,7 @@ def is_midi(path):
     try:
         if os.path.isfile(path) and 4 <= os.path.getsize(path):
             with open(path, "rb") as f:
-                return f.read(4) == "MThd"
+                return f.read(4) == b"MThd"
     except:
         pass
     return os.path.splitext(path)[1].lower() in (".mid", ".midi")
@@ -1491,7 +1490,7 @@ def screenshot():
         else:
             os.makedirs(dpath)
         bmp, y = create_screenshot(titledic)
-        encoding = sys.getfilesystemencoding()
+        encoding = cw.filesystem_encoding
         pygame.image.save(bmp, filename.encode(encoding))
     except:
         s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
@@ -1551,7 +1550,7 @@ def card_screenshot():
                 else:
                     os.makedirs(dpath)
                 bmp = create_cardscreenshot(titledic)
-                encoding = sys.getfilesystemencoding()
+                encoding = cw.filesystem_encoding
                 pygame.image.save(bmp, filename.encode(encoding))
             except:
                 s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
@@ -2134,7 +2133,7 @@ def compress_zip(path, zpath, unicodefilename=False):
     path: 圧縮するディレクトリパス
     """
     if not unicodefilename:
-        encoding = sys.getfilesystemencoding()
+        encoding = cw.filesystem_encoding
     dpath = os.path.dirname(zpath)
 
     if dpath and not os.path.isdir(dpath):
@@ -2398,7 +2397,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
             ss.append("expand \"%s\" -f:\"*\" \"%s\"" % (path, dstdir))
         else:
             ss.append("expand \"%s\" -f:* \"%s\"" % (path, dstdir))
-        encoding = sys.getfilesystemencoding()
+        encoding = cw.filesystem_encoding
         if progress:
             class Progress(object):
                 def __init__(self):
@@ -4207,7 +4206,7 @@ def get_linktarget(fpath):
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32shell.IID_IShellLink)
     try:
-        encoding = sys.getfilesystemencoding()
+        encoding = cw.filesystem_encoding
         STGM_READ = 0x00000000
         shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath.encode(encoding), STGM_READ)
         fpath = shortcut.GetPath(win32shell.SLGP_UNCPRIORITY)[0].decode(encoding)
@@ -4229,7 +4228,7 @@ def set_linktarget(fpath, targetpath):
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32shell.IID_IShellLink)
     try:
-        encoding = sys.getfilesystemencoding()
+        encoding = cw.filesystem_encoding
         STGM_READ = 0x00000000
         shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath.encode(encoding), STGM_READ)
         shortcut.SetPath(targetpath.encode(encoding))
@@ -4257,7 +4256,7 @@ def create_link(shortcutpath, targetpath):
     shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32shell.IID_IShellLink)
-    encoding = sys.getfilesystemencoding()
+    encoding = cw.filesystem_encoding
     shortcut.SetPath(targetpath.encode(encoding))
     shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath.encode(encoding), 0)
 

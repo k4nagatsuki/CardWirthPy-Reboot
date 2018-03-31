@@ -47,6 +47,12 @@ from . import argparser
 # 実行ファイルのパス
 exepath = ""
 
+# ファイルパスのエンコーディング
+if sys.platform == "win32":
+    filesystem_encoding = "mbcs"
+else:
+    filesystem_encoding = sys.getfilesystemencoding()
+
 # CWPyThread
 cwpy = None
 

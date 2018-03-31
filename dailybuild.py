@@ -11,8 +11,8 @@ import datetime
 
 import build_exe
 
+
 def compress_all(zpath, targ):
-    encoding = sys.getfilesystemencoding()
     z = zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED)
 
     for dpath, dnames, fnames in os.walk(targ):

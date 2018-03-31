@@ -1712,7 +1712,7 @@ class ScenarioSelect(select.Select):
         def open_file(fpath):
             fpath = os.path.normpath(fpath)
             filer = cw.cwpy.setting.filer_file
-            encoding = sys.getfilesystemencoding()
+            encoding = cw.filesystem_encoding
             if filer:
                 filer = filer.encode(encoding)
                 fpath = fpath.encode(encoding)
@@ -1740,7 +1740,7 @@ class ScenarioSelect(select.Select):
         def open_dir(dpath):
             dpath = os.path.normpath(dpath)
             filer = cw.cwpy.setting.filer_dir
-            encoding = sys.getfilesystemencoding()
+            encoding = cw.filesystem_encoding
             if filer:
                 filer = filer.encode(encoding)
                 dpath = dpath.encode(encoding)
@@ -1806,7 +1806,7 @@ class ScenarioSelect(select.Select):
             if os.path.isfile(wsm):
                 fpath = wsm
         fpath = os.path.normpath(fpath)
-        encoding = sys.getfilesystemencoding()
+        encoding = cw.filesystem_encoding
         editor = editor.encode(encoding)
         fpath = fpath.encode(encoding)
         seq = [editor, fpath]
@@ -3015,7 +3015,7 @@ class ScenarioSelect(select.Select):
                         os.makedirs(dpath)
                     s = "expand \"%s\" -f:%s \"%s\"" % (path, "*.txt", dpath)
                     try:
-                        encoding = sys.getfilesystemencoding()
+                        encoding = cw.filesystem_encoding
                         if subprocess.call(s.encode(encoding), shell=True, close_fds=True) == 0:
                             for dpath2, _dnames, fnames in os.walk(dpath):
                                 for fname in fnames:

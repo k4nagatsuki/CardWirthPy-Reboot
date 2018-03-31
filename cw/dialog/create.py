@@ -1023,10 +1023,10 @@ class AdventurerCreaterPage(wx.Panel):
         self.prev = page
 
     def get_next(self):
-        if self.__next__ and self.next.is_skip():
+        if self.next and self.next.is_skip():
             return self.next.get_next()
         else:
-            return self.__next__
+            return self.next
 
     def get_prev(self):
         if self.prev and self.prev.is_skip():

@@ -954,7 +954,7 @@ class HistoryPanel(wx.ScrolledWindow):
         w, h = bmp.GetWidth(), bmp.GetHeight()
 
         img = bmp.ConvertToImage()
-        img.SetAlphaBuffer(chr(128) * (w*h))
+        img.SetAlphaBuffer(b'\u128' * (w*h))
         bmp = img.ConvertToBitmap()
         wxbmp = cw.util.empty_bitmap(w, h)
         dc = wx.MemoryDC()

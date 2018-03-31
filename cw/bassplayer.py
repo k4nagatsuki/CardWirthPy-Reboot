@@ -287,7 +287,7 @@ def init_bass(soundfonts):
 
     # サウンドフォントのロード
     _sfonts = b""
-    encoding = sys.getfilesystemencoding()
+    encoding = cw.filesystem_encoding
     if _bassmidi:
         for soundfont, volume in soundfonts:
             sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
@@ -314,7 +314,7 @@ def change_soundfonts(soundfonts):
             _bassmidi.BASS_MIDI_FontFree(sfont[0])
 
         _sfonts = ""
-        encoding = sys.getfilesystemencoding()
+        encoding = cw.filesystem_encoding
         for soundfont, volume in soundfonts:
             sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
             if not sfont:
@@ -364,7 +364,8 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     pitch: ピッチを変更する場合は-60～60の値を指定。
     """
     global _bass, _bassmidi, _bassfx, _sfonts, _paused
-    encoding = sys.getfilesystemencoding()
+    encoding = cw.filesystem_encoding
+
     flag = BASS_MUSIC_STOPBACK|BASS_MUSIC_POSRESET|BASS_MUSIC_PRESCAN
     if tempo != 0 or pitch != 0:
         flag |= BASS_STREAM_DECODE
@@ -377,14 +378,15 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
         with open(fpath, "rb") as f:
             head = f.read(4)
             f.close()
-        ismidi = (head == "MThd")
+        ismidi = (head == b"MThd")
     if ismidi:
         if not is_alivablemidi():
             return
         stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag, 44100)
         if stream:
             if _sfonts:
-                _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) // (4*3))
+                if not _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) // (4*3)):
+                    raise ValueError("sound font failure: %s" % (fpath))
             else:
                 raise ValueError("sound font not found: %s" % (fpath))
         else:
@@ -405,7 +407,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
         # 存在する場合はその位置からループ再生を行う
         count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, None)
         if count:
-            events = "\0" * (count*4*5)
+            events = b"\0" * (count*4*5)
             count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
             for i in range(0, count, 4*5):
                 bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])

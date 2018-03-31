@@ -277,7 +277,7 @@ class BuildExe(object):
 def compress_src(zpath):
     fnames = ["cardwirth.py", "build_exe.py", "CardWirthPy.ico",
               "CardWirthPy.manifest"]
-    encoding = sys.getfilesystemencoding()
+    encoding = "mbcs"
     z = zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED)
 
     for fname in fnames:

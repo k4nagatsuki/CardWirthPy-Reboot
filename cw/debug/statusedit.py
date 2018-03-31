@@ -779,7 +779,7 @@ class StatusButton(wx.BitmapButton):
         h = self.image.GetHeight()
         image = cw.util.convert_to_image(self.image)
         if not enable:
-            image.SetAlphaBuffer(chr(128) * (w*h))
+            image.SetAlphaBuffer(b'\u128' * (w*h))
         self.image = image.ConvertToBitmap()
 
         csize = self.GetClientSize()

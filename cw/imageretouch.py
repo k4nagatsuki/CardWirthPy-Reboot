@@ -923,7 +923,7 @@ def mul_wxalpha(wximg, alpha):
         wximg.InitAlpha()
     buf = bytearray(wximg.GetAlphaBuffer())
     assert len(buf) == wximg.GetWidth() * wximg.GetHeight()
-    buf = str(buf)
+    buf = bytes(buf)
     buf = _imageretouch.mul_alphaonly(buf, alpha)
     wximg.SetAlphaBuffer(buf)
     return wximg
@@ -1132,11 +1132,11 @@ class Font(object):
                 self.fontinfo = func(face.encode("utf-8"), pixels, bold, italic)
                 self.fontinfo2x = func(face.encode("utf-8"), pixels*2, bold, italic)
             except:
-                encoding = sys.getfilesystemencoding()
+                encoding = cw.filesystem_encoding
                 face = face.encode(encoding)
                 self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
         else:
-            encoding = sys.getfilesystemencoding()
+            encoding = cw.filesystem_encoding
             face = face.encode(encoding)
             self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
 

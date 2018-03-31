@@ -749,7 +749,7 @@ class Debugger(wx.Frame):
                 return
 
             # エディタ起動
-            encoding = sys.getfilesystemencoding()
+            encoding = cw.filesystem_encoding
             editor = editor.encode(encoding)
             fpath = fpath.encode(encoding)
             seq = [editor, fpath]

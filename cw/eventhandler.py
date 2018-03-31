@@ -481,7 +481,7 @@ class EventHandler(object):
                 if os.path.isfile(chm):
                     try:
                         import win32help
-                        encoding = sys.getfilesystemencoding()
+                        encoding = cw.filesystem_encoding
                         chm = chm.encode(encoding)
                         win32help.HtmlHelp(cw.cwpy.frame.GetHandle(), chm, win32help.HH_DISPLAY_TOC)
                         return

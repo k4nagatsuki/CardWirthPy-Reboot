@@ -1339,14 +1339,14 @@ class ScenarioHeader(object):
                         break
                     scale //= 2
                 if image:
-                    with io.BytesIO(str(imagex1)) as f:
+                    with io.BytesIO(imagex1) as f:
                         bmp_noscale = cw.util.load_wxbmp(f=f, mask=mask)
                         bmp_noscale.scr_scale = 1
                         f.close()
                     if scale == 1:
                         bmp = cw.wins(bmp_noscale)
                     else:
-                        with io.BytesIO(str(image)) as f:
+                        with io.BytesIO(image) as f:
                             bmp = cw.util.load_wxbmp(f=f, mask=mask)
                             bmp.scr_scale = scale
                             f.close()
@@ -1750,7 +1750,7 @@ class GetProperty(object):
         parser.EndElementHandler = self.end_element
         parser.CharacterDataHandler = self.character_data
 
-        with open(fpath, "r") as f:
+        with open(fpath, "rb") as f:
             try:
                 parser.ParseFile(f)
             except Exception:

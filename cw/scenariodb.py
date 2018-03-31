@@ -977,7 +977,7 @@ def read_summary(basepath):
                             with open(imgpath, "rb") as f2:
                                 imgbuf = f2.read()
                                 f2.close()
-                            imgbuf = buffer(imgbuf)
+                            imgbuf = imgbuf
                             imgbufs.append((imgbuf, info, scale))
                         elif scale == 1:
                             imgbufs.append((None, info, scale))
@@ -1000,7 +1000,7 @@ def read_summary(basepath):
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
                 s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, "*.wsm", dpath)
-                encoding = sys.getfilesystemencoding()
+                encoding = cw.filesystem_encoding
                 ret = subprocess.call(s.encode(encoding), shell=True)
                 if ret == 0:
                     spath = cw.util.join_paths(dpath, os.path.basename(summpath))
@@ -1028,7 +1028,7 @@ def read_summary(basepath):
                     if not os.path.isdir(dpath):
                         os.makedirs(dpath)
                     s = "expand \"%s\" -f:%s \"%s\"" % (path, "Summary.xml", dpath)
-                    encoding = sys.getfilesystemencoding()
+                    encoding = cw.filesystem_encoding
                     ret = subprocess.call(s.encode(encoding), shell=True)
                     summpath2 = cw.util.join_paths(dpath, summpath)
                     if ret == 0 and os.path.isfile(summpath2):
@@ -1047,14 +1047,13 @@ def read_summary(basepath):
                                 imgpath = cw.util.join_paths(scedir, info.path)
                                 for imgpath, scale in cw.util.get_scaledimagepaths(imgpath, can_loaded_scaledimage):
                                     s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath), dpath)
-                                    encoding = sys.getfilesystemencoding()
+                                    encoding = cw.filesystem_encoding
                                     ret = subprocess.call(s.encode(encoding), shell=True)
                                     imgpath2 = cw.util.join_paths(dpath, imgpath)
                                     if ret == 0 and os.path.isfile(imgpath2):
                                         with open(imgpath2, "rb") as f:
                                             imgbuf = f.read()
                                             f.close()
-                                        imgbuf = buffer(imgbuf)
                                         imgbufs.append((imgbuf, info, scale))
                                     elif scale == 1:
                                         imgbufs.append((None, info, scale))
@@ -1116,7 +1115,6 @@ def read_summary(basepath):
                 if imgpath:
                     imgbuf = cw.util.read_zipdata(z, imgpath)
                     if imgbuf:
-                        imgbuf = buffer(imgbuf)
                         imgbufs.append((imgbuf, info, scale))
                     else:
                         imgbufs.append((None, info, scale))
@@ -1194,8 +1192,6 @@ def read_summary_classic(basepath, spath, f=None):
             s.description, s.skintype, s.level_min, s.level_max,
             s.required_coupons, s.required_coupons_num,
             s.area_id, s.tags, ctime, mtime, ""]
-    if imgbuf:
-        imgbuf = buffer(imgbuf)
     summaryinfos.append(imgbuf)
     summaryinfos.append(None)
     return tuple(summaryinfos), []
