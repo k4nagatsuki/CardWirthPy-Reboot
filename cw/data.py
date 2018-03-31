@@ -1735,7 +1735,7 @@ class ScenarioData(SystemData):
 
         musicpaths = []
         for music in cw.cwpy.music:
-            musicpaths.append((music.path, music.subvolume, music.loopcount, music.inusecard))
+            musicpaths.append((music.path, music.subvolume, music.loopcount, music.inusecard, music.fpath))
 
         e_mpaths = etree.find("Property/MusicPaths")
         if not e_mpaths is None:
