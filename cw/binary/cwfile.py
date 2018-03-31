@@ -167,7 +167,17 @@ class CWFileWriter(io.BufferedWriter):
 
     def write_rawstring(self, s):
         if s:
-            s = (s + "\x00").encode(cw.MBCS)
+            try:
+                s += "\x00"
+                s = s.encode(cw.MBCS)
+            except UnicodeEncodeError:
+                seq = []
+                for c in s:
+                    try:
+                        seq.append(c.encode(cw.MBCS))
+                    except UnicodeEncodeError:
+                        seq.append(b"?")
+                s = b"".join(seq)
             self.write_dword(len(s))
             self.write(s)
         else:

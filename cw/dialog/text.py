@@ -29,7 +29,7 @@ class Text(wx.Dialog):
         if self.list2:
             value = self.list2[self.index2]
         else:
-            value = ""
+            value = b""
 
         self.richtextctrl = cw.util.CWPyRichTextCtrl(self.toppanel, -1, "", size=cw.wins((550, 220)), style=wx.TE_MULTILINE|wx.NO_BORDER,
                                                      searchmenu=True)
@@ -118,7 +118,7 @@ class Text(wx.Dialog):
         if self.list2:
             value = self.list2[self.index2]
         else:
-            value = ""
+            value = b""
 
         self._set_text(value)
         self.combo.SetItems(self.list)
@@ -146,7 +146,7 @@ class Text(wx.Dialog):
         if self.list2:
             value = self.list2[self.index2]
         else:
-            value = ""
+            value = b""
 
         self._set_text(value)
         self.combo.SetItems(self.list)

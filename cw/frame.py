@@ -127,6 +127,7 @@ class Frame(wx.Frame):
 
         # debbuger
         self.debugger = None
+        self.debugger2 = None
         # アイコン
         self.set_icon(self)
         # bind
@@ -296,7 +297,11 @@ class Frame(wx.Frame):
         """デバッガ開く。"""
         if cw.cwpy.debug and not self.debugger:
             # キー入力初期化
-            dlg = cw.debug.debugger.Debugger(self)
+            if self.debugger2:
+                dlg = self.debugger2
+                self.debugger2 = None
+            else:
+                dlg = cw.debug.debugger.Debugger(self)
             # メインフレームの真横に表示
             w = dlg.GetSize()[0]
             w -= (w - self.GetSize()[0]) // 2
@@ -1399,13 +1404,10 @@ class MyApp(wx.App):
         #      wxPython 3.0.2.0
         try:
             event.GetEventObject()
-        except:
-            cw.util.print_ex()
-            return -1
 
-        if cw.cwpy and not cw.cwpy._running:
-            return -1
-        try:
+            if cw.cwpy and not cw.cwpy._running:
+                return -1
+
             if not (cw.cwpy and cw.cwpy.frame):
                 return -1
         except:

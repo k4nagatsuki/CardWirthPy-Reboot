@@ -9,6 +9,7 @@ import datetime
 import threading
 import shutil
 import subprocess
+import zipfile
 import wx
 
 import cw
@@ -668,7 +669,7 @@ class ScenarioSelect(select.Select):
         self._create_addmenu()
 
         size = self.addmenubtn.GetSize()
-        self.addmenubtn.PopupMenuXY(self.addmenu, size[0] // 2, size[1] // 2)
+        self.addmenubtn.PopupMenu(self.addmenu, size[0] // 2, size[1] // 2)
 
     def _create_addmenu(self):
         if not self.addmenu:
@@ -3015,8 +3016,7 @@ class ScenarioSelect(select.Select):
                         os.makedirs(dpath)
                     s = "expand \"%s\" -f:%s \"%s\"" % (path, "*.txt", dpath)
                     try:
-                        encoding = cw.filesystem_encoding
-                        if subprocess.call(s.encode(encoding), shell=True, close_fds=True) == 0:
+                        if subprocess.call(s, shell=True, close_fds=True) == 0:
                             for dpath2, _dnames, fnames in os.walk(dpath):
                                 for fname in fnames:
                                     fname = cw.util.decode_zipname(fname)
@@ -3041,7 +3041,10 @@ class ScenarioSelect(select.Select):
 
                         for name in names:
                             data = z.read(name)
-                            name = cw.util.decode_zipname(name)
+                            if isinstance(z, zipfile.ZipFile):
+                                name = cw.util.decode_zipname(name.encode("cp437"))
+                            else:
+                                name = cw.util.decode_zipname(name.encode("ISO-8859-1"))
                             name = os.path.basename(name)
                             seq.append(text.ReadmeData(name, data))
                         z.close()

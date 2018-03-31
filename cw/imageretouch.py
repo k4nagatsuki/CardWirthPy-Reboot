@@ -1009,7 +1009,7 @@ def wxblit_2bitbmp_to_card(dc, dest, wxbmp, x, y, useMask, bitsizekey=None):
         dh = dest.GetHeight()
         drect = wx.Rect(0, 0, dw, dh)
         crect = dc.GetClippingRect()
-        if crect:
+        if 0 < crect.Width and 0 < crect.Height:
             drect = drect.Intersect(crect)
 
         w, h = wxbmp.GetWidth(), wxbmp.GetHeight()

@@ -283,8 +283,8 @@ class DebugLogDialog(wx.Dialog):
     def OnClose(self, event):
         if self.writetext.GetValue():
             try:
-                with open("DebugInfo.txt", "w") as f:
-                    f.write(self.plain_text.encode("utf-8"))
+                with open("DebugInfo.txt", "w", encoding="utf-8") as f:
+                    f.write(self.plain_text)
                     f.close()
             except:
                 cw.util.print_ex()

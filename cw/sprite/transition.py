@@ -146,7 +146,7 @@ def get_transition(xxx_todo_changeme):
         if cls:
             image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
             cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, image)
-            for sprite in cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"):
+            for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL):
                 image.blit(sprite.image, sprite.rect.topleft)
             return cls(image, speed)
 

@@ -2128,6 +2128,7 @@ def zip_file(path, mode):
         finally:
             os.sep = sep
 
+
 def compress_zip(path, zpath, unicodefilename=False):
     """pathのデータをzpathで指定したzipファイルに圧縮する。
     path: 圧縮するディレクトリパス
@@ -2165,6 +2166,7 @@ def compress_zip(path, zpath, unicodefilename=False):
     z.close()
     return zpath
 
+
 def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrite=False):
     """zipファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
@@ -2187,7 +2189,6 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
     if startup:
         startup(len(seq))
     for i, (zname, info) in enumerate(zip(z.namelist(), z.infolist())):
-
         if progress and i % 10 == 0:
             if progress(i):
                 if overwrite:
@@ -2196,7 +2197,10 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
                     z.close()
                     remove(dstdir)
                     return
-        name = decode_zipname(zname).replace('\\', '/')
+        if isinstance(z, zipfile.ZipFile):
+            name = decode_zipname(zname.encode("cp437")).replace('\\', '/')
+        else:
+            name = decode_zipname(zname.encode("ISO-8859-1")).replace('\\', '/')
         normpath = os.path.normpath(name)
         if os.path.isabs(normpath):
             continue
@@ -2272,56 +2276,59 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
 
     return dstdir
 
+
 def decode_zipname(name):
     if not isinstance(name, str):
         try:
-            name = name.decode("utf_8_sig")
+            name = str(name, "utf_8_sig")
         except UnicodeDecodeError:
             try:
-                name = name.decode(cw.MBCS)
+                name = str(name, cw.MBCS)
             except UnicodeDecodeError:
                 try:
-                    name = name.decode("euc-jp")
+                    name = str(name, "euc-jp")
                 except UnicodeDecodeError:
                     try:
-                        name = name.decode("utf-8")
+                        name = str(name, "utf-8")
                     except UnicodeDecodeError:
                         try:
-                            name = name.decode("utf-16")
+                            name = str(name, "utf-16")
                         except UnicodeDecodeError:
                             try:
-                                name = name.decode("utf-32")
+                                name = str(name, "utf-32")
                             except UnicodeDecodeError:
                                 name = name
 
     return name
 
+
 def decode_text(name):
     if not isinstance(name, str):
         try:
-            name = name.decode("utf_8_sig")
+            name = str(name, "utf_8_sig")
         except UnicodeDecodeError:
             try:
-                name = name.decode("utf-8")
+                name = str(name, "utf-8")
             except UnicodeDecodeError:
                 try:
-                    name = name.decode("shift_jis")
+                    name = str(name, "shift_jis")
                 except UnicodeDecodeError:
                     try:
-                        name = name.decode("utf-16")
+                        name = str(name, "utf-16")
                     except UnicodeDecodeError:
                         try:
-                            name = name.decode("utf-32")
+                            name = str(name, "utf-32")
                         except UnicodeDecodeError:
                             try:
-                                name = name.decode(cw.MBCS)
+                                name = str(name, cw.MBCS)
                             except UnicodeDecodeError:
                                 try:
-                                    name = name.decode("euc-jp")
+                                    name = str(name, "euc-jp")
                                 except UnicodeDecodeError:
                                     name = name
 
     return name
+
 
 def read_zipdata(zfile, name):
     try:
@@ -2340,6 +2347,7 @@ def read_zipdata(zfile, name):
 
     return data
 
+
 def get_elementfromzip(zpath, name, tag=""):
     with zip_file(zpath, "r") as z:
         data = read_zipdata(z, name)
@@ -2350,6 +2358,7 @@ def get_elementfromzip(zpath, name, tag=""):
     finally:
         f.close()
     return element
+
 
 def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrite=False):
     """cabファイルをdstdirに解凍する。
@@ -2397,7 +2406,6 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
             ss.append("expand \"%s\" -f:\"*\" \"%s\"" % (path, dstdir))
         else:
             ss.append("expand \"%s\" -f:* \"%s\"" % (path, dstdir))
-        encoding = cw.filesystem_encoding
         if progress:
             class Progress(object):
                 def __init__(self):
@@ -2406,7 +2414,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
 
                 def run(self):
                     for s in ss:
-                        p = subprocess.Popen(s.encode(encoding), shell=True, close_fds=True)
+                        p = subprocess.Popen(s, shell=True, close_fds=True)
                         r = p.poll()
                         while r is None:
                             if self.cancel:
@@ -2438,7 +2446,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                 return None
         else:
             for s in ss:
-                if subprocess.call(s.encode(encoding), shell=True, close_fds=True) != 0:
+                if subprocess.call(s, shell=True, close_fds=True) != 0:
                     return None
     except Exception:
         cw.util.print_ex()
@@ -2449,6 +2457,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
 
     return dstdir
 
+
 def cab_filenum(cab):
     """CABアーカイブに含まれるファイル数を返す。"""
     word = struct.Struct("<h")
@@ -2457,7 +2466,7 @@ def cab_filenum(cab):
             # ヘッダ
             buf = f.read(36)
             f.close()
-            if buf[:4] != "MSCF":
+            if buf[:4] != b"MSCF":
                 return 0
 
             cfiles = word.unpack(buf[28:30])[0]
@@ -2465,6 +2474,7 @@ def cab_filenum(cab):
     except Exception:
         cw.util.print_ex()
     return 0
+
 
 def cab_hasfile(cab, fname):
     """CABアーカイブに指定された名前のファイルが含まれているか判定する。"""
@@ -2486,7 +2496,7 @@ def cab_hasfile(cab, fname):
         with io.BufferedReader(io.FileIO(cab, "rb")) as f:
             # ヘッダ
             buf = f.read(36)
-            if buf[:4] != "MSCF":
+            if buf[:4] != b"MSCF":
                 f.close()
                 return ""
 
@@ -2499,11 +2509,11 @@ def cab_hasfile(cab, fname):
                 attribs = word.unpack(buf[14:16])[0]
                 name = []
                 while True:
-                    c = str(f.read(1))
-                    if c == '\0':
+                    c = f.read(1)
+                    if c == b'\0':
                         break
                     name.append(c)
-                name = "".join(name)
+                name = b"".join(name)
                 _A_NAME_IS_UTF = 0x80
                 if not (attribs & _A_NAME_IS_UTF):
                     name = str(name, encoding)
@@ -2520,6 +2530,7 @@ def cab_hasfile(cab, fname):
         cw.util.print_ex()
     return ""
 
+
 def cab_dpaths(cab):
     """CABアーカイブ内のディレクトリのsetを返す。"""
     if not os.path.isfile(cab):
@@ -2535,7 +2546,7 @@ def cab_dpaths(cab):
         with io.BufferedReader(io.FileIO(cab, "rb")) as f:
             # ヘッダ
             buf = f.read(36)
-            if buf[:4] != "MSCF":
+            if buf[:4] != b"MSCF":
                 f.close()
                 return ""
 
@@ -2548,11 +2559,11 @@ def cab_dpaths(cab):
                 attribs = word.unpack(buf[14:16])[0]
                 name = []
                 while True:
-                    c = str(f.read(1))
-                    if c == '\0':
+                    c = f.read(1)
+                    if c == b'\0':
                         break
                     name.append(c)
-                name = "".join(name)
+                name = b"".join(name)
                 _A_NAME_IS_UTF = 0x80
                 if not (attribs & _A_NAME_IS_UTF):
                     name = str(name, encoding)
@@ -2567,12 +2578,14 @@ def cab_dpaths(cab):
         cw.util.print_ex()
     return r
 
+
 def cab_scdir(cab):
     """CABアーカイブ内でSummary.wsmまたは
     Summary.xmlが含まれるフォルダを返す。
     """
     fpath = cab_hasfile(cab, ("Summary.xml", "Summary.wsm"))
     return os.path.dirname(fpath)
+
 
 #-------------------------------------------------------------------------------
 #　テキスト操作関連
@@ -3961,13 +3974,7 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         # ZIPアーカイブのファイルエンコーディングと
         # 読み込むテキストファイルのエンコーディングが異なる場合、
         # エラーが出るので
-        try:
-            # 書き込みテスト FIXME: 書き込みに頼らないスマートな方法
-            self.WriteText(value)
-
-            value2 = value
-        except Exception:
-            value2 = cw.util.decode_text(value)
+        value2 = cw.util.decode_text(value)
 
         # FIXME: URLクリック等でキャレットがURL上にある場合に
         # テキストを削除すると、URLリンク設定が以降追加された

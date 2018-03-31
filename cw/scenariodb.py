@@ -1000,8 +1000,7 @@ def read_summary(basepath):
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
                 s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, "*.wsm", dpath)
-                encoding = cw.filesystem_encoding
-                ret = subprocess.call(s.encode(encoding), shell=True)
+                ret = subprocess.call(s, shell=True)
                 if ret == 0:
                     spath = cw.util.join_paths(dpath, os.path.basename(summpath))
                     if not os.path.isfile(spath):
@@ -1028,8 +1027,7 @@ def read_summary(basepath):
                     if not os.path.isdir(dpath):
                         os.makedirs(dpath)
                     s = "expand \"%s\" -f:%s \"%s\"" % (path, "Summary.xml", dpath)
-                    encoding = cw.filesystem_encoding
-                    ret = subprocess.call(s.encode(encoding), shell=True)
+                    ret = subprocess.call(s, shell=True)
                     summpath2 = cw.util.join_paths(dpath, summpath)
                     if ret == 0 and os.path.isfile(summpath2):
                         try:
@@ -1047,8 +1045,7 @@ def read_summary(basepath):
                                 imgpath = cw.util.join_paths(scedir, info.path)
                                 for imgpath, scale in cw.util.get_scaledimagepaths(imgpath, can_loaded_scaledimage):
                                     s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath), dpath)
-                                    encoding = cw.filesystem_encoding
-                                    ret = subprocess.call(s.encode(encoding), shell=True)
+                                    ret = subprocess.call(s, shell=True)
                                     imgpath2 = cw.util.join_paths(dpath, imgpath)
                                     if ret == 0 and os.path.isfile(imgpath2):
                                         with open(imgpath2, "rb") as f:
@@ -1096,7 +1093,7 @@ def read_summary(basepath):
         scedir = os.path.dirname(name)
         scedir = cw.util.decode_zipname(scedir)
         fdata = z.read(name)
-        f = io.StringIO(fdata)
+        f = io.BytesIO(fdata)
 
         try:
             rootattrs = {}

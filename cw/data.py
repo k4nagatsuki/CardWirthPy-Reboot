@@ -576,7 +576,9 @@ class SystemData(object):
         if path in imgpaths:
             return
 
+        assert (isinstance(data, CWPyElement) or (isinstance(data, CWPyElementTree), isinstance(data.getroot(), CWPyElement))), data
         data = copy.deepcopy(data)
+        assert (isinstance(data, CWPyElement) or (isinstance(data, CWPyElementTree), isinstance(data.getroot(), CWPyElement))), data
 
         dstpath = cw.util.join_paths(dstdir, dstpath)
         imgpaths[path] = dstpath
@@ -1918,8 +1920,9 @@ class YadoDeletedPathSet(set):
         if not os.path.isdir(self.tempdir):
             os.makedirs(self.tempdir)
         fpath = cw.util.join_paths(self.tempdir, "~DeletedPaths.temp")
-        with open(fpath, "w") as f:
-            f.write("\n".join([u.encode("utf-8") for u in self]))
+        with open(fpath, "w", encoding="utf-8") as f:
+            print("\n".join(self))
+            f.write("\n".join(self))
             f.flush()
             f.close()
         dstpath = cw.util.join_paths(self.tempdir, "DeletedPaths.temp")
@@ -1932,7 +1935,7 @@ class YadoDeletedPathSet(set):
                 for s in f:
                     s = s.rstrip('\n')
                     if s:
-                        self.add(s.decode("utf-8"))
+                        self.add(s)
                 f.close()
             return True
         else:

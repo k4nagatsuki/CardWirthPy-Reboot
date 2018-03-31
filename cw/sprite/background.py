@@ -243,7 +243,7 @@ class BackGround(base.CWPySprite):
         except cw.event.EffectBreakError as ex:
             raise ex
         except cw.effectbooster.ScreenRescale as ex:
-            cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
             self._in_playing = True
             raise ex
         except Exception:
@@ -413,7 +413,7 @@ class BackGround(base.CWPySprite):
                     blitlist = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ("None", "None"), oldbgs, False, True)
                 else:
                     # エフェクトブースターの一時描画で使ったスプライトはすべて削除
-                    cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+                    cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
                 animated = False
                 afterseps = True
 
@@ -425,7 +425,7 @@ class BackGround(base.CWPySprite):
             self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, False, False)
         else:
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
-            cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
 
         if cw.cwpy.ydata and (update or forcedraw):
             cw.cwpy.ydata.changed()
@@ -695,7 +695,7 @@ class BackGround(base.CWPySprite):
                     blitlist = self._load_after(True, blitlist, doanime, animated, ("None", "None"), oldbgs, False, True)
                 else:
                     # エフェクトブースターの一時描画で使ったスプライトはすべて削除
-                    cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+                    cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
                 animated = False
 
         update |= self.bgs != bgs
@@ -729,7 +729,7 @@ class BackGround(base.CWPySprite):
         else:
             if not beforeload:
                 # エフェクトブースターの一時描画で使ったスプライトはすべて削除
-                cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+                cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
 
         if beforeload:
             return animated, blitlist, update, forcedraw
@@ -1026,7 +1026,7 @@ class BackGround(base.CWPySprite):
                     cw.cwpy.cardgrp.add(sprite, layer=sprite.layer)
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
-        cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+        cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
 
         # トランジション効果で画面入り
         if redraw:
@@ -1325,7 +1325,7 @@ class Jpy1TemporalSprite(base.CWPySprite):
         self.rect = cw.s(pygame.Rect((0, 0), cw.SIZE_AREA))
 
         # spritegroupに追加
-        cw.cwpy.topgrp.add(self, layer="jpytemporal") # TODO: layer
+        cw.cwpy.topgrp.add(self, layer=cw.LAYER_JPY_TEMPORAL) # TODO: layer
 
 class ClickableSprite(base.SelectableSprite):
     def __init__(self, getimage, getselimage, pos_noscale, spritegrp, lclickevent=None, rclickevent=None):
@@ -1460,7 +1460,7 @@ class NumberOfCards(base.CWPySprite):
         self.cardtype = cardtype
         self.update_scale()
         # spritegroupに追加
-        spritegrp.add(self, layer="numberofcards") # TODO: layer
+        spritegrp.add(self, layer=cw.LAYER_NUMBER_OF_CARDS) # TODO: layer
 
     def update_scale(self):
         num = len(self.pcard.get_pocketcards(self.cardtype))

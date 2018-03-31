@@ -1480,7 +1480,7 @@ def patch_rle4bitmap(data):
         h = -biHeight if biHeight < 0 else biHeight
         bmpdata = cw.imageretouch.decode_rle4data(bmpdata, h, bpl)
 
-        f = io.StringIO()
+        f = io.BytesIO()
         f.write(data[:2])
         f.write(struct.pack("<I", bfOffBits + len(bmpdata)))
         f.write(data[2+4:2+4+8+16])

@@ -628,6 +628,7 @@ class TransferYadoDataDialog(wx.Dialog):
         # 冒険者の転送
         if isinstance(data, cw.header.AdventurerHeader):
             data = cw.data.xml2etree(data.fpath)
+        assert isinstance(data, (cw.data.CWPyElement, cw.data.CWPyElementTree)), data
         cname = data.gettext("Property/Name", "")
         dstdir = cw.util.join_paths(toyado, "Material", "Adventurer", cname if cname else "noname")
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
@@ -639,9 +640,10 @@ class TransferYadoDataDialog(wx.Dialog):
             data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
             data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
 
-        for e in itertools.chain(data.getfind("SkillCards"),
-                                 data.getfind("ItemCards"),
-                                 data.getfind("BeastCards")):
+        for e in itertools.chain(data.find("SkillCards"),
+                                 data.find("ItemCards"),
+                                 data.find("BeastCards")):
+            assert isinstance(e, cw.data.CWPyElement), e
             e.fpath = ""
             self.transfer_card(fromyado, toyado, cw.data.xml2etree(element=e), yadodb=None, counter=counter)
 
@@ -656,6 +658,7 @@ class TransferYadoDataDialog(wx.Dialog):
         # 個別のカードの転送
         if isinstance(data, cw.header.CardHeader):
             data = cw.data.xml2etree(data.fpath)
+        assert isinstance(data, (cw.data.CWPyElement, cw.data.CWPyElementTree)), data
         e = data.find("Property/Materials")
         if e is None:
             cname = data.gettext("Property/Name", "")

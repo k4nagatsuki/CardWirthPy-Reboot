@@ -4827,7 +4827,8 @@ class CWPy(_Singleton, threading.Thread):
             scedir = self.sdata.scedir
 
         for e in data.iter():
-            e.content = None # イベントコンテントのキャッシュは削除しておく
+            if hasattr(e, "content"):
+                e.content = None # イベントコンテントのキャッシュは削除しておく
             if e.tag == "ImagePath" and importimage:
                 # ImagePathはcarddata無しでの表示に必要となるので取り込んでおく
                 etext = cw.util.validate_filepath(e.text)
@@ -4848,7 +4849,7 @@ class CWPy(_Singleton, threading.Thread):
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado,
                                         can_loaded_scaledimage=can_loaded_scaledimage)
             elif e.tag in ("Play", "Talk"):
-                path = cw.util.validate_filepath(e.getattr(".", "path", ""))
+                path = cw.util.validate_filepath(e.get("path"))
                 if path:
                     if yadodir and mdir:
                         path = cw.util.relpath(path, mdir)
@@ -4866,7 +4867,7 @@ class CWPy(_Singleton, threading.Thread):
                                             can_loaded_scaledimage=can_loaded_scaledimage)
 
             elif e.tag == "Effect":
-                path = cw.util.validate_filepath(e.getattr(".", "sound", ""))
+                path = cw.util.validate_filepath(e.get("sound"))
                 if path:
                     if yadodir and mdir:
                         path = cw.util.relpath(path, mdir)

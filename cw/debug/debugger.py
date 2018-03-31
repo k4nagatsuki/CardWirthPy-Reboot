@@ -627,7 +627,8 @@ class Debugger(wx.Frame):
 
     @synclock(mutex)
     def OnClose(self, event):
-        self.Destroy()
+        self.Hide()
+        cw.cwpy.frame.debugger2 = cw.cwpy.frame.debugger
         cw.cwpy.frame.debugger = None
         cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
 
@@ -636,6 +637,7 @@ class Debugger(wx.Frame):
         # デタッチしていたAuiToolBarをメインフレームにドッキングすると
         # Destroyイベントが呼ばれるようなので、それと区別
         if self and self.IsBeingDeleted():
+            cw.cwpy.frame.debugger2 = cw.cwpy.frame.debugger
             cw.cwpy.frame.debugger = None
 
     def OnBreakTool(self, event):
@@ -749,9 +751,6 @@ class Debugger(wx.Frame):
                 return
 
             # エディタ起動
-            encoding = cw.filesystem_encoding
-            editor = editor.encode(encoding)
-            fpath = fpath.encode(encoding)
             seq = [editor, fpath]
             cwxpath = ""
             packid = 0
@@ -773,18 +772,18 @@ class Debugger(wx.Frame):
                     packid = cw.cwpy.event.get_packageid()
 
             if cwxpath:
-                seq.append(cwxpath.encode(encoding))
+                seq.append(cwxpath)
             elif packid:
                 # 古いバージョンのCWXEditorでは
                 # -a -b -pオプションつきの起動で
                 # 同一のシナリオが複数開かれてしまう
-                seq.append(("package:id:%s" % (packid)).encode(encoding))
+                seq.append(("package:id:%s" % (packid)))
             elif cw.cwpy.is_battlestatus():
-                seq.append(("battle:id:%s" % (cw.cwpy.areaid)).encode(encoding))
+                seq.append(("battle:id:%s" % (cw.cwpy.areaid)))
             elif 0 <= cw.cwpy.areaid:
-                seq.append(("area:id:%s" % (cw.cwpy.areaid)).encode(encoding))
+                seq.append(("area:id:%s" % (cw.cwpy.areaid)))
             elif cw.cwpy.pre_areaids:
-                seq.append(("area:id:%s" % (cw.cwpy.pre_areaids[0][0])).encode(encoding))
+                seq.append(("area:id:%s" % (cw.cwpy.pre_areaids[0][0])))
 
             def func(self, seq):
                 if not self:
