@@ -964,29 +964,23 @@ has_alpha(PyObject *self, PyObject *args)
 static PyObject *
 mul_alphaonly(PyObject *self, PyObject *args)
 {
-    PyObject *string = NULL;
-    Py_ssize_t slen, alpha, i;
-    unsigned char *source, *outdata;
+    Py_buffer buf;
+    Py_ssize_t alpha, i;
+    unsigned char *dest;
     double alnum;
 
-    if (!PyArg_ParseTuple(args, "s#i", &source, &slen, &alpha))
+    if (!PyArg_ParseTuple(args, "s*i", &buf, &alpha))
         return NULL;
 
     alnum = alpha / 255.0;
 
-    string = PyBytes_FromStringAndSize(NULL, slen);
-
-    if (!string)
-        return NULL;
-
-    PyBytes_AsStringAndSize(string, (char**)&outdata, &slen);
-
-    for (i = 0; i < slen; i++)
+    dest = buf.buf;
+    for (i = 0; i < buf.len; i++)
     {
-        outdata[i] = (char)(source[i] * alnum);
+        dest[i] = (char)(dest[i] * alnum);
     }
 
-    return string;
+    Py_RETURN_NONE;
 }
 
 #if defined(_WIN32) || defined(_WIN64)

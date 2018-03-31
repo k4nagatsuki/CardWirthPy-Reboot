@@ -920,10 +920,10 @@ def mul_wxalpha(wximg, alpha):
     """alpha/255分まで、wximgのアルファ値を減少させる。"""
     if not wximg.HasAlpha():
         wximg.InitAlpha()
-    buf = bytearray(wximg.GetAlphaBuffer())
+    buf = wximg.GetAlphaBuffer()
     assert len(buf) == wximg.GetWidth() * wximg.GetHeight()
-    buf = bytes(buf)
-    buf = _imageretouch.mul_alphaonly(buf, alpha)
+    buf = bytearray(buf)
+    _imageretouch.mul_alphaonly(buf, alpha)
     wximg.SetAlphaBuffer(buf)
     return wximg
 
