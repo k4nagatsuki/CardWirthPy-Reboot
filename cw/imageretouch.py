@@ -102,8 +102,7 @@ def to_negative_for_wxcard(wxbmp, framewidth=0):
         x, y, w, h = wx.Rect(cw.wins(framewidth), cw.wins(framewidth),
                              w - cw.wins(framewidth*2), h - cw.wins(framewidth*2))
         subbmp = wxbmp.GetSubBitmap(wx.Rect(x, y, w, h))
-        wximg = cw.util.convert_to_image(subbmp)
-        buf = wximg.GetDataBuffer()
+        buf = cw.util.wxbmp_to_buffer(subbmp)
         buf = bytearray(buf)
         try:
             func = _imageretouch.to_negative
@@ -1036,7 +1035,7 @@ def wxblit_2bitbmp_to_card(dc, dest, wxbmp, x, y, useMask, bitsizekey=None):
             wximg.InitAlpha()
         buf = wximg.GetDataBuffer()
         alphabuf = wximg.GetAlphaBuffer()
-        dbuf = sub.ConvertToImage().GetDataBuffer()
+        dbuf = cw.util.wxbmp_to_buffer(sub)
 
         dbuf = bytearray(dbuf)
         buf = bytearray(buf)
