@@ -399,8 +399,9 @@ class CWPy(_Singleton, threading.Thread):
         self.backloggrp.set_clip(clip)
 
     def update_skin(self, skindirname, changearea=True, restartop=True, afterfunc=None,
-                    switch_skin=False):
-        self.is_updating_skin = True
+                    switch_skin=False, switch_yado=False):
+        if not switch_yado:
+            self.is_updating_skin = True
         if self.status == "Yado" and self.pre_areaids:
             oldareaid = self.areaid
             selectedheader = self.selectedheader
@@ -500,14 +501,15 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     self.startup(loadyado=False)
             else:
-                for music in self.music:
-                    if switch_skin:
-                        fpath = music.get_path(music.path, music.inusecard)
-                        fpath = self.rsrc.get_filepath(fpath)
-                        if os.path.isfile(fpath):
+                if not switch_yado:
+                    for music in self.music:
+                        if switch_skin:
+                            fpath = music.get_path(music.path, music.inusecard)
+                            fpath = self.rsrc.get_filepath(fpath)
+                            if os.path.isfile(fpath):
+                                music.play(music.path, updatepredata=False)
+                        else:
                             music.play(music.path, updatepredata=False)
-                    else:
-                        music.play(music.path, updatepredata=False)
 
                 if not oldareaid is None:
                     self.selectedheader = selectedheader
@@ -2072,7 +2074,7 @@ class CWPy(_Singleton, threading.Thread):
             self.is_pcardsselectable = self.ydata and self.ydata.party
 
         if self.ydata.skindirname <> cw.cwpy.setting.skindirname:
-            self.update_skin(self.ydata.skindirname, changearea=False, afterfunc=change_area)
+            self.update_skin(self.ydata.skindirname, changearea=False, switch_yado=True, afterfunc=change_area)
         else:
             change_area()
 
