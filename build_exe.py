@@ -13,25 +13,25 @@
 try:
     from distutils.core import setup
     import py2exe, pygame
-    from modulefinder import Module
+    import py2exe.build_exe
+    import modulefinder
     import glob, fnmatch
     import sys, os, shutil
     import operator
     import time
     import datetime
     import zipfile
-    import py2exe.mf
     import win32com
 except ImportError as message:
     raise SystemExit("Unable to load module. %s" % message)
 
 for p in win32com.__path__[1:]:
-    py2exe.mf.AddPackagePath("win32com", p)
+    modulefinder.AddPackagePath("win32com", p)
 for extra in ["win32com.shell"]:
     __import__(extra)
     m = sys.modules[extra]
     for p in m.__path__[1:]:
-        py2exe.mf.AddPackagePath(extra, p)
+        modulefinder.AddPackagePath(extra, p)
 
 
 class BuildExe(object):
@@ -172,7 +172,7 @@ class BuildExe(object):
         file_list = []
         recursive = kw.get('recursive', True)
         if recursive:
-            os.path.walk(srcdir, walk_helper, (file_list, wildcards))
+            os.walk(srcdir, walk_helper, (file_list, wildcards))
         else:
             walk_helper((file_list, wildcards),
                         srcdir,
@@ -214,15 +214,15 @@ class BuildExe(object):
                 dir = os.path.dirname(data)
                 extra_datas.append((dir, [data]))
 
-        issystemdll = py2exe.build_exe.isSystemDLL
-        def myissystemdll(path):
-            fpath = os.path.basename(path).lower()
-            if fpath in self.dllincludes_ex:
-                return False
-            if fpath in self.dllexcludes_ex:
-                return True
-            return issystemdll(path)
-        py2exe.build_exe.isSystemDLL = myissystemdll
+        #issystemdll = py2exe.build_exe.isSystemDLL
+        #def myissystemdll(path):
+        #    fpath = os.path.basename(path).lower()
+        #    if fpath in self.dllincludes_ex:
+        #        return False
+        #    if fpath in self.dllexcludes_ex:
+        #        return True
+        #    return issystemdll(path)
+        #py2exe.build_exe.isSystemDLL = myissystemdll
 
         setup(
             version = self.project_version,
@@ -256,7 +256,7 @@ class BuildExe(object):
             data_files = extra_datas,
             )
 
-        py2exe.build_exe.isSystemDLL = issystemdll
+        #py2exe.build_exe.isSystemDLL = issystemdll
 
         #Create new directory
         print("\n*** creating new directory ***")
@@ -277,16 +277,15 @@ class BuildExe(object):
 def compress_src(zpath):
     fnames = ["cardwirth.py", "build_exe.py", "CardWirthPy.ico",
               "CardWirthPy.manifest"]
-    encoding = "mbcs"
     z = zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED)
 
     for fname in fnames:
-        fpath = fname.encode(encoding)
+        fpath = fname
         z.write(fpath, fpath)
 
     for dpath, dnames, fnames in os.walk("cw"):
         for dname in dnames:
-            fpath = os.path.join(dpath, dname).encode(encoding)
+            fpath = os.path.join(dpath, dname)
             mtime = time.localtime(os.path.getmtime(fpath))[:6]
             zinfo = zipfile.ZipInfo(fpath + "/", mtime)
             z.writestr(zinfo, "")
@@ -295,7 +294,7 @@ def compress_src(zpath):
             ext = os.path.splitext(fname)[1]
 
             if ext in (".py", ".c", ".pyd"):
-                fpath = os.path.join(dpath, fname).encode(encoding)
+                fpath = os.path.join(dpath, fname)
                 z.write(fpath, fpath)
 
     z.close()
