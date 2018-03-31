@@ -789,8 +789,16 @@ class CardControl(wx.Dialog):
                 lastrepls = bheaders[-1]
 
         for header in self.get_headers():
+            rect, _x, _y = self._get_replsrect(header)
+            if self._can_repls() and rect.Contains(mousepos):
+                lastrepls = header
+            rect, _x, _y = self._get_starrect(header)
+            if not lastrepls and self.editstar.GetToggle() and rect.Contains(mousepos):
+                laststar = header
+
+        for header in self.get_headers():
             draw = False
-            if header.wxrect.collidepoint(mousepos):
+            if not lastrepls and not laststar and header.wxrect.collidepoint(mousepos):
                 if not header.negaflag:
                     header.negaflag = True
                     draw = True
@@ -799,23 +807,19 @@ class CardControl(wx.Dialog):
                 header.negaflag = False
                 draw = True
 
-            rect, _x, _y = self._get_starrect(header)
-            if self.editstar.GetToggle() and rect.Contains(mousepos):
-                laststar = header
-            draw |= laststar != self._laststar
-
             if draw:
-                self.draw_card(header)
-
-            rect, _x, _y = self._get_replsrect(header)
-            if self._can_repls() and rect.Contains(mousepos):
-                lastrepls = header
+                self.draw_card(header, fromkeyevent=True)
 
         if lastrepls != self._lastrepls:
             if lastrepls:
                 self.toppanel.RefreshRect(rect=self._get_replsrect(lastrepls)[0])
             if self._lastrepls:
                 self.toppanel.RefreshRect(rect=self._get_replsrect(self._lastrepls)[0])
+        if laststar != self._laststar:
+            if laststar:
+                self.toppanel.RefreshRect(rect=self._get_starrect(laststar)[0])
+            if self._laststar:
+                self.toppanel.RefreshRect(rect=self._get_starrect(self._laststar)[0])
 
         self._laststar = laststar
         self._lastrepls = lastrepls
@@ -1126,7 +1130,7 @@ class CardControl(wx.Dialog):
             if sendto in self._combo_cast:
                 y -= cw.wins(16)
 
-        return wx.Rect(x-cw.wins(4), y-cw.wins(4), sw+cw.wins(8), sh+cw.wins(8)), x, y
+        return wx.Rect(x-cw.wins(5), y-cw.wins(5), sw+cw.wins(10), sh+cw.wins(10)), x, y
 
     def _can_repls(self):
         if self.callname == "HANDVIEW":

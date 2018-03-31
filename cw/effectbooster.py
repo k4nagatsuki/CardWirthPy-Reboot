@@ -1463,10 +1463,10 @@ class EffectBoosterConfig(object):
         with open(path, "rb") as f:
 
             for line in f:
-                if not in_jptxtxt and line[0] in '#;':
+                if not in_jptxtxt and line[0:1] in b'#;':
                     continue
 
-                line = line.decode(cw.MBCS).replace("\r\n", "\n")
+                line = str(line, cw.MBCS).replace("\r\n", "\n")
 
                 # jptxテキスト
                 if line == "[jptx:end]\n" or line == "[jptx:end]":
