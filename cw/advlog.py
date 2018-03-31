@@ -722,7 +722,7 @@ class Logger(threading.Thread):
     def run(self):
         f = None
         try:
-            ret = '\n'.encode("utf-8")
+            ret = '\n'
             lastwrite = time.time()
             first = True
             while True:
@@ -748,16 +748,15 @@ class Logger(threading.Thread):
                                 dpath = os.path.dirname(self.fpath)
                                 if not os.path.isdir(dpath):
                                     os.makedirs(dpath)
-                                f = open(self.fpath, "a")
+                                f = open(self.fpath, "a", encoding="utf-8")
                                 f.seek(0, os.SEEK_END)
                                 if first and 0 < f.tell():
                                     f.write(ret)
-                                lastwrite = time.time()
                                 first = False
                             except:
                                 cw.util.print_wx(file=sys.stderr)
                                 break
-                        f.write(s.encode("utf-8"))
+                        f.write(s)
                         f.write(ret)
                         f.flush()
                         lastwrite = time.time()

@@ -3618,7 +3618,7 @@ class _CWPyElementInterface(object):
 
         s = 'Invalid XML! (file="%s", tag="%s", attr="%s")'
         s = s % (self.fpath, tag, attr)
-        raise ValueError(s.encode("utf-8"))
+        raise ValueError(s)
 
     def hasfind(self, path, attr=""):
         e = self.find(path)

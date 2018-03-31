@@ -1713,10 +1713,7 @@ class ScenarioSelect(select.Select):
         def open_file(fpath):
             fpath = os.path.normpath(fpath)
             filer = cw.cwpy.setting.filer_file
-            encoding = cw.filesystem_encoding
             if filer:
-                filer = filer.encode(encoding)
-                fpath = fpath.encode(encoding)
                 seq = [filer, fpath]
                 try:
                     subprocess.Popen(seq, close_fds=True)
@@ -1736,15 +1733,13 @@ class ScenarioSelect(select.Select):
                     s = "nautilus \"%s\"" % (os.path.dirname(fpath))
                 else:
                     cw.cwpy.play_sound("error")
-                os.popen(s.encode(encoding))
+                os.popen(s)
 
         def open_dir(dpath):
             dpath = os.path.normpath(dpath)
             filer = cw.cwpy.setting.filer_dir
             encoding = cw.filesystem_encoding
             if filer:
-                filer = filer.encode(encoding)
-                dpath = dpath.encode(encoding)
                 seq = [filer, dpath]
                 try:
                     subprocess.Popen(seq, close_fds=True)
@@ -1764,7 +1759,7 @@ class ScenarioSelect(select.Select):
                     s = "nautilus \"%s\"" % (dpath)
                 else:
                     cw.cwpy.play_sound("error")
-                os.popen(s.encode(encoding))
+                os.popen(s)
 
         if isinstance(header, cw.header.ScenarioHeader):
             s = header.get_fpath()
@@ -1807,9 +1802,6 @@ class ScenarioSelect(select.Select):
             if os.path.isfile(wsm):
                 fpath = wsm
         fpath = os.path.normpath(fpath)
-        encoding = cw.filesystem_encoding
-        editor = editor.encode(encoding)
-        fpath = fpath.encode(encoding)
         seq = [editor, fpath]
 
         try:

@@ -376,7 +376,7 @@ class Win32Res(object):
                 elif valtype == 0x12: # unknown (utf-16 string?)
                     length = uint32.unpack(data[:4])[0]
                     length *= 2
-                    value = data[4:4+length].decode("utf-16")
+                    value = str(data[4:4+length], "utf-16")
                     data = data[4+length:]
                 else:
                     raise Exception("value type: %s (%s, %s)" % (str(name, cw.MBCS), str(key, cw.MBCS), valtype))
