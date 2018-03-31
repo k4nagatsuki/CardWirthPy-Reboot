@@ -3265,9 +3265,8 @@ def convert_to_image(bmp):
     h = bmp.GetHeight()
     if w <= 0 or h <= 0:
         img = wx.Image(w, h)
-    buf = array.array('B', [0] * (w*h * 3))
+    buf = wxbmp_to_buffer(bmp)
     try:
-        bmp.CopyToBuffer(buf)
         img = wx.ImageFromBuffer(w, h, buf)
     except:
         img = bmp.ConvertToImage()
@@ -3278,6 +3277,13 @@ def convert_to_image(bmp):
         img.maskcolour = bmp.maskcolour
         img.SetMaskColour(r, g, b)
     return img
+
+def wxbmp_to_buffer(bmp):
+    """wx.BitmapをRGBのバイト配列へ変換する。"""
+    w, h = bmp.GetSize()
+    buf = array.array('B', [0] * (w*h * 3))
+    bmp.CopyToBuffer(buf)
+    return buf
 
 
 def fill_image(img, surface, csize, ctrlpos=(0, 0), cpos=(0, 0)):
@@ -3433,8 +3439,7 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     dc.DrawText(text, 0, 0)
     dc.SelectObject(wx.NullBitmap)
     dc.Destroy()
-    subimg = convert_to_image(wxbmp)
-    redbuf = bytearray(subimg.GetDataBuffer())[::3]
+    redbuf = bytearray(wxbmp_to_buffer(wxbmp))[::3]
     if white:
         brush = wx.WHITE_BRUSH
         pen = wx.WHITE_PEN
