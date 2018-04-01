@@ -129,11 +129,11 @@ class Blinds(Transition):
                 self.frame = 0
                 self.status = "hidden"
 
-def get_transition(xxx_todo_changeme):
+def get_transition(name_and_speed):
     """現在表示中の背景を元にしたトランジションスプライトを返す。
     transitiontype: トランジション効果の種類名と速度のタプル。
     """
-    (name, speed) = xxx_todo_changeme
+    (name, speed) = name_and_speed
     if name == "Default":
         name = cw.cwpy.setting.transition
 

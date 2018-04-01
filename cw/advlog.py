@@ -174,8 +174,8 @@ class AdventurerLogger(object):
         self._put(SYSTEM, "<<<< 逃走 >>>>")
 
     def runaway(self, success):
-        def runaway(xxx_todo_changeme3):
-            (pname, success) = xxx_todo_changeme3
+        def runaway(params):
+            (pname, success) = params
             if success:
                 return "%sは逃走した。" % (pname)
             else:
@@ -189,8 +189,8 @@ class AdventurerLogger(object):
         return MOTION_IN_BATTLE if cw.cwpy.is_battlestatus() else MOTION
 
     def use_card(self, ccard, header, targets):
-        def use_card(xxx_todo_changeme4):
-            (castname, cardname, isbeast, targetname, targettype, is_battlestatus) = xxx_todo_changeme4
+        def use_card(params):
+            (castname, cardname, isbeast, targetname, targettype, is_battlestatus) = params
             if is_battlestatus:
                 if isbeast:
                     return "%sの< %s >が発動。" % (castname, cardname)
@@ -226,22 +226,22 @@ class AdventurerLogger(object):
         return cw.cwpy.event.in_cardeffectmotion and cw.cwpy.is_battlestatus()
 
     def avoid(self, target):
-        def avoid(xxx_todo_changeme5):
-            (name, in_cardeffectmotion) = xxx_todo_changeme5
+        def avoid(params):
+            (name, in_cardeffectmotion) = params
             s = "%sは回避した。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), avoid)
 
     def noeffect(self, target):
-        def noeffect(xxx_todo_changeme6):
-            (name, in_cardeffectmotion) = xxx_todo_changeme6
+        def noeffect(params):
+            (name, in_cardeffectmotion) = params
             s = "%sは抵抗した。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), noeffect)
 
     def effect_failed(self, target, ismenucard=False):
-        def effect_failed(xxx_todo_changeme7):
-            (name, in_cardeffectmotion) = xxx_todo_changeme7
+        def effect_failed(params):
+            (name, in_cardeffectmotion) = params
             s = "%sには効果がなかった。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         if ismenucard:
@@ -263,8 +263,8 @@ class AdventurerLogger(object):
         if newlife == oldlife:
             return
 
-        def heal_motion(xxx_todo_changeme8):
-            (name, value, newlife, oldlife, maxlife, in_cardeffectmotion) = xxx_todo_changeme8
+        def heal_motion(params):
+            (name, value, newlife, oldlife, maxlife, in_cardeffectmotion) = params
             newstatus = self._get_lifestatus(newlife, maxlife)
             oldstatus = self._get_lifestatus(oldlife, maxlife)
             if value < 20:
@@ -295,8 +295,8 @@ class AdventurerLogger(object):
         if newlife == oldlife:
             return
 
-        def damage_motion(xxx_todo_changeme9):
-            (name, value, newlife, oldlife, maxlife, in_cardeffectmotion) = xxx_todo_changeme9
+        def damage_motion(params):
+            (name, value, newlife, oldlife, maxlife, in_cardeffectmotion) = params
             newstatus = self._get_lifestatus(newlife, maxlife)
             oldstatus = self._get_lifestatus(oldlife, maxlife)
             if value < 20:
@@ -323,8 +323,8 @@ class AdventurerLogger(object):
 
         self._put(self._motion_type(), (target.name, value, newlife, oldlife, target.maxlife, self.in_cardeffectmotion()), damage_motion)
         if dissleep:
-            def dissleep(xxx_todo_changeme):
-                (name, in_cardeffectmotion) = xxx_todo_changeme
+            def dissleep(params):
+                (name, in_cardeffectmotion) = params
                 s = "%sは目を覚ました。" % (name)
                 return self.wrap_effectmotion(s, in_cardeffectmotion)
             self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), dissleep)
@@ -338,8 +338,8 @@ class AdventurerLogger(object):
         if newvalue == oldvalue:
             return
 
-        def paralyze_motion(xxx_todo_changeme10):
-            (name, newvalue, oldvalue, in_cardeffectmotion) = xxx_todo_changeme10
+        def paralyze_motion(params):
+            (name, newvalue, oldvalue, in_cardeffectmotion) = params
             oldp = cw.character.Character.calc_petrified(oldvalue)
             newp = cw.character.Character.calc_petrified(newvalue)
             if oldvalue <= 0 and 0 < newvalue:
@@ -380,8 +380,8 @@ class AdventurerLogger(object):
         if newvalue == oldvalue:
             return
 
-        def poison_motion(xxx_todo_changeme11):
-            (name, newvalue, oldvalue, in_cardeffectmotion) = xxx_todo_changeme11
+        def poison_motion(params):
+            (name, newvalue, oldvalue, in_cardeffectmotion) = params
             if oldvalue <= 0 and 0 < newvalue:
                 s = "%sは中毒した。" % (name)
             elif newvalue <= 0 and 0 < oldvalue:
@@ -402,8 +402,8 @@ class AdventurerLogger(object):
         if value <= 0:
             return
 
-        def getskillpower_motion(xxx_todo_changeme12):
-            (name, value, in_cardeffectmotion) = xxx_todo_changeme12
+        def getskillpower_motion(params):
+            (name, value, in_cardeffectmotion) = params
             if 9 <= value:
                 s = "%sの精神力は完全に回復した。" % (name)
             else:
@@ -416,8 +416,8 @@ class AdventurerLogger(object):
         if value <= 0:
             return
 
-        def loseskillpower_motion(xxx_todo_changeme13):
-            (name, value, in_cardeffectmotion) = xxx_todo_changeme13
+        def loseskillpower_motion(params):
+            (name, value, in_cardeffectmotion) = params
             if 9 <= value:
                 s = "%sは精神力を完全に喪失した。" % (name)
             else:
@@ -438,8 +438,8 @@ class AdventurerLogger(object):
         if oldmentality == mentality and oldmentality == oldduration:
             return
 
-        def mentality_motion(xxx_todo_changeme14):
-            (name, mentality, duration, oldmentality, oldduration, in_cardeffectmotion) = xxx_todo_changeme14
+        def mentality_motion(params):
+            (name, mentality, duration, oldmentality, oldduration, in_cardeffectmotion) = params
             if mentality == "Normal":
                 if oldmentality == "Sleep":
                     s = "%sは目を覚ました。" % (name)
@@ -466,63 +466,63 @@ class AdventurerLogger(object):
         self._put(self._motion_type(), (target.name, mentality, duration, oldmentality, oldduration, self.in_cardeffectmotion()), mentality_motion)
 
     def bind_motion(self, target, newvalue, oldvalue):
-        def bind_motion(xxx_todo_changeme15):
-            (name, in_cardeffectmotion) = xxx_todo_changeme15
+        def bind_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sは呪縛された。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), bind_motion)
 
     def disbind_motion(self, target, newvalue, oldvalue):
-        def disbind_motion(xxx_todo_changeme16):
-            (name, in_cardeffectmotion) = xxx_todo_changeme16
+        def disbind_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sの呪縛は解けた。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), disbind_motion)
 
     def silence_motion(self, target, newvalue, oldvalue):
-        def silence_motion(xxx_todo_changeme17):
-            (name, in_cardeffectmotion) = xxx_todo_changeme17
+        def silence_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sは沈黙した。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), silence_motion)
 
     def dissilence_motion(self, target, newvalue, oldvalue):
-        def dissilence_motion(xxx_todo_changeme18):
-            (name, in_cardeffectmotion) = xxx_todo_changeme18
+        def dissilence_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sの沈黙は解けた。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), dissilence_motion)
 
     def faceup_motion(self, target, newvalue, oldvalue):
-        def faceup_motion(xxx_todo_changeme19):
-            (name, in_cardeffectmotion) = xxx_todo_changeme19
+        def faceup_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sは暴露された。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), faceup_motion)
 
     def facedown_motion(self, target, newvalue, oldvalue):
-        def facedown_motion(xxx_todo_changeme20):
-            (name, in_cardeffectmotion) = xxx_todo_changeme20
+        def facedown_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sの暴露は解けた。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), facedown_motion)
 
     def antimagic_motion(self, target, newvalue, oldvalue):
-        def antimagic_motion(xxx_todo_changeme21):
-            (name, in_cardeffectmotion) = xxx_todo_changeme21
+        def antimagic_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sは魔法無効化状態になった。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), antimagic_motion)
 
     def disantimagic_motion(self, target, newvalue, oldvalue):
-        def disantimagic_motion(xxx_todo_changeme22):
-            (name, in_cardeffectmotion) = xxx_todo_changeme22
+        def disantimagic_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sの魔法無効化状態は解けた。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), disantimagic_motion)
 
-    def _enhanceaction_motion(self, xxx_todo_changeme29):
-        (enhname, name, newvalue, in_cardeffectmotion) = xxx_todo_changeme29
+    def _enhanceaction_motion(self, params):
+        (enhname, name, newvalue, in_cardeffectmotion) = params
         if 10 <= newvalue:
             s = "%sの%sは最大まで強化された。" % (name, enhname)
         elif 7 <= newvalue:
@@ -564,8 +564,8 @@ class AdventurerLogger(object):
         self._put(self._motion_type(), ("防御力", target.name, newvalue, self.in_cardeffectmotion()), self._enhanceaction_motion)
 
     def vanishtarget_motion(self, target, runaway):
-        def vanishtarget_motion(xxx_todo_changeme23):
-            (name, runaway, in_cardeffectmotion) = xxx_todo_changeme23
+        def vanishtarget_motion(params):
+            (name, runaway, in_cardeffectmotion) = params
             if runaway:
                 s = "%sは姿を消した。" % (name)
             else:
@@ -575,23 +575,23 @@ class AdventurerLogger(object):
 
     def vanishcard_motion(self, target, is_inactive, is_battlestatus):
         if not is_inactive and is_battlestatus:
-            def vanishcard_motion(xxx_todo_changeme1):
-                (name, in_cardeffectmotion) = xxx_todo_changeme1
+            def vanishcard_motion(params):
+                (name, in_cardeffectmotion) = params
                 s = "%sの手札は破棄された。" % (name)
                 return self.wrap_effectmotion(s, in_cardeffectmotion)
             self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), vanishcard_motion)
 
     def vanishbeast_motion(self, target):
-        def vanishbeast_motion(xxx_todo_changeme24):
-            (name, in_cardeffectmotion) = xxx_todo_changeme24
+        def vanishbeast_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sの召喚獣は消滅した。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), vanishbeast_motion)
 
     def _deal_motion(self, target, is_inactive, is_battlestatus, resid):
         if not is_inactive and is_battlestatus and resid in cw.cwpy.rsrc.actioncards:
-            def deal_motion(xxx_todo_changeme2):
-                (name, cardname, in_cardeffectmotion) = xxx_todo_changeme2
+            def deal_motion(params):
+                (name, cardname, in_cardeffectmotion) = params
                 s = "%sに< %s >が配付された。" % (name, cardname)
                 return self.wrap_effectmotion(s, in_cardeffectmotion)
             header = cw.cwpy.rsrc.actioncards[resid]
@@ -619,23 +619,23 @@ class AdventurerLogger(object):
         self._deal_motion(target, is_inactive, is_battlestatus, -1)
 
     def dealskillcard_motion(self, target, is_inactive, is_battlestatus):
-        def dealskillcard_motion(xxx_todo_changeme25):
-            (name, is_inactive, is_battlestatus, in_cardeffectmotion) = xxx_todo_changeme25
+        def dealskillcard_motion(params):
+            (name, is_inactive, is_battlestatus, in_cardeffectmotion) = params
             if not is_inactive and is_battlestatus:
                 s = "%sに特殊技能カードが配付された。" % (name)
                 return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, is_inactive, is_battlestatus, self.in_cardeffectmotion()), dealskillcard_motion)
 
     def cancelaction_motion(self, target, is_battlestatus):
-        def cancelaction_motion(xxx_todo_changeme26):
-            (name, in_cardeffectmotion) = xxx_todo_changeme26
+        def cancelaction_motion(params):
+            (name, in_cardeffectmotion) = params
             s = "%sの行動は止まった。" % (name)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
         self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), cancelaction_motion)
 
     def summonbeast_motion(self, target, beastdata):
-        def summonbeast_motion(xxx_todo_changeme27):
-            (name, beastdata, in_cardeffectmotion) = xxx_todo_changeme27
+        def summonbeast_motion(params):
+            (name, beastdata, in_cardeffectmotion) = params
             cardname = beastdata.gettext("Property/Name")
             s = "%sに召喚獣< %s >が付与された。" % (name, cardname)
             return self.wrap_effectmotion(s, in_cardeffectmotion)
@@ -645,8 +645,8 @@ class AdventurerLogger(object):
         if newlife == oldlife:
             return
 
-        def poison_damage(xxx_todo_changeme28):
-            (name, value, newlife, oldlife, maxlife) = xxx_todo_changeme28
+        def poison_damage(params):
+            (name, value, newlife, oldlife, maxlife) = params
             newstatus = self._get_lifestatus(newlife, maxlife)
             oldstatus = self._get_lifestatus(oldlife, maxlife)
             if newstatus == oldstatus:

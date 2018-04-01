@@ -3055,8 +3055,8 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 assert False
 
-        def set_mcardpos_noscale(mcards, xxx_todo_changeme, y):
-            (maxw, maxh) = xxx_todo_changeme
+        def set_mcardpos_noscale(mcards, maxsize, y):
+            (maxw, maxh) = maxsize
             n = maxw + 5
             x = (632 - n * len(mcards) + 5) // 2
 
@@ -3108,14 +3108,14 @@ class CWPy(_Singleton, threading.Thread):
         if self.battle:
             self.battle.numenemy = len(cw.cwpy.get_mcards("flagtrue"))
 
-    def set_mcards(self, xxx_todo_changeme1, dealanime=True, addgroup=True, setautospread=True):
+    def set_mcards(self, stype_and_elements, dealanime=True, addgroup=True, setautospread=True):
         """メニューカードスプライトを構成する。
         生成されたカードのlistを返す。
         (stype, elements): (spreadtype, MenuCardElementのリスト)のタプル
         dealanime: True時はカードを最初から表示している。
         addgroup: True時は現在の画面に即時反映する。
         """
-        (stype, elements) = xxx_todo_changeme1
+        (stype, elements) = stype_and_elements
         if stype == "Auto":
             autospread = True
         else:

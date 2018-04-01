@@ -35,11 +35,11 @@ class ImageInfo(object):
         if not self.postype in ("Default", None):
             e.set("positiontype", self.postype)
 
-    def calc_basecardposition(self, xxx_todo_changeme, noscale=False, basecardtype=None, cardpostype=None):
+    def calc_basecardposition(self, params, noscale=False, basecardtype=None, cardpostype=None):
         """カードに配置した時の描画位置を返す。
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
-        (imgwidth, imgheight) = xxx_todo_changeme
+        (imgwidth, imgheight) = params
         def getsize(resname):
             if resname.endswith("_noscale"):
                 resname = resname[0:-len("_noscale")]
@@ -48,11 +48,11 @@ class ImageInfo(object):
                 return cw.s(cw.setting.SIZE_RESOURCES["CardBg/" + resname])
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
 
-    def calc_basecardposition_wx(self, xxx_todo_changeme1, noscale=False, basecardtype=None, cardpostype=None):
+    def calc_basecardposition_wx(self, imgsize, noscale=False, basecardtype=None, cardpostype=None):
         """カードに配置した時の描画位置を返す。
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
-        (imgwidth, imgheight) = xxx_todo_changeme1
+        (imgwidth, imgheight) = imgsize
         def getsize(resname):
             if resname.endswith("_noscale"):
                 resname = resname[0:-len("_noscale")]

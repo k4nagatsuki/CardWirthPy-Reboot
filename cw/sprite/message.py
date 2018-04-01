@@ -345,8 +345,8 @@ class MessageWindow(base.CWPySprite):
                     self.text = cw.util.txtwrap(self.text, 2, encodedtext=False, spcharinfo=self.spcharinfo)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if cw.cwpy.sct.lessthan("1.28", self.versionhint):
-                def calc_w(xxx_todo_changeme):
-                    (bmp, info) = xxx_todo_changeme
+                def calc_w(bmp_and_info):
+                    (bmp, info) = bmp_and_info
                     return bmp.get_width()
                 w = max(list(map(calc_w, self.talker_image)))
             else:

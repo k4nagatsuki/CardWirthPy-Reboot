@@ -873,8 +873,8 @@ def add_lightness_for_wxbmp(wxbmp, lightness, maskpos=(0, 0)):
     wxbmp.SetMaskColour((wximg.GetRed(x, y), wximg.GetGreen(x, y), wximg.GetBlue(x, y)))
     return wxbmp
 
-def _add_lightness(buf, xxx_todo_changeme, lightness):
-    (w, h) = xxx_todo_changeme
+def _add_lightness(buf, size, lightness):
+    (w, h) = size
     for i, v in enumerate(buf):
         buf[i] = cw.util.numwrap(v + lightness, 0, 255)
 
