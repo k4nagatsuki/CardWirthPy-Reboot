@@ -2056,7 +2056,7 @@ class YadoData(object):
 
             self.set_skinname(self.skindirname, skintype)
 
-        dataversion = self.environment.getattr(".", "dataVersion", 0)
+        dataversion = self.environment.getint(".", "dataVersion", 0)
         if dataversion < 1:
             self.update_version()
             self.environment.edit(".", "1", "dataVersion")

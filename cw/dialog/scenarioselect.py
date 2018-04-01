@@ -668,7 +668,7 @@ class ScenarioSelect(select.Select):
         self._create_addmenu()
 
         size = self.addmenubtn.GetSize()
-        self.addmenubtn.PopupMenuXY(self.addmenu, size[0] / 2, size[1] / 2)
+        self.addmenubtn.PopupMenu(self.addmenu, size[0] / 2, size[1] / 2)
 
     def _create_addmenu(self):
         if not self.addmenu:
@@ -776,7 +776,7 @@ class ScenarioSelect(select.Select):
         size = self.bookmark.GetSize()
         self._add_bookmark.Enable(not self._is_specialselected())
         self._arrange_bookmark.Enable(bool(cw.cwpy.ydata.bookmarks))
-        self.bookmark.PopupMenuXY(self.bookmarkmenu, size[0] / 2, size[1] / 2)
+        self.bookmark.PopupMenu(self.bookmarkmenu, size[0] / 2, size[1] / 2)
 
     def _is_specialselected(self):
         return not self.list or isinstance(self.list[self.index], FindResult)
