@@ -1093,10 +1093,10 @@ def _sorted_by_attr_impl(d, seq, *attr):
     class LogicalStr(object):
         def __init__(self, s):
             self.seq = []
+            self.s = s
             if not s:
                 return
             pos = 0
-            self.s = s
             while s != "":
                 m = re_num.search(s, pos=pos)
                 if m is None:
