@@ -6,17 +6,8 @@ import io
 import sys
 
 from . import base
-from . import adventurer
-from . import util
 
 import cw
-import cw.binary.cwfile
-import cw.binary.summary
-import cw.binary.album
-import cw.binary.skill
-import cw.binary.item
-import cw.binary.beast
-from . import bgimage
 
 
 class Party(base.CWBinaryBase):
@@ -27,6 +18,8 @@ class Party(base.CWBinaryBase):
     (その2つはF9で戻らない)。
     """
     def __init__(self, parent, f, yadodata=False, dataversion=10):
+        from . import util
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 2
         self.fname = self.get_fname()
@@ -149,6 +142,13 @@ class PartyMembers(base.CWBinaryBase):
     荷物袋に入っているカードリストを格納している。
     """
     def __init__(self, parent, f, yadodata=False, dataversion=10):
+        from . import adventurer
+        from . import summary
+        from . import skill
+        from . import item
+        from . import beast
+        from . import bgimage
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 3
         self.fname = self.get_fname()
@@ -197,11 +197,11 @@ class PartyMembers(base.CWBinaryBase):
             for _cnt in range(cards_num):
                 type = f.byte()
                 if type == 2:
-                    carddata = cw.binary.item.ItemCard(None, f, True)
+                    carddata = item.ItemCard(None, f, True)
                 elif type == 1:
-                    carddata = cw.binary.skill.SkillCard(None, f, True)
+                    carddata = skill.SkillCard(None, f, True)
                 elif type == 3:
-                    carddata = cw.binary.beast.BeastCard(None, f, True)
+                    carddata = beast.BeastCard(None, f, True)
                 else:
                     raise ValueError(self.fname)
                 card = BackpackCard(self, None)
@@ -247,7 +247,7 @@ class PartyMembers(base.CWBinaryBase):
             self.nowadventuring = f.bool()
             if self.nowadventuring: #冒険中か
                 self.scenariopath = ""
-                summary = cw.binary.summary.Summary(None, f, True, wpt120=True)
+                summary = summary.Summary(None, f, True, wpt120=True)
                 self.steps = {}.copy()
                 for step in summary.steps:
                     self.steps[step.name] = step.default
@@ -333,6 +333,10 @@ class PartyMembers(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, party, table, logdir):
+        from . import cwfile
+        from . import adventurer
+        from . import bgimage
+
         adventurers = []
         vanisheds = []
         cards = []
@@ -394,7 +398,7 @@ class PartyMembers(base.CWBinaryBase):
                 if i + 1 < len(adventurers):
                     f.write_byte(0) # 不明
                 advnum += 1
-            except cw.binary.cwfile.UnsupportedError as ex:
+            except cwfile.UnsupportedError as ex:
                 f.seek(pos)
                 if f.write_errorlog:
                     cardname = member.gettext("Property/Name", "")
@@ -410,7 +414,7 @@ class PartyMembers(base.CWBinaryBase):
 
         if advnum == 0:
             s = "%s は全メンバが変換に失敗したため、変換しません。\n" % (name)
-            raise cw.binary.cwfile.UnsupportedError(s)
+            raise cwfile.UnsupportedError(s)
 
         if f.write_errorlog:
             for s in errorlog:
@@ -438,7 +442,7 @@ class PartyMembers(base.CWBinaryBase):
                     if i + 1 < len(vanisheds):
                         f.write_byte(0) # 不明
                     vannum += 1
-                except cw.binary.cwfile.UnsupportedError as ex:
+                except cwfile.UnsupportedError as ex:
                     f.seek(pos)
                     if f.write_errorlog:
                         cardname = member.gettext("Property/Name", "")
@@ -540,16 +544,19 @@ class BackpackCard(base.CWBinaryBase):
         f.write_bool(mine)
 
 def load_album120(parent, f):
+    from . import adventurer
+    from . import album
+
     _dw = f.dword() # 不明
     cardnum = f.dword() # アルバム人数
     cards = []
     albums = []
     for _i in range(cardnum):
-        card = cw.binary.adventurer.AdventurerCard(parent, None, True)
+        card = adventurer.AdventurerCard(parent, None, True)
         card.fname = f.name
-        card.adventurer = cw.binary.adventurer.Adventurer(card, f, True, album120=True)
+        card.adventurer = adventurer.Adventurer(card, f, True, album120=True)
         if card.adventurer.is_dead:
-            albumdata = cw.binary.album.Album(parent, None, True)
+            albumdata = album.Album(parent, None, True)
             albumdata.name = card.adventurer.name
             albumdata.image = card.adventurer.image
             albumdata.level = card.adventurer.level

@@ -6,18 +6,6 @@ import shutil
 
 import cw
 
-from . import util
-from . import cwfile
-from . import summary
-from . import area
-from . import battle
-from . import cast
-from . import item
-from . import info
-from . import package
-from . import skill
-from . import beast
-
 
 class CWScenario(object):
     def __init__(self, path, dstdir, skintype, materialdir="Material", image_export=True):
@@ -26,6 +14,8 @@ class CWScenario(object):
         dstdir: 変換先ディレクトリ。
         skintype: スキンタイプ。
         """
+        from . import util
+
         self.name = os.path.basename(path)
         self.path = path
         self.dir = util.join_paths(dstdir, os.path.basename(self.path))
@@ -131,6 +121,17 @@ class CWScenario(object):
 
     def load_file(self, path, nameonly=False, decodewrap=False):
         """引数のファイル(wid, wsmファイル)を読み込む。"""
+        from . import cwfile
+        from . import summary
+        from . import area
+        from . import battle
+        from . import cast
+        from . import item
+        from . import info
+        from . import package
+        from . import skill
+        from . import beast
+
         try:
             f = cwfile.CWFile(path, "rb", decodewrap=decodewrap)
 
@@ -195,6 +196,8 @@ class CWScenario(object):
             return None, None
 
     def convert(self):
+        from . import util
+
         if not self.datalist:
             self.load()
 

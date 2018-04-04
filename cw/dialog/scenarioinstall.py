@@ -11,7 +11,6 @@ import wx
 
 import cw
 
-from . import message
 from functools import reduce
 
 #-------------------------------------------------------------------------------
@@ -289,6 +288,8 @@ class ScenarioInstall(SelectScenarioDirectory):
         self.nobtn.Bind(wx.EVT_BUTTON, self.OnCancel)
 
     def OnInstallBtn(self, event):
+        from . import message
+
         selitem = self.tree.GetSelection()
         if not selitem.IsOk():
             return
@@ -528,6 +529,8 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                         cw.util.remove_emptydir(parent)
 
         def _confirm_overwrite(self, dlg, s, allret):
+            from . import message
+
             def func():
                 choices = (
                     ("置換", wx.ID_YES, cw.wins(80)),

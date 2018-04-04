@@ -5,13 +5,14 @@ import os
 import io
 import weakref
 
-from . import util
 import wx
 
 import cw
 
 
 class CWBinaryBase(object):
+    from . import util
+
     def __init__(self, parent, f, yadodata=False, materialdir="Material", image_export=True):
         self.set_root(parent)
         self.xmltype = self.__class__.__name__

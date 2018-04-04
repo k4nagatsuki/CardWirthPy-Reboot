@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from . import base
-from . import coupon
 
 import cw
 
 
 class Album(base.CWBinaryBase):
+    from . import coupon
+
     """wrmファイル(type=4)。鬼籍に入った冒険者のデータ。"""
     def __init__(self, parent, f, yadodata=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)

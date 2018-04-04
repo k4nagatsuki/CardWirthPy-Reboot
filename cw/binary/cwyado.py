@@ -8,16 +8,7 @@ import shutil
 import copy
 import itertools
 
-from . import util
 import cw
-from . import cwfile
-from . import environment
-from . import adventurer
-from . import party
-from . import album
-from . import skill
-from . import item
-from . import beast
 
 
 class CWYado(object):
@@ -25,6 +16,8 @@ class CWYado(object):
     その他ファイルもコピー。
     """
     def __init__(self, path, dstpath, skintype=""):
+        from . import util
+
         self.name = os.path.basename(path)
         self.path = path
         self.dir = util.join_paths(dstpath, os.path.basename(path))
@@ -97,6 +90,15 @@ class CWYado(object):
             return False
 
     def convert(self):
+        from . import util
+        from . import cwfile
+        from . import environment
+        from . import adventurer
+        from . import party
+        from . import album
+        from . import skill
+        from . import item
+        from . import beast
 
         if not self.datalist:
             self.load()
@@ -341,6 +343,12 @@ class CWYado(object):
 
     def load_yadofile(self, path):
         """ファイル("wch", "wcp", "wpl", "wpt", "wyd", "wrm")を読み込む。"""
+        from . import cwfile
+        from . import environment
+        from . import adventurer
+        from . import party
+        from . import album
+
         with cwfile.CWFile(path, "rb") as f:
 
             if path.endswith(".wyd"):
@@ -381,6 +389,11 @@ class CWYado(object):
         読み込みに際し、wydファイルから作成できる
         ファイルネームでカードの種類を判別する辞書が必要。
         """
+        from . import cwfile
+        from . import skill
+        from . import item
+        from . import beast
+
         with cwfile.CWFile(path, "rb") as f:
             # 1:スキル, 2:アイテム, 3:召喚獣
             fname = os.path.basename(path)
@@ -568,6 +581,8 @@ class UnconvCWYado(object):
     """宿データを逆変換してdstpathへ保存する。
     """
     def __init__(self, ydata, dstpath, targetengine):
+        from . import util
+
         self.ydata = ydata
         self.targetengine = targetengine
         self.name = self.ydata.name
@@ -588,6 +603,16 @@ class UnconvCWYado(object):
         self.errorlog += s + "\n"
 
     def convert(self):
+        from . import util
+        from . import cwfile
+        from . import environment
+        from . import adventurer
+        from . import party
+        from . import album
+        from . import skill
+        from . import item
+        from . import beast
+
         # 変換中情報
         table = { "yadoname":self.name }
 

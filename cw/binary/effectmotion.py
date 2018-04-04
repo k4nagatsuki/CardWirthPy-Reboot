@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from . import base
-from . import beast
 
 import cw
 
@@ -12,6 +11,8 @@ class EffectMotion(base.CWBinaryBase):
     効果コンテントやスキル・アイテム・召喚獣カード等で使う。
     """
     def __init__(self, parent, f, yadodata=False, dataversion=4):
+        from . import beast
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.tabtype = f.byte()
 
@@ -82,6 +83,8 @@ class EffectMotion(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
+        from . import beast
+
         tabtype, mtype = base.CWBinaryBase.unconv_effectmotion_type(data.get("type"), f)
         element = base.CWBinaryBase.unconv_effectmotion_element(data.get("element"))
 

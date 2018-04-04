@@ -7,7 +7,6 @@ import wx
 import pygame
 
 import cw
-from . import cardinfo
 
 import wx.lib.agw.aui as aui
 
@@ -1699,6 +1698,8 @@ class CardPanel(wx.Panel):
                 return
 
     def _open_cardinfo(self):
+        from . import cardinfo
+
         for header in self.headers:
             if header.negaflag:
                 cw.cwpy.play_sound("click")

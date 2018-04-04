@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import struct
-
 import io
-from email import message
+import struct
 
 import cw.util
 

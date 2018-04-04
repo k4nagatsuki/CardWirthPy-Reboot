@@ -13,8 +13,6 @@ import cw.binary.cwfile
 import cw.binary.environment
 import cw.binary.party
 import cw.binary.adventurer
-from . import message
-from . import charainfo
 
 #-------------------------------------------------------------------------------
 #　選択ダイアログ スーパークラス
@@ -1022,6 +1020,8 @@ class YadoSelect(MultiViewSelect):
         """
         宿複製。
         """
+        from . import message
+
         if not os.path.isdir(self.list[self.index]):
             return
         cw.cwpy.play_sound("signal")
@@ -1109,6 +1109,8 @@ class YadoSelect(MultiViewSelect):
         """
         宿削除。
         """
+        from . import message
+
         if not os.path.isdir(self.list[self.index]):
             return
         if cw.util.create_mutex("Yado"):
@@ -1180,6 +1182,8 @@ class YadoSelect(MultiViewSelect):
             dlg.Destroy()
 
     def _convert_current(self):
+        from . import message
+
         if not (self.list and self.classic[self.index]):
             return
         yname = self.names[self.index]
@@ -1391,6 +1395,8 @@ class YadoSelect(MultiViewSelect):
         """
         CardWirthの宿データを変換。
         """
+        from . import message
+
         # カードワースの宿か確認
         if not os.path.exists(cw.util.join_paths(path, "Environment.wyd")):
             s = "CardWirthの宿のディレクトリではありません。"
@@ -1481,6 +1487,8 @@ class YadoSelect(MultiViewSelect):
         """
         CardWirthの宿データへ逆変換。
         """
+        from . import message
+
         yadodir = self.list[self.index]
         yadoname = self.names[self.index]
 
@@ -2990,6 +2998,8 @@ class PlayerSelect(MultiViewSelect):
         self._processing = False
 
     def OnClickInfoBtn(self, event):
+        from . import charainfo
+
         if self._processing:
             return
         cw.cwpy.play_sound("click")

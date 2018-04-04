@@ -754,7 +754,7 @@ class Logger(threading.Thread):
                                     f.write(ret)
                                 first = False
                             except:
-                                cw.util.print_wx(file=sys.stderr)
+                                cw.util.print_ex(file=sys.stderr)
                                 break
                         f.write(s)
                         f.write(ret)

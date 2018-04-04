@@ -8,6 +8,10 @@ from . import cwyado
 from . import xmltemplate
 from . import image
 from . import util
+from . import event
+from . import bgimage
+from . import coupon
+from . import summary
 
 
 class ConvertingThread(threading.Thread):

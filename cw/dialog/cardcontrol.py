@@ -11,8 +11,6 @@ import wx.lib.buttons
 import wx.lib.intctrl
 
 import cw
-from . import cardinfo
-from . import message
 
 # カード操作ダイアログのモード
 CCMODE_SHOW    = 0 # 閲覧モード
@@ -1500,6 +1498,8 @@ class CardControl(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def rclick_event(self, header):
+        from . import cardinfo
+
         dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -1510,6 +1510,8 @@ class CardControl(wx.Dialog):
         self.toppanel.SetFocusIgnoringChildren()
 
     def check_using(self, owner, header):
+        from . import message
+
         # 行動不能だったら使用不可
         if owner.is_inactive():
             cw.cwpy.play_sound("error")
@@ -2240,6 +2242,8 @@ class CardHolder(CardControl):
             self.list = self._narrow(self.list)
 
     def lclick_event(self, header):
+        from . import message
+
         header.negaflag = False
         owner = self.selection
         if self.callname == "CARDPOCKETB":

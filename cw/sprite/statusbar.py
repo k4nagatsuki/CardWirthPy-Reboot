@@ -8,7 +8,6 @@ import pygame.locals
 
 import cw
 from . import base
-from . import touchbutton
 
 
 LAYER_TOUCH_BUTTON = -1
@@ -264,6 +263,8 @@ class StatusBar(base.CWPySprite):
         return 0 < self.volumebar.rect.width
 
     def layered_draw_ex(self, layered_updates, surface, draw_desc):
+        from . import touchbutton
+
         rects = []
         srect = surface.get_rect()
         clip = surface.get_clip()
@@ -1455,6 +1456,8 @@ class TouchMenuButton(StatusBarButton):
                  cw.cwpy.setting.fonttypes["sbarprogress"])
 
     def lclick_event(self):
+        from . import touchbutton
+
         cw.cwpy.play_sound("page")
         self.is_pushed = self.is_pushed
         if self.is_pushed:

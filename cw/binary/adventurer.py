@@ -4,10 +4,6 @@
 import sys
 
 from . import base
-from . import item
-from . import skill
-from . import beast
-from . import coupon
 
 import cw
 
@@ -17,6 +13,11 @@ class Adventurer(base.CWBinaryBase):
     wch・wptファイルから個別に引っ張ってくる必要がある。
     """
     def __init__(self, parent, f, yadodata=False, nameonly=False, album120=False):
+        from . import item
+        from . import skill
+        from . import beast
+        from . import coupon
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
 
         def add_128coupons():
@@ -438,6 +439,11 @@ class Adventurer(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, logdata):
+        from . import item
+        from . import skill
+        from . import beast
+        from . import coupon
+
         if not logdata is None:
             # 変換用にクーポンを整理
             coupons = cw.data.make_element("Coupons")
@@ -755,6 +761,7 @@ class Adventurer(base.CWBinaryBase):
 
         f.truncate()
 
+
 class AdventurerCard(base.CWBinaryBase):
     """wcpファイル(type=1)。冒険者データが中に入っているだけ。"""
     def __init__(self, parent, f, yadodata=False):
@@ -792,6 +799,7 @@ class AdventurerCard(base.CWBinaryBase):
         f.write_byte(0) # 不明
         Adventurer.unconv(f, data, None)
 
+
 class AdventurerWithImage(base.CWBinaryBase):
     """埋め込み画像付き冒険者データ。
     パーティデータを読み込むときに使う。
@@ -823,6 +831,7 @@ class AdventurerWithImage(base.CWBinaryBase):
         if logdata is None:
             cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
         Adventurer.unconv(f, data, logdata)
+
 
 class AdventurerHeader(base.CWBinaryBase):
     """wchファイル(type=0)。おそらく宿帳表示用の簡易データと思われる。
@@ -924,8 +933,10 @@ class AdventurerHeader(base.CWBinaryBase):
         f.write_word(vit)
         f.write_word(mind)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

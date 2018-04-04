@@ -4,10 +4,6 @@
 import sys
 
 from . import base
-from . import item
-from . import skill
-from . import beast
-from . import coupon
 
 import cw
 
@@ -15,6 +11,11 @@ import cw
 class CastCard(base.CWBinaryBase):
     """キャストデータ(widファイル)。"""
     def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+        from . import item
+        from . import skill
+        from . import beast
+        from . import coupon
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = f.byte()
         self.image = f.image()
@@ -247,6 +248,11 @@ class CastCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
+        from . import item
+        from . import skill
+        from . import beast
+        from . import coupon
+
         restype = 2
         image = None
         name = ""

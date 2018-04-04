@@ -9,7 +9,6 @@ import wx.grid
 import pygame
 
 import cw
-from . import editscenariodb
 
 
 # build_exe.pyによって作られる一時モジュール
@@ -2539,6 +2538,8 @@ class ScenarioSettingPanel(wx.Panel):
         self.grid_folderoftype.MakeCellVisible(row + 1, 0)
 
     def OnConstructDBBtn(self, event):
+        from . import editscenariodb
+
         d = {}
         for row in range(self.grid_folderoftype.GetNumberRows()):
             skintype = self.grid_folderoftype.GetCellValue(row, 0)

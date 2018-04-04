@@ -13,11 +13,7 @@ import zipfile
 import wx
 
 import cw
-from . import message
-from . import charainfo
-from . import text
 from . import select
-from . import scenarioinstall
 
 from cw.util import synclock
 from functools import reduce
@@ -41,6 +37,8 @@ class ScenarioSelect(select.Select):
     貼り紙選択ダイアログ。
     """
     def __init__(self, parent, db, lastscenario, lastscenariopath):
+        from . import scenarioinstall
+
         # ダイアログボックス作成
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
         self._bg = None
@@ -884,6 +882,8 @@ class ScenarioSelect(select.Select):
                 menu.Bind(wx.EVT_MENU, openbookmark.OnOpen, item)
 
     def OnAddBookmark(self, event):
+        from . import message
+
         self._update_saveddirstack()
         header = self.list[self.index]
         if isinstance(header, FindResult):
@@ -1019,6 +1019,8 @@ class ScenarioSelect(select.Select):
             return seq, os.path.abspath(sel)
 
     def _get_nowlist(self, nowdir=None, update=True):
+        from . import scenarioinstall
+
         if nowdir is None:
             nowdir = self.nowdir
         nowdir = self._get_linktarget(nowdir)
@@ -1248,6 +1250,8 @@ class ScenarioSelect(select.Select):
         self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=paths)
 
     def OnCreateDirBtn(self, event):
+        from . import scenarioinstall
+
         dpath, seldname = self._get_installtarget()
 
         dpath = scenarioinstall.create_dir(self, self.nowdir)
@@ -1257,6 +1261,9 @@ class ScenarioSelect(select.Select):
             self._select_installedpaths(dpath, seldname, [])
 
     def OnMoveBtn(self, event):
+        from . import message
+        from . import scenarioinstall
+
         if not self.list:
             return
         header = self.list[self.index]
@@ -1338,6 +1345,8 @@ class ScenarioSelect(select.Select):
             dlg.Destroy()
 
     def OnDeleteBtn(self, event):
+        from . import message
+
         if not self.list:
             return
         header = self.list[self.index]
@@ -1507,6 +1516,8 @@ class ScenarioSelect(select.Select):
         self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=[])
 
     def _to_headers(self, paths):
+        from . import scenarioinstall
+
         return scenarioinstall.to_scenarioheaders(paths, self.db, cw.cwpy.setting.skintype)
 
     def _show_selectedscenario(self, headers):
@@ -1528,6 +1539,9 @@ class ScenarioSelect(select.Select):
         シナリオDB内に同じ名前・作者のシナリオがあった場合は
         プレイヤーへの問い合わせの上で置換する。
         """
+        from . import message
+        from . import scenarioinstall
+
         if not headers:
             return
 
@@ -1587,6 +1601,8 @@ class ScenarioSelect(select.Select):
         self._show_selectedscenario(headers)
 
     def OnClickInfoBtn(self, event):
+        from . import text
+
         cw.cwpy.play_sound("click")
         dlg = text.Readme(self, cw.cwpy.msgs["description"], self.texts)
         self.Parent.move_dlg(dlg)
@@ -2992,6 +3008,8 @@ class ScenarioSelect(select.Select):
         選択中シナリオに同梱されている
         テキストファイルのファイル名とデータのリストを返す。
         """
+        from . import text
+
         if not self.list:
             return []
 
@@ -3077,6 +3095,8 @@ class ScenarioSelect(select.Select):
         """
         CardWirthのシナリオデータを変換。
         """
+        from . import message
+
         # CardWirthのシナリオデータか確認
         if not os.path.isfile(cw.util.join_paths(path, "Summary.wsm")):
 
@@ -3242,6 +3262,8 @@ class FindResult(object):
 class UpdateNamesThread(threading.Thread):
 
     def __init__(self, dlg, nowdir, dpath, dirstack, startdir, expandedset, skintype):
+        from . import scenarioinstall
+
         threading.Thread.__init__(self)
         self.dlg = dlg
         self.nowdir = nowdir
@@ -3286,8 +3308,10 @@ class UpdateNamesThread(threading.Thread):
                 self.dlg.updatenames_thr = None
         cw.cwpy.frame.exec_func(func)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

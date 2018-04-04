@@ -5,7 +5,6 @@ import wx
 
 import cw
 from . import select
-from . import message
 
 #-------------------------------------------------------------------------------
 #　パーティの記録
@@ -59,6 +58,8 @@ class SelectPartyRecord(select.Select):
 
     def OnClickSaveBtn(self, event):
         """パーティの記録。"""
+        from . import message
+
         if self.Parent.is_processing():
             return
         header = self.list[self.index]
@@ -94,6 +95,8 @@ class SelectPartyRecord(select.Select):
 
     def OnClickRestoreBtn(self, event):
         """パーティの再結成。"""
+        from . import message
+
         if self.Parent._processing:
             return
         header = self.list[self.index]
@@ -135,6 +138,8 @@ class SelectPartyRecord(select.Select):
 
     def OnClickDeleteBtn(self, event):
         """パーティ記録の削除。"""
+        from . import message
+
         if self.Parent.is_processing():
             return
         header = self.list[self.index]

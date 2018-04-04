@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from . import base
-from . import event
 
 import cw
 
@@ -10,6 +9,8 @@ import cw
 class Battle(base.CWBinaryBase):
     """widファイルのバトルデータ。"""
     def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+        from . import event
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = f.byte()
 
@@ -72,6 +73,8 @@ class Battle(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
+        from . import event
+
         restype = 1
         name = ""
         resid = 0
@@ -118,6 +121,8 @@ class EnemyCard(base.CWBinaryBase):
     escape:逃走フラグ(真偽値)。
     """
     def __init__(self, parent, f, yadodata=False):
+        from . import event
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.cast_id = f.dword()
         events_num = f.dword()
@@ -155,6 +160,8 @@ class EnemyCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
+        from . import event
+
         cast_id = 0
         events = []
         flag = ""

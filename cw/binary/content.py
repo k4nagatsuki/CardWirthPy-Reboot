@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from . import base
-from . import bgimage
-from . import dialog
-from . import effectmotion
 
 import cw
 
@@ -77,6 +74,10 @@ class Content(base.CWBinaryBase):
             self._read_properties(f, tag, ctype, name, version)
 
     def _read_properties(self, f, tag, ctype, name, version):
+        from . import bgimage
+        from . import dialog
+        from . import effectmotion
+
         self.tag = tag
         self.type = ctype
         self.name = name
@@ -477,6 +478,10 @@ class Content(base.CWBinaryBase):
 
     @staticmethod
     def _unconv_properties(f, data):
+        from . import bgimage
+        from . import dialog
+        from . import effectmotion
+
         # 宿データの埋め込みカードのコンテントは
         # 子コンテントデータの後ろに"dword()"(4)が埋め込まれている。
         f.write_dword(4)

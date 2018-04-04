@@ -1182,6 +1182,7 @@ def read_summary_classic(basepath, spath, f=None):
         ctime = time.time()
         mtime = os.path.getmtime(spath)
     except Exception:
+        cw.util.print_ex()
         return None, []
 
     summaryinfos = [os.path.dirname(basepath), TYPE_CLASSIC,

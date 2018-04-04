@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from . import base
-from . import event
 
 import cw
 
@@ -12,6 +11,8 @@ class Package(base.CWBinaryBase):
     type:InfoCardと区別が付くように、Packageは暫定的に"7"とする。
     """
     def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+        from . import event
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = 7
         f.dword() # 不明
@@ -41,6 +42,8 @@ class Package(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
+        from . import event
+
         name = ""
         resid = 0
         events = []

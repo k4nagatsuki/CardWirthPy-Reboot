@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from . import base
-from . import content
 
 import cw
 
@@ -10,6 +9,8 @@ import cw
 class Event(base.CWBinaryBase):
     """イベント発火条件付のイベントデータのクラス。"""
     def __init__(self, parent, f, yadodata=False):
+        from . import content
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         contents_num = f.dword()
         self.contents = [content.Content(self, f, 0)
@@ -84,6 +85,8 @@ class SimpleEvent(base.CWBinaryBase):
     カードイベント・パッケージ等で使う。
     """
     def __init__(self, parent, f, yadodata=False):
+        from . import content
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         contents_num = f.dword()
         self.contents = [content.Content(self, f, 0)
@@ -102,6 +105,8 @@ class SimpleEvent(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
+        from . import content
+
         contents = []
 
         for e in data:

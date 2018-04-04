@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from . import base
-from . import event
-from . import bgimage
 
 import cw
 
@@ -11,6 +9,9 @@ import cw
 class Area(base.CWBinaryBase):
     """widファイルのエリアデータ。"""
     def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+        from . import event
+        from . import bgimage
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = f.byte()
 
@@ -73,6 +74,9 @@ class Area(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
+        from . import event
+        from . import bgimage
+
         restype = 0
         name = ""
         resid = 0
@@ -117,6 +121,8 @@ class Area(base.CWBinaryBase):
 class MenuCard(base.CWBinaryBase):
     """メニューカードのデータ。"""
     def __init__(self, parent, f, yadodata=False, dataversion=4):
+        from . import event
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         _b = f.byte() # 不明
         self.image = f.image()
@@ -171,6 +177,8 @@ class MenuCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
+        from . import event
+
         image = None
         name = ""
         description = ""
@@ -235,8 +243,10 @@ class MenuCard(base.CWBinaryBase):
         f.write_dword(top)
         f.write_string(imgpath)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

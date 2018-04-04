@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from . import base
-from . import effectmotion
-from . import event
 
 import cw
 
@@ -15,6 +13,9 @@ class BeastCard(base.CWBinaryBase):
     limit: 使用回数
     """
     def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True, summoneffect=False):
+        from . import effectmotion
+        from . import event
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.summoneffect = summoneffect
         self.type = f.byte()
@@ -176,6 +177,9 @@ class BeastCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, ownerisadventurer):
+        from . import effectmotion
+        from . import event
+
         restype = 0
         image = None
         name = ""
