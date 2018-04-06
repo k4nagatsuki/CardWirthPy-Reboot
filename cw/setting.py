@@ -1538,18 +1538,24 @@ class Resource(object):
         """
         fontdir = "Data/Font"
         fontdir_skin = cw.util.join_paths(self.skindir, "Resource/Font")
-        fnames = ("gothic.ttf", "uigothic.ttf", "mincho.ttf",
-                                            "pgothic.ttf", "pmincho.ttf")
+        fnames = (("gothic.ttf", "ＭＳ ゴシック"), ("uigothic.ttf", "MS UI Gothic"),
+                  ("mincho.ttf", "ＭＳ 明朝"), ("pgothic.ttf", "ＭＳ Ｐゴシック"),
+                  ("pmincho.ttf", "ＭＳ Ｐ明朝"))
         d = {}
+        self.facenames = set(wx.FontEnumerator().GetFacenames())
 
-        for fname in fnames:
+        for fname, alt in fnames:
             path = cw.util.join_paths(fontdir_skin, fname)
 
             if not os.path.isfile(path):
                 path = cw.util.join_paths(fontdir, fname)
 
                 if not os.path.isfile(path):
-                    raise NoFontError(fname + " not found.")
+                    if alt in self.facenames:
+                        continue
+                    else:
+                        # IPAフォントも代替フォントも存在しない場合はエラー
+                        raise NoFontError(fname + " not found.")
 
             d[os.path.splitext(fname)[0]] = path
 
@@ -1565,7 +1571,6 @@ class Resource(object):
         if sys.platform == "win32":
             gdi32 = ctypes.windll.gdi32
             winplatform = sys.getwindowsversion()[3]
-            self.facenames = set(wx.FontEnumerator().GetFacenames())
 
             for name, path in self.fontpaths.items():
                 fontname = cw.util.get_truetypefontname(path)
@@ -1597,7 +1602,6 @@ class Resource(object):
 
             self.facenames = set(wx.FontEnumerator().GetFacenames())
         else:
-            self.facenames = set(wx.FontEnumerator().GetFacenames())
             d["gothic"] = "IPAゴシック"
             d["uigothic"] = "IPA UIゴシック"
             d["mincho"] = "IPA明朝"

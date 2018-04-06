@@ -27,7 +27,8 @@ def build_exe():
     )
 
     extra_data = (
-        "Data/Font", "Data/SoundFont", "Data/SkinBase",
+        #"Data/Font",
+        "Data/SoundFont", "Data/SkinBase",
         "Data/Debugger", "Data/Materials",
         "Data/Compatibility.xml", "Data/SystemCoupons.xml", "Data/SearchEngines.xml",
         "License.txt",# "msvcr90.dll", "msvcp90.dll", "gdiplus.dll",

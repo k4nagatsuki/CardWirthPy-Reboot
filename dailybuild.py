@@ -37,7 +37,6 @@ if __name__ == '__main__':
     build_exe.build_exe()
 
     # フォント類は別配布するため削除
-    shutil.rmtree("CardWirthPy/Data/Font")
     shutil.rmtree("CardWirthPy/Data/SoundFont")
 
     fpath = datetime.datetime.today().strftime("%Y%m%d")
