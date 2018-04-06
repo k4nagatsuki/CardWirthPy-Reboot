@@ -38,5 +38,5 @@ syntax: regexp
 ^Settings\.xml$
 ^Breakpoints\.xml$
 ^Scenario\.db$
-^cardwirth.build/
-^cardwirth.dist/
+^dist/.*
+^CardWirthPy.spec$

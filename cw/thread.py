@@ -806,15 +806,6 @@ class CWPy(_Singleton, threading.Thread):
             self._running = False
             # エラーログを出力
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            vstr = []
-            for v in cw.APP_VERSION:
-                vstr.append(str(v))
-            sys.stderr.write("Version : %s" % ".".join(vstr))
-            if versioninfo:
-                sys.stderr.write(" / %s" % (versioninfo.build_datetime))
-            sys.stderr.write("\n")
-            d = datetime.datetime.today()
-            sys.stderr.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
             traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
             sys.stderr.write("\n")
         finally:

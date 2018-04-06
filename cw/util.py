@@ -15,7 +15,6 @@ import threading
 import hashlib
 import subprocess
 import io
-import io
 import traceback
 import datetime
 import ctypes
@@ -30,13 +29,16 @@ from functools import reduce
 if sys.platform == "win32":
     import win32api
     import win32con
-    import importlib
-    pythoncom = importlib.import_module("pythoncom")
-    win32shell = importlib.import_module("win32com.shell.shell")
+    import pythoncom
+    import win32com.shell.shell as win32shell
     import win32com.shell.shellcon
     import pywintypes
     import ctypes.wintypes
     import msvcrt
+    # NuitkaやPyInstallerに必要なモジュールを知らせる
+    import wx._html
+    import wx._xml
+    import win32timezone
 
 import wx
 import wx.lib.agw.aui.tabart
@@ -4244,7 +4246,7 @@ def set_linktarget(fpath, targetpath):
         shortcut.SetPath(targetpath)
         shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(fpath, 0)
     except Exception:
-        print_ex()
+        print_ex(file=sys.stderr)
 
 
 def create_link(shortcutpath, targetpath):
@@ -4266,7 +4268,6 @@ def create_link(shortcutpath, targetpath):
     shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32shell.IID_IShellLink)
-    encoding = cw.filesystem_encoding
     shortcut.SetPath(targetpath)
     shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath, 0)
 

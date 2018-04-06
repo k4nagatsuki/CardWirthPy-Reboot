@@ -6,7 +6,6 @@ import sys
 import time
 import shutil
 import zipfile
-import operator
 import datetime
 
 import build_exe
@@ -30,28 +29,12 @@ def compress_all(zpath, targ):
     return zpath
 
 if __name__ == '__main__':
-    dir = "."
-    if 1 < len(sys.argv):
+    if 2 <= len(sys.argv):
         dir = sys.argv[1]
-        sys.argv.pop(1)
-
-    for arg in sys.argv[1:]:
-        if arg.startswith("-chm="):
-            chmfile = arg[5:].strip("\"")
-            sys.argv.remove(arg)
-            break
     else:
-        chmfile = ""
+        dir = "."
 
-    sys.argv = [sys.argv[0], "py2exe"]
-
-    build_exe.create_versioninfo()
-
-    try:
-        exe = build_exe.BuildExe(chmfile)
-        exe.run()
-    finally:
-        build_exe.remove_versioninfo()
+    build_exe.build_exe()
 
     # フォント類は別配布するため削除
     shutil.rmtree("CardWirthPy/Data/Font")
@@ -76,7 +59,7 @@ if __name__ == '__main__':
         mark = ""
     fpath = "cardwirthpy_%s%s.zip" % (fpath, mark)
     fpath = os.path.join(dir, fpath)
-    compress_all(fpath, exe.dist_dir)
+    compress_all(fpath, build_exe.dist_dir)
 
     print("")
     print("Created %s." % (fpath))

@@ -108,6 +108,8 @@ class CWBinaryBase(object):
         """XMLファイルを作成する。
         dpath: XMLを作成するディレクトリ
         """
+        from . import util
+
         # 保存ディレクトリ設定
         self.set_dir(dpath)
 
@@ -142,6 +144,8 @@ class CWBinaryBase(object):
 
     def export_image(self):
         """内部画像を出力する"""
+        from . import util
+
         if not hasattr(self, "image"):
             return ""
 
@@ -291,6 +295,8 @@ class CWBinaryBase(object):
         """引数のパスを素材ディレクトリに関連づける。
         dpath: 素材ファイルのパス。
         """
+        from . import util
+
         if path == "（なし）":
             return ""
         mdir = self.get_materialdir()

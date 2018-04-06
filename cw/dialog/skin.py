@@ -38,7 +38,6 @@ class SkinConversionDialog(wx.Dialog):
         self.skindirname = ""
         self.from_settings = from_settings
 
-
         skincount, unknown_ver = cw.frame.get_skincount()
         if skincount == 0:
             if unknown_ver:

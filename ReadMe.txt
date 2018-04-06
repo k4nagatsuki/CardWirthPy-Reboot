@@ -257,12 +257,12 @@ WSN形式では、バージョン「Wsn.2」以降、称号判定分岐でWSN形
 ライセンス
 --------------------------------------------------------------------------
 
-CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはpy2exeを使用しています。
+CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはPyInstallerを使用しています。
 
-[Python ver2.7.14 (32bit版)](http://www.python.org/)
+[Python ver3.6.4 (32bit版)](http://www.python.org/)
  : License: Python Software Foundation License
 
-[py2exe ver0.6.9](http://www.py2exe.org/)
+[PyInstaller](https://www.pyinstaller.org/)
 
 CardWirthPyは以下のPythonの外部モジュールを使用しています。
 

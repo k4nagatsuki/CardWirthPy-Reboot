@@ -591,6 +591,7 @@ class Frame(wx.Frame):
         if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
             self.OnCLOSE(event)
         else:
+            self.Hide()
             if self.debugger:
                 self.debugger.Close()
             self.Destroy()
@@ -620,6 +621,7 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg)
         if result == wx.ID_OK:
+            self.Hide()
             if self.debugger:
                 self.debugger.Close()
             self.Destroy()
