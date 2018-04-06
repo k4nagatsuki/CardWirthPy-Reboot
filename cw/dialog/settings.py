@@ -1181,7 +1181,7 @@ class ExpandPanel(wx.Panel):
         elif self.sl_expand.GetValue() % 10 == 0: # 整数倍
             value = self.sl_expand.GetValue() // 10
         else:
-            value = float(self.sl_expand.GetValue()) // 10
+            value = float(self.sl_expand.GetValue()) / 10.0
         expanddrawing = int(2 ** self.ch_expanddrawing.GetSelection())
         if str(value) != str(setting.expandmode) or expanddrawing != setting.expanddrawing:
             if update and cw.cwpy.is_expanded():

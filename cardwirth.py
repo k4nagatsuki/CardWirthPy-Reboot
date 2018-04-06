@@ -21,7 +21,7 @@ if getattr(sys, 'frozen', False) or True:
         def _open(self):
             global put_errorlog
             if not self.f:
-                name = os.path.splitext(os.path.basename(sys.executable))[0] + ".log"
+                name = sys.executable + ".log"
                 self.f = open(name, "a", encoding="utf-8")
                 if 0 < self.tell():
                     self.f.write("\n")
@@ -38,7 +38,7 @@ if getattr(sys, 'frozen', False) or True:
                 except ImportError:
                     pass
                 self._write_datetime()
-                put_errorlog = name
+                put_errorlog = os.path.basename(name)
                 self._last_time = time.time()
         def _write_datetime(self):
             d = datetime.datetime.today()
