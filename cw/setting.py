@@ -1471,7 +1471,7 @@ class Resource(object):
                             self.ignorecase_table[path.lower()] = path
 
     def get_filepath(self, fpath):
-        if not fpath or os.path.isfile(fpath) or cw.binary.image.path_is_code(fpath):
+        if not fpath or cw.binary.image.path_is_code(fpath) or os.path.isfile(fpath):
             return fpath
 
         if self.ignorecase_table or (cw.cwpy.sdata and cw.cwpy.sdata.ignorecase_table):
