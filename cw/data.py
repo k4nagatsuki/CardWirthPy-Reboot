@@ -3727,7 +3727,7 @@ class CWPyElement(xml.etree.ElementTree._Element_Py, _CWPyElementInterface):
         self.nextelements = None
         self.needcheck = None
         self.cwxpath = None
-        self.cwxline_index = None
+        self._cwxline_index = None
 
     def append(self, subelement):
         subelement.cwxparent = self
