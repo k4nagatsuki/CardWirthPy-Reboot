@@ -174,7 +174,7 @@ def build_exe():
     #      CardWirthPy.exeと同じフォルダに必要
     mvfiles = (
         ("sqlite3.dll", "lib/sqlite3.dll"),
-        ("lib/VCRUNTIME140.dll", "VCRUNTIME140.dll
+        ("lib/VCRUNTIME140.dll", "VCRUNTIME140.dll"),
     )
     for src, dst in mvfiles:
         print("Moving %s to %s" % (src, dst))
