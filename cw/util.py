@@ -1450,10 +1450,10 @@ def print_ex(file=None):
     """
     if file is None:
         file = sys.stdout
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    traceback.print_exception(exc_type, exc_value, exc_traceback, file=file)
-    file.write("\n")
-    return
+    if file:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback, file=file)
+        file.write("\n")
 
 def screenshot_title(titledic):
     """スクリーンショットタイトルの書き出し。
