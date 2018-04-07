@@ -29,7 +29,6 @@ class NoFontError(ValueError):
 if sys.platform != "win32":
     # wx.Appのロード前にフォントをインストールしなければならない
     DATA_PATH = "Data"
-    encoding = cw.filesystem_encoding
     if sys.platform == "darwin":
         try:
             fontconfig = ctypes.CDLL("/opt/X11/lib/libfontconfig.dylib")
@@ -37,9 +36,7 @@ if sys.platform != "win32":
             fontconfig = None
         # application bundle に入っている場合は、application bundle と同じ位置にあるDataディレクトリを使う
         if 'RESOURCEPATH' in os.environ:
-            data_path = os.path.join(
-                str(os.environ['RESOURCEPATH'], encoding),
-                '..', '..', '..', 'Data')
+            data_path = os.path.join(os.environ['RESOURCEPATH'], '..', '..', '..', 'Data')
             if os.path.isdir(data_path):
                 DATA_PATH = data_path
     else:
@@ -58,6 +55,7 @@ if sys.platform != "win32":
                 if fname.lower().endswith(".ttf"):
                     path = os.path.join(dpath, fname)
                     if os.path.isfile(path):
+                        encoding = sys.getfilesystemencoding()
                         fontconfig.FcConfigAppFontAddFile(ctypes.c_void_p(fcconfig), ctypes.c_char_p(path.encode(encoding)))
 
 # マウスホイールを上回転させた時の挙動

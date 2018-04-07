@@ -3715,52 +3715,42 @@ class _CWPyElementInterface(object):
         return make_element(*args, **kwargs)
 
 
-class CWPyElement(xml.etree.ElementTree.Element, _CWPyElementInterface):
+class CWPyElement(xml.etree.ElementTree._Element_Py, _CWPyElementInterface):
 
     def __init__(self, tag, attrib={}.copy()):
-        xml.etree.ElementTree.Element.__init__(self, tag, attrib)
+        xml.etree.ElementTree._Element_Py.__init__(self, tag, attrib)
+        self.fpath = ""
+
         # CWXパスを構築するための親要素情報
         self.cwxparent = None
         self.content = None
         self.nextelements = None
         self.needcheck = None
         self.cwxpath = None
-        self._cwxline_index = None
-
-    # BUG: xml.etree.ElementTree.Element.find(self, path, namespaces)
-    #      だと相対パスの結果がおかしくなる
-    #      Python 3.6.4
-    def find(self, path, namespaces=None):
-        return xml.etree.ElementTree.ElementPath.find(self, path, namespaces)
-
-    # BUG: xml.etree.ElementTree.Element.findall(self, tag, namespaces)
-    #      だとElementName[n]の結果がおかしくなる
-    #      Python 3.6.4
-    def findall(self, tag, namespaces=None):
-        return xml.etree.ElementTree.ElementPath.findall(self, tag, namespaces)
+        self.cwxline_index = None
 
     def append(self, subelement):
         subelement.cwxparent = self
-        return xml.etree.ElementTree.Element.append(self, subelement)
+        return xml.etree.ElementTree._Element_Py.append(self, subelement)
 
     def extend(self, subelements):
         for subelement in subelements:
             subelement.cwxparent = self
-        return xml.etree.ElementTree.Element.extend(self, subelements)
+        return xml.etree.ElementTree._Element_Py.extend(self, subelements)
 
     def insert(self, index, subelement):
         subelement.cwxparent = self
-        return xml.etree.ElementTree.Element.insert(self, index, subelement)
+        return xml.etree.ElementTree._Element_Py.insert(self, index, subelement)
 
     def remove(self, subelement):
         if subelement.cwxparent is self:
             subelement.cwxparent = None
-        return xml.etree.ElementTree.Element.remove(self, subelement)
+        return xml.etree.ElementTree._Element_Py.remove(self, subelement)
 
     def clear(self):
         for subelement in self:
             subelement.cwxparent = None
-        return xml.etree.ElementTree.Element.clear(self)
+        return xml.etree.ElementTree._Element_Py.clear(self)
 
     def index(self, subelement):
         for i, e in enumerate(self):
@@ -3851,18 +3841,6 @@ class CWPyElement(xml.etree.ElementTree.Element, _CWPyElementInterface):
             self.cwxpath = ""
 
         return self.cwxpath
-
-    def __delitem__(self, key):
-        return xml.etree.ElementTree.Element.__delitem__(self, key)
-
-    def __getitem__(self, key):
-        return xml.etree.ElementTree.Element.__getitem__(self, key)
-
-    def __setitem__(self, key, value):
-        return xml.etree.ElementTree.Element.__setitem__(self, key, value)
-
-    def __len__(self):
-        return xml.etree.ElementTree.Element.__len__(self)
 
 
 #-------------------------------------------------------------------------------

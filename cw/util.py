@@ -3482,7 +3482,8 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
             from . import _imageretouch32 as _imageretouch
         elif sys.maxsize == 0x7fffffffffffffff:
             from . import _imageretouch64 as _imageretouch
-        redbuf = _imageretouch.mul_alphaonly(str(redbuf), alpha)
+        redbuf = bytearray(redbuf)
+        _imageretouch.mul_alphaonly(redbuf, alpha)
     subimg.SetAlphaBuffer(redbuf)
 
     if scaledown:

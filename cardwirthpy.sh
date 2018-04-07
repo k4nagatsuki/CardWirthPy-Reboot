@@ -1,4 +1,4 @@
 #!/bin/sh
 
-python cardwirth.py
+python3 cardwirth.py
 
