@@ -282,7 +282,7 @@ lib/win32*.pyd, lib/pythoncom36.dll, lib/pywintypes36.dll, lib/win32com以下の
 lib/lhafile以下の全てのファイルとディレクトリ
  : License: 修正BSDライセンス
 
-lib/VCRUNTIME140.dll
+VCRUNTIME140.dll
  : License: Microsoft Redistributable
 
 CardWirthPyのリポジトリには一般利用者向けIPAフォントが含まれています。

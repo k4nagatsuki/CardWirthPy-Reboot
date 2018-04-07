@@ -170,8 +170,11 @@ def build_exe():
 
     # BUG: sqlite3.dll が lib 以下にないと
     #      作業フォルダが実行ファイルの場所と異なる時に起動エラー
+    #      VCRUNTIME140.dllはVCランタイムライブラリが無い環境で
+    #      CardWirthPy.exeと同じフォルダに必要
     mvfiles = (
         ("sqlite3.dll", "lib/sqlite3.dll"),
+        ("lib/VCRUNTIME140.dll", "VCRUNTIME140.dll
     )
     for src, dst in mvfiles:
         print("Moving %s to %s" % (src, dst))
