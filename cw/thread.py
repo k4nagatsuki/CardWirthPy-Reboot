@@ -889,7 +889,7 @@ class CWPy(_Singleton, threading.Thread):
                 if sel != self.selection:
                     cw.cwpy.draw(clip=self.statusbar.rect)
                 breakflag = self.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)
-                self.input()
+                self.input(inputonly=True)
                 self.eventhandler.run()
                 if breakflag:
                     skip = True
