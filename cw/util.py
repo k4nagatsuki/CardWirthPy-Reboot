@@ -2200,9 +2200,12 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
                     remove(dstdir)
                     return
         if isinstance(z, zipfile.ZipFile):
-            name = decode_zipname(zname.encode("cp437")).replace('\\', '/')
+            if not (info.flag_bits & 0x800):
+                name = decode_zipname(zname.encode("cp437"))
+            else:
+                name = zname
         else:
-            name = decode_zipname(zname.encode("ISO-8859-1")).replace('\\', '/')
+            name = decode_zipname(zname.encode("ISO-8859-1"))
         normpath = os.path.normpath(name)
         if os.path.isabs(normpath):
             continue

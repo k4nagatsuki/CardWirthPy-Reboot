@@ -533,10 +533,10 @@ def _get_loopinfo(fpath, stream):
         loopstart = -1
         looplength = -1
         while comment:
-            if comment.startswith("LOOPSTART="):
-                loopstart = int(comment[len("LOOPSTART="):])
-            if comment.startswith("LOOPLENGTH="):
-                looplength = int(comment[len("LOOPLENGTH="):])
+            if comment.startswith(b"LOOPSTART="):
+                loopstart = int(comment[len(b"LOOPSTART="):])
+            if comment.startswith(b"LOOPLENGTH="):
+                looplength = int(comment[len(b"LOOPLENGTH="):])
             s += len(comment)+1
             comment = ctypes.string_at(s)
         if 0 <= loopstart:
