@@ -46,6 +46,7 @@ from . import argparser
 
 # 実行ファイルのパス
 exepath = ""
+quit = False
 
 # ファイルパスのエンコーディング
 if sys.platform == "win32":

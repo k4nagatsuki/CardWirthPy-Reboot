@@ -19,6 +19,8 @@ if getattr(sys, 'frozen', False) or True:
             self.f = None
             self._last_time = 0
         def _open(self):
+            if cw.quit:
+                return
             global put_errorlog
             if not self.f:
                 name = sys.executable + ".log"
@@ -53,27 +55,41 @@ if getattr(sys, 'frozen', False) or True:
             else:
                 return True
         def fileno(self):
+            if cw.quit:
+                return None
             self._open()
             return self.f.fileno()
         def flush(self):
             if self.f:
                 return self.f.flush()
         def seek(self, offset, whence=io.SEEK_SET):
+            if cw.quit:
+                return
             self._open()
             return self.f.seek(offset, whence)
         def seekable(self):
+            if cw.quit:
+                return False
             self._open()
             return self.f.seekable()
         def tell(self):
+            if cw.quit:
+                return 0
             self._open()
             return self.f.tell()
         def truncate(self, size=None):
+            if cw.quit:
+                return
             self._open()
             return self.f.truncate(size)
         def writable(self):
+            if cw.quit:
+                return False
             self._open()
             return True
         def writelines(self, lines):
+            if cw.quit:
+                return
             if self.f and self._last_time + 1.0 <= time.time():
                 # 前回の出力から1秒以上経っていたら時刻を再出力
                 self.f.write("\n")
@@ -86,6 +102,8 @@ if getattr(sys, 'frozen', False) or True:
             self._last_time = time.time()
             return r
         def write(self, b):
+            if cw.quit:
+                return
             if self.f and self._last_time + 1.0 <= time.time():
                 self.f.write("\n")
                 self._write_datetime()

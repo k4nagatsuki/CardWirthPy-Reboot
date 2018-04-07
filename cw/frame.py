@@ -592,6 +592,7 @@ class Frame(wx.Frame):
             self.OnCLOSE(event)
         else:
             self.Hide()
+            cw.quit = True
             if self.debugger:
                 self.debugger.Close()
             self.Destroy()
@@ -622,6 +623,7 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
         if result == wx.ID_OK:
             self.Hide()
+            cw.quit = True
             if self.debugger:
                 self.debugger.Close()
             self.Destroy()
@@ -1045,6 +1047,7 @@ class Frame(wx.Frame):
             parent.after_message()
 
         if shutdown:
+            cw.quit = True
             if self.debugger:
                 self.debugger.Close()
             self.Destroy()
