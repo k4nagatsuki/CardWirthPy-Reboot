@@ -8,7 +8,7 @@ import shutil
 import zipfile
 import datetime
 
-import build_exe
+import build_cx
 
 
 def compress_all(zpath, targ):
@@ -34,10 +34,10 @@ if __name__ == '__main__':
     else:
         dir = "."
 
-    build_exe.build_exe()
+    build_cx.build_exe()
 
     # フォント類は別配布するため削除
-    shutil.rmtree("CardWirthPy/Data/SoundFont")
+    shutil.rmtree(os.path.join(build_cx.dist_dir, "Data/SoundFont"))
 
     fpath = datetime.datetime.today().strftime("%Y%m%d")
 
@@ -58,7 +58,7 @@ if __name__ == '__main__':
         mark = ""
     fpath = "cardwirthpy_%s%s.zip" % (fpath, mark)
     fpath = os.path.join(dir, fpath)
-    compress_all(fpath, build_exe.dist_dir)
+    compress_all(fpath, build_cx.dist_dir)
 
     print("")
     print("Created %s." % (fpath))

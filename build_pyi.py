@@ -18,7 +18,7 @@ def build_exe():
     options = (
         script,
         "--distpath " + dist_dir,
-        "--onefile",
+        "--onedir",
         "-w",
         "-n CardWirthPy",
         "-i CardWirthPy.ico",

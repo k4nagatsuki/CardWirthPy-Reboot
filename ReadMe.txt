@@ -257,37 +257,35 @@ WSN形式では、バージョン「Wsn.2」以降、称号判定分岐でWSN形
 ライセンス
 --------------------------------------------------------------------------
 
-CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはPyInstallerを使用しています。
+CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはcx_Freezeを使用しています。
 
 [Python ver3.6.4 (32bit版)](http://www.python.org/)
  : License: Python Software Foundation License
 
-[PyInstaller](https://www.pyinstaller.org/)
+[cx_Freeze](https://anthony-tuininga.github.io/cx_Freeze/)
 
-CardWirthPyは以下のPythonの外部モジュールを使用しています。
+CardWirthPyは以下のPythonの外部モジュールを利用しています。
 
 [wxPython 4.0.1](http://www.wxpython.org/)
+python36.dll, lib内でこれ以降に記載の無い全てのファイルとディレクトリ
  : License: wxWindows Library License
 
 [pygame ver1.9.3](http://www.pygame.org/)
+lib/pygame以下の全てのファイルとディレクトリ
  : License: GNU Lesser General Public License
 
 [Python for Windows Extensions Build 220](http://sourceforge.net/projects/pywin32/)
+lib/win32*.pyd, lib/pythoncom36.dll, lib/pywintypes36.dll, lib/win32com以下の全てのファイルとディレクトリ
  : License: Python Software Foundation License
 
 [lhafile 2.2](https://fengestad.no/python-lhafile/)
+lib/lhafile以下の全てのファイルとディレクトリ
  : License: 修正BSDライセンス
 
-CardWirthPyは以下のMicrosoftのライブラリを同梱しています。
-
-[gdiplus.dll](http://www.microsoft.com/downloads/details.aspx?familyid=6A63AB9C-DF12-4D41-933C-BE590FEAA05A&displaylang=en)
+lib/VCRUNTIME140.dll
  : License: Microsoft Redistributable
 
-msvcp90.dll, msvcr90.dll
- : [Download](http://www.microsoft.com/japan/msdn/vstudio/)
- : License: Visual Studio 2008 Redistributable Code
-
-CardWirthPyは一般利用者向けIPAフォントを同梱しています。
+CardWirthPyのリポジトリには一般利用者向けIPAフォントが含まれています。
 
 Data/Font/gothic.ttf, mincho.ttf, uigothic.ttf, pgothic.ttf, pmincho.ttf
  : [Web Site](http://ossipedia.ipa.go.jp/ipafont/)
@@ -314,9 +312,13 @@ Data/SkinBase 以下にあるすべての画像及び音声ファイル
 
 [The MIT License](http://www.opensource.org/licenses/mit-license.php)
 
-CardWirthPyの実行形式には以下のライセンスが適用されます。
+CardWirthPy.exe, ChangeLog.txt, ReadMe.txt, Data/*.xmlには以下のライセンスが適用されます。
 
-[GNU Lesser General Public License](http://www.gnu.org/copyleft/lesser.html)
+[The MIT License](http://www.opensource.org/licenses/mit-license.php)
+
+CardWirthPy.chmのライセンスについては、ヘルプファイル内の「著作権とライセンス」の項あるいは以下のURLを参照してください。
+
+[著作権とライセンス - CardWirthPyプレイヤーズガイド](https://k4nagatsuki.bitbucket.io/cardwirthpy-reboot_help/99_copyright.html)
 
 各ライセンスの条文は、"License.txt"を参照してください。
 
