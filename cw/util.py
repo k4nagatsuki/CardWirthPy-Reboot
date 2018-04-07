@@ -3158,7 +3158,6 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         up_scr = cw.UP_SCR # ゲーム画面と合わせるため、ダイアログなどでも描画サイズのイメージを使用する
     name, up_scr = find_scaledimagepath(name, up_scr, can_loaded_scaledimage, noscale)
 
-    ext = ""
     haspngalpha = False
     bmpdepth = 0
     maskcolour = None

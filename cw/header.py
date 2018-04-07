@@ -1795,7 +1795,7 @@ class GetRootAttribute(object):
         parser = xml.parsers.expat.ParserCreate()
         parser.StartElementHandler = self.start_element
 
-        with open(fpath, "r") as f:
+        with open(fpath, "rb") as f:
             try:
                 parser.ParseFile(f)
             except Exception:
