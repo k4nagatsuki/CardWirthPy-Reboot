@@ -1104,6 +1104,8 @@ class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
         self._cache = {}
 
+        face = get_fontface(face)
+
         d = {("IPAゴシック", "IPAGothic"):"gothic.ttf",
              ("IPA UIゴシック", "IPAUIGothic"):"uigothic.ttf",
              ("IPA明朝", "IPAMincho"):"mincho.ttf",
@@ -1116,7 +1118,6 @@ class Font(object):
                     self.font, self.font2x, self.font_notitalic = _create_mfont(path, pixels, bold, italic, sys=False)
                     return
 
-        face = get_fontface(face)
         if sys.platform == "win32":
             try:
                 func = _imageretouch.font_new
@@ -1131,12 +1132,8 @@ class Font(object):
                 self.fontinfo = func(face.encode("utf-8"), pixels, bold, italic)
                 self.fontinfo2x = func(face.encode("utf-8"), pixels*2, bold, italic)
             except:
-                encoding = cw.filesystem_encoding
-                face = face.encode(encoding)
                 self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
         else:
-            encoding = cw.filesystem_encoding
-            face = face.encode(encoding)
             self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
 
     def _is_cachable(self, s):
