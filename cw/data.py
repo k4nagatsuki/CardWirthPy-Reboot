@@ -1921,7 +1921,6 @@ class YadoDeletedPathSet(set):
             os.makedirs(self.tempdir)
         fpath = cw.util.join_paths(self.tempdir, "~DeletedPaths.temp")
         with open(fpath, "w", encoding="utf-8") as f:
-            print("\n".join(self))
             f.write("\n".join(self))
             f.flush()
             f.close()
