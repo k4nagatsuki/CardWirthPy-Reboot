@@ -2302,7 +2302,7 @@ def decode_zipname(name):
                             try:
                                 name = str(name, "utf-32")
                             except UnicodeDecodeError:
-                                name = name
+                                name = str(name, "cp437")
 
     return name
 
@@ -2330,7 +2330,7 @@ def decode_text(name):
                                 try:
                                     name = str(name, "euc-jp")
                                 except UnicodeDecodeError:
-                                    name = name
+                                    name = str(name, "cp437")
 
     return name
 
