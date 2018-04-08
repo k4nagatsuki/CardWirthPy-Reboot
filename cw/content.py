@@ -2909,17 +2909,18 @@ def is_addablecoupon(coupon):
 class GetCouponContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
+        self.coupon = self.data.get("coupon")
+        self.value = self.data.get("value")
+        self.scope = self.data.get("targets")
+        # 称号所有者が適用範囲の時の称号名(Wsn.2)
+        self.holdingcoupon = self.data.get("holdingcoupon", "")
 
     def action(self):
         """称号付与コンテント。"""
-        coupon = self.data.get("coupon")
-        value = self.data.get("value")
-        scope = self.data.get("targets")
-
-        if is_addablecoupon(coupon):
-            targets = cw.cwpy.event.get_targetscope(scope, False)
+        if is_addablecoupon(self.coupon):
+            targets = cw.cwpy.event.get_targetscope(self.scope, False, coupon=self.holdingcoupon)
             cardevent = cw.cwpy.event.get_effectevent()
-            targetout = cardevent and cardevent.in_effectmotionloop() and coupon == u"＠効果対象"
+            targetout = cardevent and cardevent.in_effectmotionloop() and self.coupon == u"＠効果対象"
 
             for target in targets:
                 if isinstance(target, cw.character.Character):
@@ -2927,7 +2928,7 @@ class GetCouponContent(GetContent):
                         # "＠効果対象外"を持つメンバには"＠効果対象"はつかない(Wsn.2)
                         continue
 
-                    target.set_coupon(coupon, value)
+                    target.set_coupon(self.coupon, self.value)
 
         return 0
 
@@ -3285,19 +3286,21 @@ class LoseCouponContent(LoseContent):
     def __init__(self, data):
         LoseContent.__init__(self, data)
 
+        self.coupon = self.data.get("coupon")
+        self.scope = self.data.get("targets")
+        # 称号所有者が適用範囲の時の称号名(Wsn.2)
+        self.holdingcoupon = self.data.get("holdingcoupon", "")
+
     def action(self):
         """称号剥奪コンテント。"""
-        coupon = self.data.get("coupon")
-        scope = self.data.get("targets")
-
-        if is_addablecoupon(coupon):
-            targets = cw.cwpy.event.get_targetscope(scope, False)
+        if is_addablecoupon(self.coupon):
+            targets = cw.cwpy.event.get_targetscope(self.scope, False, coupon=self.holdingcoupon)
             cardevent = cw.cwpy.event.get_effectevent()
-            targetout = cardevent and cardevent.in_effectmotionloop() and coupon == u"＠効果対象"
+            targetout = cardevent and cardevent.in_effectmotionloop() and self.coupon == u"＠効果対象"
 
             for target in targets:
                 if isinstance(target, cw.character.Character):
-                    target.remove_coupon(coupon)
+                    target.remove_coupon(self.coupon)
 
                     if targetout:
                         # 無限ループを避けるための措置(Wsn.2)

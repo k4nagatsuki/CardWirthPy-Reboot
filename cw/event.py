@@ -170,7 +170,7 @@ class EventInterface(object):
         self._selectedcard = header
         self.refresh_selectedcardname()
 
-    def get_targetscope(self, scope, unreversed=True, cards=True):
+    def get_targetscope(self, scope, unreversed=True, cards=True, coupon=u""):
         """
         コンテントの適用範囲を返す関数。
         すべてリストで返す。
@@ -215,6 +215,12 @@ class EventInterface(object):
             # 同行キャストは対象外
             seq.extend(cw.cwpy.get_pcards(mode))
             seq.extend(cw.cwpy.get_ecards(mode))
+        # 称号所有者(Wsn.3)
+        elif scope == "CouponHolder":
+            if coupon:
+                for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"), cw.cwpy.get_ecards("unreversed")):
+                    if ccard.has_coupon(coupon):
+                        seq.append(ccard)
         else:
             raise ValueError(scope + " is invalid value.")
 
