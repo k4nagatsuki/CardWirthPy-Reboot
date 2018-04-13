@@ -93,6 +93,10 @@ class Battle(base.CWBinaryBase):
                     elif prop.tag == "MusicPath":
                         bgm = base.CWBinaryBase.materialpath(prop.text)
                         f.check_bgmoptions(prop)
+                    elif prop.tag == "RunAway":
+                        runaway = prop.getbool(".", True)
+                        if not runaway:
+                            f.check_wsnversion("3", "逃走不可バトル")
             elif e.tag == "PlayerCardEvents":
                 if len(e):
                     f.check_wsnversion("2", "プレイヤーカードイベント")

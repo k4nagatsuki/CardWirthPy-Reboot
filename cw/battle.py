@@ -22,7 +22,7 @@ class BattleDefeatError(BattleError):
     pass
 
 class BattleEngine(object):
-    def __init__(self):
+    def __init__(self, data):
         """
         戦闘関係のデータ・処理をまとめたクラス。
         初期化時に自動的にready()を実行する。
@@ -52,6 +52,8 @@ class BattleEngine(object):
             self.numenemy = len(cw.cwpy.get_mcards("flagtrue"))
         # ラウンドイベント中か
         self.in_roundevent = False
+        # 逃走可否
+        self.possible_runaway = data.getbool("Property/RunAway", True)
 
         cw.cwpy.battle = self
 

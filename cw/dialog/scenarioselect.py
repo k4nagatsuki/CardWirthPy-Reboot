@@ -3047,14 +3047,11 @@ class ScenarioSelect(select.Select):
 
                 else:
                     with cw.util.zip_file(path, "r") as z:
-                        names = [name for name in z.namelist() if name.lower().endswith(".txt")]
+                        names = [(name, info) for name, info in zip(z.namelist(), z.infolist()) if name.lower().endswith(".txt")]
 
-                        for name in names:
+                        for name, info in names:
                             data = z.read(name)
-                            if isinstance(z, zipfile.ZipFile):
-                                name = cw.util.decode_zipname(name.encode("cp437"))
-                            else:
-                                name = cw.util.decode_zipname(name.encode("ISO-8859-1"))
+                            name = cw.util.decode_zipfilename(name, info)
                             name = os.path.basename(name)
                             seq.append(text.ReadmeData(name, data))
                         z.close()
