@@ -31,29 +31,29 @@ class BattleCommand(wx.Dialog):
         header.lclick_event = self.start
         header.negaflag = False
         self.list.append(header)
-
-        self.toppanel = wx.Panel(self, -1, size=((w+cw.wins(5))*3+cw.wins(5), h+cw.wins(5)*2))
-
         # 逃げる
-        path = "Resource/Image/Card/ACTION9"
-        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        path = [cw.image.ImageInfo(path)]
-        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"], can_loaded_scaledimage=True)
-        header.rect = pygame.Rect((w+cw.wins(5))*1+cw.wins(5), cw.wins(5), w, h)
-        header.clickedflag = False
-        header.negaflag = False
-        header.lclick_event = self.runaway
-        self.list.append(header)
+        if cw.cwpy.battle.possible_runaway:
+            path = "Resource/Image/Card/ACTION9"
+            path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
+            path = [cw.image.ImageInfo(path)]
+            header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"], can_loaded_scaledimage=True)
+            header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
+            header.clickedflag = False
+            header.negaflag = False
+            header.lclick_event = self.runaway
+            self.list.append(header)
         # キャンセル
         path = "Resource/Image/Card/COMMAND1"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         path = [cw.image.ImageInfo(path)]
         header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["cancel"], can_loaded_scaledimage=True)
-        header.rect = pygame.Rect((w+cw.wins(5))*2+cw.wins(5), cw.wins(5), w, h)
+        header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
         header.clickedflag = False
         header.negaflag = False
         header.lclick_event = self.cancel
         self.list.append(header)
+
+        self.toppanel = wx.Panel(self, -1, size=((w+cw.wins(5))*len(self.list)+cw.wins(5), h+cw.wins(5)*(len(self.list)-1)))
 
         self._do_layout()
         self._bind()

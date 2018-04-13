@@ -3333,7 +3333,7 @@ class CWPy(_Singleton, threading.Thread):
         sprite.remove(cw.cwpy.cardgrp)
 
         self.sdata.pre_battleareadata = (oldareaid, oldbgmpath, (music.path, music.subvolume, music.loopcount, music.channel))
-        cw.battle.BattleEngine()
+        cw.battle.BattleEngine(data)
         self.lock_menucards = False
 
     def clear_battlearea(self, areachange=True, eventkeynum=0, startnextbattle=False, is_battlestarting=False):
