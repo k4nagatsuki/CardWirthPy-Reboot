@@ -888,6 +888,7 @@ class SkinPanel(wx.Panel):
         self.skins = []
         self.skindirs = []
         self.skin_summarys = {}
+        self.all_skintypes = set()
 
         if not cw.cwpy.ydata or (self.cb_show_allskin and self.cb_show_allskin.GetValue()):
             skintype = u""
@@ -901,7 +902,9 @@ class SkinPanel(wx.Panel):
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 try:
                     prop = cw.header.GetProperty(skinpath)
-                    if skintype and prop.properties.get("Type", "") <> skintype:
+                    skintype2 = prop.properties.get("Type", "")
+                    self.all_skintypes.add(skintype2)
+                    if skintype and skintype2 <> skintype:
                         continue
                     if prop.attrs.get(None, {}).get("dataVersion") in cw.SUPPORTED_SKIN:
                         self.skins.append(prop.properties.get("Name", name))
@@ -2384,13 +2387,8 @@ class ScenarioSettingPanel(wx.Panel):
         if self.celleditor:
             wx.CallAfter(self._select_changed_folderoftype)
             return
-        types = set()
-        self.Parent.Parent.pane_gene.skin.load_allskins()
-        for t in self.Parent.Parent.pane_gene.skin.skin_summarys.itervalues():
-            skintype, _skinname, _author, _desc, _vocation120, _initialcash = t
-            types.add(skintype)
 
-        types = list(types)
+        types = list(self.Parent.Parent.pane_gene.skin.all_skintypes)
         cw.util.sort_by_attr(types)
 
         colattr = wx.grid.GridCellAttr()
@@ -2473,10 +2471,13 @@ class ScenarioSettingPanel(wx.Panel):
         self.Layout()
 
     def OnGridCellChange(self, event):
-        if event.Col == 0 and event.Row + 1 == self.grid_folderoftype.GetNumberRows() and\
-                self.grid_folderoftype.GetCellValue(event.Row, 0):
+        self._grid_cell_change(event.Row, event.Col)
+
+    def _grid_cell_change(self, row, col):
+        if col == 0 and row + 1 == self.grid_folderoftype.GetNumberRows() and\
+                self.grid_folderoftype.GetCellValue(row, 0):
             self.grid_folderoftype.AppendRows(1)
-            self.grid_folderoftype.SetCellRenderer(event.Row+1, 1, cw.util.FilePathRenderer(False, True))
+            self.grid_folderoftype.SetCellRenderer(row+1, 1, cw.util.FilePathRenderer(False, True))
 
     def OnRefFolderBtn(self, event):
         row = self.grid_folderoftype.GetGridCursorRow()
@@ -2496,6 +2497,9 @@ class ScenarioSettingPanel(wx.Panel):
             if not relpath.startswith(".."):
                 dpath = relpath
             self.grid_folderoftype.SetCellValue(row, 1, cw.util.join_paths(dpath))
+            if not self.grid_folderoftype.GetCellValue(row, 0):
+                self.grid_folderoftype.SetCellValue(row, 0, "MedievalFantasy")
+                self._grid_cell_change(row, 0)
             self._select_changed_folderoftype()
             self.GetTopLevelParent().applied()
         dlg.Destroy()
