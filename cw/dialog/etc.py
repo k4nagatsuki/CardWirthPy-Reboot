@@ -53,7 +53,7 @@ class BattleCommand(wx.Dialog):
         header.lclick_event = self.cancel
         self.list.append(header)
 
-        self.toppanel = wx.Panel(self, -1, size=((w+cw.wins(5))*len(self.list)+cw.wins(5), h+cw.wins(5)*(len(self.list)-1)))
+        self.toppanel = wx.Panel(self, -1, size=((w+cw.wins(5))*len(self.list)+cw.wins(5), h+cw.wins(5)*2))
 
         self._do_layout()
         self._bind()
