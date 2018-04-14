@@ -52,7 +52,7 @@ class BattleEngine(object):
             self.numenemy = len(cw.cwpy.get_mcards("flagtrue"))
         # ラウンドイベント中か
         self.in_roundevent = False
-        # 逃走可否
+        # 逃走可能か(Wsn.3)
         self.possible_runaway = data.getbool("Property/RunAway", True)
 
         cw.cwpy.battle = self
