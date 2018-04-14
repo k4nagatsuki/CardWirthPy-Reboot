@@ -32,7 +32,13 @@ if getattr(sys, 'frozen', False) or True:
                 vstr = []
                 for v in cw.APP_VERSION:
                     vstr.append(str(v))
-                self.f.write("Version : %s" % ".".join(vstr))
+                if sys.maxsize == 0x7fffffff:
+                    bits = "32-bit"
+                elif sys.maxsize == 0x7fffffffffffffff:
+                    bits = "64-bit"
+                else:
+                    assert False
+                self.f.write("Version : %s (%s)" % (".".join(vstr), bits))
                 try:
                     import versioninfo
                     self.f.write(" / %s" % (versioninfo.build_datetime))

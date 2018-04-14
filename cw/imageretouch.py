@@ -19,7 +19,7 @@ try:
     elif sys.maxsize == 0x7fffffffffffffff:
         from . import _imageretouch64 as _imageretouch
 except ImportError as ex:
-    print("failed to load _imageretouch module. %s" % (ex.message))
+    print("failed to load _imageretouch module. %s" % (ex))
     _imageretouch = object()
 
 

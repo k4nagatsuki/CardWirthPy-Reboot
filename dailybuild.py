@@ -41,22 +41,34 @@ if __name__ == '__main__':
 
     fpath = datetime.datetime.today().strftime("%Y%m%d")
 
+    if sys.maxsize == 0x7fffffff:
+        logname = "dailybuild.log"
+    elif sys.maxsize == 0x7fffffffffffffff:
+        logname = "dailybuild_x64.log"
+    else:
+        assert False
+
     mark = "a"
-    if os.path.isfile("dailybuild.log"):
-        f = open("dailybuild.log", "r")
+    if os.path.isfile(logname):
+        f = open(logname, "r")
         lines = f.readlines()
         f.close()
         if lines[0].strip() == fpath:
             mark = lines[1][0]
             mark = chr(ord(mark) + 1)
 
-    f = open("dailybuild.log", "w")
+    f = open(logname, "w")
     f.write(fpath + "\n" + mark + "\n")
     f.close()
 
     if mark == "a":
         mark = ""
-    fpath = "cardwirthpy_%s%s.zip" % (fpath, mark)
+    if sys.maxsize == 0x7fffffff:
+        fpath = "cardwirthpy_%s%s_x86.zip" % (fpath, mark)
+    elif sys.maxsize == 0x7fffffffffffffff:
+        fpath = "cardwirthpy_%s%s_x64.zip" % (fpath, mark)
+    else:
+        assert False
     fpath = os.path.join(dir, fpath)
     compress_all(fpath, build_cx.dist_dir)
 

@@ -25,7 +25,13 @@ def _settings_width():
 
 def create_versioninfo(parent):
     """バージョン情報を表示するwx.TextCtrlを生成する。"""
-    s = "%s %s" % (cw.APP_NAME, ".".join([str(a) for a in cw.APP_VERSION]))
+    if sys.maxsize == 0x7fffffff:
+        bits = "32-bit"
+    elif sys.maxsize == 0x7fffffffffffffff:
+        bits = "64-bit"
+    else:
+        assert False
+    s = "%s %s (%s)" % (cw.APP_NAME, ".".join([str(a) for a in cw.APP_VERSION]), bits)
     if versioninfo:
         s = "%s\nBuild: %s" % (s, versioninfo.build_datetime)
     parent.versioninfo = wx.TextCtrl(parent, -1, s, size=(-1, -1), style=wx.TE_READONLY|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.NO_BORDER)

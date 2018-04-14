@@ -193,9 +193,16 @@ def init_bass(soundfonts):
 
     try:
         if sys.platform == "win32":
-            _bass = ctypes.windll.LoadLibrary("bass.dll")
-            _bassmidi = ctypes.windll.LoadLibrary("bassmidi.dll")
-            _bassfx = ctypes.windll.LoadLibrary("bass_fx.dll")
+            if sys.maxsize == 0x7fffffff:
+                _bass = ctypes.windll.LoadLibrary("bass.dll")
+                _bassmidi = ctypes.windll.LoadLibrary("bassmidi.dll")
+                _bassfx = ctypes.windll.LoadLibrary("bass_fx.dll")
+            elif sys.maxsize == 0x7fffffffffffffff:
+                _bass = ctypes.windll.LoadLibrary("x64/bass.dll")
+                _bassmidi = ctypes.windll.LoadLibrary("x64/bassmidi.dll")
+                _bassfx = ctypes.windll.LoadLibrary("x64/bass_fx.dll")
+            else:
+                assert False
         elif sys.platform == "darwin":
             if ('RESOURCEPATH' in os.environ and
                 os.path.exists(

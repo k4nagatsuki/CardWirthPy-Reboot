@@ -192,10 +192,15 @@ def build_exe():
         "lib/wx/libcairo-2.dll",
         "lib/wx/libexpat-1.dll",
         "lib/wx/_propgrid.cp36-win32.pyd",
+        "lib/wx/_propgrid.cp36-win_amd64.pyd",
         "lib/wx/wxmsw30u_propgrid_vc140.dll",
+        "lib/wx/wxmsw30u_propgrid_vc140_x64.dll",
         "lib/wx/_ribbon.cp36-win32.pyd",
+        "lib/wx/_ribbon.cp36-win_amd64.pyd",
         "lib/wx/wxmsw30u_ribbon_vc140.dll",
+        "lib/wx/wxmsw30u_ribbon_vc140_x64.dll",
         "lib/wx/wxmsw30u_webview_vc140.dll",
+        "lib/wx/wxmsw30u_webview_vc140_x64.dll",
         "lib/wx/locale/af",
         "lib/wx/locale/an",
         "lib/wx/locale/ar",
@@ -253,8 +258,10 @@ def build_exe():
         fpath = os.path.join(dist_dir, fname)
         if os.path.isfile(fpath):
             os.remove(fpath)
-        else:
+        elif os.path.isdir(fpath):
             shutil.rmtree(fpath)
+        else:
+            sys.stderr.write("Not found: %s\n" % fpath)
 
     # 空ディレクトリの削除
     empties = []

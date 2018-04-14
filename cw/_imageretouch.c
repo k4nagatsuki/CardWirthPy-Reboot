@@ -1043,11 +1043,11 @@ font_new(PyObject *self, PyObject *args)
         goto cleanup;
     }
 
-    bufSize = MultiByteToWideChar(CP_UTF8, 0, face, facelen, NULL, 0);
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, face, (int)facelen, NULL, 0);
     font->face = (LPWSTR)HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (bufSize)
     {
-        if (0 == MultiByteToWideChar(CP_UTF8, 0, face, facelen, font->face, bufSize))
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, face, (int)facelen, font->face, (int)bufSize))
         {
             PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "MultiByteToWideChar", GetLastError());
             goto cleanup;
@@ -1219,7 +1219,7 @@ static void _get_imagesize(FontInfo *font, LPWSTR str, size_t bufSize, size_t *r
     *rw = 1;
     *rh = 1;
 
-    if (0 == GetTextExtentPoint32W(font->hdc, str, bufSize, &size)) goto cleanup;
+    if (0 == GetTextExtentPoint32W(font->hdc, str, (int)bufSize, &size)) goto cleanup;
 
     if (font->italic && 1 <= bufSize)
     {
@@ -1253,14 +1253,14 @@ font_size(PyObject *self, PyObject *args)
     if (!font->hdc)
         _init_font(font);
 
-    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, (int)utf8strlen, NULL, 0);
     str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (bufSize)
     {
-        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, (int)utf8strlen, str, (int)bufSize)) goto cleanup;
     }
 
-    if (0 == GetTextExtentPoint32W(font->hdc, str, bufSize, &size)) goto cleanup;
+    if (0 == GetTextExtentPoint32W(font->hdc, str, (int)bufSize, &size)) goto cleanup;
 
 cleanup:
     if (str) HeapFree(heap, 0, str);
@@ -1301,11 +1301,11 @@ font_render(PyObject *self, PyObject *args)
     if (!font->hdc)
         _init_font(font);
 
-    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, (int)utf8strlen, NULL, 0);
     if (bufSize)
     {
         str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
-        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize))
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, (int)utf8strlen, str, (int)bufSize))
         {
             PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "MultiByteToWideChar", GetLastError());
             goto cleanup;
@@ -1329,7 +1329,7 @@ font_render(PyObject *self, PyObject *args)
         _get_imagesize(font, str, bufSize, &w, &h);
 
         info.bmiHeader.biSize = sizeof(info);
-        info.bmiHeader.biWidth = w;
+        info.bmiHeader.biWidth = (LONG)w;
         info.bmiHeader.biHeight = -(LONG)h;
         info.bmiHeader.biPlanes = 1;
         info.bmiHeader.biBitCount = 32;
@@ -1342,7 +1342,7 @@ font_render(PyObject *self, PyObject *args)
         }
         oldBitmap = (HBITMAP)SelectObject(font->hdc, bitmap);
 
-        if (!TabbedTextOutW(font->hdc, 0, 0, str, bufSize, 0, NULL, 0))
+        if (!TabbedTextOutW(font->hdc, 0, 0, str, (int)bufSize, 0, NULL, 0))
         {
             PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "TabbedTextOutW", GetLastError());
             goto cleanup;
@@ -1400,11 +1400,11 @@ font_imagesize(PyObject *self, PyObject *args)
     if (!font->hdc)
         _init_font(font);
 
-    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, (int)utf8strlen, NULL, 0);
     str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (bufSize)
     {
-        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, (int)utf8strlen, str, (int)bufSize)) goto cleanup;
         _get_imagesize(font, str, bufSize, &w, &h);
     }
     else
@@ -1513,7 +1513,7 @@ PyInit__imageretouch_mac(void)
 {
     return PyModule_Create(&_imageretouchModuleDef);
 }
-#elif defined(__x86_64__)
+#elif defined(__x86_64__) || defined(_M_X64)
 PyMODINIT_FUNC
 PyInit__imageretouch64(void)
 {
