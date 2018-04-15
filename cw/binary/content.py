@@ -740,7 +740,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Hide" and ctype == "Party":
             pass
         elif tag == "Effect" and ctype == "Break":
-            pass
+            if not data.getbool("consumecard", True):
+                f.check_wsnversion("3", "カード消費の抑止")
         elif tag == "Call" and ctype == "Start":
             f.write_string(data.get("call"))
         elif tag == "Link" and ctype == "Package":
