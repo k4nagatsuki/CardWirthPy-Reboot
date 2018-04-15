@@ -2379,7 +2379,7 @@ class EffectBreakContent(EventContentBase):
 
     def action(self):
         """効果中断コンテント。"""
-        raise cw.event.EffectBreakError()
+        raise cw.event.EffectBreakError(self.data.getbool(".", "consumecard", True))
 
     def get_status(self):
         return u"効果中断コンテント"

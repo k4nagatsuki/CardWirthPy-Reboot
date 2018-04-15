@@ -698,7 +698,9 @@ class ScenarioBadEndError(EventError):
     pass
 
 class EffectBreakError(EventError):
-    pass
+    def __init__(self, consumecard=True):
+        EventError.__init__(self)
+        self.consumecard = consumecard
 
 class Event(object):
     def __init__(self, event):
@@ -1407,7 +1409,8 @@ class CardEvent(Event, Targeting):
         # カードの使用回数減らす(シナリオ終了後に回数減らさないよう条件付き)
         if not isinstance(self.error, ScenarioEndError) and\
                 (cw.cwpy.setting.spend_noeffectcard or cw.cwpy.event.is_changestate):
-            self.inusecard.set_uselimit(-1, animate=True)
+            if not isinstance(self.error, EffectBreakError) or self.error.consumecard:
+                self.inusecard.set_uselimit(-1, animate=True)
         cw.cwpy.event.is_changestate = False
 
         # effect_cardmotionでウェイトをとってない場合はここでとる
