@@ -4,6 +4,7 @@
 import datetime
 import io
 import os
+import re
 import sys
 import time
 
@@ -12,121 +13,141 @@ import cw
 
 put_errorlog = ""
 
-if getattr(sys, 'frozen', False) or True:
+if getattr(sys, 'frozen', False):
     cw.exepath = sys.executable
-    class WriteError(io.RawIOBase):
-        def __init__(self):
-            self.f = None
-            self._last_time = 0
-        def _open(self):
-            if cw.quit:
-                return
-            global put_errorlog
-            if not self.f:
-                name = sys.executable + ".log"
-                self.f = open(name, "a", encoding="utf-8")
-                if 0 < self.tell():
-                    self.f.write("\n")
-                    self.f.write("-"*50)
-                    self.f.write("\n")
-                vstr = []
-                for v in cw.APP_VERSION:
-                    vstr.append(str(v))
-                if sys.maxsize == 0x7fffffff:
-                    bits = "32-bit"
-                elif sys.maxsize == 0x7fffffffffffffff:
-                    bits = "64-bit"
-                else:
-                    assert False
-                self.f.write("Version : %s (%s)" % (".".join(vstr), bits))
-                try:
-                    import versioninfo
-                    self.f.write(" / %s" % (versioninfo.build_datetime))
-                    self.f.write("\n")
-                except ImportError:
-                    pass
-                self._write_datetime()
-                put_errorlog = os.path.basename(name)
-                self._last_time = time.time()
-        def _write_datetime(self):
-            d = datetime.datetime.today()
-            self.f.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
-        def close(self):
-            if self.f:
-                return self.f.close()
-        @property
-        def closed(self):
-            if self.f:
-                return self.f.closed
-            else:
-                return True
-        def fileno(self):
-            if cw.quit:
-                return None
-            self._open()
-            return self.f.fileno()
-        def flush(self):
-            if self.f:
-                return self.f.flush()
-        def seek(self, offset, whence=io.SEEK_SET):
-            if cw.quit:
-                return
-            self._open()
-            return self.f.seek(offset, whence)
-        def seekable(self):
-            if cw.quit:
-                return False
-            self._open()
-            return self.f.seekable()
-        def tell(self):
-            if cw.quit:
-                return 0
-            self._open()
-            return self.f.tell()
-        def truncate(self, size=None):
-            if cw.quit:
-                return
-            self._open()
-            return self.f.truncate(size)
-        def writable(self):
-            if cw.quit:
-                return False
-            self._open()
-            return True
-        def writelines(self, lines):
-            if cw.quit:
-                return
-            if self.f and self._last_time + 1.0 <= time.time():
-                # 前回の出力から1秒以上経っていたら時刻を再出力
-                self.f.write("\n")
-                self._write_datetime()
-            self._open()
-            r = self.f.writelines(lines)
-            self.f.flush()
-            if sys.__stderr__:
-                sys.__stderr__.writelines(lines)
-            self._last_time = time.time()
-            return r
-        def write(self, b):
-            if cw.quit:
-                return
-            if self.f and self._last_time + 1.0 <= time.time():
-                self.f.write("\n")
-                self._write_datetime()
-            self._open()
-            print(b, end="")
-            r = self.f.write(b)
-            self.f.flush()
-            if sys.__stderr__:
-                sys.__stderr__.write(b)
-            self._last_time = time.time()
-            return r
-        def __del__(self):
-            if self.f:
-                del self.f
-    sys.stderr = WriteError()
 else:
     cw.exepath = __file__
+
+class WriteError(io.RawIOBase):
+    def __init__(self):
+        self.f = None
+        self._last_time = 0
+        self._re_fpath = re.compile("^\\s*File\\s\"(.+?)\"", re.IGNORECASE)
+        self._sep = os.sep
+    def _open(self):
+        if cw.quit:
+            return
+        global put_errorlog
+        if not self.f:
+            name = cw.exepath + ".log"
+            self.f = open(name, "a", encoding="utf-8")
+            if 0 < self.tell():
+                self.f.write("\n")
+                self.f.write("-"*50)
+                self.f.write("\n")
+            vstr = []
+            for v in cw.APP_VERSION:
+                vstr.append(str(v))
+            if sys.maxsize == 0x7fffffff:
+                bits = "32-bit"
+            elif sys.maxsize == 0x7fffffffffffffff:
+                bits = "64-bit"
+            else:
+                assert False
+            self.f.write("Version : %s (%s)" % (".".join(vstr), bits))
+            try:
+                import versioninfo
+                self.f.write(" / %s" % (versioninfo.build_datetime))
+                self.f.write("\n")
+            except ImportError:
+                pass
+            self._write_datetime()
+            put_errorlog = os.path.basename(name)
+            self._last_time = time.time()
+    def _write_datetime(self):
+        d = datetime.datetime.today()
+        self.f.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
+    def close(self):
+        if self.f:
+            return self.f.close()
+    @property
+    def closed(self):
+        if self.f:
+            return self.f.closed
+        else:
+            return True
+    def fileno(self):
+        if cw.quit:
+            return None
+        self._open()
+        return self.f.fileno()
+    def flush(self):
+        if self.f:
+            return self.f.flush()
+    def seek(self, offset, whence=io.SEEK_SET):
+        if cw.quit:
+            return
+        self._open()
+        return self.f.seek(offset, whence)
+    def seekable(self):
+        if cw.quit:
+            return False
+        self._open()
+        return self.f.seekable()
+    def tell(self):
+        if cw.quit:
+            return 0
+        self._open()
+        return self.f.tell()
+    def truncate(self, size=None):
+        if cw.quit:
+            return
+        self._open()
+        return self.f.truncate(size)
+    def writable(self):
+        if cw.quit:
+            return False
+        self._open()
+        return True
+    def writelines(self, lines):
+        if cw.quit:
+            return
+        if self.f and self._last_time + 1.0 <= time.time():
+            # 前回の出力から1秒以上経っていたら時刻を再出力
+            self.f.write("\n")
+            self._write_datetime()
+        seq = []
+        for line in lines:
+            seq.append(self._repl_fpath(line))
+        self._open()
+        r = self.f.writelines(seq)
+        self.f.flush()
+        if sys.__stderr__:
+            sys.__stderr__.writelines(seq)
+        self._last_time = time.time()
+        return r
+    def write(self, b):
+        if cw.quit:
+            return
+        if self.f and self._last_time + 1.0 <= time.time():
+            self.f.write("\n")
+            self._write_datetime()
+        b = self._repl_fpath(b)
+        print(b, end="")
+        self._open()
+        r = self.f.write(b)
+        self.f.flush()
+        if sys.__stderr__:
+            sys.__stderr__.write(b)
+        self._last_time = time.time()
+        return r
+    def _repl_fpath(self, s):
+        # スタックトレース内に出現するビルド環境のパスを相対パスに置換する
+        m = self._re_fpath.match(s)
+        if m:
+            p = m[1]
+            index = p.rfind(self._sep + "cw" + self._sep)
+            if index != -1:
+                p = p[index+1:]
+            else:
+                index = p.rfind(self._sep + "cardwirth.py")
+                p = "cardwirth.py"
+            s = s[:m.start(1)] + p + s[m.end(1):]
+        return s
+    def __del__(self):
+        if self.f:
+            del self.f
+sys.stderr = WriteError()
 
 sys.setrecursionlimit(1073741824)
 
