@@ -2936,7 +2936,7 @@ class GetCouponContent(GetContent):
         coupon = self.data.get("coupon")
 
         if coupon:
-            value = self.data.get("value")
+            value = self.data.getint(".", "value", 0)
             value = "+%s" % (value) if 0 <= value else "%s" % (value)
             scope = self.data.get("targets")
             scope = self.textdict.get(scope.lower(), "")
