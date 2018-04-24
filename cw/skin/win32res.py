@@ -10,8 +10,6 @@ import cw
 if sys.platform == "win32" and sys.maxsize == 0x7fffffff:
     _winapi = True
     import ctypes
-    import win32api
-    import win32con
 else:
     _winapi = False
 
@@ -59,9 +57,11 @@ class Win32Res(object):
         self._table = {}
 
         if _winapi:
-            self._winhandle = win32api.LoadLibraryEx(fpath, 0,
-                    win32con.LOAD_LIBRARY_AS_DATAFILE|
-                    win32con.LOAD_WITH_ALTERED_SEARCH_PATH)
+            fpath2 = ctypes.create_unicode_buffer(fpath)
+            LOAD_LIBRARY_AS_DATAFILE = 0x00000002
+            LOAD_WITH_ALTERED_SEARCH_PATH = 0x00000008
+            self._winhandle = ctypes.windll.kernel32.LoadLibraryExW(fpath2, 0,
+                    LOAD_LIBRARY_AS_DATAFILE|LOAD_WITH_ALTERED_SEARCH_PATH)
             if self._winhandle:
                 return
 
@@ -172,7 +172,7 @@ class Win32Res(object):
         self._table = {}
 
         if self._winhandle:
-            win32api.FreeLibrary(self._winhandle)
+            ctypes.windll.kernel32.FreeLibrary(self._winhandle)
             self._winhandle = None
 
     def get_rcdata(self, valtype, name):
@@ -180,8 +180,12 @@ class Win32Res(object):
             k = ctypes.windll.kernel32
             if isinstance(valtype, bytes):
                 valtype = ctypes.create_string_buffer(valtype)
+            else:
+                valtype = ctypes.c_char_p(valtype)
             if isinstance(name, bytes):
                 name = ctypes.create_string_buffer(name)
+            else:
+                name = ctypes.c_char_p(name)
             hsrc = k.FindResourceA(self._winhandle, name, valtype)
             if hsrc:
                 size = k.SizeofResource(self._winhandle, hsrc)
