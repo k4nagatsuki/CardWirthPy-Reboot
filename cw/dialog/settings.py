@@ -982,6 +982,8 @@ class SkinPanel(wx.Panel):
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         if dlg.successful:
+            if dlg.conv.skintype != cw.cwpy.setting.skintype and not self.cb_show_allskin.GetValue():
+                self.cb_show_allskin.SetValue(True)
             self.update_skins(dlg.skindirname)
             if self.pane_scenario:
                 self.pane_scenario.celleditor = None

@@ -7,7 +7,7 @@ import struct
 import cw
 
 
-if sys.platform == "win32":
+if sys.platform == "win32" and sys.maxsize == 0x7fffffff:
     _winapi = True
     import ctypes
     import win32api
@@ -74,13 +74,13 @@ class Win32Res(object):
         uint16 = struct.Struct("<H")
 
         # MZ header
-        if "MZ" != data[:2]:
+        if b"MZ" != data[:2]:
             raise Exception("")
         e_lfanew = uint32.unpack(data[60:64])[0]
         data = data[e_lfanew:]
 
         # PE header
-        if "PE\0\0" != data[:4]:
+        if b"PE\0\0" != data[:4]:
             raise Exception("")
         data = data[4:]
         number_of_section = uint16.unpack(data[2:4])[0]
@@ -94,7 +94,7 @@ class Win32Res(object):
         res_addr = 0
         for _i in range(number_of_section):
             rva = uint32.unpack(data[12:16])[0]
-            if ".rsrc" == data[:5] or res_addr_rva == rva:
+            if b".rsrc" == data[:5] or res_addr_rva == rva:
                 res_addr_rva = rva
                 res_size = uint32.unpack(data[16:20])[0]
                 res_addr = uint32.unpack(data[20:24])[0]
@@ -193,6 +193,8 @@ class Win32Res(object):
         else:
             if valtype in self._table:
                 table = self._table[valtype]
+                if isinstance(name, bytes):
+                    name = str(name, "utf-8")
                 if name in table:
                     return table[name]
         return None
