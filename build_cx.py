@@ -52,6 +52,12 @@ def compress_src(zpath):
     return zpath
 
 def build_exe():
+    # *.pycにビルド環境のフルパスが入ってしまう問題を避ける
+    cwd = os.path.abspath(os.path.dirname(__file__))
+    for i, p in enumerate(sys.path):
+        if p.startswith(cwd):
+            sys.path[i] = os.path.relpath(p, cwd)
+
     if os.path.isdir(dist_dir):
         print("*** Remove old files ***\n")
         for fname in os.listdir(dist_dir):
@@ -188,6 +194,7 @@ def build_exe():
     rmfiles = (
         "lib/python36.dll",
         "lib/_ssl.pyd",
+        "lib/cw/python36.dll",
         "lib/wx/python36.dll",
         "lib/wx/libcairo-2.dll",
         "lib/wx/libexpat-1.dll",

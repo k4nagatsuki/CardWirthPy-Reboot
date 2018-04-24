@@ -13,11 +13,6 @@ import cw
 
 put_errorlog = ""
 
-if getattr(sys, 'frozen', False):
-    cw.exepath = sys.executable
-else:
-    cw.exepath = __file__
-
 class WriteError(io.RawIOBase):
     def __init__(self):
         self.f = None
@@ -106,14 +101,11 @@ class WriteError(io.RawIOBase):
             # 前回の出力から1秒以上経っていたら時刻を再出力
             self.f.write("\n")
             self._write_datetime()
-        seq = []
-        for line in lines:
-            seq.append(self._repl_fpath(line))
         self._open()
-        r = self.f.writelines(seq)
+        r = self.f.writelines(lines)
         self.f.flush()
         if sys.__stderr__:
-            sys.__stderr__.writelines(seq)
+            sys.__stderr__.writelines(lines)
         self._last_time = time.time()
         return r
     def write(self, b):
@@ -122,7 +114,6 @@ class WriteError(io.RawIOBase):
         if self.f and self._last_time + 1.0 <= time.time():
             self.f.write("\n")
             self._write_datetime()
-        b = self._repl_fpath(b)
         print(b, end="")
         self._open()
         r = self.f.write(b)
@@ -131,23 +122,15 @@ class WriteError(io.RawIOBase):
             sys.__stderr__.write(b)
         self._last_time = time.time()
         return r
-    def _repl_fpath(self, s):
-        # スタックトレース内に出現するビルド環境のパスを相対パスに置換する
-        m = self._re_fpath.match(s)
-        if m:
-            p = m[1]
-            index = p.rfind(self._sep + "cw" + self._sep)
-            if index != -1:
-                p = p[index+1:]
-            else:
-                index = p.rfind(self._sep + "cardwirth.py")
-                p = "cardwirth.py"
-            s = s[:m.start(1)] + p + s[m.end(1):]
-        return s
     def __del__(self):
         if self.f:
             del self.f
-sys.stderr = WriteError()
+
+if getattr(sys, 'frozen', False):
+    cw.exepath = sys.executable
+    sys.stderr = WriteError()
+else:
+    cw.exepath = __file__
 
 sys.setrecursionlimit(1073741824)
 
