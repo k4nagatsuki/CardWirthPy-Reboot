@@ -3084,6 +3084,12 @@ class PlayerSelect(MultiViewSelect):
 
         if self.list:
             if self.views == 1:
+                PROFILE_LINES = 4
+                if 0 < PROFILE_LINES:
+                    xpos = cw.wins(0)
+                else:
+                    xpos = cw.wins(15)
+
                 header = self.list[self.index % len(self.list)]
                 # Level
                 dc.SetTextForeground(wx.BLACK)
@@ -3091,25 +3097,25 @@ class PlayerSelect(MultiViewSelect):
                 s = cw.cwpy.msgs["character_level"]
                 w = dc.GetTextExtent(s)[0]
                 if header.level < 10:
-                    dc.DrawText(s, cw.wins(64), cw.wins(42))
+                    dc.DrawText(s, cw.wins(44)+xpos, cw.wins(42))
                     w = w + 5
                 else:
-                    dc.DrawText(s, cw.wins(59), cw.wins(42))
+                    dc.DrawText(s, cw.wins(39)+xpos, cw.wins(42))
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(25)))
                 s = str(header.level)
                 y = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(65) + w, cw.wins(34))
+                dc.DrawText(s, cw.wins(45)+xpos + w, cw.wins(34))
                 w = w + y
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_class"]
-                dc.DrawText(s, cw.wins(70) + w, cw.wins(42))
+                dc.DrawText(s, cw.wins(50)+xpos + w, cw.wins(42))
                 # Name
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(22)))
                 s = header.name
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(125) - w // 2, cw.wins(67))
+                dc.DrawText(s, cw.wins(110)+xpos - w // 2, cw.wins(67))
                 # Image
-                dc.SetClippingRegion(cw.wins(88), cw.wins(90), cw.wins(74), cw.wins(94))
+                dc.SetClippingRegion(cw.wins(73)+xpos, cw.wins(90), cw.wins(74), cw.wins(94))
                 can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
                 for info in header.imgpaths:
                     path = cw.util.join_yadodir(info.path)
@@ -3120,40 +3126,65 @@ class PlayerSelect(MultiViewSelect):
                                                              basecardtype="LargeCard",
                                                              cardpostype="NotCard")
 
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, cw.wins(88)+baserect.x, cw.wins(90)+baserect.y, True, bitsizekey=bmp)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, cw.wins(73)+xpos+baserect.x, cw.wins(90)+baserect.y, True, bitsizekey=bmp)
                 dc.DestroyClippingRegion()
                 # Age
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_age"] % (header.get_age())
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(127) - w // 2, cw.wins(195))
+                dc.DrawText(s, cw.wins(112)+xpos - w // 2, cw.wins(195))
                 # Sex
                 s = cw.cwpy.msgs["character_sex"] % (header.get_sex())
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(127) - w // 2, cw.wins(210))
+                dc.DrawText(s, cw.wins(112)+xpos - w // 2, cw.wins(210))
                 # EP
                 s = cw.cwpy.msgs["character_ep"] % (header.ep)
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(127) - w // 2, cw.wins(225))
+                dc.DrawText(s, cw.wins(112)+xpos - w // 2, cw.wins(225))
+
+                # 解説
+                if 0 < PROFILE_LINES:
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
+                    s = cw.cwpy.msgs["character_profile"]
+                    w = dc.GetTextExtent(s)[0]
+                    dc.DrawText(s, cw.wins(315) - w // 2, cw.wins(42))
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
+                    desc = []
+                    for s in cw.util.txtwrap(header.desc, 4).rstrip().splitlines():
+                        if PROFILE_LINES < len(desc):
+                            desc[-1] = cw.util.abbr_longstr_with_count(desc[-1]+"...", 37)
+                            break
+                        desc.append(s)
+                    for index, s in enumerate(desc):
+                        w = dc.GetTextExtent(s)[0]
+                        dc.DrawText(s, cw.wins(190), cw.wins(63) + cw.wins(14) * index)
+
+                    hist_tpos = cw.wins(65+PROFILE_LINES*14) + cw.wins(27)
+                    hist_pos = hist_tpos+cw.wins(21)
+                    hist_num = 8 - PROFILE_LINES
+                else:
+                    hist_tpos = cw.wins(65)
+                    hist_pos = cw.wins(95)
+                    hist_num = 9
 
                 # クーポン(新しい順から9つ)
                 hiddens = set(["＿", "＠"])
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_history"]
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(320) - w // 2, cw.wins(65))
+                dc.DrawText(s, cw.wins(315) - w // 2, hist_tpos)
 
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
                 history = []
                 for s in header.history:
                     if s and not s[0] in hiddens:
-                        history.append(s)
-                        if 9 < len(history):
+                        if hist_num < len(history):
                             history[-1] = cw.cwpy.msgs["history_etc"]
                             break
+                        history.append(s)
                 for index, s in enumerate(history):
                     w = dc.GetTextExtent(s)[0]
-                    dc.DrawText(s, cw.wins(320) - w // 2, cw.wins(95) + cw.wins(14) * index)
+                    dc.DrawText(s, cw.wins(315) - w // 2, hist_pos + cw.wins(14) * index)
 
                 # ページ番号
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))

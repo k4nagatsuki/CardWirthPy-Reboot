@@ -812,6 +812,7 @@
     <Message key="desc_toggle_debug_mode">デバッグモードを開始・終了します</Message>
     <Message key="create_link_to_scenario">シナリオへのリンク</Message>
     <Message key="create_link_to_directory">フォルダへのリンク</Message>
+    <Message key="character_profile">【Profile】</Message>
     <!-- 3.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />

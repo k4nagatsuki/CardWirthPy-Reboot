@@ -3693,10 +3693,10 @@ def get_backgroundcolour(window):
 
 
 def abbr_longstr(dc, text, w):
-    """ClientDCを使って長い文字列を省略して末尾に三点リーダを付ける。
-    dc: ClientDC
-    text: 編集対象の文字列
-    w: 目標文字列長(pixel)
+    """wx.DCを使って長い文字列を省略して末尾に三点リーダを付ける。
+    dc: 幅計算用のwx.DC。
+    text: 編集対象の文字列。
+    w: 目標文字列長(pixel)。
     """
     if w <= 0 and text:
         if dc.GetTextExtent(text)[0] <= dc.GetTextExtent("...")[0]:
@@ -3706,6 +3706,25 @@ def abbr_longstr(dc, text, w):
     width = dc.GetTextExtent(text)[0]
     if width > w:
         while text and dc.GetTextExtent(text + "...")[0] > w:
+            text = text[:-1]
+        text += "..."
+    return text
+
+
+def abbr_longstr_with_count(text, w):
+    """文字数によって省略を行う。
+    text: 編集対象の文字列。
+    w: 目標文字列長(半角文字数)。
+    """
+    width = sum(map(lambda c: 1 if is_hw(c) else 2, text))
+    if w <= 0 and text:
+        if width <= len("..."):
+            return text
+        else:
+            return "..."
+    if width > w:
+        while text and width + len("...") > w:
+            width -= 1 if is_hw(text[-1]) else 2
             text = text[:-1]
         text += "..."
     return text
