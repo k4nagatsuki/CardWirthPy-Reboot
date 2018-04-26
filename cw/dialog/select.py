@@ -3151,7 +3151,7 @@ class PlayerSelect(MultiViewSelect):
                     s = cw.cwpy.msgs["character_profile"]
                     w = dc.GetTextExtent(s)[0]
                     dc.DrawText(s, cpos - w // 2, cw.wins(42))
-                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(26)))
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
                     desc = []
                     for s in cw.util.txtwrap(header.desc, 4).rstrip().splitlines():
                         if PROFILE_LINES < len(desc):
@@ -3160,8 +3160,8 @@ class PlayerSelect(MultiViewSelect):
                         desc.append(s)
                     for index, s in enumerate(desc):
                         cw.util.draw_antialiasedtext(dc, s, cw.wins(190), cw.wins(63) + cw.wins(14) * index,
-                                                     False, cw.wins(315), cw.wins(0), scaledown=True,
-                                                     width_coeff=0.85)
+                                                     False, cw.wins(315), cw.wins(0), scaledown=False,
+                                                     width_coeff=0.85, quality=wx.IMAGE_QUALITY_BILINEAR)
 
                     hist_tpos = cw.wins(65+PROFILE_LINES*14) + cw.wins(27)
                     hist_pos = hist_tpos+cw.wins(21)
