@@ -3086,7 +3086,7 @@ class PlayerSelect(MultiViewSelect):
             if self.views == 1:
                 PROFILE_LINES = 4
                 if 0 < PROFILE_LINES:
-                    xpos = cw.wins(0)
+                    xpos = cw.wins(8)
                 else:
                     xpos = cw.wins(15)
 
@@ -3143,12 +3143,15 @@ class PlayerSelect(MultiViewSelect):
                 dc.DrawText(s, cw.wins(112)+xpos - w // 2, cw.wins(225))
 
                 # 解説
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(26)))
+                cpos = cw.wins(190) + dc.GetTextExtent("#"*36)[0]*0.85//2//2+cw.wins(2)
+                print(cpos)
                 if 0 < PROFILE_LINES:
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
                     s = cw.cwpy.msgs["character_profile"]
                     w = dc.GetTextExtent(s)[0]
-                    dc.DrawText(s, cw.wins(315) - w // 2, cw.wins(42))
-                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
+                    dc.DrawText(s, cpos - w // 2, cw.wins(42))
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(26)))
                     desc = []
                     for s in cw.util.txtwrap(header.desc, 4).rstrip().splitlines():
                         if PROFILE_LINES < len(desc):
@@ -3156,8 +3159,9 @@ class PlayerSelect(MultiViewSelect):
                             break
                         desc.append(s)
                     for index, s in enumerate(desc):
-                        w = dc.GetTextExtent(s)[0]
-                        dc.DrawText(s, cw.wins(190), cw.wins(63) + cw.wins(14) * index)
+                        cw.util.draw_antialiasedtext(dc, s, cw.wins(190), cw.wins(63) + cw.wins(14) * index,
+                                                     False, cw.wins(315), cw.wins(0), scaledown=True,
+                                                     width_coeff=0.85)
 
                     hist_tpos = cw.wins(65+PROFILE_LINES*14) + cw.wins(27)
                     hist_pos = hist_tpos+cw.wins(21)
@@ -3172,7 +3176,7 @@ class PlayerSelect(MultiViewSelect):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_history"]
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(315) - w // 2, hist_tpos)
+                dc.DrawText(s, cpos - w // 2, hist_tpos)
 
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
                 history = []
@@ -3184,7 +3188,7 @@ class PlayerSelect(MultiViewSelect):
                         history.append(s)
                 for index, s in enumerate(history):
                     w = dc.GetTextExtent(s)[0]
-                    dc.DrawText(s, cw.wins(315) - w // 2, hist_pos + cw.wins(14) * index)
+                    dc.DrawText(s, cpos - w // 2, hist_pos + cw.wins(14) * index)
 
                 # ページ番号
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))

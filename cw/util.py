@@ -3411,23 +3411,26 @@ def draw_witharound(dc, s, x, y, maxwidth=0):
 
 def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
                          quality=None, scaledown=True, alpha=64,
-                         bordering=False):
+                         bordering=False, width_coeff=1):
     if not text:
         return
     if bordering:
         subimg = cw.util.render_antialiasedtext(dc, text, not white, maxwidth, padding,
-                                                scaledown=scaledown, quality=quality, alpha=alpha)
+                                                scaledown=scaledown, quality=quality, alpha=alpha,
+                                                width_coeff = width_coeff)
         for xx in range(x-1, x+2):
             for yy in range(y-1, y+2):
                 if xx != x or yy != y:
                     dc.DrawBitmap(subimg, xx, yy)
     subimg = cw.util.render_antialiasedtext(dc, text, white, maxwidth, padding,
-                                            scaledown=scaledown, quality=quality)
+                                            scaledown=scaledown, quality=quality,
+                                            width_coeff=width_coeff)
     dc.DrawBitmap(subimg, x, y)
 
 
 def render_antialiasedtext(basedc, text, white, maxwidth, padding,
-                           quality=None, scaledown=True, alpha=255):
+                           quality=None, scaledown=True, alpha=255,
+                           width_coeff=1):
     """スムージングが施された、背景が透明なテキストを描画して返す。"""
     if quality is None:
         quality = wx.IMAGE_QUALITY_BICUBIC
@@ -3493,13 +3496,16 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     if scaledown:
         if 0 < maxwidth and w//2 + padding*2 > maxwidth:
             size = (maxwidth - padding*2, h//2)
-            subimg = subimg.Rescale(size[0], h//2, quality=quality)
+            subimg = subimg.Rescale(int(size[0]*width_coeff), h//2, quality=quality)
         else:
-            subimg = subimg.Rescale(w//2, h//2, quality=quality)
+            subimg = subimg.Rescale(int((w//2)*width_coeff), h//2, quality=quality)
     else:
         if 0 < maxwidth and w + padding*2 > maxwidth:
             size = (maxwidth - padding*2, h)
-            subimg = subimg.Rescale(size[0], h, quality=quality)
+            subimg = subimg.Rescale(int(size[0]*width_coeff), h, quality=quality)
+        elif width_coeff != 1.0:
+            w, h = subimg.GetSize()
+            subimg = subimg.Rescale(int(w*width_coeff), h, quality=quality)
 
     # BUG: wxGTK 4.0.1でランダムに背景が真っ白になる問題への対策
     if sys.platform == "win32":
