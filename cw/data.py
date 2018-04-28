@@ -3867,6 +3867,8 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         if dpath and not os.path.isdir(dpath):
             os.makedirs(dpath)
 
+        temp_name = cw.util.join_paths(os.path.dirname(path), os.path.basename(path) + "~")
+        temp_name = cw.util.dupcheck_plus(path, yado=False)
         retry = 0
         while retry < 5:
             try:
@@ -3875,7 +3877,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
                     ElementTree.write(self, f, "utf-8")
                     sbytes = f.getvalue()
                     f.close()
-                with open(path, "wb") as f:
+                with open(temp_name, "wb") as f:
                     f.write(sbytes)
                     f.flush()
                     f.close()
@@ -3886,6 +3888,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
                 cw.util.print_ex()
                 retry += 1
                 time.sleep(1)
+        os.replace(temp_name, path)
 
     def write_xml(self, nocheck_edited=False):
         """エレメントが編集されていたら、
