@@ -1,4 +1,4 @@
-CardWirthPy Version.3α1
+﻿CardWirthPy Version.3α1
 ===============================
 
 作者
@@ -259,7 +259,7 @@ WSN形式では、バージョン「Wsn.2」以降、称号判定分岐でWSN形
 
 CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはcx_Freezeを使用しています。
 
-[Python ver3.6.4 (32bit版)](http://www.python.org/)
+[Python ver3.6.5](http://www.python.org/)
  : License: Python Software Foundation License
 
 [cx_Freeze](https://anthony-tuininga.github.io/cx_Freeze/)
