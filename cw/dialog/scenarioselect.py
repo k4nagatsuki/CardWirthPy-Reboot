@@ -2069,7 +2069,18 @@ class ScenarioSelect(select.Select):
         dc.DrawRectangle(0, 0, csize[0], csize[1])
         bmp = self._get_bg_scaled()
         bmpw, bmph = self.toppanel.GetClientSize()
-        dc.DrawBitmap(bmp, 0, yp, False)
+
+        # BUG: destをそのまま使用すると
+        #      cw.imageretouch.wxblit_2bitbmp_to_cardで
+        #      画面スケールが2倍で、イメージが描画領域より大きい時に
+        #      AND描画したあとの文字列の描画内容がおかしくなる
+        #      destを使用せず、Book.bmpの内容をコピーして
+        #      背景とする事でなぜか回避できる
+        #      Windows 10 1709
+#        dc.DrawBitmap(bmp, 0, yp, False)
+        dest = cw.util.copy_wxbmp(bmp, usebuffer=True)
+        dc = wx.MemoryDC(dest)
+        # --------
 
         # リストが空だったら描画終了
         if not self.list:
@@ -2706,7 +2717,7 @@ class ScenarioSelect(select.Select):
 
     def updated_names(self, dpath, dirstack, startdir, expandedset):
         if self.toppanel.IsShown():
-            self.Refresh()
+            self.toppanel.Refresh()
 
         if not self.tree.IsShown():
             return

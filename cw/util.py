@@ -3271,11 +3271,15 @@ def empty_bitmap_rgba(w, h):
     return wx.Bitmap(w, h, depth=32)
 
 
-def copy_wxbmp(bmp):
+def copy_wxbmp(bmp, usebuffer=False):
     """wx.Bitmapのコピーを生成する。"""
     w = bmp.GetWidth()
     h = bmp.GetHeight()
-    return bmp.GetSubBitmap((0, 0, w, h))
+    if usebuffer:
+        buf = wxbmp_to_buffer(bmp)
+        return wx.Bitmap.FromBuffer(w, h, buf)
+    else:
+        return bmp.GetSubBitmap((0, 0, w, h))
 
 
 def convert_to_image(bmp):
