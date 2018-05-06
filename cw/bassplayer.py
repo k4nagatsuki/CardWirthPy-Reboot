@@ -320,7 +320,7 @@ def change_soundfonts(soundfonts):
             sfont = struct.unpack("@Iii", _sfonts[i:i+4*3])
             _bassmidi.BASS_MIDI_FontFree(sfont[0])
 
-        _sfonts = ""
+        _sfonts = b""
         encoding = cw.filesystem_encoding
         for soundfont, volume in soundfonts:
             sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)

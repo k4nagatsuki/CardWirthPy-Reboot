@@ -108,10 +108,11 @@ class SettingsDialog(wx.Dialog):
                                     wx.grid.EVT_GRID_CELL_CHANGED.typeId,
                                     wx.grid.EVT_GRID_EDITOR_SHOWN.typeId):
             obj = event.GetEventObject()
-            if wx.grid.EVT_GRID_EDITOR_SHOWN.typeId and isinstance(obj, wx.grid.Grid):
-                editor = obj.GetCellEditor(event.GetRow(), event.GetCol())
-                if isinstance(editor, wx.grid.GridCellBoolEditor):
-                    self.applied()
+            if event.GetEventType() is wx.grid.EVT_GRID_EDITOR_SHOWN.typeId:
+                if isinstance(obj, wx.grid.Grid):
+                    editor = obj.GetCellEditor(event.GetRow(), event.GetCol())
+                    if isinstance(editor, wx.grid.GridCellBoolEditor):
+                        self.applied()
             elif isinstance(obj, wx.Window) and obj.GetTopLevelParent() is self:
                 self.applied()
         return False
