@@ -372,9 +372,18 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     """
     global _bass, _bassmidi, _bassfx, _sfonts, _paused
     encoding = cw.filesystem_encoding
+    # BUG: BASS 2.4.13.8でBGMが無い時に"システム・改ページ.wav"等を鳴らすと
+    #      鳴り出しでノイズと遅延が発生する。
+    #      過去にBASS_STREAM_DECODEを使用するとループ時にノイズが発生する
+    #      ファイルがあったので回避策としてテンポ・ピッチの変化が無い時は
+    #      BASS FXを使用しないようにしていたが、BASS 2.4.13.8ではその問題は
+    #      無くなっており、却って前段落の問題が発生するようなので
+    #      必ずBASS_STREAM_DECODEを使用するように変更する。
+    # See Also: https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot/issues/459
+    FORCE_FX = True
 
     flag = BASS_MUSIC_STOPBACK|BASS_MUSIC_POSRESET|BASS_MUSIC_PRESCAN
-    if tempo != 0 or pitch != 0:
+    if tempo != 0 or pitch != 0 or FORCE_FX:
         flag |= BASS_STREAM_DECODE
     if cw.cwpy.setting.bassmidi_sample32bit:
         flag |= BASS_SAMPLE_FLOAT
@@ -427,7 +436,7 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
                     loopinfo = (pos, -1)
                     break
 
-    if tempo != 0 or pitch != 0:
+    if tempo != 0 or pitch != 0 or FORCE_FX:
         stream = _bassfx.BASS_FX_TempoCreate(stream, BASS_FX_FREESOURCE)
 
     _loopcounts[streamindex] = loopcount
