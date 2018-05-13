@@ -3294,6 +3294,7 @@ class CWPy(_Singleton, threading.Thread):
         loopcount = data.getint("Property/MusicPath", "loopcount", 0)
         channel = data.getint("Property/MusicPath", "channel", 0)
         fade = data.getint("Property/MusicPath", "fadein", 0)
+        continue_bgm = data.getbool("Property/MusicPath", "continue", False)
 
         music = self.music[channel]
         self.set_battle()
@@ -3308,7 +3309,8 @@ class CWPy(_Singleton, threading.Thread):
             oldbgmpath = self.sdata.pre_battleareadata[1]
 
         # 戦闘音楽を流す
-        music.play(path, subvolume=volume, loopcount=loopcount, fade=fade)
+        if not continue_bgm:
+            music.play(path, subvolume=volume, loopcount=loopcount, fade=fade)
 
         self.change_area(areaid, False, bginhrt=True, ttype=("None", "Default"), startbattle=True)
         cw.animation.animate_sprite(sprite, "hide")
@@ -3383,6 +3385,7 @@ class CWPy(_Singleton, threading.Thread):
             if areachange:
                 # 戦闘前のエリアに戻る
                 self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)
+                self.statusbar.change(False)
 
             if eventkeynum:
                 # 勝利イベント開始
