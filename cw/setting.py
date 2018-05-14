@@ -1512,7 +1512,8 @@ class Resource(object):
         self.dialogs = self.get_dialogs(cw.util.load_wxbmp)
         # デバッガで使う画像(辞書)
         self.debugs = self.get_debugs(cw.util.load_wxbmp, cw.ppis)
-        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, lambda bmp: bmp)
+        self.debugs_wx = self.get_debugs(cw.util.load_wxbmp, cw.wins)
+        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, lambda bmp: bmp, can_loaded_scaledimage=False)
         # ダイアログで使うカーソル(辞書)
         self.cursors = self.get_cursors()
         # 適性値・使用回数値画像(辞書)
@@ -1528,7 +1529,8 @@ class Resource(object):
             self.pygamedebugs = self.get_debugs(cw.util.load_image, cw.s)
         cw.cwpy.exec_func(func)
         self.debugs = self.get_debugs(cw.util.load_wxbmp, cw.ppis)
-        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, lambda bmp: bmp)
+        self.debugs_wx = self.get_debugs(cw.util.load_wxbmp, cw.wins)
+        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, lambda bmp: bmp, can_loaded_scaledimage=False)
 
     def get_fontpaths(self):
         """
@@ -2052,7 +2054,7 @@ class Resource(object):
         return btn.copy() if btn else None
 
     def get_resources(self, func, dpath1, dpath2, ext, mask=None, ss=None, noresize=(), nodbg=False, emptyfunc=None,
-                      editor_res=None, warning=True):
+                      editor_res=None, warning=True, can_loaded_scaledimage=True):
         """
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
@@ -2098,9 +2100,9 @@ class Resource(object):
                 res = func(fpath)
             else:
                 if ss == cw.ppis and func == cw.util.load_wxbmp:
-                    res = func(fpath, mask=mask, can_loaded_scaledimage=True, up_scr=cw.dpi_level)
+                    res = func(fpath, mask=mask, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=cw.dpi_level)
                 else:
-                    res = func(fpath, mask=mask, can_loaded_scaledimage=True, up_scr=up_scr)
+                    res = func(fpath, mask=mask, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
 
             if not noscale:
                 if not dbg and ss and not key in noresize:
@@ -2260,7 +2262,7 @@ class Resource(object):
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss, emptyfunc=emptyfunc)
 
-    def get_debugs(self, load_image, ss):
+    def get_debugs(self, load_image, ss, can_loaded_scaledimage=True):
         """
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2278,7 +2280,8 @@ class Resource(object):
         if not os.path.isdir(editor_res):
             editor_res = None
 
-        return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc, editor_res=editor_res)
+        return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc, editor_res=editor_res,
+                                  can_loaded_scaledimage=can_loaded_scaledimage)
 
     def get_cardbgs(self, load_image):
         """

@@ -3772,8 +3772,8 @@ class CheckableListCtrl(wx.ListCtrl,
             w2, h2 = self.imglist.GetSize(0)
             if (w, h) != (w2, h2):
                 self.imglist = wx.ImageList(w, h, True)
-                self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["NOCHECK"]))
-                self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["CHECK"]))
+                self.imglist.Add(cw.cwpy.rsrc.debugs_wx["NOCHECK"])
+                self.imglist.Add(cw.cwpy.rsrc.debugs_wx["CHECK"])
                 self.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
 
         self._system = system
@@ -3810,14 +3810,14 @@ class CWBackCheckBox(wx.CheckBox):
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15)))
         w, h = dc.GetTextExtent(text)
-        bmp = cw.wins(cw.cwpy.rsrc.debugs_noscale["NOCHECK"])
+        bmp = cw.cwpy.rsrc.debugs_wx["NOCHECK"]
         w += cw.wins(4) + bmp.GetWidth()
         h = max(h, bmp.GetHeight())
         self.SetMinSize((w, h))
         self.SetSize((w, h))
 
         self._nocheck = bmp
-        self._check = cw.wins(cw.cwpy.rsrc.debugs_noscale["CHECK"])
+        self._check = cw.cwpy.rsrc.debugs_wx["CHECK"]
 
         self.background = cw.cwpy.rsrc.dialogs["CAUTION"]
 

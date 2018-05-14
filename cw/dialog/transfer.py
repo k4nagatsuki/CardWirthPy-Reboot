@@ -48,17 +48,17 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imglist = self.datalist.imglist
         assert self.imglist.ImageCount == 2
         self.imgidx_bookmark = self.imglist.Add(cw.cwpy.rsrc.dialogs["BOOKMARK"])
-        self.imgidx_party = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["MEMBER"]))
-        self.imgidx_standby = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_CAST"]))
-        self.imgidx_skill = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_SKILL"]))
-        self.imgidx_item = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_ITEM"]))
-        self.imgidx_beast = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_BEAST"]))
-        self.imgidx_gossip = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_GOSSIP"]))
-        self.imgidx_completestamp = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["EVT_GET_COMPLETESTAMP"]))
-        self.imgidx_money = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["MONEY"]))
-        self.imgidx_album = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["CARD"]))
-        self.imgidx_partyrecord = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["SELECTION"]))
-        self.imgidx_savedjpdcimage = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs_noscale["JPDCIMAGE"]))
+        self.imgidx_party = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["MEMBER"])
+        self.imgidx_standby = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["EVT_GET_CAST"])
+        self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["EVT_GET_SKILL"])
+        self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["EVT_GET_ITEM"])
+        self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["EVT_GET_BEAST"])
+        self.imgidx_gossip = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["EVT_GET_GOSSIP"])
+        self.imgidx_completestamp = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["EVT_GET_COMPLETESTAMP"])
+        self.imgidx_money = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["MONEY"])
+        self.imgidx_album = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["CARD"])
+        self.imgidx_partyrecord = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["SELECTION"])
+        self.imgidx_savedjpdcimage = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["JPDCIMAGE"])
         self.datalist.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
 
         def func(index, flag):
