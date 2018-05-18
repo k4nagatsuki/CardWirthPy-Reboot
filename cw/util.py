@@ -1182,10 +1182,16 @@ def cmp(a, b):
         return -1
     elif b is None:
         return 1
-    elif a < b:
-        return -1
-    elif b < a:
-        return 1
+    elif type(a) is type(b):
+        if a < b:
+            return -1
+        elif b < a:
+            return 1
+    else:
+        if type(a) is int:
+            return -1
+        else:
+            return 1
     return 0
 
 
