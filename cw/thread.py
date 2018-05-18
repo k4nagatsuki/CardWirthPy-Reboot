@@ -1971,12 +1971,12 @@ class CWPy(_Singleton, threading.Thread):
 
         try:
             fpath = cw.util.join_paths(self.skindir, "Resource/Xml/Animation/Opening.xml")
-            anime = cw.sprite.animationcell.AnimationCell(fpath, cw.SIZE_AREA, (0, 0), self.topgrp, "title")
+            anime = cw.sprite.animationcell.AnimationCell(fpath, cw.SIZE_AREA, (0, 0), self.topgrp, cw.LAYER_TITLE)
             self.draw()
             cw.animation.animate_sprite(anime, "animation", clearevent=False)
 
             # スプライトを解除する
-            self.topgrp.remove_sprites_of_layer("title")
+            self.topgrp.remove_sprites_of_layer(cw.LAYER_TITLE)
 
             if self.cut_animation:
                 ttype = ("Default", "Default")
@@ -1988,7 +1988,7 @@ class CWPy(_Singleton, threading.Thread):
 
         except cw.event.EffectBreakError:
             # 他のスキンへの切り替えなどで中止
-            self.topgrp.remove_sprites_of_layer("title")
+            self.topgrp.remove_sprites_of_layer(cw.LAYER_TITLE)
 
     def set_title(self, init=True, ttype=("Default", "Default")):
         """タイトル画面へ遷移。"""
