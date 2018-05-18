@@ -3145,7 +3145,6 @@ class PlayerSelect(MultiViewSelect):
                 # 解説
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
                 cpos = cw.wins(190) + dc.GetTextExtent("#"*36)[0]*0.85//2
-                print(cpos)
                 if 0 < PROFILE_LINES:
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
                     s = cw.cwpy.msgs["character_profile"]

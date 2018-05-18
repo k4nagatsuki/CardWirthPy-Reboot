@@ -28,6 +28,9 @@ class ImageInfo(object):
             self.postype = postype
         self.basecardtype = basecardtype
 
+    def copy(self):
+        return ImageInfo(self.path, self.pcnumber, None, self.postype, self.basecardtype)
+
     def set_attr(self, e):
         """拡張情報をeへ登録する。
         """
@@ -75,7 +78,10 @@ class ImageInfo(object):
         if basecardtype == "LargeCard":
             w, h = getsize("LARGE_noscale")
             bx, by = (11, 18)
-            defpostype = "Center"
+            if cardpostype == "NotCard":
+                defpostype = "TopLeft"
+            else:
+                defpostype = "Center"
         elif basecardtype == "NormalCard":
             w, h = getsize("NORMAL_noscale")
             bx, by = (3, 13)

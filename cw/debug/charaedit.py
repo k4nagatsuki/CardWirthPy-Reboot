@@ -353,7 +353,8 @@ class CharaInfo(object):
         faces = []
         for values in cw.util.get_facepaths(self.sex, self.age).values():
             faces.extend(values)
-        self.imgpaths = [cw.image.ImageInfo(cw.cwpy.dice.choice(faces), postype="Center")] if faces else []
+        postype = "Center" if self.imgcentering.GetValue() else "Default"
+        self.imgpaths = [cw.image.ImageInfo(cw.cwpy.dice.choice(faces), postype=postype)] if faces else []
         self.can_loaded_scaledimage = True
 
         natures = []
@@ -733,6 +734,7 @@ class CharaRequirementPanel(wx.Panel):
         self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.ppis(cw.SIZE_CARDIMAGE),
                                             ss=cw.ppis)
         self.imgcombo = wx.ComboBox(self, -1, size=(cw.ppis(125), -1), style=wx.CB_READONLY)
+        self.imgcentering = wx.CheckBox(self, -1, "中央寄せ")
         self.imgpathlist = []
 
         self.lvlbox = wx.StaticBox(self, -1, "レベル")
@@ -775,6 +777,7 @@ class CharaRequirementPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnAutoName, self.autoname)
         self.Bind(wx.EVT_BUTTON, self.OnLevelBtn, self.levelbtn)
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectImage, self.imgcombo)
+        self.Bind(wx.EVT_CHECKBOX, self.OnSelectImage, self.imgcentering)
         if self.race:
             self.Bind(wx.EVT_CHOICE, self.OnRace, self.race)
         self.Bind(wx.EVT_RADIOBOX, self.OnSelectSex, self.sexes)
@@ -794,6 +797,7 @@ class CharaRequirementPanel(wx.Panel):
         sizer_image.Add(self.img, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
         sizer_image.AddStretchSpacer(1)
         sizer_image.Add(self.imgcombo, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND|wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_image.Add(self.imgcentering, 0, wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(5))
 
         sizer_level = wx.StaticBoxSizer(self.lvlbox, wx.VERTICAL)
         sizer_level.Add(self.levelbtn, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
@@ -897,12 +901,22 @@ class CharaRequirementPanel(wx.Panel):
 
         if self.imgcombo.GetSelection() == 0:
             for info in infos:
-                info.imgpaths = info.imgpaths_base
+                paths = []
+                for path in info.imgpaths_base:
+                    path = path.copy()
+                    if self.imgcentering.GetValue():
+                        path.postype = "Center"
+                    else:
+                        if path.postype == "Center":
+                            path.postype = "Default"
+                    paths.append(path)
+                info.imgpaths = paths
                 info.can_loaded_scaledimage = info.can_loaded_scaledimage_base
         else:
             fpath = self.imgpathlist[self.imgcombo.GetSelection()-1]
             for info in infos:
-                info.imgpaths = [cw.image.ImageInfo(fpath, postype="Center")]
+                postype = "Center" if self.imgcentering.GetValue() else "Default"
+                info.imgpaths = [cw.image.ImageInfo(fpath, postype=postype)]
                 info.can_loaded_scaledimage = True
 
         self._select_image()
@@ -918,7 +932,8 @@ class CharaRequirementPanel(wx.Panel):
 
         if seq:
             self._dropfiles = seq
-            img = [cw.image.ImageInfo(seq[0], postype="Center")]
+            postype = "Center" if self.imgcentering.GetValue() else "Default"
+            img = [cw.image.ImageInfo(seq[0], postype=postype)]
             self._update_images(img)
             infos = self._get_infos()
             for info in infos:
@@ -954,7 +969,8 @@ class CharaRequirementPanel(wx.Panel):
             if 0 >= self.imgcombo.GetSelection():
                 img = []
             else:
-                img = [cw.image.ImageInfo(self.imgpathlist[self.imgcombo.GetSelection()-1], postype="Center")]
+                postype = "Center" if self.imgcentering.GetValue() else "Default"
+                img = [cw.image.ImageInfo(self.imgpathlist[self.imgcombo.GetSelection()-1], postype=postype)]
 
         infos = self._get_infos()
 
@@ -1016,7 +1032,8 @@ class CharaRequirementPanel(wx.Panel):
             # パスを選択
             img = self.imgpathlist[self.imgcombo.GetSelection()-1]
             bmp = cw.util.load_wxbmp(img, mask=True, can_loaded_scaledimage=True, up_scr=cw.dpi_level)
-            self.img.SetBitmap([cw.ppis(bmp)], [bmp], infos=[cw.image.ImageInfo(img, postype="Center")])
+            postype = "Center" if self.imgcentering.GetValue() else "Default"
+            self.img.SetBitmap([cw.ppis(bmp)], [bmp], infos=[cw.image.ImageInfo(img, postype=postype)])
 
     def _get_infos(self):
         if self.cindex == 0:
@@ -1106,6 +1123,13 @@ class CharaRequirementPanel(wx.Panel):
             index = 0
         self.natures.SetSelection(index)
 
+        for imgpath in imgpaths:
+            if imgpath.postype != "Center":
+                self.imgcentering.SetValue(False)
+                break
+        else:
+            self.imgcentering.SetValue(True)
+
         self._update_images(imgpaths)
         self.Layout()
         self._proc = False
@@ -1131,7 +1155,8 @@ class CharaRequirementPanel(wx.Panel):
                 seq.extend(paths)
 
             fpath = cw.cwpy.dice.choice(seq)
-            info.imgpaths = [cw.image.ImageInfo(fpath, postype="Center")]
+            postype = "Center" if self.imgcentering.GetValue() else "Default"
+            info.imgpaths = [cw.image.ImageInfo(fpath, postype=postype)]
             info.can_loaded_scaledimage = True
 
             if not info.input_name:
