@@ -144,6 +144,8 @@ class Album(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
+        from . import coupon
+
         name = ""
         image = None
         level = 0
