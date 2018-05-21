@@ -763,11 +763,13 @@ class Frame(wx.Frame):
         # FIXME: linuxでたまに操作不能になる
         #        Windowsでも環境によって落ちる事がある
         #        kill_dlgを遅延させる事で問題を回避する
-        #self.kill_dlg(None)
-        #self.append_killlist(dlg)
-
-        # wxPython 4.0.2にアップデートしたのでで様子見
-        self.kill_dlg(dlg)
+        if sys.platform == "win32":
+            self.kill_dlg(None)
+            self.append_killlist(dlg)
+        else:
+            # wxPython 4.0.1にアップデートしたので様子見
+            # Windowsでは依然として問題が出る模様
+            self.kill_dlg(dlg)
 
     @synclock(_killlist_mutex)
     def append_killlist(self, dlg):
