@@ -518,7 +518,7 @@ class _JpySubImage(cw.image.Image):
 
         # 透明度
         if self.paintmode == 3:
-            if image.get_flags() & pygame.locals.SRCALPHA:
+            if 32 <= image.get_bitsize():
                 image.fill((255, 255, 255, self.alpha), special_flags=pygame.locals.BLEND_RGBA_MULT)
             else:
                 image.set_alpha(self.alpha)
