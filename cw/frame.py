@@ -311,17 +311,14 @@ class Frame(wx.Frame):
             w -= (w - self.GetSize()[0]) // 2
             self.move_dlg(dlg, (w, cw.ppis(0)))
             self.debugger = dlg
+
+            if refreshtree:
+                dlg.refresh_all()
+
             def func():
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
                 cw.cwpy.draw()
             cw.cwpy.exec_func(func)
-            if refreshtree:
-                def func():
-                    def func():
-                        if self.debugger:
-                            self.debugger.refresh_all()
-                    cw.cwpy.frame.exec_func(func)
-                cw.cwpy.exec_func(func)
             dlg.Show()
 
     def close_debugger(self):

@@ -516,6 +516,7 @@ class Debugger(wx.Frame):
     def refresh_all(self):
         self.view_tree.refresh_tree()
         self.view_tree.refresh_activeitem()
+        self.view_var._refresh_variablelist()
         self._refresh_tools()
         self._refresh_areaname(force=True)
         self._refresh_pausetool()
