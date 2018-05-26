@@ -353,7 +353,7 @@ class CharaInfo(object):
         faces = []
         for values in cw.util.get_facepaths(self.sex, self.age).values():
             faces.extend(values)
-        self.imgpaths = [cw.image.ImageInfo(cw.cwpy.dice.choice(faces))] if faces else []
+        self.imgpaths = [cw.image.ImageInfo(cw.cwpy.dice.choice(faces), postype="Center")] if faces else []
         self.can_loaded_scaledimage = True
 
         natures = []
