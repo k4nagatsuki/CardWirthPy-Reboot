@@ -162,13 +162,15 @@ class EventInterface(object):
         """選択メンバを変更する。
         ccard: Character or None
         """
-        self._selectedmember = ccard
-        self.refresh_selectedmembername()
+        if self._selectedmember != ccard:
+            self._selectedmember = ccard
+            self.refresh_selectedmembername()
 
     def set_selectedcard(self, header):
         """選択カードを変更する(Wsn.3)。"""
-        self._selectedcard = header
-        self.refresh_selectedcardname()
+        if self._selectedcard != header:
+            self._selectedcard = header
+            self.refresh_selectedcardname()
 
     def get_targetscope(self, scope, unreversed=True, cards=True, coupon=""):
         """
@@ -296,8 +298,9 @@ class EventInterface(object):
 
     def clear_selectedmember(self):
         """選択中のメンバをクリアする。"""
-        self._selectedmember = None
-        self.refresh_selectedmembername()
+        if not self._selectedmember is None:
+            self._selectedmember = None
+            self.refresh_selectedmembername()
 
     def get_unselectedmember(self):
         """選択外のPlayerCardインスタンスを返す。"""
@@ -333,8 +336,9 @@ class EventInterface(object):
 
     def clear_selectedcard(self):
         """選択中のメンバをクリアする。"""
-        self._selectedcard = self._inusecard
-        self.refresh_selectedcardname()
+        if self._selectedcard != self._inusecard:
+            self._selectedcard = self._inusecard
+            self.refresh_selectedcardname()
 
     #---------------------------------------------------------------------------
     # デバッガ更新用メソッド
@@ -393,15 +397,10 @@ class EventInterface(object):
         """デバッガのイベントツリーの実行中コンテントを更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
-            self._debugger_processing = True
             def func():
                 dbg.view_tree.refresh_tree()
                 dbg.view_tree.refresh_activeitem()
-                self._debugger_processing = False
             cw.cwpy.frame.exec_func(func)
-
-            while self._debugger_processing:
-                pass
 
     def append_stackinfo(self, item):
         """呼び出し履歴を追加する。"""
