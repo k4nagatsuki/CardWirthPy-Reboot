@@ -2001,6 +2001,7 @@ class CWPy(_Singleton, threading.Thread):
         self.change_area(1, ttype=ttype)
 
     def _init_attrs(self):
+        self.background.clear_background()
         for i in range(len(self.lastsound_scenario)):
             if self.lastsound_scenario[i]:
                 self.lastsound_scenario[i].stop(True)
@@ -2020,6 +2021,7 @@ class CWPy(_Singleton, threading.Thread):
         """宿画面へ遷移。"""
         self.set_status("Yado")
         self.sdata.sleep_timekeeper()
+        self.background.clear_background()
         msglog = self.sdata.backlog
         debuglog = self.sdata.debuglog
         self.sdata = cw.data.SystemData()
@@ -2490,6 +2492,7 @@ class CWPy(_Singleton, threading.Thread):
         if not self.is_showparty and not loadyado:
             self._show_party()
 
+        self.background.clear_background()
         for music in self.music:
             music.stop()
         for i in range(len(self.lastsound_scenario)):
@@ -2543,6 +2546,7 @@ class CWPy(_Singleton, threading.Thread):
             # シナリオを強制終了
             if self.is_playingscenario():
                 self.sdata.end()
+            self.sdata.is_playing = False
 
             self.exec_func(init_resources)
 
@@ -2556,7 +2560,6 @@ class CWPy(_Singleton, threading.Thread):
                 self.event._stoped = True
             elif self.is_runningevent():
                 self.event._stoped = True
-            self.sdata.is_playing = False
 
             # バトルを強制終了
             if self.battle and self.battle.is_running:

@@ -36,6 +36,8 @@ class BackGround(base.CWPySprite):
         self._ttype = ("None", "None")
         # 背景不継承の時、完全に削除するセルの位置
         self._inhrt_index = 0
+        # 次の背景ロードで強制的に背景不継承とする
+        self._force_noinhrt = False
         # spritegroupに追加
         self.layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
@@ -272,6 +274,9 @@ class BackGround(base.CWPySprite):
 
         return image, anime, True
 
+    def clear_background(self):
+        self._force_noinhrt = True
+
     def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True, nocheckvisible=False, redraw=True):
         """背景画面を構成する。
         elements: BgImageElementのリスト。
@@ -279,6 +284,13 @@ class BackGround(base.CWPySprite):
         """
         if self._in_playing:
             return False
+
+        if self._force_noinhrt:
+            self._force_noinhrt = False
+            bginhrt = False
+
+        if not bginhrt:
+            self.bgs = []
 
         oldbgs = list(self.bgs)
         self._bgs = list(oldbgs)

@@ -1554,6 +1554,7 @@ class ScenarioData(SystemData):
         # 保存済みJPDCイメージを宿フォルダへ移動
         cw.header.SavedJPDCImageHeader.create_header(debuglog)
 
+        cw.cwpy.background.clear_background()
         cw.cwpy.ydata.party.remove_numbercoupon()
         self.remove_log(debuglog)
         cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
