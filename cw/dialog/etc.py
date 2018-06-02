@@ -885,7 +885,8 @@ if sys.platform == "win32":
         def _move_pos(self):
             pos = self.GetParent().GetPosition()
             size = self.GetParent().GetSize()
-            x = pos[0]+size[0]-1-5
+            x = pos[0]+size[0]-1
+            x -= 5 # BUG: ウィンドウの位置ずれが発生する。wxPython 4.0.1
             y = pos[1]+size[1] - self.GetSize()[1]-1-cw.wins(10)
             self.SetPosition((x, y))
 

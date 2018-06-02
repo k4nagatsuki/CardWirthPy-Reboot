@@ -307,8 +307,10 @@ class Frame(wx.Frame):
             else:
                 dlg = cw.debug.debugger.Debugger(self)
             # メインフレームの真横に表示
+            dlg.SetSize((cw.ppis(650), self.GetSize()[1]))
             w = dlg.GetSize()[0]
             w -= (w - self.GetSize()[0]) // 2
+            w -= 10 # BUG: ウィンドウの位置ずれが発生する。wxPython 4.0.1
             self.move_dlg(dlg, (w, cw.ppis(0)))
             self.debugger = dlg
 
