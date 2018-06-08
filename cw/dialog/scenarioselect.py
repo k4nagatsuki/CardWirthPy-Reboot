@@ -1858,7 +1858,6 @@ class ScenarioSelect(select.Select):
             self.ProcessEvent(btnevent)
 
     def OnDestroy(self, event):
-        self.db.close()
         if self and self.bookmarkmenu:
             self.bookmarkmenu.Destroy()
 

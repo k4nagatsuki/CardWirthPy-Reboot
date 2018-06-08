@@ -1406,9 +1406,8 @@ class PartyHeader(object):
         if path:
             e = cw.util.get_elementfromzip(path, "ScenarioLog.xml", "Property")
             path = e.gettext("WsnPath", "")
-            db = cw.scenariodb.Scenariodb()
+            db = cw.cwpy.frame.open_scenariodb()
             sceheader = db.search_path(path)
-            db.close()
             return sceheader
         else:
             return None

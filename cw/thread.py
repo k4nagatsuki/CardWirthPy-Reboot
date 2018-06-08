@@ -2639,9 +2639,8 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     scedir = cw.cwpy.setting.get_scedir()
                     scedir = cw.util.join_paths(scedir, optscenario)
-                db = cw.scenariodb.Scenariodb()
+                db = self.frame.open_scenariodb()
                 header2 = db.search_path(scedir)
-                db.close()
                 if header2:
                     if header:
                         scepath1 = header.get_fpath()

@@ -88,7 +88,7 @@ class ConstructScenarioDB(wx.Dialog):
                 s.update(s2)
             self._curnum += 1
 
-        db = cw.scenariodb.Scenariodb()
+        db = cw.cwpy.frame.open_scenariodb()
         if self._clear and not self._cancel:
             db.delete_all(commit=False)
 
@@ -110,7 +110,6 @@ class ConstructScenarioDB(wx.Dialog):
             self._message = "データベース内の空領域を再編成しています..."
             db.vacuum()
 
-        db.close()
         self._curnum = 100+len(self.dpaths)+1
         self._complete = True
 

@@ -40,6 +40,7 @@ class Frame(wx.Frame):
 
         self.is_iconized = False
         self.kill_list = []
+        self.db = None
 
         # トップフレーム
         self.style = wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX & ~wx.RESIZE_BORDER
@@ -525,22 +526,19 @@ class Frame(wx.Frame):
             if cw.cwpy.is_decompressing:
                 cw.cwpy.play_sound("error")
                 return
-            db = self._open_scenariodb()
+            db = self.open_scenariodb()
             if not db:
                 return
-            try:
-                headers, notscenariofiles = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db, cw.cwpy.setting.skintype)
-                if not headers:
-                    return
-                cw.cwpy.play_sound("signal")
-                scedir = cw.cwpy.setting.get_scedir()
-                dlg = cw.dialog.scenarioinstall.ScenarioInstall(self, db, headers, notscenariofiles,
-                                                                cw.cwpy.setting.skintype, scedir)
-                self.move_dlg(dlg)
-                dlg.ShowModal()
-                self.kill_dlg(dlg)
-            finally:
-                db.close()
+            headers, notscenariofiles = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db, cw.cwpy.setting.skintype)
+            if not headers:
+                return
+            cw.cwpy.play_sound("signal")
+            scedir = cw.cwpy.setting.get_scedir()
+            dlg = cw.dialog.scenarioinstall.ScenarioInstall(self, db, headers, notscenariofiles,
+                                                            cw.cwpy.setting.skintype, scedir)
+            self.move_dlg(dlg)
+            dlg.ShowModal()
+            self.kill_dlg(dlg)
 
     def OnDestroy(self, event):
         cw.cwpy._running = False
@@ -598,6 +596,8 @@ class Frame(wx.Frame):
             cw.quit = True
             if self.debugger:
                 self.debugger.Close()
+            if self.db:
+                self.db.close()
             self.Destroy()
 
     def OnMove(self, event):
@@ -629,6 +629,8 @@ class Frame(wx.Frame):
             cw.quit = True
             if self.debugger:
                 self.debugger.Close()
+            if self.db:
+                self.db.close()
             self.Destroy()
 
     def OnSETTINGS(self, event):
@@ -720,7 +722,7 @@ class Frame(wx.Frame):
 
         cw.cwpy.exec_func(func)
 
-    def _open_scenariodb(self):
+    def open_scenariodb(self):
         # Scenariodb更新用のサブスレッドの処理が終わるまで待機
         while not cw.scenariodb.ScenariodbUpdatingThread.is_finished():
             pass
@@ -729,7 +731,8 @@ class Frame(wx.Frame):
             os.makedirs("Scenario")
 
         try:
-            return cw.scenariodb.Scenariodb()
+            self.db = cw.scenariodb.Scenariodb()
+            return self.db
         except:
             s = ("シナリオデータベースへの接続に失敗しました。\n"
                  "しばらくしてからもう一度やり直してください。")
@@ -739,7 +742,7 @@ class Frame(wx.Frame):
             return None
 
     def OnSCENARIOSELECT(self, event):
-        db = self._open_scenariodb()
+        db = self.open_scenariodb()
         if not db:
             return
 
@@ -762,13 +765,11 @@ class Frame(wx.Frame):
         # FIXME: linuxでたまに操作不能になる
         #        Windowsでも環境によって落ちる事がある
         #        kill_dlgを遅延させる事で問題を回避する
-        if sys.platform == "win32":
-            self.kill_dlg(None)
-            self.append_killlist(dlg)
-        else:
-            # wxPython 4.0.1にアップデートしたので様子見
-            # Windowsでは依然として問題が出る模様
-            self.kill_dlg(dlg)
+        #self.kill_dlg(None)
+        #self.append_killlist(dlg)
+
+        # wxPython 4.0.1にアップデートしたので様子見
+        self.kill_dlg(dlg)
 
     @synclock(_killlist_mutex)
     def append_killlist(self, dlg):
@@ -1055,6 +1056,8 @@ class Frame(wx.Frame):
             cw.quit = True
             if self.debugger:
                 self.debugger.Close()
+            if self.db:
+                self.db.close()
             self.Destroy()
         else:
             self.kill_dlg(dlg)
