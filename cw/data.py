@@ -2106,6 +2106,9 @@ class YadoData(object):
 
         self.yadodb.close()
 
+        # ゲームオーバーして破棄されたパーティ
+        self.losted_party = None
+
         # ブックマーク
         self.bookmarks = []
         for be in self.environment.getfind("Bookmarks", raiseerror=False):
@@ -3466,14 +3469,25 @@ class Party(object):
         for member in self.members:
             member.write_xml()
 
-    def lost(self):
+    def lost1(self):
+        """ゲームオーバー時にパーティ全体を破棄する。
+        こちらはシナリオ終了時のメンバをアルバムに載せる処理の
+        実行前に実施し、あらかじめメンバのロスト処理を行う。
+        """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        for card in self.backpack[:]:
-            cw.cwpy.trade("TRASHBOX", header=card, from_event=True, sort=False)
         for pcard in cw.cwpy.get_pcards():
             pcard.lost()
         self.members = []
+
+    def lost2(self):
+        """ゲームオーバー時にパーティ全体を破棄する。
+        こちらの処理はゲームオーバー後「続ける」を選択した時のみ行われる。
+        """
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        for card in self.backpack[:]:
+            cw.cwpy.trade("TRASHBOX", header=card, from_event=True, sort=False, party=self)
 
         cw.cwpy.remove_xml(self)
         cw.cwpy.ydata.deletedpaths.add(os.path.dirname(self.path))

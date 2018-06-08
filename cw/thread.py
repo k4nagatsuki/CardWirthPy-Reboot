@@ -2019,6 +2019,10 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_yado(self):
         """宿画面へ遷移。"""
+        # ゲームオーバーしたパーティの破棄処理を行う
+        if self.ydata.losted_party:
+            self.ydata.losted_party.lost2()
+            self.ydata.losted_party = None
         self.set_status("Yado")
         self.sdata.sleep_timekeeper()
         self.background.clear_background()
@@ -2217,7 +2221,8 @@ class CWPy(_Singleton, threading.Thread):
         pygame.event.clear()
         if self._need_disposition:
             self.disposition_pcards()
-        self.ydata.party.lost()
+        party = self.ydata.party
+        party.lost1()
         del self.sdata.friendcards[:]
         self.sdata.sleep_timekeeper()
         self.sdata.end()
@@ -2230,6 +2235,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.lastsound_scenario[i] = None
 
         self.ydata.load_party(None)
+        self.ydata.losted_party = party
         msglog = self.sdata.backlog
         self.sdata = cw.data.SystemData()
         self.sdata.backlog = msglog
