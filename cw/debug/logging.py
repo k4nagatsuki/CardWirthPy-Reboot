@@ -17,6 +17,14 @@ class DebugLogDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, "「%s」のプレイ結果" % (debuglog.sname),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
         self.cwpy_debug = True
+
+        def func():
+            if cw.cwpy.sdata.notice_debuglog:
+                cw.cwpy.sdata.notice_debuglog = 0
+                cw.cwpy.statusbar.change()
+                cw.cwpy.draw()
+        cw.cwpy.exec_func(func)
+
         self.plain_text = ["「%s」のプレイ結果" % (debuglog.sname), "========================================", ""]
 
         self.text = cw.util.CWPyRichTextCtrl(self, -1, size=cw.ppis((400, 380)))

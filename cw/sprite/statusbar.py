@@ -35,6 +35,7 @@ class StatusBar(base.CWPySprite):
         self.touchmenu = None
         self.infocards = None
         self.friendcards = None
+        self.debuglog = None
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
         self.showbuttons = False
@@ -121,6 +122,7 @@ class StatusBar(base.CWPySprite):
                     CancelButton(self, cw.s((133, 6)))
                     if cw.cwpy.ydata.party:
                         self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+                        rmargin += cw.s(34)
             else:
                 if cw.cwpy.is_battlestatus() and cw.cwpy.setting.show_roundautostartbutton:
                     self._create_autostart(cw.s((5, 3)))
@@ -131,13 +133,16 @@ class StatusBar(base.CWPySprite):
                     CancelButton(self, (left, cw.s(6)))
                 if cw.cwpy.status == "Scenario":
                     self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+                    rmargin += cw.s(34)
                 elif cw.cwpy.is_battlestatus():
                     RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+                    rmargin += cw.s(34)
         elif cw.cwpy.status == "Yado":
             if not cw.cwpy.expanding:
                 self._create_yadomoney(cw.s((10, 6)))
             if cw.cwpy.ydata.party:
                 self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+                rmargin += cw.s(34)
         elif cw.cwpy.status == "Scenario":
             if showbuttons:
                 lmargin = 10
@@ -167,8 +172,14 @@ class StatusBar(base.CWPySprite):
                     cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
                 self._create_friendcards((cw.s(474) - rmargin, cw.s(3)))
 
+        if showbuttons and cw.cwpy.setting.show_debuglogdialog and not cw.cwpy.is_playingscenario() and\
+                cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog:
+            self._create_debuglog((cw.s(474) - rmargin, cw.s(3)))
+
         if self.infocards and not cw.cwpy.is_playingscenario():
             self.infocards.notice = False
+        if self.debuglog and not (not cw.cwpy.is_playingscenario() and cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog):
+            self.debuglog.notice = False
 
         if showbuttons:
             self.loading = False
@@ -248,6 +259,20 @@ class StatusBar(base.CWPySprite):
             self.friendcards.reset(pos)
         else:
             self.friendcards = ShowFriendCardsButton(self, pos)
+
+    def _create_debuglog(self, pos):
+        if self.debuglog:
+            notice = self.debuglog.notice
+            self.debuglog.reset(pos)
+            if not self.loading and notice != self.debuglog.notice and self.debuglog.notice and\
+                    cw.cwpy.sdata.notice_debuglog == 1:
+                cw.animation.start_animation(self.debuglog, "blink")
+                cw.cwpy.sdata.notice_debuglog = 2
+        else:
+            self.debuglog = DebugLogButton(self, pos)
+            if not self.loading and self.debuglog.notice and cw.cwpy.sdata.notice_debuglog == 1:
+                cw.animation.start_animation(self.debuglog, "blink")
+                cw.cwpy.sdata.notice_debuglog = 2
 
     def update_volumebar(self):
         """全体音量バーの表示を更新する。
@@ -1423,6 +1448,32 @@ class BacklogButton(StatusBarButton):
         if not cw.cwpy.setting.is_logscrollable():
             StatusBarButton.lclick_event(self)
         cw.cwpy.eventhandler.f5key_event()
+
+
+class DebugLogButton(StatusBarButton):
+    def __init__(self, parent, pos):
+        image = cw.cwpy.rsrc.pygamedialogs["DEBUG_LOG"]
+        name = cw.cwpy.msgs["debug_log"]
+        desc = cw.cwpy.msgs["desc_debug_log"]
+        notice = 0 < cw.cwpy.sdata.notice_debuglog
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
+                                 notice=notice, desc=desc, hotkey="F6")
+        self.is_showing = cw.cwpy.setting.show_debuglogdialog and not cw.cwpy.is_playingscenario and\
+                          cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog
+        self.selectable_on_event = False
+
+    def get_icon(self):
+        return cw.cwpy.rsrc.pygamedialogs["DEBUG_LOG"]
+
+    def reset(self, pos):
+        self.notice = 0 < cw.cwpy.sdata.notice_debuglog
+        StatusBarButton.reset(self, pos)
+
+    def lclick_event(self):
+        StatusBarButton.lclick_event(self)
+        cw.cwpy.play_sound("click")
+        cw.cwpy.clear_selection()
+        cw.cwpy.eventhandler.f6key_event()
 
 
 class TouchMenuButton(StatusBarButton):

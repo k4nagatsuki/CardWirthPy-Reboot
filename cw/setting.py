@@ -421,7 +421,7 @@ class Setting(object):
         self.filer_file = ""
         self.recenthistory_limit = 5 # 展開したシナリオを取っておく数
         self.volume_increment = 5 # ホイールによる全体音量調節での増減量
-        self.show_debuglogdialog = False
+        self.show_debuglogdialog = True
         self.enabled_timekeeper = True
         self.write_playlog = False
         self.move_repeat = 250 #移動ボタン押しっぱなしの速度

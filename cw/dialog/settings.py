@@ -468,8 +468,8 @@ class SettingsPanel(wx.Panel):
         value = self.pane_gene.cb_can_repeatlclick.GetValue()
         setting.can_repeatlclick = value
 
-        value = self.pane_gene.cb_show_debuglogdialog.GetValue()
-        setting.show_debuglogdialog = value
+        #value = self.pane_gene.cb_show_debuglogdialog.GetValue()
+        #setting.show_debuglogdialog = value
         value = self.pane_gene.cb_nolevelup.GetValue()
         setting.no_levelup_in_debugmode = value
         value = self.pane_gene.sc_initmoneyamount.GetValue()
@@ -1237,8 +1237,8 @@ class GeneralSettingPanel(wx.Panel):
         self.box_gene = wx.StaticBox(self, -1, "詳細")
         self.cb_debug = wx.CheckBox(self, -1, "デバッグモード(Ctrl+Dでも切替可)")
         self.cb_debug.SetValue(cw.cwpy.debug)
-        self.cb_show_debuglogdialog = wx.CheckBox(
-            self, -1, "シナリオの終了時にデバッグ情報を表示する")
+        #self.cb_show_debuglogdialog = wx.CheckBox(
+        #    self, -1, "シナリオの終了時にデバッグ情報を表示する")
         self.cb_nolevelup = wx.CheckBox(
             self, -1, "デバッグ中はレベル上昇を抑止する")
 
@@ -1358,7 +1358,7 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_show_tiles.SetValue(setting.show_tiles)
         self.cb_enabled_right_flick.SetValue(setting.enabled_right_flick)
         self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick)
-        self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog)
+        #self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog)
         self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode)
         if setting.messagelog_type == cw.setting.LOG_SINGLE:
             self.ch_messagelog_type.SetSelection(0) # 単一表示
@@ -1391,7 +1391,7 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_show_tiles.SetValue(setting.show_tiles_init)
         self.cb_enabled_right_flick.SetValue(setting.enabled_right_flick_init)
         self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick_init)
-        self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog_init)
+        #self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog_init)
 
         self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode_init)
         if setting.messagelog_type_init == cw.setting.LOG_SINGLE:
@@ -1469,7 +1469,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_tablet.Add(self.cb_can_repeatlclick, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
 
         bsizer_gene.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
-        bsizer_gene.Add(self.cb_show_debuglogdialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
+        #bsizer_gene.Add(self.cb_show_debuglogdialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
 
         bsizer_startup = wx.BoxSizer(wx.HORIZONTAL)

@@ -580,19 +580,29 @@ class EventHandler(object):
         """
         if not self.can_input():
             return
-        if not cw.cwpy.is_playingscenario() or cw.cwpy.is_runningevent() or self.is_processing():
+        if cw.cwpy.is_runningevent() or self.is_processing():
             return
 
-        if not cw.cwpy.is_battlestatus() and cw.cwpy.sdata.has_infocards():
-            cw.cwpy.play_sound("click")
-            cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
-        elif cw.cwpy.is_battlestatus() and cw.cwpy.is_debugmode() and\
-                cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
-            cw.cwpy.play_sound("page")
-            cw.cwpy.setting.show_fcardsinbattle = not cw.cwpy.setting.show_fcardsinbattle
-            cw.cwpy.battle.update_showfcards()
-            cw.cwpy.statusbar.change()
-            cw.cwpy.draw()
+        if cw.cwpy.is_playingscenario():
+            if not cw.cwpy.is_battlestatus() and cw.cwpy.sdata.has_infocards():
+                cw.cwpy.play_sound("click")
+                cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
+            elif cw.cwpy.is_battlestatus() and cw.cwpy.is_debugmode() and\
+                    cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
+                cw.cwpy.play_sound("page")
+                cw.cwpy.setting.show_fcardsinbattle = not cw.cwpy.setting.show_fcardsinbattle
+                cw.cwpy.battle.update_showfcards()
+                cw.cwpy.statusbar.change()
+                cw.cwpy.draw()
+        elif cw.cwpy.setting.show_debuglogdialog and cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog:
+            # 前回終了したシナリオのデバッグログ
+            def func(debuglog):
+                dlg = cw.debug.logging.DebugLogDialog(cw.cwpy.frame, debuglog)
+                cw.cwpy.frame.move_dlg(dlg)
+                dlg.ShowModal()
+                dlg.Destroy()
+
+            cw.cwpy.frame.exec_func(func, cw.cwpy.sdata.debuglog)
 
     def f7key_event(self):
         """

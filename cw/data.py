@@ -87,6 +87,8 @@ class SystemData(object):
 
         # クリア時のデバッグ情報。デバッグ情報ダイアログ表示で削除
         self.debuglog = None
+        # デバッグ情報がある事を通知する(0=通知無し,1=点滅あり,2=点滅無し)
+        self.notice_debuglog = 0
 
         # "file.x2.bmp"などのスケーリングされたイメージを読み込むか
         self.can_loaded_scaledimage = True
@@ -885,6 +887,7 @@ class ScenarioData(SystemData):
 
         # クリア時のデバッグ情報。デバッグ情報ダイアログ表示で削除
         self.debuglog = None
+        self.notice_debuglog = 0
 
         # 各段階の互換性マーク
         self.versionhint = [
@@ -1565,16 +1568,7 @@ class ScenarioData(SystemData):
             cw.cwpy.sdata.sleep_timekeeper()
             debuglog.set_times(startdatetime, pausedtime)
 
-        if showdebuglog and cw.cwpy.is_debugmode():
-            def func(debuglog):
-                dlg = cw.debug.logging.DebugLogDialog(cw.cwpy.frame, debuglog)
-                cw.cwpy.frame.move_dlg(dlg)
-                dlg.ShowModal()
-                dlg.Destroy()
-            cw.cwpy.frame.exec_func(func, debuglog)
-            self.debuglog = None
-        else:
-            self.debuglog = debuglog
+        self.debuglog = debuglog
 
     def f9(self):
         """
