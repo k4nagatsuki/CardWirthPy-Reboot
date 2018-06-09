@@ -596,12 +596,13 @@ class EventHandler(object):
                 cw.cwpy.draw()
         elif cw.cwpy.setting.show_debuglogdialog and cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog:
             # 前回終了したシナリオのデバッグログ
+            cw.cwpy.play_sound("click")
+
             def func(debuglog):
                 dlg = cw.debug.logging.DebugLogDialog(cw.cwpy.frame, debuglog)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
-
             cw.cwpy.frame.exec_func(func, cw.cwpy.sdata.debuglog)
 
     def f7key_event(self):

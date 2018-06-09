@@ -1471,7 +1471,6 @@ class DebugLogButton(StatusBarButton):
 
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
-        cw.cwpy.play_sound("click")
         cw.cwpy.clear_selection()
         cw.cwpy.eventhandler.f6key_event()
 
