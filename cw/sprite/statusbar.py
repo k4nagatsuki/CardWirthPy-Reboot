@@ -1460,7 +1460,7 @@ class DebugLogButton(StatusBarButton):
                                  notice=notice, desc=desc, hotkey="F6")
         self.is_showing = cw.cwpy.setting.show_debuglogdialog and not cw.cwpy.is_playingscenario and\
                           cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog
-        self.selectable_on_event = False
+        self.selectable_on_event = True
 
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["DEBUG_LOG"]

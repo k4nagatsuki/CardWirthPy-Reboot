@@ -580,10 +580,12 @@ class EventHandler(object):
         """
         if not self.can_input():
             return
-        if cw.cwpy.is_runningevent() or self.is_processing():
+        if self.is_processing():
             return
 
         if cw.cwpy.is_playingscenario():
+            if cw.cwpy.is_runningevent():
+                return
             if not cw.cwpy.is_battlestatus() and cw.cwpy.sdata.has_infocards():
                 cw.cwpy.play_sound("click")
                 cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
