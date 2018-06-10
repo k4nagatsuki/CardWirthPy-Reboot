@@ -1531,6 +1531,7 @@ class ScenarioSelect(select.Select):
         self._processing = False
         if cw.cwpy.setting.show_paperandtree or not (self.tree and self.tree.IsShown()):
             self.draw(True)
+        self._update_saveddirstack()
         self.enable_btn()
 
     def _install_scenario(self, headers, notscenariofiles):
