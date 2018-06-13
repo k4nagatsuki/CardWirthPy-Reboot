@@ -3009,6 +3009,9 @@ class YadoData(object):
                     break
 
             fcard.set_coupon("＠本来の上限", value)
+            if not fcard.has_coupon("＠レベル上限"):
+                fcard.set_coupon("＠レベル上限", max(value, fcard.level))
+
             for coupon in fcard.get_coupons():
                 if r_gene.match(coupon):
                     break
