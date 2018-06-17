@@ -842,7 +842,7 @@ def create_albumpage(path, lost=False, nocoupon=False):
     pelement = etree.make_element("Property")
 
     sets = set(["Name", "ImagePath", "ImagePaths", "Description", "Level",
-                "Ability", "Coupons"])
+                "Life", "Feature", "Ability", "Coupons"])
 
     can_loaded_scaledimage = etree.getbool(".", "scaledimage", False)
     for e in etree.getfind("Property"):
@@ -851,6 +851,8 @@ def create_albumpage(path, lost=False, nocoupon=False):
 
     element.append(pelement)
     etree = cw.data.xml2etree(element=element)
+
+    etree.edit("Property/Life", etree.getattr("Property/Life", "max"))
 
     # クーポン
     if not nocoupon:
