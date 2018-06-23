@@ -119,7 +119,7 @@ class TouchButton(base.SelectableSprite):
         for line in lines:
             fw, _fh = font.size(line)
             tw = max(tw, fw + spx*2)
-        return tw
+        return tw+cw.s(2)
 
     def update(self, scr):
         if self.status != "shiftup":
@@ -190,11 +190,6 @@ class _PointableTile(TouchButton):
                     self.image = self.get_unselectedimage()
                     if cw.cwpy.pointed_tile is self:
                         cw.cwpy.pointed_tile = None
-                        def func():
-                            if cw.cwpy.pointed_tile is None:
-                                cw.cwpy.index = -1
-                                cw.cwpy.statusbar.update_tiles()
-                        cw.cwpy.exec_func(func)
                 if not self.is_enabled():
                     self.image = self._disabledimage
                 cw.cwpy.draw(clip=self.rect)

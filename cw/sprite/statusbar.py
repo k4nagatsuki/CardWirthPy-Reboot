@@ -1609,7 +1609,6 @@ class TouchMenuButton(StatusBarButton):
             icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_RIGHT"]
             rbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=1, width=rbtn_w)
 
-
             volbar = cw.sprite.touchbutton.VolumeTile(width=bw)
             btns.append(volbar)
 
@@ -1635,6 +1634,7 @@ class TouchMenuButton(StatusBarButton):
 
         for btn in self._touchbuttons:
             btn.rect.top = cw.s(cw.SIZE_AREA[1])
+            btn.update_selection()
             cw.cwpy.sbargrp.add(btn, layer=LAYER_TOUCH_BUTTON)
             cw.animation.start_animation(btn, "shiftup")
 

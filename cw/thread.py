@@ -1095,9 +1095,15 @@ class CWPy(_Singleton, threading.Thread):
         return clip
 
     def update_groups(self):
+        pointed_tile = self.pointed_tile
+
         self.cardgrp.update(self.scr_draw)
         self.topgrp.update(self.scr_draw)
         self.sbargrp.update(self.scr_draw)
+
+        if pointed_tile and self.pointed_tile is None:
+            self.index = -1
+            self.statusbar.update_tiles()
 
     def return_takenoutcard(self, checkevent=True):
         # 一時的に荷物袋から出したカードを戻す(消滅していなければ)
