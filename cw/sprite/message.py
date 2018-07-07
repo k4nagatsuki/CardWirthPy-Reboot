@@ -370,11 +370,9 @@ class MessageWindow(base.CWPySprite):
         # 文字色変更文字(&)の集合
         r_changecolour = re.compile("&[\x20-\x7E]")
         # フォントデータ
-        font = cw.cwpy.rsrc.fonts["message"]
         colour = (255, 255, 255)
         lineheight_noscale = 22
         lineheight = cw.s(lineheight_noscale)
-        cheight = font.size("#")[1]
         # 各種変数
         cnt = 0
         skip = False
@@ -480,6 +478,42 @@ class MessageWindow(base.CWPySprite):
             if char:
                 put_xinfo(pos[0], cwidth)
             if char and not char.isspace():
+                ctype = cw.nctype.nctype(char)
+                if ctype == cw.nctype.NC_SYMBOL:
+                    font = cw.cwpy.rsrc.msg_exfonts["fw_symbol"]
+                elif ctype == cw.nctype.NC_NUMBER:
+                    font = cw.cwpy.rsrc.msg_exfonts["fw_number"]
+                elif ctype == cw.nctype.NC_LATIN:
+                    font = cw.cwpy.rsrc.msg_exfonts["fw_latin"]
+                elif ctype == cw.nctype.NC_HIRAGANA:
+                    font = cw.cwpy.rsrc.msg_exfonts["hiragana"]
+                elif ctype == cw.nctype.NC_KATAKANA:
+                    font = cw.cwpy.rsrc.msg_exfonts["katakana"]
+                elif ctype == cw.nctype.NC_HW_KATAKANA:
+                    font = cw.cwpy.rsrc.msg_exfonts["hw_katakana"]
+                elif ctype == cw.nctype.NC_GREEK:
+                    font = cw.cwpy.rsrc.msg_exfonts["greek_and_cyrillic"]
+                elif ctype == cw.nctype.NC_CYRILLIC:
+                    font = cw.cwpy.rsrc.msg_exfonts["greek_and_cyrillic"]
+                elif ctype == cw.nctype.NC_JIS_KANJI_1:
+                    font = cw.cwpy.rsrc.msg_exfonts["jis_kanji_1"]
+                elif ctype == cw.nctype.NC_JIS_KANJI_2:
+                    font = cw.cwpy.rsrc.msg_exfonts["jis_kanji_2"]
+                elif ctype == cw.nctype.NC_JIS_KANJI_3:
+                    font = cw.cwpy.rsrc.msg_exfonts["etc_kanji"]
+                elif ctype == cw.nctype.NC_JIS_KANJI_4:
+                    font = cw.cwpy.rsrc.msg_exfonts["etc_kanji"]
+                elif ctype == cw.nctype.NC_CJK_KANJI:
+                    font = cw.cwpy.rsrc.msg_exfonts["etc_kanji"]
+                elif ctype == cw.nctype.NC_ASCII_LATIN:
+                    font = cw.cwpy.rsrc.msg_exfonts["latin"]
+                elif ctype == cw.nctype.NC_ASCII_NUMBER:
+                    font = cw.cwpy.rsrc.msg_exfonts["number"]
+                elif ctype == cw.nctype.NC_ASCII_SYMBOL:
+                    font = cw.cwpy.rsrc.msg_exfonts["symbol"]
+                elif ctype == cw.nctype.NC_UNKNOWN:
+                    font = cw.cwpy.rsrc.fonts["message"]
+
                 put_topbottom(y_noscale-1, lineheight_noscale+2)
 
                 # 通常文字
@@ -489,6 +523,7 @@ class MessageWindow(base.CWPySprite):
                 else:
                     image = font.render(char, cw.cwpy.setting.fontsmoothing_message, colour)
                     image3 = font.render(char, cw.cwpy.setting.fontsmoothing_message, (0, 0, 0))
+                cheight = image.get_height()
 
                 image = decorate(image, basecolour=colour)
 

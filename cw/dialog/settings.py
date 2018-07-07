@@ -2934,13 +2934,18 @@ class UISettingPanel(wx.ScrolledWindow):
         sizer.Fit(self)
         self.Layout()
 
+
 class FontSettingPanel(wx.Panel):
     def __init__(self, parent, for_local, get_localsettings, use_copybase):
         wx.Panel.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self._for_local = for_local
         self._get_localsettings = get_localsettings
-        self.typenames = {"gothic"       : "等幅ゴシック",
+        self.msg_exfonttypes = set(["fw_symbol", "fw_number", "fw_latin", "hiragana", "katakana", "hw_katakana",
+                                    "greek_and_cyrillic", "jis_kanji_1", "jis_kanji_2", "etc_kanji", "symbol",
+                                    "number", "latin"])
+        self.typenames = {"inherit"      : "指定しない",
+                          "gothic"       : "等幅ゴシック",
                           "uigothic"     : "UI用",
                           "mincho"       : "等幅明朝",
                           "pmincho"      : "可変幅明朝",
@@ -2976,6 +2981,19 @@ class FontSettingPanel(wx.Panel):
                           "price"        : "カード価格",
                           "numcards"     : "カード枚数",
                           "message"      : "メッセージ",
+                          "fw_symbol"         : " - 全角記号",
+                          "fw_number"         : " - 全角数字",
+                          "fw_latin"          : " - 全角英字",
+                          "hiragana"          : " - ひらがな",
+                          "katakana"          : " - カタカナ",
+                          "hw_katakana"       : " - 半角カナ",
+                          "greek_and_cyrillic": " - ギリシャ・キリル",
+                          "jis_kanji_1"       : " - JIS第1水準漢字",
+                          "jis_kanji_2"       : " - JIS第2水準漢字",
+                          "etc_kanji"         : " - 外字",
+                          "symbol"            : " - 半角記号",
+                          "number"            : " - 半角数字",
+                          "latin"             : " - 半角英字",
                           "selectionbar" : "選択肢",
                           "logpage"      : "メッセージログ頁",
                           "sbarpanel"    : "ステータスパネル",
@@ -2988,9 +3006,11 @@ class FontSettingPanel(wx.Panel):
                           }
 
         self.bases = ("gothic", "pgothic", "mincho", "pmincho", "uigothic")
-        self.types = ("cardname", "ccardname", "level",
-                      "message", "selectionbar", "logpage",
-                      "uselimit", "price", "numcards", "statusnum",
+        self.types = ("cardname", "ccardname", "level", "message",
+                      "fw_symbol", "fw_number", "fw_latin", "hiragana", "katakana", "hw_katakana",
+                      "greek_and_cyrillic", "jis_kanji_1", "jis_kanji_2", "etc_kanji", "symbol",
+                      "number", "latin",
+                      "selectionbar", "logpage", "uselimit", "price", "numcards", "statusnum",
                       "sbarpanel", "sbarprogress", "sbarbtn", "sbardesctitle", "sbardesc", "screenshot",
                       "scenario", "targetlevel", "paneltitle", "paneltitle2", "dlgmsg", "dlgmsg2", "dlgtitle", "dlgtitle2",
                       "createtitle", "dlglist", "inputname", "datadesc", "charadesc", "charaparam", "charaparam2",  "characre",
@@ -2999,7 +3019,7 @@ class FontSettingPanel(wx.Panel):
         # フォント配列のロード
         facenames = list(wx.FontEnumerator().GetFacenames())
         cw.util.sort_by_attr(facenames)
-        self.str_default = "[付属フォント]" # デフォルトフォント名
+        self.str_default = "[標準フォント]" # デフォルトフォント名
         self._fontface_array = [self.str_default]
         self._types = []
         for base in self.bases:
@@ -3008,6 +3028,8 @@ class FontSettingPanel(wx.Panel):
             if not name.startswith("@"):
                 self._fontface_array.append(name)
                 self._types.append(name)
+        self._types_with_inherit = ["[%s]" % (self.typenames["inherit"])]
+        self._types_with_inherit.extend(self._types)
 
         if self._for_local:
             self.cb_important = wx.CheckBox(self, -1, "このスキンのフォント設定を基本設定よりも優先して使用する")
@@ -3041,7 +3063,7 @@ class FontSettingPanel(wx.Panel):
             grid.SetColSize(0, cw.ppis(150))
             editors = []
             for i, name in enumerate(seq):
-                editor = wx.grid.GridCellChoiceEditor(faces)
+                editor = wx.grid.GridCellChoiceEditor(faces(name))
                 grid.SetCellEditor(i, 0, editor)
                 editors.append(editor)
             return editors
@@ -3050,14 +3072,20 @@ class FontSettingPanel(wx.Panel):
         self.box_base = wx.StaticBox(self, -1, "基本フォント")
         self.base = wx.grid.Grid(self, -1, size=(-1, -1), style=wx.BORDER)
         self.base.SetDoubleBuffered(True)
-        self.choicebases = create_grid(self.base, self.bases, self._fontface_array, 1, cw.ppis(100))
+        self.choicebases = create_grid(self.base, self.bases, lambda _name: self._fontface_array, 1, cw.ppis(100))
         self.base.SetMinSize(self.base.GetBestSize())
 
         # 役割別フォント
         self.box_type = wx.StaticBox(self, -1, "役割別フォント")
         self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.type.SetDoubleBuffered(True)
-        self.choicetypes = create_grid(self.type, self.types, self._types, 5, cw.ppis(120))
+
+        def get_choices(type):
+            if type in self.msg_exfonttypes:
+                return self._types_with_inherit
+            else:
+                return self._types
+        self.choicetypes = create_grid(self.type, self.types, get_choices, 5, cw.ppis(120))
 
         self.type.SetColLabelValue(1, "サイズ\n(ピクセル)")
         self.type.SetColSize(1, cw.ppis(80))
@@ -3069,7 +3097,10 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColSize(4, cw.ppis(70))
         local = cw.setting.LocalSetting()
         for i, name in enumerate(self.types):
-            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.fonttypes_init[name]
+            if name in self.msg_exfonttypes:
+                _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.msg_exfonts_init[name]
+            else:
+                _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.fonttypes_init[name]
             if 0 < defpixels:
                 self.type.SetCellEditor(i, 1, wx.grid.GridCellNumberEditor(1, 99))
                 self.type.SetCellRenderer(i, 1, wx.grid.GridCellNumberRenderer())
@@ -3143,8 +3174,12 @@ class FontSettingPanel(wx.Panel):
             self.base.SetCellValue(i, 0, str_font)
 
         for i, name in enumerate(self.types):
-            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.fonttypes_init[name]
-            fonttype, face, pixels, bold, bold_upscr, italic = local.fonttypes[name]
+            if name in self.msg_exfonttypes:
+                _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.msg_exfonts_init[name]
+                fonttype, face, pixels, bold, bold_upscr, italic = local.msg_exfonts[name]
+            else:
+                _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.fonttypes_init[name]
+                fonttype, face, pixels, bold, bold_upscr, italic = local.fonttypes[name]
             if fonttype:
                 self.type.SetCellValue(i, 0, "[%s]" % (self.typenames[fonttype]))
             else:
@@ -3168,6 +3203,8 @@ class FontSettingPanel(wx.Panel):
             else:
                 self.type.SetCellValue(i, 4, "-")
 
+            self._update_rowcolour(fonttype, i)
+
         self._select_base(self.base.GetGridCursorRow())
 
         face = self.get_basefontface(self.bases[0])
@@ -3185,6 +3222,15 @@ class FontSettingPanel(wx.Panel):
         self._update_enabled()
         self.Layout()
 
+    def _update_rowcolour(self, fonttype, row):
+        if fonttype == "inherit":
+            for col in range(1, 5):
+                self.type.SetCellBackgroundColour(row, col, self.type.LabelBackgroundColour)
+        else:
+            colour = self.type.GetCellBackgroundColour(row, 0)
+            for col in range(1, 5):
+                self.type.SetCellBackgroundColour(row, col, colour)
+
     def init_values(self, setting, local):
         for i, basename in enumerate(self.bases):
             name = local.basefont_init[basename]
@@ -3192,7 +3238,10 @@ class FontSettingPanel(wx.Panel):
                 name = self.str_default
             self.base.SetCellValue(i, 0, name)
         for i, typename in enumerate(self.types):
-            fonttype, name, pixels, bold, bold_upscr, italic = local.fonttypes_init[typename]
+            if typename in self.msg_exfonttypes:
+                fonttype, name, pixels, bold, bold_upscr, italic = local.msg_exfonts_init[typename]
+            else:
+                fonttype, name, pixels, bold, bold_upscr, italic = local.fonttypes_init[typename]
             if fonttype:
                 name = "[%s]" % (self.typenames[fonttype])
             self.type.SetCellValue(i, 0, name)
@@ -3200,6 +3249,7 @@ class FontSettingPanel(wx.Panel):
             self.type.SetCellValue(i, 2, ("1" if bold else "") if not bold is None else "-")
             self.type.SetCellValue(i, 3, ("1" if bold_upscr else "") if not bold_upscr is None else "-")
             self.type.SetCellValue(i, 4, ("1" if italic else "") if not italic is None else "-")
+            self._update_rowcolour(fonttype, i)
 
         self.cb_bordering_cardname.SetValue(local.bordering_cardname_init)
         self.cb_decorationfont.SetValue(local.decorationfont_init)
@@ -3243,7 +3293,10 @@ class FontSettingPanel(wx.Panel):
                 value = ""
             basefont[basename] = value
             basetable["[%s]" % (self.typenames[basename])] = basename
+        basetable_with_inherit = basetable.copy()
+        basetable_with_inherit["[%s]" % (self.typenames["inherit"])] = "inherit"
         fonttypes = {}
+        msg_exfonts = {}
         for i, typename in enumerate(self.types):
             value = self.type.GetCellValue(i, 0)
             pixels = self.type.GetCellValue(i, 1)
@@ -3269,11 +3322,16 @@ class FontSettingPanel(wx.Panel):
                 italic = italic == "1"
             else:
                 italic = None
-            fonttype = basetable.get(value, "")
-            if fonttype:
-                fonttypes[typename] = (fonttype, "", pixels, bold, bold_upscr, italic)
+            if typename in self.msg_exfonttypes:
+                table = msg_exfonts
+                fonttype = basetable_with_inherit.get(value, "")
             else:
-                fonttypes[typename] = ("", value, pixels, bold, bold_upscr, italic)
+                table = fonttypes
+                fonttype = basetable.get(value, "")
+            if fonttype:
+                table[typename] = (fonttype, "", pixels, bold, bold_upscr, italic)
+            else:
+                table[typename] = ("", value, pixels, bold, bold_upscr, italic)
 
         # フォント変更チェック
         if basefont != local.basefont:
@@ -3281,6 +3339,9 @@ class FontSettingPanel(wx.Panel):
             flag_fontupdate = True
         if fonttypes != local.fonttypes:
             local.fonttypes = fonttypes
+            flag_fontupdate = True
+        if msg_exfonts != local.msg_exfonts:
+            local.msg_exfonts = msg_exfonts
             flag_fontupdate = True
 
         if self.cb_important and self.cb_important.GetValue() != local.important_font:
@@ -3361,7 +3422,10 @@ class FontSettingPanel(wx.Panel):
             self.Thaw()
 
     def OnCellChangeType(self, event):
-        self._select_type(self.type.GetGridCursorRow())
+        i = self.type.GetGridCursorRow()
+        self._select_type(i)
+        value = self.type.GetCellValue(i, self.type.GetGridCursorCol())
+        self._update_rowcolour("inherit" if ("[%s]" % self.typenames["inherit"]) == value else "", i)
 
     def OnSelectFontType(self, event):
         def func(self):
@@ -3376,8 +3440,11 @@ class FontSettingPanel(wx.Panel):
             if ctrl:
                ctrl.Bind(wx.EVT_COMBOBOX, self.OnCellChangeType)
 
-    def get_typefontface(self, fonttype):
-        editors = [choice for choice in self.choicetypes if choice.GetControl() and choice.GetControl().IsShown()]
+    def get_typefontface(self, fonttype, refeditors=True):
+        if refeditors:
+            editors = [choice for choice in self.choicetypes if choice.GetControl() and choice.GetControl().IsShown()]
+        else:
+            editors = []
         if editors:
             face = editors[0].GetControl().GetValue()
         else:
@@ -3386,6 +3453,9 @@ class FontSettingPanel(wx.Panel):
             if "[%s]" % self.typenames[basename] == face:
                 face = self.get_basefontface(basename)
                 break
+        else:
+            if "[%s]" % self.typenames["inherit"] == face:
+                face = self.get_typefontface("message", False)
         return face
 
     def _do_layout(self):
@@ -3465,8 +3535,10 @@ class FontSettingPanel(wx.Panel):
         local.important_font = True
         self.load(None, local)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

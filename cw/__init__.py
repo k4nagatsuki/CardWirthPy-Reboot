@@ -42,6 +42,7 @@ from . import debug
 from . import sprite
 
 from . import argparser
+from . import nctype
 
 
 # 実行ファイルのパス

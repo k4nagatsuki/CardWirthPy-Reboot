@@ -830,6 +830,28 @@ def create_localsettings(element, local):
     if len(e):
         element.append(e)
 
+    # メッセージ用混植フォント
+    e = cw.data.make_element("SyntheticFonts", attrs={"key":"message"})
+    for key, value in local.msg_exfonts.items():
+        if value != local.msg_exfonts_init[key]:
+            fonttype, name, pixels, bold, bold_upscr, italic = value
+            attrs = {"key": key}.copy()
+            if fonttype:
+                attrs["type"] = fonttype
+            if 0 < pixels:
+                attrs["pixels"] = str(pixels)
+            if not bold is None:
+                attrs["bold"] = str(bold)
+            if not bold_upscr is None:
+                attrs["expandedbold"] = str(bold_upscr)
+            if not italic is None:
+                attrs["italic"] = str(italic)
+            fe = cw.data.make_element("Font", name, attrs=attrs)
+            e.append(fe)
+    if len(e):
+        element.append(e)
+
+
 def create_albumpage(path, lost=False, nocoupon=False):
     """
     path: 冒険者XMLファイルのパス。

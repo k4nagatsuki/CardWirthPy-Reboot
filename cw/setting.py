@@ -164,6 +164,21 @@ class LocalSetting(object):
             "sbardesc": ("pgothic", "", 14, False, False, False),
             "screenshot": ("uigothic", "", 18, False, False, False),
         }
+        self.msg_exfonts = {
+            "fw_symbol": ("inherit", "", 22, True, True, False),
+            "fw_number": ("inherit", "", 22, True, True, False),
+            "fw_latin": ("inherit", "", 22, True, True, False),
+            "hiragana": ("inherit", "", 22, True, True, False),
+            "katakana": ("inherit", "", 22, True, True, False),
+            "hw_katakana": ("inherit", "", 22, True, True, False),
+            "greek_and_cyrillic": ("inherit", "", 22, True, True, False),
+            "jis_kanji_1": ("inherit", "", 22, True, True, False),
+            "jis_kanji_2": ("inherit", "", 22, True, True, False),
+            "etc_kanji": ("inherit", "", 22, True, True, False),
+            "symbol": ("inherit", "", 22, True, True, False),
+            "number": ("inherit", "", 22, True, True, False),
+            "latin": ("inherit", "", 22, True, True, False),
+        }
 
         # Windowsのフォントが使用可能であれば標準フォントを差し替える
         if "MS UI Gothic" in wx.FontEnumerator.GetFacenames():
@@ -248,12 +263,12 @@ class LocalSetting(object):
         self.basefont["mincho"] = data.gettext("FontMincho", self.basefont_init["mincho"])
         self.basefont["pmincho"] = data.gettext("FontPMincho", self.basefont_init["pmincho"])
         self.basefont["pgothic"] = data.gettext("FontPGothic", self.basefont_init["pgothic"])
-        # 役割別フォント
-        for e in data.getfind("Fonts", raiseerror=False):
+
+        def read_font(e, table, table_init):
             key = e.getattr(".", "key", "")
-            if not key or not key in self.fonttypes_init:
-                continue
-            _deftype, _defname, defpixels, defbold, defbold_upscr, defitalic = self.fonttypes_init[key]
+            if not key or not key in table_init:
+                return
+            _deftype, _defname, defpixels, defbold, defbold_upscr, defitalic = table_init[key]
 
             fonttype = e.getattr(".", "type", "")
             name = e.text if e.text else ""
@@ -273,7 +288,16 @@ class LocalSetting(object):
                 italic = defitalic
             else:
                 italic = cw.util.str2bool(italic)
-            self.fonttypes[key] = (fonttype, name, pixels, bold, bold_upscr, italic)
+                table[key] = (fonttype, name, pixels, bold, bold_upscr, italic)
+
+        # 役割別フォント
+        for e in data.getfind("Fonts", raiseerror=False):
+            read_font(e, self.fonttypes, self.fonttypes_init)
+        # メッセージ用混植フォント
+        e_synthfont = data.find("SyntheticFonts")
+        if not e_synthfont is None and e_synthfont.getattr(".", "key", "") == "message":
+            for e in e_synthfont:
+                read_font(e, self.msg_exfonts, self.msg_exfonts_init)
 
         # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
         self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", self.fullscreenbackgroundtype_init)
@@ -1342,6 +1366,10 @@ class Setting(object):
     def fonttypes(self):
         return self.get_fontsetting().fonttypes
 
+    @property
+    def msg_exfonts(self):
+        return self.get_fontsetting().msg_exfonts
+
     def is_logscrollable(self):
         return self.messagelog_type != LOG_SINGLE
 
@@ -1446,7 +1474,7 @@ class Resource(object):
         self.wxstones = ResourceTable("Stone", {}.copy(), empty_wxbmp)
         # 使用フォント(辞書)。スプライトを作成するたびにフォントインスタンスを
         # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
-        self.fonts = self.create_fonts()
+        self.fonts, self.msg_exfonts = self.create_fonts()
         # StatusBarで使用するボタンイメージ
         self._statusbtnbmp0 = {}
         self._statusbtnbmp1 = {}
@@ -1634,10 +1662,11 @@ class Resource(object):
             WM_FONTCHANGE = 0x001D
             user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
 
-    def get_fontfromtype(self, name):
+    def get_fontfromtype(self, name, fontinfo=None):
         """フォントタイプ名から抽象フォント名を取得する。"""
-        basename = self.setting().fonttypes.get(name, (name, "", -1, None, None, None))
-        basename, fontname, pixels, bold, bold_upscr, italic = basename
+        if fontinfo is None:
+            fontinfo = self.setting().fonttypes.get(name, (name, "", -1, None, None, None))
+        basename, fontname, pixels, bold, bold_upscr, italic = fontinfo
         if basename:
             fontname = self.setting().basefont[basename]
             if not fontname:
@@ -1681,8 +1710,9 @@ class Resource(object):
 
         return wxfont
 
-    def create_font(self, type, basetype, fontname, size_noscale, defbold, defbold_upscr, defitalic, pixelsadd=0, nobold=False):
-        fontname, pixels_noscale, bold, bold_upscr, italic = self.get_fontfromtype(type)
+    def create_font(self, type, basetype, fontname, size_noscale, defbold, defbold_upscr, defitalic, pixelsadd=0,
+                    nobold=False, fontinfo=None):
+        fontname, pixels_noscale, bold, bold_upscr, italic = self.get_fontfromtype(type, fontinfo)
         if pixels_noscale <= 0:
             pixels_noscale = size_noscale
         pixels_noscale += pixelsadd
@@ -1701,10 +1731,18 @@ class Resource(object):
 
         return cw.imageretouch.Font(fontname, -cw.s(pixels_noscale), bold=bold, italic=italic)
 
+    def create_exfont(self, type, fontinfo, basetable, nobold):
+        if fontinfo[0] == "inherit":
+            return basetable[type]
+        else:
+            t = fontinfo
+            return self.create_font("", t[0], t[1], t[2], t[3], t[4], t[5], nobold=nobold, fontinfo=fontinfo)
+
     def create_fonts(self):
         """ゲーム内で頻繁に使用するpygame.Fontはここで設定する。"""
         # 使用フォント(辞書)
         fonts = ResourceTable("Font", {}.copy(), lambda: None)
+        msg_exfonts = ResourceTable("SyntheticFontsForMessage", {}.copy(), lambda: None)
         # 所持カードの使用回数描画用
         t = self.setting().fonttypes["uselimit"]
         fonts.set("card_uselimit", self.create_font, "uselimit", t[0], t[1], t[2], t[3], t[4], t[5])
@@ -1720,6 +1758,12 @@ class Resource(object):
         # メッセージウィンドウのテキスト描画用
         t = self.setting().fonttypes["message"]
         fonts.set("message", self.create_font, "message", t[0], t[1], t[2], t[3], t[4], t[5], nobold=True)
+        # メッセージ用混植フォント
+        for extype in ("fw_symbol", "fw_number", "fw_latin", "hiragana", "katakana", "hw_katakana",
+                       "greek_and_cyrillic", "jis_kanji_1", "jis_kanji_2", "etc_kanji", "symbol",
+                       "number", "latin"):
+            t = self.setting().msg_exfonts[extype]
+            msg_exfonts.set(extype, self.create_exfont, "message", fontinfo=t, basetable=fonts, nobold=True)
         # メッセージウィンドウの選択肢描画用
         t = self.setting().fonttypes["selectionbar"]
         fonts.set("selectionbar", self.create_font, "selectionbar", t[0], t[1], t[2], t[3], t[4], t[5])
@@ -1755,7 +1799,7 @@ class Resource(object):
         fonts.set("statusimg3", self.create_font, "statusnum", t[0], t[1], t[2], t[3], t[4], t[5], pixelsadd=-4)
         t = self.setting().fonttypes["screenshot"]
         fonts.set("screenshot", self.create_font, "screenshot", t[0], t[1], t[2], t[3], t[4], t[5])
-        return fonts
+        return fonts, msg_exfonts
 
     def create_wxbutton(self, parent, cid, size, name=None, bmp=None , chain=False):
         if bmp:
