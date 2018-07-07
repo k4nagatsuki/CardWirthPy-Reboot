@@ -1499,7 +1499,7 @@ def screenshot():
             os.makedirs(dpath)
         bmp, y = create_screenshot(titledic)
         encoding = cw.filesystem_encoding
-        pygame.image.save(bmp, filename.encode(encoding))
+        pygame.image.save(bmp, filename.encode(encoding, errors="replace"))
     except:
         s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
         cw.cwpy.call_modaldlg("ERROR", text=s)
@@ -1559,7 +1559,7 @@ def card_screenshot():
                     os.makedirs(dpath)
                 bmp = create_cardscreenshot(titledic)
                 encoding = cw.filesystem_encoding
-                pygame.image.save(bmp, filename.encode(encoding))
+                pygame.image.save(bmp, filename.encode(encoding, errors="replace"))
             except:
                 s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
                 cw.cwpy.call_modaldlg("ERROR", text=s)
@@ -2169,7 +2169,7 @@ def compress_zip(path, zpath, unicodefilename=False):
                 if unicodefilename:
                     z.write(fpath, zname)
                 else:
-                    z.write(fpath, zname.encode(encoding))
+                    z.write(fpath, zname.encode(encoding, errors="replace"))
 
     z.close()
     return zpath
