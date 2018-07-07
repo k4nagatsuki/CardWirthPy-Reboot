@@ -1542,6 +1542,18 @@ class CardControl(wx.Dialog):
                 self.toppanel.SetFocusIgnoringChildren()
             return False
 
+        # 召喚獣の発動条件を満たしていなければ処理中止(Wsn.3)
+        if header.type == "BeastCard" and not header.is_activewithstatus(owner):
+            cw.cwpy.play_sound("error")
+            if cw.cwpy.setting.noticeimpossibleaction:
+                s = cw.cwpy.msgs["beast_invocation_failed"]
+                dlg = message.Message(self, cw.cwpy.msgs["message"], s)
+                self.Parent.move_dlg(dlg)
+                dlg.ShowModal()
+                dlg.Destroy()
+                self.toppanel.SetFocusIgnoringChildren()
+            return False
+
         return True
 
     def OnOk(self, event):

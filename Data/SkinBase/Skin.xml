@@ -816,6 +816,7 @@
     <Message key="centering_face">中央寄せ</Message>
     <Message key="debug_log">デバッグ情報</Message>
     <Message key="desc_debug_log">シナリオのプレイ結果を表示します</Message>
+    <Message key="beast_invocation_failed">発動条件を満たしていません。</Message>
     <!-- 3.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />

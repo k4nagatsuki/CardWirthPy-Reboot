@@ -596,8 +596,6 @@ class Frame(wx.Frame):
             cw.quit = True
             if self.debugger:
                 self.debugger.Close()
-            if self.db:
-                self.db.close()
             self.Destroy()
 
     def OnMove(self, event):
@@ -629,8 +627,6 @@ class Frame(wx.Frame):
             cw.quit = True
             if self.debugger:
                 self.debugger.Close()
-            if self.db:
-                self.db.close()
             self.Destroy()
 
     def OnSETTINGS(self, event):
@@ -1056,8 +1052,6 @@ class Frame(wx.Frame):
             cw.quit = True
             if self.debugger:
                 self.debugger.Close()
-            if self.db:
-                self.db.close()
             self.Destroy()
         else:
             self.kill_dlg(dlg)
