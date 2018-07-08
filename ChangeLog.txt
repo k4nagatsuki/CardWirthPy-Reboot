@@ -8,7 +8,7 @@
 
  * issue #663 / メッセージのフォントを文字の種類ごとに設定できるようにした。
  * スキンに編成記録ダイアログをトップレベルで開く機能を追加できるようにした。
-   `arg="PARTYSELECT"`かつ`command="ShowDialog"`のメニューカードを配置してください。
+   `arg="PARTYRECORD"`かつ`command="ShowDialog"`のメニューカードを配置してください。
 
 ### 変更
 
