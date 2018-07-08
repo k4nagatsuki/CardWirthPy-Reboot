@@ -257,6 +257,7 @@ class Frame(wx.Frame):
             "PLAYERSELECT",  # 冒険者選択ダイアログ
             "SCENARIOSELECT",  # 貼り紙選択ダイアログ
             "ALBUM",  # アルバムダイアログ
+            "PARTYRECORD",  # 編成記録ダイアログ
             "BACKPACK",  # 荷物袋ダイアログ
             "STOREHOUSE",  # カード置場ダイアログ
             "CARDPOCKET",  # プレイヤ所持カードダイアログ
@@ -788,6 +789,12 @@ class Frame(wx.Frame):
 
     def OnALBUM(self, event):
         dlg = cw.dialog.select.Album(self)
+        self.move_dlg(dlg)
+        dlg.ShowModal()
+        self.kill_dlg(dlg)
+
+    def OnPARTYRECORD(self, event):
+        dlg = cw.dialog.partyrecord.SelectPartyRecord(self)
         self.move_dlg(dlg)
         dlg.ShowModal()
         self.kill_dlg(dlg)

@@ -60,7 +60,7 @@ class SelectPartyRecord(select.Select):
         """パーティの記録。"""
         from . import message
 
-        if self.Parent.is_processing():
+        if isinstance(self.Parent, wx.Dialog) and self.Parent.is_processing():
             return
         header = self.list[self.index]
         cw.cwpy.play_sound("signal")
@@ -97,7 +97,7 @@ class SelectPartyRecord(select.Select):
         """パーティの再結成。"""
         from . import message
 
-        if self.Parent._processing:
+        if isinstance(self.Parent, wx.Dialog) and self.Parent._processing:
             return
         header = self.list[self.index]
         assert bool(header)
@@ -129,18 +129,22 @@ class SelectPartyRecord(select.Select):
                         panel.index = panel.list.index(header)
                 if panel:
                     panel.draw(True)
-                if parent:
+                if isinstance(parent, wx.Dialog) and parent:
                     parent.update_standbys(selected)
                     parent._processing = False
             cw.cwpy.frame.exec_func(func, panel, parent, selected, updatelist)
-        self.Parent._processing = True
-        cw.cwpy.exec_func(func, header, self, self.Parent, self.Parent.get_selected())
+
+        if isinstance(self.Parent, wx.Dialog):
+            self.Parent._processing = True
+            cw.cwpy.exec_func(func, header, self, self.Parent, self.Parent.get_selected())
+        else:
+            cw.cwpy.exec_func(func, header, self, self.Parent, None)
 
     def OnClickDeleteBtn(self, event):
         """パーティ記録の削除。"""
         from . import message
 
-        if self.Parent.is_processing():
+        if isinstance(self.Parent, wx.Dialog) and self.Parent.is_processing():
             return
         header = self.list[self.index]
         assert bool(header)
