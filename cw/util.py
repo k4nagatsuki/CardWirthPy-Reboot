@@ -1283,8 +1283,11 @@ def validate_filepath(fpath):
                 seq.append(f)
         return seq
     else:
+        from cw.binary.image import path_is_code
         if not fpath:
             return ""
+        if cw.binary.image.path_is_code(fpath):
+            return fpath
         if os.path.isabs(fpath):
             return ""
         else:
