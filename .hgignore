@@ -40,3 +40,4 @@ syntax: regexp
 ^Scenario\.db$
 ^dist/.*
 ^CardWirthPy.spec$
+^dailybuild_tmp/.*
