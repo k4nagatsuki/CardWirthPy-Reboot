@@ -247,10 +247,10 @@ def _get_skipstatus(clearevent):
             if e.type in (pygame.locals.MOUSEBUTTONUP, pygame.locals.MOUSEBUTTONDOWN) and hasattr(e, "button"):
                 if not cw.cwpy.setting.can_skipwait_with_wheel and e.button in (4, 5):
                     # ホイールによる空白時間スキップ無効の設定
-                    pygame.event.post(e)
+                    cw.thread.post_pygameevent(e)
                     continue
             breakflag = True
-        pygame.event.post(e)
+        cw.thread.post_pygameevent(e)
 
     if not breakflag:
         breakflag = cw.cwpy.event.get_event() and cw.cwpy.event.is_stoped()
