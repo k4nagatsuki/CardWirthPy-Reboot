@@ -2077,8 +2077,10 @@ class ScenarioSelect(select.Select):
         #      destを使用せず、Book.bmpの内容をコピーして
         #      背景とする事でなぜか回避できる
         #      Windows 10 1709
+        #      ---
+        #      Windows 10 1803でusebuffer=Falseでも問題が発生しなくなった
 #        dc.DrawBitmap(bmp, 0, yp, False)
-        dest = cw.util.copy_wxbmp(bmp, usebuffer=True)
+        dest = cw.util.copy_wxbmp(bmp)#, usebuffer=True)
         dc = wx.MemoryDC(dest)
         # --------
 
