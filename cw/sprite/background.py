@@ -1328,42 +1328,13 @@ class LifeBar(base.CWPySprite):
         self.group.add(self, layer=cw.LAYER_FRONT_LIFEBAR)
 
     def update_scale(self):
-        if self.ccard.scale == 100:
-            self.image = self.ccard.cardimg.lifeimg
-            self.rect = pygame.Rect(cw.s((8, 110)), self.image.get_size())
-        else:
-            # スケーリングの処理の都合上ライフバーの位置ずれが避けられないため
-            # ライフバーを新規に配置するのではなく、キャラクターのイメージから
-            # ライフバー部分を切り出す事で問題を軽減する
-            def rescale(val):
-                return val*self.ccard.scale // 100
-
-            fpath_guage = cw.util.join_paths(cw.cwpy.skindir, "Resource/Image/Status/LIFEGUAGE2")
-            fpath_lifemask = cw.util.join_paths(cw.cwpy.skindir, "Resource/Image/Status/LIFEGUAGE2_MASK")
-            if cw.util.find_resource(fpath_guage, cw.M_IMG) and cw.util.find_resource(fpath_lifemask, cw.M_IMG):
-                lifeimg = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"].convert_alpha()
-                w, h = lifeimg.get_size()
-                w = rescale(w)
-                h = rescale(h)
-            else:
-                lifeimg = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
-                w, h = lifeimg.get_size()
-                w = rescale(w)
-                h = rescale(h)
-
-                lifeimg = lifeimg.copy()
-                lifeimg.set_colorkey(lifeimg.get_at((0, 0)), pygame.locals.RLEACCEL)
-                lifeimg = lifeimg.convert_alpha()
-            self.rect = pygame.Rect(cw.s((rescale(8), rescale(110))), (w, h))
-            lifeimg.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_MAX)
-            lifeimg = cw.image.smoothscale(lifeimg, self.rect.size)
-            self.image = self.ccard.get_unselectedimage()
-            self.image = self.image.subsurface(self.rect)
-            self.image = self.image.convert_alpha()
-            self.image.blit(lifeimg, (0, 0), special_flags=pygame.locals.BLEND_RGBA_MIN)
-
-        self.rect.top += self.ccard.rect.top
-        self.rect.left += self.ccard.rect.left
+        bgname = self.ccard.cardimg.get_cardbgname(self.ccard)
+        cardbg = cw.cwpy.rsrc.cardbgs[bgname]
+        self.image = pygame.Surface(cardbg.get_size()).convert_alpha()
+        self.image.fill((0, 0, 0, 0))
+        self.image.blit(self.ccard.cardimg.lifeimg, cw.s((8, 110)))
+        self.image = cw.image.zoomcard(self.image, self.ccard.scale / 100.0)
+        self.rect = pygame.Rect(self.ccard.rect)
 
 
 class TargetArrow(base.CWPySprite):
