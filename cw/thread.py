@@ -3863,7 +3863,8 @@ class CWPy(_Singleton, threading.Thread):
 
             if header:
                 if self.selection == sprite and not selowner:
-                    if cw.cwpy.setting.show_lifebar_on_selection:
+                    if cw.cwpy.setting.show_lifebar_on_selection and\
+                            sprite.is_analyzable() and not sprite.is_unconscious():
                         cw.sprite.background.LifeBar(sprite)
                     self.set_inusecardimg(sprite, header, fore=True)
                     if header.target == "None":
