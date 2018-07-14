@@ -3863,6 +3863,8 @@ class CWPy(_Singleton, threading.Thread):
 
             if header:
                 if self.selection == sprite and not selowner:
+                    if cw.cwpy.setting.show_lifebar_on_selection:
+                        cw.sprite.background.LifeBar(sprite)
                     self.set_inusecardimg(sprite, header, fore=True)
                     if header.target == "None":
                         self.set_targetarrow([sprite])
@@ -3892,6 +3894,9 @@ class CWPy(_Singleton, threading.Thread):
     def clear_inusecardimg(self, user=None):
         """PlayerCardの前の使用中カードの画像を削除。"""
         self._show_allselectedcards = False
+        lifebars = self.cardgrp.get_sprites_from_layer(cw.LAYER_FRONT_LIFEBAR)
+        if lifebars and (user is None or lifebars[0].ccard is user):
+            self.cardgrp.remove_sprites_of_layer(cw.LAYER_FRONT_LIFEBAR)
         if user:
             if user.inusecardimg:
                 user.inusecardimg.group.remove(user.inusecardimg) # TODO: layer

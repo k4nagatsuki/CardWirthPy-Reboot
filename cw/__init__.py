@@ -151,9 +151,10 @@ LAYER_FCARDS_T = 0x7fffffff # デバッグモードで表示される戦闘中�
 LAYER_FCARDS = 1000 # 同行キャスト
 
 # (layer, index, kind)
-LAYER_BATTLE_START = (0x7fffffff, 0x7fffffff-3, 0x7fffffff, 0x7fffffff) # バトル開始カード
-LAYER_FRONT_INUSECARD = (0x7fffffff, 0x7fffffff-2, 0x7fffffff, 0x7fffffff) # カーソル下のカードの使用カード
+LAYER_BATTLE_START = (0x7fffffff, 0x7fffffff-4, 0x7fffffff, 0x7fffffff) # バトル開始カード
+LAYER_FRONT_INUSECARD = (0x7fffffff, 0x7fffffff-3, 0x7fffffff, 0x7fffffff) # カーソル下のカードの使用カード
 LAYER_TARGET_ARROW = (0x7fffffff, 0x7fffffff-1, 0x7fffffff, 0x7fffffff) # 対象選択の指マーク
+LAYER_FRONT_LIFEBAR = (0x7fffffff, 0x7fffffff-2, 0x7fffffff, 0x7fffffff) # ライフバー
 
 # index=-1は背景セル
 LAYER_MESSAGE = (1000, LTYPE_MESSAGE, 0, 0) # メッセージ

@@ -778,13 +778,19 @@ class Depth1Surface(pygame.Surface):
         self.scr_scale = scr_scale
 
     def copy(self):
-        bmp = Depth1Surface(pygame.Surface.copy(self), self.scr_scale)
-        bmp.bmpdepthis1 = self.bmpdepthis1
+        if hasattr(self, "scr_scale"):
+            bmp = Depth1Surface(pygame.Surface.copy(self), self.scr_scale)
+            bmp.bmpdepthis1 = self.bmpdepthis1
+        else:
+            bmp = pygame.Surface.copy(self)
         return bmp
 
     def convert_alpha(self):
-        bmp = Depth1Surface(pygame.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
-        bmp.bmpdepthis1 = False
+        if hasattr(self, "scr_scale"):
+            bmp = Depth1Surface(pygame.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
+            bmp.bmpdepthis1 = False
+        else:
+            bmp = pygame.Surface.convert_alpha(self)
         return bmp
 
 

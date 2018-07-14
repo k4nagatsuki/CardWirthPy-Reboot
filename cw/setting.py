@@ -413,6 +413,7 @@ class Setting(object):
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
         self.ssinfobackimage = ""
+        self.show_lifebar_on_selection = True
         self.show_fcardsinbattle = False
         self.statusbarmask = True
         self.show_experiencebar = True

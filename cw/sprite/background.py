@@ -1252,6 +1252,7 @@ class BattleCardImage(card.CWPyCard):
     def update_selection(self):
         pass
 
+
 class InuseCardImage(card.CWPyCard):
     def __init__(self, user, header, status="normal", center=False, alpha=255, fore=False):
         """使用中のカード画像スプライト。
@@ -1310,6 +1311,30 @@ class InuseCardImage(card.CWPyCard):
     def update_selection(self):
         pass
 
+
+class LifeBar(base.CWPySprite):
+    def __init__(self, ccard):
+        """ccardのライフバーを切り出して単一のスプライトとする。
+        ccard: Character。
+        """
+        assert ccard.is_analyzable() and not ccard.is_unconscious()
+        base.CWPySprite.__init__(self)
+        self.ccard = ccard
+
+        self.update_scale()
+
+        # spritegroupに追加
+        self.group = cw.cwpy.cardgrp
+        self.group.add(self, layer=cw.LAYER_FRONT_LIFEBAR)
+
+    def update_scale(self):
+        self.image = self.ccard.cardimg.lifeimg
+        self.rect = self.image.get_rect()
+        self.rect.topleft = cw.s((8, 110))
+        self.rect.top += self.ccard.rect.top
+        self.rect.left += self.ccard.rect.left
+
+
 class TargetArrow(base.CWPySprite):
     def __init__(self, target):
         """ターゲット選択する矢印画像スプライト。
@@ -1326,6 +1351,7 @@ class TargetArrow(base.CWPySprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.target.rect.right - cw.s(20), self.target.rect.bottom - cw.s(20))
 
+
 class Jpy1TemporalSprite(base.CWPySprite):
     def __init__(self, background):
         """エフェクトブースターJpy1の一時描画用スプライト。
@@ -1338,6 +1364,7 @@ class Jpy1TemporalSprite(base.CWPySprite):
 
         # spritegroupに追加
         cw.cwpy.topgrp.add(self, layer=cw.LAYER_JPY_TEMPORAL) # TODO: layer
+
 
 class ClickableSprite(base.SelectableSprite):
     def __init__(self, getimage, getselimage, pos_noscale, spritegrp, lclickevent=None, rclickevent=None):
@@ -1460,6 +1487,7 @@ class ClickableSprite(base.SelectableSprite):
         if self.status == "hidden":
             self.spritegrp.remove(self) # TODO: layer
 
+
 class NumberOfCards(base.CWPySprite):
     def __init__(self, pcard, cardtype, spritegrp):
         """カード所持枚数を表示するスプライト。
@@ -1512,6 +1540,7 @@ class NumberOfCards(base.CWPySprite):
             bmpw -= cw.cwpy.rsrc.pygamedialogs["REPLACE_CARDS"].get_width()//2
         self.rect.left = self.pcard.rect.left + bmpw//2 - self.rect.width//2
         self.rect.top = self.pcard.rect.top - (h+1) - cw.s(5)
+
 
 class PriceOfCard(base.CWPySprite):
     def __init__(self, mcard, header, spritegrp):
@@ -1577,6 +1606,7 @@ class PriceOfCard(base.CWPySprite):
 
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

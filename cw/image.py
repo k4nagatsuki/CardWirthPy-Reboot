@@ -1012,6 +1012,7 @@ class CharacterCardImage(CardImage):
                 lifeimg.blit(lifebar, calc_barpos(guage))
                 lifeimg.blit(guage, (0, 0))
 
+            self.lifeimg = lifeimg
             self.image.blit(lifeimg, cw.s((8, 110)))
 
         if header:
