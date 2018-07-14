@@ -1330,7 +1330,20 @@ class LifeBar(base.CWPySprite):
     def update_scale(self):
         self.image = self.ccard.cardimg.lifeimg
         self.rect = self.image.get_rect()
-        self.rect.topleft = cw.s((8, 110))
+        if self.ccard.scale != 100:
+            smoothing = cw.cwpy.setting.smoothing_card_down if self.ccard.scale < 100 else cw.cwpy.setting.smoothing_card_up
+
+            def rescale(val):
+                return val*self.ccard.scale // 100
+
+            w, h = self.image.get_size()
+            w = rescale(w)
+            h = rescale(h)
+            self.image = cw.image.smoothscale(self.image, (w, h), smoothing=smoothing, iscard=False)
+            self.rect.size = (w, h)
+            self.rect.topleft = cw.s((rescale(8), rescale(110)))
+        else:
+            self.rect.topleft = cw.s((8, 110))
         self.rect.top += self.ccard.rect.top
         self.rect.left += self.ccard.rect.left
 
