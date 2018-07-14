@@ -1510,9 +1510,11 @@ class StatusPanel(wx.ScrolledWindow):
         elif self.ccard.is_heavyinjured():
             colour = wx.Colour(127, 0, 0)
             msg = cw.cwpy.msgs["heavy_injured"]
+            msg += " (%s%%)" % self.ccard.get_lifeper()
         elif self.ccard.is_injured():
             colour = wx.Colour(0, 153, 187)
             msg = cw.cwpy.msgs["injured"]
+            msg += " (%s%%)" % self.ccard.get_lifeper()
         else:
             colour = wx.Colour(192, 192, 192)
             msg = cw.cwpy.msgs["fine"]
