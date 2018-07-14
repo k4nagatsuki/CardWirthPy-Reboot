@@ -257,17 +257,20 @@ WSN形式では、バージョン「Wsn.2」以降、称号判定分岐でWSN形
 ライセンス
 --------------------------------------------------------------------------
 
-CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはcx_Freezeを使用しています。
+CardWirthPyはプログラミング言語Pythonで書かれました。
 
 [Python ver3.6.5](http://www.python.org/)
+python36.dll, lib内でこれ以降に記載の無い全てのファイルとディレクトリ
  : License: Python Software Foundation License
+
+実行ファイルの作成にはcx_Freezeを使用しています。
 
 [cx_Freeze](https://anthony-tuininga.github.io/cx_Freeze/)
 
 CardWirthPyは以下のPythonの外部モジュールを利用しています。
 
-[wxPython 4.0.1](http://www.wxpython.org/)
-python36.dll, lib内でこれ以降に記載の無い全てのファイルとディレクトリ
+[wxPython 4.0.3](http://www.wxpython.org/)
+lib/wx以下の全てのファイルとディレクトリ
  : License: wxWindows Library License
 
 [pygame ver1.9.3](http://www.pygame.org/)
