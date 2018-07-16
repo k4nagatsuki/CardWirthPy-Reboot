@@ -292,7 +292,9 @@ class Effect(object):
         if self.user and self.count_motion("absorb")\
                      and userlife < self.user.life:
             cw.cwpy.play_sound("bind", True)
+            self.user.hide_inusecardimg = False
             cw.animation.animate_sprite(self.user, "hide", battlespeed=self.battlespeed)
+            self.user.hide_inusecardimg = True
             self.user.update_image()
             cw.animation.animate_sprite(self.user, "deal", battlespeed=self.battlespeed)
 
