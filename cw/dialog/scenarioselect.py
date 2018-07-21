@@ -2079,9 +2079,12 @@ class ScenarioSelect(select.Select):
         #      Windows 10 1709
         #      ---
         #      Windows 10 1803でusebuffer=Falseでも問題が発生しなくなった
-#        dc.DrawBitmap(bmp, 0, yp, False)
-        dest = cw.util.copy_wxbmp(bmp)#, usebuffer=True)
-        dc = wx.MemoryDC(dest)
+        if int(cw.UP_WIN) == cw.UP_WIN:
+            dest = cw.util.copy_wxbmp(bmp)#, usebuffer=True)
+            dc = wx.MemoryDC(dest)
+        else:
+            # こちらが本来の処理。なぜか整数倍の拡大率では問題無い
+            dc.DrawBitmap(bmp, 0, yp, False)
         # --------
 
         # リストが空だったら描画終了
