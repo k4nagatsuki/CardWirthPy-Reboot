@@ -1082,7 +1082,11 @@ class JpdcImage(cw.image.Image):
 
 class JptxImage(cw.image.Image):
     def __init__(self, path, mask):
-        config = EffectBoosterConfig(path, "jptx:init")
+        config = EffectBoosterConfig(path, "jptx:init", section_ignorecase=False)
+        if not config.has_section("jptx:init"):
+            self.image = pygame.Surface((cw.s(1), cw.s(1))).convert_alpha()
+            self.image.fill((0, 0, 0, 0))
+            return
         # parameters
         backcolor = config.get_color("jptx:init", "backcolor", (0, 0, 0))
         backwidth = cw.s(config.get_int("jptx:init", "backwidth", -1))
@@ -1448,7 +1452,7 @@ class JptxImage(cw.image.Image):
         return start, name, attrs
 
 class EffectBoosterConfig(object):
-    def __init__(self, path, firstsection):
+    def __init__(self, path, firstsection, section_ignorecase=True):
         self.path = path
         self.dirdepth = 0
         r_sec = re.compile(r'\[([^]]+)\]')
@@ -1467,12 +1471,14 @@ class EffectBoosterConfig(object):
                     continue
 
                 line = str(line, cw.MBCS).replace("\r\n", "\n")
+                lline = line.lower()
+                sline = line.strip()
 
                 # jptxテキスト
-                if line == "[jptx:end]\n" or line == "[jptx:end]":
+                if sline == "[jptx:end]":
                     in_jptxtxt = False
                     break
-                elif line == "[jptx:begin]\n":
+                elif sline == "[jptx:begin]":
                     in_jptxtxt = True
                     jptxtxt.append("")
                     continue
@@ -1481,10 +1487,13 @@ class EffectBoosterConfig(object):
                     continue
 
                 # セクション
-                m = r_sec.match(line)
+                m = r_sec.match(sline)
 
                 if m:
-                    sec = m.group(1).strip()
+                    if section_ignorecase:
+                        sec = m.group(1).strip().lower()
+                    else:
+                        sec = m.group(1)
                     cur_sec = {}
                     # 互換動作: セクション名が重複した時、セクションの内容が上書きされて
                     #           同一のセクションが複数回実行されるような挙動が発生するが、
@@ -1499,7 +1508,7 @@ class EffectBoosterConfig(object):
                     continue
 
                 # オプション
-                m = r_opt.match(line)
+                m = r_opt.match(line.lstrip())
 
                 if m:
                     opt = m.group(1).strip().lower()
@@ -1523,6 +1532,9 @@ class EffectBoosterConfig(object):
 
     def sections(self):
         return self._orderedsecs
+
+    def has_section(self, name):
+        return name in self._sections
 
     def get(self, section, option, default=None):
         sec = self._sections.get(section, None)
