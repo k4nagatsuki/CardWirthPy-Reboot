@@ -2062,16 +2062,35 @@ def send_trashbox(path):
     可能であればpathをゴミ箱へ送る。
     """
     if sys.platform == "win32":
+        path2 = path
         path = os.path.normpath(os.path.abspath(path))
         ope = win32com.shell.shellcon.FO_DELETE
         flags = win32com.shell.shellcon.FOF_NOCONFIRMATION |\
                 win32com.shell.shellcon.FOF_ALLOWUNDO |\
                 win32com.shell.shellcon.FOF_SILENT
-        win32com.shell.shell.SHFileOperation((None, ope, path + '\0\0', None, flags, None, None))
+        r = win32com.shell.shell.SHFileOperation((None, ope, path + '\0\0', None, flags, None, None))
     elif os.path.isfile(path):
         os.remove(path)
     elif os.path.isdir(path):
         shutil.rmtree(path)
+
+def send_trashbox2(paths):
+    """
+    可能であればpathsをゴミ箱へ送る。
+    """
+    if sys.platform == "win32":
+        ope = win32com.shell.shellcon.FO_DELETE
+        flags = win32com.shell.shellcon.FOF_NOCONFIRMATION |\
+                win32com.shell.shellcon.FOF_ALLOWUNDO |\
+                win32com.shell.shellcon.FOF_SILENT
+        paths = "\0".join(map(lambda path: os.path.normpath(os.path.abspath(path)), paths)) + '\0\0'
+        r = win32com.shell.shell.SHFileOperation((None, ope, paths, None, flags, None, None))
+    else:
+        for path in paths:
+            if os.path.isfile(path):
+                os.remove(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
 
 def remove_emptydir(dpath):
     """
@@ -2083,6 +2102,24 @@ def remove_emptydir(dpath):
                 # 中身が存在する
                 return
         remove(dpath)
+
+
+def copytree_overwrite(src, dst):
+    """
+    ディレクトリを上書きコピーする。
+    """
+    if not os.path.isdir(dst):
+        os.makedirs(dst)
+    for dpath, dnames, fnames in os.walk(src):
+        rel = relpath(dpath, src)
+        for dname in dnames:
+            src2 = join_paths(dpath, dname)
+            dst2 = join_paths(dst, rel, dname)
+            copytree_overwrite(src2, dst2)
+        for fname in fnames:
+            src2 = join_paths(dpath, fname)
+            dst2 = join_paths(dst, rel, fname)
+            shutil.copy2(src2, dst2)
 
 
 #-------------------------------------------------------------------------------

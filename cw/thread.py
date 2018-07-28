@@ -840,12 +840,7 @@ class CWPy(_Singleton, threading.Thread):
         self.advlog.end_scenario(False, False)
         if self.sdata:
             self.sdata.sleep_timekeeper()
-        for music in self.music:
-            music.stop()
-        for i in range(len(self.lastsound_scenario)):
-            if self.lastsound_scenario[i]:
-                self.lastsound_scenario[i].stop(True)
-                self.lastsound_scenario[i] = None
+        self.stop_allsounds()
         if self.lastsound_system:
             self.lastsound_system.stop(False)
             self.lastsound_system = None
@@ -1535,6 +1530,88 @@ class CWPy(_Singleton, threading.Thread):
                   "  #########  ### #  #   ",)
                 point = (7, 7)
 
+        elif name == "wait":
+            if 2 <= cw.dpi_level:
+                # 48x48
+                s = (
+                    "                                                ",
+                    "                                                ",
+                    "        ################################        ",
+                    "        ################################        ",
+                    "        #.............................##        ",
+                    "        #.............................##        ",
+                    "        ################################        ",
+                    "        ###                          ###        ",
+                    "         ##                          ##         ",
+                    "         ##                          ##         ",
+                    "         ##                          ##         ",
+                    "          ##                        ##          ",
+                    "          ##                        ##          ",
+                    "           ##                      ##           ",
+                    "           ##                      ##           ",
+                    "            ##                    ##            ",
+                    "             ##                  ##             ",
+                    "             ###                ###             ",
+                    "              ###              ###              ",
+                    "               ###            ###               ",
+                    "                ###          ###                ",
+                    "                 ###        ###                 ",
+                    "                   ##      ##                   ",
+                    "                    ##    ##                    ",
+                    "                    ##    ##                    ",
+                    "                   ##      ##                   ",
+                    "                 ###        ###                 ",
+                    "                ###          ###                ",
+                    "               ###            ###               ",
+                    "              ###              ###              ",
+                    "             ###                ###             ",
+                    "             ## ################ ##             ",
+                    "            ## .................. ##            ",
+                    "           ## .................... ##           ",
+                    "           ## .................... ##           ",
+                    "          ## ...................... ##          ",
+                    "          ## ...................... ##          ",
+                    "         ## ........................ ##         ",
+                    "         ## ........................ ##         ",
+                    "         ## ........................ ##         ",
+                    "        ###                          ###        ",
+                    "        ################################        ",
+                    "        ##............................##        ",
+                    "        ##............................##        ",
+                    "        ################################        ",
+                    "        ################################        ",
+                    "                                                ",
+                    "                                                ",)
+                point = (23, 23)
+            else:
+                # 24x24
+                s = (
+                    "                        ",
+                    "    ################    ",
+                    "    #..............#    ",
+                    "    ################    ",
+                    "    #              #    ",
+                    "     #            #     ",
+                    "     #            #     ",
+                    "      #          #      ",
+                    "       #        #       ",
+                    "        #      #        ",
+                    "         #    #         ",
+                    "          #  #          ",
+                    "          #  #          ",
+                    "         #    #         ",
+                    "        #      #        ",
+                    "       # ###### #       ",
+                    "      # ........ #      ",
+                    "     # .......... #     ",
+                    "     # .......... #     ",
+                    "    # ............ #    ",
+                    "    ################    ",
+                    "    #..............#    ",
+                    "    ################    ",
+                    "                        ",)
+                point = (11, 11)
+
             if self.setting.cursor_type == cw.setting.CURSOR_WHITE:
                 cursor = pygame.cursors.compile(s, "#", ".", "o")
             else:
@@ -1998,10 +2075,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def _init_attrs(self):
         self.background.clear_background()
-        for i in range(len(self.lastsound_scenario)):
-            if self.lastsound_scenario[i]:
-                self.lastsound_scenario[i].stop(True)
-                self.lastsound_scenario[i] = None
+        self.stop_allsounds()
         cw.util.remove_temp()
         self.yadodir = ""
         self.tempdir = ""
@@ -2224,12 +2298,7 @@ class CWPy(_Singleton, threading.Thread):
         self.sdata.sleep_timekeeper()
         self.sdata.end()
 
-        for music in self.music:
-            music.stop()
-        for i in range(len(self.lastsound_scenario)):
-            if self.lastsound_scenario[i]:
-                self.lastsound_scenario[i].stop(True)
-                self.lastsound_scenario[i] = None
+        self.stop_allsounds()
 
         self.ydata.load_party(None)
         self.ydata.losted_party = party
@@ -2247,6 +2316,14 @@ class CWPy(_Singleton, threading.Thread):
         self._gameover = gameover
         if force:
             self._forcegameover = gameover
+
+    def stop_allsounds(self):
+        for music in self.music:
+            music.stop()
+        for i in range(len(self.lastsound_scenario)):
+            if self.lastsound_scenario[i]:
+                self.lastsound_scenario[i].stop(True)
+                self.lastsound_scenario[i] = None
 
     def f9(self, load_failure=False, loadyado=False):
         """cw.data.ScenarioDataのf9()から呼び出され、
@@ -2496,12 +2573,7 @@ class CWPy(_Singleton, threading.Thread):
             self._show_party()
 
         self.background.clear_background()
-        for music in self.music:
-            music.stop()
-        for i in range(len(self.lastsound_scenario)):
-            if self.lastsound_scenario[i]:
-                self.lastsound_scenario[i].stop(True)
-                self.lastsound_scenario[i] = None
+        self.stop_allsounds()
         if self.lastsound_system:
             self.lastsound_system.stop(False)
             self.lastsound_system = None
@@ -2521,10 +2593,7 @@ class CWPy(_Singleton, threading.Thread):
 
         def return_title():
             def func():
-                for i in range(len(self.lastsound_scenario)):
-                    if self.lastsound_scenario[i]:
-                        self.lastsound_scenario[i].stop(True)
-                        self.lastsound_scenario[i] = None
+                self.stop_allsounds()
                 self.set_status("Title")
                 self.sdata = cw.data.SystemData()
                 cw.util.remove_temp()
@@ -2617,12 +2686,7 @@ class CWPy(_Singleton, threading.Thread):
         yadodirname = os.path.basename(yadodir)
         self.yadodir = yadodir.replace("\\", "/")
         self.tempdir = self.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, "Yado"), 1)
-        for music in self.music:
-            music.stop()
-        for i in range(len(self.lastsound_scenario)):
-            if self.lastsound_scenario[i]:
-                self.lastsound_scenario[i].stop(True)
-                self.lastsound_scenario[i] = None
+        self.stop_allsounds()
         self.ydata = cw.data.YadoData(self.yadodir, self.tempdir)
         self.setting.lastyado = yadodirname
 

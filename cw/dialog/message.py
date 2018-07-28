@@ -146,6 +146,7 @@ class YesNoMessage(Message):
     def __init__(self, parent, name, text):
         Message.__init__(self, parent, name, text, 1)
 
+
 class YesNoCancelMessage(Message):
     def __init__(self, parent, name, text):
         choices = (
@@ -155,13 +156,141 @@ class YesNoCancelMessage(Message):
         )
         Message.__init__(self, parent, name, text, 3, choices=choices)
 
+
 class ErrorMessage(Message):
     def __init__(self, parent, text):
         cw.cwpy.play_sound("error")
         Message.__init__(self, parent, cw.cwpy.msgs["error_message"], text, 2)
 
+
+class SysMessage(wx.Dialog):
+    """
+    システム的な外見のメッセージダイアログ。
+    choicesに(テキスト, ID, 幅)のtupleまたはlistを指定する事で任意の選択肢を表示する。
+    checkboxesに(キー, テキスト, 初期値)のtupleまたはistを指定する事で追加オプションのチェックボックスを表示する。
+    """
+    def __init__(self, parent, name, text, choices=None, checkboxes=None):
+        if choices:
+            style = wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX
+        else:
+            style = wx.SYSTEM_MENU
+        wx.Dialog.__init__(self, parent, -1, name, size=cw.ppis((355, 120)), style=style)
+        self.cwpy_debug = True
+        self.basetext = text
+        dc = wx.ClientDC(self)
+        text = cw.util.wordwrap(text, cw.ppis(345), lambda s: dc.GetTextExtent(s)[0])
+        self._st_text = wx.StaticText(self, -1, text)
+
+        self._check_table = {}
+        self._checkboxes = []
+        if checkboxes:
+            for key, text, value in checkboxes:
+                def func(key):
+                    self._check_table[key] = value
+                    checkbox = wx.CheckBox(self, -1, text)
+                    checkbox.SetValue(value)
+                    self._checkboxes.append((key, checkbox))
+
+                    def OnCheck(event):
+                        self._check_table[key] = checkbox.GetValue()
+                    checkbox.Bind(wx.EVT_CHECKBOX, OnCheck)
+
+                func(key)
+
+        self._stl = wx.StaticLine(self, -1)
+        self.buttons = []
+        if choices:
+            for d in choices:
+                if len(d) == 4:
+                    s, id, width, desc = d
+                elif len(d) == 3:
+                    s, id, width = d
+                    desc = ""
+                else:
+                    s, id = d
+                    desc = ""
+                    width = -1
+
+                button = wx.Button(self, id, s, size=(width, -1))
+                if desc:
+                    button.SetToolTip(desc)
+                self.buttons.append(button)
+                button.Bind(wx.EVT_BUTTON, self.OnButton)
+
+            # bind
+            self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+            for child in self.GetChildren():
+                child.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+        # layout
+        self._do_layout()
+
+        copyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
+        seq = [
+            (wx.ACCEL_CTRL, ord('C'), copyid),
+        ]
+        cw.util.set_acceleratortable(self, seq)
+
+    def get_check(self, key):
+        return self._check_table[key]
+
+    def OnCopyDetail(self, event):
+        self.copy_detail()
+
+    def copy_detail(self):
+        s = ["[Window Title]", self.GetTitle(), "", "[Content]", self.basetext]
+        if self.buttons:
+            b = []
+            for button in self.buttons:
+                b.append("[%s]" % button.GetLabelText())
+            s.append("")
+            s.append(" ".join(b))
+        cw.util.to_clipboard("\n".join(s))
+
+    def OnCancel(self, event):
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+    def OnButton(self, event):
+        button = event.GetEventObject()
+        self.Close()
+        self.SetReturnCode(button.GetId())
+        event.Skip()
+
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        sizer.Add(self._st_text, 0, wx.ALL, cw.ppis(10))
+
+        if self._checkboxes:
+            sizer_chk = wx.BoxSizer(wx.VERTICAL)
+            for i, (_key, checkbox) in enumerate(self._checkboxes):
+                if i == 0:
+                    sizer_chk.Add(checkbox, 0, 0, 0)
+                else:
+                    sizer_chk.Add(checkbox, 0, wx.TOP, cw.ppis(2))
+            sizer.Add(sizer_chk, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(10))
+
+        if self.buttons:
+            sizer.Add(self._stl, 0, wx.EXPAND, 0)
+            sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+            for i, button in enumerate(self.buttons):
+                if i == 0:
+                    sizer_btn.Add(button, 0, 0, 0)
+                else:
+                    sizer_btn.Add(button, 0, wx.LEFT, cw.ppis(10))
+
+            sizer.Add(sizer_btn, 0, wx.ALL|wx.ALIGN_RIGHT, cw.ppis(10))
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

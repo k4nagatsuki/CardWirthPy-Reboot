@@ -855,6 +855,9 @@ class SkinPanel(wx.Panel):
 
         # スキン
         self.ch_skin = wx.Choice(self, -1, size=(-1, -1))
+        if self.editbuttons:
+            self.btn_installskin = wx.Button(self, -1, "...", size=(cw.ppis(25), -1))
+            self.btn_installskin.SetToolTip("スキンのインストール...")
         self.tx_skin = wx.TextCtrl(self, -1, size=(-1, -1), style=wx.TE_MULTILINE|wx.NO_BORDER)
         self.tx_skin.SetEditable(False)
         self.tx_skin.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
@@ -884,6 +887,7 @@ class SkinPanel(wx.Panel):
     def _bind(self):
         self.ch_skin.Bind(wx.EVT_CHOICE, self.OnSkinChoice)
         if self.editbuttons:
+            self.btn_installskin.Bind(wx.EVT_BUTTON, self.OnInstallSkin)
             self.btn_convertskin.Bind(wx.EVT_BUTTON, self.OnConvertSkin)
             self.btn_editskin.Bind(wx.EVT_BUTTON, self.OnEditSkin)
             self.btn_deleteskin.Bind(wx.EVT_BUTTON, self.OnDeleteSkin)
@@ -977,6 +981,47 @@ class SkinPanel(wx.Panel):
         self.GetTopLevelParent().panel.pane_font.apply_localsettings(local)
         return local
 
+    def OnInstallSkin(self, event):
+        pardlg = self.GetTopLevelParent()
+        wildcard = "スキンファイル (*.zip; *.lzh; *.cab; Skin.xml)|*.zip;*.lzh;*.cab;Skin.xml"
+        dlg = wx.FileDialog(pardlg, "インストールするスキンを選択", wildcard=wildcard,
+                            style=wx.FD_OPEN|wx.FD_MULTIPLE)
+        if dlg.ShowModal() == wx.ID_OK:
+            paths = dlg.GetPaths()
+            dlg.Destroy()
+            pardlg.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
+
+            def validate_path(path):
+                if os.path.basename(path) == "Skin.xml":
+                    path = os.path.dirname(path)
+                d1 = os.path.normcase(os.path.normpath(os.path.abspath(os.path.dirname(path))))
+                d2 = os.path.normcase(os.path.normpath(os.path.abspath("Data/Skin")))
+                if d1 == d2:
+                    return ""
+                else:
+                    return path
+            paths = map(validate_path, paths)
+            paths = filter(lambda path: path != "", paths)
+            installed_skininfos = cw.dialog.skininstall.install_skin(paths, self.GetTopLevelParent(),
+                                                                        canswitch=False)
+            if installed_skininfos:
+                skindirname, _name, _author, skintype = installed_skininfos[0]
+
+                def func(self):
+                    def func(self):
+                        if not self:
+                            return
+                        if skintype != cw.cwpy.setting.skintype and not self.cb_show_allskin.GetValue():
+                            self.cb_show_allskin.SetValue(True)
+                        self.update_skins(skindirname)
+                        if self.pane_scenario:
+                            self.pane_scenario.celleditor = None
+                    cw.cwpy.frame.exec_func(func, self)
+                cw.cwpy.exec_func(func, self)
+            pardlg.SetCursor(wx.NullCursor)
+        else:
+            dlg.Destroy()
+
     def OnConvertSkin(self, event):
         dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe="", from_settings=True,
                                                   get_localsettings=self._get_localsettings)
@@ -1034,7 +1079,12 @@ class SkinPanel(wx.Panel):
             bsizer_skinbtn.Add(self.btn_editskin, 0, wx.RIGHT, cw.ppis(3))
             bsizer_skinbtn.Add(self.btn_deleteskin, 0, 0, cw.ppis(3))
 
-        sizer.Add(self.ch_skin, 0, wx.CENTER, cw.ppis(0))
+            sizer_h = wx.BoxSizer(wx.HORIZONTAL)
+            sizer_h.Add(self.ch_skin, 1, wx.ALIGN_CENTER, cw.ppis(0))
+            sizer_h.Add(self.btn_installskin, 0, wx.ALIGN_CENTER|wx.LEFT, cw.ppis(2))
+            sizer.Add(sizer_h, 0, wx.CENTER, cw.ppis(0))
+        else:
+            sizer.Add(self.ch_skin, 0, wx.CENTER, cw.ppis(0))
         sizer.Add(self.tx_skin, 1, wx.CENTER|wx.TOP|wx.EXPAND, cw.ppis(3))
         if self.editbuttons:
             sizer.Add(bsizer_skinbtn, 0, wx.ALIGN_RIGHT|wx.TOP, cw.ppis(3))

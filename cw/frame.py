@@ -5,6 +5,7 @@ import sys
 import os
 import time
 import datetime
+import shutil
 import subprocess
 import threading
 import wx
@@ -523,6 +524,10 @@ class Frame(wx.Frame):
                 except:
                     cw.util.print_ex()
         else:
+            # スキンのインストール
+            if cw.dialog.skininstall.install_skin(paths, self):
+                return
+
             # シナリオのインストール
             if cw.cwpy.is_decompressing:
                 cw.cwpy.play_sound("error")
@@ -1540,6 +1545,23 @@ def get_skincount():
                     skincount += 1
                 else:
                     unknown_ver += 1
+            else:
+                # FIXME: 消せなかったスキンの削除。
+                #        cw.dialog.skininstall#install_skinを参照。
+                rmskinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml_removed")
+                if os.path.isfile(rmskinpath):
+                    try:
+                        shutil.move(rmskinpath, skinpath)
+                        try:
+                            cw.util.remove(cw.util.join_paths("Data/Skin", name), trashbox=True)
+                        except:
+                            cw.util.print_ex(file=sys.stderr)
+                        if os.path.isfile(skinpath):
+                            # 依然として消せない
+                            shutil.move(skinpath, rmskinpath)
+                    except:
+                        cw.util.print_ex(file=sys.stderr)
+
     return skincount, unknown_ver
 
 def main():

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from . import convert
+from . import util
 from . import win32res
 
 

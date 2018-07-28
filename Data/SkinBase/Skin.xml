@@ -8,6 +8,12 @@
     <Extension image=".bmp" bgm=".mid" sound=".wav" />
     <CW120VocationLevel>False</CW120VocationLevel>
     <InitialCash>4000</InitialCash>
+    <!-- スキンのインストールに使用する情報。これらを指定した場合、該当するスキンをコピーしてから上被せする形でインストールが行われる。<Type>は省略可。 -->
+    <!--BaseSkin>
+      <Name></Name>
+      <Author></Author>
+      <Type></Type>
+    </BaseSkin-->
   </Property>
   <Races>
     <!-- Race>

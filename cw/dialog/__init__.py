@@ -14,6 +14,7 @@ from . import edit
 from . import etc
 from . import settings
 from . import skin
+from . import skininstall
 from . import partyrecord
 from . import transfer
 from . import progress

@@ -1738,7 +1738,7 @@ class GetName(object):
 
 class GetProperty(object):
     """XMLファイル中のProperty以下の内容を読む。"""
-    def __init__(self, fpath):
+    def __init__(self, fpath="", stream=None):
         self.properties = {}
         self.attrs = {}
         self.stack = []
@@ -1749,12 +1749,18 @@ class GetProperty(object):
         parser.EndElementHandler = self.end_element
         parser.CharacterDataHandler = self.character_data
 
-        with open(fpath, "rb") as f:
+        if stream:
             try:
-                parser.ParseFile(f)
+                parser.ParseFile(stream)
             except Exception:
                 pass
-            f.close()
+        else:
+            with open(fpath, "rb") as f:
+                try:
+                    parser.ParseFile(f)
+                except Exception:
+                    pass
+                f.close()
 
     def start_element(self, name, attrs):
         if 0 == len(self.stack):
@@ -1782,7 +1788,8 @@ class GetProperty(object):
             element = self.stack[2]
             if not element in self.properties:
                 self.properties[element] = ""
-            self.properties[element] += data
+            if 3 == len(self.stack):
+                self.properties[element] += data
             if 4 == len(self.stack):
                 seq = self.third[self.stack[2]]
                 seq[-1] = (seq[-1][0], seq[-1][1], seq[-1][2] + data)
