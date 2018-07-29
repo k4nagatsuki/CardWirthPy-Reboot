@@ -3048,22 +3048,22 @@ class LoseContent(EventContentBase):
         else:
             raise ValueError("%s is invalid cardtype" % cardtype)
 
-        # 対象カードデータ取得
-        e = getdata(self.resid, "Property")
-        if e is None:
-            return 0
-        name = e.gettext("Name", "")
-        desc = e.gettext("Description", "")
-        num = self.num
-        if num == 0:
-            num = 0x7fffffff
-
         if self.scope == "SelectedCard":
             # 選択カードの喪失(Wsn.3)
             selcard = cw.cwpy.event.get_selectedcard()
             if selcard and selcard.type == cardtype:
                 cw.cwpy.trade("TRASHBOX", header=selcard, from_event=True, sort=False)
         else:
+            # 対象カードデータ取得
+            e = getdata(self.resid, "Property")
+            if e is None:
+                return 0
+            name = e.gettext("Name", "")
+            desc = e.gettext("Description", "")
+            num = self.num
+            if num == 0:
+                num = 0x7fffffff
+
             for target in cw.cwpy.event.get_targetscope(self.scope):
                 if isinstance(target, cw.character.Character):
                     target = target.get_pocketcards(index)
