@@ -2104,7 +2104,11 @@ def remove_emptydir(dpath):
         remove(dpath)
 
 
-def copytree_overwrite(src, dst, files_overwrite=True):
+OVERWRITE_ALWAYS = 0
+NO_OVERWRITE = 1
+OVERWRITE_WITH_LATEST_FILES = 2
+
+def copytree_overwrite(src, dst, files_overwrite=OVERWRITE_ALWAYS):
     """
     ディレクトリを上書きコピーないし統合する。
     files_overwrite=Falseの時は同一のファイルを上書きしない。
@@ -2116,12 +2120,24 @@ def copytree_overwrite(src, dst, files_overwrite=True):
         for dname in dnames:
             src2 = join_paths(dpath, dname)
             dst2 = join_paths(dst, rel, dname)
-            copytree_overwrite(src2, dst2)
+            copytree_overwrite(src2, dst2, files_overwrite=files_overwrite)
         for fname in fnames:
             src2 = join_paths(dpath, fname)
             dst2 = join_paths(dst, rel, fname)
-            if files_overwrite or not os.path.isfile(dst2):
+            if files_overwrite == OVERWRITE_ALWAYS:
                 shutil.copy2(src2, dst2)
+            else:
+                if not os.path.isfile(dst2):
+                    shutil.copy2(src2, dst2)
+                elif files_overwrite == NO_OVERWRITE:
+                    pass
+                elif files_overwrite == OVERWRITE_WITH_LATEST_FILES:
+                    msrc = os.path.getmtime(src2)
+                    mdst = os.path.getmtime(dst2)
+                    if mdst < msrc:
+                        shutil.copy2(src2, dst2)
+                else:
+                    shutil.copy2(src2, dst2)
 
 
 #-------------------------------------------------------------------------------

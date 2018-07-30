@@ -83,7 +83,10 @@ def install_skin(paths, parent, canswitch=True):
                 removes_table[key] = list(cw.skin.util.find_skin(name, author))
     try:
         for name, author, type, path in seq:
-            removes = removes_table[(name, author)]
+            if overwrite:
+                removes = removes_table[(name, author)]
+            else:
+                removes = ()
             try:
                 installedpath = cw.skin.util.install_skin(path, tempdir, progdlg)
                 # FIXME: たまに音声が解放されずエラーになるため保留
@@ -108,7 +111,7 @@ def install_skin(paths, parent, canswitch=True):
                     # 置換対象からコピーしておく
                     srcface = cw.util.join_paths(rmpath, "Face")
                     dstface = cw.util.join_paths(installedpath, "Face")
-                    cw.util.copytree_overwrite(srcface, dstface, files_overwrite=False)
+                    cw.util.copytree_overwrite(srcface, dstface, files_overwrite=cw.util.OVERWRITE_WITH_LATEST_FILES)
 
                     if os.path.basename(installedpath) != rename_table.get(rmname, ""):
                         rename_table[rmname] = os.path.basename(installedpath)
