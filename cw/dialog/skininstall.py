@@ -75,12 +75,15 @@ def install_skin(paths, parent, canswitch=True):
     installed = None
     all_removes = []
     installed_skindirnames = []
+    removes_table = {}
+    if overwrite:
+        for name, author, _type, _path in seq:
+            key = (name, author)
+            if not key in removes_table:
+                removes_table[key] = list(cw.skin.util.find_skin(name, author))
     try:
         for name, author, type, path in seq:
-            if overwrite:
-                removes = list(cw.skin.util.find_skin(name, author))
-            else:
-                removes = ()
+            removes = removes_table[(name, author)]
             try:
                 installedpath = cw.skin.util.install_skin(path, tempdir, progdlg)
                 # FIXME: たまに音声が解放されずエラーになるため保留
@@ -99,9 +102,16 @@ def install_skin(paths, parent, canswitch=True):
                     installed = os.path.basename(installedpath)
 
                 for rmname in removes:
+                    rmpath = cw.util.join_paths("Data/Skin", rmname)
+                    # CardWirthの伝統により、Faceディレクトリには
+                    # ユーザ固有のデータが入っている可能性があるので
+                    # 置換対象からコピーしておく
+                    srcface = cw.util.join_paths(rmpath, "Face")
+                    dstface = cw.util.join_paths(installedpath, "Face")
+                    cw.util.copytree_overwrite(srcface, dstface, files_overwrite=False)
+
                     if os.path.basename(installedpath) != rename_table.get(rmname, ""):
                         rename_table[rmname] = os.path.basename(installedpath)
-                    rmpath = cw.util.join_paths("Data/Skin", rmname)
                     all_removes.append((rmpath, True))
 
                 if remove_installed:

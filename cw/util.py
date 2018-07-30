@@ -2104,9 +2104,10 @@ def remove_emptydir(dpath):
         remove(dpath)
 
 
-def copytree_overwrite(src, dst):
+def copytree_overwrite(src, dst, files_overwrite=True):
     """
-    ディレクトリを上書きコピーする。
+    ディレクトリを上書きコピーないし統合する。
+    files_overwrite=Falseの時は同一のファイルを上書きしない。
     """
     if not os.path.isdir(dst):
         os.makedirs(dst)
@@ -2119,7 +2120,8 @@ def copytree_overwrite(src, dst):
         for fname in fnames:
             src2 = join_paths(dpath, fname)
             dst2 = join_paths(dst, rel, fname)
-            shutil.copy2(src2, dst2)
+            if files_overwrite or not os.path.isfile(dst2):
+                shutil.copy2(src2, dst2)
 
 
 #-------------------------------------------------------------------------------
