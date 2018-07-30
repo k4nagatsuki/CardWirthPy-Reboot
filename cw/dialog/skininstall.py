@@ -92,7 +92,7 @@ def install_skin(paths, parent, canswitch=True):
                 # FIXME: たまに音声が解放されずエラーになるため保留
                 #if removes:
                 #    if cw.cwpy.setting.skindirname == removes[0]:
-                #        cw.cwpy.stop_allsounds()
+                #        cw.cwpy.stop_allsounds(skinfileonly=True)
                 #    installedpath2 = cw.util.join_paths("Data/Skin", removes[0])
                 #    rmpath = cw.util.dupcheck_plus(installedpath2, False)
                 #    shutil.move(installedpath2, rmpath)
@@ -135,7 +135,7 @@ def install_skin(paths, parent, canswitch=True):
                         etree.write()
 
         def func(newskin, restartop):
-            cw.cwpy.stop_allsounds()
+            cw.cwpy.stop_allsounds(skinfileonly=True)
             if newskin:
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata.changed()

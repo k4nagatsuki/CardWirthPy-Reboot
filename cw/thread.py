@@ -2317,13 +2317,15 @@ class CWPy(_Singleton, threading.Thread):
         if force:
             self._forcegameover = gameover
 
-    def stop_allsounds(self):
+    def stop_allsounds(self, skinfileonly=False):
         for music in self.music:
-            music.stop()
+            if not skinfileonly or cw.util.join_paths(music.fpath).startswith("Data/Skin/"):
+                music.stop()
         for i in range(len(self.lastsound_scenario)):
             if self.lastsound_scenario[i]:
-                self.lastsound_scenario[i].stop(True)
-                self.lastsound_scenario[i] = None
+                if not skinfileonly or cw.util.join_paths(self.lastsound_scenario[i].get_path()).startswith("Data/Skin/"):
+                    self.lastsound_scenario[i].stop(True)
+                    self.lastsound_scenario[i] = None
 
     def f9(self, load_failure=False, loadyado=False):
         """cw.data.ScenarioDataのf9()から呼び出され、
