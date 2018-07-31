@@ -4,10 +4,12 @@
 import os
 import sys
 import shutil
+import time
 import threading
 import wx
 
 import cw
+from cw.util import synclock
 
 
 def install_skin(paths, parent, canswitch=True):
@@ -16,13 +18,19 @@ def install_skin(paths, parent, canswitch=True):
     """
     seq = []
     skindir = os.path.normcase(os.path.normpath(os.path.abspath("Data/Skin")))
+    progmax = 3
     for path in paths:
         if os.path.normcase(os.path.normpath(os.path.abspath(os.path.dirname(path)))) == skindir:
             continue
         skininfo = cw.skin.util.get_skininfo(path)
         if skininfo:
             name, author, type = skininfo
-            seq.append((name, author, type, path))
+            is_archive = os.path.isfile(path)
+            seq.append((name, author, type, path, is_archive))
+            if is_archive:
+                progmax += cw.skin.util.INSTALL_PROGRESS_ARCHIVE
+            else:
+                progmax += cw.skin.util.INSTALL_PROGRESS
 
     if not seq:
         return []
@@ -30,7 +38,7 @@ def install_skin(paths, parent, canswitch=True):
     if 2 <= len(seq):
         s = "%s件のスキンをインストールします。よろしいですか？" % len(seq)
     else:
-        name, author, _type, _path = seq[0]
+        name, author, _type, _path, _is_archive = seq[0]
         s = name if name else "(無名のスキン)"
         if author:
             s += "(%s)" % author
@@ -58,123 +66,187 @@ def install_skin(paths, parent, canswitch=True):
         switch_skin = False
     dlg.Destroy()
 
-    progdlg = cw.dialog.message.SysMessage(parent, "スキンのインストール", "スキンをインストールしています...")
-    cw.cwpy.frame.move_dlg(progdlg)
-    progdlg.Show()
-
     def change_cursor(cursor):
         cw.cwpy.exec_func(cw.cwpy.change_cursor, cursor, force=True)
     oldcursor = cw.cwpy.cursor
     change_cursor("wait")
 
-    tempdir = "Data/Temp/SkinInstall"
-    if not os.path.isdir(tempdir):
-        os.makedirs(tempdir)
-    errors = []
-    rename_table = {}
-    installed = None
-    all_removes = []
-    installed_skindirnames = []
-    removes_table = {}
     if overwrite:
-        for name, author, _type, _path in seq:
-            key = (name, author)
-            if not key in removes_table:
-                removes_table[key] = list(cw.skin.util.find_skin(name, author))
-    try:
-        for name, author, type, path in seq:
-            if overwrite:
-                removes = removes_table[(name, author)]
-            else:
-                removes = ()
-            try:
-                installedpath = cw.skin.util.install_skin(path, tempdir, progdlg)
-                # FIXME: たまに音声が解放されずエラーになるため保留
-                #if removes:
-                #    if cw.cwpy.setting.skindirname == removes[0]:
-                #        cw.cwpy.stop_allsounds(skinfileonly=True)
-                #    installedpath2 = cw.util.join_paths("Data/Skin", removes[0])
-                #    rmpath = cw.util.dupcheck_plus(installedpath2, False)
-                #    shutil.move(installedpath2, rmpath)
-                #    shutil.move(installedpath, installedpath2)
-                #    installedpath = installedpath2
-                #    removes[0] = os.path.basename(rmpath)
+        progmax += 2
+        progmax += len(seq)
+    if remove_installed:
+        progmax += 1
 
-                installed_skindirnames.append((os.path.basename(installedpath), name, author, type))
-                if not installed:
-                    installed = os.path.basename(installedpath)
+    class ProgressObj(object):
+        def __init__(self):
+            self.msg = ""
+            self.value = 0
+            self.maximum = progmax
+            self.errors = []
+            self.installed_skindirnames = []
 
-                for rmname in removes:
-                    rmpath = cw.util.join_paths("Data/Skin", rmname)
-                    # CardWirthの伝統により、Faceディレクトリには
-                    # ユーザ固有のデータが入っている可能性があるので
-                    # 置換対象からコピーしておく
-                    srcface = cw.util.join_paths(rmpath, "Face")
-                    dstface = cw.util.join_paths(installedpath, "Face")
-                    cw.util.copytree_overwrite(srcface, dstface, files_overwrite=cw.util.OVERWRITE_WITH_LATEST_FILES)
+    obj = ProgressObj()
+    lock = threading.Lock()
 
-                    if os.path.basename(installedpath) != rename_table.get(rmname, ""):
-                        rename_table[rmname] = os.path.basename(installedpath)
-                    all_removes.append((rmpath, True))
+    @synclock(lock)
+    def progress(msg, progress=1):
+        obj.value += progress
+        obj.msg = msg
 
-                if remove_installed:
-                    all_removes.append((path, False))
-
-            except cw.skin.util.SkinInstallError as ex:
-                errors.append(ex.message)
-
-        for yado in os.listdir("Yado"):
-            env = cw.util.join_paths("Yado", yado, "Environment.xml")
-            if os.path.isfile(env):
-                etree = cw.data.xml2etree(env)
-                envskin = etree.gettext("Property/Skin", "")
-                if envskin:
-                    newskin = rename_table.get(envskin, "")
-                    if newskin:
-                        etree.edit("Property/Skin", newskin)
-                        etree.write()
-
-        def func(newskin, restartop):
-            cw.cwpy.stop_allsounds(skinfileonly=True)
-            if newskin:
-                if cw.cwpy.ydata:
-                    cw.cwpy.ydata.changed()
-                cw.cwpy.update_skin(newskin, restartop=restartop, switch_skin=True)
-            for path, oldskin in all_removes:
+    def run():
+        tempdir = "Data/Temp/SkinInstall"
+        if not os.path.isdir(tempdir):
+            os.makedirs(tempdir)
+        errors = []
+        rename_table = {}
+        installed = None
+        all_removes_repl = []
+        all_removes_base = []
+        removes_table = {}
+        if overwrite:
+            progress("インストール済みスキンの情報を収集しています...")
+            for name, author, _type, _path, _is_archive in seq:
+                key = (name, author)
+                if not key in removes_table:
+                    removes_table[key] = list(cw.skin.util.find_skin(name, author))
+        try:
+            for name, author, type, path, is_archive in seq:
+                if overwrite:
+                    removes = removes_table[(name, author)]
+                else:
+                    removes = ()
+                oldvalue = obj.value
                 try:
-                    cw.util.remove(path, trashbox=True)
-                except:
-                    cw.util.print_ex(file=sys.stderr)
-                if oldskin:
-                    # FIXME: なぜか削除に失敗する事があるのでSkin.xmlを移動して無効にする
-                    skinfpath = cw.util.join_paths(path, "Skin.xml")
-                    if os.path.isfile(skinfpath):
-                        shutil.move(skinfpath, cw.util.join_paths(path, "Skin.xml_removed"))
-            change_cursor(oldcursor)
-            cw.cwpy.frame.exec_func(progdlg.Destroy)
+                    installedpath = cw.skin.util.install_skin(path, tempdir, progress)
+                    # FIXME: たまに音声が解放されずエラーになるため保留
+                    #if removes:
+                    #    if cw.cwpy.setting.skindirname == removes[0]:
+                    #        cw.cwpy.stop_allsounds(skinfileonly=True)
+                    #    installedpath2 = cw.util.join_paths("Data/Skin", removes[0])
+                    #    rmpath = cw.util.dupcheck_plus(installedpath2, False)
+                    #    shutil.move(installedpath2, rmpath)
+                    #    shutil.move(installedpath, installedpath2)
+                    #    installedpath = installedpath2
+                    #    removes[0] = os.path.basename(rmpath)
 
-        if switch_skin and installed:
-            newskin = installed
-            cw.cwpy.exec_func(func, newskin, restartop=cw.cwpy.setting.skindirname != newskin)
-        else:
-            newskin = rename_table.get(cw.cwpy.setting.skindirname, "")
-            cw.cwpy.exec_func(func, newskin, restartop=False)
+                    obj.installed_skindirnames.append((os.path.basename(installedpath), name, author, type))
+                    if not installed:
+                        installed = os.path.basename(installedpath)
 
-    except:
-        progdlg.Destroy()
-        raise
+                    s = name if name else "(無名のスキン)"
+                    if author:
+                        s += "(%s)" % author
+                    if overwrite:
+                        progress("「%s」のFaceフォルダをコピーしています..." % s)
+                    elif removes:
+                        progress(obj.msg)
 
-    finally:
-        cw.util.remove(tempdir)
+                    for rmname in removes:
+                        rmpath = cw.util.join_paths("Data/Skin", rmname)
+                        # CardWirthの伝統により、Faceディレクトリには
+                        # ユーザ固有のデータが入っている可能性があるので
+                        # 置換対象からコピーしておく
+                        srcface = cw.util.join_paths(rmpath, "Face")
+                        dstface = cw.util.join_paths(installedpath, "Face")
+                        cw.util.copytree_overwrite(srcface, dstface, files_overwrite=cw.util.OVERWRITE_WITH_LATEST_FILES)
 
-    if errors:
-        s = "スキンのインストール中にエラーが発生しました。\n\n" + "\n\n".join(errors)
+                        if os.path.basename(installedpath) != rename_table.get(rmname, ""):
+                            rename_table[rmname] = os.path.basename(installedpath)
+                        all_removes_repl.append(rmpath)
+
+                    if remove_installed:
+                        all_removes_base.append(path)
+
+                except cw.skin.util.SkinInstallError as ex:
+                    obj.errors.append(ex.message)
+                    if is_archive:
+                        obj.value = oldvalue + cw.skin.util.INSTALL_PROGRESS_ARCHIVE
+                    else:
+                        obj.value = oldvalue + cw.skin.util.INSTALL_PROGRESS
+                    if overwrite:
+                        obj.value += 1
+
+            progress("スキンの参照情報を更新してます...")
+            for yado in os.listdir("Yado"):
+                env = cw.util.join_paths("Yado", yado, "Environment.xml")
+                if os.path.isfile(env):
+                    etree = cw.data.xml2etree(env)
+                    envskin = etree.gettext("Property/Skin", "")
+                    if envskin:
+                        newskin = rename_table.get(envskin, "")
+                        if newskin:
+                            etree.edit("Property/Skin", newskin)
+                            etree.write()
+
+            def func(newskin, restartop):
+                progress("スキンの切り替えを行っています...")
+                cw.cwpy.stop_allsounds(skinfileonly=True)
+                if newskin:
+                    if cw.cwpy.ydata:
+                        cw.cwpy.ydata.changed()
+                    cw.cwpy.update_skin(newskin, restartop=restartop, switch_skin=True)
+                if overwrite:
+                    progress("置換されたスキンを削除しています...")
+                    for path in all_removes_repl:
+                        try:
+                            cw.util.remove(path, trashbox=True)
+                        except:
+                            cw.util.print_ex(file=sys.stderr)
+                        # FIXME: なぜか削除に失敗する事があるのでSkin.xmlを移動して無効にする
+                        skinfpath = cw.util.join_paths(path, "Skin.xml")
+                        if os.path.isfile(skinfpath):
+                            shutil.move(skinfpath, cw.util.join_paths(path, "Skin.xml_removed"))
+                if remove_installed:
+                    progress("インストール済みのファイルを削除しています...")
+                    for path in all_removes_base:
+                        try:
+                            cw.util.remove(path, trashbox=True)
+                        except:
+                            cw.util.print_ex(file=sys.stderr)
+                change_cursor(oldcursor)
+
+                def func():
+                    progress("スキンのインストールが完了しました。")
+                    progdlg.Destroy()
+                cw.cwpy.frame.exec_func(func)
+
+            if switch_skin and installed:
+                newskin = installed
+                cw.cwpy.exec_func(func, newskin, restartop=cw.cwpy.setting.skindirname != newskin)
+            else:
+                newskin = rename_table.get(cw.cwpy.setting.skindirname, "")
+                cw.cwpy.exec_func(func, newskin, restartop=False)
+
+        except:
+            progdlg.Destroy()
+            raise
+
+        finally:
+            cw.util.remove(tempdir)
+
+    thread = threading.Thread(target=run)
+    thread.start()
+
+    # プログレスダイアログ表示
+    progdlg = cw.dialog.progress.SysProgressDialog(parent, "スキンのインストール",
+                                               "", maximum=obj.maximum)
+    def progress_run():
+        while thread.is_alive():
+            wx.CallAfter(progdlg.Update, obj.value, obj.msg)
+            time.sleep(0.001)
+    thread2 = threading.Thread(target=progress_run)
+    thread2.start()
+    cw.cwpy.frame.move_dlg(progdlg)
+    progdlg.ShowModal()
+
+    if obj.errors:
+        s = "スキンのインストール中にエラーが発生しました。\n\n" + "\n\n".join(obj.errors)
         dlg = cw.dialog.etc.ErrorLogDialog(parent, s)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
 
-    return installed_skindirnames
+    return obj.installed_skindirnames
 
 
 def main():

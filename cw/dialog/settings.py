@@ -1003,7 +1003,7 @@ class SkinPanel(wx.Panel):
             paths = map(validate_path, paths)
             paths = filter(lambda path: path != "", paths)
             installed_skininfos = cw.dialog.skininstall.install_skin(paths, self.GetTopLevelParent(),
-                                                                        canswitch=False)
+                                                                     canswitch=False)
             if installed_skininfos:
                 skindirname, _name, _author, skintype = installed_skininfos[0]
 
