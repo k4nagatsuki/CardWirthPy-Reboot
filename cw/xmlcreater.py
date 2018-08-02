@@ -697,6 +697,9 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.fontexampleformat != setting.fontexampleformat_init:
         e = cw.data.make_element("FontExampleFormat", setting.fontexampleformat)
         element.append(e)
+    if setting.fontexamplepixelsize != setting.fontexamplepixelsize_init:
+        e = cw.data.make_element("FontExamplePixelSize", str(setting.fontexamplepixelsize))
+        element.append(e)
 
     # ファイル書き込み
     path = fpath

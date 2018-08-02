@@ -1049,6 +1049,13 @@ class SkinPanel(wx.Panel):
                 self.pane_scenario.celleditor = None
         dlg.Destroy()
 
+        # スキン編集ダイアログ上でフォント表示例が編集された場合に結果を反映する
+        s = cw.util.encodewrap(cw.cwpy.setting.fontexampleformat)
+        pixelsize = cw.cwpy.setting.fontexamplepixelsize
+        self.GetTopLevelParent().panel.pane_font.tx_example.SetValue(s)
+        self.GetTopLevelParent().panel.pane_font.sc_example.SetValue(pixelsize)
+        self.GetTopLevelParent().panel.pane_font.update_example()
+
     def OnDeleteSkin(self, event):
         skin = self.skindirs[self.ch_skin.GetSelection()]
         if cw.cwpy.setting.skindirname == skin:
@@ -3089,11 +3096,22 @@ class FontSettingPanel(wx.Panel):
         # フォント表示サンプル
         self.box_example = wx.StaticBox(self, -1, "表示例")
         if cw.cwpy:
-            ln = len(cw.cwpy.setting.fontexampleformat.splitlines())
+            s = cw.util.encodewrap(cw.cwpy.setting.fontexampleformat)
+            pixelsize = cw.cwpy.setting.fontexamplepixelsize
         else:
-            ln = 1
-        self.st_example = wx.StaticText(self, -1, size=cw.ppis((100, 24*ln+11)), style=wx.ALIGN_CENTER)
+            s = cw.util.encodewrap(cw.setting.FONT_EXAMPLE_FORMAT_INIT)
+            pixelsize = cw.setting.FONT_EXAMPLE_PIXEL_SIZE_INIT
+        ln = 2
+        self._example_panel = wx.Panel(self, -1, size=cw.ppis((100, 24*ln+11)), style=wx.NO_BORDER)
+        self.st_example = wx.StaticText(self._example_panel, -1, style=wx.ALIGN_CENTER)
         self.st_example.SetDoubleBuffered(True)
+
+        self.box_edit_example = wx.StaticBox(self, -1, "表示例のカスタマイズ")
+        self.tx_example = wx.TextCtrl(self, -1, s, size=(-1, -1))
+        self.tx_example.SetToolTip("%fontface% = フォント名\n\\n = 改行\n\\\\ = \\")
+        self.sc_example = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1), min=8, max=32)
+        self.sc_example.SetValue(pixelsize)
+        self.btn_init_example = wx.Button(self, -1, "初期化", size=(cw.ppis(50), -1))
 
         # 描画オプション
         self.box_gene = wx.StaticBox(self, -1, "詳細")
@@ -3183,12 +3201,17 @@ class FontSettingPanel(wx.Panel):
                 self.copybtn = None
             self.initbtn = wx.Button(self, -1, "デフォルト")
 
+        self._last_face = self.get_basefontface(self.bases[0])
+
         self._do_layout()
         self._bind()
 
     def load(self, setting, local):
         if self._for_local:
             self.cb_important.SetValue(local.important_font)
+        if setting:
+            self.tx_example.SetValue(cw.util.encodewrap(setting.fontexampleformat))
+            self.sc_example.SetValue(setting.fontexamplepixelsize)
         self.cb_bordering_cardname.SetValue(local.bordering_cardname)
         self.cb_decorationfont.SetValue(local.decorationfont)
         self.cb_fontsmoothingmessage.SetValue(local.fontsmoothing_message)
@@ -3257,20 +3280,23 @@ class FontSettingPanel(wx.Panel):
 
         self._select_base(self.base.GetGridCursorRow())
 
-        face = self.get_basefontface(self.bases[0])
-        font = wx.Font(pointSize=18, family=wx.DEFAULT, style=wx.FONTSTYLE_NORMAL,
-                       weight=wx.FONTWEIGHT_NORMAL, faceName=face)
-        self.st_example.SetFont(font)
-        if not setting and cw.cwpy:
-            setting = cw.cwpy.setting
-        if setting:
-            s = cw.util.format_title(setting.fontexampleformat, {"fontface":face})
-        else:
-            s = cw.util.format_title("%fontface%", {"fontface": face})
-        self.st_example.SetLabel(s)
-
+        self._last_face = self.get_basefontface(self.bases[0])
+        self.update_example()
         self._update_enabled()
         self.Layout()
+
+    def update_example(self):
+        s = cw.util.decodewrap(self.tx_example.GetValue())
+        pixelsize = self.sc_example.GetValue()
+        if cw.cwpy:
+            cw.cwpy.setting.fontexampleformat = s
+            cw.cwpy.setting.fontexamplepixelsize = pixelsize
+        font = wx.Font(wx.Size(0, pixelsize), family=wx.DEFAULT, style=wx.FONTSTYLE_NORMAL,
+                       weight=wx.FONTWEIGHT_NORMAL, faceName=self._last_face)
+        self.st_example.SetFont(font)
+        s = cw.util.format_title(s, {"fontface": self._last_face})
+        self.st_example.SetLabel(s)
+        self._example_panel.Layout()
 
     def _update_rowcolour(self, fonttype, row):
         if fonttype == "inherit":
@@ -3282,6 +3308,10 @@ class FontSettingPanel(wx.Panel):
                 self.type.SetCellBackgroundColour(row, col, colour)
 
     def init_values(self, setting, local):
+        if setting:
+            self.tx_example.SetValue(cw.util.encodewrap(setting.fontexampleformat_init))
+            self.sc_example.SetValue(setting.fontexamplepixelsize_init)
+
         for i, basename in enumerate(self.bases):
             name = local.basefont_init[basename]
             if not name:
@@ -3306,6 +3336,8 @@ class FontSettingPanel(wx.Panel):
         self.cb_fontsmoothingmessage.SetValue(local.fontsmoothing_message_init)
         self.cb_fontsmoothingcardname.SetValue(local.fontsmoothing_cardname_init)
         self.cb_fontsmoothingstatusbar.SetValue(local.fontsmoothing_statusbar_init)
+
+        self.update_example()
 
     def apply_localsettings(self, local):
         updatecardimg = False  # キャラクターカードイメージの更新が必要か
@@ -3401,6 +3433,9 @@ class FontSettingPanel(wx.Panel):
         return flag_fontupdate, updatecardimg, updatemcardimg, updatemessage
 
     def _bind(self):
+        self.tx_example.Bind(wx.EVT_TEXT, self.OnExampleText)
+        self.sc_example.Bind(wx.EVT_SPINCTRL, self.OnExampleText)
+        self.btn_init_example.Bind(wx.EVT_BUTTON, self.OnInitExample)
         self.base.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontBase)
         self.base.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnCellChangeBase)
         self.base.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnEditorCreatedBase)
@@ -3415,15 +3450,16 @@ class FontSettingPanel(wx.Panel):
 
     def _select_base(self, i):
         if 0 <= i:
-            self.Freeze()
-            face = self.get_basefontface(self.bases[i])
-            s = cw.util.format_title(cw.cwpy.setting.fontexampleformat, {"fontface":face})
-            self.st_example.SetLabel(s)
-            font = wx.Font(pointSize=18, family=wx.DEFAULT, style=wx.FONTSTYLE_NORMAL,
-                           weight=wx.FONTWEIGHT_NORMAL, faceName=face)
-            self.st_example.SetFont(font)
-            self.Layout()
-            self.Thaw()
+            self._last_face = self.get_basefontface(self.bases[i])
+            self.update_example()
+
+    def OnExampleText(self, event):
+        self.update_example()
+
+    def OnInitExample(self, event):
+        self.tx_example.SetValue(cw.util.encodewrap(cw.setting.FONT_EXAMPLE_FORMAT_INIT))
+        self.sc_example.SetValue(cw.setting.FONT_EXAMPLE_PIXEL_SIZE_INIT)
+        self.update_example()
 
     def OnCellChangeBase(self, event):
         self._select_base(self.base.GetGridCursorRow())
@@ -3461,15 +3497,8 @@ class FontSettingPanel(wx.Panel):
 
     def _select_type(self, i):
         if 0 <= i:
-            self.Freeze()
-            face = self.get_typefontface(self.types[i])
-            s = cw.util.format_title(cw.cwpy.setting.fontexampleformat, {"fontface":face})
-            self.st_example.SetLabel(s)
-            font = wx.Font(pointSize=18, family=wx.DEFAULT, style=wx.FONTSTYLE_NORMAL,
-                           weight=wx.FONTWEIGHT_NORMAL, faceName=face)
-            self.st_example.SetFont(font)
-            self.Layout()
-            self.Thaw()
+            self._last_face = self.get_typefontface(self.types[i])
+            self.update_example()
 
     def OnCellChangeType(self, event):
         i = self.type.GetGridCursorRow()
@@ -3516,11 +3545,11 @@ class FontSettingPanel(wx.Panel):
 
         bsizer_left = wx.BoxSizer(wx.VERTICAL)
 
-        bsizer_example2 = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_example2.Add(self.st_example, 1, wx.ALIGN_CENTER, cw.ppis(0))
-
         bsizer_example = wx.StaticBoxSizer(self.box_example, wx.VERTICAL)
-        bsizer_example.Add(bsizer_example2, 1, wx.LEFT|wx.RIGHT|wx.EXPAND|wx.ALIGN_CENTER, cw.ppis(3))
+        bsizer_example2 = wx.BoxSizer(wx.VERTICAL)
+        bsizer_example2.Add(self.st_example, 1, wx.ALIGN_CENTER, cw.ppis(0))
+        self._example_panel.SetSizer(bsizer_example2)
+        bsizer_example.Add(self._example_panel, 1, wx.EXPAND|wx.ALL, cw.ppis(3))
 
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(3))
@@ -3529,14 +3558,26 @@ class FontSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, cw.ppis(3))
         bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, cw.ppis(3))
 
-        bsizer_left.Add(bsizer_example, 1, wx.EXPAND | wx.BOTTOM, cw.ppis(3))
+        bsizer_left.Add(bsizer_example, 1, wx.EXPAND|wx.BOTTOM, cw.ppis(3))
         bsizer_left.Add(bsizer_gene, 0, wx.EXPAND, cw.ppis(3))
+
+        bsizer_right = wx.BoxSizer(wx.VERTICAL)
+
+        bsizer_edit_example = wx.StaticBoxSizer(self.box_edit_example, wx.VERTICAL)
+        bsizer_edit_example2 = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_edit_example2.Add(self.tx_example, 1, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(2))
+        bsizer_edit_example2.Add(self.sc_example, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.ppis(2))
+        bsizer_edit_example2.Add(self.btn_init_example, 0, wx.ALIGN_CENTER, cw.ppis(0))
+        bsizer_edit_example.Add(bsizer_edit_example2, 1, wx.EXPAND|wx.ALL, cw.ppis(3))
 
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_base.Add(self.base, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
 
+        bsizer_right.Add(bsizer_edit_example, 1, wx.EXPAND|wx.BOTTOM, cw.ppis(3))
+        bsizer_right.Add(bsizer_base, 0, wx.EXPAND, cw.ppis(3))
+
         bsizer_top.Add(bsizer_left, 1, wx.EXPAND|wx.RIGHT, cw.ppis(5))
-        bsizer_top.Add(bsizer_base, 1, wx.EXPAND, cw.ppis(3))
+        bsizer_top.Add(bsizer_right, 1, wx.EXPAND, cw.ppis(3))
 
         bsizer_type = wx.StaticBoxSizer(self.box_type, wx.VERTICAL)
         bsizer_type.Add(self.type, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
@@ -3566,6 +3607,9 @@ class FontSettingPanel(wx.Panel):
         enbl = self.cb_important.GetValue() if self.cb_important else True
         self.base.Enable(enbl)
         self.type.Enable(enbl)
+        self.tx_example.Enable(enbl)
+        self.sc_example.Enable(enbl)
+        self.btn_init_example.Enable(enbl)
         self.cb_bordering_cardname.Enable(enbl)
         self.cb_decorationfont.Enable(enbl)
         self.cb_fontsmoothingmessage.Enable(enbl)

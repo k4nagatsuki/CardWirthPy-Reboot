@@ -92,6 +92,10 @@ SB_DISABLE   = 0b00000100 # 無効状態
 SB_NOTICE    = 0b00001000 # 通知
 SB_EMPHASIZE = 0b00010000 # 強調
 
+# フォントの表示例
+FONT_EXAMPLE_FORMAT_INIT = "%fontface%\nAaあぁアァ亜宇"
+FONT_EXAMPLE_PIXEL_SIZE_INIT = 24
+
 
 class LocalSetting(object):
 
@@ -462,7 +466,8 @@ class Setting(object):
         # アップデートに伴うファイルの自動移動・削除を行う
         self.auto_update_files = True
         # フォント表示例のフォーマット
-        self.fontexampleformat = "%fontface%"
+        self.fontexampleformat = FONT_EXAMPLE_FORMAT_INIT
+        self.fontexamplepixelsize = FONT_EXAMPLE_PIXEL_SIZE_INIT
         # 最小化中に完全に停止する
         self.stop_the_world_with_iconized = True
 
@@ -849,6 +854,7 @@ class Setting(object):
 
         # フォント表示例のフォーマット
         self.fontexampleformat = data.gettext("FontExampleFormat", self.fontexampleformat_init)
+        self.fontexamplepixelsize = data.gettext("FontExamplePixelSize", self.fontexamplepixelsize_init)
 
         # シナリオのインストール先(キー=ルートディレクトリ)
         e = data.find("InstalledPaths")
