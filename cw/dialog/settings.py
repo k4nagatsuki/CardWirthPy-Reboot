@@ -1386,6 +1386,8 @@ class GeneralSettingPanel(wx.Panel):
             ("minute", "分"),
             ("second", "秒"),
             ("millisecond", "ミリ秒"),
+            None,
+            ("", "%")
         ]
         if versioninfo:
             ssdic.insert(2, ("build", "ビルド情報"))
@@ -3108,7 +3110,7 @@ class FontSettingPanel(wx.Panel):
 
         self.box_edit_example = wx.StaticBox(self, -1, "表示例のカスタマイズ")
         self.tx_example = wx.TextCtrl(self, -1, s, size=(-1, -1))
-        self.tx_example.SetToolTip("%fontface% = フォント名\n\\n = 改行\n\\\\ = \\")
+        self.tx_example.SetToolTip("%fontface% = フォント名\n%% = %\n\\n = 改行\n\\\\ = \\")
         self.sc_example = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1), min=8, max=32)
         self.sc_example.SetValue(pixelsize)
         self.btn_init_example = wx.Button(self, -1, "初期化", size=(cw.ppis(50), -1))

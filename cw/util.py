@@ -3187,7 +3187,10 @@ def format_title(fmt, d):
         use = False
         for sec in l:
             if isinstance(sec, _FormatPart):
-                name = d.get(sec.name, "")
+                if sec.name == "":
+                    name = "%"
+                else:
+                    name = d.get(sec.name, "")
                 if name:
                     seq.append(name)
                     use = True
