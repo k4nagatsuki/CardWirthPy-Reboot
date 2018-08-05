@@ -2079,7 +2079,12 @@ class ScenarioSelect(select.Select):
         #      Windows 10 1709
         #      ---
         #      Windows 10 1803でusebuffer=Falseでも問題が発生しなくなった
-        if int(cw.UP_WIN) == cw.UP_WIN:
+        up = [1]
+        upi = 2
+        while upi <= cw.UP_WIN:
+            up.append(upi)
+            upi *= 2
+        if cw.UP_WIN in up:
             dest = cw.util.copy_wxbmp(bmp)#, usebuffer=True)
             dc = wx.MemoryDC(dest)
         else:
