@@ -1464,7 +1464,7 @@ class MyApp(wx.App):
                 mousepos = wx.GetMousePosition()
                 xmove = cw.ppis(mousepos[0] - self.flick_start_pos[0])
                 ymove = cw.ppis(mousepos[1] - self.flick_start_pos[1])
-                dur = time.time() - self.flick_start_time
+                dur = time.clock() - self.flick_start_time
                 exit_value = -1
                 if self.flick_window and cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and\
                                          dur <= cw.cwpy.setting.flick_time_msec/1000.0:
@@ -1485,7 +1485,7 @@ class MyApp(wx.App):
                     self.flick_status = FLICK_START
                     self.flick_window = window
                     self.flick_start_pos = wx.GetMousePosition()
-                    self.flick_start_time = time.time()
+                    self.flick_start_time = time.clock()
 
                     # 画面外にマウスポインタが出ていった時に
                     # マウスボタンアップを検知できないので
@@ -1495,7 +1495,7 @@ class MyApp(wx.App):
                     def watch_mousebutton():
                         if self.flick_status != FLICK_START:
                             return
-                        dur = time.time() - self.flick_start_time
+                        dur = time.clock() - self.flick_start_time
                         if cw.cwpy.setting.flick_time_msec / 1000.0 <= dur:
                             return
                         if not wx.GetMouseState().LeftIsDown():
@@ -1510,7 +1510,7 @@ class MyApp(wx.App):
         if cw.cwpy and cw.cwpy.setting.enabled_right_flick and isinstance(event, wx.MouseEvent):
             if self.flick_status == FLICK_START and event.GetEventType() == wx.EVT_MOTION.typeId:
                 # フリックの制限時間が経過済みでない場合はポインタ移動イベントをキャンセルする
-                dur = time.time() - self.flick_start_time
+                dur = time.clock() - self.flick_start_time
                 if dur < cw.cwpy.setting.flick_time_msec/1000.0:
                     return True
 

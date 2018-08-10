@@ -48,7 +48,7 @@ class WriteError(io.RawIOBase):
                 pass
             self._write_datetime()
             put_errorlog = os.path.basename(name)
-            self._last_time = time.time()
+            self._last_time = time.clock()
     def _write_datetime(self):
         d = datetime.datetime.today()
         self.f.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
@@ -97,7 +97,7 @@ class WriteError(io.RawIOBase):
     def writelines(self, lines):
         if cw.quit:
             return
-        if self.f and self._last_time + 1.0 <= time.time():
+        if self.f and self._last_time + 1.0 <= time.clock():
             # 前回の出力から1秒以上経っていたら時刻を再出力
             self.f.write("\n")
             self._write_datetime()
@@ -106,12 +106,12 @@ class WriteError(io.RawIOBase):
         self.f.flush()
         if sys.__stderr__:
             sys.__stderr__.writelines(lines)
-        self._last_time = time.time()
+        self._last_time = time.clock()
         return r
     def write(self, b):
         if cw.quit:
             return
-        if self.f and self._last_time + 1.0 <= time.time():
+        if self.f and self._last_time + 1.0 <= time.clock():
             self.f.write("\n")
             self._write_datetime()
         print(b, end="")
@@ -120,7 +120,7 @@ class WriteError(io.RawIOBase):
         self.f.flush()
         if sys.__stderr__:
             sys.__stderr__.write(b)
-        self._last_time = time.time()
+        self._last_time = time.clock()
         return r
     def __del__(self):
         if self.f:

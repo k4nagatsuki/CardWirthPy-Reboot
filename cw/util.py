@@ -2518,8 +2518,8 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                 if last_count != count:
                     if progress(count):
                         prog.cancel = True
-                p = time.time() + 0.1
-                while thr.is_alive() and time.time() < p:
+                p = time.clock() + 0.1
+                while thr.is_alive() and time.clock() < p:
                     time.sleep(0.001)
             if prog.cancel and not overwrite:
                 remove(dstdir)
@@ -4392,20 +4392,20 @@ timer = 0.0
 
 def t_start():
     global timer
-    timer = time.time()
+    timer = time.clock()
 
 def t_end(index):
     global times, timer
-    times[index] += time.time() - timer
-    timer = time.time()
+    times[index] += time.clock() - timer
+    timer = time.clock()
 
 def td_end(key):
     global dictimes, timer
     if key in dictimes:
-        dictimes[key] += time.time() - timer
+        dictimes[key] += time.clock() - timer
     else:
-        dictimes[key] = time.time() - timer
-    timer = time.time()
+        dictimes[key] = time.clock() - timer
+    timer = time.clock()
 
 def t_reset():
     global times, dictimes
