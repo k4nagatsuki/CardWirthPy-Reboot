@@ -846,8 +846,11 @@ class CardHeader(object):
 
     def is_activewithstatus(self, ccard):
         """ccardはこの召喚獣カードが発動可能な状態か？"""
-        assert not self.carddata is None
-        e = self.carddata.find("Property/InvocationCondition")
+        if self.carddata is None:
+            prop = cw.data.xml2element(self.fpath, "Property")
+            e = prop.find("InvocationCondition")
+        else:
+            e = self.carddata.find("Property/InvocationCondition")
         if e is None:
             return ccard.is_alive()
         for e_status in e:
