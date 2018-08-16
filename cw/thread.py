@@ -3063,12 +3063,10 @@ class CWPy(_Singleton, threading.Thread):
             self.add_lazydraw(clip=fcard.rect)
             if fcard.status == "hidden":
                 fcard.clear_image()
-                fcard.layer = (cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, fcard.index, 0)
-                self.cardgrp.add(fcard, layer=fcard.layer)
+                self.cardgrp.add(fcard, layer=fcard.layer_t)
                 self.mcards.append(fcard)
             else:
-                fcard.layer = (cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, fcard.index, 0)
-                self.cardgrp.add(fcard, layer=fcard.layer)
+                self.cardgrp.add(fcard, layer=fcard.layer_t)
                 self.mcards.append(fcard)
                 if not alpha is None:
                     fcard.update_image()
@@ -3083,6 +3081,7 @@ class CWPy(_Singleton, threading.Thread):
             if isinstance(fcard, cw.character.Friend):
                 fcard.set_alpha(None)
                 fcard.hide()
+                fcard.layer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, fcard.index, 0)
                 fcards.append(fcard)
                 self.mcards.remove(fcard)
                 self.add_lazydraw(clip=fcard.rect)
@@ -3475,6 +3474,7 @@ class CWPy(_Singleton, threading.Thread):
             if areaid in (cw.AREA_BREAKUP, cw.AREA_CAMP):
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
+                self.clear_fcardsprites()
                 self.change_area(areaid, quickdeal=True, specialarea=True, silent=silent)
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata._changed = changed
