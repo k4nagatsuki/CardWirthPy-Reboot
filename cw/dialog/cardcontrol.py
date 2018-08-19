@@ -2885,7 +2885,7 @@ class ReplCardHolder(CardControl):
         header.negaflag = False
         self.toppanel.SetFocusIgnoringChildren()
 
-        def func(target, header, selection):
+        def func(target, header, index, selection):
             owner = target.get_owner()
             if isinstance(owner, cw.character.Player):
                 fromtype = "PLAYERCARD"
@@ -2898,12 +2898,16 @@ class ReplCardHolder(CardControl):
             # カードの交換
             if fromtype == "PLAYERCARD":
                 # 両方の手札が一杯の可能性があるので一旦荷物袋へ入れる
-                cw.cwpy.trade(targettype="BACKPACK", header=target, from_event=False, sound=False, sort=False, call_predlg=False)
-            cw.cwpy.trade(targettype=fromtype, target=owner, header=header, from_event=False, sound=False, sort=True, call_predlg=False)
-            cw.cwpy.trade(targettype="PLAYERCARD", target=selection, header=target, from_event=False, sound=False, sort=True, call_predlg=False)
+                cw.cwpy.trade(targettype="BACKPACK", header=target, from_event=False, sound=False,
+                              sort=False, call_predlg=False)
+            cw.cwpy.trade(targettype=fromtype, target=owner, header=header, from_event=False, sound=False,
+                          sort=True, call_predlg=False)
+            cw.cwpy.trade(targettype="PLAYERCARD", target=selection, header=target, toindex=index,
+                          from_event=False, sound=False, sort=True, call_predlg=False)
             cw.cwpy.exec_func(cw.cwpy.call_predlg)
 
-        cw.cwpy.exec_func(func, self.target, header, self.selection)
+        index = self.list.index(header)
+        cw.cwpy.exec_func(func, self.target, header, index, self.selection)
 
         # OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
