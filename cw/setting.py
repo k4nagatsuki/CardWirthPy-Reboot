@@ -93,7 +93,7 @@ SB_NOTICE    = 0b00001000 # 通知
 SB_EMPHASIZE = 0b00010000 # 強調
 
 # フォントの表示例
-FONT_EXAMPLE_FORMAT_INIT = "%fontface%\nAaあぁアァ亜宇"
+FONT_EXAMPLE_FORMAT_INIT = "%fontface%\\nAaあぁアァ亜宇"
 FONT_EXAMPLE_PIXEL_SIZE_INIT = 24
 
 
@@ -854,6 +854,7 @@ class Setting(object):
 
         # フォント表示例のフォーマット
         self.fontexampleformat = data.gettext("FontExampleFormat", self.fontexampleformat_init)
+        self.fontexampleformat = self.fontexampleformat.replace("\n", "\\n")
         self.fontexamplepixelsize = data.gettext("FontExamplePixelSize", self.fontexamplepixelsize_init)
 
         # シナリオのインストール先(キー=ルートディレクトリ)

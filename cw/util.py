@@ -3134,12 +3134,13 @@ def get_char(s, index):
     except:
         return ""
 
-def format_title(fmt, d):
+def format_title(fmt, d, use_lf=False):
     """foobar2000の任意フォーマット文字列のような形式で
     文字列の構築を行う。
      * %%で囲われた文字列は変数となり、辞書dから得られる値に置換される。
      * []で囲われた文字列は、その内側で使用された変数がなければ丸ごと無視される。
-     * \の次の文字列は常に通常文字となる。
+     * \の次の文字列は常に通常文字となる。ただし\nは例外の場合がある。
+     * use_lf=Trueの時は、\n=改行コードとなる。
 
     例えば次のようになる:
         d = { "application":"CardWirthPy", "skin":"スキン名", "yado":"宿名" }
@@ -3161,7 +3162,10 @@ def format_title(fmt, d):
             c = fmt[0]
             fmt = fmt[1:]
             if bs:
-                seq.append(c)
+                if c == 'n' and use_lf:
+                    seq.append("\n")
+                else:
+                    seq.append(c)
                 bs = False
             elif c == "\\":
                 bs = True
@@ -3181,19 +3185,17 @@ def format_title(fmt, d):
 
     fmt, l = eat_parts(fmt, False)
     assert not fmt
+
     def do_format(l):
         """フォーマットを実行する。"""
         seq = []
         use = False
         for sec in l:
             if isinstance(sec, _FormatPart):
-                if sec.name == "":
-                    name = "%"
-                else:
-                    name = d.get(sec.name, "")
+                name = d.get(sec.name, "")
                 if name:
-                    seq.append(name)
                     use = True
+                    seq.append(name)
             elif isinstance(sec, list):
                 text, use2 = do_format(sec)
                 if use2:
@@ -3205,6 +3207,11 @@ def format_title(fmt, d):
 
     return do_format(l)[0]
 
+assert format_title("%application% %skin%[ - %yado%[ %scenario%]]",
+                    {"application": "CardWirthPy", "skin": "スキン名", "yado": "宿名"}) ==\
+       "CardWirthPy スキン名 - 宿名"
+assert format_title("\\%\\[\\]\\\\", {}) == "%[]\\"
+assert format_title("1\\%2\\[3\\]4\\\\", {}) == "1%2[3]4\\"
 
 #-------------------------------------------------------------------------------
 # wx汎用関数

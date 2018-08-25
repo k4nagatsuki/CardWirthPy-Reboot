@@ -1050,7 +1050,7 @@ class SkinPanel(wx.Panel):
         dlg.Destroy()
 
         # スキン編集ダイアログ上でフォント表示例が編集された場合に結果を反映する
-        s = cw.util.encodewrap(cw.cwpy.setting.fontexampleformat)
+        s = cw.cwpy.setting.fontexampleformat
         pixelsize = cw.cwpy.setting.fontexamplepixelsize
         self.GetTopLevelParent().panel.pane_font.tx_example.SetValue(s)
         self.GetTopLevelParent().panel.pane_font.sc_example.SetValue(pixelsize)
@@ -1387,7 +1387,10 @@ class GeneralSettingPanel(wx.Panel):
             ("second", "秒"),
             ("millisecond", "ミリ秒"),
             None,
-            ("", "%")
+            ("\\%", "%"),
+            ("\\[", "["),
+            ("\\]", "]"),
+            ("\\\\", "\\"),
         ]
         if versioninfo:
             ssdic.insert(2, ("build", "ビルド情報"))
@@ -1396,10 +1399,14 @@ class GeneralSettingPanel(wx.Panel):
         for t in ssdic:
             if t:
                 p, name = t
-                mi = self.ssinsmenu.Append(-1, "%%%s%% = %s" % (p, name))
+                if p.startswith("\\"):
+                    mi = self.ssinsmenu.Append(-1, "%s = %s" % (p, name))
+                else:
+                    mi = self.ssinsmenu.Append(-1, "%%%s%% = %s" % (p, name))
                 self.ssdic[mi.GetId()] = (mi.GetId(), p, name)
             else:
                 self.ssinsmenu.AppendSeparator()
+
         self._ss_focus()
 
         self._do_layout()
@@ -1495,7 +1502,10 @@ class GeneralSettingPanel(wx.Panel):
             f = wx.Window.FindFocus()
             for tx in self.ss_tx:
                 if tx is f:
-                    tx.WriteText("%%%s%%" % (p))
+                    if p.startswith("\\"):
+                        tx.WriteText("%s" % (p))
+                    else:
+                        tx.WriteText("%%%s%%" % (p))
 
     def OnSSFocus(self, event):
         self._ss_focus()
@@ -3098,10 +3108,10 @@ class FontSettingPanel(wx.Panel):
         # フォント表示サンプル
         self.box_example = wx.StaticBox(self, -1, "表示例")
         if cw.cwpy:
-            s = cw.util.encodewrap(cw.cwpy.setting.fontexampleformat)
+            s = cw.cwpy.setting.fontexampleformat
             pixelsize = cw.cwpy.setting.fontexamplepixelsize
         else:
-            s = cw.util.encodewrap(cw.setting.FONT_EXAMPLE_FORMAT_INIT)
+            s = cw.setting.FONT_EXAMPLE_FORMAT_INIT
             pixelsize = cw.setting.FONT_EXAMPLE_PIXEL_SIZE_INIT
         ln = 2
         self._example_panel = wx.Panel(self, -1, size=cw.ppis((100, 24*ln+11)), style=wx.NO_BORDER)
@@ -3110,7 +3120,7 @@ class FontSettingPanel(wx.Panel):
 
         self.box_edit_example = wx.StaticBox(self, -1, "表示例のカスタマイズ")
         self.tx_example = wx.TextCtrl(self, -1, s, size=(-1, -1))
-        self.tx_example.SetToolTip("%fontface% = フォント名\n%% = %\n\\n = 改行\n\\\\ = \\")
+        self.tx_example.SetToolTip("%fontface% = フォント名\n\% = %\n\\n = 改行\n\\\\ = \\")
         self.sc_example = wx.SpinCtrl(self, -1, "", size=(cw.ppis(50+_spin_w_addition), -1), min=8, max=32)
         self.sc_example.SetValue(pixelsize)
         self.btn_init_example = wx.Button(self, -1, "初期化", size=(cw.ppis(50), -1))
@@ -3212,7 +3222,7 @@ class FontSettingPanel(wx.Panel):
         if self._for_local:
             self.cb_important.SetValue(local.important_font)
         if setting:
-            self.tx_example.SetValue(cw.util.encodewrap(setting.fontexampleformat))
+            self.tx_example.SetValue(setting.fontexampleformat)
             self.sc_example.SetValue(setting.fontexamplepixelsize)
         self.cb_bordering_cardname.SetValue(local.bordering_cardname)
         self.cb_decorationfont.SetValue(local.decorationfont)
@@ -3288,7 +3298,7 @@ class FontSettingPanel(wx.Panel):
         self.Layout()
 
     def update_example(self):
-        s = cw.util.decodewrap(self.tx_example.GetValue())
+        s = self.tx_example.GetValue()
         pixelsize = self.sc_example.GetValue()
         if cw.cwpy:
             cw.cwpy.setting.fontexampleformat = s
@@ -3296,7 +3306,7 @@ class FontSettingPanel(wx.Panel):
         font = wx.Font(wx.Size(0, pixelsize), family=wx.DEFAULT, style=wx.FONTSTYLE_NORMAL,
                        weight=wx.FONTWEIGHT_NORMAL, faceName=self._last_face)
         self.st_example.SetFont(font)
-        s = cw.util.format_title(s, {"fontface": self._last_face})
+        s = cw.util.format_title(s, {"fontface": self._last_face}, use_lf=True)
         self.st_example.SetLabel(s)
         self._example_panel.Layout()
 
@@ -3311,7 +3321,7 @@ class FontSettingPanel(wx.Panel):
 
     def init_values(self, setting, local):
         if setting:
-            self.tx_example.SetValue(cw.util.encodewrap(setting.fontexampleformat_init))
+            self.tx_example.SetValue(setting.fontexampleformat_init)
             self.sc_example.SetValue(setting.fontexamplepixelsize_init)
 
         for i, basename in enumerate(self.bases):
@@ -3459,7 +3469,7 @@ class FontSettingPanel(wx.Panel):
         self.update_example()
 
     def OnInitExample(self, event):
-        self.tx_example.SetValue(cw.util.encodewrap(cw.setting.FONT_EXAMPLE_FORMAT_INIT))
+        self.tx_example.SetValue(cw.setting.FONT_EXAMPLE_FORMAT_INIT)
         self.sc_example.SetValue(cw.setting.FONT_EXAMPLE_PIXEL_SIZE_INIT)
         self.update_example()
 
