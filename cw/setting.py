@@ -854,7 +854,6 @@ class Setting(object):
 
         # フォント表示例のフォーマット
         self.fontexampleformat = data.gettext("FontExampleFormat", self.fontexampleformat_init)
-        self.fontexampleformat = self.fontexampleformat.replace("\n", "\\n")
         self.fontexamplepixelsize = data.gettext("FontExamplePixelSize", self.fontexamplepixelsize_init)
 
         # シナリオのインストール先(キー=ルートディレクトリ)
