@@ -906,15 +906,16 @@ class ScenarioData(SystemData):
         self._paused_time = 0
 
         self.ignorecase_table = {}
-        # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
-        #        取得に失敗する事があるので、すべて小文字のパスをキーにして
-        #        真のファイル名へのマッピングをしておく。
-        #        主にこの問題は手書きされる'*.jpy1'内で発生する。
-        for dpath, _dnames, fnames in os.walk(self.tempdir):
-            for fname in fnames:
-                path = cw.util.join_paths(dpath, fname)
-                if os.path.isfile(path):
-                    self.ignorecase_table[path.lower()] = path
+        if os.path.normcase("A") != "a":
+            # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
+            #        取得に失敗する事があるので、すべて小文字のパスをキーにして
+            #        真のファイル名へのマッピングをしておく。
+            #        主にこの問題は手書きされる'*.jpy1'内で発生する。
+            for dpath, _dnames, fnames in os.walk(self.tempdir):
+                for fname in fnames:
+                    path = cw.util.join_paths(dpath, fname)
+                    if os.path.isfile(path):
+                        self.ignorecase_table[path.lower()] = path
 
     def check_archiveupdated(self, reload):
         """シナリオが圧縮されており、

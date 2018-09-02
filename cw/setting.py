@@ -1490,7 +1490,7 @@ class Resource(object):
         self.ignorecase_table = {}
 
         cw.cwpy.frame.exec_func(self.init_wxresources)
-        if sys.platform != "win32":
+        if os.path.normcase("A") != "a":
             # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
             #        取得に失敗する事があるので、すべて小文字のパスをキーにして
             #        真のファイル名へのマッピングをしておく。
