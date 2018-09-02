@@ -1103,7 +1103,8 @@ class CWPy(_Singleton, threading.Thread):
     def return_takenoutcard(self, checkevent=True):
         # 一時的に荷物袋から出したカードを戻す(消滅していなければ)
         if self.card_takenouttemporarily and not self.selectedheader and (not checkevent or not self.is_runningevent()) and not self.is_battlestatus():
-            if self.card_takenouttemporarily.get_owner():
+            owner = self.card_takenouttemporarily.get_owner()
+            if owner and isinstance(owner, cw.character.Character):
                 self.clear_inusecardimg(self.card_takenouttemporarily.get_owner())
                 cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None, sound=False, call_predlg=False, sort=True)
             cw.cwpy.card_takenouttemporarily = None

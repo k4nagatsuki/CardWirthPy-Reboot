@@ -2469,6 +2469,10 @@ class Character(object):
                 cw.cwpy.ydata.changed()
             self._vanished = True
             if isinstance(self, cw.character.Player):
+                if self.inusecardimg and self.inusecardimg.header:
+                    # 使用中のカードはイベント終了時に
+                    # 使用回数が減らなくなるのでここで減らしておく
+                    self.inusecardimg.header.set_uselimit(-1, animate=False)
                 cw.animation.animate_sprite(self, "vanish", battlespeed=battlespeed)
                 if cw.cwpy.sct.enable_vanishmembercancellation(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
                    cw.cwpy.sct.enable_vanishmembercancellation(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
