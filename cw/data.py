@@ -905,12 +905,17 @@ class ScenarioData(SystemData):
         # 停止時間(秒)
         self._paused_time = 0
 
+        self._init_ignorecase_table()
+
+    def _init_ignorecase_table(self):
+        """
+        大文字・小文字を区別しないシステムでリソース内のファイルの
+        取得に失敗する事があるので、すべて小文字のパスをキーにして
+        真のファイル名へのマッピングをしておく。
+        この問題は主に手書きされる'*.jpy1'内で発生する。
+        """
         self.ignorecase_table = {}
         if os.path.normcase("A") != "a":
-            # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
-            #        取得に失敗する事があるので、すべて小文字のパスをキーにして
-            #        真のファイル名へのマッピングをしておく。
-            #        主にこの問題は手書きされる'*.jpy1'内で発生する。
             for dpath, _dnames, fnames in os.walk(self.tempdir):
                 for fname in fnames:
                     path = cw.util.join_paths(dpath, fname)
@@ -1279,7 +1284,9 @@ class ScenarioData(SystemData):
             if name in self.steps:
                 self.steps[name].value = value
 
+        self._init_ignorecase_table()
         self._init_debugger()
+
         def func():
             cw.cwpy.is_debuggerprocessing = False
             if cw.cwpy.is_showingdebugger() and cw.cwpy.event:
