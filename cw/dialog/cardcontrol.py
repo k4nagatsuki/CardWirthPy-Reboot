@@ -1584,7 +1584,10 @@ class CardControl(wx.Dialog):
         self.Show(False)
 
         if not self.callname in ("CARDPOCKET_REPLACE", "INFOVIEW"):
-            cw.cwpy.exec_func(cw.cwpy.clear_specialarea, redraw=False)
+            def func():
+                if cw.cwpy.areaid in cw.AREAS_TRADE:
+                    cw.cwpy.clear_specialarea(redraw=False)
+            cw.cwpy.exec_func(func)
         cw.cwpy.frame.kill_dlg(None)
         cw.cwpy.frame.append_killlist(self)
 

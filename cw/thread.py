@@ -3634,7 +3634,10 @@ class CWPy(_Singleton, threading.Thread):
                 if clear_curtain:
                     self.clear_curtain(redraw=not silent)
                 for mcard in self.pre_mcards.pop():
-                    self.cardgrp.add(mcard, layer=mcard.layer)
+                    if areaid == cw.AREA_CAMP and hasattr(mcard, "layer_t"):
+                        self.cardgrp.add(mcard, layer=mcard.layer_t)
+                    else:
+                        self.cardgrp.add(mcard, layer=mcard.layer)
                     self.mcards.append(mcard)
                 self.deal_cards()
                 self.list = self.get_mcards("visible")

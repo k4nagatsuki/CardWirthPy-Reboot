@@ -828,7 +828,10 @@ class Frame(wx.Frame):
 
     def _cardpocket_impl(self, callname):
         selection, preinfo = self._get_cardcontrolparams()
-        areaid = self.change_cardcontrolarea()
+        if isinstance(selection, (cw.character.Enemy, cw.character.Friend)):
+            areaid = cw.cwpy.areaid
+        else:
+            areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, callname, selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, cw.ppis(-63)))
 
