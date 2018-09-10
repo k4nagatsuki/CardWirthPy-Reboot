@@ -1988,6 +1988,9 @@ class YadoData(object):
         if not os.path.isdir(self.tempdir):
             os.makedirs(self.tempdir)
 
+        # ロード中であればTrue
+        self._loading = True
+
         # セーブが必要な状況であればTrue
         self._changed = False
 
@@ -2291,7 +2294,8 @@ class YadoData(object):
 
     def changed(self):
         """データの変化を通知する。"""
-        self._changed = True
+        if not self._loading:
+            self._changed = True
 
     def is_changed(self):
         return self._changed

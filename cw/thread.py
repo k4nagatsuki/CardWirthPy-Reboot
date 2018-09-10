@@ -2136,6 +2136,7 @@ class CWPy(_Singleton, threading.Thread):
             self.update_skin(self.ydata.skindirname, changearea=False, switch_yado=True, afterfunc=change_area)
         else:
             change_area()
+        self.ydata._loading = False
 
     def start_scenario(self):
         """
@@ -2247,6 +2248,7 @@ class CWPy(_Singleton, threading.Thread):
 
                         if not self.setting.lastscenariopath:
                             self.setting.lastscenariopath = header.get_fpath()
+                        self.ydata._loading = False
 
                     except:
                         # 読込失敗(帰還)
