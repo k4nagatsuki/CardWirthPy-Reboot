@@ -3743,7 +3743,7 @@ class TalkMessageContent(TalkContent):
 
             if talker:
                 if talkeriscard:
-                    can_loaded_scaledimage = talker.carddata.getbool(".", "scaledimage", False)
+                    can_loaded_scaledimage = talker.get_can_loaded_scaledimage()
                 else:
                     assert isinstance(talker, cw.character.Character)
                     can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
