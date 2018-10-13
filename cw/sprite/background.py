@@ -276,6 +276,7 @@ class BackGround(base.CWPySprite):
 
     def clear_background(self):
         self._force_noinhrt = True
+        self.pc_cache.clear()
 
     def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True, nocheckvisible=False, redraw=True):
         """背景画面を構成する。
