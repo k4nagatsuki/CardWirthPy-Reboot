@@ -374,6 +374,11 @@ def to_scenarioheaders(paths, db, skintype):
     for path in paths:
         def recurse(parent, path, notscenariofiles2):
             # pathまたはサブディレクトリにシナリオを持つ場合はTrueを返す
+
+            if sys.platform == "win32" and path.lower().endswith(".lnk"):
+                # ショートカットはショートカット先が削除される等の事故を起すので除外する
+                return False
+
             hparent = cw.util.relpath(parent, allparent)
             if hparent.startswith(".." + os.path.sep):
                 hparent = ""
