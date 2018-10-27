@@ -661,7 +661,9 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
         if f:
             try:
                 pos = f.tell()
-                ispng = get_imageext(f.read(16)) == ".png"
+                d16 = f.read(16)
+                ispng = get_imageext(d16) == ".png"
+                isgif = get_imageext(d16) == ".gif"
                 f.seek(pos)
                 image = pygame.image.load(f, "")
             except:
@@ -670,6 +672,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             data = cw.binary.image.code_to_data(path)
             ext = get_imageext(data)
             ispng = ext == ".png"
+            isgif = ext == ".gif"
             if ext == ".bmp":
                 data = cw.image.patch_rle4bitmap(data)
                 bmpdepth = cw.image.get_bmpdepth(data)
@@ -683,6 +686,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 return pygame.Surface((0, 0)).convert()
             ext = os.path.splitext(path)[1].lower()
             ispng = ext == ".png"
+            isgif = ext == ".gif"
             if ext == ".bmp":
                 with open(path, "rb") as f2:
                     data = f2.read()
@@ -736,31 +740,20 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
         image = image.convert_alpha()
     else:
         imageb = image
-        image = image.convert()
+        # パレット使用時にconvert()を行うと同一色が全て透過されてしまうので除外
+        if not (mask and image.get_bitsize() <= 8 and image.get_colorkey()):
+            image = image.convert()
 
         # カード画像がPNGの場合はマスクカラーを無視する(CardWirth 1.50の実装)
         if image.get_colorkey() and ispng and not isback:
             image.set_colorkey(None)
 
-        # GIFなどアルファチャンネルを持たない透過画像を読み込んだ場合は
-        # すでにマスクカラーが指定されているので注意
-        if mask and image.get_colorkey():
-            # 255色GIFなどでパレットに存在しない色が
-            # マスク色に設定されている事があるので、
-            # その場合は通常通り左上の色をマスク色とする
-            # 将来、もしこの処理の結果問題が起きた場合は
-            # このif文以降の処理を削除する必要がある
+        if mask and image.get_colorkey() and isgif:
+            # 256GIFでは強制的に左上マスク色が有効になる
             if imageb.get_bitsize() <= 8:
-                mask = image.get_masks()
-                maskok = False
-                for pixel in imageb.get_palette():
-                    if pixel == mask:
-                        maskok = True
-                        break
-                if not maskok:
-                    maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
-                    image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
-        elif mask and not image.get_colorkey():
+                maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
+                image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
+        elif mask and not image.get_colorkey(): # PNGなどですでにマスクカラーが指定されている場合は除外
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
             image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
 
