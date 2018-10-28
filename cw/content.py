@@ -3755,9 +3755,19 @@ class TalkMessageContent(TalkContent):
                                 if talker.type == "ActionCard":
                                     imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG, system=True)
                                 else:
-                                    imgpath = cw.util.join_yadodir(imgpath)
+                                    imgpath2 = cw.util.join_yadodir(imgpath)
+                                    if os.path.isfile(imgpath2):
+                                        imgpath = imgpath2
+                                    else:
+                                        # Table以下のイメージを探す
+                                        imgpath = cw.util.get_materialpathfromskin(imgpath, cw.M_IMG)
                             else:
-                                imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, imgpath)
+                                imgpath2 = cw.util.join_paths(cw.cwpy.sdata.scedir, imgpath)
+                                if os.path.isfile(imgpath2):
+                                    imgpath = imgpath2
+                                else:
+                                    # Table以下のイメージを探す
+                                    imgpath = cw.util.get_materialpathfromskin(imgpath, cw.M_IMG)
                     if isinstance(talker, cw.character.Character) or\
                             isinstance(talker.cardimg, cw.image.LargeCardImage):
                         basecardtype = "LargeCard"
