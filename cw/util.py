@@ -740,8 +740,15 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
         image = image.convert_alpha()
     else:
         imageb = image
-        # パレット使用時にconvert()を行うと同一色が全て透過されてしまうので除外
-        if not (mask and image.get_bitsize() <= 8 and image.get_colorkey()):
+        # パレット使用時にconvert()を行うと同一色が全て透過されてしまうのでconvertはしない
+        if mask and image.get_bitsize() <= 8 and image.get_colorkey():
+            # BUG: パレット上の透過色を指定したPNGイメージをcopy()・convert()すると
+            #      透過情報が壊れる pygame 1.9.4
+            image2 = pygame.Surface(image.get_size()).convert_alpha()
+            image2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_MIN)
+            image2.blit(image, (0, 0))
+            image = image2
+        else:
             image = image.convert()
 
         # カード画像がPNGの場合はマスクカラーを無視する(CardWirth 1.50の実装)
