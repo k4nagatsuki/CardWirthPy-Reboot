@@ -740,8 +740,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
         image = image.convert_alpha()
     else:
         imageb = image
-        if image.get_bitsize() <= 8 and image.get_colorkey() and not isgif:
-            # BUG: 環境によってマスク処理を行うと透過色が壊れる issue #723
+        if image.get_bitsize() <= 8 and image.get_colorkey() and not isgif and isback:
+            # BUG: 環境によってイメージセルのマスク処理を行うと透過色が壊れる issue #723
             mask = False
         # BUG: パレット使用時にconvert()を行うと同一色が全て透過されてしまう
         #      CardWirth 1.50
