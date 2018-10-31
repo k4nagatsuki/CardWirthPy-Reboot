@@ -662,6 +662,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             try:
                 pos = f.tell()
                 d16 = f.read(16)
+                isbmp = get_imageext(d16) == ".bmp"
                 ispng = get_imageext(d16) == ".png"
                 isgif = get_imageext(d16) == ".gif"
                 f.seek(pos)
@@ -671,6 +672,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
         elif cw.binary.image.path_is_code(path):
             data = cw.binary.image.code_to_data(path)
             ext = get_imageext(data)
+            isbmp = ext == ".bmp"
             ispng = ext == ".png"
             isgif = ext == ".gif"
             if ext == ".bmp":
@@ -685,6 +687,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
             ext = os.path.splitext(path)[1].lower()
+            isbmp = ext == ".bmp"
             ispng = ext == ".png"
             isgif = ext == ".gif"
             if ext == ".bmp":
@@ -745,7 +748,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             mask = False
         # BUG: パレット使用時にconvert()を行うと同一色が全て透過されてしまう
         #      CardWirth 1.50
-        image = image.convert()
+        if not (bmpdepth == 16 and isbmp): # BUG: 16-bitビットマップでマスク色が有効にならない pygame 1.9.4
+            image = image.convert()
 
         # カード画像がPNGの場合はマスクカラーを無視する(CardWirth 1.50の実装)
         if image.get_colorkey() and ispng and not isback:
