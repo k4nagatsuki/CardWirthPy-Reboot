@@ -726,6 +726,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                         f2.close()
                 if not ispng:
                     bmpdepth = cw.image.get_bmpdepth(data)
+                data, _ok = cw.image.fix_cwnext32bitbitmap(data)
                 data, _ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
                     r = load_image(path, mask, maskpos, f2, False, isback=isback, can_loaded_scaledimage=can_loaded_scaledimage,
@@ -3267,10 +3268,11 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                 if ext == ".png":
                     haspngalpha = cw.image.has_pngalpha(data)
                 bmpdepth = cw.image.get_bmpdepth(data)
-                data, ok = cw.image.fix_cwnext16bitbitmap(data)
+                data, ok1 = cw.image.fix_cwnext32bitbitmap(data)
+                data, ok2 = cw.image.fix_cwnext16bitbitmap(data)
                 if isinstance(data, wx.Image):
                     image = data
-                elif name and ok and not cw.binary.image.path_is_code(name):
+                elif name and ok1 and ok2 and not cw.binary.image.path_is_code(name):
                     # BUG: io.BytesIO()を用いてのwx.ImageFromStream()は、
                     #      二重にファイルを読む処理よりなお10倍も遅い
                     image = wx.Image(name)

@@ -1442,6 +1442,41 @@ def fix_cwnext16bitbitmap(data):
     data = cw.image.patch_rle4bitmap(data)
     return data, True
 
+def fix_cwnext32bitbitmap(data):
+    """一部バージョンのCardWirthNextが生成するBitmap(32 bit)に
+    本来存在できないはずのパレットデータが残留している事があるので訂正する。
+    """
+    if len(data) < 14 + 40:
+        return data, True
+    s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
+    if s[0] != ord('B'):
+        return data, True
+    if s[1] != ord('M'):
+        return data, True
+    _bfSize = s[2]
+    _bfReserved1 = s[3]
+    _bfReserved2 = s[4]
+    _bfOffBits = s[5]
+    biSize = s[6]
+    if biSize != 40:
+        return data, True
+    _biWidth = s[7]
+    _biHeight = s[8]
+    _biPlanes = s[9]
+    biBitCount = s[10]
+    if biBitCount != 32:
+        return data, True
+    biCompression = s[11]
+    _biSizeImage = s[12]
+    _biXPixPerMeter = s[13]
+    _biYPixPerMeter = s[14]
+    biClrUsed = s[15]
+    _biClrImporant = s[16]
+    if 0 < biClrUsed:
+        data = data[:14+32] + struct.pack("<I", 0) + data[14+36:14+36+(biSize-36)] + data[14+biSize+biClrUsed*4:]
+        return data, False
+    return data, True
+
 def conv2wximage(image, biBitCount):
     """pygame.Surfaceをwx.Bitmapに変換する。
     image: pygame.Surface
