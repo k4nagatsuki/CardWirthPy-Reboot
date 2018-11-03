@@ -535,7 +535,8 @@ class Frame(wx.Frame):
             db = self.open_scenariodb()
             if not db:
                 return
-            headers, notscenariofiles = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db, cw.cwpy.setting.skintype)
+            headers, notscenariofiles = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db, cw.cwpy.setting.skintype,
+                                                                                     link=False)
             if not headers:
                 return
             cw.cwpy.play_sound("signal")

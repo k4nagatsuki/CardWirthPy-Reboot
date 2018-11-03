@@ -354,7 +354,7 @@ def is_listitem(path):
     return os.path.isdir(path) or cw.scenariodb.is_scenario(path)
 
 
-def to_scenarioheaders(paths, db, skintype):
+def to_scenarioheaders(paths, db, skintype, link):
     """
     pathsをcw.header.ScenarioHeaderに変換する。
     パスがシナリオか否かの判定にシナリオDBを使用する。
@@ -375,7 +375,7 @@ def to_scenarioheaders(paths, db, skintype):
         def recurse(parent, path, notscenariofiles2):
             # pathまたはサブディレクトリにシナリオを持つ場合はTrueを返す
 
-            if sys.platform == "win32" and path.lower().endswith(".lnk"):
+            if not link and sys.platform == "win32" and path.lower().endswith(".lnk"):
                 # ショートカットはショートカット先が削除される等の事故を起すので除外する
                 return False
 

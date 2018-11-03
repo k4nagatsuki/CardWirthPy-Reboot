@@ -1193,25 +1193,35 @@ class ScenarioSelect(select.Select):
 
     def OnDropFiles(self, event):
         paths = event.GetFiles()
-        headers, notscenariofiles = self._to_headers(paths)
 
-        if not headers:
+        headers_with_link, notscenariofiles = self._to_headers(paths, link=True)
+
+        if not headers_with_link:
             cw.cwpy.play_sound("error")
             return
 
-        if cw.cwpy.setting.can_installscenariofromdrop:
-            self._install_scenario(headers, notscenariofiles)
+        if not cw.cwpy.setting.can_installscenariofromdrop:
+            self._show_selectedscenario(headers_with_link)
+            return
+
+        headers, notscenariofiles = self._to_headers(paths, link=False)
+        if headers:
+            self._install_scenario(headers, headers_with_link, notscenariofiles)
         else:
-            self._show_selectedscenario(headers)
+            self._show_selectedscenario(headers_with_link)
 
     def OnInstallBtn(self, event):
         wildcard = "シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab; Summary.xml)|*.wsn;*.wsm;*.zip;*.lzh;*.cab;Summary.xml"
         dlg = wx.FileDialog(self, "インストールするシナリオを選択", wildcard=wildcard, style=wx.FD_OPEN|wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
-            headers, notscenariofiles = self._to_headers(paths)
-            if headers:
-                self._install_scenario(headers, notscenariofiles)
+            headers_with_link, notscenariofiles = self._to_headers(paths, link=True)
+            if headers_with_link:
+                headers, notscenariofiles = self._to_headers(paths, link=False)
+                if headers:
+                    self._install_scenario(headers, headers_with_link, notscenariofiles)
+                else:
+                    self._show_selectedscenario(headers_with_link)
         dlg.Destroy()
 
     def _get_installtarget(self):
@@ -1472,7 +1482,7 @@ class ScenarioSelect(select.Select):
         dlg = wx.FileDialog(self, "リンク先のシナリオを選択", wildcard=wildcard, style=wx.FD_OPEN|wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
-            headers, notscenariofiles = self._to_headers(paths)
+            headers, notscenariofiles = self._to_headers(paths, link=True)
             headers = reduce(lambda a, b: a + b, iter(headers.values()))
             if headers:
                 cw.cwpy.play_sound("harvest")
@@ -1515,10 +1525,10 @@ class ScenarioSelect(select.Select):
         lastscenariopath = selection
         self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=[])
 
-    def _to_headers(self, paths):
+    def _to_headers(self, paths, link):
         from . import scenarioinstall
 
-        return scenarioinstall.to_scenarioheaders(paths, self.db, cw.cwpy.setting.skintype)
+        return scenarioinstall.to_scenarioheaders(paths, self.db, cw.cwpy.setting.skintype, link=link)
 
     def _show_selectedscenario(self, headers):
         self._processing = True
@@ -1534,7 +1544,7 @@ class ScenarioSelect(select.Select):
         self._update_saveddirstack()
         self.enable_btn()
 
-    def _install_scenario(self, headers, notscenariofiles):
+    def _install_scenario(self, headers, headers_with_link, notscenariofiles):
         """
         headersを選択中のディレクトリにインストールする。
         シナリオDB内に同じ名前・作者のシナリオがあった場合は
@@ -1543,7 +1553,7 @@ class ScenarioSelect(select.Select):
         from . import message
         from . import scenarioinstall
 
-        if not headers:
+        if not headers_with_link:
             return
 
         # シナリオのインストール
@@ -1599,7 +1609,7 @@ class ScenarioSelect(select.Select):
 
             return
 
-        self._show_selectedscenario(headers)
+        self._show_selectedscenario(headers_with_link)
 
     def OnClickInfoBtn(self, event):
         from . import text
