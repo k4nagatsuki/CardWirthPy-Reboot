@@ -114,7 +114,8 @@ class StatusBar(base.CWPySprite):
             self._create_debugger((left, cw.s(3)))
 
         if encounter:
-            EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+            panel = EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+            left -= panel.size[0] + cw.s(14)
         elif (cw.cwpy.is_curtained() and cw.cwpy.areaid != cw.AREA_CAMP) or cw.cwpy.selectedheader:
             if cw.cwpy.status == "Yado":
                 if not cw.cwpy.expanding:
@@ -123,26 +124,30 @@ class StatusBar(base.CWPySprite):
                     if cw.cwpy.ydata.party:
                         self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                         rmargin += cw.s(34)
+                        left -= self.partymoney.size[0] + cw.s(14)
             else:
                 if cw.cwpy.is_battlestatus() and cw.cwpy.setting.show_roundautostartbutton:
                     self._create_autostart(cw.s((5, 3)))
-                    left = cw.s(36)
+                    left2 = cw.s(36)
                 else:
-                    left = cw.s(10)
+                    left2 = cw.s(10)
                 if showbuttons:
-                    CancelButton(self, (left, cw.s(6)))
+                    CancelButton(self, (left2, cw.s(6)))
                 if cw.cwpy.status == "Scenario":
                     self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                     rmargin += cw.s(34)
+                    left -= self.partymoney.size[0] + cw.s(14)
                 elif cw.cwpy.is_battlestatus():
-                    RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+                    panel = RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
                     rmargin += cw.s(34)
+                    left -= panel.size[0] + cw.s(14)
         elif cw.cwpy.status == "Yado":
             if not cw.cwpy.expanding:
                 self._create_yadomoney(cw.s((10, 6)))
             if cw.cwpy.ydata.party:
                 self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                 rmargin += cw.s(34)
+                left -= self.partymoney.size[0] + cw.s(14)
         elif cw.cwpy.status == "Scenario":
             if showbuttons:
                 lmargin = 10
@@ -152,21 +157,23 @@ class StatusBar(base.CWPySprite):
                 lmargin += 123
             self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             rmargin += cw.s(34)
+            left -= self.partymoney.size[0] + cw.s(14)
             if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards():
                 self._create_infocards((cw.s(474) - rmargin, cw.s(3)))
         elif cw.cwpy.is_battlestatus():
             if cw.cwpy.setting.show_roundautostartbutton:
                 self._create_autostart(cw.s((5, 3)))
-                left = cw.s(36)
+                left2 = cw.s(36)
             else:
-                left = cw.s(10)
+                left2 = cw.s(10)
             if showbuttons:
-                btn = ActionButton(self, (left, cw.s((6))))
+                btn = ActionButton(self, (left2, cw.s((6))))
                 if self.autostart:
                     self.autostart.actionbtn = btn
                 if cw.cwpy.battle.possible_runaway:
-                    RunAwayButton(self, (cw.s(123) + left, cw.s((6))))
-            RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+                    RunAwayButton(self, (cw.s(123) + left2, cw.s((6))))
+            panel = RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+            left -= panel.size[0] + cw.s(14)
             rmargin += cw.s(34)
             if showbuttons and cw.cwpy.is_debugmode() and\
                     cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
@@ -174,7 +181,8 @@ class StatusBar(base.CWPySprite):
 
         if showbuttons and cw.cwpy.setting.show_debuglogdialog and not cw.cwpy.is_playingscenario() and\
                 cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog:
-            self._create_debuglog((cw.s(474) - rmargin, cw.s(3)))
+            left -= cw.s(28)
+            self._create_debuglog((left, cw.s(3)))
 
         if self.infocards and not cw.cwpy.is_playingscenario():
             self.infocards.notice = False
@@ -472,6 +480,7 @@ class StatusBarPanel(base.MouseHandlerSprite):
         self._create_paneimg(pos, size, icon)
         self.desc = desc
         self._desc = None
+        self.size = size
 
     def _create_paneimg(self, pos, size, icon):
         self.icon = icon
