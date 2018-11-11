@@ -4715,7 +4715,7 @@ class CWPy(_Singleton, threading.Thread):
 
             # 戦闘中の場合、Deckの手札・山札に追加
             if cw.cwpy.is_battlestatus():
-                target.deck.add(target, header)
+                target.deck.add(target, header, is_replace=toindex != -1)
 
         # 移動先が荷物袋だった場合
         elif targettype == "BACKPACK":

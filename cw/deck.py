@@ -145,12 +145,13 @@ class Deck(object):
         if flag:
             self.shuffle_bottom()
 
-    def add(self, ccard, header):
+    def add(self, ccard, header, is_replace=False):
         if header.type == "ItemCard":
-            # アイテムカードが1枚でも配付されると
-            # 手札は引き直される
-            # (削除時は引き直されない)
-            self._clear_hand()
+            if not is_replace:
+                # アイテムカードが1枚でも配付されると
+                # 手札は引き直される
+                # (削除時は引き直されない)
+                self._clear_hand()
             self.set_hand(ccard)
         elif header.type == "SkillCard":
             uselimit, _maxn = header.get_uselimit()
