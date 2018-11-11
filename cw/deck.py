@@ -147,6 +147,10 @@ class Deck(object):
 
     def add(self, ccard, header):
         if header.type == "ItemCard":
+            # アイテムカードが1枚でも配付されると
+            # 手札は引き直される
+            # (削除時は引き直されない)
+            self._clear_hand()
             self.set_hand(ccard)
         elif header.type == "SkillCard":
             uselimit, _maxn = header.get_uselimit()
@@ -270,11 +274,18 @@ class Deck(object):
             header = cw.cwpy.rsrc.actioncards[header.id]
             self.talon.append(header)
 
+    def _clear_hand(self):
+        """現在の手札を山札に戻す。"""
+        for header in self.hand[1::]:
+            self._remove(header)
+        self.shuffle()
+
     def draw(self, ccard):
         self._used = None
         maxn = self.get_handmaxnum(ccard)
         if self._throwaway or not self.hand:
             # 現在の手札を山札に戻す
+            self._clear_hand()
             for header in self.hand[1::]:
                 self._remove(header)
             self.shuffle()
