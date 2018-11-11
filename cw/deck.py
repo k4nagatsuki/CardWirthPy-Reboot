@@ -287,9 +287,6 @@ class Deck(object):
         if self._throwaway or not self.hand:
             # 現在の手札を山札に戻す
             self._clear_hand()
-            for header in self.hand[1::]:
-                self._remove(header)
-            self.shuffle()
 
             self.hand = []
             # カード交換は常に残す
