@@ -340,6 +340,14 @@ class Deck(object):
             self.hand.remove(header)
             if header.type == "ActionCard" and 0 <= header.id:
                 self.talon.insert(0, header)
+        elif header.type == "SkillCard" and not header in self.hand:
+            # アイテムカード配付等で手札から押し出され、
+            # 使用前に山札に戻されている場合がある
+            # アクションカードはそのままでよいが特殊技能は必ず消費させる
+            header = header.ref_original()
+            if header in self.talon:
+                self.talon.remove(header)
+                self.shuffle()
 
 def main():
     pass
