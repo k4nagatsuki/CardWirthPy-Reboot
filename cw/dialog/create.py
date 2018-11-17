@@ -1124,6 +1124,7 @@ class AdventurerCreaterPage(wx.Panel):
         else:
             dc = wx.PaintDC(self)
         dc.DrawBitmap(dest, cw.wins(0), cw.wins(0))
+        return dc
 
     def select_autofeatures(self):
         pass
