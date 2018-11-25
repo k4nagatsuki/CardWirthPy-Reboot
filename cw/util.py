@@ -92,6 +92,11 @@ class MusicInterface(object):
             return
 
         assert threading.currentThread() == cw.cwpy
+
+        # 一時停止中はゲーム再開までブロックする
+        while cw.cwpy.frame.is_iconized and cw.cwpy.is_running():
+            time.sleep(0.001)
+
         if cw.cwpy.ydata and cw.cwpy.is_playingscenario():
             cw.cwpy.ydata.changed()
         fpath = self.get_path(path, inusecard)
@@ -339,6 +344,10 @@ class SoundInterface(object):
             return "SystemSound"
 
     def play(self, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0):
+        # 一時停止中はゲーム再開までブロックする
+        while cw.cwpy.frame.is_iconized and cw.cwpy.is_running():
+            time.sleep(0.001)
+
         self._type = -1
         self.mastervolume = cw.cwpy.music[0].mastervolume
         if self._sound and 0 <= channel and channel < cw.bassplayer.MAX_SOUND_CHANNELS:

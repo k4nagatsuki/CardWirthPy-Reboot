@@ -550,8 +550,13 @@ class Frame(wx.Frame):
     def OnDestroy(self, event):
         cw.cwpy._running = False
 
-        while threading.activeCount() > self.initialThreadCount:
-            pass
+        while True:
+            activeCount = 0
+            for thr in threading.enumerate():
+                if not isinstance(thr, threading._DummyThread):
+                    activeCount += 1
+            if activeCount <= self.initialThreadCount:
+                break
 
         cw.util.t_print()
 

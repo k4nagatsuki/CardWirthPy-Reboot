@@ -5053,11 +5053,11 @@ class CWPy(_Singleton, threading.Thread):
         アクティブでない場合は、CWPyRunningErrorを投げて、
         CWPyスレッドを終了させる。
         """
-        if not self._running:
+        if not self._running or cw.quit:
             if threading.currentThread() == self:
                 raise CWPyRunningError()
 
-        return self._running
+        return self._running or cw.quit
 
     def is_runningstatus(self):
         return self._running
@@ -5246,9 +5246,12 @@ def post_pygameevent(event):
     try:
         pygame.event.post(event)
     except:
-        # 入力イベントが輻輳している場合はクリアする
-        cw.cwpy.clear_inputevents()
-        pygame.event.post(event)
+        try:
+            # 入力イベントが輻輳している場合はクリアする
+            cw.cwpy.clear_inputevents()
+            pygame.event.post(event)
+        except:
+            return
 
 
 class ShowMenuCards(object):
