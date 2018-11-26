@@ -3258,6 +3258,7 @@ class CWPy(_Singleton, threading.Thread):
                 img, rect = t
                 rect.center = pcard.rect.center
                 pcard.zoomimgs[i] = (img, rect)
+            pcard.index = index
         self._need_disposition = False
 
     def change_area(self, areaid, eventstarting=True,
