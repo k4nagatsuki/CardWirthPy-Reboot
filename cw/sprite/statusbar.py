@@ -124,7 +124,8 @@ class StatusBar(base.CWPySprite):
                     if cw.cwpy.ydata.party:
                         self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                         rmargin += cw.s(34)
-                        left -= self.partymoney.size[0] + cw.s(14)
+                        if self.partymoney.is_shown():
+                            left -= cw.s(120) + cw.s(14)
             else:
                 if cw.cwpy.is_battlestatus() and cw.cwpy.setting.show_roundautostartbutton:
                     self._create_autostart(cw.s((5, 3)))
@@ -136,7 +137,8 @@ class StatusBar(base.CWPySprite):
                 if cw.cwpy.status == "Scenario":
                     self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                     rmargin += cw.s(34)
-                    left -= self.partymoney.size[0] + cw.s(14)
+                    if self.partymoney.is_shown():
+                        left -= cw.s(120) + cw.s(14)
                 elif cw.cwpy.is_battlestatus():
                     panel = RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
                     rmargin += cw.s(34)
@@ -147,7 +149,8 @@ class StatusBar(base.CWPySprite):
             if cw.cwpy.ydata.party:
                 self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                 rmargin += cw.s(34)
-                left -= self.partymoney.size[0] + cw.s(14)
+                if self.partymoney.is_shown():
+                    left -= cw.s(120) + cw.s(14)
         elif cw.cwpy.status == "Scenario":
             if showbuttons:
                 lmargin = 10
@@ -157,7 +160,8 @@ class StatusBar(base.CWPySprite):
                 lmargin += 123
             self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             rmargin += cw.s(34)
-            left -= self.partymoney.size[0] + cw.s(14)
+            if self.partymoney.is_shown():
+                left -= cw.s(120) + cw.s(14)
             if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards():
                 self._create_infocards((cw.s(474) - rmargin, cw.s(3)))
         elif cw.cwpy.is_battlestatus():
@@ -173,7 +177,7 @@ class StatusBar(base.CWPySprite):
                 if cw.cwpy.battle.possible_runaway:
                     RunAwayButton(self, (cw.s(123) + left2, cw.s((6))))
             panel = RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
-            left -= panel.size[0] + cw.s(14)
+            left -= cw.s(120) + cw.s(14)
             rmargin += cw.s(34)
             if showbuttons and cw.cwpy.is_debugmode() and\
                     cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
@@ -566,6 +570,9 @@ class StatusBarPanel(base.MouseHandlerSprite):
             image = cw.image.smoothscale(image.convert_alpha(), rect.size,
                                          smoothing=cw.cwpy.setting.fontsmoothing_statusbar)
         return image
+
+    def is_shown(self):
+        return not self.image is self.noimg
 
 
 def _draw_edge(image):

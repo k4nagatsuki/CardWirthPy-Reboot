@@ -2869,6 +2869,7 @@ class CWPy(_Singleton, threading.Thread):
         # プレイヤカードを下げる
         if self.ydata and hideparty:
             if not self.ydata.party or self.ydata.party.is_loading():
+                self.statusbar.change(False)
                 self.draw(clip=self.statusbar.rect)
                 self.hide_party()
 
