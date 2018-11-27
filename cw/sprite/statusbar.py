@@ -183,7 +183,7 @@ class StatusBar(base.CWPySprite):
                     cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
                 self._create_friendcards((cw.s(474) - rmargin, cw.s(3)))
 
-        if showbuttons and cw.cwpy.setting.show_debuglogdialog and not cw.cwpy.is_playingscenario() and\
+        if cw.cwpy.setting.show_debuglogdialog and not cw.cwpy.is_playingscenario() and\
                 cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog:
             left -= cw.s(28)
             self._create_debuglog((left, cw.s(3)))
