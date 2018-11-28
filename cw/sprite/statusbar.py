@@ -134,15 +134,15 @@ class StatusBar(base.CWPySprite):
                     left2 = cw.s(10)
                 if showbuttons:
                     CancelButton(self, (left2, cw.s(6)))
-                if cw.cwpy.status == "Scenario":
+                if cw.cwpy.is_battlestatus():
+                    panel = RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+                    rmargin += cw.s(34)
+                    left -= panel.size[0] + cw.s(14)
+                elif cw.cwpy.status == "Scenario":
                     self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                     rmargin += cw.s(34)
                     if self.partymoney.is_shown():
                         left -= cw.s(120) + cw.s(14)
-                elif cw.cwpy.is_battlestatus():
-                    panel = RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
-                    rmargin += cw.s(34)
-                    left -= panel.size[0] + cw.s(14)
         elif cw.cwpy.status == "Yado":
             if not cw.cwpy.expanding:
                 self._create_yadomoney(cw.s((10, 6)))
@@ -184,7 +184,7 @@ class StatusBar(base.CWPySprite):
                 self._create_friendcards((cw.s(474) - rmargin, cw.s(3)))
 
         if cw.cwpy.setting.show_debuglogdialog and not cw.cwpy.is_playingscenario() and\
-                cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog:
+                cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog and not cw.cwpy.is_decompressing:
             left -= cw.s(28)
             self._create_debuglog((left, cw.s(3)))
 
