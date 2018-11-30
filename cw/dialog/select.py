@@ -3013,15 +3013,16 @@ class PlayerSelect(MultiViewSelect):
             header = self.list[self.index]
             order = header.order
             if self.isalbum:
-                self.index = cw.cwpy.ydata.album.index(header)
+                index = cw.cwpy.ydata.album.index(header)
                 header = cw.cwpy.ydata.create_advheader(header.fpath)
                 header.order = order
-                cw.cwpy.ydata.album[self.index] = header
+                cw.cwpy.ydata.album[index] = header
             else:
-                self.index = cw.cwpy.ydata.standbys.index(header)
+                index = cw.cwpy.ydata.standbys.index(header)
                 header = cw.cwpy.ydata.create_advheader(header.fpath)
                 header.order = order
-                cw.cwpy.ydata.standbys[self.index] = header
+                cw.cwpy.ydata.standbys[index] = header
+            self.list[self.index] = header
             self.update_narrowcondition()
             cw.cwpy.frame.exec_func(self.draw, True)
         cw.cwpy.exec_func(func)
