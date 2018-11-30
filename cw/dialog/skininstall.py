@@ -56,7 +56,9 @@ def install_skin(paths, parent, canswitch=True):
         checkboxes.append(("switch_skin", "インストールしたスキンに切り替える", False))
     dlg = cw.dialog.message.SysMessage(parent, "スキンのインストール", s, choices=choices, checkboxes=checkboxes)
     cw.cwpy.frame.move_dlg(dlg)
+    cw.cwpy._showingdlg += 1
     if wx.ID_YES != dlg.ShowModal():
+        cw.cwpy.frame.kill_dlg(dlg)
         return []
     overwrite = dlg.get_check("overwrite")
     remove_installed = dlg.get_check("remove_installed")
@@ -64,7 +66,7 @@ def install_skin(paths, parent, canswitch=True):
         switch_skin = dlg.get_check("switch_skin")
     else:
         switch_skin = False
-    dlg.Destroy()
+    cw.cwpy.frame.kill_dlg(dlg)
 
     def change_cursor(cursor):
         cw.cwpy.exec_func(cw.cwpy.change_cursor, cursor, force=True)

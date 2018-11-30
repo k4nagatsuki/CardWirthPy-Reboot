@@ -516,10 +516,11 @@ class Frame(wx.Frame):
                 try:
                     dlg = cw.dialog.skin.SkinConversionDialog(self, path)
                     self.move_dlg(dlg)
+                    cw.cwpy._showingdlg += 1
                     dlg.ShowModal()
                     if dlg.select_skin:
                         cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname, switch_skin=True)
-                    dlg.Destroy()
+                    self.kill_dlg(dlg)
                     break
                 except:
                     cw.util.print_ex()
@@ -544,6 +545,7 @@ class Frame(wx.Frame):
             dlg = cw.dialog.scenarioinstall.ScenarioInstall(self, db, headers, notscenariofiles,
                                                             cw.cwpy.setting.skintype, scedir)
             self.move_dlg(dlg)
+            cw.cwpy._showingdlg += 1
             dlg.ShowModal()
             self.kill_dlg(dlg)
 
