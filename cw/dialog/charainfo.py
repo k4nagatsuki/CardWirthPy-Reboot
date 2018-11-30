@@ -733,7 +733,7 @@ class TopPanel(wx.Panel):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam", pixelsize=cw.wins(14)))
                 s = "EP: " + self.ep
                 isalbum = self.ccard.data.getroot().tag == "Album"
-                if isalbum or not cw.cwpy.setting.show_experiencebar:
+                if (isalbum and not maxlevel) or not cw.cwpy.setting.show_experiencebar:
                     cw.util.draw_witharound_simple(dc, s, cw.wins(5), cw.wins(22), backcolor)
                 else:
                     cw.util.draw_witharound_simple(dc, s, cw.wins(5), cw.wins(32), backcolor)
