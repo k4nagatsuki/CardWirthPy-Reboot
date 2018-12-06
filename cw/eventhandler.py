@@ -116,7 +116,7 @@ class EventHandler(object):
                     self.wheel_event(y=1)
 
             # ユーザイベント
-            elif event.type == USEREVENT and hasattr(event, "func"):
+            elif event.type in (USEREVENT, cw.FORCE_USEREVENT) and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
                 except cw.event.EventError as ex:
@@ -146,7 +146,7 @@ class EventHandler(object):
     def check_puressedbutton(self, event):
         cw.cwpy.wheelmode_cursorpos = (-1, -1)
 
-        if not event.type == USEREVENT:
+        if not event.type in (USEREVENT, cw.FORCE_USEREVENT):
             self.clear_touchmenu()
 
         if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
@@ -879,7 +879,7 @@ class EventHandlerForMessageWindow(EventHandler):
                     self.wheel_event(y=1)
 
             # ユーザイベント
-            elif event.type == USEREVENT and hasattr(event, "func"):
+            elif event.type in (USEREVENT, cw.FORCE_USEREVENT) and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
                 except cw.event.EventError as ex:
@@ -1346,7 +1346,7 @@ class EventHandlerForBacklog(EventHandler):
                     self.wheel_event(y=1)
 
             # ユーザイベント
-            elif event.type == USEREVENT and hasattr(event, "func"):
+            elif event.type in (USEREVENT, cw.FORCE_USEREVENT) and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
                     if not cw.cwpy.is_showingbacklog():
@@ -1722,7 +1722,7 @@ class EventHandlerForEffectBooster(EventHandler):
                     self.wheel_event(y=1)
 
             # ユーザイベント
-            elif event.type == USEREVENT and hasattr(event, "func"):
+            elif event.type in (USEREVENT, cw.FORCE_USEREVENT) and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
                 except cw.event.EventError as ex:

@@ -71,6 +71,9 @@ if sys.platform == "win32":
 else:
     MBCS = "ms932"
 
+# ウィンドウ操作やデバッガへの反映など、ゲームの流れの外で実行されるイベント
+FORCE_USEREVENT = pygame.USEREVENT+1
+
 # コール系イベントの再期限界回数
 LIMIT_RECURSE = 10000
 

@@ -143,7 +143,7 @@ class EventContentBase(object):
         if not cw.cwpy.event.is_stoped():
             cw.cwpy.input()
             cw.cwpy.eventhandler.run()
-            while pygame.event.peek(pygame.locals.USEREVENT) and not not cw.cwpy.event.is_stoped():
+            while pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) and not not cw.cwpy.event.is_stoped():
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
 

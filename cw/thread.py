@@ -807,7 +807,7 @@ class CWPy(_Singleton, threading.Thread):
             self.main_loop(True)
 
     def main_loop(self, update):
-        if pygame.event.peek(USEREVENT):
+        if pygame.event.peek((USEREVENT, cw.FORCE_USEREVENT)):
             self.input()              # 各種入力イベント取得
             self.eventhandler.run()   # イベントを消化
         else:
@@ -986,11 +986,11 @@ class CWPy(_Singleton, threading.Thread):
         if inputonly:
             seq = []
             for e in self.events:
-                if e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
+                if e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, cw.FORCE_USEREVENT):
                     seq.append(e)
                 else:
                     cw.thread.post_pygameevent(e)
-            events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+            events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, cw.FORCE_USEREVENT))
             if events:
                 events = [events[-1]]
             seq.extend(events)
@@ -1000,11 +1000,11 @@ class CWPy(_Singleton, threading.Thread):
             if noinput:
                 seq = []
                 for e in self.events:
-                    if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
+                    if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, cw.FORCE_USEREVENT):
                         seq.append(e)
                 del self.events[:]
                 self.events.extend(seq)
-                pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+                pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, cw.FORCE_USEREVENT))
             self.events.extend(pygame.event.get())
 
     def _in_partyarea(self, mousepos):
@@ -1216,7 +1216,16 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self._lazy_clip = pygame.Rect(clip)
 
+    def stop_the_world_with_iconized(self):
+        # 一時停止中はゲーム再開までブロックする
+        while self.setting.stop_the_world_with_iconized and self.frame.is_iconized and self.is_running():
+            self.input(inputonly=True)
+            self.eventhandler.run()
+            self.tick_clock(1000)
+
     def draw(self, mainloop=False, clip=None):
+        self.stop_the_world_with_iconized()
+
         if not clip:
             self._lazy_draw = False
         if self.has_inputevent or not mainloop:
@@ -1717,6 +1726,13 @@ class CWPy(_Singleton, threading.Thread):
                                                                 kwargs=kwargs)
         post_pygameevent(event)
 
+    def force_exec_func(self, func, *args, **kwargs):
+        """CWPyスレッドで指定したファンクションを実行する。
+        func: 実行したいファンクションオブジェクト。
+        """
+        event = pygame.event.Event(cw.FORCE_USEREVENT, func=func, args=args, kwargs=kwargs)
+        post_pygameevent(event)
+
     def sync_exec(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行し、
         終了を待ち合わせる。ファンクションの戻り値を返す。
@@ -1999,7 +2015,7 @@ class CWPy(_Singleton, threading.Thread):
         resdir = cw.util.join_paths(cw.cwpy.skindir, "Resource/Image/Other")
         seq = []
         for event in self.events:
-            if event.type == pygame.locals.USEREVENT:
+            if event.type in (pygame.locals.USEREVENT, cw.FORCE_USEREVENT):
                 seq.append(event)
         self.events = seq
         self.cut_animation = False

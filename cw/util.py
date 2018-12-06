@@ -93,9 +93,7 @@ class MusicInterface(object):
 
         assert threading.currentThread() == cw.cwpy
 
-        # 一時停止中はゲーム再開までブロックする
-        while cw.cwpy.frame.is_iconized and cw.cwpy.is_running():
-            time.sleep(0.001)
+        cw.cwpy.stop_the_world_with_iconized()
 
         if cw.cwpy.ydata and cw.cwpy.is_playingscenario():
             cw.cwpy.ydata.changed()
@@ -344,9 +342,7 @@ class SoundInterface(object):
             return "SystemSound"
 
     def play(self, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0):
-        # 一時停止中はゲーム再開までブロックする
-        while cw.cwpy.frame.is_iconized and cw.cwpy.is_running():
-            time.sleep(0.001)
+        cw.cwpy.stop_the_world_with_iconized()
 
         self._type = -1
         self.mastervolume = cw.cwpy.music[0].mastervolume
@@ -547,7 +543,7 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None, fullscr
         pygame.display.set_caption(title)
 
     pygame.event.set_blocked(None)
-    pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT])
+    pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT, cw.FORCE_USEREVENT])
 
     # BASS Audioを初期化(使用できない事もある)
     if soundfonts is None:

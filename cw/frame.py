@@ -581,7 +581,7 @@ class Frame(wx.Frame):
                             sound.set_mastervolume(True, 0)
                     if cw.cwpy.lastsound_system:
                         cw.cwpy.lastsound_system.set_mastervolume(False, 0)
-            cw.cwpy.exec_func(func)
+            cw.cwpy.force_exec_func(func)
         else:
             def func():
                 if not cw.cwpy:
@@ -597,7 +597,7 @@ class Frame(wx.Frame):
                         sound.set_mastervolume(True, volume)
                 if cw.cwpy.lastsound_system:
                     cw.cwpy.lastsound_system.set_mastervolume(False, volume)
-            cw.cwpy.exec_func(func)
+            cw.cwpy.force_exec_func(func)
             if self.debugger:
                 self.debugger.Iconize(False)
 
