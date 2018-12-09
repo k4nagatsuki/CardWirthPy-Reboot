@@ -3912,7 +3912,18 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
                 cw.util.print_ex()
                 retry += 1
                 time.sleep(1)
-        os.replace(temp_name, path)
+        if os.path.isfile(path):
+            try:
+                os.replace(temp_name, path)
+            except:
+                # 環境によって稀にData/Temp以下のファイルの上書きに失敗する事がある
+                cw.util.print_ex(file=sys.stderr)
+                temp_name2 = cw.util.dupcheck_plus(path, yado=False)
+                os.replace(path, temp_name2)
+                os.replace(temp_name, path)
+                cw.util.remove(temp_name2)
+        else:
+            os.replace(temp_name, path)
 
     def write_xml(self, nocheck_edited=False):
         """エレメントが編集されていたら、
