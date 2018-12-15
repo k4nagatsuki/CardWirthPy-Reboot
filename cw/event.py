@@ -1333,9 +1333,10 @@ class CardEvent(Event, Targeting):
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, self.inusecard.versionhint)
         cw.cwpy.event.is_changestate = False
 
-        # 使用可能なのでイベント実行
         if cw.cwpy.is_battlestatus():
+            # バトル中の使用は必ず消費が発生する
             cw.cwpy.event.is_changestate = True
+
         if cw.cwpy.sdata.is_wsnversion('2', self.inusecard.wsnversion):
             self.targets_to_coupon()  # 対象にシステムクーポンを付与(Wsn.2)
 
