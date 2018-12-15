@@ -871,7 +871,7 @@ class Character(object):
         channel = data.getint("Property/SoundPath", "channel", 0)
         fade = data.getint("Property/SoundPath", "fadein", 0)
 
-        # 沈黙時のスペルカード発動キャンセル(睡眠時も同様に扱う)・魔法無効判定・カード不発判定
+        # 沈黙時のスペルカード発動キャンセル(行動不能も同様に扱う)・魔法無効判定・カード不発判定
         data = header.carddata
         if header.type == "SkillCard":
             level = data.getint("Property/Level", 0)
@@ -879,7 +879,7 @@ class Character(object):
             level = 0
         spellcard = data.getbool("Property/EffectType", "spell", False)
         magiccard = data.gettext("Property/EffectType", "None") in ("Magic", "PhysicalMagic")
-        misfire = bool(spellcard and (self.is_silence() or self.is_sleep()))
+        misfire = bool(spellcard and (self.is_silence() or self.is_inactive()))
         misfire |= magiccard and self.is_antimagic() and data.tag != "BeastCard"
         misfire |= 0 < level and not self.decide_misfire(level)
 
