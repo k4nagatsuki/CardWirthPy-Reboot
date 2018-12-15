@@ -1333,39 +1333,16 @@ class CardEvent(Event, Targeting):
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, self.inusecard.versionhint)
         cw.cwpy.event.is_changestate = False
 
-        data = self.inusecard.carddata
-        if self.inusecard.type == "SkillCard":
-            level = data.getint("Property/Level", 0)
-        else:
-            level = 0
-
-        # 沈黙時のスペルカード発動キャンセル・魔法無効判定・カード不発判定
-        spellcard = data.getbool("Property/EffectType", "spell", False)
-        magiccard = data.gettext("Property/EffectType", "None") in ("Magic", "PhysicalMagic")
-        flag = bool(spellcard and self.user.is_silence())
-        flag |= bool(magiccard and self.user.is_antimagic() and data.tag != "BeastCard")
-        flag |= bool(0 < level and not self.user.decide_misfire(level))
-
-        if flag:
-            cw.cwpy.play_sound("confuse", True)
+        # 使用可能なのでイベント実行
+        if cw.cwpy.is_battlestatus():
             cw.cwpy.event.is_changestate = True
-            battlespeed = cw.cwpy.is_battlestatus()
-            cw.animation.animate_sprite(self.user, "axialvibe", battlespeed=battlespeed)
-            cw.animation.animate_sprite(self.user, "hide", battlespeed=battlespeed)
-            cw.cwpy.clear_inusecardimg(self.user)
-            cw.animation.animate_sprite(self.user, "deal", battlespeed=battlespeed)
-            self.end()
-        else:
-            # 使用可能なのでイベント実行
-            if cw.cwpy.is_battlestatus():
-                cw.cwpy.event.is_changestate = True
-            if cw.cwpy.sdata.is_wsnversion('2', self.inusecard.wsnversion):
-                self.targets_to_coupon()  # 対象にシステムクーポンを付与(Wsn.2)
+        if cw.cwpy.sdata.is_wsnversion('2', self.inusecard.wsnversion):
+            self.targets_to_coupon()  # 対象にシステムクーポンを付与(Wsn.2)
 
-            cw.cwpy.event.set_inusecard(self.inusecard)
-            cw.cwpy.event.effectevent = self
-            cw.cwpy.event.set_selectedmember(self.user)
-            Event.start(self)
+        cw.cwpy.event.set_inusecard(self.inusecard)
+        cw.cwpy.event.effectevent = self
+        cw.cwpy.event.set_selectedmember(self.user)
+        Event.start(self)
 
     def run_exit(self):
         """イベント実行の最後に行う終了処理。

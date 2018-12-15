@@ -691,9 +691,9 @@ class CardHeader(object):
         owner = card.get_owner()
         silence = False
         if not card.carddata is None and owner:
-            # 沈黙
+            # 沈黙(睡眠も同様に扱う)
             spell = card.carddata.getbool("Property/EffectType", "spell", False)
-            silence |= owner.is_silence() and spell
+            silence |= (owner.is_silence() or owner.is_sleep()) and spell
 
             if card.type != "BeastCard":
                 # 魔法無効状態

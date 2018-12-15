@@ -871,6 +871,18 @@ class Character(object):
         channel = data.getint("Property/SoundPath", "channel", 0)
         fade = data.getint("Property/SoundPath", "fadein", 0)
 
+        # 沈黙時のスペルカード発動キャンセル(睡眠時も同様に扱う)・魔法無効判定・カード不発判定
+        data = header.carddata
+        if header.type == "SkillCard":
+            level = data.getint("Property/Level", 0)
+        else:
+            level = 0
+        spellcard = data.getbool("Property/EffectType", "spell", False)
+        magiccard = data.gettext("Property/EffectType", "None") in ("Magic", "PhysicalMagic")
+        misfire = bool(spellcard and (self.is_silence() or self.is_sleep()))
+        misfire |= magiccard and self.is_antimagic() and data.tag != "BeastCard"
+        misfire |= 0 < level and not self.decide_misfire(level)
+
         # 使用アニメーション
         cw.cwpy.event.in_inusecardevent = True
         removeafter = False
@@ -895,6 +907,10 @@ class Character(object):
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
 
+            if misfire:
+                cw.cwpy.play_sound("error", True)
+                cw.animation.animate_sprite(inusecardimg, "axialvibe", battlespeed=battlespeed)
+
             if cw.cwpy.setting.enlarge_beastcardzoomingratio:
                 cw.animation.animate_sprite(inusecardimg, "zoomout_slow", battlespeed=battlespeed)
             else:
@@ -918,17 +934,31 @@ class Character(object):
             else:
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-            # カード消去
-            cw.cwpy.clear_inusecardimg(self)
-            # 自分が対象の時でなければNPC消去
-            if not self in targets:
+
+            if misfire:
+                cw.cwpy.play_sound("confuse", True)
+                cw.cwpy.clear_inusecardimg(self)
+                cw.animation.animate_sprite(self, "axialvibe", battlespeed=battlespeed)
+                cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
+                cw.cwpy.clear_inusecardimg()
+                cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
                 if cw.cwpy.setting.zoomout_friend:
                     cw.animation.animate_sprite(self, "zoomout", battlespeed=battlespeed)
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                 self.clear_zoomimgs()
                 cw.cwpy.cardgrp.remove(self)
             else:
-                removeafter = True
+                # カード消去
+                cw.cwpy.clear_inusecardimg(self)
+                # 自分が対象の時でなければNPC消去
+                if not self in targets:
+                    if cw.cwpy.setting.zoomout_friend:
+                        cw.animation.animate_sprite(self, "zoomout", battlespeed=battlespeed)
+                    cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
+                    self.clear_zoomimgs()
+                    cw.cwpy.cardgrp.remove(self)
+                else:
+                    removeafter = True
         else:
             cw.cwpy.set_inusecardimg(self, header)
             # 効果音を鳴らす
@@ -937,6 +967,19 @@ class Character(object):
             if cw.cwpy.setting.wait_usecard:
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+
+            if misfire:
+                cw.cwpy.play_sound("confuse", True)
+                cw.animation.animate_sprite(self, "axialvibe", battlespeed=battlespeed)
+                cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
+                cw.cwpy.clear_inusecardimg()
+                cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
+                cw.animation.animate_sprite(self, "zoomout", battlespeed=battlespeed)
+
+        if misfire:
+            header.set_uselimit(-1, animate=True)
+            cw.cwpy.clear_specialarea()
+            return
 
         # 宿へ取り込んだ特殊文字の使用時イベントでの表示に備える
         specialchars = cw.cwpy.rsrc.specialchars
