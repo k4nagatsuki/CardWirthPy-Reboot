@@ -1542,6 +1542,12 @@ class CWPy(_Singleton, threading.Thread):
                   "  #########  ### #  #   ",)
                 point = (7, 7)
 
+            if self.setting.cursor_type == cw.setting.CURSOR_WHITE:
+                cursor = pygame.cursors.compile(s, "#", ".", "o")
+            else:
+                cursor = pygame.cursors.compile(s, ".", "#", "o")
+            pygame.mouse.set_cursor((len(s[0]), len(s)), point, *cursor)
+
         elif name == "wait":
             if 2 <= cw.dpi_level:
                 # 48x48
