@@ -1274,6 +1274,7 @@ class CardControl(wx.Dialog):
 
         self.set_cardpos()
 
+        cw.cwpy.frame.start_wait()
         header.clickedflag = True
         self.draw_card(header, fromkeyevent=True)
         def func2():
@@ -1302,6 +1303,7 @@ class CardControl(wx.Dialog):
         self._proc = True
         self._cancel_animation = False
 
+        cw.cwpy.frame.start_wait()
         self._starclickedflag = True
         self.draw_card(header, fromkeyevent=True)
         def func2():
@@ -1330,6 +1332,7 @@ class CardControl(wx.Dialog):
         self._proc = True
         self._cancel_animation = False
 
+        cw.cwpy.frame.start_wait()
         self._replclickedflag = True
         self.RefreshRect(rect=self._get_replsrect(header)[0])
         def func2():
@@ -1395,6 +1398,7 @@ class CardControl(wx.Dialog):
                     func()
                 self._after_event = func3
 
+        cw.cwpy.frame.start_wait()
         if dealing_scales:
             n = dealing_scales[self._animate_frame]
             header1.deal_per = n

@@ -23,6 +23,8 @@ class Frame(wx.Frame):
     def __init__(self, app, skindirname=""):
         self.app = app
         self.filter_event = None
+        self._clock = 0
+
         # 設定
         self._setting = cw.setting.Setting()
         if self._setting.is_expanded:
@@ -293,11 +295,17 @@ class Frame(wx.Frame):
     def tick_clock(self, framerate=0):
         if not framerate:
             framerate = cw.cwpy.setting.fps
-        time.sleep(1.0 / framerate)
+        t = 1.0 / framerate
+        t = max(0, t - (time.time() - self._clock))
+        time.sleep(t)
+        self._clock = time.time()
 
     def wait_frame(self, count):
         for _i in range(count):
             self.tick_clock()
+
+    def start_wait(self):
+        self._clock = time.time()
 
     @synclock(cw.debug.debugger.mutex)
     def show_debugger(self, refreshtree):

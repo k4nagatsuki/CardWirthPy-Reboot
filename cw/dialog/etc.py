@@ -294,6 +294,7 @@ class BattleCommand(wx.Dialog):
         # クリックアニメーション。4フレーム分。
         header.clickedflag = True
         self.draw(True)
+        cw.cwpy.frame.start_wait()
         cw.cwpy.frame.wait_frame(4)
         header.clickedflag = False
         dc = wx.ClientDC(self.toppanel)
