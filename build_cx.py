@@ -11,7 +11,7 @@ import zipfile
 
 from cx_Freeze import setup, Executable
 
-version = "3.0"
+version = "3.1"
 
 dist_dir = "CardWirthPy"
 script = "cardwirth.py"
