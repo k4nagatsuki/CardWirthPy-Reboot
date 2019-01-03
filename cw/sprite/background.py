@@ -546,6 +546,20 @@ class BackGround(base.CWPySprite):
                             data = pcards[number]
                         else:
                             data = None
+                    elif type == "Flag":
+                        name2 = e_name.getattr(".", "flag", "")
+                        name = cw.util.str2bool(name)
+                        if name2 in cw.cwpy.sdata.flags:
+                            data = cw.cwpy.sdata.flags[name2]
+                        else:
+                            data = None
+                    elif type == "Step":
+                        name2 = e_name.getattr(".", "step", "")
+                        name = int(name)
+                        if name2 in cw.cwpy.sdata.steps:
+                            data = cw.cwpy.sdata.steps[name2]
+                        else:
+                            data = None
                     else:
                         data = None
                     namelist.append(cw.sprite.message.NameListItem(data, name))

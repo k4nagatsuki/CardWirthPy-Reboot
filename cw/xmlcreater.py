@@ -1073,7 +1073,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
             if namelist:
                 e = cw.data.make_element("Names")
                 for item in namelist:
-                    e_name = cw.data.make_element("Name", item.name)
+                    e_name = cw.data.make_element("Name", str(item.name))
                     if isinstance(item.data, cw.data.YadoData):
                         e_name.set("type", "Yado")
                     elif isinstance(item.data, cw.data.Party):
@@ -1081,6 +1081,12 @@ def create_scenariolog(sdata, path, recording, logfilepath):
                     elif isinstance(item.data, cw.character.Player) and item.data in cw.cwpy.get_pcards():
                         e_name.set("type", "Player")
                         e_name.set("number", str(cw.cwpy.get_pcards().index(item.data)+1))
+                    elif isinstance(item.data, cw.data.Flag):
+                        e_name.set("type", "Flag")
+                        e_name.set("flag", item.data.name)
+                    elif isinstance(item.data, cw.data.Step):
+                        e_name.set("type", "Step")
+                        e_name.set("step", item.data.name)
                     e.append(e_name)
                 e_bgimg.append(e)
 

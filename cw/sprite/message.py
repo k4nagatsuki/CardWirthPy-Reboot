@@ -1265,10 +1265,10 @@ def _get_stepvalue(key, full, name_table, basenamelist, startindex, spcharinfo, 
     if key in cw.cwpy.sdata.steps:
         v = cw.cwpy.sdata.steps[key]
         if not basenamelist is None:
-            s = basenamelist[namelistindex].data
+            s = v.get_valuename(basenamelist[namelistindex].name)
         else:
             s = v.get_valuename()
-            namelist.append(NameListItem(s, key))
+            namelist.append(NameListItem(v, v.value))
         namelistindex += 1
     else:
         v = _get_spstep(key)
@@ -1319,10 +1319,10 @@ def _get_flagvalue(key, full, name_table, basenamelist, startindex, spcharinfo, 
     if key in cw.cwpy.sdata.flags:
         v = cw.cwpy.sdata.flags[key]
         if not basenamelist is None:
-            s = basenamelist[namelistindex].data
+            s = v.get_valuename(basenamelist[namelistindex].name)
         else:
             s = v.get_valuename()
-            namelist.append(NameListItem(s, key))
+            namelist.append(NameListItem(v, v.value))
         namelistindex += 1
     else:
         return None, namelistindex
