@@ -3463,7 +3463,7 @@ class Party(object):
         for index, pcard in enumerate(cw.cwpy.get_pcards()):
             pcard.remove_numbercoupon()
             pcard.set_coupon(names[index], 0)
-            if pcard.has_coupon("＠レベル上限") and pcard.level != pcard.get_couponvalue("＠レベル上限"):
+            if pcard.level < pcard.get_limitlevel():
                 pcard.set_coupon("：レベル補正中", 0) # 1.28
             pcard.set_coupon("＠ＭＰ３", 0) # 1.29
 
