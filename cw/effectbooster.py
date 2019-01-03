@@ -39,6 +39,9 @@ def wait_effectbooster(waittime, doanime):
             cw.cwpy.input()
             eventhandler.run()
 
+        if not cw.cwpy.is_playingscenario():
+            raise cw.event.EffectBreakError()
+
         doanime.time_elapsed = 0
     except ScreenRescale as ex:
         if 0 < waittime:
@@ -1115,7 +1118,7 @@ class JptxImage(cw.image.Image):
             self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)
 
         if fonttransparent:
-            self.image.fill(fontcolor, (cw.s(0), cw.s(0), width, cw.s(1)))
+            self.image.fill(fontcolor, (0, 0, width, 1))
 
         # text rendering
         bold = False

@@ -3063,7 +3063,12 @@ class CWPy(_Singleton, threading.Thread):
 
         # 背景スプライト作成
         if not bginhrt:
-            self.background.load(self.sdata.get_bgdata(), doanime, ttype, nocheckvisible=nocheckvisible)
+            try:
+                self.background.load(self.sdata.get_bgdata(), doanime, ttype, nocheckvisible=nocheckvisible)
+            except cw.event.EffectBreakError:
+                # JPY1の処理がF9等で中止された
+                assert doanime
+                return
 
         # 特殊エリア(キャンプ・メンバー解散)だったら背景にカーテンを追加。
         if self.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
