@@ -1264,12 +1264,17 @@ def _create_nametable(full, talker):
 def _get_stepvalue(key, full, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
     if key in cw.cwpy.sdata.steps:
         v = cw.cwpy.sdata.steps[key]
+        if not basenamelist is None:
+            s = basenamelist[namelistindex].data
+        else:
+            s = v.get_valuename()
+            namelist.append(NameListItem(s, key))
+        namelistindex += 1
     else:
         v = _get_spstep(key)
         if v is None:
             return None, namelistindex
 
-    s = v.get_valuename()
     if stack <= 0 and v.spchars:
         # 特殊文字の展開(Wsn.2)
         s, _, _, namelistindex = _rpl_specialstr(full, s, name_table, _get_stepvalue, _get_flagvalue,
@@ -1313,10 +1318,15 @@ def _get_spstep(name):
 def _get_flagvalue(key, full, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
     if key in cw.cwpy.sdata.flags:
         v = cw.cwpy.sdata.flags[key]
+        if not basenamelist is None:
+            s = basenamelist[namelistindex].data
+        else:
+            s = v.get_valuename()
+            namelist.append(NameListItem(s, key))
+        namelistindex += 1
     else:
         return None, namelistindex
 
-    s = v.get_valuename()
     if stack <= 0 and v.spchars:
         # 特殊文字の展開(Wsn.2)
         s, _, _, namelistindex = _rpl_specialstr(full, s, name_table, _get_stepvalue, _get_flagvalue,
