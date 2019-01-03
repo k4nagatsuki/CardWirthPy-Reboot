@@ -1115,7 +1115,7 @@ class JptxImage(cw.image.Image):
             self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)
 
         if fonttransparent:
-            fontcolor = backcolor
+            self.image.fill(fontcolor, (cw.s(0), cw.s(0), width, cw.s(1)))
 
         # text rendering
         bold = False
