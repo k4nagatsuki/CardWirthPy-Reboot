@@ -3020,7 +3020,7 @@ class YadoData(object):
                     value = nature.levelmax
                     break
 
-            fcard.set_coupon("＠本来の上限", value)
+            fcard.set_coupon("＠本来の上限", max(value, fcard.level))
             if not fcard.has_coupon("＠レベル上限"):
                 fcard.set_coupon("＠レベル上限", max(value, fcard.level))
 
