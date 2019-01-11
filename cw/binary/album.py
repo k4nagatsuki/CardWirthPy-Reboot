@@ -7,10 +7,10 @@ import cw
 
 
 class Album(base.CWBinaryBase):
-    from . import coupon
-
     """wrmファイル(type=4)。鬼籍に入った冒険者のデータ。"""
     def __init__(self, parent, f, yadodata=False):
+        from . import coupon
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 4
         self.fname = self.get_fname()
