@@ -586,7 +586,7 @@ class EffectMotion(object):
 
         # 効果値から実数値を計算
         n = value // 5
-        out_value = cw.cwpy.dice.roll(n, 10)-1
+        out_value = max(0, cw.cwpy.dice.roll(n, 10)-1)
         n = value % 5 * 2
 
         if 0 < value and n:
