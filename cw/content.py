@@ -232,6 +232,12 @@ class BranchContent(EventContentBase):
         self._index_table = None
         self._index_default = cw.IDX_TREEEND
 
+        self.resid = self.data.getint(".", "id", 0)
+        self.num = self.data.getint(".", "number", 0)
+        self.scope = self.data.get("targets")
+        self.selectcard = self.data.getbool(".", "selectcard", False)
+        self.invert = self.data.getbool(".", "invert", False)
+
     def branch_cards(self, cardtype):
         """カード所持分岐。最初の所持者を選択する。
         cardtype: "SkillCard" or "BeastCard" or "ItemCard"
@@ -240,10 +246,10 @@ class BranchContent(EventContentBase):
             return 0
 
         # 各種属性値取得
-        resid = self.data.getint(".", "id", 0)
-        num = self.data.getint(".", "number", 0)
-        scope = self.data.get("targets")
-        selectcard = self.data.getbool(".", "selectcard", False)
+        resid = self.resid
+        num = self.num
+        scope = self.scope
+        selectcard = self.selectcard
 
         # 対象カードのxmlファイルのパス
         if cardtype == "SkillCard":
@@ -283,15 +289,20 @@ class BranchContent(EventContentBase):
         if scope == "SelectedCard":
             # 選択カードと比較(Wsn.3)
             h = cw.cwpy.event.get_selectedcard()
-            if h and h.type == cardtype and h.name == cardname and h.desc == carddesc:
+            success = h and h.type == cardtype and h.name == cardname and h.desc == carddesc
+            if self.invert:
+                # 判定条件を反転(Wsn.4)
+                success = not success
+            if success:
                 flag = True
-                if h.get_owner() and isinstance(h.get_owner(), cw.character.Character):
+                if h and h.get_owner() and isinstance(h.get_owner(), cw.character.Character):
                     cw.cwpy.event.set_selectedmember(h.get_owner())
         else:
             selectedmember = None
             targets = cw.cwpy.event.get_targetscope(scope)
             cardnum = 0
             header = None
+            result = False
 
             for target in targets:
                 # 対象カード所持判定
@@ -308,26 +319,39 @@ class BranchContent(EventContentBase):
                             header = h
                         headers.append(h)
 
+                cardnum += len(headers)
+                if result:
+                    continue
+
                 # 判定結果
                 flag = bool(len(headers) >= num)
-                cardnum += len(headers)
+
+                if self.invert:
+                    # 判定条件を反転(Wsn.4)
+                    flag = not flag
 
                 if flag and someone:
                     # 所持者を選択メンバに設定
                     if not isinstance(target, list):
                         selectedmember = target
-
-                    break
+                    result = True
+                    if scope != "PartyAndBackpack":
+                        break
                 elif not flag and not someone:
                     # 最後に判定した者を選択メンバに設定
                     if not isinstance(target, list):
                         selectedmember = target
-
-                    break
+                    result = True
+                    if scope != "PartyAndBackpack":
+                        break
 
             # パーティ全体での所持数判定
             if scope == "PartyAndBackpack":
                 flag = bool(cardnum >= num)
+
+                if self.invert:
+                    # 判定条件を反転(Wsn.4)
+                    flag = not flag
 
             if flag and header and selectcard:
                 # 見つかったカードの選択(Wsn.3)
@@ -550,15 +574,18 @@ class BranchSkillContent(BranchContent):
         scope = self.data.get("targets")
         name = cw.cwpy.sdata.get_skillname(resid)
         if not name is None:
+            success = self.get_contentname(child) == "○"
+            if self.invert:
+                success = not success
             if scope == "SelectedCard":
-                if self.get_contentname(child) == "○":
+                if success:
                     s = "選択カードが『%s』と一致する" % (name)
                 else:
                     s = "選択カードが『%s』と一致しない" % (name)
             else:
                 s = self.textdict.get(scope.lower(), "")
 
-                if self.get_contentname(child) == "○":
+                if success:
                     s = "%sが『%s』を所有している" % (s, name)
                 else:
                     s = "%sが『%s』を所有していない" % (s, name)
@@ -590,15 +617,18 @@ class BranchItemContent(BranchContent):
         name = cw.cwpy.sdata.get_itemname(resid)
 
         if not name is None:
+            success = self.get_contentname(child) == "○"
+            if self.invert:
+                success = not success
             if scope == "SelectedCard":
-                if self.get_contentname(child) == "○":
+                if success:
                     s = "選択カードが『%s』と一致する" % (name)
                 else:
                     s = "選択カードが『%s』と一致しない" % (name)
             else:
                 s = self.textdict.get(scope.lower(), "")
 
-                if self.get_contentname(child) == "○":
+                if success:
                     s = "%sが『%s』を所有している" % (s, name)
                 else:
                     s = "%sが『%s』を所有していない" % (s, name)
@@ -630,15 +660,18 @@ class BranchBeastContent(BranchContent):
         name = cw.cwpy.sdata.get_beastname(resid)
 
         if not name is None:
+            success = self.get_contentname(child) == "○"
+            if self.invert:
+                success = not success
             if scope == "SelectedCard":
-                if self.get_contentname(child) == "○":
+                if success:
                     s = "選択カードが『%s』と一致する" % (name)
                 else:
                     s = "選択カードが『%s』と一致しない" % (name)
             else:
                 s = self.textdict.get(scope.lower(), "")
 
-                if self.get_contentname(child) == "○":
+                if success:
                     s = "%sが『%s』を所有している" % (s, name)
                 else:
                     s = "%sが『%s』を所有していない" % (s, name)
@@ -815,11 +848,14 @@ class BranchAreaContent(BranchContent):
 class BranchStatusContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.targetm = self.data.get("targetm")
+        self.status = self.data.get("status")
+        self.invert = self.data.getbool(".", "invert", False)
 
     def action(self):
         """状態分岐コンテント。"""
-        targetm = self.data.get("targetm")
-        status = self.data.get("status")
+        targetm = self.targetm
+        status = self.status
 
         # 互換動作: 1.20では状態判定分岐のうち、呪縛・睡眠・中毒・麻痺がずれて判定される
         #           (呪縛→睡眠、睡眠→中毒、中毒→麻痺、麻痺→呪縛)
@@ -860,6 +896,9 @@ class BranchStatusContent(BranchContent):
         for target in targets:
             if hasattr(target, methodname):
                 b = getattr(target, methodname)()
+                if self.invert:
+                    # 判定条件の判定(Wsn.4)
+                    b = not b
 
                 if b and someone:
                     selectedmember = target
@@ -886,10 +925,14 @@ class BranchStatusContent(BranchContent):
         s = self.textdict.get(self.data.get("targetm", "").lower(), "")
         s2 = self.textdict.get(self.data.get("status", "").lower(), "")
 
-        if self.get_contentname(child) == "○":
-            return "%sが【%s】の判定に成功" % (s, s2)
+        success = self.get_contentname(child) == "○"
+        if self.invert:
+            success = not success
+
+        if success:
+            return "%sが【%s】である" % (s, s2)
         else:
-            return "%sが【%s】の判定に失敗" % (s, s2)
+            return "%sが【%s】でない" % (s, s2)
 
 class BranchGossipContent(BranchContent):
     def __init__(self, data):
@@ -1012,6 +1055,8 @@ class BranchCouponContent(BranchContent):
                 names.append(e.text)
         self.couponnames = names
 
+        self.invert = self.data.getbool(".", "invert", False)
+
     def action(self):
         """称号存在分岐コンテント。"""
         true_index = self.get_boolean_index(True)
@@ -1022,20 +1067,8 @@ class BranchCouponContent(BranchContent):
 
         # シャロ―コピー
         names = self.couponnames[:]
-        # どれか一つに一致(か1クーポンの場合)
-        one_time_flg = len(self.couponnames) == 1 or self.matchingtype == "Or"
-
-        for coupon in self.couponnames:
-            if cw.cwpy.syscoupons.match(coupon) or cw.cwpy.setting.skinsyscoupons.match(coupon):
-                if one_time_flg:
-                    return true_index
-                else:
-                    # 複数クーポン 全てに一致
-                    # 対象クーポンから除外
-                    if coupon in names:
-                        names.remove(coupon)
-                        if not names:
-                            return true_index
+        # 全てに一致？
+        allmatch = self.matchingtype == "And"
 
         scope, someone, unreversed = self.scope, self.someone, self.unreversed
 
@@ -1058,14 +1091,7 @@ class BranchCouponContent(BranchContent):
             cw.cwpy.event.clear_selectedmember()
             return self.get_boolean_index(scope != "Selected")
 
-        if one_time_flg:
-            for coupon in names:
-                if _has_coupon(targets, [coupon], scope, someone, False):
-                     return true_index
-        else:
-            return self.get_boolean_index(_has_coupon(targets, names, scope, someone, False))
-
-        return false_index
+        return self.get_boolean_index(_has_coupon(targets, names, scope, someone, allmatch, False, invert=self.invert))
 
     def get_status(self):
         names = self.couponnames
@@ -1077,7 +1103,11 @@ class BranchCouponContent(BranchContent):
                     type = "全ての"
                 else:
                     type = "どれか一つの"
-            return "称号「%s」の%s有無で分岐" % (s, type)
+            if self.invert:
+                resulttype = "不所有"
+            else:
+                resulttype = "所有"
+            return "称号「%s」の%s%sで分岐" % (s, type, resulttype)
         else:
             return "称号が指定されていません"
 
@@ -1094,7 +1124,11 @@ class BranchCouponContent(BranchContent):
                     type = "の全て"
                 else:
                     type = "のどれか一つ"
-        if self.get_contentname(child) == "○":
+        success = self.get_contentname(child) == "○"
+        if self.invert:
+            # 判定条件の反転(Wsn.4)
+            success = not success
+        if success:
             return "%sが称号「%s」%sを所有している" % (s2, s, type)
         else:
             return "%sが称号「%s」%sを所有していない" % (s2, s, type)
@@ -1361,6 +1395,7 @@ class BranchAbilityContent(BranchContent):
         self.level = self.data.getint(".", "value", 0)
         self.vocation = self.data.get("physical"), self.data.get("mental")
         self.targetm = self.data.get("targetm")
+        self.invert = self.data.getbool(".", "invert", False)
 
         # 対象範囲修正
         if self.targetm.endswith("Sleep"):
@@ -1394,17 +1429,21 @@ class BranchAbilityContent(BranchContent):
             else:
                 targets = [targets]
 
-        # 死亡・睡眠or呪縛者は判定から排除
-        targets = [target for target in targets
-                    if target.is_alive() and (sleep or not (target.is_sleep() or target.is_bind()))]
-
         # 能力判定
         flag = False
         selectedmember = None
 
         for target in targets:
-            enhance = target.get_enhance_act()
-            flag = target.decide_outcome(level, vocation, enhance=enhance)
+            # 死亡・睡眠or呪縛者は判定から排除
+            if target.is_alive() and (sleep or not (target.is_sleep() or target.is_bind())):
+                enhance = target.get_enhance_act()
+                flag = target.decide_outcome(level, vocation, enhance=enhance)
+            else:
+                flag = False
+
+            if self.invert:
+                # 判定条件の反転(Wsn.4)
+                flag = not flag
 
             if flag and someone:
                 selectedmember = target
@@ -1438,6 +1477,11 @@ class BranchAbilityContent(BranchContent):
         s2 = self.textdict.get(scope.lower(), "")
         s = "%sがレベル%sで %sと %sで行う" % (s2, level, physical, mental)
 
+        if self.invert:
+            s += "能力不足"
+        else:
+            s += "能力"
+
         if self.get_contentname(child) == "○":
             s += "判定に成功"
         else:
@@ -1448,13 +1492,18 @@ class BranchAbilityContent(BranchContent):
 class BranchRandomSelectContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.minlevel = int(self.data.get("minLevel", "0"))
+        self.maxlevel = int(self.data.get("maxLevel", "0"))
+        self.status = self.data.get("status", "None")
+        self.ranges = self.get_castranges()
+        self.invert = self.data.getbool(".", "invert", False)
 
     def action(self):
         """ランダム選択分岐コンテント(1.30)。"""
-        minlevel = int(self.data.get("minLevel", "0"))
-        maxlevel = int(self.data.get("maxLevel", "0"))
-        status = self.data.get("status", "None")
-        ranges = self.get_castranges()
+        minlevel = self.minlevel
+        maxlevel = self.maxlevel
+        status = self.status
+        ranges = self.ranges
 
         if status:
             methodname = "is_%s" % status.lower()
@@ -1468,11 +1517,15 @@ class BranchRandomSelectContent(BranchContent):
         # レベル・状態判定
         targets2 = []
         for target in targets:
-            if status and status != "None" and not (hasattr(target, methodname) and getattr(target, methodname)()):
-                continue
-            if 0 < minlevel and target.level < minlevel:
-                continue
-            if 0 < maxlevel and maxlevel < target.level:
+            failure = (status and status != "None" and not (hasattr(target, methodname) and getattr(target, methodname)())) or \
+                (0 < minlevel and target.level < minlevel) or \
+                (0 < maxlevel and maxlevel < target.level)
+
+            if self.invert:
+                # 判定条件の反転(Wsn.4)
+                failure = not failure
+
+            if failure:
                 continue
 
             targets2.append(target)
@@ -1495,10 +1548,10 @@ class BranchRandomSelectContent(BranchContent):
         return "ランダム選択分岐コンテント"
 
     def get_childname(self, child):
-        minlevel = int(self.data.get("minLevel", "0"))
-        maxlevel = int(self.data.get("maxLevel", "0"))
-        status = self.data.get("status", "")
-        ranges = self.get_castranges()
+        minlevel = self.minlevel
+        maxlevel = self.maxlevel
+        status = self.status
+        ranges = self.ranges
         if "Party" in ranges and "Enemy" in ranges and "Npc" in ranges:
             s = self.textdict.get("field")
         else:
@@ -1517,10 +1570,15 @@ class BranchRandomSelectContent(BranchContent):
                 s2 += "で"
             s2 += "【%s】" % (self.textdict.get(self.data.get("status", "").lower(), ""))
 
-        if self.get_contentname(child) == "○":
-            return "%sから%sのキャラクターの選択に成功" % (s, s2)
+        if self.invert:
+            s2 += "でない"
         else:
-            return "%sから%sのキャラクターの選択に失敗" % (s, s2)
+            s2 += "の"
+
+        if self.get_contentname(child) == "○":
+            return "%sから%sキャラクターの選択に成功" % (s, s2)
+        else:
+            return "%sから%sキャラクターの選択に失敗" % (s, s2)
 
 class BranchKeyCodeContent(BranchContent):
     def __init__(self, data):
@@ -1560,11 +1618,15 @@ class BranchKeyCodeContent(BranchContent):
         # 見つかったカードを選択状態にする(Wsn.3)
         self.selectcard = self.data.getbool(".", "selectcard", False)
 
+        # 判定条件の反転(Wsn.4)
+        self.invert = self.data.getbool(".", "invert", False)
+
     def action(self):
         """キーコード所持分岐コンテント(1.30)。"""
 
         selectedmember = None
         header = None
+        success = False
 
         if self.targetkc == "SelectedCard":
             # 選択カードのキーコードを判定(Wsn.3)
@@ -1580,6 +1642,10 @@ class BranchKeyCodeContent(BranchContent):
                         header = selcard
                         if isinstance(header.get_owner(), cw.character.Character):
                             selectedmember= header.get_owner()
+            success = bool(header)
+            if self.invert:
+                # 判定条件の反転(Wsn.4)
+                success = not success
         else:
             # 対象メンバ取得
             targets = []
@@ -1599,7 +1665,11 @@ class BranchKeyCodeContent(BranchContent):
             # キーコード所持判定
             for target in targets:
                 header = target.find_keycode(self.keycode, self.skill, self.item, self.beast, self.hand)
-                if header:
+                success = bool(header)
+                if self.invert:
+                    # 判定条件の反転(Wsn.4)
+                    success = not success
+                if success:
                     if isinstance(target, cw.character.Character):
                         selectedmember = target
                     break
@@ -1608,10 +1678,10 @@ class BranchKeyCodeContent(BranchContent):
         if selectedmember:
             cw.cwpy.event.set_selectedmember(selectedmember)
 
-        if header and self.selectcard:
+        if success and header and self.selectcard:
             cw.cwpy.event.set_selectedcard(header)
 
-        return self.get_boolean_index(not header is None)
+        return self.get_boolean_index(success)
 
     def get_status(self):
         return "キーコード所持分岐コンテント"
@@ -1629,11 +1699,14 @@ class BranchKeyCodeContent(BranchContent):
             types.append("手札")
         s2 = "・".join(types) if types else "(指定無し)"
         s3 = self.keycode
+        success = self.get_contentname(child) == "○"
+        if self.invert:
+            success = not success
 
-        if self.get_contentname(child) == "○":
-            return "%sの%sからキーコード『%s』の発見に成功" % (s, s2, s3)
+        if success:
+            return "%sの%sからキーコード『%s』を持つカードを所有する" % (s, s2, s3)
         else:
-            return "%sの%sからキーコード『%s』の発見に失敗" % (s, s2, s3)
+            return "%sの%sからキーコード『%s』を持つカードを所有しない" % (s, s2, s3)
 
 class BranchRoundContent(BranchContent):
     def __init__(self, data):
@@ -1687,25 +1760,41 @@ def _get_couponscope(scope):
     return scope, someone, unreversed
 
 
-def _has_coupon(targets, names, scope, someone, multi):
+def _has_coupon(targets, names, scope, someone, allmatch, multi, invert=False):
+    if not names:
+        return False
+
+    def has_coupon(target, coupon):
+        return cw.cwpy.syscoupons.match(coupon) or \
+               cw.cwpy.setting.skinsyscoupons.match(coupon) or \
+               target.has_coupon(coupon)
+
     flag = False
     selectedmember = None
     for target in targets:
-        if not isinstance(target, list):
-            if len(names) > 0:
-                # 指定された称号を全て所持している？
-                flag = True
-                for name in names:
-                    if not target.has_coupon(name):
-                        flag = False
-                        break
+        if allmatch:
+            flag = True
+            for coupon in names:
+                if not has_coupon(target, coupon):
+                    flag = False
+                    break
+        else:
+            flag = False
+            for coupon in names:
+                if has_coupon(target, coupon):
+                    flag = True
+                    break
 
-            if flag and someone:
-                selectedmember = target
-                break
-            elif not flag and not someone:
-                selectedmember = target
-                break
+        if invert:
+            # 判定条件の反転(Wsn.4)
+            flag = not flag
+
+        if flag and someone:
+            selectedmember = target
+            break
+        elif not flag and not someone:
+            selectedmember = target
+            break
 
     # 選択設定
     if (not multi or flag) and scope != "Selected":
@@ -1748,7 +1837,7 @@ class BranchMultiCouponContent(BranchContent):
 
             coupon = e.get("name", "")
             if coupon:
-                if _has_coupon(targets, [coupon], self.scope, self.someone, True):
+                if _has_coupon(targets, [coupon], self.scope, self.someone, False, True, invert=False):
                     return index
                 index += 1
             else:
