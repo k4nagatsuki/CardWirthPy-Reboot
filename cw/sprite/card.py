@@ -979,7 +979,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.scale = int(s.rstrip("%"))
 
         # アニメーション速度
-        self.dealspeed = data.gettext("Property/DealingSpeed", "Default")
+        self.dealspeed = mcarddata.gettext("Property/DealingSpeed", "Default")
         if self.dealspeed == "Default":
             self.dealspeed = -1
         else:
