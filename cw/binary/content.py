@@ -594,6 +594,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and ctype == "Flag":
             f.write_string(data.get("flag"))
         elif tag == "Set" and ctype == "Flag":
+            if data.getattr(".", "cardspeed", "Default") != "Default":
+                f.check_wsnversion("4", "カード速度指定")
             f.write_string(data.get("flag"))
             f.write_bool(cw.util.str2bool(data.get("value")))
         elif tag == "Branch" and ctype == "MultiStep":
@@ -731,6 +733,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Set" and ctype == "StepDown":
             f.write_string(data.get("step"))
         elif tag == "Reverse" and ctype == "Flag":
+            if data.getattr(".", "cardspeed", "Default") != "Default":
+                f.check_wsnversion("4", "カード速度指定")
             f.write_string(data.get("flag"))
         elif tag == "Branch" and ctype == "Step":
             f.write_string(data.get("step"))
@@ -748,9 +752,11 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and ctype == "PartyNumber":
             f.write_dword(int(data.get("value")))
         elif tag == "Show" and ctype == "Party":
-            pass
+            if data.getattr(".", "cardspeed", "Default") != "Default":
+                f.check_wsnversion("4", "カード速度指定")
         elif tag == "Hide" and ctype == "Party":
-            pass
+            if data.getattr(".", "cardspeed", "Default") != "Default":
+                f.check_wsnversion("4", "カード速度指定")
         elif tag == "Effect" and ctype == "Break":
             if not data.getbool("consumecard", True):
                 f.check_wsnversion("3", "カード消費の抑止")
@@ -791,6 +797,8 @@ class Content(base.CWBinaryBase):
             f.write_string(data.get("to"))
         elif tag == "Substitute" and ctype == "Flag": # 1.30
             f.check_version(1.30, "フラグ代入コンテント")
+            if data.getattr(".", "cardspeed", "Default") != "Default":
+                f.check_wsnversion("4", "カード速度指定")
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Branch" and ctype == "StepValue": # 1.30
@@ -886,6 +894,8 @@ class Content(base.CWBinaryBase):
             f.check_wsnversion("2", "ランダム多岐分岐コンテント")
         elif tag == "Move" and ctype == "Card":  # Wsn.3
             f.check_wsnversion("3", "カード再配置コンテント")
+            if data.getattr(".", "cardspeed", "Default") != "Default":
+                f.check_wsnversion("4", "カード速度指定")
         else:
             raise ValueError(tag + ", " + ctype)
 

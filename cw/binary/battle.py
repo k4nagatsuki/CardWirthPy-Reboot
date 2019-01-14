@@ -196,6 +196,8 @@ class EnemyCard(base.CWBinaryBase):
                         f.check_wsnversion("1", "レイヤ")
                     elif prop.tag == "CardGroup" and prop.text:
                         f.check_wsnversion("3", "カードグループ")
+                    elif prop.tag == "DealingSpeed" and prop.text != "Default":
+                        f.check_wsnversion("4", "カード速度指定")
             elif e.tag == "Events":
                 events = e
 

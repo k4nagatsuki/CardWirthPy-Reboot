@@ -108,6 +108,8 @@ class CWPyCard(base.SelectableSprite):
             return cw.cwpy.setting.create_dealingscales(cw.cwpy.force_dealspeed)
         elif self.dealspeed != -1:
             return cw.cwpy.setting.create_dealingscales(self.dealspeed)
+        elif cw.cwpy.override_dealspeed != -1:
+            return cw.cwpy.setting.create_dealingscales(cw.cwpy.override_dealspeed)
         elif self.battlespeed and cw.cwpy.setting.use_battlespeed:
             return cw.cwpy.setting.dealing_scales_battle
         else:
@@ -118,7 +120,10 @@ class CWPyCard(base.SelectableSprite):
             return cw.cwpy.force_dealspeed
         elif self.dealspeed != -1:
             return self.dealspeed
-        return cw.cwpy.setting.get_dealspeed(self.battlespeed and cw.cwpy.setting.use_battlespeed)
+        elif cw.cwpy.override_dealspeed != -1:
+            return cw.cwpy.override_dealspeed
+        else:
+            return cw.cwpy.setting.get_dealspeed(self.battlespeed and cw.cwpy.setting.use_battlespeed)
 
     def update(self, scr):
         method = getattr(self, "update_" + self.status, None)

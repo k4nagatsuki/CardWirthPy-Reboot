@@ -198,6 +198,9 @@ class CWPy(_Singleton, threading.Thread):
         self.animations = set()
         # 最小化によるアニメーションの停止時間
         self._stop_animations = None
+        # 一時的に速度設定の無いカード速度を上書きする
+        # -1の時は無効
+        self.override_dealspeed = -1
         # 一時的に全てのカード速度を上書きする
         # -1の時は無効
         self.force_dealspeed = -1
