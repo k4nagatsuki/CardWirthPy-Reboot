@@ -1380,7 +1380,7 @@ class Jpy1TemporalSprite(base.CWPySprite):
         self.rect = cw.s(pygame.Rect((0, 0), cw.SIZE_AREA))
 
         # spritegroupに追加
-        cw.cwpy.topgrp.add(self, layer=cw.LAYER_JPY_TEMPORAL) # TODO: layer
+        cw.cwpy.topgrp.add(self, layer=cw.LAYER_JPY_TEMPORAL)
 
 
 class ClickableSprite(base.SelectableSprite):
@@ -1398,7 +1398,7 @@ class ClickableSprite(base.SelectableSprite):
         self.old_status = "normal"
         self.frame = 0
 
-        spritegrp.add(self) # TODO: layer
+        spritegrp.add(self)
         self.spritegrp = spritegrp
 
     def update_scale(self):
@@ -1502,7 +1502,7 @@ class ClickableSprite(base.SelectableSprite):
         """
         self.update_hide()
         if self.status == "hidden":
-            self.spritegrp.remove(self) # TODO: layer
+            self.spritegrp.remove(self)
 
 
 class NumberOfCards(base.CWPySprite):
@@ -1517,7 +1517,7 @@ class NumberOfCards(base.CWPySprite):
         self.cardtype = cardtype
         self.update_scale()
         # spritegroupに追加
-        spritegrp.add(self, layer=cw.LAYER_NUMBER_OF_CARDS) # TODO: layer
+        spritegrp.add(self, layer=cw.LAYER_NUMBER_OF_CARDS)
 
     def update_scale(self):
         num = len(self.pcard.get_pocketcards(self.cardtype))
@@ -1572,7 +1572,7 @@ class PriceOfCard(base.CWPySprite):
         self.update_scale()
         # spritegroupに追加
         self.layer = (mcard.layer[0], mcard.layer[1], mcard.layer[2], mcard.layer[3]+1)
-        spritegrp.add(self, layer=self.layer) # TODO: layer
+        spritegrp.add(self, layer=self.layer)
 
     def set_header(self, header):
         self.header = header

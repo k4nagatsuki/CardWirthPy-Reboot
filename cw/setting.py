@@ -1271,21 +1271,11 @@ class Setting(object):
     def set_dealspeed(self, value, battlevalue, usebattle):
         self.dealspeed = value
         self.dealspeed = cw.util.numwrap(self.dealspeed, 0, 10)
-        scales_len = self.dealspeed + 1
-        self.dealing_scales = [
-            int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
-            for i in range(scales_len)
-                if i
-        ]
+        self.dealing_scales = self.create_dealingscales(self.dealspeed)
 
         self.dealspeed_battle = battlevalue
         self.dealspeed_battle = cw.util.numwrap(self.dealspeed_battle, 0, 10)
-        scales_len = self.dealspeed_battle + 1
-        self.dealing_scales_battle = [
-            int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
-            for i in range(scales_len)
-                if i
-        ]
+        self.dealing_scales_battle = self.create_dealingscales(self.dealspeed_battle)
 
         self.use_battlespeed = usebattle
 
@@ -1294,6 +1284,16 @@ class Setting(object):
             return self.dealspeed_battle
         else:
             return self.dealspeed
+
+    def create_dealingscales(self, dealspeed):
+        dealspeed = cw.util.numwrap(dealspeed, 0, 10)
+        scales_len = dealspeed + 1
+        dealing_scales = [
+            int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
+            for i in range(scales_len)
+                if i
+        ]
+        return dealing_scales
 
     def get_drawsetting(self):
         if self.local.important_draw or not self.skin_local.important_draw:

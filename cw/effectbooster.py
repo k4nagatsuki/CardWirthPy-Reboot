@@ -177,7 +177,7 @@ class _JpySubImage(cw.image.Image):
             animespeed = cw.util.numwrap(self.animespeed, 0, 255)
 
             # 単一描画
-            sprs = cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL) # TODO: layer
+            sprs = cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL)
             if sprs:
                 background = sprs[0].image
                 self.cache.restore()
@@ -965,7 +965,7 @@ class JpdcImage(cw.image.Image):
         else:
             cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, self.image)
             if copymode == 2:
-                for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL): # TODO: layer
+                for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL):
                     self.image.blit(sprite.image, sprite.rect.topleft)
             cw.cwpy.background.reload_jpdcimage = False
 

@@ -198,6 +198,9 @@ class CWPy(_Singleton, threading.Thread):
         self.animations = set()
         # 最小化によるアニメーションの停止時間
         self._stop_animations = None
+        # 一時的に全てのカード速度を上書きする
+        # -1の時は無効
+        self.force_dealspeed = -1
 
         # JPDC撮影などで表示内容が変化するべきスプライト
         self.file_updates = set()
@@ -2010,7 +2013,13 @@ class CWPy(_Singleton, threading.Thread):
         isbattle = "ScenarioBattle" in (name, self.status)
         quickhide = (self.setting.all_quickdeal and not isbattle)
         self.status = name
-        self.hide_cards(True, quickhide=quickhide)
+        force_dealspeed = self.force_dealspeed
+        if quickhide:
+            self.force_dealspeed = self.setting.dealspeed if self.setting.quickdeal else -1
+        try:
+            self.hide_cards(True, quickhide=quickhide)
+        finally:
+            self.force_dealspeed = force_dealspeed
         self.pre_areaids = []
         self.pre_dialogs = []
         self.pre_mcards = []
@@ -2259,7 +2268,14 @@ class CWPy(_Singleton, threading.Thread):
                             self.sdata.resume_timekeeper()
                         else:
                             self.sdata.start_timekeeper()
-                        self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal, doanime=not resume)
+
+                        force_dealspeed = self.force_dealspeed
+                        if quickdeal:
+                            self.force_dealspeed = self.setting.dealspeed if self.setting.quickdeal else -1
+                        try:
+                            self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal, doanime=not resume)
+                        finally:
+                            self.force_dealspeed = force_dealspeed
 
                         if musicpaths:
                             for i, (musicpath, subvolume, loopcount, inusecard, fullpath) in enumerate(musicpaths):
@@ -2802,6 +2818,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         if not (self.setting.quickdeal or self.setting.all_quickdeal):
             quickdeal = False
+            self.force_dealspeed = -1
         self._dealing = True
 
         if self.is_autospread():
@@ -2861,6 +2878,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         if not (self.setting.quickdeal or self.setting.all_quickdeal):
             quickhide = False
+            self.force_dealspeed = -1
         self._dealing = True
         if updatelist:
             # 選択を解除する
@@ -2986,10 +3004,15 @@ class CWPy(_Singleton, threading.Thread):
             updates.append(mcard)
         if deal:
             if cw.cwpy.setting.all_quickdeal:
-                cw.animation.animate_sprites(updates, "hide")
-                for mcard in updates:
-                    mcard.update_image()
-                cw.animation.animate_sprites(updates, "deal")
+                force_dealspeed = self.force_dealspeed
+                self.force_dealspeed = self.setting.dealspeed if self.setting.quickdeal else -1
+                try:
+                    cw.animation.animate_sprites(updates, "hide")
+                    for mcard in updates:
+                        mcard.update_image()
+                    cw.animation.animate_sprites(updates, "deal")
+                finally:
+                    self.force_dealspeed = force_dealspeed
             else:
                 for mcard in updates:
                     cw.animation.animate_sprite(mcard, "hide")
@@ -3305,8 +3328,10 @@ class CWPy(_Singleton, threading.Thread):
             oldchanged = True
 
         # 宿にいる時は常に高速切替有効
+        force_dealspeed = self.force_dealspeed
         if self.setting.all_quickdeal and not self.is_playingscenario():
             quickdeal = True
+            self.force_dealspeed = self.setting.dealspeed if self.setting.quickdeal else -1
 
         # デバッガ等で強制的にエリア移動するときは特殊エリアを解除する
         if not specialarea:
@@ -3353,6 +3378,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.deal_cards(quickdeal=quickdeal, startbattle=startbattle, silent=silent)
             elif not silent:
                 self.draw()
+            self.force_dealspeed = force_dealspeed
 
             if self.is_playingscenario() and self.sdata.in_f9:
                 # カード描画中にF9された場合はここへ来る
@@ -3368,6 +3394,7 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata.start_event(keynum=1)
         elif not self.sdata.in_f9:
             self.deal_cards(quickdeal=quickdeal, startbattle=startbattle, silent=silent)
+            self.force_dealspeed = force_dealspeed
             if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
                 self.show_party()
 
@@ -3509,7 +3536,12 @@ class CWPy(_Singleton, threading.Thread):
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
                 self.clear_fcardsprites()
-                self.change_area(areaid, quickdeal=True, specialarea=True, silent=silent)
+                force_dealspeed = self.force_dealspeed
+                self.force_dealspeed = self.setting.dealspeed if self.setting.quickdeal else -1
+                try:
+                    self.change_area(areaid, quickdeal=True, specialarea=True, silent=silent)
+                finally:
+                    self.force_dealspeed = force_dealspeed
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata._changed = changed
                 if areaid == cw.AREA_BREAKUP:
@@ -3647,7 +3679,7 @@ class CWPy(_Singleton, threading.Thread):
 
             # パーティ解散エリア解除の場合
             if self.areaid == cw.AREA_BREAKUP:
-                self.topgrp.empty() # TODO: layer
+                self.topgrp.empty()
                 for i, pcard in enumerate(self.get_pcards()):
                     pcard.index = i
                     pcard.layer = (pcard.layer[0], pcard.layer[1], i, pcard.layer[3])
@@ -3679,8 +3711,13 @@ class CWPy(_Singleton, threading.Thread):
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
                 if not silent:
-                    self.change_area(areaid, data=data, quickdeal=True, specialarea=True,
-                                     clear_curtain=clear_curtain)
+                    force_dealspeed = self.force_dealspeed
+                    self.force_dealspeed = self.setting.dealspeed if self.setting.quickdeal else -1
+                    try:
+                        self.change_area(areaid, data=data, quickdeal=True, specialarea=True,
+                                         clear_curtain=clear_curtain)
+                    finally:
+                        self.force_dealspeed = force_dealspeed
                 else:
                     self.areaid = areaid
                     self.sdata.change_data(areaid)
@@ -3760,7 +3797,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             index = -1
 
-        self.topgrp.empty() # TODO: layer
+        self.topgrp.empty()
 
         def get_image():
             return self.rsrc.pygamedialogs["REPLACE_POSITION"]
@@ -3867,7 +3904,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def clear_numberofcards(self):
         """所持枚数表示を消去する。"""
-        self.topgrp.empty() # TODO: layer
+        self.topgrp.empty()
 
 #-------------------------------------------------------------------------------
 # 選択操作用メソッド
@@ -4003,7 +4040,7 @@ class CWPy(_Singleton, threading.Thread):
             self.cardgrp.remove_sprites_of_layer(cw.LAYER_FRONT_LIFEBAR)
         if user:
             if user.inusecardimg:
-                user.inusecardimg.group.remove(user.inusecardimg) # TODO: layer
+                user.inusecardimg.group.remove(user.inusecardimg)
                 self.inusecards.remove(user.inusecardimg)
                 self.add_lazydraw(user.inusecardimg.rect)
                 user.inusecardimg = None
@@ -4014,7 +4051,7 @@ class CWPy(_Singleton, threading.Thread):
                 card.inusecardimg = None
 
             for card in self.inusecards:
-                card.group.remove(card) # TODO: layer
+                card.group.remove(card)
                 self.add_lazydraw(card.rect)
             self.inusecards = []
 
@@ -4030,7 +4067,7 @@ class CWPy(_Singleton, threading.Thread):
                         cw.animation.animate_sprite(card.user, "hide")
                         cw.animation.animate_sprite(card.user, "deal")
                 else:
-                    card.group.remove(card) # TODO: layer
+                    card.group.remove(card)
                     self.inusecards.remove(card)
                     self.add_lazydraw(card.rect)
 
@@ -4264,7 +4301,7 @@ class CWPy(_Singleton, threading.Thread):
                 seq.extend(self.topgrp.sprites())
             cw.animation.animate_sprites(seq, "hide")
             if breakuparea:
-                self.topgrp.empty() # TODO: layer
+                self.topgrp.empty()
 
             for pcard in pcards:
                 pcard.remove_numbercoupon()

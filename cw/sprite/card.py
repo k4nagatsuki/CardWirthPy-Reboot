@@ -43,6 +43,8 @@ class CWPyCard(base.SelectableSprite):
         self.battlespeed = False
         # Trueの間はカード消去で使用中カードをクリアしない
         self.hide_inusecardimg = True
+        # アニメーション速度の上書き(-1でプレイヤー設定値)
+        self.dealspeed = -1
 
         # MenuCardの特殊コマンド
         self.command = ""
@@ -102,12 +104,20 @@ class CWPyCard(base.SelectableSprite):
         return self._rect
 
     def _get_dealingscales(self):
-        if self.battlespeed and cw.cwpy.setting.use_battlespeed:
+        if cw.cwpy.force_dealspeed != -1:
+            return cw.cwpy.setting.create_dealingscales(cw.cwpy.force_dealspeed)
+        elif self.dealspeed != -1:
+            return cw.cwpy.setting.create_dealingscales(self.dealspeed)
+        elif self.battlespeed and cw.cwpy.setting.use_battlespeed:
             return cw.cwpy.setting.dealing_scales_battle
         else:
             return cw.cwpy.setting.dealing_scales
 
     def _get_dealspeed(self):
+        if cw.cwpy.force_dealspeed != -1:
+            return cw.cwpy.force_dealspeed
+        elif self.dealspeed != -1:
+            return self.dealspeed
         return cw.cwpy.setting.get_dealspeed(self.battlespeed and cw.cwpy.setting.use_battlespeed)
 
     def update(self, scr):
@@ -963,6 +973,13 @@ class EnemyCard(CWPyCard, character.Enemy):
             s = mcarddata.getattr("Property/Size", "scale", "100%")
             self.scale = int(s.rstrip("%"))
 
+        # アニメーション速度
+        self.dealspeed = data.gettext("Property/DealingSpeed", "Default")
+        if self.dealspeed == "Default":
+            self.dealspeed = -1
+        else:
+            self.dealspeed = cw.util.numwrap(int(self.dealspeed), 0, 10)
+
         self._init = False
 
         # 表示するまでデータを作らない
@@ -1209,6 +1226,13 @@ class MenuCard(CWPyCard):
         else:
             s = data.getattr("Property/Size", "scale", "100%")
             self.scale = int(s.rstrip("%"))
+
+        # アニメーション速度
+        self.dealspeed = data.gettext("Property/DealingSpeed", "Default")
+        if self.dealspeed == "Default":
+            self.dealspeed = -1
+        else:
+            self.dealspeed = cw.util.numwrap(int(self.dealspeed), 0, 10)
 
         self._init = False
 
