@@ -1228,6 +1228,8 @@ class CardControl(wx.Dialog):
             sendto = self.combo.GetSelection()
             if sendto in self._combo_cast:
                 test_aptitude = self.list2[self._combo_cast[sendto]]
+        elif self.callname == "CARDPOCKETB":
+            test_aptitude = self.selection
 
         bmp = header.get_cardwxbmp(test_aptitude=test_aptitude)
         if header.clickedflag:
