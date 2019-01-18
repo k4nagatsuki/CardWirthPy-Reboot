@@ -887,7 +887,16 @@ class Character(object):
         cw.cwpy.event.in_inusecardevent = True
         removeafter = False
         battlespeed = cw.cwpy.is_battlestatus()
-        if header.type == "BeastCard":
+        showstyle = header.get_showstyle()
+        if showstyle == "Invisible":
+            if misfire:
+                if header.type == "BeastCard":
+                    cw.cwpy.play_sound("error", True)
+                else:
+                    cw.cwpy.play_sound("confuse", True)
+                cw.animation.animate_sprite(self, "axialvibe", battlespeed=battlespeed)
+
+        elif showstyle == "Center":
             cw.cwpy.set_inusecardimg(self, header, "hidden", center=True)
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.animation.animate_sprite(inusecardimg, "deal", battlespeed=battlespeed)

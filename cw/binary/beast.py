@@ -270,6 +270,10 @@ class BeastCard(base.CWBinaryBase):
                             f.check_wsnversion("3", "消滅条件")
                         elif e_ic.text != "Unconscious":
                             f.check_wsnversion("3", "消滅条件")
+                    elif prop.tag == "ShowStyle":
+                        # 発動時の視覚効果(Wsn.4)
+                        if prop.text != "Center":
+                            f.check_wsnversion("4", "発動時の視覚効果")
                     elif prop.tag == "KeyCodes":
                         keycodes = cw.util.decodetextlist(prop.text)
                         # 5件まで絞り込む

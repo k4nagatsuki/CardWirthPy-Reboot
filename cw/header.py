@@ -860,6 +860,20 @@ class CardHeader(object):
                     return True
         return False
 
+    def get_showstyle(self):
+        """発動時の視覚効果(Wsn.4)。"""
+        if self.carddata is None:
+            prop = cw.data.xml2element(self.fpath, "Property")
+            e = prop.find("ShowStyle")
+        else:
+            e = self.carddata.find("Property/ShowStyle")
+        if e is None:
+            if self.type == "BeastCard":
+                return "Center"
+            else:
+                return "FrontOfUser"
+        return e.text
+
     def get_can_loaded_scaledimage(self):
         """スケーリングされたイメージを使用可能なカードか。"""
         if self.carddata is None:
