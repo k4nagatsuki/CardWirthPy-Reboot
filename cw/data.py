@@ -1841,6 +1841,7 @@ class Flag(object):
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.value = value
+            cw.cwpy.update_mcardnames()
             if updatedebugger:
                 cw.cwpy.event.refresh_variable(self)
 
@@ -1898,6 +1899,7 @@ class Step(object):
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.value = value
+            cw.cwpy.update_mcardnames()
             if updatedebugger:
                 cw.cwpy.event.refresh_variable(self)
 

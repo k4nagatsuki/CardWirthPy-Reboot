@@ -968,7 +968,8 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.cardgroup = mcarddata.gettext("Property/CardGroup", "")
         # 逃走の有無
         self.escape = mcarddata.getbool(".", "escape", False)
-
+        # 名前にある特殊文字の展開の有無(現在はダミー)
+        self.spchars = False
         # スケール
         if moveddata and moveddata[2] != -1:
             self.scale = moveddata[2]
@@ -1016,6 +1017,8 @@ class EnemyCard(CWPyCard, character.Enemy):
             # spritegroupに追加
             cw.cwpy.cardgrp.add(self, layer=self.layer)
             cw.cwpy.mcards.append(self)
+            if self.spchars:
+                cw.cwpy.mcards_expandspchars.add(self)
 
     def initialize(self):
         if self._init:
@@ -1030,6 +1033,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         if e is None:
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.mcards.remove(self)
+            cw.cwpy.mcards_expandspchars.discard(self)
             return False
         self.data = cw.data.xml2etree(element=e)
         self.fpath = self.data.fpath
@@ -1070,6 +1074,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         if self.frame == 0:
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.mcards.remove(self)
+            cw.cwpy.mcards_expandspchars.remove(self)
             if self in cw.cwpy.file_updates:
                 cw.cwpy.file_updates.remove(self)
 
@@ -1209,7 +1214,8 @@ class MenuCard(CWPyCard):
             self._pos_noscale2 = (moveddata[0], moveddata[1])
         else:
             self._pos_noscale2 = pos_noscale
-        self.name = data.gettext("Property/Name", "")
+        self._cardimg = None
+        self._name = data.gettext("Property/Name", "")
         self.desc = data.gettext("Property/Description", "")
         self.flag = data.gettext("Property/Flag", "")
         self.cardgroup = data.gettext("Property/CardGroup", "")
@@ -1218,6 +1224,9 @@ class MenuCard(CWPyCard):
         self.scenario = ""
         self._is_backpack = False
         self._is_storehouse = False
+
+        # 名前にある特殊文字の展開の有無
+        self.spchars = data.getbool("Property/Name", "spchars", False)
 
         # システムカード用の特殊パラメータ
         self.command = data.getattr(".", "command", "")
@@ -1269,12 +1278,16 @@ class MenuCard(CWPyCard):
             # spritegroupに追加
             cw.cwpy.cardgrp.add(self, layer=self.layer)
             cw.cwpy.mcards.append(self)
+            if self.spchars:
+                cw.cwpy.mcards_expandspchars.add(self)
 
     def initialize(self):
         if self._init:
             return True
 
         self._init = True
+
+        self.update_name()
 
         # イベント
         self.events = cw.event.EventEngine(self._data.getfind("Events"))
@@ -1323,6 +1336,19 @@ class MenuCard(CWPyCard):
         self._data = None
         self._pos_noscale2 = None
         return True
+
+    def update_name(self):
+        if not self._init:
+            return
+        if self.spchars:
+            self.name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False)[0]
+        else:
+            self.name = self._name
+        if self._cardimg:
+            self._cardimg.name = self.name
+            self._cardimg.clear_cache()
+            if self.status != "hidden":
+                self.update_image()
 
     @property
     def cardimg(self):

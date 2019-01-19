@@ -145,6 +145,7 @@ class CWPy(_Singleton, threading.Thread):
         self.cardgrp = pygame.sprite.LayeredDirty()
         self.pcards = []
         self.mcards = []
+        self.mcards_expandspchars = set()
         self.pricesprites = []
         self.curtains = []
         self.topgrp = pygame.sprite.LayeredDirty()
@@ -417,6 +418,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.status == "Title" and restartop:
             changearea = False
             self.cardgrp.remove(self.mcards)
+            self.mcards = []
+            self.mcards_expandspchars.clear()
             self.background.bgs = []
         elif self.status == "GameOver":
             changearea = False
@@ -444,10 +447,12 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata.update_skin()
 
         if not self.is_battlestatus() and changearea and not (self.status == "Title" and self.topgrp.sprites()):
+            removed_mcards = []
             for sprite in self.mcards[:]:
                 if not isinstance(sprite, cw.sprite.card.FriendCard):
                     self.cardgrp.remove(sprite)
                     self.mcards.remove(sprite)
+                    self.mcards_expandspchars.discard(sprite)
             if self.is_playingscenario():
                 self.sdata.change_data(self.areaid, data=self.sdata.data)
             else:
@@ -2937,6 +2942,8 @@ class CWPy(_Singleton, threading.Thread):
         if isinstance(mcard, cw.sprite.card.PlayerCard):
             self._need_disposition = True
 
+        self.update_mcardnames()
+
     def update_mcardlist(self):
         """必要であればメニューカードのリストを更新する。
         """
@@ -3079,6 +3086,7 @@ class CWPy(_Singleton, threading.Thread):
         # メニューカードスプライトグループの中身を削除
         self.cardgrp.remove(self.mcards)
         self.mcards = []
+        self.mcards_expandspchars.clear()
         self.file_updates.clear()
 
         # プレイヤカードスプライトグループの中身を削除
@@ -3143,10 +3151,19 @@ class CWPy(_Singleton, threading.Thread):
                 fcard.layer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, fcard.index, 0)
                 fcards.append(fcard)
                 self.mcards.remove(fcard)
+                self.mcards_expandspchars.discard(fcard)
                 self.add_lazydraw(clip=fcard.rect)
         self.cardgrp.remove(fcards)
         self.list = self.get_mcards("visible")
         self.index = -1
+
+    def update_mcardnames(self):
+        for mcard in self.mcards_expandspchars:
+            name = mcard.name
+            mcard.update_name()
+            if mcard.name != name:
+                self.add_lazydraw(mcard.rect)
+                self.set_lazydraw()
 
     def set_autospread(self, mcards, maxcol, campwithfriend=False, anime=False):
         """自動整列設定時のメニューカードの配置位置を設定する。
@@ -3556,10 +3573,13 @@ class CWPy(_Singleton, threading.Thread):
                 self.pre_mcards.append(self.get_mcards())
                 self.cardgrp.remove(self.mcards)
                 self.mcards = []
+                self.mcards_expandspchars.clear()
                 self.file_updates.clear()
                 for mcard in self.sdata.sparea_mcards[areaid]:
                     self.cardgrp.add(mcard, layer=mcard.layer)
                     self.mcards.append(mcard)
+                    if mcard.spchars:
+                        self.mcards_expandspchars.add(mcard)
                 # 特殊エリアのカードはデバッグモードによって
                 # 表示が切り替わる場合がある
                 for mcard in self.sdata.sparea_mcards[areaid]:
@@ -3696,6 +3716,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.change_data(areaid, data=data)
                 self.cardgrp.remove(self.mcards)
                 self.mcards = []
+                self.mcards_expandspchars.clear()
                 self.cardgrp.remove(self.pricesprites)
                 self.pricesprites = []
                 self.file_updates.clear()
@@ -3707,6 +3728,8 @@ class CWPy(_Singleton, threading.Thread):
                     else:
                         self.cardgrp.add(mcard, layer=mcard.layer)
                     self.mcards.append(mcard)
+                    if mcard.spchars:
+                        self.mcards_expandspchars.add(mcard)
                 self.deal_cards()
                 self.list = self.get_mcards("visible")
                 self.index = -1

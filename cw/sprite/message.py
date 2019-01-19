@@ -1168,12 +1168,15 @@ def get_pointlist(size, pos=(0, 0)):
     pos5 = pos
     return (pos1, pos2, pos3, pos4, pos5)
 
-def rpl_specialstr(s, basenamelist=None):
+def rpl_specialstr(s, basenamelist=None, expandsharps=True):
     """
     テキストセルや選択肢のテキスト内の
     特殊文字列(#, $)を置換した文字列を返す。
     """
-    name_table = _create_nametable(False, None)
+    if expandsharps:
+        name_table = _create_nametable(False, None)
+    else:
+        name_table = {}
     r = _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=basenamelist)
     return r[0], r[2]
 
@@ -1274,6 +1277,8 @@ def _get_stepvalue(key, full, name_table, basenamelist, startindex, spcharinfo, 
         v = _get_spstep(key)
         if v is None:
             return None, namelistindex
+        s = v.get_valuename()
+        namelistindex += 1
 
     if stack <= 0 and v.spchars:
         # 特殊文字の展開(Wsn.2)

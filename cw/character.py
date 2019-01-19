@@ -2999,6 +2999,7 @@ class Player(Character):
             for header in cw.cwpy.ydata.partyrecord:
                 header.rename_member(self.data.fpath, name)
         cw.cwpy.background.reload(False, nocheckvisible=True)
+        cw.cwpy.update_mcardnames()
 
 def calc_maxlife(vit, minval, level):
     """能力値から体力の最大値を計算する。"""

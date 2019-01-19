@@ -194,6 +194,8 @@ class MenuCard(base.CWBinaryBase):
                 for prop in e:
 
                     if prop.tag == "Name":
+                        if prop.getbool(".", "spchars", False):
+                            f.check_wsnversion("4", "特殊文字の展開")
                         name = prop.text
                     elif prop.tag == "ImagePath":
                         base.CWBinaryBase.check_imgpath(f, prop, "TopLeft")
