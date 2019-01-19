@@ -968,7 +968,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.cardgroup = mcarddata.gettext("Property/CardGroup", "")
         # 逃走の有無
         self.escape = mcarddata.getbool(".", "escape", False)
-        # 名前にある特殊文字の展開の有無(現在はダミー)
+        # 名前にある特殊文字の展開の有無
         self.spchars = False
         # スケール
         if moveddata and moveddata[2] != -1:
@@ -985,6 +985,9 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.dealspeed = -1
         else:
             self.dealspeed = cw.util.numwrap(int(self.dealspeed), 0, 10)
+
+        self._name = mcarddata.gettext("Property/Name", "")
+        self.spchars = mcarddata.getbool("Property/Name", "override", False)
 
         self._init = False
 
@@ -1040,6 +1043,12 @@ class EnemyCard(CWPyCard, character.Enemy):
         # CharacterCard初期化
         character.Enemy.__init__(self)
         self.deck.set(self, draw=False)
+
+        if self.spchars:
+            override_name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False)[0]
+        else:
+            override_name = ""
+
         # カード画像
         self.imgpaths = []
         for info in cw.image.get_imageinfos(self.data.find("Property")):
@@ -1047,7 +1056,8 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
         can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
         self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=self._init_pos_noscale,
-                                                   can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=True)
+                                                   can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=True,
+                                                   is_override_name=self.spchars, override_name=override_name)
         self.set_pos_noscale(pos_noscale=self._init_pos_noscale)
         self.update_image()
         # 空のイメージ
@@ -1058,6 +1068,17 @@ class EnemyCard(CWPyCard, character.Enemy):
 
     def is_initialized(self):
         return self._init
+
+    def update_name(self):
+        if not self._init:
+            return
+        if self.spchars:
+            name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False)[0]
+            if self.cardimg and self.cardimg.override_name != name:
+                self.cardimg.override_name = name
+                self.cardimg.set_nameimg(name)
+                if self.status != "hidden":
+                    self.update_image()
 
     def update(self, scr):
         if self.status != "hidden" and not self._init:
@@ -1344,7 +1365,7 @@ class MenuCard(CWPyCard):
             self.name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False)[0]
         else:
             self.name = self._name
-        if self._cardimg:
+        if self._cardimg and self._cardimg.name != self.name:
             self._cardimg.name = self.name
             self._cardimg.clear_cache()
             if self.status != "hidden":

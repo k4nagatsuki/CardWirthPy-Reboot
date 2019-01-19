@@ -843,8 +843,10 @@ class LargeCardImage(CardImage):
 
 class CharacterCardImage(CardImage):
     def __init__(self, ccard, pos_noscale=(0, 0), can_loaded_scaledimage=False, is_scenariocard=False,
-                 scedir=""):
+                 scedir="", is_override_name=False, override_name=""):
         self.ccard = ccard
+        self.is_override_name = is_override_name
+        self.override_name = override_name
         self._pos_noscale = pos_noscale
         self.can_loaded_scaledimage = can_loaded_scaledimage
         self.anotherscenariocard = False
@@ -857,7 +859,10 @@ class CharacterCardImage(CardImage):
         # カード画像
         self.set_faceimgs(self.ccard.imgpaths, self.can_loaded_scaledimage)
         # フォント画像(カード名)
-        self.set_nameimg(self.ccard.name)
+        if self.is_override_name:
+            self.set_nameimg(self.override_name)
+        else:
+            self.set_nameimg(self.ccard.name)
         # フォント画像(レベル)
         self.set_levelimg(self.ccard.level)
         # rect

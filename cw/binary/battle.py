@@ -99,6 +99,9 @@ class Battle(base.CWBinaryBase):
                         runaway = prop.getbool(".", True)
                         if not runaway:
                             f.check_wsnversion("3", "逃走不可バトル")
+                    elif prop.tag == "Name":
+                        if prop.getbool(".", "override", False):
+                            f.check_wsnversion("4", "エネミーカード名の上書き")
             elif e.tag == "PlayerCardEvents":
                 if len(e):
                     f.check_wsnversion("2", "プレイヤーカードイベント")
