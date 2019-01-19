@@ -1074,7 +1074,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         if self.frame == 0:
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.mcards.remove(self)
-            cw.cwpy.mcards_expandspchars.remove(self)
+            cw.cwpy.mcards_expandspchars.discard(self)
             if self in cw.cwpy.file_updates:
                 cw.cwpy.file_updates.remove(self)
 
