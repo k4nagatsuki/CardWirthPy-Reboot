@@ -1439,7 +1439,7 @@ class BranchAbilityContent(BranchContent):
                 enhance = target.get_enhance_act()
                 flag = target.decide_outcome(level, vocation, enhance=enhance)
             else:
-                flag = False
+                continue
 
             if self.invert:
                 # 判定条件の反転(Wsn.4)
