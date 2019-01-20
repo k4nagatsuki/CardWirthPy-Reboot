@@ -958,6 +958,7 @@ class Event(object):
             # エリア移動が起こったら、戦闘終了
             elif isinstance(self.error, AreaChangeError):
                 raise cw.battle.BattleAreaChangeError()
+            cw.cwpy.fix_updated_file(force=True)
 
         # ゲームオーバ
         elif cw.cwpy.is_gameover() and cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9 and 0 <= cw.cwpy.areaid:

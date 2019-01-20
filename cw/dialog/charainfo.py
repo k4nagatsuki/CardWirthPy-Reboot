@@ -615,17 +615,29 @@ class TopPanel(wx.Panel):
         # カード画像
         x = (dc.GetSize()[0] - cw.wins(74)) // 2
 
-        infos = cw.image.get_imageinfos(self.ccard.data.find("Property"))
-        can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
+        if isinstance(self.ccard, cw.sprite.card.EnemyCard):
+            is_override_image = self.ccard.mcarddata.getbool("Property/ImagePaths", "override", False)
+        else:
+            is_override_image = False
+
+        if is_override_image:
+            infos = cw.image.get_imageinfos(self.ccard.mcarddata.find("Property"), pcnumber=True)
+            infos, can_loaded_scaledimages = cw.sprite.card.imageinfos_to_pathdata(infos)
+
+        else:
+            infos = cw.image.get_imageinfos(self.ccard.data.find("Property"))
+            can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
+            can_loaded_scaledimages = [can_loaded_scaledimage] * len(infos)
         setpos = any([not info.postype in (None, "Default") for info in infos])
 
-        for info in infos:
+        for info, can_loaded_scaledimage in zip(infos, can_loaded_scaledimages):
             path = info.path
-            if isinstance(cw.cwpy.selection, (cw.character.Enemy,
-                                                cw.character.Friend)):
-                path = cw.util.get_materialpath(path, cw.M_IMG)
-            elif not cw.binary.image.path_is_code(path):
-                path = cw.util.join_yadodir(path)
+            if not info.pcnumber:
+                if isinstance(cw.cwpy.selection, (cw.character.Enemy,
+                                                    cw.character.Friend)):
+                    path = cw.util.get_materialpath(path, cw.M_IMG)
+                elif not cw.binary.image.path_is_code(path):
+                    path = cw.util.join_yadodir(path)
 
             bmp = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
             bmp2 = cw.wins(bmp)

@@ -1122,9 +1122,9 @@ class CWPy(_Singleton, threading.Thread):
                 cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None, sound=False, call_predlg=False, sort=True)
             cw.cwpy.card_takenouttemporarily = None
 
-    def fix_updated_file(self):
+    def fix_updated_file(self, force=False):
         # JPDC撮影などで更新されたメニューカードと背景を更新する
-        if not self.is_playingscenario() or self.is_runningevent():
+        if not force and (not self.is_playingscenario() or self.is_runningevent()):
             return
 
         if self.background.pc_cache:
@@ -2988,7 +2988,13 @@ class CWPy(_Singleton, threading.Thread):
             can_loaded_scaledimages = []
             can_loaded_scaledimage = pcard.data.getbool(".", "scaledimage", False) if pcard else True
             update = False
-            for i, info in enumerate(mcard.cardimg.paths):
+            if isinstance(mcard.cardimg, cw.image.CharacterCardImage) and mcard.cardimg.is_override_image:
+                cardimg_paths = mcard.cardimg.override_images[0]
+                cardimg_can_loaded_scaledimage = mcard.cardimg.override_images[1]
+            else:
+                cardimg_paths = mcard.cardimg.paths
+                cardimg_can_loaded_scaledimage = mcard.cardimg.can_loaded_scaledimage
+            for i, info in enumerate(cardimg_paths):
                 # PC画像を更新
                 if info.pcnumber == pcnumber:
                     if pcard:
@@ -3001,15 +3007,18 @@ class CWPy(_Singleton, threading.Thread):
                     update = True
                 else:
                     imgpaths.append(info)
-                    if isinstance(mcard.cardimg.can_loaded_scaledimage, (list, tuple)):
-                        can_loaded_scaledimages.append(mcard.cardimg.can_loaded_scaledimage[i])
+                    if isinstance(cardimg_can_loaded_scaledimage, (list, tuple)):
+                        can_loaded_scaledimages.append(cardimg_can_loaded_scaledimage[i])
                     else:
-                        assert isinstance(mcard.cardimg.can_loaded_scaledimage, bool)
-                        can_loaded_scaledimages.append(mcard.cardimg.can_loaded_scaledimage)
+                        assert isinstance(cardimg_can_loaded_scaledimage, bool)
+                        can_loaded_scaledimages.append(cardimg_can_loaded_scaledimage)
             if not update:
                 continue
-            mcard.cardimg.paths = imgpaths
-            mcard.cardimg.can_loaded_scaledimage = can_loaded_scaledimages
+            if isinstance(mcard.cardimg, cw.image.CharacterCardImage) and mcard.cardimg.is_override_image:
+                mcard.cardimg.override_images = (imgpaths, can_loaded_scaledimages)
+            else:
+                mcard.cardimg.paths = imgpaths
+                mcard.cardimg.can_loaded_scaledimage = can_loaded_scaledimages
             mcard.cardimg.clear_cache()
             updates.append(mcard)
         if deal:
