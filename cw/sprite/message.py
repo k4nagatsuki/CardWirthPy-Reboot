@@ -592,7 +592,7 @@ class MessageWindow(base.CWPySprite):
         elif key in cw.cwpy.sdata.steps:
             v = cw.cwpy.sdata.steps[key]
         else:
-            v = _get_spstep(key)
+            v, namelistindex = _get_spstep(key, updatetype, basenamelist, namelist, namelistindex)
             if v is None:
                 return None, namelistindex
 
@@ -1270,19 +1270,19 @@ def _create_nametable(full, talker):
 def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
     if key in cw.cwpy.sdata.steps:
         v = cw.cwpy.sdata.steps[key]
-        if updatetype == "Fixed":
-            if not basenamelist is None:
-                s = v.get_valuename(basenamelist[namelistindex].name)
-            else:
-                s = v.get_valuename()
-                namelist.append(NameListItem(v, v.value))
-            namelistindex += 1
+    else:
+        v, namelistindex = _get_spstep(key, updatetype, basenamelist, namelist, namelistindex)
+    if v is None:
+        return None, namelistindex
+
+    if updatetype == "Fixed":
+        if not basenamelist is None:
+            s = v.get_valuename(basenamelist[namelistindex].name)
         else:
             s = v.get_valuename()
+            namelist.append(NameListItem(v, v.value))
+        namelistindex += 1
     else:
-        v = _get_spstep(key)
-        if v is None:
-            return None, namelistindex
         s = v.get_valuename()
 
     if stack <= 0 and v.spchars:
@@ -1291,7 +1291,7 @@ def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, 
                                                  basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
     return s, namelistindex
 
-def _get_spstep(name):
+def _get_spstep(name, updatetype, basenamelist, namelist, namelistindex):
     if cw.cwpy.event.in_inusecardevent:
         cardversion = cw.cwpy.event.get_inusecard().wsnversion
     else:
@@ -1302,28 +1302,36 @@ def _get_spstep(name):
         if lname in "??selectedplayer":
             # 選択メンバのパーティ内の番号(Wsn.2)
             # パーティ内の選択メンバがいない場合は"0"
-            if cw.cwpy.event.has_selectedmember():
-                sel = cw.cwpy.event.get_selectedmember()
+            if basenamelist is None:
+                if cw.cwpy.event.has_selectedmember():
+                    sel = cw.cwpy.event.get_selectedmember()
+                else:
+                    sel = None
+                pcards = cw.cwpy.get_pcards()
+                if sel and sel in pcards:
+                    value = pcards.index(sel)+1
+                else:
+                    value = 0
+                namelist.append(NameListItem("Number", value))
             else:
-                sel = None
-            pcards = cw.cwpy.get_pcards()
-            if sel and sel in pcards:
-                pn = "%d" % (pcards.index(sel)+1)
-                return cw.data.Step(0, "", [pn], "", False)
-            else:
-                return cw.data.Step(0, "", ["0"], "", False)
-        else:
+                value = basenamelist[namelistindex].name
+                namelistindex += 1
+            return cw.data.Step(value, name, ["0", "1", "2", "3", "4", "5", "6"], 0, False), namelistindex
+        elif lname in ["??player%d" % a for a in range(1, 6+1)]:
             # プレイヤーキャラクターの名前(??Player1～6)(Wsn.2)
             pcards = cw.cwpy.get_pcards()
             players = ["??player%d" % a for a in range(1, len(pcards)+1)]
+            names = [""] + list(map(lambda pcard: pcard.name, pcards))
             if lname in players:
-                pcard = pcards[players.index(lname)]
-                return cw.data.Step(0, "", [pcard.name], "", False)
+                value = players.index(lname)+1
+            else:
+                value = 0
+            return cw.data.Step(value, name, names, 0, False), namelistindex
 
-        if lname.startswith("??"):
-            return cw.data.Step(0, "", [""], "", False)
+        elif lname.startswith("??"):
+            return cw.data.Step(0, "", [""], "", False), namelistindex
 
-    return None
+    return None, namelistindex
 
 def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
     if key in cw.cwpy.sdata.flags:

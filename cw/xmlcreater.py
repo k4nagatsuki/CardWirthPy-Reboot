@@ -1089,6 +1089,8 @@ def create_scenariolog(sdata, path, recording, logfilepath):
                     elif isinstance(item.data, cw.data.Step):
                         e_name.set("type", "Step")
                         e_name.set("step", item.data.name)
+                    elif item.data == "Number":
+                        e_name.set("type", "Number")
                     e.append(e_name)
                 e_bgimg.append(e)
 
