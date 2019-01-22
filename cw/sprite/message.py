@@ -1174,7 +1174,11 @@ def rpl_specialstr(s, basenamelist=None, updatetype="All"):
     特殊文字列(#, $)を置換した文字列を返す。
     """
     name_table = _create_nametable(False, None)
-    r = _rpl_specialstr(False, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=basenamelist)
+    try:
+        r = _rpl_specialstr(False, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=basenamelist)
+    except:
+        cw.util.print_ex()
+        r = _rpl_specialstr(False, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=None)
     if updatetype == "All":
         del basenamelist[:]
     return r[0], r[2]
