@@ -1179,7 +1179,11 @@ def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All"):
     """
     name_table = _create_nametable(False, None)
     full = _SP_EXPAND_SHARPS if expandsharps else _SP_NO_SHARPS
-    r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=basenamelist)
+    try:
+        r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=basenamelist)
+    except:
+        cw.util.print_ex()
+        r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=None)
     if updatetype == "All":
         del basenamelist[:]
     return r[0], r[2]
