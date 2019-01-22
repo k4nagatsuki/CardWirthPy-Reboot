@@ -1287,7 +1287,7 @@ def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, 
 
     if stack <= 0 and v.spchars:
         # 特殊文字の展開(Wsn.2)
-        s, _, _, namelistindex = _rpl_specialstr(full, s, name_table, _get_stepvalue, _get_flagvalue,
+        s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue,
                                                  basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
     return s, namelistindex
 
@@ -1350,7 +1350,7 @@ _SP_EXPAND_SHARPS = 0
 _SP_FULL = 1
 _SP_NO_SHARPS = 2
 
-def _rpl_specialstr(full, s, name_table, get_step, get_flag, basenamelist=None,
+def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, basenamelist=None,
                     startindex=0, spcharinfo=None, namelist=None, namelistindex=0, stack=0):
     """
     特殊文字列(#, $)を置換した文字列を返す。
