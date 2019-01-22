@@ -85,6 +85,10 @@ class SystemData(object):
         self.background_image_mtime = {}
         self.moved_mcards = {}
 
+        # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
+        # [path] = (x1 binary, x2 binary, ..., x16 binary)
+        self.ex_cache = {}
+
         # クリア時のデバッグ情報。デバッグ情報ダイアログ表示で削除
         self.debuglog = None
         # デバッグ情報がある事を通知する(0=通知無し,1=点滅あり,2=点滅無し)
@@ -881,6 +885,10 @@ class ScenarioData(SystemData):
         self.uselimit_table = {}
         # カード再配置コンテントで移動されたメニューカード
         self.moved_mcards = {}
+
+        # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
+        # [path] = (x1 binary, x2 binary, ..., x16 binary)
+        self.ex_cache = {}
 
         # イベントが任意箇所に到達した時に実行を停止するためのブレークポイント
         self.breakpoints = cw.cwpy.breakpoint_table.get((self.name, self.author), set())

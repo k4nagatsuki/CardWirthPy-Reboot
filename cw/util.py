@@ -24,6 +24,7 @@ import unicodedata
 import functools
 import webbrowser
 import math
+import itertools
 from functools import reduce
 
 if sys.platform == "win32":
@@ -648,7 +649,7 @@ def find_noscalepath(path):
 
 
 def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False, can_loaded_scaledimage=True,
-               noscale=False, up_scr=None):
+               noscale=False, up_scr=None, use_excache=False):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -659,7 +660,27 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
 
     if up_scr is None:
         up_scr = cw.UP_SCR
-    path, up_scr = find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale)
+
+    if use_excache and path:
+        # JPDC撮影等で更新されたイメージは正式に差し替えが完了するのがイベント終了後となる
+        # それまではキャッシュを使用する
+        npath = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+        if cw.cwpy.sdata and npath in cw.cwpy.sdata.ex_cache:
+            caches = cw.cwpy.sdata.ex_cache[npath]
+            data = None
+            up_scr2 = 1
+            for i, scale in enumerate(itertools.chain((1,), cw.SCALE_LIST)):
+                if caches[i]:
+                    data = caches[i]
+                    up_scr2 = scale
+                if scale == up_scr:
+                    break
+            up_scr = up_scr2
+            if data:
+                f = io.BytesIO(data)
+
+    if not f:
+        path, up_scr = find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale)
 
     bmpdepth = 0
     try:

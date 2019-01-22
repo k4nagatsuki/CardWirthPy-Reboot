@@ -49,6 +49,8 @@ class BackGround(base.CWPySprite):
         self.reload_jpdcimage = True
         self.has_jpdcimage = False
 
+        self.use_excache = False
+
         self.curtained = False
         self._curtains = []
         self.curtain_all = False
@@ -241,7 +243,8 @@ class BackGround(base.CWPySprite):
                 cachable = jpy1.is_cacheable
                 image = jpy1.get_image()
             else:
-                image = cw.util.load_image(path, mask, isback=True, can_loaded_scaledimage=can_loaded_scaledimage)
+                image = cw.util.load_image(path, mask, isback=True, can_loaded_scaledimage=can_loaded_scaledimage,
+                                           use_excache=self.use_excache)
         except cw.event.EffectBreakError as ex:
             raise ex
         except cw.effectbooster.ScreenRescale as ex:
@@ -298,6 +301,7 @@ class BackGround(base.CWPySprite):
         self._elements = elements
 
         cw.cwpy.file_updates_bg = False
+        self.use_excache = False
         self.reload_jpdcimage = True
 
         animated = False
@@ -658,6 +662,7 @@ class BackGround(base.CWPySprite):
 
         if not movedata:
             cw.cwpy.file_updates_bg = False
+            self.use_excache = False
         self.reload_jpdcimage = True
 
         animated = False
@@ -966,7 +971,8 @@ class BackGround(base.CWPySprite):
                     #      1.60ではPCイメージとしてそのようなイメージを表示すると、
                     #      マスクされた状態で表示される。従ってマスクの効く・効かないという
                     #      挙動をエミュレートするための`isback`フラグは常にFalseとする。
-                    bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage)
+                    bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage,
+                                             use_excache=self.use_excache)
                     iw, ih = bmp.get_size()
                     scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
                     iw //= scr_scale
@@ -988,7 +994,8 @@ class BackGround(base.CWPySprite):
                 image.fill((0, 0, 0, 0))
 
                 for path, info in paths:
-                    bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage)
+                    bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage,
+                                             use_excache=self.use_excache)
                     iw, ih = bmp.get_size()
                     scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
                     iw //= scr_scale

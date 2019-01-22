@@ -1127,26 +1127,47 @@ class CWPy(_Singleton, threading.Thread):
         if not force and (not self.is_playingscenario() or self.is_runningevent()):
             return
 
+        self.clear_selection()
+
+        if self.sdata.ex_cache:
+            if self.background.use_excache:
+                self.background.use_excache = False
+                self.file_updates_bg = True
+            for mcard in self.get_mcards():
+                if mcard.is_initialized() and mcard.cardimg.use_excache:
+                    self.file_updates.add(mcard)
+                mcard.cardimg.use_excache = False
+
+            for path in self.sdata.ex_cache.keys():
+                path = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+
+            self.sdata.resource_cache.clear()
+            self.sdata.resource_cache_size = 0
+
+            self.sdata.ex_cache.clear()
+
         if self.background.pc_cache:
             self.background.pc_cache.clear()
 
         if self.is_curtained():
             self.background.reload_jpdcimage = True
-            return
-        if self.file_updates_bg:
-            self.background.reload(False)
-            self.file_updates_bg = False
-        elif not self.background.reload_jpdcimage and self.background.has_jpdcimage:
-            self.background.reload(False, ttype=(None, None))
-        self.background.reload_jpdcimage = True
+        else:
+            if self.file_updates_bg:
+                self.background.reload(False)
+                self.file_updates_bg = False
+            elif not self.background.reload_jpdcimage and self.background.has_jpdcimage:
+                self.background.reload(False, ttype=(None, None))
+            self.background.reload_jpdcimage = True
 
         if self.file_updates:
             for mcard in self.get_mcards("visible"):
                 if mcard in self.file_updates:
                     cw.animation.animate_sprite(mcard, "hide")
+                    mcard.cardimg.fix_pcimage_updated()
+                    mcard.cardimg.clear_cache()
                     mcard.update_image()
                     cw.animation.animate_sprite(mcard, "deal")
-            assert not self.file_updates # deal処理内で除去されるはず
+            self.file_updates.clear()
 
     def proc_animation(self):
         if self.setting.stop_the_world_with_iconized:
@@ -2853,6 +2874,8 @@ class CWPy(_Singleton, threading.Thread):
         deals = []
         for mcard in mcardsinv:
             if mcard.is_flagtrue():
+                self._fix_updateimage(mcard)
+
                 if quickdeal and not silent:
                     deals.append(mcard)
                 else:
@@ -2900,6 +2923,8 @@ class CWPy(_Singleton, threading.Thread):
         hide = False
         for mcard in mcards:
             if hideall or not mcard.is_flagtrue():
+                self._fix_updateimage(mcard)
+
                 if mcard.inusecardimg:
                     self.clear_inusecardimg(mcard)
                 if quickhide and not silent:
@@ -2929,6 +2954,14 @@ class CWPy(_Singleton, threading.Thread):
 
         self.input(True)
         self._dealing = False
+
+    def _fix_updateimage(self, mcard):
+        if mcard.is_initialized():
+            if mcard.cardimg.use_excache:
+                mcard.cardimg.clear_cache()
+            mcard.cardimg.fix_pcimage_updated()
+            self.file_updates.discard(mcard)
+        mcard.cardimg.use_excache = False
 
     def vanished_card(self, mcard):
         """mcardの対象消去を通知する。"""
@@ -3015,11 +3048,13 @@ class CWPy(_Singleton, threading.Thread):
             if not update:
                 continue
             if isinstance(mcard.cardimg, cw.image.CharacterCardImage) and mcard.cardimg.is_override_image:
-                mcard.cardimg.override_images = (imgpaths, can_loaded_scaledimages)
+                mcard.cardimg.override_images_upd = (imgpaths, can_loaded_scaledimages)
             else:
-                mcard.cardimg.paths = imgpaths
-                mcard.cardimg.can_loaded_scaledimage = can_loaded_scaledimages
-            mcard.cardimg.clear_cache()
+                mcard.cardimg.paths_upd = imgpaths
+                mcard.cardimg.can_loaded_scaledimage_upd = can_loaded_scaledimages
+            if deal:
+                mcard.cardimg.fix_pcimage_updated()
+                mcard.cardimg.clear_cache()
             updates.append(mcard)
         if deal:
             if cw.cwpy.setting.all_quickdeal:
@@ -3035,9 +3070,10 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 for mcard in updates:
                     cw.animation.animate_sprite(mcard, "hide")
-                    mcard.cardimg.clear_cache()
                     mcard.update_image()
                     cw.animation.animate_sprite(mcard, "deal")
+        if cw.cwpy.background.has_jpdcimage:
+            cw.cwpy.file_updates_bg = True
         return updates
 
     def show_party(self):
@@ -3168,11 +3204,12 @@ class CWPy(_Singleton, threading.Thread):
 
     def update_mcardnames(self):
         for mcard in self.mcards_expandspchars:
-            name = mcard.name
-            mcard.update_name()
-            if mcard.name != name:
-                self.add_lazydraw(mcard.rect)
-                self.set_lazydraw()
+            if mcard.is_initialized():
+                name = mcard.name
+                mcard.update_name()
+                if mcard.name != name:
+                    self.add_lazydraw(mcard.rect)
+                    self.set_lazydraw()
 
     def set_autospread(self, mcards, maxcol, campwithfriend=False, anime=False):
         """自動整列設定時のメニューカードの配置位置を設定する。

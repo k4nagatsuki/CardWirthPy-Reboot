@@ -589,7 +589,8 @@ class _JpySubImage(cw.image.Image):
                     cw.cwpy.sdata.resource_cache[cachekey] = (image.copy(), mtime)
                 # その他画像ファイル
                 else:
-                    image = cw.s(cw.util.load_image(path, False, isback=True, can_loaded_scaledimage=can_loaded_scaledimage))
+                    image = cw.s(cw.util.load_image(path, False, isback=True, can_loaded_scaledimage=can_loaded_scaledimage,
+                                                    use_excache=True))
 
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:
@@ -1011,7 +1012,9 @@ class JpdcImage(cw.image.Image):
             cpath2 = os.path.abspath(os.path.normpath(cw.cwpy.sdata.scedir))
             cpath1 = cw.util.join_paths(cpath1)
             cpath2 = cw.util.join_paths(cpath2) + "/"
-            if cpath1.startswith(cpath2):
+            ncpath1 = os.path.normcase(cpath1)
+            ncpath2 = os.path.normcase(cpath2)
+            if ncpath1.startswith(ncpath2):
                 # シナリオの不変を保つためにScenarioLog内に保存
                 rel = cw.util.relpath(cpath1, cpath2)
                 temppath = cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile")
@@ -1021,10 +1024,41 @@ class JpdcImage(cw.image.Image):
                     os.makedirs(dpath)
                 cw.sprite.message.store_messagelogimage(path, True)
                 spext = os.path.splitext(path)
-                for scale in cw.SCALE_LIST:
+
+                npath = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+                if npath in cw.cwpy.sdata.ex_cache:
+                    ex_cache = None
+                else:
+                    ex_cache = [None] * len(cw.SCALE_LIST)
+
+                scpath = cw.util.join_paths(cw.cwpy.sdata.scedir, rel)
+                nexist = False
+                if not ex_cache is None:
+                    if os.path.isfile(npath):
+                        ex_cache[0] = npath
+                    elif os.path.isfile(scpath):
+                        nexist = True
+                        ex_cache[0] = scpath
+                        scpathsp= os.path.splitext(scpath)
+                        for i, scale in enumerate(cw.SCALE_LIST):
+                            scpathxn = "%s.x%d%s" % (scpathsp[0], scale, scpathsp[1])
+                            if os.path.isfile(scpathxn):
+                                ex_cache[i+1] = scpathxn
+
+                for i, scale in enumerate(cw.SCALE_LIST):
                     pathxn = "%s.x%d%s" % (spext[0], scale, spext[1])
                     if os.path.isfile(pathxn):
+                        if not ex_cache is None and not nexist:
+                            ex_cache[i+1]  = pathxn
                         cw.util.remove(pathxn)
+
+                if not ex_cache is None:
+                    for i, cachepath in enumerate(ex_cache):
+                        if cachepath:
+                            with open(cachepath, "rb") as f:
+                                ex_cache[i] = f.read()
+                    cw.cwpy.sdata.ex_cache[npath] = tuple(ex_cache)
+
                 pygame.image.save(saveimage_noscale, path.encode("utf-8"))
 
                 if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
@@ -1065,8 +1099,10 @@ class JpdcImage(cw.image.Image):
                         if mcard.cardimg.is_modifiedfile():
                             mcard.cardimg.clear_cache()
                             cw.cwpy.file_updates.add(mcard)
+                            mcard.cardimg.use_excache = True
                     if not cw.cwpy.file_updates_bg and cw.cwpy.background.is_modifiedfile():
                         cw.cwpy.file_updates_bg = True
+                        cw.cwpy.background.use_excache = True
 
             if doanime and not doanime.all_cut:
                 cw.cwpy.draw()
