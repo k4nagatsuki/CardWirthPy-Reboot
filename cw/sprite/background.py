@@ -538,37 +538,43 @@ class BackGround(base.CWPySprite):
                 namelist = None
             else:
                 namelist = []
-                for e_name in e_names:
-                    type = e_name.getattr(".", "type", "")
-                    name = e_name.text if e_name.text else ""
-                    if type == "Yado":
-                        data = cw.cwpy.ydata
-                    elif type == "Party":
-                        data = cw.cwpy.ydata.party if cw.cwpy.ydata else None
-                    elif type == "Player":
-                        number = e_name.getint(".", "number", 0)-1
-                        pcards = cw.cwpy.get_pcards()
-                        if 0 <= number and number < len(pcards):
-                            data = pcards[number]
+                try:
+                    for e_name in e_names:
+                        type = e_name.getattr(".", "type", "")
+                        name = e_name.text if e_name.text else ""
+                        if type == "Yado":
+                            data = cw.cwpy.ydata
+                        elif type == "Party":
+                            data = cw.cwpy.ydata.party if cw.cwpy.ydata else None
+                        elif type == "Player":
+                            number = e_name.getint(".", "number", 0)-1
+                            pcards = cw.cwpy.get_pcards()
+                            if 0 <= number and number < len(pcards):
+                                data = pcards[number]
+                            else:
+                                data = None
+                        elif type == "Flag":
+                            name2 = e_name.getattr(".", "flag", "")
+                            name = cw.util.str2bool(name)
+                            if name2 in cw.cwpy.sdata.flags:
+                                data = cw.cwpy.sdata.flags[name2]
+                            else:
+                                data = None
+                        elif type == "Step":
+                            name2 = e_name.getattr(".", "step", "")
+                            name = int(name)
+                            if name2 in cw.cwpy.sdata.steps:
+                                data = cw.cwpy.sdata.steps[name2]
+                            else:
+                                data = None
+                        elif type == "Number":
+                            name = int(e_name.text)
+                            data = "Number"
                         else:
                             data = None
-                    elif type == "Flag":
-                        name2 = e_name.getattr(".", "flag", "")
-                        name = cw.util.str2bool(name)
-                        if name2 in cw.cwpy.sdata.flags:
-                            data = cw.cwpy.sdata.flags[name2]
-                        else:
-                            data = None
-                    elif type == "Step":
-                        name2 = e_name.getattr(".", "step", "")
-                        name = int(name)
-                        if name2 in cw.cwpy.sdata.steps:
-                            data = cw.cwpy.sdata.steps[name2]
-                        else:
-                            data = None
-                    else:
-                        data = None
-                    namelist.append(cw.sprite.message.NameListItem(data, name))
+                        namelist.append(cw.sprite.message.NameListItem(data, name))
+                except:
+                    namelist = []
 
             return (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,
                     btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname)
