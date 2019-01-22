@@ -530,6 +530,12 @@ class BackGround(base.CWPySprite):
                 loaded = e.getbool(".", "loaded", True)
             else:
                 loaded = e.getbool(".", "loaded", False)
+            # テキストセルの更新をどこまで行うか(Wsn.4)
+            # Fixedで最初の表示内容に固定(CardWirth 1.50)
+            # Variablesで状態変数のみ更新(～CardWirthPy 3.1)
+            # Allで全て更新
+            # 互換性確保のためパラメータが存在しなかった場合はVariablesにする
+            updatetype = e.gettext("UpdateType", "Variables")
 
             e_names = e.find("Names")
             if e_names is None:
@@ -569,7 +575,7 @@ class BackGround(base.CWPySprite):
                     namelist.append(cw.sprite.message.NameListItem(data, name))
 
             return (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,
-                    btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname)
+                    btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname)
 
         elif e.tag == "ColorCell":
             # カラーセル
@@ -861,7 +867,7 @@ class BackGround(base.CWPySprite):
 
     def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
         text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,\
-            btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer, cellname = d
+            btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
@@ -869,7 +875,7 @@ class BackGround(base.CWPySprite):
         if flagvalue and not loaded:
             # テキストセルは最初の表示で内容が固定される
             text2 = cw.util.decodewrap(text)
-            text2, namelist = cw.sprite.message.rpl_specialstr(text2, basenamelist=namelist)
+            text2, namelist = cw.sprite.message.rpl_specialstr(text2, basenamelist=namelist, updatetype=updatetype)
             # 2.0以降はloadedパラメータは使用しない
             #loaded = True
         else:
@@ -877,7 +883,7 @@ class BackGround(base.CWPySprite):
         if nocheckvisible:
             flagvalue = visible
         d = (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,
-             btype, bcolor, bwidth, loaded, size, pos, flag, flagvalue, layer, cellname)
+             btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, flagvalue, layer, cellname)
         if visible:
             if btype == "Inline":
                 # 縁取り形式2のみは事前にセル生成が可能
