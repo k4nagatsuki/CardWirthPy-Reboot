@@ -138,6 +138,10 @@ class BgImage(base.CWBinaryBase):
                     e.append(makecolor("Color", self.bcolor))
                     self.data.append(e)
 
+                # クラシックなシナリオでは表示内容は最初の表示時に固定される
+                e = cw.data.make_element("UpdateType", "Fixed")
+                self.data.append(e)
+
             elif self.type == cw.sprite.background.BG_COLOR:
                 self.data = cw.data.make_element("ColorCell")
 
@@ -243,6 +247,9 @@ class BgImage(base.CWBinaryBase):
                     for e_bdr in e:
                         if e_bdr.tag == "Color":
                             bcolor = getcolor(e_bdr, bcolor)
+                elif e.tag == "UpdateType":
+                    if e.text != "Fixed":
+                        f.check_wsnversion("4", "背景セルの更新")
 
             elif data.tag == "ColorCell":
                 f.check_version(1.50, "カラーセル")
