@@ -3535,7 +3535,7 @@ class RedisplayContent(EventContentBase):
     def action(self):
         """画面再構築コンテント。"""
         ttype = self.get_transitiontype()
-        if cw.cwpy.background.reload(True, ttype, updatetextcell=True):
+        if cw.cwpy.background.reload(True, ttype):
             # フレームを進める
             cw.cwpy.draw()
             cw.cwpy.tick_clock(framerate=30)
