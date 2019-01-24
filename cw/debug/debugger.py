@@ -671,7 +671,7 @@ class Debugger(wx.Frame):
     def OnRedisplayTool(self, event):
         def func():
             cw.cwpy.play_sound("harvest")
-            cw.cwpy.background.reload()
+            cw.cwpy.background.reload(updatetextcell=True)
         cw.cwpy.exec_func(func)
 
     def OnGossipTool(self, event):

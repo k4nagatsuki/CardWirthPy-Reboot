@@ -1179,8 +1179,6 @@ def rpl_specialstr(s, basenamelist=None, updatetype="All"):
     except:
         cw.util.print_ex()
         r = _rpl_specialstr(False, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=None)
-    if updatetype == "All":
-        del basenamelist[:]
     return r[0], r[2]
 
 class _NameGetter(object):
@@ -1291,6 +1289,9 @@ def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, 
                                                  basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
     return s, namelistindex
 
+def get_spstep(name):
+    return _get_spstep(name, "Fixed", None, None, 0)[0]
+
 def _get_spstep(name, updatetype, basenamelist, namelist, namelistindex):
     if cw.cwpy.event.in_inusecardevent:
         cardversion = cw.cwpy.event.get_inusecard().wsnversion
@@ -1312,7 +1313,8 @@ def _get_spstep(name, updatetype, basenamelist, namelist, namelistindex):
                     value = pcards.index(sel)+1
                 else:
                     value = 0
-                namelist.append(NameListItem("Number", value))
+                if not namelist is None:
+                    namelist.append(NameListItem("Number", value))
             else:
                 value = basenamelist[namelistindex].name
                 namelistindex += 1
