@@ -570,7 +570,7 @@ class BackGround(base.CWPySprite):
                             if name2 in cw.cwpy.sdata.steps:
                                 data = cw.cwpy.sdata.steps[name2]
                             else:
-                                data = None
+                                data = cw.sprite.message.get_spstep(name2)
                         elif type == "Number":
                             name = int(e_name.text)
                             data = "Number"
@@ -604,12 +604,14 @@ class BackGround(base.CWPySprite):
             assert False
 
     def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, cellname="", repldata=None,
-               movedata=None, ignoreeffectbooster=False, nocheckvisible=False):
+               movedata=None, ignoreeffectbooster=False, nocheckvisible=False, updatetextcell=False):
         return self._reload(doanime, ttype, redraw, False, redisplay=False, cellname=cellname, repldata=repldata,
-                            movedata=movedata, ignoreeffectbooster=ignoreeffectbooster, nocheckvisible=nocheckvisible)
+                            movedata=movedata, ignoreeffectbooster=ignoreeffectbooster, nocheckvisible=nocheckvisible,
+                            updatetextcell=updatetextcell)
 
     def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False,
-                redisplay=True, beforeload=False, cellname="", repldata=None, movedata=None, ignoreeffectbooster=False):
+                redisplay=True, beforeload=False, cellname="", repldata=None, movedata=None, ignoreeffectbooster=False,
+                updatetextcell=False):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
@@ -717,7 +719,8 @@ class BackGround(base.CWPySprite):
 
             elif bgtype == BG_TEXT:
                 # テキストセル
-                if self._add_textcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
+                if self._add_textcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible,
+                                      updatetextcell=updatetextcell):
                     forcedraw = True
 
             elif bgtype == BG_COLOR:
@@ -871,9 +874,11 @@ class BackGround(base.CWPySprite):
 
         return anime, update, bginhrt
 
-    def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
+    def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False, updatetextcell=False):
         text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,\
             btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
+        if updatetextcell and updatetype == "All":
+            namelist = None
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
@@ -881,7 +886,7 @@ class BackGround(base.CWPySprite):
         if flagvalue and not loaded:
             # テキストセルは最初の表示で内容が固定される
             text2 = cw.util.decodewrap(text)
-            text2, namelist = cw.sprite.message.rpl_specialstr(text2, basenamelist=namelist if updatetype != "All" else None,
+            text2, namelist = cw.sprite.message.rpl_specialstr(text2, basenamelist=namelist,
                                                                updatetype=updatetype)
             # 2.0以降はloadedパラメータは使用しない
             #loaded = True
