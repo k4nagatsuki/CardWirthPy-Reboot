@@ -600,14 +600,12 @@ class BackGround(base.CWPySprite):
             assert False
 
     def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, cellname="", repldata=None,
-               movedata=None, ignoreeffectbooster=False, nocheckvisible=False, updatetextcell=False):
+               movedata=None, ignoreeffectbooster=False, nocheckvisible=False):
         return self._reload(doanime, ttype, redraw, False, redisplay=False, cellname=cellname, repldata=repldata,
-                            movedata=movedata, ignoreeffectbooster=ignoreeffectbooster, nocheckvisible=nocheckvisible,
-                            updatetextcell=updatetextcell)
+                            movedata=movedata, ignoreeffectbooster=ignoreeffectbooster, nocheckvisible=nocheckvisible)
 
     def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False,
-                redisplay=True, beforeload=False, cellname="", repldata=None, movedata=None, ignoreeffectbooster=False,
-                updatetextcell=False):
+                redisplay=True, beforeload=False, cellname="", repldata=None, movedata=None, ignoreeffectbooster=False):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
@@ -714,8 +712,7 @@ class BackGround(base.CWPySprite):
 
             elif bgtype == BG_TEXT:
                 # テキストセル
-                if self._add_textcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible,
-                                      updatetextcell=updatetextcell):
+                if self._add_textcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
                     forcedraw = True
 
             elif bgtype == BG_COLOR:
@@ -869,10 +866,10 @@ class BackGround(base.CWPySprite):
 
         return anime, update, bginhrt
 
-    def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False, updatetextcell=False):
+    def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
         text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,\
             btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
-        if updatetextcell and updatetype == "All":
+        if not nocheckvisible and updatetype == "All":
             namelist = None
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
