@@ -115,7 +115,8 @@ class CWPyCard(base.SelectableSprite):
         else:
             return cw.cwpy.setting.dealing_scales
 
-    def _get_dealspeed(self):
+    def get_dealspeed(self, battlespeed):
+        """このカードがアニメーションする速度を返す。"""
         if cw.cwpy.force_dealspeed != -1:
             return cw.cwpy.force_dealspeed
         elif self.dealspeed != -1:
@@ -123,7 +124,10 @@ class CWPyCard(base.SelectableSprite):
         elif cw.cwpy.override_dealspeed != -1:
             return cw.cwpy.override_dealspeed
         else:
-            return cw.cwpy.setting.get_dealspeed(self.battlespeed and cw.cwpy.setting.use_battlespeed)
+            return cw.cwpy.setting.get_dealspeed(battlespeed)
+
+    def _get_dealspeed(self):
+        return self.get_dealspeed(self.battlespeed and cw.cwpy.setting.use_battlespeed)
 
     def update(self, scr):
         method = getattr(self, "update_" + self.status, None)

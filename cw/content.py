@@ -2184,6 +2184,15 @@ class EffectContent(EventContentBase):
         d["physical"] = self.data.getattr(".", "physical", "Dex")
         d["mental"] = self.data.getattr(".", "mental", "Aggressive")
 
+        # アニメーション速度(Wsn.4)
+        cardspeed = self.data.getattr(".", "cardspeed", "Default")
+        if cardspeed == "Default":
+            d["cardspeed"] = -1
+            d["overridecardspeed"] = False
+        else:
+            d["cardspeed"] = int(cardspeed)
+            d["overridecardspeed"] = self.data.getbool(".", "overridecardspeed", False)
+
         # Effectインスタンス作成
         motions = self.data.getfind("Motions").getchildren()
         self.eff = cw.effectmotion.Effect(motions, d, battlespeed=False)

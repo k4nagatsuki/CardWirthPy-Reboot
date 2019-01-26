@@ -85,6 +85,8 @@ class Effect(object):
         self.fade = d.get("fadein", 0)
         self.visualeffect = d.get("visualeffect", "None")
         self.battlespeed = battlespeed
+        self.cardspeed = d.get("cardspeed", -1) # Wsn.4
+        self.overridecardspeed = d.get("overridecardspeed", False) # Wsn.4
 
         # 選択メンバの能力参照(Wsn.2)
         self.refability = d.get("refability", False)
@@ -221,11 +223,13 @@ class Effect(object):
             if guardcard:
                 cw.cwpy.play_sound("equipment", True)
                 cw.cwpy.set_guardcardimg(target, guardcard)
-                cw.cwpy.draw()
-                waitrate = (cw.cwpy.setting.get_dealspeed(self.battlespeed)+1) * 2
+                cw.cwpy.add_lazydraw(clip=target.rect)
+                cw.cwpy.add_lazydraw(clip=guardcard.rect)
+                waitrate = (self._get_cardspeed(target)+1) * 2
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+                cw.cwpy.add_lazydraw(clip=target.rect)
+                cw.cwpy.add_lazydraw(clip=guardcard.rect)
                 cw.cwpy.clear_guardcardimg()
-                cw.cwpy.draw()
 
             # 回避・抵抗段階での消耗
             for header in consume:
@@ -241,7 +245,7 @@ class Effect(object):
         resisted = False
         if success_avo:
             cw.cwpy.play_sound("avoid", True)
-            cw.cwpy.draw()
+            cw.cwpy.add_lazydraw(clip=target.rect)
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
             if self.motions:
                 if noeffect:
@@ -292,13 +296,30 @@ class Effect(object):
         if self.user and self.count_motion("absorb")\
                      and userlife < self.user.life:
             cw.cwpy.play_sound("bind", True)
-            self.user.hide_inusecardimg = False
-            cw.animation.animate_sprite(self.user, "hide", battlespeed=self.battlespeed)
-            self.user.hide_inusecardimg = True
-            self.user.update_image()
-            cw.animation.animate_sprite(self.user, "deal", battlespeed=self.battlespeed)
+            override_dealspeed = cw.cwpy.override_dealspeed
+            force_dealspeed = cw.cwpy.force_dealspeed
+            try:
+                if self.cardspeed != -1:
+                    if self.overridecardspeed:
+                        cw.cwpy.force_dealspeed = self.cardspeed
+                    else:
+                        cw.cwpy.override_dealspeed = self.cardspeed
+                self.user.hide_inusecardimg = False
+                cw.animation.animate_sprite(self.user, "hide", battlespeed=self.battlespeed)
+                self.user.hide_inusecardimg = True
+                self.user.update_image()
+                cw.animation.animate_sprite(self.user, "deal", battlespeed=self.battlespeed)
+            finally:
+                cw.cwpy.override_dealspeed = override_dealspeed
+                cw.cwpy.force_dealspeed = force_dealspeed
 
         return True
+
+    def _get_cardspeed(self, target):
+        if isinstance(target, cw.sprite.card.CWPyCard):
+            return target.get_dealspeed(self.battlespeed)
+        else:
+            return cw.cwpy.setting.get_dealspeed(self.battlespeed)
 
     def check_noeffect(self, target):
         return check_noeffect(self.effecttype, target)
@@ -354,15 +375,29 @@ class Effect(object):
         targetにtypenameの効果アニメーションを実行する。
         update_imageがTrueだったら、アニメ後にtargetの画像を更新する。
         """
+        override_dealspeed = cw.cwpy.override_dealspeed
+        force_dealspeed = cw.cwpy.force_dealspeed
+        try:
+            if self.cardspeed != -1:
+                if self.overridecardspeed:
+                    cw.cwpy.force_dealspeed = self.cardspeed
+                else:
+                    cw.cwpy.override_dealspeed = self.cardspeed
+            self._animate_impl(target, update_image)
+        finally:
+            cw.cwpy.override_dealspeed = override_dealspeed
+            cw.cwpy.force_dealspeed = force_dealspeed
+
+    def _animate_impl(self, target, update_image):
         battlespeed = self.battlespeed
         # 隠れているカードやFriendCardはアニメーションさせない
         if target.status == "hidden":
             if update_image:
                 target.update_image()
-                cw.cwpy.draw(clip=target.rect)
+                cw.cwpy.add_lazydraw(clip=target.rect)
 
             if self.soundpath and cw.cwpy.has_sound(self.soundpath):
-                waitrate = (cw.cwpy.setting.get_dealspeed(battlespeed)+1) * 2
+                waitrate = (self._get_cardspeed(target)+1) * 2
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
 
         # 横振動(地震)
@@ -371,7 +406,7 @@ class Effect(object):
 
             if update_image:
                 target.update_image()
-                cw.cwpy.draw(clip=target.rect)
+                cw.cwpy.add_lazydraw(clip=target.rect)
 
         # 縦振動(振動)
         elif self.visualeffect == "Vertical":
@@ -379,7 +414,7 @@ class Effect(object):
 
             if update_image:
                 target.update_image()
-                cw.cwpy.draw(clip=target.rect)
+                cw.cwpy.add_lazydraw(clip=target.rect)
         # 反転
         elif self.visualeffect == "Reverse":
             target.hide_inusecardimg = False
@@ -394,7 +429,7 @@ class Effect(object):
         else:
             if update_image:
                 target.update_image()
-                cw.cwpy.draw(clip=target.rect)
+                cw.cwpy.add_lazydraw(clip=target.rect)
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
 
     def check_enabledtarget(self, target, event=False):
