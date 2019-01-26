@@ -54,6 +54,8 @@ class SystemData(object):
         self._skills = {}
         self._beasts = {}
 
+        cw.cwpy.classicdata = None
+
         self._init_xmlpaths()
         self._init_sparea_mcards()
 
