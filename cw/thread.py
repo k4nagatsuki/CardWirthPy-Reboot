@@ -87,6 +87,7 @@ class CWPy(_Singleton, threading.Thread):
         self.ydata = None
         # シナリオデータorシステムデータ
         self.sdata = None
+        self.classicdata = None
         # 選択中宿のパス
         self.yadodir = ""
         self.tempdir = ""
