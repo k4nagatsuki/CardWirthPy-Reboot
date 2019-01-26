@@ -2094,7 +2094,7 @@ class ChangeAreaContent(EventContentBase):
 class ChangeEnvironmentContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=True)
-        self.backpack = self.data.gettext(".", "NotSet")
+        self.backpack = self.data.getattr(".", "backpack", "NotSet")
 
     def action(self):
         """状況設定コンテント。"""
@@ -2113,7 +2113,7 @@ class ChangeEnvironmentContent(EventContentBase):
             else:
                 return "変更しない"
         backpack = enable_str(self.backpack)
-        return "荷物袋 = " % (backpack)
+        return "荷物袋 = %s" % (backpack)
 
 #-------------------------------------------------------------------------------
 # Check系コンテント
