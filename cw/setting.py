@@ -2646,6 +2646,7 @@ CWXEDITOR_RESOURCES = {
     "EVT_WAIT": "evt_wait.png",  # 空白時間
     "EVT_CALL_PACKAGE": "evt_call_p.png",  # パッケージのコール
     "EVT_CALL_START": "evt_call_s.png",  # スタートのコール
+    "EVT_CHANGE_ENVIRONMENT": "evt_chenv.png",  # 状況設定(Wsn.4)
 
     # Data
     "EVT_BRANCH_FLAG": "evt_br_flag.png",  # フラグ分岐

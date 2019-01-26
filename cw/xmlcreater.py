@@ -977,6 +977,11 @@ def create_scenariolog(sdata, path, recording, logfilepath):
     e_prop.append(e)
     e = cw.data.make_element("NoticeInfoView", str(sdata.notice_infoview))
     e_prop.append(e)
+    e = cw.data.make_element("PartyEnvironment")
+    if not sdata.party_environment_backpack:
+        e.append(cw.data.make_element("Backpack", "Disable"))
+    if len(e):
+        e_prop.append(e)
     if cw.cwpy.setting.write_playlog:
         e = cw.data.make_element("LogFile", logfilepath)
         e_prop.append(e)

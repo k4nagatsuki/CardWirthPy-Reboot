@@ -2522,7 +2522,8 @@ class CardHolder(CardControl):
             return
 
         self.list = self.selection.cardpocket[cw.cwpy.setting.last_cardpocket][:]
-        if cw.cwpy.setting.show_backpackcard and cw.cwpy.setting.last_cardpocket != cw.POCKET_SKILL and self.get_mode() == CCMODE_USE:
+        if cw.cwpy.sdata.party_environment_backpack and cw.cwpy.setting.show_backpackcard and\
+                cw.cwpy.setting.last_cardpocket != cw.POCKET_SKILL and self.get_mode() == CCMODE_USE:
             space = self.selection.get_cardpocketspace()[cw.cwpy.setting.last_cardpocket]
             if len(self.list) < space:
                 cardtype = ""

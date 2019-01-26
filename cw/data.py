@@ -76,6 +76,7 @@ class SystemData(object):
         self.ignorecase_table = {}
         self.notice_infoview = False
         self.infocards_beforeevent = None
+        self.party_environment_backpack = True
         self.pre_battleareadata = None
         self.data_cache = {}
         self.resource_cache = {}
@@ -865,6 +866,8 @@ class ScenarioData(SystemData):
         # 情報カードビューを開くまでの間True
         self.notice_infoview = False
         self.infocards_beforeevent = None # イベント開始前の所持情報カードのset
+        # 荷物袋の有効・無効(Wsn.4)
+        self.party_environment_backpack = True
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
         self.pre_battleareadata = None
         # バトル中、自動で行動開始するか
@@ -1674,6 +1677,7 @@ class ScenarioData(SystemData):
         ##            cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
         self.autostart_round = etree.getbool("Property/RoundAutoStart", False)
         self.notice_infoview = etree.getbool("Property/NoticeInfoView", False)
+        self.party_environment_backpack = etree.gettext("Property/PartyEnvironment/Backpack", "Disable") != "Disable"
         cw.cwpy.statusbar.loading = True
 
         for e in etree.getfind("Flags"):
@@ -1874,6 +1878,7 @@ class Flag(object):
 
 def redraw_cards(value, flag=""):
     """フラグに対応するメニューカードの再描画処理"""
+    quickdeal = cw.cwpy.areaid == cw.AREA_CAMP and cw.cwpy.setting.all_quickdeal
     if cw.cwpy.is_autospread():
         drawflag = False
 
@@ -1887,13 +1892,13 @@ def redraw_cards(value, flag=""):
 
         if drawflag:
             cw.cwpy.sdata.moved_mcards = {} # 再配置情報を破棄
-            cw.cwpy.hide_cards(True, flag=flag)
-            cw.cwpy.deal_cards(flag=flag)
+            cw.cwpy.hide_cards(True, flag=flag, quickhide=quickdeal)
+            cw.cwpy.deal_cards(flag=flag, quickdeal=quickdeal)
 
     elif value:
-        cw.cwpy.deal_cards(updatelist=False, flag=flag)
+        cw.cwpy.deal_cards(updatelist=False, flag=flag, quickdeal=quickdeal)
     else:
-        cw.cwpy.hide_cards(updatelist=False, flag=flag)
+        cw.cwpy.hide_cards(updatelist=False, flag=flag, quickhide=quickdeal)
 
 class Step(object):
     def __init__(self, value, name, valuenames, defaultvalue, spchars):

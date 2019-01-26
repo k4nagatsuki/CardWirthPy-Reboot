@@ -896,6 +896,8 @@ class Content(base.CWBinaryBase):
             f.check_wsnversion("3", "カード再配置コンテント")
             if data.getattr(".", "cardspeed", "Default") != "Default":
                 f.check_wsnversion("4", "カード速度指定")
+        elif tag == "Change" and ctype == "Environment": # Wsn.4
+            f.check_wsnversion("4", "状況設定")
         else:
             raise ValueError(tag + ", " + ctype)
 

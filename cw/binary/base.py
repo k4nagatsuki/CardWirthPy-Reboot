@@ -658,6 +658,9 @@ class CWBinaryBase(object):
         elif ctype == "Move" and n == "Card":  # Wsn.3
             f.check_wsnversion("3", "カード再配置コンテント")
             return 0
+        elif ctype == "Change" and n == "Environment":  # Wsn.4
+            f.check_wsnversion("4", "状況設定コンテント")
+            return 0
         else:
             raise ValueError(ctype + ", " + n)
 

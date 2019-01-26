@@ -2091,6 +2091,30 @@ class ChangeAreaContent(EventContentBase):
         else:
             return "エリアが指定されていません"
 
+class ChangeEnvironmentContent(EventContentBase):
+    def __init__(self, data):
+        EventContentBase.__init__(self, data, is_changestate=True)
+        self.backpack = self.data.gettext(".", "NotSet")
+
+    def action(self):
+        """状況設定コンテント。"""
+        if self.backpack == "Enable":
+            cw.cwpy.sdata.party_environment_backpack = True
+        elif self.backpack == "Disable":
+            cw.cwpy.sdata.party_environment_backpack = False
+        return 0
+
+    def get_status(self):
+        def enable_str(s):
+            if s == "Enable":
+                return "使用可"
+            elif s == "Disable":
+                return "使用不可"
+            else:
+                return "変更しない"
+        backpack = enable_str(self.backpack)
+        return "荷物袋 = " % (backpack)
+
 #-------------------------------------------------------------------------------
 # Check系コンテント
 #-------------------------------------------------------------------------------
@@ -4663,6 +4687,7 @@ class PostEventContent(EventContentBase):
                 def func():
                     cw.cwpy.lock_menucards = lock_menucards
                 cw.cwpy.exec_func(func)
+
 
 #-------------------------------------------------------------------------------
 # コンテント取得用関数
