@@ -1677,7 +1677,7 @@ class ScenarioData(SystemData):
         ##            cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
         self.autostart_round = etree.getbool("Property/RoundAutoStart", False)
         self.notice_infoview = etree.getbool("Property/NoticeInfoView", False)
-        self.party_environment_backpack = etree.gettext("Property/PartyEnvironment/Backpack", "Disable") != "Disable"
+        self.party_environment_backpack = etree.gettext("Property/PartyEnvironment/Backpack", "Enable") != "Disable"
         cw.cwpy.statusbar.loading = True
 
         for e in etree.getfind("Flags"):
