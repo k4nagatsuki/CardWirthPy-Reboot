@@ -223,12 +223,10 @@ class Effect(object):
             if guardcard:
                 cw.cwpy.play_sound("equipment", True)
                 cw.cwpy.set_guardcardimg(target, guardcard)
-                cw.cwpy.add_lazydraw(clip=target.rect)
-                cw.cwpy.add_lazydraw(clip=guardcard.rect)
+                cw.cwpy.draw(clip=target.rect.union(guardcard.rect))
                 waitrate = (self._get_cardspeed(target)+1) * 2
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-                cw.cwpy.add_lazydraw(clip=target.rect)
-                cw.cwpy.add_lazydraw(clip=guardcard.rect)
+                cw.cwpy.draw(clip=target.rect.union(guardcard.rect))
                 cw.cwpy.clear_guardcardimg()
 
             # 回避・抵抗段階での消耗
@@ -245,7 +243,7 @@ class Effect(object):
         resisted = False
         if success_avo:
             cw.cwpy.play_sound("avoid", True)
-            cw.cwpy.add_lazydraw(clip=target.rect)
+            cw.cwpy.draw(clip=target.rect)
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
             if self.motions:
                 if noeffect:
@@ -394,7 +392,7 @@ class Effect(object):
         if target.status == "hidden":
             if update_image:
                 target.update_image()
-                cw.cwpy.add_lazydraw(clip=target.rect)
+                cw.cwpy.draw(clip=target.rect)
 
             if self.soundpath and cw.cwpy.has_sound(self.soundpath):
                 waitrate = (self._get_cardspeed(target)+1) * 2
@@ -406,7 +404,7 @@ class Effect(object):
 
             if update_image:
                 target.update_image()
-                cw.cwpy.add_lazydraw(clip=target.rect)
+                cw.cwpy.draw(clip=target.rect)
 
         # 縦振動(振動)
         elif self.visualeffect == "Vertical":
@@ -414,7 +412,7 @@ class Effect(object):
 
             if update_image:
                 target.update_image()
-                cw.cwpy.add_lazydraw(clip=target.rect)
+                cw.cwpy.draw(clip=target.rect)
         # 反転
         elif self.visualeffect == "Reverse":
             target.hide_inusecardimg = False
@@ -429,7 +427,7 @@ class Effect(object):
         else:
             if update_image:
                 target.update_image()
-                cw.cwpy.add_lazydraw(clip=target.rect)
+                cw.cwpy.draw(clip=target.rect)
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
 
     def check_enabledtarget(self, target, event=False):
