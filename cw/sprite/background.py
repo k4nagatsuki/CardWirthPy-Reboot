@@ -326,7 +326,6 @@ class BackGround(base.CWPySprite):
         self._inhrt_index = 0
 
         bginhrt2 = bginhrt
-        delfores = not bginhrt
         inhrt_e = None
         if bginhrt and len(elements) and elements[0].tag == "BgImage":
             e = elements[0]
@@ -346,25 +345,9 @@ class BackGround(base.CWPySprite):
                 # CWはこの状態で冒険を中断して再開すると事前に描画されていた背景が消えるが、
                 # CWPyでは実際に覆われて描画できなくなったもの以外は残すようにする
                 bginhrt2 = False
-                delfores = True
                 if flag:
                     # フラグは指定されていても無視される(CardWirth 1.28～1.50)
                     e.find("Flag").text = ""
-
-        if delfores:
-            # 背景非継承の場合は手前のセルはすべて強制削除
-            bgs2 = []
-            for bgtype, d in self.bgs:
-                if bgtype == BG_SEPARATOR:
-                    bgs2.append((bgtype, d))
-                else:
-                    layer = d[-2]
-                    if layer != cw.LAYER_BACKGROUND:
-                        bgs2.append((bgtype, d))
-            self.bgs = bgs2
-            del self.foregroundlist[:]
-
-            self._inhrt_index = len(self.bgs)
 
         if bginhrt2:
             # 背景継承
@@ -375,6 +358,10 @@ class BackGround(base.CWPySprite):
                     if self._is_flagchanged(bgtype, d):
                         bginhrt2 = True
                         break
+        else:
+            self.bgs = []
+            del self.foregroundlist[:]
+            self._inhrt_index = 0
 
         if bginhrt2:
             # 背景継承
@@ -1027,7 +1014,6 @@ class BackGround(base.CWPySprite):
             bgs.append((BG_PC, d))
             oldbgs.append((BG_PC, d))
         return visible
-
 
     def _load_after(self, bginhrt, blitlist, doanime, animated, ttype, oldbgs, redraw, redisplay):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
