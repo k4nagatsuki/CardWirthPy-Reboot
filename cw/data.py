@@ -622,7 +622,6 @@ class SystemData(object):
                 cw.cwpy.show_party()
                 if redraw:
                     cw.cwpy.disposition_pcards()
-                    cw.cwpy.draw()
 
     def get_currentareaname(self):
         """現在滞在中のエリアの名前を返す"""
@@ -980,7 +979,7 @@ class ScenarioData(SystemData):
                 cw.cwpy.expanding_cur = cur
                 cw.cwpy.expanding = self._format % (self._arcname, cur, self._filenum)
                 cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-                cw.cwpy.draw()
+                cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
                 self._progress = False
             if not self._progress or cur == cw.cwpy.expanding_max:
                 self._progress = True
@@ -1004,7 +1003,7 @@ class ScenarioData(SystemData):
             thr.start()
             while thr.is_alive():
                 cw.cwpy.eventhandler.run()
-                cw.cwpy.tick_clock()
+                cw.cwpy.wait_frame(1)
                 cw.cwpy.input()
             cw.cwpy.eventhandler.run()
         except cw.event.EffectBreakError as ex:
@@ -1012,6 +1011,7 @@ class ScenarioData(SystemData):
             thr.join()
             raise ex
         finally:
+            cw.cwpy.lazy_draw()
             cw.cwpy.is_decompressing = False
             if not cw.cwpy.is_runningstatus():
                 raise cw.event.EffectBreakError()
@@ -2579,7 +2579,6 @@ class YadoData(object):
         self.party.sort_backpack()
 
         cw.cwpy.statusbar.change(False)
-        cw.cwpy.draw()
         cw.cwpy.ydata.party._loading = False
         return members
 
@@ -2634,7 +2633,6 @@ class YadoData(object):
         header = self.create_partyheader(cw.util.join_paths(path, "Party.xml"))
         cw.cwpy.load_party(header, chgarea=chgarea)
         cw.cwpy.statusbar.change(False)
-        cw.cwpy.draw()
 
     def sort_standbys(self):
         if cw.cwpy.setting.sort_standbys == "Level":
@@ -2795,7 +2793,6 @@ class YadoData(object):
         thr.start()
 
         cw.cwpy.clear_selection()
-        cw.cwpy.draw()
         self._changed = False
 
     def _retry_save(self):

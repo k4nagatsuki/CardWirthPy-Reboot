@@ -716,7 +716,7 @@ class Debugger(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             def func(value):
                 cw.cwpy.ydata.party.set_money(value - cw.cwpy.ydata.party.money, blink=True)
-                cw.cwpy.draw()
+                cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
             cw.cwpy.exec_func(func, dlg.value)
         dlg.Destroy()
 
@@ -762,7 +762,6 @@ class Debugger(wx.Frame):
             def func(value):
                 cw.cwpy.battle.round = value
                 cw.cwpy.statusbar.change()
-                cw.cwpy.draw()
             cw.cwpy.exec_func(func, dlg.value)
         dlg.Destroy()
 
@@ -914,7 +913,6 @@ class Debugger(wx.Frame):
         def func():
             cw.cwpy.play_sound("page")
             cw.cwpy.set_debug(False)
-            cw.cwpy.draw()
         cw.cwpy.exec_func(func)
 
     def OnSaveTool(self, event):
@@ -1136,7 +1134,6 @@ class Debugger(wx.Frame):
                             cw.cwpy.statusbar.change()
                             if cw.cwpy.battle:
                                 cw.cwpy.battle.set_members()
-                        cw.cwpy.draw()
                     cw.cwpy.exec_func(func, friendids, seq, dlg.GetSelections())
 
             dlg.Destroy()

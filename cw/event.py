@@ -610,7 +610,7 @@ class EventEngine(object):
                 if isinstance(cw.cwpy.selection, cw.sprite.card.MenuCard):
                     rect = cw.cwpy.selection.rect
                     cw.cwpy.clear_selection()
-                    cw.cwpy.draw(clip=rect)
+                    cw.cwpy.add_lazydraw(clip=rect)
 
             # イベント実行
             if isinsideevent:
@@ -804,7 +804,6 @@ class Event(object):
             # ステータスアイコンの数値描画を更新
             clip = pygame.Rect(cw.cwpy.statusbar.rect)
             clip = cw.cwpy.update_statusimgs(is_runningevent=True, clip=clip)
-            cw.cwpy.set_lazydraw()
 
             # イベント開始前の情報カード所持状況を記憶しておく
             if cw.cwpy.sdata.infocards_beforeevent is None:
@@ -1253,13 +1252,13 @@ class Targeting(object):
                         if self._setcardtarget and not ccard.cardtarget and self.in_effectmotionloop():
                             # 反転状態を変更
                             ccard.set_cardtarget()
-                            cw.cwpy.draw(clip=ccard.rect)
+                            cw.cwpy.add_lazydraw(clip=ccard.rect)
                             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
                     else:
                         if self._setcardtarget and ccard.cardtarget and self.in_effectmotionloop():
                             # 反転状態を変更
                             ccard.clear_cardtarget()
-                            cw.cwpy.draw(clip=ccard.rect)
+                            cw.cwpy.add_lazydraw(clip=ccard.rect)
                             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
                 else:
                     # メニューカード
@@ -1517,7 +1516,6 @@ class CardEvent(Event, Targeting):
         skipped = False
         if not d["allrange"] and len(self.targets) == 1:
             self.targets[0].set_cardtarget()
-            cw.cwpy.draw()
             if eff.check_enabledtarget(self.targets[0], False):
                 waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1) * 2
                 skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
@@ -1538,7 +1536,6 @@ class CardEvent(Event, Targeting):
             for target in self.targets:
                 if eff.check_enabledtarget(target, False):
                     target.set_cardtarget()
-                    cw.cwpy.draw()
                     cw.cwpy.play_sound_with(path, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
                     waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                     skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
@@ -1626,7 +1623,6 @@ class CardEvent(Event, Targeting):
                     # 成功・失敗キーコードイベントより死亡イベントを優先
                     if not deadevent:
                         self.run_successevent(target, success)
-                        cw.cwpy.draw()
 
                 finally:
                     target.remove_coupon("＠イベント対象")
@@ -1639,7 +1635,7 @@ class CardEvent(Event, Targeting):
                 cw.cwpy.play_sound_with(eff.soundpath, subvolume=self.eff.volume, loopcount=self.eff.loopcount,
                                         channel=self.eff.channel, fade=self.eff.fade)
                 eff.animate(target)
-                cw.cwpy.draw(clip=target.rect)
+                cw.cwpy.add_lazydraw(clip=target.rect)
                 self.mcards.discard(target)
                 self.run_menucardevent(target)
 

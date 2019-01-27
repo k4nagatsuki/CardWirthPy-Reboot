@@ -34,8 +34,8 @@ def wait_effectbooster(waittime, doanime):
             selection = cw.cwpy.selection
             cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
             if selection != cw.cwpy.selection:
-                cw.cwpy.draw()
-            cw.cwpy.tick_clock(1000)
+                cw.cwpy.add_lazydraw(cw.cwpy.statusbar.rect)
+            cw.cwpy.wait_frame(1, framerate=1000)
             cw.cwpy.input()
             eventhandler.run()
 
@@ -159,7 +159,7 @@ class _JpySubImage(cw.image.Image):
         # 一時描画せずにウェイトだけ
         if self.animation == 4:
             if doanime.countup() and self.waittime != 0:
-                cw.cwpy.draw()
+                cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
             self.wait(doanime)
         # 一時描画
         elif self.animation:
@@ -270,12 +270,12 @@ class _JpySubImage(cw.image.Image):
                         self.cache.beforerect = rect
                     background.blit(image, pos, special_flags=blendmode)
                     if not nowait and doanime.countup() and waittime != 0:
-                        cw.cwpy.draw()
+                        cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
                 else:
                     if self.animation == 1:
                         background.blit(image, pos, special_flags=blendmode)
                         if not nowait and doanime.countup() and waittime != 0:
-                            cw.cwpy.draw()
+                            cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
 
             if not nowait:
                 self.wait(doanime, anime=anime, waittime=waittime)
@@ -1105,7 +1105,7 @@ class JpdcImage(cw.image.Image):
                         cw.cwpy.background.use_excache = True
 
             if doanime and not doanime.all_cut:
-                cw.cwpy.draw()
+                cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
                 self.wait(doanime=doanime)
                 cw.cwpy.update_titlebar()
 

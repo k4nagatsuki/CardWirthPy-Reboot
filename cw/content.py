@@ -2027,8 +2027,7 @@ class ChangeBgImageContent(EventContentBase):
         ttype = self.get_transitiontype()
         if cw.cwpy.background.load(elements, True, ttype):
             # フレームを進める
-            cw.cwpy.draw()
-            cw.cwpy.tick_clock(framerate=30)
+            cw.cwpy.wait_frame(1, framerate=30)
 
         self.update_bg_after()
 
@@ -2325,7 +2324,6 @@ class EffectContent(EventContentBase):
                 cw.cwpy.play_sound_with(self.eff.soundpath, subvolume=self.eff.volume, loopcount=self.eff.loopcount,
                                     channel=self.eff.channel, fade=self.eff.fade)
                 self.eff.animate(target)
-                cw.cwpy.draw(clip=target.rect)
                 cw.cwpy.event.get_effectevent().mcards.discard(target)
                 runevent = event.ignition_menucardevent(target, keycodes=self.keycodes)
                 if runevent:
@@ -3469,8 +3467,7 @@ class LoseBgImageContent(EventContentBase):
         if cw.cwpy.background.reload(self.doanime, ttype, cellname=self.cellname, repldata=None,
                                      ignoreeffectbooster=self.ignoreeffectbooster):
             # フレームを進める
-            cw.cwpy.draw()
-            cw.cwpy.tick_clock(framerate=30)
+            cw.cwpy.wait_frame(1, framerate=30)
 
         self.update_bg_after()
 
@@ -3570,8 +3567,7 @@ class RedisplayContent(EventContentBase):
         ttype = self.get_transitiontype()
         if cw.cwpy.background.reload(True, ttype):
             # フレームを進める
-            cw.cwpy.draw()
-            cw.cwpy.tick_clock(framerate=30)
+            cw.cwpy.wait_frame(1, framerate=30)
 
         self.update_bg_after()
 
@@ -4195,7 +4191,6 @@ class WaitContent(EventContentBase):
         cnt * 0.1秒 の時間待機する。
         """
         # 最新の画面を描画してから時間待機する
-        cw.cwpy.draw()
         value = self.data.getint(".", "value", 0)
 
         tick = pygame.time.get_ticks()
@@ -4209,7 +4204,7 @@ class WaitContent(EventContentBase):
 
             cw.cwpy.event.refresh_activeitem()
             cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-            cw.cwpy.draw()
+            cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
             breakflag = cw.cwpy.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel) if cw.cwpy.setting.can_skipwait else False
             cw.cwpy.input()
             cw.cwpy.eventhandler.run()
@@ -4432,8 +4427,7 @@ class MoveBgImageContent(EventContentBase):
         if cw.cwpy.background.reload(self.doanime, ttype, cellname=self.cellname, movedata=movedata,
                                      ignoreeffectbooster=self.ignoreeffectbooster):
             # フレームを進める
-            cw.cwpy.draw()
-            cw.cwpy.tick_clock(framerate=30)
+            cw.cwpy.wait_frame(1, framerate=30)
 
         self.update_bg_after()
 
@@ -4597,8 +4591,7 @@ class ReplaceBgImageContent(EventContentBase):
         if cw.cwpy.background.reload(self.doanime, ttype, cellname=self.cellname, repldata=elements,
                                      ignoreeffectbooster=self.ignoreeffectbooster):
             # フレームを進める
-            cw.cwpy.draw()
-            cw.cwpy.tick_clock(framerate=30)
+            cw.cwpy.wait_frame(1, framerate=30)
 
         self.update_bg_after()
 

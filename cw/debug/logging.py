@@ -22,7 +22,6 @@ class DebugLogDialog(wx.Dialog):
             if cw.cwpy.sdata.notice_debuglog:
                 cw.cwpy.sdata.notice_debuglog = 0
                 cw.cwpy.statusbar.change()
-                cw.cwpy.draw()
         cw.cwpy.exec_func(func)
 
         self.plain_text = ["「%s」のプレイ結果" % (debuglog.sname), "========================================", ""]

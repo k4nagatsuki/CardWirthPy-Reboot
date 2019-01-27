@@ -1471,7 +1471,6 @@ class CardControl(wx.Dialog):
                         cw.cwpy.trade("PLAYERCARD", header=header, target=target, from_event=False, parentdialog=self, sound=False)
                     elif index == self._combo_shelf:
                         cw.cwpy.trade("PAWNSHOP", header=header, from_event=False, parentdialog=self, sound=False)
-                        cw.cwpy.draw(True)
                     elif index == self._combo_trush:
                         cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
                     def func():
@@ -1631,9 +1630,9 @@ class CardHolder(CardControl):
                     pcard.test_aptitude = None
                     pcard.update_image()
                 cw.cwpy.clear_numberofcards()
+                cw.cwpy.add_lazydraw(clip=pcard.rect)
             for poc in cw.cwpy.pricesprites:
                 poc.set_header(None)
-            cw.cwpy.draw()
         cw.cwpy.exec_func(func)
 
         # タイプ別初期化(キャストの手札の場合はindex復元後)
@@ -1839,8 +1838,6 @@ class CardHolder(CardControl):
             if self.callname != "INFOVIEW":
                 # 選択中カード色反転
                 self.Parent.change_selection(self.selection)
-
-        cw.cwpy.exec_func(cw.cwpy.draw)
 
         self._show_controls()
 
@@ -2939,7 +2936,6 @@ class InfoView(CardHolder):
             if cw.cwpy.sdata.notice_infoview:
                 cw.cwpy.sdata.notice_infoview = False
                 cw.cwpy.statusbar.change()
-                cw.cwpy.draw()
         cw.cwpy.exec_func(func)
 
     def OnLeftUp(self, event):

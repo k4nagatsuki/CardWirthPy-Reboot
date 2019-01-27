@@ -595,7 +595,6 @@ class EventHandler(object):
                 cw.cwpy.setting.show_fcardsinbattle = not cw.cwpy.setting.show_fcardsinbattle
                 cw.cwpy.battle.update_showfcards()
                 cw.cwpy.statusbar.change()
-                cw.cwpy.draw()
         elif cw.cwpy.setting.show_debuglogdialog and cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog:
             # 前回終了したシナリオのデバッグログ
             cw.cwpy.play_sound("click")
@@ -618,7 +617,6 @@ class EventHandler(object):
             cw.cwpy.play_sound("page")
             cw.cwpy.sdata.autostart_round = not cw.cwpy.sdata.autostart_round
             cw.cwpy.statusbar.change(showbuttons=cw.cwpy.statusbar.showbuttons)
-            cw.cwpy.draw(clip=cw.s(pygame.Rect(cw.RECT_STATUSBAR)))
 
     def f9key_event(self):
         """
@@ -1129,7 +1127,8 @@ class EventHandlerForMessageWindow(EventHandler):
                 cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_2)
                 cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
                 if redraw:
-                    cw.cwpy.draw()
+                    cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
+                    cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
         else:
             if not self._has_message():
                 if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
@@ -1144,7 +1143,8 @@ class EventHandlerForMessageWindow(EventHandler):
                     if cw.s(cw.SIZE_AREA[1]) <= sbar.rect.bottom:
                         cw.cwpy.sbargrp.add(sbar, layer=cw.sprite.statusbar.LAYER_MESSAGE)
                 if redraw:
-                    cw.cwpy.draw()
+                    cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
+                    cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
 
 class EventHandlerForBacklog(EventHandler):
     def __init__(self, backlog, index):
@@ -1543,7 +1543,7 @@ class EventHandlerForBacklog(EventHandler):
 
         # 背景スプライト削除
         cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
-        cw.cwpy.draw()
+        cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
 
     def keydown_event(self, key):
         """その他のKEYDOWNイベント。"""
@@ -1633,7 +1633,7 @@ class EventHandlerForBacklog(EventHandler):
             # 次のログ
             self.mwin = self.backlog[self.index].create_message()
             self._page.update_page(self.index+1, self._get_maxpage())
-        cw.cwpy.draw()
+        cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
 
 class EventHandlerForEffectBooster(EventHandler):
     def __init__(self):

@@ -150,7 +150,7 @@ class BattleEngine(object):
 
         clip = cw.cwpy.update_statusimgs(is_runningevent=True)
         if clip:
-            cw.cwpy.draw(clip=clip)
+            cw.cwpy.add_lazydraw(clip=clip)
 
         # 戦闘行動ループ
         for member in self.members:
@@ -257,7 +257,6 @@ class BattleEngine(object):
             self._ready = True
             cw.cwpy.statusbar.change()
             cw.cwpy.clear_selection()
-            cw.cwpy.draw()
 
     def update_debug(self):
         # 敵の状態の暴露・非暴露切り替え

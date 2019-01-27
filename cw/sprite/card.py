@@ -169,8 +169,7 @@ class CWPyCard(base.SelectableSprite):
         self.hide_inusecardimg = True
 
         if self.status == "hidden":
-            cw.cwpy.draw()
-            cw.cwpy.tick_clock()
+            cw.cwpy.wait_frame(1)
             self.reversed = not self.reversed
 
             self._reverse()
@@ -691,11 +690,12 @@ class CWPyCard(base.SelectableSprite):
         if not self.cardtarget:
             self.cardtarget = True
             self.update_image()
+            cw.cwpy.add_lazydraw(clip=self.rect)
 
     def clear_cardtarget(self):
         if self.cardtarget:
             self.cardtarget = False
-            self.update_image()
+            cw.cwpy.add_lazydraw(clip=self.rect)
 
 #-------------------------------------------------------------------------------
 #　プレイヤーカードスプライト

@@ -110,7 +110,7 @@ class PartyEditor(wx.Dialog):
 
             if update:
                 party.write()
-                cw.cwpy.draw(True)
+                cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
 
             def func(self):
                 if self:

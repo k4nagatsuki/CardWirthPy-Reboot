@@ -330,7 +330,6 @@ class Frame(wx.Frame):
 
             def func():
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
-                cw.cwpy.draw()
             cw.cwpy.exec_func(func)
             dlg.Show()
 
@@ -342,7 +341,6 @@ class Frame(wx.Frame):
             debugger.Close()
             def func():
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
-                cw.cwpy.draw()
             cw.cwpy.exec_func(func)
 
     def exec_func(self, func, *args, **kwargs):
@@ -992,7 +990,6 @@ class Frame(wx.Frame):
                 cw.cwpy.clear_targetarrow()
             else:
                 cw.cwpy.set_targetarrow(targets)
-            cw.cwpy.draw()
 
         if cw.cwpy.setting.confirm_beforeusingcard:
             cw.cwpy.exec_func(func, owner, header, targets)
@@ -1177,7 +1174,7 @@ class Frame(wx.Frame):
             # 異なる値を設定する
             cw.cwpy.mousepos = (-2, -2)
             if redraw and not cw.cwpy.is_updating_skin:
-                cw.cwpy.draw()
+                cw.cwpy.add_lazydraw(clip=cw.cwpy.background)
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False
         cw.cwpy.kill_showingdlg()
@@ -1356,7 +1353,6 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(cw.cwpy.change_selection, selection)
         else:
             cw.cwpy.exec_func(cw.cwpy.clear_selection)
-        cw.cwpy.exec_func(cw.cwpy.draw)
 
     def change_cardcontrolarea(self):
         """カード移動操作を行う特殊エリアに移動。"""

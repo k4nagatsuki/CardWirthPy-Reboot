@@ -32,14 +32,14 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
             sprite.battlespeed = True
 
     skip = _get_skipstatus(clearevent)
+    draw = False
 
-    cw.cwpy.lazy_draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
         stw.is_waiting()
         if cw.cwpy.setting.stop_the_world_with_iconized and cw.cwpy.frame.is_iconized:
             cw.cwpy.input(inputonly=clearevent)
             cw.cwpy.eventhandler.run()
-            cw.cwpy.tick_clock()
+            cw.cwpy.wait_frame(1)
             continue
         sprite.start_animation = stw.start_ticks
 
@@ -48,23 +48,18 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
         sprite.update(cw.cwpy.scr_draw)
         clip.union_ip(sprite.rect)
         if sprite.status != anitype:
-            if background:
-                cw.cwpy.draw()
-            else:
-                cw.cwpy.draw(clip=clip)
+            cw.cwpy.add_lazydraw(clip=clip)
             break
 
+        draw = True
         skip |= _get_skipstatus(clearevent)
 
         if skip:
             cw.cwpy.add_lazydraw(clip)
         else:
             clip = _inputevent(clip, clearevent, statusbutton)
-            if background:
-                cw.cwpy.draw()
-            else:
-                cw.cwpy.draw(clip=clip)
-            cw.cwpy.tick_clock()
+            cw.cwpy.add_lazydraw(clip=clip)
+            cw.cwpy.wait_frame(1)
 
     sprite.skipped = False
 
@@ -79,13 +74,13 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
         cw.cwpy.input(inputonly=clearevent)
         cw.cwpy.eventhandler.run()
 
-    if skip:
-        cw.cwpy.draw()
-
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
     if clearevent and selection and cw.cwpy.selection != selection:
         cw.cwpy.change_selection(selection)
+
+    if draw:
+        cw.cwpy.lazy_draw()
 
     return skip
 
@@ -126,14 +121,14 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
 
     animating = True
     skip = _get_skipstatus(clearevent)
+    draw = False
 
-    cw.cwpy.lazy_draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
         stw.is_waiting()
         if cw.cwpy.setting.stop_the_world_with_iconized and cw.cwpy.frame.is_iconized:
             cw.cwpy.input(inputonly=clearevent)
             cw.cwpy.eventhandler.run()
-            cw.cwpy.tick_clock()
+            cw.cwpy.wait_frame(1)
             continue
 
         clip = None
@@ -152,17 +147,18 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
                 upd = True
             clip.union_ip(sprite.rect)
         if not upd:
-            cw.cwpy.draw(clip=clip)
+            cw.cwpy.add_lazydraw(clip=clip)
             break
 
+        draw = True
         skip |= _get_skipstatus(clearevent)
 
         if skip:
             cw.cwpy.add_lazydraw(clip)
         else:
             clip = _inputevent(clip, clearevent, False)
-            cw.cwpy.draw(clip=clip)
-            cw.cwpy.tick_clock()
+            cw.cwpy.add_lazydraw(clip=clip)
+            cw.cwpy.wait_frame(1)
 
         animating = False
 
@@ -181,13 +177,13 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
     cw.cwpy.input(inputonly=clearevent)
     cw.cwpy.eventhandler.run()
 
-    if skip:
-        cw.cwpy.draw()
-
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
     if clearevent and not cw.cwpy.selection is selection:
         cw.cwpy.change_selection(selection)
+
+    if draw:
+        cw.cwpy.lazy_draw()
 
     return skip
 

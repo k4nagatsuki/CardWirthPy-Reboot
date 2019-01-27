@@ -3,6 +3,7 @@
 
 import sys
 import os
+import itertools
 import pygame
 import pygame.locals
 
@@ -201,11 +202,13 @@ class StatusBar(base.CWPySprite):
             cw.cwpy.event.refresh_tools()
 
         self.update_tiles()
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
     def clear(self):
-        cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_ITEM)
-        cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_PROGRESS)
-        cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_DESC)
+        for sprite in itertools.chain(cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_ITEM),
+                                      cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_PROGRESS),
+                                      cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_DESC)):
+            cw.cwpy.add_lazydraw(clip=sprite.rect)
 
     def _create_autostart(self, pos):
         if self.autostart:
@@ -345,7 +348,7 @@ class StatusBar(base.CWPySprite):
             if redraw:
                 self.touchmenu.is_pushed = False
                 self.touchmenu.update_image()
-                cw.cwpy.draw(clip=rect)
+                cw.cwpy.add_lazydraw(clip=rect)
 
     def update_tiles(self):
         for btn in cw.cwpy.sbargrp.get_sprites_from_layer(cw.sprite.statusbar.LAYER_TOUCH_BUTTON):
@@ -389,7 +392,7 @@ class VolumeBar(base.CWPySprite):
         subimg = font.render("音量", True, (255, 255, 255))
         self.image.blit(subimg, ((self.rect.width-tsize2[0])//2, cw.s(padh)))
 
-        cw.cwpy.draw(clip=self.rect)
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
     def clear_image(self):
         if not self.rect.width:
@@ -397,7 +400,7 @@ class VolumeBar(base.CWPySprite):
         rect = self.rect
         self.image = pygame.Surface(cw.s((0, 0))).convert()
         self.rect = pygame.Rect(0, 0, 0, 0)
-        cw.cwpy.draw(clip=rect)
+        cw.cwpy.add_lazydraw(clip=rect)
         return True
 
 
@@ -455,6 +458,7 @@ class ProgressView(base.CWPySprite):
         image.blit(subimg, (x, y))
         _draw_edge(image)
         self.image = image
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
 
 class ExpandView(ProgressView):
@@ -518,30 +522,31 @@ class StatusBarPanel(base.MouseHandlerSprite):
         self._create_paneimg(pos, size, self.get_icon())
         if self._desc:
             cw.cwpy.sbargrp.remove(self._desc)
-            cw.cwpy.draw(clip=self._desc.rect)
+            cw.cwpy.add_lazydraw(clip=self._desc.rect)
             self._desc = None
         self.update_image()
 
     def set_desc(self, desc):
         self.desc = desc
         if self._desc:
+            cw.cwpy.add_lazydraw(clip=self._desc.rect)
             cw.cwpy.sbargrp.remove(self._desc)
             rect = self._desc.rect
             self._desc = None
             self._desc = Desc(self, "", self.desc, "", arrowpos=cw.s(3)+self.icon.get_width()//2)
             cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
-            cw.cwpy.draw(clip=self._desc.rect)
+            cw.cwpy.add_lazydraw(clip=self._desc.rect)
 
     def update_image(self):
         if cw.cwpy.setting.show_btndesc and self.handling and self.desc and not cw.cwpy.is_showingdlg():
             if not self._desc:
                 self._desc = Desc(self, "", self.desc, "", arrowpos=cw.s(3)+self.icon.get_width()//2)
                 cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
-                cw.cwpy.draw(clip=self._desc.rect)
+                cw.cwpy.add_lazydraw(clip=self._desc.rect)
         else:
             if self._desc:
                 cw.cwpy.sbargrp.remove(self._desc)
-                cw.cwpy.draw(clip=self._desc.rect)
+                cw.cwpy.add_lazydraw(clip=self._desc.rect)
                 self._desc = None
                 cw.cwpy.has_inputevent = True
 
@@ -650,6 +655,7 @@ class YadoMoneyPanel(StatusBarPanel):
 
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
     def update_color(self):
         pass
@@ -742,6 +748,7 @@ class EncounterPanel(StatusBarPanel):
         rect.top = (self.rect.h - rect.h) // 2
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
 
 class RoundCounterPanel(YadoMoneyPanel):
@@ -770,6 +777,7 @@ class RoundCounterPanel(YadoMoneyPanel):
         rect.top = (self.rect.h - rect.h) // 2
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
 
 class StatusBarButton(base.SelectableSprite):
@@ -976,9 +984,11 @@ class StatusBarButton(base.SelectableSprite):
             self.hide_desc()
             self._desc = Desc(self, self.name, self.desc, self.hotkey)
             cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
+            cw.cwpy.add_lazydraw(clip=self._desc.rect)
 
     def hide_desc(self):
         if self._desc:
+            cw.cwpy.add_lazydraw(clip=self._desc.rect)
             cw.cwpy.sbargrp.remove(self._desc)
             self._desc = None
 
@@ -1006,8 +1016,10 @@ class StatusBarButton(base.SelectableSprite):
             if not self._desc:
                 self._desc = Desc(self, self.name, self.desc, self.hotkey)
                 cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
+                cw.cwpy.add_lazydraw(clip=self._desc)
         else:
             if self._desc:
+                cw.cwpy.add_lazydraw(clip=self._desc)
                 cw.cwpy.sbargrp.remove(self._desc)
                 self._desc = None
                 cw.cwpy.has_inputevent = True
@@ -1023,6 +1035,7 @@ class StatusBarButton(base.SelectableSprite):
             flags |= cw.setting.SB_EMPHASIZE
 
         self.image = self.get_btnimg(flags)
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
     def lclick_event(self):
         cw.cwpy.stop_animation(self)

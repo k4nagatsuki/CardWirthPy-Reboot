@@ -939,7 +939,7 @@ class Character(object):
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # カード表示
             inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True)
-            cw.cwpy.draw(clip=inusecardimg.rect)
+            cw.cwpy.add_lazydraw(clip=inusecardimg.rect)
             if cw.cwpy.setting.wait_usecard:
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())*2+1
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
@@ -2786,7 +2786,7 @@ class Character(object):
                 if self.status != "reversed" and self.status != "hidden":
                     cw.animation.animate_sprite(self, "lateralvibe", battlespeed=cw.cwpy.is_battlestatus())
                 self.update_image()
-                cw.cwpy.draw(clip=self.rect)
+                cw.cwpy.add_lazydraw(clip=self.rect)
 
         # 麻痺
         if self.is_paralyze() and not self.is_petrified() and not self.is_unconscious():
@@ -2925,7 +2925,7 @@ class Character(object):
                     self.update_image()
             else:
                 self.update_image()
-            cw.cwpy.draw(clip=self.rect)
+            cw.cwpy.add_lazydraw(clip=self.rect)
 
         # エネミーまたはプレイヤー(Wsn.2)が中毒効果で死亡していたら、死亡イベント開始
         if isinstance(self, (Player, Enemy)) and self.is_dead() and oldalive:

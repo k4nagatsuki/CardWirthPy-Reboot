@@ -811,6 +811,7 @@ class SelectionBar(base.SelectableSprite):
         if cw.s(cw.SIZE_AREA[1]) < self.rect.top:
             self.rect.height = cw.s(0)
             self.rect_noscale.height = 0
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
     def get_unselectedimage(self):
         return self._image

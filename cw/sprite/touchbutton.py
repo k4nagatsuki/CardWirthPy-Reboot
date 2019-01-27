@@ -192,7 +192,7 @@ class _PointableTile(TouchButton):
                         cw.cwpy.pointed_tile = None
                 if not self.is_enabled():
                     self.image = self._disabledimage
-                cw.cwpy.draw(clip=self.rect)
+                cw.cwpy.add_lazydraw(clip=self.rect)
 
     def is_selection(self):
         # 通常の衝突判定
@@ -405,7 +405,7 @@ class VolumeTile(TouchButton):
         cw.cwpy.set_mastervolume(volume)
 
         self.update_image()
-        cw.cwpy.draw(clip=self.rect)
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
     def lclick_event(self):
         pass # 何もしない

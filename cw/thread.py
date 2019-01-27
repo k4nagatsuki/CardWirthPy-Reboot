@@ -709,10 +709,11 @@ class CWPy(_Singleton, threading.Thread):
         if afterfunc:
             afterfunc()
 
+        self.add_lazydraw(cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
+
         if changearea:
             def func():
                 self.update()
-                self.draw()
             self.exec_func(func)
 
         if not rsrconly and not (self.setting.expandmode == "FullScreen" and self.is_expanded()):
@@ -776,7 +777,6 @@ class CWPy(_Singleton, threading.Thread):
         if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
             self.clear_selection()
         self.change_selection(self.selection)
-        self.draw()
 
     def update_infocard(self):
         """デバッガ等から所有情報カードの変更を
@@ -866,12 +866,13 @@ class CWPy(_Singleton, threading.Thread):
             self.rsrc.clear_systemfonttable()
 
     def tick_clock(self, framerate=0):
+        self.lazy_draw()
         if framerate:
             self.clock.tick(framerate)
         else:
             self.clock.tick(self.setting.fps)
 
-    def wait_frame(self, count, canskip, stoptheworld=None):
+    def wait_frame(self, count, canskip=True, stoptheworld=None, framerate=0):
         """countフレーム分待機する。"""
         self.event.eventtimer = 0
         skip = False
@@ -886,7 +887,7 @@ class CWPy(_Singleton, threading.Thread):
                 sel = self.selection
                 self.sbargrp.update(cw.cwpy.scr_draw)
                 if sel != self.selection:
-                    cw.cwpy.draw(clip=self.statusbar.rect)
+                    self.add_lazydraw(clip=self.statusbar.rect)
                 breakflag = self.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)
                 self.input(inputonly=True)
                 self.eventhandler.run()
@@ -896,7 +897,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if stoptheworld:
                 stoptheworld.is_waiting()
-            self.tick_clock()
+            self.tick_clock(framerate)
             if not (self.setting.stop_the_world_with_iconized and self.frame.is_iconized):
                 i += 1
         return skip
@@ -991,7 +992,6 @@ class CWPy(_Singleton, threading.Thread):
                 if mousemotion2 and self._in_partyarea(mousepos) != self._in_partyarea(self.mousepos):
                     self._show_allselectedcards = True
                     self.change_selection(self.selection)
-                    self.draw()
 
             self.keyin = self.keyevent.get_pressed()
 
@@ -1044,7 +1044,6 @@ class CWPy(_Singleton, threading.Thread):
             # 通常エリアで操作可能な状態であればステータスバーのボタンを表示
             if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
                 self.statusbar.change()
-                self.draw()
 
         if self.lock_menucards:
             # 操作可能であればメニューカードのロックを解除
@@ -1076,12 +1075,10 @@ class CWPy(_Singleton, threading.Thread):
                 clip = self.update_statusimgs(False, clip=clip)
 
                 cw.cwpy.sdata.infocards_beforeevent = None
+                self.add_lazydraw(clip=clip)
 
             if self._need_disposition:
                 self.disposition_pcards()
-                self.draw()
-            elif clip:
-                self.draw(clip=clip)
 
             self._reloading = False
 
@@ -1184,13 +1181,14 @@ class CWPy(_Singleton, threading.Thread):
         removes = set()
         clip = None
         for sprite in self.animations:
+            if not clip:
+                clip = pygame.Rect(sprite.rect)
+            clip.union_ip(sprite.rect)
+
             if sprite.status != sprite.anitype:
                 removes.add(sprite)
                 continue # アニメーション終了
 
-            if not clip:
-                clip = pygame.Rect(sprite.rect)
-            clip.union_ip(sprite.rect)
             ticks = pygame.time.get_ticks()
             if ticks < sprite.start_animation:
                 sprite.start_animation = ticks
@@ -1209,7 +1207,7 @@ class CWPy(_Singleton, threading.Thread):
                 removes.add(sprite) # アニメーション終了
 
         if clip:
-            self.draw(clip=clip)
+            self.add_lazydraw(clip=clip)
 
         for sprite in removes:
             self.stop_animation(sprite)
@@ -1240,14 +1238,12 @@ class CWPy(_Singleton, threading.Thread):
         if self._lazy_draw:
             self.draw()
 
-    def set_lazydraw(self):
-        self._lazy_draw = True
-
     def add_lazydraw(self, clip):
         if self._lazy_clip:
             self._lazy_clip.union_ip(clip)
         else:
             self._lazy_clip = pygame.Rect(clip)
+        self._lazy_draw = True
 
     def stop_the_world_with_iconized(self):
         # 一時停止中はゲーム再開までブロックする
@@ -1273,6 +1269,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.topgrp.set_clip(clip)
                 self.backloggrp.set_clip(clip)
                 self.sbargrp.set_clip(clip)
+            else:
+                clip = self._lazy_clip
             self._lazy_clip = None
 
             dirty_rects = self.draw_to(self.scr_draw, True)
@@ -1697,7 +1695,6 @@ class CWPy(_Singleton, threading.Thread):
         if threading.currentThread() == self:
             if not self.frame:
                 return
-            self.draw()
             def func():
                 # BUG: シナリオインストールダイアログを開いたあとで
                 #      フィルタイベントの挙動がおかしくなる
@@ -1915,9 +1912,9 @@ class CWPy(_Singleton, threading.Thread):
 
                 if mwin.result is None:
                     self.input()
-                    self.draw(not mwin.is_drawing or self.has_inputevent)
+                    self.add_lazydraw(clip=mwin.rect)
 
-                self.tick_clock()
+                self.wait_frame(1)
                 self.input()
                 eventhandler.run()
         finally:
@@ -1957,7 +1954,6 @@ class CWPy(_Singleton, threading.Thread):
         # 次のアニメーションの前に再描画を行う
         for sprite in seq:
             self.add_lazydraw(sprite.rect)
-        self.set_lazydraw()
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
         # イベント強制終了用のエラーを送出する。
@@ -1994,10 +1990,9 @@ class CWPy(_Singleton, threading.Thread):
             while self.is_running() and eventhandler.is_showing() and\
                     cw.cwpy.sdata.is_playing and self._is_showingbacklog:
                 self.sbargrp.update(self.scr_draw)
-                if self.has_inputevent:
-                    self.draw()
+                self.add_lazydraw(clip=self.statusbar.rect)
                 eventhandler.stw.is_waiting()
-                self.tick_clock()
+                self.wait_frame(1)
                 self.input()
                 eventhandler.run()
                 if len(self.sdata.backlog) < length:
@@ -2109,7 +2104,6 @@ class CWPy(_Singleton, threading.Thread):
         try:
             fpath = cw.util.join_paths(self.skindir, "Resource/Xml/Animation/Opening.xml")
             anime = cw.sprite.animationcell.AnimationCell(fpath, cw.SIZE_AREA, (0, 0), self.topgrp, cw.LAYER_TITLE)
-            self.draw()
             cw.animation.animate_sprite(anime, "animation", clearevent=False)
 
             # スプライトを解除する
@@ -2433,7 +2427,6 @@ class CWPy(_Singleton, threading.Thread):
         self.clear_inusecardimg()
         self.clear_guardcardimg()
         self.statusbar.change(False)
-        self.draw(clip=self.statusbar.rect)
         self.return_takenoutcard(checkevent=False)
 
         # 対象選択画面でF9しても、中止ボタンを宿まで持ち越さないように
@@ -2944,7 +2937,6 @@ class CWPy(_Singleton, threading.Thread):
         if self.ydata and hideparty:
             if not self.ydata.party or self.ydata.party.is_loading():
                 self.statusbar.change(False)
-                self.draw(clip=self.statusbar.rect)
                 self.hide_party()
 
         # list, indexセット
@@ -3210,7 +3202,6 @@ class CWPy(_Singleton, threading.Thread):
                 mcard.update_name()
                 if mcard.name != name:
                     self.add_lazydraw(mcard.rect)
-                    self.set_lazydraw()
 
     def set_autospread(self, mcards, maxcol, campwithfriend=False, anime=False):
         """自動整列設定時のメニューカードの配置位置を設定する。
@@ -3359,6 +3350,7 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.party.vanished_pcards = []
 
         for index, pcard in enumerate(self.get_pcards()):
+            self.add_lazydraw(clip=pcard.rect)
             x = 9 + 95 * index + 9 * index
             y = pcard._pos_noscale[1]
             pcard.get_baserect()[0] = cw.s(x)
@@ -3377,6 +3369,7 @@ class CWPy(_Singleton, threading.Thread):
                 rect.center = pcard.rect.center
                 pcard.zoomimgs[i] = (img, rect)
             pcard.index = index
+            self.add_lazydraw(clip=pcard.rect)
         self._need_disposition = False
 
     def change_area(self, areaid, eventstarting=True,
@@ -3432,6 +3425,8 @@ class CWPy(_Singleton, threading.Thread):
             for pcard in self.get_pcards():
                 pcard.set_fullrecovery()
                 pcard.update_image()
+                if not silent:
+                    self.add_lazydraw(clip=pcard.rect)
 
         if not self.is_playingscenario() and not silent:
             self.disposition_pcards()
@@ -3443,8 +3438,6 @@ class CWPy(_Singleton, threading.Thread):
         if eventstarting and oldareaid >= 0 and not self.is_updating_skin:
             if not self.wait_showcards:
                 self.deal_cards(quickdeal=quickdeal, startbattle=startbattle, silent=silent)
-            elif not silent:
-                self.draw()
             self.force_dealspeed = force_dealspeed
 
             if self.is_playingscenario() and self.sdata.in_f9:
@@ -3456,7 +3449,6 @@ class CWPy(_Singleton, threading.Thread):
 
             if self._need_disposition and not silent:
                 self.disposition_pcards()
-                self.draw()
 
             self.sdata.start_event(keynum=1)
         elif not self.sdata.in_f9:
@@ -3467,7 +3459,6 @@ class CWPy(_Singleton, threading.Thread):
 
             if self._need_disposition and not silent:
                 self.disposition_pcards()
-                self.draw()
 
         if self.ydata and not self.is_playingscenario():
             self.ydata._changed = oldchanged
@@ -3754,6 +3745,7 @@ class CWPy(_Singleton, threading.Thread):
                     pcard.index = i
                     pcard.layer = (pcard.layer[0], pcard.layer[1], i, pcard.layer[3])
                     self.cardgrp.change_layer(pcard, pcard.layer)
+                    self.add_lazydraw(clip=pcard.rect)
                 if not silent:
                     self.disposition_pcards()
 
@@ -3820,8 +3812,6 @@ class CWPy(_Singleton, threading.Thread):
                 (targetselectionarea and not self.is_runningevent()) or\
                 (self.is_battlestatus() and self.battle.is_ready())
             self.statusbar.change(showbuttons)
-            if not silent:
-                self.draw()
         self.exec_func(func)
 
         if not silent:
@@ -3831,7 +3821,7 @@ class CWPy(_Singleton, threading.Thread):
             self.change_selection(self.selection)
 
         if oldareaid != cw.AREA_CAMP and redraw and not silent:
-            self.draw()
+            self.add_lazydraw(clip=self.background.rect)
 
         if callpredlg:
             self.call_predlg()
@@ -3906,13 +3896,12 @@ class CWPy(_Singleton, threading.Thread):
                                                           (x_noscale, y_noscale),
                                                           self.topgrp, replace.replace)
             seq.append(sprite)
+            self.add_lazydraw(clip=sprite.rect)
 
         if index != -1:
             self.index = index
             self.list = seq
             self.change_selection(self.list[index])
-
-        self.draw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_AREA)))
 
     def replace_pcardorder(self, index1, index2):
         """パーティメンバの位置を入れ替える。"""
@@ -3977,6 +3966,9 @@ class CWPy(_Singleton, threading.Thread):
 
     def clear_numberofcards(self):
         """所持枚数表示を消去する。"""
+        sprites = self.topgrp.sprites()
+        for sprite in sprites:
+            self.add_lazydraw(clip=sprite.rect)
         self.topgrp.empty()
 
 #-------------------------------------------------------------------------------
@@ -4010,6 +4002,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.selection:
             self.selection.image = self.selection.get_unselectedimage()
+        oldsel = self.selection
 
         # カードイベント中にtargetarrow, inusecardimgを消さないため
         if not self.is_runningevent():
@@ -4022,6 +4015,12 @@ class CWPy(_Singleton, threading.Thread):
             self.index = -1
 
         self.selection = sprite
+
+        if oldsel != sprite:
+            if oldsel:
+                self.add_lazydraw(clip=oldsel.rect)
+            if sprite:
+                self.add_lazydraw(clip=sprite.rect)
 
         if (not self.is_runningevent()\
                 and isinstance(sprite, cw.character.Character)\
@@ -4163,14 +4162,20 @@ class CWPy(_Singleton, threading.Thread):
         if not self.cardgrp.get_sprites_from_layer(cw.LAYER_TARGET_ARROW):
             if not isinstance(targets, (list, tuple)):
                 if targets.status != "hidden":
-                    cw.sprite.background.TargetArrow(targets)
+                    arrow = cw.sprite.background.TargetArrow(targets)
+                    cw.cwpy.add_lazydraw(clip=arrow.rect)
             else:
                 for target in targets:
                     if target.status != "hidden":
-                        cw.sprite.background.TargetArrow(target)
+                        arrow = cw.sprite.background.TargetArrow(target)
+                        cw.cwpy.add_lazydraw(clip=arrow.rect)
+
 
     def clear_targetarrow(self):
         """対象選択の指矢印の画像を削除。"""
+        arrows = self.cardgrp.get_sprites_from_layer(cw.LAYER_TARGET_ARROW)
+        for arrow in arrows:
+            cw.cwpy.add_lazydraw(clip=arrow.rect)
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_TARGET_ARROW)
 
     def update_selectablelist(self):
@@ -4210,9 +4215,6 @@ class CWPy(_Singleton, threading.Thread):
 
             self._curtained = True
 
-            if redraw:
-                self.draw()
-
     def clear_curtain(self, redraw=True):
         """Curtainスプライトを解除する。"""
         if self.is_curtained():
@@ -4222,8 +4224,6 @@ class CWPy(_Singleton, threading.Thread):
             self._curtained = False
             self.is_pcardsselectable = self.ydata and self.ydata.party
             self.is_mcardsselectable = True
-            if redraw:
-                self.draw()
 
     def cancel_cardcontrol(self):
         """カードの移動や使用の対象選択をキャンセルする。"""

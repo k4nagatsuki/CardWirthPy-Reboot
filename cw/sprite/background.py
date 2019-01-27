@@ -150,6 +150,7 @@ class BackGround(base.CWPySprite):
             else:
                 maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp)
                 self._curtains.append(maincurtain)
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
     def clear_curtain(self):
         if not self.curtained:
@@ -165,6 +166,7 @@ class BackGround(base.CWPySprite):
             self.curtain_all = False
         cw.cwpy.cardgrp.remove(self._curtains)
         self._curtains = []
+        cw.cwpy.add_lazydraw(clip=self.rect)
 
     def store_filepath(self, path):
         if not cw.cwpy.is_playingscenario():
@@ -1070,7 +1072,7 @@ class BackGround(base.CWPySprite):
                 cw.animation.animate_sprite(transitspr, "transition", background=True)
                 cw.cwpy.cardgrp.remove(transitspr)
             else:
-                cw.cwpy.draw()
+                cw.cwpy.add_lazydraw(clip=self.rect)
 
         self.has_jpdcimage = not self.reload_jpdcimage
 
