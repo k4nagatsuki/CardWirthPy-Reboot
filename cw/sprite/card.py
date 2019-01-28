@@ -45,6 +45,8 @@ class CWPyCard(base.SelectableSprite):
         self.hide_inusecardimg = True
         # アニメーション速度の上書き(-1でプレイヤー設定値)
         self.dealspeed = -1
+        # 名前にある特殊文字の展開の有無
+        self.spchars = False
 
         # MenuCardの特殊コマンド
         self.command = ""
