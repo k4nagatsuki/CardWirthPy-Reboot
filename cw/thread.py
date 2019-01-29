@@ -1256,9 +1256,7 @@ class CWPy(_Singleton, threading.Thread):
     def draw(self, mainloop=False, clip=None):
         self.stop_the_world_with_iconized()
 
-        if not clip:
-            self._lazy_draw = False
-        if self.has_inputevent or not mainloop:
+        if self.has_inputevent or not mainloop or self._lazy_draw:
             # SpriteGroup描画
             # FIXME: 描画領域を絞り込むと時々カードの描画中に
             #        次に表示される背景が映り込んでしまう
@@ -1273,6 +1271,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 clip = self._lazy_clip
             self._lazy_clip = None
+            self._lazy_draw = False
 
             dirty_rects = self.draw_to(self.scr_draw, True)
 
