@@ -1686,7 +1686,7 @@ class CWPy(_Singleton, threading.Thread):
         self.input(eventclear=True)
         self._showingdlg += 1
         self.statusbar.clear_volumebar()
-        self.add_lazydraw(clip=pygame.Rect((0, 0), cw.SIZE_GAME))
+        self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
         if self.selection and self.selection.is_statusctrl:
             # 表示が乱れる場合があるので
             # ステータスバーのボタンからフォーカスを外しておく

@@ -697,6 +697,7 @@ class CWPyCard(base.SelectableSprite):
     def clear_cardtarget(self):
         if self.cardtarget:
             self.cardtarget = False
+            self.update_image()
             cw.cwpy.add_lazydraw(clip=self.rect)
 
 #-------------------------------------------------------------------------------

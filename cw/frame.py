@@ -1174,7 +1174,7 @@ class Frame(wx.Frame):
             # 異なる値を設定する
             cw.cwpy.mousepos = (-2, -2)
             if redraw and not cw.cwpy.is_updating_skin:
-                cw.cwpy.add_lazydraw(clip=cw.cwpy.background)
+                cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False
         cw.cwpy.kill_showingdlg()
