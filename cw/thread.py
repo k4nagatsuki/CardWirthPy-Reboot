@@ -1075,7 +1075,8 @@ class CWPy(_Singleton, threading.Thread):
                 clip = self.update_statusimgs(False, clip=clip)
 
                 cw.cwpy.sdata.infocards_beforeevent = None
-                self.add_lazydraw(clip=clip)
+                if clip:
+                    self.add_lazydraw(clip=clip)
 
             if self._need_disposition:
                 self.disposition_pcards()
