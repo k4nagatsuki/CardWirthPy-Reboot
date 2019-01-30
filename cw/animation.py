@@ -51,7 +51,6 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
             cw.cwpy.add_lazydraw(clip=clip)
             break
 
-        draw = True
         skip |= _get_skipstatus(clearevent)
 
         if skip:
@@ -59,7 +58,9 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
         else:
             clip = _inputevent(clip, clearevent, statusbutton)
             cw.cwpy.add_lazydraw(clip=clip)
-            cw.cwpy.wait_frame(1)
+            cw.cwpy.wait_frame(1, canskip=draw)
+
+        draw = True
 
     sprite.skipped = False
 
@@ -81,8 +82,6 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     if draw:
         cw.cwpy.lazy_draw()
-    else:
-        cw.cwpy.wait_frame(1, canskip=False)
 
     return skip
 
@@ -152,7 +151,6 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
             cw.cwpy.add_lazydraw(clip=clip)
             break
 
-        draw = True
         skip |= _get_skipstatus(clearevent)
 
         if skip:
@@ -160,8 +158,9 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
         else:
             clip = _inputevent(clip, clearevent, False)
             cw.cwpy.add_lazydraw(clip=clip)
-            cw.cwpy.wait_frame(1)
+            cw.cwpy.wait_frame(1, canskip=draw)
 
+        draw = True
         animating = False
 
         for sprite, anitype in sprandanimes:
@@ -186,8 +185,6 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
 
     if draw:
         cw.cwpy.lazy_draw()
-    else:
-        cw.cwpy.wait_frame(1, canskip=False)
 
     return skip
 
