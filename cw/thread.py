@@ -884,16 +884,17 @@ class CWPy(_Singleton, threading.Thread):
                     skip = True
                     break
 
-                sel = self.selection
-                self.sbargrp.update(cw.cwpy.scr_draw)
-                if sel != self.selection:
-                    self.add_lazydraw(clip=self.statusbar.rect)
+            sel = self.selection
+            self.sbargrp.update(cw.cwpy.scr_draw)
+            if sel != self.selection:
+                self.add_lazydraw(clip=self.statusbar.rect)
+            if canskip:
                 breakflag = self.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)
-                self.input(inputonly=True)
-                self.eventhandler.run()
-                if breakflag:
-                    skip = True
-                    break
+            self.input(inputonly=True)
+            self.eventhandler.run()
+            if canskip and breakflag:
+                skip = True
+                break
 
             if stoptheworld:
                 stoptheworld.is_waiting()
