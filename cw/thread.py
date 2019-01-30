@@ -1251,7 +1251,7 @@ class CWPy(_Singleton, threading.Thread):
         while self.setting.stop_the_world_with_iconized and self.frame.is_iconized and self.is_running():
             self.input(inputonly=True)
             self.eventhandler.run()
-            self.tick_clock(1000)
+            self.clock.tick(1000)
 
     def draw(self, mainloop=False, clip=None):
         self.stop_the_world_with_iconized()
