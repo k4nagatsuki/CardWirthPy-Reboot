@@ -148,16 +148,19 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
                 upd = True
             clip.union_ip(sprite.rect)
         if not upd:
-            cw.cwpy.add_lazydraw(clip=clip)
+            if clip:
+                cw.cwpy.add_lazydraw(clip=clip)
             break
 
         skip |= _get_skipstatus(clearevent)
 
         if skip:
-            cw.cwpy.add_lazydraw(clip)
+            if clip:
+                cw.cwpy.add_lazydraw(clip)
         else:
             clip = _inputevent(clip, clearevent, False)
-            cw.cwpy.add_lazydraw(clip=clip)
+            if clip:
+                cw.cwpy.add_lazydraw(clip=clip)
             cw.cwpy.wait_frame(1, canskip=draw)
 
         draw = True
