@@ -1915,7 +1915,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.input()
                     self.add_lazydraw(clip=mwin.rect)
 
-                self.wait_frame(1)
+                self.wait_frame(1, canskip=False)
                 self.input()
                 eventhandler.run()
         finally:

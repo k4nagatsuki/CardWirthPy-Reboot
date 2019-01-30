@@ -81,6 +81,8 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     if draw:
         cw.cwpy.lazy_draw()
+    else:
+        cw.cwpy.wait_frame(1, canskip=False)
 
     return skip
 
@@ -184,6 +186,8 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
 
     if draw:
         cw.cwpy.lazy_draw()
+    else:
+        cw.cwpy.wait_frame(1, canskip=False)
 
     return skip
 
