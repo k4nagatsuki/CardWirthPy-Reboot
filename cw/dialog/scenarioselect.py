@@ -1300,8 +1300,8 @@ class ScenarioSelect(select.Select):
 
             dstdir = dlg.path
             dirstack = dlg.dirstack
-            dst = cw.util.join_paths(cw.util.get_linktarget(dstdir), os.path.basename(fpath))
-            adst = cw.util.relpath(dst, fpath)
+            dst = cw.util.join_paths(cw.util.get_symlinktarget(cw.util.get_linktarget(dstdir)), os.path.basename(fpath))
+            adst = cw.util.relpath(dst, cw.util.get_symlinktarget(fpath))
             if adst in ("", "."):
                 cw.cwpy.play_sound("harvest")
                 return
@@ -2337,7 +2337,7 @@ class ScenarioSelect(select.Select):
 
     def is_playing(self, header):
         p = cw.util.get_linktarget(header.get_fpath())
-        p = os.path.normcase(os.path.normpath(os.path.abspath(p)))
+        p = cw.util.get_keypath((p))
         return p in self.nowplayingpaths
 
     def is_complete(self, header):
@@ -2617,9 +2617,7 @@ class ScenarioSelect(select.Select):
 
         _index, dpath = self.tree.GetItemData(selitem)
         ndpath = cw.util.get_linktarget(dpath)
-        ndpath = os.path.abspath(ndpath)
-        ndpath = os.path.normpath(ndpath)
-        ndpath = os.path.normcase(ndpath)
+        ndpath = cw.util.get_keypath(cw.util.get_symlinktarget(ndpath))
         if ndpath in expandedset:
             return
         expandedset.add(ndpath)

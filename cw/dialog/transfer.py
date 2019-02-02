@@ -443,9 +443,7 @@ class TransferYadoDataDialog(wx.Dialog):
                     path = cw.data.find_scefullpath(toscedir, paths)
                     e.set("path", path)
                 if path:
-                    path = os.path.abspath(path)
-                    path = os.path.normpath(path)
-                    path = os.path.normcase(path)
+                    path = cw.util.get_keypath(path)
                 paths = "/".join(paths)
                 targetbookmarks.add((paths, path))
 
@@ -459,9 +457,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 path = cw.data.find_scefullpath(fromscedir, paths)
                 e.set("path", path)
             if path:
-                path = os.path.abspath(path)
-                path = os.path.normpath(path)
-                path = os.path.normcase(path)
+                path = cw.util.get_keypath(path)
             paths = "/".join(paths)
             if not (paths, path) in targetbookmarks:
                 bookmark.append(e)

@@ -145,7 +145,7 @@ class SystemData(object):
     def update_scenariopath(self, normpath, dst, dstisfile):
         if not self.fpath:
             return
-        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(self.fpath)))
+        normpath2 = cw.util.get_keypath(self.fpath)
         if normpath != normpath2:
             return
 
@@ -181,8 +181,8 @@ class SystemData(object):
             return
         if dstisfile:
             return
-        dst = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
-        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(self.fpath)))
+        dst = cw.util.get_keypath(dst)
+        normpath2 = cw.util.get_keypath(self.fpath)
         if dst != normpath2:
             return
         cw.cwpy.rsrc.specialchars.reset()
@@ -3117,7 +3117,7 @@ class YadoData(object):
                                                                     "Property")
                         path = e.gettext("WsnPath")
                         path = cw.util.get_linktarget(path)
-                        path = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+                        path = cw.util.get_keypath(path)
                         seq.append(path)
 
         return set(seq)

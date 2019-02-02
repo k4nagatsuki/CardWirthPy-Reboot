@@ -2901,7 +2901,7 @@ class RecentHistory(object):
 
         s = set()
         for path, md5, temppath in self.scelist:
-            normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+            normpath2 = cw.util.get_keypath(path)
             if normpath2 == from_normpath:
                 if normpath2 in s:
                     cw.util.remove(temppath)

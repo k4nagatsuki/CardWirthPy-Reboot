@@ -1025,7 +1025,7 @@ class JpdcImage(cw.image.Image):
                 cw.sprite.message.store_messagelogimage(path, True)
                 spext = os.path.splitext(path)
 
-                npath = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+                npath = cw.util.get_keypath(path)
                 if npath in cw.cwpy.sdata.ex_cache:
                     ex_cache = None
                 else:

@@ -145,12 +145,12 @@ class SkinConversionDialog(wx.Dialog):
                 else:
                     targ = os.path.join(os.path.dirname(self.conv.exe), self.conv.scenariodir)
 
-                path1 = os.path.normcase(os.path.abspath(os.path.normpath(targ)))
+                path1 = cw.util.get_keypath(cw.util.get_symlinktarget(targ))
 
                 ##existslink = False
                 ##for dpath in os.listdir(u"Scenario"):
                 ##    dpath = os.path.join(u"Scenario", dpath)
-                ##    path2 = os.path.normcase(os.path.abspath(os.path.normpath(cw.util.get_linktarget(dpath))))
+                ##    path2 = cw.util.get_keypath(cw.util.get_symlinktarget(cw.util.get_linktarget(dpath)))
                 ##    if path1 == path2:
                 ##        existslink = True
                 ##        break
@@ -206,7 +206,7 @@ class SkinConversionDialog(wx.Dialog):
                     os.makedirs("Yado")
                 for fpath in os.listdir("Yado"):
                     fpath = cw.util.join_paths("Yado", fpath)
-                    exists.add(os.path.normcase(os.path.abspath(os.path.normpath(cw.util.get_linktarget(fpath)))))
+                    exists.add(cw.util.get_keypath(cw.util.get_symlinktarget(cw.util.get_linktarget(fpath))))
 
                 if os.path.isdir(targ):
                     for fpath in os.listdir(targ):
@@ -214,7 +214,7 @@ class SkinConversionDialog(wx.Dialog):
                         if not os.path.isdir(dpath):
                             continue
                         cwyado = cw.binary.cwyado.CWYado(dpath, "Yado")
-                        if cwyado.is_convertible() and not os.path.normcase(os.path.abspath(os.path.normpath(dpath))) in exists:
+                        if cwyado.is_convertible() and not cw.util.get_keypath(cw.util.get_symlinktarget(dpath)) in exists:
                             link = os.path.basename(dpath)
                             link = cw.util.join_paths("Yado", link + ".lnk")
                             link = cw.binary.util.check_duplicate(link)

@@ -664,7 +664,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
     if use_excache and path:
         # JPDC撮影等で更新されたイメージは正式に差し替えが完了するのがイベント終了後となる
         # それまではキャッシュを使用する
-        npath = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+        npath = get_keypath(get_symlinktarget(path))
         if cw.cwpy.sdata and npath in cw.cwpy.sdata.ex_cache:
             caches = cw.cwpy.sdata.ex_cache[npath]
             data = None
@@ -954,9 +954,7 @@ def _get_facepaths(facedir, imgpaths, dpaths, passed):
     for sortkey, showdpath, dpath in dpaths:
         if not os.path.isdir(dpath):
             continue
-        abs = os.path.abspath(dpath)
-        abs = os.path.normpath(abs)
-        abs = os.path.normcase(abs)
+        abs = get_keypath(get_symlinktarget(dpath))
         if abs in passed:
             continue
         passed.add(abs)
@@ -2326,7 +2324,7 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
                 # 上書き展開時は一部ファイルでエラーが出た場合に
                 # 上書き先を改名して対処する
                 # (再生中のBGMが上書きできない場合など)
-                paths.add(os.path.normcase(os.path.normpath(os.path.abspath(fpath))))
+                paths.add(get_keypath(fpath))
                 if not os.path.isfile(fpath) or os.path.getmtime(fpath) != mtime:
                     data = z.read(zname)
                     try:
@@ -2363,7 +2361,7 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
         for dpath, _dnames, fnames in os.walk(dstdir):
             for fname in fnames:
                 path = join_paths(dpath, fname)
-                path = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+                path = get_keypath(path)
                 if not path in paths:
                     remove(path)
 
@@ -4415,6 +4413,24 @@ def create_link(shortcutpath, targetpath):
                                           win32shell.IID_IShellLink)
     shortcut.SetPath(targetpath)
     shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath, 0)
+
+
+def get_symlinktarget(path):
+    """pathがシンボリックリンクであればリンク先を、そうでなければpathを返す。"""
+    p = os.path.normpath(os.path.abspath(path))
+    if os.path.islink(p):
+        l = os.readlink(p)
+        if os.path.isabs(l):
+            path = l;
+        else:
+            p = os.path.join(os.path.dirname(p), l);
+            path = os.path.normpath(p)
+    return path
+
+
+def get_keypath(path):
+    """setやdicのキーとして使えるよう、pathをできるだけ均質化した文字列にする。"""
+    return os.path.normcase(os.path.normpath(os.path.abspath(path)))
 
 
 #-------------------------------------------------------------------------------

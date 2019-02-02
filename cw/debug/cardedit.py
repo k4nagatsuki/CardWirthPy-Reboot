@@ -846,9 +846,9 @@ class CardEditDialog(wx.Dialog):
 
     def _update_bookmarkname(self):
         if self.scpath:
-            scpath = os.path.normcase(os.path.normpath(os.path.abspath(self.scpath)))
+            scpath = cw.util.get_keypath(self.scpath)
             for i, (fpath, name) in enumerate(cw.cwpy.setting.bookmarks_for_cardedit):
-                scpath2 = os.path.normcase(os.path.normpath(os.path.abspath(fpath)))
+                scpath2 = cw.util.get_keypath(fpath)
                 if scpath == scpath2:
                     cw.cwpy.setting.bookmarks_for_cardedit[i] = (fpath, self.scdata.name)
 

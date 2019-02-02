@@ -257,7 +257,7 @@ class CardHeader(object):
     def update_scenariopath(self, normpath, dst):
         if not self.scenariocard:
             return
-        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(self.scedir)))
+        normpath2 = cw.util.get_keypath(self.scedir)
         if normpath != normpath2:
             return
         self._cardimg = None

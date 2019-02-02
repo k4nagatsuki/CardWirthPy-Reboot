@@ -809,9 +809,7 @@ class Scenariodb(object):
                     (DATA_LEVEL in ftypes and not intv is None and (header.levelmin <= intv <= header.levelmax)) or\
                     (DATA_FNAME in ftypes and v in header.fname.lower()):
                 fpath = header.get_fpath()
-                fpath = os.path.abspath(fpath)
-                fpath = os.path.normpath(fpath)
-                fpath = os.path.normcase(fpath)
+                fpath = cw.util.get_keypath(cw.util.get_symlinktarget(fpath))
                 if not fpath in paths:
                     paths.add(fpath)
                     seq.append(header)
@@ -826,12 +824,12 @@ class Scenariodb(object):
         """
         self._fetch_from_name(name, author, skintype)
         data = self.cur.fetchall()
-        ignore_dpath = os.path.normcase(os.path.normpath(os.path.abspath(ignore_dpath)))
+        ignore_dpath = cw.util.get_keypath(ignore_dpath)
         ignore_fname = os.path.normcase(ignore_fname)
         seq = []
         paths = set()
         for t in data:
-            dpath = os.path.normcase(os.path.normpath(os.path.abspath(t["dpath"])))
+            dpath = cw.util.get_keypath(t["dpath"])
             fname = os.path.normcase(t["fname"])
             if dpath == ignore_dpath and fname == ignore_fname:
                 continue
@@ -899,9 +897,7 @@ def find_alldirectories(dpath, is_cancel=None):
 
 def _find_alldirectories(dpath, result, exclude, is_cancel):
     dpath = cw.util.get_linktarget(dpath)
-    abs = os.path.abspath(dpath)
-    abs = os.path.normpath(abs)
-    abs = os.path.normcase(abs)
+    abs = cw.util.get_keypath(cw.util.get_symlinktarget(dpath))
     if abs in exclude:
         return
     exclude.add(abs)

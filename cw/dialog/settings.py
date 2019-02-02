@@ -994,8 +994,8 @@ class SkinPanel(wx.Panel):
             def validate_path(path):
                 if os.path.basename(path) == "Skin.xml":
                     path = os.path.dirname(path)
-                d1 = os.path.normcase(os.path.normpath(os.path.abspath(os.path.dirname(path))))
-                d2 = os.path.normcase(os.path.normpath(os.path.abspath("Data/Skin")))
+                d1 = cw.util.get_keypath(cw.util.get_symlinktarget(os.path.dirname(path)))
+                d2 = cw.util.get_keypath(cw.util.get_symlinktarget("Data/Skin"))
                 if d1 == d2:
                     return ""
                 else:

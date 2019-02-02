@@ -214,16 +214,12 @@ class SelectScenarioDirectory(wx.Dialog):
             cw.cwpy.play_sound("harvest")
             self._create_treeitems(selitem)
             self.tree.Expand(selitem)
-            dpath = os.path.abspath(dpath)
-            dpath = os.path.normpath(dpath)
-            dpath = os.path.normcase(dpath)
+            dpath = cw.util.get_keypath(dpath)
 
             item, cookie = self.tree.GetFirstChild(selitem)
             while item.IsOk():
                 dpath2 = self.tree.GetItemData(item)
-                dpath2 = os.path.abspath(dpath2)
-                dpath2 = os.path.normpath(dpath2)
-                dpath2 = os.path.normcase(dpath2)
+                dpath2 = cw.util.get_keypath(dpath2)
                 if dpath == dpath2:
                     self.tree.SelectItem(item)
                     if not self.tree.IsVisible(item):
@@ -520,7 +516,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
             self.repl_links = {}
 
         def run(self):
-            dstpath = os.path.normcase(os.path.normpath(os.path.abspath(self.dstpath)))
+            dstpath = cw.util.get_keypath(self.dstpath)
             allret = [None]
             for (_parent, relparent), headers_seq in self.headers.items():
                 self._install(relparent, headers_seq, dstpath, allret)
@@ -576,7 +572,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                     else:
                         # 指定箇所にインストール
                         dst = cw.util.join_paths(self.dstpath, parent, os.path.basename(fpath))
-                        if dstpath != os.path.normcase(os.path.normpath(os.path.abspath(header.dpath))):
+                        if dstpath != cw.util.get_keypath(header.dpath):
                             if os.path.exists(dst):
                                 s = "%s はすでに存在します。置換しますか？" % (os.path.basename(dst))
                                 ret = self._confirm_overwrite(dlg, s, allret)
@@ -590,8 +586,8 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                                 else:
                                     dst = cw.util.dupcheck_plus(dst, yado=False)
 
-                    normpath1 = os.path.normcase(os.path.normpath(os.path.abspath(fpath)))
-                    normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
+                    normpath1 = cw.util.get_keypath(fpath)
+                    normpath2 = cw.util.get_keypath(dst)
                     dstisfile = os.path.isfile(fpath)
 
                     if normpath1 != normpath2:
@@ -626,7 +622,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                             cw.util.remove(rmpath, trashbox=True)
 
                     for path in repls:
-                        normpath3 = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+                        normpath3 = cw.util.get_keypath(path)
                         update_scenariolog(normpath3, dst, dstisfile)
                         self.repl_links[normpath3] = dst
 
@@ -653,8 +649,8 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
 
                     # ファイルをコピー
                     dst = cw.util.join_paths(self.dstpath, parent, os.path.basename(fpath))
-                    normpath1 = os.path.normcase(os.path.normpath(os.path.abspath(fpath)))
-                    normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
+                    normpath1 = cw.util.get_keypath(fpath)
+                    normpath2 = cw.util.get_keypath(dst)
                     if normpath1 != normpath2:
                         if os.path.exists(dst):
                             s = "%s はすでに存在します。置換しますか？" % (os.path.basename(dst))
@@ -736,7 +732,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
     for fpath in links:
         try:
             oldtarget = cw.util.get_linktarget(fpath)
-            normpath = os.path.normcase(os.path.normpath(os.path.abspath(oldtarget)))
+            normpath = cw.util.get_keypath(oldtarget)
             newtarget = thread.repl_links.get(normpath, None)
             if newtarget:
                 cw.util.set_linktarget(fpath, newtarget)
@@ -754,12 +750,12 @@ def update_scenariolog(normpath, dst, dstisfile):
     """
     インストールに伴うシナリオの移動を追跡する。
     """
-    normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(dst)))
+    normpath2 = cw.util.get_keypath(dst)
     if normpath == normpath2:
         return
 
     # 最終シナリオ
-    normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(cw.cwpy.setting.lastscenariopath)))
+    normpath2 = cw.util.get_keypath(cw.cwpy.setting.lastscenariopath)
     if normpath == normpath2:
         cw.cwpy.setting.lastscenario = []
         cw.cwpy.setting.lastscenariopath = dst
@@ -770,7 +766,7 @@ def update_scenariolog(normpath, dst, dstisfile):
         lfname = fname.lower()
         if lfname in ("summary.wsm", "summary.xml"):
             bookmarkpath = os.path.dirname(bookmarkpath)
-        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(bookmarkpath)))
+        normpath2 = cw.util.get_keypath(bookmarkpath)
         if normpath == normpath2:
             cw.cwpy.setting.bookmarks_for_cardedit[i] = ((dst, name))
 
@@ -783,7 +779,7 @@ def update_scenariolog(normpath, dst, dstisfile):
         lfname = fname.lower()
         if lfname in ("summary.wsm", "summary.xml"):
             bookmarkpath = os.path.dirname(bookmarkpath)
-        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(bookmarkpath)))
+        normpath2 = cw.util.get_keypath(bookmarkpath)
         if normpath == normpath2:
             cw.cwpy.ydata.changed()
             cw.cwpy.ydata.bookmarks[i] = (([], dst))
@@ -809,7 +805,7 @@ def update_scenariolog(normpath, dst, dstisfile):
             etree = cw.data.xml2etree(fpath)
             e = etree.find("Property/WsnPath")
             if not e is None:
-                normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(e.text)))
+                normpath2 = cw.util.get_keypath(e.text)
                 if normpath2 == normpath:
                     cw.cwpy.ydata.changed()
                     etree.edit("Property/WsnPath", dst)
@@ -823,7 +819,7 @@ def update_scenariolog(normpath, dst, dstisfile):
 
     # パーティの最終シナリオ
     if cw.cwpy.ydata.party:
-        normpath2 = os.path.normcase(os.path.normpath(os.path.abspath(cw.cwpy.ydata.party.lastscenariopath)))
+        normpath2 = cw.util.get_keypath(cw.cwpy.ydata.party.lastscenariopath)
         if normpath == normpath2:
             cw.cwpy.ydata.party.lastscenario = []
             cw.cwpy.ydata.party.lastscenariopath = dst

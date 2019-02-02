@@ -17,10 +17,10 @@ def install_skin(paths, parent, canswitch=True):
     pathsに含まれるスキンをインストールする。
     """
     seq = []
-    skindir = os.path.normcase(os.path.normpath(os.path.abspath("Data/Skin")))
+    skindir = cw.util.get_keypath(cw.util.get_symlinktarget("Data/Skin"))
     progmax = 3
     for path in paths:
-        if os.path.normcase(os.path.normpath(os.path.abspath(os.path.dirname(path)))) == skindir:
+        if cw.util.get_keypath(cw.util.get_symlinktarget(os.path.dirname(path))) == skindir:
             continue
         skininfo = cw.skin.util.get_skininfo(path)
         if skininfo:

@@ -1145,7 +1145,7 @@ class CWPy(_Singleton, threading.Thread):
                 mcard.cardimg.use_excache = False
 
             for path in self.sdata.ex_cache.keys():
-                path = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+                path = cw.util.get_keypath(cw.util.get_symlinktarget(path))
 
             self.sdata.resource_cache.clear()
             self.sdata.resource_cache_size = 0
@@ -2781,9 +2781,9 @@ class CWPy(_Singleton, threading.Thread):
                 if header2:
                     if header:
                         scepath1 = header.get_fpath()
-                        scepath1 = os.path.normcase(os.path.normpath(os.path.abspath(scepath1)))
+                        scepath1 = cw.util.get_keypath(scepath1)
                         scepath2 = header2.get_fpath()
-                        scepath2 = os.path.normcase(os.path.normpath(os.path.abspath(scepath2)))
+                        scepath2 = cw.util.get_keypath(scepath2)
                         if header and scepath1 != scepath2:
                             self.sdata.set_log()
                             self.ydata.party.lastscenario = []

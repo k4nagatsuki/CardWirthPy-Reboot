@@ -189,7 +189,7 @@ class _AnimationPart(object):
 
         if self.imgpath:
             # 画像ファイル
-            key = (os.path.normcase(os.path.normpath(os.path.abspath(self.imgpath))), cw.UP_SCR)
+            key = (cw.util.get_keypath(cw.util.get_symlinktarget(self.imgpath)), cw.UP_SCR)
             self.image_noscale = self.parent.cache.get(key, None)
             if not self.image_noscale:
                 self.image_noscale = cw.util.load_image(self.imgpath, self.mask, can_loaded_scaledimage=True)
