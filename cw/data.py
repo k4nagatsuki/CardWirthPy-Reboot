@@ -1002,10 +1002,10 @@ class ScenarioData(SystemData):
             thr = threading.Thread(target=run_decompress)
             thr.start()
             while thr.is_alive():
-                cw.cwpy.eventhandler.run()
+                cw.cwpy.get_eventhandler().run()
                 cw.cwpy.wait_frame(1)
                 cw.cwpy.input()
-            cw.cwpy.eventhandler.run()
+            cw.cwpy.get_eventhandler().run()
         except cw.event.EffectBreakError as ex:
             self._cancel_decompress = True
             thr.join()

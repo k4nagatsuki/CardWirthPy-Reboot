@@ -818,14 +818,20 @@ class CWPy(_Singleton, threading.Thread):
         while self._running:
             self.main_loop(True)
 
+    def get_eventhandler(self):
+        if self.interrupt_eventhandler:
+            return self.interrupt_eventhandler
+        else:
+            return self.eventhandler
+
     def main_loop(self, update):
         if pygame.event.peek((USEREVENT, cw.FORCE_USEREVENT)):
             self.input()              # 各種入力イベント取得
-            self.eventhandler.run()   # イベントを消化
+            self.get_eventhandler().run()   # イベントを消化
         else:
             self.tick_clock()         # FPS調整
             self.input()              # 各種入力イベント取得
-            self.eventhandler.run()   # イベントハンドラ
+            self.get_eventhandler().run()   # イベントハンドラ
             if not pygame.event.peek(USEREVENT):
                 if update:
                     self.update()         # スプライトの更新
@@ -891,7 +897,7 @@ class CWPy(_Singleton, threading.Thread):
             if canskip:
                 breakflag = self.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)
             self.input(inputonly=True)
-            self.eventhandler.run()
+            self.get_eventhandler().run()
             if canskip and breakflag:
                 skip = True
                 break
@@ -1251,7 +1257,7 @@ class CWPy(_Singleton, threading.Thread):
         # 一時停止中はゲーム再開までブロックする
         while self.setting.stop_the_world_with_iconized and self.frame.is_iconized and self.is_running():
             self.input(inputonly=True)
-            self.eventhandler.run()
+            self.get_eventhandler().run()
             self.clock.tick(1000)
 
     def draw(self, mainloop=False, clip=None):

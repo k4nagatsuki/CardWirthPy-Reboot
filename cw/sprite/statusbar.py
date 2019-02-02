@@ -1372,7 +1372,7 @@ class SettingsButton(StatusBarButton):
 
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
-        cw.cwpy.eventhandler.f2key_event()
+        cw.cwpy.get_eventhandler().f2key_event()
 
 
 class HelpButton(StatusBarButton):
@@ -1394,7 +1394,7 @@ class HelpButton(StatusBarButton):
 
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
-        cw.cwpy.eventhandler.f1key_event()
+        cw.cwpy.get_eventhandler().f1key_event()
 
 
 class DebuggerButton(StatusBarButton):
@@ -1423,7 +1423,7 @@ class DebuggerButton(StatusBarButton):
         return cw.cwpy.rsrc.pygamedialogs["STATUS12"]
 
     def lclick_event(self):
-        cw.cwpy.eventhandler.f3key_event()
+        cw.cwpy.get_eventhandler().f3key_event()
 
 
 class BacklogButton(StatusBarButton):
@@ -1476,7 +1476,7 @@ class BacklogButton(StatusBarButton):
             return
         if not cw.cwpy.setting.is_logscrollable():
             StatusBarButton.lclick_event(self)
-        cw.cwpy.eventhandler.f5key_event()
+        cw.cwpy.get_eventhandler().f5key_event()
 
 
 class DebugLogButton(StatusBarButton):
@@ -1501,7 +1501,7 @@ class DebugLogButton(StatusBarButton):
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
         cw.cwpy.clear_selection()
-        cw.cwpy.eventhandler.f6key_event()
+        cw.cwpy.get_eventhandler().f6key_event()
 
 
 class TouchMenuButton(StatusBarButton):

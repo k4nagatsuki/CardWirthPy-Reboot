@@ -231,12 +231,12 @@ class Frame(wx.Frame):
                 def func():
                     if cw.cwpy.sdata:
                         cw.cwpy.sdata.resume_timekeeper()
-                cw.cwpy.exec_func(func)
+                cw.cwpy.force_exec_func(func)
             else:
                 def func():
                     if cw.cwpy.sdata:
                         cw.cwpy.sdata.sleep_timekeeper()
-                cw.cwpy.exec_func(func)
+                cw.cwpy.force_exec_func(func)
 
         self.app.Bind(wx.EVT_ACTIVATE_APP, activate_app)
 
@@ -1536,13 +1536,13 @@ class MyApp(wx.App):
                  (ord('P') == event.GetKeyCode() and event.ControlDown())) and\
                  cw.cwpy.frame.can_screenshot():
                 if event.ShiftDown():
-                    cw.cwpy.exec_func(cw.util.card_screenshot)
+                    cw.cwpy.force_exec_func(cw.util.card_screenshot)
                 else:
                     cw.cwpy.frame.save_screenshot()
                 event.Skip()
                 return True
             if ord('D') == event.GetKeyCode() and event.ControlDown() and not cw.cwpy.is_showingdlg():
-                cw.cwpy.frame.exec_func(cw.cwpy.set_debug, not cw.cwpy.is_debugmode())
+                cw.cwpy.frame.force_exec_func(cw.cwpy.set_debug, not cw.cwpy.is_debugmode())
                 event.Skip()
                 return True
         return -1

@@ -38,7 +38,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
         stw.is_waiting()
         if cw.cwpy.setting.stop_the_world_with_iconized and cw.cwpy.frame.is_iconized:
             cw.cwpy.input(inputonly=clearevent)
-            cw.cwpy.eventhandler.run()
+            cw.cwpy.get_eventhandler().run()
             cw.cwpy.wait_frame(1)
             continue
         sprite.start_animation = stw.start_ticks
@@ -73,7 +73,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
     else:
         cw.cwpy.update_mousepos()
         cw.cwpy.input(inputonly=clearevent)
-        cw.cwpy.eventhandler.run()
+        cw.cwpy.get_eventhandler().run()
 
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
@@ -128,7 +128,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
         stw.is_waiting()
         if cw.cwpy.setting.stop_the_world_with_iconized and cw.cwpy.frame.is_iconized:
             cw.cwpy.input(inputonly=clearevent)
-            cw.cwpy.eventhandler.run()
+            cw.cwpy.get_eventhandler().run()
             cw.cwpy.wait_frame(1)
             continue
 
@@ -179,7 +179,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
 
     cw.cwpy.update_mousepos()
     cw.cwpy.input(inputonly=clearevent)
-    cw.cwpy.eventhandler.run()
+    cw.cwpy.get_eventhandler().run()
 
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
@@ -201,7 +201,7 @@ def _inputevent(clip, clearevent, statusbutton):
         if sel != cw.cwpy.selection:
             clip.union_ip(cw.cwpy.statusbar.rect)
         cw.cwpy.input(inputonly=clearevent)
-        cw.cwpy.eventhandler.run()
+        cw.cwpy.get_eventhandler().run()
     return clip
 
 def start_animation(sprite, anitype):

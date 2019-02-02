@@ -469,7 +469,7 @@ class EventInterface(object):
         if pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) or (self.eventtimer % 1000 == 0 and pygame.event.peek()):
             cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
             cw.cwpy.input()
-            cw.cwpy.eventhandler.run()
+            cw.cwpy.get_eventhandler().run()
             self.eventtimer = 1
         else:
             self.eventtimer += 1
@@ -498,7 +498,7 @@ class EventInterface(object):
                         self.refresh_activeitem()
                     cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
                     cw.cwpy.input()
-                    cw.cwpy.eventhandler.run()
+                    cw.cwpy.get_eventhandler().run()
                     cw.cwpy.wait_frame(1, False, stoptheworld=stw)
                     cnt += 1
 
@@ -514,7 +514,7 @@ class EventInterface(object):
                     self.refresh_activeitem()
                 cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
                 cw.cwpy.input()
-                cw.cwpy.eventhandler.run()
+                cw.cwpy.get_eventhandler().run()
                 cw.cwpy.wait_frame(1, False)
                 cnt += 1
 

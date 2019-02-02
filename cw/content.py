@@ -142,10 +142,10 @@ class EventContentBase(object):
         # 可能性があるため、後続のイベントへ進む前に全て消化する
         if not cw.cwpy.event.is_stoped():
             cw.cwpy.input()
-            cw.cwpy.eventhandler.run()
+            cw.cwpy.get_eventhandler().run()
             while pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) and not not cw.cwpy.event.is_stoped():
                 cw.cwpy.input()
-                cw.cwpy.eventhandler.run()
+                cw.cwpy.get_eventhandler().run()
 
     @property
     def textdict(self):
@@ -4207,7 +4207,7 @@ class WaitContent(EventContentBase):
             cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
             breakflag = cw.cwpy.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel) if cw.cwpy.setting.can_skipwait else False
             cw.cwpy.input()
-            cw.cwpy.eventhandler.run()
+            cw.cwpy.get_eventhandler().run()
             if breakflag:
                 break
 
