@@ -1009,10 +1009,11 @@ class CWPy(_Singleton, threading.Thread):
                     seq.append(e)
                 else:
                     cw.thread.post_pygameevent(e)
-            events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, cw.FORCE_USEREVENT))
+            events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             if events:
                 events = [events[-1]]
             seq.extend(events)
+            seq.extend(pygame.event.get((cw.FORCE_USEREVENT,)))
             del self.events[:]
             self.events.extend(seq)
         else:
@@ -1023,7 +1024,7 @@ class CWPy(_Singleton, threading.Thread):
                         seq.append(e)
                 del self.events[:]
                 self.events.extend(seq)
-                pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, cw.FORCE_USEREVENT))
+                pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             self.events.extend(pygame.event.get())
 
     def _in_partyarea(self, mousepos):
@@ -1918,13 +1919,12 @@ class CWPy(_Singleton, threading.Thread):
             while self.is_running() and mwin.result is None:
                 self.update()
 
+                self.input()
+                eventhandler.run()
                 if mwin.result is None:
-                    self.input()
                     self.add_lazydraw(clip=mwin.rect)
 
                 self.wait_frame(1, canskip=False)
-                self.input()
-                eventhandler.run()
         finally:
             self.interrupt_eventhandler = ie
 
@@ -2364,7 +2364,7 @@ class CWPy(_Singleton, threading.Thread):
         self.battle = None
         self.card_takenouttemporarily = None
         self.clear_inputevents()
-        pygame.event.clear()
+        pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT))
         if self._need_disposition:
             self.disposition_pcards()
         party = self.ydata.party
