@@ -1917,10 +1917,9 @@ class CWPy(_Singleton, threading.Thread):
             self.event.refresh_activeitem()
             self.input()
             while self.is_running() and mwin.result is None:
-                self.update()
-
                 self.input()
                 eventhandler.run()
+                self.update()
                 if mwin.result is None:
                     self.add_lazydraw(clip=mwin.rect)
 
