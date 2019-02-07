@@ -701,6 +701,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                     f2.close()
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data = cw.image.patch_rle4bitmap(data)
+                data, _ok = cw.image.fix_cwnext32bitbitmap(data)
                 with io.BytesIO(data) as f2:
                     image = pygame.image.load(f2)
                     f2.close()
