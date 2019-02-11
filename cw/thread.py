@@ -1134,8 +1134,6 @@ class CWPy(_Singleton, threading.Thread):
         if not force and (not self.is_playingscenario() or self.is_runningevent()):
             return
 
-        self.clear_selection()
-
         if self.sdata.ex_cache:
             if self.background.use_excache:
                 self.background.use_excache = False
