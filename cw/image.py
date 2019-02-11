@@ -1316,6 +1316,7 @@ def create_colorcell(size, color1, gradient, color2):
     cw.cwpy.sdata.resource_cache[key] = image
     return image
 
+
 #-------------------------------------------------------------------------------
 # ユーティリティ
 #-------------------------------------------------------------------------------
@@ -1334,8 +1335,10 @@ def zoomcard(image, scale):
     h = int(h * scale)
     return smoothscale(image, (w, h), smoothing=smoothing, iscard=True)
 
+
 def smoothscale_card(surface, size, smoothing=True):
     return smoothscale(surface, size, smoothing=smoothing, iscard=True)
+
 
 def smoothscale(surface, size, smoothing=True, iscard=False):
     """surfaceをリサイズする。
@@ -1379,6 +1382,7 @@ def smoothscale(surface, size, smoothing=True, iscard=False):
         return pygame.transform.smoothscale(bmp, size)
     else:
         return pygame.transform.scale(surface, size)
+
 
 def fix_cwnext16bitbitmap(data):
     """一部バージョンのCardWirthNextが生成するBitmap(16 bit)は
@@ -1442,6 +1446,7 @@ def fix_cwnext16bitbitmap(data):
     data = cw.image.patch_rle4bitmap(data)
     return data, True
 
+
 def fix_cwnext32bitbitmap(data):
     """一部バージョンのCardWirthNextが生成するBitmap(32 bit)に
     本来存在できないはずのパレットデータが残留している事があるので訂正する。
@@ -1472,16 +1477,26 @@ def fix_cwnext32bitbitmap(data):
     _biYPixPerMeter = s[14]
     biClrUsed = s[15]
     _biClrImporant = s[16]
+    # おそらくCWNext 1.60付属のWirthBuilderが格納したイメージで
+    # 32-bitビットマップに余計なパレットデータが含まれている事がある
+    # その場合、以下のように壊れているので修復する
     if 0 < biClrUsed:
+        # オフセットは色数*4ないし色数*4*2だけ加算されている
+        # イメージサイズ-ヘッダサイズ-ファイルサイズでその値が算出できる
+        bfOffBits -= bfSize - 54 - biSizeImage
+        # イメージサイズは色数*4だけ加算されている
         bfSize -= biClrUsed * 4
-        bfOffBits -= biClrUsed * 4
-        biSizeImage -= biClrUsed * 4
+        # イメージサイズは色数*4だけ加算されている、
+        # または加算されていない場合がある
+        # (加算されていない場合はオフセットのずれは色数*4*2になっている)
+        biSizeImage = bfSize - 54
         si = struct.Struct("<I")
         data = data[:2] + si.pack(bfSize) + data[6:10] + si.pack(bfOffBits) + data[14:34] +\
                si.pack(biSizeImage) + data[38:46] + si.pack(0) + data[50:54] +\
                data[54+biClrUsed*4:]
         return data, False
     return data, True
+
 
 def conv2wximage(image, biBitCount):
     """pygame.Surfaceをwx.Bitmapに変換する。
@@ -1497,6 +1512,7 @@ def conv2wximage(image, biBitCount):
         image = wx.ImageFromBuffer(w, h, buf)
 
     return image
+
 
 def patch_rle4bitmap(data):
     if len(data) < 14 + 40:
