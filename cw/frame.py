@@ -516,6 +516,8 @@ class Frame(wx.Frame):
         cw.thread.post_pygameevent(evt)
 
     def OnDropFiles(self, event):
+        if cw.cwpy.is_showingdlg():
+            return
         paths = event.GetFiles()
 
         for path in paths:
