@@ -4489,7 +4489,7 @@ class MoveCardContent(EventContentBase):
                     cw.cwpy.force_dealspeed = self.cardspeed
                 else:
                     cw.cwpy.override_dealspeed = self.cardspeed
-            self._do_action()
+            return self._do_action()
         finally:
             cw.cwpy.override_dealspeed = override_dealspeed
             cw.cwpy.force_dealspeed = force_dealspeed
