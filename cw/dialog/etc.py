@@ -171,7 +171,7 @@ class BattleCommand(wx.Dialog):
                 if self:
                     self.Destroy()
             cw.cwpy.frame.exec_func(func, self)
-        cw.cwpy.exec_func(func, self)
+        cw.cwpy.force_exec_func(func, self)
         self.toppanel.Disable()
 
     def runaway(self):
@@ -193,7 +193,7 @@ class BattleCommand(wx.Dialog):
                     if self:
                         self.Destroy()
                 cw.cwpy.frame.exec_func(func, self)
-            cw.cwpy.exec_func(func, self)
+            cw.cwpy.force_exec_func(func, self)
             self.toppanel.Disable()
 
             return
@@ -209,7 +209,7 @@ class BattleCommand(wx.Dialog):
                 if self:
                     self.Destroy()
             cw.cwpy.frame.exec_func(func, self)
-        cw.cwpy.exec_func(func, self)
+        cw.cwpy.force_exec_func(func, self)
         self.toppanel.Disable()
 
     def OnCancel(self, event):
@@ -875,7 +875,7 @@ if sys.platform == "win32":
             cw.cwpy.frame.save_screenshot()
 
         def OnScreenShotHands(self, event):
-            cw.cwpy.exec_func(cw.util.card_screenshot)
+            cw.cwpy.force_exec_func(cw.util.card_screenshot)
 
         def OnCopyDetail(self, event):
             self.GetParent().copy_detail()
@@ -923,7 +923,7 @@ else:
                 s = "%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
                                          cw.cwpy.msgs["desc_screenshot_hands"])
                 bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT_HANDS"]
-                self._buttons.append((s, bmp, lambda: cw.cwpy.exec_func(cw.util.card_screenshot)))
+                self._buttons.append((s, bmp, lambda: cw.cwpy.force_exec_func(cw.util.card_screenshot)))
             if hasattr(parent, "copy_detail"):
                 s = "%s(Ctrl+C)\n%s" % (cw.cwpy.msgs["copy_dialog"],
                                             cw.cwpy.msgs["desc_copy_dialog"])
