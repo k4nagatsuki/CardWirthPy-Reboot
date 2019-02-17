@@ -1043,7 +1043,7 @@ class StatusBarButton(base.SelectableSprite):
         cw.animation.animate_sprite(self, "click", statusbutton=True)
 
         if self._desc:
-            cw.cwpy.add_lazydraw(clip=self._desc)
+            cw.cwpy.add_lazydraw(clip=self._desc.rect)
             cw.cwpy.sbargrp.remove(self._desc)
             self._desc = None
 
