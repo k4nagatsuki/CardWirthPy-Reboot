@@ -777,6 +777,7 @@ class CWPy(_Singleton, threading.Thread):
         if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
             self.clear_selection()
         self.change_selection(self.selection)
+        self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
 
     def update_infocard(self):
         """デバッガ等から所有情報カードの変更を
@@ -4106,6 +4107,7 @@ class CWPy(_Singleton, threading.Thread):
         if center or (not owner.inusecardimg and self.background.rect.colliderect(owner.rect) and owner.status != "hidden"):
             inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center, alpha=alpha, fore=fore)
             owner.inusecardimg = inusecard
+            self.add_lazydraw(clip=inusecard.rect)
             self.inusecards.append(inusecard)
         return owner.inusecardimg
 
@@ -4152,12 +4154,14 @@ class CWPy(_Singleton, threading.Thread):
         """PlayerCardの前に回避・抵抗ボーナスカードの画像を表示。"""
         if not self.get_guardcardimg() and self.background.rect.colliderect(owner.rect) and owner.status != "hidden":
             card = cw.sprite.background.InuseCardImage(owner, header, status="normal", center=False)
+            self.add_lazydraw(clip=card.rect)
             self.guardcards.append(card)
 
     def clear_guardcardimg(self):
         """PlayerCardの前の回避・抵抗ボーナスカードの画像を削除。"""
         for card in self.guardcards:
             card.group.remove(card)
+            self.add_lazydraw(clip=card.rect)
         self.guardcards = []
 
     def set_targetarrow(self, targets):
