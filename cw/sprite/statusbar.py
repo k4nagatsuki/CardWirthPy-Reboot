@@ -842,6 +842,7 @@ class StatusBarButton(base.SelectableSprite):
         self._create_paneimg(pos, self.get_icon())
         self._upscr = 0
         if self._desc:
+            cw.cwpy.add_lazydraw(clip=self._desc.rect)
             cw.cwpy.sbargrp.remove(self._desc)
             self._desc = None
         self.update(None)
@@ -1042,6 +1043,7 @@ class StatusBarButton(base.SelectableSprite):
         cw.animation.animate_sprite(self, "click", statusbutton=True)
 
         if self._desc:
+            cw.cwpy.add_lazydraw(clip=self._desc)
             cw.cwpy.sbargrp.remove(self._desc)
             self._desc = None
 
@@ -1542,7 +1544,8 @@ class TouchMenuButton(StatusBarButton):
         self.is_pushed = self.is_pushed
         if self.is_pushed:
             self.set_desc(cw.cwpy.msgs["desc_touch_menu"])
-            cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_TOUCH_BUTTON)
+            for sprite in cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_TOUCH_BUTTON):
+                cw.cwpy.add_lazydraw(clip=sprite.rect)
             return
 
         self.set_desc("")
