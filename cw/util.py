@@ -2813,6 +2813,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
     wrapafter = False
     seq = []
     seqlen = 0
+    skipchars = ""
 
     def seq_insert(index, char):
         if index < 0:
@@ -2841,6 +2842,17 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
                 seq.append(char)
                 seqlen += len(char)
                 skip = False
+                if skipchars.startswith("#"):
+                    cnt += len(char)
+                    asciicnt = 0
+                    if width+1 < cnt:
+                        if not wrapafter:
+                            seq_insert(len(seq), "\n")
+                            seqlen += len("\n")
+                        cnt = 0
+                        asciicnt = 0
+                        wraped = False
+                        wrapafter = True
                 continue
 
             chars = char + get_char(s, index + 1)
@@ -2851,9 +2863,18 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
                     if not chars.startswith("#") or\
                        not chars[:2].lower() in cw.cwpy.rsrc.specialchars or\
                        cw.cwpy.rsrc.specialchars[chars[:2].lower()][1]:
+                        if width < cnt and chars.startswith("#"):
+                            if not wrapafter:
+                                seq_insert(len(seq), "\n")
+                                seqlen += len("\n")
+                            cnt = 0
+                            asciicnt = 0
                         seq.append(char)
                         seqlen += len(char)
                         skip = True
+                        if chars.startswith("#"):
+                            cnt += len(char)
+                        skipchars = chars
                         continue
                     spchar = True
                     if not chars.startswith("&"):
