@@ -661,6 +661,15 @@ class CWBinaryBase(object):
         elif ctype == "Change" and n == "Environment":  # Wsn.4
             f.check_wsnversion("4", "状況設定コンテント")
             return 0
+        elif ctype == "Set" and n == "Variant":  # Wsn.4
+            f.check_wsnversion("4", "コモン設定コンテント")
+            return 0
+        elif ctype == "Branch" and n == "Variant":  # Wsn.4
+            f.check_wsnversion("4", "コモン分岐コンテント")
+            return 0
+        elif ctype == "Check" and n == "Variant":  # Wsn.4
+            f.check_wsnversion("4", "コモン判定コンテント")
+            return 0
         else:
             raise ValueError(ctype + ", " + n)
 

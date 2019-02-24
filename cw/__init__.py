@@ -36,6 +36,7 @@ from . import bassplayer
 from . import binary
 from . import advlog
 from . import update
+from . import calclator
 
 from . import dialog
 from . import debug
@@ -315,68 +316,16 @@ def _s_impl(num, up_scr):
             return pygame.Rect(x, y, w, h)
 
     elif isinstance(num, tuple):
-        if len(num) == 3:
-            print("A scaleinfo is deprecated.")
-            traceback.print_stack()
-            scaleinfo = num[2]
-        else:
-            scaleinfo = None
-
         if isinstance(num[0], pygame.Surface):
             bmp = num[0]
             if bmp.get_width() <= 0 or bmp.get_width() <= 0:
                 return bmp
-            if scaleinfo:
-                # スケール情報のあるpygame.Surface
-                # TODO scaleinfoは廃止
-                scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
-                up_scr /= scr_scale
-                if up_scr == 1:
-                    return bmp
-                size = _s_impl(num[1], up_scr)
-                if size[0] % num[1] == 0:
-                    result = pygame.transform.scale(bmp, size)
-                else:
-                    if not (bmp.get_flags() & pygame.locals.SRCALPHA) and bmp.get_colorkey():
-                        bmp = bmp.convert_alpha()
-                    result = image.smoothscale(bmp, size)
-                if isinstance(num[0], util.Depth1Surface):
-                    result = util.Depth1Surface(result, scr_scale)
-                    result.bmpdepthis1 = num[0].bmpdepthis1
-                return result
-            else:
-                # スケール情報の無いpygame.Surface(単純拡大)
-                return _s_impl(bmp, up_scr)
+            return _s_impl(bmp, up_scr)
         elif isinstance(num[0], wx.Image):
             img = num[0]
             if img.GetWidth() <= 0 or img.GetHeight() <= 0:
                 return img
-            if scaleinfo:
-                # スケール情報のあるwx.Image
-                # TODO scaleinfoは廃止
-                bmpdepthis1 = hasattr(img, "bmpdepthis1")
-                maskcolour = img.maskcolour if hasattr(img, "maskcolour") else None
-                scr_scale = img.scr_scale if hasattr(img, "scr_scale") else 1
-                up_scr /= scr_scale
-                if up_scr == 1:
-                    return img
-                size = _s_impl(num[1], up_scr)
-                if size[0] % num[1] == 0 or bmpdepthis1:
-                    result = img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
-                else:
-                    if not img.HasAlpha():
-                        img.InitAlpha()
-                    result = img.Rescale(size[0], size[1], RESCALE_QUALITY)
-                if bmpdepthis1:
-                    result.bmpdepthis1 = bmpdepthis1
-                if maskcolour:
-                    result.maskcolour = maskcolour
-                    r, g, b = maskcolour
-                    result.SetMaskColour(r, g, b)
-                return result
-            else:
-                # スケール情報の無いwx.Image(単純拡大)
-                return _s_impl(img, up_scr)
+            return _s_impl(img, up_scr)
         elif isinstance(num[0], wx.Bitmap):
             bmp = num[0]
             bmpdepthis1 = hasattr(bmp, "bmpdepthis1")

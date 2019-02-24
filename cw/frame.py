@@ -378,7 +378,7 @@ class Frame(wx.Frame):
             event.kwargs = kwargs
             self.AddPendingEvent(event)
             while cw.cwpy.is_running() and self._sync_running:
-                time.sleep(0)
+                time.sleep(0.001)
             return self._sync_result
 
     def OnEXECFUNC(self, event):

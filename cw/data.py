@@ -11,6 +11,7 @@ import shutil
 import threading
 import ctypes
 import datetime
+import decimal
 import xml.parsers.expat
 from xml.etree.cElementTree import ElementTree
 
@@ -72,6 +73,7 @@ class SystemData(object):
         self._infocard_cache = {}
         self.flags = {}
         self.steps = {}
+        self.variants = {}
         self.labels = {}
         self.ignorecase_table = {}
         self.notice_infoview = False
@@ -875,6 +877,8 @@ class ScenarioData(SystemData):
         self._init_flags()
         # step set
         self._init_steps()
+        # variant set
+        self._init_variants()
         # refresh debugger
         self._init_debugger()
 
@@ -1276,26 +1280,30 @@ class ScenarioData(SystemData):
     def _reload(self):
         flagvals = {}
         stepvals = {}
+        variantvals = {}
         for name, flag in list(self.flags.items()):
             flagvals[name] = flag.value
         for name, step in list(self.steps.items()):
             stepvals[name] = step.value
+        for name, variant in list(self.variants.items()):
+            variantvals[name] = variant.value
         self.data_cache = {}
         self.resource_cache = {}
         self.resource_cache_size = 0
         self._init_xmlpaths()
         self._init_flags()
         self._init_steps()
+        self._init_variants()
 
         for name, value in list(flagvals.items()):
             if name in self.flags:
-                flag = self.flags[name]
-                if flag.value != value:
-                    flag.value = value
-                    flag.redraw_cards()
+                self.flags[name].set(value, updatedebugger=False)
         for name, value in list(stepvals.items()):
             if name in self.steps:
-                self.steps[name].value = value
+                self.steps[name].set(value, updatedebugger=False)
+        for name, value in list(variantvals.items()):
+            if name in self.variants:
+                self.variants[name].set(value, updatedebugger=False)
 
         self._init_ignorecase_table()
         self._init_debugger()
@@ -1492,6 +1500,19 @@ class ScenarioData(SystemData):
             self.steps[name] = Step(value, name, valuenames, defaultvalue=value,
                                     spchars=spchars)
 
+    def _init_variants(self):
+        """
+        summary.xmlで定義されているコモンを初期化。
+        """
+        self.variants = {}
+
+        for e in self.summary.getfind("Variants", raiseerror=False):
+            type = e.getattr(".", "defaulttype", "String")
+            value = e.getattr(".", "defaultvalue", "")
+            value = Variant.value_from_str(type, value)
+            name = e.gettext("Name", "")
+            self.variants[name] = Variant(value, name, defaultvalue=value)
+
     def reset_variables(self):
         """すべての状態変数を初期化する。"""
         for e in self.summary.find("Steps"):
@@ -1504,6 +1525,13 @@ class ScenarioData(SystemData):
             name = e.gettext("Name", "")
             self.flags[name].set(value)
             self.flags[name].redraw_cards()
+
+        for e in self.summary.getfind("Variants", raiseerror=False):
+            type = e.getattr(".", "defaulttype")
+            value = e.getattr(".", "defaultvalue", "")
+            value = Variant.value_from_str(type, value)
+            name = e.gettext("Name", "")
+            self.variants[name].set(value)
 
     def start(self):
         """
@@ -1688,6 +1716,13 @@ class ScenarioData(SystemData):
             if e.text in self.steps:
                 self.steps[e.text].value = e.getint(".", "value")
 
+        for e in etree.getfind("Variants", raiseerror=False):
+            if e.text in self.variants:
+                type = e.getattr(".", "type")
+                value = e.getattr(".", "value", "")
+                value = Variant.value_from_str(type, value)
+                self.variants[e.text].value = value
+
         if not recording:
             for e in etree.getfind("Gossips"):
                 if e.get("value") == "True":
@@ -1823,6 +1858,7 @@ class ScenarioData(SystemData):
             self.set_versionhint(cw.HINT_MESSAGE, None)
         self.friendcards = seq
 
+
 class Flag(object):
     def __init__(self, value, name, truename, falsename, defaultvalue, spchars):
         self.value = value
@@ -1876,6 +1912,7 @@ class Flag(object):
         else:
             return s
 
+
 def redraw_cards(value, flag=""):
     """フラグに対応するメニューカードの再描画処理"""
     quickdeal = cw.cwpy.areaid == cw.AREA_CAMP and cw.cwpy.setting.all_quickdeal
@@ -1899,6 +1936,7 @@ def redraw_cards(value, flag=""):
         cw.cwpy.deal_cards(updatelist=False, flag=flag, quickdeal=quickdeal)
     else:
         cw.cwpy.hide_cards(updatelist=False, flag=flag, quickhide=quickdeal)
+
 
 class Step(object):
     def __init__(self, value, name, valuenames, defaultvalue, spchars):
@@ -1936,6 +1974,53 @@ class Step(object):
             return ""
         else:
             return s
+
+
+class Variant(object):
+    def __init__(self, value, name, defaultvalue):
+        self.type = Variant.value_to_type(value)
+        self.value = value
+        self.name = name
+        self.defaultvalue = defaultvalue
+
+    def set(self, value, updatedebugger=True):
+        if self.value != value:
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
+            self.type = Variant.value_to_type(value)
+            self.value = value
+            cw.cwpy.update_mcardnames()
+            if updatedebugger:
+                cw.cwpy.event.refresh_variable(self)
+
+    @staticmethod
+    def value_to_type(value):
+        if isinstance(value, bool):
+            return "Boolean"
+        elif isinstance(value, decimal.Decimal):
+            return "Number"
+        else:
+            return "String"
+
+    @staticmethod
+    def value_from_str(type, s):
+        if type == "Boolean":
+            return cw.util.str2bool(s)
+        elif type =="Number":
+            return decimal.Decimal(s)
+        else: # String
+            return s
+
+    @staticmethod
+    def value_to_str(value):
+        if isinstance(value, bool):
+            return str(value).upper()
+        else:
+            return str(value)
+
+    def string_value(self):
+        return Variant.value_to_str(self.value)
+
 
 #-------------------------------------------------------------------------------
 #　宿データ

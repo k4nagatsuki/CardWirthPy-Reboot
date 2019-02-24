@@ -15,7 +15,8 @@ from . import base
 class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, imgpaths=[][:], talker=None,
                  pos_noscale=None, size_noscale=None,
-                 nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
+                 nametable={}.copy(), namesubtable={}.copy(),
+                 flagtable={}.copy(), steptable={}.copy(), varianttable={}.copy(),
                  backlog=False, result=None, showing_result=-1, versionhint="", specialchars=None,
                  trim_top_noscale=0, columns=1, spcharinfo=None, centering_x=False, centering_y=False,
                  boundarycheck=False):
@@ -37,6 +38,7 @@ class MessageWindow(base.CWPySprite):
         self.name_subtable = namesubtable
         self.flag_table = flagtable
         self.step_table = steptable
+        self.variant_table = varianttable
         self.specialchars = specialchars if specialchars else cw.cwpy.rsrc.specialchars.copy()
 
         # メッセージの選択結果
@@ -577,7 +579,9 @@ class MessageWindow(base.CWPySprite):
             full = _SP_FULL
         else:
             full = _SP_EXPAND_SHARPS
-        text, spcharinfo, _namelist, _namelistindex = _rpl_specialstr(full, "All", s, nametable, self.get_stepvalue, self.get_flagvalue)
+        text, spcharinfo, _namelist, _namelistindex = _rpl_specialstr(full, "All", s, nametable,
+                                                                      self.get_stepvalue, self.get_flagvalue,
+                                                                      self.get_variantvalue)
         if full == _SP_FULL:
             return text, spcharinfo
         else:
@@ -623,6 +627,21 @@ class MessageWindow(base.CWPySprite):
                                                      basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
         return s, namelistindex
 
+    def get_variantvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
+        if self.backlog:
+            if key in self.variant_table:
+                v = self.variant_table[key]
+            else:
+                return None, namelistindex
+        elif key in cw.cwpy.sdata.variants:
+            v = cw.cwpy.sdata.variants[key]
+        else:
+            return None, namelistindex
+
+        self.variant_table[key] = v
+        s = v.string_value()
+        return s, namelistindex
+
     def get_fontcolour(self, s):
         """引数の文字列からフォントカラーを返す。"""
         if s == "r":
@@ -652,7 +671,8 @@ class MessageWindow(base.CWPySprite):
 class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos_noscale=None, size_noscale=None,
                  backlog=False, result=None, showing_result=-1, columns=1, barspchr=True,
-                 nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy()):
+                 nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
+                 varianttable={}.copy()):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -672,6 +692,7 @@ class SelectWindow(MessageWindow):
         self.name_subtable = namesubtable
         self.flag_table = flagtable
         self.step_table = steptable
+        self.variant_table = varianttable
 
         self.backlog = backlog
         self._barspchr = barspchr
@@ -942,6 +963,7 @@ class BacklogData(object):
         self.columns = base.columns
         self.flag_table = base.flag_table
         self.step_table = base.step_table
+        self.variant_table = base.variant_table
         self.showing_result = base.showing_result
         self.versionhint = base.versionhint
         self.specialchars = base.specialchars
@@ -998,7 +1020,8 @@ class BacklogData(object):
                 showing_result = self.showing_result
             base = MessageWindow(self.text, names, self.imgpaths, None,
                                  self.rect_noscale.topleft, size_noscale,
-                                 self.name_table, self.name_subtable, self.flag_table, self.step_table,
+                                 self.name_table, self.name_subtable,
+                                 self.flag_table, self.step_table, self.variant_table,
                                  True, None, showing_result, self.versionhint, self.specialchars,
                                  trim_top_noscale=trim_top, columns=self.columns,
                                  spcharinfo=self.spcharinfo,
@@ -1014,7 +1037,7 @@ class BacklogData(object):
             base = SelectWindow(names, self.text, self.rect_noscale.topleft, self.rect_noscale.size,
                                 True, None, showing_result, columns=self.columns,
                                 nametable=self.name_table, namesubtable=self.name_subtable,
-                                flagtable=self.flag_table, steptable=self.step_table)
+                                flagtable=self.flag_table, steptable=self.step_table, varianttable=self.variant_table)
 
         return base
 
@@ -1181,10 +1204,12 @@ def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All"):
     name_table = _create_nametable(False, None)
     full = _SP_EXPAND_SHARPS if expandsharps else _SP_NO_SHARPS
     try:
-        r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=basenamelist)
+        r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, _get_variantvalue,
+                            basenamelist=basenamelist)
     except:
         cw.util.print_ex()
-        r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, basenamelist=None)
+        r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, _get_variantvalue,
+                            basenamelist=None)
     return r[0], r[2]
 
 class _NameGetter(object):
@@ -1361,11 +1386,29 @@ def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, 
                                                  basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
     return s, namelistindex
 
+def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo,
+                      namelist, namelistindex, stack):
+    if key in cw.cwpy.sdata.variants:
+        v = cw.cwpy.sdata.variants[key]
+        if updatetype == "Fixed":
+            if not basenamelist is None:
+                s = cw.data.Variant.value_to_str(basenamelist[namelistindex].name)
+            else:
+                s = v.string_value()
+                namelist.append(NameListItem(v, v.value))
+            namelistindex += 1
+        else:
+            s = v.string_value()
+    else:
+        return None, namelistindex
+
+    return s, namelistindex
+
 _SP_EXPAND_SHARPS = 0
 _SP_FULL = 1
 _SP_NO_SHARPS = 2
 
-def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, basenamelist=None,
+def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_variant, basenamelist=None,
                     startindex=0, spcharinfo=None, namelist=None, namelistindex=0, stack=0):
     """
     特殊文字列(#, $)を置換した文字列を返す。
@@ -1393,10 +1436,12 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, basenam
             fl = s[i+1:i+1+nextpos]
             val, namelistindex = get(fl, full, updatetype, name_table, basenamelist, buflen, spcharinfo, namelist, namelistindex, stack)
             if val is None:
-                if full != _SP_FULL:
+                if full != _SP_FULL and c in ('$', '%'):
                     # BUG: 存在しない状態変数を表示しようとすると
                     #      先頭の文字が欠ける(CardWirth 1.50)
                     buf.append(c[1:])
+                else:
+                    buf.append(c)
                 return 0 if full == _SP_FULL else -1, namelistindex
             skip = 1 + nextpos
             buf.append(val)
@@ -1446,6 +1491,13 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, basenam
                 buflen += len(c)
         elif c == '$':
             skip, namelistindex = get_varvalue(get_step, '$', namelistindex)
+            if skip:
+                buflen += len(buf[-1])
+            else:
+                buf.append(c)
+                buflen += len(c)
+        elif c == '@':
+            skip, namelistindex = get_varvalue(get_variant, '@', namelistindex)
             if skip:
                 buflen += len(buf[-1])
             else:

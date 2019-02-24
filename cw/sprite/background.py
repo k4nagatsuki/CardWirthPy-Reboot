@@ -560,6 +560,14 @@ class BackGround(base.CWPySprite):
                                 data = cw.cwpy.sdata.steps[name2]
                             else:
                                 data = cw.sprite.message.get_spstep(name2)
+                        elif type == "Variant":
+                            name2 = e_name.getattr(".", "variant", "")
+                            vtype = e_name.getattr(".", "valuetype")
+                            name = cw.data.Variant.value_from_str(vtype, name)
+                            if name2 in cw.cwpy.sdata.variants:
+                                data = cw.cwpy.sdata.variants[name2]
+                            else:
+                                data = None
                         elif type == "Number":
                             name = int(e_name.text)
                             data = "Number"

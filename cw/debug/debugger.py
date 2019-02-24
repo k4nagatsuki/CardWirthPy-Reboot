@@ -683,6 +683,7 @@ class Debugger(wx.Frame):
         def func():
             cw.cwpy.play_sound("harvest")
             cw.cwpy.background.reload()
+            cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
         cw.cwpy.exec_func(func)
 
     def OnGossipTool(self, event):
@@ -768,73 +769,6 @@ class Debugger(wx.Frame):
     def OnEditorTool(self, event):
         if not cw.cwpy.setting.editor:
             return
-        def func(self, content):
-            if not cw.cwpy.is_playingscenario():
-                return
-            fpath = cw.cwpy.sdata.fpath
-            if not fpath:
-                return
-            if os.path.isdir(fpath):
-                # WirthBuilderはSummary.wsmのパスを渡さないとシナリオを開けない
-                wsm = cw.util.join_paths(fpath, "Summary.wsm")
-                if os.path.isfile(wsm):
-                    fpath = wsm
-            # WirthBuilderは'/'区切りのパスを受け付けない
-            fpath = os.path.normpath(fpath)
-
-            editor = cw.cwpy.setting.editor
-            if not editor:
-                return
-
-            # エディタ起動
-            seq = [editor, fpath]
-            cwxpath = ""
-            packid = 0
-
-            if not content is None:
-                cwxpath = content.get_cwxpath()
-                if not cwxpath and cw.cwpy.is_runningevent():
-                    packid = cw.cwpy.event.get_packageid()
-            elif cw.cwpy.is_runningevent():
-                event = cw.cwpy.event.get_event()
-                if event and not event.cur_content is None:
-                    cur_content = event.cur_content
-                    if cur_content.tag == "ContentsLine":
-                        cur_content = cur_content[event.line_index]
-                    cwxpath = cur_content.get_cwxpath()
-
-                if not cwxpath:
-                    # パッケージ処理中でなければ0が返る
-                    packid = cw.cwpy.event.get_packageid()
-
-            if cwxpath:
-                seq.append(cwxpath)
-            elif packid:
-                # 古いバージョンのCWXEditorでは
-                # -a -b -pオプションつきの起動で
-                # 同一のシナリオが複数開かれてしまう
-                seq.append(("package:id:%s" % (packid)))
-            elif cw.cwpy.is_battlestatus():
-                seq.append(("battle:id:%s" % (cw.cwpy.areaid)))
-            elif 0 <= cw.cwpy.areaid:
-                seq.append(("area:id:%s" % (cw.cwpy.areaid)))
-            elif cw.cwpy.pre_areaids:
-                seq.append(("area:id:%s" % (cw.cwpy.pre_areaids[0][0])))
-
-            def func(self, seq):
-                if not self:
-                    return
-
-                try:
-                    subprocess.Popen(seq, close_fds=True)
-                except:
-                    s = "「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
-                    dlg = cw.dialog.message.ErrorMessage(self, s)
-                    cw.cwpy.frame.move_dlg(dlg)
-                    dlg.ShowModal()
-                    dlg.Destroy()
-
-            cw.cwpy.frame.exec_func(func, self, seq)
 
         if not self.view_tree.selectionitem is None:
             content = self.view_tree.selectionitem.content
@@ -843,7 +777,76 @@ class Debugger(wx.Frame):
         else:
             content = None
 
-        cw.cwpy.exec_func(func, self, content)
+        cw.cwpy.exec_func(Debugger.exec_editor, self, content)
+
+    @staticmethod
+    def exec_editor(parent, content):
+        if not cw.cwpy.is_playingscenario():
+            return
+        fpath = cw.cwpy.sdata.fpath
+        if not fpath:
+            return
+        if os.path.isdir(fpath):
+            # WirthBuilderはSummary.wsmのパスを渡さないとシナリオを開けない
+            wsm = cw.util.join_paths(fpath, "Summary.wsm")
+            if os.path.isfile(wsm):
+                fpath = wsm
+        # WirthBuilderは'/'区切りのパスを受け付けない
+        fpath = os.path.normpath(fpath)
+
+        editor = cw.cwpy.setting.editor
+        if not editor:
+            return
+
+        # エディタ起動
+        seq = [editor, fpath]
+        cwxpath = ""
+        packid = 0
+
+        if not content is None:
+            cwxpath = content.get_cwxpath()
+            if not cwxpath and cw.cwpy.is_runningevent():
+                packid = cw.cwpy.event.get_packageid()
+        elif cw.cwpy.is_runningevent():
+            event = cw.cwpy.event.get_event()
+            if event and not event.cur_content is None:
+                cur_content = event.cur_content
+                if cur_content.tag == "ContentsLine":
+                    cur_content = cur_content[event.line_index]
+                cwxpath = cur_content.get_cwxpath()
+
+            if not cwxpath:
+                # パッケージ処理中でなければ0が返る
+                packid = cw.cwpy.event.get_packageid()
+
+        if cwxpath:
+            seq.append(cwxpath)
+        elif packid:
+            # 古いバージョンのCWXEditorでは
+            # -a -b -pオプションつきの起動で
+            # 同一のシナリオが複数開かれてしまう
+            seq.append(("package:id:%s" % (packid)))
+        elif cw.cwpy.is_battlestatus():
+            seq.append(("battle:id:%s" % (cw.cwpy.areaid)))
+        elif 0 <= cw.cwpy.areaid:
+            seq.append(("area:id:%s" % (cw.cwpy.areaid)))
+        elif cw.cwpy.pre_areaids:
+            seq.append(("area:id:%s" % (cw.cwpy.pre_areaids[0][0])))
+
+        def func(parent, seq):
+            if not parent:
+                return
+
+            try:
+                subprocess.Popen(seq, close_fds=True)
+            except:
+                s = "「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
+                dlg = cw.dialog.message.ErrorMessage(parent, s)
+                cw.cwpy.frame.move_dlg(dlg)
+                dlg.ShowModal()
+                dlg.Destroy()
+
+        cw.cwpy.frame.exec_func(func, parent, seq)
 
     def OnShowStackTraceTool(self, event):
         if self.view_stacktrace:
@@ -1835,6 +1838,7 @@ class VariableListCtrl(wx.ListCtrl):
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         self.imgidx_flag = self.imglist.Add(cw.cwpy.rsrc.debugs["FLAG"])
         self.imgidx_step = self.imglist.Add(cw.cwpy.rsrc.debugs["STEP"])
+        self.imgidx_variant = self.imglist.Add(cw.cwpy.rsrc.debugs["VARIANT"])
         self.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.InsertColumn(0, "名称")
         self.InsertColumn(1, "現在値")
@@ -1865,6 +1869,10 @@ class VariableListCtrl(wx.ListCtrl):
             if not cw.cwpy.is_playingscenario():
                 return
             update = False
+            for var in cw.cwpy.sdata.variants.values():
+                if var.value != var.defaultvalue:
+                    var.set(var.defaultvalue, updatedebugger=False)
+                    update = True
             for var in cw.cwpy.sdata.flags.values():
                 if var.value != var.defaultvalue:
                     var.set(var.defaultvalue, updatedebugger=False)
@@ -1888,6 +1896,9 @@ class VariableListCtrl(wx.ListCtrl):
                 choices = [item.truename, item.falsename]
             elif isinstance(item, cw.data.Step):
                 choices = item.valuenames
+            else:
+                self._edit_variant(item)
+                return
 
             s = "変更したい値を選択してください。"
             dlg = wx.SingleChoiceDialog(self.Parent, s, item.name, choices,
@@ -1907,6 +1918,14 @@ class VariableListCtrl(wx.ListCtrl):
 
             dlg.Destroy()
 
+    def _edit_variant(self, variant):
+        dlg = cw.debug.edit.VariantEditDialog(self.Parent, variant.name, "コモンの型と値", variant.value)
+        if dlg.ShowModal() == wx.ID_OK:
+            def func(item, value):
+                item.set(value)
+            cw.cwpy.exec_func(func, variant, dlg.value)
+        dlg.Destroy()
+
     def OnGetItemText(self, row, col):
         i = self.list[row]
 
@@ -1916,6 +1935,8 @@ class VariableListCtrl(wx.ListCtrl):
             return i.get_valuename()
         elif isinstance(i, cw.data.Step):
             return i.get_valuename()
+        elif isinstance(i, cw.data.Variant):
+            return i.string_value()
         else:
             return ""
 
@@ -1926,6 +1947,8 @@ class VariableListCtrl(wx.ListCtrl):
             return self.imgidx_flag
         elif isinstance(i, cw.data.Step):
             return self.imgidx_step
+        elif isinstance(i, cw.data.Variant):
+            return self.imgidx_variant
         else:
             return -1
 
@@ -1955,8 +1978,11 @@ class VariableListCtrl(wx.ListCtrl):
 
         def func(self):
             if cw.cwpy.is_playingscenario():
-                vlist = list(cw.cwpy.sdata.steps.values())
+                vlist = list(cw.cwpy.sdata.variants.values())
                 cw.util.sort_by_attr(vlist, "name")
+                seq = list(cw.cwpy.sdata.steps.values())
+                cw.util.sort_by_attr(seq, "name")
+                vlist.extend(seq)
                 seq = list(cw.cwpy.sdata.flags.values())
                 cw.util.sort_by_attr(seq, "name")
                 vlist.extend(seq)

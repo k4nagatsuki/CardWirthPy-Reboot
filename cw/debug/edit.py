@@ -3,8 +3,10 @@
 
 import sys
 import math
+import decimal
 import wx
 import wx.lib.mixins.listctrl as listmix
+import wx.lib.masked
 
 import cw
 
@@ -1467,6 +1469,108 @@ def down_to_bottom(values, seq, indexes):
             values.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
 
     values.EnsureVisible(values.GetItemCount() - 1)
+
+
+#-------------------------------------------------------------------------------
+#  コモン編集ダイアログ
+#-------------------------------------------------------------------------------
+
+class VariantEditDialog(wx.Dialog):
+
+    def __init__(self, parent, title, label, value):
+        wx.Dialog.__init__(self, parent, -1, title,
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+        self.cwpy_debug = True
+        self.value = value
+
+        self.box = wx.StaticBox(self, -1, label)
+
+        self.type_num = wx.RadioButton(self, -1, "数値")
+        self.type_str = wx.RadioButton(self, -1, "文字列")
+        self.type_bool = wx.RadioButton(self, -1, "真偽値")
+
+        self.value_num = wx.lib.masked.NumCtrl(self, -1, value=0)
+        self.value_num.SetFractionWidth(3)
+        self.value_str = wx.TextCtrl(self, -1)
+        self.value_bool = wx.Choice(self, -1, choices=["TRUE", "FALSE"])
+        self.value_bool.Select(0)
+        self.value_num.Disable()
+        self.value_str.Disable()
+        self.value_bool.Disable()
+
+        if isinstance(value, bool):
+            self.type_bool.SetValue(True)
+            self.value_bool.Select(0 if value else 1)
+            self.value_bool.Enable()
+        elif isinstance(value, decimal.Decimal):
+            self.type_num.SetValue(True)
+            self.value_num.SetValue(float(value))
+            self.value_num.Enable()
+        else:
+            self.type_str.SetValue(True)
+            self.value_str.SetValue(cw.data.Variant.value_to_str(value))
+            self.value_str.Enable()
+
+        # btn
+        self.okbtn = wx.Button(self, wx.ID_OK, "&OK", (cw.ppis(100), -1))
+        self.cnclbtn = wx.Button(self, wx.ID_CANCEL, "&Cancel", (cw.ppis(100), -1))
+
+        self._update_value()
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_bool)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_num)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_str)
+        self.Bind(wx.EVT_CHOICE, self.OnValue, self.value_bool)
+        self.Bind(wx.lib.masked.EVT_NUM, self.OnValue, self.value_num)
+        self.Bind(wx.EVT_TEXT, self.OnValue, self.value_str)
+
+    def _do_layout(self):
+        sizer_box = wx.StaticBoxSizer(self.box, wx.HORIZONTAL)
+        sizer_grid = wx.GridBagSizer()
+        sizer_grid.Add(self.type_num, pos=(0, 0), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.type_str, pos=(1, 0), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.type_bool, pos=(2, 0), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.value_num, pos=(0, 1), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.value_str, pos=(1, 1), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.value_bool, pos=(2, 1), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_box.Add(sizer_grid, 1, wx.EXPAND, 0)
+
+        sizer_buttons = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_buttons.AddStretchSpacer(0)
+        sizer_buttons.Add(self.okbtn, 1, wx.EXPAND|wx.RIGHT, cw.ppis(5))
+        sizer_buttons.AddStretchSpacer(0)
+        sizer_buttons.Add(self.cnclbtn, 1, wx.EXPAND, cw.ppis(0))
+        sizer_buttons.AddStretchSpacer(0)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(sizer_box, 1, wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, cw.ppis(15))
+        sizer.Add(sizer_buttons, 0, wx.ALL|wx.EXPAND, cw.ppis(15))
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnType(self, event):
+        self.value_num.Enable(self.type_num.GetValue())
+        self.value_str.Enable(self.type_str.GetValue())
+        self.value_bool.Enable(self.type_bool.GetValue())
+        self._update_value()
+
+    def OnValue(self, event):
+        self._update_value()
+
+    def _update_value(self):
+        if self.type_bool.GetValue():
+            self.value = self.value_bool.GetSelection() == 0
+        elif self.type_num.GetValue():
+            self.value = decimal.Decimal(self.value_num.GetValue()).quantize(decimal.Decimal('.001'),
+                                                                             rounding=decimal.ROUND_HALF_UP).normalize()
+
+        else:
+            self.value = self.value_str.GetValue()
 
 
 def main():

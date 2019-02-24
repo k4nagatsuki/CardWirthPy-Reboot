@@ -107,6 +107,7 @@ class Summary(base.CWBinaryBase):
         area_id = 0
         steps = []
         flags = []
+        variants = []
         level_min = 0
         level_max = 0
 
@@ -133,6 +134,8 @@ class Summary(base.CWBinaryBase):
                 flags = e
             elif e.tag == "Steps":
                 steps = e
+            elif e.tag == "Variants":
+                variants = e
 
         f.write_image(image)
         f.write_string(name)
@@ -147,6 +150,8 @@ class Summary(base.CWBinaryBase):
         f.write_dword(len(flags))
         for flag in flags:
             Flag.unconv(f, flag)
+        for variant in variants:
+            f.check_wsnversion("4", "コモン")
         f.write_dword(0) # 不明
         f.write_dword(level_min)
         f.write_dword(level_max)

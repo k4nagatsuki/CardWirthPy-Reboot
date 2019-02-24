@@ -4,6 +4,7 @@
 import os
 import sys
 import itertools
+import wx
 import pygame
 
 import cw
@@ -146,6 +147,56 @@ class EventContentBase(object):
             while pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) and not not cw.cwpy.event.is_stoped():
                 cw.cwpy.input()
                 cw.cwpy.get_eventhandler().run()
+
+    def variant_error(self, msg="", ex=None):
+        desc = "コモンの処理でエラーが発生しました。"
+        if msg:
+            desc += "\n" + msg
+        if ex:
+            if isinstance(ex, cw.calclator.TokanizeException):
+                desc += "\n" + "使用できない文字があります(行:%s 位置:%s)" % (ex.line, ex.pos)
+            elif isinstance(ex, cw.calclator.SemanticsException):
+                desc += "\n" + "構文が正しくありません(行:%s 位置:%s)" % (ex.line, ex.pos)
+            elif isinstance(ex, cw.calclator.FunctionIsNotDefinedException):
+                desc += "\n" + "関数 %s は定義されていません。" % (ex.func_name)
+            elif isinstance(ex, cw.calclator.ArgumentIsNotDecimalException):
+                desc += "\n" + "関数 %s の %s 番目の引数が数値ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+            elif isinstance(ex, cw.calclator.ArgumentIsNotStringException):
+                desc += "\n" + "関数 %s の %s 番目の引数が文字列ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+            elif isinstance(ex, cw.calclator.ArgumentIsNotBooleanException):
+                desc += "\n" + "関数 %s の %s 番目の引数が真偽値ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+            elif isinstance(ex, cw.calclator.ArgumentsCountException):
+                desc += "\n" + "関数 %s の呼び出し引数の数が間違っています。" % (ex.func_name, ex.arg_index+1)
+            elif isinstance(ex, cw.calclator.InvalidArgumentException):
+                desc += "\n" + "関数 %s の %s 番目の引数の値が間違っています(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+            elif isinstance(ex, cw.calclator.VariantNotFoundException):
+                desc += "\n" + "コモン『%s』はありません。" % (ex.path)
+            elif isinstance(ex, cw.calclator.FlagNotFoundException):
+                desc += "\n" + "フラグ『%s』はありません。" % (ex.path)
+            elif isinstance(ex, cw.calclator.StepNotFoundException):
+                desc += "\n" + "ステップ『%s』はありません。" % (ex.path)
+
+        cw.cwpy.play_sound("error")
+        def func():
+            choices = (
+                ("続行", wx.ID_OK, cw.wins(100)),
+                ("イベント中止", wx.ID_CANCEL, cw.wins(100)),
+                ("エディタで開く", cw.debug.debugger.ID_EDITOR, cw.wins(100)),
+            )
+            dlg = cw.dialog.message.Message(cw.cwpy.frame, cw.cwpy.msgs["message"], desc, mode=3, choices=choices)
+            dlg.buttons[2].Enable(bool(cw.cwpy.setting.editor))
+            cw.cwpy.frame.move_dlg(dlg)
+            ret = dlg.ShowModal()
+            dlg.Destroy()
+            return ret
+        ret = cw.cwpy.frame.sync_exec(func)
+
+        if ret == wx.ID_CANCEL:
+            raise cw.event.EffectBreakError()
+
+        elif ret == cw.debug.debugger.ID_EDITOR:
+            cw.debug.debugger.Debugger.exec_editor(cw.cwpy.frame, self.data)
+            raise cw.event.EffectBreakError()
 
     @property
     def textdict(self):
@@ -1830,7 +1881,7 @@ class BranchMultiCouponContent(BranchContent):
             if e.tag == "ContentsLine":
                 e = e[0]
 
-            # フラグ判定コンテントの場合、対応フラグがTrueだったら分岐先追加
+            # 判定系コンテントの場合、判定成功状態だったら分岐先追加
             if e.tag == "Check":
                 if get_content(e).action() != 0:
                     continue
@@ -1878,7 +1929,7 @@ class BranchMultiRandomContent(BranchContent):
             if e.tag == "ContentsLine":
                 e = e[0]
 
-            # フラグ判定コンテントの場合、対応フラグがTrueだったら分岐先追加
+            # 判定系コンテントの場合、判定成功状態だったら分岐先追加
             if e.tag == "Check":
                 if get_content(e).action() != 0:
                     continue
@@ -1893,6 +1944,41 @@ class BranchMultiRandomContent(BranchContent):
 
     def get_status(self):
         return "ランダム多岐分岐コンテント"
+
+
+class BranchVariantContent(BranchContent):
+    def __init__(self, data):
+        BranchContent.__init__(self, data)
+        self.expression = self.data.gettext("Expression", "")
+        self.parsed_expression = None
+
+    def action(self):
+        """コモン分岐コンテント(Wsn.4)。"""
+        try:
+            if not self.parsed_expression:
+                self.parsed_expression = cw.calclator.parse(self.expression)
+            variant = cw.calclator.eval(self.parsed_expression, self.is_differentscenario())
+            if variant.type == "Boolean":
+                index = self.get_boolean_index(variant.value)
+            else:
+                self.variant_error(msg="計算結果 %s は真偽値ではありません。" % variant.string_value())
+                index = self.get_boolean_index(False)
+        except cw.calclator.ComputeException as ex:
+            self.variant_error(ex=ex)
+            index = self.get_boolean_index(False)
+
+        return index
+
+    def get_status(self):
+        return self.expression
+
+    def get_childname(self, child):
+        if self.get_contentname(child) == "○":
+            valuename = "TRUE"
+        else:
+            valuename = "FALSE"
+
+        return "〔 %s 〕の結果 = %s" % (self.expression, valuename)
 
 
 #-------------------------------------------------------------------------------
@@ -2142,6 +2228,7 @@ class CheckFlagContent(EventContentBase):
         else:
             return "フラグが指定されていません"
 
+
 class CheckStepContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=False)
@@ -2181,6 +2268,32 @@ class CheckStepContent(EventContentBase):
             return "%s %s ステップ『%s』" % (value1, comparison, step)
         else:
             return "ステップが指定されていません"
+
+
+class CheckVariantContent(EventContentBase):
+    def __init__(self, data):
+        EventContentBase.__init__(self, data, is_changestate=False)
+        self.expression = self.data.gettext("Expression", "")
+        self.parsed_expression = None
+
+    def action(self):
+        """コモン判定コンテント(Wsn.4)。"""
+        try:
+            if not self.parsed_expression:
+                self.parsed_expression = cw.calclator.parse(self.expression)
+            variant = cw.calclator.eval(self.parsed_expression, self.is_differentscenario())
+            if variant.type == "Boolean":
+                return 0 if variant.value else cw.IDX_TREEEND
+            else:
+                self.variant_error(msg="計算結果 %s は真偽値ではありません。" % variant.string_value())
+                return cw.IDX_TREEEND
+        except cw.calclator.ComputeException as ex:
+            self.variant_error(ex=ex)
+            return cw.IDX_TREEEND
+
+    def get_status(self):
+        return "%s" % self.expression
+
 
 #-------------------------------------------------------------------------------
 # Effect系コンテント
@@ -3655,6 +3768,7 @@ class SetFlagContent(EventContentBase):
         else:
             return "フラグが指定されていません"
 
+
 class SetStepContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=True)
@@ -3682,6 +3796,7 @@ class SetStepContent(EventContentBase):
         else:
             return "ステップが指定されていません"
 
+
 class SetStepUpContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=True)
@@ -3706,6 +3821,7 @@ class SetStepUpContent(EventContentBase):
         else:
             return "ステップが指定されていません"
 
+
 class SetStepDownContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=True)
@@ -3729,6 +3845,68 @@ class SetStepDownContent(EventContentBase):
             return "ステップ『%s』の値を1減少" % (step)
         else:
             return "ステップが指定されていません"
+
+
+class SetVariantContent(BranchContent):
+    def __init__(self, data):
+        EventContentBase.__init__(self, data, is_changestate=True)
+        self.expression = self.data.gettext("Expression", "")
+        self.parsed_expression = None
+        self.variant = self.data.getattr(".", "variant", "")
+        self.step = self.data.getattr(".", "step", "")
+        self.flag = self.data.getattr(".", "flag", "")
+
+    def action(self):
+        """コモン設定コンテント(Wsn.4)。"""
+        variant = cw.cwpy.sdata.variants.get(self.variant, None)
+        def eval():
+            try:
+                if not self.parsed_expression:
+                    self.parsed_expression = cw.calclator.parse(self.expression)
+                return cw.calclator.eval(self.parsed_expression, self.is_differentscenario())
+            except cw.calclator.ComputeException as ex:
+                self.variant_error(ex=ex)
+                return None
+
+        if variant:
+            result = eval()
+            if result:
+                variant.set(result.value)
+
+        step = cw.cwpy.sdata.steps.get(self.step, None)
+        if step:
+            result = eval()
+            if result:
+                if result.type == "Number":
+                    value = cw.util.numwrap(result.value, 0, len(step.valuenames) - 1)
+                    step.set(int(value))
+                else:
+                    self.variant_error(msg="計算結果 %s は数値ではありません。" % (result.string_value()))
+
+        flag = cw.cwpy.sdata.flags.get(self.flag, None)
+        if flag:
+            result = eval()
+            if result:
+                if result.type == "Boolean":
+                    flag.set(result.value)
+                else:
+                    self.variant_error(msg="計算結果 %s は真偽値ではありません。" % (result.string_value()))
+
+        return 0
+
+    def get_status(self):
+        variant = cw.cwpy.sdata.variants.get(self.variant, None)
+        if variant:
+            return "〔 %s 〕の結果をコモン『%s』へ代入" % (self.expression, variant.name)
+        step = cw.cwpy.sdata.steps.get(self.step, None)
+        if step:
+            return "〔 %s 〕の結果をステップ『%s』へ代入" % (self.expression, step.name)
+        flag = cw.cwpy.sdata.flags.get(self.flag, None)
+        if flag:
+            return "〔 %s 〕の結果をフラグ『%s』へ代入" % (self.expression, flag.name)
+
+        return "代入先が指定されていません"
+
 
 #-------------------------------------------------------------------------------
 # Show系コンテント
@@ -4226,46 +4404,61 @@ class WaitContent(EventContentBase):
 class SubstituteStepContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=True)
+        self.fromstep = self.data.getattr(".", "from", "")
+        self.tostep = self.data.getattr(".", "to", "")
+
+        self.fromvariant = self.data.getattr(".", "fromvariant", "") # Wsn.4
 
     def action(self):
         """ステップ代入コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        fromstep = self.data.get("from")
-        tostep = self.data.get("to")
+        if self.fromvariant:
+            if self.fromvariant in cw.cwpy.sdata.variants and self.tostep in cw.cwpy.sdata.steps:
+                variant = cw.cwpy.sdata.variants[self.fromvariant]
+                if variant.type == "Number":
+                    step = cw.cwpy.sdata.steps[self.tostep]
+                    value = cw.util.numwrap(variant.value, 0, len(step.valuenames)-1)
+                    step.set(int(value))
+                else:
+                    self.variant_error(msg="『%s』の値 %s は数値ではありません。" % (self.fromvariant, variant.string_value()))
 
-        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
-            cw.cwpy.sdata.steps[tostep].set(cw.cwpy.sdata.steps[fromstep].value)
-        elif fromstep.lower() == "??random":
-            if tostep in cw.cwpy.sdata.steps:
-                sides = len(cw.cwpy.sdata.steps[tostep].valuenames)
-                cw.cwpy.sdata.steps[tostep].set(cw.cwpy.dice.roll(1, sides)-1)
-        elif fromstep.lower() == "??selectedplayer":
-            if tostep in cw.cwpy.sdata.steps:
+        elif self.fromstep in cw.cwpy.sdata.steps and self.tostep in cw.cwpy.sdata.steps:
+            cw.cwpy.sdata.steps[self.tostep].set(cw.cwpy.sdata.steps[self.fromstep].value)
+        elif self.fromstep.lower() == "??random":
+            if self.tostep in cw.cwpy.sdata.steps:
+                sides = len(cw.cwpy.sdata.steps[self.tostep].valuenames)
+                cw.cwpy.sdata.steps[self.tostep].set(cw.cwpy.dice.roll(1, sides)-1)
+        elif self.fromstep.lower() == "??selectedplayer":
+            if self.tostep in cw.cwpy.sdata.steps:
                 n = 0
                 if cw.cwpy.event.has_selectedmember():
                     selected = cw.cwpy.event.get_targetmember("Selected")
                     if isinstance(selected, cw.sprite.card.PlayerCard):
                         n = selected.index + 1
-                cw.cwpy.sdata.steps[tostep].set(n)
+                cw.cwpy.sdata.steps[self.tostep].set(n)
 
         return 0
 
     def get_status(self):
-        fromstep = self.data.get("from")
-        tostep = self.data.get("to")
-
-        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
-            return "ステップ『%s』の値を『%s』へ代入" % (fromstep, tostep)
-        elif fromstep == "??Random" and tostep in cw.cwpy.sdata.steps:
-            return "ランダム値を『%s』へ代入" % (tostep)
+        if self.fromvariant in cw.cwpy.sdata.variants and self.tostep in cw.cwpy.sdata.steps:
+            return "コモン『%s』の値を『%s』へ代入" % (self.fromvariant, self.tostep)
+        elif self.fromstep in cw.cwpy.sdata.steps and self.tostep in cw.cwpy.sdata.steps:
+            return "ステップ『%s』の値を『%s』へ代入" % (self.fromstep, self.tostep)
+        elif self.fromstep == "??Random" and self.tostep in cw.cwpy.sdata.steps:
+            return "ランダム値を『%s』へ代入" % (self.tostep)
         else:
             return "ステップが指定されていません"
 
 class SubstituteFlagContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=True)
+        self.fromflag = self.data.getattr(".", "from", "")
+        self.toflag = self.data.getattr(".", "to", "")
+
+        self.fromvariant = self.data.getattr(".", "fromvariant", "") # Wsn.4
+
         self.cardspeed = self.data.getattr(".", "cardspeed", "Default")
         if self.cardspeed == "Default":
             self.cardspeed = -1
@@ -4279,15 +4472,21 @@ class SubstituteFlagContent(EventContentBase):
         if self.is_differentscenario():
             return 0
 
-        fromflag = self.data.get("from")
-        toflag = self.data.get("to")
+        if self.fromvariant:
+            if self.fromvariant in cw.cwpy.sdata.variants and self.toflag in cw.cwpy.sdata.flags:
+                variant = cw.cwpy.sdata.variants[self.fromvariant]
+                if variant.type == "Boolean":
+                    flag = cw.cwpy.sdata.flags[self.toflag]
+                    flag.set(variant.value)
+                else:
+                    self.variant_error(msg="『%s』の値 %s は真偽値ではありません。" % (self.fromvariant, variant.string_value()))
 
-        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
-            toflag = cw.cwpy.sdata.flags[toflag]
-            toflag.set(cw.cwpy.sdata.flags[fromflag].value)
+        elif self.fromflag in cw.cwpy.sdata.flags and self.toflag in cw.cwpy.sdata.flags:
+            toflag = cw.cwpy.sdata.flags[self.toflag]
+            toflag.set(cw.cwpy.sdata.flags[self.fromflag].value)
             toflag.redraw_cards(self.cardspeed, self.overridecardspeed)
-        elif fromflag == "??Random":
-            toflag = cw.cwpy.sdata.flags.get(toflag, None)
+        elif self.fromflag == "??Random":
+            toflag = cw.cwpy.sdata.flags.get(self.toflag, None)
             if not toflag is None:
                 if cw.cwpy.dice.roll(1, 2) == 1:
                     toflag.set(True)
@@ -4298,13 +4497,12 @@ class SubstituteFlagContent(EventContentBase):
         return 0
 
     def get_status(self):
-        fromflag = self.data.get("from")
-        toflag = self.data.get("to")
-
-        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
-            return "フラグ『%s』の値を『%s』へ代入" % (fromflag, toflag)
-        elif fromflag == "??Random" and toflag in cw.cwpy.sdata.flags:
-            return "ランダム値を『%s』へ代入" % (toflag)
+        if self.fromvariant in cw.cwpy.sdata.variants and self.toflag in cw.cwpy.sdata.flags:
+            return "コモン『%s』の値を『%s』へ代入" % (self.fromvariant, self.toflag)
+        elif self.fromflag in cw.cwpy.sdata.flags and self.toflag in cw.cwpy.sdata.flags:
+            return "フラグ『%s』の値を『%s』へ代入" % (self.fromflag, self.toflag)
+        elif self.fromflag == "??Random" and self.toflag in cw.cwpy.sdata.flags:
+            return "ランダム値を『%s』へ代入" % (self.toflag)
         else:
             return "フラグが指定されていません"
 

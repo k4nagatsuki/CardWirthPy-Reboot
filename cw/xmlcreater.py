@@ -1094,6 +1094,10 @@ def create_scenariolog(sdata, path, recording, logfilepath):
                     elif isinstance(item.data, cw.data.Step):
                         e_name.set("type", "Step")
                         e_name.set("step", item.data.name)
+                    elif isinstance(item.data, cw.data.Variant):
+                        e_name.set("type", "Variant")
+                        e_name.set("variant", item.data.name)
+                        e_name.set("valuetype", item.data.type)
                     elif item.data == "Number":
                         e_name.set("type", "Number")
                     e.append(e_name)
@@ -1180,6 +1184,16 @@ def create_scenariolog(sdata, path, recording, logfilepath):
     for name, step in sdata.steps.items():
         e = cw.data.make_element("Step", name, {"value": str(step.value)})
         e_step.append(e)
+
+    # variant
+    if sdata.variants:
+        e_variant = cw.data.make_element("Variants")
+        element.append(e_variant)
+
+        for name, variant in sdata.variants.items():
+            e = cw.data.make_element("Variant", name, {"type": variant.type,
+                                                        "value": str(variant.value)})
+            e_variant.append(e)
 
     if not recording:
         # gossip
