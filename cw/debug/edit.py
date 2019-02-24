@@ -1504,7 +1504,10 @@ class VariantEditDialog(wx.Dialog):
             self.value_bool.Enable()
         elif isinstance(value, decimal.Decimal):
             self.type_num.SetValue(True)
-            self.value_num.SetValue(float(value))
+            try:
+                self.value_num.SetValue(float(value))
+            except:
+                self.value_num.SetValue(0)
             self.value_num.Enable()
         else:
             self.type_str.SetValue(True)
