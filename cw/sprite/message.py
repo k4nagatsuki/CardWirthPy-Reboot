@@ -605,10 +605,12 @@ class MessageWindow(base.CWPySprite):
         if stack <= 0 and v.spchars:
             # 特殊文字の展開(Wsn.2)
             s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table, self.get_stepvalue, self.get_flagvalue,
-                                                     basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
+                                                     self.get_variantvalue, basenamelist, startindex, spcharinfo,
+                                                     namelist, namelistindex, stack+1)
         return s, namelistindex
 
-    def get_flagvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
+    def get_flagvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist,
+                      namelistindex, stack):
         if self.backlog:
             if key in self.flag_table:
                 v = self.flag_table[key]
@@ -624,10 +626,12 @@ class MessageWindow(base.CWPySprite):
         if stack <= 0 and v.spchars:
             # 特殊文字の展開(Wsn.2)
             s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table, self.get_stepvalue, self.get_flagvalue,
-                                                     basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
+                                                     self.get_variantvalue, basenamelist, startindex, spcharinfo,
+                                                     namelist, namelistindex, stack+1)
         return s, namelistindex
 
-    def get_variantvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
+    def get_variantvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist,
+                         namelistindex, stack):
         if self.backlog:
             if key in self.variant_table:
                 v = self.variant_table[key]
@@ -1316,7 +1320,8 @@ def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, 
     if stack <= 0 and v.spchars:
         # 特殊文字の展開(Wsn.2)
         s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue,
-                                                 basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
+                                                 _get_variantvalue, basenamelist, startindex, spcharinfo, namelist,
+                                                 namelistindex, stack+1)
     return s, namelistindex
 
 def get_spstep(name):
@@ -1383,7 +1388,8 @@ def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, 
     if stack <= 0 and v.spchars:
         # 特殊文字の展開(Wsn.2)
         s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue,
-                                                 basenamelist, startindex, spcharinfo, namelist, namelistindex, stack+1)
+                                                 _get_variantvalue, basenamelist, startindex, spcharinfo, namelist,
+                                                 namelistindex, stack+1)
     return s, namelistindex
 
 def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo,
