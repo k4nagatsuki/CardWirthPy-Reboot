@@ -28,6 +28,14 @@ class SemanticsException(ComputeException):
         ComputeException.__init__(self, msg, line, pos)
 
 
+class ZeroDivisionException(ComputeException):
+    """ゼロで割ろうとした。"""
+    def __init__(self, msg, line, pos):
+        Exception.__init__(self, msg + " Line: %s, Pos: %s" % (line, pos))
+        self.line = line
+        self.pos = pos
+
+
 class FunctionIsNotDefinedException(ComputeException):
     """関数未定義エラー。"""
     def __init__(self, msg, func_name, line, pos):
@@ -182,9 +190,13 @@ class Operator(object):
             return DecimalValue(lhs.value * rhs.value, self.line, self.pos)
         elif o == '/':
             chk_num()
+            if rhs.value == 0:
+                raise ZeroDivisionException("Division by zero.", self.line, self.pos)
             return DecimalValue(lhs.value / rhs.value, self.line, self.pos)
         elif o == '%':
             chk_num()
+            if rhs.value == 0:
+                raise ZeroDivisionException("Division by zero.", self.line, self.pos)
             return DecimalValue(lhs.value % rhs.value, self.line, self.pos)
         elif o == '~':
             return StringValue(lhs.to_str() + rhs.to_str(), self.line, self.pos)
@@ -813,6 +825,16 @@ assert calculate(parse("INT(\"42.9\")")).value == 42
 assert calculate(parse("INT(\"-42.9\")")).value == -42
 assert calculate(parse("IF(1=2,99,88)")).value == 88
 assert calculate(parse("IF(2=2,99,88)")).value == 99
+try:
+    assert calculate(parse("5 / (2-1-1)"))
+    assert False
+except ZeroDivisionException as ex:
+    pass
+try:
+    assert calculate(parse("5 % (2-1-1)"))
+    assert False
+except ZeroDivisionException as ex:
+    pass
 
 
 def main():
