@@ -180,7 +180,7 @@ def build_exe():
     #      CardWirthPy.exeと同じフォルダに必要
     mvfiles = (
         ("sqlite3.dll", "lib/sqlite3.dll"),
-        ("lib/VCRUNTIME140.dll", "VCRUNTIME140.dll"),
+#        ("lib/VCRUNTIME140.dll", "VCRUNTIME140.dll"),
     )
     for src, dst in mvfiles:
         print("Moving %s to %s" % (src, dst))
@@ -190,20 +190,21 @@ def build_exe():
 
     print("")
 
-    # BUG: lib以下に不要なpython36.dll等が生成される
+    # BUG: lib以下に不要なpython37.dll等が生成される
     rmfiles = (
-        "lib/python36.dll",
+        "lib/VCRUNTIME140.dll",
+        "lib/python37.dll",
         "lib/_ssl.pyd",
-        "lib/cw/python36.dll",
-        "lib/wx/python36.dll",
+        "lib/cw/python37.dll",
+        "lib/wx/python37.dll",
         "lib/wx/libcairo-2.dll",
-        "lib/wx/libexpat-1.dll",
-        "lib/wx/_propgrid.cp36-win32.pyd",
-        "lib/wx/_propgrid.cp36-win_amd64.pyd",
+#        "lib/wx/libexpat-1.dll",
+        "lib/wx/_propgrid.cp37-win32.pyd",
+        "lib/wx/_propgrid.cp37-win_amd64.pyd",
         "lib/wx/wxmsw30u_propgrid_vc140.dll",
         "lib/wx/wxmsw30u_propgrid_vc140_x64.dll",
-        "lib/wx/_ribbon.cp36-win32.pyd",
-        "lib/wx/_ribbon.cp36-win_amd64.pyd",
+        "lib/wx/_ribbon.cp37-win32.pyd",
+        "lib/wx/_ribbon.cp37-win_amd64.pyd",
         "lib/wx/wxmsw30u_ribbon_vc140.dll",
         "lib/wx/wxmsw30u_ribbon_vc140_x64.dll",
         "lib/wx/wxmsw30u_webview_vc140.dll",
@@ -252,11 +253,11 @@ def build_exe():
         "lib/pygame/docs",
         "lib/pygame/tests",
         "lib/pygame/examples",
-        "lib/pygame/python36.dll",
+        "lib/pygame/python37.dll",
         "lib/pygame/VCRUNTIME140.dll",
-        "lib/win32com/shell/python36.dll",
-        "lib/win32com/shell/pythoncom36.dll",
-        "lib/win32com/shell/pywintypes36.dll",
+        "lib/win32com/shell/python37.dll",
+        "lib/win32com/shell/pythoncom37.dll",
+        "lib/win32com/shell/pywintypes37.dll",
         "lib/win32com/shell/VCRUNTIME140.dll",
         "lib/pydoc_data",
     )
