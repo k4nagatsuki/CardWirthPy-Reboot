@@ -170,12 +170,13 @@ class CardInfo(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
         dc.SetFont(font)
         size = dc.GetTextExtent(s)
+        size = (min(size[0], rectsize[0]-cw.wins(14)), size[1])
         dc.SetPen(wx.Pen((255, 255, 255), cw.wins(1), wx.TRANSPARENT))
         colour = self.toppanel.GetBackgroundColour()
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
         y = cw.wins(9) - size[1]//2
         dc.DrawRectangle(cw.wins(122), y, size[0], size[1])
-        dc.DrawText(s, cw.wins(122), y)
+        cw.util.draw_adjusted(dc, s, cw.wins(122), y, size[0])
         # 説明文
         s = self.get_desc()
 
@@ -189,9 +190,10 @@ class CardInfo(wx.Dialog):
             font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
             dc.SetFont(font)
             size = dc.GetTextExtent(s)
+            size = (min(size[0], rectsize[0]-cw.wins(14)), size[1])
             y = (cw.wins(9)+rectsize[1]) - size[1]//2
             dc.DrawRectangle(cw.wins(113)+rectsize[0]-cw.wins(5)-size[0], y, size[0], size[1])
-            dc.DrawText(s, cw.wins(113)+rectsize[0]-cw.wins(5)-size[0], y)
+            cw.util.draw_adjusted(dc, s, cw.wins(113)+rectsize[0]-cw.wins(5)-size[0], y, size[0])
 
         if update:
             self.toppanel.Refresh()

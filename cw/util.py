@@ -3541,6 +3541,15 @@ def draw_witharound(dc, s, x, y, maxwidth=0):
     draw_antialiasedtext(dc, s, x, y, False, maxwidth, 0, scaledown=False, bordering=True)
 
 
+def draw_adjusted(dc, s, x, y, maxwidth):
+    """テキストをmaxwidthの幅に収まるように描画する。"""
+    if dc.GetTextExtent(s)[0] < maxwidth:
+        dc.DrawText(s, x, y)
+    else:
+        draw_antialiasedtext(dc, s, x, y, dc.GetTextForeground(), maxwidth, 0,
+                             scaledown=False, bordering=False)
+
+
 def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
                          quality=None, scaledown=True, alpha=64,
                          bordering=False, width_coeff=1):
@@ -3597,7 +3606,10 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     dc.SelectObject(wx.NullBitmap)
     dc.Destroy()
     redbuf = bytearray(wxbmp_to_buffer(wxbmp))[::3]
-    if white:
+    if isinstance(white, wx.Colour):
+        brush = wx.Brush(white)
+        pen = wx.Pen(white)
+    elif white:
         brush = wx.WHITE_BRUSH
         pen = wx.WHITE_PEN
     else:

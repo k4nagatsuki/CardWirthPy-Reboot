@@ -1900,10 +1900,10 @@ class CardPanel(wx.Panel):
 
             if header.negaflag:
                 dc.SetTextForeground(wx.RED)
-                dc.DrawText(s, pos[0], pos[1])
+                cw.util.draw_adjusted(dc, s, pos[0], pos[1], fw*6)
                 dc.SetTextForeground(wx.WHITE)
             else:
-                dc.DrawText(s, pos[0], pos[1])
+                cw.util.draw_adjusted(dc, s, pos[0], pos[1], fw*6)
 
             # rect
             if header.type == "SkillCard":
