@@ -1393,6 +1393,7 @@ class CWPy(_Singleton, threading.Thread):
             sur = pygame.Surface((w, h)).convert_alpha()
             sur.fill((255, 255, 255, 192))
             self.scr_fullscreen.blit(sur, (x, y))
+            self.draw()
 
     def change_cursor(self, name="arrow", force=False):
         """マウスカーソルを変更する。
