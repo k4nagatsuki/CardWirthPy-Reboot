@@ -2663,6 +2663,9 @@ CWXEDITOR_RESOURCES = {
     "EVT_BRANCH_STEPVALUE": "evt_cmpstep.png",  # ステップ比較分岐
     "EVT_SUBSTITUTE_FLAG": "evt_cpflag.png",  # フラグ代入
     "EVT_SUBSTITUTE_STEP": "evt_cpstep.png",  # ステップ代入
+    "EVT_SET_VARIANT": "evt_variant_set.png",  # コモン設定(Wsn.4)
+    "EVT_BRANCH_VARIANT": "evt_br_variant.png",  # コモン分岐(Wsn.4)
+    "EVT_CHECK_VARIANT": "evt_check_variant.png",  # コモン判定(Wsn.4)
 
     # Utility
     "EVT_BRANCH_SELECT": "evt_br_member.png",  # メンバ選択

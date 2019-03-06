@@ -153,27 +153,27 @@ class EventContentBase(object):
         if msg:
             desc += "\n" + msg
         if ex:
-            if isinstance(ex, cw.calclator.TokanizeException):
+            if isinstance(ex, cw.calculator.TokanizeException):
                 desc += "\n" + "使用できない文字があります(行:%s 位置:%s)" % (ex.line, ex.pos)
-            elif isinstance(ex, cw.calclator.SemanticsException):
+            elif isinstance(ex, cw.calculator.SemanticsException):
                 desc += "\n" + "構文が正しくありません(行:%s 位置:%s)" % (ex.line, ex.pos)
-            elif isinstance(ex, cw.calclator.FunctionIsNotDefinedException):
+            elif isinstance(ex, cw.calculator.FunctionIsNotDefinedException):
                 desc += "\n" + "関数 %s は定義されていません。" % (ex.func_name)
-            elif isinstance(ex, cw.calclator.ArgumentIsNotDecimalException):
+            elif isinstance(ex, cw.calculator.ArgumentIsNotDecimalException):
                 desc += "\n" + "関数 %s の %s 番目の引数が数値ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
-            elif isinstance(ex, cw.calclator.ArgumentIsNotStringException):
+            elif isinstance(ex, cw.calculator.ArgumentIsNotStringException):
                 desc += "\n" + "関数 %s の %s 番目の引数が文字列ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
-            elif isinstance(ex, cw.calclator.ArgumentIsNotBooleanException):
+            elif isinstance(ex, cw.calculator.ArgumentIsNotBooleanException):
                 desc += "\n" + "関数 %s の %s 番目の引数が真偽値ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
-            elif isinstance(ex, cw.calclator.ArgumentsCountException):
+            elif isinstance(ex, cw.calculator.ArgumentsCountException):
                 desc += "\n" + "関数 %s の呼び出し引数の数が間違っています。" % (ex.func_name, ex.arg_index+1)
-            elif isinstance(ex, cw.calclator.InvalidArgumentException):
+            elif isinstance(ex, cw.calculator.InvalidArgumentException):
                 desc += "\n" + "関数 %s の %s 番目の引数の値が間違っています(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
-            elif isinstance(ex, cw.calclator.VariantNotFoundException):
+            elif isinstance(ex, cw.calculator.VariantNotFoundException):
                 desc += "\n" + "コモン『%s』はありません。" % (ex.path)
-            elif isinstance(ex, cw.calclator.FlagNotFoundException):
+            elif isinstance(ex, cw.calculator.FlagNotFoundException):
                 desc += "\n" + "フラグ『%s』はありません。" % (ex.path)
-            elif isinstance(ex, cw.calclator.StepNotFoundException):
+            elif isinstance(ex, cw.calculator.StepNotFoundException):
                 desc += "\n" + "ステップ『%s』はありません。" % (ex.path)
 
         cw.cwpy.play_sound("error")
@@ -1956,14 +1956,14 @@ class BranchVariantContent(BranchContent):
         """コモン分岐コンテント(Wsn.4)。"""
         try:
             if not self.parsed_expression:
-                self.parsed_expression = cw.calclator.parse(self.expression)
-            variant = cw.calclator.eval(self.parsed_expression, self.is_differentscenario())
+                self.parsed_expression = cw.calculator.parse(self.expression)
+            variant = cw.calculator.eval(self.parsed_expression, self.is_differentscenario())
             if variant.type == "Boolean":
                 index = self.get_boolean_index(variant.value)
             else:
                 self.variant_error(msg="計算結果 %s は真偽値ではありません。" % variant.string_value())
                 index = self.get_boolean_index(False)
-        except cw.calclator.ComputeException as ex:
+        except cw.calculator.ComputeException as ex:
             self.variant_error(ex=ex)
             index = self.get_boolean_index(False)
 
@@ -2280,14 +2280,14 @@ class CheckVariantContent(EventContentBase):
         """コモン判定コンテント(Wsn.4)。"""
         try:
             if not self.parsed_expression:
-                self.parsed_expression = cw.calclator.parse(self.expression)
-            variant = cw.calclator.eval(self.parsed_expression, self.is_differentscenario())
+                self.parsed_expression = cw.calculator.parse(self.expression)
+            variant = cw.calculator.eval(self.parsed_expression, self.is_differentscenario())
             if variant.type == "Boolean":
                 return 0 if variant.value else cw.IDX_TREEEND
             else:
                 self.variant_error(msg="計算結果 %s は真偽値ではありません。" % variant.string_value())
                 return cw.IDX_TREEEND
-        except cw.calclator.ComputeException as ex:
+        except cw.calculator.ComputeException as ex:
             self.variant_error(ex=ex)
             return cw.IDX_TREEEND
 
@@ -3862,9 +3862,9 @@ class SetVariantContent(BranchContent):
         def eval():
             try:
                 if not self.parsed_expression:
-                    self.parsed_expression = cw.calclator.parse(self.expression)
-                return cw.calclator.eval(self.parsed_expression, self.is_differentscenario())
-            except cw.calclator.ComputeException as ex:
+                    self.parsed_expression = cw.calculator.parse(self.expression)
+                return cw.calculator.eval(self.parsed_expression, self.is_differentscenario())
+            except cw.calculator.ComputeException as ex:
                 self.variant_error(ex=ex)
                 return None
 

@@ -284,7 +284,7 @@ class BooleanValue(object):
         self.pos = pos
 
     def to_str(self):
-        return "True" if self.value else "False"
+        return "TRUE" if self.value else "FALSE"
 
     def __repr__(self):
         return "Boolean(\"%s\")" % self.value
@@ -297,7 +297,7 @@ def parse(s):
     bm = None
     line = 1
     pos = 1
-    for m in re.finditer("[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\+\-\*\/\%\~]|[\(\)]|,|\\$?\"([^\\\"]|\"\")*\"|or|and|<=|>=|<>|<|>|=|true|false|\\n|\\s+", s, re.I):
+    for m in re.finditer("[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|\\$?\"([^\"]|\"\")*\"|or|and|<=|>=|<>|<|>|=|true|false|\\n|\\s+", s, re.I):
         if bpos is None or m.start() != bpos:
             raise TokanizeException("Invalid Character: %s" % s[bm.end():m.start()], line, pos)
         bpos = m.end()
@@ -320,8 +320,12 @@ def parse(s):
         if not t in ('('): raise SemanticsException("Need an open parenthesis here.", tokens[i].line, tokens[i].pos)
         args = []
         while i + 1 < len(tokens) and tokens[i].token != ')':
+            t2 = tokens[i+1]
             i, arg = parse_semantics(tokens, i + 1)
-            args.append(arg)
+            if len(arg):
+                args.append(arg)
+            else:
+                raise SemanticsException("No argument.", t2.line, t2.pos)
         return i + 1, args
 
 
@@ -337,8 +341,8 @@ def parse(s):
             line = tokens[i].line
             pos = tokens[i].pos
             unary = False
-            if t == "not":
-                if not isop: raise SemanticsException("Need a symbol or number here.", line, pos)
+            if t.lower() == "not":
+                if not isop: raise SemanticsException("Need a boolean here.", line, pos)
                 # 真偽値反転演算子
                 oplevel = 2
                 unary = True
@@ -481,7 +485,7 @@ def calculate(st, is_differentscenario=False):
             lhs = op.pop()
             v = t.call(lhs, rhs)
         else:
-            # 数値
+            # 数値・文字列・真偽値
             v = t
         op.append(v)
     return op.pop(-1)
@@ -534,14 +538,14 @@ def _is_alldecimal(args, func_name):
 
 
 def _func_max(args, is_differentscenario, line, pos):
-    """MAX関数を実行する。"""
+    """引数中の最大の値を返す。"""
     if len(args) and _is_alldecimal(args, "MAX"):
         return DecimalValue(max(*map(lambda a: a.value, args)) if 1 < len(args) else args[0].value, line, pos)
     raise ArgumentsCountException("No argments of max.", "MAX", line, pos)
 
 
 def _func_min(args, is_differentscenario, line, pos):
-    """MIN関数を実行する。"""
+    """引数中の最小の値を返す。"""
     if len(args) and _is_alldecimal(args, "MIN"):
         return DecimalValue(min(*map(lambda a: a.value, args)) if 1 < len(args) else args[0].value, line, pos)
     raise ArgumentsCountException("No argments of min.", "MIN", line, pos)
@@ -605,6 +609,8 @@ def _func_str(args, is_differentscenario, line, pos):
     return StringValue(args[0].to_str(), line, pos)
 
 
+_NUM_REG = re.compile("\\A\\s*-?([0-9]+(\\.[0-9]*)?|([0-9]*\\.)?[0-9]+)\\s*\\Z")
+
 def _func_value(args, is_differentscenario, line, pos):
     """引数を数値化する。"""
     _chk_argscount(args, 1, "VALUE")
@@ -612,6 +618,8 @@ def _func_value(args, is_differentscenario, line, pos):
     if isinstance(a, DecimalValue):
         value = a.value
     elif isinstance(a, StringValue):
+        if not _NUM_REG.match(a.value):
+            raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
         try:
             value = decimal.Decimal(a.value)
         except:
@@ -622,7 +630,7 @@ def _func_value(args, is_differentscenario, line, pos):
 
 
 def _func_int(args, is_differentscenario, line, pos):
-    """引数を数値化する。"""
+    """引数を整数化する。"""
     _chk_argscount(args, 1, "INT")
     a = args[0]
     if isinstance(a, DecimalValue):
@@ -740,7 +748,7 @@ def _func_stepmax(args, is_differentscenario, line, pos):
     if not path in cw.cwpy.sdata.steps:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)
     step = cw.cwpy.sdata.steps[path]
-    return DecimalValue(decimal.Decimal(len(step.valuenames)), line, pos)
+    return DecimalValue(decimal.Decimal(len(step.valuenames)-1), line, pos)
 
 
 _functions = {
@@ -780,7 +788,7 @@ assert calculate(parse("not not (false or false)")).value == False
 assert calculate(parse("not not not true")).value == False
 assert calculate(parse("not 1 = 2")).value == True
 assert calculate(parse("not 1 + 2 = 3")).value == False
-assert calculate(parse("(not true) ~ \"&\" ~ (not true)")).value == "False&False"
+assert calculate(parse("(not true) ~ \"&\" ~ (not true)")).value == "FALSE&FALSE"
 assert calculate(parse("(5+8) % 3")).value == 1
 assert calculate(parse("5 + 8%3")).value == 7
 assert calculate(parse("-2+22*2")).value == 42
@@ -822,7 +830,7 @@ assert calculate(parse("VALUE(\"42\")")).value == 42
 assert calculate(parse("VALUE(\"42.123\")")).value == decimal.Decimal("42.123")
 assert calculate(parse("INT(\"42.123\")")).value == 42
 assert calculate(parse("INT(\"42.9\")")).value == 42
-assert calculate(parse("INT(\"-42.9\")")).value == -42
+assert calculate(parse("INT(\" -42.9  \")")).value == -42
 assert calculate(parse("IF(1=2,99,88)")).value == 88
 assert calculate(parse("IF(2=2,99,88)")).value == 99
 try:

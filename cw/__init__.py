@@ -36,7 +36,7 @@ from . import bassplayer
 from . import binary
 from . import advlog
 from . import update
-from . import calclator
+from . import calculator
 
 from . import dialog
 from . import debug

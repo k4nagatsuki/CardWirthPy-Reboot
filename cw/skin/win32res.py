@@ -276,7 +276,7 @@ class Win32Res(object):
         bit_count = uint16.unpack(data[14:16])[0]
         clr_used = uint32.unpack(data[32:36])[0]
 
-        # calclates data offset
+        # calculates data offset
         if clr_used == 0:
             if bit_count == 1:
                 header_size += RGBQUAD_SIZE * (0x01 << 1)
