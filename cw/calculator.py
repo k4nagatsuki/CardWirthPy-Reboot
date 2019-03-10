@@ -477,17 +477,25 @@ def calculate(st, is_differentscenario=False):
             v = t.call(is_differentscenario)
         elif isinstance(t, UnaryOperator):
             # 単項演算子
+            if not op:
+                raise SemanticsException("Invalid semantics.", t.line, t.pos)
             rhs = op.pop()
             v = t.call(rhs)
         elif isinstance(t, Operator):
             # 二項演算子
+            if not op:
+                raise SemanticsException("Invalid semantics.", t.line, t.pos)
             rhs = op.pop()
+            if not op:
+                raise SemanticsException("Invalid semantics.", t.line, t.pos)
             lhs = op.pop()
             v = t.call(lhs, rhs)
         else:
             # 数値・文字列・真偽値
             v = t
         op.append(v)
+    if not op:
+        raise SemanticsException("Invalid semantics.", 0, 0)
     return op.pop(-1)
 
 

@@ -4407,24 +4407,12 @@ class SubstituteStepContent(EventContentBase):
         self.fromstep = self.data.getattr(".", "from", "")
         self.tostep = self.data.getattr(".", "to", "")
 
-        self.fromvariant = self.data.getattr(".", "fromvariant", "") # Wsn.4
-
     def action(self):
         """ステップ代入コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        if self.fromvariant:
-            if self.fromvariant in cw.cwpy.sdata.variants and self.tostep in cw.cwpy.sdata.steps:
-                variant = cw.cwpy.sdata.variants[self.fromvariant]
-                if variant.type == "Number":
-                    step = cw.cwpy.sdata.steps[self.tostep]
-                    value = cw.util.numwrap(variant.value, 0, len(step.valuenames)-1)
-                    step.set(int(value))
-                else:
-                    self.variant_error(msg="『%s』の値 %s は数値ではありません。" % (self.fromvariant, variant.string_value()))
-
-        elif self.fromstep in cw.cwpy.sdata.steps and self.tostep in cw.cwpy.sdata.steps:
+        if self.fromstep in cw.cwpy.sdata.steps and self.tostep in cw.cwpy.sdata.steps:
             cw.cwpy.sdata.steps[self.tostep].set(cw.cwpy.sdata.steps[self.fromstep].value)
         elif self.fromstep.lower() == "??random":
             if self.tostep in cw.cwpy.sdata.steps:
@@ -4442,9 +4430,7 @@ class SubstituteStepContent(EventContentBase):
         return 0
 
     def get_status(self):
-        if self.fromvariant in cw.cwpy.sdata.variants and self.tostep in cw.cwpy.sdata.steps:
-            return "コモン『%s』の値を『%s』へ代入" % (self.fromvariant, self.tostep)
-        elif self.fromstep in cw.cwpy.sdata.steps and self.tostep in cw.cwpy.sdata.steps:
+        if self.fromstep in cw.cwpy.sdata.steps and self.tostep in cw.cwpy.sdata.steps:
             return "ステップ『%s』の値を『%s』へ代入" % (self.fromstep, self.tostep)
         elif self.fromstep == "??Random" and self.tostep in cw.cwpy.sdata.steps:
             return "ランダム値を『%s』へ代入" % (self.tostep)
@@ -4456,8 +4442,6 @@ class SubstituteFlagContent(EventContentBase):
         EventContentBase.__init__(self, data, is_changestate=True)
         self.fromflag = self.data.getattr(".", "from", "")
         self.toflag = self.data.getattr(".", "to", "")
-
-        self.fromvariant = self.data.getattr(".", "fromvariant", "") # Wsn.4
 
         self.cardspeed = self.data.getattr(".", "cardspeed", "Default")
         if self.cardspeed == "Default":
@@ -4472,16 +4456,7 @@ class SubstituteFlagContent(EventContentBase):
         if self.is_differentscenario():
             return 0
 
-        if self.fromvariant:
-            if self.fromvariant in cw.cwpy.sdata.variants and self.toflag in cw.cwpy.sdata.flags:
-                variant = cw.cwpy.sdata.variants[self.fromvariant]
-                if variant.type == "Boolean":
-                    flag = cw.cwpy.sdata.flags[self.toflag]
-                    flag.set(variant.value)
-                else:
-                    self.variant_error(msg="『%s』の値 %s は真偽値ではありません。" % (self.fromvariant, variant.string_value()))
-
-        elif self.fromflag in cw.cwpy.sdata.flags and self.toflag in cw.cwpy.sdata.flags:
+        if self.fromflag in cw.cwpy.sdata.flags and self.toflag in cw.cwpy.sdata.flags:
             toflag = cw.cwpy.sdata.flags[self.toflag]
             toflag.set(cw.cwpy.sdata.flags[self.fromflag].value)
             toflag.redraw_cards(self.cardspeed, self.overridecardspeed)
@@ -4497,9 +4472,7 @@ class SubstituteFlagContent(EventContentBase):
         return 0
 
     def get_status(self):
-        if self.fromvariant in cw.cwpy.sdata.variants and self.toflag in cw.cwpy.sdata.flags:
-            return "コモン『%s』の値を『%s』へ代入" % (self.fromvariant, self.toflag)
-        elif self.fromflag in cw.cwpy.sdata.flags and self.toflag in cw.cwpy.sdata.flags:
+        if self.fromflag in cw.cwpy.sdata.flags and self.toflag in cw.cwpy.sdata.flags:
             return "フラグ『%s』の値を『%s』へ代入" % (self.fromflag, self.toflag)
         elif self.fromflag == "??Random" and self.toflag in cw.cwpy.sdata.flags:
             return "ランダム値を『%s』へ代入" % (self.toflag)
