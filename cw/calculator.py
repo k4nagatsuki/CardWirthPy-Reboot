@@ -297,7 +297,7 @@ def parse(s):
     bm = None
     line = 1
     pos = 1
-    for m in re.finditer("[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|\\$?\"([^\"]|\"\")*\"|or|and|<=|>=|<>|<|>|=|true|false|\\n|\\s+", s, re.I):
+    for m in re.finditer("[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|@?\"([^\"]|\"\")*\"|or|and|<=|>=|<>|<|>|=|true|false|\\n|\\s+", s, re.I):
         if bpos is None or m.start() != bpos:
             raise TokanizeException("Invalid Character: %s" % s[bm.end():m.start()], line, pos)
         bpos = m.end()
@@ -412,7 +412,7 @@ def parse(s):
                 isop = False
                 i += 1
                 continue
-            elif t[0] in ('$'):
+            elif t[0] in ('@'):
                 if not isop: raise SemanticsException("Need an operator here.", line, pos)
                 # 汎用変数
                 assert t[1] == '"'
@@ -461,7 +461,6 @@ def parse(s):
                 num.append(Operator(t2.token, t2.line, t2.pos))
 
         return i, num
-
 
     i, num = parse_semantics(tokens, 0)
     if i != len(tokens): raise SemanticsException("Invalid semantics.", line, pos)
