@@ -507,9 +507,14 @@ def _chk_diffsc(is_differentscenario):
         raise DifferentScenarioException("Read a variable at different scenario.", line, pos)
 
 
-def _chk_argscount(args, n, func_name):
+def _chk_argscount(args, n, func_name, line, pos):
     if len(args) != n:
         raise ArgumentsCountException("Invalid arguments count: %s != %s" % (n, len(args)), func_name, line, pos)
+
+
+def _chk_argscount2(args, n1, n2, func_name, line, pos):
+    if not len(args) in (n1, n2):
+        raise ArgumentsCountException("Invalid arguments count: %s-%s != %s" % (n1, n2, len(args)), func_name, line, pos)
 
 
 def _chk_decimal(arg, func_name, arg_index):
@@ -560,7 +565,7 @@ def _func_min(args, is_differentscenario, line, pos):
 
 def _func_len(args, is_differentscenario, line, pos):
     """文字列の文字数を返す。"""
-    _chk_argscount(args, 1, "LEN")
+    _chk_argscount(args, 1, "LEN", line, pos)
     a = args[0]
     _chk_string(a, "LEN", 0)
     return DecimalValue(len(a.value), line, pos)
@@ -568,7 +573,7 @@ def _func_len(args, is_differentscenario, line, pos):
 
 def _func_left(args, is_differentscenario, line, pos):
     """文字列の左側を取り出す。"""
-    _chk_argscount(args, 2, "LEFT")
+    _chk_argscount(args, 2, "LEFT", line, pos)
     s = args[0]
     n = args[1]
     _chk_string(s, "LEFT", 0)
@@ -580,7 +585,7 @@ def _func_left(args, is_differentscenario, line, pos):
 
 def _func_right(args, is_differentscenario, line, pos):
     """文字列の右側を取り出す。"""
-    _chk_argscount(args, 2, "RIGHT")
+    _chk_argscount(args, 2, "RIGHT", line, pos)
     s = args[0]
     n = args[1]
     _chk_string(s, "RIGHT", 0)
@@ -592,27 +597,28 @@ def _func_right(args, is_differentscenario, line, pos):
 
 def _func_mid(args, is_differentscenario, line, pos):
     """文字列の[N1-1:N1+N2]の範囲を取り出す。"""
-    _chk_argscount(args, 3, "MID")
+    _chk_argscount2(args, 2, 3, "MID", line, pos)
     s = args[0]
     n1 = args[1]
-    n2 = args[2]
     _chk_string(s, "MID", 0)
     _chk_minvalue(n1, "MID", 1, 1)
-    _chk_minvalue(n2, "MID", 2)
     a = s.value
     if len(a)+1 <= n1.value:
         a = ""
     else:
         v = n1.value - 1
         a = a[int(v):]
-        v = min(n2.value, len(a))
-        a = a[:int(v)]
+        if len(args) == 3:
+            n2 = args[2]
+            _chk_minvalue(n2, "MID", 2)
+            v = min(n2.value, len(a))
+            a = a[:int(v)]
     return StringValue(a, line, pos)
 
 
 def _func_str(args, is_differentscenario, line, pos):
     """引数を文字列に変換する。"""
-    _chk_argscount(args, 1, "STR")
+    _chk_argscount(args, 1, "STR", line, pos)
     return StringValue(args[0].to_str(), line, pos)
 
 
@@ -620,7 +626,7 @@ _NUM_REG = re.compile("\\A\\s*-?([0-9]+(\\.[0-9]*)?|([0-9]*\\.)?[0-9]+)\\s*\\Z")
 
 def _func_value(args, is_differentscenario, line, pos):
     """引数を数値化する。"""
-    _chk_argscount(args, 1, "VALUE")
+    _chk_argscount(args, 1, "VALUE", line, pos)
     a = args[0]
     if isinstance(a, DecimalValue):
         value = a.value
@@ -638,7 +644,7 @@ def _func_value(args, is_differentscenario, line, pos):
 
 def _func_int(args, is_differentscenario, line, pos):
     """引数を整数化する。"""
-    _chk_argscount(args, 1, "INT")
+    _chk_argscount(args, 1, "INT", line, pos)
     a = args[0]
     if isinstance(a, DecimalValue):
         value = a.value
@@ -654,7 +660,7 @@ def _func_int(args, is_differentscenario, line, pos):
 
 def _func_if(args, is_differentscenario, line, pos):
     """args[0]がTrueであればargs[1]を、そうでなければargs[2]を返す。"""
-    _chk_argscount(args, 3, "IF")
+    _chk_argscount(args, 3, "IF", line, pos)
     a = args[0]
     _chk_boolean(a, "IF", 0)
     t = args[1]
@@ -665,7 +671,7 @@ def _func_if(args, is_differentscenario, line, pos):
 def _func_var(args, is_differentscenario, line, pos):
     """汎用変数の値を読む。"""
     _chk_diffsc(is_differentscenario)
-    _chk_argscount(args, 1, "VAR")
+    _chk_argscount(args, 1, "VAR", line, pos)
     _chk_string(args[0], "VAR", 0)
     path = args[0].value
     if not path in cw.cwpy.sdata.variants:
@@ -682,7 +688,7 @@ def _func_var(args, is_differentscenario, line, pos):
 def _func_flagvalue(args, is_differentscenario, line, pos):
     """フラグの値を読む。"""
     _chk_diffsc(is_differentscenario)
-    _chk_argscount(args, 1, "FLAGVALUE")
+    _chk_argscount(args, 1, "FLAGVALUE", line, pos)
     _chk_string(args[0], "FLAGVALUE", 0)
     path = args[0].value
     if not path in cw.cwpy.sdata.flags:
@@ -694,8 +700,7 @@ def _func_flagvalue(args, is_differentscenario, line, pos):
 def _func_flagtext(args, is_differentscenario, line, pos):
     """フラグの値の文字列を読む。"""
     _chk_diffsc(is_differentscenario)
-    if not len(args) in (1, 2):
-        raise ArgumentsCountException("Invalid arguments count: 1-2 != %s" % len(args), "FLAGTEXT", line, pos)
+    _chk_argscount2(args, 1, 2, "FLAGTEXT", line, pos)
     _chk_string(args[0], "FLAGTEXT", 0)
     path = args[0].value
     if not path in cw.cwpy.sdata.flags:
@@ -714,7 +719,7 @@ def _func_flagtext(args, is_differentscenario, line, pos):
 def _func_stepvalue(args, is_differentscenario, line, pos):
     """ステップの値を読む。"""
     _chk_diffsc(is_differentscenario)
-    _chk_argscount(args, 1, "STEPVALUE")
+    _chk_argscount(args, 1, "STEPVALUE", line, pos)
     _chk_string(args[0], "STEPVALUE", 0)
     path = args[0].value
     if not path in cw.cwpy.sdata.steps:
@@ -726,8 +731,7 @@ def _func_stepvalue(args, is_differentscenario, line, pos):
 def _func_steptext(args, is_differentscenario, line, pos):
     """ステップの値の文字列を読む。"""
     _chk_diffsc(is_differentscenario)
-    if not len(args) in (1, 2):
-        raise ArgumentsCountException("Invalid arguments count: 1-2 != %s" % len(args), "STEPTEXT", line, pos)
+    _chk_argscount2(args, 1, 2, "STEPTEXT", line, pos)
     _chk_string(args[0], "STEPTEXT", 0)
     path = args[0].value
     if not path in cw.cwpy.sdata.steps:
@@ -749,7 +753,7 @@ def _func_steptext(args, is_differentscenario, line, pos):
 def _func_stepmax(args, is_differentscenario, line, pos):
     """ステップの最大値を取得する。"""
     _chk_diffsc(is_differentscenario)
-    _chk_argscount(args, 1, "STEPMAX")
+    _chk_argscount(args, 1, "STEPMAX", line, pos)
     _chk_string(args[0], "STEPMAX", 0)
     path = args[0].value
     if not path in cw.cwpy.sdata.steps:
@@ -828,6 +832,10 @@ assert calculate(parse("RIGHT(\"あいうえお\", 8)")).value == "あいうえ�
 assert calculate(parse("MID(\"あいうえお\", 2, 3)")).value == "いうえ"
 assert calculate(parse("MID(\"あいうえお\", 5, 3)")).value == "お"
 assert calculate(parse("MID(\"あいうえお\", 6, 3)")).value == ""
+assert calculate(parse("MID(\"あいうえお\", 3)")).value == "うえお"
+assert calculate(parse("MID(\"あいうえお\", 5)")).value == "お"
+assert calculate(parse("MID(\"あいうえお\", 6)")).value == ""
+assert calculate(parse("MID(\"あいうえお\", 7)")).value == ""
 assert calculate(parse("STR(\"あいうえお\")")).value == "あいうえお"
 assert calculate(parse("STR(42)")).value == "42"
 assert calculate(parse("STR(42.42 + 5)")).value == "47.42"
