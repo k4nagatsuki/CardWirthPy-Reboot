@@ -207,6 +207,8 @@ class Character(object):
                 # F9のためにシナリオ突入時の画像の記録を取る
                 name = os.path.splitext(os.path.basename(self.data.fpath))[0]
                 log = cw.util.join_paths(cw.tempdir, "ScenarioLog/Face/Log.xml")
+                if cw.fsync.is_waiting(log):
+                    cw.fsync.sync()
                 if os.path.isfile(log):
                     etree = cw.data.xml2etree(log)
                 else:

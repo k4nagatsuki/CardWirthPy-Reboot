@@ -16,6 +16,7 @@ def _create_xml(name, path, d):
         os.makedirs(dpath)
 
     cw.util.write_file(path, s.encode("utf-8"), cw.fsync)
+    cw.fsync.sync()
 
 def create_party(headers, moneyamount=0, pname=None, is_suspendlevelup=False):
     """

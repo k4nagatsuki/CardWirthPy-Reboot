@@ -4095,6 +4095,8 @@ class TalkMessageContent(TalkContent):
                                         imgpath = cw.util.get_materialpathfromskin(imgpath, cw.M_IMG)
                             else:
                                 imgpath2 = cw.util.join_paths(cw.cwpy.sdata.scedir, imgpath)
+                                if cw.fsync.is_waiting(imgpath2):
+                                    cw.fsync.sync()
                                 if os.path.isfile(imgpath2):
                                     imgpath = imgpath2
                                 else:
