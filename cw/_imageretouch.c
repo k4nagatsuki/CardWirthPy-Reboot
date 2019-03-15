@@ -1075,7 +1075,7 @@ static void _init_font(FontInfo *font)
     _clear_font(font);
 
     font->hfont = CreateFontW(font->pixels, 0, 0, 0, font->bold ? FW_BOLD : FW_NORMAL, font->italic,
-        font->underline, 0, DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, font->face);
+        font->underline, 0, DEFAULT_CHARSET, 0, 0, NONANTIALIASED_QUALITY, 0, font->face);
     if (!font->hfont)
     {
         PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "CreateFontW", GetLastError());
