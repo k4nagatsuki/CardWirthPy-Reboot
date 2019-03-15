@@ -5177,10 +5177,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if pisc:
                 imgdst = cw.util.dupcheck_plus(imgdst, False)
-                with open(imgdst, "wb") as f:
-                    f.write(idata)
-                    f.flush()
-                    f.close()
+                cw.util.write_file(imgdst, idata, cw.fsync)
             else:
                 cw.util.copy_scaledimagepaths(imgpath, imgdst, can_loaded_scaledimage)
                 if sli:

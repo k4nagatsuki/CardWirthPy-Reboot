@@ -1015,6 +1015,7 @@ class ScenarioData(SystemData):
             thr.join()
             raise ex
         finally:
+            cw.fsync.sync()
             cw.cwpy.lazy_draw()
             cw.cwpy.is_decompressing = False
             if not cw.cwpy.is_runningstatus():
@@ -1618,6 +1619,7 @@ class ScenarioData(SystemData):
             debuglog.set_times(startdatetime, pausedtime)
 
         self.debuglog = debuglog
+        cw.fsync.sync()
 
     def f9(self):
         """
@@ -1813,6 +1815,8 @@ class ScenarioData(SystemData):
                 fullpath = e.getattr(".", "path", "")
                 if 0 <= channel and channel < len(musicpaths):
                     musicpaths[channel] = (path, subvolume, loopcount, inusecard, fullpath)
+
+        cw.fsync.sync()
         return musicpaths
 
     def update_log(self):
@@ -2035,13 +2039,9 @@ class YadoDeletedPathSet(set):
     def write_list(self):
         if not os.path.isdir(self.tempdir):
             os.makedirs(self.tempdir)
-        fpath = cw.util.join_paths(self.tempdir, "~DeletedPaths.temp")
-        with open(fpath, "w", encoding="utf-8") as f:
-            f.write("\n".join(self))
-            f.flush()
-            f.close()
-        dstpath = cw.util.join_paths(self.tempdir, "DeletedPaths.temp")
-        cw.util.rename_file(fpath, dstpath)
+        fpath = cw.util.join_paths(self.tempdir, "DeletedPaths.temp")
+        cw.util.write_textfile(fpath, "\n".join(self), cw.fsync)
+        cw.fsync.sync()
 
     def read_list(self):
         fpath = cw.util.join_paths(self.tempdir, "DeletedPaths.temp")
@@ -2793,6 +2793,7 @@ class YadoData(object):
 
         self.deletedpaths.write_list()
 
+        cw.fsync.sync()
         self._transfer_temp()
 
         def commit_timekeeper(ppath, is_adventuring):
@@ -2865,6 +2866,7 @@ class YadoData(object):
         # カードデータベースを更新
         @synclock(_lock)
         def update_database(yadodir):
+            cw.fsync.sync()
             yadodb = cw.yadodb.YadoDB(yadodir)
             yadodb.update(cards=cardtable,
                           adventurers=adventurertable,
@@ -4003,39 +4005,12 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         if dpath and not os.path.isdir(dpath):
             os.makedirs(dpath)
 
-        temp_name = cw.util.join_paths(os.path.dirname(path), os.path.basename(path) + "~")
-        temp_name = cw.util.dupcheck_plus(path, yado=False)
-        retry = 0
-        while retry < 5:
-            try:
-                with io.BytesIO() as f:
-                    f.write('<?xml version="1.0" encoding="utf-8" ?>\n'.encode("utf-8"))
-                    ElementTree.write(self, f, "utf-8")
-                    sbytes = f.getvalue()
-                    f.close()
-                with open(temp_name, "wb") as f:
-                    f.write(sbytes)
-                    f.flush()
-                    f.close()
-                    break
-            except IOError as ex:
-                if 5 <= retry:
-                    raise ex
-                cw.util.print_ex()
-                retry += 1
-                time.sleep(1)
-        if os.path.isfile(path):
-            try:
-                os.replace(temp_name, path)
-            except:
-                # 環境によって稀にData/Temp以下のファイルの上書きに失敗する事がある
-                cw.util.print_ex(file=sys.stderr)
-                temp_name2 = cw.util.dupcheck_plus(path, yado=False)
-                os.replace(path, temp_name2)
-                os.replace(temp_name, path)
-                cw.util.remove(temp_name2)
-        else:
-            os.replace(temp_name, path)
+        with io.BytesIO() as f:
+            f.write('<?xml version="1.0" encoding="utf-8" ?>\n'.encode("utf-8"))
+            ElementTree.write(self, f, "utf-8")
+            sbytes = f.getvalue()
+            f.close()
+        cw.util.write_file(path, sbytes, cw.fsync)
 
     def write_xml(self, nocheck_edited=False):
         """エレメントが編集されていたら、
@@ -4138,6 +4113,11 @@ def yadoxml2element(path, tag="", rootattrs=None):
     else:
         raise ValueError("%s is not YadoXMLFile." % path)
 
+    if temppath and cw.fsync.is_waiting(temppath):
+        cw.fsync.sync()
+    elif path and cw.fsync.is_waiting(path):
+        cw.fsync.sync()
+
     if os.path.isfile(temppath):
         return xml2element(temppath, tag, rootattrs=rootattrs)
     elif os.path.isfile(path):
@@ -4155,6 +4135,9 @@ def xml2element(path="", tag="", stream=None, nocache=False, rootattrs=None):
     usecache = path and cw.cwpy and cw.cwpy.sdata and\
                isinstance(cw.cwpy.sdata, cw.data.ScenarioData) and\
                path.startswith(cw.cwpy.sdata.tempdir)
+    if path and cw.fsync.is_waiting(path):
+        cw.fsync.sync()
+
     if usecache:
         mtime = os.path.getmtime(path)
 

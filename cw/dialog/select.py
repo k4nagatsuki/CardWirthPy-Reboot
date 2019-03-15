@@ -1261,7 +1261,7 @@ class YadoSelect(MultiViewSelect):
             s = self.names[self.index]
             w = dc.GetTextExtent(s)[0]
 
-            # シナリオ名
+            # 宿名
             w = dc.GetTextExtent(s)[0]
             maxwidth = bmpw - cw.wins(5)*2
             if maxwidth < w:
@@ -1323,7 +1323,13 @@ class YadoSelect(MultiViewSelect):
                 s = self.names[index]
                 cw.util.abbr_longstr(dc, s, aw-2)
                 w = dc.GetTextExtent(s)[0]
-                cw.util.draw_witharound(dc, s, (aw-w)//2+x, cw.wins(3)+y)
+                maxwidth = bmpw//2 - cw.wins(5)*2
+                if maxwidth < w:
+                    cw.util.draw_antialiasedtext(dc, s, (aw-maxwidth)//2+x, cw.wins(3)+y, False,
+                                                 maxwidth, 0, bordering=True, scaledown=False)
+                else:
+                    cw.util.draw_antialiasedtext(dc, s, (aw-w)//2+x, cw.wins(3)+y, False,
+                                                 0, 0, bordering=True, scaledown=False)
 
                 yy = cw.wins(25)
                 amax = 6

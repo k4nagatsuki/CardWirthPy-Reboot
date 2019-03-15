@@ -1778,6 +1778,11 @@ def join_yadodir(path):
     temppath = join_paths(cw.cwpy.tempdir, path)
     yadopath = join_paths(cw.cwpy.yadodir, path)
 
+    if temppath and cw.fsync.is_waiting(temppath):
+        cw.fsync.sync()
+    elif yadopath and cw.fsync.is_waiting(yadopath):
+        cw.fsync.sync()
+
     if os.path.exists(temppath):
         return temppath
     else:
@@ -1799,6 +1804,11 @@ def get_yadofilepath(path):
     else:
         return ""
 
+    if temppath and cw.fsync.is_waiting(temppath):
+        cw.fsync.sync()
+    elif yadopath and cw.fsync.is_waiting(yadopath):
+        cw.fsync.sync()
+
     if yadopath in cw.cwpy.ydata.deletedpaths:
         return ""
     elif os.path.isfile(temppath):
@@ -1810,6 +1820,7 @@ def get_yadofilepath(path):
 
 def find_resource(path, mtype):
     """pathとmtypeに該当する素材を拡張子の優先順に沿って探す。"""
+    cw.fsync.sync()
     imgpath = ""
     if mtype == cw.M_IMG:
         t = (".png", ".bmp", ".gif", ".jpg")
@@ -1840,6 +1851,7 @@ def get_inusecardmaterialpath(path, mtype, inusecard=None, findskin=True):
     素材を指していればそのパスを返す。
     そうでない場合は空文字列を返す。"""
     imgpath = ""
+    cw.fsync.sync()
     if cw.cwpy.event.in_inusecardevent:
         if inusecard or (cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard()):
             if not inusecard:
@@ -1856,6 +1868,7 @@ def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
     path: 素材の相対パス。
     type: 素材のタイプ。cw.M_IMG, cw.M_MSC, cw.M_SNDのいずれか。
     """
+    cw.fsync.sync()
     if mtype == cw.M_IMG and cw.binary.image.path_is_code(path):
         return path
     if not system and (cw.cwpy.is_playingscenario() or scedir):
@@ -1875,6 +1888,7 @@ def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
     return get_materialpathfromskin(path, mtype, findskin=findskin)
 
 def get_materialpathfromskin(path, mtype, findskin=True):
+    cw.fsync.sync()
     if not os.path.isfile(path):
         if not findskin:
             path = ""
@@ -1915,10 +1929,92 @@ def get_materialpathfromskin(path, mtype, findskin=True):
 
     return path
 
+
+class FileSync(threading.Thread):
+    """ファイルをfsyncしながら出力する。"""
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self._quit = False
+        self._files = []
+        self._mutex = threading.Lock()
+
+    def quit(self):
+        """全てのファイル出力が完了してからスレッドを終了する。"""
+        self._quit = True
+
+    def push(self, file, data, mode="wb", encoding=None):
+        """出力対象を追加する。"""
+        with self._mutex:
+            self._files.append((file, data, mode, encoding))
+
+    def sync(self):
+        """全てのファイル出力が完了するまで待ち合わせる。"""
+        while True:
+            with self._mutex:
+                if not self._files:
+                    break
+            time.sleep(0.001)
+
+    def is_waiting(self, file):
+        """fileの書き込みを待ち合わせ中か。"""
+        file = get_keypath(get_symlinktarget(file))
+        with self._mutex:
+            return file in map(lambda t: get_keypath(get_symlinktarget(t[0])), self._files)
+
+    def _write_files(self):
+        while True:
+            with self._mutex:
+                if self._files:
+                    file, data, mode, encoding = self._files[0]
+                else:
+                    break
+            i = 0
+            while True:
+                i += 1
+                if i == 1:
+                    tmp = file + ".cardwirthpy_temp"
+                else:
+                    tmp = file + ".cardwirthpy_temp(%s)" % i
+                if not os.path.exists(tmp):
+                    break
+            with open(tmp, mode, encoding=encoding) as f:
+                f.write(data)
+                f.flush()
+                os.fsync(f.fileno())
+                f.close()
+            os.replace(tmp, file)
+            with self._mutex:
+                self._files.pop(0)
+
+    def run(self):
+        while not self._quit:
+            self._write_files()
+            time.sleep(0.001)
+        self._write_files()
+
+
+def write_file(file, data, fsync, mode="wb", encoding=None):
+    """ファイルを出力する。"""
+    if fsync:
+        fsync.push(file, data, mode=mode, encoding=encoding)
+    else:
+        with open(file, mode, encoding=encoding) as f:
+            f.write(data)
+            f.flush()
+            f.close()
+
+
+def write_textfile(file, data, fsync):
+    """UTF-8のテキストファイルを出力する。"""
+    write_file(file, data, fsync, mode="w", encoding="utf-8")
+
+
 def remove_temp():
     """
     一時ディレクトリを空にする。
     """
+    cw.fsync.sync()
     dpath = cw.tempdir
 
     if not os.path.exists(dpath):
@@ -1949,6 +2045,7 @@ def remove_temp():
         pass
 
 def remove(path, trashbox=False):
+    cw.fsync.sync()
     if os.path.isfile(path):
         remove_file(path, trashbox=trashbox)
     elif os.path.isdir(path):
@@ -1976,6 +2073,7 @@ def remove(path, trashbox=False):
                 remove_tree(path, trashbox=trashbox)
 
 def remove_file(path, retry=0, trashbox=False):
+    cw.fsync.sync()
     try:
         if trashbox:
             send_trashbox(path)
@@ -1996,6 +2094,7 @@ def add_winauth(file):
         os.chmod(file, stat.S_IWRITE|stat.S_IREAD)
 
 def remove_tree(treepath, retry=0, noretry=False, trashbox=False):
+    cw.fsync.sync()
     try:
         if trashbox:
             send_trashbox(treepath)
@@ -2034,6 +2133,7 @@ def remove_tree(treepath, retry=0, noretry=False, trashbox=False):
 def remove_tree2(treepath, trashbox=False):
     # shutil.rmtree()で権限付与時にエラーになる事があるので
     # 削除方法を変えてみる
+    cw.fsync.sync()
     for dpath, dnames, fnames in os.walk(treepath, topdown=False):
         for dname in dnames:
             path = join_paths(dpath, dname)
@@ -2051,6 +2151,7 @@ def remove_tree2(treepath, trashbox=False):
 def remove_treefiles(treepath, trashbox=False):
     # remove_tree2()でもたまにエラーになる環境があるらしいので、
     # せめてディレクトリだけでなくファイルだけでも削除を試みる
+    cw.fsync.sync()
     for dpath, dnames, fnames in os.walk(treepath, topdown=False):
         for fname in fnames:
             path = join_paths(dpath, fname)
@@ -2065,6 +2166,7 @@ def rename_file(path, dstpath, trashbox=False):
     """pathをdstpathへ移動する。
     すでにdstpathがある場合は上書きされる。
     """
+    cw.fsync.sync()
     if not os.path.isdir(os.path.dirname(dstpath)):
         os.makedirs(os.path.dirname(dstpath))
     if os.path.isfile(dstpath):
@@ -2079,6 +2181,7 @@ def rename_file(path, dstpath, trashbox=False):
             with open(dstpath, "wb") as f2:
                 f2.write(f1.read())
                 f2.flush()
+                os.fsync(f2.fileno())
                 f2.close()
             f1.close()
         remove_file(path, trashbox=trashbox)
@@ -2087,6 +2190,7 @@ def send_trashbox(path):
     """
     可能であればpathをゴミ箱へ送る。
     """
+    cw.fsync.sync()
     if sys.platform == "win32":
         path2 = path
         path = os.path.normpath(os.path.abspath(path))
@@ -2104,6 +2208,7 @@ def send_trashbox2(paths):
     """
     可能であればpathsをゴミ箱へ送る。
     """
+    cw.fsync.sync()
     if sys.platform == "win32":
         ope = win32com.shell.shellcon.FO_DELETE
         flags = win32com.shell.shellcon.FOF_NOCONFIRMATION |\
@@ -2122,6 +2227,7 @@ def remove_emptydir(dpath):
     """
     dpathが中身の無いディレクトリであれば削除する。
     """
+    cw.fsync.sync()
     if os.path.isdir(dpath):
         for dpath2, dnames, fnames in os.walk(dpath):
             if len(fnames):
@@ -2139,6 +2245,7 @@ def copytree_overwrite(src, dst, files_overwrite=OVERWRITE_ALWAYS):
     ディレクトリを上書きコピーないし統合する。
     files_overwrite=Falseの時は同一のファイルを上書きしない。
     """
+    cw.fsync.sync()
     if not os.path.isdir(dst):
         os.makedirs(dst)
     for dpath, dnames, fnames in os.walk(src):
@@ -2231,6 +2338,7 @@ def compress_zip(path, zpath, unicodefilename=False):
     """pathのデータをzpathで指定したzipファイルに圧縮する。
     path: 圧縮するディレクトリパス
     """
+    cw.fsync.sync()
     if not unicodefilename:
         encoding = cw.filesystem_encoding
     dpath = os.path.dirname(zpath)
@@ -2332,6 +2440,7 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
                         with open(fpath, "wb") as f:
                             f.write(data)
                             f.flush()
+                            os.fsync(f.fileno())
                             f.close()
                     except:
                         # 改名してリトライ
@@ -2344,6 +2453,7 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
                         with open(fpath, "wb") as f:
                             f.write(data)
                             f.flush()
+                            os.fsync(f.fileno())
                             f.close()
                 else:
                     continue
@@ -3558,7 +3668,7 @@ def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
     if bordering:
         subimg = cw.util.render_antialiasedtext(dc, text, not white, maxwidth, padding,
                                                 scaledown=scaledown, quality=quality, alpha=alpha,
-                                                width_coeff = width_coeff)
+                                                width_coeff=width_coeff)
         for xx in range(x-1, x+2):
             for yy in range(y-1, y+2):
                 if xx != x or yy != y:

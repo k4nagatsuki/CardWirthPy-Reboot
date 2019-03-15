@@ -1732,6 +1732,9 @@ class SavedJPDCImageHeader(object):
 class GetName(object):
     """XMLファイル中のProperty/Nameの内容を読む。"""
     def __init__(self, fpath, tagname="Name"):
+        if fpath and cw.fsync.is_waiting(fpath):
+            cw.fsync.sync()
+
         self.tagname = tagname
         self.name = ""
         self.stack = []
@@ -1765,6 +1768,9 @@ class GetName(object):
 class GetProperty(object):
     """XMLファイル中のProperty以下の内容を読む。"""
     def __init__(self, fpath="", stream=None):
+        if fpath and cw.fsync.is_waiting(fpath):
+            cw.fsync.sync()
+
         self.properties = {}
         self.attrs = {}
         self.stack = []
@@ -1823,6 +1829,9 @@ class GetProperty(object):
 class GetRootAttribute(object):
     def __init__(self, fpath):
         """XMLファイル中のルート要素の属性を読む。"""
+        if fpath and cw.fsync.is_waiting(fpath):
+            cw.fsync.sync()
+
         self.attrs = {}
         parser = xml.parsers.expat.ParserCreate()
         parser.StartElementHandler = self.start_element

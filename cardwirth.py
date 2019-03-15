@@ -145,6 +145,7 @@ def main():
             "RESOURCEPATH" in os.environ and
             os.path.abspath(os.environ["RESOURCEPATH"]) == os.path.dirname(os.path.abspath(sys.argv[0]))):
             os.chdir(os.path.join(os.environ["RESOURCEPATH"], "..", "..", ".."))
+    cw.fsync.start()
     try:
         app = cw.frame.MyApp()
         app.MainLoop()
@@ -152,6 +153,7 @@ def main():
         cw.util.print_ex(file=sys.stderr)
     finally:
         cw.util.clear_mutex()
+        cw.fsync.quit()
         sys.stderr.close()
 
     if put_errorlog:

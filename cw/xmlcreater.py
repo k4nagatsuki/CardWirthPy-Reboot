@@ -15,10 +15,7 @@ def _create_xml(name, path, d):
     if dpath and not os.path.isdir(dpath):
         os.makedirs(dpath)
 
-    with open(path, "wb") as f:
-        f.write(s.encode("utf-8"))
-        f.flush()
-        f.close()
+    cw.util.write_file(path, s.encode("utf-8"), cw.fsync)
 
 def create_party(headers, moneyamount=0, pname=None, is_suspendlevelup=False):
     """

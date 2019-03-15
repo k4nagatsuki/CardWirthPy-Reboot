@@ -59,6 +59,10 @@ else:
 # CWPyThread
 cwpy = None
 
+# ファイル出力スレッド
+fsync = util.FileSync()
+
+# 一時ディレクトリ
 tempdir_init = "Data/Temp/Global"
 tempdir = tempdir_init
 
