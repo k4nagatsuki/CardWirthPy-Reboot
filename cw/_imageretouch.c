@@ -965,7 +965,8 @@ static PyObject *
 mul_alphaonly(PyObject *self, PyObject *args)
 {
     Py_buffer buf;
-    Py_ssize_t alpha, i;
+    Py_ssize_t i;
+    int alpha;
     unsigned char *dest;
     double alnum;
 
