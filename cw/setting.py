@@ -519,6 +519,7 @@ class Setting(object):
         if not init:
             return
 
+        cw.fsync.sync()
         if not loadfile:
             if not os.path.isfile("Settings.xml"):
                 self.write()
@@ -1504,6 +1505,8 @@ class Resource(object):
                             self.ignorecase_table[path.lower()] = path
 
     def get_filepath(self, fpath):
+        if cw.fsync.is_waiting(fpath):
+            cw.fsync.sync()
         if not fpath or cw.binary.image.path_is_code(fpath) or os.path.isfile(fpath):
             return fpath
 
@@ -2868,6 +2871,8 @@ class RecentHistory(object):
         limit = cw.cwpy.setting.recenthistory_limit
 
         fpath = cw.util.join_paths(tempdir, "RecentHistory.xml")
+        if cw.fsync.is_waiting(fpath):
+            cw.fsync.sync()
         if os.path.isfile(fpath):
             self.data = cw.data.xml2etree(fpath)
         else:

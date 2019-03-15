@@ -834,6 +834,8 @@ def update_scenariolog(normpath, dst, dstisfile):
                 continue
             header.update_scenariopath(normpath, dst) # 次の表示で再初期化
 
+    cw.fsync.sync()
+
 
 def update_scenariolog2(normpath, dst, dstisfile):
     """
@@ -843,6 +845,8 @@ def update_scenariolog2(normpath, dst, dstisfile):
     if not dstisfile and cw.cwpy.is_playingscenario():
         # 特殊文字の更新
         cw.cwpy.sdata.update_scenariopath2(normpath, dst, dstisfile)
+
+    cw.fsync.sync()
 
 
 class OverwriteScenarioDialog(wx.Dialog):

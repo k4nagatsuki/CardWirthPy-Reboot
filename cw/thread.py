@@ -297,6 +297,8 @@ class CWPy(_Singleton, threading.Thread):
     def _load_breakpoints(self):
         """シナリオごとのブレークポイント情報をロードする。
         """
+        if cw.fsync.is_waiting("Breakpoints.xml"):
+            cw.fsync.sync()
         if not os.path.isfile("Breakpoints.xml"):
             return
 
@@ -336,6 +338,8 @@ class CWPy(_Singleton, threading.Thread):
                 element.append(e_sc)
 
         path = "Breakpoints.xml"
+        if cw.fsync.is_waiting(path):
+            cw.fsync.sync()
         if len(element):
             etree = cw.data.xml2etree(element=element)
             etree.write(path)
@@ -2424,6 +2428,8 @@ class CWPy(_Singleton, threading.Thread):
     def _f9impl(self, startotherscenario=False, loadyado=False):
         if self.sdata.in_endprocess:
             return
+
+        cw.fsync.sync()
 
         self.sdata.in_endprocess = True
 
@@ -4985,6 +4991,10 @@ class CWPy(_Singleton, threading.Thread):
                 if e.tag == "ImagePath" and etext and not cw.binary.image.path_is_code(etext):
                     path = cw.util.join_paths(self.yadodir, etext)
                     temppath = cw.util.join_paths(self.tempdir, etext)
+                    if cw.fsync.is_waiting(path):
+                        cw.fsync.sync()
+                    elif cw.fsync.is_waiting(temppath):
+                        cw.fsync.sync()
 
                     if os.path.isfile(path):
                         self.ydata.deletedpaths.add(path)
@@ -5110,6 +5120,8 @@ class CWPy(_Singleton, threading.Thread):
                 if not scedir:
                     scedir = self.sdata.scedir
                 imgpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile", materialpath)
+                if cw.fsync.is_waiting(imgpath):
+                    cw.fsync.sync()
                 if not os.path.isfile(imgpath):
                     imgpath = cw.util.join_paths(scedir, materialpath)
             elif yadodir:

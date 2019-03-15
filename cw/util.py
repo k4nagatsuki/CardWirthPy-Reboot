@@ -109,6 +109,8 @@ class MusicInterface(object):
         if not fpath:
             fpath = fullpath
 
+        if cw.fsync.is_waiting(fpath):
+            cw.fsync.sync()
         if not os.path.isfile(fpath):
             self._stop(fade, stopfadeout=False, updatepredata=False)
         else:
@@ -1083,6 +1085,8 @@ def load_sound(path):
 def is_midi(path):
     """pathがMIDIファイルか判定する。"""
     try:
+        if cw.fsync.is_waiting(path):
+            cw.fsync.sync()
         if os.path.isfile(path) and 4 <= os.path.getsize(path):
             with open(path, "rb") as f:
                 return f.read(4) == b"MThd"
@@ -1110,6 +1114,7 @@ def get_soundfilepath(basedir, path):
 def remove_soundtempfile(basedir):
     """再生用のコピーを削除する。
     """
+    cw.fsync.sync()
     dpath = join_paths(cw.tempdir, "Playing", basedir)
     if os.path.isdir(dpath):
         remove(dpath)
@@ -2377,6 +2382,7 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
     """zipファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
     """
+    cw.fsync.sync()
     try:
         z = zip_file(path, "r")
     except:
@@ -2580,6 +2586,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
     """cabファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
     """
+    cw.fsync.sync()
     if not dname:
         dname = splitext(os.path.basename(path))[0]
 
@@ -3390,11 +3397,11 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         image.SetMaskColour(r, g, b)
         return image.ConvertToBitmap()
 
-    if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
-        return masked_empty_bitmap()
-
     if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
+
+    if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
+        return masked_empty_bitmap()
 
     if up_scr is None:
         up_scr = cw.UP_SCR # ゲーム画面と合わせるため、ダイアログなどでも描画サイズのイメージを使用する

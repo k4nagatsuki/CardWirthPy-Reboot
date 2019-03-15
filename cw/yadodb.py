@@ -450,6 +450,8 @@ class YadoDB(object):
     def update(self, cards=True, adventurers=True, parties=True, cardorder={}.copy(),
                adventurerorder={}.copy(), partyorder={}.copy(), partyrecord=True, savedjpdcimage=True):
         """データベースを更新する。"""
+        cw.fsync.sync()
+
         def walk(dpath, headertable, xmlname, insert, insertheader, *args):
             dname = cw.util.join_paths(self.ypath, dpath)
             if os.path.isdir(dname):

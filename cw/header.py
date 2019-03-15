@@ -1426,6 +1426,7 @@ class PartyHeader(object):
         """
         現在冒険中のシナリオのScenarioHeaderを返す。
         """
+        cw.fsync.sync()
         path = cw.util.splitext(self.fpath)[0] + ".wsl"
         path = cw.util.get_yadofilepath(path)
 
@@ -1439,6 +1440,7 @@ class PartyHeader(object):
             return None
 
     def get_memberpaths(self, yadodir=None):
+        cw.fsync.sync()
         seq = []
 
         for fname in self.members:
@@ -1581,6 +1583,7 @@ class PartyRecordHeader(object):
             data.write_xml()
 
     def get_memberpaths(self):
+        cw.fsync.sync()
         seq = []
 
         for fname in self.members:
@@ -1647,6 +1650,7 @@ class SavedJPDCImageHeader(object):
         <Yado>/SavedJPDCImageに保存する。
         """
         cw.cwpy.ydata.changed()
+        cw.fsync.sync()
         savedjpdcimage = cw.util.join_paths(cw.cwpy.tempdir, "SavedJPDCImage")
         tempfilepath = cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile")
 
@@ -1719,6 +1723,7 @@ class SavedJPDCImageHeader(object):
         保存済みJPDCイメージを全て削除する。
         """
         cw.cwpy.ydata.changed()
+        cw.fsync.sync()
         dpath1 = cw.util.join_paths(cw.cwpy.yadodir, "SavedJPDCImage", self.dpath)
         dpath2 = cw.util.join_paths(cw.cwpy.tempdir, "SavedJPDCImage", self.dpath)
         for dpath3 in (dpath1, dpath2):

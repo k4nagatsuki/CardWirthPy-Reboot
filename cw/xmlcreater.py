@@ -946,6 +946,8 @@ def write_castimagepath(name, paths, can_loaded_scaledimage):
         name = "noname"
     for info in paths:
         path = info.path
+        if cw.fsync.is_waiting(path):
+            cw.fsync.sync()
         if os.path.isfile(path):
             dpath = cw.util.join_paths(cw.cwpy.tempdir, "Material/Adventurer", name)
             dpath = cw.util.dupcheck_plus(dpath)

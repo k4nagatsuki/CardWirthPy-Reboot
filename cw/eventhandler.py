@@ -624,6 +624,7 @@ class EventHandler(object):
         """
         if not self.can_input():
             return
+        cw.fsync.sync()
 
         if cw.cwpy.is_decompressing:
             # アーカイブの展開をキャンセルする場合

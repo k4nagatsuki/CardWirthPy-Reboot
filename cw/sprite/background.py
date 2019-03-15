@@ -189,6 +189,7 @@ class BackGround(base.CWPySprite):
     def is_modifiedfile(self):
         if not cw.cwpy.is_playingscenario():
             return False
+        cw.fsync.sync()
 
         for key, (rel, mtime) in cw.cwpy.sdata.background_image_mtime.items():
             for dpath in (cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile"), cw.cwpy.sdata.scedir):
@@ -290,6 +291,8 @@ class BackGround(base.CWPySprite):
         """
         if self._in_playing:
             return False
+
+        cw.fsync.sync()
 
         if self._force_noinhrt:
             self._force_noinhrt = False
@@ -610,6 +613,8 @@ class BackGround(base.CWPySprite):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
+        cw.fsync.sync()
+
         if cellname:
             # 背景置換または削除。
             # 置換において複数のセルが指定された場合は次のように動く。

@@ -122,6 +122,7 @@ class SystemData(object):
         self._init_sparea_mcards()
 
     def _init_xmlpaths(self, xmlonly=False):
+        cw.fsync.sync()
         self._areas.clear()
         self._battles.clear()
         self._packs.clear()
@@ -318,6 +319,7 @@ class SystemData(object):
             return False, None
 
     def remove_log(self, debuglog):
+        cw.fsync.sync()
         if debuglog:
             dpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Members")
             for pcard in cw.cwpy.get_pcards():
@@ -438,6 +440,8 @@ class SystemData(object):
         fpath = table.get(resid, None)
         if fpath is None:
             return None
+        if cw.fsync.is_waiting(fpath[1]):
+            cw.fsync.sync()
         if not os.path.isfile(fpath[1]) and self.is_updatedfilenames():
             self._init_xmlpaths(xmlonly=True)
             fpath = table.get(resid, None)
@@ -545,6 +549,7 @@ class SystemData(object):
         return self._get_resids(self._infos)
 
     def _get_carddatapath(self, type, resid, dpath):
+        cw.fsync.sync()
         dpath = cw.util.join_paths(dpath, type)
         if not os.path.isdir(dpath):
             return ""
@@ -684,6 +689,7 @@ class SystemData(object):
 
     def get_bgmpaths(self):
         """現在使用可能なBGMのパスのリストを返す。"""
+        cw.fsync.sync()
         seq = []
         dpaths = [cw.util.join_paths(cw.cwpy.skindir, "Bgm"), cw.util.join_paths(cw.cwpy.skindir, "BgmAndSound")]
         for dpath2 in os.listdir("Data/Materials"):
@@ -930,6 +936,7 @@ class ScenarioData(SystemData):
         真のファイル名へのマッピングをしておく。
         この問題は主に手書きされる'*.jpy1'内で発生する。
         """
+        cw.fsync.sync()
         self.ignorecase_table = {}
         if os.path.normcase("A") != "a":
             for dpath, _dnames, fnames in os.walk(self.tempdir):
@@ -1038,6 +1045,7 @@ class ScenarioData(SystemData):
     def _find_summaryintemp(self):
         # 展開先のフォルダのサブフォルダ内にシナリオ本体がある場合、
         # self.tempdirをサブフォルダに設定する
+        cw.fsync.sync()
         fpath1 = cw.util.join_paths(self.tempdir, "Summary.wsm")
         fpath2 = cw.util.join_paths(self.tempdir, "Summary.xml")
         if not (os.path.isfile(fpath1) or os.path.isfile(fpath2)):
@@ -1149,6 +1157,8 @@ class ScenarioData(SystemData):
             dpath = dpath.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
         dpath = cw.util.join_paths(dpath, "Debug")
         fpath = cw.util.join_paths(dpath, "Timekeeper.xml")
+        if cw.fsync.is_waiting(fpath):
+            cw.fsync.sync()
         if os.path.isfile(fpath):
             # タイムキーパーはセーブ・ロードしても時間計測を継続するが、
             # シナリオA内でセーブしてからクリアし、シナリオBを開始した
@@ -1158,6 +1168,8 @@ class ScenarioData(SystemData):
             # セーブ操作が行われた時は、ロールバックは不要になるため、
             # OldTimekeeper.xmlを削除する。
             dst = cw.util.join_paths(dpath, "OldTimekeeper.xml")
+            if cw.fsync.is_waiting(dst):
+                cw.fsync.sync()
             if not os.path.isfile(dst):
                 shutil.move(fpath, dst)
         self.resume_timekeeper()
@@ -1176,6 +1188,8 @@ class ScenarioData(SystemData):
             dpath = dpath.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
         dpath = cw.util.join_paths(dpath, "Debug")
         fpath = cw.util.join_paths(dpath, "Timekeeper.xml")
+        if cw.fsync.is_waiting(fpath):
+            cw.fsync.sync()
         if os.path.isfile(fpath):
             # 休止からの再開(休止時間を加算)
             try:
@@ -1225,6 +1239,8 @@ class ScenarioData(SystemData):
             dpath = dpath.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
         dpath = cw.util.join_paths(dpath, "Debug")
         fpath = cw.util.join_paths(dpath, "Timekeeper.xml")
+        if cw.fsync.is_waiting(fpath):
+            cw.fsync.sync()
         if os.path.isfile(fpath):
             cw.util.remove(fpath)
             cw.util.remove_emptydir(dpath)
@@ -1320,6 +1336,7 @@ class ScenarioData(SystemData):
         作成時点から変更されている場合はTrueを返す。
         """
         datafilenames = set()
+        cw.fsync.sync()
 
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             if not os.path.basename(dpath).lower() in _WSN_DATA_DIRS:
@@ -1347,6 +1364,8 @@ class ScenarioData(SystemData):
             self.scedir = ""
             # summary(CWPyElementTree)
             self.summary = None
+
+        cw.fsync.sync()
 
         # 各xmlの(name, path)の辞書(IDがkey)
         self._datafilenames = set()
@@ -1432,6 +1451,7 @@ class ScenarioData(SystemData):
         # 特殊エリアのxmlファイルのパスを設定
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Resource/Xml/Scenario")
 
+        cw.fsync.sync()
         for fname in os.listdir(dpath):
             path = cw.util.join_paths(dpath, fname)
 
@@ -1448,6 +1468,7 @@ class ScenarioData(SystemData):
         # 特殊文字の画像パスの集合(正規表現)
         SystemData.update_scale(self)
 
+        cw.fsync.sync()
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 if os.path.isfile(cw.util.join_paths(dpath, fname)):
@@ -1833,6 +1854,7 @@ class ScenarioData(SystemData):
 
     def get_bgmpaths(self):
         """現在使用可能なBGMのパスのリストを返す。"""
+        cw.fsync.sync()
         seq = SystemData.get_bgmpaths(self)
         dpath = self.tempdir
         for dpath2, _dnames, fnames in os.walk(dpath):
@@ -2083,6 +2105,8 @@ class YadoDeletedPathSet(set):
 
 class YadoData(object):
     def __init__(self, yadodir, tempdir, loadparty=True):
+        cw.fsync.sync()
+
         # 宿データのあるディレクトリ
         self.yadodir = yadodir
         self.tempdir = tempdir
@@ -2192,6 +2216,8 @@ class YadoData(object):
             dpath = os.path.dirname(party.fpath)
             dpath = cw.util.join_paths(dpath, "Debug")
             fpath = cw.util.join_paths(dpath, "OldTimekeeper.xml")
+            if cw.fsync.is_waiting(fpath):
+                cw.fsync.sync()
             if os.path.isfile(fpath):
                 # タイムキーパーをロールバック
                 dst = cw.util.join_paths(dpath, "Timekeeper.xml")
@@ -2289,6 +2315,7 @@ class YadoData(object):
     def update_version(self):
         """古いバージョンの宿データであれば更新する。
         """
+        cw.fsync.sync()
         nowparty = self.environment.gettext("Property/NowSelectingParty", "")
         ppath = cw.util.join_paths(self.yadodir, "Party")
         for fpath in os.listdir(ppath):
@@ -2803,10 +2830,14 @@ class YadoData(object):
                 dpath = dpath.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
             dpath = cw.util.join_paths(dpath, "Debug")
             fpath = cw.util.join_paths(dpath, "OldTimekeeper.xml")
+            if cw.fsync.is_waiting(fpath):
+                cw.fsync.sync()
             if os.path.isfile(fpath):
                 cw.util.remove(fpath)
             if not is_adventuring or not cw.cwpy.setting.enabled_timekeeper:
                 fpath = cw.util.join_paths(dpath, "Timekeeper.xml")
+                if cw.fsync.is_waiting(fpath):
+                    cw.fsync.sync()
                 if os.path.isfile(fpath):
                     cw.util.remove(fpath)
             cw.util.remove_emptydir(dpath)
@@ -2890,6 +2921,7 @@ class YadoData(object):
 
     def _transfer_temp(self):
         # TEMPのファイルを移動
+        cw.fsync.sync()
         deltempfpath = cw.util.join_paths(self.deletedpaths.tempdir, "DeletedPaths.temp")
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
@@ -3184,6 +3216,7 @@ class YadoData(object):
         """wslファイルを読み込んで、
         現在プレイ中のシナリオパスの集合を返す。
         """
+        cw.fsync.sync()
         seq = []
 
         for dpath in (self.yadodir, self.tempdir):
@@ -3211,6 +3244,7 @@ class YadoData(object):
 
     def get_partypaths(self):
         """パーティーのxmlファイルのpathリストを返す。"""
+        cw.fsync.sync()
         seq = []
         dpath = cw.util.join_paths(self.yadodir, "Party")
 
@@ -3226,6 +3260,7 @@ class YadoData(object):
         """BeastCard, ItemCard, SkillCardのディレクトリにあるカードの
         xmlのpathリストを返す。
         """
+        cw.fsync.sync()
         seq = []
 
         for dname in ("BeastCard", "ItemCard", "SkillCard"):
@@ -3239,6 +3274,7 @@ class YadoData(object):
 
     def get_standbypaths(self):
         """パーティーに所属していない待機中冒険者のxmlのpathリストを返す。"""
+        cw.fsync.sync()
         seq = []
 
         for header in self.partys:
@@ -3259,6 +3295,7 @@ class YadoData(object):
 
     def get_albumpaths(self):
         """アルバムにある冒険者のxmlのpathリストを返す。"""
+        cw.fsync.sync()
         seq = []
 
         for fname in os.listdir(cw.util.join_paths(self.yadodir, "Album")):
@@ -3678,6 +3715,7 @@ class Party(object):
         """
         現在選択中のパーティのメンバーのxmlのpathリストを返す。
         """
+        cw.fsync.sync()
         seq = []
 
         for e in self.data.getfind("Property/Members"):

@@ -1386,6 +1386,7 @@ class Converter(threading.Thread):
                     data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths("Table", self.adventurersinn))
                     data.write()
 
+            cw.fsync.sync()
             self.curnum = 100
             self.message = "スキンの生成が完了しました。"
 

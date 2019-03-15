@@ -222,6 +222,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
     def OnOk(self, event):
         # 転送を実行する
+        cw.fsync.sync()
         index1 = self.fromyado.GetSelection()
         index2 = self.toyado.GetSelection()
         if index1 == index2:
@@ -310,6 +311,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 self.msg = ""
 
             def run(self):
+                cw.fsync.sync()
                 seq2 = []
                 yadodb = cw.yadodb.YadoDB(toyado)
                 savedjpdcimage = yadodb.get_savedjpdcimage()

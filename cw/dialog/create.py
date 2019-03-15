@@ -2195,6 +2195,7 @@ class YadoCreater(wx.Dialog):
         parent: 親ウィンドウ。
         yadodir: 編集対象の宿のディレクトリ。登録の場合はNone。
         """
+        cw.fsync.sync()
         self.create = yadodir is None
         self.yadodir = yadodir
 

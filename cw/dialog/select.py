@@ -1590,6 +1590,7 @@ class YadoSelect(MultiViewSelect):
 
     def get_yadolist(self):
         """Yadoにある宿のpathリストと冒険者リストを返す。"""
+        cw.fsync.sync()
         names = []
         yadodirs = []
         skins = []

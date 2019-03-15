@@ -854,6 +854,7 @@ class Character(object):
 
     def use_card(self, targets, header):
         """targetsにカードを使用する。"""
+        cw.fsync.sync()
         cw.cwpy.advlog.use_card(self, header, targets)
 
         if cw.cwpy.ydata:

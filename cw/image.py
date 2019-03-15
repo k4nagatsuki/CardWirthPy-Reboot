@@ -277,6 +277,7 @@ class CardImage(Image):
         return pygame.Rect(0, 0, wxsize[0], wxsize[1])
 
     def is_modifiedfile(self):
+        cw.fsync.sync()
         for info in self.paths:
             path = info.path
             if cw.binary.image.path_is_code(path):

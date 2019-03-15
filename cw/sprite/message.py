@@ -1598,6 +1598,7 @@ def store_messagelogimage(path, can_loaded_scaledimage):
     """メッセージログ内でpathが使用されている箇所があれば
     pathが上書きされた場合に備えて各スケールのイメージを読み込んでおく。
     """
+    cw.fsync.sync()
     if path.startswith(cw.cwpy.tempdir):
         path = path.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
     dict = None

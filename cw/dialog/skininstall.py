@@ -179,6 +179,7 @@ def install_skin(paths, parent, canswitch=True):
                         if newskin:
                             etree.edit("Property/Skin", newskin)
                             etree.write()
+            cw.fsync.sync()
 
             def func(newskin, restartop):
                 progress("スキンの切り替えを行っています...")
