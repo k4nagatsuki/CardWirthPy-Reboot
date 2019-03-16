@@ -1706,6 +1706,7 @@ def dupcheck_plus(path, yado=True):
     ファイル・フォルダ名の後ろに"(n)"を付加して重複を回避する。
     宿のファイルパスの場合は、"Data/Temp/Yado"ディレクトリの重複もチェックする。
     """
+    cw.fsync.sync()
 
     tempyado = cw.util.join_paths(cw.tempdir, "Yado")
     dpath, basename = os.path.split(path)

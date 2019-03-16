@@ -52,6 +52,7 @@ def check_duplicate(path):
     ファイル・フォルダ名の後ろに"(n)"を付加して返す。
     path: チェックするパス。
     """
+    cw.fsync.sync()
     dpath, basename = os.path.split(path)
     fname, ext = cw.util.splitext(basename)
     count = 2
