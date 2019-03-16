@@ -167,11 +167,11 @@ class EventHandler(object):
                 cw.cwpy.keyevent.flick_status = cw.frame.FLICK_START
                 cw.cwpy.keyevent.flick_sprite = selection
                 cw.cwpy.keyevent.flick_start_pos = pos
-                cw.cwpy.keyevent.flick_start_time = time.clock()
+                cw.cwpy.keyevent.flick_start_time = time.process_time()
             elif cw.cwpy.keyevent.flick_status == cw.frame.FLICK_START and event.type == MOUSEBUTTONUP:
                 xmove = cw.ppis(pos[0] - cw.cwpy.keyevent.flick_start_pos[0])
                 ymove = cw.ppis(pos[1] - cw.cwpy.keyevent.flick_start_pos[1])
-                dur = time.clock() - cw.cwpy.keyevent.flick_start_time
+                dur = time.process_time() - cw.cwpy.keyevent.flick_start_time
                 flick = False
                 if cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and dur <= cw.cwpy.setting.flick_time_msec/1000.0:
                     cw.cwpy.has_inputevent = False
@@ -219,6 +219,9 @@ class EventHandler(object):
 
     def can_input(self):
         return cw.cwpy.is_decompressing or not (cw.cwpy.is_showingdlg() or pygame.event.peek(pygame.locals.USEREVENT))
+
+    def can_input_sys(self):
+        return not cw.cwpy.is_showingdlg()
 
     def is_processing(self):
         return cw.cwpy.is_processing and not cw.cwpy.is_decompressing
@@ -611,7 +614,7 @@ class EventHandler(object):
         F7キーイベント。
         バトルの自動行動のオン・オフを切り替える。
         """
-        if not self.can_input():
+        if not self.can_input_sys():
             return
         if cw.cwpy.setting.show_roundautostartbutton and cw.cwpy.is_playingscenario() and cw.cwpy.is_battlestatus():
             cw.cwpy.play_sound("page")
@@ -622,7 +625,7 @@ class EventHandler(object):
         """
         F9キーイベント。緊急避難。
         """
-        if not self.can_input():
+        if not self.can_input_sys():
             return
         cw.fsync.sync()
 
@@ -669,14 +672,14 @@ class EventHandler(object):
         """
         PrintScreenキーイベント。
         """
-        if not self.can_input():
+        if not self.can_input_sys():
             return
 
         self.capture_screenshot()
 
     def keydown_event(self, key):
         """その他のKEYDOWNイベント。"""
-        if not self.can_input():
+        if not self.can_input_sys():
             return False
 
         ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
@@ -690,7 +693,7 @@ class EventHandler(object):
 
     def keyup_event(self, key):
         """その他のKEYUPイベント。"""
-        if not self.can_input():
+        if not self.can_input_sys():
             return False
 
         ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
@@ -731,10 +734,13 @@ class EventHandler(object):
         """
         ホイールイベント。
         """
-        if not self.can_input():
+        if not self.can_input_sys():
             return
 
         if self.change_volume(-y):
+            return
+
+        if not self.can_input():
             return
 
         if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:

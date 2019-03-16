@@ -723,7 +723,7 @@ class Logger(threading.Thread):
         f = None
         try:
             ret = '\n'
-            lastwrite = time.clock()
+            lastwrite = time.process_time()
             first = True
             while True:
                 if not self.queue.empty():
@@ -759,10 +759,10 @@ class Logger(threading.Thread):
                         f.write(s)
                         f.write(ret)
                         f.flush()
-                        lastwrite = time.clock()
+                        lastwrite = time.process_time()
                 time.sleep(0.015)
 
-                if f and 10 < time.clock() - lastwrite:
+                if f and 10 < time.process_time() - lastwrite:
                     # 10秒以上書き込みがなければ一旦クローズする
                     f.close()
                     f = None

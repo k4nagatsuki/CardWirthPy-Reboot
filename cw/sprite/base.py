@@ -152,7 +152,7 @@ class SelectableSprite(CWPySprite):
             return False
 
         elif not self.is_pointed and cw.cwpy.keyevent.flick_status == cw.frame.FLICK_START and\
-                time.clock()-cw.cwpy.keyevent.flick_start_time <= cw.cwpy.setting.flick_time_msec/1000.0:
+                time.process_time()-cw.cwpy.keyevent.flick_start_time <= cw.cwpy.setting.flick_time_msec/1000.0:
             # フリック操作中
             return self is cw.cwpy.keyevent.flick_sprite
 
