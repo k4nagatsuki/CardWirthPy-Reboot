@@ -1984,12 +1984,15 @@ class FileSync(threading.Thread):
                     tmp = file + ".cardwirthpy_temp(%s)" % i
                 if not os.path.exists(tmp):
                     break
-            with open(tmp, mode, encoding=encoding) as f:
-                f.write(data)
-                f.flush()
-                os.fsync(f.fileno())
-                f.close()
-            os.replace(tmp, file)
+            try:
+                with open(tmp, mode, encoding=encoding) as f:
+                    f.write(data)
+                    f.flush()
+                    os.fsync(f.fileno())
+                    f.close()
+                os.replace(tmp, file)
+            except:
+                print_ex(file=sys.stderr)
             with self._mutex:
                 self._files.pop(0)
 
