@@ -1954,9 +1954,13 @@ class FileSync(threading.Thread):
         with self._mutex:
             self._files.append((file, data, mode, encoding))
 
+        if self._quit or True:
+            self.join()
+            self._write_files()
+
     def sync(self):
         """全てのファイル出力が完了するまで待ち合わせる。"""
-        while True:
+        while not self._quit:
             with self._mutex:
                 if not self._files:
                     break
