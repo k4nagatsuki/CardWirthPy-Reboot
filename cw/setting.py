@@ -184,18 +184,6 @@ class LocalSetting(object):
             "latin": ("inherit", "", 22, True, True, False),
         }
 
-        # Windowsのフォントが使用可能であれば標準フォントを差し替える
-        if "MS UI Gothic" in wx.FontEnumerator.GetFacenames():
-            self.basefont["uigothic"] = "MS UI Gothic"
-        if "ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
-            self.basefont["mincho"] = "ＭＳ 明朝"
-        if "ＭＳ Ｐ明朝" in wx.FontEnumerator.GetFacenames():
-            self.basefont["pmincho"] = "ＭＳ Ｐ明朝"
-        if "ＭＳ ゴシック" in wx.FontEnumerator.GetFacenames():
-            self.basefont["gothic"] = "ＭＳ ゴシック"
-        if "ＭＳ Ｐゴシック" in wx.FontEnumerator.GetFacenames():
-            self.basefont["pgothic"] = "ＭＳ Ｐゴシック"
-
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
                 if isinstance(t[1], list):
@@ -1646,6 +1634,18 @@ class Resource(object):
             for value in d.values():
                 if not value in self.facenames:
                     raise ValueError("IPA font not found: " + value)
+
+        # Windowsのフォントが使用可能であれば標準フォントを差し替える
+        if "MS UI Gothic" in self.facenames:
+            d["uigothic"] = "MS UI Gothic"
+        if "ＭＳ 明朝" in self.facenames:
+            d["mincho"] = "ＭＳ 明朝"
+        if "ＭＳ Ｐ明朝" in self.facenames:
+            d["pmincho"] = "ＭＳ Ｐ明朝"
+        if "ＭＳ ゴシック" in self.facenames:
+            d["gothic"] = "ＭＳ ゴシック"
+        if "ＭＳ Ｐゴシック" in self.facenames:
+            d["pgothic"] = "ＭＳ Ｐゴシック"
 
         init = d.copy()
 

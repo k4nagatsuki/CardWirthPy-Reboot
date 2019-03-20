@@ -3009,7 +3009,7 @@ class FontSettingPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self._for_local = for_local
-        self._get_localsettings = get_localsettings
+        self._get_localsettings = get_localsettings if get_localsettings else lambda: cw.cwpy.setting.local
         self.msg_exfonttypes = set(["fw_symbol", "fw_number", "fw_latin", "hiragana", "katakana", "hw_katakana",
                                     "greek_and_cyrillic", "jis_kanji_1", "jis_kanji_2", "etc_kanji", "symbol",
                                     "number", "latin"])
@@ -3480,7 +3480,7 @@ class FontSettingPanel(wx.Panel):
         def func(self):
             if self:
                 self._select_base(self.base.GetGridCursorRow())
-        cw.cwpy.frame.exec_func(func, self)
+        wx.CallAfter(func, self)
         event.Skip()
 
     def OnEditorCreatedBase(self, event):
@@ -3504,6 +3504,20 @@ class FontSettingPanel(wx.Panel):
                 d["mincho"] = "IPA明朝"
                 d["pmincho"] = "IPA P明朝"
                 d["pgothic"] = "IPA Pゴシック"
+
+                # Windowsのフォントが使用可能であれば標準フォントを差し替える
+                facenames = set(wx.FontEnumerator().GetFacenames())
+                if "MS UI Gothic" in facenames:
+                    d["uigothic"] = "MS UI Gothic"
+                if "ＭＳ 明朝" in facenames:
+                    d["mincho"] = "ＭＳ 明朝"
+                if "ＭＳ Ｐ明朝" in facenames:
+                    d["pmincho"] = "ＭＳ Ｐ明朝"
+                if "ＭＳ ゴシック" in facenames:
+                    d["gothic"] = "ＭＳ ゴシック"
+                if "ＭＳ Ｐゴシック" in facenames:
+                    d["pgothic"] = "ＭＳ Ｐゴシック"
+
             face = d[fonttype]
         return face
 
@@ -3522,7 +3536,7 @@ class FontSettingPanel(wx.Panel):
         def func(self):
             if self:
                 self._select_type(self.type.GetGridCursorRow())
-        cw.cwpy.frame.exec_func(func, self)
+        wx.CallAfter(func, self)
         event.Skip()
 
     def OnEditorCreatedType(self, event):
