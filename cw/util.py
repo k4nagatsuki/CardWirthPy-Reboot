@@ -1954,7 +1954,7 @@ class FileSync(threading.Thread):
         with self._mutex:
             self._files.append((file, data, mode, encoding))
 
-        if self._quit or True:
+        if self._quit:
             self.join()
             self._write_files()
 

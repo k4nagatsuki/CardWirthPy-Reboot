@@ -563,7 +563,7 @@ class Frame(wx.Frame):
         while True:
             activeCount = 0
             for thr in threading.enumerate():
-                if not isinstance(thr, threading._DummyThread) and not isinstance(thr, cw.util.FileSync):
+                if not isinstance(thr, threading._DummyThread):
                     activeCount += 1
             if activeCount <= self.initialThreadCount:
                 break
