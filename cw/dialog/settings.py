@@ -3087,9 +3087,11 @@ class FontSettingPanel(wx.Panel):
 
         # フォント配列のロード
         facenames = list(wx.FontEnumerator().GetFacenames())
+        faceset = set(facenames)
         cw.util.sort_by_attr(facenames)
         self.str_default = "[標準フォント]" # デフォルトフォント名
         self._fontface_array = [self.str_default]
+        self._has_default = [True] * len(self.bases)
         self._types = []
         for base in self.bases:
             self._types.append("[%s]" % (self.typenames[base]))
@@ -3152,7 +3154,27 @@ class FontSettingPanel(wx.Panel):
         self.box_base = wx.StaticBox(self, -1, "基本フォント")
         self.base = wx.grid.Grid(self, -1, size=(-1, -1), style=wx.BORDER)
         self.base.SetDoubleBuffered(True)
-        self.choicebases = create_grid(self.base, self.bases, lambda _name: self._fontface_array, 1, cw.ppis(100))
+
+        def has_defaultfont(name):
+            if name == "gothic":
+                fname = "IPAゴシック"
+            elif name == "pgothic":
+                fname = "IPA Pゴシック"
+            elif name == "uigothic":
+                fname = "IPA UIゴシック"
+            elif name == "mincho":
+                fname = "IPA明朝"
+            elif name == "pmincho":
+                fname = "IPA P明朝"
+            return fname in faceset
+
+        def faces_from_basefont(name):
+            if has_defaultfont(name):
+                return self._fontface_array
+            else:
+                self._has_default[self.bases.index(name)] = False
+                return self._fontface_array[1:]
+        self.choicebases = create_grid(self.base, self.bases, faces_from_basefont, 1, cw.ppis(100))
         self.base.SetMinSize(self.base.GetBestSize())
 
         # 役割別フォント
@@ -3238,7 +3260,7 @@ class FontSettingPanel(wx.Panel):
         for i, name, in enumerate(self.bases):
             str_font = local.basefont[name]
             if not str_font:
-                str_font = self.str_default
+                str_font = self.str_default if self._has_default[i] else ""
             self.base.SetCellValue(i, 0, str_font)
 
         create_grid(self.type, self.types)
@@ -3255,7 +3277,7 @@ class FontSettingPanel(wx.Panel):
         for i, name, in enumerate(self.bases):
             str_font = local.basefont[name]
             if not str_font:
-                str_font = self.str_default
+                str_font = self.str_default if self._has_default[i] else ""
             self.base.SetCellValue(i, 0, str_font)
 
         for i, name in enumerate(self.types):
@@ -3327,7 +3349,7 @@ class FontSettingPanel(wx.Panel):
         for i, basename in enumerate(self.bases):
             name = local.basefont_init[basename]
             if not name:
-                name = self.str_default
+                name = self.str_default if self._has_default[i] else ""
             self.base.SetCellValue(i, 0, name)
         for i, typename in enumerate(self.types):
             if typename in self.msg_exfonttypes:
@@ -3505,20 +3527,8 @@ class FontSettingPanel(wx.Panel):
                 d["pmincho"] = "IPA P明朝"
                 d["pgothic"] = "IPA Pゴシック"
 
-                # Windowsのフォントが使用可能であれば標準フォントを差し替える
-                facenames = set(wx.FontEnumerator().GetFacenames())
-                if "MS UI Gothic" in facenames:
-                    d["uigothic"] = "MS UI Gothic"
-                if "ＭＳ 明朝" in facenames:
-                    d["mincho"] = "ＭＳ 明朝"
-                if "ＭＳ Ｐ明朝" in facenames:
-                    d["pmincho"] = "ＭＳ Ｐ明朝"
-                if "ＭＳ ゴシック" in facenames:
-                    d["gothic"] = "ＭＳ ゴシック"
-                if "ＭＳ Ｐゴシック" in facenames:
-                    d["pgothic"] = "ＭＳ Ｐゴシック"
+            face = d.get(fonttype, "")
 
-            face = d[fonttype]
         return face
 
     def _select_type(self, i):
