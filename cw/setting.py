@@ -184,6 +184,19 @@ class LocalSetting(object):
             "latin": ("inherit", "", 22, True, True, False),
         }
 
+        # Windowsのフォントが使用可能であれば優先して使用する
+        facenames = set(wx.FontEnumerator().GetFacenames())
+        if "MS UI Gothic" in facenames:
+            self.basefont["uigothic"] = "MS UI Gothic"
+        if "ＭＳ 明朝" in facenames:
+            self.basefont["mincho"] = "ＭＳ 明朝"
+        if "ＭＳ Ｐ明朝" in facenames:
+            self.basefont["pmincho"] = "ＭＳ Ｐ明朝"
+        if "ＭＳ ゴシック" in facenames:
+            self.basefont["gothic"] = "ＭＳ ゴシック"
+        if "ＭＳ Ｐゴシック" in facenames:
+            self.basefont["pgothic"] = "ＭＳ Ｐゴシック"
+
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
                 if isinstance(t[1], list):
@@ -1584,33 +1597,49 @@ class Resource(object):
 
         return d
 
-    def set_systemfonttable(self):
-        """
-        システムフォントテーブルの設定を行う。
-        設定したフォント名をフォントファイル名がkeyの辞書で返す。
-        """
+    @staticmethod
+    def get_fontpaths_s(fontdir, facenames):
         d = {}
+        fnames = (("gothic.ttf", "ＭＳ ゴシック"), ("uigothic.ttf", "MS UI Gothic"),
+                  ("mincho.ttf", "ＭＳ 明朝"), ("pgothic.ttf", "ＭＳ Ｐゴシック"),
+                  ("pmincho.ttf", "ＭＳ Ｐ明朝"))
+        for fname, alt in fnames:
+            path = cw.util.join_paths(fontdir, fname)
+            if not os.path.isfile(path):
+                if alt in facenames:
+                    continue
+                else:
+                    # IPAフォントも代替フォントも存在しない場合はエラー
+                    raise NoFontError(fname + " not found.")
 
+            d[os.path.splitext(fname)[0]] = path
+
+        return d
+
+    @staticmethod
+    def install_defaultfonts(fontpaths, facenames, d):
         if sys.platform == "win32":
-            gdi32 = ctypes.windll.gdi32
             winplatform = sys.getwindowsversion()[3]
 
-            for name, path in self.fontpaths.items():
+            for name, path in fontpaths.items():
                 fontname = cw.util.get_truetypefontname(path)
-                if fontname in self.facenames or\
-                        fontname == "IPAUIGothic" and ("IPA UIゴシック" in self.facenames) or\
-                        fontname == "IPAGothic" and ("IPAゴシック" in self.facenames) or\
-                        fontname == "IPAPGothic" and ("IPA Pゴシック" in self.facenames) or\
-                        fontname == "IPAMincho" and ("IPA明朝" in self.facenames) or\
-                        fontname == "IPAPMincho" and ("IPA P明朝" in self.facenames):
+                if fontname in facenames or\
+                        fontname == "IPAUIGothic" and ("IPA UIゴシック" in facenames) or\
+                        fontname == "IPAGothic" and ("IPAゴシック" in facenames) or\
+                        fontname == "IPAPGothic" and ("IPA Pゴシック" in facenames) or\
+                        fontname == "IPAMincho" and ("IPA明朝" in facenames) or\
+                        fontname == "IPAPMincho" and ("IPA P明朝" in facenames):
                     d[name] = fontname
                     continue
 
                 def func():
+                    gdi32 = ctypes.WinDLL("gdi32")
                     if winplatform == 2:
-                        gdi32.AddFontResourceExA(path, 0x10, 0)
+                        gdi32.AddFontResourceExW.argtypes = (ctypes.c_wchar_p, ctypes.wintypes.DWORD, ctypes.c_void_p)
+                        gdi32.AddFontResourceExW(path, 0x10, 0)
                     else:
-                        gdi32.AddFontResourceA(path)
+                        gdi32.AddFontResourceW.argtypes = (ctypes.c_wchar_p)
+                        gdi32.AddFontResourceW(path)
                         user32 = ctypes.windll.user32
                         HWND_BROADCAST = 0xFFFF
                         WM_FONTCHANGE = 0x001D
@@ -1619,10 +1648,20 @@ class Resource(object):
                 thr.start()
 
                 if fontname:
-                    d[name] = fontname
+                    if not d is None:
+                        d[name] = fontname
                 else:
                     raise ValueError("Failed to get facename from %s" % name)
 
+    def set_systemfonttable(self):
+        """
+        システムフォントテーブルの設定を行う。
+        設定したフォント名をフォントファイル名がkeyの辞書で返す。
+        """
+        d = {}
+
+        if sys.platform == "win32":
+            Resource.install_defaultfonts(self.fontpaths, self.facenames, d)
             self.facenames = set(wx.FontEnumerator().GetFacenames())
         else:
             d["gothic"] = "IPAゴシック"
@@ -1634,18 +1673,6 @@ class Resource(object):
             for value in d.values():
                 if not value in self.facenames:
                     raise ValueError("IPA font not found: " + value)
-
-        # Windowsのフォントが使用可能であれば標準フォントを差し替える
-        if "MS UI Gothic" in self.facenames:
-            d["uigothic"] = "MS UI Gothic"
-        if "ＭＳ 明朝" in self.facenames:
-            d["mincho"] = "ＭＳ 明朝"
-        if "ＭＳ Ｐ明朝" in self.facenames:
-            d["pmincho"] = "ＭＳ Ｐ明朝"
-        if "ＭＳ ゴシック" in self.facenames:
-            d["gothic"] = "ＭＳ ゴシック"
-        if "ＭＳ Ｐゴシック" in self.facenames:
-            d["pgothic"] = "ＭＳ Ｐゴシック"
 
         init = d.copy()
 
@@ -1659,7 +1686,8 @@ class Resource(object):
 
     def clear_systemfonttable(self):
         if sys.platform == "win32" and not sys.getwindowsversion()[3] == 2:
-            gdi32 = ctypes.windll.gdi32
+            gdi32 = ctypes.WinDLL("gdi32")
+            gdi32.RemoveFontResourceA.argtypes = (ctypes.c_wchar_p)
 
             for path in self.fontpaths.values():
                 gdi32.RemoveFontResourceA(path)
