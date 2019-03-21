@@ -3273,6 +3273,8 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColSize(3, cw.ppis(70))
         self.type.SetColLabelValue(4, "斜体")
         self.type.SetColSize(4, cw.ppis(70))
+        dc = wx.ClientDC(self.type)
+        self.type.SetColLabelSize(max(self.type.GetColLabelSize(), dc.GetTextExtent("#\n#")[1] * 2))
 
         for i, name, in enumerate(self.bases):
             str_font = local.basefont[name]
