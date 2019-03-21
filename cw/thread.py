@@ -810,6 +810,7 @@ class CWPy(_Singleton, threading.Thread):
             self._running = False
             if self.advlog:
                 self.advlog.enable(False)
+            cw.fsync.quit()
             # エラーログを出力
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
