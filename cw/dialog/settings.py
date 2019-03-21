@@ -3407,7 +3407,7 @@ class FontSettingPanel(wx.Panel):
         basefont = {}
         for i, basename in enumerate(self.bases):
             value = self.base.GetCellValue(i, 0)
-            if value == self.str_default:
+            if value == self.str_default or value == "**フォントが見つかりません**":
                 value = ""
             basefont[basename] = value
             basetable["[%s]" % (self.typenames[basename])] = basename
