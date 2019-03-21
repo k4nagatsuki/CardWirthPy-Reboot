@@ -693,6 +693,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 isbmp = get_imageext(d16) == ".bmp"
                 ispng = get_imageext(d16) == ".png"
                 isgif = get_imageext(d16) == ".gif"
+                isjpg = get_imageext(d16) == ".jpg"
                 f.seek(pos)
                 image = pygame.image.load(f, "")
             except:
@@ -703,6 +704,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             isbmp = ext == ".bmp"
             ispng = ext == ".png"
             isgif = ext == ".gif"
+            isjpg = ext == ".jpg"
             if ext == ".bmp":
                 data = cw.image.patch_rle4bitmap(data)
                 bmpdepth = cw.image.get_bmpdepth(data)
@@ -718,6 +720,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             isbmp = ext == ".bmp"
             ispng = ext == ".png"
             isgif = ext == ".gif"
+            isjpg = ext in (".jpg", ".jpeg")
             if ext == ".bmp":
                 with open(path, "rb") as f2:
                     data = f2.read()
@@ -775,6 +778,10 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
         imageb = image
         if image.get_bitsize() <= 8 and image.get_colorkey() and not isgif and isback:
             # BUG: 環境によってイメージセルのマスク処理を行うと透過色が壊れる issue #723
+            mask = False
+        if isjpg and not (cw.cwpy and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint())):
+            # BUG: JPEGイメージのマスク指定が無視される
+            #      CardWirth 1.50
             mask = False
         # BUG: パレット使用時にconvert()を行うと同一色が全て透過されてしまう
         #      CardWirth 1.50
@@ -3418,6 +3425,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     haspngalpha = False
     bmpdepth = 0
     maskcolour = None
+    isjpg = False
     if mask:
         if not image:
             try:
@@ -3438,6 +3446,11 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                 ext = get_imageext(data)
                 if ext == ".png":
                     haspngalpha = cw.image.has_pngalpha(data)
+                elif ext == ".jpg":
+                    if not (cw.cwpy and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint())):
+                        # BUG: JPEGイメージのマスク指定が無視される
+                        #      CardWirth 1.50
+                        mask = False
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, ok1 = cw.image.fix_cwnext32bitbitmap(data)
                 data, ok2 = cw.image.fix_cwnext16bitbitmap(data)
@@ -3472,7 +3485,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         if not image.IsOk():
             return masked_empty_bitmap()
 
-        if not haspngalpha and not image.HasAlpha():
+        if not haspngalpha and not image.HasAlpha() and mask:
             maskcolour = set_mask(image, maskpos)
 
         wxbmp = image.ConvertToBitmap()
