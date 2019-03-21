@@ -3260,7 +3260,7 @@ class FontSettingPanel(wx.Panel):
         for i, name, in enumerate(self.bases):
             str_font = local.basefont[name]
             if not str_font:
-                str_font = self.str_default if self._has_default[i] else ""
+                str_font = self.str_default if self._has_default[i] else "**フォントが見つかりません**"
             self.base.SetCellValue(i, 0, str_font)
 
         create_grid(self.type, self.types)
@@ -3277,7 +3277,7 @@ class FontSettingPanel(wx.Panel):
         for i, name, in enumerate(self.bases):
             str_font = local.basefont[name]
             if not str_font:
-                str_font = self.str_default if self._has_default[i] else ""
+                str_font = self.str_default if self._has_default[i] else "**フォントが見つかりません**"
             self.base.SetCellValue(i, 0, str_font)
 
         for i, name in enumerate(self.types):
@@ -3349,7 +3349,7 @@ class FontSettingPanel(wx.Panel):
         for i, basename in enumerate(self.bases):
             name = local.basefont_init[basename]
             if not name:
-                name = self.str_default if self._has_default[i] else ""
+                name = self.str_default if self._has_default[i] else "**フォントが見つかりません**"
             self.base.SetCellValue(i, 0, name)
         for i, typename in enumerate(self.types):
             if typename in self.msg_exfonttypes:
