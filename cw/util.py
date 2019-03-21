@@ -779,7 +779,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
         if image.get_bitsize() <= 8 and image.get_colorkey() and not isgif and isback:
             # BUG: 環境によってイメージセルのマスク処理を行うと透過色が壊れる issue #723
             mask = False
-        if isjpg and not (cw.cwpy and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint())):
+        if isjpg and isback and not (cw.cwpy and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint())):
             # BUG: JPEGイメージのマスク指定が無視される
             #      CardWirth 1.50
             mask = False
@@ -3446,11 +3446,6 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                 ext = get_imageext(data)
                 if ext == ".png":
                     haspngalpha = cw.image.has_pngalpha(data)
-                elif ext == ".jpg":
-                    if not (cw.cwpy and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint())):
-                        # BUG: JPEGイメージのマスク指定が無視される
-                        #      CardWirth 1.50
-                        mask = False
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, ok1 = cw.image.fix_cwnext32bitbitmap(data)
                 data, ok2 = cw.image.fix_cwnext16bitbitmap(data)
