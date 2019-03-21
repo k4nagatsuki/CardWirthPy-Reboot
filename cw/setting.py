@@ -1705,7 +1705,7 @@ class Resource(object):
         if basename:
             fontname = self.setting().basefont[basename]
             if not fontname:
-                fontname = self.fontnames[basename]
+                fontname = self.fontnames.get(basename, "")
         return fontname, pixels, bold, bold_upscr, italic
 
     def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
