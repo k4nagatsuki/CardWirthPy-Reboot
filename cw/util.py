@@ -4584,14 +4584,19 @@ def create_link(shortcutpath, targetpath):
 
 def get_symlinktarget(path):
     """pathがシンボリックリンクであればリンク先を、そうでなければpathを返す。"""
-    p = os.path.normpath(os.path.abspath(path))
-    if os.path.islink(p):
-        l = os.readlink(p)
-        if os.path.isabs(l):
-            path = l;
-        else:
-            p = os.path.join(os.path.dirname(p), l);
-            path = os.path.normpath(p)
+    try:
+        p = os.path.normpath(os.path.abspath(path))
+        if os.path.islink(p):
+            l = os.readlink(p)
+            if os.path.isabs(l):
+                path = l;
+            else:
+                p = os.path.join(os.path.dirname(p), l);
+                path = os.path.normpath(p)
+    except ex as ValueError:
+        # パス制限に引っかかる場合あり
+        # ValueError: lstat: path too long for Windows
+        print_ex()
     return path
 
 
