@@ -4593,7 +4593,7 @@ def get_symlinktarget(path):
             else:
                 p = os.path.join(os.path.dirname(p), l);
                 path = os.path.normpath(p)
-    except ex as ValueError:
+    except ValueError:
         # パス制限に引っかかる場合あり
         # ValueError: lstat: path too long for Windows
         print_ex()
