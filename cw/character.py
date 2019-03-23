@@ -174,6 +174,9 @@ class Character(object):
         # キャッシュ
         self._voc_tbl = {}
 
+    def get_showingname(self):
+        return self.get_name()
+
     def get_imagepaths(self):
         """現在表示中のカード画像の情報を
         cw.image.ImageInfoのlistで返す。

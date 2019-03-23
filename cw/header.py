@@ -226,6 +226,9 @@ class CardHeader(object):
             return 0
         return -self.star
 
+    def get_showingname(self):
+        return self.name
+
     def set_cardimg(self, imgpaths, can_loaded_scaledimage, anotherscenariocard):
         paths = []
         for info in imgpaths:

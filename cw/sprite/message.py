@@ -55,7 +55,7 @@ class MessageWindow(base.CWPySprite):
         # 話者(CardHeader or Character)
         self.talker = talker
         if talker:
-            self.talker_name = talker.name
+            self.talker_name = talker.get_showingname()
         else:
             self.talker_name = None
 
@@ -781,7 +781,7 @@ class MemberSelectWindow(SelectWindow):
         if size_noscale is None:
             size_noscale = (470, 40)
         self.selectmembers = pcards
-        names = [(index, pcard.name)
+        names = [(index, pcard.get_showingname())
                         for index, pcard in enumerate(self.selectmembers)]
         names.append((len(names), cw.cwpy.msgs["cancel"]))
         text = cw.cwpy.msgs["select_member_message"]
@@ -1253,7 +1253,7 @@ def _get_namefromlist(index, namelist):
     if isinstance(item.data, str):
         name = item.data
     else:
-        name = item.data.name if not item.data is None else item.name
+        name = item.data.get_showingname() if not item.data is None else item.name
     index += 1
     return index, name
 
@@ -1265,7 +1265,7 @@ def _get_namefromtable(nc, nametable, namelist):
     if isinstance(data, str):
         name = data
     else:
-        name = data.name if not data is None else ""
+        name = data.get_showingname() if not data is None else ""
 
     namelist.append(NameListItem(data, name))
 
@@ -1358,7 +1358,7 @@ def _get_spstep(name, updatetype, basenamelist, namelist, namelistindex):
             # プレイヤーキャラクターの名前(??Player1～6)(Wsn.2)
             pcards = cw.cwpy.get_pcards()
             players = ["??player%d" % a for a in range(1, len(pcards)+1)]
-            names = [""] + list(map(lambda pcard: pcard.name, pcards))
+            names = [""] + list(map(lambda pcard: pcard.get_showingname(), pcards))
             if lname in players:
                 value = players.index(lname)+1
             else:

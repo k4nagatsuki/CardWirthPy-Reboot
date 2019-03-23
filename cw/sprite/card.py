@@ -756,6 +756,9 @@ class PlayerCard(CWPyCard, character.Player):
             self.rect = pygame.Rect(self._rect)
             self.rect.move_ip(cw.s(0), cw.s(+150))
 
+    def get_showingname(self):
+        return self.name
+
     def set_name(self, name):
         character.Player.set_name(self, name)
         self.cardimg.set_nameimg(self.get_name())
@@ -1084,6 +1087,13 @@ class EnemyCard(CWPyCard, character.Enemy):
     def is_initialized(self):
         return self._init
 
+    def get_showingname(self):
+        self.initialize()
+        if self.spchars:
+            return self.cardimg.override_name
+        else:
+            return self._name
+
     def update_name(self):
         if not self._init:
             return
@@ -1194,6 +1204,9 @@ class FriendCard(CWPyCard, character.Friend):
         self.clear_image()
         # 精神力回復
         self.set_skillpower()
+
+    def get_showingname(self):
+        return self.name
 
     def update_delete(self):
         if self in cw.cwpy.sdata.friendcards:
@@ -1354,6 +1367,9 @@ class MenuCard(CWPyCard):
         self._data = None
         self._pos_noscale2 = None
         return True
+
+    def get_showingname(self):
+        return self.name
 
     def update_name(self):
         if not self._init:

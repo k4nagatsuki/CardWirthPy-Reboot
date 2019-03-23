@@ -312,7 +312,6 @@ def parse(s):
         else:
             pos += l
 
-
     def parse_arguments(tokens, i):
         if len(tokens) <= i + 1: raise SemanticsException("Invalid function call.", tokens[i].line, tokens[i].pos)
         i += 1
@@ -321,13 +320,15 @@ def parse(s):
         args = []
         while i + 1 < len(tokens) and tokens[i].token != ')':
             t2 = tokens[i+1]
+            if t2.token == ')':
+                i += 1
+                break
             i, arg = parse_semantics(tokens, i + 1)
             if len(arg):
                 args.append(arg)
             else:
                 raise SemanticsException("No argument.", t2.line, t2.pos)
         return i + 1, args
-
 
     def parse_semantics(tokens, i):
         num = []
@@ -779,6 +780,34 @@ def _func_dice(args, is_differentscenario, line, pos):
     return DecimalValue(n, line, pos)
 
 
+def _func_selected(args, is_differentscenario, line, pos):
+    """選択メンバの番号を数値で返す。"""
+    _chk_argscount(args, 0, "SELECTED", line, pos)
+    if cw.cwpy.event.has_selectedmember():
+        try:
+            ccard = cw.cwpy.event.get_selectedmember()
+            if isinstance(ccard, cw.character.Player):
+                pcards = cw.cwpy.get_pcards()
+                n = pcards.index(ccard) + 1
+            elif isinstance(ccard, cw.character.Enemy):
+                pcards_len = len(cw.cwpy.get_pcards())
+                ecards = cw.cwpy.get_ecards()
+                n = ecards.index(ccard) + 1 + pcards_len
+            elif isinstance(ccard, cw.character.Friend):
+                pcards_len = len(cw.cwpy.get_pcards())
+                ecards_len = len(cw.cwpy.get_ecards())
+                fcards = cw.cwpy.get_fcards()
+                n = fcards.index(ccard) + 1 + pcards_len + ecards_len
+            else:
+                assert False
+        except ValueError:
+            cw.util.print_ex(file=sys.stderr)
+            n = 0
+    else:
+        n = 0
+    return DecimalValue(n, line, pos)
+
+
 _functions = {
     "len": _func_len,
     "left": _func_left,
@@ -788,6 +817,7 @@ _functions = {
     "value": _func_value,
     "int": _func_int,
     "if": _func_if,
+    "dice": _func_dice,
     "max": _func_max,
     "min": _func_min,
     "var": _func_var,
@@ -796,7 +826,7 @@ _functions = {
     "stepvalue": _func_stepvalue,
     "steptext": _func_steptext,
     "stepmax": _func_stepmax,
-    "dice": _func_dice,
+    "selected": _func_selected,
 }
 
 assert calculate(parse("--5")).value == 5
@@ -875,6 +905,11 @@ try:
     assert calculate(parse("5 % (2-1-1)"))
     assert False
 except ZeroDivisionException as ex:
+    pass
+try:
+    assert calculate(parse("MAX()"))
+    assert False
+except ArgumentsCountException as ex:
     pass
 
 
