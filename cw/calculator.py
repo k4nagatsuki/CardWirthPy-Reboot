@@ -781,7 +781,7 @@ def _func_dice(args, is_differentscenario, line, pos):
 
 
 def _func_selected(args, is_differentscenario, line, pos):
-    """選択メンバの番号を数値で返す。"""
+    """選択メンバの番号を数値(1～)で返す。"""
     _chk_argscount(args, 0, "SELECTED", line, pos)
     if cw.cwpy.event.has_selectedmember():
         try:
@@ -808,6 +808,30 @@ def _func_selected(args, is_differentscenario, line, pos):
     return DecimalValue(n, line, pos)
 
 
+def _func_cardtype(args, is_differentscenario, line, pos):
+    """カード番号からカードタイプ(1=Player,2=Enemy,3=Friendを返す。"""
+    _chk_argscount(args, 1, "CARDTYPE", line, pos)
+    n = args[0]
+    _chk_minvalue(n, "CARDTYPE", 0)
+    n = int(n.value)
+    if n == 0:
+        return DecimalValue(0, line, pos)
+    else:
+        index = n - 1
+        pcards = cw.cwpy.get_pcards()
+        if index < len(pcards):
+            return DecimalValue(1, line, pos)
+        index -= len(pcards)
+        ecards = cw.cwpy.get_ecards()
+        if index < len(ecards):
+            return DecimalValue(2, line, pos)
+        index -= len(pcards)
+        fcards = cw.cwpy.get_fcards()
+        if index < len(fcards):
+            return DecimalValue(3, line, pos)
+        return DecimalValue(0, line, pos)
+
+
 _functions = {
     "len": _func_len,
     "left": _func_left,
@@ -827,6 +851,7 @@ _functions = {
     "steptext": _func_steptext,
     "stepmax": _func_stepmax,
     "selected": _func_selected,
+    "cardtype": _func_cardtype,
 }
 
 assert calculate(parse("--5")).value == 5
