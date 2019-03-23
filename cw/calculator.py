@@ -624,6 +624,7 @@ def _func_str(args, is_differentscenario, line, pos):
 
 _NUM_REG = re.compile("\\A\\s*-?([0-9]+(\\.[0-9]*)?|([0-9]*\\.)?[0-9]+)\\s*\\Z")
 
+
 def _func_value(args, is_differentscenario, line, pos):
     """引数を数値化する。"""
     _chk_argscount(args, 1, "VALUE", line, pos)
@@ -762,6 +763,22 @@ def _func_stepmax(args, is_differentscenario, line, pos):
     return DecimalValue(decimal.Decimal(len(step.valuenames)-1), line, pos)
 
 
+def _func_dice(args, is_differentscenario, line, pos):
+    """ダイスを振って結果の値を返す。"""
+    _chk_argscount(args, 2, "DICE", line, pos)
+    t = args[0]
+    s = args[1]
+    _chk_minvalue(t, "DICE", 0)
+    _chk_minvalue(s, "DICE", 0)
+    t = int(t.value)
+    s = int(s.value)
+    if t == 0 or s == 0:
+        n = 0
+    else:
+        n = cw.cwpy.dice.roll(t, s)
+    return DecimalValue(n, line, pos)
+
+
 _functions = {
     "len": _func_len,
     "left": _func_left,
@@ -779,6 +796,7 @@ _functions = {
     "stepvalue": _func_stepvalue,
     "steptext": _func_steptext,
     "stepmax": _func_stepmax,
+    "dice": _func_dice,
 }
 
 assert calculate(parse("--5")).value == 5
