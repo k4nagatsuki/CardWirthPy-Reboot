@@ -182,9 +182,14 @@ class CharaInfo(wx.Dialog):
         #タブ切替効果音
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
-        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
-        self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+        def recurse(ctrl):
+            if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
+                ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+            for child in ctrl.GetChildren():
+                recurse(child)
+        recurse(self)
 
     def OnCopyDetail(self, event):
         self.copy_detail()

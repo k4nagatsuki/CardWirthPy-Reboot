@@ -57,9 +57,16 @@ class CardInfo(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
-        self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
         cw.util.add_sideclickhandlers(self.toppanel, self.leftbtn, self.rightbtn)
+
+        def recurse(ctrl):
+            if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
+                ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+            for child in ctrl.GetChildren():
+                recurse(child)
+        recurse(self)
+
         # focus
         self.panel.SetFocusIgnoringChildren()
 
