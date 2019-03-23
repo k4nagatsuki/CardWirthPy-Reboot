@@ -1975,9 +1975,12 @@ class FileSync(threading.Thread):
 
     def is_waiting(self, file):
         """fileの書き込みを待ち合わせ中か。"""
-        file = get_keypath(get_symlinktarget(file))
-        with self._mutex:
-            return file in map(lambda t: get_keypath(get_symlinktarget(t[0])), self._files)
+        # FIXME: get_keypath()とget_symlinktarget()のパフォーマンスが非常に悪いので
+        #        常にTrueを返してcw.fsync.sync()を呼び出させる。
+        #file = get_keypath(get_symlinktarget(file))
+        #with self._mutex:
+        #    return file in map(lambda t: get_keypath(get_symlinktarget(t[0])), self._files)
+        return True
 
     def _write_files(self):
         while True:
