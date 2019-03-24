@@ -2463,6 +2463,9 @@ class YadoData(object):
 
         self.environment.is_edited = True
 
+    def get_showingname(self):
+        return self.name
+
     def load_party(self, header=None):
         """
         header: PartyHeader
@@ -3417,6 +3420,9 @@ class Party(object):
                 carddb.close()
             self.sort_backpack()
             self.sorted_backpack_by_order = False
+
+    def get_showingname(self):
+        return self.name
 
     def sort_backpack(self, sorttype=None):
         if sorttype is None:
