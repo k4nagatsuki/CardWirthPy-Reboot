@@ -1473,7 +1473,7 @@ class EffectBoosterConfig(object):
                 if not in_jptxtxt and line[0:1] in b'#;':
                     continue
 
-                line = str(line, cw.MBCS).replace("\r\n", "\n")
+                line = str(line, cw.MBCS, "replace").replace("\r\n", "\n")
                 lline = line.lower()
                 sline = line.strip()
 
