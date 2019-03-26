@@ -46,10 +46,14 @@ def nctype(c):
     for type, s in (_an, _as, _aa, _sa, _sn, _ss, _sh, _sk, _shk, _sg, _sc, _k4, _k3, _k2, _k1):
         if c in s:
             return type
-    d = unicodedata.name(c)
-    for kcate in ("CJK RADICAL", "KANGXI RADICAL", "CJK UNIFIED IDEOGRAPH", "CJK COMPATIBILITY IDEOGRAPH"):
-        if d.startswith(kcate):
-            return NC_CJK_KANJI
+    try:
+        d = unicodedata.name(c)
+        for kcate in ("CJK RADICAL", "KANGXI RADICAL", "CJK UNIFIED IDEOGRAPH", "CJK COMPATIBILITY IDEOGRAPH"):
+            if d.startswith(kcate):
+                return NC_CJK_KANJI
+    except:
+        import cw.util
+        cw.util.print_ex()
     return NC_UNKNOWN
 
 

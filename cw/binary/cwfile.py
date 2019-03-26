@@ -58,7 +58,8 @@ class CWFile(io.BufferedReader):
         dword = self.dword()
 
         if dword:
-            return str(self.read(dword), cw.MBCS).strip("\x00")
+            s = self.read(dword)
+            return str(s, cw.MBCS, "replace").strip("\x00")
         else:
             return ""
 
