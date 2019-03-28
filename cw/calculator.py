@@ -808,11 +808,11 @@ def _func_selected(args, is_differentscenario, line, pos):
     return DecimalValue(n, line, pos)
 
 
-def _func_cardtype(args, is_differentscenario, line, pos):
-    """カード番号からカードタイプ(1=Player,2=Enemy,3=Friendを返す。"""
-    _chk_argscount(args, 1, "CARDTYPE", line, pos)
+def _func_casttype(args, is_differentscenario, line, pos):
+    """カード番号からキャラクターのタイプ(1=Player,2=Enemy,3=Friendを返す。"""
+    _chk_argscount(args, 1, "CASTTYPE", line, pos)
     n = args[0]
-    _chk_minvalue(n, "CARDTYPE", 0)
+    _chk_minvalue(n, "CASTTYPE", 0)
     n = int(n.value)
     if n == 0:
         return DecimalValue(0, line, pos)
@@ -851,7 +851,7 @@ _functions = {
     "steptext": _func_steptext,
     "stepmax": _func_stepmax,
     "selected": _func_selected,
-    "cardtype": _func_cardtype,
+    "casttype": _func_casttype,
 }
 
 assert calculate(parse("--5")).value == 5
