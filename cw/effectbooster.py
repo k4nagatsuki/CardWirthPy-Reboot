@@ -504,10 +504,7 @@ class _JpySubImage(cw.image.Image):
                 if width == 0 or height == 0:
                     image = pygame.Surface(cw.s((0, 0))).convert()
                 elif not size == image.get_size() and not size == cw.s((0, 0)):
-                    if self.smooth:
-                        image = cw.image.smoothscale(image, size)
-                    else:
-                        image = pygame.transform.scale(image, size)
+                    image = cw.image.smoothscale(image, size, smoothing=self.smooth)
 
         # 透過ライン
         if self.mask:
