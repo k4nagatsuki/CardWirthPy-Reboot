@@ -2038,11 +2038,11 @@ def get_bgcolor(ccard):
     """キャラクター情報ダイアログ用の背景色を取得する。
     デフォルト値は濃い青。
     """
-    if ccard.has_coupon("＠Ｒ") and ccard.has_coupon("＠Ｇ") and ccard.has_coupon("＠Ｂ"):
-        r = ccard.get_couponvalue("＠Ｒ")
-        g = ccard.get_couponvalue("＠Ｇ")
-        b = ccard.get_couponvalue("＠Ｂ")
-    else:
+    r = cw.util.numwrap(ccard.data.getint("Property/BackColor", "r", -1), -1, 128)
+    g = cw.util.numwrap(ccard.data.getint("Property/BackColor", "g", -1), -1, 128)
+    b = cw.util.numwrap(ccard.data.getint("Property/BackColor", "b", -1), -1, 128)
+
+    if r == -1 or g == -1 or b == -1:
         r = 0
         g = 0
         b = 128

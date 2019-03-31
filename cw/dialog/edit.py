@@ -1193,14 +1193,15 @@ class BackColorEditDialog(wx.Dialog):
         return colorsys.rgb_to_hsv(rgb[0] / 256, rgb[1] / 256, rgb[2] / 256)
 
     def get_rgblist(self):
-        if self.ccard.has_coupon("＠Ｒ") and self.ccard.has_coupon("＠Ｇ") and self.ccard.has_coupon("＠Ｂ"):
-            r = self.ccard.get_couponvalue("＠Ｒ")
-            g = self.ccard.get_couponvalue("＠Ｇ")
-            b = self.ccard.get_couponvalue("＠Ｂ")
-        else:
+        r = cw.util.numwrap(self.ccard.data.getint("Property/BackColor", "r", -1), -1, 128)
+        g = cw.util.numwrap(self.ccard.data.getint("Property/BackColor", "g", -1), -1, 128)
+        b = cw.util.numwrap(self.ccard.data.getint("Property/BackColor", "b", -1), -1, 128)
+
+        if r == -1 or g == -1 or b == -1:
             r = 0
             g = 0
             b = 128
+
         return (r, g, b)
 
     def _bind(self):
@@ -1497,9 +1498,18 @@ class BackColorEditDialog(wx.Dialog):
 
     def OnOk(self, event):
         def func(ccard, rgb):
-            ccard.set_coupon("＠Ｒ", rgb[0])
-            ccard.set_coupon("＠Ｇ", rgb[1])
-            ccard.set_coupon("＠Ｂ", rgb[2])
+            if not ccard.data.find("Property/BackColor") is None:
+                ccard.data.edit("Property/BackColor", rgb[0], "r")
+                ccard.data.edit("Property/BackColor", rgb[1], "g")
+                ccard.data.edit("Property/BackColor", rgb[2], "b")
+            else:
+                e = cw.data.make_element("BackColor", "")
+                ccard.data.insert("Property", e, 0)
+                ccard.data.edit("Property/BackColor", rgb[0], "r")
+                ccard.data.edit("Property/BackColor", rgb[1], "g")
+                ccard.data.edit("Property/BackColor", rgb[2], "b")
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
 
             cw.cwpy.play_sound("harvest")
             cw.animation.animate_sprite(ccard, "hide")
