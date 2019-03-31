@@ -1962,7 +1962,10 @@ class FileSync(threading.Thread):
             self._files.append((file, data, mode, encoding))
 
         if self._quit:
-            self.join()
+            try:
+                self.join()
+            except:
+                cw.util.print_ex()
             self._write_files()
 
     def sync(self):

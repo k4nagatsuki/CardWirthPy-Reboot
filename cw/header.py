@@ -602,6 +602,8 @@ class CardHeader(object):
         self.do_write()
         if self.scenariocard:
             if self.carddata is None:
+                if cw.fsync.is_waiting(self.fpath):
+                    cw.fsync.sync()
                 assert self.fpath, self.name
                 assert os.path.isfile(self.fpath), self.fpath
                 self.carddata = cw.data.xml2element(self.fpath)

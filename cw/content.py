@@ -166,7 +166,7 @@ class EventContentBase(object):
             elif isinstance(ex, cw.calculator.ArgumentIsNotBooleanException):
                 desc += "\n" + "関数 %s の %s 番目の引数が真偽値ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
             elif isinstance(ex, cw.calculator.ArgumentsCountException):
-                desc += "\n" + "関数 %s の呼び出し引数の数が間違っています。" % (ex.func_name, ex.arg_index+1)
+                desc += "\n" + "関数 %s の呼び出し引数の数が間違っています。" % (ex.func_name)
             elif isinstance(ex, cw.calculator.InvalidArgumentException):
                 desc += "\n" + "関数 %s の %s 番目の引数の値が間違っています(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
             elif isinstance(ex, cw.calculator.VariantNotFoundException):
@@ -269,6 +269,7 @@ class EventContentBase(object):
             "item" : "アイテムカード", # 1.50
             "beast" : "召喚獣カード", # 1.50
         }
+
 
 #-------------------------------------------------------------------------------
 # Branch系コンテント
@@ -604,6 +605,7 @@ class BranchContent(EventContentBase):
 
         return index
 
+
 class BranchSkillContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -645,6 +647,7 @@ class BranchSkillContent(BranchContent):
             s = "特殊技能カードが指定されていません"
 
         return s
+
 
 class BranchItemContent(BranchContent):
     def __init__(self, data):
@@ -689,6 +692,7 @@ class BranchItemContent(BranchContent):
 
         return s
 
+
 class BranchBeastContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -732,6 +736,7 @@ class BranchBeastContent(BranchContent):
 
         return s
 
+
 class BranchCastContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -768,6 +773,7 @@ class BranchCastContent(BranchContent):
         else:
             return "キャスト『%s』が加わっていない" % (s)
 
+
 class BranchInfoContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -803,6 +809,7 @@ class BranchInfoContent(BranchContent):
         else:
             return "情報カード『%s』を所持していない" % (s)
 
+
 class BranchIsBattleContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -820,6 +827,7 @@ class BranchIsBattleContent(BranchContent):
             return "イベント発生時の状況が戦闘中"
         else:
             return "イベント発生時の状況が戦闘以外"
+
 
 class BranchBattleContent(BranchContent):
     def __init__(self, data):
@@ -859,6 +867,7 @@ class BranchBattleContent(BranchContent):
 
         return "バトル = " + s
 
+
 class BranchAreaContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -895,6 +904,7 @@ class BranchAreaContent(BranchContent):
                 s = "指定無し"
 
         return "エリア = " + s
+
 
 class BranchStatusContent(BranchContent):
     def __init__(self, data):
@@ -985,13 +995,19 @@ class BranchStatusContent(BranchContent):
         else:
             return "%sが【%s】でない" % (s, s2)
 
+
 class BranchGossipContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.gossip = self.data.get("gossip", "")
+        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """ゴシップ分岐コンテント。"""
-        gossip = self.data.get("gossip", "")
+        if self.spchars:
+            gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip)
+        else:
+            gossip = self.gossip
         flag = cw.cwpy.ydata.has_gossip(gossip)
         return self.get_boolean_index(flag)
 
@@ -999,12 +1015,13 @@ class BranchGossipContent(BranchContent):
         return "ゴシップ分岐コンテント"
 
     def get_childname(self, child):
-        s = self.data.get("gossip", "")
-
+        s = self.gossip
+        spchars = "(特殊文字を展開)" if self.spchars else ""
         if self.get_contentname(child) == "○":
-            return "ゴシップ『%s』が宿屋にある" % (s)
+            return "ゴシップ『%s』が宿屋にある%s" % (s, spchars)
         else:
-            return "ゴシップ『%s』が宿屋にない" % (s)
+            return "ゴシップ『%s』が宿屋にない%s" % (s, spchars)
+
 
 class BranchCompleteStampContent(BranchContent):
     def __init__(self, data):
@@ -1032,6 +1049,7 @@ class BranchCompleteStampContent(BranchContent):
         else:
             return "シナリオ『%s』が終了済ではない" % (s)
 
+
 class BranchPartyNumberContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -1052,6 +1070,7 @@ class BranchPartyNumberContent(BranchContent):
             return "パーティ人数が%s人以上" % (s)
         else:
             return "パーティ人数が%s人未満" % (s)
+
 
 class BranchLevelContent(BranchContent):
     def __init__(self, data):
@@ -1090,6 +1109,7 @@ class BranchLevelContent(BranchContent):
         else:
             return "%sがレベル%s未満" % (s, self.data.get("value", ""))
 
+
 class BranchCouponContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -1106,7 +1126,8 @@ class BranchCouponContent(BranchContent):
                 names.append(e.text)
         self.couponnames = names
 
-        self.invert = self.data.getbool(".", "invert", False)
+        self.invert = self.data.getbool(".", "invert", False) # 条件の逆転(Wsn.4)
+        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """称号存在分岐コンテント。"""
@@ -1116,8 +1137,14 @@ class BranchCouponContent(BranchContent):
         if not self.couponnames:
             return false_index
 
-        # シャロ―コピー
-        names = self.couponnames[:]
+        if self.spchars:
+            names = []
+            for name in self.couponnames:
+                name, _namelist = cw.sprite.message.rpl_specialstr(name)
+                names.append(name)
+        else:
+            # シャロ―コピー
+            names = self.couponnames[:]
         # 全てに一致？
         allmatch = self.matchingtype == "And"
 
@@ -1158,7 +1185,8 @@ class BranchCouponContent(BranchContent):
                 resulttype = "不所有"
             else:
                 resulttype = "所有"
-            return "称号「%s」の%s%sで分岐" % (s, type, resulttype)
+            spchars = "(特殊文字を展開)" if self.spchars else ""
+            return "称号「%s」の%s%sで分岐%s" % (s, type, resulttype, spchars)
         else:
             return "称号が指定されていません"
 
@@ -1179,10 +1207,12 @@ class BranchCouponContent(BranchContent):
         if self.invert:
             # 判定条件の反転(Wsn.4)
             success = not success
+        spchars = "(特殊文字を展開)" if self.spchars else ""
         if success:
-            return "%sが称号「%s」%sを所有している" % (s2, s, type)
+            return "%sが称号「%s」%sを所有している%s" % (s2, s, type, spchars)
         else:
-            return "%sが称号「%s」%sを所有していない" % (s2, s, type)
+            return "%sが称号「%s」%sを所有していない%s" % (s2, s, type, spchars)
+
 
 class BranchSelectContent(BranchContent):
     def __init__(self, data):
@@ -1255,6 +1285,7 @@ class BranchSelectContent(BranchContent):
 
         return s
 
+
 class BranchMoneyContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -1273,6 +1304,7 @@ class BranchMoneyContent(BranchContent):
             return self.data.get("value", "0") + " sp以上所持している"
         else:
             return self.data.get("value", "0") + " sp以上所持していない"
+
 
 class BranchFlagContent(BranchContent):
     def __init__(self, data):
@@ -1317,6 +1349,7 @@ class BranchFlagContent(BranchContent):
             return "%s = %s" % (flag, valuename)
         else:
             return "フラグが指定されていません"
+
 
 class BranchStepContent(BranchContent):
     def __init__(self, data):
@@ -1365,6 +1398,7 @@ class BranchStepContent(BranchContent):
 
         else:
             return "ステップが指定されていません"
+
 
 class BranchMultiStepContent(BranchContent):
     def __init__(self, data):
@@ -1417,6 +1451,7 @@ class BranchMultiStepContent(BranchContent):
         else:
             return "ステップが指定されていません"
 
+
 class BranchRandomContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -1439,6 +1474,7 @@ class BranchRandomContent(BranchContent):
             return self.data.get("value", "") + " %成功"
         else:
             return self.data.get("value", "") + " %失敗"
+
 
 class BranchAbilityContent(BranchContent):
     def __init__(self, data):
@@ -1540,6 +1576,7 @@ class BranchAbilityContent(BranchContent):
 
         return s
 
+
 class BranchRandomSelectContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -1630,6 +1667,7 @@ class BranchRandomSelectContent(BranchContent):
             return "%sから%sキャラクターの選択に成功" % (s, s2)
         else:
             return "%sから%sキャラクターの選択に失敗" % (s, s2)
+
 
 class BranchKeyCodeContent(BranchContent):
     def __init__(self, data):
@@ -1759,6 +1797,7 @@ class BranchKeyCodeContent(BranchContent):
         else:
             return "%sの%sからキーコード『%s』を持つカードを所有しない" % (s, s2, s3)
 
+
 class BranchRoundContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -1868,6 +1907,7 @@ class BranchMultiCouponContent(BranchContent):
         self.scope = self.data.get("targets", "Selected")
         # 対象範囲修正
         self.scope, self.someone, self.unreversed = _get_couponscope(self.scope)
+        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """クーポン多岐分岐コンテント(Wsn.2)。"""
@@ -1887,6 +1927,8 @@ class BranchMultiCouponContent(BranchContent):
                     continue
 
             coupon = e.get("name", "")
+            if self.spchars:
+                coupon, _namelist = cw.sprite.message.rpl_specialstr(coupon)
             if coupon:
                 if _has_coupon(targets, [coupon], self.scope, self.someone, False, True, invert=False):
                     return index
@@ -1910,10 +1952,11 @@ class BranchMultiCouponContent(BranchContent):
         scope = self.data.get("targets", "Selected")
         s2 = self.textdict.get(scope.lower(), "")
 
+        spchars = "(特殊文字を展開)" if self.spchars else ""
         if name:
-            return "%sが称号「%s」を所有している" % (s2, name)
+            return "%sが称号「%s」を所有している%s" % (s2, name, spchars)
         else:
-            return "%sが全ての称号を所有していない" % (s2)
+            return "%sが全ての称号を所有していない%s" % (s2, spchars)
 
 
 class BranchMultiRandomContent(BranchContent):
@@ -2021,6 +2064,7 @@ class CallStartContent(EventContentBase):
         else:
             return "スタートコンテントが指定されていません"
 
+
 class CallPackageContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=False)
@@ -2048,6 +2092,7 @@ class CallPackageContent(EventContentBase):
             return "パッケージ『%s』コール" % (name)
         else:
             return "パッケージが指定されていません"
+
 
 def call_package(resid, call):
     """パッケージを実行する。
@@ -2098,6 +2143,7 @@ def call_package(resid, call):
     if cw.cwpy.is_playingscenario():
         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
 
+
 #-------------------------------------------------------------------------------
 # Change系コンテント
 #-------------------------------------------------------------------------------
@@ -2146,6 +2192,7 @@ class ChangeBgImageContent(EventContentBase):
 
         return "背景 = 【%s】" % (s)
 
+
 class ChangeAreaContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=True)
@@ -2176,6 +2223,7 @@ class ChangeAreaContent(EventContentBase):
         else:
             return "エリアが指定されていません"
 
+
 class ChangeEnvironmentContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=True)
@@ -2199,6 +2247,7 @@ class ChangeEnvironmentContent(EventContentBase):
                 return "変更しない"
         backpack = enable_str(self.backpack)
         return "荷物袋 = %s" % (backpack)
+
 
 #-------------------------------------------------------------------------------
 # Check系コンテント
@@ -2606,6 +2655,7 @@ class EffectContent(EventContentBase):
 
         return "%sへの効果【%s】" % (targetm, s)
 
+
 class EffectBreakContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=False)
@@ -2616,6 +2666,7 @@ class EffectBreakContent(EventContentBase):
 
     def get_status(self):
         return "効果中断コンテント"
+
 
 #-------------------------------------------------------------------------------
 # Elapse系コンテント
@@ -2632,6 +2683,7 @@ class ElapseTimeContent(EventContentBase):
 
     def get_status(self):
         return "ターン数経過コンテント"
+
 
 #-------------------------------------------------------------------------------
 # End系コンテント
@@ -2655,6 +2707,7 @@ class EndContent(EventContentBase):
             return "済印をつけて終了"
         else:
             return "済印をつけずに終了"
+
 
 def end_scenario(complete):
     if cw.cwpy.ydata and cw.cwpy.ydata.party and not cw.cwpy.ydata.party.members:
@@ -2730,6 +2783,7 @@ def end_scenario(complete):
     cw.cwpy._dealing = True
     raise cw.event.ScenarioEndError()
 
+
 class EndBadEndContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=True)
@@ -2757,6 +2811,7 @@ class EndBadEndContent(EventContentBase):
 
     def get_status(self):
         return "パーティ全滅"
+
 
 #-------------------------------------------------------------------------------
 # Get系コンテント
@@ -2902,6 +2957,7 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
     cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder,
                   sort=False, party=party, from_getcontent=from_getcontent, update_image=update_image)
 
+
 class GetSkillContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
@@ -2926,6 +2982,7 @@ class GetSkillContent(GetContent):
                 return "%sが特殊技能カード『%s』を%s取得" % (scope, name, num)
         else:
             return "特殊技能カードが指定されていません"
+
 
 class GetItemContent(GetContent):
     def __init__(self, data):
@@ -2952,6 +3009,7 @@ class GetItemContent(GetContent):
         else:
             return "アイテムカードが指定されていません"
 
+
 class GetBeastContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
@@ -2976,6 +3034,7 @@ class GetBeastContent(GetContent):
                 return "%sが召喚獣カード『%s』を%s取得" % (scope, name, num)
         else:
             return "召喚獣カードが指定されていません"
+
 
 class GetCastContent(GetContent):
     def __init__(self, data):
@@ -3028,6 +3087,7 @@ class GetCastContent(GetContent):
         else:
             return "キャストカードが指定されていません"
 
+
 class GetInfoContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
@@ -3058,6 +3118,7 @@ class GetInfoContent(GetContent):
         else:
             return "情報カードが指定されていません"
 
+
 class GetMoneyContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
@@ -3071,6 +3132,7 @@ class GetMoneyContent(GetContent):
     def get_status(self):
         value = self.data.get("value", "0")
         return "%ssp取得" % (value)
+
 
 class GetCompleteStampContent(GetContent):
     def __init__(self, data):
@@ -3093,13 +3155,19 @@ class GetCompleteStampContent(GetContent):
         else:
             return "終了済みシナリオが指定されていません"
 
+
 class GetGossipContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
+        self.gossip = self.data.get("gossip", "")
+        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """ゴシップ取得コンテント。"""
-        gossip = self.data.get("gossip")
+        if self.spchars:
+            gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip)
+        else:
+            gossip = self.gossip
 
         if gossip:
             cw.cwpy.ydata.set_gossip(gossip)
@@ -3107,12 +3175,14 @@ class GetGossipContent(GetContent):
         return 0
 
     def get_status(self):
-        gossip = self.data.get("gossip")
+        gossip = self.gossip
+        spchars = "(特殊文字を展開)" if self.spchars else ""
 
         if gossip:
-            return "ゴシップ『%s』取得" % (gossip)
+            return "ゴシップ『%s』取得%s" % (gossip, spchars)
         else:
             return "ゴシップが指定されていません"
+
 
 def is_addablecoupon(coupon):
     """
@@ -3139,6 +3209,7 @@ def is_addablecoupon(coupon):
     else:
         return True
 
+
 class GetCouponContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
@@ -3147,13 +3218,18 @@ class GetCouponContent(GetContent):
         self.scope = self.data.get("targets")
         # 称号所有者が適用範囲の時の称号名(Wsn.3)
         self.holdingcoupon = self.data.get("holdingcoupon", "")
+        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """称号付与コンテント。"""
-        if is_addablecoupon(self.coupon):
+        if self.spchars:
+            coupon, _namelist = cw.sprite.message.rpl_specialstr(self.coupon)
+        else:
+            coupon = self.coupon
+        if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(self.scope, False, coupon=self.holdingcoupon)
             cardevent = cw.cwpy.event.get_effectevent()
-            targetout = cardevent and cardevent.in_effectmotionloop() and self.coupon == "＠効果対象"
+            targetout = cardevent and cardevent.in_effectmotionloop() and coupon == "＠効果対象"
 
             for target in targets:
                 if isinstance(target, cw.character.Character):
@@ -3161,21 +3237,23 @@ class GetCouponContent(GetContent):
                         # "＠効果対象外"を持つメンバには"＠効果対象"はつかない(Wsn.2)
                         continue
 
-                    target.set_coupon(self.coupon, self.value)
+                    target.set_coupon(coupon, self.value)
 
         return 0
 
     def get_status(self):
-        coupon = self.data.get("coupon")
+        coupon = self.coupon
 
         if coupon:
-            value = self.data.getint(".", "value", 0)
+            value = self.value
             value = "+%s" % (value) if 0 <= value else "%s" % (value)
-            scope = self.data.get("targets")
+            scope = self.scope
             scope = self.textdict.get(scope.lower(), "")
-            return "%sに称号『%s(%s)』を付与" % (scope, coupon, value)
+            spchars = "(特殊文字を展開)" if self.spchars else ""
+            return "%sに称号『%s(%s)』を付与%s" % (scope, coupon, value, spchars)
         else:
             return "称号が指定されていません"
+
 
 #-------------------------------------------------------------------------------
 # hide系コンテント
@@ -3203,6 +3281,7 @@ class HidePartyContent(EventContentBase):
 
     def get_status(self):
         return "パーティ非表示コンテント"
+
 
 #-------------------------------------------------------------------------------
 # Link系コンテント
@@ -3234,6 +3313,7 @@ class LinkStartContent(EventContentBase):
         else:
             return "スタートコンテントが指定されていません"
 
+
 class LinkPackageContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=False)
@@ -3256,6 +3336,7 @@ class LinkPackageContent(EventContentBase):
             return "パッケージビュー『%s』" % (name)
         else:
             return "パッケージが指定されていません"
+
 
 #-------------------------------------------------------------------------------
 # Lose系コンテント
@@ -3338,6 +3419,7 @@ class LoseContent(EventContentBase):
 
         return headers, num
 
+
 class LoseSkillContent(LoseContent):
     def __init__(self, data):
         LoseContent.__init__(self, data)
@@ -3362,6 +3444,7 @@ class LoseSkillContent(LoseContent):
                 return "%sが特殊技能カード『%s』を%s喪失" % (scope, name, num)
             else:
                 return "特殊技能カードが指定されていません"
+
 
 class LoseItemContent(LoseContent):
     def __init__(self, data):
@@ -3388,6 +3471,7 @@ class LoseItemContent(LoseContent):
             else:
                 return "アイテムカードが指定されていません"
 
+
 class LoseBeastContent(LoseContent):
     def __init__(self, data):
         LoseContent.__init__(self, data)
@@ -3412,6 +3496,7 @@ class LoseBeastContent(LoseContent):
                 return "%sが召喚獣カード『%s』を%s喪失" % (scope, name, num)
             else:
                 return "召喚獣カードが指定されていません"
+
 
 class LoseCastContent(LoseContent):
     def __init__(self, data):
@@ -3443,6 +3528,7 @@ class LoseCastContent(LoseContent):
         else:
             return "キャストカードが指定されていません"
 
+
 class LoseInfoContent(LoseContent):
     def __init__(self, data):
         LoseContent.__init__(self, data)
@@ -3470,6 +3556,7 @@ class LoseInfoContent(LoseContent):
         else:
             return "情報カードが指定されていません"
 
+
 class LoseMoneyContent(LoseContent):
     def __init__(self, data):
         LoseContent.__init__(self, data)
@@ -3483,6 +3570,7 @@ class LoseMoneyContent(LoseContent):
     def get_status(self):
         value = self.data.get("value", "0")
         return "%ssp減少" % (value)
+
 
 class LoseCompleteStampContent(LoseContent):
     def __init__(self, data):
@@ -3505,13 +3593,19 @@ class LoseCompleteStampContent(LoseContent):
         else:
             return "終了シナリオが指定されていません"
 
+
 class LoseGossipContent(LoseContent):
     def __init__(self, data):
         LoseContent.__init__(self, data)
+        self.gossip = self.data.get("gossip", "")
+        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """ゴシップ削除コンテント。"""
-        gossip = self.data.get("gossip", "")
+        if self.spchars:
+            gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip)
+        else:
+            gossip = self.gossip
 
         if gossip:
             cw.cwpy.ydata.remove_gossip(gossip)
@@ -3519,12 +3613,14 @@ class LoseGossipContent(LoseContent):
         return 0
 
     def get_status(self):
-        gossip = self.data.get("gossip", "")
+        gossip = self.gossip
+        spchars = "(特殊文字を展開)" if self.spchars else ""
 
         if gossip:
-            return "ゴシップ『%s』削除" % (gossip)
+            return "ゴシップ『%s』削除%s" % (gossip, spchars)
         else:
             return "ゴシップが指定されていません"
+
 
 class LoseCouponContent(LoseContent):
     def __init__(self, data):
@@ -3534,17 +3630,22 @@ class LoseCouponContent(LoseContent):
         self.scope = self.data.get("targets")
         # 称号所有者が適用範囲の時の称号名(Wsn.3)
         self.holdingcoupon = self.data.get("holdingcoupon", "")
+        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """称号剥奪コンテント。"""
-        if is_addablecoupon(self.coupon):
+        if self.spchars:
+            coupon, _namelist = cw.sprite.message.rpl_specialstr(self.coupon)
+        else:
+            coupon = self.coupon
+        if is_addablecoupon(coupon):
             targets = cw.cwpy.event.get_targetscope(self.scope, False, coupon=self.holdingcoupon)
             cardevent = cw.cwpy.event.get_effectevent()
-            targetout = cardevent and cardevent.in_effectmotionloop() and self.coupon == "＠効果対象"
+            targetout = cardevent and cardevent.in_effectmotionloop() and coupon == "＠効果対象"
 
             for target in targets:
                 if isinstance(target, cw.character.Character):
-                    target.remove_coupon(self.coupon)
+                    target.remove_coupon(coupon)
 
                     if targetout:
                         # 無限ループを避けるための措置(Wsn.2)
@@ -3554,14 +3655,16 @@ class LoseCouponContent(LoseContent):
         return 0
 
     def get_status(self):
-        coupon = self.data.get("coupon")
+        coupon = self.coupon
 
         if coupon:
-            scope = self.data.get("targets")
+            scope = self.scope
             s = self.textdict.get(scope.lower(), "")
-            return "%sから称号『%s』剥奪" % (s, coupon)
+            spchars = "(特殊文字を展開)" if self.spchars else ""
+            return "%sから称号『%s』剥奪%s" % (s, coupon, spchars)
         else:
             return "称号が指定されていません"
+
 
 class LoseBgImageContent(EventContentBase):
     def __init__(self, data):
@@ -3588,6 +3691,7 @@ class LoseBgImageContent(EventContentBase):
 
     def get_status(self):
         return "セル名称 = 【%s】" % (self.cellname)
+
 
 #-------------------------------------------------------------------------------
 # Play系コンテント
@@ -3632,6 +3736,7 @@ class PlayBgmContent(EventContentBase):
         else:
             return "BGM停止"
 
+
 class PlaySoundContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=False)
@@ -3667,6 +3772,7 @@ class PlaySoundContent(EventContentBase):
         else:
             return "効果音が指定されていません"
 
+
 #-------------------------------------------------------------------------------
 # Redisplay系コンテント
 #-------------------------------------------------------------------------------
@@ -3688,6 +3794,7 @@ class RedisplayContent(EventContentBase):
 
     def get_status(self):
         return "画面再構築コンテント"
+
 
 #-------------------------------------------------------------------------------
 # Reverse系コンテント
@@ -3725,6 +3832,7 @@ class ReverseFlagContent(EventContentBase):
             return "フラグ『%s』の値を反転" % (flag)
         else:
             return "フラグが指定されていません"
+
 
 #-------------------------------------------------------------------------------
 # Set系コンテント
@@ -3935,6 +4043,7 @@ class ShowPartyContent(EventContentBase):
     def get_status(self):
         return "パーティ表示コンテント"
 
+
 #-------------------------------------------------------------------------------
 # Start系コンテント
 #-------------------------------------------------------------------------------
@@ -3946,6 +4055,7 @@ class StartContent(EventContentBase):
     """スタートコンテント"""
     def get_status(self):
         return "スタートコンテント: " + self.data.get("name", "")
+
 
 class StartBattleContent(EventContentBase):
     def __init__(self, data):
@@ -3976,6 +4086,7 @@ class StartBattleContent(EventContentBase):
             return "バトルビュー『%s』" % (name)
         else:
             return "バトルエリアが指定されていません"
+
 
 #-------------------------------------------------------------------------------
 # Talk系コンテント
@@ -4011,6 +4122,7 @@ class TalkContent(EventContentBase):
             seq = [(0, cw.cwpy.msgs["ok"])]
 
         return seq
+
 
 class TalkMessageContent(TalkContent):
     def __init__(self, data):
@@ -4213,6 +4325,7 @@ class TalkMessageContent(TalkContent):
 
         return s + self.data.gettext("Text", "").replace("\\n", "")
 
+
 class TalkDialogContent(TalkContent):
     def __init__(self, data):
         TalkContent.__init__(self, data)
@@ -4358,6 +4471,7 @@ class TalkDialogContent(TalkContent):
         s2 = self.textdict.get(targetm.lower(), "")
         return "[%s] %s" % (s2, s)
 
+
 #-------------------------------------------------------------------------------
 # Wait系コンテント
 #-------------------------------------------------------------------------------
@@ -4399,6 +4513,7 @@ class WaitContent(EventContentBase):
         value = self.data.getint(".", "value", 0)
         return "%s秒間待機" % (value/10.0)
 
+
 #-------------------------------------------------------------------------------
 # 代入コンテント (1.30～)
 #-------------------------------------------------------------------------------
@@ -4438,6 +4553,7 @@ class SubstituteStepContent(EventContentBase):
             return "ランダム値を『%s』へ代入" % (self.tostep)
         else:
             return "ステップが指定されていません"
+
 
 class SubstituteFlagContent(EventContentBase):
     def __init__(self, data):
@@ -4480,6 +4596,7 @@ class SubstituteFlagContent(EventContentBase):
             return "ランダム値を『%s』へ代入" % (self.toflag)
         else:
             return "フラグが指定されていません"
+
 
 #-------------------------------------------------------------------------------
 # 比較分岐コンテント (1.30～)
@@ -4529,6 +4646,7 @@ class BranchStepValueContent(BranchContent):
         else:
             return "ステップが指定されていません"
 
+
 class BranchFlagValueContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
@@ -4570,6 +4688,7 @@ class BranchFlagValueContent(BranchContent):
 
         else:
             return "フラグが指定されていません"
+
 
 #-------------------------------------------------------------------------------
 # 移動系コンテント (Wsn.1～)
@@ -4632,6 +4751,7 @@ class MoveBgImageContent(EventContentBase):
             seq.append(s)
 
         return " ".join(seq)
+
 
 class MoveCardContent(EventContentBase):
     def __init__(self, data, is_changestate=True):
@@ -4740,6 +4860,7 @@ class MoveCardContent(EventContentBase):
 
         return " ".join(seq)
 
+
 #-------------------------------------------------------------------------------
 # 置換系コンテント (Wsn.1～)
 #-------------------------------------------------------------------------------
@@ -4796,6 +4917,7 @@ class ReplaceBgImageContent(EventContentBase):
 
         return "セル名称 = 【%s】 背景 = 【%s】" % (self.cellname, s)
 
+
 #-------------------------------------------------------------------------------
 # 特殊コンテント
 #-------------------------------------------------------------------------------
@@ -4812,6 +4934,7 @@ methoddict = {
     "DissolveParty": "dissolve_party",
     "Load": "reload_yado",
     "StartScenario": "start_scenario"}
+
 
 class PostEventContent(EventContentBase):
     def __init__(self, data):
@@ -4876,8 +4999,10 @@ def get_content(data):
         print("NoContent: ", classname)
         return None
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

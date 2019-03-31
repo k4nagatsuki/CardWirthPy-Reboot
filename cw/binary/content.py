@@ -646,6 +646,8 @@ class Content(base.CWBinaryBase):
                 coupon = names[0]
             if data.getbool(".", "invert", False):
                 f.check_wsnversion("4", "判定条件の反転")
+            if data.getbool(".", "spchars", False):
+                f.check_wsnversion("4", "クーポン内の特殊文字の展開")
             base.CWBinaryBase.check_coupon(f, coupon)
             f.write_string(coupon)
             f.write_dword(0)
@@ -671,6 +673,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Get" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Get" and ctype == "Coupon":
+            if data.getbool(".", "spchars", False):
+                f.check_wsnversion("4", "クーポン内の特殊文字の展開")
             base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(int(data.get("value")))
@@ -694,6 +698,8 @@ class Content(base.CWBinaryBase):
         elif tag == "Lose" and ctype == "Money":
             f.write_dword(int(data.get("value")))
         elif tag == "Lose" and ctype == "Coupon":
+            if data.getbool(".", "spchars", False):
+                f.check_wsnversion("4", "クーポン内の特殊文字の展開")
             base.CWBinaryBase.check_coupon(f, data.get("coupon"))
             f.write_string(data.get("coupon"))
             f.write_dword(0)
@@ -777,10 +783,16 @@ class Content(base.CWBinaryBase):
         elif tag == "Lose" and ctype == "CompleteStamp":
             f.write_string(data.get("scenario"))
         elif tag == "Branch" and ctype == "Gossip":
+            if data.getbool(".", "spchars", False):
+                f.check_wsnversion("4", "ゴシップ内の特殊文字の展開")
             f.write_string(data.get("gossip"))
         elif tag == "Get" and ctype == "Gossip":
+            if data.getbool(".", "spchars", False):
+                f.check_wsnversion("4", "ゴシップ内の特殊文字の展開")
             f.write_string(data.get("gossip"))
         elif tag == "Lose" and ctype == "Gossip":
+            if data.getbool(".", "spchars", False):
+                f.check_wsnversion("4", "ゴシップ内の特殊文字の展開")
             f.write_string(data.get("gossip"))
         elif tag == "Branch" and ctype == "IsBattle":
             pass
