@@ -179,7 +179,7 @@ def build_exe():
     #      VCRUNTIME140.dllはVCランタイムライブラリが無い環境で
     #      CardWirthPy.exeと同じフォルダに必要
     mvfiles = (
-        ("sqlite3.dll", "lib/sqlite3.dll"),
+#        ("sqlite3.dll", "lib/sqlite3.dll"),
 #        ("lib/VCRUNTIME140.dll", "VCRUNTIME140.dll"),
     )
     for src, dst in mvfiles:
