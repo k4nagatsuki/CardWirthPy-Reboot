@@ -824,6 +824,9 @@
     <Message key="desc_debug_log">シナリオのプレイ結果を表示します</Message>
     <Message key="beast_invocation_failed">発動条件を満たしていません。</Message>
     <!-- 3.0 ここまで -->
+    <!-- 4.0 ここから -->
+    <Message key="edit_bgcolor">背景色を変更する</Message>
+    <Message key="edit_bgcolor_preset">用意された色から選択</Message>
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
 </Skin>

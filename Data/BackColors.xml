@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PresetColors>
+  <PresetColor r="128" g="0"   b="0"  >赤</PresetColor>
+  <PresetColor r="112" g="48"  b="0"  >茶</PresetColor>
+  <PresetColor r="72"  g="72"  b="0"  >苔</PresetColor>
+  <PresetColor r="0"   g="80"  b="0"  >緑</PresetColor>
+  <PresetColor r="0"   g="64"  b="80" >海藍</PresetColor>
+  <PresetColor r="0"   g="0"   b="128">青(初期値)</PresetColor>
+  <PresetColor r="96"  g="0"   b="96" >紫</PresetColor>
+  <PresetColor r="64"  g="64"  b="64" >暗灰</PresetColor>
+  <PresetColor r="128" g="0"   b="96" >紅</PresetColor>
+  <PresetColor r="128" g="128" b="0"  >黄</PresetColor>
+  <PresetColor r="0"   g="128" b="128">水</PresetColor>
+  <PresetColor r="128" g="128" b="128">明灰</PresetColor>
+</PresetColors>
