@@ -715,7 +715,12 @@ def _func_flagtext(args, is_differentscenario, line, pos):
     else:
         value = flag.value
 
-    return StringValue(flag.get_valuename(value), line, pos)
+    s = flag.get_valuename(value)
+
+    if flag.spchars:
+        s, _namelist = cw.sprite.message.rpl_specialstr(s)
+
+    return StringValue(s, line, pos)
 
 
 def _func_stepvalue(args, is_differentscenario, line, pos):
@@ -749,7 +754,12 @@ def _func_steptext(args, is_differentscenario, line, pos):
     if value < 0 or len(step.valuenames) <= value:
         raise InvalidStepValueException("Invalid step value: \"%s\"[%s]" % (path, value), args[1].line, args[1].pos)
 
-    return StringValue(step.get_valuename(value), line, pos)
+    s = step.get_valuename(value)
+
+    if step.spchars:
+        s, _namelist = cw.sprite.message.rpl_specialstr(s)
+
+    return StringValue(s, line, pos)
 
 
 def _func_stepmax(args, is_differentscenario, line, pos):
