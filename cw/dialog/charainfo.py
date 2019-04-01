@@ -185,7 +185,7 @@ class CharaInfo(wx.Dialog):
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 
         def recurse(ctrl):
-            if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
+            if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl, CardPanel)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
             for child in ctrl.GetChildren():
                 recurse(child)
