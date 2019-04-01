@@ -1386,6 +1386,10 @@ FLICK_NONE = 0
 FLICK_START = 1
 
 
+class NoFlick(object):
+    pass
+
+
 class MyApp(wx.App):
 
     def __init__(self):
@@ -1505,7 +1509,8 @@ class MyApp(wx.App):
 
             if event.GetEventType() == wx.EVT_LEFT_DOWN.typeId:
                 window = event.GetEventObject()
-                if isinstance(window, wx.Window) and not isinstance(window, wx.Slider):
+                if isinstance(window, wx.Window) and not isinstance(window, wx.Slider) and\
+                        not isinstance(window, NoFlick):
                     self.flick_status = FLICK_START
                     self.flick_window = window
                     self.flick_start_pos = wx.GetMousePosition()

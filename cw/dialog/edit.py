@@ -4,6 +4,8 @@
 import os
 import sys
 import shutil
+import threading
+import time
 import wx
 import wx.adv
 import colorsys
@@ -1125,6 +1127,7 @@ class LevelEditDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+
 #-------------------------------------------------------------------------------
 #  背景色変更ダイアログ
 #-------------------------------------------------------------------------------
@@ -1135,11 +1138,16 @@ class BackColorEditDialog(wx.Dialog):
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
         self.cwpy_debug = False
 
-        self.huepanel = wx.Panel(self, -1, size=cw.wins((181, 32)))
+        class NoFlickPanel(wx.Panel, cw.frame.NoFlick):
+            def __init__(self, parent):
+                wx.Panel.__init__(self, parent, -1, size=cw.wins((181, 32)))
+                cw.frame.NoFlick.__init__(self)
+
+        self.huepanel = NoFlickPanel(self)
         self.huepanel.SetDoubleBuffered(True)
-        self.saturationpanel = wx.Panel(self, -1, size=cw.wins((181, 32)))
+        self.saturationpanel = NoFlickPanel(self)
         self.saturationpanel.SetDoubleBuffered(True)
-        self.valuepanel = wx.Panel(self, -1, size=cw.wins((181, 32)))
+        self.valuepanel = NoFlickPanel(self)
         self.valuepanel.SetDoubleBuffered(True)
 
         self.presetcolor_list = []
@@ -1183,6 +1191,26 @@ class BackColorEditDialog(wx.Dialog):
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
                                                       cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
+        # ドラッグ中に離されたらドラッグを中止する
+        self._destroyed = False
+
+        def func():
+            while not self._destroyed:
+                time.sleep(0.001)
+                if self.dragging_huepanel or self.dragging_saturationpanel or self.dragging_valuepanel:
+                    def end_drag(self):
+                        if not self:
+                            return
+                        st = wx.GetMouseState()
+                        if not st.LeftIsDown():
+                            self.dragging_huepanel = False
+                            self.dragging_saturationpanel = False
+                            self.dragging_valuepanel = False
+                    cw.cwpy.frame.exec_func(end_drag, self)
+
+        thr = threading.Thread(target=func)
+        thr.start()
+
         self._do_layout()
         self._bind()
 
@@ -1209,7 +1237,7 @@ class BackColorEditDialog(wx.Dialog):
         self.huepanel.Bind(wx.EVT_LEFT_DOWN, self.OnLeftClickHuePanel)
         self.huepanel.Bind(wx.EVT_MOTION, self.OnDragHuePanel)
         self.huepanel.Bind(wx.EVT_LEFT_UP, self.OnReleaseHuePanel)
-        self.huepanel.Bind(wx.EVT_LEAVE_WINDOW, self.OnReleaseHuePanel)
+        self.huepanel.Bind(wx.EVT_KILL_FOCUS, self.OnReleaseHuePanel)
         self.huepanel.Bind(wx.EVT_SET_FOCUS, self.OnSetFocusHuePanel)
         self.huepanel.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusHuePanel)
         self.huepanel.Bind(wx.EVT_CHAR_HOOK, self.OnKeyDownHuePanel)
@@ -1219,7 +1247,7 @@ class BackColorEditDialog(wx.Dialog):
         self.saturationpanel.Bind(wx.EVT_LEFT_DOWN, self.OnLeftClickSaturationPanel)
         self.saturationpanel.Bind(wx.EVT_MOTION, self.OnDragSaturationPanel)
         self.saturationpanel.Bind(wx.EVT_LEFT_UP, self.OnReleaseSaturationPanel)
-        self.saturationpanel.Bind(wx.EVT_LEAVE_WINDOW, self.OnReleaseSaturationPanel)
+        self.saturationpanel.Bind(wx.EVT_KILL_FOCUS, self.OnReleaseSaturationPanel)
         self.saturationpanel.Bind(wx.EVT_SET_FOCUS, self.OnSetFocusSaturationPanel)
         self.saturationpanel.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusSaturationPanel)
         self.saturationpanel.Bind(wx.EVT_CHAR_HOOK, self.OnKeyDownSaturationPanel)
@@ -1228,7 +1256,7 @@ class BackColorEditDialog(wx.Dialog):
         self.valuepanel.Bind(wx.EVT_LEFT_DOWN, self.OnLeftClickValuePanel)
         self.valuepanel.Bind(wx.EVT_MOTION, self.OnDragValuePanel)
         self.valuepanel.Bind(wx.EVT_LEFT_UP, self.OnReleaseValuePanel)
-        self.valuepanel.Bind(wx.EVT_LEAVE_WINDOW, self.OnReleaseValuePanel)
+        self.valuepanel.Bind(wx.EVT_KILL_FOCUS, self.OnReleaseValuePanel)
         self.valuepanel.Bind(wx.EVT_SET_FOCUS, self.OnSetFocusValuePanel)
         self.valuepanel.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusValuePanel)
         self.valuepanel.Bind(wx.EVT_CHAR_HOOK, self.OnKeyDownValuePanel)
@@ -1238,6 +1266,8 @@ class BackColorEditDialog(wx.Dialog):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
         def recurse(ctrl):
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
@@ -1269,12 +1299,12 @@ class BackColorEditDialog(wx.Dialog):
         self.Layout()
 
     def update_panels(self):
-        self.draw_huepanel(True)
-        self.draw_saturationpanel(True)
-        self.draw_valuepanel(True)
+        self.huepanel.Refresh()
+        self.saturationpanel.Refresh()
+        self.valuepanel.Refresh()
 
     def OnLeftClickHuePanel(self, evt):
-        h = cw.mwin2scr_s(evt.GetX()) / 180
+        h = evt.GetX() / cw.UP_WIN / 180
         self.hsv = (h, self.hsv[1], self.hsv[2])
         self.dragging_huepanel = True
         self.huepanel.SetFocus()
@@ -1282,15 +1312,15 @@ class BackColorEditDialog(wx.Dialog):
 
     def OnSetFocusHuePanel(self, evt):
         self.is_select_huepanel = True
-        self.draw_huepanel(True)
+        self.huepanel.Refresh()
 
     def OnKillFocusHuePanel(self, evt):
         self.is_select_huepanel = False
-        self.draw_huepanel(True)
+        self.huepanel.Refresh()
 
     def OnDragHuePanel(self, evt):
         if self.dragging_huepanel:
-            h = cw.mwin2scr_s(evt.GetX()) / 180
+            h = evt.GetX() / cw.UP_WIN / 180
             self.hsv = (h, self.hsv[1], self.hsv[2])
             self.update_panels()
 
@@ -1316,7 +1346,6 @@ class BackColorEditDialog(wx.Dialog):
     def draw_huepanel(self, update=False):
         if update:
             dc = wx.ClientDC(self.huepanel)
-            dc = wx.BufferedDC(dc, self.huepanel.GetClientSize())
         else:
             dc = wx.PaintDC(self.huepanel)
         hsize = self.huepanel.GetClientSize()
@@ -1343,7 +1372,7 @@ class BackColorEditDialog(wx.Dialog):
         dc.DrawCircle(cw.wins(self.hsv[0] * 180), hsize[1] // 2, hsize[1] // 4)
 
     def OnLeftClickSaturationPanel(self, evt):
-        s = cw.mwin2scr_s(evt.GetX()) / 180
+        s = evt.GetX() / cw.UP_WIN / 180
         self.hsv = (self.hsv[0], s, self.hsv[2])
         self.dragging_saturationpanel = True
         self.saturationpanel.SetFocus()
@@ -1351,15 +1380,15 @@ class BackColorEditDialog(wx.Dialog):
 
     def OnSetFocusSaturationPanel(self, evt):
         self.is_select_saturationpanel = True
-        self.draw_saturationpanel(True)
+        self.saturationpanel.Refresh()
 
     def OnKillFocusSaturationPanel(self, evt):
         self.is_select_saturationpanel = False
-        self.draw_saturationpanel(True)
+        self.saturationpanel.Refresh()
 
     def OnDragSaturationPanel(self, evt):
         if self.dragging_saturationpanel:
-            s = cw.mwin2scr_s(evt.GetX()) / 180
+            s = evt.GetX() / cw.UP_WIN / 180
             self.hsv = (self.hsv[0], s, self.hsv[2])
             self.update_panels()
 
@@ -1412,7 +1441,7 @@ class BackColorEditDialog(wx.Dialog):
         dc.DrawCircle(cw.wins(self.hsv[1] * 180), ssize[1] // 2, ssize[1] // 4)
 
     def OnLeftClickValuePanel(self, evt):
-        v = 0.125 + cw.mwin2scr_s(evt.GetX()) / 480
+        v = 0.125 + (evt.GetX() / cw.UP_WIN) / 480
         self.hsv = (self.hsv[0], self.hsv[1], v)
         self.dragging_valuepanel = True
         self.valuepanel.SetFocus()
@@ -1420,15 +1449,15 @@ class BackColorEditDialog(wx.Dialog):
 
     def OnSetFocusValuePanel(self, evt):
         self.is_select_valuepanel = True
-        self.draw_valuepanel(True)
+        self.valuepanel.Refresh()
 
     def OnKillFocusValuePanel(self, evt):
         self.is_select_valuepanel = False
-        self.draw_valuepanel(True)
+        self.valuepanel.Refresh()
 
     def OnDragValuePanel(self, evt):
         if self.dragging_valuepanel:
-            v = 0.125 + cw.mwin2scr_s(evt.GetX()) / 480
+            v = 0.125 + (evt.GetX() / cw.UP_WIN) / 480
             self.hsv = (self.hsv[0], self.hsv[1], v)
             self.update_panels()
 
@@ -1523,6 +1552,10 @@ class BackColorEditDialog(wx.Dialog):
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
+
+    def OnDestroy(self, event):
+        self._destroyed = True
+
 
 #-------------------------------------------------------------------------------
 # テキスト入力ダイアログ
