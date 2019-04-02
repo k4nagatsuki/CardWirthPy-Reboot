@@ -1086,6 +1086,8 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.cardgrp.remove(transitspr)
             else:
                 cw.cwpy.add_lazydraw(clip=self.rect)
+        else:
+            cw.cwpy.add_lazydraw(clip=self.rect)
 
         self.has_jpdcimage = not self.reload_jpdcimage
 
