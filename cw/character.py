@@ -2106,6 +2106,37 @@ class Character(object):
         for name in names:
             self._remove_coupon(name)
 
+    @synclock(_couponlock)
+    def find_coupon(self, matcher, startindex):
+        """
+        matcher(name)がTrueになるクーポンを
+        startindexの位置から検索し、見つかった位置を返す。
+        """
+        e_coupons = self.data.find("Property/Coupons")
+        if not e_coupons is None:
+            for i, e_coupon in enumerate(e_coupons):
+                if matcher(e_coupon.text):
+                    return i
+        return -1
+
+    @synclock(_couponlock)
+    def get_coupon_at(self, index):
+        """指定位置のクーポンを(name, value)で返す。"""
+        e_coupons = self.data.find("Property/Coupons")
+        if e_coupons is None:
+            raise Exception("No coupons.")
+        e = e_coupons[index]
+        return e.text, e.getint(".", "value", 0)
+
+    @synclock(_couponlock)
+    def coupons_len(self):
+        """クーポン数を返す。"""
+        e_coupons = self.data.find("Property/Coupons")
+        if e_coupons is None:
+            return 0
+        else:
+            return len(e_coupons)
+
     #---------------------------------------------------------------------------
     #　レベル変更用
     #---------------------------------------------------------------------------

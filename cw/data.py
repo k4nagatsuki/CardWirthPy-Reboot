@@ -3119,6 +3119,34 @@ class YadoData(object):
                     cw.cwpy.sdata.gossips[name] = False
         assert len(self.environment.getfind("Gossips")) == 0
 
+    def find_gossip(self, matcher, startindex):
+        """
+        matcher(name)がTrueになるゴシップを
+        startindexの位置から検索し、見つかった位置を返す。
+        """
+        e_gossips = self.environment.find("Gossips")
+        if not e_gossips is None:
+            for i, e_gossip in enumerate(e_gossips):
+                if matcher(e_gossip.text):
+                    return i
+        return -1
+
+    def get_gossip_at(self, index):
+        """指定位置のゴシップ名を返す。"""
+        e_gossips = self.environment.find("Gossips")
+        if e_gossips is None:
+            raise Exception("No gossips.")
+        e = e_gossips[index]
+        return e.text
+
+    def gossips_len(self):
+        """ゴシップ数を返す。"""
+        e_gossips = self.environment.find("Gossips")
+        if e_gossips is None:
+            return 0
+        else:
+            return len(e_gossips)
+
     def set_money(self, value, blink=False):
         """金庫に入っている金額を変更する。
         現在の所持金にvalue値をプラスするので注意。

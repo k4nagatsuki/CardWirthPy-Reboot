@@ -4,6 +4,7 @@
 import sys
 import re
 import decimal
+import fnmatch
 
 import cw
 
@@ -791,7 +792,7 @@ def _func_dice(args, is_differentscenario, line, pos):
 
 
 def _func_selected(args, is_differentscenario, line, pos):
-    """選択メンバの番号を数値(1～)で返す。"""
+    """選択メンバのキャラクター番号を数値(1～)で返す。"""
     _chk_argscount(args, 0, "SELECTED", line, pos)
     if cw.cwpy.event.has_selectedmember():
         try:
@@ -818,28 +819,101 @@ def _func_selected(args, is_differentscenario, line, pos):
     return DecimalValue(n, line, pos)
 
 
-def _func_casttype(args, is_differentscenario, line, pos):
-    """カード番号からキャラクターのタイプ(1=Player,2=Enemy,3=Friendを返す。"""
-    _chk_argscount(args, 1, "CASTTYPE", line, pos)
-    n = args[0]
-    _chk_minvalue(n, "CASTTYPE", 0)
-    n = int(n.value)
+def _ccard_from(arg, func_name):
+    _chk_minvalue(arg, func_name, 0)
+    n = int(arg.value)
     if n == 0:
-        return DecimalValue(0, line, pos)
+        return None
     else:
         index = n - 1
         pcards = cw.cwpy.get_pcards()
         if index < len(pcards):
-            return DecimalValue(1, line, pos)
+            return pcards[index]
         index -= len(pcards)
         ecards = cw.cwpy.get_ecards()
         if index < len(ecards):
-            return DecimalValue(2, line, pos)
+            return ecards[index]
         index -= len(pcards)
         fcards = cw.cwpy.get_fcards()
         if index < len(fcards):
-            return DecimalValue(3, line, pos)
+            return fcards[index]
+        return None
+
+
+def _func_casttype(args, is_differentscenario, line, pos):
+    """キャラクター番号からキャラクターのタイプ(1=Player,2=Enemy,3=Friend)を返す。"""
+    _chk_argscount(args, 1, "CASTTYPE", line, pos)
+    ccard = _ccard_from(args[0], "CASTTYPE")
+    if isinstance(ccard, cw.character.Player):
+        return DecimalValue(1, line, pos)
+    elif isinstance(ccard, cw.character.Enemy):
+        return DecimalValue(2, line, pos)
+    elif isinstance(ccard, cw.character.Friend):
+        return DecimalValue(3, line, pos)
+    else:
         return DecimalValue(0, line, pos)
+
+
+def _func_findcoupon(args, is_differentscenario, line, pos):
+    """キャラクター番号のキャラクターのクーポンを検索してクーポン番号を返す。"""
+    _chk_argscount2(args, 2, 3, "FINDCOUPON", line, pos)
+    ccard = _ccard_from(args[0], "FINDCOUPON")
+    _chk_string(args[1], "FINDCOUPON", 1)
+    pattern = args[1].value
+    if len(args) < 3:
+        startpos = 1
+    else:
+        _chk_minvalue(args[2], "FINDCOUPON", 0)
+        startpos = int(args[2].value)
+    if ccard is None:
+        return DecimalValue(0, line, pos)
+    startindex = startpos - 1
+    if startindex < 0 or ccard.coupons_len() <= startindex:
+        return DecimalValue(0, line, pos)
+    reg = re.compile(fnmatch.translate(pattern))
+    index = ccard.find_coupon(lambda name: bool(reg.match(name)), startindex)
+    return DecimalValue(index + 1, line, pos)
+
+
+def _func_coupontext(args, is_differentscenario, line, pos):
+    """キャラクター番号のキャラクターの所持するクーポン名を返す。"""
+    _chk_argscount(args, 2, "COUPONTEXT", line, pos)
+    ccard = _ccard_from(args[0], "COUPONTEXT")
+    _chk_minvalue(args[1], "COUPONTEXT", 0)
+    if ccard is None:
+        return StringValue("", line, pos)
+    index = int(args[1].value) - 1
+    if index < 0 or ccard.coupons_len() <= index:
+        return StringValue("", line, pos)
+    return StringValue(ccard.get_coupon_at(index)[0], line, pos)
+
+
+def _func_findgossip(args, is_differentscenario, line, pos):
+    """ゴシップを検索してゴシップ番号を返す。"""
+    _chk_argscount2(args, 1, 2, "FINDGOSSIP", line, pos)
+    _chk_string(args[0], "FINDGOSSIP", 0)
+    pattern = args[0].value
+    if len(args) < 2:
+        startpos = 1
+    else:
+        _chk_minvalue(args[1], "FINDGOSSIP", 0)
+        startpos = int(args[1].value)
+    startindex = startpos - 1
+    if startindex < 0 or cw.cwpy.ydata.gossips_len() <= startindex:
+        return DecimalValue(0, line, pos)
+    reg = re.compile(fnmatch.translate(pattern))
+    index = cw.cwpy.ydata.find_gossip(lambda name: bool(reg.match(name)), startindex)
+    return DecimalValue(index + 1, line, pos)
+
+
+def _func_gossiptext(args, is_differentscenario, line, pos):
+    """ゴシップ名を返す。"""
+    _chk_argscount(args, 1, "GOSSIPTEXT", line, pos)
+    _chk_minvalue(args[0], "GOSSIPTEXT", 0)
+    index = int(args[0].value) - 1
+    if index < 0 or cw.cwpy.ydata.gossips_len() <= index:
+        return StringValue("", line, pos)
+    return StringValue(cw.cwpy.ydata.get_gossip_at(index), line, pos)
 
 
 _functions = {
@@ -862,6 +936,10 @@ _functions = {
     "stepmax": _func_stepmax,
     "selected": _func_selected,
     "casttype": _func_casttype,
+    "findcoupon": _func_findcoupon,
+    "coupontext": _func_coupontext,
+    "findgossip": _func_findgossip,
+    "gossiptext": _func_gossiptext,
 }
 
 assert calculate(parse("--5")).value == 5
