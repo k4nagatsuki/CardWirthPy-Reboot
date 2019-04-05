@@ -2000,6 +2000,8 @@ class BranchVariantContent(BranchContent):
         try:
             if not self.parsed_expression:
                 self.parsed_expression = cw.calculator.parse(self.expression)
+            if len(self.parsed_expression) == 0:
+                return self.get_boolean_index(False)
             variant = cw.calculator.eval(self.parsed_expression, self.is_differentscenario())
             if variant.type == "Boolean":
                 index = self.get_boolean_index(variant.value)
@@ -2330,6 +2332,8 @@ class CheckVariantContent(EventContentBase):
         try:
             if not self.parsed_expression:
                 self.parsed_expression = cw.calculator.parse(self.expression)
+            if len(self.parsed_expression) == 0:
+                return cw.IDX_TREEEND
             variant = cw.calculator.eval(self.parsed_expression, self.is_differentscenario())
             if variant.type == "Boolean":
                 return 0 if variant.value else cw.IDX_TREEEND
@@ -3967,10 +3971,13 @@ class SetVariantContent(BranchContent):
     def action(self):
         """コモン設定コンテント(Wsn.4)。"""
         variant = cw.cwpy.sdata.variants.get(self.variant, None)
+
         def eval():
             try:
                 if not self.parsed_expression:
                     self.parsed_expression = cw.calculator.parse(self.expression)
+                if len(self.parsed_expression) == 0:
+                    return None
                 return cw.calculator.eval(self.parsed_expression, self.is_differentscenario())
             except cw.calculator.ComputeException as ex:
                 self.variant_error(ex=ex)
