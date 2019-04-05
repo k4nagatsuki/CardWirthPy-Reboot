@@ -253,7 +253,8 @@ class AdventurerData(object):
             # 高めに設定されている場合があるので、
             # 最も高いものを使用する
             i = self.couponnames[name]
-            self.coupons[i] = coupon
+            if self.coupons[i][1] < value:
+                self.coupons[i] = coupon
 
     def set_name(self, name):
         self.name = name
