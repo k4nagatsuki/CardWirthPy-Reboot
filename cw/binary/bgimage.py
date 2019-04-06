@@ -249,7 +249,10 @@ class BgImage(base.CWBinaryBase):
                             bcolor = getcolor(e_bdr, bcolor)
                 elif e.tag == "UpdateType":
                     if e.text != "Fixed":
-                        f.check_wsnversion("4", "背景セルの更新")
+                        f.check_wsnversion("4", "テキストセルの更新タイプ")
+                elif e.tag == "Antialias":
+                    if e.getbool(".", False):
+                        f.check_wsnversion("4", "テキストセルのアンチエイリアス")
 
             elif data.tag == "ColorCell":
                 f.check_version(1.50, "カラーセル")

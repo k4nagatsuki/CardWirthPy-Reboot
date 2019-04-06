@@ -504,6 +504,7 @@ class BackGround(base.CWPySprite):
             underline = e.getbool("Font", "underline", False)
             strike = e.getbool("Font", "strike", False)
             vertical = e.getbool("Vertical", False)
+            antialias = e.getbool("Antialias", False)
             btype = e.getattr("Bordering", "type", "None")
             bcolor = getcolor(e, "Bordering/Color", 255, 255, 255, 255)
             bwidth = e.getint("Bordering", "width", 1)
@@ -580,7 +581,7 @@ class BackGround(base.CWPySprite):
                 except:
                     namelist = []
 
-            return (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,
+            return (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,
                     btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname)
 
         elif e.tag == "ColorCell":
@@ -874,7 +875,7 @@ class BackGround(base.CWPySprite):
         return anime, update, bginhrt
 
     def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
-        text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,\
+        text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
             btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible and updatetype == "All":
             namelist = None
@@ -893,13 +894,13 @@ class BackGround(base.CWPySprite):
             text2 = text
         if nocheckvisible:
             flagvalue = visible
-        d = (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,
+        d = (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,
              btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, flagvalue, layer, cellname)
         if visible:
             if btype == "Inline":
                 # 縁取り形式2のみは事前にセル生成が可能
                 image = cw.image.create_type2textcell(text2, face, cw.s(tsize), color,
-                    bold, italic, underline, strike, vertical,
+                    bold, italic, underline, strike, vertical, antialias,
                     cw.s(size), bcolor, bwidth)
                 bgtype = BG_IMAGE
                 d2 = (image, size, pos, 0)
@@ -908,7 +909,7 @@ class BackGround(base.CWPySprite):
                 if btype != "Outline":
                     bcolor = None
                 bgtype = BG_TEXT
-                d2 = (text2, face, tsize, color, bold, italic, underline, strike, vertical,
+                d2 = (text2, face, tsize, color, bold, italic, underline, strike, vertical, antialias,
                       bcolor, size, pos)
 
             blitlist.append((bgtype, d2, flag, layer))
@@ -1116,13 +1117,13 @@ def _draw_bgcell(surface, bgdata, allclip=None):
 
     elif bgtype == BG_TEXT:
         # 縁取り形式2以外のテキストセル
-        text, face, tsize, color, bold, italic, underline, strike, vertical,\
+        text, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
             bcolor, size, pos = d
         rect = cw.s(pygame.Rect(pos, size))
         if srect.colliderect(rect):
             surface.set_clip(srect.clip(rect))
             cw.image.draw_textcell(surface, rect, text, face,
-                cw.s(tsize), color, bold, italic, underline, strike, vertical, bcolor)
+                cw.s(tsize), color, bold, italic, underline, strike, vertical, antialias, bcolor)
 
     else:
         assert False
@@ -1145,7 +1146,7 @@ class BgCell(base.CWPySprite):
 
         elif bgtype == BG_TEXT:
             # 縁取り形式2以外のテキストセル
-            _text, _face, _tsize, _color, _bold, _italic, _underline, _strike, _vertical,\
+            _text, _face, _tsize, _color, _bold, _italic, _underline, _strike, _vertical, _antialias,\
                 _bcolor, size, pos = d
             self.rect_noscale = pygame.Rect(pos, size)
 
@@ -1219,12 +1220,12 @@ class Curtain(base.SelectableSprite):
         if isinstance(self.target, BgCell):
             if self.target.bgtype == BG_TEXT:
                 # 縁取り形式2以外のテキストセル
-                text, face, tsize, color, bold, italic, underline, strike, vertical, bcolor, size, _pos = self.target.d
+                text, face, tsize, color, bold, italic, underline, strike, vertical, antialias, bcolor, size, _pos = self.target.d
                 rect = cw.s(pygame.Rect(cw.s((0, 0)), size))
                 subimg = pygame.Surface(rect.size).convert_alpha()
                 subimg.fill((0, 0, 0, 0))
                 cw.image.draw_textcell(subimg, rect, text, face,
-                                       cw.s(tsize), color, bold, italic, underline, strike, vertical, bcolor)
+                                       cw.s(tsize), color, bold, italic, underline, strike, vertical, antialias, bcolor)
             elif self.target.d[-1] in (BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT):
                 return None
             else:

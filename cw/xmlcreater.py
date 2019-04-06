@@ -1048,7 +1048,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
             e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_TEXT:
-            text, namelist, face, tsize, color, bold, italic, underline, strike, vertical,\
+            text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
                 btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible),
                      "loaded": str(loaded)}
@@ -1065,6 +1065,8 @@ def create_scenariolog(sdata, path, recording, logfilepath):
                                                           "strike": str(strike)})
             e_bgimg.append(e)
             e = cw.data.make_element("Vertical", str(vertical))
+            e_bgimg.append(e)
+            e = cw.data.make_element("Antialias", str(antialias))
             e_bgimg.append(e)
             e = make_colorelement("Color", color)
             e_bgimg.append(e)

@@ -614,6 +614,7 @@ def add_transparentmesh(image, rect=None, setalpha=False):
     image.set_clip(clip)
     return image
 
+
 def add_border(img, bordercolor, borderwidth):
     """textcolorの領域を縁取りする。
     この処理はwxPythonのインスタンスに対して行う。
