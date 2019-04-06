@@ -192,15 +192,16 @@ def init_bass(soundfonts):
         return True
 
     try:
+        exedir = os.path.dirname(cw.exepath)
         if sys.platform == "win32":
             if sys.maxsize == 0x7fffffff:
-                _bass = ctypes.windll.LoadLibrary("bass.dll")
-                _bassmidi = ctypes.windll.LoadLibrary("bassmidi.dll")
-                _bassfx = ctypes.windll.LoadLibrary("bass_fx.dll")
+                _bass = ctypes.windll.LoadLibrary(cw.util.join_paths(exedir, "bass.dll"))
+                _bassmidi = ctypes.windll.LoadLibrary(cw.util.join_paths(exedir, "bassmidi.dll"))
+                _bassfx = ctypes.windll.LoadLibrary(cw.util.join_paths(exedir, "bass_fx.dll"))
             elif sys.maxsize == 0x7fffffffffffffff:
-                _bass = ctypes.windll.LoadLibrary("x64/bass.dll")
-                _bassmidi = ctypes.windll.LoadLibrary("x64/bassmidi.dll")
-                _bassfx = ctypes.windll.LoadLibrary("x64/bass_fx.dll")
+                _bass = ctypes.windll.LoadLibrary(cw.util.join_paths(exedir, "x64/bass.dll"))
+                _bassmidi = ctypes.windll.LoadLibrary(cw.util.join_paths(exedir, "x64/bassmidi.dll"))
+                _bassfx = ctypes.windll.LoadLibrary(cw.util.join_paths(exedir, "x64/bass_fx.dll"))
             else:
                 assert False
         elif sys.platform == "darwin":
@@ -218,20 +219,20 @@ def init_bass(soundfonts):
                                  "libbass_fx.dylib"))
             else:
                 _bass = ctypes.CDLL(
-                    "./lib/libbass.dylib", mode=ctypes.RTLD_GLOBAL)
+                    cw.util.join_paths(exedir, "lib/libbass.dylib"), mode=ctypes.RTLD_GLOBAL)
                 _bassmidi = ctypes.CDLL(
-                    "./lib/libbassmidi.dylib")
+                    cw.util.join_paths(exedir, "lib/libbassmidi.dylib"))
                 _bassfx = ctypes.CDLL(
-                    "./lib/libbass_fx.dylib")
+                    cw.util.join_paths(exedir, "lib/libbass_fx.dylib"))
         else:
             if sys.maxsize == 0x7fffffff:
-                _bass = ctypes.CDLL("./lib/libbass32.so", mode=ctypes.RTLD_GLOBAL)
-                _bassmidi = ctypes.CDLL("./lib/libbassmidi32.so")
-                _bassfx = ctypes.CDLL("./lib/libbass_fx32.so")
+                _bass = ctypes.CDLL(cw.util.join_paths(exedir, "./lib/libbass32.so"), mode=ctypes.RTLD_GLOBAL)
+                _bassmidi = ctypes.CDLL(cw.util.join_paths(exedir, "./lib/libbassmidi32.so"))
+                _bassfx = ctypes.CDLL(cw.util.join_paths(exedir, "./lib/libbass_fx32.so"))
             elif sys.maxsize == 0x7fffffffffffffff:
-                _bass = ctypes.CDLL("./lib/libbass64.so", mode=ctypes.RTLD_GLOBAL)
-                _bassmidi = ctypes.CDLL("./lib/libbassmidi64.so")
-                _bassfx = ctypes.CDLL("./lib/libbass_fx64.so")
+                _bass = ctypes.CDLL(cw.util.join_paths(exedir, "./lib/libbass64.so"), mode=ctypes.RTLD_GLOBAL)
+                _bassmidi = ctypes.CDLL(cw.util.join_paths(exedir, "./lib/libbassmidi64.so"))
+                _bassfx = ctypes.CDLL(cw.util.join_paths(exedir, "./lib/libbass_fx64.so"))
     except Exception:
         cw.util.print_ex()
 
