@@ -133,6 +133,24 @@ class ScenarioSelect(select.Select):
         self.tree.SetItemData(self.tree.root, (0, self.scedir))
         self.tree.SetImageList(self.tree.imglist)
         self.tree.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+        if sys.platform == "win32":
+            # BUG: アイコンとその左の[+]の間でカーソルを往復させると
+            #      多重描画が発生するのをできるだけ抑止
+            #      Python 3.7.3, wxPython 4.0.5
+            def OnMotion(event):
+                self.tree.SetDoubleBuffered(True)
+                item, where = self.tree.HitTest(event.GetPosition())
+                if (where & (wx.TREE_HITTEST_ONITEMICON|wx.TREE_HITTEST_ONITEMBUTTON)) and item and self.tree.IsVisible(item):
+                    data = self.tree.GetItemData(item)
+                    if isinstance(data, cw.header.ScenarioHeader):
+                        return
+                    rect = self.tree.GetBoundingRect(item, False)
+                    trect = self.tree.GetBoundingRect(item, True)
+                    rect = wx.Rect(rect.X, rect.Y, trect.X - rect.X, rect.Height)
+                    self.tree.RefreshRect(rect)
+            self.tree.Bind(wx.EVT_MOTION, OnMotion)
+
         self._no_treechangedsound = False
 
         # 絞込条件
