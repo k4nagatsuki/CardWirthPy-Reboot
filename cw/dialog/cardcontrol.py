@@ -1018,16 +1018,19 @@ class CardControl(wx.Dialog):
                 rect, x, y = self._get_replsrect(header)
                 if rect.Width == 0:
                     continue
-                if rect.Contains(mousepos):
-                    bmp = self.replace_arrow_light
-                else:
-                    bmp = self.replace_arrow
                 if self._replclickedflag:
+                    bmp = self.replace_arrow
                     w, h = bmp.GetSize()
                     w2, h2 = int(w * 0.9), int(h * 0.9)
                     bmp = bmp.ConvertToImage().Rescale(w2, h2).ConvertToBitmap()
+                    if rect.Contains(mousepos):
+                        bmp = cw.imageretouch.add_lightness_for_wxbmp(bmp, 64)
                     dc.DrawBitmap(bmp, x + (w - w2) // 2, y + (h - h2) // 2, True)
                 else:
+                    if rect.Contains(mousepos):
+                        bmp = self.replace_arrow_light
+                    else:
+                        bmp = self.replace_arrow
                     dc.DrawBitmap(bmp, x, y, True)
 
         # カード枚数のフォント設定
