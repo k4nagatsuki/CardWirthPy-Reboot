@@ -117,6 +117,7 @@ class CWPy(_Singleton, threading.Thread):
         self._forcegameover = False
         # 現在選択中スプライト(SelectableSprite)
         self.selection = None
+        self.lazy_selection = None
         # Trueの間は選択中のスプライトのクリックを行えない
         self.lock_menucards = False
         # 選択中のメンバ以外の戦闘行動が表示されている時はTrue
@@ -1127,6 +1128,10 @@ class CWPy(_Singleton, threading.Thread):
         if pointed_tile and self.pointed_tile is None:
             self.index = -1
             self.statusbar.update_tiles()
+
+        if not self.pointed_tile and self.lazy_selection and self.selection != self.lazy_selection:
+            self.change_selection(self.lazy_selection)
+            self.lazy_selection = None
 
     def return_takenoutcard(self, checkevent=True):
         # 一時的に荷物袋から出したカードを戻す(消滅していなければ)

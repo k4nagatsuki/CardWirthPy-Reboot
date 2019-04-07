@@ -381,8 +381,9 @@ class VolumeTile(TouchButton):
             self.image = self._unselectedimage
 
     def update_selection(self):
+        selection = cw.cwpy.selection
         TouchButton.update_selection(self)
-        if cw.cwpy.mousemotion and cw.cwpy.mousein[0]:
+        if selection != cw.cwpy.selection and cw.cwpy.mousemotion and cw.cwpy.mousein[0]:
             if cw.cwpy.selection is self:
                 self._moved()
 

@@ -926,6 +926,7 @@ class StatusBarButton(base.SelectableSprite):
             method()
 
     def update_normal(self):
+        is_pushed = self.is_pushed
         self.update_selection()
 
         if cw.cwpy.selection == self and cw.cwpy.mousein[0]:
@@ -933,7 +934,8 @@ class StatusBarButton(base.SelectableSprite):
         else:
             self.is_pushed = False
 
-        self.update_image()
+        if is_pushed != self.is_pushed:
+            self.update_image()
 
     def update_click(self):
         if self.frame == 0:
@@ -1522,13 +1524,16 @@ class TouchMenuButton(StatusBarButton):
         return cw.cwpy.rsrc.pygamedialogs["SHOW_CONTROLS"]
 
     def update(self, scr):
+        is_pushed = self.is_pushed
         self.update_selection()
+
         self.is_pushed = bool(cw.cwpy.sbargrp.get_sprites_from_layer(LAYER_TOUCH_BUTTON))
         if self.is_pushed:
             self.set_desc("")
         else:
             self.set_desc(cw.cwpy.msgs["desc_touch_menu"])
-        self.update_image()
+        if is_pushed != self.is_pushed:
+            self.update_image()
 
     def _upscrmemo(self):
         return (cw.UP_SCR,

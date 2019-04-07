@@ -132,8 +132,8 @@ class SelectableSprite(CWPySprite):
             if cw.cwpy.pointed_tile:
                 return
             if self.is_selection():
-                if self is not cw.cwpy.selection and not self.is_pointed:
-                    cw.cwpy.change_selection(self)
+                if not self.is_pointed:
+                    cw.cwpy.lazy_selection = self
 
             elif self is cw.cwpy.selection:
                 cw.cwpy.clear_selection()
