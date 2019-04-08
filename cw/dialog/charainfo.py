@@ -733,7 +733,7 @@ class TopPanel(wx.Panel):
 
         # 名前
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
-        s = self.ccard.name
+        s = self.ccard.get_showingname()
         w = dc.GetTextExtent(s)[0]
         width2 = self.Parent.width - cw.wins(5)
         cw.util.draw_witharound_simple(dc, s, width2 - w, cw.wins(3), backcolor)
@@ -783,7 +783,7 @@ class TopPanel(wx.Panel):
     def get_detailtext(self):
         lines = []
         level = "%s" % (self.ccard.level)
-        s = "[ %s ] Level %s" % (self.ccard.name, level)
+        s = "[ %s ] Level %s" % (self.ccard.get_showingname(), level)
         if not isinstance(self.race, cw.header.UnknownRaceHeader):
             s += " / %s" % (self.race.name)
         if self.sex or self.age:
