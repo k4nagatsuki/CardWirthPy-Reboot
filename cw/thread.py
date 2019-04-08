@@ -1119,6 +1119,7 @@ class CWPy(_Singleton, threading.Thread):
         return clip
 
     def update_groups(self):
+        assert self.lazy_selection is None
         pointed_tile = self.pointed_tile
 
         self.cardgrp.update(self.scr_draw)
@@ -1131,7 +1132,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if not self.pointed_tile and self.lazy_selection and self.selection != self.lazy_selection:
             self.change_selection(self.lazy_selection)
-            self.lazy_selection = None
+        self.lazy_selection = None
 
     def return_takenoutcard(self, checkevent=True):
         # 一時的に荷物袋から出したカードを戻す(消滅していなければ)
