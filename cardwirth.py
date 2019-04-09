@@ -153,6 +153,7 @@ def main():
         cw.util.print_ex(file=sys.stderr)
     finally:
         cw.util.clear_mutex()
+        cw.fsync.sync()
         cw.fsync.quit()
         sys.stderr.close()
 
