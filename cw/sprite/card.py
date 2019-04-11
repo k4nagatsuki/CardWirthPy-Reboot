@@ -35,8 +35,8 @@ class CWPyCard(base.SelectableSprite):
         self.flag = flag
         # スケール
         self.scale = 100
-        # 逃走の有無
-        self.escape = False
+        # アクションの有無
+        self.actions = {}
         # Trueなら高速でアニメーションする
         self.highspeed = False
         # Trueなら戦闘時のアニメーション速度設定を使用する
@@ -974,8 +974,16 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.flag = mcarddata.gettext("Property/Flag", "")
         # カードグループ
         self.cardgroup = mcarddata.gettext("Property/CardGroup", "")
-        # 逃走の有無
-        self.escape = mcarddata.getbool(".", "escape", False)
+        # 逃走の有無(Wsn.3以前)
+        self.actions[7] = mcarddata.getbool(".", "escape", False)
+        # アクションの有無(Wsn.4)
+        e_actions = mcarddata.find("Property/Actions")
+        if not e_actions is None:
+            for e_action in e_actions:
+                if e_action.tag != "Action":
+                    continue
+                actid = e_action.getint(".", "id")
+                self.actions[actid] = e_action.getbool(".", True)
         # 名前にある特殊文字の展開の有無
         self.spchars = False
         # スケール
@@ -1050,6 +1058,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.fpath = self.data.fpath
         # CharacterCard初期化
         character.Enemy.__init__(self)
+        self.update_skin()
         self.deck.set(self, draw=False)
 
         if self.spchars:
@@ -1086,6 +1095,19 @@ class EnemyCard(CWPyCard, character.Enemy):
 
     def is_initialized(self):
         return self._init
+
+    def update_skin(self):
+        if cw.cwpy.classicdata:
+            act0 = self.actions.get(0, True)
+            items = self.cardpocket[cw.POCKET_ITEM]
+            if len(items) and items[0].name == cw.cwpy.rsrc.actioncards[0].name:
+                # BUG: 一枚目のアイテムカードの名前が「カード交換」と同じだった場合、
+                #      本来の「カード交換」が配布されない CardWirth 1.50
+                self.actions[0] = False
+            else:
+                self.actions[0] = True
+            if self.actions[0] != act0:
+                self.deck.set(self, draw=False)
 
     def get_showingname(self):
         self.initialize()

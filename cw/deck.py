@@ -43,9 +43,7 @@ class Deck(object):
         seq = []
 
         for resid, header in cw.cwpy.rsrc.actioncards.items():
-            if resid == 7 and not ccard.escape:
-                continue # 逃走しない
-            if resid > 0:
+            if 0 < resid and ccard.actions.get(resid, True):
                 for _cnt in range(header.uselimit):
                     seq.append(header)
 
@@ -68,10 +66,13 @@ class Deck(object):
         """
         self.nextcards.insert(0, resid)
 
-    def _set_nextcard(self, resid, brave=False):
+    def _set_nextcard(self, ccard, resid):
         # アクションカード
-        if resid and resid in cw.cwpy.rsrc.actioncards:
-            header = cw.cwpy.rsrc.actioncards[resid]
+        if resid:
+            if resid in cw.cwpy.rsrc.actioncards and ccard.actions.get(resid, True):
+                header = cw.cwpy.rsrc.actioncards[resid]
+            else:
+                return False
         # スキルカード
         else:
             for header in self.talon:
@@ -79,27 +80,16 @@ class Deck(object):
                     break
 
             else:
-                if brave:
-                    # スキルカードが尽き、かつ勇敢ならば、配布されるカードとして攻撃系を指定
-                    header = cw.cwpy.rsrc.actioncards[cw.cwpy.dice.roll(1, 3)]
-                else:
-                    return
+                return False
 
         # 山札の一番上へカードを置く
         if not resid < 0 and header in self.talon:
             self.talon.remove(header)
         self.talon.append(header)
+        return True
 
     def shuffle(self):
         self.talon = cw.cwpy.dice.shuffle(self.talon)
-
-    def shuffle_bottom(self):
-        try:
-            talon = cw.cwpy.dice.shuffle(self.talon[:-20])
-            talon.extend(self.talon[-20:])
-            self.talon = talon
-        except:
-            pass
 
     def get_handmaxnum(self, ccard):
         n = (ccard.level + 1) // 2 + 4
@@ -143,7 +133,7 @@ class Deck(object):
                 flag = True
 
         if flag:
-            self.shuffle_bottom()
+            self.shuffle()
 
     def add(self, ccard, header, is_replace=False):
         if header.type == "ItemCard":
@@ -164,8 +154,8 @@ class Deck(object):
     def remove(self, ccard, header):
         if cw.cwpy.battle:
             if header.type == "ActionCard":
-                for h in self.hand[1:]:
-                    if h == header:
+                for h in self.hand[:]:
+                    if h.id != 0 and h == header:
                         self._remove(h)
             else:
                 self.hand = [h for h in self.hand
@@ -277,7 +267,9 @@ class Deck(object):
 
     def _clear_hand(self):
         """現在の手札を山札に戻す。"""
-        for header in self.hand[1::]:
+        for header in self.hand[:]:
+            if header.type == "ActionCard" and header.id == 0:
+                continue # カード交換
             self._remove(header)
         self.shuffle()
 
@@ -289,17 +281,19 @@ class Deck(object):
             self._clear_hand()
 
             self.hand = []
-            # カード交換は常に残す
-            header = cw.cwpy.rsrc.actioncards[0].copy()
-            header.set_owner(ccard)
-            self.hand.append(header)
+            if ccard.actions.get(0, True):
+                # カード交換は常に残す
+                header = cw.cwpy.rsrc.actioncards[0].copy()
+                header.set_owner(ccard)
+                self.hand.append(header)
             # アイテムカードを手札に加える
             self.hand.extend(ccard.get_pocketcards(cw.POCKET_ITEM))
             self._throwaway = False
 
-        while len(self.hand) < maxn:
+        while len(self.hand) < maxn and self.talon:
             if self.nextcards:
-                self._set_nextcard(self.nextcards.pop(), ccard.is_brave())
+                if not self._set_nextcard(ccard, self.nextcards.pop()):
+                    self.check_mind(ccard)
             else:
                 self.check_mind(ccard)
 
@@ -319,20 +313,22 @@ class Deck(object):
         特殊な精神状態の場合、次にドローするカードを変更。
         """
         if ccard.is_panic():
-            if ccard.escape:
-                n = cw.cwpy.dice.roll(1, 3) + 4
-            else:
-                n = cw.cwpy.dice.roll(1, 2) + 4
-            self._set_nextcard(n)
+            acts = [5, 6, 7]
         elif ccard.is_brave():
-            n = cw.cwpy.dice.roll(1, 4) - 1
-            self._set_nextcard(n, brave=True)
+            acts = [0, 1, 2, 3]
         elif ccard.is_overheat():
-            self._set_nextcard(2)
+            acts = [2]
         elif ccard.is_confuse():
             # 混乱時、混乱カードは2/3の確率で配布とする。
-            if cw.cwpy.dice.roll(1, 3)>1:
-                self._set_nextcard(-1)
+            if cw.cwpy.dice.roll(1, 3) > 1:
+                acts = [-1]
+            else:
+                return
+        else:
+            return
+        acts = list(filter(lambda id: id == 0 or ccard.actions.get(id, True), acts))
+        if acts:
+            self._set_nextcard(ccard, cw.cwpy.dice.choice(acts))
 
     def set_used(self, header):
         """使用したカードをそのラウンド中記憶する。"""
@@ -358,9 +354,10 @@ class Deck(object):
                 self.talon.remove(header)
                 self.shuffle()
 
+
 def main():
     pass
 
+
 if __name__ == "__main__":
     main()
-

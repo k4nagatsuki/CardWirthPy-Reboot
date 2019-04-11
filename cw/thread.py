@@ -487,10 +487,12 @@ class CWPy(_Singleton, threading.Thread):
                     ccard.deck.set(ccard)
                     if self.battle.is_ready():
                         ccard.decide_action()
-                for ccard in self.get_ecards("unreversed"):
-                    ccard.deck.set(ccard)
-                    if self.battle.is_ready():
-                        ccard.decide_action()
+                for ccard in self.get_ecards():
+                    ccard.update_skin()
+                    if not ccard.is_reversed():
+                        ccard.deck.set(ccard)
+                        if self.battle.is_ready():
+                            ccard.decide_action()
                 for ccard in self.get_fcards():
                     ccard.deck.set(ccard)
                     if self.battle.is_ready():
@@ -1119,7 +1121,7 @@ class CWPy(_Singleton, threading.Thread):
         return clip
 
     def update_groups(self):
-        assert self.lazy_selection is None
+        self.lazy_selection = None
         pointed_tile = self.pointed_tile
 
         self.cardgrp.update(self.scr_draw)

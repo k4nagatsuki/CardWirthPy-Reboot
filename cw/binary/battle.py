@@ -177,7 +177,7 @@ class EnemyCard(base.CWBinaryBase):
         scale = 0
         left = 0
         top = 0
-        escape = cw.util.str2bool(data.get("escape"))
+        escape = data.getbool(".", "escape", False)
 
         for e in data:
             if e.tag == "Property":
@@ -201,6 +201,17 @@ class EnemyCard(base.CWBinaryBase):
                         f.check_wsnversion("3", "カードグループ")
                     elif prop.tag == "DealingSpeed" and prop.text != "Default":
                         f.check_wsnversion("4", "カード速度指定")
+                    elif prop.tag == "Actions":
+                        for e_action in prop:
+                            if e_action.tag != "Action":
+                                continue
+                            actid = e_action.getint(".", "id")
+                            if actid == 0:
+                                continue
+                            elif actid == 7:
+                                escape = e_action.getbool(".", False)
+                            else:
+                                f.check_wsnversion("4", "アクションの有無")
             elif e.tag == "Events":
                 events = e
 
