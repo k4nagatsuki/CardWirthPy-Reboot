@@ -36,7 +36,7 @@ class CWPyCard(base.SelectableSprite):
         # スケール
         self.scale = 100
         # アクションの有無
-        self.actions = {}
+        self.actions = {7: False}
         # Trueなら高速でアニメーションする
         self.highspeed = False
         # Trueなら戦闘時のアニメーション速度設定を使用する
