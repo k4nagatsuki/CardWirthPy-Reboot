@@ -58,8 +58,10 @@ class Event(base.CWBinaryBase):
                             ignitionnum = int(num)
                             if ignitionnum == 4:
                                 f.check_version(1.50, "毎ラウンド発火条件")
-                            if ignitionnum == 5:
+                            elif ignitionnum == 5:
                                 f.check_version(1.50, "バトル開始発火条件")
+                            elif ignitionnum == 6:
+                                f.check_wsnversion("4", "ラウンド終了発火条件")
                             ignitions.append(ignitionnum)
                     elif ig.tag == "KeyCodes":
                         if matching == "And":
