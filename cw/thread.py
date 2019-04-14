@@ -1056,6 +1056,10 @@ class CWPy(_Singleton, threading.Thread):
     def update(self):
         if not self.statusbar:
             return
+
+        assert not self.event.in_cardeffectmotion
+        assert not self.event.in_inusecardevent
+
         # 状態の補正
         if not self.statusbar.showbuttons:
             # 通常エリアで操作可能な状態であればステータスバーのボタンを表示

@@ -3198,7 +3198,7 @@ def is_addablecoupon(coupon):
     # "＠"で始まるクーポンは付与しない
     # ただしWSN形式には一部例外がある
     if coupon.startswith('＠'):
-        if cw.cwpy.event.in_inusecardevent:
+        if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
             cardversion = cw.cwpy.event.get_inusecard().wsnversion
         else:
             cardversion = None
