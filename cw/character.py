@@ -977,6 +977,7 @@ class Character(object):
                 cw.animation.animate_sprite(self, "zoomout", battlespeed=battlespeed)
 
         if misfire:
+            cw.cwpy.event.in_inusecardevent = False
             header.set_uselimit(-1, animate=True)
             cw.cwpy.clear_specialarea()
             return
@@ -2738,6 +2739,10 @@ class Character(object):
         """時間経過。"""
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
+
+        assert not cw.cwpy.event.in_cardeffectmotion
+        assert not cw.cwpy.event.in_inusecardevent
+
         # 時限クーポン処理
         self.count_timedcoupon()
         oldalive = self.is_alive()
