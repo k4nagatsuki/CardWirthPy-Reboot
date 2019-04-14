@@ -328,7 +328,7 @@ class EventHandler(object):
 
         if cw.cwpy.index == -1 and not cw.cwpy.is_runningevent() and not self.is_processing():
             cw.cwpy.update_mousepos()
-            cw.cwpy.update_groups()
+            cw.cwpy.update_groups((cw.cwpy.cardgrp, cw.cwpy.topgrp, cw.cwpy.sbargrp))
         return cw.cwpy.selection
 
     def ldown_event(self):

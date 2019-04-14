@@ -4504,8 +4504,7 @@ class WaitContent(EventContentBase):
                     break
 
             cw.cwpy.event.refresh_activeitem()
-            cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-            cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
+            cw.cwpy.update_groups((cw.cwpy.sbargrp,))
             breakflag = cw.cwpy.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel) if cw.cwpy.setting.can_skipwait else False
             cw.cwpy.input()
             cw.cwpy.get_eventhandler().run()

@@ -989,8 +989,7 @@ class ScenarioData(SystemData):
                     return
                 cw.cwpy.expanding_cur = cur
                 cw.cwpy.expanding = self._format % (self._arcname, cur, self._filenum)
-                cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-                cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
+                cw.cwpy.update_groups((cw.cwpy.sbargrp,))
                 self._progress = False
             if not self._progress or cur == cw.cwpy.expanding_max:
                 self._progress = True

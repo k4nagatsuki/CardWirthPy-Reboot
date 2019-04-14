@@ -527,6 +527,8 @@ class StatusBarPanel(base.MouseHandlerSprite):
         self.update_image()
 
     def set_desc(self, desc):
+        if self.desc == desc:
+            return
         self.desc = desc
         if self._desc:
             cw.cwpy.add_lazydraw(clip=self._desc.rect)
@@ -981,6 +983,8 @@ class StatusBarButton(base.SelectableSprite):
         self._upscr = cw.UP_SCR
 
     def set_desc(self, desc):
+        if self.desc == desc:
+            return
         self.desc = desc
         if self._desc:
             rect = self._desc.rect
@@ -1037,8 +1041,10 @@ class StatusBarButton(base.SelectableSprite):
         if self.is_emphasize:
             flags |= cw.setting.SB_EMPHASIZE
 
+        image = self.image
         self.image = self.get_btnimg(flags)
-        cw.cwpy.add_lazydraw(clip=self.rect)
+        if not image is self.image:
+            cw.cwpy.add_lazydraw(clip=self.rect)
 
     def lclick_event(self):
         cw.cwpy.stop_animation(self)
@@ -1374,6 +1380,14 @@ class SettingsButton(StatusBarButton):
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["SETTINGS"]
 
+    def update(self, scr):
+        if self.status != "normal":
+            StatusBarButton.update(self, scr)
+            return
+        self.update_selection()
+        self.set_desc(self.desc)
+        self.update_image()
+
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
         cw.cwpy.get_eventhandler().f2key_event()
@@ -1395,6 +1409,14 @@ class HelpButton(StatusBarButton):
 
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["HELP"]
+
+    def update(self, scr):
+        if self.status != "normal":
+            StatusBarButton.update(self, scr)
+            return
+        self.update_selection()
+        self.set_desc(self.desc)
+        self.update_image()
 
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
@@ -1532,15 +1554,14 @@ class TouchMenuButton(StatusBarButton):
             self.set_desc("")
         else:
             self.set_desc(cw.cwpy.msgs["desc_touch_menu"])
-        if is_pushed != self.is_pushed:
-            self.update_image()
+        self.update_image()
 
     def _upscrmemo(self):
         return (cw.UP_SCR,
-                 cw.cwpy.setting.basefont.copy(),
-                 cw.cwpy.setting.fonttypes["sbardesc"],
-                 cw.cwpy.setting.fonttypes["sbardesctitle"],
-                 cw.cwpy.setting.fonttypes["sbarprogress"])
+                cw.cwpy.setting.basefont.copy(),
+                cw.cwpy.setting.fonttypes["sbardesc"],
+                cw.cwpy.setting.fonttypes["sbardesctitle"],
+                cw.cwpy.setting.fonttypes["sbarprogress"])
 
     def lclick_event(self):
         from . import touchbutton

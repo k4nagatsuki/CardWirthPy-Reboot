@@ -197,9 +197,7 @@ def _inputevent(clip, clearevent, statusbutton):
     else:
         cw.cwpy.update_mousepos()
         sel = cw.cwpy.selection
-        cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-        if sel != cw.cwpy.selection:
-            clip.union_ip(cw.cwpy.statusbar.rect)
+        cw.cwpy.update_groups((cw.cwpy.sbargrp,))
         cw.cwpy.input(inputonly=clearevent)
         cw.cwpy.get_eventhandler().run()
     return clip

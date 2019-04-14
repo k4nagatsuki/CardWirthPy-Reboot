@@ -900,9 +900,7 @@ class CWPy(_Singleton, threading.Thread):
                     break
 
             sel = self.selection
-            self.sbargrp.update(cw.cwpy.scr_draw)
-            if sel != self.selection:
-                self.add_lazydraw(clip=self.statusbar.rect)
+            self.update_groups((self.sbargrp,))
             if canskip:
                 breakflag = self.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)
             self.input(inputonly=True)
@@ -1102,7 +1100,7 @@ class CWPy(_Singleton, threading.Thread):
 
             self._reloading = False
 
-        self.update_groups()
+        self.update_groups((self.cardgrp, self.topgrp, self.sbargrp))
 
     def update_statusimgs(self, is_runningevent, clip=None):
         """
@@ -1120,13 +1118,12 @@ class CWPy(_Singleton, threading.Thread):
                             clip = pygame.Rect(clip2)
         return clip
 
-    def update_groups(self):
+    def update_groups(self, groups):
         self.lazy_selection = None
         pointed_tile = self.pointed_tile
 
-        self.cardgrp.update(self.scr_draw)
-        self.topgrp.update(self.scr_draw)
-        self.sbargrp.update(self.scr_draw)
+        for group in groups:
+            group.update(self.scr_draw)
 
         if pointed_tile and self.pointed_tile is None:
             self.index = -1
@@ -1931,12 +1928,14 @@ class CWPy(_Singleton, threading.Thread):
         try:
             self.event.refresh_activeitem()
             self.input()
+            is_drawing = True
             while self.is_running() and mwin.result is None:
                 self.input()
                 eventhandler.run()
                 self.update()
-                if mwin.result is None:
+                if mwin.result is None and is_drawing:
                     self.add_lazydraw(clip=mwin.rect)
+                    is_drawing = mwin.is_drawing
 
                 self.wait_frame(1, canskip=False)
         finally:
@@ -2011,8 +2010,7 @@ class CWPy(_Singleton, threading.Thread):
         try:
             while self.is_running() and eventhandler.is_showing() and\
                     cw.cwpy.sdata.is_playing and self._is_showingbacklog:
-                self.sbargrp.update(self.scr_draw)
-                self.add_lazydraw(clip=self.statusbar.rect)
+                self.update_groups((self.sbargrp,))
                 eventhandler.stw.is_waiting()
                 self.wait_frame(1)
                 self.input()
@@ -4004,8 +4002,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.selection:
             self.change_selection(None)
 
-        cw.cwpy.update_mousepos()
-        cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
+        self.update_mousepos()
+        self.update_groups((self.sbargrp,))
 
     def change_selection(self, sprite):
         """引数のスプライトを選択状態にする。

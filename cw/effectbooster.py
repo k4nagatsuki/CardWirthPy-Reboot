@@ -32,9 +32,7 @@ def wait_effectbooster(waittime, doanime):
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
             selection = cw.cwpy.selection
-            cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-            if selection != cw.cwpy.selection:
-                cw.cwpy.add_lazydraw(cw.cwpy.statusbar.rect)
+            cw.cwpy.update_groups((cw.cwpy.sbargrp,))
             cw.cwpy.wait_frame(1, framerate=1000)
             cw.cwpy.input()
             eventhandler.run()
