@@ -3218,7 +3218,7 @@ class GetCouponContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
         self.coupon = self.data.get("coupon")
-        self.value = self.data.get("value")
+        self.value = self.data.getint(".", "value", 0)
         self.scope = self.data.get("targets")
         # 称号所有者が適用範囲の時の称号名(Wsn.3)
         self.holdingcoupon = self.data.get("holdingcoupon", "")
