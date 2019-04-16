@@ -7,11 +7,11 @@ verify_ssl = true
 
 [packages]
 lhafile = "*"
-pygame = "==1.9.4"
+pygame = "*"
 pypiwin32 = "*"
 pywin32 = "*"
 wxpython = "*"
 cx-freeze = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.7"
