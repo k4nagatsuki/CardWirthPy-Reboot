@@ -1054,7 +1054,7 @@ class JpdcImage(cw.image.Image):
                                 ex_cache[i] = f.read()
                     cw.cwpy.sdata.ex_cache[npath] = tuple(ex_cache)
 
-                pygame.image.save(saveimage_noscale, path.encode("utf-8"))
+                pygame.image.save(saveimage_noscale, path)
 
                 if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
                     inusecard = cw.cwpy.event.get_inusecard()
@@ -1067,7 +1067,7 @@ class JpdcImage(cw.image.Image):
                     rel2 = cw.util.relpath(path, temppath)
                     x2path = cw.util.join_paths(cw.cwpy.sdata.scedir, rel2)
                     if can_loaded_scaledimage or not os.path.isfile(x2path):
-                        pygame.image.save(saveimage, path.encode("utf-8"))
+                        pygame.image.save(saveimage, path)
 
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
