@@ -976,9 +976,6 @@ class JpdcImage(cw.image.Image):
             if rect2.colliderect(rect):
                 self.image.blit(image.subsurface(rect2.clip(rect)), cw.s((0, 0)))
 
-        if mask:
-            self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)
-
         # 画像保存
         filename = config.get("jpdc:init", "savefilename", "")
         savecomment = config.get("jpdc:init", "savecomment", "")
@@ -1105,6 +1102,10 @@ class JpdcImage(cw.image.Image):
                 cw.cwpy.update_titlebar()
 
             cw.cwpy.background.reload_jpdcimage = False
+
+        if mask:
+            self.image = self.image.convert()
+            self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)
 
     def wait(self, doanime):
         # 右クリックするまで待機
