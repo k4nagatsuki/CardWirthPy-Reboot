@@ -380,7 +380,7 @@ class BackGround(base.CWPySprite):
             animated, blitlist, update, forcedraw = ret
 
         afterseps = False
-        if self.bgs and bginhrt:
+        if self.bgs and self.bgs[-1][0] != BG_SEPARATOR and bginhrt:
             self.bgs.append((BG_SEPARATOR, None))
         for e in elements:
             if e.tag == "BgImage":
