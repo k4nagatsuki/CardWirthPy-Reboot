@@ -386,6 +386,8 @@ class BackGround(base.CWPySprite):
             if e.tag == "BgImage":
                 # 背景画像
                 d = self._create_bgdata(e)
+                if os.path.splitext(d[0])[1].lower() in (".jpy1", ".jpdc"):
+                    self.bgs.append((BG_SEPARATOR, None))
                 try:
                     animated2, update2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, d, self._doanime,
                                                                        nocheckvisible=nocheckvisible)
