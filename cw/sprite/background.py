@@ -703,7 +703,6 @@ class BackGround(base.CWPySprite):
             ttype = cw.sprite.transition.get_transition(ttype)
 
         for bgtype, d in bgs2:
-
             if bgtype == BG_IMAGE:
                 # 背景画像
                 try:
@@ -735,7 +734,7 @@ class BackGround(base.CWPySprite):
 
             else:
                 assert bgtype == BG_SEPARATOR
-                if not redisplay:
+                if bgs and bgs[-1][0] == BG_SEPARATOR:
                     continue
                 bgs.append((bgtype, d))
                 if blitlist:
