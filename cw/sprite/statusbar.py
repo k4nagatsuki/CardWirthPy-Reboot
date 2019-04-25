@@ -1023,10 +1023,10 @@ class StatusBarButton(base.SelectableSprite):
             if not self._desc:
                 self._desc = Desc(self, self.name, self.desc, self.hotkey)
                 cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
-                cw.cwpy.add_lazydraw(clip=self._desc)
+                cw.cwpy.add_lazydraw(clip=self._desc.rect)
         else:
             if self._desc:
-                cw.cwpy.add_lazydraw(clip=self._desc)
+                cw.cwpy.add_lazydraw(clip=self._desc.rect)
                 cw.cwpy.sbargrp.remove(self._desc)
                 self._desc = None
                 cw.cwpy.has_inputevent = True

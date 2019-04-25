@@ -19,7 +19,6 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
     if clearevent:
         lock_menucards = cw.cwpy.lock_menucards
         cw.cwpy.lock_menucards = True
-        selection = cw.cwpy.selection
 
     sprite.old_status = sprite.status
     sprite.status = anitype
@@ -77,8 +76,6 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
-    if clearevent and selection and cw.cwpy.selection != selection:
-        cw.cwpy.change_selection(selection)
 
     if draw:
         cw.cwpy.lazy_draw()
@@ -107,7 +104,6 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
     if clearevent:
         lock_menucards = cw.cwpy.lock_menucards
         cw.cwpy.lock_menucards = True
-        selection = cw.cwpy.selection
 
     tick = pygame.time.get_ticks()
     stw = cw.sprite.base.StopTheWorld(tick, 0)
@@ -183,8 +179,6 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
 
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
-    if clearevent and not cw.cwpy.selection is selection:
-        cw.cwpy.change_selection(selection)
 
     if draw:
         cw.cwpy.lazy_draw()
@@ -196,7 +190,6 @@ def _inputevent(clip, clearevent, statusbutton):
         cw.cwpy.clear_inputevents()
     else:
         cw.cwpy.update_mousepos()
-        sel = cw.cwpy.selection
         cw.cwpy.update_groups((cw.cwpy.sbargrp,))
         cw.cwpy.input(inputonly=clearevent)
         cw.cwpy.get_eventhandler().run()
