@@ -1435,10 +1435,10 @@ def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startinde
     return s, namelistindex
 
 
-_SP_EXPAND_SHARPS = 0x0
-_SP_FULL = 0x1
-_SP_NO_SHARPS = 0x2
-_SP_LOCAL_VARIABLES = 0x4
+_SP_EXPAND_SHARPS = 0x1
+_SP_FULL = 0x2
+_SP_NO_SHARPS = 0x4
+_SP_LOCAL_VARIABLES = 0x8
 
 
 def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_variant, basenamelist=None,
@@ -1472,10 +1472,10 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
                 if (full & _SP_FULL) == 0 and c in ('$', '%'):
                     # BUG: 存在しない状態変数を表示しようとすると
                     #      先頭の文字が欠ける(CardWirth 1.50)
-                    buf.append(c[1:])
+                    pass
                 else:
                     buf.append(c)
-                return 0 if (full & _SP_FULL) != 0 else -1, namelistindex
+                return -1, namelistindex
             skip = 1 + nextpos
             buf.append(val)
             return skip, namelistindex
@@ -1518,21 +1518,24 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
         elif c == '%':
             skip, namelistindex = get_varvalue(get_flag, '%', namelistindex)
             if skip:
-                buflen += len(buf[-1])
+                if skip != -1:
+                    buflen += len(buf[-1])
             else:
                 buf.append(c)
                 buflen += len(c)
         elif c == '$':
             skip, namelistindex = get_varvalue(get_step, '$', namelistindex)
             if skip:
-                buflen += len(buf[-1])
+                if skip != -1:
+                    buflen += len(buf[-1])
             else:
                 buf.append(c)
                 buflen += len(c)
         elif c == '@':
             skip, namelistindex = get_varvalue(get_variant, '@', namelistindex)
             if skip:
-                buflen += len(buf[-1])
+                if skip != -1:
+                    buflen += len(buf[-1])
             else:
                 buf.append(c)
                 buflen += len(c)

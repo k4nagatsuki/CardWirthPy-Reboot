@@ -1058,7 +1058,6 @@ class CWPy(_Singleton, threading.Thread):
             return
 
         assert not self.event.in_cardeffectmotion
-        assert not self.event.in_inusecardevent
 
         # 状態の補正
         if not self.statusbar.showbuttons:
