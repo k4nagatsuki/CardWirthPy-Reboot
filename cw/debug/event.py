@@ -175,10 +175,17 @@ class EventList(wx.TreeCtrl):
             return
 
         self.DeleteChildren(selitem)
-        def append(parent, data, tag):
+
+        def append(parent, data, tag, e_flags=None, e_steps=None, e_variants=None):
             e = cw.event.Event(data)
             if len(e.treekeys) == 0:
                 return
+            if not e_flags is None:
+                e.flags = cw.data.init_flags(e_flags.cwxparent, False)
+            if not e_steps is None:
+                e.steps = cw.data.init_steps(e_steps.cwxparent, False)
+            if not e_variants is None:
+                e.variants = cw.data.init_variants(e_variants.cwxparent, False)
             item = self.AppendItem(parent, e.treekeys[0], self.imgidx_event)
             self.SetItemData(item, e)
             for keynum in e.keynums:
@@ -232,7 +239,7 @@ class EventList(wx.TreeCtrl):
             return
         data = cw.data.xml2etree(element=e)
         for ee in data.getfind("Events"):
-            append(selitem, ee, data.getroot().tag)
+            append(selitem, ee, data.getroot().tag, data.find("Flags"), data.find("Steps"), data.find("Variants"))
             if virtual:
                 break
 

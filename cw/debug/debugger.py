@@ -1829,6 +1829,7 @@ class Debugger(wx.Frame):
         if update:
             self.tb_select.Realize()
 
+
 class VariableListCtrl(wx.ListCtrl):
     def __init__(self, parent):
         wx.ListCtrl.__init__(
@@ -1839,6 +1840,9 @@ class VariableListCtrl(wx.ListCtrl):
         self.imgidx_flag = self.imglist.Add(cw.cwpy.rsrc.debugs["FLAG"])
         self.imgidx_step = self.imglist.Add(cw.cwpy.rsrc.debugs["STEP"])
         self.imgidx_variant = self.imglist.Add(cw.cwpy.rsrc.debugs["VARIANT"])
+        self.imgidx_flag_l = self.imglist.Add(cw.cwpy.rsrc.debugs["LOCAL_FLAG"])
+        self.imgidx_step_l = self.imglist.Add(cw.cwpy.rsrc.debugs["LOCAL_STEP"])
+        self.imgidx_variant_l = self.imglist.Add(cw.cwpy.rsrc.debugs["LOCAL_VARIANT"])
         self.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.InsertColumn(0, "名称")
         self.InsertColumn(1, "現在値")
@@ -1869,18 +1873,10 @@ class VariableListCtrl(wx.ListCtrl):
             if not cw.cwpy.is_playingscenario():
                 return
             update = False
-            for var in cw.cwpy.sdata.variants.values():
-                if var.value != var.defaultvalue:
+            for var, local, editable in self.list:
+                if editable and var.value != var.defaultvalue:
                     var.set(var.defaultvalue, updatedebugger=False)
-                    update = True
-            for var in cw.cwpy.sdata.flags.values():
-                if var.value != var.defaultvalue:
-                    var.set(var.defaultvalue, updatedebugger=False)
-                    var.redraw_cards()
-                    update = True
-            for var in cw.cwpy.sdata.steps.values():
-                if var.value != var.defaultvalue:
-                    var.set(var.defaultvalue, updatedebugger=False)
+                    var.write_value()
                     update = True
             cw.cwpy.play_sound("signal")
             if update:
@@ -1890,14 +1886,16 @@ class VariableListCtrl(wx.ListCtrl):
     def OnDClick(self, event):
         # On DClick Item
         if self.GetSelectedItemCount() == 1:
-            item = self.list[self.GetFirstSelected()]
+            item, local, editable = self.list[self.GetFirstSelected()]
+            if not editable:
+                return
 
             if isinstance(item, cw.data.Flag):
                 choices = [item.truename, item.falsename]
             elif isinstance(item, cw.data.Step):
                 choices = item.valuenames
             else:
-                self._edit_variant(item)
+                self._edit_variant(item, local)
                 return
 
             s = "変更したい値を選択してください。"
@@ -1907,27 +1905,30 @@ class VariableListCtrl(wx.ListCtrl):
 
             if dlg.ShowModal() == wx.ID_OK:
                 if isinstance(item, cw.data.Flag):
-                    def func(item, value):
+                    def func(item, local, value):
                         item.set(value)
                         item.redraw_cards()
-                    cw.cwpy.exec_func(func, item, not bool(dlg.GetSelection()))
+                        item.write_value()
+                    cw.cwpy.exec_func(func, item, local, not bool(dlg.GetSelection()))
                 elif isinstance(item, cw.data.Step):
-                    def func(item, value):
+                    def func(item, local, value):
                         item.set(value)
-                    cw.cwpy.exec_func(func, item, dlg.GetSelection())
+                        item.write_value()
+                    cw.cwpy.exec_func(func, item, local, dlg.GetSelection())
 
             dlg.Destroy()
 
-    def _edit_variant(self, variant):
+    def _edit_variant(self, variant, local):
         dlg = cw.debug.edit.VariantEditDialog(self.Parent, variant.name, "コモンの型と値", variant.value)
         if dlg.ShowModal() == wx.ID_OK:
-            def func(item, value):
+            def func(item, local, value):
                 item.set(value)
-            cw.cwpy.exec_func(func, variant, dlg.value)
+                item.write_value()
+            cw.cwpy.exec_func(func, variant, local, dlg.value)
         dlg.Destroy()
 
     def OnGetItemText(self, row, col):
-        i = self.list[row]
+        i, _local, _editable = self.list[row]
 
         if col == 0:
             return i.name
@@ -1941,14 +1942,23 @@ class VariableListCtrl(wx.ListCtrl):
             return ""
 
     def OnGetItemImage(self, row):
-        i = self.list[row]
+        i, local, _editable = self.list[row]
 
         if isinstance(i, cw.data.Flag):
-            return self.imgidx_flag
+            if local:
+                return self.imgidx_flag_l
+            else:
+                return self.imgidx_flag
         elif isinstance(i, cw.data.Step):
-            return self.imgidx_step
+            if local:
+                return self.imgidx_step_l
+            else:
+                return self.imgidx_step
         elif isinstance(i, cw.data.Variant):
-            return self.imgidx_variant
+            if local:
+                return self.imgidx_variant_l
+            else:
+                return self.imgidx_variant
         else:
             return -1
 
@@ -1960,32 +1970,46 @@ class VariableListCtrl(wx.ListCtrl):
         if cw.cwpy.frame.debugger is None:
             return
         try:
-            itemid = self.list.index(variable)
-            self.RefreshItem(itemid)
+            for var, _local, _editable in self.list:
+                if var is variable:
+                    self.RefreshItem(itemid)
+                    break
         except:
             self.refresh_variablelist()
 
-    def refresh_variablelist(self):
+    def refresh_variablelist(self, event=None):
         assert threading.currentThread() != cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
-        self._refresh_variablelist()
+        self._refresh_variablelist(event)
 
-    def _refresh_variablelist(self):
+    def _refresh_variablelist(self, event=None):
         assert threading.currentThread() != cw.cwpy
         self.list = []
         self.SetItemCount(0)
 
-        def func(self):
+        def func(self, event):
+            if not event:
+                event = cw.cwpy.event.get_nowrunningevent()
+            editable = event and event is cw.cwpy.event.get_nowrunningevent()
+            vlist = []
+
+            def extend(data, local, editable):
+                seq = list(data.variants.values())
+                cw.util.sort_by_attr(seq, "name")
+                vlist.extend(map(lambda a: (a, local, editable), seq))
+                seq = list(data.steps.values())
+                cw.util.sort_by_attr(seq, "name")
+                vlist.extend(map(lambda a: (a, local, editable), seq))
+                seq = list(data.flags.values())
+                cw.util.sort_by_attr(seq, "name")
+                vlist.extend(map(lambda a: (a, local, editable), seq))
+
             if cw.cwpy.is_playingscenario():
-                vlist = list(cw.cwpy.sdata.variants.values())
-                cw.util.sort_by_attr(vlist, "name")
-                seq = list(cw.cwpy.sdata.steps.values())
-                cw.util.sort_by_attr(seq, "name")
-                vlist.extend(seq)
-                seq = list(cw.cwpy.sdata.flags.values())
-                cw.util.sort_by_attr(seq, "name")
-                vlist.extend(seq)
+                if event:
+                    extend(event, True, editable)
+                extend(cw.cwpy.sdata, False, True)
+
                 def func(self, vlist):
                     if self:
                         self.list = vlist
@@ -1998,7 +2022,8 @@ class VariableListCtrl(wx.ListCtrl):
                         self.Refresh()
                 cw.cwpy.frame.exec_func(func, self)
 
-        cw.cwpy.exec_func(func, self)
+        cw.cwpy.exec_func(func, self, event)
+
 
 class EventView(wx.ScrolledWindow):
     def __init__(self, parent):
@@ -2288,7 +2313,7 @@ class EventView(wx.ScrolledWindow):
             content = cw.content.get_content(item.content)
             self.set_selectionitem(item)
             self.selectionindex = index
-            self.Parent.statusbar.SetStatusText(content.get_status(), 0)
+            self.Parent.statusbar.SetStatusText(content.get_status(self.current_event), 0)
             self.Refresh()
 
     def OnDClick(self, event):
@@ -2315,6 +2340,7 @@ class EventView(wx.ScrolledWindow):
 
         if not data is None:
             cw.cwpy.exec_func(cw.cwpy.event.set_curcontent, data, self.current_event)
+            self.Parent.view_var.refresh_variablelist()
 
     def OnKeyDown(self, event):
         if not self.itemlist:
@@ -2350,7 +2376,7 @@ class EventView(wx.ScrolledWindow):
 
         if self.selectionitem and keycode in (wx.WXK_LEFT, wx.WXK_UP, wx.WXK_RIGHT, wx.WXK_DOWN):
             content = cw.content.get_content(self.selectionitem.content)
-            self.Parent.statusbar.SetStatusText(content.get_status(), 0)
+            self.Parent.statusbar.SetStatusText(content.get_status(self.current_event), 0)
 
     def OnKeyUp(self, event):
         if not self.itemlist:
@@ -2402,7 +2428,7 @@ class EventView(wx.ScrolledWindow):
                     self.current_content = cur_content
                     self.activeitem = self.items[cur_content]
                     self.show_item(self.activeitem)
-                    s = cw.content.get_content(self.current_content).get_status()
+                    s = cw.content.get_content(self.current_content).get_status(self.current_event)
                     self.Parent.statusbar.SetStatusText(s, 0)
                 else:
                     self.current_content = None
@@ -2467,6 +2493,7 @@ class EventView(wx.ScrolledWindow):
             cw.cwpy.frame.exec_func(func, self, event, trees)
 
         cw.cwpy.exec_func(func, self, event)
+        self.Parent.view_var.refresh_variablelist(event)
 
     def _refresh_tree(self, nowrunning, trees):
         if nowrunning is None:
@@ -2482,6 +2509,7 @@ class EventView(wx.ScrolledWindow):
             self.current_content = None
             self.SetVirtualSize((1, 1))
             self.Refresh()
+            self.Parent.view_var.refresh_variablelist()
             return
 
         self.maxwidth, self.maxheight = 0, 0
@@ -2528,6 +2556,7 @@ class EventView(wx.ScrolledWindow):
             self.SetScrollRate(self.scrollrate_x, self.scrollrate_y)
             self.Scroll(0, 0)
             self.Refresh()
+            self.Parent.view_var.refresh_variablelist()
 
     def create_item(self, parentitem, contents, shiftx, dc):
         assert threading.currentThread() != cw.cwpy
@@ -2561,7 +2590,7 @@ class EventView(wx.ScrolledWindow):
                 nextdata = content.find("Contents")
                 if nextdata is None:
                     nextdata = ()
-            item = EventViewItem(parent, content, nextdata, pos, self.lineheight, dc)
+            item = EventViewItem(parent, self.current_event, content, nextdata, pos, self.lineheight, dc)
             assert content.tag != "ContentsLine"
             self.items[content] = item
             self.itemlist.append(item)
@@ -2574,7 +2603,7 @@ class EventView(wx.ScrolledWindow):
 
 
 class EventViewItem(object):
-    def __init__(self, parent, content, nextdata, pos, lineheight, dc):
+    def __init__(self, parent, event, content, nextdata, pos, lineheight, dc):
         assert threading.currentThread() != cw.cwpy
         self.parent = parent
         self.content = content
@@ -2584,7 +2613,7 @@ class EventViewItem(object):
         if not self.parent is None:
             parent = cw.content.get_content(self.parent)
             if parent:
-                s = parent.get_childname(self.content)
+                s = parent.get_childname(self.content, event)
         else:
             s = self.content.get("name", "")
         self.text = s
@@ -2755,11 +2784,11 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                 icon = self.imgidx_effect
             else:
                 assert False, e.tag + ctype
-            name = cw.content.get_content(e).get_status()
+            name = cw.content.get_content(e).get_status(self.current_event)
             return name, icon, (evt2, e)
 
     def _get_info(self, cur_content):
-        name = cw.content.get_content(cur_content).get_status()
+        name = cw.content.get_content(cur_content).get_status(self.current_event)
         cname = cur_content.tag + cur_content.getattr(".", "type", "")
         if cname in self.imgidx_contents:
             icon = self.imgidx_contents[cname]

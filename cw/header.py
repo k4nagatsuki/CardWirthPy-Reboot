@@ -70,6 +70,9 @@ class CardHeader(object):
             self.enhance_res_used = dbrec["enhance_res_used"]
             self.enhance_def_used = dbrec["enhance_def_used"]
             self.attachment = bool(dbrec["attachment"])
+            self.flags = {}
+            self.steps = {}
+            self.variants = {}
             if dbowner == "BACKPACK":
                 from_scenario = bool(dbrec["scenariocard"])
             self.versionhint = cw.cwpy.sct.from_basehint(dbrec["versionhint"])
@@ -152,6 +155,10 @@ class CardHeader(object):
                     e = cw.data.make_element("Attachment", str(self.attachment))
                     data.append(e)
                 self.price = 1000
+
+            self.flags = cw.data.init_flags(self.carddata, True)
+            self.steps = cw.data.init_steps(self.carddata, True)
+            self.variants = cw.data.init_variants(self.carddata, True)
 
             # Image
             self.imgpaths = cw.image.get_imageinfos(data)
@@ -628,6 +635,9 @@ class CardHeader(object):
             if self.is_backpackheader():
                 self.write()
                 self.carddata = None
+                self.flags = {}
+                self.steps = {}
+                self.variants = {}
 
         elif self.type == "BeastCard" and not self.attachment:
             cw.cwpy.trade("TRASHBOX", header=self, from_event=True)

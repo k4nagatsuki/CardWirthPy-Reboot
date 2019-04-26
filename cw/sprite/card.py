@@ -1062,7 +1062,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.deck.set(self, draw=False)
 
         if self.spchars:
-            override_name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False)[0]
+            override_name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False, localvariables=False)[0]
         else:
             override_name = ""
 
@@ -1120,7 +1120,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         if not self._init:
             return
         if self.spchars:
-            name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False)[0]
+            name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False, localvariables=False)[0]
             if self.cardimg and self.cardimg.override_name != name:
                 self.cardimg.override_name = name
                 self.cardimg.set_nameimg(name)
@@ -1397,7 +1397,7 @@ class MenuCard(CWPyCard):
         if not self._init:
             return
         if self.spchars:
-            self.name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False)[0]
+            self.name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False, localvariables=False)[0]
         else:
             self.name = self._name
         if self._cardimg and self._cardimg.name != self.name:

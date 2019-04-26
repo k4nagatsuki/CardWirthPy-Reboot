@@ -1286,13 +1286,14 @@ class CWPy(_Singleton, threading.Thread):
             if clip:
                 if self._lazy_clip:
                     clip = self._lazy_clip.union_ip(clip)
-                self.scr_draw.set_clip(clip)
-                self.cardgrp.set_clip(clip)
-                self.topgrp.set_clip(clip)
-                self.backloggrp.set_clip(clip)
-                self.sbargrp.set_clip(clip)
             else:
                 clip = self._lazy_clip
+            self.scr_draw.set_clip(clip)
+            self.cardgrp.set_clip(clip)
+            self.topgrp.set_clip(clip)
+            self.backloggrp.set_clip(clip)
+            self.sbargrp.set_clip(clip)
+
             self._lazy_clip = None
             self._lazy_draw = False
 
@@ -4769,6 +4770,9 @@ class CWPy(_Singleton, threading.Thread):
                     if not header.carddata:
                         e = cw.data.yadoxml2etree(header.fpath)
                         header.carddata = e.getroot()
+                        header.flags = cw.data.init_flags(header.carddata)
+                        header.steps = cw.data.init_steps(header.carddata)
+                        header.variants = cw.data.init_variants(header.carddata)
                     # シナリオプレイ中であれば削除フラグを立てて削除を保留
                     # (F9時に復旧する必要があるため)
                     if targettype in ("PAWNSHOP", "TRASHBOX"):

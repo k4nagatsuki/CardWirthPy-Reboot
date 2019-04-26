@@ -730,6 +730,11 @@ class Event(object):
         # 実行後に互換性情報を書き戻す必要があれば設定
         self._versionhint_base = None
 
+        # ローカル変数(Wsn.4)
+        self.flags = {}
+        self.steps = {}
+        self.variants = {}
+
         self._reset_changestate = True
 
         if event is not None:
@@ -778,6 +783,9 @@ class Event(object):
         self.trees = event.trees
         self.treekeys = event.treekeys
         self.starttree = event.starttree
+        self.flags = event.flags
+        self.steps = event.steps
+        self.variants = event.variants
 
     def _store_inusedata(self, selectuser):
         if selectuser and isinstance(self, CardEvent):
@@ -1328,6 +1336,17 @@ class CardEvent(Event, Targeting):
         self.inusecard = inusecard
         self._reset_changestate = False
 
+        # ローカル変数(Wsn.4)
+        self.flags = inusecard.flags
+        self.steps = inusecard.steps
+        self.variants = inusecard.variants
+
+        # パッケージのコールによるイベント差し替えに備えて
+        # ローカル変数を別に記憶しておく
+        self._flags = self.flags
+        self._steps = self.steps
+        self._variants = self.variants
+
     def start(self):
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, self.inusecard.versionhint)
@@ -1389,6 +1408,14 @@ class CardEvent(Event, Targeting):
             if not isinstance(self.error, EffectBreakError) or self.error.consumecard:
                 self.inusecard.set_uselimit(-1, animate=True)
         cw.cwpy.event.is_changestate = False
+
+        # ローカル変数を更新する(Wsn.4)
+        for flag in self._flags.values():
+            flag.write_value()
+        for step in self._steps.values():
+            step.write_value()
+        for variant in self._variants.values():
+            variant.write_value()
 
         # effect_cardmotionでウェイトをとってない場合はここでとる
         if not self.waited:

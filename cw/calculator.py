@@ -134,7 +134,7 @@ class Function(object):
         if name in _functions:
             return _functions[name](args, is_differentscenario, self.line, self.pos)
         else:
-            raise FunctionIsNotDefinedException("Function is not defined." % name, name, self.line, self.pos)
+            raise FunctionIsNotDefinedException("Function \"%s\" is not defined." % name, name, self.line, self.pos)
 
     def __repr__(self):
         return "%s(%s)" % (self.name, ", ".join([str(a) for a in self.args]))
@@ -501,7 +501,7 @@ def calculate(st, is_differentscenario=False):
 
 
 def eval(st, is_differentscenario):
-    return cw.data.Variant(calculate(st, is_differentscenario).value, "", "")
+    return cw.data.Variant(None, None, calculate(st, is_differentscenario).value, "", "")
 
 
 def _chk_diffsc(is_differentscenario):
@@ -673,13 +673,19 @@ def _func_if(args, is_differentscenario, line, pos):
 
 def _func_var(args, is_differentscenario, line, pos):
     """汎用変数の値を読む。"""
-    _chk_diffsc(is_differentscenario)
     _chk_argscount(args, 1, "VAR", line, pos)
     _chk_string(args[0], "VAR", 0)
     path = args[0].value
-    if not path in cw.cwpy.sdata.variants:
+
+    event = cw.cwpy.event.get_nowrunningevent()
+    if event and path in event.variants:
+        variant = event.variants[path]
+    elif path in cw.cwpy.sdata.variants:
+        _chk_diffsc(is_differentscenario)
+        variant = cw.cwpy.sdata.variants[path]
+    else:
         raise VariantNotFoundException("Variant \"%s\" is not found.", path, args[0].line, args[0].pos)
-    variant = cw.cwpy.sdata.variants[path]
+
     if variant.type == "Boolean":
         return BooleanValue(variant.value, line, pos)
     elif variant.type == "Number":
@@ -690,25 +696,36 @@ def _func_var(args, is_differentscenario, line, pos):
 
 def _func_flagvalue(args, is_differentscenario, line, pos):
     """フラグの値を読む。"""
-    _chk_diffsc(is_differentscenario)
     _chk_argscount(args, 1, "FLAGVALUE", line, pos)
     _chk_string(args[0], "FLAGVALUE", 0)
     path = args[0].value
-    if not path in cw.cwpy.sdata.flags:
+
+    event = cw.cwpy.event.get_nowrunningevent()
+    if event and path in event.flags:
+        flag = event.flags[path]
+    elif path in cw.cwpy.sdata.flags:
+        _chk_diffsc(is_differentscenario)
+        flag = cw.cwpy.sdata.flags[path]
+    else:
         raise FlagNotFoundException("Flag \"%s\" is not found.", path, args[0].line, args[0].pos)
-    flag = cw.cwpy.sdata.flags[path]
+
     return BooleanValue(flag.value, line, pos)
 
 
 def _func_flagtext(args, is_differentscenario, line, pos):
     """フラグの値の文字列を読む。"""
-    _chk_diffsc(is_differentscenario)
     _chk_argscount2(args, 1, 2, "FLAGTEXT", line, pos)
     _chk_string(args[0], "FLAGTEXT", 0)
     path = args[0].value
-    if not path in cw.cwpy.sdata.flags:
+
+    event = cw.cwpy.event.get_nowrunningevent()
+    if event and path in event.flags:
+        flag = event.flags[path]
+    elif path in cw.cwpy.sdata.flags:
+        _chk_diffsc(is_differentscenario)
+        flag = cw.cwpy.sdata.flags[path]
+    else:
         raise FlagNotFoundException("Flag \"%s\" is not found.", path, args[0].line, args[0].pos)
-    flag = cw.cwpy.sdata.flags[path]
 
     if len(args) == 2:
         _chk_boolean(args[1], "FLAGTEXT", 1)
@@ -719,32 +736,43 @@ def _func_flagtext(args, is_differentscenario, line, pos):
     s = flag.get_valuename(value)
 
     if flag.spchars:
-        s, _namelist = cw.sprite.message.rpl_specialstr(s)
+        s, _namelist = cw.sprite.message.rpl_specialstr(s, localvariables=True)
 
     return StringValue(s, line, pos)
 
 
 def _func_stepvalue(args, is_differentscenario, line, pos):
     """ステップの値を読む。"""
-    _chk_diffsc(is_differentscenario)
     _chk_argscount(args, 1, "STEPVALUE", line, pos)
     _chk_string(args[0], "STEPVALUE", 0)
     path = args[0].value
-    if not path in cw.cwpy.sdata.steps:
+
+    event = cw.cwpy.event.get_nowrunningevent()
+    if event and path in event.steps:
+        step = event.steps[path]
+    elif path in cw.cwpy.sdata.steps:
+        _chk_diffsc(is_differentscenario)
+        step = cw.cwpy.sdata.steps[path]
+    else:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)
-    step = cw.cwpy.sdata.steps[path]
+
     return DecimalValue(decimal.Decimal(step.value), line, pos)
 
 
 def _func_steptext(args, is_differentscenario, line, pos):
     """ステップの値の文字列を読む。"""
-    _chk_diffsc(is_differentscenario)
     _chk_argscount2(args, 1, 2, "STEPTEXT", line, pos)
     _chk_string(args[0], "STEPTEXT", 0)
     path = args[0].value
-    if not path in cw.cwpy.sdata.steps:
+
+    event = cw.cwpy.event.get_nowrunningevent()
+    if event and path in event.steps:
+        step = event.steps[path]
+    elif path in cw.cwpy.sdata.steps:
+        _chk_diffsc(is_differentscenario)
+        step = cw.cwpy.sdata.steps[path]
+    else:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)
-    step = cw.cwpy.sdata.steps[path]
 
     if len(args) == 2:
         _chk_decimal(args[1], "STEPTEXT", 1)
@@ -758,20 +786,26 @@ def _func_steptext(args, is_differentscenario, line, pos):
     s = step.get_valuename(value)
 
     if step.spchars:
-        s, _namelist = cw.sprite.message.rpl_specialstr(s)
+        s, _namelist = cw.sprite.message.rpl_specialstr(s, localvariables=True)
 
     return StringValue(s, line, pos)
 
 
 def _func_stepmax(args, is_differentscenario, line, pos):
     """ステップの最大値を取得する。"""
-    _chk_diffsc(is_differentscenario)
     _chk_argscount(args, 1, "STEPMAX", line, pos)
     _chk_string(args[0], "STEPMAX", 0)
     path = args[0].value
-    if not path in cw.cwpy.sdata.steps:
+
+    event = cw.cwpy.event.get_nowrunningevent()
+    if event and path in event.steps:
+        step = event.steps[path]
+    elif path in cw.cwpy.sdata.steps:
+        _chk_diffsc(is_differentscenario)
+        step = cw.cwpy.sdata.steps[path]
+    else:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)
-    step = cw.cwpy.sdata.steps[path]
+
     return DecimalValue(decimal.Decimal(len(step.valuenames)-1), line, pos)
 
 

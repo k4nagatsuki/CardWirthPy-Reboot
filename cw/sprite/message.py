@@ -569,7 +569,7 @@ class MessageWindow(base.CWPySprite):
         self._linerect = None
         return images
 
-    def rpl_specialstr(self, full, s, nametable=None):
+    def rpl_specialstr(self, full, s, nametable=None, localvariables=True):
         """
         特殊文字列(#, $)を置換した文字列を返す。
         """
@@ -579,10 +579,12 @@ class MessageWindow(base.CWPySprite):
             full = _SP_FULL
         else:
             full = _SP_EXPAND_SHARPS
+        if localvariables:
+            full |= _SP_LOCAL_VARIABLES
         text, spcharinfo, _namelist, _namelistindex = _rpl_specialstr(full, "All", s, nametable,
                                                                       self.get_stepvalue, self.get_flagvalue,
                                                                       self.get_variantvalue)
-        if full == _SP_FULL:
+        if (full & _SP_FULL) != 0:
             return text, spcharinfo
         else:
             return text
@@ -593,12 +595,12 @@ class MessageWindow(base.CWPySprite):
                 v = self.step_table[key]
             else:
                 return None, namelistindex
-        elif key in cw.cwpy.sdata.steps:
-            v = cw.cwpy.sdata.steps[key]
         else:
-            v, namelistindex = _get_spstep(key, full, updatetype, basenamelist, namelist, namelistindex)
+            v = cw.cwpy.sdata.find_step(key, cw.cwpy.event.get_nowrunningevent())
             if v is None:
-                return None, namelistindex
+                v, namelistindex = _get_spstep(key, full, updatetype, basenamelist, namelist, namelistindex)
+                if v is None:
+                    return None, namelistindex
 
         self.step_table[key] = v
         s = v.get_valuename()
@@ -616,10 +618,10 @@ class MessageWindow(base.CWPySprite):
                 v = self.flag_table[key]
             else:
                 return None, namelistindex
-        elif key in cw.cwpy.sdata.flags:
-            v = cw.cwpy.sdata.flags[key]
         else:
-            return None, namelistindex
+            v = cw.cwpy.sdata.find_flag(key, cw.cwpy.event.get_nowrunningevent())
+            if v is None:
+                return None, namelistindex
 
         self.flag_table[key] = v
         s = v.get_valuename()
@@ -637,10 +639,10 @@ class MessageWindow(base.CWPySprite):
                 v = self.variant_table[key]
             else:
                 return None, namelistindex
-        elif key in cw.cwpy.sdata.variants:
-            v = cw.cwpy.sdata.variants[key]
         else:
-            return None, namelistindex
+            v = cw.cwpy.sdata.find_variant(key, cw.cwpy.event.get_nowrunningevent())
+            if v is None:
+                return None, namelistindex
 
         self.variant_table[key] = v
         s = v.string_value()
@@ -671,6 +673,7 @@ class MessageWindow(base.CWPySprite):
                 return (105, 105, 105)
 
         return (255, 255, 255)
+
 
 class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos_noscale=None, size_noscale=None,
@@ -773,6 +776,7 @@ class SelectWindow(MessageWindow):
 
     def update(self, scr):
         pass
+
 
 class MemberSelectWindow(SelectWindow):
     def __init__(self, pcards, pos_noscale=None, size_noscale=None):
@@ -944,6 +948,7 @@ class SelectionBar(base.SelectableSprite):
 
         mwin.showing_result = self.showing_index
 
+
 class BacklogData(object):
     def __init__(self, base):
         """メッセージログ表示用のデータ。
@@ -1045,6 +1050,7 @@ class BacklogData(object):
 
         return base
 
+
 class BacklogCurtain(base.CWPySprite):
     def __init__(self, spritegrp, layer, size_noscale, pos_noscale, color=None):
         """メッセージログ用の半透明黒背景スプライト。
@@ -1072,6 +1078,7 @@ class BacklogCurtain(base.CWPySprite):
         self.image.set_alpha(self.color[3])
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s(self.pos_noscale)
+
 
 class BacklogPage(base.CWPySprite):
     def __init__(self, page, pagemax, spritegrp):
@@ -1121,8 +1128,10 @@ class BacklogPage(base.CWPySprite):
         pos = (cw.s(cw.SIZE_AREA[0]) - self.rect.width - left, cw.s(10))
         self.rect.topleft = pos
 
+
 _decorate_cache = {}
 _decorate_cache_upscr = 0
+
 
 def decorate(image, angle=8, basecolour=(255, 255, 255)):
     """
@@ -1170,6 +1179,7 @@ def decorate(image, angle=8, basecolour=(255, 255, 255)):
 
     return image
 
+
 def draw_frame(image, size, pos=None, backlog=False):
     """
     引数のサーフェスにメッセージウィンドウの外枠を描画。
@@ -1189,6 +1199,7 @@ def draw_frame(image, size, pos=None, backlog=False):
     colour = (0, 0, 0, 255)
     pygame.draw.lines(image, colour, False, pointlist)
 
+
 def get_pointlist(size, pos=(0, 0)):
     """
     外枠描画のためのポイントリストを返す。
@@ -1200,13 +1211,16 @@ def get_pointlist(size, pos=(0, 0)):
     pos5 = pos
     return (pos1, pos2, pos3, pos4, pos5)
 
-def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All"):
+
+def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All", localvariables=True):
     """
     テキストセルや選択肢のテキスト内の
     特殊文字列(#, $)を置換した文字列を返す。
     """
     name_table = _create_nametable(False, None)
     full = _SP_EXPAND_SHARPS if expandsharps else _SP_NO_SHARPS
+    if localvariables:
+        full |= _SP_LOCAL_VARIABLES
     try:
         r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, _get_variantvalue,
                             basenamelist=basenamelist)
@@ -1215,6 +1229,7 @@ def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All"):
         r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, _get_variantvalue,
                             basenamelist=None)
     return r[0], r[2]
+
 
 class _NameGetter(object):
     def __init__(self, func):
@@ -1234,10 +1249,12 @@ class _NameGetter(object):
         self.count += 1
         return name
 
+
 def _reset_nametable(nametable):
     for name in nametable.values():
         if isinstance(name, _NameGetter):
             name.reset()
+
 
 class NameListItem(object):
     """パーティ名やキャラクター名が変更された時に
@@ -1248,6 +1265,7 @@ class NameListItem(object):
         self.data = data
         self.name = name
 
+
 def _get_namefromlist(index, namelist):
     item = namelist[index]
     if isinstance(item.data, str):
@@ -1256,6 +1274,7 @@ def _get_namefromlist(index, namelist):
         name = item.data.get_showingname() if not item.data is None else item.name
     index += 1
     return index, name
+
 
 def _get_namefromtable(nc, nametable, namelist):
     data = nametable.get("#" + nc, "")
@@ -1271,13 +1290,14 @@ def _get_namefromtable(nc, nametable, namelist):
 
     return name
 
+
 def _create_nametable(full, talker):
     def get_random():
         return cw.cwpy.event.get_targetmember("Random")
     selected = cw.cwpy.event.get_targetmember("Selected")\
                if cw.cwpy.event.has_selectedmember() else ""
     unselected = cw.cwpy.event.get_targetmember("Unselected")
-    if full == _SP_FULL:
+    if (full & _SP_FULL) != 0:
         inusecard = cw.cwpy.event.get_targetmember("Selectedcard")
     party = cw.cwpy.ydata.party
     yado = cw.cwpy.ydata
@@ -1289,7 +1309,7 @@ def _create_nametable(full, talker):
         "#y" : yado,       # 宿の名前
         "#t" : party       # パーティの名前
     }
-    if full == _SP_FULL:
+    if (full & _SP_FULL) != 0:
         name_table["#c"] = inusecard # 使用カード名(カード使用イベント時のみ)
         name_table["#i"] = talker    # 話者の名前(表示イメージのキャラやカード名)
 
@@ -1299,10 +1319,10 @@ def _create_nametable(full, talker):
                 del name_table[key]
     return name_table
 
+
 def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
-    if key in cw.cwpy.sdata.steps:
-        v = cw.cwpy.sdata.steps[key]
-    else:
+    v = cw.cwpy.sdata.find_step(key, cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
+    if v is None:
         v, namelistindex = _get_spstep(key, full, updatetype, basenamelist, namelist, namelistindex)
     if v is None:
         return None, namelistindex
@@ -1324,8 +1344,10 @@ def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, 
                                                  namelistindex, stack+1)
     return s, namelistindex
 
+
 def get_spstep(name):
     return _get_spstep(name, _SP_EXPAND_SHARPS, "Fixed", None, None, 0)[0]
+
 
 def _get_spstep(name, full, updatetype, basenamelist, namelist, namelistindex):
     if cw.cwpy.event.in_inusecardevent:
@@ -1335,7 +1357,7 @@ def _get_spstep(name, full, updatetype, basenamelist, namelist, namelistindex):
 
     if cw.cwpy.sdata.is_wsnversion('2', cardversion):
         lname = name.lower()
-        if full != _SP_NO_SHARPS and lname in "??selectedplayer":
+        if (full & _SP_NO_SHARPS) == 0 and lname in "??selectedplayer":
             # 選択メンバのパーティ内の番号(Wsn.2)
             # パーティ内の選択メンバがいない場合は"0"
             if basenamelist is None:
@@ -1353,7 +1375,7 @@ def _get_spstep(name, full, updatetype, basenamelist, namelist, namelistindex):
             else:
                 value = basenamelist[namelistindex].name
                 namelistindex += 1
-            return cw.data.Step(value, name, ["0", "1", "2", "3", "4", "5", "6"], 0, False), namelistindex
+            return cw.data.Step(None, None, value, name, ["0", "1", "2", "3", "4", "5", "6"], 0, False), namelistindex
         elif lname in ["??player%d" % a for a in range(1, 6+1)]:
             # プレイヤーキャラクターの名前(??Player1～6)(Wsn.2)
             pcards = cw.cwpy.get_pcards()
@@ -1363,16 +1385,17 @@ def _get_spstep(name, full, updatetype, basenamelist, namelist, namelistindex):
                 value = players.index(lname)+1
             else:
                 value = 0
-            return cw.data.Step(value, name, names, 0, False), namelistindex
+            return cw.data.Step(None, None, value, name, names, 0, False), namelistindex
 
         elif lname.startswith("??"):
-            return cw.data.Step(0, "", [""], "", False), namelistindex
+            return cw.data.Step(None, None, 0, "", [""], "", False), namelistindex
 
     return None, namelistindex
 
+
 def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
-    if key in cw.cwpy.sdata.flags:
-        v = cw.cwpy.sdata.flags[key]
+    v = cw.cwpy.sdata.find_flag(key, cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
+    if not v is None:
         if updatetype == "Fixed":
             if not basenamelist is None:
                 s = v.get_valuename(basenamelist[namelistindex].name)
@@ -1392,10 +1415,11 @@ def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, 
                                                  namelistindex, stack+1)
     return s, namelistindex
 
+
 def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo,
                       namelist, namelistindex, stack):
-    if key in cw.cwpy.sdata.variants:
-        v = cw.cwpy.sdata.variants[key]
+    v = cw.cwpy.sdata.find_variant(key, cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
+    if not v is None:
         if updatetype == "Fixed":
             if not basenamelist is None:
                 s = cw.data.Variant.value_to_str(basenamelist[namelistindex].name)
@@ -1410,9 +1434,12 @@ def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startinde
 
     return s, namelistindex
 
-_SP_EXPAND_SHARPS = 0
-_SP_FULL = 1
-_SP_NO_SHARPS = 2
+
+_SP_EXPAND_SHARPS = 0x0
+_SP_FULL = 0x1
+_SP_NO_SHARPS = 0x2
+_SP_LOCAL_VARIABLES = 0x4
+
 
 def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_variant, basenamelist=None,
                     startindex=0, spcharinfo=None, namelist=None, namelistindex=0, stack=0):
@@ -1442,29 +1469,29 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
             fl = s[i+1:i+1+nextpos]
             val, namelistindex = get(fl, full, updatetype, name_table, basenamelist, buflen, spcharinfo, namelist, namelistindex, stack)
             if val is None:
-                if full != _SP_FULL and c in ('$', '%'):
+                if (full & _SP_FULL) == 0 and c in ('$', '%'):
                     # BUG: 存在しない状態変数を表示しようとすると
                     #      先頭の文字が欠ける(CardWirth 1.50)
                     buf.append(c[1:])
                 else:
                     buf.append(c)
-                return 0 if full == _SP_FULL else -1, namelistindex
+                return 0 if (full & _SP_FULL) != 0 else -1, namelistindex
             skip = 1 + nextpos
             buf.append(val)
             return skip, namelistindex
 
-        if c == '#' and full in (_SP_FULL, _SP_EXPAND_SHARPS):
+        if c == '#' and ((full & _SP_FULL) != 0 or (full & _SP_EXPAND_SHARPS) != 0):
             if i + 1 == len(s) or s[i+1] == '\n':
                 buf.append(c)
                 buflen += len(c)
                 continue
             nc = s[i+1].lower()
-            if full == _SP_FULL and '#' + nc in cw.cwpy.rsrc.specialchars:
+            if (full & _SP_FULL) != 0 and '#' + nc in cw.cwpy.rsrc.specialchars:
                 spcharinfo.add(buflen)
                 buf.append(c)
                 buflen += len(c)
                 continue
-            if full == _SP_FULL:
+            if (full & _SP_FULL) != 0:
                 if nc in ('m', 'r', 'u', 'c', 'i', 't', 'y'):
                     if basenamelist is None:
                         buf.append(_get_namefromtable(nc, name_table, namelist))
@@ -1510,7 +1537,7 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
                 buf.append(c)
                 buflen += len(c)
         else:
-            if full == _SP_FULL and c == '&':
+            if (full & _SP_FULL) != 0 and c == '&':
                 spcharinfo.add(buflen)
             buf.append(c)
             buflen += len(c)
@@ -1518,6 +1545,7 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
     if not basenamelist is None:
         namelist = basenamelist
     return "".join(buf), spcharinfo, namelist, namelistindex
+
 
 def get_messagelogtext(mwins, lastline=True):
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。
@@ -1643,6 +1671,7 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                     if os.path.normcase(path) == os.path.normcase(fpath) and len(log.specialchars.dic[name].args):
                         fdict2 = {}
                         fdict = load_with_scaled(fdict, fdict2)
+
                         def load():
                             image_noscale = fdict2.get(1, None)
                             scale = int(math.pow(2, int(math.log(cw.UP_SCR, 2))))
@@ -1655,8 +1684,10 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                         log.specialchars.set(name, load)
                         break
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

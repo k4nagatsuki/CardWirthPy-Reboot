@@ -2638,6 +2638,7 @@ CWXEDITOR_RESOURCES = {
     "EDITOR": "cwxeditor.png",
     "EVENT": "event_tree.png",
     "FLAG": "flag.png",
+    "LOCAL_FLAG": "flag_l.png",
     "FRIEND": "cast.png",
     "GOSSIP": "gossip.png",
     "IGNITION": "def_start.png",
@@ -2653,7 +2654,10 @@ CWXEDITOR_RESOURCES = {
     "SAVE": "save.png",
     "SELECTION": "sc_m.png",
     "STEP": "step.png",
+    "LOCAL_STEP": "step_l.png",
     "UPDATE": "refresh.png",
+    "VARIANT": "variant.png",
+    "LOCAL_VARIANT": "variant_l.png",
     "YADO": "sc_y.png",
 
     # Terminal

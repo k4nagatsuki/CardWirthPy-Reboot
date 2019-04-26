@@ -276,6 +276,33 @@ class SystemData(object):
 
         self.resource_cache_size += size
 
+    def find_flag(self, path, event):
+        """
+        pathが指すフラグを返す。
+        eventにローカル変数がある場合は優先する。
+        """
+        if event and path in event.flags:
+            return event.flags[path]
+        return self.flags.get(path, None)
+
+    def find_step(self, path, event):
+        """
+        pathが指すステップを返す。
+        eventにローカル変数がある場合は優先する。
+        """
+        if event and path in event.steps:
+            return event.steps[path]
+        return self.steps.get(path, None)
+
+    def find_variant(self, path, event):
+        """
+        pathが指すコモンを返す。
+        eventにローカル変数がある場合は優先する。
+        """
+        if event and path in event.variants:
+            return event.variants[path]
+        return self.variants.get(path, None)
+
     def start(self):
         pass
 
@@ -1493,46 +1520,19 @@ class ScenarioData(SystemData):
         """
         summary.xmlで定義されているフラグを初期化。
         """
-        self.flags = {}
-
-        for e in self.summary.getfind("Flags"):
-            value = e.getbool(".", "default")
-            name = e.gettext("Name", "")
-            truename = e.gettext("True", "")
-            falsename = e.gettext("False", "")
-            spchars = e.getbool(".", "spchars", False)
-            self.flags[name] = Flag(value, name, truename, falsename, defaultvalue=value,
-                                    spchars=spchars)
+        self.flags = init_flags(self.summary, False)
 
     def _init_steps(self):
         """
         summary.xmlで定義されているステップを初期化。
         """
-        self.steps = {}
-
-        for e in self.summary.getfind("Steps"):
-            value = e.getint(".", "default")
-            name = e.gettext("Name", "")
-            valuenames = []
-            for ev in e:
-                if ev.tag.startswith("Value"):
-                    valuenames.append(ev.text if ev.text else "")
-            spchars = e.getbool(".", "spchars", False)
-            self.steps[name] = Step(value, name, valuenames, defaultvalue=value,
-                                    spchars=spchars)
+        self.steps = init_steps(self.summary, False)
 
     def _init_variants(self):
         """
         summary.xmlで定義されているコモンを初期化。
         """
-        self.variants = {}
-
-        for e in self.summary.getfind("Variants", raiseerror=False):
-            type = e.getattr(".", "defaulttype", "String")
-            value = e.getattr(".", "defaultvalue", "")
-            value = Variant.value_from_str(type, value)
-            name = e.gettext("Name", "")
-            self.variants[name] = Variant(value, name, defaultvalue=value)
+        self.variants = init_variants(self.summary, False)
 
     def reset_variables(self):
         """すべての状態変数を初期化する。"""
@@ -1884,8 +1884,59 @@ class ScenarioData(SystemData):
         self.friendcards = seq
 
 
+def init_flags(data, writable):
+    flags = {}
+
+    for e in data.getfind("Flags", raiseerror=False):
+        defvalue = e.getbool(".", "default")
+        value = e.getbool(".", "value", defvalue)
+        name = e.gettext("Name", "")
+        truename = e.gettext("True", "")
+        falsename = e.gettext("False", "")
+        spchars = e.getbool(".", "spchars", False)
+        flags[name] = Flag(data if writable else None, e, value, name, truename, falsename, defaultvalue=defvalue, spchars=spchars)
+
+    return flags
+
+
+def init_steps(data, writable):
+    steps = {}
+
+    for e in data.getfind("Steps", raiseerror=False):
+        defvalue = e.getint(".", "default")
+        value = e.getint(".", "value", defvalue)
+        name = e.gettext("Name", "")
+        valuenames = []
+        for ev in e:
+            if ev.tag.startswith("Value"):
+                valuenames.append(ev.text if ev.text else "")
+        spchars = e.getbool(".", "spchars", False)
+        steps[name] = Step(data if writable else None, e, value, name, valuenames, defaultvalue=defvalue, spchars=spchars)
+
+    return steps
+
+
+def init_variants(data, writable):
+    variants = {}
+
+    for e in data.getfind("Variants", raiseerror=False):
+        deftype = e.getattr(".", "defaulttype", "String")
+        type = e.getattr(".", "type", deftype)
+        defvalue = e.getattr(".", "defaultvalue", "")
+        value = e.getattr(".", "value", defvalue)
+
+        value = Variant.value_from_str(type, value)
+        name = e.gettext("Name", "")
+        variants[name] = Variant(data if writable else None, e, value, name, defaultvalue=defvalue)
+
+    return variants
+
+
 class Flag(object):
-    def __init__(self, value, name, truename, falsename, defaultvalue, spchars):
+    def __init__(self, parent, data, value, name, truename, falsename, defaultvalue, spchars):
+        self.is_writable = not parent is None
+        self._parent = parent
+        self._data = data
         self.value = value
         self.name = name
         self.truename = truename if truename else ""
@@ -1937,6 +1988,11 @@ class Flag(object):
         else:
             return s
 
+    def write_value(self):
+        if self.is_writable:
+            self._data.set("value", str(self.value))
+            self._parent.is_edited = True
+
 
 def redraw_cards(value, flag=""):
     """フラグに対応するメニューカードの再描画処理"""
@@ -1964,7 +2020,10 @@ def redraw_cards(value, flag=""):
 
 
 class Step(object):
-    def __init__(self, value, name, valuenames, defaultvalue, spchars):
+    def __init__(self, parent, data, value, name, valuenames, defaultvalue, spchars):
+        self.is_writable = not parent is None
+        self._parent = parent
+        self._data = data
         self.value = value
         self.name = name
         self.valuenames = valuenames
@@ -2000,9 +2059,17 @@ class Step(object):
         else:
             return s
 
+    def write_value(self):
+        if self.is_writable:
+            self._data.set("value", str(self.value))
+            self._parent.is_edited = True
+
 
 class Variant(object):
-    def __init__(self, value, name, defaultvalue):
+    def __init__(self, parent, data, value, name, defaultvalue):
+        self.is_writable = not parent is None
+        self._parent = parent
+        self._data = data
         self.type = Variant.value_to_type(value)
         self.value = value
         self.name = name
@@ -2045,6 +2112,12 @@ class Variant(object):
 
     def string_value(self):
         return Variant.value_to_str(self.value)
+
+    def write_value(self):
+        if self.is_writable:
+            self._data.set("type", self.type)
+            self._data.set("value", str(self.value))
+            self._parent.is_edited = True
 
 
 #-------------------------------------------------------------------------------

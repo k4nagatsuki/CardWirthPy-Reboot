@@ -24,10 +24,10 @@ class EventContentBase(object):
     def can_action(self):
         return True
 
-    def get_status(self):
+    def get_status(self, event):
         return self.data.tag + self.data.get("type", "")
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         return self.get_contentname(child)
 
     def get_contentname(self, child, default=""):
@@ -614,7 +614,7 @@ class BranchSkillContent(BranchContent):
         """スキル所持分岐コンテント。"""
         return self.branch_cards("SkillCard")
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_skillname(resid)
         if not name is None:
@@ -622,7 +622,7 @@ class BranchSkillContent(BranchContent):
         else:
             return "特殊技能カードが指定されていません"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         resid = self.data.getint(".", "id", 0)
         scope = self.data.get("targets")
         name = cw.cwpy.sdata.get_skillname(resid)
@@ -657,7 +657,7 @@ class BranchItemContent(BranchContent):
         """スキル所持分岐コンテント。"""
         return self.branch_cards("ItemCard")
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_itemname(resid)
         if not name is None:
@@ -665,7 +665,7 @@ class BranchItemContent(BranchContent):
         else:
             return "アイテムカードが指定されていません"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         resid = self.data.getint(".", "id", 0)
         scope = self.data.get("targets")
         name = cw.cwpy.sdata.get_itemname(resid)
@@ -701,7 +701,7 @@ class BranchBeastContent(BranchContent):
         """スキル所持分岐コンテント。"""
         return self.branch_cards("BeastCard")
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_beastname(resid)
         if not name is None:
@@ -709,7 +709,7 @@ class BranchBeastContent(BranchContent):
         else:
             return "召喚獣カードが指定されていません"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         resid = self.data.getint(".", "id", 0)
         scope = self.data.get("targets")
         name = cw.cwpy.sdata.get_beastname(resid)
@@ -750,7 +750,7 @@ class BranchCastContent(BranchContent):
         flag = bool([i for i in cw.cwpy.sdata.friendcards if i.id == resid])
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_castname(resid)
 
@@ -759,7 +759,7 @@ class BranchCastContent(BranchContent):
         else:
             return "キャストが指定されていません"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_castname(resid)
 
@@ -786,7 +786,7 @@ class BranchInfoContent(BranchContent):
 
         return self.get_boolean_index(cw.cwpy.sdata.has_infocard(self.resid))
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_infoname(resid)
 
@@ -795,7 +795,7 @@ class BranchInfoContent(BranchContent):
         else:
             return "情報カードが指定されていません"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_infoname(resid)
 
@@ -819,10 +819,10 @@ class BranchIsBattleContent(BranchContent):
         flag = bool(cw.cwpy.battle)
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "戦闘判定コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         if self.get_contentname(child) == "○":
             return "イベント発生時の状況が戦闘中"
         else:
@@ -847,10 +847,10 @@ class BranchBattleContent(BranchContent):
 
         return self.get_value_index(value)
 
-    def get_status(self):
+    def get_status(self, event):
         return "バトル分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         try:
             resid = int(self.get_contentname(child))
         except:
@@ -885,10 +885,10 @@ class BranchAreaContent(BranchContent):
 
         return self.get_value_index(value)
 
-    def get_status(self):
+    def get_status(self, event):
         return "エリア分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         try:
             resid = int(self.get_contentname(child))
         except:
@@ -979,10 +979,10 @@ class BranchStatusContent(BranchContent):
 
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "状態分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         s = self.textdict.get(self.data.get("targetm", "").lower(), "")
         s2 = self.textdict.get(self.data.get("status", "").lower(), "")
 
@@ -1005,16 +1005,16 @@ class BranchGossipContent(BranchContent):
     def action(self):
         """ゴシップ分岐コンテント。"""
         if self.spchars:
-            gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip)
+            gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip, localvariables=True)
         else:
             gossip = self.gossip
         flag = cw.cwpy.ydata.has_gossip(gossip)
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "ゴシップ分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         s = self.gossip
         spchars = "(特殊文字を展開)" if self.spchars else ""
         if self.get_contentname(child) == "○":
@@ -1033,7 +1033,7 @@ class BranchCompleteStampContent(BranchContent):
         flag = cw.cwpy.ydata.has_compstamp(scenario)
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         scenario = self.data.get("scenario", "")
 
         if scenario:
@@ -1041,7 +1041,7 @@ class BranchCompleteStampContent(BranchContent):
         else:
             return "終了シナリオが指定されていません"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         s = self.data.get("scenario", "")
 
         if self.get_contentname(child) == "○":
@@ -1060,10 +1060,10 @@ class BranchPartyNumberContent(BranchContent):
         flag = bool(len(cw.cwpy.get_pcards()) >= value)
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "人数 = " + self.data.get("value", "0")
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         s = self.data.get("value", "0")
 
         if self.get_contentname(child) == "○":
@@ -1095,10 +1095,10 @@ class BranchLevelContent(BranchContent):
         flag = bool(level >= value)
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "レベル分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         if self.data.getbool(".", "average", False):
             s = "全員の平均値"
         else:
@@ -1140,7 +1140,7 @@ class BranchCouponContent(BranchContent):
         if self.spchars:
             names = []
             for name in self.couponnames:
-                name, _namelist = cw.sprite.message.rpl_specialstr(name)
+                name, _namelist = cw.sprite.message.rpl_specialstr(name, localvariables=True)
                 names.append(name)
         else:
             # シャロ―コピー
@@ -1171,7 +1171,7 @@ class BranchCouponContent(BranchContent):
 
         return self.get_boolean_index(_has_coupon(targets, names, scope, someone, allmatch, False, invert=self.invert))
 
-    def get_status(self):
+    def get_status(self, event):
         names = self.couponnames
         if len(names) > 0 and names[0] != "":
             s = "」「".join(names)
@@ -1190,7 +1190,7 @@ class BranchCouponContent(BranchContent):
         else:
             return "称号が指定されていません"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         names = self.couponnames
         scope = self.data.get("targets")
         s2 = self.textdict.get(scope.lower(), "")
@@ -1254,10 +1254,10 @@ class BranchSelectContent(BranchContent):
         flag = bool(index == 0)
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "選択分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         self.init_values()
 
         if self.targetall:
@@ -1296,10 +1296,10 @@ class BranchMoneyContent(BranchContent):
         flag = bool(cw.cwpy.ydata.party.money >= money)
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "金額 = " + self.data.get("value", "0")
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         if self.get_contentname(child) == "○":
             return self.data.get("value", "0") + " sp以上所持している"
         else:
@@ -1309,16 +1309,15 @@ class BranchMoneyContent(BranchContent):
 class BranchFlagContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.flag = self.data.get("flag")
 
     def action(self):
         """フラグ分岐コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        flag = self.data.get("flag")
-
-        if flag in cw.cwpy.sdata.flags:
-            flag = cw.cwpy.sdata.flags[flag]
+        flag = cw.cwpy.sdata.find_flag(self.flag, cw.cwpy.event.get_nowrunningevent())
+        if not flag is None:
             index = self.get_boolean_index(flag)
         elif self.get_children_num():
             # フラグが存在しない場合は
@@ -1329,24 +1328,19 @@ class BranchFlagContent(BranchContent):
 
         return index
 
-    def get_status(self):
-        flag = self.data.get("flag")
-
-        if flag in cw.cwpy.sdata.flags:
-            return "フラグ『%s』分岐" % (cw.cwpy.sdata.flags[flag].name)
+    def get_status(self, event):
+        flag = cw.cwpy.sdata.find_flag(self.flag, event)
+        if not flag is None:
+            return "フラグ『%s』分岐" % (flag.name)
         else:
             return "フラグが指定されていません"
 
-    def get_childname(self, child):
-        flag = self.data.get("flag")
+    def get_childname(self, child, event):
+        flag = cw.cwpy.sdata.find_flag(self.flag, event)
+        if flag:
+            valuename = flag.get_valuename(self.get_contentname(child) == "○")
 
-        if flag in cw.cwpy.sdata.flags:
-            if self.get_contentname(child) == "○":
-                valuename = cw.cwpy.sdata.flags[flag].get_valuename(True)
-            else:
-                valuename = cw.cwpy.sdata.flags[flag].get_valuename(False)
-
-            return "%s = %s" % (flag, valuename)
+            return "%s = %s" % (flag.name, valuename)
         else:
             return "フラグが指定されていません"
 
@@ -1363,7 +1357,7 @@ class BranchStepContent(BranchContent):
         if self.is_differentscenario():
             return 0
 
-        step = cw.cwpy.sdata.steps.get(self.step, None)
+        step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
         if not step is None:
             flag = step.value >= self.value
             index = self.get_boolean_index(flag)
@@ -1376,25 +1370,23 @@ class BranchStepContent(BranchContent):
 
         return index
 
-    def get_status(self):
-        step = self.data.get("step")
+    def get_status(self, event):
+        step = cw.cwpy.sdata.find_step(self.step, event)
 
-        if step:
-            return "ステップ『%s』分岐" % (step)
+        if not step is None:
+            return "ステップ『%s』分岐" % (step.name)
         else:
             return "ステップが指定されていません"
 
-    def get_childname(self, child):
-        step = self.data.get("step")
-        value = self.data.getint(".", "value", 0)
-
-        if step in cw.cwpy.sdata.steps:
-            valuename = cw.cwpy.sdata.steps[step].get_valuename(value)
+    def get_childname(self, child, event):
+        step = cw.cwpy.sdata.find_step(self.step, event)
+        if not step is None:
+            valuename = step.get_valuename(self.value)
 
             if self.get_contentname(child) == "○":
-                return "ステップ『%s』が『%s』以上" % (step, valuename)
+                return "ステップ『%s』が『%s』以上" % (step.name, valuename)
             else:
-                return "ステップ『%s』が『%s』未満" % (step, valuename)
+                return "ステップ『%s』が『%s』未満" % (step.name, valuename)
 
         else:
             return "ステップが指定されていません"
@@ -1411,8 +1403,7 @@ class BranchMultiStepContent(BranchContent):
         if self.is_differentscenario():
             return 0
 
-        step = cw.cwpy.sdata.steps.get(self.step, None)
-
+        step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
         if not step is None:
             value = step.value
             index = self.get_value_index(value)
@@ -1425,18 +1416,17 @@ class BranchMultiStepContent(BranchContent):
 
         return index
 
-    def get_status(self):
-        step = self.data.get("step")
+    def get_status(self, event):
+        step = cw.cwpy.sdata.find_step(self.step, event)
 
-        if step:
-            return "ステップ『%s』多岐分岐" % (step)
+        if not step is None:
+            return "ステップ『%s』多岐分岐" % (step.name)
         else:
             return "ステップが指定されていません"
 
-    def get_childname(self, child):
-        step = self.data.get("step")
-
-        if step in cw.cwpy.sdata.steps:
+    def get_childname(self, child, event):
+        step = cw.cwpy.sdata.find_step(self.step, event)
+        if not step is None:
             try:
                 value = int(self.get_contentname(child, "Default"))
             except:
@@ -1445,9 +1435,9 @@ class BranchMultiStepContent(BranchContent):
             if value == "Default":
                 valuename = "その他"
             else:
-                valuename = cw.cwpy.sdata.steps[step].get_valuename(value)
+                valuename = step.get_valuename(value)
 
-            return "%s = %s" % (step, valuename)
+            return "%s = %s" % (step.name, valuename)
         else:
             return "ステップが指定されていません"
 
@@ -1466,10 +1456,10 @@ class BranchRandomContent(BranchContent):
             flag = bool(cw.cwpy.dice.roll(1, 100) <= value)
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "確率 = %s%%" % (self.data.get("value", "0"))
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         if self.get_contentname(child) == "○":
             return self.data.get("value", "") + " %成功"
         else:
@@ -1553,10 +1543,10 @@ class BranchAbilityContent(BranchContent):
 
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "判定分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         level = self.data.get("value", "0")
         physical = self.textdict.get(self.data.get("physical").lower())
         mental = self.textdict.get("mental_" + self.data.get("mental").lower())
@@ -1632,10 +1622,10 @@ class BranchRandomSelectContent(BranchContent):
             ranges.add(e.gettext(".", ""))
         return ranges
 
-    def get_status(self):
+    def get_status(self, event):
         return "ランダム選択分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         minlevel = self.minlevel
         maxlevel = self.maxlevel
         status = self.status
@@ -1772,10 +1762,10 @@ class BranchKeyCodeContent(BranchContent):
 
         return self.get_boolean_index(success)
 
-    def get_status(self):
+    def get_status(self, event):
         return "キーコード所持分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         s = self.textdict.get(self.targetkc.lower(), "")
         types = []
         if self.skill:
@@ -1819,10 +1809,10 @@ class BranchRoundContent(BranchContent):
 
         return self.get_boolean_index(flag)
 
-    def get_status(self):
+    def get_status(self, event):
         return "ラウンド分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         round1 = int(self.data.get("round", "1"))
         comparison = self.data.get("comparison")
 
@@ -1928,7 +1918,7 @@ class BranchMultiCouponContent(BranchContent):
 
             coupon = e.get("name", "")
             if self.spchars:
-                coupon, _namelist = cw.sprite.message.rpl_specialstr(coupon)
+                coupon, _namelist = cw.sprite.message.rpl_specialstr(coupon, localvariables=True)
             if coupon:
                 if _has_coupon(targets, [coupon], self.scope, self.someone, False, True, invert=False):
                     return index
@@ -1943,10 +1933,10 @@ class BranchMultiCouponContent(BranchContent):
 
         return idx_default
 
-    def get_status(self):
+    def get_status(self, event):
         return "クーポン多岐分岐コンテント"
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         name = self.get_contentname(child)
 
         scope = self.data.get("targets", "Selected")
@@ -1985,7 +1975,7 @@ class BranchMultiRandomContent(BranchContent):
 
         return cw.cwpy.dice.choice(targets)
 
-    def get_status(self):
+    def get_status(self, event):
         return "ランダム多岐分岐コンテント"
 
 
@@ -2014,10 +2004,10 @@ class BranchVariantContent(BranchContent):
 
         return index
 
-    def get_status(self):
+    def get_status(self, event):
         return self.expression
 
-    def get_childname(self, child):
+    def get_childname(self, child, event):
         if self.get_contentname(child) == "○":
             valuename = "TRUE"
         else:
@@ -2058,7 +2048,7 @@ class CallStartContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         startname = self.data.get("call")
 
         if startname:
@@ -2086,7 +2076,7 @@ class CallPackageContent(EventContentBase):
         call_package(resid, call)
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "call", 0)
         name = cw.cwpy.sdata.get_packagename(resid)
 
@@ -2167,7 +2157,7 @@ class ChangeBgImageContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         seq = []
 
         for e in self.data.getfind("BgImages", raiseerror=False):
@@ -2216,7 +2206,7 @@ class ChangeAreaContent(EventContentBase):
             # CardWirthではエリア未指定の時はシナリオが終了する
             end_scenario(False)
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_areaname(resid)
 
@@ -2239,7 +2229,7 @@ class ChangeEnvironmentContent(EventContentBase):
             cw.cwpy.sdata.party_environment_backpack = False
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         def enable_str(s):
             if s == "Enable":
                 return "使用可"
@@ -2258,24 +2248,22 @@ class ChangeEnvironmentContent(EventContentBase):
 class CheckFlagContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=False)
+        self.flag = data.getattr(".", "flag", "")
 
     def action(self):
         """フラグ判定コンテント。"""
         if self.is_differentscenario():
             return cw.IDX_TREEEND
 
-        flag = self.data.get("flag")
-
-        if cw.cwpy.sdata.flags.get(flag, False):
+        flag = cw.cwpy.sdata.find_flag(self.flag, cw.cwpy.event.get_nowrunningevent())
+        if not flag is None and bool(flag):
             return 0
         else:
             return cw.IDX_TREEEND
 
-    def get_status(self):
-        flag = self.data.get("flag")
-
-        if flag:
-            return "フラグ『%s』の値で判定" % (flag)
+    def get_status(self, event):
+        if not cw.cwpy.sdata.find_flag(self.flag, event) is None:
+            return "フラグ『%s』の値で判定" % (self.flag)
         else:
             return "フラグが指定されていません"
 
@@ -2283,40 +2271,37 @@ class CheckFlagContent(EventContentBase):
 class CheckStepContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data, is_changestate=False)
+        self.step = self.data.get("step")
+        self.value1 = self.data.getint(".", "value", 0)
+        self.comparison = self.data.get("comparison")
 
     def action(self):
         """ステップ判定コンテント(1.50)。"""
         if self.is_differentscenario():
             return cw.IDX_TREEEND
 
-        step = self.data.get("step")
-        value1 = self.data.getint(".", "value", 0)
-        comparison = self.data.get("comparison")
-
-        if step in cw.cwpy.sdata.steps:
-            value2 = cw.cwpy.sdata.steps[step].value
-            if comparison == "=":
-                if value1 == value2:
+        step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
+        if not step is None:
+            value2 = step.value
+            if self.comparison == "=":
+                if self.value1 == value2:
                     return 0
-            elif comparison == "<>":
-                if value1 != value2:
+            elif self.comparison == "<>":
+                if self.value1 != value2:
                     return 0
-            elif comparison == "<":
-                if value1 < value2:
+            elif self.comparison == "<":
+                if self.value1 < value2:
                     return 0
-            elif comparison == ">":
-                if value1 > value2:
+            elif self.comparison == ">":
+                if self.value1 > value2:
                     return 0
 
         return cw.IDX_TREEEND
 
-    def get_status(self):
-        step = self.data.get("step")
-        value1 = self.data.getint(".", "value", 0)
-        comparison = self.data.get("comparison")
-
-        if step:
-            return "%s %s ステップ『%s』" % (value1, comparison, step)
+    def get_status(self, event):
+        step = cw.cwpy.sdata.find_step(self.step, event)
+        if not step is None:
+            return "%s %s ステップ『%s』" % (self.value1, self.comparison, step.name)
         else:
             return "ステップが指定されていません"
 
@@ -2344,7 +2329,7 @@ class CheckVariantContent(EventContentBase):
             self.variant_error(ex=ex)
             return cw.IDX_TREEEND
 
-    def get_status(self):
+    def get_status(self, event):
         return "%s" % self.expression
 
 
@@ -2600,7 +2585,7 @@ class EffectContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         dic = { "Heal": "回復",
                 "Damage": "ダメージ",
                 "Absorb": "吸収",
@@ -2668,7 +2653,7 @@ class EffectBreakContent(EventContentBase):
         """効果中断コンテント。"""
         raise cw.event.EffectBreakError(self.data.getbool(".", "consumecard", True))
 
-    def get_status(self):
+    def get_status(self, event):
         return "効果中断コンテント"
 
 
@@ -2685,7 +2670,7 @@ class ElapseTimeContent(EventContentBase):
         cw.cwpy.elapse_time(playeronly=True, fromevent=True)
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         return "ターン数経過コンテント"
 
 
@@ -2704,7 +2689,7 @@ class EndContent(EventContentBase):
         complete = self.data.getbool(".", "complete", False)
         end_scenario(complete)
 
-    def get_status(self):
+    def get_status(self, event):
         complete = self.data.getbool(".", "complete", False)
 
         if complete:
@@ -2813,7 +2798,7 @@ class EndBadEndContent(EventContentBase):
                 cw.cwpy.exec_func(cw.cwpy.set_gameover)
                 raise cw.event.ScenarioBadEndError()
 
-    def get_status(self):
+    def get_status(self, event):
         return "パーティ全滅"
 
 
@@ -2971,7 +2956,7 @@ class GetSkillContent(GetContent):
         self.get_cards("SkillCard")
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_skillname(resid)
 
@@ -2997,7 +2982,7 @@ class GetItemContent(GetContent):
         self.get_cards("ItemCard")
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_itemname(resid)
 
@@ -3023,7 +3008,7 @@ class GetBeastContent(GetContent):
         self.get_cards("BeastCard")
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_beastname(resid)
 
@@ -3082,7 +3067,7 @@ class GetCastContent(GetContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_castname(resid)
 
@@ -3113,7 +3098,7 @@ class GetInfoContent(GetContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_infoname(resid)
 
@@ -3133,7 +3118,7 @@ class GetMoneyContent(GetContent):
         cw.cwpy.ydata.party.set_money(value, fromevent=True, blink=True)
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         value = self.data.get("value", "0")
         return "%ssp取得" % (value)
 
@@ -3151,7 +3136,7 @@ class GetCompleteStampContent(GetContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         scenario = self.data.get("scenario")
 
         if scenario:
@@ -3169,7 +3154,7 @@ class GetGossipContent(GetContent):
     def action(self):
         """ゴシップ取得コンテント。"""
         if self.spchars:
-            gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip)
+            gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip, localvariables=True)
         else:
             gossip = self.gossip
 
@@ -3178,7 +3163,7 @@ class GetGossipContent(GetContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         gossip = self.gossip
         spchars = "(特殊文字を展開)" if self.spchars else ""
 
@@ -3227,7 +3212,7 @@ class GetCouponContent(GetContent):
     def action(self):
         """称号付与コンテント。"""
         if self.spchars:
-            coupon, _namelist = cw.sprite.message.rpl_specialstr(self.coupon)
+            coupon, _namelist = cw.sprite.message.rpl_specialstr(self.coupon, localvariables=True)
         else:
             coupon = self.coupon
         if is_addablecoupon(coupon):
@@ -3245,7 +3230,7 @@ class GetCouponContent(GetContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         coupon = self.coupon
 
         if coupon:
@@ -3283,7 +3268,7 @@ class HidePartyContent(EventContentBase):
             cw.cwpy.override_dealspeed = override_dealspeed
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         return "パーティ非表示コンテント"
 
 
@@ -3309,7 +3294,7 @@ class LinkStartContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         startname = self.data.get("link")
 
         if startname:
@@ -3332,7 +3317,7 @@ class LinkPackageContent(EventContentBase):
         call_package(self.resid, bool(event.nowrunningcontents))
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "link", 0)
         name = cw.cwpy.sdata.get_packagename(resid)
 
@@ -3433,7 +3418,7 @@ class LoseSkillContent(LoseContent):
         self.lose_cards("SkillCard")
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         scope = self.data.get("targets")
         if scope == "SelectedCard":
             return "選択カードを喪失"
@@ -3459,7 +3444,7 @@ class LoseItemContent(LoseContent):
         self.lose_cards("ItemCard")
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         scope = self.data.get("targets")
         if scope == "SelectedCard":
             return "選択カードを喪失"
@@ -3485,7 +3470,7 @@ class LoseBeastContent(LoseContent):
         self.lose_cards("BeastCard")
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         scope = self.data.get("targets")
         if scope == "SelectedCard":
             return "選択カードを喪失"
@@ -3523,7 +3508,7 @@ class LoseCastContent(LoseContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_castname(resid)
 
@@ -3551,7 +3536,7 @@ class LoseInfoContent(LoseContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_infoname(resid)
 
@@ -3571,7 +3556,7 @@ class LoseMoneyContent(LoseContent):
         cw.cwpy.ydata.party.set_money(-value, fromevent=True, blink=True)
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         value = self.data.get("value", "0")
         return "%ssp減少" % (value)
 
@@ -3589,7 +3574,7 @@ class LoseCompleteStampContent(LoseContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         scenario = self.data.get("scenario", "")
 
         if scenario:
@@ -3607,7 +3592,7 @@ class LoseGossipContent(LoseContent):
     def action(self):
         """ゴシップ削除コンテント。"""
         if self.spchars:
-            gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip)
+            gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip, localvariables=True)
         else:
             gossip = self.gossip
 
@@ -3616,7 +3601,7 @@ class LoseGossipContent(LoseContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         gossip = self.gossip
         spchars = "(特殊文字を展開)" if self.spchars else ""
 
@@ -3639,7 +3624,7 @@ class LoseCouponContent(LoseContent):
     def action(self):
         """称号剥奪コンテント。"""
         if self.spchars:
-            coupon, _namelist = cw.sprite.message.rpl_specialstr(self.coupon)
+            coupon, _namelist = cw.sprite.message.rpl_specialstr(self.coupon, localvariables=True)
         else:
             coupon = self.coupon
         if is_addablecoupon(coupon):
@@ -3658,7 +3643,7 @@ class LoseCouponContent(LoseContent):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         coupon = self.coupon
 
         if coupon:
@@ -3693,7 +3678,7 @@ class LoseBgImageContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         return "セル名称 = 【%s】" % (self.cellname)
 
 
@@ -3719,7 +3704,7 @@ class PlayBgmContent(EventContentBase):
                 cw.cwpy.music[channel].stop(fade=fade)
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         path = self.data.get("path", "")
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 0)
@@ -3755,7 +3740,7 @@ class PlaySoundContent(EventContentBase):
         cw.cwpy.play_sound_with(path, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         path = self.data.get("path", "")
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 1)
@@ -3796,7 +3781,7 @@ class RedisplayContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         return "画面再構築コンテント"
 
 
@@ -3821,19 +3806,17 @@ class ReverseFlagContent(EventContentBase):
         if self.is_differentscenario():
             return 0
 
-        flag = self.flag
-        if flag in cw.cwpy.sdata.flags:
-            flag = cw.cwpy.sdata.flags[flag]
+        flag = cw.cwpy.sdata.find_flag(self.flag, cw.cwpy.event.get_nowrunningevent())
+        if not flag is None:
             flag.reverse()
             flag.redraw_cards(self.cardspeed, self.overridecardspeed)
 
         return 0
 
-    def get_status(self):
-        flag = self.data.get("flag")
-
-        if flag in cw.cwpy.sdata.flags:
-            return "フラグ『%s』の値を反転" % (flag)
+    def get_status(self, event):
+        flag = cw.cwpy.sdata.find_flag(self.flag, event)
+        if not flag is None:
+            return "フラグ『%s』の値を反転" % (flag.name)
         else:
             return "フラグが指定されていません"
 
@@ -3860,23 +3843,18 @@ class SetFlagContent(EventContentBase):
         if self.is_differentscenario():
             return 0
 
-        flag = self.flag
-        value = self.value
-
-        flag = cw.cwpy.sdata.flags.get(flag, None)
+        flag = cw.cwpy.sdata.find_flag(self.flag, cw.cwpy.event.get_nowrunningevent())
         if not flag is None:
-            flag.set(value)
+            flag.set(self.value)
             flag.redraw_cards(self.cardspeed, self.overridecardspeed)
 
         return 0
 
-    def get_status(self):
-        flag = self.data.get("flag")
-        value = self.data.getbool(".", "value", False)
-
-        if flag in cw.cwpy.sdata.flags:
-            s = cw.cwpy.sdata.flags[flag].get_valuename(value)
-            return "フラグ『%s』を【%s】に変更" % (flag, s)
+    def get_status(self, event):
+        flag = cw.cwpy.sdata.find_flag(self.flag, event)
+        if not flag is None:
+            s = flag.get_valuename(self.value)
+            return "フラグ『%s』を【%s】に変更" % (flag.name, s)
         else:
             return "フラグが指定されていません"
 
@@ -3892,19 +3870,17 @@ class SetStepContent(EventContentBase):
         if self.is_differentscenario():
             return 0
 
-        step = cw.cwpy.sdata.steps.get(self.step, None)
+        step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
         if not step is None:
             step.set(self.value)
 
         return 0
 
-    def get_status(self):
-        step = self.data.get("step")
-        value = self.data.getint(".", "value", 0)
-
-        if step in cw.cwpy.sdata.steps:
-            s = cw.cwpy.sdata.steps[step].get_valuename(value)
-            return "ステップ『%s』を【%s】に変更" % (step, s)
+    def get_status(self, event):
+        step = cw.cwpy.sdata.find_step(self.step, event)
+        if not step is None:
+            s = step.get_valuename(self.value)
+            return "ステップ『%s』を【%s】に変更" % (step.name, s)
         else:
             return "ステップが指定されていません"
 
@@ -3919,17 +3895,16 @@ class SetStepUpContent(EventContentBase):
         if self.is_differentscenario():
             return 0
 
-        step = cw.cwpy.sdata.steps.get(self.step, None)
+        step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
         if not step is None:
             step.up()
 
         return 0
 
-    def get_status(self):
-        step = self.data.get("step")
-
-        if step in cw.cwpy.sdata.steps:
-            return "ステップ『%s』の値を1増加" % (step)
+    def get_status(self, event):
+        step = cw.cwpy.sdata.find_step(self.step, event)
+        if not step is None:
+            return "ステップ『%s』の値を1増加" % (step.name)
         else:
             return "ステップが指定されていません"
 
@@ -3944,17 +3919,16 @@ class SetStepDownContent(EventContentBase):
         if self.is_differentscenario():
             return 0
 
-        step = cw.cwpy.sdata.steps.get(self.step, None)
+        step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
         if not step is None:
             step.down()
 
         return 0
 
-    def get_status(self):
-        step = self.data.get("step")
-
-        if step in cw.cwpy.sdata.steps:
-            return "ステップ『%s』の値を1減少" % (step)
+    def get_status(self, event):
+        step = cw.cwpy.sdata.find_step(self.step, event)
+        if not step is None:
+            return "ステップ『%s』の値を1減少" % (step.name)
         else:
             return "ステップが指定されていません"
 
@@ -3970,7 +3944,8 @@ class SetVariantContent(BranchContent):
 
     def action(self):
         """コモン設定コンテント(Wsn.4)。"""
-        variant = cw.cwpy.sdata.variants.get(self.variant, None)
+        event = cw.cwpy.event.get_nowrunningevent()
+        variant = cw.cwpy.sdata.find_variant(self.variant, event)
 
         def eval():
             try:
@@ -3988,8 +3963,8 @@ class SetVariantContent(BranchContent):
             if result:
                 variant.set(result.value)
 
-        step = cw.cwpy.sdata.steps.get(self.step, None)
-        if step:
+        step = cw.cwpy.sdata.find_step(self.step, event)
+        if not step is None:
             result = eval()
             if result:
                 if result.type == "Number":
@@ -3998,8 +3973,8 @@ class SetVariantContent(BranchContent):
                 else:
                     self.variant_error(msg="計算結果 %s は数値ではありません。" % (result.string_value()))
 
-        flag = cw.cwpy.sdata.flags.get(self.flag, None)
-        if flag:
+        flag = cw.cwpy.sdata.find_flag(self.flag, event)
+        if not flag is None:
             result = eval()
             if result:
                 if result.type == "Boolean":
@@ -4009,15 +3984,15 @@ class SetVariantContent(BranchContent):
 
         return 0
 
-    def get_status(self):
-        variant = cw.cwpy.sdata.variants.get(self.variant, None)
+    def get_status(self, event):
+        variant = cw.cwpy.sdata.find_variant(self.variant, event)
         if variant:
             return "〔 %s 〕の結果をコモン『%s』へ代入" % (self.expression, variant.name)
-        step = cw.cwpy.sdata.steps.get(self.step, None)
-        if step:
+        step = cw.cwpy.sdata.find_step(self.step, event)
+        if not step is None:
             return "〔 %s 〕の結果をステップ『%s』へ代入" % (self.expression, step.name)
-        flag = cw.cwpy.sdata.flags.get(self.flag, None)
-        if flag:
+        flag = cw.cwpy.sdata.find_flag(self.flag, event)
+        if not flag is None:
             return "〔 %s 〕の結果をフラグ『%s』へ代入" % (self.expression, flag.name)
 
         return "代入先が指定されていません"
@@ -4047,7 +4022,7 @@ class ShowPartyContent(EventContentBase):
             cw.cwpy.override_dealspeed = override_dealspeed
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         return "パーティ表示コンテント"
 
 
@@ -4060,7 +4035,7 @@ class StartContent(EventContentBase):
         EventContentBase.__init__(self, data, is_changestate=False)
 
     """スタートコンテント"""
-    def get_status(self):
+    def get_status(self, event):
         return "スタートコンテント: " + self.data.get("name", "")
 
 
@@ -4085,7 +4060,7 @@ class StartBattleContent(EventContentBase):
         else:
             return 0
 
-    def get_status(self):
+    def get_status(self, event):
         areaid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_battlename(areaid)
 
@@ -4314,7 +4289,7 @@ class TalkMessageContent(TalkContent):
 
         return True
 
-    def get_status(self):
+    def get_status(self, event):
         imgpath = self.data.get("path", "")
 
         if imgpath.endswith("??Random"):
@@ -4468,7 +4443,7 @@ class TalkDialogContent(TalkContent):
 
         return None
 
-    def get_status(self):
+    def get_status(self, event):
         e = self.data.getfind("Dialogs")
         if not e is None and len(e):
             s = e[0].gettext("Text", "").replace("\\n", "")
@@ -4515,7 +4490,7 @@ class WaitContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         value = self.data.getint(".", "value", 0)
         return "%s秒間待機" % (value/10.0)
 
@@ -4535,28 +4510,33 @@ class SubstituteStepContent(EventContentBase):
         if self.is_differentscenario():
             return 0
 
-        if self.fromstep in cw.cwpy.sdata.steps and self.tostep in cw.cwpy.sdata.steps:
-            cw.cwpy.sdata.steps[self.tostep].set(cw.cwpy.sdata.steps[self.fromstep].value)
+        event = cw.cwpy.event.get_nowrunningevent()
+        fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
+        tostep = cw.cwpy.sdata.find_step(self.tostep, event)
+        if not fromstep is None and not tostep is None:
+            tostep.set(fromstep.value)
         elif self.fromstep.lower() == "??random":
-            if self.tostep in cw.cwpy.sdata.steps:
-                sides = len(cw.cwpy.sdata.steps[self.tostep].valuenames)
-                cw.cwpy.sdata.steps[self.tostep].set(cw.cwpy.dice.roll(1, sides)-1)
+            if not tostep is None:
+                sides = len(tostep.valuenames)
+                tostep.set(cw.cwpy.dice.roll(1, sides)-1)
         elif self.fromstep.lower() == "??selectedplayer":
-            if self.tostep in cw.cwpy.sdata.steps:
+            if not tostep is None:
                 n = 0
                 if cw.cwpy.event.has_selectedmember():
                     selected = cw.cwpy.event.get_targetmember("Selected")
                     if isinstance(selected, cw.sprite.card.PlayerCard):
                         n = selected.index + 1
-                cw.cwpy.sdata.steps[self.tostep].set(n)
+                tostep.set(n)
 
         return 0
 
-    def get_status(self):
-        if self.fromstep in cw.cwpy.sdata.steps and self.tostep in cw.cwpy.sdata.steps:
-            return "ステップ『%s』の値を『%s』へ代入" % (self.fromstep, self.tostep)
-        elif self.fromstep == "??Random" and self.tostep in cw.cwpy.sdata.steps:
-            return "ランダム値を『%s』へ代入" % (self.tostep)
+    def get_status(self, event):
+        fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
+        tostep = cw.cwpy.sdata.find_step(self.tostep, event)
+        if not fromstep is None and not tostep is None:
+            return "ステップ『%s』の値を『%s』へ代入" % (fromstep.name, tostep.name)
+        elif self.fromstep.lower() == "??random" and not tostep is None:
+            return "ランダム値を『%s』へ代入" % (tostep.name)
         else:
             return "ステップが指定されていません"
 
@@ -4580,12 +4560,13 @@ class SubstituteFlagContent(EventContentBase):
         if self.is_differentscenario():
             return 0
 
-        if self.fromflag in cw.cwpy.sdata.flags and self.toflag in cw.cwpy.sdata.flags:
-            toflag = cw.cwpy.sdata.flags[self.toflag]
-            toflag.set(cw.cwpy.sdata.flags[self.fromflag].value)
+        event = cw.cwpy.event.get_nowrunningevent()
+        fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
+        toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
+        if not fromflag is None and not toflag is None:
+            toflag.set(fromflag.value)
             toflag.redraw_cards(self.cardspeed, self.overridecardspeed)
-        elif self.fromflag == "??Random":
-            toflag = cw.cwpy.sdata.flags.get(self.toflag, None)
+        elif self.fromflag.lower() == "??random":
             if not toflag is None:
                 if cw.cwpy.dice.roll(1, 2) == 1:
                     toflag.set(True)
@@ -4595,10 +4576,12 @@ class SubstituteFlagContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
-        if self.fromflag in cw.cwpy.sdata.flags and self.toflag in cw.cwpy.sdata.flags:
+    def get_status(self, event):
+        fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
+        toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
+        if not fromflag is None and not toflag is None:
             return "フラグ『%s』の値を『%s』へ代入" % (self.fromflag, self.toflag)
-        elif self.fromflag == "??Random" and self.toflag in cw.cwpy.sdata.flags:
+        elif self.fromflag.lower() == "??random" and not toflag is None:
             return "ランダム値を『%s』へ代入" % (self.toflag)
         else:
             return "フラグが指定されていません"
@@ -4611,43 +4594,43 @@ class SubstituteFlagContent(EventContentBase):
 class BranchStepValueContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.fromstep = self.data.get("from")
+        self.tostep = self.data.get("to")
 
     def action(self):
         """ステップ比較分岐コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        fromstep = self.data.get("from")
-        tostep = self.data.get("to")
-
-        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
-            value = cw.util.cmp(cw.cwpy.sdata.steps[fromstep].value, cw.cwpy.sdata.steps[tostep].value)
+        event = cw.cwpy.event.get_nowrunningevent()
+        fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
+        tostep = cw.cwpy.sdata.find_step(self.tostep, event)
+        if not fromstep is None and not tostep is None:
+            value = cw.util.cmp(fromstep.value, tostep.value)
             index = self.get_compare_index(value)
         else:
             index = cw.IDX_TREEEND
 
         return index
 
-    def get_status(self):
-        fromstep = self.data.get("from")
-        tostep = self.data.get("to")
-
-        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
-            return "ステップ『%s』と『%s』を比較" % (fromstep, tostep)
+    def get_status(self, event):
+        fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
+        tostep = cw.cwpy.sdata.find_step(self.tostep, event)
+        if not fromstep is None and not tostep is None:
+            return "ステップ『%s』と『%s』を比較" % (fromstep.name, tostep.name)
         else:
             return "ステップが指定されていません"
 
-    def get_childname(self, child):
-        fromstep = self.data.get("from")
-        tostep = self.data.get("to")
-
-        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
+    def get_childname(self, child, event):
+        fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
+        tostep = cw.cwpy.sdata.find_step(self.tostep, event)
+        if not fromstep is None and not tostep is None:
             if self.get_contentname(child) == ">":
-                return "ステップ『%s』が『%s』より大きい" % (fromstep, tostep)
+                return "ステップ『%s』が『%s』より大きい" % (fromstep.name, tostep.name)
             elif self.get_contentname(child) == "=":
-                return "ステップ『%s』が『%s』と等しい" % (fromstep, tostep)
+                return "ステップ『%s』が『%s』と等しい" % (fromstep.name, tostep.name)
             else:
-                return "ステップ『%s』が『%s』より小さい" % (fromstep, tostep)
+                return "ステップ『%s』が『%s』より小さい" % (fromstep.name, tostep.name)
 
         else:
             return "ステップが指定されていません"
@@ -4656,41 +4639,41 @@ class BranchStepValueContent(BranchContent):
 class BranchFlagValueContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.fromflag = self.data.get("from")
+        self.toflag = self.data.get("to")
 
     def action(self):
         """フラグ比較分岐コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        fromflag = self.data.get("from")
-        toflag = self.data.get("to")
-
-        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
-            value = cw.cwpy.sdata.flags[fromflag].value == cw.cwpy.sdata.flags[toflag].value
+        event = cw.cwpy.event.get_nowrunningevent()
+        fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
+        toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
+        if not fromflag is None and not toflag is None:
+            value = fromflag.value == toflag.value
             index = self.get_boolean_index(value)
         else:
             index = cw.IDX_TREEEND
 
         return index
 
-    def get_status(self):
-        fromflag = self.data.get("from")
-        toflag = self.data.get("to")
-
-        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
-            return "フラグ『%s』と『%s』を比較" % (fromflag, toflag)
+    def get_status(self, event):
+        fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
+        toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
+        if not fromflag is None and not toflag is None:
+            return "フラグ『%s』と『%s』を比較" % (fromflag.name, toflag.name)
         else:
             return "フラグが指定されていません"
 
-    def get_childname(self, child):
-        fromflag = self.data.get("from")
-        toflag = self.data.get("to")
-
-        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
+    def get_childname(self, child, event):
+        fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
+        toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
+        if not fromflag is None and not toflag is None:
             if self.get_contentname(child) == "○":
-                return "フラグ『%s』が『%s』と同値" % (fromflag, toflag)
+                return "フラグ『%s』が『%s』と同値" % (fromflag.name, toflag.name)
             else:
-                return "フラグ『%s』が『%s』と異なる" % (fromflag, toflag)
+                return "フラグ『%s』が『%s』と異なる" % (fromflag.name, toflag.name)
 
         else:
             return "フラグが指定されていません"
@@ -4731,7 +4714,7 @@ class MoveBgImageContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         seq = []
         seq.append("セル名称 = 【%s】" % (self.cellname))
         if self.positiontype != "None":
@@ -4843,7 +4826,7 @@ class MoveCardContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         seq = []
         seq.append("カードグループ = 【%s】" % (self.cardgroup))
         if self.positiontype != "None":
@@ -4897,7 +4880,7 @@ class ReplaceBgImageContent(EventContentBase):
 
         return 0
 
-    def get_status(self):
+    def get_status(self, event):
         seq = []
 
         for e in self.data.getfind("BgImages", raiseerror=False):
