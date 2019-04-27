@@ -1297,7 +1297,7 @@ def _create_nametable(full, talker):
     selected = cw.cwpy.event.get_targetmember("Selected")\
                if cw.cwpy.event.has_selectedmember() else ""
     unselected = cw.cwpy.event.get_targetmember("Unselected")
-    if (full & _SP_FULL) != 0:
+    if full:
         inusecard = cw.cwpy.event.get_targetmember("Selectedcard")
     party = cw.cwpy.ydata.party
     yado = cw.cwpy.ydata
@@ -1309,7 +1309,7 @@ def _create_nametable(full, talker):
         "#y" : yado,       # 宿の名前
         "#t" : party       # パーティの名前
     }
-    if (full & _SP_FULL) != 0:
+    if full:
         name_table["#c"] = inusecard # 使用カード名(カード使用イベント時のみ)
         name_table["#i"] = talker    # 話者の名前(表示イメージのキャラやカード名)
 
