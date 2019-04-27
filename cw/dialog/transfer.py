@@ -59,7 +59,6 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imgidx_album = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["CARD"])
         self.imgidx_partyrecord = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["SELECTION"])
         self.imgidx_savedjpdcimage = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["JPDCIMAGE"])
-        self.datalist.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
 
         def func(index, flag):
             self.datalist.DefaultOnCheckItem(index, flag)
