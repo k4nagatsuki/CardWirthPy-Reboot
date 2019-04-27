@@ -1564,7 +1564,7 @@ class ScenarioData(SystemData):
         for header in cw.cwpy.ydata.party.get_allcardheaders():
             header.set_scenariostart()
 
-    def end(self, showdebuglog=False):
+    def end(self, showdebuglog=False, complete=False, failure=False):
         """
         シナリオの正規終了時の共通処理をまとめたもの。
         冒険の中断時やF9時には呼ばない。
@@ -1626,6 +1626,11 @@ class ScenarioData(SystemData):
 
         # 保存済みJPDCイメージを宿フォルダへ移動
         cw.header.SavedJPDCImageHeader.create_header(debuglog)
+
+        # 状態変数を保存
+        cw.cwpy.ydata.save_variables(self.name, self.author, complete,
+                                     cw.cwpy.sdata.flags, cw.cwpy.sdata.steps, cw.cwpy.sdata.variants,
+                                     debuglog)
 
         cw.cwpy.background.clear_background()
         cw.cwpy.ydata.party.remove_numbercoupon()
@@ -1705,6 +1710,24 @@ class ScenarioData(SystemData):
                 if not os.path.isdir(dpath3):
                     os.makedirs(dpath3)
                 shutil.copy2(frompath, topath)
+
+        # 宿に保存された状態変数(Wsn.4)
+        key = (self.name, self.author)
+        vars = cw.cwpy.ydata.saved_variables.get(key, None)
+        if vars:
+            _, flags, steps, variants = vars
+            for name, value in flags.items():
+                flag = self.flags.get(name, None)
+                if not flag is None and not flag.initialization in ("Leave"):
+                    flag.set(value)
+            for name, value in steps.items():
+                step = self.steps.get(name, None)
+                if not step is None and not step.initialization in ("Leave"):
+                    step.set(value)
+            for name, value in variants.items():
+                variant = self.variants.get(name, None)
+                if not variant is None and not variant.initialization in ("Leave"):
+                    variant.set(value)
 
         # create_zip
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
@@ -1943,6 +1966,7 @@ class Flag(object):
         self.falsename = falsename if falsename else ""
         self.defaultvalue = defaultvalue
         self.spchars = spchars
+        self.initialization = data.getattr(".", "initialize", "Leave") if not data is None else "Leave"
 
     def __bool__(self):
         return self.value
@@ -1989,7 +2013,7 @@ class Flag(object):
             return s
 
     def write_value(self):
-        if self.is_writable:
+        if self.is_writable and self.initialization != "EventExit":
             self._data.set("value", str(self.value))
             self._parent.is_edited = True
 
@@ -2029,6 +2053,7 @@ class Step(object):
         self.valuenames = valuenames
         self.defaultvalue = defaultvalue
         self.spchars = spchars
+        self.initialization = data.getattr(".", "initialize", "Leave") if not data is None else "Leave"
 
     def set(self, value, updatedebugger=True):
         value = cw.util.numwrap(value, 0, len(self.valuenames)-1)
@@ -2060,7 +2085,7 @@ class Step(object):
             return s
 
     def write_value(self):
-        if self.is_writable:
+        if self.is_writable and self.initialization != "EventExit":
             self._data.set("value", str(self.value))
             self._parent.is_edited = True
 
@@ -2074,6 +2099,7 @@ class Variant(object):
         self.value = value
         self.name = name
         self.defaultvalue = defaultvalue
+        self.initialization = data.getattr(".", "initialize", "Leave") if not data is None else "Leave"
 
     def set(self, value, updatedebugger=True):
         if self.value != value:
@@ -2114,7 +2140,7 @@ class Variant(object):
         return Variant.value_to_str(self.value)
 
     def write_value(self):
-        if self.is_writable:
+        if self.is_writable and self.initialization != "EventExit":
             self._data.set("type", self.type)
             self._data.set("value", str(self.value))
             self._parent.is_edited = True
@@ -2322,6 +2348,9 @@ class YadoData(object):
 
         self.yadodb.close()
 
+        # 保存済み状態変数
+        self.saved_variables = cw.data.YadoData.get_savedvariables(self.environment)
+
         # ゲームオーバーして破棄されたパーティ
         self.losted_party = None
 
@@ -2515,7 +2544,7 @@ class YadoData(object):
     def is_empty(self):
         return not (self.partys or self.standbys or self.storehouse or\
                     self.album or self.partyrecord or self.savedjpdcimage or\
-                    self.get_gossips() or self.get_compstamps())
+                    self.get_gossips() or self.get_compstamps() or self.saved_variables)
 
     def set_skinname(self, skindirname, skintype):
         self.skindirname = skindirname
@@ -3450,6 +3479,123 @@ class YadoData(object):
             be.append(e)
         self.environment.is_edited = True
 
+    @staticmethod
+    def get_savedvariables(environment):
+        """保存された状態変数を((scenario, author), (element, flags, steps, variants))で返す。"""
+        data = environment.find("SavedVariables")
+        if data is None:
+            return {}
+        d = {}
+        for e in data:
+            if e.tag != "Variables":
+                continue
+            scenario = e.getattr(".", "scenario", "")
+            author = e.getattr(".", "author", "")
+            if not scenario and not author:
+                continue
+            key = (scenario, author)
+            flags = {}
+            for e_flag in e.getfind("Flags", raiseerror=False):
+                name = e_flag.getattr(".", "name", "")
+                if not name:
+                    continue
+                flags[name] = e_flag.getbool(".", "value", False)
+            steps = {}
+            for e_step in e.getfind("Steps", raiseerror=False):
+                name = e_step.getattr(".", "name", "")
+                if not name:
+                    continue
+                steps[name] = e_step.getint(".", "value", 0)
+            variants = {}
+            for e_variant in e.getfind("Variants", raiseerror=False):
+                name = e_variant.getattr(".", "name", "")
+                if not name:
+                    continue
+                type = e_variant.getattr(".", "type", "")
+                if not type:
+                    continue
+                value = Variant.value_from_str(type, e_variant.getattr(".", "value", ""))
+                variants[name] = value
+            d[key] = (e, flags, steps, variants)
+        return d
+
+    def save_variables(self, scenario, author, complete, flags, steps, variants, debuglog):
+        target = ("None",) if complete else ("Complete", "None")
+        d_flags = {}
+        for flag in flags.values():
+            if flag.initialization in target:
+                d_flags[flag.name] = flag.value
+                if debuglog:
+                    debuglog.add_flag(flag.name)
+        d_steps = {}
+        for step in steps.values():
+            if step.initialization in target:
+                d_steps[step.name] = step.value
+                if debuglog:
+                    debuglog.add_step(step.name)
+        d_variants = {}
+        for variant in variants.values():
+            if variant.initialization in target:
+                d_variants[variant.name] = variant.value
+                if debuglog:
+                    debuglog.add_variant(variant.name)
+        key = (scenario, author)
+
+        if key in self.saved_variables:
+            data = self.environment.find("SavedVariables")
+            e, _, _, _ = self.saved_variables[key]
+            if not d_flags and not d_steps and not d_variants:
+                data.remove(e)
+                if debuglog:
+                    debuglog.remove_variables()
+                self.environment.is_edited = True
+                return
+            e.clear()
+        else:
+            if not d_flags and not d_steps and not d_variants:
+                return
+            data = self.environment.find("SavedVariables")
+            if data is None:
+                data = make_element("SavedVariables")
+                self.environment.append(".", data)
+            e = make_element("Variables")
+            data.append(e)
+        e.set("scenario", scenario)
+        e.set("author", author)
+        if d_flags:
+            e_flags = make_element("Flags")
+            e.append(e_flags)
+            for name, value in d_flags.items():
+                e_flags.append(make_element("Flag", attrs={"name": name,
+                                                           "value": str(value)}))
+        if d_steps:
+            e_steps = make_element("Steps")
+            e.append(e_steps)
+            for name, value in d_steps.items():
+                e_steps.append(make_element("Step", attrs={"name": name,
+                                                           "value": str(value)}))
+        if d_variants:
+            e_variants = make_element("Variants")
+            e.append(e_variants)
+            for name, value in d_variants.items():
+                e_variants.append(make_element("Variant", attrs={"name": name,
+                                                                 "type": Variant.value_to_type(value),
+                                                                 "value": str(value)}))
+
+        self.environment.is_edited = True
+        self.saved_variables[key] = (e, d_flags, d_steps, d_variants)
+
+    def remove_savedvariables(self, scenario, author):
+        key = (scenario, author)
+        d = self.saved_variables.get(key, None)
+        if not d:
+            return
+        e, _, _, _ = d
+        data = self.environment.find("SavedVariables")
+        data.remove(e)
+        del self.saved_variables[key]
+
+
 def find_scefullpath(scepath, spaths):
     """開始ディレクトリscepathから経路spathsを
     辿った結果得られたフルパスを返す。
@@ -3465,6 +3611,7 @@ def find_scefullpath(scepath, spaths):
         bookmarkpath = os.path.abspath(scepath)
         bookmarkpath = os.path.normpath(scepath)
     return bookmarkpath
+
 
 class Party(object):
     def __init__(self, header, partyinfoonly=True):

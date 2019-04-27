@@ -81,6 +81,7 @@ class CardHeader(object):
                 self.wsnversion = ""
             self.moved = dbrec["moved"]
             self.star = dbrec["star"]
+            self.need_resetvariables = bool(dbrec["resetvariables"])
         else:
             self.set_owner(owner)
             self.carddata = carddata
@@ -156,6 +157,7 @@ class CardHeader(object):
                     data.append(e)
                 self.price = 1000
 
+            self.need_resetvariables = self.carddata.getbool(".", "resetvariables", False)
             self.flags = cw.data.init_flags(self.carddata, True)
             self.steps = cw.data.init_steps(self.carddata, True)
             self.variants = cw.data.init_variants(self.carddata, True)
@@ -318,6 +320,15 @@ class CardHeader(object):
 
     def get_cardimg(self):
         return self.cardimg.get_cardimg(self)
+
+    def set_resetvariables(self, resetvariables):
+        assert self.carddata is not None
+        self.need_resetvariables = resetvariables
+        if not self.carddata is None:
+            if resetvariables:
+                self.carddata.set("resetvariables", str(resetvariables))
+            elif "resetvariables" in self.carddata.attrib:
+                self.carddata.attrib.pop("resetvariables")
 
     def do_write(self, dupcheck=True):
         if not self._lazy_write is None:
@@ -609,6 +620,7 @@ class CardHeader(object):
         self.do_write()
         if self.scenariocard:
             if self.carddata is None:
+                assert self.is_backpackheader()
                 if cw.fsync.is_waiting(self.fpath):
                     cw.fsync.sync()
                 assert self.fpath, self.name
@@ -632,6 +644,8 @@ class CardHeader(object):
             self.imgpaths = cw.image.get_imageinfos(self.carddata.find("Property"))
             self.set_cardimg(self.imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False),
                              anotherscenariocard=False)
+            if self.need_resetvariables:
+                self.reset_variables()
             if self.is_backpackheader():
                 self.write()
                 self.carddata = None
@@ -642,6 +656,22 @@ class CardHeader(object):
         elif self.type == "BeastCard" and not self.attachment:
             cw.cwpy.trade("TRASHBOX", header=self, from_event=True)
 
+        elif self.need_resetvariables:
+            if self.carddata is None:
+                assert self.is_backpackheader()
+                if cw.fsync.is_waiting(self.fpath):
+                    cw.fsync.sync()
+                assert self.fpath, self.name
+                assert os.path.isfile(self.fpath), self.fpath
+                self.carddata = cw.data.xml2element(self.fpath)
+            self.reset_variables()
+            if self.is_backpackheader():
+                self.write()
+                self.carddata = None
+                self.flags = {}
+                self.steps = {}
+                self.variants = {}
+
         if self.is_ccardheader() and self.type == "SkillCard" and not self.carddata is None:
             self.carddata.getfind("Property/UseLimit").text = "0"
 
@@ -650,6 +680,37 @@ class CardHeader(object):
             owner.data.is_edited = True
         elif self.is_backpackheader():
             cw.cwpy.ydata.party.data.is_edited = True
+
+    def reset_variables(self):
+        """シナリオ終了時の状態変数初期化処理を行う。"""
+        assert self.carddata is not None
+        if not self.need_resetvariables:
+            return
+        for e in self.carddata.getfind("Flags"):
+            if e.getattr(".", "initialize", "Leave") == "Leave":
+                e.set("value", e.get("default"))
+        for e in self.carddata.getfind("Steps"):
+            if e.getattr(".", "initialize", "Leave") == "Leave":
+                e.set("value", e.get("default"))
+        for e in self.carddata.getfind("Variants"):
+            if e.getattr(".", "initialize", "Leave") == "Leave":
+                e.set("type", e.get("defaulttype"))
+                e.set("value", e.get("defaultvalue"))
+
+        for flag in self.flags.values():
+            if flag.initialization == "Leave":
+                flag.set(flag.defaultvalue)
+        for step in self.steps.values():
+            if step.initialization == "Leave":
+                step.set(step.defaultvalue)
+        for variant in self.variants.values():
+            if variant.initialization == "Leave":
+                variant.set(variant.defaultvalue)
+
+        if "resetvariables" in self.carddata.attrib:
+            self.carddata.attrib.pop("resetvariables")
+        self.need_resetvariables = False
+        self.carddata.is_edited = True
 
     def copy(self):
         """

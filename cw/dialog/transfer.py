@@ -59,7 +59,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imgidx_album = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["CARD"])
         self.imgidx_partyrecord = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["SELECTION"])
         self.imgidx_savedjpdcimage = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["JPDCIMAGE"])
-        self.datalist.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
+        self.imgidx_variables = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["VARIABLES"])
 
         def func(index, flag):
             self.datalist.DefaultOnCheckItem(index, flag)
@@ -133,6 +133,8 @@ class TransferYadoDataDialog(wx.Dialog):
         savedjpdcimage = yadodb.get_savedjpdcimage()
         yadodb.close()
 
+        saved_variables = cw.data.YadoData.get_savedvariables(data)
+
         partymembers = set()
 
         if album:
@@ -149,6 +151,20 @@ class TransferYadoDataDialog(wx.Dialog):
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_partyrecord)
             self.datalist.CheckItem(i, False)
             self.data.append(partyrecord)
+            i += 1
+
+        keys = list(saved_variables.keys())
+        for key in cw.util.sorted_by_attr(keys):
+            header = saved_variables[key][0]
+            self.datalist.InsertItem(i, "")
+            if key[1]:
+                s = "状態変数 - %s(%s)" % (key[0], key[1])
+            else:
+                s = "状態変数 - %s" % (key[0])
+            self.datalist.SetItem(i, 1, s)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_variables)
+            self.datalist.CheckItem(i, False)
+            self.data.append((key, header))
             i += 1
 
         keys = list(savedjpdcimage.keys())
@@ -277,6 +293,9 @@ class TransferYadoDataDialog(wx.Dialog):
             elif isinstance(data, cw.header.SavedJPDCImageHeader):
                 # 保存されたJPDCイメージ
                 counter += 1
+            elif isinstance(data, tuple) and data[1].tag == "Variables":
+                # 保存された状態変数
+                counter += 1
             else:
                 assert False
 
@@ -304,6 +323,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 skindir = prop.properties.get("Skin", "")
                 self.fromscedir = _skindir_to_scedir(skindir)
                 self.environment = cw.data.xml2etree(cw.util.join_paths(toyado, "Environment.xml"))
+                self.saved_variables = cw.data.YadoData.get_savedvariables(self.environment)
                 self.toscedir = _skindir_to_scedir(self.environment.gettext("Property/Skin", ""))
                 self.imgpaths = {}
                 self.membertable = {}
@@ -342,6 +362,13 @@ class TransferYadoDataDialog(wx.Dialog):
                                 name = "JPDC - %s(%s)" % (data.scenarioname, data.scenarioauthor)
                             else:
                                 name = "JPDC - %s" % (data.scenarioname)
+                        elif isinstance(data, tuple) and data[1].tag == "Variables":
+                            # 保存された状態変数
+                            scenario, author = data[0]
+                            if author:
+                                name = "状態変数 - %s(%s)" % (scenario, author)
+                            else:
+                                name = "状態変数 - %s" % (scenario)
                         else:
                             name = data.name
                         self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
@@ -377,6 +404,9 @@ class TransferYadoDataDialog(wx.Dialog):
                         elif isinstance(data, cw.header.SavedJPDCImageHeader):
                             # 保存されたJPDCイメージ
                             self.outer.transfer_savedjpdcimage(fromyado, toyado, data, yadodb, savedjpdcimage, self)
+                        elif isinstance(data, tuple) and data[1].tag == "Variables":
+                            # 保存された状態変数
+                            self.outer.transfer_savedvariables(fromyado, toyado, data, yadodb, data, self)
                         else:
                             assert False
 
@@ -723,6 +753,28 @@ class TransferYadoDataDialog(wx.Dialog):
 
         if yadodb:
             yadodb.insert_savedjpdcimageheader(header, commit=False)
+
+        counter.num += 1
+
+    def transfer_savedvariables(self, fromyado, toyado, header, yadodb, d, counter):
+        # 保存された状態変数の転送
+        # 転送先に同じシナリオの状態変数がある場合は上書きする
+        key, e = d
+        data = counter.environment.find("SavedVariables")
+        if key in counter.saved_variables:
+            e_target = counter.saved_variables[key][0]
+            e_target.clear()
+        else:
+            if data is None:
+                data = cw.data.make_element("SavedVariables")
+                counter.environment.append(".", data)
+            e_target = cw.data.make_element("Variables")
+            data.append(e_target)
+        e_target.set("scenario", key[0])
+        e_target.set("author", key[1])
+        for e_vars in e:
+            e_target.append(e_vars)
+        counter.environment.is_edited = True
 
         counter.num += 1
 

@@ -794,6 +794,7 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoW
             self.make_editor()
         listmix.TextEditMixin.OpenEditor(self, row, col)
 
+
 #-------------------------------------------------------------------------------
 #  保存済みJPDCイメージ整理ダイアログ
 #-------------------------------------------------------------------------------
@@ -906,6 +907,119 @@ class SavedJPDCImageEditDialog(wx.Dialog):
     def _item_selected(self):
         indexes = self.get_selectedindexes()
         self.rmvbtn.Enable(bool(indexes))
+
+
+#-------------------------------------------------------------------------------
+#  保存済み状態変数整理ダイアログ
+#-------------------------------------------------------------------------------
+
+class SavedVariablesEditDialog(wx.Dialog):
+
+    def __init__(self, parent, savedvariables):
+        wx.Dialog.__init__(self, parent, -1, "状態変数を保存したシナリオ",
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+        self.cwpy_debug = True
+        keys = iter(savedvariables.keys())
+        self.list = list(cw.util.sorted_by_attr(keys))
+        self._removed = []
+
+        # リスト
+        image = cw.cwpy.rsrc.debugs["VARIABLES_dbg"]
+        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.BORDER)
+        self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
+        self.values.imgidx = self.values.imglist.Add(image)
+        self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
+        self.values.InsertColumn(0, "状態変数名")
+        self.values.SetColumnWidth(0, cw.ppis(170))
+        self.values.setResizeColumn(0)
+
+        # 検索
+        self.find = FindPanel(self, self.values, self._item_selected)
+
+        # 削除
+        self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name="削除")
+
+        # 決定
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
+        # 中止
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
+
+        self._bind()
+        self._do_layout()
+
+        for name, author in self.list:
+            index = self.values.GetItemCount()
+            if author:
+                s = "%s(%s)" % (name, author)
+            else:
+                s = "%s" % (name)
+            self.values.InsertItem(index, s)
+            self.values.SetItemImage(index, self.values.imgidx)
+
+        self._item_selected()
+
+    def _bind(self):
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
+        self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
+
+    def _do_layout(self):
+        sizer_left = wx.BoxSizer(wx.VERTICAL)
+        sizer_left.Add(self.values, 1, flag=wx.EXPAND)
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
+
+        sizer_right = wx.BoxSizer(wx.VERTICAL)
+        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
+        sizer_right.AddStretchSpacer(1)
+        sizer_right.Add(self.okbtn, 0, wx.EXPAND)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnRemoveBtn(self, event):
+        while True:
+            index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            self._removed.append(self.list.pop(index))
+            self.values.DeleteItem(index)
+        self._item_selected()
+
+    def OnOkBtn(self, event):
+        def func(removedlist):
+            cw.cwpy.play_sound("harvest")
+            for removed in removedlist:
+                if removed in cw.cwpy.ydata.saved_variables:
+                    cw.cwpy.ydata.remove_savedvariables(removed[0], removed[1])
+            if cw.cwpy.event:
+                cw.cwpy.event.refresh_tools()
+        cw.cwpy.exec_func(func, self._removed)
+        self.EndModal(wx.ID_OK)
+
+    def OnItemSelected(self, event):
+        self._item_selected()
+
+    def get_selectedindexes(self):
+        index = -1
+        indexes = []
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            indexes.append(index)
+        return indexes
+
+    def _item_selected(self):
+        indexes = self.get_selectedindexes()
+        self.rmvbtn.Enable(bool(indexes))
+
 
 #-------------------------------------------------------------------------------
 #  ブレークポイント整理ダイアログ

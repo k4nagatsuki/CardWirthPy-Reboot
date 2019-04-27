@@ -1410,12 +1410,20 @@ class CardEvent(Event, Targeting):
         cw.cwpy.event.is_changestate = False
 
         # ローカル変数を更新する(Wsn.4)
+        def save_var(v):
+            if v.initialization == "EventExit":
+                v.value = v.defaultvalue
+            else:
+                v.write_value()
+            if v.initialization == "Leave" and v.value != v.defaultvalue:
+                self.inusecard.set_resetvariables(True)
+        self.inusecard.set_resetvariables(False)
         for flag in self._flags.values():
-            flag.write_value()
+            save_var(flag)
         for step in self._steps.values():
-            step.write_value()
+            save_var(step)
         for variant in self._variants.values():
-            variant.write_value()
+            save_var(variant)
 
         # effect_cardmotionでウェイトをとってない場合はここでとる
         if not self.waited:

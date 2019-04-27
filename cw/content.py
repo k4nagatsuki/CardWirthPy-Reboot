@@ -2758,7 +2758,7 @@ def end_scenario(complete):
     if cw.cwpy.rsrc.specialchars_is_changed:
         cw.cwpy.rsrc.specialchars = cw.cwpy.rsrc.get_specialchars()
 
-    cw.cwpy.sdata.end(showdebuglog=True)
+    cw.cwpy.sdata.end(showdebuglog=True, complete=complete)
     cw.cwpy.ydata.party.write()
 
     cw.cwpy.advlog.end_scenario(True, complete)

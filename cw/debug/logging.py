@@ -259,6 +259,36 @@ class DebugLogDialog(wx.Dialog):
                     self.text.Newline()
                     self.plain_text.append(s)
 
+        # 状態変数
+        if debuglog.flags or debuglog.steps or debuglog.variants or debuglog.is_removevariables:
+            if self.text.GetValue():
+                self.text.Newline()
+                self.plain_text.append("")
+            for name in debuglog.variants:
+                self.text.WriteImage(cw.cwpy.rsrc.debugs["VARIANT"])
+                s = "コモン「%s」の値を保存しました。" % (name)
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
+            for name in debuglog.steps:
+                self.text.WriteImage(cw.cwpy.rsrc.debugs["STEP"])
+                s = "ステップ「%s」の値を保存しました。" % (name)
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
+            for name in debuglog.flags:
+                self.text.WriteImage(cw.cwpy.rsrc.debugs["FLAG"])
+                s = "フラグ「%s」の値を保存しました。" % (name)
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
+            if debuglog.is_removevariables:
+                self.text.WriteImage(cw.cwpy.rsrc.debugs["REMOVE_VARIABLES"])
+                s = "保存されていた状態変数値を破棄しました。"
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
+
         # JPDCイメージ
         if debuglog.jpdc_image:
             if self.text.GetValue():
@@ -313,6 +343,7 @@ class DebugLogDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
+
 class DebugLog(object):
     def __init__(self, sname):
         """シナリオプレイ結果を通知するために各種情報をまとめる。"""
@@ -328,6 +359,10 @@ class DebugLog(object):
         self.jpdc_image = []
         self.startdatetime = None
         self.pausedtime = None
+        self.flags = []
+        self.steps = []
+        self.variants = []
+        self.is_removevariables = False
 
     def add_friend(self, fcard):
         """連れ込む同行キャストの情報を追加する。"""
@@ -366,6 +401,22 @@ class DebugLog(object):
     def add_jpdcimage(self, fname):
         """保存されたJPDCイメージの情報を追加する。"""
         self.jpdc_image.append(fname)
+
+    def add_flag(self, name):
+        """保存されたフラグ値の情報を追加する。"""
+        self.flags.append(name)
+
+    def add_step(self, name):
+        """保存されたステップ値の情報を追加する。"""
+        self.steps.append(name)
+
+    def add_variant(self, name):
+        """保存されたコモン値の情報を追加する。"""
+        self.variants.append(name)
+
+    def remove_variables(self):
+        """保存されていた状態変数値の削除情報を追加する。"""
+        self.is_removevariables = True
 
     def set_times(self, startdatetime, pausedtime):
         self.startdatetime = startdatetime

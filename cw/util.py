@@ -4077,6 +4077,10 @@ class CheckableListCtrl(wx.ListCtrl,
                     self.CheckItem(index, flag)
         self._checking = False
 
+    def Draw(self, index, dc, x, y, flags=wx.IMAGELIST_DRAW_NORMAL, solidBackground=False):
+        print(index, x, y)
+        wx.lib.mixins.listctrl.CheckListCtrlMixin.Draw(self, index, dc, x, y, flags, solidBackground)
+
 
 class CWBackCheckBox(wx.CheckBox):
     def __init__(self, parent, id, text):

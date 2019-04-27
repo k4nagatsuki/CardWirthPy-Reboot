@@ -20,6 +20,7 @@ mutex = threading.Lock()
 ID_COMPSTAMP = wx.NewId()
 ID_GOSSIP = wx.NewId()
 ID_SAVEDJPDCIMAGE = wx.NewId()
+ID_SAVEDVARIABLES = wx.NewId()
 ID_MONEY = wx.NewId()
 ID_CARD = wx.NewId()
 ID_MEMBER = wx.NewId()
@@ -132,6 +133,10 @@ class Debugger(wx.Frame):
                          "ゴシップリストを編集します。")
         self.mi_gossip.SetBitmap(rsrc["GOSSIP"])
         edit_menu.Append(self.mi_gossip)
+        self.mi_savedvariables = wx.MenuItem(edit_menu, ID_SAVEDVARIABLES, "保存済み状態変数(&V)",
+                         "保存された状態変数を整理します。")
+        self.mi_savedvariables.SetBitmap(rsrc["VARIABLES"])
+        edit_menu.Append(self.mi_savedvariables)
         self.mi_savedjpdcimage = wx.MenuItem(edit_menu, ID_SAVEDJPDCIMAGE, "保存済みJPDCイメージ(&G)",
                          "保存されたJPDCイメージを整理します。")
         self.mi_savedjpdcimage.SetBitmap(rsrc["JPDCIMAGE"])
@@ -290,6 +295,9 @@ class Debugger(wx.Frame):
         self.tl_gossip = self.tb1.AddTool(
             ID_GOSSIP, "ゴシップ", rsrc["GOSSIP"],
             shortHelp="ゴシップリストを編集します。")
+        self.tl_savedvariables = self.tb1.AddTool(
+            ID_SAVEDVARIABLES, "保存済み状態変数", rsrc["VARIABLES"],
+            shortHelp="保存された状態変数を整理します。")
         self.tl_savedjpdcimage = self.tb1.AddTool(
             ID_SAVEDJPDCIMAGE, "保存済みJPDCイメージ", rsrc["JPDCIMAGE"],
             shortHelp="保存されたJPDCイメージを整理します。")
@@ -562,6 +570,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnCompStampTool, id=ID_COMPSTAMP)
         self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
         self.Bind(wx.EVT_MENU, self.OnSavedJPDCImageTool, id=ID_SAVEDJPDCIMAGE)
+        self.Bind(wx.EVT_MENU, self.OnSavedVariablesTool, id=ID_SAVEDVARIABLES)
         self.Bind(wx.EVT_MENU, self.OnMoneyTool, id=ID_MONEY)
         self.Bind(wx.EVT_MENU, self.OnCardTool, id=ID_CARD)
         self.Bind(wx.EVT_MENU, self.OnPartyEnvTool, id=ID_PARTY_ENV)
@@ -702,6 +711,22 @@ class Debugger(wx.Frame):
                 if not self:
                     return
                 dlg = cw.debug.edit.SavedJPDCImageEditDialog(self, savedjpdcimage)
+                cw.cwpy.frame.move_dlg(dlg)
+                dlg.ShowModal()
+                dlg.Destroy()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+
+    def OnSavedVariablesTool(self, event):
+        def func(self):
+            if not cw.cwpy.ydata:
+                return
+            saved_variables = cw.cwpy.ydata.saved_variables.copy()
+
+            def func(self):
+                if not self:
+                    return
+                dlg = cw.debug.edit.SavedVariablesEditDialog(self, saved_variables)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -1661,6 +1686,7 @@ class Debugger(wx.Frame):
         def func(self):
             ydata = bool(cw.cwpy.ydata)
             party = bool(cw.cwpy.ydata and cw.cwpy.ydata.party)
+            savedvariables = bool(ydata and cw.cwpy.ydata.saved_variables)
             savedjpdcimage = bool(ydata and cw.cwpy.ydata.savedjpdcimage)
             event_paused = cw.cwpy.event.is_paused()
             event_step = cw.cwpy.event.is_stepexec()
@@ -1680,6 +1706,7 @@ class Debugger(wx.Frame):
 
                 enabled[self.mi_comp.GetId()] = (self.mi_comp, self.tl_comp, False)
                 enabled[self.mi_gossip.GetId()] = (self.mi_gossip, self.tl_gossip, False)
+                enabled[self.mi_savedvariables.GetId()] = (self.mi_savedvariables, self.tl_savedvariables, False)
                 enabled[self.mi_savedjpdcimage.GetId()] = (self.mi_savedjpdcimage, self.tl_savedjpdcimage, False)
                 enabled[self.mi_money.GetId()] = (self.mi_money, self.tl_money, False)
                 enabled[self.mi_card.GetId()] = (self.mi_card, self.tl_card, False)
@@ -1719,6 +1746,8 @@ class Debugger(wx.Frame):
                 if ydata:
                     enabled[self.mi_comp.GetId()] = (self.mi_comp, self.tl_comp, True)
                     enabled[self.mi_gossip.GetId()] = (self.mi_gossip, self.tl_gossip, True)
+                    if savedvariables:
+                        enabled[self.mi_savedvariables.GetId()] = (self.mi_savedvariables, self.tl_savedvariables, True)
                     if savedjpdcimage:
                         enabled[self.mi_savedjpdcimage.GetId()] = (self.mi_savedjpdcimage, self.tl_savedjpdcimage, True)
                     enabled[self.mi_money.GetId()] = (self.mi_money, self.tl_money, True)

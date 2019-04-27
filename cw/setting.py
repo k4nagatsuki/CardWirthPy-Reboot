@@ -2659,6 +2659,7 @@ CWXEDITOR_RESOURCES = {
     "VARIANT": "variant.png",
     "LOCAL_VARIANT": "variant_l.png",
     "YADO": "sc_y.png",
+    "VARIABLES": "flagdir.png",
 
     # Terminal
     "EVT_START": "evt_start.png",  # スタート

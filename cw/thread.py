@@ -2254,7 +2254,7 @@ class CWPy(_Singleton, threading.Thread):
                     s = "シナリオの読み込みに失敗しました。"
                     self.call_modaldlg("ERROR", text=s)
                 if isinstance(self.sdata, cw.data.ScenarioData):
-                    self.sdata.end()
+                    self.sdata.end(failure=True)
                 self.set_yado()
                 if self.is_showingdebugger() and self.event:
                     self.event.refresh_variablelist()
@@ -2287,7 +2287,7 @@ class CWPy(_Singleton, threading.Thread):
                             s = "シナリオに開始エリアが設定されていません。"
                             self.call_modaldlg("ERROR", text=s)
                             self.check_level(True)
-                            self.sdata.end()
+                            self.sdata.end(failure=True)
                             self.set_yado()
                             return
 
@@ -2297,7 +2297,7 @@ class CWPy(_Singleton, threading.Thread):
                                 s = "対応していないWSNバージョン(%s)のシナリオです。\n正常に動作しない可能性がありますが、開始しますか？" % (dataversion)
                                 self.call_modaldlg("YESNO", text=s)
                                 if self.get_yesnoresult() != wx.ID_OK:
-                                    self.sdata.end()
+                                    self.sdata.end(failure=True)
                                     self.set_yado()
                                     return
 
@@ -2711,7 +2711,7 @@ class CWPy(_Singleton, threading.Thread):
         def end_scenario():
             # シナリオを強制終了
             if self.is_playingscenario():
-                self.sdata.end()
+                self.sdata.end(failure=True)
             self.sdata.is_playing = False
 
             self.exec_func(init_resources)
@@ -4769,9 +4769,9 @@ class CWPy(_Singleton, threading.Thread):
                     if not header.carddata:
                         e = cw.data.yadoxml2etree(header.fpath)
                         header.carddata = e.getroot()
-                        header.flags = cw.data.init_flags(header.carddata)
-                        header.steps = cw.data.init_steps(header.carddata)
-                        header.variants = cw.data.init_variants(header.carddata)
+                        header.flags = cw.data.init_flags(header.carddata, True)
+                        header.steps = cw.data.init_steps(header.carddata, True)
+                        header.variants = cw.data.init_variants(header.carddata, True)
                     # シナリオプレイ中であれば削除フラグを立てて削除を保留
                     # (F9時に復旧する必要があるため)
                     if targettype in ("PAWNSHOP", "TRASHBOX"):
