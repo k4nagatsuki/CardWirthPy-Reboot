@@ -2389,7 +2389,7 @@ class EffectContent(EventContentBase):
         """効果コンテント。"""
         if self.targetm == "CardTarget":
             # カードの使用対象(Wsn.2)
-            if cw.cwpy.event.in_inusecardevent:
+            if cw.cwpy.event.get_inusecard():
                 e_effectevent = cw.cwpy.event.get_effectevent()
                 e_effectevent.update_targets()
                 target = e_effectevent.targets
