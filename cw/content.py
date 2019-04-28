@@ -2470,13 +2470,16 @@ class EffectContent(EventContentBase):
                 finally:
                     if self.ignite:
                         target.remove_coupon("＠イベント対象")
-            elif self.ignite:
+            else:
                 assert isinstance(target, cw.sprite.card.MenuCard)
                 cw.cwpy.play_sound_with(self.eff.soundpath, subvolume=self.eff.volume, loopcount=self.eff.loopcount,
                                     channel=self.eff.channel, fade=self.eff.fade)
                 self.eff.animate(target)
                 cw.cwpy.event.get_effectevent().mcards.discard(target)
-                runevent = event.ignition_menucardevent(target, keycodes=self.keycodes)
+                if self.ignite:
+                    runevent = event.ignition_menucardevent(target, keycodes=self.keycodes)
+                else:
+                    runevent = False
                 if runevent:
                     runevent.run_scenarioevent()
                 else:
