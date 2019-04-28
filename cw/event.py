@@ -1548,37 +1548,15 @@ class CardEvent(Event, Targeting):
 
         # ターゲット色反転＆ウェイト
         self.update_targets()
-        skipped = False
         if not d["allrange"] and len(self.targets) == 1:
-            self.targets[0].set_cardtarget()
-            if eff.check_enabledtarget(self.targets[0], False):
-                waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1) * 2
-                skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-                targets = self.targets
-            else:
-                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1
-                skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-                targets = []
-                self.targets[0].clear_cardtarget()
+            targets = initial_effect(eff, self.targets, d["allrange"], "", 100, 1, 0, 0)
         else:
             path = cw.util.validate_filepath(data.gettext("Property/SoundPath", ""))
             volume = data.getint("Property/SoundPath", "volume", 100)
             loopcount = data.getint("Property/SoundPath", "loopcount", 1)
             channel = data.getint("Property/SoundPath", "channel", 0)
             fade = data.getint("Property/SoundPath", "fadein", 0)
-            targets = []
-
-            for target in self.targets:
-                if eff.check_enabledtarget(target, False):
-                    target.set_cardtarget()
-                    cw.cwpy.play_sound_with(path, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
-                    waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
-                    skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-                    targets.append(target)
-
-        if not skipped and cw.cwpy.setting.wait_usecard:
-            waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
-            cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+            targets = initial_effect(eff, self.targets, d["allrange"], path, volume, loopcount, channel, fade)
 
         self.waited = True
 
@@ -1687,13 +1665,54 @@ def get_effecttargetstatus(target, eff):
     unconscious_flag = (eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) or eff.has_addablebeast(target)) and \
                        not isinstance(target, cw.sprite.card.MenuCard) and \
                        target.is_unconscious()
-    paralyze_flag = not isinstance(target, cw.sprite.card.MenuCard) and \
-                    target.is_paralyze()
+    paralyze_flag = not isinstance(target, cw.sprite.card.MenuCard) and target.is_paralyze()
     return unconscious_flag, paralyze_flag
+
+
+def initial_effect(eff, targets, allrange, path, volume, loopcount, channel, fade, remove_target=None):
+    """
+    カード初期効果のターゲット色反転&初期音声再生&ウェイトを実行する。
+    """
+    skipped = False
+    if not allrange and len(targets) == 1:
+        assert len(targets) == 1
+        targets[0].set_cardtarget()
+        if path:
+            cw.cwpy.play_sound_with(path, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
+        if eff.check_enabledtarget(targets[0], False):
+            waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1) * 2
+            skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+        else:
+            waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1
+            skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+            targets[0].clear_cardtarget()
+            if remove_target:
+                remove_target(targets[0])
+            targets = []
+    else:
+        targets2 = []
+        for target in targets:
+            if eff.check_enabledtarget(target, False):
+                target.set_cardtarget()
+                if path:
+                    cw.cwpy.play_sound_with(path, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
+                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1
+                skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+                targets2.append(target)
+            else:
+                if remove_target:
+                    remove_target(target)
+        targets = targets2
+
+    if not skipped and cw.cwpy.setting.wait_usecard:
+        waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
+        cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+    return targets
 
 
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

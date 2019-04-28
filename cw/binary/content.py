@@ -557,6 +557,8 @@ class Content(base.CWBinaryBase):
                 f.check_wsnversion("2", "選択メンバの能力参照")
             if data.getbool(".", "ignite", False):
                 f.check_wsnversion("2", "効果コンテントによるイベント発火")
+            if data.getbool(".", "initialeffect", False):
+                f.check_wsnversion("4", "初期効果の有無")
             f.write_dword(int(data.get("level")))
             f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm"), f, effectcontent=True))
             f.write_byte(base.CWBinaryBase.unconv_card_effecttype(data.get("effecttype")))

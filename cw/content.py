@@ -2353,6 +2353,14 @@ class EffectContent(EventContentBase):
         d["fadein"] = self.data.getint(".", "fadein", 0)
         d["channel"] = self.data.getint(".", "channel", 0)
 
+        self.initialeffect = self.data.getbool(".", "initialeffect", False)
+        if self.initialeffect:
+            self.initialsoundpath = cw.util.validate_filepath(self.data.get("initialsound", ""))
+            self.initialvolume = self.data.getint(".", "initialvolume", 100)
+            self.initialloopcount = self.data.getint(".", "initialloopcount", 1)
+            self.initialfadein = self.data.getint(".", "initialfadein", 0)
+            self.initialchannel = self.data.getint(".", "initialchannel", 0)
+
         # 選択メンバの能力参照(Wsn.2)
         d["refability"] = self.data.getbool(".", "refability", False)
         d["physical"] = self.data.getattr(".", "physical", "Dex")
@@ -2416,6 +2424,19 @@ class EffectContent(EventContentBase):
             else:
                 cardversion = None
 
+        def initial_effect(targets, tevent):
+            if not self.initialeffect:
+                return targets
+
+            def remove_target(target):
+                if isinstance(target, cw.character.Character):
+                    target.remove_coupon("＠効果対象")
+                if tevent:
+                    tevent.remove_target(target)
+            return cw.event.initial_effect(self.eff, targets, False,
+                                           self.initialsoundpath, self.initialvolume, self.initialloopcount,
+                                           self.initialchannel, self.initialfadein, remove_target)
+
         def apply(target):
             if isinstance(target, cw.character.Character):
                 cw.cwpy.event.is_changestate = True
@@ -2473,7 +2494,7 @@ class EffectContent(EventContentBase):
             else:
                 assert isinstance(target, cw.sprite.card.MenuCard)
                 cw.cwpy.play_sound_with(self.eff.soundpath, subvolume=self.eff.volume, loopcount=self.eff.loopcount,
-                                    channel=self.eff.channel, fade=self.eff.fade)
+                                        channel=self.eff.channel, fade=self.eff.fade)
                 self.eff.animate(target)
                 cw.cwpy.event.get_effectevent().mcards.discard(target)
                 if self.ignite:
@@ -2529,7 +2550,7 @@ class EffectContent(EventContentBase):
                                 break
 
                 # 効果イベントの差し替え
-                tevent = cw.event.Targeting(None, targets, False)
+                tevent = cw.event.Targeting(None, targets, self.initialeffect)
                 if e_mcards:
                     tevent.mcards = e_mcards
                 cw.cwpy.event.effectevent = tevent
@@ -2544,6 +2565,7 @@ class EffectContent(EventContentBase):
                 tevent.waited = True
 
                 # 効果の実行
+                initial_effect(targets, tevent)
                 while True:
                     member = tevent.get_nexttarget()
                     if member is None:
@@ -2573,11 +2595,13 @@ class EffectContent(EventContentBase):
                     else:
                         if e_eventtarget and isinstance(e_eventtarget, cw.character.Character):
                             e_eventtarget.set_coupon("＠イベント対象", 0)
-
         else:
             # イベントが発火しない場合の効果適用処理
+            targets = initial_effect(targets, None)
             for member in targets:
                 apply(member)
+                if member.cardtarget:
+                    member.clear_cardtarget()
                 if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                     break
 
