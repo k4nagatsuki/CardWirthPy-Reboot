@@ -988,16 +988,12 @@ class ScenarioData(SystemData):
                 self._reload()
 
     def _decompress(self, overwrite):
-        if self.fpath.lower().endswith(".cab"):
-            decompress = cw.util.decompress_cab
-        else:
-            decompress = cw.util.decompress_zip
-
         # 展開を別スレッドで実行し、進捗をステータスバーに表示
         self._progress = False
         self._arcname = os.path.basename(self.fpath)
         self._format = ""
         self._cancel_decompress = False
+
         def startup(filenum):
             def func():
                 self._filenum = filenum
@@ -1008,9 +1004,11 @@ class ScenarioData(SystemData):
                 cw.cwpy.expanding_cur = 0
                 cw.cwpy.statusbar.change()
             cw.cwpy.exec_func(func)
+
         def progress(cur):
             if not cw.cwpy.is_runningstatus() or self._cancel_decompress:
                 return True # cancel
+
             def func():
                 if not cw.cwpy.expanding:
                     return
@@ -1024,18 +1022,28 @@ class ScenarioData(SystemData):
             return False
 
         self._error = None
-        def run_decompress():
-            try:
-                self.tempdir = decompress(self.fpath, self.tempdir,
-                                          startup=startup, progress=progress,
-                                          overwrite=overwrite)
-            except Exception as e:
-                cw.util.print_ex(file=sys.stderr)
-                self._error = e
 
-        cw.cwpy.is_decompressing = True
-
+        thr = None
         try:
+            if not self.fpath.lower().endswith(".cab"):
+                z = cw.util.zip_file(self.fpath, "r")
+
+            def run_decompress():
+                try:
+                    if self.fpath.lower().endswith(".cab"):
+                        self.tempdir = cw.util.decompress_cab(self.fpath, self.tempdir,
+                                                              startup=startup, progress=progress,
+                                                              overwrite=overwrite)
+                    else:
+                        self.tempdir = cw.util.decompress_zip(self.fpath, self.tempdir,
+                                                              startup=startup, progress=progress,
+                                                              overwrite=overwrite, z=z)
+                except Exception as e:
+                    cw.util.print_ex(file=sys.stderr)
+                    self._error = e
+
+            cw.cwpy.is_decompressing = True
+
             thr = threading.Thread(target=run_decompress)
             thr.start()
             while thr.is_alive():
@@ -1045,8 +1053,12 @@ class ScenarioData(SystemData):
             cw.cwpy.get_eventhandler().run()
         except cw.event.EffectBreakError as ex:
             self._cancel_decompress = True
-            thr.join()
+            if thr:
+                thr.join()
             raise ex
+        except Exception as ex:
+            cw.util.print_ex()
+            self._error = ex
         finally:
             cw.fsync.sync()
             cw.cwpy.lazy_draw()

@@ -1,4 +1,4 @@
-﻿CardWirthPy Version.3.3
+﻿CardWirthPy Version.4α1
 ===============================
 
 作者
@@ -214,14 +214,14 @@ CardWirthPyでプレイ中か判定するイベントを作る方法について
 
 バージョン3現在、称号所持分岐で、次の2つの称号の所持判定は、実際に所持しているかどうかによらず必ず成功します。
 
- * ＠CardWirthPy Version.3.3
- * ＠CardWirthPy Version.3.3 Only
+ * ＠CardWirthPy Version.4.0
+ * ＠CardWirthPy Version.4.0 Only
 
 このうち、「Only」がついている称号は、CardWirthPyのバージョンアップ時に削除され、新しいバージョン固有の称号に差し替えられます。「Only」がついていない称号は、バージョンアップ後も残ります。
 
-CardWirthPyでプレイ中か判定する時やバージョンが3.3以降であるか判定する時には、「＠CardWirthPy Version.3.3」を使用して称号判定分岐を行ってください。
+CardWirthPyでプレイ中か判定する時やバージョンが4以降であるか判定する時には、「＠CardWirthPy Version.4.0」を使用して称号判定分岐を行ってください。
 
-CardWirthPy 3.3固有で将来修正される見込みのバグに対処したい場合などは、「＠CardWirthPy Version.3.3 Only」を使用してください。
+CardWirthPy 4固有で将来修正される見込みのバグに対処したい場合などは、「＠CardWirthPy Version.4.0 Only」を使用してください。
 
 使用可能な過去のバージョンの称号のリストは以下の通りです。
 
@@ -238,6 +238,7 @@ CardWirthPy 3.3固有で将来修正される見込みのバグに対処した�
  * ＠CardWirthPy Version.3.1
  * ＠CardWirthPy Version.3.2
  * ＠CardWirthPy Version.3.3
+ * ＠CardWirthPy Version.4.0
 
 
 WSN形式の特定バージョンへの対応を示すクーポンについて

@@ -2397,15 +2397,18 @@ def compress_zip(path, zpath, unicodefilename=False):
     return zpath
 
 
-def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrite=False):
+def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrite=False,
+                   z=None):
     """zipファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
     """
     cw.fsync.sync()
-    try:
-        z = zip_file(path, "r")
-    except:
-        return None
+    if not z:
+        try:
+            z = zip_file(path, "r")
+        except Exception:
+            print_ex()
+            return None
 
     if not dname:
         dname = splitext(os.path.basename(path))[0]
