@@ -959,7 +959,10 @@ class JpdcImage(cw.image.Image):
         if copymode == 3:
             self.image.fill((255, 255, 255))
         else:
+            selection = cw.cwpy.selection
+            cw.cwpy.clear_selection()
             cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, self.image)
+            cw.cwpy.change_selection(selection)
             if copymode == 2:
                 for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL):
                     self.image.blit(sprite.image, sprite.rect.topleft)
