@@ -1467,7 +1467,7 @@ class ScenarioSelect(select.Select):
             # ファイルの場合は拡張子を変更の対象外とする
             fname, ext = os.path.splitext(os.path.basename(fpath))
 
-        s = "%sの新しい名前を入力してください。" % (fname)
+        s = "「%s」の新しい名前を入力してください。" % (fname)
         dlg = cw.dialog.edit.InputTextDialog(self, cw.cwpy.msgs["rename"],
                                              msg=s,
                                              text=fname)

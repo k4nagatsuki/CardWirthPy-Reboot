@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import threading
 import wx
+import wx.richtext
 import pygame
 import pygame.locals
 
@@ -1509,8 +1510,9 @@ class MyApp(wx.App):
 
             if event.GetEventType() == wx.EVT_LEFT_DOWN.typeId:
                 window = event.GetEventObject()
-                if isinstance(window, wx.Window) and not isinstance(window, wx.Slider) and\
-                        not isinstance(window, NoFlick):
+                if isinstance(window, wx.Window):
+                    if isinstance(window, (NoFlick, wx.Slider, wx.TextCtrl, wx.richtext.RichTextCtrl)):
+                        return -1
                     self.flick_status = FLICK_START
                     self.flick_window = window
                     self.flick_start_pos = wx.GetMousePosition()
