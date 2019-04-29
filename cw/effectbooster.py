@@ -981,6 +981,7 @@ class JpdcImage(cw.image.Image):
         savecomment = config.get("jpdc:init", "savecomment", "")
 
         if doanime and not doanime.all_cut and not cw.cwpy.update_scaling and filename and cw.cwpy.is_playingscenario():
+            cw.fsync.sync()
             filename = cw.util.repl_dischar(filename)
             savecomment = savecomment.replace("%file%", filename)
             savecomment = savecomment.replace("%dir%", os.path.dirname(path))
@@ -1041,12 +1042,11 @@ class JpdcImage(cw.image.Image):
                     pathxn = "%s.x%d%s" % (spext[0], scale, spext[1])
                     if os.path.isfile(pathxn):
                         if not ex_cache is None and not nexist:
-                            ex_cache[i+1]  = pathxn
-                        cw.util.remove(pathxn)
+                            ex_cache[i+1] = pathxn
 
                 if not ex_cache is None:
                     for i, cachepath in enumerate(ex_cache):
-                        if cachepath:
+                        if cachepath and os.path.isfile(cachepath):
                             with open(cachepath, "rb") as f:
                                 ex_cache[i] = f.read()
                     cw.cwpy.sdata.ex_cache[npath] = tuple(ex_cache)
