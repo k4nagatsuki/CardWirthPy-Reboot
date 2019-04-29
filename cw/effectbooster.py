@@ -1046,9 +1046,12 @@ class JpdcImage(cw.image.Image):
 
                 if not ex_cache is None:
                     for i, cachepath in enumerate(ex_cache):
-                        if cachepath and os.path.isfile(cachepath):
-                            with open(cachepath, "rb") as f:
-                                ex_cache[i] = f.read()
+                        if cachepath:
+                            try:
+                                with open(cachepath, "rb") as f:
+                                    ex_cache[i] = f.read()
+                            except IOError:
+                                cw.util.print_ex()
                     cw.cwpy.sdata.ex_cache[npath] = tuple(ex_cache)
 
                 pygame.image.save(saveimage_noscale, path)
