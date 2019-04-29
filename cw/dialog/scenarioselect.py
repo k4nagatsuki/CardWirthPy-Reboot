@@ -1308,7 +1308,10 @@ class ScenarioSelect(select.Select):
         else:
             fpath = header
             name = os.path.basename(fpath)
-            s = "「%s」の移動先を選択してください。\n大量のシナリオやサブフォルダがある場合、移動には時間がかかる可能性があります。" % name
+            if sys.platform == "win32" and name.lower().endswith(".lnk"):
+                s = "ショートカット「%s」の移動先を選択してください。" % os.path.splitext(name)[0]
+            else:
+                s = "「%s」の移動先を選択してください。\n大量のシナリオやサブフォルダがある場合、移動には時間がかかる可能性があります。" % name
 
         dlg = scenarioinstall.SelectScenarioDirectory(self, "移動先の選択", s,
                                                       self.db, cw.cwpy.setting.skintype, self.scedir)
