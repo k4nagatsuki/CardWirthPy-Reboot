@@ -859,11 +859,11 @@ class YadoSelect(MultiViewSelect):
     def _sort_objs(self, objs):
         sorttype = cw.cwpy.setting.sort_yado
         if sorttype == "Name":
-            cw.util.sort_by_attr(objs, "name", "skin", "order", "yadodir")
+            cw.util.sort_by_attr(objs, "name", "skin", "order", "yadodirname")
         elif sorttype == "Skin":
-            cw.util.sort_by_attr(objs, "skin", "name", "order", "yadodir")
+            cw.util.sort_by_attr(objs, "skin", "name", "order", "yadodirname")
         else:
-            cw.util.sort_by_attr(objs, "order", "name", "skin", "yadodir")
+            cw.util.sort_by_attr(objs, "order", "name", "skin", "yadodirname")
 
     def OnMouseWheel(self, event):
         if cw.util.has_modalchild(self):
