@@ -573,6 +573,35 @@ def _func_len(args, is_differentscenario, line, pos):
     return DecimalValue(len(a.value), line, pos)
 
 
+def _func_find(args, is_differentscenario, line, pos):
+    """文字列内を検索する。"""
+    _chk_argscount2(args, 2, 3, "FIND", line, pos)
+    a = args[0]
+    _chk_string(a, "FIND", 0)
+    a = a.value
+    t = args[1]
+    _chk_string(t, "FIND", 1)
+    t = t.value
+    if 2 < len(args):
+        n = args[2]
+        _chk_minvalue(n, "FIND", 2)
+        start = int(n.value)
+        if start == 0:
+            return DecimalValue(0, line, pos)
+        start -= 1
+        if len(t) <= start:
+            return DecimalValue(0, line, pos)
+    else:
+        start = 0
+    if a == "" and t == "":
+        return DecimalValue(0, line, pos)
+    r = t[start:].find(a)
+    if r == -1:
+        return DecimalValue(0, line, pos)
+    r += start
+    return DecimalValue(r + 1, line, pos)
+
+
 def _func_left(args, is_differentscenario, line, pos):
     """文字列の左側を取り出す。"""
     _chk_argscount(args, 2, "LEFT", line, pos)
@@ -952,6 +981,7 @@ def _func_gossiptext(args, is_differentscenario, line, pos):
 
 _functions = {
     "len": _func_len,
+    "find": _func_find,
     "left": _func_left,
     "right": _func_right,
     "mid": _func_mid,
@@ -1018,8 +1048,24 @@ assert calculate(parse("5<>4")).value == True
 assert calculate(parse("4<>4")).value == False
 assert calculate(parse("3<>4")).value == True
 assert calculate(parse("LEN(\"TESTあいうえお\")")).value == 9
+assert calculate(parse("FIND(\"対象文字列\", \"対象文字列\")")).value == 1
+assert calculate(parse("FIND(\"文字\", \"対象文字列\")")).value == 3
+assert calculate(parse("FIND(\"文じ\", \"対象文字列\")")).value == 0
+assert calculate(parse("FIND(\"文字\", \"対象文字列\", 3)")).value == 3
+assert calculate(parse("FIND(\"文字\", \"対象文字列\", 4)")).value == 0
+assert calculate(parse("FIND(\"文字\", \"対象文字列\", 0)")).value == 0
+assert calculate(parse("FIND(\"列\", \"対象文字列\", 5)")).value == 5
+assert calculate(parse("FIND(\"列\", \"対象文字列\", 6)")).value == 0
+assert calculate(parse("FIND(\"\", \"対象文字列\")")).value == 1
+assert calculate(parse("FIND(\"\", \"対象文字列\", 5)")).value == 5
+assert calculate(parse("FIND(\"\", \"対象文字列\", 6)")).value == 0
+assert calculate(parse("FIND(\"字\", \"A象B文C字D列\")")).value == 6
+assert calculate(parse("FIND(\"字\", \"A象B文C字D列\", 6)")).value == 6
+assert calculate(parse("FIND(\"字\", \"A象B文C字D列\", 7)")).value == 0
+assert calculate(parse("FIND(\"\", \"\")")).value == 0
 assert calculate(parse("LEFT(\"あいうえお\", 0)")).value == ""
 assert calculate(parse("LEFT(\"あいうえお\", 3)")).value == "あいう"
+assert calculate(parse("LEFT(\"あいうえお\", 8)")).value == "あいうえお"
 assert calculate(parse("LEFT(\"あいうえお\", 8)")).value == "あいうえお"
 assert calculate(parse("RIGHT(\"あいうえお\", 0)")).value == ""
 assert calculate(parse("RIGHT(\"あいうえお\", 3)")).value == "うえお"

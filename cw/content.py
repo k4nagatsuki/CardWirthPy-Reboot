@@ -2013,7 +2013,7 @@ class BranchVariantContent(BranchContent):
         else:
             valuename = "FALSE"
 
-        return "〔 %s 〕の結果 = %s" % (self.expression, valuename)
+        return "%s = 〔 %s 〕" % (valuename, self.expression)
 
 
 #-------------------------------------------------------------------------------
