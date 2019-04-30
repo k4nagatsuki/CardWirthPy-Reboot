@@ -2783,6 +2783,7 @@ class CWPy(_Singleton, threading.Thread):
         self.stop_allsounds()
         self.ydata = cw.data.YadoData(self.yadodir, self.tempdir)
         self.setting.lastyado = yadodirname
+        self.setting.insert_yadoorder(yadodirname)
 
         if self.ydata.party:
             header = self.ydata.party.get_sceheader()

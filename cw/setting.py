@@ -373,7 +373,7 @@ class Setting(object):
         self.all_quickdeal = False
         self.skindirname = "Classic"
         self.vocation120 = False
-        self.sort_yado = "Name"
+        self.sort_yado = "None"
         self.sort_standbys = "None"
         self.sort_parties = "None"
         self.sort_cards = "None"
@@ -471,6 +471,9 @@ class Setting(object):
         self.fontexamplepixelsize = FONT_EXAMPLE_PIXEL_SIZE_INIT
         # 最小化中に完全に停止する
         self.stop_the_world_with_iconized = True
+
+        # 宿の表示順序
+        self.yado_order = {}
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_yado = False
@@ -574,7 +577,7 @@ class Setting(object):
         else:
             try:
                 self.expanddrawing = float(self.expandmode)
-            except:
+            except Exception:
                 self.expanddrawing = 1.0
         self.expanddrawing = data.getfloat("ExpandDrawing", self.expanddrawing)
         if self.expanddrawing % 1 == 0:
@@ -824,6 +827,16 @@ class Setting(object):
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
+
+        # 宿の表示順
+        for e_yadoorder in data.getfind("YadoOrder", raiseerror=False):
+            if e_yadoorder.tag != "Order":
+                continue
+            name = e_yadoorder.getattr(".", "name")
+            order = int(e_yadoorder.text)
+            ypath = cw.util.join_paths("Yado", name, "Environment.xml")
+            if os.path.isfile(ypath):
+                self.yado_order[name] = order
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_yado = data.getbool("ShowAdditionalControls", "yado", self.show_additional_yado)
@@ -1412,6 +1425,21 @@ class Setting(object):
                     break
         return scedir
 
+    def insert_yadoorder(self, yadodirname):
+        seq = []
+        for dname, order in self.yado_order.items():
+            seq.append((order, dname))
+        self.yado_order.clear()
+        self.yado_order[yadodirname] = 0
+        o = 1
+        for _, dname in sorted(seq):
+            if dname == yadodirname:
+                continue
+            self.yado_order[dname] = o
+            o += 1
+        pass
+
+
 class _MsgDict(dict):
     def __init__(self):
         """
@@ -1438,6 +1466,7 @@ class _MsgDict(dict):
                 self._error_keys.add(key)
             return "*ERROR*"
         return dict.__getitem__(self, key)
+
 
 class Resource(object):
     def __init__(self, setting):

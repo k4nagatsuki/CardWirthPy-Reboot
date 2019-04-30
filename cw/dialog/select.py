@@ -628,11 +628,14 @@ class MultiViewSelect(Select):
     def save_views(self, multi):
         pass
 
+
 #-------------------------------------------------------------------------------
 #　宿選択ダイアログ
 #-------------------------------------------------------------------------------
 
+
 _okid = wx.NewId()
+
 
 class YadoSelect(MultiViewSelect):
     """
@@ -667,14 +670,15 @@ class YadoSelect(MultiViewSelect):
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title"])
         self.sort_label.SetFont(font)
-        choices = (cw.cwpy.msgs["sort_name"],
+        choices = (cw.cwpy.msgs["sort_no"],
+                   cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["skin"])
         self.sort = wx.Choice(self, size=(-1, self.narrow.GetBestSize()[1]), choices=choices)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         if cw.cwpy.setting.sort_yado == "Name":
-            self.sort.Select(0)
-        elif cw.cwpy.setting.sort_yado == "Skin":
             self.sort.Select(1)
+        elif cw.cwpy.setting.sort_yado == "Skin":
+            self.sort.Select(2)
         else:
             self.sort.Select(0)
 
@@ -839,12 +843,12 @@ class YadoSelect(MultiViewSelect):
             return
 
         index = self.sort.GetSelection()
-        if index == 0:
+        if index == 1:
             sorttype = "Name"
-        elif index == 1:
+        elif index == 2:
             sorttype = "Skin"
         else:
-            sorttype = "Name"
+            sorttype = "None"
 
         if cw.cwpy.setting.sort_yado != sorttype:
             cw.cwpy.play_sound("page")
@@ -855,11 +859,11 @@ class YadoSelect(MultiViewSelect):
     def _sort_objs(self, objs):
         sorttype = cw.cwpy.setting.sort_yado
         if sorttype == "Name":
-            cw.util.sort_by_attr(objs, "name", "skin", "yadodir")
+            cw.util.sort_by_attr(objs, "name", "skin", "order", "yadodir")
         elif sorttype == "Skin":
-            cw.util.sort_by_attr(objs, "skin", "name", "yadodir")
+            cw.util.sort_by_attr(objs, "skin", "name", "order", "yadodir")
         else:
-            cw.util.sort_by_attr(objs, "name", "skin", "yadodir")
+            cw.util.sort_by_attr(objs, "order", "name", "skin", "yadodir")
 
     def OnMouseWheel(self, event):
         if cw.util.has_modalchild(self):
@@ -884,6 +888,10 @@ class YadoSelect(MultiViewSelect):
                 self.skin = skin
                 self.classic = classic
                 self.isshortcut = isshortcut
+                if isshortcut:
+                    self.order = cw.cwpy.setting.yado_order.get(os.path.basename(isshortcut), 0x7fffffff)
+                else:
+                    self.order = cw.cwpy.setting.yado_order.get(os.path.basename(yadodir), 0x7fffffff)
 
         seq = []
         for t in zip(self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts):
@@ -1053,6 +1061,7 @@ class YadoSelect(MultiViewSelect):
                         env = cw.util.join_paths(newpath, "Environment.xml")
                         data.write(env)
                         cw.cwpy.play_sound("harvest")
+                        cw.cwpy.setting.insert_yadoorder(os.path.basename(newpath))
                         self.update_list(newpath)
                     else:
                         cw.cwpy.play_sound("error")
@@ -1119,6 +1128,7 @@ class YadoSelect(MultiViewSelect):
                     cw.util.release_mutex()
                     cw.cwpy.play_sound("signal")
                     path = self.list[self.index]
+                    dname = os.path.basename(path)
                     if self.isshortcuts[self.index]:
                         yname = "%sへのショートカット" % (self.names[self.index])
                     else:
@@ -1135,6 +1145,7 @@ class YadoSelect(MultiViewSelect):
                         if not self.classic[self.index]:
                             cw.util.remove(cw.util.join_paths("Data/Temp/Local", path))
                         cw.cwpy.play_sound("dump")
+                        cw.cwpy.setting.yado_order.pop(dname, None)
                         if self.index+1 < len(self.list):
                             self.update_list(self.list[self.index+1])
                         elif 0 < self.index:
@@ -1160,6 +1171,7 @@ class YadoSelect(MultiViewSelect):
 
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.play_sound("harvest")
+            cw.cwpy.setting.insert_yadoorder(os.path.basename(dlg.yadodir))
             self.update_list(dlg.yadodir, clear_narrowcondition=True)
 
         dlg.Destroy()
@@ -1483,6 +1495,7 @@ class YadoSelect(MultiViewSelect):
                     shutil.move(path, topath)
 
                 cw.cwpy.play_sound("page")
+                cw.cwpy.setting.insert_yadoorder(os.path.basename(yadodir))
                 self.update_list(yadodir, clear_narrowcondition=True)
             finally:
                 cw.util.release_mutex()
@@ -1630,7 +1643,7 @@ class YadoSelect(MultiViewSelect):
                 else:
                     skins.append(cw.cwpy.skindir)
 
-                path  = cw.util.join_paths("Yado", dname)
+                path = cw.util.join_paths("Yado", dname)
                 yadodirs.append(path)
                 classic.append(False)
                 isshortcuts.append("")

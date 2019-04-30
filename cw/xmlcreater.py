@@ -113,6 +113,7 @@ def create_environment(name, dpath, skindirname, is_autoloadparty):
     _create_xml("Environment", path, d)
     return path
 
+
 def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     """Settings.xmlを新しく作る。
     _create_xmlは不使用。
@@ -143,8 +144,14 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             element.append(e)
         # ウィンドウ位置
         if setting.window_position != setting.window_position_init:
-            e = cw.data.make_element("WindowPosition", attrs={"left":str(setting.window_position[0]),
-                                                                "top":str(setting.window_position[1])})
+            e = cw.data.make_element("WindowPosition", attrs={"left": str(setting.window_position[0]),
+                                                              "top": str(setting.window_position[1])})
+            element.append(e)
+        # 宿の表示順
+        if setting.yado_order != setting.yado_order_init:
+            e = cw.data.make_element("YadoOrder", setting.lastyado)
+            for yadodirname, order in setting.yado_order.items():
+                e.append(cw.data.make_element("Order", str(order), attrs={"name": yadodirname}))
             element.append(e)
     # 拡大モード
     if writeplayingdata:

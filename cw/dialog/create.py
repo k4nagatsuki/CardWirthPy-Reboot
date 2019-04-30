@@ -2355,8 +2355,13 @@ class YadoCreater(wx.Dialog):
                 try:
                     shutil.move(self.yadodir, yadodir)
                     self.yadodir = yadodir
+                    newdname = os.path.basename(self.yadodir)
                     if cw.cwpy.setting.lastyado == olddname:
-                        cw.cwpy.setting.lastyado = os.path.basename(self.yadodir)
+                        cw.cwpy.setting.lastyado = newdname
+                    order = cw.cwpy.setting.yado_order.get(olddname, 0x7fffffff)
+                    if order != 0x7fffffff:
+                        del cw.cwpy.setting.yado_order[olddname]
+                        cw.cwpy.setting.yado_order[newdname] = order
                 except Exception:
                     cw.util.print_ex()
 
