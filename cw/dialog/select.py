@@ -889,9 +889,10 @@ class YadoSelect(MultiViewSelect):
                 self.classic = classic
                 self.isshortcut = isshortcut
                 if isshortcut:
-                    self.order = cw.cwpy.setting.yado_order.get(os.path.basename(isshortcut), 0x7fffffff)
+                    self.yadodirname = os.path.basename(isshortcut)
                 else:
-                    self.order = cw.cwpy.setting.yado_order.get(os.path.basename(yadodir), 0x7fffffff)
+                    self.yadodirname = os.path.basename(yadodir)
+                self.order = cw.cwpy.setting.yado_order.get(self.yadodirname, 0x7fffffff)
 
         seq = []
         for t in zip(self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts):
@@ -1199,7 +1200,7 @@ class YadoSelect(MultiViewSelect):
         if not (self.list and self.classic[self.index]):
             return
         yname = self.names[self.index]
-        s = "%sをCardWirthPy用に変換します。\nよろしいですか？" % yname
+        s = "「%s」をCardWirthPy用に変換します。\nよろしいですか？" % yname
         dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.Parent.move_dlg(dlg)
         cw.cwpy.play_sound("click")
