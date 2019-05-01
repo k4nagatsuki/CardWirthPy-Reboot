@@ -10,27 +10,33 @@ import wx.grid
 
 import cw
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # スキン変換ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SkinConversionDialog(wx.Dialog):
     def __init__(self, parent, exe, from_settings=False, get_localsettings=None):
         self.conv = cw.skin.convert.Converter(exe)
         wx.Dialog.__init__(self, parent, -1, "スキンの自動生成",
-                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
         if get_localsettings:
             self.local = get_localsettings()
             use_copybase = True
         elif cw.cwpy:
-            get_localsettings = lambda: cw.cwpy.setting.local
+            def get_local():
+                return cw.cwpy.setting.local
+            get_localsettings = get_local
             self.local = cw.cwpy.setting.local
             use_copybase = True
         else:
             self.local = cw.setting.LocalSetting()
-            get_localsettings = lambda: self.local
+
+            def get_local():
+                return self.local
+            get_localsettings = get_local
             use_copybase = False
 
         self.successful = False
@@ -122,7 +128,8 @@ class SkinConversionDialog(wx.Dialog):
 
         # プログレスダイアログ表示
         dlg = cw.dialog.progress.SysProgressDialog(self,
-            "スキンの変換 [%s]" % (self.conv.exe), "", maximum=self.conv.maximum)
+                                                   "スキンの変換 [%s]" % (self.conv.exe),
+                                                   "", maximum=self.conv.maximum)
         x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) // 2
         y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) // 2
         x += dlg.Parent.GetPosition()[0]
@@ -147,19 +154,19 @@ class SkinConversionDialog(wx.Dialog):
 
                 path1 = cw.util.get_keypath(cw.util.get_symlinktarget(targ))
 
-                ##existslink = False
-                ##for dpath in os.listdir(u"Scenario"):
-                ##    dpath = os.path.join(u"Scenario", dpath)
-                ##    path2 = cw.util.get_keypath(cw.util.get_symlinktarget(cw.util.get_linktarget(dpath)))
-                ##    if path1 == path2:
-                ##        existslink = True
-                ##        break
-                ##
-                ##if not existslink:
-                ##    link = os.path.basename(self.conv.scenariodir)
-                ##    link = cw.util.join_paths(u"Scenario", link + ".lnk")
-                ##    link = cw.binary.util.check_duplicate(link)
-                ##    cw.util.create_link(link, targ)
+                # existslink = False
+                # for dpath in os.listdir(u"Scenario"):
+                #     dpath = os.path.join(u"Scenario", dpath)
+                #     path2 = cw.util.get_keypath(cw.util.get_symlinktarget(cw.util.get_linktarget(dpath)))
+                #     if path1 == path2:
+                #         existslink = True
+                #         break
+                #
+                # if not existslink:
+                #     link = os.path.basename(self.conv.scenariodir)
+                #     link = cw.util.join_paths(u"Scenario", link + ".lnk")
+                #     link = cw.binary.util.check_duplicate(link)
+                #     cw.util.create_link(link, targ)
 
                 if cw.cwpy:
                     setting = cw.cwpy.setting
@@ -167,7 +174,7 @@ class SkinConversionDialog(wx.Dialog):
                     setting = cw.setting.Setting()
                 for skintype, _folder in setting.folderoftype:
                     if skintype == self.conv.skintype:
-                        break # 登録済み
+                        break  # 登録済み
                 else:
                     scpath = cw.util.relpath(path1, ".")
                     if scpath.startswith(".."):
@@ -191,7 +198,7 @@ class SkinConversionDialog(wx.Dialog):
 
                 setting.write()
 
-            except:
+            except Exception:
                 cw.util.print_ex()
 
         if self.conv.yadodir and (1, 2, 0, 0) <= self.conv.version:
@@ -214,18 +221,19 @@ class SkinConversionDialog(wx.Dialog):
                         if not os.path.isdir(dpath):
                             continue
                         cwyado = cw.binary.cwyado.CWYado(dpath, "Yado")
-                        if cwyado.is_convertible() and not cw.util.get_keypath(cw.util.get_symlinktarget(dpath)) in exists:
+                        if cwyado.is_convertible() and\
+                                cw.util.get_keypath(cw.util.get_symlinktarget(dpath)) not in exists:
                             link = os.path.basename(dpath)
                             link = cw.util.join_paths("Yado", link + ".lnk")
                             link = cw.binary.util.check_duplicate(link)
                             cw.util.create_link(link, dpath)
 
-            except:
+            except Exception:
                 cw.util.print_ex()
 
         if self.conv.failure:
             s = self.conv.errormessage
-            wx.MessageBox(s, "メッセージ", wx.OK|wx.ICON_EXCLAMATION, self)
+            wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_EXCLAMATION, self)
         elif self.from_settings:
             self.successful = True
             self.select_skin = True
@@ -237,7 +245,7 @@ class SkinConversionDialog(wx.Dialog):
             self.successful = True
             if 1 < cw.frame.get_skincount()[0]:
                 s = "スキンの自動生成に成功しました。生成したスキンに切り替えますか？"
-                if wx.MessageBox(s, "メッセージ", wx.YES_NO|wx.ICON_QUESTION, self) == wx.YES:
+                if wx.MessageBox(s, "メッセージ", wx.YES_NO | wx.ICON_QUESTION, self) == wx.YES:
                     self.select_skin = True
                     self.skindirname = self.conv.skindirname
             else:
@@ -268,20 +276,21 @@ class SkinConversionDialog(wx.Dialog):
         sizer.AddGrowableRow(row)
         sizer.AddGrowableCol(0)
         row += 1
-        sizer.Add(sizer_btn, pos=(row, 0), flag=wx.ALL|wx.ALIGN_RIGHT, border=cw.ppis(5))
+        sizer.Add(sizer_btn, pos=(row, 0), flag=wx.ALL | wx.ALIGN_RIGHT, border=cw.ppis(5))
         row += 1
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # スキン編集ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SkinEditDialog(wx.Dialog):
     def __init__(self, parent, skindirname, skinsummary, get_localsettings):
         wx.Dialog.__init__(self, parent, -1, "スキンの編集",
-                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
         self.skindirname = skindirname
@@ -406,22 +415,23 @@ class SkinEditDialog(wx.Dialog):
         sizer_info.Add(self.info, 1, wx.EXPAND, cw.ppis(0))
 
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
-        sizer_panel.Add(sizer_info, 1, wx.ALL|wx.EXPAND, cw.ppis(10))
+        sizer_panel.Add(sizer_info, 1, wx.ALL | wx.EXPAND, cw.ppis(10))
         self.pane_info.SetSizer(sizer_panel)
 
         sizer_btn.Add(self.btn_ok, 0, 0, cw.ppis(0))
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, cw.ppis(5))
 
         sizer.Add(self.warning, 0, wx.ALL, cw.ppis(3))
-        sizer.Add(self.note, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, cw.ppis(3))
-        sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(3))
+        sizer.Add(self.note, 1, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, cw.ppis(3))
+        sizer.Add(sizer_btn, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT, cw.ppis(3))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # 基本情報
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SkinBasePanel(wx.Panel):
     def __init__(self, parent, conv):
@@ -435,39 +445,47 @@ class SkinBasePanel(wx.Panel):
         self.exelabel = wx.StaticText(self, -1, "本体")
         self.exectrl = wx.TextCtrl(self)
         self.exectrl.SetValue(conv.exe)
-        self.exeref = cw.util.create_fileselection(self,
+        self.exeref = cw.util.create_fileselection(
+            self,
             target=self.exectrl,
             message="スキン生成元となるカードワース本体の選択",
             wildcard="カードワース本体 (*.exe)|*.exe|全てのファイル (*.*)|*.*",
             seldir=False,
-            callback=self._selected_exe)
+            callback=self._selected_exe
+        )
         # Dataディレクトリの名前
         self.datalabel = wx.StaticText(self, -1, "データ")
         self.datactrl = wx.TextCtrl(self)
         self.datactrl.SetValue(conv.datadir)
-        self.dataref = cw.util.create_fileselection(self,
-             target=self.datactrl,
-             message="スキン生成元のデータフォルダを選択してください。",
-             seldir=True,
-             getbasedir=self._get_basedir)
+        self.dataref = cw.util.create_fileselection(
+            self,
+            target=self.datactrl,
+            message="スキン生成元のデータフォルダを選択してください。",
+            seldir=True,
+            getbasedir=self._get_basedir
+        )
         # Scenarioディレクトリの名前
         self.scenariolabel = wx.StaticText(self, -1, "シナリオ")
         self.scenarioctrl = wx.TextCtrl(self)
         self.scenarioctrl.SetValue(conv.scenariodir)
-        self.scenarioref = cw.util.create_fileselection(self,
-             target=self.scenarioctrl,
-             message="スキン生成元のシナリオフォルダを選択してください。",
-             seldir=True,
-             getbasedir=self._get_basedir)
+        self.scenarioref = cw.util.create_fileselection(
+            self,
+            target=self.scenarioctrl,
+            message="スキン生成元のシナリオフォルダを選択してください。",
+            seldir=True,
+            getbasedir=self._get_basedir
+        )
         # Yadoディレクトリの名前
         self.yadolabel = wx.StaticText(self, -1, "宿")
         self.yadoctrl = wx.TextCtrl(self)
         self.yadoctrl.SetValue(conv.yadodir)
-        self.yadoref = cw.util.create_fileselection(self,
-             target=self.yadoctrl,
-             message="スキン生成元の宿フォルダを選択してください。",
-             seldir=True,
-             getbasedir=self._get_basedir)
+        self.yadoref = cw.util.create_fileselection(
+            self,
+            target=self.yadoctrl,
+            message="スキン生成元の宿フォルダを選択してください。",
+            seldir=True,
+            getbasedir=self._get_basedir
+        )
 
         self.box_info = wx.StaticBox(self, -1, "スキン情報")
         self.info = SkinInfoPanel(self)
@@ -500,7 +518,7 @@ class SkinBasePanel(wx.Panel):
         def add_base(ctrl, pos):
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL, 0)
-            gbsizer_base.Add(sizer, pos=pos, flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
+            gbsizer_base.Add(sizer, pos=pos, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
 
         add_base(self.exelabel, pos=(0, 0))
         add_base(self.exectrl, pos=(0, 1))
@@ -519,13 +537,13 @@ class SkinBasePanel(wx.Panel):
         bsizer_base.Add(gbsizer_base, 0, wx.EXPAND, cw.ppis(5))
         bsizer_info.Add(self.info, 1, wx.EXPAND, cw.ppis(5))
 
-        sizer_gb.Add(bsizer_base, pos=(0, 0), flag=wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
+        sizer_gb.Add(bsizer_base, pos=(0, 0), flag=wx.BOTTOM | wx.EXPAND, border=cw.ppis(5))
         sizer_gb.Add(bsizer_info, pos=(1, 0), flag=wx.EXPAND, border=cw.ppis(0))
         sizer_gb.AddGrowableRow(1)
         sizer_gb.AddGrowableCol(0)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_gb, 1, wx.ALL|wx.EXPAND, cw.ppis(10))
+        sizer.Add(sizer_gb, 1, wx.ALL | wx.EXPAND, cw.ppis(10))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -546,7 +564,7 @@ class SkinBasePanel(wx.Panel):
         self.exe = exe
 
         s = "%sの情報を自動抽出しますか？" % (os.path.basename(exe))
-        if wx.YES != wx.MessageBox(s, "メッセージ", wx.YES_NO|wx.ICON_QUESTION, self):
+        if wx.YES != wx.MessageBox(s, "メッセージ", wx.YES_NO | wx.ICON_QUESTION, self):
             return
 
         self.conv.init(exe)
@@ -579,9 +597,9 @@ class SkinBasePanel(wx.Panel):
             self.TopLevelParent.btn_ok.Disable()
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 基本情報(抽出以外)
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SkinInfoPanel(wx.Panel):
     def __init__(self, parent):
@@ -638,10 +656,11 @@ class SkinInfoPanel(wx.Panel):
         def add_info(ctrl, pos, colspan=1, rowspan=1, expand=True, growable=False):
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             growable = wx.EXPAND if growable else 0
-            sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL|growable, cw.ppis(0))
+            sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL | growable, cw.ppis(0))
             span = wx.GBSpan(colspan=colspan, rowspan=rowspan)
             expand = wx.EXPAND if expand else 0
-            gbsizer_info.Add(sizer, pos=pos, span=span, flag=wx.ALL|expand|wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
+            gbsizer_info.Add(sizer, pos=pos, span=span, flag=wx.ALL | expand | wx.ALIGN_CENTER_VERTICAL,
+                             border=cw.ppis(3))
 
         add_info(self.typelabel, pos=(0, 0))
         add_info(self.typectrl, pos=(0, 1), colspan=2)
@@ -666,9 +685,10 @@ class SkinInfoPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # 特性情報
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SkinFeaturePanel(wx.Panel):
     def __init__(self, parent, conv):
@@ -681,7 +701,7 @@ class SkinFeaturePanel(wx.Panel):
         basemakings = base.getfind("Makings")
 
         self.grid = wx.grid.Grid(self, -1, size=cw.ppis((200, 200)), style=wx.BORDER)
-        self.grid.CreateGrid(len(basesexes) + len(baseperiods) +\
+        self.grid.CreateGrid(len(basesexes) + len(baseperiods) +
                              len(basenatures) + len(basemakings), 12)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
@@ -760,6 +780,7 @@ class SkinFeaturePanel(wx.Panel):
 
     def get_values(self, conv):
         row = 0
+
         def get_rowdata(data, row):
             data.find("Name").text = self.grid.GetCellValue(row, 0)
             e = data.find("Physical")
@@ -787,14 +808,15 @@ class SkinFeaturePanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
-        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
+        sizer.Add(self.grid, 0, wx.EXPAND | wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # サウンド情報
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SkinSoundPanel(wx.Panel):
     def __init__(self, parent, conv):
@@ -829,14 +851,15 @@ class SkinSoundPanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
-        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
+        sizer.Add(self.grid, 0, wx.EXPAND | wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # メッセージ情報
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SkinMessagePanel(wx.Panel):
     def __init__(self, parent, conv):
@@ -952,14 +975,15 @@ class SkinMessagePanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
-        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
+        sizer.Add(self.grid, 0, wx.EXPAND | wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # カード情報
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SkinCardPanel(wx.Panel):
     def __init__(self, parent, conv):
@@ -1084,7 +1108,7 @@ class SkinCardPanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
-        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
+        sizer.Add(self.grid, 0, wx.EXPAND | wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()

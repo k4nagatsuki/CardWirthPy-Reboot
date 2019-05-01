@@ -13,9 +13,10 @@ import cw
 
 from functools import reduce
 
-#-------------------------------------------------------------------------------
-#　シナリオフォルダ選択ダイアログ
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# シナリオフォルダ選択ダイアログ
+# ------------------------------------------------------------------------------
 
 class SelectScenarioDirectory(wx.Dialog):
     """
@@ -24,7 +25,7 @@ class SelectScenarioDirectory(wx.Dialog):
     def __init__(self, parent, title, text, db, skintype, scedir):
         # ダイアログボックス作成
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((420, 400)),
-                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.SetDoubleBuffered(True)
         self.db = db
@@ -42,7 +43,7 @@ class SelectScenarioDirectory(wx.Dialog):
 
         # フォルダ選択用ツリー
         self.tree = wx.TreeCtrl(self, -1, size=(-1, -1),
-            style=wx.BORDER|wx.TR_SINGLE|wx.TR_DEFAULT_STYLE)
+                                style=wx.BORDER | wx.TR_SINGLE | wx.TR_DEFAULT_STYLE)
         self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1))
         self.tree.SetDoubleBuffered(True)
         self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
@@ -98,10 +99,10 @@ class SelectScenarioDirectory(wx.Dialog):
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.AddStretchSpacer(1)
         sizer_2.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
-        sizer_2.Add(self.createdirbtn, 0, wx.LEFT|wx.RIGHT|wx.ALIGN_CENTER, cw.wins(10))
-        sizer_1.Add(sizer_2, 0, wx.EXPAND, wx.LEFT|wx.RIGHT, cw.wins(10))
+        sizer_2.Add(self.createdirbtn, 0, wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER, cw.wins(10))
+        sizer_1.Add(sizer_2, 0, wx.EXPAND, wx.LEFT | wx.RIGHT, cw.wins(10))
 
-        sizer_1.Add(self.tree, 1, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.wins(8))
+        sizer_1.Add(self.tree, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, cw.wins(8))
 
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3.AddStretchSpacer(1)
@@ -109,7 +110,7 @@ class SelectScenarioDirectory(wx.Dialog):
             sizer_3.Add(button, 0, 0, 0)
             sizer_3.AddStretchSpacer(1)
 
-        sizer_1.Add(sizer_3, 0, wx.EXPAND|wx.TOP|wx.BOTTOM, cw.wins(12))
+        sizer_1.Add(sizer_3, 0, wx.EXPAND | wx.TOP | wx.BOTTOM, cw.wins(12))
 
         self.SetSizer(sizer_1)
         self.Layout()
@@ -187,7 +188,8 @@ class SelectScenarioDirectory(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         csize = self.GetClientSize()
         btnw = self.createdirbtn.GetSize()[0]
-        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20)-btnw-cw.wins(10), lambda s: dc.GetTextExtent(s)[0])
+        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20)-btnw-cw.wins(10),
+                                              lambda s: dc.GetTextExtent(s)[0])
         _w, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self._wrapped_text)
 
     def OnPaint(self, evt):
@@ -242,9 +244,9 @@ class SelectScenarioDirectory(wx.Dialog):
         return dirstack[1:]
 
 
-#-------------------------------------------------------------------------------
-#　シナリオインストールダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# シナリオインストールダイアログ
+# ------------------------------------------------------------------------------
 
 class ScenarioInstall(SelectScenarioDirectory):
     """
@@ -293,7 +295,8 @@ class ScenarioInstall(SelectScenarioDirectory):
         if not dstpath:
             return
 
-        failed, paths, _filepaths, cancelled = install_scenario(self, self.headers, self.notscenariofiles, self.scedir, dstpath, self.db, self.skintype)
+        failed, paths, _filepaths, cancelled = install_scenario(self, self.headers, self.notscenariofiles, self.scedir,
+                                                                dstpath, self.db, self.skintype)
 
         if paths:
             if 1 < len(paths):
@@ -461,7 +464,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
 
     # インストール済みの情報が見つかったシナリオ
     db_exists = {}
-    links = [] # ショートカットファイルのリスト
+    links = []  # ショートカットファイルのリスト
 
     headers_len = 0
     for headers_seq in headers.values():
@@ -600,7 +603,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                         if cw.cwpy.setting.delete_sourceafterinstalled:
                             try:
                                 shutil.move(fpath, dst)
-                            except:
+                            except Exception:
                                 # FIXME: フォルダがロックされていて削除できない場合がある
                                 cw.util.print_ex()
                                 if os.path.isdir(fpath):
@@ -631,7 +634,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
 
                     self.paths.append(dst)
                     self.num += 1
-                except:
+                except Exception:
                     cw.util.print_ex(file=sys.stderr)
                     self.failed = header
                     break
@@ -683,7 +686,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                     if cw.cwpy.setting.delete_sourceafterinstalled:
                         try:
                             shutil.move(fpath, dst)
-                        except:
+                        except Exception:
                             # FIXME: フォルダがロックされていて削除できない場合がある
                             cw.util.print_ex()
                             if os.path.isdir(fpath):
@@ -702,7 +705,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
                     self.updates.add(os.path.dirname(dst))
                     self.filepaths.append(dst)
                     self.num += 1
-                except:
+                except Exception:
                     cw.util.print_ex(file=sys.stderr)
                     self.failed = header
                     break
@@ -736,7 +739,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
             newtarget = thread.repl_links.get(normpath, None)
             if newtarget:
                 cw.util.set_linktarget(fpath, newtarget)
-        except:
+        except Exception:
             cw.util.print_ex(file=sys.stderr)
 
     if not thread.failed and thread.paths:
@@ -804,7 +807,7 @@ def update_scenariolog(normpath, dst, dstisfile):
         try:
             etree = cw.data.xml2etree(fpath)
             e = etree.find("Property/WsnPath")
-            if not e is None:
+            if e is not None:
                 normpath2 = cw.util.get_keypath(e.text)
                 if normpath2 == normpath:
                     cw.cwpy.ydata.changed()
@@ -832,7 +835,7 @@ def update_scenariolog(normpath, dst, dstisfile):
         for header in cw.cwpy.ydata.party.get_allcardheaders():
             if not header.scenariocard:
                 continue
-            header.update_scenariopath(normpath, dst) # 次の表示で再初期化
+            header.update_scenariopath(normpath, dst)  # 次の表示で再初期化
 
     cw.fsync.sync()
 
@@ -855,7 +858,7 @@ class OverwriteScenarioDialog(wx.Dialog):
     """
     def __init__(self, parent, scedir, db_exists):
         wx.Dialog.__init__(self, parent, -1, "シナリオ置換対象の選択",
-                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX,
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX,
                            size=cw.wins((500, 400)))
         self.cwpy_debug = False
         self.db_exists = db_exists
@@ -879,7 +882,7 @@ class OverwriteScenarioDialog(wx.Dialog):
 
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((400, 400)),
-                                                  style=wx.LC_REPORT|wx.VSCROLL|wx.HSCROLL,
+                                                  style=wx.LC_REPORT | wx.VSCROLL | wx.HSCROLL,
                                                   system=False)
         self.datalist.SetFont(font)
 
@@ -969,7 +972,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         sizer_1.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
         csize = self.GetClientSize()
 
-        sizer_1.Add(self.datalist, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.wins(8))
+        sizer_1.Add(self.datalist, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, cw.wins(8))
 
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.AddStretchSpacer(1)
@@ -977,7 +980,7 @@ class OverwriteScenarioDialog(wx.Dialog):
             sizer_2.Add(button, 0, 0, 0)
             sizer_2.AddStretchSpacer(1)
 
-        sizer_1.Add(sizer_2, 0, wx.EXPAND|wx.TOP|wx.BOTTOM, cw.wins(12))
+        sizer_1.Add(sizer_2, 0, wx.EXPAND | wx.TOP | wx.BOTTOM, cw.wins(12))
 
         self.SetSizer(sizer_1)
         self.Layout()
@@ -1006,6 +1009,7 @@ def create_installdesc(headers_seq):
 
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

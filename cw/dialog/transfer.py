@@ -18,7 +18,7 @@ class TransferYadoDataDialog(wx.Dialog):
     """
     def __init__(self, parent, yadodirs, yadonames, selected):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["transfer_title"],
-                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
 
         self.yadodirs = yadodirs
@@ -42,7 +42,7 @@ class TransferYadoDataDialog(wx.Dialog):
         # 転送可能なデータリスト
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((300, 300)),
-                                                  style=wx.LC_REPORT|wx.VSCROLL|wx.HSCROLL,
+                                                  style=wx.LC_REPORT | wx.VSCROLL | wx.HSCROLL,
                                                   colpos=1, system=False)
         self.datalist.SetFont(font)
         self.imglist = self.datalist.imglist
@@ -71,10 +71,9 @@ class TransferYadoDataDialog(wx.Dialog):
         self.datalist.SetColumnWidth(0, rect.x)
         self.datalist.DeleteAllItems()
 
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
         self._do_layout()
         self._bind()
 
@@ -89,7 +88,7 @@ class TransferYadoDataDialog(wx.Dialog):
         yadodir = self.yadodirs[self.index]
         data = cw.data.xml2etree(cw.util.join_paths(yadodir, "Environment.xml"))
         bookmark = data.find("Bookmarks")
-        if not bookmark is None:
+        if bookmark is not None:
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["bookmark"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_bookmark)
@@ -107,7 +106,7 @@ class TransferYadoDataDialog(wx.Dialog):
             i += 1
 
         gossips = data.find("Gossips")
-        if not gossips is None and len(gossips):
+        if gossips is not None and len(gossips):
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["gossip"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_gossip)
@@ -116,7 +115,7 @@ class TransferYadoDataDialog(wx.Dialog):
             i += 1
 
         completestamp = data.find("CompleteStamps")
-        if not completestamp is None and len(completestamp):
+        if completestamp is not None and len(completestamp):
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["complete_stamp"])
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_completestamp)
@@ -277,8 +276,8 @@ class TransferYadoDataDialog(wx.Dialog):
                 counter += len(data)
             elif isinstance(data, cw.header.PartyHeader):
                 # パーティデータ・メンバ・荷物袋のカード
-                counter += 1 # 全体情報
-                counter += 1 # 冒険中情報
+                counter += 1  # 全体情報
+                counter += 1  # 冒険中情報
                 counter += len(data.members)
                 for cardtype in ("SkillCard", "ItemCard", "BeastCard"):
                     dpath = cw.util.join_paths(os.path.dirname(data.fpath), cardtype)
@@ -352,7 +351,7 @@ class TransferYadoDataDialog(wx.Dialog):
                             if isinstance(data[0], cw.header.AdventurerHeader) and data[0].album:
                                 name = cw.cwpy.msgs["album"] % (data)
                             elif isinstance(data[0], cw.header.PartyRecordHeader):
-                                seq2.append(data) # 編成記録はAdventurerHeaderよりも遅延させる
+                                seq2.append(data)  # 編成記録はAdventurerHeaderよりも遅延させる
                                 continue
                             else:
                                 assert False
@@ -376,7 +375,8 @@ class TransferYadoDataDialog(wx.Dialog):
                         if isinstance(data, cw.data.CWPyElement):
                             if data.tag == "Bookmarks":
                                 # ブックマーク
-                                self.outer.transfer_bookmark(self.fromscedir, self.toscedir, fromyado, toyado, data, self)
+                                self.outer.transfer_bookmark(self.fromscedir, self.toscedir, fromyado, toyado,
+                                                             data, self)
                             elif data.tag == "Gossips":
                                 # ゴシップ
                                 self.outer.transfer_gossip(fromyado, toyado, data, self)
@@ -435,6 +435,7 @@ class TransferYadoDataDialog(wx.Dialog):
         # プログレスダイアログ表示
         dlg = cw.dialog.progress.ProgressDialog(self, cw.cwpy.msgs["transfer_data"],
                                                 "", maximum=counter)
+
         def progress():
             while thread.is_alive():
                 wx.CallAfter(dlg.Update, thread.num, thread.msg)
@@ -515,7 +516,7 @@ class TransferYadoDataDialog(wx.Dialog):
             exists.add(e.text)
 
         for e in ee:
-            if not e.text in exists:
+            if e.text not in exists:
                 edata.append(e)
                 exists.add(e.text)
 
@@ -573,11 +574,11 @@ class TransferYadoDataDialog(wx.Dialog):
             fname = cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml")
             etree = cw.data.xml2etree(fname)
             e = etree.find("Property/MusicPath")
-            if not e is None:
+            if e is not None:
                 if e.getbool(".", "inusecard", False):
                     e.text = counter.imgpaths.get(e.text, e.text)
             e = etree.find("Property/MusicPaths")
-            if not e is None:
+            if e is not None:
                 for e2 in e:
                     if e2.getbool(".", "inusecard", False):
                         e2.text = counter.imgpaths.get(e2.text, e2.text)
@@ -690,7 +691,8 @@ class TransferYadoDataDialog(wx.Dialog):
         e = data.find("Property/Materials")
         if e is None:
             cname = data.gettext("Property/Name", "")
-            dstdir = cw.util.join_paths(toyado, "Material", data.getroot().tag, data.gettext("Property/Name", cname if cname else "noname"))
+            dstdir = cw.util.join_paths(toyado, "Material", data.getroot().tag,
+                                        data.gettext("Property/Name", cname if cname else "noname"))
         else:
             dstdir = cw.util.join_paths(toyado, e.text if e.text else "noname")
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
@@ -834,27 +836,29 @@ class TransferYadoDataDialog(wx.Dialog):
         sizer_h2.Add((w, cw.wins(0)), 0, wx.RIGHT, cw.wins(3))
         sizer_h2.Add(self.toyado, 0, 0, 0)
 
-        sizer_2.Add(sizer_h1, 0, wx.EXPAND|wx.BOTTOM, cw.wins(5))
-        sizer_2.Add(sizer_h2, 0, wx.EXPAND|wx.BOTTOM, cw.wins(5))
+        sizer_2.Add(sizer_h1, 0, wx.EXPAND | wx.BOTTOM, cw.wins(5))
+        sizer_2.Add(sizer_h2, 0, wx.EXPAND | wx.BOTTOM, cw.wins(5))
 
         sizer_2.Add(self.datalist, 1, wx.EXPAND, cw.wins(5))
 
-        sizer_1.Add(sizer_2, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, cw.wins(5))
+        sizer_1.Add(sizer_2, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, cw.wins(5))
 
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.Add((0, 0), 1, 0, 0)
-        sizer_2.Add(self.okbtn, 0, wx.LEFT|wx.RIGHT, cw.wins(5))
+        sizer_2.Add(self.okbtn, 0, wx.LEFT | wx.RIGHT, cw.wins(5))
         sizer_2.Add((0, 0), 1, 0, 0)
-        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, cw.wins(5))
+        sizer_2.Add(self.cnclbtn, 0, wx.LEFT | wx.RIGHT, cw.wins(5))
         sizer_2.Add((0, 0), 1, 0, 0)
-        sizer_1.Add(sizer_2, 0, wx.EXPAND|wx.TOP|wx.BOTTOM, cw.wins(10))
+        sizer_1.Add(sizer_2, 0, wx.EXPAND | wx.TOP | wx.BOTTOM, cw.wins(10))
 
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

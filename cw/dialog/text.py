@@ -8,15 +8,15 @@ import wx
 import cw
 
 
-#-------------------------------------------------------------------------------
-#　テキストダイアログ　スーパークラス
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# テキストダイアログ　スーパークラス
+# ------------------------------------------------------------------------------
 
 class Text(wx.Dialog):
     def __init__(self, parent, name):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((550, 290)),
-                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         # panel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((550, 245)))
@@ -29,7 +29,8 @@ class Text(wx.Dialog):
         else:
             value = b""
 
-        self.richtextctrl = cw.util.CWPyRichTextCtrl(self.toppanel, -1, "", size=cw.wins((550, 220)), style=wx.TE_MULTILINE|wx.NO_BORDER,
+        self.richtextctrl = cw.util.CWPyRichTextCtrl(self.toppanel, -1, "", size=cw.wins((550, 220)),
+                                                     style=wx.TE_MULTILINE | wx.NO_BORDER,
                                                      searchmenu=True)
         self.foreground = self.richtextctrl.GetForegroundColour()
         self._set_text(value)
@@ -231,7 +232,7 @@ class Text(wx.Dialog):
 
         sizer_panel.Add(self.leftbtn, 0, 0, cw.wins(0))
         sizer_panel.Add((0, 0), 1, 0, cw.wins(0))
-        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+        sizer_panel.Add(self.closebtn, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((0, 0), 1, 0, cw.wins(0))
         sizer_panel.Add(self.rightbtn, 0, 0, cw.wins(0))
         self.panel.SetSizer(sizer_panel)
@@ -260,9 +261,10 @@ class Text(wx.Dialog):
     def upddate_lists(self):
         pass
 
-#-------------------------------------------------------------------------------
-#　リードミーダイアログ
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# リードミーダイアログ
+# ------------------------------------------------------------------------------
 
 class Readme(Text):
     def __init__(self, parent, name, lists):
@@ -290,6 +292,7 @@ class Readme(Text):
         self.index = 0
         self.index2 = 0
 
+
 class ReadmeData(object):
     def __init__(self, name, content):
         self.name = name
@@ -297,8 +300,10 @@ class ReadmeData(object):
         self.noextname.reverse()
         self.content = content
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

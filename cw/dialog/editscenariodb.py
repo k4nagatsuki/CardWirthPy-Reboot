@@ -8,9 +8,9 @@ import wx
 import cw
 
 
-#-------------------------------------------------------------------------------
-#  シナリオDB構築ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# シナリオDB構築ダイアログ
+# ------------------------------------------------------------------------------
 
 class ConstructScenarioDB(wx.Dialog):
 
@@ -19,7 +19,7 @@ class ConstructScenarioDB(wx.Dialog):
         シナリオDBに登録する。
         """
         wx.Dialog.__init__(self, parent, -1, "シナリオデータベースの構築",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.dpaths = dpaths
         self._message = "フォルダの一覧を作成しています..."
@@ -28,7 +28,12 @@ class ConstructScenarioDB(wx.Dialog):
         self._cancel = False
         self._clear = False
 
-        self.text = wx.StaticText(self, -1, "シナリオフォルダを起点として発見できる全てのシナリオを\nシナリオデータベースに登録します。\nデータベースに登録されたシナリオはシナリオ選択ダイアログで\n高速に表示できる他、検索で発見できるようになります。\nシナリオデータベースの構築を開始しますか？")
+        s = "シナリオフォルダを起点として発見できる全てのシナリオを\n"\
+            "シナリオデータベースに登録します。\n"\
+            "データベースに登録されたシナリオはシナリオ選択ダイアログで\n"\
+            "高速に表示できる他、検索で発見できるようになります。\n"\
+            "シナリオデータベースの構築を開始しますか？"
+        self.text = wx.StaticText(self, -1, s)
 
         self.clear = wx.CheckBox(self, -1, "構築前にデータベースを初期化する")
 
@@ -54,7 +59,7 @@ class ConstructScenarioDB(wx.Dialog):
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
         sizer_v1.Add(sizer_top, 0, 0, cw.ppis(0))
-        sizer_v1.Add(sizer_btn, 0, wx.ALIGN_RIGHT|wx.TOP, cw.ppis(10))
+        sizer_v1.Add(sizer_btn, 0, wx.ALIGN_RIGHT | wx.TOP, cw.ppis(10))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_v1, 0, wx.ALL, cw.ppis(10))
@@ -115,10 +120,8 @@ class ConstructScenarioDB(wx.Dialog):
 
     def OnClickOkBtn(self, event):
         # プログレスダイアログ表示
-        dlg = cw.dialog.progress.SysProgressDialog(self,
-            "シナリオデータベースの構築", "",
-            maximum=100+len(self.dpaths)+1,
-            cancelable=True)
+        dlg = cw.dialog.progress.SysProgressDialog(self, "シナリオデータベースの構築", "",
+                                                   maximum=100+len(self.dpaths)+1, cancelable=True)
         cw.cwpy.frame.move_dlg(dlg)
 
         self._message = "フォルダの一覧を作成しています..."
@@ -146,5 +149,5 @@ class ConstructScenarioDB(wx.Dialog):
 
         if not self._cancel:
             s = "データベースの構築が完了しました。"
-            wx.MessageBox(s, "メッセージ", wx.OK|wx.ICON_INFORMATION, self)
+            wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_INFORMATION, self)
             self.Destroy()

@@ -8,9 +8,9 @@ import wx
 import cw
 
 
-#-------------------------------------------------------------------------------
-#　カード情報ダイアログ　スーパークラス
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# カード情報ダイアログ　スーパークラス
+# ------------------------------------------------------------------------------
 
 class CardInfo(wx.Dialog):
     """
@@ -19,7 +19,7 @@ class CardInfo(wx.Dialog):
     def __init__(self, parent, scedir=""):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=cw.wins((380, 200)),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.csize = self.GetClientSize()
         self.scedir = scedir
@@ -108,7 +108,7 @@ class CardInfo(wx.Dialog):
         else:
             s = "[ %s ]" % (self.selection.name)
 
-        lines = []
+        lines = [][:]
         lines.append(s)
         lines.append(self.get_desc())
         lines.append("")
@@ -212,7 +212,7 @@ class CardInfo(wx.Dialog):
 
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
         sizer_panel.Add((0, 0), 1, 0, 0)
-        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+        sizer_panel.Add(self.closebtn, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((0, 0), 1, 0, 0)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
@@ -223,9 +223,10 @@ class CardInfo(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # メニューカード情報ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class MenuCardInfo(CardInfo):
     def __init__(self, parent):
@@ -238,7 +239,7 @@ class MenuCardInfo(CardInfo):
 
     def OnClickLeftBtn(self, event):
         if self.index == 0:
-            self.index = len(self.list) -1
+            self.index = len(self.list) - 1
         else:
             self.index -= 1
 
@@ -247,7 +248,7 @@ class MenuCardInfo(CardInfo):
         self.draw(True)
 
     def OnClickRightBtn(self, event):
-        if self.index == len(self.list) -1:
+        if self.index == len(self.list) - 1:
             self.index = 0
         else:
             self.index += 1
@@ -256,9 +257,10 @@ class MenuCardInfo(CardInfo):
         self.Parent.change_selection(self.selection)
         self.draw(True)
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # 所持カード情報ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class YadoCardInfo(CardInfo):
     def __init__(self, parent, clist, selection, scedir=""):
@@ -271,7 +273,7 @@ class YadoCardInfo(CardInfo):
 
     def OnClickLeftBtn(self, event):
         if self.index == 0:
-            self.index = len(self.list) -1
+            self.index = len(self.list) - 1
         else:
             self.index -= 1
 
@@ -282,7 +284,7 @@ class YadoCardInfo(CardInfo):
         self.draw(True)
 
     def OnClickRightBtn(self, event):
-        if self.index == len(self.list) -1:
+        if self.index == len(self.list) - 1:
             self.index = 0
         else:
             self.index += 1
@@ -293,8 +295,10 @@ class YadoCardInfo(CardInfo):
         self.Parent.draw(True)
         self.draw(True)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

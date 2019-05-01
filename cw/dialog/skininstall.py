@@ -56,7 +56,7 @@ def install_skin(paths, parent, canswitch=True):
         checkboxes.append(("switch_skin", "インストールしたスキンに切り替える", False))
     dlg = cw.dialog.message.SysMessage(parent, "スキンのインストール", s, choices=choices, checkboxes=checkboxes)
     cw.cwpy.frame.move_dlg(dlg)
-    cw.cwpy._showingdlg += 1
+    cw.cwpy.add_showingdlg()
     if wx.ID_YES != dlg.ShowModal():
         cw.cwpy.frame.kill_dlg(dlg)
         return []
@@ -109,7 +109,7 @@ def install_skin(paths, parent, canswitch=True):
             progress("インストール済みスキンの情報を収集しています...")
             for name, author, _type, _path, _is_archive in seq:
                 key = (name, author)
-                if not key in removes_table:
+                if key not in removes_table:
                     removes_table[key] = list(cw.skin.util.find_skin(name, author))
         try:
             for name, author, type, path, is_archive in seq:
@@ -121,15 +121,15 @@ def install_skin(paths, parent, canswitch=True):
                 try:
                     installedpath = cw.skin.util.install_skin(path, tempdir, progress)
                     # FIXME: たまに音声が解放されずエラーになるため保留
-                    #if removes:
-                    #    if cw.cwpy.setting.skindirname == removes[0]:
-                    #        cw.cwpy.stop_allsounds(skinfileonly=True)
-                    #    installedpath2 = cw.util.join_paths("Data/Skin", removes[0])
-                    #    rmpath = cw.util.dupcheck_plus(installedpath2, False)
-                    #    shutil.move(installedpath2, rmpath)
-                    #    shutil.move(installedpath, installedpath2)
-                    #    installedpath = installedpath2
-                    #    removes[0] = os.path.basename(rmpath)
+                    # if removes:
+                    #     if cw.cwpy.setting.skindirname == removes[0]:
+                    #         cw.cwpy.stop_allsounds(skinfileonly=True)
+                    #     installedpath2 = cw.util.join_paths("Data/Skin", removes[0])
+                    #     rmpath = cw.util.dupcheck_plus(installedpath2, False)
+                    #     shutil.move(installedpath2, rmpath)
+                    #     shutil.move(installedpath, installedpath2)
+                    #     installedpath = installedpath2
+                    #     removes[0] = os.path.basename(rmpath)
 
                     obj.installed_skindirnames.append((os.path.basename(installedpath), name, author, type))
                     if not installed:
@@ -150,7 +150,8 @@ def install_skin(paths, parent, canswitch=True):
                         # 置換対象からコピーしておく
                         srcface = cw.util.join_paths(rmpath, "Face")
                         dstface = cw.util.join_paths(installedpath, "Face")
-                        cw.util.copytree_overwrite(srcface, dstface, files_overwrite=cw.util.OVERWRITE_WITH_LATEST_FILES)
+                        cw.util.copytree_overwrite(srcface, dstface,
+                                                   files_overwrite=cw.util.OVERWRITE_WITH_LATEST_FILES)
 
                         if os.path.basename(installedpath) != rename_table.get(rmname, ""):
                             rename_table[rmname] = os.path.basename(installedpath)
@@ -193,7 +194,7 @@ def install_skin(paths, parent, canswitch=True):
                     for path in all_removes_repl:
                         try:
                             cw.util.remove(path, trashbox=True)
-                        except:
+                        except Exception:
                             cw.util.print_ex(file=sys.stderr)
                         # FIXME: なぜか削除に失敗する事があるのでSkin.xmlを移動して無効にする
                         skinfpath = cw.util.join_paths(path, "Skin.xml")
@@ -204,7 +205,7 @@ def install_skin(paths, parent, canswitch=True):
                     for path in all_removes_base:
                         try:
                             cw.util.remove(path, trashbox=True)
-                        except:
+                        except Exception:
                             cw.util.print_ex(file=sys.stderr)
                 change_cursor(oldcursor)
 
@@ -220,7 +221,7 @@ def install_skin(paths, parent, canswitch=True):
                 newskin = rename_table.get(cw.cwpy.setting.skindirname, "")
                 cw.cwpy.exec_func(func, newskin, restartop=False)
 
-        except:
+        except Exception:
             progdlg.Destroy()
             raise
 
@@ -232,7 +233,8 @@ def install_skin(paths, parent, canswitch=True):
 
     # プログレスダイアログ表示
     progdlg = cw.dialog.progress.SysProgressDialog(parent, "スキンのインストール",
-                                               "", maximum=obj.maximum)
+                                                   "", maximum=obj.maximum)
+
     def progress_run():
         while thread.is_alive():
             wx.CallAfter(progdlg.Update, obj.value, obj.msg)

@@ -6,9 +6,9 @@ import wx
 import cw
 
 
-#-------------------------------------------------------------------------------
-#　メッセージダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# メッセージダイアログ
+# ------------------------------------------------------------------------------
 
 class Message(wx.Dialog):
     """
@@ -18,7 +18,7 @@ class Message(wx.Dialog):
     """
     def __init__(self, parent, name, text, mode=2, choices=None):
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((355, 120)),
-                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.basetext = text
         self.text = cw.util.wordwrap(text, 50)
@@ -124,7 +124,7 @@ class Message(wx.Dialog):
             sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
             margin = (csize[0] - self.yesbtn.GetSize()[0] * 2) // 3
             sizer_2.Add(self.yesbtn, 0, wx.LEFT, margin)
-            sizer_2.Add(self.nobtn, 0, wx.LEFT|wx.RIGHT, margin)
+            sizer_2.Add(self.nobtn, 0, wx.LEFT | wx.RIGHT, margin)
         elif self.mode == 2:
             sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
             margin = (csize[0] - self.closebtn.GetSize()[0]) // 2
@@ -171,7 +171,7 @@ class SysMessage(wx.Dialog):
     """
     def __init__(self, parent, name, text, choices=None, checkboxes=None):
         if choices:
-            style = wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX
+            style = wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX
         else:
             style = wx.SYSTEM_MENU
         wx.Dialog.__init__(self, parent, -1, name, size=cw.ppis((355, 120)), style=style)
@@ -270,7 +270,7 @@ class SysMessage(wx.Dialog):
                     sizer_chk.Add(checkbox, 0, 0, 0)
                 else:
                     sizer_chk.Add(checkbox, 0, wx.TOP, cw.ppis(2))
-            sizer.Add(sizer_chk, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(10))
+            sizer.Add(sizer_chk, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(10))
 
         if self.buttons:
             sizer.Add(self._stl, 0, wx.EXPAND, 0)
@@ -281,7 +281,7 @@ class SysMessage(wx.Dialog):
                 else:
                     sizer_btn.Add(button, 0, wx.LEFT, cw.ppis(10))
 
-            sizer.Add(sizer_btn, 0, wx.ALL|wx.ALIGN_RIGHT, cw.ppis(10))
+            sizer.Add(sizer_btn, 0, wx.ALL | wx.ALIGN_RIGHT, cw.ppis(10))
 
         self.SetSizer(sizer)
         sizer.Fit(self)

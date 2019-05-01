@@ -14,14 +14,15 @@ import cw.binary.environment
 import cw.binary.party
 import cw.binary.adventurer
 
-#-------------------------------------------------------------------------------
-#　選択ダイアログ スーパークラス
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# 選択ダイアログ スーパークラス
+# ------------------------------------------------------------------------------
 
 class Select(wx.Dialog):
     def __init__(self, parent, name):
         wx.Dialog.__init__(self, parent, -1, name,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self._processing = False
         self.list = []
@@ -70,8 +71,8 @@ class Select(wx.Dialog):
             (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.nextid),
             (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftkeyid),
             (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightkeyid),
-            (wx.ACCEL_CTRL|wx.ACCEL_ALT, wx.WXK_LEFT, self.left2keyid),
-            (wx.ACCEL_CTRL|wx.ACCEL_ALT, wx.WXK_RIGHT, self.right2keyid),
+            (wx.ACCEL_CTRL | wx.ACCEL_ALT, wx.WXK_LEFT, self.left2keyid),
+            (wx.ACCEL_CTRL | wx.ACCEL_ALT, wx.WXK_RIGHT, self.right2keyid),
         ]
         self.accels = seq
         cw.util.set_acceleratortable(self, seq)
@@ -82,6 +83,7 @@ class Select(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRight2Btn, self.right2btn)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+
         def empty(event):
             pass
         self.toppanel.Bind(wx.EVT_ERASE_BACKGROUND, empty)
@@ -89,6 +91,7 @@ class Select(wx.Dialog):
         self.toppanel.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
         self.toppanel.Bind(wx.EVT_MIDDLE_UP, self.OnSelectBase)
         self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnSelectBase)
+
         def recurse(ctrl):
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
@@ -156,7 +159,7 @@ class Select(wx.Dialog):
         if len(self.list) <= 1:
             return
         if self.index == 0:
-            self.index = len(self.list) -1
+            self.index = len(self.list) - 1
         else:
             self.index -= 1
 
@@ -168,7 +171,7 @@ class Select(wx.Dialog):
         if len(self.list) <= 1:
             return
         if self.index == 0:
-            self.index = len(self.list) -1
+            self.index = len(self.list) - 1
         elif self.index - 10 < 0:
             self.index = 0
         else:
@@ -181,7 +184,7 @@ class Select(wx.Dialog):
     def OnClickRightBtn(self, evt):
         if len(self.list) <= 1:
             return
-        if self.index == len(self.list) -1:
+        if self.index == len(self.list) - 1:
             self.index = 0
         else:
             self.index += 1
@@ -193,10 +196,10 @@ class Select(wx.Dialog):
     def OnClickRight2Btn(self, evt):
         if len(self.list) <= 1:
             return
-        if self.index == len(self.list) -1:
+        if self.index == len(self.list) - 1:
             self.index = 0
-        elif self.index + 10 > len(self.list) -1:
-            self.index = len(self.list) -1
+        elif self.index + 10 > len(self.list) - 1:
+            self.index = len(self.list) - 1
         else:
             self.index += 10
 
@@ -310,7 +313,7 @@ class Select(wx.Dialog):
         # sizer_panelにbuttonを設定
         for button in self.buttonlist:
             sizer_panel.AddStretchSpacer(1)
-            sizer_panel.Add(button, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+            sizer_panel.Add(button, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
 
         sizer_panel.AddStretchSpacer(1)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
@@ -346,7 +349,7 @@ class Select(wx.Dialog):
         if tworows:
             self.keyword_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_keyword"])
             self.keyword_label.SetFont(font)
-            self.narrow = wx.TextCtrl(self, -1, size=(cw.wins(0), -1), style= wx.TE_PROCESS_ENTER)
+            self.narrow = wx.TextCtrl(self, -1, size=(cw.wins(0), -1), style=wx.TE_PROCESS_ENTER)
         else:
             self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition"])
             self.narrow_label.SetFont(font)
@@ -377,6 +380,7 @@ class Select(wx.Dialog):
         self._reserved_narrowconditin = True
         if wx.Window.FindFocus() != self.narrow:
             self.toppanel.SetFocus()
+
         def func():
             if not self._reserved_narrowconditin:
                 return
@@ -453,9 +457,9 @@ class Select(wx.Dialog):
         self.Thaw()
 
 
-#-------------------------------------------------------------------------------
-#　一覧表示可能な選択ダイアログ(抽象クラス)
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 一覧表示可能な選択ダイアログ(抽象クラス)
+# ------------------------------------------------------------------------------
 
 class MultiViewSelect(Select):
     def __init__(self, parent, title, enterid, views=10, show_multi=False, lines=2):
@@ -629,10 +633,9 @@ class MultiViewSelect(Select):
         pass
 
 
-#-------------------------------------------------------------------------------
-#　宿選択ダイアログ
-#-------------------------------------------------------------------------------
-
+# ------------------------------------------------------------------------------
+# 宿選択ダイアログ
+# ------------------------------------------------------------------------------
 
 _okid = wx.NewId()
 
@@ -696,7 +699,8 @@ class YadoSelect(MultiViewSelect):
         self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((50, 24)), s)
         self.buttonlist.append(self.viewbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((50, 24)), cw.cwpy.msgs["entry_cancel"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((50, 24)),
+                                                     cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.closebtn)
         # enable bottun
         self.enable_btn()
@@ -749,12 +753,12 @@ class YadoSelect(MultiViewSelect):
     def _add_topsizer(self):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        nsizer.Add(self.narrow_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
+        nsizer.Add(self.narrow_label, 0, wx.LEFT | wx.RIGHT | wx.CENTER, cw.wins(2))
         nsizer.Add(self.narrow, 1, wx.CENTER, 0)
-        nsizer.Add(self.narrow_type, 0, wx.CENTER|wx.EXPAND, cw.wins(3))
+        nsizer.Add(self.narrow_type, 0, wx.CENTER | wx.EXPAND, cw.wins(3))
 
-        nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(3))
-        nsizer.Add(self.sort, 0, wx.CENTER|wx.EXPAND, 0)
+        nsizer.Add(self.sort_label, 0, wx.LEFT | wx.RIGHT | wx.CENTER, cw.wins(3))
+        nsizer.Add(self.sort, 0, wx.CENTER | wx.EXPAND, 0)
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
 
@@ -926,8 +930,8 @@ class YadoSelect(MultiViewSelect):
 
     def can_clickcenter(self):
         return not (self.views == 1 and self._list and not self.okbtn.IsEnabled()) and\
-                ((self.list and self._list and os.path.isdir(self.list[self.index])) or\
-                (self.newbtn.IsEnabled() and not self._list))
+                ((self.list and self._list and os.path.isdir(self.list[self.index])) or
+                 (self.newbtn.IsEnabled() and not self._list))
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
@@ -997,12 +1001,18 @@ class YadoSelect(MultiViewSelect):
                     break
 
         items = [
-            (cw.cwpy.msgs["settings"], cw.cwpy.msgs["edit_base_description"], self.rename_yado, not classic and hasmutexlocal),
-            (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado, not classic and hasmutexlocal),
-            (cw.cwpy.msgs["transfer"], cw.cwpy.msgs["transfer_base_description"], self.trasnfer_yadodata, cantransfer),
-            ("変換", "CardWirth用の宿データをCardWirthPy用の拠点データに変換します。", self._conv_yado, not cw.util.exists_mutex(cw.tempdir_init)),
-            ("逆変換", "選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado, not classic and hasmutexlocal),
-            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado, hasmutexlocal),
+            (cw.cwpy.msgs["settings"], cw.cwpy.msgs["edit_base_description"],
+             self.rename_yado, not classic and hasmutexlocal),
+            (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"],
+             self.copy_yado, not classic and hasmutexlocal),
+            (cw.cwpy.msgs["transfer"], cw.cwpy.msgs["transfer_base_description"],
+             self.trasnfer_yadodata, cantransfer),
+            ("変換", "CardWirth用の宿データをCardWirthPy用の拠点データに変換します。",
+             self._conv_yado, not cw.util.exists_mutex(cw.tempdir_init)),
+            ("逆変換", "選択中の拠点データをCardWirth用のデータに逆変換します。",
+             self.unconv_yado, not classic and hasmutexlocal),
+            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"],
+             self.delete_yado, hasmutexlocal),
         ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
@@ -1183,7 +1193,7 @@ class YadoSelect(MultiViewSelect):
         """
         # ディレクトリ選択ダイアログ
         s = ("CardWirthの宿のデータをCardWirthPy用に変換します。" +
-              "\n変換する宿のフォルダを選択してください。")
+             "\n変換する宿のフォルダを選択してください。")
         dlg = wx.DirDialog(self, s, style=wx.DD_DIR_MUST_EXIST)
         dlg.SetPath(os.getcwd())
 
@@ -1214,7 +1224,7 @@ class YadoSelect(MultiViewSelect):
     def draw(self, update=False):
         dc, dest = self.draw2(update)
 
-        if self.views != 1 and not self._lastbillskindir is None:
+        if self.views != 1 and self._lastbillskindir is not None:
             skindir = self._lastbillskindir
         elif self.list and self.views == 1:
             skindir = self.skins[self.index]
@@ -1459,6 +1469,7 @@ class YadoSelect(MultiViewSelect):
                 # プログレスダイアログ表示
                 dlg = cw.dialog.progress.ProgressDialog(self, cwdata.name + "の変換", "",
                                                         maximum=100)
+
                 def progress():
                     while not thread.complete:
                         wx.CallAfter(dlg.Update, cwdata.curnum, cwdata.message)
@@ -1528,7 +1539,7 @@ class YadoSelect(MultiViewSelect):
         try:
             if not os.path.isdir(dstpath):
                 os.makedirs(dstpath)
-        except:
+        except Exception:
             cw.util.print_ex()
             s = "フォルダ %s を生成できません。" % (dstpath)
             dlg = message.ErrorMessage(self, s)
@@ -1554,6 +1565,7 @@ class YadoSelect(MultiViewSelect):
             # プログレスダイアログ表示
             dlg = cw.dialog.progress.ProgressDialog(self, "%sの逆変換" % (yadoname), "",
                                                     maximum=unconv.maxnum)
+
             def progress():
                 while not thread.complete:
                     wx.CallAfter(dlg.Update, unconv.curnum, unconv.message)
@@ -1617,7 +1629,7 @@ class YadoSelect(MultiViewSelect):
             os.makedirs("Yado")
 
         for dname in os.listdir("Yado"):
-            path  = cw.util.join_paths("Yado", dname, "Environment.xml")
+            path = cw.util.join_paths("Yado", dname, "Environment.xml")
 
             if os.path.isfile(path):
                 prop = cw.header.GetProperty(path)
@@ -1636,7 +1648,8 @@ class YadoSelect(MultiViewSelect):
                     if not os.path.isfile(skinxml):
                         supported_skin = False
                     else:
-                        supported_skin = cw.header.GetProperty(skinxml).attrs.get(None, {}).get("dataVersion", "0") in cw.SUPPORTED_SKIN
+                        supported_skin = cw.header.GetProperty(skinxml).attrs.get(None, {}).get("dataVersion", "0")\
+                                         in cw.SUPPORTED_SKIN
                     skin_support[skinxml] = supported_skin
 
                 if supported_skin:
@@ -1716,7 +1729,7 @@ class YadoSelect(MultiViewSelect):
                                 f.close()
                             for member in party.memberslist:
                                 seq.append(member)
-                except:
+                except Exception:
                     cw.util.print_ex()
 
             else:
@@ -1734,9 +1747,9 @@ class YadoSelect(MultiViewSelect):
         return names, yadodirs, advnames, skins, classic, isshortcuts
 
 
-#-------------------------------------------------------------------------------
-#　パーティ選択ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# パーティ選択ダイアログ
+# ------------------------------------------------------------------------------
 
 class PartySelect(MultiViewSelect):
     """
@@ -1809,10 +1822,12 @@ class PartySelect(MultiViewSelect):
         self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((width, 24)), s)
         self.buttonlist.append(self.viewbtn)
         # partyrecord
-        self.partyrecordbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((width, 24)), cw.cwpy.msgs["party_record"])
+        self.partyrecordbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((width, 24)),
+                                                           cw.cwpy.msgs["party_record"])
         self.buttonlist.append(self.partyrecordbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((width, 24)), cw.cwpy.msgs["entry_cancel"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((width, 24)),
+                                                     cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.closebtn)
 
         # additionals
@@ -1866,12 +1881,12 @@ class PartySelect(MultiViewSelect):
     def _add_topsizer(self):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        nsizer.Add(self.narrow_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
+        nsizer.Add(self.narrow_label, 0, wx.LEFT | wx.RIGHT | wx.CENTER, cw.wins(2))
         nsizer.Add(self.narrow, 1, wx.CENTER, 0)
-        nsizer.Add(self.narrow_type, 0, wx.CENTER|wx.EXPAND, cw.wins(3))
+        nsizer.Add(self.narrow_type, 0, wx.CENTER | wx.EXPAND, cw.wins(3))
 
-        nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(3))
-        nsizer.Add(self.sort, 0, wx.CENTER|wx.EXPAND, 0)
+        nsizer.Add(self.sort_label, 0, wx.LEFT | wx.RIGHT | wx.CENTER, cw.wins(3))
+        nsizer.Add(self.sort, 0, wx.CENTER | wx.EXPAND, 0)
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
 
@@ -1911,7 +1926,7 @@ class PartySelect(MultiViewSelect):
                 # レベル
                 try:
                     intnarrow = int(narrow)
-                except:
+                except Exception:
                     intnarrow = None
 
             ntypes = set()
@@ -2071,6 +2086,7 @@ class PartySelect(MultiViewSelect):
         if not self.list:
             return
         partyheader = self.list[self.index]
+
         def redrawfunc():
             def func():
                 header = self.list[self.index]
@@ -2212,9 +2228,11 @@ class PartySelect(MultiViewSelect):
             for index, s in enumerate(self.names):
                 s = cw.util.abbr_longstr(dc, s, cw.wins(90))
                 if index < 3:
-                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])//2+w*index, cw.wins(85), w, cw.wins(15)), wx.ALIGN_CENTER)
+                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])//2+w*index, cw.wins(85), w, cw.wins(15)),
+                                 wx.ALIGN_CENTER)
                 else:
-                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])//2+w*(index-3), cw.wins(105), w, cw.wins(15)), wx.ALIGN_CENTER)
+                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])//2+w*(index-3), cw.wins(105), w, cw.wins(15)),
+                                 wx.ALIGN_CENTER)
 
             # パーティ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(20)))
@@ -2249,7 +2267,8 @@ class PartySelect(MultiViewSelect):
                 baserect = cw.wins(baserect)
                 baserect.x //= 2
                 baserect.y //= 2
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp4, px+baserect.x, py+baserect.y, True, bitsizekey=bmp3)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp4, px+baserect.x, py+baserect.y, True,
+                                                       bitsizekey=bmp3)
             dc.DestroyClippingRegion()
 
             # シナリオ・宿名
@@ -2291,7 +2310,8 @@ class PartySelect(MultiViewSelect):
                     baserect = info.calc_basecardposition_wx(b.GetSize(), noscale=False,
                                                              basecardtype="Bill",
                                                              cardpostype="NotCard")
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, b, ix+baserect.x, iy+baserect.y, True, bitsizekey=bns)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, b, ix+baserect.x, iy+baserect.y, True,
+                                                           bitsizekey=bns)
                 dc.DestroyClippingRegion()
                 # パーティの先頭メンバを小さく表示する
                 px = ix + cw.wins(37)
@@ -2310,7 +2330,8 @@ class PartySelect(MultiViewSelect):
                     baserect = cw.wins(baserect)
                     baserect.x //= 2
                     baserect.y //= 2
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp4, px+baserect.x, py+baserect.y, True, bitsizekey=bmp3)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp4, px+baserect.x, py+baserect.y, True,
+                                                           bitsizekey=bmp3)
                 dc.DestroyClippingRegion()
 
                 # パーティ名
@@ -2347,9 +2368,9 @@ class PartySelect(MultiViewSelect):
         self.draw3(dc, dest, update)
 
 
-#-------------------------------------------------------------------------------
-#　冒険者選択ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 冒険者選択ダイアログ
+# ------------------------------------------------------------------------------
 
 class PlayerSelect(MultiViewSelect):
     """
@@ -2468,12 +2489,12 @@ class PlayerSelect(MultiViewSelect):
     def _add_topsizer(self):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        nsizer.Add(self.narrow_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
+        nsizer.Add(self.narrow_label, 0, wx.LEFT | wx.RIGHT | wx.CENTER, cw.wins(2))
         nsizer.Add(self.narrow, 1, wx.CENTER, 0)
-        nsizer.Add(self.narrow_type, 0, wx.CENTER|wx.EXPAND, cw.wins(3))
+        nsizer.Add(self.narrow_type, 0, wx.CENTER | wx.EXPAND, cw.wins(3))
 
-        nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(3))
-        nsizer.Add(self.sort, 0, wx.CENTER|wx.EXPAND, 0)
+        nsizer.Add(self.sort_label, 0, wx.LEFT | wx.RIGHT | wx.CENTER, cw.wins(3))
+        nsizer.Add(self.sort, 0, wx.CENTER | wx.EXPAND, 0)
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
 
@@ -2516,7 +2537,7 @@ class PlayerSelect(MultiViewSelect):
                 # レベル
                 try:
                     intnarrow = int(narrow)
-                except:
+                except Exception:
                     intnarrow = None
 
             ntypes = set()
@@ -2558,7 +2579,7 @@ class PlayerSelect(MultiViewSelect):
                         (_NARROW_DESC in ntypes and narrow in header.desc.lower()) or\
                         (_NARROW_HISTORY in ntypes and has_history()) or\
                         (_NARROW_FEATURES in ntypes and has_features()) or\
-                        (_NARROW_LEVEL in ntypes and not intnarrow is None and header.level == intnarrow):
+                        (_NARROW_LEVEL in ntypes and intnarrow is not None and header.level == intnarrow):
                     seq.append(header)
 
             self.list = seq
@@ -2734,25 +2755,25 @@ class PlayerSelect(MultiViewSelect):
 
         header = self.list[self.index]
 
-        def func(panel, header, index):
+        def func(self, header, index):
             if PlayerSelect._add(header):
-                def func(panel):
-                    if panel:
-                        panel._processing = False
+                def func(self):
+                    if self:
+                        self._processing = False
                         self.update_narrowcondition()
-                        if len(panel.list):
-                            panel.index %= len(panel.list)
+                        if len(self.list):
+                            self.index %= len(self.list)
                         else:
-                            panel.index = 0
-                        panel.enable_btn()
-                        panel.draw(True)
-                        panel._update_mousepos()
-                cw.cwpy.frame.exec_func(func, panel)
+                            self.index = 0
+                        self.enable_btn()
+                        self.draw(True)
+                        self._update_mousepos()
+                cw.cwpy.frame.exec_func(func, self)
             else:
-                def func(panel):
-                    if panel:
-                        panel._processing = False
-                cw.cwpy.frame.exec_func(func, panel)
+                def func(self):
+                    if self:
+                        self._processing = False
+                cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self, header, self.index)
 
     @staticmethod
@@ -2788,11 +2809,16 @@ class PlayerSelect(MultiViewSelect):
         else:
             title = cw.cwpy.msgs["extension_title_2"]
         items = [
-            (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer, bool(self.list)),
-            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer, bool(self.list)),
-            (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord, bool(cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord)),
-            (cw.cwpy.msgs["random_character"], cw.cwpy.msgs["random_character_description"], self.create_randomadventurer, True),
-            (cw.cwpy.msgs["random_team"], cw.cwpy.msgs["random_team_description"], self.random_team, bool(cw.cwpy.ydata.standbys and self.addbtn.IsEnabled()))
+            (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"],
+             self.grow_adventurer, bool(self.list)),
+            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"],
+             self.delete_adventurer, bool(self.list)),
+            (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"],
+             self.select_partyrecord, bool(cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord)),
+            (cw.cwpy.msgs["random_character"], cw.cwpy.msgs["random_character_description"],
+             self.create_randomadventurer, True),
+            (cw.cwpy.msgs["random_team"], cw.cwpy.msgs["random_team_description"],
+             self.random_team, bool(cw.cwpy.ydata.standbys and self.addbtn.IsEnabled()))
         ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
@@ -2812,10 +2838,10 @@ class PlayerSelect(MultiViewSelect):
             return
 
         if index == len(cw.cwpy.setting.periodcoupons) - 1:
-            nextage= None
+            nextage = None
             s = cw.cwpy.msgs["confirm_die"] % (header.name)
         else:
-            nextage= cw.cwpy.setting.periodcoupons[index + 1]
+            nextage = cw.cwpy.setting.periodcoupons[index + 1]
             s = cw.cwpy.msgs["confirm_grow"] % (header.name, age[1:], nextage[1:])
 
         cw.cwpy.play_sound("signal")
@@ -2929,7 +2955,7 @@ class PlayerSelect(MultiViewSelect):
                     self.header = header
                     self.point = point
 
-            while cw.cwpy.ydata.standbys and (not cw.cwpy.ydata.party or\
+            while cw.cwpy.ydata.standbys and (not cw.cwpy.ydata.party or
                                               len(cw.cwpy.ydata.party.members) < 6):
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata.changed()
@@ -3138,7 +3164,8 @@ class PlayerSelect(MultiViewSelect):
                 dc.DrawText(s, cw.wins(110)+xpos - w // 2, cw.wins(67))
                 # Image
                 dc.SetClippingRegion(cw.wins(73)+xpos, cw.wins(90), cw.wins(74), cw.wins(94))
-                can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
+                attr = cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False")
+                can_loaded_scaledimage = cw.util.str2bool(attr)
                 for info in header.imgpaths:
                     path = cw.util.join_yadodir(info.path)
                     bmp = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
@@ -3148,7 +3175,8 @@ class PlayerSelect(MultiViewSelect):
                                                              basecardtype="LargeCard",
                                                              cardpostype="NotCard")
 
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, cw.wins(73)+xpos+baserect.x, cw.wins(90)+baserect.y, True, bitsizekey=bmp)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, cw.wins(73)+xpos+baserect.x,
+                                                           cw.wins(90)+baserect.y, True, bitsizekey=bmp)
                 dc.DestroyClippingRegion()
                 # Age
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
@@ -3233,7 +3261,8 @@ class PlayerSelect(MultiViewSelect):
                     ix = x + (rw - cw.wins(72)) // 2
                     iy = y + 5
                     dc.SetClippingRegion(ix, iy, cw.wins(74), cw.wins(94))
-                    can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False"))
+                    attr = cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False")
+                    can_loaded_scaledimage = cw.util.str2bool(attr)
                     for info in header.imgpaths:
                         path = cw.util.join_yadodir(info.path)
                         bmp = cw.util.load_wxbmp(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
@@ -3241,7 +3270,8 @@ class PlayerSelect(MultiViewSelect):
                         baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                                  basecardtype="LargeCard",
                                                                  cardpostype="NotCard")
-                        cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, ix+baserect.x, iy+baserect.y, True, bitsizekey=bmp)
+                        cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, ix+baserect.x, iy+baserect.y, True,
+                                                               bitsizekey=bmp)
                     dc.DestroyClippingRegion()
 
                     # Name
@@ -3284,9 +3314,9 @@ class PlayerSelect(MultiViewSelect):
         self.draw3(dc, dest, update)
 
 
-#-------------------------------------------------------------------------------
-#　アルバムダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# アルバムダイアログ
+# ------------------------------------------------------------------------------
 
 class Album(PlayerSelect):
     """
@@ -3306,7 +3336,8 @@ class Album(PlayerSelect):
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((460, 280)))
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_PROPERTIES, cw.wins((90, 24)), cw.cwpy.msgs["information"])
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_PROPERTIES, cw.wins((90, 24)),
+                                                    cw.cwpy.msgs["information"])
         self.buttonlist.append(self.infobtn)
         # delete
         self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DELETE, cw.wins((90, 24)), cw.cwpy.msgs["delete"])

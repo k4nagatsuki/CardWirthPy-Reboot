@@ -11,14 +11,14 @@ import pygame
 import cw
 
 
-#-------------------------------------------------------------------------------
-#　不足データの補填ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 不足データの補填ダイアログ
+# ------------------------------------------------------------------------------
 
 class AdventurerDataComp(wx.Dialog):
     def __init__(self, parent, ccard):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["insufficiency_title"],
-                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.ccard = ccard
         hassex = self.ccard.has_sex()
@@ -72,11 +72,11 @@ class AdventurerDataComp(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
         seq = cw.cwpy.setting.sexnames
         self.rb_sex = wx.RadioBox(self, -1, cw.cwpy.msgs["sex"],
-                        choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
+                                  choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
         self.rb_sex.SetFont(font)
         seq = cw.cwpy.setting.periodnames
         self.rb_age = wx.RadioBox(self, -1, cw.cwpy.msgs["age"],
-                        choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
+                                  choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
         self.rb_age.SetFont(font)
 
         # 初期値設定
@@ -126,9 +126,9 @@ class AdventurerDataComp(wx.Dialog):
         sizer_h1.Add(sizer_v2, 0, wx.LEFT, cw.wins(10))
 
         sizer_v1.Add(self.text_caution, 0, wx.CENTER, 0)
-        sizer_v1.Add(self.text_message, 0, wx.CENTER|wx.TOP, cw.wins(5))
+        sizer_v1.Add(self.text_message, 0, wx.CENTER | wx.TOP, cw.wins(5))
         sizer_v1.Add(sizer_h1, 0, wx.TOP, cw.wins(5))
-        sizer_v1.Add(self.okbtn, 0, wx.CENTER|wx.TOP, cw.wins(10))
+        sizer_v1.Add(self.okbtn, 0, wx.CENTER | wx.TOP, cw.wins(10))
         sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -156,9 +156,10 @@ class AdventurerDataComp(wx.Dialog):
                 self.age = cw.cwpy.setting.periodcoupons[index]
                 break
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # 冒険者の登録ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class AdventurerData(object):
     def __init__(self):
@@ -245,7 +246,7 @@ class AdventurerData(object):
     def set_coupon(self, name, value):
         coupon = (name, value)
 
-        if not name in self.couponnames:
+        if name not in self.couponnames:
             self.couponnames[name] = len(self.coupons)
             self.coupons.append(coupon)
         elif name == "＠レベル上限":
@@ -333,7 +334,7 @@ class AdventurerData(object):
 
         if mother:
             self.has_parents = True
-            if not father is mother:
+            if father is not mother:
                 mother.made_baby()
             mgene = mother.gene
             mgene = mgene.rotate_mother()
@@ -366,8 +367,7 @@ class AdventurerData(object):
                     if n == 0:
                         talent = "＿" + nature.name
                         break
-                elif n >= nature.genecount and (0 == len(nature.basenatures)
-                                    or talent[1:] in nature.basenatures):
+                elif n >= nature.genecount and (0 == len(nature.basenatures) or talent[1:] in nature.basenatures):
                     # 遺伝子の1が素質の条件個数以上の場合
                     # 特定の素質のみから派生する素質も存在する
                     talent = "＿" + nature.name
@@ -375,10 +375,10 @@ class AdventurerData(object):
                     break
 
         for nature in cw.cwpy.setting.natures:
-               if "＿" + nature.name == talent:
-                   nature.modulate(self)
-                   self.set_coupon("＠レベル上限", nature.levelmax)
-                   break
+            if "＿" + nature.name == talent:
+                nature.modulate(self)
+                self.set_coupon("＠レベル上限", nature.levelmax)
+                break
 
         self.gene.set_talentbit(talent, oldtalent)
         self.set_coupon("＠Ｇ" + self.gene.get_str(), 0)
@@ -415,6 +415,7 @@ class AdventurerData(object):
         self.life = cw.character.calc_maxlife(self.vit, self.min, self.level)
         self.maxlife = self.life
 
+
 def create_description(talent, attrs):
     seq = ["　" * 8 + talent[1:] + "\n\n"]
 
@@ -436,10 +437,11 @@ def create_description(talent, attrs):
 
     return "".join(seq)
 
+
 class AdventurerCreater(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["entry_title"],
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.header = None
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
@@ -449,18 +451,18 @@ class AdventurerCreater(wx.Dialog):
         else:
             btnwidth = 85
         self.nextbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_next"])
+                                                    cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_next"])
         if cw.cwpy.setting.show_autobuttoninentrydialog:
             self.autobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                                cw.wins((btnwidth, 24)), cw.cwpy.msgs["auto_selection"])
+                                                        cw.wins((btnwidth, 24)), cw.cwpy.msgs["auto_selection"])
         else:
             self.autobtn = None
         self.prevbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_previous"])
+                                                    cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_previous"])
         self.postbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_decide"])
+                                                    cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_decide"])
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_cancel"])
+                                                     cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_cancel"])
         self.SetEscapeId(self.closebtn.GetId())
         self.enable_btn()
         self.nextbtn.Disable()
@@ -539,16 +541,16 @@ class AdventurerCreater(wx.Dialog):
         w = self.closebtn.GetSize()[0] * btncount
         margin = (cw.wins(460 - space*2) - w) // 3
         sizer_panel.Add(cw.wins((space, 0)), 0, 0, 0)
-        sizer_panel.Add(self.prevbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+        sizer_panel.Add(self.prevbtn, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((margin, 0), 0, 0, 0)
         if self.autobtn:
-            sizer_panel.Add(self.autobtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+            sizer_panel.Add(self.autobtn, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
             sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.nextbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+        sizer_panel.Add(self.nextbtn, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.postbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+        sizer_panel.Add(self.postbtn, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+        sizer_panel.Add(self.closebtn, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
         self.panel.SetSizer(sizer_panel)
 
         sizer_1.Add(self.page, 0, wx.EXPAND, 0)
@@ -646,7 +648,7 @@ class AdventurerCreater(wx.Dialog):
 
     def create_adventurer(self):
         data = AdventurerData()
-        #親、＠レベル上限、遺伝情報、性別、年代、（種族）の順
+        # 親、＠レベル上限、遺伝情報、性別、年代、（種族）の順
         father = self.page3.father
         mother = self.page3.mother
         data.set_parents(father, mother)
@@ -669,12 +671,12 @@ class AdventurerCreater(wx.Dialog):
         else:
             paths = self.page1.imgpaths
         data.set_images(paths)
-        #型と特徴で解説を作る
+        # 型と特徴で解説を作る
         data.set_talent(talent)
         coupons = self.page5.get_coupons()
         data.set_attributes(coupons)
         data.set_desc(talent, coupons)
-        #最後に熟練・老獪を付与
+        # 最後に熟練・老獪を付与
         s = self.page1.age
         data.set_aging(s)
         data.set_specialcoupon()
@@ -684,6 +686,7 @@ class AdventurerCreater(wx.Dialog):
         data.resist = cw.util.numwrap(data.resist, -10, 10)
         data.defense = cw.util.numwrap(data.defense, -10, 10)
         self.fpath = cw.xmlcreater.create_adventurer(data)
+
 
 class AdventurerCreaterPage(wx.Panel):
     def __init__(self, parent, size=None, freeze=True):
@@ -849,7 +852,7 @@ class AdventurerCreaterPage(wx.Panel):
         while True:
             if len(self.clickable_table[i]) <= j+1:
                 # 次の行の最初のアイテム
-                i = (i+1)%len(self.clickable_table)
+                i = (i+1) % len(self.clickable_table)
                 j = 0
             else:
                 # 行内の次のアイテム
@@ -890,7 +893,7 @@ class AdventurerCreaterPage(wx.Panel):
             if len(self.clickable_table) <= i+1:
                 # 次の列の最初のアイテム
                 i = 0
-                j = (j+1)%len(self.clickable_table[i])
+                j = (j+1) % len(self.clickable_table[i])
             else:
                 # 列内の次のアイテム
                 i += 1
@@ -1006,14 +1009,14 @@ class AdventurerCreaterPage(wx.Panel):
             top, left = cw.util.get_centerposition(bmp.GetSize(), pos, size)
             dc.DrawBitmap(bmp, top, left, True)
 
-        if not name in self.clickables:
+        if name not in self.clickables:
             # クリックしにくいのでサイズ拡大
             size = size[0] + cw.wins(4), size[1] + cw.wins(4)
             pos = pos[0] - cw.wins(2), pos[1] - cw.wins(2)
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
     def set_clickablearea(self, pos, size, name, method, wheelmethod):
-        if not name in self.clickables:
+        if name not in self.clickables:
             # クリックしにくいのでサイズ拡大
             size = size[0] + cw.wins(20), size[1] + cw.wins(20)
             pos = pos[0] - cw.wins(10), pos[1] - cw.wins(10)
@@ -1053,7 +1056,7 @@ class AdventurerCreaterPage(wx.Panel):
             self.imgpathlist = {}
             self.imgdpath = -1
         else:
-            self.imgpathlist = {None:[self.imgpaths]}
+            self.imgpathlist = {None: [self.imgpaths]}
             self.imgdpath = 0
 
         if drop:
@@ -1131,10 +1134,12 @@ class AdventurerCreaterPage(wx.Panel):
     def select_autofeatures(self):
         pass
 
+
 def _path_to_imageinfo(path):
     if isinstance(path, str):
         return [cw.image.ImageInfo(path, postype="Center")]
     return path
+
 
 class NamePage(AdventurerCreaterPage):
     def __init__(self, parent):
@@ -1209,14 +1214,17 @@ class NamePage(AdventurerCreaterPage):
         self.Bind(wx.EVT_MENU, self.OnNUpKeyDown, id=self.shifttabkeyid)
         self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.tabkeyid)
         self._set_acceleratortable(False, True)
+
         def OnTextCtrlSetFocus(event):
             self._set_acceleratortable(False, True)
             event.Skip(True)
         self.textctrl.Bind(wx.EVT_SET_FOCUS, OnTextCtrlSetFocus)
+
         def OnChoiceSetFocus(event):
             self._set_acceleratortable(True, False)
             event.Skip(True)
         self.ch_imgdpath.Bind(wx.EVT_SET_FOCUS, OnChoiceSetFocus)
+
         def OnKillFocus(event):
             self._set_acceleratortable(True, True)
             event.Skip(True)
@@ -1267,8 +1275,7 @@ class NamePage(AdventurerCreaterPage):
                 self.SetFocusIgnoringChildren()
         elif fc is self.autoname:
             self.SetFocusIgnoringChildren()
-        elif fc is self and ((self.selected_clickable and self.is_selectionend()) or\
-                event.GetId() == self.tabkeyid):
+        elif fc is self and ((self.selected_clickable and self.is_selectionend()) or event.GetId() == self.tabkeyid):
             self.Navigate(wx.NavigationKeyEvent.IsForward)
         elif event.GetId() == self.tabkeyid and fc is self.ch_imgdpath:
             self.Navigate(wx.NavigationKeyEvent.IsForward)
@@ -1281,8 +1288,8 @@ class NamePage(AdventurerCreaterPage):
             self.textctrl.SetFocus()
         elif fc is self.textctrl:
             self.Parent.closebtn.SetFocus()
-        elif fc is self and ((self.selected_clickable and self.is_selectionstart()) or \
-                 event.GetId() == self.shifttabkeyid):
+        elif fc is self and ((self.selected_clickable and self.is_selectionstart()) or
+                             event.GetId() == self.shifttabkeyid):
             if self.autoname:
                 self.autoname.SetFocus()
             else:
@@ -1354,7 +1361,7 @@ class NamePage(AdventurerCreaterPage):
             self.Parent.nextbtn.Disable()
 
     def OnAutoName(self, event):
-        if not self.sex in cw.cwpy.setting.sexcoupons:
+        if self.sex not in cw.cwpy.setting.sexcoupons:
             return
         cw.cwpy.play_sound("signal")
         sindex = cw.cwpy.setting.sexcoupons.index(self.sex)
@@ -1504,7 +1511,8 @@ class NamePage(AdventurerCreaterPage):
         dc.DestroyClippingRegion()
         self.set_clickablearea(cw.wins((275, 130)), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
-        self.tooltips = [(wx.Rect(x-cw.wins(5), y-cw.wins(5), cw.wins(cw.SIZE_CARDIMAGE[1]+10), cw.wins(cw.SIZE_CARDIMAGE[1]+10)),
+        self.tooltips = [(wx.Rect(x-cw.wins(5), y-cw.wins(5), cw.wins(cw.SIZE_CARDIMAGE[1]+10),
+                                  cw.wins(cw.SIZE_CARDIMAGE[1]+10)),
                           cw.cwpy.msgs["can_use_castimage_from_dropped"])]
 
         self.clickable_table.append([None, None, "PrevImage", "NextImage"])
@@ -1570,6 +1578,7 @@ class NamePage(AdventurerCreaterPage):
 
         self.draw(True)
 
+
 def get_randomname(sex):
     """<Skin>/Name/*Names.txtから性別に基づいてランダムに名前を得る。
     該当ファイルが存在しなかったり、ファイルに名前が登録されていない
@@ -1601,6 +1610,7 @@ def get_randomname(sex):
     else:
         return ""
 
+
 def _get_randomnamefromexample(sex, skintype):
     """Exampleフォルダにスキンタイプに該当するファイルがあったら
     その内容を取得する。
@@ -1625,6 +1635,7 @@ def _get_randomnamefromexample(sex, skintype):
 
     return names
 
+
 def _read_names(fpath):
     """fpathから名前のリストを読み込む。
     """
@@ -1640,10 +1651,11 @@ def _read_names(fpath):
                 line = line.strip()
                 if not line.startswith('#'):
                     names.add(line)
-    except:
+    except Exception:
         cw.util.print_ex()
 
     return names
+
 
 class RacePage(AdventurerCreaterPage):
     def __init__(self, parent):
@@ -1680,7 +1692,7 @@ class RacePage(AdventurerCreaterPage):
         sizer_1.Add((csize[0], cw.wins(90)), 0, 0, 0)
         w, h = self.choice.GetSize()
         margin = (csize[0] - w) // 2
-        sizer_1.Add(self.choice, 0, wx.RIGHT|wx.LEFT, margin)
+        sizer_1.Add(self.choice, 0, wx.RIGHT | wx.LEFT, margin)
         margin = csize[1] - cw.wins(90) - h
         sizer_1.Add((csize[0], margin), 0, 0, 0)
         self.SetSizer(sizer_1)
@@ -1736,6 +1748,7 @@ class RacePage(AdventurerCreaterPage):
         race = self.choice.GetStringSelection()
         self.race = race
         self.draw(True)
+
 
 class RelationPage(AdventurerCreaterPage):
     def __init__(self, parent):
@@ -1797,7 +1810,8 @@ class RelationPage(AdventurerCreaterPage):
         # 父親画像
         if self.father:
             paths = self.father.get_imgpaths()
-            can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(self.father.fpath).attrs.get("scaledimage", "False"))
+            attr = cw.header.GetRootAttribute(self.father.fpath).attrs.get("scaledimage", "False")
+            can_loaded_scaledimage = cw.util.str2bool(attr)
             basecardtype = "LargeCard"
         else:
             path = "Resource/Image/Card/FATHER"
@@ -1815,7 +1829,8 @@ class RelationPage(AdventurerCreaterPage):
                     baserect = info.calc_basecardposition_wx(bmp2.GetSize(), noscale=False,
                                                              basecardtype=basecardtype,
                                                              cardpostype="NotCard")
-                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, pos[0]+baserect.x, pos[1]+baserect.y, True, bitsizekey=bmp)
+                    cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, pos[0]+baserect.x, pos[1]+baserect.y, True,
+                                                           bitsizekey=bmp)
             dc.DestroyClippingRegion()
 
         pos = cw.wins((100, 110))
@@ -1825,7 +1840,8 @@ class RelationPage(AdventurerCreaterPage):
         # 母親画像
         if self.mother:
             paths = self.mother.get_imgpaths()
-            can_loaded_scaledimage = cw.util.str2bool(cw.header.GetRootAttribute(self.mother.fpath).attrs.get("scaledimage", "False"))
+            attr = cw.header.GetRootAttribute(self.mother.fpath).attrs.get("scaledimage", "False")
+            can_loaded_scaledimage = cw.util.str2bool(attr)
             basecardtype = "LargeCard"
         else:
             path = "Resource/Image/Card/MOTHER"
@@ -1901,7 +1917,7 @@ class RelationPage(AdventurerCreaterPage):
 
             try:
                 self.father = self.fathers[index]
-            except:
+            except Exception:
                 self.father = self.fathers[0]
 
             self.draw(True)
@@ -1913,7 +1929,7 @@ class RelationPage(AdventurerCreaterPage):
 
             try:
                 self.father = self.fathers[index]
-            except:
+            except Exception:
                 self.father = self.fathers[0]
 
             self.draw(True)
@@ -1925,7 +1941,7 @@ class RelationPage(AdventurerCreaterPage):
 
             try:
                 self.mother = self.mothers[index]
-            except:
+            except Exception:
                 self.mother = self.mothers[0]
 
             self.draw(True)
@@ -1937,7 +1953,7 @@ class RelationPage(AdventurerCreaterPage):
 
             try:
                 self.mother = self.mothers[index]
-            except:
+            except Exception:
                 self.mother = self.mothers[0]
 
             self.draw(True)
@@ -1989,6 +2005,7 @@ class RelationPage(AdventurerCreaterPage):
         self.mother = cw.cwpy.dice.choice(self.mothers)
 
         self.draw(True)
+
 
 class TalentPage(AdventurerCreaterPage):
     def __init__(self, parent):
@@ -2069,6 +2086,7 @@ class TalentPage(AdventurerCreaterPage):
 
         self.draw(True)
 
+
 class AttrPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
@@ -2140,7 +2158,7 @@ class AttrPage(AdventurerCreaterPage):
         else:
             dc.DrawText(s, pos[0], pos[1])
 
-        if not name in self.clickables:
+        if name not in self.clickables:
             # クリックしにくいのでサイズ拡大
             size = size[0] + cw.wins(2), size[1] + cw.wins(2)
             pos = pos[0] - cw.wins(1), pos[1] - cw.wins(1)
@@ -2165,6 +2183,7 @@ class AttrPage(AdventurerCreaterPage):
         self.couponsdata = _get_randommakingsandpair()
         self.draw(True)
 
+
 def _get_randommakingsandpair():
     # どの程度の確率で左右どちらかの特徴が選択されるかの係数
     nv = cw.cwpy.dice.roll(1, 5)
@@ -2181,14 +2200,16 @@ def _get_randommakingsandpair():
             makings[tuple(pair)] = "＿" + pair[n]
     return makings
 
+
 def get_randommakings():
     """ランダムに選ばれた特徴のsetを返す。"""
     makings = _get_randommakingsandpair()
     return set(makings.values())
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # 宿の登録ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class YadoCreater(wx.Dialog):
     def __init__(self, parent, yadodir=None):
@@ -2202,7 +2223,7 @@ class YadoCreater(wx.Dialog):
 
         s = cw.cwpy.msgs["create_base_title"] if self.create else cw.cwpy.msgs["edit_base_title"]
         wx.Dialog.__init__(self, parent, -1, s, size=(318, 180),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.SetDoubleBuffered(True)
 
@@ -2249,8 +2270,12 @@ class YadoCreater(wx.Dialog):
                     if skintype and prop.properties.get("Type", "") != skintype:
                         continue
                     choices.append(prop.properties["Name"])
-                    self.command0s.append([cw.util.find_resource(cw.util.join_paths(path, "Resource/Image/Card/COMMAND0"), cw.M_IMG), None])
-                    self.cautions.append([cw.util.find_resource(cw.util.join_paths(path, "Resource/Image/Dialog/CAUTION"), cw.M_IMG), None])
+                    self.command0s.append([cw.util.find_resource(cw.util.join_paths(path,
+                                                                                    "Resource/Image/Card/COMMAND0"),
+                                                                 cw.M_IMG), None])
+                    self.cautions.append([cw.util.find_resource(cw.util.join_paths(path,
+                                                                                   "Resource/Image/Dialog/CAUTION"),
+                                                                cw.M_IMG), None])
                     self.skindirnames.append(name)
                 except Exception:
                     # エラーのあるスキンは無視
@@ -2275,10 +2300,9 @@ class YadoCreater(wx.Dialog):
         self.autoload_party.SetValue(is_autoloadparty)
         self.autoload_party.set_background(self._load_caution())
 
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
         self._do_layout()
         self._bind()
 
@@ -2289,8 +2313,7 @@ class YadoCreater(wx.Dialog):
         self.yadodir = cw.util.join_paths("Yado", cw.binary.util.check_filename(name))
         self.yadodir = cw.binary.util.check_duplicate(self.yadodir)
         os.makedirs(self.yadodir)
-        dnames = ("Adventurer", "Album", "BeastCard", "ItemCard",
-                                            "Material", "Party", "SkillCard")
+        dnames = ("Adventurer", "Album", "BeastCard", "ItemCard", "Material", "Party", "SkillCard")
 
         for dname in dnames:
             path = cw.util.join_paths(self.yadodir, dname)
@@ -2396,7 +2419,8 @@ class YadoCreater(wx.Dialog):
         imgdata = self.cautions[index]
         bmp = imgdata[1]
         if not bmp:
-            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], False, can_loaded_scaledimage=True), cw.setting.SIZE_RESOURCES["Dialog/CAUTION"]))
+            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], False, can_loaded_scaledimage=True),
+                           cw.setting.SIZE_RESOURCES["Dialog/CAUTION"]))
             imgdata[1] = bmp
         return bmp
 
@@ -2456,6 +2480,7 @@ class YadoCreater(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_PAINT, self.OnPaint2)
         self.Bind(wx.EVT_CHOICE, self.OnChoice, self.skin)
+
         def recurse(ctrl):
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
@@ -2506,7 +2531,7 @@ class YadoCreater(wx.Dialog):
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
 
-        sizer_1.Add(self.autoload_party, 0, wx.LEFT|wx.RIGHT|wx.ALIGN_RIGHT, cw.wins(10))
+        sizer_1.Add(self.autoload_party, 0, wx.LEFT | wx.RIGHT | wx.ALIGN_RIGHT, cw.wins(10))
 
         sizer_1.Add(cw.wins((0, 12)), 0, 0, 0)
 
@@ -2515,7 +2540,7 @@ class YadoCreater(wx.Dialog):
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) // 3
         sizer_4.Add(self.okbtn, 0, wx.LEFT, margin)
-        sizer_4.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_4.Add(self.cnclbtn, 0, wx.LEFT | wx.RIGHT, margin)
         sizer_1.Add(sizer_4, 1, wx.EXPAND, 0)
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
@@ -2525,14 +2550,15 @@ class YadoCreater(wx.Dialog):
         self.SetClientSize(sizer_1.CalcMin())
         self.Layout()
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # 冒険者のデザインダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class AdventurerDesignDialog(wx.Dialog):
     def __init__(self, parent, ccard):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["design_title"],
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         # buttonlist
         self.buttonlist = []
@@ -2543,11 +2569,10 @@ class AdventurerDesignDialog(wx.Dialog):
         self.toppanel = DesignPanel(self, self.ccard)
 
         # btn
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.buttonlist.append(self.okbtn)
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.cnclbtn)
 
         # layout
@@ -2572,7 +2597,7 @@ class AdventurerDesignDialog(wx.Dialog):
         # sizer_panelにbuttonを設定
         for button in self.buttonlist:
             sizer_btn.Add((margin, 0), 0, 0, 0)
-            sizer_btn.Add(button, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+            sizer_btn.Add(button, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
         sizer_btn.Add((margin2, 0), 0, 0, 0)
 
         sizer_1.Add(self.toppanel, 1, wx.EXPAND, 0)
@@ -2620,6 +2645,7 @@ class AdventurerDesignDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+
 class DesignPanel(AdventurerCreaterPage):
     def __init__(self, parent, ccard):
         AdventurerCreaterPage.__init__(self, parent, size=cw.wins((400, 370)), freeze=False)
@@ -2653,7 +2679,7 @@ class DesignPanel(AdventurerCreaterPage):
         self.centering_shown = True
 
         font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14))
-        self.descctrl = wx.TextCtrl(self, style=wx.NO_BORDER|wx.TE_MULTILINE)
+        self.descctrl = wx.TextCtrl(self, style=wx.NO_BORDER | wx.TE_MULTILINE)
         self.descctrl.SetFont(font)
 
         dc = wx.ClientDC(self)
@@ -2665,7 +2691,8 @@ class DesignPanel(AdventurerCreaterPage):
 
         self.imgpaths = []
         for info in self.ccard.get_imagepaths():
-            self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info, basecardtype="LargeCard"))
+            self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info,
+                                                    basecardtype="LargeCard"))
         self.oldimgpath = self.imgpaths[:]
         self.can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
 
@@ -2706,18 +2733,22 @@ class DesignPanel(AdventurerCreaterPage):
         self.Bind(wx.EVT_MENU, self.OnShiftTab, id=self.shifttabkeyid)
         self.Bind(wx.EVT_MENU, self.OnTab, id=self.tabkeyid)
         self._set_acceleratortable(False, True)
+
         def OnLeftRightSetFocus(event):
             self._set_acceleratortable(False, True)
             event.Skip(True)
         self.namectrl.Bind(wx.EVT_SET_FOCUS, OnLeftRightSetFocus)
+
         def OnArrowsSetFocus(event):
             self._set_acceleratortable(False, False)
             event.Skip(True)
         self.descctrl.Bind(wx.EVT_SET_FOCUS, OnArrowsSetFocus)
+
         def OnUpDownSetFocus(event):
             self._set_acceleratortable(True, False)
             event.Skip(True)
         self.ch_imgdpath.Bind(wx.EVT_SET_FOCUS, OnUpDownSetFocus)
+
         def OnKillFocus(event):
             self._set_acceleratortable(True, True)
             event.Skip(True)
@@ -2884,14 +2915,14 @@ class DesignPanel(AdventurerCreaterPage):
         sizer_2.Add(self.cb_centering, 0, 0, 0)
 
         if self.ch_imgdpath.IsShown():
-            sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.wins(57))
-            sizer_1.Add(sizer_2, 0, wx.TOP|wx.CENTER, cw.wins(115))
-            sizer_1.Add(self.ch_imgdpath, 0, wx.TOP|wx.CENTER, cw.wins(1))
-            sizer_1.Add(self.descctrl, 0, wx.TOP|wx.CENTER, cw.wins(25))
+            sizer_1.Add(self.namectrl, 0, wx.TOP | wx.CENTER, cw.wins(57))
+            sizer_1.Add(sizer_2, 0, wx.TOP | wx.CENTER, cw.wins(115))
+            sizer_1.Add(self.ch_imgdpath, 0, wx.TOP | wx.CENTER, cw.wins(1))
+            sizer_1.Add(self.descctrl, 0, wx.TOP | wx.CENTER, cw.wins(25))
         else:
-            sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.wins(62))
-            sizer_1.Add(sizer_2, 0, wx.TOP|wx.CENTER, cw.wins(110))
-            sizer_1.Add(self.descctrl, 0, wx.TOP|wx.CENTER, cw.wins(31))
+            sizer_1.Add(self.namectrl, 0, wx.TOP | wx.CENTER, cw.wins(62))
+            sizer_1.Add(sizer_2, 0, wx.TOP | wx.CENTER, cw.wins(110))
+            sizer_1.Add(self.descctrl, 0, wx.TOP | wx.CENTER, cw.wins(31))
 
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
@@ -2988,7 +3019,8 @@ class DesignPanel(AdventurerCreaterPage):
         dc.DestroyClippingRegion()
         self.set_clickablearea((x, y), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
-        self.tooltips = [(wx.Rect(x-cw.wins(5), y-cw.wins(5), cw.wins(cw.SIZE_CARDIMAGE[0]+10), cw.wins(cw.SIZE_CARDIMAGE[1]+10)),
+        self.tooltips = [(wx.Rect(x-cw.wins(5), y-cw.wins(5), cw.wins(cw.SIZE_CARDIMAGE[0]+10),
+                                  cw.wins(cw.SIZE_CARDIMAGE[1]+10)),
                           cw.cwpy.msgs["can_use_castimage_from_dropped"])]
 
         self.clickable_table = [["PrevImage", "NextImage"]]
@@ -3007,12 +3039,14 @@ class DesignPanel(AdventurerCreaterPage):
     def set_previmg(self, name):
         _set_previmg(self, name)
 
+
 def _index_of(imgpaths, imgpathlist):
     assert isinstance(imgpaths, list)
     if imgpaths in imgpathlist:
         return imgpathlist.index(imgpaths)
     else:
         return imgpathlist.index(imgpaths[0].path)
+
 
 def _set_nextimg(panel, name):
     if panel.imgpathlist:
@@ -3032,6 +3066,7 @@ def _set_nextimg(panel, name):
 
         panel.Refresh()
 
+
 def _set_previmg(panel, name):
     if panel.imgpathlist:
         cw.cwpy.play_sound("page")
@@ -3050,8 +3085,10 @@ def _set_previmg(panel, name):
 
         panel.Refresh()
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

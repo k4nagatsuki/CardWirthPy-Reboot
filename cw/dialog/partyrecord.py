@@ -6,9 +6,10 @@ import wx
 import cw
 from . import select
 
-#-------------------------------------------------------------------------------
-#　パーティの記録
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# パーティの記録
+# ------------------------------------------------------------------------------
 
 class SelectPartyRecord(select.Select):
     """
@@ -83,6 +84,7 @@ class SelectPartyRecord(select.Select):
                 header = cw.cwpy.ydata.set_partyrecord(index, partyrecord)
             else:
                 header = cw.cwpy.ydata.add_partyrecord(partyrecord)
+
             def func(panel, header):
                 if panel:
                     panel.list = cw.cwpy.ydata.partyrecord[:]
@@ -119,6 +121,7 @@ class SelectPartyRecord(select.Select):
             if updatelist:
                 cw.cwpy.save_partyrecord()
             cw.cwpy.ydata.restore_party(header)
+
             def func(panel, parent, selected, updatelist):
                 if panel and updatelist:
                     header = panel.list[panel.index]
@@ -160,6 +163,7 @@ class SelectPartyRecord(select.Select):
         dlg.Destroy()
 
         cw.cwpy.play_sound("dump")
+
         def func(header):
             cw.cwpy.ydata.remove_partyrecord(header)
         cw.cwpy.exec_func(func, header)
@@ -227,14 +231,14 @@ class SelectPartyRecord(select.Select):
             if not flag:
                 for cheader in cw.cwpy.ydata.storehouse:
                     if cheader.name == name and cheader.desc == desc and\
-                            not cheader in removed:
+                            cheader not in removed:
                         flag = True
                         removed.add(cheader)
                         break
             if not flag and cw.cwpy.ydata.party:
                 for cheader in cw.cwpy.ydata.party.backpack:
                     if cheader.name == name and cheader.desc == desc and\
-                            not cheader in removed:
+                            cheader not in removed:
                         flag = True
                         removed.add(cheader)
                         break
@@ -354,4 +358,3 @@ class SelectPartyRecord(select.Select):
 
         if update:
             self.enable_btn()
-

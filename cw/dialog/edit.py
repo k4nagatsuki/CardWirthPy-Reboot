@@ -13,14 +13,14 @@ import colorsys
 import cw
 
 
-#-------------------------------------------------------------------------------
-#　パーティ情報変更ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# パーティ情報変更ダイアログ
+# ------------------------------------------------------------------------------
 
 class PartyEditor(wx.Dialog):
     def __init__(self, parent, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["party_information"],
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         if party:
             self.party = party
@@ -47,10 +47,9 @@ class PartyEditor(wx.Dialog):
         self.suspend_levelup.SetValue(self.party.is_suspendlevelup)
 
         # btn
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
         self._do_layout()
         self._bind()
@@ -60,6 +59,7 @@ class PartyEditor(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_CHECKBOX, self.OnSuspendLevelUp)
+
         def recurse(ctrl):
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
@@ -76,11 +76,11 @@ class PartyEditor(wx.Dialog):
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(20))
 
         sizer_v1.Add(cw.wins((0, 18)), 0, wx.CENTER, 0)
-        sizer_v1.Add(self.textctrl, 0, wx.CENTER|wx.TOP, cw.wins(5))
-        sizer_v1.Add(cw.wins((0, 18)), 0, wx.CENTER|wx.TOP, cw.wins(10))
-        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, cw.wins(5))
-        sizer_v1.Add(self.suspend_levelup, 0, wx.ALIGN_RIGHT|wx.TOP, cw.wins(10))
-        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(13))
+        sizer_v1.Add(self.textctrl, 0, wx.CENTER | wx.TOP, cw.wins(5))
+        sizer_v1.Add(cw.wins((0, 18)), 0, wx.CENTER | wx.TOP, cw.wins(10))
+        sizer_v1.Add(self.panel, 0, wx.CENTER | wx.TOP, cw.wins(5))
+        sizer_v1.Add(self.suspend_levelup, 0, wx.ALIGN_RIGHT | wx.TOP, cw.wins(10))
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER | wx.TOP, cw.wins(13))
 
         sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
         self.SetSizer(sizer)
@@ -143,6 +143,7 @@ class PartyEditor(wx.Dialog):
         left = (dc.GetSize()[0] - dc.GetTextExtent(s)[0]) // 2
         dc.DrawText(s, left, cw.wins(73))
 
+
 class MoneyEditPanel(wx.Panel):
     def __init__(self, parent, party):
         wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
@@ -195,21 +196,21 @@ class MoneyEditPanel(wx.Panel):
         self.spinctrl.SetValue(value)
         self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
-        self.slider._enable()
+        self.slider.enable()
 
     def OnSpinCtrl(self, event):
         value = self.spinctrl.GetValue()
         self.slider.set_value(value)
         self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
-        self.slider._enable()
+        self.slider.enable()
 
     def OnSpinCtrl2(self, event):
         value = self.spinctrl.GetMax() + self.spinctrl.GetMin() - self.spinctrl2.GetValue()
         self.slider.set_value(value)
         self.spinctrl.SetValue(value)
         self.value = value
-        self.slider._enable()
+        self.slider.enable()
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -220,28 +221,29 @@ class MoneyEditPanel(wx.Panel):
         sizer_v2 = wx.BoxSizer(wx.VERTICAL)
         sizer_v3 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer_v3.Add(self.text_yado, 0, wx.CENTER|wx.TOP, cw.wins(3))
+        sizer_v3.Add(self.text_yado, 0, wx.CENTER | wx.TOP, cw.wins(3))
         sizer_v3.Add(self.spinctrl2, 0, wx.CENTER, cw.wins(0))
 
         sizer_v2.Add(self.text_party, 0, wx.CENTER, cw.wins(0))
         sizer_v2.Add(self.spinctrl, 0, wx.CENTER, cw.wins(0))
 
         sizer_h3.Add(self.bmp_ymoney, 0, wx.CENTER, cw.wins(0))
-        sizer_h3.Add(sizer_v3, 1, wx.CENTER|wx.LEFT, cw.wins(5))
+        sizer_h3.Add(sizer_v3, 1, wx.CENTER | wx.LEFT, cw.wins(5))
 
         sizer_h2.Add(self.bmp_pmoney, 0, wx.CENTER, cw.wins(0))
-        sizer_h2.Add(sizer_v2, 1, wx.CENTER|wx.LEFT, cw.wins(5))
+        sizer_h2.Add(sizer_v2, 1, wx.CENTER | wx.LEFT, cw.wins(5))
 
-        sizer_v1.Add(sizer_h2, 0, wx.CENTER|wx.EXPAND, cw.wins(0))
-        sizer_v1.Add(sizer_h3, 0, wx.CENTER|wx.EXPAND, cw.wins(0))
+        sizer_v1.Add(sizer_h2, 0, wx.CENTER | wx.EXPAND, cw.wins(0))
+        sizer_v1.Add(sizer_h3, 0, wx.CENTER | wx.EXPAND, cw.wins(0))
 
         sizer_h1.Add(self.slider, 0, wx.CENTER, cw.wins(0))
-        sizer_h1.Add(sizer_v1, 0, wx.CENTER|wx.LEFT, cw.wins(5))
+        sizer_h1.Add(sizer_v1, 0, wx.CENTER | wx.LEFT, cw.wins(5))
 
         sizer.Add(sizer_h1, 0, wx.ALL, cw.wins(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
 
 class MoneyViewPanel(wx.Panel):
     def __init__(self, parent, party):
@@ -252,7 +254,7 @@ class MoneyViewPanel(wx.Panel):
         self.bmp_pmoney = cw.util.CWPyStaticBitmap(self, -1, [bmp], [bmp])
         # text
         self.text_pmoney = wx.StaticText(self, -1, cw.cwpy.msgs["currency"] % (self.value),
-                                        size=(cw.wins(88), -1), style=wx.BORDER|wx.ALIGN_CENTRE_HORIZONTAL)
+                                         size=(cw.wins(88), -1), style=wx.BORDER | wx.ALIGN_CENTRE_HORIZONTAL)
         self.text_pmoney.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(16)))
         self.text_pmoney.SetBackgroundColour(wx.WHITE)
         self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
@@ -266,25 +268,26 @@ class MoneyViewPanel(wx.Panel):
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
 
         sizer_v1.Add(self.text_party, 0, wx.CENTER, cw.wins(0))
-        sizer_v1.Add(self.text_pmoney, 2, wx.CENTER|wx.TOP, cw.wins(2))
+        sizer_v1.Add(self.text_pmoney, 2, wx.CENTER | wx.TOP, cw.wins(2))
 
         sizer_h1.Add(self.bmp_pmoney, 0, wx.CENTER, cw.wins(0))
-        sizer_h1.Add(sizer_v1, 0, wx.CENTER|wx.LEFT, cw.wins(5))
+        sizer_h1.Add(sizer_v1, 0, wx.CENTER | wx.LEFT, cw.wins(5))
 
         sizer.Add(sizer_h1, 0, wx.ALL, cw.wins(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
 
-#-------------------------------------------------------------------------------
-#  汎用ダイアログ
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# 汎用ダイアログ
+# ------------------------------------------------------------------------------
 
 class NumberEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, value, minvalue, maxvalue, page):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.value = value
 
@@ -293,10 +296,9 @@ class NumberEditDialog(wx.Dialog):
         self.slider = NumberEditor(self.panel, value, minvalue, maxvalue, page)
 
         # btn
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
         self._do_layout()
         self._bind()
@@ -308,15 +310,15 @@ class NumberEditDialog(wx.Dialog):
 
     def _do_layout(self):
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_panel.Add(self.panel, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+        sizer_panel.Add(self.panel, 1, wx.EXPAND | wx.ALL, cw.wins(5))
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
         sizer_btn.Add(self.okbtn, 0, 0, cw.wins(0))
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(30))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1.Add(sizer_panel, 0, wx.CENTER|wx.TOP, cw.wins(5))
-        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(10))
+        sizer_v1.Add(sizer_panel, 0, wx.CENTER | wx.TOP, cw.wins(5))
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER | wx.TOP, cw.wins(10))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
@@ -341,13 +343,14 @@ class NumberEditDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+
 class Number2EditDialog(wx.Dialog):
 
     def __init__(self, parent, title,
                  label1, value1, minvalue1, maxvalue1, page1,
                  label2, value2, minvalue2, maxvalue2, page2):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.value1 = value1
         self.value2 = value2
@@ -364,9 +367,9 @@ class Number2EditDialog(wx.Dialog):
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
+                                                  cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
         self._do_layout()
         self._bind()
@@ -380,12 +383,12 @@ class Number2EditDialog(wx.Dialog):
         sizer_box1 = wx.StaticBoxSizer(self.box1, wx.HORIZONTAL)
         sizer_box2 = wx.StaticBoxSizer(self.box2, wx.HORIZONTAL)
 
-        sizer_box1.Add(self.slider1, 1, wx.EXPAND|wx.ALL, cw.wins(5))
-        sizer_box2.Add(self.slider2, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+        sizer_box1.Add(self.slider1, 1, wx.EXPAND | wx.ALL, cw.wins(5))
+        sizer_box2.Add(self.slider2, 1, wx.EXPAND | wx.ALL, cw.wins(5))
 
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
-        sizer_panel.Add(sizer_box1, 1, wx.EXPAND|wx.ALL, cw.wins(5))
-        sizer_panel.Add(sizer_box2, 1, wx.EXPAND|wx.BOTTOM|wx.ALL, cw.wins(5))
+        sizer_panel.Add(sizer_box1, 1, wx.EXPAND | wx.ALL, cw.wins(5))
+        sizer_panel.Add(sizer_box2, 1, wx.EXPAND | wx.BOTTOM | wx.ALL, cw.wins(5))
         self.panel.SetSizer(sizer_panel)
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
@@ -393,8 +396,8 @@ class Number2EditDialog(wx.Dialog):
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(30))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, cw.wins(5))
-        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(10))
+        sizer_v1.Add(self.panel, 0, wx.CENTER | wx.TOP, cw.wins(5))
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER | wx.TOP, cw.wins(10))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
@@ -420,13 +423,14 @@ class Number2EditDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+
 class NumberComboEditDialog(wx.Dialog):
 
     def __init__(self, parent, title,
                  label1, mlist, selected,
                  label2, value, minvalue, maxvalue, page):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.selected = value
         self.value = value
@@ -457,9 +461,9 @@ class NumberComboEditDialog(wx.Dialog):
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
+                                                  cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
         self._do_layout()
         self._bind()
@@ -474,7 +478,8 @@ class NumberComboEditDialog(wx.Dialog):
         sizer_box2 = wx.StaticBoxSizer(self.box2, wx.HORIZONTAL)
 
         if self._combo_panel:
-            sizer_box1.Add(self._combo_panel, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+            sizer_box1.Add(self._combo_panel, 1, wx.EXPAND | wx.ALL, cw.wins(5))
+
             def func(self):
                 if not self:
                     return
@@ -487,13 +492,13 @@ class NumberComboEditDialog(wx.Dialog):
                     win32api.SendMessage(self.combo.Handle, CB_SETITEMHEIGHT, -1, cw.wins(24))
             cw.cwpy.frame.exec_func(func, self)
         else:
-            sizer_box1.Add(self.combo, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+            sizer_box1.Add(self.combo, 1, wx.EXPAND | wx.ALL, cw.wins(5))
 
-        sizer_box2.Add(self.slider, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+        sizer_box2.Add(self.slider, 1, wx.EXPAND | wx.ALL, cw.wins(5))
 
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
-        sizer_panel.Add(sizer_box1, 0, wx.EXPAND|wx.ALL, cw.wins(5))
-        sizer_panel.Add(sizer_box2, 1, wx.BOTTOM|wx.ALL, cw.wins(5))
+        sizer_panel.Add(sizer_box1, 0, wx.EXPAND | wx.ALL, cw.wins(5))
+        sizer_panel.Add(sizer_box2, 1, wx.BOTTOM | wx.ALL, cw.wins(5))
         self.panel.SetSizer(sizer_panel)
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
@@ -501,8 +506,8 @@ class NumberComboEditDialog(wx.Dialog):
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(30))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, cw.wins(5))
-        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(10))
+        sizer_v1.Add(self.panel, 0, wx.CENTER | wx.TOP, cw.wins(5))
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER | wx.TOP, cw.wins(10))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
@@ -528,6 +533,7 @@ class NumberComboEditDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+
 class SliderWithButton(wx.Panel):
     _repeat_first = 500
     _repeat_second = 20
@@ -539,7 +545,7 @@ class SliderWithButton(wx.Panel):
 
         # スライダ
         self.slider = wx.Slider(self, -1, 0, 0, 1,
-            size=(sliderwidth, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
+                                size=(sliderwidth, -1), style=wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
         self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("slider", pixelsize=cw.wins(14)))
         self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
         self.slider.SetPageSize(page)
@@ -572,7 +578,7 @@ class SliderWithButton(wx.Panel):
         if not self.is_enabled:
             return
         self.slider.SetValue(value)
-        self._enable()
+        self.enable()
 
     def set_max(self, value):
         self.Freeze()
@@ -582,7 +588,7 @@ class SliderWithButton(wx.Panel):
         if not self.is_enabled:
             self.slider.SetRange(minvalue, minvalue+1)
             self.slider.SetValue(minvalue)
-            self._enable()
+            self.enable()
             self.Thaw()
             return
         n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
@@ -595,7 +601,7 @@ class SliderWithButton(wx.Panel):
         self.slider.SetSize(size)
         self.Layout()
 
-        self._enable()
+        self.enable()
         self.Thaw()
 
     def set_min(self, value):
@@ -614,10 +620,10 @@ class SliderWithButton(wx.Panel):
         self.slider.SetSize(size)
         self.Layout()
 
-        self._enable()
+        self.enable()
         self.Thaw()
 
-    def _enable(self):
+    def enable(self):
         self.slider.Enable(self.is_enabled)
         self.leftbtn.Enable(self.is_enabled and self.slider.GetMin() < self.slider.GetValue())
         self.rightbtn.Enable(self.is_enabled and self.slider.GetValue() < self.slider.GetMax())
@@ -635,7 +641,7 @@ class SliderWithButton(wx.Panel):
     def _do_layout(self):
         sizer_slider = wx.BoxSizer(wx.HORIZONTAL)
         sizer_slider.Add(self.leftbtn, 0, wx.ALIGN_CENTER)
-        sizer_slider.Add(self.slider, 1, wx.LEFT|wx.RIGHT|wx.ALIGN_CENTER, cw.wins(3))
+        sizer_slider.Add(self.slider, 1, wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER, cw.wins(3))
         sizer_slider.Add(self.rightbtn, 0, wx.ALIGN_CENTER)
 
         self.SetSizer(sizer_slider)
@@ -668,6 +674,7 @@ class SliderWithButton(wx.Panel):
 
     def _end(self):
         self._timer.Stop()
+
         def func():
             self._timerfunc = None
             self._timerbtn = None
@@ -703,7 +710,7 @@ class SliderWithButton(wx.Panel):
             event = wx.PyCommandEvent(wx.wxEVT_COMMAND_SLIDER_UPDATED, self.slider.GetId())
             event.SetInt(value-1)
             self.slider.ProcessEvent(event)
-            self._enable()
+            self.enable()
 
     def _on_rightbtn(self):
         value = self.slider.GetValue()
@@ -712,7 +719,8 @@ class SliderWithButton(wx.Panel):
             event = wx.PyCommandEvent(wx.wxEVT_COMMAND_SLIDER_UPDATED, self.slider.GetId())
             event.SetInt(value+1)
             self.slider.ProcessEvent(event)
-            self._enable()
+            self.enable()
+
 
 class NumberEditor(wx.Panel):
     def __init__(self, parent, value, minvalue, maxvalue, page):
@@ -742,21 +750,21 @@ class NumberEditor(wx.Panel):
     def set_value(self, value):
         self.slider.set_value(value)
         self.spinctrl.SetValue(value)
-        self._enable()
+        self.enable()
 
     def set_max(self, value):
         self.slider.set_max(value)
         self.spinctrl.SetRange(self.spinctrl.GetMin(), value)
-        self._enable()
+        self.enable()
 
     def set_min(self, value):
         self.slider.set_min(value)
         self.spinctrl.SetRange(value, self.spinctrl.GetMax())
-        self._enable()
+        self.enable()
 
-    def _enable(self):
+    def enable(self):
         self.spinctrl.Enable(self.slider.is_enabled)
-        self.slider._enable()
+        self.slider.enable()
 
     def _bind(self):
         self.slider.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
@@ -765,10 +773,10 @@ class NumberEditor(wx.Panel):
     def _do_layout(self):
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer_v1.Add(self.slider, 1, wx.BOTTOM|wx.EXPAND, cw.wins(5))
+        sizer_v1.Add(self.slider, 1, wx.BOTTOM | wx.EXPAND, cw.wins(5))
 
         sizer_spinctrl = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_spinctrl.Add(self.spinlabel, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.wins(5))
+        sizer_spinctrl.Add(self.spinlabel, 0, wx.ALIGN_CENTER | wx.RIGHT, cw.wins(5))
         sizer_spinctrl.Add(self.spinctrl, 0, 0, cw.wins(0))
 
         sizer_v1.Add(sizer_spinctrl, 0, wx.ALIGN_RIGHT, cw.wins(0))
@@ -779,17 +787,18 @@ class NumberEditor(wx.Panel):
 
     def OnSlider(self, evt):
         self.spinctrl.SetValue(self.slider.slider.GetValue())
-        self._enable()
+        self.enable()
 
     def OnSpinCtrl(self, evt):
         self.slider.slider.SetValue(self.spinctrl.GetValue())
-        self._enable()
+        self.enable()
+
 
 class ComboEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, label, mlist, selected):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.selected = selected
 
@@ -813,10 +822,9 @@ class ComboEditDialog(wx.Dialog):
         self.combo.Select(selected)
 
         # btn
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
         self._do_layout()
         self._bind()
@@ -830,7 +838,8 @@ class ComboEditDialog(wx.Dialog):
         sizer_box = wx.StaticBoxSizer(self.box, wx.HORIZONTAL)
 
         if self._combo_panel:
-            sizer_box.Add(self._combo_panel, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+            sizer_box.Add(self._combo_panel, 1, wx.EXPAND | wx.ALL, cw.wins(5))
+
             def func(self):
                 if not self:
                     return
@@ -843,10 +852,10 @@ class ComboEditDialog(wx.Dialog):
                     win32api.SendMessage(self.combo.Handle, CB_SETITEMHEIGHT, -1, cw.wins(24))
             cw.cwpy.frame.exec_func(func, self)
         else:
-            sizer_box.Add(self.combo, 1, wx.EXPAND|wx.ALL, cw.wins(5))
+            sizer_box.Add(self.combo, 1, wx.EXPAND | wx.ALL, cw.wins(5))
 
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
-        sizer_panel.Add(sizer_box, 0, wx.EXPAND|wx.ALL, cw.wins(5))
+        sizer_panel.Add(sizer_box, 0, wx.EXPAND | wx.ALL, cw.wins(5))
         self.panel.SetSizer(sizer_panel)
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
@@ -854,8 +863,8 @@ class ComboEditDialog(wx.Dialog):
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(20))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1.Add(self.panel, 0, wx.EXPAND|wx.TOP, cw.wins(5))
-        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(10))
+        sizer_v1.Add(self.panel, 0, wx.EXPAND | wx.TOP, cw.wins(5))
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER | wx.TOP, cw.wins(10))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
@@ -880,10 +889,11 @@ class ComboEditDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+
 class ComboEditDialog2(wx.Dialog):
     def __init__(self, parent, title, message, choices):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((-1, -1)),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.message = cw.util.txtwrap(message, 0, width=40, wrapschars=cw.util.WRAPS_CHARS)
         self.cwpy_debug = False
 
@@ -893,10 +903,9 @@ class ComboEditDialog2(wx.Dialog):
         self.selected = 0
         self.combo.Select(self.selected)
 
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
         self._do_layout()
         self._bind()
 
@@ -942,13 +951,13 @@ class ComboEditDialog2(wx.Dialog):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add((cw.wins(0), cw.wins(20)+self._textheight), 0, 0, cw.wins(0))
         margin = (csize[0] - self.combo.GetSize()[0]) // 2
-        sizer_1.Add(self.combo, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_1.Add(self.combo, 0, wx.LEFT | wx.RIGHT, margin)
         sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) // 3
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
-        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_2.Add(self.cnclbtn, 0, wx.LEFT | wx.RIGHT, margin)
 
         sizer_1.Add(sizer_2, 0, wx.EXPAND, cw.wins(0))
         sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
@@ -956,14 +965,15 @@ class ComboEditDialog2(wx.Dialog):
         self.SetSizer(sizer_1)
         self.Layout()
 
-#-------------------------------------------------------------------------------
-#  レベル調節ダイアログ
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# レベル調節ダイアログ
+# ------------------------------------------------------------------------------
 
 class LevelEditDialog(wx.Dialog):
     def __init__(self, parent, mlist, selected, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
@@ -992,10 +1002,9 @@ class LevelEditDialog(wx.Dialog):
         self.slider = NumberEditor(self.panel, maxvalue, minvalue, maxvalue, 2)
 
         # btn
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
         self._select_target()
 
@@ -1047,12 +1056,12 @@ class LevelEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
         sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
-        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=cw.wins(5))
+        sizer_combo.Add(self.target, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, border=cw.wins(5))
         sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
 
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
-        sizer_panel.Add(sizer_combo, 0, wx.EXPAND|wx.ALL, cw.wins(5))
-        sizer_panel.Add(self.slider, 1, wx.BOTTOM|wx.ALL, cw.wins(5))
+        sizer_panel.Add(sizer_combo, 0, wx.EXPAND | wx.ALL, cw.wins(5))
+        sizer_panel.Add(self.slider, 1, wx.BOTTOM | wx.ALL, cw.wins(5))
         self.panel.SetSizer(sizer_panel)
 
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
@@ -1060,8 +1069,8 @@ class LevelEditDialog(wx.Dialog):
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(30))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, cw.wins(5))
-        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(10))
+        sizer_v1.Add(self.panel, 0, wx.CENTER | wx.TOP, cw.wins(5))
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER | wx.TOP, cw.wins(10))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
@@ -1128,14 +1137,14 @@ class LevelEditDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
 
 
-#-------------------------------------------------------------------------------
-#  背景色変更ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 背景色変更ダイアログ
+# ------------------------------------------------------------------------------
 
 class BackColorEditDialog(wx.Dialog):
     def __init__(self, parent, ccard):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["edit_bgcolor"],
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
 
         class NoFlickPanel(wx.Panel, cw.frame.NoFlick):
@@ -1167,7 +1176,7 @@ class BackColorEditDialog(wx.Dialog):
                             b = max(0, min(128, int(b)))
                             self.presetcolor_list.append((name, r, g, b))
                             self.presetcolor_names.append(name)
-            except:
+            except Exception:
                 cw.util.print_ex(file=sys.stderr)
 
         self.colorchoice = wx.Choice(self, choices=self.presetcolor_names)
@@ -1186,10 +1195,9 @@ class BackColorEditDialog(wx.Dialog):
         self.hsv = self.rgb2hsv(self.get_rgblist())
 
         # btn
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                      cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
         # ドラッグ中に離されたらドラッグを中止する
         self._destroyed = False
@@ -1289,8 +1297,8 @@ class BackColorEditDialog(wx.Dialog):
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, cw.wins(30))
 
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1.Add(sizer_panel, 0, wx.CENTER|wx.TOP, cw.wins(5))
-        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(10))
+        sizer_v1.Add(sizer_panel, 0, wx.CENTER | wx.TOP, cw.wins(5))
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER | wx.TOP, cw.wins(10))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
@@ -1557,14 +1565,14 @@ class BackColorEditDialog(wx.Dialog):
         self._destroyed = True
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # テキスト入力ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class InputTextDialog(wx.Dialog):
     def __init__(self, parent, title, msg, text="", maxlength=0, addition="", addition_func=None):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         msg = cw.util.txtwrap(msg, mode=6)
         self.msg = msg
@@ -1595,10 +1603,9 @@ class InputTextDialog(wx.Dialog):
             self.addition = None
             self.addition_func = None
 
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
         self.okbtn.Enable(bool(text))
         self._do_layout()
         self._bind()
@@ -1659,21 +1666,23 @@ class InputTextDialog(wx.Dialog):
             sizer_h = wx.BoxSizer(wx.HORIZONTAL)
             sizer_h.Add(self.textctrl, 0, wx.CENTER, cw.wins(0))
             sizer_h.Add(self.addition, 0, wx.CENTER, cw.wins(0))
-            sizer_1.Add(sizer_h, 0, wx.LEFT|wx.RIGHT, margin)
+            sizer_1.Add(sizer_h, 0, wx.LEFT | wx.RIGHT, margin)
         else:
-            sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
+            sizer_1.Add(self.textctrl, 0, wx.LEFT | wx.RIGHT, margin)
         sizer_1.Add(cw.wins((0, 12)), 0, 0, cw.wins(0))
         sizer_1.Add(sizer_2, 1, wx.EXPAND, cw.wins(0))
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) // 3
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
-        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_2.Add(self.cnclbtn, 0, wx.LEFT | wx.RIGHT, margin)
 
         self.SetSizer(sizer_1)
         self.Layout()
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

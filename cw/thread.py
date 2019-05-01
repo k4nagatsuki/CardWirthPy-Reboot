@@ -1779,6 +1779,9 @@ class CWPy(_Singleton, threading.Thread):
             if not self.is_runningevent():
                 self.exec_func(self.clear_selection)
 
+    def add_showingdlg(self):
+        self._showingdlg += 1
+
     def exec_func(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。

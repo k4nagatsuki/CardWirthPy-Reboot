@@ -15,7 +15,7 @@ import cw
 class BattleCommand(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["select_battle_action"],
-                           style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.list = []
 
@@ -301,24 +301,26 @@ class BattleCommand(wx.Dialog):
         self.draw_card(dc, header)
         header.negaflag = False
 
+
 class ErrorLogDialog(wx.Dialog):
     def __init__(self, parent, log):
         wx.Dialog.__init__(self, parent, -1, "エラーログ",
-                           style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.tc = wx.TextCtrl(
             self, -1, log, size=cw.ppis((250, 200)),
-            style=wx.TE_MULTILINE|wx.TE_READONLY)
+            style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.btn_ok = wx.Button(self, wx.ID_OK, "OK")
         self._do_layout()
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.tc, 0, 0, cw.ppis(0))
-        sizer.Add(self.btn_ok, 0, wx.CENTER|wx.ALL, cw.ppis(5))
+        sizer.Add(self.btn_ok, 0, wx.CENTER | wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
 
 class ExtensionDialog(wx.Dialog):
     """
@@ -328,7 +330,7 @@ class ExtensionDialog(wx.Dialog):
     """
     def __init__(self, parent, title, items):
         wx.Dialog.__init__(self, parent, -1, title,
-                           style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.items = items
 
@@ -366,17 +368,17 @@ class ExtensionDialog(wx.Dialog):
     def _do_layout(self):
         sizer_buttons = wx.BoxSizer(wx.VERTICAL)
         for btn in self.buttons:
-            sizer_buttons.Add(btn, 0, wx.EXPAND|wx.BOTTOM, cw.wins(2))
+            sizer_buttons.Add(btn, 0, wx.EXPAND | wx.BOTTOM, cw.wins(2))
         sizer_buttons.AddStretchSpacer(1)
         sizer_buttons.Add(self.btn_cncl, 0, wx.EXPAND)
 
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_panel.Add(self.desc, 1, wx.EXPAND|wx.ALL, cw.wins(10))
+        sizer_panel.Add(self.desc, 1, wx.EXPAND | wx.ALL, cw.wins(10))
         self.panel.SetSizer(sizer_panel)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_buttons, 0, wx.EXPAND|wx.ALL, cw.wins(10))
-        sizer.Add(self.panel, 1, wx.EXPAND|wx.TOP|wx.RIGHT|wx.BOTTOM, cw.wins(10))
+        sizer.Add(sizer_buttons, 0, wx.EXPAND | wx.ALL, cw.wins(10))
+        sizer.Add(self.panel, 1, wx.EXPAND | wx.TOP | wx.RIGHT | wx.BOTTOM, cw.wins(10))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -409,17 +411,18 @@ class ExtensionDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+
 class BookmarkDialog(wx.Dialog):
     """
     ブックマークの編集を行う。
     """
     def __init__(self, parent, scedir, db):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["arrange_bookmark"],
-                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
 
         # リスト
-        self.values = AutoListCtrl(self, -1, size=cw.wins((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER)
+        self.values = AutoListCtrl(self, -1, size=cw.wins((250, 300)), style=wx.LC_REPORT | wx.LC_NO_HEADER)
         self.values.SetDoubleBuffered(True)
         self.values.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
         self.values.imgidx_summary = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY"])
@@ -543,17 +546,17 @@ class BookmarkDialog(wx.Dialog):
     def _do_layout(self):
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.up2btn, 0, wx.EXPAND|wx.TOP, border=cw.wins(5))
-        sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.wins(5))
-        sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.wins(5))
-        sizer_right.Add(self.down2btn, 0, wx.EXPAND|wx.TOP, border=cw.wins(5))
+        sizer_right.Add(self.up2btn, 0, wx.EXPAND | wx.TOP, border=cw.wins(5))
+        sizer_right.Add(self.upbtn, 0, wx.EXPAND | wx.TOP, border=cw.wins(5))
+        sizer_right.Add(self.downbtn, 0, wx.EXPAND | wx.TOP, border=cw.wins(5))
+        sizer_right.Add(self.down2btn, 0, wx.EXPAND | wx.TOP, border=cw.wins(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.wins(5))
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND | wx.TOP, border=cw.wins(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.values, 1, wx.EXPAND|wx.ALL, border=cw.wins(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.wins(5))
+        sizer.Add(self.values, 1, wx.EXPAND | wx.ALL, border=cw.wins(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.wins(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -622,6 +625,7 @@ class BookmarkDialog(wx.Dialog):
         temp = self.values.GetItemState(index1, mask)
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
+
         def set_item(index, string, image):
             self.values.SetItem(index, 0, string)
             self.values.SetItemImage(index, image)
@@ -665,15 +669,18 @@ class BookmarkDialog(wx.Dialog):
 
     def OnOkBtn(self, event):
         cw.cwpy.play_sound("harvest")
+
         def func(bookmarks):
             cw.cwpy.ydata.set_bookmarks(bookmarks)
         cw.cwpy.exec_func(func, self.bookmark)
         self.Destroy()
 
+
 class AutoListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, parent, cid, size, style):
         wx.ListCtrl.__init__(self, parent, cid, size=size, style=style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
+
 
 class ConvertYadoDialog(wx.Dialog):
     """
@@ -681,7 +688,7 @@ class ConvertYadoDialog(wx.Dialog):
     """
     def __init__(self, parent, yadoname):
         wx.Dialog.__init__(self, parent, -1, "拠点の逆変換",
-                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.message = "%s を逆変換し、\n新規作成したフォルダへ格納します。" % (yadoname)
         dc = wx.ClientDC(self)
@@ -700,7 +707,8 @@ class ConvertYadoDialog(wx.Dialog):
 
         s = (("%s のデータをCardWirth用に逆変換します。" +
               "\n変換先のフォルダを選択してください。") % (yadoname))
-        self.reffolder = cw.util.create_fileselection(self, self.folder, s, seldir=True, getbasedir=os.getcwd, winsize=True)
+        self.reffolder = cw.util.create_fileselection(self, self.folder, s, seldir=True, getbasedir=os.getcwd,
+                                                      winsize=True)
         font = cw.cwpy.rsrc.get_wxfont("button", pixelsize=cw.wins(14))
         self.reffolder.SetFont(font)
 
@@ -713,10 +721,9 @@ class ConvertYadoDialog(wx.Dialog):
         self.target.SetFont(font)
         self.target.Select(0)
 
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                    cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
         self._do_layout()
         self._bind()
 
@@ -791,22 +798,22 @@ class ConvertYadoDialog(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
         w, _h = dc.GetTextExtent("対象エンジン:")
-        sizer_3.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
+        sizer_3.Add((w, 0), 0, wx.RIGHT | wx.CENTER, cw.wins(5))
         sizer_3.Add(self.target, 1, wx.CENTER, cw.wins(0))
 
-        sizer_4.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
+        sizer_4.Add((w, 0), 0, wx.RIGHT | wx.CENTER, cw.wins(5))
         sizer_4.Add(self.folder, 1, wx.CENTER, cw.wins(0))
-        sizer_4.Add(self.reffolder, 0, wx.CENTER|wx.EXPAND, cw.wins(0))
+        sizer_4.Add(self.reffolder, 0, wx.CENTER | wx.EXPAND, cw.wins(0))
 
-        sizer_1.Add(sizer_4, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.wins(10))
+        sizer_1.Add(sizer_4, 0, wx.LEFT | wx.RIGHT | wx.EXPAND, cw.wins(10))
         sizer_1.Add(cw.wins((0, 5)), 0, 0, cw.wins(0))
-        sizer_1.Add(sizer_3, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.wins(10))
+        sizer_1.Add(sizer_3, 0, wx.LEFT | wx.RIGHT | wx.EXPAND, cw.wins(10))
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) // 3
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
-        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_2.Add(self.cnclbtn, 0, wx.LEFT | wx.RIGHT, margin)
         sizer_1.Add(sizer_2, 1, wx.EXPAND, cw.wins(0))
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, cw.wins(0))
@@ -826,21 +833,20 @@ if sys.platform == "win32":
             wx.MiniFrame.__init__(self, parent, style=wx.BORDER)
             self.cwpy_debug = False
 
-            self._tb = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_VERTICAL)
-            s = "%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"],
-                             cw.cwpy.msgs["desc_screenshot"])
+            self._tb = wx.ToolBar(self, -1, style=wx.TB_FLAT | wx.TB_NODIVIDER | wx.TB_VERTICAL)
+            s = "%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"], cw.cwpy.msgs["desc_screenshot"])
             bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
             self._ssbtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
             if cw.cwpy.ydata and cw.cwpy.ydata.party:
                 s = "%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
-                                         cw.cwpy.msgs["desc_screenshot_hands"])
+                                              cw.cwpy.msgs["desc_screenshot_hands"])
                 bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT_HANDS"]
                 self._sshbtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
             else:
                 self._sshbtn = None
             if hasattr(parent, "copy_detail"):
                 s = "%s(Ctrl+C)\n%s" % (cw.cwpy.msgs["copy_dialog"],
-                                            cw.cwpy.msgs["desc_copy_dialog"])
+                                        cw.cwpy.msgs["desc_copy_dialog"])
                 bmp = cw.cwpy.rsrc.dialogs["COPY"]
                 self._copybtn = self._tb.AddTool(-1, s, bmp, shortHelp=s)
             else:
@@ -887,7 +893,7 @@ if sys.platform == "win32":
             pos = self.GetParent().GetPosition()
             size = self.GetParent().GetSize()
             x = pos[0]+size[0]-1
-            x -= 5 # BUG: ウィンドウの位置ずれが発生する。wxPython 4.0.1
+            x -= 5  # BUG: ウィンドウの位置ずれが発生する。wxPython 4.0.1
             y = pos[1]+size[1] - self.GetSize()[1]-1-cw.wins(10)
             self.SetPosition((x, y))
 
@@ -915,18 +921,17 @@ else:
             self._animate_down = False
 
             self._buttons = []
-            s = "%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"],
-                             cw.cwpy.msgs["desc_screenshot"])
+            s = "%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"], cw.cwpy.msgs["desc_screenshot"])
             bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
             self._buttons.append((s, bmp, cw.cwpy.frame.save_screenshot))
             if cw.cwpy.ydata and cw.cwpy.ydata.party:
                 s = "%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
-                                         cw.cwpy.msgs["desc_screenshot_hands"])
+                                              cw.cwpy.msgs["desc_screenshot_hands"])
                 bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT_HANDS"]
                 self._buttons.append((s, bmp, lambda: cw.cwpy.force_exec_func(cw.util.card_screenshot)))
             if hasattr(parent, "copy_detail"):
                 s = "%s(Ctrl+C)\n%s" % (cw.cwpy.msgs["copy_dialog"],
-                                            cw.cwpy.msgs["desc_copy_dialog"])
+                                        cw.cwpy.msgs["desc_copy_dialog"])
                 bmp = cw.cwpy.rsrc.dialogs["COPY"]
                 self._buttons.append((s, bmp, self.GetParent().copy_detail))
 
@@ -949,7 +954,8 @@ else:
             index = self._selected_index
             x, y = wx.GetMousePosition()
             parent = self.GetParent()
-            if self.GetRect().Contains(x, y) and not any([c for c in parent.GetChildren() if isinstance(c, wx.TopLevelWindow) and not c is self]):
+            if self.GetRect().Contains(x, y) and not any([c for c in parent.GetChildren()
+                                                          if isinstance(c, wx.TopLevelWindow) and c is not self]):
                 _x, y = self.ScreenToClient((x, y))
                 y -= (self.GetSize()[1]-self.GetClientSize()[1]) // 2
                 self._selected_index = y // (self._buttons[0][1].GetHeight() + cw.wins(6))
