@@ -794,6 +794,17 @@ class CWPy(_Singleton, threading.Thread):
         self.change_selection(self.selection)
         self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
 
+        if not debug and self.is_curtained() and 0 <= self.areaid and self.selectedheader:
+            owner = self.selectedheader.get_owner()
+            if isinstance(owner, (cw.character.Enemy, cw.character.Friend)):
+                # ターゲット選択エリアを解除する
+                if not (isinstance(owner, cw.character.Enemy) and owner.is_analyzable()):
+                    assert 0 < len(self.pre_dialogs)
+                    self.pre_dialogs.pop()
+                cw.cwpy.clear_inusecardimg(owner)
+                cw.cwpy.clear_targetarrow()
+                cw.cwpy.clear_specialarea()
+
     def update_infocard(self):
         """デバッガ等から所有情報カードの変更を
         行った際に呼び出される。
