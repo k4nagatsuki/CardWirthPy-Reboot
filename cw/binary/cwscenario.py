@@ -33,8 +33,7 @@ class CWScenario(object):
         self.errorlog = ""
         # pathにあるファイル・ディレクトリを
         # (シナリオファイル,素材ファイル,その他ファイル, ディレクトリ)に分ける。
-        exts_mat = set(["bmp", "jpg", "jpeg", "wav", "wave", "mid", "midi",
-                                                    "jpdc", "jpy1", "jptx"])
+        exts_mat = set(["bmp", "jpg", "jpeg", "wav", "wave", "mid", "midi", "jpdc", "jpy1", "jptx"])
         self.cwfiles = []
         self.materials = []
         self.otherfiles = []
@@ -69,7 +68,8 @@ class CWScenario(object):
                 self.otherdirs.append(path)
 
         if self.summarypath:
-            self.versionhint = cw.cwpy.sct.merge_versionhints(self.versionhint, cw.cwpy.sct.get_versionhint(fpath=self.summarypath))
+            self.versionhint = cw.cwpy.sct.merge_versionhints(self.versionhint,
+                                                              cw.cwpy.sct.get_versionhint(fpath=self.summarypath))
 
     def read_modeini(self, fpath):
         if cw.cwpy and cw.cwpy.sct:
@@ -86,7 +86,7 @@ class CWScenario(object):
             data, _filedata = self.load_file(self.summarypath)
             if data is None or 4 < data.version:
                 return False
-        except:
+        except Exception:
             return False
 
         return True
@@ -109,7 +109,7 @@ class CWScenario(object):
                     self.write_errorlog(s)
                 else:
                     self.datalist.append(data)
-            except:
+            except Exception:
                 s = os.path.basename(path)
                 s = "%s は読込できませんでした。\n" % (s)
                 self.write_errorlog(s)
@@ -191,7 +191,7 @@ class CWScenario(object):
 
             f.close()
             return data, b"".join(f.filedata)
-        except:
+        except Exception:
             cw.util.print_ex()
             return None, None
 
@@ -248,8 +248,10 @@ class CWScenario(object):
         self.curnum = self.maxnum
         return self.dir
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

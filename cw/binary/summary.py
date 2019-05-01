@@ -41,7 +41,7 @@ class Summary(base.CWBinaryBase):
         self.flags = [Flag(self, f) for _cnt in range(flags_num)]
         if wpt120:
             return
-        _w = f.dword() # 不明
+        _w = f.dword()  # 不明
         if 0 < self.version:
             self.level_min = f.dword()
             self.level_max = f.dword()
@@ -152,9 +152,10 @@ class Summary(base.CWBinaryBase):
             Flag.unconv(f, flag)
         for variant in variants:
             f.check_wsnversion("4", "コモン")
-        f.write_dword(0) # 不明
+        f.write_dword(0)  # 不明
         f.write_dword(level_min)
         f.write_dword(level_max)
+
 
 class Step(base.CWBinaryBase):
     """ステップ定義。"""
@@ -214,6 +215,7 @@ class Step(base.CWBinaryBase):
         for variable_name in variable_names:
             f.write_string(variable_name)
 
+
 class Flag(base.CWBinaryBase):
     """フラグ定義。"""
     def __init__(self, parent, f, yadodata=False):
@@ -258,8 +260,10 @@ class Flag(base.CWBinaryBase):
         for variable_name in variable_names:
             f.write_string(variable_name)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

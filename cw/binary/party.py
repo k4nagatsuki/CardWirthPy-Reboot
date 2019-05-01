@@ -25,15 +25,15 @@ class Party(base.CWBinaryBase):
         self.fname = self.get_fname()
         if 10 <= dataversion:
             # 1.28以降
-            _w = f.word() # 不明(0)
+            _w = f.word()  # 不明(0)
             _yadoname = f.string()
-            f.image() # 宿の埋め込み画像は破棄
+            f.image()  # 宿の埋め込み画像は破棄
             self.memberslist = []
             for member in cw.util.decodetextlist(f.string(True)):
                 if member != "":
                     self.memberslist.append(util.check_filename(member))
             self.name = f.string()
-            self.money = f.dword() # 冒険中の現在値
+            self.money = f.dword()  # 冒険中の現在値
             self.nowadventuring = f.bool()
         else:
             # 1.20
@@ -42,8 +42,8 @@ class Party(base.CWBinaryBase):
                 if member != "":
                     self.memberslist.append(util.check_filename(member))
             dataversion_str = f.string()
-            _scenarioname = f.string() # プレイ中のシナリオ名
-            f.image() # 宿の埋め込み画像は破棄
+            _scenarioname = f.string()  # プレイ中のシナリオ名
+            f.image()  # 宿の埋め込み画像は破棄
             self.name = ""
             self.money = 0
             self.nowadventuring = f.bool()
@@ -129,13 +129,14 @@ class Party(base.CWBinaryBase):
                                 seq.append(atbl[me.text])
                         memberslist = cw.util.encodetextlist(seq)
 
-        f.write_word(0) # 不明
+        f.write_word(0)  # 不明
         f.write_string(yadoname)
         f.write_image(image)
         f.write_string(memberslist, True)
         f.write_string(name)
         f.write_dword(money)
         f.write_bool(nowadventuring)
+
 
 class PartyMembers(base.CWBinaryBase):
     """wptファイル(type=3)。パーティメンバと
@@ -156,33 +157,33 @@ class PartyMembers(base.CWBinaryBase):
             adventurers_num = f.byte() - 30
         else:
             adventurers_num = f.byte() - 10
-        _b = f.byte() # 不明(0)
-        _b = f.byte() # 不明(0)
-        _b = f.byte() # 不明(0)
-        _b = f.byte() # 不明(5)
+        _b = f.byte()  # 不明(0)
+        _b = f.byte()  # 不明(0)
+        _b = f.byte()  # 不明(0)
+        _b = f.byte()  # 不明(5)
         self.adventurers = []
         vanisheds_num = 0
         for i in range(adventurers_num):
             self.adventurers.append(adventurer.AdventurerWithImage(self, f))
             if 10 <= dataversion:
-                vanisheds_num = f.byte() # 最後のメンバが消滅メンバの数を持っている？
+                vanisheds_num = f.byte()  # 最後のメンバが消滅メンバの数を持っている？
             else:
-                _b = f.byte() # 不明(0)
+                _b = f.byte()  # 不明(0)
         self.vanisheds = []
         if 0 < vanisheds_num:
-            _dw = f.dword() # 不明(0)
+            _dw = f.dword()  # 不明(0)
             for i in range(vanisheds_num):
                 self.vanisheds.append(adventurer.AdventurerWithImage(self, f))
                 if i + 1 < vanisheds_num:
                     _b = f.byte()
             self.vanisheds.reverse()
         else:
-            _b = f.byte() # 不明(0)
-            _b = f.byte() # 不明(0)
-            _b = f.byte() # 不明(0)
+            _b = f.byte()  # 不明(0)
+            _b = f.byte()  # 不明(0)
+            _b = f.byte()  # 不明(0)
         if 10 <= dataversion:
             # 1.28以降
-            self.name = f.string() # パーティ名
+            self.name = f.string()  # パーティ名
             # 荷物袋にあるカードリスト
             cards_num = f.dword()
             self.cards = [BackpackCard(self, f) for _cnt in range(cards_num)]
@@ -223,11 +224,11 @@ class PartyMembers(base.CWBinaryBase):
             self.money = f.dword()
 
             # ここから先はプレイ中のシナリオの状況が記録されている
-            self.money_beforeadventure = f.dword() # 冒険前の所持金。冒険中でなければ0
+            self.money_beforeadventure = f.dword()  # 冒険前の所持金。冒険中でなければ0
             self.nowadventuring = f.bool()
-            if self.nowadventuring: # 冒険中か
-                _w = f.word() # 不明(0)
-                self.scenariopath = f.rawstring() # シナリオ
+            if self.nowadventuring:  # 冒険中か
+                _w = f.word()  # 不明(0)
+                self.scenariopath = f.rawstring()  # シナリオ
                 self.areaid = f.dword()
                 self.steps = self.split_variables(f.rawstring(), True)
                 self.flags = self.split_variables(f.rawstring(), False)
@@ -242,10 +243,10 @@ class PartyMembers(base.CWBinaryBase):
             for adv in self.adventurers:
                 self.money += adv.adventurer.money
                 adv.adventurer.money = 0
-            self.money_beforeadventure = self.money # 1.20ではF9で所持金が戻らない
+            self.money_beforeadventure = self.money  # 1.20ではF9で所持金が戻らない
 
             self.nowadventuring = f.bool()
-            if self.nowadventuring: #冒険中か
+            if self.nowadventuring:  # 冒険中か
                 self.scenariopath = ""
                 summary = summary.Summary(None, f, True, wpt120=True)
                 self.steps = {}.copy()
@@ -254,7 +255,7 @@ class PartyMembers(base.CWBinaryBase):
                 self.flags = {}.copy()
                 for flag in summary.flags:
                     self.flags[flag.name] = flag.default
-                self.scenariopath = f.rawstring() #シナリオ
+                self.scenariopath = f.rawstring()  # シナリオ
                 if not os.path.isabs(self.scenariopath):
                     dpath = os.path.dirname(os.path.dirname(os.path.dirname(f.name)))
                     self.scenariopath = cw.util.join_paths(dpath, self.scenariopath)
@@ -381,10 +382,10 @@ class PartyMembers(base.CWBinaryBase):
         advnumpos = f.tell()
         advnum = 0
         f.write_byte(len(adventurers) + 30)
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
-        f.write_byte(5) # 不明
+        f.write_byte(0)  # 不明
+        f.write_byte(0)  # 不明
+        f.write_byte(0)  # 不明
+        f.write_byte(5)  # 不明
         errorlog = []
         for i, member in enumerate(adventurers):
             if logdir:
@@ -396,7 +397,7 @@ class PartyMembers(base.CWBinaryBase):
                 pos = f.tell()
                 adventurer.AdventurerWithImage.unconv(f, member, logdata)
                 if i + 1 < len(adventurers):
-                    f.write_byte(0) # 不明
+                    f.write_byte(0)  # 不明
                 advnum += 1
             except cwfile.UnsupportedError as ex:
                 f.seek(pos)
@@ -427,9 +428,9 @@ class PartyMembers(base.CWBinaryBase):
 
         vannumpos = f.tell()
         vannum = 0
-        f.write_byte(len(vanisheds)) # 消滅メンバの数？
+        f.write_byte(len(vanisheds))  # 消滅メンバの数？
         if vanisheds:
-            f.write_dword(0) # 不明
+            f.write_dword(0)  # 不明
             for i, member in enumerate(vanisheds):
                 if logdir:
                     fpath = cw.util.join_paths(logdir, "Members", os.path.basename(member.fpath))
@@ -440,7 +441,7 @@ class PartyMembers(base.CWBinaryBase):
                     pos = f.tell()
                     adventurer.AdventurerWithImage.unconv(f, member, logdata)
                     if i + 1 < len(vanisheds):
-                        f.write_byte(0) # 不明
+                        f.write_byte(0)  # 不明
                     vannum += 1
                 except cwfile.UnsupportedError as ex:
                     f.seek(pos)
@@ -461,9 +462,9 @@ class PartyMembers(base.CWBinaryBase):
             f.seek(tell)
 
         else:
-            f.write_byte(0) # 不明
-            f.write_byte(0) # 不明
-            f.write_byte(0) # 不明
+            f.write_byte(0)  # 不明
+            f.write_byte(0)  # 不明
+            f.write_byte(0)  # 不明
         f.write_string(name)
 
         backpacknumpos = f.tell()
@@ -483,13 +484,13 @@ class PartyMembers(base.CWBinaryBase):
         f.write_dword(backpacknum)
         f.seek(tell)
 
-        f.write_dword(cw.util.numwrap(party.money, 0, 999999)) # パーティの所持金(現在値)
+        f.write_dword(cw.util.numwrap(party.money, 0, 999999))  # パーティの所持金(現在値)
 
         # プレイ中のシナリオの状況
         if nowadventuring:
             f.write_dword(money_beforeadventure)
             f.write_bool(nowadventuring)
-            f.write_word(0) # 不明(0)
+            f.write_word(0)  # 不明(0)
             f.write_rawstring(os.path.abspath(scenariopath))
             f.write_dword(areaid)
             f.write_rawstring(steps)
@@ -503,6 +504,7 @@ class PartyMembers(base.CWBinaryBase):
         else:
             f.write_dword(0)
             f.write_bool(False)
+
 
 class BackpackCard(base.CWBinaryBase):
     """荷物袋に入っているカードのデータ。
@@ -543,12 +545,13 @@ class BackpackCard(base.CWBinaryBase):
         f.write_dword(data.getint("Property/UseLimit", 0))
         f.write_bool(mine)
 
+
 def load_album120(parent, f):
     from . import adventurer
     from . import album
 
-    _dw = f.dword() # 不明
-    cardnum = f.dword() # アルバム人数
+    _dw = f.dword()  # 不明
+    cardnum = f.dword()  # アルバム人数
     cards = []
     albums = []
     for _i in range(cardnum):
@@ -583,8 +586,10 @@ def load_album120(parent, f):
 
     return cards, albums
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

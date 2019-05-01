@@ -18,7 +18,7 @@ class Area(base.CWBinaryBase):
         # データバージョンによって処理を分岐する
         b = f.byte()
         if b == ord('B'):
-            f.read(69) # 不明
+            f.read(69)  # 不明
             self.name = f.string()
             idl = f.dword()
             if idl <= 19999:
@@ -104,7 +104,7 @@ class Area(base.CWBinaryBase):
                 events = e
 
         f.write_byte(restype)
-        f.write_dword(0) # 不明
+        f.write_dword(0)  # 不明
         f.write_string(name)
         f.write_dword(resid + 40000)
         f.write_dword(len(events))
@@ -118,16 +118,17 @@ class Area(base.CWBinaryBase):
         for bgimg in bgimgs:
             bgimage.BgImage.unconv(f, bgimg)
 
+
 class MenuCard(base.CWBinaryBase):
     """メニューカードのデータ。"""
     def __init__(self, parent, f, yadodata=False, dataversion=4):
         from . import event
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
-        _b = f.byte() # 不明
+        _b = f.byte()  # 不明
         self.image = f.image()
         self.name = f.string()
-        _dw = f.dword() # 不明
+        _dw = f.dword()  # 不明
         self.description = f.string(True)
         events_num = f.dword()
         self.events = [event.Event(self, f) for _cnt in range(events_num)]
@@ -234,10 +235,10 @@ class MenuCard(base.CWBinaryBase):
             elif e.tag == "Events":
                 events = e
 
-        f.write_byte(0) # 不明
+        f.write_byte(0)  # 不明
         f.write_image(image)
         f.write_string(name)
-        f.write_dword(0) # 不明
+        f.write_dword(0)  # 不明
         f.write_string(description, True)
         f.write_dword(len(events))
         for evt in events:

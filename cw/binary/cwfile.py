@@ -103,6 +103,7 @@ class CWFile(io.BufferedReader):
         self.filedata.append(raw_data)
         return raw_data
 
+
 class CWFileWriter(io.BufferedWriter):
     """CardWirth用のバイナリファイルを読み込むための
     メソッドを追加したBufferedWriter。
@@ -202,8 +203,10 @@ class CWFileWriter(io.BufferedWriter):
         else:
             self.write_dword(0)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

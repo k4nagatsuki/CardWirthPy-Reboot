@@ -12,7 +12,8 @@ class BeastCard(base.CWBinaryBase):
     target_all: 全体攻撃か否か(真偽値)
     limit: 使用回数
     """
-    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True, summoneffect=False):
+    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True,
+                 summoneffect=False):
         from . import effectmotion
         from . import event
 
@@ -55,7 +56,7 @@ class BeastCard(base.CWBinaryBase):
         self.visual_effect = f.byte()
         motions_num = f.dword()
         self.motions = [effectmotion.EffectMotion(self, f, dataversion=dataversion)
-                                          for _cnt in range(motions_num)]
+                        for _cnt in range(motions_num)]
         self.enhance_avoid = f.dword()
         self.enhance_resist = f.dword()
         self.enhance_defense = f.dword()
@@ -349,8 +350,10 @@ class BeastCard(base.CWBinaryBase):
         # 付帯召喚はboolの値が逆
         f.write_bool(not attachment)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

@@ -14,7 +14,7 @@ class Event(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         contents_num = f.dword()
         self.contents = [content.Content(self, f, 0)
-                                            for _cnt in range(contents_num)]
+                         for _cnt in range(contents_num)]
         ignitions_num = f.dword()
         self.ignitions = [f.dword() for _cnt in range(ignitions_num)]
         self.keycodes = f.string(True)
@@ -25,8 +25,8 @@ class Event(base.CWBinaryBase):
         if self.data is None:
             self.data = cw.data.make_element("Event")
             e = cw.data.make_element("Ignitions")
-            e.append(cw.data.make_element("Number", cw.util.encodetextlist([str(i) for i in self.ignitions])
-                                                    if self.ignitions else ""))
+            number = cw.util.encodetextlist([str(i) for i in self.ignitions]) if self.ignitions else ""
+            e.append(cw.data.make_element("Number", number))
             keycodes = cw.util.decodetextlist(self.keycodes)
             if keycodes and keycodes[0] == "MatchingType=All":
                 # 1.50
@@ -82,6 +82,7 @@ class Event(base.CWBinaryBase):
             f.write_dword(ignition)
         f.write_string(keycodes, True)
 
+
 class SimpleEvent(base.CWBinaryBase):
     """イベント発火条件なしのイベントデータのクラス。
     カードイベント・パッケージ等で使う。
@@ -92,7 +93,7 @@ class SimpleEvent(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         contents_num = f.dword()
         self.contents = [content.Content(self, f, 0)
-                                            for _cnt in range(contents_num)]
+                         for _cnt in range(contents_num)]
 
         self.data = None
 
@@ -119,8 +120,10 @@ class SimpleEvent(base.CWBinaryBase):
         for ct in contents:
             content.Content.unconv(f, ct)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

@@ -58,7 +58,7 @@ class EffectMotion(base.CWBinaryBase):
         elif self.tabtype == 8:
             beasts_num = f.dword()
             self.beasts = [beast.BeastCard(self, f, summoneffect=True)
-                                            for _cnt in range(beasts_num)]
+                           for _cnt in range(beasts_num)]
         else:
             raise ValueError(self.fpath)
 
@@ -133,8 +133,10 @@ class EffectMotion(base.CWBinaryBase):
         else:
             raise ValueError(tabtype)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

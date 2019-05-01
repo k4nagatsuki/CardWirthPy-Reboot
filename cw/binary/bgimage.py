@@ -50,12 +50,12 @@ class BgImage(base.CWBinaryBase):
                 a = f.ubyte()
                 self.color = (r, g, b, a)
                 style = f.byte()
-                self.bold      = (style & 0b00000001) != 0
-                self.italic    = (style & 0b00000010) != 0
+                self.bold = (style & 0b00000001) != 0
+                self.italic = (style & 0b00000010) != 0
                 self.underline = (style & 0b00000100) != 0
-                self.strike    = (style & 0b00001000) != 0
+                self.strike = (style & 0b00001000) != 0
                 self.bordering = (style & 0b00010000) != 0
-                self.vertical  = (style & 0b00100000) != 0
+                self.vertical = (style & 0b00100000) != 0
                 if self.bordering:
                     self.btype = f.byte()
                     r = f.ubyte()
@@ -68,10 +68,10 @@ class BgImage(base.CWBinaryBase):
                     self.btype = -1
                     self.bcolor = (255, 255, 255, 255)
                     self.bwidth = 1
-                f.byte() # 不明(100)
-                f.dword() # 不明(0)
-                f.dword() # 不明(0)
-                f.byte() # 不明(縦書き時:2,他:0)
+                f.byte()  # 不明(100)
+                f.dword()  # 不明(0)
+                f.dword()  # 不明(0)
+                f.byte()  # 不明(縦書き時:2,他:0)
                 self.flag = f.string()
                 self.unknown = f.byte()
 
@@ -80,13 +80,13 @@ class BgImage(base.CWBinaryBase):
                 self.type = cw.sprite.background.BG_COLOR
                 self.blend = f.byte()
                 self.gradient = f.byte()
-                b = f.ubyte() # RGBの順序が逆
+                b = f.ubyte()  # RGBの順序が逆
                 g = f.ubyte()
                 r = f.ubyte()
                 a = f.ubyte()
                 self.color1 = (r, g, b, a)
                 if self.gradient != 0:
-                    b = f.ubyte() # RGBの順序が逆
+                    b = f.ubyte()  # RGBの順序が逆
                     g = f.ubyte()
                     r = f.ubyte()
                     a = f.ubyte()
@@ -104,10 +104,10 @@ class BgImage(base.CWBinaryBase):
     def get_data(self):
         if self.data is None:
             def makecolor(tag, color):
-                return cw.data.make_element(tag, attrs={"r":str(color[0]),
-                                                        "g":str(color[1]),
-                                                        "b":str(color[2]),
-                                                        "a":str(color[3])})
+                return cw.data.make_element(tag, attrs={"r": str(color[0]),
+                                                        "g": str(color[1]),
+                                                        "b": str(color[2]),
+                                                        "a": str(color[3])})
 
             if self.type == cw.sprite.background.BG_IMAGE:
                 self.data = cw.data.make_element("BgImage")
@@ -295,12 +295,18 @@ class BgImage(base.CWBinaryBase):
             f.write_ubyte(color[2])
             f.write_ubyte(color[3])
             style = 0
-            if bold:        style |= 0b00000001
-            if italic:      style |= 0b00000010
-            if underline:   style |= 0b00000100
-            if strike:      style |= 0b00001000
-            if btype != -1: style |= 0b00010000
-            if vertical:    style |= 0b00100000
+            if bold:
+                style |= 0b00000001
+            if italic:
+                style |= 0b00000010
+            if underline:
+                style |= 0b00000100
+            if strike:
+                style |= 0b00001000
+            if btype != -1:
+                style |= 0b00010000
+            if vertical:
+                style |= 0b00100000
             f.write_byte(style)
             if btype != -1:
                 f.write_byte(btype)
@@ -309,10 +315,10 @@ class BgImage(base.CWBinaryBase):
                 f.write_ubyte(bcolor[2])
                 f.write_ubyte(bcolor[3])
                 f.write_dword(bwidth)
-            f.write_byte(100) # 不明(100)
-            f.write_dword(0) # 不明(0)
-            f.write_dword(0) # 不明(0)
-            f.write_byte(2 if vertical else 0) # 不明(縦書き時:2,他:0)
+            f.write_byte(100)  # 不明(100)
+            f.write_dword(0)  # 不明(0)
+            f.write_dword(0)  # 不明(0)
+            f.write_byte(2 if vertical else 0)  # 不明(縦書き時:2,他:0)
             f.write_string(flag)
             f.write_byte(unknown)
 
@@ -320,12 +326,12 @@ class BgImage(base.CWBinaryBase):
             f.check_version(1.50, "カラーセル")
             f.write_byte(blend)
             f.write_byte(gradient)
-            f.write_ubyte(color1[2]) # RGBの順序が逆
+            f.write_ubyte(color1[2])  # RGBの順序が逆
             f.write_ubyte(color1[1])
             f.write_ubyte(color1[0])
             f.write_ubyte(color1[3])
             if gradient != 0:
-                f.write_ubyte(color2[2]) # RGBの順序が逆
+                f.write_ubyte(color2[2])  # RGBの順序が逆
                 f.write_ubyte(color2[1])
                 f.write_ubyte(color2[0])
                 f.write_ubyte(color2[3])
@@ -335,8 +341,10 @@ class BgImage(base.CWBinaryBase):
         elif data.tag == "PCCell":
             f.check_wsnversion("1", "プレイヤーキャラクターセル")
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

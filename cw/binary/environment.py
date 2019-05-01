@@ -24,41 +24,41 @@ class Environment(base.CWBinaryBase):
         if versiononly:
             return
 
-        self.yadotype = f.byte() # 宿タイプ(1:通常, 2:デバッグ)
-        self.drawcard_speed = f.dword() # カード速度
-        self.drawbg_speed = f.dword() # 背景速度
-        self.message_speed = f.dword() # メッセージ速度
-        self.play_bgm = f.bool() # BGM再生
-        self.play_sound = f.bool() # 効果音再生
+        self.yadotype = f.byte()  # 宿タイプ(1:通常, 2:デバッグ)
+        self.drawcard_speed = f.dword()  # カード速度
+        self.drawbg_speed = f.dword()  # 背景速度
+        self.message_speed = f.dword()  # メッセージ速度
+        self.play_bgm = f.bool()  # BGM再生
+        self.play_sound = f.bool()  # 効果音再生
         if 10 <= self.dataversion_int:
-            self.correct_scaledown = f.bool() # カードのスムージング(縮小)
-            self.correct_scaleup = f.bool() # カードのスムージング(拡大)
+            self.correct_scaledown = f.bool()  # カードのスムージング(縮小)
+            self.correct_scaleup = f.bool()  # カードのスムージング(拡大)
         else:
-            _b = f.bool() # レアリティのないカードも買い戻せるようにする
-            _b = f.bool() # 売却・破棄時に確認メッセージの表示
-        self.autoselect_party = f.bool() # 宿を開いた時に最後のパーティを選択
-        self.clickcancel = f.bool() # 背景右クリックでキャンセル
+            _b = f.bool()  # レアリティのないカードも買い戻せるようにする
+            _b = f.bool()  # 売却・破棄時に確認メッセージの表示
+        self.autoselect_party = f.bool()  # 宿を開いた時に最後のパーティを選択
+        self.clickcancel = f.bool()  # 背景右クリックでキャンセル
         if 10 <= self.dataversion_int:
-            self.effect_getmoney = f.bool() # 所持金増減時に点滅させる
-            self.clickjump = f.bool() # 右クリックで待機時間を飛ばす
-            self.keep_levelmax = f.bool() # レベルを最大値に維持する
+            self.effect_getmoney = f.bool()  # 所持金増減時に点滅させる
+            self.clickjump = f.bool()  # 右クリックで待機時間を飛ばす
+            self.keep_levelmax = f.bool()  # レベルを最大値に維持する
         if 11 <= self.dataversion_int:
-            self.bgeffectatselmode = f.bool() # 選択モードでカーテンをかける
+            self.bgeffectatselmode = f.bool()  # 選択モードでカーテンをかける
         else:
             self.bgeffectatselmode = True
-        self.viewtype_poster = f.byte() # 貼紙の表示条件
-        self.bgcolor_message = f.dword() # メッセージ背景濃度
-        self.use_decofont = f.bool() # 装飾フォントの使用
-        self.changetype_bg = f.byte() # 背景切替方式
-        self.compstamps = f.string(True) # 終了印のリスト
-        self.scenarioname = f.string() # 選択中パーティのいるシナリオ名(用途不明)
-        self.gossips = f.string(True) # ゴシップのリスト
+        self.viewtype_poster = f.byte()  # 貼紙の表示条件
+        self.bgcolor_message = f.dword()  # メッセージ背景濃度
+        self.use_decofont = f.bool()  # 装飾フォントの使用
+        self.changetype_bg = f.byte()  # 背景切替方式
+        self.compstamps = f.string(True)  # 終了印のリスト
+        self.scenarioname = f.string()  # 選択中パーティのいるシナリオ名(用途不明)
+        self.gossips = f.string(True)  # ゴシップのリスト
         if 10 <= self.dataversion_int:
             # 1.28以降
             # カード置場のカードデータ
             unusedcards_num = f.dword()
             self.unusedcards = [UnusedCard(self, f)
-                                        for _cnt in range(unusedcards_num)]
+                                for _cnt in range(unusedcards_num)]
             # カード置場と荷物袋のカードヘッダ
             yadocards_num = f.dword()
             self.yadocards = [YadoCard(self, f) for _cnt in range(yadocards_num)]
@@ -137,7 +137,7 @@ class Environment(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, table):
-        yadotype = 1 # 常に通常宿とする
+        yadotype = 1  # 常に通常宿とする
         play_bgm = True
         play_sound = True
         correct_scaledown = True
@@ -226,6 +226,7 @@ class Environment(base.CWBinaryBase):
         f.write_dword(money)
         f.write_string(partyname)
 
+
 class UnusedCard(base.CWBinaryBase):
     """カード置き場のカードのデータ。
     self.dataにwidファイルから読み込んだカードデータがある。
@@ -266,6 +267,7 @@ class UnusedCard(base.CWBinaryBase):
         f.write_dword(data.getint("Property/UseLimit", 0))
         f.write_byte(0)
 
+
 class YadoCard(base.CWBinaryBase):
     """カード置き場のカードと荷物袋のカードのデータ。
     ここのtypeで宿にあるカードのタイプ(技能・アイテム・召喚獣)を判別できる。
@@ -278,7 +280,7 @@ class YadoCard(base.CWBinaryBase):
         self.description = f.string()
         self.type = f.byte()
         self.fname = f.rawstring()
-        self.number = f.dword() # 個数
+        self.number = f.dword()  # 個数
 
     @staticmethod
     def unconv(f, data, fname):
@@ -300,8 +302,10 @@ class YadoCard(base.CWBinaryBase):
         f.write_rawstring(cw.util.splitext(fname)[0])
         f.write_dword(number)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

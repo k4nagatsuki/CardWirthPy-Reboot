@@ -17,7 +17,7 @@ class Battle(base.CWBinaryBase):
         # データバージョンによって処理を分岐する
         b = f.byte()
         if b == ord('B'):
-            f.read(69) # 不明
+            f.read(69)  # 不明
             self.name = f.string()
             idl = f.dword()
             if idl <= 19999:
@@ -112,7 +112,7 @@ class Battle(base.CWBinaryBase):
                 events = e
 
         f.write_byte(restype)
-        f.write_dword(0) # 不明
+        f.write_dword(0)  # 不明
         f.write_string(name)
         f.write_dword(resid + 40000)
         f.write_dword(len(events))
@@ -123,6 +123,7 @@ class Battle(base.CWBinaryBase):
         for ecard in ecards:
             EnemyCard.unconv(f, ecard)
         f.write_string(bgm)
+
 
 class EnemyCard(base.CWBinaryBase):
     """エネミーカード。
@@ -225,8 +226,10 @@ class EnemyCard(base.CWBinaryBase):
         f.write_dword(top)
         f.write_bool(escape)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

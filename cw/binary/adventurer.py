@@ -34,8 +34,8 @@ class Adventurer(base.CWBinaryBase):
             # 1.20のアルバムデータ
             self.id = 0
 
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明(表示順？)
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明(表示順？)
             self.name = f.string()
             self.imgpath = ""
             self.level = f.dword()
@@ -69,17 +69,17 @@ class Adventurer(base.CWBinaryBase):
             self.weakness_fire = f.bool()
             self.weakness_ice = f.bool()
 
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
-            _dw = f.dword() # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
+            _dw = f.dword()  # 不明
 
             self.image = f.image()
             self.description = f.string(True).replace("TEXT\\n", "", 1)
@@ -444,7 +444,7 @@ class Adventurer(base.CWBinaryBase):
         from . import beast
         from . import coupon
 
-        if not logdata is None:
+        if logdata is not None:
             # 変換用にクーポンを整理
             coupons = cw.data.make_element("Coupons")
             coupons1 = {}
@@ -460,7 +460,7 @@ class Adventurer(base.CWBinaryBase):
                     del coupons1[e.text]
                 else:
                     # 削除されたクーポン
-                    coupons.append(cw.data.make_element("Coupon", "＾" + e.text, { "value":e.get("value", "0") }))
+                    coupons.append(cw.data.make_element("Coupon", "＾" + e.text, {"value": e.get("value", "0")}))
             # 追加されたクーポン
             for e in data.getfind("Property/Coupons"):
                 if e in coupons2:
@@ -792,11 +792,11 @@ class AdventurerCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
+        f.write_byte(0)  # 不明
+        f.write_byte(0)  # 不明
+        f.write_byte(0)  # 不明
+        f.write_byte(0)  # 不明
+        f.write_byte(0)  # 不明
         Adventurer.unconv(f, data, None)
 
 
@@ -843,14 +843,14 @@ class AdventurerHeader(base.CWBinaryBase):
         self.fname = self.get_fname()
         if 10 <= dataversion:
             # 1.28以降
-            _b = f.byte() # 不明(0)
-            _b = f.byte() # 不明(0)
+            _b = f.byte()  # 不明(0)
+            _b = f.byte()  # 不明(0)
             self.name = f.string()
             self.image = f.image()
             self.level = f.byte()
-            _b = f.byte() # 不明(0)
+            _b = f.byte()  # 不明(0)
             self.coupons = f.string(True)
-            _w = f.word() # 不明(0)
+            _w = f.word()  # 不明(0)
             # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
             self.ep = f.byte()
             _b = f.byte()
@@ -872,7 +872,7 @@ class AdventurerHeader(base.CWBinaryBase):
             self.name = f.string()
             self.image = f.image()
             self.level = f.dword()
-            _dw = f.dword() # 不明(F)
+            _dw = f.dword()  # 不明(F)
             self.coupons = []
             couponnum = f.dword()
             for _i in range(couponnum):
@@ -919,12 +919,12 @@ class AdventurerHeader(base.CWBinaryBase):
                                 ep = int(ce.get("value", "0"))
                         coupons = cw.util.encodetextlist(seq)
 
-        f.write_word(0) # 不明
+        f.write_word(0)  # 不明
         f.write_string(name)
         f.write_image(image)
         f.write_word(level)
         f.write_string(coupons, True)
-        f.write_word(0) # 不明
+        f.write_word(0)  # 不明
         f.write_word(ep)
         f.write_word(dex)
         f.write_word(agl)

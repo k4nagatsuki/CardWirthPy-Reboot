@@ -15,7 +15,7 @@ class Package(base.CWBinaryBase):
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = 7
-        f.dword() # 不明
+        f.dword()  # 不明
         self.name = f.string()
         self.id = f.dword()
         if nameonly:
@@ -58,15 +58,17 @@ class Package(base.CWBinaryBase):
             elif e.tag == "Events":
                 events = e
 
-        f.write_dword(0) # 不明
+        f.write_dword(0)  # 不明
         f.write_string(name)
         f.write_dword(resid)
         f.write_dword(len(events))
         for evt in events:
             event.SimpleEvent.unconv(f, evt)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

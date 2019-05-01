@@ -77,8 +77,10 @@ class InfoCard(base.CWBinaryBase):
         f.write_dword(resid + 40000)
         f.write_string(description, True)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

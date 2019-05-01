@@ -52,7 +52,7 @@ class SkillCard(base.CWBinaryBase):
         self.visual_effect = f.byte()
         motions_num = f.dword()
         self.motions = [effectmotion.EffectMotion(self, f, dataversion=dataversion)
-                                          for _cnt in range(motions_num)]
+                        for _cnt in range(motions_num)]
         self.enhance_avoid = f.dword()
         self.enhance_resist = f.dword()
         self.enhance_defense = f.dword()
@@ -308,8 +308,10 @@ class SkillCard(base.CWBinaryBase):
         f.write_dword(level)
         f.write_dword(limit)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

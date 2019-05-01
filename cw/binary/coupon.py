@@ -9,6 +9,7 @@ import cw
 
 _120gene = re.compile(r"\A＠Ｇ[01]{10}-[0-9]+\Z")
 
+
 class Coupon(base.CWBinaryBase):
     """クーポンデータ。"""
     def __init__(self, parent, f, yadodata=False, dataversion=5):
@@ -40,8 +41,10 @@ class Coupon(base.CWBinaryBase):
         f.write_string(name)
         f.write_dword(value)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

@@ -38,8 +38,10 @@ class Dialog(base.CWBinaryBase):
         f.write_string(coupons, True)
         f.write_string(text, True)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

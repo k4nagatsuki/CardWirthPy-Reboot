@@ -20,9 +20,9 @@ class Album(base.CWBinaryBase):
             self.name = f.string()
             self.image = f.image()
             self.level = f.word()
-            _w = f.word() # 不明(能力修正？)
-            _w = f.word() # 不明(能力修正？)
-            _w = f.word() # 不明(能力修正？)
+            _w = f.word()  # 不明(能力修正？)
+            _w = f.word()  # 不明(能力修正？)
+            _w = f.word()  # 不明(能力修正？)
             # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
             # 能力値
             self.dex = f.byte()
@@ -204,9 +204,9 @@ class Album(base.CWBinaryBase):
         f.write_string(name)
         f.write_image(image)
         f.write_word(level)
-        f.write_word(0) # 不明
-        f.write_word(0) # 不明
-        f.write_word(0) # 不明
+        f.write_word(0)  # 不明
+        f.write_word(0)  # 不明
+        f.write_word(0)  # 不明
         f.write_word(dex)
         f.write_word(agl)
         f.write_word(inte)
@@ -227,8 +227,10 @@ class Album(base.CWBinaryBase):
         for cp in coupons:
             coupon.Coupon.unconv(f, cp)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

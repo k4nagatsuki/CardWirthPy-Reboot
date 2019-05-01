@@ -558,8 +558,10 @@ class CastCard(base.CWBinaryBase):
 
         f.truncate()
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

@@ -11,6 +11,7 @@ def join_paths(*paths):
     """パス結合。"""
     return "/".join([a for a in paths if a]).replace("\\", "/").strip("/")
 
+
 def check_filename(name):
     """ファイル名として適切かどうかチェックして返す。
     name: チェックするファイルネーム
@@ -46,6 +47,7 @@ def check_filename(name):
     name, ext = cw.util.splitext(name)
     return name.strip() + ext.strip()
 
+
 def check_duplicate(path):
     """パスの重複チェック。
     引数のパスをチェックし、重複していたら、
@@ -64,6 +66,7 @@ def check_duplicate(path):
 
     return path
 
+
 def repl_escapechar(s):
     """xmlの制御文字をエスケープする。
     s: エスケープ処理を行う文字列。
@@ -79,6 +82,7 @@ def repl_escapechar(s):
 
     return s
 
+
 def repl_specialchar(s):
     """特殊文字"\\[a-zA-Z0-9]"のエスケープ処理を行う。
     s: エスケープ処理を行う文字列。
@@ -88,8 +92,10 @@ def repl_specialchar(s):
 
     return re.sub(r"\\[a-zA-Z0-9]", repl_metachar, s)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

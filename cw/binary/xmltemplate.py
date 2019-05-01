@@ -382,15 +382,19 @@ $indent <Value8>$valname8</Value8>
 $indent <Value9>$valname9</Value9>
 $indent</Step>"""
 
+
 def get_xmltemplate(name):
     return globals()[name]
+
 
 def get_xmltext(name, d):
     s = get_xmltemplate(name)
     return Template(s).safe_substitute(d)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()
