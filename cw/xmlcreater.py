@@ -1001,7 +1001,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
         areaid = 0
 
     if not recording:
-        e = cw.data.make_element("Debug", str(cw.cwpy.debug))
+        e = cw.data.make_element("Debug", str(cw.cwpy.is_debugmode()))
         e_prop.append(e)
     e = cw.data.make_element("AreaId", str(areaid))
     e_prop.append(e)

@@ -827,7 +827,7 @@ class PlayerCard(CWPyCard, character.Player):
                 if self.is_inactive():
                     s = cw.cwpy.msgs["inactive"] % self.name
                     cw.cwpy.call_modaldlg("NOTICE", text=s)
-                elif self.is_autoselectedpenalty() and not cw.cwpy.debug:
+                elif self.is_autoselectedpenalty() and not cw.cwpy.is_debugmode():
                     s = cw.cwpy.msgs["selected_penalty"]
                     cw.cwpy.call_modaldlg("NOTICE", text=s)
                 else:
@@ -1247,7 +1247,7 @@ class FriendCard(CWPyCard, character.Friend):
             if self.is_inactive():
                 s = cw.cwpy.msgs["inactive"] % self.name
                 cw.cwpy.call_modaldlg("NOTICE", text=s)
-            elif self.is_autoselectedpenalty() and not cw.cwpy.debug:
+            elif self.is_autoselectedpenalty() and not cw.cwpy.is_debugmode():
                 s = cw.cwpy.msgs["selected_penalty"]
                 cw.cwpy.call_modaldlg("NOTICE", text=s)
             else:

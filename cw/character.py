@@ -636,7 +636,7 @@ class Character(object):
         デバッグフラグがTrueだったら問答無用で暴露する。
         """
         if isinstance(self, Enemy):
-            return cw.cwpy.debug or self.is_faceup()
+            return cw.cwpy.is_debugmode() or self.is_faceup()
         else:
             return True
 

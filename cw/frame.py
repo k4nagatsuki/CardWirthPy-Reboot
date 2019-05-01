@@ -311,7 +311,7 @@ class Frame(wx.Frame):
     @synclock(cw.debug.debugger.mutex)
     def show_debugger(self, refreshtree):
         """デバッガ開く。"""
-        if cw.cwpy.debug and not self.debugger:
+        if cw.cwpy.is_debugmode() and not self.debugger:
             # キー入力初期化
             if self.debugger2:
                 dlg = self.debugger2

@@ -161,7 +161,7 @@ class SimpleSettingsPanel(wx.Panel):
         # デバッグモード
         self.box_debug = wx.StaticBox(self.panel, -1, "デバッグ")
         self.cb_debug = wx.CheckBox(self.panel, -1, "デバッグモード(Ctrl+Dでも切替可)")
-        self.cb_debug.SetValue(cw.cwpy.debug)
+        self.cb_debug.SetValue(cw.cwpy.is_debugmode())
 
         # スキン
         self.box_skin = wx.StaticBox(self.panel, -1, "スキン")
@@ -1293,7 +1293,7 @@ class GeneralSettingPanel(wx.Panel):
         # デバッグモード
         self.box_gene = wx.StaticBox(self, -1, "詳細")
         self.cb_debug = wx.CheckBox(self, -1, "デバッグモード(Ctrl+Dでも切替可)")
-        self.cb_debug.SetValue(cw.cwpy.debug)
+        self.cb_debug.SetValue(cw.cwpy.is_debugmode())
         #self.cb_show_debuglogdialog = wx.CheckBox(
         #    self, -1, "シナリオの終了時にデバッグ情報を表示する")
         self.cb_nolevelup = wx.CheckBox(

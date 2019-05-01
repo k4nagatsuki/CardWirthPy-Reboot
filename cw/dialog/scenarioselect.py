@@ -3017,15 +3017,15 @@ class ScenarioSelect(select.Select):
         elif isinstance(selected, cw.header.ScenarioHeader):
             # 進行中チェック
             if self.is_playing(selected):
-                if not cw.cwpy.debug:
+                if not cw.cwpy.is_debugmode():
                     enable = False
             # 済み印存在チェック
             elif self.is_complete(selected):
-                if not cw.cwpy.debug:
+                if not cw.cwpy.is_debugmode():
                     enable = False
             # クーポン存在チェック
             elif self.is_invisible(selected):
-                if not cw.cwpy.debug:
+                if not cw.cwpy.is_debugmode():
                     enable = False
         elif isinstance(selected, FindResult):
             if self.tree.IsShown():

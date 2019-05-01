@@ -905,7 +905,7 @@ class CardHeader(object):
     def can_selling(self):
         """売却可能か？"""
         # プレミアカードは売却・破棄できない(イベントからの呼出以外)
-        if not cw.cwpy.debug and cw.cwpy.setting.protect_premiercard and\
+        if not cw.cwpy.is_debugmode() and cw.cwpy.setting.protect_premiercard and\
                 self.premium == "Premium":
             return False
 
