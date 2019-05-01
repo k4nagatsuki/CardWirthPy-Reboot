@@ -31,11 +31,11 @@ class Frame(wx.Frame):
         if self._setting.is_expanded:
             try:
                 cw.UP_WIN = float(self._setting.expandmode)
-            except:
+            except Exception:
                 cw.UP_WIN = 1
             try:
                 cw.UP_SCR = float(self._setting.expanddrawing)
-            except:
+            except Exception:
                 cw.UP_SCR = 1
         else:
             cw.UP_WIN = 1
@@ -88,7 +88,8 @@ class Frame(wx.Frame):
 
             # 拡大後のウィンドウがモニタに収まらない場合は縮小状態に戻す
             d = wx.Display.GetFromWindow(self)
-            if d == wx.NOT_FOUND: d = 0
+            if d == wx.NOT_FOUND:
+                d = 0
             drect = wx.Display(d).GetClientArea()
             wsize = self.GetBestSize()
             if self._setting.is_expanded and (drect[2] < wsize[0] or drect[3] < wsize[1]):
@@ -125,14 +126,14 @@ class Frame(wx.Frame):
                 wx.CallLater(100, self._start_wx)
             else:
                 wx.MessageBox("CardWirthPyの起動に失敗しました。\nパネルのハンドルが取得できません。", "エラー - CardWirthPy",
-                              style=wx.OK|wx.CENTRE|wx.ICON_ERROR, parent=self)
+                              style=wx.OK | wx.CENTRE | wx.ICON_ERROR, parent=self)
                 self.Destroy()
             return
 
         os.environ["SDL_WINDOWID"] = str(self.panel.GetHandle())
         if sys.platform == "win32":
             os.environ["SDL_VIDEODRIVER"] = "windib"
-##            os.environ["SDL_AUDIODRIVER"] = "waveout"
+#            os.environ["SDL_AUDIODRIVER"] = "waveout"
 
         # debbuger
         self.debugger = None
@@ -155,7 +156,8 @@ class Frame(wx.Frame):
         cw.cwpy.start()
         # データベースファイル更新をサブスレッドで実行
         folder = self._setting.get_scedir()
-        dbupdater = cw.scenariodb.ScenariodbUpdatingThread(self._setting, vacuum=True, dpath=folder, skintype=self._setting.skintype)
+        dbupdater = cw.scenariodb.ScenariodbUpdatingThread(self._setting, vacuum=True, dpath=folder,
+                                                           skintype=self._setting.skintype)
         dbupdater.start()
 
         # スキン自動生成のためのドロップ受付
@@ -168,7 +170,8 @@ class Frame(wx.Frame):
 
     def get_displaysize(self):
         d = wx.Display.GetFromWindow(self)
-        if d == wx.NOT_FOUND: d = 0
+        if d == wx.NOT_FOUND:
+            d = 0
         return wx.Display(d).GetGeometry().GetSize()
 
     def _bind(self):
@@ -201,18 +204,21 @@ class Frame(wx.Frame):
             # BUG: 以降の処理はwxPythonのバグでFrameがフォーカスを
             #      上手く取れない事への対策
             self._keybind = True
+
             def panel_setfocus(event):
                 if not self._keybind:
                     self._keybind = True
                     self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
                     self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
             self.panel.Bind(wx.EVT_SET_FOCUS, panel_setfocus)
+
             def panel_killfocus(event):
                 if self._keybind:
                     self._keybind = False
                     self.panel.Unbind(wx.EVT_KEY_UP, handler=self.OnKeyUp)
                     self.panel.Unbind(wx.EVT_KEY_DOWN, handler=self.OnKeyDown)
             self.panel.Bind(wx.EVT_KILL_FOCUS, panel_killfocus)
+
             def activate(event):
                 if not self._keybind:
                     self._keybind = True
@@ -272,7 +278,7 @@ class Frame(wx.Frame):
             "CHARAINFO",  # キャラクタ情報ダイアログ
             "RETURNTITLE",  # タイトルに戻るダイアログ
             "SAVE",  # セーブダイアログ
-            "SAVED_MESSAGE", # セーブ完了通知ダイアログ
+            "SAVED_MESSAGE",  # セーブ完了通知ダイアログ
             "USECARD",   # カード使用ダイアログ
             "RUNAWAY",   # 逃走確認ダイアログ
             "ERROR",  # エラーダイアログ
@@ -322,7 +328,7 @@ class Frame(wx.Frame):
             dlg.SetSize((cw.ppis(688), self.GetSize()[1]))
             w = dlg.GetSize()[0]
             w -= (w - self.GetSize()[0]) // 2
-            w -= 10 # BUG: ウィンドウの位置ずれが発生する。wxPython 4.0.1
+            w -= 10  # BUG: ウィンドウの位置ずれが発生する。wxPython 4.0.1
             self.move_dlg(dlg, (w, cw.ppis(0)))
             self.debugger = dlg
 
@@ -340,6 +346,7 @@ class Frame(wx.Frame):
             debugger = self.debugger
             self.debugger = None
             debugger.Close()
+
             def func():
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
             cw.cwpy.exec_func(func)
@@ -368,6 +375,7 @@ class Frame(wx.Frame):
                 return
             self._sync_result = None
             self._sync_running = True
+
             def func2(*args, **kwargs):
                 try:
                     self._sync_result = func(*args, **kwargs)
@@ -385,7 +393,7 @@ class Frame(wx.Frame):
     def OnEXECFUNC(self, event):
         try:
             func = event.func
-        except:
+        except Exception:
             print("failed to execute function on main thread.")
             return
 
@@ -412,10 +420,10 @@ class Frame(wx.Frame):
         if sys.platform != "win32":
             if self.IsActive():
                 state = wx.GetMouseState()
-                l = state.LeftIsDown()
+                ld = state.LeftIsDown()
                 m = state.MiddleIsDown()
                 r = state.RightIsDown()
-                cw.cwpy.mousein = (l, m, r)
+                cw.cwpy.mousein = (ld, m, r)
             else:
                 cw.cwpy.mousein = (0, 0, 0)
 
@@ -434,7 +442,7 @@ class Frame(wx.Frame):
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
         if sys.platform == "win32" and keycode == wx.WXK_F4 and event.AltDown():
-            return # WindowsではAlt+F4はウィンドウを閉じる操作
+            return  # WindowsではAlt+F4はウィンドウを閉じる操作
         if keycode != wx.WXK_CONTROL:
             self.update_keystate()
 
@@ -531,7 +539,7 @@ class Frame(wx.Frame):
                         cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname, switch_skin=True)
                     self.kill_dlg(dlg)
                     break
-                except:
+                except Exception:
                     cw.util.print_ex()
         else:
             # スキンのインストール
@@ -545,7 +553,8 @@ class Frame(wx.Frame):
             db = self.open_scenariodb()
             if not db:
                 return
-            headers, notscenariofiles = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db, cw.cwpy.setting.skintype,
+            headers, notscenariofiles = cw.dialog.scenarioinstall.to_scenarioheaders(paths, db,
+                                                                                     cw.cwpy.setting.skintype,
                                                                                      link=False)
             if not headers:
                 return
@@ -562,10 +571,7 @@ class Frame(wx.Frame):
         cw.cwpy._running = False
 
         while True:
-            activeCount = 0
-            for thr in threading.enumerate():
-                if not isinstance(thr, threading._DummyThread):
-                    activeCount += 1
+            activeCount = threading.activeCount()
             if activeCount <= self.initialThreadCount:
                 break
 
@@ -674,7 +680,7 @@ class Frame(wx.Frame):
             yadodir = dlg.list[dlg.index]
             try:
                 cw.cwpy.load_yado(yadodir)
-            except:
+            except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 cw.cwpy.play_sound("error")
                 return
@@ -752,11 +758,11 @@ class Frame(wx.Frame):
         try:
             self.db = cw.scenariodb.Scenariodb()
             return self.db
-        except:
+        except Exception:
             s = ("シナリオデータベースへの接続に失敗しました。\n"
                  "しばらくしてからもう一度やり直してください。")
             event = object()
-            event.args = {"text":s, "shutdown":False}
+            event.args = {"text": s, "shutdown": False}
             self.OnERROR(event)
             return None
 
@@ -765,7 +771,8 @@ class Frame(wx.Frame):
         if not db:
             return
 
-        dlg = cw.dialog.scenarioselect.ScenarioSelect(self, db, cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath)
+        dlg = cw.dialog.scenarioselect.ScenarioSelect(self, db, cw.cwpy.setting.lastscenario,
+                                                      cw.cwpy.setting.lastscenariopath)
         self.move_dlg(dlg)
 
         dlg.ShowModal()
@@ -784,8 +791,8 @@ class Frame(wx.Frame):
         # FIXME: linuxでたまに操作不能になる
         #        Windowsでも環境によって落ちる事がある
         #        kill_dlgを遅延させる事で問題を回避する
-        #self.kill_dlg(None)
-        #self.append_killlist(dlg)
+        # self.kill_dlg(None)
+        # self.append_killlist(dlg)
 
         # wxPython 4.0.1にアップデートしたので様子見
         self.kill_dlg(dlg)
@@ -909,9 +916,9 @@ class Frame(wx.Frame):
     def OnSAVE(self, event):
         is_playingscenario = cw.cwpy.is_playingscenario()
 
-        if (cw.cwpy.setting.confirm_beforesaving == cw.setting.CONFIRM_BEFORESAVING_BASE and\
-                    not is_playingscenario) or\
-                not cw.cwpy.setting.confirm_beforesaving in (cw.setting.CONFIRM_BEFORESAVING_NO,
+        if (cw.cwpy.setting.confirm_beforesaving == cw.setting.CONFIRM_BEFORESAVING_BASE and
+            not is_playingscenario) or\
+                cw.cwpy.setting.confirm_beforesaving not in (cw.setting.CONFIRM_BEFORESAVING_NO,
                                                              cw.setting.CONFIRM_BEFORESAVING_BASE):
             s = cw.cwpy.msgs["confirm_save"]
             dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
@@ -923,6 +930,7 @@ class Frame(wx.Frame):
 
         if save:
             self.kill_dlg(dlg, lockmenucard=True)
+
             def func():
                 cw.cwpy.ydata.save()
                 cw.cwpy.play_sound("signal")
@@ -937,6 +945,7 @@ class Frame(wx.Frame):
 
     def OnSAVED_MESSAGE(self, event):
         self.OnMESSAGE(event)
+
         def func():
             self._saved()
         cw.cwpy.exec_func(func)
@@ -1142,7 +1151,8 @@ class Frame(wx.Frame):
         else:
             if self.IsFullScreen() and dlg.Parent == self:
                 d = wx.Display.GetFromWindow(self)
-                if d == wx.NOT_FOUND: d = 0
+                if d == wx.NOT_FOUND:
+                    d = 0
                 carea = wx.Display(d).GetGeometry()
                 x = carea[0] + (carea[2] - dlg.GetSize()[0]) // 2
                 y = carea[1] + (carea[3] - dlg.GetSize()[1]) // 2
@@ -1257,7 +1267,7 @@ class Frame(wx.Frame):
                         else:
                             os.makedirs(dpath)
                         bmp.SaveFile(filename, wx.BITMAP_TYPE_PNG)
-                    except:
+                    except Exception:
                         s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
                         cw.cwpy.call_modaldlg("ERROR", text=s)
 
@@ -1281,6 +1291,7 @@ class Frame(wx.Frame):
         mem.SetBrush(wx.Brush(back))
         mem.SetPen(wx.Pen(back))
         frect = self.GetRect()
+
         def recurse(win):
             for child in win.GetChildren():
                 if not hasattr(child, "cwpy_debug"):
@@ -1327,10 +1338,14 @@ class Frame(wx.Frame):
                     wh += cw.s(pixelsize+2) + 2
                     xx = (w * centerx) - (ww // 2)
                     yy = (h * centery) - (wh // 2) + y
-                    if w <= xx + (ww+2): xx = w - (ww+2)
-                    if h <= yy+y + (wh+2): yy = h+y - (wh+2)
-                    if xx < 2: xx = 2
-                    if yy < 2+y: yy = 2+y
+                    if w <= xx + (ww+2):
+                        xx = w - (ww+2)
+                    if h <= yy+y + (wh+2):
+                        yy = h+y - (wh+2)
+                    if xx < 2:
+                        xx = 2
+                    if yy < 2+y:
+                        yy = 2+y
 
                     rx, ry, rw, rh = xx - 2, yy - 2, ww + 4, bmp.GetHeight() + 4 + cw.s(pixelsize + 2) + 2
                     mem.DrawRectangle(rx, ry, rw, rh)
@@ -1421,8 +1436,8 @@ class MyApp(wx.App):
             except cw.setting.NoFontError as ex:
                 s = ("CardWirthPyの実行に必要なフォントがありません。\n"
                      "Data/Font以下にIPAフォントをインストールしてください。")
-                wx.MessageBox(s, "メッセージ", wx.OK|wx.ICON_ERROR, None)
-            except:
+                wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_ERROR, None)
+            except Exception:
                 cw.util.print_ex()
         else:
             # 通常起動
@@ -1448,17 +1463,19 @@ class MyApp(wx.App):
         if not event:
             return -1
 
-        # BUG: wx._core.PyAssertionError: C++ assertion "GetEventHandler() == this" failed at ..\..\src\common\wincmn.cpp(478) in wxWindowBase::~wxWindowBase(): any pushed event handlers must have been removed
+        # BUG: wx._core.PyAssertionError: C++ assertion "GetEventHandler() == this"
+        #      failed at ..\..\src\common\wincmn.cpp(478) in wxWindowBase::~wxWindowBase():
+        #      any pushed event handlers must have been removed
         #      wxPython 3.0.2.0
         try:
             event.GetEventObject()
 
-            if cw.cwpy and not cw.cwpy._running:
+            if cw.cwpy and not cw.cwpy.is_runningstatus():
                 return -1
 
             if not (cw.cwpy and cw.cwpy.frame):
                 return -1
-        except:
+        except Exception:
             cw.util.print_ex()
             return -1
 
@@ -1496,7 +1513,7 @@ class MyApp(wx.App):
                 dur = time.process_time() - self.flick_start_time
                 exit_value = -1
                 if self.flick_window and cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and\
-                                         dur <= cw.cwpy.setting.flick_time_msec/1000.0:
+                        dur <= cw.cwpy.setting.flick_time_msec/1000.0:
                     event2 = wx.PyCommandEvent(wx.wxEVT_RIGHT_UP, wx.ID_UP)
                     event2.GetPosition = lambda: self.flick_window.ScreenToClient(self.flick_start_pos)
                     self.flick_window.ProcessEvent(event2)
@@ -1548,8 +1565,8 @@ class MyApp(wx.App):
         # スクリーンショットの撮影
         if isinstance(event, wx.KeyEvent) and\
                 event.GetEventType() == wx.EVT_KEY_UP.typeId:
-            if (wx.WXK_SNAPSHOT == event.GetKeyCode() or\
-                 (ord('P') == event.GetKeyCode() and event.ControlDown())) and\
+            if (wx.WXK_SNAPSHOT == event.GetKeyCode() or
+                (ord('P') == event.GetKeyCode() and event.ControlDown())) and\
                  cw.cwpy.frame.can_screenshot():
                 if event.ShiftDown():
                     cw.cwpy.force_exec_func(cw.util.card_screenshot)
@@ -1562,6 +1579,7 @@ class MyApp(wx.App):
                 event.Skip()
                 return True
         return -1
+
 
 def get_skincount():
     skincount = 0
@@ -1585,18 +1603,20 @@ def get_skincount():
                         shutil.move(rmskinpath, skinpath)
                         try:
                             cw.util.remove(cw.util.join_paths("Data/Skin", name), trashbox=True)
-                        except:
+                        except Exception:
                             cw.util.print_ex(file=sys.stderr)
                         if os.path.isfile(skinpath):
                             # 依然として消せない
                             shutil.move(skinpath, rmskinpath)
-                    except:
+                    except Exception:
                         cw.util.print_ex(file=sys.stderr)
 
     return skincount, unknown_ver
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

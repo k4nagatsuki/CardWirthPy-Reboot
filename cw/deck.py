@@ -107,7 +107,7 @@ class Deck(object):
 
     def set_hand(self, ccard):
         hand = [h for h in self.hand if h.type == "SkillCard" or
-                                        h.type == "ActionCard" and h.id > 0]
+                h.type == "ActionCard" and h.id > 0]
         # 手札構築
         self.hand = []
         # カード交換カードを手札に加える
@@ -159,9 +159,9 @@ class Deck(object):
                         self._remove(h)
             else:
                 self.hand = [h for h in self.hand
-                                    if not h.ref_original == header.ref_original]
+                             if not h.ref_original == header.ref_original]
                 self.talon = [h for h in self.talon
-                                    if not h.ref_original == header.ref_original]
+                              if not h.ref_original == header.ref_original]
 
     def get_skillpower(self, ccard):
         # 一旦山札から全てのスキルを取り除く
@@ -269,7 +269,7 @@ class Deck(object):
         """現在の手札を山札に戻す。"""
         for header in self.hand[:]:
             if header.type == "ActionCard" and header.id == 0:
-                continue # カード交換
+                continue  # カード交換
             self._remove(header)
         self.shuffle()
 
@@ -345,7 +345,7 @@ class Deck(object):
             self.hand.remove(header)
             if header.type == "ActionCard" and 0 <= header.id:
                 self.talon.insert(0, header)
-        elif header.type == "SkillCard" and not header in self.hand:
+        elif header.type == "SkillCard" and header not in self.hand:
             # アイテムカード配付等で手札から押し出され、
             # 使用前に山札に戻されている場合がある
             # アクションカードはそのままでよいが特殊技能は必ず消費させる

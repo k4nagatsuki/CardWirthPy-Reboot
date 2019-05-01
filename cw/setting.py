@@ -14,17 +14,24 @@ import array
 import re
 import threading
 import copy
-import configparser
+# FIXME: Python 2->3でのモジュール名変更の絡みで警告が出る
+# import configparser
 import time
 import wx
 import pygame
 import pygame.locals
+from typing import Any, Callable
 
 import cw
+
+import importlib
+
+configparser = importlib.import_module("configparser")
 
 
 class NoFontError(ValueError):
     pass
+
 
 if sys.platform != "win32":
     # wx.Appのロード前にフォントをインストールしなければならない
@@ -32,7 +39,7 @@ if sys.platform != "win32":
     if sys.platform == "darwin":
         try:
             fontconfig = ctypes.CDLL("/opt/X11/lib/libfontconfig.dylib")
-        except:
+        except Exception:
             fontconfig = None
         # application bundle に入っている場合は、application bundle と同じ位置にあるDataディレクトリを使う
         if 'RESOURCEPATH' in os.environ:
@@ -42,10 +49,10 @@ if sys.platform != "win32":
     else:
         try:
             fontconfig = ctypes.CDLL("libfontconfig.so")
-        except:
+        except Exception:
             try:
                 fontconfig = ctypes.CDLL("libfontconfig.so.1")
-            except:
+            except Exception:
                 fontconfig = None
     if fontconfig:
         fontconfig.FcConfigGetCurrent.restype = ctypes.c_void_p
@@ -56,19 +63,20 @@ if sys.platform != "win32":
                     path = os.path.join(dpath, fname)
                     if os.path.isfile(path):
                         encoding = sys.getfilesystemencoding()
-                        fontconfig.FcConfigAppFontAddFile(ctypes.c_void_p(fcconfig), ctypes.c_char_p(path.encode(encoding)))
+                        fontconfig.FcConfigAppFontAddFile(ctypes.c_void_p(fcconfig),
+                                                          ctypes.c_char_p(path.encode(encoding)))
 
 # マウスホイールを上回転させた時の挙動
-WHEEL_SELECTION = "Selection" # カードや選択肢を選ぶ
-WHEEL_SHOWLOG   = "ShowLog"   # バックログを表示
+WHEEL_SELECTION = "Selection"  # カードや選択肢を選ぶ
+WHEEL_SHOWLOG = "ShowLog"  # バックログを表示
 
 # カーソルのタイプ
-CURSOR_BLACK = "Black" # 黒いカーソル(デフォルト)
-CURSOR_WHITE = "White" # 白いカーソル
+CURSOR_BLACK = "Black"  # 黒いカーソル(デフォルト)
+CURSOR_WHITE = "White"  # 白いカーソル
 
 # メッセージログの表示形式
-LOG_SINGLE   = "Single"
-LOG_LIST     = "List"
+LOG_SINGLE = "Single"
+LOG_LIST = "List"
 LOG_COMPRESS = "Compress"
 
 # 起動時の挙動
@@ -78,7 +86,7 @@ OPEN_LAST_BASE = "LastBase"
 # 保存前のダイアログ表示の有無
 CONFIRM_BEFORESAVING_YES = "True"
 CONFIRM_BEFORESAVING_NO = "False"
-CONFIRM_BEFORESAVING_BASE = "BaseOnly" # 宿にいる時に限り表示
+CONFIRM_BEFORESAVING_BASE = "BaseOnly"  # 宿にいる時に限り表示
 
 # カードの売却・破棄確認ダイアログ表示の有無
 CONFIRM_DUMPCARD_ALWAYS = "Always"
@@ -86,11 +94,11 @@ CONFIRM_DUMPCARD_SENDTO = "SendOnly"
 CONFIRM_DUMPCARD_NO = "False"
 
 # ステータスバーのボタン状態
-SB_PRESSED   = 0b00000001 # 押下
-SB_CURRENT   = 0b00000010 # カーソル下
-SB_DISABLE   = 0b00000100 # 無効状態
-SB_NOTICE    = 0b00001000 # 通知
-SB_EMPHASIZE = 0b00010000 # 強調
+SB_PRESSED = 0b00000001  # 押下
+SB_CURRENT = 0b00000010  # カーソル下
+SB_DISABLE = 0b00000100  # 無効状態
+SB_NOTICE = 0b00001000  # 通知
+SB_EMPHASIZE = 0b00010000  # 強調
 
 # フォントの表示例
 FONT_EXAMPLE_FORMAT_INIT = "%fontface%\\nAaあぁアァ亜宇"
@@ -271,7 +279,7 @@ class LocalSetting(object):
 
         def read_font(e, table, table_init):
             key = e.getattr(".", "key", "")
-            if not key or not key in table_init:
+            if not key or key not in table_init:
                 return
             _deftype, _defname, defpixels, defbold, defbold_upscr, defitalic = table_init[key]
 
@@ -300,7 +308,7 @@ class LocalSetting(object):
             read_font(e, self.fonttypes, self.fonttypes_init)
         # メッセージ用混植フォント
         e_synthfont = data.find("SyntheticFonts")
-        if not e_synthfont is None and e_synthfont.getattr(".", "key", "") == "message":
+        if e_synthfont is not None and e_synthfont.getattr(".", "key", "") == "message":
             for e in e_synthfont:
                 read_font(e, self.msg_exfonts, self.msg_exfonts_init)
 
@@ -411,9 +419,12 @@ class Setting(object):
         self.scenario_narrowtype = 1
         self.scenario_sorttype = 0
         self.ssinfoformat = "[%scenario%[(%author%)] - ][%party% at ]%yado%"
-        self.ssfnameformat = "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
-        self.cardssfnameformat = "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
-        self.titleformat = "%application% %skin%[ - %yado%[ %scenario%]]"
+        self.ssfnameformat = \
+            "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
+        self.cardssfnameformat = \
+            "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
+        self.titleformat = \
+            "%application% %skin%[ - %yado%[ %scenario%]]"
         self.playlogformat = "PlayLog/%yado%/%party%_%year%%month%%day%_%hour%%minute%%second%_%scenario%.txt"
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
@@ -428,7 +439,7 @@ class Setting(object):
         self.show_tiles = False
         self.enabled_right_flick = False
         self.can_repeatlclick = False
-        self.shiftup_touchbutton = True # タッチボタンをスライド表示する
+        self.shiftup_touchbutton = True  # タッチボタンをスライド表示する
         self.flick_time_msec = 300
         self.flick_distance = 30
         self.can_skipwait = True
@@ -449,14 +460,14 @@ class Setting(object):
         self.show_paperandtree = False
         self.filer_dir = ""
         self.filer_file = ""
-        self.recenthistory_limit = 5 # 展開したシナリオを取っておく数
-        self.volume_increment = 5 # ホイールによる全体音量調節での増減量
+        self.recenthistory_limit = 5  # 展開したシナリオを取っておく数
+        self.volume_increment = 5  # ホイールによる全体音量調節での増減量
         self.show_debuglogdialog = True
         self.enabled_timekeeper = True
         self.write_playlog = False
-        self.move_repeat = 250 #移動ボタン押しっぱなしの速度
-        self.open_lastscenario = True # 最後に表示したシナリオを開くか
-        self.spend_noeffectcard = True # キーコード等の効果が無くても常にカードを消費するか
+        self.move_repeat = 250  # 移動ボタン押しっぱなしの速度
+        self.open_lastscenario = True  # 最後に表示したシナリオを開くか
+        self.spend_noeffectcard = True  # キーコード等の効果が無くても常にカードを消費するか
         # シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する
         # Falseの場合は常に検索結果として表示
         self.can_installscenariofromdrop = False
@@ -496,7 +507,7 @@ class Setting(object):
         # カード選択ダイアログでのページ
         self.last_storehousepage = 0
         self.last_backpackpage = 0
-        self.last_cardpocketbpage = [0] * 3 # 荷物袋からの使用
+        self.last_cardpocketbpage = [0] * 3  # 荷物袋からの使用
 
         # 一覧表示
         self.show_multiplebases = False
@@ -555,13 +566,13 @@ class Setting(object):
         self.lastyado = data.gettext("LastYado", self.lastyado)
         # 最後に選択したシナリオ(ショートカットがあるため経路を記憶)
         self.lastscenario = []
-        self.lastscenariopath = "" # 経路が辿れない時に使用するフルパス
+        self.lastscenariopath = ""  # 経路が辿れない時に使用するフルパス
         # ウィンドウ位置
-        win_x = data.getint("WindowPosition", "left", -sys.maxsize-1)
-        win_y = data.getint("WindowPosition", "top", -sys.maxsize-1)
-        if -sys.maxsize-1 == win_x:
+        win_x = data.getint("WindowPosition", "left", -sys.maxsize - 1)
+        win_y = data.getint("WindowPosition", "top", -sys.maxsize - 1)
+        if -sys.maxsize - 1 == win_x:
             win_x = None
-        if -sys.maxsize-1 == win_y:
+        if -sys.maxsize - 1 == win_y:
             win_y = None
         self.window_position = (win_x, win_y)
         # 拡大モード
@@ -601,13 +612,13 @@ class Setting(object):
         # 効果音を再生する
         self.play_sound = data.getbool("PlaySound", self.play_sound)
         # 音声全体のボリューム(0～1.0)
-        self.vol_master = data.getint("MasterVolume", int(self.vol_master_init*100))
+        self.vol_master = data.getint("MasterVolume", int(self.vol_master_init * 100))
         # 音楽のボリューム(0～1.0)
-        self.vol_bgm = data.getint("BgmVolume", int(self.vol_bgm_init*100))
+        self.vol_bgm = data.getint("BgmVolume", int(self.vol_bgm_init * 100))
         # midi音楽のボリューム(0～1.0)
         self.vol_bgm_midi = data.getint("BgmVolume", "midi", self.vol_bgm)
         # 効果音ボリューム
-        self.vol_sound = data.getint("SoundVolume", int(self.vol_sound_init*100))
+        self.vol_sound = data.getint("SoundVolume", int(self.vol_sound_init * 100))
         # midi効果音のボリューム(0～1.0)
         self.vol_sound_midi = data.getint("SoundVolume", "midi", self.vol_sound)
         # 音量の単位変更(0～100 to 0～1)
@@ -618,7 +629,7 @@ class Setting(object):
         self.vol_sound_midi = Setting.wrap_volumevalue(self.vol_sound_midi)
         # MIDIサウンドフォント
         elements = data.find("SoundFonts")
-        if not elements is None:
+        if elements is not None:
             self.soundfonts = []
             for e in elements:
                 use = e.getbool(".", "enabled", True)
@@ -642,7 +653,8 @@ class Setting(object):
         # 同行キャストの行動後に縮小処理を行う
         self.zoomout_friend = data.getbool("ZoomOutFriendCard", self.zoomout_friend)
         # 召喚獣カードの拡大率を大きくする
-        self.enlarge_beastcardzoomingratio = data.getbool("EnlargeBeastCardZoomingRatio", self.enlarge_beastcardzoomingratio)
+        self.enlarge_beastcardzoomingratio = data.getbool("EnlargeBeastCardZoomingRatio",
+                                                          self.enlarge_beastcardzoomingratio)
         # トランジション効果の種類
         self.transition = data.gettext("Transition", self.transition)
         self.transitionspeed = data.getint("Transition", "speed", self.transitionspeed)
@@ -762,7 +774,8 @@ class Setting(object):
         self.show_roundautostartbutton = data.getbool("ShowRoundAutoStartButton", self.show_roundautostartbutton)
 
         # 新規登録ダイアログに自動ボタンを表示する
-        self.show_autobuttoninentrydialog = data.getbool("ShowAutoButtonInEntryDialog", self.show_autobuttoninentrydialog)
+        self.show_autobuttoninentrydialog = data.getbool("ShowAutoButtonInEntryDialog",
+                                                         self.show_autobuttoninentrydialog)
 
         # 逆変換先ディレクトリ
         self.unconvert_targetfolder = data.gettext("UnconvertTargetFolder", self.unconvert_targetfolder)
@@ -781,9 +794,11 @@ class Setting(object):
         # マウスのホイールで空白時間とアニメーションをスキップする
         self.can_skipwait_with_wheel = data.getbool("CanSkipWaitWithWheel", self.can_skipwait_with_wheel)
         # マウスのホイールでメッセージ送りを行う
-        self.can_forwardmessage_with_wheel = data.getbool("CanForwardMessageWithWheel", self.can_forwardmessage_with_wheel)
+        self.can_forwardmessage_with_wheel = data.getbool("CanForwardMessageWithWheel",
+                                                          self.can_forwardmessage_with_wheel)
         # 方向キーやホイールの選択中にマウスカーソルの移動を検知しない半径
-        self.radius_notdetectmovement = data.getint("RadiusForNotDetectingCursorMovement", self.radius_notdetectmovement)
+        self.radius_notdetectmovement = data.getint("RadiusForNotDetectingCursorMovement",
+                                                    self.radius_notdetectmovement)
         # カーソルタイプ
         self.cursor_type = data.gettext("CursorType", self.cursor_type)
         # 連打状態の時、カードなどの選択を自動的に決定する
@@ -842,10 +857,12 @@ class Setting(object):
         self.show_additional_yado = data.getbool("ShowAdditionalControls", "yado", self.show_additional_yado)
         self.show_additional_player = data.getbool("ShowAdditionalControls", "player", self.show_additional_player)
         self.show_additional_party = data.getbool("ShowAdditionalControls", "party", self.show_additional_party)
-        self.show_additional_scenario = data.getbool("ShowAdditionalControls", "scenario", self.show_additional_scenario)
+        self.show_additional_scenario = data.getbool("ShowAdditionalControls", "scenario",
+                                                     self.show_additional_scenario)
         self.show_additional_card = data.getbool("ShowAdditionalControls", "card", self.show_additional_card)
         # 絞り込み等の表示切替ボタンを表示する
-        self.show_addctrlbtn = data.gettext("ShowAdditionalControls", "" if self.show_addctrlbtn else "Hidden") != "Hidden"
+        self.show_addctrlbtn = data.gettext("ShowAdditionalControls",
+                                            "" if self.show_addctrlbtn else "Hidden") != "Hidden"
 
         # シナリオのプレイログを出力する
         self.write_playlog = data.getbool("WritePlayLog", self.write_playlog)
@@ -853,7 +870,8 @@ class Setting(object):
         self.playlogformat = data.gettext("PlayLogFormat", self.playlogformat)
 
         # 最小化中に完全に停止する
-        self.stop_the_world_with_iconized = data.getbool("StopTheWorldWithIconization", self.stop_the_world_with_iconized_init)
+        self.stop_the_world_with_iconized = data.getbool("StopTheWorldWithIconization",
+                                                         self.stop_the_world_with_iconized_init)
 
         # 最後に選んだシナリオを開始位置にする
         self.open_lastscenario = data.getbool("OpenLastScenario", self.open_lastscenario)
@@ -873,7 +891,7 @@ class Setting(object):
 
         # シナリオのインストール先(キー=ルートディレクトリ)
         e = data.find("InstalledPaths")
-        if not e is None:
+        if e is not None:
             for e_paths in e:
                 rootdir = e_paths.getattr(".", "root", "")
                 if not rootdir:
@@ -886,7 +904,7 @@ class Setting(object):
 
         # カード編集ダイアログのブックマーク
         e = data.find("BookmarksForCardEditor")
-        if not e is None:
+        if e is not None:
             for e_bookmark in e:
                 fpath = e_bookmark.text
                 name = e_bookmark.getattr(".", "name", "")
@@ -915,8 +933,8 @@ class Setting(object):
                 # バージョン1ではカード名のスムージングはデフォルトでオン
                 # スムージング設定がデフォルト値でカード名フォントの設定を
                 # 変更している場合は、スムージングを改めてオンにする
-                if not self.local.fontsmoothing_cardname and\
-                        (self.local.fonttypes["cardname"] != self.local.fonttypes_init["cardname"] or \
+                if not self.local.fontsmoothing_cardname and \
+                        (self.local.fonttypes["cardname"] != self.local.fonttypes_init["cardname"] or
                          self.local.fonttypes["ccardname"] != self.local.fonttypes_init["ccardname"]):
                     self.local.fontsmoothing_cardname = True
 
@@ -971,14 +989,14 @@ class Setting(object):
         data = self._update_skin(path)
         err = self._check_skin()
         if err:
-            dlg = wx.MessageDialog(None, err, "スキンチェックエラー", wx.OK|wx.ICON_ERROR)
+            dlg = wx.MessageDialog(None, err, "スキンチェックエラー", wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
             raise Exception()
         self.skinname = data.gettext("Property/Name", "")
         self.skintype = data.gettext("Property/Type", "")
         self.vocation120 = data.getbool("Property/CW120VocationLevel", False)
-        self._classicstyletext = data.getbool("Property/ClassicStyleText", False) # 設定バージョンアップデート用
+        self._classicstyletext = data.getbool("Property/ClassicStyleText", False)  # 設定バージョンアップデート用
         self.initialcash = data.getint("Property/InitialCash", basedata.getint("Property/InitialCash", 4000))
         # スキン・種族
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("Races")]
@@ -1053,12 +1071,14 @@ class Setting(object):
                 #  * SkinBaseの情報を上書きしていない場合に限り、SampleTypeで
                 #    社交-内向と慎重-大胆の入れ替わりは発生していない
                 update = True
+
                 def update_mental(e):
                     me = e.find("Mental")
                     cautious = me.getattr(".", "cautious")
                     cheerful = me.getattr(".", "cheerful")
                     me.attrib["cautious"] = cheerful
                     me.attrib["cheerful"] = cautious
+
                 for e in data.getfind("Sexes"):
                     update_mental(e)
                 for e in data.getfind("Periods"):
@@ -1068,17 +1088,19 @@ class Setting(object):
                 for e in data.getfind("Makings"):
                     update_mental(e)
                 ste = data.getfind("SampleTypes")
+
                 def check_sampletype(ste, name, cautious, cheerful):
                     # SampleTypeがSkinBaseの内容そのままかチェックする
-                    return ste.gettext("Name") == name and\
-                           ste.getfloat("Mental", "cautious") == cautious and\
+                    return ste.gettext("Name") == name and \
+                           ste.getfloat("Mental", "cautious") == cautious and \
                            ste.getfloat("Mental", "cheerful") == cheerful
-                if len(ste) != 5 or\
-                   not check_sampletype(ste[0], "バランス", 0.0, 0.0) or\
-                   not check_sampletype(ste[1], "ファイター", -0.5, 0.0) or\
-                   not check_sampletype(ste[2], "シーフ", 0.5, 0.0) or\
-                   not check_sampletype(ste[3], "プリースト", 0.0, 0.5) or\
-                   not check_sampletype(ste[4], "メイジ", 0.5, -0.5):
+
+                if len(ste) != 5 or \
+                        not check_sampletype(ste[0], "バランス", 0.0, 0.0) or \
+                        not check_sampletype(ste[1], "ファイター", -0.5, 0.0) or \
+                        not check_sampletype(ste[2], "シーフ", 0.5, 0.0) or \
+                        not check_sampletype(ste[3], "プリースト", 0.0, 0.5) or \
+                        not check_sampletype(ste[4], "メイジ", 0.5, -0.5):
                     # SkinBaseの内容そのままでない場合は入れ替え発生
                     for e in ste:
                         update_mental(e)
@@ -1179,11 +1201,11 @@ class Setting(object):
                     # タイトル画面のカード位置を調節
                     e = cw.data.xml2etree(fpath)
                     e_mcards = e.find("MenuCards")
-                    if not e_mcards is None and len(e_mcards) == 2 and\
-                            e_mcards.getattr(".", "spreadtype", "") == "Custom" and\
-                            e_mcards[0].getint("Property/Location", "left", 0) == 231 and\
-                            e_mcards[0].getint("Property/Location", "top", 0) == 156 and\
-                            e_mcards[1].getint("Property/Location", "left", 0) == 316 and\
+                    if e_mcards is not None and len(e_mcards) == 2 and \
+                            e_mcards.getattr(".", "spreadtype", "") == "Custom" and \
+                            e_mcards[0].getint("Property/Location", "left", 0) == 231 and \
+                            e_mcards[0].getint("Property/Location", "top", 0) == 156 and \
+                            e_mcards[1].getint("Property/Location", "left", 0) == 316 and \
                             e_mcards[1].getint("Property/Location", "top", 0) == 156:
                         # バックアップを作成
                         iver = skinversion
@@ -1215,14 +1237,14 @@ class Setting(object):
                                 e_playerselect = e_mcard
                             elif command == "ShowDialog" and arg == "RETURNTITLE":
                                 e_returntitle = e_mcard
-                        if not e_playerselect is None:
+                        if e_playerselect is not None:
                             e.edit("MenuCards/MenuCard[1]/Property/Name",
                                    e_playerselect.gettext("Property/Name"))
                             e.edit("MenuCards/MenuCard[1]/Property/ImagePath",
                                    e_playerselect.gettext("Property/ImagePath"))
                             e.edit("MenuCards/MenuCard[1]/Property/Description",
                                    e_playerselect.gettext("Property/Description"))
-                        if not e_returntitle is None:
+                        if e_returntitle is not None:
                             e.edit("MenuCards/MenuCard[2]/Property/Name",
                                    e_returntitle.gettext("Property/Name"))
                             e.edit("MenuCards/MenuCard[2]/Property/ImagePath",
@@ -1230,11 +1252,11 @@ class Setting(object):
                             e.edit("MenuCards/MenuCard[2]/Property/Description",
                                    e_returntitle.gettext("Property/Description"))
                         e_bgimgs = e3.find("BgImages")
-                        if not e_bgimgs is None:
+                        if e_bgimgs is not None:
                             e.remove(".", e.find("BgImages"))
                             e.insert(".", e_bgimgs, 1)
                         e_event = e3.find("Events")
-                        if not e_event is None:
+                        if e_event is not None:
                             e.remove(".", e.find("Events"))
                             e.append(".", e_event)
                         e.write()
@@ -1271,8 +1293,8 @@ class Setting(object):
             if id == 3:
                 break
         else:
-            return "スキンにデータバージョン「9」で導入された「初期拠点」エリアが存在しません。\n" +\
-                   "スキンの自動アップデートに失敗した可能性があります。\n" +\
+            return "スキンにデータバージョン「9」で導入された「初期拠点」エリアが存在しません。\n" + \
+                   "スキンの自動アップデートに失敗した可能性があります。\n" + \
                    "手動での修復を試みるか、スキンを再導入してください。"
 
         fpath = cw.util.join_paths(self.skindir, "Resource/Xml/Animation/Opening.xml")
@@ -1306,7 +1328,7 @@ class Setting(object):
         dealing_scales = [
             int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
             for i in range(scales_len)
-                if i
+            if i
         ]
         return dealing_scales
 
@@ -1324,7 +1346,7 @@ class Setting(object):
 
     def get_inusecardalpha(self, sprite):
         alpha = 160
-        if not sprite.alpha is None:
+        if sprite.alpha is not None:
             alpha = min(alpha, sprite.alpha)
         return alpha
 
@@ -1450,18 +1472,19 @@ class _MsgDict(dict):
         self._error_keys = set()
 
     def __getitem__(self, key):
-        if not key in self:
-            if not key in self._error_keys:
+        if key not in self:
+            if key not in self._error_keys:
                 def func():
                     if cw.cwpy.frame:
                         s = "メッセージID[%s]に該当するメッセージがありません。\n"\
-                            "デイリービルド版でこのエラーが発生した場合は、" \
+                            "デイリービルド版でこのエラーが発生した場合は、"\
                             "「Data/SkinBase」以下のリソースが最新版になっていない"\
                             "可能性があります。" % (key)
                         sys.stderr.write("Message [%s] is not found." % key)
                         dlg = cw.dialog.message.ErrorMessage(None, s)
                         dlg.ShowModal()
                         dlg.Destroy()
+
                 cw.cwpy.frame.exec_func(func)
                 self._error_keys.add(key)
             return "*ERROR*"
@@ -1593,8 +1616,10 @@ class Resource(object):
 
     def init_debugicon(self):
         """エディタ情報変更によりデバッグアイコンを再読込する"""
+
         def func():
             self.pygamedebugs = self.get_debugs(cw.util.load_image, cw.s)
+
         cw.cwpy.exec_func(func)
         self.debugs = self.get_debugs(cw.util.load_wxbmp, cw.ppis)
         self.debugs_wx = self.get_debugs(cw.util.load_wxbmp, cw.wins)
@@ -1655,11 +1680,11 @@ class Resource(object):
 
             for name, path in fontpaths.items():
                 fontname = cw.util.get_truetypefontname(path)
-                if fontname in facenames or\
-                        fontname == "IPAUIGothic" and ("IPA UIゴシック" in facenames) or\
-                        fontname == "IPAGothic" and ("IPAゴシック" in facenames) or\
-                        fontname == "IPAPGothic" and ("IPA Pゴシック" in facenames) or\
-                        fontname == "IPAMincho" and ("IPA明朝" in facenames) or\
+                if fontname in facenames or \
+                        fontname == "IPAUIGothic" and ("IPA UIゴシック" in facenames) or \
+                        fontname == "IPAGothic" and ("IPAゴシック" in facenames) or \
+                        fontname == "IPAPGothic" and ("IPA Pゴシック" in facenames) or \
+                        fontname == "IPAMincho" and ("IPA明朝" in facenames) or \
                         fontname == "IPAPMincho" and ("IPA P明朝" in facenames):
                     d[name] = fontname
                     continue
@@ -1676,11 +1701,12 @@ class Resource(object):
                         HWND_BROADCAST = 0xFFFF
                         WM_FONTCHANGE = 0x001D
                         user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
+
                 thr = threading.Thread(target=func)
                 thr.start()
 
                 if fontname:
-                    if not d is None:
+                    if d is not None:
                         d[name] = fontname
                 else:
                     raise ValueError("Failed to get facename from %s" % name)
@@ -1703,7 +1729,7 @@ class Resource(object):
             d["pgothic"] = "IPA Pゴシック"
 
             for value in d.values():
-                if not value in self.facenames:
+                if value not in self.facenames:
                     raise ValueError("IPA font not found: " + value)
 
         init = d.copy()
@@ -1741,27 +1767,27 @@ class Resource(object):
         return fontname, pixels, bold, bold_upscr, italic
 
     def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
-                        family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM,
-                        adjustsize=False, adjustsizewx3=True, pointsize=None):
+                   family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM,
+                   adjustsize=False, adjustsizewx3=True, pointsize=None):
         if size is None and pixelsize is None:
             pixelsize = cw.wins(14)
 
         fontname, _pixels, bold, bold_upscr, italic = self.get_fontfromtype(name)
 
         if cw.UP_SCR <= 1:
-            if not bold is None:
+            if bold is not None:
                 weight = wx.FONTWEIGHT_BOLD if bold else wx.FONTWEIGHT_NORMAL
         else:
-            if not bold_upscr is None:
+            if bold_upscr is not None:
                 weight = wx.FONTWEIGHT_BOLD if bold_upscr else wx.FONTWEIGHT_NORMAL
-        if not italic is None:
+        if italic is not None:
             style = wx.ITALIC if italic else wx.FONTSTYLE_NORMAL
 
         if pointsize is None:
             # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
             #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
             if not pixelsize:
-                pixelsize = int((1.0/72 * 96) * size + 0.5)
+                pixelsize = int((1.0 / 72 * 96) * size + 0.5)
             elif adjustsizewx3:
                 # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
                 pixelsize -= 1
@@ -1868,7 +1894,7 @@ class Resource(object):
         fonts.set("screenshot", self.create_font, "screenshot", t[0], t[1], t[2], t[3], t[4], t[5])
         return fonts, msg_exfonts
 
-    def create_wxbutton(self, parent, cid, size, name=None, bmp=None , chain=False):
+    def create_wxbutton(self, parent, cid, size, name=None, bmp=None, chain=False):
         if bmp:
             button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
@@ -1930,18 +1956,18 @@ class Resource(object):
     def create_cornerimg(rgb):
         r, g, b = rgb
         linedata = struct.pack(
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB",
-            r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  255,
-            r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  224, r,  g,  b,  128, r,  g,  b,   68, r,  g,  b,   40,
-            r,  g,  b,  255, r,  g,  b,  224, r,  g,  b,   68, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0,
-            r,  g,  b,  255, r,  g,  b,  128, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0,
-            r,  g,  b,  255, r,  g,  b,   68, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0,
-            r,  g,  b,  255, r,  g,  b,   40, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB",
+            r, g, b, 255, r, g, b, 255, r, g, b, 255, r, g, b, 255, r, g, b, 255, r, g, b, 255,
+            r, g, b, 255, r, g, b, 255, r, g, b, 224, r, g, b, 128, r, g, b, 68, r, g, b, 40,
+            r, g, b, 255, r, g, b, 224, r, g, b, 68, r, g, b, 0, r, g, b, 0, r, g, b, 0,
+            r, g, b, 255, r, g, b, 128, r, g, b, 0, r, g, b, 0, r, g, b, 0, r, g, b, 0,
+            r, g, b, 255, r, g, b, 68, r, g, b, 0, r, g, b, 0, r, g, b, 0, r, g, b, 0,
+            r, g, b, 255, r, g, b, 40, r, g, b, 0, r, g, b, 0, r, g, b, 0, r, g, b, 0
         )
 
         topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
@@ -1956,26 +1982,26 @@ class Resource(object):
         pygame.draw.rect(bmp, color, rect, 1)
         x, y, w, h = rect
         bmp.blit(topleft, (x, y))
-        bmp.blit(topright, (x+w-6, y))
-        bmp.blit(bottomleft, (x, y+h-6))
-        bmp.blit(bottomright, (x+w-6, y+h-6))
+        bmp.blit(topright, (x + w - 6, y))
+        bmp.blit(bottomleft, (x, y + h - 6))
+        bmp.blit(bottomright, (x + w - 6, y + h - 6))
         Resource.draw_corneroutimg(bmp, rect)
 
     @staticmethod
     def draw_corneroutimg(bmp, rect=None, outframe=0):
         outdata = struct.pack(
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB"
-           "BBBB BBBB BBBB BBBB BBBB BBBB",
-            0,0,0,255, 0,0,0,255, 0,0,0,188, 0,0,0,128, 0,0,0,  0, 0,0,0,  0,
-            0,0,0,255, 0,0,0,128, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0,
-            0,0,0,188, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0,
-            0,0,0,128, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0,
-            0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0,
-            0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB"
+            "BBBB BBBB BBBB BBBB BBBB BBBB",
+            0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 188, 0, 0, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 255, 0, 0, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 188, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         )
         topleft = pygame.image.fromstring(outdata, (6, 6), "RGBA")
         topright = pygame.transform.flip(topleft, True, False)
@@ -1986,10 +2012,10 @@ class Resource(object):
             rect = bmp.get_rect()
         x, y, w, h = rect
         o = outframe
-        bmp.blit(topleft, (x+o, y+o), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        bmp.blit(topright, (x+w-6-o, y+o), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        bmp.blit(bottomleft, (x+o, y+h-6-o), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        bmp.blit(bottomright, (x+w-6-o, y+h-6-o), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(topleft, (x + o, y + o), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(topright, (x + w - 6 - o, y + o), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(bottomleft, (x + o, y + h - 6 - o), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(bottomright, (x + w - 6 - o, y + h - 6 - o), special_flags=pygame.locals.BLEND_RGBA_SUB)
 
     def _create_statusbtnbmp(self, w, h, flags=0):
         """ボタン風の画像を生成する。"""
@@ -2024,9 +2050,9 @@ class Resource(object):
                 r1 = g1 = b1 = 255
                 r2 = g2 = b2 = 232
             mid = h // 2
-            for y in range(0, mid+1, 1):
-                bmp.fill((r1-y//4, g1-y//4, b1-y//4), pygame.Rect(0, mid-y, w, 1))
-                bmp.fill((r2-y, g2-y, b2-y), pygame.Rect(0, mid+y, w, 1))
+            for y in range(0, mid + 1, 1):
+                bmp.fill((r1 - y // 4, g1 - y // 4, b1 - y // 4), pygame.Rect(0, mid - y, w, 1))
+                bmp.fill((r2 - y, g2 - y, b2 - y), pygame.Rect(0, mid + y, w, 1))
 
         # 枠の部分。四隅には角丸の画像を描写する
         if flags & SB_PRESSED:
@@ -2036,19 +2062,19 @@ class Resource(object):
                 color = (200, 200, 200)
             else:
                 color = (208, 208, 208)
-            pygame.draw.line(bmp, color, (2, 3), (w-4, 3))
+            pygame.draw.line(bmp, color, (2, 3), (w - 4, 3))
             subtract_corner(8)
             bmp.blit(topleft, (2, 3))
-            bmp.blit(topright, (w-6-1, 3))
+            bmp.blit(topright, (w - 6 - 1, 3))
 
             if not (flags & SB_CURRENT):
                 color = (192, 192, 192)
             else:
                 color = (200, 200, 200)
-            pygame.draw.rect(bmp, color, (2, 2, w-3, h-3), 1)
+            pygame.draw.rect(bmp, color, (2, 2, w - 3, h - 3), 1)
             bmp.blit(topleft, (2, 2))
-            bmp.blit(topright, (w-6-1, 2))
-            bmp.blit(bottomleft, (2, h-6-1))
+            bmp.blit(topright, (w - 6 - 1, 2))
+            bmp.blit(bottomleft, (2, h - 6 - 1))
             subtract_corner(64)
             color = (128, 128, 128)
         elif flags & SB_DISABLE:
@@ -2065,14 +2091,14 @@ class Resource(object):
             topright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
             bottomleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
             bottomright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            color = (color[0], max(0, color[1]-128), max(0, color[2]-128))
+            color = (color[0], max(0, color[1] - 128), max(0, color[2] - 128))
 
             emcolor = (96, 0, 0, 0)
             topleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
             topright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
             bottomleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
             bottomright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
-            color = (min(255, color[0]+96), color[1], color[2])
+            color = (min(255, color[0] + 96), color[1], color[2])
 
         if not (flags & SB_CURRENT) and not (flags & SB_DISABLE):
             opacity = 92
@@ -2081,45 +2107,45 @@ class Resource(object):
             topright.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
             bottomleft.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
             bottomright.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            linecolor = (color[0], color[1], color[2], 255-opacity)
+            linecolor = (color[0], color[1], color[2], 255 - opacity)
         else:
             linecolor = color
 
-        pygame.draw.rect(bmp, linecolor, (1, 1, w-2, h-2), 1)
+        pygame.draw.rect(bmp, linecolor, (1, 1, w - 2, h - 2), 1)
         bmp.blit(topleft, (1, 1))
-        bmp.blit(topright, (w-6-1, 1))
-        bmp.blit(bottomleft, (1, h-6-1))
-        bmp.blit(bottomright, (w-6-1, h-6-1))
+        bmp.blit(topright, (w - 6 - 1, 1))
+        bmp.blit(bottomleft, (1, h - 6 - 1))
+        bmp.blit(bottomright, (w - 6 - 1, h - 6 - 1))
 
         if not (flags & SB_PRESSED):
             # ハイライトをつける
             linedata = struct.pack(
-               "BBBB BBBB BBBB BBBB BBBB BBBB"
-               "BBBB BBBB BBBB BBBB BBBB BBBB"
-               "BBBB BBBB BBBB BBBB BBBB BBBB"
-               "BBBB BBBB BBBB BBBB BBBB BBBB"
-               "BBBB BBBB BBBB BBBB BBBB BBBB"
-               "BBBB BBBB BBBB BBBB BBBB BBBB",
-                r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,128, r1,g1,b1,255, r1,g1,b1,255, r1,g1,b1,255,
-                r1,g1,b1,  0, r1,g1,b1,196, r1,g1,b1,224, r1,g1,b1,128, r1,g1,b1, 68, r1,g1,b1, 40,
-                r1,g1,b1,128, r1,g1,b1,224, r1,g1,b1, 68, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0,
-                r1,g1,b1,255, r1,g1,b1,128, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0,
-                r1,g1,b1,255, r1,g1,b1, 68, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0,
-                r1,g1,b1,255, r1,g1,b1, 40, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0
+                "BBBB BBBB BBBB BBBB BBBB BBBB"
+                "BBBB BBBB BBBB BBBB BBBB BBBB"
+                "BBBB BBBB BBBB BBBB BBBB BBBB"
+                "BBBB BBBB BBBB BBBB BBBB BBBB"
+                "BBBB BBBB BBBB BBBB BBBB BBBB"
+                "BBBB BBBB BBBB BBBB BBBB BBBB",
+                r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 128, r1, g1, b1, 255, r1, g1, b1, 255, r1, g1, b1, 255,
+                r1, g1, b1, 0, r1, g1, b1, 196, r1, g1, b1, 224, r1, g1, b1, 128, r1, g1, b1, 68, r1, g1, b1, 40,
+                r1, g1, b1, 128, r1, g1, b1, 224, r1, g1, b1, 68, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0,
+                r1, g1, b1, 255, r1, g1, b1, 128, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0,
+                r1, g1, b1, 255, r1, g1, b1, 68, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0,
+                r1, g1, b1, 255, r1, g1, b1, 40, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0
             )
             hl_topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
             hl_topright = pygame.transform.flip(hl_topleft, True, False)
             hl_bottomleft = pygame.transform.flip(hl_topleft, False, True)
             hl_bottomright = pygame.transform.flip(hl_topleft, True, True)
             color = (r1, g1, b1)
-            pygame.draw.line(bmp, color, (2+6, 2), (w-6-3, 2))
-            pygame.draw.line(bmp, color, (2+6, h-3), (w-6-3, h-3))
-            pygame.draw.line(bmp, color, (2, 2+6), (2, h-6-3))
-            pygame.draw.line(bmp, color, (w-3, 2+6), (w-3, h-6-3))
+            pygame.draw.line(bmp, color, (2 + 6, 2), (w - 6 - 3, 2))
+            pygame.draw.line(bmp, color, (2 + 6, h - 3), (w - 6 - 3, h - 3))
+            pygame.draw.line(bmp, color, (2, 2 + 6), (2, h - 6 - 3))
+            pygame.draw.line(bmp, color, (w - 3, 2 + 6), (w - 3, h - 6 - 3))
             bmp.blit(hl_topleft, (2, 2))
-            bmp.blit(hl_topright, (w-6-2, 2))
-            bmp.blit(hl_bottomleft, (2, h-6-2))
-            bmp.blit(hl_bottomright, (w-6-2, h-6-2))
+            bmp.blit(hl_topright, (w - 6 - 2, 2))
+            bmp.blit(hl_bottomleft, (2, h - 6 - 2))
+            bmp.blit(hl_bottomright, (w - 6 - 2, h - 6 - 2))
 
         if flags & SB_NOTICE:
             if flags & SB_PRESSED:
@@ -2170,6 +2196,7 @@ class Resource(object):
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
         """
+
         def nokeyfunc(key):
             dbg = not nodbg and key.endswith("_dbg")
             noscale = key.endswith("_noscale")
@@ -2196,14 +2223,15 @@ class Resource(object):
                 if warning:
                     def errfunc(dname, key):
                         if cw.cwpy.frame:
-                            s = "リソース [%s/%s] が見つかりません。\n"\
+                            s = "リソース [%s/%s] が見つかりません。\n" \
                                 "デイリービルド版でこのエラーが発生した場合は、" \
-                                "「Data/SkinBase」以下のリソースが最新版になっていない"\
+                                "「Data/SkinBase」以下のリソースが最新版になっていない" \
                                 "可能性があります。" % (dname, key)
                             sys.stderr.write("Resource [%s/%s] is not found." % (dname, key))
                             dlg = cw.dialog.message.ErrorMessage(None, s)
                             dlg.ShowModal()
                             dlg.Destroy()
+
                     cw.cwpy.frame.exec_func(errfunc, os.path.basename(dpath1), key)
                 return emptyfunc()
 
@@ -2216,7 +2244,7 @@ class Resource(object):
                     res = func(fpath, mask=mask, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
 
             if not noscale:
-                if not dbg and ss and not key in noresize:
+                if not dbg and ss and key not in noresize:
                     res = ss(res)
                 elif dbg and ss:
                     res = cw.ppis(res)
@@ -2234,8 +2262,9 @@ class Resource(object):
         d = ResourceTable("SystemSound", {}.copy(), empty_sound)
         for key, sound in list(setting.sounds.items()):
             if sound in skinsounds:
-                f = lambda sound: d.set(key, lambda: skinsounds[sound])
-                f(sound)
+                def func(sound):
+                    d.set(key, lambda: skinsounds[sound])
+                func(sound)
             else:
                 d.set(key, empty_sound)
         return d
@@ -2267,13 +2296,15 @@ class Resource(object):
         wxBitmapのインスタンスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Button")
-        return self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Button", dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
+        return self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Button", dpath, self.ext_img, True,
+                                  cw.wins, emptyfunc=empty_wxbmp)
 
     def get_cursors(self):
         """
         ダイアログで使用されるカーソルを読み込んで、
         wxCursorのインスタンスの辞書で返す。
         """
+
         def get_cursor(name):
             fname = name + ".cur"
             dpaths = ("Data/SkinBase/Resource/Image/Cursor",
@@ -2302,7 +2333,8 @@ class Resource(object):
         pygameのサーフェスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(cw.util.load_image, "Data/SkinBase/Resource/Image/Stone", dpath, self.ext_img, True, cw.s, emptyfunc=empty_image)
+        return self.get_resources(cw.util.load_image, "Data/SkinBase/Resource/Image/Stone", dpath, self.ext_img,
+                                  True, cw.s, emptyfunc=empty_image)
 
     def get_wxstones(self):
         """
@@ -2310,7 +2342,8 @@ class Resource(object):
         wxBitmapのインスタンスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Stone", dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
+        return self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Stone", dpath, self.ext_img,
+                                  True, cw.wins, emptyfunc=empty_wxbmp)
 
     def get_statuses(self, load_image):
         """
@@ -2320,20 +2353,23 @@ class Resource(object):
         """
         if load_image == cw.util.load_wxbmp:
             ss = cw.wins
-            emptyfunc=empty_wxbmp
+            emptyfunc = empty_wxbmp
         else:
             ss = cw.s
-            emptyfunc=empty_image
+            emptyfunc = empty_image
 
         def load_image2(fpath, mask=False, can_loaded_scaledimage=True, up_scr=None):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
-                return load_image(fpath, mask=True, maskpos=(1, 1), can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
+                return load_image(fpath, mask=True, maskpos=(1, 1), can_loaded_scaledimage=can_loaded_scaledimage,
+                                  up_scr=up_scr)
             elif key == "TARGET":
-                return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
+                return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage,
+                                  up_scr=up_scr)
             elif key == "LIFEGUAGE":
-                return load_image(fpath, mask=True, maskpos=(5, 5), can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
+                return load_image(fpath, mask=True, maskpos=(5, 5), can_loaded_scaledimage=can_loaded_scaledimage,
+                                  up_scr=up_scr)
             elif key == "LIFEGUAGE2":
                 return load_image(fpath, mask=True, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             elif key == "LIFEGUAGE2_MASK":
@@ -2344,7 +2380,8 @@ class Resource(object):
                 return load_image(fpath, mask=False, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
-        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss, emptyfunc=emptyfunc)
+        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss,
+                                  emptyfunc=emptyfunc)
 
     def get_dialogs(self, load_image):
         """
@@ -2353,10 +2390,10 @@ class Resource(object):
         """
         if load_image == cw.util.load_wxbmp:
             ss = cw.wins
-            emptyfunc=empty_wxbmp
+            emptyfunc = empty_wxbmp
         else:
             ss = cw.s
-            emptyfunc=empty_image
+            emptyfunc = empty_image
 
         def load_image2(fpath, mask=False, can_loaded_scaledimage=True, up_scr=None):
             fname = os.path.basename(fpath)
@@ -2364,14 +2401,16 @@ class Resource(object):
             if key in ("LINK", "MONEYY"):
                 return load_image(fpath, mask=False, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             elif key == "STATUS8":
-                return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
+                return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage,
+                                  up_scr=up_scr)
             elif key in ("CAUTION", "INVISIBLE"):
                 return load_image(fpath, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
             else:
                 return load_image(fpath, mask=mask, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
-        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss, emptyfunc=emptyfunc)
+        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss,
+                                  emptyfunc=emptyfunc)
 
     def get_debugs(self, load_image, ss, can_loaded_scaledimage=True):
         """
@@ -2379,9 +2418,9 @@ class Resource(object):
         wxBitmapのインスタンスの辞書で返す。
         """
         if load_image == cw.util.load_wxbmp:
-            emptyfunc=empty_wxbmp
+            emptyfunc = empty_wxbmp
         else:
-            emptyfunc=empty_image
+            emptyfunc = empty_image
 
         dpath = "Data/Debugger"
 
@@ -2402,23 +2441,26 @@ class Resource(object):
         """
         if load_image == cw.util.load_wxbmp:
             ss = cw.wins
-            emptyfunc=empty_wxbmp
+            emptyfunc = empty_wxbmp
         else:
             ss = cw.s
-            emptyfunc=empty_image
+            emptyfunc = empty_image
 
         def load_image2(fpath, mask=False, can_loaded_scaledimage=True, up_scr=None):
             fname = os.path.basename(fpath)
             key = os.path.splitext(fname)[0]
             if key in ("HOLD", "PENALTY"):
-                return load_image(fpath, mask=True, maskpos="center", can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
+                return load_image(fpath, mask=True, maskpos="center", can_loaded_scaledimage=can_loaded_scaledimage,
+                                  up_scr=up_scr)
             elif key in ("PREMIER", "RARE"):
-                return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
+                return load_image(fpath, mask=True, maskpos="right", can_loaded_scaledimage=can_loaded_scaledimage,
+                                  up_scr=up_scr)
             else:
                 return load_image(fpath, mask=mask, can_loaded_scaledimage=can_loaded_scaledimage, up_scr=up_scr)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
-        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/CardBg", dpath, self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc)
+        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/CardBg", dpath, self.ext_img, False,
+                                  ss, nodbg=True, emptyfunc=emptyfunc)
 
     def get_cardnamecolorhints(self, cardbgs):
         """
@@ -2428,8 +2470,9 @@ class Resource(object):
         d = ResourceTable("CardBgColorHints", {}.copy(), lambda: 255)
         for key in ("ACTION", "BEAST", "BIND", "DANGER", "FAINT", "INFO", "INJURY", "ITEM",
                     "LARGE", "NORMAL", "OPTION", "PARALY", "PETRIF", "SKILL", "SLEEP"):
-            f = lambda key: d.set(key, lambda: self.calc_cardnamecolorhint(cardbgs[key]))
-            f(key)
+            def func(key):
+                d.set(key, lambda: self.calc_cardnamecolorhint(cardbgs[key]))
+            func(key)
         return d
 
     def calc_cardnamecolorhint(self, bmp):
@@ -2498,27 +2541,28 @@ class Resource(object):
         self.specialchars_is_changed = False
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Font")
 
-        ndict = {"ANGRY"   : "#a",
-                 "CLUB"    : "#b",
-                 "DIAMOND" : "#d",
-                 "EASY"    : "#e",
-                 "FLY"     : "#f",
-                 "GRIEVE"  : "#g",
-                 "HEART"   : "#h",
-                 "JACK"    : "#j",
-                 "KISS"    : "#k",
-                 "LAUGH"   : "#l",
-                 "NIKO"    : "#n",
-                 "ONSEN"   : "#o",
-                 "PUZZLE"  : "#p",
-                 "QUICK"   : "#q",
-                 "SPADE"   : "#s",
-                 "WORRY"   : "#w",
-                 "X"       : "#x",
-                 "ZAP"     : "#z",
+        ndict = {"ANGRY": "#a",
+                 "CLUB": "#b",
+                 "DIAMOND": "#d",
+                 "EASY": "#e",
+                 "FLY": "#f",
+                 "GRIEVE": "#g",
+                 "HEART": "#h",
+                 "JACK": "#j",
+                 "KISS": "#k",
+                 "LAUGH": "#l",
+                 "NIKO": "#n",
+                 "ONSEN": "#o",
+                 "PUZZLE": "#p",
+                 "QUICK": "#q",
+                 "SPADE": "#s",
+                 "WORRY": "#w",
+                 "X": "#x",
+                 "ZAP": "#z",
                  }
 
         d = ResourceTable("Resource/Image/Font", {}.copy(), empty_image)
+
         def load(key, name):
             fpath = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)
             image = cw.util.load_image(fpath, mask=True, can_loaded_scaledimage=True)
@@ -2528,6 +2572,7 @@ class Resource(object):
             d.set(name, load, key, name)
 
         return d
+
 
 # リソースの標準サイズ
 SIZE_SPFONT = (22, 22)
@@ -2643,6 +2688,7 @@ SIZE_RESOURCES = {
     "Stone/HAND9": (14, 14),
 }
 
+
 def get_resourcesize(path):
     """指定されたリソースの標準サイズを返す。"""
     dpath = os.path.basename(os.path.dirname(path))
@@ -2652,6 +2698,7 @@ def get_resourcesize(path):
         return SIZE_RESOURCES[key]
     else:
         return None
+
 
 # Data/Debuggerとcwxeditor/resource内にあるファイルとの対応表
 # 該当無しのリソースはこのテーブルには含まない
@@ -2791,6 +2838,7 @@ CWXEDITOR_RESOURCES = {
     "EVT_REDISPLAY": "evt_refresh.png",  # 画面の再構築
 }
 
+
 def empty_wxbmp():
     """空のwx.Bitmapを返す。"""
     wxbmp = cw.util.empty_bitmap(1, 1)
@@ -2801,15 +2849,18 @@ def empty_wxbmp():
     image.SetMaskColour(r, g, b)
     return image.ConvertToBitmap()
 
+
 def empty_image():
     """空のpygame.Surfaceを返す。"""
     image = pygame.Surface((1, 1)).convert()
     image.set_colorkey(image.get_at((0, 0)), pygame.locals.RLEACCEL)
     return image
 
+
 def empty_sound():
     """空のcw.util.SoundInterfaceを返す。"""
     return cw.util.SoundInterface(None, "")
+
 
 class LazyResource(object):
     def __init__(self, func, args, kwargs):
@@ -2831,11 +2882,12 @@ class LazyResource(object):
         if not self.load:
             try:
                 self._res = self.func(*self.args, **self.kwargs)
-            except:
+            except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 self.failure = True
             self.load = True
         return self._res
+
 
 class ResourceTable(object):
     def __init__(self, name, init={}.copy(), deffunc=None, nokeyfunc=None):
@@ -2857,7 +2909,7 @@ class ResourceTable(object):
 
     def merge(self, d):
         for key, value in self.dic.items():
-            if not key in self.dic:
+            if key not in self.dic:
                 self.dic[key] = value
 
     def __getitem__(self, key):
@@ -2886,7 +2938,7 @@ class ResourceTable(object):
         return self.defvalue
 
     def _put_nokeyvalue(self, key):
-        if self.nokeyfunc and not key in self.dic:
+        if self.nokeyfunc and key not in self.dic:
             self.dic[key] = LazyResource(lambda: self.nokeyfunc(key), (), {})
 
     def get(self, key, defvalue=None):
@@ -2961,7 +3013,7 @@ class RecentHistory(object):
                     path = os.path.normpath(path)
                     path = os.path.normcase(path)
 
-                    if not path in temppaths:
+                    if path not in temppaths:
                         cw.util.remove(path)
 
         self.set_limit(limit)
@@ -3092,18 +3144,20 @@ class RecentHistory(object):
 
         return None
 
+
 class SystemCoupons(object):
     """称号選択分岐で特殊処理するシステムクーポン群。
     シナリオ側からのエンジンのバージョン判定等に利用する。
     CardWirth由来の"＿１"～"＿６"や"＠ＭＰ３"は含まれない。
     """
+
     def __init__(self, fpath="Data/SystemCoupons.xml", data=None):
-        self._normal = set() # 固定値
-        self._regexes = [] # 正規表現
-        self._ats = True # u"＠"で始まる称号のみが含まれる場合はTrue
+        self._normal = set()  # 固定値
+        self._regexes = []  # 正規表現
+        self._ats = True  # u"＠"で始まる称号のみが含まれる場合はTrue
         if data is None and os.path.isfile(fpath):
             data = cw.data.xml2element(path=fpath)
-        if not data is None:
+        if data is not None:
             for e in data:
                 if self._ats and not e.text.startswith("＠"):
                     self._ats = False
@@ -3127,6 +3181,7 @@ class SystemCoupons(object):
                 return True
         return False
 
+
 class ScenarioCompatibilityTable(object):
     """互換性データベース。
     *.wsmまたは*.widファイルのMD5ダイジェストをキーに、
@@ -3141,12 +3196,14 @@ class ScenarioCompatibilityTable(object):
     バージョンを登録すればよい。
     Unix系列ではmd5コマンドで取得できるが、普通CardWirthのユーザは
     Windowsユーザであるため、PowerShellを使う事になる。例えば:
-    $ [string]::concat(([Security.Cryptography.MD5]::Create().ComputeHash((gi Summary.wsm).OpenRead())|%{$_.ToString('x2')}))
+    $ [string]::concat(([Security.Cryptography.MD5]::Create()
+        .ComputeHash((gi Summary.wsm).OpenRead())|%{$_.ToString('x2')}))
 
     Pythonでは次のようにして取得できる。
     >>> import hashlib
     >>> hashlib.md5(open("Summary.wsm", "rb").read()).hexdigest()
     """
+
     def __init__(self):
         self.table = {}
         if os.path.isfile("Data/Compatibility.xml"):
@@ -3157,12 +3214,14 @@ class ScenarioCompatibilityTable(object):
                 vanishmembercancellation = e.getbool(".", "enableVanishMemberCancellation", False)
                 # F9でもゴシップや終了印が復元されない挙動の再現は
                 # セキュリティホールになるため無効にする
-                ##gossiprestoration = e.getbool(".", "disableGossipRestoration", False)
-                ##compstamprestoration = e.getbool(".", "disableCompleteStampRestoration", False)
+                # gossiprestoration = e.getbool(".", "disableGossipRestoration", False)
+                # compstamprestoration = e.getbool(".", "disableCompleteStampRestoration", False)
                 gossiprestoration = False
                 compstamprestoration = False
-                if key and (e.text or zindexmode or vanishmembercancellation or gossiprestoration or compstamprestoration):
-                    self.table[key] = (e.text, zindexmode, vanishmembercancellation, gossiprestoration, compstamprestoration)
+                if key and (e.text or zindexmode or vanishmembercancellation or gossiprestoration or
+                            compstamprestoration):
+                    self.table[key] = (e.text, zindexmode, vanishmembercancellation, gossiprestoration,
+                                       compstamprestoration)
 
     def get_versionhint(self, fpath=None, filedata=None):
         """fpathのファイル内容またはfiledataから、
@@ -3187,7 +3246,7 @@ class ScenarioCompatibilityTable(object):
 
         try:
             return float(currentversion[0]) <= float(versionhint)
-        except:
+        except Exception:
             return False
 
     def zindexmode(self, currentversion):
@@ -3200,7 +3259,7 @@ class ScenarioCompatibilityTable(object):
         if currentversion[1]:
             try:
                 return float(currentversion[1]) <= float("1.20")
-            except:
+            except Exception:
                 return False
         else:
             return self.lessthan("1.20", currentversion)
@@ -3280,35 +3339,35 @@ class ScenarioCompatibilityTable(object):
 
             try:
                 engine = conf.get("Compatibility", "engine")
-            except:
+            except Exception:
                 engine = ""
 
             try:
                 zindexmode = conf.get("Compatibility", "zIndexMode")
-            except:
+            except Exception:
                 zindexmode = ""
 
             try:
                 vanishmembercancellation = conf.get("Compatibility", "enableVanishMemberCancellation")
                 vanishmembercancellation = cw.util.str2bool(vanishmembercancellation)
-            except:
+            except Exception:
                 vanishmembercancellation = False
 
             # F9でもゴシップや終了印が復元されない挙動の再現は
             # セキュリティホールになるため無効にする
             gossiprestration = False
-            ##try:
-            ##    gossiprestration = conf.get("Compatibility", "disableGossipRestoration")
-            ##    gossiprestration = cw.util.str2bool(gossiprestration)
-            ##except:
-            ##    gossiprestration = False
+            # try:
+            #     gossiprestration = conf.get("Compatibility", "disableGossipRestoration")
+            #     gossiprestration = cw.util.str2bool(gossiprestration)
+            # except:
+            #     gossiprestration = False
 
             compstamprestration = False
-            ##try:
-            ##    compstamprestration = conf.get("Compatibility", "disableCompleteStampRestoration")
-            ##    compstamprestration = cw.util.str2bool(compstamprestration)
-            ##except:
-            ##    compstamprestration = False
+            # try:
+            #     compstamprestration = conf.get("Compatibility", "disableCompleteStampRestoration")
+            #     compstamprestration = cw.util.str2bool(compstamprestration)
+            # except:
+            #     compstamprestration = False
 
             if engine or zindexmode or vanishmembercancellation or gossiprestration or compstamprestration:
                 return (engine, zindexmode, vanishmembercancellation, gossiprestration, compstamprestration)

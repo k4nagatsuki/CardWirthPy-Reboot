@@ -93,5 +93,6 @@ def update_files(dpath, rmname, permit=[]):
 def main():
     pass
 
+
 if __name__ == "__main__":
     main()

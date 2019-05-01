@@ -37,8 +37,10 @@ def to_imgpaths(dbrec, imgdbrec):
             imgpaths.append(cw.image.ImageInfo(imgrec["imgpath"], postype=postype))
     return imgpaths
 
+
 class CardHeader(object):
-    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None, imgdbrec=None, dbowner="STOREHOUSE", bgtype=""):
+    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None,
+                 imgdbrec=None, dbowner="STOREHOUSE", bgtype=""):
         self.ref_original = weakref.ref(self)
         self.order = -1
         if dbrec:
@@ -76,7 +78,7 @@ class CardHeader(object):
             if dbowner == "BACKPACK":
                 from_scenario = bool(dbrec["scenariocard"])
             self.versionhint = cw.cwpy.sct.from_basehint(dbrec["versionhint"])
-            self.wsnversion = dbrec["wsnversion"] # ""の場合はWsn.1以前
+            self.wsnversion = dbrec["wsnversion"]  # ""の場合はWsn.1以前
             if not self.wsnversion:
                 self.wsnversion = ""
             self.moved = dbrec["moved"]
@@ -205,13 +207,15 @@ class CardHeader(object):
 
         # 特殊なキーコード
         self.penalty = bool(cw.cwpy.msgs["penalty_keycode"] in self.keycodes)
-        if not scenariocard and self.type == "BeastCard" and isinstance(owner, (cw.character.Friend, cw.character.Enemy)):
+        if not scenariocard and self.type == "BeastCard" and\
+                isinstance(owner, (cw.character.Friend, cw.character.Enemy)):
             # 最初から持っていた使用回数ありリサイクル召喚獣に限っては
             # 付帯能力でなくてもリサイクル状態が有効になる
             reattachment = True
         else:
             reattachment = (self.attachment or self.type == "ItemCard")
-        self.recycle = bool(self.type in ("ItemCard", "BeastCard") and cw.cwpy.msgs["recycle_keycode"] in self.keycodes and reattachment)
+        self.recycle = bool(self.type in ("ItemCard", "BeastCard") and
+                            cw.cwpy.msgs["recycle_keycode"] in self.keycodes and reattachment)
         self.keycodes.append(self.name)
 
         # 所持スキルカードだった場合は使用回数を設定
@@ -255,7 +259,8 @@ class CardHeader(object):
             paths.append(cw.image.ImageInfo(path, base=info))
 
         self._cardimg = cw.image.CardImage(paths, self.get_bgtype(), self.name, self.premium,
-                                           can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=self.scenariocard,
+                                           can_loaded_scaledimage=can_loaded_scaledimage,
+                                           is_scenariocard=self.scenariocard,
                                            anotherscenariocard=anotherscenariocard, scedir=self.scedir)
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
@@ -324,14 +329,14 @@ class CardHeader(object):
     def set_resetvariables(self, resetvariables):
         assert self.carddata is not None
         self.need_resetvariables = resetvariables
-        if not self.carddata is None:
+        if self.carddata is not None:
             if resetvariables:
                 self.carddata.set("resetvariables", str(resetvariables))
             elif "resetvariables" in self.carddata.attrib:
                 self.carddata.attrib.pop("resetvariables")
 
     def do_write(self, dupcheck=True):
-        if not self._lazy_write is None:
+        if self._lazy_write is not None:
             if dupcheck:
                 self._lazy_write.fpath = cw.util.dupcheck_plus(self._lazy_write.fpath)
             self._lazy_write.write_xml(True)
@@ -389,7 +394,7 @@ class CardHeader(object):
 
         if maxlimit <= limit:
             value = 4
-        elif limit == 1: # MAX状態以外で残り1回なら
+        elif limit == 1:  # MAX状態以外で残り1回なら
             value = 1
         elif limitper > 50:
             value = 3
@@ -404,8 +409,7 @@ class CardHeader(object):
         """
         (使用回数, 最大使用回数)を返す。
         """
-        if self.is_ccardheader() and self.type == "SkillCard"\
-                    and (not self.maxuselimit or reset==True):
+        if self.is_ccardheader() and self.type == "SkillCard" and (not self.maxuselimit or reset):
             owner = self.get_owner()
             level = owner.data.getint("Property/Level")
             value = level - self.level
@@ -473,8 +477,7 @@ class CardHeader(object):
         # スキルカード。
         if header.type == "SkillCard":
             header.uselimit += value
-            header.uselimit = cw.util.numwrap(header.uselimit, 0,
-                                                            header.maxuselimit)
+            header.uselimit = cw.util.numwrap(header.uselimit, 0, header.maxuselimit)
             e = header.carddata.getfind("Property/UseLimit")
             e.text = str(header.uselimit)
             if owner:
@@ -575,7 +578,7 @@ class CardHeader(object):
                 self.do_write(dupcheck=dupcheck)
 
     def contain_xml(self, load=True):
-        if not load and not self._lazy_write is None:
+        if not load and self._lazy_write is not None:
             return
         if self.carddata is None:
             if load:
@@ -593,7 +596,7 @@ class CardHeader(object):
             self.carddata = cw.data.yadoxml2element(self.fpath)
 
         emp = self.carddata.find("Property/Materials")
-        if not emp is None:
+        if emp is not None:
             mates = cw.util.join_yadodir(emp.text)
             cw.cwpy.ydata.deletedpaths.add(mates, True)
 
@@ -635,8 +638,7 @@ class CardHeader(object):
             if "anotherscenariocard" in self.carddata.attrib:
                 self.carddata.attrib.pop("anotherscenariocard")
             # 画像コピー
-            dstdir = cw.util.join_paths(cw.cwpy.yadodir,
-                                            "Material", self.type, self.name if self.name else "noname")
+            dstdir = cw.util.join_paths(cw.cwpy.yadodir, "Material", self.type, self.name if self.name else "noname")
             dstdir = cw.util.dupcheck_plus(dstdir)
             can_loaded_scaledimage = self.carddata.getbool(".", "scaledimage", False)
             cw.cwpy.copy_materials(self.carddata, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)
@@ -672,7 +674,7 @@ class CardHeader(object):
                 self.steps = {}
                 self.variants = {}
 
-        if self.is_ccardheader() and self.type == "SkillCard" and not self.carddata is None:
+        if self.is_ccardheader() and self.type == "SkillCard" and self.carddata is not None:
             self.carddata.getfind("Property/UseLimit").text = "0"
 
         if self.is_ccardheader():
@@ -761,12 +763,12 @@ class CardHeader(object):
 
         # 対象無しまたは効果無し
         noeffect = bool(card.target == "None")
-        if not card.carddata is None:
+        if card.carddata is not None:
             noeffect |= card.carddata.find("Motions/Motion") is None
 
         owner = card.get_owner()
         silence = False
-        if not card.carddata is None and owner:
+        if card.carddata is not None and owner:
             # 沈黙(行動不能も同様に扱う)
             spell = card.carddata.getbool("Property/EffectType", "spell", False)
             silence |= (owner.is_silence() or owner.is_inactive()) and spell
@@ -917,7 +919,7 @@ class CardHeader(object):
 
     def is_removewithstatus(self, ccard):
         """召喚獣カードが消滅する状態か？"""
-        assert not self.carddata is None
+        assert self.carddata is not None
         return is_removewithstatus(self.carddata, ccard)
 
     def is_activewithstatus(self, ccard):
@@ -1036,6 +1038,7 @@ class InfoCardHeader(object):
         else:
             return self.cardimg.get_image()
 
+
 class AdventurerHeader(object):
     def __init__(self, data=None, album=False, dbrec=None, imgdbrec=None, fpath="", rootattrs=None):
         """
@@ -1078,7 +1081,7 @@ class AdventurerHeader(object):
 
             ages = set(cw.cwpy.setting.periodcoupons)
             sexs = set(cw.cwpy.setting.sexcoupons)
-            r_gene = re.compile("＠Ｇ\d{10}$")
+            r_gene = re.compile("＠Ｇ\\d{10}$")
 
             self.sex = cw.cwpy.setting.sexcoupons[0]
             self.age = cw.cwpy.setting.periodcoupons[0]
@@ -1127,7 +1130,7 @@ class AdventurerHeader(object):
             # クーポンにある各種変数取得
             ages = set(cw.cwpy.setting.periodcoupons)
             sexs = set(cw.cwpy.setting.sexcoupons)
-            r_gene = re.compile("＠Ｇ\d{10}$")
+            r_gene = re.compile("＠Ｇ\\d{10}$")
             self.sex = cw.cwpy.setting.sexcoupons[0]
             self.age = cw.cwpy.setting.periodcoupons[0]
             self.ep = 0
@@ -1175,7 +1178,7 @@ class AdventurerHeader(object):
 
         self.ep -= n
         data = cw.data.yadoxml2etree(self.fpath)
-        r_gene = re.compile("＠Ｇ\d{10}$")
+        r_gene = re.compile("＠Ｇ\\d{10}$")
 
         ep = False
         gene = False
@@ -1212,7 +1215,7 @@ class AdventurerHeader(object):
         if index == len(cw.cwpy.setting.periodcoupons) - 1:
             return
 
-        nextage= cw.cwpy.setting.periodcoupons[index + 1]
+        nextage = cw.cwpy.setting.periodcoupons[index + 1]
         data = cw.data.yadoxml2etree(self.fpath)
 
         # 能力値を再調整。ただし精神傾向は変化しない
@@ -1225,10 +1228,10 @@ class AdventurerHeader(object):
         data.vit = p.getint(".", "vit", 0)
         data.min = p.getint(".", "min", 0)
         data.aggressive = m.getfloat(".", "aggressive", 0)
-        data.cheerful   = m.getfloat(".", "cheerful",   0)
-        data.brave      = m.getfloat(".", "brave",      0)
-        data.cautious   = m.getfloat(".", "cautious",   0)
-        data.trickish   = m.getfloat(".", "trickish",   0)
+        data.cheerful = m.getfloat(".", "cheerful",   0)
+        data.brave = m.getfloat(".", "brave",      0)
+        data.cautious = m.getfloat(".", "cautious",   0)
+        data.trickish = m.getfloat(".", "trickish",   0)
         race = self.get_race()
         data.maxdex = race.dex + 6
         data.maxagl = race.agl + 6
@@ -1281,6 +1284,7 @@ class AdventurerHeader(object):
                 if race.name == self.race:
                     return race
         return cw.cwpy.setting.unknown_race
+
 
 class Gene(object):
     def __init__(self, bits=[][:], count=0):
@@ -1344,10 +1348,11 @@ class Gene(object):
 
     def rotate_mother(self):
         # 母親の遺伝情報のローテート(右へ)
-        count = (10 - (self.count-1)%10) % 10
+        count = (10 - (self.count-1) % 10) % 10
         bits = self.bits[count:]
         bits.extend(self.bits[:count])
         return Gene(bits)
+
 
 assert Gene([0, 1, 1, 0, 1, 0, 1, 0, 1, 1], 4).rotate_father().get_str() == "0101011011"
 assert Gene([0, 1, 1, 0, 0, 0, 0, 0, 0, 1], 3).rotate_mother().get_str() == "0101100000"
@@ -1374,7 +1379,7 @@ class ScenarioHeader(object):
         self.wsnversion = dbrec["wsnversion"]
         if not self.wsnversion:
             self.wsnversion = ""
-        self.images = { 1: [] }
+        self.images = {1: []}
         self.imgpaths = []
 
         image = dbrec["image"]
@@ -1422,7 +1427,8 @@ class ScenarioHeader(object):
         return "/".join([self.dpath, self.fname])
 
     def get_wxbmps(self, mask=True):
-        if self._wxbmps is None or self.skindir != cw.cwpy.skindir or self._up_win != cw.UP_WIN or self._up_scr != cw.UP_SCR:
+        if self._wxbmps is None or self.skindir != cw.cwpy.skindir or\
+                self._up_win != cw.UP_WIN or self._up_scr != cw.UP_SCR:
             self.skindir = cw.cwpy.skindir
             self._up_win = cw.UP_WIN
             self._up_scr = cw.UP_SCR
@@ -1468,6 +1474,7 @@ class ScenarioHeader(object):
                         self._imginfos.append(info)
 
         return self._wxbmps, self._wxbmps_noscale, self._imginfos
+
 
 class PartyHeader(object):
     def __init__(self, data=None, dbrec=None):
@@ -1692,6 +1699,7 @@ class PartyRecordHeader(object):
 
         return seq
 
+
 class SavedJPDCImageHeader(object):
     """保存済みJPDCイメージ。
     宿・シナリオごとにJPDCで生成されたファイルを保存する。
@@ -1810,6 +1818,7 @@ class SavedJPDCImageHeader(object):
                         if os.path.isfile(fpath):
                             cw.cwpy.ydata.deletedpaths.add(fpath)
 
+
 class GetName(object):
     """XMLファイル中のProperty/Nameの内容を読む。"""
     def __init__(self, fpath, tagname="Name"):
@@ -1845,6 +1854,7 @@ class GetName(object):
     def character_data(self, data):
         if self.stack[1:] == ["Property", self.tagname]:
             self.name += data
+
 
 class GetProperty(object):
     """XMLファイル中のProperty以下の内容を読む。"""
@@ -1899,13 +1909,14 @@ class GetProperty(object):
     def character_data(self, data):
         if 2 < len(self.stack) and self.stack[1] == "Property":
             element = self.stack[2]
-            if not element in self.properties:
+            if element not in self.properties:
                 self.properties[element] = ""
             if 3 == len(self.stack):
                 self.properties[element] += data
             if 4 == len(self.stack):
                 seq = self.third[self.stack[2]]
                 seq[-1] = (seq[-1][0], seq[-1][1], seq[-1][2] + data)
+
 
 class GetRootAttribute(object):
     def __init__(self, fpath):
@@ -1928,6 +1939,7 @@ class GetRootAttribute(object):
         # ルート要素の属性
         self.attrs = attrs
         raise Exception()
+
 
 class RaceHeader(object):
     def __init__(self, data):
@@ -1964,6 +1976,7 @@ class RaceHeader(object):
             value = e.getint(".", "value", 0)
             self.coupons.append((name, value))
 
+
 class UnknownRaceHeader(RaceHeader):
     def __init__(self, setting):
         self.name = setting.msgs["unknown_race_name"]
@@ -1994,8 +2007,10 @@ class UnknownRaceHeader(RaceHeader):
         self.defense = 0
         self.coupons = []
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

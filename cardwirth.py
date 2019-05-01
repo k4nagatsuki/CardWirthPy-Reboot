@@ -13,12 +13,14 @@ import cw
 
 put_errorlog = ""
 
+
 class WriteError(io.RawIOBase):
     def __init__(self):
         self.f = None
         self._last_time = 0
         self._re_fpath = re.compile("^\\s*File\\s\"(.+?)\"", re.IGNORECASE)
         self._sep = os.sep
+
     def _open(self):
         if cw.quit:
             return
@@ -49,51 +51,62 @@ class WriteError(io.RawIOBase):
             self._write_datetime()
             put_errorlog = os.path.basename(name)
             self._last_time = time.process_time()
+
     def _write_datetime(self):
         d = datetime.datetime.today()
         self.f.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
+
     def close(self):
         if self.f:
             return self.f.close()
+
     @property
     def closed(self):
         if self.f:
             return self.f.closed
         else:
             return True
+
     def fileno(self):
         if cw.quit:
             return None
         self._open()
         return self.f.fileno()
+
     def flush(self):
         if self.f:
             return self.f.flush()
+
     def seek(self, offset, whence=io.SEEK_SET):
         if cw.quit:
             return
         self._open()
         return self.f.seek(offset, whence)
+
     def seekable(self):
         if cw.quit:
             return False
         self._open()
         return self.f.seekable()
+
     def tell(self):
         if cw.quit:
             return 0
         self._open()
         return self.f.tell()
+
     def truncate(self, size=None):
         if cw.quit:
             return
         self._open()
         return self.f.truncate(size)
+
     def writable(self):
         if cw.quit:
             return False
         self._open()
         return True
+
     def writelines(self, lines):
         if cw.quit:
             return
@@ -108,13 +121,13 @@ class WriteError(io.RawIOBase):
             sys.__stderr__.writelines(lines)
         self._last_time = time.process_time()
         return r
+
     def write(self, b):
         if cw.quit:
             return
         if self.f and self._last_time + 1.0 <= time.process_time():
             self.f.write("\n")
             self._write_datetime()
-        print(b, end="")
         self._open()
         r = self.f.write(b)
         self.f.flush()
@@ -122,9 +135,11 @@ class WriteError(io.RawIOBase):
             sys.__stderr__.write(b)
         self._last_time = time.process_time()
         return r
+
     def __del__(self):
         if self.f:
             del self.f
+
 
 if getattr(sys, 'frozen', False):
     cw.exepath = sys.executable
@@ -143,13 +158,13 @@ def main():
         # ディレクトリに chdir する
         if (os.path.dirname(sys.argv[0]).endswith(".app/Contents/Resources") and
             "RESOURCEPATH" in os.environ and
-            os.path.abspath(os.environ["RESOURCEPATH"]) == os.path.dirname(os.path.abspath(sys.argv[0]))):
+                os.path.abspath(os.environ["RESOURCEPATH"]) == os.path.dirname(os.path.abspath(sys.argv[0]))):
             os.chdir(os.path.join(os.environ["RESOURCEPATH"], "..", "..", ".."))
     cw.fsync.start()
     try:
         app = cw.frame.MyApp()
         app.MainLoop()
-    except:
+    except Exception:
         cw.util.print_ex(file=sys.stderr)
     finally:
         cw.util.clear_mutex()
@@ -162,7 +177,7 @@ def main():
         import win32con
         win32api.MessageBox(None, "CardWirthPyの実行中にエラーが発生しました。\n" +
                             put_errorlog + "の内容を開発者までお知らせください。",
-                            "CardWirthPyエラー", win32con.MB_OK|win32con.MB_ICONERROR)
+                            "CardWirthPyエラー", win32con.MB_OK | win32con.MB_ICONERROR)
 
 
 if __name__ == "__main__":

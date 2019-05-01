@@ -18,6 +18,7 @@ def _create_xml(name, path, d):
     cw.util.write_file(path, s.encode("utf-8"), cw.fsync)
     cw.fsync.sync()
 
+
 def create_party(headers, moneyamount=0, pname=None, is_suspendlevelup=False):
     """
     新しくパーティを作る。
@@ -26,10 +27,10 @@ def create_party(headers, moneyamount=0, pname=None, is_suspendlevelup=False):
     if pname is None:
         pname = cw.cwpy.msgs["default_party_name"] % (headers[0].name)
 
-    d = {"name" : cw.binary.util.repl_escapechar(pname),
-         "money" : str(moneyamount),
+    d = {"name": cw.binary.util.repl_escapechar(pname),
+         "money": str(moneyamount),
          "suspend_levelup": str(is_suspendlevelup),
-         "backpack" : "",
+         "backpack": "",
          "indent": ""}
 
     members = []
@@ -46,11 +47,12 @@ def create_party(headers, moneyamount=0, pname=None, is_suspendlevelup=False):
     _create_xml("Party", cw.util.join_paths(path, "Party.xml"), d)
     return path
 
+
 def create_partyrecord(party):
-    d = {"name" : cw.binary.util.repl_escapechar(party.name),
-         "money" : str(party.money),
+    d = {"name": cw.binary.util.repl_escapechar(party.name),
+         "money": str(party.money),
          "suspend_levelup": str(party.is_suspendlevelup),
-         "members" : "",
+         "members": "",
          "backpack": "",
          "indent": ""}
 
@@ -65,12 +67,12 @@ def create_partyrecord(party):
 
     backpack = []
     for header in party.backpack:
-        d2 = {"name" : cw.binary.util.repl_escapechar(header.name),
-              "desc" : cw.binary.util.repl_escapechar(header.desc),
-              "author" : cw.binary.util.repl_escapechar(header.author),
-              "scenario" : cw.binary.util.repl_escapechar(header.scenario),
-              "uselimit" : str(header.uselimit),
-              "indent" : ""}
+        d2 = {"name": cw.binary.util.repl_escapechar(header.name),
+              "desc": cw.binary.util.repl_escapechar(header.desc),
+              "author": cw.binary.util.repl_escapechar(header.author),
+              "scenario": cw.binary.util.repl_escapechar(header.scenario),
+              "uselimit": str(header.uselimit),
+              "indent": ""}
         s = cw.binary.xmltemplate.get_xmltext("CardRecord", d2)
         backpack.append("\n   %s" % (s))
     d["backpack"] = "".join(backpack)
@@ -81,6 +83,7 @@ def create_partyrecord(party):
     path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
     _create_xml("PartyRecord", path, d)
     return path
+
 
 def create_environment(name, dpath, skindirname, is_autoloadparty):
     """
@@ -95,17 +98,17 @@ def create_environment(name, dpath, skindirname, is_autoloadparty):
         prop = cw.header.GetProperty(fpath)
         skintype = prop.properties.get("Type", skintype)
         cashbox = int(prop.properties.get("InitialCash", str(cashbox)))
-    except:
+    except Exception:
         cw.util.print_ex()
 
-    d = {"name" : cw.binary.util.repl_escapechar(name),
-         "skinname" : cw.binary.util.repl_escapechar(skindirname),
-         "skintype" : cw.binary.util.repl_escapechar(skintype),
-         "cashbox" : str(cashbox),
-         "selectingparty" : "",
-         "nowadventuring" : "False",
-         "completestamps" : "",
-         "gossips" : "",
+    d = {"name": cw.binary.util.repl_escapechar(name),
+         "skinname": cw.binary.util.repl_escapechar(skindirname),
+         "skintype": cw.binary.util.repl_escapechar(skintype),
+         "cashbox": str(cashbox),
+         "selectingparty": "",
+         "nowadventuring": "False",
+         "completestamps": "",
+         "gossips": "",
          "indent": "",
          "is_autoloadparty": str(is_autoloadparty)}
 
@@ -165,7 +168,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             # 表示倍率
             e = cw.data.make_element("ExpandMode", str(setting.expandmode),
                                      attrs={"expanded": str(setting.is_expanded),
-                                            "smooth":str(setting.smoothexpand)})
+                                            "smooth": str(setting.smoothexpand)})
             element.append(e)
     else:
         if setting.expanddrawing != setting.expanddrawing_init or\
@@ -176,7 +179,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             element.append(e)
             # 表示倍率
             e = cw.data.make_element("ExpandMode", str(setting.expandmode),
-                                     attrs={"smooth":str(setting.smoothexpand)})
+                                     attrs={"smooth": str(setting.smoothexpand)})
             element.append(e)
     if writeplayingdata:
         # デバッグモードかどうか
@@ -237,7 +240,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("SoundFonts")
         for soundfont, use, volume in setting.soundfonts:
             e_soundfont = cw.data.make_element("SoundFont", soundfont, {"enabled": str(use),
-                                                                          "volume": str(volume)})
+                                                                        "volume": str(volume)})
             e.append(e_soundfont)
         element.append(e)
     # MIDI32bit隠しオプション
@@ -257,9 +260,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("CardDealingSpeed", str(setting.dealspeed))
         element.append(e)
     # 戦闘行動の表示スピード(数字が小さいほど速い)(1～100)
-    if setting.dealspeed_battle != setting.dealspeed_battle_init or setting.use_battlespeed != setting.use_battlespeed_init:
+    if setting.dealspeed_battle != setting.dealspeed_battle_init or\
+            setting.use_battlespeed != setting.use_battlespeed_init:
         e = cw.data.make_element("CardDealingSpeedInBattle", str(setting.dealspeed_battle),
-                                 attrs={"enabled":str(setting.use_battlespeed)})
+                                 attrs={"enabled": str(setting.use_battlespeed)})
         element.append(e)
     # カードの使用前に空白時間を入れる
     if setting.wait_usecard != setting.wait_usecard_init:
@@ -277,7 +281,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.transition != setting.transition_init or\
             setting.transitionspeed != setting.transitionspeed_init:
         e = cw.data.make_element("Transition", setting.transition,
-                                    {"speed": str(setting.transitionspeed)})
+                                 {"speed": str(setting.transitionspeed)})
         element.append(e)
     # 背景のスムーススケーリング
     attrs = {}
@@ -406,7 +410,8 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         element.append(e)
 
     # パーティ結成時の持出金額
-    if setting.initmoneyamount != setting.initmoneyamount_init or setting.initmoneyisinitialcash != setting.initmoneyisinitialcash_init:
+    if setting.initmoneyamount != setting.initmoneyamount_init or\
+            setting.initmoneyisinitialcash != setting.initmoneyisinitialcash_init:
         attrs = {}
         if setting.initmoneyisinitialcash != setting.initmoneyisinitialcash_init:
             attrs["sameasbase"] = str(setting.initmoneyisinitialcash)
@@ -712,6 +717,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     etree.write(path)
     return path
 
+
 def create_localsettings(element, local):
     if local.important_draw != local.important_draw_init:
         element.set("importantdrawing", str(local.important_draw))
@@ -827,11 +833,11 @@ def create_localsettings(element, local):
                 attrs["type"] = fonttype
             if 0 < pixels:
                 attrs["pixels"] = str(pixels)
-            if not bold is None:
+            if bold is not None:
                 attrs["bold"] = str(bold)
-            if not bold_upscr is None:
+            if bold_upscr is not None:
                 attrs["expandedbold"] = str(bold_upscr)
-            if not italic is None:
+            if italic is not None:
                 attrs["italic"] = str(italic)
             fe = cw.data.make_element("Font", name, attrs=attrs)
             e.append(fe)
@@ -839,7 +845,7 @@ def create_localsettings(element, local):
         element.append(e)
 
     # メッセージ用混植フォント
-    e = cw.data.make_element("SyntheticFonts", attrs={"key":"message"})
+    e = cw.data.make_element("SyntheticFonts", attrs={"key": "message"})
     for key, value in local.msg_exfonts.items():
         if value != local.msg_exfonts_init[key]:
             fonttype, name, pixels, bold, bold_upscr, italic = value
@@ -848,11 +854,11 @@ def create_localsettings(element, local):
                 attrs["type"] = fonttype
             if 0 < pixels:
                 attrs["pixels"] = str(pixels)
-            if not bold is None:
+            if bold is not None:
                 attrs["bold"] = str(bold)
-            if not bold_upscr is None:
+            if bold_upscr is not None:
                 attrs["expandedbold"] = str(bold_upscr)
-            if not italic is None:
+            if italic is not None:
                 attrs["italic"] = str(italic)
             fe = cw.data.make_element("Font", name, attrs=attrs)
             e.append(fe)
@@ -908,6 +914,7 @@ def create_albumpage(path, lost=False, nocoupon=False):
     etree.write(path)
     return path
 
+
 def create_adventurer(data):
     """
     data: AdventurerData。
@@ -924,9 +931,9 @@ def create_adventurer(data):
     advname = cw.util.repl_dischar(d["name"])
     infos = write_castimagepath(advname, paths, True)
     imgpaths = [cw.binary.xmltemplate.get_xmltext("ImagePath",
-                    {"path":cw.binary.util.repl_escapechar(info.path),
-                     "postype": info.postype,
-                     "indent": "   "}) for info in infos]
+                                                  {"path": cw.binary.util.repl_escapechar(info.path),
+                                                   "postype": info.postype,
+                                                   "indent": "   "}) for info in infos]
     d["imgpaths"] = "\n" + "\n".join(imgpaths)
     d["scaledimage"] = str(True)
 
@@ -943,6 +950,7 @@ def create_adventurer(data):
     path = cw.util.dupcheck_plus(path)
     _create_xml("Adventurer", path, d)
     return path
+
 
 def write_castimagepath(name, paths, can_loaded_scaledimage):
     """
@@ -967,6 +975,7 @@ def write_castimagepath(name, paths, can_loaded_scaledimage):
             cw.util.copy_scaledimagepaths(path, dstpath, can_loaded_scaledimage)
             seq.append(cw.image.ImageInfo(dstpath.replace(cw.cwpy.tempdir + "/", ""), base=info))
     return seq
+
 
 def create_scenariolog(sdata, path, recording, logfilepath):
     """
@@ -1029,8 +1038,8 @@ def create_scenariolog(sdata, path, recording, logfilepath):
 
     def make_colorelement(name, color):
         e = cw.data.make_element(name, attrs={"r": str(color[0]),
-                                                 "g": str(color[1]),
-                                                 "b": str(color[2])})
+                                              "g": str(color[1]),
+                                              "b": str(color[2])})
         if 4 <= len(color):
             e.set("a", str(color[3]))
         else:
@@ -1048,8 +1057,8 @@ def create_scenariolog(sdata, path, recording, logfilepath):
             e_bgimg = cw.data.make_element("BgImage", attrs=attrs)
 
             if inusecard:
-                e = cw.data.make_element("ImagePath", fpath, attrs={"inusecard":str(inusecard),
-                                                                     "scaledimage": str(scaledimage)})
+                e = cw.data.make_element("ImagePath", fpath, attrs={"inusecard": str(inusecard),
+                                                                    "scaledimage": str(scaledimage)})
             else:
                 e = cw.data.make_element("ImagePath", fpath)
             e_bgimg.append(e)
@@ -1151,10 +1160,10 @@ def create_scenariolog(sdata, path, recording, logfilepath):
         e = cw.data.make_element("Flag", flag)
         e_bgimg.append(e)
         e = cw.data.make_element("Location",
-                        attrs={"left": str(pos[0]), "top": str(pos[1])})
+                                 attrs={"left": str(pos[0]), "top": str(pos[1])})
         e_bgimg.append(e)
         e = cw.data.make_element("Size",
-                        attrs={"width": str(size[0]), "height": str(size[1])})
+                                 attrs={"width": str(size[0]), "height": str(size[1])})
         e_bgimg.append(e)
         if layer != cw.LAYER_BACKGROUND:
             e = cw.data.make_element("Layer", str(layer))
@@ -1166,12 +1175,12 @@ def create_scenariolog(sdata, path, recording, logfilepath):
     if cw.cwpy.sdata.moved_mcards:
         e_movedmcards = cw.data.make_element("MovedCards")
         for (cardgroup, index), (x, y, scale, layer) in cw.cwpy.sdata.moved_mcards.items():
-            e_movedmcard = cw.data.make_element("MovedCard", attrs={"cardgroup":cardgroup,
-                                                                    "index":str(index)})
-            e_movedmcard.append(cw.data.make_element("Location", attrs={"left":str(x),
-                                                                        "top":str(y)}))
+            e_movedmcard = cw.data.make_element("MovedCard", attrs={"cardgroup": cardgroup,
+                                                                    "index": str(index)})
+            e_movedmcard.append(cw.data.make_element("Location", attrs={"left": str(x),
+                                                                        "top": str(y)}))
             if scale != -1:
-                e_movedmcard.append(cw.data.make_element("Size", attrs={"scale":str(scale)}))
+                e_movedmcard.append(cw.data.make_element("Size", attrs={"scale": str(scale)}))
             if layer != -1:
                 e_movedmcard.append(cw.data.make_element("Layer", str(layer)))
             if len(e_movedmcard):
@@ -1201,7 +1210,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
 
         for name, variant in sdata.variants.items():
             e = cw.data.make_element("Variant", name, {"type": variant.type,
-                                                        "value": str(variant.value)})
+                                                       "value": str(variant.value)})
             e_variant.append(e)
 
     if not recording:
@@ -1258,8 +1267,10 @@ def create_scenariolog(sdata, path, recording, logfilepath):
     etree.write(path)
     return path
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

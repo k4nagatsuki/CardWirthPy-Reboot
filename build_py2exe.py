@@ -12,11 +12,15 @@
 
 try:
     from distutils.core import setup
-    import py2exe, pygame
+    import py2exe
+    import pygame
     import py2exe.build_exe
     import modulefinder
-    import glob, fnmatch
-    import sys, os, shutil
+    import glob
+    import fnmatch
+    import sys
+    import os
+    import shutil
     import operator
     import time
     import datetime
@@ -36,70 +40,73 @@ for extra in ["win32com.shell"]:
 
 class BuildExe(object):
     def __init__(self, chmfile):
-        #Name of starting .py
+        # Name of starting .py
         self.script = "cardwirth.py"
 
-        #Name of program
+        # Name of program
         self.project_name = "CardWirthPy"
 
-        #Project url
+        # Project url
         self.project_url = "https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot/"
 
-        #Help file
+        # Help file
         self.chmfile = chmfile
 
-        #Version of program
+        # Version of program
         self.project_version = "3.0"
 
-        #License of the program
+        # License of the program
         self.license = "LGPL"
 
-        #Auhor of program
+        # Auhor of program
         self.author_name = ""
         self.author_email = ""
         self.copyright = ""
 
-        #Description
+        # Description
         self.project_description = "CardWirthPy"
 
-        #Icon file (None will use pygame default icon)
+        # Icon file (None will use pygame default icon)
         self.icon_file = "CardWirthPy.ico"
 
-        #Manifest file.
+        # Manifest file.
         self.manifest_file = "CardWirthPy.manifest"
 
-        #Source file name
+        # Source file name
         self.srcfile_name = "src.zip"
 
-        #Extra files/dirs copied to game
+        # Extra files/dirs copied to game
         self.extra_datas = ["Data/Font", "Data/SoundFont", "Data/SkinBase",
-            "Data/Debugger", "Data/Materials",
-            "Data/Compatibility.xml", "Data/SystemCoupons.xml", "Data/SearchEngines.xml",
-            "License.txt", "msvcr90.dll", "msvcp90.dll", "gdiplus.dll",
-            "bass.dll", "bass_fx.dll", "bassmidi.dll", "x64",
-            "ChangeLog.txt", "Microsoft.VC90.CRT.manifest",
-            "ReadMe.txt", self.srcfile_name]
+                            "Data/Debugger", "Data/Materials",
+                            "Data/Compatibility.xml", "Data/SystemCoupons.xml", "Data/SearchEngines.xml",
+                            "License.txt", "msvcr90.dll", "msvcp90.dll", "gdiplus.dll",
+                            "bass.dll", "bass_fx.dll", "bassmidi.dll", "x64",
+                            "ChangeLog.txt", "Microsoft.VC90.CRT.manifest",
+                            "ReadMe.txt", self.srcfile_name]
 
-        #Extra/excludes python modules
+        # Extra/excludes python modules
         self.extra_modules = []
         self.exclude_modules = []
 
-        #DLL Excludes
+        # DLL Excludes
         self.exclude_dll = ["w9xpopen.exe"]
 
-        #Zip file name (None will bundle files in exe instead of zip file)
+        # Zip file name (None will bundle files in exe instead of zip file)
         self.zipfile_name = None
 
-        #Dist directory
-        self.dist_dir ='CardWirthPy'
+        # Dist directory
+        self.dist_dir = 'CardWirthPy'
 
-        #Extra new dirs
+        # Extra new dirs
         self.extra_dirs = ["Scenario", "Yado", "Data/Temp", "Data/Skin",
-            "Data/Face/Common", "Data/Face/Common-ADT", "Data/Face/Common-CHD", "Data/Face/Common-OLD", "Data/Face/Common-YNG",
-            "Data/Face/Female", "Data/Face/Female-ADT", "Data/Face/Female-CHD", "Data/Face/Female-OLD", "Data/Face/Female-YNG",
-            "Data/Face/Male", "Data/Face/Male-ADT", "Data/Face/Male-CHD", "Data/Face/Male-OLD", "Data/Face/Male-YNG"]
+                           "Data/Face/Common", "Data/Face/Common-ADT", "Data/Face/Common-CHD",
+                           "Data/Face/Common-OLD", "Data/Face/Common-YNG",
+                           "Data/Face/Female", "Data/Face/Female-ADT", "Data/Face/Female-CHD",
+                           "Data/Face/Female-OLD", "Data/Face/Female-YNG",
+                           "Data/Face/Male", "Data/Face/Male-ADT", "Data/Face/Male-CHD", "Data/Face/Male-OLD",
+                           "Data/Face/Male-YNG"]
 
-        #Additional modules
+        # Additional modules
         self.includes = ["win32com.shell.shell", "win32com.client", "wx._html", "wx._xml"]
 
         self.dllincludes_ex = [
@@ -145,8 +152,8 @@ class BuildExe(object):
             "msvcp90.dll",
         ]
 
-    ## Code from DistUtils tutorial at http://wiki.python.org/moin/Distutils/Tutorial
-    ## Originally borrowed from wxPython's setup and config files
+    # Code from DistUtils tutorial at http://wiki.python.org/moin/Distutils/Tutorial
+    # Originally borrowed from wxPython's setup and config files
     def opj(self, *args):
         path = os.path.join(*args)
         return os.path.normpath(path)
@@ -167,7 +174,7 @@ class BuildExe(object):
                     if fnmatch.fnmatch(filename, wc_name) and not os.path.isdir(filename):
                         names.append(filename)
             if names:
-                lst.append( (dirname, names ) )
+                lst.append((dirname, names))
 
         file_list = []
         recursive = kw.get('recursive', True)
@@ -180,7 +187,7 @@ class BuildExe(object):
         return file_list
 
     def run(self):
-        if os.path.isdir(self.dist_dir): #Erase previous destination dir
+        if os.path.isdir(self.dist_dir):  # Erase previous destination dir
             try:
                 shutil.rmtree(self.dist_dir)
             except Exception as ex:
@@ -189,10 +196,10 @@ class BuildExe(object):
                 else:
                     raise ex
 
-        #Create source archive file
+        # Create source archive file
         compress_src(self.srcfile_name)
 
-        #Load manifest file
+        # Load manifest file
         if self.manifest_file:
             f = open(self.manifest_file, "rb")
             manifest = f.read()
@@ -200,12 +207,12 @@ class BuildExe(object):
         else:
             manifest = ""
 
-        #Use the default pygame icon, if none given
+        # Use the default pygame icon, if none given
         if self.icon_file is None:
             path = os.path.split(pygame.__file__)[0]
             self.icon_file = os.path.join(path, 'pygame.ico')
 
-        #List all data files to add
+        # List all data files to add
         extra_datas = []
         for data in self.extra_datas:
             if os.path.isdir(data):
@@ -214,27 +221,27 @@ class BuildExe(object):
                 dir = os.path.dirname(data)
                 extra_datas.append((dir, [data]))
 
-        #issystemdll = py2exe.build_exe.isSystemDLL
-        #def myissystemdll(path):
+        # issystemdll = py2exe.build_exe.isSystemDLL
+        # def myissystemdll(path):
         #    fpath = os.path.basename(path).lower()
         #    if fpath in self.dllincludes_ex:
         #        return False
         #    if fpath in self.dllexcludes_ex:
         #        return True
         #    return issystemdll(path)
-        #py2exe.build_exe.isSystemDLL = myissystemdll
+        # py2exe.build_exe.isSystemDLL = myissystemdll
 
         setup(
-            version = self.project_version,
-            description = self.project_description,
-            name = self.project_name,
-            url = self.project_url,
-            author = self.author_name,
-            author_email = self.author_email,
-            license = self.license,
+            version=self.project_version,
+            description=self.project_description,
+            name=self.project_name,
+            url=self.project_url,
+            author=self.author_name,
+            author_email=self.author_email,
+            license=self.license,
 
             # targets to build
-            windows = [{
+            windows=[{
                 'author': self.author_name,
                 'version': self.project_version,
                 'name': self.project_name,
@@ -244,21 +251,21 @@ class BuildExe(object):
                 'copyright': self.copyright,
                 'other_resources': [(24, 1, manifest)],
             }],
-            options = {'py2exe': {'optimize': 2,
-                                  'bundle_files': 1,
-                                  'compressed': True,
-                                  'excludes': self.exclude_modules,
-                                  'packages': self.extra_modules,
-                                  'dll_excludes': self.exclude_dll,
-                                  'dist_dir': self.dist_dir,
-                                  'includes': self.includes} },
-            zipfile = self.zipfile_name,
-            data_files = extra_datas,
+            options={'py2exe': {'optimize': 2,
+                                'bundle_files': 1,
+                                'compressed': True,
+                                'excludes': self.exclude_modules,
+                                'packages': self.extra_modules,
+                                'dll_excludes': self.exclude_dll,
+                                'dist_dir': self.dist_dir,
+                                'includes': self.includes}},
+            zipfile=self.zipfile_name,
+            data_files=extra_datas,
             )
 
-        #py2exe.build_exe.isSystemDLL = issystemdll
+        # py2exe.build_exe.isSystemDLL = issystemdll
 
-        #Create new directory
+        # Create new directory
         print("\n*** creating new directory ***")
 
         for dname in self.extra_dirs:
@@ -266,13 +273,14 @@ class BuildExe(object):
             print("creating %s" % (os.path.abspath(path)))
             os.makedirs(path)
 
-        if os.path.isdir('build'): #Clean up build dir
+        if os.path.isdir('build'):  # Clean up build dir
             shutil.rmtree('build')
 
         if self.chmfile:
             path = os.path.basename(self.chmfile)
             path = os.path.join(self.dist_dir, path)
             shutil.copy(self.chmfile, path)
+
 
 def compress_src(zpath):
     fnames = ["cardwirth.py", "build_exe.py", "CardWirthPy.ico",
@@ -300,6 +308,7 @@ def compress_src(zpath):
     z.close()
     return zpath
 
+
 def create_versioninfo():
     # ビルド情報を生成する
     print("Create versioninfo.py.")
@@ -308,15 +317,17 @@ def create_versioninfo():
     with open("versioninfo.py", "w") as f:
         f.write(s)
 
+
 def remove_versioninfo():
     print("Remove versioninfo.py.")
     os.remove("versioninfo.py")
+
 
 if __name__ == '__main__':
     if operator.lt(len(sys.argv), 2):
         sys.argv.append('py2exe')
 
-    nokey = False # 終了時にキー入力を求めるか
+    nokey = False  # 終了時にキー入力を求めるか
     if "-nokey" in sys.argv:
         nokey = True
         sys.argv.remove("-nokey")
@@ -331,11 +342,11 @@ if __name__ == '__main__':
     create_versioninfo()
 
     try:
-        BuildExe(chmfile).run() #Run generation
+        BuildExe(chmfile).run()  # Run generation
     finally:
         remove_versioninfo()
 
     if not nokey:
-        input("\nPress any key to continue") #Pause to let user see that things ends
+        input("\nPress any key to continue")  # Pause to let user see that things ends
     else:
         print("\nCompleted build.")

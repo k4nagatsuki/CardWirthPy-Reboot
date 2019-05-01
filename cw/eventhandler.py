@@ -14,6 +14,7 @@ from pygame.locals import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, 
 
 import cw
 
+
 class EventHandler(object):
     def run(self):
         cw.cwpy.has_inputevent = False
@@ -140,16 +141,16 @@ class EventHandler(object):
 
         if cw.cwpy.statusbar and\
                 not isinstance(cw.cwpy.selection, cw.sprite.touchbutton.TouchButton) and\
-                not cw.cwpy.statusbar.touchmenu is cw.cwpy.selection:
+                cw.cwpy.statusbar.touchmenu is not cw.cwpy.selection:
             cw.cwpy.statusbar.hide_touchbuttons(redraw=True)
 
     def check_puressedbutton(self, event):
         cw.cwpy.wheelmode_cursorpos = (-1, -1)
 
-        if not event.type in (USEREVENT, cw.FORCE_USEREVENT):
+        if event.type not in (USEREVENT, cw.FORCE_USEREVENT):
             self.clear_touchmenu()
 
-        if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
+        if event.type not in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
             return True
 
         # フリック操作
@@ -157,7 +158,8 @@ class EventHandler(object):
         if cw.cwpy.setting.enabled_right_flick and event.button == 1:
             selection = cw.cwpy.selection
             pos = pygame.mouse.get_pos()
-            if not cw.cwpy.scr_fullscreen and pos[0] == cw.scr2mwin_s(cw.s(cw.SIZE_AREA[0]))-1 and not pygame.mouse.get_focused():
+            if not cw.cwpy.scr_fullscreen and pos[0] == cw.scr2mwin_s(cw.s(cw.SIZE_AREA[0]))-1 and\
+                    not pygame.mouse.get_focused():
                 # FIXME: カーソルが画面外に出ているとpos[0]が右端の位置になってしまう。
                 #        wx側の機能を使うわけにもいかないので、苦肉の策として
                 #        画面外にカーソルが出ていたらフリック距離分だけ移動した状態と見なす。
@@ -340,9 +342,9 @@ class EventHandler(object):
 
         selection = self._update_selection()
 
-        if (cw.cwpy.is_runningevent() and\
-                not (selection and selection.is_statusctrl and \
-                             selection.selectable_on_event)) or\
+        if (cw.cwpy.is_runningevent() and
+                not (selection and selection.is_statusctrl and
+                     selection.selectable_on_event)) or\
                 self.is_processing():
             return
 
@@ -361,9 +363,9 @@ class EventHandler(object):
 
         selection = self._update_selection()
 
-        if (cw.cwpy.is_runningevent() and\
-                not (selection and selection.is_statusctrl and \
-                             selection.selectable_on_event)) or\
+        if (cw.cwpy.is_runningevent() and
+                not (selection and selection.is_statusctrl and
+                     selection.selectable_on_event)) or\
                 self.is_processing():
             return
 
@@ -392,8 +394,8 @@ class EventHandler(object):
         else:
             selection = self._update_selection()
 
-        if (cw.cwpy.is_runningevent() and\
-                not (selection and selection.is_statusctrl and \
+        if (cw.cwpy.is_runningevent() and
+                not (selection and selection.is_statusctrl and
                      selection.selectable_on_event)) or\
                 self.is_processing():
             return
@@ -551,29 +553,29 @@ class EventHandler(object):
             cw.cwpy.show_backlog()
 
         # PCの山札内のカード数を表示する
-##        for pcard in cw.cwpy.get_pcards():
-##            print "%s --------" % (pcard.name)
-##            d = {}
-##            for h in pcard.deck.talon:
-##                d[h.name] = d.get(h.name, 0) + 1
-##            for name, count in d.iteritems():
-##                print "  %s: %s" % (name, count)
-##        for ecard in cw.cwpy.get_ecards():
-##            for h in ecard.deck.talon:
-##                print h.name, ecard.name
-##
-##        print "*"*20
-##        import timeit
-##        s = ("import cw;" +
-##             "image = cw.util.load_image("ACTION0.png");" +
-##             "cw.imageretouch.to_negative_for_card(image)")
-##        timer = timeit.Timer(s)
-##        print timer.timeit(5000)
-##        # 回収された循環参照や回収不能オブジェクトが表示される
-##        import gc
-##        gc.set_debug(gc.DEBUG_LEAK)
-##        gc.disable()
-##        gc.collect()
+#        for pcard in cw.cwpy.get_pcards():
+#            print "%s --------" % (pcard.name)
+#            d = {}
+#            for h in pcard.deck.talon:
+#                d[h.name] = d.get(h.name, 0) + 1
+#            for name, count in d.iteritems():
+#                print "  %s: %s" % (name, count)
+#        for ecard in cw.cwpy.get_ecards():
+#            for h in ecard.deck.talon:
+#                print h.name, ecard.name
+#
+#        print "*"*20
+#        import timeit
+#        s = ("import cw;" +
+#             "image = cw.util.load_image("ACTION0.png");" +
+#             "cw.imageretouch.to_negative_for_card(image)")
+#        timer = timeit.Timer(s)
+#        print timer.timeit(5000)
+#        # 回収された循環参照や回収不能オブジェクトが表示される
+#        import gc
+#        gc.set_debug(gc.DEBUG_LEAK)
+#        gc.disable()
+#        gc.collect()
 
     def f6key_event(self):
         """
@@ -651,7 +653,7 @@ class EventHandler(object):
         if not self.can_input():
             return
         if (cw.cwpy.is_runningevent() or self.is_processing()) and\
-                not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl and\
+                not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl and
                      cw.cwpy.selection.selectable_on_event):
             return
 
@@ -757,6 +759,7 @@ class EventHandler(object):
         cw.cwpy.has_inputevent = True
         func = event.func
         func(*event.args, **event.kwargs)
+
 
 class EventHandlerForMessageWindow(EventHandler):
     def __init__(self, mwin):
@@ -904,7 +907,7 @@ class EventHandlerForMessageWindow(EventHandler):
             cw.cwpy.has_inputevent = True
             self.mwin.draw_all()
         elif button == 1:
-            EventHandler.ldown_event()
+            EventHandler.ldown_event(self)
 
     def ldown_event(self):
         if cw.cwpy.setting.enabled_right_flick and\
@@ -1153,6 +1156,7 @@ class EventHandlerForMessageWindow(EventHandler):
                     cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
                     cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
 
+
 class EventHandlerForBacklog(EventHandler):
     def __init__(self, backlog, index):
         """バックログ表示中のイベントハンドラ。
@@ -1233,12 +1237,14 @@ class EventHandlerForBacklog(EventHandler):
             self._sbarbar = None
 
         if init:
-            self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale, visible=cw.cwpy.setting.is_logscrollable())
+            self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale,
+                                                            visible=cw.cwpy.setting.is_logscrollable())
             self._scrollbar.lazyscroll_func = self.update_sprites
             self.index = min(self.index, self._get_maxpage()-1)
             self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
         else:
-            self._scrollbar = cw.sprite.scrollbar.ScrollBar(self._scrollbar.scrpos_noscale, scrsize_noscale, visible=cw.cwpy.setting.is_logscrollable())
+            self._scrollbar = cw.sprite.scrollbar.ScrollBar(self._scrollbar.scrpos_noscale, scrsize_noscale,
+                                                            visible=cw.cwpy.setting.is_logscrollable())
             self._scrollbar.lazyscroll_func = self.update_sprites
             self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
         cw.cwpy.backloggrp.add(self._scrollbar, layer=cw.LAYER_LOG_SCROLLBAR)
@@ -1516,7 +1522,7 @@ class EventHandlerForBacklog(EventHandler):
         if cw.cwpy.setting.is_logscrollable():
             return bool(self.backlog)
         else:
-            return not self.mwin is None
+            return self.mwin is not None
 
     def _clear_sprites(self):
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_CURTAIN)
@@ -1599,7 +1605,7 @@ class EventHandlerForBacklog(EventHandler):
             return len(self.backlog)
 
     def update_sprites(self, clearcache=False):
-        if not cw.cwpy._is_showingbacklog:
+        if not cw.cwpy.is_showingbacklog():
             return
         if clearcache:
             self._update_posdata(init=False)
@@ -1614,8 +1620,8 @@ class EventHandlerForBacklog(EventHandler):
             top = self._scrollbar.scrpos_noscale
             bottom = top + cw.SIZE_AREA[1]
             f = bisect.bisect_right(self._bottom_noscale, top)
-            l = min(len(self.backlog)-1, bisect.bisect_left(self._pos_noscale, bottom))
-            for i in range(f, l+1):
+            topos = min(len(self.backlog)-1, bisect.bisect_left(self._pos_noscale, bottom))
+            for i in range(f, topos+1):
                 # まだ表示されていないスプライトがあれば追加
                 if not self._mwins[i]:
                     self._mwins[i] = self.backlog[i].create_message()
@@ -1641,6 +1647,7 @@ class EventHandlerForBacklog(EventHandler):
             self.mwin = self.backlog[self.index].create_message()
             self._page.update_page(self.index+1, self._get_maxpage())
         cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
+
 
 class EventHandlerForEffectBooster(EventHandler):
     def __init__(self):
@@ -1670,7 +1677,7 @@ class EventHandlerForEffectBooster(EventHandler):
 
             if event.type == KEYDOWN:
                 # ESCAPEキー
-                if event.key == K_ESCAPE  or event.key == K_BACKSPACE or event.key == K_BACKSLASH:
+                if event.key == K_ESCAPE or event.key == K_BACKSPACE or event.key == K_BACKSLASH:
                     self.escapekey_event()
                 # F1キー
                 elif event.key == K_F1:
@@ -1811,9 +1818,10 @@ class EventHandlerForEffectBooster(EventHandler):
         if cw.cwpy.setting.expanddrawing != 1:
             raise cw.effectbooster.ScreenRescale()
 
+
 def main():
     pass
 
+
 if __name__ == "__main__":
     main()
-

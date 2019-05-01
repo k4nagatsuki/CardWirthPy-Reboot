@@ -9,17 +9,22 @@ import cw
 class BattleError(Exception):
     pass
 
+
 class BattleAreaChangeError(BattleError):
     pass
+
 
 class BattleStartBattleError(BattleError):
     pass
 
+
 class BattleWinError(BattleError):
     pass
 
+
 class BattleDefeatError(BattleError):
     pass
+
 
 class BattleEngine(object):
     def __init__(self, data):
@@ -239,7 +244,8 @@ class BattleEngine(object):
             if not startnextbattle:
                 cw.cwpy.advlog.end_battle(self)
 
-            cw.cwpy.clear_battlearea(areachange=areachange, startnextbattle=startnextbattle, is_battlestarting=is_battlestarting)
+            cw.cwpy.clear_battlearea(areachange=areachange, startnextbattle=startnextbattle,
+                                     is_battlestarting=is_battlestarting)
 
     def ready(self, redraw=True):
         """戦闘行動の準備を行う。
@@ -260,7 +266,7 @@ class BattleEngine(object):
             ecards = cw.cwpy.get_mcards("flagtrue")
             if self.numenemy != len(ecards):
                 self.numenemy = len(ecards)
-                cw.cwpy.sdata.moved_mcards = {} # 再配置情報を破棄
+                cw.cwpy.sdata.moved_mcards = {}  # 再配置情報を破棄
                 cw.cwpy.set_autospread(ecards, 6, False, anime=True)
         cw.cwpy.show_party()
         cw.cwpy.disposition_pcards()
@@ -328,7 +334,7 @@ class BattleEngine(object):
             # 半分以上が判定成功したら、逃走成功
             pcards = cw.cwpy.get_pcards("active")
             success = [pcard.decide_outcome(level, vocation, enemybonus)
-                                                        for pcard in pcards].count(True)
+                       for pcard in pcards].count(True)
 
             # 逃走成功・失敗時の処理
             if pcards and success > len(pcards) // 2:
@@ -457,8 +463,10 @@ class BattleEngine(object):
         for fcard in cw.cwpy.get_fcards():
             fcard.clear_action()
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

@@ -52,21 +52,21 @@ class EventInterface(object):
         """選択中メンバの名前を返す。"""
         try:
             return self._selectedmember.name
-        except:
+        except Exception:
             return "選択メンバ未定"
 
     def get_selectedcardname(self):
         """選択カードの名前を返す(Wsn.3)。"""
         try:
             return self._selectedcard.name
-        except:
+        except Exception:
             return "選択カード未定"
 
     def get_selectedcardtype(self):
         """選択カードのタイプを返す(Wsn.3)。"""
         try:
             return self._selectedcard.type
-        except:
+        except Exception:
             return None
 
     def pop_event(self):
@@ -282,9 +282,8 @@ class EventInterface(object):
 
     def has_selectedmember(self):
         """選択メンバが存在する場合はTrueを返す。"""
-        return bool(self._selectedmember and\
-           not (isinstance(self._selectedmember, cw.character.Character) and\
-                self._selectedmember.is_vanished()))
+        return bool(self._selectedmember and not (isinstance(self._selectedmember, cw.character.Character) and
+                                                  self._selectedmember.is_vanished()))
 
     def get_selectedmember(self):
         """選択中のPlayerCardインスタンスを返す。
@@ -298,7 +297,7 @@ class EventInterface(object):
 
     def clear_selectedmember(self):
         """選択中のメンバをクリアする。"""
-        if not self._selectedmember is None:
+        if self._selectedmember is not None:
             self._selectedmember = None
             self.refresh_selectedmembername()
 
@@ -340,9 +339,9 @@ class EventInterface(object):
             self._selectedcard = self._inusecard
             self.refresh_selectedcardname()
 
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # デバッガ更新用メソッド
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def refresh_tools(self):
         """デバッガのツールが使用可能かどうかを更新する。"""
@@ -445,14 +444,14 @@ class EventInterface(object):
             return
 
         cur_content = event.cur_content
-        if not cur_content is None and cur_content.tag == "ContentsLine":
+        if cur_content is not None and cur_content.tag == "ContentsLine":
             cur_content = cur_content[event.line_index]
 
-        if cw.cwpy.is_showingdebugger() and\
-                 cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
+        if cw.cwpy.is_showingdebugger() and cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
             if not self.paused and cw.cwpy.sdata.breakpoints and cur_content.get_cwxpath() in cw.cwpy.sdata.breakpoints:
                 # ブレークポイント到達
                 self.paused = True
+
                 def func():
                     cw.cwpy.frame.debugger.pause(True)
                 cw.cwpy.frame.exec_func(func)
@@ -466,7 +465,8 @@ class EventInterface(object):
             return
 
         # 一部のイベント実行
-        if pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) or (self.eventtimer % 1000 == 0 and pygame.event.peek()):
+        if pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) or (self.eventtimer % 1000 == 0 and
+                                                                                pygame.event.peek()):
             cw.cwpy.update_groups((cw.cwpy.sbargrp,))
             cw.cwpy.input()
             cw.cwpy.get_eventhandler().run()
@@ -478,7 +478,7 @@ class EventInterface(object):
             raise EffectBreakError()
 
         if cw.cwpy.is_showingdebugger() and\
-                 cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
+                cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
             cnt = 0
 
             if self._step:
@@ -490,7 +490,7 @@ class EventInterface(object):
                 tick = pygame.time.get_ticks()
                 stw = cw.sprite.base.StopTheWorld(tick, waittime * 100)
                 while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
-                            stw.is_waiting() and not self.stoped:
+                        stw.is_waiting() and not self.stoped:
                     if not self.get_event().force_nextcontent is None:
                         break
                     if cnt == 0:
@@ -504,7 +504,7 @@ class EventInterface(object):
 
             cnt = 0
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
-                                            self.paused and not self.stoped:
+                    self.paused and not self.stoped:
                 if -1 <= self._targetstack and self._targetstack < self.get_currentstack():
                     break
                 if not self.get_event().force_nextcontent is None:
@@ -530,7 +530,7 @@ class EventInterface(object):
                現在イベントが実行中であれば無視される。
         """
         if self.get_nowrunningevent():
-            if not event is None and not self.get_nowrunningevent() is event:
+            if event is not None and not self.get_nowrunningevent() is event:
                 return
             event = self.get_nowrunningevent()
             while event.parent:
@@ -574,6 +574,7 @@ class EventInterface(object):
 
     def is_paused(self):
         return self.paused
+
 
 class EventEngine(object):
     def __init__(self, data):
@@ -637,7 +638,8 @@ class EventEngine(object):
             igkeycodes = event.keycodes
             matching = event.keycode_matching
             # 互換動作: 1.30以前では"MatchingType=All"は普通のキーコード
-            if matching == "And" and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_AREA)):
+            if matching == "And" and cw.cwpy.sdata and\
+                    cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_AREA)):
                 array = ["MatchingType=All"]
                 array.extend(igkeycodes)
                 igkeycodes = array
@@ -681,25 +683,32 @@ class EventEngine(object):
 
         return None
 
+
 class EventError(Exception):
     pass
+
 
 class AreaChangeError(EventError):
     pass
 
+
 class StartBattleError(AreaChangeError):
     pass
+
 
 class ScenarioEndError(EventError):
     pass
 
+
 class ScenarioBadEndError(EventError):
     pass
+
 
 class EffectBreakError(EventError):
     def __init__(self, consumecard=True):
         EventError.__init__(self)
         self.consumecard = consumecard
+
 
 class Event(object):
     def __init__(self, event):
@@ -754,7 +763,7 @@ class Event(object):
                 else:
                     name = content.get("name", "")
 
-                if not name in self.trees:
+                if name not in self.trees:
                     self.trees[name] = content
                     self.treekeys.append(name)
 
@@ -774,12 +783,12 @@ class Event(object):
         # イベント終了時に元に戻すため、元のデータを保存
         if not self.base:
             self.base = Event(None)
-            self.base._copy_from(self)
-        self._copy_from(event)
+            self.base.copy_from_impl(self)
+        self.copy_from_impl(event)
         if not self._versionhint_base:
             self._versionhint_base = versionhint_base
 
-    def _copy_from(self, event):
+    def copy_from_impl(self, event):
         self.trees = event.trees
         self.treekeys = event.treekeys
         self.starttree = event.starttree
@@ -787,7 +796,7 @@ class Event(object):
         self.steps = event.steps
         self.variants = event.variants
 
-    def _store_inusedata(self, selectuser):
+    def store_inusedata(self, selectuser):
         if selectuser and isinstance(self, CardEvent):
             cw.cwpy.event.set_selectedmember(self.user)
             cw.cwpy.event.set_inusecard(self.inusecard)
@@ -796,7 +805,7 @@ class Event(object):
         self._stored_in_inusecardevent = cw.cwpy.event.in_inusecardevent
         cw.cwpy.event.in_inusecardevent = False
 
-    def _restore_inusedata(self):
+    def restore_inusedata(self):
         cw.cwpy.event.in_cardeffectmotion = self._stored_in_cardeffectmotion
         self._stored_in_cardeffectmotion = False
         cw.cwpy.event.in_inusecardevent = self._stored_in_inusecardevent
@@ -844,7 +853,7 @@ class Event(object):
         # 起動中のイベントは全てクリア
         for event in cw.cwpy.event.get_events():
             if event.base:
-                event._copy_from(event.base)
+                event.copy_from_impl(event.base)
                 event.base = None
             cw.cwpy.event.remove_event(event)
             event.clear()
@@ -905,7 +914,7 @@ class Event(object):
 
     def run_exit(self):
         if self.base:
-            self._copy_from(self.base)
+            self.copy_from_impl(self.base)
             self.base = None
 
         cw.cwpy.event.pop_event()
@@ -914,15 +923,15 @@ class Event(object):
     def end(self):
         """共通終了処理。"""
         if self.base:
-            self._copy_from(self.base)
+            self.copy_from_impl(self.base)
             self.clear()
             self.base = None
-            if cw.cwpy.sdata and not self._versionhint_base is None:
+            if cw.cwpy.sdata and self._versionhint_base is not None:
                 versionlevel, versionhint = self._versionhint_base
                 cw.cwpy.sdata.set_versionhint(versionlevel, versionhint)
             self._versionhint_base = None
 
-        if not (isinstance(self.error, AreaChangeError) or\
+        if not (isinstance(self.error, AreaChangeError) or
                 isinstance(self.error, ScenarioBadEndError)) and\
                 cw.cwpy.status != "Title":
             if not cw.cwpy.is_gameover() and not cw.cwpy.event.is_stoped():
@@ -1049,11 +1058,11 @@ class Event(object):
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint_base)
 
-        event._store_inusedata(selectuser=True)
+        event.store_inusedata(selectuser=True)
         try:
             event.run(isinside=True)
         finally:
-            event._restore_inusedata()
+            event.restore_inusedata()
 
     def clear(self):
         self.index = 0
@@ -1086,8 +1095,8 @@ class Event(object):
         # cw.util.td_end(content.data.tag + content.data.get("type", ""))
 
         if (cur_content.tag == "Effect") or\
-            (cur_content.tag == "Set" and cur_content.get("type") == "Coupon") or\
-            (cur_content.tag == "Elapse" and cur_content.get("type") == "Time"):
+                (cur_content.tag == "Set" and cur_content.get("type") == "Coupon") or\
+                (cur_content.tag == "Elapse" and cur_content.get("type") == "Time"):
             self.check_gameover()
 
         if cw.cwpy.event.is_stoped() or cw.cwpy.sdata.in_f9:
@@ -1095,7 +1104,7 @@ class Event(object):
 
     def get_nextcontents(self):
         """self.cur_contentの子コンテントのリストを返す。"""
-        if not self.force_nextcontent is None:
+        if self.force_nextcontent is not None:
             content = self.force_nextcontent
             self.force_nextcontent = None
             self.line_index = self.force_nextcontent_index
@@ -1123,7 +1132,7 @@ class Event(object):
                 cur_content.nextelements = []
                 cur_content.needcheck = False
 
-                if not element is None and len(element):
+                if element is not None and len(element):
                     seq = []
                     for ee in element:
                         if ee.tag == "ContentsLine":
@@ -1288,7 +1297,7 @@ class Targeting(object):
         """ccardを効果対象に追加する(Wsn.2)。
         "＠効果対象"はあらかじめ付与しておく事。
         """
-        assert ccard._has_coupon("＠効果対象")
+        assert ccard.has_coupon_nolock("＠効果対象")
         self._target_updated = True
         self.coupon_owners.add(ccard)
 
@@ -1296,7 +1305,7 @@ class Targeting(object):
         """ccardを効果対象から外す(Wsn.2)。
         "＠効果対象"はあらかじめ外しておく事。
         """
-        assert not ccard._has_coupon("＠効果対象")
+        assert not ccard.has_coupon_nolock("＠効果対象")
         self._target_updated = True
 
 
@@ -1321,7 +1330,7 @@ def _get_targetinfo():
         if ccard.has_coupon("＠効果対象外"):
             assert ccard in cw.cwpy.event.get_effectevent().coupon_owners
             outoftargets.append(ccard.name)
-    seq = []
+    seq = [][:]
     seq.append("User          : %s" % ", ".join(user))
     seq.append("Event Target  : %s" % ", ".join(eventtarget))
     seq.append("Targets       : %s" % ", ".join(targets))
@@ -1455,32 +1464,32 @@ class CardEvent(Event, Targeting):
         cw.cwpy.clear_specialarea()
 
     def _exit_event(self):
-        if not (isinstance(self.error, AreaChangeError) or\
+        if not (isinstance(self.error, AreaChangeError) or
                 isinstance(self.error, ScenarioBadEndError)):
             if not cw.cwpy.is_gameover() and not cw.cwpy.event.is_stoped():
                 cw.cwpy.show_party()
 
     def run_areaevent(self):
         keycodes = self.inusecard.get_keycodes()
-        self._store_inusedata(selectuser=True)
+        self.store_inusedata(selectuser=True)
         cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
-        self._restore_inusedata()
+        self.restore_inusedata()
         self._exit_event()
 
     def run_characterevent(self, target, can_unconscious):
         keycodes = self.inusecard.get_keycodes()
         if self.ignition_characterevent(target, can_unconscious, keycodes):
-            self._store_inusedata(selectuser=True)
+            self.store_inusedata(selectuser=True)
             self.get_events(target).start(keycodes=keycodes, isinsideevent=True)
-            self._restore_inusedata()
+            self.restore_inusedata()
             self._exit_event()
 
     def run_deadevent(self, target):
         """targetの死亡イベントが発生可能であれば発生させる。"""
         if self.ignition_deadevent(target, self.inusecard.get_keycodes(with_name=False)):
-            self._store_inusedata(selectuser=True)
+            self.store_inusedata(selectuser=True)
             r = self.get_events(target).start(1, isinsideevent=True)
-            self._restore_inusedata()
+            self.restore_inusedata()
             self._exit_event()
             return r
 
@@ -1495,9 +1504,9 @@ class CardEvent(Event, Targeting):
             cw.cwpy.lock_menucards = False
             events = self.get_events(target)
             try:
-                self._store_inusedata(selectuser=True)
+                self.store_inusedata(selectuser=True)
                 events.start(keycodes=keycodes)
-                self._restore_inusedata()
+                self.restore_inusedata()
                 self._exit_event()
             finally:
                 cw.cwpy.lock_menucards = lock
@@ -1509,9 +1518,9 @@ class CardEvent(Event, Targeting):
         keycodes = self.inusecard.get_keycodes()
         if self.ignition_successevent(target, successflag, keycodes):
             keycodes = self._keycodes_for_successevent(keycodes, successflag)
-            self._store_inusedata(selectuser=True)
+            self.store_inusedata(selectuser=True)
             self.get_events(target).start(keycodes=keycodes, isinsideevent=True, successevent=True)
-            self._restore_inusedata()
+            self.restore_inusedata()
             self._exit_event()
 
     def effect_cardmotion(self):
@@ -1578,12 +1587,11 @@ class CardEvent(Event, Targeting):
                 break
 
             is_menucard = isinstance(target, cw.sprite.card.MenuCard)
-            cw.cwpy.event.is_changestate |= not is_menucard and\
-                                            not isinstance(target, cw.character.Player)
+            cw.cwpy.event.is_changestate |= not is_menucard and not isinstance(target, cw.character.Player)
 
             if not is_menucard and\
                     target.is_unconscious() and\
-                    not (eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) or\
+                    not (eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) or
                          eff.has_addablebeast(target)):
                 # 意識不明者に有効な効果が含まれていない場合は
                 # イベント発火判定を含め何もしない

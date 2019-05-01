@@ -14,6 +14,7 @@ import cw
 class ScreenRescale(Exception):
     pass
 
+
 def wait_effectbooster(waittime, doanime):
     if 0 < waittime:
         start_ticks = pygame.time.get_ticks() - doanime.time_elapsed
@@ -52,6 +53,7 @@ def wait_effectbooster(waittime, doanime):
             cw.cwpy.change_cursor()
         cw.cwpy.interrupt_eventhandler = ie
 
+
 class AnimationCounter(object):
     def __init__(self):
         self.count = 0
@@ -72,6 +74,7 @@ class AnimationCounter(object):
         else:
             return False
 
+
 class CutAnimation(AnimationCounter):
     def __init__(self):
         AnimationCounter.__init__(self)
@@ -82,6 +85,7 @@ class CutAnimation(AnimationCounter):
 
     def countup(self):
         return False
+
 
 class _JpySubImage(cw.image.Image):
     def __init__(self, config, section, cache):
@@ -121,9 +125,9 @@ class _JpySubImage(cw.image.Image):
         self.paintmode = config.get_int(section, "paintmode", 0)
 
         self.defaultcopymode = 2
-        self.is_cacheable = True # アニメーションなどが無く、キャッシング可能か
-        self.is_animated = False # アニメーションが発生したか
-        self.can_mask = True # 加工でマスクが無効になっていないか
+        self.is_cacheable = True  # アニメーションなどが無く、キャッシング可能か
+        self.is_animated = False  # アニメーションが発生したか
+        self.can_mask = True  # 加工でマスクが無効になっていないか
 
     def draw2back(self, back, mask):
         """背景に描画。"""
@@ -228,9 +232,11 @@ class _JpySubImage(cw.image.Image):
 
                         pos_noscale = (x, y)
                         if self.waittime <= 0 or SPF <= self.waittime:
-                            self._drawtemp_impl(doanime, background, cw.s(pos_noscale), anime=True, waittime=self.waittime)
+                            self._drawtemp_impl(doanime, background, cw.s(pos_noscale), anime=True,
+                                                waittime=self.waittime)
                         elif SPF <= i:
-                            self._drawtemp_impl(doanime, background, cw.s(pos_noscale), anime=True, waittime=self.waittime*SPF)
+                            self._drawtemp_impl(doanime, background, cw.s(pos_noscale), anime=True,
+                                                waittime=self.waittime*SPF)
                             i %= SPF
                         else:
                             if self.animation == 1:
@@ -289,8 +295,7 @@ class _JpySubImage(cw.image.Image):
                 left = rect.left if rect.left > rect2.left else rect2.left
                 top = rect.top if rect.top > rect2.top else rect2.top
                 right = rect.right if rect.right < rect2.right else rect2.right
-                bottom = rect.bottom if rect.bottom < rect2.bottom\
-                                                            else rect2.bottom
+                bottom = rect.bottom if rect.bottom < rect2.bottom else rect2.bottom
                 pos = (left - pos[0], top - pos[1])
                 size = (right - left, bottom - top)
                 rect = pygame.Rect(pos, size)
@@ -330,7 +335,7 @@ class _JpySubImage(cw.image.Image):
         """
         if 0 <= waittime:
             tick = pygame.time.get_ticks()
-            if not self.starttick is None and self.starttick < tick:
+            if self.starttick is not None and self.starttick < tick:
                 waittime -= min(waittime, tick-self.starttick)
         return waittime
 
@@ -575,7 +580,8 @@ class _JpySubImage(cw.image.Image):
                 # Jpdcファイル
                 elif ext == ".jpdc":
                     self.is_cacheable = False
-                    image = JpdcImage(False, path, cache=self.cache, defaultcopymode=self.defaultcopymode, doanime=doanime).get_image()
+                    image = JpdcImage(False, path, cache=self.cache, defaultcopymode=self.defaultcopymode,
+                                      doanime=doanime).get_image()
                     # 重くならないのでキャッシュ不要
                 # Jptxファイル
                 elif ext == ".jptx":
@@ -584,7 +590,8 @@ class _JpySubImage(cw.image.Image):
                     cw.cwpy.sdata.resource_cache[cachekey] = (image.copy(), mtime)
                 # その他画像ファイル
                 else:
-                    image = cw.s(cw.util.load_image(path, False, isback=True, can_loaded_scaledimage=can_loaded_scaledimage,
+                    image = cw.s(cw.util.load_image(path, False, isback=True,
+                                                    can_loaded_scaledimage=can_loaded_scaledimage,
                                                     use_excache=True))
 
         # 画像キャッシュから読み込み
@@ -645,6 +652,7 @@ class _JpySubImage(cw.image.Image):
             return get_filepath_s(self.configpath, self.configdepth, self.filename, dirtype)
         else:
             return ("", False)
+
 
 def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
     """dirtypeに基づいて読み込むファイルのパスを取得する。"""
@@ -711,7 +719,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
             if not inusecard.carddata.getbool(".", "scenariocard", False):
                 e_mates = inusecard.carddata.find("Property/Materials")
                 can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
-                if not e_mates is None:
+                if e_mates is not None:
                     dpath = e_mates.text
                     # dirtype=4にはdirdepthが影響する
                     for _i in range(dirdepth):
@@ -774,12 +782,13 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
 
     return (path, can_loaded_scaledimage)
 
+
 class JpyPartsImage(_JpySubImage):
     def __init__(self, config, section, cache, mask):
         _JpySubImage.__init__(self, config, section, cache)
         self.height = cw.s(config.get_int(section, "height", -1))
         self.width = cw.s(config.get_int(section, "width", None))
-        self.haswidth = not self.width is None
+        self.haswidth = self.width is not None
         if self.width is None:
             self.width = -1
         self.color = config.get_color(section, "color", (0, 0, 0))
@@ -789,12 +798,13 @@ class JpyPartsImage(_JpySubImage):
         self.visible = config.get_bool(section, "visible", True)
         self.transparent = config.get_bool(section, "transparent", True)
 
+
 class JpyBackGroundImage(_JpySubImage):
     def __init__(self, config, cache, mask):
         _JpySubImage.__init__(self, config, "init", cache)
         self.backcolor = config.get_color("init", "backcolor", (0, 0, 0))
         self.width = cw.s(config.get_int("init", "backwidth", None))
-        self.vanish_anime = not self.width is None and self.width < 0
+        self.vanish_anime = self.width is not None and self.width < 0
         if self.width is None:
             self.width = -1
         self.height = cw.s(config.get_int("init", "backheight", -1))
@@ -807,6 +817,7 @@ class JpyBackGroundImage(_JpySubImage):
         self.position = cw.s(self.position_noscale)
         self.savecache = 0
         self.visible = False
+
 
 class JpyImage(cw.image.Image):
     def __init__(self, path, mask=False, cache=None, doanime=None, parent=None):
@@ -899,7 +910,7 @@ class JpyCache(object):
         # 一時描画を削除するために描画前背景を保存する
         self.before = None
         self.beforeback = None
-        self.beforerect = None # 一時描画された領域
+        self.beforerect = None  # 一時描画された領域
 
     def restore(self):
         if self.before:
@@ -1031,13 +1042,13 @@ class JpdcImage(cw.image.Image):
 
                 scpath = cw.util.join_paths(cw.cwpy.sdata.scedir, rel)
                 nexist = False
-                if not ex_cache is None:
+                if ex_cache is not None:
                     if os.path.isfile(npath):
                         ex_cache[0] = npath
                     elif os.path.isfile(scpath):
                         nexist = True
                         ex_cache[0] = scpath
-                        scpathsp= os.path.splitext(scpath)
+                        scpathsp = os.path.splitext(scpath)
                         for i, scale in enumerate(cw.SCALE_LIST):
                             scpathxn = "%s.x%d%s" % (scpathsp[0], scale, scpathsp[1])
                             if os.path.isfile(scpathxn):
@@ -1046,10 +1057,10 @@ class JpdcImage(cw.image.Image):
                 for i, scale in enumerate(cw.SCALE_LIST):
                     pathxn = "%s.x%d%s" % (spext[0], scale, spext[1])
                     if os.path.isfile(pathxn):
-                        if not ex_cache is None and not nexist:
+                        if ex_cache is not None and not nexist:
                             ex_cache[i+1] = pathxn
 
-                if not ex_cache is None:
+                if ex_cache is not None:
                     for i, cachepath in enumerate(ex_cache):
                         if cachepath:
                             try:
@@ -1122,6 +1133,7 @@ class JpdcImage(cw.image.Image):
         wait_effectbooster(0, doanime=doanime)
 
         cw.cwpy.change_cursor()
+
 
 class JptxImage(cw.image.Image):
     def __init__(self, path, mask):
@@ -1337,7 +1349,7 @@ class JptxImage(cw.image.Image):
                         info.font_noscale.set_underline(start)
                         info.font2_noscale.set_underline(start)
                 elif name == "i":
-                    italic= start
+                    italic = start
                     info.font.set_italic(start)
                     info.font2.set_italic(start)
                     if cw.UP_SCR != 1:
@@ -1494,6 +1506,7 @@ class JptxImage(cw.image.Image):
 
         return start, name, attrs
 
+
 class EffectBoosterConfig(object):
     def __init__(self, path, firstsection, section_ignorecase=True):
         self.path = path
@@ -1545,7 +1558,7 @@ class EffectBoosterConfig(object):
                     if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
                         self._sections[sec] = cur_sec
                     else:
-                        if not sec in self._sections:
+                        if sec not in self._sections:
                             self._sections[sec] = cur_sec
                     self._orderedsecs.append(sec)
                     continue
@@ -1560,7 +1573,7 @@ class EffectBoosterConfig(object):
                         val = val[1:-1]
                     # BUG: セクション内でコマンドが重複した時、
                     #      JPY1は先の定義が優先だがJPTXは後が優先？
-                    if not opt in cur_sec or ext == ".jptx":
+                    if opt not in cur_sec or ext == ".jptx":
                         cur_sec[opt] = val
                     continue
             f.close()
@@ -1651,9 +1664,10 @@ class EffectBoosterConfig(object):
         except ValueError:
             return default
 
+
 def main():
     pass
 
+
 if __name__ == "__main__":
     main()
-

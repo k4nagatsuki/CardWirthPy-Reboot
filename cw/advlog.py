@@ -3,11 +3,16 @@
 
 import os
 import sys
+# FIXME: Python 2->3でのモジュール名変更の絡みで警告が出る
+# import queue
 import time
 import threading
-import queue
 
 import cw
+
+import importlib
+queue = importlib.import_module("queue")
+
 
 VOID = 0
 INITIAL = 1
@@ -91,9 +96,11 @@ class AdventurerLogger(object):
         if self._logger:
             if end:
                 if completestamp:
-                    self._put(SYSTEM, "== 済印をつけてシナリオを終了 ==", lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
+                    self._put(SYSTEM, "== 済印をつけてシナリオを終了 ==",
+                              lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
                 else:
-                    self._put(SYSTEM, "== 済印をつけずにシナリオを終了 ==", lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
+                    self._put(SYSTEM, "== 済印をつけずにシナリオを終了 ==",
+                              lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
             else:
                 self._put_logtype(VOID)
             self._logger.queue.put_nowait(None)
@@ -114,9 +121,9 @@ class AdventurerLogger(object):
                 if self._last_logtype == MESSAGE and logtype != MESSAGE:
                     # メッセージが途切れた所で区切り線を出力する
                     self._logger.queue.put_nowait(("-" * cw.LOG_SEPARATOR_LEN_SHORT, None))
-                    if not logtype in (VOID, SEPARATOR):
+                    if logtype not in (VOID, SEPARATOR):
                         self._logger.queue.put_nowait(("", None))
-                elif (self._last_logtype != logtype or logtype == SYSTEM) and not logtype in (VOID, SEPARATOR):
+                elif (self._last_logtype != logtype or logtype == SYSTEM) and logtype not in (VOID, SEPARATOR):
                     # 空行を出力する
                     self._logger.queue.put_nowait(("", None))
             self._last_logtype = logtype
@@ -162,13 +169,13 @@ class AdventurerLogger(object):
 
     def start_battle(self, battle):
         self._put(SYSTEM, None, lambda dummy: cw.util.rjustify("==[ バトル開始 ]==",
-                                                          cw.LOG_SEPARATOR_LEN_LONG,
-                                                          '='))
+                                                               cw.LOG_SEPARATOR_LEN_LONG,
+                                                               '='))
 
     def end_battle(self, battle):
         self._put(SYSTEM, None, lambda dummy: cw.util.rjustify("==[ バトル終了 ]==",
-                                                          cw.LOG_SEPARATOR_LEN_LONG,
-                                                          '='))
+                                                               cw.LOG_SEPARATOR_LEN_LONG,
+                                                               '='))
 
     def start_runaway(self):
         self._put(SYSTEM, "<<<< 逃走 >>>>")
@@ -196,7 +203,7 @@ class AdventurerLogger(object):
                     return "%sの< %s >が発動。" % (castname, cardname)
                 else:
                     return "%sは< %s >を使用。" % (castname, cardname)
-            elif not targetname is None and not targettype in ("User", "None"):
+            elif targetname is not None and targettype not in ("User", "None"):
                 s = "==%sが< %s >を< %s >に使用==" % (castname, cardname, targetname)
             else:
                 s = "==%sが< %s >を使用==" % (castname, cardname)
@@ -211,7 +218,8 @@ class AdventurerLogger(object):
         targettype = header.target
         is_battlestatus = cw.cwpy.is_battlestatus()
         if is_battlestatus:
-            self._put(self._motion_type(), (castname, cardname, isbeast, targetname, targettype, is_battlestatus), use_card,
+            self._put(self._motion_type(), (castname, cardname, isbeast, targetname, targettype, is_battlestatus),
+                      use_card,
                       usecard=True)
         else:
             self._put(SYSTEM, (castname, cardname, isbeast, targetname, targettype, is_battlestatus), use_card,
@@ -289,7 +297,8 @@ class AdventurerLogger(object):
 
             return self.wrap_effectmotion(s, in_cardeffectmotion)
 
-        self._put(self._motion_type(), (target.name, value, newlife, oldlife, target.maxlife, self.in_cardeffectmotion()), heal_motion)
+        self._put(self._motion_type(), (target.name, value, newlife, oldlife, target.maxlife,
+                                        self.in_cardeffectmotion()), heal_motion)
 
     def damage_motion(self, target, value, newlife, oldlife, dissleep):
         if newlife == oldlife:
@@ -321,7 +330,8 @@ class AdventurerLogger(object):
 
             return self.wrap_effectmotion(s, in_cardeffectmotion)
 
-        self._put(self._motion_type(), (target.name, value, newlife, oldlife, target.maxlife, self.in_cardeffectmotion()), damage_motion)
+        self._put(self._motion_type(), (target.name, value, newlife, oldlife, target.maxlife,
+                                        self.in_cardeffectmotion()), damage_motion)
         if dissleep:
             def dissleep(params):
                 (name, in_cardeffectmotion) = params
@@ -463,7 +473,8 @@ class AdventurerLogger(object):
                     assert False
             return self.wrap_effectmotion(s, in_cardeffectmotion)
 
-        self._put(self._motion_type(), (target.name, mentality, duration, oldmentality, oldduration, self.in_cardeffectmotion()), mentality_motion)
+        self._put(self._motion_type(), (target.name, mentality, duration, oldmentality, oldduration,
+                                        self.in_cardeffectmotion()), mentality_motion)
 
     def bind_motion(self, target, newvalue, oldvalue):
         def bind_motion(params):
@@ -546,22 +557,26 @@ class AdventurerLogger(object):
     def enhanceaction_motion(self, target, newvalue, oldvalue):
         if newvalue == oldvalue:
             return
-        self._put(self._motion_type(), ("行動力", target.name, newvalue, self.in_cardeffectmotion()), self._enhanceaction_motion)
+        self._put(self._motion_type(), ("行動力", target.name, newvalue, self.in_cardeffectmotion()),
+                  self._enhanceaction_motion)
 
     def enhanceavoid_motion(self, target, newvalue, oldvalue):
         if newvalue == oldvalue:
             return
-        self._put(self._motion_type(), ("回避力", target.name, newvalue, self.in_cardeffectmotion()), self._enhanceaction_motion)
+        self._put(self._motion_type(), ("回避力", target.name, newvalue, self.in_cardeffectmotion()),
+                  self._enhanceaction_motion)
 
     def enhanceresist_motion(self, target, newvalue, oldvalue):
         if newvalue == oldvalue:
             return
-        self._put(self._motion_type(), ("抵抗力", target.name, newvalue, self.in_cardeffectmotion()), self._enhanceaction_motion)
+        self._put(self._motion_type(), ("抵抗力", target.name, newvalue, self.in_cardeffectmotion()),
+                  self._enhanceaction_motion)
 
     def enhancedefense_motion(self, target, newvalue, oldvalue):
         if newvalue == oldvalue:
             return
-        self._put(self._motion_type(), ("防御力", target.name, newvalue, self.in_cardeffectmotion()), self._enhanceaction_motion)
+        self._put(self._motion_type(), ("防御力", target.name, newvalue, self.in_cardeffectmotion()),
+                  self._enhanceaction_motion)
 
     def vanishtarget_motion(self, target, runaway):
         def vanishtarget_motion(params):
@@ -624,7 +639,8 @@ class AdventurerLogger(object):
             if not is_inactive and is_battlestatus:
                 s = "%sに特殊技能カードが配付された。" % (name)
                 return self.wrap_effectmotion(s, in_cardeffectmotion)
-        self._put(self._motion_type(), (target.name, is_inactive, is_battlestatus, self.in_cardeffectmotion()), dealskillcard_motion)
+        self._put(self._motion_type(), (target.name, is_inactive, is_battlestatus, self.in_cardeffectmotion()),
+                  dealskillcard_motion)
 
     def cancelaction_motion(self, target, is_battlestatus):
         def cancelaction_motion(params):
@@ -753,7 +769,7 @@ class Logger(threading.Thread):
                                 if first and 0 < f.tell():
                                     f.write(ret)
                                 first = False
-                            except:
+                            except Exception:
                                 cw.util.print_ex(file=sys.stderr)
                                 break
                         f.write(s)
@@ -773,6 +789,7 @@ class Logger(threading.Thread):
 
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

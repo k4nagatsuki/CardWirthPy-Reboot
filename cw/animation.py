@@ -82,12 +82,14 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     return skip
 
+
 def animate_sprites(sprites, anitype, clearevent=True, battlespeed=False):
     """spritesに含まれる全てのスプライトをanitypeの
     アニメーションで動かす。
     """
     sprandanimes = [(s, anitype) for s in sprites]
     animate_sprites2(sprandanimes, clearevent, battlespeed)
+
 
 def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
     """スプライト毎にアニメーション内容を指定する。
@@ -185,6 +187,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
 
     return skip
 
+
 def _inputevent(clip, clearevent, statusbutton):
     if statusbutton:
         cw.cwpy.clear_inputevents()
@@ -194,6 +197,7 @@ def _inputevent(clip, clearevent, statusbutton):
         cw.cwpy.input(inputonly=clearevent)
         cw.cwpy.get_eventhandler().run()
     return clip
+
 
 def start_animation(sprite, anitype):
     """spriteのアニメーションを開始する。
@@ -218,6 +222,7 @@ def start_animation(sprite, anitype):
     sprite.frame = 0
 
     cw.cwpy.animations.add(sprite)
+
 
 def _get_skipstatus(clearevent):
     if not clearevent and (cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein()):
@@ -251,8 +256,10 @@ def _get_skipstatus(clearevent):
 
     return False
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

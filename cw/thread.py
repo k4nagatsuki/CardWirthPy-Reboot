@@ -14,6 +14,7 @@ import math
 import wx
 import pygame
 from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
+from typing import Any
 
 import cw
 from cw.util import synclock
@@ -29,6 +30,7 @@ except ImportError:
 class CWPyRunningError(Exception):
     pass
 
+
 class _Singleton(object):
     """継承専用クラス"""
     def __new__(cls, *args, **kwargs):
@@ -39,8 +41,11 @@ class _Singleton(object):
             cls.__new__ = classmethod(lambda cls, *args, **kwargs: instance)
             return cls.__new__(cls, *args, **kwargs)
 
+
 class CWPy(_Singleton, threading.Thread):
     def __init__(self, setting, frame=None):
+        self._running = False
+        self.skinsounds = {}
         if frame and not hasattr(self, "frame"):
             threading.Thread.__init__(self)
             self.rsrc = None
@@ -50,7 +55,6 @@ class CWPy(_Singleton, threading.Thread):
             # バージョン判定等で使用するシステムクーポン
             self.syscoupons = cw.setting.SystemCoupons()
             self.ydata = None
-            self._running = False
             self.init_pygame(setting)
 
     def init_pygame(self, setting):
@@ -58,19 +62,20 @@ class CWPy(_Singleton, threading.Thread):
         self.setting = setting  # 設定
         self.status = "Title"
         self.update_titlebar()
-        self.expand_mode = setting.expandmode # 画面拡大条件
-        self.is_processing = False # シナリオ読込中か
-        self.is_debuggerprocessing = False # デバッガの処理が進行中か(宿の再ロードなど)
-        self.is_decompressing = False # アーカイブ展開中か
-        self.is_updating_skin = False # スキン切替中か
+        self.expand_mode = setting.expandmode  # 画面拡大条件
+        self.is_processing = False  # シナリオ読込中か
+        self.is_debuggerprocessing = False  # デバッガの処理が進行中か(宿の再ロードなど)
+        self.is_decompressing = False  # アーカイブ展開中か
+        self.is_updating_skin = False  # スキン切替中か
 
-        self.update_scaling = False # 画面スケール変更中か
+        self.update_scaling = False  # 画面スケール変更中か
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
-        self.scr, self.scr_draw, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen, self.setting.soundfonts,
-                                                                                fullscreensize=self.frame.get_displaysize(),
-                                                                                sdlmixer_enabled=self.setting.sdlmixer_enabled)
+        self.scr, self.scr_draw, self.scr_fullscreen, self.clock =\
+            cw.util.init(cw.SIZE_GAME, "", fullscreen, self.setting.soundfonts,
+                         fullscreensize=self.frame.get_displaysize(),
+                         sdlmixer_enabled=self.setting.sdlmixer_enabled)
         if fullscreen:
             self.set_fullscreen(True)
         # 背景
@@ -186,7 +191,7 @@ class CWPy(_Singleton, threading.Thread):
         # イベントハンドラ
         self.eventhandler = cw.eventhandler.EventHandler()
         self.interrupt_eventhandler = None
-        self._log_handler = None # メッセージログ表示中のハンドラ
+        self._log_handler = None  # メッセージログ表示中のハンドラ
         # 設定ダイアログのタブ位置
         self.settingtab = 0
         # 保存用のパーティ記録
@@ -285,8 +290,8 @@ class CWPy(_Singleton, threading.Thread):
                     self.frame.SetMinSize(dsize)
                 else:
                     # BUG: BestSizeが変化しない wxPython 4.0.1
-                    #assert size[0] <= self.frame.GetBestSize()[0]
-                    #assert size[1] <= self.frame.GetBestSize()[1]
+                    # assert size[0] <= self.frame.GetBestSize()[0]
+                    # assert size[1] <= self.frame.GetBestSize()[1]
                     size2 = size[0]+ws, size[1]+hs
                     self.frame.SetMaxSize(size2)
                     self.frame.SetMinSize(size2)
@@ -329,8 +334,8 @@ class CWPy(_Singleton, threading.Thread):
 
         for key, bps in self.breakpoint_table.items():
             scenario, author = key
-            e_sc = cw.data.make_element("Breakpoints", attrs={"scenario":scenario,
-                                                             "author":author})
+            e_sc = cw.data.make_element("Breakpoints", attrs={"scenario": scenario,
+                                                              "author": author})
             for bp in bps:
                 if bp:
                     e = cw.data.make_element("Breakpoint", bp)
@@ -389,7 +394,7 @@ class CWPy(_Singleton, threading.Thread):
             def func():
                 s = ("CardWirthPyの実行に必要なフォントがありません。\n"
                      "Data/Font以下にIPAフォントをインストールしてください。")
-                wx.MessageBox(s, "メッセージ", wx.OK|wx.ICON_ERROR, cw.cwpy.frame)
+                wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_ERROR, cw.cwpy.frame)
                 cw.cwpy.frame.Destroy()
             cw.cwpy.frame.exec_func(func)
             return False
@@ -441,6 +446,7 @@ class CWPy(_Singleton, threading.Thread):
         oldskindir = cw.util.join_paths("Data/Skin", oldskindirname)
         newskindir = cw.util.join_paths("Data/Skin", skindirname)
         self.background.update_skin(oldskindir, newskindir)
+
         def repl_cardimg(sprite):
             if hasattr(sprite, "cardimg"):
                 for path in sprite.cardimg.paths:
@@ -527,7 +533,7 @@ class CWPy(_Singleton, threading.Thread):
                         else:
                             music.play(music.path, updatepredata=False)
 
-                if not oldareaid is None:
+                if oldareaid is not None:
                     self.selectedheader = selectedheader
                     self.pre_dialogs = pre_dialogs
                     self.change_specialarea(oldareaid, silent=True)
@@ -568,7 +574,7 @@ class CWPy(_Singleton, threading.Thread):
             vstr.append(str(v))
         vstr = ".".join(vstr)
 
-        d = { "application":cw.APP_NAME, "skin":self.setting.skinname, "version":vstr }
+        d = {"application": cw.APP_NAME, "skin": self.setting.skinname, "version": vstr}
 
         if versioninfo:
             d["build"] = versioninfo.build_datetime
@@ -617,6 +623,7 @@ class CWPy(_Singleton, threading.Thread):
         if displaysize is None and fullscreen:
             def func():
                 dsize = self.frame.get_displaysize()
+
                 def func():
                     self.update_scale(scale, changearea, rsrconly, udpatedrawsize, dsize)
                     if afterfunc:
@@ -743,7 +750,8 @@ class CWPy(_Singleton, threading.Thread):
             self.setting.vocation120 = vocation120
             for sprite in self.cardgrp.sprites():
                 if isinstance(sprite, cw.sprite.background.InuseCardImage) or\
-                        (isinstance(sprite, cw.character.Character) and sprite.is_initialized() and sprite.test_aptitude):
+                        (isinstance(sprite, cw.character.Character) and sprite.is_initialized() and
+                         sprite.test_aptitude):
                     sprite.update_scale()
 
     def update_curtainstyle(self):
@@ -791,8 +799,9 @@ class CWPy(_Singleton, threading.Thread):
         行った際に呼び出される。
         """
         self.sdata.notice_infoview = True
-        showbuttons = not self.is_playingscenario() or\
-            (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
+        showbuttons = not self.is_playingscenario() or (
+                self.areaid not in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP
+        )
         if self.is_battlestatus() and not self.battle.is_ready():
             showbuttons = False
         self.statusbar.change(showbuttons)
@@ -808,7 +817,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.quit()
 
             self._quit()
-        except:
+        except Exception:
             self.is_processing = False
             self._running = False
             if self.advlog:
@@ -930,7 +939,7 @@ class CWPy(_Singleton, threading.Thread):
                     continue
                 breakflag = True
             elif e.type == pygame.locals.KEYUP:
-                if not e.key in (pygame.locals.K_F1, pygame.locals.K_F2, pygame.locals.K_F3, pygame.locals.K_F4,
+                if e.key not in (pygame.locals.K_F1, pygame.locals.K_F2, pygame.locals.K_F3, pygame.locals.K_F4,
                                  pygame.locals.K_F5, pygame.locals.K_F6, pygame.locals.K_F7, pygame.locals.K_F8,
                                  pygame.locals.K_F9, pygame.locals.K_F10, pygame.locals.K_F11, pygame.locals.K_F12,
                                  pygame.locals.K_F13, pygame.locals.K_F14, pygame.locals.K_F15):
@@ -951,7 +960,7 @@ class CWPy(_Singleton, threading.Thread):
                     continue
                 elif e.type in (KEYDOWN, KEYUP) and not hasattr(e, "key"):
                     continue
-                elif not e.type in (USEREVENT, cw.FORCE_USEREVENT) and self.is_showingdlg():
+                elif e.type not in (USEREVENT, cw.FORCE_USEREVENT) and self.is_showingdlg():
                     continue
                 # ---
                 return e
@@ -963,7 +972,7 @@ class CWPy(_Singleton, threading.Thread):
         pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         events = []
         for e in self.events:
-            if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
+            if e.type not in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
                 events.append(e)
         self.events = events
 
@@ -1001,7 +1010,8 @@ class CWPy(_Singleton, threading.Thread):
                         # (-1はすでに連打状態)
                         self.keyevent.mousein[i] = pygame.time.get_ticks()
 
-            if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and self.battle.is_ready():
+            if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and\
+                    self.battle.is_ready():
                 # パーティ領域より上へマウスカーソルが行ったら戦闘行動表示をクリア
                 if mousemotion2 and self._in_partyarea(mousepos) != self._in_partyarea(self.mousepos):
                     self._show_allselectedcards = True
@@ -1027,7 +1037,7 @@ class CWPy(_Singleton, threading.Thread):
             if noinput:
                 seq = []
                 for e in self.events:
-                    if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, cw.FORCE_USEREVENT):
+                    if e.type not in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, cw.FORCE_USEREVENT):
                         seq.append(e)
                 del self.events[:]
                 self.events.extend(seq)
@@ -1062,7 +1072,7 @@ class CWPy(_Singleton, threading.Thread):
         # 状態の補正
         if not self.statusbar.showbuttons:
             # 通常エリアで操作可能な状態であればステータスバーのボタンを表示
-            if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
+            if not self.is_runningevent() and self.areaid not in cw.AREAS_TRADE and not self.selectedheader:
                 self.statusbar.change()
 
         if self.lock_menucards:
@@ -1083,9 +1093,10 @@ class CWPy(_Singleton, threading.Thread):
                 self.show_party()
 
             clip = None
-            if not cw.cwpy.sdata.infocards_beforeevent is None:
+            if cw.cwpy.sdata.infocards_beforeevent is not None:
                 # このブロックはイベント終了直後に一回だけ実行される
-                for _i in [i for i in cw.cwpy.sdata.get_infocards(False) if not i in cw.cwpy.sdata.infocards_beforeevent]:
+                for _i in [i for i in cw.cwpy.sdata.get_infocards(False)
+                           if i not in cw.cwpy.sdata.infocards_beforeevent]:
                     # イベント開始前には持っていなかった情報カードを入手している
                     cw.cwpy.sdata.notice_infoview = True
                     cw.cwpy.statusbar.change()
@@ -1138,11 +1149,13 @@ class CWPy(_Singleton, threading.Thread):
 
     def return_takenoutcard(self, checkevent=True):
         # 一時的に荷物袋から出したカードを戻す(消滅していなければ)
-        if self.card_takenouttemporarily and not self.selectedheader and (not checkevent or not self.is_runningevent()) and not self.is_battlestatus():
+        if self.card_takenouttemporarily and not self.selectedheader and\
+                (not checkevent or not self.is_runningevent()) and not self.is_battlestatus():
             owner = self.card_takenouttemporarily.get_owner()
             if owner and isinstance(owner, cw.character.Character):
                 self.clear_inusecardimg(self.card_takenouttemporarily.get_owner())
-                cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None, sound=False, call_predlg=False, sort=True)
+                cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None,
+                              sound=False, call_predlg=False, sort=True)
             cw.cwpy.card_takenouttemporarily = None
 
     def fix_updated_file(self, force=False):
@@ -1196,7 +1209,7 @@ class CWPy(_Singleton, threading.Thread):
                 if self._stop_animations is None:
                     self._stop_animations = pygame.time.get_ticks()
                 return
-            elif not self._stop_animations is None:
+            elif self._stop_animations is not None:
                 for sprite in self.animations:
                     sprite.start_animation += pygame.time.get_ticks() - self._stop_animations
                 self._stop_animations = None
@@ -1210,24 +1223,24 @@ class CWPy(_Singleton, threading.Thread):
 
             if sprite.status != sprite.anitype:
                 removes.add(sprite)
-                continue # アニメーション終了
+                continue  # アニメーション終了
 
             ticks = pygame.time.get_ticks()
             if ticks < sprite.start_animation:
                 sprite.start_animation = ticks
             frame = int((ticks - sprite.start_animation) / 1000.0 * 60.0)
             if frame <= sprite.frame:
-                continue # フレーム進行無し
+                continue  # フレーム進行無し
             sprite.frame = frame
             method = getattr(sprite, "update_" + sprite.status, None)
             if method:
                 method()
             else:
                 removes.add(sprite)
-                continue # アニメーション中止
+                continue  # アニメーション中止
             clip.union_ip(sprite.rect)
             if sprite.status != sprite.anitype:
-                removes.add(sprite) # アニメーション終了
+                removes.add(sprite)  # アニメーション終了
 
         if clip:
             self.add_lazydraw(clip=clip)
@@ -1315,7 +1328,8 @@ class CWPy(_Singleton, threading.Thread):
                 scr = scale(self.scr_draw, self.scr_size)
                 if clip:
                     clip2 = update_clip(self.scr_scale)
-                    clip3 = pygame.Rect(clip2.left + self.scr_pos[0], clip2.top + self.scr_pos[1], clip2.width, clip2.height)
+                    clip3 = pygame.Rect(clip2.left + self.scr_pos[0], clip2.top + self.scr_pos[1],
+                                        clip2.width, clip2.height)
                     self.scr_fullscreen.blit(scr, clip3.topleft, clip2)
                     pygame.display.update(clip3)
                 else:
@@ -1506,7 +1520,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 cursor = pygame.cursors.compile(s, ".", "#", "o")
             pygame.mouse.set_cursor((len(s[0]), len(s)), (0, 0), *cursor)
-            #pygame.mouse.set_cursor(*pygame.cursors.arrow)
+            # pygame.mouse.set_cursor(*pygame.cursors.arrow)
         elif name == "diamond":
             pygame.mouse.set_cursor(*pygame.cursors.diamond)
         elif name == "broken_x":
@@ -1714,12 +1728,13 @@ class CWPy(_Singleton, threading.Thread):
             # 表示が乱れる場合があるので
             # ステータスバーのボタンからフォーカスを外しておく
             self.mousepos = (-1, -1)
-        self.keyevent.clear() # キー入力初期化
+        self.keyevent.clear()  # キー入力初期化
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])
         event.args = kwargs
         if threading.currentThread() == self:
             if not self.frame:
                 return
+
             def func():
                 # BUG: シナリオインストールダイアログを開いたあとで
                 #      フィルタイベントの挙動がおかしくなる
@@ -1762,7 +1777,7 @@ class CWPy(_Singleton, threading.Thread):
                 # 対象消去されている場合は開かない
                 index2 = pre_info[1]
                 if isinstance(index2, cw.character.Character) and\
-                        (index2.is_vanished() or ((not index2.is_active() and not self.areaid in cw.AREAS_TRADE))):
+                        (index2.is_vanished() or ((not index2.is_active() and self.areaid not in cw.AREAS_TRADE))):
                     self.pre_dialogs.pop()
                     self.lock_menucards = False
                     return
@@ -1787,7 +1802,7 @@ class CWPy(_Singleton, threading.Thread):
         func: 実行したいファンクションオブジェクト。
         """
         event = pygame.event.Event(pygame.USEREVENT, func=func, args=args,
-                                                                kwargs=kwargs)
+                                   kwargs=kwargs)
         post_pygameevent(event)
 
     def force_exec_func(self, func, *args, **kwargs):
@@ -1806,10 +1821,12 @@ class CWPy(_Singleton, threading.Thread):
             return func(*args, **kwargs)
         else:
             result = [None]
+
             class Running(object):
                 def __init__(self):
                     self.isrun = True
             running = Running()
+
             def func2(running, result, func, *args, **kwargs):
                 result[0] = func(*args, **kwargs)
                 running.isrun = False
@@ -1863,7 +1880,7 @@ class CWPy(_Singleton, threading.Thread):
 
                 self.setting.is_expanded = flag
                 if flag:
-                    assert not displaysize is None
+                    assert displaysize is not None
                     self.expand_mode = expandmode
                     dsize = displaysize
                     self.scr_fullscreen = pygame.display.set_mode((dsize[0], dsize[1]), 0)
@@ -2057,9 +2074,9 @@ class CWPy(_Singleton, threading.Thread):
         """call_yesno()の戻り値を取得する。"""
         return self._yesnoresult
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # ゲーム状態遷移用メソッド
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
     def set_status(self, name):
         isbattle = "ScenarioBattle" in (name, self.status)
@@ -2296,7 +2313,7 @@ class CWPy(_Singleton, threading.Thread):
 
                         if manualstart:
                             dataversion = self.sdata.summary.getattr(".", "dataVersion", "")
-                            if not dataversion in cw.SUPPORTED_WSN:
+                            if dataversion not in cw.SUPPORTED_WSN:
                                 s = "対応していないWSNバージョン(%s)のシナリオです。\n正常に動作しない可能性がありますが、開始しますか？" % (dataversion)
                                 self.call_modaldlg("YESNO", text=s)
                                 if self.get_yesnoresult() != wx.ID_OK:
@@ -2341,7 +2358,7 @@ class CWPy(_Singleton, threading.Thread):
                             self.setting.lastscenariopath = header.get_fpath()
                         self.ydata._loading = False
 
-                    except:
+                    except Exception:
                         # 読込失敗(帰還)
                         cw.util.print_ex()
                         self.exec_func(load_failure, True)
@@ -2352,7 +2369,7 @@ class CWPy(_Singleton, threading.Thread):
                 if not self.is_runningstatus():
                     return
                 self.exec_func(load_failure, False)
-            except:
+            except Exception:
                 if not self.is_runningstatus():
                     return
                 # 読込失敗(帰還)
@@ -2417,7 +2434,8 @@ class CWPy(_Singleton, threading.Thread):
                 music.stop()
         for i in range(len(self.lastsound_scenario)):
             if self.lastsound_scenario[i]:
-                if not skinfileonly or cw.util.join_paths(self.lastsound_scenario[i].get_path()).startswith("Data/Skin/"):
+                if not skinfileonly or\
+                        cw.util.join_paths(self.lastsound_scenario[i].get_path()).startswith("Data/Skin/"):
                     self.lastsound_scenario[i].stop(True)
                     self.lastsound_scenario[i] = None
 
@@ -2425,12 +2443,13 @@ class CWPy(_Singleton, threading.Thread):
         """cw.data.ScenarioDataのf9()から呼び出され、
         緊急避難処理の続きを行う。
         """
-        if load_failure == False and not self.is_playingscenario():
+        if not load_failure and not self.is_playingscenario():
             return
         if self.sdata.in_endprocess:
             return
 
         self.clean_specials()
+
         def func():
             if cw.cwpy.is_runningevent():
                 self.exec_func(self._f9impl, False, loadyado)
@@ -2489,8 +2508,7 @@ class CWPy(_Singleton, threading.Thread):
             path = cw.util.join_paths(dpath, name)
 
             if os.path.isfile(path) and path.endswith(".xml"):
-                dstpath = cw.util.join_paths(self.ydata.tempdir,
-                                                        "Adventurer", name)
+                dstpath = cw.util.join_paths(self.ydata.tempdir, "Adventurer", name)
 
                 dstdir = os.path.dirname(dstpath)
 
@@ -2617,7 +2635,7 @@ class CWPy(_Singleton, threading.Thread):
             pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status=status, index=idx)
 
             # カード画像が変更されているPCは戻す
-            if not elog is None:
+            if elog is not None:
                 name = os.path.splitext(os.path.basename(data.fpath))[0]
 
                 for eimg in elog.getfind(".", raiseerror=False):
@@ -2625,7 +2643,7 @@ class CWPy(_Singleton, threading.Thread):
                         prop = data.find("Property")
                         for ename in ("ImagePath", "ImagePaths"):
                             e = prop.find(ename)
-                            if not e is None:
+                            if e is not None:
                                 prop.remove(e)
 
                         if eimg.tag == "ImagePath":
@@ -2695,6 +2713,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata = cw.data.SystemData()
                 cw.util.remove_temp()
                 self.load_yado(self.yadodir, createmutex=False)
+
                 def func():
                     def func():
                         self.is_debuggerprocessing = False
@@ -2860,9 +2879,9 @@ class CWPy(_Singleton, threading.Thread):
         self._clear_changed = True
         return True
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # エリアチェンジ関係メソッド
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
     def deal_cards(self, quickdeal=False, updatelist=True, flag="", startbattle=False, silent=False):
         """hidden状態のMenuCard(対応フラグがFalseだったら表示しない)と
@@ -3055,10 +3074,12 @@ class CWPy(_Singleton, threading.Thread):
                 if info.pcnumber == pcnumber:
                     if pcard:
                         for base in pcard.imgpaths:
-                            imgpaths.append(cw.image.ImageInfo(base.path, pcnumber, info.base, basecardtype="LargeCard"))
+                            imgpaths.append(cw.image.ImageInfo(base.path, pcnumber, info.base,
+                                                               basecardtype="LargeCard"))
                             can_loaded_scaledimages.append(can_loaded_scaledimage)
                     else:
-                        imgpaths.append(cw.image.ImageInfo(pcnumber=pcnumber, base=info.base, basecardtype="LargeCard"))
+                        imgpaths.append(cw.image.ImageInfo(pcnumber=pcnumber, base=info.base,
+                                                           basecardtype="LargeCard"))
                         can_loaded_scaledimages.append(False)
                     update = True
                 else:
@@ -3203,7 +3224,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.cardgrp.add(fcard, layer=fcard.layer_t)
                 self.mcards.append(fcard)
-                if not alpha is None:
+                if alpha is not None:
                     fcard.update_image()
                 fcard.deal()
         self.list = self.get_mcards("visible")
@@ -3324,7 +3345,7 @@ class CWPy(_Singleton, threading.Thread):
         seq = []
 
         grpidx = {}
-        moved_mcards = {} # 不要な再配置情報を削除するため再構築する
+        moved_mcards = {}  # 不要な再配置情報を削除するため再構築する
         for i, e in enumerate(elements):
             cardgroup = e.gettext("Property/CardGroup", "")
             if stype == "Auto":
@@ -3403,10 +3424,10 @@ class CWPy(_Singleton, threading.Thread):
         self._need_disposition = False
 
     def change_area(self, areaid, eventstarting=True,
-                          bginhrt=False, ttype=("Default", "Default"),
-                          quickdeal=False, specialarea=False, startbattle=False,
-                          doanime=True, data=None, nocheckvisible=False,
-                          clear_curtain=False, force_updatebg=False, silent=False):
+                    bginhrt=False, ttype=("Default", "Default"),
+                    quickdeal=False, specialarea=False, startbattle=False,
+                    doanime=True, data=None, nocheckvisible=False,
+                    clear_curtain=False, force_updatebg=False, silent=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -3535,7 +3556,8 @@ class CWPy(_Singleton, threading.Thread):
         cw.animation.animate_sprite(sprite, "hide")
         sprite.remove(cw.cwpy.cardgrp)
 
-        self.sdata.pre_battleareadata = (oldareaid, oldbgmpath, (music.path, music.subvolume, music.loopcount, music.channel))
+        self.sdata.pre_battleareadata = (oldareaid, oldbgmpath, (music.path, music.subvolume, music.loopcount,
+                                                                 music.channel))
         cw.battle.BattleEngine(data)
         self.lock_menucards = False
 
@@ -3590,7 +3612,8 @@ class CWPy(_Singleton, threading.Thread):
                         pcard.update_image()
                         cw.animation.animate_sprite(pcard, "deal", battlespeed=True)
 
-            if (areachange or (startnextbattle and not is_battlestarting)) and not eventkeynum == 3 and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
+            if (areachange or (startnextbattle and not is_battlestarting)) and not eventkeynum == 3 and\
+                    not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
                 # 勝利・逃走成功時に時間経過
                 # 戦闘中のエリア移動・敗北イベント・1.20以下は時間経過しない
                 self.elapse_time()
@@ -3710,6 +3733,7 @@ class CWPy(_Singleton, threading.Thread):
                 if self.status == "Scenario":
                     if cw.cwpy.setting.confirm_beforeusingcard:
                         owner.image = owner.get_selectedimage()
+
                     def func(owner):
                         if cw.cwpy.setting.confirm_beforeusingcard:
                             self.change_selection(owner)
@@ -3730,7 +3754,7 @@ class CWPy(_Singleton, threading.Thread):
             self.disposition_pcards()
 
     def set_testaptitude(self, header):
-        if not self.areaid in cw.AREAS_TRADE:
+        if self.areaid not in cw.AREAS_TRADE:
             return
         # 能力適性表示
         for pcard in self.get_pcards("unreversed"):
@@ -3837,7 +3861,7 @@ class CWPy(_Singleton, threading.Thread):
 
         def func():
             showbuttons = not self.is_playingscenario() or\
-                (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP) or\
+                (self.areaid not in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP) or\
                 oldareaid == cw.AREA_CAMP or\
                 (targetselectionarea and not self.is_runningevent()) or\
                 (self.is_battlestatus() and self.battle.is_ready())
@@ -3954,6 +3978,7 @@ class CWPy(_Singleton, threading.Thread):
         # カード交換用スプライト
         def get_image():
             return self.rsrc.pygamedialogs["REPLACE_CARDS"]
+
         def get_selimage():
             bmp = self.rsrc.pygamedialogs["REPLACE_CARDS"].convert_alpha()
             return cw.imageretouch.add_lightness(bmp, 64)
@@ -4001,9 +4026,9 @@ class CWPy(_Singleton, threading.Thread):
             self.add_lazydraw(clip=sprite.rect)
         self.topgrp.empty()
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 選択操作用メソッド
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
     def clear_selection(self):
         """全ての選択状態を解除する。"""
@@ -4052,9 +4077,9 @@ class CWPy(_Singleton, threading.Thread):
             if sprite:
                 self.add_lazydraw(clip=sprite.rect)
 
-        if (not self.is_runningevent()\
-                and isinstance(sprite, cw.character.Character)\
-                and (not self.selectedheader or self.is_battlestatus())\
+        if (not self.is_runningevent()
+                and isinstance(sprite, cw.character.Character)
+                and (not self.selectedheader or self.is_battlestatus())
                 and sprite.is_analyzable())\
                 or show_allselectedcards:
             seq = itertools.chain(self.get_pcards("unreversed"),
@@ -4067,9 +4092,9 @@ class CWPy(_Singleton, threading.Thread):
 
         for sprite in seq:
             if not self.selectedheader or sprite != self.selectedheader.get_owner():
-                if not (isinstance(sprite, cw.character.Character)\
-                        and sprite.actiondata\
-                        and sprite.is_analyzable()\
+                if not (isinstance(sprite, cw.character.Character)
+                        and sprite.actiondata
+                        and sprite.is_analyzable()
                         and sprite.status != "hidden"):
                     continue
 
@@ -4130,7 +4155,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_inusecardimg(self, owner, header, status="normal", center=False, alpha=255, fore=False):
         """PlayerCardの前に使用中カードの画像を表示。"""
-        if center or (not owner.inusecardimg and self.background.rect.colliderect(owner.rect) and owner.status != "hidden"):
+        if center or (not owner.inusecardimg and self.background.rect.colliderect(owner.rect) and
+                      owner.status != "hidden"):
             inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center, alpha=alpha, fore=fore)
             owner.inusecardimg = inusecard
             self.add_lazydraw(clip=inusecard.rect)
@@ -4205,7 +4231,6 @@ class CWPy(_Singleton, threading.Thread):
                         arrow = cw.sprite.background.TargetArrow(target)
                         cw.cwpy.add_lazydraw(clip=arrow.rect)
 
-
     def clear_targetarrow(self):
         """対象選択の指矢印の画像を削除。"""
         arrows = self.cardgrp.get_sprites_from_layer(cw.LAYER_TARGET_ARROW)
@@ -4231,8 +4256,7 @@ class CWPy(_Singleton, threading.Thread):
         """Curtainスプライトをセットする。"""
         if not self.is_curtained():
             self.is_pcardsselectable = target in ("Both", "Party")
-            self.is_mcardsselectable = not self.is_battlestatus() or\
-                                       target in ("Both", "Enemy")
+            self.is_mcardsselectable = not self.is_battlestatus() or target in ("Both", "Enemy")
             self.update_selectablelist()
 
             # カード上のカーテン
@@ -4275,18 +4299,19 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_lockmenucards(self, sprite):
         """メニューカードをクリック出来ない状態か。"""
-        if (isinstance(sprite, cw.sprite.animationcell.AnimationCell) or\
-                    (sprite and sprite.is_statusctrl)) and\
+        if (isinstance(sprite, cw.sprite.animationcell.AnimationCell) or
+            (sprite and sprite.is_statusctrl)) and\
                 sprite.selectable_on_event:
             return False
-        return self.lock_menucards or\
-               self.is_showingdlg() or\
-               pygame.event.peek(pygame.locals.USEREVENT) or\
-               self.is_showingbacklog()
+        return (
+            self.lock_menucards or self.is_showingdlg() or
+            pygame.event.peek(pygame.locals.USEREVENT) or
+            self.is_showingbacklog()
+        )
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # プレイ用メソッド
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
     def elapse_time(self, playeronly=False, fromevent=False):
         """時間経過。"""
@@ -4444,6 +4469,7 @@ class CWPy(_Singleton, threading.Thread):
     def get_partyrecord(self):
         """現在のパーティ情報の記録を生成して返す。"""
         assert bool(self.ydata.party)
+
         class StoredParty(object):
             def __init__(self, party):
                 self.fpath = ""
@@ -4497,7 +4523,8 @@ class CWPy(_Singleton, threading.Thread):
             cw.cwpy.lastsound_system.set_mastervolume(False, volume)
             cw.cwpy.lastsound_system.set_volume(False)
 
-    def play_sound(self, name, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0, material_override=False):
+    def play_sound(self, name, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0,
+                   material_override=False):
         if channel < 0 or cw.bassplayer.MAX_SOUND_CHANNELS <= channel:
             return
         if self != threading.currentThread():
@@ -4512,10 +4539,12 @@ class CWPy(_Singleton, threading.Thread):
             path = cw.util.join_paths(self.sdata.scedir, path)
             path = os.path.basename(cw.util.find_resource(path, cw.M_SND))
             inusecard = self.event.get_inusecard()
-            if self._play_sound_with(path, from_scenario, inusecard=inusecard, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade):
+            if self._play_sound_with(path, from_scenario, inusecard=inusecard, subvolume=subvolume,
+                                     loopcount=loopcount, channel=channel, fade=fade):
                 return
 
-        self.sounds[name].copy().play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
+        self.sounds[name].copy().play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel,
+                                      fade=fade)
 
     def _play_sound_with(self, path, from_scenario, inusecard=None, subvolume=100, loopcount=1, channel=0, fade=0):
         if not path:
@@ -4526,7 +4555,8 @@ class CWPy(_Singleton, threading.Thread):
         else:
             path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)
         if os.path.isfile(path):
-            cw.util.load_sound(path).play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
+            cw.util.load_sound(path).play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel,
+                                          fade=fade)
             return True
         return False
 
@@ -4538,13 +4568,15 @@ class CWPy(_Singleton, threading.Thread):
             return
         if channel < 0 or cw.bassplayer.MAX_SOUND_CHANNELS <= channel:
             return
-        if self._play_sound_with(path, True, inusecard, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade):
+        if self._play_sound_with(path, True, inusecard, subvolume=subvolume, loopcount=loopcount, channel=channel,
+                                 fade=fade):
             return
 
         name = cw.util.splitext(os.path.basename(path))[0]
 
         if name in self.skinsounds:
-            self.skinsounds[name].copy().play(True, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
+            self.skinsounds[name].copy().play(True, subvolume=subvolume, loopcount=loopcount, channel=channel,
+                                              fade=fade)
 
     def has_sound(self, path):
         if not path:
@@ -4558,15 +4590,29 @@ class CWPy(_Singleton, threading.Thread):
             name = cw.util.splitext(os.path.basename(path))[0]
             return name in self.skinsounds
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # データ編集・操作用メソッド。
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None,\
-              from_event=False, parentdialog=None, toindex=-1,\
-              insertorder=-1, sort=True, sound=True, party=None,\
-              from_getcontent=False, call_predlg=True,\
+    def trade(self, targettype, target=None, header=None,
+              from_event=False, parentdialog=None, toindex=-1,
+              insertorder=-1, sort=True, sound=True, party=None,
+              from_getcontent=False, call_predlg=True,
               clearinusecard=True, update_image=True):
+        # type targettype: str
+        # type target: (list, cw.character.Character)
+        # type header: cw.header.CardHeader
+        # type from_event: bool
+        # type parentdialog: wx.Dialog
+        # type toindex: int
+        # type insertorder: int
+        # type sort: bool
+        # type sound: bool
+        # type party: cw.data.Party
+        # type from_getcontent: bool
+        # type call_predlg: bool
+        # type clearinusecard: bool
+        # type update_image: bool
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -4600,7 +4646,7 @@ class CWPy(_Singleton, threading.Thread):
         toself = (targettype == "BACKPACK" and party and owner == party.backpack) or\
                  (targettype == "STOREHOUSE" and owner == self.ydata.storehouse)
 
-        if not toself and not targettype in ("PAWNSHOP", "TRASHBOX"):
+        if not toself and targettype not in ("PAWNSHOP", "TRASHBOX"):
             header.do_write()
 
         # 移動先を設定。
@@ -4637,8 +4683,9 @@ class CWPy(_Singleton, threading.Thread):
 
             if targettype == "PAWNSHOP":
                 price = header.sellingprice
-                if not from_event and (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_ALWAYS or\
-                                        (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_SENDTO and parentdialog)):
+                if not from_event and (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_ALWAYS or
+                                       (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_SENDTO and
+                                        parentdialog)):
                     if sound:
                         cw.cwpy.play_sound("page")
                     s = cw.cwpy.msgs["confirm_sell"] % (header.name, price)
@@ -4646,8 +4693,9 @@ class CWPy(_Singleton, threading.Thread):
                     if self.get_yesnoresult() != wx.ID_OK:
                         return
             else:
-                if not from_event and (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_ALWAYS or\
-                                        (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_SENDTO and parentdialog)):
+                if not from_event and (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_ALWAYS or
+                                       (self.setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_SENDTO and
+                                        parentdialog)):
                     if sound:
                         cw.cwpy.play_sound("page")
                     s = cw.cwpy.msgs["confirm_dump"] % (header.name)
@@ -4662,7 +4710,7 @@ class CWPy(_Singleton, threading.Thread):
         # 手札カードダイアログ用のインデックスを取得する
         if header.type == "SkillCard":
             index = 0
-        elif header.type == "ItemCard" :
+        elif header.type == "ItemCard":
             index = 1
         elif header.type == "BeastCard":
             index = 2
@@ -4678,7 +4726,8 @@ class CWPy(_Singleton, threading.Thread):
             if n + 1 > maxn:
                 if from_event:
                     # 互換動作: 1.20以前では手札が一杯でも荷物袋に入らない
-                    if not (from_getcontent and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
+                    if not (from_getcontent and cw.cwpy.sdata and
+                            cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
                         self.trade("BACKPACK", header=header, from_event=True, sort=sort, party=party,
                                    from_getcontent=from_getcontent)
 
@@ -4701,14 +4750,15 @@ class CWPy(_Singleton, threading.Thread):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
 
-        #-----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # 移動元からデータを削除
-        #-----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
 
         hold = header.hold
         fromplayer = isinstance(owner, cw.character.Player)
 
-        if cw.cwpy.event.get_selectedcard() and header.ref_original() == cw.cwpy.event.get_selectedcard().ref_original():
+        if cw.cwpy.event.get_selectedcard() and\
+                header.ref_original() == cw.cwpy.event.get_selectedcard().ref_original():
             cw.cwpy.event.set_selectedcard(cw.cwpy.event.get_inusecard())
 
         # 移動元がCharacterだった場合
@@ -4721,7 +4771,7 @@ class CWPy(_Singleton, threading.Thread):
             owner.data.remove(path, header.carddata)
             # 戦闘中だった場合はデッキからも削除
             owner.deck.remove(owner, header)
-            if target != owner and clearinusecard and not self.areaid in cw.AREAS_TRADE:
+            if target != owner and clearinusecard and self.areaid not in cw.AREAS_TRADE:
                 self.clear_inusecardimgfromheader(header)
 
             # 行動予定に入っていればキャンセル
@@ -4767,7 +4817,7 @@ class CWPy(_Singleton, threading.Thread):
                 pass
             elif header.scenariocard:
                 # シナリオで入手したカードはそのまま削除してよい
-                header.contain_xml(load=not targettype in ("PAWNSHOP", "TRASHBOX"))
+                header.contain_xml(load=targettype not in ("PAWNSHOP", "TRASHBOX"))
             else:
                 if is_playingscenario:
                     if not header.carddata:
@@ -4821,9 +4871,9 @@ class CWPy(_Singleton, threading.Thread):
         if header == self.selectedheader:
             self.clear_inusecardimg()
 
-        #-----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # ファイル削除
-        #-----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
 
         # 移動先がゴミ箱・下取りだったら
         if targettype in ("PAWNSHOP", "TRASHBOX"):
@@ -4849,7 +4899,7 @@ class CWPy(_Singleton, threading.Thread):
                     etree.write(dfpath)
             elif not header.scenariocard and header.moved == 1:
                 # 荷物袋からPCへ移動してそこから除去した場合
-                assert not header.carddata is None
+                assert header.carddata is not None
                 header.contain_xml()
                 etree = cw.data.xml2etree(element=header.carddata)
                 etree.edit("Property", "2", "moved")
@@ -4859,9 +4909,9 @@ class CWPy(_Singleton, threading.Thread):
                 header.set_owner(None)
                 self.ydata.party.backpack_moved.append(header)
 
-        #-----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # 移動先にデータを追加する
-        #-----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
 
         # 移動先がPlayerCardだった場合
         if targettype == "PLAYERCARD":
@@ -4997,7 +5047,7 @@ class CWPy(_Singleton, threading.Thread):
         素材ファイルを削除予定リストに追加する。
         """
         e = data.find("Property/Materials")
-        if not e is None:
+        if e is not None:
             path = cw.util.join_paths(self.yadodir, e.text)
             temppath = cw.util.join_paths(self.tempdir, e.text)
             if os.path.isdir(path):
@@ -5038,7 +5088,7 @@ class CWPy(_Singleton, threading.Thread):
         if imgpaths is None:
             imgpaths = {}
 
-        r_specialfont = re.compile("#.") # 特殊文字(#)
+        r_specialfont = re.compile("#.")  # 特殊文字(#)
         if data.tag == "Property":
             prop = data
         else:
@@ -5079,7 +5129,7 @@ class CWPy(_Singleton, threading.Thread):
 
         for e in data.iter():
             if hasattr(e, "content"):
-                e.content = None # イベントコンテントのキャッシュは削除しておく
+                e.content = None  # イベントコンテントのキャッシュは削除しておく
             if e.tag == "ImagePath" and importimage:
                 # ImagePathはcarddata無しでの表示に必要となるので取り込んでおく
                 etext = cw.util.validate_filepath(e.text)
@@ -5095,44 +5145,48 @@ class CWPy(_Singleton, threading.Thread):
                 if path:
                     if yadodir and mdir:
                         path = cw.util.relpath(path, mdir)
+
                     def set_material(text):
                         e.text = text
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado,
-                                        can_loaded_scaledimage=can_loaded_scaledimage)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir,
+                                        toyado, can_loaded_scaledimage=can_loaded_scaledimage)
             elif e.tag in ("Play", "Talk"):
                 path = cw.util.validate_filepath(e.get("path"))
                 if path:
                     if yadodir and mdir:
                         path = cw.util.relpath(path, mdir)
+
                     def set_material(text):
                         e.attrib["path"] = text
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado,
-                                        can_loaded_scaledimage=can_loaded_scaledimage)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir,
+                                        toyado, can_loaded_scaledimage=can_loaded_scaledimage)
             elif e.tag == "Text" and e.text:
                 for spchar in r_specialfont.findall(e.text):
                     c = "font_" + spchar[1:]
+
                     def set_material(text):
                         pass
                     for ext in cw.EXTS_IMG:
-                        self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, c + ext, set_material, yadodir, toyado,
-                                            can_loaded_scaledimage=can_loaded_scaledimage)
+                        self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, c + ext, set_material,
+                                            yadodir, toyado, can_loaded_scaledimage=can_loaded_scaledimage)
 
             elif e.tag == "Effect":
                 path = cw.util.validate_filepath(e.get("sound"))
                 if path:
                     if yadodir and mdir:
                         path = cw.util.relpath(path, mdir)
+
                     def set_material(text):
                         e.attrib["sound"] = text
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado,
-                                        can_loaded_scaledimage=can_loaded_scaledimage)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir,
+                                        toyado, can_loaded_scaledimage=can_loaded_scaledimage)
 
-            elif not e is data and e.tag == "BeastCard" and from_scenario:
+            elif e is not data and e.tag == "BeastCard" and from_scenario:
                 self.sdata.copy_carddata(e, dstdir, from_scenario, scedir, imgpaths)
 
-    def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material, yadodir, toyado,
-                       can_loaded_scaledimage):
-        pisc = not e is None and e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
+    def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material, yadodir,
+                       toyado, can_loaded_scaledimage):
+        pisc = e is not None and e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
         if pisc:
             imgpath = materialpath
         else:
@@ -5172,10 +5226,11 @@ class CWPy(_Singleton, threading.Thread):
                     if not innerfpath.startswith(scedir + "/"):
                         continue
                     innerfpath = innerfpath.replace(scedir + "/", "", 1)
+
                     def func(text):
                         pass
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, None, innerfpath, func, yadodir, toyado,
-                                        can_loaded_scaledimage=can_loaded_scaledimage)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, None, innerfpath, func, yadodir,
+                                        toyado, can_loaded_scaledimage=can_loaded_scaledimage)
 
             except Exception:
                 cw.util.print_ex()
@@ -5224,9 +5279,9 @@ class CWPy(_Singleton, threading.Thread):
                 # 重複して処理しないよう辞書に登録
                 imgpaths[keypath] = materialpath
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 状態取得用メソッド
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
     def is_running(self):
         """CWPyスレッドがアクティブかどうかbool値を返す。
@@ -5243,7 +5298,7 @@ class CWPy(_Singleton, threading.Thread):
         return self._running
 
     def is_playingscenario(self):
-        return bool(isinstance(self.sdata, cw.data.ScenarioData)\
+        return bool(isinstance(self.sdata, cw.data.ScenarioData)
                     and self.sdata.is_playing and self.ydata and self.ydata.party)
 
     def is_runningevent(self):
@@ -5308,9 +5363,9 @@ class CWPy(_Singleton, threading.Thread):
         """
         return cw.cwpy.is_playingscenario() and self.status == "ScenarioBattle"
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 各種スプライト取得用メソッド
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
     def get_inusecardimg(self):
         """InuseCardImageインスタンスを返す(使用カード)。"""
@@ -5346,11 +5401,11 @@ class CWPy(_Singleton, threading.Thread):
             mcards = [m for m in self.get_mcards(flag=flag) if m.status == "hidden"]
         elif mode == "visiblemenucards":
             mcards = [m for m in self.get_mcards(flag=flag) if not m.status == "hidden"
-                                and isinstance(m, cw.sprite.card.MenuCard)]
+                      and isinstance(m, cw.sprite.card.MenuCard)]
         elif mode == "flagtrue":
             mcards = [m for m in self.get_mcards(flag=flag)
-                            if not isinstance(m, cw.character.Friend)
-                                    and m.is_flagtrue()]
+                      if not isinstance(m, cw.character.Friend)
+                      and m.is_flagtrue()]
         elif flag:
             mcards = self._mcardtable.get(flag, [])
         else:
@@ -5417,6 +5472,7 @@ class CWPy(_Singleton, threading.Thread):
 
 _mutex_postevent = threading.Lock()
 
+
 @synclock(_mutex_postevent)
 def post_pygameevent(event):
     """pygameイベントをキューへ投入する。
@@ -5425,12 +5481,12 @@ def post_pygameevent(event):
     """
     try:
         pygame.event.post(event)
-    except:
+    except Exception:
         try:
             # 入力イベントが輻輳している場合はクリアする
             cw.cwpy.clear_inputevents()
             pygame.event.post(event)
-        except:
+        except Exception:
             return
 
 
@@ -5445,8 +5501,10 @@ class ShowMenuCards(object):
     def rclick_event(self):
         cw.cwpy.wait_showcards = False
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

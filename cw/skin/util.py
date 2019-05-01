@@ -131,7 +131,7 @@ def install_skin(path, tempdir, progress=lambda msg, progress: None):
     pathのスキンをインストールする。
     :type path: str
     :type tempdir: str
-    :type progress: func(str)
+    :type progress: Callable[str]
     """
     tempdir2 = None
     try:

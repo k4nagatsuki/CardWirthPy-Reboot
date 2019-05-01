@@ -150,13 +150,16 @@ class UnaryOperator(object):
     def call(self, rhs):
         o = self.operator
         if o == '+':
-            if not isinstance(rhs, DecimalValue): raise SemanticsException("value [%s] is not number." % rhs.value, rhs.line, rhs.pos)
+            if not isinstance(rhs, DecimalValue):
+                raise SemanticsException("value [%s] is not number." % rhs.value, rhs.line, rhs.pos)
             return DecimalValue(rhs.value, self.line, self.pos)
         elif o == '-':
-            if not isinstance(rhs, DecimalValue): raise SemanticsException("value [%s] is not number." % rhs.value, rhs.line, rhs.pos)
+            if not isinstance(rhs, DecimalValue):
+                raise SemanticsException("value [%s] is not number." % rhs.value, rhs.line, rhs.pos)
             return DecimalValue(-rhs.value, self.line, self.pos)
         elif o == "not":
-            if not isinstance(rhs, BooleanValue): raise SemanticsException("value [%s] is not boolean." % rhs.value, rhs.line, rhs.pos)
+            if not isinstance(rhs, BooleanValue):
+                raise SemanticsException("value [%s] is not boolean." % rhs.value, rhs.line, rhs.pos)
             return BooleanValue(not rhs.value, self.line, self.pos)
         else:
             raise SemanticsException("Invalid operator: %s" % o, self.line, self.pos)
@@ -174,12 +177,18 @@ class Operator(object):
 
     def call(self, lhs, rhs):
         o = self.operator
+
         def chk_num():
-            if not isinstance(lhs, DecimalValue): raise SemanticsException("lhs [%s] is not number." % lhs.value, lhs.line, lhs.pos)
-            if not isinstance(rhs, DecimalValue): raise SemanticsException("rhs [%s] is not number." % rhs.value, rhs.line, rhs.pos)
+            if not isinstance(lhs, DecimalValue):
+                raise SemanticsException("lhs [%s] is not number." % lhs.value, lhs.line, lhs.pos)
+            if not isinstance(rhs, DecimalValue):
+                raise SemanticsException("rhs [%s] is not number." % rhs.value, rhs.line, rhs.pos)
+
         def chk_bool():
-            if not isinstance(lhs, BooleanValue): raise SemanticsException("lhs [%s] is not boolean." % lhs.value, lhs.line, lhs.pos)
-            if not isinstance(rhs, BooleanValue): raise SemanticsException("rhs [%s] is not boolean." % rhs.value, rhs.line, rhs.pos)
+            if not isinstance(lhs, BooleanValue):
+                raise SemanticsException("lhs [%s] is not boolean." % lhs.value, lhs.line, lhs.pos)
+            if not isinstance(rhs, BooleanValue):
+                raise SemanticsException("rhs [%s] is not boolean." % rhs.value, rhs.line, rhs.pos)
         if o == '+':
             chk_num()
             return DecimalValue(lhs.value + rhs.value, self.line, self.pos)
@@ -298,12 +307,14 @@ def parse(s):
     bm = None
     line = 1
     pos = 1
-    for m in re.finditer("[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|@?\"([^\"]|\"\")*\"|or|and|<=|>=|<>|<|>|=|true|false|\\n|\\s+", s, re.I):
+    reg = "[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|@?\"([^\"]|\"\")*\"|or|and|"\
+          "<=|>=|<>|<|>|=|true|false|\\n|\\s+"
+    for m in re.finditer(reg, s, re.I):
         if bpos is None or m.start() != bpos:
             raise TokanizeException("Invalid Character: %s" % s[bm.end():m.start()], line, pos)
         bpos = m.end()
         t = m.group()
-        l = cw.util.get_strlen(t)
+        ln = cw.util.get_strlen(t)
         if not t.isspace():
             tokens.append(Token(t, line, pos))
         bm = m
@@ -311,13 +322,15 @@ def parse(s):
             line += 1
             pos = 1
         else:
-            pos += l
+            pos += ln
 
     def parse_arguments(tokens, i):
-        if len(tokens) <= i + 1: raise SemanticsException("Invalid function call.", tokens[i].line, tokens[i].pos)
+        if len(tokens) <= i + 1:
+            raise SemanticsException("Invalid function call.", tokens[i].line, tokens[i].pos)
         i += 1
         t = tokens[i].token
-        if not t in ('('): raise SemanticsException("Need an open parenthesis here.", tokens[i].line, tokens[i].pos)
+        if t not in ('('):
+            raise SemanticsException("Need an open parenthesis here.", tokens[i].line, tokens[i].pos)
         args = []
         while i + 1 < len(tokens) and tokens[i].token != ')':
             t2 = tokens[i+1]
@@ -344,7 +357,8 @@ def parse(s):
             pos = tokens[i].pos
             unary = False
             if t.lower() == "not":
-                if not isop: raise SemanticsException("Need a boolean here.", line, pos)
+                if not isop:
+                    raise SemanticsException("Need a boolean here.", line, pos)
                 # 真偽値反転演算子
                 oplevel = 2
                 unary = True
@@ -357,33 +371,40 @@ def parse(s):
                     # 優先度の低い演算子
                     oplevel = 4
             elif t in ('~'):
-                if isop: raise SemanticsException("Need a symbol or number here.", line, pos)
+                if isop:
+                    raise SemanticsException("Need a symbol or number here.", line, pos)
                 # 連結子
                 oplevel = 4
             elif t in ('/', '*', '%'):
-                if isop: raise SemanticsException("Need a symbol or number here.", line, pos)
+                if isop:
+                    raise SemanticsException("Need a symbol or number here.", line, pos)
                 # 優先の高い演算子
                 oplevel = 5
             elif t in ("<=", ">=", "<>", "<", ">", "="):
-                if isop: raise SemanticsException("Need a symbol or number here.", line, pos)
+                if isop:
+                    raise SemanticsException("Need a symbol or number here.", line, pos)
                 # 比較演算子
                 oplevel = 3
             elif t.lower() == "and":
-                if isop: raise SemanticsException("Need a symbol or number here.", line, pos)
+                if isop:
+                    raise SemanticsException("Need a symbol or number here.", line, pos)
                 # AND演算子
                 oplevel = 1
             elif t.lower() == "or":
-                if isop: raise SemanticsException("Need a symbol or number here.", line, pos)
+                if isop:
+                    raise SemanticsException("Need a symbol or number here.", line, pos)
                 # OR演算子
                 oplevel = 0
             elif t in ('('):
-                if not isop: raise SemanticsException("Need an operator here.", line, pos)
+                if not isop:
+                    raise SemanticsException("Need an operator here.", line, pos)
                 # 開き括弧
                 parlevel += 1
                 i += 1
                 continue
             elif t in (')'):
-                if isop: raise SemanticsException("Need a symbol or number here.", line, pos)
+                if isop:
+                    raise SemanticsException("Need a symbol or number here.", line, pos)
                 # 閉じ括弧
                 if parlevel <= 0:
                     break
@@ -400,14 +421,16 @@ def parse(s):
                 else:
                     raise SemanticsException("Need an operator here.", line, pos)
             elif '0' <= t[0] <= '9':
-                if not isop: raise SemanticsException("Need an operator here.", line, pos)
+                if not isop:
+                    raise SemanticsException("Need an operator here.", line, pos)
                 # 数値
                 num.append(DecimalValue(t, line, pos))
                 isop = False
                 i += 1
                 continue
             elif t[0] in ('"'):
-                if not isop: raise SemanticsException("Need an operator here.", line, pos)
+                if not isop:
+                    raise SemanticsException("Need an operator here.", line, pos)
                 # 文字列
                 assert t[-1] == '"'
                 num.append(StringValue(t[1:-1].replace('""', '"'), line, pos))
@@ -415,7 +438,8 @@ def parse(s):
                 i += 1
                 continue
             elif t[0] in ('@'):
-                if not isop: raise SemanticsException("Need an operator here.", line, pos)
+                if not isop:
+                    raise SemanticsException("Need an operator here.", line, pos)
                 # 汎用変数
                 assert t[1] == '"'
                 assert t[-1] == '"'
@@ -424,14 +448,16 @@ def parse(s):
                 i += 1
                 continue
             elif t.lower() in ("true", "false"):
-                if not isop: raise SemanticsException("Need an operator here.", line, pos)
+                if not isop:
+                    raise SemanticsException("Need an operator here.", line, pos)
                 # 真偽値
                 num.append(BooleanValue(t.lower() == "true", line, pos))
                 isop = False
                 i += 1
                 continue
             else:
-                if not isop: raise SemanticsException("Need an operator here.", line, pos)
+                if not isop:
+                    raise SemanticsException("Need an operator here.", line, pos)
                 # その他シンボル
                 # 現在は関数呼び出しのみ
                 i, args = parse_arguments(tokens, i)
@@ -465,7 +491,8 @@ def parse(s):
         return i, num
 
     i, num = parse_semantics(tokens, 0)
-    if i != len(tokens): raise SemanticsException("Invalid semantics.", line, pos)
+    if i != len(tokens):
+        raise SemanticsException("Invalid semantics.", line, pos)
     return num
 
 
@@ -516,20 +543,23 @@ def _chk_argscount(args, n, func_name, line, pos):
 
 def _chk_argscount2(args, n1, n2, func_name, line, pos):
     if not len(args) in (n1, n2):
-        raise ArgumentsCountException("Invalid arguments count: %s-%s != %s" % (n1, n2, len(args)), func_name, line, pos)
+        raise ArgumentsCountException("Invalid arguments count: %s-%s != %s" % (n1, n2, len(args)), func_name, line,
+                                      pos)
 
 
 def _chk_decimal(arg, func_name, arg_index):
     """argがDecimalValueか調べる。"""
     if not isinstance(arg, DecimalValue):
-        raise ArgumentIsNotDecimalException("%s is not Decimal." % arg.value, func_name, arg_index, arg.to_str(), arg.line, arg.pos)
+        raise ArgumentIsNotDecimalException("%s is not Decimal." % arg.value, func_name, arg_index, arg.to_str(),
+                                            arg.line, arg.pos)
 
 
 def _chk_minvalue(arg, func_name, arg_index, minvalue=0):
     """argが0以上のDecimalValueか調べる。"""
     _chk_decimal(arg, func_name, arg_index)
     if arg.value < minvalue:
-        raise InvalidArgumentException("%s < %s." % (arg.value, minvalue), func_name, arg_index, arg.to_str(), arg.line, arg.pos)
+        raise InvalidArgumentException("%s < %s." % (arg.value, minvalue), func_name, arg_index, arg.to_str(),
+                                       arg.line, arg.pos)
 
 
 def _chk_string(arg, func_name, arg_index):
@@ -667,7 +697,7 @@ def _func_value(args, is_differentscenario, line, pos):
             raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
         try:
             value = decimal.Decimal(a.value)
-        except:
+        except Exception:
             raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
     else:
         raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
@@ -683,7 +713,7 @@ def _func_int(args, is_differentscenario, line, pos):
     elif isinstance(a, StringValue):
         try:
             value = decimal.Decimal(a.value)
-        except:
+        except Exception:
             raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
     else:
         raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
@@ -719,7 +749,7 @@ def _func_var(args, is_differentscenario, line, pos):
         return BooleanValue(variant.value, line, pos)
     elif variant.type == "Number":
         return DecimalValue(variant.value, line, pos)
-    else: # String
+    else:  # String
         return StringValue(variant.value, line, pos)
 
 
@@ -1012,41 +1042,41 @@ assert calculate(parse("-(--5)")).value == -5
 assert calculate(parse("-- min(100,23)+5")).value == 28
 assert calculate(parse("+-Min(100,23)+ - 5")).value == -28
 assert calculate(parse("max (45, 42, 100.5,  23 ) + 0.123")).value == decimal.Decimal("100.623")
-assert calculate(parse("mAX(45,42,100.5,23)+0.123 = 100.623")).value == True
-assert calculate(parse("max(45,42,100.5,23)+0.123 <> 100.623")).value == False
-assert calculate(parse("true or false")).value == True
-assert calculate(parse("tRUe and faLSE")).value == False
-assert calculate(parse("true and true or false and false")).value == True
-assert calculate(parse("((true and true) or false) and false")).value == False
-assert calculate(parse("not false and true or false and false")).value == True
-assert calculate(parse("not false or false")).value == True
-assert calculate(parse("not not (false or false)")).value == False
-assert calculate(parse("not not not true")).value == False
-assert calculate(parse("not 1 = 2")).value == True
-assert calculate(parse("not 1 + 2 = 3")).value == False
+assert calculate(parse("mAX(45,42,100.5,23)+0.123 = 100.623")).value is True
+assert calculate(parse("max(45,42,100.5,23)+0.123 <> 100.623")).value is False
+assert calculate(parse("true or false")).value is True
+assert calculate(parse("tRUe and faLSE")).value is False
+assert calculate(parse("true and true or false and false")).value is True
+assert calculate(parse("((true and true) or false) and false")).value is False
+assert calculate(parse("not false and true or false and false")).value is True
+assert calculate(parse("not false or false")).value is True
+assert calculate(parse("not not (false or false)")).value is False
+assert calculate(parse("not not not true")).value is False
+assert calculate(parse("not 1 = 2")).value is True
+assert calculate(parse("not 1 + 2 = 3")).value is False
 assert calculate(parse("(not true) ~ \"&\" ~ (not true)")).value == "FALSE&FALSE"
 assert calculate(parse("(5+8) % 3")).value == 1
 assert calculate(parse("5 + 8%3")).value == 7
 assert calculate(parse("-2+22*2")).value == 42
 assert calculate(parse("9/3")).value == 3
-assert calculate(parse("4<=5")).value == True
-assert calculate(parse("4<=4")).value == True
-assert calculate(parse("4<=3")).value == False
-assert calculate(parse("5>=4")).value == True
-assert calculate(parse("4>=4")).value == True
-assert calculate(parse("3>=4")).value == False
-assert calculate(parse("4<5")).value == True
-assert calculate(parse("4<4")).value == False
-assert calculate(parse("4<3")).value == False
-assert calculate(parse("5>4")).value == True
-assert calculate(parse("4>4")).value == False
-assert calculate(parse("3>4")).value == False
-assert calculate(parse("5=4")).value == False
-assert calculate(parse("4=4")).value == True
-assert calculate(parse("3=4")).value == False
-assert calculate(parse("5<>4")).value == True
-assert calculate(parse("4<>4")).value == False
-assert calculate(parse("3<>4")).value == True
+assert calculate(parse("4<=5")).value is True
+assert calculate(parse("4<=4")).value is True
+assert calculate(parse("4<=3")).value is False
+assert calculate(parse("5>=4")).value is True
+assert calculate(parse("4>=4")).value is True
+assert calculate(parse("3>=4")).value is False
+assert calculate(parse("4<5")).value is True
+assert calculate(parse("4<4")).value is False
+assert calculate(parse("4<3")).value is False
+assert calculate(parse("5>4")).value is True
+assert calculate(parse("4>4")).value is False
+assert calculate(parse("3>4")).value is False
+assert calculate(parse("5=4")).value is False
+assert calculate(parse("4=4")).value is True
+assert calculate(parse("3=4")).value is False
+assert calculate(parse("5<>4")).value is True
+assert calculate(parse("4<>4")).value is False
+assert calculate(parse("3<>4")).value is True
 assert calculate(parse("LEN(\"TESTあいうえお\")")).value == 9
 assert calculate(parse("FIND(\"対象文字列\", \"対象文字列\")")).value == 1
 assert calculate(parse("FIND(\"文字\", \"対象文字列\")")).value == 3

@@ -15,38 +15,38 @@ class KeyEventRelay(object):
     def __init__(self):
         # WXKeyとpygameKeyの対応表
         self.keymap = {
-            wx.WXK_NUMPAD_ENTER : K_RETURN,
-            wx.WXK_RETURN : K_RETURN,
-            wx.WXK_ESCAPE : K_ESCAPE,
-            wx.WXK_BACK : K_BACKSPACE,
-            wx.WXK_SPACE : K_SPACE,
-            wx.WXK_F1 : K_F1,
-            wx.WXK_F2 : K_F2,
-            wx.WXK_F3 : K_F3,
-            wx.WXK_F4 : K_F4,
-            wx.WXK_F5 : K_F5,
-            wx.WXK_F6 : K_F6,
-            wx.WXK_F7 : K_F7,
-            wx.WXK_F8 : K_F8,
-            wx.WXK_F9 : K_F9,
-            wx.WXK_F10 : K_F10,
-            wx.WXK_F11 : K_F11,
-            wx.WXK_F12 : K_F12,
-            wx.WXK_UP : K_UP,
-            wx.WXK_DOWN : K_DOWN,
-            wx.WXK_LEFT : K_LEFT,
-            wx.WXK_RIGHT : K_RIGHT,
-            wx.WXK_SNAPSHOT : K_PRINT,
-            wx.WXK_SHIFT : K_LSHIFT,
-            wx.WXK_CONTROL : K_LCTRL,
-            wx.WXK_PAGEUP : K_PAGEUP,
-            wx.WXK_PAGEDOWN : K_PAGEDOWN,
-            wx.WXK_HOME : K_HOME,
-            wx.WXK_END : K_END,
-            ord('\\') : K_BACKSLASH,
-            ord('D') : ord('D'), # デバッグモード切り替え
-            ord('P') : ord('P'), # スクリーンショット
-            ord('C') : ord('C')} # メッセージのコピー
+            wx.WXK_NUMPAD_ENTER: K_RETURN,
+            wx.WXK_RETURN: K_RETURN,
+            wx.WXK_ESCAPE: K_ESCAPE,
+            wx.WXK_BACK: K_BACKSPACE,
+            wx.WXK_SPACE: K_SPACE,
+            wx.WXK_F1: K_F1,
+            wx.WXK_F2: K_F2,
+            wx.WXK_F3: K_F3,
+            wx.WXK_F4: K_F4,
+            wx.WXK_F5: K_F5,
+            wx.WXK_F6: K_F6,
+            wx.WXK_F7: K_F7,
+            wx.WXK_F8: K_F8,
+            wx.WXK_F9: K_F9,
+            wx.WXK_F10: K_F10,
+            wx.WXK_F11: K_F11,
+            wx.WXK_F12: K_F12,
+            wx.WXK_UP: K_UP,
+            wx.WXK_DOWN: K_DOWN,
+            wx.WXK_LEFT: K_LEFT,
+            wx.WXK_RIGHT: K_RIGHT,
+            wx.WXK_SNAPSHOT: K_PRINT,
+            wx.WXK_SHIFT: K_LSHIFT,
+            wx.WXK_CONTROL: K_LCTRL,
+            wx.WXK_PAGEUP: K_PAGEUP,
+            wx.WXK_PAGEDOWN: K_PAGEDOWN,
+            wx.WXK_HOME: K_HOME,
+            wx.WXK_END: K_END,
+            ord('\\'): K_BACKSLASH,
+            ord('D'): ord('D'),  # デバッグモード切り替え
+            ord('P'): ord('P'),  # スクリーンショット
+            ord('C'): ord('C')}  # メッセージのコピー
         # キー入力(pygame用)
         self.keyin = [0 for _cnt in range(322)]
         # マウス入力。EventHandlerから受信
@@ -77,10 +77,12 @@ class KeyEventRelay(object):
         """
         events = pygame.event.get()
         for e in events:
-            if e.type == pygame.locals.MOUSEBUTTONUP and hasattr(e, "button") and e.button <= len(self.mouse_buttondown):
+            if e.type == pygame.locals.MOUSEBUTTONUP and hasattr(e, "button") and\
+                    e.button <= len(self.mouse_buttondown):
                 if self.mouse_buttondown[e.button-1]:
                     cw.thread.post_pygameevent(e)
-            elif e.type == pygame.locals.MOUSEBUTTONDOWN and hasattr(e, "button") and e.button <= len(self.mouse_buttondown):
+            elif e.type == pygame.locals.MOUSEBUTTONDOWN and hasattr(e, "button") and\
+                    e.button <= len(self.mouse_buttondown):
                 self.mouse_buttondown[e.button - 1] = True
                 cw.thread.post_pygameevent(e)
             else:
@@ -137,7 +139,8 @@ class KeyEventRelay(object):
                         if self.mousein[button] + mousethreshold <= pygame.time.get_ticks():
                             # 最初の1回のみMouseUpしたかのように動作する
                             if not cw.cwpy.setting.autoenter_on_sprite:
-                                event = pygame.event.Event(MOUSEBUTTONUP, button=button+1, pos=cw.cwpy.mousepos, ignoreup=True)
+                                event = pygame.event.Event(MOUSEBUTTONUP, button=button+1, pos=cw.cwpy.mousepos,
+                                                           ignoreup=True)
                                 cw.thread.post_pygameevent(event)
                             self.mousein[button] = -1
                     return self.mousein[button] == -1
@@ -146,8 +149,10 @@ class KeyEventRelay(object):
                     self.mousein[button] = 0
         return False
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

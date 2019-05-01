@@ -13,9 +13,10 @@ from cw.util import synclock
 
 _couponlock = threading.Lock()
 
+
 class Character(object):
     def __init__(self, data=None):
-        if not data is None:
+        if data is not None:
             self.data = data
         self.reversed = False
 
@@ -38,7 +39,7 @@ class Character(object):
         # 精神状態
         self.mentality = self.data.gettext("Property/Status/Mentality", "Normal")
         self.mentality_dur = cw.util.numwrap(self.data.getint("Property/Status/Mentality",
-                                                                    "duration", 0), 0, 999)
+                                                              "duration", 0), 0, 999)
         if self.mentality_dur == 0 or self.mentality == "Normal":
             self.mentality = "Normal"
             self.mentality_dur = 0
@@ -54,32 +55,32 @@ class Character(object):
         self.faceup = cw.util.numwrap(self.data.getint("Property/Status/FaceUp", "duration", 0), 0, 999)
         # 魔法無効時間値
         self.antimagic = cw.util.numwrap(self.data.getint("Property/Status/AntiMagic",
-                                                                    "duration", 0), 0, 999)
+                                                          "duration", 0), 0, 999)
         # 行動力強化値
         self.enhance_act = cw.util.numwrap(self.data.getint("Property/Enhance/Action", 0), -10, 10)
         self.enhance_act_dur = cw.util.numwrap(self.data.getint("Property/Enhance/Action",
-                                                                    "duration", 0), 0, 999)
+                                                                "duration", 0), 0, 999)
         if self.enhance_act == 0 or self.enhance_act_dur == 0:
             self.enhance_act = 0
             self.enhance_act_dur = 0
         # 回避力強化値
         self.enhance_avo = cw.util.numwrap(self.data.getint("Property/Enhance/Avoid", 0), -10, 10)
         self.enhance_avo_dur = cw.util.numwrap(self.data.getint("Property/Enhance/Avoid",
-                                                                    "duration", 0), 0, 999)
+                                                                "duration", 0), 0, 999)
         if self.enhance_avo == 0 or self.enhance_avo_dur == 0:
             self.enhance_avo = 0
             self.enhance_avo_dur = 0
         # 抵抗力強化値
         self.enhance_res = cw.util.numwrap(self.data.getint("Property/Enhance/Resist", 0), -10, 10)
         self.enhance_res_dur = cw.util.numwrap(self.data.getint("Property/Enhance/Resist",
-                                                                    "duration", 0), 0, 999)
+                                                                "duration", 0), 0, 999)
         if self.enhance_res == 0 or self.enhance_res_dur == 0:
             self.enhance_res = 0
             self.enhance_res_dur = 0
         # 防御力強化値
         self.enhance_def = cw.util.numwrap(self.data.getint("Property/Enhance/Defense", 0), -10, 10)
         self.enhance_def_dur = cw.util.numwrap(self.data.getint("Property/Enhance/Defense",
-                                                                    "duration", 0), 0, 999)
+                                                                "duration", 0), 0, 999)
         if self.enhance_def == 0 or self.enhance_def_dur == 0:
             self.enhance_def = 0
             self.enhance_def_dur = 0
@@ -94,17 +95,17 @@ class Character(object):
         for key, value in self.physical.items():
             try:
                 self.physical[key] = cw.util.numwrap(float(value), 0, 65536)
-            except:
+            except Exception:
                 self.physical[key] = 0
         for key, value in self.mental.items():
             try:
                 self.mental[key] = cw.util.numwrap(float(value), -65536, 65536)
-            except:
+            except Exception:
                 self.mental[key] = 0
         for key, value in self.enhance.items():
             try:
                 self.enhance[key] = cw.util.numwrap(float(value), -10, 10)
-            except:
+            except Exception:
                 self.enhance[key] = 0
 
         # 特性
@@ -121,7 +122,7 @@ class Character(object):
             for key, value in d.items():
                 try:
                     d[key] = cw.util.str2bool(value)
-                except:
+                except Exception:
                     d[key] = False
 
         # デッキ
@@ -148,7 +149,7 @@ class Character(object):
 
             try:
                 self.coupons[e.text] = int(e.get("value")), e
-            except:
+            except Exception:
                 self.coupons[e.text] = 0, e
             if e.text == "：Ｒ":
                 self.reversed = True
@@ -225,7 +226,7 @@ class Character(object):
                         eimg = e
                         break
                 else:
-                    e = cw.data.make_element("ImagePaths", "", {"member":name})
+                    e = cw.data.make_element("ImagePaths", "", {"member": name})
                     eimg = e
                     dpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Face")
                     for info in infos:
@@ -253,7 +254,7 @@ class Character(object):
                 for fpath, _scale in cw.util.get_scaledimagepaths(fpath, can_loaded_scaledimage):
                     cw.cwpy.ydata.deletedpaths.add(fpath, forceyado=True)
 
-        if not eimg is None:
+        if eimg is not None:
             # 複数回変更された時は変更後ファイル情報を
             # 都度最新に更新しておく
             for e in list(eimg):
@@ -265,7 +266,7 @@ class Character(object):
         prop = self.data.find("Property")
         for ename in ("ImagePath", "ImagePaths"):
             e = prop.find(ename)
-            if not e is None:
+            if e is not None:
                 prop.remove(e)
         # コピー後のファイルパスを設定
         e = cw.data.make_element("ImagePaths", "")
@@ -276,7 +277,7 @@ class Character(object):
                 info.set_attr(e2)
                 e.append(e2)
 
-                if not eimg is None:
+                if eimg is not None:
                     # F9時に変更後のイメージを削除するため、記録しておく
                     eimg.append(cw.data.make_element("NewImagePath", info.path))
 
@@ -285,7 +286,7 @@ class Character(object):
 
         self.data.is_edited = True
 
-        if not etree is None:
+        if etree is not None:
             etree.write()
 
         return newpaths
@@ -376,7 +377,7 @@ class Character(object):
             headers = []
 
             pe = self.data.find(path)
-            if not pe is None:
+            if pe is not None:
                 for e in pe:
                     if maxn <= len(headers):
                         # 最大所持数を越えたカードは消去
@@ -384,8 +385,7 @@ class Character(object):
                     e = cw.cwpy.sdata.get_carddata(e, inusecard=False)
                     if e is None:
                         continue
-                    header = cw.header.CardHeader(owner=self, carddata=e,
-                                                                from_scenario=flag)
+                    header = cw.header.CardHeader(owner=self, carddata=e, from_scenario=flag)
                     headers.append(header)
 
                 # 参照先に差し替えられている可能性があるので
@@ -472,9 +472,9 @@ class Character(object):
         """
         pass
 
-    #---------------------------------------------------------------------------
-    #　状態チェック用
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # 状態チェック用
+    # --------------------------------------------------------------------------
 
     def is_normal(self):
         """
@@ -718,7 +718,8 @@ class Character(object):
         ターゲットの選択に使用される判定であるため、
         実際には有効であっても必ずしもTrueを返さない。
         """
-        if self.is_reversed() or self.is_vanished() or (self.status == "hidden" and not isinstance(self, (Friend, Player))):
+        if self.is_reversed() or self.is_vanished() or (self.status == "hidden" and
+                                                        not isinstance(self, (Friend, Player))):
             return False
 
         if cw.effectmotion.is_noeffect(motion.get("element", ""), self):
@@ -837,23 +838,23 @@ class Character(object):
             return self.is_active()
         elif mtype == "DealSkillCard":
             return self.is_active()
-        elif mtype == "CancelAction": # 1.50
+        elif mtype == "CancelAction":  # 1.50
             return self.is_active()
         elif mtype == "SummonBeast":
             for beast in motion.getfind("Beasts", raiseerror=False):
                 e = cw.cwpy.sdata.get_carddata(beast)
-                if not e is None and self.can_addbeast(e):
+                if e is not None and self.can_addbeast(e):
                     return True
             return False
-        elif mtype == "NoEffect": # Wsn.2
+        elif mtype == "NoEffect":  # Wsn.2
             return not self.is_unconscious()
         else:
             # VanishTarget: 常に有効
             return True
 
-    #---------------------------------------------------------------------------
-    #　カード操作
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # カード操作
+    # --------------------------------------------------------------------------
 
     def use_card(self, targets, header):
         """targetsにカードを使用する。"""
@@ -907,7 +908,8 @@ class Character(object):
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.animation.animate_sprite(inusecardimg, "deal", battlespeed=battlespeed)
             # 効果音を鳴らす
-            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
+            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel,
+                                    fade=fade)
 
             if cw.cwpy.setting.enlarge_beastcardzoomingratio:
                 cw.animation.animate_sprite(inusecardimg, "zoomin_slow", battlespeed=battlespeed)
@@ -941,7 +943,8 @@ class Character(object):
             cw.cwpy.cardgrp.add(self, layer=self.layer)
             cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
             # 表示中に効果音を鳴らす
-            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
+            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel,
+                                    fade=fade)
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # カード表示
             inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True)
@@ -972,7 +975,7 @@ class Character(object):
                 # カード消去
                 cw.cwpy.clear_inusecardimg(self)
                 # 自分が対象の時でなければNPC消去
-                if not self in targets:
+                if self not in targets:
                     if cw.cwpy.setting.zoomout_friend:
                         cw.animation.animate_sprite(self, "zoomout", battlespeed=battlespeed)
                     cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
@@ -983,7 +986,8 @@ class Character(object):
         else:
             cw.cwpy.set_inusecardimg(self, header)
             # 効果音を鳴らす
-            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
+            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel,
+                                    fade=fade)
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             if cw.cwpy.setting.wait_usecard:
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
@@ -1011,7 +1015,7 @@ class Character(object):
         specialchars_is_changed = cw.cwpy.rsrc.specialchars_is_changed
         e_mates = header.carddata.find("Property/Materials")
         can_loaded_scaledimage = header.carddata.getbool(".", "scaledimage", False)
-        if cw.cwpy.is_playingscenario() and not e_mates is None:
+        if cw.cwpy.is_playingscenario() and e_mates is not None:
             specialchars = specialchars.copy()
             dpath = cw.util.join_yadodir(e_mates.text)
             if os.path.isdir(dpath):
@@ -1042,15 +1046,15 @@ class Character(object):
         else:
             if header.type == "SkillCard":
                 index = 0
-            elif header.type == "ItemCard" :
+            elif header.type == "ItemCard":
                 index = 1
             elif header.type == "BeastCard":
                 index = 2
             self.cardpocket[index].remove(header)
 
-    #---------------------------------------------------------------------------
-    #　戦闘行動関係
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # 戦闘行動関係
+    # --------------------------------------------------------------------------
 
     def action(self):
         """設定している戦闘行動を行う。
@@ -1095,7 +1099,8 @@ class Character(object):
                         break
 
             # 手札カードの使用
-            if self.is_alive() and not ishidden and self.status != "reversed" and self.actiondata and cw.cwpy.is_battlestatus():
+            if self.is_alive() and not ishidden and self.status != "reversed" and self.actiondata and\
+                    cw.cwpy.is_battlestatus():
                 targets, header, beasts = self.actiondata
                 if header and self.is_active() and not ishidden and self.status != "reversed":
                     self.deck.set_used(header)
@@ -1178,9 +1183,9 @@ class Character(object):
             return headerp and headerp.penalty and (header is None or header == headerp)
         return False
 
-    #---------------------------------------------------------------------------
-    #　判定用
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # 判定用
+    # --------------------------------------------------------------------------
 
     def decide_outcome(self, level, vocation, thresholdbonus=6, enhance=0, subbonus=0):
         """
@@ -1224,9 +1229,9 @@ class Character(object):
 
         return flag
 
-    #---------------------------------------------------------------------------
-    #　戦闘行動設定関連
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # 戦闘行動設定関連
+    # --------------------------------------------------------------------------
 
     def decide_actionorder(self):
         """
@@ -1298,8 +1303,8 @@ class Character(object):
         # 手札交換は次の特殊処理を行う
         #  * 常に最後に判定する
         #  * 適性値を-6する
-        seq = [] # 手札交換以外のカード
-        exchange = [] # 手札交換
+        seq = []  # 手札交換以外のカード
+        exchange = []  # 手札交換
         for t in headers:
             header = t[1]
             if header.type == "ActionCard" and header.id == 0:
@@ -1321,7 +1326,7 @@ class Character(object):
             # 適性値
             vocation = int(header.get_vocation_val(self))
             if len(seq) <= i:
-                vocation -= 6 # 手札交換なので-6
+                vocation -= 6  # 手札交換なので-6
             else:
                 vocation = max(0, vocation)
 
@@ -1341,7 +1346,7 @@ class Character(object):
     def _get_motions(self, header):
         if header.type == "ActionCard" and header.id == 7:
             # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
-            return [{"type":"Runaway"}]
+            return [{"type": "Runaway"}]
         else:
             return header.carddata.getfind("Motions").getchildren()
 
@@ -1369,9 +1374,9 @@ class Character(object):
             return 0, targets
         return bonus, targets if header.allrange else maxbonustargs
 
-    #---------------------------------------------------------------------------
-    #　状態取得用
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # 状態取得用
+    # --------------------------------------------------------------------------
 
     def get_targetingbonus(self, mtype):
         """
@@ -1489,7 +1494,7 @@ class Character(object):
         """
         vo = vocation
         voc = self._voc_tbl.get(vo, None)
-        if not voc is None:
+        if voc is not None:
             return voc
         vocation = (vocation[0].lower(), vocation[1].lower())
         physical = vocation[0]
@@ -1553,6 +1558,7 @@ class Character(object):
         val2 = cw.util.numwrap(val2, -10, 10)
         seq = [val1, val2]
         pvals = []
+
         def add_pval(val):
             if 0 < val and val < 10:
                 pvals.append(int(val))
@@ -1686,9 +1692,9 @@ class Character(object):
 
         return value
 
-    #---------------------------------------------------------------------------
-    #　クーポン関連
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # クーポン関連
+    # --------------------------------------------------------------------------
 
     @synclock(_couponlock)
     def get_coupons(self):
@@ -1696,6 +1702,7 @@ class Character(object):
         所有クーポンをセット型で返す。
         """
         return self._get_coupons()
+
     def _get_coupons(self):
         return set(self.coupons.keys())
 
@@ -1724,6 +1731,9 @@ class Character(object):
         return self._has_coupon(coupon)
 
     def _has_coupon(self, coupon):
+        return coupon in self.coupons
+
+    def has_coupon_nolock(self, coupon):
         return coupon in self.coupons
 
     @synclock(_couponlock)
@@ -1949,6 +1959,7 @@ class Character(object):
     @synclock(_couponlock)
     def set_race(self, race):
         self._set_race(race)
+
     def _set_race(self, race):
         old = self._get_race()
         if race == old:
@@ -2009,7 +2020,7 @@ class Character(object):
         value = int(value)
         value = cw.util.numwrap(value, -9999, 9999)
         removed = self._remove_coupon(name, False)
-        e = self.data.make_element("Coupon", name, {"value" : str(value)})
+        e = self.data.make_element("Coupon", name, {"value": str(value)})
         self.data.append("Property/Coupons", e)
         self.coupons[name] = value, e
 
@@ -2057,7 +2068,7 @@ class Character(object):
         return self._remove_coupon(name, True)
 
     def _remove_coupon(self, name, update=True):
-        if not name in self.coupons:
+        if name not in self.coupons:
             return False
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
@@ -2114,7 +2125,7 @@ class Character(object):
         startindexの位置から検索し、見つかった位置を返す。
         """
         e_coupons = self.data.find("Property/Coupons")
-        if not e_coupons is None:
+        if e_coupons is not None:
             for i, e_coupon in enumerate(e_coupons):
                 if matcher(e_coupon.text):
                     return i
@@ -2138,9 +2149,9 @@ class Character(object):
         else:
             return len(e_coupons)
 
-    #---------------------------------------------------------------------------
-    #　レベル変更用
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # レベル変更用
+    # --------------------------------------------------------------------------
 
     @synclock(_couponlock)
     def get_limitlevel(self):
@@ -2148,9 +2159,9 @@ class Character(object):
         return self._get_limitlevel()
 
     def _get_limitlevel(self):
-        l = self._get_couponvalue("＠レベル原点", raiseerror=False)
-        if not l is None:
-            return max(self.level, l)
+        num = self._get_couponvalue("＠レベル原点", raiseerror=False)
+        if num is not None:
+            return max(self.level, num)
         else:
             return self.level
 
@@ -2160,7 +2171,7 @@ class Character(object):
         level = coupons["＠レベル原点"]
 
         limit = self._get_levelmax(coupons)
-        if not "＠レベル上限" in coupons:
+        if "＠レベル上限" not in coupons:
             self._set_coupon("＠レベル上限", limit)
 
         # 解の公式で現在の経験点で到達できるレベルを算出
@@ -2269,7 +2280,8 @@ class Character(object):
                         targettype = targettype_original
                     if regulate and targettype != "TRASHBOX":
                         self.add_cardpocketmemory(header)
-                    cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party, sort=False)
+                    cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party,
+                                  sort=False)
                     n -= 1
             if targettype_original == "BACKPACK":
                 cw.cwpy.ydata.party.sort_backpack()
@@ -2358,9 +2370,9 @@ class Character(object):
                 # 記憶から除去する
                 self.data.remove("./CardMemories", e)
 
-    #---------------------------------------------------------------------------
-    #　状態変更用
-    #---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # 状態変更用
+    # --------------------------------------------------------------------------
 
     def set_unconsciousstatus(self, clearbeast=True):
         """
@@ -2573,7 +2585,8 @@ class Character(object):
                     # 使用回数が減らなくなるのでここで減らしておく
                     self.inusecardimg.header.set_uselimit(-1, animate=False)
                 cw.animation.animate_sprite(self, "vanish", battlespeed=battlespeed)
-                if cw.cwpy.sct.enable_vanishmembercancellation(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
+                if cw.cwpy.sct.enable_vanishmembercancellation(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO))\
+                        or\
                    cw.cwpy.sct.enable_vanishmembercancellation(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
                     cw.cwpy.ydata.party.vanished_pcards.append(self)
                 else:
@@ -2773,7 +2786,8 @@ class Character(object):
     def decrease_physical(self, stype, time):
         """中毒麻痺の時間経過による軽減。"""
         for _t in range(time):
-            uvalue = cw.util.div_vocation(self.get_vocation_val(("vit", "aggressive"))) + self.level + cw.cwpy.dice.roll(2)
+            uvalue = cw.util.div_vocation(self.get_vocation_val(("vit", "aggressive"))) + self.level +\
+                     cw.cwpy.dice.roll(2)
             tvalue = (self.poison if stype == "Poison" else self.paralyze) + cw.cwpy.dice.roll(2)
 
             flag = uvalue >= tvalue
@@ -2801,8 +2815,8 @@ class Character(object):
         # 時限クーポン処理
         self.count_timedcoupon()
         oldalive = self.is_alive()
-        flag = False # 反転しながら画像を更新する場合はTrue
-        updateimage = False # 反転せずに画像を更新する場合はTrue
+        flag = False  # 反転しながら画像を更新する場合はTrue
+        updateimage = False  # 反転せずに画像を更新する場合はTrue
 
         # 中毒
         if self.is_poison() and not self.is_unconscious():
@@ -3043,14 +3057,18 @@ class Player(Character):
         cw.cwpy.background.reload(False, nocheckvisible=True)
         cw.cwpy.update_mcardnames()
 
+
 def calc_maxlife(vit, minval, level):
     """能力値から体力の最大値を計算する。"""
     vit = max(1, vit)
     minval = max(1, minval)
     level = max(1, level)
     return int((float(vit) / 2.0 + 4) * (level + 1) + float(minval) / 2.0)
+
+
 assert calc_maxlife(8, 5, 10) == 90
 assert calc_maxlife(9, 5, 10) == 96
+
 
 class Enemy(Character):
     def is_dead(self):
@@ -3069,8 +3087,10 @@ class Enemy(Character):
         b |= self.status == "hidden"
         return b
 
+
 class Friend(Character):
     pass
+
 
 class AlbumPage(object):
     def __init__(self, data):
@@ -3092,9 +3112,10 @@ class AlbumPage(object):
 
         return d
 
+
 def main():
     pass
 
+
 if __name__ == "__main__":
     main()
-

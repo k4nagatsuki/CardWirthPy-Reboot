@@ -14,7 +14,7 @@ class Dice(object):
 
         for _i in range(times):
             # BUG: random.randrange()は著しく遅い
-            #n += random.randrange(1, sided + 1)
+            # n += random.randrange(1, sided + 1)
 
             # random.uniform(1, sided+1)は多少速いが
             # 次のコードよりは遅い
@@ -41,8 +41,10 @@ class Dice(object):
 
         return item
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

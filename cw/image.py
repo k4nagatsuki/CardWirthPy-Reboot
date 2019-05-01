@@ -35,7 +35,7 @@ class ImageInfo(object):
         """拡張情報をeへ登録する。
         """
         assert e.tag == "ImagePath"
-        if not self.postype in ("Default", None):
+        if self.postype not in ("Default", None):
             e.set("positiontype", self.postype)
 
     def calc_basecardposition(self, params, noscale=False, basecardtype=None, cardpostype=None):
@@ -43,6 +43,7 @@ class ImageInfo(object):
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
         (imgwidth, imgheight) = params
+
         def getsize(resname):
             if resname.endswith("_noscale"):
                 resname = resname[0:-len("_noscale")]
@@ -56,13 +57,15 @@ class ImageInfo(object):
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
         (imgwidth, imgheight) = imgsize
+
         def getsize(resname):
             if resname.endswith("_noscale"):
                 resname = resname[0:-len("_noscale")]
                 return cw.setting.SIZE_RESOURCES["CardBg/" + resname]
             else:
                 return cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + resname])
-        return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.wins, getsize)
+        return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.wins,
+                                                getsize)
 
     def _calc_basecardposition_impl(self, imgwidth, imgheight, noscale, basecardtype, cardpostype, ss, getsize):
         if self.basecardtype:
@@ -86,7 +89,7 @@ class ImageInfo(object):
             w, h = getsize("NORMAL_noscale")
             bx, by = (3, 13)
             defpostype = "TopLeft"
-        elif basecardtype == "Bill": # 貼紙
+        elif basecardtype == "Bill":  # 貼紙
             w, h = cw.SIZE_BILL
             bx, by = (163, 70)
             defpostype = "TopLeft"
@@ -99,7 +102,7 @@ class ImageInfo(object):
             bx, by = ss((bx, by))
 
         postype = self.postype
-        if not postype in ("TopLeft", "Center"):
+        if postype not in ("TopLeft", "Center"):
             postype = defpostype
 
         if postype == "Center":
@@ -130,15 +133,16 @@ class ImageInfo(object):
         else:
             return "File: %s, Position Type: %s" % (self.path, self.postype)
 
+
 def get_imageinfos(data, pcnumber=False):
     """PropertyなどのデータからImageInfoのlistを生成する。
     data: Propertyなど子に画像情報を持つ要素。
     pcnumber: プレイヤー番号イメージを使用するか。
     """
     seq = []
-    if not data is None:
+    if data is not None:
         if data.tag == "ImagePaths":
-            for e in data: # 複数イメージの指定
+            for e in data:  # 複数イメージの指定
                 if e.tag == "ImagePath":
                     path = cw.util.validate_filepath(e.gettext(".", ""))
                     if path:
@@ -149,16 +153,16 @@ def get_imageinfos(data, pcnumber=False):
                     if pcn:
                         seq.append(ImageInfo(pcnumber=pcn))
         else:
-            path = data.getattr(".", "path", "") # イベントコンテントでの画像指定
+            path = data.getattr(".", "path", "")  # イベントコンテントでの画像指定
             path = cw.util.validate_filepath(path)
             if path:
                 postype = data.getattr(".", "positiontype", "Default")
                 seq.append(ImageInfo(path=path, postype=postype))
             if pcnumber:
-                pcn = data.getint(".", "pcNumber", 0) # イベントコンテントでのPC指定
+                pcn = data.getint(".", "pcNumber", 0)  # イベントコンテントでのPC指定
                 if pcn:
                     seq.append(ImageInfo(pcnumber=pcn))
-            path = data.gettext("ImagePath", "") # 単一のパス指定
+            path = data.gettext("ImagePath", "")  # 単一のパス指定
             path = cw.util.validate_filepath(path)
             if path:
                 postype = data.getattr("ImagePath", "positiontype", "Default")
@@ -167,14 +171,15 @@ def get_imageinfos(data, pcnumber=False):
                 if path:
                     postype = data.getattr("ImagePath", "positiontype", "Default")
                     seq.append(ImageInfo(path=path, postype=postype))
-                pcn = data.getint("PCNumber", 0) # 単一のPC指定
+                pcn = data.getint("PCNumber", 0)  # 単一のPC指定
                 if pcn:
                     seq.append(ImageInfo(pcnumber=pcn))
-            epaths = data.find("ImagePaths") # 複数イメージの指定
-            if not epaths is None:
+            epaths = data.find("ImagePaths")  # 複数イメージの指定
+            if epaths is not None:
                 seq.extend(get_imageinfos(epaths, pcnumber=pcnumber))
 
     return seq
+
 
 def get_imageinfos_p(prop, pcnumber=False):
     """cw.header.GetPropertyのインスタンスから
@@ -202,6 +207,7 @@ def get_imageinfos_p(prop, pcnumber=False):
 
     return imgpaths
 
+
 class Image(object):
     def __init__(self, image):
         self.image = image
@@ -213,9 +219,10 @@ class Image(object):
         image = self.get_image()
         return cw.imageretouch.to_negative(image)
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # カード関係
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class CardImage(Image):
     def __init__(self, paths, bgtype, name="", premium="", can_loaded_scaledimage=False,
@@ -254,7 +261,7 @@ class CardImage(Image):
         self.image_mtime.clear()
 
     def fix_pcimage_updated(self):
-        if not self.paths_upd is None:
+        if self.paths_upd is not None:
             self.paths = self.paths_upd
             self.can_loaded_scaledimage = self.can_loaded_scaledimage_upd
             self.paths_upd = None
@@ -262,10 +269,12 @@ class CardImage(Image):
             self.clear_cache()
 
     def _upwinmemo(self):
-        return (cw.UP_WIN, cw.UP_SCR, cw.cwpy.setting.fontsmoothing_cardname,
-                 cw.cwpy.setting.basefont.copy(),
-                 cw.cwpy.setting.fonttypes["cardname"],
-                 cw.cwpy.setting.fonttypes["uselimit"])
+        return (
+            cw.UP_WIN, cw.UP_SCR, cw.cwpy.setting.fontsmoothing_cardname,
+            cw.cwpy.setting.basefont.copy(),
+            cw.cwpy.setting.fonttypes["cardname"],
+            cw.cwpy.setting.fonttypes["uselimit"]
+        )
 
     @property
     def wxcardbg(self):
@@ -357,7 +366,8 @@ class CardImage(Image):
             left = cw.s(5)
             if w + left*2 > self.rect.w:
                 size = (self.rect.w - left*2, h)
-                subimg = cw.image.smoothscale(subimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
+                subimg = cw.image.smoothscale(subimg.convert_alpha(), size,
+                                              smoothing=cw.cwpy.setting.fontsmoothing_cardname)
 
             if cw.cwpy.setting.bordering_cardname:
                 subimg2 = subimg.convert_alpha()
@@ -445,8 +455,8 @@ class CardImage(Image):
                     pos = pos[0] + cw.s(10), pos[1]
                 uselimith = cw.s(font.get_height() - 2)
 
-        if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or\
-                                             (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):
+        if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or
+                                              (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):
             # 種別アイコン(カード置場・荷物袋・移動中)
             if header.type == "SkillCard":
                 icon = cw.cwpy.rsrc.pygamedialogs["STATUS8"]
@@ -550,8 +560,8 @@ class CardImage(Image):
                                                          basecardtype="NormalCard",
                                                          cardpostype="NormalCard")
 
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, subimg2, cw.wins(3)+baserect.x, cw.wins(13)+baserect.y, True,
-                                                       bitsizekey=subimg)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, subimg2, cw.wins(3)+baserect.x, cw.wins(13)+baserect.y,
+                                                       True, bitsizekey=subimg)
 
         pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
         if cw.cwpy.setting.fontsmoothing_cardname:
@@ -627,7 +637,8 @@ class CardImage(Image):
                 pixelsize = cw.cwpy.setting.fonttypes["uselimit"][2]
                 bold = wx.BOLD if cw.cwpy.setting.fonttypes["uselimit"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
                 italic = wx.ITALIC if cw.cwpy.setting.fonttypes["uselimit"][5] else wx.NORMAL
-                font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(pixelsize), style=italic, weight=bold, adjustsizewx3=False)
+                font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(pixelsize), style=italic, weight=bold,
+                                               adjustsizewx3=False)
                 dc.SetFont(font)
                 s = str(uselimit)
                 pos = (cw.wins(5), self.wxrect[3] - cw.wins(pixelsize) - cw.wins(4))
@@ -651,8 +662,8 @@ class CardImage(Image):
                     pos = pos[0] + cw.wins(10), pos[1]
                 uselimith = cw.wins(pixelsize - 2)
 
-        if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or\
-                                             (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):
+        if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or
+                                              (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):
             # 種別アイコン(カード置場・荷物袋・移動中)
             if header.type == "SkillCard":
                 icon = cw.cwpy.rsrc.dialogs["STATUS8"]
@@ -715,6 +726,7 @@ class CardImage(Image):
     def update(self, card):
         pass
 
+
 class LargeCardImage(CardImage):
     def __init__(self, paths, bgtype, name="", premium="", can_loaded_scaledimage=False,
                  is_scenariocard=False, scedir="", anotherscenariocard=False):
@@ -774,7 +786,8 @@ class LargeCardImage(CardImage):
 
             if w + cw.s(10) > self.rect.w:
                 size = (self.rect.w - cw.s(10), h)
-                subimg = cw.image.smoothscale(subimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
+                subimg = cw.image.smoothscale(subimg.convert_alpha(), size,
+                                              smoothing=cw.cwpy.setting.fontsmoothing_cardname)
 
             if cw.cwpy.setting.bordering_cardname:
                 subimg2 = subimg.convert_alpha()
@@ -836,8 +849,8 @@ class LargeCardImage(CardImage):
                                                          basecardtype="LargeCard",
                                                          cardpostype="LargeCard")
 
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, subimg2, cw.wins(11)+baserect.x, cw.wins(18)+baserect.y, True,
-                                                       bitsizekey=subimg)
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, subimg2, cw.wins(11)+baserect.x, cw.wins(18)+baserect.y,
+                                                       True, bitsizekey=subimg)
 
         pixelsize = cw.cwpy.setting.fonttypes["ccardname"][2]
         if cw.cwpy.setting.fontsmoothing_cardname:
@@ -855,6 +868,7 @@ class LargeCardImage(CardImage):
         dc.SelectObject(wx.NullBitmap)
 
         return bmp
+
 
 class CharacterCardImage(CardImage):
     def __init__(self, ccard, pos_noscale=(0, 0), can_loaded_scaledimage=False, is_scenariocard=False,
@@ -892,7 +906,7 @@ class CharacterCardImage(CardImage):
 
     def fix_pcimage_updated(self):
         CardImage.fix_pcimage_updated(self)
-        if not self.override_images_upd is None:
+        if self.override_images_upd is not None:
             self.override_images = self.override_images_upd
             self.override_images_upd = None
             self.clear_cache()
@@ -907,7 +921,8 @@ class CharacterCardImage(CardImage):
                 if not cw.binary.image.path_is_code(path) and isinstance(self.ccard, cw.sprite.card.PlayerCard) and\
                         not self.is_scenariocard:
                     path = cw.util.get_yadofilepath(path)
-                self.cardimgs.append(cw.s(cw.util.load_image(path, True, can_loaded_scaledimage=self.can_loaded_scaledimage,
+                self.cardimgs.append(cw.s(cw.util.load_image(path, True,
+                                                             can_loaded_scaledimage=self.can_loaded_scaledimage,
                                                              use_excache=self.use_excache)))
 
     def set_nameimg(self, name):
@@ -918,7 +933,8 @@ class CharacterCardImage(CardImage):
 
             if w + cw.s(10) > cw.s(95):
                 size = (cw.s(95 - 10), h)
-                self.nameimg = cw.image.smoothscale(self.nameimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
+                self.nameimg = cw.image.smoothscale(self.nameimg.convert_alpha(), size,
+                                                    smoothing=cw.cwpy.setting.fontsmoothing_cardname)
         else:
             self.nameimg = None
 
@@ -1098,46 +1114,66 @@ class CharacterCardImage(CardImage):
         az = ccard.is_analyzable()
 
         beastnum = ccard.has_beast()
-        if beastnum: # 召喚獣所持(付帯召喚以外)
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["SUMMON"], beastnum, True, is_runningevent=is_runningevent))
-        if ccard.is_poison(): # 中毒
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["BODY0"], ccard.poison if az else 0, is_runningevent=is_runningevent))
-        if cw.cwpy.setting.show_statustime in ("True", "NotEventTime") and ccard.is_paralyze(): # 麻痺
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["BODY1"], ccard.paralyze if az else 0, is_runningevent=is_runningevent))
-        if cw.cwpy.setting.show_statustime in ("True", "NotEventTime") and ccard.is_sleep(): # 睡眠
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND1"], ccard.mentality_dur if az else 0, is_runningevent=is_runningevent))
-        if ccard.is_confuse(): # 混乱
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND2"], ccard.mentality_dur if az else 0, is_runningevent=is_runningevent))
-        elif ccard.is_overheat(): # 激昂
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND3"], ccard.mentality_dur if az else 0, is_runningevent=is_runningevent))
-        elif ccard.is_brave(): # 勇敢
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND4"], ccard.mentality_dur if az else 0, is_runningevent=is_runningevent))
-        elif ccard.is_panic(): # 恐慌
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND5"], ccard.mentality_dur if az else 0, is_runningevent=is_runningevent))
-        if cw.cwpy.setting.show_statustime in ("True", "NotEventTime") and ccard.is_bind(): # 呪縛
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC0"], ccard.bind if az else 0, is_runningevent=is_runningevent))
-        if ccard.is_silence(): # 沈黙
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC1"], ccard.silence if az else 0, is_runningevent=is_runningevent))
-        if ccard.is_faceup(): # 暴露
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC2"], ccard.faceup if az else 0, is_runningevent=is_runningevent))
-        if ccard.is_antimagic(): # 魔法無効化
-            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC3"], ccard.antimagic if az else 0, is_runningevent=is_runningevent))
-        if ccard.enhance_act > 0: # 行動力強化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP0"], ccard.enhance_act, ccard.enhance_act_dur if az else 0, is_runningevent=is_runningevent)
-        elif ccard.enhance_act < 0: # 行動力弱化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN0"], ccard.enhance_act, ccard.enhance_act_dur if az else 0, is_runningevent=is_runningevent)
-        if ccard.enhance_avo > 0: # 回避力強化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP1"], ccard.enhance_avo, ccard.enhance_avo_dur if az else 0, is_runningevent=is_runningevent)
-        elif ccard.enhance_avo < 0: # 回避力弱化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN1"], ccard.enhance_avo, ccard.enhance_avo_dur if az else 0, is_runningevent=is_runningevent)
-        if ccard.enhance_res > 0: # 抵抗力強化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP2"], ccard.enhance_res, ccard.enhance_res_dur if az else 0, is_runningevent=is_runningevent)
-        elif ccard.enhance_res < 0: # 抵抗力弱化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN2"], ccard.enhance_res, ccard.enhance_res_dur if az else 0, is_runningevent=is_runningevent)
-        if ccard.enhance_def > 0: # 防御力強化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP3"], ccard.enhance_def, ccard.enhance_def_dur if az else 0, is_runningevent=is_runningevent)
-        elif ccard.enhance_def < 0: # 防御力弱化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN3"], ccard.enhance_def, ccard.enhance_def_dur if az else 0, is_runningevent=is_runningevent)
+        if beastnum:  # 召喚獣所持(付帯召喚以外)
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["SUMMON"], beastnum, True,
+                                        is_runningevent=is_runningevent))
+        if ccard.is_poison():  # 中毒
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["BODY0"], ccard.poison if az else 0,
+                                        is_runningevent=is_runningevent))
+        if cw.cwpy.setting.show_statustime in ("True", "NotEventTime") and ccard.is_paralyze():  # 麻痺
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["BODY1"], ccard.paralyze if az else 0,
+                                        is_runningevent=is_runningevent))
+        if cw.cwpy.setting.show_statustime in ("True", "NotEventTime") and ccard.is_sleep():  # 睡眠
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND1"], ccard.mentality_dur if az else 0,
+                                        is_runningevent=is_runningevent))
+        if ccard.is_confuse():  # 混乱
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND2"], ccard.mentality_dur if az else 0,
+                                        is_runningevent=is_runningevent))
+        elif ccard.is_overheat():  # 激昂
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND3"], ccard.mentality_dur if az else 0,
+                                        is_runningevent=is_runningevent))
+        elif ccard.is_brave():  # 勇敢
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND4"], ccard.mentality_dur if az else 0,
+                                        is_runningevent=is_runningevent))
+        elif ccard.is_panic():  # 恐慌
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND5"], ccard.mentality_dur if az else 0,
+                                        is_runningevent=is_runningevent))
+        if cw.cwpy.setting.show_statustime in ("True", "NotEventTime") and ccard.is_bind():  # 呪縛
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC0"], ccard.bind if az else 0,
+                                        is_runningevent=is_runningevent))
+        if ccard.is_silence():  # 沈黙
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC1"], ccard.silence if az else 0,
+                                        is_runningevent=is_runningevent))
+        if ccard.is_faceup():  # 暴露
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC2"], ccard.faceup if az else 0,
+                                        is_runningevent=is_runningevent))
+        if ccard.is_antimagic():  # 魔法無効化
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC3"], ccard.antimagic if az else 0,
+                                        is_runningevent=is_runningevent))
+        if ccard.enhance_act > 0:  # 行動力強化
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP0"], ccard.enhance_act,
+                                 ccard.enhance_act_dur if az else 0, is_runningevent=is_runningevent)
+        elif ccard.enhance_act < 0:  # 行動力弱化
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN0"], ccard.enhance_act,
+                                 ccard.enhance_act_dur if az else 0, is_runningevent=is_runningevent)
+        if ccard.enhance_avo > 0:  # 回避力強化
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP1"], ccard.enhance_avo,
+                                 ccard.enhance_avo_dur if az else 0, is_runningevent=is_runningevent)
+        elif ccard.enhance_avo < 0:  # 回避力弱化
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN1"], ccard.enhance_avo,
+                                 ccard.enhance_avo_dur if az else 0, is_runningevent=is_runningevent)
+        if ccard.enhance_res > 0:  # 抵抗力強化
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP2"], ccard.enhance_res,
+                                 ccard.enhance_res_dur if az else 0, is_runningevent=is_runningevent)
+        elif ccard.enhance_res < 0:  # 抵抗力弱化
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN2"], ccard.enhance_res,
+                                 ccard.enhance_res_dur if az else 0, is_runningevent=is_runningevent)
+        if ccard.enhance_def > 0:  # 防御力強化
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP3"], ccard.enhance_def,
+                                 ccard.enhance_def_dur if az else 0, is_runningevent=is_runningevent)
+        elif ccard.enhance_def < 0:  # 防御力弱化
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN3"], ccard.enhance_def,
+                                 ccard.enhance_def_dur if az else 0, is_runningevent=is_runningevent)
 
         x = cw.s(7)
         if ccard.is_analyzable() and not ccard.is_unconscious():
@@ -1170,11 +1206,12 @@ class CharacterCardImage(CardImage):
             is_runningevent = cw.cwpy.is_runningevent()
         is_runningevent = bool(is_runningevent)
         is_runningevent &= cw.cwpy.is_playingscenario()
-        is_runningevent &= not cw.cwpy.areaid in cw.AREAS_SP
+        is_runningevent &= cw.cwpy.areaid not in cw.AREAS_SP
         is_runningevent &= not (cw.cwpy.event.in_cardeffectmotion and not cw.cwpy.is_battlestatus())
         is_runningevent &= not cw.cwpy.is_reloading()
-        if (always or cw.cwpy.setting.show_statustime == "True" or\
-                    (cw.cwpy.setting.show_statustime == "NotEventTime" and not is_runningevent)) and num:
+        if (always or cw.cwpy.setting.show_statustime == "True" or (
+                cw.cwpy.setting.show_statustime == "NotEventTime" and not is_runningevent
+        )) and num:
             image = cw.util.put_number(image, num)
         return image
 
@@ -1201,21 +1238,21 @@ class CharacterCardImage(CardImage):
 
     def get_cardbgname(self, ccard):
         if ccard.is_unconscious():
-            return "FAINT"  # 意識不明
+            return "FAINT"   # 意識不明
         elif ccard.is_petrified():
-            return "PETRIF" # 石化
+            return "PETRIF"  # 石化
         elif ccard.is_paralyze():
-            return "PARALY" # 麻痺
+            return "PARALY"  # 麻痺
         elif ccard.is_sleep():
-            return "SLEEP"  # 睡眠
+            return "SLEEP"   # 睡眠
         elif ccard.is_bind():
-            return "BIND"   # 呪縛
+            return "BIND"    # 呪縛
         elif ccard.is_heavyinjured():
-            return "DANGER" # 重傷
+            return "DANGER"  # 重傷
         elif ccard.is_injured():
-            return "INJURY" # 負傷
+            return "INJURY"  # 負傷
         else:
-            return "LARGE"  # 正常
+            return "LARGE"   # 正常
 
     def get_image(self):
         return self.image
@@ -1226,13 +1263,14 @@ class CharacterCardImage(CardImage):
     def get_cardimg(self, header):
         return self.get_image()
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # 背景セル関係
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 def create_type2textcell(text, face, size, color,
-        bold, italic, uline, sline, vertical, antialias,
-        cellsize, bcolor, bwidth):
+                         bold, italic, uline, sline, vertical, antialias,
+                         cellsize, bcolor, bwidth):
     """縁取りType2のテキストセルを作成する。
     """
     if antialias:
@@ -1292,14 +1330,15 @@ def create_type2textcell(text, face, size, color,
 
     return img
 
+
 def draw_textcell(image, rect, text, face, size, color,
-        bold, italic, uline, sline, vertical, antialias, bcolor=None):
+                  bold, italic, uline, sline, vertical, antialias, bcolor=None):
     """縁取りType2以外のテキストセルを描画する。
     """
     img = pygame.Surface(rect.size).convert_alpha()
     img.fill((0, 0, 0, 0))
     font, lineheight = get_textcellfont(size, face, color, bold,
-                                       italic, uline, vertical, True)
+                                        italic, uline, vertical, True)
     lines = text.splitlines()
     if vertical:
         x = rect.width
@@ -1340,6 +1379,7 @@ def draw_textcell(image, rect, text, face, size, color,
 
     image.blit(img, rect.topleft)
 
+
 def get_textcellfont(size, face, color, bold, italic,
                      uline, vertical, antialiased):
     """テキストセル用のフォントを生成し、
@@ -1350,6 +1390,7 @@ def get_textcellfont(size, face, color, bold, italic,
         font.set_underline(True)
 
     return font, font.get_linesize()
+
 
 def create_colorcell(size, color1, gradient, color2):
     """ブレンド前のカラーセルを生成し、
@@ -1386,7 +1427,7 @@ def create_colorcell(size, color1, gradient, color2):
     elif gradient == "TopToBottom":
         for y in range(h):
             per = float(h - y) / h
-            r = calc_per(color2[0], color1[0], per) # 縦グラデーションは色の方向が逆
+            r = calc_per(color2[0], color1[0], per)  # 縦グラデーションは色の方向が逆
             g = calc_per(color2[1], color1[1], per)
             b = calc_per(color2[2], color1[2], per)
             a = calc_per(color2[3], color1[3], per)
@@ -1399,9 +1440,9 @@ def create_colorcell(size, color1, gradient, color2):
     return image
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # ユーティリティ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 def zoomcard(image, scale):
     """カードをリサイズする。"""
@@ -1512,7 +1553,7 @@ def fix_cwnext16bitbitmap(data):
                 try:
                     bmp = pygame.image.load(f)
                     return conv2wximage(bmp, biBitCount), True
-                except:
+                except Exception:
                     pass
                 f.close()
         # bfOffBitsをヘッダ直後に修正
@@ -1576,9 +1617,10 @@ def fix_cwnext32bitbitmap(data):
         # (加算されていない場合はオフセットのずれは色数*4*2になっている)
         biSizeImage = bfSize - 54
         si = struct.Struct("<I")
-        data = data[:2] + si.pack(bfSize) + data[6:10] + si.pack(bfOffBits) + data[14:34] +\
-               si.pack(biSizeImage) + data[38:46] + si.pack(0) + data[50:54] +\
-               data[54+biClrUsed*4:]
+        data =\
+            data[:2] + si.pack(bfSize) + data[6:10] + si.pack(bfOffBits) + data[14:34] +\
+            si.pack(biSizeImage) + data[38:46] + si.pack(0) + data[50:54] +\
+            data[54+biClrUsed*4:]
         return data, False
     return data, True
 
@@ -1621,7 +1663,7 @@ def patch_rle4bitmap(data):
     _biPlanes = s[9]
     biBitCount = s[10]
     biCompression = s[11]
-    if biCompression == 2: # RLE4
+    if biCompression == 2:  # RLE4
         # FIXME: RLE4の場合、メモリアクセス違反が発生する事がある(SDL_imageのバグ？)
         #        問題を避けるために予め展開する
         bmpdata = data[bfOffBits:]
@@ -1707,12 +1749,13 @@ def get_1bitpalette(data):
     biSize = s[6]
     s = struct.unpack("<BBBBBBBB", data[14+biSize:14+biSize+8])
     color1 = pygame.Color(s[0], s[1], s[2])
-    color2 =  pygame.Color(s[4], s[5], s[6])
+    color2 = pygame.Color(s[4], s[5], s[6])
     return (color1, color2)
 
 
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

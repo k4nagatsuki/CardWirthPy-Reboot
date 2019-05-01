@@ -17,6 +17,7 @@ dist_dir = "CardWirthPy"
 script = "cardwirth.py"
 srcfile_name = "src.zip"
 
+
 def compress_src(zpath):
     fnames = ("cardwirth.py", "build_cx.py", "build_py2exe.py", "build_pyi.py",
               "dailybuild.py", "CardWirthPy.ico",
@@ -51,6 +52,7 @@ def compress_src(zpath):
     z.close()
     return zpath
 
+
 def build_exe():
     # *.pycにビルド環境のフルパスが入ってしまう問題を避ける
     cwd = os.path.abspath(os.path.dirname(__file__))
@@ -78,9 +80,9 @@ def build_exe():
     include_files = (
         "License.txt",
         "bass.dll",
-    #    "bass_fx.dll",
-    #    "bassmidi.dll",
-    #    ("x64", "x64"),
+        # "bass_fx.dll",
+        # "bassmidi.dll",
+        # ("x64", "x64"),
         "ChangeLog.txt",
         "ReadMe.txt",
         ("Data/SoundFont", "Data/SoundFont"),
@@ -103,15 +105,19 @@ def build_exe():
 
     extra_dirs = (
         "Scenario", "Yado", "Data/Temp", "Data/Skin",
-         "Data/Face/Common", "Data/Face/Common-ADT", "Data/Face/Common-CHD", "Data/Face/Common-OLD", "Data/Face/Common-YNG",
-         "Data/Face/Female", "Data/Face/Female-ADT", "Data/Face/Female-CHD", "Data/Face/Female-OLD", "Data/Face/Female-YNG",
-         "Data/Face/Male", "Data/Face/Male-ADT", "Data/Face/Male-CHD", "Data/Face/Male-OLD", "Data/Face/Male-YNG"
+        "Data/Face/Common", "Data/Face/Common-ADT", "Data/Face/Common-CHD", "Data/Face/Common-OLD",
+        "Data/Face/Common-YNG",
+        "Data/Face/Female", "Data/Face/Female-ADT", "Data/Face/Female-CHD", "Data/Face/Female-OLD",
+        "Data/Face/Female-YNG",
+        "Data/Face/Male", "Data/Face/Male-ADT", "Data/Face/Male-CHD", "Data/Face/Male-OLD",
+        "Data/Face/Male-YNG"
      )
 
     options = {
         "build_exe": dist_dir,
         "optimize": 2,
-        "include_files": include_files
+        "include_files": include_files,
+        "includes": ["configparser"]
     }
 
     for arg in sys.argv[1:]:
@@ -179,8 +185,8 @@ def build_exe():
     #      VCRUNTIME140.dllはVCランタイムライブラリが無い環境で
     #      CardWirthPy.exeと同じフォルダに必要
     mvfiles = (
-#        ("sqlite3.dll", "lib/sqlite3.dll"),
-#        ("lib/VCRUNTIME140.dll", "VCRUNTIME140.dll"),
+        # ("sqlite3.dll", "lib/sqlite3.dll"),
+        # ("lib/VCRUNTIME140.dll", "VCRUNTIME140.dll"),
     )
     for src, dst in mvfiles:
         print("Moving %s to %s" % (src, dst))
@@ -198,7 +204,7 @@ def build_exe():
         "lib/cw/python37.dll",
         "lib/wx/python37.dll",
         "lib/wx/libcairo-2.dll",
-#        "lib/wx/libexpat-1.dll",
+        # "lib/wx/libexpat-1.dll",
         "lib/wx/_propgrid.cp37-win32.pyd",
         "lib/wx/_propgrid.cp37-win_amd64.pyd",
         "lib/wx/wxmsw30u_propgrid_vc140.dll",

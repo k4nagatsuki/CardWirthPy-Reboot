@@ -205,7 +205,7 @@ class YadoDB(object):
 
                 if not hasdesc:
                     self.cur.execute("ALTER TABLE adventurer ADD COLUMN desc TEXT")
-                    self.cur.execute("UPDATE adventurer SET mtime=?", (0,)) # 強制更新
+                    self.cur.execute("UPDATE adventurer SET mtime=?", (0,))  # 強制更新
                     reqcommit = True
 
                 if not hasversionhint:
@@ -473,7 +473,7 @@ class YadoDB(object):
                         if not fname.lower().endswith(".xml"):
                             continue
                         path = cw.util.join_paths(dpath, fname)
-                    if not path in dbpaths:
+                    if path not in dbpaths:
                         if isinstance(headertable, dict) and path in headertable:
                             insertheader(headertable[path], *args)
                         else:
@@ -569,7 +569,8 @@ class YadoDB(object):
                         else:
                             self._insert_party(path, False)
             for dpath in os.listdir(cw.util.join_paths(self.ypath, "Party")):
-                walk(cw.util.join_paths("Party", dpath), parties, "", self._insert_party, self._insert_partyheader, False)
+                walk(cw.util.join_paths("Party", dpath), parties, "", self._insert_party, self._insert_partyheader,
+                     False)
 
             if partyorder:
                 # 冒険者の並び順を登録する
@@ -623,7 +624,8 @@ class YadoDB(object):
                             self._insert_savedjpdcimageheader(savedjpdcimage[t[0]], False)
                         else:
                             self._insert_savedjpdcimage(path, False)
-            walk("SavedJPDCImage", savedjpdcimage, "SavedJPDCImage.xml", self._insert_savedjpdcimage, self._insert_savedjpdcimageheader, False)
+            walk("SavedJPDCImage", savedjpdcimage, "SavedJPDCImage.xml", self._insert_savedjpdcimage,
+                 self._insert_savedjpdcimageheader, False)
 
         self.con.commit()
 
@@ -1029,7 +1031,7 @@ class YadoDB(object):
         if header.album:
             album = 1
         else:
-            album= 0
+            album = 0
         self.cur.execute(s, (
             fpath,
             header.level,

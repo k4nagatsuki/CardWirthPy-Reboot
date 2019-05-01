@@ -58,7 +58,7 @@ class EventContentBase(object):
             return 1
         else:
             elements = self.data.find("Contents")
-            if not elements is None:
+            if elements is not None:
                 return len(elements)
         return 0
 
@@ -73,7 +73,7 @@ class EventContentBase(object):
             tspeed = self.data.get("transitionspeed", "Default")
             try:
                 tspeed = int(tspeed)
-            except:
+            except Exception:
                 pass
 
         return (tname, tspeed)
@@ -144,7 +144,8 @@ class EventContentBase(object):
         if not cw.cwpy.event.is_stoped():
             cw.cwpy.input()
             cw.cwpy.get_eventhandler().run()
-            while pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) and not not cw.cwpy.event.is_stoped():
+            while pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) and\
+                    not not cw.cwpy.event.is_stoped():
                 cw.cwpy.input()
                 cw.cwpy.get_eventhandler().run()
 
@@ -177,6 +178,7 @@ class EventContentBase(object):
                 desc += "\n" + "ステップ『%s』はありません。" % (ex.path)
 
         cw.cwpy.play_sound("error")
+
         def func():
             choices = (
                 ("続行", wx.ID_OK, cw.wins(100)),
@@ -202,78 +204,78 @@ class EventContentBase(object):
     def textdict(self):
         return {
             # 対象範囲
-            "backpack" : "荷物袋",
-            "partyandbackpack" : "パーティ全体(荷物袋含む)",
-            "field" : "フィールド全体",
-            "couponholder" : "称号所有者", # Wsn.2
-            "cardtarget" : "カードの使用対象", # Wsn.2
-            "selectedcard" : "選択カード", # Wsn.3
+            "backpack": "荷物袋",
+            "partyandbackpack": "パーティ全体(荷物袋含む)",
+            "field": "フィールド全体",
+            "couponholder": "称号所有者",  # Wsn.2
+            "cardtarget": "カードの使用対象",  # Wsn.2
+            "selectedcard": "選択カード",  # Wsn.3
             # 対象メンバ
-            "random" : "ランダムメンバ",
-            "selected" : "選択中メンバ",
-            "unselected" : "選択外メンバ",
-            "inusecard" : "使用中カード",
-            "party" : "パーティ全体",
-            "enemy" : "敵全体",
-            "npc" : "同行キャスト全体",
-            "valued" : "評価メンバ",
+            "random": "ランダムメンバ",
+            "selected": "選択中メンバ",
+            "unselected": "選択外メンバ",
+            "inusecard": "使用中カード",
+            "party": "パーティ全体",
+            "enemy": "敵全体",
+            "npc": "同行キャスト全体",
+            "valued": "評価メンバ",
             # 身体能力
-            "dex" : "器用度",
-            "agl" : "敏捷度",
-            "int" : "知力",
-            "str" : "筋力",
-            "vit" : "生命力",
-            "min" : "精神力",
+            "dex": "器用度",
+            "agl": "敏捷度",
+            "int": "知力",
+            "str": "筋力",
+            "vit": "生命力",
+            "min": "精神力",
             # 精神能力
-            "mental_aggressive" : "好戦性",
-            "mental_unaggressive" : "平和性",
-            "mental_cheerful" : "社交性",
-            "mental_uncheerful" : "内向性",
-            "mental_brave" : "勇猛性",
-            "mental_unbrave" : "臆病性",
-            "mental_cautious" : "慎重性",
-            "mental_uncautious" : "大胆性",
-            "mental_trickish" : "狡猾性",
-            "mental_untrickish" : "正直性",
+            "mental_aggressive": "好戦性",
+            "mental_unaggressive": "平和性",
+            "mental_cheerful": "社交性",
+            "mental_uncheerful": "内向性",
+            "mental_brave": "勇猛性",
+            "mental_unbrave": "臆病性",
+            "mental_cautious": "慎重性",
+            "mental_uncautious": "大胆性",
+            "mental_trickish": "狡猾性",
+            "mental_untrickish": "正直性",
             # ステータス
-            "active" : "行動可能",
-            "inactive" : "行動不可",
-            "alive" : "生存",
-            "dead" : "非生存",
-            "fine" : "健康",
-            "injured" : "負傷",
-            "heavyinjured" : "重傷",
-            "unconscious" : "意識不明",
-            "poison" : "中毒",
-            "sleep" : "眠り",
-            "bind" : "呪縛",
-            "paralyze" : "麻痺／石化",
-            "confuse" : "混乱", # 1.30
-            "overheat" : "激昂", # 1.30
-            "brave" : "勇敢", # 1.30
-            "panic" : "恐慌", # 1.30
-            "silence" : "沈黙", # 1.50
-            "faceup" : "暴露", # 1.50
-            "antimagic" : "魔法無効化", # 1.50
-            "upaction" : "行動力上昇", # 1.50
-            "upavoid" : "回避力上昇", # 1.50
-            "upresist" : "抵抗力上昇", # 1.50
-            "updefense" : "防御力上昇", # 1.50
-            "downaction" : "行動力低下", # 1.50
-            "downavoid" : "回避力低下", # 1.50
-            "downresist" : "抵抗力低下", # 1.50
-            "downdefense" : "防御力低下", # 1.50
+            "active": "行動可能",
+            "inactive": "行動不可",
+            "alive": "生存",
+            "dead": "非生存",
+            "fine": "健康",
+            "injured": "負傷",
+            "heavyinjured": "重傷",
+            "unconscious": "意識不明",
+            "poison": "中毒",
+            "sleep": "眠り",
+            "bind": "呪縛",
+            "paralyze": "麻痺／石化",
+            "confuse": "混乱",  # 1.30
+            "overheat": "激昂",  # 1.30
+            "brave": "勇敢",  # 1.30
+            "panic": "恐慌",  # 1.30
+            "silence": "沈黙",  # 1.50
+            "faceup": "暴露",  # 1.50
+            "antimagic": "魔法無効化",  # 1.50
+            "upaction": "行動力上昇",  # 1.50
+            "upavoid": "回避力上昇",  # 1.50
+            "upresist": "抵抗力上昇",  # 1.50
+            "updefense": "防御力上昇",  # 1.50
+            "downaction": "行動力低下",  # 1.50
+            "downavoid": "回避力低下",  # 1.50
+            "downresist": "抵抗力低下",  # 1.50
+            "downdefense": "防御力低下",  # 1.50
             # カード種別
-            "all" : "全てのカード", # 1.50
-            "skill" : "特殊技能カード", # 1.50
-            "item" : "アイテムカード", # 1.50
-            "beast" : "召喚獣カード", # 1.50
+            "all": "全てのカード",  # 1.50
+            "skill": "特殊技能カード",  # 1.50
+            "item": "アイテムカード",  # 1.50
+            "beast": "召喚獣カード",  # 1.50
         }
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Branch系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class BranchContent(EventContentBase):
     def __init__(self, data):
@@ -541,10 +543,10 @@ class BranchContent(EventContentBase):
             else:
                 try:
                     name = int(name)
-                except:
+                except Exception:
                     name = -2
 
-            if not name in self._index_table:
+            if name not in self._index_table:
                 self._index_table[name] = index
             if self._index_default < 0 and name == -1:
                 self._index_default = index
@@ -617,7 +619,7 @@ class BranchSkillContent(BranchContent):
     def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_skillname(resid)
-        if not name is None:
+        if name is not None:
             return "特殊技能カード『%s』所持分岐" % (name)
         else:
             return "特殊技能カードが指定されていません"
@@ -626,7 +628,7 @@ class BranchSkillContent(BranchContent):
         resid = self.data.getint(".", "id", 0)
         scope = self.data.get("targets")
         name = cw.cwpy.sdata.get_skillname(resid)
-        if not name is None:
+        if name is not None:
             success = self.get_contentname(child) == "○"
             if self.invert:
                 success = not success
@@ -660,7 +662,7 @@ class BranchItemContent(BranchContent):
     def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_itemname(resid)
-        if not name is None:
+        if name is not None:
             return "アイテムカード『%s』所持分岐" % (name)
         else:
             return "アイテムカードが指定されていません"
@@ -670,7 +672,7 @@ class BranchItemContent(BranchContent):
         scope = self.data.get("targets")
         name = cw.cwpy.sdata.get_itemname(resid)
 
-        if not name is None:
+        if name is not None:
             success = self.get_contentname(child) == "○"
             if self.invert:
                 success = not success
@@ -704,7 +706,7 @@ class BranchBeastContent(BranchContent):
     def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_beastname(resid)
-        if not name is None:
+        if name is not None:
             return "召喚獣カード『%s』所持分岐" % (name)
         else:
             return "召喚獣カードが指定されていません"
@@ -714,7 +716,7 @@ class BranchBeastContent(BranchContent):
         scope = self.data.get("targets")
         name = cw.cwpy.sdata.get_beastname(resid)
 
-        if not name is None:
+        if name is not None:
             success = self.get_contentname(child) == "○"
             if self.invert:
                 success = not success
@@ -754,7 +756,7 @@ class BranchCastContent(BranchContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_castname(resid)
 
-        if not name is None:
+        if name is not None:
             return "キャスト『%s』存在分岐" % (name)
         else:
             return "キャストが指定されていません"
@@ -763,7 +765,7 @@ class BranchCastContent(BranchContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_castname(resid)
 
-        if not name is None:
+        if name is not None:
             s = name
         else:
             s = "指定無し"
@@ -790,7 +792,7 @@ class BranchInfoContent(BranchContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_infoname(resid)
 
-        if not name is None:
+        if name is not None:
             return "情報カード『%s』存在分岐" % (name)
         else:
             return "情報カードが指定されていません"
@@ -799,7 +801,7 @@ class BranchInfoContent(BranchContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_infoname(resid)
 
-        if not name is None:
+        if name is not None:
             s = name
         else:
             s = "指定無し"
@@ -853,14 +855,14 @@ class BranchBattleContent(BranchContent):
     def get_childname(self, child, event):
         try:
             resid = int(self.get_contentname(child))
-        except:
+        except Exception:
             resid = "Default"
 
         if resid == "Default":
             s = "その他"
         else:
             name = cw.cwpy.sdata.get_battlename(resid)
-            if not name is None:
+            if name is not None:
                 s = name
             else:
                 s = "指定無し"
@@ -891,14 +893,14 @@ class BranchAreaContent(BranchContent):
     def get_childname(self, child, event):
         try:
             resid = int(self.get_contentname(child))
-        except:
+        except Exception:
             resid = "Default"
 
         if resid == "Default":
             s = "その他"
         else:
             name = cw.cwpy.sdata.get_areaname(resid)
-            if not name is None:
+            if name is not None:
                 s = name
             else:
                 s = "指定無し"
@@ -1000,7 +1002,7 @@ class BranchGossipContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
         self.gossip = self.data.get("gossip", "")
-        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
+        self.spchars = self.data.getbool(".", "spchars", False)  # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """ゴシップ分岐コンテント。"""
@@ -1117,7 +1119,7 @@ class BranchCouponContent(BranchContent):
         self.scope, self.someone, self.unreversed = _get_couponscope(self.scope)
 
         # Wsn.1方式(1.50と同様の１クーポン名)
-        coupon = self.data.get("coupon","")
+        coupon = self.data.get("coupon", "")
         # Wsn.2方式
         self.matchingtype = self.data.get("matchingtype")
         names = [coupon] if coupon else []
@@ -1126,8 +1128,8 @@ class BranchCouponContent(BranchContent):
                 names.append(e.text)
         self.couponnames = names
 
-        self.invert = self.data.getbool(".", "invert", False) # 条件の逆転(Wsn.4)
-        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
+        self.invert = self.data.getbool(".", "invert", False)  # 条件の逆転(Wsn.4)
+        self.spchars = self.data.getbool(".", "spchars", False)  # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """称号存在分岐コンテント。"""
@@ -1317,7 +1319,7 @@ class BranchFlagContent(BranchContent):
             return 0
 
         flag = cw.cwpy.sdata.find_flag(self.flag, cw.cwpy.event.get_nowrunningevent())
-        if not flag is None:
+        if flag is not None:
             index = self.get_boolean_index(flag)
         elif self.get_children_num():
             # フラグが存在しない場合は
@@ -1330,14 +1332,14 @@ class BranchFlagContent(BranchContent):
 
     def get_status(self, event):
         flag = cw.cwpy.sdata.find_flag(self.flag, event)
-        if not flag is None:
+        if flag is not None:
             return "フラグ『%s』分岐" % (flag.name)
         else:
             return "フラグが指定されていません"
 
     def get_childname(self, child, event):
         flag = cw.cwpy.sdata.find_flag(self.flag, event)
-        if flag:
+        if flag is not None:
             valuename = flag.get_valuename(self.get_contentname(child) == "○")
 
             return "%s = %s" % (flag.name, valuename)
@@ -1358,7 +1360,7 @@ class BranchStepContent(BranchContent):
             return 0
 
         step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
-        if not step is None:
+        if step is not None:
             flag = step.value >= self.value
             index = self.get_boolean_index(flag)
         elif self.nextlen:
@@ -1373,14 +1375,14 @@ class BranchStepContent(BranchContent):
     def get_status(self, event):
         step = cw.cwpy.sdata.find_step(self.step, event)
 
-        if not step is None:
+        if step is not None:
             return "ステップ『%s』分岐" % (step.name)
         else:
             return "ステップが指定されていません"
 
     def get_childname(self, child, event):
         step = cw.cwpy.sdata.find_step(self.step, event)
-        if not step is None:
+        if step is not None:
             valuename = step.get_valuename(self.value)
 
             if self.get_contentname(child) == "○":
@@ -1404,7 +1406,7 @@ class BranchMultiStepContent(BranchContent):
             return 0
 
         step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
-        if not step is None:
+        if step is not None:
             value = step.value
             index = self.get_value_index(value)
         elif self.nextlen:
@@ -1419,17 +1421,17 @@ class BranchMultiStepContent(BranchContent):
     def get_status(self, event):
         step = cw.cwpy.sdata.find_step(self.step, event)
 
-        if not step is None:
+        if step is not None:
             return "ステップ『%s』多岐分岐" % (step.name)
         else:
             return "ステップが指定されていません"
 
     def get_childname(self, child, event):
         step = cw.cwpy.sdata.find_step(self.step, event)
-        if not step is None:
+        if step is not None:
             try:
                 value = int(self.get_contentname(child, "Default"))
-            except:
+            except Exception:
                 value = "Default"
 
             if value == "Default":
@@ -1588,14 +1590,15 @@ class BranchRandomSelectContent(BranchContent):
 
         # 対象メンバ取得
         targets = []
-        for scope in ("Party", "Enemy", "Npc"): # 順序はPC→敵→同行NPCに固定
+        for scope in ("Party", "Enemy", "Npc"):  # 順序はPC→敵→同行NPCに固定
             if scope in ranges:
                 targets.extend(cw.cwpy.event.get_targetscope(scope, True))
 
         # レベル・状態判定
         targets2 = []
         for target in targets:
-            failure = (status and status != "None" and not (hasattr(target, methodname) and getattr(target, methodname)())) or \
+            failure = (status and status != "None" and not (hasattr(target, methodname) and
+                                                            getattr(target, methodname)())) or \
                 (0 < minlevel and target.level < minlevel) or \
                 (0 < maxlevel and maxlevel < target.level)
 
@@ -1614,7 +1617,7 @@ class BranchRandomSelectContent(BranchContent):
         if selectedmember:
             cw.cwpy.event.set_selectedmember(selectedmember)
 
-        return self.get_boolean_index(not selectedmember is None)
+        return self.get_boolean_index(selectedmember is not None)
 
     def get_castranges(self):
         ranges = set()
@@ -1700,6 +1703,7 @@ class BranchKeyCodeContent(BranchContent):
         # 判定条件の反転(Wsn.4)
         self.invert = self.data.getbool(".", "invert", False)
 
+    @property
     def action(self):
         """キーコード所持分岐コンテント(1.30)。"""
 
@@ -1714,13 +1718,13 @@ class BranchKeyCodeContent(BranchContent):
                 if (selcard.type == "SkillCard" and self.skill) or \
                         (selcard.type == "ItemCard" and self.item) or \
                         (selcard.type == "BeastCard" and self.beast) or \
-                        (self.hand and cw.cwpy.is_battlestatus() and\
-                         isinstance(selcard.get_owner(), cw.character.Character) and\
+                        (self.hand and cw.cwpy.is_battlestatus() and
+                         isinstance(selcard.get_owner(), cw.character.Character) and
                          any([h.ref_original == selcard.ref_original for h in selcard.get_owner().deck.hand])):
                     if self.keycode in selcard.get_keycodes():
                         header = selcard
                         if isinstance(header.get_owner(), cw.character.Character):
-                            selectedmember= header.get_owner()
+                            selectedmember = header.get_owner()
             success = bool(header)
             if self.invert:
                 # 判定条件の反転(Wsn.4)
@@ -1897,7 +1901,7 @@ class BranchMultiCouponContent(BranchContent):
         self.scope = self.data.get("targets", "Selected")
         # 対象範囲修正
         self.scope, self.someone, self.unreversed = _get_couponscope(self.scope)
-        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
+        self.spchars = self.data.getbool(".", "spchars", False)  # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """クーポン多岐分岐コンテント(Wsn.2)。"""
@@ -2016,9 +2020,9 @@ class BranchVariantContent(BranchContent):
         return "%s = 〔 %s 〕" % (valuename, self.expression)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Call系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class CallStartContent(EventContentBase):
     def __init__(self, data):
@@ -2080,7 +2084,7 @@ class CallPackageContent(EventContentBase):
         resid = self.data.getint(".", "call", 0)
         name = cw.cwpy.sdata.get_packagename(resid)
 
-        if not name is None:
+        if name is not None:
             return "パッケージ『%s』コール" % (name)
         else:
             return "パッケージが指定されていません"
@@ -2090,7 +2094,7 @@ def call_package(resid, call):
     """パッケージを実行する。
     call: コールならTrue、リンクならFalse。
     """
-    if not resid in cw.cwpy.event.nowrunningpacks:
+    if resid not in cw.cwpy.event.nowrunningpacks:
         e = cw.cwpy.sdata.get_packagedata(resid)
         if e is None:
             return 0
@@ -2136,9 +2140,9 @@ def call_package(resid, call):
         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Change系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class ChangeBgImageContent(EventContentBase):
     def __init__(self, data):
@@ -2198,7 +2202,7 @@ class ChangeAreaContent(EventContentBase):
         ttype = self.get_transitiontype()
         name = cw.cwpy.sdata.get_areaname(resid)
 
-        if not name is None:
+        if name is not None:
             cw.cwpy.exec_func(cw.cwpy.change_area, resid, ttype=ttype)
             cw.cwpy._dealing = True
             raise cw.event.AreaChangeError()
@@ -2210,7 +2214,7 @@ class ChangeAreaContent(EventContentBase):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_areaname(resid)
 
-        if not name is None:
+        if name is not None:
             return "エリア『%s』へ移動" % (name)
         else:
             return "エリアが指定されていません"
@@ -2241,9 +2245,9 @@ class ChangeEnvironmentContent(EventContentBase):
         return "荷物袋 = %s" % (backpack)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Check系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class CheckFlagContent(EventContentBase):
     def __init__(self, data):
@@ -2256,7 +2260,7 @@ class CheckFlagContent(EventContentBase):
             return cw.IDX_TREEEND
 
         flag = cw.cwpy.sdata.find_flag(self.flag, cw.cwpy.event.get_nowrunningevent())
-        if not flag is None and bool(flag):
+        if flag is not None and bool(flag):
             return 0
         else:
             return cw.IDX_TREEEND
@@ -2281,7 +2285,7 @@ class CheckStepContent(EventContentBase):
             return cw.IDX_TREEEND
 
         step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
-        if not step is None:
+        if step is not None:
             value2 = step.value
             if self.comparison == "=":
                 if self.value1 == value2:
@@ -2300,7 +2304,7 @@ class CheckStepContent(EventContentBase):
 
     def get_status(self, event):
         step = cw.cwpy.sdata.find_step(self.step, event)
-        if not step is None:
+        if step is not None:
             return "%s %s ステップ『%s』" % (self.value1, self.comparison, step.name)
         else:
             return "ステップが指定されていません"
@@ -2333,9 +2337,9 @@ class CheckVariantContent(EventContentBase):
         return "%s" % self.expression
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Effect系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class EffectContent(EventContentBase):
     def __init__(self, data):
@@ -2613,46 +2617,48 @@ class EffectContent(EventContentBase):
         return 0
 
     def get_status(self, event):
-        dic = { "Heal": "回復",
-                "Damage": "ダメージ",
-                "Absorb": "吸収",
-                "Paralyze": "麻痺状態",
-                "DisParalyze": "麻痺解除",
-                "Poison": "中毒状態",
-                "DisPoison": "中毒解除",
-                "GetSkillPower": "精神力回復",
-                "LoseSkillPower": "精神力不能",
-                "Sleep": "睡眠状態",
-                "Confuse": "混乱状態",
-                "Overheat": "激昂状態",
-                "Brave": "勇敢状態",
-                "Panic": "恐慌状態",
-                "Normal": "正常状態",
-                "Bind": "束縛状態",
-                "DisBind": "束縛解除",
-                "Silence": "沈黙状態",
-                "DisSilence": "沈黙解除",
-                "FaceUp": "暴露状態",
-                "FaceDown": "暴露解除",
-                "AntiMagic": "魔法無効化状態",
-                "DisAntiMagic": "魔法無効化解除",
-                "EnhanceAction": "行動力変化",
-                "EnhanceAvoid": "回避力変化",
-                "EnhanceResist": "抵抗力変化",
-                "EnhanceDefense": "防御力変化",
-                "VanishTarget": "対象消去",
-                "VanishCard": "カード消去",
-                "VanishBeast": "召喚獣消去",
-                "DealAttackCard": "通常攻撃",
-                "DealPowerfulAttackCard": "渾身の一撃",
-                "DealCriticalAttackCard": "会心の一撃",
-                "DealFeintCard": "フェイント",
-                "DealDefenseCard": "防御",
-                "DealDistanceCard": "見切り",
-                "DealConfuseCard": "混乱",
-                "DealSkillCard": "特殊技能",
-                "CancelAction": "行動キャンセル",
-                "SummonBeast": "召喚獣召喚", }
+        dic = {
+            "Heal": "回復",
+            "Damage": "ダメージ",
+            "Absorb": "吸収",
+            "Paralyze": "麻痺状態",
+            "DisParalyze": "麻痺解除",
+            "Poison": "中毒状態",
+            "DisPoison": "中毒解除",
+            "GetSkillPower": "精神力回復",
+            "LoseSkillPower": "精神力不能",
+            "Sleep": "睡眠状態",
+            "Confuse": "混乱状態",
+            "Overheat": "激昂状態",
+            "Brave": "勇敢状態",
+            "Panic": "恐慌状態",
+            "Normal": "正常状態",
+            "Bind": "束縛状態",
+            "DisBind": "束縛解除",
+            "Silence": "沈黙状態",
+            "DisSilence": "沈黙解除",
+            "FaceUp": "暴露状態",
+            "FaceDown": "暴露解除",
+            "AntiMagic": "魔法無効化状態",
+            "DisAntiMagic": "魔法無効化解除",
+            "EnhanceAction": "行動力変化",
+            "EnhanceAvoid": "回避力変化",
+            "EnhanceResist": "抵抗力変化",
+            "EnhanceDefense": "防御力変化",
+            "VanishTarget": "対象消去",
+            "VanishCard": "カード消去",
+            "VanishBeast": "召喚獣消去",
+            "DealAttackCard": "通常攻撃",
+            "DealPowerfulAttackCard": "渾身の一撃",
+            "DealCriticalAttackCard": "会心の一撃",
+            "DealFeintCard": "フェイント",
+            "DealDefenseCard": "防御",
+            "DealDistanceCard": "見切り",
+            "DealConfuseCard": "混乱",
+            "DealSkillCard": "特殊技能",
+            "CancelAction": "行動キャンセル",
+            "SummonBeast": "召喚獣召喚",
+        }
 
         targetm = self.textdict.get(self.targetm.lower(), "")
         if self.targetm == "CouponHolder":
@@ -2684,9 +2690,9 @@ class EffectBreakContent(EventContentBase):
         return "効果中断コンテント"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Elapse系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class ElapseTimeContent(EventContentBase):
     def __init__(self, data):
@@ -2701,9 +2707,9 @@ class ElapseTimeContent(EventContentBase):
         return "ターン数経過コンテント"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # End系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class EndContent(EventContentBase):
     def __init__(self, data):
@@ -2829,9 +2835,9 @@ class EndBadEndContent(EventContentBase):
         return "パーティ全滅"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Get系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class GetContent(EventContentBase):
     def __init__(self, data):
@@ -2987,7 +2993,7 @@ class GetSkillContent(GetContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_skillname(resid)
 
-        if not name is None:
+        if name is not None:
             scope = self.data.get("targets")
             if scope == "SelectedCard":
                 return "選択カードと交換して特殊技能カード『%s』を取得" % (name)
@@ -3013,7 +3019,7 @@ class GetItemContent(GetContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_itemname(resid)
 
-        if not name is None:
+        if name is not None:
             scope = self.data.get("targets")
             if scope == "SelectedCard":
                 return "選択カードと交換してアイテムカード『%s』を取得" % (name)
@@ -3039,7 +3045,7 @@ class GetBeastContent(GetContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_beastname(resid)
 
-        if not name is None:
+        if name is not None:
             scope = self.data.get("targets")
             if scope == "SelectedCard":
                 return "選択カードと交換して召喚獣カード『%s』を取得" % (name)
@@ -3081,12 +3087,12 @@ class GetCastContent(GetContent):
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             e = cw.cwpy.sdata.get_castdata(resid, nocache=True)
-            if not e is None:
+            if e is not None:
                 fcard = cw.sprite.card.FriendCard(data=e)
                 cw.cwpy.sdata.friendcards.append(fcard)
                 if cw.cwpy.is_battlestatus() and fcard.is_alive():
                     if startactin == "Now" or\
-                            (startactin == "CurrentRound" and\
+                            (startactin == "CurrentRound" and
                                      (cw.cwpy.battle.is_ready() or cw.cwpy.battle.in_roundevent)):
                         # 即戦闘に参加する
                         cw.cwpy.battle.members.append(fcard)
@@ -3098,7 +3104,7 @@ class GetCastContent(GetContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_castname(resid)
 
-        if not name is None:
+        if name is not None:
             return "キャストカード『%s』加入" % (name)
         else:
             return "キャストカードが指定されていません"
@@ -3115,7 +3121,7 @@ class GetInfoContent(GetContent):
             return 0
 
         name = cw.cwpy.sdata.get_infoname(self.resid)
-        if not name is None:
+        if name is not None:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             if cw.cwpy.sdata.has_infocard(self.resid):
@@ -3129,7 +3135,7 @@ class GetInfoContent(GetContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_infoname(resid)
 
-        if not name is None:
+        if name is not None:
             return "情報カード『%s』入手" % (name)
         else:
             return "情報カードが指定されていません"
@@ -3176,7 +3182,7 @@ class GetGossipContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
         self.gossip = self.data.get("gossip", "")
-        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
+        self.spchars = self.data.getbool(".", "spchars", False)  # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """ゴシップ取得コンテント。"""
@@ -3234,7 +3240,7 @@ class GetCouponContent(GetContent):
         self.scope = self.data.get("targets")
         # 称号所有者が適用範囲の時の称号名(Wsn.3)
         self.holdingcoupon = self.data.get("holdingcoupon", "")
-        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
+        self.spchars = self.data.getbool(".", "spchars", False)  # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """称号付与コンテント。"""
@@ -3271,9 +3277,9 @@ class GetCouponContent(GetContent):
             return "称号が指定されていません"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # hide系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class HidePartyContent(EventContentBase):
     def __init__(self, data):
@@ -3299,9 +3305,9 @@ class HidePartyContent(EventContentBase):
         return "パーティ非表示コンテント"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Link系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class LinkStartContent(EventContentBase):
     def __init__(self, data):
@@ -3315,7 +3321,7 @@ class LinkStartContent(EventContentBase):
         trees = cw.cwpy.event.get_trees()
 
         c = trees.get(startname, None)
-        if not c is None:
+        if c is not None:
             event.cur_content = c
             event.line_index = 0
 
@@ -3348,15 +3354,15 @@ class LinkPackageContent(EventContentBase):
         resid = self.data.getint(".", "link", 0)
         name = cw.cwpy.sdata.get_packagename(resid)
 
-        if not name is None:
+        if name is not None:
             return "パッケージビュー『%s』" % (name)
         else:
             return "パッケージが指定されていません"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Lose系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class LoseContent(EventContentBase):
     def __init__(self, data):
@@ -3453,7 +3459,7 @@ class LoseSkillContent(LoseContent):
             resid = self.data.getint(".", "id", 0)
             name = cw.cwpy.sdata.get_skillname(resid)
 
-            if not name is None:
+            if name is not None:
                 scope = self.textdict.get(scope.lower(), "")
                 num = self.data.getint(".", "number", 0)
                 num = "%s枚" % (num) if num else "全て"
@@ -3479,7 +3485,7 @@ class LoseItemContent(LoseContent):
             resid = self.data.getint(".", "id", 0)
             name = cw.cwpy.sdata.get_itemname(resid)
 
-            if not name is None:
+            if name is not None:
                 scope = self.textdict.get(scope.lower(), "")
                 num = self.data.getint(".", "number", 0)
                 num = "%s枚" % (num) if num else "全て"
@@ -3505,7 +3511,7 @@ class LoseBeastContent(LoseContent):
             resid = self.data.getint(".", "id", 0)
             name = cw.cwpy.sdata.get_beastname(resid)
 
-            if not name is None:
+            if name is not None:
                 scope = self.textdict.get(scope.lower(), "")
                 num = self.data.getint(".", "number", 0)
                 num = "%s枚" % (num) if num else "全て"
@@ -3539,7 +3545,7 @@ class LoseCastContent(LoseContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_castname(resid)
 
-        if not name is None:
+        if name is not None:
             return "キャストカード『%s』離脱" % (name)
         else:
             return "キャストカードが指定されていません"
@@ -3556,7 +3562,7 @@ class LoseInfoContent(LoseContent):
         if self.is_differentscenario():
             return 0
 
-        if not self.name is None:
+        if self.name is not None:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             cw.cwpy.sdata.remove_infocard(self.resid)
@@ -3567,7 +3573,7 @@ class LoseInfoContent(LoseContent):
         resid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_infoname(resid)
 
-        if not name is None:
+        if name is not None:
             return "情報カード『%s』喪失" % (name)
         else:
             return "情報カードが指定されていません"
@@ -3614,7 +3620,7 @@ class LoseGossipContent(LoseContent):
     def __init__(self, data):
         LoseContent.__init__(self, data)
         self.gossip = self.data.get("gossip", "")
-        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
+        self.spchars = self.data.getbool(".", "spchars", False)  # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """ゴシップ削除コンテント。"""
@@ -3646,7 +3652,7 @@ class LoseCouponContent(LoseContent):
         self.scope = self.data.get("targets")
         # 称号所有者が適用範囲の時の称号名(Wsn.3)
         self.holdingcoupon = self.data.get("holdingcoupon", "")
-        self.spchars = self.data.getbool(".", "spchars", False) # 特殊文字の展開(Wsn.4)
+        self.spchars = self.data.getbool(".", "spchars", False)  # 特殊文字の展開(Wsn.4)
 
     def action(self):
         """称号剥奪コンテント。"""
@@ -3709,9 +3715,9 @@ class LoseBgImageContent(EventContentBase):
         return "セル名称 = 【%s】" % (self.cellname)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Play系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class PlayBgmContent(EventContentBase):
     def __init__(self, data):
@@ -3789,9 +3795,9 @@ class PlaySoundContent(EventContentBase):
             return "効果音が指定されていません"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Redisplay系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class RedisplayContent(EventContentBase):
     def __init__(self, data):
@@ -3812,9 +3818,9 @@ class RedisplayContent(EventContentBase):
         return "画面再構築コンテント"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Reverse系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class ReverseFlagContent(EventContentBase):
     def __init__(self, data):
@@ -3834,7 +3840,7 @@ class ReverseFlagContent(EventContentBase):
             return 0
 
         flag = cw.cwpy.sdata.find_flag(self.flag, cw.cwpy.event.get_nowrunningevent())
-        if not flag is None:
+        if flag is not None:
             flag.reverse()
             flag.redraw_cards(self.cardspeed, self.overridecardspeed)
 
@@ -3842,15 +3848,15 @@ class ReverseFlagContent(EventContentBase):
 
     def get_status(self, event):
         flag = cw.cwpy.sdata.find_flag(self.flag, event)
-        if not flag is None:
+        if flag is not None:
             return "フラグ『%s』の値を反転" % (flag.name)
         else:
             return "フラグが指定されていません"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Set系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SetFlagContent(EventContentBase):
     def __init__(self, data):
@@ -3871,7 +3877,7 @@ class SetFlagContent(EventContentBase):
             return 0
 
         flag = cw.cwpy.sdata.find_flag(self.flag, cw.cwpy.event.get_nowrunningevent())
-        if not flag is None:
+        if flag is not None:
             flag.set(self.value)
             flag.redraw_cards(self.cardspeed, self.overridecardspeed)
 
@@ -3879,7 +3885,7 @@ class SetFlagContent(EventContentBase):
 
     def get_status(self, event):
         flag = cw.cwpy.sdata.find_flag(self.flag, event)
-        if not flag is None:
+        if flag is not None:
             s = flag.get_valuename(self.value)
             return "フラグ『%s』を【%s】に変更" % (flag.name, s)
         else:
@@ -3898,14 +3904,14 @@ class SetStepContent(EventContentBase):
             return 0
 
         step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
-        if not step is None:
+        if step is not None:
             step.set(self.value)
 
         return 0
 
     def get_status(self, event):
         step = cw.cwpy.sdata.find_step(self.step, event)
-        if not step is None:
+        if step is not None:
             s = step.get_valuename(self.value)
             return "ステップ『%s』を【%s】に変更" % (step.name, s)
         else:
@@ -3923,14 +3929,14 @@ class SetStepUpContent(EventContentBase):
             return 0
 
         step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
-        if not step is None:
+        if step is not None:
             step.up()
 
         return 0
 
     def get_status(self, event):
         step = cw.cwpy.sdata.find_step(self.step, event)
-        if not step is None:
+        if step is not None:
             return "ステップ『%s』の値を1増加" % (step.name)
         else:
             return "ステップが指定されていません"
@@ -3947,14 +3953,14 @@ class SetStepDownContent(EventContentBase):
             return 0
 
         step = cw.cwpy.sdata.find_step(self.step, cw.cwpy.event.get_nowrunningevent())
-        if not step is None:
+        if step is not None:
             step.down()
 
         return 0
 
     def get_status(self, event):
         step = cw.cwpy.sdata.find_step(self.step, event)
-        if not step is None:
+        if step is not None:
             return "ステップ『%s』の値を1減少" % (step.name)
         else:
             return "ステップが指定されていません"
@@ -3991,7 +3997,7 @@ class SetVariantContent(BranchContent):
                 variant.set(result.value)
 
         step = cw.cwpy.sdata.find_step(self.step, event)
-        if not step is None:
+        if step is not None:
             result = eval()
             if result:
                 if result.type == "Number":
@@ -4001,7 +4007,7 @@ class SetVariantContent(BranchContent):
                     self.variant_error(msg="計算結果 %s は数値ではありません。" % (result.string_value()))
 
         flag = cw.cwpy.sdata.find_flag(self.flag, event)
-        if not flag is None:
+        if flag is not None:
             result = eval()
             if result:
                 if result.type == "Boolean":
@@ -4016,18 +4022,18 @@ class SetVariantContent(BranchContent):
         if variant:
             return "〔 %s 〕の結果をコモン『%s』へ代入" % (self.expression, variant.name)
         step = cw.cwpy.sdata.find_step(self.step, event)
-        if not step is None:
+        if step is not None:
             return "〔 %s 〕の結果をステップ『%s』へ代入" % (self.expression, step.name)
         flag = cw.cwpy.sdata.find_flag(self.flag, event)
-        if not flag is None:
+        if flag is not None:
             return "〔 %s 〕の結果をフラグ『%s』へ代入" % (self.expression, flag.name)
 
         return "代入先が指定されていません"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Show系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class ShowPartyContent(EventContentBase):
     def __init__(self, data):
@@ -4053,9 +4059,9 @@ class ShowPartyContent(EventContentBase):
         return "パーティ表示コンテント"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Start系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class StartContent(EventContentBase):
     def __init__(self, data):
@@ -4079,7 +4085,7 @@ class StartBattleContent(EventContentBase):
 
         areaid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_battlename(areaid)
-        if not name is None:
+        if name is not None:
             cw.cwpy.lock_menucards = True
             cw.cwpy.exec_func(cw.cwpy.change_battlearea, areaid)
             cw.cwpy._dealing = True
@@ -4091,15 +4097,15 @@ class StartBattleContent(EventContentBase):
         areaid = self.data.getint(".", "id", 0)
         name = cw.cwpy.sdata.get_battlename(areaid)
 
-        if not name is None:
+        if name is not None:
             return "バトルビュー『%s』" % (name)
         else:
             return "バトルエリアが指定されていません"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Talk系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class TalkContent(EventContentBase):
     def __init__(self, data):
@@ -4243,7 +4249,8 @@ class TalkMessageContent(TalkContent):
                     if cw.cwpy.areaid < 0:
                         can_loaded_scaledimage = True
                     elif cw.cwpy.event.in_inusecardevent:
-                        can_loaded_scaledimage = cw.cwpy.event.get_inusecard().carddata.getbool(".", "scaledimage", False)
+                        can_loaded_scaledimage = cw.cwpy.event.get_inusecard().carddata.getbool(".", "scaledimage",
+                                                                                                False)
                     else:
                         can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
                 talkers.append((cw.image.ImageInfo(imgpath, base=info), can_loaded_scaledimage, None, {}))
@@ -4369,7 +4376,8 @@ class TalkDialogContent(TalkContent):
         can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
         for base in talker.imgpaths:
             basecardtype = "LargeCard"
-            imgpaths.append((cw.image.ImageInfo(base.path, base=base, basecardtype=basecardtype), can_loaded_scaledimage,
+            imgpaths.append((cw.image.ImageInfo(base.path, base=base, basecardtype=basecardtype),
+                             can_loaded_scaledimage,
                              talker, {}))
         # 対象メンバの所持クーポンの集合
         coupons = talker.get_coupons()
@@ -4398,7 +4406,7 @@ class TalkDialogContent(TalkContent):
                                                    centering_x=centering_x, centering_y=centering_y,
                                                    boundarycheck=boundarycheck)
             index = cw.cwpy.show_message(mwin)
-        elif not dialogtext is None and len(names) > 1:
+        elif dialogtext is not None and len(names) > 1:
             # 選択されたDialogに空文字列が設定されており、
             # かつ選択肢が2つ以上ある場合は選択肢を表示
             mwin = cw.sprite.message.SelectWindow(names, columns=columns)
@@ -4461,7 +4469,7 @@ class TalkDialogContent(TalkContent):
         for req_coupons, text in dialogs:
             hasallcoupons = True
             for req_coupon in req_coupons:
-                if not req_coupon in coupons:
+                if req_coupon not in coupons:
                     hasallcoupons = False
                     break
 
@@ -4472,7 +4480,7 @@ class TalkDialogContent(TalkContent):
 
     def get_status(self, event):
         e = self.data.getfind("Dialogs")
-        if not e is None and len(e):
+        if e is not None and len(e):
             s = e[0].gettext("Text", "").replace("\\n", "")
         else:
             s = ""
@@ -4481,9 +4489,9 @@ class TalkDialogContent(TalkContent):
         return "[%s] %s" % (s2, s)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Wait系コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class WaitContent(EventContentBase):
     def __init__(self, data):
@@ -4502,12 +4510,14 @@ class WaitContent(EventContentBase):
         while cw.cwpy.is_running() and stw.is_waiting() and not cw.cwpy.event.is_stoped():
             if cw.cwpy.setting.can_skipwait:
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
-                if cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein() or cw.cwpy.event.breakwait:
+                if cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein() or\
+                        cw.cwpy.event.breakwait:
                     break
 
             cw.cwpy.event.refresh_activeitem()
             cw.cwpy.update_groups((cw.cwpy.sbargrp,))
-            breakflag = cw.cwpy.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel) if cw.cwpy.setting.can_skipwait else False
+            breakflag = cw.cwpy.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)\
+                if cw.cwpy.setting.can_skipwait else False
             cw.cwpy.input()
             cw.cwpy.get_eventhandler().run()
             if breakflag:
@@ -4522,9 +4532,9 @@ class WaitContent(EventContentBase):
         return "%s秒間待機" % (value/10.0)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 代入コンテント (1.30～)
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class SubstituteStepContent(EventContentBase):
     def __init__(self, data):
@@ -4540,14 +4550,14 @@ class SubstituteStepContent(EventContentBase):
         event = cw.cwpy.event.get_nowrunningevent()
         fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
         tostep = cw.cwpy.sdata.find_step(self.tostep, event)
-        if not fromstep is None and not tostep is None:
+        if fromstep is not None and tostep is not None:
             tostep.set(fromstep.value)
         elif self.fromstep.lower() == "??random":
-            if not tostep is None:
+            if tostep is not None:
                 sides = len(tostep.valuenames)
                 tostep.set(cw.cwpy.dice.roll(1, sides)-1)
         elif self.fromstep.lower() == "??selectedplayer":
-            if not tostep is None:
+            if tostep is not None:
                 n = 0
                 if cw.cwpy.event.has_selectedmember():
                     selected = cw.cwpy.event.get_targetmember("Selected")
@@ -4560,9 +4570,9 @@ class SubstituteStepContent(EventContentBase):
     def get_status(self, event):
         fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
         tostep = cw.cwpy.sdata.find_step(self.tostep, event)
-        if not fromstep is None and not tostep is None:
+        if fromstep is not None and tostep is not None:
             return "ステップ『%s』の値を『%s』へ代入" % (fromstep.name, tostep.name)
-        elif self.fromstep.lower() == "??random" and not tostep is None:
+        elif self.fromstep.lower() == "??random" and tostep is not None:
             return "ランダム値を『%s』へ代入" % (tostep.name)
         else:
             return "ステップが指定されていません"
@@ -4590,11 +4600,11 @@ class SubstituteFlagContent(EventContentBase):
         event = cw.cwpy.event.get_nowrunningevent()
         fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
         toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
-        if not fromflag is None and not toflag is None:
+        if fromflag is not None and toflag is not None:
             toflag.set(fromflag.value)
             toflag.redraw_cards(self.cardspeed, self.overridecardspeed)
         elif self.fromflag.lower() == "??random":
-            if not toflag is None:
+            if toflag is not None:
                 if cw.cwpy.dice.roll(1, 2) == 1:
                     toflag.set(True)
                 else:
@@ -4606,17 +4616,17 @@ class SubstituteFlagContent(EventContentBase):
     def get_status(self, event):
         fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
         toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
-        if not fromflag is None and not toflag is None:
+        if fromflag is not None and toflag is not None:
             return "フラグ『%s』の値を『%s』へ代入" % (self.fromflag, self.toflag)
-        elif self.fromflag.lower() == "??random" and not toflag is None:
+        elif self.fromflag.lower() == "??random" and toflag is not None:
             return "ランダム値を『%s』へ代入" % (self.toflag)
         else:
             return "フラグが指定されていません"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 比較分岐コンテント (1.30～)
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class BranchStepValueContent(BranchContent):
     def __init__(self, data):
@@ -4632,7 +4642,7 @@ class BranchStepValueContent(BranchContent):
         event = cw.cwpy.event.get_nowrunningevent()
         fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
         tostep = cw.cwpy.sdata.find_step(self.tostep, event)
-        if not fromstep is None and not tostep is None:
+        if fromstep is not None and tostep is not None:
             value = cw.util.cmp(fromstep.value, tostep.value)
             index = self.get_compare_index(value)
         else:
@@ -4643,7 +4653,7 @@ class BranchStepValueContent(BranchContent):
     def get_status(self, event):
         fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
         tostep = cw.cwpy.sdata.find_step(self.tostep, event)
-        if not fromstep is None and not tostep is None:
+        if fromstep is not None and tostep is not None:
             return "ステップ『%s』と『%s』を比較" % (fromstep.name, tostep.name)
         else:
             return "ステップが指定されていません"
@@ -4651,7 +4661,7 @@ class BranchStepValueContent(BranchContent):
     def get_childname(self, child, event):
         fromstep = cw.cwpy.sdata.find_step(self.fromstep, event)
         tostep = cw.cwpy.sdata.find_step(self.tostep, event)
-        if not fromstep is None and not tostep is None:
+        if fromstep is not None and tostep is not None:
             if self.get_contentname(child) == ">":
                 return "ステップ『%s』が『%s』より大きい" % (fromstep.name, tostep.name)
             elif self.get_contentname(child) == "=":
@@ -4677,7 +4687,7 @@ class BranchFlagValueContent(BranchContent):
         event = cw.cwpy.event.get_nowrunningevent()
         fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
         toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
-        if not fromflag is None and not toflag is None:
+        if fromflag is not None and toflag is not None:
             value = fromflag.value == toflag.value
             index = self.get_boolean_index(value)
         else:
@@ -4688,7 +4698,7 @@ class BranchFlagValueContent(BranchContent):
     def get_status(self, event):
         fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
         toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
-        if not fromflag is None and not toflag is None:
+        if fromflag is not None and toflag is not None:
             return "フラグ『%s』と『%s』を比較" % (fromflag.name, toflag.name)
         else:
             return "フラグが指定されていません"
@@ -4696,7 +4706,7 @@ class BranchFlagValueContent(BranchContent):
     def get_childname(self, child, event):
         fromflag = cw.cwpy.sdata.find_flag(self.fromflag, event)
         toflag = cw.cwpy.sdata.find_flag(self.toflag, event)
-        if not fromflag is None and not toflag is None:
+        if fromflag is not None and toflag is not None:
             if self.get_contentname(child) == "○":
                 return "フラグ『%s』が『%s』と同値" % (fromflag.name, toflag.name)
             else:
@@ -4706,9 +4716,9 @@ class BranchFlagValueContent(BranchContent):
             return "フラグが指定されていません"
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 移動系コンテント (Wsn.1～)
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class MoveBgImageContent(EventContentBase):
     def __init__(self, data, is_changestate=True):
@@ -4742,7 +4752,7 @@ class MoveBgImageContent(EventContentBase):
         return 0
 
     def get_status(self, event):
-        seq = []
+        seq = [][:]
         seq.append("セル名称 = 【%s】" % (self.cellname))
         if self.positiontype != "None":
             if self.positiontype == "Absolute":
@@ -4854,7 +4864,7 @@ class MoveCardContent(EventContentBase):
         return 0
 
     def get_status(self, event):
-        seq = []
+        seq = [][:]
         seq.append("カードグループ = 【%s】" % (self.cardgroup))
         if self.positiontype != "None":
             if self.positiontype == "Absolute":
@@ -4877,9 +4887,9 @@ class MoveCardContent(EventContentBase):
         return " ".join(seq)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 置換系コンテント (Wsn.1～)
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class ReplaceBgImageContent(EventContentBase):
     def __init__(self, data):
@@ -4934,9 +4944,9 @@ class ReplaceBgImageContent(EventContentBase):
         return "セル名称 = 【%s】 背景 = 【%s】" % (self.cellname, s)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # 特殊コンテント
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 methoddict = {
     "MoveToYado": "set_yado",
@@ -4971,7 +4981,7 @@ class PostEventContent(EventContentBase):
     def do_action(command, arg):
         try:
             arg = int(arg)
-        except:
+        except Exception:
             pass
 
         if command in methoddict:
@@ -4994,9 +5004,9 @@ class PostEventContent(EventContentBase):
                 cw.cwpy.exec_func(func)
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # コンテント取得用関数
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 def get_content(data):
     """対応するEventContentインスタンスを返す。
@@ -5010,7 +5020,7 @@ def get_content(data):
     try:
         data.content = globals()[classname](data)
         return data.content
-    except:
+    except Exception:
         cw.util.print_ex(file=sys.stderr)
         print("NoContent: ", classname)
         return None
@@ -5022,4 +5032,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

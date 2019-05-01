@@ -22,7 +22,7 @@ from . import scenariodb
 from . import setting
 from . import skin
 from . import animation
-from . import thread
+import cw.thread as thread
 from . import header
 from . import image
 from . import imageretouch
@@ -150,36 +150,36 @@ LTYPE_SPMCARDS = 3
 
 LAYER_SP_LAYER = 10000000000
 
-LAYER_BACKGROUND = 0 # 背景
-LAYER_SPBACKGROUND = 0x70000000 # 背景
-LAYER_MCARDS = 100 # メニューカード・エネミーカード
-LAYER_PCARDS = 200 # プレイヤーカード
-LAYER_MCARDS_120 = 300 # CardWirth 1.20でのメニューカード(PCより手前に表示)
-LAYER_FCARDS_T = 0x7fffffff # デバッグモードで表示される戦闘中の同行キャスト
-LAYER_FCARDS = 1000 # 同行キャスト
+LAYER_BACKGROUND = 0  # 背景
+LAYER_SPBACKGROUND = 0x70000000  # 背景
+LAYER_MCARDS = 100  # メニューカード・エネミーカード
+LAYER_PCARDS = 200  # プレイヤーカード
+LAYER_MCARDS_120 = 300  # CardWirth 1.20でのメニューカード(PCより手前に表示)
+LAYER_FCARDS_T = 0x7fffffff  # デバッグモードで表示される戦闘中の同行キャスト
+LAYER_FCARDS = 1000  # 同行キャスト
 
 # (layer, index, kind)
-LAYER_BATTLE_START = (0x7fffffff, 0x7fffffff-4, 0x7fffffff, 0x7fffffff) # バトル開始カード
-LAYER_FRONT_INUSECARD = (0x7fffffff, 0x7fffffff-3, 0x7fffffff, 0x7fffffff) # カーソル下のカードの使用カード
-LAYER_TARGET_ARROW = (0x7fffffff, 0x7fffffff-1, 0x7fffffff, 0x7fffffff) # 対象選択の指マーク
-LAYER_FRONT_LIFEBAR = (0x7fffffff, 0x7fffffff-2, 0x7fffffff, 0x7fffffff) # ライフバー
+LAYER_BATTLE_START = (0x7fffffff, 0x7fffffff-4, 0x7fffffff, 0x7fffffff)  # バトル開始カード
+LAYER_FRONT_INUSECARD = (0x7fffffff, 0x7fffffff-3, 0x7fffffff, 0x7fffffff)  # カーソル下のカードの使用カード
+LAYER_TARGET_ARROW = (0x7fffffff, 0x7fffffff-1, 0x7fffffff, 0x7fffffff)  # 対象選択の指マーク
+LAYER_FRONT_LIFEBAR = (0x7fffffff, 0x7fffffff-2, 0x7fffffff, 0x7fffffff)  # ライフバー
 
 # index=-1は背景セル
-LAYER_MESSAGE = (1000, LTYPE_MESSAGE, 0, 0) # メッセージ
-LAYER_SELECTIONBAR_1 = (1000, LTYPE_MESSAGE, 1, 0) # メッセージ選択肢
-LAYER_SELECTIONBAR_2 = (1000, LTYPE_MESSAGE, 2, 0) # メッセージ選択肢(クリック中)
+LAYER_MESSAGE = (1000, LTYPE_MESSAGE, 0, 0)  # メッセージ
+LAYER_SELECTIONBAR_1 = (1000, LTYPE_MESSAGE, 1, 0)  # メッセージ選択肢
+LAYER_SELECTIONBAR_2 = (1000, LTYPE_MESSAGE, 2, 0)  # メッセージ選択肢(クリック中)
 
-LAYER_SPMESSAGE = (LAYER_SP_LAYER+1000, LTYPE_SPMESSAGE, 0, 0) # 特殊エリアのメッセージ
-LAYER_SPSELECTIONBAR_1 = (LAYER_SP_LAYER+1000, LTYPE_MESSAGE, 1, 0) # 特殊エリアのメッセージ選択肢
-LAYER_SPSELECTIONBAR_2 = (LAYER_SP_LAYER+1000, LTYPE_MESSAGE, 2, 0) # 特殊エリアのメッセージ選択肢(クリック中)
+LAYER_SPMESSAGE = (LAYER_SP_LAYER+1000, LTYPE_SPMESSAGE, 0, 0)  # 特殊エリアのメッセージ
+LAYER_SPSELECTIONBAR_1 = (LAYER_SP_LAYER+1000, LTYPE_MESSAGE, 1, 0)  # 特殊エリアのメッセージ選択肢
+LAYER_SPSELECTIONBAR_2 = (LAYER_SP_LAYER+1000, LTYPE_MESSAGE, 2, 0)  # 特殊エリアのメッセージ選択肢(クリック中)
 
-LAYER_TRANSITION = (0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff) # 背景遷移用
+LAYER_TRANSITION = (0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff)  # 背景遷移用
 
-LAYER_LOG_CURTAIN = (2000, 0, 0, 0) # ログ背景
-LAYER_LOG = (2001, 0, 0, 0) # メッセージログ
-LAYER_LOG_BAR = (2002, 0, 0, 0) # ログ選択肢
-LAYER_LOG_PAGE = (2003, 0, 0, 0) # ログのページ
-LAYER_LOG_SCROLLBAR = (2004, 0, 0, 0) # ログのスクロールバー
+LAYER_LOG_CURTAIN = (2000, 0, 0, 0)  # ログ背景
+LAYER_LOG = (2001, 0, 0, 0)  # メッセージログ
+LAYER_LOG_BAR = (2002, 0, 0, 0)  # ログ選択肢
+LAYER_LOG_PAGE = (2003, 0, 0, 0)  # ログのページ
+LAYER_LOG_SCROLLBAR = (2004, 0, 0, 0)  # ログのスクロールバー
 
 # ゲーム画面構築の拡大率
 UP_SCR = 1
@@ -200,25 +200,26 @@ LOG_SEPARATOR_LEN_SHORT = 45
 
 # 起動オプション
 _argparser = argparser.ArgParser(appname=APP_NAME,
-    description="%s %s\n\nオープンソースのCardWirthエンジン" % (APP_NAME, ".".join([str(a) for a in APP_VERSION])))
+                                 description="%s %s\n\nオープンソースのCardWirthエンジン" %
+                                             (APP_NAME, ".".join([str(a) for a in APP_VERSION])))
 _argparser.add_argument("-h", type=bool, nargs=0,
-    help="このメッセージを表示して終了します。", arg2="--help")
+                        help="このメッセージを表示して終了します。", arg2="--help")
 _argparser.add_argument("-debug", type=bool, nargs=0,
-    help="デバッグモードで起動します。")
+                        help="デバッグモードで起動します。")
 _argparser.add_argument("-yado", type=str, nargs=1, default="",
-    help="起動と同時に<YADO>のパスにある拠点を読み込みます。")
+                        help="起動と同時に<YADO>のパスにある拠点を読み込みます。")
 _argparser.add_argument("-party", type=str, nargs=1, default="",
-    help="起動と同時に<PARTY>のパスにあるパーティを読み込みます。\n"
-       + "-yadoと同時に指定しなかった場合は無視されます。")
+                        help="起動と同時に<PARTY>のパスにあるパーティを読み込みます。\n"
+                             + "-yadoと同時に指定しなかった場合は無視されます。")
 _argparser.add_argument("-scenario", type=str, nargs=1, default="",
-    help="起動と同時に<SCENARIO>のパスにあるシナリオを開始します。\n"
-       + "-yado及び-partyと同時に指定しなかった場合は無視されます。")
+                        help="起動と同時に<SCENARIO>のパスにあるシナリオを開始します。\n"
+                             + "-yado及び-partyと同時に指定しなかった場合は無視されます。")
 _argparser.add_argument("-skin", type=str, nargs=1, default="",
-    help="<SKIN>のパスにあるスキンで起動します。\n"
-       + "起動と同時に拠点が開かれる場合は拠点のスキンが優先されます。")
+                        help="<SKIN>のパスにあるスキンで起動します。\n"
+                             + "起動と同時に拠点が開かれる場合は拠点のスキンが優先されます。")
 _argparser.add_argument("--force-skin", type=str, nargs=1, default="", metavar="SKIN",
-    help="<SKIN>のパスにあるスキンで起動します。\n"
-       + "拠点のスキンや、-skinよりも優先されます。")
+                        help="<SKIN>のパスにあるスキンで起動します。\n"
+                             + "拠点のスキンや、-skinよりも優先されます。")
 
 OPTIONS = _argparser.parse_args(sys.argv[1:])
 if OPTIONS.help:
@@ -243,12 +244,14 @@ def wins(num):
     """
     return _s_impl(num, UP_WIN)
 
+
 def s(num):
     """numを描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
          or pygame.Surface or pygame.Bitmap or pygame.Image
     """
     return _s_impl(num, UP_SCR)
+
 
 def scr2win_s(num):
     """numを描画サイズから表示サイズに変換する。
@@ -260,6 +263,7 @@ def scr2win_s(num):
     else:
         return _s_impl(num, float(UP_WIN) / UP_SCR)
 
+
 def win2scr_s(num):
     """numを表示サイズから描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
@@ -269,6 +273,7 @@ def win2scr_s(num):
         return _s_impl(num, 1)
     else:
         return _s_impl(num, float(UP_SCR) / UP_WIN)
+
 
 def scr2mwin_s(num):
     """numを描画サイズから表示サイズに変換する。
@@ -280,6 +285,7 @@ def scr2mwin_s(num):
     else:
         return _s_impl(num, float(UP_WIN_M) / UP_SCR)
 
+
 def mwin2scr_s(num):
     """numを表示サイズから描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
@@ -290,6 +296,7 @@ def mwin2scr_s(num):
     else:
         return _s_impl(num, float(UP_SCR) / UP_WIN_M)
 
+
 def _s_impl(num, up_scr):
     if isinstance(num, tuple) and len(num) == 3 and num[2] is None:
         # スケール情報無し
@@ -298,9 +305,7 @@ def _s_impl(num, up_scr):
     if up_scr == 1 and not (isinstance(num, tuple) and len(num) == 3):
         # 拡大率が1倍で、スケール情報も無い
         if isinstance(num, tuple) and len(num) == 2:
-            if (isinstance(num[0], pygame.Surface) or\
-                isinstance(num[0], wx.Bitmap) or\
-                isinstance(num[0], wx.Image)):
+            if isinstance(num[0], pygame.Surface) or isinstance(num[0], wx.Bitmap) or isinstance(num[0], wx.Image):
                 # 画像はそのままのサイズで表示
                 return num[0]
         # 座標等はそのまま返す
@@ -445,7 +450,9 @@ def _s_impl(num, up_scr):
 
     return num
 
+
 dpi_level = 1
+
 
 def ppis(num):
     return _s_impl(num, dpi_level)
@@ -454,6 +461,6 @@ def ppis(num):
 def main():
     pass
 
+
 if __name__ == "__main__":
     main()
-

@@ -21,7 +21,8 @@ $indent   <Weakness fire="$weakness_fire" ice="$weakness_ice" />
 $indent  </Feature>
 $indent  <Ability>
 $indent   <Physical dex="$dex" agl="$agl" int="$int" str="$str" vit="$vit" min="$min" />
-$indent   <Mental aggressive="$aggressive" cheerful="$cheerful" brave="$brave" cautious="$cautious" trickish="$trickish" />
+$indent   <Mental aggressive="$aggressive" cheerful="$cheerful" brave="$brave" cautious="$cautious"
+$indent           trickish="$trickish" />
 $indent   <Enhance avoid="$avoid" resist="$resist" defense="$defense" />
 $indent  </Ability>
 $indent  <Status>
@@ -60,7 +61,8 @@ $indent  <Description>$description</Description>
 $indent  <Level>$level</Level>
 $indent  <Ability>
 $indent   <Physical dex="$dex" agl="$agl" int="$int" str="$str" vit="$vit" min="$min" />
-$indent   <Mental aggressive="$aggressive" cheerful="$cheerful" brave="$brave" cautious="$cautious" trickish="$trickish" />
+$indent   <Mental aggressive="$aggressive" cheerful="$cheerful" brave="$brave" cautious="$cautious"
+$indent           trickish="$trickish" />
 $indent   <Enhance avoid="$avoid" resist="$resist" defense="$defense" />
 $indent  </Ability>
 $indent  <Coupons>$coupons
@@ -137,7 +139,8 @@ $indent   <Weakness fire="$weakness_fire" ice="$weakness_ice" />
 $indent  </Feature>
 $indent  <Ability>
 $indent   <Physical dex="$dex" agl="$agl" int="$int" str="$str" vit="$vit" min="$min" />
-$indent   <Mental aggressive="$aggressive" cheerful="$cheerful" brave="$brave" cautious="$cautious" trickish="$trickish" />
+$indent   <Mental aggressive="$aggressive" cheerful="$cheerful" brave="$brave" cautious="$cautious"
+$indent           trickish="$trickish" />
 $indent   <Enhance avoid="$avoid" resist="$resist" defense="$defense" />
 $indent  </Ability>
 $indent  <Status>
@@ -252,7 +255,8 @@ $indent <BackpackRecord>$backpack
 $indent </BackpackRecord>
 $indent</PartyRecord>"""
 
-CardRecord = """$indent<CardRecord name="$name" desc="$desc" author="$author" scenario="$scenario" uselimit="$uselimit" />"""
+CardRecord = """$indent<CardRecord name="$name" desc="$desc" author="$author" scenario="$scenario"
+$indent            uselimit="$uselimit" />"""
 
 SkillCard = """$indent<SkillCard>
 $indent <Property>

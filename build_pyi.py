@@ -9,10 +9,12 @@ import sys
 import time
 import zipfile
 
+
 pyi = "C:\\Program Files (x86)\\Python36-32\\Scripts\\pyinstaller.exe"
 dist_dir = "CardWirthPy"
 script = "cardwirth.py"
 srcfile_name = "src.zip"
+
 
 def build_exe():
     options = (
@@ -27,20 +29,22 @@ def build_exe():
     )
 
     extra_data = (
-        #"Data/Font",
+        # "Data/Font",
         "Data/SoundFont", "Data/SkinBase",
         "Data/Debugger", "Data/Materials",
         "Data/Compatibility.xml", "Data/SystemCoupons.xml", "Data/SearchEngines.xml",
-        "License.txt",# "msvcr90.dll", "msvcp90.dll", "gdiplus.dll",
+        "License.txt",  # "msvcr90.dll", "msvcp90.dll", "gdiplus.dll",
         "bass.dll", "bass_fx.dll", "bassmidi.dll", "x64",
-        "ChangeLog.txt",# "Microsoft.VC90.CRT.manifest",
+        "ChangeLog.txt",  # "Microsoft.VC90.CRT.manifest",
         "ReadMe.txt"
     )
     extra_dirs = (
         "Scenario", "Yado", "Data/Temp", "Data/Skin",
-         "Data/Face/Common", "Data/Face/Common-ADT", "Data/Face/Common-CHD", "Data/Face/Common-OLD", "Data/Face/Common-YNG",
-         "Data/Face/Female", "Data/Face/Female-ADT", "Data/Face/Female-CHD", "Data/Face/Female-OLD", "Data/Face/Female-YNG",
-         "Data/Face/Male", "Data/Face/Male-ADT", "Data/Face/Male-CHD", "Data/Face/Male-OLD", "Data/Face/Male-YNG"
+        "Data/Face/Common", "Data/Face/Common-ADT", "Data/Face/Common-CHD", "Data/Face/Common-OLD",
+        "Data/Face/Common-YNG",
+        "Data/Face/Female", "Data/Face/Female-ADT", "Data/Face/Female-CHD", "Data/Face/Female-OLD",
+        "Data/Face/Female-YNG",
+        "Data/Face/Male", "Data/Face/Male-ADT", "Data/Face/Male-CHD", "Data/Face/Male-OLD", "Data/Face/Male-YNG"
      )
 
     for arg in sys.argv[1:]:
@@ -54,7 +58,7 @@ def build_exe():
     def compress_src(zpath):
         fnames = ("cardwirth.py", "build_exe.py", "dailybuild.py", "CardWirthPy.ico",
                   "CardWirthPy.manifest", "file_version_info.txt", "cardwirthpy.sh",
-                  "fix_movies.sh", "License.txt",# "Microsoft.VC90.CRT.manifest",
+                  "fix_movies.sh", "License.txt",  # "Microsoft.VC90.CRT.manifest",
                   "ReadMe.txt", "ChangeLog.txt")
         z = zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED)
 
@@ -132,6 +136,7 @@ def build_exe():
     finally:
         print("Remove versioninfo.py.")
         os.remove("versioninfo.py")
+
 
 if __name__ == '__main__':
     build_exe()

@@ -9,6 +9,7 @@ import io
 import sqlite3
 import threading
 import subprocess
+from typing import Any
 
 import cw
 from cw.util import synclock
@@ -24,6 +25,7 @@ DATA_DESC = 1
 DATA_AUTHOR = 2
 DATA_LEVEL = 3
 DATA_FNAME = 4
+
 
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
@@ -42,7 +44,7 @@ class ScenariodbUpdatingThread(threading.Thread):
         folders = set()
         folders.add(self._dpath)
         for _skintype, folder in self.setting.folderoftype:
-            if not folder in folders:
+            if folder not in folders:
                 db.update(folder, skintype=self._skintype)
                 folders.add(folder)
 
@@ -55,6 +57,7 @@ class ScenariodbUpdatingThread(threading.Thread):
     @staticmethod
     def is_finished():
         return ScenariodbUpdatingThread._finished
+
 
 class Scenariodb(object):
 
@@ -137,18 +140,18 @@ class Scenariodb(object):
                 self.cur.execute(s)
                 needcommit = True
 
-            ## FIXME: SQLite3ではDROP COLUMNは使用できないので放置しておく
-            ### imgpathが存在する場合は削除する(0.12.4αで一旦必要になったものの不要化)
-            ##cur = self.con.execute("PRAGMA table_info('scenariodb')")
-            ##res = cur.fetchall()
-            ##hastype = False
-            ##for rec in res:
-            ##    if rec[1] == "imgpath":
-            ##        hastype = True
-            ##        break
-            ##  if hastype:
-            ##    self.cur.execute("ALTER TABLE scenariodb DROP COLUMN imgpath")
-            ##    needcommit = True
+            # FIXME: SQLite3ではDROP COLUMNは使用できないので放置しておく
+            # # imgpathが存在する場合は削除する(0.12.4αで一旦必要になったものの不要化)
+            # cur = self.con.execute("PRAGMA table_info('scenariodb')")
+            # res = cur.fetchall()
+            # hastype = False
+            # for rec in res:
+            #     if rec[1] == "imgpath":
+            #         hastype = True
+            #         break
+            #   if hastype:
+            #     self.cur.execute("ALTER TABLE scenariodb DROP COLUMN imgpath")
+            #     needcommit = True
 
             # scenarioimageテーブルが存在しない場合は作成する(0.12.3以前との互換性維持)
             cur = self.con.execute("PRAGMA table_info('scenarioimage')")
@@ -287,7 +290,7 @@ class Scenariodb(object):
             s = "SELECT A.dpath, A.fname, mtime, B.skintype FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE A.dpath=? AND (B.skintype=? OR B.skintype IS NULL)"
-            self.cur.execute(s, (cw.util.get_linktarget(dpath),skintype,))
+            self.cur.execute(s, (cw.util.get_linktarget(dpath), skintype,))
         else:
             s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
             self.cur.execute(s, (cw.util.get_linktarget(dpath),))
@@ -331,7 +334,7 @@ class Scenariodb(object):
         dbpaths = set(dbpaths)
 
         for path in get_scenariopaths(dpath):
-            if not path in dbpaths:
+            if path not in dbpaths:
                 self._insert_scenario(path, False, skintype=skintype)
 
         if commit:
@@ -355,10 +358,10 @@ class Scenariodb(object):
 
         # データ量によっては処理に秒単位で時間がかかる上、
         # 再利用可能な領域が減ってパフォーマンスが落ちるため実施しない
-        ##s = "VACUUM scenariodb, scenariotype"
-        ##self.cur.execute(s)
-        ##s = "VACUUM scenariotype"
-        ##self.cur.execute(s)
+        # s = "VACUUM scenariodb, scenariotype"
+        # self.cur.execute(s)
+        # s = "VACUUM scenariotype"
+        # self.cur.execute(s)
 
         if commit:
             self.con.commit()
@@ -449,14 +452,14 @@ class Scenariodb(object):
         elif path.startswith("Scenario"):
             # 登録できなかったファイルを移動
             # (Scenarioフォルダ内のみ)
-            ##dname = "UnregisteredScenario"
+            # dname = "UnregisteredScenario"
 
-            ##if not os.path.isdir(dname):
-            ##    os.makedirs(dname)
+            # if not os.path.isdir(dname):
+            #     os.makedirs(dname)
 
-            ##dst = cw.util.join_paths(dname, os.path.basename(path))
-            ##dst = cw.util.dupcheck_plus(dst, False)
-            ##shutil.move(path, dst)
+            # dst = cw.util.join_paths(dname, os.path.basename(path))
+            # dst = cw.util.dupcheck_plus(dst, False)
+            # shutil.move(path, dst)
             return False
 
     def create_header(self, data, skintype="", update=True):
@@ -684,10 +687,10 @@ class Scenariodb(object):
             name = os.path.basename(ltarg)
 
             lname = name.lower()
-            if not path in dbpaths and os.path.isfile(ltarg)\
-                    and (lname.endswith(".wsn") or\
-                         lname.endswith(".zip") or\
-                         lname.endswith(".lzh") or\
+            if path not in dbpaths and os.path.isfile(ltarg)\
+                    and (lname.endswith(".wsn") or
+                         lname.endswith(".zip") or
+                         lname.endswith(".lzh") or
                          lname.endswith(".cab")):
                 header = self._search_path(path, skintype=skintype)
 
@@ -734,7 +737,7 @@ class Scenariodb(object):
                     where.append("levelmin <= ? AND ? <= levelmax")
                     values.append(intv)
                     values.append(intv)
-                except:
+                except Exception:
                     intv = None
             elif ftype == DATA_FNAME:
                 where.append("A.fname LIKE ? ESCAPE '\\'")
@@ -806,11 +809,11 @@ class Scenariodb(object):
             if (DATA_TITLE in ftypes and v in header.name.lower()) or\
                     (DATA_AUTHOR in ftypes and v in header.author.lower()) or\
                     (DATA_DESC in ftypes and v in header.desc.lower()) or\
-                    (DATA_LEVEL in ftypes and not intv is None and (header.levelmin <= intv <= header.levelmax)) or\
+                    (DATA_LEVEL in ftypes and intv is not None and (header.levelmin <= intv <= header.levelmax)) or\
                     (DATA_FNAME in ftypes and v in header.fname.lower()):
                 fpath = header.get_fpath()
                 fpath = cw.util.get_keypath(cw.util.get_symlinktarget(fpath))
-                if not fpath in paths:
+                if fpath not in paths:
                     paths.add(fpath)
                     seq.append(header)
 
@@ -857,10 +860,10 @@ class Scenariodb(object):
         for tablename in ("scenariodb", "scenarioimage", "scenariotype"):
             s = "SELECT * FROM %s WHERE dpath LIKE ? ESCAPE '\\'" % tablename
             self.cur.execute(s, (before,))
-            for d in self.cur.fetchall():
+            for d in self.cur.fetchall():  # type: sqlite3.Cursor
                 s = "UPDATE %s SET dpath=? WHERE dpath=? AND fname=?" % tablename
                 ndpath = d["dpath"].replace(orig_before + "/", orig_after + "/", 1)
-                self.cur.execute(s, (ndpath,d["dpath"],d["fname"],))
+                self.cur.execute(s, (ndpath, d["dpath"], d["fname"],))
             s = "UPDATE %s SET dpath=? WHERE dpath=?" % tablename
             self.cur.execute(s, (orig_after, orig_before,))
 
@@ -885,6 +888,7 @@ class Scenariodb(object):
     def close(self):
         self.con.close()
 
+
 def find_alldirectories(dpath, is_cancel=None):
     """dpath以下のシナリオが存在しうる
     ディレクトリの一覧を取得する。
@@ -894,6 +898,7 @@ def find_alldirectories(dpath, is_cancel=None):
     exclude = set()
     _find_alldirectories(dpath, result, exclude, is_cancel)
     return result
+
 
 def _find_alldirectories(dpath, result, exclude, is_cancel):
     dpath = cw.util.get_linktarget(dpath)
@@ -911,6 +916,7 @@ def _find_alldirectories(dpath, result, exclude, is_cancel):
             continue
         _find_alldirectories(dpath2, result, exclude, is_cancel)
 
+
 def is_scenario(path):
     """
     指定されたパスがシナリオならTrueを返す。
@@ -926,10 +932,8 @@ def is_scenario(path):
         return False
     else:
         lpath = ltarg.lower()
-        return lpath.endswith(".wsn") or\
-               lpath.endswith(".zip") or\
-               lpath.endswith(".lzh") or\
-               lpath.endswith(".cab")
+        return lpath.endswith(".wsn") or lpath.endswith(".zip") or lpath.endswith(".lzh") or lpath.endswith(".cab")
+
 
 def read_summary(basepath):
 
@@ -979,7 +983,7 @@ def read_summary(basepath):
                             imgbufs.append((None, info, scale))
 
                 return imgbufs_to_result(summaryinfos, imgbufs)
-        except:
+        except Exception:
             cw.util.print_ex()
             return None, []
 
@@ -1032,8 +1036,9 @@ def read_summary(basepath):
                             can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
 
                             try:
-                                imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, os.path.getmtime(path), rootattrs)
-                            except:
+                                imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN,
+                                                                           os.path.getmtime(path), rootattrs)
+                            except Exception:
                                 return None, []
 
                             imgbufs = []
@@ -1116,7 +1121,7 @@ def read_summary(basepath):
 
         z.close()
 
-    except:
+    except Exception:
         cw.util.print_ex()
         print(path)
         if z:
@@ -1125,16 +1130,17 @@ def read_summary(basepath):
 
     return imgbufs_to_result(summaryinfos, imgbufs)
 
+
 def parse_summarydata(basepath, data, scetype, mtime, rootattrs):
     wsnversion = rootattrs.get("dataVersion", "")
     imgpaths = []
     e = data.find("ImagePath")
-    if not e is None:
+    if e is not None:
         etext = cw.util.validate_filepath(e.text)
         if etext:
             imgpaths.append(cw.image.ImageInfo(path=etext, postype=e.getattr(".", "positiontype", "Default")))
     e = data.find("ImagePaths")
-    if not e is None:
+    if e is not None:
         for e2 in e:
             e2text = cw.util.validate_filepath(e2.text)
             if e2.tag == "ImagePath" and e2text:
@@ -1162,9 +1168,9 @@ def parse_summarydata(basepath, data, scetype, mtime, rootattrs):
     tags = cw.util.decodewrap(tags)
     ctime = time.time()
     dpath, fname = os.path.split(basepath)
-    return (imgpaths,
-             [dpath, scetype, fname, name, author, desc, skintype, levelmin,
-              levelmax, coupons, couponsnum, startid, tags, ctime, mtime, wsnversion])
+    return (imgpaths, [dpath, scetype, fname, name, author, desc, skintype, levelmin,
+                       levelmax, coupons, couponsnum, startid, tags, ctime, mtime, wsnversion])
+
 
 def read_summary_classic(basepath, spath, f=None):
     try:
@@ -1181,14 +1187,28 @@ def read_summary_classic(basepath, spath, f=None):
         cw.util.print_ex()
         return None, []
 
-    summaryinfos = [os.path.dirname(basepath), TYPE_CLASSIC,
-            os.path.basename(basepath), s.name, s.author,
-            s.description, s.skintype, s.level_min, s.level_max,
-            s.required_coupons, s.required_coupons_num,
-            s.area_id, s.tags, ctime, mtime, ""]
+    summaryinfos = [
+        os.path.dirname(basepath),
+        TYPE_CLASSIC,
+        os.path.basename(basepath),
+        s.name,
+        s.author,
+        s.description,
+        s.skintype,
+        s.level_min,
+        s.level_max,
+        s.required_coupons,
+        s.required_coupons_num,
+        s.area_id,
+        s.tags,
+        ctime,
+        mtime,
+        ""
+    ][:]
     summaryinfos.append(imgbuf)
     summaryinfos.append(None)
     return tuple(summaryinfos), []
+
 
 def get_scenariopaths(path):
     path = cw.util.get_linktarget(path)
@@ -1211,6 +1231,7 @@ def get_scenariopaths(path):
                lfile.endswith(".lzh") or\
                lfile.endswith(".cab"):
                 yield fname
+
 
 def get_scenario(fpath):
     """fpathのシナリオのデータを生成して返す。"""
@@ -1254,10 +1275,12 @@ def get_scenario(fpath):
     header = cw.header.ScenarioHeader(dbrec=dbrec, imgdbrec=imgdbrec)
     return cw.data.ScenarioData(header, cardonly=True)
 
+
 def main():
     db = Scenariodb()
     db.update()
     db.close()
+
 
 if __name__ == "__main__":
     main()

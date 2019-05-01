@@ -4,8 +4,9 @@
 import cw
 
 
-"""特性の定義。性別、年代、素質、特徴に派生する。"""
 class Feature(object):
+    """特性の定義。性別、年代、素質、特徴に派生する。"""
+
     def __init__(self, data):
         self.data = data
         # 特性名
@@ -27,13 +28,13 @@ class Feature(object):
         # 好戦-平和
         self.aggressive = self.data.getfloat("Mental", "aggressive", 0.0)
         # 社交-内向
-        self.cheerful   = self.data.getfloat("Mental", "cheerful", 0.0)
+        self.cheerful = self.data.getfloat("Mental", "cheerful", 0.0)
         # 勇敢-臆病
-        self.brave      = self.data.getfloat("Mental", "brave", 0.0)
+        self.brave = self.data.getfloat("Mental", "brave", 0.0)
         # 慎重-大胆
-        self.cautious   = self.data.getfloat("Mental", "cautious", 0.0)
+        self.cautious = self.data.getfloat("Mental", "cautious", 0.0)
         # 狡猾-正直
-        self.trickish   = self.data.getfloat("Mental", "trickish", 0.0)
+        self.trickish = self.data.getfloat("Mental", "trickish", 0.0)
 
     def modulate(self, data, physical=True, mental=True):
         """dataの能力値を特性によって調整する。"""
@@ -46,10 +47,10 @@ class Feature(object):
             data.min += self.minbonus
         if mental:
             data.aggressive += self.aggressive
-            data.cheerful   += self.cheerful
-            data.brave      += self.brave
-            data.cautious   += self.cautious
-            data.trickish   += self.trickish
+            data.cheerful += self.cheerful
+            data.brave += self.brave
+            data.cautious += self.cautious
+            data.trickish += self.trickish
 
     def demodulate(self, data, physical=True, mental=True):
         """modulate()と逆の調整を行う。"""
@@ -62,13 +63,15 @@ class Feature(object):
             data.min -= self.minbonus
         if mental:
             data.aggressive -= self.aggressive
-            data.cheerful   -= self.cheerful
-            data.brave      -= self.brave
-            data.cautious   -= self.cautious
-            data.trickish   -= self.trickish
+            data.cheerful -= self.cheerful
+            data.brave -= self.brave
+            data.cautious -= self.cautious
+            data.trickish -= self.trickish
 
-"""性別の定義。"""
+
 class Sex(Feature):
+    """性別の定義。"""
+
     def __init__(self, data):
         Feature.__init__(self, data)
 
@@ -80,8 +83,10 @@ class Sex(Feature):
         # 母親になれる性別か
         self.mother = self.data.getbool(".", "mother", True)
 
-"""年代の定義。"""
+
 class Period(Feature):
+    """年代の定義。"""
+
     def __init__(self, data):
         Feature.__init__(self, data)
 
@@ -100,8 +105,10 @@ class Period(Feature):
         # キャラクタの作成時、最初から選択されている年代か
         self.firstselect = self.data.getbool(".", "firstSelect", False)
 
-"""素質の定義。"""
+
 class Nature(Feature):
+    """素質の定義。"""
+
     def __init__(self, data):
         Feature.__init__(self, data)
 
@@ -117,15 +124,20 @@ class Nature(Feature):
         # 派生元
         self.basenatures = [e.gettext(".", "") for e in data.getfind("BaseNatures")]
 
-"""特徴の定義。"""
+
 class Making(Feature):
+    """特徴の定義。"""
+
     def __init__(self, data):
         Feature.__init__(self, data)
 
-"""デバグ宿で簡易生成を行う際の能力型。"""
+
 class SampleType(Feature):
+    """デバグ宿で簡易生成を行う際の能力型。"""
+
     def __init__(self, data):
         Feature.__init__(self, data)
+
 
 def wrap_ability(data):
     """

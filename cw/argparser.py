@@ -57,7 +57,7 @@ class ArgParser(object):
                         keys.remove(argobj.arg2)
                 else:
                     r.leftovers.append(arg)
-        except:
+        except Exception:
             sys.stderr.write("起動引数が正しくありません: %s\n" % (arg))
             print()
             self.print_help()
@@ -162,11 +162,11 @@ class Arg(object):
 def main():
     parser = ArgParser(appname="args.py", description="Process some integers.")
     parser.add_argument("-h", type=bool, nargs=0,
-                       help="このメッセージを表示して終了します。", arg2="--help", default=False)
+                        help="このメッセージを表示して終了します。", arg2="--help", default=False)
     parser.add_argument("-y", type=str, nargs=1,
-                       help="help1\nhelp2", default="bbb")
+                        help="help1\nhelp2", default="bbb")
     parser.add_argument("-dbg", type=str, nargs=0,
-                       help="help")
+                        help="help")
 
     args = parser.parse_args()
     if not args:
