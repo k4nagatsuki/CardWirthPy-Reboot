@@ -1636,6 +1636,7 @@ class Resource(object):
                   ("pmincho.ttf", "ＭＳ Ｐ明朝"))
         d = {}
         self.facenames = set(wx.FontEnumerator().GetFacenames())
+        self.facenames_lower = set(map(lambda name: name.lower(), self.facenames))
 
         for fname, alt in fnames:
             path = cw.util.join_paths(fontdir_skin, fname)

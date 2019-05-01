@@ -1381,7 +1381,7 @@ def get_fontface(fontface):
     差し替え用のフォント名を返す。
     存在するフォントであればfontfaceを返す。
     """
-    if not cw.cwpy.rsrc or fontface in cw.cwpy.rsrc.facenames:
+    if not cw.cwpy.rsrc or fontface.lower() in cw.cwpy.rsrc.facenames_lower:
         return fontface
 
     if fontface in ("ＭＳ Ｐゴシック", "MS PGothic"):
@@ -1395,7 +1395,7 @@ def get_fontface(fontface):
     elif fontface in ("ＭＳ ＵＩゴシック", "MS UI Gothic"):
         return cw.cwpy.rsrc.fontnames_init["uigothic"]
     else:
-        if "ＭＳ Ｐゴシック" in cw.cwpy.rsrc.facenames:
+        if "ＭＳ Ｐゴシック".lower() in cw.cwpy.rsrc.facenames_lower:
             return "ＭＳ Ｐゴシック"
         else:
             return cw.cwpy.rsrc.fontnames_init["gothic"]
