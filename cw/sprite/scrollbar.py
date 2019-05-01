@@ -27,8 +27,8 @@ class ScrollBar(base.CWPySprite):
         """左クリックイベント。"""
         y = cw.cwpy.mousepos[1]/cw.UP_SCR
 
-        l = float(self.scrsize_noscale) / cw.SIZE_AREA[1]
-        y *= l
+        sc = float(self.scrsize_noscale) / cw.SIZE_AREA[1]
+        y *= sc
         y -= cw.SIZE_AREA[1]/2.0
         y = int(y)
         if lazy:
@@ -98,9 +98,9 @@ class ScrollBar(base.CWPySprite):
         if not self.visible:
             return
 
-        l = float(cw.SIZE_AREA[1]) / self.scrsize_noscale
-        scrpos = cw.s(self.scrpos_noscale) * l
-        scrsize = min(cw.s(self.scrsize_noscale), self.rect.height) * l
+        sc = float(cw.SIZE_AREA[1]) / self.scrsize_noscale
+        scrpos = cw.s(self.scrpos_noscale) * sc
+        scrsize = min(cw.s(self.scrsize_noscale), self.rect.height) * sc
         if scrsize < minsize:
             posper = scrpos / float(self.rect.height-scrsize)
             scrsize = minsize

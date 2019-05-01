@@ -270,7 +270,7 @@ class CWPyCard(base.SelectableSprite):
             self.status = "reversed"
         else:
             self.status = "normal"
-        if hasattr(self, "cardimg") and (self.cardimg.is_modifiedfile() or\
+        if hasattr(self, "cardimg") and (self.cardimg.is_modifiedfile() or
                                          self.image.get_width() <= 0):
             self.update_image()
         self.image = self.get_animeimage()
@@ -327,7 +327,7 @@ class CWPyCard(base.SelectableSprite):
             count = 2
         else:
             count = 6
-        mx = 2 # 最大移動量
+        mx = 2  # 最大移動量
         nb = n / (count*4.0)
         f = max(0, int(round(self.frame / nb)) - 1)
         nx = (self.frame - nb*f) / nb * mx
@@ -370,7 +370,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             count = 4
         nb = n / (count*2.0)
-        mx = self._rect.width // 20 # 最大縮小量
+        mx = self._rect.width // 20  # 最大縮小量
         f = max(0, int(round(self.frame / nb)) - 1)
         nx = (self.frame - nb*f) / nb * mx
         f %= 2
@@ -502,7 +502,7 @@ class CWPyCard(base.SelectableSprite):
         self.rect.size = self.image.get_size()
 
         for _image, rect in self.zoomimgs:
-            if not rect is self.rect:
+            if rect is not self.rect:
                 rect.center = self.rect.center
 
         if self.frame >= speed:
@@ -552,7 +552,7 @@ class CWPyCard(base.SelectableSprite):
 
         zoom = 0 < len(self.zoomimgs)
 
-        if zoom and not self.status in ("zoomin", "zoomout"):
+        if zoom and self.status not in ("zoomin", "zoomout"):
             if self.status != "zoomout":
                 self.old_status = self.status
                 self.status = "zoomout"
@@ -564,7 +564,7 @@ class CWPyCard(base.SelectableSprite):
         if self._pos_noscale or self._center_noscale:
             self.set_pos_noscale(self._pos_noscale, self._center_noscale)
 
-        if zoom and not self.status in ("zoomin", "zoomout"):
+        if zoom and self.status not in ("zoomin", "zoomout"):
             if self.status != "zoomin":
                 self.old_status = self.status
                 self.status = "zoomin"
@@ -700,9 +700,10 @@ class CWPyCard(base.SelectableSprite):
             self.update_image()
             cw.cwpy.add_lazydraw(clip=self.rect)
 
-#-------------------------------------------------------------------------------
-#　プレイヤーカードスプライト
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# プレイヤーカードスプライト
+# ------------------------------------------------------------------------------
 
 class PlayerCard(CWPyCard, character.Player):
     def __init__(self, data, pos_noscale=(0, 0), status="hidden", index=0):
@@ -719,7 +720,8 @@ class PlayerCard(CWPyCard, character.Player):
             self.imgpaths.append(cw.image.ImageInfo(cw.util.join_paths(cw.cwpy.yadodir, path), base=info))
 
         can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
-        self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=pos_noscale, can_loaded_scaledimage=can_loaded_scaledimage)
+        self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=pos_noscale,
+                                                   can_loaded_scaledimage=can_loaded_scaledimage)
         self.update_image()
         # 空のイメージ
         self.image = pygame.Surface(cw.s((0, 0))).convert()
@@ -833,7 +835,7 @@ class PlayerCard(CWPyCard, character.Player):
                 else:
                     cw.cwpy.call_modaldlg("HANDVIEW")
             else:
-                if self.is_inactive() and not cw.cwpy.areaid in cw.AREAS_TRADE:
+                if self.is_inactive() and cw.cwpy.areaid not in cw.AREAS_TRADE:
                     s = cw.cwpy.msgs["inactive"] % self.name
                     cw.cwpy.call_modaldlg("NOTICE", text=s)
                 else:
@@ -895,7 +897,7 @@ class PlayerCard(CWPyCard, character.Player):
                 # シナリオクリア時にはレベルダウンしない
                 levelup = max(0, levelup)
 
-        level = self.level # 再調節に使用
+        level = self.level  # 再調節に使用
 
         # レベルアップ
         if levelup != 0:
@@ -933,7 +935,8 @@ class PlayerCard(CWPyCard, character.Player):
             infos = []
             can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
             for info in self.imgpaths:
-                infos.append((cw.image.ImageInfo(path=info.path, pcnumber=info.pcnumber, base=info, basecardtype="LargeCard"),
+                infos.append((cw.image.ImageInfo(path=info.path, pcnumber=info.pcnumber, base=info,
+                                                 basecardtype="LargeCard"),
                               can_loaded_scaledimage, self, {}))
             mwin = cw.sprite.message.MessageWindow(text, names, infos, self,
                                                    versionhint=self.versionhint,
@@ -955,9 +958,10 @@ class PlayerCard(CWPyCard, character.Player):
             for card in pocket[:]:
                 cw.cwpy.trade("TRASHBOX", header=card, from_event=True, sort=False)
 
-#-------------------------------------------------------------------------------
-#　エネミーカードスプライト
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# エネミーカードスプライト
+# ------------------------------------------------------------------------------
 
 class EnemyCard(CWPyCard, character.Enemy):
     def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0,
@@ -978,7 +982,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.actions[7] = mcarddata.getbool(".", "escape", False)
         # アクションの有無(Wsn.4)
         e_actions = mcarddata.find("Property/Actions")
-        if not e_actions is None:
+        if e_actions is not None:
             for e_action in e_actions:
                 if e_action.tag != "Action":
                     continue
@@ -1020,7 +1024,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             layer = mcarddata.getint("Property/Layer", -1)
         if layer < 0:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-            if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
+            if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or
                                   cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
                 layer = cw.LAYER_MCARDS_120
             else:
@@ -1193,9 +1197,9 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.scale = scale
 
 
-#-------------------------------------------------------------------------------
-#　フレンドカードスプライト
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# フレンドカードスプライト
+# ------------------------------------------------------------------------------
 
 class FriendCard(CWPyCard, character.Friend):
     def __init__(self, data=None, index=0):
@@ -1220,7 +1224,8 @@ class FriendCard(CWPyCard, character.Friend):
             path = info.path
             self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
         can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
-        self.cardimg = cw.image.CharacterCardImage(self, can_loaded_scaledimage=can_loaded_scaledimage, is_scenariocard=True)
+        self.cardimg = cw.image.CharacterCardImage(self, can_loaded_scaledimage=can_loaded_scaledimage,
+                                                   is_scenariocard=True)
         self.update_image()
         # 空のイメージ
         self.clear_image()
@@ -1265,9 +1270,9 @@ class FriendCard(CWPyCard, character.Friend):
             cw.cwpy.call_modaldlg("CHARAINFO")
 
 
-#-------------------------------------------------------------------------------
-#　メニューカードスプライト
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# メニューカードスプライト
+# ------------------------------------------------------------------------------
 
 class MenuCard(CWPyCard):
     def __init__(self, data, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0,
@@ -1333,7 +1338,7 @@ class MenuCard(CWPyCard):
             layer = data.getint("Property/Layer", -1)
         if layer < 0:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-            if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
+            if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or
                                   cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
                 layer = cw.LAYER_MCARDS_120
             else:
@@ -1370,10 +1375,12 @@ class MenuCard(CWPyCard):
 
         if self._data.tag == "LargeMenuCard":
             self._cardimg = cw.image.LargeCardImage(paths, "NORMAL", self.name,
-                                                    can_loaded_scaledimage=can_loaded_scaledimages, is_scenariocard=is_scenariocard)
+                                                    can_loaded_scaledimage=can_loaded_scaledimages,
+                                                    is_scenariocard=is_scenariocard)
         else:
             self._cardimg = cw.image.CardImage(paths, "NORMAL", self.name,
-                                               can_loaded_scaledimage=can_loaded_scaledimages, is_scenariocard=is_scenariocard)
+                                               can_loaded_scaledimage=can_loaded_scaledimages,
+                                               is_scenariocard=is_scenariocard)
 
         self.update_image()
         # pos
@@ -1526,6 +1533,7 @@ def imageinfos_to_pathdata(infos):
 
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

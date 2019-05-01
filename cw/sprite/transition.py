@@ -38,6 +38,7 @@ class Transition(base.CWPySprite):
     def update_transition(self, scr):
         self.clear()
 
+
 class Fade(Transition):
     def __init__(self, bgscr, speed):
         Transition.__init__(self, bgscr, speed)
@@ -57,6 +58,7 @@ class Fade(Transition):
             self.frame = 0
             self.start_animation = 0
             self.status = "hidden"
+
 
 class PixelDissolve(Transition):
     def __init__(self, bgscr, speed):
@@ -97,6 +99,7 @@ class PixelDissolve(Transition):
             self.start_animation = 0
             self.status = "hidden"
 
+
 class Blinds(Transition):
     def __init__(self, bgscr, speed):
         Transition.__init__(self, bgscr, speed)
@@ -129,6 +132,7 @@ class Blinds(Transition):
                 self.frame = 0
                 self.status = "hidden"
 
+
 def get_transition(name_and_speed):
     """現在表示中の背景を元にしたトランジションスプライトを返す。
     transitiontype: トランジション効果の種類名と速度のタプル。
@@ -152,8 +156,10 @@ def get_transition(name_and_speed):
 
     return None
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

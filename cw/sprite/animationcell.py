@@ -128,6 +128,7 @@ class AnimationCell(base.SelectableSprite):
         if self.end_frame <= self.frame or self.skipped or cw.cwpy.cut_animation:
             self.quit()
 
+
 class _AnimationPart(object):
     def __init__(self, parent, data, startframe):
         """
@@ -139,7 +140,7 @@ class _AnimationPart(object):
         if data.tag == "Animations":
             # グループ
             self.type = "Group"
-            self.parallel = data.getattr(".", "parallel", False) # 並列に実行するか
+            self.parallel = data.getattr(".", "parallel", False)  # 並列に実行するか
             self.parts = []
             startframe = self.startframe
             for a in data.find("."):
@@ -168,15 +169,16 @@ class _AnimationPart(object):
             self._fill_color = data.getint("Fill", "r", 0), data.getint("Fill", "g", 0), data.getint("Fill", "b", 0)
             self.mask = data.getbool("Mask", False)
 
-            self.animation_type = data.gettext("AnimationType", "None") # アニメーションのタイプ
-            self.animation_frame = data.getint("AnimationType", "frame", 20) # アニメーションにかかる時間
-            self.repeat_count = data.getint("Repeat", 1) # 繰り返し回数
-            self.repeat_interval = data.getint("Repeat", "interval", 0) # 繰り返しのインターバル
-            self.spawn = data.getint("Spawn", 0) # 出現時間
-            self.duration = data.getint("Duration", 20) # 存在期間
+            self.animation_type = data.gettext("AnimationType", "None")  # アニメーションのタイプ
+            self.animation_frame = data.getint("AnimationType", "frame", 20)  # アニメーションにかかる時間
+            self.repeat_count = data.getint("Repeat", 1)  # 繰り返し回数
+            self.repeat_interval = data.getint("Repeat", "interval", 0)  # 繰り返しのインターバル
+            self.spawn = data.getint("Spawn", 0)  # 出現時間
+            self.duration = data.getint("Duration", 20)  # 存在期間
 
             if self.animation_type == "Rotate":
-                self.dealing_scales = [int(math.sin(math.radians(180.0 * i / self.animation_frame)) * 100) for i in range(self.animation_frame)]
+                self.dealing_scales = [int(math.sin(math.radians(180.0 * i / self.animation_frame)) * 100)
+                                       for i in range(self.animation_frame)]
 
             self.image = pygame.Surface((0, 0)).convert()
             self.rect = pygame.Rect(0, 0, 0, 0)
@@ -197,11 +199,12 @@ class _AnimationPart(object):
             self.fill_color = None
             scr_scale = self.image_noscale.scr_scale if hasattr(self.image_noscale, "scr_scale") else 1
             if width == "Original":
-                width = self.image_noscale.get_width() if self.image_noscale.get_width() else self.parent.size_noscale[0]
+                width = self.image_noscale.get_width()\
+                    if self.image_noscale.get_width() else self.parent.size_noscale[0]
                 width //= scr_scale
             if height == "Original":
-                height = self.image_noscale.get_height() if self.image_noscale.get_height() else \
-                self.parent.size_noscale[1]
+                height = self.image_noscale.get_height()\
+                    if self.image_noscale.get_height() else self.parent.size_noscale[1]
                 height //= scr_scale
 
             self._has_alpha = (self.image_noscale.get_flags() & pygame.locals.SRCALPHA) != 0
@@ -347,6 +350,7 @@ class _AnimationPart(object):
 
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

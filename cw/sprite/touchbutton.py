@@ -356,7 +356,7 @@ class VolumeTile(TouchButton):
         self._disabledimage = self.image
 
         for padcolor, volcolor, image in (((0, 0, 0, 232), (0, 128, 128, 232), self.image),
-                                           ((16, 16, 16, 232), (64, 192, 192, 232), self._selectedimage)):
+                                          ((16, 16, 16, 232), (64, 192, 192, 232), self._selectedimage)):
             # バーを描画
             image.fill(padcolor, self.padrect)
             image.fill(volcolor, volrect)
@@ -409,7 +409,7 @@ class VolumeTile(TouchButton):
         cw.cwpy.add_lazydraw(clip=self.rect)
 
     def lclick_event(self):
-        pass # 何もしない
+        pass  # 何もしない
 
 
 def main():

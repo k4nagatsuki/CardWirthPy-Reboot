@@ -56,7 +56,7 @@ class StopTheWorld(object):
             if cw.cwpy.frame.is_iconized:
                 self._stop()
                 return False
-            elif not self._stop_tick is None:
+            elif self._stop_tick is not None:
                 self._resume()
         return self.start_ticks + self.waittime <= pygame.time.get_ticks()
 
@@ -65,7 +65,7 @@ class StopTheWorld(object):
             self._stop_tick = pygame.time.get_ticks()
 
     def _resume(self):
-        if not self._stop_tick is None and cw.cwpy.setting.stop_the_world_with_iconized:
+        if self._stop_tick is not None and cw.cwpy.setting.stop_the_world_with_iconized:
             self.start_ticks += pygame.time.get_ticks() - self._stop_tick
         self._stop_tick = None
 
@@ -93,6 +93,7 @@ class MouseHandlerSprite(CWPySprite):
         if handling != self.handling:
             self.handling = handling
             self.update_image()
+
 
 class SelectableSprite(CWPySprite):
     def __init__(self, *groups):
@@ -144,8 +145,8 @@ class SelectableSprite(CWPySprite):
             return False
         # 戦闘行動中時
         elif not cw.cwpy.is_runningevent()\
-                        and cw.cwpy.battle and not cw.cwpy.battle.is_ready()\
-                        and not self.selectable_on_event:
+                and cw.cwpy.battle and not cw.cwpy.battle.is_ready()\
+                and not self.selectable_on_event:
             return False
         # イベント中時、メッセージ選択バー以外
         elif cw.cwpy.is_runningevent() and not self.selectable_on_event:
@@ -170,8 +171,10 @@ class SelectableSprite(CWPySprite):
 
         return False
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

@@ -164,13 +164,13 @@ class MessageWindow(base.CWPySprite):
         for talker_image, info in self.talker_image:
             baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
             if info.basecardtype == "LargeCard":
-                baserect.x -= cw.s(10) # LargeCardとNormalCardのサイズ差に合わせた調節
+                baserect.x -= cw.s(10)  # LargeCardとNormalCardのサイズ差に合わせた調節
             xmove = max(-baserect.x, xmove)
 
         for talker_image, info in self.talker_image:
             baserect = info.calc_basecardposition(talker_image.get_size(), noscale=False)
             if info.basecardtype == "LargeCard":
-                baserect.x -= cw.s(10) # LargeCardとNormalCardのサイズ差に合わせた調節
+                baserect.x -= cw.s(10)  # LargeCardとNormalCardのサイズ差に合わせた調節
             y = (cw.s(180) - baserect.height) // 2
             y -= cw.s(self.trim_top_noscale)
             if info.basecardtype:
@@ -313,7 +313,8 @@ class MessageWindow(base.CWPySprite):
 
         for index, name in enumerate(self.names):
             # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
-            if not self.backlog and self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+            if not self.backlog and self._barspchr and\
+                    not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
                 name = (name[0], self.rpl_specialstr(False, name[1], self.name_subtable))
             pos_noscale = (x_noscale, y_noscale)
             rest = 1 if (index % self.columns) < (self.rect_noscale.width % self.columns) else 0
@@ -369,7 +370,7 @@ class MessageWindow(base.CWPySprite):
 
         yp_noscale = pos_noscale[1]
 
-        r_specialfont = re.compile("#.") # 特殊文字(#)の集合
+        r_specialfont = re.compile("#.")  # 特殊文字(#)の集合
         # 文字色変更文字(&)の集合
         r_changecolour = re.compile("&[\x20-\x7E]")
         # フォントデータ
@@ -589,7 +590,8 @@ class MessageWindow(base.CWPySprite):
         else:
             return text
 
-    def get_stepvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
+    def get_stepvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist,
+                      namelistindex, stack):
         if self.backlog:
             if key in self.step_table:
                 v = self.step_table[key]
@@ -606,8 +608,9 @@ class MessageWindow(base.CWPySprite):
         s = v.get_valuename()
         if stack <= 0 and v.spchars:
             # 特殊文字の展開(Wsn.2)
-            s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table, self.get_stepvalue, self.get_flagvalue,
-                                                     self.get_variantvalue, basenamelist, startindex, spcharinfo,
+            s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table,
+                                                     self.get_stepvalue, self.get_flagvalue, self.get_variantvalue,
+                                                     basenamelist, startindex, spcharinfo,
                                                      namelist, namelistindex, stack+1)
         return s, namelistindex
 
@@ -627,8 +630,9 @@ class MessageWindow(base.CWPySprite):
         s = v.get_valuename()
         if stack <= 0 and v.spchars:
             # 特殊文字の展開(Wsn.2)
-            s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table, self.get_stepvalue, self.get_flagvalue,
-                                                     self.get_variantvalue, basenamelist, startindex, spcharinfo,
+            s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table,
+                                                     self.get_stepvalue, self.get_flagvalue, self.get_variantvalue,
+                                                     basenamelist, startindex, spcharinfo,
                                                      namelist, namelistindex, stack+1)
         return s, namelistindex
 
@@ -651,25 +655,25 @@ class MessageWindow(base.CWPySprite):
     def get_fontcolour(self, s):
         """引数の文字列からフォントカラーを返す。"""
         if s == "r":
-            return (255,   0,   0)
+            return (255, 0, 0)
         elif s == "g":
-            return (  0, 255,   0)
+            return (0, 255, 0)
         elif s == "b":
-            return (  0, 255, 255)
+            return (0, 255, 255)
         elif s == "y":
-            return (255, 255,   0)
+            return (255, 255, 0)
         elif s == "w":
             return (255, 255, 255)
 
         # 互換動作: 1.30以前はO,P,L,Dの各色が無い
         if not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-            if s == "o": # 1.50
+            if s == "o":  # 1.50
                 return (255, 165, 0)
-            elif s == "p": # 1.50
+            elif s == "p":  # 1.50
                 return (204, 136, 255)
-            elif s == "l": # 1.50
+            elif s == "l":  # 1.50
                 return (169, 169, 169)
-            elif s == "d": # 1.50
+            elif s == "d":  # 1.50
                 return (105, 105, 105)
 
         return (255, 255, 255)
@@ -786,10 +790,11 @@ class MemberSelectWindow(SelectWindow):
             size_noscale = (470, 40)
         self.selectmembers = pcards
         names = [(index, pcard.get_showingname())
-                        for index, pcard in enumerate(self.selectmembers)]
+                 for index, pcard in enumerate(self.selectmembers)]
         names.append((len(names), cw.cwpy.msgs["cancel"]))
         text = cw.cwpy.msgs["select_member_message"]
         SelectWindow.__init__(self, names, text, pos_noscale, size_noscale, barspchr=False)
+
 
 class SelectionBar(base.SelectableSprite):
     def __init__(self, showing_index, name, pos_noscale, size_noscale, backlog=False, selected=False):
@@ -849,7 +854,7 @@ class SelectionBar(base.SelectableSprite):
         return cw.imageretouch.to_negative(self._image)
 
     def update_scale(self):
-        pass # MessageWindowのupdate_scaleでremoveされる
+        pass  # MessageWindowのupdate_scaleでremoveされる
 
     def update(self, scr=None):
         if self.backlog:
@@ -987,7 +992,8 @@ class BacklogData(object):
         """
         if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
             if self.type == 0:
-                h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9, self.top_noscale)
+                h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9,
+                                                                                 self.top_noscale)
                 height_noscale = min(self.rect_noscale.height, h)
                 if len(self.names_log) == 1 and self.columns == 1 and self.names_log[0][1] == cw.cwpy.msgs["ok"]:
                     num = 0
@@ -1010,7 +1016,8 @@ class BacklogData(object):
     def create_message(self):
         if self.type == 0:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
-                h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9, self.top_noscale)
+                h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9,
+                                                                                 self.top_noscale)
                 trim_top = min(self.talker_top_noscale-9, self.top_noscale)
 
                 size_noscale = (self.rect_noscale.width, min(self.rect_noscale.height, h))
@@ -1224,7 +1231,7 @@ def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All", lo
     try:
         r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, _get_variantvalue,
                             basenamelist=basenamelist)
-    except:
+    except Exception:
         cw.util.print_ex()
         r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, _get_variantvalue,
                             basenamelist=None)
@@ -1271,7 +1278,7 @@ def _get_namefromlist(index, namelist):
     if isinstance(item.data, str):
         name = item.data
     else:
-        name = item.data.get_showingname() if not item.data is None else item.name
+        name = item.data.get_showingname() if item.data is not None else item.name
     index += 1
     return index, name
 
@@ -1284,7 +1291,7 @@ def _get_namefromtable(nc, nametable, namelist):
     if isinstance(data, str):
         name = data
     else:
-        name = data.get_showingname() if not data is None else ""
+        name = data.get_showingname() if data is not None else ""
 
     namelist.append(NameListItem(data, name))
 
@@ -1295,7 +1302,7 @@ def _create_nametable(full, talker):
     def get_random():
         return cw.cwpy.event.get_targetmember("Random")
     selected = cw.cwpy.event.get_targetmember("Selected")\
-               if cw.cwpy.event.has_selectedmember() else ""
+        if cw.cwpy.event.has_selectedmember() else ""
     unselected = cw.cwpy.event.get_targetmember("Unselected")
     if full:
         inusecard = cw.cwpy.event.get_targetmember("Selectedcard")
@@ -1303,15 +1310,15 @@ def _create_nametable(full, talker):
     yado = cw.cwpy.ydata
 
     name_table = {
-        "#m" : selected,   # 選択中のキャラ名(#i=#m というわけではない)
-        "#r" : _NameGetter(get_random),     # ランダム選択キャラ名
-        "#u" : unselected, # 非選択中キャラ名
-        "#y" : yado,       # 宿の名前
-        "#t" : party       # パーティの名前
+        "#m": selected,    # 選択中のキャラ名(#i=#m というわけではない)
+        "#r": _NameGetter(get_random),  # ランダム選択キャラ名
+        "#u": unselected,  # 非選択中キャラ名
+        "#y": yado,        # 宿の名前
+        "#t": party        # パーティの名前
     }
     if full:
-        name_table["#c"] = inusecard # 使用カード名(カード使用イベント時のみ)
-        name_table["#i"] = talker    # 話者の名前(表示イメージのキャラやカード名)
+        name_table["#c"] = inusecard  # 使用カード名(カード使用イベント時のみ)
+        name_table["#i"] = talker     # 話者の名前(表示イメージのキャラやカード名)
 
         # シナリオ内の画像で上書き
         for key in cw.cwpy.rsrc.specialchars.keys():
@@ -1320,7 +1327,8 @@ def _create_nametable(full, talker):
     return name_table
 
 
-def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
+def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex,
+                   stack):
     v = cw.cwpy.sdata.find_step(key, cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
     if v is None:
         v, namelistindex = _get_spstep(key, full, updatetype, basenamelist, namelist, namelistindex)
@@ -1328,7 +1336,7 @@ def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, 
         return None, namelistindex
 
     if updatetype == "Fixed":
-        if not basenamelist is None:
+        if basenamelist is not None:
             s = v.get_valuename(basenamelist[namelistindex].name)
         else:
             s = v.get_valuename()
@@ -1370,7 +1378,7 @@ def _get_spstep(name, full, updatetype, basenamelist, namelist, namelistindex):
                     value = pcards.index(sel)+1
                 else:
                     value = 0
-                if not namelist is None:
+                if namelist is not None:
                     namelist.append(NameListItem("Number", value))
             else:
                 value = basenamelist[namelistindex].name
@@ -1393,11 +1401,12 @@ def _get_spstep(name, full, updatetype, basenamelist, namelist, namelistindex):
     return None, namelistindex
 
 
-def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex, stack):
+def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex,
+                   stack):
     v = cw.cwpy.sdata.find_flag(key, cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
-    if not v is None:
+    if v is not None:
         if updatetype == "Fixed":
-            if not basenamelist is None:
+            if basenamelist is not None:
                 s = v.get_valuename(basenamelist[namelistindex].name)
             else:
                 s = v.get_valuename()
@@ -1418,10 +1427,11 @@ def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, 
 
 def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo,
                       namelist, namelistindex, stack):
-    v = cw.cwpy.sdata.find_variant(key, cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
-    if not v is None:
+    v = cw.cwpy.sdata.find_variant(key,
+                                   cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
+    if v is not None:
         if updatetype == "Fixed":
-            if not basenamelist is None:
+            if basenamelist is not None:
                 s = cw.data.Variant.value_to_str(basenamelist[namelistindex].name)
             else:
                 s = v.string_value()
@@ -1467,7 +1477,8 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
             if nextpos < 0:
                 return 0, namelistindex
             fl = s[i+1:i+1+nextpos]
-            val, namelistindex = get(fl, full, updatetype, name_table, basenamelist, buflen, spcharinfo, namelist, namelistindex, stack)
+            val, namelistindex = get(fl, full, updatetype, name_table, basenamelist, buflen, spcharinfo, namelist,
+                                     namelistindex, stack)
             if val is None:
                 if (full & _SP_FULL) == 0 and c in ('$', '%'):
                     # BUG: 存在しない状態変数を表示しようとすると
@@ -1545,7 +1556,7 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
             buf.append(c)
             buflen += len(c)
 
-    if not basenamelist is None:
+    if basenamelist is not None:
         namelist = basenamelist
     return "".join(buf), spcharinfo, namelist, namelistindex
 
@@ -1574,7 +1585,8 @@ def get_messagelogtext(mwins, lastline=True):
             s += "-" * (cw.LOG_SEPARATOR_LEN_SHORT-slen)
         lines.append(s)
         lines.append(mwin.text_log.strip("\n"))
-        if mwin.names_log and not (len(mwin.names_log) == 1 and mwin.columns == 1 and mwin.names_log[0][1] == cw.cwpy.msgs["ok"]):
+        if mwin.names_log and not (len(mwin.names_log) == 1 and mwin.columns == 1 and
+                                   mwin.names_log[0][1] == cw.cwpy.msgs["ok"]):
             lines.append("")
             for i, sel in enumerate(mwin.names_log):
                 if i == mwin.showing_result and 1 < len(mwin.names_log):

@@ -191,7 +191,8 @@ class StatusBar(base.CWPySprite):
 
         if self.infocards and not cw.cwpy.is_playingscenario():
             self.infocards.notice = False
-        if self.debuglog and not (not cw.cwpy.is_playingscenario() and cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog):
+        if self.debuglog and not (not cw.cwpy.is_playingscenario() and cw.cwpy.is_debugmode() and
+                                  cw.cwpy.sdata.debuglog):
             self.debuglog.notice = False
 
         if showbuttons:
@@ -383,12 +384,15 @@ class VolumeBar(base.CWPySprite):
         self.rect = pygame.Rect(cw.s(560), cw.s(60), tw+cw.s(padw2)*2, cw.s(barh)+cw.s(1)*2+cw.s(padh)*4+tsize[1]*2)
         self.image = pygame.Surface(self.rect.size).convert_alpha()
         self.image.fill((0, 0, 0, 128))
-        self.image.fill((0, 0, 0, 192), pygame.Rect(cw.s(padw), cw.s(padh)*2+tsize[1], self.rect.width-cw.s(padw)*2, cw.s(barh)+cw.s(2)))
+        self.image.fill((0, 0, 0, 192), pygame.Rect(cw.s(padw), cw.s(padh)*2+tsize[1], self.rect.width-cw.s(padw)*2,
+                                                    cw.s(barh)+cw.s(2)))
         n = cw.s(barh - int(cw.cwpy.setting.vol_master * barh))
-        self.image.fill((0, 128, 128, 192), pygame.Rect(cw.s(padw)+cw.s(1), cw.s(padh)*2+tsize[1]+cw.s(1)+n, self.rect.width-cw.s(padw)*2-cw.s(2), cw.s(barh)-n))
+        self.image.fill((0, 128, 128, 192), pygame.Rect(cw.s(padw)+cw.s(1), cw.s(padh)*2+tsize[1]+cw.s(1)+n,
+                                                        self.rect.width-cw.s(padw)*2-cw.s(2), cw.s(barh)-n))
 
         subimg = font.render("%s%%" % (int(cw.cwpy.setting.vol_master * 100)), True, (255, 255, 255))
-        self.image.blit(subimg, ((self.rect.width-tsize[0])//2+tsize[0]-subimg.get_width(), cw.s(padh)*2+tsize[1]+cw.s(barh)+cw.s(padh)))
+        self.image.blit(subimg, ((self.rect.width-tsize[0])//2+tsize[0]-subimg.get_width(),
+                                 cw.s(padh)*2+tsize[1]+cw.s(barh)+cw.s(padh)))
         subimg = font.render("音量", True, (255, 255, 255))
         self.image.blit(subimg, ((self.rect.width-tsize2[0])//2, cw.s(padh)))
 
@@ -579,7 +583,7 @@ class StatusBarPanel(base.MouseHandlerSprite):
         return image
 
     def is_shown(self):
-        return not self.image is self.noimg
+        return self.image is not self.noimg
 
 
 def _draw_edge(image):
@@ -587,9 +591,11 @@ def _draw_edge(image):
         rect = pygame.Rect((x, y), (1, 1))
         image.fill((0, 0, 0), rect)
         image.fill((0, 0, 0, 192), rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
+
     def put_inside(x, y):
         rect = pygame.Rect((x, y), (1, 1))
         image.fill((192, 192, 192), rect, special_flags=pygame.locals.BLEND_RGB_MULT)
+
     w, h = image.get_size()
 
     put(0, 0)
@@ -887,7 +893,7 @@ class StatusBarButton(base.SelectableSprite):
                 else:
                     r = 128
                 icon.fill((r, 0, 0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
-            if not self.number is None:
+            if self.number is not None:
                 icon = cw.util.put_number(icon, self.number)
             bmp.blit(icon, rect.topleft)
             self.btnimg[key] = bmp
@@ -1043,7 +1049,7 @@ class StatusBarButton(base.SelectableSprite):
 
         image = self.image
         self.image = self.get_btnimg(flags)
-        if not image is self.image:
+        if image is not self.image:
             cw.cwpy.add_lazydraw(clip=self.rect)
 
     def lclick_event(self):
@@ -1175,7 +1181,7 @@ class CampButton(StatusBarButton):
 
 class TableButton(StatusBarButton):
     def __init__(self, parent, pos):
-        is_pushed = not cw.cwpy.areaid in (-4, -5)
+        is_pushed = cw.cwpy.areaid not in (-4, -5)
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, is_pushed=is_pushed)
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
@@ -1300,7 +1306,7 @@ class AutoStartButton(StatusBarButton):
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
                                  is_pushed=pushed, desc=desc, hotkey="F7")
         self.selectable_on_event = True
-        self.actionbtn = None # 「行動開始」ボタン
+        self.actionbtn = None  # 「行動開始」ボタン
         self.is_showing = cw.cwpy.is_battlestatus
 
     def reset(self, pos):
@@ -1513,8 +1519,8 @@ class DebugLogButton(StatusBarButton):
         notice = 0 < cw.cwpy.sdata.notice_debuglog
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
                                  notice=notice, desc=desc, hotkey="F6")
-        self.is_showing = cw.cwpy.setting.show_debuglogdialog and not cw.cwpy.is_playingscenario and\
-                          cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog
+        has_debuglog = cw.cwpy.is_debugmode() and cw.cwpy.sdata.debuglog
+        self.is_showing = cw.cwpy.setting.show_debuglogdialog and not cw.cwpy.is_playingscenario and has_debuglog
         self.selectable_on_event = True
 
     def get_icon(self):
@@ -1617,11 +1623,14 @@ class TouchMenuButton(StatusBarButton):
             sshbtn = (None, cw.cwpy.msgs["screenshot_hands"],
                       cw.cwpy.msgs["desc_screenshot_hands"], "Shift+PrtScn",
                       cw.util.card_screenshot, lambda: cw.cwpy.ydata and cw.cwpy.ydata.party)
+
+            def copybtn_enabled():
+                return cw.cwpy.interrupt_eventhandler and\
+                       hasattr(cw.cwpy.interrupt_eventhandler, "can_copytext") and\
+                       cw.cwpy.interrupt_eventhandler.can_copytext
             copybtn = (None, cw.cwpy.msgs["copy_text"],
                        cw.cwpy.msgs["desc_copy_text"], "Ctrl+C",
-                       copy_text, lambda: cw.cwpy.interrupt_eventhandler and\
-                                          hasattr(cw.cwpy.interrupt_eventhandler, "can_copytext") and\
-                                          cw.cwpy.interrupt_eventhandler.can_copytext)
+                       copy_text, copybtn_enabled)
             f9btn = (None, cw.cwpy.msgs["f9"],
                      cw.cwpy.msgs["desc_f9"], "F9",
                      f9, cw.cwpy.is_playingscenario)
@@ -1653,16 +1662,17 @@ class TouchMenuButton(StatusBarButton):
 
             name = cw.cwpy.msgs["touch_lclick"]
             icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_LCLICK"]
-            lclick_btn = cw.sprite.touchbutton.SimplePointableTile(icon, name, lclick,
-                                                                   lambda: touchbutton.can_selectsprite and cw.cwpy.index != -1,
-                                                                   width=lclick_btn_w)
+            lclick_btn = cw.sprite.touchbutton.SimplePointableTile(
+                icon, name, lclick,
+                lambda: touchbutton.can_selectsprite and cw.cwpy.index != -1,
+                width=lclick_btn_w)
 
             name = cw.cwpy.msgs["touch_rclick"]
             icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_RCLICK"]
-            rclick_btn = cw.sprite.touchbutton.SimplePointableTile(icon, name, rclick,
-                                                                   lambda: not cw.cwpy.is_showingmessage() and\
-                                                                           touchbutton.can_selectsprite and cw.cwpy.index != -1,
-                                                                   width=rclick_btn_w)
+            rclick_btn = cw.sprite.touchbutton.SimplePointableTile(
+                icon, name, rclick,
+                lambda: not cw.cwpy.is_showingmessage() and touchbutton.can_selectsprite and cw.cwpy.index != -1,
+                width=rclick_btn_w)
 
             icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_RIGHT"]
             rbtn = cw.sprite.touchbutton.SwitchSpriteTile(icon, move_count=1, width=rbtn_w)
