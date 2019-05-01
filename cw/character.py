@@ -3098,6 +3098,9 @@ class AlbumPage(object):
         self.name = self.data.gettext("Property/Name", "")
         self.level = cw.util.numwrap(self.data.getint("Property/Level"), 1, 65536)
 
+    def get_showingname(self):
+        return self.name
+
     def get_specialcoupons(self):
         """
         "＠"で始まる特殊クーポンの
