@@ -156,7 +156,7 @@ del __load
     now = datetime.now()
     # python compiled file (.pyc/pyo) is based on
     new_loader = (
-        imp.get_magic() +                                 # MAGIC, 
+        imp.get_magic() +                                 # MAGIC,
         struct.pack("<L", time.mktime(now.timetuple())) + # TIMESTAMP and,
         marshal.dumps(codeobject))                        # marshaled code
 

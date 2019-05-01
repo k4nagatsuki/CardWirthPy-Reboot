@@ -1163,7 +1163,7 @@ class Debugger(wx.Frame):
                                         fcard.deck.set(fcard)
                                         fcard.decide_action()
 
-                        fcards = [i for i in cw.cwpy.sdata.friendcards 
+                        fcards = [i for i in cw.cwpy.sdata.friendcards
                                   if i.id in friendids]
 
                         for fcard in fcards:

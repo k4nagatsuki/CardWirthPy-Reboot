@@ -1703,10 +1703,8 @@ class BranchKeyCodeContent(BranchContent):
         # 判定条件の反転(Wsn.4)
         self.invert = self.data.getbool(".", "invert", False)
 
-    @property
     def action(self):
         """キーコード所持分岐コンテント(1.30)。"""
-
         selectedmember = None
         header = None
         success = False
