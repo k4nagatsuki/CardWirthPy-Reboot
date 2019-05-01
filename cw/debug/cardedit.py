@@ -11,15 +11,15 @@ import wx.lib.agw.customtreectrl
 import cw
 
 
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #  手札カード情報編集ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class CardEditDialog(wx.Dialog):
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, "手札カードの編集",
-                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
         self.party = cw.cwpy.ydata.party
@@ -61,7 +61,7 @@ class CardEditDialog(wx.Dialog):
         self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST_dbg"])
 
         self.cards = wx.ListCtrl(self, -1, size=cw.ppis((200, 250)),
-            style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
+                                 style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.cards.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.cards.InsertColumn(0, "ID")
         self.cards.InsertColumn(1, "カード名")
@@ -72,8 +72,7 @@ class CardEditDialog(wx.Dialog):
 
         self.dealtarg = wx.adv.BitmapComboBox(self, -1, style=wx.CB_READONLY)
         self.notcast = 0
-        if not (cw.cwpy.ydata.party and\
-                cw.cwpy.ydata.party.is_adventuring()):
+        if not (cw.cwpy.ydata.party and cw.cwpy.ydata.party.is_adventuring()):
             bmp = cw.cwpy.rsrc.buttons["DECK_dbg"]
             self.dealtarg.Append("カード置場", bmp)
             self.notcast += 1
@@ -114,11 +113,12 @@ class CardEditDialog(wx.Dialog):
         self.timgidx_item = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM_dbg"])
         self.timgidx_beast = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST_dbg"])
 
+        agwStyle = wx.TR_NO_BUTTONS | wx.TR_SINGLE | wx.TR_HIDE_ROOT | \
+            wx.lib.agw.customtreectrl.TR_AUTO_CHECK_CHILD | \
+            wx.lib.agw.customtreectrl.TR_AUTO_CHECK_PARENT
         self.targets = wx.lib.agw.customtreectrl.CustomTreeCtrl(self, -1, size=(200, -1),
-            style=wx.BORDER|wx.TR_DEFAULT_STYLE,
-            agwStyle=wx.TR_NO_BUTTONS|wx.TR_SINGLE|wx.TR_HIDE_ROOT|\
-            wx.lib.agw.customtreectrl.TR_AUTO_CHECK_CHILD|\
-            wx.lib.agw.customtreectrl.TR_AUTO_CHECK_PARENT)
+                                                                style=wx.BORDER | wx.TR_DEFAULT_STYLE,
+                                                                agwStyle=agwStyle)
         self.targets.SetImageList(self.timglist)
         self.status = wx.StaticText(self, -1, label="対象はありません", style=wx.ST_NO_AUTORESIZE)
 
@@ -152,15 +152,15 @@ class CardEditDialog(wx.Dialog):
         sizer_scenario.Add(self.scenario, 1, wx.EXPAND, 0)
         sizer_scenario.Add(self.bookmark, 0, wx.EXPAND, 0)
 
-        sizer_cards.Add(sizer_scenario, 0, wx.EXPAND|wx.ALL, cw.ppis(5))
-        sizer_cards.Add(self.cards, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
+        sizer_cards.Add(sizer_scenario, 0, wx.EXPAND | wx.ALL, cw.ppis(5))
+        sizer_cards.Add(self.cards, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(5))
 
         sizer_dealtarg = wx.StaticBoxSizer(self.dealtargbox, wx.HORIZONTAL)
         sizer_dealtarg.Add(self.dealtarg, 1, wx.ALL, cw.ppis(5))
 
         sizer_left = wx.BoxSizer(wx.VERTICAL)
-        sizer_left.Add(sizer_cards, 1, wx.EXPAND|wx.ALL, cw.ppis(5))
-        sizer_left.Add(sizer_dealtarg, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
+        sizer_left.Add(sizer_cards, 1, wx.EXPAND | wx.ALL, cw.ppis(5))
+        sizer_left.Add(sizer_dealtarg, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(5))
 
         sizer_method = wx.StaticBoxSizer(self.methodbox, wx.HORIZONTAL)
         sizer_checks = wx.BoxSizer(wx.HORIZONTAL)
@@ -168,31 +168,31 @@ class CardEditDialog(wx.Dialog):
         sizer_checks.Add(self.mdesc, 1, wx.RIGHT, cw.ppis(5))
         sizer_checks.Add(self.mscenario, 1, wx.RIGHT, cw.ppis(5))
         sizer_checks.Add(self.mauthor, 1)
-        sizer_method.Add(sizer_checks, 1, wx.EXPAND|wx.ALL, cw.ppis(5))
+        sizer_method.Add(sizer_checks, 1, wx.EXPAND | wx.ALL, cw.ppis(5))
 
         sizer_targets = wx.StaticBoxSizer(self.targetsbox, wx.VERTICAL)
-        sizer_targets.Add(self.targets, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, cw.ppis(5))
+        sizer_targets.Add(self.targets, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, cw.ppis(5))
         sizer_targets.Add(cw.ppis((0, 2)), 0, 0, 0)
-        sizer_targets.Add(self.status, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
+        sizer_targets.Add(self.status, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(5))
 
         sizer_middle = wx.BoxSizer(wx.VERTICAL)
-        sizer_middle.Add(sizer_targets, 1, wx.EXPAND|wx.BOTTOM, cw.ppis(5))
+        sizer_middle.Add(sizer_targets, 1, wx.EXPAND | wx.BOTTOM, cw.ppis(5))
         sizer_middle.Add(sizer_method, 0, wx.EXPAND)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.dtlbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.dealbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.findbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(20))
-        sizer_right.Add(self.stopbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.updbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.delbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.dealbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.findbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(20))
+        sizer_right.Add(self.stopbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.updbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.delbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.closebtn, 0, wx.EXPAND)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_middle, 1, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_middle, 1, wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -207,9 +207,8 @@ class CardEditDialog(wx.Dialog):
         else:
             dpath = ""
             fpath = ""
-        dlg = wx.FileDialog(self, "シナリオの選択", dpath, fpath,
-                            "シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab; Summary.xml)|*.wsn;*.wsm;*.zip;*.lzh;*.cab;Summary.xml",
-                            wx.FD_OPEN)
+        scfile = "シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab; Summary.xml)|*.wsn;*.wsm;*.zip;*.lzh;*.cab;Summary.xml"
+        dlg = wx.FileDialog(self, "シナリオの選択", dpath, fpath, scfile, wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             fpath = dlg.GetPath()
             dlg.Destroy()
@@ -222,8 +221,9 @@ class CardEditDialog(wx.Dialog):
                             self.Enable(True)
                         cw.cwpy.frame.exec_func(func, self)
                         return
-                except:
+                except Exception:
                     cw.util.print_ex(file=sys.stderr)
+
                     def func(self):
                         self.Enable(True)
                     cw.cwpy.frame.exec_func(func, self)
@@ -249,7 +249,7 @@ class CardEditDialog(wx.Dialog):
                 self.scpath = fpath
                 self.scdata = scdata
                 self._update_cards()
-        except:
+        except Exception:
             cw.util.print_ex(file=sys.stderr)
 
     def OnBookmark(self, event):
@@ -257,7 +257,7 @@ class CardEditDialog(wx.Dialog):
         cw.cwpy.play_sound("page")
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
-        self._add_bookmark.Enable(not self.scdata is None)
+        self._add_bookmark.Enable(self.scdata is not None)
         self._arrange_bookmark.Enable(bool(cw.cwpy.setting.bookmarks_for_cardedit))
         self.bookmark.PopupMenu(self.bookmarkmenu)
 
@@ -345,7 +345,7 @@ class CardEditDialog(wx.Dialog):
             if header.negaflag:
                 self.cards.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
             else:
-                self.cards.SetItemState(i, 0, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED)
+                self.cards.SetItemState(i, 0, wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED)
 
     def OnDealBtn(self, event):
         """選択したカードを配付する。"""
@@ -367,7 +367,8 @@ class CardEditDialog(wx.Dialog):
             notscenariocard = not cw.cwpy.is_playingscenario()
             data = cw.data.copydata(self.datalist[index])
             header = self.list[index]
-            cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir, fromdebugger=True,
+            cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir,
+                                fromdebugger=True,
                                 anotherscenariocard=True)
             count += 1
 
@@ -381,6 +382,7 @@ class CardEditDialog(wx.Dialog):
         self.target_cards = self._get_cards(True)
         self.target_table = {}
         cards = set(self.target_cards.keys())
+
         def func(cards):
             roots = {}
             items = {}
@@ -399,7 +401,7 @@ class CardEditDialog(wx.Dialog):
                     item = self.targets.AppendItem(parent, name, 1, image=image)
                     item.Check(True)
                     table[key] = item
-                    if not parent is self.root:
+                    if parent is not self.root:
                         self.targets.Expand(parent)
                     return item
 
@@ -418,7 +420,9 @@ class CardEditDialog(wx.Dialog):
                     if not self._find:
                         break
                     set_status("%sの手札カードを検索中..." % (member.name))
-                    for cardpocket in (member.cardpocket[cw.POCKET_SKILL], member.cardpocket[cw.POCKET_ITEM], member.cardpocket[cw.POCKET_BEAST]):
+                    for cardpocket in (member.cardpocket[cw.POCKET_SKILL],
+                                       member.cardpocket[cw.POCKET_ITEM],
+                                       member.cardpocket[cw.POCKET_BEAST]):
                         for header in cardpocket:
                             matcher = self._get_matcher(header)
                             if matcher in cards:
@@ -483,7 +487,9 @@ class CardEditDialog(wx.Dialog):
                 member = cw.data.yadoxml2etree(header.fpath)
                 set_status("%sの手札カードを検索中..." % (header.name))
                 pcard = None
-                for cardpocket in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
+                for cardpocket in [member.getfind("SkillCards"),
+                                   member.getfind("ItemCards"),
+                                   member.getfind("BeastCards")]:
                     for data in cardpocket:
                         matcher = self._get_matcher(data)
                         if matcher in cards:
@@ -516,7 +522,9 @@ class CardEditDialog(wx.Dialog):
                     if not self._find:
                         break
                     pcard = None
-                    for cardpocket in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
+                    for cardpocket in [member.getfind("SkillCards"),
+                                       member.getfind("ItemCards"),
+                                       member.getfind("BeastCards")]:
                         for data in cardpocket:
                             matcher = self._get_matcher(data)
                             if matcher in cards:
@@ -572,7 +580,7 @@ class CardEditDialog(wx.Dialog):
                 self._update_enable()
             wx.CallAfter(update_enable)
 
-        threading.Thread(target=func, kwargs={"cards":cards}).start()
+        threading.Thread(target=func, kwargs={"cards": cards}).start()
         self._update_enable()
 
     def OnStopBtn(self, event):
@@ -604,13 +612,17 @@ class CardEditDialog(wx.Dialog):
                 name = data.gettext("Property/Name", "")
                 attachment = header2.attachment if header2.type == "BeastCard" else False
                 if cw.cwpy.ydata.storehouse is owner:
-                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir, attachment=attachment,
+                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order,
+                                        copymaterialfrom=header.scedir, attachment=attachment,
                                         anotherscenariocard=True)
                 elif isinstance(owner, cw.data.Party):
-                    cw.content.get_card(data, owner.backpack, notscenariocard=notscenariocard, toindex=index, insertorder=order, party=owner, copymaterialfrom=header.scedir, attachment=attachment,
+                    cw.content.get_card(data, owner.backpack, notscenariocard=notscenariocard, toindex=index,
+                                        insertorder=order, party=owner,
+                                        copymaterialfrom=header.scedir, attachment=attachment,
                                         anotherscenariocard=True)
                 elif isinstance(owner, cw.character.Character):
-                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir, attachment=attachment,
+                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order,
+                                        copymaterialfrom=header.scedir, attachment=attachment,
                                         anotherscenariocard=True)
                 else:
                     assert False
@@ -870,8 +882,10 @@ class CardEditDialog(wx.Dialog):
         self.updbtn.Enable(hascard and not self._find)
         self.delbtn.Enable(hascard and not self._find)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

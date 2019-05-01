@@ -6,15 +6,15 @@ import wx
 import cw
 
 
-#-------------------------------------------------------------------------------
-#  状態編集ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 状態編集ダイアログ
+# ------------------------------------------------------------------------------
 
 class StatusEditDialog(wx.Dialog):
 
     def __init__(self, parent, mlist, selected=-1):
         wx.Dialog.__init__(self, parent, -1, "キャラクターの状態の編集",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.SetDoubleBuffered(True)
 
@@ -26,18 +26,18 @@ class StatusEditDialog(wx.Dialog):
             self.statuses.append(Status(pcard))
             self.statuses_backup.append(Status(pcard))
 
-        self.life      = StatusButton(self, 0, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
-        self.poison    = StatusButton(self, 1, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
-        self.paralyze  = StatusButton(self, 2, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.life = StatusButton(self, 0, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.poison = StatusButton(self, 1, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.paralyze = StatusButton(self, 2, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
         self.mentality = StatusButton(self, 3, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
-        self.bind      = StatusButton(self, 4, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
-        self.silence   = StatusButton(self, 5, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
-        self.faceup    = StatusButton(self, 6, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.bind = StatusButton(self, 4, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.silence = StatusButton(self, 5, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
+        self.faceup = StatusButton(self, 6, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
         self.antimagic = StatusButton(self, 7, self._is_dead, self._is_unconscious, size=cw.ppis((45, 45)))
-        self.action    = StatusButton(self, 8, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
-        self.avoid     = StatusButton(self, 9, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
-        self.resist    = StatusButton(self, 10, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
-        self.defense   = StatusButton(self, 11, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
+        self.action = StatusButton(self, 8, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
+        self.avoid = StatusButton(self, 9, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
+        self.resist = StatusButton(self, 10, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
+        self.defense = StatusButton(self, 11, self._is_dead, self._is_unconscious, size=cw.ppis((45, 60)))
         self.statusbtns = [self.life, self.poison, self.paralyze,
                            self.mentality, self.bind, self.silence,
                            self.faceup, self.antimagic, self.action,
@@ -94,13 +94,13 @@ class StatusEditDialog(wx.Dialog):
 
     def _do_layout(self):
         sizer_status = wx.GridBagSizer()
-        sizer_status.Add(self.life, pos=(0, 0), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
-        sizer_status.Add(self.poison, pos=(0, 1), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
-        sizer_status.Add(self.paralyze, pos=(0, 2), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
-        sizer_status.Add(self.mentality, pos=(1, 0), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
-        sizer_status.Add(self.bind, pos=(2, 0), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
-        sizer_status.Add(self.silence, pos=(2, 1), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
-        sizer_status.Add(self.faceup, pos=(2, 2), flag=wx.RIGHT|wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.life, pos=(0, 0), flag=wx.RIGHT | wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.poison, pos=(0, 1), flag=wx.RIGHT | wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.paralyze, pos=(0, 2), flag=wx.RIGHT | wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.mentality, pos=(1, 0), flag=wx.RIGHT | wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.bind, pos=(2, 0), flag=wx.RIGHT | wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.silence, pos=(2, 1), flag=wx.RIGHT | wx.BOTTOM, border=cw.ppis(5))
+        sizer_status.Add(self.faceup, pos=(2, 2), flag=wx.RIGHT | wx.BOTTOM, border=cw.ppis(5))
         sizer_status.Add(self.antimagic, pos=(2, 3), flag=wx.BOTTOM, border=cw.ppis(5))
         sizer_status.Add(self.action, pos=(3, 0), flag=wx.RIGHT, border=cw.ppis(5))
         sizer_status.Add(self.avoid, pos=(3, 1), flag=wx.RIGHT, border=cw.ppis(5))
@@ -110,21 +110,21 @@ class StatusEditDialog(wx.Dialog):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
         sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
-        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=cw.ppis(5))
+        sizer_combo.Add(self.target, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, border=cw.ppis(5))
         sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
-        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
+        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM | wx.EXPAND, border=cw.ppis(5))
         sizer_left.Add(sizer_status, 1, flag=wx.EXPAND)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rcvbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.restorebtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.restorebtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, flag=wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, flag=wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -438,23 +438,23 @@ class StatusEditDialog(wx.Dialog):
     def _update_status(self):
         for i, status in enumerate(self._get_statuses()):
             force = (i == 0)
-            self.life.value         = self._value(self.life.value, status.life, force)
-            self.poison.value       = self._value(self.poison.value, status.poison, force)
-            self.paralyze.value     = self._value(self.paralyze.value, status.paralyze, force)
-            self.mentality.value    = self._value(self.mentality.value, status.mentality, force, "Normal")
+            self.life.value = self._value(self.life.value, status.life, force)
+            self.poison.value = self._value(self.poison.value, status.poison, force)
+            self.paralyze.value = self._value(self.paralyze.value, status.paralyze, force)
+            self.mentality.value = self._value(self.mentality.value, status.mentality, force, "Normal")
             self.mentality.duration = self._value(self.mentality.duration, status.mentality_dur, force)
-            self.bind.duration      = self._value(self.bind.duration, status.bind, force)
-            self.silence.duration   = self._value(self.silence.duration, status.silence, force)
-            self.faceup.duration    = self._value(self.faceup.duration, status.faceup, force)
+            self.bind.duration = self._value(self.bind.duration, status.bind, force)
+            self.silence.duration = self._value(self.silence.duration, status.silence, force)
+            self.faceup.duration = self._value(self.faceup.duration, status.faceup, force)
             self.antimagic.duration = self._value(self.antimagic.duration, status.antimagic, force)
-            self.action.value       = self._value(self.action.value, status.enhance_act, force)
-            self.action.duration    = self._value(self.action.duration, status.enhance_act_dur, force)
-            self.avoid.value        = self._value(self.avoid.value, status.enhance_avo, force)
-            self.avoid.duration     = self._value(self.avoid.duration, status.enhance_avo_dur, force)
-            self.resist.value       = self._value(self.resist.value, status.enhance_res, force)
-            self.resist.duration    = self._value(self.resist.duration, status.enhance_res_dur, force)
-            self.defense.value      = self._value(self.defense.value, status.enhance_def, force)
-            self.defense.duration   = self._value(self.defense.duration, status.enhance_def_dur, force)
+            self.action.value = self._value(self.action.value, status.enhance_act, force)
+            self.action.duration = self._value(self.action.duration, status.enhance_act_dur, force)
+            self.avoid.value = self._value(self.avoid.value, status.enhance_avo, force)
+            self.avoid.duration = self._value(self.avoid.duration, status.enhance_avo_dur, force)
+            self.resist.value = self._value(self.resist.value, status.enhance_res, force)
+            self.resist.duration = self._value(self.resist.duration, status.enhance_res_dur, force)
+            self.defense.value = self._value(self.defense.value, status.enhance_def, force)
+            self.defense.duration = self._value(self.defense.duration, status.enhance_def_dur, force)
 
         for btn in self.statusbtns:
             btn.draw(True)
@@ -467,6 +467,7 @@ class StatusEditDialog(wx.Dialog):
         else:
             # 誰か一人
             return [self.statuses[cindex-1]]
+
 
 class Status(object):
 
@@ -591,6 +592,7 @@ class Status(object):
 
         return update
 
+
 class StatusButton(wx.BitmapButton):
 
     def __init__(self, parent, mode, is_dead, is_unconscious, size):
@@ -625,7 +627,7 @@ class StatusButton(wx.BitmapButton):
         if self.mode == 0:
             # ライフ
             image = cw.cwpy.rsrc.wxstatuses["LIFE_dbg"]
-            if not self.value is None:
+            if self.value is not None:
                 self.text1 = "%s%%" % (self.value)
                 if 0 >= self.value:
                     colour = wx.Colour(0, 0, 128)
@@ -671,9 +673,9 @@ class StatusButton(wx.BitmapButton):
                 image = cw.cwpy.rsrc.wxstatuses["MIND5_dbg"]
                 self.text1 = "恐慌"
 
-            if not self.duration is None and 0 < self.duration:
+            if self.duration is not None and 0 < self.duration:
                 self.text2 = "%sr" % (self.duration)
-                if not self.value is None and not self.is_dead():
+                if self.value is not None and not self.is_dead():
                     enable = True
         elif self.mode == 4:
             # 呪縛
@@ -711,38 +713,38 @@ class StatusButton(wx.BitmapButton):
                 image = cw.cwpy.rsrc.wxstatuses["UP3_dbg"]
             else:
                 image = cw.cwpy.rsrc.wxstatuses["DOWN3_dbg"]
-        assert not image is None, self.mode
+        assert image is not None, self.mode
 
         if self.mode == 1 or self.mode == 2:
             # 肉体ステータス
-            if not self.value is None and 0 < self.value:
+            if self.value is not None and 0 < self.value:
                 self.text1 = "Lv%s" % (self.value)
                 enable = True
 
         if self.mode == 4 or self.mode == 5 or self.mode == 6 or self.mode == 7:
             # 魔法効果
-            if not self.duration is None and 0 < self.duration:
+            if self.duration is not None and 0 < self.duration:
                 self.text1 = "%sr" % (self.duration)
                 if 0 < self.duration and not self.is_unconscious():
                     enable = True
 
         elif self.mode == 8 or self.mode == 9 or self.mode == 10 or self.mode == 11:
             # 能力ボーナス・ペナルティ
-            if not self.value is None:
+            if self.value is not None:
                 if self.value > 0:
                     self.text1 = "+%s" % (self.value)
                 elif 0 > self.value:
                     self.text1 = "%s" % (self.value)
 
-            if not self.duration is None and 0 < self.duration:
+            if self.duration is not None and 0 < self.duration:
                 self.text2 = "%sr" % (self.duration)
 
-            if not self.value is None and not self.duration is None:
+            if self.value is not None and self.duration is not None:
                 if 0 != self.value and 0 < self.duration and not self.is_unconscious():
                     enable = True
 
             colour = wx.Colour(192, 192, 192)
-            if not self.value is None:
+            if self.value is not None:
                 if 10 <= self.value:
                     colour = wx.Colour(255, 0, 0)
                 elif 7 <= self.value:
@@ -822,8 +824,10 @@ class StatusButton(wx.BitmapButton):
 
         self.SetBitmapLabel(canvas.ConvertToBitmap())
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

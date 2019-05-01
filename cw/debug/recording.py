@@ -13,6 +13,7 @@ def save(path):
     cw.xmlcreater.create_scenariolog(cw.cwpy.sdata, path, True, cw.cwpy.advlog.logfilepath)
     return path
 
+
 def load(path):
     """シナリオの実行状況を復元する。
     """
@@ -46,8 +47,10 @@ def load(path):
     else:
         cw.cwpy.exec_func(func, cw.cwpy.areaid, False, bginhrt=True, data=data)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

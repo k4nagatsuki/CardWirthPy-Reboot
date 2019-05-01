@@ -6,16 +6,17 @@ import wx
 
 import cw
 
-#-------------------------------------------------------------------------------
-#  デバッグ情報ダイアログ
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# デバッグ情報ダイアログ
+# ------------------------------------------------------------------------------
 
 class DebugLogDialog(wx.Dialog):
 
     def __init__(self, parent, debuglog):
         """集計したデバッグ情報をリッチテキストで表示する。"""
         wx.Dialog.__init__(self, parent, -1, "「%s」のプレイ結果" % (debuglog.sname),
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
         def func():
@@ -323,7 +324,7 @@ class DebugLogDialog(wx.Dialog):
                 with open("DebugInfo.txt", "w", encoding="utf-8") as f:
                     f.write(self.plain_text)
                     f.close()
-            except:
+            except Exception:
                 cw.util.print_ex()
         self.Destroy()
 
@@ -331,13 +332,13 @@ class DebugLogDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(self.writetext, 0, wx.ALIGN_CENTER|wx.RIGHT, border=cw.ppis(5))
+        hsizer.Add(self.writetext, 0, wx.ALIGN_CENTER | wx.RIGHT, border=cw.ppis(5))
         hsizer.AddStretchSpacer(1)
         hsizer.Add(self.okbtn, 0, wx.ALIGN_CENTER)
 
-        sizer.Add(self.text, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
+        sizer.Add(self.text, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
         sizer.Add(cw.ppis((0, 5)), 0, 0, 0)
-        sizer.Add(hsizer, 0, wx.EXPAND|wx.RIGHT|wx.LEFT|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(hsizer, 0, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.BOTTOM, border=cw.ppis(5))
         sizer.Add(cw.ppis((0, 10)), 0, 0, 0)
         self.SetSizer(sizer)
         sizer.Fit(self)

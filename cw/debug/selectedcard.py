@@ -6,19 +6,19 @@ import wx
 import cw
 
 
-#-------------------------------------------------------------------------------
-#  選択カード変更ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 選択カード変更ダイアログ
+# ------------------------------------------------------------------------------
 
 class SelectedCardDialog(wx.Dialog):
     def __init__(self, parent, ccards, selectedcard):
         wx.Dialog.__init__(self, parent, -1, "選択カードの変更",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self._selectedcard = selectedcard
 
         self.cards = wx.TreeCtrl(self, size=cw.ppis((250, 300)),
-                                 style=wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
+                                 style=wx.TR_SINGLE | wx.TR_HIDE_ROOT | wx.TR_DEFAULT_STYLE)
 
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         imgidx_sack = self.imglist.Add(cw.cwpy.rsrc.debugs["SACK"])
@@ -70,12 +70,12 @@ class SelectedCardDialog(wx.Dialog):
     def _do_layout(self):
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.AddStretchSpacer(1)
-        sizer_right.Add(self.okbtn, 0, wx.BOTTOM|wx.EXPAND, cw.ppis(5))
+        sizer_right.Add(self.okbtn, 0, wx.BOTTOM | wx.EXPAND, cw.ppis(5))
         sizer_right.Add(self.cnclbtn, 0, wx.EXPAND)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.cards, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(self.cards, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)

@@ -2678,7 +2678,7 @@ class CWPy(_Singleton, threading.Thread):
     def reload_yado(self):
         """現在の宿をロード。"""
         # イベントを中止
-        self.event._stoped = True
+        self.event.stoped = True
         self.event.breakwait = True
         self.lock_menucards = True
         self._reloading = True
@@ -2723,9 +2723,9 @@ class CWPy(_Singleton, threading.Thread):
             if self.is_showingmessage():
                 mwin = self.get_messagewindow()
                 mwin.result = cw.event.EffectBreakError()
-                self.event._stoped = True
+                self.event.stoped = True
             elif self.is_runningevent():
-                self.event._stoped = True
+                self.event.stoped = True
 
             # バトルを強制終了
             if self.battle and self.battle.is_running:

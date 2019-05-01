@@ -8,15 +8,15 @@ import wx
 import cw
 
 
-#-------------------------------------------------------------------------------
-#  キャラクター情報編集ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# キャラクター情報編集ダイアログ
+# ------------------------------------------------------------------------------
 
 class CharacterEditDialog(wx.Dialog):
 
     def __init__(self, parent, selected=-1, create=False):
         wx.Dialog.__init__(self, parent, -1, "キャラクターの情報の編集",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.SetDoubleBuffered(True)
         self.create = create
@@ -57,7 +57,7 @@ class CharacterEditDialog(wx.Dialog):
             self.recalc_coupons = None
         else:
             self.recalc_maxlife = wx.CheckBox(self, -1, "生命点を新しい情報に合わせて再設定する",
-                                                style=wx.CHK_3STATE)
+                                              style=wx.CHK_3STATE)
             self.recalc_parameter = wx.CheckBox(self, -1, "能力値(カスタムの場合のみ)と属性を新しい情報に合わせて再設定する",
                                                 style=wx.CHK_3STATE)
             self.recalc_coupons = wx.CheckBox(self, -1, "初期クーポンを新しい情報に合わせて再設定する",
@@ -96,9 +96,9 @@ class CharacterEditDialog(wx.Dialog):
         if not self.create:
             sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
             sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
-            sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=cw.ppis(5))
+            sizer_combo.Add(self.target, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, border=cw.ppis(5))
             sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
-            sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
+            sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM | wx.EXPAND, border=cw.ppis(5))
         sizer_left.Add(self.note, 1, flag=wx.EXPAND)
 
         if not self.create:
@@ -110,14 +110,14 @@ class CharacterEditDialog(wx.Dialog):
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.stdbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.autobtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.autobtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -256,6 +256,7 @@ class CharacterEditDialog(wx.Dialog):
         if self.recalc_coupons:
             self.recalc_coupons.Set3StateValue(recalc_coupons)
 
+
 class CharaInfo(object):
 
     def __init__(self, pcard):
@@ -265,7 +266,8 @@ class CharaInfo(object):
             self.imgpaths = []
             imgpaths = pcard.get_imagepaths()
             for info in imgpaths:
-                self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info, basecardtype="LargeCard"))
+                iinfo = cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info, basecardtype="LargeCard")
+                self.imgpaths.append(iinfo)
             self.imgpaths_base = self.imgpaths
             self.can_loaded_scaledimage = pcard.data.getbool(".", "scaledimage", False)
             self.can_loaded_scaledimage_base = self.can_loaded_scaledimage
@@ -279,7 +281,8 @@ class CharaInfo(object):
             self.mental = pcard.mental
             self._calc_params()
             levelmax = pcard.get_levelmax()
-            self.recalc_maxlife = pcard.maxlife == cw.character.calc_maxlife(pcard.physical["vit"], pcard.physical["min"], pcard.level)
+            calced = cw.character.calc_maxlife(pcard.physical["vit"], pcard.physical["min"], pcard.level)
+            self.recalc_maxlife = pcard.maxlife == calced
             self.recalc_parameter = \
                 pcard.physical["agl"] == self.agl and\
                 pcard.physical["dex"] == self.dex and\
@@ -346,7 +349,8 @@ class CharaInfo(object):
     def set_randomfeatures(self):
         """ランダムに特性を設定する。
         """
-        self.race = cw.cwpy.dice.choice(cw.cwpy.setting.races) if cw.cwpy.setting.races else cw.cwpy.setting.unknown_race
+        self.race = cw.cwpy.dice.choice(cw.cwpy.setting.races)\
+            if cw.cwpy.setting.races else cw.cwpy.setting.unknown_race
 
         self.sex = cw.cwpy.dice.choice(cw.cwpy.setting.sexcoupons)
         self.age = cw.cwpy.dice.choice(cw.cwpy.setting.periodcoupons)
@@ -376,10 +380,10 @@ class CharaInfo(object):
                self.race.str + ctype.strbonus == info.physical["str"] and\
                self.race.vit + ctype.vitbonus == info.physical["vit"] and\
                self.race.aggressive + ctype.aggressive == info.mental["aggressive"] and\
-               self.race.brave      + ctype.brave      == info.mental["brave"] and\
-               self.race.cautious   + ctype.cautious   == info.mental["cautious"] and\
-               self.race.cheerful   + ctype.cheerful   == info.mental["cheerful"] and\
-               self.race.trickish   + ctype.trickish   == info.mental["trickish"]:
+               self.race.brave + ctype.brave == info.mental["brave"] and\
+               self.race.cautious + ctype.cautious == info.mental["cautious"] and\
+               self.race.cheerful + ctype.cheerful == info.mental["cheerful"] and\
+               self.race.trickish + ctype.trickish == info.mental["trickish"]:
                 return ctype
         return None
 
@@ -400,10 +404,10 @@ class CharaInfo(object):
             self.str = race.str + self.type.strbonus
             self.vit = race.vit + self.type.vitbonus
             self.aggressive = self.race.aggressive + self.type.aggressive
-            self.brave      = self.race.brave      + self.type.brave
-            self.cautious   = self.race.cautious   + self.type.cautious
-            self.cheerful   = self.race.cheerful   + self.type.cheerful
-            self.trickish   = self.race.trickish   + self.type.trickish
+            self.brave = self.race.brave + self.type.brave
+            self.cautious = self.race.cautious + self.type.cautious
+            self.cheerful = self.race.cheerful + self.type.cheerful
+            self.trickish = self.race.trickish + self.type.trickish
         else:
             self.agl = race.agl
             self.dex = race.dex
@@ -412,10 +416,10 @@ class CharaInfo(object):
             self.str = race.str
             self.vit = race.vit
             self.aggressive = race.aggressive
-            self.brave      = race.brave
-            self.cautious   = race.cautious
-            self.cheerful   = race.cheerful
-            self.trickish   = race.trickish
+            self.brave = race.brave
+            self.cautious = race.cautious
+            self.cheerful = race.cheerful
+            self.trickish = race.trickish
             for f in cw.cwpy.setting.sexes:
                 if self.sex == "＿" + f.name:
                     f.modulate(self)
@@ -434,19 +438,19 @@ class CharaInfo(object):
         cw.features.wrap_ability(self)
 
         self.physical = {
-            "agl":self.agl,
-            "dex":self.dex,
-            "int":self.int,
-            "min":self.min,
-            "str":self.str,
-            "vit":self.vit
+            "agl": self.agl,
+            "dex": self.dex,
+            "int": self.int,
+            "min": self.min,
+            "str": self.str,
+            "vit": self.vit
         }
         self.mental = {
-            "aggressive":self.aggressive,
-            "brave":self.brave,
-            "cautious":self.cautious,
-            "cheerful":self.cheerful,
-            "trickish":self.trickish
+            "aggressive": self.aggressive,
+            "brave": self.brave,
+            "cautious": self.cautious,
+            "cheerful": self.cheerful,
+            "trickish": self.trickish
         }
 
         self.levelmax = 10
@@ -467,16 +471,16 @@ class CharaInfo(object):
 
         updatebase = (self.recalc_parameter and not self.recalc_parameter_init) or\
                      (self.recalc_coupons and not self.recalc_coupons_init) or\
-                     self.race != pcard.get_race() or\
-                     self.sex != pcard.get_sex() or\
-                     self.age != pcard.get_age() or\
-                     self.talent != pcard.get_talent() or\
-                     self.makings != pcard.get_makings() or\
-                     self.type != self.get_paramtype(pcard)
-        updateetc  = self.name != pcard.name or\
-                     self.imgpaths != self.imgpaths_base or\
-                     self.can_loaded_scaledimage != self.can_loaded_scaledimage_base or\
-                     self.level != pcard.level
+                     (self.race != pcard.get_race()) or\
+                     (self.sex != pcard.get_sex()) or\
+                     (self.age != pcard.get_age()) or\
+                     (self.talent != pcard.get_talent()) or\
+                     (self.makings != pcard.get_makings()) or\
+                     (self.type != self.get_paramtype(pcard))
+        updateetc = (self.name != pcard.name) or\
+                    (self.imgpaths != self.imgpaths_base) or\
+                    (self.can_loaded_scaledimage != self.can_loaded_scaledimage_base) or\
+                    (self.level != pcard.level)
 
         if updatebase:
             racecoupons = set()
@@ -505,7 +509,7 @@ class CharaInfo(object):
 
             father_m = create_parentmatcher(cw.cwpy.msgs["father_coupon"])
             mother_m = create_parentmatcher(cw.cwpy.msgs["mother_coupon"])
-            etccoupons = [] # システム称号の後にある称号
+            etccoupons = []  # システム称号の後にある称号
             parentcoupons = []
             throughted_parents = False
             setlevelmax = False
@@ -558,10 +562,10 @@ class CharaInfo(object):
             # 　変更前の解説文に、デフォ解説が丸ごと、ないし最初の１行残っている
             # 解説文にプレイヤーの自作文章が入っている場合に上書きして消さないための処置
             if desc_bef_d in desc_bef:
-                desc_aft = desc_bef.replace(desc_bef_d , desc_aft_d)
+                desc_aft = desc_bef.replace(desc_bef_d, desc_aft_d)
                 pcard.set_description(desc_aft)
             elif desc_bef_d.split("\n")[0] in desc_bef:
-                desc_aft = desc_bef.replace(desc_bef_d.split("\n")[0] , desc_aft_d.split("\n")[0])
+                desc_aft = desc_bef.replace(desc_bef_d.split("\n")[0], desc_aft_d.split("\n")[0])
                 pcard.set_description(desc_aft)
 
             if self.recalc_parameter:
@@ -658,7 +662,7 @@ class CharaInfo(object):
         data = cw.dialog.create.AdventurerData()
         data.set_name(self.name)
         data.set_parents(None, None)
-        #遺伝情報、レベル上限、性別、年代、型、特徴、熟練の順で配布
+        # 遺伝情報、レベル上限、性別、年代、型、特徴、熟練の順で配布
         data.set_gene(self.talent)
         data.set_sex(self.sex)
         data.set_age(self.age)
@@ -677,10 +681,10 @@ class CharaInfo(object):
             data.str = self.race.str + self.type.strbonus
             data.vit = self.race.vit + self.type.vitbonus
             data.aggressive = self.race.aggressive + self.type.aggressive
-            data.brave      = self.race.brave      + self.type.brave
-            data.cautious   = self.race.cautious   + self.type.cautious
-            data.cheerful   = self.race.cheerful   + self.type.cheerful
-            data.trickish   = self.race.trickish   + self.type.trickish
+            data.brave = self.race.brave + self.type.brave
+            data.cautious = self.race.cautious + self.type.cautious
+            data.cheerful = self.race.cheerful + self.type.cheerful
+            data.trickish = self.race.trickish + self.type.trickish
         data.set_desc(self.talent, makings)
         data.set_specialcoupon()
         data.set_life()
@@ -697,6 +701,7 @@ class CharaInfo(object):
             if making in self.makings:
                 makings.append(making)
         return makings
+
 
 class CharaRequirementPanel(wx.Panel):
 
@@ -729,8 +734,10 @@ class CharaRequirementPanel(wx.Panel):
         self.imgbox.DragAcceptFiles(True)
         path = "Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        self.defaultface = cw.ppis(cw.util.load_wxbmp(path, mask=True, can_loaded_scaledimage=True, up_scr=cw.dpi_level))
-        self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface], size=cw.ppis(cw.SIZE_CARDIMAGE),
+        self.defaultface = cw.ppis(cw.util.load_wxbmp(path, mask=True, can_loaded_scaledimage=True,
+                                                      up_scr=cw.dpi_level))
+        self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], [self.defaultface],
+                                            size=cw.ppis(cw.SIZE_CARDIMAGE),
                                             ss=cw.ppis)
         self.imgcombo = wx.ComboBox(self, -1, size=(cw.ppis(125), -1), style=wx.CB_READONLY)
         self.imgcentering = wx.CheckBox(self, -1, "中央寄せ")
@@ -740,7 +747,8 @@ class CharaRequirementPanel(wx.Panel):
         self.levelbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="Lv ―")
 
         self.typbox = wx.StaticBox(self, -1, "能力型")
-        self.type = wx.StaticText(self, -1, "―――", size=(cw.ppis(80), -1), style=wx.ALIGN_CENTRE|wx.ST_NO_AUTORESIZE)
+        self.type = wx.StaticText(self, -1, "―――", size=(cw.ppis(80), -1),
+                                  style=wx.ALIGN_CENTRE | wx.ST_NO_AUTORESIZE)
 
         assert 1 <= len(cw.cwpy.setting.races)
         if 1 == len(cw.cwpy.setting.races) and isinstance(cw.cwpy.setting.races[0], cw.header.UnknownRaceHeader):
@@ -788,39 +796,39 @@ class CharaRequirementPanel(wx.Panel):
     def _do_layout(self):
         sizer_name = wx.StaticBoxSizer(self.namebox, wx.HORIZONTAL)
         sizer_name.Add(cw.ppis(5), 0, 0)
-        sizer_name.Add(self.name, 1, wx.RIGHT|wx.BOTTOM|wx.CENTER, cw.ppis(2))
-        sizer_name.Add(self.autoname, 0, wx.RIGHT|wx.BOTTOM|wx.CENTER, cw.ppis(5))
+        sizer_name.Add(self.name, 1, wx.RIGHT | wx.BOTTOM | wx.CENTER, cw.ppis(2))
+        sizer_name.Add(self.autoname, 0, wx.RIGHT | wx.BOTTOM | wx.CENTER, cw.ppis(5))
 
         sizer_image = wx.StaticBoxSizer(self.imgbox, wx.VERTICAL)
         sizer_image.AddStretchSpacer(1)
-        sizer_image.Add(self.img, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_image.Add(self.img, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER, cw.ppis(5))
         sizer_image.AddStretchSpacer(1)
-        sizer_image.Add(self.imgcombo, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND|wx.ALIGN_CENTER, cw.ppis(5))
-        sizer_image.Add(self.imgcentering, 0, wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(5))
+        sizer_image.Add(self.imgcombo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND | wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_image.Add(self.imgcentering, 0, wx.BOTTOM | wx.ALIGN_RIGHT, cw.ppis(5))
 
         sizer_level = wx.StaticBoxSizer(self.lvlbox, wx.VERTICAL)
-        sizer_level.Add(self.levelbtn, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
+        sizer_level.Add(self.levelbtn, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(5))
 
         sizer_type = wx.StaticBoxSizer(self.typbox, wx.VERTICAL)
         sizer_type2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_type2.Add(self.type, 1, wx.ALIGN_CENTER, cw.ppis(0))
-        sizer_type.Add(sizer_type2, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_type.Add(sizer_type2, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER, cw.ppis(5))
 
         sizer_lefttop = wx.BoxSizer(wx.VERTICAL)
         sizer_lefttop.Add(sizer_name, 0, wx.EXPAND)
         if self.race:
             sizer_leveltype = wx.BoxSizer(wx.HORIZONTAL)
             sizer_leveltype.Add(sizer_level, 0, wx.EXPAND, border=cw.ppis(5))
-            sizer_leveltype.Add(sizer_type, 0, wx.EXPAND|wx.LEFT, border=cw.ppis(5))
+            sizer_leveltype.Add(sizer_type, 0, wx.EXPAND | wx.LEFT, border=cw.ppis(5))
 
-            sizer_lefttop.Add(sizer_leveltype, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+            sizer_lefttop.Add(sizer_leveltype, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
             sizer_race = wx.StaticBoxSizer(self.racebox, wx.VERTICAL)
-            sizer_race.Add(self.race, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, cw.ppis(5))
-            sizer_lefttop.Add(sizer_race, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+            sizer_race.Add(self.race, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER, cw.ppis(5))
+            sizer_lefttop.Add(sizer_race, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
         else:
-            sizer_lefttop.Add(sizer_level, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-            sizer_lefttop.Add(sizer_type, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+            sizer_lefttop.Add(sizer_level, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+            sizer_lefttop.Add(sizer_type, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer_bottom = wx.BoxSizer(wx.HORIZONTAL)
         sizer_bottom.Add(self.sexes, 0)
@@ -828,14 +836,15 @@ class CharaRequirementPanel(wx.Panel):
         sizer_bottom.Add(self.natures, 0, wx.LEFT, cw.ppis(5))
 
         sizer_main = wx.GridBagSizer()
-        sizer_main.Add(sizer_lefttop, pos=(0, 0), flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
-        sizer_main.Add(sizer_image, pos=(0, 1), flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=cw.ppis(5))
-        sizer_main.Add(sizer_bottom, pos=(1, 0), span=(1, 2), flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=cw.ppis(5))
+        sizer_main.Add(sizer_lefttop, pos=(0, 0), flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, border=cw.ppis(5))
+        sizer_main.Add(sizer_image, pos=(0, 1), flag=wx.TOP | wx.BOTTOM | wx.RIGHT | wx.EXPAND, border=cw.ppis(5))
+        sizer_main.Add(sizer_bottom, pos=(1, 0), span=(1, 2), flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND,
+                       border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_main, 1, wx.EXPAND|wx.ALL, cw.ppis(5))
+        sizer.Add(sizer_main, 1, wx.EXPAND | wx.ALL, cw.ppis(5))
         sizer.AddStretchSpacer(0)
-        sizer.Add(self.autobtn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(5))
+        sizer.Add(self.autobtn, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT, cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -1169,6 +1178,7 @@ class CharaRequirementPanel(wx.Panel):
         self.select_target(self.cindex)
         self._update_okbtn()
 
+
 class CharaSelectablePanel(wx.Panel):
 
     def __init__(self, parent, infos, create):
@@ -1210,16 +1220,16 @@ class CharaSelectablePanel(wx.Panel):
             sizer_checks.Add(check, pos=(row, col), flag=flag, border=cw.ppis(5))
 
         sizer_box = wx.StaticBoxSizer(self.mkgbox, wx.HORIZONTAL)
-        sizer_box.Add(sizer_checks, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, cw.ppis(5))
+        sizer_box.Add(sizer_checks, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(5))
 
         sizer_buttons = wx.GridSizer(1, 2, 5, 5)
         sizer_buttons.Add(self.autobtn)
         sizer_buttons.Add(self.clearbtn)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_box, 1, wx.EXPAND|wx.ALL, cw.ppis(5))
+        sizer.Add(sizer_box, 1, wx.EXPAND | wx.ALL, cw.ppis(5))
         sizer.AddStretchSpacer(0)
-        sizer.Add(sizer_buttons, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, cw.ppis(5))
+        sizer.Add(sizer_buttons, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT, cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -1235,7 +1245,7 @@ class CharaSelectablePanel(wx.Panel):
         for info in infos:
             if making in info.makings and not value:
                 info.makings.remove(making)
-            elif not making in info.makings and value:
+            elif making not in info.makings and value:
                 info.makings.add(making)
 
         if value:
@@ -1296,8 +1306,10 @@ class CharaSelectablePanel(wx.Panel):
 
         self.select_target(self.cindex)
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

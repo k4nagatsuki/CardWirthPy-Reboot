@@ -7,14 +7,15 @@ import wx
 
 import cw
 
-#-------------------------------------------------------------------------------
-#  実行イベント選択ダイアログ
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# 実行イベント選択ダイアログ
+# ------------------------------------------------------------------------------
 
 class EventListDialog(wx.Dialog):
     def __init__(self, parent, currentfpath, showhiddencards):
         wx.Dialog.__init__(self, parent, -1, "実行するイベントの選択",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.events = EventList(self, cw.ppis((250, 300)), currentfpath, showhiddencards)
         self.showhiddencards = showhiddencards
@@ -37,17 +38,17 @@ class EventListDialog(wx.Dialog):
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.events, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.showallcards, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_left.Add(self.showallcards, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.openbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.startbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.startbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.cnclbtn, 0, wx.EXPAND)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -94,6 +95,7 @@ class EventListDialog(wx.Dialog):
             if selitem and selitem.IsOk() and not self.events.IsExpanded(selitem):
                 self.events.Expand(selitem)
 
+
 class EventList(wx.TreeCtrl):
     """シナリオに含まれるイベントをリストし、
     選択できるようにする。
@@ -103,7 +105,7 @@ class EventList(wx.TreeCtrl):
         """イベントリストのインスタンスを生成する。
         currentfpath: 最初から選択状態にするエリア等のファイルパス。
         """
-        wx.TreeCtrl.__init__(self, parent, -1, size=size, style=wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
+        wx.TreeCtrl.__init__(self, parent, -1, size=size, style=wx.TR_SINGLE | wx.TR_HIDE_ROOT | wx.TR_DEFAULT_STYLE)
         self.SetDoubleBuffered(True)
         self._showallcards = showhiddencards
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
@@ -145,12 +147,18 @@ class EventList(wx.TreeCtrl):
                 else:
                     self.AppendItem(item, "読込中...")
 
-        append_item(cw.cwpy.sdata.get_areaids, cw.cwpy.sdata.get_areaname, cw.cwpy.sdata.get_areadata, cw.cwpy.sdata.get_areafpath, imgidx_area)
-        append_item(cw.cwpy.sdata.get_battleids, cw.cwpy.sdata.get_battlename, cw.cwpy.sdata.get_battledata, cw.cwpy.sdata.get_battlefpath, imgidx_battle)
-        append_item(cw.cwpy.sdata.get_packageids, cw.cwpy.sdata.get_packagename, cw.cwpy.sdata.get_packagedata, cw.cwpy.sdata.get_packagefpath, imgidx_package)
-        append_item(cw.cwpy.sdata.get_skillids, cw.cwpy.sdata.get_skillname, cw.cwpy.sdata.get_skilldata, cw.cwpy.sdata.get_skillfpath, imgidx_skill)
-        append_item(cw.cwpy.sdata.get_itemids, cw.cwpy.sdata.get_itemname, cw.cwpy.sdata.get_itemdata, cw.cwpy.sdata.get_itemfpath, imgidx_item)
-        append_item(cw.cwpy.sdata.get_beastids, cw.cwpy.sdata.get_beastname, cw.cwpy.sdata.get_beastdata, cw.cwpy.sdata.get_beastfpath, imgidx_beast)
+        append_item(cw.cwpy.sdata.get_areaids, cw.cwpy.sdata.get_areaname, cw.cwpy.sdata.get_areadata,
+                    cw.cwpy.sdata.get_areafpath, imgidx_area)
+        append_item(cw.cwpy.sdata.get_battleids, cw.cwpy.sdata.get_battlename, cw.cwpy.sdata.get_battledata,
+                    cw.cwpy.sdata.get_battlefpath, imgidx_battle)
+        append_item(cw.cwpy.sdata.get_packageids, cw.cwpy.sdata.get_packagename, cw.cwpy.sdata.get_packagedata,
+                    cw.cwpy.sdata.get_packagefpath, imgidx_package)
+        append_item(cw.cwpy.sdata.get_skillids, cw.cwpy.sdata.get_skillname, cw.cwpy.sdata.get_skilldata,
+                    cw.cwpy.sdata.get_skillfpath, imgidx_skill)
+        append_item(cw.cwpy.sdata.get_itemids, cw.cwpy.sdata.get_itemname, cw.cwpy.sdata.get_itemdata,
+                    cw.cwpy.sdata.get_itemfpath, imgidx_item)
+        append_item(cw.cwpy.sdata.get_beastids, cw.cwpy.sdata.get_beastname, cw.cwpy.sdata.get_beastdata,
+                    cw.cwpy.sdata.get_beastfpath, imgidx_beast)
 
         selitem = self.GetSelection()
         if selitem:
@@ -180,16 +188,17 @@ class EventList(wx.TreeCtrl):
             e = cw.event.Event(data)
             if len(e.treekeys) == 0:
                 return
-            if not e_flags is None:
+            if e_flags is not None:
                 e.flags = cw.data.init_flags(e_flags.cwxparent, False)
-            if not e_steps is None:
+            if e_steps is not None:
                 e.steps = cw.data.init_steps(e_steps.cwxparent, False)
-            if not e_variants is None:
+            if e_variants is not None:
                 e.variants = cw.data.init_variants(e_variants.cwxparent, False)
             item = self.AppendItem(parent, e.treekeys[0], self.imgidx_event)
             self.SetItemData(item, e)
             for keynum in e.keynums:
-                if keynum < 0: continue
+                if keynum < 0:
+                    continue
                 if tag == "Area":
                     if keynum == 1:
                         name = "到着"
@@ -223,12 +232,14 @@ class EventList(wx.TreeCtrl):
                 child = self.AppendItem(item, name, self.imgidx_ignition)
                 self.SetItemData(child, e)
             for keycode in e.keycodes:
-                if keycode == "MatchingType=All": continue
+                if keycode == "MatchingType=All":
+                    continue
                 name = keycode
                 child = self.AppendItem(item, name, self.imgidx_keycode)
                 self.SetItemData(child, e)
             for keynum in e.keynums:
-                if 0 <= keynum: continue
+                if 0 <= keynum:
+                    continue
                 name = "ラウンド %s" % (-keynum)
                 child = self.AppendItem(item, name, self.imgidx_round)
                 self.SetItemData(child, e)
@@ -256,7 +267,7 @@ class EventList(wx.TreeCtrl):
                     if ce.tag == "EnemyCard":
                         cardid = ce.getint("Property/Id", 0)
                         cardname = cw.cwpy.sdata.get_castname(cardid)
-                        if  cardname is None:
+                        if cardname is None:
                             cardname = "(未設定)"
                     else:
                         cardname = ce.gettext("Property/Name", "")
@@ -300,7 +311,7 @@ class EventList(wx.TreeCtrl):
             return data
         else:
             data = self.GetItemData(selitem)
-            if not data is None:
+            if data is not None:
                 name, resid, getdata, getfpath, expanded = data
                 if not expanded:
                     self.Freeze()

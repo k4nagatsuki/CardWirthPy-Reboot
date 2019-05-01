@@ -26,8 +26,8 @@ class EventInterface(object):
         self.stackinfo = [None] * 16
         self.stackinfo_len = 0
         # デバッガのイベントコントロールバー用変数
-        self._paused = False
-        self._stoped = False
+        self.paused = False
+        self.stoped = False
         self._step = False
         self._targetstack = -2
         self.breakwait = False
@@ -144,7 +144,7 @@ class EventInterface(object):
         self.effectevent = None
         self.clear_events()
         self.nowrunningpacks = {}
-        self._stoped = False
+        self.stoped = False
         self.breakwait = False
         self._targetstack = -2
         self.refresh_tools()
@@ -450,14 +450,14 @@ class EventInterface(object):
 
         if cw.cwpy.is_showingdebugger() and\
                  cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
-            if not self._paused and cw.cwpy.sdata.breakpoints and cur_content.get_cwxpath() in cw.cwpy.sdata.breakpoints:
+            if not self.paused and cw.cwpy.sdata.breakpoints and cur_content.get_cwxpath() in cw.cwpy.sdata.breakpoints:
                 # ブレークポイント到達
-                self._paused = True
+                self.paused = True
                 def func():
                     cw.cwpy.frame.debugger.pause(True)
                 cw.cwpy.frame.exec_func(func)
 
-        if self._stoped:
+        if self.stoped:
             raise EffectBreakError()
 
         if cur_content.tag == "Talk":
@@ -474,7 +474,7 @@ class EventInterface(object):
         else:
             self.eventtimer += 1
 
-        if self._stoped:
+        if self.stoped:
             raise EffectBreakError()
 
         if cw.cwpy.is_showingdebugger() and\
@@ -483,14 +483,14 @@ class EventInterface(object):
 
             if self._step:
                 # ステップ実行中
-                self._paused = True
+                self.paused = True
 
             waittime = cw.cwpy.frame.debugger.sc_waittime.GetValue()
             if waittime:
                 tick = pygame.time.get_ticks()
                 stw = cw.sprite.base.StopTheWorld(tick, waittime * 100)
                 while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
-                            stw.is_waiting() and not self._stoped:
+                            stw.is_waiting() and not self.stoped:
                     if not self.get_event().force_nextcontent is None:
                         break
                     if cnt == 0:
@@ -504,7 +504,7 @@ class EventInterface(object):
 
             cnt = 0
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
-                                            self._paused and not self._stoped:
+                                            self.paused and not self.stoped:
                 if -1 <= self._targetstack and self._targetstack < self.get_currentstack():
                     break
                 if not self.get_event().force_nextcontent is None:
@@ -518,7 +518,7 @@ class EventInterface(object):
                 cw.cwpy.wait_frame(1, False)
                 cnt += 1
 
-        if self._stoped:
+        if self.stoped:
             raise EffectBreakError()
 
     def set_curcontent(self, content, event=None):
@@ -567,13 +567,13 @@ class EventInterface(object):
         return self._step
 
     def set_stoped(self, stoped):
-        self._stoped = stoped
+        self.stoped = stoped
 
     def is_stoped(self):
-        return self._stoped
+        return self.stoped
 
     def is_paused(self):
-        return self._paused
+        return self.paused
 
 class EventEngine(object):
     def __init__(self, data):

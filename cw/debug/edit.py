@@ -11,15 +11,15 @@ import wx.lib.masked
 import cw
 
 
-#-------------------------------------------------------------------------------
-#  クーポン情報編集ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# クーポン情報編集ダイアログ
+# ------------------------------------------------------------------------------
 
 class CouponEditDialog(wx.Dialog):
 
     def __init__(self, parent, selected=-1):
         wx.Dialog.__init__(self, parent, -1, "キャラクターの経歴の編集",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
         self._processing = False
@@ -73,7 +73,7 @@ class CouponEditDialog(wx.Dialog):
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, cw.ppis((20, 20)), bmp=bmp)
 
         # 合計得点
-        self.total = wx.StaticText(self, -1, "", style=wx.ALIGN_RIGHT|wx.ST_NO_AUTORESIZE)
+        self.total = wx.StaticText(self, -1, "", style=wx.ALIGN_RIGHT | wx.ST_NO_AUTORESIZE)
 
         # レベル調節の有無
         self.adjust_level = wx.CheckBox(self, -1, "得点に合わせてレベルを調節する")
@@ -133,30 +133,30 @@ class CouponEditDialog(wx.Dialog):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
         sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
-        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=cw.ppis(3))
+        sizer_combo.Add(self.target, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, border=cw.ppis(3))
         sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
-        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=cw.ppis(3))
+        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM | wx.EXPAND, border=cw.ppis(3))
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.total, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
-        sizer_left.Add(self.adjust_level, 0, flag=wx.ALIGN_RIGHT|wx.TOP, border=cw.ppis(3))
-        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
+        sizer_left.Add(self.total, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(3))
+        sizer_left.Add(self.adjust_level, 0, flag=wx.ALIGN_RIGHT | wx.TOP, border=cw.ppis(3))
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(3))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.addbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.valbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.copybtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.up2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.down2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.valbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.copybtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.up2btn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.upbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.downbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.down2btn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -194,7 +194,7 @@ class CouponEditDialog(wx.Dialog):
         name = ""
         while True:
             name = "新規項目 (%s)" % (num)
-            if not name in names:
+            if name not in names:
                 break
             num += 1
 
@@ -316,6 +316,7 @@ class CouponEditDialog(wx.Dialog):
         temp = self.values.GetItemState(index1, mask)
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
+
         def set_item(index):
             self.values.SetItem(index, 0, seq[index][0])
             self.values.SetItem(index, 1, str(seq[index][1]))
@@ -362,7 +363,7 @@ class CouponEditDialog(wx.Dialog):
             value = event.GetText()
             try:
                 value = int(value)
-            except:
+            except Exception:
                 event.Veto()
                 return
             self._set_value(index, value)
@@ -529,22 +530,23 @@ class CouponEditDialog(wx.Dialog):
             # 誰か一人
             self.coupons[cindex-1][index] = (name, value)
 
-#-------------------------------------------------------------------------------
-#  ゴシップ・終了印情報編集ダイアログ
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# ゴシップ・終了印情報編集ダイアログ
+# ------------------------------------------------------------------------------
 
 class ListEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, mlist, image):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.list = mlist
 
         self._processing = False
 
         # リスト
-        self.values = EditableListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER)
+        self.values = EditableListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT | wx.LC_NO_HEADER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
@@ -602,22 +604,22 @@ class ListEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(3))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.addbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.up2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.down2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.up2btn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.upbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.downbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.down2btn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -631,7 +633,7 @@ class ListEditDialog(wx.Dialog):
         name = ""
         while True:
             name = "新規項目 (%s)" % (num)
-            if not name in names:
+            if name not in names:
                 break
             num += 1
 
@@ -748,10 +750,11 @@ class ListEditDialog(wx.Dialog):
             self.values.SetFocus()
         self.Thaw()
 
+
 class GossipEditDialog(ListEditDialog):
     def __init__(self, parent):
         ListEditDialog.__init__(self, parent, "ゴシップの編集",
-            cw.cwpy.ydata.get_gossiplist(), cw.cwpy.rsrc.debugs["GOSSIP_dbg"])
+                                cw.cwpy.ydata.get_gossiplist(), cw.cwpy.rsrc.debugs["GOSSIP_dbg"])
 
     def OnOkBtn(self, event):
         def func(seq):
@@ -762,10 +765,11 @@ class GossipEditDialog(ListEditDialog):
         cw.cwpy.exec_func(func, self.list)
         self.EndModal(wx.ID_OK)
 
+
 class CompStampEditDialog(ListEditDialog):
     def __init__(self, parent):
         ListEditDialog.__init__(self, parent, "終了印の編集",
-            cw.cwpy.ydata.get_compstamplist(), cw.cwpy.rsrc.debugs["COMPSTAMP_dbg"])
+                                cw.cwpy.ydata.get_compstamplist(), cw.cwpy.rsrc.debugs["COMPSTAMP_dbg"])
 
     def OnOkBtn(self, event):
         def func(seq):
@@ -775,6 +779,7 @@ class CompStampEditDialog(ListEditDialog):
                 cw.cwpy.ydata.set_compstamp(name)
         cw.cwpy.exec_func(func, self.list)
         self.EndModal(wx.ID_OK)
+
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, parent, cid, size, style):
@@ -795,15 +800,15 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoW
         listmix.TextEditMixin.OpenEditor(self, row, col)
 
 
-#-------------------------------------------------------------------------------
-#  保存済みJPDCイメージ整理ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 保存済みJPDCイメージ整理ダイアログ
+# ------------------------------------------------------------------------------
 
 class SavedJPDCImageEditDialog(wx.Dialog):
 
     def __init__(self, parent, savedjpdcimage):
         wx.Dialog.__init__(self, parent, -1, "JPDCイメージを保存したシナリオ",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         keys = iter(savedjpdcimage.keys())
         self.list = list(cw.util.sorted_by_attr(keys))
@@ -811,7 +816,8 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 
         # リスト
         image = cw.cwpy.rsrc.debugs["JPDCIMAGE_dbg"]
-        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.BORDER)
+        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)),
+                                        style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.BORDER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
@@ -853,17 +859,17 @@ class SavedJPDCImageEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(3))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -909,15 +915,15 @@ class SavedJPDCImageEditDialog(wx.Dialog):
         self.rmvbtn.Enable(bool(indexes))
 
 
-#-------------------------------------------------------------------------------
-#  保存済み状態変数整理ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 保存済み状態変数整理ダイアログ
+# ------------------------------------------------------------------------------
 
 class SavedVariablesEditDialog(wx.Dialog):
 
     def __init__(self, parent, savedvariables):
         wx.Dialog.__init__(self, parent, -1, "状態変数を保存したシナリオ",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         keys = iter(savedvariables.keys())
         self.list = list(cw.util.sorted_by_attr(keys))
@@ -925,7 +931,8 @@ class SavedVariablesEditDialog(wx.Dialog):
 
         # リスト
         image = cw.cwpy.rsrc.debugs["VARIABLES_dbg"]
-        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.BORDER)
+        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)),
+                                        style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.BORDER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
@@ -967,17 +974,17 @@ class SavedVariablesEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(3))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -1021,15 +1028,15 @@ class SavedVariablesEditDialog(wx.Dialog):
         self.rmvbtn.Enable(bool(indexes))
 
 
-#-------------------------------------------------------------------------------
-#  ブレークポイント整理ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ブレークポイント整理ダイアログ
+# ------------------------------------------------------------------------------
 
 class BreakpointEditDialog(wx.Dialog):
 
     def __init__(self, parent, breakpoint_table):
         wx.Dialog.__init__(self, parent, -1, "ブレークポイントを設定したシナリオ",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         keys = iter(breakpoint_table.keys())
         self.list = list(cw.util.sorted_by_attr(keys))
@@ -1037,7 +1044,8 @@ class BreakpointEditDialog(wx.Dialog):
 
         # リスト
         image = cw.cwpy.rsrc.debugs["BREAKPOINT_dbg"]
-        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.BORDER)
+        self.values = AutoWidthListCtrl(self, -1, size=cw.ppis((250, 300)),
+                                        style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.BORDER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
@@ -1079,17 +1087,17 @@ class BreakpointEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=cw.ppis(3))
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(3))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -1135,14 +1143,16 @@ class BreakpointEditDialog(wx.Dialog):
         indexes = self.get_selectedindexes()
         self.rmvbtn.Enable(bool(indexes))
 
-#-------------------------------------------------------------------------------
-#  ダイアログの部品
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# ダイアログの部品
+# ------------------------------------------------------------------------------
 
 class AutoWidthListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, parent, cid, size, style):
         wx.ListCtrl.__init__(self, parent, cid, size=size, style=style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
+
 
 class FindPanel(wx.Panel):
     def __init__(self, parent, values, item_selected, style=0):
@@ -1209,7 +1219,8 @@ class FindPanel(wx.Panel):
                 index = self.values.GetItemCount()-1
 
             if self.values.GetItemText(index).lower().find(text) != -1:
-                self.values.SetItemState(index, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED)
+                self.values.SetItemState(index, wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED,
+                                         wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED)
                 self.values.EnsureVisible(index)
                 self.text.SetBackgroundColour(self._color_found)
                 self.text.Refresh()
@@ -1245,7 +1256,8 @@ class FindPanel(wx.Panel):
                 index = 0
 
             if self.values.GetItemText(index).lower().find(text) != -1:
-                self.values.SetItemState(index, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED)
+                self.values.SetItemState(index, wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED,
+                                         wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED)
                 self.values.EnsureVisible(index)
                 self.text.SetBackgroundColour(self._color_found)
                 self.text.Refresh()
@@ -1282,22 +1294,22 @@ class FindPanel(wx.Panel):
             self.find_down()
 
 
-#-------------------------------------------------------------------------------
-#  カード編集ダイアログ用ブックマーク整理ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# カード編集ダイアログ用ブックマーク整理ダイアログ
+# ------------------------------------------------------------------------------
 
 class EditBookmarksForCardEditDialog(wx.Dialog):
 
     def __init__(self, parent, bookmarks):
         wx.Dialog.__init__(self, parent, -1, "ブックマーク",
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.list = bookmarks[:]
         self._removed = []
 
         # リスト
         image = cw.cwpy.rsrc.dialogs["SUMMARY_dbg"]
-        self.values = wx.ListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT|wx.BORDER)
+        self.values = wx.ListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT | wx.BORDER)
         self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
         self.values.imgidx = self.values.imglist.Add(image)
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
@@ -1356,18 +1368,18 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.updatebtn, 0, wx.EXPAND)
-        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.up2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
-        sizer_right.Add(self.down2btn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.up2btn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.upbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.downbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.down2btn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.ppis(5))
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=cw.ppis(5))
-        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.ppis(5))
+        sizer.Add(sizer_left, 1, wx.EXPAND | wx.ALL, border=cw.ppis(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, border=cw.ppis(5))
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -1390,7 +1402,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
                 scdata = cw.scenariodb.get_scenario(self.values.GetItem(index, 1).GetText())
                 self.values.SetItem(index, 0, scdata.name)
                 self.list[index] = (self.list[index][0], scdata.name)
-            except:
+            except Exception:
                 self.values.SetItem(index, 0, "*読込失敗*")
         self.SetCursor(wx.NullCursor)
 
@@ -1446,6 +1458,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         temp = self.values.GetItemState(index1, mask)
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
+
         def set_item(index, string, image):
             self.values.SetItem(index, 0, string[0])
             self.values.SetItem(index, 1, string[1])
@@ -1585,15 +1598,15 @@ def down_to_bottom(values, seq, indexes):
     values.EnsureVisible(values.GetItemCount() - 1)
 
 
-#-------------------------------------------------------------------------------
-#  コモン編集ダイアログ
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# コモン編集ダイアログ
+# ------------------------------------------------------------------------------
 
 class VariantEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, label, value):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.value = value
 
@@ -1620,7 +1633,7 @@ class VariantEditDialog(wx.Dialog):
             self.type_num.SetValue(True)
             try:
                 self.value_num.SetValue(float(value))
-            except:
+            except Exception:
                 self.value_num.SetValue(0)
             self.value_num.Enable()
         else:
@@ -1648,24 +1661,24 @@ class VariantEditDialog(wx.Dialog):
     def _do_layout(self):
         sizer_box = wx.StaticBoxSizer(self.box, wx.HORIZONTAL)
         sizer_grid = wx.GridBagSizer()
-        sizer_grid.Add(self.type_num, pos=(0, 0), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
-        sizer_grid.Add(self.type_str, pos=(1, 0), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
-        sizer_grid.Add(self.type_bool, pos=(2, 0), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
-        sizer_grid.Add(self.value_num, pos=(0, 1), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
-        sizer_grid.Add(self.value_str, pos=(1, 1), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
-        sizer_grid.Add(self.value_bool, pos=(2, 1), flag=wx.ALL|wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.type_num, pos=(0, 0), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.type_str, pos=(1, 0), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.type_bool, pos=(2, 0), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.value_num, pos=(0, 1), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.value_str, pos=(1, 1), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.value_bool, pos=(2, 1), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
         sizer_box.Add(sizer_grid, 1, wx.EXPAND, 0)
 
         sizer_buttons = wx.BoxSizer(wx.HORIZONTAL)
         sizer_buttons.AddStretchSpacer(0)
-        sizer_buttons.Add(self.okbtn, 1, wx.EXPAND|wx.RIGHT, cw.ppis(5))
+        sizer_buttons.Add(self.okbtn, 1, wx.EXPAND | wx.RIGHT, cw.ppis(5))
         sizer_buttons.AddStretchSpacer(0)
         sizer_buttons.Add(self.cnclbtn, 1, wx.EXPAND, cw.ppis(0))
         sizer_buttons.AddStretchSpacer(0)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sizer_box, 1, wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, cw.ppis(15))
-        sizer.Add(sizer_buttons, 0, wx.ALL|wx.EXPAND, cw.ppis(15))
+        sizer.Add(sizer_box, 1, wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND, cw.ppis(15))
+        sizer.Add(sizer_buttons, 0, wx.ALL | wx.EXPAND, cw.ppis(15))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -1692,6 +1705,7 @@ class VariantEditDialog(wx.Dialog):
 
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()
