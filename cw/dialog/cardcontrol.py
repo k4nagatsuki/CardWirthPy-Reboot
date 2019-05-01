@@ -13,15 +13,16 @@ import wx.lib.intctrl
 import cw
 
 # カード操作ダイアログのモード
-CCMODE_SHOW    = 0 # 閲覧モード
-CCMODE_MOVE    = 1 # 移動モード
-CCMODE_BATTLE  = 2 # 戦闘行動選択モード
-CCMODE_USE     = 3 # 使用モード
-CCMODE_REPLACE = 4 # 交換モード
+CCMODE_SHOW = 0  # 閲覧モード
+CCMODE_MOVE = 1  # 移動モード
+CCMODE_BATTLE = 2  # 戦闘行動選択モード
+CCMODE_USE = 3  # 使用モード
+CCMODE_REPLACE = 4  # 交換モード
 
-#-------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # カード操作ダイアログ　スーパークラス
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 class CardControl(wx.Dialog):
     def __init__(self, parent, name, sendto, sort, areaid=None, drawcards=True):
@@ -298,6 +299,11 @@ class CardControl(wx.Dialog):
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
             seq.append((wx.ACCEL_ALT, ord('1')+i, sortkeydown))
             self.sortkeydown.append(sortkeydown)
+
+        debugid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnDebugMode, id=debugid)
+        seq.append((wx.ACCEL_CTRL, ord('D'), debugid))
+
         cw.util.set_acceleratortable(self, seq)
 
     def OnNumberKeyDown(self, event):
@@ -454,6 +460,33 @@ class CardControl(wx.Dialog):
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
+
+    def OnDebugMode(self, event):
+        def func(self):
+            cw.cwpy.play_sound("page")
+            value = not cw.cwpy.is_debugmode()
+            cw.cwpy.set_debug(value)
+
+            def func(self):
+                if not self:
+                    return
+                self.update_debug()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+
+    def update_debug(self):
+        if self.callname != "INFOVIEW":
+            if cw.cwpy.is_debugmode():
+                i = self.narrow_type.FindString(cw.cwpy.msgs["key_code"])
+                if i == -1:
+                    self.narrow_type.Append(cw.cwpy.msgs["key_code"])
+            else:
+                i = self.narrow_type.FindString(cw.cwpy.msgs["key_code"])
+                if i != -1:
+                    if self.narrow_type.GetSelection() == i:
+                        self.narrow_type.SetSelection(0)
+                        self.update_narrowcondition()
+                    self.narrow_type.Delete(i)
 
     def update_additionals(self):
         """表示状態の切り替え時に呼び出される。"""
@@ -1188,7 +1221,8 @@ class CardControl(wx.Dialog):
     def get_mode(self):
         if self.callname == "INFOVIEW" or\
             (self.callname == "CARDPOCKET" and isinstance(self.selection, cw.character.Friend)) or\
-            (self.callname == "HANDVIEW" and not cw.cwpy.debug and isinstance(self.selection, (cw.character.Enemy, cw.character.Friend))):
+            (self.callname == "HANDVIEW" and not cw.cwpy.is_debugmode() and\
+             isinstance(self.selection, (cw.character.Enemy, cw.character.Friend))):
             return CCMODE_SHOW
         elif self.callname == "CARDPOCKET_REPLACE":
             return CCMODE_REPLACE
@@ -1476,6 +1510,7 @@ class CardControl(wx.Dialog):
                         cw.cwpy.trade("PAWNSHOP", header=header, from_event=False, parentdialog=self, sound=False)
                     elif index == self._combo_trush:
                         cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
+
                     def func():
                         self._proc = False
                         self.update_narrowcondition()
@@ -1486,7 +1521,7 @@ class CardControl(wx.Dialog):
 
         # カード所持者がPlayerCardじゃない場合はカード情報を表示
         if (isinstance(self.selection, cw.character.Friend) and not cw.cwpy.is_battlestatus()) or\
-                (not cw.cwpy.debug and isinstance(owner, (cw.character.Enemy, cw.character.Friend))):
+                (not cw.cwpy.is_debugmode() and isinstance(owner, (cw.character.Enemy, cw.character.Friend))):
             self.rclick_event(header)
             return
 
@@ -1534,12 +1569,12 @@ class CardControl(wx.Dialog):
 
         # 使用回数が0以下だったら処理中止
         if header.uselimit <= 0:
-            if not header.type in ("ItemCard", "BeastCard") or header.recycle or not header.maxuselimit == 0:
+            if header.type not in ("ItemCard", "BeastCard") or header.recycle or not header.maxuselimit == 0:
                 cw.cwpy.play_sound("error")
                 return False
 
         # 戦闘中にペナルティカードを行動選択していたら処理中止
-        if owner.is_autoselectedpenalty() and not cw.cwpy.debug:
+        if owner.is_autoselectedpenalty() and not cw.cwpy.is_debugmode():
             cw.cwpy.play_sound("error")
             if cw.cwpy.setting.noticeimpossibleaction:
                 s = cw.cwpy.msgs["selected_penalty"]
@@ -1822,6 +1857,8 @@ class CardHolder(CardControl):
                 self.combo.Append(cw.cwpy.msgs["send_to_trush"], bmp)
             self.combo.Select(cw.cwpy.setting.last_sendto)
 
+        self._sendto = sendto
+
         # パーティが組まれていない(カード置き場のみ)か、
         # 使用モードや閲覧モードで対象が一人だけの場合は
         # 左右ボタンを無効化
@@ -1867,6 +1904,26 @@ class CardHolder(CardControl):
         self.page.Bind(wx.EVT_SET_FOCUS, self.OnPageSetFocus)
 
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
+
+    def update_debug(self):
+        CardControl.update_debug(self)
+        if self._sendto and cw.cwpy.is_playingscenario():
+            s = cw.cwpy.msgs["send_to_trush"]
+            if cw.cwpy.is_debugmode():
+                i = self.combo.FindString(s)
+                if i == -1:
+                    self._combo_trush = len(self.combo.GetItems())
+                    bmp = cw.cwpy.rsrc.buttons["TRUSH"]
+                    self.combo.Append(s, bmp)
+            else:
+                i = self.combo.FindString(s)
+                if i != -1:
+                    if self.combo.GetSelection() == i:
+                        self.combo.Select(0)
+                        cw.cwpy.setting.last_sendto = self.combo.GetSelection()
+                        self.toppanel.SetFocusIgnoringChildren()
+                        self.draw_cards()
+                    self.combo.Delete(i)
 
     def _load_index(self):
         if self.callname == "CARDPOCKET":
@@ -2674,16 +2731,10 @@ class HandView(CardControl):
             self.list2 = cw.cwpy.get_pcards(status)
         elif isinstance(selection, cw.character.Friend):
             self.list2 = cw.cwpy.get_fcards(status)
-        else: # EnemyCard
-            if cw.cwpy.is_debugmode():
-                self.list2 = cw.cwpy.get_ecards(status)
-            else:
-                self.list2 = []
-                for card in cw.cwpy.get_ecards(status):
-                    if card.is_analyzable():
-                        self.list2.append(card)
+        else:  # EnemyCard
+            self._update_enemylist(selection)
 
-        if status == "active" and not cw.cwpy.debug and isinstance(self.owner, cw.sprite.card.PlayerCard):
+        if status == "active" and not cw.cwpy.is_debugmode() and isinstance(self.owner, cw.sprite.card.PlayerCard):
             self.list2 = [pcard for pcard in self.list2 if not pcard.is_autoselectedpenalty()]
 
         # 前に開いていたときのindex値があったら取得する
@@ -2711,12 +2762,11 @@ class HandView(CardControl):
         self.Parent.change_selection(self.selection)
 
         # 手札再配布
-        if cw.cwpy.is_debugmode():
-            bmp = cw.cwpy.rsrc.dialogs["HAND"]
-            self.redeal = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((24, 24)), bmp=bmp)
-            self.redeal.SetToolTip(cw.cwpy.msgs["re_deal"])
-        else:
-            self.redeal = None
+        bmp = cw.cwpy.rsrc.dialogs["HAND"]
+        self.redeal = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((24, 24)), bmp=bmp)
+        self.redeal.SetToolTip(cw.cwpy.msgs["re_deal"])
+        if not cw.cwpy.is_debugmode():
+            self.redeal.Hide()
 
         # 使用モードでパーティが一人だけの場合は左右ボタンを無効化
         if len(self.list2) == 1:
@@ -2742,6 +2792,28 @@ class HandView(CardControl):
         CardControl._bind(self)
         if self.redeal:
             self.Bind(wx.EVT_BUTTON, self.OnReDeal, self.redeal)
+
+    def update_debug(self):
+        CardControl.update_debug(self)
+        if self._update_enemylist(self.selection):
+            self.redeal.Show(cw.cwpy.is_debugmode())
+            self.rightbtn.Enable(len(self.list2) != 1)
+            self.leftbtn.Enable(len(self.list2) != 1)
+            self.Refresh()
+
+    def _update_enemylist(self, selection):
+        if isinstance(selection, cw.character.Enemy):
+            if cw.cwpy.is_debugmode():
+                self.list2 = cw.cwpy.get_ecards("active")
+            else:
+                self.list2 = []
+                for card in cw.cwpy.get_ecards("active"):
+                    if card.is_analyzable():
+                        self.list2.append(card)
+            if selection not in self.list2:
+                self.Close()
+                return False
+        return True
 
     def OnReDeal(self, event):
         self._cancel_animation = True

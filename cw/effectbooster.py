@@ -887,6 +887,7 @@ class JpyImage(cw.image.Image):
                     self.image = self.image.convert()
                     self.image.set_colorkey(self.image.get_at((0, 0)))
 
+
 class JpyCache(object):
     """Jpy1ファイル読み込み時に使うキャッシュ。
     最後に一時描画したポジションや、
@@ -928,6 +929,7 @@ class JpyCache(object):
             image = pygame.Surface(cw.s((0, 0))).convert()
 
         return image
+
 
 class JpdcImage(cw.image.Image):
     def __init__(self, mask, path, cache=None, defaultcopymode=2, doanime=None):
