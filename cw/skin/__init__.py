@@ -9,6 +9,6 @@ from . import win32res
 def main():
     pass
 
+
 if __name__ == "__main__":
     main()
-

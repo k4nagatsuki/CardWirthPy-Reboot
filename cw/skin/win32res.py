@@ -13,27 +13,28 @@ if sys.platform == "win32" and sys.maxsize == 0x7fffffff:
 else:
     _winapi = False
 
-RT_CURSOR       = 1
-RT_BITMAP       = 2
-RT_ICON         = 3
-RT_MENU         = 4
-RT_DIALOG       = 5
-RT_STRING       = 6
-RT_FONTDIR      = 7
-RT_FONT         = 8
-RT_ACCELERATOR  = 9
-RT_RCDATA       = 10
+RT_CURSOR = 1
+RT_BITMAP = 2
+RT_ICON = 3
+RT_MENU = 4
+RT_DIALOG = 5
+RT_STRING = 6
+RT_FONTDIR = 7
+RT_FONT = 8
+RT_ACCELERATOR = 9
+RT_RCDATA = 10
 RT_MESSAGETABLE = 11
 RT_GROUP_CURSOR = 12
-RT_GROUP_ICON   = 14
-RT_VERSION      = 16
-RT_DLGINCLUDE   = 17
-RT_PLUGPLAY     = 19
-RT_VXD          = 20
-RT_ANICURSOR    = 21
-RT_ANIICON      = 22
-RT_HTML         = 23
-RT_MANIFEST     = 24
+RT_GROUP_ICON = 14
+RT_VERSION = 16
+RT_DLGINCLUDE = 17
+RT_PLUGPLAY = 19
+RT_VXD = 20
+RT_ANICURSOR = 21
+RT_ANIICON = 22
+RT_HTML = 23
+RT_MANIFEST = 24
+
 
 class Win32Res(object):
     """
@@ -60,8 +61,9 @@ class Win32Res(object):
             fpath2 = ctypes.create_unicode_buffer(fpath)
             LOAD_LIBRARY_AS_DATAFILE = 0x00000002
             LOAD_WITH_ALTERED_SEARCH_PATH = 0x00000008
-            self._winhandle = ctypes.windll.kernel32.LoadLibraryExW(fpath2, 0,
-                    LOAD_LIBRARY_AS_DATAFILE|LOAD_WITH_ALTERED_SEARCH_PATH)
+            self._winhandle = ctypes.windll.kernel32.LoadLibraryExW(
+                fpath2, 0, LOAD_LIBRARY_AS_DATAFILE | LOAD_WITH_ALTERED_SEARCH_PATH
+            )
             if self._winhandle:
                 return
 
@@ -153,7 +155,7 @@ class Win32Res(object):
 
                 res_data = base[offset_to_data:offset_to_data+size]
 
-                if not name1 in self._table:
+                if name1 not in self._table:
                     self._table[name1] = {}
                 self._table[name1][name2] = res_data
 
@@ -247,14 +249,15 @@ class Win32Res(object):
 
         iconfileheader = uint16.pack(0) + uint16.pack(2) + uint16.pack(1)
 
-        icondirentry = uint8.pack(width) +\
-                       uint8.pack(height) +\
-                       uint8.pack(bcbitcount) +\
-                       uint8.pack(0) +\
-                       uint16.pack(xhotspot) +\
-                       uint16.pack(yhotspot) +\
-                       uint32.pack(size) +\
-                       uint32.pack(ICONDIR_SIZE + ICONDIRENTRY_SIZE)
+        icondirentry =\
+            uint8.pack(width) +\
+            uint8.pack(height) +\
+            uint8.pack(bcbitcount) +\
+            uint8.pack(0) +\
+            uint16.pack(xhotspot) +\
+            uint16.pack(yhotspot) +\
+            uint32.pack(size) +\
+            uint32.pack(ICONDIR_SIZE + ICONDIRENTRY_SIZE)
 
         return iconfileheader + icondirentry + data
 
@@ -289,7 +292,7 @@ class Win32Res(object):
         else:
             header_size += RGBQUAD_SIZE * clr_used
         header_size += BITMAPFILEHEADER_SIZE
-        size = BITMAPFILEHEADER_SIZE + len(data) # file size
+        size = BITMAPFILEHEADER_SIZE + len(data)  # file size
 
         # BITMAPFILEHEADER
         header = b"BM" + uint32.pack(size) + uint16.pack(0) + uint16.pack(0) + uint32.pack(header_size)
@@ -307,10 +310,10 @@ class Win32Res(object):
 
         table = {}
         stack = [table]
-        int8 = struct.Struct("b") # int8
-        uint8 = struct.Struct("B") # uint8
-        uint16 = struct.Struct("<H") # uint16(little endian)
-        uint32 = struct.Struct("<I") # uint32(little endian)
+        int8 = struct.Struct("b")  # int8
+        uint8 = struct.Struct("B")  # uint8
+        uint16 = struct.Struct("<H")  # uint16(little endian)
+        uint32 = struct.Struct("<I")  # uint32(little endian)
 
         while 0 < len(data):
             length = data[0]
@@ -335,7 +338,7 @@ class Win32Res(object):
                 data = data[1+length:]
                 valtype = data[0]
                 data = data[1:]
-                if valtype == 0x01: # strings
+                if valtype == 0x01:  # strings
                     value = []
                     while data[0] in (2, 3, 6):
                         dt = data[0]
@@ -350,36 +353,36 @@ class Win32Res(object):
                             value.append(str(data[2:2+length], cw.MBCS))
                             data = data[2+length:]
                     data = data[1:]
-                elif valtype == 0x02: # signed byte
+                elif valtype == 0x02:  # signed byte
                     value = int8.unpack(data[:1])[0]
                     data = data[1:]
-                elif valtype == 0x03: # unsigned short
+                elif valtype == 0x03:  # unsigned short
                     value = uint16.unpack(data[:2])[0]
                     data = data[2:]
-                elif valtype == 0x06: # string
+                elif valtype == 0x06:  # string
                     length = data[0]
                     value = str(data[1:1+length], cw.MBCS)
                     data = data[1+length:]
-                elif valtype == 0x07: # name
+                elif valtype == 0x07:  # name
                     length = data[0]
                     value = str(data[1:1+length], cw.MBCS)
                     data = data[1+length:]
-                elif valtype == 0x08: # False
+                elif valtype == 0x08:  # False
                     value = False
-                elif valtype == 0x09: # True
+                elif valtype == 0x09:  # True
                     value = True
-                elif valtype == 0x0a: # binary
+                elif valtype == 0x0a:  # binary
                     length = uint32.unpack(data[0:4])[0]
                     value = data[4:4+length]
                     data = data[4+length:]
-                elif valtype == 0x0b: # array
+                elif valtype == 0x0b:  # array
                     value = []
                     while 0 < data[0]:
                         length = data[0]
                         value.append(data[1:1+length])
                         data = data[1+length:]
                     data = data[1:]
-                elif valtype == 0x12: # unknown (utf-16 string?)
+                elif valtype == 0x12:  # unknown (utf-16 string?)
                     length = uint32.unpack(data[:4])[0]
                     length *= 2
                     value = str(data[4:4+length], "utf-16")

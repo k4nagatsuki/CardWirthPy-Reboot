@@ -24,8 +24,8 @@ def find_skin(name, author, type=""):
         skininfo = get_skininfo(path)
         if skininfo:
             name2, author2, type2 = skininfo
-            if not name2 is None and name == name2 and not author2 is None and author == author2 and\
-                    (type == "" or (not type2 is None and type == type2)):
+            if name2 is not None and name == name2 and author2 is not None and author == author2 and\
+                    (type == "" or (type2 is not None and type == type2)):
                 seq.append(dname)
 
     return seq
@@ -46,14 +46,15 @@ def get_skininfo(path):
                     author = prop.properties.get("Author", "")
                     type = prop.properties.get("Type", "")
                     return (name, author, type)
-            except:
+            except Exception:
                 # エラーのあるスキンは無視
                 cw.util.print_ex()
     else:
         lpath = path.lower()
         if lpath.endswith(".zip") or lpath.endswith(".lzh"):
             with cw.util.zip_file(path, "r") as z:
-                names = [(name, info) for name, info in zip(z.namelist(), z.infolist()) if os.path.basename(name) == "Skin.xml"]
+                names = [(name, info) for name, info in zip(z.namelist(), z.infolist())
+                         if os.path.basename(name) == "Skin.xml"]
 
                 for name, info in names:
                     data = z.read(name)
@@ -103,7 +104,7 @@ def is_skin(path):
                 for name in z.namelist():
                     if os.path.basename(cw.util.decode_zipname(name)) == "Skin.xml":
                         return True
-            except:
+            except Exception:
                 cw.util.print_ex()
                 print(path)
             finally:
@@ -128,6 +129,9 @@ INSTALL_PROGRESS_ARCHIVE = 5
 def install_skin(path, tempdir, progress=lambda msg, progress: None):
     """
     pathのスキンをインストールする。
+    :type path: str
+    :type tempdir: str
+    :type progress: func(str)
     """
     tempdir2 = None
     try:
@@ -181,7 +185,7 @@ def install_skin(path, tempdir, progress=lambda msg, progress: None):
         rootattrs = {}
         try:
             etree = cw.data.xml2etree(skinpath, tag="Property")
-        except:
+        except Exception:
             cw.util.print_ex()
             raise SkinInstallError("%s のスキン情報の読み込みに失敗しました。" % os.path.basename(path))
         if not rootattrs.get("dataVersion", "0") in cw.SUPPORTED_SKIN:
@@ -193,13 +197,13 @@ def install_skin(path, tempdir, progress=lambda msg, progress: None):
             sname += "(%s)" % sauthor
 
         basedata = etree.find("BaseSkin")
-        if not basedata is None:
+        if basedata is not None:
             name = basedata.gettext("Name", "")
             author = basedata.gettext("Author", "")
             type = basedata.gettext("Type", "")
             base = find_skin(name, author, type)
             if base:
-                base =cw.util.join_paths("Data/Skin", base[0])
+                base = cw.util.join_paths("Data/Skin", base[0])
             else:
                 baseinfo = " スキン名 = %s" % (name if name else "(無し)")
                 baseinfo += "\n 作者名 = %s" % (author if author else "(無し)")
@@ -222,7 +226,7 @@ def install_skin(path, tempdir, progress=lambda msg, progress: None):
                 progress("「%s」のデータをコピーしています..." % sname, progress=2)
                 shutil.copytree(os.path.dirname(skinpath), dpath)
             return dpath
-        except:
+        except Exception:
             cw.util.print_ex()
             cw.util.remove(dpath)
             raise SkinInstallError("%s のコピーに失敗しました。" % os.path.basename(path))

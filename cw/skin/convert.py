@@ -113,8 +113,8 @@ class Converter(threading.Thread):
             key = b"\\Midi\\DefReset.mid"
             index = self.exebinary.find(key)
             try:
-                return str(self.exebinary[index-4:index], cw.MBCS)
-            except:
+                return str(self.exebinary[index - 4:index], cw.MBCS)
+            except Exception:
                 pass
         return "Data"
 
@@ -124,8 +124,8 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             try:
                 index = index + len(key)
-                return str(self.exebinary[index:index+8], cw.MBCS)
-            except:
+                return str(self.exebinary[index:index + 8], cw.MBCS)
+            except Exception:
                 pass
         return "Scenario"
 
@@ -135,8 +135,8 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             try:
                 index = index + len(key)
-                return str(self.exebinary[index-len(key)-4:index-len(key)], cw.MBCS)
-            except:
+                return str(self.exebinary[index - len(key) - 4:index - len(key)], cw.MBCS)
+            except Exception:
                 pass
         return "Yado"
 
@@ -164,24 +164,25 @@ class Converter(threading.Thread):
         cash = int(prop.properties.get("InitialCash", "4000"))
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return cash
-        if len(self.exebinary) < 0x31d97+4:
+        if len(self.exebinary) < 0x31d97 + 4:
             return cash
-        return struct.unpack("<I", self.exebinary[0x31d97:0x31d97+4])[0]
+        return struct.unpack("<I", self.exebinary[0x31d97:0x31d97 + 4])[0]
 
     def _get_features(self):
         # バイナリ断片を手がかりにして特性値を探す。
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
-        key = b"TStatusItem\x81\x89" # "TStatusItem♂"
+        key = b"TStatusItem\x81\x89"  # "TStatusItem♂"
         index = self.exebinary.find(key) + len(key) - len("\x81\x89")
 
         physical = struct.Struct("<hhhhhh")
         mental = struct.Struct("<hhhhh")
 
         try:
-            def set_params(data, index, isnature, slist=("aggressive", "cautious", "brave", "cheerful", "trickish"), sperb=2.0):
+            def set_params(data, index, isnature, slist=("aggressive", "cautious", "brave", "cheerful", "trickish"),
+                           sperb=2.0):
                 # 特性名
-                n = self.exebinary[index:index+20]
+                n = self.exebinary[index:index + 20]
                 index += 20
                 i = n.find(b"\0")
                 if 0 <= i:
@@ -191,8 +192,8 @@ class Converter(threading.Thread):
                 data.find("./Name").text = str(name, cw.MBCS).strip(" 　")
 
                 # 身体能力
-                p = physical.unpack(self.exebinary[index:index+2*6])
-                index += 2*6
+                p = physical.unpack(self.exebinary[index:index + 2 * 6])
+                index += 2 * 6
                 e = data.find("./Physical")
                 if isnature:
                     e.set("dex", str(p[0] - 6))
@@ -210,8 +211,8 @@ class Converter(threading.Thread):
                     e.set("min", str(p[5]))
 
                 # 精神能力
-                p = mental.unpack(self.exebinary[index:index+2*5])
-                index += 2*5
+                p = mental.unpack(self.exebinary[index:index + 2 * 5])
+                index += 2 * 5
                 e = data.find("./Mental")
                 e.set(slist[0], str(p[0] / sperb))
                 e.set(slist[1], str(p[3] / sperb))
@@ -221,19 +222,21 @@ class Converter(threading.Thread):
 
                 return index
 
-            key = b"\x00\x49\x4D\x41\x47\x45\x5F\x46\x41\x54\x48\x45\x52\x00\x49\x4D\x41\x47\x45\x5F\x4D\x4F\x54\x48\x45\x52\x00\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x00\x00\x81\x51\x00\x81\x51\x00\x81\x51\x00\x81\x51\x00\x81\x40\x00"
+            key = b"\x00\x49\x4D\x41\x47\x45\x5F\x46\x41\x54\x48\x45\x52\x00\x49\x4D\x41\x47\x45\x5F\x4D\x4F" \
+                  b"\x54\x48\x45\x52\x00\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x00" \
+                  b"\x00\x81\x51\x00\x81\x51\x00\x81\x51\x00\x81\x51\x00\x81\x40\x00"
             index2 = self.exebinary.find(key)
             if 0 <= index2:
                 index2 += len(key)
                 # 大人に付加される「熟練」クーポン
                 skillful, index2 = self._get_text(index2)
                 e = self.data.find("Periods/Period[3]/Coupons/Coupon")
-                if not e is None:
+                if e is not None:
                     e.text = skillful
                 # 老人に付加される「老獪」クーポン
                 foxy, index2 = self._get_text(index2)
                 e = self.data.find("Periods/Period[4]/Coupons/Coupon")
-                if not e is None:
+                if e is not None:
                     e.text = foxy
 
             for e in self.data.getfind("Sexes"):
@@ -242,7 +245,7 @@ class Converter(threading.Thread):
                 index = set_params(e, index, False)
 
             # 使用されていない年代「古老」を飛ばす
-            index += 20 + 2*6 + 2*5
+            index += 20 + 2 * 6 + 2 * 5
             for e in self.data.getfind("Natures"):
                 index = set_params(e, index, True)
             for e in self.data.getfind("Makings"):
@@ -302,36 +305,40 @@ class Converter(threading.Thread):
             return
         try:
             sounds = self.data.getfind("Sounds")
+
             def get_keybefore(e, key, length, less=0):
                 index = self.exebinary.find(key)
                 if 0 <= index:
                     index -= less
-                    e.text = str(self.exebinary[index-length:index], cw.MBCS)
+                    e.text = str(self.exebinary[index - length:index], cw.MBCS)
+
             def get_keyafter(e, key, length, than=0):
                 index = self.exebinary.find(key)
                 if 0 <= index:
                     index += len(key)
                     index += than
-                    e.text = str(self.exebinary[index:index+length], cw.MBCS)
+                    e.text = str(self.exebinary[index:index + length], cw.MBCS)
 
             # システム・エラー
             # ".wav\0は、行動不能です。"
             key = b".wav\0\x82\xCD\x81\x41\x8D\x73\x93\xAE\x95\x73\x94\x5C\x82\xC5\x82\xB7\x81\x42\x00"
             get_keybefore(sounds[0], key, 16)
             # システム・クリック
-            get_keybefore(sounds[1], key, 18, less=16+5)
+            get_keybefore(sounds[1], key, 18, less=16 + 5)
             # システム・シグナル
             # ".wav\0本アプリケーションは『小さいフォント』に対応しています。"
-            key = b".wav\0\x96\x7B\x83\x41\x83\x76\x83\x8A\x83\x50\x81\x5B\x83\x56\x83\x87\x83\x93\x82\xCD\x81\x77\x8F\xAC\x82\xB3\x82\xA2\x83\x74\x83\x48\x83\x93\x83\x67\x81\x78\x82\xC9\x91\xCE\x89\x9E\x82\xB5\x82\xC4\x82\xA2\x82\xDC\x82\xB7\x81\x42"
+            key = b".wav\0\x96\x7B\x83\x41\x83\x76\x83\x8A\x83\x50\x81\x5B\x83\x56\x83\x87\x83\x93\x82\xCD" \
+                  b"\x81\x77\x8F\xAC\x82\xB3\x82\xA2\x83\x74\x83\x48\x83\x93\x83\x67\x81\x78\x82\xC9\x91\xCE" \
+                  b"\x89\x9E\x82\xB5\x82\xC4\x82\xA2\x82\xDC\x82\xB7\x81\x42"
             get_keybefore(sounds[2], key, 18)
             # システム・初期化
-            get_keybefore(sounds[6], key, 16, less=18+8)
+            get_keybefore(sounds[6], key, 16, less=18 + 8)
             # システム・回避
             # "死者有効\0抵抗有効\0"
             key = b"\x8E\x80\x8E\xD2\x97\x4C\x8C\xF8\x00\x92\xEF\x8D\x52\x97\x4C\x8C\xF8\x00"
             get_keyafter(sounds[3], key, 14)
             # システム・無効
-            get_keyafter(sounds[11], key, 14, than=14+5)
+            get_keyafter(sounds[11], key, 14, than=14 + 5)
             # システム・改ページ
             key = b".wav\0CHECK_FIXED\0CHECK_TARGET\0"
             get_keybefore(sounds[4], key, 18)
@@ -344,19 +351,22 @@ class Converter(threading.Thread):
             get_keybefore(sounds[7], key, 14)
             # システム・装備
             # "\0＿２\0＿３\0＿４\0＿５\0＿６\0異常発生\0"
-            key = b"\x00\x81\x51\x82\x51\x00\x81\x51\x82\x52\x00\x81\x51\x82\x53\x00\x81\x51\x82\x54\x00\x81\x51\x82\x55\x00\x88\xD9\x8F\xED\x94\xAD\x90\xB6\x00"
+            key = b"\x00\x81\x51\x82\x51\x00\x81\x51\x82\x52\x00\x81\x51\x82\x53\x00\x81\x51\x82\x54\x00\x81" \
+                  b"\x51\x82\x55\x00\x88\xD9\x8F\xED\x94\xAD\x90\xB6\x00"
             get_keyafter(sounds[8], key, 14)
             # 効果（混乱）
             get_keyafter(sounds[12], key, 12, than=41)
             # 効果（呪縛）
-            key = b"\x53\x49\x47\x4E\x5F\x50\x45\x4E\x41\x4C\x54\x59\x00\x53\x49\x47\x4E\x5F\x52\x41\x52\x45\x00\x53\x49\x47\x4E\x5F\x50\x52\x45\x4D\x49\x45\x52\x00\x00"
+            key = b"\x53\x49\x47\x4E\x5F\x50\x45\x4E\x41\x4C\x54\x59\x00\x53\x49\x47\x4E\x5F\x52\x41\x52\x45" \
+                  b"\x00\x53\x49\x47\x4E\x5F\x50\x52\x45\x4D\x49\x45\x52\x00\x00"
             get_keyafter(sounds[13], key, 12, than=75)
             # システム・逃走
             key = b".wav\0TITLE_CARD1\0TITLE_CARD1\0TITLE_CARD2\0"
-            get_keybefore(sounds[9], key, 14, less=16+5)
+            get_keybefore(sounds[9], key, 14, less=16 + 5)
             # システム・破棄
             # "\0を捨てます。よろしいですか？\0"
-            key = b"\x00\x82\xF0\x8E\xCC\x82\xC4\x82\xDC\x82\xB7\x81\x42\x82\xE6\x82\xEB\x82\xB5\x82\xA2\x82\xC5\x82\xB7\x82\xA9\x81\x48\x00"
+            key = b"\x00\x82\xF0\x8E\xCC\x82\xC4\x82\xDC\x82\xB7\x81\x42\x82\xE6\x82\xEB\x82\xB5\x82\xA2\x82" \
+                  b"\xC5\x82\xB7\x82\xA9\x81\x48\x00"
             get_keyafter(sounds[10], key, 14)
         except Exception:
             cw.util.print_ex()
@@ -369,7 +379,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key) + 98
-                s = str(self.exebinary[index:index+12], cw.MBCS)
+                s = str(self.exebinary[index:index + 12], cw.MBCS)
                 if s != "IMAGE_FATHER":
                     self.partyinfo_res = s
         except Exception:
@@ -383,6 +393,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
+
                 # アクションカード
                 # 名前・解説・音声1・音声2・標準キーコード
                 # の順で文字列を取得する
@@ -402,6 +413,7 @@ class Converter(threading.Thread):
                     data.find("Property/SoundPath2").text = sound2
                     data.find("Property/KeyCodes").text = cw.util.encodewrap("\n".join(keycodes))
                     return index
+
                 # カード交換
                 index = get_actioncard("00_Exchange", index, 1)
                 # 攻撃
@@ -428,6 +440,7 @@ class Converter(threading.Thread):
                 # 名前、解説、イメージのリソース名
                 # の順で文字列を取得する
                 index += len(key)
+
                 def get_menucard(area, index):
                     name, index = self._get_text(index, True)
                     desc, index = self._get_text(index, True)
@@ -579,7 +592,8 @@ class Converter(threading.Thread):
                 "relation_message": b"TENTRYDLG/EntryDlg/PageControl/ParentSheet/ParentLabel/Caption",
                 "father": b"TENTRYDLG/EntryDlg/PageControl/ParentSheet/FatherTitle/Caption",
                 "mother": b"TENTRYDLG/EntryDlg/PageControl/ParentSheet/MotherTitle/Caption",
-                "consumption_ep": (b"TENTRYDLG/EntryDlg/PageControl/ParentSheet/FatherExtra/Caption", ("60", "%s"), ("120", "%s")),
+                "consumption_ep": (b"TENTRYDLG/EntryDlg/PageControl/ParentSheet/FatherExtra/Caption",
+                                   ("60", "%s"), ("120", "%s")),
                 "nature_title": b"TENTRYDLG/EntryDlg/PageControl/TypeSheet/TypeTitle/Caption",
                 "nature_message": b"TENTRYDLG/EntryDlg/PageControl/TypeSheet/TypeComment/Caption",
                 "making_title": b"TENTRYDLG/EntryDlg/PageControl/MarkSheet/MarkTitle/Caption",
@@ -602,11 +616,15 @@ class Converter(threading.Thread):
                 "beastcard": b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Hint",
             }
             if ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
-                rsrcmsgs["desc_base_money"] = b"TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/Hint"
-                rsrcmsgs["desc_party_money"] = b"TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/Hint"
+                rsrcmsgs["desc_base_money"] = \
+                    b"TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/Hint"
+                rsrcmsgs["desc_party_money"] = \
+                    b"TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/Hint"
             else:
-                rsrcmsgs["desc_base_money"] = b"TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/VaultPanel/Hint"
-                rsrcmsgs["desc_party_money"] = b"TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/Hint"
+                rsrcmsgs["desc_base_money"] = \
+                    b"TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/VaultPanel/Hint"
+                rsrcmsgs["desc_party_money"] = \
+                    b"TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/Hint"
 
             rcdata = {}
             for key, path in rsrcmsgs.items():
@@ -639,22 +657,62 @@ class Converter(threading.Thread):
             # (key, 0=keyの前方を探す/1=後方を探す, index移動量, Prefix)
             cribs = {
                 "select_base_title": (b"\0IMAGE_COMMAND0\0IMAGE_DEBUG\0", 0, -8),
-                "cards_hand": (b"\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -104, "%s"),
-                "cards_backpack": (b"\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -91),
-                "cards_storehouse": (b"\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -59),
-                "info_card": (b"\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -23),
-                "mode_show": (b"\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -57),
-                "mode_move": (b"\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -44),
-                "mode_use": (b"\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -31),
-                "mode_battle": (b"\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -18),
-                "send_to_manual": (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 0),
-                "send_to_storehouse": (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 9),
-                "send_to_backpack": (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 20),
-                "send_to_shelf": (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 27),
-                "send_to_trush": (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 32),
-                "select_battle_action": (b"\x00\x8D\x73\x93\xAE\x8A\x4A\x8E\x6E\x00\x49\x4D\x41\x47\x45\x5F\x42\x41\x54\x54\x4C\x45\x00\x93\xA6\x82\xB0\x82\xE9\x00", 0, -12),
-                "lost_coupon_1": (b"\x81\x46\x83\x8C\x83\x78\x83\x8B\x95\xE2\x90\xB3\x92\x86\x00\x81\x51\x8F\xC1\x96\xC5\x97\x5C\x96\xF1\x00\x81\x51\x8E\x80\x96\x53\x00", 1, 0),
-                "currency": (b"\x96\x7B\x83\x41\x83\x76\x83\x8A\x83\x50\x81\x5B\x83\x56\x83\x87\x83\x93\x82\xCD\x81\x77\x8F\xAC\x82\xB3\x82\xA2\x83\x74\x83\x48\x83\x93\x83\x67\x81\x78\x82\xC9\x91\xCE\x89\x9E\x82\xB5\x82\xC4\x82\xA2\x82\xDC\x82\xB7\x81\x42\x89\xE6\x96\xCA\x82\xCC\x83\x76\x83\x8D\x83\x70\x83\x65\x83\x42\x82\xF0\x8A\x4A\x82\xAB\x81\x41\x83\x74\x83\x48\x83\x93\x83\x67\x83\x54\x83\x43\x83\x59\x82\xF0\x81\x77\x8F\xAC\x82\xB3\x82\xA2\x83\x74\x83\x48\x83\x93\x83\x67\x81\x78\x82\xC9\x8E\x77\x92\xE8\x82\xB5\x82\xC4\x83\x51\x81\x5B\x83\x80\x82\xF0\x8D\xC4\x8A\x4A\x82\xB5\x82\xC4\x82\xAD\x82\xBE\x82\xB3\x82\xA2\x81\x42\x00", 1, 187, "%s"),
+                "cards_hand": (b"\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0",
+                               0, -104, "%s"),
+                "cards_backpack":
+                    (b"\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -91),
+                "cards_storehouse":
+                    (b"\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -59),
+                "info_card": (b"\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0",
+                              0, -23),
+                "mode_show":
+                    (b"\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2"
+                     b"\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00",
+                     0, -57),
+                "mode_move":
+                    (b"\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2"
+                     b"\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00",
+                     0, -44),
+                "mode_use":
+                    (b"\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2"
+                     b"\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00",
+                     0, -31),
+                "mode_battle":
+                    (b"\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2"
+                     b"\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00",
+                     0, -18),
+                "send_to_manual":
+                    (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0",
+                     1, 0),
+                "send_to_storehouse":
+                    (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0",
+                     1, 9),
+                "send_to_backpack":
+                    (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0",
+                     1, 20),
+                "send_to_shelf":
+                    (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0",
+                     1, 27),
+                "send_to_trush":
+                    (b"\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0",
+                     1, 32),
+                "select_battle_action":
+                    (b"\x00\x8D\x73\x93\xAE\x8A\x4A\x8E\x6E\x00\x49\x4D\x41\x47\x45\x5F\x42\x41\x54\x54\x4C\x45"
+                     b"\x00\x93\xA6\x82\xB0\x82\xE9\x00",
+                     0, -12),
+                "lost_coupon_1":
+                    (b"\x81\x46\x83\x8C\x83\x78\x83\x8B\x95\xE2\x90\xB3\x92\x86\x00\x81\x51\x8F\xC1\x96\xC5\x97"
+                     b"\x5C\x96\xF1\x00\x81\x51\x8E\x80\x96\x53\x00",
+                     1, 0),
+                "currency":
+                    (b"\x96\x7B\x83\x41\x83\x76\x83\x8A\x83\x50\x81\x5B\x83\x56\x83\x87\x83\x93\x82\xCD\x81\x77"
+                     b"\x8F\xAC\x82\xB3\x82\xA2\x83\x74\x83\x48\x83\x93\x83\x67\x81\x78\x82\xC9\x91\xCE\x89\x9E"
+                     b"\x82\xB5\x82\xC4\x82\xA2\x82\xDC\x82\xB7\x81\x42\x89\xE6\x96\xCA\x82\xCC\x83\x76\x83\x8D"
+                     b"\x83\x70\x83\x65\x83\x42\x82\xF0\x8A\x4A\x82\xAB\x81\x41\x83\x74\x83\x48\x83\x93\x83\x67"
+                     b"\x83\x54\x83\x43\x83\x59\x82\xF0\x81\x77\x8F\xAC\x82\xB3\x82\xA2\x83\x74\x83\x48\x83\x93"
+                     b"\x83\x67\x81\x78\x82\xC9\x8E\x77\x92\xE8\x82\xB5\x82\xC4\x83\x51\x81\x5B\x83\x80\x82\xF0"
+                     b"\x8D\xC4\x8A\x4A\x82\xB5\x82\xC4\x82\xAD\x82\xBE\x82\xB3\x82\xA2\x81\x42\x00",
+                     1, 187, "%s"),
             }
             for key, data in cribs.items():
                 cribs[key] = None
@@ -690,7 +748,8 @@ class Converter(threading.Thread):
                     msglist1.append(s)
 
             msglist2 = []
-            key = b"\0Male\0Female\0Child\0Young\0Adult\0Old\0BUTTON_LMOVE\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_RMOVE\0"
+            key = b"\0Male\0Female\0Child\0Young\0Adult\0Old\0BUTTON_LMOVE\0BUTTON_RMOVE\0BUTTON_LMOVE\0"\
+                  b"BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_RMOVE\0"
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
@@ -708,7 +767,9 @@ class Converter(threading.Thread):
                     msglist3.append(s)
 
             msglist4 = []
-            key = b"\x00\x81\x69\x00\x81\x6A\x00\x8D\x73\x93\xAE\x97\xCD\x00\x89\xF1\x94\xF0\x97\xCD\x00\x92\xEF\x8D\x52\x97\xCD\x00\x96\x68\x8C\xE4\x97\xCD\x00\x8F\xAC\x00\x92\x86\x00\x91\xE5\x00\x8D\xC5\x91\xE5\x00\x83\x7B\x81\x5B\x83\x69\x83\x58\x00"
+            key = b"\x00\x81\x69\x00\x81\x6A\x00\x8D\x73\x93\xAE\x97\xCD\x00\x89\xF1\x94\xF0\x97\xCD\x00\x92"\
+                  b"\xEF\x8D\x52\x97\xCD\x00\x96\x68\x8C\xE4\x97\xCD\x00\x8F\xAC\x00\x92\x86\x00\x91\xE5\x00"\
+                  b"\x8D\xC5\x91\xE5\x00\x83\x7B\x81\x5B\x83\x69\x83\x58\x00"
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
@@ -791,7 +852,9 @@ class Converter(threading.Thread):
                 "character_ep": msglist5[16] + ":%s",
                 "character_history": "【" + msglist5[21] + "】",
                 "history_etc": msglist5[20],
-                "confirm_grow": msglist5[32] + "%s" + msglist5[33] + msglist5[34].replace(msglist6[2][1:], "%s").replace(msglist6[3][1:], "%s") + msglist5[38],
+                "confirm_grow": msglist5[32] + "%s" + msglist5[33] +
+                                msglist5[34].replace(msglist6[2][1:], "%s").replace(msglist6[3][1:], "%s") +
+                                msglist5[38],
                 "confirm_die": msglist5[32] + "%s" + msglist5[33] + msglist5[37] + msglist5[38],
                 "die_message": "%s" + msglist5[44],
                 "default_party_name": "%s" + msglist5[24],
@@ -837,7 +900,7 @@ class Converter(threading.Thread):
         s = str(self.exebinary[index:end], cw.MBCS)
         index = end + 1
         if cutzero:
-            while self.exebinary[index:index+1] == b'\0':
+            while self.exebinary[index:index + 1] == b'\0':
                 index += 1
         return s, index
 
@@ -856,7 +919,7 @@ class Converter(threading.Thread):
         shutil.copytree("Data/SkinBase", dpath)
         f = None
         try:
-            renames = {"Sound/System_ScreenShot.wav":"Sound/システム・スクリーンショット.wav"}
+            renames = {"Sound/System_ScreenShot.wav": "Sound/システム・スクリーンショット.wav"}
             for key, value in renames.items():
                 fpath1 = cw.util.join_paths(dpath, key)
                 fpath2 = cw.util.join_paths(dpath, value)
@@ -895,154 +958,154 @@ class Converter(threading.Thread):
             self._write_data(dpath, self.specialcard)
 
             imgtbl = {
-                "BUTTON_ARROW":"Button/ARROW",
-                "BUTTON_CAST":"Button/CAST",
-                "BUTTON_DECK":"Button/DECK",
-                "BUTTON_DOWN":"Button/DOWN",
-                "BUTTON_LJUMP":"Button/LJUMP",
-                "BUTTON_LMOVE":"Button/LMOVE",
-                "BUTTON_LSMALL":"Button/LSMALL",
-                "BUTTON_RJUMP":"Button/RJUMP",
-                "BUTTON_RMOVE":"Button/RMOVE",
-                "BUTTON_RSMALL":"Button/RSMALL",
-                "BUTTON_SACK":"Button/SACK",
-                "BUTTON_SHELF":"Button/SHELF",
-                "BUTTON_TRUSH":"Button/TRUSH",
-                "BUTTON_UP":"Button/UP",
-                "IMAGE_ACTION0":"Card/ACTION0",
-                "IMAGE_ACTION1":"Card/ACTION1",
-                "IMAGE_ACTION2":"Card/ACTION2",
-                "IMAGE_ACTION3":"Card/ACTION3",
-                "IMAGE_ACTION4":"Card/ACTION4",
-                "IMAGE_ACTION5":"Card/ACTION5",
-                "IMAGE_ACTION6":"Card/ACTION6",
-                "IMAGE_ACTION7":"Card/ACTION7",
-                "IMAGE_ACTION9":"Card/ACTION9",
-                "IMAGE_ALARM":"Card/ALARM",
-                "IMAGE_BATTLE":"Card/BATTLE",
-                "IMAGE_COMMAND0":"Card/COMMAND0",
-                "IMAGE_COMMAND1":"Card/COMMAND1",
-                "IMAGE_COMMAND2":"Card/COMMAND2",
-                "IMAGE_COMMAND3":"Card/COMMAND3",
-                "IMAGE_COMMAND4":"Card/COMMAND4",
-                "IMAGE_COMMAND5":"Card/COMMAND5",
-                "IMAGE_COMMAND6":"Card/COMMAND6",
-                "IMAGE_COMMAND7":"Card/COMMAND7",
-                "IMAGE_COMMAND8":"Card/COMMAND8",
-                "IMAGE_COMMAND9":"Card/COMMAND9",
-                "IMAGE_COMMAND10":"Card/COMMAND10",
-                "IMAGE_COMMAND11":"Card/COMMAND11",
-                "IMAGE_DEBUG":"Card/DEBUG",
-                "IMAGE_FATHER":"Card/FATHER",
-                "IMAGE_MOTHER":"Card/MOTHER",
-                "IMAGE_OVER":"Card/OVER",
-                "IMAGE_SHELF":"Card/SHELF",
-                "IMAGE_TRUSH":"Card/TRUSH",
-                "CARD_ACTION":"CardBg/ACTION",
-                "CARD_BEAST":"CardBg/BEAST",
-                "CARD_BIND":"CardBg/BIND",
-                "CARD_DANGER":"CardBg/DANGER",
-                "CARD_FAINT":"CardBg/FAINT",
-                "SIGN_HOLD":"CardBg/HOLD",
-                "CARD_INFO":"CardBg/INFO",
-                "CARD_INJURY":"CardBg/INJURY",
-                "CARD_ITEM":"CardBg/ITEM",
-                "CARD_LARGE":"CardBg/LARGE",
-                "CARD_NORMAL":"CardBg/NORMAL",
-                "CARD_OPTION":"CardBg/OPTION",
-                "CARD_PARALY":"CardBg/PARALY",
-                "SIGN_PENALTY":"CardBg/PENALTY",
-                "CARD_PETRIF":"CardBg/PETRIF",
-                "SIGN_PREMIER":"CardBg/PREMIER",
-                "SIGN_RARE":"CardBg/RARE",
-                "CARD_REVERSE":"CardBg/REVERSE",
-                "CARD_SKILL":"CardBg/SKILL",
-                "CARD_SLEEP":"CardBg/SLEEP",
-                "TABLE_CAUTION":"Dialog/CAUTION",
-                "CHECK_COMPLETE":"Dialog/COMPLETE",
-                "CHECK_FIXED":"Dialog/FIXED",
-                "CHECK_FOLDER":"Dialog/FOLDER",
-                "CHECK_INVISIBLE":"Dialog/INVISIBLE",
-                "CHECK_LINK":"Dialog/LINK",
-                "TABLE_PAD":"Dialog/PAD",
-                "CHECK_PLAYING":"Dialog/PLAYING",
-                "CHECK_SELECT":"Dialog/SELECT",
-                "TABLE_STATUS":"Dialog/STATUS",
-                "MARK_STATUS0":"Dialog/STATUS0",
-                "MARK_STATUS1":"Dialog/STATUS1",
-                "MARK_STATUS2":"Dialog/STATUS2",
-                "MARK_STATUS3":"Dialog/STATUS3",
-                "MARK_STATUS4":"Dialog/STATUS4",
-                "MARK_STATUS5":"Dialog/STATUS5",
-                "MARK_STATUS6":"Dialog/STATUS6",
-                "MARK_STATUS7":"Dialog/STATUS7",
-                "MARK_STATUS8":"Dialog/STATUS8",
-                "MARK_STATUS9":"Dialog/STATUS9",
-                "MARK_STATUS10":"Dialog/STATUS10",
-                "MARK_STATUS11":"Dialog/STATUS11",
-                "MARK_STATUS12":"Dialog/STATUS12",
-                "MARK_STATUS13":"Dialog/STATUS13",
-                "CHECK_UTILITY":"Dialog/UTILITY",
-                "FONT_ANGRY":"Font/ANGRY",
-                "FONT_CLUB":"Font/CLUB",
-                "FONT_DIAMOND":"Font/DIAMOND",
-                "FONT_EASY":"Font/EASY",
-                "FONT_FLY":"Font/FLY",
-                "FONT_GRIEVE":"Font/GRIEVE",
-                "FONT_HEART":"Font/HEART",
-                "FONT_JACK":"Font/JACK",
-                "FONT_KISS":"Font/KISS",
-                "FONT_LAUGH":"Font/LAUGH",
-                "FONT_NIKO":"Font/NIKO",
-                "FONT_ONSEN":"Font/ONSEN",
-                "FONT_PUZZLE":"Font/PUZZLE",
-                "FONT_QUICK":"Font/QUICK",
-                "FONT_SPADE":"Font/SPADE",
-                "FONT_WORRY":"Font/WORRY",
-                "FONT_X":"Font/X",
-                "FONT_ZAP":"Font/ZAP",
-                "TITLE_CARD1":"Other/TITLE_CARD1",
-                "TITLE_CARD2":"Other/TITLE_CARD2",
-                "TITLE_CELL1":"Other/TITLE_CELL1",
-                "TITLE_CELL2":"Other/TITLE_CELL2",
-                "TITLE_CELL3":"Other/TITLE_CELL3",
-                "TITLE_SHADOW":"Other/TITLE_SHADOW",
-                "TITLE_VERSION":"Other/TITLE_VERSION",
-                "STATUS_BODY0":"Status/BODY0",
-                "STATUS_BODY1":"Status/BODY1",
-                "STATUS_DOWN0":"Status/DOWN0",
-                "STATUS_DOWN1":"Status/DOWN1",
-                "STATUS_DOWN2":"Status/DOWN2",
-                "STATUS_DOWN3":"Status/DOWN3",
-                "STATUS_LIFE":"Status/LIFE",
-                "STATUS_LIFEBAR":"Status/LIFEBAR",
-                "STATUS_LIFEGUAGE":"Status/LIFEGUAGE",
-                "STATUS_MAGIC0":"Status/MAGIC0",
-                "STATUS_MAGIC1":"Status/MAGIC1",
-                "STATUS_MAGIC2":"Status/MAGIC2",
-                "STATUS_MAGIC3":"Status/MAGIC3",
-                "STATUS_MIND0":"Status/MIND0",
-                "STATUS_MIND1":"Status/MIND1",
-                "STATUS_MIND2":"Status/MIND2",
-                "STATUS_MIND3":"Status/MIND3",
-                "STATUS_MIND4":"Status/MIND4",
-                "STATUS_MIND5":"Status/MIND5",
-                "STATUS_SUMMON":"Status/SUMMON",
-                "CHECK_TARGET":"Status/TARGET",
-                "STATUS_UP0":"Status/UP0",
-                "STATUS_UP1":"Status/UP1",
-                "STATUS_UP2":"Status/UP2",
-                "STATUS_UP3":"Status/UP3",
-                "STONE_HAND0":"Stone/HAND0",
-                "STONE_HAND1":"Stone/HAND1",
-                "STONE_HAND2":"Stone/HAND2",
-                "STONE_HAND3":"Stone/HAND3",
-                "STONE_HAND4":"Stone/HAND4",
-                "STONE_HAND5":"Stone/HAND5",
-                "STONE_HAND6":"Stone/HAND6",
-                "STONE_HAND7":"Stone/HAND7",
-                "STONE_HAND8":"Stone/HAND8",
-                "STONE_HAND9":"Stone/HAND9",
+                "BUTTON_ARROW": "Button/ARROW",
+                "BUTTON_CAST": "Button/CAST",
+                "BUTTON_DECK": "Button/DECK",
+                "BUTTON_DOWN": "Button/DOWN",
+                "BUTTON_LJUMP": "Button/LJUMP",
+                "BUTTON_LMOVE": "Button/LMOVE",
+                "BUTTON_LSMALL": "Button/LSMALL",
+                "BUTTON_RJUMP": "Button/RJUMP",
+                "BUTTON_RMOVE": "Button/RMOVE",
+                "BUTTON_RSMALL": "Button/RSMALL",
+                "BUTTON_SACK": "Button/SACK",
+                "BUTTON_SHELF": "Button/SHELF",
+                "BUTTON_TRUSH": "Button/TRUSH",
+                "BUTTON_UP": "Button/UP",
+                "IMAGE_ACTION0": "Card/ACTION0",
+                "IMAGE_ACTION1": "Card/ACTION1",
+                "IMAGE_ACTION2": "Card/ACTION2",
+                "IMAGE_ACTION3": "Card/ACTION3",
+                "IMAGE_ACTION4": "Card/ACTION4",
+                "IMAGE_ACTION5": "Card/ACTION5",
+                "IMAGE_ACTION6": "Card/ACTION6",
+                "IMAGE_ACTION7": "Card/ACTION7",
+                "IMAGE_ACTION9": "Card/ACTION9",
+                "IMAGE_ALARM": "Card/ALARM",
+                "IMAGE_BATTLE": "Card/BATTLE",
+                "IMAGE_COMMAND0": "Card/COMMAND0",
+                "IMAGE_COMMAND1": "Card/COMMAND1",
+                "IMAGE_COMMAND2": "Card/COMMAND2",
+                "IMAGE_COMMAND3": "Card/COMMAND3",
+                "IMAGE_COMMAND4": "Card/COMMAND4",
+                "IMAGE_COMMAND5": "Card/COMMAND5",
+                "IMAGE_COMMAND6": "Card/COMMAND6",
+                "IMAGE_COMMAND7": "Card/COMMAND7",
+                "IMAGE_COMMAND8": "Card/COMMAND8",
+                "IMAGE_COMMAND9": "Card/COMMAND9",
+                "IMAGE_COMMAND10": "Card/COMMAND10",
+                "IMAGE_COMMAND11": "Card/COMMAND11",
+                "IMAGE_DEBUG": "Card/DEBUG",
+                "IMAGE_FATHER": "Card/FATHER",
+                "IMAGE_MOTHER": "Card/MOTHER",
+                "IMAGE_OVER": "Card/OVER",
+                "IMAGE_SHELF": "Card/SHELF",
+                "IMAGE_TRUSH": "Card/TRUSH",
+                "CARD_ACTION": "CardBg/ACTION",
+                "CARD_BEAST": "CardBg/BEAST",
+                "CARD_BIND": "CardBg/BIND",
+                "CARD_DANGER": "CardBg/DANGER",
+                "CARD_FAINT": "CardBg/FAINT",
+                "SIGN_HOLD": "CardBg/HOLD",
+                "CARD_INFO": "CardBg/INFO",
+                "CARD_INJURY": "CardBg/INJURY",
+                "CARD_ITEM": "CardBg/ITEM",
+                "CARD_LARGE": "CardBg/LARGE",
+                "CARD_NORMAL": "CardBg/NORMAL",
+                "CARD_OPTION": "CardBg/OPTION",
+                "CARD_PARALY": "CardBg/PARALY",
+                "SIGN_PENALTY": "CardBg/PENALTY",
+                "CARD_PETRIF": "CardBg/PETRIF",
+                "SIGN_PREMIER": "CardBg/PREMIER",
+                "SIGN_RARE": "CardBg/RARE",
+                "CARD_REVERSE": "CardBg/REVERSE",
+                "CARD_SKILL": "CardBg/SKILL",
+                "CARD_SLEEP": "CardBg/SLEEP",
+                "TABLE_CAUTION": "Dialog/CAUTION",
+                "CHECK_COMPLETE": "Dialog/COMPLETE",
+                "CHECK_FIXED": "Dialog/FIXED",
+                "CHECK_FOLDER": "Dialog/FOLDER",
+                "CHECK_INVISIBLE": "Dialog/INVISIBLE",
+                "CHECK_LINK": "Dialog/LINK",
+                "TABLE_PAD": "Dialog/PAD",
+                "CHECK_PLAYING": "Dialog/PLAYING",
+                "CHECK_SELECT": "Dialog/SELECT",
+                "TABLE_STATUS": "Dialog/STATUS",
+                "MARK_STATUS0": "Dialog/STATUS0",
+                "MARK_STATUS1": "Dialog/STATUS1",
+                "MARK_STATUS2": "Dialog/STATUS2",
+                "MARK_STATUS3": "Dialog/STATUS3",
+                "MARK_STATUS4": "Dialog/STATUS4",
+                "MARK_STATUS5": "Dialog/STATUS5",
+                "MARK_STATUS6": "Dialog/STATUS6",
+                "MARK_STATUS7": "Dialog/STATUS7",
+                "MARK_STATUS8": "Dialog/STATUS8",
+                "MARK_STATUS9": "Dialog/STATUS9",
+                "MARK_STATUS10": "Dialog/STATUS10",
+                "MARK_STATUS11": "Dialog/STATUS11",
+                "MARK_STATUS12": "Dialog/STATUS12",
+                "MARK_STATUS13": "Dialog/STATUS13",
+                "CHECK_UTILITY": "Dialog/UTILITY",
+                "FONT_ANGRY": "Font/ANGRY",
+                "FONT_CLUB": "Font/CLUB",
+                "FONT_DIAMOND": "Font/DIAMOND",
+                "FONT_EASY": "Font/EASY",
+                "FONT_FLY": "Font/FLY",
+                "FONT_GRIEVE": "Font/GRIEVE",
+                "FONT_HEART": "Font/HEART",
+                "FONT_JACK": "Font/JACK",
+                "FONT_KISS": "Font/KISS",
+                "FONT_LAUGH": "Font/LAUGH",
+                "FONT_NIKO": "Font/NIKO",
+                "FONT_ONSEN": "Font/ONSEN",
+                "FONT_PUZZLE": "Font/PUZZLE",
+                "FONT_QUICK": "Font/QUICK",
+                "FONT_SPADE": "Font/SPADE",
+                "FONT_WORRY": "Font/WORRY",
+                "FONT_X": "Font/X",
+                "FONT_ZAP": "Font/ZAP",
+                "TITLE_CARD1": "Other/TITLE_CARD1",
+                "TITLE_CARD2": "Other/TITLE_CARD2",
+                "TITLE_CELL1": "Other/TITLE_CELL1",
+                "TITLE_CELL2": "Other/TITLE_CELL2",
+                "TITLE_CELL3": "Other/TITLE_CELL3",
+                "TITLE_SHADOW": "Other/TITLE_SHADOW",
+                "TITLE_VERSION": "Other/TITLE_VERSION",
+                "STATUS_BODY0": "Status/BODY0",
+                "STATUS_BODY1": "Status/BODY1",
+                "STATUS_DOWN0": "Status/DOWN0",
+                "STATUS_DOWN1": "Status/DOWN1",
+                "STATUS_DOWN2": "Status/DOWN2",
+                "STATUS_DOWN3": "Status/DOWN3",
+                "STATUS_LIFE": "Status/LIFE",
+                "STATUS_LIFEBAR": "Status/LIFEBAR",
+                "STATUS_LIFEGUAGE": "Status/LIFEGUAGE",
+                "STATUS_MAGIC0": "Status/MAGIC0",
+                "STATUS_MAGIC1": "Status/MAGIC1",
+                "STATUS_MAGIC2": "Status/MAGIC2",
+                "STATUS_MAGIC3": "Status/MAGIC3",
+                "STATUS_MIND0": "Status/MIND0",
+                "STATUS_MIND1": "Status/MIND1",
+                "STATUS_MIND2": "Status/MIND2",
+                "STATUS_MIND3": "Status/MIND3",
+                "STATUS_MIND4": "Status/MIND4",
+                "STATUS_MIND5": "Status/MIND5",
+                "STATUS_SUMMON": "Status/SUMMON",
+                "CHECK_TARGET": "Status/TARGET",
+                "STATUS_UP0": "Status/UP0",
+                "STATUS_UP1": "Status/UP1",
+                "STATUS_UP2": "Status/UP2",
+                "STATUS_UP3": "Status/UP3",
+                "STONE_HAND0": "Stone/HAND0",
+                "STONE_HAND1": "Stone/HAND1",
+                "STONE_HAND2": "Stone/HAND2",
+                "STONE_HAND3": "Stone/HAND3",
+                "STONE_HAND4": "Stone/HAND4",
+                "STONE_HAND5": "Stone/HAND5",
+                "STONE_HAND6": "Stone/HAND6",
+                "STONE_HAND7": "Stone/HAND7",
+                "STONE_HAND8": "Stone/HAND8",
+                "STONE_HAND9": "Stone/HAND9",
             }
             if self.partyinfo_res:
                 if self.partyinfo_res.startswith("IMAGE_"):
@@ -1052,10 +1115,10 @@ class Converter(threading.Thread):
                 imgtbl[self.partyinfo_res] = partyinfo
 
             curtbl = {
-                "CURSOR_BACK":"Cursor/CURSOR_BACK",
-                "CURSOR_DRIVER":"Cursor/CURSOR_DRIVER",
-                "CURSOR_FINGER":"Cursor/CURSOR_FINGER",
-                "CURSOR_FORE":"Cursor/CURSOR_FORE",
+                "CURSOR_BACK": "Cursor/CURSOR_BACK",
+                "CURSOR_DRIVER": "Cursor/CURSOR_DRIVER",
+                "CURSOR_FINGER": "Cursor/CURSOR_FINGER",
+                "CURSOR_FORE": "Cursor/CURSOR_FORE",
             }
 
             if self.version <= (1, 2, 0, 99):
@@ -1118,28 +1181,32 @@ class Converter(threading.Thread):
                 imgtbl["MARK_HAND10"] = "Dialog/PREMIER_ICON"
 
                 glyphtbl = {
-                    b"TMAINWINDOW/MainWindow/DebugBtn/Glyph.Data":"Dialog/STATUS12",
-                    b"TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
+                    b"TMAINWINDOW/MainWindow/DebugBtn/Glyph.Data": "Dialog/STATUS12",
+                    b"TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data": "Dialog/SETTINGS",
                 }
 
                 curtbl = {}
             elif ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
                 glyphtbl = {
-                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data":"Button/BEAST",
-                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data":"Button/ITEM",
-                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Glyph.Data":"Button/SKILL",
-                    b"TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":"Dialog/MONEYP",
-                    b"TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
-                    b"TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
+                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data": "Button/BEAST",
+                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data": "Button/ITEM",
+                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Glyph.Data": "Button/SKILL",
+                    b"TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":
+                        "Dialog/MONEYP",
+                    b"TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":
+                        "Dialog/MONEYY",
+                    b"TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data": "Dialog/SETTINGS",
                 }
             else:
                 glyphtbl = {
-                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data":"Button/BEAST",
-                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data":"Button/ITEM",
-                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Glyph.Data":"Button/SKILL",
-                    b"TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":"Dialog/MONEYP",
-                    b"TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
-                    b"TMAINWINDOW/MainWindow/BottomBar/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
+                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data": "Button/BEAST",
+                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data": "Button/ITEM",
+                    b"TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Glyph.Data": "Button/SKILL",
+                    b"TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":
+                        "Dialog/MONEYP",
+                    b"TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":
+                        "Dialog/MONEYY",
+                    b"TMAINWINDOW/MainWindow/BottomBar/SystemBtn/Glyph.Data": "Dialog/SETTINGS",
                 }
 
             # Resource/Image/*
@@ -1325,9 +1392,9 @@ class Converter(threading.Thread):
                 fpath = cw.util.find_resource(cw.util.join_paths(dpath, "Resource/Image/Other/TITLE_VERSION"), cw.M_IMG)
                 vsize = cw.util.load_wxbmp(fpath, can_loaded_scaledimage=True).GetSize()
 
-                tleft = (cw.SIZE_AREA[0]-tsize[0]) // 2
-                ttop = (cw.SIZE_AREA[1]-tsize[1]) // 2
-                vleft = (cw.SIZE_AREA[0]-vsize[0]) // 2
+                tleft = (cw.SIZE_AREA[0] - tsize[0]) // 2
+                ttop = (cw.SIZE_AREA[1] - tsize[1]) // 2
+                vleft = (cw.SIZE_AREA[0] - vsize[0]) // 2
                 vtop = ttop + tsize[1] + 12
 
                 # TITLE_SHADOW
@@ -1359,12 +1426,14 @@ class Converter(threading.Thread):
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/02_Yado2.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
-                    data.edit("MenuCards/MenuCard[8]/Property/ImagePath", cw.util.join_paths("Resource/Image", partyinfo))
+                    data.edit("MenuCards/MenuCard[8]/Property/ImagePath",
+                              cw.util.join_paths("Resource/Image", partyinfo))
                     data.write()
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Scenario/-4_Camp.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
-                    data.edit("MenuCards/MenuCard[3]/Property/ImagePath", cw.util.join_paths("Resource/Image", partyinfo))
+                    data.edit("MenuCards/MenuCard[3]/Property/ImagePath",
+                              cw.util.join_paths("Resource/Image", partyinfo))
                     data.write()
 
             # 妖魔バリアントでAdventurersInn.bmpが
@@ -1403,4 +1472,3 @@ class Converter(threading.Thread):
         finally:
             if f:
                 f.close()
-
