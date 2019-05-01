@@ -1384,15 +1384,16 @@ def get_fontface(fontface):
     if not cw.cwpy.rsrc or fontface.lower() in cw.cwpy.rsrc.facenames_lower:
         return fontface
 
-    if fontface in ("ＭＳ Ｐゴシック", "MS PGothic"):
+    fontface = fontface.lower()
+    if fontface in ("ＭＳ Ｐゴシック".lower(), "MS PGothic".lower()):
         return cw.cwpy.rsrc.fontnames_init["pgothic"]
-    elif fontface in ("ＭＳ Ｐ明朝", "MS PMincho"):
+    elif fontface in ("ＭＳ Ｐ明朝".lower(), "MS PMincho".lower()):
         return cw.cwpy.rsrc.fontnames_init["pmincho"]
-    elif fontface in ("ＭＳ ゴシック", "MS Gothic"):
+    elif fontface in ("ＭＳ ゴシック".lower(), "MS Gothic".lower()):
         return cw.cwpy.rsrc.fontnames_init["gothic"]
-    elif fontface in ("ＭＳ 明朝", "MS Mincho"):
+    elif fontface in ("ＭＳ 明朝".lower(), "MS Mincho".lower()):
         return cw.cwpy.rsrc.fontnames_init["mincho"]
-    elif fontface in ("ＭＳ ＵＩゴシック", "MS UI Gothic"):
+    elif fontface in ("ＭＳ ＵＩゴシック".lower(), "MS UI Gothic".lower()):
         return cw.cwpy.rsrc.fontnames_init["uigothic"]
     else:
         if "ＭＳ Ｐゴシック".lower() in cw.cwpy.rsrc.facenames_lower:
