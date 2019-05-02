@@ -610,7 +610,8 @@ class MessageWindow(base.CWPySprite):
             else:
                 return None, namelistindex
         else:
-            v = cw.cwpy.sdata.find_step(key, cw.cwpy.event.get_nowrunningevent())
+            # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
+            v = cw.cwpy.sdata.find_step(key, False, cw.cwpy.event.get_nowrunningevent())
             if v is None:
                 v, namelistindex = _get_spstep(key, full, updatetype, basenamelist, namelist, namelistindex)
                 if v is None:
@@ -634,7 +635,8 @@ class MessageWindow(base.CWPySprite):
             else:
                 return None, namelistindex
         else:
-            v = cw.cwpy.sdata.find_flag(key, cw.cwpy.event.get_nowrunningevent())
+            # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
+            v = cw.cwpy.sdata.find_flag(key, False, cw.cwpy.event.get_nowrunningevent())
             if v is None:
                 return None, namelistindex
 
@@ -656,7 +658,7 @@ class MessageWindow(base.CWPySprite):
             else:
                 return None, namelistindex
         else:
-            v = cw.cwpy.sdata.find_variant(key, cw.cwpy.event.get_nowrunningevent())
+            v = cw.cwpy.sdata.find_variant(key, _is_differentscenario(), cw.cwpy.event.get_nowrunningevent())
             if v is None:
                 return None, namelistindex
 
@@ -1342,7 +1344,9 @@ def _create_nametable(full, talker):
 
 def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex,
                    stack):
-    v = cw.cwpy.sdata.find_step(key, cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
+    # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
+    v = cw.cwpy.sdata.find_step(key, False,
+                                cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
     if v is None:
         v, namelistindex = _get_spstep(key, full, updatetype, basenamelist, namelist, namelistindex)
     if v is None:
@@ -1416,7 +1420,9 @@ def _get_spstep(name, full, updatetype, basenamelist, namelist, namelistindex):
 
 def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex,
                    stack):
-    v = cw.cwpy.sdata.find_flag(key, cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
+    # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
+    v = cw.cwpy.sdata.find_flag(key, False,
+                                cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
     if v is not None:
         if updatetype == "Fixed":
             if basenamelist is not None:
@@ -1440,7 +1446,7 @@ def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, 
 
 def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo,
                       namelist, namelistindex, stack):
-    v = cw.cwpy.sdata.find_variant(key,
+    v = cw.cwpy.sdata.find_variant(key, _is_differentscenario(),
                                    cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
     if v is not None:
         if updatetype == "Fixed":
@@ -1456,6 +1462,17 @@ def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startinde
         return None, namelistindex
 
     return s, namelistindex
+
+
+def _is_differentscenario():
+    if cw.cwpy.is_playingscenario():
+        inusecard = cw.cwpy.event.get_inusecard()
+        if cw.cwpy.event.in_inusecardevent and inusecard:
+            return inusecard.scenario != cw.cwpy.sdata.name or inusecard.author != cw.cwpy.sdata.author
+        else:
+            return False
+    else:
+        return False
 
 
 _SP_EXPAND_SHARPS = 0x1

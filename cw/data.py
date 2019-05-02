@@ -276,32 +276,32 @@ class SystemData(object):
 
         self.resource_cache_size += size
 
-    def find_flag(self, path, event):
+    def find_flag(self, path, is_differentscenario, event):
         """
         pathが指すフラグを返す。
         eventにローカル変数がある場合は優先する。
         """
         if event and path in event.flags:
             return event.flags[path]
-        return self.flags.get(path, None)
+        return self.flags.get(path, None) if not is_differentscenario else None
 
-    def find_step(self, path, event):
+    def find_step(self, path, is_differentscenario, event):
         """
         pathが指すステップを返す。
         eventにローカル変数がある場合は優先する。
         """
         if event and path in event.steps:
             return event.steps[path]
-        return self.steps.get(path, None)
+        return self.steps.get(path, None) if not is_differentscenario else None
 
-    def find_variant(self, path, event):
+    def find_variant(self, path, is_differentscenario, event):
         """
         pathが指すコモンを返す。
         eventにローカル変数がある場合は優先する。
         """
         if event and path in event.variants:
             return event.variants[path]
-        return self.variants.get(path, None)
+        return self.variants.get(path, None) if not is_differentscenario else None
 
     def start(self):
         pass
