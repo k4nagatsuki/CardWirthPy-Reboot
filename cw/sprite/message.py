@@ -80,6 +80,7 @@ class MessageWindow(base.CWPySprite):
         self.selections = []
         # frame
         self.frame = 0
+        self.chridx = -1
         if not self.backlog:
             # cwpylist, indexクリア
             cw.cwpy.list = []
@@ -187,15 +188,25 @@ class MessageWindow(base.CWPySprite):
         self._fore = None
 
     def update_scale(self):
+        self.speed = cw.cwpy.setting.messagespeed or 1
+        if self.speed == 0 or self.backlog:
+            self.speed = 1
         if self.specialchars:
             self.specialchars.reset()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs(init=False)
         self.selections = []
 
-        self.is_drawing = True
-        self.frame = 0
-        self.draw_all()
+        if self.is_drawing and 1 <= cw.cwpy.setting.messagespeed:
+            chridx = self.chridx
+            self.chridx = 0
+            self.frame = 0
+            while self.chridx < chridx:
+                self.draw_char()
+        else:
+            self.is_drawing = True
+            self.frame = 0
+            self.draw_all()
 
     @staticmethod
     def clear_selections():
@@ -243,6 +254,7 @@ class MessageWindow(base.CWPySprite):
             self._back = self._fore.copy()
 
         chridx = self.frame // self.speed
+        self.chridx = chridx
         if chridx < len(self.charimgs):
             font = cw.cwpy.rsrc.fonts["message"]
             lineheight = font.get_height()
@@ -734,6 +746,7 @@ class SelectWindow(MessageWindow):
         self.frame = 0
         # メッセージスピード
         self.speed = cw.cwpy.setting.messagespeed or 1
+        self.chridx = -1
         # メッセージ描画中か否かのフラグ
         self.is_drawing = True
         # SelectionBarインスタンスリスト

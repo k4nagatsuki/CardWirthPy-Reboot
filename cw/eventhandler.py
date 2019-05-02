@@ -867,7 +867,7 @@ class EventHandlerForMessageWindow(EventHandler):
             elif event.type == MOUSEBUTTONUP:
                 # マウスボタン押下(文字描画中のみ)
                 if self.mwin.is_drawing and\
-                        cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos) and\
+                        not (cw.cwpy.selection and cw.cwpy.selection.selectable_on_event) and\
                         not (event.button == 4 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG):
                     self.mouse_event(event.button)
                 # 左クリック

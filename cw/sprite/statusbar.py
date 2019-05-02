@@ -1610,6 +1610,9 @@ class TouchMenuButton(StatusBarButton):
                 cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
 
             def copy_text():
+                mwin = cw.cwpy.get_messagewindow()
+                if mwin:
+                    mwin.draw_all()
                 cw.cwpy.interrupt_eventhandler.copy_text()
 
             f4btn = (None, cw.cwpy.msgs["switch_expanded_mode"],

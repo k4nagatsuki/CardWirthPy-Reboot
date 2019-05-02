@@ -234,7 +234,9 @@ class SimpleSettingsPanel(wx.Panel):
         self.expand.apply_expand(cw.cwpy.setting)
 
         # 描画
-        self.speed.apply_speed(cw.cwpy.setting)
+        updatemessage = self.speed.apply_speed(cw.cwpy.setting)
+        if updatemessage:
+            cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
 
         # オーディオ
         value = self.cb_playbgm.GetValue()
@@ -545,7 +547,7 @@ class SettingsPanel(wx.Panel):
             updatecardimg = True
             setting.smoothing_card_down = value
 
-        self.pane_draw.speed.apply_speed(setting)
+        updatemessage |= self.pane_draw.speed.apply_speed(setting)
 
         value = self.pane_draw.cb_whitecursor.GetValue()
         if value != (setting.cursor_type == cw.setting.CURSOR_WHITE):
@@ -1726,6 +1728,7 @@ class SpeedPanel(wx.Panel):
         self.sl_deal_battle.Enable(not self.cb_use_battlespeed.GetValue())
 
     def apply_speed(self, setting):
+        updatemessage = False
         dealspeed = self.sl_deal.GetValue()
         if self.battlespeed:
             dealspeed_battle = self.sl_deal_battle.GetValue()
@@ -1734,12 +1737,15 @@ class SpeedPanel(wx.Panel):
         else:
             setting.set_dealspeed(dealspeed, setting.dealspeed_battle, setting.use_battlespeed)
         value = self.sl_msgs.GetValue()
-        setting.messagespeed = value
+        if setting.messagespeed != value:
+            setting.messagespeed = value
+            updatemessage = True
         value = self.ch_tran.GetSelection()
         value = self.transitions[value]
         setting.transition = value
         value = self.sl_tran.GetValue()
         setting.transitionspeed = value
+        return updatemessage
 
     def copy_values(self, speed):
         self.ch_tran.SetSelection(speed.ch_tran.GetSelection())
