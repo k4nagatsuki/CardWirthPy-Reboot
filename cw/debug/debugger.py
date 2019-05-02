@@ -1517,7 +1517,7 @@ class Debugger(wx.Frame):
                 mwin = cw.cwpy.get_messagewindow()
                 mwin.result = cw.event.EffectBreakError()
             else:
-                cw.cwpy.event._stoped = True
+                cw.cwpy.event.stoped = True
 
         enabled = {}.copy()
         enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, False)
