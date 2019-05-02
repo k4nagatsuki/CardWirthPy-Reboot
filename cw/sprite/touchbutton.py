@@ -128,6 +128,7 @@ class TouchButton(base.SelectableSprite):
 
     def update_selection(self):
         base.SelectableSprite.update_selection(self)
+        image = self.image
         if self.is_enabled():
             if cw.cwpy.selection is self:
                 self.image = self.get_selectedimage()
@@ -135,6 +136,8 @@ class TouchButton(base.SelectableSprite):
                 self.image = self.get_unselectedimage()
         else:
             self.image = self._disabledimage
+        if image is not self.image:
+            cw.cwpy.add_lazydraw(clip=self.rect)
 
     def update_shiftup(self):
         FRAME = 5
@@ -162,7 +165,6 @@ class TouchButton(base.SelectableSprite):
 
     def rclick_event(self):
         """右クリックイベント。"""
-        cw.cwpy.play_sound("click")
         cw.cwpy.statusbar.hide_touchbuttons()
 
 
