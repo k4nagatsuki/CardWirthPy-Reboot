@@ -411,7 +411,7 @@ class SoundInterface(object):
                     chan.play(self._sound, loopcount-1, fade_ms=fade)
                     self._type = 2
 
-    def stop(self, from_scenario, fade=0):
+    def stop(self, from_scenario, fade=0, stopfadeout=True):
         self.stop_impl(from_scenario, fade=fade, stopfadeout=True)
 
     def stop_impl(self, from_scenario, fade, stopfadeout):
@@ -424,7 +424,7 @@ class SoundInterface(object):
 
             if self._type == 0:
                 if threading.currentThread() != cw.cwpy:
-                    cw.cwpy.exec_func(self._stop, from_scenario, fade, stopfadeout)
+                    cw.cwpy.exec_func(self.stop, from_scenario, fade, stopfadeout)
                     return
                 assert threading.currentThread() == cw.cwpy
                 try:
