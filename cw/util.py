@@ -424,7 +424,7 @@ class SoundInterface(object):
 
             if self._type == 0:
                 if threading.currentThread() != cw.cwpy:
-                    cw.cwpy.exec_func(self._stop, from_scenario, fade, stopfadeout)
+                    cw.cwpy.exec_func(self.stop_impl, from_scenario, fade, stopfadeout)
                     return
                 assert threading.currentThread() == cw.cwpy
                 try:
@@ -434,7 +434,7 @@ class SoundInterface(object):
                     cw.util.print_ex()
             elif self._type == 1:
                 if threading.currentThread() == cw.cwpy:
-                    cw.cwpy.frame.exec_func(self._stop, from_scenario, fade, stopfadeout)
+                    cw.cwpy.frame.exec_func(self.stop_impl, from_scenario, fade, stopfadeout)
                     return
                 assert threading.currentThread() != cw.cwpy
                 if from_scenario:
@@ -448,7 +448,7 @@ class SoundInterface(object):
                 remove_soundtempfile(tempbasedir)
             else:
                 if threading.currentThread() != cw.cwpy:
-                    cw.cwpy.exec_func(self._stop, from_scenario, fade, stopfadeout)
+                    cw.cwpy.exec_func(self.stop_impl, from_scenario, fade, stopfadeout)
                     return
                 assert threading.currentThread() == cw.cwpy
                 if cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init():
