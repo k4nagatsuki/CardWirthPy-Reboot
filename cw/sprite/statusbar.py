@@ -332,8 +332,6 @@ class StatusBar(base.CWPySprite):
     def hide_touchbuttons(self, redraw=False):
         btns = cw.cwpy.sbargrp.get_sprites_from_layer(LAYER_TOUCH_BUTTON)
         if btns:
-            if redraw:
-                cw.cwpy.play_sound("click")
             cw.cwpy.pointed_tile = None
             rect = None
             for btn in btns:
