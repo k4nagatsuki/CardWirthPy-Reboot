@@ -12,6 +12,12 @@ import cw
 from . import base
 
 
+# 表示後に空白時間を入れる文字
+_WAIT_CHARS = "、。，．？！｡､!?"
+# 直後に空白文字がある場合に限り表示後に空白時間を入れる文字
+_WAIT_CHARS_BEFORE_SPACE = "・：；ー―～…‥’”）〕］｝〉》」』】｣･),.:;]}"
+
+
 class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, imgpaths=[][:], talker=None,
                  pos_noscale=None, size_noscale=None,
@@ -419,11 +425,19 @@ class MessageWindow(base.CWPySprite):
             self.blockbottom_noscale = max(y+height, self.blockbottom_noscale)
 
         y_noscale = yp_noscale
+        additional_wait = False
+        additional_wait_after_space = False
         for index, char in enumerate(self.text):
-            frame = round(frame_base)
-            frame_base += speed
+            def add_wait(space, is_waitchar):
+                if cw.cwpy.setting.wait_after_punctuation_mark and not is_waitchar:
+                    if additional_wait or (additional_wait_after_space and space):
+                        wait = max(4, speed * 2)
+                        return frame_base + wait, False, False
+                return frame_base, False, False
+
             # 改行処理
             if char == "\n":
+                frame_base, additional_wait, additional_wait_after_space = add_wait(True, False)
                 cnt += 1
                 pos = posp[0], lineheight * cnt + posp[1]
                 y_noscale = lineheight_noscale * cnt + yp_noscale
@@ -457,24 +471,31 @@ class MessageWindow(base.CWPySprite):
                         h //= scr_scale
 
                         if userfont:
+                            frame_base, additional_wait, additional_wait_after_space = add_wait(False, False)
                             cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
                             put_xinfo(pos[0], cw.s(charimg.get_width()))
                             put_topbottom(y_noscale+1, h)
+                            frame_base += speed
+                            frame = round(frame_base)
                             images.append((cpos, None, cw.s(charimg), None, self._linerect, frame))
                             pos = pos[0] + cw.s(20), pos[1]
                             skip = True
                             log_seq.append(orig_chars)
                             continue
 
+                        frame_base, additional_wait, additional_wait_after_space = add_wait(False, True)
                         put_xinfo(pos[0], cw.s(charimg.get_width()))
                         put_topbottom(y_noscale-1, lineheight_noscale+2)
                         image2 = cw.s(charimg)
                         image2 = image2.convert_alpha()
                         image2.fill(colour, special_flags=pygame.locals.BLEND_RGBA_MULT)
+                        frame_base += speed
+                        frame = round(frame_base)
                         images.append((pos, None, decorate(image2, basecolour=colour), None, self._linerect, frame))
                         pos = pos[0] + cw.s(20), pos[1]
                         skip = True
                         log_seq.append(orig_chars)
+                        additional_wait_after_space = True
                         continue
 
                 # 文字色変更
@@ -493,6 +514,11 @@ class MessageWindow(base.CWPySprite):
 
             if char:
                 put_xinfo(pos[0], cwidth)
+
+            if char:
+                frame_base, additional_wait, additional_wait_after_space =\
+                    add_wait(char.isspace(), char in _WAIT_CHARS or char in _WAIT_CHARS_BEFORE_SPACE)
+
             if char and not char.isspace():
                 ctype = cw.nctype.nctype(char)
                 if ctype == cw.nctype.NC_SYMBOL:
@@ -558,7 +584,14 @@ class MessageWindow(base.CWPySprite):
                 if image:
                     px += (cwidth-image.get_width() + cw.s(2)) // 2
                 py += (lineheight-cheight) // 2
+                frame_base += speed
+                frame = round(frame_base)
                 images.append(((px, py), image, image2, image3, self._linerect, frame))
+
+                if char in _WAIT_CHARS:
+                    additional_wait = True
+                elif char in _WAIT_CHARS_BEFORE_SPACE:
+                    additional_wait_after_space = True
 
             pos = pos[0] + cwidth, pos[1]
 

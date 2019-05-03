@@ -265,6 +265,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("CardDealingSpeedInBattle", str(setting.dealspeed_battle),
                                  attrs={"enabled": str(setting.use_battlespeed)})
         element.append(e)
+    # メッセージで句読点の後に空白時間を入れる
+    if setting.wait_after_punctuation_mark != setting.wait_after_punctuation_mark_init:
+        e = cw.data.make_element("WaitAfterPunctuationMark", str(setting.wait_after_punctuation_mark))
+        element.append(e)
     # カードの使用前に空白時間を入れる
     if setting.wait_usecard != setting.wait_usecard_init:
         e = cw.data.make_element("WaitUseCard", str(setting.wait_usecard))

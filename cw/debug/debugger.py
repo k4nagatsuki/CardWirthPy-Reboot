@@ -66,7 +66,7 @@ class Debugger(wx.Frame):
             style=wx.CLIP_CHILDREN | wx.CAPTION |
             wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.SYSTEM_MENU)
         self.cwpy_debug = True
-        self.SetClientSize((cw.ppis(635), cw.cwpy.frame.GetClientSize()[1]))
+        self.SetClientSize((cw.ppis(651), cw.cwpy.frame.GetClientSize()[1]))
         # set icon
         cw.cwpy.frame.set_icon(self)
         # aui manager

@@ -364,6 +364,8 @@ class Setting(object):
         self.bassmidi_sample32bit = True
         self.sdlmixer_enabled = False
         self.messagespeed = 5
+        # メッセージで句読点の後に空白時間を入れる
+        self.wait_after_punctuation_mark = True
         self.dealspeed = 5
         self.dealspeed_battle = 5
         self.wait_usecard = True
@@ -648,6 +650,9 @@ class Setting(object):
         dealspeed_battle = data.getint("CardDealingSpeedInBattle", self.dealspeed_battle)
         use_battlespeed = data.getbool("CardDealingSpeedInBattle", "enabled", self.use_battlespeed)
         self.set_dealspeed(dealspeed, dealspeed_battle, use_battlespeed)
+        # メッセージで句読点の後に空白時間を入れる
+        self.wait_after_punctuation_mark = data.getbool("WaitAfterPunctuationMark",
+                                                        self.wait_after_punctuation_mark_init)
         # カードの使用前に空白時間を入れる
         self.wait_usecard = data.getbool("WaitUseCard", self.wait_usecard)
         # 同行キャストの行動後に縮小処理を行う
