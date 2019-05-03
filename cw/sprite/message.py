@@ -775,12 +775,12 @@ class SelectWindow(MessageWindow):
         self.talker = None
         self.talker_name = None
         self._init_image(size_noscale, pos_noscale)
+        # メッセージスピード
+        self.speed = cw.cwpy.setting.messagespeed
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs((14, 9), init=True)
         # frame
         self.frame = 0
-        # メッセージスピード
-        self.speed = cw.cwpy.setting.messagespeed
         # メッセージ描画中か否かのフラグ
         self.is_drawing = True
         # SelectionBarインスタンスリスト
