@@ -397,7 +397,7 @@ class MessageWindow(base.CWPySprite):
 
         # 表示タイミング
         frame_base = 0
-        speed = (self.speed-1.0)*cw.cwpy.setting.fps / cw.cwpy.setting.fps
+        speed = self.speed*cw.cwpy.setting.fps / cw.cwpy.setting.fps
 
         # 左右接続のために伸ばす文字
         r_join = re.compile("[―─＿￣]")
@@ -427,6 +427,7 @@ class MessageWindow(base.CWPySprite):
         y_noscale = yp_noscale
         additional_wait = False
         additional_wait_after_space = False
+
         for index, char in enumerate(self.text):
             def add_wait(space, is_waitchar):
                 if cw.cwpy.setting.wait_after_punctuation_mark and not is_waitchar:
@@ -585,7 +586,7 @@ class MessageWindow(base.CWPySprite):
                     px += (cwidth-image.get_width() + cw.s(2)) // 2
                 py += (lineheight-cheight) // 2
                 frame_base += speed
-                frame = round(frame_base)
+                frame = int(round(frame_base))
                 images.append(((px, py), image, image2, image3, self._linerect, frame))
 
                 if char in _WAIT_CHARS:
