@@ -835,7 +835,7 @@ def _func_steptext(args, is_differentscenario, line, pos):
 
     if len(args) == 2:
         _chk_decimal(args[1], "STEPTEXT", 1)
-        value = args[1].value
+        value = int(args[1].value)
     else:
         value = step.value
 
