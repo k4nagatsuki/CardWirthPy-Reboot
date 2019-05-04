@@ -15,7 +15,7 @@ from . import base
 # 表示後に空白時間を入れる文字
 _WAIT_CHARS = "、。，．？！｡､!?"
 # 直後に空白文字がある場合に限り表示後に空白時間を入れる文字
-_WAIT_CHARS_BEFORE_SPACE = "・：；ー―～…‥’”）〕］｝〉》」』】｣･),.:;]}"
+_WAIT_CHARS_BEFORE_SPACE = "・´｀¨：；ー―～…‥’”）〕］｝〉》」』】＞′″≫｣･\"'),.:;>]`}"
 
 
 class MessageWindow(base.CWPySprite):
