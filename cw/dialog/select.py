@@ -1860,6 +1860,11 @@ class PartySelect(MultiViewSelect):
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
         seq = self.accels
+
+        debugid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnDebugMode, id=debugid)
+        seq.append((wx.ACCEL_CTRL, ord('D'), debugid))
+
         self.sortkeydown = []
         for i in range(0, 9):
             sortkeydown = wx.NewId()
@@ -1894,6 +1899,22 @@ class PartySelect(MultiViewSelect):
         cw.cwpy.setting.parties_narrowtype = self.narrow_type.GetSelection()
         self.update_narrowcondition()
         self.draw(True)
+
+    def OnDebugMode(self, event):
+        def func(self):
+            cw.cwpy.play_sound("page")
+            value = not cw.cwpy.is_debugmode()
+            cw.cwpy.set_debug(value)
+
+            def func(self):
+                if not self:
+                    return
+                self.update_debug()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+
+    def update_debug(self):
+        self._on_narrowcondition()
 
     def update_narrowcondition(self):
         if 0 <= self.index and self.index < len(self.list):
@@ -2470,6 +2491,11 @@ class PlayerSelect(MultiViewSelect):
         self.toppanel.Layout()
 
         seq = self.accels
+
+        debugid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnDebugMode, id=debugid)
+        seq.append((wx.ACCEL_CTRL, ord('D'), debugid))
+
         self.sortkeydown = []
         for i in range(0, 9):
             sortkeydown = wx.NewId()
@@ -2497,6 +2523,22 @@ class PlayerSelect(MultiViewSelect):
         nsizer.Add(self.sort, 0, wx.CENTER | wx.EXPAND, 0)
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
+
+    def OnDebugMode(self, event):
+        def func(self):
+            cw.cwpy.play_sound("page")
+            value = not cw.cwpy.is_debugmode()
+            cw.cwpy.set_debug(value)
+
+            def func(self):
+                if not self:
+                    return
+                self.update_debug()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+
+    def update_debug(self):
+        self._on_narrowcondition()
 
     def _on_narrowcondition(self):
         cw.cwpy.setting.standbys_narrowtype = self.narrow_type.GetSelection()

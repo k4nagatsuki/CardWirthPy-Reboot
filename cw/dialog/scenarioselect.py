@@ -409,11 +409,14 @@ class ScenarioSelect(select.Select):
             def func(self):
                 if not self:
                     return
-                self.addmenu = None
-                self.enable_btn()
-                self._update_mousepos()
+                self.update_debug()
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)
+
+    def update_debug(self):
+        self.addmenu = None
+        self.enable_btn()
+        self._update_mousepos()
 
     def OnEscape(self, event):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)

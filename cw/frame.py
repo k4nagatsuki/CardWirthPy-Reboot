@@ -1219,6 +1219,13 @@ class Frame(wx.Frame):
             fc = fc.GetParent()
         return True
 
+    def find_activedialog(self):
+        if cw.cwpy.is_showingdlg():
+            fc = wx.Window.FindFocus()
+            return fc.GetTopLevelParent()
+        else:
+            return None
+
     def save_screenshot(self):
         """スクリーンショットを撮影する。
         """
@@ -1574,8 +1581,16 @@ class MyApp(wx.App):
                     cw.cwpy.frame.save_screenshot()
                 event.Skip()
                 return True
-            if ord('D') == event.GetKeyCode() and event.ControlDown() and not cw.cwpy.is_showingdlg():
-                cw.cwpy.frame.force_exec_func(cw.cwpy.set_debug, not cw.cwpy.is_debugmode())
+            if ord('D') == event.GetKeyCode() and event.ControlDown():
+                def func(updatedebug_on_dlg):
+                    if updatedebug_on_dlg:
+                        cw.cwpy.play_sound("page")
+                        cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
+                    elif not cw.cwpy.is_showingdlg():
+                        cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
+                dlg = cw.cwpy.frame.find_activedialog()
+                updatedebug_on_dlg = dlg and not hasattr(dlg, "update_debug")
+                cw.cwpy.force_exec_func(func, updatedebug_on_dlg)
                 event.Skip()
                 return True
         return -1
