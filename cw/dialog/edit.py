@@ -54,6 +54,8 @@ class PartyEditor(wx.Dialog):
         self._do_layout()
         self._bind()
 
+        self.textctrl.SetFocus()
+
     def _bind(self):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)

@@ -326,11 +326,6 @@ class ScenarioSelect(select.Select):
         copyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=copyid)
         seq.append((wx.ACCEL_CTRL, ord('C'), copyid))
-
-        debugid = wx.NewId()
-        self.Bind(wx.EVT_MENU, self.OnDebugMode, id=debugid)
-        seq.append((wx.ACCEL_CTRL, ord('D'), debugid))
-
         self.narrowkeydown = []
         self.sortkeydown = []
         for i in range(0, 9):
