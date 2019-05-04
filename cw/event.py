@@ -1436,6 +1436,9 @@ class CardEvent(Event, Targeting):
                 v.value = v.defaultvalue
             else:
                 v.write_value()
+                owner = self.inusecard.get_owner()
+                if owner and isinstance(owner, cw.character.Character) and owner.data is not None:
+                    owner.data.is_edited = True
             if v.initialization == "Leave" and v.value != v.defaultvalue:
                 self.inusecard.set_resetvariables(True)
         self.inusecard.set_resetvariables(False)

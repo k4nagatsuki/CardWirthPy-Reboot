@@ -334,6 +334,9 @@ class CardHeader(object):
                 self.carddata.set("resetvariables", str(resetvariables))
             elif "resetvariables" in self.carddata.attrib:
                 self.carddata.attrib.pop("resetvariables")
+        owner = self.get_owner()
+        if owner and isinstance(owner, cw.character.Character) and owner.data is not None:
+            owner.data.is_edited = True
 
     def do_write(self, dupcheck=True):
         if self._lazy_write is not None:
