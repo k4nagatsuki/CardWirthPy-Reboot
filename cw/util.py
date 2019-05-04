@@ -3044,7 +3044,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
     # 特殊文字記号集合
     re_color = "&[\x20-\x7E]"
     r_spchar = re.compile("#.|" + re_color) if mode in (2, 3) else None
-    if spcharinfo:
+    if spcharinfo is not None:
         spcharinfo2 = []
     cnt = 0
     asciicnt = 0
@@ -3061,13 +3061,25 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
         if index < 0:
             index = len(seq) + index
         seq.insert(index, char)
-        if spcharinfo:
+        if spcharinfo is not None:
             for i in reversed(range(len(spcharinfo2))):
                 spi = spcharinfo2[i]
                 if spi < index:
                     break
                 else:
                     spcharinfo2[i] += len(char)
+
+    def insert_wrap(index):
+        # 折り返しを追加
+        seq_insert(index, '\n')
+        if spcharinfo is not None:
+            # 折り返しが追加された位置を記憶しておく
+            if index < 0:
+                index = len(seq) + index
+            if index == len(seq):
+                spcharinfo2.append(seqlen)
+            else:
+                spcharinfo2.append(reduce(lambda l, s: l + len(s), seq[:index], 0))
 
     for index, char in enumerate(s):
         spchar2 = spchar
@@ -3079,7 +3091,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
 
         if r_spchar and not defspchar2:
             if skip:
-                if spcharinfo and index in spcharinfo:
+                if spcharinfo is not None and index in spcharinfo:
                     spcharinfo2.append(seqlen)
                 seq.append(char)
                 seqlen += len(char)
@@ -3089,7 +3101,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
                     asciicnt = 0
                     if width+1 < cnt:
                         if not wrapafter:
-                            seq_insert(len(seq), "\n")
+                            insert_wrap(len(seq))
                             seqlen += len("\n")
                         cnt = 0
                         asciicnt = 0
@@ -3100,14 +3112,14 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
             chars = char + get_char(s, index + 1)
 
             if r_spchar.match(chars.lower()):
-                if spcharinfo and index in spcharinfo:
+                if spcharinfo is not None and index in spcharinfo:
                     spcharinfo2.append(seqlen)
                     if not chars.startswith("#") or\
                        not chars[:2].lower() in cw.cwpy.rsrc.specialchars or\
                        cw.cwpy.rsrc.specialchars[chars[:2].lower()][1]:
                         if width < cnt and chars.startswith("#"):
                             if not wrapafter:
-                                seq_insert(len(seq), "\n")
+                                insert_wrap(len(seq))
                                 seqlen += len("\n")
                             cnt = 0
                             asciicnt = 0
@@ -3173,24 +3185,24 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
             if defspchar2 and width2+1 < cnt:
                 index = -(cnt - (width+1))
                 if seq[-index] != "\n":
-                    seq_insert(index, "\n")
+                    insert_wrap(index)
                     seqlen += len("\n")
                 cnt = 1
             elif width2 >= asciicnt > 0 and not defspchar2:
                 if not get_char(s, index + 1) == "\n" and seq[-asciicnt] != "\n":
-                    seq_insert(-asciicnt, "\n")
+                    insert_wrap(-asciicnt)
                     seqlen += len("\n")
                 cnt = asciicnt
             elif index + 1 <= len(s) or not get_char(s, index + 1) == "\n":
                 if index + 2 <= len(s) or not get_char(s, index + 2) == "\n":
-                    seq.append("\n")
+                    insert_wrap(len(seq))
                     seqlen += len("\n")
                     wrapafter = True
                 cnt = 0
                 asciicnt = 0
                 wraped = False
 
-    if spcharinfo:
+    if spcharinfo is not None:
         spcharinfo.clear()
         spcharinfo.update(spcharinfo2)
 
@@ -3207,7 +3219,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
         get_width = get_strlen
 
     iter = re.findall("[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I)
-    if spcharinfo:
+    if spcharinfo is not None:
         # 特殊文字と単語を分離しておく
         iter2 = []
         index = startindex
@@ -3218,7 +3230,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                 if 1 < len(word):
                     iter2.append(word[1:])
                 spc = None
-            elif index in spcharinfo:
+            elif index in spcharinfo is not None:
                 spc = word
             else:
                 iter2.append(word)
@@ -3233,7 +3245,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
     index = startindex
     for word in iter:
         # 特殊文字か？
-        is_spchar = spcharinfo and index in spcharinfo
+        is_spchar = spcharinfo is not None and index in spcharinfo
 
         wordlen = get_width(word)
         if width < buflen+wordlen:
@@ -3342,14 +3354,17 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
         return "\n".join(["".join([w[0] for w in buf]) for buf in lines])
     else:
         seq = []
-        for buf in lines:
+        for i, buf in enumerate(lines):
             line = []
+            seqlen = 0
             for word, is_spchar in buf:
                 if is_spchar:
                     spcharinfo2.append(resultindex)
                 line.append(word)
                 resultindex += len(word)
             seq.append("".join(line))
+            if i + 1 < len(lines):
+                spcharinfo2.append(resultindex)  # 折り返し位置を記録
             resultindex += len("\n")
         return "\n".join(seq)
 
@@ -3358,7 +3373,7 @@ def wordwrap(s, width, get_width=None, open_chars="\"'(<[`{‘“〈《≪「『
              close_chars="!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟ"
                          "ぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ",
              spcharinfo=None):
-    if spcharinfo:
+    if spcharinfo is not None:
         spcharinfo2 = []
     else:
         spcharinfo2 = None
@@ -3372,7 +3387,7 @@ def wordwrap(s, width, get_width=None, open_chars="\"'(<[`{‘“〈《≪「『
         index += len(line)+len("\n")
         resultindex += len(wrapped)+len("\n")
 
-    if spcharinfo:
+    if spcharinfo is not None:
         spcharinfo.clear()
         spcharinfo.update(spcharinfo2)
 
@@ -3400,12 +3415,14 @@ def _test_wordwrap(s, width, spcharinfo):
 
 
 assert _test_wordwrap("CARD #WIRTH SPECIA&L\nCHA&RACTER #TEST!", 8, spcharinfo=set([5, 18, 24, 32])) ==\
-       ("CARD #W\nIRTH \nSPECIA&L\nCHA&RACTER \n#TEST!", set([5, 20, 26, 35]))
+       ("CARD #W\nIRTH \nSPECIA&L\nCHA&RACTER \n#TEST!", set([5, 7, 13, 20, 26, 34, 35]))
+assert _test_wordwrap("wordwrap", 4, spcharinfo=set()) == \
+       ("word-\nwrap", set([5]))
 
 
 assert wordwrap("[&Rabc..]", 3, spcharinfo=set([1])) == "[&Rab-\nc..]"
 assert wordwrap("ab...", 3) == "ab..\n."
-assert _test_wordwrap("ab..&R.", 3, spcharinfo=set([4])) == ("ab..\n&R.", set([5]))
+assert _test_wordwrap("ab..&R.", 3, spcharinfo=set([4])) == ("ab..\n&R.", set([4, 5]))
 
 
 def get_char(s, index):

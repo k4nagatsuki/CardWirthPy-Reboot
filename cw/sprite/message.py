@@ -438,7 +438,9 @@ class MessageWindow(base.CWPySprite):
 
             # 改行処理
             if char == "\n":
-                frame_base, additional_wait, additional_wait_after_space = add_wait(True, False)
+                # 自動折り返し以外の改行であれば空白文字と同様にウェイト処理を行う
+                if index not in self.spcharinfo:
+                    frame_base, additional_wait, additional_wait_after_space = add_wait(True, False)
                 cnt += 1
                 pos = posp[0], lineheight * cnt + posp[1]
                 y_noscale = lineheight_noscale * cnt + yp_noscale
@@ -1546,10 +1548,9 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
                 if (full & _SP_FULL) == 0 and c in ('$', '%'):
                     # BUG: 存在しない状態変数を表示しようとすると
                     #      先頭の文字が欠ける(CardWirth 1.50)
-                    pass
+                    return -1, namelistindex
                 else:
-                    buf.append(c)
-                return -1, namelistindex
+                    return 0, namelistindex
             skip = 1 + nextpos
             buf.append(val)
             return skip, namelistindex
