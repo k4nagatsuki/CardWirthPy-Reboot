@@ -1198,7 +1198,6 @@ class CWPy(_Singleton, threading.Thread):
                 cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None,
                               sound=False, call_predlg=False, sort=True)
             cw.cwpy.card_takenouttemporarily = None
-            raise Exception()
 
     def fix_updated_file(self, force=False):
         # JPDC撮影などで更新されたメニューカードと背景を更新する
