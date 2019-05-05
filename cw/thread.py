@@ -838,6 +838,36 @@ class CWPy(_Singleton, threading.Thread):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
             sys.stderr.write("\n")
+
+            # 画面にエラーメッセージのスプライトを貼り付ける
+            self.play_sound("error")
+            s1 = "処理中に内部エラーが発生したため、ゲームを停止しました。"
+            s2 = "このエラーは想定されたものではなく、バグによってしか発生しません。"
+            s3 = "エラーログ(CardWirthPy.exe.log)の内容を開発者までお知らせください。"
+            font = cw.imageretouch.Font("", cw.wins(18), True, False)
+            sz1 = font.size(s1)
+            sz2 = font.size(s2)
+            sz3 = font.size(s3)
+            bmp = pygame.Surface((max(sz1[0], sz2[0], sz3[0])+cw.wins(10), sz1[1]+sz2[1]+sz3[1]+cw.wins(10))).convert()
+            bmp.fill((255, 255, 255))
+            subimg = font.render(s1, True, (0, 0, 0))
+            bmp.blit(subimg, cw.wins((5, 5)))
+            subimg = font.render(s2, True, (0, 0, 0))
+            bmp.blit(subimg, (cw.wins(5), cw.wins(5)+sz1[1]))
+            subimg = font.render(s3, True, (0, 0, 0))
+            bmp.blit(subimg, (cw.wins(5), cw.wins(5)+sz1[1]+sz2[1]))
+            if self.scr_fullscreen:
+                def func():
+                    self.frame.ShowFullScreen(False)
+                    self.frame.SetSize(self.frame.get_displaysize())
+                cw.cwpy.frame.exec_func(func)
+                scr = self.scr_fullscreen
+            else:
+                scr = self.scr
+            rect = pygame.Rect((scr.get_width()-bmp.get_width())//2, (scr.get_height()-bmp.get_height())//2,
+                               bmp.get_width(), bmp.get_height())
+            scr.blit(bmp, rect.topleft)
+            pygame.display.update(rect)
         finally:
             cw.util.clear_mutex()
 
@@ -1168,6 +1198,7 @@ class CWPy(_Singleton, threading.Thread):
                 cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None,
                               sound=False, call_predlg=False, sort=True)
             cw.cwpy.card_takenouttemporarily = None
+            raise Exception()
 
     def fix_updated_file(self, force=False):
         # JPDC撮影などで更新されたメニューカードと背景を更新する
