@@ -914,6 +914,8 @@ class EventHandlerForMessageWindow(EventHandler):
                 cw.cwpy.statusbar.rect.collidepoint(cw.cwpy.mousepos) and\
                 not self._update_selection(is_runningevent=self.mwin.is_drawing):
             self.shiftkey_event(True)
+        else:
+            EventHandler.ldown_event(self)
 
     def lclick_event(self):
         """
