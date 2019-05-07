@@ -150,7 +150,10 @@ class Frame(wx.Frame):
             # アップデートに伴うファイルの整理
             cw.update.update_files("Data", "Data", ["../Scenario/"])
         # 起動直後のスレッド数を記憶
-        self.initialThreadCount = threading.activeCount()
+        self.initialThreadCount = 0
+        for thr in threading.enumerate():
+            if not thr.daemon:
+                self.initialThreadCount += 1
         # CWPyサブスレッド
         cw.cwpy = cw.thread.CWPy(self._setting, self)
         cw.cwpy.start()
@@ -571,8 +574,11 @@ class Frame(wx.Frame):
         cw.cwpy._running = False
 
         while True:
-            activeCount = threading.activeCount()
-            if activeCount <= self.initialThreadCount:
+            count = 0
+            for thr in threading.enumerate():
+                if not thr.daemon:
+                    count += 1
+            if count <= self.initialThreadCount:
                 break
 
         cw.util.t_print()
