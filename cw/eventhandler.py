@@ -1375,7 +1375,10 @@ class EventHandlerForBacklog(EventHandler):
             raise exception
 
     def ldown_event(self):
-        if cw.cwpy.setting.is_logscrollable():
+        selection = self._update_selection(is_runningevent=cw.cwpy.is_runningevent())
+        if selection:
+            EventHandler.ldown_event(self)
+        elif cw.cwpy.setting.is_logscrollable():
             if self._in_scroll or cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
                 lazy = not self._in_scroll
                 self._scrollbar.scroll_to_mousepos(lazy)

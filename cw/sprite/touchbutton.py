@@ -383,11 +383,9 @@ class VolumeTile(TouchButton):
             self.image = self._unselectedimage
 
     def update_selection(self):
-        selection = cw.cwpy.selection
         TouchButton.update_selection(self)
-        if selection != cw.cwpy.selection and cw.cwpy.mousemotion and cw.cwpy.mousein[0]:
-            if cw.cwpy.selection is self:
-                self._moved()
+        if cw.cwpy.mousemotion and cw.cwpy.mousein[0] and cw.cwpy.selection is self:
+            self._moved()
 
     def ldown_event(self):
         self._moved()
@@ -402,6 +400,8 @@ class VolumeTile(TouchButton):
         volume = 1.0 - float(self.padrect.width-x)/self.padrect.width
         volume = cw.util.numwrap(volume, 0.0, 1.0)
         volume = round(volume, 2)
+        if int(cw.cwpy.setting.vol_master*100) == int(volume*100):
+            return
         cw.cwpy.setting.vol_master = volume
 
         volume = int(cw.cwpy.setting.vol_master*100)
