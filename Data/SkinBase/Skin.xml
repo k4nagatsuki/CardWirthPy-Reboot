@@ -411,26 +411,31 @@
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
       <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.0" trickish="0.0" />
       <Name>バランス</Name>
+      <Description>TYPE: バランス\n全てにおいて平均的な能力を持つタイプです。性格の偏りもなく、得意なことも苦手なこともありません。</Description>
     </SampleType>
     <SampleType>
       <Physical agl="0" dex="-3" int="-3" min="0" str="4" vit="2" />
       <Mental aggressive="1.0" brave="1.0" cautious="-1.0" cheerful="0.0" trickish="0.0" />
       <Name>ファイター</Name>
+      <Description>TYPE: ファイター\n標準的な戦士です。高い筋力と生命力を持つ反面、器用さと知力は劣ります。勇敢ですが、平和性と慎重性に欠けます。戦闘において肉弾戦を得意とします。</Description>
     </SampleType>
     <SampleType>
       <Physical agl="3" dex="3" int="-1" min="-3" str="0" vit="-2" />
       <Mental aggressive="0.0" brave="-1.0" cautious="1.0" cheerful="0.0" trickish="1.0" />
       <Name>シーフ</Name>
+      <Description>TYPE: シーフ\n標準的な盗賊・斥候です。素早さと器用さに優れますが、生命力や精神力は劣ります。慎重かつ狡猾ですが、勇気は欠けます。探索や調査、解錠を得意とします。</Description>
     </SampleType>
     <SampleType>
       <Physical agl="-3" dex="-3" int="2" min="4" str="0" vit="0" />
       <Mental aggressive="-1.0" brave="0.0" cautious="0.0" cheerful="1.0" trickish="-1.0" />
       <Name>プリースト</Name>
+      <Description>TYPE: プリースト\n標準的な僧侶です。精神力と知力が高く、素早さと器用さに欠けます。平和的で社交的、かつ正直です。交渉事や、バトルにおける味方の支援・治療を得意とします。</Description>
     </SampleType>
     <SampleType>
       <Physical agl="0" dex="0" int="4" min="2" str="-3" vit="-3" />
       <Mental aggressive="1.0" brave="0.0" cautious="1.0" cheerful="-1.0" trickish="0.0" />
       <Name>メイジ</Name>
+      <Description>TYPE: メイジ\n標準的な魔法使いです。高い知力と精神力を持ちますが、筋力や生命力はありません。慎重ながら攻撃的、かつ狡猾です。各種魔法の行使、作戦立案や考察などが得意です。</Description>
     </SampleType>
   </SampleTypes>
   <Sounds>

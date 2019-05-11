@@ -403,8 +403,8 @@ class AdventurerData(object):
                 attr.modulate(self)
                 self.set_coupon(coupon, 0)
 
-    def set_desc(self, talent, attrs):
-        desc = create_description(talent, attrs)
+    def set_desc(self, talent, attrs, desc=""):
+        desc = create_description(talent, attrs, desc)
         self.description = cw.util.encodewrap(desc)
 
     def set_specialcoupon(self):
@@ -416,10 +416,11 @@ class AdventurerData(object):
         self.maxlife = self.life
 
 
-def create_description(talent, attrs):
-    seq = ["　" * 8 + talent[1:] + "\n\n"]
+def create_description(talent, attrs, desc):
+    seq = ["　" * 8 + talent[1:]]
 
     index = 0
+    seq2 = []
     for making in cw.cwpy.setting.makingcoupons:
         if making in attrs:
             s = making[1:]
@@ -432,10 +433,15 @@ def create_description(talent, attrs):
             else:
                 s += "　" * (7 - len(s))
 
-            seq.append(s)
+            seq2.append(s)
             index += 1
+    if seq2:
+        seq.append("".join(seq2).rstrip())
 
-    return "".join(seq)
+    if desc:
+        seq.append(cw.util.txtwrap(desc, 4))
+
+    return "\n\n".join(seq)
 
 
 class AdventurerCreater(wx.Dialog):

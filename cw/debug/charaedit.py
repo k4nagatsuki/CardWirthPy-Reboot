@@ -570,13 +570,13 @@ class CharaInfo(object):
                 else:
                     etccoupons.append(("＠レベル上限", pcard.get_levelmax()))
 
-            desc_bef = pcard.get_description()
-            desc_bef_d = cw.dialog.create.create_description(pcard.get_talent(), pcard.get_makings())
+            desc_bef = pcard.get_description().rstrip()
+            desc_bef_d = cw.dialog.create.create_description(pcard.get_talent(), pcard.get_makings(), "")
             # desc_bef: 変更前の解説
             # desc_bef_d: 変更前のデフォルト解説（策士型　都会育ち…）
 
             makings = self.get_makingslist()
-            desc_aft_d = cw.dialog.create.create_description(self.talent, makings)
+            desc_aft_d = cw.dialog.create.create_description(self.talent, makings, "")
             # desc_aft_d: 変更後のデフォルト解説
 
             pcard.set_race(self.race)
@@ -588,11 +588,36 @@ class CharaInfo(object):
             # 解説文の変更は、以下に当てはまる場合だけ。該当箇所のみ書き替える
             # 　変更前の解説文に、デフォ解説が丸ごと、ないし最初の１行残っている
             # 解説文にプレイヤーの自作文章が入っている場合に上書きして消さないための処置
-            if desc_bef_d in desc_bef:
-                desc_aft = desc_bef.replace(desc_bef_d, desc_aft_d)
-                pcard.set_description(desc_aft)
-            elif desc_bef_d.split("\n")[0] in desc_bef:
-                desc_aft = desc_bef.replace(desc_bef_d.split("\n")[0], desc_aft_d.split("\n")[0])
+            desc_bfr = pcard.get_description()
+            insertpos = -1
+            if desc_bef.startswith(desc_bef_d):
+                desc_aft = desc_bef.replace(desc_bef_d, desc_aft_d, 1)
+                insertpos = len(desc_aft_d)
+            elif desc_bef.startswith(desc_bef_d.split("\n")[0]):
+                desc_aft = desc_bef.replace(desc_bef_d.split("\n")[0], desc_aft_d.split("\n")[0], 1)
+            else:
+                desc_aft = desc_bfr
+
+            if self.type:
+                newtypedesc = cw.util.txtwrap(self.type.description, 4).strip()
+            else:
+                newtypedesc = ""
+            # 標準型の解説部分がそのまま残っていたら差し替える
+            for type in cw.cwpy.setting.sampletypes:
+                typedesc = cw.util.txtwrap(type.description, 4).strip()
+                if typedesc in desc_aft:
+                    desc_aft = desc_aft.replace(typedesc, newtypedesc, 1)
+                    break
+            else:
+                if newtypedesc:
+                    if insertpos == -1:
+                        desc_aft = desc_aft.rstrip()
+                        desc_aft += "\n\n" + newtypedesc
+                    else:
+                        desc_aft = desc_aft[:insertpos].rstrip() + "\n\n" + newtypedesc + "\n\n" +\
+                                   desc_aft[insertpos:].lstrip()
+
+            if desc_bfr != desc_aft:
                 pcard.set_description(desc_aft)
 
             if self.recalc_parameter:
@@ -714,7 +739,7 @@ class CharaInfo(object):
             data.cautious = self.race.cautious + self.type.cautious
             data.cheerful = self.race.cheerful + self.type.cheerful
             data.trickish = self.race.trickish + self.type.trickish
-        data.set_desc(self.talent, makings)
+        data.set_desc(self.talent, makings, self.type.description if self.type else "")
         data.set_specialcoupon()
         data.set_life()
         cw.features.wrap_ability(data)
