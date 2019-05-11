@@ -397,6 +397,7 @@ class Setting(object):
         self.infoview_narrowtype = 1
         self.backlogmax = 100
         self.messagelog_type = LOG_COMPRESS
+        self.display_bill_in_messagelog = True
         self.showfps = False
         self.selectscenariofromtype = True
         self.show_unfitnessscenario = True
@@ -697,7 +698,7 @@ class Setting(object):
         # メッセージログ表示形式
         self.messagelog_type = data.gettext("MessageLogType", self.messagelog_type)
         # メッセージログに貼紙を表示する
-        self.display_bill_in_message_log = True
+        self.display_bill_in_messagelog = data.gettext("DisplayBillInMessageLog", self.display_bill_in_messagelog_init)
 
         self.showfps = False
 

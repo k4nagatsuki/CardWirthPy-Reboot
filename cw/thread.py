@@ -2377,7 +2377,7 @@ class CWPy(_Singleton, threading.Thread):
                             self.sdata.resume_timekeeper()
                         else:
                             bill = cw.sprite.bill.Bill(header)
-                            if cw.cwpy.setting.display_bill_in_message_log:
+                            if cw.cwpy.setting.display_bill_in_messagelog:
                                 self.sdata.backlog.append(bill)
                                 self.sdata.start_timekeeper()
 

@@ -355,6 +355,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.messagelog_type != setting.messagelog_type_init:
         e = cw.data.make_element("MessageLogType", setting.messagelog_type)
         element.append(e)
+    # メッセージログに貼紙を表示する
+    if setting.display_bill_in_messagelog != setting.display_bill_in_messagelog_init:
+        e = cw.data.make_element("DisplayBillInMessageLog", bool(setting.display_bill_in_messagelog))
+        element.append(e)
 
     # スキンによってシナリオの選択開始位置を変更する
     if setting.selectscenariofromtype != setting.selectscenariofromtype_init:
