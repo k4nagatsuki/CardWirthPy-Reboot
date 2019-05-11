@@ -151,6 +151,8 @@ class CharacterEditDialog(wx.Dialog):
         checked = (s3 == wx.CHK_CHECKED)
         for info in self._get_infos():
             info.recalc_parameter = checked
+        if self.stdbtn:
+            self.stdbtn.Enable(checked)
 
     def OnReCalcCoupons(self, event):
         s3 = self.recalc_coupons.Get3StateValue()
@@ -272,6 +274,8 @@ class CharacterEditDialog(wx.Dialog):
             self.recalc_maxlife.Set3StateValue(recalc_maxlife)
         if self.recalc_parameter:
             self.recalc_parameter.Set3StateValue(recalc_parameter)
+        if self.stdbtn:
+            self.stdbtn.Enable(recalc_parameter)
         if self.recalc_coupons:
             self.recalc_coupons.Set3StateValue(recalc_coupons)
         if self.debug_coupon:
@@ -598,24 +602,35 @@ class CharaInfo(object):
             else:
                 desc_aft = desc_bfr
 
-            if self.type:
-                newtypedesc = cw.util.txtwrap(self.type.description, 4).strip()
-            else:
-                newtypedesc = ""
-            # 標準型の解説部分がそのまま残っていたら差し替える
-            for type in cw.cwpy.setting.sampletypes:
-                typedesc = cw.util.txtwrap(type.description, 4).strip()
-                if typedesc in desc_aft:
-                    desc_aft = desc_aft.replace(typedesc, newtypedesc, 1)
-                    break
-            else:
-                if newtypedesc:
-                    if insertpos == -1:
-                        desc_aft = desc_aft.rstrip()
-                        desc_aft += "\n\n" + newtypedesc
-                    else:
-                        desc_aft = desc_aft[:insertpos].rstrip() + "\n\n" + newtypedesc + "\n\n" +\
-                                   desc_aft[insertpos:].lstrip()
+            if self.recalc_parameter:
+                if self.type:
+                    newtypedesc = cw.util.txtwrap(self.type.description, 4).strip()
+                else:
+                    newtypedesc = ""
+                # 標準型の解説部分がそのまま残っていたら差し替える
+                for type in cw.cwpy.setting.sampletypes:
+                    typedesc = cw.util.txtwrap(type.description, 4).strip()
+                    index = desc_aft.find(typedesc)
+                    if index != -1:
+                        if newtypedesc == "":
+                            # 余計な空行ができないようにする
+                            bfrstr = desc_aft[:index].rstrip()
+                            aftstr = desc_aft[index + len(typedesc):].lstrip()
+                            if bfrstr and aftstr:
+                                desc_aft = bfrstr + "\n\n" + aftstr
+                            else:
+                                desc_aft = bfrstr + aftstr
+                        else:
+                            desc_aft = desc_aft.replace(typedesc, newtypedesc, 1)
+                        break
+                else:
+                    if newtypedesc:
+                        if insertpos == -1:
+                            desc_aft = desc_aft.rstrip()
+                            desc_aft += "\n\n" + newtypedesc
+                        else:
+                            desc_aft = desc_aft[:insertpos].rstrip() + "\n\n" + newtypedesc + "\n\n" +\
+                                       desc_aft[insertpos:].lstrip()
 
             if desc_bfr != desc_aft:
                 pcard.set_description(desc_aft)
