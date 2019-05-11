@@ -696,6 +696,8 @@ class Setting(object):
         self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
         # メッセージログ表示形式
         self.messagelog_type = data.gettext("MessageLogType", self.messagelog_type)
+        # メッセージログに貼紙を表示する
+        self.display_bill_in_message_log = True
 
         self.showfps = False
 
@@ -1866,6 +1868,15 @@ class Resource(object):
         # メッセージウィンドウの選択肢描画用
         t = self.setting().fonttypes["selectionbar"]
         fonts.set("selectionbar", self.create_font, "selectionbar", t[0], t[1], t[2], t[3], t[4], t[5])
+        # 貼紙のシナリオ名描画用
+        t = self.setting().fonttypes["scenario"]
+        fonts.set("scenario", self.create_font, "scenario", t[0], t[1], 21-1, t[3], t[4], t[5])
+        # 貼紙の本文描画用
+        t = self.setting().fonttypes["dlglist"]
+        fonts.set("scenariodesc", self.create_font, "dlglist", t[0], t[1], 14-1, t[3], t[4], t[5])
+        # 貼紙の対象レベル描画用
+        t = self.setting().fonttypes["targetlevel"]
+        fonts.set("targetlevel", self.create_font, "targetlevel", t[0], t[1], 16-1, t[3], t[4], t[5])
         # メッセージログのページ表示描画用
         t = self.setting().fonttypes["logpage"]
         fonts.set("backlog_page", self.create_font, "logpage", t[0], t[1], t[2], t[3], t[4], t[5])

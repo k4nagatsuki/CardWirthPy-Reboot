@@ -2352,7 +2352,7 @@ class CWPy(_Singleton, threading.Thread):
                             self.set_yado()
                             return
 
-                        if manualstart:
+                        if manualstart and not resume:
                             dataversion = self.sdata.summary.getattr(".", "dataVersion", "")
                             if dataversion not in cw.SUPPORTED_WSN:
                                 s = "対応していないWSNバージョン(%s)のシナリオです。\n正常に動作しない可能性がありますが、開始しますか？" % (dataversion)
@@ -2376,7 +2376,10 @@ class CWPy(_Singleton, threading.Thread):
                         if resume:
                             self.sdata.resume_timekeeper()
                         else:
-                            self.sdata.start_timekeeper()
+                            bill = cw.sprite.bill.Bill(header)
+                            if cw.cwpy.setting.display_bill_in_message_log:
+                                self.sdata.backlog.append(bill)
+                                self.sdata.start_timekeeper()
 
                         force_dealspeed = self.force_dealspeed
                         if quickdeal:

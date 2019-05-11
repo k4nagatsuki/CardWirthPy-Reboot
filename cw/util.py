@@ -708,6 +708,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 f.seek(pos)
                 image = pygame.image.load(f, "")
             except Exception:
+                f.seek(pos)
                 image = pygame.image.load(f, path)
         elif cw.binary.image.path_is_code(path):
             data = cw.binary.image.code_to_data(path)

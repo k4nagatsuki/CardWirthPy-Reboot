@@ -10,6 +10,7 @@ from . import statusbar
 from . import touchbutton
 from . import transition
 from . import animationcell
+from . import bill
 
 
 def main():

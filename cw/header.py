@@ -1430,6 +1430,8 @@ class ScenarioHeader(object):
         return "/".join([self.dpath, self.fname])
 
     def get_wxbmps(self, mask=True):
+        """スケールありの見出しイメージ(wx.Bitmap)、スケールなしの見出しイメージ、
+        スケール情報を返す。"""
         if self._wxbmps is None or self.skindir != cw.cwpy.skindir or\
                 self._up_win != cw.UP_WIN or self._up_scr != cw.UP_SCR:
             self.skindir = cw.cwpy.skindir
@@ -1477,6 +1479,74 @@ class ScenarioHeader(object):
                         self._imginfos.append(info)
 
         return self._wxbmps, self._wxbmps_noscale, self._imginfos
+
+    def get_bmps(self, mask=True, up_scr=None):
+        """
+        スケールありの見出しイメージ(pygame.Surface)、スケール情報を返す。
+        指定スケールのイメージが存在しない場合はNoneを返す。
+        """
+        if up_scr is None:
+            up_scr = cw.UP_SCR
+        bmps = []
+        imginfos = []
+
+        # 指定スケールのイメージが存在するか確認する
+        if up_scr == 1:
+            has_scaledimage = True
+        else:
+            for info in self.imgpaths:
+                if up_scr in self.images:
+                    has_scaledimage = True
+                    break
+                if info.path:
+                    path = cw.util.get_materialpathfromskin(info.path, cw.M_IMG)
+                    if path:
+                        spext = os.path.splitext(path)
+                        fname = "%s.x%s%s" % (spext[0], up_scr, spext[1])
+                        if os.path.isfile(fname):
+                            has_scaledimage = True
+                            break
+            else:
+                has_scaledimage = False
+
+        if not has_scaledimage:
+            return None
+
+        imagesx1 = self.images[1]
+        scale_s = int(math.pow(2, int(math.log(up_scr, 2))))
+
+        for i, (imagex1, info) in enumerate(zip(imagesx1, self.imgpaths)):
+            scale = scale_s
+            while 1 <= scale:
+                if scale in self.images:
+                    image = self.images[scale][i]
+                    break
+                scale //= 2
+            if image:
+                if imagex1:
+                    with io.BytesIO(imagex1) as f:
+                        bmp_noscale = cw.util.Depth1Surface(cw.util.load_image("", f=f, mask=mask, noscale=True), 1)
+                        f.close()
+                else:
+                    bmp_noscale = pygame.Surface((1, 1)).convert()
+                    bmp_noscale.set_colorkey(bmp_noscale.get_at((0, 0)))
+                if scale == 1:
+                    bmp = bmp_noscale
+                else:
+                    with io.BytesIO(image) as f:
+                        bmp = cw.util.Depth1Surface(cw.util.load_image("", f=f, mask=mask, noscale=True), scale)
+                        f.close()
+                bmps.append(bmp)
+                imginfos.append(info)
+            elif info.path:
+                # スキンのTableフォルダを指定している場合はDBにバイナリが無い
+                path = cw.util.get_materialpathfromskin(info.path, cw.M_IMG)
+                if path:
+                    bmp = cw.util.load_image(path, mask=mask, can_loaded_scaledimage=True, up_scr=scale_s)
+                    bmps.append(bmp)
+                    imginfos.append(info)
+
+        return bmps, imginfos
 
 
 class PartyHeader(object):
