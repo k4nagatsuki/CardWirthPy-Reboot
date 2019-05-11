@@ -55,6 +55,7 @@ class CharacterEditDialog(wx.Dialog):
             self.recalc_maxlife = None
             self.recalc_parameter = None
             self.recalc_coupons = None
+            self.debug_coupon = None
         else:
             self.recalc_maxlife = wx.CheckBox(self, -1, "生命点を新しい情報に合わせて再設定する",
                                               style=wx.CHK_3STATE)
@@ -62,9 +63,11 @@ class CharacterEditDialog(wx.Dialog):
                                                 style=wx.CHK_3STATE)
             self.recalc_coupons = wx.CheckBox(self, -1, "初期クーポンを新しい情報に合わせて再設定する",
                                               style=wx.CHK_3STATE)
+            self.debug_coupon = wx.CheckBox(self, -1, "デバッグメンバに指定する",
+                                            style=wx.CHK_3STATE)
 
-        # 標準
-        self.stdbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="標準")
+        # 能力型
+        self.stdbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="能力型")
         # 自動
         self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name="自動")
 
@@ -90,6 +93,7 @@ class CharacterEditDialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnReCalcMaxLife, self.recalc_maxlife)
         self.Bind(wx.EVT_CHECKBOX, self.OnReCalcParameter, self.recalc_parameter)
         self.Bind(wx.EVT_CHECKBOX, self.OnReCalcCoupons, self.recalc_coupons)
+        self.Bind(wx.EVT_CHECKBOX, self.OnDebugCoupon, self.debug_coupon)
 
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
@@ -106,6 +110,7 @@ class CharacterEditDialog(wx.Dialog):
             sizer_recalc.Add(self.recalc_maxlife, 0, 0, cw.ppis(0))
             sizer_recalc.Add(self.recalc_parameter, 0, wx.TOP, cw.ppis(1))
             sizer_recalc.Add(self.recalc_coupons, 0, wx.TOP, cw.ppis(1))
+            sizer_recalc.Add(self.debug_coupon, 0, wx.TOP, cw.ppis(1))
             sizer_left.Add(sizer_recalc, 0, wx.TOP, cw.ppis(5))
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
@@ -154,6 +159,14 @@ class CharacterEditDialog(wx.Dialog):
         checked = (s3 == wx.CHK_CHECKED)
         for info in self._get_infos():
             info.recalc_coupons = checked
+
+    def OnDebugCoupon(self, event):
+        s3 = self.debug_coupon.Get3StateValue()
+        if s3 == wx.CHK_UNDETERMINED:
+            return
+        checked = (s3 == wx.CHK_CHECKED)
+        for info in self._get_infos():
+            info.debug_coupon = checked
 
     def OnLeftBtn(self, event):
         index = self.target.GetSelection()
@@ -233,6 +246,7 @@ class CharacterEditDialog(wx.Dialog):
         recalc_maxlife = None
         recalc_parameter = None
         recalc_coupons = None
+        debug_coupon = None
         for info in self._get_infos():
             if recalc_maxlife is None:
                 recalc_maxlife = info.recalc_maxlife
@@ -249,12 +263,19 @@ class CharacterEditDialog(wx.Dialog):
             elif recalc_coupons != info.recalc_coupons:
                 recalc_coupons = wx.CHK_UNDETERMINED
 
+            if debug_coupon is None:
+                debug_coupon = info.debug_coupon
+            elif debug_coupon != info.debug_coupon:
+                debug_coupon = wx.CHK_UNDETERMINED
+
         if self.recalc_maxlife:
             self.recalc_maxlife.Set3StateValue(recalc_maxlife)
         if self.recalc_parameter:
             self.recalc_parameter.Set3StateValue(recalc_parameter)
         if self.recalc_coupons:
             self.recalc_coupons.Set3StateValue(recalc_coupons)
+        if self.debug_coupon:
+            self.debug_coupon.Set3StateValue(debug_coupon)
 
 
 class CharaInfo(object):
@@ -323,6 +344,7 @@ class CharaInfo(object):
                 if not pcard.has_coupon(coupon) or pcard.get_couponvalue(coupon) != value:
                     self.recalc_coupons = False
                     break
+            self.debug_coupon = pcard.has_coupon("＠デバグ")
         else:
             self.name = ""
             self.race = cw.cwpy.setting.unknown_race
@@ -340,10 +362,12 @@ class CharaInfo(object):
             self.recalc_maxlife = True
             self.recalc_parameter = True
             self.recalc_coupons = True
+            self.debug_coupon = True
 
         self.recalc_maxlife_init = self.recalc_maxlife
         self.recalc_parameter_init = self.recalc_parameter
         self.recalc_coupons_init = self.recalc_coupons
+        self.debug_coupon_init = self.debug_coupon
         self.input_name = self.name
 
     def set_randomfeatures(self):
@@ -471,6 +495,7 @@ class CharaInfo(object):
 
         updatebase = (self.recalc_parameter and not self.recalc_parameter_init) or\
                      (self.recalc_coupons and not self.recalc_coupons_init) or\
+                     (self.debug_coupon != self.debug_coupon_init) or\
                      (self.race != pcard.get_race()) or\
                      (self.sex != pcard.get_sex()) or\
                      (self.age != pcard.get_age()) or\
@@ -515,6 +540,8 @@ class CharaInfo(object):
             setlevelmax = False
             for e in pcard.data.getfind("Property/Coupons"):
                 name = e.text
+                if name == "＠デバグ":
+                    continue
                 if name in syscoupons or name.startswith("＠Ｒ"):
                     if not (self.recalc_parameter and name == "＠レベル上限"):
                         continue
@@ -612,6 +639,8 @@ class CharaInfo(object):
             seq.append((self.talent, 0))
             for making in makings:
                 seq.append((making, 0))
+            if self.debug_coupon:
+                seq.append(("＠デバグ", 0))
 
             if self.recalc_coupons:
                 for f in cw.cwpy.setting.periods:
@@ -692,6 +721,8 @@ class CharaInfo(object):
         data.avoid = cw.util.numwrap(data.avoid, -10, 10)
         data.resist = cw.util.numwrap(data.resist, -10, 10)
         data.defense = cw.util.numwrap(data.defense, -10, 10)
+        if self.debug_coupon:
+            data.set_coupon("＠デバグ", 0)
         return cw.xmlcreater.create_adventurer(data)
 
     def get_makingslist(self):

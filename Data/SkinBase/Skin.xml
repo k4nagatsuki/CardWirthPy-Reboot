@@ -716,7 +716,7 @@
     <Message key="create_normal">標準方式</Message>
     <Message key="create_normal_description">デバッグモードでない時と同じ方式でキャラクターを作成します。</Message>
     <Message key="create_debug">簡易方式</Message>
-    <Message key="create_debug_description">簡易方式でキャラクターを作成します。血縁関係など、一部設定は省略されます。</Message>
+    <Message key="create_debug_description">簡易方式でキャラクターを作成します。血縁関係など、一部設定は省略されます。簡易方式で作成されたキャラクターはデバッグメンバに指定されます。</Message>
     <Message key="file_name">ファイル名</Message>
     <Message key="suspend_levelup">レベルアップを停止する</Message>
     <Message key="suspend_levelup_description">レベルが上昇した時、現在のレベルが維持されるように自動的にレベル調節を行います。</Message>
