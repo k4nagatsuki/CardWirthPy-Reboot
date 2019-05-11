@@ -827,6 +827,7 @@
     <!-- 4.0 ここから -->
     <Message key="edit_bgcolor">背景色を変更する</Message>
     <Message key="edit_bgcolor_preset">用意された色から選択</Message>
+    <Message key="desc_instructions">シナリオの添付テキストを開きます</Message>
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
 </Skin>

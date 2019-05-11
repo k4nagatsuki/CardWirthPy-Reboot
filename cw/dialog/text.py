@@ -245,18 +245,16 @@ class Text(wx.Dialog):
 
     def _enable_btn(self):
         # リストが空だったらボタンを無効化
-        if self.Parent.list:
+        if isinstance(self.Parent, cw.dialog.scenarioselect.ScenarioSelect) and self.Parent.list:
             if len(self.Parent.list) == 1:
                 self.rightbtn.Disable()
                 self.leftbtn.Disable()
             else:
                 self.rightbtn.Enable()
                 self.leftbtn.Enable()
-                self.closebtn.Enable()
         else:
             self.rightbtn.Disable()
             self.leftbtn.Disable()
-            self.closebtn.Disable()
 
     def upddate_lists(self):
         pass

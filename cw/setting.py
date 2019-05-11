@@ -173,7 +173,7 @@ class LocalSetting(object):
             "sbarbtn": ("uigothic", "", 14, True, True, False),
             "statusnum": ("mincho", "", 12, True, True, False),  # 桁が増える毎に-2
             "sbardesctitle": ("pgothic", "", 14, True, True, False),
-            "sbardesc": ("pgothic", "", 14, False, False, False),
+            "sbardesc": ("pgothic", "", 12, False, False, False),
             "screenshot": ("uigothic", "", 18, False, False, False),
         }
         self.msg_exfonts = {

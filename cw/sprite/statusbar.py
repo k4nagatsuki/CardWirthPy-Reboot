@@ -1601,6 +1601,10 @@ class TouchMenuButton(StatusBarButton):
                 event = pygame.event.Event(pygame.locals.KEYDOWN, key=pygame.locals.K_F4)
                 cw.cwpy.events.insert(0, event)
 
+            def f8():
+                event = pygame.event.Event(pygame.locals.KEYDOWN, key=pygame.locals.K_F8)
+                cw.cwpy.events.insert(0, event)
+
             def f9():
                 event = pygame.event.Event(pygame.locals.KEYDOWN, key=pygame.locals.K_F9)
                 cw.cwpy.events.insert(0, event)
@@ -1632,13 +1636,16 @@ class TouchMenuButton(StatusBarButton):
             copybtn = (None, cw.cwpy.msgs["copy_text"],
                        cw.cwpy.msgs["desc_copy_text"], "Ctrl+C",
                        copy_text, copybtn_enabled)
+            instructionsbtn = (None, cw.cwpy.msgs["instructions"],
+                               cw.cwpy.msgs["desc_instructions"], "F8",
+                               f8, lambda: cw.cwpy.is_playingscenario() and cw.cwpy.sdata.instructions)
             f9btn = (None, cw.cwpy.msgs["f9"],
                      cw.cwpy.msgs["desc_f9"], "F9",
                      f9, cw.cwpy.is_playingscenario)
             dbgbtn = (None, cw.cwpy.msgs["toggle_debug_mode"],
                       cw.cwpy.msgs["desc_toggle_debug_mode"], "Ctrl+D",
                       debug_mode, lambda: True)
-            params = (f4btn, ssbtn, sshbtn, copybtn, f9btn, dbgbtn)
+            params = (f4btn, ssbtn, sshbtn, copybtn, instructionsbtn, f9btn, dbgbtn)
 
             bw = cw.s(150)
             for icon, name, desc, hotkey, _func, _is_enabled in params:

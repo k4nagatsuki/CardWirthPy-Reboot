@@ -292,6 +292,7 @@ class Frame(wx.Frame):
             "PARTYEDIT",   # パーティ情報ダイアログ
             "BATTLECOMMAND",  # 行動選択ダイアログ
             "SETTINGS",  # 設定ダイアログ
+            "INSTRUCTIONS",  # 添付テキストダイアログ
             "F9",  # 緊急避難ダイアログ
             )
         self.dlgeventtypes = {}
@@ -1044,6 +1045,21 @@ class Frame(wx.Frame):
 
     def OnBATTLECOMMAND(self, event):
         dlg = cw.dialog.etc.BattleCommand(self)
+        self.move_dlg(dlg)
+        dlg.ShowModal()
+        self.kill_dlg(dlg)
+
+    def OnINSTRUCTIONS(self, event):
+        seq = []
+        for fpath in cw.cwpy.sdata.instructions:
+            with open(fpath, "rb") as f:
+                content = f.read()
+                f.close()
+            fname = os.path.basename(fpath)
+            seq.append(cw.dialog.text.ReadmeData(fname, content))
+
+        cw.cwpy.play_sound("click")
+        dlg = cw.dialog.text.Readme(self, cw.cwpy.msgs["description"], seq)
         self.move_dlg(dlg)
         dlg.ShowModal()
         self.kill_dlg(dlg)

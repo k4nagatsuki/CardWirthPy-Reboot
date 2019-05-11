@@ -89,6 +89,7 @@ class SystemData(object):
         self.in_endprocess = False
         self.background_image_mtime = {}
         self.moved_mcards = {}
+        self.instructions = []
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
         # [path] = (x1 binary, x2 binary, ..., x16 binary)
@@ -859,6 +860,9 @@ class ScenarioData(SystemData):
         # 特殊文字の画像パスの集合(正規表現)
         self._r_specialchar = re.compile(r"^font_(.)[.]bmp$")
 
+        # 添付テキストのパス
+        self.instructions = []
+
         self._areas = {}
         self._battles = {}
         self._packs = {}
@@ -1420,6 +1424,7 @@ class ScenarioData(SystemData):
         self._items.clear()
         self._skills.clear()
         self._beasts.clear()
+        self.instructions = []
 
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             isdatadir = os.path.basename(dpath).lower() in _WSN_DATA_DIRS
@@ -1427,6 +1432,8 @@ class ScenarioData(SystemData):
                 continue
             for fname in fnames:
                 lf = fname.lower()
+                if lf.endswith(".txt"):
+                    self.instructions.append(cw.util.join_paths(dpath, fname))
 
                 if xmlonly and not lf.endswith(".xml"):
                     continue
