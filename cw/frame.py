@@ -1243,8 +1243,7 @@ class Frame(wx.Frame):
 
     def find_activedialog(self):
         if cw.cwpy.is_showingdlg():
-            fc = wx.Window.FindFocus()
-            return fc.GetTopLevelParent()
+            return wx.GetActiveWindow()
         else:
             return None
 
