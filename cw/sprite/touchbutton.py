@@ -51,7 +51,7 @@ class TouchButton(base.SelectableSprite):
         # 必要サイズを計算
         lines = self.desc.splitlines()
         spx = cw.s(8)
-        spy = cw.s(4)
+        spy = cw.s(2)
         tw, th = max(cw.s(1), self.width), spy*2
         # 表題
         th += cw.s(3)  # 表題と本文の間
@@ -114,7 +114,13 @@ class TouchButton(base.SelectableSprite):
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
         lines = desc.splitlines()
         spx = cw.s(8)
-        tw = cw.s(1)
+        # 表題
+        if hotkey:
+            title = "%s(%s)" % (name, hotkey)
+        else:
+            title = name
+        fw, fh = tfont.size(title)
+        tw = fw + spx*2
         # 本文
         for line in lines:
             fw, _fh = font.size(line)

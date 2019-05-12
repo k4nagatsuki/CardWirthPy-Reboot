@@ -4167,7 +4167,10 @@ class _CWPyElementInterface(object):
         return make_element(*args, **kwargs)
 
 
-Element_Py = xml.etree.ElementTree.Element
+if sys.version_info < (3, 7, 0):
+    Element_Py = xml.etree.ElementTree._Element_Py
+else:
+    Element_Py = xml.etree.ElementTree.Element
 
 
 class CWPyElement(Element_Py, _CWPyElementInterface):
