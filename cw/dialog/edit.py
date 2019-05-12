@@ -1314,7 +1314,7 @@ class BackColorEditDialog(wx.Dialog):
         self.valuepanel.Refresh()
 
     def OnLeftClickHuePanel(self, evt):
-        h = evt.GetX() / cw.UP_WIN / 180
+        h = self._x_wrap(evt.GetX()) / cw.UP_WIN / 180
         self.hsv = (h, self.hsv[1], self.hsv[2])
         self.dragging_huepanel = True
         self.huepanel.SetFocus()
@@ -1330,7 +1330,7 @@ class BackColorEditDialog(wx.Dialog):
 
     def OnDragHuePanel(self, evt):
         if self.dragging_huepanel:
-            h = evt.GetX() / cw.UP_WIN / 180
+            h = self._x_wrap(evt.GetX()) / cw.UP_WIN / 180
             self.hsv = (h, self.hsv[1], self.hsv[2])
             self.update_panels()
 
@@ -1382,7 +1382,7 @@ class BackColorEditDialog(wx.Dialog):
         dc.DrawCircle(cw.wins(self.hsv[0] * 180), hsize[1] // 2, hsize[1] // 4)
 
     def OnLeftClickSaturationPanel(self, evt):
-        s = evt.GetX() / cw.UP_WIN / 180
+        s = self._x_wrap(evt.GetX()) / cw.UP_WIN / 180
         self.hsv = (self.hsv[0], s, self.hsv[2])
         self.dragging_saturationpanel = True
         self.saturationpanel.SetFocus()
@@ -1398,7 +1398,7 @@ class BackColorEditDialog(wx.Dialog):
 
     def OnDragSaturationPanel(self, evt):
         if self.dragging_saturationpanel:
-            s = evt.GetX() / cw.UP_WIN / 180
+            s = self._x_wrap(evt.GetX()) / cw.UP_WIN / 180
             self.hsv = (self.hsv[0], s, self.hsv[2])
             self.update_panels()
 
@@ -1450,8 +1450,11 @@ class BackColorEditDialog(wx.Dialog):
         dc.SetPen(wx.Pen("white"))
         dc.DrawCircle(cw.wins(self.hsv[1] * 180), ssize[1] // 2, ssize[1] // 4)
 
+    def _x_wrap(self, x):
+        return min(max(0, x), cw.wins(180))
+
     def OnLeftClickValuePanel(self, evt):
-        v = 0.125 + (evt.GetX() / cw.UP_WIN) / 480
+        v = 0.125 + (self._x_wrap(evt.GetX()) / cw.UP_WIN) / 480
         self.hsv = (self.hsv[0], self.hsv[1], v)
         self.dragging_valuepanel = True
         self.valuepanel.SetFocus()
@@ -1467,7 +1470,7 @@ class BackColorEditDialog(wx.Dialog):
 
     def OnDragValuePanel(self, evt):
         if self.dragging_valuepanel:
-            v = 0.125 + (evt.GetX() / cw.UP_WIN) / 480
+            v = 0.125 + (self._x_wrap(evt.GetX()) / cw.UP_WIN) / 480
             self.hsv = (self.hsv[0], self.hsv[1], v)
             self.update_panels()
 
