@@ -230,6 +230,9 @@ class CardHeader(object):
         else:
             self.type_id = 2
 
+        # ソート用の適性値
+        self.vocation_for_sort = 0
+
         # 遅延書き込み
         self._lazy_write = None
 
@@ -385,6 +388,15 @@ class CardHeader(object):
         if not owner:
             owner = self.get_owner()
         return cw.effectmotion.get_vocation_val(owner, self.vocation, enhance_act=enhance_act)
+
+    def set_testaptitude(self, test_aptitude):
+        """ソート用の適性値を計算する。
+        Noneを指定する事でリセットする。
+        """
+        if test_aptitude:
+            self.vocation_for_sort = -self.get_vocation_val(owner=test_aptitude)
+        else:
+            self.vocation_for_sort = 0
 
     def get_uselimit_level(self):
         """

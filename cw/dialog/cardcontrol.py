@@ -81,7 +81,8 @@ class CardControl(wx.Dialog):
                    cw.cwpy.msgs["sort_type"],
                    cw.cwpy.msgs["sort_price"],
                    cw.cwpy.msgs["scenario_name"],
-                   cw.cwpy.msgs["author"]]
+                   cw.cwpy.msgs["author"],
+                   cw.cwpy.msgs["sort_aptitude"]]
         self.sort = wx.ComboBox(self.toppanel, -1, size=cw.wins((75, 24)), choices=choices, style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         self.sortwithstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
@@ -555,7 +556,10 @@ class CardControl(wx.Dialog):
         cw.cwpy.play_sound("page")
         cw.cwpy.setting.last_sendto = self.combo.GetSelection()
         self.toppanel.SetFocusIgnoringChildren()
-        self.draw_cards()
+        if self.callname in ("BACKPACK", "CARDPOCKETB", "STOREHOUSE") and cw.cwpy.setting.sort_cards == "Aptitude":
+            self._update_sortattr()
+        else:
+            self.draw_cards()
 
     def update_narrowcondition(self):
         self.draw_cards()
@@ -1263,6 +1267,15 @@ class CardControl(wx.Dialog):
             self.draw_card(header)
         self.toppanel.Refresh()
 
+    def _get_test_aptitude(self):
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET"):
+            sendto = self.combo.GetSelection()
+            if sendto in self._combo_cast:
+                return self.list2[self._combo_cast[sendto]]
+        elif self.callname == "CARDPOCKETB":
+            return self.selection
+        return None
+
     def draw_card(self, header, fromkeyevent=False):
         if not fromkeyevent and self.IsActive() and self.IsShown():
             mousepos = self.ScreenToClient(wx.GetMousePosition())
@@ -1272,13 +1285,7 @@ class CardControl(wx.Dialog):
             elif header.negaflag:
                 header.negaflag = False
 
-        test_aptitude = None
-        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET"):
-            sendto = self.combo.GetSelection()
-            if sendto in self._combo_cast:
-                test_aptitude = self.list2[self._combo_cast[sendto]]
-        elif self.callname == "CARDPOCKETB":
-            test_aptitude = self.selection
+        test_aptitude = self._get_test_aptitude()
 
         bmp = header.get_cardwxbmp(test_aptitude=test_aptitude)
         if header.clickedflag:
@@ -2005,6 +2012,8 @@ class CardHolder(CardControl):
             sorttype = "Scenario"
         elif index == 6:
             sorttype = "Author"
+        elif index == 7:
+            sorttype = "Aptitude"
         else:
             sorttype = "None"
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
@@ -2051,16 +2060,17 @@ class CardHolder(CardControl):
         self.editstar.SetBitmapSelected(bmp)
 
     def _update_sortattr(self):
-        if cw.cwpy.ydata.party:
-            cw.cwpy.ydata.party.sort_backpack()
-        cw.cwpy.ydata.sort_storehouse()
         if self.callname in ("BACKPACK", "CARDPOCKETB"):
+            assert cw.cwpy.ydata.party is not None
+            cw.cwpy.ydata.party.sort_backpack(test_aptitude=self._get_test_aptitude())
             if self.callname == "CARDPOCKETB":
                 self._set_backpacklist()
             else:
                 self.list = self._narrow(cw.cwpy.ydata.party.backpack)
             self.draw_cards()
         elif self.callname == "STOREHOUSE":
+            assert cw.cwpy.ydata is not None
+            cw.cwpy.ydata.sort_storehouse(test_aptitude=self._get_test_aptitude())
             self.list = self._narrow(cw.cwpy.ydata.storehouse)
             self.draw_cards()
 
@@ -2317,6 +2327,8 @@ class CardHolder(CardControl):
             self.sort.Select(5)
         elif sorttype == "Author":
             self.sort.Select(6)
+        elif sorttype == "Aptitude":
+            self.sort.Select(7)
         else:
             self.sort.Select(0)
 

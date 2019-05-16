@@ -2898,8 +2898,14 @@ class YadoData(object):
         else:
             cw.util.sort_by_attr(self.partys, "order")
 
-    def sort_storehouse(self):
+    def sort_storehouse(self, test_aptitude=None):
+        if cw.cwpy.setting.sort_cards == "Aptitude" and test_aptitude:
+            for card in self.storehouse:
+                card.set_testaptitude(test_aptitude)
         sort_cards(self.storehouse, cw.cwpy.setting.sort_cards, cw.cwpy.setting.sort_cardswithstar)
+        if cw.cwpy.setting.sort_cards == "Aptitude" and test_aptitude:
+            for card in self.storehouse:
+                card.set_testaptitude(None)
 
     def sort_partyrecord(self):
         cw.util.sort_by_attr(self.partyrecord, "name")
@@ -3694,10 +3700,16 @@ class Party(object):
     def get_showingname(self):
         return self.name
 
-    def sort_backpack(self, sorttype=None):
+    def sort_backpack(self, sorttype=None, test_aptitude=None):
         if sorttype is None:
             sorttype = cw.cwpy.setting.sort_cards
+        if sorttype == "Aptitude" and test_aptitude:
+            for card in self.backpack:
+                card.set_testaptitude(test_aptitude)
         sort_cards(self.backpack, sorttype, cw.cwpy.setting.sort_cardswithstar)
+        if sorttype == "Aptitude" and test_aptitude:
+            for card in self.backpack:
+                card.set_testaptitude(None)
         self.sorted_backpack_by_order = (sorttype == "order")
 
     def find_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
@@ -4050,6 +4062,8 @@ def sort_cards(cards, condition, withstar):
     elif condition == "Author":
         seq.append("author")
         addetckey()
+    elif condition == "Aptitude":
+        seq.append("vocation_for_sort")
     seq.append("order")
 
     cw.util.sort_by_attr(cards, *seq)
