@@ -1712,6 +1712,9 @@ def store_messagelogimage(path, can_loaded_scaledimage):
     fdict = None
 
     for log in cw.cwpy.sdata.backlog:
+        if isinstance(log, cw.sprite.bill.Bill):
+            # Billは最初から全てのイメージデータをロード済みなので再読込不要
+            continue
         for i, (info, can_loaded_scaledimage2, basetalker, scaledimagedict) in enumerate(log.imgpaths):
             def load_with_scaled(dict, scaledimagedict):
                 scaledimagedict.clear()
