@@ -945,6 +945,7 @@ else:
             h = sum([t[1].GetHeight() for t in self._buttons])
             h += cw.wins(3)*2 + cw.wins(6)*(len(self._buttons)-1)
             self.SetClientSize((w, h))
+            self.SetSize((w, h))
 
         def _bind(self):
             self.Bind(wx.EVT_PAINT, self.OnPaint)

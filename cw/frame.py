@@ -619,6 +619,7 @@ class Frame(wx.Frame):
                         sound.set_mastervolume(True, volume)
                 if cw.cwpy.lastsound_system:
                     cw.cwpy.lastsound_system.set_mastervolume(False, volume)
+                cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
             cw.cwpy.force_exec_func(func)
             if self.debugger:
                 self.debugger.Iconize(False)
