@@ -1677,6 +1677,9 @@ def update_scenariopath_for_log(normpath, dst):
         logs = cw.cwpy.sdata.backlog
 
     for log in logs:
+        if isinstance(log, cw.sprite.bill.Bill):
+            # Billは最初から全てのイメージデータをロード済みなので更新不要
+            continue
         for i, (info, can_loaded_scaledimage, basetalker, scaledimagedict) in enumerate(log.imgpaths[:]):
             if not info.path or cw.binary.image.path_is_code(info.path):
                 continue
