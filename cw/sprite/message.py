@@ -323,6 +323,7 @@ class MessageWindow(base.CWPySprite):
             cw.cwpy.list = self.selections
         x_noscale, y_noscale = self.rect_noscale.left, self.rect_noscale.bottom
 
+        self.names_log = []
         for index, name in enumerate(self.names):
             # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
             if not self.backlog and self._barspchr and\
