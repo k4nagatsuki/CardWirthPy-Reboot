@@ -138,7 +138,8 @@ class Bill(object):
                 cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
 
             def update_scale(self):
-                self.image, self.rect = self.bill.create_image()
+                self.image, _rect = self.bill.create_image()
+                self.rect = cw.s(pygame.Rect(self.rect_noscale))
 
         return BillSprite(self)
 
