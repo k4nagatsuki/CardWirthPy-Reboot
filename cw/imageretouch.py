@@ -1317,6 +1317,8 @@ def get_fontface(fontface):
     差し替え用のフォント名を返す。
     存在するフォントであればfontfaceを返す。
     """
+    if fontface.startswith('@'):
+        return '@' + get_fontface(fontface[1:])
     if not cw.cwpy.rsrc or fontface in cw.cwpy.rsrc.facenames:
         return fontface
 
