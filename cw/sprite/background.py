@@ -742,7 +742,7 @@ class BackGround(base.CWPySprite):
 
             else:
                 assert bgtype == BG_SEPARATOR
-                if bgs and bgs[-1][0] == BG_SEPARATOR:
+                if (bgs and bgs[-1][0] == BG_SEPARATOR) or not redisplay:
                     continue
                 bgs.append((bgtype, d))
                 if blitlist:
