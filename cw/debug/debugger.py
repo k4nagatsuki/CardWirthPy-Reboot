@@ -2043,8 +2043,6 @@ class VariableListCtrl(wx.ListCtrl):
 
     def refresh_variablelist_impl(self, event=None):
         assert threading.currentThread() != cw.cwpy
-        self.list = []
-        self.SetItemCount(0)
 
         def func(self, event):
             if not event:
@@ -2070,13 +2068,16 @@ class VariableListCtrl(wx.ListCtrl):
 
                 def func(self, vlist):
                     if self:
-                        self.list = vlist
-                        self.SetItemCount(len(vlist))
+                        if self.list != vlist:
+                            self.list = vlist
+                            self.SetItemCount(len(vlist))
                         self.Refresh()
                 cw.cwpy.frame.exec_func(func, self, vlist)
             else:
                 def func(self):
                     if self:
+                        self.list = []
+                        self.SetItemCount(0)
                         self.Refresh()
                 cw.cwpy.frame.exec_func(func, self)
 
@@ -2615,7 +2616,7 @@ class EventView(wx.ScrolledWindow):
             self.SetScrollRate(self.scrollrate_x, self.scrollrate_y)
             self.Scroll(0, 0)
             self.Refresh()
-            self.Parent.view_var.refresh_variablelist()
+            self.Parent.view_var.refresh_variablelist(nowrunning)
 
     def create_item(self, parentitem, contents, shiftx, dc):
         assert threading.currentThread() != cw.cwpy
