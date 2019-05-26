@@ -1551,6 +1551,7 @@ class CardEvent(Event, Targeting):
         data = self.inusecard.carddata
         d = {}.copy()
         d["user"] = self.user
+        d["absorbto"] = "User"
         d["inusecard"] = self.inusecard
         d["successrate"] = data.getint("Property/SuccessRate", 0)
         d["effecttype"] = data.gettext("Property/EffectType", "Physic")

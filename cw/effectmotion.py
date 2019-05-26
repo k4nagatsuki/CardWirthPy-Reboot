@@ -90,6 +90,7 @@ class Effect(object):
         self.battlespeed = battlespeed
         self.cardspeed = d.get("cardspeed", -1)  # Wsn.4
         self.overridecardspeed = d.get("overridecardspeed", False)  # Wsn.4
+        self.absorbto = d.get("absorbto", "None")  # Wsn.4
 
         # 選択メンバの能力参照(Wsn.2)
         self.refability = d.get("refability", False)
@@ -106,10 +107,11 @@ class Effect(object):
 
         if self.user and self.inusecard:
             self.motions = [EffectMotion(e, self.user, self.inusecard, refability=self.refability,
-                                         vocation=self.vocation)
+                                         vocation=self.vocation, absorbto=self.absorbto)
                             for e in motions]
         else:
-            self.motions = [EffectMotion(e, targetlevel=self.level, refability=self.refability, vocation=self.vocation)
+            self.motions = [EffectMotion(e, targetlevel=self.level, refability=self.refability,
+                                         vocation=self.vocation, absorbto=self.absorbto)
                             for e in motions]
 
     def update_status(self):
@@ -156,8 +158,14 @@ class Effect(object):
 
         # 吸収後のエフェクトを発生させるか
         # 判定するために記憶しておく
-        if self.user:
-            userlife = self.user.life
+        if self.absorbto == "Selected":
+            absorbto = cw.cwpy.event.get_selectedmember()
+        elif self.absorbto == "User":
+            absorbto = self.user
+        else:
+            absorbto = None
+        if absorbto:
+            userlife = absorbto.life
         else:
             userlife = 0
 
@@ -297,7 +305,7 @@ class Effect(object):
             self.animate(target, True)
 
         # 吸収効果があったら、使用者のカードを回転させて更新する。
-        if self.user and self.count_motion("absorb") and userlife < self.user.life:
+        if absorbto and self.count_motion("absorb") and userlife < absorbto.life:
             cw.cwpy.play_sound("bind", True)
             override_dealspeed = cw.cwpy.override_dealspeed
             force_dealspeed = cw.cwpy.force_dealspeed
@@ -307,11 +315,11 @@ class Effect(object):
                         cw.cwpy.force_dealspeed = self.cardspeed
                     else:
                         cw.cwpy.override_dealspeed = self.cardspeed
-                self.user.hide_inusecardimg = False
-                cw.animation.animate_sprite(self.user, "hide", battlespeed=self.battlespeed)
-                self.user.hide_inusecardimg = True
-                self.user.update_image()
-                cw.animation.animate_sprite(self.user, "deal", battlespeed=self.battlespeed)
+                absorbto.hide_inusecardimg = False
+                cw.animation.animate_sprite(absorbto, "hide", battlespeed=self.battlespeed)
+                absorbto.hide_inusecardimg = True
+                absorbto.update_image()
+                cw.animation.animate_sprite(absorbto, "deal", battlespeed=self.battlespeed)
             finally:
                 cw.cwpy.override_dealspeed = override_dealspeed
                 cw.cwpy.force_dealspeed = force_dealspeed
@@ -505,7 +513,8 @@ class Effect(object):
 # ------------------------------------------------------------------------------
 
 class EffectMotion(object):
-    def __init__(self, data, user=None, header=None, targetlevel=0, refability=False, vocation=None):
+    def __init__(self, data, user=None, header=None, targetlevel=0, refability=False, vocation=None,
+                 absorbto="None"):
         """
         効果モーションインスタンスを生成。MotionElementと
         user(PlayerCard, EnemyCard)とheader(CardHeader)を引数に取る。
@@ -539,6 +548,8 @@ class EffectMotion(object):
             # 使用者のレベルもしくは効果コンテントの対象レベル
             self._targetlevel = targetlevel
             self.update_status()
+        # 吸収者(Wsn.4)
+        self.absorbto = absorbto
 
     def update_status(self):
         if self.refability:
@@ -816,15 +827,21 @@ class EffectMotion(object):
             target.set_mentality("Normal", 0)
 
         # 与えたダメージ分、使用者回復
-        if self.user:
-            oldulife = self.user.life
-            self.user.set_life(value)
-            ulife = self.user.life
+        if self.absorbto == "Selected":
+            absorbto = cw.cwpy.event.get_selectedmember()
+        elif self.absorbto == "User":
+            absorbto = self.user
+        else:
+            absorbto = None
+        if absorbto:
+            oldulife = absorbto.life
+            absorbto.set_life(value)
+            ulife = absorbto.life
         else:
             ulife = 0
             oldulife = 0
         if 0 < value:
-            cw.cwpy.advlog.absorb_motion(self.user, value, ulife, oldulife, target, origvalue, target.life, oldlife,
+            cw.cwpy.advlog.absorb_motion(absorbto, value, ulife, oldulife, target, origvalue, target.life, oldlife,
                                          dissleep)
         return 0 < value
 

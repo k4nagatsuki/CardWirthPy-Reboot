@@ -2365,6 +2365,9 @@ class EffectContent(EventContentBase):
             d["cardspeed"] = int(cardspeed)
             d["overridecardspeed"] = self.data.getbool(".", "overridecardspeed", False)
 
+        # 吸収者(Wsn.4)
+        d["absorbto"] = self.data.getattr(".", "absorbto", "None")
+
         # Effectインスタンス作成
         motions = self.data.getfind("Motions").getchildren()
         self.eff = cw.effectmotion.Effect(motions, d, battlespeed=False)
