@@ -2743,6 +2743,8 @@ class ScenarioSelect(select.Select):
         if not item:
             return
         paritem = self.tree.GetItemParent(item)
+        if not paritem:
+            return
         item, cookie = self.tree.GetFirstChild(paritem)
         i = 0
         while item.IsOk():
