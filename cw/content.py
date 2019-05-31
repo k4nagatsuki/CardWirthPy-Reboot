@@ -2669,7 +2669,7 @@ class EffectContent(EventContentBase):
 
 class EffectBreakContent(EventContentBase):
     def __init__(self, data):
-        EventContentBase.__init__(self, data, is_changestate=False)
+        EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
         """効果中断コンテント。"""
