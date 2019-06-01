@@ -167,7 +167,9 @@ class CWPyCard(base.SelectableSprite):
             return
 
         self.hide_inusecardimg = False
+        cardtarget = self.cardtarget
         self.update_hide()
+        self.cardtarget = cardtarget
         self.hide_inusecardimg = True
 
         if self.status == "hidden":
@@ -308,6 +310,7 @@ class CWPyCard(base.SelectableSprite):
         self.clear_image()
         if self.hide_inusecardimg:
             cw.cwpy.clear_inusecardimg(self)
+        self.clear_cardtarget()
 
     def update_lateralvibe(self):
         """
