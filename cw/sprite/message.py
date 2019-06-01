@@ -104,6 +104,7 @@ class MessageWindow(base.CWPySprite):
             else:
                 layer = cw.LAYER_MESSAGE
             cw.cwpy.cardgrp.add(self, layer=layer)
+            cw.cwpy.add_lazydraw(clip=self.rect)
 
     def _init_image(self, size_noscale, pos_noscale):
         # image
@@ -800,6 +801,7 @@ class SelectWindow(MessageWindow):
             else:
                 layer = cw.LAYER_MESSAGE
             cw.cwpy.cardgrp.add(self, layer=layer)
+            cw.cwpy.add_lazydraw(clip=self.rect)
 
     def _init_image(self, size_noscale, pos_noscale):
         # image

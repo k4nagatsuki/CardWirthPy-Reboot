@@ -1948,12 +1948,13 @@ class CardPanel(wx.Panel):
             if header.type in ("ItemCard", "BeastCard") and (header.uselimit or header.recycle):
                 s += "(%d)" % header.uselimit
 
+            maxwidth = 6 if header.type == "SkillCard" else 8
             if header.negaflag:
                 dc.SetTextForeground(wx.RED)
-                cw.util.draw_adjusted(dc, s, pos[0], pos[1], fw*6)
+                cw.util.draw_adjusted(dc, s, pos[0], pos[1], fw*maxwidth)
                 dc.SetTextForeground(wx.WHITE)
             else:
-                cw.util.draw_adjusted(dc, s, pos[0], pos[1], fw*6)
+                cw.util.draw_adjusted(dc, s, pos[0], pos[1], fw*maxwidth)
 
             # rect
             if header.type == "SkillCard":
