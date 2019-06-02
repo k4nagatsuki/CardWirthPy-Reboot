@@ -926,7 +926,7 @@ def _ccard_from(arg, func_name):
         ecards = cw.cwpy.get_ecards()
         if index < len(ecards):
             return ecards[index]
-        index -= len(pcards)
+        index -= len(ecards)
         fcards = cw.cwpy.get_fcards()
         if index < len(fcards):
             return fcards[index]
