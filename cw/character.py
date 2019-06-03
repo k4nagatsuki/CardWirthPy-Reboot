@@ -2126,9 +2126,9 @@ class Character(object):
         """
         e_coupons = self.data.find("Property/Coupons")
         if e_coupons is not None:
-            for i, e_coupon in enumerate(e_coupons):
+            for i, e_coupon in enumerate(e_coupons[startindex:]):
                 if matcher(e_coupon.text):
-                    return i
+                    return i + startindex
         return -1
 
     @synclock(_couponlock)

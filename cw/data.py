@@ -3258,9 +3258,9 @@ class YadoData(object):
         """
         e_gossips = self.environment.find("Gossips")
         if e_gossips is not None:
-            for i, e_gossip in enumerate(e_gossips):
+            for i, e_gossip in enumerate(e_gossips[startindex:]):
                 if matcher(e_gossip.text):
-                    return i
+                    return i + startindex
         return -1
 
     def get_gossip_at(self, index):
