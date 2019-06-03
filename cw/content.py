@@ -3987,6 +3987,7 @@ class SetVariantContent(BranchContent):
             if result:
                 if result.type == "Boolean":
                     flag.set(result.value)
+                    flag.redraw_cards()
                 else:
                     self.variant_error(msg="計算結果 %s は真偽値ではありません。" % (result.string_value()))
 
