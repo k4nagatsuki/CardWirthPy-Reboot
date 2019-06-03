@@ -1971,33 +1971,7 @@ class ScenarioSelect(select.Select):
         lines = []
         if isinstance(self.list[self.index], cw.header.ScenarioHeader):
             header = self.list[self.index]
-            name = header.name
-            if header.levelmin and header.levelmax:
-                if header.levelmin == header.levelmax:
-                    level = "%s" % (header.levelmax)
-                else:
-                    level = "%s～%s" % (header.levelmin, header.levelmax)
-            elif header.levelmin:
-                level = "%s～" % (header.levelmin)
-            elif header.levelmax:
-                level = "～%s" % (header.levelmax)
-            else:
-                level = ""
-            if level:
-                name = "%s (%s)" % (name, level)
-            name = "[ %s ]" % name
-            slen = cw.util.get_strlen(name)
-            if slen < 38:
-                name += "-" * (38-slen)
-            lines.append(name)
-            if header.author:
-                name = "(%s)" % header.author
-                slen = cw.util.get_strlen(name)
-                if slen < 38:
-                    name = " " * (38-slen) + name
-                lines.append(name)
-            lines.append("")
-            lines.append(header.desc)
+            lines.append(cw.sprite.bill.get_detailtext(header))
 
         else:
             dpath = self.list[self.index]

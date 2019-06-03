@@ -1632,7 +1632,15 @@ def get_messagelogtext(mwins, lastline=True):
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。
     """
     lines = []
-    for mwin in mwins:
+    for i, mwin in enumerate(mwins):
+        if isinstance(mwin, cw.sprite.bill.Bill):
+            if i + 1 == len(mwins):
+                lines.append(cw.sprite.bill.get_detailtext(mwin.header))
+                lastline = False
+            else:
+                lines.append(cw.sprite.bill.get_detailtext(mwin.header).rstrip())
+            continue
+
         name = mwin.talker_name
         if name is None:
             seq = []

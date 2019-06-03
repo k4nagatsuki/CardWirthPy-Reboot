@@ -144,6 +144,39 @@ class Bill(object):
         return BillSprite(self)
 
 
+def get_detailtext(header):
+    """ScenarioHeaderをテキスト表現に変換する。"""
+    lines = []
+    name = header.name
+    if header.levelmin and header.levelmax:
+        if header.levelmin == header.levelmax:
+            level = "%s" % (header.levelmax)
+        else:
+            level = "%s～%s" % (header.levelmin, header.levelmax)
+    elif header.levelmin:
+        level = "%s～" % (header.levelmin)
+    elif header.levelmax:
+        level = "～%s" % (header.levelmax)
+    else:
+        level = ""
+    if level:
+        name = "%s (%s)" % (name, level)
+    name = "[ %s ]" % name
+    slen = cw.util.get_strlen(name)
+    if slen < 38:
+        name += "-" * (38 - slen)
+    lines.append(name)
+    if header.author:
+        name = "(%s)" % header.author
+        slen = cw.util.get_strlen(name)
+        if slen < 38:
+            name = " " * (38 - slen) + name
+        lines.append(name)
+    lines.append("")
+    lines.append(header.desc)
+    return "\n".join(lines)
+
+
 def main():
     pass
 
