@@ -2390,25 +2390,26 @@ class YadoCreater(wx.Dialog):
             self.data.edit("Property/NowSelectingParty", str(is_autoloadparty), "autoload")
 
             # 看板イメージの差し替え
-            e_imgpath = self.data.find("Property/ImagePath")
-            if e_imgpath is not None:
-                self.data.find("Property").remove(e_imgpath)
-            e_imgpaths = self.data.find("Property/ImagePaths")
-            if e_imgpaths is None:
-                e_imgpaths = cw.data.make_element("ImagePaths")
-                self.data.find("Property").append(e_imgpaths)
-            e_imgpaths.clear()
-            for info in self.imgpaths_init:
-                if os.path.isfile(info.path):
-                    cw.util.remove(info.path)
-            cw.xmlcreater.copy_yadoimgpaths(self.yadodir, self.imgpaths)
-            for info in self.imgpaths:
-                if info.path:
-                    e = cw.data.make_element("ImagePath", info.path)
-                    info.set_attr(e)
-                    e_imgpaths.append(e)
-            imgdir = cw.util.join_paths(self.yadodir, "Material", "Signboard")
-            cw.util.remove_emptydir(imgdir)
+            if self.imgpaths_init != self.imgpaths:
+                e_imgpath = self.data.find("Property/ImagePath")
+                if e_imgpath is not None:
+                    self.data.find("Property").remove(e_imgpath)
+                e_imgpaths = self.data.find("Property/ImagePaths")
+                if e_imgpaths is None:
+                    e_imgpaths = cw.data.make_element("ImagePaths")
+                    self.data.find("Property").append(e_imgpaths)
+                e_imgpaths.clear()
+                cw.xmlcreater.copy_yadoimgpaths(self.yadodir, self.imgpaths)
+                for info in self.imgpaths_init:
+                    if os.path.isfile(info.path):
+                        cw.util.remove_scaledimagepaths(info.path, can_loaded_scaledimage=True, trashbox=False)
+                for info in self.imgpaths:
+                    if info.path:
+                        e = cw.data.make_element("ImagePath", info.path)
+                        info.set_attr(e)
+                        e_imgpaths.append(e)
+                imgdir = cw.util.join_paths(self.yadodir, "Material", "Signboard")
+                cw.util.remove_emptydir(imgdir)
 
             self.data.is_eidted = True
             self.data.write()
@@ -2441,6 +2442,7 @@ class YadoCreater(wx.Dialog):
 
     def _put_image(self, fpath):
         cw.cwpy.play_sound("equipment")
+        fpath = cw.util.find_noscalepath(fpath)
         self.imgpaths = [cw.image.ImageInfo(fpath, postype="TopLeft")]
         self.del_image.Enable(bool(self.imgpaths))
         self.Refresh()
@@ -2457,7 +2459,6 @@ class YadoCreater(wx.Dialog):
         for fpath in files:
             ext = os.path.splitext(fpath)[1].lower()
             if ext in cw.EXTS_IMG:
-                fpath = cw.util.find_noscalepath(fpath)
                 seq.append(fpath)
         if not seq:
             cw.cwpy.play_sound("error")
@@ -2509,8 +2510,8 @@ class YadoCreater(wx.Dialog):
 
         # card image
         btnh = self.ref_image.GetMinSize()[1]
-        rect = wx.Rect(cw.wins(10), (self._inputareaheight-cw.SIZE_CARDIMAGE[1]-btnh) // 2,
-                       cw.SIZE_CARDIMAGE[0], cw.SIZE_CARDIMAGE[1])
+        rect = wx.Rect(cw.wins(10), (self._inputareaheight-cw.wins(cw.SIZE_CARDIMAGE[1])-btnh) // 2,
+                       cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1]))
         dc.SetClippingRegion(rect)
         cardw, cardh = cw.wins(cw.SIZE_CARDIMAGE)
         if self.imgpaths:

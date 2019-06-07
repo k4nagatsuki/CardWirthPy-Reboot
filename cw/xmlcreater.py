@@ -135,7 +135,7 @@ def copy_yadoimgpaths(yadodir, imgpaths):
         dst = cw.util.dupcheck_plus(dst, yado=False)
         if not os.path.isdir(idpath):
             os.makedirs(idpath)
-        shutil.copy2(info.path, dst)
+        cw.util.copy_scaledimagepaths(info.path, dst, can_loaded_scaledimage=True)
         info.path = cw.util.join_paths("Material", "Signboard", os.path.basename(dst))
 
 

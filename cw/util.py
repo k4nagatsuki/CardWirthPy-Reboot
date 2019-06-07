@@ -621,6 +621,21 @@ def copy_scaledimagepaths(frompath, topath, can_loaded_scaledimage):
                 shutil.copy2(fname, fname2)
 
 
+def remove_scaledimagepaths(fpath, can_loaded_scaledimage, trashbox=False):
+    """fpathと共にfpathがスケーリングされたイメージファイルを全て削除する。
+    """
+    if not os.path.isfile(fpath):
+        return
+    remove(fpath, trashbox=trashbox)
+    fpathext = os.path.splitext(fpath)
+    if can_loaded_scaledimage and fpathext[1].lower() in cw.EXTS_IMG:
+        for scale in cw.SCALE_LIST:
+            fname = "%s.x%d%s" % (fpathext[0], scale, fpathext[1])
+            fname = cw.cwpy.rsrc.get_filepath(fname)
+            if fname and os.path.isfile(fname):
+                remove(fname, trashbox=trashbox)
+
+
 def find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale):
     """ファイル名に".xN"をつけたイメージを探して(ファイル名, スケール値)を返す。
     例えば"file.bmp"に対する"file.x2.bmp"を探す。
