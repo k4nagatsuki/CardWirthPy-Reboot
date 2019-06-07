@@ -3946,7 +3946,10 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
     getbasedir: 相対パスを扱う場合は基準となるパスを返す関数。
     """
     def OnOpen(event):
-        fpath = target.GetValue()
+        if target is None:
+            fpath = ""
+        else:
+            fpath = target.GetValue()
         dpath = fpath
         if getbasedir and not os.path.isabs(dpath):
             dpath = os.path.join(getbasedir(), dpath)
@@ -3959,7 +3962,8 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
                     dpath2 = cw.util.relpath(dpath, base)
                     if not dpath2.startswith(".." + os.path.sep):
                         dpath = dpath2
-                target.SetValue(dpath)
+                if target is not None:
+                    target.SetValue(dpath)
                 if callback:
                     callback(dpath)
             dlg.Destroy()
@@ -3974,15 +3978,16 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
                     fpath2 = cw.util.relpath(fpath, base)
                     if not fpath2.startswith(".." + os.path.sep):
                         fpath = fpath2
-                target.SetValue(fpath)
+                if target is not None:
+                    target.SetValue(fpath)
                 if callback:
                     callback(fpath)
             dlg.Destroy()
 
     if winsize:
-        size = (cw.wins(25), -1)
+        size = (cw.wins(20), -1)
     else:
-        size = (cw.ppis(25), -1)
+        size = (cw.ppis(20), -1)
     button = wx.Button(parent, size=size, label="...")
     parent.Bind(wx.EVT_BUTTON, OnOpen, button)
     return button

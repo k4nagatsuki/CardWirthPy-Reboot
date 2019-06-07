@@ -2276,6 +2276,9 @@ class YadoData(object):
         skintype = self.environment.gettext("Property/Type", cw.cwpy.setting.skintype)
         skinpath = cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")
 
+        # イメージ
+        self.imgpaths = cw.image.get_imageinfos(self.environment.find("Property"))
+
         # 起動オプション
         optskin = cw.OPTIONS.force_skin
         cw.OPTIONS.force_skin = ""

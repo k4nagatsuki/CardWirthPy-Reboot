@@ -85,7 +85,7 @@ def create_partyrecord(party):
     return path
 
 
-def create_environment(name, dpath, skindirname, is_autoloadparty):
+def create_environment(name, dpath, skindirname, is_autoloadparty, imgpaths):
     """
     dpath: "Environment.xml"を作成する宿のディレクトリパス。
     宿のデータを納める"Environment.xml"を作る。
@@ -112,9 +112,31 @@ def create_environment(name, dpath, skindirname, is_autoloadparty):
          "indent": "",
          "is_autoloadparty": str(is_autoloadparty)}
 
+    copy_yadoimgpaths(dpath, imgpaths)
+    imgpaths = [cw.binary.xmltemplate.get_xmltext("ImagePath",
+                                                  {"path": cw.binary.util.repl_escapechar(info.path),
+                                                   "postype": info.postype,
+                                                   "indent": "   "}) for info in imgpaths]
+    d["imgpaths"] = "\n" + "\n".join(imgpaths)
+
     path = cw.util.join_paths(dpath, "Environment.xml")
     _create_xml("Environment", path, d)
     return path
+
+
+def copy_yadoimgpaths(yadodir, imgpaths):
+    if not imgpaths:
+        return
+    idpath = cw.util.join_paths(yadodir, "Material", "Signboard")
+    for info in imgpaths:
+        if not info.path:
+            continue
+        dst = cw.util.join_paths(idpath, os.path.basename(info.path))
+        dst = cw.util.dupcheck_plus(dst, yado=False)
+        if not os.path.isdir(idpath):
+            os.makedirs(idpath)
+        shutil.copy2(info.path, dst)
+        info.path = cw.util.join_paths("Material", "Signboard", os.path.basename(dst))
 
 
 def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):

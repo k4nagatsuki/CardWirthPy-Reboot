@@ -2238,6 +2238,19 @@ class YadoCreater(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
 
+        tip = "画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*"
+        self.ref_image = cw.util.create_fileselection(self, None, cw.cwpy.msgs["select_signboard"], tip,
+                                                      callback=self._put_image)
+        self.ref_image.SetToolTip(cw.cwpy.msgs["select_signboard"] + "...")
+        self.del_image = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((self.ref_image.GetSize()[0], 30)),
+                                                      bmp=cw.cwpy.rsrc.dialogs["DELETE_FILE"])
+        self.del_image.SetToolTip(cw.cwpy.msgs["delete_signboard"])
+        refsize = self.ref_image.GetSize()
+        delsize = self.del_image.GetSize()
+        size = (max(refsize[0], delsize[0]), max(refsize[1], delsize[1]))
+        self.ref_image.SetMinSize(size)
+        self.del_image.SetMinSize(size)
+
         if self.create:
             self.textctrl.SetValue(cw.cwpy.msgs["new_base"])
             self._msg1 = cw.cwpy.msgs["create_base_message_1"]
@@ -2245,6 +2258,7 @@ class YadoCreater(wx.Dialog):
             skin = cw.cwpy.setting.skindirname
             is_autoloadparty = True
             skintype = ""
+            self.imgpaths = []
         else:
             fpath = cw.util.join_paths(self.yadodir, "Environment.xml")
             self.data = cw.data.xml2etree(fpath)
@@ -2261,6 +2275,10 @@ class YadoCreater(wx.Dialog):
                 skintype = self.data.gettext("Property/Type", "")
             self.is_autoloadparty = self.data.getbool("Property/NowSelectingParty", "autoload", True)
             is_autoloadparty = self.is_autoloadparty
+            self.imgpaths = cw.image.get_imageinfos(self.data.find("Property"))
+            for info in self.imgpaths:
+                info.path = cw.util.join_paths(yadodir, info.path)
+        self.imgpaths_init = self.imgpaths[:]
 
         choices = []
         self.command0s = []
@@ -2309,8 +2327,12 @@ class YadoCreater(wx.Dialog):
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
                                                     cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+
         self._do_layout()
         self._bind()
+
+        self.del_image.Enable(bool(self.imgpaths))
+        self.DragAcceptFiles(True)
 
     def create_yado(self):
         name = self.textctrl.GetValue().strip()
@@ -2325,7 +2347,7 @@ class YadoCreater(wx.Dialog):
             path = cw.util.join_paths(self.yadodir, dname)
             os.makedirs(path)
 
-        cw.xmlcreater.create_environment(name, self.yadodir, skindirname, is_autoloadparty)
+        cw.xmlcreater.create_environment(name, self.yadodir, skindirname, is_autoloadparty, self.imgpaths)
 
     def edit_yado(self):
         if cw.util.create_mutex("Yado"):
@@ -2355,7 +2377,8 @@ class YadoCreater(wx.Dialog):
 
         if name != self.name or\
                 skindirname != self.skindirname or\
-                is_autoloadparty != self.is_autoloadparty:
+                is_autoloadparty != self.is_autoloadparty or\
+                self.imgpaths_init != self.imgpaths:
             # データ上の編集
             if not self.data.find("Property/Name") is None:
                 self.data.edit("Property/Name", name)
@@ -2366,6 +2389,28 @@ class YadoCreater(wx.Dialog):
             self.data.edit("Property/Skin", skindirname)
             self.data.edit("Property/NowSelectingParty", str(is_autoloadparty), "autoload")
 
+            # 看板イメージの差し替え
+            e_imgpath = self.data.find("Property/ImagePath")
+            if e_imgpath is not None:
+                self.data.find("Property").remove(e_imgpath)
+            e_imgpaths = self.data.find("Property/ImagePaths")
+            if e_imgpaths is None:
+                e_imgpaths = cw.data.make_element("ImagePaths")
+                self.data.find("Property").append(e_imgpaths)
+            e_imgpaths.clear()
+            for info in self.imgpaths_init:
+                if os.path.isfile(info.path):
+                    cw.util.remove(info.path)
+            cw.xmlcreater.copy_yadoimgpaths(self.yadodir, self.imgpaths)
+            for info in self.imgpaths:
+                if info.path:
+                    e = cw.data.make_element("ImagePath", info.path)
+                    info.set_attr(e)
+                    e_imgpaths.append(e)
+            imgdir = cw.util.join_paths(self.yadodir, "Material", "Signboard")
+            cw.util.remove_emptydir(imgdir)
+
+            self.data.is_eidted = True
             self.data.write()
 
     def _move_dir(self):
@@ -2393,6 +2438,31 @@ class YadoCreater(wx.Dialog):
                         cw.cwpy.setting.yado_order[newdname] = order
                 except Exception:
                     cw.util.print_ex()
+
+    def _put_image(self, fpath):
+        cw.cwpy.play_sound("equipment")
+        self.imgpaths = [cw.image.ImageInfo(fpath, postype="TopLeft")]
+        self.del_image.Enable(bool(self.imgpaths))
+        self.Refresh()
+
+    def OnDelImage(self, event):
+        cw.cwpy.play_sound("dump")
+        self.imgpaths = []
+        self.del_image.Enable(bool(self.imgpaths))
+        self.Refresh()
+
+    def OnDropFiles(self, event):
+        files = event.GetFiles()
+        seq = []
+        for fpath in files:
+            ext = os.path.splitext(fpath)[1].lower()
+            if ext in cw.EXTS_IMG:
+                fpath = cw.util.find_noscalepath(fpath)
+                seq.append(fpath)
+        if not seq:
+            cw.cwpy.play_sound("error")
+            return
+        self._put_image(seq[0])
 
     def OnInput(self, event):
         name = self.textctrl.GetValue().strip()
@@ -2438,15 +2508,32 @@ class YadoCreater(wx.Dialog):
         cw.util.fill_bitmap(dc, self._load_caution(), csize)
 
         # card image
-        imgdata = self.command0s[index]
-        bmp = imgdata[1]
-        if not bmp:
-            bmp = cw.wins(cw.util.load_wxbmp(imgdata[0], True, can_loaded_scaledimage=True))
-            imgdata[1] = bmp
-        bmph = bmp.GetHeight()
-        y = (self._inputareaheight-bmph) // 2
-        dc.DrawBitmap(bmp, cw.wins(10), y, True)
-        bmpw = bmp.GetWidth()
+        btnh = self.ref_image.GetMinSize()[1]
+        rect = wx.Rect(cw.wins(10), (self._inputareaheight-cw.SIZE_CARDIMAGE[1]-btnh) // 2,
+                       cw.SIZE_CARDIMAGE[0], cw.SIZE_CARDIMAGE[1])
+        dc.SetClippingRegion(rect)
+        cardw, cardh = cw.wins(cw.SIZE_CARDIMAGE)
+        if self.imgpaths:
+            for info in self.imgpaths:
+                if not info.path:
+                    continue
+                bmp = cw.wins(cw.util.load_wxbmp(info.path, True, can_loaded_scaledimage=True))
+                bmpw = bmp.GetWidth()
+                bmph = bmp.GetHeight()
+
+                baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
+                                                         basecardtype="Bill",
+                                                         cardpostype="NotCard")
+                dc.DrawBitmap(bmp, rect.X + baserect.x, rect.Y + baserect.y, True)
+        else:
+            imgdata = self.command0s[index]
+            bmp = imgdata[1]
+            if not bmp:
+                bmp = cw.wins(cw.util.load_wxbmp(imgdata[0], True, can_loaded_scaledimage=True))
+                imgdata[1] = bmp
+            bmph = bmp.GetHeight()
+            dc.DrawBitmap(bmp, rect.X, rect.Y, True)
+        dc.DestroyClippingRegion()
 
         # text
         dc.SetTextForeground(wx.BLACK)
@@ -2454,13 +2541,13 @@ class YadoCreater(wx.Dialog):
         dc.SetFont(font)
         s = self._msg1
         y = cw.wins(10)
-        dc.DrawText(s, bmpw+cw.wins(20), y)
+        dc.DrawText(s, cardw+cw.wins(20), y)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(16))
         dc.SetFont(font)
         _w, h, _lineheight = dc.GetFullMultiLineTextExtent(s)
         y += h + cw.wins(5)
         s = self._msg2
-        dc.DrawText(s, bmpw+cw.wins(20), y)
+        dc.DrawText(s, cardw+cw.wins(20), y)
 
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
@@ -2486,6 +2573,8 @@ class YadoCreater(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_PAINT, self.OnPaint2)
         self.Bind(wx.EVT_CHOICE, self.OnChoice, self.skin)
+        self.Bind(wx.EVT_BUTTON, self.OnDelImage, self.del_image)
+        self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
 
         def recurse(ctrl):
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
@@ -2495,13 +2584,15 @@ class YadoCreater(wx.Dialog):
         recurse(self)
 
     def _do_layout(self):
+        sizer_all = wx.BoxSizer(wx.VERTICAL)
+        sizer_0 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_buttons = wx.BoxSizer(wx.HORIZONTAL)
 
         dc = wx.ClientDC(self)
-        cardw = cw.wins(cw.SIZE_CARDIMAGE[0])
+        cardw, cardh = cw.wins(cw.SIZE_CARDIMAGE)
 
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
@@ -2513,7 +2604,7 @@ class YadoCreater(wx.Dialog):
         w2, h2, _lineheight = dc.GetFullMultiLineTextExtent(s)
         mw = max(w1, w2)
 
-        sizer_1.Add((cardw+mw+cw.wins(30), h1+h2+cw.wins(25)), 0, 0, 0)
+        sizer_1.Add((mw+cw.wins(22), h1+h2+cw.wins(25)), 0, 0, 0)
 
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
@@ -2521,16 +2612,14 @@ class YadoCreater(wx.Dialog):
         w2, _h = dc.GetTextExtent(cw.cwpy.msgs["select_skin"])
         w = max(w1, w2)
 
-        sizer_2.Add((cw.wins(20)+cardw, cw.wins(0)), 0, 0, 0)
-        sizer_2.Add((w+cw.wins(5), cw.wins(0)), 0, 0, 0)
+        sizer_2.Add((w+cw.wins(10), cw.wins(0)), 0, 0, 0)
         sizer_2.Add(self.textctrl, 0, 0, 0)
         sizer_2.Add(cw.wins((10, 0)), 0, 0, 0)
         sizer_1.Add(sizer_2, 0, 0, 0)
 
         sizer_1.Add(cw.wins((0, 5)), 0, 0, 0)
 
-        sizer_3.Add((cw.wins(20)+cardw, cw.wins(0)), 0, 0, 0)
-        sizer_3.Add((w+cw.wins(5), cw.wins(0)), 0, 0, 0)
+        sizer_3.Add((w+cw.wins(10), cw.wins(0)), 0, 0, 0)
         sizer_3.Add(self.skin, 0, 0, 0)
         sizer_3.Add(cw.wins((10, 00)), 0, 0, 0)
         sizer_1.Add(sizer_3, 0, 0, 0)
@@ -2539,21 +2628,39 @@ class YadoCreater(wx.Dialog):
 
         sizer_1.Add(self.autoload_party, 0, wx.LEFT | wx.RIGHT | wx.ALIGN_RIGHT, cw.wins(10))
 
-        sizer_1.Add(cw.wins((0, 12)), 0, 0, 0)
-
-        csize = sizer_1.CalcMin()
-        self._inputareaheight = csize[1]
-
-        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) // 3
-        sizer_4.Add(self.okbtn, 0, wx.LEFT, margin)
-        sizer_4.Add(self.cnclbtn, 0, wx.LEFT | wx.RIGHT, margin)
-        sizer_1.Add(sizer_4, 1, wx.EXPAND, 0)
+        sizer_buttons.AddStretchSpacer(1)
+        sizer_buttons.Add(self.okbtn, 0, 0, 0)
+        sizer_buttons.AddStretchSpacer(1)
+        sizer_buttons.Add(self.cnclbtn, 0, 0, 0)
+        sizer_buttons.AddStretchSpacer(1)
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
 
-        self.SetSizer(sizer_1)
-        sizer_1.Fit(self)
-        self.SetClientSize(sizer_1.CalcMin())
+        sizer_0.Add((cw.wins(10)+cardw-self.ref_image.GetMinSize()[0]-self.del_image.GetMinSize()[0], cw.wins(0)),
+                    0, 0, 0)
+
+        csize = sizer_1.CalcMin()
+        self._inputareaheight = max(csize[1], cardh + self.ref_image.GetMinSize()[1])
+        y = (self._inputareaheight - cardh - self.ref_image.GetMinSize()[1]) // 2
+
+        sizer_ref = wx.BoxSizer(wx.VERTICAL)
+        sizer_ref.Add((cw.wins(0), y+cardh), 0, 0, 0)
+        sizer_ref.Add(self.ref_image, 0, 0, 0)
+        sizer_del = wx.BoxSizer(wx.VERTICAL)
+        sizer_del.Add((cw.wins(0), y+cardh), 0, 0, 0)
+        sizer_del.Add(self.del_image, 0, 0, 0)
+
+        sizer_0.Add(sizer_ref, 0, 0, 0)
+        sizer_0.Add(sizer_del, 0, 0, 0)
+        sizer_0.Add(sizer_1, 0, 0, 0)
+
+        sizer_all.Add(sizer_0, 0, 0, 0)
+        sizer_all.Add(sizer_buttons, 0, wx.EXPAND, 0)
+        sizer_all.Add(cw.wins((0, 12)), 0, 0, 0)
+
+        self.SetSizer(sizer_all)
+        sizer_all.Fit(self)
+        self.SetClientSize(sizer_all.CalcMin())
         self.Layout()
 
 

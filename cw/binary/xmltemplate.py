@@ -174,6 +174,8 @@ $indent <Property>
 $indent  <Name>$name</Name>
 $indent  <Skin>$skinname</Skin>
 $indent  <Type>$skintype</Type>
+$indent  <ImagePaths>$imgpaths
+$indent  </ImagePaths>
 $indent  <Cashbox>$cashbox</Cashbox>
 $indent  <NowSelectingParty autoload="$is_autoloadparty">$selectingparty</NowSelectingParty>
 $indent </Property>

@@ -834,6 +834,9 @@
     <Message key="edit_bgcolor_preset">用意された色から選択</Message>
     <Message key="desc_instructions">シナリオの添付テキストを開きます</Message>
     <Message key="sort_aptitude">送り先適性</Message>
+    <Message key="select_signboard">看板の選択</Message>
+    <Message key="delete_signboard">看板の削除</Message>
+    <!-- 4.0 ここまで -->
   </Messages>
   <Settings importantdrawing="False" importantfont="False" />
 </Skin>
