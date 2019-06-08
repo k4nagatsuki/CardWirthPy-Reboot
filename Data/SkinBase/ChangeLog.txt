@@ -1,6 +1,10 @@
 SkinBase 変更履歴
 =================
 
+2019年6月8日(dataVersion=11)
+----------------------------
+ * `Resource/Image/Other/SCREENSHOT_HEADER.png`と`Resource/Image/Other/SCREENSHOT_HEADER.x2.png`を追加。
+
 2019年5月11日(dataVersion=11)
 ----------------------------
  * 標準型`SampleType`の解説を追加。
