@@ -1071,6 +1071,7 @@ class Converter(threading.Thread):
                 "TITLE_CELL3": "Other/TITLE_CELL3",
                 "TITLE_SHADOW": "Other/TITLE_SHADOW",
                 "TITLE_VERSION": "Other/TITLE_VERSION",
+                "SCREENSHOT_HEADER": "Other/SCREENSHOT_HEADER",
                 "STATUS_BODY0": "Status/BODY0",
                 "STATUS_BODY1": "Status/BODY1",
                 "STATUS_DOWN0": "Status/DOWN0",

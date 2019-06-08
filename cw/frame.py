@@ -1378,11 +1378,18 @@ class Frame(wx.Frame):
 
                     rx, ry, rw, rh = xx - 2, yy - 2, ww + 4, bmp.GetHeight() + 4 + cw.s(pixelsize + 2) + 2
                     mem.DrawRectangle(rx, ry, rw, rh)
+                    mem.SetClippingRegion(rx, ry, rw, rh)
                     if cw.cwpy.setting.ssinfobackimage and os.path.isfile(cw.cwpy.setting.ssinfobackimage):
-                        mem.SetClippingRegion(rx, ry, rw, rh)
                         backimage = cw.util.load_wxbmp(cw.cwpy.setting.ssinfobackimage, False)
                         cw.util.fill_bitmap(mem, cw.s(backimage), csize=(rw, rh), cpos=(rx, ry))
-                        mem.DestroyClippingRegion()
+                    else:
+                        fpath = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir,
+                                                                         "Resource/Image/Other/SCREENSHOT_HEADER"),
+                                                      cw.M_IMG)
+                        if fpath:
+                            backimage = cw.util.load_wxbmp(fpath, False)
+                            cw.util.fill_bitmap(mem, cw.s(backimage), csize=(rw, rh), cpos=(rx, ry))
+                    mem.DestroyClippingRegion()
                     mem.DrawBitmap(bmp, xx, yy + cw.s(pixelsize + 2) + 2, False)
 
                     cw.util.draw_antialiasedtext(mem, title, int(xx + cw.s(5)), int(yy + 1),

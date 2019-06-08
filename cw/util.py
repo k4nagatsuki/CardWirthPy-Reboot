@@ -1603,6 +1603,7 @@ def screenshot():
         bmp, y = create_screenshot(titledic)
         pygame.image.save(bmp, filename)
     except Exception:
+        cw.util.print_ex()
         s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
         cw.cwpy.call_modaldlg("ERROR", text=s)
 
@@ -1632,6 +1633,13 @@ def create_screenshot(titledic):
         if cw.cwpy.setting.ssinfobackimage and os.path.isfile(cw.cwpy.setting.ssinfobackimage):
             subimg3 = load_image(cw.cwpy.setting.ssinfobackimage, False)
             fill_image(bmp, cw.s(subimg3), (w, lh))
+        else:
+            fpath = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir,
+                                                             "Resource/Image/Other/SCREENSHOT_HEADER"),
+                                          cw.M_IMG)
+            if fpath:
+                subimg3 = load_image(fpath, False)
+                fill_image(bmp, cw.s(subimg3), (w, lh))
         bmp.blit(scr, (cw.s(0), lh))
         x = cw.s(10)
         y = (lh - fh) // 2
@@ -1708,9 +1716,17 @@ def create_cardscreenshot(titledic):
         bmp.fill(cw.cwpy.setting.ssinfobackcolor, rect=pygame.Rect(cw.s(0), cw.s(0), w, h))
 
         # 背景画像
-        if title and cw.cwpy.setting.ssinfobackimage and os.path.isfile(cw.cwpy.setting.ssinfobackimage):
-            subimg3 = load_image(cw.cwpy.setting.ssinfobackimage, False)
-            fill_image(bmp, cw.s(subimg3), (w, lh))
+        if title:
+            if cw.cwpy.setting.ssinfobackimage and os.path.isfile(cw.cwpy.setting.ssinfobackimage):
+                subimg3 = load_image(cw.cwpy.setting.ssinfobackimage, False)
+                fill_image(bmp, cw.s(subimg3), (w, lh))
+            else:
+                fpath = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir,
+                                                                 "Resource/Image/Other/SCREENSHOT_HEADER"),
+                                              cw.M_IMG)
+                if fpath:
+                    subimg3 = load_image(fpath, False)
+                    fill_image(bmp, cw.s(subimg3), (w, lh))
 
         # イメージの作成
         sy = cw.s(0)
