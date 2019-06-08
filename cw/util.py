@@ -1939,6 +1939,11 @@ def find_resource(path, mtype):
             path2 = cw.cwpy.rsrc.get_filepath(path2)
         if os.path.isfile(path2):
             return path2
+
+    if is_descendant(path, cw.cwpy.skindir):
+        path = join_paths("Data/SkinBase", relpath(path, cw.cwpy.skindir))
+        return find_resource(path, mtype)
+
     return ""
 
 
