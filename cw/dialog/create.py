@@ -2696,7 +2696,13 @@ class AdventurerDesignDialog(wx.Dialog):
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
-        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+        def recurse(ctrl):
+            if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
+                ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+            for child in ctrl.GetChildren():
+                recurse(child)
+        recurse(self)
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)

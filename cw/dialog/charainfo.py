@@ -1128,9 +1128,10 @@ class HistoryPanel(wx.ScrolledWindow):
 
 
 class EditButton():
-    def __init__(self, name, btype):
+    def __init__(self, name, btype, has_separator):
         self.name = name
         self.type = btype
+        self.has_separator = has_separator
         self.negaflag = False
 
 
@@ -1344,11 +1345,18 @@ class EditPanel(wx.Panel):
 
         # 編集項目名
         height = cw.wins(10)
+        csize = self.GetClientSize()
         if not self.headers:
-            self.headers = (EditButton(cw.cwpy.msgs["edit_design"], 0),
-                            EditButton(cw.cwpy.msgs["regulate_level"], 1),
-                            EditButton(cw.cwpy.msgs["edit_bgcolor"], 2))
+            self.headers = (EditButton(cw.cwpy.msgs["regulate_level"], 1, False),
+                            EditButton(cw.cwpy.msgs["edit_design"], 0, True),
+                            EditButton(cw.cwpy.msgs["edit_bgcolor"], 2, False),)
         for header in self.headers:
+            if header.has_separator:
+                height += cw.wins(5)
+                dc.SetPen(wx.Pen(wx.WHITE, cw.wins(1)))
+                dc.DrawLine(cw.wins(20), height, csize[0]-cw.wins(20), height)
+                height += cw.wins(12)
+
             if header.negaflag:
                 dc.SetTextForeground(wx.RED)
             else:
