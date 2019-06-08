@@ -174,7 +174,7 @@ class LocalSetting(object):
             "statusnum": ("mincho", "", 12, True, True, False),  # 桁が増える毎に-2
             "sbardesctitle": ("pgothic", "", 14, True, True, False),
             "sbardesc": ("pgothic", "", 14, False, False, False),
-            "screenshot": ("uigothic", "", 18, False, False, False),
+            "screenshot": ("pmincho", "", 18, False, False, False),
         }
         self.msg_exfonts = {
             "fw_symbol": ("inherit", "", 22, True, True, False),

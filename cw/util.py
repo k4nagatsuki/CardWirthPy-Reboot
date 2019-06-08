@@ -1580,11 +1580,12 @@ def screenshot_header(title, w):
     imgs = []
     for color in (fore, back):
         subimg = font.render(title, True, color)
-        swmax = w - cw.s(10)*2
+        swmax = w - cw.s(5)*2
         if swmax < subimg.get_width():
             size = (swmax, subimg.get_height())
             subimg = cw.image.smoothscale(subimg, size)
         imgs.append(subimg)
+    imgs[1].fill((255, 255, 255, 80), special_flags=pygame.locals.BLEND_RGBA_MULT)
     return imgs[0], imgs[1], fh, lh
 
 
@@ -1641,7 +1642,7 @@ def create_screenshot(titledic):
                 subimg3 = load_image(fpath, False)
                 fill_image(bmp, cw.s(subimg3), (w, lh))
         bmp.blit(scr, (cw.s(0), lh))
-        x = cw.s(10)
+        x = cw.s(5)
         y = (lh - fh) // 2
         for xx in range(-1, 1+1):
             for yy in range(-1, 1+1):
@@ -1731,7 +1732,7 @@ def create_cardscreenshot(titledic):
         # イメージの作成
         sy = cw.s(0)
         if title:
-            x, y = cw.s(10), (lh - fh) // 2
+            x, y = cw.s(5), (lh - fh) // 2
             for xx in range(-1, 1+1):
                 for yy in range(-1, 1+1):
                     if xx != x or yy != y:

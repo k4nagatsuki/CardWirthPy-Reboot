@@ -1394,7 +1394,7 @@ class Frame(wx.Frame):
 
                     cw.util.draw_antialiasedtext(mem, title, int(xx + cw.s(5)), int(yy + 1),
                                                  white, ww, cw.s(5),
-                                                 quality=quality, bordering=True, alpha=255)
+                                                 quality=quality, bordering=True, alpha=80)
                     recurse(child)
         recurse(self)
         mem.SelectObject(wx.NullBitmap)
