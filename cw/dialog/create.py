@@ -2328,10 +2328,12 @@ class YadoCreater(wx.Dialog):
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
                                                     cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
 
+        self.ref_image.Show(not self.imgpaths)
+        self.del_image.Show(bool(self.imgpaths))
+
         self._do_layout()
         self._bind()
 
-        self.del_image.Enable(bool(self.imgpaths))
         self.DragAcceptFiles(True)
 
     def create_yado(self):
@@ -2442,16 +2444,30 @@ class YadoCreater(wx.Dialog):
 
     def _put_image(self, fpath):
         cw.cwpy.play_sound("equipment")
+        self.Freeze()
         fpath = cw.util.find_noscalepath(fpath)
         self.imgpaths = [cw.image.ImageInfo(fpath, postype="TopLeft")]
-        self.del_image.Enable(bool(self.imgpaths))
+        fc = wx.Window.FindFocus()
+        self.ref_image.Show(not self.imgpaths)
+        self.del_image.Show(bool(self.imgpaths))
+        if fc is self.ref_image:
+            self.del_image.SetFocus()
+        self.Layout()
         self.Refresh()
+        self.Thaw()
 
     def OnDelImage(self, event):
         cw.cwpy.play_sound("dump")
+        self.Freeze()
         self.imgpaths = []
-        self.del_image.Enable(bool(self.imgpaths))
+        fc = wx.Window.FindFocus()
+        self.ref_image.Show(not self.imgpaths)
+        self.del_image.Show(bool(self.imgpaths))
+        if fc is self.del_image:
+            self.ref_image.SetFocus()
+        self.Layout()
         self.Refresh()
+        self.Thaw()
 
     def OnDropFiles(self, event):
         files = event.GetFiles()
@@ -2637,7 +2653,7 @@ class YadoCreater(wx.Dialog):
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
 
-        sizer_0.Add((cw.wins(10)+cardw-self.ref_image.GetMinSize()[0]-self.del_image.GetMinSize()[0], cw.wins(0)),
+        sizer_0.Add((cw.wins(10)+cardw-self.ref_image.GetMinSize()[0], cw.wins(0)),
                     0, 0, 0)
 
         csize = sizer_1.CalcMin()
