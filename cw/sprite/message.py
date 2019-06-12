@@ -285,12 +285,17 @@ class MessageWindow(base.CWPySprite):
                 pos2 = (pos[0] + shiftx, pos[1] - tt + shifty)
                 cw.imageretouch.blit_2bitbmp_to_message(self.image, txtimg2, pos2, wincolour)
                 size = txtimg2.get_size()
+                cw.cwpy.add_lazydraw(clip=pygame.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top), size))
 
             # 通常のテキスト描画
             if txtimg3:
                 for x in range(pos[0]+shiftx-1, pos[0]+shiftx+2):
                     for y in range(pos[1]-1, pos[1]+2):
-                        self._back.blit(txtimg3, (x, y-bt))
+                        pos2 = (x, y-bt)
+                        self._back.blit(txtimg3, pos2)
+                        size = txtimg3.get_size()
+                        cw.cwpy.add_lazydraw(clip=pygame.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top),
+                                                              size))
 
             if txtimg:
                 self._fore.blit(txtimg, (pos[0]+shiftx, pos[1]-bt))
@@ -309,6 +314,8 @@ class MessageWindow(base.CWPySprite):
                 area1.top -= tt
                 self.image.blit(self._back, area1.topleft, area2)
                 self.image.blit(self._fore, area1.topleft, area2)
+                size = area1.size
+                cw.cwpy.add_lazydraw(clip=pygame.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top), size))
             self.frame += 1
         else:
             self.is_drawing = False

@@ -1999,7 +1999,6 @@ class CWPy(_Singleton, threading.Thread):
                 eventhandler.run()
                 self.update()
                 if mwin.result is None and is_drawing:
-                    self.add_lazydraw(clip=mwin.rect)
                     is_drawing = mwin.is_drawing
 
                 self.wait_frame(1, canskip=False)
