@@ -1009,6 +1009,14 @@ def _func_gossiptext(args, is_differentscenario, line, pos):
     return StringValue(cw.cwpy.ydata.get_gossip_at(index), line, pos)
 
 
+def _func_partyname(args, is_differentscenario, line, pos):
+    """パーティ名を返す。"""
+    _chk_argscount(args, 0, "PARTYNAME", line, pos)
+    if cw.cwpy.ydata.party is None:
+        return StringValue("", line, pos)
+    return StringValue(cw.cwpy.ydata.party.get_showingname(), line, pos)
+
+
 _functions = {
     "len": _func_len,
     "find": _func_find,
@@ -1034,6 +1042,7 @@ _functions = {
     "coupontext": _func_coupontext,
     "findgossip": _func_findgossip,
     "gossiptext": _func_gossiptext,
+    "partyname": _func_partyname,
 }
 
 assert calculate(parse("--5")).value == 5
