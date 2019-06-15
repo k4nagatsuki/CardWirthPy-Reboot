@@ -947,6 +947,16 @@ def _func_casttype(args, is_differentscenario, line, pos):
         return DecimalValue(0, line, pos)
 
 
+def _func_castname(args, is_differentscenario, line, pos):
+    """キャラクター番号からキャラクターの名前を返す。"""
+    _chk_argscount(args, 1, "CASTNAME", line, pos)
+    ccard = _ccard_from(args[0], "CASTNAME")
+    if ccard:
+        return StringValue(ccard.get_showingname(), line, pos)
+    else:
+        return StringValue("", line, pos)
+
+
 def _func_findcoupon(args, is_differentscenario, line, pos):
     """キャラクター番号のキャラクターのクーポンを検索してクーポン番号を返す。"""
     _chk_argscount2(args, 2, 3, "FINDCOUPON", line, pos)
@@ -1038,6 +1048,7 @@ _functions = {
     "stepmax": _func_stepmax,
     "selected": _func_selected,
     "casttype": _func_casttype,
+    "castname": _func_castname,
     "findcoupon": _func_findcoupon,
     "coupontext": _func_coupontext,
     "findgossip": _func_findgossip,
