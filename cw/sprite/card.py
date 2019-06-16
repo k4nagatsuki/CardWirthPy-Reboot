@@ -1067,7 +1067,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.update_skin()
         self.deck.set(self, draw=False)
 
-        self._name = self.data.gettext("Property/Name", "")
+        self._name = self.mcarddata.gettext("Property/Name", "")
         if self.spchars:
             override_name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False, localvariables=False)[0]
         else:
