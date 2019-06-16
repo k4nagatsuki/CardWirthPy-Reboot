@@ -315,6 +315,7 @@ class MessageWindow(base.CWPySprite):
                 self.image.blit(self._back, area1.topleft, area2)
                 self.image.blit(self._fore, area1.topleft, area2)
                 size = area1.size
+                pos2 = area1.topleft
                 cw.cwpy.add_lazydraw(clip=pygame.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top), size))
             self.frame += 1
         else:
