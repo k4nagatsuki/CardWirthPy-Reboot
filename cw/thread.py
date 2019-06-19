@@ -2210,7 +2210,7 @@ class CWPy(_Singleton, threading.Thread):
         """タイトル画面へ遷移。"""
         del self.pre_dialogs[:]
         del self.pre_areaids[:]
-        if self.ydata.losted_sdata:
+        if self.ydata and self.ydata.losted_sdata:
             self.ydata.losted_sdata.end(failure=True)
             self.ydata.losted_sdata = None
             self.load_party(None, chgarea=False)
@@ -2237,7 +2237,7 @@ class CWPy(_Singleton, threading.Thread):
     def set_yado(self):
         """宿画面へ遷移。"""
         # ゲームオーバーしたパーティの破棄処理を行う
-        if self.ydata.losted_sdata:
+        if self.ydata and self.ydata.losted_sdata:
             self.ydata.party.lost()
             self.ydata.losted_sdata.end()
             self.ydata.losted_sdata = None
