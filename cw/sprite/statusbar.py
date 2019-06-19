@@ -1636,12 +1636,16 @@ class TouchMenuButton(StatusBarButton):
             copybtn = (None, cw.cwpy.msgs["copy_text"],
                        cw.cwpy.msgs["desc_copy_text"], "Ctrl+C",
                        copy_text, copybtn_enabled)
+
+            def has_instructions():
+                sdata = cw.cwpy.ydata.losted_sdata if cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata else cw.cwpy.sdata
+                return bool(sdata.instructions)
             instructionsbtn = (None, cw.cwpy.msgs["instructions"],
                                cw.cwpy.msgs["desc_instructions"], "F8",
-                               f8, lambda: cw.cwpy.is_playingscenario() and cw.cwpy.sdata.instructions)
+                               f8, has_instructions)
             f9btn = (None, cw.cwpy.msgs["f9"],
                      cw.cwpy.msgs["desc_f9"], "F9",
-                     f9, cw.cwpy.is_playingscenario)
+                     f9, cw.eventhandler.EventHandler.can_f9)
             dbgbtn = (None, cw.cwpy.msgs["toggle_debug_mode"],
                       cw.cwpy.msgs["desc_toggle_debug_mode"], "Ctrl+D",
                       debug_mode, lambda: True)

@@ -1052,7 +1052,8 @@ class Frame(wx.Frame):
 
     def OnINSTRUCTIONS(self, event):
         seq = []
-        for fpath in cw.cwpy.sdata.instructions:
+        sdata = cw.cwpy.ydata.losted_sdata if cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata else cw.cwpy.sdata
+        for fpath in sdata.instructions:
             with open(fpath, "rb") as f:
                 content = f.read()
                 f.close()
@@ -1078,6 +1079,9 @@ class Frame(wx.Frame):
                         cw.cwpy.exec_func(func)
                     raise cw.event.EffectBreakError()
 
+                if cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata:
+                    cw.cwpy.sdata = cw.cwpy.ydata.losted_sdata
+                    cw.cwpy.ydata.losted_sdata = None
                 cw.cwpy.sdata.in_f9 = True
                 if cw.cwpy.pre_dialogs:
                     cw.cwpy.pre_dialogs.pop()

@@ -584,12 +584,13 @@ class CWPy(_Singleton, threading.Thread):
             if self.ydata.party:
                 d["party"] = self.ydata.party.name
 
-        if self.status.startswith("Scenario"):
-            d["scenario"] = self.sdata.name
-            d["author"] = self.sdata.author
-            d["path"] = self.sdata.fpath
-            d["file"] = os.path.basename(self.sdata.fpath)
-            versionhint = self.sdata.get_versionhint()
+        if self.status.startswith("Scenario") or self.status == "GameOver":
+            sdata = self.ydata.losted_sdata if self.ydata and self.ydata.losted_sdata else self.sdata
+            d["scenario"] = sdata.name
+            d["author"] = sdata.author
+            d["path"] = sdata.fpath
+            d["file"] = os.path.basename(sdata.fpath)
+            versionhint = sdata.get_versionhint()
             d["compatibility"] = self.sct.to_basehint(versionhint)
 
         if with_datetime:
@@ -2209,6 +2210,10 @@ class CWPy(_Singleton, threading.Thread):
         """タイトル画面へ遷移。"""
         del self.pre_dialogs[:]
         del self.pre_areaids[:]
+        if self.ydata.losted_sdata:
+            self.ydata.losted_sdata.end(failure=True)
+            self.ydata.losted_sdata = None
+            self.load_party(None, chgarea=False)
         self.set_status("Title")
         self._init_attrs()
         self.update_titlebar()
@@ -2232,9 +2237,12 @@ class CWPy(_Singleton, threading.Thread):
     def set_yado(self):
         """宿画面へ遷移。"""
         # ゲームオーバーしたパーティの破棄処理を行う
-        if self.ydata.losted_party:
-            self.ydata.losted_party.lost2()
-            self.ydata.losted_party = None
+        if self.ydata.losted_sdata:
+            self.ydata.party.lost()
+            self.ydata.losted_sdata.end()
+            self.ydata.losted_sdata = None
+            self.load_party(None, chgarea=False)
+
         self.set_status("Yado")
         self.sdata.sleep_timekeeper()
         self.background.clear_background()
@@ -2430,8 +2438,6 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_gameover(self):
         """ゲームオーバー画面へ遷移。"""
-        self.sdata.in_endprocess = True
-
         self.advlog.gameover()
         self.sdata.sleep_timekeeper()
         self.hide_party()
@@ -2446,19 +2452,15 @@ class CWPy(_Singleton, threading.Thread):
         pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT))
         if self._need_disposition:
             self.disposition_pcards()
-        party = self.ydata.party
-        party.lost1()
+
         del self.sdata.friendcards[:]
         self.sdata.sleep_timekeeper()
-        self.sdata.end()
 
         self.stop_allsounds()
 
-        self.ydata.load_party(None)
-        self.ydata.losted_party = party
-        msglog = self.sdata.backlog
+        self.ydata.losted_sdata = self.sdata
         self.sdata = cw.data.SystemData()
-        self.sdata.backlog = msglog
+        self.sdata.backlog = self.ydata.losted_sdata.backlog
         self.update_titlebar()
         self.statusbar.change()
         self.change_area(1, nocheckvisible=True)
@@ -2509,8 +2511,8 @@ class CWPy(_Singleton, threading.Thread):
 
         self.sdata.in_endprocess = True
 
-        cw.cwpy.advlog.f9()
-        cw.cwpy.sdata.sleep_timekeeper()
+        self.advlog.f9()
+        self.sdata.sleep_timekeeper()
         self.sdata.is_playing = False
         self.statusbar.change(False)
         self.pre_dialogs = []
@@ -2775,7 +2777,10 @@ class CWPy(_Singleton, threading.Thread):
 
         def end_scenario():
             # シナリオを強制終了
-            if self.is_playingscenario():
+            if self.ydata and self.ydata.losted_sdata:
+                self.ydata.losted_sdata.end(failure=True)
+                self.ydata.losted_sdata = None
+            elif self.is_playingscenario():
                 self.sdata.end(failure=True)
             self.sdata.is_playing = False
 
@@ -3514,7 +3519,7 @@ class CWPy(_Singleton, threading.Thread):
             self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime, data=data,
                              nocheckvisible=nocheckvisible, silent=silent)
 
-        if not self.is_playingscenario() and not self.is_showparty:
+        if not self.is_playingscenario() and not self.is_showparty and self.status != "GameOver":
             # 宿にいる場合は常に全回復状態にする
             for pcard in self.get_pcards():
                 pcard.set_fullrecovery()
@@ -4432,7 +4437,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.cardgrp.remove(self.pcards)
             self.pcards = []
-            if loadsprites:
+            if loadsprites and self.ydata.party:
                 e = self.ydata.party.members[0]
                 pcardsnum = len(self.ydata.party.members) - 1
                 pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)

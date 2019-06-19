@@ -296,7 +296,9 @@ class MusicInterface(object):
         self.set_volume()
 
     def get_path(self, path, inusecard=False):
-        if inusecard:
+        if os.path.isabs(path):
+            return path
+        elif inusecard:
             path = cw.util.join_yadodir(path)
             self.inusecard = True
         else:

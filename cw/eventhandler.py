@@ -632,10 +632,11 @@ class EventHandler(object):
         """
         if not self.can_input_sys():
             return
-        if not cw.cwpy.is_playingscenario():
+        if not cw.cwpy.is_playingscenario() and not (cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata):
             return
         cw.fsync.sync()
-        if cw.cwpy.sdata.instructions:
+        sdata = cw.cwpy.ydata.losted_sdata if cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata else cw.cwpy.sdata
+        if sdata.instructions:
             cw.cwpy.call_modaldlg("INSTRUCTIONS")
         else:
             cw.cwpy.play_sound("error")
@@ -648,20 +649,25 @@ class EventHandler(object):
             return
         cw.fsync.sync()
 
-        if cw.cwpy.is_decompressing:
-            # アーカイブの展開をキャンセルする場合
+        if EventHandler.can_f9():
             cw.cwpy.has_inputevent = True
             cw.cwpy.play_sound("signal")
             cw.cwpy.call_modaldlg("F9")
 
-        elif cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_endprocess and not cw.cwpy.sdata.in_f9 and\
+    @staticmethod
+    def can_f9():
+        if cw.cwpy.is_decompressing:
+            # アーカイブの展開をキャンセルする場合
+            return True
+
+        # 開始済みのシナリオから離脱する場合
+        sdata = cw.cwpy.ydata.losted_sdata if cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata else cw.cwpy.sdata
+        is_playingscenario = cw.cwpy.is_playingscenario() or (cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata)
+        if is_playingscenario and not sdata.in_endprocess and not sdata.in_f9 and\
                 not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
             fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
             path = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party", fname)
-            if os.path.isfile(path):
-                cw.cwpy.has_inputevent = True
-                cw.cwpy.play_sound("signal")
-                cw.cwpy.call_modaldlg("F9")
+            return os.path.isfile(path)
 
     def returnkey_event(self):
         """

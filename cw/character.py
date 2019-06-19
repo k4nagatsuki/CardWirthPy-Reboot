@@ -3038,13 +3038,16 @@ class Player(Character):
         self.remove_timedcoupons()
         self.data.edit("Property", "True", "lost")
         self.data.write_xml()
-        if cw.cwpy.is_playingscenario():
+        if cw.cwpy.is_playingscenario() or cw.cwpy.ydata.losted_sdata:
             if self.data.fpath.lower().startswith("yado"):
                 fpath = cw.util.relpath(self.data.fpath, cw.cwpy.ydata.yadodir)
             else:
                 fpath = cw.util.relpath(self.data.fpath, cw.cwpy.ydata.tempdir)
             fpath = cw.util.join_paths(fpath)
-            cw.cwpy.sdata.lostadventurers.add(fpath)
+            if cw.cwpy.ydata.losted_sdata:
+                cw.cwpy.ydata.losted_sdata.lostadventurers.add(fpath)
+            else:
+                cw.cwpy.sdata.lostadventurers.add(fpath)
         if cw.cwpy.cardgrp.has(self):
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.pcards.remove(self)
