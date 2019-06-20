@@ -944,7 +944,9 @@ def write_castimagepath(name, paths, can_loaded_scaledimage):
     キャストの新しい画像を記憶し、記憶後のパスを返す。
     """
     seq = []
-    if not name:
+    if name:
+        name = cw.binary.util.check_filename(name.strip())
+    else:
         name = "noname"
     for info in paths:
         path = info.path
