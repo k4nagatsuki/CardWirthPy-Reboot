@@ -922,6 +922,9 @@ def create_albumpage(path, lost=False, nocoupon=False):
 
     # クーポン
     if not nocoupon:
+        s = "＿死亡"
+        ce = etree.make_element("Coupon", s, {"value": "0"})
+        etree.append("Property/Coupons", ce)
         if lost:
             s = cw.cwpy.msgs["lost_coupon_1"]
         else:
