@@ -1793,7 +1793,7 @@ class CardHolder(CardControl):
             # キャストの手札
             self._can_open_cardpocket = cw.cwpy.ydata.party and 0 < len(cw.cwpy.ydata.party.members)
             # 荷物袋
-            self._can_open_backpack = self._can_open_cardpocket and sendto
+            self._can_open_backpack = self._can_open_cardpocket and sendto and cw.cwpy.sdata.party_environment_backpack
             # カード置場
             self._can_open_storehouse = not cw.cwpy.is_playingscenario()
 
