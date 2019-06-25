@@ -59,7 +59,7 @@ class CWPyCard(base.SelectableSprite):
         mcardflag &= bool(not self.debug_only or cw.cwpy.is_debugmode())
         if mcardflag and self.command == "ShowDialog" and self.arg == "INFOVIEW":
             mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards())
-        elif mcardflag and self.command == "ShowDialog" and self.arg == "BACKPACK":
+        elif mcardflag and self.command in ("MoveCard", "ShowDialog") and self.arg == "BACKPACK":
             mcardflag &= cw.cwpy.sdata.party_environment_backpack
         return mcardflag
 
@@ -74,7 +74,7 @@ class CWPyCard(base.SelectableSprite):
             command = data.getattr(".", "command", "")
             if command == "ShowDialog" and data.getattr(".", "arg", "") == "INFOVIEW":
                 mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards())
-            elif command == "ShowDialog" and data.getattr(".", "arg", "") == "BACKPACK":
+            elif command in ("MoveCard", "ShowDialog") and data.getattr(".", "arg", "") == "BACKPACK":
                 mcardflag &= cw.cwpy.sdata.party_environment_backpack
         return mcardflag
 

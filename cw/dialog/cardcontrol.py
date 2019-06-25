@@ -1674,6 +1674,10 @@ class CardHolder(CardControl):
         self.callname = callname
         self.selection = None
 
+        if self.callname == "CARDPOCKETB" and not cw.cwpy.sdata.party_environment_backpack:
+            # 荷物袋から一時的に取り出してカードを使用した際に発火したイベントで荷物袋が禁止された
+            self.callname = "CARDPOCKET"
+
         # 移動先関係
         self._combo_storehouse = -1
         self._combo_backpack = -1

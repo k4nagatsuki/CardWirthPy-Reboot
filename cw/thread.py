@@ -1194,7 +1194,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.card_takenouttemporarily and not self.selectedheader and\
                 (not checkevent or not self.is_runningevent()) and not self.is_battlestatus():
             owner = self.card_takenouttemporarily.get_owner()
-            if owner and isinstance(owner, cw.character.Character):
+            if owner and isinstance(owner, cw.character.Character) and self.sdata.party_environment_backpack:
                 self.clear_inusecardimg(self.card_takenouttemporarily.get_owner())
                 cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None,
                               sound=False, call_predlg=False, sort=True)
@@ -3722,7 +3722,7 @@ class CWPy(_Singleton, threading.Thread):
                 # 特殊エリアのカードはデバッグモードによって
                 # 表示が切り替わる場合がある
                 for mcard in self.sdata.sparea_mcards[areaid]:
-                    if mcard.debug_only and not self.is_debugmode():
+                    if (mcard.debug_only and not self.is_debugmode()) or not mcard.is_flagtrue():
                         mcard.hide()
                     else:
                         mcard.deal()
