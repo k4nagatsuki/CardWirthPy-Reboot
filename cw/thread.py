@@ -1332,6 +1332,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def draw(self, mainloop=False, clip=None):
         self.stop_the_world_with_iconized()
+        if not (clip or self._lazy_draw):
+            return
 
         if self.has_inputevent or not mainloop or self._lazy_draw:
             # SpriteGroup描画
