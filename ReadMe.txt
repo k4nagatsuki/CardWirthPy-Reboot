@@ -238,6 +238,7 @@ CardWirthPy 4固有で将来修正される見込みのバグに対処したい�
  * ＠CardWirthPy Version.3.1
  * ＠CardWirthPy Version.3.2
  * ＠CardWirthPy Version.3.3
+ * ＠CardWirthPy Version.3.4
  * ＠CardWirthPy Version.4.0
 
 
