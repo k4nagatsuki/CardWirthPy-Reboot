@@ -1438,7 +1438,7 @@ class NamePage(AdventurerCreaterPage):
         font.SetUnderlined(True)
         dc.SetFont(font)
         s = cw.cwpy.msgs["entry_name"]
-        dc.DrawText(s, cw.wins(160), cw.wins(72))
+        dc.DrawText(s, cw.wins(160), cw.wins(70))
         # Sex
         s = cw.cwpy.msgs["entry_sex"]
         dc.DrawText(s, cw.wins(85), cw.wins(125))
@@ -3095,10 +3095,10 @@ class DesignPanel(AdventurerCreaterPage):
         dc.DrawText(s, (cwidth - w) // 2, cw.wins(15))
 
         if self.ch_imgdpath.IsShown():
-            y = cw.wins(40)
+            y = cw.wins(38)
             y2 = 111
         else:
-            y = cw.wins(45)
+            y = cw.wins(43)
             y2 = 111
 
         # Name
@@ -3109,9 +3109,9 @@ class DesignPanel(AdventurerCreaterPage):
         dc.DrawText(s, (cwidth - w) // 2, y)
         # Image
         if self.ch_imgdpath.IsShown():
-            y += cw.wins(54)
+            y += cw.wins(56)
         else:
-            y += cw.wins(49)
+            y += cw.wins(51)
         s = cw.cwpy.msgs["entry_image"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) // 2, y)
