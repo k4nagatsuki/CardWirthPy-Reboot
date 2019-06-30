@@ -1127,12 +1127,17 @@ class EnemyCard(CWPyCard, character.Enemy):
         if not self._init:
             return
         if self.spchars:
-            name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False, localvariables=False)[0]
-            if self.cardimg and self.cardimg.override_name != name:
-                self.cardimg.override_name = name
-                self.cardimg.set_nameimg(name)
-                if self.status != "hidden":
-                    self.update_image()
+            in_inusecardevent = cw.cwpy.event.in_inusecardevent
+            try:
+                cw.cwpy.event.in_inusecardevent = False
+                name = cw.sprite.message.rpl_specialstr(self._name, expandsharps=False, localvariables=False)[0]
+                if self.cardimg and self.cardimg.override_name != name:
+                    self.cardimg.override_name = name
+                    self.cardimg.set_nameimg(name)
+                    if self.status != "hidden":
+                        self.update_image()
+            finally:
+                cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
     def update(self, scr):
         if self.status != "hidden" and not self._init:

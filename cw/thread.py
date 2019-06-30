@@ -3299,9 +3299,9 @@ class CWPy(_Singleton, threading.Thread):
     def update_mcardnames(self):
         for mcard in self.mcards_expandspchars:
             if mcard.is_initialized():
-                name = mcard.name
+                name = mcard.get_showingname()
                 mcard.update_name()
-                if mcard.name != name:
+                if mcard.get_showingname() != name:
                     self.add_lazydraw(mcard.rect)
 
     def set_autospread(self, mcards, maxcol, campwithfriend=False, anime=False):
