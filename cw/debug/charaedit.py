@@ -574,7 +574,7 @@ class CharaInfo(object):
                 else:
                     etccoupons.append(("＠レベル上限", pcard.get_levelmax()))
 
-            desc_bef = pcard.get_description().rstrip()
+            desc_bef = pcard.get_description().rstrip("\n")
             desc_bef_d = cw.dialog.create.create_description(pcard.get_talent(), pcard.get_makings(), "")
             # desc_bef: 変更前の解説
             # desc_bef_d: 変更前のデフォルト解説（策士型　都会育ち…）
@@ -614,8 +614,8 @@ class CharaInfo(object):
                     if index != -1:
                         if newtypedesc == "":
                             # 余計な空行ができないようにする
-                            bfrstr = desc_aft[:index].rstrip()
-                            aftstr = desc_aft[index + len(typedesc):].lstrip()
+                            bfrstr = desc_aft[:index].rstrip("\n")
+                            aftstr = desc_aft[index + len(typedesc):].lstrip("\n")
                             if bfrstr and aftstr:
                                 desc_aft = bfrstr + "\n\n" + aftstr
                             else:
@@ -626,11 +626,11 @@ class CharaInfo(object):
                 else:
                     if newtypedesc:
                         if insertpos == -1:
-                            desc_aft = desc_aft.rstrip()
+                            desc_aft = desc_aft.rstrip("\n")
                             desc_aft += "\n\n" + newtypedesc
                         else:
-                            desc_aft = desc_aft[:insertpos].rstrip() + "\n\n" + newtypedesc + "\n\n" +\
-                                       desc_aft[insertpos:].lstrip()
+                            desc_aft = desc_aft[:insertpos].rstrip("\n") + "\n\n" + newtypedesc + "\n\n" +\
+                                       desc_aft[insertpos:].lstrip("\n")
 
             if desc_bfr != desc_aft:
                 pcard.set_description(desc_aft)
