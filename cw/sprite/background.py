@@ -1393,7 +1393,22 @@ class LifeBar(base.CWPySprite):
         self.image.fill((0, 0, 0, 0))
         self.image.blit(self.ccard.cardimg.lifeimg, cw.s((8, 110)))
         self.image = cw.image.zoomcard(self.image, self.ccard.scale / 100.0)
+        self._image = self.image
         self.rect = pygame.Rect(self.ccard.rect)
+        self._rect = pygame.Rect(self.rect)
+        if self.ccard.status == "click":
+            self.click()
+
+    def click(self):
+        size = (self._rect.w * 9 // 10, self._rect.h * 9 // 10)
+        self.image = pygame.transform.scale(self._image, size)
+        self.rect = pygame.Rect(self._rect)
+        self.rect.size = size
+        self.rect.center = self._rect.center
+
+    def declick(self):
+        self.image = self._image
+        self.rect = self._rect
 
 
 class TargetArrow(base.CWPySprite):

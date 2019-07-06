@@ -222,7 +222,14 @@ class CWPyCard(base.SelectableSprite):
         """
         クリック時のアニメーションを呼び出すメソッド。
         """
+        lifebars = cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_FRONT_LIFEBAR)
+        if lifebars and lifebars[0].ccard is self:
+            lifebar = lifebars[0]
+        else:
+            lifebar = None
         if self.frame == 0:
+            if lifebar:
+                lifebar.click()
             if self.reversed:
                 self.image = self.cardimg.get_clickedimg(self.get_animerect(), image=self.image).copy()
             else:
@@ -231,6 +238,8 @@ class CWPyCard(base.SelectableSprite):
             self.rect = self.image.get_rect(center=self.get_animerect().center)
             self.status = "click"
         elif self.frame == 3:
+            if lifebar:
+                lifebar.declick()
             self.status = self.old_status
             self.image = self.get_selectedimage()
             self.rect = pygame.Rect(self.get_animerect())
