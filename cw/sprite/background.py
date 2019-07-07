@@ -350,7 +350,9 @@ class BackGround(base.CWPySprite):
             path = cw.util.validate_filepath(e.gettext("ImagePath", ""))
             flag = e.gettext("Flag", "")
             cellname = e.getattr(".", "cellname", "")
-            if pos == (0, 0) and size == cw.SIZE_AREA and not mask and path and not cellname:
+            layer = e.getint("Layer", cw.LAYER_BACKGROUND)
+            if pos == (0, 0) and size == cw.SIZE_AREA and not mask and path and not cellname and\
+                    layer == cw.LAYER_BACKGROUND:
                 # 最初の1件がイメージセル・0,0,632,420のサイズ・マスクなし・パス名あり
                 # (ファイルが実在する必要はない)の時、内部的に背景は継承しない状態になる。
                 # CWはこの状態で冒険を中断して再開すると事前に描画されていた背景が消えるが、
