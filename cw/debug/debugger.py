@@ -656,8 +656,7 @@ class Debugger(wx.Frame):
 
     @synclock(mutex)
     def OnClose(self, event):
-        self.Hide()
-        cw.cwpy.frame.debugger2 = cw.cwpy.frame.debugger
+        self.Destroy()
         cw.cwpy.frame.debugger = None
         cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
 
@@ -666,7 +665,6 @@ class Debugger(wx.Frame):
         # デタッチしていたAuiToolBarをメインフレームにドッキングすると
         # Destroyイベントが呼ばれるようなので、それと区別
         if self and self.IsBeingDeleted():
-            cw.cwpy.frame.debugger2 = cw.cwpy.frame.debugger
             cw.cwpy.frame.debugger = None
 
     def OnBreakTool(self, event):

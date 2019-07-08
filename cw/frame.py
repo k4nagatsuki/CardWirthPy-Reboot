@@ -137,7 +137,6 @@ class Frame(wx.Frame):
 
         # debbuger
         self.debugger = None
-        self.debugger2 = None
         # アイコン
         self.set_icon(self)
         # bind
@@ -322,12 +321,7 @@ class Frame(wx.Frame):
     def show_debugger(self, refreshtree):
         """デバッガ開く。"""
         if cw.cwpy.is_debugmode() and not self.debugger:
-            # キー入力初期化
-            if self.debugger2:
-                dlg = self.debugger2
-                self.debugger2 = None
-            else:
-                dlg = cw.debug.debugger.Debugger(self)
+            dlg = cw.debug.debugger.Debugger(self)
             # メインフレームの真横に表示
             dlg.SetSize((cw.ppis(710), self.GetSize()[1]))
             w = dlg.GetSize()[0]
