@@ -945,6 +945,11 @@ class Converter(threading.Thread):
                     removelist.append(e)
             for e in removelist:
                 e_message.remove(e)
+            e_source = self.data.find("Property/SourceOfMaterialsIsClassicEngine")
+            if e_source is None:
+                e_source = cw.data.make_element("SourceOfMaterialsIsClassicEngine")
+                self.data.find("Property").append(e_source)
+            self.data.edit("Property/SourceOfMaterialsIsClassicEngine", str(True))
 
             self.data.fpath = cw.util.join_paths(dpath, "Skin.xml")
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Skin dataVersion="11">
+<Skin dataVersion="12">
   <Property>
     <Name></Name>
     <Type></Type>
@@ -8,6 +8,8 @@
     <Extension image=".bmp" bgm=".mid" sound=".wav" />
     <CW120VocationLevel>False</CW120VocationLevel>
     <InitialCash>4000</InitialCash>
+    <!-- 既存のクラシックエンジンからTable/Midi/Waveのリソースをそのまま持ってきている場合はTrue。 -->
+    <SourceOfMaterialsIsClassicEngine>False</SourceOfMaterialsIsClassicEngine>
     <!-- スキンのインストールに使用する情報。これらを指定した場合、該当するスキンをコピーしてから上被せする形でインストールが行われる。<Type>は省略可。 -->
     <!--BaseSkin>
       <Name></Name>

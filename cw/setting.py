@@ -1288,8 +1288,20 @@ class Setting(object):
                     shutil.copy2(fpath1, fpath2)
                 update = True
 
+            if skinversion <= 11:
+                # 学園バリアントに限り、BGMに`.mid`でない拡張子のファイルが含まれているので
+                # エディタのスキン付属リソース拡張子自動変換を支援するため、情報を付加する
+                if data.gettext("Property/Type", "") == "School":
+                    fpath = cw.util.join_paths(self.skindir, "Bgm/chime.mp3")
+                    if os.path.isfile(fpath):
+                        e_source = data.find("Property/SourceOfMaterialsIsClassicEngine")
+                        if e_source is None:
+                            e_source = cw.data.make_element("SourceOfMaterialsIsClassicEngine", str(True))
+                            data.find("Property").append(e_source)
+                            update = True
+
             if update:
-                data.edit(".", "10", "dataVersion")
+                data.edit(".", "12", "dataVersion")
                 data.write()
 
             return data
