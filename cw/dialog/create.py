@@ -2798,6 +2798,17 @@ class DesignPanel(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.namectrl.SetFont(font)
 
+        if cw.cwpy.setting.show_autobuttoninentrydialog:
+            dc = wx.ClientDC(self)
+            font = cw.cwpy.rsrc.get_wxfont("button", pixelsize=cw.wins(14))
+            dc.SetFont(font)
+            s = cw.cwpy.msgs["auto"]
+            tw = dc.GetTextExtent(s)[0] + 16
+            self.autoname = cw.cwpy.rsrc.create_wxbutton(self, -1, (tw, cw.wins(20)), s)
+            self.autoname.SetFont(font)
+        else:
+            self.autoname = None
+
         self.ch_imgdpath = wx.Choice(self, size=(cw.wins(140), -1))
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.ch_imgdpath.SetFont(font)
@@ -2921,10 +2932,15 @@ class DesignPanel(AdventurerCreaterPage):
 
     def OnShiftTab(self, event):
         fc = wx.Window.FindFocus()
-        if fc is self.descctrl:
+        if fc and fc is self.autoname:
+            self.namectrl.SetFocus()
+        elif fc is self.descctrl:
             self.SetFocusIgnoringChildren()
         elif fc is self:
-            self.namectrl.SetFocus()
+            if self.autoname:
+                self.autoname.SetFocus()
+            else:
+                self.namectrl.SetFocus()
         elif fc is self.ch_imgdpath:
             self.SetFocusIgnoringChildren()
         else:
@@ -2932,8 +2948,13 @@ class DesignPanel(AdventurerCreaterPage):
 
     def OnTab(self, event):
         fc = wx.Window.FindFocus()
-        if fc is self.namectrl:
+        if fc and fc is self.autoname:
             self.SetFocusIgnoringChildren()
+        elif fc is self.namectrl:
+            if self.autoname:
+                self.autoname.SetFocus()
+            else:
+                self.SetFocusIgnoringChildren()
         elif fc is self:
             self.descctrl.SetFocus()
         elif fc is self.ch_imgdpath:
@@ -2972,6 +2993,8 @@ class DesignPanel(AdventurerCreaterPage):
         self.namectrl.Bind(wx.EVT_TEXT, self.OnInputName)
         self.ch_imgdpath.Bind(wx.EVT_CHOICE, self.OnChoiceImgDPath)
         self.cb_centering.Bind(wx.EVT_CHECKBOX, self.OnCentering)
+        if self.autoname:
+            self.Bind(wx.EVT_BUTTON, self.OnAutoName, self.autoname)
 
     def OnMouseWheel(self, event):
         if cw.util.has_modalchild(self):
@@ -3019,6 +3042,15 @@ class DesignPanel(AdventurerCreaterPage):
         else:
             self.Parent.okbtn.Disable()
 
+    def OnAutoName(self, event):
+        if self.ccard.get_sex() not in cw.cwpy.setting.sexcoupons:
+            return
+        cw.cwpy.play_sound("signal")
+        sindex = cw.cwpy.setting.sexcoupons.index(self.ccard.get_sex())
+        randomname = get_randomname(cw.cwpy.setting.sexsubnames[sindex])
+        if randomname:
+            self.namectrl.SetValue(randomname)
+
     def OnChoiceImgDPath(self, event):
         index = self.ch_imgdpath.GetSelection()
         if index != self.imgdpath:
@@ -3050,13 +3082,20 @@ class DesignPanel(AdventurerCreaterPage):
         sizer_2.Add((self.cb_centering.GetSize()), 0, wx.RIGHT, space)
         sizer_2.Add(self.cb_centering, 0, 0, 0)
 
+        sizer_name = wx.BoxSizer(wx.HORIZONTAL)
+        if self.autoname:
+            sizer_name.Add((self.autoname.GetSize()[0], cw.wins(0)), 0, 0, 0)
+        sizer_name.Add(self.namectrl, 0, 0, 0)
+        if self.autoname:
+            sizer_name.Add(self.autoname, 0, 0, 0)
+
         if self.ch_imgdpath.IsShown():
-            sizer_1.Add(self.namectrl, 0, wx.TOP | wx.CENTER, cw.wins(57))
+            sizer_1.Add(sizer_name, 0, wx.TOP | wx.CENTER, cw.wins(57))
             sizer_1.Add(sizer_2, 0, wx.TOP | wx.CENTER, cw.wins(115))
             sizer_1.Add(self.ch_imgdpath, 0, wx.TOP | wx.CENTER, cw.wins(1))
             sizer_1.Add(self.descctrl, 0, wx.TOP | wx.CENTER, cw.wins(25))
         else:
-            sizer_1.Add(self.namectrl, 0, wx.TOP | wx.CENTER, cw.wins(62))
+            sizer_1.Add(sizer_name, 0, wx.TOP | wx.CENTER, cw.wins(62))
             sizer_1.Add(sizer_2, 0, wx.TOP | wx.CENTER, cw.wins(110))
             sizer_1.Add(self.descctrl, 0, wx.TOP | wx.CENTER, cw.wins(31))
 
