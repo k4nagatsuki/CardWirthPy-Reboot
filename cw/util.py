@@ -1987,11 +1987,9 @@ def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
             path = cw.util.join_paths(scedir, path)
             path = cw.cwpy.rsrc.get_filepath(path)
     else:
-        path2 = cw.cwpy.rsrc.get_filepath(path)
-        if not os.path.isfile(path2):
-            path2 = cw.util.join_paths(cw.cwpy.skindir, path2)
-        if os.path.isfile(path2):
-            return path2
+        path = cw.cwpy.rsrc.get_filepath(path)
+        if not os.path.isfile(path):
+            path = cw.util.join_paths(cw.cwpy.skindir, path)
     return get_materialpathfromskin(path, mtype, findskin=findskin)
 
 

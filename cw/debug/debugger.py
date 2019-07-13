@@ -1401,8 +1401,11 @@ class Debugger(wx.Frame):
                 path = ""
 
             def func(path):
-                fpath = cw.util.get_materialpath(path, cw.M_MSC, scedir=sdata.scedir, system=False,
-                                                 findskin=True)
+                if cw.cwpy.is_playingscenario() or cw.cwpy.ydata.losted_sdata:
+                    fpath = cw.util.get_materialpath(path, cw.M_MSC, scedir=sdata.scedir, system=False,
+                                                     findskin=True)
+                else:
+                    fpath = cw.util.get_materialpathfromskin(path, cw.M_MSC, findskin=True)
                 if fpath:
                     for music in cw.cwpy.music:
                         music.stop()
