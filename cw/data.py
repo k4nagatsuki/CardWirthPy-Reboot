@@ -1575,6 +1575,23 @@ class ScenarioData(SystemData):
         self.check_archiveupdated(False)
         self._reload()
 
+    def save_variables(self):
+        pass
+
+    def load_variables(self):
+        pass
+
+    def update_skin(self):
+        self._init_xmlpaths()
+        self._init_sparea_mcards()
+        self._init_debugger()
+
+        def func():
+            cw.cwpy.is_debuggerprocessing = False
+            if cw.cwpy.is_showingdebugger() and cw.cwpy.event:
+                cw.cwpy.event.refresh_tools()
+        cw.cwpy.frame.exec_func(func)
+
     def _reload(self):
         self.reload_variables()
 

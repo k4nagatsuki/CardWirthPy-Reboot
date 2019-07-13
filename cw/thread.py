@@ -472,7 +472,7 @@ class CWPy(_Singleton, threading.Thread):
             self.set_mcards(self.sdata.get_mcarddata(data=self.sdata.data), False, True, setautospread=True)
             self.deal_cards()
             if self.is_playingscenario():
-                self.background.reload(doanime=False, ttype=("None", "None"), redraw=False)
+                self.background.reload(doanime=False, ttype=("None", "None"), redraw=False, nocheckvisible=True)
             else:
                 self.background.load(self.sdata.get_bgdata(), False, ("None", "None"), redraw=False)
             if not self.is_playingscenario():
