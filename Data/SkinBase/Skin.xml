@@ -1,42 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Skin dataVersion="12">
   <Property>
+    <!-- スキンの名前。 -->
     <Name></Name>
+    <!-- スキンのタイプ。世界観に合わせて指定する。
+     * MedievalFantasy …… ファンタジーⅠ型
+     * Modern …… 現代バリアント
+     * Monsters …… 妖魔バリアント
+     * Oedo …… 大江戸バリアント
+     * School …… 学園バリアント
+     * ScienceFiction …… SFバリアント -->
     <Type></Type>
+    <!-- スキンの作者名。 -->
     <Author></Author>
+    <!-- スキンの説明。スキン選択欄に表示される。 -->
     <Description></Description>
+    <!-- スキン付属リソースの拡張子情報。現在未使用。 -->
     <Extension image=".bmp" bgm=".mid" sound=".wav" />
+    <!-- CardWirth 1.20から1.28で適性の基準が変化したが、その基準を1.20相当へ戻す場合はTrue。 -->
     <CW120VocationLevel>False</CW120VocationLevel>
+    <!-- 拠点に最初からある金額かつパーティを組んだ時に自動的に拠点から持ち出す金額。 -->
     <InitialCash>4000</InitialCash>
     <!-- 既存のクラシックエンジンからTable/Midi/Waveのリソースをそのまま持ってきている場合はTrue。 -->
     <SourceOfMaterialsIsClassicEngine>False</SourceOfMaterialsIsClassicEngine>
-    <!-- スキンのインストールに使用する情報。これらを指定した場合、該当するスキンをコピーしてから上被せする形でインストールが行われる。<Type>は省略可。 -->
+    <!-- スキンのインストールに使用する情報。これらを指定した場合、
+    該当するスキンをコピーしてから上被せする形でインストールが行われる。
+    <Type>は省略可。 -->
     <!--BaseSkin>
       <Name></Name>
       <Author></Author>
       <Type></Type>
     </BaseSkin-->
-    <!-- <VariablesKey>状態変数記憶のキー。状態変数の構成が異なるスキンと重複しない値にすること。</VariablesKey> -->
+    <!-- 状態変数記憶のキー。状態変数の構成が異なるスキンと重複しない値にすること。 -->
+    <VariablesKey/>
   </Property>
+  <!-- スキン付属の状態変数。値は拠点ごとに記憶される。 -->
+  <Flags/>
+  <Steps/>
+  <Variants/>
+  <!-- 種族。 -->
   <Races>
     <!-- Race>
       <Name>人間</Name>
       <Description>この世界の最も標準的な種族。\n何でもそつなくこなす反面、突出したところはない。\n環境への適応能力が高く、多彩な文化を持つ。</Description>
       <Feature>
+        <!- - automaton = 心を持たない constructure = 魔法生物 undead = 命を持たない unholy = 不浄な存在 - ->
         <Type automaton="False" constructure="False" undead="False" unholy="False" />
+        <!- - magic = 魔法が効かない weapon = 武器が効かない - ->
         <NoEffect magic="False" weapon="False" />
+        <!- - fire = 炎に耐性を持つ ice = 冷気に耐性を持つ - ->
         <Resist fire="False" ice="False" />
+        <!- - fire = 炎が弱点 ice = 冷気が弱点 - ->
         <Weakness fire="False" ice="False" />
       </Feature>
       <Ability>
+        <!- - dex = 器用度 agl = 敏捷性 int = 知力 = str = 筋力 vit = 生命力 min = 精神力 - ->
         <Physical dex="6" agl="6" int="6" str="6" vit="6" min="6" />
+        <!- - aggressive = 好戦性(マイナス値で平和性) cheerful = 社交性(内向性)
+             brave = 勇猛性(臆病性) cautious = 慎重性(大胆生) trickish = 狡猾性(正直性) - ->
         <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
+        <!- - avoid = 回避修正 resist = 抵抗修正 defense = 防御修正 - ->
         <Enhance avoid="0" resist="0" defense="0" />
       </Ability>
+      <!- - 種族が最初から持っているクーポン。 - ->
       <Coupons />
     </Race -->
   </Races>
+  <!-- 性別。 -->
   <Sexes>
+    <!-- father = 父親になれるか mother = 母親になれるか subName = 選択肢として表示される時の名前 -->
     <Sex father="True" mother="False" subName="Male">
       <Physical agl="0" dex="0" int="0" min="0" str="1" vit="0" />
       <Mental aggressive="0.5" brave="0.0" cautious="0.0" cheerful="0.0" trickish="0.0" />
@@ -48,7 +80,11 @@
       <Name>♀</Name>
     </Sex>
   </Sexes>
+  <!-- 年代。 -->
   <Periods>
+    <!-- abbr = Face内のフォルダ名で使用される略称 firstSelect = 選択肢表示時に最初から選択されているか
+         level = 初期レベル spendEP = 子供を作る時の消費EP(0で子供を作れない)
+         subName = 選択肢として表示される時の名前 -->
     <Period abbr="CHD" firstSelect="False" level="1" spendEP="0" subName="Child">
       <Physical agl="1" dex="1" int="0" min="0" str="-1" vit="-1" />
       <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.5" trickish="0.0" />
@@ -78,7 +114,9 @@
       </Coupons>
     </Period>
   </Periods>
+  <!-- 素質。 -->
   <Natures>
+    <!-- geneCount = 特殊型発生に必要となる遺伝子1数 genePattern = 初期遺伝子 levelMax = 最大レベル special = 特殊型か。 -->
     <Nature geneCount="0" genePattern="1000000000" levelMax="10" special="False">
       <Physical agl="0" dex="0" int="0" min="1" str="0" vit="0" />
       <Mental aggressive="-0.5" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
@@ -167,6 +205,7 @@
       <BaseNatures />
     </Nature>
   </Natures>
+  <!-- 特徴。連続する2件が組として扱われる。 -->
   <Makings>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="-1" />
@@ -409,6 +448,7 @@
       <Name>愛に生きる</Name>
     </Making>
   </Makings>
+  <!-- デバッグモードの簡易方式で作成されるキャラクターのタイプ。 -->
   <SampleTypes>
     <SampleType>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
@@ -441,6 +481,7 @@
       <Description>TYPE: メイジ\n標準的な魔法使いです。高い知力と精神力を持ちますが、筋力や生命力はありません。慎重ながら攻撃的、かつ狡猾です。各種魔法の行使、作戦立案や考察などが得意です。</Description>
     </SampleType>
   </SampleTypes>
+  <!-- シナリオ外で使用される効果音の定義。 -->
   <Sounds>
     <Sound key="error">システム・エラー</Sound>
     <Sound key="click">システム・クリック</Sound>
@@ -458,6 +499,7 @@
     <Sound key="bind">効果（呪縛）</Sound>
     <Sound key="screenshot">システム・スクリーンショット</Sound>
   </Sounds>
+  <!-- システム・ゲーム内メッセージの定義。 -->
   <Messages>
     <Message key="message">メッセージ</Message>
     <Message key="error_message">エラーメッセージ</Message>
@@ -841,5 +883,6 @@
     <Message key="delete_signboard">看板の削除</Message>
     <!-- 4.0 ここまで -->
   </Messages>
+  <!-- importantdrawing = ユーザの描画オプションを上書きするか importantfont = フォントオプションを上書きするか -->
   <Settings importantdrawing="False" importantfont="False" />
 </Skin>
