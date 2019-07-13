@@ -220,6 +220,8 @@ _argparser.add_argument("-skin", type=str, nargs=1, default="",
 _argparser.add_argument("--force-skin", type=str, nargs=1, default="", metavar="SKIN",
                         help="<SKIN>のパスにあるスキンで起動します。\n"
                              + "拠点のスキンや、-skinよりも優先されます。")
+_argparser.add_argument("--debug-skin", type=bool, nargs=0,
+                        help="スキンデバッグモードで起動します。")
 
 OPTIONS = _argparser.parse_args(sys.argv[1:])
 if OPTIONS.help:

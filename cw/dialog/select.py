@@ -1131,7 +1131,7 @@ class YadoSelect(MultiViewSelect):
                     dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
                     cw.cwpy.frame.move_dlg(dlg)
                     if dlg.ShowModal() == wx.ID_OK:
-                        self.update_list()
+                        self.update_list(path)
                     dlg.Destroy()
             finally:
                 cw.util.release_mutex()

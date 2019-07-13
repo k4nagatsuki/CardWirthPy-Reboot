@@ -996,6 +996,7 @@ class Setting(object):
         path = cw.util.join_paths(self.skindir, "Skin.xml")
         data = self._update_skin(path)
         err = self._check_skin()
+        self.skindata = data
         if err:
             dlg = wx.MessageDialog(None, err, "スキンチェックエラー", wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()

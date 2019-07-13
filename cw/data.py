@@ -112,8 +112,159 @@ class SystemData(object):
         if isinstance(cw.cwpy.sdata, ScenarioData):
             cw.cwpy.sdata.save_breakpoints()
 
+        # スキン状態変数の初期化
+        self.summary = cw.cwpy.setting.skindata
+        if self.summary.gettext("Property/VariablesKey", "") != "":
+            self._init_flags()
+            self._init_steps()
+            self._init_variants()
+        else:
+            self.flags = {}
+            self.steps = {}
+            self.variants = {}
+
         # refresh debugger
         self._init_debugger()
+
+    def _init_flags(self):
+        """
+        summary.xmlで定義されているフラグを初期化。
+        """
+        self.flags = init_flags(self.summary, False)
+
+    def _init_steps(self):
+        """
+        summary.xmlで定義されているステップを初期化。
+        """
+        self.steps = init_steps(self.summary, False)
+
+    def _init_variants(self):
+        """
+        summary.xmlで定義されているコモンを初期化。
+        """
+        self.variants = init_variants(self.summary, False)
+
+    def save_variables(self):
+        """宿ごとにスキンの状態変数値を記憶する。"""
+        if not cw.cwpy.ydata:
+            return
+
+        fpath = cw.util.join_yadodir("SkinVariables.xml")
+        if not os.path.isfile(fpath):
+            if not (self.flags or self.steps or self.variants):
+                return
+            cw.xmlcreater.create_skinvariables(fpath)
+
+        skins, _keytable = get_skinkeys()
+
+        data = yadoxml2etree(fpath)
+        key = self.summary.gettext("Property/VariablesKey", "")
+        e_vars = None
+        for e_vars2 in data.getfind(".")[:]:
+            if e_vars2.tag != "Variables":
+                continue
+            key2 = e_vars2.getattr(".", "key", "")
+            if key2 == key:
+                e_vars = e_vars2
+            if key2 not in skins:
+                # すでに存在しないスキンの状態変数の記録は除去しておく
+                data.remove(".", e_vars2)
+
+        if e_vars is None:
+            e_vars = cw.data.make_element("Variables", "", attrs={"key": key})
+            data.append(".", e_vars)
+
+        if self.flags or self.steps or self.variants:
+            attrs = e_vars.attrib.copy()
+            e_vars.clear()
+            for name, value in attrs.items():
+                e_vars.set(name, value)
+            if self.flags:
+                e_flag = cw.data.make_element("Flags")
+                e_vars.append(e_flag)
+
+                for name, flag in self.flags.items():
+                    e = cw.data.make_element("Flag", name, {"value": str(flag.value)})
+                    e_flag.append(e)
+            if self.steps:
+                e_step = cw.data.make_element("Steps")
+                e_vars.append(e_step)
+
+                for name, step in self.steps.items():
+                    e = cw.data.make_element("Step", name, {"value": str(step.value)})
+                    e_step.append(e)
+            if self.variants:
+                e_variant = cw.data.make_element("Variants")
+                e_vars.append(e_variant)
+
+                for name, variant in self.variants.items():
+                    e = cw.data.make_element("Variant", name, {"type": variant.type,
+                                                               "value": str(variant.value)})
+                    e_variant.append(e)
+        else:
+            data.remove(".", e_vars)
+            if len(data.getroot()) == 0:
+                # 記憶すべき状態変数値が無くなった
+                cw.cwpy.ydata.deletedpaths.add(data.fpath)
+                return
+        data.is_edited = True
+        data.write_xml()
+        cw.cwpy.ydata.deletedpaths.discard(data.fpath)
+
+    def load_variables(self):
+        """宿ごとの状態変数値をロードする。"""
+        if not cw.cwpy.ydata:
+            return
+        if not (self.flags or self.steps or self.variants):
+            return
+        fpath = cw.util.join_yadodir("SkinVariables.xml")
+        if not os.path.isfile(fpath):
+            return
+        data = yadoxml2etree(fpath)
+        key = self.summary.gettext("Property/VariablesKey", "")
+        for e_vars in data.getfind("."):
+            if e_vars.tag != "Variables":
+                return
+            key2 = e_vars.getattr(".", "key", "")
+            if key2 == key:
+                self._load_variables(e_vars)
+                break
+
+    def _load_variables(self, data):
+        for e in data.getfind("Flags", raiseerror=False):
+            if e.text in self.flags:
+                self.flags[e.text].value = e.getbool(".", "value")
+
+        for e in data.getfind("Steps", raiseerror=False):
+            if e.text in self.steps:
+                self.steps[e.text].value = e.getint(".", "value")
+
+        for e in data.getfind("Variants", raiseerror=False):
+            if e.text in self.variants:
+                type = e.getattr(".", "type")
+                value = e.getattr(".", "value", "")
+                value = Variant.value_from_str(type, value)
+                self.variants[e.text].value = value
+
+    def reset_variables(self):
+        """すべての状態変数を初期化する。"""
+        for e in self.summary.find("Steps"):
+            value = e.getint(".", "default")
+            name = e.gettext("Name", "")
+            self.steps[name].set(value)
+
+        for e in self.summary.getfind("Flags"):
+            value = e.getbool(".", "default")
+            name = e.gettext("Name", "")
+            self.flags[name].set(value)
+            self.flags[name].redraw_cards()
+
+        for e in self.summary.getfind("Variants", raiseerror=False):
+            type = e.getattr(".", "defaulttype")
+            value = e.getattr(".", "defaultvalue", "")
+            value = Variant.value_from_str(type, value)
+            name = e.gettext("Name", "")
+            self.variants[name].set(value)
 
     def _init_debugger(self):
         cw.cwpy.event.refresh_variablelist()
@@ -121,6 +272,25 @@ class SystemData(object):
     def update_skin(self):
         self._init_xmlpaths()
         self._init_sparea_mcards()
+
+        self.save_variables()
+        self.summary = cw.cwpy.setting.skindata
+        if self.summary.gettext("Property/VariablesKey", "") != "":
+            self._init_flags()
+            self._init_steps()
+            self._init_variants()
+            self.load_variables()
+        else:
+            self.flags = {}
+            self.steps = {}
+            self.variants = {}
+        self._init_debugger()
+
+        def func():
+            cw.cwpy.is_debuggerprocessing = False
+            if cw.cwpy.is_showingdebugger() and cw.cwpy.event:
+                cw.cwpy.event.refresh_tools()
+        cw.cwpy.frame.exec_func(func)
 
     def _init_xmlpaths(self, xmlonly=False):
         cw.fsync.sync()
@@ -661,6 +831,29 @@ class SystemData(object):
                 if redraw:
                     cw.cwpy.disposition_pcards()
 
+    def reload_variables(self):
+        flagvals = {}
+        stepvals = {}
+        variantvals = {}
+        for name, flag in list(self.flags.items()):
+            flagvals[name] = flag.value
+        for name, step in list(self.steps.items()):
+            stepvals[name] = step.value
+        for name, variant in list(self.variants.items()):
+            variantvals[name] = variant.value
+        self._init_flags()
+        self._init_steps()
+        self._init_variants()
+        for name, value in list(flagvals.items()):
+            if name in self.flags:
+                self.flags[name].set(value, updatedebugger=False)
+        for name, value in list(stepvals.items()):
+            if name in self.steps:
+                self.steps[name].set(value, updatedebugger=False)
+        for name, value in list(variantvals.items()):
+            if name in self.variants:
+                self.variants[name].set(value, updatedebugger=False)
+
     def get_currentareaname(self):
         """現在滞在中のエリアの名前を返す"""
         if cw.cwpy.is_battlestatus():
@@ -815,6 +1008,30 @@ class SystemData(object):
                 self._infocard_cache[resid] = header
                 headers.append(header)
         return headers
+
+
+def get_skinkeys():
+    """使用可能なスキンの一覧をVariablesKeyのsetで返す。"""
+    skins = set()
+    keytable = {}
+    for name in os.listdir("Data/Skin"):
+        path = cw.util.join_paths("Data/Skin", name)
+        skinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml")
+        if os.path.isdir(path) and os.path.isfile(skinpath):
+            try:
+                prop = cw.header.GetProperty(skinpath)
+                key = prop.properties.get("VariablesKey", "")
+                if key == "":
+                    continue
+                skinname = prop.properties.get("Name", "")
+                author = prop.properties.get("Author", "")
+                skins.add(key)
+                if (key not in keytable) or (skinname, author) < keytable[key]:
+                    keytable[key] = (skinname, author)
+            except Exception:
+                # エラーのあるスキンは無視
+                cw.util.print_ex()
+    return skins, keytable
 
 
 # ------------------------------------------------------------------------------
@@ -1341,32 +1558,12 @@ class ScenarioData(SystemData):
         self._reload()
 
     def _reload(self):
-        flagvals = {}
-        stepvals = {}
-        variantvals = {}
-        for name, flag in list(self.flags.items()):
-            flagvals[name] = flag.value
-        for name, step in list(self.steps.items()):
-            stepvals[name] = step.value
-        for name, variant in list(self.variants.items()):
-            variantvals[name] = variant.value
+        self.reload_variables()
+
         self.data_cache = {}
         self.resource_cache = {}
         self.resource_cache_size = 0
         self._init_xmlpaths()
-        self._init_flags()
-        self._init_steps()
-        self._init_variants()
-
-        for name, value in list(flagvals.items()):
-            if name in self.flags:
-                self.flags[name].set(value, updatedebugger=False)
-        for name, value in list(stepvals.items()):
-            if name in self.steps:
-                self.steps[name].set(value, updatedebugger=False)
-        for name, value in list(variantvals.items()):
-            if name in self.variants:
-                self.variants[name].set(value, updatedebugger=False)
 
         self._init_ignorecase_table()
         self._init_debugger()
@@ -1538,44 +1735,6 @@ class ScenarioData(SystemData):
 
         else:
             return False
-
-    def _init_flags(self):
-        """
-        summary.xmlで定義されているフラグを初期化。
-        """
-        self.flags = init_flags(self.summary, False)
-
-    def _init_steps(self):
-        """
-        summary.xmlで定義されているステップを初期化。
-        """
-        self.steps = init_steps(self.summary, False)
-
-    def _init_variants(self):
-        """
-        summary.xmlで定義されているコモンを初期化。
-        """
-        self.variants = init_variants(self.summary, False)
-
-    def reset_variables(self):
-        """すべての状態変数を初期化する。"""
-        for e in self.summary.find("Steps"):
-            value = e.getint(".", "default")
-            name = e.gettext("Name", "")
-            self.steps[name].set(value)
-
-        for e in self.summary.getfind("Flags"):
-            value = e.getbool(".", "default")
-            name = e.gettext("Name", "")
-            self.flags[name].set(value)
-            self.flags[name].redraw_cards()
-
-        for e in self.summary.getfind("Variants", raiseerror=False):
-            type = e.getattr(".", "defaulttype")
-            value = e.getattr(".", "defaultvalue", "")
-            value = Variant.value_from_str(type, value)
-            name = e.gettext("Name", "")
-            self.variants[name].set(value)
 
     def start(self):
         """
@@ -1778,20 +1937,7 @@ class ScenarioData(SystemData):
         self.party_environment_backpack = etree.gettext("Property/PartyEnvironment/Backpack", "Enable") != "Disable"
         cw.cwpy.statusbar.loading = True
 
-        for e in etree.getfind("Flags"):
-            if e.text in self.flags:
-                self.flags[e.text].value = e.getbool(".", "value")
-
-        for e in etree.getfind("Steps"):
-            if e.text in self.steps:
-                self.steps[e.text].value = e.getint(".", "value")
-
-        for e in etree.getfind("Variants", raiseerror=False):
-            if e.text in self.variants:
-                type = e.getattr(".", "type")
-                value = e.getattr(".", "value", "")
-                value = Variant.value_from_str(type, value)
-                self.variants[e.text].value = value
+        self._load_variables(etree)
 
         if not recording:
             for e in etree.getfind("Gossips"):
@@ -2915,6 +3061,8 @@ class YadoData(object):
 
     def save(self):
         """宿データをセーブする。"""
+        if isinstance(cw.cwpy.sdata, cw.data.SystemData):
+            cw.cwpy.sdata.save_variables()
         # カード置場の順序を記憶しておく
         cardorder = {}
         cardtable = {}
@@ -3517,15 +3665,22 @@ class YadoData(object):
         data = environment.find("SavedVariables")
         if data is None:
             return {}
+        return YadoData.get_savedvariables_from(data)
+
+    @staticmethod
+    def get_savedvariables_from(data, keymode="Scenario"):
         d = {}
         for e in data:
             if e.tag != "Variables":
                 continue
-            scenario = e.getattr(".", "scenario", "")
-            author = e.getattr(".", "author", "")
-            if not scenario and not author:
-                continue
-            key = (scenario, author)
+            if keymode == "Scenario":
+                scenario = e.getattr(".", "scenario", "")
+                author = e.getattr(".", "author", "")
+                if not scenario and not author:
+                    continue
+                key = (scenario, author)
+            elif keymode == "Key":
+                key = e.getattr(".", "key", "")
             flags = {}
             for e_flag in e.getfind("Flags", raiseerror=False):
                 name = e_flag.getattr(".", "name", "")

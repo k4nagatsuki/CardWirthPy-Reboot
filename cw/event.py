@@ -447,7 +447,8 @@ class EventInterface(object):
         if cur_content is not None and cur_content.tag == "ContentsLine":
             cur_content = cur_content[event.line_index]
 
-        if cw.cwpy.is_showingdebugger() and cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
+        if cw.cwpy.is_showingdebugger() and (cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin) and\
+                0 <= cw.cwpy.areaid:
             if not self.paused and cw.cwpy.sdata.breakpoints and cur_content.get_cwxpath() in cw.cwpy.sdata.breakpoints:
                 # ブレークポイント到達
                 self.paused = True
@@ -478,7 +479,7 @@ class EventInterface(object):
             raise EffectBreakError()
 
         if cw.cwpy.is_showingdebugger() and\
-                cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
+                (cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin) and 0 <= cw.cwpy.areaid:
             cnt = 0
 
             if self._step:

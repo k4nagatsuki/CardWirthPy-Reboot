@@ -124,6 +124,12 @@ def create_environment(name, dpath, skindirname, is_autoloadparty, imgpaths):
     return path
 
 
+def create_skinvariables(path):
+    """スキン(宿)の状態変数値を記憶するファイル"SkinVariables.xml"を生成する。"""
+    d = {"indent": ""}
+    _create_xml("SkinVariables", path, d)
+
+
 def copy_yadoimgpaths(yadodir, imgpaths):
     if not imgpaths:
         return

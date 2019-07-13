@@ -16,6 +16,7 @@
       <Author></Author>
       <Type></Type>
     </BaseSkin-->
+    <!-- <VariablesKey>状態変数記憶のキー。状態変数の構成が異なるスキンと重複しない値にすること。</VariablesKey> -->
   </Property>
   <Races>
     <!-- Race>

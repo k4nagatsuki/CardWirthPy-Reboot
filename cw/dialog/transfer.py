@@ -86,6 +86,29 @@ class TransferYadoDataDialog(wx.Dialog):
         self.datalist.DeleteAllItems()
 
         yadodir = self.yadodirs[self.index]
+        var_fpath = cw.util.join_paths(yadodir, "SkinVariables.xml")
+        if os.path.isfile(var_fpath):
+            var_data = cw.data.xml2element(var_fpath)
+            skin_vars = cw.data.YadoData.get_savedvariables_from(var_data, keymode="Key")
+            skins, keytable = cw.data.get_skinkeys()
+            keys = []
+            for key, (name, author) in keytable.items():
+                keys.append((name, author, key))
+            for name, author, key in cw.util.sorted_by_attr(keys):
+                if key not in skin_vars:
+                    continue
+                e = skin_vars[key][0]
+                self.datalist.InsertItem(i, "")
+                if author:
+                    s = "スキン「%s(%s)」の状態変数" % (name, author)
+                else:
+                    s = "スキン「%s」の状態変数" % (name)
+                self.datalist.SetItem(i, 1, s)
+                self.datalist.SetItemColumnImage(i, 1, self.imgidx_variables)
+                self.datalist.CheckItem(i, False)
+                self.data.append((key, e, True, name, author))
+                i += 1
+
         data = cw.data.xml2etree(cw.util.join_paths(yadodir, "Environment.xml"))
         bookmark = data.find("Bookmarks")
         if bookmark is not None:
@@ -163,7 +186,7 @@ class TransferYadoDataDialog(wx.Dialog):
             self.datalist.SetItem(i, 1, s)
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_variables)
             self.datalist.CheckItem(i, False)
-            self.data.append((key, header))
+            self.data.append((key, header, False))
             i += 1
 
         keys = list(savedjpdcimage.keys())
@@ -293,7 +316,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 # 保存されたJPDCイメージ
                 counter += 1
             elif isinstance(data, tuple) and data[1].tag == "Variables":
-                # 保存された状態変数
+                # 保存された状態変数(シナリオ・スキン)
                 counter += 1
             else:
                 assert False
@@ -322,6 +345,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 skindir = prop.properties.get("Skin", "")
                 self.fromscedir = _skindir_to_scedir(skindir)
                 self.environment = cw.data.xml2etree(cw.util.join_paths(toyado, "Environment.xml"))
+                self.skin_vars = None
                 self.saved_variables = cw.data.YadoData.get_savedvariables(self.environment)
                 self.toscedir = _skindir_to_scedir(self.environment.gettext("Property/Skin", ""))
                 self.imgpaths = {}
@@ -361,13 +385,20 @@ class TransferYadoDataDialog(wx.Dialog):
                                 name = "JPDC - %s(%s)" % (data.scenarioname, data.scenarioauthor)
                             else:
                                 name = "JPDC - %s" % (data.scenarioname)
-                        elif isinstance(data, tuple) and data[1].tag == "Variables":
+                        elif isinstance(data, tuple) and data[1].tag == "Variables" and not data[2]:
                             # 保存された状態変数
                             scenario, author = data[0]
                             if author:
                                 name = "状態変数 - %s(%s)" % (scenario, author)
                             else:
                                 name = "状態変数 - %s" % (scenario)
+                        elif isinstance(data, tuple) and data[1].tag == "Variables" and data[2]:
+                            # 保存されたスキンの状態変数
+                            scenario, author = data[3], data[4]
+                            if author:
+                                name = "スキン「%s(%s)」の状態変数" % (scenario, author)
+                            else:
+                                name = "スキン「%s」の状態変数" % (scenario)
                         else:
                             name = data.name
                         self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
@@ -404,9 +435,12 @@ class TransferYadoDataDialog(wx.Dialog):
                         elif isinstance(data, cw.header.SavedJPDCImageHeader):
                             # 保存されたJPDCイメージ
                             self.outer.transfer_savedjpdcimage(fromyado, toyado, data, yadodb, savedjpdcimage, self)
-                        elif isinstance(data, tuple) and data[1].tag == "Variables":
+                        elif isinstance(data, tuple) and data[1].tag == "Variables" and not data[2]:
                             # 保存された状態変数
                             self.outer.transfer_savedvariables(fromyado, toyado, data, yadodb, data, self)
+                        elif isinstance(data, tuple) and data[1].tag == "Variables" and data[2]:
+                            # 保存されたスキンの状態変数
+                            self.outer.transfer_skinvariables(fromyado, toyado, data, yadodb, data, self)
                         else:
                             assert False
 
@@ -426,6 +460,8 @@ class TransferYadoDataDialog(wx.Dialog):
 
                     if self.environment.is_edited:
                         self.environment.write()
+                    if self.skin_vars and self.skin_vars[0].is_edited:
+                        self.skin_vars[0].write()
                 finally:
                     yadodb.close()
 
@@ -761,7 +797,7 @@ class TransferYadoDataDialog(wx.Dialog):
     def transfer_savedvariables(self, fromyado, toyado, header, yadodb, d, counter):
         # 保存された状態変数の転送
         # 転送先に同じシナリオの状態変数がある場合は上書きする
-        key, e = d
+        key, e, _type = d
         data = counter.environment.find("SavedVariables")
         if key in counter.saved_variables:
             e_target = counter.saved_variables[key][0]
@@ -777,6 +813,32 @@ class TransferYadoDataDialog(wx.Dialog):
         for e_vars in e:
             e_target.append(e_vars)
         counter.environment.is_edited = True
+
+        counter.num += 1
+
+    def transfer_skinvariables(self, fromyado, toyado, header, yadodb, d, counter):
+        # 保存されたスキンの状態変数の転送
+        # 転送先に同じスキンの状態変数がある場合は上書きする
+        key, e, _type, _name, _author = d
+        if counter.skin_vars is None:
+            var_fpath = cw.util.join_paths(toyado, "SkinVariables.xml")
+            if not os.path.isfile(var_fpath):
+                cw.xmlcreater.create_skinvariables(var_fpath)
+            e_vars = cw.data.xml2element(var_fpath)
+            data = cw.data.xml2etree(element=e_vars)
+            counter.skin_vars = (data, cw.data.YadoData.get_savedvariables_from(e_vars, keymode="Key"))
+        data, vars = counter.skin_vars
+
+        if key in vars:
+            e_target = vars[key][0]
+            e_target.clear()
+        else:
+            e_target = cw.data.make_element("Variables")
+            data.append(".", e_target)
+        e_target.set("key", key)
+        for e_vars in e:
+            e_target.append(e_vars)
+        data.is_edited = True
 
         counter.num += 1
 

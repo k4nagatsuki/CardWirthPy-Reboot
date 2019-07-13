@@ -2216,6 +2216,8 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.losted_sdata.end(failure=True)
             self.ydata.losted_sdata = None
             self.load_party(None, chgarea=False)
+        if isinstance(self.sdata, cw.data.SystemData):
+            self.sdata.save_variables()
         self.set_status("Title")
         self._init_attrs()
         self.update_titlebar()
@@ -2251,6 +2253,7 @@ class CWPy(_Singleton, threading.Thread):
         msglog = self.sdata.backlog
         debuglog = self.sdata.debuglog
         self.sdata = cw.data.SystemData()
+        self.sdata.load_variables()
         self.sdata.backlog = msglog
         self.sdata.debuglog = debuglog
         self.sdata.notice_debuglog = 1
@@ -2329,6 +2332,8 @@ class CWPy(_Singleton, threading.Thread):
                 if self.is_showingdebugger() and self.event:
                     self.event.refresh_variablelist()
             try:
+                if isinstance(self.sdata, cw.data.SystemData):
+                    self.sdata.save_variables()
                 self.sdata = cw.data.ScenarioData(header)
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata.changed()
@@ -2462,6 +2467,8 @@ class CWPy(_Singleton, threading.Thread):
 
         self.ydata.losted_sdata = self.sdata
         self.sdata = cw.data.SystemData()
+        if isinstance(self.sdata, cw.data.SystemData):
+            self.sdata.load_variables()
         self.sdata.backlog = self.ydata.losted_sdata.backlog
         self.update_titlebar()
         self.statusbar.change()
@@ -2853,6 +2860,8 @@ class CWPy(_Singleton, threading.Thread):
         self.yadodir = yadodir.replace("\\", "/")
         self.tempdir = self.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, "Yado"), 1)
         self.stop_allsounds()
+        if self.ydata and isinstance(self.sdata, cw.data.SystemData):
+            self.sdata.save_variables()
         self.ydata = cw.data.YadoData(self.yadodir, self.tempdir)
         self.setting.lastyado = yadodirname
         self.setting.insert_yadoorder(yadodirname)

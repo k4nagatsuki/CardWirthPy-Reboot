@@ -674,22 +674,27 @@ class Debugger(wx.Frame):
             cw.cwpy.exec_func(func)
 
     def OnUpdateTool(self, event):
-        if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
+        if not cw.cwpy.is_runningevent():
             cw.cwpy.is_debuggerprocessing = True
             self.refresh_tools()
 
             def func():
+                if cw.cwpy.is_runningevent():
+                    return
                 cw.cwpy.play_sound("click")
                 try:
-                    cw.cwpy.sdata.reload()
-                    if 0 <= cw.cwpy.areaid and not cw.cwpy.selectedheader:
-                        # キャンプ等
-                        cw.cwpy.change_area(cw.cwpy.areaid, False, True)
+                    if cw.cwpy.is_playingscenario():
+                        cw.cwpy.sdata.reload()
+                        if 0 <= cw.cwpy.areaid and not cw.cwpy.selectedheader:
+                            # キャンプ等
+                            cw.cwpy.change_area(cw.cwpy.areaid, False, True)
 
-                    if cw.cwpy.battle:
-                        # バトル中
-                        cw.cwpy.battle.ready()
-                        cw.cwpy.battle.round -= 1
+                        if cw.cwpy.battle:
+                            # バトル中
+                            cw.cwpy.battle.ready()
+                            cw.cwpy.battle.round -= 1
+                    else:
+                        cw.cwpy.update_skin(os.path.basename(cw.cwpy.skindir), restartop=False, switch_skin=True)
                     cw.cwpy.play_sound("signal")
                 except cw.event.EffectBreakError:
                     pass
@@ -1300,7 +1305,7 @@ class Debugger(wx.Frame):
                 dlg.Destroy()
 
     def OnSelectionTool(self, event):
-        if cw.cwpy.is_playingscenario() and cw.cwpy.is_runningevent():
+        if self.view_tree.enable_eventview() and cw.cwpy.is_runningevent():
             ccards = cw.cwpy.get_pcards()
             ccards.extend(cw.cwpy.get_ecards())
             ccards.extend(cw.cwpy.get_fcards())
@@ -1327,7 +1332,7 @@ class Debugger(wx.Frame):
 
     def OnSelectedCardTool(self, event):
         def func(self):
-            if not (cw.cwpy.is_playingscenario() and cw.cwpy.is_runningevent()):
+            if not (self.view_tree.enable_eventview() and cw.cwpy.is_runningevent()):
                 return
 
             ccards = [("荷物袋", cw.cwpy.ydata.party.backpack[:])]
@@ -1354,7 +1359,7 @@ class Debugger(wx.Frame):
                     header = dlg.get_selectedcard()
 
                     def func(header):
-                        if cw.cwpy.is_playingscenario() and cw.cwpy.is_runningevent():
+                        if self.view_tree.enable_eventview() and cw.cwpy.is_runningevent():
                             cw.cwpy.event.set_selectedcard(header)
                     cw.cwpy.exec_func(func, header)
                 dlg.Destroy()
@@ -1520,7 +1525,7 @@ class Debugger(wx.Frame):
 
     def OnStopTool(self, event):
         cw.cwpy.event._step = False
-        if cw.cwpy.is_playingscenario() and cw.cwpy.is_runningevent():
+        if self.view_tree.enable_eventview() and cw.cwpy.is_runningevent():
             # メッセージウィンドウ表示中の場合で処理を分ける
             if cw.cwpy.is_showingmessage():
                 mwin = cw.cwpy.get_messagewindow()
@@ -1553,7 +1558,7 @@ class Debugger(wx.Frame):
         self.view_tree.switch_breakpoint()
 
     def refresh_breakpointtool(self):
-        enable = bool(self.view_tree.selectionitem)
+        enable = bool(self.view_tree.selectionitem and cw.cwpy.is_playingscenario())
         if cw.cwpy.frame.debugger.mi_breakpoint.IsEnabled() != enable:
             cw.cwpy.frame.debugger.mi_breakpoint.Enable(enable)
             cw.cwpy.frame.debugger.tl_breakpoint.Enable(enable)
@@ -1793,6 +1798,8 @@ class Debugger(wx.Frame):
                         enabled[self.mi_member.GetId()] = (self.mi_member, self.tl_member, True)
                         enabled[self.mi_coupon.GetId()] = (self.mi_coupon, self.tl_coupon, True)
                     enabled[self.mi_loadyado.GetId()] = (self.mi_loadyado, self.tl_loadyado, True)
+                    enabled[self.mi_initvars.GetId()] = ((self.mi_initvars, self.view_var.mi_initvars),
+                                                         self.tl_initvars, True)
 
                 if is_playingscenario:
                     enabled[self.mi_pause.GetId()] = (self.mi_pause, self.tl_pause, True)
@@ -1819,20 +1826,21 @@ class Debugger(wx.Frame):
                             enabled[self.mi_round.GetId()] = (self.mi_round, self.tl_round, True)
 
                         if not battle or not battle_is_running:
-                            enabled[self.mi_update.GetId()] = (self.mi_update, self.tl_update, True)
                             enabled[self.mi_battle.GetId()] = (self.mi_battle, self.tl_battle, True)
                             enabled[self.mi_pack.GetId()] = (self.mi_pack, self.tl_pack, True)
                             enabled[self.mi_friend.GetId()] = (self.mi_friend, self.tl_friend, True)
                             enabled[self.mi_info.GetId()] = (self.mi_info, self.tl_info, True)
                             enabled[self.mi_area.GetId()] = (self.mi_area, self.tl_area, True)
                             enabled[self.mi_startevent.GetId()] = (self.mi_startevent, self.tl_startevent, True)
-                    enabled[self.mi_initvars.GetId()] = ((self.mi_initvars, self.view_var.mi_initvars),
-                                                         self.tl_initvars, True)
 
                 else:
                     enabled[self.mi_pause.GetId()] = (self.mi_pause, self.tl_pause, True)
                     if in_gameover:
                         enabled[self.mi_editor.GetId()] = (self.mi_editor, self.tl_editor, True)
+
+                if (not battle or not battle_is_running) and not is_runningevent and\
+                        (is_playingscenario or cw.OPTIONS.debug_skin):
+                    enabled[self.mi_update.GetId()] = (self.mi_update, self.tl_update, True)
 
                 step = bool((event_paused or
                              (event_step and is_showingmessage)) and
@@ -1841,7 +1849,7 @@ class Debugger(wx.Frame):
                 enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, step)
                 enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, step)
 
-                if self.view_tree.selectionitem:
+                if self.view_tree.selectionitem and is_playingscenario:
                     enabled[self.mi_breakpoint.GetId()] = (self.mi_breakpoint, self.tl_breakpoint, True)
 
                 if breakpoints or cw.cwpy.breakpoint_table:
@@ -1882,7 +1890,7 @@ class Debugger(wx.Frame):
         enabled[self.mi_showparty.GetId()] = (self.mi_showparty, self.tl_showparty, False)
         enabled[self.mi_hideparty.GetId()] = (self.mi_hideparty, self.tl_hideparty, False)
 
-        if cw.cwpy.is_playingscenario():
+        if self.view_tree.enable_eventview():
             if cw.cwpy.is_runningevent():
                 if cw.cwpy.is_showparty:
                     enabled[self.mi_hideparty.GetId()] = (self.mi_hideparty, self.tl_hideparty, True)
@@ -1940,8 +1948,6 @@ class VariableListCtrl(wx.ListCtrl):
 
     def init_variables(self):
         def func():
-            if not cw.cwpy.is_playingscenario():
-                return
             update = False
             for var, local, editable in self.list:
                 if editable and var.value != var.defaultvalue:
@@ -2073,25 +2079,18 @@ class VariableListCtrl(wx.ListCtrl):
                 cw.util.sort_by_attr(seq, "name")
                 vlist.extend(map(lambda a: (a, local, editable), seq))
 
-            if cw.cwpy.is_playingscenario():
-                if event:
-                    extend(event, True, editable)
+            if event:
+                extend(event, True, editable)
+            if cw.cwpy.ydata:
                 extend(cw.cwpy.sdata, False, True)
 
-                def func(self, vlist):
-                    if self:
-                        if self.list != vlist:
-                            self.list = vlist
-                            self.SetItemCount(len(vlist))
-                        self.Refresh()
-                cw.cwpy.frame.exec_func(func, self, vlist)
-            else:
-                def func(self):
-                    if self:
-                        self.list = []
-                        self.SetItemCount(0)
-                        self.Refresh()
-                cw.cwpy.frame.exec_func(func, self)
+            def func(self, vlist):
+                if self:
+                    if self.list != vlist:
+                        self.list = vlist
+                        self.SetItemCount(len(vlist))
+                    self.Refresh()
+            cw.cwpy.frame.exec_func(func, self, vlist)
 
         cw.cwpy.exec_func(func, self, event)
 
@@ -2320,6 +2319,9 @@ class EventView(wx.ScrolledWindow):
             if last == item:
                 break
 
+    def enable_eventview(self):
+        return cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin
+
     def get_item(self, pos):
         index = self.get_index(pos)
         if index == -1:
@@ -2353,6 +2355,8 @@ class EventView(wx.ScrolledWindow):
             cw.cwpy.frame.debugger.refresh_breakpointtool()
 
     def switch_breakpoint(self, item=None):
+        if not cw.cwpy.is_playingscenario():
+            return
         if item is None:
             item = self.selectionitem
         if not item:
@@ -2523,7 +2527,7 @@ class EventView(wx.ScrolledWindow):
 
         def func(self):
             nowrunning = cw.cwpy.event.get_nowrunningevent()
-            if not cw.cwpy.is_playingscenario() or cw.cwpy.areaid < 0:
+            if not self.enable_eventview() or cw.cwpy.areaid < 0:
                 nowrunning = None
 
             trees = nowrunning.trees if nowrunning is not None else None
@@ -2760,6 +2764,9 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
             evt, cur_content = item
             self.Parent.view_tree.set_event(evt, selection=cur_content)
 
+    def enable_eventview(self):
+        return cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin
+
     def refresh_stackinfo(self):
         assert cw.cwpy != threading.currentThread()
 
@@ -2787,15 +2794,15 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                     self.list.append((nowrunning, cur_content))
                     self._has_curcontent = True
 
-            nowrunning = cw.cwpy.event.get_nowrunningevent() if cw.cwpy.is_playingscenario() else None
-            event = cw.cwpy.event.get_event() if cw.cwpy.is_playingscenario() else None
+            nowrunning = cw.cwpy.event.get_nowrunningevent() if self.enable_eventview() else None
+            event = cw.cwpy.event.get_event() if self.enable_eventview() else None
             if event:
                 e = event.cur_content
                 if e is not None and e.tag == "ContentsLine":
                     e = e[event.line_index]
             else:
                 e = None
-            stackinfo = cw.cwpy.event.stackinfo[:cw.cwpy.event.stackinfo_len] if cw.cwpy.is_playingscenario() else []
+            stackinfo = cw.cwpy.event.stackinfo[:cw.cwpy.event.stackinfo_len] if self.enable_eventview() else []
             cw.cwpy.frame.exec_func(func, self, nowrunning, e, stackinfo)
         cw.cwpy.exec_func(func, self)
 
@@ -2876,7 +2883,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         assert threading.currentThread() is cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
-        if not cw.cwpy.is_playingscenario():
+        if not self.enable_eventview():
             return
 
         def func(self, item):
@@ -2898,7 +2905,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
 
     def pop_stackinfo_cwpy(self):
         assert threading.currentThread() is cw.cwpy
-        if not cw.cwpy.is_playingscenario():
+        if not self.enable_eventview():
             return
 
         def func(self):
@@ -2916,7 +2923,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
 
     def replace_stackinfo_cwpy(self, index, item):
         assert threading.currentThread() is cw.cwpy
-        if not cw.cwpy.is_playingscenario():
+        if not self.enable_eventview():
             return
 
         def func(self, index, item):
@@ -2945,7 +2952,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         assert cw.cwpy != threading.currentThread()
         if cur_content is None:
             return
-        if not cw.cwpy.is_playingscenario():
+        if not self.enable_eventview():
             return
         name, icon = self._get_info(cur_content)
         if self._has_curcontent:
