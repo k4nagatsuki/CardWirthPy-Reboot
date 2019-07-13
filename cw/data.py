@@ -177,6 +177,8 @@ class SystemData(object):
             if key2 not in skins:
                 # すでに存在しないスキンの状態変数の記録は除去しておく
                 data.remove(".", e_vars2)
+                if e_vars is e_vars2:
+                    e_vars = None
 
         if e_vars is None:
             e_vars = cw.data.make_element("Variables", "", attrs={"key": key})
