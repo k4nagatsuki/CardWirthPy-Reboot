@@ -123,6 +123,14 @@ class SystemData(object):
             self.steps = {}
             self.variants = {}
 
+        # 各段階の互換性マーク(SystemDataでは全てNone)
+        self.versionhint = [
+            None,  # メッセージ表示時の話者(キャストまたはカード)
+            None,  # 使用中のカード
+            None,  # エリア・バトル・パッケージ
+            None,  # シナリオ本体
+        ]
+
         # refresh debugger
         self._init_debugger()
 
@@ -303,9 +311,13 @@ class SystemData(object):
         self._skills.clear()
         self._beasts.clear()
         dpaths = (cw.util.join_paths(cw.cwpy.skindir, "Resource/Xml", cw.cwpy.status),
-                  cw.util.join_paths("Data/SkinBase/Resource/Xml", cw.cwpy.status))
+                  cw.util.join_paths("Data/SkinBase/Resource/Xml", cw.cwpy.status),
+                  cw.util.join_paths(cw.cwpy.skindir, "Resource/Xml/Package"),
+                  "Data/SkinBase/Resource/Xml/Package")
 
         for dpath in dpaths:
+            if not os.path.isdir(dpath):
+                continue
             for fname in os.listdir(dpath):
                 path = cw.util.join_paths(dpath, fname)
 
@@ -313,8 +325,12 @@ class SystemData(object):
                     e = xml2element(path, "Property")
                     resid = e.getint("Id")
                     name = e.gettext("Name")
-                    if resid not in self._areas:
-                        self._areas[resid] = (name, path)
+                    if os.path.basename(dpath) == "Package":
+                        if resid not in self._packs:
+                            self._packs[resid] = (name, path)
+                    else:
+                        if resid not in self._areas:
+                            self._areas[resid] = (name, path)
 
     def update_scenariopath(self, normpath, dst, dstisfile):
         if not self.fpath:
