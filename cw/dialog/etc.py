@@ -441,14 +441,18 @@ class BookmarkDialog(wx.Dialog):
         for i, t in enumerate(cw.cwpy.ydata.bookmarks):
             bookmark, bookmarkpath = t
             if bookmark:
-                if bookmarkpath:
-                    path = bookmarkpath
-                    p = os.path.basename(path)
-                else:
-                    path = scedir
-                    for p in bookmark:
-                        path = cw.util.join_paths(path, p)
-                        path = cw.util.get_linktarget(path)
+                path = self.Parent.scedir
+                for p in bookmark:
+                    if p.startswith("/"):
+                        path = bookmarkpath
+                        p = os.path.basename(path)
+                        break
+                    path = cw.util.join_paths(path, p)
+                    if not os.path.exists(path):
+                        path = bookmarkpath
+                        p = os.path.basename(path)
+                        break
+                    path = cw.util.get_linktarget(path)
             else:
                 path = bookmarkpath
                 p = os.path.basename(path)
