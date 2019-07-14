@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import time
 import itertools
 import threading
@@ -60,10 +61,78 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imgidx_partyrecord = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["SELECTION"])
         self.imgidx_savedjpdcimage = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["JPDCIMAGE"])
         self.imgidx_variables = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["VARIABLES"])
+        if sys.platform == "linux":
+            self.imgidx_bookmark_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.dialogs["BOOKMARK"]))
+            self.imgidx_party_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["MEMBER"]))
+            self.imgidx_standby_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_CAST"]))
+            self.imgidx_skill_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_SKILL"]))
+            self.imgidx_item_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_ITEM"]))
+            self.imgidx_beast_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_BEAST"]))
+            self.imgidx_gossip_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_GOSSIP"]))
+            self.imgidx_completestamp_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_COMPLETESTAMP"]))
+            self.imgidx_money_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["MONEY"]))
+            self.imgidx_album_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["CARD"]))
+            self.imgidx_partyrecord_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["SELECTION"]))
+            self.imgidx_savedjpdcimage_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["JPDCIMAGE"]))
+            self.imgidx_variables_nc =\
+                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["VARIABLES"]))
+        else:
+            self.imgidx_bookmark_nc = self.imgidx_bookmark
+            self.imgidx_party_nc = self.imgidx_party
+            self.imgidx_standby_nc = self.imgidx_standby
+            self.imgidx_skill_nc = self.imgidx_skill
+            self.imgidx_item_nc = self.imgidx_item
+            self.imgidx_beast_nc = self.imgidx_beast
+            self.imgidx_gossip_nc = self.imgidx_gossip
+            self.imgidx_completestamp_nc = self.imgidx_completestamp
+            self.imgidx_money_nc = self.imgidx_money
+            self.imgidx_album_nc = self.imgidx_album
+            self.imgidx_partyrecord_nc = self.imgidx_partyrecord
+            self.imgidx_savedjpdcimage_nc = self.imgidx_savedjpdcimage
+            self.imgidx_variables_nc = self.imgidx_variables
+
+        self.imgidx_table_c = {
+            self.imgidx_bookmark_nc: self.imgidx_bookmark,
+            self.imgidx_party_nc: self.imgidx_party,
+            self.imgidx_standby_nc: self.imgidx_standby,
+            self.imgidx_skill_nc: self.imgidx_skill,
+            self.imgidx_item_nc: self.imgidx_item,
+            self.imgidx_beast_nc: self.imgidx_beast,
+            self.imgidx_gossip_nc: self.imgidx_gossip,
+            self.imgidx_completestamp_nc: self.imgidx_completestamp,
+            self.imgidx_money_nc: self.imgidx_money,
+            self.imgidx_album_nc: self.imgidx_album,
+            self.imgidx_partyrecord_nc: self.imgidx_partyrecord,
+            self.imgidx_savedjpdcimage_nc: self.imgidx_savedjpdcimage,
+            self.imgidx_variables_nc: self.imgidx_variables
+        }
+        self.imgidx_table_nc = {}
+        for key, value in self.imgidx_table_c.items():
+            self.imgidx_table_nc[value] = key
 
         def func(index, flag):
             self.datalist.DefaultOnCheckItem(index, flag)
             self._enable_btn()
+            # wxGTKでチェックボックスが表示できないので
+            # イメージをモノクロ→カラーにする事でチェックを表現する
+            if sys.platform == "linux":
+                imgidx = self.datalist.GetItem(index, 1).GetImage()
+                if flag and imgidx in self.imgidx_table_c:
+                    self.datalist.SetItemColumnImage(index, 1, self.imgidx_table_c[imgidx])
+                elif (not flag) and imgidx in self.imgidx_table_nc:
+                    self.datalist.SetItemColumnImage(index, 1, self.imgidx_table_nc[imgidx])
         self.datalist.OnCheckItem = func
 
         self.datalist.InsertItem(0, "", 0)
@@ -104,7 +173,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 else:
                     s = "スキン「%s」の状態変数" % (name)
                 self.datalist.SetItem(i, 1, s)
-                self.datalist.SetItemColumnImage(i, 1, self.imgidx_variables)
+                self.datalist.SetItemColumnImage(i, 1, self.imgidx_variables_nc)
                 self.datalist.CheckItem(i, False)
                 self.data.append((key, e, True, name, author))
                 i += 1
@@ -114,7 +183,7 @@ class TransferYadoDataDialog(wx.Dialog):
         if bookmark is not None:
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["bookmark"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_bookmark)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_bookmark_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(bookmark)
             i += 1
@@ -123,7 +192,7 @@ class TransferYadoDataDialog(wx.Dialog):
         if cashbox:
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["currency"] % (cashbox))
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_money)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_money_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(cashbox)
             i += 1
@@ -132,7 +201,7 @@ class TransferYadoDataDialog(wx.Dialog):
         if gossips is not None and len(gossips):
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["gossip"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_gossip)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_gossip_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(gossips)
             i += 1
@@ -141,7 +210,7 @@ class TransferYadoDataDialog(wx.Dialog):
         if completestamp is not None and len(completestamp):
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["complete_stamp"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_completestamp)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_completestamp_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(completestamp)
             i += 1
@@ -162,7 +231,7 @@ class TransferYadoDataDialog(wx.Dialog):
         if album:
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["album"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_album)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_album_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(album)
             i += 1
@@ -170,7 +239,7 @@ class TransferYadoDataDialog(wx.Dialog):
         if partyrecord:
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 1, cw.cwpy.msgs["select_party_record"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_partyrecord)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_partyrecord_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(partyrecord)
             i += 1
@@ -184,7 +253,7 @@ class TransferYadoDataDialog(wx.Dialog):
             else:
                 s = "状態変数 - %s" % (key[0])
             self.datalist.SetItem(i, 1, s)
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_variables)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_variables_nc)
             self.datalist.CheckItem(i, False)
             self.data.append((key, header, False))
             i += 1
@@ -198,27 +267,27 @@ class TransferYadoDataDialog(wx.Dialog):
             else:
                 s = "JPDC - %s" % (header.scenarioname)
             self.datalist.SetItem(i, 1, s)
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_savedjpdcimage)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_savedjpdcimage_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(header)
             i += 1
 
         for header in itertools.chain(parties, standbys, cards):
             if isinstance(header, cw.header.PartyHeader):
-                image = self.imgidx_party
+                image = self.imgidx_party_nc
                 for member in header.members:
                     partymembers.add(member)
             elif isinstance(header, cw.header.AdventurerHeader):
                 if os.path.splitext(os.path.basename(header.fpath))[0] in partymembers:
                     continue
-                image = self.imgidx_standby
+                image = self.imgidx_standby_nc
             elif isinstance(header, cw.header.CardHeader):
                 if header.type == "SkillCard":
-                    image = self.imgidx_skill
+                    image = self.imgidx_skill_nc
                 elif header.type == "ItemCard":
-                    image = self.imgidx_item
+                    image = self.imgidx_item_nc
                 elif header.type == "BeastCard":
-                    image = self.imgidx_beast
+                    image = self.imgidx_beast_nc
                 else:
                     assert False
             else:
