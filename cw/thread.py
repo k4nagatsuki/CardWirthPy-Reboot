@@ -2216,6 +2216,8 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.losted_sdata.end(failure=True)
             self.ydata.losted_sdata = None
             self.load_party(None, chgarea=False)
+        elif self.ydata and self.ydata.party:
+            self.load_party(None, chgarea=False)
         if isinstance(self.sdata, cw.data.SystemData):
             self.sdata.save_variables()
         self.set_status("Title")

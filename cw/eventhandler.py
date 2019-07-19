@@ -455,7 +455,21 @@ class EventHandler(object):
 
             # スキン固有のエリアにいる時
             elif cw.cwpy.status == "Yado" and cw.SKIN_AREAS_MIN <= cw.cwpy.areaid <= cw.SKIN_AREAS_MAX:
-                cw.cwpy.play_sound("error")
+                act = cw.cwpy.sdata.data.gettext("Property/BackgroundAction", "")
+                if act == "ReturnTitle":
+                    cw.cwpy.play_sound("click")
+                    cw.cwpy.call_modaldlg("RETURNTITLE")
+                elif act == "ReturnSystemArea":
+                    cw.cwpy.play_sound("click")
+                    if cw.cwpy.ydata.party:
+                        cw.cwpy.change_area(2)
+                    else:
+                        cw.cwpy.change_area(1)
+                elif act == "Close":
+                    cw.cwpy.play_sound("click")
+                    cw.cwpy.call_modaldlg("CLOSE")
+                else:
+                    cw.cwpy.play_sound("error")
                 return
 
             # パーティの宿滞在時、冒険の中断
