@@ -2191,6 +2191,19 @@ class ChangeAreaContent(EventContentBase):
             return 0
 
         resid = self.data.getint(".", "id", 0)
+
+        if cw.cwpy.status == "Yado" and\
+                not (cw.SKIN_AREAS_MIN <= resid <= cw.SKIN_AREAS_MAX) and not (resid in (1, 2, 3)):
+            def func():
+                s = "スキン固有エリアのIDは%s-%sの間で設定してください(指定されたID=%s)。"
+                s = s % (cw.SKIN_AREAS_MIN, cw.SKIN_AREAS_MAX, resid)
+                dlg = cw.dialog.message.ErrorMessage(cw.cwpy.frame, s)
+                cw.cwpy.frame.move_dlg(dlg)
+                ret = dlg.ShowModal()
+                dlg.Destroy()
+            cw.cwpy.frame.exec_func(func)
+            return
+
         ttype = self.get_transitiontype()
         name = cw.cwpy.sdata.get_areaname(resid)
 

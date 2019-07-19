@@ -1411,12 +1411,20 @@ class Frame(wx.Frame):
         if cw.cwpy.areaid in cw.AREAS_TRADE:
             return cw.cwpy.areaid
         elif cw.cwpy.status == "Yado":
-            def func(areaid):
-                cw.cwpy.change_specialarea(areaid)
-                cw.cwpy.statusbar.change()
-            areaid = -cw.cwpy.areaid
-            cw.cwpy.exec_func(func, areaid)
-            return areaid
+            if cw.SKIN_AREAS_MIN <= cw.cwpy.areaid <= cw.SKIN_AREAS_MAX:
+                def func(areaid):
+                    cw.cwpy.change_specialarea(areaid)
+                    cw.cwpy.statusbar.change()
+                areaid = cw.AREA_TRADE2 if cw.cwpy.ydata.party else cw.AREA_TRADE1
+                cw.cwpy.exec_func(func, areaid)
+                return areaid
+            else:
+                def func(areaid):
+                    cw.cwpy.change_specialarea(areaid)
+                    cw.cwpy.statusbar.change()
+                areaid = -cw.cwpy.areaid
+                cw.cwpy.exec_func(func, areaid)
+                return areaid
         elif cw.cwpy.is_playingscenario() and cw.cwpy.areaid == cw.AREA_CAMP:
             def func():
                 cw.cwpy.change_specialarea(cw.AREA_TRADE3)

@@ -453,6 +453,11 @@ class EventHandler(object):
                     cw.cwpy.change_specialarea(-4)
                 return
 
+            # スキン固有のエリアにいる時
+            elif cw.cwpy.status == "Yado" and cw.SKIN_AREAS_MIN <= cw.cwpy.areaid <= cw.SKIN_AREAS_MAX:
+                cw.cwpy.play_sound("error")
+                return
+
             # パーティの宿滞在時、冒険の中断
             elif cw.cwpy.status == "Yado" and not cw.cwpy.is_dealing():
                 cw.cwpy.has_inputevent = True
