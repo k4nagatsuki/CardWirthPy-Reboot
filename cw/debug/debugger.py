@@ -1401,7 +1401,7 @@ class Debugger(wx.Frame):
                 path = ""
 
             def func(path):
-                if cw.cwpy.is_playingscenario() or cw.cwpy.ydata.losted_sdata:
+                if cw.cwpy.is_playingscenario() or (cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata):
                     fpath = cw.util.get_materialpath(path, cw.M_MSC, scedir=sdata.scedir, system=False,
                                                      findskin=True)
                 else:
