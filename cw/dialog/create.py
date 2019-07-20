@@ -525,7 +525,8 @@ class AdventurerCreater(wx.Dialog):
                             return
                         else:
                             break
-        fc.Navigate(wx.NavigationKeyEvent.IsBackward)
+        if fc:
+            fc.Navigate(wx.NavigationKeyEvent.IsBackward)
 
     def _init_pages(self):
         self.page1 = NamePage(self)
@@ -3028,7 +3029,7 @@ class DesignPanel(AdventurerCreaterPage):
                 self.ref_image.SetFocus()
             else:
                 self.SetFocusIgnoringChildren()
-        else:
+        elif fc:
             fc.Navigate(wx.NavigationKeyEvent.IsBackward)
 
     def OnTab(self, event):
@@ -3063,7 +3064,7 @@ class DesignPanel(AdventurerCreaterPage):
                 self.descctrl.SetFocus()
         elif fc is self.cb_centering:
             self.descctrl.SetFocus()
-        else:
+        elif fc:
             fc.Navigate(wx.NavigationKeyEvent.IsForward)
 
     def OnCtrlLeftKeyDown(self, event):
@@ -3187,8 +3188,8 @@ class DesignPanel(AdventurerCreaterPage):
             self.descctrl.SetPosition(((cs[0]-self.descctrl.GetSize()[0])//2, cw.wins(254)))
         else:
             self.namectrl.SetPosition(((cs[0]-self.namectrl.GetSize()[0])//2, cw.wins(62)))
-            self.ch_imgdpath.SetPosition(((cs[0]-self.ch_imgdpath.GetSize()[0])//2, cw.wins(201)))
-            self.descctrl.SetPosition(((cs[0]-self.descctrl.GetSize()[0])//2, cw.wins(254)))
+            self.ch_imgdpath.SetPosition(((cs[0]-self.ch_imgdpath.GetSize()[0])//2, cw.wins(206)))
+            self.descctrl.SetPosition(((cs[0]-self.descctrl.GetSize()[0])//2, cw.wins(239)))
 
         cpos = self.ch_imgdpath.GetPosition()
         cs = self.ch_imgdpath.GetSize()
