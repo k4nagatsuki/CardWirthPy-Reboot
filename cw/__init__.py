@@ -109,7 +109,7 @@ AREA_BREAKUP = -3                # パーティ解散エリア
 AREA_CAMP = -4                   # キャンプエリア
 
 AREAS_TITLE = (1,)  # タイトル画面のエリア
-AREAS_YADO = (-3, -2, -1, 1, 2, 3)  # 宿のエリア
+AREAS_YADO = (-3, -2, -1, 1, 2, 3, 4)  # 宿のエリア
 
 # スキン固有エリアのID上下限
 SKIN_AREAS_MIN = 10001
