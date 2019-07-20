@@ -3196,7 +3196,12 @@ class DesignPanel(AdventurerCreaterPage):
         rs = self.ref_image.GetSize()
         self.ref_image.SetPosition((cpos[0]+cs[0]-rs[0], cpos[1]-rs[1]-cw.wins(1)))
 
-        self.cb_centering.SetPosition((cpos[0]+cs[0]+cw.wins(2), cpos[1]-cw.wins(5)))
+        if self.ch_imgdpath.IsShown():
+            self.cb_centering.SetPosition((cpos[0]+cs[0]+cw.wins(2),
+                                           cpos[1]-self.cb_centering.GetSize()[1]//2-cw.wins(1)))
+        else:
+            rp = self.ref_image.GetPosition()
+            self.cb_centering.SetPosition((rp[0]+rs[0]+cw.wins(2), (rp[1]+(rs[1]-self.cb_centering.GetSize()[1])//2)))
 
         if self.autoname:
             np = self.namectrl.GetPosition()
