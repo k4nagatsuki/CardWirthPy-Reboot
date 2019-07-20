@@ -811,6 +811,8 @@ class CharaRequirementPanel(wx.Panel):
                                             size=cw.ppis(cw.SIZE_CARDIMAGE),
                                             ss=cw.ppis)
         self.imgcombo = wx.ComboBox(self, -1, size=(cw.ppis(125), -1), style=wx.CB_READONLY)
+        self.ref_image = cw.dialog.create.create_refimage(self, "外部イメージの選択...", True, self._put_image,
+                                                          setsize=False)
         self.imgcentering = wx.CheckBox(self, -1, "中央寄せ")
         self.imgpathlist = []
 
@@ -874,7 +876,10 @@ class CharaRequirementPanel(wx.Panel):
         sizer_image.AddStretchSpacer(1)
         sizer_image.Add(self.img, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER, cw.ppis(5))
         sizer_image.AddStretchSpacer(1)
-        sizer_image.Add(self.imgcombo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND | wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_image2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_image2.Add(self.imgcombo, 0, wx.ALIGN_CENTER, 0)
+        sizer_image2.Add(self.ref_image, 0, wx.ALIGN_CENTER | wx.LEFT, cw.ppis(2))
+        sizer_image.Add(sizer_image2, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND | wx.ALIGN_CENTER, cw.ppis(5))
         sizer_image.Add(self.imgcentering, 0, wx.BOTTOM | wx.ALIGN_RIGHT, cw.ppis(5))
 
         sizer_level = wx.StaticBoxSizer(self.lvlbox, wx.VERTICAL)
@@ -1002,6 +1007,9 @@ class CharaRequirementPanel(wx.Panel):
 
     def OnImgBoxDropFiles(self, event):
         files = event.GetFiles()
+        self._put_image(files)
+
+    def _put_image(self, files):
         seq = []
         for fpath in files:
             ext = os.path.splitext(fpath)[1].lower()
@@ -1056,7 +1064,7 @@ class CharaRequirementPanel(wx.Panel):
         # 使用可能なイメージの一覧を取得
         drops = []
         for drop in self._dropfiles:
-            key = ("/drop_files", "<ドロップされたイメージ> %s" % (os.path.basename(drop)), drop)
+            key = ("/drop_files", "<外部ファイル> %s" % (os.path.basename(drop)), drop)
             drops.append(key)
         for info in infos:
             for dpaths, paths in cw.util.get_facepaths(info.sex, info.age).items():

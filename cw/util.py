@@ -3974,7 +3974,7 @@ def get_boxpointlist(pos, size):
 
 
 def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, getbasedir=None, callback=None,
-                         winsize=False):
+                         winsize=False, multiple=False):
     """ファイルまたはディレクトリを選択する
     ダイアログを表示するボタンを生成する。
     parent: ボタンの親パネル。
@@ -4009,18 +4009,30 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
         else:
             dpath = os.path.dirname(fpath)
             fpath = os.path.basename(fpath)
-            dlg = wx.FileDialog(parent.TopLevelParent, message, dpath, fpath, wildcard, wx.FD_OPEN)
+            flags = wx.FD_OPEN
+            if multiple:
+                flags |= wx.FD_MULTIPLE
+            dlg = wx.FileDialog(parent.TopLevelParent, message, dpath, fpath, wildcard, flags)
             if dlg.ShowModal() == wx.ID_OK:
-                fpath = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
-                if getbasedir:
-                    base = getbasedir()
-                    fpath2 = cw.util.relpath(fpath, base)
-                    if not fpath2.startswith(".." + os.path.sep):
-                        fpath = fpath2
-                if target is not None:
-                    target.SetValue(fpath)
+                files = dlg.GetFilenames()
+                seq = []
+                fnames = ""
+                for fname in files:
+                    fpath = os.path.join(dlg.GetDirectory(), fname)
+                    if getbasedir:
+                        base = getbasedir()
+                        fpath2 = cw.util.relpath(fpath, base)
+                        if not fpath2.startswith(".." + os.path.sep):
+                            fpath = fpath2
+                    if target is not None:
+                        if fnames != "":
+                            fnames += "; "
+                        fnames += fpath
+                    seq.append(fpath)
                 if callback:
-                    callback(fpath)
+                    callback(seq if multiple else seq[0])
+                if target is not None:
+                    target.SetValue(fnames)
             dlg.Destroy()
 
     if winsize:
