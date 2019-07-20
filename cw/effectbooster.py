@@ -592,7 +592,7 @@ class _JpySubImage(cw.image.Image):
                 else:
                     image = cw.s(cw.util.load_image(path, False, isback=True,
                                                     can_loaded_scaledimage=can_loaded_scaledimage,
-                                                    use_excache=True))
+                                                    use_excache=cw.cwpy.background.use_excache))
 
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:
@@ -1066,6 +1066,7 @@ class JpdcImage(cw.image.Image):
                             try:
                                 with open(cachepath, "rb") as f:
                                     ex_cache[i] = f.read()
+                                cw.util.remove(cachepath)
                             except IOError:
                                 cw.util.print_ex()
                     cw.cwpy.sdata.ex_cache[npath] = tuple(ex_cache)
