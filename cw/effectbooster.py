@@ -1066,7 +1066,7 @@ class JpdcImage(cw.image.Image):
                             try:
                                 with open(cachepath, "rb") as f:
                                     ex_cache[i] = f.read()
-                                if cw.util.is_descendant(cachepath, cw.tempdir):
+                                if cw.util.is_descendant(cachepath, temppath):
                                     cw.util.remove(cachepath)
                             except IOError:
                                 cw.util.print_ex()
