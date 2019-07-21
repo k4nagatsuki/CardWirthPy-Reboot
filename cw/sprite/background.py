@@ -315,8 +315,10 @@ class BackGround(base.CWPySprite):
         self._bgs = list(oldbgs)
         self._elements = elements
 
-        cw.cwpy.file_updates_bg = False
-        self.use_excache = False
+        if not cw.cwpy.update_scaling:
+            cw.cwpy.file_updates_bg = False
+            self.use_excache = False
+            self.pc_cache.clear()
         self.reload_jpdcimage = True
 
         animated = False
@@ -688,9 +690,10 @@ class BackGround(base.CWPySprite):
         oldbgs = list(self.bgs)
         bgs = []
 
-        if not movedata:
+        if not cw.cwpy.update_scaling:
             cw.cwpy.file_updates_bg = False
             self.use_excache = False
+            self.pc_cache.clear()
         self.reload_jpdcimage = True
 
         animated = False
@@ -984,19 +987,8 @@ class BackGround(base.CWPySprite):
             if pcnumber in self.pc_cache:
                 paths, can_loaded_scaledimage = self.pc_cache[pcnumber]
             else:
-                paths = []
-                can_loaded_scaledimage = False
-                pcards = cw.cwpy.ydata.party.members
                 pi = pcnumber - 1
-                if 0 <= pi and pi < len(pcards):
-                    can_loaded_scaledimage = pcards[pi].getbool(".", "scaledimage", False)
-                    for info2 in cw.image.get_imageinfos(pcards[pi].find("Property")):
-                        path = info2.path
-                        if path:
-                            path = cw.util.join_yadodir(path)
-                            if path:
-                                paths.append((path, info2))
-                self.pc_cache[pcnumber] = (paths, can_loaded_scaledimage)
+                paths, can_loaded_scaledimage = self.put_pccache(pi)
 
             if expand:
                 image = pygame.Surface(cw.s(cw.SIZE_CARDIMAGE)).convert_alpha()
@@ -1049,6 +1041,21 @@ class BackGround(base.CWPySprite):
             bgs.append((BG_PC, d))
             oldbgs.append((BG_PC, d))
         return visible
+
+    def put_pccache(self, pi):
+        pcards = cw.cwpy.ydata.party.members
+        paths = []
+        can_loaded_scaledimage = False
+        if 0 <= pi and pi < len(pcards):
+            can_loaded_scaledimage = pcards[pi].getbool(".", "scaledimage", False)
+            for info2 in cw.image.get_imageinfos(pcards[pi].find("Property")):
+                path = info2.path
+                if path:
+                    path = cw.util.join_yadodir(path)
+                    if path:
+                        paths.append((path, info2))
+        self.pc_cache[pi+1] = (paths, can_loaded_scaledimage)
+        return paths, can_loaded_scaledimage
 
     def _load_after(self, bginhrt, blitlist, doanime, animated, ttype, oldbgs, redraw, redisplay):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)

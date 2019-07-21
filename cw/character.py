@@ -2580,6 +2580,12 @@ class Character(object):
                 cw.cwpy.ydata.changed()
             self._vanished = True
             if isinstance(self, cw.character.Player):
+                if not cw.cwpy.background.pc_cache:
+                    # 描画スケール変更などで表示中のPCイメージセルに更新を伴わない
+                    # 再描画が必要になった時のためにPCイメージを記憶しておく
+                    for pi in range(len(cw.cwpy.ydata.party.members)):
+                        cw.cwpy.background.put_pccache(pi)
+
                 if self.inusecardimg and self.inusecardimg.header:
                     # 使用中のカードはイベント終了時に
                     # 使用回数が減らなくなるのでここで減らしておく
