@@ -81,6 +81,10 @@ class BackGround(base.CWPySprite):
                     self._reload(doanime=doanime, ttype=ttype, redraw=True, force=False)
                 if self.curtained:
                     self.set_curtain(curtain_all=self.curtain_all)
+                # 内部状態の復元
+                self._bgs = bgs
+                self._elements = elements
+                self._ttype = ttype
             cw.cwpy.exec_func(func)
         else:
             self.image.fill((0, 0, 0))
