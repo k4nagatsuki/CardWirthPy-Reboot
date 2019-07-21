@@ -461,13 +461,25 @@ class EventHandler(object):
                     cw.cwpy.call_modaldlg("RETURNTITLE")
                 elif act == "ReturnSystemArea":
                     cw.cwpy.play_sound("click")
+                    e_ba = cw.cwpy.sdata.data.find("Property/BackgroundAction")
+                    assert e_ba is not None
+                    ttype = cw.content.EventContentBase.get_transitiontype_static(e_ba)
                     if cw.cwpy.ydata.party:
-                        cw.cwpy.change_area(2)
+                        cw.cwpy.change_area(2, ttype=ttype)
                     else:
-                        cw.cwpy.change_area(1)
+                        cw.cwpy.change_area(1, ttype=ttype)
                 elif act == "Close":
                     cw.cwpy.play_sound("click")
                     cw.cwpy.call_modaldlg("CLOSE")
+                elif act == "ChangeArea":
+                    resid = cw.cwpy.sdata.data.getint("Property/BackgroundAction", "id", 0)
+                    if resid and cw.content.check_areaid(resid) and cw.cwpy.sdata.get_areaname(resid) is not None:
+                        e_ba = cw.cwpy.sdata.data.find("Property/BackgroundAction")
+                        assert e_ba is not None
+                        ttype = cw.content.EventContentBase.get_transitiontype_static(e_ba)
+                        cw.cwpy.change_area(resid, ttype=ttype)
+                        return
+                    cw.cwpy.play_sound("error")
                 else:
                     cw.cwpy.play_sound("error")
                 return

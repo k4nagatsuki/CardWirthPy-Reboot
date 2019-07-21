@@ -62,21 +62,28 @@ class EventContentBase(object):
                 return len(elements)
         return 0
 
-    def get_transitiontype(self):
+    @staticmethod
+    def get_transitiontype_static(data):
         """トランジション効果のデータのタプル((効果名, 速度))を返す。
         ChangeBgImage, ChangeArea, Redisplayコンテント参照。
         """
-        tname = self.data.get("transition", "Default")
+        tname = data.get("transition", "Default")
         if tname == "Default":
             tspeed = "Default"
         else:
-            tspeed = self.data.get("transitionspeed", "Default")
+            tspeed = data.get("transitionspeed", "Default")
             try:
                 tspeed = int(tspeed)
             except Exception:
                 pass
 
         return (tname, tspeed)
+
+    def get_transitiontype(self):
+        """トランジション効果のデータのタプル((効果名, 速度))を返す。
+        ChangeBgImage, ChangeArea, Redisplayコンテント参照。
+        """
+        return EventContentBase.get_transitiontype_static(self.data)
 
     def init_values(self):
         if self._init_values:
@@ -2188,21 +2195,12 @@ class ChangeAreaContent(EventContentBase):
     def action(self):
         """エリア変更コンテント。"""
         if self.is_differentscenario():
-            return 0
+            return None
 
         resid = self.data.getint(".", "id", 0)
 
-        if cw.cwpy.status == "Yado" and\
-                not (cw.SKIN_AREAS_MIN <= resid <= cw.SKIN_AREAS_MAX) and not (resid in (1, 2, 3)):
-            def func():
-                s = "スキン固有エリアのIDは%s-%sの間で設定してください(指定されたID=%s)。"
-                s = s % (cw.SKIN_AREAS_MIN, cw.SKIN_AREAS_MAX, resid)
-                dlg = cw.dialog.message.ErrorMessage(cw.cwpy.frame, s)
-                cw.cwpy.frame.move_dlg(dlg)
-                ret = dlg.ShowModal()
-                dlg.Destroy()
-            cw.cwpy.frame.exec_func(func)
-            return
+        if not check_areaid(resid):
+            return None
 
         ttype = self.get_transitiontype()
         name = cw.cwpy.sdata.get_areaname(resid)
@@ -2213,7 +2211,11 @@ class ChangeAreaContent(EventContentBase):
             raise cw.event.AreaChangeError()
         else:
             # CardWirthではエリア未指定の時はシナリオが終了する
-            end_scenario(False)
+            if cw.cwpy.status == "Yado":
+                cw.cwpy.play_sound("error")
+            else:
+                end_scenario(False)
+        return None
 
     def get_status(self, event):
         resid = self.data.getint(".", "id", 0)
@@ -2223,6 +2225,24 @@ class ChangeAreaContent(EventContentBase):
             return "エリア『%s』へ移動" % (name)
         else:
             return "エリアが指定されていません"
+
+
+def check_areaid(resid):
+    """不正なエリアIDでないかチェックし、問題無ければTrueを返す。"""
+    if cw.cwpy.status == "Yado" and\
+            not (cw.SKIN_AREAS_MIN <= resid <= cw.SKIN_AREAS_MAX) and\
+            not (resid == 1 and not cw.cwpy.ydata.party) and\
+            not (resid == 2 and cw.cwpy.ydata.party):
+        def func():
+            s = "スキン固有エリアのIDは%s-%sの間で設定してください(指定されたID=%s)。"
+            s = s % (cw.SKIN_AREAS_MIN, cw.SKIN_AREAS_MAX, resid)
+            dlg = cw.dialog.message.ErrorMessage(cw.cwpy.frame, s)
+            cw.cwpy.frame.move_dlg(dlg)
+            ret = dlg.ShowModal()
+            dlg.Destroy()
+        cw.cwpy.frame.exec_func(func)
+        return False
+    return True
 
 
 class ChangeEnvironmentContent(EventContentBase):

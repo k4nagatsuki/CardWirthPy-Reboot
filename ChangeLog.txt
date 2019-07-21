@@ -13,8 +13,9 @@
  * 起動オプション`--debug-skin`を追加。このオプションを指定して起動すると、拠点にいる時も、イベントツリーの表示やステップ実行など、いくつかのデバッグ機能が使用できるようになります。
  * issue #826 / スキン固有のエリアをID:10001-20000で`Resource/Xml/Area`以下に配置できるようにした。
    スキン固有エリア内で右クリック・`Escape`キーを押下した時の動作は`Property/BackgroundAction`要素で指定できます。
+    * `ChangeArea` …… 属性`id`で指定したエリアへ移動する。属性`transition`と`transitionspeed`で背景切替方式を指定可能です。
+    * `ReturnSystemArea` …… 元のエリアへ戻る。属性`transition`と`transitionspeed`で背景切替方式を指定可能です。
     * `ReturnTitle` …… タイトルへ戻る。変更がある時はセーブするか確認する。
-    * `ReturnSystemArea` …… 元のエリアへ戻る。
     * `Close` …… 終了する。変更がある時はセーブするか確認する。
  * キャラクター登録・デザインの編集・キャラクター編集ダイアログに外部イメージの選択ボタンを追加。
 
