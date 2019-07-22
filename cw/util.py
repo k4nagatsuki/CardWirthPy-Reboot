@@ -2001,39 +2001,41 @@ def get_materialpathfromskin(path, mtype, findskin=True):
         elif path.startswith(cw.cwpy.skindir):
             fname = cw.util.splitext(path)[0]
             if mtype == cw.M_IMG:
-                path = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_img)
+                path2 = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_img)
             elif mtype == cw.M_MSC:
-                path = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_bgm)
+                path2 = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_bgm)
             elif mtype == cw.M_SND:
-                path = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_snd)
-        else:
-            fname = os.path.basename(path)
-            lfname = fname.lower()
-            eb = lfname.endswith(".jpy1") or lfname.endswith(".jptx") or lfname.endswith(".jpdc")
-            if not eb:
-                fname = cw.util.splitext(fname)[0]
-            dpaths = [cw.cwpy.skindir]
-            if os.path.isdir("Data/Materials"):
-                dpaths.extend([cw.util.join_paths("Data/Materials", d) for d in os.listdir("Data/Materials")])
-            for dpath in dpaths:
-                if eb:
-                    # エフェクトブースターのファイルは他の拡張子への付替を行わない
-                    path = cw.cwpy.rsrc.get_filepath(cw.util.join_paths(dpath, "Table", fname))
-                elif mtype == cw.M_IMG:
-                    path = cw.util.find_resource(cw.util.join_paths(dpath, "Table", fname), cw.cwpy.rsrc.ext_img)
-                elif mtype == cw.M_MSC:
-                    path = cw.util.find_resource(cw.util.join_paths(dpath, "Bgm", fname), cw.cwpy.rsrc.ext_bgm)
-                    if not path:
-                        path = cw.util.find_resource(cw.util.join_paths(dpath, "BgmAndSound", fname),
-                                                     cw.cwpy.rsrc.ext_bgm)
-                elif mtype == cw.M_SND:
-                    path = cw.util.find_resource(cw.util.join_paths(dpath, "Sound", fname), cw.cwpy.rsrc.ext_snd)
-                    if not path:
-                        path = cw.util.find_resource(cw.util.join_paths(dpath, "BgmAndSound", fname),
-                                                     cw.cwpy.rsrc.ext_snd)
+                path2 = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_snd)
+            if path2:
+                return path2
 
-                if path:
-                    break
+        fname = os.path.basename(path)
+        lfname = fname.lower()
+        eb = lfname.endswith(".jpy1") or lfname.endswith(".jptx") or lfname.endswith(".jpdc")
+        if not eb:
+            fname = cw.util.splitext(fname)[0]
+        dpaths = [cw.cwpy.skindir]
+        if os.path.isdir("Data/Materials"):
+            dpaths.extend([cw.util.join_paths("Data/Materials", d) for d in os.listdir("Data/Materials")])
+        for dpath in dpaths:
+            if eb:
+                # エフェクトブースターのファイルは他の拡張子への付替を行わない
+                path = cw.cwpy.rsrc.get_filepath(cw.util.join_paths(dpath, "Table", fname))
+            elif mtype == cw.M_IMG:
+                path = cw.util.find_resource(cw.util.join_paths(dpath, "Table", fname), cw.cwpy.rsrc.ext_img)
+            elif mtype == cw.M_MSC:
+                path = cw.util.find_resource(cw.util.join_paths(dpath, "Bgm", fname), cw.cwpy.rsrc.ext_bgm)
+                if not path:
+                    path = cw.util.find_resource(cw.util.join_paths(dpath, "BgmAndSound", fname),
+                                                 cw.cwpy.rsrc.ext_bgm)
+            elif mtype == cw.M_SND:
+                path = cw.util.find_resource(cw.util.join_paths(dpath, "Sound", fname), cw.cwpy.rsrc.ext_snd)
+                if not path:
+                    path = cw.util.find_resource(cw.util.join_paths(dpath, "BgmAndSound", fname),
+                                                 cw.cwpy.rsrc.ext_snd)
+
+            if path:
+                break
 
     return path
 
