@@ -782,42 +782,46 @@ class Character(object):
             if self.is_unconscious():
                 return False
             value = motion.getint(".", "value", 0)
+            enh_value = cw.util.numwrap(self.enhance_act, -10, 10)
             if value == 0:
                 return self.is_enhanced_act()
             elif value < 0:
-                return value < self.get_enhance_act()
+                return value < enh_value
             elif 0 < value:
-                return self.get_enhance_act() < value
+                return enh_value < value
         elif mtype == "EnhanceAvoid":
             if self.is_unconscious():
                 return False
             value = motion.getint(".", "value", 0)
+            enh_value = cw.util.numwrap(self.enhance_avo, -10, 10)
             if value == 0:
                 return self.is_enhanced_avo()
             elif value < 0:
-                return value < self.get_enhance_avo()
+                return value < enh_value
             elif 0 < value:
-                return self.get_enhance_avo() < value
+                return enh_value < value
         elif mtype == "EnhanceResist":
             if self.is_unconscious():
                 return False
             value = motion.getint(".", "value", 0)
+            enh_value = cw.util.numwrap(self.enhance_res, -10, 10)
             if value == 0:
                 return self.is_enhanced_res()
             elif value < 0:
-                return value < self.get_enhance_res()
+                return value < enh_value
             elif 0 < value:
-                return self.get_enhance_res() < value
+                return enh_value < value
         elif mtype == "EnhanceDefense":
             if self.is_unconscious():
                 return False
             value = motion.getint(".", "value", 0)
+            enh_value = cw.util.numwrap(self.enhance_def, -10, 10)
             if value == 0:
                 return self.is_enhanced_def()
             elif value < 0:
-                return value < self.get_enhance_def()
+                return value < enh_value
             elif 0 < value:
-                return self.get_enhance_def() < value
+                return enh_value < value
         elif mtype == "VanishCard":
             return self.is_active()
         elif mtype == "VanishBeast":
