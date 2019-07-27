@@ -1762,6 +1762,9 @@ class CWPy(_Singleton, threading.Thread):
         """ダイアログを開く。
         name: ダイアログ名。cw.frame参照。
         """
+        if name not in self.frame.dlgeventtypes:
+            cw.cwpy.call_dlg("ERROR", text="ダイアログ「%s」は存在しません。" % name)
+            return
         stack = self._showingdlg
         self.lock_menucards = True
         self.input(eventclear=True)
@@ -3720,6 +3723,10 @@ class CWPy(_Singleton, threading.Thread):
                     self._store_partyrecord()
                     self.create_poschangearrow()
             else:
+                if areaid not in self.sdata.sparea_mcards:
+                    cw.cwpy.call_dlg("ERROR", text="指定された特殊エリア(ID=%s)は存在しません。" % areaid)
+                    self.pre_areaids.pop()
+                    return
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
                 self.pre_mcards.append(self.get_mcards())
@@ -4766,7 +4773,8 @@ class CWPy(_Singleton, threading.Thread):
 
             target = None
         else:
-            raise ValueError("Targettype in trade method is incorrect.")
+            cw.cwpy.call_dlg("ERROR", text="「%s」は不正なカード移動先です。" % targettype)
+            return
 
         # 手札カードダイアログ用のインデックスを取得する
         if header.type == "SkillCard":
