@@ -529,14 +529,10 @@ class BookmarkDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cnclbtn)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
-        self.values.Bind(wx.EVT_SIZE, self.OnResize)
 
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         for child in self.GetChildren():
             child.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
-
-    def OnResize(self, event):
-        self.values.resizeLastColumn(-1)
 
     def OnPaint(self, event):
         dc = wx.BufferedPaintDC(self)
