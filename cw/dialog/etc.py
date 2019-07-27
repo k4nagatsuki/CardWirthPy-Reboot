@@ -874,6 +874,7 @@ if sys.platform == "win32":
             if self._copybtn:
                 self.Bind(wx.EVT_MENU, self.OnCopyDetail, id=self._copybtn.GetId())
             self.GetParent().Bind(wx.EVT_MOVE, self.OnMove)
+            self.GetParent().Bind(wx.EVT_SIZE, self.OnMove)
             self._tb.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
             self._tb.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
 
@@ -888,6 +889,7 @@ if sys.platform == "win32":
 
         def OnMove(self, event):
             self._move_pos()
+            event.Skip()
 
         def _move_pos(self):
             pos = self.GetParent().GetPosition()
@@ -950,6 +952,7 @@ else:
         def _bind(self):
             self.Bind(wx.EVT_PAINT, self.OnPaint)
             self.GetParent().Bind(wx.EVT_MOVE, self.OnMove)
+            self.GetParent().Bind(wx.EVT_SIZE, self.OnMove)
 
         def on_motion(self):
             index = self._selected_index
@@ -1030,6 +1033,7 @@ else:
 
         def OnMove(self, event):
             self._move_pos()
+            event.Skip()
 
         def _move_pos(self):
             pos = self.GetParent().GetPosition()
