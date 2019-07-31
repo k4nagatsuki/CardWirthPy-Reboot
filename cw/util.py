@@ -1630,7 +1630,10 @@ def create_screenshot(titledic):
         back = cw.cwpy.setting.ssinfobackcolor
         w = cw.s(cw.SIZE_GAME[0])
         subimg, subimg2, fh, lh = screenshot_header(title, w)
-        h = cw.s(cw.SIZE_GAME[1]) + lh
+        if cw.cwpy.setting.sswithstatusbar:
+            h = cw.s(cw.SIZE_GAME[1]) + lh
+        else:
+            h = cw.s(cw.SIZE_AREA[1]) + lh
         bmp = pygame.Surface((w, h)).convert()
         bmp.fill(back, rect=pygame.Rect(cw.s(0), cw.s(0), w, lh))
         if cw.cwpy.setting.ssinfobackimage and os.path.isfile(cw.cwpy.setting.ssinfobackimage):

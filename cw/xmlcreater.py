@@ -513,6 +513,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("ScreenShotOfCardsFileNameFormat", setting.cardssfnameformat)
         element.append(e)
 
+    # スクリーンショットにステータスバーを含める
+    if setting.sswithstatusbar != setting.sswithstatusbar_init:
+        e = cw.data.make_element("ScreenShotWithStatusBar", str(setting.sswithstatusbar))
+        element.append(e)
+
     # イベント中にステータスバーの色を変える
     if setting.statusbarmask != setting.statusbarmask_init:
         e = cw.data.make_element("StatusBarMask", str(setting.statusbarmask))

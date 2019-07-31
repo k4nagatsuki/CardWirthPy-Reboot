@@ -426,6 +426,7 @@ class Setting(object):
             "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
         self.cardssfnameformat = \
             "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
+        self.sswithstatusbar = True
         self.titleformat = \
             "%application% %skin%[ - %yado%[ %scenario%]]"
         self.playlogformat = "PlayLog/%yado%/%party%_%year%%month%%day%_%hour%%minute%%second%_%scenario%.txt"
@@ -754,23 +755,26 @@ class Setting(object):
         self.scenario_sorttype = data.getint("ScenarioSortType", self.scenario_sorttype)
 
         # スクリーンショット情報
-        self.ssinfoformat = data.gettext("ScreenShotInformationFormat", self.ssinfoformat)
+        self.ssinfoformat = data.gettext("ScreenShotInformationFormat", self.ssinfoformat_init)
         # スクリーンショット情報の色
-        r = data.getint("ScreenShotInformationFontColor", "red", self.ssinfofontcolor[0])
-        g = data.getint("ScreenShotInformationFontColor", "green", self.ssinfofontcolor[1])
-        b = data.getint("ScreenShotInformationFontColor", "blue", self.ssinfofontcolor[2])
+        r = data.getint("ScreenShotInformationFontColor", "red", self.ssinfofontcolor_init[0])
+        g = data.getint("ScreenShotInformationFontColor", "green", self.ssinfofontcolor_init[1])
+        b = data.getint("ScreenShotInformationFontColor", "blue", self.ssinfofontcolor_init[2])
         self.ssinfofontcolor = (r, g, b, 255)
-        r = data.getint("ScreenShotInformationBackgroundColor", "red", self.ssinfobackcolor[0])
-        g = data.getint("ScreenShotInformationBackgroundColor", "green", self.ssinfobackcolor[1])
-        b = data.getint("ScreenShotInformationBackgroundColor", "blue", self.ssinfobackcolor[2])
+        r = data.getint("ScreenShotInformationBackgroundColor", "red", self.ssinfobackcolor_init[0])
+        g = data.getint("ScreenShotInformationBackgroundColor", "green", self.ssinfobackcolor_init[1])
+        b = data.getint("ScreenShotInformationBackgroundColor", "blue", self.ssinfobackcolor_init[2])
         self.ssinfobackcolor = (r, g, b, 255)
         # スクリーンショット情報の背景イメージ
         self.ssinfobackimage = data.gettext("ScreenShotInformationBackgroundImage", self.ssinfobackimage_init)
 
         # スクリーンショットのファイル名
-        self.ssfnameformat = data.gettext("ScreenShotFileNameFormat", self.ssfnameformat)
+        self.ssfnameformat = data.gettext("ScreenShotFileNameFormat", self.ssfnameformat_init)
         # 所持カード撮影情報のファイル名
-        self.cardssfnameformat = data.gettext("ScreenShotOfCardsFileNameFormat", self.cardssfnameformat)
+        self.cardssfnameformat = data.gettext("ScreenShotOfCardsFileNameFormat", self.cardssfnameformat_init)
+
+        # スクリーンショットにステータスバーを含める
+        self.sswithstatusbar = data.gettext("ScreenShotWithStatusBar", self.sswithstatusbar_init)
 
         # イベント中にステータスバーの色を変える
         self.statusbarmask = data.getbool("StatusBarMask", self.statusbarmask)

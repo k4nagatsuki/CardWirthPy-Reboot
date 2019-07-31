@@ -502,6 +502,8 @@ class SettingsPanel(wx.Panel):
             setting.ssinfobackcolor = (255, 255, 255)
         value = self.pane_gene.tx_ssinfobackimage.GetValue()
         setting.ssinfobackimage = value
+        value = self.pane_gene.cb_sswithstatusbar.GetValue()
+        setting.sswithstatusbar = value
         value = self.pane_gene.ch_messagelog_type.GetSelection()
         if value == 0:
             value = cw.setting.LOG_SINGLE
@@ -1379,6 +1381,8 @@ class GeneralSettingPanel(wx.Panel):
             shortHelp="状況によって動的に変化する情報を挿入します。")
         self.sstoolbar.Realize()
 
+        self.cb_sswithstatusbar = wx.CheckBox(self, -1, "ステータスバーも撮影する")
+
         ssdic = [
             ("application", "アプリケーション名"),
             ("version", "バージョン情報"),
@@ -1467,6 +1471,7 @@ class GeneralSettingPanel(wx.Panel):
         else:
             self.ch_ssinfocolor.Select(0)
         self.tx_ssinfobackimage.SetValue(setting.ssinfobackimage)
+        self.cb_sswithstatusbar.SetValue(setting.sswithstatusbar)
         self.expand.load(setting)
 
     def init_values(self, setting):
@@ -1506,6 +1511,7 @@ class GeneralSettingPanel(wx.Panel):
         self.tx_cardssfnameformat.SetValue(setting.cardssfnameformat_init)
         self.ch_ssinfocolor.Select(1 if setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
         self.tx_ssinfobackimage.SetValue(setting.ssinfobackimage_init)
+        self.cb_sswithstatusbar.SetValue(setting.sswithstatusbar_init)
 
     def OnSSTool(self, event):
         if self.ti_ssins.GetId() == event.GetId():
@@ -1614,7 +1620,11 @@ class GeneralSettingPanel(wx.Panel):
 
         bsizer_ss.Add(gsizer_fname, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, cw.ppis(2)-1)
         bsizer_ss.Add(self.st_ssinfo_brackets, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT, cw.ppis(3))
-        bsizer_ss.Add(self.sstoolbar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT, cw.ppis(3))
+        bsizer_ssbtm = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_ssbtm.Add(self.cb_sswithstatusbar, 0, wx.CENTER, 0)
+        bsizer_ssbtm.Add(cw.ppis((3, 0)), 1, 0, 0)
+        bsizer_ssbtm.Add(self.sstoolbar, 0, wx.CENTER, 0)
+        bsizer_ss.Add(bsizer_ssbtm, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT | wx.EXPAND, cw.ppis(3))
 
         sizer_left.Add(bsizer_tablet, 0, wx.BOTTOM | wx.EXPAND, cw.ppis(3))
         sizer_left.Add(bsizer_gene, 0, wx.BOTTOM | wx.EXPAND, cw.ppis(3))
