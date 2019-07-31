@@ -774,7 +774,7 @@ class Setting(object):
         self.cardssfnameformat = data.gettext("ScreenShotOfCardsFileNameFormat", self.cardssfnameformat_init)
 
         # スクリーンショットにステータスバーを含める
-        self.sswithstatusbar = data.gettext("ScreenShotWithStatusBar", self.sswithstatusbar_init)
+        self.sswithstatusbar = data.getbool("ScreenShotWithStatusBar", self.sswithstatusbar_init)
 
         # イベント中にステータスバーの色を変える
         self.statusbarmask = data.getbool("StatusBarMask", self.statusbarmask)
