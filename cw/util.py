@@ -1656,7 +1656,10 @@ def create_screenshot(titledic):
         bmp.blit(subimg, (x, y))
         y = lh
     else:
-        bmp = scr
+        if cw.cwpy.setting.sswithstatusbar:
+            bmp = scr
+        else:
+            bmp = scr.subsurface((cw.s((0, 0)), cw.s(cw.SIZE_AREA)))
         y = cw.s(0)
 
     return bmp, y
