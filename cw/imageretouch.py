@@ -959,6 +959,7 @@ def patch_alphadata(image, ext, data):
         buf = pygame.image.tostring(image, "RGBA")
         assert len(buf) % 4 == 0
 
+        ext = ext.lower()
         if ext == ".bmp":
             has_alpha = _imageretouch.has_alphabmp32
         else:

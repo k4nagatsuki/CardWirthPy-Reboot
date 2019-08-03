@@ -316,7 +316,7 @@ class CWYado(object):
                     ".wci": 2,
                     ".wcb": 3
                 }
-                type = cd.get(os.path.splitext(fname)[1], 0)
+                type = cd.get(os.path.splitext(fname)[1].lower(), 0)
                 if type:
                     carddata.type = type
                     carddata.fname = fname
@@ -350,27 +350,27 @@ class CWYado(object):
         from . import album
 
         with cwfile.CWFile(path, "rb") as f:
-
-            if path.endswith(".wyd"):
+            lpath = path.lower()
+            if lpath.endswith(".wyd"):
                 data = environment.Environment(None, f, True)
                 data.skintype = self.skintype
                 self.wyd = data
-            elif path.endswith(".wch"):
+            elif lpath.endswith(".wch"):
                 data = adventurer.AdventurerHeader(None, f, True, dataversion=self.dataversion_int)
                 self.wchs.append(data)
-            elif path.endswith(".wcp"):
+            elif lpath.endswith(".wcp"):
                 data = adventurer.AdventurerCard(None, f, True)
                 self.wcps.append(data)
-            elif path.endswith(".wrm"):
+            elif lpath.endswith(".wrm"):
                 data = album.Album(None, f, True)
                 self.wrms.append(data)
-            elif path.endswith(".wpl"):
+            elif lpath.endswith(".wpl"):
                 data = party.Party(None, f, True, dataversion=self.dataversion_int)
                 self.wpls.append(data)
-            elif path.endswith(".wpt"):
+            elif lpath.endswith(".wpt"):
                 data = party.PartyMembers(None, f, True, dataversion=self.dataversion_int)
                 self.wpts.append(data)
-            elif path.endswith(".whs"):
+            elif lpath.endswith(".whs"):
                 cards, albums = party.load_album120(None, f)
                 for data in cards:
                     self.wcps.append(data)
