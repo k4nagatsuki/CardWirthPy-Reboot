@@ -434,6 +434,12 @@ class CWPy(_Singleton, threading.Thread):
             self.background.bgs = []
         elif self.status == "GameOver":
             changearea = False
+        elif self.status == "Yado" and cw.SKIN_AREAS_MIN <= self.areaid <= cw.SKIN_AREAS_MAX:
+            changearea = True
+            if self.ydata.party:
+                self.areaid = 2
+            else:
+                self.areaid = 1
 
         changed = self.ydata and self.ydata.is_changed()
         scedir = self.setting.get_scedir()
