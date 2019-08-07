@@ -815,7 +815,7 @@ class SystemData(object):
 
         assert (isinstance(data, CWPyElement) or (isinstance(data, CWPyElementTree),
                                                   isinstance(data.getroot(), CWPyElement))), data
-        data = copy.deepcopy(data)
+        data = copydata(data, all=True)
         assert (isinstance(data, CWPyElement) or (isinstance(data, CWPyElementTree),
                                                   isinstance(data.getroot(), CWPyElement))), data
 
@@ -4745,15 +4745,15 @@ class CacheData(object):
         self.mtime = mtime
 
 
-def copydata(data):
+def copydata(data, all=False):
     if isinstance(data, CWPyElementTree):
         return CWPyElementTree(element=copydata(data.getroot()))
 
-    if data.tag in ("Motions", "Events", "Id", "Name",
-                    "Description", "Scenario", "Author", "Level", "Ability",
-                    "Target", "EffectType", "ResistType", "SuccessRate",
-                    "VisualEffect", "KeyCodes", "Premium",
-                    "EnhanceOwner", "Price"):
+    if not all and data.tag in ("Motions", "Events", "Id", "Name",
+                                "Description", "Scenario", "Author", "Level", "Ability",
+                                "Target", "EffectType", "ResistType", "SuccessRate",
+                                "VisualEffect", "KeyCodes", "Premium",
+                                "EnhanceOwner", "Price"):
         # 不変
         return data
 
