@@ -2096,12 +2096,12 @@ def call_package(resid, call):
     if resid not in cw.cwpy.event.nowrunningpacks:
         e = cw.cwpy.sdata.get_packagedata(resid)
         if e is None:
-            return 0
+            return False
         data = cw.data.xml2etree(element=e)
         versionhint = cw.cwpy.sct.from_basehint(data.getattr("Property", "versionHint", ""))
         e = data.find("Events/Event")
         if e is None:
-            return 0
+            return False
         cw.cwpy.event.nowrunningpacks[resid] = e, versionhint
     else:
         e, versionhint = cw.cwpy.event.nowrunningpacks[resid]
@@ -2109,13 +2109,13 @@ def call_package(resid, call):
     packevent = cw.event.Event(e)
     packevent.packageid = resid
     if packevent.starttree is None:
-        return
+        return False
 
     if not cw.cwpy.event.get_event():
         # 実行中のイベントが無い場合は直接実行する
         cw.cwpy.event.append_event(packevent)
         cw.cwpy.event.get_event().start()
-        return
+        return True
 
     event = cw.cwpy.event.get_event()
     versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
@@ -2137,6 +2137,7 @@ def call_package(resid, call):
 
     if cw.cwpy.is_playingscenario():
         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
+    return True
 
 
 # ------------------------------------------------------------------------------

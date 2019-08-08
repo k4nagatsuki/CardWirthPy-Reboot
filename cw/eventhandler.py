@@ -479,7 +479,17 @@ class EventHandler(object):
                         ttype = cw.content.EventContentBase.get_transitiontype_static(e_ba)
                         cw.cwpy.change_area(resid, ttype=ttype)
                         return
-                    cw.cwpy.play_sound("error")
+                elif act == "CallPackage":
+                    resid = cw.cwpy.sdata.data.getint("Property/BackgroundAction", "id", 0)
+
+                    def func(resid):
+                        try:
+                            if not cw.content.call_package(resid, False):
+                                cw.cwpy.play_sound("error")
+                        except cw.event.EffectBreakError:
+                            cw.util.print_ex()
+                    cw.cwpy.exec_func(func, resid)
+
                 else:
                     cw.cwpy.play_sound("error")
                 return
