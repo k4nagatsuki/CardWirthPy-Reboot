@@ -434,12 +434,17 @@ class CWPy(_Singleton, threading.Thread):
             self.background.bgs = []
         elif self.status == "GameOver":
             changearea = False
-        elif self.status == "Yado" and cw.SKIN_AREAS_MIN <= self.areaid <= cw.SKIN_AREAS_MAX:
-            changearea = True
-            if self.ydata.party:
-                self.areaid = 2
-            else:
-                self.areaid = 1
+        elif self.status == "Yado":
+            # 時限クーポン削除
+            for pcard in self.get_pcards():
+                pcard.remove_timedcoupons()
+            if cw.SKIN_AREAS_MIN <= self.areaid <= cw.SKIN_AREAS_MAX:
+                # スキン固有のエリアから離脱
+                changearea = True
+                if self.ydata.party:
+                    self.areaid = 2
+                else:
+                    self.areaid = 1
 
         changed = self.ydata and self.ydata.is_changed()
         scedir = self.setting.get_scedir()
@@ -2349,6 +2354,13 @@ class CWPy(_Singleton, threading.Thread):
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata.changed()
                 self.statusbar.change(False)
+
+                if not resume:
+                    for pcard in self.get_pcards():
+                        pcard.remove_timedcoupons()
+                        pcard.set_fullrecovery()
+                        pcard.update_image()
+
                 loaded, musicpaths = self.sdata.set_log()
                 self.sdata.start()
                 self.update_titlebar()
@@ -2386,11 +2398,6 @@ class CWPy(_Singleton, threading.Thread):
                                     self.sdata.end(failure=True)
                                     self.set_yado()
                                     return
-
-                        if not resume:
-                            for pcard in self.get_pcards():
-                                pcard.set_fullrecovery()
-                                pcard.update_image()
 
                         if musicpaths:
                             for i, (musicpath, _subvolume, _loopcount, inusecard, fullpath) in enumerate(musicpaths):
