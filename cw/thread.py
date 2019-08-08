@@ -438,6 +438,8 @@ class CWPy(_Singleton, threading.Thread):
             # 時限クーポン削除
             for pcard in self.get_pcards():
                 pcard.remove_timedcoupons()
+                pcard.set_fullrecovery()
+                pcard.update_image()
             if cw.SKIN_AREAS_MIN <= self.areaid <= cw.SKIN_AREAS_MAX:
                 # スキン固有のエリアから離脱
                 changearea = True
