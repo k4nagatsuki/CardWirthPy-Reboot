@@ -3408,8 +3408,8 @@ class CWPy(_Singleton, threading.Thread):
         else:
             autospread = False
 
-        if setautospread:
-            self._autospread = autospread
+        old_autospread = self._autospread
+        self._autospread = autospread
 
         status = "hidden" if dealanime else "normal"
         seq = []
@@ -3455,6 +3455,8 @@ class CWPy(_Singleton, threading.Thread):
 
             seq.append(mcard)
 
+        if not setautospread:
+            self._autospread = old_autospread
         if 0 <= self.areaid:
             self.sdata.moved_mcards = moved_mcards
 
@@ -3752,7 +3754,8 @@ class CWPy(_Singleton, threading.Thread):
                         mcard.hide()
                     else:
                         mcard.deal()
-                if self.is_autospread():
+                spreadtype = self.sdata.data.getattr("MenuCards", "spreadtype", "Auto")
+                if spreadtype == "Auto":
                     mcards = self.get_mcards("flagtrue")
                     self.set_autospread(mcards, 6, False, anime=False)
 
