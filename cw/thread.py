@@ -434,7 +434,18 @@ class CWPy(_Singleton, threading.Thread):
             self.background.bgs = []
         elif self.status == "GameOver":
             changearea = False
-        elif self.status == "Yado":
+        elif (self.status == "Yado" or (self.is_playingscenario() and self.areaid in cw.AREAS_SP)) and\
+                self.setting.skindirname != skindirname:
+            if self.is_runningevent():
+                self.exec_func(self.update_skin, skindirname=skindirname, changearea=changearea,
+                               restartop=restartop, afterfunc=afterfunc, switch_skin=switch_skin,
+                               switch_yado=switch_yado)
+                if self.is_showingmessage():
+                    mwin = self.get_messagewindow()
+                    mwin.result = cw.event.EffectBreakError()
+                else:
+                    self.event.stoped = True
+                return
             # 時限クーポン削除
             for pcard in self.get_pcards():
                 pcard.remove_timedcoupons()
@@ -2016,6 +2027,8 @@ class CWPy(_Singleton, threading.Thread):
             while self.is_running() and mwin.result is None:
                 self.input()
                 eventhandler.run()
+                if not (self.is_running() and mwin.result is None):
+                    break
                 self.update()
                 if mwin.result is None and is_drawing:
                     is_drawing = mwin.is_drawing
