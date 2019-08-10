@@ -347,6 +347,8 @@ class StatusBar(base.CWPySprite):
                 self.touchmenu.is_pushed = False
                 self.touchmenu.update_image()
                 cw.cwpy.add_lazydraw(clip=rect)
+            if cw.cwpy.selection in btns:
+                cw.cwpy.clear_selection()
 
     def update_tiles(self):
         for btn in cw.cwpy.sbargrp.get_sprites_from_layer(cw.sprite.statusbar.LAYER_TOUCH_BUTTON):
