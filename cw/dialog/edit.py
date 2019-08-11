@@ -894,12 +894,12 @@ class ComboEditDialog(wx.Dialog):
 
 class ComboEditDialog2(wx.Dialog):
     def __init__(self, parent, title, message, choices):
-        wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((-1, -1)),
+        wx.Dialog.__init__(self, parent, -1, title, size=(-1, -1),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.message = cw.util.txtwrap(message, 0, width=40, wrapschars=cw.util.WRAPS_CHARS)
         self.cwpy_debug = False
 
-        self.combo = wx.Choice(self, -1, size=cw.wins((200, -1)), choices=choices)
+        self.combo = wx.Choice(self, -1, size=(cw.wins(200), -1), choices=choices)
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
         self.combo.SetFont(font)
         self.selected = 0
@@ -912,7 +912,7 @@ class ComboEditDialog2(wx.Dialog):
         self._bind()
 
         w = cw.wins(318)
-        h = self.okbtn.GetSize()[1] + self.okbtn.GetPosition()[1] + cw.wins(10)
+        h = cw.wins(30) + self.okbtn.GetPosition()[1] + cw.wins(10)
         self.SetClientSize((w, h))
 
     def OnOk(self, event):
@@ -947,6 +947,8 @@ class ComboEditDialog2(wx.Dialog):
 
     def _do_layout(self):
         dc = wx.ClientDC(self)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
+        dc.SetFont(font)
         self._textwidth, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self.message)
 
         csize = cw.wins(318), cw.wins(0)
