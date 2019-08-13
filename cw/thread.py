@@ -1079,14 +1079,8 @@ class CWPy(_Singleton, threading.Thread):
                         # (-1はすでに連打状態)
                         self.keyevent.mousein[i] = pygame.time.get_ticks()
 
-            if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and\
-                    self.battle.is_ready():
-                # パーティ領域より上へマウスカーソルが行ったら戦闘行動表示をクリア
-                if mousemotion2 and self._show_allselectedcards != self._in_partyarea(self.mousepos):
-                    self._show_allselectedcards = True
-                    self.change_selection(self.selection)
-                    for inusecard in self.inusecards:
-                        self.add_lazydraw(clip=inusecard.rect)
+            if mousemotion2:
+                self.update_allselectedcards()
 
             self.keyin = self.keyevent.get_pressed()
 
@@ -1114,6 +1108,18 @@ class CWPy(_Singleton, threading.Thread):
                 self.events.extend(seq)
                 pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             self.events.extend(pygame.event.get())
+
+    def update_allselectedcards(self):
+        """
+        マウスカーソルの位置に応じて
+        全員の戦闘行動を表示するか、消去する。
+        """
+        if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and\
+                self.battle.is_ready() and self._show_allselectedcards != self._in_partyarea(self.mousepos):
+            self._show_allselectedcards = True
+            self.change_selection(self.selection)
+            for inusecard in self.inusecards:
+                self.add_lazydraw(clip=inusecard.rect)
 
     def _in_partyarea(self, mousepos):
         """

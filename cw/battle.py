@@ -276,6 +276,7 @@ class BattleEngine(object):
             self._ready = True
             cw.cwpy.statusbar.change()
             cw.cwpy.clear_selection()
+            cw.cwpy.update_allselectedcards()
 
     def update_debug(self):
         # 敵の状態の暴露・非暴露切り替え
