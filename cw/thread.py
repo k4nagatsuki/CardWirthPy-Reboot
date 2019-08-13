@@ -448,18 +448,19 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     self.event.stoped = True
                 return
-            # 時限クーポン削除
-            for pcard in self.get_pcards():
-                pcard.remove_timedcoupons()
-                pcard.set_fullrecovery()
-                pcard.update_image()
-            if cw.SKIN_AREAS_MIN <= self.areaid <= cw.SKIN_AREAS_MAX:
-                # スキン固有のエリアから離脱
-                changearea = True
-                if self.ydata.party:
-                    self.areaid = 2
-                else:
-                    self.areaid = 1
+            if self.status == "Yado":
+                # 時限クーポン削除
+                for pcard in self.get_pcards():
+                    pcard.remove_timedcoupons()
+                    pcard.set_fullrecovery()
+                    pcard.update_image()
+                if cw.SKIN_AREAS_MIN <= self.areaid <= cw.SKIN_AREAS_MAX:
+                    # スキン固有のエリアから離脱
+                    changearea = True
+                    if self.ydata.party:
+                        self.areaid = 2
+                    else:
+                        self.areaid = 1
 
         changed = self.ydata and self.ydata.is_changed()
         scedir = self.setting.get_scedir()
