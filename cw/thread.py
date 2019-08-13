@@ -131,6 +131,8 @@ class CWPy(_Singleton, threading.Thread):
         self.is_showparty = False
         # バックログ表示中フラグ
         self._is_showingbacklog = False
+        # 同行キャスト表示中フラグ
+        self._is_showingfcards = False
         # カード操作用データ(CardHeader)
         self.selectedheader = None
         # デバッグモードかどうか
@@ -1079,9 +1081,11 @@ class CWPy(_Singleton, threading.Thread):
             if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and\
                     self.battle.is_ready():
                 # パーティ領域より上へマウスカーソルが行ったら戦闘行動表示をクリア
-                if mousemotion2 and self._in_partyarea(mousepos) != self._in_partyarea(self.mousepos):
+                if mousemotion2 and self._show_allselectedcards != self._in_partyarea(self.mousepos):
                     self._show_allselectedcards = True
                     self.change_selection(self.selection)
+                    for inusecard in self.inusecards:
+                        self.add_lazydraw(clip=inusecard.rect)
 
             self.keyin = self.keyevent.get_pressed()
 
@@ -1111,7 +1115,26 @@ class CWPy(_Singleton, threading.Thread):
             self.events.extend(pygame.event.get())
 
     def _in_partyarea(self, mousepos):
-        return cw.s(290-5) <= mousepos[1] and mousepos[1] < cw.s(cw.SIZE_AREA[1])
+        """
+        全員分の戦闘行動表示の有無を切り替えるため、
+        マウスカーソルがプレイヤーエリアないし同行キャストエリアにあるかを判定する。
+        """
+        for ccard in self.get_pcards("visible"):
+            rect = pygame.Rect(ccard.rect)
+            rect.left -= cw.s(9)
+            rect.width += cw.s(18)
+            rect.height += cw.s(5)
+            if rect.collidepoint(mousepos):
+                return True
+        for ccard in self.get_fcards("visible"):
+            rect = pygame.Rect(ccard.rect)
+            rect.left -= cw.s(9)
+            rect.width += cw.s(18)
+            rect.top -= cw.s(5)
+            rect.height += cw.s(5)
+            if rect.collidepoint(mousepos):
+                return True
+        return False
 
     def update_mousepos(self):
         if sys.platform != "win32":
@@ -3301,14 +3324,15 @@ class CWPy(_Singleton, threading.Thread):
 
     def add_fcardsprites(self, status, alpha=None):
         """cardgrpに同行NPCのスプライトを追加する。"""
+        self._is_showingfcards = False
         seq = list(enumerate(self.get_fcards()))
         for index, fcard in reversed(seq):
+            self._is_showingfcards = True
             index = 5 - index
             pos = (95 * index + 9 * (index + 1), 5)
             fcard.set_pos_noscale(pos)
             fcard.status = status
             fcard.set_alpha(alpha)
-            self.add_lazydraw(clip=fcard.rect)
             if fcard.status == "hidden":
                 fcard.clear_image()
                 self.cardgrp.add(fcard, layer=fcard.layer_t)
@@ -3319,21 +3343,23 @@ class CWPy(_Singleton, threading.Thread):
                 if alpha is not None:
                     fcard.update_image()
                 fcard.deal()
+            self.add_lazydraw(clip=fcard.rect)
         self.list = self.get_mcards("visible")
         self.index = -1
 
     def clear_fcardsprites(self):
         """cardgrpから同行NPCのスプライトを取り除く。"""
+        self._is_showingfcards = False
         fcards = []
         for fcard in self.mcards[:]:
             if isinstance(fcard, cw.character.Friend):
+                self.add_lazydraw(clip=fcard.rect)
                 fcard.set_alpha(None)
                 fcard.hide()
                 fcard.layer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, fcard.index, 0)
                 fcards.append(fcard)
                 self.mcards.remove(fcard)
                 self.mcards_expandspchars.discard(fcard)
-                self.add_lazydraw(clip=fcard.rect)
         self.cardgrp.remove(fcards)
         self.list = self.get_mcards("visible")
         self.index = -1

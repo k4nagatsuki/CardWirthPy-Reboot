@@ -1349,8 +1349,12 @@ class InuseCardImage(card.CWPyCard):
         # spritegroupに追加
         self.group = cw.cwpy.cardgrp
         if user and not center and not fore:
-            layer = user.layer[0]
-            ltype = user.layer[1]
+            if hasattr(user, "layer_t"):
+                layer = user.layer_t[0]
+                ltype = user.layer_t[1]
+            else:
+                layer = user.layer[0]
+                ltype = user.layer[1]
             self.group.add(self, layer=(layer, ltype, user.index, 1))
         else:
             self.group.add(self, layer=cw.LAYER_FRONT_INUSECARD)
