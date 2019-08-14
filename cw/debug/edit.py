@@ -468,6 +468,9 @@ class CouponEditDialog(wx.Dialog):
             # 全員を選択中
             self.upbtn.Enable(False)
             self.downbtn.Enable(False)
+            coeff_level = 1.0
+        else:
+            coeff_level = self.pcards[self.target.GetSelection()-1].get_levelcoeff()
 
         self.copybtn.Enable(1 < len(self.pcards))
 
@@ -484,9 +487,14 @@ class CouponEditDialog(wx.Dialog):
                 break
             total += int(self.values.GetItem(index, 1).GetText())
 
-        level = int((-1 + math.sqrt(1 + 4 * max(1, total))) / 2.0) + 1
+        # 到達可能レベルを探索する
+        level = 1
+        while True:
+            if total < int(level * (level+1) * coeff_level):
+                break
+            level += 1
         nextlevel = level + 1
-        nextpoint = nextlevel * (nextlevel-1) - total
+        nextpoint = int(nextlevel * (nextlevel-1) * coeff_level) - total
 
         s = "%s点(レベル%s相当 レベル%sまで%s点)" % (total, level, nextlevel, nextpoint)
 

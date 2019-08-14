@@ -137,6 +137,11 @@ class Character(object):
 
         self.reversed = False
 
+        # レベル判定式に掛ける係数
+        self._coeff_level = self.data.getfloat("Property/Coefficient", "level", 1.0)
+        # 1レベル毎のEP獲得量
+        self._coeff_ep = self.data.getint("Property/Coefficient", "ep", 10)
+
         # クーポン一覧
         self.coupons = {}
         for e in self.data.getfind("Property/Coupons"):
@@ -1973,6 +1978,16 @@ class Character(object):
         if not isinstance(race, cw.header.UnknownRaceHeader):
             self._set_coupon("＠Ｒ" + race.name, 0)
 
+        # 係数更新
+        self._coeff_level = 1.0 if race.coeff_level is None else race.coeff_level
+        self._coeff_ep = 10 if race.coeff_ep is None else race.coeff_ep
+        e = self.data.find("Property/Coefficient")
+        if e is None:
+            e_prop = self.data.find("Property")
+            e_prop.append(cw.data.make_element("Coefficient"))
+        self.data.edit("Property/Coefficient", str(self._coeff_level), "level")
+        self.data.edit("Property/Coefficient", str(self._coeff_ep), "ep")
+
     @synclock(_couponlock)
     def get_race(self):
         return self._get_race()
@@ -1982,6 +1997,40 @@ class Character(object):
             if self._has_coupon("＠Ｒ" + race.name):
                 return race
         return cw.cwpy.setting.unknown_race
+
+    @synclock(_couponlock)
+    def get_levelcoeff(self):
+        return self._get_levelcoeff()
+
+    def _get_levelcoeff(self):
+        """
+        レベルアップ判定式に掛ける係数。
+        種族情報がある場合はその種族の係数で上書きする。
+        """
+        race = self._get_race()
+        if race.coeff_level is not None and self._coeff_level != race.coeff_level:
+            self._coeff_level = race.coeff_level
+            e = self.data.find("Property/Coefficient")
+            if e is None:
+                e_prop = self.data.find("Property")
+                e_prop.append(cw.data.make_element("Coefficient"))
+            self.data.edit("Property/Coefficient", str(self._coeff_level), "level")
+        return self._coeff_level
+
+    def _get_epcoeff(self):
+        """
+        1レベル毎のEP獲得量。
+        種族情報がある場合はその種族の値で上書きする。
+        """
+        race = self._get_race()
+        if race.coeff_ep is not None and self._coeff_ep != race.coeff_ep:
+            self._coeff_ep = race.coeff_ep
+            e = self.data.find("Property/Coefficient")
+            if e is None:
+                e_prop = self.data.find("Property")
+                e_prop.append(cw.data.make_element("Coefficient"))
+            self.data.edit("Property/Coefficient", str(self._coeff_ep), "ep")
+        return self._coeff_ep
 
     @synclock(_couponlock)
     def count_timedcoupon(self, value=-1):
@@ -2178,10 +2227,15 @@ class Character(object):
         if "＠レベル上限" not in coupons:
             self._set_coupon("＠レベル上限", limit)
 
-        # 解の公式で現在の経験点で到達できるレベルを算出
-        cnt = max(1, self._get_couponsvalue())
-        olevel = int((-1 + math.sqrt(1 + 4 * cnt)) / 2.0) + 1
-        olevel = min(limit, olevel)
+        if limit <= 1:
+            olevel = 1
+        else:
+            coeff = self._get_levelcoeff()
+            cnt = max(1, self._get_couponsvalue())
+            # 地道に到達可能レベルを探索する
+            for olevel in range(1, limit+1):
+                if cnt < int(olevel * (olevel+1) * coeff):
+                    break
 
         return olevel - level
 
@@ -2262,7 +2316,7 @@ class Character(object):
                     e.attrib["value"] = str(self.level)
                     self.coupons[e.text] = self.level, e
                 elif e.text == "＠ＥＰ":
-                    value = e.getint(".", "value", 0) + (value - limit) * 10
+                    value = e.getint(".", "value", 0) + (value - limit) * self._get_epcoeff()
                     e.attrib["value"] = str(value)
                     self.coupons[e.text] = value, e
 

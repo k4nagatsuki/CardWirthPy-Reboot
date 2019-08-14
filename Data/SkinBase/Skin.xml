@@ -62,6 +62,10 @@
         <!- - avoid = 回避修正 resist = 抵抗修正 defense = 防御修正 - ->
         <Enhance avoid="0" resist="0" defense="0" />
       </Ability>
+      <!- - レベル判定式の係数及びレベルアップ時のEP獲得量。
+           指定しなかった場合はキャラクター本人が持っている値が使用される。
+           キャラクター本人にも値が指定されていなければ level="1.0" ep="10" になる。 - ->
+      <Coefficient level="1.0" ep="10" />
       <!- - 種族が最初から持っているクーポン。 - ->
       <Coupons />
     </Race -->
@@ -83,9 +87,8 @@
   <!-- 年代。 -->
   <Periods>
     <!-- abbr = Face内のフォルダ名で使用される略称 firstSelect = 選択肢表示時に最初から選択されているか
-         level = 初期レベル spendEP = 子供を作る時の消費EP(0で子供を作れない)
-         subName = 選択肢として表示される時の名前 -->
-    <Period abbr="CHD" firstSelect="False" level="1" spendEP="0" subName="Child">
+         spendEP = 子供を作る時の消費EP(0で子供を作れない) subName = 選択肢として表示される時の名前 -->
+    <Period abbr="CHD" firstSelect="False" spendEP="0" subName="Child">
       <Physical agl="1" dex="1" int="0" min="0" str="-1" vit="-1" />
       <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.5" trickish="0.0" />
       <Name>子供</Name>

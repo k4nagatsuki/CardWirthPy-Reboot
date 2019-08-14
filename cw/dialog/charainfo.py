@@ -689,9 +689,9 @@ class TopPanel(wx.Panel):
         # 次のレベルまで割合バー
         if cw.cwpy.setting.show_experiencebar and isinstance(self.ccard, cw.character.Player) and not maxlevel:
             exp = self.ccard.get_couponsvalue()
-            curexp = baselevel * (baselevel-1)
+            curexp = int(baselevel * (baselevel-1) * self.ccard.get_levelcoeff())
             nextlevel = baselevel + 1
-            nextexp = nextlevel * (nextlevel-1)
+            nextexp = int(nextlevel * (nextlevel-1) * self.ccard.get_levelcoeff())
 
             prange = nextexp - curexp
             x = cw.wins(5)+1

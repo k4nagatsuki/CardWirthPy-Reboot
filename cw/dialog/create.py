@@ -273,7 +273,6 @@ class AdventurerData(object):
     def set_age(self, age):
         for f in cw.cwpy.setting.periods:
             if age == "＿" + f.name:
-                self.level = f.level
                 self.set_coupon(age, 0)
                 f.modulate(self)
                 break
@@ -314,6 +313,9 @@ class AdventurerData(object):
         self.maxstr = race.str + 6
         self.maxvit = race.vit + 6
         self.maxmin = race.min + 6
+        # 係数
+        self.coeff_level = 1.0 if race.coeff_level is None else race.coeff_level
+        self.coeff_ep = 10 if race.coeff_ep is None else race.coeff_ep
 
         if not isinstance(race, cw.header.UnknownRaceHeader):
             self.set_coupon("＠Ｒ" + race.name, 0)
@@ -391,7 +393,6 @@ class AdventurerData(object):
     def set_aging(self, age):
         for f in cw.cwpy.setting.periods:
             if age == "＿" + f.name:
-                self.level = f.level
                 for coupon in f.coupons:
                     self.set_coupon(coupon[0], coupon[1])
                 break
@@ -408,7 +409,8 @@ class AdventurerData(object):
         self.description = cw.util.encodewrap(desc)
 
     def set_specialcoupon(self):
-        self.set_coupon("＠ＥＰ", 0)
+        if "＠ＥＰ" not in self.couponnames:
+            self.set_coupon("＠ＥＰ", 0)
         self.set_coupon("＠レベル原点", self.level)
 
     def set_life(self):
@@ -697,8 +699,24 @@ class AdventurerCreater(wx.Dialog):
         # 最後に熟練・老獪を付与
         s = self.page1.age
         data.set_aging(s)
+
+        # 初期レベルを計算する
+        data.level = 1
+        i = data.couponnames["＠レベル上限"]
+        limit = data.coupons[i][1]
+        total = 0
+        for coupon in data.coupons:
+            if not coupon[0].startswith("＠"):
+                total += coupon[1]
+        for level in range(1, limit):
+            if int(level * (level + 1) * data.coeff_level) <= total:
+                data.level = level + 1
+            else:
+                break
+
         data.set_specialcoupon()
         data.set_life()
+
         cw.features.wrap_ability(data)
         data.avoid = cw.util.numwrap(data.avoid, -10, 10)
         data.resist = cw.util.numwrap(data.resist, -10, 10)

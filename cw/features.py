@@ -97,8 +97,6 @@ class Period(Feature):
 
         # 子作りした際のEP消費量。0の場合は子作り不可
         self.spendep = self.data.getint(".", "spendEP", 10)
-        # 初期レベル
-        self.level = self.data.getint(".", "level", 1)
         # 初期クーポン
         self.coupons = [(e.gettext(".", ""), e.getint(".", "value", 0)) for e in data.getfind("Coupons")]
 

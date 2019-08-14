@@ -42,6 +42,7 @@ $indent   <Defense duration="$duration_enhance_defense">$enhance_defense</Defens
 $indent  </Enhance>
 $indent  <Coupons>$coupons
 $indent  </Coupons>
+$indent  <Coefficient level="$coeff_level" ep="$coeff_ep" />
 $indent </Property>
 $indent <ItemCards>$items
 $indent </ItemCards>

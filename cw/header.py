@@ -2054,8 +2054,20 @@ class RaceHeader(object):
         self.avoid = data.getint("Ability/Enhance", "avoid", 0)
         self.resist = data.getint("Ability/Enhance", "resist", 0)
         self.defense = data.getint("Ability/Enhance", "defense", 0)
-        self.coupons = []
 
+        e_coeff = data.find("Coefficient")
+        # レベル判定式に掛ける係数
+        if e_coeff is not None and "level" in e_coeff.attrib:
+            self.coeff_level = e_coeff.getfloat(".", "level", 1.0)
+        else:
+            self.coeff_level = None
+        # 1レベル毎のEP獲得量
+        if e_coeff is not None and "ep" in e_coeff.attrib:
+            self.coeff_ep = e_coeff.getint(".", "ep", 10)
+        else:
+            self.coeff_ep = None
+
+        self.coupons = []
         for e in data.getfind("Coupons"):
             name = e.gettext(".", "")
             value = e.getint(".", "value", 0)
@@ -2090,6 +2102,8 @@ class UnknownRaceHeader(RaceHeader):
         self.avoid = 0
         self.resist = 0
         self.defense = 0
+        self.coeff_level = None
+        self.coeff_ep = None
         self.coupons = []
 
 

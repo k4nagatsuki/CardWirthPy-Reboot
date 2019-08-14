@@ -919,7 +919,7 @@ def create_albumpage(path, lost=False, nocoupon=False):
     pelement = etree.make_element("Property")
 
     sets = set(["Name", "ImagePath", "ImagePaths", "Description", "Level",
-                "Life", "Feature", "Ability", "Coupons", "BackColor"])
+                "Life", "Feature", "Ability", "Coupons", "BackColor", "Coefficient"])
 
     can_loaded_scaledimage = etree.getbool(".", "scaledimage", False)
     for e in etree.getfind("Property"):
