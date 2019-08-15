@@ -1326,7 +1326,7 @@ class BattleCardImage(card.CWPyCard):
 
 
 class InuseCardImage(card.CWPyCard):
-    def __init__(self, user, header, status="normal", center=False, alpha=255, fore=False):
+    def __init__(self, user, header, status="normal", center=False, alpha=None, fore=False):
         """使用中のカード画像スプライト。
         user: Character。
         header: 使用するカードのCardHeader。
@@ -1370,8 +1370,7 @@ class InuseCardImage(card.CWPyCard):
             self.image = cw.image.zoomcard(self.image, scale)
             self.rect.size = self.image.get_size()
 
-        if self.alpha < 255:
-            self.image.set_alpha(self.alpha)
+        self.image.set_alpha(self.alpha)
 
         if self.center:
             self.set_pos_noscale(center_noscale=(316, 142))
