@@ -998,7 +998,18 @@ class Setting(object):
             path = cw.util.join_paths("Data/SkinBase/Skin.xml")
             basedata = cw.data.xml2etree(path)
         path = cw.util.join_paths(self.skindir, "Skin.xml")
-        data = self._update_skin(path)
+        try:
+            data = self._update_skin(path)
+        except Exception as ex:
+            cw.util.print_ex(file=sys.stderr)
+            err = "スキン(%s)のロードに失敗しました。\n" % self.skindirname + \
+                  "スキンのデータが破損している可能性があります。\n" + \
+                  "手動での修復を試みるか、スキンを再導入してください。"
+            dlg = wx.MessageDialog(None, err, "スキンチェックエラー", wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            raise Exception()
+
         err = self._check_skin()
         self.skindata = data
         if err:
