@@ -356,13 +356,12 @@ class BackGround(base.CWPySprite):
             path = cw.util.validate_filepath(e.gettext("ImagePath", ""))
             flag = e.gettext("Flag", "")
             cellname = e.getattr(".", "cellname", "")
-            layer = e.getint("Layer", cw.LAYER_BACKGROUND)
-            if pos == (0, 0) and size == cw.SIZE_AREA and not mask and path and not cellname and\
-                    layer == cw.LAYER_BACKGROUND:
+            if pos == (0, 0) and size == cw.SIZE_AREA and not mask and path and not cellname:
                 # 最初の1件がイメージセル・0,0,632,420のサイズ・マスクなし・パス名あり
                 # (ファイルが実在する必要はない)の時、内部的に背景は継承しない状態になる。
                 # CWはこの状態で冒険を中断して再開すると事前に描画されていた背景が消えるが、
                 # CWPyでは実際に覆われて描画できなくなったもの以外は残すようにする
+                # 背景継承判定においてレイヤは無視される。
                 bginhrt2 = False
                 if flag:
                     # フラグは指定されていても無視される(CardWirth 1.28～1.50)
