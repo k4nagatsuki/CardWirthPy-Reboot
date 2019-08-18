@@ -252,7 +252,7 @@ class CardImage(Image):
         self._wxbmp = None
         self.image_mtime.clear()
         self._upwin = self._upwinmemo()
-        self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype].convert(24)
+        self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype].convert()
         self.rect = self.cardbg.get_rect()
 
     def clear_cache(self):
@@ -994,7 +994,7 @@ class CharacterCardImage(CardImage):
     def update(self, ccard, header=None):
         # 画像合成
         bgname = self.get_cardbgname(ccard)
-        self.image = cw.cwpy.rsrc.cardbgs[bgname].convert(24)
+        self.image = cw.cwpy.rsrc.cardbgs[bgname].convert()
 
         # レベル
         if ccard.is_analyzable():
