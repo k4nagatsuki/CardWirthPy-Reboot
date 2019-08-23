@@ -184,10 +184,10 @@ def install_skin(paths, parent, canswitch=True):
 
             def func(newskin, restartop):
                 progress("スキンの切り替えを行っています...")
-                cw.cwpy.stop_allsounds(skinfileonly=True)
                 if newskin:
                     if cw.cwpy.ydata:
                         cw.cwpy.ydata.changed()
+                    cw.cwpy.stop_allsounds(skinfileonly=True)
                     cw.cwpy.update_skin(newskin, restartop=restartop, switch_skin=True)
                 if overwrite:
                     progress("置換されたスキンを削除しています...")
