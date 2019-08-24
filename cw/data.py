@@ -3507,9 +3507,10 @@ class YadoData(object):
                 cw.cwpy.call_modaldlg("DATACOMP", ccard=fcard)
 
             # システムクーポン
-            fcard.set_coupon("＿" + fcard.name, fcard.level * (fcard.level-1))
+            fcard.set_coupon("＿" + fcard.name, fcard.level * (fcard.level-1) * fcard.get_levelcoeff())
             fcard.set_coupon("＠レベル原点", fcard.level)
-            fcard.set_coupon("＠ＥＰ", 0)
+            if not fcard.has_coupon("＠ＥＰ"):
+                fcard.set_coupon("＠ＥＰ", 0)
             talent = fcard.get_talent()
 
             value = 10
