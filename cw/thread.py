@@ -449,6 +449,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.event.stoped = True
                 return
             if self.status == "Yado":
+                self.stop_allsounds()
                 # 時限クーポン削除
                 for pcard in self.get_pcards():
                     pcard.remove_timedcoupons()
