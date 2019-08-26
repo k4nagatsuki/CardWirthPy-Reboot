@@ -3098,7 +3098,7 @@ class PlayerSelect(MultiViewSelect):
             return
         self._processing = True
         cw.cwpy.play_sound("signal")
-        info = cw.debug.charaedit.CharaInfo(None)
+        info = cw.debug.charaedit.CharaInfo(None, debug_coupon=False)
         info.set_randomfeatures()
         fpath = info.create_adventurer(setlevel=False)
         header = cw.cwpy.ydata.add_standbys(fpath)

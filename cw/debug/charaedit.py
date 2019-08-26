@@ -284,7 +284,7 @@ class CharacterEditDialog(wx.Dialog):
 
 class CharaInfo(object):
 
-    def __init__(self, pcard):
+    def __init__(self, pcard, debug_coupon=True):
         if pcard:
             self.name = pcard.name
             self.race = pcard.get_race()
@@ -366,7 +366,7 @@ class CharaInfo(object):
             self.recalc_maxlife = True
             self.recalc_parameter = True
             self.recalc_coupons = True
-            self.debug_coupon = True
+            self.debug_coupon = debug_coupon
 
         self.recalc_maxlife_init = self.recalc_maxlife
         self.recalc_parameter_init = self.recalc_parameter
