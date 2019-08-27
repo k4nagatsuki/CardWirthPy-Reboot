@@ -713,7 +713,10 @@ class TopPanel(wx.Panel):
                 lcolor = wx.Colour(192, 32, 32)
                 dcolor = wx.Colour(64, 0, 0)
                 val = curexp - exp
-                w2 = min(w, int(w * (float(val) / prange)))
+                if prange == 0:
+                    w2 = w
+                else:
+                    w2 = min(w, int(w * (float(val) / prange)))
                 dc.SetBrush(wx.Brush(dcolor))
                 dc.DrawRectangle(x+w-w2, y, w2, hr)
                 dc.SetBrush(wx.Brush(lcolor))
@@ -727,12 +730,16 @@ class TopPanel(wx.Panel):
                     lcolor = wx.Colour(192, 192, 255)
                     dcolor = wx.Colour(128, 128, 192)
                 val = exp - curexp
-                if 0 < val:
-                    w2 = min(w, int(w * (float(val) / prange)))
-                    dc.SetBrush(wx.Brush(dcolor))
-                    dc.DrawRectangle(x, y, w2, hr)
-                    dc.SetBrush(wx.Brush(lcolor))
-                    dc.DrawRectangle(x, y+hr, w2, h-hr)
+                if 0 <= val:
+                    if prange == 0:
+                        w2 = w
+                    else:
+                        w2 = min(w, int(w * (float(val) / prange)))
+                    if 0 < w2:
+                        dc.SetBrush(wx.Brush(dcolor))
+                        dc.DrawRectangle(x, y, w2, hr)
+                        dc.SetBrush(wx.Brush(lcolor))
+                        dc.DrawRectangle(x, y+hr, w2, h-hr)
                 linecolour = wx.Colour(128, 128, 128)
             dc.SetPen(wx.Pen(linecolour))
             dc.SetBrush(wx.TRANSPARENT_BRUSH)

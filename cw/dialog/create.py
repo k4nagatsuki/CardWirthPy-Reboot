@@ -281,6 +281,21 @@ class AdventurerData(object):
     def set_level(self, level):
         self.level = level
 
+    def calc_level(self):
+        """初期クーポンで到達可能なレベルを計算する。"""
+        self.level = 1
+        i = self.couponnames["＠レベル上限"]
+        limit = self.coupons[i][1]
+        total = 0
+        for coupon in self.coupons:
+            if not coupon[0].startswith("＠"):
+                total += coupon[1]
+        for level in range(1, limit):
+            if int(level * (level + 1) * self.coeff_level) <= total:
+                self.level = level + 1
+            else:
+                break
+
     def set_race(self, race):
         self.undead |= race.undead
         self.automaton |= race.automaton
@@ -701,18 +716,7 @@ class AdventurerCreater(wx.Dialog):
         data.set_aging(s)
 
         # 初期レベルを計算する
-        data.level = 1
-        i = data.couponnames["＠レベル上限"]
-        limit = data.coupons[i][1]
-        total = 0
-        for coupon in data.coupons:
-            if not coupon[0].startswith("＠"):
-                total += coupon[1]
-        for level in range(1, limit):
-            if int(level * (level + 1) * data.coeff_level) <= total:
-                data.level = level + 1
-            else:
-                break
+        data.calc_level()
 
         data.set_specialcoupon()
         data.set_life()

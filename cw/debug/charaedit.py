@@ -742,6 +742,9 @@ class CharaInfo(object):
         data.set_aging(self.age)
         if setlevel:
             data.set_level(self.level)
+        else:
+            # 外部からレベルをセットしない場合は初期レベルを計算
+            data.calc_level()
         if self.type:
             data.agl = self.race.agl + self.type.aglbonus
             data.dex = self.race.dex + self.type.dexbonus

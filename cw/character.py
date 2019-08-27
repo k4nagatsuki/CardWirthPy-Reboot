@@ -2231,7 +2231,7 @@ class Character(object):
             olevel = 1
         else:
             coeff = self._get_levelcoeff()
-            cnt = max(1, self._get_couponsvalue())
+            cnt = self._get_couponsvalue()
             # 地道に到達可能レベルを探索する
             for olevel in range(1, limit+1):
                 if cnt < int(olevel * (olevel+1) * coeff):
