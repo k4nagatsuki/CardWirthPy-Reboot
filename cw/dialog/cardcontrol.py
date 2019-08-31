@@ -1312,7 +1312,7 @@ class CardControl(wx.Dialog):
                 header.negaflag = False
                 updated = True
 
-            if updated or not selected:
+            if updated:
                 self.update_cardpocketinfo_with(selected)
 
         test_aptitude = self._get_test_aptitude()
@@ -1592,7 +1592,8 @@ class CardControl(wx.Dialog):
                         def func(self):
                             def func(self):
                                 if self:
-                                    self.draw_cards()
+                                    self.update_narrowcondition()
+                                    self.draw_cards(True)
                             cw.cwpy.frame.exec_func(func, self)
                         cw.cwpy.exec_func(func, self)
                         return
