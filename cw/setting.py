@@ -486,6 +486,8 @@ class Setting(object):
         self.fontexamplepixelsize = FONT_EXAMPLE_PIXEL_SIZE_INIT
         # 最小化中に完全に停止する
         self.stop_the_world_with_iconized = True
+        # 送り先のカードが一杯の時は交換ダイアログを開く
+        self.replacecard_when_sendfullcardpocket = True
 
         # 宿の表示順序
         self.yado_order = {}
