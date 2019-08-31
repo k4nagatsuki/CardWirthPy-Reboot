@@ -853,7 +853,12 @@ class CardControl(wx.Dialog):
 
         selected = None
         updated = False
+        outofall = True  # 枚数のちらつきを抑えるため隙間の部分にカーソルが行った時は枚数情報を更新しないようにする
         for header in self.get_headers():
+            lrect = wx.Rect(header.wxrect[0]-cw.wins(2), header.wxrect[1]-+cw.wins(2),
+                            header.wxrect[2]+cw.wins(4), header.wxrect[3]+cw.wins(4))
+            if lrect.Contains(mousepos):
+                outofall = False
             draw = False
             if not lastrepls and not laststar and header.wxrect.collidepoint(mousepos):
                 if not header.negaflag:
@@ -870,7 +875,7 @@ class CardControl(wx.Dialog):
             if draw:
                 self.draw_card(header, fromkeyevent=True)
 
-        if updated:
+        if (selected and updated) or outofall:
             self.update_cardpocketinfo_with(selected)
 
         if lastrepls != self._lastrepls:
@@ -1844,7 +1849,11 @@ class CardHolder(CardControl):
                     self._init_cardpocketlist()
 
         # 左右ボタンでの移動先の有無(情報カードは左右移動無し)
-        if self.callname != "INFOVIEW":
+        if self.callname == "INFOVIEW":
+            self._can_open_cardpocket = False
+            self._can_open_backpack = False
+            self._can_open_storehouse = False
+        else:
             # キャストの手札
             self._can_open_cardpocket = cw.cwpy.ydata.party and 0 < len(cw.cwpy.ydata.party.members)
             # 荷物袋
