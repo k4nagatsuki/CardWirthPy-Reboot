@@ -29,6 +29,7 @@ import warnings
 from functools import reduce
 
 import wx
+import wx.adv
 import wx.lib.agw.aui.tabart
 import wx.lib.mixins.listctrl
 import wx.richtext
@@ -4673,6 +4674,77 @@ class FilePathRenderer(wx.grid.GridCellRenderer):
         y = rect.Y + (rect.Height - dc.GetTextExtent(fpath)[1]) // 2
         dc.DrawText(fpath, x, y)
         dc.DestroyClippingRegion()
+
+
+class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
+    """
+    FIXME: wx.adv.BitmapComboBoxの選択ウィンドウの幅が
+    コントロールの幅に固定されてしまうため代替する。
+    """
+    def __init__(self, parent, id=wx.ID_ANY, value="", pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 choices=[], style=0, validator=wx.DefaultValidator, name="comboBox"):
+        wx.adv.OwnerDrawnComboBox.__init__(self, parent, id, value, pos, size, choices, style, validator, name)
+        self._items = []
+
+    def Append(self, s, bmp):
+        self._items.append((s, bmp))
+        wx.adv.OwnerDrawnComboBox.Append(self, s)
+
+    def SetString(self, item, s):
+        self._items[item] = (s, self._items[item][1])
+        wx.adv.OwnerDrawnComboBox.SetString(self, item, s)
+
+    def GetWidestItem(self):
+        dc = wx.ClientDC(self)
+        mx = -1
+        rw = 0
+        for i, (s, bmp) in enumerate(self._items):
+            w = bmp.GetSize()[0]
+            w += dc.GetTextExtent(s)[0]
+            if rw < w:
+                mx = i
+            rw = max(rw, w)
+        return mx
+
+    def GetWidestItemWidth(self):
+        dc = wx.ClientDC(self)
+        rw = 0
+        for s, bmp in self._items:
+            w = bmp.GetSize()[0]
+            w += dc.GetTextExtent(s)[0]
+            rw = max(rw, w)
+        return rw
+
+    def IsListEmpty(self):
+        return 0 == len(self._items)
+
+    def IsTextEmpty(self):
+        index = self.GetSelection()
+        return index == -1 or self._items[index][0] == ""
+
+    def OnDrawBackground(self, dc, rect, item, flags):
+        wx.adv.OwnerDrawnComboBox.OnDrawBackground(self, dc, rect, item, flags)
+
+    def OnDrawItem(self, dc, rect, item, flags):
+        s, bmp = self._items[item]
+        x = rect[0]
+        sz = bmp.GetSize()
+        dc.DrawBitmap(bmp, (x, rect[1] + (rect[3]-sz[1])//2), True)
+        x += sz[0]
+        sz = dc.GetTextExtent(s)
+        dc.DrawText(s, (x, rect[1] + (rect[3]-sz[1])//2))
+
+    def OnMeasureItem(self, item):
+        dc = wx.ClientDC(self)
+        s, bmp = self._items[item]
+        sz = dc.GetTextExtent(s)
+        return max(bmp.GetHeight(), sz[1])
+
+    def OnMeasureItemWidth(self, item):
+        dc = wx.ClientDC(self)
+        s, bmp = self._items[item]
+        sz = dc.GetTextExtent(s)
+        return bmp.GetWidth() + sz[0]
 
 
 # ------------------------------------------------------------------------------

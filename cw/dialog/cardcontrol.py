@@ -138,8 +138,9 @@ class CardControl(wx.Dialog):
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
         self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp, chain=True)
+
         # sendto
-        self.combo = wx.adv.BitmapComboBox(self.toppanel, size=cw.wins((100, 24)), style=wx.CB_READONLY)
+        self.combo = cw.util.CWPyBitmapComboBox(self.toppanel, size=cw.wins((100, 24)), style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
@@ -1882,6 +1883,7 @@ class CardHolder(CardControl):
                     self._combo_cast[len(self.combo.GetItems())] = index
                     self.combo.Append(castdata.name, bmp)
                     index += 1
+                self._update_cardpocketinfo()
             if not cw.cwpy.is_playingscenario():
                 bmp = cw.cwpy.rsrc.buttons["SHELF"]
                 self._combo_shelf = len(self.combo.GetItems())
@@ -2250,7 +2252,24 @@ class CardHolder(CardControl):
             self.closebtn.SetLabel(cw.cwpy.msgs["return"])
         else:
             self.closebtn.SetLabel(cw.cwpy.msgs["close"])
+
+        self._update_cardpocketinfo()
+
         self.Thaw()
+
+    def _update_cardpocketinfo(self):
+        if self._can_open_cardpocket:
+            for icombo in range(self.combo.GetCount()):
+                if icombo in self._combo_cast:
+                    index = self._combo_cast[icombo]
+                    castdata = self.list2[index]
+                    if self.callname == "CARDPOCKET":
+                        pocket = cw.cwpy.setting.last_cardpocket
+                        s = "%s(%s/%s)" % (castdata.name, len(castdata.cardpocket[pocket]),
+                                           castdata.get_cardpocketspace()[pocket])
+                    else:
+                        s = castdata.name
+                    self.combo.SetString(icombo, s)
 
     def _enable_updown(self):
         # リストが空か1ページ分しかなかったら上下ボタンを無効化
@@ -2409,6 +2428,7 @@ class CardHolder(CardControl):
                 btn.SetToggle(False)
 
         self.draw_cards()
+        self._update_cardpocketinfo()
 
     def OnUp(self, event):
         if self.callname == "CARDPOCKET":
