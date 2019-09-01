@@ -281,7 +281,8 @@ class YadoCardInfo(CardInfo):
         self.selection = self.list[self.index]
         self.selection.negaflag = True
         self.Parent.draw(True)
-        self.Parent.update_cardpocketinfo_with(self.selection)
+        if isinstance(self.Parent, cw.dialog.cardcontrol.CardHolder):
+            self.Parent.update_cardpocketinfo_with(self.selection)
         self.draw(True)
 
     def OnClickRightBtn(self, event):
@@ -294,7 +295,8 @@ class YadoCardInfo(CardInfo):
         self.selection = self.list[self.index]
         self.selection.negaflag = True
         self.Parent.draw(True)
-        self.Parent.update_cardpocketinfo_with(self.selection)
+        if isinstance(self.Parent, cw.dialog.cardcontrol.CardHolder):
+            self.Parent.update_cardpocketinfo_with(self.selection)
         self.draw(True)
 
 
