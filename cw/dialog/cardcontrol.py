@@ -1924,6 +1924,7 @@ class CardHolder(CardControl):
         self._enable_updown()
 
         # 移動先選択コンボボックス(情報カードの場合は無し)
+        self._cardpocketinfo = -1
         if sendto:
             bmp = cw.cwpy.rsrc.buttons["ARROW"]
             self._combo_manual = len(self.combo.GetItems())
