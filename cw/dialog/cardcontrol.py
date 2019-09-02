@@ -140,8 +140,10 @@ class CardControl(wx.Dialog):
         self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp, chain=True)
 
         # sendto
-        self.combo = cw.util.CWPyBitmapComboBox(self.toppanel, size=cw.wins((100, 24)), style=wx.CB_READONLY)
+        self.combo = cw.util.CWPyBitmapComboBox(self.toppanel, size=cw.wins((100, 24)),
+                                                style=wx.CB_READONLY | wx.CB_DROPDOWN)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
+        self.combo.SetPopupMaxHeight(cw.wins(14*20))
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp, chain=True)
