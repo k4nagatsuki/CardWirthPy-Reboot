@@ -214,6 +214,7 @@ class CardControl(wx.Dialog):
         self._starclickedflag = False
         self._replclickedflag = False
         self._animate_frame = 0
+        self._price_sheet = None
 
         self.smallctrls = []
 
@@ -1007,9 +1008,22 @@ class CardControl(wx.Dialog):
             pixelsize = cw.cwpy.setting.fonttypes["price"][2]
             font2x = cw.cwpy.rsrc.get_wxfont("price", pixelsize=cw.wins(pixelsize)*2, adjustsizewx3=False)
             dc.SetFont(font2x)
-            gcdc = wx.GCDC(dc)
-            gcdc.SetBrush(wx.Brush(wx.Colour(255, 255, 255, 160)))
-            gcdc.SetPen(wx.TRANSPARENT_PEN)
+
+            padw = cw.wins(2)
+            padh = cw.wins(2)
+            margw = cw.wins(2)
+            margh = cw.wins(2)
+
+            if not self._price_sheet:
+                _pw, ph = dc.GetTextExtent("0")
+                wxsize = cw.wins(cw.setting.SIZE_RESOURCES["CardBg/ACTION"])
+                psw = wxsize[0] - margw*2 - padw*2
+                psh = ph//2+padh*2
+
+                data = bytearray([255] * (psw*psh*3))
+                alpha = bytearray([160] * (psw*psh))
+
+                self._price_sheet = wx.Bitmap.FromBufferAndAlpha(psw, psh, data, alpha)
 
         # カードの描画
         mousepos = self.toppanel.ScreenToClient(wx.GetMousePosition())
@@ -1028,18 +1042,13 @@ class CardControl(wx.Dialog):
             def draw_price():
                 if price:
                     s = "%s" % (header.sellingprice if header.can_selling() else "---")
-                    padw = cw.wins(2)
-                    padh = cw.wins(2)
-                    margw = cw.wins(2)
-                    margh = cw.wins(2)
-
                     pw, ph = dc.GetTextExtent(s)
                     pw //= 2
                     ph //= 2
                     maxwidth = w - (padw*2 + margw*2)
                     py = y + h - ph - (margh + padh*2)
 
-                    gcdc.DrawRectangle(x+padw+margw, py-padh, maxwidth, ph+padh*2)
+                    dc.DrawBitmap(self._price_sheet, x+padw+margw, py-padh)
 
                     px = x + padw+margh + (maxwidth - min(maxwidth, pw)) // 2
 
