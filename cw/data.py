@@ -1087,7 +1087,7 @@ class ScenarioData(SystemData):
             else:
                 self.tempdir = cw.util.join_paths(cw.tempdir, "Scenario")
                 orig_tempdir = self._decompress(False)
-                cw.cwpy.ydata.recenthistory.append(self.fpath, orig_tempdir)
+                cw.cwpy.ydata.recenthistory.append(self.name, self.fpath, orig_tempdir)
         else:
             # 展開済みシナリオ
             self.tempdir = self.fpath
@@ -2592,7 +2592,7 @@ class YadoData(object):
 
         # シナリオ履歴
         sctempdir = cw.util.join_paths(cw.tempdir, "Scenario")
-        self.recenthistory = cw.setting.RecentHistory(sctempdir)
+        self.recenthistory = cw.setting.RecentHistory(sctempdir, self)
 
         # 現在選択中のパーティをセット
         optparty = cw.OPTIONS.party

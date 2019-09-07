@@ -3030,13 +3030,18 @@ class ResourceTable(object):
 
 
 class RecentHistory(object):
-    def __init__(self, tempdir):
+    def __init__(self, tempdir, ydata):
         """起動してから開いたシナリオの情報を
         (wsn・zipファイルのパス, 最終更新日, "Data/Temp"に展開したフォルダパス)の
         形式で保存し、管理するクラス。
         古い順から"Data/Temp"のフォルダを削除していく。
+        ただし以下の条件で削除順は多少前後する。
+         * 済印つきのシナリオは優先して削除する
+         * ブックマークされているシナリオはできるだけ削除しない
         tempdir: シナリオの一時展開先
+        ydata: シナリオキャッシュを保持する宿
         """
+        self.ydata = ydata
         self.scelist = []
         temppaths = set()
         limit = cw.cwpy.setting.recenthistory_limit
@@ -3051,18 +3056,22 @@ class RecentHistory(object):
             self.data.fpath = fpath
             self.data.write()
 
+        # キャッシュ履歴を読み込み、
+        # キャシュ元とキャッシュ本体が実在するものだけリストに追加する
         for e in self.data.getfind("."):
             if e.tag == "Scenario":
+                name = e.gettext("Name", "")
                 path = e.gettext("WsnPath", "")
                 temppath = e.gettext("TempPath", "")
                 md5 = e.get("md5")
 
                 if os.path.isfile(path) and os.path.isdir(temppath) and md5:
-                    self.scelist.append((path, md5, temppath))
+                    self.scelist.append((path, md5, temppath, name))
                     temppath = os.path.normpath(temppath)
                     temppath = os.path.normcase(temppath)
                     temppaths.add(temppath)
 
+        # キャッシュ元が消滅しているなど使用不能になっているキャッシュを削除する
         if os.path.isdir(tempdir):
             for name in os.listdir(tempdir):
                 path = cw.util.join_paths(tempdir, name)
@@ -3079,7 +3088,7 @@ class RecentHistory(object):
         seq = []
 
         s = set()
-        for path, md5, temppath in self.scelist:
+        for path, md5, temppath, name in self.scelist:
             normpath2 = cw.util.get_keypath(path)
             if normpath2 == from_normpath:
                 if normpath2 in s:
@@ -3093,7 +3102,7 @@ class RecentHistory(object):
                     elif os.path.isfile(to_path):
                         md5 = cw.util.get_md5(to_path)
 
-            seq.append((path, md5, temppath))
+            seq.append((path, md5, temppath, name))
         self.scelist = seq
         self.write()
 
@@ -3104,12 +3113,15 @@ class RecentHistory(object):
         while len(data):
             data.remove(data[-1])
 
-        for path, md5, temppath in self.scelist:
+        for path, md5, temppath, name in self.scelist:
             e_sce = cw.data.make_element("Scenario", "", {"md5": str(md5)})
             e = cw.data.make_element("WsnPath", path)
             e_sce.append(e)
             e = cw.data.make_element("TempPath", temppath)
             e_sce.append(e)
+            if name:
+                e = cw.data.make_element("Name", name)
+                e_sce.append(e)
             data.append(e_sce)
 
         self.data.write()
@@ -3117,14 +3129,51 @@ class RecentHistory(object):
     def set_limit(self, value):
         """
         保持履歴数を設定する。
-        履歴数を超えたデータは古い順から削除。
+        履歴数を超えたデータは古い順(先頭)から削除。
         """
         self.limit = value
 
-        if self.limit and len(self.scelist) > self.limit:
-            while len(self.scelist) > self.limit:
-                self.remove(save=False)
+        if self._remove_old():
             self.write()
+
+    def _remove_old(self, exclude=None):
+        if not self.limit:
+            return False
+        if not self.ydata:
+            return False
+
+        # ブックマークつきのシナリオをリストから除外しておく
+        bookmarks = set()
+        for _bookmark, bookmarkpath in self.ydata.bookmarks:
+            bookmarks.add(cw.util.get_keypath(bookmarkpath))
+        b_seq = []
+        seq = []
+        for t in self.scelist:
+            if cw.util.get_keypath(t[0]) in bookmarks:
+                b_seq.append(t)
+            else:
+                seq.append(t)
+
+        if len(seq) > self.limit:
+            self._sort_scelist(seq, exclude=exclude)
+            while len(seq) > self.limit:
+                self.remove(save=False, scelist=seq)
+            self.scelist.clear()
+            self.scelist.extend(seq)
+            self.scelist.extend(b_seq)
+            return True
+        else:
+            return False
+
+    def _sort_scelist(self, scelist, exclude=None):
+        """
+        済印つきのシナリオをリストの先頭へ移動する。
+        """
+        stamps = self.ydata.get_compstamps()
+        seq = scelist[:]
+        scelist.clear()
+        scelist.extend(filter(lambda t: t[3] in stamps and t[0] != exclude, seq))
+        scelist.extend(filter(lambda t: t[3] not in stamps or t[0] == exclude, seq))
 
     def moveend(self, path):
         """
@@ -3138,7 +3187,7 @@ class RecentHistory(object):
 
         self.write()
 
-    def append(self, path, temppath, md5=None):
+    def append(self, name, path, temppath, md5=None):
         """
         path: wsn・zipファイルのパス。
         temppath: "Data/Yado/<Yado>/Temp"に展開したフォルダパス。
@@ -3151,28 +3200,29 @@ class RecentHistory(object):
 
         temppath = temppath.replace("\\", "/")
         self.remove(path, save=False)
-        self.scelist.append((path, md5, temppath))
+        self.scelist.append((path, md5, temppath, name))
 
-        while len(self.scelist) > self.limit:
-            self.remove(save=False)
-
+        self._remove_old(exclude=path)
         self.write()
 
-    def remove(self, path="", save=True):
+    def remove(self, path="", save=True, scelist=None):
         """
         path: 登録削除するwsn・zipファイルのパス。
         空の場合は一番先頭にあるデータの登録を削除する。
         """
+        if scelist is None:
+            scelist = self.scelist
+
         if not path:
-            cw.util.remove(self.scelist[0][2])
-            self.scelist.remove(self.scelist[0])
+            cw.util.remove(scelist[0][2])
+            scelist.remove(scelist[0])
         else:
             path = path.replace("\\", "/")
-            seq = [i for i in self.scelist if i[0] == path]
+            seq = [i for i in scelist if i[0] == path]
 
             for i in seq:
                 cw.util.remove(i[2])
-                self.scelist.remove(i)
+                scelist.remove(i)
 
         if save:
             self.write()
@@ -3191,7 +3241,7 @@ class RecentHistory(object):
         seq = []
         seq.extend(self.scelist)
 
-        for i_path, i_md5, i_temppath in seq:
+        for i_path, i_md5, i_temppath, name in seq:
             if not os.path.isfile(i_path) or not os.path.isdir(i_temppath):
                 self.remove(i_path)
                 continue
