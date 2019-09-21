@@ -61,6 +61,10 @@ class CWPyCard(base.SelectableSprite):
             mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards())
         elif mcardflag and self.command in ("MoveCard", "ShowDialog") and self.arg == "BACKPACK":
             mcardflag &= cw.cwpy.sdata.party_environment_backpack
+        elif not cw.cwpy.setting.show_sell_with_premiercard and\
+                mcardflag and self.command == "MoveCard" and self.arg in ("PAWNSHOP", "TRASHBOX"):
+            mcardflag &= cw.cwpy.is_debugmode() or not cw.cwpy.setting.protect_premiercard or\
+                         not cw.cwpy.selectedheader or cw.cwpy.selectedheader.premium != "Premium"
         return mcardflag
 
     @staticmethod
@@ -76,6 +80,10 @@ class CWPyCard(base.SelectableSprite):
                 mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards())
             elif command in ("MoveCard", "ShowDialog") and data.getattr(".", "arg", "") == "BACKPACK":
                 mcardflag &= cw.cwpy.sdata.party_environment_backpack
+            elif not cw.cwpy.setting.show_sell_with_premiercard and\
+                    command == "MoveCard" and data.getattr(".", "arg", "") in ("PAWNSHOP", "TRASHBOX"):
+                mcardflag &= cw.cwpy.is_debugmode() or not cw.cwpy.setting.protect_premiercard or\
+                             not cw.cwpy.selectedheader or cw.cwpy.selectedheader.premium != "Premium"
         return mcardflag
 
     def get_unselectedimage(self):

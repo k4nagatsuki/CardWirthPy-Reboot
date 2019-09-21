@@ -488,6 +488,8 @@ class Setting(object):
         self.stop_the_world_with_iconized = True
         # 送り先のカードが一杯の時は交換ダイアログを開く
         self.replacecard_when_sendfullcardpocket = True
+        # プレミアカード選択中でも売却と破棄を表示する
+        self.show_sell_with_premiercard = True
 
         # 宿の表示順序
         self.yado_order = {}
@@ -827,6 +829,9 @@ class Setting(object):
         self.protect_staredcard = data.getbool("ProtectStaredCard", self.protect_staredcard)
         # プレミアカードの売却や破棄を禁止する
         self.protect_premiercard = data.getbool("ProtectPremierCard", self.protect_premiercard)
+        # プレミアカード選択中でも売却と破棄を表示する
+        self.show_sell_with_premiercard = data.getbool("ShowSellAndDumpWithPremierCard",
+                                                       self.show_sell_with_premiercard_init)
         # カード置場と荷物袋でカードの種類を表示する
         self.show_cardkind = data.getbool("ShowCardKind", self.show_cardkind)
         # カードの希少度をアイコンで表示する

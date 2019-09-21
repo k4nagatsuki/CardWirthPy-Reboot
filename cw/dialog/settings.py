@@ -793,6 +793,8 @@ class SettingsPanel(wx.Panel):
 
             def func():
                 if cw.cwpy.selectedheader:
+                    cw.cwpy.remove_pricesprites()
+                    cw.data.redraw_cards(cw.cwpy.is_debugmode())
                     cw.cwpy.set_testaptitude(cw.cwpy.selectedheader)
             cw.cwpy.exec_func(func)
         # value = self.pane_ui.cb_spend_noeffectcard.GetValue()

@@ -622,6 +622,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.protect_premiercard != setting.protect_premiercard_init:
         e = cw.data.make_element("ProtectPremierCard", str(setting.protect_premiercard))
         element.append(e)
+    # プレミアカード選択中でも売却と破棄を表示する
+    if setting.show_sell_with_premiercard != setting.show_sell_with_premiercard_init:
+        e = cw.data.make_element("ShowSellAndDumpWithPremierCard", str(setting.show_sell_with_premiercard))
+        element.append(e)
     # カード置場と荷物袋でカードの種類を表示する
     if setting.show_cardkind != setting.show_cardkind_init:
         e = cw.data.make_element("ShowCardKind", str(setting.show_cardkind))

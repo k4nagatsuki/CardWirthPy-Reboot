@@ -800,8 +800,6 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.debug_saved = debug
         self.debug = debug
         self.statusbar.change(not self.is_runningevent())
-        if self.selectedheader:
-            self.set_testaptitude(self.selectedheader)
 
         if self.is_battlestatus():
             if self.battle:
@@ -819,7 +817,11 @@ class CWPy(_Singleton, threading.Thread):
             self.exec_func(func)
 
         if not self.is_decompressing:
+            self.remove_pricesprites()
             cw.data.redraw_cards(debug)
+            if self.selectedheader:
+                self.set_testaptitude(self.selectedheader)
+
         if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
             self.clear_selection()
         self.change_selection(self.selection)
@@ -3820,10 +3822,6 @@ class CWPy(_Singleton, threading.Thread):
                 if self.areaid in cw.AREAS_TRADE:
                     if self.selectedheader:
                         self.set_testaptitude(self.selectedheader)
-                    for mcard in self.get_mcards("visible"):
-                        if mcard.command == "MoveCard" and mcard.arg == "PAWNSHOP":
-                            poc = cw.sprite.background.PriceOfCard(mcard, self.selectedheader, self.cardgrp)
-                            self.pricesprites.append(poc)
 
                 self.list = self.get_mcards("visible")
                 self.index = -1
@@ -3900,11 +3898,31 @@ class CWPy(_Singleton, threading.Thread):
                 pcard.inusecardimg.update_scale()
             self.add_lazydraw(clip=pcard.rect)
         # 枚数表示
-        self.show_numberofcards(header.type)
+        if header:
+            self.show_numberofcards(header.type)
+        else:
+            self.clear_numberofcards()
         # 売却価格表示
+        self.remove_pricesprites()
+        if header:
+            for mcard in self.get_mcards("visible"):
+                if mcard.command == "MoveCard" and mcard.arg == "PAWNSHOP":
+                    poc = cw.sprite.background.PriceOfCard(mcard, self.selectedheader, self.cardgrp)
+                    self.pricesprites.append(poc)
+                    self.add_lazydraw(clip=poc.rect)
+
+    def update_tradecards(self):
+        if self.areaid in cw.AREAS_TRADE and self.status == "Yado":
+            cw.cwpy.remove_pricesprites()
+            cw.data.redraw_cards(cw.cwpy.is_debugmode(), silent=True)
+            cw.cwpy.set_testaptitude(cw.cwpy.selectedheader)
+
+    def remove_pricesprites(self):
+        """価格表示のスプライトを削除する。"""
         for poc in self.pricesprites:
-            poc.set_header(header)
             self.add_lazydraw(clip=poc.rect)
+        self.cardgrp.remove(self.pricesprites)
+        self.pricesprites = []
 
     def clear_specialarea(self, redraw=True, silent=False):
         """特殊エリアに移動する前のエリアに戻る。
@@ -3947,8 +3965,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.cardgrp.remove(self.mcards)
                 self.mcards = []
                 self.mcards_expandspchars.clear()
-                self.cardgrp.remove(self.pricesprites)
-                self.pricesprites = []
+                self.remove_pricesprites()
                 self.file_updates.clear()
                 if clear_curtain:
                     self.clear_curtain(redraw=not silent)
@@ -3990,6 +4007,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             # ターゲット選択エリアを解除の場合
             self.selectedheader = None
+            self.update_tradecards()
             targetselectionarea = True
             if self.is_curtained():
                 self.clear_curtain()
@@ -4429,6 +4447,7 @@ class CWPy(_Singleton, threading.Thread):
             if self.areaid in cw.AREAS_TRADE:
                 # カード移動選択エリアだったら、事前に開いていたダイアログを開く
                 self.selectedheader = None
+                self.update_tradecards()
                 self.call_predlg()
             else:
                 # それ以外だったら特殊エリアをクリアする
@@ -5142,6 +5161,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if header == self.selectedheader:
             self.selectedheader = None
+            self.update_tradecards()
 
         if not sort and targettype == "BACKPACK" and cw.cwpy.ydata.party:
             cw.cwpy.ydata.party.sorted_backpack_by_order = False

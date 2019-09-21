@@ -2231,7 +2231,7 @@ class Flag(object):
             self._parent.is_edited = True
 
 
-def redraw_cards(value, flag=""):
+def redraw_cards(value, flag="", silent=False):
     """フラグに対応するメニューカードの再描画処理"""
     quickdeal = cw.cwpy.areaid == cw.AREA_CAMP and cw.cwpy.setting.all_quickdeal
     if cw.cwpy.is_autospread():
@@ -2247,13 +2247,13 @@ def redraw_cards(value, flag=""):
 
         if drawflag:
             cw.cwpy.sdata.moved_mcards = {}  # 再配置情報を破棄
-            cw.cwpy.hide_cards(True, flag=flag, quickhide=quickdeal)
-            cw.cwpy.deal_cards(flag=flag, quickdeal=quickdeal)
+            cw.cwpy.hide_cards(True, flag=flag, quickhide=quickdeal, silent=silent)
+            cw.cwpy.deal_cards(flag=flag, quickdeal=quickdeal, silent=silent)
 
     elif value:
-        cw.cwpy.deal_cards(updatelist=False, flag=flag, quickdeal=quickdeal)
+        cw.cwpy.deal_cards(updatelist=False, flag=flag, quickdeal=quickdeal, silent=silent)
     else:
-        cw.cwpy.hide_cards(updatelist=False, flag=flag, quickhide=quickdeal)
+        cw.cwpy.hide_cards(updatelist=False, flag=flag, quickhide=quickdeal, silent=silent)
 
 
 class Step(object):

@@ -1628,6 +1628,7 @@ class CardControl(wx.Dialog):
         cw.cwpy.selectedheader = header
 
         def func():
+            cw.cwpy.update_tradecards()
             cw.cwpy.set_testaptitude(cw.cwpy.selectedheader)
             cw.cwpy.update_selectablelist()
         cw.cwpy.exec_func(func)
