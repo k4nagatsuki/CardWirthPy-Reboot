@@ -788,7 +788,13 @@ class SettingsPanel(wx.Panel):
         value = self.pane_ui.cb_protect_staredcard.GetValue()
         setting.protect_staredcard = value
         value = self.pane_ui.cb_protect_premiercard.GetValue()
-        setting.protect_premiercard = value
+        if setting.protect_premiercard != value:
+            setting.protect_premiercard = value
+
+            def func():
+                if cw.cwpy.selectedheader:
+                    cw.cwpy.set_testaptitude(cw.cwpy.selectedheader)
+            cw.cwpy.exec_func(func)
         # value = self.pane_ui.cb_spend_noeffectcard.GetValue()
         # setting.spend_noeffectcard = value
         value = self.pane_ui.sc_radius_notdetectmovement.GetValue()

@@ -800,6 +800,8 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.debug_saved = debug
         self.debug = debug
         self.statusbar.change(not self.is_runningevent())
+        if self.selectedheader:
+            self.set_testaptitude(self.selectedheader)
 
         if self.is_battlestatus():
             if self.battle:
@@ -3896,11 +3898,13 @@ class CWPy(_Singleton, threading.Thread):
             # カード種類アイコン表示切替
             if pcard.inusecardimg:
                 pcard.inusecardimg.update_scale()
+            self.add_lazydraw(clip=pcard.rect)
         # 枚数表示
         self.show_numberofcards(header.type)
         # 売却価格表示
         for poc in self.pricesprites:
             poc.set_header(header)
+            self.add_lazydraw(clip=poc.rect)
 
     def clear_specialarea(self, redraw=True, silent=False):
         """特殊エリアに移動する前のエリアに戻る。
