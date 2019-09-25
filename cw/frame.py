@@ -281,6 +281,7 @@ class Frame(wx.Frame):
             "RETURNTITLE",  # タイトルに戻るダイアログ
             "SAVE",  # セーブダイアログ
             "SAVED_MESSAGE",  # セーブ完了通知ダイアログ
+            "LOAD",  # ロード確認ダイアログ
             "USECARD",   # カード使用ダイアログ
             "RUNAWAY",   # 逃走確認ダイアログ
             "ERROR",  # エラーダイアログ
@@ -967,6 +968,14 @@ class Frame(wx.Frame):
             if cw.cwpy.ydata.party:
                 cw.cwpy.ydata.party._loading = False
             cw.cwpy.change_area(areaid)
+
+    def OnLOAD(self, event):
+        s = cw.cwpy.msgs["confirm_load"]
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+        self.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            cw.cwpy.exec_func(cw.cwpy.reload_yado)
+        self.kill_dlg(dlg)
 
     def OnRUNAWAY(self, event):
         s = cw.cwpy.msgs["confirm_runaway"]

@@ -886,6 +886,7 @@
     <Message key="delete_signboard">看板の削除</Message>
     <Message key="select_image_file">外部ファイルの選択</Message>
     <Message key="external_image_file">外部ファイル</Message>
+    <Message key="confirm_load">保存された状況に戻します。よろしいですか？</Message>
     <!-- 4.0 ここまで -->
   </Messages>
   <!-- importantdrawing = ユーザの描画オプションを上書きするか importantfont = フォントオプションを上書きするか -->

@@ -2820,6 +2820,9 @@ class CWPy(_Singleton, threading.Thread):
 
     def reload_yado(self):
         """現在の宿をロード。"""
+        self.is_debuggerprocessing = True
+        # 特殊エリア・ログ表示等を解除
+        self.clean_specials(redraw=False, silent=True)
         # イベントを中止
         self.event.stoped = True
         self.event.breakwait = True
