@@ -1013,10 +1013,10 @@ class CWPy(_Singleton, threading.Thread):
                     continue
                 breakflag = True
             elif e.type == pygame.locals.KEYUP:
-                if e.key not in (pygame.locals.K_F1, pygame.locals.K_F2, pygame.locals.K_F3, pygame.locals.K_F4,
-                                 pygame.locals.K_F5, pygame.locals.K_F6, pygame.locals.K_F7, pygame.locals.K_F8,
-                                 pygame.locals.K_F9, pygame.locals.K_F10, pygame.locals.K_F11, pygame.locals.K_F12,
-                                 pygame.locals.K_F13, pygame.locals.K_F14, pygame.locals.K_F15):
+                if e.key in (pygame.locals.K_RETURN, pygame.locals.K_SPACE, pygame.locals.K_UP,
+                             pygame.locals.K_DOWN, pygame.locals.K_LEFT, pygame.locals.K_RIGHT,
+                             pygame.locals.K_PAGEUP, pygame.locals.K_PAGEDOWN,
+                             pygame.locals.K_HOME, pygame.locals.K_END):
                     breakflag = True
             cw.thread.post_pygameevent(e)
         return breakflag
