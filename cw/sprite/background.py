@@ -1106,6 +1106,7 @@ class BackGround(base.CWPySprite):
 
         # トランジション効果で画面入り
         if redraw:
+            cw.cwpy.event.refresh_activeitem()
             if (not animated or not doanime) and transitspr and not oldbgs == self.bgs:
                 cw.cwpy.cardgrp.add(transitspr, layer=cw.LAYER_TRANSITION)
                 cw.animation.animate_sprite(transitspr, "transition", background=True)

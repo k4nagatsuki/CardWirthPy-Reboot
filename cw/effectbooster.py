@@ -16,6 +16,8 @@ class ScreenRescale(Exception):
 
 
 def wait_effectbooster(waittime, doanime):
+    if waittime:
+        cw.cwpy.event.refresh_activeitem()
     if 0 < waittime:
         start_ticks = pygame.time.get_ticks() - doanime.time_elapsed
         stw = cw.sprite.base.StopTheWorld(start_ticks, waittime)
