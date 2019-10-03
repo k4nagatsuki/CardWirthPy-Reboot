@@ -1656,10 +1656,16 @@ class EffectBoosterConfig(object):
             s = self.get(section, option, default)
             if s == default:
                 return default
-            seq = [(int(i.strip()) if i.strip() else 0) for i in s.split(",")]
 
-            if len(seq) == length:
-                return tuple(seq)
+            seq = []
+            for i in s.split(","):
+                try:
+                    seq.append(int(i.strip()))
+                except ValueError:
+                    seq.append(0)
+
+            if length <= len(seq):
+                return tuple(seq[:length])
             else:
                 raise ValueError()
 
