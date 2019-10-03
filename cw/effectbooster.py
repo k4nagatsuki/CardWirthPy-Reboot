@@ -1656,7 +1656,7 @@ class EffectBoosterConfig(object):
             s = self.get(section, option, default)
             if s == default:
                 return default
-            seq = [int(i.strip()) for i in s.split(",")]
+            seq = [(int(i.strip()) if i.strip() else 0) for i in s.split(",")]
 
             if len(seq) == length:
                 return tuple(seq)
