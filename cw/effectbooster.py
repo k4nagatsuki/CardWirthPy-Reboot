@@ -39,6 +39,8 @@ def wait_effectbooster(waittime, doanime):
             cw.cwpy.wait_frame(1, framerate=1000)
             cw.cwpy.input()
             eventhandler.run()
+        if 0 < waittime:
+            cw.cwpy.starttick = pygame.time.get_ticks()
 
         if not cw.cwpy.is_playingscenario():
             raise cw.event.EffectBreakError()
@@ -95,7 +97,7 @@ class _JpySubImage(cw.image.Image):
         self.configdepth = config.dirdepth
         self.cache = cache
         # 画像加工などを開始したタイミング
-        self.starttick = None
+        self.starttick = cw.cwpy.starttick
         # image load
         self.dirtype = config.get_int(section, "dirtype", 1)
         self.filename = config.get(section, "filename", "")

@@ -214,6 +214,8 @@ class CWPy(_Singleton, threading.Thread):
         # 一時的に全てのカード速度を上書きする
         # -1の時は無効
         self.force_dealspeed = -1
+        # 空白時間の直後の時刻(Ticks)
+        self.starttick = pygame.time.get_ticks()
 
         # JPDC撮影などで表示内容が変化するべきスプライト
         self.file_updates = set()
@@ -922,6 +924,7 @@ class CWPy(_Singleton, threading.Thread):
             self.get_eventhandler().run()   # イベントを消化
         else:
             self.tick_clock()         # FPS調整
+            self.starttick = pygame.time.get_ticks()
             self.input()              # 各種入力イベント取得
             self.get_eventhandler().run()   # イベントハンドラ
             if not pygame.event.peek(USEREVENT):
@@ -972,9 +975,24 @@ class CWPy(_Singleton, threading.Thread):
 
     def wait_frame(self, count, canskip=True, stoptheworld=None, framerate=0):
         """countフレーム分待機する。"""
+        self.lazy_draw()
+        if self.starttick is not None:
+            if not framerate:
+                framerate = self.setting.fps
+            # 直前の処理に時間がかかっていた場合はその分の時間を差し引く
+            tick = pygame.time.get_ticks()
+            t = (self.starttick + 1.0 / framerate * count * 1000) - tick
+            if t <= 0:
+                count = 0
+            else:
+                framerate = int(1000 / t)
+                count = 1
         self.event.eventtimer = 0
         skip = False
         i = 0
+        if count == 0:
+            self.input(inputonly=True)
+            self.get_eventhandler().run()
         while i < count:
             if canskip:
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
@@ -982,7 +1000,6 @@ class CWPy(_Singleton, threading.Thread):
                     skip = True
                     break
 
-            sel = self.selection
             self.update_groups((self.sbargrp,))
             if canskip:
                 breakflag = self.get_breakflag(handle_wheel=cw.cwpy.setting.can_skipwait_with_wheel)
@@ -997,6 +1014,7 @@ class CWPy(_Singleton, threading.Thread):
             self.tick_clock(framerate)
             if not (self.setting.stop_the_world_with_iconized and self.frame.is_iconized):
                 i += 1
+        self.starttick = pygame.time.get_ticks()
         return skip
 
     def get_breakflag(self, handle_wheel=True):
