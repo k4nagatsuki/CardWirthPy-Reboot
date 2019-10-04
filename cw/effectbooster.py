@@ -34,7 +34,6 @@ def wait_effectbooster(waittime, doanime):
                 (waittime <= 0 or stw.is_waiting()) and\
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
-            selection = cw.cwpy.selection
             cw.cwpy.update_groups((cw.cwpy.sbargrp,))
             cw.cwpy.wait_frame(1, framerate=1000)
             cw.cwpy.input()
@@ -325,6 +324,8 @@ class _JpySubImage(cw.image.Image):
                 waittime2 = self._cut_waittime(waittime)
                 if waittime2:
                     wait_effectbooster(waittime2, doanime=doanime)
+                else:
+                    cw.cwpy.wait_frame(0)
 
         # 右クリックするまで待機
         elif waittime < 0:
