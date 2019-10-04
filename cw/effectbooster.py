@@ -1170,7 +1170,7 @@ class JptxImage(cw.image.Image):
         # image
         width = backwidth if backwidth > cw.s(0) else cw.s(cw.SIZE_AREA[0])
         height = backheight if backheight > cw.s(0) else cw.s(cw.SIZE_AREA[0])
-        self.image = pygame.Surface((width, height)).convert()
+        self.image = pygame.Surface((width, height)).convert(24)
         self.image.fill(backcolor)
 
         if mask:
