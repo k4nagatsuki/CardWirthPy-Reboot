@@ -9,12 +9,12 @@ import cw
 
 
 # ------------------------------------------------------------------------------
-# 実行イベント選択ダイアログ
+# イベント選択ダイアログ
 # ------------------------------------------------------------------------------
 
 class EventListDialog(wx.Dialog):
     def __init__(self, parent, currentfpath, showhiddencards):
-        wx.Dialog.__init__(self, parent, -1, "実行するイベントの選択",
+        wx.Dialog.__init__(self, parent, -1, "イベントの選択",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.events = EventList(self, cw.ppis((250, 300)), currentfpath, showhiddencards)
@@ -138,7 +138,7 @@ class EventList(wx.TreeCtrl):
                 fpath = getfpath(resid)
                 if fpath is None:
                     continue
-                item = self.AppendItem(self.root, name, imgidx)
+                item = self.AppendItem(self.root, "%s.%s" % (resid, name), imgidx)
                 self.SetItemData(item, (name, resid, getdata, getfpath, False))
                 if os.path.normcase(currentfpath) == os.path.normcase(fpath):
                     self._expand_item(item)
