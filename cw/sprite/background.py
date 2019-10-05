@@ -122,6 +122,13 @@ class BackGround(base.CWPySprite):
                         curtain = sprite
                         rect = sprite.target.rect
                     elif isinstance(sprite, cw.sprite.background.BgCell):
+                        if sprite.bgtype == BG_COLOR and sprite.d[-1] in (pygame.locals.BLEND_RGB_ADD,
+                                                                          pygame.locals.BLEND_RGB_SUB,
+                                                                          pygame.locals.BLEND_RGB_MULT,
+                                                                          pygame.locals.BLEND_RGBA_ADD,
+                                                                          pygame.locals.BLEND_RGBA_SUB,
+                                                                          pygame.locals.BLEND_RGBA_MULT):
+                            continue
                         bgcell = sprite
                         rect = bgcell.rect
                         curtain = cw.sprite.background.Curtain(bgcell, cw.cwpy.cardgrp, is_selectable=False,
@@ -134,19 +141,13 @@ class BackGround(base.CWPySprite):
                     if 0 < subrect.width and 0 < subrect.height:
                         curtain.cutter = cutter.subsurface(subrect).copy()
                         curtain.cutter_pos = (max(0, -rect.left), max(0, -rect.top))
-                        if isinstance(sprite, BgCell) and sprite.bgtype == BG_IMAGE and\
-                                sprite.d[-1] in (BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT):
-                            # ブレンドモードが加算・減算・乗算の場合、背景との合成が発生するので
-                            # 全体をカットしておかないと合成結果がおかしくなる
-                            cutter.fill((0, 0, 0, 255), subrect)
+                        mask = curtain.create_mask()
+                        if mask:
+                            # 透明部分だけカットする
+                            mask.fill((0, 0, 0, 255), special_flags=pygame.locals.BLEND_RGBA_MIN)
+                            cutter.blit(mask, rect.topleft, special_flags=pygame.locals.BLEND_RGBA_MAX)
                         else:
-                            mask = curtain.create_mask()
-                            if mask:
-                                # 透明部分だけカットする
-                                mask.fill((0, 0, 0, 255), special_flags=pygame.locals.BLEND_RGBA_MIN)
-                                cutter.blit(mask, rect.topleft, special_flags=pygame.locals.BLEND_RGBA_MAX)
-                            else:
-                                cutter.fill((0, 0, 0, 255), subrect)
+                            cutter.fill((0, 0, 0, 255), subrect)
 
                     curtain.update_scale()
 
@@ -965,7 +966,7 @@ class BackGround(base.CWPySprite):
             else:
                 blendflag = 0
             d2 = (image, size, pos, blendflag)
-            blitlist.append((BG_IMAGE, d2, flag, layer))
+            blitlist.append((BG_COLOR, d2, flag, layer))
             bgs.append((BG_COLOR, d))
         else:
             bgs.append((BG_COLOR, d))
@@ -1128,7 +1129,7 @@ def _draw_bgcell(surface, bgdata, allclip=None):
     if allclip:
         srect = allclip
 
-    if bgtype == BG_IMAGE:
+    if bgtype in (BG_IMAGE, BG_COLOR):
         # 背景画像、カラーセル、縁取り形式2のテキストセル
         image, _size, pos, sflag = d
         rect = image.get_rect()
@@ -1168,7 +1169,7 @@ class BgCell(base.CWPySprite):
         self.flag = flag
         self.layer = (layer, cw.LTYPE_BACKGROUND, -1, index)
 
-        if bgtype == BG_IMAGE:
+        if bgtype in (BG_IMAGE, BG_COLOR):
             # 背景画像、カラーセル、縁取り形式2のテキストセル
             image, size, pos, _sflag = d
             self.rect_noscale = pygame.Rect(pos, size)
@@ -1237,6 +1238,7 @@ class Curtain(base.SelectableSprite):
         self.image = pygame.Surface(self.target.rect.size).convert_alpha()
         self.image.fill(self.color)
         self.rect = pygame.Rect(self.target.rect)
+
         if self.cutter:
             self.image.blit(self.cutter, self.cutter_pos, special_flags=pygame.locals.BLEND_RGBA_SUB)
 
@@ -1257,8 +1259,6 @@ class Curtain(base.SelectableSprite):
                 subimg.fill((0, 0, 0, 0))
                 cw.image.draw_textcell(subimg, rect, text, face,
                                        cw.s(tsize), color, bold, italic, underline, strike, vertical, antialias, bcolor)
-            elif self.target.d[-1] in (BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT):
-                return None
             else:
                 subimg = self.target.d[0]
                 if (subimg.get_flags() & pygame.locals.SRCALPHA):
