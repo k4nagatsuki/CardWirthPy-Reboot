@@ -4868,7 +4868,7 @@ class SimpleXmlParser(object):
         except xml.parsers.expat.ExpatError as err:
             # エラーになったファイルのパスを付け加える
             s = ". file: " + self.fpath
-            err.args = (err.args[0] + s.encode("utf-8"), )
+            err.args = (err.args[0] + s, )
             raise err
 
     def _create_parser(self):
@@ -4886,7 +4886,9 @@ class SimpleXmlParser(object):
             parser.Parse(fdata, 1)
         except xml.parsers.expat.ExpatError:
             # たまに制御文字が混入しているシナリオがある
+            fdata = str(fdata, "utf-8", "ignore")
             fdata = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", fdata)
+            fdata = fdata.encode("utf-8")
             self._clear_attrs()
             parser = self._create_parser()
             parser.Parse(fdata, 1)
