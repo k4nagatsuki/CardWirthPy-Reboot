@@ -935,10 +935,16 @@ class YadoDB(object):
                 numorder
         """
 
+        paths = set()
         recs = self.cur.fetchall()
         for order, rec in enumerate(recs):
+            fpath = rec["fpath"]
+            keypath = os.path.normcase(fpath)
+            if keypath in paths:
+                continue
+            paths.add(keypath)
             if rec["imgpath"] is None:
-                imgdbrec = self.cur.execute(s, (rec["fpath"],))
+                imgdbrec = self.cur.execute(s, (fpath,))
             else:
                 imgdbrec = None
             header = cw.header.CardHeader(dbrec=rec, imgdbrec=imgdbrec, dbowner=owner)
@@ -966,9 +972,15 @@ class YadoDB(object):
         """
         self.cur.execute(s, (1 if scenariocard else 0,))
 
+        paths = set()
         seq = []
         for rec in self.cur:
-            seq.append(rec["fpath"])
+            fpath = rec["fpath"]
+            keypath = os.path.normcase(fpath)
+            if keypath in paths:
+                continue
+            paths.add(keypath)
+            seq.append(fpath)
         return seq
 
     @synclock(_lock)
@@ -1140,10 +1152,16 @@ class YadoDB(object):
                 numorder
         """
 
+        paths = set()
         recs = self.cur.fetchall()
         for order, rec in enumerate(recs):
+            fpath = rec["fpath"]
+            keypath = os.path.normcase(fpath)
+            if keypath in paths:
+                continue
+            paths.add(keypath)
             if rec["imgpath"] is None:
-                imgdbrec = self.cur.execute(s, (rec["fpath"],))
+                imgdbrec = self.cur.execute(s, (fpath,))
             else:
                 imgdbrec = None
             header = cw.header.AdventurerHeader(dbrec=rec, imgdbrec=imgdbrec)
@@ -1156,10 +1174,16 @@ class YadoDB(object):
         return self.get_adventurers(False)
 
     def get_standbynames(self):
-        s = "SELECT name FROM adventurer WHERE lost=0 AND album=? ORDER BY name"
+        s = "SELECT name, fpath FROM adventurer WHERE lost=0 AND album=? ORDER BY name"
         self.cur.execute(s, (0,))
         names = []
+        paths = set()
         for rec in self.cur:
+            fpath = rec["fpath"]
+            keypath = os.path.normcase(fpath)
+            if keypath in paths:
+                continue
+            paths.add(keypath)
             names.append(rec[0])
         return names
 
@@ -1247,8 +1271,14 @@ class YadoDB(object):
             name
         """
         self.cur.execute(s)
+        paths = set()
         headers = []
         for order, rec in enumerate(self.cur):
+            fpath = rec["fpath"]
+            keypath = os.path.normcase(fpath)
+            if keypath in paths:
+                continue
+            paths.add(keypath)
             header = cw.header.PartyHeader(dbrec=rec)
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             header.order = order
@@ -1314,8 +1344,14 @@ class YadoDB(object):
     def get_partyrecord(self):
         s = "SELECT * FROM partyrecord ORDER BY name"
         self.cur.execute(s)
+        paths = set()
         headers = []
         for rec in self.cur:
+            fpath = rec["fpath"]
+            keypath = os.path.normcase(fpath)
+            if keypath in paths:
+                continue
+            paths.add(keypath)
             header = cw.header.PartyRecordHeader(dbrec=rec)
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             headers.append(header)
@@ -1377,8 +1413,14 @@ class YadoDB(object):
     def get_savedjpdcimage(self):
         s = "SELECT * FROM savedjpdcimage"
         self.cur.execute(s)
+        paths = set()
         d = {}
         for rec in self.cur:
+            fpath = rec["fpath"]
+            keypath = os.path.normcase(fpath)
+            if keypath in paths:
+                continue
+            paths.add(keypath)
             header = cw.header.SavedJPDCImageHeader(dbrec=rec)
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             d[(header.scenarioname, header.scenarioauthor)] = header
