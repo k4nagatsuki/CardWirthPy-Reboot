@@ -168,9 +168,6 @@ def get_imageinfos(data, pcnumber=False):
                 postype = data.getattr("ImagePath", "positiontype", "Default")
                 seq.append(ImageInfo(path=path, postype=postype))
             if pcnumber:
-                if path:
-                    postype = data.getattr("ImagePath", "positiontype", "Default")
-                    seq.append(ImageInfo(path=path, postype=postype))
                 pcn = data.getint("PCNumber", 0)  # 単一のPC指定
                 if pcn:
                     seq.append(ImageInfo(pcnumber=pcn))
