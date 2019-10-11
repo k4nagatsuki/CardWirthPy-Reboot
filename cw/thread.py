@@ -976,17 +976,14 @@ class CWPy(_Singleton, threading.Thread):
     def wait_frame(self, count, canskip=True, stoptheworld=None, framerate=0):
         """countフレーム分待機する。"""
         self.lazy_draw()
+        if not framerate:
+            framerate = self.setting.fps
         if self.starttick is not None:
-            if not framerate:
-                framerate = self.setting.fps
-            # 直前の処理に時間がかかっていた場合はその分の時間を差し引く
+            # 直前の処理に時間がかかっていた場合はフレームを飛ばす
             tick = pygame.time.get_ticks()
             t = (self.starttick + 1.0 / framerate * count * 1000) - tick
             if t <= 0:
                 count = 0
-            else:
-                framerate = int(1000 / t)
-                count = 1
         self.event.eventtimer = 0
         skip = False
         i = 0
@@ -1011,7 +1008,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if stoptheworld:
                 stoptheworld.is_waiting()
-            self.tick_clock(framerate)
+            self.clock.tick(framerate)
             if not (self.setting.stop_the_world_with_iconized and self.frame.is_iconized):
                 i += 1
         self.starttick = pygame.time.get_ticks()
