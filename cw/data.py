@@ -2539,13 +2539,13 @@ class YadoData(object):
                 shutil.move(fpath, dst)
 
             for fpath in party.get_memberpaths():
-                partypaths.add(fpath)
+                partypaths.add(os.path.normcase(fpath))
         self.sort_parties()
 
         # 待機中冒険者(AdventurerHeader)
         self.standbys = []
         for standby in self.yadodb.get_standbys():
-            if standby.fpath not in partypaths:
+            if os.path.normcase(standby.fpath) not in partypaths:
                 self.standbys.append(standby)
         self.sort_standbys()
 
