@@ -1008,7 +1008,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if stoptheworld:
                 stoptheworld.is_waiting()
-            self.clock.tick(framerate)
+            self.tick_clock(framerate)
             if not (self.setting.stop_the_world_with_iconized and self.frame.is_iconized):
                 i += 1
         self.starttick = pygame.time.get_ticks()
