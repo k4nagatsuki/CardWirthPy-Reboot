@@ -307,7 +307,7 @@ class Effect(object):
             self.animate(target, True)
 
         # 吸収効果があったら、使用者のカードを回転させて更新する。
-        if absorbto and self.count_motion("absorb") and userlife < absorbto.life:
+        if absorbto and self.count_motion("absorb") and userlife < absorbto.life and not absorbto.is_vanished():
             cw.cwpy.play_sound("bind", True)
             override_dealspeed = cw.cwpy.override_dealspeed
             force_dealspeed = cw.cwpy.force_dealspeed
@@ -831,7 +831,7 @@ class EffectMotion(object):
             target.set_mentality("Normal", 0)
 
         # 与えたダメージ分、使用者回復
-        if self.absorber:
+        if self.absorber and not self.absorber.is_vanished():
             oldulife = self.absorber.life
             self.absorber.set_life(value)
             ulife = self.absorber.life
