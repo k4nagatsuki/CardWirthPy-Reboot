@@ -2436,7 +2436,9 @@ class EffectContent(EventContentBase):
                 cw.cwpy.event.is_changestate = True
                 return 0
 
-        self.eff.update_status()
+        selectedmember = cw.cwpy.event.get_selectedmember()
+
+        self.eff.update_status(selectedmember=selectedmember)
 
         if self.ignite:
             event = cw.cwpy.event.get_event()
@@ -2458,8 +2460,6 @@ class EffectContent(EventContentBase):
             return cw.event.initial_effect(self.eff, targets, False,
                                            self.initialsoundpath, self.initialvolume, self.initialloopcount,
                                            self.initialchannel, self.initialfadein, remove_target)
-
-        selectedmember = cw.cwpy.event.get_selectedmember()
 
         def apply(target):
             if isinstance(target, cw.character.Character):

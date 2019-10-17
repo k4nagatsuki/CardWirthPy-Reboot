@@ -1566,11 +1566,13 @@ class CardEvent(Event, Targeting):
         d["target"] = data.gettext("Property/Target", "None")
         d["allrange"] = data.getbool("Property/Target", "allrange", False)
 
+        selectedmember = cw.cwpy.event.get_selectedmember()
+
         # Effectインスタンス作成
         motions = data.getfind("Motions").getchildren()
         eff = cw.effectmotion.Effect(motions, d, battlespeed=cw.cwpy.is_battlestatus())
         self.eff = eff
-        eff.update_status()
+        eff.update_status(selectedmember=selectedmember)
 
         # ターゲット色反転＆ウェイト
         self.update_targets()
@@ -1588,8 +1590,6 @@ class CardEvent(Event, Targeting):
 
         self.targets = targets
         self._target_index = 0
-
-        selectedmember = cw.cwpy.event.get_selectedmember()
 
         # 対象メンバに効果モーションを適用
         def clear_params(target):

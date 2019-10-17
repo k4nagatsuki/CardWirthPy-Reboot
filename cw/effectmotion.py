@@ -114,14 +114,14 @@ class Effect(object):
                                          vocation=self.vocation, absorbto=self.absorbto)
                             for e in motions]
 
-    def update_status(self):
+    def update_status(self, selectedmember=None):
         if self.refability:
-            ccard = cw.cwpy.event.get_selectedmember()
+            ccard = selectedmember
             self._level = ccard.level if ccard else 0
         else:
             self._level = cw.util.numwrap(self.user.level if self.user else self.level, -65536, 65536)
         for motion in self.motions:
-            motion.update_status()
+            motion.update_status(selectedmember=selectedmember)
 
     def get_level(self):
         """使用者のレベルもしくは効果コンテントの対象レベル。"""
@@ -187,8 +187,8 @@ class Effect(object):
                 success_res = self.resisttype == "Resist"
                 success_avo = self.resisttype == "Avoid"
             else:
-                success_res = self.check_resist(target)
-                success_avo = self.check_avoid(target)
+                success_res = self.check_resist(target, selectedmember=selectedmember)
+                success_avo = self.check_avoid(target, selectedmember=selectedmember)
 
         if not success_res and self.resisttype == "Resist" and not target.is_resistable(use_enhance=False):
             allsuccess = True
@@ -337,7 +337,7 @@ class Effect(object):
     def check_noeffect(self, target):
         return check_noeffect(self.effecttype, target)
 
-    def check_avoid(self, target):
+    def check_avoid(self, target, selectedmember=None):
         if self.resisttype == "Avoid" and target.is_avoidable():
             targetbonus = target.get_enhance_avo()
             if 10 <= targetbonus:
@@ -345,14 +345,14 @@ class Effect(object):
             elif targetbonus <= -10:
                 return False
 
+            userbonus = 6
             if self.refability:
-                ccard = cw.cwpy.event.get_selectedmember()
-                userbonus = ccard.get_bonus(self.vocation, enhance_act=True)
+                ccard = selectedmember
+                if ccard:
+                    userbonus = ccard.get_bonus(self.vocation, enhance_act=True)
             elif self.user and self.inusecard:
                 uservocation = self.inusecard.vocation
                 userbonus = self.user.get_bonus(uservocation, enhance_act=self.is_enhance_act)
-            else:
-                userbonus = 6
 
             vocation = ("agl", "cautious")
             level = self.user.level if self.user else self.get_level()
@@ -360,7 +360,7 @@ class Effect(object):
 
         return False
 
-    def check_resist(self, target):
+    def check_resist(self, target, selectedmember=None):
         if self.resisttype == "Resist" and target.is_resistable():
             targetbonus = target.get_enhance_res()
             if 10 <= targetbonus:
@@ -368,14 +368,14 @@ class Effect(object):
             elif targetbonus <= -10:
                 return False
 
+            userbonus = 6
             if self.refability:
-                ccard = cw.cwpy.event.get_selectedmember()
-                userbonus = ccard.get_bonus(self.vocation, enhance_act=True)
+                ccard = selectedmember
+                if ccard:
+                    userbonus = ccard.get_bonus(self.vocation, enhance_act=True)
             elif self.user and self.inusecard:
                 uservocation = self.inusecard.vocation
                 userbonus = self.user.get_bonus(uservocation, enhance_act=self.is_enhance_act)
-            else:
-                userbonus = 6
 
             vocation = ("min", "brave")
             level = self.user.level if self.user else self.get_level()
@@ -516,7 +516,7 @@ class Effect(object):
 
 class EffectMotion(object):
     def __init__(self, data, user=None, header=None, targetlevel=0, refability=False, vocation=None,
-                 absorbto="None"):
+                 absorbto="None", selectedmember=None):
         """
         効果モーションインスタンスを生成。MotionElementと
         user(PlayerCard, EnemyCard)とheader(CardHeader)を引数に取る。
@@ -544,20 +544,21 @@ class EffectMotion(object):
         self.cardheader = header
         # 選択メンバの能力参照(Wsn.2)
         self.refability = refability
+        self.selectedmember = None
         if refability:
             self._vocation = vocation
         else:
             # 使用者のレベルもしくは効果コンテントの対象レベル
             self._targetlevel = targetlevel
-            self.update_status()
+            self.update_status(None)
         # 吸収者(Wsn.4)
         self.absorbto = absorbto
         self.absorber = None  # 吸収者の実体
 
-    def update_status(self):
+    def update_status(self, selectedmember=None):
         if self.refability:
             self._enhance_act = 0
-            ccard = cw.cwpy.event.get_selectedmember()
+            ccard = selectedmember
             self._vocation_val = get_vocation_val(ccard, self._vocation, enhance_act=True) if ccard else 6
             self._vocation_level = get_vocation_level(ccard, self._vocation, enhance_act=True) if ccard else 2
             self._level = ccard.level if ccard else 0
