@@ -2459,6 +2459,8 @@ class EffectContent(EventContentBase):
                                            self.initialsoundpath, self.initialvolume, self.initialloopcount,
                                            self.initialchannel, self.initialfadein, remove_target)
 
+        selectedmember = cw.cwpy.event.get_selectedmember()
+
         def apply(target):
             if isinstance(target, cw.character.Character):
                 cw.cwpy.event.is_changestate = True
@@ -2488,7 +2490,7 @@ class EffectContent(EventContentBase):
                                 return
 
                     is_dead = target.is_unconscious() or target.is_paralyze()
-                    success = self.eff.apply(target, event=True)
+                    success = self.eff.apply(target, event=True, selectedmember=selectedmember)
                     if self.ignite:
                         target.remove_coupon("＠効果対象")
 

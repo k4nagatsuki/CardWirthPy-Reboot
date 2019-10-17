@@ -127,13 +127,13 @@ class Effect(object):
         """使用者のレベルもしくは効果コンテントの対象レベル。"""
         return self._level
 
-    def apply(self, target, event=False):
+    def apply(self, target, event=False, selectedmember=None):
         if isinstance(target, Character) and self.check_enabledtarget(target, event):
-            return self.apply_charactercard(target, event=event)
+            return self.apply_charactercard(target, event=event, selectedmember=selectedmember)
         else:
             return False
 
-    def apply_charactercard(self, target, event=False):
+    def apply_charactercard(self, target, event=False, selectedmember=None):
         """
         Characterインスタンスに効果モーションを適用する。
         """
@@ -159,7 +159,7 @@ class Effect(object):
         # 吸収後のエフェクトを発生させるか
         # 判定するために記憶しておく
         if self.absorbto == "Selected":
-            absorbto = cw.cwpy.event.get_selectedmember()
+            absorbto = selectedmember
         elif self.absorbto == "User":
             absorbto = self.user
         else:
@@ -277,7 +277,9 @@ class Effect(object):
         # 効果モーションを発動
         effectual = False
         for motion in self.motions:
+            motion.absorber = absorbto
             effectual |= motion.apply(target, success_res)
+            motion.absorber = None
 
             if motion.type.lower() in ("damage", "absorb") and motion.can_apply(target):
                 # ダメージ軽減によるカード消耗
@@ -550,6 +552,7 @@ class EffectMotion(object):
             self.update_status()
         # 吸収者(Wsn.4)
         self.absorbto = absorbto
+        self.absorber = None  # 吸収者の実体
 
     def update_status(self):
         if self.refability:
@@ -827,21 +830,15 @@ class EffectMotion(object):
             target.set_mentality("Normal", 0)
 
         # 与えたダメージ分、使用者回復
-        if self.absorbto == "Selected":
-            absorbto = cw.cwpy.event.get_selectedmember()
-        elif self.absorbto == "User":
-            absorbto = self.user
-        else:
-            absorbto = None
-        if absorbto:
-            oldulife = absorbto.life
-            absorbto.set_life(value)
-            ulife = absorbto.life
+        if self.absorber:
+            oldulife = self.absorber.life
+            self.absorber.set_life(value)
+            ulife = self.absorber.life
         else:
             ulife = 0
             oldulife = 0
         if 0 < value:
-            cw.cwpy.advlog.absorb_motion(absorbto, value, ulife, oldulife, target, origvalue, target.life, oldlife,
+            cw.cwpy.advlog.absorb_motion(self.absorber, value, ulife, oldulife, target, origvalue, target.life, oldlife,
                                          dissleep)
         return 0 < value
 

@@ -1589,6 +1589,8 @@ class CardEvent(Event, Targeting):
         self.targets = targets
         self._target_index = 0
 
+        selectedmember = cw.cwpy.event.get_selectedmember()
+
         # 対象メンバに効果モーションを適用
         def clear_params(target):
             if isinstance(target, cw.character.Character):
@@ -1647,7 +1649,7 @@ class CardEvent(Event, Targeting):
 
                     target.clear_cardtarget()
                     is_dead = target.is_unconscious() or target.is_paralyze()
-                    success = eff.apply(target)
+                    success = eff.apply(target, selectedmember=selectedmember)
                     target.remove_coupon("＠効果対象")
 
                     # 最初から意識不明・麻痺なら死亡イベント発生なし
