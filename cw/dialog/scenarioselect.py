@@ -2993,7 +2993,7 @@ class ScenarioSelect(select.Select):
             author = ""
         if sys.platform == "win32" and cw.util.splitext(fname)[1].lower() == ".lnk":
             fname = cw.util.splitext(fname)[0]
-        name = "貼紙を見る [ %s ]" % (fname)
+        name = cw.cwpy.msgs["select_scenario_title"] + (" [ %s ]" % (fname))
         if author:
             name = "%s (%s)" % (name, author)
         self.SetTitle(name)
