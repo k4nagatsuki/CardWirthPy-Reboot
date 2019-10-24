@@ -628,7 +628,7 @@ class MessageWindow(base.CWPySprite):
         self._linerect = None
         return images
 
-    def rpl_specialstr(self, full, s, nametable=None, localvariables=True):
+    def rpl_specialstr(self, full, s, nametable=None, localvariables=True, show_cardname=True):
         """
         特殊文字列(#, $)を置換した文字列を返す。
         """
@@ -640,6 +640,8 @@ class MessageWindow(base.CWPySprite):
             full = _SP_EXPAND_SHARPS
         if localvariables:
             full |= _SP_LOCAL_VARIABLES
+        if show_cardname:
+            full |= _SP_CARD_NAME
         text, spcharinfo, _namelist, _namelistindex = _rpl_specialstr(full, "All", s, nametable,
                                                                       self.get_stepvalue, self.get_flagvalue,
                                                                       self.get_variantvalue)
@@ -1280,15 +1282,18 @@ def get_pointlist(size, pos=(0, 0)):
     return (pos1, pos2, pos3, pos4, pos5)
 
 
-def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All", localvariables=True):
+def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All", localvariables=True,
+                   show_cardname=True):
     """
     テキストセルや選択肢のテキスト内の
     特殊文字列(#, $)を置換した文字列を返す。
     """
-    name_table = _create_nametable(False, None)
+    name_table = _create_nametable(False, None, show_cardname=show_cardname)
     full = _SP_EXPAND_SHARPS if expandsharps else _SP_NO_SHARPS
     if localvariables:
         full |= _SP_LOCAL_VARIABLES
+    if show_cardname:
+        full |= _SP_CARD_NAME
     try:
         r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, _get_variantvalue,
                             basenamelist=basenamelist)
@@ -1359,13 +1364,13 @@ def _get_namefromtable(nc, nametable, namelist):
     return name
 
 
-def _create_nametable(full, talker):
+def _create_nametable(full, talker, show_cardname=True):
     def get_random():
         return cw.cwpy.event.get_targetmember("Random")
     selected = cw.cwpy.event.get_targetmember("Selected")\
         if cw.cwpy.event.has_selectedmember() else ""
     unselected = cw.cwpy.event.get_targetmember("Unselected")
-    if full:
+    if full or show_cardname:
         inusecard = cw.cwpy.event.get_targetmember("Selectedcard")
     party = cw.cwpy.ydata.party
     yado = cw.cwpy.ydata
@@ -1377,8 +1382,9 @@ def _create_nametable(full, talker):
         "#y": yado,        # 宿の名前
         "#t": party        # パーティの名前
     }
-    if full:
+    if full or show_cardname:
         name_table["#c"] = inusecard  # 使用カード名(カード使用イベント時のみ)
+    if full:
         name_table["#i"] = talker     # 話者の名前(表示イメージのキャラやカード名)
 
         # シナリオ内の画像で上書き
@@ -1525,6 +1531,7 @@ _SP_EXPAND_SHARPS = 0x1
 _SP_FULL = 0x2
 _SP_NO_SHARPS = 0x4
 _SP_LOCAL_VARIABLES = 0x8
+_SP_CARD_NAME = 0x10
 
 
 def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_variant, basenamelist=None,
@@ -1590,7 +1597,7 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
                     buf.append(c)
                     buflen += len(c)
             else:
-                if nc in ('m', 'r', 'u', 't', 'y'):
+                if nc in ('m', 'r', 'u', 't', 'y') or ((full & _SP_CARD_NAME) != 0 and nc == 'c'):
                     if basenamelist is None:
                         buf.append(_get_namefromtable(nc, name_table, namelist))
                     else:
