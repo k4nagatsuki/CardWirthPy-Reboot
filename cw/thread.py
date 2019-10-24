@@ -2070,6 +2070,7 @@ class CWPy(_Singleton, threading.Thread):
             self.event.refresh_tools()
 
         self.statusbar.update_tiles()
+        waited = False
         try:
             self.event.refresh_activeitem()
             self.input()
@@ -2084,8 +2085,12 @@ class CWPy(_Singleton, threading.Thread):
                     is_drawing = mwin.is_drawing
 
                 self.wait_frame(1, canskip=False)
+                waited = True
         finally:
             self.interrupt_eventhandler = ie
+
+        if not waited:
+            self.wait_frame(1, canskip=False)
 
         self.clear_selection()
         self.lock_menucards = locks
