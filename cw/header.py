@@ -703,13 +703,13 @@ class CardHeader(object):
         assert self.carddata is not None
         if not self.need_resetvariables:
             return
-        for e in self.carddata.getfind("Flags"):
+        for e in self.carddata.getfind("Flags", False):
             if e.getattr(".", "initialize", "Leave") == "Leave":
                 e.set("value", e.get("default"))
-        for e in self.carddata.getfind("Steps"):
+        for e in self.carddata.getfind("Steps", False):
             if e.getattr(".", "initialize", "Leave") == "Leave":
                 e.set("value", e.get("default"))
-        for e in self.carddata.getfind("Variants"):
+        for e in self.carddata.getfind("Variants", False):
             if e.getattr(".", "initialize", "Leave") == "Leave":
                 e.set("type", e.get("defaulttype"))
                 e.set("value", e.get("defaultvalue"))
