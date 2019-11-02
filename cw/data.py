@@ -2162,6 +2162,7 @@ def init_variants(data, writable):
         value = e.getattr(".", "value", defvalue)
 
         value = Variant.value_from_str(type, value)
+        defvalue = Variant.value_from_str(deftype, defvalue)
         name = e.gettext("Name", "")
         variants[name] = Variant(data if writable else None, e, value, name, defaultvalue=defvalue)
 

@@ -2002,6 +2002,7 @@ class BranchVariantContent(BranchContent):
                 self.variant_error(msg="計算結果 %s は真偽値ではありません。" % variant.string_value())
                 index = self.get_boolean_index(False)
         except cw.calculator.ComputeException as ex:
+            cw.util.print_ex()
             self.variant_error(ex=ex)
             index = self.get_boolean_index(False)
 
@@ -2345,6 +2346,7 @@ class CheckVariantContent(EventContentBase):
                 self.variant_error(msg="計算結果 %s は真偽値ではありません。" % variant.string_value())
                 return cw.IDX_TREEEND
         except cw.calculator.ComputeException as ex:
+            cw.util.print_ex()
             self.variant_error(ex=ex)
             return cw.IDX_TREEEND
 
@@ -3994,6 +3996,7 @@ class SetVariantContent(BranchContent):
                     return None
                 return cw.calculator.eval(self.parsed_expression, diffsc)
             except cw.calculator.ComputeException as ex:
+                cw.util.print_ex()
                 self.variant_error(ex=ex)
                 return None
 
