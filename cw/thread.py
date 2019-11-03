@@ -2734,6 +2734,9 @@ class CWPy(_Singleton, threading.Thread):
                 header.set_owner("BACKPACK")
                 # 荷物袋にある場合はcarddata無し、特殊技能の使用回数無し
                 header.carddata = None
+                header.flags = {}
+                header.steps = {}
+                header.variants = {}
                 if header.type == "SkillCard":
                     header.maxuselimit = 0
                     header.uselimit = 0
@@ -5171,6 +5174,9 @@ class CWPy(_Singleton, threading.Thread):
             if move:
                 header.write(party, move=True)
                 header.carddata = None
+                header.flags = {}
+                header.steps = {}
+                header.variants = {}
             else:
                 header.fpath = ""
                 etree = cw.data.xml2etree(element=header.carddata)
@@ -5181,6 +5187,9 @@ class CWPy(_Singleton, threading.Thread):
                         header.moved = 0
                 header.write(party, from_getcontent=from_getcontent)
                 header.carddata = None
+                header.flags = {}
+                header.steps = {}
+                header.variants = {}
 
         if header == self.selectedheader:
             self.selectedheader = None

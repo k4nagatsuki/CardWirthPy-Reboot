@@ -600,6 +600,9 @@ class CardHeader(object):
                 self.do_write()
                 e = cw.data.yadoxml2etree(self.fpath)
                 self.carddata = e.getroot()
+                self.flags = cw.data.init_flags(self.carddata, True)
+                self.steps = cw.data.init_steps(self.carddata, True)
+                self.variants = cw.data.init_variants(self.carddata, True)
             if self._lazy_write is None:
                 # self.fpathを削除予定のfpathリストに追加
                 cw.cwpy.ydata.deletedpaths.add(self.fpath, self.scenariocard)
@@ -609,6 +612,9 @@ class CardHeader(object):
         if self.carddata is None:
             self.do_write()
             self.carddata = cw.data.yadoxml2element(self.fpath)
+            self.flags = cw.data.init_flags(self.carddata, True)
+            self.steps = cw.data.init_steps(self.carddata, True)
+            self.variants = cw.data.init_variants(self.carddata, True)
 
         emp = self.carddata.find("Property/Materials")
         if emp is not None:
@@ -644,6 +650,9 @@ class CardHeader(object):
                 assert self.fpath, self.name
                 assert os.path.isfile(self.fpath), self.fpath
                 self.carddata = cw.data.xml2element(self.fpath)
+                self.flags = cw.data.init_flags(self.carddata, True)
+                self.steps = cw.data.init_steps(self.carddata, True)
+                self.variants = cw.data.init_variants(self.carddata, True)
 
             # シナリオ取得フラグクリア
             self.scenariocard = False
@@ -681,6 +690,9 @@ class CardHeader(object):
                 assert self.fpath, self.name
                 assert os.path.isfile(self.fpath), self.fpath
                 self.carddata = cw.data.xml2element(self.fpath)
+                self.flags = cw.data.init_flags(self.carddata, True)
+                self.steps = cw.data.init_steps(self.carddata, True)
+                self.variants = cw.data.init_variants(self.carddata, True)
             self.reset_variables()
             if self.is_backpackheader():
                 self.write()
