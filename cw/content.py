@@ -2936,6 +2936,14 @@ class GetContent(EventContentBase):
                     e = getdata(resid, nocache=nocache)
                     if e is None:
                         return 0
+                    e_flags = e.find("Flags")
+                    e_steps = e.find("Steps")
+                    e_variants = e.find("Variants")
+                    if (e_flags is not None and len(e_flags)) or \
+                            (e_steps is not None and len(e_steps)) or \
+                            (e_variants is not None and len(e_variants)):
+                        nocache = True
+                        e = cw.data.copydata(e)
                     etree = cw.data.xml2etree(element=e, nocache=nocache)
                     get_card(etree, target, from_getcontent=True)
 
