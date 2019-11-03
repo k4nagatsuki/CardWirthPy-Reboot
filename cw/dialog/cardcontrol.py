@@ -50,7 +50,7 @@ class CardControl(wx.Dialog):
             s = cw.cwpy.msgs["entry_cancel"]
         else:
             s = cw.cwpy.msgs["close"]
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((90, 24)), s)
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((90, 24)), s)
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=True)
@@ -259,7 +259,8 @@ class CardControl(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
 
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
-        self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, id=self.closebtn.GetId())
+        self.Bind(wx.EVT_CLOSE, self.OnCancel)
 
         self.leftkeyid = wx.NewId()
         self.rightkeyid = wx.NewId()
@@ -2280,7 +2281,7 @@ class CardHolder(CardControl):
 
     def OnCancel(self, event):
         self._cancel_animation = True
-        if self.callname == "CARDPOCKETB":
+        if self.callname == "CARDPOCKETB" and event.EventObject is self.closebtn:
             cw.cwpy.play_sound("page")
             old_callname = self.callname
             self.callname = "CARDPOCKET"
