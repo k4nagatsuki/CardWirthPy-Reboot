@@ -1152,8 +1152,7 @@ class EnemyCard(CWPyCard, character.Enemy):
                 if self.cardimg and self.cardimg.override_name != name:
                     self.cardimg.override_name = name
                     self.cardimg.set_nameimg(name)
-                    if self.status != "hidden":
-                        self.update_image()
+                    self.update_image()
             finally:
                 cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
@@ -1436,8 +1435,7 @@ class MenuCard(CWPyCard):
         if self._cardimg and self._cardimg.name != self.name:
             self._cardimg.name = self.name
             self._cardimg.clear_cache()
-            if self.status != "hidden":
-                self.update_image()
+            self.update_image()
 
     @property
     def cardimg(self):
