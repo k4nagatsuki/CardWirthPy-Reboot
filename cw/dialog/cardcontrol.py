@@ -260,7 +260,7 @@ class CardControl(wx.Dialog):
 
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=self.closebtn.GetId())
-        self.Bind(wx.EVT_CLOSE, self.OnCancel)
+        self.Bind(wx.EVT_CLOSE, self.OnCancel2)
 
         self.leftkeyid = wx.NewId()
         self.rightkeyid = wx.NewId()
@@ -2281,7 +2281,7 @@ class CardHolder(CardControl):
 
     def OnCancel(self, event):
         self._cancel_animation = True
-        if self.callname == "CARDPOCKETB" and event.EventObject is self.closebtn:
+        if self.callname == "CARDPOCKETB":
             cw.cwpy.play_sound("page")
             old_callname = self.callname
             self.callname = "CARDPOCKET"
@@ -2289,6 +2289,10 @@ class CardHolder(CardControl):
             self.draw_cards()
         else:
             CardControl.OnCancel(self, event)
+
+    def OnCancel2(self, event):
+        self._cancel_animation = True
+        CardControl.OnCancel(self, event)
 
     def _change_callname(self, old_callname):
         self.Freeze()
