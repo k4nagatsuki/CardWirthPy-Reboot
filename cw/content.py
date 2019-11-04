@@ -3568,6 +3568,7 @@ class LoseCastContent(LoseContent):
                 cw.cwpy.battle.members.remove(fcards[0])
                 fcards[0].clear_action()
             cw.cwpy.sdata.friendcards.remove(fcards[0])
+            fcards[0].set_vanished()
 
         return 0
 

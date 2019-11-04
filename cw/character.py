@@ -3156,7 +3156,10 @@ class Enemy(Character):
 
 
 class Friend(Character):
-    pass
+
+    def set_vanished(self):
+        """離脱時に消去されたとマークする。"""
+        self._vanished = True
 
 
 class AlbumPage(object):
