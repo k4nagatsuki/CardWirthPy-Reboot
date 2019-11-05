@@ -4948,7 +4948,7 @@ class CWPy(_Singleton, threading.Thread):
         if isinstance(owner, cw.character.Character):
             assert not move
             # 移動元のCardHolderからCardHeaderを削除
-            owner.cardpocket[index].remove(header)
+            owner.cardpocket[index].remove(header.ref_original())
             # 移動元からカードのエレメントを削除
             path = "%ss" % header.type
             owner.data.remove(path, header.carddata)
@@ -4993,7 +4993,7 @@ class CWPy(_Singleton, threading.Thread):
         # 移動元が荷物袋だった場合
         elif party and owner == party.backpack:
             # 移動元のリストからCardHeaderを削除
-            owner.remove(header)
+            owner.remove(header.ref_original())
 
             if toself:
                 # 荷物袋内の位置のみ変更
@@ -5036,7 +5036,7 @@ class CWPy(_Singleton, threading.Thread):
         # 移動元がカード置場だった場合
         elif owner == self.ydata.storehouse:
             # 移動元のリストからCardHeaderを削除
-            owner.remove(header)
+            owner.remove(header.ref_original())
             if toself:
                 # カード置場内の位置のみ変更
                 pass
