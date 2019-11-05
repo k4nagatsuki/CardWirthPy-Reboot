@@ -1715,6 +1715,9 @@ class CardControl(wx.Dialog):
             cw.cwpy.frame.kill_dlg(None)
             cw.cwpy.frame.append_killlist(self)
 
+    def OnCancel2(self, event):
+        self.OnCancel(event)
+
     def OnCancel(self, event):
         if self._quit:
             return
