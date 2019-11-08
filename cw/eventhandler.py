@@ -22,15 +22,19 @@ class EventHandler(object):
         # リターンキー押しっぱなし
         if cw.cwpy.keyevent.is_keyin(K_RETURN) and cw.cwpy.setting.autoenter_on_sprite:
             self.returnkey_event()
+            cw.cwpy.tick_clock()
         # 左方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_LEFT):
             self.dirkey_event(x=-1)
+            cw.cwpy.tick_clock()
         # 右方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_RIGHT):
             self.dirkey_event(x=1)
+            cw.cwpy.tick_clock()
         # 左クリック押しっぱなし
         elif cw.cwpy.keyevent.is_mousein() and cw.cwpy.setting.autoenter_on_sprite:
             self.returnkey_event()
+            cw.cwpy.tick_clock()
 
         exception = None
 
@@ -839,21 +843,27 @@ class EventHandlerForMessageWindow(EventHandler):
         # リターンキー押しっぱなし
         if cw.cwpy.keyevent.is_keyin(K_RETURN) and autoenter_on_sprite:
             self.returnkey_event(True)
+            cw.cwpy.tick_clock()
         # 上方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_UP):
             self.dirkey_event(y=-1)
+            cw.cwpy.tick_clock()
         # 下方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
+            cw.cwpy.tick_clock()
         # 左方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_LEFT):
             self.dirkey_event(x=-1)
+            cw.cwpy.tick_clock()
         # 右方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_RIGHT):
             self.dirkey_event(x=1)
+            cw.cwpy.tick_clock()
         # 左クリック押しっぱなし
         elif cw.cwpy.keyevent.is_mousein() and autoenter_on_sprite:
             self.returnkey_event(True)
+            cw.cwpy.tick_clock()
 
         exception = None
 
@@ -1333,21 +1343,27 @@ class EventHandlerForBacklog(EventHandler):
         # リターンキー押しっぱなし
         if cw.cwpy.keyevent.is_keyin(K_RETURN):
             self.returnkey_event(True)
+            cw.cwpy.tick_clock()
         # 上方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_UP):
             self.dirkey_event(y=-1)
+            cw.cwpy.tick_clock()
         # 下方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
+            cw.cwpy.tick_clock()
         # ページアップ押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(pygame.locals.K_PAGEUP):
             self.keydown_event(pygame.locals.K_PAGEUP)
+            cw.cwpy.tick_clock()
         # ページダウン押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(pygame.locals.K_PAGEDOWN):
             self.keydown_event(pygame.locals.K_PAGEDOWN)
+            cw.cwpy.tick_clock()
         # 左クリック押しっぱなし
         elif cw.cwpy.keyevent.is_mousein():
             self.returnkey_event(True)
+            cw.cwpy.tick_clock()
 
         if self._in_scroll:
             self.ldown_event()
@@ -1737,9 +1753,11 @@ class EventHandlerForEffectBooster(EventHandler):
         # リターンキー押しっぱなし
         if cw.cwpy.keyevent.is_keyin(K_RETURN):
             self.returnkey_event(True)
+            cw.cwpy.tick_clock()
         # 左クリック押しっぱなし
         elif cw.cwpy.keyevent.is_mousein():
             self.returnkey_event(True)
+            cw.cwpy.tick_clock()
 
         exception = None
 

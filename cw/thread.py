@@ -2084,13 +2084,13 @@ class CWPy(_Singleton, threading.Thread):
                 if mwin.result is None and is_drawing:
                     is_drawing = mwin.is_drawing
 
-                self.wait_frame(1, canskip=False)
+                self.wait_frame(1)
                 waited = True
         finally:
             self.interrupt_eventhandler = ie
 
         if not waited:
-            self.wait_frame(1, canskip=False)
+            self.wait_frame(1)
 
         self.clear_selection()
         self.lock_menucards = locks
