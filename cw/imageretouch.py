@@ -748,7 +748,8 @@ def blend_1_50(dest, pos, source, flag):
 
     sub = dest.subsurface(rect)
 
-    rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
+    pos2 = (max(0, -pos[0] + clip.left), max(0, -pos[1] + clip.top))
+    rect2 = pygame.Rect(pos2, rect.size)
     source2 = source.subsurface(rect2)
 
     try:
