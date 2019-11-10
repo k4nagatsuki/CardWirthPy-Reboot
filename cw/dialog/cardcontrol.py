@@ -1644,6 +1644,8 @@ class CardControl(wx.Dialog):
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
+        mousepos = self.ScreenToClient(wx.GetMousePosition())
+        self._on_move(mousepos)
         self.toppanel.SetFocusIgnoringChildren()
 
     def after_message(self):

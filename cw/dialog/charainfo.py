@@ -463,6 +463,8 @@ class CharaInfo(wx.Dialog):
         dc = wx.ClientDC(win)
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
+        if update and hasattr(win, "update_negaflag"):
+            win.update_negaflag()
 
         for header in win.headers:
             s = header.name
@@ -1275,10 +1277,21 @@ class EditPanel(wx.Panel):
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
         self.Refresh()
 
-    def OnMove(self, event):
-        dc = wx.ClientDC(self)
-        mousepos = event.GetPosition()
+    def update_negaflag(self):
+        mousepos = self.ScreenToClient(wx.GetMousePosition())
+        for header in self.headers:
+            if header.subrect.collidepoint(mousepos):
+                if not header.negaflag:
+                    header.negaflag = True
+            elif header.negaflag:
+                header.negaflag = False
 
+    def OnMove(self, event):
+        mousepos = event.GetPosition()
+        self._update_mousepos(mousepos)
+
+    def _update_mousepos(self, mousepos):
+        dc = wx.ClientDC(self)
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
                 if not header.negaflag:
@@ -1335,6 +1348,7 @@ class EditPanel(wx.Panel):
         if update:
             dc = wx.ClientDC(self)
             self.ClearBackground()
+            self.update_negaflag()
         else:
             dc = wx.PaintDC(self)
 
@@ -1826,6 +1840,15 @@ class CardPanel(wx.Panel):
                 self.draw_header(dc, header)
         self.Refresh()
 
+    def update_negaflag(self):
+        mousepos = self.ScreenToClient(wx.GetMousePosition())
+        for header in self.headers:
+            if header.subrect.collidepoint(mousepos):
+                if not header.negaflag:
+                    header.negaflag = True
+            elif header.negaflag:
+                header.negaflag = False
+
     def draw_header(self, dc, header):
         if isinstance(header, HoldAll):
             self.Refresh()
@@ -1920,6 +1943,7 @@ class CardPanel(wx.Panel):
         if update:
             dc = wx.ClientDC(self)
             self.ClearBackground()
+            self.update_negaflag()
         else:
             dc = wx.PaintDC(self)
 
