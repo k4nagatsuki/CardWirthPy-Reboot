@@ -219,6 +219,7 @@ class LocalSetting(object):
         """dataから設定をロードする。"""
         self.basefont = self.basefont_init.copy()
         self.fonttypes = self.fonttypes_init.copy()
+        self.msg_exfonts = self.msg_exfonts_init.copy()
 
         # 基本設定を上書きするか。
         self.important_draw = data.getbool(".", "importantdrawing", False)
