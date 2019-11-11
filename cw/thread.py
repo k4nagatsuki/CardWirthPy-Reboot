@@ -439,7 +439,7 @@ class CWPy(_Singleton, threading.Thread):
         elif self.status == "GameOver":
             changearea = False
         elif (self.status == "Yado" or (self.is_playingscenario() and self.areaid in cw.AREAS_SP)) and\
-                self.setting.skindirname != skindirname:
+                self.setting.skindirname != skindirname and not switch_yado:
             if self.is_runningevent():
                 self.exec_func(self.update_skin, skindirname=skindirname, changearea=changearea,
                                restartop=restartop, afterfunc=afterfunc, switch_skin=switch_skin,
