@@ -55,18 +55,20 @@ class ArgumentIsNotDecimalException(ComputeException):
 
 class ArgumentIsNotStringException(ComputeException):
     """関数の引数が文字列でない。"""
-    def __init__(self, msg, func_name, arg_index, line, pos):
+    def __init__(self, msg, func_name, arg_index, arg_value, line, pos):
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
         self.arg_index = arg_index
+        self.arg_value = arg_value
 
 
 class ArgumentIsNotBooleanException(ComputeException):
     """関数の引数が真偽値でない。"""
-    def __init__(self, msg, func_name, arg_index, line, pos):
+    def __init__(self, msg, func_name, arg_index, arg_value, line, pos):
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
         self.arg_index = arg_index
+        self.arg_value = arg_value
 
 
 class ArgumentsCountException(ComputeException):
@@ -565,13 +567,13 @@ def _chk_minvalue(arg, func_name, arg_index, minvalue=0):
 def _chk_string(arg, func_name, arg_index):
     """argがStringValueか調べる。"""
     if not isinstance(arg, StringValue):
-        raise ArgumentIsNotStringException("%s is not String." % arg.value, func_name, arg_index, arg.line, arg.pos)
+        raise ArgumentIsNotStringException("%s is not String." % arg.value, func_name, arg_index, arg.value, arg.line, arg.pos)
 
 
 def _chk_boolean(arg, func_name, arg_index):
     """argがBooleanValueか調べる。"""
     if not isinstance(arg, BooleanValue):
-        raise ArgumentIsNotBooleanException("%s is not Boolean." % arg.value, func_name, arg_index, arg.line, arg.pos)
+        raise ArgumentIsNotBooleanException("%s is not Boolean." % arg.value, func_name, arg_index, arg.value, arg.line, arg.pos)
 
 
 def _is_alldecimal(args, func_name):
