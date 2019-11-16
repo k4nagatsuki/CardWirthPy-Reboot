@@ -675,6 +675,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("OpenLastScenario", str(setting.open_lastscenario))
         element.append(e)
 
+    # 最後のシナリオ検索結果を再表示する
+    if setting.open_lastfindresult != setting.open_lastfindresult_init:
+        e = cw.data.make_element("OpenFindScenarioResult", str(setting.open_lastfindresult))
+        element.append(e)
+
     # ドロップによるシナリオのインストールを可能にする
     if setting.can_installscenariofromdrop != setting.can_installscenariofromdrop_init:
         e = cw.data.make_element("CanInstallScenarioFromDrop", str(setting.can_installscenariofromdrop))

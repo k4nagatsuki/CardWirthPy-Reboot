@@ -539,6 +539,7 @@ class CWPy(_Singleton, threading.Thread):
             if scedir != self.setting.get_scedir():
                 self.setting.lastscenario = []
                 self.setting.lastscenariopath = ""
+                self.setting.lastfindresult = []
 
             if self.ydata:
                 self.ydata._changed = changed
@@ -2319,6 +2320,7 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.scenario_narrow = ""
         self.setting.lastscenario = []
         self.setting.lastscenariopath = ""
+        self.setting.lastfindresult = []
         self.ydata = None
         self.sdata = cw.data.SystemData()
         cw.tempdir = cw.tempdir_init
@@ -2920,6 +2922,7 @@ class CWPy(_Singleton, threading.Thread):
             self.setting.scenario_narrow = ""
             self.setting.lastscenario = []
             self.setting.lastscenariopath = ""
+            self.setting.lastfindresult = []
             self.ydata = None
             self.sdata = cw.data.SystemData()
             raise ex
@@ -2984,6 +2987,7 @@ class CWPy(_Singleton, threading.Thread):
                             self.ydata.party.lastscenariopath = optscenario
                             self.setting.lastscenario = []
                             self.setting.lastscenariopath = optscenario
+                            self.setting.lastfindresult = []
                             self._f9impl(startotherscenario=True)
                             resume = False
                     else:
@@ -2998,6 +3002,7 @@ class CWPy(_Singleton, threading.Thread):
                         self.ydata.party.lastscenariopath = optscenario
                         self.setting.lastscenario = []
                         self.setting.lastscenariopath = optscenario
+                        self.setting.lastfindresult = []
                         self._show_party()
                         resume = False
                     header = header2

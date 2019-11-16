@@ -775,7 +775,8 @@ class Frame(wx.Frame):
             return
 
         dlg = cw.dialog.scenarioselect.ScenarioSelect(self, db, cw.cwpy.setting.lastscenario,
-                                                      cw.cwpy.setting.lastscenariopath)
+                                                      cw.cwpy.setting.lastscenariopath,
+                                                      cw.cwpy.setting.lastfindresult)
         self.move_dlg(dlg)
 
         dlg.ShowModal()

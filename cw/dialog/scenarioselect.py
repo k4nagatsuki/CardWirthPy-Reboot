@@ -36,7 +36,7 @@ class ScenarioSelect(select.Select):
     """
     貼り紙選択ダイアログ。
     """
-    def __init__(self, parent, db, lastscenario, lastscenariopath):
+    def __init__(self, parent, db, lastscenario, lastscenariopath, lastfindresult):
         from . import scenarioinstall
 
         # ダイアログボックス作成
@@ -292,8 +292,20 @@ class ScenarioSelect(select.Select):
         self.Bind(wx.EVT_BUTTON, self.OnCancel2, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_CLOSE, self.OnCancel2)
 
+        if not cw.cwpy.setting.open_lastfindresult:
+            lastfindresult = []
+
+        headers = []
+        for fpath in lastfindresult:
+            header = self.db.search_path(fpath)
+            if header:
+                headers.append(header)
+        if headers:
+            headers = self._sort_headers(headers)
+            self._set_findresult(headers, False, expand=False)
+
         if cw.cwpy.setting.open_lastscenario and (lastscenario or lastscenariopath):
-            self.set_selected(lastscenario, lastscenariopath, opendir=True)
+            self.set_selected(lastscenario, lastscenariopath, findresults=headers, opendir=True)
         else:
             self.draw(True)
 
@@ -620,7 +632,7 @@ class ScenarioSelect(select.Select):
             self.draw(True)
         self._no_treechangedsound = False
 
-    def _set_findresult(self, headers, selfirstheader):
+    def _set_findresult(self, headers, selfirstheader, expand=True, selindex=-1):
         list = self.scetable[self._get_linktarget(self.scedir)]
         if list and isinstance(list[0], FindResult):
             findresult = list[0]
@@ -648,7 +660,10 @@ class ScenarioSelect(select.Select):
                     self.tree.Delete(item)
             item = self._create_findresultitem(0, self.tree.root, findresult)
             parent = item
-            self.tree.Expand(item)
+            if expand:
+                self.tree.Expand(item)
+            else:
+                self.tree.Collapse(item)
             item = self.tree.GetNextSibling(item)
             while item and item.IsOk():
                 data = self.tree.GetItemData(item)
@@ -656,7 +671,16 @@ class ScenarioSelect(select.Select):
                     index, header = data
                     self.tree.SetItemData(item, (index+1, header))
                 item = self.tree.GetNextSibling(item)
-            if headers and selfirstheader:
+            if selindex != -1:
+                item, cookie = self.tree.GetFirstChild(parent)
+                i = 0
+                while item and item.IsOk():
+                    if i == selindex:
+                        self.tree.SelectItem(item)
+                        break
+                    item, cookie = self.tree.GetNextChild(parent, cookie)
+                    i += 1
+            elif headers and selfirstheader:
                 item, _cookie = self.tree.GetFirstChild(parent)
                 self.tree.SelectItem(item)
                 list = self.scetable[self.find_result]
@@ -671,9 +695,14 @@ class ScenarioSelect(select.Select):
                 self.nowdir = self.scedir
 
         self.list = self._narrow_scenario(list)
-        self.index = 0
+        if selindex != -1:
+            self.index = selindex
+        else:
+            self.index = 0
         if headers and selfirstheader:
             self.dirstack = [(self.scedir, "/find_result")]
+
+        cw.cwpy.setting.lastfindresult = self.get_findresult()
 
     def OnAdditionalMenu(self, event):
         # シナリオ・ディレクトリ操作の追加メニューを生成して表示する
@@ -1042,6 +1071,13 @@ class ScenarioSelect(select.Select):
                 seq.append(os.path.basename(sel))
             return seq, os.path.abspath(sel)
 
+    def get_findresult(self):
+        seq = self.scetable[self._get_linktarget(self.scedir)]
+        if seq and isinstance(seq[0], FindResult):
+            return list(map(lambda header: header.get_fpath(), seq[0].headers))
+        else:
+            return []
+
     def _get_nowlist(self, nowdir=None, update=True):
         from . import scenarioinstall
 
@@ -1089,15 +1125,35 @@ class ScenarioSelect(select.Select):
 
         selfullpath = False
         if not exists_spaths:
+            keypath = cw.util.get_keypath(fullpath)
             headers = []
-            if findresults:
+            if findresults and isinstance(findresults[0], str):
+                index = -1
                 for fpath in findresults:
                     header = self.db.search_path(fpath)
                     if header:
                         headers.append(header)
+                    if index == -1 and keypath == cw.util.get_keypath(fpath):
+                        index = len(headers) - 1
+            else:
+                index = -1
+                headers = findresults
+                for i, header in enumerate(findresults):
+                    if keypath == cw.util.get_keypath(header.get_fpath()):
+                        index = i
+                        break
+            if headers and index == -1:
+                header = self.db.search_path(fullpath)
+                if header:
+                    headers.append(header)
+                headers = self._sort_headers(headers)
+                for i, header2 in enumerate(headers):
+                    if header == header2:
+                        index = i
+                        break
 
             if headers:
-                self._set_findresult(headers, True)
+                self._set_findresult(headers, True, selindex=index)
                 selfullpath = True
             elif cw.scenariodb.is_scenario(fullpath):
                 header = self.db.search_path(fullpath)

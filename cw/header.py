@@ -1453,6 +1453,10 @@ class ScenarioHeader(object):
     def get_fpath(self):
         return "/".join([self.dpath, self.fname])
 
+    def set_fpath(self, fpath):
+        self.dpath = os.path.dirname(fpath)
+        self.fname = os.path.basename(fpath)
+
     def get_wxbmps(self, mask=True):
         """スケールありの見出しイメージ(wx.Bitmap)、スケールなしの見出しイメージ、
         スケール情報を返す。"""

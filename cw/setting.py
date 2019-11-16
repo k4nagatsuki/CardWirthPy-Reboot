@@ -346,6 +346,7 @@ class Setting(object):
         self.lastyado = ""
         self.lastscenario = []
         self.lastscenariopath = ""
+        self.lastfindresult = []
         self.window_position = (None, None)
         self.expanddrawing = 1
         self.expandmode = "FullScreen"
@@ -472,6 +473,7 @@ class Setting(object):
         self.write_playlog = False
         self.move_repeat = 250  # 移動ボタン押しっぱなしの速度
         self.open_lastscenario = True  # 最後に表示したシナリオを開くか
+        self.open_lastfindresult = False  # 最後の検索結果を再表示するか
         self.spend_noeffectcard = True  # キーコード等の効果が無くても常にカードを消費するか
         # シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する
         # Falseの場合は常に検索結果として表示
@@ -894,7 +896,9 @@ class Setting(object):
                                                          self.stop_the_world_with_iconized_init)
 
         # 最後に選んだシナリオを開始位置にする
-        self.open_lastscenario = data.getbool("OpenLastScenario", self.open_lastscenario)
+        self.open_lastscenario = data.getbool("OpenLastScenario", self.open_lastscenario_init)
+        # 最後のシナリオ検索結果を再表示する
+        self.open_lastfindresult = data.getbool("OpenFindScenarioResult", self.open_lastfindresult_init)
         # ドロップによるシナリオのインストールを可能にする
         self.can_installscenariofromdrop = data.getbool("CanInstallScenarioFromDrop", self.can_installscenariofromdrop)
         # シナリオのインストールに成功したら元ファイルを削除する

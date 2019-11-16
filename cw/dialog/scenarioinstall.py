@@ -763,6 +763,11 @@ def update_scenariolog(normpath, dst, dstisfile):
         cw.cwpy.setting.lastscenario = []
         cw.cwpy.setting.lastscenariopath = dst
 
+    for i in range(0, len(cw.cwpy.setting.lastfindresult)):
+        normpath3 = cw.util.get_keypath(cw.cwpy.setting.lastfindresult[i])
+        if normpath == normpath3:
+            cw.cwpy.setting.lastfindresult[i] = dst
+
     # カード編集ダイアログのブックマーク
     for i, (bookmarkpath, name) in enumerate(cw.cwpy.setting.bookmarks_for_cardedit[:]):
         fname = os.path.basename(bookmarkpath)
