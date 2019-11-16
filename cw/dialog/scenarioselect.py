@@ -2227,13 +2227,18 @@ class ScenarioSelect(select.Select):
                 if addition:
                     dc.SetFont(font2)
                     size2 = dc.GetTextExtent(addition)
+                    maxwidth = bmpw - cw.wins(5)*2 - size2[0] - space
                     x = (bmpw - (size[0]+space+size2[0])) // 2
                     x += cw.wins(10)  # 左に寄って見えるので若干右寄りにする
                 else:
+                    maxwidth = bmpw - cw.wins(5)*2
                     x = (bmpw - size[0]) // 2
+                if maxwidth < size[0]:
+                    x = cw.wins(5)
+                size = (min(maxwidth, size[0]), size[1])
 
                 dc.SetFont(font)
-                dc.DrawText(name, x, y+yp)
+                cw.util.draw_adjusted(dc, name, x, y + yp, maxwidth=maxwidth)
 
                 if addition:
                     dc.SetFont(font2)

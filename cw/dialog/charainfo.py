@@ -687,6 +687,7 @@ class TopPanel(wx.Panel):
             maxlevel = True
         dc.SetTextForeground(wx.BLACK)
         cw.util.draw_witharound_simple(dc, s, cw.wins(5), cw.wins(5), backcolor)
+        levelr = cw.wins(5) + dc.GetTextExtent(s)[0] + cw.wins(5)
 
         # 次のレベルまで割合バー
         if cw.cwpy.setting.show_experiencebar and isinstance(self.ccard, cw.character.Player) and not maxlevel:
@@ -754,7 +755,11 @@ class TopPanel(wx.Panel):
         s = self.ccard.get_showingname()
         w = dc.GetTextExtent(s)[0]
         width2 = self.Parent.width - cw.wins(5)
-        cw.util.draw_witharound_simple(dc, s, width2 - w, cw.wins(3), backcolor)
+        maxwidth = width2 - levelr
+        if w <= maxwidth:
+            cw.util.draw_witharound_simple(dc, s, width2 - w, cw.wins(3), backcolor)
+        else:
+            cw.util.draw_witharound(dc, s, width2 - maxwidth, cw.wins(3), maxwidth=maxwidth)
 
         if not (isinstance(self.ccard, cw.sprite.card.EnemyCard) or
                 isinstance(self.ccard, cw.sprite.card.FriendCard)):

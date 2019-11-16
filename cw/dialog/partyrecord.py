@@ -294,6 +294,7 @@ class SelectPartyRecord(select.Select):
             n = (len(self.names), 0)
 
         w = cw.wins(95)
+        maxwidth = w - cw.wins(3)*2
 
         for index, s in enumerate(self.names):
             if members.get(header.members[index], False):
@@ -301,11 +302,12 @@ class SelectPartyRecord(select.Select):
             else:
                 dc.SetTextForeground((128, 128, 128))
 
-            s = cw.util.abbr_longstr(dc, s, cw.wins(95))
             if index < 3:
-                dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])//2+w*index, cw.wins(85), w, cw.wins(15)), wx.ALIGN_CENTER)
+                cw.util.draw_adjusted(dc, s, (bmpw-w*n[0])//2+w*index, cw.wins(85), maxwidth=maxwidth,
+                                      centering=True)
             else:
-                dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])//2+w*(index-3), cw.wins(105), w, cw.wins(15)), wx.ALIGN_CENTER)
+                cw.util.draw_adjusted(dc, s, (bmpw-w*n[1])//2+w*(index-3), cw.wins(105), maxwidth=maxwidth,
+                                      centering=True)
 
         # パーティ名
         dc.SetTextForeground((0, 0, 0))
@@ -314,8 +316,8 @@ class SelectPartyRecord(select.Select):
             s = header.name
         else:
             s = cw.cwpy.msgs["new_party_record"]
-        w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)//2, cw.wins(40))
+        maxwidth = bmpw - cw.wins(5)*2
+        cw.util.draw_adjusted(dc, s, cw.wins(5), cw.wins(40), maxwidth=maxwidth, centering=True)
 
         # 所持カード
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16)))
@@ -335,16 +337,16 @@ class SelectPartyRecord(select.Select):
                 backpacklist = backpacklist[:llen*hlen-1]
                 backpacklist.append(cw.cwpy.msgs["history_etc"])
             w = cw.wins(84)
+            maxwidth = w - cw.wins(3)*2
             y = cw.wins(150)
             for index, s in enumerate(backpacklist):
                 if cards and cards[index]:
                     dc.SetTextForeground((0, 0, 0))
                 else:
                     dc.SetTextForeground((128, 128, 128))
-                s = cw.util.abbr_longstr(dc, s, cw.wins(84))
                 ypos = y + cw.wins(16) * int(index/llen)
                 xpos = index % llen
-                dc.DrawLabel(s, wx.Rect((bmpw-w*llen)//2+w*xpos+cw.wins(10), ypos, w, cw.wins(15)), wx.ALIGN_LEFT)
+                cw.util.draw_adjusted(dc, s, (bmpw-w*llen)//2+w*xpos+cw.wins(10), ypos, maxwidth=maxwidth)
 
         # ページ番号
         dc.SetTextForeground((0, 0, 0))

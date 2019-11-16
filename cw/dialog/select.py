@@ -1335,17 +1335,17 @@ class YadoSelect(MultiViewSelect):
             dc.DrawText(s, (bmpw-w)//2, cw.wins(175))
 
             # 所属冒険者
+            maxwidth = cw.wins(90)
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
             for idx, name in enumerate(self.list2[self.index]):
                 if 24 <= idx:
                     break
-                name = cw.util.abbr_longstr(dc, name, cw.wins(90))
                 if 23 == idx:
                     if 24 < len(self.list2[self.index]):
                         name = cw.cwpy.msgs["scenario_etc"]
                 x = (bmpw - cw.wins(270)) // 2 + ((idx % 3) * cw.wins(95))
                 y = cw.wins(200) + (idx // 3) * cw.wins(16)
-                dc.DrawText(name, x, y)
+                cw.util.draw_adjusted(dc, name, x, y, maxwidth=maxwidth)
 
             # 使用中マーク
             if cw.util.exists_mutex(self.list[self.index]):
@@ -1392,15 +1392,9 @@ class YadoSelect(MultiViewSelect):
                 dc.SetTextForeground(wx.BLACK)
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(17)))
                 s = self.names[index]
-                cw.util.abbr_longstr(dc, s, aw-2)
-                w = dc.GetTextExtent(s)[0]
-                maxwidth = bmpw//2 - cw.wins(5)*2
-                if maxwidth < w:
-                    cw.util.draw_antialiasedtext(dc, s, (aw-maxwidth)//2+x, cw.wins(3)+y, False,
-                                                 maxwidth, 0, bordering=True, scaledown=False)
-                else:
-                    cw.util.draw_antialiasedtext(dc, s, (aw-w)//2+x, cw.wins(3)+y, False,
-                                                 0, 0, bordering=True, scaledown=False)
+                maxwidth = bmpw//2 - cw.wins(3)*2
+                cw.util.draw_antialiasedtext(dc, s, x + cw.wins(3), cw.wins(3)+y, False,
+                                             maxwidth, 0, bordering=True, scaledown=False, centering=True)
 
                 yy = cw.wins(25)
                 amax = 6
@@ -1416,9 +1410,9 @@ class YadoSelect(MultiViewSelect):
 
                 # 所属冒険者
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
+                maxwidth = aw - cw.wins(84) - cw.wins(2)
                 for idx, name in enumerate(self.list2[index]):
-                    name = cw.util.abbr_longstr(dc, name, aw-cw.wins(84)-cw.wins(2))
-                    cw.util.draw_witharound(dc, name, cw.wins(84)+x, yy+y)
+                    cw.util.draw_witharound(dc, name, cw.wins(84)+x, yy+y, maxwidth=maxwidth)
                     yy += cw.wins(15)
                     if amax-2 <= idx and amax < len(self.list2[index]):
                         name = cw.cwpy.msgs["scenario_etc"]
@@ -2308,21 +2302,21 @@ class PartySelect(MultiViewSelect):
                 n = (len(self.names), 0)
 
             w = cw.wins(90)
+            maxwidth = w - cw.wins(3)*2
 
             for index, s in enumerate(self.names):
-                s = cw.util.abbr_longstr(dc, s, cw.wins(90))
                 if index < 3:
-                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])//2+w*index, cw.wins(85), w, cw.wins(15)),
-                                 wx.ALIGN_CENTER)
+                    cw.util.draw_adjusted(dc, s, (bmpw-w*n[0])//2+w*index, cw.wins(85), maxwidth=maxwidth,
+                                          centering=True)
                 else:
-                    dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])//2+w*(index-3), cw.wins(105), w, cw.wins(15)),
-                                 wx.ALIGN_CENTER)
+                    cw.util.draw_adjusted(dc, s, (bmpw-w*n[1])//2+w*(index-3), cw.wins(105), maxwidth=maxwidth,
+                                          centering=True)
 
             # パーティ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(20)))
             s = header.name
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)//2, cw.wins(40))
+            maxwidth = bmpw - cw.wins(5)*2
+            cw.util.draw_adjusted(dc, s, cw.wins(5), cw.wins(40), maxwidth=maxwidth, centering=True)
             # シナリオ・宿画像
             bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
             ix = (bmpw-cw.wins(74))//2
@@ -2367,8 +2361,8 @@ class PartySelect(MultiViewSelect):
             else:
                 s = cw.cwpy.ydata.name
 
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)//2, cw.wins(225))
+            maxwidth = bmpw - cw.wins(5)*2
+            cw.util.draw_adjusted(dc, s, cw.wins(5), cw.wins(225), maxwidth=maxwidth, centering=True)
             # ページ番号
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
             s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
@@ -2428,16 +2422,13 @@ class PartySelect(MultiViewSelect):
                 # パーティ名
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = header.name
-                s = cw.util.abbr_longstr(dc, s, rw)
-                w = dc.GetTextExtent(s)[0]
-                cw.util.draw_witharound(dc, s, x + (rw - w) // 2, y + cw.wins(105))
+                maxwidth = rw - cw.wins(3) * 2
+                cw.util.draw_witharound(dc, s, x + cw.wins(3), y + cw.wins(105), maxwidth=rw, centering=True)
 
                 # シナリオ・宿名
                 if sceheader:
                     s = sceheader.name
-                    s = cw.util.abbr_longstr(dc, s, rw)
-                    w = dc.GetTextExtent(s)[0]
-                    cw.util.draw_witharound(dc, s, x + (rw - w) // 2, y + cw.wins(120))
+                    cw.util.draw_witharound(dc, s, x + cw.wins(3), y + cw.wins(120), maxwidth=rw, centering=True)
 
                 # 選択マーク
                 if sindex + i == self.index:
@@ -3268,8 +3259,8 @@ class PlayerSelect(MultiViewSelect):
                 # Name
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(22)))
                 s = header.name
-                w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(110)+xpos - w // 2, cw.wins(67))
+                maxwidth = cw.wins(140) - cw.wins(5)*2
+                cw.util.draw_adjusted(dc, s, xpos + cw.wins(45), cw.wins(67), maxwidth=maxwidth, centering=True)
                 # Image
                 dc.SetClippingRegion(cw.wins(73)+xpos, cw.wins(90), cw.wins(74), cw.wins(94))
                 attr = cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False")
@@ -3385,9 +3376,8 @@ class PlayerSelect(MultiViewSelect):
                     # Name
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                     s = header.name
-                    s = cw.util.abbr_longstr(dc, s, rw)
-                    w = dc.GetTextExtent(s)[0]
-                    cw.util.draw_witharound(dc, s, x + (rw - w) // 2, y + cw.wins(105))
+                    maxwidth = rw - cw.wins(3)*2
+                    cw.util.draw_witharound(dc, s, x+cw.wins(3), y + cw.wins(105), maxwidth=maxwidth, centering=True)
                     # Level
                     space = cw.wins(5)
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
