@@ -815,12 +815,16 @@ class Event(object):
         cw.cwpy.event.in_cardeffectmotion = False
         self._stored_in_inusecardevent = cw.cwpy.event.in_inusecardevent
         cw.cwpy.event.in_inusecardevent = False
+        self._stored_specialchars = cw.cwpy.rsrc.specialchars
+        cw.cwpy.rsrc.specialchars = cw.cwpy.sdata.specialchars
 
     def restore_inusedata(self):
         cw.cwpy.event.in_cardeffectmotion = self._stored_in_cardeffectmotion
         self._stored_in_cardeffectmotion = False
         cw.cwpy.event.in_inusecardevent = self._stored_in_inusecardevent
         self._stored_in_inusecardevent = False
+        cw.cwpy.rsrc.specialchars = self._stored_specialchars
+        self._stored_specialchars = None
 
     def start(self):
         try:

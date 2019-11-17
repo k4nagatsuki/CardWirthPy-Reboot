@@ -90,6 +90,7 @@ class SystemData(object):
         self.background_image_mtime = {}
         self.moved_mcards = {}
         self.instructions = []
+        self.specialchars = set()
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
         # [path] = (x1 binary, x2 binary, ..., x16 binary)
@@ -1731,6 +1732,8 @@ class ScenarioData(SystemData):
                 elif ldpath.endswith("beastcard") or lf.startswith("beast"):
                     self._beasts[resid] = (name, path)
 
+        self.specialchars = cw.cwpy.rsrc.specialchars.copy()
+
         if not xmlonly and not self.summary:
             raise ValueError("Summary file is not found.")
 
@@ -1759,6 +1762,7 @@ class ScenarioData(SystemData):
             for fname in fnames:
                 if os.path.isfile(cw.util.join_paths(dpath, fname)):
                     self.eat_spchar(dpath, fname, self.can_loaded_scaledimage)
+        self.specialchars = cw.cwpy.rsrc.specialchars.copy()
 
     def eat_spchar(self, dpath, fname, can_loaded_scaledimage):
         # "font_*.*"のファイルパスの画像を特殊文字に指定
