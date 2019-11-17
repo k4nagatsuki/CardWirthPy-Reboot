@@ -295,13 +295,17 @@ class ScenarioSelect(select.Select):
         if not cw.cwpy.setting.open_lastfindresult:
             lastfindresult = []
 
+        dirs = []
         headers = []
         for fpath in lastfindresult:
             header = self.db.search_path(fpath)
             if header:
                 headers.append(header)
-        if headers:
+            else:
+                dirs.append(fpath)
+        if dirs or headers:
             headers = self._sort_headers(headers)
+            headers = dirs + headers
             self._set_findresult(headers, False, expand=False)
 
         if cw.cwpy.setting.open_lastscenario and (lastscenario or lastscenariopath):
@@ -1053,10 +1057,6 @@ class ScenarioSelect(select.Select):
 
         spdir = False
         for _dpath, selname in self._saved_dirstack:
-            if selname.startswith("/"):
-                seq = []
-                spdir = True
-                break
             seq.append(selname)
 
         sel = self._saved_list[self._saved_index]
@@ -1065,7 +1065,7 @@ class ScenarioSelect(select.Select):
                 seq.append(sel.fname)
             return seq, os.path.abspath(sel.get_fpath())
         elif isinstance(sel, FindResult):
-            return [], ""
+            return ["/find_result"], ""
         else:
             if not spdir:
                 seq.append(os.path.basename(sel))
@@ -1074,7 +1074,9 @@ class ScenarioSelect(select.Select):
     def get_findresult(self):
         seq = self.scetable[self._get_linktarget(self.scedir)]
         if seq and isinstance(seq[0], FindResult):
-            return list(map(lambda header: header.get_fpath(), seq[0].headers))
+            return list(map(lambda header:
+                            header.get_fpath() if isinstance(header, cw.header.ScenarioHeader) else header,
+                            seq[0].headers))
         else:
             return []
 
@@ -1083,7 +1085,8 @@ class ScenarioSelect(select.Select):
 
         if nowdir is None:
             nowdir = self.nowdir
-        nowdir = self._get_linktarget(nowdir)
+        if not isinstance(nowdir, FindResult):
+            nowdir = self._get_linktarget(nowdir)
         if not update and nowdir in self.scetable:
             return self.scetable[nowdir]
         if isinstance(nowdir, FindResult):
@@ -1114,9 +1117,14 @@ class ScenarioSelect(select.Select):
 
         if exists_spaths:
             for path in spaths:
-                if path.startswith("/"):
+                if path.startswith("/") and\
+                        not (findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)):
                     exists_spaths = False
                     break
+                if path == "/find_result":
+                    assert findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)
+                    spath = os.path.dirname(findresults[0])
+                    continue
                 spath = cw.util.join_paths(spath, path)
                 spath = cw.util.get_linktarget(spath)
                 if not os.path.exists(spath):
@@ -1133,19 +1141,31 @@ class ScenarioSelect(select.Select):
                     header = self.db.search_path(fpath)
                     if header:
                         headers.append(header)
+                    elif os.path.exists(fpath):
+                        headers.append(fpath)
+                    else:
+                        continue
                     if index == -1 and keypath == cw.util.get_keypath(fpath):
                         index = len(headers) - 1
             else:
                 index = -1
                 headers = findresults
                 for i, header in enumerate(findresults):
-                    if keypath == cw.util.get_keypath(header.get_fpath()):
+                    if isinstance(header, cw.header.ScenarioHeader):
+                        fpath = header.get_fpath()
+                    elif os.path.exists(header):
+                        fpath = header
+                    else:
+                        continue
+                    if keypath == cw.util.get_keypath(fpath):
                         index = i
                         break
             if headers and index == -1:
                 header = self.db.search_path(fullpath)
                 if header:
                     headers.append(header)
+                elif os.path.exists(fullpath):
+                    headers.append(fullpath)
                 headers = self._sort_headers(headers)
                 for i, header2 in enumerate(headers):
                     if header == header2:
@@ -1153,8 +1173,11 @@ class ScenarioSelect(select.Select):
                         break
 
             if headers:
-                self._set_findresult(headers, True, selindex=index)
-                selfullpath = True
+                if index == -1:
+                    exists_spaths = False
+                else:
+                    self._set_findresult(headers, True, selindex=index)
+                    selfullpath = True
             elif cw.scenariodb.is_scenario(fullpath):
                 header = self.db.search_path(fullpath)
                 if header and self.is_showing(header):
@@ -1180,16 +1203,34 @@ class ScenarioSelect(select.Select):
         elif not selfullpath:
             # 経路をたどれる場合
             parent = self.scedir
+            nowdir = parent
             self.dirstack = []
             exists = True
             treeitem = self.tree.root
-            for fname in spaths[:-1]:
-                if fname.startswith("/"):
+            skip = False
+            for i, fname in enumerate(spaths[:-1]):
+                if skip:
+                    skip = False
+                    continue
+                if fname.startswith("/") and\
+                        not (findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)):
                     break
-                parent2 = cw.util.join_paths(parent, fname)
+                if fname == "/find_result":
+                    assert findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)
+                    parent2 = findresults[0]
+                    parent = self.find_result
+                elif isinstance(parent, FindResult):
+                    nowdir = parent2
+                    parent = parent2
+                else:
+                    parent2 = cw.util.join_paths(parent, fname)
                 if os.path.exists(parent2):
-                    self.dirstack.append((parent, fname))
-                    parent = cw.util.get_linktarget(parent2)
+                    if isinstance(parent, FindResult):
+                        nowdir = self.scedir
+                    else:
+                        parent = cw.util.get_linktarget(parent2)
+                        nowdir = parent
+                    self.dirstack.append((nowdir, fname))
                     if self.tree.IsShown():
                         paritem = treeitem
                         item, cookie = self.tree.GetFirstChild(paritem)
@@ -1197,10 +1238,11 @@ class ScenarioSelect(select.Select):
                             data = self.tree.GetItemData(item)
                             assert data is not None
                             index, header = data
-                            if not isinstance(header, cw.header.ScenarioHeader) and\
-                               not isinstance(header, FindResult) and\
+                            if (not isinstance(header, cw.header.ScenarioHeader) and\
+                                not isinstance(header, FindResult) and\
                                     os.path.normcase(os.path.basename(header)) ==\
-                                    os.path.normcase(fname):
+                                    os.path.normcase(fname)) or\
+                                    (isinstance(header, FindResult) and fname == "/find_result"):
                                 treeitem = item
                                 if not self.tree.IsExpanded(item) or\
                                         (self.tree.GetChildrenCount(item, False) and
@@ -1216,8 +1258,8 @@ class ScenarioSelect(select.Select):
                     exists = False
                     break
 
-            self.nowdir = parent
-            self.list = self._get_nowlist(update=True)
+            self.nowdir = nowdir
+            self.list = self._get_nowlist(nowdir=parent, update=True)
             self.scetable[self._get_linktarget(self.nowdir)] = self.list
             self.list = self._narrow_scenario(self.list)
             self.index = 0
