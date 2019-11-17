@@ -1272,15 +1272,18 @@ class ScenarioSelect(select.Select):
                     self.create_treeitems(self.tree.root)
 
             if exists:
-                fname = os.path.normcase(spaths[-1])
+                if spaths[-1].startswith("/"):
+                    fname = spaths[-1]
+                else:
+                    fname = os.path.normcase(spaths[-1])
                 for index, sel in enumerate(self.list):
                     if isinstance(sel, FindResult):
-                        continue
+                        name = "/find_result"
                     elif isinstance(sel, cw.header.ScenarioHeader):
-                        name = sel.fname
+                        name = os.path.normcase(sel.fname)
                     else:
-                        name = os.path.basename(sel)
-                    if os.path.normcase(name) == fname:
+                        name = os.path.normcase(os.path.basename(sel))
+                    if name == fname:
                         self.index = index
                         if self.tree.IsShown():
                             item, cookie = self.tree.GetFirstChild(treeitem)
