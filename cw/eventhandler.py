@@ -246,6 +246,7 @@ class EventHandler(object):
             return
 
         cw.cwpy.has_inputevent = True
+        cw.cwpy.statusbar.hide_touchbuttons()
 
         if sidechange and cw.cwpy.is_pcardsselectable and cw.cwpy.is_mcardsselectable:
             if x < 0 and cw.cwpy.index == 0:
@@ -784,6 +785,7 @@ class EventHandler(object):
     def change_volume(self, val):
         if val != 0 and cw.cwpy.mousein[2]:
             # 右クリック+ホイール。音量の変更
+            cw.cwpy.statusbar.hide_touchbuttons()
             for music in cw.cwpy.music:
                 volume = music.mastervolume + val * cw.cwpy.setting.volume_increment
                 volume = cw.util.numwrap(volume, 0, 100)

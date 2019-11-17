@@ -1844,6 +1844,7 @@ class CWPy(_Singleton, threading.Thread):
         self.lock_menucards = True
         self.input(eventclear=True)
         self._showingdlg += 1
+        self.statusbar.hide_touchbuttons()
         self.statusbar.clear_volumebar()
         self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
         if self.selection and self.selection.is_statusctrl:
