@@ -1207,11 +1207,7 @@ class ScenarioSelect(select.Select):
             self.dirstack = []
             exists = True
             treeitem = self.tree.root
-            skip = False
             for i, fname in enumerate(spaths[:-1]):
-                if skip:
-                    skip = False
-                    continue
                 if fname.startswith("/") and\
                         not (findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)):
                     break
@@ -1220,14 +1216,12 @@ class ScenarioSelect(select.Select):
                     parent2 = findresults[0]
                     parent = self.find_result
                 elif isinstance(parent, FindResult):
-                    nowdir = parent2
+                    nowdir = parent
                     parent = parent2
                 else:
                     parent2 = cw.util.join_paths(parent, fname)
                 if os.path.exists(parent2):
-                    if isinstance(parent, FindResult):
-                        nowdir = self.scedir
-                    else:
+                    if not isinstance(nowdir, FindResult) and not isinstance(parent, FindResult):
                         parent = cw.util.get_linktarget(parent2)
                         nowdir = parent
                     self.dirstack.append((nowdir, fname))
