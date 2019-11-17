@@ -2911,6 +2911,7 @@ class HandView(CardControl):
 
         if status == "active" and not cw.cwpy.is_debugmode() and isinstance(self.owner, cw.sprite.card.PlayerCard):
             self.list2 = [pcard for pcard in self.list2 if not pcard.is_autoselectedpenalty()]
+        self.list2 = [pcard for pcard in self.list2 if pcard.deck.hand]
 
         # 前に開いていたときのindex値があったら取得する
         self.index = 0

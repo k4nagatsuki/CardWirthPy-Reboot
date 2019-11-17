@@ -852,7 +852,7 @@ class PlayerCard(CWPyCard, character.Player):
                 elif self.is_autoselectedpenalty() and not cw.cwpy.is_debugmode():
                     s = cw.cwpy.msgs["selected_penalty"]
                     cw.cwpy.call_modaldlg("NOTICE", text=s)
-                else:
+                elif self.deck.hand:
                     cw.cwpy.call_modaldlg("HANDVIEW")
             else:
                 if self.is_inactive() and cw.cwpy.areaid not in cw.AREAS_TRADE:
@@ -1185,7 +1185,7 @@ class EnemyCard(CWPyCard, character.Enemy):
                 if self.is_inactive():
                     s = cw.cwpy.msgs["inactive"] % self.name
                     cw.cwpy.call_modaldlg("NOTICE", text=s)
-                else:
+                elif self.deck.hand:
                     cw.cwpy.call_modaldlg("HANDVIEW")
 
         # カード使用。戦闘行動を設定する。
@@ -1280,7 +1280,7 @@ class FriendCard(CWPyCard, character.Friend):
             elif self.is_autoselectedpenalty() and not cw.cwpy.is_debugmode():
                 s = cw.cwpy.msgs["selected_penalty"]
                 cw.cwpy.call_modaldlg("NOTICE", text=s)
-            else:
+            elif self.deck.hand:
                 cw.cwpy.call_modaldlg("HANDVIEW")
         elif (not cw.cwpy.is_curtained() or cw.cwpy.areaid == cw.AREA_CAMP) and self.is_analyzable():
             if not cw.cwpy.is_battlestatus():
