@@ -450,6 +450,14 @@ class SkinEditDialog(wx.Dialog):
                         newresname = imgtbl[resname]
                         import_res(dpath, fname, ext, newresname)
                         num += 1
+                        for ext2 in cw.EXTS_IMG:
+                            if ext2 != ext:
+                                delres = cw.util.join_paths(skindir, newresname + ext2)
+                                cw.util.remove(delres)
+                            for scale in cw.SCALE_LIST:
+                                scaledfname = "%s.x%s%s" % (newresname, scale, ext2)
+                                delres = cw.util.join_paths(skindir, scaledfname)
+                                cw.util.remove(delres)
                     if ext.lower() in ".cur" and resname in curtbl:
                         newresname = curtbl[resname]
                         import_res(dpath, fname, ext, newresname)
