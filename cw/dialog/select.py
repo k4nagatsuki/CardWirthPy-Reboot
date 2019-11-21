@@ -1206,7 +1206,7 @@ class YadoSelect(MultiViewSelect):
         """
         # ディレクトリ選択ダイアログ
         s = ("CardWirthの宿のデータをCardWirthPy用に変換します。" +
-             "\n変換する宿のフォルダを選択してください。")
+             "\n変換する宿のフォルダを選択してください")
         dlg = wx.DirDialog(self, s, style=wx.DD_DIR_MUST_EXIST)
         dlg.SetPath(os.getcwd())
 

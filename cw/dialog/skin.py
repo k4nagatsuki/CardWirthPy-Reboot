@@ -3,6 +3,8 @@
 
 import os
 import copy
+import shutil
+import sys
 import time
 import threading
 import wx
@@ -337,6 +339,8 @@ class SkinEditDialog(wx.Dialog):
         self.note.AddPage(self.pane_draw, "描画")
         self.note.AddPage(self.pane_font, "フォント")
 
+        self.btn_importres = wx.Button(self, -1, "CardWirth用リソースのインポート...")
+
         self.btn_ok = wx.Button(self, wx.ID_OK, "OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, "キャンセル")
 
@@ -345,6 +349,7 @@ class SkinEditDialog(wx.Dialog):
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnImportResource, id=self.btn_importres.GetId())
 
     def OnOk(self, event):
         skintype = self.info.typectrl.GetValue()
@@ -407,6 +412,63 @@ class SkinEditDialog(wx.Dialog):
 
         self.EndModal(wx.ID_OK)
 
+    def OnImportResource(self, event):
+        s = "CardWirth用のイメージリソースをインポートしてこのスキンのリソースに上書きしますか？\n(元に戻すことはできません)"
+        if wx.YES != wx.MessageBox(s, "メッセージ", wx.YES_NO | wx.ICON_QUESTION, self):
+            return
+        s = "インポート元(CardWirth 1.50以降の\"Data/Resource\"フォルダ)を選択してください"
+        dlg = wx.DirDialog(self.TopLevelParent, s, style=wx.DD_DIR_MUST_EXIST)
+        if dlg.ShowModal() == wx.ID_OK:
+            skindir = cw.util.join_paths("Data/Skin", self.skindirname, "Resource/Image")
+            dpath = dlg.GetPath()
+            num = 0
+            err = False
+            self.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
+            try:
+                imgtbl = {}
+                for key, value in cw.skin.convert.IMGTBL.items():
+                    imgtbl[key.lower()] = value
+                for key, value in cw.skin.convert.IMGTBL_C.items():
+                    imgtbl[key.lower()] = value
+                curtbl = {}
+                for key, value in cw.skin.convert.CURTBL.items():
+                    imgtbl[key.lower()] = value
+
+                for fname in os.listdir(dpath):
+                    resname, ext = os.path.splitext(fname)
+                    resname = resname.lower()
+
+                    def import_res(dpath, fname, ext, newresname):
+                        src = cw.util.join_paths(dpath, fname)
+                        dst = cw.util.join_paths(skindir, newresname + ext)
+                        dpath = os.path.dirname(dst)
+                        if not os.path.isdir(dpath):
+                            os.makedirs(dpath)
+                        shutil.copy2(src, dst)
+
+                    if ext.lower() in cw.EXTS_IMG and resname in imgtbl:
+                        newresname = imgtbl[resname]
+                        import_res(dpath, fname, ext, newresname)
+                        num += 1
+                    if ext.lower() in ".cur" and resname in curtbl:
+                        newresname = curtbl[resname]
+                        import_res(dpath, fname, ext, newresname)
+                        num += 1
+
+            except Exception:
+                cw.util.print_ex(file=sys.stderr)
+                s = "リソースのインポート中にエラーが発生しました。"
+                wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_WARNING, self)
+                err = True
+            if 0 < num:
+                s = "%s件のリソースをインポートしました。" % num
+                wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_INFORMATION, self)
+            elif not err:
+                s = "インポート可能なリソースはありません。"
+                wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_INFORMATION, self)
+            self.SetCursor(wx.NullCursor)
+        dlg.Destroy()
+
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
@@ -418,12 +480,14 @@ class SkinEditDialog(wx.Dialog):
         sizer_panel.Add(sizer_info, 1, wx.ALL | wx.EXPAND, cw.ppis(10))
         self.pane_info.SetSizer(sizer_panel)
 
+        sizer_btn.Add(self.btn_importres, 0, wx.RIGHT, cw.ppis(5))
+        sizer_btn.Add((0, 0), 1, 0, cw.ppis(0))
         sizer_btn.Add(self.btn_ok, 0, 0, cw.ppis(0))
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, cw.ppis(5))
 
         sizer.Add(self.warning, 0, wx.ALL, cw.ppis(3))
         sizer.Add(self.note, 1, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, cw.ppis(3))
-        sizer.Add(sizer_btn, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT, cw.ppis(3))
+        sizer.Add(sizer_btn, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, cw.ppis(3))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()

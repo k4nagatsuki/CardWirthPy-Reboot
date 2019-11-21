@@ -1748,7 +1748,7 @@ class ScenarioSelect(select.Select):
     def OnClickConvBtn(self, evt):
         # ディレクトリ選択ダイアログ
         s = ("カードワースのシナリオデータをカードワースパイ用に変換します。" +
-             "\n変換するシナリオのディレクトリを選択してください。")
+             "\n変換するシナリオのディレクトリを選択してください")
         dlg = wx.DirDialog(self, s, style=wx.DD_DIR_MUST_EXIST)
         dlg.SetPath(os.getcwd())
 

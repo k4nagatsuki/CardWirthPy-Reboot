@@ -2619,7 +2619,7 @@ class ScenarioSettingPanel(wx.Panel):
             skintype = "(指定無し)"
 
         dpath = os.path.abspath("Scenario")
-        s = "「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください。" % (skintype)
+        s = "「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください" % (skintype)
         dlg = wx.DirDialog(self.TopLevelParent, s, dpath, style=wx.DD_DIR_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             dpath = dlg.GetPath()
