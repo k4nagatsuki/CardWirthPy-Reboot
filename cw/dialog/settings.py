@@ -1133,8 +1133,9 @@ class SkinPanel(wx.Panel):
         return False
 
     def copy_values(self, skin):
-        if skin.ch_skin.GetStringSelection() in self.skins:
-            self.ch_skin.SetStringSelection(skin.ch_skin.GetStringSelection())
+        if skin.skindirs[skin.ch_skin.GetSelection()] in self.skindirs:
+            index = self.skindirs.index(skin.skindirs[skin.ch_skin.GetSelection()])
+            self.ch_skin.SetSelection(index)
             self._choice_skin(init=True)
 
 
