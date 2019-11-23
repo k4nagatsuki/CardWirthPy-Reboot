@@ -1051,10 +1051,10 @@ class HistoryPanel(wx.ScrolledWindow):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         h = self.gold.GetSize()[1]
-        maxheight = (h + cw.wins(5)) * len(self.coupons) + cw.wins(5)
+        maxheight = (h + cw.wins(4)) * len(self.coupons)
         maxwidth = -1
 
-        self._ratey = h + cw.wins(5)
+        self._ratey = h + cw.wins(4)
         self.SetScrollRate(cw.wins(10), self._ratey)
 
         self.SetVirtualSize((maxwidth, maxheight))
@@ -1085,10 +1085,10 @@ class HistoryPanel(wx.ScrolledWindow):
         # クーポン
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
-        lineheight = self.gold.GetSize()[1] + cw.wins(5)
+        lineheight = self.gold.GetSize()[1] + cw.wins(4)
 
         index = int(vy / lineheight)
-        y = (index * lineheight) + cw.wins(10) - vy
+        y = (index * lineheight) + self.gold.GetSize()[1]//2 - vy
         coupons = self.coupons[index:]
         gray = wx.Colour(160, 160, 160)
         x = cw.wins(32) - vx
