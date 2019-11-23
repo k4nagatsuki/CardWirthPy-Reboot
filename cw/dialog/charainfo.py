@@ -1051,22 +1051,10 @@ class HistoryPanel(wx.ScrolledWindow):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
 
         h = self.gold.GetSize()[1]
-        maxheight = (h + cw.wins(5)) * len(self.coupons)
-        maxwidth = 0
-        for coupon in self.coupons:
-            maxwidth = max(dc.GetTextExtent(coupon[0])[0] + cw.wins(32)+cw.wins(12), maxwidth)
+        maxheight = (h + cw.wins(5)) * len(self.coupons) + cw.wins(5)
+        maxwidth = -1
 
-        if maxwidth <= csize[0]:
-            maxwidth = -1
-        if maxheight <= csize[1]:
-            maxheight = -1
-
-        if maxwidth != -1:
-            maxheight += cw.ppis(5)+cw.wins(2)
-
-        self._ratey = self.gold.GetSize()[1] + cw.wins(5)
-        if maxheight != -1:
-            maxheight = (maxheight + self._ratey - 1) // self._ratey * self._ratey
+        self._ratey = h + cw.wins(5)
         self.SetScrollRate(cw.wins(10), self._ratey)
 
         self.SetVirtualSize((maxwidth, maxheight))
@@ -1075,7 +1063,10 @@ class HistoryPanel(wx.ScrolledWindow):
 
     def is_hidden(self, coupon):
         return coupon.startswith("＿") or\
-               coupon.startswith("：") or\
+               self.is_timed(coupon)
+
+    def is_timed(self, coupon):
+        return coupon.startswith("：") or\
                coupon.startswith("；")
 
     def OnPaint(self, event):
@@ -1100,6 +1091,8 @@ class HistoryPanel(wx.ScrolledWindow):
         y = (index * lineheight) + cw.wins(10) - vy
         coupons = self.coupons[index:]
         gray = wx.Colour(160, 160, 160)
+        x = cw.wins(32) - vx
+        maxwidth = csize[0] - cw.wins(5) - x
         for index, coupon in enumerate(coupons):
             text, value = coupon
 
@@ -1124,19 +1117,48 @@ class HistoryPanel(wx.ScrolledWindow):
                 else:
                     bmp = self.black
 
-            dc.DrawText(text, cw.wins(32) - vx, y)
+            text2 = self._append_text(text, value)
+
+            maxwidth2 = maxwidth - dc.GetTextExtent(text2)[0]
+            cw.util.draw_adjusted(dc, text, x, y, maxwidth=maxwidth2)
+
+            if text2:
+                x2 = x + min(dc.GetTextExtent(text)[0], maxwidth2)
+                dc.SetTextForeground(gray)
+                dc.DrawText(text2, x2, y)
+
             dc.DrawBitmap(bmp, cw.wins(12) - vx, y, True)
             y += lineheight
             if csize[1] <= y:
                 break
 
+    def _append_text(self, text, value):
+        if cw.cwpy.is_debugmode() and text != "：Ｒ":
+            if self.is_timed(text):
+                if 0 < value:
+                    return "(%sラウンド)" % value
+            elif 0 <= value:
+                return "(+%s)" % value
+            else:
+                return "(%s)" % value
+        return ""
+
     def get_detailtext(self):
         lines = []
         for text, value in self.coupons:
-            if 0 <= value:
-                lines.append("%s (+%s)" % (text, value))
+            text2 = self._append_text(text, value)
+            if text2 == "" and not cw.cwpy.is_debugmode():
+                if 2 <= value:
+                    text0 = "(@)"
+                elif 1 <= value:
+                    text0 = "(+)"
+                elif 0 <= value:
+                    text0 = "( )"
+                else:
+                    text0 = "(X)"
             else:
-                lines.append("%s (%s)" % (text, value))
+                text0 = ""
+            lines.append(text0 + text + text2)
 
         return "\n".join(lines)
 

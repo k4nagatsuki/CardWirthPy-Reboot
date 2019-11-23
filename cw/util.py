@@ -3859,8 +3859,9 @@ def draw_adjusted(dc, s, x, y, maxwidth, centering=False):
             x += (maxwidth - w) // 2
         dc.DrawText(s, x, y)
     else:
+        quality = wx.IMAGE_QUALITY_HIGH
         draw_antialiasedtext(dc, s, x, y, dc.GetTextForeground(), maxwidth, 0,
-                             scaledown=False, bordering=False, centering=centering)
+                             quality=quality, scaledown=False, bordering=False, centering=centering)
 
 
 def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
@@ -3892,6 +3893,7 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     if quality is None:
         quality = wx.IMAGE_QUALITY_BICUBIC
     w, h = basedc.GetTextExtent(text)
+    basew, baseh = w, h
     if w <= 0 or h <= 0:
         return empty_bitmap(w, h)
     font = basedc.GetFont()
@@ -3909,6 +3911,9 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
         font = wx.Font(wx.Size(0, pixelsize*2), family, style, weight, 0, facename, encoding)
         basedc.SetFont(font)
         w, h = basedc.GetTextExtent(text)
+    else:
+        basew = w // 2
+        baseh = h // 2
     if w <= 0 or h <= 0:
         return empty_bitmap(w, h)
     wxbmp = empty_bitmap(w, h)
@@ -3954,11 +3959,11 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     subimg.SetAlphaBuffer(redbuf)
 
     if scaledown:
-        if 0 < maxwidth and w//2 + padding*2 > maxwidth:
-            size = (maxwidth - padding*2, h//2)
-            subimg = subimg.Rescale(int(size[0]*width_coeff), h//2, quality=quality)
+        if 0 < maxwidth and basew + padding*2 > maxwidth:
+            size = (maxwidth - padding*2, baseh)
+            subimg = subimg.Rescale(int(size[0]*width_coeff), baseh, quality=quality)
         else:
-            subimg = subimg.Rescale(int((w//2)*width_coeff), h//2, quality=quality)
+            subimg = subimg.Rescale(int((basew)*width_coeff), baseh, quality=quality)
     else:
         if 0 < maxwidth and w + padding*2 > maxwidth:
             size = (maxwidth - padding*2, h)

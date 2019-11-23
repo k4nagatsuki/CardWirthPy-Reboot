@@ -560,7 +560,8 @@ class CardImage(Image):
                                                          basecardtype="NormalCard",
                                                          cardpostype="NormalCard")
 
-                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, subimg2, cw.wins(3)+baserect.x, cw.wins(13)+baserect.y,
+                cw.imageretouch.wxblit_2bitbmp_to_card(dc, bmp, subimg2, cw.wins(3)+baserect.x,
+                                                       cw.wins(13)+baserect.y,
                                                        True, bitsizekey=subimg)
 
         pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
