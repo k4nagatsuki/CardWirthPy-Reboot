@@ -1365,10 +1365,7 @@ class Frame(wx.Frame):
                     mem.SetFont(font)
                     title = child.GetTitle()
                     white = fore[:3] == (255, 255, 255)
-                    if 20 <= cw.s(pixelsize):
-                        quality = wx.IMAGE_QUALITY_HIGH
-                    else:
-                        quality = wx.IMAGE_QUALITY_BILINEAR
+                    quality = wx.IMAGE_QUALITY_HIGH
 
                     # 位置の決定(画面外には出さない)
                     ww, wh = bmp.GetSize()
