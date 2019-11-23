@@ -304,10 +304,10 @@ class SelectPartyRecord(select.Select):
 
             if index < 3:
                 cw.util.draw_adjusted(dc, s, (bmpw-w*n[0])//2+w*index, cw.wins(85), maxwidth=maxwidth,
-                                      centering=True)
+                                      align=wx.ALIGN_CENTER)
             else:
                 cw.util.draw_adjusted(dc, s, (bmpw-w*n[1])//2+w*(index-3), cw.wins(105), maxwidth=maxwidth,
-                                      centering=True)
+                                      align=wx.ALIGN_CENTER)
 
         # パーティ名
         dc.SetTextForeground((0, 0, 0))
@@ -317,7 +317,7 @@ class SelectPartyRecord(select.Select):
         else:
             s = cw.cwpy.msgs["new_party_record"]
         maxwidth = bmpw - cw.wins(5)*2
-        cw.util.draw_adjusted(dc, s, cw.wins(5), cw.wins(40), maxwidth=maxwidth, centering=True)
+        cw.util.draw_adjusted(dc, s, cw.wins(5), cw.wins(40), maxwidth=maxwidth, align=wx.ALIGN_CENTER)
 
         # 所持カード
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16)))

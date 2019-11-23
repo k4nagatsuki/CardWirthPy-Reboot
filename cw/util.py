@@ -3840,7 +3840,7 @@ def draw_witharound_simple(dc, s, x, y, aroundcolor):
     dc.DrawText(s, x, y)
 
 
-def draw_witharound(dc, s, x, y, maxwidth=0, centering=False, aroundcolor=None):
+def draw_witharound(dc, s, x, y, maxwidth=0, align=wx.ALIGN_LEFT, aroundcolor=None):
     """テキストsを縁取りしながら描画する。
     フォントのスムージングを行う。
     """
@@ -3848,30 +3848,35 @@ def draw_witharound(dc, s, x, y, maxwidth=0, centering=False, aroundcolor=None):
         white = aroundcolor
     else:
         white = False
-    draw_antialiasedtext(dc, s, x, y, white, maxwidth, 0, scaledown=False, bordering=True, centering=centering)
+    draw_antialiasedtext(dc, s, x, y, white, maxwidth, 0, scaledown=False, bordering=True, align=align)
 
 
-def draw_adjusted(dc, s, x, y, maxwidth, centering=False):
+def draw_adjusted(dc, s, x, y, maxwidth, align=wx.ALIGN_LEFT):
     """テキストをmaxwidthの幅に収まるように描画する。"""
     w = dc.GetTextExtent(s)[0]
     if w <= maxwidth:
-        if centering:
+        if align == wx.ALIGN_CENTER:
             x += (maxwidth - w) // 2
+        elif align == wx.ALIGN_RIGHT:
+            x += maxwidth - w
         dc.DrawText(s, x, y)
     else:
         quality = wx.IMAGE_QUALITY_HIGH
         draw_antialiasedtext(dc, s, x, y, dc.GetTextForeground(), maxwidth, 0,
-                             quality=quality, scaledown=False, bordering=False, centering=centering)
+                             quality=quality, scaledown=False, bordering=False, align=align)
 
 
 def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
                          quality=None, scaledown=True, alpha=64,
-                         bordering=False, width_coeff=1, centering=False):
+                         bordering=False, width_coeff=1, align=wx.ALIGN_LEFT):
     if not text:
         return
     w = dc.GetTextExtent(text)[0]
-    if w < maxwidth and centering:
-        x += (maxwidth - w) // 2
+    if w <= maxwidth:
+        if align == wx.ALIGN_CENTER:
+            x += (maxwidth - w) // 2
+        elif align == wx.ALIGN_RIGHT:
+            x += maxwidth - w
     if bordering:
         subimg = cw.util.render_antialiasedtext(dc, text, not white, maxwidth, padding,
                                                 scaledown=scaledown, quality=quality, alpha=alpha,

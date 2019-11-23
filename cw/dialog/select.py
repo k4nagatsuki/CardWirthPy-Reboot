@@ -1394,7 +1394,7 @@ class YadoSelect(MultiViewSelect):
                 s = self.names[index]
                 maxwidth = bmpw//2 - cw.wins(3)*2
                 cw.util.draw_antialiasedtext(dc, s, x + cw.wins(3), cw.wins(3)+y, False,
-                                             maxwidth, 0, bordering=True, scaledown=False, centering=True)
+                                             maxwidth, 0, bordering=True, scaledown=False, align=wx.ALIGN_CENTER)
 
                 yy = cw.wins(25)
                 amax = 6
@@ -2307,16 +2307,16 @@ class PartySelect(MultiViewSelect):
             for index, s in enumerate(self.names):
                 if index < 3:
                     cw.util.draw_adjusted(dc, s, (bmpw-w*n[0])//2+w*index, cw.wins(85), maxwidth=maxwidth,
-                                          centering=True)
+                                          align=wx.ALIGN_CENTER)
                 else:
                     cw.util.draw_adjusted(dc, s, (bmpw-w*n[1])//2+w*(index-3), cw.wins(105), maxwidth=maxwidth,
-                                          centering=True)
+                                          align=wx.ALIGN_CENTER)
 
             # パーティ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(20)))
             s = header.name
             maxwidth = bmpw - cw.wins(5)*2
-            cw.util.draw_adjusted(dc, s, cw.wins(5), cw.wins(40), maxwidth=maxwidth, centering=True)
+            cw.util.draw_adjusted(dc, s, cw.wins(5), cw.wins(40), maxwidth=maxwidth, align=wx.ALIGN_CENTER)
             # シナリオ・宿画像
             bmp, bmp_noscale, bmp2, sceheader, imgpaths = get_image(header)
             ix = (bmpw-cw.wins(74))//2
@@ -2362,7 +2362,7 @@ class PartySelect(MultiViewSelect):
                 s = cw.cwpy.ydata.name
 
             maxwidth = bmpw - cw.wins(5)*2
-            cw.util.draw_adjusted(dc, s, cw.wins(5), cw.wins(225), maxwidth=maxwidth, centering=True)
+            cw.util.draw_adjusted(dc, s, cw.wins(5), cw.wins(225), maxwidth=maxwidth, align=wx.ALIGN_CENTER)
             # ページ番号
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
             s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
@@ -2423,12 +2423,12 @@ class PartySelect(MultiViewSelect):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = header.name
                 maxwidth = rw - cw.wins(3) * 2
-                cw.util.draw_witharound(dc, s, x + cw.wins(3), y + cw.wins(105), maxwidth=rw, centering=True)
+                cw.util.draw_witharound(dc, s, x + cw.wins(3), y + cw.wins(105), maxwidth=rw, align=wx.ALIGN_CENTER)
 
                 # シナリオ・宿名
                 if sceheader:
                     s = sceheader.name
-                    cw.util.draw_witharound(dc, s, x + cw.wins(3), y + cw.wins(120), maxwidth=rw, centering=True)
+                    cw.util.draw_witharound(dc, s, x + cw.wins(3), y + cw.wins(120), maxwidth=rw, align=wx.ALIGN_CENTER)
 
                 # 選択マーク
                 if sindex + i == self.index:
@@ -3260,7 +3260,8 @@ class PlayerSelect(MultiViewSelect):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(22)))
                 s = header.name
                 maxwidth = cw.wins(140) - cw.wins(5)*2
-                cw.util.draw_adjusted(dc, s, xpos + cw.wins(45), cw.wins(67), maxwidth=maxwidth, centering=True)
+                cw.util.draw_adjusted(dc, s, xpos + cw.wins(45), cw.wins(67), maxwidth=maxwidth,
+                                      align=wx.ALIGN_CENTER)
                 # Image
                 dc.SetClippingRegion(cw.wins(73)+xpos, cw.wins(90), cw.wins(74), cw.wins(94))
                 attr = cw.header.GetRootAttribute(header.fpath).attrs.get("scaledimage", "False")
@@ -3377,7 +3378,8 @@ class PlayerSelect(MultiViewSelect):
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                     s = header.name
                     maxwidth = rw - cw.wins(3)*2
-                    cw.util.draw_witharound(dc, s, x+cw.wins(3), y + cw.wins(105), maxwidth=maxwidth, centering=True)
+                    cw.util.draw_witharound(dc, s, x+cw.wins(3), y + cw.wins(105), maxwidth=maxwidth,
+                                            align=wx.ALIGN_CENTER)
                     # Level
                     space = cw.wins(5)
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
