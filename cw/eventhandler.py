@@ -235,7 +235,7 @@ class EventHandler(object):
     def is_processing(self):
         return cw.cwpy.is_processing and not cw.cwpy.is_decompressing
 
-    def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
+    def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False, hidetouchmenu=True):
         """
         方向キーイベント。カードのフォーカスを変更する。
         """
@@ -246,7 +246,8 @@ class EventHandler(object):
             return
 
         cw.cwpy.has_inputevent = True
-        cw.cwpy.statusbar.hide_touchbuttons()
+        if hidetouchmenu:
+            cw.cwpy.statusbar.hide_touchbuttons()
 
         if sidechange and cw.cwpy.is_pcardsselectable and cw.cwpy.is_mcardsselectable:
             if x < 0 and cw.cwpy.index == 0:
@@ -1108,12 +1109,14 @@ class EventHandlerForMessageWindow(EventHandler):
             if isinstance(sbar, cw.sprite.message.SelectionBar):
                 sbar.lclick_event(skip=True)
 
-    def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
+    def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False, hidetouchmenu=True):
         """
         方向キーイベント。選択肢バーをフォーカスする。
         """
         if not self.can_input():
             return
+        if hidetouchmenu:
+            cw.cwpy.statusbar.hide_touchbuttons()
         if not self.mwin.is_drawing:
             cw.cwpy.has_inputevent = True
 
@@ -1540,13 +1543,15 @@ class EventHandlerForBacklog(EventHandler):
         if not cw.cwpy.setting.is_logscrollable():
             self._wheel_event(y=1, key=True)
 
-    def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
+    def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False, hidetouchmenu=True):
         """
         方向キーイベント。
         バックログを進めたり戻したりする。
         """
         if not self.can_input():
             return
+        if hidetouchmenu:
+            cw.cwpy.statusbar.hide_touchbuttons()
         # 縦方向の操作を優先
         if 0 < y:
             # バックログを進める

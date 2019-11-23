@@ -264,7 +264,7 @@ class SwitchSpriteTile(_PointableTile):
                 eventhandler = cw.cwpy.interrupt_eventhandler
             else:
                 eventhandler = cw.cwpy.eventhandler
-            eventhandler.dirkey_event(x=self.move_count, sidechange=True)
+            eventhandler.dirkey_event(x=self.move_count, sidechange=True, hidetouchmenu=False)
             self.is_pointed = False
             self.update_selection()
             cw.cwpy.statusbar.update_tiles()
