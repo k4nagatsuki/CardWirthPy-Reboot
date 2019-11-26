@@ -1221,10 +1221,12 @@ class ScenarioSelect(select.Select):
                 else:
                     parent2 = cw.util.join_paths(parent, fname)
                 if os.path.exists(parent2):
-                    if not isinstance(nowdir, FindResult) and not isinstance(parent, FindResult):
+                    if not isinstance(parent, FindResult):
+                        self.dirstack.append((parent, fname))
                         parent = cw.util.get_linktarget(parent2)
                         nowdir = parent
-                    self.dirstack.append((nowdir, fname))
+                    else:
+                        self.dirstack.append((nowdir, fname))
                     if self.tree.IsShown():
                         paritem = treeitem
                         item, cookie = self.tree.GetFirstChild(paritem)
