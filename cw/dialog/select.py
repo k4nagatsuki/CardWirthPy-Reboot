@@ -1081,12 +1081,14 @@ class YadoSelect(MultiViewSelect):
                         newpath = cw.binary.util.check_filename(name)
                         newpath = cw.util.join_paths(os.path.dirname(path), newpath)
                         newpath = cw.binary.util.check_duplicate(newpath)
+                        self.TopLevelParent.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
                         shutil.copytree(path, newpath)
                         env = cw.util.join_paths(newpath, "Environment.xml")
                         data.write(env)
                         cw.cwpy.play_sound("harvest")
                         cw.cwpy.setting.insert_yadoorder(os.path.basename(newpath))
                         self.update_list(newpath)
+                        self.TopLevelParent.SetCursor(wx.NullCursor)
                     else:
                         cw.cwpy.play_sound("error")
                 finally:
@@ -1162,7 +1164,10 @@ class YadoSelect(MultiViewSelect):
                     cw.cwpy.frame.move_dlg(dlg)
 
                     if dlg.ShowModal() == wx.ID_OK:
-                        if self.isshortcuts[self.index]:
+                        isshortcut = self.isshortcuts[self.index]
+                        if not isshortcut:
+                            self.TopLevelParent.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
+                        if isshortcut:
                             cw.util.remove(self.isshortcuts[self.index])
                         else:
                             cw.util.remove(path, trashbox=True)
@@ -1176,6 +1181,8 @@ class YadoSelect(MultiViewSelect):
                             self.update_list(self.list[self.index-1])
                         else:
                             self.update_list()
+                        if not isshortcut:
+                            self.TopLevelParent.SetCursor(wx.NullCursor)
 
                     dlg.Destroy()
                 else:

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shutil
 import sys
 import itertools
 import wx
@@ -883,8 +884,9 @@ class SkinPanel(wx.Panel):
 
         if self.editbuttons:
             self.btn_convertskin = wx.Button(self, -1, "自動生成...")
-            self.btn_editskin = wx.Button(self, -1, "編集...")
-            self.btn_deleteskin = wx.Button(self, -1, "削除")
+            self.btn_editskin = wx.Button(self, -1, "編集...", size=(cw.ppis(60), -1))
+            self.btn_copyskin = wx.Button(self, -1, "コピー", size=(cw.ppis(60), -1))
+            self.btn_deleteskin = wx.Button(self, -1, "削除", size=(cw.ppis(60), -1))
 
             self.cb_show_allskin = wx.CheckBox(self, -1, "異なる種別のスキンを表示する")
             s = "スキンはそれぞれ独自のシステムを持つ場合があるため、異なる種別のスキンに切り替えると、キャラクターの情報がおかしくなったり、シナリオが正常に動かなくなるなどの問題が発生する可能性があります。"
@@ -910,6 +912,7 @@ class SkinPanel(wx.Panel):
             self.btn_installskin.Bind(wx.EVT_BUTTON, self.OnInstallSkin)
             self.btn_convertskin.Bind(wx.EVT_BUTTON, self.OnConvertSkin)
             self.btn_editskin.Bind(wx.EVT_BUTTON, self.OnEditSkin)
+            self.btn_copyskin.Bind(wx.EVT_BUTTON, self.OnCopySkin)
             self.btn_deleteskin.Bind(wx.EVT_BUTTON, self.OnDeleteSkin)
             self.cb_show_allskin.Bind(wx.EVT_CHECKBOX, self.OnShowAllSkin)
 
@@ -1076,22 +1079,40 @@ class SkinPanel(wx.Panel):
         self.GetTopLevelParent().panel.pane_font.sc_example.SetValue(pixelsize)
         self.GetTopLevelParent().panel.pane_font.update_example()
 
+    def OnCopySkin(self, event):
+        index = self.ch_skin.GetSelection()
+        skin = self.skindirs[index]
+        name = self.skins[index]
+        s = "スキン「%s(%s)」をコピーしますか？" % (name, skin)
+        if wx.MessageBox(s, "メッセージ", wx.OK | wx.CANCEL | wx.ICON_QUESTION, self) == wx.OK:
+            src = cw.util.join_paths("Data/Skin", skin)
+            dst = cw.util.dupcheck_plus(src, yado=False)
+            self.TopLevelParent.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
+            shutil.copytree(src, dst)
+            fpath = cw.util.join_paths(dst, "Skin.xml")
+            data = cw.data.xml2etree(fpath)
+            data.edit("Property/Name", name + " - コピー")
+            data.write()
+            self.update_skins(os.path.basename(dst))
+            self.TopLevelParent.SetCursor(wx.NullCursor)
+            cw.cwpy.play_sound("harvest")
+
     def OnDeleteSkin(self, event):
-        skin = self.skindirs[self.ch_skin.GetSelection()]
+        index = self.ch_skin.GetSelection()
+        skin = self.skindirs[index]
+        name = self.skins[index]
         if cw.cwpy.setting.skindirname == skin:
             return
-        s = "スキンを削除すると元に戻すことはできません。\n%sを削除しますか？" % (skin)
-        dlg = cw.dialog.message.YesNoMessage(self.TopLevelParent, cw.cwpy.msgs["message"], s)
-        cw.cwpy.frame.move_dlg(dlg)
-        cw.cwpy.play_sound("signal")
-        if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.play_sound("dump")
+        s = "スキンを削除すると元に戻すことはできません。\n「%s(%s)」を削除しますか？" % (name, skin)
+        if wx.MessageBox(s, "メッセージ", wx.OK | wx.CANCEL | wx.ICON_QUESTION, self) == wx.OK:
             dpath = cw.util.join_paths("Data/Skin", skin)
+            self.TopLevelParent.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
             cw.util.remove(dpath)
             self.update_skins(cw.cwpy.setting.skindirname)
+            self.TopLevelParent.SetCursor(wx.NullCursor)
             if self.pane_scenario:
                 self.pane_scenario.celleditor = None
-        dlg.Destroy()
+            cw.cwpy.play_sound("dump")
 
     def OnShowAllSkin(self, event):
         skin = self.skindirs[self.ch_skin.GetSelection()]
@@ -1102,8 +1123,9 @@ class SkinPanel(wx.Panel):
 
         if self.editbuttons:
             bsizer_skinbtn = wx.BoxSizer(wx.HORIZONTAL)
-            bsizer_skinbtn.Add(self.btn_convertskin, 0, wx.RIGHT, cw.ppis(3))
+            bsizer_skinbtn.Add(self.btn_convertskin, 1, wx.RIGHT, cw.ppis(3))
             bsizer_skinbtn.Add(self.btn_editskin, 0, wx.RIGHT, cw.ppis(3))
+            bsizer_skinbtn.Add(self.btn_copyskin, 0, wx.RIGHT, cw.ppis(3))
             bsizer_skinbtn.Add(self.btn_deleteskin, 0, 0, cw.ppis(3))
 
             sizer_h = wx.BoxSizer(wx.HORIZONTAL)
