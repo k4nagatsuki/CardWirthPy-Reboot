@@ -495,6 +495,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.cardgrp.remove(sprite)
                     self.mcards.remove(sprite)
                     self.mcards_expandspchars.discard(sprite)
+                    self.file_updates.discard(sprite)
             if self.is_playingscenario():
                 self.sdata.change_data(self.areaid, data=self.sdata.data)
             else:
@@ -3404,6 +3405,7 @@ class CWPy(_Singleton, threading.Thread):
                 fcards.append(fcard)
                 self.mcards.remove(fcard)
                 self.mcards_expandspchars.discard(fcard)
+                self.file_updates.discard(fcard)
         self.cardgrp.remove(fcards)
         self.list = self.get_mcards("visible")
         self.index = -1

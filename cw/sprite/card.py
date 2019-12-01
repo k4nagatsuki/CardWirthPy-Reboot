@@ -1076,6 +1076,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.mcards.remove(self)
             cw.cwpy.mcards_expandspchars.discard(self)
+            cw.cwpy.file_updates.discard(self)
             return False
         self.data = cw.data.xml2etree(element=e)
         self.fpath = self.data.fpath
