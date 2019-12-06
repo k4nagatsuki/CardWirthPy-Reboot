@@ -341,7 +341,7 @@ def get_dpaths(dpath):
     except Exception:
         cw.util.print_ex()
 
-    cw.util.sort_by_attr(seq)
+    cw.util.sort_by_filename(seq)
     return seq
 
 

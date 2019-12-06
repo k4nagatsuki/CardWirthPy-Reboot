@@ -1304,6 +1304,22 @@ assert sort_by_attr(["a12b", "a1234b", "a1b", "a9b", "a01234b", "a1234b", "a-."]
                                                                                       "a-."]
 assert sort_by_attr([(1, "a"), None, (0, "b"), (0, "c")]) == [None, (0, "b"), (0, "c"), (1, "a")]
 
+if sys.platform == "win32":
+    _shlwapi = ctypes.windll.LoadLibrary("shlwapi.dll")
+    if _shlwapi:
+        _shlwapi.StrCmpLogicalW.argtypes = [ctypes.wintypes.LPCWSTR, ctypes.wintypes.LPCWSTR]
+        _shlwapi.StrCmpLogicalW.restype = ctypes.wintypes.INT
+
+
+def sort_by_filename(seq):
+    if sys.platform == "win32" and _shlwapi:
+        def cmp(a, b):
+            return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
+        seq.sort(key=functools.cmp_to_key(cmp))
+    else:
+        seq = sort_by_attr(seq)
+    return seq
+
 
 def new_order(seq, mode=1):
     """order属性を持つアイテムのlistを
