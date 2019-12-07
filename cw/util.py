@@ -1170,7 +1170,7 @@ def remove_soundtempfile(basedir):
             remove(dpath)
 
 
-def _sorted_by_attr_impl(d, seq, *attr):
+def _sorted_by_attr_impl(d, seq, *attr, cmpfunc=None):
     if attr:
         get = operator.attrgetter(*attr)
     else:
@@ -1253,13 +1253,17 @@ def _sorted_by_attr_impl(d, seq, *attr):
     def logical_cmp(aobj, bobj):
         a = get(aobj)
         b = get(bobj)
-        return logical_cmp_impl(a, b)
+        if cmpfunc:
+            return cmpfunc(a, b)
+        else:
+            return logical_cmp_impl(a, b)
 
+    key = functools.cmp_to_key(logical_cmp)
     if d:
-        seq.sort(key=functools.cmp_to_key(logical_cmp))
+        seq.sort(key=key)
         return seq
     else:
-        return sorted(seq, key=functools.cmp_to_key(logical_cmp))
+        return sorted(seq, key=key)
 
 
 def cmp(a, b):
@@ -1311,13 +1315,13 @@ if sys.platform == "win32":
         _shlwapi.StrCmpLogicalW.restype = ctypes.wintypes.INT
 
 
-def sort_by_filename(seq, attr=lambda o: o):
+def sort_by_filename(seq, *attr):
     if sys.platform == "win32" and _shlwapi:
         def cmp(a, b):
-            return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(attr(a)), ctypes.wintypes.LPCWSTR(attr(b)))
-        seq.sort(key=functools.cmp_to_key(cmp))
+            return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
+        seq = _sorted_by_attr_impl(True, seq, *attr, cmpfunc=cmp)
     else:
-        seq = sort_by_attr(seq)
+        seq = _sorted_by_attr_impl(True, seq, *attr)
     return seq
 
 

@@ -2989,7 +2989,7 @@ class ScenarioSelect(select.Select):
             cw.util.sort_by_attr(seq, "author", "levelmin", "levelmax", "name", "fname", "mtime_reversed")
         elif sort == 3:
             # ファイル名
-            cw.util.sort_by_filename(seq, lambda header: header.fname)
+            cw.util.sort_by_filename(seq, "fname")
         elif sort == 4:
             # 更新日時
             cw.util.sort_by_attr(seq, "mtime_reversed", "levelmin", "levelmax", "name", "author", "fname")
