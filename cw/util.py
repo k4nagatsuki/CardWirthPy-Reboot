@@ -1311,10 +1311,10 @@ if sys.platform == "win32":
         _shlwapi.StrCmpLogicalW.restype = ctypes.wintypes.INT
 
 
-def sort_by_filename(seq):
+def sort_by_filename(seq, attr=lambda o: o):
     if sys.platform == "win32" and _shlwapi:
         def cmp(a, b):
-            return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
+            return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(attr(a)), ctypes.wintypes.LPCWSTR(attr(b)))
         seq.sort(key=functools.cmp_to_key(cmp))
     else:
         seq = sort_by_attr(seq)
