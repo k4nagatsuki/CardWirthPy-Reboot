@@ -1230,6 +1230,12 @@ def _sorted_by_attr_impl(d, seq, *attr, cmpfunc=None):
     assert LogicalStr("a0b") < LogicalStr("a1b")
     assert LogicalStr("a0 b") < LogicalStr("a1b")
     assert LogicalStr("a2 b") > LogicalStr("a1b")
+    assert LogicalStr("a899999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
+        LogicalStr("a9b")
+    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
+        LogicalStr("a8b")
+    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999998b") <\
+        LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b")
 
     def logical_cmp_str(a, b):
         if not (isinstance(a, str) and isinstance(b, str)):
@@ -3569,11 +3575,11 @@ def format_title(fmt, d, use_lf=False):
     fmt, sl = eat_parts(fmt, False)
     assert not fmt
 
-    def do_format(l):
+    def do_format(secs):
         """フォーマットを実行する。"""
         seq = []
         use = False
-        for sec in l:
+        for sec in secs:
             if isinstance(sec, _FormatPart):
                 name = d.get(sec.name, "")
                 if name:
@@ -4805,7 +4811,7 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
 # スレッド関係
 # ------------------------------------------------------------------------------
 
-def synclock(l):
+def synclock(lock):
     """
     @synclock(_lock)
     def function():
@@ -4816,11 +4822,11 @@ def synclock(l):
 
     def synclock(f):
         def acquire(*args, **kw):
-            l.acquire()
+            lock.acquire()
             try:
                 return f(*args, **kw)
             finally:
-                l.release()
+                lock.release()
         return acquire
     return synclock
 
