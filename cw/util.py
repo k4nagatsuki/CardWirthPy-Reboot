@@ -1177,7 +1177,7 @@ def _sorted_by_attr_impl(d, seq, *attr, cmpfunc=None):
         def ret(a):
             return a
         get = ret
-    re_num = re.compile("( *[0-9]+ *)| +")
+    re_num = re.compile("([0-9]+)")
     str_table = {}
 
     class LogicalStr(object):
@@ -1194,12 +1194,18 @@ def _sorted_by_attr_impl(d, seq, *attr, cmpfunc=None):
                     break
                 si = m.start()
                 ei = m.end()
-                self.seq.append(s[pos:si].lower())
+                # 末尾に'0'をつける事で0より小さな文字コードの文字が前に来るようにする
+                # 以下のケースでは、'0'をつけなければ"cw 1"が先頭に来てしまう
+                #  cw 1 -> ['cw ', (1, '1')]
+                #  cw ! -> ['cw !']
+                #  cw a -> ['cw a']
+                # '0'をつける事で以下のようにASCII順で並ぶ
+                #  cw ! -> ['cw !']
+                #  cw 1 -> ['cw 0', (1, '1')]
+                #  cw a -> ['cw a']
+                self.seq.append(s[pos:si].lower() + '0')
                 ss = s[si:ei]
-                if ss.isspace():
-                    self.seq.append((0, ss))
-                else:
-                    self.seq.append((int(ss), ss))
+                self.seq.append((int(ss), ss))
                 pos = ei
 
         def __lt__(self, other):
@@ -1215,6 +1221,15 @@ def _sorted_by_attr_impl(d, seq, *attr, cmpfunc=None):
     assert LogicalStr("a1234b") > LogicalStr("a12b")
     assert LogicalStr("a12b") < LogicalStr("a1234b")
     assert LogicalStr("a12b") != LogicalStr("a1234b")
+    assert LogicalStr("a12b") < LogicalStr("ab")
+    assert LogicalStr("cw 1") < LogicalStr("cw a")
+    assert LogicalStr("cw 1") > LogicalStr("cw !")
+    assert LogicalStr("cw 1") > LogicalStr("cw ")
+    assert LogicalStr("cw 1") > LogicalStr("cw  ")
+    assert LogicalStr("cw 1") < LogicalStr("cw 2")
+    assert LogicalStr("a0b") < LogicalStr("a1b")
+    assert LogicalStr("a0 b") < LogicalStr("a1b")
+    assert LogicalStr("a2 b") > LogicalStr("a1b")
 
     def logical_cmp_str(a, b):
         if not (isinstance(a, str) and isinstance(b, str)):
@@ -1303,9 +1318,8 @@ def sort_by_attr(seq, *attr):
 
 
 assert sort_by_attr(["a1234b", "a12b", "a1234b"]) == ["a12b", "a1234b", "a1234b"]
-assert sort_by_attr(["a12b", "a1234b", "a1b", "a9b", "a01234b", "a1234b", "a-."]) == ["a1b", "a9b", "a12b",
-                                                                                      "a01234b", "a1234b", "a1234b",
-                                                                                      "a-."]
+assert sort_by_attr(["a12b", "a1234b", "a1b", "a9b", "a01234b", "a1234b", "a-."]) == ["a-.", "a1b", "a9b", "a12b",
+                                                                                      "a01234b", "a1234b", "a1234b"]
 assert sort_by_attr([(1, "a"), None, (0, "b"), (0, "c")]) == [None, (0, "b"), (0, "c"), (1, "a")]
 
 if sys.platform == "win32":
