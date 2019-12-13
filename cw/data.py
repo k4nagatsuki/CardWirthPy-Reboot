@@ -2351,8 +2351,13 @@ class Variant(object):
     def value_to_str(value):
         if isinstance(value, bool):
             return str(value).upper()
+        elif isinstance(value, decimal.Decimal):
+            s = ("%.8f" % value).rstrip("0").rstrip(".")
+            if s == "":
+                s = "0"
+            return s
         else:
-            return str(value)
+            return value
 
     def string_value(self):
         return Variant.value_to_str(self.value)

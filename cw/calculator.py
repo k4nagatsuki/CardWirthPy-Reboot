@@ -268,7 +268,10 @@ class DecimalValue(object):
         self.pos = pos
 
     def to_str(self):
-        return str(self.value)
+        s = ("%.8f" % self.value).rstrip("0").rstrip(".")
+        if s == "":
+            s = "0"
+        return s
 
     def __repr__(self):
         return "Decimal(%s)" % self.value
