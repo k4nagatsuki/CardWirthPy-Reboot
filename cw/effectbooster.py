@@ -284,8 +284,8 @@ class _JpySubImage(cw.image.Image):
                         if not nowait and doanime.countup() and waittime != 0:
                             cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
 
-            if not nowait:
-                self.wait(doanime, anime=anime, waittime=waittime)
+        if not nowait:
+            self.wait(doanime, anime=anime, waittime=waittime)
 
     def clip_tempimg(self, image, pos):
         if self.animeclip:
