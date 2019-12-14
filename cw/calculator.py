@@ -236,10 +236,10 @@ class Operator(object):
             if o == "<>":
                 r = not r
             return BooleanValue(r, self.line, self.pos)
-        elif o == "and":
+        elif o.lower() == "and":
             chk_bool()
             return BooleanValue(lhs.value and rhs.value, self.line, self.pos)
-        elif o == "or":
+        elif o.lower() == "or":
             chk_bool()
             return BooleanValue(lhs.value or rhs.value, self.line, self.pos)
         else:
