@@ -117,6 +117,7 @@ def build_exe():
         "build_exe": dist_dir,
         "optimize": 2,
         "include_files": include_files,
+        # "include_msvcr": True,
         "includes": ["configparser"]
     }
 
@@ -186,7 +187,7 @@ def build_exe():
     #      CardWirthPy.exeと同じフォルダに必要
     mvfiles = (
         # ("sqlite3.dll", "lib/sqlite3.dll"),
-        # ("lib/VCRUNTIME140.dll", "VCRUNTIME140.dll"),
+        ("lib/wx/VCRUNTIME140.dll", "VCRUNTIME140.dll"),
     )
     for src, dst in mvfiles:
         print("Moving %s to %s" % (src, dst))
@@ -198,7 +199,8 @@ def build_exe():
 
     # BUG: lib以下に不要なpython37.dll等が生成される
     rmfiles = (
-        "lib/VCRUNTIME140.dll",
+        # "MSVCRT.dll",
+        # "lib/VCRUNTIME140.dll",
         "lib/python37.dll",
         "lib/_ssl.pyd",
         "lib/cw/python37.dll",
@@ -255,16 +257,16 @@ def build_exe():
         "lib/wx/locale/vi",
         "lib/wx/locale/zh_CN",
         "lib/wx/locale/zh_TW",
-        "lib/wx/VCRUNTIME140.dll",
+        # "lib/wx/VCRUNTIME140.dll",
         "lib/pygame/docs",
         "lib/pygame/tests",
         "lib/pygame/examples",
         "lib/pygame/python37.dll",
-        "lib/pygame/VCRUNTIME140.dll",
+        # "lib/pygame/VCRUNTIME140.dll",
         "lib/win32com/shell/python37.dll",
         "lib/win32com/shell/pythoncom37.dll",
         "lib/win32com/shell/pywintypes37.dll",
-        "lib/win32com/shell/VCRUNTIME140.dll",
+        # "lib/win32com/shell/VCRUNTIME140.dll",
         "lib/pydoc_data",
     )
     for fname in rmfiles:
