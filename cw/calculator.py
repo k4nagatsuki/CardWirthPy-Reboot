@@ -159,7 +159,7 @@ class UnaryOperator(object):
             if not isinstance(rhs, DecimalValue):
                 raise SemanticsException("value [%s] is not number." % rhs.value, rhs.line, rhs.pos)
             return DecimalValue(-rhs.value, self.line, self.pos)
-        elif o == "not":
+        elif o.lower() == "not":
             if not isinstance(rhs, BooleanValue):
                 raise SemanticsException("value [%s] is not boolean." % rhs.value, rhs.line, rhs.pos)
             return BooleanValue(not rhs.value, self.line, self.pos)
@@ -1079,6 +1079,9 @@ assert calculate(parse("not not (false or false)")).value is False
 assert calculate(parse("not not not true")).value is False
 assert calculate(parse("not 1 = 2")).value is True
 assert calculate(parse("not 1 + 2 = 3")).value is False
+assert calculate(parse("nOT False And tRUe oR FALSE aND faLse")).value is True
+assert calculate(parse("NOT 1 + 2 = 3")).value is False
+assert calculate(parse("nOt 1 + 2 = 3")).value is False
 assert calculate(parse("(not true) ~ \"&\" ~ (not true)")).value == "FALSE&FALSE"
 assert calculate(parse("(5+8) % 3")).value == 1
 assert calculate(parse("5 + 8%3")).value == 7
@@ -1118,13 +1121,17 @@ assert calculate(parse("FIND(\"字\", \"A象B文C字D列\")")).value == 6
 assert calculate(parse("FIND(\"字\", \"A象B文C字D列\", 6)")).value == 6
 assert calculate(parse("FIND(\"字\", \"A象B文C字D列\", 7)")).value == 0
 assert calculate(parse("FIND(\"\", \"\")")).value == 0
+assert calculate(parse("find(\"列\", \"対象文字列\", 5)")).value == 5
+assert calculate(parse("fIND(\"列\", \"対象文字列\", 5)")).value == 5
 assert calculate(parse("LEFT(\"あいうえお\", 0)")).value == ""
 assert calculate(parse("LEFT(\"あいうえお\", 3)")).value == "あいう"
 assert calculate(parse("LEFT(\"あいうえお\", 8)")).value == "あいうえお"
 assert calculate(parse("LEFT(\"あいうえお\", 8)")).value == "あいうえお"
+assert calculate(parse("Left(\"あいうえお\", 8)")).value == "あいうえお"
 assert calculate(parse("RIGHT(\"あいうえお\", 0)")).value == ""
 assert calculate(parse("RIGHT(\"あいうえお\", 3)")).value == "うえお"
 assert calculate(parse("RIGHT(\"あいうえお\", 8)")).value == "あいうえお"
+assert calculate(parse("right(\"あいうえお\", 8)")).value == "あいうえお"
 assert calculate(parse("MID(\"あいうえお\", 2, 3)")).value == "いうえ"
 assert calculate(parse("MID(\"あいうえお\", 5, 3)")).value == "お"
 assert calculate(parse("MID(\"あいうえお\", 6, 3)")).value == ""
@@ -1132,18 +1139,23 @@ assert calculate(parse("MID(\"あいうえお\", 3)")).value == "うえお"
 assert calculate(parse("MID(\"あいうえお\", 5)")).value == "お"
 assert calculate(parse("MID(\"あいうえお\", 6)")).value == ""
 assert calculate(parse("MID(\"あいうえお\", 7)")).value == ""
+assert calculate(parse("mId(\"あいうえお\", 7)")).value == ""
 assert calculate(parse("STR(\"あいうえお\")")).value == "あいうえお"
 assert calculate(parse("STR(42)")).value == "42"
 assert calculate(parse("STR(42.42 + 5)")).value == "47.42"
+assert calculate(parse("sTR(42.42 + 5)")).value == "47.42"
 assert calculate(parse("VALUE(42.42 + 5)")).value == decimal.Decimal("47.42")
 assert calculate(parse("VALUE(42)")).value == 42
 assert calculate(parse("VALUE(\"42\")")).value == 42
 assert calculate(parse("VALUE(\"42.123\")")).value == decimal.Decimal("42.123")
+assert calculate(parse("VAluE(\"42.123\")")).value == decimal.Decimal("42.123")
 assert calculate(parse("INT(\"42.123\")")).value == 42
 assert calculate(parse("INT(\"42.9\")")).value == 42
 assert calculate(parse("INT(\" -42.9  \")")).value == -42
+assert calculate(parse("int(\" -42.9  \")")).value == -42
 assert calculate(parse("IF(1=2,99,88)")).value == 88
 assert calculate(parse("IF(2=2,99,88)")).value == 99
+assert calculate(parse("If(2=2,99,88)")).value == 99
 try:
     assert calculate(parse("5 / (2-1-1)"))
     assert False
