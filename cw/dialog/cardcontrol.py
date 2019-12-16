@@ -50,7 +50,7 @@ class CardControl(wx.Dialog):
             s = cw.cwpy.msgs["entry_cancel"]
         else:
             s = cw.cwpy.msgs["close"]
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((90, 24)), s)
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((90, 24)), s)
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=True)
@@ -926,7 +926,8 @@ class CardControl(wx.Dialog):
             self.combo.SetSelection(count - 1)
         else:
             self.combo.SetSelection(index - 1)
-        self.draw_cards()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.combo.GetId())
+        self.combo.ProcessEvent(btnevent)
 
     def OnClickRightBtn2(self, event):
         self._cancel_animation = True
@@ -936,7 +937,8 @@ class CardControl(wx.Dialog):
             self.combo.SetSelection(0)
         else:
             self.combo.SetSelection(index + 1)
-        self.draw_cards()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.combo.GetId())
+        self.combo.ProcessEvent(btnevent)
 
     def OnPaint2(self, event):
         if not self._redraw:
@@ -2038,6 +2040,8 @@ class CardHolder(CardControl):
                 if i != -1:
                     if self.combo.GetSelection() == i:
                         self.combo.Select(0)
+                        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, combo.GetId())
+                        self.combo.ProcessEvent(btnevent)
                         cw.cwpy.setting.last_sendto = self.combo.GetSelection()
                         self.toppanel.SetFocusIgnoringChildren()
                         self.draw_cards()
