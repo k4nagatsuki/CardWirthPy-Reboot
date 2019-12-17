@@ -134,6 +134,8 @@ class Character(object):
         self.actionorder = 0
         # ラウンド処理中で行動開始前ならTrue
         self.actionend = True
+        # バトル参加の有無
+        self.is_entered_battle = True
 
         self.reversed = False
 
@@ -2633,6 +2635,12 @@ class Character(object):
         """
         if isinstance(self, cw.character.Friend):
             # 1.50までは同行NPCに対象消去は効かない
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
+            if cw.cwpy.is_battlestatus() and self in cw.cwpy.battle.members:
+                cw.cwpy.battle.members.remove(self)
+                self.clear_action()
+            self.is_entered_battle = False
             return
         if not self.is_vanished():
             if cw.cwpy.ydata:

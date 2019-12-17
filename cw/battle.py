@@ -430,9 +430,9 @@ class BattleEngine(object):
         """戦闘参加メンバを設定する。
         行動可能でないものは除外。
         """
-        members = cw.cwpy.get_pcards("unreversed")
-        members.extend(cw.cwpy.get_ecards("unreversed"))
-        members.extend(cw.cwpy.get_fcards())
+        members = list(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_pcards("unreversed")))
+        members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_ecards("unreversed")))
+        members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_fcards()))
         self.members = members
 
     def set_actionorder(self):
