@@ -1094,6 +1094,8 @@ class ScenarioSelect(select.Select):
         seq = []
         if nowdir == self.scedir and self.find_result:
             seq.append(self.find_result)
+        if update:
+            self.db.update(nowdir, cw.cwpy.setting.skintype)
         seq.extend(self.db.search_dpath(nowdir, skintype=cw.cwpy.setting.skintype))
         seq.extend(scenarioinstall.get_dpaths(nowdir))
         return seq
@@ -1234,9 +1236,9 @@ class ScenarioSelect(select.Select):
                             data = self.tree.GetItemData(item)
                             assert data is not None
                             index, header = data
-                            if (not isinstance(header, cw.header.ScenarioHeader) and\
-                                not isinstance(header, FindResult) and\
-                                    os.path.normcase(os.path.basename(header)) ==\
+                            if (not isinstance(header, cw.header.ScenarioHeader) and
+                                not isinstance(header, FindResult) and
+                                    os.path.normcase(os.path.basename(header)) ==
                                     os.path.normcase(fname)) or\
                                     (isinstance(header, FindResult) and fname == "/find_result"):
                                 treeitem = item
@@ -1454,7 +1456,6 @@ class ScenarioSelect(select.Select):
                 if os.path.isdir(dst):
                     self.db.rename_dir(fpath, dst)
                 self.db.update(self.nowdir, cw.cwpy.setting.skintype)
-                self.db.update(dstdir, cw.cwpy.setting.skintype)
 
                 if self.tree.IsShown():
                     self._remove_treeitem(self.tree.GetSelection())
@@ -1782,8 +1783,7 @@ class ScenarioSelect(select.Select):
                 else:
                     self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
                     self.nowdir = cw.util.get_linktarget(self.list[self.index])
-                self.list = self._get_nowlist(update=True)
-                self.scetable[self._get_linktarget(self.nowdir)] = self.list
+                self.list = self._get_nowlist(update=False)
                 self.list = self._narrow_scenario(self.list)
                 self.index = 0
                 self.enable_btn()
@@ -1798,8 +1798,7 @@ class ScenarioSelect(select.Select):
     def BackPaper(self):
         cw.cwpy.play_sound("equipment")
         self.nowdir, selname = self.dirstack.pop()
-        self.list = self._get_nowlist(update=True)
-        self.scetable[self._get_linktarget(self.nowdir)] = self.list
+        self.list = self._get_nowlist(update=False)
         self.list = self._narrow_scenario(self.list)
         self.index = 0
         if not selname.startswith("/"):
@@ -2375,8 +2374,8 @@ class ScenarioSelect(select.Select):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
             s = header.desc
             y = cw.wins(180)
-            for l in s.splitlines():
-                dc.DrawText(l, cw.wins(65), y+yp)
+            for line in s.splitlines():
+                dc.DrawText(line, cw.wins(65), y+yp)
                 y += cw.wins(15)
             # 対象レベル
             dc.SetTextForeground(wx.Colour(0, 128, 128, 255))
