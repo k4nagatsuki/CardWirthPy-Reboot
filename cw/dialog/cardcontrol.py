@@ -769,7 +769,7 @@ class CardControl(wx.Dialog):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
             self.ProcessEvent(btnevent)
 
-    def _update_sortattr(self):
+    def _update_sortattr(self, draw=True):
         pass
 
     def _replace_position(self, header1, header2):
@@ -2150,7 +2150,7 @@ class CardHolder(CardControl):
         self.editstar.SetBitmapLabel(bmp)
         self.editstar.SetBitmapSelected(bmp)
 
-    def _update_sortattr(self):
+    def _update_sortattr(self, draw=True):
         if self.callname in ("BACKPACK", "CARDPOCKETB"):
             assert cw.cwpy.ydata.party is not None
             cw.cwpy.ydata.party.sort_backpack(test_aptitude=self._get_test_aptitude())
@@ -2158,12 +2158,18 @@ class CardHolder(CardControl):
                 self._set_backpacklist()
             else:
                 self.list = self._narrow(cw.cwpy.ydata.party.backpack)
-            self.draw_cards()
+            if draw:
+                self.draw_cards()
+            return True
         elif self.callname == "STOREHOUSE":
             assert cw.cwpy.ydata is not None
             cw.cwpy.ydata.sort_storehouse(test_aptitude=self._get_test_aptitude())
             self.list = self._narrow(cw.cwpy.ydata.storehouse)
-            self.draw_cards()
+            if draw:
+                self.draw_cards()
+            return True
+        else:
+            return False
 
     def OnShowSkill(self, event):
         self._on_show(cw.POCKET_SKILL)
@@ -2872,7 +2878,8 @@ class CardHolder(CardControl):
         return seq
 
     def update_narrowcondition(self):
-        self.list = self._narrow(self._fulllist)
+        if not self._update_sortattr(draw=False):
+            self.list = self._narrow(self._fulllist)
         self._update_page()
         self.draw_cards()
 
@@ -3170,10 +3177,10 @@ class ReplCardHolder(CardControl):
                 cw.cwpy.trade(targettype="BACKPACK", header=target, from_event=False, sound=False,
                               sort=False, call_predlg=False)
             else:
-                fromindex = -1
-            cw.cwpy.trade(targettype=fromtype, target=owner, header=header, toindex=fromindex,
-                          from_event=False, sound=False,
-                          sort=True, call_predlg=False)
+                fromindex = index
+            insertorder = target.order
+            cw.cwpy.trade(targettype=fromtype, target=owner, header=header, toindex=fromindex, insertorder=insertorder,
+                          from_event=False, sound=False, sort=False, call_predlg=False)
             cw.cwpy.trade(targettype="PLAYERCARD", target=selection, header=target, toindex=index,
                           from_event=False, sound=False, sort=True, call_predlg=False)
             if call_predlg:

@@ -394,7 +394,7 @@ class CardHeader(object):
         Noneを指定する事でリセットする。
         """
         if test_aptitude:
-            self.vocation_for_sort = -self.get_vocation_val(owner=test_aptitude)
+            self.vocation_for_sort = -self.get_showed_vocation_level(owner=test_aptitude)
         else:
             self.vocation_for_sort = 0
 
