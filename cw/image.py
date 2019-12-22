@@ -455,8 +455,10 @@ class CardImage(Image):
                     pos = pos[0] + cw.s(10), pos[1]
                 uselimith = cw.s(font.get_height() - 2)
 
-        if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or
-                                              (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):
+        in_trade = not cw.cwpy.is_playingscenario() or cw.cwpy.areaid in cw.AREAS_TRADE or\
+            cw.cwpy.areaid == cw.AREA_CAMP
+        if cw.cwpy.setting.show_cardkind and ((not isinstance(owner, cw.character.Character) and in_trade) or
+                                              (cw.cwpy.selectedheader == header and in_trade)):
             # 種別アイコン(カード置場・荷物袋・移動中)
             if header.type == "SkillCard":
                 icon = cw.cwpy.rsrc.pygamedialogs["STATUS8"]
@@ -663,8 +665,10 @@ class CardImage(Image):
                     pos = pos[0] + cw.wins(10), pos[1]
                 uselimith = cw.wins(pixelsize - 2)
 
-        if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or
-                                              (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):
+        in_trade = not cw.cwpy.is_playingscenario() or cw.cwpy.areaid in cw.AREAS_TRADE or\
+            cw.cwpy.areaid == cw.AREA_CAMP
+        if cw.cwpy.setting.show_cardkind and ((not isinstance(owner, cw.character.Character) and in_trade) or
+                                              (cw.cwpy.selectedheader == header and in_trade)):
             # 種別アイコン(カード置場・荷物袋・移動中)
             if header.type == "SkillCard":
                 icon = cw.cwpy.rsrc.dialogs["STATUS8"]

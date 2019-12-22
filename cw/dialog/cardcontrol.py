@@ -1203,11 +1203,17 @@ class CardControl(wx.Dialog):
 
         if self.callname == "CARDPOCKET":
             if header.type == "SkillCard":
+                # 使用回数と適性丸
                 y -= cw.wins(32)
             else:
+                # 適性丸
                 y -= cw.wins(16)
 
-        if cw.cwpy.setting.show_cardkind and self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
+        if cw.cwpy.setting.show_cardkind and self.callname in ("STOREHOUSE", "BACKPACK"):
+            # 種類アイコン
+            y -= cw.wins(16)
+        if self.callname == "CARDPOCKETB":
+            # 適性丸
             y -= cw.wins(16)
 
         if self.callname in ("STOREHOUSE", "BACKPACK"):
