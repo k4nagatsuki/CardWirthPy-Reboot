@@ -536,7 +536,7 @@ def eval(st, is_differentscenario):
     return cw.data.Variant(None, None, calculate(st, is_differentscenario).value, "", "")
 
 
-def _chk_diffsc(is_differentscenario):
+def _chk_diffsc(is_differentscenario, line, pos):
     if is_differentscenario:
         raise DifferentScenarioException("Read a variable at different scenario.", line, pos)
 
@@ -745,7 +745,7 @@ def _func_var(args, is_differentscenario, line, pos):
     if event and path in event.variants:
         variant = event.variants[path]
     elif path in cw.cwpy.sdata.variants:
-        _chk_diffsc(is_differentscenario)
+        _chk_diffsc(is_differentscenario, line, pos)
         variant = cw.cwpy.sdata.variants[path]
     else:
         raise VariantNotFoundException("Variant \"%s\" is not found.", path, args[0].line, args[0].pos)
@@ -768,7 +768,7 @@ def _func_flagvalue(args, is_differentscenario, line, pos):
     if event and path in event.flags:
         flag = event.flags[path]
     elif path in cw.cwpy.sdata.flags:
-        _chk_diffsc(is_differentscenario)
+        _chk_diffsc(is_differentscenario, line, pos)
         flag = cw.cwpy.sdata.flags[path]
     else:
         raise FlagNotFoundException("Flag \"%s\" is not found.", path, args[0].line, args[0].pos)
@@ -786,7 +786,7 @@ def _func_flagtext(args, is_differentscenario, line, pos):
     if event and path in event.flags:
         flag = event.flags[path]
     elif path in cw.cwpy.sdata.flags:
-        _chk_diffsc(is_differentscenario)
+        _chk_diffsc(is_differentscenario, line, pos)
         flag = cw.cwpy.sdata.flags[path]
     else:
         raise FlagNotFoundException("Flag \"%s\" is not found.", path, args[0].line, args[0].pos)
@@ -815,7 +815,7 @@ def _func_stepvalue(args, is_differentscenario, line, pos):
     if event and path in event.steps:
         step = event.steps[path]
     elif path in cw.cwpy.sdata.steps:
-        _chk_diffsc(is_differentscenario)
+        _chk_diffsc(is_differentscenario, line, pos)
         step = cw.cwpy.sdata.steps[path]
     else:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)
@@ -833,7 +833,7 @@ def _func_steptext(args, is_differentscenario, line, pos):
     if event and path in event.steps:
         step = event.steps[path]
     elif path in cw.cwpy.sdata.steps:
-        _chk_diffsc(is_differentscenario)
+        _chk_diffsc(is_differentscenario, line, pos)
         step = cw.cwpy.sdata.steps[path]
     else:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)
@@ -865,7 +865,7 @@ def _func_stepmax(args, is_differentscenario, line, pos):
     if event and path in event.steps:
         step = event.steps[path]
     elif path in cw.cwpy.sdata.steps:
-        _chk_diffsc(is_differentscenario)
+        _chk_diffsc(is_differentscenario, line, pos)
         step = cw.cwpy.sdata.steps[path]
     else:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)

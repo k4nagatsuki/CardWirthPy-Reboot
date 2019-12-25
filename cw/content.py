@@ -185,6 +185,8 @@ class EventContentBase(object):
                 desc += "\n" + "フラグ『%s』はありません。" % (ex.path)
             elif isinstance(ex, cw.calculator.StepNotFoundException):
                 desc += "\n" + "ステップ『%s』はありません。" % (ex.path)
+            elif isinstance(ex, cw.calculator.DifferentScenarioException):
+                desc += "\n" + "シナリオ名と作者名が一致しないため、状態変数にアクセスできません。"
 
         cw.cwpy.play_sound("error")
 
