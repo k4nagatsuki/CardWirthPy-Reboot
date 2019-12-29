@@ -41,3 +41,4 @@ syntax: regexp
 ^dist/.*
 ^CardWirthPy.spec$
 ^dailybuild_tmp/.*
+\.bat$
