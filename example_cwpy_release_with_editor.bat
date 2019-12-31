@@ -115,6 +115,7 @@ if "%3"=="build" (
 	xcopy /e CardWirthPy ..\CardWirthPy_x86\
 	xcopy /e ..\cwxeditor_x86\* CardWirthPy\
 	%ARCHIVER% ..\CardWirthPy_%1_with_CWXEditor_%2_x86.zip CardWirthPy
+	rmdir /Q /S ..\CardWirthPy
 
 	%PYTHON_64% build_cx.py -chm=%CARDWIRTHPY_HELP%
 	xcopy /e %LOCAL_REPO_ENGINE%\Data\Skin\Classic CardWirthPy\Data\Skin\Classic\
@@ -129,6 +130,7 @@ if "%3"=="build" (
 	xcopy /e CardWirthPy ..\CardWirthPy_x64\
 	xcopy /e ..\cwxeditor_x64\* CardWirthPy\
 	%ARCHIVER% ..\CardWirthPy_%1_with_CWXEditor_%2_x64.zip CardWirthPy
+	rmdir /Q /S ..\CardWirthPy
 
 	pushd %DEST_DIR_ENGINE%
 
