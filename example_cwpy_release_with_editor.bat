@@ -112,8 +112,8 @@ if "%3"=="build" (
 	copy License.txt ..\CardWirthPy\
 	%ARCHIVER% ..\CardWirthPy_%1_x86.zip CardWirthPy
 	%ARCHIVER% ..\CardWirthPy_%OLDVERSION%_x86_to_%1_x86.zip ..\CardWirthPy
-	xcopy /e CardWirthPy ..\CardWirthPy_x86
-	xcopy /e ..\cwxeditor_x86\* CardWirthPy
+	xcopy /e CardWirthPy ..\CardWirthPy_x86\
+	xcopy /e ..\cwxeditor_x86\* CardWirthPy\
 	%ARCHIVER% ..\CardWirthPy_%1_with_CWXEditor_%2_x86.zip CardWirthPy
 
 	%PYTHON_64% build_cx.py -chm=%CARDWIRTHPY_HELP%
@@ -126,8 +126,8 @@ if "%3"=="build" (
 	copy License.txt ..\CardWirthPy\
 	%ARCHIVER% ..\CardWirthPy_%1_x64.zip CardWirthPy
 	%ARCHIVER% ..\CardWirthPy_%OLDVERSION%_x64_to_%1_x64.zip ..\CardWirthPy
-	xcopy /e CardWirthPy ..\CardWirthPy_x64
-	xcopy /e ..\cwxeditor_x64\* CardWirthPy
+	xcopy /e CardWirthPy ..\CardWirthPy_x64\
+	xcopy /e ..\cwxeditor_x64\* CardWirthPy\
 	%ARCHIVER% ..\CardWirthPy_%1_with_CWXEditor_%2_x64.zip CardWirthPy
 
 	pushd %DEST_DIR_ENGINE%
@@ -168,13 +168,13 @@ if "%3"=="build" (
 	rem 今回の生成結果をデイリービルドの差分作成元にする(32-bit)
 	pushd %DEST_DIR_ENGINE%
 	rmdir /S /Q %DIFF_BASE%\CardWirthPy_x86
-	xcopy /e /i CardWirthPy_x86 %DIFF_BASE%\CardWirthPy_x86
+	xcopy /e /i CardWirthPy_x86 %DIFF_BASE%\CardWirthPy_x86\
 	popd
 
 	rem 今回の生成結果をデイリービルドの差分作成元にする(64-bit)
 	pushd %DEST_DIR_ENGINE%
 	rmdir /S /Q %DIFF_BASE%\CardWirthPy_x64
-	xcopy /e /i CardWirthPy_x64 %DIFF_BASE%\CardWirthPy_x64
+	xcopy /e /i CardWirthPy_x64 %DIFF_BASE%\CardWirthPy_x64\
 	popd
 
 	pushd %DEST_DIR_ENGINE%
