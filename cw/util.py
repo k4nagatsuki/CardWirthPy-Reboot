@@ -2614,10 +2614,10 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
                 os.makedirs(dpath)
 
             if isinstance(info.date_time, datetime.datetime):
-                mtime = time.mktime(time.strptime(info.date_time.strftime("%Y/%m/%d %H:%M:%S"), "%Y/%m/%d %H:%M:%S"))
+                mtime = info.date_time.timestamp()
             else:
-                mtime = time.mktime(time.strptime("%d/%02d/%02d %02d:%02d:%02d" % (info.date_time),
-                                                  "%Y/%m/%d %H:%M:%S"))
+                mtime = datetime.datetime(info.date_time[0], info.date_time[1], info.date_time[2],
+                                          info.date_time[3], info.date_time[4], info.date_time[5]).timestamp()
 
             if overwrite:
                 # 上書き展開時は一部ファイルでエラーが出た場合に
