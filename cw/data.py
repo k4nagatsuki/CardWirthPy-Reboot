@@ -2389,7 +2389,7 @@ class YadoDeletedPathSet(set):
     def read_list(self):
         fpath = cw.util.join_paths(self.tempdir, "DeletedPaths.temp")
         if os.path.isfile(fpath):
-            with open(fpath, "r") as f:
+            with open(fpath, "r", encoding="utf-8") as f:
                 for s in f:
                     s = s.rstrip('\n')
                     if s:
