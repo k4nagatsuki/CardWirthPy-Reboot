@@ -292,7 +292,7 @@ lib/lhafile以下の全てのファイルとディレクトリ
  : License: 修正BSDライセンス
 
 VCRUNTIME140.dll
- : License: Microsoft Redistributable
+ : License: Distributable Code Files for Visual Studio 2015
 
 CardWirthPyのリポジトリには一般利用者向けIPAフォントが含まれています。
 
