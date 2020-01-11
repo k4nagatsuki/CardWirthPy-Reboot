@@ -6,6 +6,7 @@ import sys
 import struct
 import ctypes
 import threading
+import itertools
 from ctypes import c_int, c_uint8, c_uint16, c_uint32, c_uint64, c_float, c_void_p, c_char_p
 
 import cw
@@ -37,6 +38,12 @@ class BASS_CHANNELINFO(ctypes.Structure):
                 ("plugin", c_HPLUGIN),
                 ("sample", c_HSAMPLE),
                 ("filename", c_char_p)]
+
+
+class BASS_DEVICEINFO(ctypes.Structure):
+    _fields_ = [("name", c_char_p),
+                ("driver", c_char_p),
+                ("flags", c_DWORD)]
 
 
 BASS_DEVICE_DEFAULT = 0
@@ -258,6 +265,12 @@ def init_bass(soundfonts):
     _bass.BASS_Init.restype = c_BOOL
     _bass.BASS_Free.argtypes = []
     _bass.BASS_Free.restype = c_BOOL
+    _bass.BASS_GetDeviceInfo.argtypes = [c_DWORD, ctypes.POINTER(BASS_DEVICEINFO)]
+    _bass.BASS_GetDeviceInfo.restype = c_BOOL
+    _bass.BASS_SetDevice.argtypes = [c_DWORD]
+    _bass.BASS_SetDevice.restype = c_BOOL
+    _bass.BASS_GetDevice.argtypes = []
+    _bass.BASS_GetDevice.restype = c_DWORD
     _bass.BASS_Pause.argtypes = []
     _bass.BASS_Pause.restype = c_BOOL
     _bass.BASS_Start.argtypes = []
@@ -288,6 +301,8 @@ def init_bass(soundfonts):
     _bass.BASS_ChannelSetPosition.restype = c_BOOL
     _bass.BASS_ChannelSetSync.argtypes = [c_DWORD, c_DWORD, c_QWORD, SYNCPROC, c_void_p]
     _bass.BASS_ChannelSetSync.restype = c_HSYNC
+    _bass.BASS_ChannelSetDevice.argtypes = [c_DWORD, c_DWORD]
+    _bass.BASS_ChannelSetDevice.restype = c_BOOL
     _bassmidi.BASS_MIDI_FontInit.argtypes = [c_char_p, c_DWORD]
     _bassmidi.BASS_MIDI_FontInit.restype = c_HSOUNDFONT
     _bassmidi.BASS_MIDI_FontSetVolume.argtypes = [c_HSOUNDFONT, c_float]
@@ -371,11 +386,36 @@ def start():
     一時停止を解除する。
     """
     global _bass, _paused
+
+    _switch_device()
     if _bass.BASS_Start():
         _paused = False
         return True
     else:
         return False
+
+
+def _switch_device():
+    """
+    使用中のデバイスが変更されていた場合は再生先を変更する
+    """
+    global _bass, _streams, _fadeoutstreams
+
+    # 使用中のデバイスが変更されていた場合は再生先を変更する
+    BASS_DEVICE_ENABLED = 1
+    BASS_DEVICE_DEFAULT = 2
+    info = BASS_DEVICEINFO()
+    dev = 0
+    while _bass.BASS_GetDeviceInfo(dev, ctypes.byref(info)):
+        if (info.flags & BASS_DEVICE_ENABLED) and (info.flags & BASS_DEVICE_DEFAULT):
+            if dev != _bass.BASS_GetDevice():
+                _bass.BASS_Init(dev, 44100, BASS_DEVICE_DEFAULT, None, None)
+                _bass.BASS_SetDevice(dev)
+                for stream in itertools.chain(_streams, _fadeoutstreams):
+                    if stream:
+                        _bass.BASS_ChannelSetDevice(stream, dev)
+            break
+        dev += 1
 
 
 def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
@@ -400,6 +440,8 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     #      必ずBASS_STREAM_DECODEを使用するように変更する。
     # See Also: https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot/issues/459
     FORCE_FX = True
+
+    _switch_device()
 
     flag = BASS_MUSIC_STOPBACK | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN
     if tempo != 0 or pitch != 0 or FORCE_FX:
