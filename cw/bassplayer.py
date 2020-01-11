@@ -46,7 +46,10 @@ class BASS_DEVICEINFO(ctypes.Structure):
                 ("flags", c_DWORD)]
 
 
-BASS_DEVICE_DEFAULT = 0
+BASS_DEVICE_ENABLED = 1
+BASS_DEVICE_DEFAULT = 2
+BASS_DEVICE_INIT = 4
+
 BASS_DEVICE_8BITS = 1
 BASS_DEVICE_MONO = 2
 BASS_DEVICE_3D = 4
@@ -318,7 +321,7 @@ def init_bass(soundfonts):
     _bassfx.BASS_FX_TempoCreate.argtypes = [c_DWORD, c_DWORD]
     _bassfx.BASS_FX_TempoCreate.restype = c_HSTREAM
 
-    if not _bass.BASS_Init(-1, 44100, BASS_DEVICE_DEFAULT, None, None):
+    if not _bass.BASS_Init(-1, 44100, BASS_DEFAULT, None, None):
         dispose_bass()
         return False
 
@@ -402,14 +405,13 @@ def _switch_device():
     global _bass, _streams, _fadeoutstreams
 
     # 使用中のデバイスが変更されていた場合は再生先を変更する
-    BASS_DEVICE_ENABLED = 1
-    BASS_DEVICE_DEFAULT = 2
     info = BASS_DEVICEINFO()
     dev = 0
     while _bass.BASS_GetDeviceInfo(dev, ctypes.byref(info)):
         if (info.flags & BASS_DEVICE_ENABLED) and (info.flags & BASS_DEVICE_DEFAULT):
             if dev != _bass.BASS_GetDevice():
-                _bass.BASS_Init(dev, 44100, BASS_DEVICE_DEFAULT, None, None)
+                if not (info.flags & BASS_DEVICE_INIT):
+                    _bass.BASS_Init(dev, 44100, BASS_DEFAULT, None, None)
                 _bass.BASS_SetDevice(dev)
                 for stream in itertools.chain(_streams, _fadeoutstreams):
                     if stream:
@@ -659,7 +661,14 @@ def dispose_bass():
             sfont = struct.unpack("@Iii", _sfonts[i:i+4*3])
             _bassmidi.BASS_MIDI_FontFree(sfont[0])
 
-    _bass.BASS_Free()
+    info = BASS_DEVICEINFO()
+    dev = 0
+    while _bass.BASS_GetDeviceInfo(dev, ctypes.byref(info)):
+        if info.flags & BASS_DEVICE_INIT:
+            _bass.BASS_SetDevice(dev)
+            _bass.BASS_Free()
+        dev += 1
+
     del _bass
     _bass = None
     del _bassmidi
@@ -726,6 +735,7 @@ def _stop(streamindex, fade, stopfadeout):
 
             _bass.BASS_ChannelSetSync(stream, BASS_SYNC_SLIDE, 0, FREE_CHANNEL, streamindex)
             _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, 0, fade)
+
             @synclock(_fadeoutlock)
             def func(stream):
                 _fadeoutstreams[streamindex] = (stream, _loopcounts[streamindex], _loopstarts[streamindex])
