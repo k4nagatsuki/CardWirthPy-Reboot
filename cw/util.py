@@ -715,21 +715,11 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
 
     bmpdepth = 0
     try:
-        if f:
-            try:
-                pos = f.tell()
-                d16 = f.read(16)
-                isbmp = get_imageext(d16) == ".bmp"
-                ispng = get_imageext(d16) == ".png"
-                isgif = get_imageext(d16) == ".gif"
-                isjpg = get_imageext(d16) == ".jpg"
-                f.seek(pos)
-                image = pygame.image.load(f, "")
-            except Exception:
-                f.seek(pos)
-                image = pygame.image.load(f, path)
-        elif cw.binary.image.path_is_code(path):
-            data = cw.binary.image.code_to_data(path)
+        if f or cw.binary.image.path_is_code(path):
+            if f:
+                data = f.read()
+            else:
+                data = cw.binary.image.code_to_data(path)
             ext = get_imageext(data)
             isbmp = ext == ".bmp"
             ispng = ext == ".png"

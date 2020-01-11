@@ -67,13 +67,12 @@ class Bill(object):
 
         image.blit(subimg, (xp, yp))
 
-        for bmp, info in zip(reversed(bmps[0]), reversed(bmps[1])):
+        for bmp, info in zip(bmps[0], bmps[1]):
             # デフォルトは左上位置固定(CardWirthとの互換性維持)
             baserect = info.calc_basecardposition(bmp.get_size(), noscale=False,
                                                   basecardtype="Bill",
                                                   cardpostype="NotCard")
             cw.imageretouch.blit_2bitbmp_to_card(image, cw.s(bmp), (cw.s(163) + baserect.x, cw.s(70) + baserect.y))
-            break
 
         # シナリオ名
         font = cw.cwpy.rsrc.fonts["scenario"]
