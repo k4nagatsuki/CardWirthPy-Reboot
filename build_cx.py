@@ -89,6 +89,7 @@ def build_exe():
         ("Data/SkinBase", "Data/SkinBase"),
         ("Data/Debugger", "Data/Debugger"),
         ("Data/Materials", "Data/Materials"),
+        ("Data/BackColors.xml", "Data/BackColors.xml"),
         ("Data/Compatibility.xml", "Data/Compatibility.xml"),
         ("Data/SystemCoupons.xml", "Data/SystemCoupons.xml"),
         ("Data/SearchEngines.xml", "Data/SearchEngines.xml"),
