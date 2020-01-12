@@ -6,7 +6,10 @@
 
 ### 追加
 
-追加はありません。
+ * 以下のリソースをスキン自動生成及びリソース取り込みの対象とするようにした。
+    * `Data/Resource/SYMBOL_SKILL`
+    * `Data/Resource/SYMBOL_ITEM`
+    * `Data/Resource/SYMBOL_BEAST`
 
 ### 変更
 

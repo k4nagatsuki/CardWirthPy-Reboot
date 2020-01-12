@@ -160,6 +160,9 @@ IMGTBL = {
     "STONE_HAND7": "Stone/HAND7",
     "STONE_HAND8": "Stone/HAND8",
     "STONE_HAND9": "Stone/HAND9",
+    "SYMBOL_SKILL": "Button/SKILL",
+    "SYMBOL_ITEM": "Button/ITEM",
+    "SYMBOL_BEAST": "Button/BEAST",
 }
 IMGTBL_C = {
     "IMAGE_ACTION1": "Card/ACTION1",
