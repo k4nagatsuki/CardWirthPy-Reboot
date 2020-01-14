@@ -101,8 +101,9 @@ def is_skin(path):
         if lpath.endswith(".zip") or lpath.endswith(".lzh"):
             try:
                 z = cw.util.zip_file(path, "r")
-                for name in z.namelist():
-                    if os.path.basename(cw.util.decode_zipname(name)) == "Skin.xml":
+                for zname, info in zip(z.namelist(), z.infolist()):
+                    name = cw.util.decode_zipfilename(zname, info)
+                    if os.path.basename(name) == "Skin.xml":
                         return True
             except Exception:
                 cw.util.print_ex()

@@ -1073,13 +1073,15 @@ def read_summary(basepath):
     try:
         z = cw.util.zip_file(path, "r")
 
-        names = z.namelist()
         nametable = {}
         seq = []
-        for name in names:
-            nametable[cw.util.join_paths(cw.util.decode_zipname(name))] = name
-            if name.lower().endswith("summary.xml") or name.lower().endswith("summary.wsm"):
-                seq.append(name)
+        seq2 = []
+        for zname, info in zip(z.namelist(), z.infolist()):
+            name = cw.util.decode_zipfilename(zname, info)
+            nametable[cw.util.join_paths(name).lower()] = zname
+            if os.path.basename(name).lower() in ("summary.xml", "summary.wsm"):
+                seq.append(zname)
+                seq2.append(name)
 
         if not seq:
             z.close()
@@ -1091,7 +1093,7 @@ def read_summary(basepath):
             f = cw.binary.cwfile.CWFile("", "rb", decodewrap=True, f=io.BytesIO(fdata))
             return read_summary_classic(basepath, path, f)
 
-        scedir = os.path.dirname(name)
+        scedir = os.path.dirname(seq2[0])
         scedir = cw.util.decode_zipname(scedir)
         fdata = z.read(name)
         f = io.BytesIO(fdata)
@@ -1109,7 +1111,7 @@ def read_summary(basepath):
         for info in imgpaths:
             imgpath = cw.util.join_paths(scedir, info.path)
             for imgpath, scale in cw.util.get_scaledimagepaths(imgpath, can_loaded_scaledimage):
-                imgpath = nametable.get(imgpath, "")
+                imgpath = nametable.get(imgpath.lower(), b"")
                 if imgpath:
                     imgbuf = cw.util.read_zipdata(z, imgpath)
                     if imgbuf:

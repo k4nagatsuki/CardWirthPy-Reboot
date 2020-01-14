@@ -2449,6 +2449,30 @@ def copytree_overwrite(src, dst, files_overwrite=OVERWRITE_ALWAYS):
 
 
 # ------------------------------------------------------------------------------
+# スレッド関係
+# ------------------------------------------------------------------------------
+
+def synclock(lock):
+    """
+    @synclock(_lock)
+    def function():
+        ...
+    のように、ロックオブジェクトを指定して
+    特定関数・メソッドの排他制御を行う。
+    """
+
+    def synclock(f):
+        def acquire(*args, **kw):
+            lock.acquire()
+            try:
+                return f(*args, **kw)
+            finally:
+                lock.release()
+        return acquire
+    return synclock
+
+
+# ------------------------------------------------------------------------------
 # ZIPファイル関連
 # ------------------------------------------------------------------------------
 
@@ -2487,6 +2511,10 @@ class _LhafileWrapper(lhafile.Lhafile):
         self.f.close()
 
 
+_zip_mutex = threading.Lock()
+
+
+@synclock(_zip_mutex)
 def zip_file(path, mode):
     """zipfile.ZipFileのインスタンスを生成する。
     FIXME: Python 2.7のzipfile.ZipFileはアーカイブ内の
@@ -2509,6 +2537,7 @@ def zip_file(path, mode):
             os.sep = sep
 
 
+@synclock(_zip_mutex)
 def compress_zip(path, zpath, unicodefilename=False):
     """pathのデータをzpathで指定したzipファイルに圧縮する。
     path: 圧縮するディレクトリパス
@@ -4795,30 +4824,6 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
         s, bmp = self._items[item]
         sz = dc.GetTextExtent(s)
         return bmp.GetWidth() + sz[0]
-
-
-# ------------------------------------------------------------------------------
-# スレッド関係
-# ------------------------------------------------------------------------------
-
-def synclock(lock):
-    """
-    @synclock(_lock)
-    def function():
-        ...
-    のように、ロックオブジェクトを指定して
-    特定関数・メソッドの排他制御を行う。
-    """
-
-    def synclock(f):
-        def acquire(*args, **kw):
-            lock.acquire()
-            try:
-                return f(*args, **kw)
-            finally:
-                lock.release()
-        return acquire
-    return synclock
 
 
 # ------------------------------------------------------------------------------
