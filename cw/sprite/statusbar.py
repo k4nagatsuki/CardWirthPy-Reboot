@@ -120,7 +120,8 @@ class StatusBar(base.CWPySprite):
             if cw.cwpy.status == "Yado":
                 if not cw.cwpy.expanding:
                     self._create_yadomoney(cw.s((10, 6)))
-                    CancelButton(self, cw.s((133, 6)))
+                    if showbuttons:
+                        CancelButton(self, cw.s((133, 6)))
                     if cw.cwpy.ydata.party:
                         self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                         rmargin += cw.s(34)
