@@ -908,8 +908,13 @@ class BackGround(base.CWPySprite):
         if flagvalue and not loaded:
             # テキストセルは最初の表示で内容が固定される
             text2 = cw.util.decodewrap(text)
+            if nocheckvisible:
+                in_inusecardevent = cw.cwpy.event.in_inusecardevent
+                cw.cwpy.event.in_inusecardevent = False
             text2, namelist = cw.sprite.message.rpl_specialstr(text2, basenamelist=namelist,
                                                                updatetype=updatetype, localvariables=False)
+            if nocheckvisible:
+                cw.cwpy.event.in_inusecardevent = in_inusecardevent
             # 2.0以降はloadedパラメータは使用しない
             # loaded = True
         else:
