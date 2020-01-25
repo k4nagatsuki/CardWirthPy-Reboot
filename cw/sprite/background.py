@@ -461,7 +461,7 @@ class BackGround(base.CWPySprite):
         self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
         self._in_playing = False
-        return update and redraw and not transition
+        return update and redraw and not transition and not animated
 
     def _create_bgdata(self, e, ignoreeffectbooster=False):
         assert e.tag != "Redisplay"
@@ -806,7 +806,7 @@ class BackGround(base.CWPySprite):
             self._doanime = cw.effectbooster.AnimationCounter()
             self._ttype = ("None", "None")
             self._in_playing = False
-            return update and redraw and not transition
+            return update and redraw and not transition and not animated
 
     def _is_flagchanged(self, bgtype, d):
         if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR, BG_PC):
@@ -1120,7 +1120,7 @@ class BackGround(base.CWPySprite):
         # トランジション効果で画面入り
         if redraw:
             cw.cwpy.event.refresh_activeitem()
-            if (not animated or not doanime) and transitspr and not oldbgs == self.bgs:
+            if (not animated or not doanime) and transitspr and not _equals_bgs(oldbgs, self.bgs, True):
                 cw.cwpy.cardgrp.add(transitspr, layer=cw.LAYER_TRANSITION)
                 cw.animation.animate_sprite(transitspr, "transition", background=True)
                 cw.cwpy.cardgrp.remove(transitspr)
