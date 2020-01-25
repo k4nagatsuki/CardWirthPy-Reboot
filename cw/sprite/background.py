@@ -1156,9 +1156,11 @@ def _equals_bgs(bgs1, bgs2, visibleonly):
             # ファイルパスの拡張子を取り除き、ケースを正規化
             l1[0] = os.path.splitext(l1[0])[0].lower()
             l2[0] = os.path.splitext(l2[0])[0].lower()
-        # flag, visible, layer, cellname を取り除く
-        l1 = l1[:-4]
-        l2 = l2[:-4]
+        # flag, cellname を取り除く
+        l1[-4] = ""
+        l2[-4] = ""
+        l1[-1] = ""
+        l2[-1] = ""
         if l1 != l2:
             return False
     return True
