@@ -5396,6 +5396,8 @@ class CWPy(_Singleton, threading.Thread):
                     cw.fsync.sync()
                 if not os.path.isfile(imgpath):
                     imgpath = cw.util.join_paths(scedir, materialpath)
+                    if not os.path.isfile(self.rsrc.get_filepath(imgpath)):
+                        return
             elif yadodir:
                 imgpath = cw.util.join_paths(yadodir, materialpath)
             else:
