@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import itertools
 import os
-import math
+
 import pygame
 from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT
 
 import cw
 from . import base
 from . import card
-
 
 # ------------------------------------------------------------------------------
 # 背景スプライト
@@ -433,23 +433,25 @@ class BackGround(base.CWPySprite):
             elif e.tag == "Redisplay":
                 self.bgs.append((BG_SEPARATOR, None))
                 if blitlist:
-                    blitlist = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ("None", "None"),
-                                                oldbgs, False, True)
+                    blitlist, _ = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ("None", "None"),
+                                                   oldbgs, False, True)
                 else:
                     # エフェクトブースターの一時描画で使ったスプライトはすべて削除
                     cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
                 animated = False
                 afterseps = True
 
-        update |= self.bgs != oldbgs
+        update = update or not _equals_bgs(self.bgs, oldbgs, False)
+        redraw = redraw and not _equals_bgs(self.bgs, oldbgs, True)
 
         if update:
-            self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, True and redraw, False)
+            _, transition = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, True and redraw, False)
         elif forcedraw:
-            self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, False, False)
+            _, transition = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, False, False)
         else:
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
+            transition = False
 
         if cw.cwpy.ydata and (update or forcedraw):
             cw.cwpy.ydata.changed()
@@ -459,7 +461,7 @@ class BackGround(base.CWPySprite):
         self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
         self._in_playing = False
-        return update
+        return update and redraw and not transition
 
     def _create_bgdata(self, e, ignoreeffectbooster=False):
         assert e.tag != "Redisplay"
@@ -755,14 +757,15 @@ class BackGround(base.CWPySprite):
                     continue
                 bgs.append((bgtype, d))
                 if blitlist:
-                    blitlist = self._load_after(True, blitlist, doanime, animated, ("None", "None"), oldbgs,
-                                                False, True)
+                    blitlist, _ = self._load_after(True, blitlist, doanime, animated, ("None", "None"), oldbgs,
+                                                   False, True)
                 else:
                     # エフェクトブースターの一時描画で使ったスプライトはすべて削除
                     cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
                 animated = False
 
-        update |= self.bgs != bgs
+        update = update or not _equals_bgs(self.bgs, bgs, False)
+        redraw = redraw and not _equals_bgs(self.bgs, bgs, True)
 
         if bginhrt and not blitlist:
             update = False
@@ -781,15 +784,16 @@ class BackGround(base.CWPySprite):
             self.foregrounds.clear()
             del self.foregroundlist[:]
 
+        transition = False
         if update:
             self.bgs = bgs
             if not beforeload:
                 clear_forgrounds()
-                self._load_after(True, blitlist, doanime, animated, transitspr, oldbgs, redraw, False)
+                _, transition = self._load_after(True, blitlist, doanime, animated, transitspr, oldbgs, redraw, False)
         elif forcedraw:
             if not beforeload:
                 clear_forgrounds()
-                self._load_after(True, blitlist, doanime, animated, transitspr, oldbgs, False, False)
+                _, transition = self._load_after(True, blitlist, doanime, animated, transitspr, oldbgs, False, False)
         else:
             if not beforeload:
                 # エフェクトブースターの一時描画で使ったスプライトはすべて削除
@@ -802,7 +806,7 @@ class BackGround(base.CWPySprite):
             self._doanime = cw.effectbooster.AnimationCounter()
             self._ttype = ("None", "None")
             self._in_playing = False
-            return update
+            return update and redraw and not transition
 
     def _is_flagchanged(self, bgtype, d):
         if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR, BG_PC):
@@ -854,6 +858,9 @@ class BackGround(base.CWPySprite):
         if inusecard:
             path = cw.util.join_yadodir(path)
             path = cw.util.get_materialpathfromskin(path, cw.M_IMG)
+            if not (path.startswith(cw.cwpy.tempdir) or path.startswith(cw.cwpy.yadodir)):
+                # カード固有の素材を参照していない場合はフラグを落としておく
+                inusecard = False
         else:
             path = cw.util.get_materialpath(path, cw.M_IMG)
 
@@ -1117,14 +1124,44 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.cardgrp.add(transitspr, layer=cw.LAYER_TRANSITION)
                 cw.animation.animate_sprite(transitspr, "transition", background=True)
                 cw.cwpy.cardgrp.remove(transitspr)
+                transition = True
             else:
                 cw.cwpy.add_lazydraw(clip=self.rect)
+                transition = False
         else:
             cw.cwpy.add_lazydraw(clip=self.rect)
+            transition = False
 
         self.has_jpdcimage = not self.reload_jpdcimage
 
-        return blitlist2
+        return blitlist2, transition
+
+
+def _equals_bgs(bgs1, bgs2, visibleonly):
+    bgs1 = filter(lambda t: t[1], bgs1)
+    bgs2 = filter(lambda t: t[1], bgs2)
+    if visibleonly:
+        bgs1 = filter(lambda t: t[1][-3], bgs1)
+        bgs2 = filter(lambda t: t[1][-3], bgs2)
+
+    for t1, t2 in itertools.zip_longest(bgs1, bgs2):
+        if t1 is None or t2 is None:
+            return False
+        bgtype = t1[0]
+        if bgtype != t2[0]:
+            return False
+        l1 = list(t1[1])
+        l2 = list(t2[1])
+        if bgtype == BG_IMAGE:
+            # ファイルパスの拡張子を取り除き、ケースを正規化
+            l1[0] = os.path.splitext(l1[0])[0].lower()
+            l2[0] = os.path.splitext(l2[0])[0].lower()
+        # flag, visible, layer, cellname を取り除く
+        l1 = l1[:-4]
+        l2 = l2[:-4]
+        if l1 != l2:
+            return False
+    return True
 
 
 def _draw_bgcell(surface, bgdata, allclip=None):
