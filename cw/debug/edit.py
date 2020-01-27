@@ -802,8 +802,11 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoW
         for n in range(self.GetColumnCount()):
             loc = loc + self.GetColumnWidth(n)
             self.col_locs.append(loc)
-        if sys.platform == "win32" and sys.getwindowsversion().major < 6:
-            # BUG: Windows XP環境でペーストすると空欄になる状態が発生する
+        if sys.platform == "win32":
+            # BUG: make_editor()を呼び出さないとWindows XP環境では
+            #      ペーストすると空欄になる状態が発生する
+            #      Windows 10環境では2回目以降の編集で選択文字列の
+            #      色替えが行われなくなる
             self.make_editor()
         listmix.TextEditMixin.OpenEditor(self, row, col)
 
