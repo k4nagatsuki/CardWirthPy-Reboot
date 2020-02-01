@@ -2493,7 +2493,7 @@ class EffectContent(EventContentBase):
                             if not target.has_coupon("＠効果対象"):
                                 return
 
-                    is_dead = target.is_unconscious() or target.is_paralyze()
+                    is_dead = target.is_unconscious() or target.is_paralyze() or target.is_vanished()
                     success = self.eff.apply(target, event=True, selectedmember=selectedmember)
                     if self.ignite:
                         target.remove_coupon("＠効果対象")
@@ -2502,7 +2502,7 @@ class EffectContent(EventContentBase):
                         # 効果イベントで使用イベントを発生させる(Wsn.2)
                         # 最初から意識不明・麻痺なら死亡イベント発生なし
                         deadevent = False
-                        if event and not is_dead:
+                        if event and not is_dead and not target.is_reversed():
                             runevent = event.ignition_deadevent(target, keycodes=self.keycodes)
                             if runevent:
                                 deadevent = True

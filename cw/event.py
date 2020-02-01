@@ -1652,12 +1652,12 @@ class CardEvent(Event, Targeting):
                         continue
 
                     target.clear_cardtarget()
-                    is_dead = target.is_unconscious() or target.is_paralyze()
+                    is_dead = target.is_unconscious() or target.is_paralyze() or target.is_vanished()
                     success = eff.apply(target, selectedmember=selectedmember)
                     target.remove_coupon("＠効果対象")
 
                     # 最初から意識不明・麻痺なら死亡イベント発生なし
-                    if not is_dead:
+                    if not is_dead and not target.is_reversed():
                         deadevent = self.run_deadevent(target)
                         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                             break
