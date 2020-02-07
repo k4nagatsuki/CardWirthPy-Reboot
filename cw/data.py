@@ -4031,10 +4031,10 @@ class Party(object):
         seq = cw.cwpy.get_pcards()
         assert len(seq) == len(self.members)
         seq[index1], seq[index2] = seq[index2], seq[index1]
+        seq[index1].index, seq[index2].index = seq[index2].index, seq[index1].index
         self.members[index1], self.members[index2] = self.members[index2], self.members[index1]
-        for index, pcard in enumerate(seq):
-            pcard.index = index
-            pcard.layer = (pcard.layer[0], pcard.layer[1], index, pcard.layer[3])
+        for pcard in seq:
+            pcard.layer = (pcard.layer[0], pcard.layer[1], pcard.index, pcard.layer[3])
             cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
         cw.cwpy.pcards = seq
 
