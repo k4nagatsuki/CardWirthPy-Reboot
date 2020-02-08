@@ -2073,6 +2073,7 @@ class CWPy(_Singleton, threading.Thread):
             self.event.refresh_tools()
 
         self.statusbar.update_tiles()
+        self.statusbar.change(False)
         waited = False
         try:
             self.event.refresh_activeitem()

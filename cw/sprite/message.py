@@ -897,7 +897,7 @@ class SelectionBar(base.SelectableSprite):
             self.group.add(self, layer=layer)
 
         # 半ば画面外へ出る選択肢は特別措置としてステータスバー上にも表示する
-        if cw.s(cw.SIZE_AREA[1]) <= self.rect.bottom:
+        if cw.s(cw.SIZE_AREA[1]) <= self.rect.bottom and self.rect.top <= cw.s(cw.SIZE_AREA[1]):
             if backlog:
                 if cw.cwpy.setting.messagelog_type == cw.setting.LOG_SINGLE:
                     cw.cwpy.sbargrp.add(self, layer=cw.sprite.statusbar.LAYER_MESSAGE_LOG)

@@ -937,7 +937,7 @@ class EventHandlerForMessageWindow(EventHandler):
                     self.keyup_event(event.key)
 
             elif event.type == MOUSEBUTTONDOWN:
-                if event.button == 3 and cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
+                if event.button == 3:
                     # 右クリックイベント
                     self.shiftkey_event(True)
                 elif event.button == 1:
@@ -1050,6 +1050,9 @@ class EventHandlerForMessageWindow(EventHandler):
                 self.shiftkey_event(False)
             return
 
+        if not self._has_message():
+            self.shiftkey_event(False)
+
         if not self.can_input():
             return
 
@@ -1062,8 +1065,6 @@ class EventHandlerForMessageWindow(EventHandler):
             if selection.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 selection.rclick_event()
-        elif not self._has_message():
-            self.shiftkey_event(False)
 
     def f4key_event(self):
         """
@@ -1206,8 +1207,6 @@ class EventHandlerForMessageWindow(EventHandler):
         シフトキーイベント。
         メッセージウィンドウを一時的に非表示にする。
         """
-        if not self.can_input():
-            return
         if down:
             if self.mwin.is_drawing:
                 self.mwin.draw_all()
@@ -1227,14 +1226,14 @@ class EventHandlerForMessageWindow(EventHandler):
             if not self._has_message():
                 if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
                     layer = cw.LAYER_SPMESSAGE
-                    sellayer = cw.LAYER_SELECTIONBAR_1
+                    sellayer = cw.LAYER_SPSELECTIONBAR_1
                 else:
                     layer = cw.LAYER_MESSAGE
                     sellayer = cw.LAYER_SELECTIONBAR_1
                 cw.cwpy.cardgrp.add(self.mwin, layer=layer)
                 for sbar in self.mwin.selections:
                     cw.cwpy.cardgrp.add(sbar, layer=sellayer)
-                    if cw.s(cw.SIZE_AREA[1]) <= sbar.rect.bottom:
+                    if cw.s(cw.SIZE_AREA[1]) <= sbar.rect.bottom and sbar.rect.top <= cw.s(cw.SIZE_AREA[1]):
                         cw.cwpy.sbargrp.add(sbar, layer=cw.sprite.statusbar.LAYER_MESSAGE)
                 if redraw:
                     cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
