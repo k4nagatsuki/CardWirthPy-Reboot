@@ -2075,6 +2075,7 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.update_tiles()
         self.statusbar.change(False)
         waited = False
+        clickable_sprites = self.topgrp.remove_sprites_of_layer(cw.LAYER_CLICKABLE_SPRITES)
         try:
             self.event.refresh_activeitem()
             self.input()
@@ -2091,6 +2092,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.wait_frame(1)
                 waited = True
         finally:
+            if clickable_sprites:
+                self.topgrp.add(clickable_sprites, layer=cw.LAYER_CLICKABLE_SPRITES)
             self.interrupt_eventhandler = ie
 
         if not waited:

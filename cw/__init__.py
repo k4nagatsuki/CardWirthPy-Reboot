@@ -188,6 +188,8 @@ LAYER_LOG_BAR = (2002, 0, 0, 0)  # ログ選択肢
 LAYER_LOG_PAGE = (2003, 0, 0, 0)  # ログのページ
 LAYER_LOG_SCROLLBAR = (2004, 0, 0, 0)  # ログのスクロールバー
 
+LAYER_CLICKABLE_SPRITES = 0  # topgrpに表示されるClickableSprite
+
 # ゲーム画面構築の拡大率
 UP_SCR = 1
 # ダイアログ描画時の拡大率(UP_SCRが1の時の値)

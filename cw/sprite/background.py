@@ -1517,7 +1517,7 @@ class ClickableSprite(base.SelectableSprite):
         self.old_status = "normal"
         self.frame = 0
 
-        spritegrp.add(self)
+        spritegrp.add(self, layer=cw.LAYER_CLICKABLE_SPRITES)
         self.spritegrp = spritegrp
 
     def update_scale(self):
