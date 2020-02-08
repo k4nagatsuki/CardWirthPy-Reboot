@@ -4836,6 +4836,8 @@ class MoveCardContent(EventContentBase):
         i = 0
         deals = []
         for mcard in cw.cwpy.get_mcards():
+            if isinstance(mcard, cw.sprite.card.FriendCard):
+                continue
             if mcard.cardgroup != self.cardgroup:
                 continue
 
