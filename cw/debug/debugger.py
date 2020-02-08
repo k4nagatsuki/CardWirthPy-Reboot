@@ -2044,7 +2044,7 @@ class VariableListCtrl(wx.ListCtrl):
         if cw.cwpy.frame.debugger is None:
             return
         try:
-            for var, _local, _editable in self.list:
+            for itemid, (var, _local, _editable) in enumerate(self.list):
                 if var is variable:
                     self.RefreshItem(itemid)
                     break
@@ -2077,10 +2077,11 @@ class VariableListCtrl(wx.ListCtrl):
                 cw.util.sort_by_attr(seq, "name")
                 vlist.extend(map(lambda a: (a, local, editable), seq))
 
-            if event:
-                extend(event, True, editable)
-            if cw.cwpy.ydata:
-                extend(cw.cwpy.sdata, False, True)
+            if cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin:
+                if event:
+                    extend(event, True, editable)
+                if cw.cwpy.ydata:
+                    extend(cw.cwpy.sdata, False, True)
 
             def func(self, vlist):
                 if self:
