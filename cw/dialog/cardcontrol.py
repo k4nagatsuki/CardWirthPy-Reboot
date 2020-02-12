@@ -3013,6 +3013,9 @@ class HandView(CardControl):
 
     def OnReDeal(self, event):
         self._cancel_animation = True
+        if self.selection.is_inactive():
+            cw.cwpy.play_sound("error")
+            return
         cw.cwpy.play_sound("dump")
 
         self.selection.deck.throwaway()

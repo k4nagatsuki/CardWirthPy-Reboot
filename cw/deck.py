@@ -276,6 +276,9 @@ class Deck(object):
     def draw(self, ccard):
         self._used = None
         maxn = self.get_handmaxnum(ccard)
+        if ccard.is_inactive():
+            return
+
         if self._throwaway or not self.hand:
             # 現在の手札を山札に戻す
             self._clear_hand()
