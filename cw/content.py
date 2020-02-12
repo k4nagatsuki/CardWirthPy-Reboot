@@ -4743,10 +4743,10 @@ class MoveBgImageContent(EventContentBase):
     def __init__(self, data, is_changestate=True):
         EventContentBase.__init__(self, data, is_changestate=True)
         self.cellname = data.getattr(".", "cellname", "")
-        self.positiontype = data.getattr(".", "positiontype", "")
+        self.positiontype = data.getattr(".", "positiontype", "None")
         self.x = data.getint(".", "x", 0)
         self.y = data.getint(".", "y", 0)
-        self.sizetype = data.getattr(".", "sizetype", "")
+        self.sizetype = data.getattr(".", "sizetype", "None")
         self.width = data.getint(".", "width", 0)
         self.height = data.getint(".", "height", 0)
         # CWNext 1.60ではアニメーションあり・エフェクトブースター無視となる
@@ -4802,7 +4802,7 @@ class MoveCardContent(EventContentBase):
     def __init__(self, data, is_changestate=True):
         EventContentBase.__init__(self, data, is_changestate=True)
         self.cardgroup = data.getattr(".", "cardgroup", "")
-        self.positiontype = data.getattr(".", "positiontype", "")
+        self.positiontype = data.getattr(".", "positiontype", "None")
         self.x = data.getint(".", "x", 0)
         self.y = data.getint(".", "y", 0)
         self.scale = data.getint(".", "scale", -1)
