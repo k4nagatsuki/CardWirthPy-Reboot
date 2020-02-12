@@ -4781,7 +4781,7 @@ class MoveBgImageContent(EventContentBase):
             elif self.positiontype == "Percentage":
                 s = "現在位置×(%s, %s)%%へ移動" % (self.x, self.y)
             else:
-                assert False
+                s = "未知の位置指定方式"
             seq.append(s)
 
         if self.sizetype != "None":
@@ -4792,7 +4792,7 @@ class MoveBgImageContent(EventContentBase):
             elif self.sizetype == "Percentage":
                 s = "現在サイズ×(%s, %s)%%にリサイズ" % (self.width, self.height)
             else:
-                assert False
+                s = "未知のサイズ指定方式"
             seq.append(s)
 
         return " ".join(seq)
@@ -4895,7 +4895,7 @@ class MoveCardContent(EventContentBase):
             elif self.positiontype == "Percentage":
                 s = "現在位置×(%s, %s)%%へ移動" % (self.x, self.y)
             else:
-                s = ""
+                s = "未知の位置指定方式"
             if s:
                 seq.append(s)
 
