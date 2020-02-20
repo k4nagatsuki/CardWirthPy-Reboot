@@ -211,6 +211,8 @@ class CWPyCard(base.SelectableSprite):
 
             image.set_alpha(self.alpha)
             self._image = image
+            if self.zoomimgs:
+                self.rect = pygame.Rect(self.zoomimgs[-1][1])
 
             for i, t in enumerate(self.zoomimgs):
                 img, rect = t
@@ -635,8 +637,11 @@ class CWPyCard(base.SelectableSprite):
         self._rect = pygame.Rect(self.rect)
         self._rect.topleft = rect.topleft
 
-        # ズーム画像も更新
-        if self.zoomimgs:
+        if self.reversed:
+            # リバース状態
+            self._reverse()
+        elif self.zoomimgs:
+            # ズーム画像も更新
             self.zoomimgs[0] = self._image, self.zoomimgs[0][1]
             for i, t in enumerate(self.zoomimgs[1:]):
                 rect = t[1]
@@ -652,12 +657,6 @@ class CWPyCard(base.SelectableSprite):
                 self.zoomimgs[i+1] = image, rect
             self.image = self.zoomimgs[-1][0]
             self.rect = pygame.Rect(self.zoomimgs[-1][1])
-
-        # リバース状態
-        if self.reversed:
-            self._reverse()
-            if not self.zoomimgs:
-                self.image = self._image
 
         if self.status == "hidden":
             self.clear_image(False)
