@@ -595,10 +595,9 @@ def _is_alldecimal(args, func_name):
 
 
 def _all_eval(args):
-    args2 = []
-    for arg in args:
-        args2.append(arg())
-    return args2
+    for i, arg in enumerate(args):
+        args[i] = arg()
+    return args
 
 
 def _func_max(args, is_differentscenario, line, pos):
