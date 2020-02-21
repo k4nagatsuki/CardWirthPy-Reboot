@@ -131,7 +131,15 @@ class Function(object):
     def call(self, is_differentscenario):
         args = []
         for arg in self.args:
-            args.append(calculate(arg, is_differentscenario))
+            class F(object):
+                def __init__(self, arg, is_differentscenario):
+                    self.arg = arg
+                    self.is_differentscenario = is_differentscenario
+
+                def eval_arg(self):
+                    return calculate(self.arg, self.is_differentscenario)
+
+            args.append(F(arg, is_differentscenario).eval_arg)
         name = self.name
         if name in _functions:
             return _functions[name](args, is_differentscenario, self.line, self.pos)
@@ -586,8 +594,16 @@ def _is_alldecimal(args, func_name):
     return True
 
 
+def _all_eval(args):
+    args2 = []
+    for arg in args:
+        args2.append(arg())
+    return args2
+
+
 def _func_max(args, is_differentscenario, line, pos):
     """引数中の最大の値を返す。"""
+    args = _all_eval(args)
     if len(args) and _is_alldecimal(args, "MAX"):
         return DecimalValue(max(*map(lambda a: a.value, args)) if 1 < len(args) else args[0].value, line, pos)
     raise ArgumentsCountException("No argments of max.", "MAX", line, pos)
@@ -595,6 +611,7 @@ def _func_max(args, is_differentscenario, line, pos):
 
 def _func_min(args, is_differentscenario, line, pos):
     """引数中の最小の値を返す。"""
+    args = _all_eval(args)
     if len(args) and _is_alldecimal(args, "MIN"):
         return DecimalValue(min(*map(lambda a: a.value, args)) if 1 < len(args) else args[0].value, line, pos)
     raise ArgumentsCountException("No argments of min.", "MIN", line, pos)
@@ -603,6 +620,7 @@ def _func_min(args, is_differentscenario, line, pos):
 def _func_len(args, is_differentscenario, line, pos):
     """文字列の文字数を返す。"""
     _chk_argscount(args, 1, "LEN", line, pos)
+    args = _all_eval(args)
     a = args[0]
     _chk_string(a, "LEN", 0)
     return DecimalValue(len(a.value), line, pos)
@@ -611,6 +629,7 @@ def _func_len(args, is_differentscenario, line, pos):
 def _func_find(args, is_differentscenario, line, pos):
     """文字列内を検索する。"""
     _chk_argscount2(args, 2, 3, "FIND", line, pos)
+    args = _all_eval(args)
     a = args[0]
     _chk_string(a, "FIND", 0)
     a = a.value
@@ -640,6 +659,7 @@ def _func_find(args, is_differentscenario, line, pos):
 def _func_left(args, is_differentscenario, line, pos):
     """文字列の左側を取り出す。"""
     _chk_argscount(args, 2, "LEFT", line, pos)
+    args = _all_eval(args)
     s = args[0]
     n = args[1]
     _chk_string(s, "LEFT", 0)
@@ -652,6 +672,7 @@ def _func_left(args, is_differentscenario, line, pos):
 def _func_right(args, is_differentscenario, line, pos):
     """文字列の右側を取り出す。"""
     _chk_argscount(args, 2, "RIGHT", line, pos)
+    args = _all_eval(args)
     s = args[0]
     n = args[1]
     _chk_string(s, "RIGHT", 0)
@@ -664,6 +685,7 @@ def _func_right(args, is_differentscenario, line, pos):
 def _func_mid(args, is_differentscenario, line, pos):
     """文字列の[N1-1:N1+N2]の範囲を取り出す。"""
     _chk_argscount2(args, 2, 3, "MID", line, pos)
+    args = _all_eval(args)
     s = args[0]
     n1 = args[1]
     _chk_string(s, "MID", 0)
@@ -685,6 +707,7 @@ def _func_mid(args, is_differentscenario, line, pos):
 def _func_str(args, is_differentscenario, line, pos):
     """引数を文字列に変換する。"""
     _chk_argscount(args, 1, "STR", line, pos)
+    args = _all_eval(args)
     return StringValue(args[0].to_str(), line, pos)
 
 
@@ -694,6 +717,7 @@ _NUM_REG = re.compile("\\A\\s*-?([0-9]+(\\.[0-9]*)?|([0-9]*\\.)?[0-9]+)\\s*\\Z")
 def _func_value(args, is_differentscenario, line, pos):
     """引数を数値化する。"""
     _chk_argscount(args, 1, "VALUE", line, pos)
+    args = _all_eval(args)
     a = args[0]
     if isinstance(a, DecimalValue):
         value = a.value
@@ -712,6 +736,7 @@ def _func_value(args, is_differentscenario, line, pos):
 def _func_int(args, is_differentscenario, line, pos):
     """引数を整数化する。"""
     _chk_argscount(args, 1, "INT", line, pos)
+    args = _all_eval(args)
     a = args[0]
     if isinstance(a, DecimalValue):
         value = a.value
@@ -728,16 +753,17 @@ def _func_int(args, is_differentscenario, line, pos):
 def _func_if(args, is_differentscenario, line, pos):
     """args[0]がTrueであればargs[1]を、そうでなければargs[2]を返す。"""
     _chk_argscount(args, 3, "IF", line, pos)
-    a = args[0]
+    a = args[0]()
     _chk_boolean(a, "IF", 0)
     t = args[1]
     f = args[2]
-    return t if a.value else f
+    return t() if a.value else f()
 
 
 def _func_var(args, is_differentscenario, line, pos):
     """汎用変数の値を読む。"""
     _chk_argscount(args, 1, "VAR", line, pos)
+    args = _all_eval(args)
     _chk_string(args[0], "VAR", 0)
     path = args[0].value
 
@@ -761,6 +787,7 @@ def _func_var(args, is_differentscenario, line, pos):
 def _func_flagvalue(args, is_differentscenario, line, pos):
     """フラグの値を読む。"""
     _chk_argscount(args, 1, "FLAGVALUE", line, pos)
+    args = _all_eval(args)
     _chk_string(args[0], "FLAGVALUE", 0)
     path = args[0].value
 
@@ -779,6 +806,7 @@ def _func_flagvalue(args, is_differentscenario, line, pos):
 def _func_flagtext(args, is_differentscenario, line, pos):
     """フラグの値の文字列を読む。"""
     _chk_argscount2(args, 1, 2, "FLAGTEXT", line, pos)
+    args = _all_eval(args)
     _chk_string(args[0], "FLAGTEXT", 0)
     path = args[0].value
 
@@ -808,6 +836,7 @@ def _func_flagtext(args, is_differentscenario, line, pos):
 def _func_stepvalue(args, is_differentscenario, line, pos):
     """ステップの値を読む。"""
     _chk_argscount(args, 1, "STEPVALUE", line, pos)
+    args = _all_eval(args)
     _chk_string(args[0], "STEPVALUE", 0)
     path = args[0].value
 
@@ -826,6 +855,7 @@ def _func_stepvalue(args, is_differentscenario, line, pos):
 def _func_steptext(args, is_differentscenario, line, pos):
     """ステップの値の文字列を読む。"""
     _chk_argscount2(args, 1, 2, "STEPTEXT", line, pos)
+    args = _all_eval(args)
     _chk_string(args[0], "STEPTEXT", 0)
     path = args[0].value
 
@@ -858,6 +888,7 @@ def _func_steptext(args, is_differentscenario, line, pos):
 def _func_stepmax(args, is_differentscenario, line, pos):
     """ステップの最大値を取得する。"""
     _chk_argscount(args, 1, "STEPMAX", line, pos)
+    args = _all_eval(args)
     _chk_string(args[0], "STEPMAX", 0)
     path = args[0].value
 
@@ -876,6 +907,7 @@ def _func_stepmax(args, is_differentscenario, line, pos):
 def _func_dice(args, is_differentscenario, line, pos):
     """ダイスを振って結果の値を返す。"""
     _chk_argscount(args, 2, "DICE", line, pos)
+    args = _all_eval(args)
     t = args[0]
     s = args[1]
     _chk_minvalue(t, "DICE", 0)
@@ -892,6 +924,7 @@ def _func_dice(args, is_differentscenario, line, pos):
 def _func_selected(args, is_differentscenario, line, pos):
     """選択メンバのキャラクター番号を数値(1～)で返す。"""
     _chk_argscount(args, 0, "SELECTED", line, pos)
+    args = _all_eval(args)
     if cw.cwpy.event.has_selectedmember():
         try:
             ccard = cw.cwpy.event.get_selectedmember()
@@ -941,6 +974,7 @@ def _ccard_from(arg, func_name):
 def _func_casttype(args, is_differentscenario, line, pos):
     """キャラクター番号からキャラクターのタイプ(1=Player,2=Enemy,3=Friend)を返す。"""
     _chk_argscount(args, 1, "CASTTYPE", line, pos)
+    args = _all_eval(args)
     ccard = _ccard_from(args[0], "CASTTYPE")
     if isinstance(ccard, cw.character.Player):
         return DecimalValue(1, line, pos)
@@ -955,6 +989,7 @@ def _func_casttype(args, is_differentscenario, line, pos):
 def _func_castname(args, is_differentscenario, line, pos):
     """キャラクター番号からキャラクターの名前を返す。"""
     _chk_argscount(args, 1, "CASTNAME", line, pos)
+    args = _all_eval(args)
     ccard = _ccard_from(args[0], "CASTNAME")
     if ccard:
         return StringValue(ccard.get_showingname(), line, pos)
@@ -965,6 +1000,7 @@ def _func_castname(args, is_differentscenario, line, pos):
 def _func_findcoupon(args, is_differentscenario, line, pos):
     """キャラクター番号のキャラクターのクーポンを検索してクーポン番号を返す。"""
     _chk_argscount2(args, 2, 3, "FINDCOUPON", line, pos)
+    args = _all_eval(args)
     ccard = _ccard_from(args[0], "FINDCOUPON")
     _chk_string(args[1], "FINDCOUPON", 1)
     pattern = args[1].value
@@ -986,6 +1022,7 @@ def _func_findcoupon(args, is_differentscenario, line, pos):
 def _func_coupontext(args, is_differentscenario, line, pos):
     """キャラクター番号のキャラクターの所持するクーポン名を返す。"""
     _chk_argscount(args, 2, "COUPONTEXT", line, pos)
+    args = _all_eval(args)
     ccard = _ccard_from(args[0], "COUPONTEXT")
     _chk_minvalue(args[1], "COUPONTEXT", 0)
     if ccard is None:
@@ -999,6 +1036,7 @@ def _func_coupontext(args, is_differentscenario, line, pos):
 def _func_findgossip(args, is_differentscenario, line, pos):
     """ゴシップを検索してゴシップ番号を返す。"""
     _chk_argscount2(args, 1, 2, "FINDGOSSIP", line, pos)
+    args = _all_eval(args)
     _chk_string(args[0], "FINDGOSSIP", 0)
     pattern = args[0].value
     if len(args) < 2:
@@ -1017,6 +1055,7 @@ def _func_findgossip(args, is_differentscenario, line, pos):
 def _func_gossiptext(args, is_differentscenario, line, pos):
     """ゴシップ名を返す。"""
     _chk_argscount(args, 1, "GOSSIPTEXT", line, pos)
+    args = _all_eval(args)
     _chk_minvalue(args[0], "GOSSIPTEXT", 0)
     index = int(args[0].value) - 1
     if index < 0 or cw.cwpy.ydata.gossips_len() <= index:
@@ -1027,6 +1066,7 @@ def _func_gossiptext(args, is_differentscenario, line, pos):
 def _func_partyname(args, is_differentscenario, line, pos):
     """パーティ名を返す。"""
     _chk_argscount(args, 0, "PARTYNAME", line, pos)
+    args = _all_eval(args)
     if cw.cwpy.ydata.party is None:
         return StringValue("", line, pos)
     return StringValue(cw.cwpy.ydata.party.get_showingname(), line, pos)
