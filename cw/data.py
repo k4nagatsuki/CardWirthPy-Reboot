@@ -628,7 +628,7 @@ class SystemData(object):
 
         return xml2etree(element=data)
 
-    def get_carddata(self, linkdata, inusecard=True):
+    def get_carddata(self, linkdata, inusecard=True, inusecardheader=None):
         return linkdata
 
     def is_updatedfilenames(self):
@@ -1367,15 +1367,15 @@ class ScenarioData(SystemData):
         if cw.HINT_AREA <= pos and cw.cwpy.sct.to_basehint(last) != cw.cwpy.sct.to_basehint(self.get_versionhint()):
             cw.cwpy.update_titlebar()
 
-    def get_carddata(self, linkdata, inusecard=True):
+    def get_carddata(self, linkdata, inusecard=True, inusecardheader=None):
         """参照で設定されているデータの実体を取得する。"""
         resid = linkdata.getint("Property/LinkId", 0)
         if resid == 0:
             return linkdata
 
         if inusecard:
-            inusecard = cw.cwpy.event.get_inusecard()
-        if inusecard and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion) and\
+            inusecard = inusecardheader if inusecardheader else cw.cwpy.event.get_inusecard()
+        if inusecard and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion or inusecardheader) and\
                 (not inusecard.scenariocard or inusecard.carddata.gettext("Property/Materials", "")):
             # プレイ中のシナリオ外のカードを使用
             mates = inusecard.carddata.gettext("Property/Materials", "")

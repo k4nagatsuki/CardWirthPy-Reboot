@@ -720,7 +720,7 @@ class Character(object):
     def is_downdefense(self):
         return self.enhance_def < 0 and 0 < self.enhance_def_dur
 
-    def is_effective(self, motion):
+    def is_effective(self, header, motion):
         """motionが現在のselfに対して有効な効果か。
         ターゲットの選択に使用される判定であるため、
         実際には有効であっても必ずしもTrueを返さない。
@@ -853,7 +853,7 @@ class Character(object):
             return self.is_active()
         elif mtype == "SummonBeast":
             for beast in motion.getfind("Beasts", raiseerror=False):
-                e = cw.cwpy.sdata.get_carddata(beast)
+                e = cw.cwpy.sdata.get_carddata(beast, inusecardheader=header)
                 if e is not None and self.can_addbeast(e):
                     return True
             return False
@@ -2846,7 +2846,8 @@ class Character(object):
 
         elif self.can_addbeast(element):
             etree = cw.data.xml2etree(element=element, nocache=True)
-            cw.content.get_card(etree, self, not is_scenariocard, update_image=False)
+            cw.content.get_card(etree, self, not is_scenariocard, update_image=False,
+                                anotherscenariocard=not is_scenariocard)
             eff = True
         return eff
 

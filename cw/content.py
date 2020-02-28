@@ -2972,8 +2972,8 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
     else:
         from_scenario = True
         etree.getroot().attrib["scenariocard"] = "True"
-        if anotherscenariocard:
-            etree.edit(".", "True", "anotherscenariocard")
+    if anotherscenariocard:
+        etree.edit(".", "True", "anotherscenariocard")
 
     # 召喚獣カードの場合、付帯属性を操作する
     # 召喚獣獲得コンテントないしデバッガからの配布であれば、必ず付帯能力に

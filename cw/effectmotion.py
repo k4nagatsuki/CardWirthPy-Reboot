@@ -1490,7 +1490,7 @@ def get_effectivetargets(header, targets):
         # カード効果を上から順に見ていき、対象の存在する効果があれば
         # その効果の対象群を返す
         for motion in motions:
-            if t.is_effective(motion):
+            if t.is_effective(header, motion):
                 sets.add(t)
                 break
 
