@@ -1240,7 +1240,8 @@ class CWPy(_Singleton, threading.Thread):
         """
         if cw.cwpy.setting.show_statustime == "NotEventTime":
             clip = pygame.Rect(cw.cwpy.statusbar.rect)
-            for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"), cw.cwpy.get_ecards("unreversed")):
+            for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"), cw.cwpy.get_ecards("unreversed"),
+                                         cw.cwpy.get_fcards("unreversed")):
                 if ccard.is_analyzable():
                     clip2 = ccard.update_image(update_statusimg=True, is_runningevent=is_runningevent)
                     if clip2:
