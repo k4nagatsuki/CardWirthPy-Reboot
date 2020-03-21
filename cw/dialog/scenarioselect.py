@@ -2383,7 +2383,7 @@ class ScenarioSelect(select.Select):
             # 対象レベル
             dc.SetTextForeground(wx.Colour(0, 128, 128, 255))
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("targetlevel",
-                                               style=wx.FONTSTYLE_ITALIC, pixelsize=cw.wins(16)))
+                                               style=wx.FONTSTYLE_ITALIC, pixelsize=cw.wins(14)))
             levelmax = str(header.levelmax) if header.levelmax else ""
             levelmin = str(header.levelmin) if header.levelmin else ""
 
@@ -2391,7 +2391,7 @@ class ScenarioSelect(select.Select):
                 if levelmin == levelmax:
                     s = cw.cwpy.msgs["target_level_1"] % (levelmin)
                 else:
-                    s = cw.cwpy.msgs["target_level_2"] % (levelmin, levelmax)
+                    s = cw.cwpy.msgs["target_level_2"] % (levelmin if levelmin else " ", levelmax)
 
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, (bmpw-w)//2, cw.wins(15)+yp)
@@ -2400,17 +2400,19 @@ class ScenarioSelect(select.Select):
 
         # 上部バーが非表示の時はページ数を表示
         if self.addctrlbtn and not (self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree):
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(15)))
             page = self.pagelabel.GetLabelText()
-            w, h = dc.GetTextExtent(page)
             if self.addctrlbtn.IsShown():
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(15)))
+                w, h = dc.GetTextExtent(page)
                 btnw, btnh = self.addctrlbtn.GetSize()
                 x = bmpw-btnw-cw.wins(5)-w
                 y = (btnh-h)//2
             else:
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(13)))
+                w, h = dc.GetTextExtent(page)
                 btnw, btnh = self.addctrlbtn.GetSize()
-                x = bmpw-cw.wins(5)
-                y = bmph-cw.wins(5)
+                x = (bmpw-w)//2
+                y = bmph-cw.wins(28)
             cw.util.draw_witharound(dc, page, x, y, 0)
 
         self.draw3(dc, dest, update)

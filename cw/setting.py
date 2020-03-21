@@ -144,7 +144,7 @@ class LocalSetting(object):
             "tab": ("uigothic", "", -1, True, True, False),
             "menu": ("uigothic", "", -1, False, False, False),
             "scenario": ("pmincho", "", -1, True, True, False),
-            "targetlevel": ("mincho", "", -1, True, True, True),
+            "targetlevel": ("pmincho", "", -1, True, True, True),
             "paneltitle": ("uigothic", "", -1, True, True, False),
             "paneltitle2": ("uigothic", "", -1, False, False, False),
             "dlgmsg": ("uigothic", "", -1, True, True, False),
