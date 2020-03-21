@@ -2427,7 +2427,7 @@ class CWPy(_Singleton, threading.Thread):
                 if self.is_showingdebugger() and self.event:
                     self.event.refresh_variablelist()
             try:
-                if isinstance(self.sdata, cw.data.SystemData):
+                if isinstance(self.sdata, cw.data.SystemData) and not self.ydata.is_loading():
                     self.sdata.save_variables()
                 self.sdata = cw.data.ScenarioData(header)
                 if cw.cwpy.ydata:
