@@ -2247,7 +2247,7 @@ class ScenarioSelect(select.Select):
 
             else:
                 # ディレクトリ名
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(21)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(22)))
                 if isinstance(dpath, FindResult):
                     s = cw.cwpy.msgs["find_result"]
                 else:
@@ -2364,7 +2364,7 @@ class ScenarioSelect(select.Select):
                                                        bitsizekey=bmp_noscale)
 
             # シナリオ名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(21)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(22)))
             s = header.name
             w = dc.GetTextExtent(s)[0]
             maxwidth = bmpw - cw.wins(5)*2
