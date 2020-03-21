@@ -2773,6 +2773,12 @@ class YadoData(object):
                     self.album or self.partyrecord or self.savedjpdcimage or
                     self.get_gossips() or self.get_compstamps() or self.saved_variables)
 
+    def is_loading(self):
+        """
+        ロード中はTrue。
+        """
+        return self._loading
+
     def set_skinname(self, skindirname, skintype):
         self.skindirname = skindirname
         e = self.environment.find("Property/Skin")
