@@ -2189,18 +2189,21 @@ class ScenarioSelect(select.Select):
         #      cw.imageretouch.wxblit_2bitbmp_to_cardで
         #      画面スケールが2倍で、イメージが描画領域より大きい時に
         #      AND描画したあとの文字列の描画内容がおかしくなる
-        #      destを使用せず、Book.bmpの内容をコピーして
+        #      destを使用せず、Bill.bmpの内容をコピーして
         #      背景とする事でなぜか回避できる
         #      Windows 10 1709
         #      ---
         #      Windows 10 1803でusebuffer=Falseでも問題が発生しなくなった
+        #      ---
+        #      Windows 10 1903でusebuffer=Falseで非整数倍で貼紙を表示した後で
+        #      1倍に戻して表示すると最下部の描画が壊れるのでusebuffer=Trueにする
         up = [1]
         upi = 2
         while upi <= cw.UP_WIN:
             up.append(upi)
             upi *= 2
-        if cw.UP_WIN in up:
-            dest = cw.util.copy_wxbmp(bmp)  # , usebuffer=True)
+        if cw.UP_WIN in up and False:
+            dest = cw.util.copy_wxbmp(bmp, usebuffer=True)
             dc = wx.MemoryDC(dest)
         else:
             # こちらが本来の処理。なぜか整数倍の拡大率では問題無い
