@@ -1121,7 +1121,7 @@ class ScenarioSelect(select.Select):
             for path in spaths:
                 if path.startswith("/") and\
                         not (findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)):
-                    exists_spaths = False
+                    exists_spaths = True
                     break
                 if path == "/find_result":
                     assert findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)
@@ -1205,30 +1205,27 @@ class ScenarioSelect(select.Select):
         elif not selfullpath:
             # 経路をたどれる場合
             parent = self.scedir
-            nowdir = parent
             self.dirstack = []
             exists = True
             treeitem = self.tree.root
             for i, fname in enumerate(spaths[:-1]):
-                if fname.startswith("/") and\
-                        not (findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)):
-                    break
-                if fname == "/find_result":
-                    assert findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)
-                    parent2 = findresults[0]
-                    parent = self.find_result
-                elif isinstance(parent, FindResult):
-                    nowdir = parent
-                    parent = parent2
-                else:
-                    parent2 = cw.util.join_paths(parent, fname)
-                if os.path.exists(parent2):
-                    if not isinstance(parent, FindResult):
-                        self.dirstack.append((parent, fname))
-                        parent = cw.util.get_linktarget(parent2)
-                        nowdir = parent
+                if isinstance(parent, FindResult) or os.path.exists(parent):
+                    if isinstance(parent, FindResult):
+                        if findresults and not isinstance(findresults[0], FindResult):
+                            # 検索結果がフォルダ一件の場合(ブックマークからフォルダを開いたケース)
+                            self.dirstack.append((os.path.dirname(findresults[0]), fname))
+                            parent = cw.util.get_linktarget(findresults[0])
+                        else:
+                            # 普通の検索結果
+                            self.dirstack.append(("/find_result", fname))
                     else:
-                        self.dirstack.append((nowdir, fname))
+                        # 検索結果以外の経路
+                        parent = cw.util.get_linktarget(parent)
+                        self.dirstack.append((parent, fname))
+                        if fname == "/find_result" and self.find_result:
+                            parent = self.find_result
+                        else:
+                            parent = cw.util.join_paths(parent, fname)
                     if self.tree.IsShown():
                         paritem = treeitem
                         item, cookie = self.tree.GetFirstChild(paritem)
@@ -1256,9 +1253,8 @@ class ScenarioSelect(select.Select):
                     exists = False
                     break
 
-            self.nowdir = nowdir
+            self.nowdir = parent
             self.list = self._get_nowlist(nowdir=parent, update=True)
-            self.scetable[self._get_linktarget(self.nowdir)] = self.list
             self.list = self._narrow_scenario(self.list)
             self.index = 0
 
@@ -2391,7 +2387,8 @@ class ScenarioSelect(select.Select):
                 if levelmin == levelmax:
                     s = cw.cwpy.msgs["target_level_1"] % (levelmin)
                 else:
-                    s = cw.cwpy.msgs["target_level_2"] % (levelmin if levelmin else " ", levelmax)
+                    s = cw.cwpy.msgs["target_level_2"] % (levelmin, levelmax)
+                s = s.strip()
 
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, (bmpw-w)//2, cw.wins(15)+yp)
@@ -2528,7 +2525,10 @@ class ScenarioSelect(select.Select):
             #     self.tree.ScrollTo(item)
 
         if self.toppanel.IsShown():
-            self.list = self.scetable[self._get_linktarget(self.nowdir)]
+            lnowdir = self._get_linktarget(self.nowdir)
+            if lnowdir not in self.scetable:
+                self.scetable[lnowdir] = self._get_nowlist(lnowdir, update=True)
+            self.list = self.scetable[lnowdir]
             self.list = self._narrow_scenario(self.list)
 
         self._processing = False
