@@ -654,8 +654,8 @@
     <Message key="adventurers_team">Adventurer's Team</Message>
     <Message key="adventurers_money">Money %s sp</Message>
     <Message key="select_scenario_title">貼紙を見る</Message>
-    <Message key="target_level_1">対象レベル:%s</Message>
-    <Message key="target_level_2">対象レベル:%s ～ %s</Message>
+    <Message key="target_level_1">対象レベル：%s</Message>
+    <Message key="target_level_2">対象レベル：%s ～ %s</Message>
     <Message key="instructions">添付テキスト</Message>
     <Message key="referencing_file">参照ファイル</Message>
     <Message key="contents">Contents</Message>
