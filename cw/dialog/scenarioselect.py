@@ -1121,7 +1121,7 @@ class ScenarioSelect(select.Select):
             for path in spaths:
                 if path.startswith("/") and\
                         not (findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)):
-                    exists_spaths = True
+                    exists_spaths = bool(findresults)
                     break
                 if path == "/find_result":
                     assert findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)
