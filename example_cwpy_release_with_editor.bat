@@ -20,9 +20,6 @@ set MAIN_REPO_ENGINE=https://<username>@bitbucket.org/<username>/cardwirthpy-reb
 rem CWXEditorのリモートリポジトリ
 set MAIN_REPO_EDITOR=https://<username>@bitbucket.org/<username>/cwxeditor
 
-rem コミットするユーザ(hg ci -u <username>)
-set USER=<username>
-
 rem 差分リリース用の旧バージョンのバージョン番号
 set OLDVERSION=3.0
 rem 差分リリース用の旧バージョンの位置(32-bit)
@@ -57,6 +54,11 @@ set PYTHON_64="C:\Program Files\Python37\python.exe"
 rem デイリービルドは最終リリースからの差分としてリリースされるが、その最終リリースを置くパス
 set DIFF_BASE=D:\path\to\dirffbase
 
+rem commit時のユーザ名
+set USER=username
+rem commit時のEメールアドレス
+set EMAIL=username@example.com
+
 rem -----------------------------------------------------------------------
 
 if "%1"=="" exit /b -1
@@ -81,7 +83,7 @@ set COMMIT_MESSAGE_ENGINE=%COMMIT_MESSAGE_ENGINE:a=α%
 
 if "%3"=="build" (
 	pushd "%CARDWIRTHPY_HELP_DIR%"
-	hg up -r tip
+	git checkout master
 	%PYTHON_32% build.py
 	popd
 
@@ -91,15 +93,22 @@ if "%3"=="build" (
 	pushd %~dp0
 
 	pushd %DEST_DIR_ENGINE%
-	hg clone %LOCAL_REPO_ENGINE% cardwirthpy-reboot
+	git clone %LOCAL_REPO_ENGINE% cardwirthpy-reboot
 	cd cardwirthpy-reboot
+	git config --local user.name "%USER%"
+	git config --local user.email "%EMAIL%"
 	%EDITOR% ChangeLog.txt
+	git add ChangeLog.txt
 	%EDITOR% ReadMe.txt
+	git add ReadMe.txt
 	%EDITOR% build_cx.py
+	git add build_cx.py
 	%EDITOR% cw\__init__.py
+	git add cw\__init__.py
 	%EDITOR% Data\SystemCoupons.xml
-	hg ci -u %USER% -m "%COMMIT_MESSAGE_ENGINE%"
-	hg tag -u %USER% release_%1
+	git add Data\SystemCoupons.xml
+	git commit -m "%COMMIT_MESSAGE_ENGINE%"
+	git tag release_%1
 
 	%PYTHON_32% build_cx.py -chm=%CARDWIRTHPY_HELP%
 	xcopy /e %LOCAL_REPO_ENGINE%\Data\Skin\Classic CardWirthPy\Data\Skin\Classic\
@@ -142,28 +151,28 @@ if "%3"=="build" (
 	rem エンジンのメインストリームへのpush
 	pushd %DEST_DIR_ENGINE%
 	cd cardwirthpy-reboot
-	hg push %MAIN_REPO_ENGINE%
+	git push %MAIN_REPO_ENGINE% master
 	if not errorlevel = 0 goto failure
 	popd
 
 	rem エンジンの作業リポジトリへのメインストリームからのpullとリモートへのpush
 	pushd %LOCAL_REPO_ENGINE%
-	hg pull upstream --update
-	hg push
+	git pull upstream master
+	git push origin master
 	if not errorlevel = 0 goto failure
 	popd
 
 	rem エディタのメインストリームへのpush
 	pushd %DEST_DIR_ENGINE%
 	cd cwxeditor_temp
-	hg push %MAIN_REPO_EDITOR%
+	git push %MAIN_REPO_EDITOR% master
 	if not errorlevel = 0 goto failure
 	popd
 
 	rem エディタの作業リポジトリへのメインストリームからのpullとリモートへのpush
 	pushd %EDITOR_DIR%
-	hg pull upstream --update
-	hg push
+	git pull upstream master
+	git push origin master
 	if not errorlevel = 0 goto failure
 	popd
 
