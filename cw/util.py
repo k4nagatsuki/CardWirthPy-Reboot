@@ -3680,17 +3680,18 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, ok1 = cw.image.fix_cwnext32bitbitmap(data)
                 data, ok2 = cw.image.fix_cwnext16bitbitmap(data)
-                data, ok3 = cw.image.fix_108byteheader(data)
                 if isinstance(data, wx.Image):
                     image = data
-                elif name and ok1 and ok2 and ok3 and not cw.binary.image.path_is_code(name):
-                    # BUG: io.BytesIO()を用いてのwx.ImageFromStream()は、
-                    #      二重にファイルを読む処理よりなお10倍も遅い
-                    image = wx.Image(name)
                 else:
-                    with io.BytesIO(data) as f2:
-                        image = wx.Image(f2, wx.BITMAP_TYPE_ANY, -1)
-                        f2.close()
+                    data, ok3 = cw.image.fix_108byteheader(data)
+                    if name and ok1 and ok2 and ok3 and not cw.binary.image.path_is_code(name):
+                        # BUG: io.BytesIO()を用いてのwx.ImageFromStream()は、
+                        #      二重にファイルを読む処理よりなお10倍も遅い
+                        image = wx.Image(name)
+                    else:
+                        with io.BytesIO(data) as f2:
+                            image = wx.Image(f2, wx.BITMAP_TYPE_ANY, -1)
+                            f2.close()
             except Exception:
                 print_ex()
                 print("画像が読み込めません(load_wxbmp)", name)
