@@ -1022,12 +1022,12 @@ class Character(object):
             return
 
         # 宿へ取り込んだ特殊文字の使用時イベントでの表示に備える
-        if not header.scenariocard:
+        e_mates = header.carddata.find("Property/Materials")
+        if not header.scenariocard or e_mates is not None:
             specialchars = cw.cwpy.rsrc.specialchars
             specialchars_is_changed = cw.cwpy.rsrc.specialchars_is_changed
             specialchars_local = cw.cwpy.rsrc.get_specialchars()
             cw.cwpy.rsrc.specialchars = specialchars_local
-            e_mates = header.carddata.find("Property/Materials")
             can_loaded_scaledimage = header.carddata.getbool(".", "scaledimage", False)
             if cw.cwpy.is_playingscenario() and e_mates is not None:
                 dpath = cw.util.join_yadodir(e_mates.text)

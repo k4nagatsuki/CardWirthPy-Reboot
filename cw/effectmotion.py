@@ -1390,6 +1390,10 @@ class EffectMotion(object):
                 header = cw.cwpy.event.get_inusecard()
             is_scenariocard = not header or (header.scenariocard and
                                              not header.carddata.gettext("Property/Materials", ""))
+            matedir = header.carddata.gettext("Property/Materials", "") if header else ""
+            if matedir and e.find("Property/Materials") is None:
+                e_prop = e.find("Property")
+                e_prop.append(cw.data.make_element("Materials", matedir))
             if target.set_beast(e, is_scenariocard=is_scenariocard):
                 cw.cwpy.advlog.summonbeast_motion(target, e2)
                 eff = True
