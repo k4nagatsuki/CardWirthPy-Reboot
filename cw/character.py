@@ -1022,17 +1022,18 @@ class Character(object):
             return
 
         # 宿へ取り込んだ特殊文字の使用時イベントでの表示に備える
-        specialchars = cw.cwpy.rsrc.specialchars
-        specialchars_is_changed = cw.cwpy.rsrc.specialchars_is_changed
-        specialchars_local = cw.cwpy.rsrc.get_specialchars()
-        cw.cwpy.rsrc.specialchars = specialchars_local
-        e_mates = header.carddata.find("Property/Materials")
-        can_loaded_scaledimage = header.carddata.getbool(".", "scaledimage", False)
-        if cw.cwpy.is_playingscenario() and e_mates is not None:
-            dpath = cw.util.join_yadodir(e_mates.text)
-            if os.path.isdir(dpath):
-                for fname in os.listdir(dpath):
-                    cw.cwpy.sdata.eat_spchar(dpath, fname, can_loaded_scaledimage)
+        if not header.scenariocard:
+            specialchars = cw.cwpy.rsrc.specialchars
+            specialchars_is_changed = cw.cwpy.rsrc.specialchars_is_changed
+            specialchars_local = cw.cwpy.rsrc.get_specialchars()
+            cw.cwpy.rsrc.specialchars = specialchars_local
+            e_mates = header.carddata.find("Property/Materials")
+            can_loaded_scaledimage = header.carddata.getbool(".", "scaledimage", False)
+            if cw.cwpy.is_playingscenario() and e_mates is not None:
+                dpath = cw.util.join_yadodir(e_mates.text)
+                if os.path.isdir(dpath):
+                    for fname in os.listdir(dpath):
+                        cw.cwpy.sdata.eat_spchar(dpath, fname, can_loaded_scaledimage)
 
         try:
             # カードイベント開始
@@ -1045,9 +1046,10 @@ class Character(object):
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                 self.clear_zoomimgs()
                 cw.cwpy.cardgrp.remove(self)
-            # 特殊文字を元に戻す
-            cw.cwpy.rsrc.specialchars = specialchars
-            cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
+            if not header.scenariocard:
+                # 特殊文字を元に戻す
+                cw.cwpy.rsrc.specialchars = specialchars
+                cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
 
     def throwaway_card(self, header, from_event=True, update_image=True):
         """
