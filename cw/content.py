@@ -2583,7 +2583,8 @@ class EffectContent(EventContentBase):
 
                 # 効果イベントの差し替え
                 tevent = cw.event.Targeting(None, targets, self.initialeffect)
-                if e_mcards:
+                # CardTarget以外(Selected, Random, Party, CouponHolder)はメニューカードが対象になる可能性は無い
+                if e_mcards and self.targetm == "CardTarget":
                     tevent.mcards = e_mcards
                 cw.cwpy.event.effectevent = tevent
 
