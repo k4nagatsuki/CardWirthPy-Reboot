@@ -152,13 +152,16 @@ if "%3"=="build" (
 	pushd %DEST_DIR_ENGINE%
 	cd cardwirthpy-reboot
 	git push %MAIN_REPO_ENGINE% master
+	git push %MAIN_REPO_ENGINE% --tags
 	if not errorlevel = 0 goto failure
 	popd
 
 	rem エンジンの作業リポジトリへのメインストリームからのpullとリモートへのpush
 	pushd %LOCAL_REPO_ENGINE%
 	git pull upstream master
+	git pull upstream --tags
 	git push origin master
+	git push origin --tags
 	if not errorlevel = 0 goto failure
 	popd
 
@@ -166,13 +169,16 @@ if "%3"=="build" (
 	pushd %DEST_DIR_ENGINE%
 	cd cwxeditor_temp
 	git push %MAIN_REPO_EDITOR% master
+	git push %MAIN_REPO_EDITOR% --tags
 	if not errorlevel = 0 goto failure
 	popd
 
 	rem エディタの作業リポジトリへのメインストリームからのpullとリモートへのpush
 	pushd %EDITOR_DIR%
 	git pull upstream master
+	git pull upstream --tags
 	git push origin master
+	git push origin --tags
 	if not errorlevel = 0 goto failure
 	popd
 
