@@ -151,6 +151,7 @@ if "%3"=="build" (
 	rem エンジンのメインストリームへのpush
 	pushd %DEST_DIR_ENGINE%
 	cd cardwirthpy-reboot
+	git pull %MAIN_REPO_ENGINE% master
 	git push %MAIN_REPO_ENGINE% master
 	git push %MAIN_REPO_ENGINE% --tags
 	if not errorlevel = 0 goto failure
@@ -168,6 +169,7 @@ if "%3"=="build" (
 	rem エディタのメインストリームへのpush
 	pushd %DEST_DIR_ENGINE%
 	cd cwxeditor_temp
+	git pull %MAIN_REPO_EDITOR% master
 	git push %MAIN_REPO_EDITOR% master
 	git push %MAIN_REPO_EDITOR% --tags
 	if not errorlevel = 0 goto failure
