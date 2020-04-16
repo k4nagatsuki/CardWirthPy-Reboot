@@ -3797,7 +3797,14 @@ class CWPy(_Singleton, threading.Thread):
 
             if areachange:
                 # 戦闘前のエリアに戻る
-                self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)
+                try:
+                    self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)
+                except cw.event.EffectBreakError:
+                    # バトル開始時のエリアが削除されていたケース
+                    s = "エリア%sの読込に失敗しました。" % (areaid)
+                    cw.cwpy.call_modaldlg("ERROR", text=s)
+                    self.f9()
+                    return
                 self.statusbar.change(False)
 
             if eventkeynum:
