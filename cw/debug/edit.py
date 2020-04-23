@@ -1627,8 +1627,8 @@ class VariantEditDialog(wx.Dialog):
         self.type_str = wx.RadioButton(self, -1, "文字列")
         self.type_bool = wx.RadioButton(self, -1, "真偽値")
 
-        self.value_num = wx.lib.masked.NumCtrl(self, -1, value=0)
-        self.value_num.SetFractionWidth(3)
+        self.value_num = wx.TextCtrl(self, -1, "0", style=wx.ALIGN_RIGHT)
+        self._value_num_colour = self.value_num.GetBackgroundColour()
         self.value_str = wx.TextCtrl(self, -1)
         self.value_bool = wx.Choice(self, -1, choices=["TRUE", "FALSE"])
         self.value_bool.Select(0)
@@ -1643,9 +1643,12 @@ class VariantEditDialog(wx.Dialog):
         elif isinstance(value, decimal.Decimal):
             self.type_num.SetValue(True)
             try:
-                self.value_num.SetValue(float(value))
+                s = ("%.3f" % value).rstrip("0").rstrip(".")
+                if s == "":
+                    s = "0"
+                self.value_num.SetValue(s)
             except Exception:
-                self.value_num.SetValue(0)
+                self.value_num.SetValue("0")
             self.value_num.Enable()
         else:
             self.type_str.SetValue(True)
@@ -1666,7 +1669,7 @@ class VariantEditDialog(wx.Dialog):
         self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_num)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_str)
         self.Bind(wx.EVT_CHOICE, self.OnValue, self.value_bool)
-        self.Bind(wx.lib.masked.EVT_NUM, self.OnValue, self.value_num)
+        self.Bind(wx.EVT_TEXT, self.OnValue, self.value_num)
         self.Bind(wx.EVT_TEXT, self.OnValue, self.value_str)
 
     def _do_layout(self):
@@ -1707,9 +1710,18 @@ class VariantEditDialog(wx.Dialog):
         if self.type_bool.GetValue():
             self.value = self.value_bool.GetSelection() == 0
         elif self.type_num.GetValue():
-            self.value = decimal.Decimal(self.value_num.GetValue()).quantize(decimal.Decimal('.001'),
-                                                                             rounding=decimal.ROUND_HALF_UP).normalize()
-
+            try:
+                self.value = decimal.Decimal(self.value_num.GetValue())\
+                    .quantize(decimal.Decimal('.001'), rounding=decimal.ROUND_HALF_UP).normalize()
+                if self._value_num_colour != self.value_num.GetBackgroundColour():
+                    self.value_num.SetBackgroundColour(self._value_num_colour)
+                    self.value_num.Refresh()
+            except Exception:
+                cw.util.print_ex()
+                colour = wx.Colour(255, 255, 0)
+                if colour != self.value_num.GetBackgroundColour():
+                    self.value_num.SetBackgroundColour(colour)
+                    self.value_num.Refresh()
         else:
             self.value = self.value_str.GetValue()
 
