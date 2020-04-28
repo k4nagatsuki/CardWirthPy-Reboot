@@ -659,12 +659,18 @@ class _JpySubImage(cw.image.Image):
             return ("", False)
 
 
-def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
+def get_filepath_s(configpath, dirdepth, filename, dirtype=-1, scedir=""):
     """dirtypeに基づいて読み込むファイルのパスを取得する。"""
     if dirtype == -1:
         dirtype = 1
 
-    scedir = cw.cwpy.sdata.scedir
+    if not scedir:
+        inusecard = cw.cwpy.event.get_inusecard()
+        if cw.cwpy.event.in_inusecardevent and cw.cwpy.is_runningevent() and inusecard and\
+                inusecard.carddata.gettext("Property/Materials", ""):
+            scedir = cw.util.join_yadodir(inusecard.carddata.gettext("Property/Materials", ""))
+        else:
+            scedir = cw.cwpy.sdata.scedir
 
     def get_mtype(fpath):
         ext = os.path.splitext(fpath)[1].lower()
@@ -675,11 +681,11 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
 
     def find_materialpath(fpath):
         mtype = get_mtype(fpath)
-        inusecardpath = cw.util.get_inusecardmaterialpath(fpath, mtype, findskin=False)
+        inusecardpath = cw.util.get_inusecardmaterialpath(filename, mtype, findskin=False)
         if inusecardpath:
             fpath = inusecardpath
         else:
-            fpath = cw.util.get_materialpath(filename, mtype, findskin=False)
+            fpath = cw.util.get_materialpath(filename, mtype, findskin=False, scedir=scedir)
         fpath = cw.cwpy.rsrc.get_filepath(fpath)
         return fpath
 

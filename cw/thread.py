@@ -5434,7 +5434,8 @@ class CWPy(_Singleton, threading.Thread):
                     if not jpy1innnerfile:
                         continue
                     dirtype = config.get_int(section, "dirtype", 1)
-                    innerfpath = cw.effectbooster.get_filepath_s(config.path, imgpath, jpy1innnerfile, dirtype)
+                    innerfpath = cw.effectbooster.get_filepath_s(config.path, imgpath, jpy1innnerfile, dirtype,
+                                                                 scedir=scedir)[0]
                     if not innerfpath.startswith(scedir + "/"):
                         continue
                     innerfpath = innerfpath.replace(scedir + "/", "", 1)
