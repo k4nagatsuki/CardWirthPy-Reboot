@@ -306,7 +306,7 @@ class CardImage(Image):
             return self._bmp.copy()
 
         image = self.cardbg.copy()
-        if image.get_bitsize() == 32 and image.get_alpha() is 0:
+        if image.get_bitsize() == 32 and image.get_alpha() == 0:
             # BUG: なぜか32-bitイメージのα値が0になっているケースがある
             image.set_alpha(None)
         w = image.get_width()
@@ -740,7 +740,7 @@ class LargeCardImage(CardImage):
 
     def get_image(self):
         image = self.cardbg.copy()
-        if image.get_bitsize() == 32 and image.get_alpha() is 0:
+        if image.get_bitsize() == 32 and image.get_alpha() == 0:
             # BUG: なぜか32-bitイメージのα値が0になっているケースがある
             image.set_alpha(None)
         w = image.get_width()
@@ -1003,7 +1003,7 @@ class CharacterCardImage(CardImage):
         # 画像合成
         bgname = self.get_cardbgname(ccard)
         self.image = cw.cwpy.rsrc.cardbgs[bgname].convert()
-        if self.image.get_bitsize() == 32 and self.image.get_alpha() is 0:
+        if self.image.get_bitsize() == 32 and self.image.get_alpha() == 0:
             # BUG: なぜか32-bitイメージのα値が0になっているケースがある
             self.image.set_alpha(None)
 
