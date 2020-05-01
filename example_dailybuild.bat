@@ -11,9 +11,9 @@ rem CardWirthPyのローカルリポジトリ
 set LOCAL_REPO_ENGINE=D:\path\to\cardwirthpy-reboot
 
 rem Python(32-bit)
-set PYTHON_32="C:\Program Files (x86)\Python37-32\python.exe"
+set PYTHON_32="C:\Program Files (x86)\Python38-32\python.exe"
 rem Python(64-bit)
-set PYTHON_64="C:\Program Files\Python37\python.exe"
+set PYTHON_64="C:\Program Files\Python38\python.exe"
 
 rem CardWirthPyプレイヤーズガイドのローカルリポジトリのパス
 set CARDWIRTHPY_HELP_DIR=D:\path\to\CWPy_Help
