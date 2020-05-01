@@ -2635,7 +2635,8 @@ class Character(object):
         """
         対象消去を行う。
         """
-        if isinstance(self, cw.character.Friend):
+        if isinstance(self, cw.character.Friend) and\
+                cw.cwpy.sct.lessthan("1.50", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)):
             # 1.50までは同行NPCに対象消去は効かない
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()

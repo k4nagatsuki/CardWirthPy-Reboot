@@ -4,7 +4,6 @@
 import datetime
 import os
 import shutil
-import subprocess
 import sys
 import time
 import zipfile
