@@ -789,6 +789,7 @@ class Frame(wx.Frame):
         def func(header, sel, selpath):
             cw.cwpy.selectedscenario = header
             cw.cwpy.ydata.party.set_lastscenario(sel, selpath)
+            cw.cwpy.ydata.party.set_numbercoupon()
             cw.cwpy.change_area(4)
         cw.cwpy.exec_func(func, header, sel, selpath)
 
