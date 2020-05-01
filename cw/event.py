@@ -1615,7 +1615,8 @@ class CardEvent(Event, Targeting):
             if not is_menucard and\
                     target.is_unconscious() and\
                     not (eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) or
-                         eff.has_addablebeast(target)):
+                         eff.has_addablebeast(target) or
+                         eff.has_removablebeast(target)):
                 # 意識不明者に有効な効果が含まれていない場合は
                 # イベント発火判定を含め何もしない
                 clear_params(target)
@@ -1697,7 +1698,9 @@ class CardEvent(Event, Targeting):
 
 
 def get_effecttargetstatus(target, eff):
-    unconscious_flag = (eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) or eff.has_addablebeast(target)) and \
+    unconscious_flag = (eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) or
+                        eff.has_addablebeast(target) or
+                        eff.has_removablebeast(target)) and \
                        not isinstance(target, cw.sprite.card.MenuCard) and \
                        target.is_unconscious()
     paralyze_flag = not isinstance(target, cw.sprite.card.MenuCard) and target.is_paralyze()
