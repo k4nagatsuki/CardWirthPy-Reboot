@@ -2171,7 +2171,9 @@ class Character(object):
         "＿１"等の番号クーポンを削除。
         """
         # u"＠ＭＰ３"はCardWirth 1.29以降で配布されるクーポン
-        names = [cw.cwpy.msgs["number_1_coupon"], "＿１", "＿２", "＿３", "＿４", "＿５", "＿６", "＠ＭＰ３"]
+        names = [cw.cwpy.msgs["number_1_coupon"], "＿２", "＿３", "＿４", "＿５", "＿６", "＠ＭＰ３"]
+        if cw.cwpy.msgs.get("number_1_coupon_2", ""):
+            names.append(cw.cwpy.msgs["number_1_coupon_2"])
 
         for name in names:
             self._remove_coupon(name)
