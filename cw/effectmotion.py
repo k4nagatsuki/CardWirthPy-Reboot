@@ -143,7 +143,9 @@ class Effect(object):
                 cw.cwpy.event.is_changestate = True
             return False
 
-        if target.is_unconscious() and not self.has_motions(CAN_UNCONSCIOUS) and not self.has_addablebeast(target):
+        if target.is_unconscious() and not self.has_motions(CAN_UNCONSCIOUS) and\
+                not self.has_addablebeast(target) and\
+                not self.has_removablebeast(target):
             if cw.cwpy.is_battlestatus():
                 cw.cwpy.event.is_changestate = True
             return False
@@ -462,7 +464,8 @@ class Effect(object):
                 flag = False
                 for eff in self.motions:
                     if target.is_unconscious() and eff.type not in CAN_UNCONSCIOUS and\
-                            not eff.has_addablebeast(target):
+                            not eff.has_addablebeast(target) and\
+                            not eff.has_removablebeast(target):
                         continue
                     flag = True
                     break
@@ -474,6 +477,14 @@ class Effect(object):
         """意識不明状態でも消滅しない召喚獣を所持しているか。"""
         for motion in self.motions:
             if motion.has_addablebeast(target):
+                return True
+
+        return False
+
+    def has_removablebeast(self, target):
+        """targetが剥奪可能な召喚獣を所持しているか。"""
+        for motion in self.motions:
+            if motion.has_removablebeast(target):
                 return True
 
         return False
@@ -721,7 +732,9 @@ class EffectMotion(object):
             return False
 
         # 意識不明だったら一部効果の処理中止
-        if target.is_unconscious() and self.type not in CAN_UNCONSCIOUS and not self.has_addablebeast(target):
+        if target.is_unconscious() and self.type not in CAN_UNCONSCIOUS and\
+                not self.has_addablebeast(target) and\
+                not self.has_removablebeast(target):
             return False
 
         return True
@@ -734,6 +747,15 @@ class EffectMotion(object):
                 if e2 is None:
                     continue
                 if not cw.header.is_removewithstatus(e2, target):
+                    return True
+        return False
+
+    def has_removablebeast(self, target):
+        """targetから剥奪可能な召喚獣があるか。"""
+        if self.type == "VanishBeast":
+            seq = target.cardpocket[cw.POCKET_BEAST]
+            for beast in seq:
+                if not beast.attachment:
                     return True
         return False
 
