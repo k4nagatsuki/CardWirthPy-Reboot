@@ -6,7 +6,6 @@ import math
 import decimal
 import wx
 import wx.lib.mixins.listctrl as listmix
-import wx.lib.masked
 
 import cw
 
