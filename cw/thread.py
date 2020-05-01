@@ -465,6 +465,9 @@ class CWPy(_Singleton, threading.Thread):
                     else:
                         self.areaid = 1
 
+        if self.ydata and self.ydata.party and not self.is_playingscenario():
+            self.ydata.party.remove_numbercoupon()
+
         changed = self.ydata and self.ydata.is_changed()
         scedir = self.setting.get_scedir()
         oldskindirname = self.setting.skindirname
@@ -476,6 +479,9 @@ class CWPy(_Singleton, threading.Thread):
         oldskindir = cw.util.join_paths("Data/Skin", oldskindirname)
         newskindir = cw.util.join_paths("Data/Skin", skindirname)
         self.background.update_skin(oldskindir, newskindir)
+
+        if self.ydata and self.ydata.party and not self.is_playingscenario():
+            self.ydata.party.set_numbercoupon()
 
         def repl_cardimg(sprite):
             if hasattr(sprite, "cardimg"):
@@ -2446,9 +2452,6 @@ class CWPy(_Singleton, threading.Thread):
                 areaid = self.sdata.startid
                 if lastscenario or lastscenariopath:
                     self.ydata.party.set_lastscenario(lastscenario, lastscenariopath)
-
-                if not loaded:
-                    self.ydata.party.set_numbercoupon()
 
                 def func(loaded, musicpaths, areaid):
                     self.is_processing = False
