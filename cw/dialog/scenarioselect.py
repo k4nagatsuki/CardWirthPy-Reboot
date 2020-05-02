@@ -206,16 +206,16 @@ class ScenarioSelect(select.Select):
             self.additionals.append((self.invisible, lambda: cw.cwpy.setting.show_scenariotree))
             self.additionals.append((self.pagelabel, lambda: cw.cwpy.setting.show_scenariotree))
 
-            self.additionals.append(self.keyword_label)
-            self.additionals.append(self.narrow)
-            self.additionals.append(self.narrow_label)
-            self.additionals.append(self.narrow_type)
-            self.additionals.append(self.sort_label)
-            self.additionals.append(self.sort)
-            self.additionals.append(self.find)
-            self.additionals.append(self.bookmark)
-            self.additionals.append(self.addmenubtn)
-            self.update_additionals()
+            self.additionals2 = []
+            self.additionals2.append(self.keyword_label)
+            self.additionals2.append(self.narrow)
+            self.additionals2.append(self.narrow_label)
+            self.additionals2.append(self.narrow_type)
+            self.additionals2.append(self.sort_label)
+            self.additionals2.append(self.sort)
+            self.additionals2.append(self.find)
+            self.additionals2.append(self.bookmark)
+            self.additionals2.append(self.addmenubtn)
 
         # ok
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, (buttonwidth, cw.wins(24)),
@@ -256,6 +256,9 @@ class ScenarioSelect(select.Select):
             if item and not self.tree.IsVisible(item):
                 self.tree.ScrollTo(item)
                 self.tree.SetScrollPos(wx.HORIZONTAL, 0)
+
+        if not cw.cwpy.setting.show_paperandtree:
+            self.update_additionals()
 
         # リストが空だったらボタンを無効化
         self.enable_btn()
@@ -357,8 +360,11 @@ class ScenarioSelect(select.Select):
             self.append_addctrlaccelerator(seq)
         cw.util.set_acceleratortable(self, seq)
 
+    def is_showingaddctrl(self):
+        return self.addctrlbtn.GetToggle() or self.tree.IsShown()
+
     def update_additionals(self):
-        if self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree:
+        if self.is_showingaddctrl() or cw.cwpy.setting.show_scenariotree:
             self.addctrlbtn.Reparent(self)
         else:
             self.addctrlbtn.Reparent(self.toppanel)
@@ -367,14 +373,12 @@ class ScenarioSelect(select.Select):
             sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
             self.toppanel.SetSizer(sizer)
 
-        cw.cwpy.frame.exec_func(self._do_layout)
-
-        if self.addctrlbtn.GetToggle():
+        if self.is_showingaddctrl():
             size = (cw.wins(400), cw.wins(370)+2)
         else:
             size = (cw.wins(400), cw.wins(370))
 
-        if self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree:
+        if self.is_showingaddctrl() or cw.cwpy.setting.show_scenariotree:
             self.addctrlbtn.SetBackgroundColour(self.GetBackgroundColour())
         else:
             self.addctrlbtn.SetBackgroundColour(self._addctrlbg)
@@ -383,6 +387,9 @@ class ScenarioSelect(select.Select):
             h = size[1]
             h -= max([ctrl.GetSize()[1] if ctrl else 0 for ctrl in (self.unfitness, self.completed, self.invisible,
                                                                     self.pagelabel, self.addmenubtn, self.addctrlbtn)])
+            if self.is_showingaddctrl():
+                h -= 2  # border
+                h -= self._get_findpanelheight()
             treesize = (size[0], h)
         else:
             treesize = size
@@ -392,8 +399,11 @@ class ScenarioSelect(select.Select):
         self.tree.SetSize(treesize)
         self.tree.SetMinSize(treesize)
 
-        select.Select.update_additionals(self)
+        select.Select.update_additionals_impl(self, self.addctrlbtn.GetToggle(), self.additionals)
+        select.Select.update_additionals_impl(self, self.is_showingaddctrl(), self.additionals2)
         cw.cwpy.setting.show_additional_scenario = self.addctrlbtn.GetToggle()
+
+        self._do_layout()
 
     def _get_linktarget(self, path):
         if isinstance(path, FindResult):
@@ -569,7 +579,7 @@ class ScenarioSelect(select.Select):
         hsizer1.Add(self.invisible, 0, 0, 0)
         hsizer1.Add(self.pagelabel, 1, wx.CENTER | wx.RIGHT, cw.wins(5))
         hsizer1.Add(self.addmenubtn, 0, 0, 0)
-        if self.addctrlbtn and (self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree):
+        if self.addctrlbtn and (self.is_showingaddctrl() or cw.cwpy.setting.show_scenariotree):
             hsizer1.Add(self.addctrlbtn, 0, 0, 0)
         return hsizer1
 
@@ -594,6 +604,14 @@ class ScenarioSelect(select.Select):
         nsizer.Add(self.find, 0, wx.CENTER | wx.EXPAND, 0)
         nsizer.Add(self.bookmark, 0, wx.CENTER | wx.EXPAND, 0)
         return nsizer
+
+    def _get_findpanelheight(self):
+        h1 = self.keyword_label.GetSize()[1] + self.narrow.GetSize()[1] + cw.wins(1)*2
+        h2 = self.narrow_label.GetSize()[1] + self.narrow_type.GetSize()[1] + cw.wins(1)*2
+        h3 = self.sort_label.GetSize()[1] + self.sort.GetSize()[1]
+        h4 = self.find.GetSize()[1]
+        h5 = self.bookmark.GetSize()[1]
+        return max(h1, h2, h3, h4, h5)
 
     def OnFind(self, event):
         value = self.narrow.GetValue()
@@ -1822,6 +1840,9 @@ class ScenarioSelect(select.Select):
             return
 
         cw.cwpy.play_sound("equipment")
+        if not self.addctrlbtn.GetToggle():
+            self.Freeze()
+            cw.cwpy.frame.exec_func(self.Thaw)
         if self.tree.IsShown():
             self.tree.Hide()
             self.toppanel.Show()
@@ -2169,7 +2190,7 @@ class ScenarioSelect(select.Select):
             return
 
         # 背景
-        if cw.cwpy.setting.show_paperandtree or (self.addctrlbtn and not self.addctrlbtn.GetToggle()):
+        if cw.cwpy.setting.show_paperandtree or (self.addctrlbtn and not self.is_showingaddctrl()):
             yp = 0
         else:
             yp = 1
@@ -2396,7 +2417,7 @@ class ScenarioSelect(select.Select):
             self._enable_btn2(header, dc=dc)
 
         # 上部バーが非表示の時はページ数を表示
-        if self.addctrlbtn and not (self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree):
+        if self.addctrlbtn and not (self.is_showingaddctrl() or cw.cwpy.setting.show_scenariotree):
             page = self.pagelabel.GetLabelText()
             if self.addctrlbtn.IsShown():
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(15)))

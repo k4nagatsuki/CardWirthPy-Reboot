@@ -423,7 +423,11 @@ class Select(wx.Dialog):
     def update_additionals(self):
         """表示状態の切り替え時に呼び出される。"""
         show = self.addctrlbtn.GetToggle()
-        for ctrl in self.additionals:
+        self.update_additionals_impl(show, self.additionals)
+
+    def update_additionals_impl(self, show, additionals):
+        """表示状態の切り替え時に呼び出される。"""
+        for ctrl in additionals:
             if isinstance(ctrl, tuple):
                 ctrl, forceshow = ctrl
                 ctrl.Show(show or forceshow())
