@@ -752,7 +752,7 @@ class EffectMotion(object):
 
     def has_removablebeast(self, target):
         """targetから剥奪可能な召喚獣があるか。"""
-        if self.type == "VanishBeast":
+        if self.type == "VanishBeast" and isinstance(target, cw.character.Character):
             seq = target.cardpocket[cw.POCKET_BEAST]
             for beast in seq:
                 if not beast.attachment:
