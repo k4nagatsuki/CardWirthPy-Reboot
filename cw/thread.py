@@ -1427,6 +1427,8 @@ class CWPy(_Singleton, threading.Thread):
                     clip = self._lazy_clip.union_ip(clip)
             else:
                 clip = self._lazy_clip
+            if clip:
+                clip = clip.clip(cw.s(pygame.Rect(0, 0, cw.SIZE_GAME[0], cw.SIZE_GAME[1])))
             self.scr_draw.set_clip(clip)
             self.cardgrp.set_clip(clip)
             self.topgrp.set_clip(clip)

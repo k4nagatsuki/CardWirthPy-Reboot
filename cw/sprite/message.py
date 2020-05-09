@@ -1235,6 +1235,7 @@ def decorate(image, angle=8, basecolour=(255, 255, 255)):
                 c = max(0, y-cw.s(1))*angle
                 if cw.UP_SCR != 1:
                     c = int(float(c) / cw.UP_SCR)
+                c = min(c, 255)
                 color = (c, c, c, 0)
                 decoimg.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
                 rect = (0, mid+y, w, 1)
