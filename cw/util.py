@@ -3224,7 +3224,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
                     spcharinfo2.append(seqlen)
                     if not chars.startswith("#") or\
                        not chars[:2].lower() in cw.cwpy.rsrc.specialchars or\
-                       cw.cwpy.rsrc.specialchars[chars[:2].lower()][1]:
+                       width < cnt:
                         if width < cnt and chars.startswith("#"):
                             if not wrapafter:
                                 insert_wrap(len(seq))
