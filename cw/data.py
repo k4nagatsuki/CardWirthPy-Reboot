@@ -1861,7 +1861,6 @@ class ScenarioData(SystemData):
                                      debuglog)
 
         cw.cwpy.background.clear_background()
-        cw.cwpy.ydata.party.remove_numbercoupon()
         self.remove_log(debuglog)
         cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
 
@@ -1872,6 +1871,7 @@ class ScenarioData(SystemData):
             debuglog.set_times(startdatetime, pausedtime)
 
         self.debuglog = debuglog
+        cw.cwpy.ydata.party.remove_numbercoupon()
         cw.fsync.sync()
 
     def f9(self):
