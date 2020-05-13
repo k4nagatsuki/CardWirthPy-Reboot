@@ -1023,7 +1023,8 @@ class Character(object):
 
         # 宿へ取り込んだ特殊文字の使用時イベントでの表示に備える
         e_mates = header.carddata.find("Property/Materials")
-        if not header.scenariocard or e_mates is not None:
+        is_scenariocard = header.scenariocard  # イベント中にシナリオがクリアされるとscenariocardが書き換えられる
+        if not is_scenariocard or e_mates is not None:
             specialchars = cw.cwpy.rsrc.specialchars
             specialchars_is_changed = cw.cwpy.rsrc.specialchars_is_changed
             specialchars_local = cw.cwpy.rsrc.get_specialchars()
@@ -1046,7 +1047,7 @@ class Character(object):
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                 self.clear_zoomimgs()
                 cw.cwpy.cardgrp.remove(self)
-            if not header.scenariocard:
+            if not is_scenariocard and cw.cwpy.is_playingscenario():
                 # 特殊文字を元に戻す
                 cw.cwpy.rsrc.specialchars = specialchars
                 cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
