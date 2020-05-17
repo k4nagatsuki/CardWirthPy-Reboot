@@ -44,10 +44,10 @@ class TransferYadoDataDialog(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((300, 300)),
                                                   style=wx.LC_REPORT | wx.VSCROLL | wx.HSCROLL,
-                                                  colpos=1, system=False)
+                                                  colpos=0, system=False)
         self.datalist.SetFont(font)
-        self.imglist = self.datalist.imglist
-        assert self.imglist.ImageCount == 2
+        self.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
+        self.datalist.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.imgidx_bookmark = self.imglist.Add(cw.cwpy.rsrc.dialogs["BOOKMARK"])
         self.imgidx_party = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["MEMBER"])
         self.imgidx_standby = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["EVT_GET_CAST"])
@@ -61,47 +61,20 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imgidx_partyrecord = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["SELECTION"])
         self.imgidx_savedjpdcimage = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["JPDCIMAGE"])
         self.imgidx_variables = self.imglist.Add(cw.cwpy.rsrc.debugs_wx["VARIABLES"])
-        if sys.platform == "linux":
-            self.imgidx_bookmark_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.dialogs["BOOKMARK"]))
-            self.imgidx_party_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["MEMBER"]))
-            self.imgidx_standby_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_CAST"]))
-            self.imgidx_skill_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_SKILL"]))
-            self.imgidx_item_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_ITEM"]))
-            self.imgidx_beast_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_BEAST"]))
-            self.imgidx_gossip_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_GOSSIP"]))
-            self.imgidx_completestamp_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["EVT_GET_COMPLETESTAMP"]))
-            self.imgidx_money_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["MONEY"]))
-            self.imgidx_album_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["CARD"]))
-            self.imgidx_partyrecord_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["SELECTION"]))
-            self.imgidx_savedjpdcimage_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["JPDCIMAGE"]))
-            self.imgidx_variables_nc =\
-                self.imglist.Add(cw.imageretouch.to_disabledimage(cw.cwpy.rsrc.debugs_wx["VARIABLES"]))
-        else:
-            self.imgidx_bookmark_nc = self.imgidx_bookmark
-            self.imgidx_party_nc = self.imgidx_party
-            self.imgidx_standby_nc = self.imgidx_standby
-            self.imgidx_skill_nc = self.imgidx_skill
-            self.imgidx_item_nc = self.imgidx_item
-            self.imgidx_beast_nc = self.imgidx_beast
-            self.imgidx_gossip_nc = self.imgidx_gossip
-            self.imgidx_completestamp_nc = self.imgidx_completestamp
-            self.imgidx_money_nc = self.imgidx_money
-            self.imgidx_album_nc = self.imgidx_album
-            self.imgidx_partyrecord_nc = self.imgidx_partyrecord
-            self.imgidx_savedjpdcimage_nc = self.imgidx_savedjpdcimage
-            self.imgidx_variables_nc = self.imgidx_variables
+
+        self.imgidx_bookmark_nc = self.imgidx_bookmark
+        self.imgidx_party_nc = self.imgidx_party
+        self.imgidx_standby_nc = self.imgidx_standby
+        self.imgidx_skill_nc = self.imgidx_skill
+        self.imgidx_item_nc = self.imgidx_item
+        self.imgidx_beast_nc = self.imgidx_beast
+        self.imgidx_gossip_nc = self.imgidx_gossip
+        self.imgidx_completestamp_nc = self.imgidx_completestamp
+        self.imgidx_money_nc = self.imgidx_money
+        self.imgidx_album_nc = self.imgidx_album
+        self.imgidx_partyrecord_nc = self.imgidx_partyrecord
+        self.imgidx_savedjpdcimage_nc = self.imgidx_savedjpdcimage
+        self.imgidx_variables_nc = self.imgidx_variables
 
         self.imgidx_table_c = {
             self.imgidx_bookmark_nc: self.imgidx_bookmark,
@@ -121,19 +94,6 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imgidx_table_nc = {}
         for key, value in self.imgidx_table_c.items():
             self.imgidx_table_nc[value] = key
-
-        def func(index, flag):
-            self.datalist.DefaultOnCheckItem(index, flag)
-            self._enable_btn()
-            # wxGTKでチェックボックスが表示できないので
-            # イメージをモノクロ→カラーにする事でチェックを表現する
-            if sys.platform == "linux":
-                imgidx = self.datalist.GetItem(index, 1).GetImage()
-                if flag and imgidx in self.imgidx_table_c:
-                    self.datalist.SetItemColumnImage(index, 1, self.imgidx_table_c[imgidx])
-                elif (not flag) and imgidx in self.imgidx_table_nc:
-                    self.datalist.SetItemColumnImage(index, 1, self.imgidx_table_nc[imgidx])
-        self.datalist.OnCheckItem = func
 
         self.datalist.InsertItem(0, "", 0)
         rect = self.datalist.GetItemRect(0, wx.LIST_RECT_LABEL)
@@ -172,8 +132,8 @@ class TransferYadoDataDialog(wx.Dialog):
                     s = "スキン「%s(%s)」の状態変数" % (name, author)
                 else:
                     s = "スキン「%s」の状態変数" % (name)
-                self.datalist.SetItem(i, 1, s)
-                self.datalist.SetItemColumnImage(i, 1, self.imgidx_variables_nc)
+                self.datalist.SetItem(i, 0, s)
+                self.datalist.SetItemColumnImage(i, 0, self.imgidx_variables_nc)
                 self.datalist.CheckItem(i, False)
                 self.data.append((key, e, True, name, author))
                 i += 1
@@ -182,8 +142,8 @@ class TransferYadoDataDialog(wx.Dialog):
         bookmark = data.find("Bookmarks")
         if bookmark is not None:
             self.datalist.InsertItem(i, "")
-            self.datalist.SetItem(i, 1, cw.cwpy.msgs["bookmark"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_bookmark_nc)
+            self.datalist.SetItem(i, 0, cw.cwpy.msgs["bookmark"])
+            self.datalist.SetItemColumnImage(i, 0, self.imgidx_bookmark_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(bookmark)
             i += 1
@@ -191,8 +151,8 @@ class TransferYadoDataDialog(wx.Dialog):
         cashbox = data.getint("Property/Cashbox", 0)
         if cashbox:
             self.datalist.InsertItem(i, "")
-            self.datalist.SetItem(i, 1, cw.cwpy.msgs["currency"] % (cashbox))
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_money_nc)
+            self.datalist.SetItem(i, 0, cw.cwpy.msgs["currency"] % (cashbox))
+            self.datalist.SetItemColumnImage(i, 0, self.imgidx_money_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(cashbox)
             i += 1
@@ -200,8 +160,8 @@ class TransferYadoDataDialog(wx.Dialog):
         gossips = data.find("Gossips")
         if gossips is not None and len(gossips):
             self.datalist.InsertItem(i, "")
-            self.datalist.SetItem(i, 1, cw.cwpy.msgs["gossip"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_gossip_nc)
+            self.datalist.SetItem(i, 0, cw.cwpy.msgs["gossip"])
+            self.datalist.SetItemColumnImage(i, 0, self.imgidx_gossip_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(gossips)
             i += 1
@@ -209,8 +169,8 @@ class TransferYadoDataDialog(wx.Dialog):
         completestamp = data.find("CompleteStamps")
         if completestamp is not None and len(completestamp):
             self.datalist.InsertItem(i, "")
-            self.datalist.SetItem(i, 1, cw.cwpy.msgs["complete_stamp"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_completestamp_nc)
+            self.datalist.SetItem(i, 0, cw.cwpy.msgs["complete_stamp"])
+            self.datalist.SetItemColumnImage(i, 0, self.imgidx_completestamp_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(completestamp)
             i += 1
@@ -230,16 +190,16 @@ class TransferYadoDataDialog(wx.Dialog):
 
         if album:
             self.datalist.InsertItem(i, "")
-            self.datalist.SetItem(i, 1, cw.cwpy.msgs["album"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_album_nc)
+            self.datalist.SetItem(i, 0, cw.cwpy.msgs["album"])
+            self.datalist.SetItemColumnImage(i, 0, self.imgidx_album_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(album)
             i += 1
 
         if partyrecord:
             self.datalist.InsertItem(i, "")
-            self.datalist.SetItem(i, 1, cw.cwpy.msgs["select_party_record"])
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_partyrecord_nc)
+            self.datalist.SetItem(i, 0, cw.cwpy.msgs["select_party_record"])
+            self.datalist.SetItemColumnImage(i, 0, self.imgidx_partyrecord_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(partyrecord)
             i += 1
@@ -252,8 +212,8 @@ class TransferYadoDataDialog(wx.Dialog):
                 s = "状態変数 - %s(%s)" % (key[0], key[1])
             else:
                 s = "状態変数 - %s" % (key[0])
-            self.datalist.SetItem(i, 1, s)
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_variables_nc)
+            self.datalist.SetItem(i, 0, s)
+            self.datalist.SetItemColumnImage(i, 0, self.imgidx_variables_nc)
             self.datalist.CheckItem(i, False)
             self.data.append((key, header, False))
             i += 1
@@ -266,8 +226,8 @@ class TransferYadoDataDialog(wx.Dialog):
                 s = "JPDC - %s(%s)" % (header.scenarioname, header.scenarioauthor)
             else:
                 s = "JPDC - %s" % (header.scenarioname)
-            self.datalist.SetItem(i, 1, s)
-            self.datalist.SetItemColumnImage(i, 1, self.imgidx_savedjpdcimage_nc)
+            self.datalist.SetItem(i, 0, s)
+            self.datalist.SetItemColumnImage(i, 0, self.imgidx_savedjpdcimage_nc)
             self.datalist.CheckItem(i, False)
             self.data.append(header)
             i += 1
@@ -293,15 +253,15 @@ class TransferYadoDataDialog(wx.Dialog):
             else:
                 assert False
             self.datalist.InsertItem(i, "")
-            self.datalist.SetItem(i, 1, header.name)
-            self.datalist.SetItemColumnImage(i, 1, image)
+            self.datalist.SetItem(i, 0, header.name)
+            self.datalist.SetItemColumnImage(i, 0, image)
             self.datalist.CheckItem(i, False)
             self.data.append(header)
             i += 1
 
         if not self.data:
             self.datalist.InsertItem(i, "")
-            self.datalist.SetItem(i, 1, cw.cwpy.msgs["transfer_no_item"])
+            self.datalist.SetItem(i, 0, cw.cwpy.msgs["transfer_no_item"])
 
         self._enable_btn()
 
@@ -310,7 +270,7 @@ class TransferYadoDataDialog(wx.Dialog):
         if btn:
             btn = False
             for index in range(self.datalist.GetItemCount()):
-                if self.datalist.IsChecked(index):
+                if self.datalist.IsItemChecked(index):
                     btn = True
                     break
         self.okbtn.Enable(btn)
@@ -339,7 +299,7 @@ class TransferYadoDataDialog(wx.Dialog):
         name2 = self.yadonames[index2]
         seq = []
         for i in range(self.datalist.GetItemCount()):
-            if self.datalist.IsChecked(i):
+            if self.datalist.IsItemChecked(i):
                 seq.append(self.data[i])
         s = cw.cwpy.msgs["confirm_transfer"] % (name1, len(seq), name2)
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
@@ -948,6 +908,8 @@ class TransferYadoDataDialog(wx.Dialog):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.fromyado.Bind(wx.EVT_CHOICE, self.OnFromYado)
         self.toyado.Bind(wx.EVT_CHOICE, self.OnToYado)
+        self.datalist.Bind(wx.EVT_LIST_ITEM_CHECKED, self.OnListItemChecked)
+        self.datalist.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.OnListItemChecked)
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -985,6 +947,10 @@ class TransferYadoDataDialog(wx.Dialog):
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
+
+    def OnListItemChecked(self, event):
+        self.datalist.OnListItemChecked(event)
+        self._enable_btn()
 
 
 def main():
