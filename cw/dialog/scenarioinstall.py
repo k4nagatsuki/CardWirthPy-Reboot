@@ -954,7 +954,7 @@ class OverwriteScenarioDialog(wx.Dialog):
             headers = self.db_exists[fpath]
             repls = []
             for header in headers:
-                checked = self.datalist.IsChecked(index)
+                checked = self.datalist.IsItemChecked(index)
                 if checked:
                     repls.append(header.get_fpath())
                 index += 1
