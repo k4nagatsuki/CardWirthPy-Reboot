@@ -368,10 +368,12 @@ class ScenarioSelect(select.Select):
             self.addctrlbtn.Reparent(self)
         else:
             self.addctrlbtn.Reparent(self.toppanel)
+            if self.addctrlbtn.GetContainingSizer():
+                self.addctrlbtn.GetContainingSizer().Detach(self.addctrlbtn)
             sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.toppanel.SetSizer(sizer)
             sizer.AddStretchSpacer(1)
             sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
-            self.toppanel.SetSizer(sizer)
 
         if self.is_showingaddctrl():
             size = (cw.wins(400), cw.wins(370)+2)
@@ -568,7 +570,7 @@ class ScenarioSelect(select.Select):
             select.Select._do_layout(self)
 
     def _add_topsizer(self):
-        self.topsizer.Insert(0, self._sizer_top(), 0, wx.EXPAND | wx.TOP | wx.CENTER | wx.ALIGN_RIGHT, 0)
+        self.topsizer.Insert(0, self._sizer_top(), 0, wx.TOP | wx.CENTER | wx.EXPAND, 0)
         self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
         self.topsizer.Add(self._sizer_find(), 0, wx.EXPAND, 0)
 
@@ -579,6 +581,8 @@ class ScenarioSelect(select.Select):
         hsizer1.Add(self.invisible, 0, 0, 0)
         hsizer1.Add(self.pagelabel, 1, wx.CENTER | wx.RIGHT, cw.wins(5))
         hsizer1.Add(self.addmenubtn, 0, 0, 0)
+        if self.addctrlbtn.GetContainingSizer():
+            self.addctrlbtn.GetContainingSizer().Detach(self.addctrlbtn)
         if self.addctrlbtn and (self.is_showingaddctrl() or cw.cwpy.setting.show_scenariotree):
             hsizer1.Add(self.addctrlbtn, 0, 0, 0)
         return hsizer1

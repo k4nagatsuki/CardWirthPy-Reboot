@@ -727,8 +727,8 @@ class SkinInfoPanel(wx.Panel):
 
         def add_info(ctrl, pos, colspan=1, rowspan=1, expand=True, growable=False):
             sizer = wx.BoxSizer(wx.HORIZONTAL)
-            growable = wx.EXPAND if growable else 0
-            sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL | growable, cw.ppis(0))
+            growable = wx.EXPAND if growable else wx.ALIGN_CENTER_VERTICAL
+            sizer.Add(ctrl, 1, growable, cw.ppis(0))
             span = wx.GBSpan(colspan=colspan, rowspan=rowspan)
             expand = wx.EXPAND if expand else 0
             gbsizer_info.Add(sizer, pos=pos, span=span, flag=wx.ALL | expand | wx.ALIGN_CENTER_VERTICAL,

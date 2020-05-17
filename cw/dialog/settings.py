@@ -1655,7 +1655,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_ssbtm.Add(self.cb_sswithstatusbar, 0, wx.CENTER, 0)
         bsizer_ssbtm.Add(cw.ppis((3, 0)), 1, 0, 0)
         bsizer_ssbtm.Add(self.sstoolbar, 0, wx.CENTER, 0)
-        bsizer_ss.Add(bsizer_ssbtm, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT | wx.EXPAND, cw.ppis(3))
+        bsizer_ss.Add(bsizer_ssbtm, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, cw.ppis(3))
 
         sizer_left.Add(bsizer_tablet, 0, wx.BOTTOM | wx.EXPAND, cw.ppis(3))
         sizer_left.Add(bsizer_gene, 0, wx.BOTTOM | wx.EXPAND, cw.ppis(3))

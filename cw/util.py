@@ -3757,6 +3757,10 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
 
 def empty_bitmap(w, h):
     """空のビットマップを返す。"""
+    if w <= 0:
+        w = 1
+    if h <= 0:
+        h = 1
     return wx.Bitmap(w, h, depth=24)
 
 

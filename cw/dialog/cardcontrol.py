@@ -458,17 +458,17 @@ class CardControl(wx.Dialog):
 
         # ボタンバー
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(sizer_1)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel.SetSizer(sizer_panel)
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
         sizer_panel.AddStretchSpacer(1)
         sizer_panel.Add(self.closebtn, 0, wx.TOP | wx.BOTTOM, cw.wins(3))
         sizer_panel.AddStretchSpacer(1)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
-        self.panel.SetSizer(sizer_panel)
         # トップパネルとボタンバーのサイザーを設定
         sizer_1.Add(self.toppanel, 1, wx.EXPAND, 0)
         sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
-        self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
 

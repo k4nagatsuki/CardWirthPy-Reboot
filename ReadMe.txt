@@ -272,7 +272,7 @@ WSN形式では、バージョン「Wsn.2」以降、称号判定分岐でWSN形
 
 CardWirthPyはプログラミング言語Pythonで書かれました。
 
-[Python ver3.7.*](http://www.python.org/)
+[Python ver3.8.*](http://www.python.org/)
 python36.dll, lib内でこれ以降に記載の無い全てのファイルとディレクトリ
  : License: Python Software Foundation License
 
@@ -282,7 +282,7 @@ python36.dll, lib内でこれ以降に記載の無い全てのファイルとデ
 
 CardWirthPyは以下のPythonの外部モジュールを利用しています。
 
-[wxPython 4.0.*](http://www.wxpython.org/)
+[wxPython 4.1.*](http://www.wxpython.org/)
 lib/wx以下の全てのファイルとディレクトリ
  : License: wxWindows Library License
 
