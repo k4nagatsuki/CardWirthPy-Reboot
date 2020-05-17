@@ -882,7 +882,7 @@ class CharaRequirementPanel(wx.Panel):
         sizer_image2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_image2.Add(self.imgcombo, 0, wx.ALIGN_CENTER, 0)
         sizer_image2.Add(self.ref_image, 0, wx.ALIGN_CENTER | wx.LEFT, cw.ppis(2))
-        sizer_image.Add(sizer_image2, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND | wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_image.Add(sizer_image2, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, cw.ppis(5))
         sizer_image.Add(self.imgcentering, 0, wx.BOTTOM | wx.ALIGN_RIGHT, cw.ppis(5))
 
         sizer_level = wx.StaticBoxSizer(self.lvlbox, wx.VERTICAL)
@@ -891,7 +891,7 @@ class CharaRequirementPanel(wx.Panel):
         sizer_type = wx.StaticBoxSizer(self.typbox, wx.VERTICAL)
         sizer_type2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_type2.Add(self.type, 1, wx.ALIGN_CENTER, cw.ppis(0))
-        sizer_type.Add(sizer_type2, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER, cw.ppis(5))
+        sizer_type.Add(sizer_type2, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(5))
 
         sizer_lefttop = wx.BoxSizer(wx.VERTICAL)
         sizer_lefttop.Add(sizer_name, 0, wx.EXPAND)
@@ -903,7 +903,7 @@ class CharaRequirementPanel(wx.Panel):
             sizer_lefttop.Add(sizer_leveltype, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
 
             sizer_race = wx.StaticBoxSizer(self.racebox, wx.VERTICAL)
-            sizer_race.Add(self.race, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTER, cw.ppis(5))
+            sizer_race.Add(self.race, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(5))
             sizer_lefttop.Add(sizer_race, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))
         else:
             sizer_lefttop.Add(sizer_level, 0, wx.EXPAND | wx.TOP, border=cw.ppis(5))

@@ -99,14 +99,20 @@ class SelectScenarioDirectory(wx.Dialog):
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.AddStretchSpacer(1)
         sizer_2.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
+        if self.createdirbtn.GetContainingSizer():
+            self.createdirbtn.GetContainingSizer().Detach(self.createdirbtn)
         sizer_2.Add(self.createdirbtn, 0, wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER, cw.wins(10))
         sizer_1.Add(sizer_2, 0, wx.EXPAND, wx.LEFT | wx.RIGHT, cw.wins(10))
 
+        if self.tree.GetContainingSizer():
+            self.tree.GetContainingSizer().Detach(self.tree)
         sizer_1.Add(self.tree, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, cw.wins(8))
 
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3.AddStretchSpacer(1)
         for i, button in enumerate(self.buttons):
+            if button.GetContainingSizer():
+                button.GetContainingSizer().Detach(button)
             sizer_3.Add(button, 0, 0, 0)
             sizer_3.AddStretchSpacer(1)
 
@@ -977,11 +983,15 @@ class OverwriteScenarioDialog(wx.Dialog):
         sizer_1.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
         csize = self.GetClientSize()
 
+        if self.datalist.GetContainingSizer():
+            self.datalist.GetContainingSizer().Detach(self.datalist)
         sizer_1.Add(self.datalist, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, cw.wins(8))
 
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.AddStretchSpacer(1)
         for i, button in enumerate((self.okbtn, self.cnclbtn)):
+            if button.GetContainingSizer():
+                button.GetContainingSizer().Detach(button)
             sizer_2.Add(button, 0, 0, 0)
             sizer_2.AddStretchSpacer(1)
 

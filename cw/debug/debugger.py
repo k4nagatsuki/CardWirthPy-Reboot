@@ -1515,7 +1515,7 @@ class Debugger(wx.Frame):
             bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PAUSE"]
             text = "イベント一時停止(&P)\tF10"
             helptext = "イベントを一時停止します。"
-        self.mi_pause.SetText(text)
+        self.mi_pause.SetItemLabel(text)
         self.tl_pause.SetNormalBitmap(bmp)
         self.tl_pause.SetShortHelp(helptext)
 

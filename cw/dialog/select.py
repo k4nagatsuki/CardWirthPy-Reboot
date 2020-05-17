@@ -297,15 +297,15 @@ class Select(wx.Dialog):
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(sizer_1)
         self.set_panelsizer()
 
         self.topsizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_1.Add(self.topsizer, 1, wx.EXPAND, 0)
         self.topsizer.Add(self.toppanel, 1, wx.EXPAND, 0)
         self._add_topsizer()
 
-        sizer_1.Add(self.topsizer, 1, wx.EXPAND, 0)
         sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
-        self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
 
@@ -314,6 +314,7 @@ class Select(wx.Dialog):
 
     def set_panelsizer(self):
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel.SetSizer(sizer_panel)
 
         sizer_panel.Add(self.left2btn, 0, 0, 0)
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
@@ -326,7 +327,6 @@ class Select(wx.Dialog):
         sizer_panel.AddStretchSpacer(1)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         sizer_panel.Add(self.right2btn, 0, 0, 0)
-        self.panel.SetSizer(sizer_panel)
 
     def _disable_btn(self, enables=[][:]):
         lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
@@ -361,7 +361,7 @@ class Select(wx.Dialog):
         else:
             self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition"])
             self.narrow_label.SetFont(font)
-            self.narrow = wx.TextCtrl(self, -1, size=(cw.wins(0), -1))
+            self.narrow = wx.TextCtrl(self, -1, size=(cw.wins(0), -1), style=wx.TE_PROCESS_ENTER)
         self.narrow.SetFont(font)
         self.narrow.SetValue(narrowtext)
         if tworows:
@@ -2555,12 +2555,6 @@ class PlayerSelect(MultiViewSelect):
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
         self.Bind(wx.EVT_CHOICE, self.OnSort, self.sort)
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
-
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(cw.wins((383, 0)), 0)
-        sizer.Add(self.sort, 0, wx.TOP, cw.wins(2))
-        self.toppanel.SetSizer(sizer)
-        self.toppanel.Layout()
 
         seq = self.accels
         self.sortkeydown = []
