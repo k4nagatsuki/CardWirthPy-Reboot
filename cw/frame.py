@@ -581,7 +581,7 @@ class Frame(wx.Frame):
 
     def OnIconize(self, event):
         """最小化イベント。最小化したときBGMの音も消す。"""
-        self.is_iconized = event.Iconized()
+        self.is_iconized = event.IsIconized()
         if self.is_iconized:
             def func():
                 if not cw.cwpy:

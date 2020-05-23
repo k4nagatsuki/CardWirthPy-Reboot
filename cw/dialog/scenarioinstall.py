@@ -130,6 +130,7 @@ class SelectScenarioDirectory(wx.Dialog):
         self.tree.Freeze()
         self.tree.DeleteChildren(treeitem)
         dpath = self.tree.GetItemData(treeitem)
+        selected = None
 
         for dir in get_dpaths(dpath):
             name = os.path.basename(dir)
@@ -144,8 +145,11 @@ class SelectScenarioDirectory(wx.Dialog):
                     self.tree.Expand(item)
                     continue
                 self.tree.SelectItem(item)
+                selected = item
             self.tree.AppendItem(item, "読込中...")
         self.tree.Thaw()
+        if selected:
+            cw.cwpy.frame.exec_func(self.tree.ScrollTo, selected)
 
     def OnTreeItemExpanded(self, event):
         selitem = event.GetItem()
