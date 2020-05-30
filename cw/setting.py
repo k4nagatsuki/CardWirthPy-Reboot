@@ -1344,6 +1344,8 @@ class Setting(object):
         過去のアップデートで追加されたリソースのみ確認している。
         """
         dpath = cw.util.join_paths(self.skindir, "Resource/Xml/Yado")
+        if not os.path.isdir(dpath):
+            return dpath + "が見つかりません。"
         for fname in os.listdir(dpath):
             fpath = cw.util.join_paths(dpath, fname)
             id = int(cw.header.GetName(fpath, tagname="Id").name)
