@@ -106,12 +106,15 @@ class Message(wx.Dialog):
 
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
+        csize = self.GetClientSize()
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
-        csize = self.GetClientSize()
-        cw.util.fill_bitmap(dc, bmp, csize)
+        # エラー表示にも使用するため、"CAUTION"が存在しない場合も確実に表示する必要がある
+        # そのため空ビットマップが返ってくる可能性を考慮しておく
+        if 1 < bmp.GetWidth() and 1 < bmp.GetHeight():
+            cw.util.fill_bitmap(dc, bmp, csize)
+            dc.SetTextForeground(wx.BLACK)
         # massage
-        dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         dc.DrawLabel(self.text, (0, cw.wins(12), csize[0], self._textheight), wx.ALIGN_CENTER)
 
