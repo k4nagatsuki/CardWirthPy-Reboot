@@ -1629,7 +1629,7 @@ class NumberOfCards(base.CWPySprite):
         """カード所持枚数を表示するスプライト。
         pcard: カード所持者。
         cardtype: カード種別。
-        spritegrp: 登録するSpriteGroup。"numberofcards"レイヤに追加される。
+        spritegrp: 登録するSpriteGroup。cw.LAYER_NUMBER_OF_CARDSレイヤに追加される。
         """
         base.CWPySprite.__init__(self)
         self.pcard = pcard
@@ -1639,10 +1639,15 @@ class NumberOfCards(base.CWPySprite):
         spritegrp.add(self, layer=cw.LAYER_NUMBER_OF_CARDS)
 
     def update_scale(self):
-        num = len(self.pcard.get_pocketcards(self.cardtype))
-        cap = self.pcard.get_cardpocketspace()[self.cardtype]
+        if self.cardtype == cw.POCKET_PERSONAL:
+            num = len(self.pcard.personal_pocket)
+            cap = self.pcard.get_personalpocketspace()
+            font = cw.cwpy.rsrc.fonts["numcards_personal"]
+        else:
+            num = len(self.pcard.get_pocketcards(self.cardtype))
+            cap = self.pcard.get_cardpocketspace()[self.cardtype]
+            font = cw.cwpy.rsrc.fonts["numcards"]
 
-        font = cw.cwpy.rsrc.fonts["numcards"]
         wl = font.size(str(num))[0]
         wm = font.size("/")[0]
         wr = font.size(str(cap))[0]
@@ -1671,11 +1676,19 @@ class NumberOfCards(base.CWPySprite):
         self.image.blit(image, (1, 1))
 
         self.rect = self.image.get_rect()
-        bmpw = self.pcard.rect.width
-        if num:
-            bmpw -= cw.cwpy.rsrc.pygamedialogs["REPLACE_CARDS"].get_width()//2
-        self.rect.left = self.pcard.rect.left + bmpw//2 - self.rect.width//2
-        self.rect.top = self.pcard.rect.top - (h+1) - cw.s(5)
+        if self.cardtype == cw.POCKET_PERSONAL:
+            pw, ph = cw.cwpy.rsrc.pygamedialogs["TO_PERSONAL_POCKET"].get_size()
+            self.rect.top = min(self.pcard.rect.bottom - cw.s(12),
+                                cw.s(cw.SIZE_AREA[1])-self.rect.height-cw.s(2))
+            x = self.pcard.rect.left - cw.s(5)
+            x += (pw - self.rect.width) // 2
+            self.rect.left = x
+        else:
+            bmpw = self.pcard.rect.width
+            if num:
+                bmpw -= cw.cwpy.rsrc.pygamedialogs["REPLACE_CARDS"].get_width()//2
+            self.rect.left = self.pcard.rect.left + bmpw//2 - self.rect.width//2
+            self.rect.top = self.pcard.rect.top - (h+1) - cw.s(5)
 
 
 class PriceOfCard(base.CWPySprite):

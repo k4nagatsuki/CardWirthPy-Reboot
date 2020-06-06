@@ -1713,6 +1713,7 @@ def card_screenshot():
                 bmp = create_cardscreenshot(titledic)
                 pygame.image.save(bmp, filename)
             except Exception:
+                cw.util.print_ex()
                 s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
                 cw.cwpy.call_modaldlg("ERROR", text=s)
             return True
@@ -1734,7 +1735,7 @@ def create_cardscreenshot(titledic):
 
     pcards = [i for i in cw.cwpy.get_pcards()]
     if pcards:
-        max_card = [2, 2, 2]
+        max_card = [2, 2, 2, 0]
         margin = 2
         # 背景のタイル色
         # タイトルバーに馴染む色にする
@@ -1745,8 +1746,12 @@ def create_cardscreenshot(titledic):
         for pcard in pcards:
             for index in (cw.POCKET_SKILL, cw.POCKET_ITEM, cw.POCKET_BEAST):
                 max_card[index] = max(len(pcard.cardpocket[index]), max_card[index])
+            if cw.cwpy.setting.show_personal_cards:
+                max_card[3] = max(len(pcard.personal_pocket), max_card[3])
 
         w = cw.s(95 + 80 * sum(max_card) + margin * (5 + sum(max_card)))
+        if max_card[3]:
+            w += cw.s(margin)
         h = cw.s((130 + 2 * margin) * len(pcards))
         title = screenshot_title(titledic)
         if title:
@@ -1793,14 +1798,22 @@ def create_cardscreenshot(titledic):
 
             current_x = 95 + 2 * margin
             next_x = 0
-            for index in (cw.POCKET_SKILL, cw.POCKET_ITEM, cw.POCKET_BEAST):
+            for index in (cw.POCKET_SKILL, cw.POCKET_ITEM, cw.POCKET_BEAST, cw.POCKET_PERSONAL):
+                if max_card[index] == 0:
+                    continue
                 current_x += next_x
                 next_x = 80 * max_card[index] + margin * (max_card[index] + 1)
                 backindex = (index + i) % 2
                 bmp.fill(back[backindex], rect=pygame.Rect(cw.s(current_x), sy, cw.s(next_x), cw.s(130 + 2 * margin)))
-                adjust_x = (max_card[index] - len(pcards[i].cardpocket[index]))
+                if index == cw.POCKET_PERSONAL:
+                    adjust_x = (max_card[index] - len(pcards[i].personal_pocket))
+                else:
+                    adjust_x = (max_card[index] - len(pcards[i].cardpocket[index]))
                 x = current_x + adjust_x * 40 + margin * (2 + adjust_x) // 2
-                blit_card(pcards[i].cardpocket[index], x, sy)
+                if index == cw.POCKET_PERSONAL:
+                    blit_card(pcards[i].personal_pocket, x, sy)
+                else:
+                    blit_card(pcards[i].cardpocket[index], x, sy)
 
             sy += cw.s(130 + 2 * margin)
 

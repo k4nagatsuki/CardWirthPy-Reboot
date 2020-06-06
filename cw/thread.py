@@ -165,6 +165,8 @@ class CWPy(_Singleton, threading.Thread):
         self.guardcards = []
         # 一時的に荷物袋から取り出して使用中のカード
         self.card_takenouttemporarily = None
+        self.card_takenouttemporarily_personal_owner = None
+        self.card_takenouttemporarily_personal_index = -1
         # エリアID
         self.areaid = 1
         # 特殊エリア移動前に保持しておく各種データ
@@ -421,13 +423,6 @@ class CWPy(_Singleton, threading.Thread):
                     switch_skin=False, switch_yado=False):
         if not switch_yado:
             self.is_updating_skin = True
-        if self.status == "Yado" and self.pre_areaids:
-            oldareaid = self.areaid
-            selectedheader = self.selectedheader
-            pre_dialogs = self.pre_dialogs[:]
-            self.clean_specials(redraw=False, silent=True)
-        else:
-            oldareaid = None
 
         self.file_updates.clear()
         if self.status == "Title" and restartop:
@@ -464,6 +459,14 @@ class CWPy(_Singleton, threading.Thread):
                         self.areaid = 2
                     else:
                         self.areaid = 1
+
+        if self.status == "Yado" and self.pre_areaids:
+            oldareaid = self.areaid
+            selectedheader = self.selectedheader
+            pre_dialogs = self.pre_dialogs[:]
+            self.clean_specials(redraw=False, silent=True)
+        else:
+            oldareaid = None
 
         if self.ydata and self.ydata.party and not self.is_playingscenario():
             self.ydata.party.remove_numbercoupon()
@@ -577,8 +580,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.change_specialarea(oldareaid, silent=True)
                     self.statusbar.change(showbuttons=True)
 
-                if self.is_playingscenario() and self.areaid in cw.AREAS_TRADE and self.selectedheader:
-                    self.topgrp.empty()
+                if self.areaid in cw.AREAS_TRADE and self.selectedheader:
                     self.show_numberofcards(self.selectedheader.type)
 
                 self.is_updating_skin = False
@@ -1279,9 +1281,16 @@ class CWPy(_Singleton, threading.Thread):
             owner = self.card_takenouttemporarily.get_owner()
             if owner and isinstance(owner, cw.character.Character) and self.sdata.party_environment_backpack:
                 self.clear_inusecardimg(self.card_takenouttemporarily.get_owner())
-                cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None,
-                              sound=False, call_predlg=False, sort=True)
-            cw.cwpy.card_takenouttemporarily = None
+                header = self.card_takenouttemporarily
+                cw.cwpy.trade("BACKPACK", header=header, from_event=False, parentdialog=None,
+                              sound=False, call_predlg=False, sort=False)
+                if self.card_takenouttemporarily_personal_owner:
+                    index = self.card_takenouttemporarily_personal_index
+                    self.card_takenouttemporarily_personal_owner.add_personalpocket(header, index)
+                cw.cwpy.ydata.party.sort_backpack()
+            self.card_takenouttemporarily = None
+            self.card_takenouttemporarily_personal_owner = None
+            self.card_takenouttemporarily_personal_index = -1
 
     def fix_updated_file(self, force=False):
         # JPDC撮影などで更新されたメニューカードと背景を更新する
@@ -2784,6 +2793,7 @@ class CWPy(_Singleton, threading.Thread):
             status = "hidden"
         else:
             status = "normal"
+        personalcard_tbl = {}
         for idx, data in enumerate(self.ydata.party.members):
             if idx < len(pcards):
                 pcard = pcards[idx]
@@ -2837,7 +2847,9 @@ class CWPy(_Singleton, threading.Thread):
 
             pcard.set_pos_noscale(pos_noscale)
             pcard.set_fullrecovery()
+            pcard.refresh_personalpocket(personalcard_tbl)
             pcard.update_image()
+        cw.cwpy.ydata.party.sort_backpack()
 
         self.sdata.remove_log(None)
 
@@ -3003,12 +3015,15 @@ class CWPy(_Singleton, threading.Thread):
                             self._f9impl(startotherscenario=True)
                             resume = False
                     else:
+                        personalcard_tbl = {}
                         for idx, data in enumerate(self.ydata.party.members):
                             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
                             pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal", index=idx)
                             pcard.set_pos_noscale(pos_noscale)
                             pcard.set_fullrecovery()
+                            pcard.refresh_personalpocket(personalcard_tbl)
                             pcard.update_image()
+                        self.ydata.party.sort_backpack()
                         self.ydata.party._loading = False
                         self.ydata.party.lastscenario = []
                         self.ydata.party.lastscenariopath = optscenario
@@ -3325,12 +3340,19 @@ class CWPy(_Singleton, threading.Thread):
         self.input(True)
         self.event.refresh_showpartytools()
 
-    def set_pcards(self):
+    def set_pcards(self, newparty=False):
         # プレイヤカードスプライト作成
         if self.ydata and self.ydata.party and not self.get_pcards():
+            personalcard_tbl = {}
             for idx, e in enumerate(self.ydata.party.members):
                 pos_noscale = 95 * idx + 9 * (idx + 1), 285
-                cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=idx)
+                pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=idx)
+                if newparty:
+                    pcard.restore_personalpocket()
+                else:
+                    pcard.refresh_personalpocket(personalcard_tbl)
+            if not newparty:
+                self.ydata.party.sort_backpack()
 
             # 番号クーポン設定
             self.ydata.party._loading = False
@@ -3338,7 +3360,7 @@ class CWPy(_Singleton, threading.Thread):
     def set_sprites(self, dealanime=True,
                     bginhrt=False, ttype=("Default", "Default"),
                     doanime=True, data=None,
-                    nocheckvisible=False, silent=False):
+                    nocheckvisible=False, silent=False, newparty=False):
         """エリアにスプライトをセットする。
         bginhrt: Trueの時は背景継承。
         """
@@ -3371,7 +3393,7 @@ class CWPy(_Singleton, threading.Thread):
         self.set_mcards(self.sdata.get_mcarddata(data=data), dealanime)
 
         # プレイヤカードスプライト作成
-        self.set_pcards()
+        self.set_pcards(newparty=newparty)
 
         # キャンプ画面のときはFriendCardもスプライトグループに追加
         if self.areaid == cw.AREA_CAMP:
@@ -3596,6 +3618,7 @@ class CWPy(_Singleton, threading.Thread):
                 rect.center = pcard.rect.center
                 pcard.zoomimgs[i] = (img, rect)
             pcard.index = index
+            pcard.update_personalownerindex()
             self.add_lazydraw(clip=pcard.rect)
         self._need_disposition = False
 
@@ -3603,7 +3626,8 @@ class CWPy(_Singleton, threading.Thread):
                     bginhrt=False, ttype=("Default", "Default"),
                     quickdeal=False, specialarea=False, startbattle=False,
                     doanime=True, data=None, nocheckvisible=False,
-                    clear_curtain=False, force_updatebg=False, silent=False):
+                    clear_curtain=False, force_updatebg=False, silent=False,
+                    newparty=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -3645,7 +3669,7 @@ class CWPy(_Singleton, threading.Thread):
             if clear_curtain:
                 self.clear_curtain(redraw=not silent)
             self.set_sprites(bginhrt=bginhrt, ttype=ttype, doanime=doanime, data=data,
-                             nocheckvisible=nocheckvisible, silent=silent)
+                             nocheckvisible=nocheckvisible, silent=silent, newparty=newparty)
 
         if not self.is_playingscenario() and not self.is_showparty and self.status != "GameOver":
             # 宿にいる場合は常に全回復状態にする
@@ -3964,9 +3988,9 @@ class CWPy(_Singleton, threading.Thread):
 
     def update_tradecards(self):
         if self.areaid in cw.AREAS_TRADE and self.status == "Yado":
-            cw.cwpy.remove_pricesprites()
-            cw.data.redraw_cards(cw.cwpy.is_debugmode(), silent=True)
-            cw.cwpy.set_testaptitude(cw.cwpy.selectedheader)
+            self.remove_pricesprites()
+            cw.data.redraw_cards(self.is_debugmode(), silent=True)
+            self.set_testaptitude(self.selectedheader)
 
     def remove_pricesprites(self):
         """価格表示のスプライトを削除する。"""
@@ -4004,6 +4028,7 @@ class CWPy(_Singleton, threading.Thread):
                 for i, pcard in enumerate(self.get_pcards()):
                     pcard.index = i
                     pcard.layer = (pcard.layer[0], pcard.layer[1], i, pcard.layer[3])
+                    pcard.update_personalownerindex()
                     self.cardgrp.change_layer(pcard, pcard.layer)
                     self.add_lazydraw(clip=pcard.rect)
                 if not silent:
@@ -4172,6 +4197,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def show_numberofcards(self, type):
         """カードの所持枚数とカード交換スプライトを表示する。"""
+        self.topgrp.empty()
         if type == "SkillCard":
             cardtype = cw.POCKET_SKILL
         elif type == "ItemCard":
@@ -4224,6 +4250,52 @@ class CWPy(_Singleton, threading.Thread):
                                                           (x_noscale, y_noscale),
                                                           self.topgrp, replace.replace_cards)
             seq.append(sprite)
+
+        if cw.cwpy.setting.show_personal_cards:
+            # 荷物袋カード私有スプライト
+            def get_image_personal():
+                return self.rsrc.pygamedialogs["TO_PERSONAL_POCKET"]
+
+            def get_selimage_personal():
+                bmp = self.rsrc.pygamedialogs["TO_PERSONAL_POCKET"].convert_alpha()
+                return cw.imageretouch.add_lightness(bmp, 64)
+            bmp = self.rsrc.pygamedialogs["TO_PERSONAL_POCKET_noscale"]
+            w, h = bmp.get_size()
+            scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+            w //= scr_scale
+            h //= scr_scale
+            size_noscale = (w, h)
+
+            class AddPersonalPocket(object):
+                def __init__(self, outer, pcard, header):
+                    self.outer = outer
+                    self.pcard = pcard
+                    self.header = header
+
+                def add_personalpocket(self):
+                    if self.header.personal_owner:
+                        self.header.personal_owner.remove_personalpocket(self.header)
+                    if len(self.pcard.personal_pocket) < self.pcard.get_personalpocketspace():
+                        self.outer.trade("BACKPACK", header=self.header, from_event=False, sound=False, sort=False,
+                                         call_predlg=False)
+                        self.pcard.add_personalpocket(self.header)
+                        cw.cwpy.ydata.party.sort_backpack()
+                        self.outer.call_predlg()
+                    else:
+                        self.outer.change_selection(self.pcard)
+                        self.outer.call_modaldlg("CARDPOCKET_REPLACE", personal_cards=True)
+
+            seq = []
+            for pcard in pcards:
+                adp = AddPersonalPocket(self, pcard, self.selectedheader)
+                pos_noscale = pcard.get_pos_noscale()
+                x_noscale = pos_noscale[0] - 5
+                y_noscale = pos_noscale[1] + cw.setting.get_resourcesize("CardBg/LARGE")[1] - size_noscale[1] - 5
+                sprite = cw.sprite.background.ClickableSprite(get_image_personal, get_selimage_personal,
+                                                              (x_noscale, y_noscale),
+                                                              self.topgrp, adp.add_personalpocket)
+                seq.append(sprite)
+                cw.sprite.background.NumberOfCards(pcard, cw.POCKET_PERSONAL, self.topgrp)
 
     def clear_numberofcards(self):
         """所持枚数表示を消去する。"""
@@ -4347,8 +4419,13 @@ class CWPy(_Singleton, threading.Thread):
                     elif targets:
                         self.set_targetarrow(targets)
                 elif self.setting.show_allselectedcards or selowner:
-                    alpha = cw.cwpy.setting.get_inusecardalpha(sprite)
-                    self.set_inusecardimg(sprite, header, alpha=alpha)
+                    if header.personal_owner and self.areaid in cw.AREAS_TRADE and header is self.selectedheader and\
+                            self.setting.show_personal_cards:
+                        owner = header.personal_owner
+                    else:
+                        owner = sprite
+                    alpha = cw.cwpy.setting.get_inusecardalpha(owner)
+                    self.set_inusecardimg(owner, header, alpha=alpha)
 
                 if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
                     show_allselectedcards = True
@@ -4584,7 +4661,7 @@ class CWPy(_Singleton, threading.Thread):
                 areaid = 2
             else:
                 areaid = 1
-            self.change_area(areaid, bginhrt=False)
+            self.change_area(areaid, bginhrt=False, newparty=newparty)
         elif newparty:
             self.cardgrp.remove(self.pcards)
             self.pcards = []
@@ -4592,8 +4669,10 @@ class CWPy(_Singleton, threading.Thread):
                 for i, e in enumerate(self.ydata.party.members):
                     pos_noscale = (9 + 95 * i + 9 * i, 285)
                     pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=i)
+                    pcard.restore_personalpocket()
                 self.show_party()
         else:
+            # 新規パーティ結成
             self.cardgrp.remove(self.pcards)
             self.pcards = []
             if loadsprites and self.ydata.party:
@@ -4602,6 +4681,8 @@ class CWPy(_Singleton, threading.Thread):
                 pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
                 pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=pcardsnum)
                 pcard.set_pos_noscale(pos_noscale)
+                pcard.restore_personalpocket()
+                self.ydata.party.sort_backpack()
                 cw.animation.animate_sprite(pcard, "deal")
 
         self.is_pcardsselectable = self.ydata and self.ydata.party
@@ -4645,6 +4726,7 @@ class CWPy(_Singleton, threading.Thread):
 
             for pcard in pcards:
                 pcard.remove_numbercoupon()
+                pcard.store_personalpocket()
                 self.cardgrp.remove(pcard)
                 pcard.data.write_xml()
             self.pcards = []
@@ -4850,8 +4932,8 @@ class CWPy(_Singleton, threading.Thread):
             (not is_playingscenario)
 
         # カード置場・荷物袋内での位置の移動の場合
-        toself = (targettype == "BACKPACK" and party and owner == party.backpack) or\
-                 (targettype == "STOREHOUSE" and owner == self.ydata.storehouse)
+        toself = (targettype == "BACKPACK" and party and owner is party.backpack) or\
+                 (targettype == "STOREHOUSE" and owner is self.ydata.storehouse)
 
         if not toself and targettype not in ("PAWNSHOP", "TRASHBOX"):
             header.do_write()
@@ -4911,6 +4993,8 @@ class CWPy(_Singleton, threading.Thread):
                         return
 
             target = None
+        elif targettype == "PERSONALPOCKET":
+            pass
         else:
             cw.cwpy.call_dlg("ERROR", text="「%s」は不正なカード移動先です。" % targettype)
             return
@@ -4972,6 +5056,8 @@ class CWPy(_Singleton, threading.Thread):
         # 移動元がCharacterだった場合
         if isinstance(owner, cw.character.Character):
             assert not move
+            assert header.personal_owner is None
+            assert header.personal_owner_index == (-1, -1)
             # 移動元のCardHolderからCardHeaderを削除
             owner.cardpocket[index].remove(header.ref_original())
             # 移動元からカードのエレメントを削除
@@ -5016,9 +5102,11 @@ class CWPy(_Singleton, threading.Thread):
             header.set_owner(None)
 
         # 移動元が荷物袋だった場合
-        elif party and owner == party.backpack:
+        elif party and owner is party.backpack:
             # 移動元のリストからCardHeaderを削除
             owner.remove(header.ref_original())
+            if header.personal_owner and (not toself or self.setting.show_personal_cards):
+                header.personal_owner.remove_personalpocket(header.ref_original())
 
             if toself:
                 # 荷物袋内の位置のみ変更
@@ -5059,7 +5147,9 @@ class CWPy(_Singleton, threading.Thread):
                     header.contain_xml()
 
         # 移動元がカード置場だった場合
-        elif owner == self.ydata.storehouse:
+        elif owner is self.ydata.storehouse:
+            assert header.personal_owner is None
+            assert header.personal_owner_index == (-1, -1)
             # 移動元のリストからCardHeaderを削除
             owner.remove(header.ref_original())
             if toself:
@@ -5074,6 +5164,8 @@ class CWPy(_Singleton, threading.Thread):
         # 移動元が存在しない場合(get or loseコンテンツから呼んだ場合)
         else:
             assert not move
+            assert header.personal_owner is None
+            assert header.personal_owner_index == (-1, -1)
             header.contain_xml()
 
         if header == self.selectedheader:
@@ -5151,6 +5243,13 @@ class CWPy(_Singleton, threading.Thread):
             # 戦闘中の場合、Deckの手札・山札に追加
             if cw.cwpy.is_battlestatus():
                 target.deck.add(target, header, is_replace=toindex != -1)
+
+        # 荷物袋の私有カードを所持状態にする場合
+        elif targettype == "PERSONALPOCKET":
+            assert not move
+            header.set_owner(None)
+            target.data.append("PersonalCards", header.carddata)
+            target.data.is_edited = True
 
         # 移動先が荷物袋だった場合
         elif targettype == "BACKPACK":

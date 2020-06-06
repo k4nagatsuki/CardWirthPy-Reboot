@@ -493,6 +493,8 @@ class Setting(object):
         self.replacecard_when_sendfullcardpocket = True
         # プレミアカード選択中でも売却と破棄を表示する
         self.show_sell_with_premiercard = True
+        # 荷物袋にあるカードのキャラクターごとの私有を許可する
+        self.show_personal_cards = True
 
         # 宿の表示順序
         self.yado_order = {}
@@ -835,6 +837,8 @@ class Setting(object):
         # プレミアカード選択中でも売却と破棄を表示する
         self.show_sell_with_premiercard = data.getbool("ShowSellAndDumpWithPremierCard",
                                                        self.show_sell_with_premiercard_init)
+        # 荷物袋にあるカードのキャラクターごとの私有を許可する
+        self.show_personal_cards = data.getbool("ShowPersonalCards", self.show_personal_cards_init)
         # カード置場と荷物袋でカードの種類を表示する
         self.show_cardkind = data.getbool("ShowCardKind", self.show_cardkind)
         # カードの希少度をアイコンで表示する
@@ -1938,6 +1942,8 @@ class Resource(object):
         # カード枚数描画用
         t = self.setting().fonttypes["numcards"]
         fonts.set("numcards", self.create_font, "numcards", t[0], t[1], t[2], t[3], t[4], t[5])
+        fonts.set("numcards_personal", self.create_font, "numcards", t[0], t[1], t[2], t[3], t[4], t[5],
+                  pixelsadd=min(0, -min(t[2]//2, t[2]-16)))
         # ステータスバーパネル描画用
         t = self.setting().fonttypes["sbarpanel"]
         fonts.set("sbarpanel", self.create_font, "sbarpanel", t[0], t[1], t[2], t[3], t[4], t[5])

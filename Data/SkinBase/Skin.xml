@@ -888,6 +888,15 @@
     <Message key="external_image_file">外部ファイル</Message>
     <Message key="confirm_load">保存された状況に戻します。よろしいですか？</Message>
     <!-- 4.0 ここまで -->
+    <!-- 5.0 ここから -->
+    <Message key="send_to_personal">%sの私物</Message>
+    <Message key="personal_cards">%sの私有カード</Message>
+    <Message key="reversed">%sは隠蔽状態です。</Message>
+    <Message key="move_failed_reversed">%sは隠蔽されているため、所有カードの移動はできません。</Message>
+    <Message key="use_failed_personal_skill_card">技能カードを取り出して使用する事はできません。</Message>
+    <Message key="replace_failed_different_card_type">異なる種類のカードとは交換できません。</Message>
+    <Message key="use_failed_hand_be_full">%sの手札は既に一杯なので、カードを取り出せません。</Message>
+    <!-- 5.0 ここまで -->
   </Messages>
   <!-- importantdrawing = ユーザの描画オプションを上書きするか importantfont = フォントオプションを上書きするか -->
   <Settings importantdrawing="False" importantfont="False" />

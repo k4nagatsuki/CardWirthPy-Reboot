@@ -2345,13 +2345,26 @@ class Character(object):
                     else:
                         targettype = targettype_original
                     if regulate and targettype != "TRASHBOX":
-                        self.add_cardpocketmemory(header)
+                        self.add_cardpocketmemory(header, False)
                     cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party,
                                   sort=False)
                     n -= 1
-            if targettype_original == "BACKPACK":
+
+            n = len(self.personal_pocket)
+            maxn = self.get_personalpocketspace()
+            remove_personal = False
+            while n > maxn:
+                header = self.personal_pocket[-1]
+                targettype = targettype_original
+                if regulate:
+                    self.add_cardpocketmemory(header, True)
+                self.remove_personalpocket(header)
+                remove_personal = True
+                n -= 1
+
+            if targettype_original == "BACKPACK" or remove_personal:
                 cw.cwpy.ydata.party.sort_backpack()
-            elif targettype_original == "STOREHOUSE":
+            if targettype_original == "STOREHOUSE":
                 cw.cwpy.ydata.sort_storehouse()
             for header in self.cardpocket[cw.POCKET_SKILL]:
                 header.get_uselimit(reset=True)
@@ -2359,12 +2372,18 @@ class Character(object):
             # レベル調節で手放したカードを戻す
             self.revert_cardpocket(backpack_party)
 
-    def add_cardpocketmemory(self, header):
+    def add_cardpocketmemory(self, header, personal):
         """レベル調節前に所持していたカードを記憶する。"""
-        memories = self.data.find("./CardMemories")
-        if memories is None:
-            memories = cw.data.make_element("CardMemories")
-            self.data.append(".", memories)
+        if personal:
+            memories = self.data.find("./PersonalCardMemories")
+            if memories is None:
+                memories = cw.data.make_element("PersonalCardMemories")
+                self.data.append(".", memories)
+        else:
+            memories = self.data.find("./CardMemories")
+            if memories is None:
+                memories = cw.data.make_element("CardMemories")
+                self.data.append(".", memories)
         e = cw.data.make_element("CardMemory")
         e.append(cw.data.make_element("Type", header.type))
         e.append(cw.data.make_element("Name", header.name))
@@ -2435,6 +2454,39 @@ class Character(object):
                 # 持ちきれる場合はカードが見つからなくても
                 # 記憶から除去する
                 self.data.remove("./CardMemories", e)
+
+        add_personal = False
+        for e in reversed(self.data.getfind("./PersonalCardMemories", False)[:]):
+            if self.get_personalpocketspace() <= len(self.personal_pocket):
+                break
+            cardtype = e.gettext("./Type")
+            name = e.gettext("./Name", "")
+            desc = e.gettext("./Description", "")
+            scenario = e.gettext("./Scenario", "")
+            author = e.gettext("./Author", "")
+            if cardtype == "SkillCard":
+                uselimit = -1
+            elif cardtype == "ItemCard":
+                uselimit = e.getint("./UseLimit", -1)
+            elif cardtype == "BeastCard":
+                uselimit = e.getint("./UseLimit", -1)
+
+            for header in seq:
+                if header.type == cardtype and\
+                        header.name == name and\
+                        header.desc == desc and\
+                        header.scenario == scenario and\
+                        header.author == author and\
+                        (uselimit == -1 or uselimit == header.uselimit):
+                    cw.cwpy.trade("BACKPACK", header=header, from_event=True,
+                                  sound=False, call_predlg=False, sort=False)
+                    self.add_personalpocket(header)
+                    add_personal = True
+                    seq.remove(header)
+                    break
+            self.data.remove("./PersonalCardMemories", e)
+        if add_personal:
+            cw.cwpy.ydata.party.sort_backpack()
 
     # --------------------------------------------------------------------------
     # 状態変更用
@@ -2703,6 +2755,11 @@ class Character(object):
                 for card in pocket[:]:
                     if card.premium == "Premium":
                         cw.cwpy.trade("BACKPACK", header=card, from_event=True, sort=False)
+
+            if self.personal_pocket:
+                for header in self.personal_pocket[:]:
+                    self.remove_personalpocket(header)
+                cw.cwpy.ydata.party.sort_backpack()
 
             index = cw.cwpy.ydata.party.members.index(self.data)
             for i in range(index, len(cw.cwpy.ydata.party.members)):
@@ -3111,6 +3168,142 @@ class Character(object):
 
 
 class Player(Character):
+    def __init__(self, data=None):
+        Character.__init__(self, data)
+        self.personal_pocket = []  # 荷物袋内の私有カード
+
+    def add_personalpocket(self, header, index=-1):
+        """荷物袋内のカードを私有する。"""
+        assert cw.cwpy.ydata and cw.cwpy.ydata.party
+        assert header.get_owner() is cw.cwpy.ydata.party.backpack
+        assert header.personal_owner is None
+        assert header.personal_owner_index == (-1, -1)
+        if len(self.personal_pocket) < self.get_personalpocketspace():
+            header.personal_owner = self
+            e = self.data.find("PersonalCards")
+            if e is None:
+                e = cw.data.make_element("PersonalCards", "")
+                self.data.getroot().append(e)
+            e_personal = cw.data.make_element("PersonalCard", os.path.basename(header.fpath))
+            if index == -1:
+                index = len(self.personal_pocket)
+                self.personal_pocket.append(header)
+                e.append(e_personal)
+                self.update_personalownerindex(index)
+            else:
+                self.personal_pocket.insert(index, header)
+                e.insert(index, e_personal)
+                self.update_personalownerindex()
+            self.data.is_edited = True
+            return True
+        else:
+            return False
+
+    def remove_personalpocket(self, header):
+        """荷物袋内のカードの私有をやめる。"""
+        assert cw.cwpy.ydata and cw.cwpy.ydata.party
+        assert header.get_owner() is cw.cwpy.ydata.party.backpack
+        assert header.personal_owner is self
+        assert header.personal_owner_index != (-1, -1)
+        assert header in self.personal_pocket
+        index = self.personal_pocket.index(header)
+        header.personal_owner = None
+        header.personal_owner_index = (-1, -1)
+        self.personal_pocket.remove(header)
+        if cw.cwpy.card_takenouttemporarily_personal_owner is self:
+            if index < cw.cwpy.card_takenouttemporarily_personal_index:
+                cw.cwpy.card_takenouttemporarily_personal_index -= 1
+        e = self.data.find("PersonalCards")
+        assert e is not None
+        e.remove(e[index])
+        self.update_personalownerindex()
+        self.data.is_edited = True
+
+    def store_personalpocket(self):
+        """パーティから離脱する時、荷物袋内の私有カードを所持状態に変更する。"""
+        assert cw.cwpy.ydata and cw.cwpy.ydata.party
+        if not self.personal_pocket:
+            return
+        seq = []
+        for header in self.personal_pocket[:]:
+            self.remove_personalpocket(header)
+            seq.append(header)
+        assert self.data.find("PersonalCards") is not None and len(self.data.find("PersonalCards")) == 0
+        if cw.cwpy.setting.show_personal_cards:
+            for header in seq:
+                cw.cwpy.trade("PERSONALPOCKET", target=self, header=header, from_event=True)
+
+    def restore_personalpocket(self, sort=True):
+        """パーティに加わる時、所持状態の私有カードを荷物袋へ移す。"""
+        e = self.data.find("PersonalCards")
+        if e is None:
+            return
+        assert e.find("PersonalCard") is None
+        assert cw.cwpy.ydata and cw.cwpy.ydata.party
+        seq = []
+        for carddata in list(e):
+            header = cw.header.CardHeader(carddata=carddata, owner=None, from_scenario=False)
+            cw.cwpy.trade("BACKPACK", header=header, from_event=True, sort=False)
+            seq.append(header)
+            e.remove(carddata)
+        assert len(e) == 0
+        for header in seq:
+            self.add_personalpocket(header)
+        if sort:
+            cw.cwpy.ydata.party.sort_backpack()
+
+    def refresh_personalpocket(self, personalcard_tbl):
+        """スプライト生成後に荷物袋内の私有情報を更新する。"""
+        assert cw.cwpy.ydata and cw.cwpy.ydata.party
+        self.personal_pocket = []
+        e = self.data.find("PersonalCards")
+        if e is None:
+            return
+        if not personalcard_tbl:
+            for header in cw.cwpy.ydata.party.backpack:
+                personalcard_tbl[os.path.basename(header.fpath)] = header
+        for index, e_personal in enumerate(list(e)):
+            assert e_personal.tag == "PersonalCard"
+            fname = e_personal.text
+            if fname in personalcard_tbl:
+                header = personalcard_tbl[fname]
+                header.personal_owner = self
+                header.personal_owner_index = (self.index, index)
+                self.personal_pocket.append(header)
+            else:
+                e.remove(e_personal)
+        self.update_personalownerindex()
+
+    def get_personalpocketspace(self):
+        """私有カードを所有可能な残り枚数を返す。"""
+        maxnum = self.level // 2 + self.level % 2 + 2
+        maxnum = cw.util.numwrap(maxnum, 1, 10)
+        return maxnum
+
+    def replace_personalcardposition(self, header1, header2):
+        """私有カードの位置を入れ替える。"""
+        seq = self.personal_pocket
+        index1 = seq.index(header1)
+        index2 = seq.index(header2)
+        seq[index2] = header1
+        seq[index1] = header2
+        e = self.data.find("PersonalCards")
+        if e is None:
+            return
+        e[index1], e[index2] = e[index2], e[index1]
+        self.update_personalownerindex(index1)
+        self.update_personalownerindex(index2)
+        cw.cwpy.ydata.party.sort_backpack()
+        self.data.is_edited = True
+
+    def update_personalownerindex(self, index=-1):
+        """私有カードにソート用の情報を設定する。"""
+        if index == -1:
+            for index, header in enumerate(self.personal_pocket):
+                header.personal_owner_index = (self.index, index)
+        else:
+            self.personal_pocket[index].personal_owner_index = (self.index, index)
+
     def lost(self):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()

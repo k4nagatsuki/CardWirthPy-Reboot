@@ -163,6 +163,7 @@ IMGTBL = {
     "SYMBOL_SKILL": "Button/SKILL",
     "SYMBOL_ITEM": "Button/ITEM",
     "SYMBOL_BEAST": "Button/BEAST",
+    "SYMBOL_BACKPACK": "Button/PERSONAL",
 }
 IMGTBL_C = {
     "IMAGE_ACTION1": "Card/ACTION1",
