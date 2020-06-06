@@ -2436,6 +2436,8 @@ class Character(object):
 
             if n[index] < maxn[index]:
                 for header in seq:
+                    if cw.cwpy.setting.show_personal_cards and header.personal_owner:
+                        continue  # 誰かの私物になっている場合は検索対象から除外する
                     if header.type == cardtype and\
                             header.name == name and\
                             header.desc == desc and\
@@ -2478,13 +2480,14 @@ class Character(object):
                     uselimit = e.getint("./UseLimit", -1)
 
                 for header in headers:
+                    if cw.cwpy.setting.show_personal_cards and header.personal_owner:
+                        continue  # 誰かの私物になっている場合は検索対象から除外する
                     if header.type == cardtype and\
                             header.name == name and\
                             header.desc == desc and\
                             header.scenario == scenario and\
                             header.author == author and\
                             (uselimit == -1 or uselimit == header.uselimit):
-                        # パーティにいる状態で戻す(荷物袋へ入れて私有化する)
                         cw.cwpy.trade("BACKPACK", header=header, from_event=True,
                                       sound=False, call_predlg=False, sort=False)
                         self.add_personalpocket(header)
