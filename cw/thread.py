@@ -4993,8 +4993,6 @@ class CWPy(_Singleton, threading.Thread):
                         return
 
             target = None
-        elif targettype == "PERSONALPOCKET":
-            pass
         else:
             cw.cwpy.call_dlg("ERROR", text="「%s」は不正なカード移動先です。" % targettype)
             return
@@ -5243,13 +5241,6 @@ class CWPy(_Singleton, threading.Thread):
             # 戦闘中の場合、Deckの手札・山札に追加
             if cw.cwpy.is_battlestatus():
                 target.deck.add(target, header, is_replace=toindex != -1)
-
-        # 荷物袋の私有カードを所持状態にする場合
-        elif targettype == "PERSONALPOCKET":
-            assert not move
-            header.set_owner(None)
-            target.data.append("PersonalCards", header.carddata)
-            target.data.is_edited = True
 
         # 移動先が荷物袋だった場合
         elif targettype == "BACKPACK":
