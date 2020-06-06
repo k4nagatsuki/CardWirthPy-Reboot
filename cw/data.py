@@ -4007,6 +4007,7 @@ class Party(object):
         self.data.insert("Property/Members", e, index)
         pos_noscale = (9 + 95 * index + 9 * index, 285)
         pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="deal", index=index)
+        pcard.restore_personalpocket()
         cw.animation.animate_sprite(pcard, "deal")
 
     def remove(self, pcard):
@@ -4016,6 +4017,8 @@ class Party(object):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         pcard.remove_numbercoupon()
+        if pcard.personal_pocket:
+            pcard.store_personalpocket()
         self.members.remove(pcard.data)
         if cw.cwpy.cardgrp.has(pcard):
             cw.cwpy.cardgrp.remove(pcard)
@@ -4042,6 +4045,7 @@ class Party(object):
         for pcard in seq:
             pcard.layer = (pcard.layer[0], pcard.layer[1], pcard.index, pcard.layer[3])
             cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
+            pcard.update_personalownerindex()
         cw.cwpy.pcards = seq
 
         self.data.getfind("Property/Members").clear()
@@ -4242,7 +4246,7 @@ class Party(object):
 
 
 def sort_cards(cards, condition, withstar):
-    seq = []
+    seq = ["personal_owner_index"] if cw.cwpy.setting.show_personal_cards else []
     if withstar:
         seq.append("negastar")
 

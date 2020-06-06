@@ -747,6 +747,20 @@ class SettingsPanel(wx.Panel):
         setting.show_experiencebar = value
         value = self.pane_ui.cb_cautionbeforesaving.GetValue()
         setting.caution_beforesaving = value
+        value = self.pane_ui.cb_show_personal_cards.GetValue()
+        if setting.show_personal_cards != value:
+            setting.show_personal_cards = value
+            setting.last_sendto = 0
+            if not value and setting.last_cardpocket == cw.POCKET_PERSONAL:
+                setting.last_cardpocket = cw.POCKET_SKILL
+
+            def func():
+                if cw.cwpy.ydata and cw.cwpy.ydata.party:
+                    cw.cwpy.ydata.party.sort_backpack()
+                if cw.cwpy.areaid in cw.AREAS_TRADE and cw.cwpy.selectedheader:
+                    cw.cwpy.show_numberofcards(cw.cwpy.selectedheader.type)
+            cw.cwpy.exec_func(func)
+
         value = self.pane_ui.cb_showbackpackcard.GetValue()
         setting.show_backpackcard = value
         value = self.pane_ui.cb_showbackpackcardatend.GetValue()
@@ -2778,6 +2792,8 @@ class UISettingPanel(wx.ScrolledWindow):
         self.box_control = wx.StaticBox(self, -1, "操作")
         # self.cb_spend_noeffectcard = wx.CheckBox(
         #     self, -1, u"意味の無いカード使用で使用回数を消費する")
+        self.cb_show_personal_cards = wx.CheckBox(
+            self, -1, "荷物袋にあるカードのキャラクターごとの私有を許可する")
         self.cb_showbackpackcard = wx.CheckBox(
             self, -1, "荷物袋のカードを一時的に取り出して使えるようにする")
         self.cb_showbackpackcardatend = wx.CheckBox(
@@ -2900,6 +2916,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_show_premiumicon.SetValue(setting.show_premiumicon)
 
         # self.cb_spend_noeffectcard.SetValue(setting.spend_noeffectcard)
+        self.cb_show_personal_cards.SetValue(setting.show_personal_cards)
         self.cb_showbackpackcard.SetValue(setting.show_backpackcard)
         self.cb_showbackpackcardatend.SetValue(setting.show_backpackcardatend)
         self.cb_can_clicksidesofcardcontrol.SetValue(setting.can_clicksidesofcardcontrol)
@@ -2992,6 +3009,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showsavedmessage.SetValue(setting.show_savedmessage_init)
         self.cb_cautionbeforesaving.SetValue(setting.caution_beforesaving_init)
 
+        self.cb_show_personal_cards.SetValue(setting.show_personal_cards_init)
         self.cb_showbackpackcard.SetValue(setting.show_backpackcard_init)
         self.cb_showbackpackcardatend.SetValue(setting.show_backpackcardatend_init)
         self.cb_can_clicksidesofcardcontrol.SetValue(setting.can_clicksidesofcardcontrol_init)
@@ -3044,6 +3062,7 @@ class UISettingPanel(wx.ScrolledWindow):
 
         bsizer_control = wx.StaticBoxSizer(self.box_control, wx.VERTICAL)
         # bsizer_control.Add(self.cb_spend_noeffectcard, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(3))
+        bsizer_control.Add(self.cb_show_personal_cards, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(3))
         bsizer_control.Add(self.cb_showbackpackcard, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(3))
         bsizer_control.Add(self.cb_showbackpackcardatend, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(3))
         bsizer_control.Add(self.cb_revertcardpocket, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(3))

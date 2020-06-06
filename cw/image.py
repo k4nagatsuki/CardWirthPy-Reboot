@@ -395,14 +395,16 @@ class CardImage(Image):
             return image
 
         owner = header.get_owner()
+        owner_aptitude = header.personal_owner if header.personal_owner else owner
         icony = cw.s(90)
-        if isinstance(owner, cw.character.Character):
+        if isinstance(owner_aptitude, cw.character.Character):
             # 適性値
-            key = "HAND" + str(header.get_showed_vocation_level(owner))
+            key = "HAND" + str(header.get_showed_vocation_level(owner_aptitude))
             subimg = cw.cwpy.rsrc.stones[key]
             image.blit(subimg, cw.s((60, 90)))
             icony -= cw.s(15)
 
+        if isinstance(owner, cw.character.Character):
             # 使用回数(画像)
             if header.type == "SkillCard":
                 key = "HAND" + str(header.get_uselimit_level() + 5)
@@ -597,18 +599,20 @@ class CardImage(Image):
         dc.SelectObject(image)
 
         owner = header.get_owner()
+        owner_aptitude = header.personal_owner if header.personal_owner else owner
         icony = cw.wins(90)
-        if isinstance(owner, cw.character.Character):
+        if test_aptitude or isinstance(owner_aptitude, cw.character.Character):
             # 適性値
             if test_aptitude:
                 tester = test_aptitude
             else:
-                tester = owner
+                tester = owner_aptitude
             key = "HAND" + str(header.get_showed_vocation_level(tester))
             subimg = cw.cwpy.rsrc.wxstones[key]
             dc.DrawBitmap(subimg, cw.wins(60), cw.wins(90), True)
             icony -= cw.wins(15)
 
+        if isinstance(owner, cw.character.Character):
             # 使用回数(画像)
             if header.type == "SkillCard":
                 key = "HAND" + str(header.get_uselimit_level() + 5)
@@ -681,12 +685,6 @@ class CardImage(Image):
             if icon:
                 dc.DrawBitmap(icon, cw.wins(60), icony, True)
                 icony -= cw.wins(16)
-
-        if not isinstance(owner, cw.character.Character) and test_aptitude:
-            # 適性値
-            key = "HAND" + str(header.get_showed_vocation_level(test_aptitude))
-            subimg = cw.cwpy.rsrc.wxstones[key]
-            dc.DrawBitmap(subimg, cw.wins(60), icony, True)
 
         if cw.cwpy.setting.show_premiumicon:
             if header.premium == "Premium":

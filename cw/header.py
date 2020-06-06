@@ -222,6 +222,10 @@ class CardHeader(object):
         if self.is_ccardheader() and self.type == "SkillCard":
             self.get_uselimit()
 
+        # 荷物袋にある時の私有者
+        self.personal_owner = None
+        self.personal_owner_index = (-1, -1)
+
         # ソート用の型ID
         if self.type == "SkillCard":
             self.type_id = 0

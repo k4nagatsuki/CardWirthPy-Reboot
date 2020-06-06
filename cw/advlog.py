@@ -52,13 +52,22 @@ class AdventurerLogger(object):
                 lines.append("  Level %s" % (pcard.level))
             for pocket, pname in ((cw.POCKET_SKILL, "Skill"),
                                   (cw.POCKET_ITEM, "Item"),
-                                  (cw.POCKET_BEAST, "Beast")):
-                cards = pcard.cardpocket[pocket]
+                                  (cw.POCKET_BEAST, "Beast"),
+                                  (cw.POCKET_PERSONAL, "Personal")):
+                if pocket == cw.POCKET_PERSONAL:
+                    if not cw.cwpy.setting.show_personal_cards:
+                        continue
+                    cards = pcard.personal_pocket
+                else:
+                    cards = pcard.cardpocket[pocket]
                 if cards:
                     cnames = []
                     for header in cards:
                         cnames.append(header.name)
-                    lines.append("  %-5s: %s" % (pname, ", ".join(cnames)))
+                    if cw.cwpy.setting.show_personal_cards:
+                        lines.append("  %-8s: %s" % (pname, ", ".join(cnames)))
+                    else:
+                        lines.append("  %-5s: %s" % (pname, ", ".join(cnames)))
 
         lines.append("")
         lines.append("=" * cw.LOG_SEPARATOR_LEN_MIDDLE)

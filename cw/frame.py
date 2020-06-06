@@ -877,7 +877,8 @@ class Frame(wx.Frame):
         selection = cw.cwpy.selection
         target = cw.cwpy.selectedheader
         if selection and target:
-            dlg = cw.dialog.cardcontrol.ReplCardHolder(self, selection, target)
+            personal = event.args.get("personal_cards", None)
+            dlg = cw.dialog.cardcontrol.ReplCardHolder(self, selection, target, personal=personal)
             self.move_dlg(dlg, (0, cw.ppis(-63)))
             dlg.ShowModal()
         else:
@@ -1306,6 +1307,7 @@ class Frame(wx.Frame):
                             os.makedirs(dpath)
                         bmp.SaveFile(filename, wx.BITMAP_TYPE_PNG)
                     except Exception:
+                        cw.util.print_ex()
                         s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
                         cw.cwpy.call_modaldlg("ERROR", text=s)
 

@@ -156,9 +156,11 @@ class CWPyCard(base.SelectableSprite):
         pass
 
     def update_reversed(self):
-        # デバッグモード時は反転中でも選択可能
+        # デバッグモード時、またはキャンプ時(私有カード操作ができる場合)は反転中でも選択可能
         # ただしカード使用の選択対象にはならない
-        if cw.cwpy.is_debugmode() and not cw.cwpy.selectedheader:
+        if (cw.cwpy.is_debugmode() or (cw.cwpy.setting.show_personal_cards and
+                                       cw.cwpy.areaid == cw.AREA_CAMP)) and\
+                not cw.cwpy.selectedheader:
             self.update_selection()
 
     def update_hidden(self):
@@ -836,7 +838,7 @@ class PlayerCard(CWPyCard, character.Player):
 
     def lclick_event(self):
         """左クリックイベント。"""
-        if self.reversed:
+        if self.reversed and not (cw.cwpy.setting.show_personal_cards and cw.cwpy.areaid == cw.AREA_CAMP):
             self.rclick_event()
 
         # CARDPOCKETダイアログを開く(通常)
@@ -861,7 +863,7 @@ class PlayerCard(CWPyCard, character.Player):
                     cw.cwpy.call_modaldlg("CARDPOCKET")
 
         # カード移動操作
-        elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
+        elif cw.cwpy.areaid in cw.AREAS_TRADE and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
             cw.cwpy.trade("PLAYERCARD", self)
 
@@ -1470,7 +1472,7 @@ class MenuCard(CWPyCard):
                 self.events.start(keynum=1)
 
         # カード移動操作
-        elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
+        elif cw.cwpy.areaid in cw.AREAS_TRADE and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
             if self.command:
                 cw.content.PostEventContent.do_action(self.command, self.arg)

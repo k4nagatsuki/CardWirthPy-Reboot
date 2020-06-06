@@ -590,31 +590,18 @@ class TransferYadoDataDialog(wx.Dialog):
 
     def transfer_party(self, fromyado, toyado, header, yadodb, counter):
         # パーティを転送する
-        pdata = cw.data.xml2etree(header.fpath)
-        for i, fpath in enumerate(header.get_memberpaths(fromyado)):
-            # パーティメンバーの転送
-            data = cw.data.xml2etree(fpath)
-            name1 = os.path.splitext(os.path.basename(fpath))[0]
-            fpath = self.transfer_adventurer(fromyado, toyado, data, yadodb, counter=counter)
-            name = os.path.splitext(os.path.basename(fpath))[0]
-            pdata.find("Property/Members/Member[%s]" % (i+1)).text = name
-            counter.membertable[name1] = name
-
-        # パーティデータの転送
         dpath = os.path.dirname(header.fpath)
         dstdir = dpath.replace(fromyado + "/", toyado + "/", 1)
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
         if not os.path.isdir(dstdir):
             os.makedirs(dstdir)
-        pdata.fpath = cw.util.join_paths(dstdir, "Party.xml")
-        pdata.write()
-        counter.num += 1
 
         # 荷物袋の転送
         carddb = cw.yadodb.YadoDB(dpath, cw.yadodb.PARTY)
         cards = carddb.get_cards()
         carddb.close()
 
+        rename_tbl = {}
         carddb = cw.yadodb.YadoDB(dstdir, cw.yadodb.PARTY)
         for i, cardheader in enumerate(cards):
             fpath = cardheader.fpath
@@ -627,9 +614,31 @@ class TransferYadoDataDialog(wx.Dialog):
             e.fpath = cw.util.dupcheck_plus(e.fpath, yado=False)
             e.write()
             carddb.insert_card(e.fpath, commit=False, cardorder=i)
+            basename2 = os.path.basename(e.fpath)
+            if basename != basename2:
+                rename_tbl[basename] = basename2
             counter.num += 1
         carddb.commit()
         carddb.close()
+
+        pdata = cw.data.xml2etree(header.fpath)
+        for i, fpath in enumerate(header.get_memberpaths(fromyado)):
+            # パーティメンバーの転送
+            data = cw.data.xml2etree(fpath)
+            e_personals = e.find("PersonalCards")
+            if e_personals is not None:
+                for e_personal in e_personals:
+                    e_personal.text = rename_tbl.get(e_personal.text, e_personal.text)
+            name1 = os.path.splitext(os.path.basename(fpath))[0]
+            fpath = self.transfer_adventurer(fromyado, toyado, data, yadodb, counter=counter)
+            name = os.path.splitext(os.path.basename(fpath))[0]
+            pdata.find("Property/Members/Member[%s]" % (i+1)).text = name
+            counter.membertable[name1] = name
+
+        # パーティデータの転送
+        pdata.fpath = cw.util.join_paths(dstdir, "Party.xml")
+        pdata.write()
+        counter.num += 1
 
         wsl = os.path.splitext(header.fpath)[0] + ".wsl"
         if os.path.isfile(wsl):
@@ -736,8 +745,12 @@ class TransferYadoDataDialog(wx.Dialog):
 
         for e in itertools.chain(data.find("SkillCards"),
                                  data.find("ItemCards"),
-                                 data.find("BeastCards")):
+                                 data.find("BeastCards"),
+                                 data.getfind("PersonalCards", raiseerror=False)):
             assert isinstance(e, cw.data.CWPyElement), e
+            if e.tag == "PersonalCard":
+                # 荷物袋内のカードの参照なので転送不要
+                continue
             e.fpath = ""
             self.transfer_card(fromyado, toyado, cw.data.xml2etree(element=e), yadodb=None, counter=counter)
 
