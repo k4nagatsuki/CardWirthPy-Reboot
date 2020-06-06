@@ -581,10 +581,11 @@ class ScenarioSelect(select.Select):
         hsizer1.Add(self.invisible, 0, 0, 0)
         hsizer1.Add(self.pagelabel, 1, wx.CENTER | wx.RIGHT, cw.wins(5))
         hsizer1.Add(self.addmenubtn, 0, 0, 0)
-        if self.addctrlbtn.GetContainingSizer():
-            self.addctrlbtn.GetContainingSizer().Detach(self.addctrlbtn)
-        if self.addctrlbtn and (self.is_showingaddctrl() or cw.cwpy.setting.show_scenariotree):
-            hsizer1.Add(self.addctrlbtn, 0, 0, 0)
+        if self.addctrlbtn:
+            if self.addctrlbtn.GetContainingSizer():
+                self.addctrlbtn.GetContainingSizer().Detach(self.addctrlbtn)
+            if self.addctrlbtn and (self.is_showingaddctrl() or cw.cwpy.setting.show_scenariotree):
+                hsizer1.Add(self.addctrlbtn, 0, 0, 0)
         return hsizer1
 
     def _sizer_find(self):
