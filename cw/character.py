@@ -2350,25 +2350,7 @@ class Character(object):
                                   sort=False)
                     n -= 1
 
-            if targettype_original == "STOREHOUSE":
-                # 宿帳にいる状態で調節する場合、直接所持している私物カードを
-                # インスタンス化してカード置場へ送る
-                e = self.data.find("PersonalCards")
-                assert e.find("PersonalCard") is None
-                if e is not None:
-                    n = len(e)
-                    maxn = self.get_personalpocketspace()
-                    while n > maxn:
-                        carddata = e[-1]
-                        assert carddata.tag in ("SkillCard", "ItemCard", "BeastCard")
-                        header = cw.header.CardHeader(carddata=carddata, owner=None, from_scenario=False)
-                        if regulate:
-                            self.add_cardpocketmemory(header, True)
-                        cw.cwpy.trade("STOREHOUSE", header=header, from_event=True, sort=False)
-                        e.remove(carddata)
-                        n -= 1
-            else:
-                # パーティ加入中に調節
+            if targettype_original == "BACKPACK":
                 n = len(self.personal_pocket)
                 maxn = self.get_personalpocketspace()
                 while n > maxn:
@@ -2472,9 +2454,13 @@ class Character(object):
                 # 記憶から除去する
                 self.data.remove("./CardMemories", e)
 
-        if backpack_party or cw.cwpy.setting.show_personal_cards:
-            add_personal = False
-            for e in reversed(self.data.getfind("./PersonalCardMemories", False)[:]):
+        if backpack_party:
+            self.revert_personalpocket(seq, True)
+
+    def revert_personalpocket(self, headers, force):
+        add_personal = False
+        for e in reversed(self.data.getfind("./PersonalCardMemories", False)[:]):
+            if cw.cwpy.setting.show_personal_cards or force:
                 e_personals = self.data.find("PersonalCards")
                 plen = len(e_personals) if e_personals is not None else 0
                 if self.get_personalpocketspace() <= plen:
@@ -2491,25 +2477,21 @@ class Character(object):
                 elif cardtype == "BeastCard":
                     uselimit = e.getint("./UseLimit", -1)
 
-                for header in seq:
+                for header in headers:
                     if header.type == cardtype and\
                             header.name == name and\
                             header.desc == desc and\
                             header.scenario == scenario and\
                             header.author == author and\
                             (uselimit == -1 or uselimit == header.uselimit):
-                        if backpack_party:
-                            # パーティにいる状態で戻す(荷物袋へ入れて私有化する)
-                            cw.cwpy.trade("BACKPACK", header=header, from_event=True,
-                                          sound=False, call_predlg=False, sort=False)
-                            self.add_personalpocket(header)
-                            add_personal = True
-                        else:
-                            # 宿帳にいる状態で戻す(所持状態にする)
-                            cw.cwpy.trade("PERSONALPOCKET", target=self, header=header, from_event=True)
-                        seq.remove(header)
+                        # パーティにいる状態で戻す(荷物袋へ入れて私有化する)
+                        cw.cwpy.trade("BACKPACK", header=header, from_event=True,
+                                      sound=False, call_predlg=False, sort=False)
+                        self.add_personalpocket(header)
+                        add_personal = True
+                        headers.remove(header)
                         break
-                self.data.remove("./PersonalCardMemories", e)
+            self.data.remove("./PersonalCardMemories", e)
 
         if add_personal:
             cw.cwpy.ydata.party.sort_backpack()
@@ -3250,31 +3232,15 @@ class Player(Character):
         assert cw.cwpy.ydata and cw.cwpy.ydata.party
         if not self.personal_pocket:
             return
-        seq = []
-        for header in self.personal_pocket[:]:
-            self.remove_personalpocket(header)
-            seq.append(header)
+        for header in reversed(self.personal_pocket[:]):
+            self.add_cardpocketmemory(header, True)
+            cw.cwpy.trade("STOREHOUSE", header=header, from_event=True, sort=False)
         assert self.data.find("PersonalCards") is not None and len(self.data.find("PersonalCards")) == 0
-        if cw.cwpy.setting.show_personal_cards:
-            for header in seq:
-                cw.cwpy.trade("PERSONALPOCKET", target=self, header=header, from_event=True)
+        cw.cwpy.ydata.sort_storehouse()
 
     def restore_personalpocket(self, sort=True):
-        """パーティに加わる時、所持状態の私有カードを荷物袋へ移す。"""
-        e = self.data.find("PersonalCards")
-        if e is None:
-            return
-        assert e.find("PersonalCard") is None
-        assert cw.cwpy.ydata and cw.cwpy.ydata.party
-        seq = []
-        for carddata in list(e):
-            header = cw.header.CardHeader(carddata=carddata, owner=None, from_scenario=False)
-            cw.cwpy.trade("BACKPACK", header=header, from_event=True, sort=False)
-            seq.append(header)
-            e.remove(carddata)
-        assert len(e) == 0
-        for header in seq:
-            self.add_personalpocket(header)
+        """パーティに加わる時、カード置場にある私有カードを荷物袋へ移す。"""
+        self.revert_personalpocket(cw.cwpy.ydata.storehouse[:], False)
         if sort:
             cw.cwpy.ydata.party.sort_backpack()
 

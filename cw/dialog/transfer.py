@@ -745,12 +745,8 @@ class TransferYadoDataDialog(wx.Dialog):
 
         for e in itertools.chain(data.find("SkillCards"),
                                  data.find("ItemCards"),
-                                 data.find("BeastCards"),
-                                 data.getfind("PersonalCards", raiseerror=False)):
+                                 data.find("BeastCards")):
             assert isinstance(e, cw.data.CWPyElement), e
-            if e.tag == "PersonalCard":
-                # 荷物袋内のカードの参照なので転送不要
-                continue
             e.fpath = ""
             self.transfer_card(fromyado, toyado, cw.data.xml2etree(element=e), yadodb=None, counter=counter)
 
