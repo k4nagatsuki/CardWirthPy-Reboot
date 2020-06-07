@@ -630,6 +630,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.show_personal_cards != setting.show_personal_cards_init:
         e = cw.data.make_element("ShowPersonalCards", str(setting.show_personal_cards))
         element.append(e)
+    # 私物入れの容量がレベル調節の影響を受けるようにする
+    if setting.level_adjustment_affect_personal_pocket != setting.level_adjustment_affect_personal_pocket_init:
+        e = cw.data.make_element("LevelAdjustmentAffectPersonalPocket", str(setting.level_adjustment_affect_personal_pocket))
+        element.append(e)
     # カード置場と荷物袋でカードの種類を表示する
     if setting.show_cardkind != setting.show_cardkind_init:
         e = cw.data.make_element("ShowCardKind", str(setting.show_cardkind))

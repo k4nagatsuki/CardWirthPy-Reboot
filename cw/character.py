@@ -2352,7 +2352,7 @@ class Character(object):
 
             if targettype_original == "BACKPACK":
                 n = len(self.personal_pocket)
-                maxn = self.get_personalpocketspace()
+                maxn = self._get_personalpocketspace()
                 while n > maxn:
                     header = self.personal_pocket[-1]
                     targettype = targettype_original
@@ -2369,7 +2369,7 @@ class Character(object):
                 header.get_uselimit(reset=True)
         elif 0 < uplevel and revert_cardpocket:
             # レベル調節で手放したカードを戻す
-            self.revert_cardpocket(backpack_party)
+            self._revert_cardpocket(backpack_party)
 
     def add_cardpocketmemory(self, header, personal):
         """レベル調節前に所持していたカードを記憶する。"""
@@ -2395,9 +2395,13 @@ class Character(object):
             e.append(cw.data.make_element("UseLimit", str(header.uselimit)))
         memories.append(e)
 
+    @synclock(_couponlock)
     def revert_cardpocket(self, backpack_party=None):
         """記憶していたカードを検索し、
         見つかったら再び所持する。"""
+        return self._revert_cardpocket(backpack_party)
+
+    def _revert_cardpocket(self, backpack_party=None):
         if not cw.cwpy.setting.revert_cardpocket:
             return
 
@@ -2457,15 +2461,19 @@ class Character(object):
                 self.data.remove("./CardMemories", e)
 
         if backpack_party:
-            self.revert_personalpocket(seq, True)
+            self._revert_personalpocket(seq, True)
 
+    @synclock(_couponlock)
     def revert_personalpocket(self, headers, force):
+        self._revert_personalpocket(headers, force)
+
+    def _revert_personalpocket(self, headers, force):
         add_personal = False
         for e in reversed(self.data.getfind("./PersonalCardMemories", False)[:]):
             if cw.cwpy.setting.show_personal_cards or force:
                 e_personals = self.data.find("PersonalCards")
                 plen = len(e_personals) if e_personals is not None else 0
-                if self.get_personalpocketspace() <= plen:
+                if self._get_personalpocketspace() <= plen:
                     break
                 cardtype = e.gettext("./Type")
                 name = e.gettext("./Name", "")
@@ -2490,7 +2498,7 @@ class Character(object):
                             (uselimit == -1 or uselimit == header.uselimit):
                         cw.cwpy.trade("BACKPACK", header=header, from_event=True,
                                       sound=False, call_predlg=False, sort=False)
-                        self.add_personalpocket(header)
+                        self._add_personalpocket(header)
                         add_personal = True
                         headers.remove(header)
                         break
@@ -3183,13 +3191,17 @@ class Player(Character):
         Character.__init__(self, data)
         self.personal_pocket = []  # 荷物袋内の私有カード
 
+    @synclock(_couponlock)
     def add_personalpocket(self, header, index=-1):
         """荷物袋内のカードを私有する。"""
+        return self._add_personalpocket(header, index)
+
+    def _add_personalpocket(self, header, index=-1):
         assert cw.cwpy.ydata and cw.cwpy.ydata.party
         assert header.get_owner() is cw.cwpy.ydata.party.backpack
         assert header.personal_owner is None
         assert header.personal_owner_index == (-1, -1)
-        if len(self.personal_pocket) < self.get_personalpocketspace():
+        if len(self.personal_pocket) < self._get_personalpocketspace():
             header.personal_owner = self
             e = self.data.find("PersonalCards")
             if e is None:
@@ -3271,9 +3283,17 @@ class Player(Character):
                 e.remove(e_personal)
         self.update_personalownerindex()
 
+    @synclock(_couponlock)
     def get_personalpocketspace(self):
+        return self._get_personalpocketspace()
+
+    def _get_personalpocketspace(self):
         """私有カードを所有可能な残り枚数を返す。"""
-        maxnum = self.level // 2 + self.level % 2 + 2
+        if cw.cwpy.setting.level_adjustment_affect_personal_pocket:
+            level = self.level
+        else:
+            level = self._get_limitlevel()
+        maxnum = level // 2 + level % 2 + 2
         maxnum = cw.util.numwrap(maxnum, 1, 10)
         return maxnum
 
