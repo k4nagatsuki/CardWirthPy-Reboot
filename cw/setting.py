@@ -495,6 +495,8 @@ class Setting(object):
         self.show_sell_with_premiercard = True
         # 荷物袋にあるカードのキャラクターごとの私有を許可する
         self.show_personal_cards = True
+        # 私物入れの容量がレベル調節の影響を受けるようにする
+        self.level_adjustment_affect_personal_pocket = True
 
         # 宿の表示順序
         self.yado_order = {}
@@ -839,6 +841,8 @@ class Setting(object):
                                                        self.show_sell_with_premiercard_init)
         # 荷物袋にあるカードのキャラクターごとの私有を許可する
         self.show_personal_cards = data.getbool("ShowPersonalCards", self.show_personal_cards_init)
+        # 私物入れの容量がレベル調節の影響を受けるようにする
+        self.level_adjustment_affect_personal_pocket = data.getbool("LevelAdjustmentAffectPersonalPocket", self.level_adjustment_affect_personal_pocket_init)
         # カード置場と荷物袋でカードの種類を表示する
         self.show_cardkind = data.getbool("ShowCardKind", self.show_cardkind)
         # カードの希少度をアイコンで表示する
