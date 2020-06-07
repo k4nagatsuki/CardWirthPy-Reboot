@@ -3228,6 +3228,8 @@ class Player(Character):
         assert e is not None
         e.remove(e[index])
         self.update_personalownerindex()
+        if len(e) == 0:
+            self.data.remove(".", e)
         self.data.is_edited = True
 
     def store_personalpocket(self):
@@ -3238,7 +3240,7 @@ class Player(Character):
         for header in reversed(self.personal_pocket[:]):
             self.add_cardpocketmemory(header, True)
             cw.cwpy.trade("STOREHOUSE", header=header, from_event=True, sort=False)
-        assert self.data.find("PersonalCards") is not None and len(self.data.find("PersonalCards")) == 0
+        assert self.data.find("PersonalCards") is None
         cw.cwpy.ydata.sort_storehouse()
 
     def restore_personalpocket(self, sort=True):
