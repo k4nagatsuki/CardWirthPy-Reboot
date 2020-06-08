@@ -2731,6 +2731,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.ydata.party.backpack = []
         self.ydata.party.backpack_moved = []
+        rename_tbl = {}
 
         for i, e in enumerate(etree.getfind(".")):
             try:
@@ -2745,12 +2746,16 @@ class CWPy(_Singleton, threading.Thread):
                         etree.remove("Property", attrname="moved")
                         etree.write_xml()
                     else:
+                        fname1 = os.path.basename(header.fpath)
                         etree = cw.data.yadoxml2etree(path=header.fpath)
                         etree.remove("Property", attrname="moved")
                         header2 = cw.header.CardHeader(carddata=etree.getroot())
                         header2.fpath = header.fpath
                         header2.write()
                         header = header2
+                        fname2 = os.path.basename(header2.fpath)
+                        if fname1 != fname2:
+                            rename_tbl[fname1] = fname2
                     header.moved = 0
                 self.ydata.party.backpack.append(header)
                 header.order = i
@@ -2847,8 +2852,16 @@ class CWPy(_Singleton, threading.Thread):
 
             pcard.set_pos_noscale(pos_noscale)
             pcard.set_fullrecovery()
+
+            # 荷物袋内の私有カードのファイル名が変更されていた場合は参照先を差し替える
+            e_personals = data.find("PersonalCards")
+            if e_personals is not None:
+                for e_personal in e_personals:
+                    e_personal.text = rename_tbl.get(e_personal.text, e_personal.text)
             pcard.refresh_personalpocket(personalcard_tbl)
+
             pcard.update_image()
+
         cw.cwpy.ydata.party.sort_backpack()
 
         self.sdata.remove_log(None)
