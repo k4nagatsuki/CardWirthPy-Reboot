@@ -3319,7 +3319,7 @@ class ReplCardHolder(CardControl):
         CardControl.draw_cards(self, update, mode)
 
     def get_headers(self):
-        if self.cardtype == cw.POCKET_BEAST:
+        if self.cardtype == cw.POCKET_BEAST and not self.personal:
             return [c for c in self.list if c.attachment]
         return self.list
 
