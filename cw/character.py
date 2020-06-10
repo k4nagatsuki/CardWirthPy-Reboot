@@ -2966,7 +2966,7 @@ class Character(object):
             cw.cwpy.ydata.changed()
 
         assert not cw.cwpy.event.in_cardeffectmotion
-        assert not cw.cwpy.event.in_inusecardevent
+        assert fromevent or not cw.cwpy.event.in_inusecardevent
 
         # 時限クーポン処理
         self.count_timedcoupon()
