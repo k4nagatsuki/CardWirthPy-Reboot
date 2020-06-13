@@ -6,7 +6,6 @@ import sys
 import io
 import re
 import copy
-import time
 import shutil
 import threading
 import ctypes
@@ -1664,6 +1663,14 @@ class ScenarioData(SystemData):
         self._beasts.clear()
         self.instructions = []
 
+        re_area = re.compile(r"\Aarea\d+\.wid\Z")
+        re_battle = re.compile(r"\Abattle\d+\.wid\Z")
+        re_package = re.compile(r"\Apackage\d+\.wid\Z")
+        re_mate = re.compile(r"\Amate\d+\.wid\Z")
+        re_info = re.compile(r"\Ainfo\d+\.wid\Z")
+        re_item = re.compile(r"\Aitem\d+\.wid\Z")
+        re_skill = re.compile(r"\Askill\d+\.wid\Z")
+        re_beast = re.compile(r"\Abeast\d+\.wid\Z")
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             isdatadir = os.path.basename(dpath).lower() in _WSN_DATA_DIRS
             if xmlonly and not isdatadir:
@@ -1714,22 +1721,23 @@ class ScenarioData(SystemData):
                     resid = wdata.id
                     name = wdata.name
 
-                ldpath = dpath.lower()
-                if ldpath.endswith("area") or lf.startswith("area"):
+                ldpath = os.path.basename(dpath).lower()
+                lbasename = os.path.basename(lf)
+                if (ldpath == "area" and lf.endswith(".xml")) or re_area.match(lbasename):
                     self._areas[resid] = (name, path)
-                elif ldpath.endswith("battle") or lf.startswith("battle"):
+                elif (ldpath == "battle" and lf.endswith(".xml")) or re_battle.match(lbasename):
                     self._battles[resid] = (name, path)
-                elif ldpath.endswith("package") or lf.startswith("package"):
+                elif (ldpath == "package" and lf.endswith(".xml")) or re_package.match(lbasename):
                     self._packs[resid] = (name, path)
-                elif ldpath.endswith("castcard") or lf.startswith("mate"):
+                elif (ldpath == "castcard" and lf.endswith(".xml")) or re_mate.match(lbasename):
                     self._casts[resid] = (name, path)
-                elif ldpath.endswith("infocard") or lf.startswith("info"):
+                elif (ldpath == "infocard" and lf.endswith(".xml")) or re_info.match(lbasename):
                     self._infos[resid] = (name, path)
-                elif ldpath.endswith("itemcard") or lf.startswith("item"):
+                elif (ldpath == "itemcard" and lf.endswith(".xml")) or re_item.match(lbasename):
                     self._items[resid] = (name, path)
-                elif ldpath.endswith("skillcard") or lf.startswith("skill"):
+                elif (ldpath == "skillcard" and lf.endswith(".xml")) or re_skill.match(lbasename):
                     self._skills[resid] = (name, path)
-                elif ldpath.endswith("beastcard") or lf.startswith("beast"):
+                elif (ldpath == "beastcard" and lf.endswith(".xml")) or re_beast.match(lbasename):
                     self._beasts[resid] = (name, path)
 
         self.specialchars = cw.cwpy.rsrc.specialchars.copy()
