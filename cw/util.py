@@ -1749,6 +1749,10 @@ def create_cardscreenshot(titledic):
             if cw.cwpy.setting.show_personal_cards:
                 max_card[3] = max(len(pcard.personal_pocket), max_card[3])
 
+        if 0 < max_card[3]:
+            # 私物が1枚でも存在するのであれば、最小で2枚分の横幅を確保する
+            max_card[3] = max(max_card[3], 2)
+
         w = cw.s(95 + 80 * sum(max_card) + margin * (5 + sum(max_card)))
         if max_card[3]:
             w += cw.s(margin)
