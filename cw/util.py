@@ -4730,6 +4730,9 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
                            textx, texty):
         return
 
+    def GetIndentSize(self):
+        return 0
+
 
 class FilePathRenderer(wx.grid.GridCellRenderer):
     def __init__(self, can_file=True, can_dir=True):
