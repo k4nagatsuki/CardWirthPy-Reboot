@@ -1070,7 +1070,10 @@ class ScenarioData(SystemData):
         self.in_endprocess = False
         self.background_image_mtime = {}
         self.fpath = cw.util.get_linktarget(header.get_fpath())
-        self.mtime = os.path.getmtime(self.fpath)
+        self.summarypath = ""  # 概略ファイルのパス。_init_xmlpaths の中で取得
+        # シナリオの更新時刻。アーカイブの場合はアーカイブ自体、展開済みの場合は概略ファイルの更新時刻となる
+        # 概略ファイル("Summary.xml"や"Summary.wsm")の更新時刻は _init_xmlpaths の中で取得する
+        self.mtime = os.path.getmtime(self.fpath) if os.path.isfile(self.fpath) else 0
         self.name = header.name
         self.author = header.author
         self.startid = header.startid
@@ -1220,19 +1223,24 @@ class ScenarioData(SystemData):
                         self.ignorecase_table[path.lower()] = path
 
     def check_archiveupdated(self, reload):
-        """シナリオが圧縮されており、
-        前回の展開より後に更新されていた場合は
-        更新分をアーカイブから再取得する。
+        """シナリオが圧縮されており、前回の展開より後に更新されていた
+        場合は更新分をアーカイブから再取得する。
+        圧縮されていない場合はSummary.xml等の更新をチェックし、
+        更新されていればファイルの一覧を再読込する。
         """
-        if not os.path.isfile(self.fpath):
-            return
-
-        mtime = os.path.getmtime(self.fpath)
-        if self.mtime != mtime:
-            self._decompress(True)
-            self.mtime = mtime
-            if reload:
-                self._reload()
+        if os.path.isfile(self.fpath):
+            mtime = os.path.getmtime(self.fpath)
+            if self.mtime != mtime:
+                self._decompress(True)
+                self.mtime = mtime
+                if reload:
+                    self._reload()
+        else:
+            mtime = os.path.getmtime(self.summarypath)
+            if self.mtime != mtime:
+                self.mtime = mtime
+                if reload:
+                    self._reload()
 
     def _decompress(self, overwrite):
         # 展開を別スレッドで実行し、進捗をステータスバーに表示
@@ -1702,6 +1710,9 @@ class ScenarioData(SystemData):
 
                 if (lf == "summary.xml" or lf == "summary.wsm") and not self.summary:
                     self.scedir = dpath.replace("\\", "/")
+                    self.summarypath = path
+                    if os.path.isdir(self.fpath):
+                        self.mtime = os.path.getmtime(self.summarypath)
                     self.summary = xml2etree(path)
                     self.can_loaded_scaledimage = self.summary.getbool(".", "scaledimage", False)
                     continue
