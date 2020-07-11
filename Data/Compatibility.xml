@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="f667964d625bda72f81256be1337b5a1">1.20</Scenario><!-- 深海の盟主たち/Package11.wid -->
   <Scenario md5="4f867a12dba7b7ebfab124841e9515b4">1.20</Scenario><!-- カガミノ中ノイクサ/Area2.wid -->
   <Scenario md5="bb1348f4e85fe35c8e947b963d37a611">1.29</Scenario><!-- ネクロポリス/Area5.wid -->
   <Scenario md5="bb1348f4e85fe35c8e947b963d37a611">1.29</Scenario><!-- ネクロポリス/Area2.wid -->
