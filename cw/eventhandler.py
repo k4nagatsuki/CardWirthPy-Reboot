@@ -282,30 +282,45 @@ class EventHandler(object):
                 seq = []
                 for sprite in cw.cwpy.topgrp.sprites():
                     if isinstance(sprite, cw.sprite.background.ClickableSprite):
-                        seq.append(sprite)
+                        if sprite.clickable_group == 0:
+                            seq.append(sprite)
+                return seq
+
+            def get_etc2():
+                seq = []
+                for sprite in cw.cwpy.topgrp.sprites():
+                    if isinstance(sprite, cw.sprite.background.ClickableSprite):
+                        if sprite.clickable_group == 1:
+                            seq.append(sprite)
                 return seq
 
             if not cw.cwpy.selection or isinstance(cw.cwpy.selection,
                                                    cw.sprite.background.Curtain):
                 if y < 0:
-                    funcs = (get_pcards, get_etc, get_mcards)
+                    funcs = (get_etc2, get_pcards, get_etc, get_mcards)
                 else:
-                    funcs = (get_mcards, get_etc, get_pcards)
+                    funcs = (get_mcards, get_etc, get_pcards, get_etc2)
             elif isinstance(cw.cwpy.selection, cw.sprite.card.PlayerCard):
                 if y < 0:
-                    funcs = (get_etc, get_mcards)
+                    funcs = (get_etc, get_mcards, get_etc2)
                 else:
-                    funcs = (get_mcards, get_etc)
+                    funcs = (get_etc2, get_mcards, get_etc)
             elif isinstance(cw.cwpy.selection, cw.sprite.background.ClickableSprite):
-                if y < 0:
-                    funcs = (get_mcards, get_pcards)
+                if cw.cwpy.selection.clickable_group == 0:
+                    if y < 0:
+                        funcs = (get_mcards, get_etc2, get_pcards)
+                    else:
+                        funcs = (get_pcards, get_etc2, get_mcards)
                 else:
-                    funcs = (get_pcards, get_mcards)
+                    if y < 0:
+                        funcs = (get_pcards, get_etc, get_mcards)
+                    else:
+                        funcs = (get_mcards, get_etc, get_pcards)
             else:
                 if y < 0:
-                    funcs = (get_pcards, get_etc)
+                    funcs = (get_etc2, get_pcards, get_etc)
                 else:
-                    funcs = (get_etc, get_pcards)
+                    funcs = (get_etc, get_pcards, get_etc2)
 
             for func in funcs:
                 seq = func()
