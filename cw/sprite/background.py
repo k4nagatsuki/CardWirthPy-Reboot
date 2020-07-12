@@ -1517,6 +1517,10 @@ class ClickableSprite(base.SelectableSprite):
         self.old_status = "normal"
         self.frame = 0
 
+        # キーボードで選択する時のグループ番号
+        # 0でメニューカードより後かつPCより前に選択、1でPCより後に選択
+        self.clickable_group = 0
+
         spritegrp.add(self, layer=cw.LAYER_CLICKABLE_SPRITES)
         self.spritegrp = spritegrp
 

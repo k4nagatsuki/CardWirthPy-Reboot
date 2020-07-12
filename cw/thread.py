@@ -4303,6 +4303,7 @@ class CWPy(_Singleton, threading.Thread):
                 sprite = cw.sprite.background.ClickableSprite(get_image_personal, get_selimage_personal,
                                                               (x_noscale, y_noscale),
                                                               self.topgrp, adp.add_personalpocket)
+                sprite.clickable_group = 1
                 seq.append(sprite)
                 cw.sprite.background.NumberOfCards(pcard, cw.POCKET_PERSONAL, self.topgrp)
 
