@@ -622,7 +622,7 @@ class EventEngine(object):
 
             # メニューカードの選択を復元
             if not isinsideevent:
-                cw.cwpy.list = cw.cwpy.get_mcards("visible")
+                cw.cwpy.list = cw.cwpy.get_mcards("selectable")
                 cw.cwpy.index = -1
                 if last_selected and last_selected in cw.cwpy.list:
                     index = cw.cwpy.list.index(last_selected)

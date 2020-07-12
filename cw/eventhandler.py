@@ -269,16 +269,13 @@ class EventHandler(object):
             def get_mcards():
                 seq = []
                 if cw.cwpy.is_mcardsselectable:
-                    seq = cw.cwpy.get_mcards("visible")
+                    seq = cw.cwpy.get_mcards("selectable")
                 return seq
 
             def get_pcards():
                 seq = []
                 if cw.cwpy.is_pcardsselectable:
-                    if cw.cwpy.is_debugmode() and not cw.cwpy.selectedheader:
-                        seq = cw.cwpy.get_pcards()
-                    else:
-                        seq = cw.cwpy.get_pcards("unreversed")
+                    seq = cw.cwpy.get_pcards("selectable")
                 return seq
 
             def get_etc():

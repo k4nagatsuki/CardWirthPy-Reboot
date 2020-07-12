@@ -2132,7 +2132,7 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change(False)
 
         # cwpylist, index 初期化
-        self.list = self.get_mcards("visible")
+        self.list = self.get_mcards("selectable")
         self.index = -1
         # スプライト削除
         seq = []
@@ -3226,18 +3226,14 @@ class CWPy(_Singleton, threading.Thread):
     def _update_mcardlist(self):
         self._mcardtable = {}
         mcards = self.get_mcards()
-        visible = []
         for mcard in mcards:
-            if mcard.status != "hidden":
-                visible.append(mcard)
             if mcard.flag:
                 seq = self._mcardtable.get(mcard.flag, [])
                 seq.append(mcard)
                 if len(seq) == 1:
                     self._mcardtable[mcard.flag] = seq
         if not self.is_showingmessage():
-            self.list = visible
-            self.index = -1
+            self.update_selectablelist()
 
     def update_pcimage(self, pcnumber, deal):
         if not self.file_updates_bg or deal:
@@ -3434,7 +3430,7 @@ class CWPy(_Singleton, threading.Thread):
                     fcard.update_image()
                 fcard.deal()
             self.add_lazydraw(clip=fcard.rect)
-        self.list = self.get_mcards("visible")
+        self.list = self.get_mcards("selectable")
         self.index = -1
 
     def clear_fcardsprites(self):
@@ -3452,7 +3448,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.mcards_expandspchars.discard(fcard)
                 self.file_updates.discard(fcard)
         self.cardgrp.remove(fcards)
-        self.list = self.get_mcards("visible")
+        self.list = self.get_mcards("selectable")
         self.index = -1
 
     def update_mcardnames(self):
@@ -3911,7 +3907,7 @@ class CWPy(_Singleton, threading.Thread):
                     if self.selectedheader:
                         self.set_testaptitude(self.selectedheader)
 
-                self.list = self.get_mcards("visible")
+                self.list = self.get_mcards("selectable")
                 self.index = -1
                 self.set_curtain(curtain_all=True)
             self.lock_menucards = False
@@ -4067,7 +4063,7 @@ class CWPy(_Singleton, threading.Thread):
                     if mcard.spchars:
                         self.mcards_expandspchars.add(mcard)
                 self.deal_cards()
-                self.list = self.get_mcards("visible")
+                self.list = self.get_mcards("selectable")
                 self.index = -1
             else:
                 if cw.cwpy.ydata:
@@ -4538,12 +4534,9 @@ class CWPy(_Singleton, threading.Thread):
         """状況に応じて矢印キーで選択対象となる
         カードのリストを更新する。"""
         if self.is_pcardsselectable:
-            if self.is_debugmode() and not self.selectedheader:
-                self.list = self.get_pcards()
-            else:
-                self.list = self.get_pcards("unreversed")
+            self.list = self.get_pcards("selectable")
         elif self.is_mcardsselectable:
-            self.list = self.get_mcards("visible")
+            self.list = self.get_mcards("selectable")
         else:
             self.list = []
         self.index = -1
@@ -5727,6 +5720,11 @@ class CWPy(_Singleton, threading.Thread):
             mcards = [m for m in self.get_mcards(flag=flag)
                       if not isinstance(m, cw.character.Friend)
                       and m.is_flagtrue()]
+        elif mode == "selectable":
+            if self.is_battlestatus():
+                mcards = self.get_ecards("selectable")
+            else:
+                mcards = self.get_mcards("visible")
         elif flag:
             mcards = self._mcardtable.get(flag, [])
         else:
@@ -5754,6 +5752,11 @@ class CWPy(_Singleton, threading.Thread):
             ecards = [ecard for ecard in ecards if not ecard.is_reversed()]
         elif mode == "active":
             ecards = [ecard for ecard in ecards if ecard.is_active()]
+        elif mode == "selectable":
+            if self.is_debugmode():
+                ecards = cw.cwpy.get_ecards()
+            else:
+                ecards = cw.cwpy.get_ecards("unreversed")
 
         ecards = [ecard for ecard in ecards if isinstance(ecard, cw.character.Enemy)]
 
@@ -5767,6 +5770,12 @@ class CWPy(_Singleton, threading.Thread):
             pcards = [pcard for pcard in self.get_pcards() if not pcard.is_reversed()]
         elif mode == "active":
             pcards = [pcard for pcard in self.get_pcards() if pcard.is_active()]
+        elif mode == "selectable":
+            if (self.is_debugmode() and not self.selectedheader) or (self.setting.show_personal_cards and
+                                                                     self.areaid == cw.AREA_CAMP):
+                pcards = self.get_pcards()
+            else:
+                pcards = self.get_pcards("unreversed")
         else:
             pcards = self.pcards
             pcards = [m for m in pcards
@@ -5787,6 +5796,11 @@ class CWPy(_Singleton, threading.Thread):
             fcards = [fcard for fcard in fcards if not fcard.is_reversed()]
         elif mode == "active":
             fcards = [fcard for fcard in fcards if fcard.is_active()]
+        elif mode == "selectable":
+            if self.is_debugmode():
+                fcards = self.get_fcards()
+            else:
+                fcards = self.get_fcards("unreversed")
 
         return fcards
 
