@@ -4630,11 +4630,11 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
 
         if sys.platform == "win32":
             import win32gui
-            SPI_GETDESKWALLPAPER = 104
-            value = win32gui.SystemParametersInfo(SPI_GETDESKWALLPAPER)
-            value = cw.wins(value*8)
+            SPI_GETWHEELSCROLLLINES = 104
+            value = win32gui.SystemParametersInfo(SPI_GETWHEELSCROLLLINES)
+            value = cw.wins(value*4)
         else:
-            value = cw.wins(4*8)
+            value = cw.wins(4*4)
 
         if get_wheelrotation(event) > 0:
             self.ScrollLines(-value)
