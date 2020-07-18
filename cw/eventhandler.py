@@ -452,6 +452,10 @@ class EventHandler(object):
     def background_event(self):
         # シナリオプレイ時、キャンプモード切替
         cw.cwpy.statusbar.hide_touchbuttons()
+
+        if cw.cwpy.ydata and cw.cwpy.ydata.is_loading():
+            return
+
         if not cw.cwpy.is_runningevent():
 
             # 選択エリアの時、キャンセル
