@@ -4704,6 +4704,13 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
     wx.lib.agw.aui.AuiNotebookのタブを描画するが、
     テキストのみ左寄せから中央寄せに変更する。
     """
+    def __init__(self, indentsize=0):
+        wx.lib.agw.aui.tabart.AuiDefaultTabArt.__init__(self)
+        self.indentsize = indentsize
+
+    def Clone(self):
+        return CWTabArt(self.indentsize)
+
     def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
         # テキストを一旦空にして背景だけ描画させる
         self._cwtabart_caption = page.caption
@@ -4713,6 +4720,7 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
         r = super(CWTabArt, self).DrawTab(dc, wnd, page, in_rect, close_button_state, paint_control)
         page.caption = self._cwtabart_caption
         # テキストを描画
+        dc.SetFont(wnd.GetFont())
         te = dc.GetTextExtent(page.caption)
         rect = r[0]
         x = rect.X + (rect.Width - te[0]) // 2
@@ -4731,7 +4739,7 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
         return
 
     def GetIndentSize(self):
-        return 0
+        return self.indentsize
 
 
 class FilePathRenderer(wx.grid.GridCellRenderer):
