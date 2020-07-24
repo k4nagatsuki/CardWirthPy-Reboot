@@ -268,6 +268,8 @@ def init_bass(soundfonts):
     _bass.BASS_Init.restype = c_BOOL
     _bass.BASS_Free.argtypes = []
     _bass.BASS_Free.restype = c_BOOL
+    _bass.BASS_ErrorGetCode.argtypes = []
+    _bass.BASS_ErrorGetCode.restype = c_int
     _bass.BASS_GetDeviceInfo.argtypes = [c_DWORD, ctypes.POINTER(BASS_DEVICEINFO)]
     _bass.BASS_GetDeviceInfo.restype = c_BOOL
     _bass.BASS_SetDevice.argtypes = [c_DWORD]
@@ -465,16 +467,16 @@ def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
         if stream:
             if _sfonts:
                 if not _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) // (4*3)):
-                    raise ValueError("sound font failure: %s" % (fpath))
+                    raise ValueError("sound font failure: %s, %s" % (fpath, _bass.BASS_ErrorGetCode()))
             else:
-                raise ValueError("sound font not found: %s" % (fpath))
+                raise ValueError("sound font not found: %s, %s" % (fpath, _bass.BASS_ErrorGetCode()))
         else:
-            raise ValueError("_play() failure: %s" % (fpath))
+            raise ValueError("_play() failure: %s, %s" % (fpath, _bass.BASS_ErrorGetCode()))
 
     else:
         stream = _bass.BASS_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag)
         if not stream:
-            raise ValueError("_play() failure: %s" % (fpath))
+            raise ValueError("_play() failure: %s, %s" % (fpath, _bass.BASS_ErrorGetCode()))
 
     if loopcount != 1:
         loopinfo = _get_loopinfo(fpath, stream)
