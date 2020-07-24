@@ -80,6 +80,9 @@ class CardEditDialog(wx.Dialog):
             bmp = cw.cwpy.rsrc.buttons["SACK_dbg"]
             self.dealtarg.Append("荷物袋", bmp)
             self.notcast += 1
+            bmp = cw.cwpy.rsrc.debugs["MEMBER_dbg"]
+            self.dealtarg.Append("パーティ全員", bmp)
+            self.notcast += 1
         bmp = cw.cwpy.rsrc.buttons["CAST_dbg"]
         for member in cw.cwpy.get_pcards():
             self.dealtarg.Append(member.name, bmp)
@@ -351,26 +354,29 @@ class CardEditDialog(wx.Dialog):
         """選択したカードを配付する。"""
         cname = self.dealtarg.GetStringSelection()
         if cname == "カード置場":
-            target = cw.cwpy.ydata.storehouse
+            targets = [cw.cwpy.ydata.storehouse]
         elif cname == "荷物袋":
-            target = self.party.backpack
+            targets = [self.party.backpack]
+        elif cname == "パーティ全員":
+            targets = cw.cwpy.get_pcards()
         else:
             cindex = self.dealtarg.GetSelection()
-            target = cw.cwpy.get_pcards()[cindex-self.notcast]
+            targets = [cw.cwpy.get_pcards()[cindex-self.notcast]]
 
-        index = -1
         count = 0
-        while True:
-            index = self.cards.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-            if index <= -1:
-                break
-            notscenariocard = not cw.cwpy.is_playingscenario()
-            data = cw.data.copydata(self.datalist[index])
-            header = self.list[index]
-            cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir,
-                                fromdebugger=True,
-                                anotherscenariocard=True)
-            count += 1
+        for target in targets:
+            index = -1
+            while True:
+                index = self.cards.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+                if index <= -1:
+                    break
+                notscenariocard = not cw.cwpy.is_playingscenario()
+                data = cw.data.copydata(self.datalist[index])
+                header = self.list[index]
+                cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir,
+                                    fromdebugger=True,
+                                    anotherscenariocard=True)
+                count += 1
 
         if 0 < count:
             cw.cwpy.play_sound("harvest")
