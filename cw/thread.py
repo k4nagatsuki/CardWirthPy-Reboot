@@ -14,7 +14,6 @@ import math
 import wx
 import pygame
 from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
-from typing import Any
 
 import cw
 from cw.util import synclock
@@ -40,6 +39,9 @@ class _Singleton(object):
             instance = object.__new__(cls)
             cls.__new__ = classmethod(lambda cls, *args, **kwargs: instance)
             return cls.__new__(cls, *args, **kwargs)
+
+
+_dlg_mutex = threading.Lock()
 
 
 class CWPy(_Singleton, threading.Thread):
@@ -1858,11 +1860,10 @@ class CWPy(_Singleton, threading.Thread):
         """
         if name not in self.frame.dlgeventtypes:
             cw.cwpy.call_dlg("ERROR", text="ダイアログ「%s」は存在しません。" % name)
-            return
-        stack = self._showingdlg
+            return 0
         self.lock_menucards = True
+        stack = self.add_showingdlg()
         self.input(eventclear=True)
-        self._showingdlg += 1
         self.statusbar.hide_touchbuttons()
         self.statusbar.clear_volumebar()
         self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
@@ -1875,7 +1876,7 @@ class CWPy(_Singleton, threading.Thread):
         event.args = kwargs
         if threading.currentThread() == self:
             if not self.frame:
-                return
+                return stack
 
             def func():
                 # BUG: シナリオインストールダイアログを開いたあとで
@@ -1890,13 +1891,13 @@ class CWPy(_Singleton, threading.Thread):
             # BUG: シナリオインストールダイアログを開いたあとで
             #      フィルタイベントの挙動がおかしくなる
             self.frame.ProcessEvent(event)
+        return stack
 
     def call_modaldlg(self, name, **kwargs):
         """ダイアログを開き、閉じるまで待機する。
         name: ダイアログ名。cw.frame参照。
         """
-        stack = self._showingdlg
-        self.call_dlg(name, **kwargs)
+        stack = self.call_dlg(name, **kwargs)
 
         if threading.currentThread() == self:
             while self.is_running() and stack < self._showingdlg:
@@ -1931,13 +1932,21 @@ class CWPy(_Singleton, threading.Thread):
             self.lock_menucards = False
 
     def kill_showingdlg(self):
-        self._showingdlg -= 1
-        if self._showingdlg <= 0:
+        if self._kill_showingdlg() <= 0:
             if not self.is_runningevent():
                 self.exec_func(self.clear_selection)
 
+    @synclock(_dlg_mutex)
+    def _kill_showingdlg(self):
+        oldval = self._showingdlg
+        self._showingdlg -= 1
+        return oldval
+
+    @synclock(_dlg_mutex)
     def add_showingdlg(self):
+        oldval = self._showingdlg
         self._showingdlg += 1
+        return oldval
 
     def exec_func(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行する。
@@ -5630,6 +5639,7 @@ class CWPy(_Singleton, threading.Thread):
         return cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario() and\
                not self.is_processing and self.ydata and self.ydata.party and not self.ydata.party.is_loading()
 
+    @synclock(_dlg_mutex)
     def is_showingdlg(self):
         return 0 < self._showingdlg
 
