@@ -339,6 +339,7 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(func)
             dlg.Show()
 
+    @synclock(cw.debug.debugger.mutex)
     def close_debugger(self):
         """デバッガ閉じる。"""
         if self.debugger:
@@ -347,8 +348,9 @@ class Frame(wx.Frame):
             debugger.Close()
 
             def func():
-                cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
-            cw.cwpy.exec_func(func)
+                cw.cwpy.event.waittime = 0
+            cw.cwpy.force_exec_func(func)
+            cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
 
     def exec_func(self, func, *args, **kwargs):
         """wxPythonスレッドで指定したファンクションを実行する。

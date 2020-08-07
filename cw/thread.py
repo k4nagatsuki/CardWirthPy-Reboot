@@ -1958,6 +1958,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def force_exec_func(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行する。
+        ファンクションはゲームのイベント処理の間に割り込んで実行される。
         func: 実行したいファンクションオブジェクト。
         """
         event = pygame.event.Event(cw.FORCE_USEREVENT, func=func, args=args, kwargs=kwargs)

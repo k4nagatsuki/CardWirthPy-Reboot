@@ -31,6 +31,7 @@ class EventInterface(object):
         self._step = False
         self._targetstack = -2
         self.breakwait = False
+        self.waittime = 0
 
         # イベント実行中に操作を受け付けるためのタイマ
         self.eventtimer = 1
@@ -486,7 +487,7 @@ class EventInterface(object):
                 # ステップ実行中
                 self.paused = True
 
-            waittime = cw.cwpy.frame.debugger.sc_waittime.GetValue()
+            waittime = self.waittime
             if waittime:
                 tick = pygame.time.get_ticks()
                 stw = cw.sprite.base.StopTheWorld(tick, waittime * 100)

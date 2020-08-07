@@ -540,6 +540,8 @@ class Debugger(wx.Frame):
         self._refresh_pausetool()
 
     def _bind(self):
+        self.sc_waittime.Bind(wx.EVT_SPINCTRL, self.OnWaitTime)
+
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_MENU, self.OnAreaTool, id=ID_AREA)
@@ -654,10 +656,21 @@ class Debugger(wx.Frame):
         cw.cwpy.keyevent.keydown(wx.WXK_F9)
         cw.cwpy.keyevent.keyup(wx.WXK_F9)
 
+    def OnWaitTime(self, event):
+        waittime = self.sc_waittime.GetValue()
+
+        def func(waittime):
+            cw.cwpy.event.waittime = waittime
+        cw.cwpy.force_exec_func(func, waittime)
+
     @synclock(mutex)
     def OnClose(self, event):
         self.Destroy()
         cw.cwpy.frame.debugger = None
+
+        def func():
+            cw.cwpy.event.waittime = 0
+        cw.cwpy.force_exec_func(func)
         cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
 
     @synclock(mutex)
@@ -666,6 +679,10 @@ class Debugger(wx.Frame):
         # Destroyイベントが呼ばれるようなので、それと区別
         if self and self.IsBeingDeleted():
             cw.cwpy.frame.debugger = None
+
+            def func():
+                cw.cwpy.event.waittime = 0
+            cw.cwpy.force_exec_func(func)
 
     def OnBreakTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent()\
