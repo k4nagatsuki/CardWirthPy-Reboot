@@ -1013,7 +1013,7 @@ class Frame(wx.Frame):
 
         def func(owner, header, targets):
             alpha = cw.cwpy.setting.get_inusecardalpha(owner)
-            cw.cwpy.set_inusecardimg(owner, header, alpha=alpha)
+            cw.cwpy.set_inusecardimg(owner, header, alpha=alpha, fore=True)
             if not cw.cwpy.setting.confirm_beforeusingcard or header.target == "None":
                 cw.cwpy.clear_targetarrow()
             else:

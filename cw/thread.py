@@ -4445,12 +4445,12 @@ class CWPy(_Singleton, threading.Thread):
                         owner = header.personal_owner
                     else:
                         owner = sprite
-                    if self.setting.show_aim and self.selection and self.selection in targets:
+                    if self.setting.show_aim and self.selection and not selowner and self.selection in targets:
                         alpha = 255  # カーソル下のカードを狙っている場合は不透明表示
                         fore = True
                     else:
                         alpha = cw.cwpy.setting.get_inusecardalpha(owner)
-                        fore = False
+                        fore = header == self.selectedheader
                     self.set_inusecardimg(owner, header, alpha=alpha, fore=fore)
 
                 if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
