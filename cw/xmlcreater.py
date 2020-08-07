@@ -412,6 +412,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.show_allselectedcards != setting.show_allselectedcards_init:
         e = cw.data.make_element("ShowAllSelectedCards", str(setting.show_allselectedcards))
         element.append(e)
+    # 選択キャラクターを対象とする行動を表示する
+    if setting.show_aim != setting.show_aim_init:
+        e = cw.data.make_element("ShowAim", str(setting.show_aim))
+        element.append(e)
     # カード使用時に確認ダイアログを表示
     if setting.confirm_beforeusingcard != setting.confirm_beforeusingcard_init:
         e = cw.data.make_element("ConfirmBeforeUsingCard", str(setting.confirm_beforeusingcard))
