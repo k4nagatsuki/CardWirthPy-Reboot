@@ -407,6 +407,7 @@ class Setting(object):
         self.show_invisiblescenario = False
         self.wheelup_operation = WHEEL_SHOWLOG
         self.show_allselectedcards = True
+        self.show_aim = True
         self.confirm_beforeusingcard = True
         self.confirm_beforesaving = CONFIRM_BEFORESAVING_YES
         self.confirm_dumpcard = CONFIRM_DUMPCARD_ALWAYS
@@ -727,6 +728,8 @@ class Setting(object):
         self.wheelup_operation = data.gettext("WheelUpOperation", self.wheelup_operation)
         # 戦闘行動を全員分表示する
         self.show_allselectedcards = data.getbool("ShowAllSelectedCards", self.show_allselectedcards)
+        # 選択キャラクターを対象とする行動を表示する
+        self.show_aim = data.getbool("ShowAim", self.show_aim_init)
         # カード使用時に確認ダイアログを表示
         self.confirm_beforeusingcard = data.getbool("ConfirmBeforeUsingCard", self.confirm_beforeusingcard)
         # セーブ前に確認ダイアログを表示

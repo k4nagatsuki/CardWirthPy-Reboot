@@ -4433,6 +4433,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if header:
                 if self.selection == sprite and not selowner:
+                    # カーソル下のカード。常に手前に表示
                     self.set_inusecardimg(sprite, header, fore=True)
                     if header.target == "None":
                         self.set_targetarrow([sprite])
@@ -4444,8 +4445,13 @@ class CWPy(_Singleton, threading.Thread):
                         owner = header.personal_owner
                     else:
                         owner = sprite
-                    alpha = cw.cwpy.setting.get_inusecardalpha(owner)
-                    self.set_inusecardimg(owner, header, alpha=alpha)
+                    if self.setting.show_aim and self.selection and self.selection in targets:
+                        alpha = 255  # カーソル下のカードを狙っている場合は不透明表示
+                        fore = True
+                    else:
+                        alpha = cw.cwpy.setting.get_inusecardalpha(owner)
+                        fore = False
+                    self.set_inusecardimg(owner, header, alpha=alpha, fore=fore)
 
                 if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
                     show_allselectedcards = True
