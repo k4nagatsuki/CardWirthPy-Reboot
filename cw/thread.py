@@ -4336,7 +4336,7 @@ class CWPy(_Singleton, threading.Thread):
         self.update_mousepos()
         self.update_groups((self.sbargrp,))
 
-    def change_selection(self, sprite):
+    def change_selection(self, sprite, forceredraw=None):
         """引数のスプライトを選択状態にする。
         sprite: SelectableSprite
         """
@@ -4374,6 +4374,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.add_lazydraw(clip=oldsel.rect)
             if sprite:
                 self.add_lazydraw(clip=sprite.rect)
+        if forceredraw:
+            self.add_lazydraw(clip=forceredraw.rect)
 
         if (not self.is_runningevent()
                 and isinstance(sprite, cw.character.Character)
@@ -4385,6 +4387,8 @@ class CWPy(_Singleton, threading.Thread):
                                   self.get_fcards("unreversed"))
         elif not self.is_runningevent() and self.selectedheader and self.selectedheader.get_owner():
             seq = [self.selectedheader.get_owner()]
+        elif forceredraw:
+            seq = [forceredraw]
         else:
             seq = []
 
@@ -4422,6 +4426,8 @@ class CWPy(_Singleton, threading.Thread):
                 targets = []
             elif sprite.actiondata:
                 targets, header, _beasts = sprite.actiondata
+                if isinstance(targets, cw.character.Character):
+                    targets = [targets]
             else:
                 targets = []
                 header = None

@@ -877,9 +877,7 @@ class PlayerCard(CWPyCard, character.Player):
                 cw.cwpy.call_modaldlg("USECARD")
             # 戦闘行動を設定する。
             elif cw.cwpy.status == "ScenarioBattle":
-                header = cw.cwpy.selectedheader
-                header.get_owner().set_action(self, header)
-                cw.cwpy.clear_specialarea(redraw=False)
+                _select_action(self)
 
         # パーティ離脱
         elif cw.cwpy.areaid == -3:
@@ -978,6 +976,16 @@ class PlayerCard(CWPyCard, character.Player):
         for pocket in self.cardpocket:
             for card in pocket[:]:
                 cw.cwpy.trade("TRASHBOX", header=card, from_event=True, sort=False)
+
+
+def _select_action(sprite):
+    """戦闘行動選択エリアで対象を左クリックした時の処理。"""
+    header = cw.cwpy.selectedheader
+    header.get_owner().set_action(sprite, header)
+    cw.cwpy.clear_specialarea(redraw=False)
+    if cw.cwpy.selection == sprite:
+        # 自分を狙う戦闘行動を不透明状態で再描画する
+        cw.cwpy.change_selection(sprite, forceredraw=header.get_owner())
 
 
 # ------------------------------------------------------------------------------
@@ -1193,9 +1201,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         # カード使用。戦闘行動を設定する。
         elif cw.cwpy.selectedheader:
             if cw.cwpy.is_battlestatus():
-                header = cw.cwpy.selectedheader
-                header.get_owner().set_action(self, header)
-                cw.cwpy.clear_specialarea(redraw=False)
+                _select_action(self)
 
     def rclick_event(self):
         """右クリックイベント。"""
@@ -1489,9 +1495,7 @@ class MenuCard(CWPyCard):
                 cw.cwpy.call_modaldlg("USECARD")
             # 戦闘行動を設定する
             elif cw.cwpy.status == "ScenarioBattle":
-                header = cw.cwpy.selectedheader
-                header.get_owner().set_action(self, header)
-                cw.cwpy.clear_specialarea()
+                _select_action(self)
 
         # キャンプ・パーティ解散
         elif cw.cwpy.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
