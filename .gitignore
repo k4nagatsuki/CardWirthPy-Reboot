@@ -38,3 +38,4 @@ dist/*
 CardWirthPy.spec
 dailybuild_tmp/*
 *.bat
+versioninfo.py
