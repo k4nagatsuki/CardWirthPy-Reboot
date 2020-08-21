@@ -4292,9 +4292,9 @@ class CWPy(_Singleton, threading.Thread):
                     self.header = header
 
                 def add_personalpocket(self):
-                    if self.header.personal_owner:
-                        self.header.personal_owner.remove_personalpocket(self.header)
                     if len(self.pcard.personal_pocket) < self.pcard.get_personalpocketspace():
+                        if self.header.personal_owner:
+                            self.header.personal_owner.remove_personalpocket(self.header)
                         self.outer.trade("BACKPACK", header=self.header, from_event=False, sound=False, sort=False,
                                          call_predlg=False)
                         self.pcard.add_personalpocket(self.header)
