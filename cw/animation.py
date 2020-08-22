@@ -3,6 +3,7 @@
 
 import threading
 import pygame
+import pygame.locals
 
 import cw
 

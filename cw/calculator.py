@@ -8,10 +8,12 @@ import fnmatch
 
 import cw
 
+from typing import Callable, List, Union
+
 
 class ComputeException(Exception):
     """式の中で発生する何らかのエラー。"""
-    def __init__(self, msg, line, pos):
+    def __init__(self, msg: str, line: int, pos: int) -> None:
         Exception.__init__(self, msg + " Line: %s, Pos: %s" % (line, pos))
         self.line = line
         self.pos = pos
@@ -31,7 +33,7 @@ class SemanticsException(ComputeException):
 
 class ZeroDivisionException(ComputeException):
     """ゼロで割ろうとした。"""
-    def __init__(self, msg, line, pos):
+    def __init__(self, msg: str, line: int, pos: int) -> None:
         Exception.__init__(self, msg + " Line: %s, Pos: %s" % (line, pos))
         self.line = line
         self.pos = pos
@@ -73,7 +75,7 @@ class ArgumentIsNotBooleanException(ComputeException):
 
 class ArgumentsCountException(ComputeException):
     """関数の引数の数が誤っている。"""
-    def __init__(self, msg, func_name, line, pos):
+    def __init__(self, msg: str, func_name: str, line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
 
@@ -122,13 +124,13 @@ class DifferentScenarioException(ComputeException):
 
 class Function(object):
     """関数の名前と引数を保持し、計算を行う。"""
-    def __init__(self, name, line, pos, args):
+    def __init__(self, name: str, line: int, pos: int, args: List["ValueType"]) -> None:
         self.name = name.lower()
         self.line = line
         self.pos = pos
         self.args = args
 
-    def call(self, is_differentscenario):
+    def call(self, is_differentscenario: bool) -> "ValueType":
         args = []
         for arg in self.args:
             class F(object):
@@ -152,12 +154,12 @@ class Function(object):
 
 class UnaryOperator(object):
     """単項演算子の保持と実行を行う。"""
-    def __init__(self, operator, line, pos):
+    def __init__(self, operator: str, line: int, pos: int) -> None:
         self.operator = operator
         self.line = line
         self.pos = pos
 
-    def call(self, rhs):
+    def call(self, rhs: "ValueType") -> "ValueType":
         o = self.operator
         if o == '+':
             if not isinstance(rhs, DecimalValue):
@@ -180,12 +182,12 @@ class UnaryOperator(object):
 
 class Operator(object):
     """二項演算子の保持と実行を行う。"""
-    def __init__(self, operator, line, pos):
+    def __init__(self, operator: str, line: int, pos: int) -> None:
         self.operator = operator
         self.line = line
         self.pos = pos
 
-    def call(self, lhs, rhs):
+    def call(self, lhs: "ValueType", rhs: "ValueType") -> "ValueType":
         o = self.operator
 
         def chk_num():
@@ -259,7 +261,7 @@ class Operator(object):
 
 class Token(object):
     """行+行内位置を伴うトークン情報。"""
-    def __init__(self, token, line, pos):
+    def __init__(self, token: str, line: int, pos: int) -> None:
         self.token = token
         self.line = line
         self.pos = pos
@@ -268,14 +270,23 @@ class Token(object):
         return "Token(%s, %s:%s)" % (self.token, self.line, self.pos)
 
 
-class DecimalValue(object):
+class ValueType(object):
+    value: Union[str, decimal.Decimal, bool]
+    line: int
+    pos: int
+
+    def to_str(self) -> str:
+        return ""
+
+
+class DecimalValue(ValueType):
     """数値トークン。"""
-    def __init__(self, s, line, pos):
+    def __init__(self, s: Union[str, decimal.Decimal, int], line: int, pos: int) -> None:
         self.value = decimal.Decimal(s)
         self.line = line
         self.pos = pos
 
-    def to_str(self):
+    def to_str(self) -> str:
         s = ("%.8f" % self.value).rstrip("0").rstrip(".")
         if s == "":
             s = "0"
@@ -285,35 +296,35 @@ class DecimalValue(object):
         return "Decimal(%s)" % self.value
 
 
-class StringValue(object):
+class StringValue(ValueType):
     """文字列トークン。"""
-    def __init__(self, s, line, pos):
+    def __init__(self, s: str, line: int, pos: int) -> None:
         self.value = s
         self.line = line
         self.pos = pos
 
-    def to_str(self):
+    def to_str(self) -> str:
         return self.value
 
     def __repr__(self):
         return "String(\"%s\")" % self.value
 
 
-class BooleanValue(object):
+class BooleanValue(ValueType):
     """真偽値トークン。"""
-    def __init__(self, s, line, pos):
+    def __init__(self, s: bool, line: int, pos: int) -> None:
         self.value = s
         self.line = line
         self.pos = pos
 
-    def to_str(self):
+    def to_str(self) -> str:
         return "TRUE" if self.value else "FALSE"
 
     def __repr__(self):
         return "Boolean(\"%s\")" % self.value
 
 
-def parse(s):
+def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
     """文字列sを式として解析し、スタックを生成する。"""
     tokens = []
     bpos = 0
@@ -509,7 +520,8 @@ def parse(s):
     return num
 
 
-def calculate(st, is_differentscenario=False):
+def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator]],
+              is_differentscenario: bool = False) -> ValueType:
     """スタックstの式を実行する。"""
     op = []
     for t in st:
@@ -540,7 +552,7 @@ def calculate(st, is_differentscenario=False):
     return op.pop(-1)
 
 
-def eval(st, is_differentscenario):
+def eval_expr(st, is_differentscenario):
     return cw.data.Variant(None, None, calculate(st, is_differentscenario).value, "", "")
 
 
@@ -549,25 +561,25 @@ def _chk_diffsc(is_differentscenario, line, pos):
         raise DifferentScenarioException("Read a variable at different scenario.", line, pos)
 
 
-def _chk_argscount(args, n, func_name, line, pos):
+def _chk_argscount(args: List[Callable], n: int, func_name: str, line: int, pos: int) -> None:
     if len(args) != n:
         raise ArgumentsCountException("Invalid arguments count: %s != %s" % (n, len(args)), func_name, line, pos)
 
 
-def _chk_argscount2(args, n1, n2, func_name, line, pos):
+def _chk_argscount2(args: List[Callable], n1: int, n2: int, func_name: str, line: int, pos: int) -> None:
     if not len(args) in (n1, n2):
         raise ArgumentsCountException("Invalid arguments count: %s-%s != %s" % (n1, n2, len(args)), func_name, line,
                                       pos)
 
 
-def _chk_decimal(arg, func_name, arg_index):
+def _chk_decimal(arg: DecimalValue, func_name: str, arg_index: int) -> None:
     """argがDecimalValueか調べる。"""
     if not isinstance(arg, DecimalValue):
         raise ArgumentIsNotDecimalException("%s is not Decimal." % arg.value, func_name, arg_index, arg.to_str(),
                                             arg.line, arg.pos)
 
 
-def _chk_minvalue(arg, func_name, arg_index, minvalue=0):
+def _chk_minvalue(arg: DecimalValue, func_name: str, arg_index: int, minvalue: int = 0) -> None:
     """argが0以上のDecimalValueか調べる。"""
     _chk_decimal(arg, func_name, arg_index)
     if arg.value < minvalue:
@@ -575,32 +587,34 @@ def _chk_minvalue(arg, func_name, arg_index, minvalue=0):
                                        arg.line, arg.pos)
 
 
-def _chk_string(arg, func_name, arg_index):
+def _chk_string(arg: StringValue, func_name: str, arg_index: int) -> None:
     """argがStringValueか調べる。"""
     if not isinstance(arg, StringValue):
-        raise ArgumentIsNotStringException("%s is not String." % arg.value, func_name, arg_index, arg.value, arg.line, arg.pos)
+        raise ArgumentIsNotStringException("%s is not String." % arg.value, func_name, arg_index, arg.value,
+                                           arg.line, arg.pos)
 
 
-def _chk_boolean(arg, func_name, arg_index):
+def _chk_boolean(arg: BooleanValue, func_name: str, arg_index: int) -> None:
     """argがBooleanValueか調べる。"""
     if not isinstance(arg, BooleanValue):
-        raise ArgumentIsNotBooleanException("%s is not Boolean." % arg.value, func_name, arg_index, arg.value, arg.line, arg.pos)
+        raise ArgumentIsNotBooleanException("%s is not Boolean." % arg.value, func_name, arg_index, arg.value,
+                                            arg.line, arg.pos)
 
 
-def _is_alldecimal(args, func_name):
+def _is_alldecimal(args: List[DecimalValue], func_name: str) -> bool:
     """argsが全てDecimalValueで構成されているか検査する。"""
     for i, arg in enumerate(args):
         _chk_decimal(arg, func_name, i)
     return True
 
 
-def _all_eval(args):
+def _all_eval(args: List[Callable]) -> Union[List[ValueType], List[Union[StringValue, DecimalValue]]]:
     for i, arg in enumerate(args):
         args[i] = arg()
     return args
 
 
-def _func_max(args, is_differentscenario, line, pos):
+def _func_max(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数中の最大の値を返す。"""
     args = _all_eval(args)
     if len(args) and _is_alldecimal(args, "MAX"):
@@ -608,7 +622,7 @@ def _func_max(args, is_differentscenario, line, pos):
     raise ArgumentsCountException("No argments of max.", "MAX", line, pos)
 
 
-def _func_min(args, is_differentscenario, line, pos):
+def _func_min(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数中の最小の値を返す。"""
     args = _all_eval(args)
     if len(args) and _is_alldecimal(args, "MIN"):
@@ -616,7 +630,7 @@ def _func_min(args, is_differentscenario, line, pos):
     raise ArgumentsCountException("No argments of min.", "MIN", line, pos)
 
 
-def _func_len(args, is_differentscenario, line, pos):
+def _func_len(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """文字列の文字数を返す。"""
     _chk_argscount(args, 1, "LEN", line, pos)
     args = _all_eval(args)
@@ -625,7 +639,7 @@ def _func_len(args, is_differentscenario, line, pos):
     return DecimalValue(len(a.value), line, pos)
 
 
-def _func_find(args, is_differentscenario, line, pos):
+def _func_find(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """文字列内を検索する。"""
     _chk_argscount2(args, 2, 3, "FIND", line, pos)
     args = _all_eval(args)
@@ -655,7 +669,7 @@ def _func_find(args, is_differentscenario, line, pos):
     return DecimalValue(r + 1, line, pos)
 
 
-def _func_left(args, is_differentscenario, line, pos):
+def _func_left(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """文字列の左側を取り出す。"""
     _chk_argscount(args, 2, "LEFT", line, pos)
     args = _all_eval(args)
@@ -668,7 +682,7 @@ def _func_left(args, is_differentscenario, line, pos):
     return StringValue(a[:int(v)], line, pos)
 
 
-def _func_right(args, is_differentscenario, line, pos):
+def _func_right(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """文字列の右側を取り出す。"""
     _chk_argscount(args, 2, "RIGHT", line, pos)
     args = _all_eval(args)
@@ -681,7 +695,7 @@ def _func_right(args, is_differentscenario, line, pos):
     return StringValue(a[int(v):], line, pos)
 
 
-def _func_mid(args, is_differentscenario, line, pos):
+def _func_mid(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """文字列の[N1-1:N1+N2]の範囲を取り出す。"""
     _chk_argscount2(args, 2, 3, "MID", line, pos)
     args = _all_eval(args)
@@ -703,7 +717,7 @@ def _func_mid(args, is_differentscenario, line, pos):
     return StringValue(a, line, pos)
 
 
-def _func_str(args, is_differentscenario, line, pos):
+def _func_str(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """引数を文字列に変換する。"""
     _chk_argscount(args, 1, "STR", line, pos)
     args = _all_eval(args)
@@ -713,7 +727,7 @@ def _func_str(args, is_differentscenario, line, pos):
 _NUM_REG = re.compile("\\A\\s*-?([0-9]+(\\.[0-9]*)?|([0-9]*\\.)?[0-9]+)\\s*\\Z")
 
 
-def _func_value(args, is_differentscenario, line, pos):
+def _func_value(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数を数値化する。"""
     _chk_argscount(args, 1, "VALUE", line, pos)
     args = _all_eval(args)
@@ -732,7 +746,7 @@ def _func_value(args, is_differentscenario, line, pos):
     return DecimalValue(value, line, pos)
 
 
-def _func_int(args, is_differentscenario, line, pos):
+def _func_int(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数を整数化する。"""
     _chk_argscount(args, 1, "INT", line, pos)
     args = _all_eval(args)
@@ -749,7 +763,7 @@ def _func_int(args, is_differentscenario, line, pos):
     return DecimalValue(value.to_integral_exact(decimal.ROUND_DOWN), line, pos)
 
 
-def _func_if(args, is_differentscenario, line, pos):
+def _func_if(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """args[0]がTrueであればargs[1]を、そうでなければargs[2]を返す。"""
     _chk_argscount(args, 3, "IF", line, pos)
     a = args[0]()

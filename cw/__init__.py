@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os
@@ -6,6 +6,7 @@ import sys
 
 import wx
 import pygame
+import pygame.locals
 
 from . import util
 from . import battle
@@ -44,10 +45,12 @@ from . import sprite
 from . import argparser
 from . import nctype
 
+from typing import Tuple, Union
+
 
 # 実行ファイルのパス
 exepath = ""
-quit = False
+quit_app = False
 
 # ファイルパスのエンコーディング
 if sys.platform == "win32":
@@ -211,26 +214,26 @@ LOG_SEPARATOR_LEN_SHORT = 45
 _argparser = argparser.ArgParser(appname=APP_NAME,
                                  description="%s %s\n\nオープンソースのCardWirthエンジン" %
                                              (APP_NAME, ".".join([str(a) for a in APP_VERSION])))
-_argparser.add_argument("-h", type=bool, nargs=0,
-                        help="このメッセージを表示して終了します。", arg2="--help")
-_argparser.add_argument("-debug", type=bool, nargs=0,
-                        help="デバッグモードで起動します。")
-_argparser.add_argument("-yado", type=str, nargs=1, default="",
-                        help="起動と同時に<YADO>のパスにある拠点を読み込みます。")
-_argparser.add_argument("-party", type=str, nargs=1, default="",
-                        help="起動と同時に<PARTY>のパスにあるパーティを読み込みます。\n"
-                             + "-yadoと同時に指定しなかった場合は無視されます。")
-_argparser.add_argument("-scenario", type=str, nargs=1, default="",
-                        help="起動と同時に<SCENARIO>のパスにあるシナリオを開始します。\n"
-                             + "-yado及び-partyと同時に指定しなかった場合は無視されます。")
-_argparser.add_argument("-skin", type=str, nargs=1, default="",
-                        help="<SKIN>のパスにあるスキンで起動します。\n"
-                             + "起動と同時に拠点が開かれる場合は拠点のスキンが優先されます。")
-_argparser.add_argument("--force-skin", type=str, nargs=1, default="", metavar="SKIN",
-                        help="<SKIN>のパスにあるスキンで起動します。\n"
-                             + "拠点のスキンや、-skinよりも優先されます。")
-_argparser.add_argument("--debug-skin", type=bool, nargs=0,
-                        help="スキンデバッグモードで起動します。")
+_argparser.add_argument("-h", argtype=bool, nargs=0,
+                        helptext="このメッセージを表示して終了します。", arg2="--help")
+_argparser.add_argument("-debug", argtype=bool, nargs=0,
+                        helptext="デバッグモードで起動します。")
+_argparser.add_argument("-yado", argtype=str, nargs=1, default="",
+                        helptext="起動と同時に<YADO>のパスにある拠点を読み込みます。")
+_argparser.add_argument("-party", argtype=str, nargs=1, default="",
+                        helptext="起動と同時に<PARTY>のパスにあるパーティを読み込みます。\n"
+                                 + "-yadoと同時に指定しなかった場合は無視されます。")
+_argparser.add_argument("-scenario", argtype=str, nargs=1, default="",
+                        helptext="起動と同時に<SCENARIO>のパスにあるシナリオを開始します。\n"
+                                 + "-yado及び-partyと同時に指定しなかった場合は無視されます。")
+_argparser.add_argument("-skin", argtype=str, nargs=1, default="",
+                        helptext="<SKIN>のパスにあるスキンで起動します。\n"
+                                 + "起動と同時に拠点が開かれる場合は拠点のスキンが優先されます。")
+_argparser.add_argument("--force-skin", argtype=str, nargs=1, default="", metavar="SKIN",
+                        helptext="<SKIN>のパスにあるスキンで起動します。\n"
+                                 + "拠点のスキンや、-skinよりも優先されます。")
+_argparser.add_argument("--debug-skin", argtype=bool, nargs=0,
+                        helptext="スキンデバッグモードで起動します。")
 
 OPTIONS = _argparser.parse_args(sys.argv[1:])
 if OPTIONS.help:
@@ -248,7 +251,8 @@ for arg in OPTIONS.leftovers:
         sys.argv.remove(arg)
 
 
-def wins(num):
+def wins(num: Union[wx.Bitmap, Tuple[int, int], int, pygame.Rect, Tuple[int, int, int, int]])\
+        -> Union[wx.Bitmap, Tuple[int, int], int, pygame.Rect, Tuple[int, int, int, int]]:
     """numを実際の表示サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
          or pygame.Surface or pygame.Bitmap or pygame.Image
@@ -256,7 +260,7 @@ def wins(num):
     return _s_impl(num, UP_WIN)
 
 
-def s(num):
+def s(num: Union[int, Tuple[int, int], util.Depth1Surface]) -> Union[int, Tuple[int, int], util.Depth1Surface]:
     """numを描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
          or pygame.Surface or pygame.Bitmap or pygame.Image
@@ -308,7 +312,9 @@ def mwin2scr_s(num):
         return _s_impl(num, float(UP_SCR) / UP_WIN_M)
 
 
-def _s_impl(num, up_scr):
+def _s_impl(num: Union[wx.Bitmap, wx.Image, Tuple[int, int], int, pygame.Rect,
+                       Tuple[int, int, int, int]], up_scr: Union[int, float])\
+        -> Union[wx.Bitmap, wx.Image, Tuple[int, int], int, pygame.Rect, Tuple[int, int, int, int]]:
     if isinstance(num, tuple) and len(num) == 3 and num[2] is None:
         # スケール情報無し
         return _s_impl(num[:2], up_scr)
@@ -465,7 +471,7 @@ def _s_impl(num, up_scr):
 dpi_level = 1
 
 
-def ppis(num):
+def ppis(num: Union[int, wx.Bitmap, Tuple[int, int]]) -> Union[int, wx.Bitmap, Tuple[int, int]]:
     return _s_impl(num, dpi_level)
 
 

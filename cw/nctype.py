@@ -43,9 +43,9 @@ def nctype(c):
     """
     cの文字タイプを返す。
     """
-    for type, s in (_an, _as, _aa, _sa, _sn, _ss, _sh, _sk, _shk, _sg, _sc, _k4, _k3, _k2, _k1):
+    for ctype, s in (_an, _as, _aa, _sa, _sn, _ss, _sh, _sk, _shk, _sg, _sc, _k4, _k3, _k2, _k1):
         if c in s:
-            return type
+            return ctype
     try:
         d = unicodedata.name(c)
         for kcate in ("CJK RADICAL", "KANGXI RADICAL", "CJK UNIFIED IDEOGRAPH", "CJK COMPATIBILITY IDEOGRAPH"):

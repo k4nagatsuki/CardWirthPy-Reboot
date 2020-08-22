@@ -445,9 +445,11 @@ class BackGround(base.CWPySprite):
         redraw = redraw and not _equals_bgs(self.bgs, oldbgs, True)
 
         if update:
-            _, transition = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, True and redraw, False)
+            _, transition = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs,
+                                             True and redraw, False)
         elif forcedraw:
-            _, transition = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, False, False)
+            _, transition = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs,
+                                             False, False)
         else:
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
@@ -554,34 +556,34 @@ class BackGround(base.CWPySprite):
                 namelist = []
                 try:
                     for e_name in e_names:
-                        type = e_name.getattr(".", "type", "")
+                        vtype = e_name.getattr(".", "type", "")
                         name = e_name.text if e_name.text else ""
-                        if type == "Yado":
+                        if vtype == "Yado":
                             data = cw.cwpy.ydata
-                        elif type == "Party":
+                        elif vtype == "Party":
                             data = cw.cwpy.ydata.party if cw.cwpy.ydata else None
-                        elif type == "Player":
+                        elif vtype == "Player":
                             number = e_name.getint(".", "number", 0)-1
                             pcards = cw.cwpy.get_pcards()
                             if 0 <= number and number < len(pcards):
                                 data = pcards[number]
                             else:
                                 data = None
-                        elif type == "Flag":
+                        elif vtype == "Flag":
                             name2 = e_name.getattr(".", "flag", "")
                             name = cw.util.str2bool(name)
                             if name2 in cw.cwpy.sdata.flags:
                                 data = cw.cwpy.sdata.flags[name2]
                             else:
                                 data = None
-                        elif type == "Step":
+                        elif vtype == "Step":
                             name2 = e_name.getattr(".", "step", "")
                             name = int(name)
                             if name2 in cw.cwpy.sdata.steps:
                                 data = cw.cwpy.sdata.steps[name2]
                             else:
                                 data = cw.sprite.message.get_spstep(name2)
-                        elif type == "Variant":
+                        elif vtype == "Variant":
                             name2 = e_name.getattr(".", "variant", "")
                             vtype = e_name.getattr(".", "valuetype")
                             name = cw.data.Variant.value_from_str(vtype, name)
@@ -589,7 +591,7 @@ class BackGround(base.CWPySprite):
                                 data = cw.cwpy.sdata.variants[name2]
                             else:
                                 data = None
-                        elif type == "Number":
+                        elif vtype == "Number":
                             name = int(e_name.text)
                             data = "Number"
                         else:

@@ -3,6 +3,7 @@
 
 import threading
 
+from . import cwfile
 from . import cwscenario
 from . import cwyado
 from . import xmltemplate

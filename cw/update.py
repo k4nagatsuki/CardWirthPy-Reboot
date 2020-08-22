@@ -6,13 +6,17 @@ import shutil
 
 import cw
 
+from typing import List
 
-def update_files(dpath, rmname, permit=[]):
+
+def update_files(dpath: str, rmname: str, permit: List[str] = None) -> None:
     """
     "<dpath>/UpdateInfo.xml"の情報に基づいてファイルの移動や削除を行う。
     基本的にdpathより上位のディレクトリを操作する事はないが、
     permitに含まれるパスから始まるディレクトリだけは操作を許可する。
     """
+    if permit is None:
+        permit = []
     fpath = cw.util.join_paths(dpath, "UpdateInfo.xml")
     if not os.path.isfile(fpath):
         return
@@ -25,6 +29,7 @@ def update_files(dpath, rmname, permit=[]):
         data = cw.data.xml2etree(fpath)
         tempdpath = "Data/Temp/%s_RemovedFiles" % rmname
         for e in data.getroot():
+            assert isinstance(e, cw.data.CWPyElement)
             if e.tag != "UpdateFile":
                 continue
 

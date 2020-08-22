@@ -1702,13 +1702,13 @@ class Debugger(wx.Frame):
         if cw.cwpy.frame.debugger is None:
             return
 
-        type = cw.cwpy.event.get_selectedcardtype()
+        ctype = cw.cwpy.event.get_selectedcardtype()
         bitmap1 = self.tl_selectedcard.GetNormalBitmap()
-        if type == "SkillCard":
+        if ctype == "SkillCard":
             self.tl_selectedcard.SetNormalBitmap(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"])
-        elif type == "ItemCard":
+        elif ctype == "ItemCard":
             self.tl_selectedcard.SetNormalBitmap(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
-        elif type == "BeastCard":
+        elif ctype == "BeastCard":
             self.tl_selectedcard.SetNormalBitmap(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
         else:
             self.tl_selectedcard.SetNormalBitmap(cw.cwpy.rsrc.debugs["CARD"])

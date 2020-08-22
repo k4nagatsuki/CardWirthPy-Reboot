@@ -2,18 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import os
-import io
-import sys
 import time
 import io
 import sqlite3
 import threading
 import subprocess
-from typing import Any
 
 import cw
 from cw.util import synclock
-
+from cw.setting import Setting
 
 _lock = threading.Lock()
 
@@ -30,7 +27,7 @@ DATA_FNAME = 4
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
 
-    def __init__(self, setting, vacuum=False, dpath="Scenario", skintype=""):
+    def __init__(self, setting: Setting, vacuum: bool = False, dpath: str = "Scenario", skintype: str = "") -> None:
         threading.Thread.__init__(self)
         self.setting = setting
         self._vacuum = vacuum
@@ -60,7 +57,6 @@ class ScenariodbUpdatingThread(threading.Thread):
 
 
 class Scenariodb(object):
-
     """シナリオデータベース。ロックのタイムアウトは30秒指定。
     データ種類は、
     dpath(ファイルのあるディレクトリ),
@@ -287,8 +283,8 @@ class Scenariodb(object):
             return
 
         if skintype:
-            s = "SELECT A.dpath, A.fname, mtime, B.skintype FROM scenariodb A LEFT JOIN scenariotype B" +\
-                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
+            s = "SELECT A.dpath, A.fname, mtime, B.skintype FROM scenariodb A LEFT JOIN scenariotype B" + \
+                " ON A.dpath=B.dpath AND A.fname=B.fname" + \
                 " WHERE A.dpath=? AND (B.skintype=? OR B.skintype IS NULL)"
             self.cur.execute(s, (cw.util.get_linktarget(dpath), skintype,))
         else:
@@ -509,6 +505,7 @@ class Scenariodb(object):
                 else:
                     # 更新は不要
                     return header
+
             spath = cw.util.join_paths(ltarg, "Summary.wsm")
             if os.path.isfile(spath):
                 return func(spath, header)
@@ -565,49 +562,49 @@ class Scenariodb(object):
 
         return self.create_header(data, skintype=skintype)
 
-    FETCH_SQL = "SELECT" +\
-                "     A.dpath," +\
-                "     A.type," +\
-                "     A.fname," +\
-                "     A.name," +\
-                "     A.author," +\
-                "     A.desc," +\
-                "     A.skintype," +\
-                "     A.levelmin," +\
-                "     A.levelmax," +\
-                "     A.coupons," +\
-                "     A.couponsnum," +\
-                "     A.startid," +\
-                "     A.tags," +\
-                "     A.ctime," +\
-                "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath," +\
+    FETCH_SQL = "SELECT" + \
+                "     A.dpath," + \
+                "     A.type," + \
+                "     A.fname," + \
+                "     A.name," + \
+                "     A.author," + \
+                "     A.desc," + \
+                "     A.skintype," + \
+                "     A.levelmin," + \
+                "     A.levelmax," + \
+                "     A.coupons," + \
+                "     A.couponsnum," + \
+                "     A.startid," + \
+                "     A.tags," + \
+                "     A.ctime," + \
+                "     A.mtime," + \
+                "     A.image," + \
+                "     A.imgpath," + \
                 "     A.wsnversion"
 
     def _fetch(self, dpath, fname, skintype):
         if skintype:
-            s = Scenariodb.FETCH_SQL +\
-                " FROM scenariodb A LEFT JOIN scenariotype B" +\
-                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
+            s = Scenariodb.FETCH_SQL + \
+                " FROM scenariodb A LEFT JOIN scenariotype B" + \
+                " ON A.dpath=B.dpath AND A.fname=B.fname" + \
                 " WHERE A.dpath=? AND A.fname=? AND (B.skintype=? OR B.skintype IS NULL)"
             self.cur.execute(s, (dpath, fname, skintype,))
         else:
-            s = Scenariodb.FETCH_SQL +\
+            s = Scenariodb.FETCH_SQL + \
                 " FROM scenariodb A WHERE dpath=? AND fname=?"
             self.cur.execute(s, (dpath, fname,))
 
     def _fetch_from_name(self, name, author, skintype):
         if skintype:
-            s = Scenariodb.FETCH_SQL +\
-                " FROM scenariodb A LEFT JOIN scenariotype B" +\
-                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
-                " WHERE A.name=? AND A.author=? AND (B.skintype=? OR B.skintype IS NULL)" +\
+            s = Scenariodb.FETCH_SQL + \
+                " FROM scenariodb A LEFT JOIN scenariotype B" + \
+                " ON A.dpath=B.dpath AND A.fname=B.fname" + \
+                " WHERE A.name=? AND A.author=? AND (B.skintype=? OR B.skintype IS NULL)" + \
                 " ORDER BY A.mtime DESC, A.dpath, A.fname"
             self.cur.execute(s, (name, author, skintype,))
         else:
-            s = Scenariodb.FETCH_SQL +\
-                " FROM scenariodb A WHERE name=? AND author=?" +\
+            s = Scenariodb.FETCH_SQL + \
+                " FROM scenariodb A WHERE name=? AND author=?" + \
                 " ORDER BY mtime DESC, dpath, fname"
             self.cur.execute(s, (name, author,))
 
@@ -616,49 +613,49 @@ class Scenariodb(object):
         dpath = cw.util.get_linktarget(dpath).replace("\\", "/")
 
         if skintype:
-            s = "SELECT" +\
-                "     A.dpath," +\
-                "     A.type," +\
-                "     A.fname," +\
-                "     A.name," +\
-                "     A.author," +\
-                "     A.desc," +\
-                "     A.skintype," +\
-                "     A.levelmin," +\
-                "     A.levelmax," +\
-                "     A.coupons," +\
-                "     A.couponsnum," +\
-                "     A.startid," +\
-                "     A.tags," +\
-                "     A.ctime," +\
-                "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath," +\
-                "     A.wsnversion" +\
-                " FROM scenariodb A LEFT JOIN scenariotype B" +\
-                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
+            s = "SELECT" + \
+                "     A.dpath," + \
+                "     A.type," + \
+                "     A.fname," + \
+                "     A.name," + \
+                "     A.author," + \
+                "     A.desc," + \
+                "     A.skintype," + \
+                "     A.levelmin," + \
+                "     A.levelmax," + \
+                "     A.coupons," + \
+                "     A.couponsnum," + \
+                "     A.startid," + \
+                "     A.tags," + \
+                "     A.ctime," + \
+                "     A.mtime," + \
+                "     A.image," + \
+                "     A.imgpath," + \
+                "     A.wsnversion" + \
+                " FROM scenariodb A LEFT JOIN scenariotype B" + \
+                " ON A.dpath=B.dpath AND A.fname=B.fname" + \
                 " WHERE A.dpath=? AND (B.skintype=? OR B.skintype IS NULL)"
             self.cur.execute(s, (dpath, skintype,))
         else:
-            s = "SELECT" +\
-                "     A.dpath," +\
-                "     A.type," +\
-                "     A.fname," +\
-                "     A.name," +\
-                "     A.author," +\
-                "     A.desc," +\
-                "     A.skintype," +\
-                "     A.levelmin," +\
-                "     A.levelmax," +\
-                "     A.coupons," +\
-                "     A.couponsnum," +\
-                "     A.startid," +\
-                "     A.tags," +\
-                "     A.ctime," +\
-                "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath," +\
-                "     A.wsnversion" +\
+            s = "SELECT" + \
+                "     A.dpath," + \
+                "     A.type," + \
+                "     A.fname," + \
+                "     A.name," + \
+                "     A.author," + \
+                "     A.desc," + \
+                "     A.skintype," + \
+                "     A.levelmin," + \
+                "     A.levelmax," + \
+                "     A.coupons," + \
+                "     A.couponsnum," + \
+                "     A.startid," + \
+                "     A.tags," + \
+                "     A.ctime," + \
+                "     A.mtime," + \
+                "     A.image," + \
+                "     A.imgpath," + \
+                "     A.wsnversion" + \
                 " FROM scenariodb A WHERE dpath=?"
             self.cur.execute(s, (dpath,))
 
@@ -687,7 +684,7 @@ class Scenariodb(object):
             name = os.path.basename(ltarg)
 
             lname = name.lower()
-            if path not in dbpaths and os.path.isfile(ltarg)\
+            if path not in dbpaths and os.path.isfile(ltarg) \
                     and (lname.endswith(".wsn") or
                          lname.endswith(".zip") or
                          lname.endswith(".lzh") or
@@ -748,50 +745,50 @@ class Scenariodb(object):
         where = "(" + ") OR (".join(where) + ")"
 
         if skintype:
-            s = "SELECT" +\
-                "     A.dpath," +\
-                "     A.type," +\
-                "     A.fname," +\
-                "     A.name," +\
-                "     A.author," +\
-                "     A.desc," +\
-                "     A.skintype," +\
-                "     A.levelmin," +\
-                "     A.levelmax," +\
-                "     A.coupons," +\
-                "     A.couponsnum," +\
-                "     A.startid," +\
-                "     A.tags," +\
-                "     A.ctime," +\
-                "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath," +\
-                "     A.wsnversion" +\
-                " FROM scenariodb A LEFT JOIN scenariotype B" +\
-                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
-                " WHERE (" + where + ")"\
-                "     AND (B.skintype=? OR B.skintype IS NULL)"
+            s = "SELECT" + \
+                "     A.dpath," + \
+                "     A.type," + \
+                "     A.fname," + \
+                "     A.name," + \
+                "     A.author," + \
+                "     A.desc," + \
+                "     A.skintype," + \
+                "     A.levelmin," + \
+                "     A.levelmax," + \
+                "     A.coupons," + \
+                "     A.couponsnum," + \
+                "     A.startid," + \
+                "     A.tags," + \
+                "     A.ctime," + \
+                "     A.mtime," + \
+                "     A.image," + \
+                "     A.imgpath," + \
+                "     A.wsnversion" + \
+                " FROM scenariodb A LEFT JOIN scenariotype B" + \
+                " ON A.dpath=B.dpath AND A.fname=B.fname" + \
+                " WHERE (" + where + ")" \
+                                     "     AND (B.skintype=? OR B.skintype IS NULL)"
             values = tuple(values) + (skintype,)
         else:
-            s = "SELECT" +\
-                "     A.dpath," +\
-                "     A.type," +\
-                "     A.fname," +\
-                "     A.name," +\
-                "     A.author," +\
-                "     A.desc," +\
-                "     A.skintype," +\
-                "     A.levelmin," +\
-                "     A.levelmax," +\
-                "     A.coupons," +\
-                "     A.couponsnum," +\
-                "     A.startid," +\
-                "     A.tags," +\
-                "     A.ctime," +\
-                "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath," +\
-                "     A.wsnversion" +\
+            s = "SELECT" + \
+                "     A.dpath," + \
+                "     A.type," + \
+                "     A.fname," + \
+                "     A.name," + \
+                "     A.author," + \
+                "     A.desc," + \
+                "     A.skintype," + \
+                "     A.levelmin," + \
+                "     A.levelmax," + \
+                "     A.coupons," + \
+                "     A.couponsnum," + \
+                "     A.startid," + \
+                "     A.tags," + \
+                "     A.ctime," + \
+                "     A.mtime," + \
+                "     A.image," + \
+                "     A.imgpath," + \
+                "     A.wsnversion" + \
                 " FROM scenariodb A WHERE (" + where + ")"
             values = tuple(values) + ()
 
@@ -806,10 +803,10 @@ class Scenariodb(object):
         paths = set()
         seq = []
         for header in headers:
-            if (DATA_TITLE in ftypes and v in header.name.lower()) or\
-                    (DATA_AUTHOR in ftypes and v in header.author.lower()) or\
-                    (DATA_DESC in ftypes and v in header.desc.lower()) or\
-                    (DATA_LEVEL in ftypes and intv is not None and (header.levelmin <= intv <= header.levelmax)) or\
+            if (DATA_TITLE in ftypes and v in header.name.lower()) or \
+                    (DATA_AUTHOR in ftypes and v in header.author.lower()) or \
+                    (DATA_DESC in ftypes and v in header.desc.lower()) or \
+                    (DATA_LEVEL in ftypes and intv is not None and (header.levelmin <= intv <= header.levelmax)) or \
                     (DATA_FNAME in ftypes and v in header.fname.lower()):
                 fpath = header.get_fpath()
                 fpath = cw.util.get_keypath(cw.util.get_symlinktarget(fpath))
@@ -902,10 +899,10 @@ def find_alldirectories(dpath, is_cancel=None):
 
 def _find_alldirectories(dpath, result, exclude, is_cancel):
     dpath = cw.util.get_linktarget(dpath)
-    abs = cw.util.get_keypath(cw.util.get_symlinktarget(dpath))
-    if abs in exclude:
+    absval = cw.util.get_keypath(cw.util.get_symlinktarget(dpath))
+    if absval in exclude:
         return
-    exclude.add(abs)
+    exclude.add(absval)
     result.add(dpath)
     for fname in os.listdir(dpath):
         if is_cancel and is_cancel():
@@ -936,7 +933,6 @@ def is_scenario(path):
 
 
 def read_summary(basepath):
-
     def imgbufs_to_result(summaryinfos, imgbufs):
         if len(imgbufs) == 0:
             imgbuf = ""
@@ -1228,10 +1224,10 @@ def get_scenariopaths(path):
                 yield fname
         else:
             lfile = ltarg.lower()
-            if lfile.endswith(".wsn") or\
-               lfile.endswith(".zip") or\
-               lfile.endswith(".lzh") or\
-               lfile.endswith(".cab"):
+            if lfile.endswith(".wsn") or \
+                    lfile.endswith(".zip") or \
+                    lfile.endswith(".lzh") or \
+                    lfile.endswith(".cab"):
                 yield fname
 
 

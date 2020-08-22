@@ -24,6 +24,7 @@ class Text(wx.Dialog):
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
 
         # rich text ctrl
+        assert isinstance(self, Readme)
         if self.list2:
             value = self.list2[self.index2]
         else:
@@ -58,7 +59,7 @@ class Text(wx.Dialog):
         # button enable
         self._enable_btn()
         # layout
-        self.__do_layout()
+        self._do_layout()
         # bind
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
@@ -105,11 +106,13 @@ class Text(wx.Dialog):
         self.richtextctrl.set_text(value, linkurl=True)
 
     def OnCombobox(self, event):
+        assert isinstance(self, Readme)
         self.index = self.combo.GetSelection()
         self.index2 = self.index
         self._set_text(self.list2[self.index2])
 
     def OnClickLeftBtn(self, event):
+        assert isinstance(self, Readme)
         self.Parent.OnClickLeftBtn(event)
         self._enable_btn()
         self.update_lists()
@@ -138,6 +141,7 @@ class Text(wx.Dialog):
             self.combo.Disable()
 
     def OnClickRightBtn(self, event):
+        assert isinstance(self, Readme)
         self.Parent.OnClickRightBtn(event)
         self._enable_btn()
         self.update_lists()
@@ -187,6 +191,7 @@ class Text(wx.Dialog):
         self.ProcessEvent(event)
 
     def OnPaint(self, event):
+        assert isinstance(self, Readme)
         dc = wx.PaintDC(self.toppanel)
         csize = self.toppanel.GetSize()
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 128)))
@@ -216,7 +221,7 @@ class Text(wx.Dialog):
             pos = pos[0] - cw.wins(30), pos[1] - cw.wins(10)
             cw.util.draw_box(dc, pos, size)
 
-    def __do_layout(self):
+    def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         sizer_toppanel = wx.BoxSizer(wx.VERTICAL)

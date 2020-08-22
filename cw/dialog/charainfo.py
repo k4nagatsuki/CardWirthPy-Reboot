@@ -10,6 +10,8 @@ import cw
 
 import wx.lib.agw.aui as aui
 
+from typing import List, Tuple, Union
+
 
 # ------------------------------------------------------------------------------
 # キャラクター情報ダイアログ　スーパークラス
@@ -19,7 +21,9 @@ class CharaInfo(wx.Dialog):
     """
     キャラクター情報ダイアログ
     """
-    def __init__(self, parent, redrawfunc, editable, party=None):
+    list: List[Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"]]
+
+    def __init__(self, parent: wx.TopLevelWindow, redrawfunc: None, editable: bool, party: None = None) -> None:
         # フォントサイズによってダイアログサイズを決定する
         dc = wx.ClientDC(parent)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
@@ -71,6 +75,7 @@ class CharaInfo(wx.Dialog):
         self.bottompanel.append(self.historypanel)
         self.notebook.AddPage(self.historypanel,  cw.cwpy.msgs["history"])
         # 編集または状態
+        assert isinstance(self, (StandbyCharaInfo, ActiveCharaInfo))
         if self.is_playingscenario:
             self.editpanel = StatusPanel(self.notebook, self.list, self.ccard, editable)
             self.bottompanel.append(self.editpanel)
@@ -179,7 +184,7 @@ class CharaInfo(wx.Dialog):
 
         cw.util.set_acceleratortable(self, seq)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
@@ -301,18 +306,6 @@ class CharaInfo(wx.Dialog):
             page.Scroll(x, page.GetVirtualSize()[1])
             page.Refresh()
 
-    def up(self):
-        x = self.GetScrollPos(wx.HORIZONTAL)
-        y = self.GetScrollPos(wx.VERTICAL)
-        self.Scroll(x, y - 1)
-        self.Refresh()
-
-    def down(self):
-        x = self.GetScrollPos(wx.HORIZONTAL)
-        y = self.GetScrollPos(wx.VERTICAL)
-        self.Scroll(x, y + 1)
-        self.Refresh()
-
     def OnMouseWheel(self, event):
         if cw.util.has_modalchild(self):
             return
@@ -370,19 +363,21 @@ class CharaInfo(wx.Dialog):
         self.historypanel.draw(True)
         if self.historypanel.IsShown():
             self.historypanel.update_cursor()
+        assert isinstance(self, (StandbyCharaInfo, ActiveCharaInfo))
         if self.is_playingscenario and self.editpanel.IsShown():
+            assert isinstance(self.editpanel, StatusPanel)
             self.editpanel.update_cursor()
         if self.ccard.data.hasfind("SkillCards"):
             self.skillpanel.update_debug()
             self.itempanel.update_debug()
             self.beastpanel.update_debug()
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.MouseEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnDestroy(self, event):
+    def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
         if isinstance(self, StandbyCharaInfo):
             self.ccard.data.write_xml()
 
@@ -452,10 +447,10 @@ class CharaInfo(wx.Dialog):
             win.headers = []
             win.draw(True)
 
-    def OnPageChanged(self, event):
+    def OnPageChanged(self, event: wx.lib.agw.aui.auibook.AuiNotebookEvent) -> None:
         pass
 
-    def OnPageChanging(self, event):
+    def OnPageChanging(self, event: wx.lib.agw.aui.auibook.AuiNotebookEvent) -> None:
         cw.cwpy.play_sound("click")
         self.titlepanel.draw(True)
 
@@ -479,7 +474,7 @@ class CharaInfo(wx.Dialog):
         if update:
             self.Refresh()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -529,7 +524,7 @@ class StandbyPartyCharaInfo(StandbyCharaInfo):
 
 
 class ActiveCharaInfo(CharaInfo):
-    def __init__(self, parent):
+    def __init__(self, parent: "cw.frame.Frame") -> None:
         self.is_playingscenario = cw.cwpy.is_playingscenario()
         self.ccard = cw.cwpy.selection
 
@@ -544,7 +539,7 @@ class ActiveCharaInfo(CharaInfo):
         else:
             self.Close()
 
-    def _update_list(self):
+    def _update_list(self) -> bool:
         if isinstance(self.ccard, cw.character.Player):
             if cw.cwpy.is_debugmode():
                 self.list = cw.cwpy.get_pcards()
@@ -573,7 +568,7 @@ class TopPanel(wx.Panel):
     """
     顔画像などを描画するパネル
     """
-    def __init__(self, parent, ccard, redrawfunc):
+    def __init__(self, parent: ActiveCharaInfo, ccard: "cw.character.Character", redrawfunc: None) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(105)))
         self.SetDoubleBuffered(True)
         # カードワース本来の背景値。暗くなりすぎるので保留
@@ -588,10 +583,10 @@ class TopPanel(wx.Panel):
         # bind
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         # クーポンにある各種変数取得
         if not (isinstance(self.ccard, cw.sprite.card.EnemyCard) or
                 isinstance(self.ccard, cw.sprite.card.FriendCard)):
@@ -823,7 +818,7 @@ class TitlePanel(wx.Panel):
     """
     タイトルバーを描画するパネルを作る。
     """
-    def __init__(self, parent, notebook):
+    def __init__(self, parent: ActiveCharaInfo, notebook: wx.lib.agw.aui.auibook.AuiNotebook) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(24)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.notebook = notebook
@@ -833,10 +828,10 @@ class TitlePanel(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.OnCancel)
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         self.Refresh()
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         index = self.notebook.GetSelection()
         if index == 0:
             self.text = cw.cwpy.msgs["description"]
@@ -868,7 +863,8 @@ class DescPanel(wx.ScrolledWindow):
     """
     解説文を描画するパネル。
     """
-    def __init__(self, parent, ccard, editable):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook,
+                 ccard: "cw.character.Character", editable: bool) -> None:
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)),
                                    style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
@@ -890,14 +886,14 @@ class DescPanel(wx.ScrolledWindow):
 
         self.draw(True)
 
-    def update_cursor(self):
-        if cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.sprite.card.PlayerCard):
+    def update_cursor(self) -> None:
+        if cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.character.Character):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
         else:
             self.SetCursor(wx.NullCursor)
 
     def OnLeftUp(self, event):
-        if not (cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.sprite.card.PlayerCard)):
+        if not (cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.character.Character)):
             return
         cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
@@ -910,7 +906,7 @@ class DescPanel(wx.ScrolledWindow):
             self.Parent.Parent.historypanel.draw(True)
         dlg.Destroy()
 
-    def _init_view(self):
+    def _init_view(self) -> None:
         apply_bgcolor(self, self.ccard)
         self.text = self.ccard.data.gettext("Property/Description", "")
         self.text = cw.util.txtwrap(self.text, 4)
@@ -927,11 +923,11 @@ class DescPanel(wx.ScrolledWindow):
         self.Scroll(0, 0)
         self.Refresh()
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         if update:
             self._init_view()
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         self.update_cursor()
         csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
@@ -963,7 +959,8 @@ class HistoryPanel(wx.ScrolledWindow):
     """
     クーポンを描画するスクロールウィンドウ。
     """
-    def __init__(self, parent, ccard, editable):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook,
+                 ccard: "cw.character.Character", editable: bool) -> None:
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)),
                                    style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
@@ -991,7 +988,7 @@ class HistoryPanel(wx.ScrolledWindow):
         self.update_cursor()
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
-    def _get_bmps(self, name):
+    def _get_bmps(self, name: str) -> wx.Bitmap:
         bmp = cw.cwpy.rsrc.dialogs[name]
         x, y = cw.wins(0), cw.wins(0)
         w, h = bmp.GetWidth(), bmp.GetHeight()
@@ -1000,14 +997,14 @@ class HistoryPanel(wx.ScrolledWindow):
         img = cw.imageretouch.mul_wxalpha(img, 128)
         return img.ConvertToBitmap()
 
-    def update_cursor(self):
-        if cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.sprite.card.PlayerCard):
+    def update_cursor(self) -> None:
+        if cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.character.Character):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
         else:
             self.SetCursor(wx.NullCursor)
 
     def OnLeftUp(self, event):
-        if not (cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.sprite.card.PlayerCard)):
+        if not (cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.character.Character)):
             return
         cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
@@ -1026,11 +1023,11 @@ class HistoryPanel(wx.ScrolledWindow):
             cw.cwpy.exec_func(func, self)
         dlg.Destroy()
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         if update:
             self._init_view()
 
-    def _init_view(self):
+    def _init_view(self) -> None:
         apply_bgcolor(self, self.ccard)
         csize = self.csize
 
@@ -1062,15 +1059,15 @@ class HistoryPanel(wx.ScrolledWindow):
         self.Scroll(0, 0)
         self.Refresh()
 
-    def is_hidden(self, coupon):
+    def is_hidden(self, coupon: str) -> bool:
         return coupon.startswith("＿") or\
                self.is_timed(coupon)
 
-    def is_timed(self, coupon):
+    def is_timed(self, coupon: str) -> bool:
         return coupon.startswith("：") or\
                coupon.startswith("；")
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         self.update_cursor()
         csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
@@ -1133,7 +1130,7 @@ class HistoryPanel(wx.ScrolledWindow):
             if csize[1] <= y:
                 break
 
-    def _append_text(self, text, value):
+    def _append_text(self, text: str, value: int) -> str:
         if cw.cwpy.is_debugmode() and text != "：Ｒ":
             if self.is_timed(text):
                 if 0 < value:
@@ -1425,7 +1422,8 @@ class EditPanel(wx.Panel):
 
 
 class StatusPanel(wx.ScrolledWindow):
-    def __init__(self, parent, mlist, ccard, editable):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, mlist: List["cw.character.Character"],
+                 ccard: "cw.character.Character", editable: bool) -> None:
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)),
                                    style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
@@ -1446,7 +1444,7 @@ class StatusPanel(wx.ScrolledWindow):
 
         self.draw(True)
 
-    def update_cursor(self):
+    def update_cursor(self) -> None:
         if cw.cwpy.is_debugmode() and self._editable and not isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
         else:
@@ -1466,7 +1464,7 @@ class StatusPanel(wx.ScrolledWindow):
             self.Parent.Parent.beastpanel.draw(True)
         dlg.Destroy()
 
-    def _init_view(self):
+    def _init_view(self) -> None:
         apply_bgcolor(self, self.ccard)
         maxheight = cw.wins(0)
         ln = cw.wins(17)
@@ -1504,11 +1502,11 @@ class StatusPanel(wx.ScrolledWindow):
         self.Scroll(0, 0)
         self.Refresh()
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         if update:
             self._init_view()
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         self.update_cursor()
         csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
@@ -1620,7 +1618,7 @@ class StatusPanel(wx.ScrolledWindow):
 
         return "\n".join(lines)
 
-    def _get_life(self):
+    def _get_life(self) -> Tuple[wx.Colour, str]:
         if self.ccard.is_unconscious():
             colour = wx.Colour(0, 0, 128)
             msg = cw.cwpy.msgs["unconscious"]
@@ -1646,7 +1644,7 @@ class StatusPanel(wx.ScrolledWindow):
     def _get_petrified(self):
         return "%s (%s)" % (cw.cwpy.msgs["petrified"], cw.cwpy.msgs["intensity"] % self.ccard.paralyze)
 
-    def _get_mentality(self):
+    def _get_mentality(self) -> Tuple[str, str]:
         dur = cw.cwpy.msgs["duration"] % self.ccard.mentality_dur
         if self.ccard.is_sleep():
             return "%s (%s)" % (cw.cwpy.msgs["sleep"], dur), "MIND1"
@@ -1721,7 +1719,8 @@ class StatusPanel(wx.ScrolledWindow):
 
         return colour, bmp, msg
 
-    def _draw_enhance(self, dc, enhname, value, dur, enhimage, pnlimage, height):
+    def _draw_enhance(self, dc: wx.PaintDC, enhname: str, value: int, dur: int, enhimage: str, pnlimage: str,
+                      height: int) -> int:
         if 0 == value:
             return height
         colour, bmp, msg = self._get_enhance(enhname, value, dur, enhimage, pnlimage)
@@ -1734,7 +1733,8 @@ class StatusPanel(wx.ScrolledWindow):
 
 
 class CardPanel(wx.Panel):
-    def __init__(self, parent, ccard, pocket):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook,
+                 ccard: "cw.character.Character", pocket: int) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         apply_bgcolor(self, ccard)
@@ -1757,7 +1757,7 @@ class CardPanel(wx.Panel):
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
-    def _update_debug(self):
+    def _update_debug(self) -> None:
         # 「全てホールド」の領域
         if self.pocket != cw.POCKET_BEAST and (cw.cwpy.is_debugmode() or isinstance(self.ccard, cw.character.Player)):
             self.hold_all = HoldAll()
@@ -1772,7 +1772,7 @@ class CardPanel(wx.Panel):
         mousepos = self.ScreenToClient(wx.GetMousePosition())
         self._update_mousepos(mousepos)
 
-    def OnDestroy(self, event):
+    def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
         for header in self.headers:
             if hasattr(header, "textpos"):
                 del header.textpos
@@ -1816,7 +1816,7 @@ class CardPanel(wx.Panel):
                 self.Refresh()
                 return
 
-    def _open_cardinfo(self):
+    def _open_cardinfo(self) -> bool:
         from . import cardinfo
 
         for header in self.headers:
@@ -1830,7 +1830,7 @@ class CardPanel(wx.Panel):
                 return True
         return False
 
-    def OnRightUp(self, event):
+    def OnRightUp(self, event: wx.MouseEvent) -> None:
         if self._open_cardinfo():
             return
         self.Parent.Parent.OnCancel(event)
@@ -1849,11 +1849,11 @@ class CardPanel(wx.Panel):
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
         self.Refresh()
 
-    def OnMove(self, event):
+    def OnMove(self, event: wx.MouseEvent) -> None:
         mousepos = event.GetPosition()
         self._update_mousepos(mousepos)
 
-    def _update_mousepos(self, mousepos):
+    def _update_mousepos(self, mousepos: wx.Point) -> None:
         dc = wx.ClientDC(self)
         if self.hold_all:
             self.hold_all.negaflag = self.hold_all.subrect.collidepoint(mousepos)
@@ -1934,7 +1934,7 @@ class CardPanel(wx.Panel):
         header.negaflag = True
         self.draw_header(dc, header)
 
-    def _update_rects(self, dc):
+    def _update_rects(self, dc: wx.DC) -> None:
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         if self.hold_all:
             yp = 20
@@ -1964,10 +1964,10 @@ class CardPanel(wx.Panel):
             header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1),
                                          size[0] + cw.wins(20), size[1] + cw.wins(2))
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         if update:
             dc = wx.ClientDC(self)
             self.ClearBackground()
@@ -2056,7 +2056,7 @@ class CardPanel(wx.Panel):
         if update:
             self.Refresh()
 
-    def _get_cardnum(self):
+    def _get_cardnum(self) -> str:
         n = len(self.headers)
         maxn = self.ccard.get_cardpocketspace()[self.pocket]
         return cw.cwpy.msgs["card_number"] % (n, maxn)
@@ -2097,23 +2097,23 @@ class CardPanel(wx.Panel):
 
 
 class HoldAll(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.negaflag = False
         self.subrect = pygame.Rect(0, 0, 0, 0)
 
 
 class SkillPanel(CardPanel):
-    def __init__(self, parent, ccard):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: "cw.character.Character") -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_SKILL)
 
 
 class ItemPanel(CardPanel):
-    def __init__(self, parent, ccard):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: "cw.character.Character") -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_ITEM)
 
 
 class BeastPanel(SkillPanel):
-    def __init__(self, parent, ccard):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: "cw.character.Character") -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_BEAST)
 
     def OnLeftUp(self, event):
@@ -2121,7 +2121,7 @@ class BeastPanel(SkillPanel):
         self._open_cardinfo()
 
 
-def get_bgcolor(ccard):
+def get_bgcolor(ccard: "cw.character.Character") -> wx.Colour:
     """キャラクター情報ダイアログ用の背景色を取得する。
     デフォルト値は濃い青。
     """
@@ -2136,7 +2136,7 @@ def get_bgcolor(ccard):
     return wx.Colour(r, g, b)
 
 
-def apply_bgcolor(currentpanel, ccard):
+def apply_bgcolor(currentpanel: wx.Window, ccard: "cw.character.Character") -> None:
     """キャラクター情報ダイアログの背景色を適用する。
     """
     colour = get_bgcolor(ccard)

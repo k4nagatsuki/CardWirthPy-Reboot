@@ -7,6 +7,7 @@ import threading
 import shutil
 import itertools
 import wx
+import wx.lib.buttons
 
 import cw
 import cw.binary.cwfile
@@ -328,7 +329,9 @@ class Select(wx.Dialog):
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         sizer_panel.Add(self.right2btn, 0, 0, 0)
 
-    def _disable_btn(self, enables=[][:]):
+    def _disable_btn(self, enables=None):
+        if enables is None:
+            enables = []
         lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
         for btn in itertools.chain(self.buttonlist, lrbtns):
             if btn in enables:
@@ -336,7 +339,9 @@ class Select(wx.Dialog):
             else:
                 btn.Disable()
 
-    def _enable_btn(self, disables=[][:]):
+    def _enable_btn(self, disables=None):
+        if disables is None:
+            disables = []
         lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
         for btn in itertools.chain(self.buttonlist, lrbtns):
             if btn in disables:
@@ -467,6 +472,9 @@ class Select(wx.Dialog):
         self.panel.Refresh()
         self.Refresh()
         self.Thaw()
+
+    def update_narrowcondition(self):
+        pass
 
 
 # ------------------------------------------------------------------------------
@@ -1525,7 +1533,7 @@ class YadoSelect(MultiViewSelect):
 
                 def progress():
                     while not thread.complete:
-                        wx.CallAfter(dlg.Update, cwdata.curnum, cwdata.message)
+                        wx.CallAfter(dlg.UpdateProgress, cwdata.curnum, cwdata.message)
                         time.sleep(0.001)
                     wx.CallAfter(dlg.Destroy)
                 thread2 = threading.Thread(target=progress)
@@ -1621,7 +1629,7 @@ class YadoSelect(MultiViewSelect):
 
             def progress():
                 while not thread.complete:
-                    wx.CallAfter(dlg.Update, unconv.curnum, unconv.message)
+                    wx.CallAfter(dlg.UpdateProgress, unconv.curnum, unconv.message)
                     time.sleep(0.001)
                 wx.CallAfter(dlg.Destroy)
             thread2 = threading.Thread(target=progress)
@@ -1981,7 +1989,7 @@ class PartySelect(MultiViewSelect):
         ntype = self.narrow_type.GetSelection()
 
         if donarrow:
-            hiddens = set(["＿", "＠"])
+            hiddens = {"＿", "＠"}
             attrs = set(cw.cwpy.setting.periodnames)
             attrs.update(cw.cwpy.setting.sexnames)
             attrs.update(cw.cwpy.setting.naturenames)
@@ -2622,7 +2630,7 @@ class PlayerSelect(MultiViewSelect):
         donarrow = self.narrow.IsShown() and bool(narrow)
 
         if donarrow:
-            hiddens = set(["＿", "＠"])
+            hiddens = {"＿", "＠"}
             attrs = set(cw.cwpy.setting.periodnames)
             attrs.update(cw.cwpy.setting.sexnames)
             attrs.update(cw.cwpy.setting.naturenames)
@@ -3326,7 +3334,7 @@ class PlayerSelect(MultiViewSelect):
                     hist_num = 9
 
                 # クーポン(新しい順から9つ)
-                hiddens = set(["＿", "＠"])
+                hiddens = {"＿", "＠"}
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_history"]
                 w = dc.GetTextExtent(s)[0]

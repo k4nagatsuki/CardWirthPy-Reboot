@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import time
 import itertools
 import threading
@@ -364,8 +363,8 @@ class TransferYadoDataDialog(wx.Dialog):
                             prop = cw.header.GetProperty(fpath)
                             skintype = prop.properties.get("Type", "")
                             if skintype:
-                                for type, folder in cw.cwpy.setting.folderoftype:
-                                    if type == skintype:
+                                for stype, folder in cw.cwpy.setting.folderoftype:
+                                    if stype == skintype:
                                         scedir = folder
                                         break
                     return scedir
@@ -503,7 +502,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         def progress():
             while thread.is_alive():
-                wx.CallAfter(dlg.Update, thread.num, thread.msg)
+                wx.CallAfter(dlg.UpdateProgress, thread.num, thread.msg)
                 time.sleep(0.001)
             wx.CallAfter(dlg.Destroy)
         thread2 = threading.Thread(target=progress)
@@ -649,11 +648,13 @@ class TransferYadoDataDialog(wx.Dialog):
             etree = cw.data.xml2etree(fname)
             e = etree.find("Property/MusicPath")
             if e is not None:
+                assert isinstance(e, cw.data.CWPyElement)
                 if e.getbool(".", "inusecard", False):
                     e.text = counter.imgpaths.get(e.text, e.text)
             e = etree.find("Property/MusicPaths")
             if e is not None:
                 for e2 in e:
+                    assert isinstance(e2, cw.data.CWPyElement)
                     if e2.getbool(".", "inusecard", False):
                         e2.text = counter.imgpaths.get(e2.text, e2.text)
             for e in etree.getfind("BgImages"):
@@ -865,10 +866,10 @@ class TransferYadoDataDialog(wx.Dialog):
             e_vars = cw.data.xml2element(var_fpath)
             data = cw.data.xml2etree(element=e_vars)
             counter.skin_vars = (data, cw.data.YadoData.get_savedvariables_from(e_vars, keymode="Key"))
-        data, vars = counter.skin_vars
+        data, variables = counter.skin_vars
 
-        if key in vars:
-            e_target = vars[key][0]
+        if key in variables:
+            e_target = variables[key][0]
             e_target.clear()
         else:
             e_target = cw.data.make_element("Variables")

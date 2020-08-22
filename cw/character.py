@@ -10,6 +10,8 @@ import threading
 import cw
 from cw.util import synclock
 
+from typing import Dict, Tuple
+
 
 _couponlock = threading.Lock()
 
@@ -489,67 +491,67 @@ class Character(object):
         """
         return bool(self.mentality == "Normal")
 
-    def is_panic(self):
+    def is_panic(self) -> bool:
         """
         恐慌状態かどうかをbool値で返す
         """
         return bool(self.mentality == "Panic")
 
-    def is_brave(self):
+    def is_brave(self) -> bool:
         """
         勇敢状態かどうかをbool値で返す
         """
         return bool(self.mentality == "Brave")
 
-    def is_overheat(self):
+    def is_overheat(self) -> bool:
         """
         激昂状態かどうかをbool値で返す
         """
         return bool(self.mentality == "Overheat")
 
-    def is_confuse(self):
+    def is_confuse(self) -> bool:
         """
         混乱状態かどうかをbool値で返す
         """
         return bool(self.mentality == "Confuse")
 
-    def is_sleep(self):
+    def is_sleep(self) -> bool:
         """
         睡眠状態かどうかをbool値で返す
         """
         return bool(self.mentality == "Sleep")
 
-    def is_paralyze(self):
+    def is_paralyze(self) -> bool:
         """
         麻痺または石化状態かどうかをbool値で返す
         """
         return bool(self.paralyze > 0)
 
-    def is_poison(self):
+    def is_poison(self) -> bool:
         """
         中毒状態かどうかをbool値で返す
         """
         return bool(self.poison > 0)
 
-    def is_bind(self):
+    def is_bind(self) -> bool:
         """
         呪縛状態かどうかをbool値で返す
         """
         return bool(self.bind > 0)
 
-    def is_silence(self):
+    def is_silence(self) -> bool:
         """
         沈黙状態かどうかをbool値で返す。
         """
         return bool(self.silence > 0)
 
-    def is_faceup(self):
+    def is_faceup(self) -> bool:
         """
         暴露状態かどうかをbool値で返す。
         """
         return bool(self.faceup > 0)
 
-    def is_antimagic(self):
+    def is_antimagic(self) -> bool:
         """
         魔法無効状態かどうかをbool値で返す。
         """
@@ -565,27 +567,27 @@ class Character(object):
         """
         return Character.calc_petrified(self.paralyze)
 
-    def is_unconscious(self):
+    def is_unconscious(self) -> bool:
         """
         意識不明状態かどうかをbool値で返す
         """
         return bool(self.life <= 0)
 
     @staticmethod
-    def calc_heavyinjured(life, maxlife):
+    def calc_heavyinjured(life: int, maxlife: int) -> bool:
         return bool(Character.calc_lifeper(life, maxlife) <= 20 and 0 < life)
 
-    def is_heavyinjured(self):
+    def is_heavyinjured(self) -> bool:
         """
         重傷状態かどうかをbool値で返す
         """
         return Character.calc_heavyinjured(self.life, self.maxlife)
 
     @staticmethod
-    def calc_injured(life, maxlife):
+    def calc_injured(life: int, maxlife: int) -> bool:
         return bool(life < maxlife and not Character.calc_heavyinjured(life, maxlife) and 0 < life)
 
-    def is_injured(self):
+    def is_injured(self) -> bool:
         """
         軽傷状態かどうかをbool値で返す
         """
@@ -725,6 +727,7 @@ class Character(object):
         ターゲットの選択に使用される判定であるため、
         実際には有効であっても必ずしもTrueを返さない。
         """
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if self.is_reversed() or self.is_vanished() or (self.status == "hidden" and
                                                         not isinstance(self, (Friend, Player))):
             return False
@@ -949,6 +952,7 @@ class Character(object):
 
             cw.animation.animate_sprite(inusecardimg, "hide", battlespeed=battlespeed)
         elif isinstance(self, cw.character.Friend):
+            assert isinstance(self, cw.sprite.card.FriendCard)
             self.set_pos_noscale(center_noscale=(316, 142))
             # NPC表示
             cw.cwpy.cardgrp.add(self, layer=self.layer)
@@ -1075,6 +1079,7 @@ class Character(object):
         """設定している戦闘行動を行う。
         BattleEngineからのみ呼ばれる。
         """
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if self.actiondata:
             targets, header, beasts = self.actiondata
 
@@ -1124,11 +1129,13 @@ class Character(object):
                     finally:
                         self.deck.use(header)
 
-    def set_action(self, target, header, beasts=[][:], auto=False):
+    def set_action(self, target, header, beasts=None, auto=False):
         """
         戦闘行動を設定。
         auto: 自動手札選択から設定されたかどうか。
         """
+        if beasts is None:
+            beasts = []
         if auto:
             self.clear_action()
             self.actiondata = (target, header, beasts)
@@ -1466,7 +1473,7 @@ class Character(object):
         """
         return self.cardpocket[index]
 
-    def get_cardpocketspace(self):
+    def get_cardpocketspace(self) -> Tuple[int, int, int]:
         """
         最大所持カード枚数を
         (スキルカード, アイテムカード, 召喚獣カード)のタプルで返す
@@ -1482,7 +1489,7 @@ class Character(object):
         return (maxskillnum, maxskillnum, maxbeastnum)
 
     @staticmethod
-    def calc_lifeper(life, maxlife):
+    def calc_lifeper(life: int, maxlife: int) -> int:
         return int(100.0 * life // maxlife + 0.5)
 
     def get_lifeper(self):
@@ -1745,7 +1752,7 @@ class Character(object):
         """
         return self._has_coupon(coupon)
 
-    def _has_coupon(self, coupon):
+    def _has_coupon(self, coupon: str) -> bool:
         return coupon in self.coupons
 
     def has_coupon_nolock(self, coupon):
@@ -1755,7 +1762,7 @@ class Character(object):
     def get_couponsvalue(self):
         return self._get_couponsvalue()
 
-    def _get_couponsvalue(self):
+    def _get_couponsvalue(self) -> int:
         """
         全ての所持クーポンの点数を合計した値を返す。
         """
@@ -1776,7 +1783,7 @@ class Character(object):
         """
         return self._get_specialcoupons()
 
-    def _get_specialcoupons(self):
+    def _get_specialcoupons(self) -> Dict[str, int]:
         d = {}
 
         for coupon, data in self.coupons.items():
@@ -1787,7 +1794,7 @@ class Character(object):
         return d
 
     @synclock(_couponlock)
-    def replace_allcoupons(self, seq, syscoupons={}.copy()):
+    def replace_allcoupons(self, seq, syscoupons=None):
         """システムクーポン以外の全てのクーポンを
         listの内容に入れ替える。
         所持クーポンが変化したらTrueを返す。
@@ -1795,6 +1802,9 @@ class Character(object):
         syscoupons: このコレクション内にあるクーポンは
                     システムクーポンとして処理対象外にする
         """
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
+        if syscoupons is None:
+            syscoupons = {}
         old_coupons = {}
         for name, (value, e) in self.coupons.items():
             old_coupons[name] = value
@@ -1998,7 +2008,7 @@ class Character(object):
     def get_race(self):
         return self._get_race()
 
-    def _get_race(self):
+    def _get_race(self) -> cw.header.UnknownRaceHeader:
         for race in cw.cwpy.setting.races:
             if self._has_coupon("＠Ｒ" + race.name):
                 return race
@@ -2008,7 +2018,7 @@ class Character(object):
     def get_levelcoeff(self):
         return self._get_levelcoeff()
 
-    def _get_levelcoeff(self):
+    def _get_levelcoeff(self) -> float:
         """
         レベルアップ判定式に掛ける係数。
         種族情報がある場合はその種族の係数で上書きする。
@@ -2074,6 +2084,7 @@ class Character(object):
         self._set_coupon(name, value, True)
 
     def _set_coupon(self, name, value, update=True):
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         value = int(value)
@@ -2127,6 +2138,7 @@ class Character(object):
         return self._remove_coupon(name, True)
 
     def _remove_coupon(self, name, update=True):
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if name not in self.coupons:
             return False
         if cw.cwpy.ydata:
@@ -2468,6 +2480,7 @@ class Character(object):
         self._revert_personalpocket(headers, force)
 
     def _revert_personalpocket(self, headers, force):
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         add_personal = False
         for e in reversed(self.data.getfind("./PersonalCardMemories", False)[:]):
             if cw.cwpy.setting.show_personal_cards or force:
@@ -2730,6 +2743,7 @@ class Character(object):
                     for pi in range(len(cw.cwpy.ydata.party.members)):
                         cw.cwpy.background.put_pccache(pi)
 
+                assert isinstance(self, cw.sprite.card.PlayerCard)
                 if self.inusecardimg and self.inusecardimg.header:
                     # 使用中のカードはイベント終了時に
                     # 使用回数が減らなくなるのでここで減らしておく
@@ -2750,6 +2764,7 @@ class Character(object):
         """対象消去をキャンセルする。
         表示処理は行わないため、呼び出し後に行う必要がある。
         """
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if not self.is_vanished():
             return
         if cw.cwpy.ydata:
@@ -2962,6 +2977,7 @@ class Character(object):
 
     def set_timeelapse(self, time=1, fromevent=False):
         """時間経過。"""
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
 
@@ -3145,6 +3161,7 @@ class Character(object):
                 # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
                 events = cw.cwpy.sdata.playerevents
             else:
+                assert isinstance(self, cw.sprite.card.EnemyCard)
                 events = self.events
 
             if events:
@@ -3176,14 +3193,14 @@ class Character(object):
     def set_hold_all(self, pocket, value):
         self.hold_all[pocket] = value
         if pocket == cw.POCKET_SKILL:
-            type = "SkillCards"
+            ctype = "SkillCards"
         elif pocket == cw.POCKET_ITEM:
-            type = "ItemCards"
+            ctype = "ItemCards"
         elif pocket == cw.POCKET_BEAST:
-            type = "BeastCards"
+            ctype = "BeastCards"
         else:
             assert False
-        self.data.edit(type, str(value), "hold_all")
+        self.data.edit(ctype, str(value), "hold_all")
 
 
 class Player(Character):
@@ -3263,6 +3280,7 @@ class Player(Character):
 
     def refresh_personalpocket(self, personalcard_tbl):
         """スプライト生成後に荷物袋内の私有情報を更新する。"""
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         assert cw.cwpy.ydata and cw.cwpy.ydata.party
         self.personal_pocket = []
         e = self.data.find("PersonalCards")
@@ -3315,6 +3333,7 @@ class Player(Character):
 
     def update_personalownerindex(self, index=-1):
         """私有カードにソート用の情報を設定する。"""
+        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if index == -1:
             for index, header in enumerate(self.personal_pocket):
                 header.personal_owner_index = (self.index, index)
@@ -3351,7 +3370,7 @@ class Player(Character):
         cw.cwpy.update_mcardnames()
 
 
-def calc_maxlife(vit, minval, level):
+def calc_maxlife(vit: int, minval: int, level: int) -> int:
     """能力値から体力の最大値を計算する。"""
     vit = max(1, vit)
     minval = max(1, minval)
@@ -3368,6 +3387,7 @@ class Enemy(Character):
         """
         敵は隠蔽状態であれば死亡と見做す。
         """
+        assert isinstance(self, cw.sprite.card.EnemyCard)
         b = Character.is_dead(self)
         b |= self.status == "hidden"
         return b
@@ -3376,6 +3396,7 @@ class Enemy(Character):
         """
         敵は隠蔽状態であれば行動不能と見做す。
         """
+        assert isinstance(self, cw.sprite.card.EnemyCard)
         b = Character.is_inactive(self, check_reversed=check_reversed)
         b |= self.status == "hidden"
         return b

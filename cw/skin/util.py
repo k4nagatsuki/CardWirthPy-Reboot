@@ -6,14 +6,11 @@ import os
 import sys
 import shutil
 import subprocess
-import threading
-import time
-import wx
 
 import cw
 
 
-def find_skin(name, author, type=""):
+def find_skin(name, author, skintype=""):
     """
     名前と作者名でインストールされたスキンを検索し、
     フォルダ名の一覧を返す。
@@ -23,9 +20,9 @@ def find_skin(name, author, type=""):
         path = cw.util.join_paths("Data/Skin", dname)
         skininfo = get_skininfo(path)
         if skininfo:
-            name2, author2, type2 = skininfo
+            name2, author2, skintype2 = skininfo
             if name2 is not None and name == name2 and author2 is not None and author == author2 and\
-                    (type == "" or (type2 is not None and type == type2)):
+                    (skintype == "" or (skintype2 is not None and skintype == skintype2)):
                 seq.append(dname)
 
     return seq
@@ -44,8 +41,8 @@ def get_skininfo(path):
                 if prop.attrs.get(None, {}).get("dataVersion", "0") in cw.SUPPORTED_SKIN:
                     name = prop.properties.get("Name", "")
                     author = prop.properties.get("Author", "")
-                    type = prop.properties.get("Type", "")
-                    return (name, author, type)
+                    skintype = prop.properties.get("Type", "")
+                    return (name, author, skintype)
             except Exception:
                 # エラーのあるスキンは無視
                 cw.util.print_ex()
@@ -64,8 +61,8 @@ def get_skininfo(path):
                     if prop.attrs.get(None, {}).get("dataVersion", "0") in cw.SUPPORTED_SKIN:
                         name = prop.properties.get("Name", "")
                         author = prop.properties.get("Author", "")
-                        type = prop.properties.get("Type", "")
-                        return (name, author, type)
+                        skintype = prop.properties.get("Type", "")
+                        return (name, author, skintype)
                 z.close()
         elif lpath.endswith(".cab"):
             dpath = cw.util.join_paths(cw.tempdir, "Cab")
@@ -199,17 +196,18 @@ def install_skin(path, tempdir, progress=lambda msg, progress: None):
 
         basedata = etree.find("BaseSkin")
         if basedata is not None:
+            assert isinstance(basedata, cw.data.CWPyElement)
             name = basedata.gettext("Name", "")
             author = basedata.gettext("Author", "")
-            type = basedata.gettext("Type", "")
-            base = find_skin(name, author, type)
+            skintype = basedata.gettext("Type", "")
+            base = find_skin(name, author, skintype)
             if base:
                 base = cw.util.join_paths("Data/Skin", base[0])
             else:
                 baseinfo = " スキン名 = %s" % (name if name else "(無し)")
                 baseinfo += "\n 作者名 = %s" % (author if author else "(無し)")
-                if type:
-                    baseinfo += "\n タイプ = %s" % type
+                if skintype:
+                    baseinfo += "\n タイプ = %s" % skintype
                 raise SkinInstallError("%s のベースとなるスキンが見つかりません。\n%s" % (os.path.basename(path), baseinfo))
         else:
             base = None

@@ -12,7 +12,7 @@ from pygame.locals import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, 
 
 
 class KeyEventRelay(object):
-    def __init__(self):
+    def __init__(self) -> None:
         # WXKeyとpygameKeyの対応表
         self.keymap = {
             wx.WXK_NUMPAD_ENTER: K_RETURN,
@@ -66,7 +66,7 @@ class KeyEventRelay(object):
         self.flick_start_pos = (-1, -1)
         self.flick_start_time = 0
 
-    def clear(self):
+    def clear(self) -> None:
         self.keyin = [0 for _cnt in range(322)]
         self.mousein = [0, 0, 0]
         self.nokeyupevent = False
@@ -111,7 +111,7 @@ class KeyEventRelay(object):
     def get_pressed(self):
         return tuple(self.keyin)
 
-    def is_keyin(self, keycode):
+    def is_keyin(self, keycode: int) -> bool:
         if self.threshold + 1 == self.keyin[keycode]:
             # 連続押下は最初の1回のみKeyUpしたかのように動作する
             if not cw.cwpy.setting.autoenter_on_sprite and not self.nokeyupevent:

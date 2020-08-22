@@ -13,7 +13,6 @@ import cw
 # ------------------------------------------------------------------------------
 
 class CharacterEditDialog(wx.Dialog):
-
     def __init__(self, parent, selected=-1, create=False):
         wx.Dialog.__init__(self, parent, -1, "キャラクターの情報の編集",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
@@ -271,14 +270,18 @@ class CharacterEditDialog(wx.Dialog):
                 debug_coupon = wx.CHK_UNDETERMINED
 
         if self.recalc_maxlife:
+            assert isinstance(self.recalc_maxlife, wx.CheckBox)
             self.recalc_maxlife.Set3StateValue(recalc_maxlife)
         if self.recalc_parameter:
+            assert isinstance(self.recalc_parameter, wx.CheckBox)
             self.recalc_parameter.Set3StateValue(recalc_parameter)
         if self.stdbtn:
             self.stdbtn.Enable(recalc_parameter)
         if self.recalc_coupons:
+            assert isinstance(self.recalc_coupons, wx.CheckBox)
             self.recalc_coupons.Set3StateValue(recalc_coupons)
         if self.debug_coupon:
+            assert isinstance(self.debug_coupon, wx.CheckBox)
             self.debug_coupon.Set3StateValue(debug_coupon)
 
 
@@ -608,8 +611,8 @@ class CharaInfo(object):
                 else:
                     newtypedesc = ""
                 # 標準型の解説部分がそのまま残っていたら差し替える
-                for type in cw.cwpy.setting.sampletypes:
-                    typedesc = cw.util.txtwrap(type.description, 4).strip()
+                for stype in cw.cwpy.setting.sampletypes:
+                    typedesc = cw.util.txtwrap(stype.description, 4).strip()
                     index = desc_aft.find(typedesc)
                     if index != -1:
                         if newtypedesc == "":
@@ -1052,7 +1055,9 @@ class CharaRequirementPanel(wx.Panel):
     def OnAutoBtn(self, event):
         self.set_random()
 
-    def _update_images(self, img=[][:]):
+    def _update_images(self, img=None):
+        if img is None:
+            img = []
         self.Freeze()
         fpaths = set()
         if not img:

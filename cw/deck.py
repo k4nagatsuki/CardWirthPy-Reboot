@@ -49,7 +49,9 @@ class Deck(object):
 
         return seq
 
-    def get_skillcards(self, ccard, handcounts={}.copy()):
+    def get_skillcards(self, ccard, handcounts=None):
+        if handcounts is None:
+            handcounts = {}
         seq = []
 
         for header in ccard.get_pocketcards(cw.POCKET_SKILL):
@@ -329,7 +331,7 @@ class Deck(object):
                 return
         else:
             return
-        acts = list(filter(lambda id: id == 0 or ccard.actions.get(id, True), acts))
+        acts = list(filter(lambda cid: cid == 0 or ccard.actions.get(cid, True), acts))
         if acts:
             self._set_nextcard(ccard, cw.cwpy.dice.choice(acts))
 

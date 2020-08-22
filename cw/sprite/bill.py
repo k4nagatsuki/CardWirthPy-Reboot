@@ -98,8 +98,8 @@ class Bill(object):
         font = cw.cwpy.rsrc.fonts["scenariodesc"]
         s = self.header.desc
         y = cw.s(180)
-        for l in s.splitlines():
-            subimg = font.render(l, True, (0, 0, 0))
+        for ln in s.splitlines():
+            subimg = font.render(ln, True, (0, 0, 0))
             image.blit(subimg, (cw.s(65) + xp, y + yp))
             y += cw.s(15)
 

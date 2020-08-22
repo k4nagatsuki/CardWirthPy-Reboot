@@ -19,13 +19,26 @@ _WAIT_CHARS_BEFORE_SPACE = "・´｀：；ー―～…‥’”）〕］｝〉�
 
 
 class MessageWindow(base.CWPySprite):
-    def __init__(self, text, names, imgpaths=[][:], talker=None,
+    def __init__(self, text, names, imgpaths=None, talker=None,
                  pos_noscale=None, size_noscale=None,
-                 nametable={}.copy(), namesubtable={}.copy(),
-                 flagtable={}.copy(), steptable={}.copy(), varianttable={}.copy(),
+                 nametable=None, namesubtable=None,
+                 flagtable=None, steptable=None, varianttable=None,
                  backlog=False, result=None, showing_result=-1, versionhint="", specialchars=None,
                  trim_top_noscale=0, columns=1, spcharinfo=None, centering_x=False, centering_y=False,
                  boundarycheck=False):
+        if imgpaths is None:
+            imgpaths = []
+        if nametable is None:
+            nametable = {}
+        if namesubtable is None:
+            namesubtable = {}
+        if flagtable is None:
+            flagtable = {}
+        if steptable is None:
+            steptable = {}
+        if varianttable is None:
+            varianttable = {}
+
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -744,8 +757,19 @@ class MessageWindow(base.CWPySprite):
 class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos_noscale=None, size_noscale=None,
                  backlog=False, result=None, showing_result=-1, columns=1, barspchr=True,
-                 nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
-                 varianttable={}.copy()):
+                 nametable=None, namesubtable=None, flagtable=None, steptable=None,
+                 varianttable=None):
+        if nametable is None:
+            nametable = {}
+        if namesubtable is None:
+            namesubtable = {}
+        if flagtable is None:
+            flagtable = {}
+        if steptable is None:
+            steptable = {}
+        if varianttable is None:
+            varianttable = {}
+
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
             pos_noscale = (81, 50)
@@ -1679,8 +1703,8 @@ def get_messagelogtext(mwins, lastline=True):
         if mwin.names_log and not (len(mwin.names_log) == 1 and mwin.columns == 1 and
                                    mwin.names_log[0][1] == cw.cwpy.msgs["ok"]):
             lines.append("")
-            for i, sel in enumerate(mwin.names_log):
-                if i == mwin.showing_result and 1 < len(mwin.names_log):
+            for j, sel in enumerate(mwin.names_log):
+                if j == mwin.showing_result and 1 < len(mwin.names_log):
                     s = ">>[ %s " % (sel[1])
                 else:
                     s = "  [ %s " % (sel[1])
@@ -1738,7 +1762,7 @@ def store_messagelogimage(path, can_loaded_scaledimage):
     cw.fsync.sync()
     if path.startswith(cw.cwpy.tempdir):
         path = path.replace(cw.cwpy.tempdir, cw.cwpy.yadodir, 1)
-    dict = None
+    d = None
     fdict = None
 
     for log in cw.cwpy.sdata.backlog:
@@ -1746,13 +1770,13 @@ def store_messagelogimage(path, can_loaded_scaledimage):
             # Billは最初から全てのイメージデータをロード済みなので再読込不要
             continue
         for i, (info, can_loaded_scaledimage2, basetalker, scaledimagedict) in enumerate(log.imgpaths):
-            def load_with_scaled(dict, scaledimagedict):
+            def load_with_scaled(d, scaledimagedict):
                 scaledimagedict.clear()
-                if dict:
-                    for key, value in dict.items():
+                if d:
+                    for key, value in d.items():
                         scaledimagedict[key] = value
                 else:
-                    dict = scaledimagedict
+                    d = scaledimagedict
                     fpath = path
                     if not cw.binary.image.path_is_code(fpath):
                         lpath = fpath.lower()
@@ -1768,10 +1792,10 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                             if os.path.isfile(fname):
                                 bmp = cw.util.Depth1Surface(cw.util.load_image(fname, True, noscale=True), scale)
                                 scaledimagedict[scale] = bmp
-                return dict
+                return d
 
             if os.path.normcase(info.path) == os.path.normcase(path):
-                dict = load_with_scaled(dict, scaledimagedict)
+                d = load_with_scaled(d, scaledimagedict)
                 log.imgpaths[i] = (info, can_loaded_scaledimage, basetalker, scaledimagedict)
 
             if cw.cwpy.is_playingscenario():

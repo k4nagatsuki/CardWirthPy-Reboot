@@ -3,9 +3,11 @@
 
 import sys
 
+from typing import List, Optional, Type, Union
+
 
 class ArgParser(object):
-    def __init__(self, appname="", description=""):
+    def __init__(self, appname: str = "", description: str = "") -> None:
         """argparse.ArgumentParserが'-'で始まる
         オプション引数を受け付けないため代替として使用。
         使い方はargparse.ArgumentParserに似ているが細部は異なる。
@@ -17,23 +19,24 @@ class ArgParser(object):
         self.args = {}
         self.largs = []
 
-    def add_argument(self, arg, type, nargs, help, arg2="", default=None, metavar=None):
+    def add_argument(self, arg: str, argtype: Union[Type[bool], Type[str]], nargs: int, helptext: str, arg2: str = "",
+                     default: Optional[str] = None, metavar: Optional[str] = None) -> None:
         """オプションの情報を追加する。
         arg: '-'で始まるオプション名。
-        type: オプションの型。str, int, boolのいずれか。
+        argtype: オプションの型。str, int, boolのいずれか。
         nargs: オプションが取る引数の数。常に数値で指定する。
-        help: オプションの解説。
+        helptext: オプションの解説。
         arg2: '--'で始まるオプション名。
         default: オプションのデフォルト値。
         metavar: ヘルプで表示される引数値。
         """
-        argobj = Arg(arg, type, nargs, help, arg2, default, metavar)
+        argobj = Arg(arg, argtype, nargs, helptext, arg2, default, metavar)
         self.args[arg] = argobj
         if arg2:
             self.args[arg2] = argobj
         self.largs.append(argobj)
 
-    def parse_args(self, args=None):
+    def parse_args(self, args: Optional[List[str]] = None) -> "ArgResult":
         """引数をパースした結果を得る。
         args: 引数のリスト。未指定の場合はsys.argvを使用する。
         """
@@ -77,8 +80,8 @@ class ArgParser(object):
         """
         s = ["Usage:", self.appname]
         for arg in self.largs:
-            help = arg.get_help("|")
-            s.append("[%s]" % (help))
+            helptext = arg.get_help("|")
+            s.append("[%s]" % (helptext))
         print(" ".join(s))
         print()
         print(self.desc)
@@ -86,8 +89,8 @@ class ArgParser(object):
         print("オプション:")
         mlen = 0
         for arg in self.largs:
-            help = arg.get_help()
-            mlen = max(len(help), mlen)
+            helptext = arg.get_help()
+            mlen = max(len(helptext), mlen)
         for arg in self.largs:
             s = arg.get_help()
             s = s.ljust(mlen)
@@ -95,7 +98,7 @@ class ArgParser(object):
 
 
 class ArgResult(object):
-    def __init__(self):
+    def __init__(self) -> None:
         """起動オプションを解析した結果を持つオブジェクト。
         解析対象にならなかったオプションはleftoversメンバに記録される。
         """
@@ -103,21 +106,22 @@ class ArgResult(object):
 
 
 class Arg(object):
-    def __init__(self, arg, type, nargs, help, arg2="", default=None, metavar=None):
+    def __init__(self, arg: str, argtype: Union[Type[bool], Type[str]], nargs: int, helptext: str, arg2: str = "",
+                 default: Optional[str] = None, metavar: Optional[str] = None) -> None:
         """オプション情報。
         arg: '-'で始まるオプション名。
-        type: オプションの型。str, int, boolのいずれか。
+        argtype: オプションの型。str, int, boolのいずれか。
         nargs: オプションが取る引数の数。常に数値で指定する。
-        help: オプションの解説。
+        helptext: オプションの解説。
         arg2: '--'で始まるオプション名。
         default: オプションのデフォルト値。
         metavar: ヘルプで表示される引数値。
         """
         self.arg = arg
         self.arg2 = arg2
-        self.type = type
+        self.type = argtype
         self.nargs = nargs
-        self.help = help
+        self.help = helptext
         self.default = default
         self.metavar = metavar
 
@@ -161,12 +165,12 @@ class Arg(object):
 
 def main():
     parser = ArgParser(appname="args.py", description="Process some integers.")
-    parser.add_argument("-h", type=bool, nargs=0,
-                        help="このメッセージを表示して終了します。", arg2="--help", default=False)
-    parser.add_argument("-y", type=str, nargs=1,
-                        help="help1\nhelp2", default="bbb")
-    parser.add_argument("-dbg", type=str, nargs=0,
-                        help="help")
+    parser.add_argument("-h", argtype=bool, nargs=0,
+                        helptext="このメッセージを表示して終了します。", arg2="--help", default=False)
+    parser.add_argument("-y", argtype=str, nargs=1,
+                        helptext="help1\nhelp2", default="bbb")
+    parser.add_argument("-dbg", argtype=str, nargs=0,
+                        helptext="help")
 
     args = parser.parse_args()
     if not args:

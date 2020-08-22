@@ -4,9 +4,7 @@
 import sys
 import os
 import time
-import datetime
 import shutil
-import subprocess
 import threading
 import wx
 import wx.richtext
@@ -17,11 +15,13 @@ import cw
 import cw.debug.debugger
 from cw.util import synclock
 
+from typing import Callable, Optional, Tuple
+
 _killlist_mutex = threading.Lock()
 
 
 class Frame(wx.Frame):
-    def __init__(self, app, skindirname=""):
+    def __init__(self, app: "MyApp", skindirname: str = "") -> None:
         self.app = app
         self.filter_event = None
         self._clock = 0
@@ -118,7 +118,7 @@ class Frame(wx.Frame):
             self._retry_count = 0
             wx.CallLater(100, self._start_wx)
 
-    def _start_wx(self):
+    def _start_wx(self) -> None:
         # SDLを描画するパネル
         if sys.platform != "win32" and not self.panel.GetHandle():
             if self._retry_count < 100:
@@ -165,18 +165,18 @@ class Frame(wx.Frame):
         # スキン自動生成のためのドロップ受付
         self.DragAcceptFiles(True)
 
-    def set_icon(self, win):
+    def set_icon(self, win: wx.TopLevelWindow) -> None:
         if sys.platform == "win32":
             icon = wx.Icon(sys.executable, wx.BITMAP_TYPE_ICO)
             win.SetIcon(icon)
 
-    def get_displaysize(self):
+    def get_displaysize(self) -> wx.Size:
         d = wx.Display.GetFromWindow(self)
         if d == wx.NOT_FOUND:
             d = 0
         return wx.Display(d).GetGeometry().GetSize()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_CLOSE, self.OnCloseFromFrame)
         self.Bind(wx.EVT_ICONIZE, self.OnIconize)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
@@ -251,7 +251,7 @@ class Frame(wx.Frame):
 
         self._bind_customevent()
 
-    def _bind_customevent(self):
+    def _bind_customevent(self) -> None:
         """CWPyスレッドからメインスレッドを
         操作するためのカスタムイベントを設定。
         """
@@ -352,7 +352,7 @@ class Frame(wx.Frame):
             cw.cwpy.force_exec_func(func)
             cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
 
-    def exec_func(self, func, *args, **kwargs):
+    def exec_func(self, func: Callable, *args, **kwargs) -> None:
         """wxPythonスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
         """
@@ -391,7 +391,7 @@ class Frame(wx.Frame):
                 time.sleep(0.001)
             return self._sync_result
 
-    def OnEXECFUNC(self, event):
+    def OnEXECFUNC(self, event: wx.PyCommandEvent) -> None:
         try:
             func = event.func
         except Exception:
@@ -400,7 +400,7 @@ class Frame(wx.Frame):
 
         func(*event.args, **event.kwargs)
 
-    def OnSetFocus(self, event):
+    def OnSetFocus(self, event: wx.FocusEvent) -> None:
         """SDL描画パネルがフォーカスされたときに呼ばれ、
         トップフレームにフォーカスを戻す。wx側がキー入力イベントを取得するため、
         ゲーム中は常にトップフレームがフォーカスされていなければならない。
@@ -409,7 +409,7 @@ class Frame(wx.Frame):
         self.update_keystate()
         self._update_mousepressed()
 
-    def update_keystate(self):
+    def update_keystate(self) -> None:
         if wx.GetKeyState(wx.WXK_CONTROL):
             if not cw.cwpy.keyevent.is_keyin(pygame.locals.K_LCTRL):
                 cw.cwpy.keyevent.keydown(wx.WXK_CONTROL)
@@ -417,7 +417,7 @@ class Frame(wx.Frame):
             if cw.cwpy.keyevent.is_keyin(pygame.locals.K_LCTRL):
                 cw.cwpy.keyevent.keyup(wx.WXK_CONTROL)
 
-    def _update_mousepressed(self):
+    def _update_mousepressed(self) -> None:
         if sys.platform != "win32":
             if self.IsActive():
                 state = wx.GetMouseState()
@@ -428,7 +428,7 @@ class Frame(wx.Frame):
             else:
                 cw.cwpy.mousein = (0, 0, 0)
 
-    def OnKillFocus(self, event):
+    def OnKillFocus(self, event: wx.FocusEvent) -> None:
         self._update_mousepressed()
         cw.cwpy.keyevent.clear()
 
@@ -568,7 +568,7 @@ class Frame(wx.Frame):
             dlg.ShowModal()
             self.kill_dlg(dlg)
 
-    def OnDestroy(self, event):
+    def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
         cw.cwpy._running = False
 
         while True:
@@ -621,24 +621,24 @@ class Frame(wx.Frame):
             if self.debugger:
                 self.debugger.Iconize(False)
 
-    def OnCloseFromFrame(self, event):
+    def OnCloseFromFrame(self, event: wx.CloseEvent) -> None:
         # Escapeキー以外で閉じようとした
         if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
             self.OnCLOSE(event)
         else:
             self.Hide()
-            cw.quit = True
+            cw.quit_app = True
             if self.debugger:
                 self.debugger.Close()
             self.Destroy()
 
-    def OnMove(self, event):
+    def OnMove(self, event: wx.MoveEvent) -> None:
         # ウィンドウの移動またはサイズ変更(フルスクリーン化等)
         if not self.IsFullScreen() and not self.IsMaximized():
             if cw.cwpy and cw.cwpy.setting:
                 cw.cwpy.setting.window_position = self.GetPosition()
 
-    def OnCLOSE(self, event):
+    def OnCLOSE(self, event: wx.CloseEvent) -> None:
         while cw.cwpy.is_processing and not cw.cwpy.is_decompressing:
             pass
 
@@ -658,7 +658,7 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
         if result == wx.ID_OK:
             self.Hide()
-            cw.quit = True
+            cw.quit_app = True
             if self.debugger:
                 self.debugger.Close()
             self.Destroy()
@@ -900,7 +900,7 @@ class Frame(wx.Frame):
         self.move_dlg(dlg, (0, cw.ppis(-63)))
         dlg.ShowModal()
 
-    def OnCHARAINFO(self, event):
+    def OnCHARAINFO(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.charainfo.ActiveCharaInfo(self)
         self.move_dlg(dlg)
         dlg.ShowModal()
@@ -1124,7 +1124,7 @@ class Frame(wx.Frame):
             parent.after_message()
 
         if shutdown:
-            cw.quit = True
+            cw.quit_app = True
             if self.debugger:
                 self.debugger.Close()
             self.Destroy()
@@ -1172,7 +1172,7 @@ class Frame(wx.Frame):
             parent.after_message()
         self.kill_dlg(dlg)
 
-    def move_dlg(self, dlg, point=(0, 0)):
+    def move_dlg(self, dlg: wx.Dialog, point: Tuple[int, int] = (0, 0)) -> None:
         """引数のダイアログをゲーム画面中央に移動させる。
         dlg: wx.Window
         point: 中央以外の位置に移動させたい場合、指定する。
@@ -1212,7 +1212,7 @@ class Frame(wx.Frame):
             event.Skip(False)
         dlg.Bind(wx.EVT_ICONIZE, OnIconize)
 
-    def kill_dlg(self, dlg=None, lockmenucard=False, redraw=True):
+    def kill_dlg(self, dlg: Optional[wx.Dialog] = None, lockmenucard: bool = False, redraw: bool = True) -> None:
         if dlg:
             dlg.Destroy()
 
@@ -1454,14 +1454,14 @@ class NoFlick(object):
 
 class MyApp(wx.App):
 
-    def __init__(self):
+    def __init__(self) -> None:
         wx.App.__init__(self, 0)
         self.flick_status = FLICK_NONE
         self.flick_window = None
         self.flick_start_pos = (-1, -1)
         self.flick_start_time = 0
 
-    def OnInit(self):
+    def OnInit(self) -> bool:
         wx.Log.SetLogLevel(wx.LOG_Error)
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
@@ -1505,7 +1505,7 @@ class MyApp(wx.App):
             self.SetTopWindow(frame)
             frame.Show()
 
-    def FilterEvent(self, event):
+    def FilterEvent(self, event: wx.Event) -> int:
         if not event:
             return -1
 
@@ -1636,7 +1636,7 @@ class MyApp(wx.App):
         return -1
 
 
-def get_skincount():
+def get_skincount() -> Tuple[int, int]:
     skincount = 0
     unknown_ver = 0
     if os.path.isdir("Data/Skin"):

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import math
 import pygame
 
 import cw
@@ -10,6 +9,8 @@ from .. import character
 
 
 class CWPyCard(base.SelectableSprite):
+    cardimg: cw.image.CardImage
+
     def __init__(self, status, flag=None):
         base.SelectableSprite.__init__(self)
         self.alpha = None
@@ -607,11 +608,13 @@ class CWPyCard(base.SelectableSprite):
 
         # 画像参照
         if update_statusimg:
+            assert isinstance(self.cardimg, cw.image.CharacterCardImage)
             clip = self.cardimg.update_statusimg(self, is_runningevent=is_runningevent)
             if not clip:
                 return None
         else:
             if hasattr(self, "test_aptitude"):
+                assert isinstance(self.cardimg, cw.image.CharacterCardImage)
                 self.cardimg.update(self, self.test_aptitude)
             else:
                 self.cardimg.update(self)
@@ -779,14 +782,16 @@ class PlayerCard(CWPyCard, character.Player):
             self.rect = pygame.Rect(self._rect)
             self.rect.move_ip(cw.s(0), cw.s(+150))
 
-    def get_showingname(self):
+    def get_showingname(self) -> str:
         return self.name
 
     def set_name(self, name):
+        assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         character.Player.set_name(self, name)
         self.cardimg.set_nameimg(self.get_name())
 
     def set_images(self, paths):
+        assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         paths = character.Player.set_images(self, paths)
         self.imgpaths = []
         for info in paths:
@@ -802,6 +807,7 @@ class PlayerCard(CWPyCard, character.Player):
 
     def update_levelup(self):
         """レベルアップ処理。"""
+        assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         if self.frame % 5:
             self.image = pygame.Surface((0, 0)).convert()
         elif not self.frame % 5:
@@ -897,6 +903,7 @@ class PlayerCard(CWPyCard, character.Player):
         cw.cwpy.call_modaldlg("CHARAINFO")
 
     def set_level(self, value, regulate=False, debugedit=False, backpack_party=None, revert_cardpocket=True):
+        assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         character.Player.set_level(self, value, regulate, debugedit, backpack_party, revert_cardpocket)
         self.cardimg.set_levelimg(self.level)
 
@@ -1145,6 +1152,7 @@ class EnemyCard(CWPyCard, character.Enemy):
                 self.deck.set(self, draw=False)
 
     def get_showingname(self):
+        assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         self.initialize()
         if self.spchars:
             return self.cardimg.override_name
@@ -1152,6 +1160,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             return self._name
 
     def update_name(self):
+        assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         if not self._init:
             return
         if self.spchars:

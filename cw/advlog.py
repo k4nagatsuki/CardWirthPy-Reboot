@@ -3,15 +3,11 @@
 
 import os
 import sys
-# FIXME: Python 2->3でのモジュール名変更の絡みで警告が出る
-# import queue
+import queue
 import time
 import threading
 
 import cw
-
-import importlib
-queue = importlib.import_module("queue")
 
 
 VOID = 0
@@ -26,7 +22,7 @@ SEPARATOR = 7
 
 class AdventurerLogger(object):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._logger = None
         self._enable = False
         self._last_logtype = VOID
@@ -198,8 +194,8 @@ class AdventurerLogger(object):
                 return "%sは逃走を試みたが、失敗した。" % (pname)
         self._put(SYSTEM, (cw.cwpy.ydata.party.name, success), runaway)
 
-    def start_round(self, round):
-        self._put(SYSTEM, round, lambda round: "<<<< ラウンド %s >>>>" % (round))
+    def start_round(self, roundval):
+        self._put(SYSTEM, roundval, lambda roundval: "<<<< ラウンド %s >>>>" % (roundval))
 
     def _motion_type(self):
         return MOTION_IN_BATTLE if cw.cwpy.is_battlestatus() else MOTION

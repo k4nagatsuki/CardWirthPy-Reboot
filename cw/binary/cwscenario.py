@@ -33,7 +33,7 @@ class CWScenario(object):
         self.errorlog = ""
         # pathにあるファイル・ディレクトリを
         # (シナリオファイル,素材ファイル,その他ファイル, ディレクトリ)に分ける。
-        exts_mat = set(["bmp", "jpg", "jpeg", "wav", "wave", "mid", "midi", "jpdc", "jpy1", "jptx"])
+        exts_mat = {"bmp", "jpg", "jpeg", "wav", "wave", "mid", "midi", "jpdc", "jpy1", "jptx"}
         self.cwfiles = []
         self.materials = []
         self.otherfiles = []

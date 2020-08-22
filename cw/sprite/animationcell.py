@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import math
 import pygame
 import pygame.locals
@@ -56,15 +55,19 @@ class AnimationCell(base.SelectableSprite):
         # 他セルの位置とサイズを参照するものは全て読み込んだ後にここで再計算する
         for anime in self.refs:
             if not isinstance(anime.pos_noscale[0], int):
+                assert isinstance(anime.pos_noscale[0], str)
                 a = anime.pos_noscale[0][len("Ref:"):]
                 anime.pos_noscale = (self.animation_table[a].pos_noscale[0], anime.pos_noscale[1])
             if not isinstance(anime.pos_noscale[1], int):
+                assert isinstance(anime.pos_noscale[1], str)
                 a = anime.pos_noscale[1][len("Ref:"):]
                 anime.pos_noscale = (anime.pos_noscale[0], self.animation_table[a].pos_noscale[1])
             if not isinstance(anime.size_noscale[0], int):
+                assert isinstance(anime.size_noscale[0], str)
                 a = anime.size_noscale[0][len("Ref:"):]
                 anime.size_noscale = (self.animation_table[a].size_noscale[0], anime.size_noscale[1])
             if not isinstance(anime.size_noscale[1], int):
+                assert isinstance(anime.size_noscale[1], str)
                 a = anime.size_noscale[1][len("Ref:"):]
                 anime.size_noscale = (anime.size_noscale[0], self.animation_table[a].size_noscale[1])
 

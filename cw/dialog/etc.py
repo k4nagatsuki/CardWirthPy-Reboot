@@ -11,13 +11,18 @@ import wx.lib.mixins.listctrl as listmix
 
 import cw
 
+from typing import List
+
 
 class BattleCommand(wx.Dialog):
+    list: List[cw.header.CardHeader]
+
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["select_battle_action"],
                            style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.list = []
+        self.func_list = []
 
         # 行動開始
         path = "Resource/Image/Card/BATTLE"
@@ -28,7 +33,7 @@ class BattleCommand(wx.Dialog):
         h = cw.scr2win_s(header.rect.height)
         header.rect = pygame.Rect(cw.wins(5), cw.wins(5), w, h)
         header.clickedflag = False
-        header.lclick_event = self.start
+        self.func_list.append(self.start)
         header.negaflag = False
         self.list.append(header)
         if cw.cwpy.battle.possible_runaway:
@@ -40,7 +45,7 @@ class BattleCommand(wx.Dialog):
             header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
             header.clickedflag = False
             header.negaflag = False
-            header.lclick_event = self.runaway
+            self.func_list.append(self.runaway)
             self.list.append(header)
         # キャンセル
         path = "Resource/Image/Card/COMMAND1"
@@ -50,7 +55,7 @@ class BattleCommand(wx.Dialog):
         header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
         header.clickedflag = False
         header.negaflag = False
-        header.lclick_event = self.cancel
+        self.func_list.append(self.cancel)
         self.list.append(header)
 
         self.toppanel = wx.Panel(self, -1, size=((w+cw.wins(5))*len(self.list)+cw.wins(5), h+cw.wins(5)*2))
@@ -115,11 +120,11 @@ class BattleCommand(wx.Dialog):
 
         seq = None
         if resid == self.returnkeyid:
-            for header in self.list:
+            for i, header in enumerate(self.list):
                 if header.negaflag:
                     cw.cwpy.play_sound("click")
                     self.animate_click(header)
-                    header.lclick_event()
+                    self.func_list[i]()
                     return
         elif resid == self.leftkeyid:
             seq = self.list[:]
@@ -152,11 +157,11 @@ class BattleCommand(wx.Dialog):
     def OnLeftUp(self, event):
         if not self.toppanel.IsEnabled():
             return
-        for header in self.list:
+        for i, header in enumerate(self.list):
             if header.rect.collidepoint(event.GetPosition()):
                 cw.cwpy.play_sound("click")
                 self.animate_click(header)
-                header.lclick_event()
+                self.func_list[i]()
                 return
 
     def start(self):
@@ -829,7 +834,7 @@ if sys.platform == "win32":
         任意のダイアログにくっついて動くタッチ操作用ツールウィンドウ。
         現在はスクリーンショットの撮影のみ行える。
         """
-        def __init__(self, parent):
+        def __init__(self, parent: wx.TopLevelWindow) -> None:
             wx.MiniFrame.__init__(self, parent, style=wx.BORDER)
             self.cwpy_debug = False
 
@@ -860,14 +865,14 @@ if sys.platform == "win32":
 
             self._move_pos()
 
-        def _do_layout(self):
+        def _do_layout(self) -> None:
             sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
             sizer_1.Add(self._tb, 0, 0, cw.wins(0))
             self.SetSizer(sizer_1)
             sizer_1.Fit(self)
             self.Layout()
 
-        def _bind(self):
+        def _bind(self) -> None:
             self.Bind(wx.EVT_MENU, self.OnScreenShot, id=self._ssbtn.GetId())
             if self._sshbtn:
                 self.Bind(wx.EVT_MENU, self.OnScreenShotHands, id=self._sshbtn.GetId())
@@ -887,11 +892,11 @@ if sys.platform == "win32":
         def OnCopyDetail(self, event):
             self.GetParent().copy_detail()
 
-        def OnMove(self, event):
+        def OnMove(self, event: wx.SizeEvent) -> None:
             self._move_pos()
             event.Skip()
 
-        def _move_pos(self):
+        def _move_pos(self) -> None:
             pos = self.GetParent().GetPosition()
             size = self.GetParent().GetSize()
             x = pos[0]+size[0]-1
@@ -914,7 +919,7 @@ else:
                FilterEventとの連携で強引に動作させる。
                wxGTK 4.0.1
         """
-        def __init__(self, parent):
+        def __init__(self, parent: wx.TopLevelWindow) -> None:
             wx.MiniFrame.__init__(self, parent, style=wx.NO_BORDER)
             self.cwpy_debug = False
 
@@ -942,14 +947,14 @@ else:
 
             self._move_pos()
 
-        def _do_layout(self):
+        def _do_layout(self) -> None:
             w = max([t[1].GetWidth() for t in self._buttons]) + cw.wins(6)
             h = sum([t[1].GetHeight() for t in self._buttons])
             h += cw.wins(3)*2 + cw.wins(6)*(len(self._buttons)-1)
             self.SetClientSize((w, h))
             self.SetSize((w, h))
 
-        def _bind(self):
+        def _bind(self) -> None:
             self.Bind(wx.EVT_PAINT, self.OnPaint)
             self.GetParent().Bind(wx.EVT_MOVE, self.OnMove)
             self.GetParent().Bind(wx.EVT_SIZE, self.OnMove)
@@ -1031,11 +1036,11 @@ else:
                     dc.DrawBitmap(bmp, cw.wins(3), y, True)
                 y += bmp.GetHeight() + cw.wins(6)
 
-        def OnMove(self, event):
+        def OnMove(self, event: wx.SizeEvent) -> None:
             self._move_pos()
             event.Skip()
 
-        def _move_pos(self):
+        def _move_pos(self) -> None:
             pos = self.GetParent().GetPosition()
             size = self.GetParent().GetSize()
             x = pos[0]+size[0]-1
@@ -1046,7 +1051,7 @@ else:
             return False
 
 
-def show_touchtools(dlg):
+def show_touchtools(dlg: wx.TopLevelWindow) -> bool:
     """dlgに付属するTouchToolsを表示する。"""
     if not cw.cwpy.setting.show_tiles:
         return False

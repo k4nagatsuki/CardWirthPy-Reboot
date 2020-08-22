@@ -6,12 +6,15 @@ import sys
 import itertools
 import wx
 import pygame
+import pygame.locals
 
 import cw
 
+from typing import Dict, Optional, Tuple
+
 
 class EventContentBase(object):
-    def __init__(self, data, is_changestate):
+    def __init__(self, data: cw.data.CWPyElement, is_changestate: bool) -> None:
         self.data = data
         self._author = None
         self._scenario = None
@@ -27,10 +30,10 @@ class EventContentBase(object):
     def get_status(self, event):
         return self.data.tag + self.data.get("type", "")
 
-    def get_childname(self, child, event):
+    def get_childname(self, child: cw.data.CWPyElement, event: cw.event.Event) -> str:
         return self.get_contentname(child)
 
-    def get_contentname(self, child, default=""):
+    def get_contentname(self, child: cw.data.CWPyElement, default: str = "") -> str:
         if child.tag == "ContentsLine":
             return child[0].get("name", default)
         else:
@@ -49,7 +52,7 @@ class EventContentBase(object):
                 elements = ()
         return elements
 
-    def get_children_num(self):
+    def get_children_num(self) -> int:
         event = cw.cwpy.event.get_event()
         if not event:
             return 0
@@ -123,7 +126,7 @@ class EventContentBase(object):
                 seq.append(pcard)
         return cw.cwpy.dice.choice(seq)
 
-    def is_differentscenario(self, event=None):
+    def is_differentscenario(self, event: Optional[cw.event.Event] = None) -> bool:
         """実行中のイベントがカードの使用時イベントであり、
         使用中のカードが現在プレイ中のシナリオと異なる
         シナリオから持ち出されたものであればTrueを返す。
@@ -212,7 +215,7 @@ class EventContentBase(object):
             raise cw.event.EffectBreakError()
 
     @property
-    def textdict(self):
+    def textdict(self) -> Dict[str, str]:
         return {
             # 対象範囲
             "backpack": "荷物袋",
@@ -289,7 +292,9 @@ class EventContentBase(object):
 # ------------------------------------------------------------------------------
 
 class BranchContent(EventContentBase):
-    def __init__(self, data):
+    _index_table: Dict[str, int]
+
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
         self._boolean_checked = False
         self._boolean_table = None
@@ -1124,7 +1129,7 @@ class BranchLevelContent(BranchContent):
 
 
 class BranchCouponContent(BranchContent):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         BranchContent.__init__(self, data)
         self.scope = self.data.get("targets")
         self.scope, self.someone, self.unreversed = _get_couponscope(self.scope)
@@ -1188,43 +1193,43 @@ class BranchCouponContent(BranchContent):
         names = self.couponnames
         if len(names) > 0 and names[0] != "":
             s = "」「".join(names)
-            type = ""
+            ctype = ""
             if len(names) > 1:
                 if self.matchingtype == "And":
-                    type = "全ての"
+                    ctype = "全ての"
                 else:
-                    type = "どれか一つの"
+                    ctype = "どれか一つの"
             if self.invert:
                 resulttype = "不所有"
             else:
                 resulttype = "所有"
             spchars = "(特殊文字を展開)" if self.spchars else ""
-            return "称号「%s」の%s%sで分岐%s" % (s, type, resulttype, spchars)
+            return "称号「%s」の%s%sで分岐%s" % (s, ctype, resulttype, spchars)
         else:
             return "称号が指定されていません"
 
-    def get_childname(self, child, event):
+    def get_childname(self, child: cw.data.CWPyElement, event: cw.event.Event) -> str:
         names = self.couponnames
         scope = self.data.get("targets")
         s2 = self.textdict.get(scope.lower(), "")
         s = ""
         if len(names) > 0 and names[0] != "":
             s = "」「".join(names)
-            type = ""
+            ctype = ""
             if len(names) > 1:
                 if self.matchingtype == "And":
-                    type = "の全て"
+                    ctype = "の全て"
                 else:
-                    type = "のどれか一つ"
+                    ctype = "のどれか一つ"
         success = self.get_contentname(child) == "○"
         if self.invert:
             # 判定条件の反転(Wsn.4)
             success = not success
         spchars = "(特殊文字を展開)" if self.spchars else ""
         if success:
-            return "%sが称号「%s」%sを所有している%s" % (s2, s, type, spchars)
+            return "%sが称号「%s」%sを所有している%s" % (s2, s, ctype, spchars)
         else:
-            return "%sが称号「%s」%sを所有していない%s" % (s2, s, type, spchars)
+            return "%sが称号「%s」%sを所有していない%s" % (s2, s, ctype, spchars)
 
 
 class BranchSelectContent(BranchContent):
@@ -1320,7 +1325,7 @@ class BranchMoneyContent(BranchContent):
 
 
 class BranchFlagContent(BranchContent):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         BranchContent.__init__(self, data)
         self.flag = self.data.get("flag")
 
@@ -1346,7 +1351,7 @@ class BranchFlagContent(BranchContent):
         else:
             return "フラグが指定されていません"
 
-    def get_childname(self, child, event):
+    def get_childname(self, child: cw.data.CWPyElement, event: cw.event.Event) -> str:
         flag = cw.cwpy.sdata.find_flag(self.flag, self.is_differentscenario(event), event)
         if flag is not None:
             valuename = flag.get_valuename(self.get_contentname(child) == "○")
@@ -1401,7 +1406,7 @@ class BranchStepContent(BranchContent):
 
 
 class BranchMultiStepContent(BranchContent):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         BranchContent.__init__(self, data)
         self.step = self.data.get("step")
         self.nextlen = self.get_children_num()
@@ -1429,7 +1434,7 @@ class BranchMultiStepContent(BranchContent):
         else:
             return "ステップが指定されていません"
 
-    def get_childname(self, child, event):
+    def get_childname(self, child: cw.data.CWPyElement, event: cw.event.Event) -> str:
         step = cw.cwpy.sdata.find_step(self.step, self.is_differentscenario(event), event)
         if step is not None:
             try:
@@ -1827,7 +1832,7 @@ class BranchRoundContent(BranchContent):
             return "%s %s 現在のバトルラウンドでない" % (round1, comparison)
 
 
-def _get_couponscope(scope):
+def _get_couponscope(scope: str) -> Tuple[str, bool, bool]:
     if scope == "Random":
         scope = "Party"
         someone = True
@@ -1997,7 +2002,7 @@ class BranchVariantContent(BranchContent):
                 self.parsed_expression = cw.calculator.parse(self.expression)
             if len(self.parsed_expression) == 0:
                 return self.get_boolean_index(False)
-            variant = cw.calculator.eval(self.parsed_expression, self.is_differentscenario())
+            variant = cw.calculator.eval_expr(self.parsed_expression, self.is_differentscenario())
             if variant.type == "Boolean":
                 index = self.get_boolean_index(variant.value)
             else:
@@ -2027,7 +2032,7 @@ class BranchVariantContent(BranchContent):
 # ------------------------------------------------------------------------------
 
 class CallStartContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
         self.startname = self.data.get("call")
 
@@ -2064,7 +2069,7 @@ class CallStartContent(EventContentBase):
 
 
 class CallPackageContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
@@ -2082,7 +2087,7 @@ class CallPackageContent(EventContentBase):
         call_package(resid, call)
         return 0
 
-    def get_status(self, event):
+    def get_status(self, event: cw.event.Event) -> str:
         resid = self.data.getint(".", "call", 0)
         name = cw.cwpy.sdata.get_packagename(resid)
 
@@ -2341,7 +2346,7 @@ class CheckVariantContent(EventContentBase):
                 self.parsed_expression = cw.calculator.parse(self.expression)
             if len(self.parsed_expression) == 0:
                 return cw.IDX_TREEEND
-            variant = cw.calculator.eval(self.parsed_expression, self.is_differentscenario())
+            variant = cw.calculator.eval_expr(self.parsed_expression, self.is_differentscenario())
             if variant.type == "Boolean":
                 return 0 if variant.value else cw.IDX_TREEEND
             else:
@@ -2361,7 +2366,7 @@ class CheckVariantContent(EventContentBase):
 # ------------------------------------------------------------------------------
 
 class EffectContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
         # 各種データ取得
         d = {}.copy()
@@ -2534,6 +2539,7 @@ class EffectContent(EventContentBase):
                 else:
                     runevent = False
                 if runevent:
+                    assert isinstance(runevent, cw.event.Event)
                     runevent.run_scenarioevent()
                 else:
                     cw.cwpy.play_sound("ineffective", True)
@@ -2869,7 +2875,7 @@ class EndBadEndContent(EventContentBase):
 # ------------------------------------------------------------------------------
 
 class GetContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
 
     def get_cards(self, cardtype):
@@ -3270,7 +3276,7 @@ def is_addablecoupon(coupon):
 
 
 class GetCouponContent(GetContent):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         GetContent.__init__(self, data)
         self.coupon = self.data.get("coupon")
         self.value = self.data.getint(".", "value", 0)
@@ -3402,7 +3408,7 @@ class LinkPackageContent(EventContentBase):
 # ------------------------------------------------------------------------------
 
 class LoseContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
 
         # 各種属性値取得
@@ -3683,7 +3689,7 @@ class LoseGossipContent(LoseContent):
 
 
 class LoseCouponContent(LoseContent):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         LoseContent.__init__(self, data)
 
         self.coupon = self.data.get("coupon")
@@ -3758,7 +3764,7 @@ class LoseBgImageContent(EventContentBase):
 # ------------------------------------------------------------------------------
 
 class PlayBgmContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
@@ -3798,7 +3804,7 @@ class PlayBgmContent(EventContentBase):
 
 
 class PlaySoundContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
@@ -3811,7 +3817,7 @@ class PlaySoundContent(EventContentBase):
         cw.cwpy.play_sound_with(path, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
         return 0
 
-    def get_status(self, event):
+    def get_status(self, event: cw.event.Event) -> str:
         path = self.data.get("path", "")
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 1)
@@ -3838,7 +3844,7 @@ class PlaySoundContent(EventContentBase):
 # ------------------------------------------------------------------------------
 
 class RedisplayContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
 
     def action(self):
@@ -3852,7 +3858,7 @@ class RedisplayContent(EventContentBase):
 
         return 0
 
-    def get_status(self, event):
+    def get_status(self, event: cw.event.Event) -> str:
         return "画面再構築コンテント"
 
 
@@ -3894,7 +3900,7 @@ class ReverseFlagContent(EventContentBase):
 # ------------------------------------------------------------------------------
 
 class SetFlagContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
         self.flag = self.data.get("flag")
         self.value = self.data.getbool(".", "value", False)
@@ -3915,7 +3921,7 @@ class SetFlagContent(EventContentBase):
 
         return 0
 
-    def get_status(self, event):
+    def get_status(self, event: cw.event.Event) -> str:
         flag = cw.cwpy.sdata.find_flag(self.flag, self.is_differentscenario(event), event)
         if flag is not None:
             s = flag.get_valuename(self.value)
@@ -4004,26 +4010,26 @@ class SetVariantContent(BranchContent):
         diffsc = self.is_differentscenario()
         variant = cw.cwpy.sdata.find_variant(self.variant, diffsc, event)
 
-        def eval():
+        def eval_expr():
             try:
                 if not self.parsed_expression:
                     self.parsed_expression = cw.calculator.parse(self.expression)
                 if len(self.parsed_expression) == 0:
                     return None
-                return cw.calculator.eval(self.parsed_expression, diffsc)
+                return cw.calculator.eval_expr(self.parsed_expression, diffsc)
             except cw.calculator.ComputeException as ex:
                 cw.util.print_ex()
                 self.variant_error(ex=ex)
                 return None
 
         if variant:
-            result = eval()
+            result = eval_expr()
             if result:
                 variant.set(result.value)
 
         step = cw.cwpy.sdata.find_step(self.step, diffsc, event)
         if step is not None:
-            result = eval()
+            result = eval_expr()
             if result:
                 if result.type == "Number":
                     value = cw.util.numwrap(result.value, 0, len(step.valuenames) - 1)
@@ -4033,7 +4039,7 @@ class SetVariantContent(BranchContent):
 
         flag = cw.cwpy.sdata.find_flag(self.flag, diffsc, event)
         if flag is not None:
-            result = eval()
+            result = eval_expr()
             if result:
                 if result.type == "Boolean":
                     flag.set(result.value)
@@ -4062,7 +4068,7 @@ class SetVariantContent(BranchContent):
 # ------------------------------------------------------------------------------
 
 class ShowPartyContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
         self.cardspeed = self.data.getattr(".", "cardspeed", "Default")
         if self.cardspeed == "Default":
@@ -4090,7 +4096,7 @@ class ShowPartyContent(EventContentBase):
 # ------------------------------------------------------------------------------
 
 class StartContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
 
     """スタートコンテント"""
@@ -4134,7 +4140,7 @@ class StartBattleContent(EventContentBase):
 # ------------------------------------------------------------------------------
 
 class TalkContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
 
     def get_selections_and_indexes(self):
@@ -4166,7 +4172,7 @@ class TalkContent(EventContentBase):
 
 
 class TalkMessageContent(TalkContent):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         TalkContent.__init__(self, data)
 
     def action(self):
@@ -4349,7 +4355,7 @@ class TalkMessageContent(TalkContent):
 
         return True
 
-    def get_status(self, event):
+    def get_status(self, event: cw.event.Event) -> str:
         imgpath = self.data.get("path", "")
 
         if imgpath.endswith("??Random"):
@@ -4369,7 +4375,7 @@ class TalkMessageContent(TalkContent):
 
 
 class TalkDialogContent(TalkContent):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         TalkContent.__init__(self, data)
         self._init_values = False
 
@@ -4399,6 +4405,7 @@ class TalkDialogContent(TalkContent):
 
         # 画像パス
         imgpaths = []
+        assert isinstance(talker, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
         for base in talker.imgpaths:
             basecardtype = "LargeCard"
@@ -4464,6 +4471,7 @@ class TalkDialogContent(TalkContent):
         # 選択肢取得
         names = self.get_selections_and_indexes()
         # 対象メンバの所持クーポンの集合
+        assert isinstance(talker, cw.character.Character)
         coupons = talker.get_coupons()
         # ダイアログリスト
         dialogs = self.get_dialogs()
@@ -4504,7 +4512,7 @@ class TalkDialogContent(TalkContent):
 
         return None
 
-    def get_status(self, event):
+    def get_status(self, event: cw.event.Event) -> str:
         e = self.data.getfind("Dialogs")
         if e is not None and len(e):
             s = e[0].gettext("Text", "").replace("\\n", "")
@@ -4520,7 +4528,7 @@ class TalkDialogContent(TalkContent):
 # ------------------------------------------------------------------------------
 
 class WaitContent(EventContentBase):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
 
     def action(self):
@@ -4553,7 +4561,7 @@ class WaitContent(EventContentBase):
 
         return 0
 
-    def get_status(self, event):
+    def get_status(self, event: cw.event.Event) -> str:
         value = self.data.getint(".", "value", 0)
         return "%s秒間待機" % (value/10.0)
 
@@ -5032,7 +5040,7 @@ class PostEventContent(EventContentBase):
 # コンテント取得用関数
 # ------------------------------------------------------------------------------
 
-def get_content(data):
+def get_content(data: cw.data.CWPyElement) -> EventContentBase:
     """対応するEventContentインスタンスを返す。
     data: Element
     """

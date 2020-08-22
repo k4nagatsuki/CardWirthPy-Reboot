@@ -22,7 +22,7 @@ class WriteError(io.RawIOBase):
         self._sep = os.sep
 
     def _open(self):
-        if cw.quit:
+        if cw.quit_app:
             return
         global put_errorlog
         if not self.f:
@@ -68,7 +68,7 @@ class WriteError(io.RawIOBase):
             return True
 
     def fileno(self):
-        if cw.quit:
+        if cw.quit_app:
             return None
         self._open()
         return self.f.fileno()
@@ -78,37 +78,37 @@ class WriteError(io.RawIOBase):
             return self.f.flush()
 
     def seek(self, offset, whence=io.SEEK_SET):
-        if cw.quit:
+        if cw.quit_app:
             return
         self._open()
         return self.f.seek(offset, whence)
 
     def seekable(self):
-        if cw.quit:
+        if cw.quit_app:
             return False
         self._open()
         return self.f.seekable()
 
     def tell(self):
-        if cw.quit:
+        if cw.quit_app:
             return 0
         self._open()
         return self.f.tell()
 
     def truncate(self, size=None):
-        if cw.quit:
+        if cw.quit_app:
             return
         self._open()
         return self.f.truncate(size)
 
     def writable(self):
-        if cw.quit:
+        if cw.quit_app:
             return False
         self._open()
         return True
 
     def writelines(self, lines):
-        if cw.quit:
+        if cw.quit_app:
             return
         if self.f and self._last_time + 1.0 <= time.process_time():
             # 前回の出力から1秒以上経っていたら時刻を再出力
@@ -123,7 +123,7 @@ class WriteError(io.RawIOBase):
         return r
 
     def write(self, b):
-        if cw.quit:
+        if cw.quit_app:
             return
         if self.f and self._last_time + 1.0 <= time.process_time():
             self.f.write("\n")

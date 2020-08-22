@@ -46,12 +46,12 @@ if sys.platform == "win32":
     import pythoncom
     import win32com.shell.shell as win32shell
     import win32com.shell.shellcon
-    import pywintypes
     import ctypes.wintypes
     import msvcrt
     # NuitkaやPyInstallerに必要なモジュールを知らせる
     # import wx._html
     # import wx._xml
+    # 以下はcx_Freezeでも必要
     import win32timezone
 
 
@@ -991,10 +991,10 @@ def _get_facepaths(facedir, imgpaths, dpaths, passed):
     for sortkey, showdpath, dpath in dpaths:
         if not os.path.isdir(dpath):
             continue
-        abs = get_keypath(get_symlinktarget(dpath))
-        if abs in passed:
+        abspath = get_keypath(get_symlinktarget(dpath))
+        if abspath in passed:
             continue
-        passed.add(abs)
+        passed.add(abspath)
 
         dpaths2 = [][:]
         seq = []
@@ -1404,10 +1404,10 @@ def validate_filepath(fpath):
                 seq.append(f)
         return seq
     else:
-        from cw.binary.image import path_is_code
         if not fpath:
             return ""
-        if cw.binary.image.path_is_code(fpath):
+        from cw.binary.image import path_is_code
+        if path_is_code(fpath):
             return fpath
         if os.path.isabs(fpath):
             return ""
@@ -3085,9 +3085,9 @@ def decodetextlist(s):
     return decodewrap(s).split("\n")
 
 
-def is_hw(chr):
+def is_hw(c):
     """unichrが半角文字であればTrueを返す。"""
-    return not unicodedata.east_asian_width(chr) in ('F', 'W', 'A')
+    return not unicodedata.east_asian_width(c) in ('F', 'W', 'A')
 
 
 def get_strlen(s):
@@ -3343,13 +3343,13 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
     if not get_width:
         get_width = get_strlen
 
-    iter = re.findall("[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I)
+    iterwords = re.findall("[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I)
     if spcharinfo is not None:
         # 特殊文字と単語を分離しておく
         iter2 = []
         index = startindex
         spc = None
-        for word in iter:
+        for word in iterwords:
             if spc:
                 iter2.append(spc + word[0])
                 if 1 < len(word):
@@ -3361,14 +3361,14 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                 iter2.append(word)
             index += len(word)
         assert spc is None
-        iter = iter2
+        iterwords = iter2
 
     lines = []
     buf = []
     buflen = 0
     hw = get_width("#")
     index = startindex
-    for word in iter:
+    for word in iterwords:
         # 特殊文字か？
         is_spchar = spcharinfo is not None and index in spcharinfo
 
@@ -3539,15 +3539,15 @@ def _test_wordwrap(s, width, spcharinfo):
     return wordwrap(s, width, spcharinfo=spcharinfo), spcharinfo
 
 
-assert _test_wordwrap("CARD #WIRTH SPECIA&L\nCHA&RACTER #TEST!", 8, spcharinfo=set([5, 18, 24, 32])) ==\
-       ("CARD #W\nIRTH \nSPECIA&L\nCHA&RACTER \n#TEST!", set([5, 7, 13, 20, 26, 34, 35]))
+assert _test_wordwrap("CARD #WIRTH SPECIA&L\nCHA&RACTER #TEST!", 8, spcharinfo={5, 18, 24, 32}) ==\
+       ("CARD #W\nIRTH \nSPECIA&L\nCHA&RACTER \n#TEST!", {5, 7, 13, 20, 26, 34, 35})
 assert _test_wordwrap("wordwrap", 4, spcharinfo=set()) == \
-       ("word-\nwrap", set([5]))
+       ("word-\nwrap", {5})
 
 
-assert wordwrap("[&Rabc..]", 3, spcharinfo=set([1])) == "[&Rab-\nc..]"
+assert wordwrap("[&Rabc..]", 3, spcharinfo={1}) == "[&Rab-\nc..]"
 assert wordwrap("ab...", 3) == "ab..\n."
-assert _test_wordwrap("ab..&R.", 3, spcharinfo=set([4])) == ("ab..\n&R.", set([4, 5]))
+assert _test_wordwrap("ab..&R.", 3, spcharinfo={4}) == ("ab..\n&R.", {4, 5})
 
 
 def get_char(s, index):
@@ -4357,9 +4357,9 @@ class CheckableListCtrl(wx.ListCtrl,
 
 
 class CWBackCheckBox(wx.CheckBox):
-    def __init__(self, parent, id, text):
+    def __init__(self, parent, wid, text):
         """CAUTIONリソースを背景とするチェックボックス。"""
-        wx.CheckBox.__init__(self, parent, id, text)
+        wx.CheckBox.__init__(self, parent, wid, text)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
         dc = wx.ClientDC(self)
@@ -4511,8 +4511,8 @@ def has_modalchild(frame):
 class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
     _search_engines = None
 
-    def __init__(self, parent, id, text="", size=(-1, -1), style=0, searchmenu=False):
-        wx.richtext.RichTextCtrl.__init__(self, parent, id, text, size=size, style=style)
+    def __init__(self, parent, wid, text="", size=(-1, -1), style=0, searchmenu=False):
+        wx.richtext.RichTextCtrl.__init__(self, parent, wid, text, size=size, style=style)
 
         # popup menu
         self.popup_menu = wx.Menu()
@@ -4583,22 +4583,22 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         # URLを検索して取り出し、テキストをリストに分割
         def get_urls(text):
             prog = re.compile(r"http(s)?://([\w\-]+\.)+[\w]+(/[\w\-./?%&=~#!]*)?")
-            list = []
+            seq = []
 
             url = prog.search(text)
 
             while url:
                 if url.start() > 0:
-                    list.append((text[:url.start()], False))
-                list.append((url.group(0), True))
+                    seq.append((text[:url.start()], False))
+                seq.append((url.group(0), True))
                 text = text[url.end():]
 
                 url = prog.search(text)
 
             if len(text) > 0:
-                list.append((text, False))
+                seq.append((text, False))
 
-            return list
+            return seq
 
         if linkurl:
             for v, url_flag in get_urls(value2):
@@ -4774,9 +4774,11 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
     FIXME: wx.adv.BitmapComboBoxの選択ウィンドウの幅が
     コントロールの幅に固定されてしまうため代替する。
     """
-    def __init__(self, parent, id=wx.ID_ANY, value="", pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 choices=[], style=0, validator=wx.DefaultValidator, name="comboBox"):
-        wx.adv.OwnerDrawnComboBox.__init__(self, parent, id, value, pos, size, choices, style, validator, name)
+    def __init__(self, parent, wid=wx.ID_ANY, value="", pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 choices=None, style=0, validator=wx.DefaultValidator, name="comboBox"):
+        if choices is None:
+            choices = []
+        wx.adv.OwnerDrawnComboBox.__init__(self, parent, wid, value, pos, size, choices, style, validator, name)
         self._items = []
 
     def Append(self, s, bmp):
@@ -4880,7 +4882,7 @@ def get_linktarget(fpath):
         shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath, STGM_READ)
         fpath = shortcut.GetPath(win32shell.SLGP_UNCPRIORITY)[0]
     except Exception:
-        print_ex()
+        print_ex(file=sys.stderr)
         return fpath
     return get_linktarget(join_paths(fpath))
 

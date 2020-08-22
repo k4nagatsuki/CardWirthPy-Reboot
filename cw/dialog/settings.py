@@ -134,6 +134,7 @@ class SettingsDialog(wx.Dialog):
 
     def show_details(self):
         simple = self.panel
+        assert isinstance(simple, SimpleSettingsPanel)
         self.panel = SettingsPanel(self)
 
         self.panel.pane_gene.cb_debug.SetValue(simple.cb_debug.GetValue())
@@ -2729,9 +2730,9 @@ class ScenarioSettingPanel(wx.Panel):
 
         if os.path.isdir("Scenario"):
             if cw.cwpy.setting.skintype not in d:
-                d[cw.cwpy.setting.skintype] = set(["Scenario"])
+                d[cw.cwpy.setting.skintype] = {"Scenario"}
             elif not d:
-                d[""] = set(["Scenario"])
+                d[""] = {"Scenario"}
 
         dlg = editscenariodb.ConstructScenarioDB(self.TopLevelParent, dpaths=d)
         cw.cwpy.frame.move_dlg(dlg)
@@ -3026,13 +3027,6 @@ class UISettingPanel(wx.ScrolledWindow):
         if self.cb_allquickdeal.GetValue():
             self.cb_quickdeal.SetValue(True)
 
-    def OnCaptionBar(self, event):
-        def func():
-            self._calc_scrollsize()
-            self.FitInside()
-        cw.cwpy.frame.exec_func(func)
-        event.Skip()
-
     def _bind(self):
         self.Bind(wx.EVT_CHECKBOX, self.OnQuickDeal, self.cb_quickdeal)
         self.Bind(wx.EVT_CHECKBOX, self.OnAllQuickDeal, self.cb_allquickdeal)
@@ -3110,9 +3104,9 @@ class FontSettingPanel(wx.Panel):
         self.SetDoubleBuffered(True)
         self._for_local = for_local
         self._get_localsettings = get_localsettings if get_localsettings else lambda: cw.cwpy.setting.local
-        self.msg_exfonttypes = set(["fw_symbol", "fw_number", "fw_latin", "hiragana", "katakana", "hw_katakana",
-                                    "greek_and_cyrillic", "jis_kanji_1", "jis_kanji_2", "etc_kanji", "symbol",
-                                    "number", "latin"])
+        self.msg_exfonttypes = {"fw_symbol", "fw_number", "fw_latin", "hiragana", "katakana", "hw_katakana",
+                                "greek_and_cyrillic", "jis_kanji_1", "jis_kanji_2", "etc_kanji", "symbol",
+                                "number", "latin"}
         self.typenames = {"inherit": "指定しない",
                           "gothic": "等幅ゴシック",
                           "uigothic": "UI用",
@@ -3283,8 +3277,8 @@ class FontSettingPanel(wx.Panel):
         self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.type.SetDoubleBuffered(True)
 
-        def get_choices(type):
-            if type in self.msg_exfonttypes:
+        def get_choices(ftype):
+            if ftype in self.msg_exfonttypes:
                 return self._types_with_inherit
             else:
                 return self._types

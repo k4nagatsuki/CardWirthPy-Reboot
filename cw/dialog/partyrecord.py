@@ -6,6 +6,8 @@ import wx
 import cw
 from . import select
 
+from typing import List, Optional
+
 
 # ------------------------------------------------------------------------------
 # パーティの記録
@@ -15,6 +17,10 @@ class SelectPartyRecord(select.Select):
     """
     パーティ記録・再結成ダイアログ。
     """
+    index: int
+    list: List[Optional[cw.header.PartyRecordHeader]]
+    restorable: List[List[Optional[cw.header.PartyRecordHeader]]]
+
     def __init__(self, parent):
         # ダイアログボックス作成
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_party_record"])
@@ -61,8 +67,10 @@ class SelectPartyRecord(select.Select):
         """パーティの記録。"""
         from . import message
 
-        if isinstance(self.Parent, wx.Dialog) and self.Parent.is_processing():
-            return
+        if isinstance(self.Parent, wx.Dialog):
+            assert isinstance(self.Parent, (select.PlayerSelect, select.PartySelect))
+            if self.Parent.is_processing():
+                return
         header = self.list[self.index]
         cw.cwpy.play_sound("signal")
         if header:
@@ -133,11 +141,13 @@ class SelectPartyRecord(select.Select):
                 if panel:
                     panel.draw(True)
                 if isinstance(parent, wx.Dialog) and parent:
+                    assert isinstance(parent, (select.PlayerSelect, select.PartySelect))
                     parent.update_standbys(selected)
                     parent._processing = False
             cw.cwpy.frame.exec_func(func, panel, parent, selected, updatelist)
 
         if isinstance(self.Parent, wx.Dialog):
+            assert isinstance(self.Parent, (select.PlayerSelect, select.PartySelect))
             self.Parent._processing = True
             cw.cwpy.exec_func(func, header, self, self.Parent, self.Parent.get_selected())
         else:
@@ -147,8 +157,10 @@ class SelectPartyRecord(select.Select):
         """パーティ記録の削除。"""
         from . import message
 
-        if isinstance(self.Parent, wx.Dialog) and self.Parent.is_processing():
-            return
+        if isinstance(self.Parent, wx.Dialog):
+            assert isinstance(self.Parent, (select.PlayerSelect, select.PartySelect))
+            if self.Parent.is_processing():
+                return
         header = self.list[self.index]
         assert bool(header)
 
