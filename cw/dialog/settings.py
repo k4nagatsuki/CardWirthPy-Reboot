@@ -11,6 +11,8 @@ import pygame
 
 import cw
 
+from typing import List, Tuple, Union
+
 
 # build_exe.pyによって作られる一時モジュール
 # cw.versioninfoからビルド時間の情報を得る
@@ -20,11 +22,11 @@ except ImportError:
     versioninfo = None
 
 
-def _settings_width():
+def _settings_width() -> int:
     return cw.ppis(250)
 
 
-def create_versioninfo(parent):
+def create_versioninfo(parent: Union["SimpleSettingsPanel", "SettingsPanel"]) -> None:
     """バージョン情報を表示するwx.TextCtrlを生成する。"""
     if sys.maxsize == 0x7fffffff:
         bits = "32-bit"
@@ -68,7 +70,7 @@ else:
 
 
 class SettingsDialog(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         """設定ダイアログ。
         """
         cw.cwpy.frame.filter_event = self.OnFilterEvent
@@ -86,10 +88,10 @@ class SettingsDialog(wx.Dialog):
         self._bind()
         self._do_layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         sizer.Add(self.panel, 1, wx.EXPAND, cw.ppis(0))
@@ -97,7 +99,7 @@ class SettingsDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnFilterEvent(self, event):
+    def OnFilterEvent(self, event: wx.Event) -> bool:
         if not self:
             return False
         if event.GetEventType() in (wx.EVT_TEXT.typeId,
@@ -112,6 +114,7 @@ class SettingsDialog(wx.Dialog):
             obj = event.GetEventObject()
             if event.GetEventType() is wx.grid.EVT_GRID_EDITOR_SHOWN.typeId:
                 if isinstance(obj, wx.grid.Grid):
+                    assert isinstance(event, wx.grid.GridEvent)
                     editor = obj.GetCellEditor(event.GetRow(), event.GetCol())
                     if isinstance(editor, wx.grid.GridCellBoolEditor):
                         self.applied()
@@ -119,7 +122,7 @@ class SettingsDialog(wx.Dialog):
                 self.applied()
         return False
 
-    def applied(self):
+    def applied(self) -> None:
         if self.panel:
             self.panel.btn_apply.Enable()
 
@@ -127,12 +130,12 @@ class SettingsDialog(wx.Dialog):
         if self.panel:
             self.panel.btn_apply.Disable()
 
-    def OnClose(self, event):
+    def OnClose(self, event: wx.CloseEvent) -> None:
         cw.cwpy.frame.filter_event = None
         self.panel.close()
         self.Destroy()
 
-    def show_details(self):
+    def show_details(self) -> None:
         simple = self.panel
         assert isinstance(simple, SimpleSettingsPanel)
         self.panel = SettingsPanel(self)
@@ -154,7 +157,7 @@ class SettingsDialog(wx.Dialog):
 
 
 class SimpleSettingsPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent: SettingsDialog) -> None:
         wx.Panel.__init__(self, parent, -1)
 
         self.panel = wx.Panel(self, -1, style=wx.SIMPLE_BORDER)
@@ -199,7 +202,7 @@ class SimpleSettingsPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnApply, id=wx.ID_APPLY)
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CANCEL)
@@ -265,10 +268,10 @@ class SimpleSettingsPanel(wx.Panel):
     def close(self):
         pass
 
-    def OnDetails(self, event):
+    def OnDetails(self, event: wx.CommandEvent) -> None:
         self.Parent.show_details()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -315,7 +318,7 @@ class SimpleSettingsPanel(wx.Panel):
 
 
 class SettingsPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent: SettingsDialog) -> None:
         wx.Panel.__init__(self, parent, pos=(-1024, -1024))
         self.SetDoubleBuffered(True)
         self.Hide()
@@ -363,7 +366,7 @@ class SettingsPanel(wx.Panel):
         self._bind()
         self.Show()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnApply, id=wx.ID_APPLY)
@@ -372,7 +375,7 @@ class SettingsPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnSave, id=self.btn_save.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnLoad, id=self.btn_load.GetId())
 
-    def load(self, setting):
+    def load(self, setting: cw.setting.Setting) -> None:
         self.pane_gene.load(setting)
         self.pane_draw.load(setting, setting.local)
         self.pane_sound.load(setting)
@@ -856,10 +859,10 @@ class SettingsPanel(wx.Panel):
     def OnClose(self, event):
         self.Parent.Close()
 
-    def close(self):
+    def close(self) -> None:
         cw.cwpy.settingtab = self.note.GetSelection()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -882,7 +885,7 @@ class SettingsPanel(wx.Panel):
 
 
 class SkinPanel(wx.Panel):
-    def __init__(self, parent, editbuttons):
+    def __init__(self, parent: wx.Panel, editbuttons: bool) -> None:
         """スキンの選択と編集を行う。"""
         wx.Panel.__init__(self, parent)
         self.editbuttons = editbuttons
@@ -921,7 +924,7 @@ class SkinPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.ch_skin.Bind(wx.EVT_CHOICE, self.OnSkinChoice)
         if self.editbuttons:
             self.btn_installskin.Bind(wx.EVT_BUTTON, self.OnInstallSkin)
@@ -931,7 +934,7 @@ class SkinPanel(wx.Panel):
             self.btn_deleteskin.Bind(wx.EVT_BUTTON, self.OnDeleteSkin)
             self.cb_show_allskin.Bind(wx.EVT_CHECKBOX, self.OnShowAllSkin)
 
-    def update_skins(self, skindirname, applied=True):
+    def update_skins(self, skindirname: str, applied: bool = True) -> None:
         self.ch_skin.Freeze()
         self.skins = []
         self.skindirs = []
@@ -973,7 +976,7 @@ class SkinPanel(wx.Panel):
         for skin in self.skindirs:
             self._load_skinproperties(skin)
 
-    def _load_skinproperties(self, name):
+    def _load_skinproperties(self, name: str) -> None:
         if name in self.skin_summarys:
             return
         skinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml")
@@ -1000,7 +1003,7 @@ class SkinPanel(wx.Panel):
     def OnSkinChoice(self, event):
         self._choice_skin()
 
-    def _choice_skin(self, init=False, applied=True):
+    def _choice_skin(self, init: bool = False, applied: bool = True) -> None:
         skin = self.skindirs[self.ch_skin.GetSelection()]
         s = "種別: %s\n場所: %s\n作者: %s\n" + "-" * 45 + "\n%s"
         if skin not in self.skin_summarys:
@@ -1133,7 +1136,7 @@ class SkinPanel(wx.Panel):
         skin = self.skindirs[self.ch_skin.GetSelection()]
         self.update_skins(skin, applied=False)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         if self.editbuttons:
@@ -1169,7 +1172,7 @@ class SkinPanel(wx.Panel):
             return True
         return False
 
-    def copy_values(self, skin):
+    def copy_values(self, skin: "SkinPanel") -> None:
         if skin.skindirs[skin.ch_skin.GetSelection()] in self.skindirs:
             index = self.skindirs.index(skin.skindirs[skin.ch_skin.GetSelection()])
             self.ch_skin.SetSelection(index)
@@ -1177,7 +1180,7 @@ class SkinPanel(wx.Panel):
 
 
 class ExpandPanel(wx.Panel):
-    def __init__(self, parent, options):
+    def __init__(self, parent: wx.Panel, options: bool) -> None:
         """拡大表示モードの設定を行う。"""
         wx.Panel.__init__(self, parent)
         self.options = options
@@ -1207,11 +1210,11 @@ class ExpandPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.sl_expand.Bind(wx.EVT_SLIDER, self.OnExpandChange)
         self.cb_fullscreen.Bind(wx.EVT_CHECKBOX, self.OnExpandChange)
 
-    def load(self, setting):
+    def load(self, setting: cw.setting.Setting) -> None:
         self.cb_fullscreen.SetValue(setting.expandmode == "FullScreen")
         if self.options:
             self.cb_smoothexpand.SetValue(setting.smoothexpand)
@@ -1261,7 +1264,7 @@ class ExpandPanel(wx.Panel):
 
         self.make_expandinfo()
 
-    def make_expandinfo(self):
+    def make_expandinfo(self) -> None:
         if self.cb_fullscreen.IsChecked():
             self.sl_expand.Disable()
             self.st_expand.SetLabel("フルスクリーン")
@@ -1276,7 +1279,7 @@ class ExpandPanel(wx.Panel):
     def OnExpandChange(self, event):
         self.make_expandinfo()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         bsizer_expandmode_draw = wx.BoxSizer(wx.HORIZONTAL)
@@ -1329,7 +1332,7 @@ class ExpandPanel(wx.Panel):
                 setting.expandmode = value
                 setting.expanddrawing = expanddrawing
 
-    def copy_values(self, expand):
+    def copy_values(self, expand: "ExpandPanel") -> None:
         self.ch_expanddrawing.SetSelection(min(self.ch_expanddrawing.GetCount()-1,
                                                expand.ch_expanddrawing.GetSelection()))
         self.sl_expand.SetValue(expand.sl_expand.GetValue())
@@ -1342,7 +1345,7 @@ class ExpandPanel(wx.Panel):
 
 
 class GeneralSettingPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.Notebook) -> None:
         wx.Panel.__init__(self, parent)
 
         # タブレットモード
@@ -1478,7 +1481,7 @@ class GeneralSettingPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.cb_autosavepartyrecord.Bind(wx.EVT_CHECKBOX, self.OnAutoSavePartyRecord)
         self.cb_initmoneyisinitialcash.Bind(wx.EVT_CHECKBOX, self.OnInitMoneyIsInitialCash)
         self.sstoolbar.Bind(wx.EVT_TOOL, self.OnSSTool)
@@ -1486,7 +1489,7 @@ class GeneralSettingPanel(wx.Panel):
             tx.Bind(wx.EVT_SET_FOCUS, self.OnSSFocus)
             tx.Bind(wx.EVT_KILL_FOCUS, self.OnSSFocus)
 
-    def load(self, setting):
+    def load(self, setting: cw.setting.Setting) -> None:
         self.cb_show_tiles.SetValue(setting.show_tiles)
         self.cb_enabled_right_flick.SetValue(setting.enabled_right_flick)
         self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick)
@@ -1579,7 +1582,7 @@ class GeneralSettingPanel(wx.Panel):
         self._ss_focus()
         event.Skip()
 
-    def _ss_focus(self):
+    def _ss_focus(self) -> None:
         enable = wx.Window.FindFocus() in self.ss_tx
         self.sstoolbar.Enable(enable)
 
@@ -1589,7 +1592,7 @@ class GeneralSettingPanel(wx.Panel):
     def OnInitMoneyIsInitialCash(self, event):
         self.sc_initmoneyamount.Enable(not self.cb_initmoneyisinitialcash.GetValue())
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -1691,7 +1694,7 @@ class GeneralSettingPanel(wx.Panel):
 
 
 class SpeedPanel(wx.Panel):
-    def __init__(self, parent, battlespeed):
+    def __init__(self, parent: wx.Panel, battlespeed: bool) -> None:
         """背景切替方式と各種速度を設定する。"""
         wx.Panel.__init__(self, parent)
         self.battlespeed = battlespeed
@@ -1738,7 +1741,7 @@ class SpeedPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def load(self, setting):
+    def load(self, setting: cw.setting.Setting) -> None:
         n = self.transitions.index(setting.transition)
         self.ch_tran.SetSelection(n)
         self.sl_tran.SetValue(setting.transitionspeed)
@@ -1749,11 +1752,11 @@ class SpeedPanel(wx.Panel):
             self.sl_deal_battle.Enable(setting.use_battlespeed)
         self.sl_msgs.SetValue(setting.messagespeed)
 
-    def _bind(self):
+    def _bind(self) -> None:
         if self.battlespeed:
             self.cb_use_battlespeed.Bind(wx.EVT_CHECKBOX, self.OnUseBattleSpeed, id=self.cb_use_battlespeed.GetId())
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         bsizer_tran = wx.StaticBoxSizer(self.box_tran, wx.VERTICAL)
@@ -1803,7 +1806,7 @@ class SpeedPanel(wx.Panel):
         setting.transitionspeed = value
         return updatemessage
 
-    def copy_values(self, speed):
+    def copy_values(self, speed: "SpeedPanel") -> None:
         self.ch_tran.SetSelection(speed.ch_tran.GetSelection())
         self.sl_tran.SetValue(speed.sl_tran.GetValue())
         self.sl_deal.SetValue(speed.sl_deal.GetValue())
@@ -1815,7 +1818,7 @@ class SpeedPanel(wx.Panel):
 
 
 class DrawingSettingPanel(wx.Panel):
-    def __init__(self, parent, for_local, get_localsettings, use_copybase):
+    def __init__(self, parent: wx.Notebook, for_local: bool, get_localsettings: None, use_copybase: bool) -> None:
         wx.Panel.__init__(self, parent)
         self._for_local = for_local
         self._get_localsettings = get_localsettings
@@ -1891,7 +1894,7 @@ class DrawingSettingPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def load(self, setting, local):
+    def load(self, setting: cw.setting.Setting, local: cw.setting.LocalSetting) -> None:
         if self._for_local:
             self.cb_important.SetValue(local.important_draw)
         else:
@@ -2040,7 +2043,7 @@ class DrawingSettingPanel(wx.Panel):
 
         return updatemessage, updatecurtain, updatefullscreen
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.ch_fscrbacktype.Bind(wx.EVT_CHOICE, self.OnFullScreenBackgroundType, id=self.ch_fscrbacktype.GetId())
         if self._for_local:
             self.cb_important.Bind(wx.EVT_CHECKBOX, self.OnImportant)
@@ -2048,7 +2051,7 @@ class DrawingSettingPanel(wx.Panel):
                 self.copybtn.Bind(wx.EVT_BUTTON, self.OnCopyBase)
             self.initbtn.Bind(wx.EVT_BUTTON, self.OnInitValue)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -2162,7 +2165,7 @@ class DrawingSettingPanel(wx.Panel):
     def OnImportant(self, event):
         self._update_enabled()
 
-    def _update_enabled(self):
+    def _update_enabled(self) -> None:
         enbl = self.cb_important.GetValue() if self.cb_important else True
         self.cs_mwin.Enable(enbl)
         self.cs_blwin.Enable(enbl)
@@ -2193,7 +2196,7 @@ class DrawingSettingPanel(wx.Panel):
 
 
 class AudioSettingPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.Notebook) -> None:
         wx.Panel.__init__(self, parent)
 
         self.box_gene = wx.StaticBox(self, -1, "詳細")
@@ -2256,7 +2259,7 @@ class AudioSettingPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def load(self, setting):
+    def load(self, setting: cw.setting.Setting) -> None:
         self.cb_playbgm.SetValue(setting.play_bgm)
         self.cb_playsound.SetValue(setting.play_sound)
         n = int(setting.vol_master * 100)
@@ -2278,7 +2281,7 @@ class AudioSettingPanel(wx.Panel):
         self.sl_sound.SetValue(int(setting.vol_sound_init * 100))
         self._init_soundfont(setting.soundfonts_init)
 
-    def _init_soundfont(self, soundfonts):
+    def _init_soundfont(self, soundfonts: List[Tuple[str, bool, int]]) -> None:
         if 0 < self.grid_soundfont.GetNumberRows():
             self.grid_soundfont.DeleteRows(0, self.grid_soundfont.GetNumberRows())
         self.grid_soundfont.AppendRows(len(soundfonts))
@@ -2286,7 +2289,7 @@ class AudioSettingPanel(wx.Panel):
             self.set_soundfont(row, soundfont)
         self._select_changed_soundfonts()
 
-    def set_soundfont(self, row, soundfont):
+    def set_soundfont(self, row: int, soundfont: Tuple[str, bool, int]) -> None:
         sfont, use, volume = soundfont
         self.grid_soundfont.SetCellValue(row, 0, "1" if use else "")
         self.grid_soundfont.SetCellValue(row, 1, sfont)
@@ -2307,14 +2310,14 @@ class AudioSettingPanel(wx.Panel):
         volume = int(self.grid_soundfont.GetCellValue(row, 2))
         return (sfont, use, volume)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnAddSoundFontBtn, self.btn_addsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveSoundFontBtn, self.btn_rmvsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnUpSoundFontBtn, self.btn_upsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnDownSoundFontBtn, self.btn_downsoundfont)
         self.grid_soundfont.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnGridRangeSelect)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -2364,7 +2367,7 @@ class AudioSettingPanel(wx.Panel):
     def OnGridRangeSelect(self, event):
         wx.CallAfter(self._select_changed_soundfonts)
 
-    def _select_changed_soundfonts(self):
+    def _select_changed_soundfonts(self) -> None:
         indexes = self.grid_soundfont.GetSelectedRows()
         indexes.sort()
         lcount = self.grid_soundfont.GetNumberRows()
@@ -2444,7 +2447,7 @@ class AudioSettingPanel(wx.Panel):
 
 
 class ScenarioSettingPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.Notebook) -> None:
         wx.Panel.__init__(self, parent)
 
         # シナリオのオプション
@@ -2514,7 +2517,7 @@ class ScenarioSettingPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def load(self, setting):
+    def load(self, setting: cw.setting.Setting) -> None:
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype)
         self.cb_show_paperandtree.SetValue(setting.show_paperandtree)
         self.cb_write_playlog.SetValue(setting.write_playlog)
@@ -2551,7 +2554,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.tx_filer_file.SetValue(setting.filer_file_init)
         self._select_changed_folderoftype()
 
-    def OnGirdSelectCell(self, event):
+    def OnGirdSelectCell(self, event: wx.grid.GridEvent) -> None:
         if self.celleditor:
             wx.CallAfter(self._select_changed_folderoftype)
             return
@@ -2566,7 +2569,7 @@ class ScenarioSettingPanel(wx.Panel):
 
         wx.CallAfter(self._select_changed_folderoftype)
 
-    def _select_changed_folderoftype(self):
+    def _select_changed_folderoftype(self) -> None:
         row = self.grid_folderoftype.GetGridCursorRow()
         lcount = self.grid_folderoftype.GetNumberRows()
         self.btn_reffolder.Enable(row != -1)
@@ -2574,7 +2577,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.btn_upfolder.Enable(bool(row != -1 and 1 <= row and row < lcount-1))
         self.btn_downfolder.Enable(bool(row != -1 and row + 2 < lcount))
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnRefFolderBtn, self.btn_reffolder)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveFolderBtn, self.btn_removefolder)
         self.Bind(wx.EVT_BUTTON, self.OnUpFolderBtn, self.btn_upfolder)
@@ -2583,7 +2586,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChange, self.grid_folderoftype)
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGirdSelectCell, self.grid_folderoftype)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
 
@@ -2741,7 +2744,7 @@ class ScenarioSettingPanel(wx.Panel):
 
 
 class UISettingPanel(wx.ScrolledWindow):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.Notebook) -> None:
         wx.ScrolledWindow.__init__(self, parent)
         self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_ALWAYS)
         self.SetScrollbars(1, 1, 1, 1)
@@ -2895,7 +2898,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self._do_layout()
         self._bind()
 
-    def load(self, setting):
+    def load(self, setting: cw.setting.Setting) -> None:
         self.cb_can_skipwait.SetValue(setting.can_skipwait)
         self.cb_can_skipanimation.SetValue(setting.can_skipanimation)
         self.cb_can_skipwait_with_wheel.SetValue(setting.can_skipwait_with_wheel)
@@ -3027,11 +3030,11 @@ class UISettingPanel(wx.ScrolledWindow):
         if self.cb_allquickdeal.GetValue():
             self.cb_quickdeal.SetValue(True)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_CHECKBOX, self.OnQuickDeal, self.cb_quickdeal)
         self.Bind(wx.EVT_CHECKBOX, self.OnAllQuickDeal, self.cb_allquickdeal)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
 
@@ -3099,7 +3102,7 @@ class UISettingPanel(wx.ScrolledWindow):
 
 
 class FontSettingPanel(wx.Panel):
-    def __init__(self, parent, for_local, get_localsettings, use_copybase):
+    def __init__(self, parent: wx.Notebook, for_local: bool, get_localsettings: None, use_copybase: bool) -> None:
         wx.Panel.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self._for_local = for_local
@@ -3335,7 +3338,7 @@ class FontSettingPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def load(self, setting, local):
+    def load(self, setting: cw.setting.Setting, local: cw.setting.LocalSetting) -> None:
         if self._for_local:
             self.cb_important.SetValue(local.important_font)
         if setting:
@@ -3416,7 +3419,7 @@ class FontSettingPanel(wx.Panel):
         self._update_enabled()
         self.Layout()
 
-    def update_example(self):
+    def update_example(self) -> None:
         s = self.tx_example.GetValue()
         pixelsize = self.sc_example.GetValue()
         if cw.cwpy:
@@ -3429,7 +3432,7 @@ class FontSettingPanel(wx.Panel):
         self.st_example.SetLabel(s)
         self._example_panel.Layout()
 
-    def _update_rowcolour(self, fonttype, row):
+    def _update_rowcolour(self, fonttype: str, row: int) -> None:
         if fonttype == "inherit":
             for col in range(1, 5):
                 self.type.SetCellBackgroundColour(row, col, self.type.LabelBackgroundColour)
@@ -3563,7 +3566,7 @@ class FontSettingPanel(wx.Panel):
 
         return flag_fontupdate, updatecardimg, updatemcardimg, updatemessage
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.tx_example.Bind(wx.EVT_TEXT, self.OnExampleText)
         self.sc_example.Bind(wx.EVT_SPINCTRL, self.OnExampleText)
         self.btn_init_example.Bind(wx.EVT_BUTTON, self.OnInitExample)
@@ -3579,12 +3582,12 @@ class FontSettingPanel(wx.Panel):
                 self.copybtn.Bind(wx.EVT_BUTTON, self.OnCopyBase)
             self.initbtn.Bind(wx.EVT_BUTTON, self.OnInitValue)
 
-    def _select_base(self, i):
+    def _select_base(self, i: int) -> None:
         if 0 <= i:
             self._last_face = self.get_basefontface(self.bases[i])
             self.update_example()
 
-    def OnExampleText(self, event):
+    def OnExampleText(self, event: wx.CommandEvent) -> None:
         self.update_example()
 
     def OnInitExample(self, event):
@@ -3607,7 +3610,7 @@ class FontSettingPanel(wx.Panel):
             if editor.GetControl():
                 editor.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeBase)
 
-    def get_basefontface(self, fonttype):
+    def get_basefontface(self, fonttype: str) -> str:
         editors = [choice for choice in self.choicebases if choice.GetControl() and choice.GetControl().IsShown()]
         if editors:
             face = editors[0].GetControl().GetValue()
@@ -3670,7 +3673,7 @@ class FontSettingPanel(wx.Panel):
                 face = self.get_typefontface("message", False)
         return face
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
 
@@ -3736,7 +3739,7 @@ class FontSettingPanel(wx.Panel):
     def OnImportant(self, event):
         self._update_enabled()
 
-    def _update_enabled(self):
+    def _update_enabled(self) -> None:
         enbl = self.cb_important.GetValue() if self.cb_important else True
         self.base.Enable(enbl)
         self.type.Enable(enbl)

@@ -10,7 +10,6 @@ import subprocess
 
 import cw
 from cw.util import synclock
-from cw.setting import Setting
 
 _lock = threading.Lock()
 
@@ -27,7 +26,8 @@ DATA_FNAME = 4
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
 
-    def __init__(self, setting: Setting, vacuum: bool = False, dpath: str = "Scenario", skintype: str = "") -> None:
+    def __init__(self, setting: "cw.setting.Setting", vacuum: bool = False, dpath: str = "Scenario",
+                 skintype: str = "") -> None:
         threading.Thread.__init__(self)
         self.setting = setting
         self._vacuum = vacuum

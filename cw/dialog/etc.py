@@ -11,7 +11,7 @@ import wx.lib.mixins.listctrl as listmix
 
 import cw
 
-from typing import List
+from typing import Callable, Tuple, Union, List
 
 
 class BattleCommand(wx.Dialog):
@@ -308,7 +308,7 @@ class BattleCommand(wx.Dialog):
 
 
 class ErrorLogDialog(wx.Dialog):
-    def __init__(self, parent, log):
+    def __init__(self, parent: wx.TopLevelWindow, log: str) -> None:
         wx.Dialog.__init__(self, parent, -1, "エラーログ",
                            style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -318,7 +318,7 @@ class ErrorLogDialog(wx.Dialog):
         self.btn_ok = wx.Button(self, wx.ID_OK, "OK")
         self._do_layout()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.tc, 0, 0, cw.ppis(0))
         sizer.Add(self.btn_ok, 0, wx.CENTER | wx.ALL, cw.ppis(5))
@@ -333,7 +333,8 @@ class ExtensionDialog(wx.Dialog):
     title: ダイアログのタイトル。
     items: (name, description, func)のlist。
     """
-    def __init__(self, parent, title, items):
+    def __init__(self, parent: wx.TopLevelWindow, title: str,
+                 items: List[Union[Tuple[str, str, Callable], Tuple[str, str, Callable, bool]]]) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -358,7 +359,7 @@ class ExtensionDialog(wx.Dialog):
         self._bind()
         self._do_layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         for btn in self.buttons:
             btn.Bind(wx.EVT_ENTER_WINDOW, self.OnEnter)
             btn.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
@@ -370,7 +371,7 @@ class ExtensionDialog(wx.Dialog):
         for ctrl in itertools.chain(self.GetChildren(), self.panel.GetChildren()):
             ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_buttons = wx.BoxSizer(wx.VERTICAL)
         for btn in self.buttons:
             sizer_buttons.Add(btn, 0, wx.EXPAND | wx.BOTTOM, cw.wins(2))
@@ -388,23 +389,23 @@ class ExtensionDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
         csize = self.GetClientSize()
         cw.util.fill_bitmap(dc, bmp, csize)
 
-    def OnEnter(self, event):
+    def OnEnter(self, event: Union[wx.MouseEvent, wx.FocusEvent]) -> None:
         index = self.buttons.index(event.GetEventObject())
         self.desc.SetLabel(self.items[index][1])
         event.Skip()
 
-    def OnLeave(self, event):
+    def OnLeave(self, event: Union[wx.MouseEvent, wx.FocusEvent]) -> None:
         self.desc.SetLabel("")
         event.Skip()
 
-    def OnBotton(self, event):
+    def OnBotton(self, event: wx.CommandEvent) -> None:
         index = self.buttons.index(event.GetEventObject())
         cw.cwpy.frame.exec_func(self.items[index][2])
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
@@ -691,7 +692,7 @@ class ConvertYadoDialog(wx.Dialog):
     """
     宿の逆変換の設定を行う。
     """
-    def __init__(self, parent, yadoname):
+    def __init__(self, parent: wx.TopLevelWindow, yadoname: str) -> None:
         wx.Dialog.__init__(self, parent, -1, "拠点の逆変換",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -732,7 +733,7 @@ class ConvertYadoDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("signal")
         self.dstpath = self.folder.GetValue()
         index = self.target.GetSelection()
@@ -755,7 +756,7 @@ class ConvertYadoDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
@@ -786,12 +787,12 @@ class ConvertYadoDialog(wx.Dialog):
         y += (h-th) // 2
         dc.DrawText(s, x, y)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         csize = self.GetClientSize()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -883,7 +884,7 @@ if sys.platform == "win32":
             self._tb.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
             self._tb.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
 
-        def OnScreenShot(self, event):
+        def OnScreenShot(self, event: wx.CommandEvent) -> None:
             cw.cwpy.frame.save_screenshot()
 
         def OnScreenShotHands(self, event):
@@ -904,10 +905,10 @@ if sys.platform == "win32":
             y = pos[1]+size[1] - self.GetSize()[1]-1-cw.wins(10)
             self.SetPosition((x, y))
 
-        def OnEnterWindow(self, event):
+        def OnEnterWindow(self, event: wx.MouseEvent) -> None:
             self.SetTransparent(255)
 
-        def OnLeaveWindow(self, event):
+        def OnLeaveWindow(self, event: wx.MouseEvent) -> None:
             self.SetTransparent(128)
 else:
     class TouchTools(wx.MiniFrame):

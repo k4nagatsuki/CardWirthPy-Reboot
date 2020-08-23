@@ -11,7 +11,8 @@ import cw
 # ------------------------------------------------------------------------------
 
 class ProgressDialog(wx.Dialog):
-    def __init__(self, parent, title, message, maximum=100, minimum=0, cancelable=False, width_noscale=300):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, message: str, maximum: int = 100, minimum: int = 0,
+                 cancelable: bool = False, width_noscale: int = 300) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.DEFAULT_DIALOG_STYLE | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -39,14 +40,14 @@ class ProgressDialog(wx.Dialog):
         if self.btn_cncl:
             self.Bind(wx.EVT_BUTTON, self.OnClickCancelBtn, self.btn_cncl)
 
-    def UpdateProgress(self, value, message):
+    def UpdateProgress(self, value: int, message: str) -> None:
         value -= self.minimum
         if value != self.gauge.GetValue() or self.text != message:
             self.gauge.SetValue(value-self.minimum)
             self.text = message
             self.Refresh()
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         csize = self.GetClientSize()
         wxbmp = cw.util.empty_bitmap(csize[0], csize[1])
         dc = wx.MemoryDC(wxbmp)
@@ -66,7 +67,7 @@ class ProgressDialog(wx.Dialog):
     def OnClickCancelBtn(self, event):
         self.cancel = True
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)

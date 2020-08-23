@@ -22,6 +22,9 @@ import pygame.locals
 
 import cw
 
+import typing
+from typing import List, Callable, Dict, Iterable, Optional, Tuple, Union
+
 
 class NoFontError(ValueError):
     pass
@@ -101,7 +104,7 @@ FONT_EXAMPLE_PIXEL_SIZE_INIT = 24
 
 class LocalSetting(object):
 
-    def __init__(self):
+    def __init__(self) -> None:
         """スキンで上書き可能な設定。"""
         self.important_draw = False
         self.important_font = False
@@ -209,7 +212,7 @@ class LocalSetting(object):
                     v = t[1]
                 setattr(self, "%s_init" % (t[0]), v)
 
-    def load(self, data):
+    def load(self, data: Union[cw.data.CWPyElementTree, cw.data.CWPyElement]) -> None:
         """dataから設定をロードする。"""
         self.basefont = self.basefont_init.copy()
         self.fonttypes = self.fonttypes_init.copy()
@@ -312,12 +315,12 @@ class LocalSetting(object):
         # フルスクリーン時の背景ファイル
         self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", self.fullscreenbackgroundfile_init)
 
-    def copy(self):
+    def copy(self) -> "LocalSetting":
         return copy.deepcopy(self)
 
 
 class Setting(object):
-    def __init__(self, loadfile=None, init=True):
+    def __init__(self, loadfile: Optional[str] = None, init: bool = True) -> None:
         # フレームレート
         self.fps = 60
         # 1frame分のmillseconds
@@ -325,7 +328,7 @@ class Setting(object):
         # Settings
         self.init_settings(loadfile, init=init)
 
-    def init_settings(self, loadfile=None, init=True):
+    def init_settings(self, loadfile: Optional[str] = None, init: bool = True) -> None:
         path = cw.util.join_paths("Data/SkinBase/Skin.xml")
         basedata = cw.data.xml2etree(path)
 
@@ -986,7 +989,7 @@ class Setting(object):
                 # 以前の設定に合わせた音量に変更していおく
                 self.vol_bgm_midi = self.vol_bgm * self.vol_bgm_midi
 
-    def init_skin(self, basedata=None):
+    def init_skin(self, basedata: Optional[cw.data.CWPyElementTree] = None) -> None:
         optskin = cw.OPTIONS.skin
         cw.OPTIONS.skin = ""
         if optskin:
@@ -1105,7 +1108,7 @@ class Setting(object):
         else:
             self.skin_local.load(data)
 
-    def _update_skin(self, path):
+    def _update_skin(self, path: str) -> cw.data.CWPyElementTree:
         """旧バージョンのデータの誤りを訂正する。
         """
         dpath = os.path.dirname(path)
@@ -1347,7 +1350,7 @@ class Setting(object):
         finally:
             cw.util.release_mutex()
 
-    def _check_skin(self):
+    def _check_skin(self) -> str:
         """
         必須リソースが欠けていないかチェックする。
         今のところ、全てのリソースをチェックしているのではなく、
@@ -1374,7 +1377,7 @@ class Setting(object):
 
         return ""
 
-    def set_dealspeed(self, value, battlevalue, usebattle):
+    def set_dealspeed(self, value: int, battlevalue: int, usebattle: bool) -> None:
         self.dealspeed = value
         self.dealspeed = cw.util.numwrap(self.dealspeed, 0, 10)
         self.dealing_scales = self.create_dealingscales(self.dealspeed)
@@ -1391,7 +1394,7 @@ class Setting(object):
         else:
             return self.dealspeed
 
-    def create_dealingscales(self, dealspeed):
+    def create_dealingscales(self, dealspeed: int) -> List[int]:
         dealspeed = cw.util.numwrap(dealspeed, 0, 10)
         scales_len = dealspeed + 1
         dealing_scales = [
@@ -1401,13 +1404,13 @@ class Setting(object):
         ]
         return dealing_scales
 
-    def get_drawsetting(self):
+    def get_drawsetting(self) -> LocalSetting:
         if self.local.important_draw or not self.skin_local.important_draw:
             return self.local
         else:
             return self.skin_local
 
-    def get_fontsetting(self):
+    def get_fontsetting(self) -> LocalSetting:
         if self.local.important_font or not self.skin_local.important_font:
             return self.local
         else:
@@ -1420,67 +1423,67 @@ class Setting(object):
         return alpha
 
     @property
-    def mwincolour(self):
+    def mwincolour(self) -> Tuple[int, int, int, int]:
         return self.get_drawsetting().mwincolour
 
     @property
-    def mwinframecolour(self):
+    def mwinframecolour(self) -> Tuple[int, int, int, int]:
         return self.get_drawsetting().mwinframecolour
 
     @property
-    def blwincolour(self):
+    def blwincolour(self) -> Tuple[int, int, int, int]:
         return self.get_drawsetting().blwincolour
 
     @property
-    def blwinframecolour(self):
+    def blwinframecolour(self) -> Tuple[int, int, int, int]:
         return self.get_drawsetting().blwinframecolour
 
     @property
-    def curtaincolour(self):
+    def curtaincolour(self) -> Tuple[int, int, int, int]:
         return self.get_drawsetting().curtaincolour
 
     @property
-    def blcurtaincolour(self):
+    def blcurtaincolour(self) -> Tuple[int, int, int, int]:
         return self.get_drawsetting().blcurtaincolour
 
     @property
-    def fullscreenbackgroundtype(self):
+    def fullscreenbackgroundtype(self) -> int:
         return self.get_drawsetting().fullscreenbackgroundtype
 
     @property
-    def fullscreenbackgroundfile(self):
+    def fullscreenbackgroundfile(self) -> str:
         return self.get_drawsetting().fullscreenbackgroundfile
 
     @property
-    def bordering_cardname(self):
+    def bordering_cardname(self) -> bool:
         return self.get_fontsetting().bordering_cardname
 
     @property
-    def decorationfont(self):
+    def decorationfont(self) -> bool:
         return self.get_fontsetting().decorationfont
 
     @property
-    def fontsmoothing_message(self):
+    def fontsmoothing_message(self) -> bool:
         return self.get_fontsetting().fontsmoothing_message
 
     @property
-    def fontsmoothing_cardname(self):
+    def fontsmoothing_cardname(self) -> bool:
         return self.get_fontsetting().fontsmoothing_cardname
 
     @property
-    def fontsmoothing_statusbar(self):
+    def fontsmoothing_statusbar(self) -> bool:
         return self.get_fontsetting().fontsmoothing_statusbar
 
     @property
-    def basefont(self):
+    def basefont(self) -> Dict[str, str]:
         return self.get_fontsetting().basefont
 
     @property
-    def fonttypes(self):
+    def fonttypes(self) -> Dict[str, Tuple[str, str, int, bool, bool, bool]]:
         return self.get_fontsetting().fonttypes
 
     @property
-    def msg_exfonts(self):
+    def msg_exfonts(self) -> Dict[str, Tuple[str, str, int, bool, bool, bool]]:
         return self.get_fontsetting().msg_exfonts
 
     def is_logscrollable(self):
@@ -1490,18 +1493,18 @@ class Setting(object):
         cw.xmlcreater.create_settings(self)
 
     @staticmethod
-    def wrap_volumevalue(value):
+    def wrap_volumevalue(value: int) -> float:
         return cw.util.numwrap(value, 0, 100) / 100.0
 
     @staticmethod
-    def wrap_colorvalue(r, g, b, a):
+    def wrap_colorvalue(r: int, g: int, b: int, a: int) -> Tuple[int, int, int, int]:
         r = cw.util.numwrap(r, 0, 255)
         g = cw.util.numwrap(g, 0, 255)
         b = cw.util.numwrap(b, 0, 255)
         a = cw.util.numwrap(a, 0, 255)
         return (r, g, b, a)
 
-    def get_scedir(self, skintype=None):
+    def get_scedir(self, skintype: Optional[str] = None) -> str:
         if skintype is None:
             skintype = self.skintype
 
@@ -1532,7 +1535,7 @@ class Setting(object):
 
 
 class _MsgDict(dict):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         存在しないメッセージIDが指定された時に
         エラーダイアログを表示するための拡張dict。
@@ -1540,7 +1543,7 @@ class _MsgDict(dict):
         dict.__init__(self)
         self._error_keys = set()
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> str:
         if key not in self:
             if key not in self._error_keys:
                 def func():
@@ -1664,7 +1667,7 @@ class Resource(object):
         # システム効果音(辞書)
         self.sounds = self.get_sounds(self.setting(), self.skinsounds)
 
-    def init_wxresources(self):
+    def init_wxresources(self) -> None:
         """wx側のリソースを初期化。"""
         # wxダイアログのボタン画像(辞書)
         self.buttons = self.get_buttons()
@@ -2273,8 +2276,10 @@ class Resource(object):
 
         return btn.copy() if btn else None
 
-    def get_resources(self, func, dpath1, dpath2, ext, mask=None, ss=None, noresize=(), nodbg=False, emptyfunc=None,
-                      editor_res=None, warning=True, can_loaded_scaledimage=True):
+    def get_resources(self, func: Callable, dpath1: str, dpath2: str, ext: int, mask: Optional[bool] = None,
+                      ss: Optional[Callable] = None, noresize: Union[type(()), Tuple[str, ...]] = (),
+                      nodbg: bool = False, emptyfunc: Optional[Callable] = None, editor_res: Optional[str] = None,
+                      warning: bool = True, can_loaded_scaledimage: bool = True) -> "ResourceTable":
         """
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
@@ -2373,7 +2378,7 @@ class Resource(object):
         """
         return setting.msgs
 
-    def get_buttons(self):
+    def get_buttons(self) -> "ResourceTable":
         """
         ダイアログのボタン画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2382,7 +2387,7 @@ class Resource(object):
         return self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Button", dpath, self.ext_img, True,
                                   cw.wins, emptyfunc=empty_wxbmp)
 
-    def get_cursors(self):
+    def get_cursors(self) -> "ResourceTable":
         """
         ダイアログで使用されるカーソルを読み込んで、
         wxCursorのインスタンスの辞書で返す。
@@ -2419,7 +2424,7 @@ class Resource(object):
         return self.get_resources(cw.util.load_image, "Data/SkinBase/Resource/Image/Stone", dpath, self.ext_img,
                                   True, cw.s, emptyfunc=empty_image)
 
-    def get_wxstones(self):
+    def get_wxstones(self) -> "ResourceTable":
         """
         適性・カード残り回数の画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2428,7 +2433,7 @@ class Resource(object):
         return self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Stone", dpath, self.ext_img,
                                   True, cw.wins, emptyfunc=empty_wxbmp)
 
-    def get_statuses(self, load_image):
+    def get_statuses(self, load_image: Callable) -> "ResourceTable":
         """
         ステータス表示に使う画像を読み込んで、
         ("LIFEGUAGE", "TARGET", "LIFE", "UP*", "DOWN*"はマスクする)
@@ -2466,7 +2471,7 @@ class Resource(object):
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss,
                                   emptyfunc=emptyfunc)
 
-    def get_dialogs(self, load_image):
+    def get_dialogs(self, load_image: Callable) -> "ResourceTable":
         """
         ダイアログで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2495,7 +2500,8 @@ class Resource(object):
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss,
                                   emptyfunc=emptyfunc)
 
-    def get_debugs(self, load_image, ss, can_loaded_scaledimage=True):
+    def get_debugs(self, load_image: Callable, ss: Callable,
+                   can_loaded_scaledimage: bool = True) -> "ResourceTable":
         """
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2516,7 +2522,7 @@ class Resource(object):
         return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc, editor_res=editor_res,
                                   can_loaded_scaledimage=can_loaded_scaledimage)
 
-    def get_cardbgs(self, load_image):
+    def get_cardbgs(self, load_image: Callable) -> "ResourceTable":
         """
         カードの背景画像を読み込んで、pygameのサーフェス
         ("PREMIER", "RARE", "HOLD", "PENALTY"はマスクする)
@@ -2946,7 +2952,7 @@ def empty_sound():
 
 
 class LazyResource(object):
-    def __init__(self, func, args, kwargs):
+    def __init__(self, func: Callable, args: Iterable[typing.Any], kwargs: Dict[typing.Any, typing.Any]) -> None:
         """リソースをfunc(*args, **kwargs)によって
         遅延読み込みする。
         """
@@ -2973,7 +2979,8 @@ class LazyResource(object):
 
 
 class ResourceTable(object):
-    def __init__(self, name, init=None, deffunc=None, nokeyfunc=None):
+    def __init__(self, name: str, init: Optional[Dict[typing.Any, typing.Any]] = None,
+                 deffunc: Optional[Callable] = None, nokeyfunc: Optional[Callable] = None) -> None:
         """文字列をキーとしたリソーステーブル。
         各リソースは必要になった時に遅延読み込みされる。
         """
@@ -3286,7 +3293,7 @@ class SystemCoupons(object):
     CardWirth由来の"＿１"～"＿６"や"＠ＭＰ３"は含まれない。
     """
 
-    def __init__(self, fpath="Data/SystemCoupons.xml", data=None):
+    def __init__(self, fpath: str = "Data/SystemCoupons.xml", data: Optional[cw.data.CWPyElement] = None) -> None:
         self._normal = set()  # 固定値
         self._regexes = []  # 正規表現
         self._ats = True  # u"＠"で始まる称号のみが含まれる場合はTrue
@@ -3339,7 +3346,7 @@ class ScenarioCompatibilityTable(object):
     >>> hashlib.md5(open("Summary.wsm", "rb").read()).hexdigest()
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.table = {}
         if os.path.isfile("Data/Compatibility.xml"):
             data = cw.data.xml2element(path="Data/Compatibility.xml")

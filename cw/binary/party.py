@@ -17,7 +17,7 @@ class Party(base.CWBinaryBase):
     F9のためにゴシップと終了印を記憶しているような事は無い
     (その2つはF9で戻らない)。
     """
-    def __init__(self, parent, f, yadodata=False, dataversion=10):
+    def __init__(self, parent: None, f: cw.binary.cwfile.CWFile, yadodata: bool = False, dataversion: int = 10) -> None:
         from . import util
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)

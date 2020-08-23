@@ -11,7 +11,8 @@ class Environment(base.CWBinaryBase):
     """Environment.wyd(type=-1)
     システム設定とかゴシップとか終了印とかいろいろまとめているデータ。
     """
-    def __init__(self, parent, f, yadodata=False, versiononly=False):
+    def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False,
+                 versiononly: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = os.path.basename(os.path.dirname(self.fpath))
         self.type = -1
@@ -231,7 +232,7 @@ class UnusedCard(base.CWBinaryBase):
     """カード置き場のカードのデータ。
     self.dataにwidファイルから読み込んだカードデータがある。
     """
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent: Environment, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         if f:
             self.fname = f.rawstring()
@@ -272,7 +273,7 @@ class YadoCard(base.CWBinaryBase):
     """カード置き場のカードと荷物袋のカードのデータ。
     ここのtypeで宿にあるカードのタイプ(技能・アイテム・召喚獣)を判別できる。
     """
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent: Environment, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         f.byte()
         f.byte()

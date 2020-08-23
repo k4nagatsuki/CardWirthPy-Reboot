@@ -11,7 +11,7 @@ import pygame.locals
 
 import cw
 
-from typing import List, Tuple, Union
+from typing import Callable, Optional, List, Tuple, Union
 
 
 class ImageInfo(object):
@@ -55,7 +55,8 @@ class ImageInfo(object):
                 return cw.s(cw.setting.SIZE_RESOURCES["CardBg/" + resname])
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
 
-    def calc_basecardposition_wx(self, imgsize, noscale=False, basecardtype=None, cardpostype=None):
+    def calc_basecardposition_wx(self, imgsize: wx.Size, noscale: bool = False, basecardtype: Optional[str] = None,
+                                 cardpostype: Optional[str] = None) -> wx.Rect:
         """カードに配置した時の描画位置を返す。
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
@@ -70,7 +71,8 @@ class ImageInfo(object):
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.wins,
                                                 getsize)
 
-    def _calc_basecardposition_impl(self, imgwidth, imgheight, noscale, basecardtype, cardpostype, ss, getsize):
+    def _calc_basecardposition_impl(self, imgwidth: int, imgheight: int, noscale: bool, basecardtype: str,
+                                    cardpostype: str, ss: Callable, getsize: Callable) -> wx.Rect:
         if self.basecardtype:
             basecardtype = self.basecardtype
 
@@ -181,7 +183,7 @@ def get_imageinfos(data: cw.data.CWPyElement, pcnumber: bool = False) -> List[Im
     return seq
 
 
-def get_imageinfos_p(prop, pcnumber=False):
+def get_imageinfos_p(prop: cw.header.GetProperty, pcnumber: bool = False) -> List[ImageInfo]:
     """cw.header.GetPropertyのインスタンスから
     ImageInfoのlistを生成する。
     """

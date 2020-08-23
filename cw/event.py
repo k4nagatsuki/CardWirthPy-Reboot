@@ -103,7 +103,7 @@ class EventInterface(object):
         else:
             return None
 
-    def get_effectevent(self) -> None:
+    def get_effectevent(self) -> Optional["Event"]:
         """カードなどの効果適用イベントが実行中であれば返す。"""
         return self.effectevent
 

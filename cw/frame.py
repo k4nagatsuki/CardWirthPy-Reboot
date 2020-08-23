@@ -675,7 +675,7 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-    def OnYADOSELECT(self, event):
+    def OnYADOSELECT(self, event: wx.PyCommandEvent) -> None:
         if not cw.cwpy.rsrc:
             return
         dlg = cw.dialog.select.YadoSelect(self)
@@ -906,7 +906,7 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-    def OnRETURNTITLE(self, event):
+    def OnRETURNTITLE(self, event: wx.PyCommandEvent) -> None:
         if cw.cwpy.setting.caution_beforesaving and cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
             s = (cw.cwpy.msgs["confirm_go_title"])
             dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
@@ -1260,7 +1260,7 @@ class Frame(wx.Frame):
         else:
             return None
 
-    def save_screenshot(self):
+    def save_screenshot(self) -> bool:
         """スクリーンショットを撮影する。
         """
         if cw.cwpy.is_showingdlg():
@@ -1324,7 +1324,8 @@ class Frame(wx.Frame):
             # pygame側のイベントハンドラに任せる
             return False
 
-    def _put_dlgscreenshots(self, bmp, y, fore, back):
+    def _put_dlgscreenshots(self, bmp: wx.Bitmap, y: int, fore: Tuple[int, int, int, int],
+                            back: Tuple[int, int, int, int]) -> None:
         w, h = bmp.GetSize()
         mem = wx.MemoryDC(bmp)
         h -= y

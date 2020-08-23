@@ -19,7 +19,7 @@ import pygame.locals
 import cw
 from cw.util import synclock
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Set, Dict, List, Optional, Tuple, Union
 
 
 _lock = threading.Lock()
@@ -423,7 +423,7 @@ class SystemData(object):
             except Exception:
                 return False
 
-    def get_versionhint(self, frompos=0):
+    def get_versionhint(self, frompos: int = 0) -> Optional[str]:
         """現在有効になっている互換性マークを返す(常に無し)。"""
         return None
 
@@ -1044,7 +1044,7 @@ class SystemData(object):
         return headers
 
 
-def get_skinkeys():
+def get_skinkeys() -> Tuple[Set[str], Dict[str, Tuple[str, str]]]:
     """使用可能なスキンの一覧をVariablesKeyのsetで返す。"""
     skins = set()
     keytable = {}
@@ -1370,7 +1370,7 @@ class ScenarioData(SystemData):
                         break
             self.tempdir = cw.util.join_paths(self.tempdir)
 
-    def get_versionhint(self, frompos=0):
+    def get_versionhint(self, frompos: int = 0) -> Optional[str]:
         """現在有効になっている互換性マークを返す。"""
         for i, hint in enumerate(self.versionhint[frompos:]):
             if cw.HINT_AREA <= i + frompos and cw.cwpy.event.in_inusecardevent:
@@ -2374,7 +2374,7 @@ class Variant(object):
             return "String"
 
     @staticmethod
-    def value_from_str(vtype, s):
+    def value_from_str(vtype: str, s: str) -> Union[str, decimal.Decimal, bool]:
         if vtype == "Boolean":
             return cw.util.str2bool(s)
         elif vtype == "Number":
@@ -2383,7 +2383,7 @@ class Variant(object):
             return s
 
     @staticmethod
-    def value_to_str(value: decimal.Decimal) -> str:
+    def value_to_str(value: Union[str, decimal.Decimal, bool]) -> str:
         if isinstance(value, bool):
             return str(value).upper()
         elif isinstance(value, decimal.Decimal):
@@ -2409,7 +2409,7 @@ class Variant(object):
 # ------------------------------------------------------------------------------
 
 class YadoDeletedPathSet(set):
-    def __init__(self, yadodir, tempdir):
+    def __init__(self, yadodir: str, tempdir: str) -> None:
         self.yadodir = yadodir
         self.tempdir = tempdir
         set.__init__(self)
@@ -2421,7 +2421,7 @@ class YadoDeletedPathSet(set):
         cw.util.write_textfile(fpath, "\n".join(self), cw.fsync)
         cw.fsync.sync()
 
-    def read_list(self):
+    def read_list(self) -> bool:
         fpath = cw.util.join_paths(self.tempdir, "DeletedPaths.temp")
         if os.path.isfile(fpath):
             with open(fpath, "r", encoding="utf-8") as f:
@@ -2461,7 +2461,7 @@ class YadoDeletedPathSet(set):
 
 
 class YadoData(object):
-    def __init__(self, yadodir, tempdir, loadparty=True):
+    def __init__(self, yadodir: str, tempdir: str, loadparty: bool = True) -> None:
         cw.fsync.sync()
 
         # 宿データのあるディレクトリ
@@ -3120,7 +3120,7 @@ class YadoData(object):
         cw.cwpy.load_party(header, chgarea=chgarea)
         cw.cwpy.statusbar.change(False)
 
-    def sort_standbys(self):
+    def sort_standbys(self) -> None:
         if cw.cwpy.setting.sort_standbys == "Level":
             cw.util.sort_by_attr(self.standbys, "level", "name", "order")
         elif cw.cwpy.setting.sort_standbys == "Name":
@@ -3128,7 +3128,7 @@ class YadoData(object):
         else:
             cw.util.sort_by_attr(self.standbys, "order")
 
-    def sort_parties(self):
+    def sort_parties(self) -> None:
         if cw.cwpy.setting.sort_parties == "HighestLevel":
             cw.util.sort_by_attr(self.partys, "highest_level", "average_level", "name", "order")
         elif cw.cwpy.setting.sort_parties == "AverageLevel":
@@ -3140,7 +3140,7 @@ class YadoData(object):
         else:
             cw.util.sort_by_attr(self.partys, "order")
 
-    def sort_storehouse(self, test_aptitude=None):
+    def sort_storehouse(self, test_aptitude: Optional["cw.header.CardHeader"] = None) -> None:
         if cw.cwpy.setting.sort_cards == "Aptitude" and test_aptitude:
             for card in self.storehouse:
                 card.set_testaptitude(test_aptitude)
@@ -3149,7 +3149,7 @@ class YadoData(object):
             for card in self.storehouse:
                 card.set_testaptitude(None)
 
-    def sort_partyrecord(self):
+    def sort_partyrecord(self) -> None:
         cw.util.sort_by_attr(self.partyrecord, "name")
 
     def save(self):
@@ -3295,7 +3295,7 @@ class YadoData(object):
         cw.cwpy.clear_selection()
         self._changed = False
 
-    def _retry_save(self):
+    def _retry_save(self) -> None:
         """TempからYadoへの転送中に失敗した保存処理を再実行する。
         """
         if self.deletedpaths.read_list():
@@ -3754,7 +3754,11 @@ class YadoData(object):
         self.environment.is_edited = True
 
     @staticmethod
-    def get_savedvariables(environment):
+    def get_savedvariables(environment: "cw.data.CWPyElementTree") \
+            -> Dict[str, Tuple["cw.data.CWPyElement",
+                               Dict[str, bool],
+                               Dict[str, int],
+                               Dict[str, Union[str, decimal.Decimal, bool]]]]:
         """保存された状態変数を((scenario, author), (element, flags, steps, variants))で返す。"""
         data = environment.find("SavedVariables")
         if data is None:
@@ -3762,9 +3766,15 @@ class YadoData(object):
         return YadoData.get_savedvariables_from(data)
 
     @staticmethod
-    def get_savedvariables_from(data, keymode="Scenario"):
+    def get_savedvariables_from(data: "cw.data.CWPyElement",
+                                keymode: str = "Scenario") \
+            -> Dict[str, Tuple["cw.data.CWPyElement",
+                               Dict[str, bool],
+                               Dict[str, int],
+                               Dict[str, Union[str, decimal.Decimal, bool]]]]:
         d = {}
         for e in data:
+            assert isinstance(e, cw.data.CWPyElement)
             if e.tag != "Variables":
                 continue
             if keymode == "Scenario":
@@ -3777,18 +3787,21 @@ class YadoData(object):
                 key = e.getattr(".", "key", "")
             flags = {}
             for e_flag in e.getfind("Flags", raiseerror=False):
+                assert isinstance(e_flag, cw.data.CWPyElement)
                 name = e_flag.getattr(".", "name", "")
                 if not name:
                     continue
                 flags[name] = e_flag.getbool(".", "value", False)
             steps = {}
             for e_step in e.getfind("Steps", raiseerror=False):
+                assert isinstance(e_step, cw.data.CWPyElement)
                 name = e_step.getattr(".", "name", "")
                 if not name:
                     continue
                 steps[name] = e_step.getint(".", "value", 0)
             variants = {}
             for e_variant in e.getfind("Variants", raiseerror=False):
+                assert isinstance(e_variant, cw.data.CWPyElement)
                 name = e_variant.getattr(".", "name", "")
                 if not name:
                     continue
@@ -4282,7 +4295,7 @@ class Party(object):
             self.data.append("Property/LastScenario", make_element("Path", path))
 
 
-def sort_cards(cards, condition, withstar):
+def sort_cards(cards: List["cw.header.CardHeader"], condition: str, withstar: bool) -> None:
     seq = ["personal_owner_index"] if cw.cwpy.setting.show_personal_cards else []
     if withstar:
         seq.append("negastar")
@@ -4581,7 +4594,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         self.fpath = element.fpath if hasattr(element, "fpath") else ""
         self.is_edited = False
 
-    def write(self, path=""):
+    def write(self, path: str = "") -> None:
         if not path:
             path = self.fpath
 
@@ -4612,7 +4625,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
             self.write(self.fpath)
             self.is_edited = False
 
-    def edit(self, path, value, attrname=None):
+    def edit(self, path: str, value: str, attrname: Optional[str] = None) -> None:
         """パスのエレメントを編集。"""
         if not isinstance(value, str):
             try:
@@ -4652,7 +4665,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
             self.find(path).remove(element)
         self.is_edited = True
 
-    def form_element(self, element, depth=0):
+    def form_element(self, element: CWPyElement, depth: int = 0) -> None:
         """elementのインデントを整形"""
         i = "\n" + " " * depth
 
@@ -4690,12 +4703,12 @@ def make_element(name, text="", attrs=None, tail=""):
     return element
 
 
-def yadoxml2etree(path, tag="", rootattrs=None):
+def yadoxml2etree(path: str, tag: str = "", rootattrs: Dict[str, str] = None) -> CWPyElementTree:
     element = yadoxml2element(path, tag, rootattrs=rootattrs)
     return CWPyElementTree(element=element)
 
 
-def yadoxml2element(path, tag="", rootattrs=None):
+def yadoxml2element(path: str, tag: str = "", rootattrs: Dict[str, str] = None) -> CWPyElement:
     yadodir = cw.util.join_paths(cw.tempdir, "Yado")
     if path.startswith("Yado"):
         temppath = path.replace("Yado", yadodir, 1)

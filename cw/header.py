@@ -10,13 +10,14 @@ import pygame
 import xml.parsers.expat
 import shutil
 import math
+import sqlite3
 
 import cw
 
-from typing import Dict, List, Tuple
+from typing import Optional, Dict, List, Tuple
 
 
-def to_imgpaths(dbrec, imgdbrec):
+def to_imgpaths(dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> List["cw.image.ImageInfo"]:
     """1枚イメージの情報を持つDBレコードと
     複数イメージの情報を持つDBレコードを元に
     cw.image.ImageInfoのlistを生成する。
@@ -38,8 +39,10 @@ def to_imgpaths(dbrec, imgdbrec):
 
 
 class CardHeader(object):
-    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None,
-                 imgdbrec=None, dbowner="STOREHOUSE", bgtype=""):
+    def __init__(self, data: Optional[cw.data.CWPyElement] = None, owner: Optional["cw.character.Character"] = None,
+                 carddata: Optional[cw.data.CWPyElement] = None, from_scenario: bool = False, scedir: str = "",
+                 put_db: bool = False, dbrec: Optional[sqlite3.Row] = None, imgdbrec: Optional[sqlite3.Row] = None,
+                 dbowner: str = "STOREHOUSE", bgtype: str = "") -> None:
         self.ref_original = weakref.ref(self)
         self.order = -1
         if dbrec:
@@ -292,11 +295,12 @@ class CardHeader(object):
         elif self._owner == "STOREHOUSE":
             return cw.cwpy.ydata.storehouse
         elif self._owner:
+            assert isinstance(self._owner, weakref.ReferenceType)
             return self._owner()
         else:
             return None
 
-    def set_owner(self, owner):
+    def set_owner(self, owner: str) -> None:
         if isinstance(owner, cw.character.Character):
             self._owner = weakref.ref(owner)
         else:
@@ -1070,7 +1074,9 @@ class InfoCardHeader(object):
 
 
 class AdventurerHeader(object):
-    def __init__(self, data=None, album=False, dbrec=None, imgdbrec=None, fpath="", rootattrs=None):
+    def __init__(self, data: Optional[cw.data.CWPyElement] = None, album: bool = False,
+                 dbrec: Optional[sqlite3.Row] = None, imgdbrec: Optional[sqlite3.Cursor] = None,
+                 fpath: str = "", rootattrs: Optional[Dict[str, str]] = None) -> None:
         """
         album: アルバム用の場合はTrueにする。
         dbrec: データベースから生成する場合は対象レコード。
@@ -1250,7 +1256,9 @@ class AdventurerHeader(object):
 
         # 能力値を再調整。ただし精神傾向は変化しない
         p = data.find("Property/Ability/Physical")
+        assert isinstance(p, cw.data.CWPyElement)
         m = data.find("Property/Ability/Mental")
+        assert isinstance(m, cw.data.CWPyElement)
         data.dex = p.getint(".", "dex", 0)
         data.agl = p.getint(".", "agl", 0)
         data.int = p.getint(".", "int", 0)
@@ -1328,7 +1336,7 @@ class Gene(object):
     def get_str(self) -> str:
         return "".join([str(bit) for bit in self.bits])
 
-    def set_str(self, s, count=0):
+    def set_str(self, s: str, count: int = 0) -> None:
         self.bits = [int(char) for char in s]
         self.count = count
 
@@ -1581,7 +1589,8 @@ class ScenarioHeader(object):
 
 
 class PartyHeader(object):
-    def __init__(self, data=None, dbrec=None):
+    def __init__(self, data: Optional[cw.data.CWPyElement] = None,
+                 dbrec: Optional[sqlite3.Row] = None) -> None:
         """
         data: PartyのPropetyElement。
         dbrec: データベースから生成する場合は対象レコード。
@@ -1626,7 +1635,7 @@ class PartyHeader(object):
         else:
             return None
 
-    def get_memberpaths(self, yadodir=None):
+    def get_memberpaths(self, yadodir: Optional[str] = None) -> List[str]:
         cw.fsync.sync()
         seq = []
 
@@ -1698,7 +1707,9 @@ class PartyHeader(object):
 
 
 class PartyRecordHeader(object):
-    def __init__(self, fpath=None, dbrec=None, partyrecord=None):
+    def __init__(self, fpath: Optional[str] = None,
+                 dbrec: Optional[sqlite3.Row] = None,
+                 partyrecord: Optional["cw.header.PartyRecordHeader"] = None) -> None:
         """
         fpath: ファイルから生成する場合はXMLファイルパス。
         dbrec: データベースから生成する場合は対象レコード。
@@ -1808,7 +1819,8 @@ class SavedJPDCImageHeader(object):
     """保存済みJPDCイメージ。
     宿・シナリオごとにJPDCで生成されたファイルを保存する。
     """
-    def __init__(self, fpath=None, dbrec=None):
+    def __init__(self, fpath: Optional[str] = None,
+                 dbrec: Optional[sqlite3.Row] = None) -> None:
         """
         fpath: ファイルから生成する場合はXMLファイルパス。
         dbrec: データベースから生成する場合は対象レコード。

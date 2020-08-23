@@ -20,7 +20,7 @@ class CWYado(object):
     from . import environment
     wyd: Optional[environment.Environment]
 
-    def __init__(self, path, dstpath, skintype=""):
+    def __init__(self, path: str, dstpath: str, skintype: str = "") -> None:
         from . import util
 
         self.name = os.path.basename(path)
@@ -76,7 +76,7 @@ class CWYado(object):
     def write_errorlog(self, s):
         self.errorlog += s + "\n"
 
-    def is_convertible(self):
+    def is_convertible(self) -> bool:
         if not self.environmentpath:
             return False
 
@@ -341,7 +341,7 @@ class CWYado(object):
         self.maxnum += len(self.otherdirs)
         self.maxnum += len(self.nowadventuringparties)
 
-    def load_yadofile(self, path):
+    def load_yadofile(self, path: str) -> environment.Environment:
         """ファイル("wch", "wcp", "wpl", "wpt", "wyd", "wrm")を読み込む。"""
         from . import cwfile
         from . import environment
@@ -581,7 +581,7 @@ class CWYado(object):
 class UnconvCWYado(object):
     """宿データを逆変換してdstpathへ保存する。
     """
-    def __init__(self, ydata, dstpath, targetengine):
+    def __init__(self, ydata: "cw.data.YadoData", dstpath: str, targetengine: float) -> None:
         from . import util
 
         self.ydata = ydata
