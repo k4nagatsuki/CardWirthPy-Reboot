@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import shutil
 
 import cw
 
@@ -636,7 +635,8 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         element.append(e)
     # 私物入れの容量がレベル調節の影響を受けるようにする
     if setting.level_adjustment_affect_personal_pocket != setting.level_adjustment_affect_personal_pocket_init:
-        e = cw.data.make_element("LevelAdjustmentAffectPersonalPocket", str(setting.level_adjustment_affect_personal_pocket))
+        e = cw.data.make_element("LevelAdjustmentAffectPersonalPocket",
+                                 str(setting.level_adjustment_affect_personal_pocket))
         element.append(e)
     # カード置場と荷物袋でカードの種類を表示する
     if setting.show_cardkind != setting.show_cardkind_init:
@@ -939,8 +939,8 @@ def create_albumpage(path, lost=False, nocoupon=False):
     element = etree.make_element("Album")
     pelement = etree.make_element("Property")
 
-    sets = set(["Name", "ImagePath", "ImagePaths", "Description", "Level",
-                "Life", "Feature", "Ability", "Coupons", "BackColor", "Coefficient"])
+    sets = {"Name", "ImagePath", "ImagePaths", "Description", "Level",
+            "Life", "Feature", "Ability", "Coupons", "BackColor", "Coefficient"}
 
     can_loaded_scaledimage = etree.getbool(".", "scaledimage", False)
     for e in etree.getfind("Property"):

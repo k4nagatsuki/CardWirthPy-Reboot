@@ -8,16 +8,18 @@ import re
 import copy
 import shutil
 import threading
-import ctypes
 import datetime
 import decimal
 import xml.parsers.expat
 from xml.etree.cElementTree import ElementTree
 
 import pygame
+import pygame.locals
 
 import cw
 from cw.util import synclock
+
+from typing import Dict, List, Optional, Tuple, Union
 
 
 _lock = threading.Lock()
@@ -169,6 +171,7 @@ class SystemData(object):
         key = self.summary.gettext("Property/VariablesKey", "")
         e_vars = None
         for e_vars2 in data.getfind(".")[:]:
+            assert isinstance(e_vars2, CWPyElement)
             if e_vars2.tag != "Variables":
                 continue
             key2 = e_vars2.getattr(".", "key", "")
@@ -233,6 +236,7 @@ class SystemData(object):
         data = yadoxml2etree(fpath)
         key = self.summary.gettext("Property/VariablesKey", "")
         for e_vars in data.getfind("."):
+            assert isinstance(e_vars, CWPyElement)
             if e_vars.tag != "Variables":
                 return
             key2 = e_vars.getattr(".", "key", "")
@@ -251,9 +255,9 @@ class SystemData(object):
 
         for e in data.getfind("Variants", raiseerror=False):
             if e.text in self.variants:
-                type = e.getattr(".", "type")
+                vtype = e.getattr(".", "type")
                 value = e.getattr(".", "value", "")
-                value = Variant.value_from_str(type, value)
+                value = Variant.value_from_str(vtype, value)
                 self.variants[e.text].value = value
 
     def reset_variables(self):
@@ -270,9 +274,9 @@ class SystemData(object):
             self.flags[name].redraw_cards()
 
         for e in self.summary.getfind("Variants", raiseerror=False):
-            type = e.getattr(".", "defaulttype")
+            vtype = e.getattr(".", "defaulttype")
             value = e.getattr(".", "defaultvalue", "")
-            value = Variant.value_from_str(type, value)
+            value = Variant.value_from_str(vtype, value)
             name = e.gettext("Name", "")
             self.variants[name].set(value)
 
@@ -441,6 +445,8 @@ class SystemData(object):
         """
         # 使用可能なヒープサイズの半分までをキャッシュに使用する"
         if sys.platform == "win32":
+            import ctypes.wintypes
+
             class MEMORYSTATUSEX(ctypes.Structure):
                 _fields_ = [
                     ("dwLength", ctypes.wintypes.DWORD),
@@ -470,7 +476,7 @@ class SystemData(object):
 
         self.resource_cache_size += size
 
-    def find_flag(self, path, is_differentscenario, event):
+    def find_flag(self, path: str, is_differentscenario: bool, event: "cw.event.Event") -> "Flag":
         """
         pathが指すフラグを返す。
         eventにローカル変数がある場合は優先する。
@@ -479,7 +485,7 @@ class SystemData(object):
             return event.flags[path]
         return self.flags.get(path, None) if not is_differentscenario else None
 
-    def find_step(self, path, is_differentscenario, event):
+    def find_step(self, path: str, is_differentscenario: bool, event: "cw.event.Event") -> "Step":
         """
         pathが指すステップを返す。
         eventにローカル変数がある場合は優先する。
@@ -539,6 +545,9 @@ class SystemData(object):
             self.create_log()
             return False, None
 
+    def create_log(self):
+        pass
+
     def remove_log(self, debuglog):
         cw.fsync.sync()
         if debuglog:
@@ -578,8 +587,8 @@ class SystemData(object):
             for compstamp, get in cw.util.sorted_by_attr(iter(self.compstamps.items())):
                 debuglog.add_compstamp(compstamp, get)
 
-            for type in ("SkillCard", "ItemCard", "BeastCard"):
-                dname = "Deleted" + type
+            for ctype in ("SkillCard", "ItemCard", "BeastCard"):
+                dname = "Deleted" + ctype
                 dpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party", dname)
                 if os.path.isdir(dpath):
                     for fname in os.listdir(dpath):
@@ -592,8 +601,8 @@ class SystemData(object):
                             author = prop.properties.get("Author", "")
                             premium = prop.properties.get("Premium", "Normal")
                             attachment = cw.util.str2bool(prop.properties.get("Attachment", "False"))
-                            if type != "BeastCard" or attachment:
-                                debuglog.add_lostcard(type, name, desc, scenario, author, premium)
+                            if ctype != "BeastCard" or attachment:
+                                debuglog.add_lostcard(ctype, name, desc, scenario, author, premium)
 
         cw.util.remove(cw.util.join_paths(cw.tempdir, "ScenarioLog"))
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
@@ -654,7 +663,7 @@ class SystemData(object):
             cw.cwpy.call_modaldlg("ERROR", text=s)
             return None
 
-    def _get_resname(self, table, resid):
+    def _get_resname(self, table: Dict[int, Tuple[str, str]], resid: int) -> str:
         return table.get(resid, (None, None))[0]
 
     def _get_resfpath(self, table, resid):
@@ -670,19 +679,19 @@ class SystemData(object):
                 return None
         return fpath[1]
 
-    def _get_resids(self, table):
+    def _get_resids(self, table: Dict[int, Tuple[str, str]]) -> List[int]:
         return list(table.keys())
 
     def get_areadata(self, resid, tag="", nocache=False, rootattrs=None):
         return self._get_resdata(self._areas, resid, tag, nocache, resname="エリア", rootattrs=rootattrs)
 
-    def get_areaname(self, resid):
+    def get_areaname(self, resid: int) -> str:
         return self._get_resname(self._areas, resid)
 
     def get_areafpath(self, resid):
         return self._get_resfpath(self._areas, resid)
 
-    def get_areaids(self):
+    def get_areaids(self) -> List[int]:
         return self._get_resids(self._areas)
 
     def get_battledata(self, resid, tag="", nocache=False, rootattrs=None):
@@ -700,7 +709,7 @@ class SystemData(object):
     def get_packagedata(self, resid, tag="", nocache=False, rootattrs=None):
         return self._get_resdata(self._packs, resid, tag, nocache, resname="パッケージ", rootattrs=rootattrs)
 
-    def get_packagename(self, resid):
+    def get_packagename(self, resid: int) -> str:
         return self._get_resname(self._packs, resid)
 
     def get_packagefpath(self, resid):
@@ -769,9 +778,9 @@ class SystemData(object):
     def get_infoids(self):
         return self._get_resids(self._infos)
 
-    def _get_carddatapath(self, type, resid, dpath):
+    def _get_carddatapath(self, rtype, resid, dpath):
         cw.fsync.sync()
-        dpath = cw.util.join_paths(dpath, type)
+        dpath = cw.util.join_paths(dpath, rtype)
         if not os.path.isdir(dpath):
             return ""
         for fpath in os.listdir(dpath):
@@ -815,7 +824,7 @@ class SystemData(object):
 
         assert (isinstance(data, CWPyElement) or (isinstance(data, CWPyElementTree),
                                                   isinstance(data.getroot(), CWPyElement))), data
-        data = copydata(data, all=True)
+        data = copydata(data, copyall=True)
         assert (isinstance(data, CWPyElement) or (isinstance(data, CWPyElementTree),
                                                   isinstance(data.getroot(), CWPyElement))), data
 
@@ -844,7 +853,9 @@ class SystemData(object):
         self.playerevents = cw.event.EventEngine(self.data.getfind("PlayerCardEvents/Events", False))
         return True
 
-    def start_event(self, keynum=None, keycodes=[][:], redraw=True):
+    def start_event(self, keynum=None, keycodes=None, redraw=True):
+        if keycodes is None:
+            keycodes = []
         cw.cwpy.statusbar.change(False)
         self.events.start(keynum=keynum, keycodes=keycodes)
         if not cw.cwpy.is_dealing() and not cw.cwpy.battle:
@@ -877,7 +888,7 @@ class SystemData(object):
             if name in self.variants:
                 self.variants[name].set(value, updatedebugger=False)
 
-    def get_currentareaname(self):
+    def get_currentareaname(self) -> str:
         """現在滞在中のエリアの名前を返す"""
         if cw.cwpy.is_battlestatus():
             name = self.get_battlename(cw.cwpy.areaid)
@@ -927,7 +938,7 @@ class SystemData(object):
 
         if e is not None:
             stype = e.get("spreadtype", "Auto")
-            elements = e.getchildren()
+            elements = e
         else:
             stype = "Custom"
             elements = []
@@ -1203,6 +1214,8 @@ class ScenarioData(SystemData):
         self._start_datetime = None
         # 停止時間(秒)
         self._paused_time = 0
+        # 展開中のファイル数
+        self._filenum = 0
 
         self._init_ignorecase_table()
 
@@ -1961,9 +1974,9 @@ class ScenarioData(SystemData):
 
         # 宿に保存された状態変数(Wsn.4)
         key = (self.name, self.author)
-        vars = cw.cwpy.ydata.saved_variables.get(key, None)
-        if vars:
-            _, flags, steps, variants = vars
+        variables = cw.cwpy.ydata.saved_variables.get(key, None)
+        if variables:
+            _, flags, steps, variants = variables
             for name, value in flags.items():
                 flag = self.flags.get(name, None)
                 if flag is not None and flag.initialization not in ("Leave"):
@@ -2051,6 +2064,7 @@ class ScenarioData(SystemData):
         self.moved_mcards = {}
         if e_movedcards is not None:
             for e in e_movedcards:
+                assert isinstance(e, CWPyElement)
                 cardgroup = e.getattr(".", "cardgroup", "")
                 index = e.getint(".", "index", -1)
                 if cardgroup == "" or index == -1:
@@ -2085,6 +2099,7 @@ class ScenarioData(SystemData):
             # BGMが1CHのみだった頃の互換性維持
             e = etree.find("Property/MusicPath")
             if e is not None:
+                assert isinstance(e, CWPyElement)
                 channel = e.getint(".", "channel", 0)
                 path = e.text if e.text else ""
                 subvolume = e.getint(".", "volume", 100)
@@ -2181,11 +2196,11 @@ def init_variants(data, writable):
 
     for e in data.getfind("Variants", raiseerror=False):
         deftype = e.getattr(".", "defaulttype", "String")
-        type = e.getattr(".", "type", deftype)
+        vtype = e.getattr(".", "type", deftype)
         defvalue = e.getattr(".", "defaultvalue", "")
         value = e.getattr(".", "value", defvalue)
 
-        value = Variant.value_from_str(type, value)
+        value = Variant.value_from_str(vtype, value)
         defvalue = Variant.value_from_str(deftype, defvalue)
         name = e.gettext("Name", "")
         variants[name] = Variant(data if writable else None, e, value, name, defaultvalue=defvalue)
@@ -2236,7 +2251,7 @@ class Flag(object):
     def reverse(self):
         self.set(not self.value)
 
-    def get_valuename(self, value=None):
+    def get_valuename(self, value: Optional[bool] = None) -> str:
         if value is None:
             value = self.value
 
@@ -2311,7 +2326,7 @@ class Step(object):
         if not self.value <= 0:
             self.set(self.value - 1)
 
-    def get_valuename(self, value=None):
+    def get_valuename(self, value: Optional[int] = None) -> str:
         if value is None:
             value = self.value
         value = cw.util.numwrap(value, 0, len(self.valuenames)-1)
@@ -2359,16 +2374,16 @@ class Variant(object):
             return "String"
 
     @staticmethod
-    def value_from_str(type, s):
-        if type == "Boolean":
+    def value_from_str(vtype, s):
+        if vtype == "Boolean":
             return cw.util.str2bool(s)
-        elif type == "Number":
+        elif vtype == "Number":
             return decimal.Decimal(s)
         else:  # String
             return s
 
     @staticmethod
-    def value_to_str(value):
+    def value_to_str(value: decimal.Decimal) -> str:
         if isinstance(value, bool):
             return str(value).upper()
         elif isinstance(value, decimal.Decimal):
@@ -2379,7 +2394,7 @@ class Variant(object):
         else:
             return value
 
-    def string_value(self):
+    def string_value(self) -> str:
         return Variant.value_to_str(self.value)
 
     def write_value(self):
@@ -2604,6 +2619,7 @@ class YadoData(object):
         # ブックマーク
         self.bookmarks = []
         for be in self.environment.getfind("Bookmarks", raiseerror=False):
+            assert isinstance(be, CWPyElement)
             if be.tag != "Bookmark":
                 continue
             bookmark = []
@@ -2785,7 +2801,7 @@ class YadoData(object):
         if not self._loading:
             self._changed = True
 
-    def is_changed(self):
+    def is_changed(self) -> bool:
         return self._changed
 
     def is_empty(self):
@@ -3018,6 +3034,7 @@ class YadoData(object):
         # それで見つからない場合はカード名と解説のみで検索する。
         e = yadoxml2etree(partyrecordheader.fpath, tag="BackpackRecord")
         for ce in e.getfind("."):
+            assert isinstance(ce, CWPyElement)
             if ce.tag != "CardRecord":
                 continue
             get = False
@@ -3775,10 +3792,10 @@ class YadoData(object):
                 name = e_variant.getattr(".", "name", "")
                 if not name:
                     continue
-                type = e_variant.getattr(".", "type", "")
-                if not type:
+                vtype = e_variant.getattr(".", "type", "")
+                if not vtype:
                     continue
-                value = Variant.value_from_str(type, e_variant.getattr(".", "value", ""))
+                value = Variant.value_from_str(vtype, e_variant.getattr(".", "value", ""))
                 variants[name] = value
             d[key] = (e, flags, steps, variants)
         return d
@@ -4305,6 +4322,8 @@ def sort_cards(cards, condition, withstar):
 # ------------------------------------------------------------------------------
 
 class _CWPyElementInterface(object):
+    fpath: str
+
     def _raiseerror(self, path, attr=""):
         if hasattr(self, "tag"):
             tag = self.tag + "/" + path
@@ -4317,7 +4336,10 @@ class _CWPyElementInterface(object):
         s = s % (self.fpath, tag, attr)
         raise ValueError(s)
 
-    def hasfind(self, path, attr=""):
+    def find(self, match: str, namespaces: Optional[str] = None) -> Optional["CWPyElement"]:
+        return None
+
+    def hasfind(self, path: str, attr: str = "") -> bool:
         e = self.find(path)
 
         if attr:
@@ -4325,7 +4347,7 @@ class _CWPyElementInterface(object):
         else:
             return bool(e is not None)
 
-    def getfind(self, path, raiseerror=True):
+    def getfind(self, path: str, raiseerror: bool = True) -> "CWPyElement":
         e = self.find(path)
 
         if e is None:
@@ -4335,7 +4357,7 @@ class _CWPyElementInterface(object):
 
         return e
 
-    def gettext(self, path, default=None):
+    def gettext(self, path: str, default: Optional[Union[int, float, bool, str]] = None) -> Union[str, bool, int]:
         e = self.find(path)
 
         if e is None:
@@ -4350,7 +4372,8 @@ class _CWPyElementInterface(object):
 
         return text
 
-    def getattr(self, path, attr, default=None):
+    def getattr(self, path: str, attr: str,
+                default: Optional[Union[str, float, bool, int]] = None) -> Union[str, bool, int]:
         e = self.find(path)
 
         if e is None:
@@ -4363,7 +4386,7 @@ class _CWPyElementInterface(object):
 
         return text
 
-    def getbool(self, path, attr=None, default=None):
+    def getbool(self, path: str, attr: Optional[Union[str, bool]] = None, default: Optional[bool] = None) -> bool:
         if isinstance(attr, bool):
             default = attr
             attr = ""
@@ -4378,7 +4401,7 @@ class _CWPyElementInterface(object):
         except Exception:
             self._raiseerror(path, attr)
 
-    def getint(self, path, attr=None, default=None):
+    def getint(self, path: str, attr: Optional[Union[int, str]] = None, default: Optional[int] = None) -> int:
         if isinstance(attr, int):
             default = attr
             attr = ""
@@ -4393,7 +4416,7 @@ class _CWPyElementInterface(object):
         except Exception:
             self._raiseerror(path, attr)
 
-    def getfloat(self, path, attr=None, default=None):
+    def getfloat(self, path: str, attr: Optional[Union[str, float]] = None, default: Optional[float] = None) -> float:
         if isinstance(attr, float):
             default = attr
             attr = ""
@@ -4412,15 +4435,14 @@ class _CWPyElementInterface(object):
         return make_element(*args, **kwargs)
 
 
-if sys.version_info < (3, 7, 0):
-    Element_Py = xml.etree.ElementTree._Element_Py
-else:
-    Element_Py = xml.etree.ElementTree.Element
+Element_Py = xml.etree.cElementTree.Element
 
 
 class CWPyElement(Element_Py, _CWPyElementInterface):
 
-    def __init__(self, tag, attrib={}.copy()):
+    def __init__(self, tag: str, attrib: Dict[str, str] = None) -> None:
+        if attrib is None:
+            attrib = {}
         Element_Py.__init__(self, tag, attrib)
         self.fpath = ""
 
@@ -4432,7 +4454,7 @@ class CWPyElement(Element_Py, _CWPyElementInterface):
         self.cwxpath = None
         self._cwxline_index = None
 
-    def append(self, subelement):
+    def append(self, subelement: "CWPyElement") -> None:
         subelement.cwxparent = self
         return Element_Py.append(self, subelement)
 
@@ -4455,13 +4477,13 @@ class CWPyElement(Element_Py, _CWPyElementInterface):
             subelement.cwxparent = None
         return Element_Py.clear(self)
 
-    def index(self, subelement):
+    def index(self, subelement: "CWPyElement") -> int:
         for i, e in enumerate(self):
             if e == subelement:
                 return i
         return -1
 
-    def get_cwxpath(self):
+    def get_cwxpath(self) -> str:
         """CWXパスを構築して返す。
         イベントまたはその親要素でなければ正しいパスは構築されない。
         """
@@ -4551,7 +4573,7 @@ class CWPyElement(Element_Py, _CWPyElementInterface):
 # ------------------------------------------------------------------------------
 
 class CWPyElementTree(ElementTree, _CWPyElementInterface):
-    def __init__(self, fpath="", element=None):
+    def __init__(self, fpath: str = "", element: Optional[CWPyElement] = None) -> None:
         if element is None:
             element = xml2element(fpath)
 
@@ -4659,7 +4681,9 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
 # xmlパーサ
 # ------------------------------------------------------------------------------
 
-def make_element(name, text="", attrs={}.copy(), tail=""):
+def make_element(name, text="", attrs=None, tail=""):
+    if attrs is None:
+        attrs = {}
     element = CWPyElement(name, attrs)
     element.text = text
     element.tail = tail
@@ -4694,14 +4718,16 @@ def yadoxml2element(path, tag="", rootattrs=None):
         raise ValueError("%s is not found." % path)
 
 
-def xml2etree(path="", tag="", stream=None, element=None, nocache=False):
+def xml2etree(path: str = "", tag: str = "", stream: None = None, element: None = None,
+              nocache: bool = False) -> CWPyElementTree:
     if element is None:
         element = xml2element(path, tag, stream, nocache=nocache)
 
     return CWPyElementTree(element=element)
 
 
-def xml2element(path="", tag="", stream=None, nocache=False, rootattrs=None):
+def xml2element(path: str = "", tag: str = "", stream: None = None, nocache: bool = False,
+                rootattrs: Optional[Dict[str, str]] = None) -> CWPyElement:
     usecache = path and cw.cwpy and cw.cwpy.sdata and\
                isinstance(cw.cwpy.sdata, cw.data.ScenarioData) and\
                path.startswith(cw.cwpy.sdata.tempdir)
@@ -4786,15 +4812,15 @@ class CacheData(object):
         self.mtime = mtime
 
 
-def copydata(data, all=False):
+def copydata(data, copyall=False):
     if isinstance(data, CWPyElementTree):
         return CWPyElementTree(element=copydata(data.getroot()))
 
-    if not all and data.tag in ("Motions", "Events", "Id", "Name",
-                                "Description", "Scenario", "Author", "Level", "Ability",
-                                "Target", "EffectType", "ResistType", "SuccessRate",
-                                "VisualEffect", "KeyCodes", "Premium",
-                                "EnhanceOwner", "Price"):
+    if not copyall and data.tag in ("Motions", "Events", "Id", "Name",
+                                    "Description", "Scenario", "Author", "Level", "Ability",
+                                    "Target", "EffectType", "ResistType", "SuccessRate",
+                                    "VisualEffect", "KeyCodes", "Premium",
+                                    "EnhanceOwner", "Price"):
         # 不変
         return data
 
@@ -4815,8 +4841,8 @@ class EndTargetTagException(Exception):
 
 
 class SimpleXmlParser(object):
-    def __init__(self, fpath, targettag="", stream=None, targetonly=False,
-                 rootattrs=None):
+    def __init__(self, fpath: str, targettag: str = "", stream: None = None, targetonly: bool = False,
+                 rootattrs: None = None) -> None:
         """
         targettag: 読み込むタグのロケーションパス。絶対パスは使えない。
             "Property/Name"という風にタグごとに"/"で区切って指定する。
@@ -4829,7 +4855,7 @@ class SimpleXmlParser(object):
         self.rootattrs = rootattrs
         self._clear_attrs()
 
-    def _clear_attrs(self):
+    def _clear_attrs(self) -> None:
         self.root = None
         self.node_stack = []
         self.parsetags = []
@@ -4838,7 +4864,7 @@ class SimpleXmlParser(object):
             self.rootattrs.clear()
         self._persed = False
 
-    def start_element(self, name, attrs):
+    def start_element(self, name: str, attrs: Dict[str, str]) -> None:
         """要素の開始。"""
         if not self.currenttags:
             if self.rootattrs is not None:
@@ -4863,7 +4889,7 @@ class SimpleXmlParser(object):
 
             self.node_stack.append(element)
 
-    def end_element(self, name):
+    def end_element(self, name: str) -> None:
         """要素の終了。"""
         if self.parsetags:
             self.node_stack.pop(-1)
@@ -4878,7 +4904,7 @@ class SimpleXmlParser(object):
         if self.targetonly and self.targettag == name:
             raise EndTargetTagException()
 
-    def char_data(self, data):
+    def char_data(self, data: str) -> None:
         """文字データ"""
         if self.parsetags:
             if data:
@@ -4889,7 +4915,7 @@ class SimpleXmlParser(object):
                 else:
                     element.text = data
 
-    def parse(self):
+    def parse(self) -> CWPyElement:
         if hasattr(self.file, "read"):
             self.parse_file(self.file)
         else:
@@ -4900,7 +4926,7 @@ class SimpleXmlParser(object):
         root = self.root
         return root
 
-    def parse_file(self, fname):
+    def parse_file(self, fname: io.BufferedReader) -> None:
         try:
             self._parse_file(fname)
         except EndTargetTagException:
@@ -4919,7 +4945,7 @@ class SimpleXmlParser(object):
         parser.CharacterDataHandler = self.char_data
         return parser
 
-    def _parse_file(self, fname):
+    def _parse_file(self, fname: io.BufferedReader) -> None:
         parser = self._create_parser()
         fdata = fname.read()
         try:
@@ -4933,7 +4959,7 @@ class SimpleXmlParser(object):
             parser = self._create_parser()
             parser.Parse(fdata, 1)
 
-    def get_currentpath(self):
+    def get_currentpath(self) -> str:
         if len(self.currenttags) > 1:
             return "/".join(self.currenttags[1:])
         else:

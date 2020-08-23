@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import copy
 import shutil
 import sys
 import time
@@ -140,7 +139,7 @@ class SkinConversionDialog(wx.Dialog):
 
         def progress():
             while not self.conv.complete:
-                wx.CallAfter(dlg.Update, self.conv.curnum, self.conv.message)
+                wx.CallAfter(dlg.UpdateProgress, self.conv.curnum, self.conv.message)
                 time.sleep(0.001)
             wx.CallAfter(dlg.Destroy)
         thread2 = threading.Thread(target=progress)
@@ -678,14 +677,14 @@ class SkinInfoPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         # スキンタイプ一覧
-        self.types = set([
+        self.types = {
             "MedievalFantasy",
             "Modern",
             "Monsters",
             "Oedo",
             "School",
-            "ScienceFiction",
-        ])
+            "ScienceFiction"
+        }
         if os.path.exists("Data/Skin"):
             for name in os.listdir("Data/Skin"):
                 path = cw.util.join_paths("Data/Skin", name)

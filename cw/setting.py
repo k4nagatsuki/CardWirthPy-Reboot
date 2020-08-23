@@ -14,19 +14,13 @@ import array
 import re
 import threading
 import copy
-# FIXME: Python 2->3でのモジュール名変更の絡みで警告が出る
-# import configparser
+import configparser
 import time
 import wx
 import pygame
 import pygame.locals
-from typing import Any, Callable
 
 import cw
-
-import importlib
-
-configparser = importlib.import_module("configparser")
 
 
 class NoFontError(ValueError):
@@ -648,6 +642,7 @@ class Setting(object):
         if elements is not None:
             self.soundfonts = []
             for e in elements:
+                assert isinstance(e, cw.data.CWPyElement)
                 use = e.getbool(".", "enabled", True)
                 volume = e.getint(".", "volume", 100)
                 self.soundfonts.append((e.text, use, volume))
@@ -845,7 +840,8 @@ class Setting(object):
         # 荷物袋にあるカードのキャラクターごとの私有を許可する
         self.show_personal_cards = data.getbool("ShowPersonalCards", self.show_personal_cards_init)
         # 私物入れの容量がレベル調節の影響を受けるようにする
-        self.level_adjustment_affect_personal_pocket = data.getbool("LevelAdjustmentAffectPersonalPocket", self.level_adjustment_affect_personal_pocket_init)
+        self.level_adjustment_affect_personal_pocket = data.getbool("LevelAdjustmentAffectPersonalPocket",
+                                                                    self.level_adjustment_affect_personal_pocket_init)
         # カード置場と荷物袋でカードの種類を表示する
         self.show_cardkind = data.getbool("ShowCardKind", self.show_cardkind)
         # カードの希少度をアイコンで表示する
@@ -928,6 +924,7 @@ class Setting(object):
         e = data.find("InstalledPaths")
         if e is not None:
             for e_paths in e:
+                assert isinstance(e_paths, cw.data.CWPyElement)
                 rootdir = e_paths.getattr(".", "root", "")
                 if not rootdir:
                     continue
@@ -941,6 +938,7 @@ class Setting(object):
         e = data.find("BookmarksForCardEditor")
         if e is not None:
             for e_bookmark in e:
+                assert isinstance(e_bookmark, cw.data.CWPyElement)
                 fpath = e_bookmark.text
                 name = e_bookmark.getattr(".", "name", "")
                 self.bookmarks_for_cardedit.append((fpath, name))
@@ -1257,6 +1255,7 @@ class Setting(object):
                     # タイトル画面のカード位置を調節
                     e = cw.data.xml2etree(fpath)
                     e_mcards = e.find("MenuCards")
+                    assert isinstance(e_mcards, cw.data.CWPyElement)
                     if e_mcards is not None and len(e_mcards) == 2 and \
                             e_mcards.getattr(".", "spreadtype", "") == "Custom" and \
                             e_mcards[0].getint("Property/Location", "left", 0) == 231 and \
@@ -1359,8 +1358,8 @@ class Setting(object):
             return dpath + "が見つかりません。"
         for fname in os.listdir(dpath):
             fpath = cw.util.join_paths(dpath, fname)
-            id = int(cw.header.GetName(fpath, tagname="Id").name)
-            if id == 3:
+            rid = int(cw.header.GetName(fpath, tagname="Id").name)
+            if rid == 3:
                 break
         else:
             return "スキンにデータバージョン「9」で導入された「初期拠点」エリアが存在しません。\n" + \
@@ -1761,8 +1760,10 @@ class Resource(object):
                     continue
 
                 def func():
+                    import ctypes
                     gdi32 = ctypes.WinDLL("gdi32")
                     if winplatform == 2:
+                        import ctypes.wintypes
                         gdi32.AddFontResourceExW.argtypes = (ctypes.c_wchar_p, ctypes.wintypes.DWORD, ctypes.c_void_p)
                         gdi32.AddFontResourceExW(path, 0x10, 0)
                     else:
@@ -1874,9 +1875,9 @@ class Resource(object):
 
         return wxfont
 
-    def create_font(self, type, basetype, fontname, size_noscale, defbold, defbold_upscr, defitalic, pixelsadd=0,
+    def create_font(self, ftype, basetype, fontname, size_noscale, defbold, defbold_upscr, defitalic, pixelsadd=0,
                     nobold=False, fontinfo=None):
-        fontname, pixels_noscale, bold, bold_upscr, italic = self.get_fontfromtype(type, fontinfo)
+        fontname, pixels_noscale, bold, bold_upscr, italic = self.get_fontfromtype(ftype, fontinfo)
         if pixels_noscale <= 0:
             pixels_noscale = size_noscale
         pixels_noscale += pixelsadd
@@ -1895,9 +1896,9 @@ class Resource(object):
 
         return cw.imageretouch.Font(fontname, -cw.s(pixels_noscale), bold=bold, italic=italic)
 
-    def create_exfont(self, type, fontinfo, basetable, nobold):
+    def create_exfont(self, ftype, fontinfo, basetable, nobold):
         if fontinfo[0] == "inherit":
-            return basetable[type]
+            return basetable[ftype]
         else:
             t = fontinfo
             return self.create_font("", t[0], t[1], t[2], t[3], t[4], t[5], nobold=nobold, fontinfo=fontinfo)
@@ -2972,10 +2973,12 @@ class LazyResource(object):
 
 
 class ResourceTable(object):
-    def __init__(self, name, init={}.copy(), deffunc=None, nokeyfunc=None):
+    def __init__(self, name, init=None, deffunc=None, nokeyfunc=None):
         """文字列をキーとしたリソーステーブル。
         各リソースは必要になった時に遅延読み込みされる。
         """
+        if init is None:
+            init = {}
         self.name = name
         self.dic = init
 

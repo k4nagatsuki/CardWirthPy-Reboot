@@ -360,7 +360,7 @@ class Adventurer(base.CWBinaryBase):
             ce = cw.data.make_element("Coupons")
             if f9data:
                 # u"＿１"などの番号クーポン以降を除去
-                numcoupons = set(["＿１", "＿２", "＿３", "＿４", "＿５", "＿６"])
+                numcoupons = {"＿１", "＿２", "＿３", "＿４", "＿５", "＿６"}
                 coupons = self.coupons
                 cut = False
                 for i, coupon in enumerate(coupons):

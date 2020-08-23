@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import re
 import math
 
 import pygame
+import pygame.locals
 
 import cw
 
@@ -134,6 +134,7 @@ class _JpySubImage(cw.image.Image):
 
     def draw2back(self, back, mask):
         """背景に描画。"""
+        assert isinstance(self, (JpyPartsImage, JpyBackGroundImage))
         if self.visible:
             image = self.get_image()
 
@@ -160,6 +161,7 @@ class _JpySubImage(cw.image.Image):
 
     def drawtemp(self, doanime):
         """一時描画。"""
+        assert isinstance(self, (JpyPartsImage, JpyBackGroundImage))
 
         # 一時描画せずにウェイトだけ
         if self.animation == 4:
@@ -346,6 +348,7 @@ class _JpySubImage(cw.image.Image):
 
     def retouch(self):
         """画像加工。"""
+        assert isinstance(self, (JpyPartsImage, JpyBackGroundImage))
         image = self.get_image()
 
         # 画像がない場合、加工しない
@@ -539,6 +542,7 @@ class _JpySubImage(cw.image.Image):
 
     def load(self, doanime):
         """画像作成。"""
+        assert isinstance(self, (JpyPartsImage, JpyBackGroundImage))
         path, can_loaded_scaledimage = self.get_filepath()
         ext = cw.util.splitext(path)[1].lower()
 
@@ -1524,7 +1528,7 @@ class EffectBoosterConfig(object):
     def __init__(self, path, firstsection, section_ignorecase=True):
         self.path = path
         self.dirdepth = 0
-        r_sec = re.compile(r'\[([^]]+)\]')
+        r_sec = re.compile(r'\[([^]]+)]')
         r_opt = re.compile(r'([^:=\s][^:=]*)\s*[:=]\s*(.*)$')
         self._orderedsecs = []
         self._sections = {}

@@ -2,18 +2,21 @@
 # -*- coding: utf-8 -*-
 
 import os
-import io
 import struct
 import threading
 import io
 import wx
 import pygame
+import pygame.locals
 
 import cw
 
+from typing import List, Tuple, Union
+
 
 class ImageInfo(object):
-    def __init__(self, path="", pcnumber=0, base=None, postype="Default", basecardtype=None):
+    def __init__(self, path: str = "", pcnumber: int = 0, base: None = None, postype: str = "Default",
+                 basecardtype: None = None) -> None:
         """
         カードなどの画像の定義。
         """
@@ -134,7 +137,7 @@ class ImageInfo(object):
             return "File: %s, Position Type: %s" % (self.path, self.postype)
 
 
-def get_imageinfos(data, pcnumber=False):
+def get_imageinfos(data: cw.data.CWPyElement, pcnumber: bool = False) -> List[ImageInfo]:
     """PropertyなどのデータからImageInfoのlistを生成する。
     data: Propertyなど子に画像情報を持つ要素。
     pcnumber: プレイヤー番号イメージを使用するか。
@@ -878,7 +881,9 @@ class LargeCardImage(CardImage):
 
 class CharacterCardImage(CardImage):
     def __init__(self, ccard, pos_noscale=(0, 0), can_loaded_scaledimage=False, is_scenariocard=False,
-                 scedir="", is_override_name=False, override_name="", is_override_image=False, override_images=[]):
+                 scedir="", is_override_name=False, override_name="", is_override_image=False, override_images=None):
+        if override_images is None:
+            override_images = []
         self.ccard = ccard
         self.is_override_name = is_override_name
         self.override_name = override_name
@@ -1227,21 +1232,21 @@ class CharacterCardImage(CardImage):
     def _put_enhanceimg(self, seq, bmp, value, duration, is_runningevent):
         size = (bmp.get_width(), bmp.get_height())
         if value >= 10:
-            seq.append((pygame.Color(255, 0, 0), size))
+            seq.append(((255, 0, 0), size))
         elif value >= 7:
-            seq.append((pygame.Color(175, 0, 0), size))
+            seq.append(((175, 0, 0), size))
         elif value >= 4:
-            seq.append((pygame.Color(127, 0, 0), size))
+            seq.append(((127, 0, 0), size))
         elif value >= 1:
-            seq.append((pygame.Color(79, 0, 0), size))
+            seq.append(((79, 0, 0), size))
         elif value <= -10:
-            seq.append((pygame.Color(0, 0, 51), size))
+            seq.append(((0, 0, 51), size))
         elif value <= -7:
-            seq.append((pygame.Color(0, 0, 85), size))
+            seq.append(((0, 0, 85), size))
         elif value <= -4:
-            seq.append((pygame.Color(0, 0, 136), size))
+            seq.append(((0, 0, 136), size))
         elif value <= -1:
-            seq.append((pygame.Color(0, 0, 187), size))
+            seq.append(((0, 0, 187), size))
         bmp = self._put_number(bmp, duration, is_runningevent=is_runningevent)
         seq.append(bmp)
 
@@ -1519,7 +1524,7 @@ def smoothscale(surface, size, smoothing=True, iscard=False):
         return pygame.transform.scale(surface, size)
 
 
-def fix_cwnext16bitbitmap(data):
+def fix_cwnext16bitbitmap(data: bytes) -> Union[Tuple[bytes, bool], Tuple[Image, bool]]:
     """一部バージョンのCardWirthNextが生成するBitmap(16 bit)は
     bfOffBitsが壊れているので予め訂正する。
     FIXME: 末尾に余計なデータがついている画像は却って上手くいかない可能性があるが、
@@ -1582,7 +1587,7 @@ def fix_cwnext16bitbitmap(data):
     return data, True
 
 
-def fix_cwnext32bitbitmap(data):
+def fix_cwnext32bitbitmap(data: bytes) -> Tuple[bytes, bool]:
     """一部バージョンのCardWirthNextが生成するBitmap(32 bit)に
     本来存在できないはずのパレットデータが残留している事があるので訂正する。
     """
@@ -1634,23 +1639,19 @@ def fix_cwnext32bitbitmap(data):
     return data, True
 
 
-def conv2wximage(image, biBitCount):
+def conv2wximage(image: pygame.Surface, biBitCount: int) -> Image:
     """pygame.Surfaceをwx.Bitmapに変換する。
     image: pygame.Surface
     """
     w, h = image.get_size()
 
-    if 32 <= biBitCount:
-        buf = pygame.image.tostring(image, "RGBA")
-        image = wx.ImageFromBufferRGBA(w, h, buf)
-    else:
-        buf = pygame.image.tostring(image, "RGB")
-        image = wx.ImageFromBuffer(w, h, buf)
+    buf = pygame.image.tostring(image, "RGB")
+    image = wx.ImageFromBuffer(w, h, buf)
 
     return image
 
 
-def patch_rle4bitmap(data):
+def patch_rle4bitmap(data: bytes) -> bytes:
     if len(data) < 14 + 40:
         return data
     s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
@@ -1694,7 +1695,7 @@ def patch_rle4bitmap(data):
     return data
 
 
-def get_bmpdepth(data):
+def get_bmpdepth(data: bytes) -> int:
     """
     Bitmapデータのビット深度値を返す。
     正常なBitmapデータでない場合は0を返す。
@@ -1734,7 +1735,7 @@ def get_bicompression(data):
     return biCompression
 
 
-def has_pngalpha(data):
+def has_pngalpha(data: bytes) -> bool:
     """
     PNGデータがα値を持つかを返す。
     正常なPNGデータでない場合はFalseを返す。
@@ -1751,15 +1752,6 @@ def has_pngalpha(data):
         return 0
     colortype = s[16]
     return colortype in (4, 6)
-
-
-def get_1bitpalette(data):
-    s = struct.unpack("<BBIhhII", data[0:14+4])
-    biSize = s[6]
-    s = struct.unpack("<BBBBBBBB", data[14+biSize:14+biSize+8])
-    color1 = pygame.Color(s[0], s[1], s[2])
-    color2 = pygame.Color(s[4], s[5], s[6])
-    return (color1, color2)
 
 
 def main():

@@ -39,7 +39,7 @@ class ProgressDialog(wx.Dialog):
         if self.btn_cncl:
             self.Bind(wx.EVT_BUTTON, self.OnClickCancelBtn, self.btn_cncl)
 
-    def Update(self, value, message):
+    def UpdateProgress(self, value, message):
         value -= self.minimum
         if value != self.gauge.GetValue() or self.text != message:
             self.gauge.SetValue(value-self.minimum)
@@ -117,7 +117,7 @@ class SysProgressDialog(wx.Dialog):
         # layout
         self._do_layout()
 
-    def Update(self, value, message):
+    def UpdateProgress(self, value, message):
         value -= self.minimum
         if value != self.gauge.GetValue() or self.text != message:
             self.gauge.SetValue(value-self.minimum)

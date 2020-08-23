@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import cw
-from cw.character import Character
+
+from typing import Dict, List, Optional, Tuple, Union
 
 # 意識不明の対象に有効な効果。
 CAN_UNCONSCIOUS = (
@@ -74,7 +75,11 @@ def check_noeffect(effecttype, target, ignore_antimagic=False):
 
 
 class Effect(object):
-    def __init__(self, motions, d, battlespeed=False):
+    inusecard: Optional["cw.header.CardHeader"]
+    user: Optional[Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"]]
+
+    def __init__(self, motions: List[cw.data.CWPyElement], d: Dict[str, Union[int, str, bool]],
+                 battlespeed: bool = False) -> None:
         self.user = d.get("user", None)
         self.inusecard = d.get("inusecard", None)
         self.level = d.get("level", 0)
@@ -128,7 +133,7 @@ class Effect(object):
         return self._level
 
     def apply(self, target, event=False, selectedmember=None):
-        if isinstance(target, Character) and self.check_enabledtarget(target, event):
+        if isinstance(target, cw.character.Character) and self.check_enabledtarget(target, event):
             return self.apply_charactercard(target, event=event, selectedmember=selectedmember)
         else:
             return False
@@ -456,7 +461,7 @@ class Effect(object):
                 not isinstance(target, cw.sprite.card.PlayerCard) and\
                 not isinstance(target, cw.sprite.card.FriendCard):
             return False
-        elif isinstance(target, Character):
+        elif isinstance(target, cw.character.Character):
             flag = bool(not target.is_vanished())
             flag &= event or not target.is_reversed()
             if flag and self.motions:
@@ -526,8 +531,12 @@ class Effect(object):
 # ------------------------------------------------------------------------------
 
 class EffectMotion(object):
-    def __init__(self, data, user=None, header=None, targetlevel=0, refability=False, vocation=None,
-                 absorbto="None", selectedmember=None):
+    def __init__(self, data: cw.data.CWPyElement,
+                 user: Optional[Union["cw.sprite.card.PlayerCard",
+                                      "cw.sprite.card.EnemyCard",
+                                      "cw.sprite.card.FriendCard"]] = None,
+                 header: Optional["cw.header.CardHeader"] = None, targetlevel: int = 0, refability: bool = False,
+                 vocation: None = None, absorbto: str = "None", selectedmember: None = None) -> None:
         """
         効果モーションインスタンスを生成。MotionElementと
         user(PlayerCard, EnemyCard)とheader(CardHeader)を引数に取る。
@@ -566,7 +575,9 @@ class EffectMotion(object):
         self.absorbto = absorbto
         self.absorber = None  # 吸収者の実体
 
-    def update_status(self, selectedmember=None):
+    def update_status(self, selectedmember: Optional[Union["cw.sprite.card.PlayerCard",
+                                                           "cw.sprite.card.EnemyCard",
+                                                           "cw.sprite.card.FriendCard"]] = None) -> None:
         if self.refability:
             self._enhance_act = 0
             ccard = selectedmember
@@ -1429,7 +1440,7 @@ class EffectMotion(object):
         return True
 
 
-def get_vocation_val(ccard, vocation, enhance_act=False):
+def get_vocation_val(ccard: "cw.sprite.card.PlayerCard", vocation: Tuple[str, str], enhance_act: bool = False) -> int:
     """
     適性値(身体特性+精神特性の合計値)を返す。
     enhance_act : 行動力を加味する場合、True
@@ -1457,7 +1468,7 @@ def get_vocation_val(ccard, vocation, enhance_act=False):
     return cw.util.numwrap(n, -65536, 65536)
 
 
-def get_vocation_level(ccard, vocation, enhance_act=False):
+def get_vocation_level(ccard: "cw.sprite.card.PlayerCard", vocation: Tuple[str, str], enhance_act: bool = False) -> int:
     """
     適性値の段階値を返す。段階値は(0 > 1 > 2 > 3 > 4)の順
     enhance_act : 行動力を加味する場合、True

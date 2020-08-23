@@ -2628,7 +2628,7 @@ class YadoCreater(wx.Dialog):
                 baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
                                                          basecardtype="Bill",
                                                          cardpostype="NotCard")
-                dc.DrawBitmap(bmp, rect.X + baserect.x, rect.Y + baserect.y, True)
+                dc.DrawBitmap(bmp, rect.GetX() + baserect.x, rect.GetY() + baserect.y, True)
         else:
             imgdata = self.command0s[index]
             bmp = imgdata[1]
@@ -2636,7 +2636,7 @@ class YadoCreater(wx.Dialog):
                 bmp = cw.wins(cw.util.load_wxbmp(imgdata[0], True, can_loaded_scaledimage=True))
                 imgdata[1] = bmp
             bmph = bmp.GetHeight()
-            dc.DrawBitmap(bmp, rect.X, rect.Y, True)
+            dc.DrawBitmap(bmp, rect.GetX(), rect.GetY(), True)
         dc.DestroyClippingRegion()
 
         # text

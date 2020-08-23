@@ -10,11 +10,16 @@ import itertools
 
 import cw
 
+from typing import Optional
+
 
 class CWYado(object):
     """pathの宿データをxmlに変換、yadoディレクトリに保存する。
     その他ファイルもコピー。
     """
+    from . import environment
+    wyd: Optional[environment.Environment]
+
     def __init__(self, path, dstpath, skintype=""):
         from . import util
 
@@ -40,9 +45,9 @@ class CWYado(object):
         self.errorlog = ""
         # pathにあるファイル・ディレクトリを
         # (宿ファイル,シナリオファイル,その他のファイル,ディレクトリ)に種類分け。
-        exts_yado = set(["wch", "wcp", "wpl", "wpt", "wrm", "whs"])
-        exts_sce = set(["wsm", "wid", "wcl"])
-        exts_ignore = set(["wck", "wci", "wcb"])
+        exts_yado = {"wch", "wcp", "wpl", "wpt", "wrm", "whs"}
+        exts_sce = {"wsm", "wid", "wcl"}
+        exts_ignore = {"wck", "wci", "wcb"}
         self.yadofiles = []
         self.cardfiles = []
         self.otherfiles = []
@@ -91,14 +96,7 @@ class CWYado(object):
 
     def convert(self):
         from . import util
-        from . import cwfile
-        from . import environment
-        from . import adventurer
         from . import party
-        from . import album
-        from . import skill
-        from . import item
-        from . import beast
 
         if not self.datalist:
             self.load()
@@ -194,6 +192,8 @@ class CWYado(object):
         """宿ファイルを読み込む。
         種類はtypeで判別できる(wydは"-1"、wptは"4"となっている)。
         """
+        from . import environment
+
         # 各種データ初期化
         self.datalist = []
         self.wyd = None
@@ -310,15 +310,15 @@ class CWYado(object):
         else:
             # 宿で販売されているカードをカード置場に置く
             for fname, card in carddatadict.items():
-                carddata = cw.binary.environment.UnusedCard(None, None, True)
+                carddata = environment.UnusedCard(None, None, True)
                 cd = {
                     ".wck": 1,
                     ".wci": 2,
                     ".wcb": 3
                 }
-                type = cd.get(os.path.splitext(fname)[1].lower(), 0)
-                if type:
-                    carddata.type = type
+                ctype = cd.get(os.path.splitext(fname)[1].lower(), 0)
+                if ctype:
+                    carddata.type = ctype
                     carddata.fname = fname
                     carddata.uselimit = card.limit
                     carddata.set_data(card)

@@ -16,7 +16,7 @@ class Message(wx.Dialog):
     mode=1は「はい」「いいえ」。mode=2は「閉じる」。
     mode=3は、choicesに(テキスト, ID, 幅)のtupleまたはlistを指定する事で任意の選択肢を表示する。
     """
-    def __init__(self, parent, name, text, mode=2, choices=None):
+    def __init__(self, parent: wx.TopLevelWindow, name: str, text: str, mode: int = 2, choices: None = None) -> None:
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((355, 120)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -49,16 +49,16 @@ class Message(wx.Dialog):
             self.buttons = []
             for d in choices:
                 if len(d) == 4:
-                    s, id, width, desc = d
+                    s, sid, width, desc = d
                 elif len(d) == 3:
-                    s, id, width = d
+                    s, sid, width = d
                     desc = ""
                 else:
-                    s, id = d
+                    s, sid = d
                     desc = ""
                     width = -1
 
-                button = cw.cwpy.rsrc.create_wxbutton(self, id, (width, cw.wins(30)), s)
+                button = cw.cwpy.rsrc.create_wxbutton(self, sid, (width, cw.wins(30)), s)
                 if desc:
                     button.SetToolTip(desc)
                 self.buttons.append(button)
@@ -104,7 +104,7 @@ class Message(wx.Dialog):
         self.SetReturnCode(button.GetId())
         event.Skip()
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         csize = self.GetClientSize()
         # background
@@ -118,7 +118,7 @@ class Message(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         dc.DrawLabel(self.text, (0, cw.wins(12), csize[0], self._textheight), wx.ALIGN_CENTER)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
         csize = self.GetClientSize()
@@ -146,7 +146,7 @@ class Message(wx.Dialog):
 
 
 class YesNoMessage(Message):
-    def __init__(self, parent, name, text):
+    def __init__(self, parent: wx.TopLevelWindow, name: str, text: str) -> None:
         Message.__init__(self, parent, name, text, 1)
 
 
@@ -205,16 +205,16 @@ class SysMessage(wx.Dialog):
         if choices:
             for d in choices:
                 if len(d) == 4:
-                    s, id, width, desc = d
+                    s, sid, width, desc = d
                 elif len(d) == 3:
-                    s, id, width = d
+                    s, sid, width = d
                     desc = ""
                 else:
-                    s, id = d
+                    s, sid = d
                     desc = ""
                     width = -1
 
-                button = wx.Button(self, id, s, size=(width, -1))
+                button = wx.Button(self, sid, s, size=(width, -1))
                 if desc:
                     button.SetToolTip(desc)
                 self.buttons.append(button)

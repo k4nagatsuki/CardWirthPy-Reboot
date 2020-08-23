@@ -196,18 +196,18 @@ class PartyMembers(base.CWBinaryBase):
             cards_num = f.dword()
             self.cards = []
             for _cnt in range(cards_num):
-                type = f.byte()
-                if type == 2:
+                ctype = f.byte()
+                if ctype == 2:
                     carddata = item.ItemCard(None, f, True)
-                elif type == 1:
+                elif ctype == 1:
                     carddata = skill.SkillCard(None, f, True)
-                elif type == 3:
+                elif ctype == 3:
                     carddata = beast.BeastCard(None, f, True)
                 else:
                     raise ValueError(self.fname)
                 card = BackpackCard(self, None)
                 card.fname = carddata.name
-                if type in (2, 3):
+                if ctype in (2, 3):
                     card.uselimit = carddata.limit
                 else:
                     card.uselimit = 0
@@ -274,20 +274,20 @@ class PartyMembers(base.CWBinaryBase):
 
     def split_variables(self, text, step):
         d = {}
-        for l in text.splitlines():
-            index = l.rfind('=')
+        for ln in text.splitlines():
+            index = ln.rfind('=')
             if index != -1:
                 if step:
-                    d[l[:index]] = int(l[index+1:])
+                    d[ln[:index]] = int(ln[index+1:])
                 else:
-                    d[l[:index]] = bool(int(l[index+1:]))
+                    d[ln[:index]] = bool(int(ln[index+1:]))
         return d
 
     def split_ids(self, text):
         seq = []
-        for l in text.splitlines():
-            if l:
-                seq.append(int(l))
+        for ln in text.splitlines():
+            if ln:
+                seq.append(int(ln))
         return seq
 
     def create_xml(self, dpath):

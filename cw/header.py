@@ -3,18 +3,17 @@
 
 import os
 import io
-import sys
 import re
 import copy
 import weakref
-import subprocess
-import wx
 import pygame
 import xml.parsers.expat
 import shutil
 import math
 
 import cw
+
+from typing import Dict, List, Tuple
 
 
 def to_imgpaths(dbrec, imgdbrec):
@@ -356,14 +355,14 @@ class CardHeader(object):
             # self.fpathを削除予定のfpathリストから削除
             cw.cwpy.ydata.deletedpaths.discard(self.fpath)
 
-    def get_vocation_level(self, owner, enhance_act=False):
+    def get_vocation_level(self, owner: "cw.character.Character", enhance_act: bool = False) -> int:
         """
         適性値の段階値を返す。段階値は(0 > 1 > 2 > 3 > 4)の順
         enhance_act : 行動力を加味する場合、True
         """
         return cw.effectmotion.get_vocation_level(owner, self.vocation, enhance_act=enhance_act)
 
-    def get_showed_vocation_level(self, owner):
+    def get_showed_vocation_level(self, owner: "cw.character.Character") -> int:
         """
         表示される適性値の段階値を返す。値は0～3の範囲となる。
         1.20相当の計算を行う時は、実際の能力値と厳密には一致しない。
@@ -402,7 +401,7 @@ class CardHeader(object):
         else:
             self.vocation_for_sort = 0
 
-    def get_uselimit_level(self):
+    def get_uselimit_level(self) -> int:
         """
         使用回数の段階値を返す。段階値は(0 > 1 > 2 > 3 > 4)の順
         """
@@ -424,7 +423,7 @@ class CardHeader(object):
 
         return value
 
-    def get_uselimit(self, reset=False):
+    def get_uselimit(self, reset: bool = False) -> Tuple[int, int]:
         """
         (使用回数, 最大使用回数)を返す。
         """
@@ -449,7 +448,7 @@ class CardHeader(object):
                 self.maxuselimit = 9
 
             if cw.cwpy.status == "Yado" or\
-                    not isinstance(self.get_owner(), cw.character.Player)or\
+                    not isinstance(self.get_owner(), cw.character.Player) or\
                     self.uselimit > self.maxuselimit:
                 self.uselimit = self.maxuselimit
 
@@ -755,7 +754,7 @@ class CardHeader(object):
                            anotherscenariocard=self.carddata.getbool(".", "anotherscenariocard", False))
         return header
 
-    def is_ccardheader(self):
+    def is_ccardheader(self) -> bool:
         return bool(isinstance(self._owner, weakref.ref))
 
     def is_backpackheader(self):
@@ -1318,7 +1317,7 @@ class AdventurerHeader(object):
 
 
 class Gene(object):
-    def __init__(self, bits=[][:], count=0):
+    def __init__(self, bits: List[int] = None, count: int = 0) -> None:
         if bits:
             self.bits = bits
         else:
@@ -1326,7 +1325,7 @@ class Gene(object):
 
         self.count = count
 
-    def get_str(self):
+    def get_str(self) -> str:
         return "".join([str(bit) for bit in self.bits])
 
     def set_str(self, s, count=0):
@@ -1370,14 +1369,14 @@ class Gene(object):
         bits = [bit1 ^ bit2 for bit1, bit2 in zip(self.bits, gene.bits)]
         return Gene(bits)
 
-    def rotate_father(self):
+    def rotate_father(self) -> "Gene":
         # 父親の遺伝情報のローテート(左へ)
         count = (self.count-1) % 10
         bits = self.bits[count:]
         bits.extend(self.bits[:count])
         return Gene(bits)
 
-    def rotate_mother(self):
+    def rotate_mother(self) -> "Gene":
         # 母親の遺伝情報のローテート(右へ)
         count = (10 - (self.count-1) % 10) % 10
         bits = self.bits[count:]
@@ -1926,7 +1925,7 @@ class SavedJPDCImageHeader(object):
 
 class GetName(object):
     """XMLファイル中のProperty/Nameの内容を読む。"""
-    def __init__(self, fpath, tagname="Name"):
+    def __init__(self, fpath: str, tagname: str = "Name") -> None:
         if fpath and cw.fsync.is_waiting(fpath):
             cw.fsync.sync()
 
@@ -1946,7 +1945,7 @@ class GetName(object):
                 pass
             f.close()
 
-    def start_element(self, name, attrs):
+    def start_element(self, name: str, attrs: Dict[str, str]) -> None:
         self.stack.append(name)
 
     def end_element(self, name):
@@ -1956,14 +1955,14 @@ class GetName(object):
             raise Exception()
         self.stack.pop()
 
-    def character_data(self, data):
+    def character_data(self, data: str) -> None:
         if self.stack[1:] == ["Property", self.tagname]:
             self.name += data
 
 
 class GetProperty(object):
     """XMLファイル中のProperty以下の内容を読む。"""
-    def __init__(self, fpath="", stream=None):
+    def __init__(self, fpath: str = "", stream: None = None) -> None:
         if fpath and cw.fsync.is_waiting(fpath):
             cw.fsync.sync()
 
@@ -1990,7 +1989,7 @@ class GetProperty(object):
                     pass
                 f.close()
 
-    def start_element(self, name, attrs):
+    def start_element(self, name: str, attrs: Dict[str, str]) -> None:
         if 0 == len(self.stack):
             # ルート要素の属性
             self.attrs[None] = attrs
@@ -2006,12 +2005,12 @@ class GetProperty(object):
         elif 2 == len(self.stack) and name == "Property":
             self.attrs["."] = attrs
 
-    def end_element(self, name):
+    def end_element(self, name: str) -> None:
         if self.stack[1:] == ["Property"]:
             raise Exception()
         self.stack.pop()
 
-    def character_data(self, data):
+    def character_data(self, data: str) -> None:
         if 2 < len(self.stack) and self.stack[1] == "Property":
             element = self.stack[2]
             if element not in self.properties:
@@ -2095,7 +2094,7 @@ class RaceHeader(object):
 
 
 class UnknownRaceHeader(RaceHeader):
-    def __init__(self, setting):
+    def __init__(self, setting: cw.setting.Setting) -> None:
         self.name = setting.msgs["unknown_race_name"]
         self.desc = setting.msgs["unknown_race_description"]
         self.automaton = False

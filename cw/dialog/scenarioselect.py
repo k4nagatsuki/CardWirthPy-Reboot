@@ -2,15 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import os
-import io
 import sys
 import time
 import datetime
 import threading
 import shutil
 import subprocess
-import zipfile
 import wx
+import wx.lib.buttons
 
 import cw
 from . import select
@@ -123,14 +122,14 @@ class ScenarioSelect(select.Select):
                                 style=wx.BORDER | wx.TR_SINGLE | wx.TR_HIDE_ROOT | wx.TR_DEFAULT_STYLE)
         self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1))
         self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
-        self.tree.imgidx_summary = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY"])
-        self.tree.imgidx_complete = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY_COMPLETE"])
-        self.tree.imgidx_playing = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY_PLAYING"])
-        self.tree.imgidx_invisible = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY_INVISIBLE"])
-        self.tree.imgidx_dir = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["DIRECTORY"])
-        self.tree.imgidx_findresult = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["FIND_SCENARIO"])
-        self.tree.root = self.tree.AddRoot(self.scedir)
-        self.tree.SetItemData(self.tree.root, (0, self.scedir))
+        self._imgidx_summary = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY"])
+        self._imgidx_complete = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY_COMPLETE"])
+        self._imgidx_playing = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY_PLAYING"])
+        self._imgidx_invisible = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY_INVISIBLE"])
+        self._imgidx_dir = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["DIRECTORY"])
+        self._imgidx_findresult = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["FIND_SCENARIO"])
+        self._root = self.tree.AddRoot(self.scedir)
+        self.tree.SetItemData(self._root, (0, self.scedir))
         self.tree.SetImageList(self.tree.imglist)
         self.tree.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
@@ -660,15 +659,15 @@ class ScenarioSelect(select.Select):
         self._no_treechangedsound = False
 
     def _set_findresult(self, headers, selfirstheader, expand=True, selindex=-1):
-        list = self.scetable[self._get_linktarget(self.scedir)]
-        if list and isinstance(list[0], FindResult):
-            findresult = list[0]
+        slist = self.scetable[self._get_linktarget(self.scedir)]
+        if slist and isinstance(slist[0], FindResult):
+            findresult = slist[0]
             updateindex = False
         else:
             findresult = FindResult()
-            list.insert(0, findresult)
+            slist.insert(0, findresult)
             self.find_result = findresult
-            self.scetable[self._get_linktarget(self.scedir)] = list
+            self.scetable[self._get_linktarget(self.scedir)] = slist
             updateindex = True
 
         self.scetable[findresult] = headers[:]
@@ -680,12 +679,12 @@ class ScenarioSelect(select.Select):
 
         # 検索結果ディレクトリを表示する
         if self.tree and self.tree.IsShown():
-            item, _cookie = self.tree.GetFirstChild(self.tree.root)
+            item, _cookie = self.tree.GetFirstChild(self._root)
             if item and item.IsOk():
                 data = self.tree.GetItemData(item)
                 if data and isinstance(data[1], FindResult):
                     self.tree.Delete(item)
-            item = self._create_findresultitem(0, self.tree.root, findresult)
+            item = self._create_findresultitem(0, self._root, findresult)
             parent = item
             if expand:
                 self.tree.Expand(item)
@@ -710,18 +709,18 @@ class ScenarioSelect(select.Select):
             elif headers and selfirstheader:
                 item, _cookie = self.tree.GetFirstChild(parent)
                 self.tree.SelectItem(item)
-                list = self.scetable[self.find_result]
+                slist = self.scetable[self.find_result]
             else:
                 self.tree.SelectItem(parent)
             self._tree_selchanged()
         else:
             if headers and selfirstheader:
                 self.nowdir = self.find_result
-                list = self.scetable[self.find_result]
+                slist = self.scetable[self.find_result]
             else:
                 self.nowdir = self.scedir
 
-        self.list = self._narrow_scenario(list)
+        self.list = self._narrow_scenario(slist)
         if selindex != -1:
             self.index = selindex
         else:
@@ -1123,11 +1122,13 @@ class ScenarioSelect(select.Select):
         seq.extend(scenarioinstall.get_dpaths(nowdir))
         return seq
 
-    def set_selected(self, spaths, fullpath, opendir=False, updatetree=False, findresults=[]):
+    def set_selected(self, spaths, fullpath, opendir=False, updatetree=False, findresults=None):
         """
         シナリオを経路形式(ディレクトリ・ファイル名の配列)で
         設定する。
         """
+        if findresults is None:
+            findresults = []
         processing = self._processing
         self._processing = True
 
@@ -1230,7 +1231,7 @@ class ScenarioSelect(select.Select):
             parent = self.scedir
             self.dirstack = []
             exists = True
-            treeitem = self.tree.root
+            treeitem = self._root
             for i, fname in enumerate(spaths[:-1]):
                 if isinstance(parent, FindResult) or os.path.exists(parent):
                     if isinstance(parent, FindResult):
@@ -1286,7 +1287,7 @@ class ScenarioSelect(select.Select):
                 if updatetreeitem:
                     self.create_treeitems(updatetreeitem)
                 else:
-                    self.create_treeitems(self.tree.root)
+                    self.create_treeitems(self._root)
 
             if exists:
                 if spaths[-1].startswith("/"):
@@ -2171,7 +2172,7 @@ class ScenarioSelect(select.Select):
                         else:
                             recurse(parent2, tab + "   ")
 
-            recurse(self.tree.root, " ")
+            recurse(self._root, " ")
 
         return "\n".join(lines)
 
@@ -2540,7 +2541,7 @@ class ScenarioSelect(select.Select):
             self.SetDoubleBuffered(True)
             self.Freeze()
             self.tree.Hide()
-            recurse(self.tree.root)
+            recurse(self._root)
             self.tree.Show()
             self.Thaw()
             self.Layout()
@@ -2605,7 +2606,7 @@ class ScenarioSelect(select.Select):
             else:
                 dpath = header
                 name = os.path.basename(dpath)
-                image = self.tree.imgidx_dir
+                image = self._imgidx_dir
                 if sys.platform == "win32" and name.lower().endswith(".lnk"):
                     name = cw.util.splitext(name)[0]
                 item = self.tree.AppendItem(treeitem, name, image)
@@ -2616,7 +2617,7 @@ class ScenarioSelect(select.Select):
                 itemlist.append(item)
                 dpaths.append(dpath)
 
-        if treeitem is not self.tree.root:
+        if treeitem is not self._root:
             if treeitem.IsOk() and not self.tree.IsExpanded(treeitem):
                 self.tree.Expand(treeitem)
 
@@ -2629,7 +2630,7 @@ class ScenarioSelect(select.Select):
         return itemlist, dpaths
 
     def _create_findresultitem(self, index, treeitem, findresult):
-        image = self.tree.imgidx_findresult
+        image = self._imgidx_findresult
         item = self.tree.InsertItem(treeitem, index, cw.cwpy.msgs["find_result"], image)
         self.tree.SetItemData(item, (index, findresult))
         if findresult.headers:
@@ -2648,14 +2649,14 @@ class ScenarioSelect(select.Select):
 
     def create_treeitem(self, index, treeitem, header):
         name = header.name
-        image = self.tree.imgidx_summary
+        image = self._imgidx_summary
 
         if self.is_playing(header):
-            image = self.tree.imgidx_playing
+            image = self._imgidx_playing
         elif self.is_complete(header):
-            image = self.tree.imgidx_complete
+            image = self._imgidx_complete
         elif self.is_invisible(header):
-            image = self.tree.imgidx_invisible
+            image = self._imgidx_invisible
 
         if self.sort.GetSelection() == 0 and (header.levelmin != 0 or header.levelmax != 0):
             # 対象レベルによる整列中
@@ -2685,9 +2686,9 @@ class ScenarioSelect(select.Select):
 
     def show_tree(self, freeze=True):
         # ツリーを初期化する
-        self.tree.DeleteChildren(self.tree.root)
+        self.tree.DeleteChildren(self._root)
 
-        treeitem = self.tree.root
+        treeitem = self._root
         itemlist = []
         dirstack = self.dirstack[:]
         while True:
@@ -2713,7 +2714,7 @@ class ScenarioSelect(select.Select):
                     treeitem = itemlist[self.index]
                     self.tree.SelectItem(treeitem)
                 else:
-                    if treeitem is not self.tree.root:
+                    if treeitem is not self._root:
                         self.tree.SelectItem(treeitem)
                         self._tree_selchanged()
 
@@ -2886,7 +2887,7 @@ class ScenarioSelect(select.Select):
 
         focus = wx.Window.FindFocus()
         # dpathからツリーアイテムを検索
-        parent = self.tree.root
+        parent = self._root
         item = None
         dirstack.append(("", dpath))
         while dirstack:
@@ -2985,7 +2986,7 @@ class ScenarioSelect(select.Select):
 
     def _is_showing(self, header, ntypes, narrow, intnarrow, donarrow, level):
         if isinstance(header, cw.header.ScenarioHeader):
-            if not cw.cwpy.setting.show_unfitnessscenario and not (ntypes == set([_NARROW_LEVEL]) and donarrow) and\
+            if not cw.cwpy.setting.show_unfitnessscenario and not (ntypes == {_NARROW_LEVEL} and donarrow) and\
                     ((header.levelmin != 0 and level < header.levelmin) or
                      (header.levelmax != 0 and header.levelmax < level)):
                 return False
@@ -3271,9 +3272,9 @@ class ScenarioSelect(select.Select):
 
         def progress():
             while not thread.complete:
-                wx.CallAfter(dlg.Update, cwdata.curnum, cwdata.message)
+                wx.CallAfter(dlg.UpdateProgress, cwdata.curnum, cwdata.message)
                 time.sleep(0.001)
-            wx.CallAfter(dlg.Update, cwdata.curnum+1, "シナリオを圧縮しています...")
+            wx.CallAfter(dlg.UpdateProgress, cwdata.curnum+1, "シナリオを圧縮しています...")
             # zip圧縮
             temppath = thread.path
             zpath = os.path.basename(temppath) + ".wsn"
@@ -3281,7 +3282,7 @@ class ScenarioSelect(select.Select):
             zpath = cw.util.dupcheck_plus(zpath, False)
             cw.util.compress_zip(temppath, zpath, unicodefilename=True)
             # tempを削除
-            wx.CallAfter(dlg.Update, cwdata.curnum+2, "一時フォルダを削除しています...")
+            wx.CallAfter(dlg.UpdateProgress, cwdata.curnum+2, "一時フォルダを削除しています...")
             cw.util.remove(temppath)
             zpaths[0] = zpath
             wx.CallAfter(dlg.Destroy)
@@ -3326,13 +3327,13 @@ class ScenarioSelect(select.Select):
         # ツリー表示中の場合は追加
         if self.tree.IsShown() and header:
             name = header.name
-            image = self.tree.imgidx_summary
+            image = self._imgidx_summary
             if self.is_playing(header):
-                image = self.tree.imgidx_playing
+                image = self._imgidx_playing
             elif self.is_complete(header):
-                image = self.tree.imgidx_complete
+                image = self._imgidx_complete
             elif self.is_invisible(header):
-                image = self.tree.imgidx_invisible
+                image = self._imgidx_invisible
             parent = self.tree.GetSelection()
             prev = None
             i = 0

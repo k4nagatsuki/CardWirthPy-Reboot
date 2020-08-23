@@ -11,6 +11,8 @@ from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND
 
 import cw
 
+from typing import Optional, Tuple
+
 
 try:
     if sys.platform == "darwin":
@@ -849,7 +851,7 @@ def _blend_mult_1_50(dest, source):
     return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
 
 
-def to_disabledimage(wxbmp, maskpos=(0, 0)):
+def to_disabledimage(wxbmp: wx.Bitmap, maskpos: Tuple[int, int] = (0, 0)) -> wx.Bitmap:
     """
     通常時のボタン画像からdisabled用の画像を作る。
     RGB値の範囲を 0～255 から min～max に変更する。
@@ -974,7 +976,7 @@ def patch_alphadata(image, ext, data):
     return image
 
 
-def mul_wxalpha(wximg, alpha):
+def mul_wxalpha(wximg: wx.Image, alpha: int) -> wx.Image:
     """alpha/255分まで、wximgのアルファ値を減少させる。"""
     if not wximg.HasAlpha():
         wximg.InitAlpha()
@@ -1056,7 +1058,8 @@ def blit_2bitbmp_to_message(dest, source, pos, wincolour):
     dest.blit(source, pos)
 
 
-def wxblit_2bitbmp_to_card(dc, dest, wxbmp, x, y, useMask, bitsizekey=None):
+def wxblit_2bitbmp_to_card(dc: wx.MemoryDC, dest: wx.Bitmap, wxbmp: wx.Bitmap, x: int, y: int, useMask: bool,
+                           bitsizekey: Optional[wx.Bitmap] = None) -> None:
     """
     blit_2bitbmp_to_card()のwx版。
     """

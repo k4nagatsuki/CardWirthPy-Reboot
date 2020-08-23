@@ -14,6 +14,7 @@ class BeastCard(base.CWBinaryBase):
     """
     def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True,
                  summoneffect=False):
+        from . import adventurer
         from . import effectmotion
         from . import event
 
@@ -90,7 +91,7 @@ class BeastCard(base.CWBinaryBase):
             # 宿データだとここに付帯召喚のデータ
             self.attachment = f.bool()
         elif self.get_root().is_yadodata():
-            if isinstance(parent, cw.binary.adventurer.Adventurer):
+            if isinstance(parent, adventurer.Adventurer):
                 # キャラクターが所持
                 self.attachment = bool(self.limit != 0)
             elif parent:

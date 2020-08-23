@@ -136,7 +136,7 @@ class ConstructScenarioDB(wx.Dialog):
         def progress():
             while not self._complete and not dlg.cancel:
                 self._cancel = dlg.cancel
-                wx.CallAfter(dlg.Update, self._curnum, self._message)
+                wx.CallAfter(dlg.UpdateProgress, self._curnum, self._message)
                 time.sleep(0.001)
             self._cancel = dlg.cancel
             wx.CallAfter(dlg.Destroy)

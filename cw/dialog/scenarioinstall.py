@@ -6,7 +6,6 @@ import sys
 import shutil
 import threading
 import time
-import itertools
 import wx
 
 import cw
@@ -47,11 +46,11 @@ class SelectScenarioDirectory(wx.Dialog):
         self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1))
         self.tree.SetDoubleBuffered(True)
         self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
-        self.tree.imgidx_dir = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["DIRECTORY"])
+        self._imgidx_dir = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["DIRECTORY"])
         name = os.path.basename(scedir)
         if sys.platform == "win32" and name.lower().endswith(".lnk"):
             name = cw.util.splitext(name)[0]
-        self.tree.root = self.tree.AddRoot(name, self.tree.imgidx_dir)
+        self.tree.root = self.tree.AddRoot(name, self._imgidx_dir)
         self.tree.SetItemData(self.tree.root, scedir)
         self.tree.SetImageList(self.tree.imglist)
         self.tree.SelectItem(self.tree.root)
@@ -132,14 +131,14 @@ class SelectScenarioDirectory(wx.Dialog):
         dpath = self.tree.GetItemData(treeitem)
         selected = None
 
-        for dir in get_dpaths(dpath):
-            name = os.path.basename(dir)
-            image = self.tree.imgidx_dir
+        for dname in get_dpaths(dpath):
+            name = os.path.basename(dname)
+            image = self._imgidx_dir
             if sys.platform == "win32" and name.lower().endswith(".lnk"):
                 name = cw.util.splitext(name)[0]
             item = self.tree.AppendItem(treeitem, name, image)
-            self.tree.SetItemData(item, dir)
-            if dirstack and os.path.normcase(os.path.basename(dir)) == os.path.normcase(dirstack[0]):
+            self.tree.SetItemData(item, dname)
+            if dirstack and os.path.normcase(os.path.basename(dname)) == os.path.normcase(dirstack[0]):
                 if 1 < len(dirstack):
                     self._create_treeitems(item, dirstack[1:])
                     self.tree.Expand(item)
@@ -725,7 +724,7 @@ def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, d
 
     def progress():
         while thread.is_alive():
-            wx.CallAfter(dlg.Update, thread.num, thread.msg)
+            wx.CallAfter(dlg.UpdateProgress, thread.num, thread.msg)
             time.sleep(0.001)
         wx.CallAfter(dlg.Destroy)
 

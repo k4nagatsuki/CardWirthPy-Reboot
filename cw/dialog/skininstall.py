@@ -24,9 +24,9 @@ def install_skin(paths, parent, canswitch=True):
             continue
         skininfo = cw.skin.util.get_skininfo(path)
         if skininfo:
-            name, author, type = skininfo
+            name, author, skintype = skininfo
             is_archive = os.path.isfile(path)
-            seq.append((name, author, type, path, is_archive))
+            seq.append((name, author, skintype, path, is_archive))
             if is_archive:
                 progmax += cw.skin.util.INSTALL_PROGRESS_ARCHIVE
             else:
@@ -112,7 +112,7 @@ def install_skin(paths, parent, canswitch=True):
                 if key not in removes_table:
                     removes_table[key] = list(cw.skin.util.find_skin(name, author))
         try:
-            for name, author, type, path, is_archive in seq:
+            for name, author, skintype, path, is_archive in seq:
                 if overwrite:
                     removes = removes_table[(name, author)]
                 else:
@@ -131,7 +131,7 @@ def install_skin(paths, parent, canswitch=True):
                     #     installedpath = installedpath2
                     #     removes[0] = os.path.basename(rmpath)
 
-                    obj.installed_skindirnames.append((os.path.basename(installedpath), name, author, type))
+                    obj.installed_skindirnames.append((os.path.basename(installedpath), name, author, skintype))
                     if not installed:
                         installed = os.path.basename(installedpath)
 
@@ -237,7 +237,7 @@ def install_skin(paths, parent, canswitch=True):
 
     def progress_run():
         while thread.is_alive():
-            wx.CallAfter(progdlg.Update, obj.value, obj.msg)
+            wx.CallAfter(progdlg.UpdateProgress, obj.value, obj.msg)
             time.sleep(0.001)
     thread2 = threading.Thread(target=progress_run)
     thread2.start()

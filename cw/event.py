@@ -7,11 +7,12 @@ import pygame
 import pygame.locals
 
 import cw
-from cw.character import Player, Enemy
+
+from typing import Optional
 
 
 class EventInterface(object):
-    def __init__(self):
+    def __init__(self) -> None:
         # イベントの選択メンバ(Character)
         self._selectedmember = None
         # イベントの使用中カード(CardHeader)
@@ -49,14 +50,14 @@ class EventInterface(object):
         # カード消費判定に使用される
         self.is_changestate = False
 
-    def get_selectedmembername(self):
+    def get_selectedmembername(self) -> str:
         """選択中メンバの名前を返す。"""
         try:
             return self._selectedmember.name
         except Exception:
             return "選択メンバ未定"
 
-    def get_selectedcardname(self):
+    def get_selectedcardname(self) -> str:
         """選択カードの名前を返す(Wsn.3)。"""
         try:
             return self._selectedcard.name
@@ -95,14 +96,14 @@ class EventInterface(object):
         self._nowrunningevents = []
         self.clear_stackinfo()
 
-    def get_event(self):
+    def get_event(self) -> Optional["Event"]:
         """現在起動中のEventを返す。"""
         if self._nowrunningevents:
             return self._nowrunningevents[0]
         else:
             return None
 
-    def get_effectevent(self):
+    def get_effectevent(self) -> None:
         """カードなどの効果適用イベントが実行中であれば返す。"""
         return self.effectevent
 
@@ -324,7 +325,7 @@ class EventInterface(object):
         pcards = cw.cwpy.get_pcards(mode)
         return pcards[0] if pcards else None
 
-    def get_inusecard(self):
+    def get_inusecard(self) -> Optional["cw.header.CardHeader"]:
         """使用カード(CardHeaderインスタンス)を返す。"""
         card = self._inusecard
         return card
@@ -574,7 +575,7 @@ class EventInterface(object):
     def is_stoped(self):
         return self.stoped
 
-    def is_paused(self):
+    def is_paused(self) -> bool:
         return self.paused
 
 
@@ -585,7 +586,7 @@ class EventEngine(object):
         """
         self.events = [Event(e) for e in data]
 
-    def start(self, keynum=None, keycodes=[][:], isinsideevent=False, successevent=False):
+    def start(self, keynum=None, keycodes=None, isinsideevent=False, successevent=False):
         """発火条件に適合するイベント
         (リストのindexが若いほど優先順位が高い)を起動させる。
         keynum: 発火キーナンバー。
@@ -1000,9 +1001,9 @@ class Event(object):
         """targetがEnemyであればtarget自身が持つEvents、
         Playerであればエリアのプレイヤーカードイベント(Wsn.2)を返す。
         """
-        if isinstance(target, (Enemy, cw.sprite.card.MenuCard)):
+        if isinstance(target, (cw.character.Enemy, cw.sprite.card.MenuCard)):
             return target.events
-        elif isinstance(target, Player):
+        elif isinstance(target, cw.character.Player):
             # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
             return cw.cwpy.sdata.playerevents
         else:
@@ -1280,6 +1281,9 @@ class Targeting(object):
                                          cw.cwpy.get_mcards("visible"),
                                          cw.cwpy.get_fcards()):
                 if isinstance(ccard, cw.character.Character):
+                    assert isinstance(ccard, (cw.sprite.card.PlayerCard,
+                                              cw.sprite.card.EnemyCard,
+                                              cw.sprite.card.FriendCard))
                     if ccard.has_coupon("＠効果対象") and (not self.eff or self.eff.check_enabledtarget(ccard, False)):
                         self.targets.append(ccard)
                         if self._setcardtarget and not ccard.cardtarget and self.in_effectmotionloop():

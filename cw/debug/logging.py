@@ -142,17 +142,17 @@ class DebugLogDialog(wx.Dialog):
             if self.text.GetValue():
                 self.text.Newline()
                 self.plain_text.append("")
-            for type in ("SkillCard", "ItemCard", "BeastCard"):
-                for key in cw.util.sorted_by_attr([a for a in iter(debuglog.got_card.keys()) if a[0] == type]):
+            for ctype in ("SkillCard", "ItemCard", "BeastCard"):
+                for key in cw.util.sorted_by_attr([a for a in iter(debuglog.got_card.keys()) if a[0] == ctype]):
                     _type, name, _desc, premium = key
                     num = debuglog.got_card[key]
-                    if type == "SkillCard":
+                    if ctype == "SkillCard":
                         bmp = cw.cwpy.rsrc.debugs["EVT_GET_SKILL"]
                         typename = "特殊技能"
-                    elif type == "ItemCard":
+                    elif ctype == "ItemCard":
                         bmp = cw.cwpy.rsrc.debugs["EVT_GET_ITEM"]
                         typename = "アイテム"
-                    elif type == "BeastCard":
+                    elif ctype == "BeastCard":
                         bmp = cw.cwpy.rsrc.debugs["EVT_GET_BEAST"]
                         typename = "召喚獣"
                     else:
@@ -185,17 +185,17 @@ class DebugLogDialog(wx.Dialog):
             if self.text.GetValue():
                 self.text.Newline()
                 self.plain_text.append("")
-            for type in ("SkillCard", "ItemCard", "BeastCard"):
-                for key in cw.util.sorted_by_attr([a for a in iter(debuglog.lost_card.keys()) if a[0] == type]):
+            for ctype in ("SkillCard", "ItemCard", "BeastCard"):
+                for key in cw.util.sorted_by_attr([a for a in iter(debuglog.lost_card.keys()) if a[0] == ctype]):
                     _type, name, _desc, _premium = key
                     num = debuglog.lost_card[key]
-                    if type == "SkillCard":
+                    if ctype == "SkillCard":
                         bmp = cw.cwpy.rsrc.debugs["EVT_LOSE_SKILL"]
                         typename = "特殊技能"
-                    elif type == "ItemCard":
+                    elif ctype == "ItemCard":
                         bmp = cw.cwpy.rsrc.debugs["EVT_LOSE_ITEM"]
                         typename = "アイテム"
-                    elif type == "BeastCard":
+                    elif ctype == "BeastCard":
                         bmp = cw.cwpy.rsrc.debugs["EVT_LOSE_BEAST"]
                         typename = "召喚獣"
                     else:
@@ -381,14 +381,14 @@ class DebugLog(object):
         """所持金の情報を設定する。"""
         self.money = (before, after)
 
-    def add_gotcard(self, type, name, desc, scenario, author, premium):
+    def add_gotcard(self, ctype, name, desc, scenario, author, premium):
         """入手したカードの情報を追加する。"""
-        key = (type, name, desc, premium)
+        key = (ctype, name, desc, premium)
         self.got_card[key] = self.got_card.get(key, 0) + 1
 
-    def add_lostcard(self, type, name, desc, scenario, author, premium):
+    def add_lostcard(self, ctype, name, desc, scenario, author, premium):
         """喪失したカードの情報を追加する。"""
-        key = (type, name, desc, premium)
+        key = (ctype, name, desc, premium)
         self.lost_card[key] = self.lost_card.get(key, 0) + 1
 
     def add_compstamp(self, compstamp, get):

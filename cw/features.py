@@ -7,7 +7,7 @@ import cw
 class Feature(object):
     """特性の定義。性別、年代、素質、特徴に派生する。"""
 
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         self.data = data
         # 特性名
         self.name = self.data.gettext("Name", "")
@@ -72,7 +72,7 @@ class Feature(object):
 class Sex(Feature):
     """性別の定義。"""
 
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         Feature.__init__(self, data)
 
         # 名前の別表現。「Male」「Female」など
@@ -87,7 +87,7 @@ class Sex(Feature):
 class Period(Feature):
     """年代の定義。"""
 
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         Feature.__init__(self, data)
 
         # 名前の別表現。「Child」「Young」など
@@ -107,7 +107,7 @@ class Period(Feature):
 class Nature(Feature):
     """素質の定義。"""
 
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         Feature.__init__(self, data)
 
         # 解説
@@ -126,14 +126,14 @@ class Nature(Feature):
 class Making(Feature):
     """特徴の定義。"""
 
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         Feature.__init__(self, data)
 
 
 class SampleType(Feature):
     """デバグ宿で簡易生成を行う際の能力型。"""
 
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         Feature.__init__(self, data)
 
         # 解説

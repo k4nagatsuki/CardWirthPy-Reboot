@@ -3,7 +3,6 @@
 
 import os
 import sys
-import shutil
 import threading
 import time
 import wx

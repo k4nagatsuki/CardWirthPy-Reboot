@@ -39,3 +39,4 @@ CardWirthPy.spec
 dailybuild_tmp/*
 *.bat
 versioninfo.py
+monkeytype.sqlite3

@@ -11,8 +11,6 @@ import cw
 
 
 class CWBinaryBase(object):
-    from . import util
-
     def __init__(self, parent, f, yadodata=False, materialdir="Material", image_export=True):
         self.set_root(parent)
         self.xmltype = self.__class__.__name__
@@ -25,6 +23,9 @@ class CWBinaryBase(object):
         self.set_image_export(image_export, False)
         self.yadodb = None
         self.xmlpath = ""
+        self.name = ""
+        self.id = 0
+        self.image = ""
 
         if parent:
             self.yadodata = parent.yadodata
@@ -143,6 +144,7 @@ class CWBinaryBase(object):
 
     def export_image(self):
         """内部画像を出力する"""
+        from . import beast
         from . import util
 
         if not hasattr(self, "image"):
@@ -162,7 +164,7 @@ class CWBinaryBase(object):
         # 画像保存ディレクトリ
         if self.xmltype == "Summary":
             imgdir = basedir
-        elif self.xmltype == "BeastCard" and self.summoneffect:
+        elif self.xmltype == "BeastCard" and isinstance(self, beast.BeastCard) and self.summoneffect:
             imgdir = self.get_imgdir()
             if not basedir:
                 basedir = self.get_root().materialbasedir

@@ -12,6 +12,8 @@ from ctypes import c_int, c_uint8, c_uint16, c_uint32, c_uint64, c_float, c_void
 import cw
 from cw.util import synclock
 
+from typing import List, Tuple
+
 
 # typedef を間違えないように...
 c_BYTE = c_uint8
@@ -203,7 +205,7 @@ def is_alivablewithpath(path):
         return is_alivable()
 
 
-def init_bass(soundfonts):
+def init_bass(soundfonts: List[Tuple[str, float]]) -> bool:
     """
     BASS AudioのDLLをロードし、再生のための初期化を行う。
     初期化が成功したらTrueを、失敗した場合はFalseを返す。

@@ -7,12 +7,12 @@ import base64
 BINARY_HEADER = "binaryimage://"
 
 
-def path_is_code(path):
+def path_is_code(path: str) -> bool:
     """pathがバイナリイメージのテキスト表現であればTrue。"""
     return path.startswith(BINARY_HEADER)
 
 
-def code_to_data(code):
+def code_to_data(code: str) -> bytes:
     """テキスト表現codeをバイナリイメージへ変換する。"""
     if path_is_code(code):
         return base64.b64decode(code[len(BINARY_HEADER):])

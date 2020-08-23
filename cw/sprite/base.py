@@ -19,6 +19,9 @@ class CWPySprite(pygame.sprite.DirtySprite):
         self.skipped = False
         self.frame = 0
 
+        self.rect = pygame.Rect(0, 0, 0, 0)
+        self.image = None
+
     def is_initialized(self):
         return True
 
@@ -94,6 +97,9 @@ class MouseHandlerSprite(CWPySprite):
             self.handling = handling
             self.update_image()
 
+    def update_image(self):
+        pass
+
 
 class SelectableSprite(CWPySprite):
     def __init__(self, *groups):
@@ -164,7 +170,7 @@ class SelectableSprite(CWPySprite):
                     return True
 
             elif 0 <= cw.cwpy.mousepos[0] and 0 <= cw.cwpy.mousepos[1] and\
-                    self.rect.collidepoint(cw.cwpy.mousepos):
+                    self.rect.collidepoint(*cw.cwpy.mousepos):
                 if cw.cwpy.mousemotion:
                     cw.cwpy.index = -1
                 return True

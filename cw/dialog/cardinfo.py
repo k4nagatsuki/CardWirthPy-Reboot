@@ -7,6 +7,8 @@ import wx
 
 import cw
 
+from typing import List
+
 
 # ------------------------------------------------------------------------------
 # カード情報ダイアログ　スーパークラス
@@ -16,6 +18,9 @@ class CardInfo(wx.Dialog):
     """
     カード情報ダイアログ　スーパークラス
     """
+    list: List[cw.header.CardHeader]
+    index: int
+
     def __init__(self, parent, scedir=""):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=cw.wins((380, 200)),
@@ -113,6 +118,12 @@ class CardInfo(wx.Dialog):
         lines.append(self.get_desc())
         lines.append("")
         cw.util.to_clipboard("\n".join(lines))
+
+    def OnClickLeftBtn(self, event):
+        pass
+
+    def OnClickRightBtn(self, event):
+        pass
 
     def OnMouseWheel(self, event):
         if cw.util.has_modalchild(self):
