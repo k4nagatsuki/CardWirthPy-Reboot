@@ -15,7 +15,7 @@ import cw.binary.environment
 import cw.binary.party
 import cw.binary.adventurer
 
-from typing import Any, Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 
 # ------------------------------------------------------------------------------
@@ -885,7 +885,7 @@ class YadoSelect(MultiViewSelect):
             self.update_narrowcondition()
             self.draw(True)
 
-    def _sort_objs(self, objs: List[Any]) -> None:
+    def _sort_objs(self, objs: List["_YadoObj"]) -> None:
         sorttype = cw.cwpy.setting.sort_yado
         if sorttype == "Name":
             cw.util.sort_by_attr(objs, "name", "skin", "order", "yadodirname")
@@ -909,28 +909,13 @@ class YadoSelect(MultiViewSelect):
             MultiViewSelect.OnMouseWheel(self, event)
 
     def _list_to_obj(self):
-        class YadoObj(object):
-            def __init__(self, name, yadodir, advnames, skin, classic, isshortcut, imgpaths):
-                self.name = name
-                self.yadodir = yadodir
-                self.advnames = advnames
-                self.skin = skin
-                self.classic = classic
-                self.isshortcut = isshortcut
-                if isshortcut:
-                    self.yadodirname = os.path.basename(isshortcut)
-                else:
-                    self.yadodirname = os.path.basename(yadodir)
-                self.imgpaths = imgpaths
-                self.order = cw.cwpy.setting.yado_order.get(self.yadodirname, 0x7fffffff)
-
         seq = []
         for t in zip(self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts,
                      self._imgpaths):
-            seq.append(YadoObj(*t))
+            seq.append(_YadoObj(*t))
         return seq
 
-    def _obj_to_list(self, objs: List[Any]) -> None:
+    def _obj_to_list(self, objs: List["_YadoObj"]) -> None:
         self.names = []
         self.list = []
         self.list2 = []
@@ -1815,6 +1800,22 @@ class YadoSelect(MultiViewSelect):
             advnames.append(seq)
 
         return names, yadodirs, advnames, skins, classic, isshortcuts, imgpaths
+
+
+class _YadoObj(object):
+    def __init__(self, name, yadodir, advnames, skin, classic, isshortcut, imgpaths):
+        self.name = name
+        self.yadodir = yadodir
+        self.advnames = advnames
+        self.skin = skin
+        self.classic = classic
+        self.isshortcut = isshortcut
+        if isshortcut:
+            self.yadodirname = os.path.basename(isshortcut)
+        else:
+            self.yadodirname = os.path.basename(yadodir)
+        self.imgpaths = imgpaths
+        self.order = cw.cwpy.setting.yado_order.get(self.yadodirname, 0x7fffffff)
 
 
 # ------------------------------------------------------------------------------

@@ -19,7 +19,7 @@ import pygame.locals
 import cw
 from cw.util import synclock
 
-from typing import Any, Set, Dict, List, Optional, Tuple, Union
+from typing import Set, Dict, List, Optional, Tuple, Union
 
 
 _lock = threading.Lock()
@@ -4295,7 +4295,7 @@ class Party(object):
             self.data.append("Property/LastScenario", make_element("Path", path))
 
 
-def sort_cards(cards: List[Any], condition: str, withstar: bool) -> None:
+def sort_cards(cards: List["cw.header.CardHeader"], condition: str, withstar: bool) -> None:
     seq = ["personal_owner_index"] if cw.cwpy.setting.show_personal_cards else []
     if withstar:
         seq.append("negastar")
