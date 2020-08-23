@@ -15,13 +15,15 @@ import cw.binary.environment
 import cw.binary.party
 import cw.binary.adventurer
 
+from typing import Any, Iterable, List, Optional, Tuple
+
 
 # ------------------------------------------------------------------------------
 # 選択ダイアログ スーパークラス
 # ------------------------------------------------------------------------------
 
 class Select(wx.Dialog):
-    def __init__(self, parent, name):
+    def __init__(self, parent: wx.TopLevelWindow, name: str) -> None:
         wx.Dialog.__init__(self, parent, -1, name,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -83,7 +85,7 @@ class Select(wx.Dialog):
 
         cw.util.set_acceleratortable(self, seq)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeft2Btn, self.left2btn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
@@ -137,10 +139,10 @@ class Select(wx.Dialog):
     def OnDebugMode(self, event):
         pass
 
-    def OnMotion(self, evt):
+    def OnMotion(self, evt: wx.MouseEvent) -> None:
         self._update_mousepos()
 
-    def _update_mousepos(self):
+    def _update_mousepos(self) -> None:
         if not self.can_clickside():
             if self.can_clickcenter():
                 self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
@@ -216,7 +218,7 @@ class Select(wx.Dialog):
         self.draw(True)
         self.index_changed()
 
-    def index_changed(self):
+    def index_changed(self) -> None:
         pass
 
     def OnMouseWheel(self, event):
@@ -233,13 +235,13 @@ class Select(wx.Dialog):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
             self.ProcessEvent(btnevent)
 
-    def OnMouseDown(self, event):
+    def OnMouseDown(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
         self._downbutton = event.GetButton()
 
-    def OnSelectBase(self, event):
+    def OnSelectBase(self, event: wx.MouseEvent) -> None:
         if self._processing:
             return
         if self._downbutton != event.GetButton():
@@ -269,10 +271,10 @@ class Select(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint2(self, event):
+    def OnPaint2(self, event: wx.PaintEvent) -> None:
         self.draw()
 
-    def draw2(self, update=False):
+    def draw2(self, update: bool = False) -> Tuple[wx.MemoryDC, wx.Bitmap]:
         if not self.toppanel.IsShown():
             return None, None
         dest = wx.Bitmap(self.toppanel.GetClientSize())
@@ -287,7 +289,7 @@ class Select(wx.Dialog):
         dc, dest = self.draw2(update)
         self.draw3(dc, dest, update)
 
-    def draw3(self, dc, dest, update):
+    def draw3(self, dc: wx.MemoryDC, dest: wx.Bitmap, update: bool) -> None:
         dc.SelectObject(wx.NullBitmap)
         if update:
             dc = wx.ClientDC(self.toppanel)
@@ -296,7 +298,7 @@ class Select(wx.Dialog):
             dc = wx.BufferedPaintDC(self.toppanel)
         dc.DrawBitmap(dest, cw.wins(0), cw.wins(0))
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(sizer_1)
         self.set_panelsizer()
@@ -313,7 +315,7 @@ class Select(wx.Dialog):
     def _add_topsizer(self):
         pass
 
-    def set_panelsizer(self):
+    def set_panelsizer(self) -> None:
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         self.panel.SetSizer(sizer_panel)
 
@@ -329,7 +331,7 @@ class Select(wx.Dialog):
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         sizer_panel.Add(self.right2btn, 0, 0, 0)
 
-    def _disable_btn(self, enables=None):
+    def _disable_btn(self, enables: Optional[Iterable[wx.Control]] = None) -> None:
         if enables is None:
             enables = []
         lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
@@ -339,7 +341,7 @@ class Select(wx.Dialog):
             else:
                 btn.Disable()
 
-    def _enable_btn(self, disables=None):
+    def _enable_btn(self, disables: Optional[Iterable[wx.Control]] = None) -> None:
         if disables is None:
             disables = []
         lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
@@ -357,7 +359,8 @@ class Select(wx.Dialog):
         """パネルの左右クリックでページ切替可能ならTrue。"""
         return True
 
-    def _init_narrowpanel(self, choices, narrowtext, narrowtype, tworows=False):
+    def _init_narrowpanel(self, choices: Tuple[str, str, str, str], narrowtext: str, narrowtype: int,
+                          tworows: bool = False) -> None:
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         if tworows:
             self.keyword_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_keyword"])
@@ -384,7 +387,7 @@ class Select(wx.Dialog):
     def OnFind(self, event):
         pass
 
-    def OnNarrowCondition(self, event):
+    def OnNarrowCondition(self, event: wx.CommandEvent) -> None:
         if self._processing:
             return
         cw.cwpy.play_sound("page")
@@ -404,7 +407,7 @@ class Select(wx.Dialog):
     def _on_narrowcondition(self):
         pass
 
-    def create_addctrlbtn(self, parent, bg, show):
+    def create_addctrlbtn(self, parent: wx.Panel, bg: wx.Bitmap, show: bool) -> None:
         """追加的なコントロールの表示切替を行うボタンを生成する。
         parent: ボタンの親コントロール。
         bg: ボタンの背景色の基準となるwx.Bitmap。
@@ -425,12 +428,12 @@ class Select(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
         self.addctrlbtn.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
 
-    def update_additionals(self):
+    def update_additionals(self) -> None:
         """表示状態の切り替え時に呼び出される。"""
         show = self.addctrlbtn.GetToggle()
         self.update_additionals_impl(show, self.additionals)
 
-    def update_additionals_impl(self, show, additionals):
+    def update_additionals_impl(self, show: bool, additionals: List[wx.Control]) -> None:
         """表示状態の切り替え時に呼び出される。"""
         for ctrl in additionals:
             if isinstance(ctrl, tuple):
@@ -446,7 +449,7 @@ class Select(wx.Dialog):
         self.addctrlbtn.SetBitmapLabel(bmp)
         self.addctrlbtn.SetBitmapSelected(bmp)
 
-    def append_addctrlaccelerator(self, seq):
+    def append_addctrlaccelerator(self, seq: List[Tuple[int, int, int]]) -> None:
         """アクセラレータキーリストseqに追加的コントロール
         表示切替のショートカットキー`Ctrl+F`を追加する。
         """
@@ -458,10 +461,10 @@ class Select(wx.Dialog):
         self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
         self._additional_controls()
 
-    def OnAdditionalControls(self, event):
+    def OnAdditionalControls(self, event: wx.lib.buttons.GenButtonEvent) -> None:
         self._additional_controls()
 
-    def _additional_controls(self):
+    def _additional_controls(self) -> None:
         cw.cwpy.play_sound("equipment")
         self.Freeze()
         self.update_additionals()
@@ -482,7 +485,8 @@ class Select(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class MultiViewSelect(Select):
-    def __init__(self, parent, title, enterid, views=10, show_multi=False, lines=2):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, enterid: int, views: int = 10, show_multi: bool = False,
+                 lines: int = 2) -> None:
         # ダイアログボックス作成
         Select.__init__(self, parent, title)
         self.viewbtn = None
@@ -492,7 +496,7 @@ class MultiViewSelect(Select):
         self._enterid = enterid
         self.views = views if show_multi else 1
 
-    def can_clickside(self):
+    def can_clickside(self) -> bool:
         return self.views <= 1
 
     def OnLeftDClick(self, event):
@@ -509,7 +513,7 @@ class MultiViewSelect(Select):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
             self.ProcessEvent(btnevent)
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -594,7 +598,7 @@ class MultiViewSelect(Select):
         cw.cwpy.play_sound("page")
         self.draw(True)
 
-    def OnSelect(self, event):
+    def OnSelect(self, event: wx.MouseEvent) -> None:
         if self._processing:
             return
 
@@ -643,10 +647,10 @@ class MultiViewSelect(Select):
     def enable_btn(self):
         pass
 
-    def get_page(self):
+    def get_page(self) -> int:
         return self.index // self.views
 
-    def get_pagecount(self):
+    def get_pagecount(self) -> int:
         return (len(self.list) + self.views - 1) // self.views
 
     def save_views(self, multi):
@@ -664,7 +668,7 @@ class YadoSelect(MultiViewSelect):
     """
     宿選択ダイアログ。
     """
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         # ダイアログボックス作成
         MultiViewSelect.__init__(self, parent, cw.cwpy.msgs["select_base_title"], _okid, 6,
                                  cw.cwpy.setting.show_multiplebases, lines=3)
@@ -767,11 +771,11 @@ class YadoSelect(MultiViewSelect):
             self.append_addctrlaccelerator(seq)
         cw.util.set_acceleratortable(self, seq)
 
-    def update_additionals(self):
+    def update_additionals(self) -> None:
         Select.update_additionals(self)
         cw.cwpy.setting.show_additional_yado = self.addctrlbtn.GetToggle()
 
-    def _add_topsizer(self):
+    def _add_topsizer(self) -> None:
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         nsizer.Add(self.narrow_label, 0, wx.LEFT | wx.RIGHT | wx.CENTER, cw.wins(2))
@@ -783,12 +787,12 @@ class YadoSelect(MultiViewSelect):
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
 
-    def _on_narrowcondition(self):
+    def _on_narrowcondition(self) -> None:
         cw.cwpy.setting.yado_narrowtype = self.narrow_type.GetSelection()
         self.update_narrowcondition()
         self.draw(True)
 
-    def update_narrowcondition(self):
+    def update_narrowcondition(self) -> None:
         if 0 <= self.index and self.index < len(self.list):
             selected = self.list[self.index]
         else:
@@ -840,7 +844,7 @@ class YadoSelect(MultiViewSelect):
             self.index = 0
         self.enable_btn()
 
-    def _get_bg(self):
+    def _get_bg(self) -> wx.Bitmap:
         if self._bg:
             return self._bg
         path = "Table/Bill"
@@ -863,7 +867,7 @@ class YadoSelect(MultiViewSelect):
                 event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.sort.GetId())
                 self.ProcessEvent(event)
 
-    def OnSort(self, event):
+    def OnSort(self, event: wx.CommandEvent) -> None:
         if self._processing:
             return
 
@@ -881,7 +885,7 @@ class YadoSelect(MultiViewSelect):
             self.update_narrowcondition()
             self.draw(True)
 
-    def _sort_objs(self, objs):
+    def _sort_objs(self, objs: List[Any]) -> None:
         sorttype = cw.cwpy.setting.sort_yado
         if sorttype == "Name":
             cw.util.sort_by_attr(objs, "name", "skin", "order", "yadodirname")
@@ -890,7 +894,7 @@ class YadoSelect(MultiViewSelect):
         else:
             cw.util.sort_by_attr(objs, "order", "name", "skin", "yadodirname")
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -926,7 +930,7 @@ class YadoSelect(MultiViewSelect):
             seq.append(YadoObj(*t))
         return seq
 
-    def _obj_to_list(self, objs):
+    def _obj_to_list(self, objs: List[Any]) -> None:
         self.names = []
         self.list = []
         self.list2 = []
@@ -946,19 +950,19 @@ class YadoSelect(MultiViewSelect):
     def save_views(self, multi):
         cw.cwpy.setting.show_multiplebases = multi
 
-    def index_changed(self):
+    def index_changed(self) -> None:
         MultiViewSelect.index_changed(self)
         self.enable_btn()
         buttonlist = [button for button in self.buttonlist if button.IsEnabled()]
         if buttonlist:
             buttonlist[0].SetFocus()
 
-    def can_clickcenter(self):
+    def can_clickcenter(self) -> bool:
         return not (self.views == 1 and self._list and not self.okbtn.IsEnabled()) and\
                 ((self.list and self._list and os.path.isdir(self.list[self.index])) or
                  (self.newbtn.IsEnabled() and not self._list))
 
-    def enable_btn(self):
+    def enable_btn(self) -> None:
         # リストが空だったらボタンを無効化
         if not self.list:
             self.okbtn.SetLabel(cw.cwpy.msgs["decide"])
@@ -978,7 +982,7 @@ class YadoSelect(MultiViewSelect):
         if self.list and (cw.util.exists_mutex(self.list[self.index]) or not os.path.isdir(self.list[self.index])):
             self.okbtn.Disable()
 
-    def OnSelect(self, event):
+    def OnSelect(self, event: wx.MouseEvent) -> None:
         if self._list:
             MultiViewSelect.OnSelect(self, event)
         elif self.newbtn.IsEnabled():
@@ -1003,7 +1007,7 @@ class YadoSelect(MultiViewSelect):
             self.conv_yado(path)
             time.sleep(0.3)
 
-    def OnClickExBtn(self, event):
+    def OnClickExBtn(self, event: wx.CommandEvent) -> None:
         """
         拡張。
         """
@@ -1044,7 +1048,7 @@ class YadoSelect(MultiViewSelect):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def rename_yado(self):
+    def rename_yado(self) -> None:
         """
         宿改名。
         """
@@ -1060,7 +1064,7 @@ class YadoSelect(MultiViewSelect):
 
         dlg.Destroy()
 
-    def copy_yado(self):
+    def copy_yado(self) -> None:
         """
         宿複製。
         """
@@ -1110,7 +1114,7 @@ class YadoSelect(MultiViewSelect):
 
         dlg.Destroy()
 
-    def trasnfer_yadodata(self):
+    def trasnfer_yadodata(self) -> None:
         """
         宿のデータのコピー。
         """
@@ -1152,7 +1156,7 @@ class YadoSelect(MultiViewSelect):
         else:
             cw.cwpy.play_sound("error")
 
-    def delete_yado(self):
+    def delete_yado(self) -> None:
         """
         宿削除。
         """
@@ -1204,7 +1208,7 @@ class YadoSelect(MultiViewSelect):
         else:
             cw.cwpy.play_sound("error")
 
-    def OnClickNewBtn(self, event):
+    def OnClickNewBtn(self, event: wx.CommandEvent) -> None:
         """
         宿新規作成。
         """
@@ -1219,7 +1223,7 @@ class YadoSelect(MultiViewSelect):
 
         dlg.Destroy()
 
-    def _conv_yado(self):
+    def _conv_yado(self) -> None:
         """
         CardWirthの宿データを変換。
         """
@@ -1253,7 +1257,7 @@ class YadoSelect(MultiViewSelect):
         else:
             dlg.Destroy()
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         dc, dest = self.draw2(update)
 
         if self.views != 1 and self._lastbillskindir is not None:
@@ -1481,7 +1485,7 @@ class YadoSelect(MultiViewSelect):
 
         self.draw3(dc, dest, update)
 
-    def conv_yado(self, path, ok=False, moveconverted=False, deletepath=""):
+    def conv_yado(self, path: str, ok: bool = False, moveconverted: bool = False, deletepath: str = "") -> None:
         """
         CardWirthの宿データを変換。
         """
@@ -1575,7 +1579,7 @@ class YadoSelect(MultiViewSelect):
         else:
             cw.cwpy.play_sound("error")
 
-    def unconv_yado(self):
+    def unconv_yado(self) -> None:
         """
         CardWirthの宿データへ逆変換。
         """
@@ -1655,7 +1659,7 @@ class YadoSelect(MultiViewSelect):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def update_list(self, yadodir="", clear_narrowcondition=False):
+    def update_list(self, yadodir: str = "", clear_narrowcondition: bool = False) -> None:
         """
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
@@ -1676,7 +1680,8 @@ class YadoSelect(MultiViewSelect):
         self.draw(True)
         self.enable_btn()
 
-    def get_yadolist(self):
+    def get_yadolist(self) -> Tuple[List[str], List[str], List[List[str]], List[str], List[bool], List[str],
+                                    List[List[cw.image.ImageInfo]]]:
         """Yadoにある宿のpathリストと冒険者リストを返す。"""
         cw.fsync.sync()
         names = []
@@ -3513,7 +3518,7 @@ class Album(PlayerSelect):
         pass
 
 
-def change_combo(combo, event):
+def change_combo(combo: wx.Choice, event: wx.MouseEvent) -> bool:
     if combo and combo.IsShown() and combo.GetRect().Contains(event.GetPosition()):
         index = combo.GetSelection()
         count = combo.GetCount()

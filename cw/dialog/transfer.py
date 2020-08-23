@@ -11,12 +11,14 @@ import wx
 
 import cw
 
+from typing import List
+
 
 class TransferYadoDataDialog(wx.Dialog):
     """
     宿のデータの転送を行う。
     """
-    def __init__(self, parent, yadodirs, yadonames, selected):
+    def __init__(self, parent: wx.TopLevelWindow, yadodirs: List[str], yadonames: List[str], selected: str) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["transfer_title"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -107,7 +109,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         self._update_list()
 
-    def _update_list(self):
+    def _update_list(self) -> None:
         # 選択中の転送元にある転送可能なデータの一覧を表示
         i = 0
         self.data = []
@@ -264,7 +266,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         self._enable_btn()
 
-    def _enable_btn(self):
+    def _enable_btn(self) -> None:
         btn = self.fromyado.GetSelection() != self.toyado.GetSelection()
         if btn:
             btn = False
@@ -275,7 +277,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.okbtn.Enable(btn)
         self.datalist.Enable(bool(self.data))
 
-    def OnFromYado(self, event):
+    def OnFromYado(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("page")
         index = self.fromyado.GetSelection()
         if index == self.index:
@@ -283,7 +285,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.index = index
         self._update_list()
 
-    def OnToYado(self, event):
+    def OnToYado(self, event: wx.CommandEvent) -> None:
         self._enable_btn()
 
     def OnOk(self, event):
@@ -886,7 +888,7 @@ class TransferYadoDataDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
@@ -912,7 +914,7 @@ class TransferYadoDataDialog(wx.Dialog):
         y += (h-th) // 2
         dc.DrawText(s, x, y)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -921,7 +923,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.datalist.Bind(wx.EVT_LIST_ITEM_CHECKED, self.OnListItemChecked)
         self.datalist.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.OnListItemChecked)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -958,7 +960,7 @@ class TransferYadoDataDialog(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
 
-    def OnListItemChecked(self, event):
+    def OnListItemChecked(self, event: wx.ListEvent) -> None:
         self.datalist.OnListItemChecked(event)
         self._enable_btn()
 

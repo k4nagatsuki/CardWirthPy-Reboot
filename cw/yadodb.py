@@ -9,6 +9,8 @@ import time
 import cw
 from cw.util import synclock
 
+from typing import Dict, List, Tuple
+
 
 _lock = threading.Lock()
 
@@ -874,7 +876,7 @@ class YadoDB(object):
         except Exception:
             cw.util.print_ex()
 
-    def get_cards(self):
+    def get_cards(self) -> List["cw.header.CardHeader"]:
         s = """
             SELECT
                 card.fpath,
@@ -1123,7 +1125,7 @@ class YadoDB(object):
         except Exception:
             cw.util.print_ex()
 
-    def get_adventurers(self, album):
+    def get_adventurers(self, album: bool) -> List["cw.header.AdventurerHeader"]:
         if album:
             s = "SELECT * FROM adventurer WHERE album=? ORDER BY name"
             album = 1
@@ -1177,10 +1179,10 @@ class YadoDB(object):
             headers.append(header)
         return headers
 
-    def get_standbys(self):
+    def get_standbys(self) -> List["cw.header.AdventurerHeader"]:
         return self.get_adventurers(False)
 
-    def get_standbynames(self):
+    def get_standbynames(self) -> List[str]:
         s = "SELECT name, fpath FROM adventurer WHERE lost=0 AND album=? ORDER BY name"
         self.cur.execute(s, (0,))
         names = []
@@ -1194,7 +1196,7 @@ class YadoDB(object):
             names.append(rec[0])
         return names
 
-    def get_album(self):
+    def get_album(self) -> List["cw.header.AdventurerHeader"]:
         return self.get_adventurers(True)
 
     @synclock(_lock)
@@ -1263,7 +1265,7 @@ class YadoDB(object):
         except Exception:
             cw.util.print_ex()
 
-    def get_parties(self):
+    def get_parties(self) -> List["cw.header.PartyHeader"]:
         s = """
         SELECT
             *
@@ -1348,7 +1350,7 @@ class YadoDB(object):
         except Exception:
             cw.util.print_ex()
 
-    def get_partyrecord(self):
+    def get_partyrecord(self) -> List["cw.header.PartyRecordHeader"]:
         s = "SELECT * FROM partyrecord ORDER BY name"
         self.cur.execute(s)
         paths = set()
@@ -1417,7 +1419,7 @@ class YadoDB(object):
         except Exception:
             cw.util.print_ex()
 
-    def get_savedjpdcimage(self):
+    def get_savedjpdcimage(self) -> Dict[Tuple[str, str], "cw.header.SavedJPDCImageHeader"]:
         s = "SELECT * FROM savedjpdcimage"
         self.cur.execute(s)
         paths = set()

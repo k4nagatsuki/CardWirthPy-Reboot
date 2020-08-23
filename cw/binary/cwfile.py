@@ -6,6 +6,8 @@ import struct
 
 import cw.util
 
+from typing import Optional
+
 
 class UnsupportedError(Exception):
     """指定されたエンジンバージョンで使用できない機能を
@@ -24,7 +26,8 @@ class CWFile(io.BufferedReader):
     cwfile.CWFile("test/Area1.wid", "rb")
     とやるとインスタンスオブジェクトが生成できる。
     """
-    def __init__(self, path, mode, decodewrap=False, f=None):
+    def __init__(self, path: str, mode: str, decodewrap: bool = False,
+                 f: Optional[io.RawIOBase] = None) -> None:
         if f:
             io.BufferedReader.__init__(self, f)
         else:
@@ -34,14 +37,14 @@ class CWFile(io.BufferedReader):
         self.filedata = []
         self.decodewrap = decodewrap
 
-    def bool(self):
+    def bool(self) -> bool:
         """byteの値を真偽値にして返す。"""
         if self.byte():
             return True
         else:
             return False
 
-    def string(self, multiline=False):
+    def string(self, multiline: bool = False) -> str:
         """dwordの値で読み込んだバイナリをユニコード文字列にして返す。
         dwordの値が"0"だったら空の文字列を返す。
         改行コードはxml置換用のために"\\n"に置換する。
@@ -54,7 +57,7 @@ class CWFile(io.BufferedReader):
 
         return s
 
-    def rawstring(self):
+    def rawstring(self) -> str:
         dword = self.dword()
 
         if dword:
@@ -63,7 +66,7 @@ class CWFile(io.BufferedReader):
         else:
             return ""
 
-    def byte(self):
+    def byte(self) -> int:
         """byteの値を符号付きで返す。"""
         raw_data = self.read(1)
         data = struct.unpack("b", raw_data)
@@ -75,19 +78,19 @@ class CWFile(io.BufferedReader):
         data = struct.unpack("B", raw_data)
         return data[0]
 
-    def dword(self):
+    def dword(self) -> int:
         """dwordの値(4byte)を符号付きで返す。リトルエンディアン。"""
         raw_data = self.read(4)
         data = struct.unpack("<l", raw_data)
         return data[0]
 
-    def word(self):
+    def word(self) -> int:
         """wordの値(2byte)を符号付きで返す。リトルエンディアン。"""
         raw_data = self.read(2)
         data = struct.unpack("<h", raw_data)
         return data[0]
 
-    def image(self):
+    def image(self) -> bytes:
         """dwordの値で読み込んだ画像のバイナリデータを返す。
         dwordの値が"0"だったらNoneを返す。
         """
@@ -98,7 +101,7 @@ class CWFile(io.BufferedReader):
         else:
             return None
 
-    def read(self, n=None):
+    def read(self, n: Optional[int] = None) -> bytes:
         raw_data = io.BufferedReader.read(self, n)
         self.filedata.append(raw_data)
         return raw_data

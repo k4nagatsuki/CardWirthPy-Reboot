@@ -301,7 +301,7 @@ def scr2mwin_s(num):
         return _s_impl(num, float(UP_WIN_M) / UP_SCR)
 
 
-def mwin2scr_s(num):
+def mwin2scr_s(num: wx.Image) -> wx.Image:
     """numを表示サイズから描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
          or pygame.Surface or pygame.Bitmap or pygame.Image

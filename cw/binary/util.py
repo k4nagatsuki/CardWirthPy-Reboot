@@ -7,12 +7,12 @@ import re
 import cw
 
 
-def join_paths(*paths):
+def join_paths(*paths) -> str:
     """パス結合。"""
     return "/".join([a for a in paths if a]).replace("\\", "/").strip("/")
 
 
-def check_filename(name):
+def check_filename(name: str) -> str:
     """ファイル名として適切かどうかチェックして返す。
     name: チェックするファイルネーム
     """
@@ -48,7 +48,7 @@ def check_filename(name):
     return name.strip() + ext.strip()
 
 
-def check_duplicate(path):
+def check_duplicate(path: str) -> str:
     """パスの重複チェック。
     引数のパスをチェックし、重複していたら、
     ファイル・フォルダ名の後ろに"(n)"を付加して返す。

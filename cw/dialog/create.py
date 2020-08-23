@@ -10,6 +10,8 @@ import pygame
 
 import cw
 
+from typing import Callable, Optional
+
 
 # ------------------------------------------------------------------------------
 # 不足データの補填ダイアログ
@@ -2308,7 +2310,7 @@ def get_randommakings():
 # ------------------------------------------------------------------------------
 
 class YadoCreater(wx.Dialog):
-    def __init__(self, parent, yadodir=None):
+    def __init__(self, parent: wx.TopLevelWindow, yadodir: Optional[str] = None) -> None:
         """宿の登録または編集を行う。
         parent: 親ウィンドウ。
         yadodir: 編集対象の宿のディレクトリ。登録の場合はNone。
@@ -2438,7 +2440,7 @@ class YadoCreater(wx.Dialog):
 
         cw.xmlcreater.create_environment(name, self.yadodir, skindirname, is_autoloadparty, self.imgpaths)
 
-    def edit_yado(self):
+    def edit_yado(self) -> None:
         if cw.util.create_mutex("Yado"):
             try:
                 if cw.util.create_mutex(self.yadodir):
@@ -2459,7 +2461,7 @@ class YadoCreater(wx.Dialog):
         else:
             cw.cwpy.play_sound("error")
 
-    def _edit_yado_impl(self):
+    def _edit_yado_impl(self) -> None:
         name = self.textctrl.GetValue().strip()
         skindirname = self.skindirnames[self.skin.GetSelection()]
         is_autoloadparty = self.autoload_party.GetValue()
@@ -2503,7 +2505,7 @@ class YadoCreater(wx.Dialog):
             self.data.is_eidted = True
             self.data.write()
 
-    def _move_dir(self):
+    def _move_dir(self) -> None:
         name = self.textctrl.GetValue().strip()
         olddname = os.path.basename(self.yadodir)
         cw.util.remove(cw.util.join_paths("Data/Temp/Local", olddname))
@@ -2568,7 +2570,7 @@ class YadoCreater(wx.Dialog):
             return
         self._put_image(seq[0])
 
-    def OnInput(self, event):
+    def OnInput(self, event: wx.CommandEvent) -> None:
         name = self.textctrl.GetValue().strip()
 
         if name:
@@ -2576,12 +2578,12 @@ class YadoCreater(wx.Dialog):
         else:
             self.okbtn.Disable()
 
-    def OnChoice(self, event):
+    def OnChoice(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("page")
         self.autoload_party.set_background(self._load_caution())
         self.Refresh()
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         if self.create:
             self.create_yado()
         else:
@@ -2594,7 +2596,7 @@ class YadoCreater(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def _load_caution(self):
+    def _load_caution(self) -> wx.Bitmap:
         index = self.skin.GetSelection()
         imgdata = self.cautions[index]
         bmp = imgdata[1]
@@ -2604,7 +2606,7 @@ class YadoCreater(wx.Dialog):
             imgdata[1] = bmp
         return bmp
 
-    def OnPaint2(self, event):
+    def OnPaint2(self, event: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         index = self.skin.GetSelection()
@@ -2628,7 +2630,7 @@ class YadoCreater(wx.Dialog):
                 baserect = info.calc_basecardposition_wx(bmp.GetSize(), noscale=False,
                                                          basecardtype="Bill",
                                                          cardpostype="NotCard")
-                dc.DrawBitmap(bmp, rect.GetX() + baserect.x, rect.GetY() + baserect.y, True)
+                dc.DrawBitmap(bmp, rect.X + baserect.x, rect.Y + baserect.y, True)
         else:
             imgdata = self.command0s[index]
             bmp = imgdata[1]
@@ -2636,7 +2638,7 @@ class YadoCreater(wx.Dialog):
                 bmp = cw.wins(cw.util.load_wxbmp(imgdata[0], True, can_loaded_scaledimage=True))
                 imgdata[1] = bmp
             bmph = bmp.GetHeight()
-            dc.DrawBitmap(bmp, rect.GetX(), rect.GetY(), True)
+            dc.DrawBitmap(bmp, rect.X, rect.Y, True)
         dc.DestroyClippingRegion()
 
         # text
@@ -2672,7 +2674,7 @@ class YadoCreater(wx.Dialog):
         y += (h-th2) // 2
         dc.DrawText(s, x, y)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_PAINT, self.OnPaint2)
@@ -2687,7 +2689,7 @@ class YadoCreater(wx.Dialog):
                 recurse(child)
         recurse(self)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_all = wx.BoxSizer(wx.VERTICAL)
         sizer_0 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -3388,7 +3390,8 @@ def _set_previmg(panel, name):
         panel.Refresh()
 
 
-def create_refimage(parent, tooltip, multiple, callback, setsize=True):
+def create_refimage(parent: YadoCreater, tooltip: str, multiple: bool, callback: Callable,
+                    setsize: bool = True) -> wx.Button:
     """イメージファイルの選択ダイアログを開く。"""
     tip = "画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*"
     ref_image = cw.util.create_fileselection(parent, None, cw.cwpy.msgs["select_signboard"], tip,

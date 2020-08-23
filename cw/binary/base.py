@@ -9,9 +9,14 @@ import wx
 
 import cw
 
+from typing import Optional
+
 
 class CWBinaryBase(object):
-    def __init__(self, parent, f, yadodata=False, materialdir="Material", image_export=True):
+    from . import environment
+
+    def __init__(self, parent: Optional["environment.Environment"], f: "cw.binary.cwfile.CWFile",
+                 yadodata: bool = False, materialdir: str = "Material", image_export: bool = True) -> None:
         self.set_root(parent)
         self.xmltype = self.__class__.__name__
         if hasattr(f, "name"):
@@ -32,7 +37,7 @@ class CWBinaryBase(object):
         else:
             self.yadodata = yadodata
 
-    def set_root(self, parent):
+    def set_root(self, parent: Optional["environment.Environment"]) -> None:
         if parent:
             self.root = parent.root
         else:
@@ -59,7 +64,7 @@ class CWBinaryBase(object):
         except Exception:
             return ""
 
-    def get_fname(self):
+    def get_fname(self) -> str:
         fname = os.path.basename(self.fpath)
         return cw.util.splitext(fname)[0]
 
@@ -69,7 +74,7 @@ class CWBinaryBase(object):
     def is_yadodata(self):
         return self.yadodata
 
-    def set_materialdir(self, materialdir):
+    def set_materialdir(self, materialdir: str) -> None:
         """materialdirを素材ディレクトリとして登録する。
         デフォルト値は"Material"。"""
         self._materialdir = materialdir
@@ -83,7 +88,7 @@ class CWBinaryBase(object):
         else:
             return root.get_materialdir()
 
-    def set_image_export(self, image_export, force=False):
+    def set_image_export(self, image_export: bool, force: bool = False) -> None:
         """XML変換時に格納イメージをエクスポートするか設定する。"""
         self._image_export = image_export
         self._force_exportsetting = force

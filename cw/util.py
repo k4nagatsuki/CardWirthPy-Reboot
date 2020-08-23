@@ -40,6 +40,8 @@ from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREV
 
 import cw
 
+from typing import Callable, Dict, List, Optional, Set, Tuple, Union
+
 if sys.platform == "win32":
     import win32api
     import win32con
@@ -60,7 +62,7 @@ if sys.platform == "win32":
 # ------------------------------------------------------------------------------
 
 class MusicInterface(object):
-    def __init__(self, channel, mastervolume):
+    def __init__(self, channel: int, mastervolume: int) -> None:
         self.channel = channel
         self.path = ""
         self.fpath = ""
@@ -102,7 +104,7 @@ class MusicInterface(object):
             cw.cwpy.ydata.changed()
         fpath = self.get_path(path, inusecard)
         self.path = path
-        if not (cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init()) and\
+        if not (cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init()) and \
                 not cw.bassplayer.is_alivablewithpath(fpath):
             return
 
@@ -184,7 +186,7 @@ class MusicInterface(object):
                                 if cw.cwpy.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
                                     pygame.mixer.music.play(0)
                                 else:
-                                    pygame.mixer.music.play(loopcount-1)
+                                    pygame.mixer.music.play(loopcount - 1)
                         elif pygame.mixer.get_init():
                             pygame.mixer.music.play(-1)
             else:
@@ -202,7 +204,7 @@ class MusicInterface(object):
             self.loopcount = loopcount
             self.path = path
 
-        if updatepredata and cw.cwpy.sdata and cw.cwpy.sdata.pre_battleareadata and\
+        if updatepredata and cw.cwpy.sdata and cw.cwpy.sdata.pre_battleareadata and \
                 cw.cwpy.sdata.pre_battleareadata[1][3] == self.channel:
             areaid, bgmpath, battlebgmpath = cw.cwpy.sdata.pre_battleareadata
             bgmpath = (path, subvolume, loopcount, self.channel)
@@ -254,7 +256,7 @@ class MusicInterface(object):
             path = find_resource(join_paths(cw.cwpy.setting.skindir, "Bgm", path), cw.cwpy.rsrc.ext_bgm)
             load_bgm(path)
 
-        if updatepredata and cw.cwpy.sdata and cw.cwpy.sdata.pre_battleareadata and\
+        if updatepredata and cw.cwpy.sdata and cw.cwpy.sdata.pre_battleareadata and \
                 cw.cwpy.sdata.pre_battleareadata[1][3] == self.channel:
             areaid, bgmpath, battlebgmpath = cw.cwpy.sdata.pre_battleareadata
             bgmpath = ("", 100, 0, self.channel)
@@ -406,12 +408,12 @@ class SoundInterface(object):
                 tempbasedir = self._play_before(from_scenario, channel, fade)
                 if cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init():
                     if from_scenario:
-                        chan = pygame.mixer.Channel(channel+1)
+                        chan = pygame.mixer.Channel(channel + 1)
                     else:
                         chan = pygame.mixer.Channel(0)
 
                     self._sound.set_volume(volume)
-                    chan.play(self._sound, loopcount-1, fade_ms=fade)
+                    chan.play(self._sound, loopcount - 1, fade_ms=fade)
                     self._type = 2
 
     def stop(self, from_scenario, fade=0):
@@ -456,7 +458,7 @@ class SoundInterface(object):
                 assert threading.currentThread() == cw.cwpy
                 if cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init():
                     if from_scenario:
-                        chan = pygame.mixer.Channel(self.channel+1)
+                        chan = pygame.mixer.Channel(self.channel + 1)
                     else:
                         chan = pygame.mixer.Channel(0)
 
@@ -561,7 +563,7 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None, fullscr
     # BASS Audioを初期化(使用できない事もある)
     if soundfonts is None:
         soundfonts = [(cw.DEFAULT_SOUNDFONT, True, 100)]
-    soundfonts = [(sfont[0], sfont[2]/100.0) for sfont in soundfonts if sfont[1]]
+    soundfonts = [(sfont[0], sfont[2] / 100.0) for sfont in soundfonts if sfont[1]]
     if not cw.bassplayer.init_bass(soundfonts):
         if sdlmixer_enabled:
             # BASS Audioが使用できない場合に限りpygame.mixerを初期化
@@ -580,7 +582,7 @@ def sdlmixer_init():
         cw.util.print_ex(file=sys.stderr)
 
 
-def convert_maskpos(maskpos, width, height):
+def convert_maskpos(maskpos: Tuple[int, int], width: int, height: int) -> Tuple[int, int]:
     """maskposが座標ではなくキーワード"center"または"right"
     であった場合、それぞれ画像の中央、右上の座標を返す。
     """
@@ -639,7 +641,7 @@ def remove_scaledimagepaths(fpath, can_loaded_scaledimage, trashbox=False):
                 remove(fname, trashbox=trashbox)
 
 
-def find_scaledimagepath(path, up_scr, can_loaded_scaledimage, noscale):
+def find_scaledimagepath(path: str, up_scr: float, can_loaded_scaledimage: bool, noscale: bool) -> Tuple[str, int]:
     """ファイル名に".xN"をつけたイメージを探して(ファイル名, スケール値)を返す。
     例えば"file.bmp"に対する"file.x2.bmp"を探す。
     """
@@ -882,28 +884,28 @@ def put_number(image, num):
     else:
         font = cw.cwpy.rsrc.fonts["statusimg3"]
     h = font.get_height()
-    w = (h+1) // 2
-    subimg = pygame.Surface((len(s)*w, h)).convert_alpha()
+    w = (h + 1) // 2
+    subimg = pygame.Surface((len(s) * w, h)).convert_alpha()
     subimg.fill((0, 0, 0, 0))
     x = image.get_width() - subimg.get_width() - cw.s(1)
     y = image.get_height() - subimg.get_height()
     pos = (x, y)
     for i, c in enumerate(s):
         cimg = font.render(c, 2 <= cw.UP_SCR, (0, 0, 0))
-        image.blit(cimg, (pos[0]+1 + i*w, pos[1]+1))
-        image.blit(cimg, (pos[0]+1 + i*w, pos[1]-1))
-        image.blit(cimg, (pos[0]-1 + i*w, pos[1]+1))
-        image.blit(cimg, (pos[0]-1 + i*w, pos[1]-1))
-        image.blit(cimg, (pos[0]+1 + i*w, pos[1]))
-        image.blit(cimg, (pos[0]-1 + i*w, pos[1]))
-        image.blit(cimg, (pos[0] + i*w, pos[1]+1))
-        image.blit(cimg, (pos[0] + i*w, pos[1]-1))
+        image.blit(cimg, (pos[0] + 1 + i * w, pos[1] + 1))
+        image.blit(cimg, (pos[0] + 1 + i * w, pos[1] - 1))
+        image.blit(cimg, (pos[0] - 1 + i * w, pos[1] + 1))
+        image.blit(cimg, (pos[0] - 1 + i * w, pos[1] - 1))
+        image.blit(cimg, (pos[0] + 1 + i * w, pos[1]))
+        image.blit(cimg, (pos[0] - 1 + i * w, pos[1]))
+        image.blit(cimg, (pos[0] + i * w, pos[1] + 1))
+        image.blit(cimg, (pos[0] + i * w, pos[1] - 1))
         cimg = font.render(c, 2 <= cw.UP_SCR, (255, 255, 255))
-        image.blit(cimg, (pos[0] + i*w, pos[1]))
+        image.blit(cimg, (pos[0] + i * w, pos[1]))
     return image
 
 
-def get_imageext(b):
+def get_imageext(b: bytes) -> str:
     """dataが画像であれば対応する拡張子を返す。"""
     if 22 < len(b) and ord('B') == b[0] and ord('M') == b[1]:
         return ".bmp"
@@ -954,6 +956,7 @@ def get_facepaths(sexcoupon, agecoupon, adddefaults=True):
             else:
                 name = cw.cwpy.msgs["common"]
             dpaths.append((i * 10 + weight, "<%s> %s" % (name, dpath1), dpath))
+
         # 性別・年代限定
         if sex and age:
             add(0, sex + "-" + age)
@@ -1160,12 +1163,15 @@ def remove_soundtempfile(basedir):
             remove(dpath)
 
 
-def _sorted_by_attr_impl(d, seq, *attr, cmpfunc=None):
+def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, str]],
+                         *attr,
+    cmpfunc=None) -> List[Union[Optional[object], int, float, str]]:
     if attr:
         get = operator.attrgetter(*attr)
     else:
         def ret(a):
             return a
+
         get = ret
     re_num = re.compile("([0-9]+)")
     str_table = {}
@@ -1220,12 +1226,12 @@ def _sorted_by_attr_impl(d, seq, *attr, cmpfunc=None):
     assert LogicalStr("a0b") < LogicalStr("a1b")
     assert LogicalStr("a0 b") < LogicalStr("a1b")
     assert LogicalStr("a2 b") > LogicalStr("a1b")
-    assert LogicalStr("a899999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
-        LogicalStr("a9b")
-    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
-        LogicalStr("a8b")
-    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999998b") <\
-        LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b")
+    assert LogicalStr("a899999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") > \
+           LogicalStr("a9b")
+    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") > \
+           LogicalStr("a8b")
+    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999998b") < \
+           LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b")
 
     def logical_cmp_str(a, b):
         if not (isinstance(a, str) and isinstance(b, str)):
@@ -1243,7 +1249,7 @@ def _sorted_by_attr_impl(d, seq, *attr, cmpfunc=None):
         return cmp(al, bl)
 
     def logical_cmp_impl(a, b):
-        if (isinstance(a, tuple) and isinstance(b, tuple)) or\
+        if (isinstance(a, tuple) and isinstance(b, tuple)) or \
                 (isinstance(a, list) and isinstance(b, list)):
             r = 0
             for i in range(max(len(a), len(b))):
@@ -1277,7 +1283,7 @@ def _sorted_by_attr_impl(d, seq, *attr, cmpfunc=None):
         return sorted(seq, key=key)
 
 
-def cmp(a, b):
+def cmp(a: Optional[Union[Tuple[int, str], int]], b: Optional[Union[Tuple[int, str], int]]) -> int:
     if a is None and b is None:
         return 0
     elif a is None:
@@ -1297,7 +1303,8 @@ def cmp(a, b):
     return 0
 
 
-def sorted_by_attr(seq, *attr):
+def sorted_by_attr(seq: List[Union[Optional[object], int, float, str]],
+                   *attr) -> List[Union[Optional[object], int, float, str]]:
     """非破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1305,7 +1312,9 @@ def sorted_by_attr(seq, *attr):
     return _sorted_by_attr_impl(False, seq, *attr)
 
 
-def sort_by_attr(seq, *attr):
+def sort_by_attr(seq: List[Union[Optional[object], int, float, str]],
+                 *attr
+) -> List[Union[Optional[object], int, float, str]]:
     """破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1329,6 +1338,7 @@ def sort_by_filename(seq, *attr):
     if sys.platform == "win32" and _shlwapi:
         def cmp(a, b):
             return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
+
         seq = _sorted_by_attr_impl(True, seq, *attr, cmpfunc=cmp)
     else:
         seq = _sorted_by_attr_impl(True, seq, *attr)
@@ -1352,7 +1362,7 @@ def new_order(seq, mode=1):
         return 0
 
 
-def join_paths(*paths):
+def join_paths(*paths) -> str:
     """パス結合。ディレクトリの区切り文字はプラットホームに関わらず"/"固定。
     セキュリティ上の問題を避けるため、あえて絶対パスは取り扱わない。
     *paths: パス結合する文字列
@@ -1367,7 +1377,7 @@ def join_paths(*paths):
 warnings.filterwarnings("ignore", category=UnicodeWarning)
 
 
-def relpath(path, start):
+def relpath(path: str, start: str) -> str:
     if len(start) < len(path) and path.startswith(start) and start != "":
         path2 = path[len(start):]
         if path2[0] == '/' or (sys.platform == "win32" and path2[0] == '\\'):
@@ -1391,7 +1401,7 @@ assert relpath("../a", "../bcde").replace("\\", "/") == os.path.relpath("../a", 
 assert relpath("../a", "../").replace("\\", "/") == os.path.relpath("../a", "../").replace("\\", "/")
 
 
-def validate_filepath(fpath):
+def validate_filepath(fpath: Optional[Union[str, List[Optional[str]]]]) -> Union[List[str], str]:
     """
     fpathが絶対パスまたは外部ディレクトリを指定する
     相対パスであれば空文字列に置換する。
@@ -1418,11 +1428,11 @@ def validate_filepath(fpath):
         return fpath
 
 
-assert validate_filepath(["/test/abc", None, "test/../test", "test/../../abc", "../abc"]) ==\
-            ["test/../test"]
+assert validate_filepath(["/test/abc", None, "test/../test", "test/../../abc", "../abc"]) == \
+       ["test/../test"]
 
 
-def is_descendant(path, start):
+def is_descendant(path: str, start: str) -> str:
     """
     pathはstartのサブディレクトリにあるか。
     ある場合は相対パスを返す。
@@ -1437,7 +1447,7 @@ def is_descendant(path, start):
     return rel
 
 
-def splitext(p):
+def splitext(p: str) -> Tuple[str, str]:
     """パスの拡張子以外の部分と拡張子部分の分割。
     os.path.splitext()との違いは、".ext"のような
     拡張子部分だけのパスの時、(".ext", "")ではなく
@@ -1449,7 +1459,7 @@ def splitext(p):
     return p
 
 
-def str2bool(s):
+def str2bool(s: Union[str, bool]) -> bool:
     """特定の文字列をbool値にして返す。
     s: bool値に変換する文字列(true, false, 1, 0など)。
     """
@@ -1470,7 +1480,7 @@ def str2bool(s):
             raise ValueError("%s is incorrect value!" % (s))
 
 
-def numwrap(n, nmin, nmax):
+def numwrap(n: int, nmin: int, nmax: int) -> int:
     """最小値、最大値の範囲内でnの値を返す。
     n: 範囲内で調整される値。
     nmin: 最小値。
@@ -1489,9 +1499,9 @@ def div_vocation(value):
     0以上の場合とマイナス値の場合で式が異なる。
     """
     if value < 0:
-        return (value+2) // 2
+        return (value + 2) // 2
     else:
-        return (value+1) // 2
+        return (value + 1) // 2
 
 
 def get_truetypefontname(path):
@@ -1569,7 +1579,7 @@ def get_md5_from_data(data):
     return m.hexdigest()
 
 
-def number_normalization(value, fromvalue, tovalue):
+def number_normalization(value: int, fromvalue: int, tovalue: int) -> int:
     """数値を範囲内の値に正規化する。
     value: 正規化対象の数値。
     fromvalue: 範囲の最小値。
@@ -1613,7 +1623,7 @@ def screenshot_header(title, w):
     imgs = []
     for color in (fore, back):
         subimg = font.render(title, True, color)
-        swmax = w - cw.s(5)*2
+        swmax = w - cw.s(5) * 2
         if swmax < subimg.get_width():
             size = (swmax, subimg.get_height())
             subimg = cw.image.smoothscale(subimg, size)
@@ -1642,7 +1652,7 @@ def screenshot():
         cw.cwpy.call_modaldlg("ERROR", text=s)
 
 
-def create_screenshotfilename(titledic):
+def create_screenshotfilename(titledic: Dict[str, str]) -> str:
     """スクリーンショット用のファイルパスを作成する。
     """
     fpath = format_title(cw.cwpy.setting.ssfnameformat, titledic)
@@ -1680,10 +1690,10 @@ def create_screenshot(titledic):
         bmp.blit(scr, (cw.s(0), lh))
         x = cw.s(5)
         y = (lh - fh) // 2
-        for xx in range(-1, 1+1):
-            for yy in range(-1, 1+1):
+        for xx in range(-1, 1 + 1):
+            for yy in range(-1, 1 + 1):
                 if xx != x or yy != y:
-                    bmp.blit(subimg2, (x+xx, y+yy))
+                    bmp.blit(subimg2, (x + xx, y + yy))
         bmp.blit(subimg, (x, y))
         y = lh
     else:
@@ -1781,10 +1791,10 @@ def create_cardscreenshot(titledic):
         sy = cw.s(0)
         if title:
             x, y = cw.s(5), (lh - fh) // 2
-            for xx in range(-1, 1+1):
-                for yy in range(-1, 1+1):
+            for xx in range(-1, 1 + 1):
+                for yy in range(-1, 1 + 1):
                     if xx != x or yy != y:
-                        bmp.blit(subimg2, (x+xx, y+yy))
+                        bmp.blit(subimg2, (x + xx, y + yy))
             bmp.blit(subimg, (x, y))
             sy += lh
 
@@ -1841,8 +1851,7 @@ def to_clipboard(s):
 # ファイル操作関連
 # ------------------------------------------------------------------------------
 
-def dupcheck_plus(path, yado=True):
-    # type: (str, bool) -> str
+def dupcheck_plus(path: str, yado: bool = True) -> str:
     """パスの重複チェック。引数のパスをチェックし、重複していたら、
     ファイル・フォルダ名の後ろに"(n)"を付加して重複を回避する。
     宿のファイルパスの場合は、"Data/Temp/Yado"ディレクトリの重複もチェックする。
@@ -1920,7 +1929,7 @@ def check_dischar(s):
     return False
 
 
-def join_yadodir(path):
+def join_yadodir(path: str) -> str:
     """
     引数のpathを現在読み込んでいる宿ディレクトリと結合させる。
     "Data/Temp/Yado"にパスが存在すれば、そちらを優先させる。
@@ -1970,7 +1979,7 @@ def get_yadofilepath(path):
         return ""
 
 
-def find_resource(path, mtype):
+def find_resource(path: str, mtype: int) -> str:
     """pathとmtypeに該当する素材を拡張子の優先順に沿って探す。"""
     cw.fsync.sync()
     imgpath = ""
@@ -2014,8 +2023,8 @@ def get_inusecardmaterialpath(path, mtype, inusecard=None, findskin=True):
         if inusecard or (cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard()):
             if not inusecard:
                 inusecard = cw.cwpy.event.get_inusecard()
-            if not inusecard.carddata.getbool(".", "scenariocard", False) or\
-               inusecard.carddata.gettext("Property/Materials", ""):
+            if not inusecard.carddata.getbool(".", "scenariocard", False) or \
+                    inusecard.carddata.gettext("Property/Materials", ""):
                 imgpath = cw.util.join_yadodir(path)
                 imgpath = get_materialpathfromskin(imgpath, mtype, findskin=findskin)
     return imgpath
@@ -2097,17 +2106,17 @@ def get_materialpathfromskin(path, mtype, findskin=True):
 class FileSync(threading.Thread):
     """ファイルをfsyncしながら出力する。"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         threading.Thread.__init__(self)
         self._quit = False
         self._files = []
         self._mutex = threading.Lock()
 
-    def quit(self):
+    def quit(self) -> None:
         """全てのファイル出力が完了してからスレッドを終了する。"""
         self._quit = True
 
-    def push(self, file, data, mode="wb", encoding=None):
+    def push(self, file: str, data: bytes, mode: str = "wb", encoding: Optional[str] = None) -> None:
         """出力対象を追加する。"""
         with self._mutex:
             self._files.append((file, data, mode, encoding))
@@ -2119,7 +2128,7 @@ class FileSync(threading.Thread):
                 cw.util.print_ex()
             self._write_files()
 
-    def sync(self):
+    def sync(self) -> None:
         """全てのファイル出力が完了するまで待ち合わせる。"""
         while not self._quit:
             with self._mutex:
@@ -2127,7 +2136,7 @@ class FileSync(threading.Thread):
                     break
             time.sleep(0.001)
 
-    def is_waiting(self, file):
+    def is_waiting(self, file: str) -> bool:
         """fileの書き込みを待ち合わせ中か。"""
         # FIXME: get_keypath()とget_symlinktarget()のパフォーマンスが非常に悪いので
         #        常にTrueを返してcw.fsync.sync()を呼び出させる。
@@ -2171,7 +2180,7 @@ class FileSync(threading.Thread):
         self._write_files()
 
 
-def write_file(file, data, fsync, mode="wb", encoding=None):
+def write_file(file: str, data: bytes, fsync: FileSync, mode: str = "wb", encoding: Optional[str] = None) -> None:
     """ファイルを出力する。"""
     if fsync:
         fsync.push(file, data, mode=mode, encoding=encoding)
@@ -2187,7 +2196,7 @@ def write_textfile(file, data, fsync):
     write_file(file, data, fsync, mode="w", encoding="utf-8")
 
 
-def remove_temp():
+def remove_temp() -> None:
     """
     一時ディレクトリを空にする。
     """
@@ -2222,7 +2231,7 @@ def remove_temp():
         pass
 
 
-def remove(path, trashbox=False):
+def remove(path: str, trashbox: bool = False) -> None:
     cw.fsync.sync()
     if os.path.isfile(path):
         remove_file(path, trashbox=trashbox)
@@ -2251,7 +2260,7 @@ def remove(path, trashbox=False):
                 remove_tree(path, trashbox=trashbox)
 
 
-def remove_file(path, retry=0, trashbox=False):
+def remove_file(path: str, retry: int = 0, trashbox: bool = False) -> None:
     cw.fsync.sync()
     try:
         if trashbox:
@@ -2274,7 +2283,7 @@ def add_winauth(file):
         os.chmod(file, stat.S_IWRITE | stat.S_IREAD)
 
 
-def remove_tree(treepath, retry=0, noretry=False, trashbox=False):
+def remove_tree(treepath: str, retry: int = 0, noretry: bool = False, trashbox: bool = False) -> None:
     cw.fsync.sync()
     try:
         if trashbox:
@@ -2346,7 +2355,7 @@ def remove_treefiles(treepath, trashbox=False):
                     os.remove(path)
 
 
-def rename_file(path, dstpath, trashbox=False):
+def rename_file(path: str, dstpath: str, trashbox: bool = False) -> None:
     """pathをdstpathへ移動する。
     すでにdstpathがある場合は上書きされる。
     """
@@ -2371,7 +2380,7 @@ def rename_file(path, dstpath, trashbox=False):
         remove_file(path, trashbox=trashbox)
 
 
-def send_trashbox(path):
+def send_trashbox(path: str) -> None:
     """
     可能であればpathをゴミ箱へ送る。
     """
@@ -2381,9 +2390,9 @@ def send_trashbox(path):
         path = os.path.normpath(os.path.abspath(path))
         ope = win32com.shell.shellcon.FO_DELETE
         flags = (
-            win32com.shell.shellcon.FOF_NOCONFIRMATION |
-            win32com.shell.shellcon.FOF_ALLOWUNDO |
-            win32com.shell.shellcon.FOF_SILENT
+                win32com.shell.shellcon.FOF_NOCONFIRMATION |
+                win32com.shell.shellcon.FOF_ALLOWUNDO |
+                win32com.shell.shellcon.FOF_SILENT
         )
         r = win32com.shell.shell.SHFileOperation((None, ope, path + '\0\0', None, flags, None, None))
     elif os.path.isfile(path):
@@ -2400,9 +2409,9 @@ def send_trashbox2(paths):
     if sys.platform == "win32":
         ope = win32com.shell.shellcon.FO_DELETE
         flags = (
-            win32com.shell.shellcon.FOF_NOCONFIRMATION |
-            win32com.shell.shellcon.FOF_ALLOWUNDO |
-            win32com.shell.shellcon.FOF_SILENT
+                win32com.shell.shellcon.FOF_NOCONFIRMATION |
+                win32com.shell.shellcon.FOF_ALLOWUNDO |
+                win32com.shell.shellcon.FOF_SILENT
         )
         paths = "\0".join(map(lambda path: os.path.normpath(os.path.abspath(path)), paths)) + '\0\0'
         r = win32com.shell.shell.SHFileOperation((None, ope, paths, None, flags, None, None))
@@ -2485,7 +2494,9 @@ def synclock(lock):
                 return f(*args, **kw)
             finally:
                 lock.release()
+
         return acquire
+
     return synclock
 
 
@@ -3034,7 +3045,7 @@ def cab_scdir(cab):
 # テキスト操作関連
 # ------------------------------------------------------------------------------
 
-def encodewrap(s):
+def encodewrap(s: str) -> str:
     """改行コードを\nに置換する。"""
     r = []
     if not s:
@@ -3051,7 +3062,7 @@ def encodewrap(s):
     return "".join(r)
 
 
-def decodewrap(s, code="\n"):
+def decodewrap(s: str, code: str = "\n") -> str:
     """\nを改行コードに戻す。"""
     if not s:
         return ""
@@ -3078,23 +3089,23 @@ def encodetextlist(arr):
     return encodewrap("\n".join(arr))
 
 
-def decodetextlist(s):
+def decodetextlist(s: str) -> List[str]:
     """\n区切りの文字列を文字配列にする。"""
     if not s:
         return []
     return decodewrap(s).split("\n")
 
 
-def is_hw(c):
+def is_hw(c: str) -> bool:
     """unichrが半角文字であればTrueを返す。"""
     return not unicodedata.east_asian_width(c) in ('F', 'W', 'A')
 
 
-def get_strlen(s):
+def get_strlen(s: str) -> int:
     return reduce(lambda a, b: a + b, [1 if is_hw(c) else 2 for c in s])
 
 
-def slice_str(s, width, get_width=None):
+def slice_str(s: str, width: int, get_width: Optional[Callable] = None) -> Tuple[str, str]:
     """
     sをwidthの位置でスライスし、2つの文字列にして返す。
     """
@@ -3105,7 +3116,7 @@ def slice_str(s, width, get_width=None):
     leftlen = 0
     for c in s:
         clen = get_width(c)
-        if width < leftlen+clen:
+        if width < leftlen + clen:
             break
         left.append(c)
         leftlen += clen
@@ -3133,7 +3144,8 @@ def ljustify(s, length, c):
 WRAPS_CHARS = "｡|､|，|、|。|．|）|」|』|〕|｝|】"
 
 
-def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None):
+def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtext: bool = True,
+            spcharinfo: Optional[Set[int]] = None) -> str:
     """引数の文字列を任意の文字数で改行する(全角は2文字として数える)。
     mode=1: カード解説。
     mode=2: 画像付きメッセージ(台詞)用。
@@ -3224,7 +3236,7 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
                 if skipchars.startswith("#"):
                     cnt += len(char)
                     asciicnt = 0
-                    if width+1 < cnt:
+                    if width + 1 < cnt:
                         if not wrapafter:
                             insert_wrap(len(seq))
                             seqlen += len("\n")
@@ -3239,9 +3251,9 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
             if r_spchar.match(chars.lower()):
                 if spcharinfo is not None and index in spcharinfo:
                     spcharinfo2.append(seqlen)
-                    if not chars.startswith("#") or\
-                       not chars[:2].lower() in cw.cwpy.rsrc.specialchars or\
-                       width < cnt:
+                    if not chars.startswith("#") or \
+                            not chars[:2].lower() in cw.cwpy.rsrc.specialchars or \
+                            width < cnt:
                         if width < cnt and chars.startswith("#"):
                             if not wrapafter:
                                 insert_wrap(len(seq))
@@ -3280,11 +3292,11 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
             seq.append(char)
             seqlen += len(char)
             cnt += 1
-            if not (mode in (2, 3) or (mode in (1, 4) and char == ' ')) and\
-                    not (mode == 1 and index+1 < len(s) and not is_hw(s[index+1])):
+            if not (mode in (2, 3) or (mode in (1, 4) and char == ' ')) and \
+                    not (mode == 1 and index + 1 < len(s) and not is_hw(s[index + 1])):
                 asciicnt += 1
-            if spchar2 or not (mode in (2, 3) or (mode in (1, 4) and char == ' ')) or\
-                    len(s) <= index+1 or is_hw(s[index+1]):
+            if spchar2 or not (mode in (2, 3) or (mode in (1, 4) and char == ' ')) or \
+                    len(s) <= index + 1 or is_hw(s[index + 1]):
                 width2 += 1
             wrapafter = False
 
@@ -3295,20 +3307,20 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
             cnt += 2
             asciicnt = 0
             wrapafter = False
-            if mode in (1, 2, 3) and index+1 < len(s) and is_hw(s[index+1]):
+            if mode in (1, 2, 3) and index + 1 < len(s) and is_hw(s[index + 1]):
                 width2 += 1
 
         # 互換動作: 1.28以降は行末に半角スペースがあると折り返し位置が変わる
         #           (イベントによるメッセージのみ)
         if mode in (3, 4) or cw.cwpy.sdata and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
-            if not wrapafter2 and index+1 < len(s) and s[index+1] == " " and mode in (1, 2, 3, 4):
+            if not wrapafter2 and index + 1 < len(s) and s[index + 1] == " " and mode in (1, 2, 3, 4):
                 width2 += 1
                 asciicnt = 0
 
         # 行折り返し処理
         if not spchar and cnt > width2:
-            if defspchar2 and width2+1 < cnt:
-                index = -(cnt - (width+1))
+            if defspchar2 and width2 + 1 < cnt:
+                index = -(cnt - (width + 1))
                 if seq[-index] != "\n":
                     insert_wrap(index)
                     seqlen += len("\n")
@@ -3334,7 +3346,8 @@ def txtwrap(s, mode, width=30, wrapschars="", encodedtext=True, spcharinfo=None)
     return "".join(seq).rstrip()
 
 
-def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, resultindex, spcharinfo, spcharinfo2):
+def _wordwrap_impl(s: str, width: int, get_width: None, open_chars: str, close_chars: str, startindex: int,
+                   resultindex: int, spcharinfo: Optional[Set[int]], spcharinfo2: Optional[List[int]]) -> str:
     """
     sをwidthの幅で折り返す。
     テキストの長さをは計る時にget_width(s)を使用する。
@@ -3373,7 +3386,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
         is_spchar = spcharinfo is not None and index in spcharinfo
 
         wordlen = get_width(word)
-        if width < buflen+wordlen:
+        if width < buflen + wordlen:
             def match_op(buf):
                 return not buf[1] and open_chars.find(buf[0]) != -1
 
@@ -3382,7 +3395,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
 
             def match_last(bufs, matcher):
                 for i in range(len(bufs)):
-                    buf = bufs[-(1+i)]
+                    buf = bufs[-(1 + i)]
                     if buf[1] and buf[0][0] == '&':
                         continue
                     return matcher(buf)
@@ -3406,8 +3419,8 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                 # wordを強制的に折り返しながら行に加える
                 if is_spchar:
                     return buf, buflen, word
-                while width < buflen+get_width(word):
-                    word2, word3 = slice_str(word, width-buflen, get_width)
+                while width < buflen + get_width(word):
+                    word2, word3 = slice_str(word, width - buflen, get_width)
                     if word2:
                         word2 += "-"
                     buf.append((word2, False))
@@ -3450,7 +3463,7 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
                             buflen = 0
                         elif 2 <= len(buf2) and not match_op_last(buf2[:-1]):
                             # 折り返し可能な位置が見つかった(折り返した箇所に行末禁止文字が無い)
-                            i = len(buf2)-1
+                            i = len(buf2) - 1
                             lines.append(buf[:i])
                             buf = buf[i:]
                             buflen = sum([get_width(s[0]) for s in buf])
@@ -3494,10 +3507,11 @@ def _wordwrap_impl(s, width, get_width, open_chars, close_chars, startindex, res
         return "\n".join(seq)
 
 
-def wordwrap(s, width, get_width=None, open_chars="\"'(<[`{‘“〈《≪「『【〔（＜［｛｢",
-             close_chars="!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟ"
-                         "ぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ",
-             spcharinfo=None):
+def wordwrap(s: str, width: int, get_width: Optional[Callable] = None,
+             open_chars: str = "\"'(<[`{‘“〈《≪「『【〔（＜［｛｢",
+             close_chars: str = "!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟ"
+                                "ぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ",
+             spcharinfo: Optional[Set[int]] = None) -> str:
     if spcharinfo is not None:
         spcharinfo2 = []
     else:
@@ -3509,8 +3523,8 @@ def wordwrap(s, width, get_width=None, open_chars="\"'(<[`{‘“〈《≪「『
         wrapped = _wordwrap_impl(line, width, get_width, open_chars, close_chars, index, resultindex, spcharinfo,
                                  spcharinfo2)
         lines.append(wrapped)
-        index += len(line)+len("\n")
-        resultindex += len(wrapped)+len("\n")
+        index += len(line) + len("\n")
+        resultindex += len(wrapped) + len("\n")
 
     if spcharinfo is not None:
         spcharinfo.clear()
@@ -3535,15 +3549,14 @@ assert wordwrap("あいうえおA。かきくけこ", 11) == "あいうえお\nA
 assert wordwrap("ｐｑｒ pqr ＰＱＲ", 6) == "ｐｑｒ \npqr \nＰＱＲ"
 
 
-def _test_wordwrap(s, width, spcharinfo):
+def _test_wordwrap(s: str, width: int, spcharinfo: Set[int]) -> Tuple[str, Set[int]]:
     return wordwrap(s, width, spcharinfo=spcharinfo), spcharinfo
 
 
-assert _test_wordwrap("CARD #WIRTH SPECIA&L\nCHA&RACTER #TEST!", 8, spcharinfo={5, 18, 24, 32}) ==\
+assert _test_wordwrap("CARD #WIRTH SPECIA&L\nCHA&RACTER #TEST!", 8, spcharinfo={5, 18, 24, 32}) == \
        ("CARD #W\nIRTH \nSPECIA&L\nCHA&RACTER \n#TEST!", {5, 7, 13, 20, 26, 34, 35})
 assert _test_wordwrap("wordwrap", 4, spcharinfo=set()) == \
        ("word-\nwrap", {5})
-
 
 assert wordwrap("[&Rabc..]", 3, spcharinfo={1}) == "[&Rab-\nc..]"
 assert wordwrap("ab...", 3) == "ab..\n."
@@ -3559,7 +3572,7 @@ def get_char(s, index):
         return ""
 
 
-def format_title(fmt, d, use_lf=False):
+def format_title(fmt: str, d: Dict[str, str], use_lf: bool = False) -> str:
     """foobar2000の任意フォーマット文字列のような形式で
     文字列の構築を行う。
      * %%で囲われた文字列は変数となり、辞書dから得られる値に置換される。
@@ -3572,8 +3585,10 @@ def format_title(fmt, d, use_lf=False):
         s = format_title("%application% %skin%[ - %yado%[ %scenario%]]", d)
         assert s == "CardWirthPy スキン名 - 宿名"
     """
+
     class _FormatPart(object):
         """フォーマット内の変数。"""
+
         def __init__(self, name):
             self.name = name
 
@@ -3600,7 +3615,7 @@ def format_title(fmt, d, use_lf=False):
                 ci = fmt.find("%")
                 if ci != -1:
                     seq.append(_FormatPart(fmt[:ci]))
-                    fmt = fmt[ci+1:]
+                    fmt = fmt[ci + 1:]
             elif c == "[":
                 fmt, list2 = eat_parts(fmt, True)
                 seq.append(list2)
@@ -3634,7 +3649,7 @@ def format_title(fmt, d, use_lf=False):
 
 
 assert format_title("%application% %skin%[ - %yado%[ %scenario%]]",
-                    {"application": "CardWirthPy", "skin": "スキン名", "yado": "宿名"}) ==\
+                    {"application": "CardWirthPy", "skin": "スキン名", "yado": "宿名"}) == \
        "CardWirthPy スキン名 - 宿名"
 assert format_title("\\%\\[\\]\\\\", {}) == "%[]\\"
 assert format_title("1\\%2\\[3\\]4\\\\", {}) == "1%2[3]4\\"
@@ -3644,8 +3659,10 @@ assert format_title("1\\%2\\[3\\]4\\\\", {}) == "1%2[3]4\\"
 # wx汎用関数
 # ------------------------------------------------------------------------------
 
-def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True, can_loaded_scaledimage=True,
-               noscale=False, up_scr=None):
+def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
+               maskpos: Union[Tuple[int, int], str] = (0, 0), f: io.RawIOBase = None, retry: bool = True,
+               can_loaded_scaledimage: bool = True,
+               noscale: bool = False, up_scr: Optional[float] = None) -> wx.Bitmap:
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
     if sys.platform != "win32":
         assert threading.currentThread() != cw.cwpy
@@ -3770,7 +3787,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     return wxbmp
 
 
-def empty_bitmap(w, h):
+def empty_bitmap(w: int, h: int) -> wx.Bitmap:
     """空のビットマップを返す。"""
     if w <= 0:
         w = 1
@@ -3779,7 +3796,7 @@ def empty_bitmap(w, h):
     return wx.Bitmap(w, h, depth=24)
 
 
-def empty_bitmap_rgba(w, h):
+def empty_bitmap_rgba(w: int, h: int) -> wx.Bitmap:
     """空のビットマップ(アルファ値あり)を返す。"""
     return wx.Bitmap(w, h, depth=32)
 
@@ -3795,7 +3812,7 @@ def copy_wxbmp(bmp, usebuffer=False):
         return bmp.GetSubBitmap((0, 0, w, h))
 
 
-def convert_to_image(bmp):
+def convert_to_image(bmp: wx.Bitmap) -> wx.Image:
     """wx.Bitmapをwx.Imageに変換する。
     FIXME: 直接bmp.ConvertToImage()を使用すると
            画像が化ける事がある
@@ -3818,10 +3835,10 @@ def convert_to_image(bmp):
     return img
 
 
-def wxbmp_to_buffer(bmp):
+def wxbmp_to_buffer(bmp: wx.Bitmap) -> array:
     """wx.BitmapをRGBのバイト配列へ変換する。"""
     w, h = bmp.GetSize()
-    buf = array.array('B', [0] * (w*h * 3))
+    buf = array.array('B', [0] * (w * h * 3))
     bmp.CopyToBuffer(buf)
     return buf
 
@@ -3838,12 +3855,14 @@ def fill_image(img, surface, csize, ctrlpos=(0, 0), cpos=(0, 0)):
     while x < csize[0]:
         y = starty
         while y < csize[1]:
-            img.blit(surface, (x+cpos[0], y+cpos[1]))
+            img.blit(surface, (x + cpos[0], y + cpos[1]))
             y += h
         x += w
 
 
-def fill_bitmap(dc, bmp, csize, ctrlpos=(0, 0), cpos=(0, 0)):
+def fill_bitmap(dc: wx.DC, bmp: wx.Bitmap, csize: Union[Tuple[int, int], wx.Size],
+                ctrlpos: Union[Tuple[int, int], wx.Point] = (0, 0),
+                cpos: Union[Tuple[float, float], Tuple[int, int]] = (0, 0)) -> None:
     """引数のbmpを敷き詰める。"""
     imgsize = bmp.GetSize()
     w, h = imgsize
@@ -3855,7 +3874,7 @@ def fill_bitmap(dc, bmp, csize, ctrlpos=(0, 0), cpos=(0, 0)):
     while x < csize[0]:
         y = starty
         while y < csize[1]:
-            dc.DrawBitmap(bmp, x+cpos[0], y+cpos[1], False)
+            dc.DrawBitmap(bmp, x + cpos[0], y + cpos[1], False)
             y += h
         x += w
 
@@ -3912,15 +3931,16 @@ def draw_witharound_simple(dc, s, x, y, aroundcolor):
     """テキストsを縁取りしながら描画する。"""
     oldcolor = dc.GetTextForeground()
     dc.SetTextForeground(aroundcolor)
-    for xx in range(x-1, x+2):
-        for yy in range(y-1, y+2):
+    for xx in range(x - 1, x + 2):
+        for yy in range(y - 1, y + 2):
             if xx != x or yy != y:
                 dc.DrawText(s, xx, yy)
     dc.SetTextForeground(oldcolor)
     dc.DrawText(s, x, y)
 
 
-def draw_witharound(dc, s, x, y, maxwidth=0, align=wx.ALIGN_LEFT, aroundcolor=None):
+def draw_witharound(dc: wx.MemoryDC, s: str, x: int, y: int, maxwidth: int = 0, align: int = wx.ALIGN_LEFT,
+                    aroundcolor: Optional[wx.Colour] = None) -> None:
     """テキストsを縁取りしながら描画する。
     フォントのスムージングを行う。
     """
@@ -3931,7 +3951,7 @@ def draw_witharound(dc, s, x, y, maxwidth=0, align=wx.ALIGN_LEFT, aroundcolor=No
     draw_antialiasedtext(dc, s, x, y, white, maxwidth, 0, scaledown=False, bordering=True, align=align)
 
 
-def draw_adjusted(dc, s, x, y, maxwidth, align=wx.ALIGN_LEFT):
+def draw_adjusted(dc: wx.MemoryDC, s: str, x: int, y: int, maxwidth: int, align: int = wx.ALIGN_LEFT) -> None:
     """テキストをmaxwidthの幅に収まるように描画する。"""
     w = dc.GetTextExtent(s)[0]
     if w <= maxwidth:
@@ -3946,9 +3966,9 @@ def draw_adjusted(dc, s, x, y, maxwidth, align=wx.ALIGN_LEFT):
                              quality=quality, scaledown=False, bordering=False, align=align)
 
 
-def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
-                         quality=None, scaledown=True, alpha=64,
-                         bordering=False, width_coeff=1, align=wx.ALIGN_LEFT):
+def draw_antialiasedtext(dc: wx.MemoryDC, text: str, x: int, y: int, white: bool, maxwidth: int, padding: int,
+                         quality: Optional[int] = None, scaledown: bool = True, alpha: int = 64,
+                         bordering: bool = False, width_coeff: int = 1, align: int = wx.ALIGN_LEFT) -> None:
     if not text:
         return
     w = dc.GetTextExtent(text)[0]
@@ -3961,8 +3981,8 @@ def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
         subimg = cw.util.render_antialiasedtext(dc, text, not white, maxwidth, padding,
                                                 scaledown=scaledown, quality=quality, alpha=alpha,
                                                 width_coeff=width_coeff)
-        for xx in range(x-1, x+2):
-            for yy in range(y-1, y+2):
+        for xx in range(x - 1, x + 2):
+            for yy in range(y - 1, y + 2):
                 if xx != x or yy != y:
                     dc.DrawBitmap(subimg, xx, yy)
     subimg = cw.util.render_antialiasedtext(dc, text, white, maxwidth, padding,
@@ -3971,9 +3991,9 @@ def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
     dc.DrawBitmap(subimg, x, y)
 
 
-def render_antialiasedtext(basedc, text, white, maxwidth, padding,
-                           quality=None, scaledown=True, alpha=255,
-                           width_coeff=1):
+def render_antialiasedtext(basedc: wx.MemoryDC, text: str, white: bool, maxwidth: int, padding: int,
+                           quality: Optional[int] = None, scaledown: bool = True, alpha: int = 255,
+                           width_coeff: int = 1) -> wx.Bitmap:
     """スムージングが施された、背景が透明なテキストを描画して返す。"""
     if quality is None:
         quality = wx.IMAGE_QUALITY_BICUBIC
@@ -3993,7 +4013,7 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
         underline = font.GetUnderlined()
         facename = font.GetFaceName()
         encoding = font.GetEncoding()
-        font = wx.Font(wx.Size(0, pixelsize*2), family, style, weight, 0, facename, encoding)
+        font = wx.Font(wx.Size(0, pixelsize * 2), family, style, weight, 0, facename, encoding)
         basedc.SetFont(font)
         w, h = basedc.GetTextExtent(text)
     else:
@@ -4044,18 +4064,18 @@ def render_antialiasedtext(basedc, text, white, maxwidth, padding,
     subimg.SetAlphaBuffer(redbuf)
 
     if scaledown:
-        if 0 < maxwidth and basew + padding*2 > maxwidth:
-            size = (maxwidth - padding*2, baseh)
-            subimg = subimg.Rescale(int(size[0]*width_coeff), baseh, quality=quality)
+        if 0 < maxwidth and basew + padding * 2 > maxwidth:
+            size = (maxwidth - padding * 2, baseh)
+            subimg = subimg.Rescale(int(size[0] * width_coeff), baseh, quality=quality)
         else:
-            subimg = subimg.Rescale(int((basew)*width_coeff), baseh, quality=quality)
+            subimg = subimg.Rescale(int((basew) * width_coeff), baseh, quality=quality)
     else:
-        if 0 < maxwidth and w + padding*2 > maxwidth:
-            size = (maxwidth - padding*2, h)
-            subimg = subimg.Rescale(int(size[0]*width_coeff), h, quality=quality)
+        if 0 < maxwidth and w + padding * 2 > maxwidth:
+            size = (maxwidth - padding * 2, h)
+            subimg = subimg.Rescale(int(size[0] * width_coeff), h, quality=quality)
         elif width_coeff != 1.0:
             w, h = subimg.GetSize()
-            subimg = subimg.Rescale(int(w*width_coeff), h, quality=quality)
+            subimg = subimg.Rescale(int(w * width_coeff), h, quality=quality)
 
     # BUG: wxGTK 4.0.1でランダムに背景が真っ白になる問題への対策
     if sys.platform == "win32":
@@ -4082,8 +4102,10 @@ def get_boxpointlist(pos, size):
     return poslist
 
 
-def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, getbasedir=None, callback=None,
-                         winsize=False, multiple=False):
+def create_fileselection(parent: wx.TopLevelWindow, target: Optional[wx.TextCtrl], message: str, wildcard: str = "*.*",
+                         seldir: bool = False, getbasedir: Optional[Callable] = None,
+                         callback: Optional[Callable] = None, winsize: bool = False,
+                         multiple: bool = False) -> wx.Button:
     """ファイルまたはディレクトリを選択する
     ダイアログを表示するボタンを生成する。
     parent: ボタンの親パネル。
@@ -4093,6 +4115,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
     seldir: Trueの場合はディレクトリの選択を行う。
     getbasedir: 相対パスを扱う場合は基準となるパスを返す関数。
     """
+
     def OnOpen(event):
         if target is None:
             fpath = ""
@@ -4153,7 +4176,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
     return button
 
 
-def adjust_position(frame):
+def adjust_position(frame: wx.TopLevelWindow) -> None:
     """frameの位置がいずれかのモニタ内に収まるように調節する。
     サイズ変更は行わない。
     """
@@ -4180,6 +4203,7 @@ class CWPyStaticBitmap(wx.Panel):
     正しく表示できない場合があるので代替する。
     複数重ねての表示にも対応。
     """
+
     def __init__(self, parent, cid, bmps, bmps_bmpdepthkey, size=None, infos=None, ss=None):
         if not size and bmps:
             w = 0
@@ -4312,11 +4336,13 @@ def abbr_longstr_with_count(text, w):
 class CheckableListCtrl(wx.ListCtrl,
                         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
     """チェックボックス付きのリスト。"""
-    def __init__(self, parent, cid, size, style, colpos=0, system=True):
+
+    def __init__(self, parent: wx.Dialog, cid: int, size: Tuple[int, int], style: int, colpos: int = 0,
+                 system: bool = True) -> None:
         wx.ListCtrl.__init__(self, parent=parent, id=cid, size=size, style=style | wx.LC_NO_HEADER)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
         self.EnableCheckBoxes(True)
-        for i in range(colpos+1):
+        for i in range(colpos + 1):
             self.InsertColumn(i, "")
 
         self.InsertItem(0, "", 0)
@@ -4332,7 +4358,7 @@ class CheckableListCtrl(wx.ListCtrl,
         self.Bind(wx.EVT_LIST_ITEM_CHECKED, self.OnListItemChecked)
         self.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.OnListItemChecked)
 
-    def OnListItemChecked(self, event):
+    def OnListItemChecked(self, event: wx.ListEvent) -> None:
         # チェック時に音を鳴らし、選択中のアイテムだった場合は
         # 他の選択中のアイテムにもチェックを反映
         if not self.TopLevelParent.IsShown():
@@ -4344,7 +4370,7 @@ class CheckableListCtrl(wx.ListCtrl,
             cw.cwpy.play_sound("page")
         index = event.Index
         flag = self.IsItemChecked(index)
-        i = self.GetNextItem(index-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+        i = self.GetNextItem(index - 1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
         if index == i:
             index = -1
             while True:
@@ -4357,7 +4383,7 @@ class CheckableListCtrl(wx.ListCtrl,
 
 
 class CWBackCheckBox(wx.CheckBox):
-    def __init__(self, parent, wid, text):
+    def __init__(self, parent: wx.Dialog, wid: int, text: str) -> None:
         """CAUTIONリソースを背景とするチェックボックス。"""
         wx.CheckBox.__init__(self, parent, wid, text)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
@@ -4378,14 +4404,14 @@ class CWBackCheckBox(wx.CheckBox):
 
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def set_background(self, bmp):
+    def set_background(self, bmp: wx.Bitmap) -> None:
         self.background = bmp
         self.Refresh()
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         size = self.GetSize()
         basebmp = empty_bitmap(size[0], size[1])
         dc = wx.MemoryDC(basebmp)
@@ -4398,13 +4424,13 @@ class CWBackCheckBox(wx.CheckBox):
             bmp = self._check
         else:
             bmp = self._nocheck
-        dc.DrawBitmap(bmp, cw.wins(2), (csize[1]-bmp.GetHeight()) // 2, True)
+        dc.DrawBitmap(bmp, cw.wins(2), (csize[1] - bmp.GetHeight()) // 2, True)
         # text
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15)))
         s = self.GetLabel()
         tsize = dc.GetTextExtent(s)
-        dc.DrawText(s, bmp.GetWidth()+cw.wins(4), (csize[1]-tsize[1]) // 2)
+        dc.DrawText(s, bmp.GetWidth() + cw.wins(4), (csize[1] - tsize[1]) // 2)
         dc.SelectObject(wx.NullBitmap)
 
         dc = wx.PaintDC(self)
@@ -4416,6 +4442,7 @@ def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
     leftbtnまたはrightbtnのイベントが実行されるように
     イベントへのバインドを行う。
     """
+
     def _is_cursorinleft():
         rect = toppanel.GetClientRect()
         x, _y = toppanel.ScreenToClient(wx.GetMousePosition())
@@ -4450,7 +4477,9 @@ def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
     toppanel.Bind(wx.EVT_LEFT_UP, OnLeftUp)
 
 
-def set_acceleratortable(panel, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog, wx.Panel)):
+def set_acceleratortable(panel: wx.Window, seq: List[Tuple[int, int, int]],
+                         ignoreleftrightkeys: Tuple[type(wx.Control), ...]
+                         = (wx.TextCtrl, wx.Dialog, wx.Panel)) -> None:
     """panelにseqから生成したAcceleratorTableを設定する。
     """
     # テキスト入力欄に限り左右キーを取り除く
@@ -4462,13 +4491,14 @@ def set_acceleratortable(panel, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog
     accel1 = wx.AcceleratorTable(seq)
     accel2 = wx.AcceleratorTable(seq2)
 
-    def recurse(widget):
+    def recurse(widget: wx.Control):
         if isinstance(widget, ignoreleftrightkeys):
             widget.SetAcceleratorTable(accel2)
         else:
             widget.SetAcceleratorTable(accel1)
         for child in widget.GetChildren():
             recurse(child)
+
     recurse(panel)
 
 
@@ -4498,7 +4528,7 @@ def adjust_dropdownwidth(choice):
         win32api.SendMessage(choice.GetHandle(), win32con.CB_SETDROPPEDWIDTH, w, 0)
 
 
-def has_modalchild(frame):
+def has_modalchild(frame: wx.TopLevelWindow) -> bool:
     """frame.TopLevelParentにモーダル表示中のサブウィンドウがあればTrue。"""
     for child in frame.TopLevelParent.GetChildren():
         if isinstance(child, wx.Dialog) and child.IsShown() and child.IsModal():
@@ -4632,9 +4662,9 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
             import win32gui
             SPI_GETWHEELSCROLLLINES = 104
             value = win32gui.SystemParametersInfo(SPI_GETWHEELSCROLLLINES)
-            value = cw.wins(value*4)
+            value = cw.wins(value * 4)
         else:
-            value = cw.wins(4*4)
+            value = cw.wins(4 * 4)
 
         if get_wheelrotation(event) > 0:
             self.ScrollLines(-value)
@@ -4688,7 +4718,7 @@ def open_url(parentdlg, url):
         dlg.Destroy()
 
 
-def get_wheelrotation(event):
+def get_wheelrotation(event: wx.MouseEvent) -> int:
     """マウスのホイールを横に倒した場合に
     取得できる回転量の値は直感と逆転しているので
     この関数をラッパとして反転した値を取得する。
@@ -4704,6 +4734,7 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
     wx.lib.agw.aui.AuiNotebookのタブを描画するが、
     テキストのみ左寄せから中央寄せに変更する。
     """
+
     def __init__(self, indentsize=0):
         wx.lib.agw.aui.tabart.AuiDefaultTabArt.__init__(self)
         self.indentsize = indentsize
@@ -4726,11 +4757,11 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
         x = rect.X + (rect.Width - te[0]) // 2
         y = in_rect.Y + (in_rect.Height - te[1]) // 2
         dc.DrawText(page.caption, x, y)
-        if not (self.GetAGWFlags() & wx.lib.agw.aui.tabart.AUI_NB_NO_TAB_FOCUS) and page.active and\
+        if not (self.GetAGWFlags() & wx.lib.agw.aui.tabart.AUI_NB_NO_TAB_FOCUS) and page.active and \
                 wx.Window.FindFocus() is wnd:
             dc.SetBrush(wx.TRANSPARENT_BRUSH)
             dc.SetPen(self._focusPen)
-            rect = wx.Rect(x-2, y-1, te[0]+4, te[1]+2)
+            rect = wx.Rect(x - 2, y - 1, te[0] + 4, te[1] + 2)
             dc.DrawRoundedRectangleRect(rect, 0)
         return r
 
@@ -4774,6 +4805,7 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
     FIXME: wx.adv.BitmapComboBoxの選択ウィンドウの幅が
     コントロールの幅に固定されてしまうため代替する。
     """
+
     def __init__(self, parent, wid=wx.ID_ANY, value="", pos=wx.DefaultPosition, size=wx.DefaultSize,
                  choices=None, style=0, validator=wx.DefaultValidator, name="comboBox"):
         if choices is None:
@@ -4824,10 +4856,10 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
         s, bmp = self._items[item]
         x = rect[0]
         sz = bmp.GetSize()
-        dc.DrawBitmap(bmp, (x, rect[1] + (rect[3]-sz[1])//2), True)
+        dc.DrawBitmap(bmp, (x, rect[1] + (rect[3] - sz[1]) // 2), True)
         x += sz[0]
         sz = dc.GetTextExtent(s)
-        dc.DrawText(s, (x, rect[1] + (rect[3]-sz[1])//2))
+        dc.DrawText(s, (x, rect[1] + (rect[3] - sz[1]) // 2))
 
     def OnMeasureItem(self, item):
         dc = wx.ClientDC(self)
@@ -4850,7 +4882,7 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
 _cominit_table = set()
 
 
-def _co_initialize():
+def _co_initialize() -> None:
     """スレッドごとにCoInitialize()を呼び出す。"""
     global _cominit_table
     if sys.platform != "win32":
@@ -4866,7 +4898,7 @@ def _co_initialize():
             _cominit_table.remove(thr2)
 
 
-def get_linktarget(fpath):
+def get_linktarget(fpath: str) -> str:
     """fileがショートカットだった場合はリンク先を、
     そうでない場合はfileを返す。
     """
@@ -4948,7 +4980,7 @@ def get_symlinktarget(path):
     return path
 
 
-def get_keypath(path):
+def get_keypath(path: str) -> str:
     """setやdicのキーとして使えるよう、pathをできるだけ均質化した文字列にする。"""
     return os.path.normcase(os.path.normpath(os.path.abspath(path)))
 
@@ -4988,7 +5020,7 @@ def t_reset():
     dictimes.clear()
 
 
-def t_print():
+def t_print() -> None:
     global times, dictimes
     lines = []
     for i, t in enumerate(times):
