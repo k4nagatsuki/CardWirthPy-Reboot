@@ -8,6 +8,9 @@ import cw
 
 
 class CWPySprite(pygame.sprite.DirtySprite):
+    rect: pygame.Rect
+    image: pygame.Surface
+
     def __init__(self, *groups):
         pygame.sprite.DirtySprite.__init__(self, *groups)
         self.dirty = 2
@@ -18,9 +21,6 @@ class CWPySprite(pygame.sprite.DirtySprite):
         self.start_animation = 0
         self.skipped = False
         self.frame = 0
-
-        self.rect = pygame.Rect(0, 0, 0, 0)
-        self.image = None
 
     def is_initialized(self):
         return True
