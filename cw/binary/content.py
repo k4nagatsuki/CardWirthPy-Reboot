@@ -832,11 +832,11 @@ class Content(base.CWBinaryBase):
             f.write_byte(base.CWBinaryBase.unconv_castranges(data.find("CastRanges")))
             levelmin = data.get("levelmin", None)
             levelmax = data.get("levelmax", None)
-            status = data.get("status", None)
+            status = data.get("status", "None")
             style = 0
             if not (levelmin is None and levelmax is None):
                 style |= 0b01
-            if status is not None:
+            if status != "None":
                 style |= 0b10
             f.write_byte(style)
             if (style & 0b01) != 0:
