@@ -1030,7 +1030,7 @@ class CardControl(wx.Dialog):
             size = self.narrow.GetSize()
             dc.DrawText(s, pos[0]-te[0]-cw.wins(3), (size[1]-te[1])//2 + pos[1])
 
-        assert isinstance(self, CardHolder)
+        assert isinstance(self, (CardHolder, HandView))
         price = (self.combo and self.combo.IsShown() and self.combo.GetSelection() == self._combo_shelf) or\
                 (self.sort and self.sort.IsShown() and cw.cwpy.setting.sort_cards == "Price")
         if price:
@@ -1345,7 +1345,7 @@ class CardControl(wx.Dialog):
         self.toppanel.Refresh()
 
     def _get_test_aptitude(self):
-        assert isinstance(self, CardHolder)
+        assert isinstance(self, (CardHolder, HandView))
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET"):
             sendto = self.combo.GetSelection()
             if sendto in self._combo_cast:
@@ -1742,7 +1742,7 @@ class CardControl(wx.Dialog):
             self.toppanel.SetFocusIgnoringChildren()
 
     def check_using(self, owner, header):
-        assert isinstance(self, CardHolder)
+        assert isinstance(self, (CardHolder, HandView))
 
         # 隠蔽中は使用不可
         if owner.reversed:
