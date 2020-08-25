@@ -17,10 +17,11 @@ _couponlock = threading.Lock()
 
 
 class Character(object):
+    status: str
+
     def __init__(self, data=None):
         if data is not None:
             self.data = data
-        self.status = ""
         self.reversed = False
 
         # 名前
