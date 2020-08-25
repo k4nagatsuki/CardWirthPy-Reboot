@@ -1030,7 +1030,7 @@ class CardControl(wx.Dialog):
             size = self.narrow.GetSize()
             dc.DrawText(s, pos[0]-te[0]-cw.wins(3), (size[1]-te[1])//2 + pos[1])
 
-        assert isinstance(self, (CardHolder, HandView))
+        assert isinstance(self, (CardHolder, HandView, ReplCardHolder))
         price = (self.combo and self.combo.IsShown() and self.combo.GetSelection() == self._combo_shelf) or\
                 (self.sort and self.sort.IsShown() and cw.cwpy.setting.sort_cards == "Price")
         if price:
@@ -1345,7 +1345,7 @@ class CardControl(wx.Dialog):
         self.toppanel.Refresh()
 
     def _get_test_aptitude(self):
-        assert isinstance(self, (CardHolder, HandView))
+        assert isinstance(self, (CardHolder, HandView, ReplCardHolder))
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET"):
             sendto = self.combo.GetSelection()
             if sendto in self._combo_cast:
@@ -1593,7 +1593,7 @@ class CardControl(wx.Dialog):
         if self.areaid in cw.AREAS_TRADE and header.type == "BeastCard" and not header.attachment:
             s = cw.cwpy.msgs["confirm_dump"] % (header.name)
             dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
-            self.Parent.move_dlg(dlg)
+            cw.cwpy.frame.move_dlg(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.play_sound("dump")
@@ -1720,7 +1720,7 @@ class CardControl(wx.Dialog):
         from . import cardinfo
 
         dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
-        self.Parent.move_dlg(dlg)
+        cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
         mousepos = self.ScreenToClient(wx.GetMousePosition())
