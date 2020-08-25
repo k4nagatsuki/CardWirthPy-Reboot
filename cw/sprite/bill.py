@@ -123,21 +123,22 @@ class Bill(object):
         return self.rect_noscale.height
 
     def create_message(self):
-        class BillSprite(base.CWPySprite):
-            def __init__(self, bill):
-                base.CWPySprite.__init__(self)
-                self.bill = bill
-                self.selections = bill.selections
-                self.specialchars = bill.specialchars
-                self.rect_noscale = pygame.Rect(bill.rect_noscale)
-                self.update_scale()
-                cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
-
-            def update_scale(self):
-                self.image, _rect = self.bill.create_image()
-                self.rect = cw.s(pygame.Rect(self.rect_noscale))
-
         return BillSprite(self)
+
+
+class BillSprite(base.CWPySprite):
+    def __init__(self, bill):
+        base.CWPySprite.__init__(self)
+        self.bill = bill
+        self.selections = bill.selections
+        self.specialchars = bill.specialchars
+        self.rect_noscale = pygame.Rect(bill.rect_noscale)
+        self.update_scale()
+        cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
+
+    def update_scale(self):
+        self.image, _rect = self.bill.create_image()
+        self.rect = cw.s(pygame.Rect(self.rect_noscale))
 
 
 def get_detailtext(header):

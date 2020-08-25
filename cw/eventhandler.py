@@ -1741,7 +1741,7 @@ class EventHandlerForBacklog(EventHandler):
                 m = self._mwins[i]
 
                 # 範囲内のスプライトを表示
-                assert isinstance(m, cw.sprite.message.MessageWindow)
+                assert isinstance(m, (cw.sprite.message.MessageWindow, cw.sprite.bill.BillSprite))
                 m.rect_noscale.top = self._pos_noscale[i]-top
                 m.rect.top = cw.s(m.rect_noscale.top)
                 cw.cwpy.backloggrp.add(m, layer=cw.LAYER_LOG)
