@@ -20,6 +20,7 @@ class Character(object):
     def __init__(self, data=None):
         if data is not None:
             self.data = data
+        self.status = ""
         self.reversed = False
 
         # 名前
@@ -2138,7 +2139,6 @@ class Character(object):
         return self._remove_coupon(name, True)
 
     def _remove_coupon(self, name, update=True):
-        assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if name not in self.coupons:
             return False
         if cw.cwpy.ydata:
@@ -2167,6 +2167,9 @@ class Character(object):
             effectevent.remove_target(self)
 
         return True
+
+    def reverse(self):
+        pass
 
     @synclock(_couponlock)
     def remove_timedcoupons(self, battleonly=False):
