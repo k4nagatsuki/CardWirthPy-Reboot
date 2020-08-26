@@ -757,9 +757,9 @@ def _func_int(args: List[Callable], is_differentscenario: bool, line: int, pos: 
         try:
             value = decimal.Decimal(a.value)
         except Exception:
-            raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
+            raise InvalidArgumentException("Invalid argument: %s" % a.value, "INT", 0, a.to_str(), a.line, a.pos)
     else:
-        raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
+        raise InvalidArgumentException("Invalid argument: %s" % a.value, "INT", 0, a.to_str(), a.line, a.pos)
     return DecimalValue(value.to_integral_exact(decimal.ROUND_DOWN), line, pos)
 
 
