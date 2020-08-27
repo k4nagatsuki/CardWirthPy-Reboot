@@ -4242,7 +4242,8 @@ class TalkMessageContent(TalkContent):
                     imgpath = base.path
                     if talkeriscard:
                         if not cw.binary.image.path_is_code(imgpath):
-                            if not hasattr(talker, "scenariocard") or not talker.scenariocard:
+                            if not hasattr(talker, "scenariocard") or not talker.scenariocard or \
+                                    (isinstance(talker, cw.header.CardHeader) and talker.cardimg.anotherscenariocard):
                                 if talker.type == "ActionCard":
                                     imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG, system=True)
                                 else:
