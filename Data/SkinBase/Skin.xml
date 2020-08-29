@@ -896,6 +896,9 @@
     <Message key="use_failed_personal_skill_card">技能カードを取り出して使用する事はできません。</Message>
     <Message key="replace_failed_different_card_type">異なる種類のカードとは交換できません。</Message>
     <Message key="use_failed_hand_be_full">%sの手札は既に一杯なので、カードを取り出せません。</Message>
+    <Message key="now_loading">読込中...</Message>
+    <Message key="scenarios_is_invisible">表示可能なシナリオはありません</Message>
+    <Message key="scenario_is_not_found">シナリオはありません</Message>
     <!-- 5.0 ここまで -->
   </Messages>
   <!-- importantdrawing = ユーザの描画オプションを上書きするか importantfont = フォントオプションを上書きするか -->
