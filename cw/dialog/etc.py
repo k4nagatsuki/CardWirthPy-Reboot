@@ -887,10 +887,10 @@ if sys.platform == "win32":
         def OnScreenShot(self, event: wx.CommandEvent) -> None:
             cw.cwpy.frame.save_screenshot()
 
-        def OnScreenShotHands(self, event):
+        def OnScreenShotHands(self, event: wx.CommandEvent) -> None:
             cw.cwpy.force_exec_func(cw.util.card_screenshot)
 
-        def OnCopyDetail(self, event):
+        def OnCopyDetail(self, event: wx.CommandEvent) -> None:
             self.GetParent().copy_detail()
 
         def OnMove(self, event: wx.SizeEvent) -> None:

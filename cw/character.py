@@ -10,8 +10,7 @@ import threading
 import cw
 from cw.util import synclock
 
-from typing import Dict, Tuple
-
+from typing import Optional, Dict, Tuple
 
 _couponlock = threading.Lock()
 
@@ -673,7 +672,7 @@ class Character(object):
         else:
             return not b
 
-    def is_reversed(self):
+    def is_reversed(self) -> bool:
         """
         隠蔽状態かどうかbool値で返す。
         """
@@ -1197,7 +1196,7 @@ class Character(object):
                 if user == self:
                     cw.cwpy.battle.priorityacts.remove((key, target, user))
 
-    def is_autoselectedpenalty(self, header=None):
+    def is_autoselectedpenalty(self, header: Optional[cw.header.CardHeader] = None) -> bool:
         """戦闘中にペナルティカードを自動選択した状態か。
         headerにNone以外が指定された時は、選択されたペナルティカードが
         指定されたheaderと一致する時のみTrueを返す。
@@ -2010,14 +2009,14 @@ class Character(object):
     def get_race(self):
         return self._get_race()
 
-    def _get_race(self) -> cw.header.UnknownRaceHeader:
+    def _get_race(self) -> "cw.header.UnknownRaceHeader":
         for race in cw.cwpy.setting.races:
             if self._has_coupon("＠Ｒ" + race.name):
                 return race
         return cw.cwpy.setting.unknown_race
 
     @synclock(_couponlock)
-    def get_levelcoeff(self):
+    def get_levelcoeff(self) -> float:
         return self._get_levelcoeff()
 
     def _get_levelcoeff(self) -> float:
@@ -3309,7 +3308,7 @@ class Player(Character):
     def get_personalpocketspace(self):
         return self._get_personalpocketspace()
 
-    def _get_personalpocketspace(self):
+    def _get_personalpocketspace(self) -> int:
         """私有カードを所有可能な残り枚数を返す。"""
         if cw.cwpy.setting.level_adjustment_affect_personal_pocket:
             level = self.level

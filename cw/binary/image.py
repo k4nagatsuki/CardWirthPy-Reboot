@@ -19,7 +19,7 @@ def code_to_data(code: str) -> bytes:
     return b""
 
 
-def data_to_code(data):
+def data_to_code(data: bytes) -> str:
     """バイナリイメージdataをテキスト表現へ変換する。"""
     if len(data):
         return BINARY_HEADER + str(base64.b64encode(data), "ascii")

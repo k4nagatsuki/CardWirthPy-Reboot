@@ -11,13 +11,15 @@ import colorsys
 
 import cw
 
+from typing import Callable, Optional
+
 
 # ------------------------------------------------------------------------------
 # パーティ情報変更ダイアログ
 # ------------------------------------------------------------------------------
 
 class PartyEditor(wx.Dialog):
-    def __init__(self, parent, party=None):
+    def __init__(self, parent: wx.TopLevelWindow, party: Optional[cw.data.Party] = None) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["party_information"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -55,7 +57,7 @@ class PartyEditor(wx.Dialog):
 
         self.textctrl.SetFocus()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
@@ -68,7 +70,7 @@ class PartyEditor(wx.Dialog):
                 recurse(child)
         recurse(self)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
@@ -88,7 +90,7 @@ class PartyEditor(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnSuspendLevelUp(self, event):
+    def OnSuspendLevelUp(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("page")
 
     def OnOk(self, event):
@@ -128,7 +130,7 @@ class PartyEditor(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
@@ -146,7 +148,7 @@ class PartyEditor(wx.Dialog):
 
 
 class MoneyEditPanel(wx.Panel):
-    def __init__(self, parent, party):
+    def __init__(self, parent: PartyEditor, party: cw.data.Party) -> None:
         wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
         self.party = party
         self.value = self.party.money
@@ -187,33 +189,33 @@ class MoneyEditPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.spinctrl.Bind(wx.EVT_SPINCTRL, self.OnSpinCtrl)
         self.spinctrl2.Bind(wx.EVT_SPINCTRL, self.OnSpinCtrl2)
         self.slider.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
 
-    def OnSlider(self, event):
+    def OnSlider(self, event: wx.CommandEvent) -> None:
         value = self.slider.slider.GetValue()
         self.spinctrl.SetValue(value)
         self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
         self.slider.enable()
 
-    def OnSpinCtrl(self, event):
+    def OnSpinCtrl(self, event: wx.SpinEvent) -> None:
         value = self.spinctrl.GetValue()
         self.slider.set_value(value)
         self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
         self.slider.enable()
 
-    def OnSpinCtrl2(self, event):
+    def OnSpinCtrl2(self, event: wx.SpinEvent) -> None:
         value = self.spinctrl.GetMax() + self.spinctrl.GetMin() - self.spinctrl2.GetValue()
         self.slider.set_value(value)
         self.spinctrl.SetValue(value)
         self.value = value
         self.slider.enable()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
@@ -540,7 +542,8 @@ class SliderWithButton(wx.Panel):
     _repeat_second = 20
 
     """左右ボタンつきのスライダ。"""
-    def __init__(self, parent, value, minvalue, maxvalue, page, sliderwidth):
+    def __init__(self, parent: MoneyEditPanel, value: int, minvalue: int, maxvalue: int, page: int,
+                 sliderwidth: int) -> None:
         wx.Panel.__init__(self, parent, -1)
         self.SetDoubleBuffered(True)
 
@@ -575,13 +578,13 @@ class SliderWithButton(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def set_value(self, value):
+    def set_value(self, value: int) -> None:
         if not self.is_enabled:
             return
         self.slider.SetValue(value)
         self.enable()
 
-    def set_max(self, value):
+    def set_max(self, value: int) -> None:
         self.Freeze()
         maxvalue = value
         minvalue = self.slider.GetMin()
@@ -624,12 +627,12 @@ class SliderWithButton(wx.Panel):
         self.enable()
         self.Thaw()
 
-    def enable(self):
+    def enable(self) -> None:
         self.slider.Enable(self.is_enabled)
         self.leftbtn.Enable(self.is_enabled and self.slider.GetMin() < self.slider.GetValue())
         self.rightbtn.Enable(self.is_enabled and self.slider.GetValue() < self.slider.GetMax())
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
         self.leftbtn.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDownBtn)
@@ -639,7 +642,7 @@ class SliderWithButton(wx.Panel):
         self.leftbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
         self.rightbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_slider = wx.BoxSizer(wx.HORIZONTAL)
         sizer_slider.Add(self.leftbtn, 0, wx.ALIGN_CENTER)
         sizer_slider.Add(self.slider, 1, wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER, cw.wins(3))
@@ -1582,7 +1585,8 @@ class BackColorEditDialog(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class InputTextDialog(wx.Dialog):
-    def __init__(self, parent, title, msg, text="", maxlength=0, addition="", addition_func=None):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, msg: str, text: str = "", maxlength: int = 0,
+                 addition: str = "", addition_func: Callable = None) -> None:
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -1643,7 +1647,7 @@ class InputTextDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
@@ -1657,7 +1661,7 @@ class InputTextDialog(wx.Dialog):
         w, h, _lineheight = dc.GetFullMultiLineTextExtent(self.msg)
         dc.DrawLabel(self.msg, (0, cw.wins(10), csize[0], h), wx.ALIGN_CENTER)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
@@ -1665,7 +1669,7 @@ class InputTextDialog(wx.Dialog):
         if self.addition:
             self.Bind(wx.EVT_BUTTON, self.OnAddition, self.addition)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         csize = self.GetClientSize()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)

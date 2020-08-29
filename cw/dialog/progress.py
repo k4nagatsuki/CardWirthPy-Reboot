@@ -88,7 +88,8 @@ class ProgressDialog(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class SysProgressDialog(wx.Dialog):
-    def __init__(self, parent, title, message, maximum=100, minimum=0, cancelable=False, width=380):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, message: str, maximum: int = 100, minimum: int = 0,
+                 cancelable: bool = False, width: int = 380) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.DEFAULT_DIALOG_STYLE | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -118,21 +119,21 @@ class SysProgressDialog(wx.Dialog):
         # layout
         self._do_layout()
 
-    def UpdateProgress(self, value, message):
+    def UpdateProgress(self, value: int, message: str) -> None:
         value -= self.minimum
         if value != self.gauge.GetValue() or self.text != message:
             self.gauge.SetValue(value-self.minimum)
             self.text = message
             self.message.SetLabel(self.text)
 
-    def OnClickCancelBtn(self, event):
+    def OnClickCancelBtn(self, event: wx.CommandEvent) -> None:
         self.cancel = True
 
-    def _bind(self):
+    def _bind(self) -> None:
         if self.btn_cncl:
             self.Bind(wx.EVT_BUTTON, self.OnClickCancelBtn, self.btn_cncl)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
 
         sizer_1.Add(cw.ppis((0, 10)), 0, 0, cw.ppis(0))

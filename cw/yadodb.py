@@ -1436,9 +1436,9 @@ class YadoDB(object):
         return d
 
     @synclock(_lock)
-    def commit(self):
+    def commit(self) -> None:
         self.con.commit()
 
     @synclock(_lock)
-    def close(self):
+    def close(self) -> None:
         self.con.close()

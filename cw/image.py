@@ -11,7 +11,7 @@ import pygame.locals
 
 import cw
 
-from typing import Callable, Optional, List, Tuple, Union
+from typing import Dict, Callable, Optional, List, Tuple, Union
 
 
 class ImageInfo(object):
@@ -183,7 +183,7 @@ def get_imageinfos(data: cw.data.CWPyElement, pcnumber: bool = False) -> List[Im
     return seq
 
 
-def get_imageinfos_p(prop: cw.header.GetProperty, pcnumber: bool = False) -> List[ImageInfo]:
+def get_imageinfos_p(prop: "cw.header.GetProperty", pcnumber: bool = False) -> List[ImageInfo]:
     """cw.header.GetPropertyのインスタンスから
     ImageInfoのlistを生成する。
     """
@@ -227,8 +227,9 @@ class Image(object):
 # ------------------------------------------------------------------------------
 
 class CardImage(Image):
-    def __init__(self, paths, bgtype, name="", premium="", can_loaded_scaledimage=False,
-                 is_scenariocard=False, scedir="", anotherscenariocard=False):
+    def __init__(self, paths: List[ImageInfo], bgtype: str, name: str = "", premium: str = "",
+                 can_loaded_scaledimage: bool = False,
+                 is_scenariocard: bool = False, scedir: str = "", anotherscenariocard: bool = False) -> None:
         """
         カード画像と背景画像とカード名を合成・加工し、
         wxPythonとPygame両方で使える画像オブジェクトを生成する。
@@ -249,7 +250,7 @@ class CardImage(Image):
 
         self.update_scale()
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self._bmp = None
         self._wxbmp = None
         self.image_mtime.clear()
@@ -270,7 +271,11 @@ class CardImage(Image):
             self.can_loaded_scaledimage_upd = None
             self.clear_cache()
 
-    def _upwinmemo(self):
+    def _upwinmemo(self) -> Union[Tuple[float, float, bool, Dict[str, str], Tuple[str, str, int, bool, bool, bool],
+                                        Tuple[str, str, int, bool, bool, bool]],
+                                  Tuple[int, int, bool, Dict[str, str],
+                                        Tuple[str, str, int, bool, bool, bool],
+                                        Tuple[str, str, int, bool, bool, bool]]]:
         return (
             cw.UP_WIN, cw.UP_SCR, cw.cwpy.setting.fontsmoothing_cardname,
             cw.cwpy.setting.basefont.copy(),
@@ -279,15 +284,15 @@ class CardImage(Image):
         )
 
     @property
-    def wxcardbg(self):
+    def wxcardbg(self) -> wx.Bitmap:
         return cw.cwpy.rsrc.wxcardbgs[self.bgtype]
 
     @property
-    def wxrect(self):
+    def wxrect(self) -> pygame.Rect:
         wxsize = cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + self.bgtype])
         return pygame.Rect(0, 0, wxsize[0], wxsize[1])
 
-    def is_modifiedfile(self):
+    def is_modifiedfile(self) -> bool:
         cw.fsync.sync()
         for info in self.paths:
             path = info.path
@@ -506,7 +511,7 @@ class CardImage(Image):
             negaimg = self.get_negaimg()
         return pygame.transform.scale(negaimg, size)
 
-    def get_wxbmp(self):
+    def get_wxbmp(self) -> wx.Bitmap:
         if self._wxbmp and self._upwin == self._upwinmemo() and not self.is_modifiedfile():
             return cw.util.copy_wxbmp(self._wxbmp)
         self._upwin = self._upwinmemo()
@@ -591,7 +596,8 @@ class CardImage(Image):
         self._wxbmp = bmp
         return cw.util.copy_wxbmp(self._wxbmp)
 
-    def get_cardwxbmp(self, header, test_aptitude=None):
+    def get_cardwxbmp(self, header: Union["cw.header.CardHeader", "cw.sprite.card.MenuCard"],
+                      test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
         if header.negaflag:
             image = self.get_wxnegabmp()
         else:
@@ -705,11 +711,12 @@ class CardImage(Image):
 
         return image
 
-    def get_wxnegabmp(self):
+    def get_wxnegabmp(self) -> wx.Bitmap:
         image = self.get_wxbmp()
         return cw.imageretouch.to_negative_for_wxcard(image)
 
-    def get_wxclickedbmp(self, header, wxbmp, test_aptitude=None):
+    def get_wxclickedbmp(self, header: "cw.header.CardHeader", wxbmp: wx.Bitmap,
+                         test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
         size = (self.wxrect.width * 9 // 10, self.wxrect.height * 9 // 10)
         if wxbmp:
             negaimg = wxbmp

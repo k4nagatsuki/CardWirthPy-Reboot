@@ -9,7 +9,6 @@ import threading
 
 import cw
 
-
 VOID = 0
 INITIAL = 1
 SYSTEM = 2

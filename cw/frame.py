@@ -303,7 +303,7 @@ class Frame(wx.Frame):
             self.dlgeventtypes[eventname] = eventtype
             self.Bind(event, getattr(self, "On" + eventname))
 
-    def tick_clock(self, framerate=0):
+    def tick_clock(self, framerate: int = 0) -> None:
         if not framerate:
             framerate = cw.cwpy.setting.fps
         t = 1.0 / framerate
@@ -311,11 +311,11 @@ class Frame(wx.Frame):
         time.sleep(t)
         self._clock = time.time()
 
-    def wait_frame(self, count):
+    def wait_frame(self, count: int) -> None:
         for _i in range(count):
             self.tick_clock()
 
-    def start_wait(self):
+    def start_wait(self) -> None:
         self._clock = time.time()
 
     @synclock(cw.debug.debugger.mutex)
@@ -523,7 +523,7 @@ class Frame(wx.Frame):
 
         cw.thread.post_pygameevent(evt)
 
-    def OnDropFiles(self, event):
+    def OnDropFiles(self, event: wx.DropFilesEvent) -> None:
         if cw.cwpy.is_showingdlg():
             return
         paths = event.GetFiles()
@@ -581,7 +581,7 @@ class Frame(wx.Frame):
 
         cw.util.t_print()
 
-    def OnIconize(self, event):
+    def OnIconize(self, event: wx.IconizeEvent) -> None:
         """最小化イベント。最小化したときBGMの音も消す。"""
         self.is_iconized = event.IsIconized()
         if self.is_iconized:
@@ -663,13 +663,13 @@ class Frame(wx.Frame):
                 self.debugger.Close()
             self.Destroy()
 
-    def OnSETTINGS(self, event):
+    def OnSETTINGS(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.settings.SettingsDialog(self)
         self.move_dlg(dlg)
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-    def OnMENUCARDINFO(self, event):
+    def OnMENUCARDINFO(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.cardinfo.MenuCardInfo(self)
         self.move_dlg(dlg)
         dlg.ShowModal()
@@ -752,7 +752,7 @@ class Frame(wx.Frame):
 
         cw.cwpy.exec_func(func)
 
-    def open_scenariodb(self):
+    def open_scenariodb(self) -> cw.scenariodb.Scenariodb:
         # Scenariodb更新用のサブスレッドの処理が終わるまで待機
         while not cw.scenariodb.ScenariodbUpdatingThread.is_finished():
             pass
@@ -771,7 +771,7 @@ class Frame(wx.Frame):
             self.OnERROR(event)
             return None
 
-    def OnSCENARIOSELECT(self, event):
+    def OnSCENARIOSELECT(self, event: wx.PyCommandEvent) -> None:
         db = self.open_scenariodb()
         if not db:
             return
@@ -783,7 +783,7 @@ class Frame(wx.Frame):
 
         dlg.ShowModal()
 
-    def ok_scenarioselect(self, dlg):
+    def ok_scenarioselect(self, dlg: "cw.dialog.scenarioselect.ScenarioSelect") -> None:
         header = dlg.list[dlg.index]
         sel, selpath = dlg.get_selected()
         cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
@@ -835,7 +835,7 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-    def OnBACKPACK(self, event):
+    def OnBACKPACK(self, event: wx.PyCommandEvent) -> None:
         selection, preinfo = self._get_cardcontrolparams()
         areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", selection, preinfo, areaid=areaid)
@@ -854,10 +854,10 @@ class Frame(wx.Frame):
     def OnCARDPOCKETB(self, event):
         self._cardpocket_impl("CARDPOCKETB")
 
-    def OnCARDPOCKET(self, event):
+    def OnCARDPOCKET(self, event: wx.PyCommandEvent) -> None:
         self._cardpocket_impl("CARDPOCKET")
 
-    def _cardpocket_impl(self, callname):
+    def _cardpocket_impl(self, callname: str) -> None:
         selection, preinfo = self._get_cardcontrolparams()
         if isinstance(selection, (cw.character.Enemy, cw.character.Friend)):
             areaid = cw.cwpy.areaid
@@ -875,7 +875,7 @@ class Frame(wx.Frame):
 
         dlg.ShowModal()
 
-    def OnCARDPOCKET_REPLACE(self, event):
+    def OnCARDPOCKET_REPLACE(self, event: wx.PyCommandEvent) -> None:
         selection = cw.cwpy.selection
         target = cw.cwpy.selectedheader
         if selection and target:
@@ -886,7 +886,7 @@ class Frame(wx.Frame):
         else:
             self.kill_dlg(None)
 
-    def _get_cardcontrolparams(self):
+    def _get_cardcontrolparams(self) -> Tuple["cw.sprite.card.CWPyCard", Tuple[str, int, wx.Point, int]]:
         if cw.cwpy.pre_dialogs:
             preinfo = cw.cwpy.pre_dialogs.pop()
             selection = preinfo[1]
@@ -921,7 +921,7 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg)
 
-    def OnSAVE(self, event):
+    def OnSAVE(self, event: wx.PyCommandEvent) -> None:
         is_playingscenario = cw.cwpy.is_playingscenario()
 
         if (cw.cwpy.setting.confirm_beforesaving == cw.setting.CONFIRM_BEFORESAVING_BASE and
@@ -1046,7 +1046,7 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-    def OnPARTYEDIT(self, event):
+    def OnPARTYEDIT(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.edit.PartyEditor(self)
         self.move_dlg(dlg)
         dlg.ShowModal()
@@ -1131,7 +1131,7 @@ class Frame(wx.Frame):
         else:
             self.kill_dlg(dlg)
 
-    def OnNOTICE(self, event):
+    def OnNOTICE(self, event: wx.PyCommandEvent) -> None:
         cw.cwpy.play_sound("error")
         if cw.cwpy.setting.noticeimpossibleaction:
             text = event.args.get("text", "")
@@ -1160,7 +1160,7 @@ class Frame(wx.Frame):
             parent.after_message()
         self.kill_dlg(dlg)
 
-    def OnYESNO(self, event):
+    def OnYESNO(self, event: wx.PyCommandEvent) -> None:
         text = event.args.get("text", "")
         parent = event.args.get("parentdialog", self)
         if not parent:
@@ -1410,7 +1410,7 @@ class Frame(wx.Frame):
         recurse(self)
         mem.SelectObject(wx.NullBitmap)
 
-    def change_selection(self, selection):
+    def change_selection(self, selection: Optional["cw.sprite.card.CWPyCard"]) -> None:
         """選択カードを変更し、色反転させる。
         selection: SelectableSprite
         """
@@ -1419,7 +1419,7 @@ class Frame(wx.Frame):
         else:
             cw.cwpy.exec_func(cw.cwpy.clear_selection)
 
-    def change_cardcontrolarea(self):
+    def change_cardcontrolarea(self) -> int:
         """カード移動操作を行う特殊エリアに移動。"""
         if cw.cwpy.areaid in cw.AREAS_TRADE:
             return cw.cwpy.areaid

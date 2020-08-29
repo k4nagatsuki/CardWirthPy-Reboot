@@ -1455,7 +1455,7 @@ class MenuCard(CWPyCard):
             self.update_image()
 
     @property
-    def cardimg(self):
+    def cardimg(self) -> cw.image.CardImage:
         if not self._init:
             self.initialize()
         return self._cardimg

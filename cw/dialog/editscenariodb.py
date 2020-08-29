@@ -7,6 +7,8 @@ import wx
 
 import cw
 
+from typing import Dict, Set
+
 
 # ------------------------------------------------------------------------------
 # シナリオDB構築ダイアログ
@@ -14,7 +16,7 @@ import cw
 
 class ConstructScenarioDB(wx.Dialog):
 
-    def __init__(self, parent, dpaths):
+    def __init__(self, parent: wx.TopLevelWindow, dpaths: Dict[str, Set[str]]) -> None:
         """シナリオ検索の始点から見つかる全てのシナリオを
         シナリオDBに登録する。
         """
@@ -44,10 +46,10 @@ class ConstructScenarioDB(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnClickOkBtn, self.okbtn)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_top = wx.BoxSizer(wx.VERTICAL)
         sizer_top.Add(self.text, 0, wx.BOTTOM, cw.ppis(10))
         sizer_top.Add(self.clear, 0, wx.ALIGN_RIGHT, cw.ppis(0))
@@ -118,7 +120,7 @@ class ConstructScenarioDB(wx.Dialog):
         self._curnum = 100+len(self.dpaths)+1
         self._complete = True
 
-    def OnClickOkBtn(self, event):
+    def OnClickOkBtn(self, event: wx.CommandEvent) -> None:
         # プログレスダイアログ表示
         dlg = cw.dialog.progress.SysProgressDialog(self, "シナリオデータベースの構築", "",
                                                    maximum=100+len(self.dpaths)+1, cancelable=True)

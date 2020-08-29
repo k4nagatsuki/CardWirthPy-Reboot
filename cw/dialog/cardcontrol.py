@@ -12,7 +12,7 @@ import wx.lib.intctrl
 
 import cw
 
-from typing import List, Union
+from typing import Callable, Optional, Tuple, List, Union
 
 # カード操作ダイアログのモード
 CCMODE_SHOW = 0  # 閲覧モード
@@ -32,7 +32,8 @@ class CardControl(wx.Dialog):
     list: List[cw.header.CardHeader]
     selection: Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"]
 
-    def __init__(self, parent, name, sendto, sort, areaid=None, drawcards=True):
+    def __init__(self, parent: wx.TopLevelWindow, name: str, sendto: bool, sort: bool, areaid: Optional[int] = None,
+                 drawcards: bool = True) -> None:
         # ダイアログ作成
         wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
@@ -240,7 +241,7 @@ class CardControl(wx.Dialog):
         if drawcards:
             self.draw_cards()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn2, self.leftbtn2)
@@ -345,7 +346,7 @@ class CardControl(wx.Dialog):
                 event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
                 self.ProcessEvent(event)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         """
         引数に子クラスで設定したsizer_leftbarが必要
         """
@@ -523,7 +524,7 @@ class CardControl(wx.Dialog):
                         self.update_narrowcondition()
                     self.narrow_type.Delete(i)
 
-    def update_additionals(self):
+    def update_additionals(self) -> None:
         """表示状態の切り替え時に呼び出される。"""
         show = self.addctrlbtn.GetToggle()
         for ctrl, is_shown in self.additionals:
@@ -581,7 +582,7 @@ class CardControl(wx.Dialog):
             self.narrow.SetFocus()
         wx.CallAfter(func)
 
-    def OnSendTo(self, event):
+    def OnSendTo(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("page")
         cw.cwpy.setting.last_sendto = self.combo.GetSelection()
         self.toppanel.SetFocusIgnoringChildren()
@@ -615,10 +616,10 @@ class CardControl(wx.Dialog):
     def OnShowBeast(self, event):
         pass
 
-    def _update_sortwithstar(self):
+    def _update_sortwithstar(self) -> None:
         pass
 
-    def _update_editstar(self):
+    def _update_editstar(self) -> None:
         pass
 
     def OnUp(self, event):
@@ -687,10 +688,10 @@ class CardControl(wx.Dialog):
 
         self.update_cardpocketinfo_with(c2)
 
-    def update_cardpocketinfo_with(self, header):
+    def update_cardpocketinfo_with(self, header: Optional[cw.header.CardHeader]) -> None:
         pass
 
-    def _can_sideclick(self):
+    def _can_sideclick(self) -> bool:
         if not cw.cwpy.setting.can_clicksidesofcardcontrol:
             return False
         scrpos = wx.GetMousePosition()
@@ -700,7 +701,7 @@ class CardControl(wx.Dialog):
                 return False
         return self._cursor_in_ctrlsarea(mousepos)
 
-    def _cursor_in_ctrlsarea(self, mousepos):
+    def _cursor_in_ctrlsarea(self, mousepos: wx.Point) -> bool:
         for ctrl in self.smallctrls:
             if not (ctrl.IsShown() and ctrl.IsEnabled()):
                 continue
@@ -713,21 +714,21 @@ class CardControl(wx.Dialog):
                 return False
         return True
 
-    def _is_cursorinleft(self):
+    def _is_cursorinleft(self) -> bool:
         if not self._can_sideclick():
             return False
         rect = self.toppanel.GetClientRect()
         x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
         return x < rect.x + rect.width // 4 and self.leftbtn.IsEnabled()
 
-    def _is_cursorinright(self):
+    def _is_cursorinright(self) -> bool:
         if not self._can_sideclick():
             return False
         rect = self.toppanel.GetClientRect()
         x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
         return rect.x + rect.width // 4 * 3 < x and self.rightbtn.IsEnabled()
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -741,7 +742,7 @@ class CardControl(wx.Dialog):
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
                 self.ProcessEvent(btnevent)
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         if self._proc:
             return
 
@@ -825,7 +826,7 @@ class CardControl(wx.Dialog):
     def _replace_position_impl(self, header1, header2):
         pass
 
-    def OnRightUp(self, event):
+    def OnRightUp(self, event: wx.MouseEvent) -> None:
         if self._proc:
             return
 
@@ -850,13 +851,13 @@ class CardControl(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.closebtn.GetId())
         self.ProcessEvent(btnevent)
 
-    def OnMove(self, event):
+    def OnMove(self, event: wx.MouseEvent) -> None:
         if self._proc:
             return
         mousepos = event.GetPosition()
         self._on_move(mousepos=mousepos)
 
-    def _on_move(self, mousepos):
+    def _on_move(self, mousepos: wx.Point) -> None:
         self.set_cardpos()
 
         if not self.IsShown():
@@ -929,10 +930,10 @@ class CardControl(wx.Dialog):
         else:
             self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_ARROW"])
 
-    def OnEnter(self, event):
+    def OnEnter(self, event: wx.MouseEvent) -> None:
         self.OnMove(event)
 
-    def OnLeave(self, event):
+    def OnLeave(self, event: wx.MouseEvent) -> None:
         if self.IsActive():
             self.set_cardpos()
 
@@ -964,7 +965,7 @@ class CardControl(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.combo.GetId())
         self.combo.ProcessEvent(btnevent)
 
-    def OnPaint2(self, event):
+    def OnPaint2(self, event: wx.PaintEvent) -> None:
         if not self._redraw:
             return
         self.set_cardpos()
@@ -1203,10 +1204,10 @@ class CardControl(wx.Dialog):
             cw.cwpy.frame.exec_func(self._after_event)
             self._after_event = None
 
-    def _draw_additionals(self, dc):
+    def _draw_additionals(self, dc: wx.DC) -> None:
         pass
 
-    def _show_star(self, header):
+    def _show_star(self, header: cw.header.CardHeader) -> bool:
         if self.callname not in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "CARDPOCKET"):
             return False
         if self.callname == "CARDPOCKET" and not isinstance(header.get_owner(), cw.character.Player):
@@ -1215,7 +1216,7 @@ class CardControl(wx.Dialog):
             return False
         return True
 
-    def _get_starrect(self, header):
+    def _get_starrect(self, header: cw.header.CardHeader) -> Tuple[wx.Rect, int, int]:
         if not self._show_star(header):
             return wx.Rect(0, 0, 0, 0), 0, 0
         bmp, _usemask = self._drawlist[header]
@@ -1259,7 +1260,7 @@ class CardControl(wx.Dialog):
 
         return wx.Rect(x-cw.wins(5), y-cw.wins(5), sw+cw.wins(10), sh+cw.wins(10)), x, y
 
-    def _can_repls(self):
+    def _can_repls(self) -> bool:
         if self.callname == "HANDVIEW":
             return False  # 当面は戦闘行動選択ビューでは入替不可とする
         if self.sort.GetSelection() != 0 or not self.editstar.GetToggle():
@@ -1268,7 +1269,7 @@ class CardControl(wx.Dialog):
             return False
         return True
 
-    def _get_replsrect(self, header):
+    def _get_replsrect(self, header: cw.header.CardHeader) -> Tuple[wx.Rect, int, int]:
         if not self._can_repls():
             return wx.Rect(0, 0, 0, 0), 0, 0
 
@@ -1311,7 +1312,7 @@ class CardControl(wx.Dialog):
             self.draw_cards(update)
         self.toppanel.Refresh()
 
-    def get_mode(self):
+    def get_mode(self) -> int:
         if self.callname == "INFOVIEW" or\
             (self.callname == "CARDPOCKET" and isinstance(self.selection, cw.character.Friend)) or\
             (self.callname == "HANDVIEW" and not cw.cwpy.is_debugmode() and
@@ -1326,7 +1327,7 @@ class CardControl(wx.Dialog):
         else:
             return CCMODE_USE
 
-    def draw_cards(self, update=True, mode=-1):
+    def draw_cards(self, update: bool = True, mode: int = -1) -> None:
         self._drawlist = {}
         if mode == -1:
             if self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
@@ -1344,7 +1345,7 @@ class CardControl(wx.Dialog):
             self.draw_card(header)
         self.toppanel.Refresh()
 
-    def _get_test_aptitude(self):
+    def _get_test_aptitude(self) -> Optional["cw.sprite.card.PlayerCard"]:
         assert isinstance(self, (CardHolder, HandView, ReplCardHolder))
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET"):
             sendto = self.combo.GetSelection()
@@ -1356,7 +1357,7 @@ class CardControl(wx.Dialog):
             return self.selection
         return None
 
-    def draw_card(self, header, fromkeyevent=False):
+    def draw_card(self, header: cw.header.CardHeader, fromkeyevent: bool = False) -> None:
         if not fromkeyevent and self.IsActive() and self.IsShown():
             selected = None
             updated = False
@@ -1386,7 +1387,7 @@ class CardControl(wx.Dialog):
         self._drawlist[header] = (bmp, False)
         self.toppanel.RefreshRect(rect=wx.Rect(*header.wxrect))
 
-    def get_posmode(self):
+    def get_posmode(self) -> int:
         if self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
             return 1
         elif self.callname == "CARDPOCKET":
@@ -1396,7 +1397,7 @@ class CardControl(wx.Dialog):
         else:
             assert False, self.callname
 
-    def set_cardpos(self, mode=-1):
+    def set_cardpos(self, mode: int = -1) -> None:
         if mode == -1:
             mode = self.get_posmode()
 
@@ -1412,10 +1413,10 @@ class CardControl(wx.Dialog):
     def get_headers(self):
         pass
 
-    def get_beforepageheaders(self):
+    def get_beforepageheaders(self) -> List[cw.header.CardHeader]:
         return []
 
-    def animate_click(self, header, func):
+    def animate_click(self, header: cw.header.CardHeader, func: Callable) -> None:
         # クリックアニメーション。4フレーム分。
         if self._proc:
             return
@@ -1574,7 +1575,7 @@ class CardControl(wx.Dialog):
     def animate_deal(self, header1, header2, func):
         self._animate_dealhide(header1, header2, func, cw.cwpy.setting.dealing_scales[::-1], 100)
 
-    def lclick_event(self, header):
+    def lclick_event(self, header: cw.header.CardHeader) -> None:
         if self._proc:
             return
         if self._quit:
@@ -1795,7 +1796,7 @@ class CardControl(wx.Dialog):
 
         return True
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.PyCommandEvent) -> None:
         if self._quit:
             return
         self._quit = True
@@ -1817,7 +1818,7 @@ class CardControl(wx.Dialog):
     def OnCancel2(self, event):
         self.OnCancel(event)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.PyCommandEvent) -> None:
         if self._quit:
             return
         self._quit = True
@@ -1841,7 +1842,9 @@ class CardControl(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class CardHolder(CardControl):
-    def __init__(self, parent, callname, selection, pre_info=None, areaid=None):
+    def __init__(self, parent: wx.TopLevelWindow, callname: str, selection: Optional["cw.sprite.card.CWPyCard"],
+                 pre_info: Optional[Tuple[str, Optional[int], wx.Point, Union[int, float]]] = None,
+                 areaid: Optional[int] = None) -> None:
         # タイプ判別
         self.callname = callname
         self.selection = None
@@ -2136,7 +2139,7 @@ class CardHolder(CardControl):
         # bind
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         CardControl._bind(self)
 
         if self.callname != "INFOVIEW":
@@ -2176,7 +2179,7 @@ class CardHolder(CardControl):
                         self.draw_cards()
                     self.combo.Delete(i)
 
-    def _load_index(self):
+    def _load_index(self) -> None:
         if self.callname == "CARDPOCKET":
             self.index = 0
         elif self.callname == "CARDPOCKETB":
@@ -2190,7 +2193,7 @@ class CardHolder(CardControl):
         else:
             assert False
 
-    def _store_index(self):
+    def _store_index(self) -> None:
         if self.callname == "CARDPOCKET":
             pass
         elif self.callname == "CARDPOCKETB":
@@ -2210,7 +2213,7 @@ class CardHolder(CardControl):
         cw.cwpy.frame.exec_func(func)
         event.Skip()
 
-    def OnDestroy(self, event):
+    def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
         self._cancel_animation = True
         for header in self._fulllist:
             header.negaflag = False
@@ -2255,7 +2258,7 @@ class CardHolder(CardControl):
 
         self._update_sortwithstar()
 
-    def _update_sortwithstar(self):
+    def _update_sortwithstar(self) -> None:
         bmp = self.star
         toggle = True
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
@@ -2269,7 +2272,7 @@ class CardHolder(CardControl):
         self.sortwithstar.SetBitmapSelected(bmp)
         self.sortwithstar.SetToggle(toggle)
 
-    def _update_editstar(self):
+    def _update_editstar(self) -> None:
         bmp = cw.cwpy.rsrc.dialogs["ARRANGE_BOOKMARK"]
         cw.cwpy.setting.edit_star = self.editstar.GetToggle()
         if not cw.cwpy.setting.edit_star:
@@ -2279,7 +2282,7 @@ class CardHolder(CardControl):
         self.editstar.SetBitmapLabel(bmp)
         self.editstar.SetBitmapSelected(bmp)
 
-    def _update_sortattr(self, draw=True):
+    def _update_sortattr(self, draw: bool = True) -> bool:
         if self.callname in ("BACKPACK", "CARDPOCKETB"):
             assert cw.cwpy.ydata.party is not None
             cw.cwpy.ydata.party.sort_backpack(test_aptitude=self._get_test_aptitude())
@@ -2377,7 +2380,7 @@ class CardHolder(CardControl):
         self._redraw = True
         self.draw_cards()
 
-    def OnClickRightBtn(self, event):
+    def OnClickRightBtn(self, event: wx.PyCommandEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
         self._redraw = False
@@ -2424,7 +2427,7 @@ class CardHolder(CardControl):
         self._redraw = True
         self.draw_cards()
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.PyCommandEvent) -> None:
         self._cancel_animation = True
         if self.callname == "CARDPOCKETB":
             cw.cwpy.play_sound("page")
@@ -2439,7 +2442,7 @@ class CardHolder(CardControl):
         self._cancel_animation = True
         CardControl.OnCancel(self, event)
 
-    def _change_callname(self, old_callname):
+    def _change_callname(self, old_callname: str) -> None:
         self.Freeze()
         self._load_index()
 
@@ -2482,7 +2485,7 @@ class CardHolder(CardControl):
 
         self.Thaw()
 
-    def _update_cardpocketinfo(self, pocket, force=False):
+    def _update_cardpocketinfo(self, pocket: int, force: bool = False) -> None:
         if self._can_open_cardpocket and (pocket != self._cardpocketinfo or force):
             self._cardpocketinfo = pocket
             updated = False
@@ -2510,7 +2513,7 @@ class CardHolder(CardControl):
             if updated:
                 self.combo.Refresh()
 
-    def update_cardpocketinfo_with(self, header):
+    def update_cardpocketinfo_with(self, header: Optional[cw.header.CardHeader]) -> None:
         if not self._can_open_cardpocket:
             return
         if self.callname == "CARDPOCKET":
@@ -2529,7 +2532,7 @@ class CardHolder(CardControl):
         if pocket != self._cardpocketinfo:
             self._update_cardpocketinfo(pocket)
 
-    def _enable_updown(self):
+    def _enable_updown(self) -> None:
         # リストが空か1ページ分しかなかったら上下ボタンを無効化
         if self.callname == "CARDPOCKET" or len(self.list) <= 10:
             self.upbtn.Disable()
@@ -2538,7 +2541,7 @@ class CardHolder(CardControl):
             self.upbtn.Enable()
             self.downbtn.Enable()
 
-    def _show_controls(self):
+    def _show_controls(self) -> None:
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
             self.skillbtn.Show()
@@ -2618,7 +2621,7 @@ class CardHolder(CardControl):
         else:
             self.sort.Select(0)
 
-    def _update_page(self):
+    def _update_page(self) -> None:
         index = self.index
         maxval = (len(self.list)+9)//10 if len(self.list) > 0 else 1
         index = min(index, maxval-1)
@@ -2643,7 +2646,7 @@ class CardHolder(CardControl):
         if narrow:
             self.list = self._narrow(self.list)
 
-    def lclick_event(self, header):
+    def lclick_event(self, header: cw.header.CardHeader) -> None:
         header.negaflag = False
         owner = self.selection
 
@@ -2805,7 +2808,7 @@ class CardHolder(CardControl):
             cw.cwpy.play_sound("page")
             self._on_pagenum(index+1)
 
-    def _on_pagenum(self, page):
+    def _on_pagenum(self, page: int) -> None:
         index = page-1
         negaindex = -1
         if not negaindex == -1:
@@ -2815,7 +2818,7 @@ class CardHolder(CardControl):
         self.index = index
         self.draw_cards()
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -2881,7 +2884,7 @@ class CardHolder(CardControl):
 
         CardControl.OnMouseWheel(self, event)
 
-    def draw_cards(self, update=True, mode=-1):
+    def draw_cards(self, update: bool = True, mode: int = -1) -> None:
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             if (len(self.list)+9) // 10 <= self.index:
                 self.index = (len(self.list)+9) // 10 - 1
@@ -2914,7 +2917,7 @@ class CardHolder(CardControl):
 
         CardControl.draw_cards(self, update, mode)
 
-    def _init_cardpocketlist(self):
+    def _init_cardpocketlist(self) -> None:
         if self.callname != "CARDPOCKET":
             return
 
@@ -2947,16 +2950,16 @@ class CardHolder(CardControl):
                                     self.list.insert(10, cw.cwpy.rsrc.backpackcards[cardtype])
                                     break
 
-    def get_headers(self):
+    def get_headers(self) -> List[cw.header.CardHeader]:
         li = self.index * 10
         clist = self.list[li:li + 10]
         return clist
 
-    def is_showpersonal(self):
+    def is_showpersonal(self) -> bool:
         return cw.cwpy.setting.show_personal_cards and cw.cwpy.sdata.party_environment_backpack and\
                (isinstance(self.selection, cw.character.Player) or self.callname in ("BACKPACK", "STOREHOUSE"))
 
-    def get_beforepageheaders(self):
+    def get_beforepageheaders(self) -> List[cw.header.CardHeader]:
         if 0 < self.index:
             index = self.index-1
             li = index * 10
@@ -2965,7 +2968,7 @@ class CardHolder(CardControl):
             clist = []
         return clist
 
-    def _narrow(self, clist):
+    def _narrow(self, clist: List[cw.header.CardHeader]) -> List[cw.header.CardHeader]:
         self._fulllist = clist
         if self.callname not in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return self._fulllist
@@ -3049,7 +3052,7 @@ class CardHolder(CardControl):
 
         return seq
 
-    def update_narrowcondition(self):
+    def update_narrowcondition(self) -> None:
         if not self._update_sortattr(draw=False):
             self.list = self._narrow(self._fulllist)
         self._update_page()
@@ -3254,7 +3257,8 @@ class HandView(CardControl):
 # ------------------------------------------------------------------------------
 
 class ReplCardHolder(CardControl):
-    def __init__(self, parent, selection, target, personal):
+    def __init__(self, parent: wx.TopLevelWindow, selection: "cw.sprite.card.PlayerCard",
+                 target: "cw.header.CardHeader", personal: bool) -> None:
         self.callname = "CARDPOCKET_REPLACE"
         self.owner = selection
         self.target = target
@@ -3307,7 +3311,7 @@ class ReplCardHolder(CardControl):
         # bind
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         CardControl._bind(self)
 
     def OnClickLeftBtn(self, event):
@@ -3338,7 +3342,7 @@ class ReplCardHolder(CardControl):
             self.Parent.change_selection(self.selection)
         self.draw_cards()
 
-    def draw_cards(self, update=True, mode=-1):
+    def draw_cards(self, update: bool = True, mode: int = -1) -> None:
         if self.selection:
             if self.personal:
                 self.list = self.selection.personal_pocket
@@ -3349,12 +3353,12 @@ class ReplCardHolder(CardControl):
             self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
         CardControl.draw_cards(self, update, mode)
 
-    def get_headers(self):
+    def get_headers(self) -> List[cw.header.CardHeader]:
         if self.cardtype == cw.POCKET_BEAST and not self.personal:
             return [c for c in self.list if c.attachment]
         return self.list
 
-    def lclick_event(self, header):
+    def lclick_event(self, header: cw.header.CardHeader) -> None:
         if self._proc:
             return
         header.negaflag = False
@@ -3455,7 +3459,7 @@ def get_spacer_x(mode):
         return cw.wins(3)
 
 
-def get_poslist(num, mode=1):
+def get_poslist(num: int, mode: int = 1) -> List[Tuple[int, int]]:
     """
     カード描画に使うpositionのリストを返す。
     mode=1は荷物袋・カード置場用。

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import functools
 import os
 import sys
 import shutil
@@ -10,7 +11,7 @@ import wx
 
 import cw
 
-from functools import reduce
+from typing import Dict, List, Optional, Tuple
 
 
 # ------------------------------------------------------------------------------
@@ -21,7 +22,8 @@ class SelectScenarioDirectory(wx.Dialog):
     """
     シナリオフォルダ選択ダイアログ。
     """
-    def __init__(self, parent, title, text, db, skintype, scedir):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, text: str, db: cw.scenariodb.Scenariodb, skintype: str,
+                 scedir: str) -> None:
         # ダイアログボックス作成
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((420, 400)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
@@ -92,7 +94,7 @@ class SelectScenarioDirectory(wx.Dialog):
         self.yesbtn.Bind(wx.EVT_BUTTON, self.OnOk)
         self.nobtn.Bind(wx.EVT_BUTTON, self.OnCancel)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
 
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -120,7 +122,7 @@ class SelectScenarioDirectory(wx.Dialog):
         self.SetSizer(sizer_1)
         self.Layout()
 
-    def _create_treeitems(self, treeitem, dirstack=None):
+    def _create_treeitems(self, treeitem: wx.TreeItemId, dirstack: Optional[List[str]] = None) -> None:
         """treeitemが示すディレクトリのサブディレクトリを読み込む。
         シナリオフォルダは除外される。
         """
@@ -175,12 +177,12 @@ class SelectScenarioDirectory(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnResize(self, event):
+    def OnResize(self, event: wx.SizeEvent) -> None:
         if not self.tree.IsShown():
             return
 
@@ -189,7 +191,7 @@ class SelectScenarioDirectory(wx.Dialog):
         self._do_layout()
         self.Refresh()
 
-    def _resize(self):
+    def _resize(self) -> None:
         """
         テキストの折り返し位置を計算する。
         """
@@ -201,7 +203,7 @@ class SelectScenarioDirectory(wx.Dialog):
                                               lambda s: dc.GetTextExtent(s)[0])
         _w, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self._wrapped_text)
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
@@ -212,7 +214,7 @@ class SelectScenarioDirectory(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         dc.DrawLabel(self._wrapped_text, (cw.wins(10), cw.wins(12), csize[0], self._textheight), wx.ALIGN_LEFT)
 
-    def OnCreateDirBtn(self, event):
+    def OnCreateDirBtn(self, event: wx.CommandEvent) -> None:
         selitem = self.tree.GetSelection()
         if not selitem.IsOk():
             return
@@ -239,7 +241,7 @@ class SelectScenarioDirectory(wx.Dialog):
 
                 item, cookie = self.tree.GetNextChild(selitem, cookie)
 
-    def get_dirstack(self, paritem):
+    def get_dirstack(self, paritem: wx.TreeItemId) -> List[str]:
         """指定されたアイテムまでの経路を返す。
         """
         dirstack = []
@@ -261,8 +263,10 @@ class ScenarioInstall(SelectScenarioDirectory):
     """
     シナリオインストールダイアログ。
     """
-    def __init__(self, parent, db, headers, notscenariofiles, skintype, scedir):
-        headers_seq = reduce(lambda a, b: a + b, iter(headers.values()))
+    def __init__(self, parent: wx.TopLevelWindow, db: cw.scenariodb.Scenariodb,
+                 headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
+                 notscenariofiles: Dict[Tuple[str, str], List[str]], skintype: str, scedir: str) -> None:
+        headers_seq = functools.reduce(lambda a, b: a + b, iter(headers.values()))
         assert 0 < len(headers_seq)
 
         # メッセージ
@@ -281,8 +285,8 @@ class ScenarioInstall(SelectScenarioDirectory):
         SelectScenarioDirectory.__init__(self, parent, "シナリオのインストール", s,
                                          db, skintype, scedir)
 
-    def create_buttons(self):
-        headers_seq = reduce(lambda a, b: a + b, iter(self.headers.values()))
+    def create_buttons(self) -> None:
+        headers_seq = functools.reduce(lambda a, b: a + b, iter(self.headers.values()))
         assert 0 < len(headers_seq)
 
         # インストール・キャンセルボタン
@@ -294,7 +298,7 @@ class ScenarioInstall(SelectScenarioDirectory):
         self.yesbtn.Bind(wx.EVT_BUTTON, self.OnInstallBtn)
         self.nobtn.Bind(wx.EVT_BUTTON, self.OnCancel)
 
-    def OnInstallBtn(self, event):
+    def OnInstallBtn(self, event: wx.CommandEvent) -> None:
         from . import message
 
         selitem = self.tree.GetSelection()
@@ -333,7 +337,7 @@ class ScenarioInstall(SelectScenarioDirectory):
         self.Close()
 
 
-def get_dpaths(dpath):
+def get_dpaths(dpath: str) -> List[str]:
     """
     クラシックなシナリオ以外のフォルダの一覧を返す。
     (ショートカット類も含む)
@@ -354,7 +358,7 @@ def get_dpaths(dpath):
     return seq
 
 
-def is_listitem(path):
+def is_listitem(path: str) -> bool:
     """
     指定されたパスがシナリオ選択ダイアログで選択可能ならTrueを返す。
     """
@@ -362,7 +366,9 @@ def is_listitem(path):
     return os.path.isdir(path) or cw.scenariodb.is_scenario(path)
 
 
-def to_scenarioheaders(paths, db, skintype, link):
+def to_scenarioheaders(paths: List[str], db: cw.scenariodb.Scenariodb, skintype: str,
+                       link: bool) -> Tuple[Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
+                                            Dict[Tuple[str, str], List[str]]]:
     """
     pathsをcw.header.ScenarioHeaderに変換する。
     パスがシナリオか否かの判定にシナリオDBを使用する。
@@ -435,7 +441,7 @@ def to_scenarioheaders(paths, db, skintype, link):
     return headers, notscenariofiles
 
 
-def create_dir(parentdialog, dpath):
+def create_dir(parentdialog: ScenarioInstall, dpath: str) -> str:
     cw.cwpy.play_sound("signal")
     name = os.path.basename(dpath)
     if sys.platform == "win32" and name.lower().endswith(".lnk"):
@@ -461,7 +467,9 @@ def create_dir(parentdialog, dpath):
         return ""
 
 
-def install_scenario(parentdialog, headers, notscenariofiles, scedir, dstpath, db, skintype):
+def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
+                     notscenariofiles: Dict[Tuple[str, str], List[str]], scedir: str, dstpath: str,
+                     db: cw.scenariodb.Scenariodb, skintype: str) -> Tuple[None, List[str], List[str], bool]:
     """
     headersをインストールする。
     進捗ダイアログが表示される。
@@ -870,7 +878,8 @@ class OverwriteScenarioDialog(wx.Dialog):
     """
     インストールして上書きするシナリオを選択するダイアログ
     """
-    def __init__(self, parent, scedir, db_exists):
+    def __init__(self, parent: ScenarioInstall, scedir: str,
+                 db_exists: Dict[str, List[cw.header.ScenarioHeader]]) -> None:
         wx.Dialog.__init__(self, parent, -1, "シナリオ置換対象の選択",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX,
                            size=cw.wins((500, 400)))
@@ -930,7 +939,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_SIZE, self.OnResize)
 
-    def OnResize(self, event):
+    def OnResize(self, event: wx.SizeEvent) -> None:
         if not self.datalist.IsShown():
             return
 
@@ -939,7 +948,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         self._do_layout()
         self.Refresh()
 
-    def _resize(self):
+    def _resize(self) -> None:
         """
         テキストの折り返し位置を計算する。
         """
@@ -949,7 +958,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20), lambda s: dc.GetTextExtent(s)[0])
         _w, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self._wrapped_text)
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         self.db_repls = {}
         index = 0
@@ -970,7 +979,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
@@ -981,7 +990,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         dc.DrawLabel(self._wrapped_text, (cw.wins(10), cw.wins(12), csize[0], self._textheight), wx.ALIGN_LEFT)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
         csize = self.GetClientSize()
@@ -1004,7 +1013,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         self.Layout()
 
 
-def create_installdesc(headers_seq):
+def create_installdesc(headers_seq: List[cw.header.ScenarioHeader]) -> str:
     if 1 < len(headers_seq):
         name = "%s本のシナリオ" % (len(headers_seq))
     else:

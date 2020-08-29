@@ -14,7 +14,9 @@ import sqlite3
 
 import cw
 
-from typing import Optional, Dict, List, Tuple
+import wx
+
+from typing import Union, Optional, Dict, List, Tuple
 
 
 def to_imgpaths(dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> List["cw.image.ImageInfo"]:
@@ -243,7 +245,7 @@ class CardHeader(object):
         self._lazy_write = None
 
     @property
-    def negastar(self):
+    def negastar(self) -> int:
         if self.star is None:
             return 0
         return -self.star
@@ -251,7 +253,8 @@ class CardHeader(object):
     def get_showingname(self):
         return self.name
 
-    def set_cardimg(self, imgpaths, can_loaded_scaledimage, anotherscenariocard):
+    def set_cardimg(self, imgpaths: List["cw.image.ImageInfo"], can_loaded_scaledimage: bool,
+                    anotherscenariocard: bool) -> None:
         paths = []
         for info in imgpaths:
             path = info.path
@@ -289,7 +292,7 @@ class CardHeader(object):
         self._cardimg = None
         self.scedir = dst
 
-    def get_owner(self):
+    def get_owner(self) -> Union[List["cw.header.CardHeader"], "cw.sprite.card.PlayerCard"]:
         if self._owner == "BACKPACK":
             return cw.cwpy.ydata.party.backpack
         elif self._owner == "STOREHOUSE":
@@ -306,7 +309,7 @@ class CardHeader(object):
         else:
             self._owner = owner
 
-    def get_bgtype(self):
+    def get_bgtype(self) -> str:
         if self.bgtype:
             return self.bgtype
         if self.type == "BeastCard" and self.attachment:
@@ -314,7 +317,7 @@ class CardHeader(object):
         return self.type.upper().replace("CARD", "")
 
     @property
-    def cardimg(self):
+    def cardimg(self) -> "cw.image.CardImage":
         if not self._cardimg or self._cardscale != cw.UP_SCR or\
                 self._wxcardscale != cw.UP_WIN or\
                 self._skindirname != cw.cwpy.setting.skindirname or\
@@ -330,7 +333,7 @@ class CardHeader(object):
             self.set_cardimg(self.imgpaths, can_loaded_scaledimage, anotherscenariocard)
         return self._cardimg
 
-    def get_cardwxbmp(self, test_aptitude=None):
+    def get_cardwxbmp(self, test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
         return self.cardimg.get_cardwxbmp(self, test_aptitude=test_aptitude)
 
     def get_cardimg(self):
@@ -767,7 +770,7 @@ class CardHeader(object):
     def is_storehouseheader(self):
         return bool(self._owner == "STOREHOUSE")
 
-    def is_hold(self):
+    def is_hold(self) -> bool:
         if self.type == "SkillCard":
             pocket = cw.POCKET_SKILL
         elif self.type == "ItemCard":
@@ -1397,7 +1400,7 @@ assert Gene([0, 1, 1, 0, 0, 0, 0, 0, 0, 1], 3).rotate_mother().get_str() == "010
 
 
 class ScenarioHeader(object):
-    def __init__(self, dbrec, imgdbrec):
+    def __init__(self, dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> None:
         self.dpath = dbrec["dpath"]
         self.type = dbrec["type"]
         self.fname = dbrec["fname"]
@@ -1457,18 +1460,18 @@ class ScenarioHeader(object):
         self._up_scr = None
 
     @property
-    def mtime_reversed(self):
+    def mtime_reversed(self) -> Union[int, float]:
         """整列用の逆転した変更日時。"""
         return -self.mtime
 
-    def get_fpath(self):
+    def get_fpath(self) -> str:
         return "/".join([self.dpath, self.fname])
 
     def set_fpath(self, fpath):
         self.dpath = os.path.dirname(fpath)
         self.fname = os.path.basename(fpath)
 
-    def get_wxbmps(self, mask=True):
+    def get_wxbmps(self, mask: bool = True) -> Tuple[List[wx.Bitmap], List[wx.Bitmap], List["cw.image.ImageInfo"]]:
         """スケールありの見出しイメージ(wx.Bitmap)、スケールなしの見出しイメージ、
         スケール情報を返す。"""
         if self._wxbmps is None or self.skindir != cw.cwpy.skindir or\
@@ -2035,7 +2038,7 @@ class GetProperty(object):
 
 
 class GetRootAttribute(object):
-    def __init__(self, fpath):
+    def __init__(self, fpath: str) -> None:
         """XMLファイル中のルート要素の属性を読む。"""
         if fpath and cw.fsync.is_waiting(fpath):
             cw.fsync.sync()
@@ -2058,7 +2061,7 @@ class GetRootAttribute(object):
 
 
 class RaceHeader(object):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElement) -> None:
         self.name = data.gettext("Name", "")
         self.desc = data.gettext("Description", "")
         self.automaton = data.getbool("Feature/Type", "automaton", False)
