@@ -4262,11 +4262,14 @@ class TalkMessageContent(TalkContent):
                                 else:
                                     # Table以下のイメージを探す
                                     imgpath = cw.util.get_materialpathfromskin(imgpath, cw.M_IMG)
+                    # 効果系カードのイメージはメッセージに表示された時はキャストカードのイメージのように配置される
                     if isinstance(talker, cw.character.Character) or\
-                            isinstance(talker.cardimg, cw.image.LargeCardImage):
+                            isinstance(talker.cardimg, cw.image.LargeCardImage) or \
+                            isinstance(talker, cw.header.CardHeader):
                         basecardtype = "LargeCard"
                     else:
                         basecardtype = "NormalCard"
+                    print(basecardtype)
                     talkers.append((cw.image.ImageInfo(imgpath, base=base, basecardtype=basecardtype),
                                     can_loaded_scaledimage, talker, {}))
             elif imgpath:
