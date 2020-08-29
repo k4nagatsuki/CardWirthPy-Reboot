@@ -64,6 +64,7 @@ class ScenarioSelect(select.Select):
         # nowdirがディレクトリだった場合の内容リスト
         self.names = []
         self.updatenames_thr = None
+        self._gray_idx = -1
         # クリアシナリオ名の集合
         self.stamps = cw.cwpy.ydata.get_compstamps()
         # パーティの所持しているクーポンの集合
@@ -2235,6 +2236,13 @@ class ScenarioSelect(select.Select):
 
         # リストが空だったら描画終了
         if not self.list:
+            if self._get_nowlist(update=False):
+                s = cw.cwpy.msgs["scenarios_is_invisible"]
+            else:
+                s = cw.cwpy.msgs["scenario_is_not_found"]
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(20)))
+            w = dc.GetTextExtent(s)[0]
+            cw.util.draw_adjusted(dc, s, (bmpw-w) // 2, cw.wins(150)+yp, maxwidth=bmpw - cw.wins(5)*2)
             self.draw3(dc, dest, update)
             return
 
@@ -2244,11 +2252,13 @@ class ScenarioSelect(select.Select):
             if update:
                 if isinstance(dpath, FindResult):
                     self.names = dpath.headers
+                    self._gray_idx = -1
                 else:
                     if self.updatenames_thr:
                         self.updatenames_thr.quit = True
                         self.updatenames_thr = None
-                    self.names = ["読込中..."]
+                    self.names = [cw.cwpy.msgs["now_loading"]]
+                    self._gray_idx = 0
                     self.updatenames_thr = UpdateNamesThread(self, self.nowdir, dpath, self.dirstack[:],
                                                              startdir=dpath, expandedset=set(),
                                                              skintype=cw.cwpy.setting.skintype)
@@ -2304,10 +2314,18 @@ class ScenarioSelect(select.Select):
             names = self._narrow_scenario(self.names)
             if len(names) > 13:
                 names = names[0:12]
+                self._gray_idx = len(names)
                 names.append(cw.cwpy.msgs["history_etc"])
+            elif not names:
+                if self.names:
+                    s = cw.cwpy.msgs["scenarios_is_invisible"]
+                else:
+                    s = cw.cwpy.msgs["scenario_is_not_found"]
+                names.append(s)
+                self._gray_idx = 0
 
             y = cw.wins(130)
-            for name in names:
+            for idx, name in enumerate(names):
                 addition = ""
                 if isinstance(name, cw.header.ScenarioHeader):
                     header = name
@@ -2338,6 +2356,8 @@ class ScenarioSelect(select.Select):
                         dc.SetTextForeground((128, 128, 128))
                     else:
                         dc.SetTextForeground((0, 0, 0))
+                elif idx == self._gray_idx:
+                    dc.SetTextForeground((128, 128, 128))
                 else:
                     if isinstance(dpath, FindResult):
                         name = "[%s]" % (os.path.basename(name))
@@ -2611,7 +2631,7 @@ class ScenarioSelect(select.Select):
                     name = cw.util.splitext(name)[0]
                 item = self.tree.AppendItem(treeitem, name, image)
                 self.tree.SetItemData(item, (index, dpath))
-                child = self.tree.AppendItem(item, "読込中...")
+                child = self.tree.AppendItem(item, cw.cwpy.msgs["now_loading"])
                 self.tree.SetItemData(child, None)
                 self.tree.Collapse(item)
                 itemlist.append(item)
@@ -2766,7 +2786,8 @@ class ScenarioSelect(select.Select):
             self.updatenames_thr.quit = True
             self.updatenames_thr = None
         if self.nowdir == dpath:
-            self.names = ["読込中..."]
+            self.names = [cw.cwpy.msgs["now_loading"]]
+            self._gray_idx = 0
         paritem = self.tree.GetItemParent(selitem)
         dirstack = self.get_dirstack(paritem)
         self.updatenames_thr = UpdateNamesThread(self, dpath, dpath, dirstack,
@@ -2796,7 +2817,7 @@ class ScenarioSelect(select.Select):
             return
         del self.scetable[nowdir]
         self.tree.DeleteChildren(item)
-        child = self.tree.AppendItem(item, "読込中...")
+        child = self.tree.AppendItem(item, cw.cwpy.msgs["now_loading"])
         self.tree.SetItemData(child, None)
         self.tree.Collapse(item)
 
