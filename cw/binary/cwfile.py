@@ -13,7 +13,7 @@ class UnsupportedError(Exception):
     """指定されたエンジンバージョンで使用できない機能を
     逆変換しようとした際に投げられる。
     """
-    def __init__(self, msg=None, funcname=""):
+    def __init__(self, msg: Optional[str] = None, funcname: str = "") -> None:
         Exception.__init__(self)
         self.msg = msg
         self.funcname = funcname
@@ -72,7 +72,7 @@ class CWFile(io.BufferedReader):
         data = struct.unpack("b", raw_data)
         return data[0]
 
-    def ubyte(self):
+    def ubyte(self) -> int:
         """符号無しbyteの値を符号付きで返す。"""
         raw_data = self.read(1)
         data = struct.unpack("B", raw_data)

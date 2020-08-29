@@ -11,8 +11,11 @@ import wx
 import cw
 from cw.util import synclock
 
+from typing import List, Tuple
 
-def install_skin(paths, parent, canswitch=True):
+
+def install_skin(paths: List[str], parent: wx.TopLevelWindow,
+                 canswitch: bool = True) -> List[Tuple[str, str, str, str, bool]]:
     """
     pathsに含まれるスキンをインストールする。
     """

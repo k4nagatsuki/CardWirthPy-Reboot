@@ -10,8 +10,9 @@ class Summary(base.CWBinaryBase):
     """見出しデータ(Summary.wsm)。
     type:見出しデータには"-1"の値を付与する。
     """
-    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True,
-                 wpt120=False):
+    def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False, nameonly: bool = False,
+                 materialdir: str = "Material", image_export: bool = True,
+                 wpt120: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = -1
         self.image = f.image()
@@ -159,7 +160,7 @@ class Summary(base.CWBinaryBase):
 
 class Step(base.CWBinaryBase):
     """ステップ定義。"""
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent: Summary, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = f.string()
         self.default = f.dword()
@@ -218,7 +219,7 @@ class Step(base.CWBinaryBase):
 
 class Flag(base.CWBinaryBase):
     """フラグ定義。"""
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent: Summary, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = f.string()
         self.default = f.bool()

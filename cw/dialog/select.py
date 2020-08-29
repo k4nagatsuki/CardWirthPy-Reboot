@@ -166,7 +166,7 @@ class Select(wx.Dialog):
                 self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_ARROW"])
             self.clickmode = 0
 
-    def OnClickLeftBtn(self, evt):
+    def OnClickLeftBtn(self, evt: wx.PyCommandEvent) -> None:
         if len(self.list) <= 1:
             return
         if self.index == 0:
@@ -192,7 +192,7 @@ class Select(wx.Dialog):
         self.draw(True)
         self.index_changed()
 
-    def OnClickRightBtn(self, evt):
+    def OnClickRightBtn(self, evt: wx.PyCommandEvent) -> None:
         if len(self.list) <= 1:
             return
         if self.index == len(self.list) - 1:
@@ -221,7 +221,7 @@ class Select(wx.Dialog):
     def index_changed(self) -> None:
         pass
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -266,7 +266,7 @@ class Select(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.MouseEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -355,7 +355,7 @@ class Select(wx.Dialog):
         """パネルの中央部分をクリックで決定可能ならTrue。"""
         return True
 
-    def can_clickside(self):
+    def can_clickside(self) -> bool:
         """パネルの左右クリックでページ切替可能ならTrue。"""
         return True
 
@@ -499,7 +499,7 @@ class MultiViewSelect(Select):
     def can_clickside(self) -> bool:
         return self.views <= 1
 
-    def OnLeftDClick(self, event):
+    def OnLeftDClick(self, event: wx.MouseEvent) -> None:
         # 一覧表示の場合はダブルクリックで決定
         if self._processing:
             return
@@ -908,7 +908,7 @@ class YadoSelect(MultiViewSelect):
         else:
             MultiViewSelect.OnMouseWheel(self, event)
 
-    def _list_to_obj(self):
+    def _list_to_obj(self) -> List["_YadoObj"]:
         seq = []
         for t in zip(self._names, self._list, self._list2, self._skins, self._classic, self._isshortcuts,
                      self._imgpaths):
@@ -974,7 +974,7 @@ class YadoSelect(MultiViewSelect):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.newbtn.GetId())
             self.ProcessEvent(btnevent)
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.PyCommandEvent) -> None:
         if not self.list:
             return
         if not self.okbtn.IsEnabled():
@@ -1225,7 +1225,7 @@ class YadoSelect(MultiViewSelect):
         else:
             dlg.Destroy()
 
-    def _convert_current(self):
+    def _convert_current(self) -> None:
         from . import message
 
         if not (self.list and self.classic[self.index]):
@@ -1803,7 +1803,8 @@ class YadoSelect(MultiViewSelect):
 
 
 class _YadoObj(object):
-    def __init__(self, name, yadodir, advnames, skin, classic, isshortcut, imgpaths):
+    def __init__(self, name: str, yadodir: str, advnames: List[str], skin: str, classic: bool, isshortcut: str,
+                 imgpaths: List[cw.image.ImageInfo]) -> None:
         self.name = name
         self.yadodir = yadodir
         self.advnames = advnames

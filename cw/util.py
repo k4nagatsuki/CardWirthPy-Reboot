@@ -75,22 +75,22 @@ class MusicInterface(object):
         self._movie = None
         self.inusecard = False
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         if self._movie:
             self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
             rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
             self._movie.set_display(self.movie_scr, rect)
 
-    def play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0,
-             fullpath=""):
+    def play(self, path: str, updatepredata: bool = True, restart: bool = False, inusecard: bool = False,
+             subvolume: int = 100, loopcount: int = 0, fade: int = 0, fullpath: str = "") -> None:
         if not updatepredata:
             # サウンドフォントやスキンの変更等で鳴らし直す場合
             subvolume = self.subvolume
             loopcount = self.loopcount
         self._play(path, updatepredata, restart, inusecard, subvolume, loopcount, fade, fullpath=fullpath)
 
-    def _play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0,
-              fullpath=""):
+    def _play(self, path: str, updatepredata: bool = True, restart: bool = False, inusecard: bool = False,
+              subvolume: int = 100, loopcount: int = 0, fade: int = 0, fullpath: str = "") -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self._play, path, updatepredata, restart, inusecard, subvolume, loopcount, fade,
                               fullpath)
@@ -210,13 +210,13 @@ class MusicInterface(object):
             bgmpath = (path, subvolume, loopcount, self.channel)
             cw.cwpy.sdata.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
-    def stop(self, fade=0):
+    def stop(self, fade: int = 0) -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.stop, fade)
             return
         self.stop_impl(fade=fade, stopfadeout=True, updatepredata=True)
 
-    def stop_impl(self, fade, stopfadeout, updatepredata=True):
+    def stop_impl(self, fade: int, stopfadeout: bool, updatepredata: bool = True) -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.stop_impl, fade, stopfadeout)
             return
@@ -262,7 +262,7 @@ class MusicInterface(object):
             bgmpath = ("", 100, 0, self.channel)
             cw.cwpy.sdata.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
-    def _get_volumevalue(self, fpath):
+    def _get_volumevalue(self, fpath: str) -> float:
         if not cw.cwpy.setting.play_bgm:
             return 0
 
@@ -273,7 +273,7 @@ class MusicInterface(object):
 
         return volume * self.mastervolume / 100.0
 
-    def set_volume(self, volume=None, fade=0):
+    def set_volume(self, volume: float = None, fade: int = 0) -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_volume, volume)
             return
@@ -290,7 +290,7 @@ class MusicInterface(object):
         elif cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init():
             pygame.mixer.music.set_volume(volume)
 
-    def set_mastervolume(self, volume):
+    def set_mastervolume(self, volume: float) -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_mastervolume, volume)
             return
@@ -298,7 +298,7 @@ class MusicInterface(object):
         self.mastervolume = volume
         self.set_volume()
 
-    def get_path(self, path, inusecard=False):
+    def get_path(self, path: str, inusecard: bool = False) -> str:
         if os.path.isabs(path):
             return path
         elif inusecard:
@@ -317,7 +317,7 @@ class MusicInterface(object):
 
 
 class SoundInterface(object):
-    def __init__(self, sound=None, path="", is_midi=False):
+    def __init__(self, sound: Optional["SoundInterface"] = None, path: str = "", is_midi: bool = False) -> None:
         self._sound = sound
         self._path = path
         self.subvolume = 100
@@ -326,7 +326,7 @@ class SoundInterface(object):
         self.mastervolume = 0
         self._is_midi = is_midi
 
-    def copy(self):
+    def copy(self) -> "SoundInterface":
         sound = SoundInterface()
         sound._sound = self._sound
         sound._path = self._path
@@ -337,10 +337,10 @@ class SoundInterface(object):
         sound._is_midi = self._is_midi
         return sound
 
-    def get_path(self):
+    def get_path(self) -> str:
         return self._path
 
-    def _play_before(self, from_scenario, channel, fade):
+    def _play_before(self, from_scenario: bool, channel: int, fade: int) -> str:
         if from_scenario:
             if cw.cwpy.lastsound_scenario[channel]:
                 cw.cwpy.lastsound_scenario[channel].stop_impl(from_scenario, fade=fade, stopfadeout=False)
@@ -354,7 +354,8 @@ class SoundInterface(object):
             cw.cwpy.lastsound_system = self
             return "SystemSound"
 
-    def play(self, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0):
+    def play(self, from_scenario: bool = False, subvolume: int = 100, loopcount: int = 1, channel: int = 0,
+             fade: int = 0) -> None:
         cw.cwpy.stop_the_world_with_iconized()
 
         self._type = -1
@@ -416,10 +417,10 @@ class SoundInterface(object):
                     chan.play(self._sound, loopcount - 1, fade_ms=fade)
                     self._type = 2
 
-    def stop(self, from_scenario, fade=0):
+    def stop(self, from_scenario: bool, fade: int = 0) -> None:
         self.stop_impl(from_scenario, fade=fade, stopfadeout=True)
 
-    def stop_impl(self, from_scenario, fade, stopfadeout):
+    def stop_impl(self, from_scenario: bool, fade: int, stopfadeout: bool) -> None:
         self.mastervolume = 0
         if self._type != -1 and self._sound and 0 <= self.channel and self.channel < cw.bassplayer.MAX_SOUND_CHANNELS:
             if from_scenario:
@@ -467,7 +468,7 @@ class SoundInterface(object):
                     else:
                         chan.stop()
 
-    def _get_volumevalue(self, fpath):
+    def _get_volumevalue(self, fpath: str) -> int:
         if not cw.cwpy.setting.play_sound:
             return 0
 
@@ -478,7 +479,7 @@ class SoundInterface(object):
 
         return volume * self.mastervolume / 100.0
 
-    def set_mastervolume(self, from_scenario, volume):
+    def set_mastervolume(self, from_scenario: bool, volume: int) -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_mastervolume, from_scenario, volume)
             return
@@ -486,7 +487,7 @@ class SoundInterface(object):
         self.mastervolume = volume
         self.set_volume(from_scenario)
 
-    def set_volume(self, from_scenario, volume=None):
+    def set_volume(self, from_scenario: bool, volume: Optional[int] = None) -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_volume, from_scenario, volume)
             return
@@ -516,8 +517,9 @@ class SoundInterface(object):
 # 汎用関数
 # ------------------------------------------------------------------------------
 
-def init(size_noscale=None, title="", fullscreen=False, soundfonts=None, fullscreensize=(0, 0),
-         sdlmixer_enabled=False):
+def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullscreen: bool = False,
+         soundfonts: Optional[List[str]] = None, fullscreensize: Tuple[int, int] = (0, 0),
+         sdlmixer_enabled: bool = False) -> Tuple[pygame.Surface, pygame.Surface, pygame.Surface, pygame.time.Clock]:
     """pygame初期化。"""
     if sys.platform == "win32":
         # FIXME: SDLがWindowsの言語設定に勝手にUSキーボード設定を追加してしまうので
@@ -681,8 +683,10 @@ def find_noscalepath(path):
     return path
 
 
-def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False, can_loaded_scaledimage=True,
-               noscale=False, up_scr=None, use_excache=False):
+def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0), f: Optional[io.RawIOBase] = None,
+               retry: bool = True, isback: bool = False, can_loaded_scaledimage: bool = True,
+               noscale: bool = False, up_scr: Optional[Union[int, float]] = None,
+               use_excache: bool = False) -> pygame.Surface:
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -831,7 +835,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
 
 
 class Depth1Surface(pygame.Surface):
-    def __init__(self, surface, scr_scale, bmpdepth=24):
+    def __init__(self, surface: pygame.Surface, scr_scale: int, bmpdepth: int = 24) -> None:
         pygame.Surface.__init__(self, surface.get_size(), surface.get_flags(), surface.get_bitsize(),
                                 surface.get_masks())
         self.blit(surface, (0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
@@ -840,7 +844,7 @@ class Depth1Surface(pygame.Surface):
         self.bmpdepthis1 = surface.bmpdepthis1 if hasattr(surface, "bmpdepthis1") else (bmpdepth == 1)
         self.scr_scale = scr_scale
 
-    def copy(self):
+    def copy(self) -> pygame.Surface:
         if hasattr(self, "scr_scale"):
             bmp = Depth1Surface(pygame.Surface.copy(self), self.scr_scale)
             bmp.bmpdepthis1 = self.bmpdepthis1
@@ -848,7 +852,7 @@ class Depth1Surface(pygame.Surface):
             bmp = pygame.Surface.copy(self)
         return bmp
 
-    def convert_alpha(self):
+    def convert_alpha(self) -> pygame.Surface:
         if hasattr(self, "scr_scale"):
             bmp = Depth1Surface(pygame.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
             bmp.bmpdepthis1 = False
@@ -857,21 +861,21 @@ class Depth1Surface(pygame.Surface):
         return bmp
 
 
-def calc_imagesize(image):
+def calc_imagesize(image: pygame.Surface) -> int:
     """imageのデータサイズを概算する。
     結果は正確ではない。
     """
     return image.get_bitsize() * image.get_width() * image.get_height() // 8
 
 
-def calc_wxbmpsize(wxbmp):
+def calc_wxbmpsize(wxbmp: wx.Bitmap) -> int:
     """wx.Bitmapのデータサイズを概算する。
     結果は正確ではない。
     """
     return wxbmp.GetDepth() * wxbmp.GetWidth() * wxbmp.GetHeight() // 8
 
 
-def put_number(image, num):
+def put_number(image: pygame.Surface, num: int) -> pygame.Surface:
     """アイコンサイズの画像imageの上に
     numの値を表示する。
     """
@@ -1164,8 +1168,7 @@ def remove_soundtempfile(basedir):
 
 
 def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, str]],
-                         *attr,
-    cmpfunc=None) -> List[Union[Optional[object], int, float, str]]:
+                         *attr, cmpfunc: Optional[Callable] = None) -> List[Union[Optional[object], int, float, str]]:
     if attr:
         get = operator.attrgetter(*attr)
     else:
@@ -1226,11 +1229,11 @@ def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, 
     assert LogicalStr("a0b") < LogicalStr("a1b")
     assert LogicalStr("a0 b") < LogicalStr("a1b")
     assert LogicalStr("a2 b") > LogicalStr("a1b")
-    assert LogicalStr("a899999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") > \
+    assert LogicalStr("a899999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
            LogicalStr("a9b")
-    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") > \
+    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
            LogicalStr("a8b")
-    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999998b") < \
+    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999998b") <\
            LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b")
 
     def logical_cmp_str(a, b):
@@ -1313,8 +1316,7 @@ def sorted_by_attr(seq: List[Union[Optional[object], int, float, str]],
 
 
 def sort_by_attr(seq: List[Union[Optional[object], int, float, str]],
-                 *attr
-) -> List[Union[Optional[object], int, float, str]]:
+                 *attr) -> List[Union[Optional[object], int, float, str]]:
     """破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1334,7 +1336,7 @@ if sys.platform == "win32":
         _shlwapi.StrCmpLogicalW.restype = ctypes.wintypes.INT
 
 
-def sort_by_filename(seq, *attr):
+def sort_by_filename(seq: List[str], *attr) -> List[str]:
     if sys.platform == "win32" and _shlwapi:
         def cmp(a, b):
             return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
@@ -1345,7 +1347,8 @@ def sort_by_filename(seq, *attr):
     return seq
 
 
-def new_order(seq, mode=1):
+def new_order(seq: Union["cw.header.AdventurerHeader", "cw.header.CardHeader", "cw.header.PartyHeader"],
+              mode: int = 1) -> int:
     """order属性を持つアイテムのlistを
     走査して新しいorderを返す。
     必要であれば、seq内のorderを振り直す。
@@ -1459,7 +1462,7 @@ def splitext(p: str) -> Tuple[str, str]:
     return p
 
 
-def str2bool(s: Union[str, bool]) -> bool:
+def str2bool(s: str) -> bool:
     """特定の文字列をbool値にして返す。
     s: bool値に変換する文字列(true, false, 1, 0など)。
     """
@@ -1837,7 +1840,7 @@ def create_cardscreenshot(titledic):
     return bmp
 
 
-def to_clipboard(s):
+def to_clipboard(s: str) -> None:
     """テキストsをクリップボードへ転写する。"""
     tdo = wx.TextDataObject()
     tdo.SetText(s)
@@ -1948,7 +1951,7 @@ def join_yadodir(path: str) -> str:
         return yadopath
 
 
-def get_yadofilepath(path):
+def get_yadofilepath(path: str) -> str:
     """"Data/Yado"もしくは"Data/Temp/Yado"のファイルパスの存在チェックをかけ、
     存在しているパスを返す。存在していない場合は""を返す。
     "Data/Temp/Yado"にパス優先。
@@ -2030,7 +2033,7 @@ def get_inusecardmaterialpath(path, mtype, inusecard=None, findskin=True):
     return imgpath
 
 
-def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
+def get_materialpath(path: str, mtype: str, scedir: str = "", system: bool = False, findskin: bool = True) -> str:
     """pathが指す素材を、シナリオプレイ中はシナリオ内から探し、
     プレイ中でない場合や存在しない場合はスキンから探す。
     path: 素材の相対パス。
@@ -2056,7 +2059,7 @@ def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
     return get_materialpathfromskin(path, mtype, findskin=findskin)
 
 
-def get_materialpathfromskin(path, mtype, findskin=True):
+def get_materialpathfromskin(path: str, mtype: str, findskin: bool = True) -> str:
     cw.fsync.sync()
     if not os.path.isfile(path):
         if not findskin:
@@ -2145,7 +2148,7 @@ class FileSync(threading.Thread):
         #     return file in map(lambda t: get_keypath(get_symlinktarget(t[0])), self._files)
         return True
 
-    def _write_files(self):
+    def _write_files(self) -> None:
         while True:
             with self._mutex:
                 if self._files:
@@ -2173,7 +2176,7 @@ class FileSync(threading.Thread):
             with self._mutex:
                 self._files.pop(0)
 
-    def run(self):
+    def run(self) -> None:
         while not self._quit:
             self._write_files()
             time.sleep(0.001)
@@ -2278,7 +2281,7 @@ def remove_file(path: str, retry: int = 0, trashbox: bool = False) -> None:
             raise err
 
 
-def add_winauth(file):
+def add_winauth(file: str) -> None:
     if os.path.isfile(file) and sys.platform == "win32":
         os.chmod(file, stat.S_IWRITE | stat.S_IREAD)
 
@@ -2340,7 +2343,7 @@ def remove_tree2(treepath, trashbox=False):
     os.rmdir(treepath)
 
 
-def remove_treefiles(treepath, trashbox=False):
+def remove_treefiles(treepath: str, trashbox: bool = False) -> None:
     # remove_tree2()でもたまにエラーになる環境があるらしいので、
     # せめてディレクトリだけでなくファイルだけでも削除を試みる
     cw.fsync.sync()
@@ -2719,7 +2722,7 @@ def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrit
     return dstdir
 
 
-def decode_zipfilename(zname, info):
+def decode_zipfilename(zname: str, info: Union[zipfile.ZipInfo, lhafile.LhaInfo]) -> str:
     """ZipFileないしLhaFileのファイル名をデコードする。"""
     if isinstance(info, zipfile.ZipInfo):
         if not (info.flag_bits & 0x800):
@@ -2730,7 +2733,7 @@ def decode_zipfilename(zname, info):
         return decode_zipname(zname.encode("ISO-8859-1"))
 
 
-def decode_zipname(name):
+def decode_zipname(name: Union[str, bytes]) -> str:
     if not isinstance(name, str):
         try:
             name = str(name, "utf_8_sig")
@@ -2755,7 +2758,7 @@ def decode_zipname(name):
     return name
 
 
-def decode_text(name):
+def decode_text(name: Union[str, bytes]) -> str:
     if not isinstance(name, str):
         try:
             name = str(name, "utf_8_sig")
@@ -2783,7 +2786,7 @@ def decode_text(name):
     return name
 
 
-def read_zipdata(zfile, name):
+def read_zipdata(zfile: zipfile.ZipFile, name: str) -> bytes:
     try:
         data = zfile.read(name)
     except KeyError:
@@ -2801,7 +2804,7 @@ def read_zipdata(zfile, name):
     return data
 
 
-def get_elementfromzip(zpath, name, tag=""):
+def get_elementfromzip(zpath: str, name: str, tag: str = "") -> "cw.data.CWPyElement":
     with zip_file(zpath, "r") as z:
         data = read_zipdata(z, name)
         z.close()
@@ -2813,7 +2816,8 @@ def get_elementfromzip(zpath, name, tag=""):
     return element
 
 
-def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrite=False):
+def decompress_cab(path: str, dstdir: str, dname: str = "", startup: Callable = None, progress: Callable = None,
+                   overwrite: bool = False) -> str:
     """cabファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
     """
@@ -2912,7 +2916,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
     return dstdir
 
 
-def cab_filenum(cab):
+def cab_filenum(cab: str) -> int:
     """CABアーカイブに含まれるファイル数を返す。"""
     word = struct.Struct("<h")
     try:
@@ -2930,7 +2934,7 @@ def cab_filenum(cab):
     return 0
 
 
-def cab_hasfile(cab, fname):
+def cab_hasfile(cab: str, fname: str) -> str:
     """CABアーカイブに指定された名前のファイルが含まれているか判定する。"""
     if not os.path.isfile(cab):
         return ""
@@ -3346,7 +3350,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
     return "".join(seq).rstrip()
 
 
-def _wordwrap_impl(s: str, width: int, get_width: None, open_chars: str, close_chars: str, startindex: int,
+def _wordwrap_impl(s: str, width: int, get_width: Callable, open_chars: str, close_chars: str, startindex: int,
                    resultindex: int, spcharinfo: Optional[Set[int]], spcharinfo2: Optional[List[int]]) -> str:
     """
     sをwidthの幅で折り返す。
@@ -3563,7 +3567,7 @@ assert wordwrap("ab...", 3) == "ab..\n."
 assert _test_wordwrap("ab..&R.", 3, spcharinfo={4}) == ("ab..\n&R.", {4, 5})
 
 
-def get_char(s, index):
+def get_char(s: str, index: int) -> str:
     try:
         if 0 <= index and index < len(s):
             return s[index]
@@ -3660,9 +3664,9 @@ assert format_title("1\\%2\\[3\\]4\\\\", {}) == "1%2[3]4\\"
 # ------------------------------------------------------------------------------
 
 def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
-               maskpos: Union[Tuple[int, int], str] = (0, 0), f: io.RawIOBase = None, retry: bool = True,
+               maskpos: Union[Tuple[int, int], str] = (0, 0), f: Optional[io.RawIOBase] = None, retry: bool = True,
                can_loaded_scaledimage: bool = True,
-               noscale: bool = False, up_scr: Optional[float] = None) -> wx.Bitmap:
+               noscale: bool = False, up_scr: Optional[Union[int, float]] = None) -> wx.Bitmap:
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
     if sys.platform != "win32":
         assert threading.currentThread() != cw.cwpy
@@ -3801,7 +3805,7 @@ def empty_bitmap_rgba(w: int, h: int) -> wx.Bitmap:
     return wx.Bitmap(w, h, depth=32)
 
 
-def copy_wxbmp(bmp, usebuffer=False):
+def copy_wxbmp(bmp: wx.Bitmap, usebuffer: bool = False) -> wx.Bitmap:
     """wx.Bitmapのコピーを生成する。"""
     w = bmp.GetWidth()
     h = bmp.GetHeight()
@@ -3879,7 +3883,8 @@ def fill_bitmap(dc: wx.DC, bmp: wx.Bitmap, csize: Union[Tuple[int, int], wx.Size
         x += w
 
 
-def get_centerposition(size, targetpos, targetsize=(1, 1)):
+def get_centerposition(size: wx.Size, targetpos: Tuple[int, int],
+                       targetsize: Tuple[int, int] = (1, 1)) -> Tuple[int, int]:
     """中央取りのpositionを計算して返す。"""
     top, left = targetsize[0] // 2, targetsize[1] // 2
     top, left = targetpos[0] + top, targetpos[1] + left
@@ -3887,7 +3892,7 @@ def get_centerposition(size, targetpos, targetsize=(1, 1)):
     return (top, left)
 
 
-def draw_center(dc, target, pos, mask=True):
+def draw_center(dc: wx.DC, target: Union[str, wx.Bitmap], pos: Tuple[int, int], mask: bool = True) -> None:
     """指定した座標にBitmap・テキストの中央を合わせて描画。
     target: wx.Bitmapかstrかunicode
     """
@@ -3901,7 +3906,7 @@ def draw_center(dc, target, pos, mask=True):
         dc.DrawBitmap(target, pos[0], pos[1], mask)
 
 
-def draw_height(dc, target, height, mask=True):
+def draw_height(dc: wx.DC, target: Union[str, wx.Bitmap], height: int, mask: bool = True) -> None:
     """高さのみ指定して、横幅は背景の中央に合わせてBitmap・テキストを描画。
     target: wx.Bitmapかstrかunicode
     """
@@ -3913,7 +3918,7 @@ def draw_height(dc, target, height, mask=True):
         dc.DrawBitmap(target, width, height, mask)
 
 
-def draw_box(dc, pos, size):
+def draw_box(dc: wx.DC, pos: Tuple[int, int], size: Tuple[int, int]) -> None:
     """dcでStaticBoxの囲いを描画する。"""
     # ハイライト
     colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DHIGHLIGHT)
@@ -3927,7 +3932,7 @@ def draw_box(dc, pos, size):
     dc.DrawLineList(box)
 
 
-def draw_witharound_simple(dc, s, x, y, aroundcolor):
+def draw_witharound_simple(dc: wx.DC, s: str, x: int, y: int, aroundcolor: wx.Colour) -> None:
     """テキストsを縁取りしながら描画する。"""
     oldcolor = dc.GetTextForeground()
     dc.SetTextForeground(aroundcolor)
@@ -3939,7 +3944,7 @@ def draw_witharound_simple(dc, s, x, y, aroundcolor):
     dc.DrawText(s, x, y)
 
 
-def draw_witharound(dc: wx.MemoryDC, s: str, x: int, y: int, maxwidth: int = 0, align: int = wx.ALIGN_LEFT,
+def draw_witharound(dc: wx.DC, s: str, x: int, y: int, maxwidth: int = 0, align: int = wx.ALIGN_LEFT,
                     aroundcolor: Optional[wx.Colour] = None) -> None:
     """テキストsを縁取りしながら描画する。
     フォントのスムージングを行う。
@@ -3991,7 +3996,7 @@ def draw_antialiasedtext(dc: wx.MemoryDC, text: str, x: int, y: int, white: bool
     dc.DrawBitmap(subimg, x, y)
 
 
-def render_antialiasedtext(basedc: wx.MemoryDC, text: str, white: bool, maxwidth: int, padding: int,
+def render_antialiasedtext(basedc: wx.DC, text: str, white: bool, maxwidth: int, padding: int,
                            quality: Optional[int] = None, scaledown: bool = True, alpha: int = 255,
                            width_coeff: int = 1) -> wx.Bitmap:
     """スムージングが施された、背景が透明なテキストを描画して返す。"""
@@ -4090,7 +4095,7 @@ def render_antialiasedtext(basedc: wx.MemoryDC, text: str, white: bool, maxwidth
     return subimg
 
 
-def get_boxpointlist(pos, size):
+def get_boxpointlist(pos: Tuple[int, int], size: Tuple[int, int]) -> List[Tuple[int, int, int, int]]:
     """StaticBoxの囲い描画用のposlistを返す。"""
     x, y = pos
     width, height = size
@@ -4204,7 +4209,9 @@ class CWPyStaticBitmap(wx.Panel):
     複数重ねての表示にも対応。
     """
 
-    def __init__(self, parent, cid, bmps, bmps_bmpdepthkey, size=None, infos=None, ss=None):
+    def __init__(self, parent: wx.Panel, cid: int, bmps: List[wx.Bitmap], bmps_bmpdepthkey: List[wx.Bitmap],
+                 size: Optional[Tuple[int, int]] = None, infos: Optional[List["cw.image.ImageInfo"]] = None,
+                 ss: Optional[Callable] = None):
         if not size and bmps:
             w = 0
             h = 0
@@ -4220,10 +4227,10 @@ class CWPyStaticBitmap(wx.Panel):
         self.ss = ss
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         dest = wx.Bitmap(self.GetClientSize())
         dc = wx.MemoryDC(dest)
         clear_background(dc, self)
@@ -4247,7 +4254,8 @@ class CWPyStaticBitmap(wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(dest, cw.wins(0), cw.wins(0))
 
-    def SetBitmap(self, bmps, bmps_bmpdepthkey, infos=None):
+    def SetBitmap(self, bmps: List[wx.Bitmap], bmps_bmpdepthkey: List[wx.Bitmap],
+                  infos: Optional[List["cw.image.ImageInfo"]] = None):
         self.bmps = bmps
         self.bmps_bmpdepthkey = bmps_bmpdepthkey
         self.infos = infos
@@ -4257,7 +4265,7 @@ class CWPyStaticBitmap(wx.Panel):
         return self.bmps
 
 
-def clear_background(dc, window):
+def clear_background(dc: wx.DC, window: wx.Control) -> None:
     """windowの背景色によって塗り潰す。"""
     if sys.platform == "win32":
         colour = get_backgroundcolour(window)
@@ -4276,7 +4284,7 @@ def clear_background(dc, window):
         del cdc
 
 
-def get_backgroundcolour(window):
+def get_backgroundcolour(window: Union[wx.Control]) -> wx.Colour:
     """windowの実際の背景色を返す。"""
     notebook = None
     window2 = window
@@ -4295,7 +4303,7 @@ def get_backgroundcolour(window):
     return window2.GetBackgroundColour()
 
 
-def abbr_longstr(dc, text, w):
+def abbr_longstr(dc: wx.DC, text: str, w: int) -> str:
     """wx.DCを使って長い文字列を省略して末尾に三点リーダを付ける。
     dc: 幅計算用のwx.DC。
     text: 編集対象の文字列。
@@ -4314,7 +4322,7 @@ def abbr_longstr(dc, text, w):
     return text
 
 
-def abbr_longstr_with_count(text, w):
+def abbr_longstr_with_count(text: str, w: int) -> str:
     """文字数によって省略を行う。
     text: 編集対象の文字列。
     w: 目標文字列長(半角文字数)。
@@ -4541,7 +4549,8 @@ def has_modalchild(frame: wx.TopLevelWindow) -> bool:
 class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
     _search_engines = None
 
-    def __init__(self, parent, wid, text="", size=(-1, -1), style=0, searchmenu=False):
+    def __init__(self, parent: wx.Panel, wid: int, text: str = "", size: Tuple[int, int] = (-1, -1),
+                 style: int = 0, searchmenu: bool = False) -> None:
         wx.richtext.RichTextCtrl.__init__(self, parent, wid, text, size=size, style=style)
 
         # popup menu
@@ -4596,7 +4605,7 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
                 except Exception:
                     cw.util.print_ex(file=sys.stderr)
 
-    def set_text(self, value, linkurl=False):
+    def set_text(self, value: str, linkurl: bool = False) -> None:
         # ZIPアーカイブのファイルエンコーディングと
         # 読み込むテキストファイルのエンコーディングが異なる場合、
         # エラーが出るので
@@ -4654,7 +4663,7 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
 
         self.ShowPosition(0)
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if has_modalchild(self):
             return
 
@@ -4671,7 +4680,7 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
         else:
             self.ScrollLines(value)
 
-    def OnMotion(self, event):
+    def OnMotion(self, event: wx.MouseEvent) -> None:
         # 画面外へのドラッグによるスクロール処理
         mousey = event.GetPosition()[1]
         if mousey < cw.wins(0):
@@ -4681,28 +4690,28 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
 
         event.Skip()
 
-    def OnContextMenu(self, event):
+    def OnContextMenu(self, event: wx.ContextMenuEvent) -> None:
         self.mi_copy.Enable(self.HasSelection())
         for searchengine in self.search_engines:
             searchengine.mi.Enable(self.HasSelection())
         self.PopupMenu(self.popup_menu)
 
-    def OnCopy(self, event):
+    def OnCopy(self, event: wx.MenuEvent) -> None:
         self.Copy()
 
-    def OnSelectAll(self, event):
+    def OnSelectAll(self, event: wx.MenuEvent) -> None:
         self.SelectAll()
 
-    def go_url(self, url):
+    def go_url(self, url: str) -> None:
         open_url(self, url)
 
-    def OnURL(self, event):
+    def OnURL(self, event: wx.TextUrlEvent) -> None:
         # 文字列選択中はブラウザ起動しない
         if not self.HasSelection():
             self.go_url(event.GetString())
 
 
-def open_url(parentdlg, url):
+def open_url(parentdlg: wx.TopLevelWindow, url: str) -> None:
     """urlをWebブラウザで開く。"""
     if threading.currentThread() is cw.cwpy:
         cw.cwpy.frame.exec_func(open_url, parentdlg, url)
@@ -4735,14 +4744,15 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
     テキストのみ左寄せから中央寄せに変更する。
     """
 
-    def __init__(self, indentsize=0):
+    def __init__(self, indentsize: int = 0) -> None:
         wx.lib.agw.aui.tabart.AuiDefaultTabArt.__init__(self)
         self.indentsize = indentsize
 
-    def Clone(self):
+    def Clone(self) -> "CWTabArt":
         return CWTabArt(self.indentsize)
 
-    def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
+    def DrawTab(self, dc: wx.DC, wnd: wx.lib.agw.aui.AuiNotebook, page: wx.lib.agw.aui.AuiNotebookPage,
+                in_rect: wx.Rect, close_button_state: int, paint_control: bool = False) -> Tuple[wx.Rect, wx.Rect, int]:
         # テキストを一旦空にして背景だけ描画させる
         self._cwtabart_caption = page.caption
         self._tab_size = self.GetTabSize(dc, wnd, page.caption, page.bitmap, page.active, close_button_state,
@@ -4765,24 +4775,26 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
             dc.DrawRoundedRectangleRect(rect, 0)
         return r
 
-    def DrawFocusRectangle(self, dc, page, wnd, draw_text, text_offset, bitmap_offset, drawn_tab_yoff, drawn_tab_height,
-                           textx, texty):
+    def DrawFocusRectangle(self, dc: wx.DC, page: wx.lib.agw.aui.AuiNotebookPage, wnd: wx.lib.agw.aui.AuiNotebook,
+                           draw_text: str, text_offset: int, bitmap_offset: int, drawn_tab_yoff: int,
+                           drawn_tab_height: int, textx: int, texty: int) -> None:
         return
 
-    def GetIndentSize(self):
+    def GetIndentSize(self) -> int:
         return self.indentsize
 
 
 class FilePathRenderer(wx.grid.GridCellRenderer):
-    def __init__(self, can_file=True, can_dir=True):
+    def __init__(self, can_file: bool = True, can_dir: bool = True) -> None:
         wx.grid.GridCellRenderer.__init__(self)
         self._can_file = can_file
         self._can_dir = can_dir
 
-    def Clone(self):
+    def Clone(self) -> "FilePathRenderer":
         return FilePathRenderer(self._can_file, self._can_dir)
 
-    def Draw(self, grid, attr, dc, rect, row, col, is_selected):
+    def Draw(self, grid: wx.grid.Grid, attr: wx.grid.GridCellAttr, dc: wx.DC, rect: wx.Rect,
+             row: int, col: int, is_selected: bool) -> None:
         dc.DrawRectangle(rect.X, rect.Y, rect.Width, rect.Height)
         fpath = grid.GetCellValue(row, col)
         if not fpath:
@@ -4806,22 +4818,24 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
     コントロールの幅に固定されてしまうため代替する。
     """
 
-    def __init__(self, parent, wid=wx.ID_ANY, value="", pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 choices=None, style=0, validator=wx.DefaultValidator, name="comboBox"):
+    def __init__(self, parent: wx.Panel, wid: int = wx.ID_ANY, value: str = "",
+                 pos: wx.Point = wx.DefaultPosition, size: Tuple[int, int] = wx.DefaultSize,
+                 choices: Optional[List[str]] = None, style: int = 0, validator: wx.Validator = wx.DefaultValidator,
+                 name: str = " comboBox") -> None:
         if choices is None:
             choices = []
         wx.adv.OwnerDrawnComboBox.__init__(self, parent, wid, value, pos, size, choices, style, validator, name)
         self._items = []
 
-    def Append(self, s, bmp):
+    def Append(self, s: str, bmp: wx.Bitmap) -> None:
         self._items.append((s, bmp))
         wx.adv.OwnerDrawnComboBox.Append(self, s)
 
-    def SetString(self, item, s):
+    def SetString(self, item: int, s: str) -> None:
         self._items[item] = (s, self._items[item][1])
         wx.adv.OwnerDrawnComboBox.SetString(self, item, s)
 
-    def GetWidestItem(self):
+    def GetWidestItem(self) -> int:
         dc = wx.ClientDC(self)
         mx = -1
         rw = 0
@@ -4833,7 +4847,7 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
             rw = max(rw, w)
         return mx
 
-    def GetWidestItemWidth(self):
+    def GetWidestItemWidth(self) -> int:
         dc = wx.ClientDC(self)
         rw = 0
         for s, bmp in self._items:
@@ -4842,17 +4856,17 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
             rw = max(rw, w)
         return rw
 
-    def IsListEmpty(self):
+    def IsListEmpty(self) -> bool:
         return 0 == len(self._items)
 
-    def IsTextEmpty(self):
+    def IsTextEmpty(self) -> bool:
         index = self.GetSelection()
         return index == -1 or self._items[index][0] == ""
 
-    def OnDrawBackground(self, dc, rect, item, flags):
+    def OnDrawBackground(self, dc: wx.DC, rect: wx.Rect, item: int, flags: int) -> None:
         wx.adv.OwnerDrawnComboBox.OnDrawBackground(self, dc, rect, item, flags)
 
-    def OnDrawItem(self, dc, rect, item, flags):
+    def OnDrawItem(self, dc: wx.DC, rect: wx.Rect, item: int, flags: int) -> None:
         s, bmp = self._items[item]
         x = rect[0]
         sz = bmp.GetSize()
@@ -4861,13 +4875,13 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
         sz = dc.GetTextExtent(s)
         dc.DrawText(s, (x, rect[1] + (rect[3] - sz[1]) // 2))
 
-    def OnMeasureItem(self, item):
+    def OnMeasureItem(self, item: int) -> int:
         dc = wx.ClientDC(self)
         s, bmp = self._items[item]
         sz = dc.GetTextExtent(s)
         return max(bmp.GetHeight(), sz[1])
 
-    def OnMeasureItemWidth(self, item):
+    def OnMeasureItemWidth(self, item: int) -> int:
         dc = wx.ClientDC(self)
         s, bmp = self._items[item]
         sz = dc.GetTextExtent(s)
@@ -4879,7 +4893,7 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
 # ------------------------------------------------------------------------------
 
 # CoInitialize()を呼び出し終えたスレッドのset
-_cominit_table = set()
+_cominit_table = set()  # type: Set[threading.Thread]
 
 
 def _co_initialize() -> None:
@@ -4894,7 +4908,7 @@ def _co_initialize() -> None:
     _cominit_table.add(thr)
     # 終了したスレッドがあれば除去
     for thr2 in _cominit_table.copy():
-        if not thr2.isAlive():
+        if not thr2.is_alive():
             _cominit_table.remove(thr2)
 
 
@@ -4962,7 +4976,7 @@ def create_link(shortcutpath, targetpath):
     shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath, 0)
 
 
-def get_symlinktarget(path):
+def get_symlinktarget(path: str) -> str:
     """pathがシンボリックリンクであればリンク先を、そうでなければpathを返す。"""
     try:
         p = os.path.normpath(os.path.abspath(path))
@@ -4989,23 +5003,23 @@ def get_keypath(path: str) -> str:
 # パフォーマンスカウンタ
 # ------------------------------------------------------------------------------
 
-dictimes = {}
+dictimes = {}  # type: Dict[str, float]
 times = [0.0] * 1024
 timer = 0.0
 
 
-def t_start():
+def t_start() -> None:
     global timer
     timer = time.perf_counter_ns()
 
 
-def t_end(index):
+def t_end(index: int) -> None:
     global times, timer
     times[index] += time.perf_counter_ns() - timer
     timer = time.perf_counter_ns()
 
 
-def td_end(key):
+def td_end(key: str) -> None:
     global dictimes, timer
     if key in dictimes:
         dictimes[key] += time.perf_counter_ns() - timer
@@ -5014,7 +5028,7 @@ def td_end(key):
     timer = time.perf_counter_ns()
 
 
-def t_reset():
+def t_reset() -> None:
     global times, dictimes
     times = [0 for v in times]
     dictimes.clear()
@@ -5045,7 +5059,7 @@ def t_print() -> None:
 # ------------------------------------------------------------------------------
 
 _lock_mutex = threading.Lock()
-_mutex = []
+_mutex = []  # type: List[Tuple[Union[_Unlock, io.FileIO], str]]
 if sys.platform != "win32":
     import fcntl
 
@@ -5065,33 +5079,12 @@ def create_mutex(dpath):
         #      なぜかこの関数を抜けた後でロック解除がうまくいかなくなる
         kernel32 = ctypes.windll.kernel32
 
-        class OVERLAPPED(ctypes.Structure):
-            _fields_ = [
-                ('Internal', ctypes.wintypes.DWORD),
-                ('InternalHigh', ctypes.wintypes.DWORD),
-                ('Offset', ctypes.wintypes.DWORD),
-                ('OffsetHigh', ctypes.wintypes.DWORD),
-                ('hEvent', ctypes.wintypes.HANDLE),
-            ]
-
         f = open(name, "w")
         handle = msvcrt.get_osfhandle(f.fileno())
         if kernel32.LockFileEx(handle,
                                win32con.LOCKFILE_FAIL_IMMEDIATELY | win32con.LOCKFILE_EXCLUSIVE_LOCK,
-                               0, 0, 0xffff0000, ctypes.byref(OVERLAPPED())):
-            class Unlock(object):
-                def __init__(self, name, f):
-                    self.name = name
-                    self.f = f
-
-                def unlock(self):
-                    if self.f:
-                        handle = msvcrt.get_osfhandle(self.f.fileno())
-                        kernel32.UnlockFileEx(handle, 0, 0, 0xffff0000, ctypes.byref(OVERLAPPED()))
-                        self.f = None
-                        remove(self.name)
-
-            _mutex.append((Unlock(name, f), name))
+                               0, 0, 0xffff0000, ctypes.byref(_OVERLAPPED())):
+            _mutex.append((_Unlock(name, f), name))
             return True
         else:
             return False
@@ -5108,6 +5101,30 @@ def create_mutex(dpath):
             return True
         except IOError:
             return False
+
+
+class _OVERLAPPED(ctypes.Structure):
+    _fields_ = [
+        ('Internal', ctypes.wintypes.DWORD),
+        ('InternalHigh', ctypes.wintypes.DWORD),
+        ('Offset', ctypes.wintypes.DWORD),
+        ('OffsetHigh', ctypes.wintypes.DWORD),
+        ('hEvent', ctypes.wintypes.HANDLE),
+    ]
+
+
+class _Unlock(object):
+    def __init__(self, name, f):
+        self.name = name
+        self.f = f
+
+    def unlock(self):
+        if self.f:
+            kernel32 = ctypes.windll.kernel32
+            handle = msvcrt.get_osfhandle(self.f.fileno())
+            kernel32.UnlockFileEx(handle, 0, 0, 0xffff0000, ctypes.byref(_OVERLAPPED()))
+            self.f = None
+            remove(self.name)
 
 
 @synclock(_lock_mutex)

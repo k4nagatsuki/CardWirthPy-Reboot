@@ -13,7 +13,7 @@ import cw
 
 class DebugLogDialog(wx.Dialog):
 
-    def __init__(self, parent, debuglog):
+    def __init__(self, parent: wx.TopLevelWindow, debuglog: "DebugLog") -> None:
         """集計したデバッグ情報をリッチテキストで表示する。"""
         wx.Dialog.__init__(self, parent, -1, "「%s」のプレイ結果" % (debuglog.sname),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
@@ -314,11 +314,11 @@ class DebugLogDialog(wx.Dialog):
         self._bind()
         self._do_layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_BUTTON, self.OnClose, self.okbtn)
 
-    def OnClose(self, event):
+    def OnClose(self, event: wx.CommandEvent) -> None:
         if self.writetext.GetValue():
             try:
                 with open("DebugInfo.txt", "w", encoding="utf-8") as f:
@@ -328,7 +328,7 @@ class DebugLogDialog(wx.Dialog):
                 cw.util.print_ex()
         self.Destroy()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)

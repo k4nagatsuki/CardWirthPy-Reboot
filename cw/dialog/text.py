@@ -297,7 +297,7 @@ class Readme(Text):
 
 
 class ReadmeData(object):
-    def __init__(self, name, content):
+    def __init__(self, name: str, content: bytes) -> None:
         self.name = name
         self.noextname = os.path.splitext(name)[0].lower().split("/")
         self.noextname.reverse()

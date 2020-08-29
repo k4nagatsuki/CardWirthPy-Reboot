@@ -21,7 +21,10 @@ class CharaInfo(wx.Dialog):
     """
     キャラクター情報ダイアログ
     """
-    list: List[Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"]]
+    list: List[Union["cw.sprite.card.PlayerCard",
+                     "cw.sprite.card.EnemyCard",
+                     "cw.sprite.card.FriendCard",
+                     cw.header.AdventurerHeader]]
 
     def __init__(self, parent: wx.TopLevelWindow, redrawfunc: None, editable: bool, party: None = None) -> None:
         # フォントサイズによってダイアログサイズを決定する
@@ -1162,7 +1165,7 @@ class HistoryPanel(wx.ScrolledWindow):
 
 
 class EditButton():
-    def __init__(self, name, btype, has_separator):
+    def __init__(self, name: str, btype: int, has_separator: bool) -> None:
         self.name = name
         self.type = btype
         self.has_separator = has_separator
@@ -1170,7 +1173,9 @@ class EditButton():
 
 
 class EditPanel(wx.Panel):
-    def __init__(self, parent, mlist, ccard):
+    def __init__(self, parent: aui.AuiNotebook,
+                 mlist: List[Union["cw.sprite.card.PlayerCard", cw.header.AdventurerHeader]],
+                 ccard: Union["cw.sprite.card.PlayerCard", cw.header.AdventurerHeader]) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self._destroy = False
         self.SetDoubleBuffered(True)
@@ -1192,7 +1197,7 @@ class EditPanel(wx.Panel):
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
-    def OnDestroy(self, event):
+    def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
         self._destroy = True
 
     def OnLeftUp(self, event):
@@ -1285,7 +1290,7 @@ class EditPanel(wx.Panel):
                 headers[index].level = ccard.level
             cw.cwpy.exec_func(func, self.Parent.Parent.index, self.list, mlist)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
 
     def OnLeave(self, event):
@@ -1369,7 +1374,7 @@ class EditPanel(wx.Panel):
         header.negaflag = True
         self.draw_header(dc, header)
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         if update:
             dc = wx.ClientDC(self)
             self.ClearBackground()

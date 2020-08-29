@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import datetime
+import functools
 import threading
 import shutil
 import subprocess
@@ -15,7 +16,8 @@ import cw
 from . import select
 
 from cw.util import synclock
-from functools import reduce
+
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 _lockupdatescenario = threading.Lock()
 
@@ -35,7 +37,12 @@ class ScenarioSelect(select.Select):
     """
     貼り紙選択ダイアログ。
     """
-    def __init__(self, parent, db, lastscenario, lastscenariopath, lastfindresult):
+
+    scetable: Dict[str, List[Union[cw.header.ScenarioHeader, str, "FindResult"]]]
+    list: List[Union[cw.header.ScenarioHeader, str, "FindResult"]]
+
+    def __init__(self, parent: wx.TopLevelWindow, db: cw.scenariodb.Scenariodb, lastscenario: List[str],
+                 lastscenariopath: str, lastfindresult: List[str]) -> None:
         from . import scenarioinstall
 
         # ダイアログボックス作成
@@ -360,10 +367,10 @@ class ScenarioSelect(select.Select):
             self.append_addctrlaccelerator(seq)
         cw.util.set_acceleratortable(self, seq)
 
-    def is_showingaddctrl(self):
+    def is_showingaddctrl(self) -> bool:
         return self.addctrlbtn.GetToggle() or self.tree.IsShown()
 
-    def update_additionals(self):
+    def update_additionals(self) -> None:
         if self.is_showingaddctrl() or cw.cwpy.setting.show_scenariotree:
             self.addctrlbtn.Reparent(self)
         else:
@@ -407,7 +414,7 @@ class ScenarioSelect(select.Select):
 
         self._do_layout()
 
-    def _get_linktarget(self, path):
+    def _get_linktarget(self, path: str) -> str:
         if isinstance(path, FindResult):
             return path
         return cw.util.get_linktarget(path)
@@ -500,7 +507,7 @@ class ScenarioSelect(select.Select):
                 return
         select.Select.OnNextButton(self, event)
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -545,7 +552,7 @@ class ScenarioSelect(select.Select):
                 self.sort.SetSelection(index)
                 self.OnNarrowCondition(event)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         if cw.cwpy.setting.show_paperandtree:
             sizer_1 = wx.BoxSizer(wx.VERTICAL)
             self.set_panelsizer()
@@ -569,12 +576,12 @@ class ScenarioSelect(select.Select):
         else:
             select.Select._do_layout(self)
 
-    def _add_topsizer(self):
+    def _add_topsizer(self) -> None:
         self.topsizer.Insert(0, self._sizer_top(), 0, wx.TOP | wx.CENTER | wx.EXPAND, 0)
         self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
         self.topsizer.Add(self._sizer_find(), 0, wx.EXPAND, 0)
 
-    def _sizer_top(self):
+    def _sizer_top(self) -> wx.BoxSizer:
         hsizer1 = wx.BoxSizer(wx.HORIZONTAL)
         hsizer1.Add(self.unfitness, 0, 0, 0)
         hsizer1.Add(self.completed, 0, 0, 0)
@@ -588,7 +595,7 @@ class ScenarioSelect(select.Select):
                 hsizer1.Add(self.addctrlbtn, 0, 0, 0)
         return hsizer1
 
-    def _sizer_find(self):
+    def _sizer_find(self) -> wx.BoxSizer:
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         vsizer1 = wx.BoxSizer(wx.VERTICAL)
@@ -835,7 +842,7 @@ class ScenarioSelect(select.Select):
         if self._editor:
             self._editor.Enable(self._can_editor())
 
-    def OnBookmark(self, event):
+    def OnBookmark(self, event: wx.CommandEvent) -> None:
         # ブックマークメニューを生成して表示する
         cw.cwpy.play_sound("page")
         if not self.bookmarkmenu:
@@ -855,10 +862,10 @@ class ScenarioSelect(select.Select):
         self._arrange_bookmark.Enable(bool(cw.cwpy.ydata.bookmarks))
         self.bookmark.PopupMenu(self.bookmarkmenu, size[0] // 2, size[1] // 2)
 
-    def _is_specialselected(self):
+    def _is_specialselected(self) -> bool:
         return not self.list or isinstance(self.list[self.index], FindResult)
 
-    def create_bookmarkmenu(self):
+    def create_bookmarkmenu(self) -> None:
         if self.bookmarkmenu:
             self.bookmarkmenu.Destroy()
         menu = wx.Menu()
@@ -1066,10 +1073,10 @@ class ScenarioSelect(select.Select):
         else:
             self._tree_dclick()
 
-    def can_clickcenter(self):
+    def can_clickcenter(self) -> bool:
         return self.yesbtn.IsEnabled()
 
-    def get_selected(self):
+    def get_selected(self) -> Tuple[List[str], str]:
         """
         現在選択されているシナリオを経路形式
         (ディレクトリ・ファイル名の配列)で返す。
@@ -1103,7 +1110,8 @@ class ScenarioSelect(select.Select):
         else:
             return []
 
-    def _get_nowlist(self, nowdir=None, update=True):
+    def _get_nowlist(self, nowdir: Optional[str] = None,
+                     update: bool = True) -> List[Union[str, cw.header.ScenarioHeader]]:
         from . import scenarioinstall
 
         if nowdir is None:
@@ -1123,7 +1131,8 @@ class ScenarioSelect(select.Select):
         seq.extend(scenarioinstall.get_dpaths(nowdir))
         return seq
 
-    def set_selected(self, spaths, fullpath, opendir=False, updatetree=False, findresults=None):
+    def set_selected(self, spaths: List[str], fullpath: str, opendir: bool = False, updatetree: bool = False,
+                     findresults: None = None) -> None:
         """
         シナリオを経路形式(ディレクトリ・ファイル名の配列)で
         設定する。
@@ -1325,14 +1334,14 @@ class ScenarioSelect(select.Select):
             self._enable_btn2(self.list[self.index])
         self._update_saveddirstack()
 
-    def _update_saveddirstack(self):
+    def _update_saveddirstack(self) -> None:
         if len(self.dirstack) == 1 and self.dirstack[0][0].startswith("/"):
             return
         self._saved_dirstack = self.dirstack[:]
         self._saved_list = self.list[:]
         self._saved_index = self.index
 
-    def index_changed(self):
+    def index_changed(self) -> None:
         self._update_saveddirstack()
 
     def OnDropFiles(self, event):
@@ -1630,7 +1639,7 @@ class ScenarioSelect(select.Select):
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
             headers, notscenariofiles = self._to_headers(paths, link=True)
-            headers = reduce(lambda a, b: a + b, iter(headers.values()))
+            headers = functools.reduce(lambda a, b: a + b, iter(headers.values()))
             if headers:
                 cw.cwpy.play_sound("harvest")
                 dpath, _seldname = self._get_installtarget()
@@ -1681,7 +1690,7 @@ class ScenarioSelect(select.Select):
         self._processing = True
         cw.cwpy.play_sound("equipment")
         self.narrow.SetValue("")
-        headers = reduce(lambda a, b: a + b, iter(headers.values()))
+        headers = functools.reduce(lambda a, b: a + b, iter(headers.values()))
         selfirstheader = (1 == len(headers))
         self._set_findresult(headers, selfirstheader=selfirstheader)
 
@@ -1707,7 +1716,7 @@ class ScenarioSelect(select.Select):
         dpath, seldname = self._get_installtarget()
 
         cw.cwpy.play_sound("signal")
-        headers_seq = reduce(lambda a, b: a + b, iter(headers.values()))
+        headers_seq = functools.reduce(lambda a, b: a + b, iter(headers.values()))
         if sys.platform == "win32" and os.path.isfile(dpath) and os.path.splitext(dpath)[1].lower() == ".lnk":
             dname = os.path.splitext(os.path.basename(dpath))[0]
         else:
@@ -1783,7 +1792,7 @@ class ScenarioSelect(select.Select):
         else:
             dlg.Destroy()
 
-    def OnClickYesBtn(self, event):
+    def OnClickYesBtn(self, event: wx.PyCommandEvent) -> None:
         if self.yesbtn.GetLabel() == cw.cwpy.msgs["see"]:
             if self.tree.IsShown():
                 cw.cwpy.play_sound("equipment")
@@ -1816,7 +1825,7 @@ class ScenarioSelect(select.Select):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
             self.ProcessEvent(btnevent)
 
-    def BackPaper(self):
+    def BackPaper(self) -> None:
         cw.cwpy.play_sound("equipment")
         self.nowdir, selname = self.dirstack.pop()
         self.list = self._get_nowlist(update=False)
@@ -1834,7 +1843,7 @@ class ScenarioSelect(select.Select):
 
         self.draw(True)
 
-    def OnClickNoBtn(self, event):
+    def OnClickNoBtn(self, event: wx.PyCommandEvent) -> None:
         if self.nobtn.GetLabel() == cw.cwpy.msgs["return"]:
             assert not self.tree.IsShown()
             self.BackPaper()
@@ -2005,14 +2014,14 @@ class ScenarioSelect(select.Select):
         fpath = cw.util.get_linktarget(fpath)
         self.conv_scenario(fpath)
 
-    def OnSelect(self, event):
+    def OnSelect(self, event: wx.MouseEvent) -> None:
         if not self.list or not self.yesbtn.Enabled:
             return
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
         self.ProcessEvent(btnevent)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.MouseEvent) -> None:
         if self.nobtn.GetLabel() == cw.cwpy.msgs["entry_cancel"]:
             cw.cwpy.play_sound("click")
 
@@ -2022,7 +2031,7 @@ class ScenarioSelect(select.Select):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.nobtn.GetId())
             self.ProcessEvent(btnevent)
 
-    def OnDestroy(self, event):
+    def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
         if self and self.bookmarkmenu:
             self.bookmarkmenu.Destroy()
 
@@ -2032,20 +2041,20 @@ class ScenarioSelect(select.Select):
         cw.cwpy.setting.scenario_sorttype = self.sort.GetSelection()
         self.update_narrowcondition()
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         if sys.platform != "win32" and not self.IsShown():
             self.Show()
             wx.CallAfter(self._draw_impl, update)
         else:
             self._draw_impl(update)
 
-    def _update_pagelabel(self):
+    def _update_pagelabel(self) -> None:
         if self.list:
             self.pagelabel.SetLabel("%s/%s" % (self.index+1, len(self.list)))
         else:
             self.pagelabel.SetLabel("1/1")
 
-    def _get_bg(self):
+    def _get_bg(self) -> wx.Bitmap:
         if self._bg:
             return self._bg
         path = "Table/Bill"
@@ -2053,7 +2062,7 @@ class ScenarioSelect(select.Select):
         self._bg = cw.util.load_wxbmp(path, can_loaded_scaledimage=True)
         return self._bg
 
-    def _get_bg_scaled(self):
+    def _get_bg_scaled(self) -> wx.Bitmap:
         if self._bg_scaled:
             return self._bg_scaled
         self._bg_scaled = cw.wins(self._get_bg())
@@ -2177,7 +2186,7 @@ class ScenarioSelect(select.Select):
 
         return "\n".join(lines)
 
-    def _draw_impl(self, update=False):
+    def _draw_impl(self, update: bool = False) -> None:
         if update:
             self._update_pagelabel()
             self.enable_btn()
@@ -2468,7 +2477,7 @@ class ScenarioSelect(select.Select):
                 if buttonlist:
                     buttonlist[0].SetFocus()
 
-    def _enable_btn2(self, header, dc=None):
+    def _enable_btn2(self, header: Union[str, cw.header.ScenarioHeader], dc: Optional[wx.MemoryDC] = None) -> None:
         bmpw, bmph = self.toppanel.GetClientSize()
         if isinstance(header, cw.header.ScenarioHeader):
             bmp = None
@@ -2491,15 +2500,15 @@ class ScenarioSelect(select.Select):
                     w, h = bmp.GetSize()
                     dc.DrawBitmap(bmp, cw.wins(84), cw.wins(110), True)
 
-    def is_playing(self, header):
+    def is_playing(self, header: cw.header.ScenarioHeader) -> bool:
         p = cw.util.get_linktarget(header.get_fpath())
         p = cw.util.get_keypath((p))
         return p in self.nowplayingpaths
 
-    def is_complete(self, header):
+    def is_complete(self, header: cw.header.ScenarioHeader) -> bool:
         return header.name in self.stamps
 
-    def is_invisible(self, header):
+    def is_invisible(self, header: cw.header.ScenarioHeader) -> bool:
         if not header.coupons:
             return False
 
@@ -2896,7 +2905,7 @@ class ScenarioSelect(select.Select):
             item, cookie = self.tree.GetNextChild(paritem, cookie)
             i += 1
 
-    def updated_names(self, dpath, dirstack, startdir, expandedset):
+    def updated_names(self, dpath: str, dirstack: List[Tuple[str, str]], startdir: str, expandedset: Set[str]) -> None:
         if self.toppanel.IsShown():
             self.toppanel.Refresh()
 
@@ -2945,7 +2954,10 @@ class ScenarioSelect(select.Select):
         if focus:
             focus.SetFocus()
 
-    def _narrow_scenario(self, headers):
+    def _narrow_scenario(self, headers: Union[List[str],
+                                              List[Union[str, cw.header.ScenarioHeader]],
+                                              List[cw.header.ScenarioHeader]]) \
+            -> Union[List[str], List[Union[str, cw.header.ScenarioHeader]], List[cw.header.ScenarioHeader]]:
         """設定に応じて表示しないシナリオを除去する。"""
         ntypes, narrow, intnarrow, donarrow, level, _unfitness, _complete, _invisible, _sort = self._get_narrowparams()
         dseq = []
@@ -2968,11 +2980,11 @@ class ScenarioSelect(select.Select):
             self._last_narrowparams = t
             return True
 
-    def is_showing(self, header):
+    def is_showing(self, header: None) -> bool:
         ntypes, narrow, intnarrow, donarrow, level, _unfitness, _complete, _invisible, _sort = self._get_narrowparams()
         return self._is_showing(header, ntypes, narrow, intnarrow, donarrow, level)
 
-    def _get_narrowparams(self):
+    def _get_narrowparams(self) -> Tuple[Set[int], str, None, bool, int, bool, bool, bool, int]:
         if cw.cwpy.setting.show_unfitnessscenario:
             level = 0
         else:
@@ -3005,7 +3017,8 @@ class ScenarioSelect(select.Select):
                 cw.cwpy.setting.show_completedscenario, cw.cwpy.setting.show_invisiblescenario,
                 self.sort.GetSelection())
 
-    def _is_showing(self, header, ntypes, narrow, intnarrow, donarrow, level):
+    def _is_showing(self, header: Optional[Union[str, cw.header.ScenarioHeader]], ntypes: Set[int], narrow: str,
+                    intnarrow: None, donarrow: bool, level: int) -> bool:
         if isinstance(header, cw.header.ScenarioHeader):
             if not cw.cwpy.setting.show_unfitnessscenario and not (ntypes == {_NARROW_LEVEL} and donarrow) and\
                     ((header.levelmin != 0 and level < header.levelmin) or
@@ -3028,7 +3041,7 @@ class ScenarioSelect(select.Select):
 
         return True
 
-    def _sort_headers(self, seq):
+    def _sort_headers(self, seq: List[cw.header.ScenarioHeader]) -> List[cw.header.ScenarioHeader]:
         sort = self.sort.GetSelection()
         if sort == 0:
             # 対象レベル。最初からソート済み
@@ -3047,7 +3060,7 @@ class ScenarioSelect(select.Select):
             cw.util.sort_by_attr(seq, "mtime_reversed", "levelmin", "levelmax", "name", "author", "fname")
         return seq
 
-    def enable_btn(self):
+    def enable_btn(self) -> None:
         if self._processing:
             return
 
@@ -3152,7 +3165,7 @@ class ScenarioSelect(select.Select):
             name = "%s (%s)" % (name, author)
         self.SetTitle(name)
 
-    def get_texts(self):
+    def get_texts(self) -> List["cw.dialog.text.ReadmeData"]:
         """
         選択中シナリオに同梱されている
         テキストファイルのファイル名とデータのリストを返す。
@@ -3376,7 +3389,7 @@ class ScenarioSelect(select.Select):
         self.draw(True)
         self.enable_btn()
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.PyCommandEvent) -> None:
         if not self.list:
             return
 
@@ -3409,7 +3422,8 @@ class FindResult(object):
 
 class UpdateNamesThread(threading.Thread):
 
-    def __init__(self, dlg, nowdir, dpath, dirstack, startdir, expandedset, skintype):
+    def __init__(self, dlg: ScenarioSelect, nowdir: str, dpath: str, dirstack: List[Tuple[str, str]], startdir: str,
+                 expandedset: Set[str], skintype: str) -> None:
         from . import scenarioinstall
 
         threading.Thread.__init__(self)

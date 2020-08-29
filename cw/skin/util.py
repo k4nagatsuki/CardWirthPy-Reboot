@@ -9,6 +9,8 @@ import subprocess
 
 import cw
 
+from typing import Optional, Tuple
+
 
 def find_skin(name, author, skintype=""):
     """
@@ -28,7 +30,7 @@ def find_skin(name, author, skintype=""):
     return seq
 
 
-def get_skininfo(path):
+def get_skininfo(path: str) -> Optional[Tuple[str, str, str]]:
     """
     スキンの(名前, 作者, タイプ)を返す。
     スキンでない場合はNoneを返す。

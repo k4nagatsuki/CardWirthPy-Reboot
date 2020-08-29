@@ -67,7 +67,7 @@ def check_duplicate(path: str) -> str:
     return path
 
 
-def repl_escapechar(s):
+def repl_escapechar(s: str) -> str:
     """xmlの制御文字をエスケープする。
     s: エスケープ処理を行う文字列。
     """
@@ -83,7 +83,7 @@ def repl_escapechar(s):
     return s
 
 
-def repl_specialchar(s):
+def repl_specialchar(s: str) -> str:
     """特殊文字"\\[a-zA-Z0-9]"のエスケープ処理を行う。
     s: エスケープ処理を行う文字列。
     """

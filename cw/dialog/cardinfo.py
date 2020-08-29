@@ -21,7 +21,7 @@ class CardInfo(wx.Dialog):
     list: List[cw.header.CardHeader]
     index: int
 
-    def __init__(self, parent, scedir=""):
+    def __init__(self, parent: wx.TopLevelWindow, scedir: str = "") -> None:
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=cw.wins((380, 200)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
@@ -102,7 +102,7 @@ class CardInfo(wx.Dialog):
     def OnCopyDetail(self, event):
         self.copy_detail()
 
-    def copy_detail(self):
+    def copy_detail(self) -> None:
         if not self.selection:
             return
 
@@ -125,7 +125,7 @@ class CardInfo(wx.Dialog):
     def OnClickRightBtn(self, event):
         pass
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -139,27 +139,27 @@ class CardInfo(wx.Dialog):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
             self.ProcessEvent(btnevent)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.MouseEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
 
-    def get_source(self):
+    def get_source(self) -> str:
         scenario = self.selection.scenario
         author = self.selection.author
         author = "(" + author + ")" if author else ""
         return scenario + author
 
-    def get_desc(self):
+    def get_desc(self) -> str:
         s = cw.util.txtwrap(self.selection.desc, 1)
         if s.count("\n") > 8:
             s = "\n".join(s.split("\n")[0:9])
         return s
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         if update:
             cw.cwpy.play_sound("page")
             dc = wx.ClientDC(self.toppanel)
@@ -217,7 +217,7 @@ class CardInfo(wx.Dialog):
             self.toppanel.Refresh()
             self.toppanel.Update()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -240,7 +240,7 @@ class CardInfo(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class MenuCardInfo(CardInfo):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         # カード情報
         self.selection = cw.cwpy.selection
         self.list = [mcard for mcard in cw.cwpy.get_mcards("visiblemenucards") if mcard.desc]
@@ -248,7 +248,7 @@ class MenuCardInfo(CardInfo):
         # ダイアログ作成
         CardInfo.__init__(self, parent)
 
-    def OnClickLeftBtn(self, event):
+    def OnClickLeftBtn(self, event: wx.PyCommandEvent) -> None:
         if self.index == 0:
             self.index = len(self.list) - 1
         else:
@@ -258,7 +258,7 @@ class MenuCardInfo(CardInfo):
         self.Parent.change_selection(self.selection)
         self.draw(True)
 
-    def OnClickRightBtn(self, event):
+    def OnClickRightBtn(self, event: wx.PyCommandEvent) -> None:
         if self.index == len(self.list) - 1:
             self.index = 0
         else:

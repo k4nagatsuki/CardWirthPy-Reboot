@@ -383,7 +383,7 @@ class SettingsPanel(wx.Panel):
         self.pane_scenario.load(setting)
         self.pane_ui.load(setting)
 
-    def OnSave(self, event):
+    def OnSave(self, event: wx.CommandEvent) -> None:
         tip = "CardWirthPy設定ファイル (*.wssx)|*.wssx|XMLドキュメント (*.xml)|*.xml|すべてのファイル (*.*)|*.*"
         dlg = wx.FileDialog(self.GetTopLevelParent(), "設定ファイルの保存",
                             "", "新規設定.wssx",
@@ -401,7 +401,7 @@ class SettingsPanel(wx.Panel):
                 wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_WARNING, self.GetTopLevelParent())
         dlg.Destroy()
 
-    def OnLoad(self, event):
+    def OnLoad(self, event: wx.CommandEvent) -> None:
         dlg = wx.FileDialog(self.GetTopLevelParent(), "設定ファイルの読み込み",
                             "", "", "CardWirthPy設定ファイル (*.wssx)|*.wssx|XMLドキュメント (*.xml)|*.xml|すべてのファイル (*.*)|*.*",
                             wx.FD_OPEN)
@@ -417,7 +417,7 @@ class SettingsPanel(wx.Panel):
                 wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_WARNING, self.GetTopLevelParent())
         dlg.Destroy()
 
-    def OnDefault(self, event):
+    def OnDefault(self, event: wx.CommandEvent) -> None:
         selpane = self.note.GetSelection()
         if selpane == 0:
             self.pane_gene.init_values(cw.cwpy.setting)
@@ -856,7 +856,7 @@ class SettingsPanel(wx.Panel):
 
         self.GetTopLevelParent().clear_applied()
 
-    def OnClose(self, event):
+    def OnClose(self, event: wx.CommandEvent) -> None:
         self.Parent.Close()
 
     def close(self) -> None:
@@ -1000,7 +1000,7 @@ class SkinPanel(wx.Panel):
             initialcash = self.basecash
             self.skin_summarys[name] = (skintype, skinname, author, desc, vocation120, initialcash)
 
-    def OnSkinChoice(self, event):
+    def OnSkinChoice(self, event: wx.CommandEvent) -> None:
         self._choice_skin()
 
     def _choice_skin(self, init: bool = False, applied: bool = True) -> None:
@@ -1046,7 +1046,7 @@ class SkinPanel(wx.Panel):
             installed_skininfos = cw.dialog.skininstall.install_skin(paths, self.GetTopLevelParent(),
                                                                      canswitch=False)
             if installed_skininfos:
-                skindirname, _name, _author, skintype = installed_skininfos[0]
+                skindirname, _name, _author, skintype, _is_archive = installed_skininfos[0]
 
                 def func(self):
                     def func(self):
@@ -1276,7 +1276,7 @@ class ExpandPanel(wx.Panel):
             s = "%d.%d倍 (%dx%d)" % (n//10, n % 10, x, y)
             self.st_expand.SetLabel(s)
 
-    def OnExpandChange(self, event):
+    def OnExpandChange(self, event: wx.CommandEvent) -> None:
         self.make_expandinfo()
 
     def _do_layout(self) -> None:
@@ -2158,7 +2158,7 @@ class DrawingSettingPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def OnFullScreenBackgroundType(self, event):
+    def OnFullScreenBackgroundType(self, event: wx.CommandEvent) -> None:
         self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
         self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
 
@@ -2304,7 +2304,7 @@ class AudioSettingPanel(wx.Panel):
         self.grid_soundfont.SetCellAlignment(row, 2, wx.ALIGN_CENTER, 0)
         self.grid_soundfont.SetReadOnly(row, 1, True)
 
-    def get_soundfont(self, row):
+    def get_soundfont(self, row: int) -> Tuple[str, bool, int]:
         sfont = self.grid_soundfont.GetCellValue(row, 1)
         use = self.grid_soundfont.GetCellValue(row, 0) != ""
         volume = int(self.grid_soundfont.GetCellValue(row, 2))
@@ -2364,7 +2364,7 @@ class AudioSettingPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def OnGridRangeSelect(self, event):
+    def OnGridRangeSelect(self, event: wx.grid.GridRangeSelectEvent) -> None:
         wx.CallAfter(self._select_changed_soundfonts)
 
     def _select_changed_soundfonts(self) -> None:
@@ -2375,7 +2375,7 @@ class AudioSettingPanel(wx.Panel):
         self.btn_upsoundfont.Enable(bool(indexes and 0 < indexes[0]))
         self.btn_downsoundfont.Enable(bool(indexes and indexes[-1] + 1 < lcount))
 
-    def OnAddSoundFontBtn(self, event):
+    def OnAddSoundFontBtn(self, event: wx.CommandEvent) -> None:
         dlg = wx.FileDialog(self.GetTopLevelParent(), "MIDIの演奏に使用するサウンドフォント選択",
                             "Data/SoundFont", "", "*.sf2", wx.FD_OPEN | wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
@@ -2404,14 +2404,14 @@ class AudioSettingPanel(wx.Panel):
             self._select_changed_soundfonts()
         dlg.Destroy()
 
-    def OnRemoveSoundFontBtn(self, event):
+    def OnRemoveSoundFontBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.grid_soundfont.GetSelectedRows()
         for index in reversed(sorted(indexes)):
             self.grid_soundfont.DeleteRows(index)
         self._select_changed_soundfonts()
         self.GetTopLevelParent().applied()
 
-    def OnUpSoundFontBtn(self, event):
+    def OnUpSoundFontBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.grid_soundfont.GetSelectedRows()
         indexes.sort()
         if not indexes or indexes[0] < 1:
@@ -2428,7 +2428,7 @@ class AudioSettingPanel(wx.Panel):
         self.GetTopLevelParent().applied()
         self.grid_soundfont.MakeCellVisible(indexes[0]-1, 0)
 
-    def OnDownSoundFontBtn(self, event):
+    def OnDownSoundFontBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.grid_soundfont.GetSelectedRows()
         indexes.sort()
         if not indexes or self.grid_soundfont.GetNumberRows() <= indexes[-1] + 1:
@@ -2650,7 +2650,7 @@ class ScenarioSettingPanel(wx.Panel):
             self.grid_folderoftype.AppendRows(1)
             self.grid_folderoftype.SetCellRenderer(row+1, 1, cw.util.FilePathRenderer(False, True))
 
-    def OnRefFolderBtn(self, event):
+    def OnRefFolderBtn(self, event: wx.CommandEvent) -> None:
         row = self.grid_folderoftype.GetGridCursorRow()
         if row == -1:
             return
@@ -2675,7 +2675,7 @@ class ScenarioSettingPanel(wx.Panel):
             self.GetTopLevelParent().applied()
         dlg.Destroy()
 
-    def OnRemoveFolderBtn(self, event):
+    def OnRemoveFolderBtn(self, event: wx.CommandEvent) -> None:
         row = self.grid_folderoftype.GetGridCursorRow()
         if row == -1 or row + 1 == self.grid_folderoftype.GetNumberRows():
             return
@@ -2683,7 +2683,7 @@ class ScenarioSettingPanel(wx.Panel):
         self._select_changed_folderoftype()
         self.GetTopLevelParent().applied()
 
-    def OnUpFolderBtn(self, event):
+    def OnUpFolderBtn(self, event: wx.CommandEvent) -> None:
         row = self.grid_folderoftype.GetGridCursorRow()
         if row == -1 or row == 0:
             return
@@ -2698,7 +2698,7 @@ class ScenarioSettingPanel(wx.Panel):
         self._select_changed_folderoftype()
         self.grid_folderoftype.MakeCellVisible(row - 1, 0)
 
-    def OnDownFolderBtn(self, event):
+    def OnDownFolderBtn(self, event: wx.CommandEvent) -> None:
         row = self.grid_folderoftype.GetGridCursorRow()
         if row == -1 or self.grid_folderoftype.GetNumberRows() <= row + 2:
             return
@@ -2713,7 +2713,7 @@ class ScenarioSettingPanel(wx.Panel):
         self._select_changed_folderoftype()
         self.grid_folderoftype.MakeCellVisible(row + 1, 0)
 
-    def OnConstructDBBtn(self, event):
+    def OnConstructDBBtn(self, event: wx.CommandEvent) -> None:
         from . import editscenariodb
 
         d = {}
@@ -2960,7 +2960,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_confirmbeforeusingcard.SetValue(setting.confirm_beforeusingcard)
         self.cb_noticeimpossibleaction.SetValue(setting.noticeimpossibleaction)
 
-    def init_values(self, setting):
+    def init_values(self, setting: cw.setting.Setting) -> None:
         self.cb_can_skipwait.SetValue(setting.can_skipwait_init)
         self.cb_can_skipanimation.SetValue(setting.can_skipanimation_init)
         self.cb_can_skipwait_with_wheel.SetValue(setting.can_skipwait_with_wheel_init)
@@ -3590,7 +3590,7 @@ class FontSettingPanel(wx.Panel):
     def OnExampleText(self, event: wx.CommandEvent) -> None:
         self.update_example()
 
-    def OnInitExample(self, event):
+    def OnInitExample(self, event: wx.CommandEvent) -> None:
         self.tx_example.SetValue(cw.setting.FONT_EXAMPLE_FORMAT_INIT)
         self.sc_example.SetValue(cw.setting.FONT_EXAMPLE_PIXEL_SIZE_INIT)
         self.update_example()

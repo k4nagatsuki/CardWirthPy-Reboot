@@ -11,6 +11,8 @@ import subprocess
 import cw
 from cw.util import synclock
 
+from typing import Iterator, List, Optional, Set, Tuple
+
 _lock = threading.Lock()
 
 TYPE_WSN = 0
@@ -52,7 +54,7 @@ class ScenariodbUpdatingThread(threading.Thread):
         type(self)._finished = True
 
     @staticmethod
-    def is_finished():
+    def is_finished() -> bool:
         return ScenariodbUpdatingThread._finished
 
 
@@ -386,7 +388,9 @@ class Scenariodb(object):
         if commit:
             self.con.commit()
 
-    def insert(self, t, images, commit=True, skintype=""):
+    def insert(self, t: Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
+                              bytes, None],
+               images: List[Tuple[bytes, "cw.image.ImageInfo", int]], commit: bool = True, skintype: str = "") -> None:
         s = """INSERT OR REPLACE INTO scenariodb(
                     dpath, type, fname, name, author, desc, skintype,
                     levelmin, levelmax, coupons, couponsnum,
@@ -439,7 +443,7 @@ class Scenariodb(object):
         """データベースにシナリオを登録する。"""
         self._insert_scenario(path, commit, skintype=skintype)
 
-    def _insert_scenario(self, path, commit=True, skintype=""):
+    def _insert_scenario(self, path: str, commit: bool = True, skintype: str = "") -> Optional[bool]:
         t, images = read_summary(path)
 
         if t:
@@ -458,7 +462,8 @@ class Scenariodb(object):
             # shutil.move(path, dst)
             return False
 
-    def create_header(self, data, skintype="", update=True):
+    def create_header(self, data: Optional[sqlite3.Row], skintype: str = "",
+                      update: bool = True) -> Optional["cw.header.ScenarioHeader"]:
         """
         データベース内のシナリオ情報からヘッダ部分を返す。
         情報が古くなっている場合は更新する。
@@ -523,7 +528,8 @@ class Scenariodb(object):
 
         return header
 
-    def create_headers(self, data, skintype="", update=True):
+    def create_headers(self, data: List[sqlite3.Row], skintype: str = "",
+                       update: bool = True) -> Tuple[List["cw.header.ScenarioHeader"], Set[str]]:
         """
         データベース内のシナリオ群のヘッダを返す。
         その際、情報が古くなっている場合は更新する。
@@ -540,7 +546,7 @@ class Scenariodb(object):
 
         return headers, names
 
-    def sort_headers(self, headers):
+    def sort_headers(self, headers: List["cw.header.ScenarioHeader"]) -> List["cw.header.ScenarioHeader"]:
         cw.util.sort_by_attr(headers, "levelmin", "levelmax", "name", "author", "fname", "mtime_reversed")
         return headers
 
@@ -548,7 +554,7 @@ class Scenariodb(object):
     def search_path(self, path, skintype=""):
         return self._search_path(path, skintype=skintype)
 
-    def _search_path(self, path, skintype=""):
+    def _search_path(self, path: str, skintype: str = "") -> Optional["cw.header.ScenarioHeader"]:
         path = path.replace("\\", "/")
         dpath, fname = os.path.split(path)
         self._fetch(dpath, fname, skintype)
@@ -582,7 +588,7 @@ class Scenariodb(object):
                 "     A.imgpath," + \
                 "     A.wsnversion"
 
-    def _fetch(self, dpath, fname, skintype):
+    def _fetch(self, dpath: str, fname: str, skintype: str) -> None:
         if skintype:
             s = Scenariodb.FETCH_SQL + \
                 " FROM scenariodb A LEFT JOIN scenariotype B" + \
@@ -594,7 +600,7 @@ class Scenariodb(object):
                 " FROM scenariodb A WHERE dpath=? AND fname=?"
             self.cur.execute(s, (dpath, fname,))
 
-    def _fetch_from_name(self, name, author, skintype):
+    def _fetch_from_name(self, name: str, author: str, skintype: str) -> None:
         if skintype:
             s = Scenariodb.FETCH_SQL + \
                 " FROM scenariodb A LEFT JOIN scenariotype B" + \
@@ -914,7 +920,7 @@ def _find_alldirectories(dpath, result, exclude, is_cancel):
         _find_alldirectories(dpath2, result, exclude, is_cancel)
 
 
-def is_scenario(path):
+def is_scenario(path: str) -> bool:
     """
     指定されたパスがシナリオならTrueを返す。
     """
@@ -932,7 +938,9 @@ def is_scenario(path):
         return lpath.endswith(".wsn") or lpath.endswith(".zip") or lpath.endswith(".lzh") or lpath.endswith(".cab")
 
 
-def read_summary(basepath):
+def read_summary(basepath: str) -> Optional[Tuple[Tuple[str, int, str, str, str, str, str, int, int, str, int, int,
+                                                        str, float, float, str, bytes, None],
+                                                  List[Tuple[bytes, "cw.image.ImageInfo", int]]]]:
     def imgbufs_to_result(summaryinfos, imgbufs):
         if len(imgbufs) == 0:
             imgbuf = ""
@@ -1170,7 +1178,11 @@ def parse_summarydata(basepath, data, scetype, mtime, rootattrs):
                        levelmax, coupons, couponsnum, startid, tags, ctime, mtime, wsnversion])
 
 
-def read_summary_classic(basepath, spath, f=None):
+def read_summary_classic(basepath: str, spath: str,
+                         f: Optional[cw.binary.cwfile.CWFile] = None)\
+        -> Optional[Tuple[Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
+                                bytes, None],
+                          List[Tuple[bytes, "cw.image.ImageInfo", int]]]]:
     try:
         if not f:
             f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
@@ -1208,7 +1220,7 @@ def read_summary_classic(basepath, spath, f=None):
     return tuple(summaryinfos), []
 
 
-def get_scenariopaths(path):
+def get_scenariopaths(path: str) -> Iterator[str]:
     path = cw.util.get_linktarget(path)
     if not os.path.isdir(path):
         return
