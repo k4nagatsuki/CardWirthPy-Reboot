@@ -5060,7 +5060,32 @@ def t_print() -> None:
 
 _lock_mutex = threading.Lock()
 _mutex = []  # type: List[Tuple[Union[_Unlock, io.FileIO], str]]
-if sys.platform != "win32":
+
+if sys.platform == "win32":
+    class _OVERLAPPED(ctypes.Structure):
+        _fields_ = [
+            ('Internal', ctypes.wintypes.DWORD),
+            ('InternalHigh', ctypes.wintypes.DWORD),
+            ('Offset', ctypes.wintypes.DWORD),
+            ('OffsetHigh', ctypes.wintypes.DWORD),
+            ('hEvent', ctypes.wintypes.HANDLE),
+        ]
+
+
+    class _Unlock(object):
+        def __init__(self, name, f):
+            self.name = name
+            self.f = f
+
+        def unlock(self):
+            if self.f:
+                kernel32 = ctypes.windll.kernel32
+                handle = msvcrt.get_osfhandle(self.f.fileno())
+                kernel32.UnlockFileEx(handle, 0, 0, 0xffff0000, ctypes.byref(_OVERLAPPED()))
+                self.f = None
+                remove(self.name)
+
+else:
     import fcntl
 
 
@@ -5101,30 +5126,6 @@ def create_mutex(dpath):
             return True
         except IOError:
             return False
-
-
-class _OVERLAPPED(ctypes.Structure):
-    _fields_ = [
-        ('Internal', ctypes.wintypes.DWORD),
-        ('InternalHigh', ctypes.wintypes.DWORD),
-        ('Offset', ctypes.wintypes.DWORD),
-        ('OffsetHigh', ctypes.wintypes.DWORD),
-        ('hEvent', ctypes.wintypes.HANDLE),
-    ]
-
-
-class _Unlock(object):
-    def __init__(self, name, f):
-        self.name = name
-        self.f = f
-
-    def unlock(self):
-        if self.f:
-            kernel32 = ctypes.windll.kernel32
-            handle = msvcrt.get_osfhandle(self.f.fileno())
-            kernel32.UnlockFileEx(handle, 0, 0, 0xffff0000, ctypes.byref(_OVERLAPPED()))
-            self.f = None
-            remove(self.name)
 
 
 @synclock(_lock_mutex)
