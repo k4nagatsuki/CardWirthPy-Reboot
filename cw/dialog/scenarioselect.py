@@ -2332,6 +2332,8 @@ class ScenarioSelect(select.Select):
                     s = cw.cwpy.msgs["scenario_is_not_found"]
                 names.append(s)
                 self._gray_idx = 0
+            elif not self.updatenames_thr:
+                self._gray_idx = -1
 
             y = cw.wins(130)
             for idx, name in enumerate(names):
