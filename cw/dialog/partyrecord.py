@@ -6,7 +6,7 @@ import wx
 import cw
 from . import select
 
-from typing import List, Optional
+from typing import Union, List, Optional
 
 
 # ------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ class SelectPartyRecord(select.Select):
     list: List[Optional[cw.header.PartyRecordHeader]]
     restorable: List[List[Optional[cw.header.PartyRecordHeader]]]
 
-    def __init__(self, parent):
+    def __init__(self, parent: Union["cw.dialog.select.PartySelect", "cw.dialog.select.PlayerSelect"]) -> None:
         # ダイアログボックス作成
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_party_record"])
         # パーティ情報
@@ -63,7 +63,7 @@ class SelectPartyRecord(select.Select):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.restorebtn.GetId())
         self.ProcessEvent(btnevent)
 
-    def OnClickSaveBtn(self, event):
+    def OnClickSaveBtn(self, event: wx.CommandEvent) -> None:
         """パーティの記録。"""
         from . import message
 
@@ -103,7 +103,7 @@ class SelectPartyRecord(select.Select):
             cw.cwpy.frame.exec_func(func, panel, header)
         cw.cwpy.exec_func(func, self, header, self.index)
 
-    def OnClickRestoreBtn(self, event):
+    def OnClickRestoreBtn(self, event: wx.CommandEvent) -> None:
         """パーティの再結成。"""
         from . import message
 
@@ -153,7 +153,7 @@ class SelectPartyRecord(select.Select):
         else:
             cw.cwpy.exec_func(func, header, self, self.Parent, None)
 
-    def OnClickDeleteBtn(self, event):
+    def OnClickDeleteBtn(self, event: wx.CommandEvent) -> None:
         """パーティ記録の削除。"""
         from . import message
 
@@ -192,13 +192,13 @@ class SelectPartyRecord(select.Select):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
             self.ProcessEvent(btnevent)
 
-    def can_clickcenter(self):
+    def can_clickcenter(self) -> bool:
         return self.restorebtn.IsEnabled()
 
-    def can_clickside(self):
+    def can_clickside(self) -> bool:
         return 1 < len(self.list)
 
-    def enable_btn(self):
+    def enable_btn(self) -> None:
         assert len(self.list)
         self.left2btn.Enable(1 < len(self.list))
         self.leftbtn.Enable(1 < len(self.list))
@@ -213,7 +213,7 @@ class SelectPartyRecord(select.Select):
         if buttonlist:
             buttonlist[0].SetFocus()
 
-    def _update_restorable(self):
+    def _update_restorable(self) -> None:
         header = self.list[self.index]
         if not header:
             return
@@ -260,7 +260,7 @@ class SelectPartyRecord(select.Select):
 
         self.restorable[self.index] = restorable
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         assert len(self.list)
 
         dc, dest = self.draw2(update)

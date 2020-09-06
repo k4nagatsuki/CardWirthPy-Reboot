@@ -5,8 +5,10 @@ import os
 
 import cw
 
+from typing import Dict, List
 
-def _create_xml(name, path, d):
+
+def _create_xml(name: str, path: str, d: Dict[str, str]) -> None:
     s = cw.binary.xmltemplate.get_xmltext(name, d)
     s = '<?xml version="1.0" encoding="UTF-8"?>\n' + s
     dpath = os.path.dirname(path)
@@ -980,7 +982,7 @@ def create_albumpage(path, lost=False, nocoupon=False):
     return path
 
 
-def create_adventurer(data):
+def create_adventurer(data: "cw.dialog.create.AdventurerData") -> str:
     """
     data: AdventurerData。
     冒険者のXMLを新しく作成する。
@@ -1017,7 +1019,8 @@ def create_adventurer(data):
     return path
 
 
-def write_castimagepath(name, paths, can_loaded_scaledimage):
+def write_castimagepath(name: str, paths: List[cw.image.ImageInfo],
+                        can_loaded_scaledimage: bool) -> List[cw.image.ImageInfo]:
     """
     キャストの新しい画像を記憶し、記憶後のパスを返す。
     """

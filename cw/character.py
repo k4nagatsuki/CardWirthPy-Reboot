@@ -10,7 +10,7 @@ import threading
 import cw
 from cw.util import synclock
 
-from typing import Optional, Dict, Tuple
+from typing import List, Set, Optional, Dict, Tuple
 
 _couponlock = threading.Lock()
 
@@ -18,7 +18,7 @@ _couponlock = threading.Lock()
 class Character(object):
     status: str
 
-    def __init__(self, data=None):
+    def __init__(self, data: Optional[cw.data.CWPyElementTree] = None) -> None:
         if data is not None:
             self.data = data
         self.reversed = False
@@ -185,17 +185,17 @@ class Character(object):
         # キャッシュ
         self._voc_tbl = {}
 
-    def get_showingname(self):
+    def get_showingname(self) -> str:
         return self.get_name()
 
-    def get_imagepaths(self):
+    def get_imagepaths(self) -> List[cw.image.ImageInfo]:
         """現在表示中のカード画像の情報を
         cw.image.ImageInfoのlistで返す。
         """
         data = self.data.find("Property")
         return cw.image.get_imageinfos(data)
 
-    def set_images(self, paths):
+    def set_images(self, paths: List[cw.image.ImageInfo]) -> List[cw.image.ImageInfo]:
         """このキャラクターのカード画像を
         cw.image.ImageInfoのlistで指定した内容に差し替える。
         """
@@ -301,24 +301,24 @@ class Character(object):
 
         return newpaths
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.data.gettext("Property/Name", "")
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Name", name)
         self.name = name
 
-    def get_description(self):
+    def get_description(self) -> str:
         return cw.util.decodewrap(self.data.gettext("Property/Description", ""))
 
-    def set_description(self, desc):
+    def set_description(self, desc: str) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Description", cw.util.encodewrap(desc))
 
-    def set_maxlife(self, value):
+    def set_maxlife(self, value: int) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         v = float(self.life) / self.maxlife
@@ -333,51 +333,53 @@ class Character(object):
 
         self.adjust_beast()
 
-    def set_physical(self, name, value):
+    def set_physical(self, name: str, value: float) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Ability/Physical", str(int(value)), name)
         self.physical[name] = float(value)
         self._clear_vocationcache()
 
-    def set_mental(self, name, value):
+    def set_mental(self, name: str, value: int) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Ability/Mental", str(value), name)
         self.mental[name] = float(value)
         self._clear_vocationcache()
 
-    def set_feature(self, name, value):
+    def set_feature(self, name: str, value: bool) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Feature/Type", str(value), name)
         self.feature[name] = value
 
-    def set_noeffect(self, name, value):
+    def set_noeffect(self, name: str, value: bool) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Feature/NoEffect", str(value), name)
         self.noeffect[name] = value
 
-    def set_resist(self, name, value):
+    def set_resist(self, name: str, value: bool) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Feature/Resist", str(value), name)
         self.resist[name] = value
 
-    def set_weakness(self, name, value):
+    def set_weakness(self, name: str, value: bool) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Feature/Weakness", str(value), name)
         self.weakness[name] = value
 
-    def set_enhance(self, name, value):
+    def set_enhance(self, name: str, value: int) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Ability/Enhance", str(value), name)
         self.enhance[name] = value
 
-    def get_cardpocket(self):
+    def get_cardpocket(self) -> Tuple[List[cw.header.CardHeader],
+                                      List[cw.header.CardHeader],
+                                      List[cw.header.CardHeader]]:
         flag = bool(self.data.getroot().tag == "CastCard")
         maxnums = self.get_cardpocketspace()
         paths = ("SkillCards", "ItemCards", "BeastCards")
@@ -437,8 +439,9 @@ class Character(object):
         if beast:
             seq.append(self.get_pocketcards(cw.POCKET_BEAST))
 
-        for header in seq:
-            s.update(header.get_keycodes())
+        for pocket in seq:
+            for header in pocket:
+                s.update(header.get_keycodes())
 
         s.discard("")
         return s
@@ -559,10 +562,10 @@ class Character(object):
         return bool(self.antimagic > 0)
 
     @staticmethod
-    def calc_petrified(paralyze):
+    def calc_petrified(paralyze: int) -> bool:
         return bool(paralyze > 20)
 
-    def is_petrified(self):
+    def is_petrified(self) -> bool:
         """
         石化状態かどうかをbool値で返す
         """
@@ -600,7 +603,7 @@ class Character(object):
         """
         return bool(self.life < self.maxlife)
 
-    def is_inactive(self, check_reversed=True):
+    def is_inactive(self, check_reversed: bool = True) -> bool:
         """
         行動不可状態かどうかをbool値で返す
         """
@@ -612,7 +615,7 @@ class Character(object):
             b |= self.is_reversed()
         return b
 
-    def is_active(self):
+    def is_active(self) -> bool:
         """
         行動可能状態かどうかをbool値で返す
         """
@@ -1168,7 +1171,7 @@ class Character(object):
                 if t:
                     cw.cwpy.battle.priorityacts.append((t, target, self))
 
-    def adjust_action(self):
+    def adjust_action(self) -> None:
         """
         現在の状態に合わせて一部戦闘行動を解除する。
         行動不能であれば自律的な行動は行えず、
@@ -1371,7 +1374,7 @@ class Character(object):
             # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
             return [{"type": "Runaway"}]
         else:
-            return header.carddata.getfind("Motions").getchildren()
+            return header.carddata.getfind("Motions")
 
     def _is_bonusedmtype(self, mtype):
         return mtype in ("Runaway", "Heal")
@@ -1467,7 +1470,7 @@ class Character(object):
 
         return bonus
 
-    def get_pocketcards(self, index):
+    def get_pocketcards(self, index: int) -> List[cw.header.CardHeader]:
         """
         所持しているカードを返す。
         index: カードの種類。
@@ -1493,7 +1496,7 @@ class Character(object):
     def calc_lifeper(life: int, maxlife: int) -> int:
         return int(100.0 * life // maxlife + 0.5)
 
-    def get_lifeper(self):
+    def get_lifeper(self) -> int:
         """
         ライフのパーセンテージを返す。
         """
@@ -1540,7 +1543,7 @@ class Character(object):
         self._voc_tbl[vo] = voc
         return voc
 
-    def _clear_vocationcache(self):
+    def _clear_vocationcache(self) -> None:
         """能力値のキャッシュをクリアする。"""
         self._voc_tbl = {}
 
@@ -1726,7 +1729,7 @@ class Character(object):
         """
         return self._get_coupons()
 
-    def _get_coupons(self):
+    def _get_coupons(self) -> Set[str]:
         return set(self.coupons.keys())
 
     @synclock(_couponlock)
@@ -1736,7 +1739,7 @@ class Character(object):
         """
         return self._get_couponvalue(name, raiseerror)
 
-    def _get_couponvalue(self, name, raiseerror=True):
+    def _get_couponvalue(self, name: str, raiseerror: bool = True) -> int:
         if raiseerror:
             return self.coupons[name][0]
         else:
@@ -1857,7 +1860,7 @@ class Character(object):
     def get_sex(self):
         return self._get_sex()
 
-    def _get_sex(self):
+    def _get_sex(self) -> str:
         for coupon in cw.cwpy.setting.sexcoupons:
             if coupon in self.coupons:
                 return coupon
@@ -1868,7 +1871,7 @@ class Character(object):
     def set_sex(self, sex):
         self._set_sex(sex)
 
-    def _set_sex(self, sex):
+    def _set_sex(self, sex: str) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         old = self._get_sex()
@@ -1891,7 +1894,7 @@ class Character(object):
     def get_age(self):
         return self._get_age()
 
-    def _get_age(self):
+    def _get_age(self) -> str:
         for coupon in cw.cwpy.setting.periodcoupons:
             if coupon in self.coupons:
                 return coupon
@@ -1902,7 +1905,7 @@ class Character(object):
     def set_age(self, age):
         self._set_age(age)
 
-    def _set_age(self, age):
+    def _set_age(self, age: str) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         old = self._get_age()
@@ -1925,7 +1928,7 @@ class Character(object):
     def get_talent(self):
         return self._get_talent()
 
-    def _get_talent(self):
+    def _get_talent(self) -> str:
         for coupon in cw.cwpy.setting.naturecoupons:
             if coupon in self.coupons:
                 return coupon
@@ -1936,7 +1939,7 @@ class Character(object):
     def set_talent(self, talent):
         self._set_talent(talent)
 
-    def _set_talent(self, talent):
+    def _set_talent(self, talent: str) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         old = self._get_talent()
@@ -1959,7 +1962,7 @@ class Character(object):
     def get_makings(self):
         return self._get_makings()
 
-    def _get_makings(self):
+    def _get_makings(self) -> Set[str]:
         """
         所持する特徴クーポンをセット型で返す。
         """
@@ -1973,7 +1976,7 @@ class Character(object):
     def set_makings(self, makings):
         return self._set_makings(makings)
 
-    def _set_makings(self, makings):
+    def _set_makings(self, makings: List[str]) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         for coupon in cw.cwpy.setting.makingcoupons:
@@ -1986,7 +1989,7 @@ class Character(object):
     def set_race(self, race):
         self._set_race(race)
 
-    def _set_race(self, race):
+    def _set_race(self, race: cw.header.RaceHeader) -> None:
         old = self._get_race()
         if race == old:
             return
@@ -2034,7 +2037,7 @@ class Character(object):
             self.data.edit("Property/Coefficient", str(self._coeff_level), "level")
         return self._coeff_level
 
-    def _get_epcoeff(self):
+    def _get_epcoeff(self) -> int:
         """
         1レベル毎のEP獲得量。
         種族情報がある場合はその種族の値で上書きする。
@@ -2084,7 +2087,7 @@ class Character(object):
         """
         self._set_coupon(name, value, True)
 
-    def _set_coupon(self, name, value, update=True):
+    def _set_coupon(self, name: str, value: int, update: bool = True) -> None:
         assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
@@ -2138,7 +2141,7 @@ class Character(object):
         """
         return self._remove_coupon(name, True)
 
-    def _remove_coupon(self, name, update=True):
+    def _remove_coupon(self, name: str, update: bool = True) -> bool:
         if name not in self.coupons:
             return False
         if cw.cwpy.ydata:
@@ -2210,7 +2213,7 @@ class Character(object):
     @synclock(_couponlock)
     def get_coupon_at(self, index):
         """指定位置のクーポンを(name, value)で返す。"""
-        e_coupons = self.data.find("Property/Coupons")
+        e_coupons = self.data.find("Property/Coupons")  # type: Optional[cw.data.CWPyElement]
         if e_coupons is None:
             raise Exception("No coupons.")
         e = e_coupons[index]
@@ -2234,7 +2237,7 @@ class Character(object):
         """レベルの調節範囲の最大値を返す。"""
         return self._get_limitlevel()
 
-    def _get_limitlevel(self):
+    def _get_limitlevel(self) -> int:
         num = self._get_couponvalue("＠レベル原点", raiseerror=False)
         if num is not None:
             return max(self.level, num)
@@ -2267,7 +2270,7 @@ class Character(object):
         coupons = self._get_specialcoupons()
         return self._get_levelmax(coupons)
 
-    def _get_levelmax(self, coupons):
+    def _get_levelmax(self, coupons: Dict[str, int]) -> int:
         if "＠レベル上限" in coupons:
             limit = coupons["＠レベル上限"]
         elif "＠本来の上限" in coupons:
@@ -2411,12 +2414,12 @@ class Character(object):
         memories.append(e)
 
     @synclock(_couponlock)
-    def revert_cardpocket(self, backpack_party=None):
+    def revert_cardpocket(self, backpack_party: Optional[cw.data.Party] = None) -> None:
         """記憶していたカードを検索し、
         見つかったら再び所持する。"""
-        return self._revert_cardpocket(backpack_party)
+        self._revert_cardpocket(backpack_party)
 
-    def _revert_cardpocket(self, backpack_party=None):
+    def _revert_cardpocket(self, backpack_party: Optional[cw.data.Party] = None) -> None:
         if not cw.cwpy.setting.revert_cardpocket:
             return
 
@@ -2482,7 +2485,7 @@ class Character(object):
     def revert_personalpocket(self, headers, force):
         self._revert_personalpocket(headers, force)
 
-    def _revert_personalpocket(self, headers, force):
+    def _revert_personalpocket(self, headers: List[cw.header.CardHeader], force: bool) -> None:
         assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         add_personal = False
         for e in reversed(self.data.getfind("./PersonalCardMemories", False)[:]):
@@ -2545,7 +2548,7 @@ class Character(object):
         if clearbeast:
             self.adjust_beast()
 
-    def adjust_beast(self):
+    def adjust_beast(self) -> None:
         for header in self.get_pocketcards(cw.POCKET_BEAST)[::-1]:
             if not header.attachment and header.is_removewithstatus(self):
                 self.throwaway_card(header, update_image=False)
@@ -2575,7 +2578,7 @@ class Character(object):
             self.deck.set(self)
             self.decide_action()
 
-    def set_life(self, value):
+    def set_life(self, value: int) -> int:
         """
         現在ライフに引数nの値を足す(nが負だと引き算でダメージ)。
         """
@@ -3193,7 +3196,7 @@ class Character(object):
                     if e_eventtarget:
                         e_eventtarget.set_coupon("＠イベント対象", 0)
 
-    def set_hold_all(self, pocket, value):
+    def set_hold_all(self, pocket: int, value: bool) -> None:
         self.hold_all[pocket] = value
         if pocket == cw.POCKET_SKILL:
             ctype = "SkillCards"
@@ -3207,7 +3210,7 @@ class Character(object):
 
 
 class Player(Character):
-    def __init__(self, data=None):
+    def __init__(self, data: Optional[cw.data.CWPyElementTree] = None) -> None:
         Character.__init__(self, data)
         self.personal_pocket = []  # 荷物袋内の私有カード
 
@@ -3364,7 +3367,7 @@ class Player(Character):
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.pcards.remove(self)
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
         Character.set_name(self, name)
         if cw.cwpy.ydata:
             for header in cw.cwpy.ydata.partyrecord:
@@ -3413,15 +3416,15 @@ class Friend(Character):
 
 
 class AlbumPage(object):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElementTree) -> None:
         self.data = data
         self.name = self.data.gettext("Property/Name", "")
         self.level = cw.util.numwrap(self.data.getint("Property/Level"), 1, 65536)
 
-    def get_showingname(self):
+    def get_showingname(self) -> str:
         return self.name
 
-    def get_specialcoupons(self):
+    def get_specialcoupons(self) -> Dict[str, int]:
         """
         "＠"で始まる特殊クーポンの
         辞書(key=クーポン名, value=クーポン得点)を返す。

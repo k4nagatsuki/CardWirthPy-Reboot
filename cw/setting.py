@@ -1629,7 +1629,7 @@ class Resource(object):
                         if os.path.isfile(path):
                             self.ignorecase_table[path.lower()] = path
 
-    def get_filepath(self, fpath):
+    def get_filepath(self, fpath: str) -> str:
         if cw.fsync.is_waiting(fpath):
             cw.fsync.sync()
         if not fpath or cw.binary.image.path_is_code(fpath) or os.path.isfile(fpath):
@@ -1652,7 +1652,7 @@ class Resource(object):
                     font.dispose()
 
     @property
-    def cardnamecolorborder(self):
+    def cardnamecolorborder(self) -> int:
         if cw.cwpy.setting.bordering_cardname:
             return 92
         else:
@@ -1830,7 +1830,8 @@ class Resource(object):
             WM_FONTCHANGE = 0x001D
             user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
 
-    def get_fontfromtype(self, name, fontinfo=None):
+    def get_fontfromtype(self, name: str, fontinfo: Optional[Tuple[str, str, int, bool, bool, bool]] = None)\
+            -> Tuple[str, int, bool, bool, bool]:
         """フォントタイプ名から抽象フォント名を取得する。"""
         if fontinfo is None:
             fontinfo = self.setting().fonttypes.get(name, (name, "", -1, None, None, None))
@@ -1841,9 +1842,10 @@ class Resource(object):
                 fontname = self.fontnames.get(basename, "")
         return fontname, pixels, bold, bold_upscr, italic
 
-    def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
-                   family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM,
-                   adjustsize=False, adjustsizewx3=True, pointsize=None):
+    def get_wxfont(self, name: str = "uigothic", size: Optional[int] = None, pixelsize: Optional[int] = None,
+                   family: int = wx.DEFAULT, style: int = wx.NORMAL, weight: int = wx.BOLD,
+                   encoding: int = wx.FONTENCODING_SYSTEM, adjustsize: bool = False, adjustsizewx3: bool = True,
+                   pointsize: Optional[int] = None) -> wx.Font:
         if size is None and pixelsize is None:
             pixelsize = cw.wins(14)
 
@@ -1980,7 +1982,8 @@ class Resource(object):
         fonts.set("screenshot", self.create_font, "screenshot", t[0], t[1], t[2], t[3], t[4], t[5])
         return fonts, msg_exfonts
 
-    def create_wxbutton(self, parent, cid, size, name=None, bmp=None, chain=False):
+    def create_wxbutton(self, parent: wx.Panel, cid: int, size: Tuple[int, int], name: Optional[str] = None,
+                        bmp: Optional[wx.Bitmap] = None, chain: bool = False) -> Union[wx.BitmapButton, wx.Button]:
         if bmp:
             button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
@@ -2023,7 +2026,8 @@ class Resource(object):
 
         return button
 
-    def create_wxbutton_dbg(self, parent, cid, size, name=None, bmp=None):
+    def create_wxbutton_dbg(self, parent: wx.Panel, cid: int, size: Tuple[int, int], name: Optional[str] = None,
+                            bmp: Optional[wx.Bitmap] = None) -> Union[wx.BitmapButton, wx.Button]:
         if bmp:
             button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
@@ -2564,7 +2568,7 @@ class Resource(object):
             func(key)
         return d
 
-    def calc_cardnamecolorhint(self, bmp):
+    def calc_cardnamecolorhint(self, bmp: pygame.Surface) -> int:
         """文字描画領域の色を平均化した値を返す。
         """
         if bmp.get_width() <= cw.s(10) or bmp.get_height() <= cw.s(20):
@@ -2967,7 +2971,7 @@ class LazyResource(object):
         self.load = False
         self._res = None
 
-    def get_res(self):
+    def get_res(self) -> typing.Any:
         if not self.load:
             try:
                 self._res = self.func(*self.args, **self.kwargs)
@@ -3004,7 +3008,7 @@ class ResourceTable(object):
             if key not in self.dic:
                 self.dic[key] = value
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> typing.Any:
         self._put_nokeyvalue(key)
         lazy = self.dic.get(key, None)
         if lazy:
@@ -3029,7 +3033,7 @@ class ResourceTable(object):
             self.defload = True
         return self.defvalue
 
-    def _put_nokeyvalue(self, key):
+    def _put_nokeyvalue(self, key: str) -> None:
         if self.nokeyfunc and key not in self.dic:
             self.dic[key] = LazyResource(lambda: self.nokeyfunc(key), (), {})
 
@@ -3365,7 +3369,7 @@ class ScenarioCompatibilityTable(object):
                     self.table[key] = (e.text, zindexmode, vanishmembercancellation, gossiprestoration,
                                        compstamprestoration)
 
-    def get_versionhint(self, fpath=None, filedata=None):
+    def get_versionhint(self, fpath: Optional[str] = None, filedata: Optional[bytes] = None) -> Optional[str]:
         """fpathのファイル内容またはfiledataから、
         本来そのファイルが再生されるべきCardWirthの
         バージョンを取得する。
@@ -3377,7 +3381,7 @@ class ScenarioCompatibilityTable(object):
 
         return self.table.get(key, None)
 
-    def lessthan(self, versionhint, currentversion):
+    def lessthan(self, versionhint: str, currentversion: Optional[str]) -> bool:
         """currentversionがversionhint以下であればTrueを返す。"""
         if not currentversion:
             return False
@@ -3458,13 +3462,13 @@ class ScenarioCompatibilityTable(object):
 
         return (engine, zindexmode, vanishmembercancellation, gossiprestration, compstamprestration)
 
-    def from_basehint(self, basehint):
+    def from_basehint(self, basehint: str) -> Optional[Tuple[str, str, bool, bool, bool]]:
         """basehintから複合情報を生成する。"""
         if not basehint:
             return None
         return (basehint, "", False, False, False)
 
-    def to_basehint(self, versionhint):
+    def to_basehint(self, versionhint: Optional[str]) -> str:
         """複合情報versionhintから最も基本的な情報を取り出す。"""
         if versionhint:
             return versionhint[0] if versionhint[0] else ""

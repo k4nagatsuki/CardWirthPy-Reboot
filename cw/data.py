@@ -19,7 +19,7 @@ import pygame.locals
 import cw
 from cw.util import synclock
 
-from typing import Set, Dict, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
 
 _lock = threading.Lock()
@@ -439,7 +439,7 @@ class SystemData(object):
             if log.specialchars:
                 log.specialchars.reset()
 
-    def sweep_resourcecache(self, size):
+    def sweep_resourcecache(self, size: int) -> None:
         """新しくキャッシュを追加した時にメモリが不足しそうであれば
         これまでのキャッシュをクリアする。
         """
@@ -636,7 +636,8 @@ class SystemData(object):
 
         return xml2etree(element=data)
 
-    def get_carddata(self, linkdata, inusecard=True, inusecardheader=None):
+    def get_carddata(self, linkdata: "CWPyElement", inusecard: bool = True,
+                     inusecardheader: Optional["cw.header.CardHeader"] = None) -> "CWPyElement":
         return linkdata
 
     def is_updatedfilenames(self):
@@ -645,7 +646,8 @@ class SystemData(object):
         """
         return False
 
-    def _get_resdata(self, table, resid, tag, nocache, resname="?", rootattrs=None):
+    def _get_resdata(self, table: Dict[int, Tuple[str, str]], resid: int, tag: str, nocache: bool, resname: str = "?",
+                     rootattrs: Optional[Dict[str, str]] = None) -> "CWPyElement":
         fpath0 = table.get(resid, ("", "(未定義の%s ID:%s)" % (resname, resid)))[1]
         fpath = self._get_resfpath(table, resid)
         if fpath is None:
@@ -666,7 +668,7 @@ class SystemData(object):
     def _get_resname(self, table: Dict[int, Tuple[str, str]], resid: int) -> str:
         return table.get(resid, (None, None))[0]
 
-    def _get_resfpath(self, table, resid):
+    def _get_resfpath(self, table: Dict[int, Tuple[str, str]], resid: int) -> str:
         fpath = table.get(resid, None)
         if fpath is None:
             return None
@@ -766,7 +768,8 @@ class SystemData(object):
     def get_beastids(self):
         return self._get_resids(self._beasts)
 
-    def get_infodata(self, resid, tag="", nocache=False, rootattrs=None):
+    def get_infodata(self, resid: int, tag: str = "", nocache: bool = False,
+                     rootattrs: Optional[Dict[str, str]] = None) -> "CWPyElement":
         return self._get_resdata(self._infos, resid, tag, nocache, resname="情報", rootattrs=rootattrs)
 
     def get_infoname(self, resid):
@@ -775,7 +778,7 @@ class SystemData(object):
     def get_infofpath(self, resid):
         return self._get_resfpath(self._infos, resid)
 
-    def get_infoids(self):
+    def get_infoids(self) -> List[int]:
         return self._get_resids(self._infos)
 
     def _get_carddatapath(self, rtype, resid, dpath):
@@ -898,7 +901,7 @@ class SystemData(object):
             name = "(読込失敗)"
         return name
 
-    def get_bgdata(self, e=None):
+    def get_bgdata(self, e: Optional["CWPyElement"] = None) -> Iterable["CWPyElement"]:
         """背景のElementのリストを返す。
         e: BgImagesのElement。
         """
@@ -906,7 +909,7 @@ class SystemData(object):
             e = self.data.find("BgImages")
 
         if e is not None:
-            return e.getchildren()
+            return e
         else:
             return []
 
@@ -988,7 +991,7 @@ class SystemData(object):
         for i, num in enumerate(self.infocards):
             self.infocards[i] = indexes[num]
 
-    def get_infocards(self, order):
+    def get_infocards(self, order: bool) -> List[int]:
         """情報カードのID一覧を返す。
         orderがTrueの場合は入手の逆順に返す。
         """
@@ -1026,7 +1029,7 @@ class SystemData(object):
         """情報カードの所持枚数を返す。"""
         return len(self.infocards) - self.infocards.count(0)
 
-    def get_infocardheaders(self):
+    def get_infocardheaders(self) -> List["cw.header.InfoCardHeader"]:
         """所持する情報カードのInfoCardHeaderを入手の逆順で返す。"""
         headers = []
         for resid in self.get_infocards(order=True):
@@ -1205,7 +1208,7 @@ class ScenarioData(SystemData):
             None,  # 使用中のカード
             None,  # エリア・バトル・パッケージ
             None,  # シナリオ本体
-        ]
+        ]  # type: List[Optional[str]]
 
         if cw.cwpy.classicdata:
             self.versionhint[cw.HINT_SCENARIO] = cw.cwpy.classicdata.versionhint
@@ -2157,10 +2160,10 @@ class ScenarioData(SystemData):
         self.friendcards = seq
 
 
-def init_flags(data, writable):
+def init_flags(data: "CWPyElement", writable: bool) -> Dict[str, "Flag"]:
     flags = {}
 
-    for e in data.getfind("Flags", raiseerror=False):
+    for e in data.getfind("Flags", raiseerror=False):  # type: CWPyElement
         defvalue = e.getbool(".", "default")
         value = e.getbool(".", "value", defvalue)
         name = e.gettext("Name", "")
@@ -2173,10 +2176,10 @@ def init_flags(data, writable):
     return flags
 
 
-def init_steps(data, writable):
+def init_steps(data: "CWPyElement", writable: bool) -> Dict[str, "Step"]:
     steps = {}
 
-    for e in data.getfind("Steps", raiseerror=False):
+    for e in data.getfind("Steps", raiseerror=False):  # type: CWPyElement
         defvalue = e.getint(".", "default")
         value = e.getint(".", "value", defvalue)
         name = e.gettext("Name", "")
@@ -2191,10 +2194,10 @@ def init_steps(data, writable):
     return steps
 
 
-def init_variants(data, writable):
+def init_variants(data: "CWPyElement", writable: bool) -> Dict[str, "Variant"]:
     variants = {}
 
-    for e in data.getfind("Variants", raiseerror=False):
+    for e in data.getfind("Variants", raiseerror=False):  # type: CWPyElement
         deftype = e.getattr(".", "defaulttype", "String")
         vtype = e.getattr(".", "type", deftype)
         defvalue = e.getattr(".", "defaultvalue", "")
@@ -2434,13 +2437,13 @@ class YadoDeletedPathSet(set):
         else:
             return False
 
-    def __contains__(self, path):
+    def __contains__(self, path: str) -> bool:
         if path.startswith(self.tempdir):
             path = path.replace(self.tempdir, self.yadodir, 1)
 
         return set.__contains__(self, path)
 
-    def add(self, path, forceyado=False):
+    def add(self, path: str, forceyado: bool = False) -> None:
         if path.startswith(self.tempdir):
             path = path.replace(self.tempdir, self.yadodir, 1)
 
@@ -2796,7 +2799,7 @@ class YadoData(object):
                 os.remove(wslpath)
             os.remove(fpath)
 
-    def changed(self):
+    def changed(self) -> None:
         """データの変化を通知する。"""
         if not self._loading:
             self._changed = True
@@ -2874,7 +2877,7 @@ class YadoData(object):
             self.party = None
             self.environment.edit("Property/NowSelectingParty", "")
 
-    def add_standbys(self, path, sort=True):
+    def add_standbys(self, path: str, sort: bool = True) -> "cw.header.AdventurerHeader":
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         header = self.create_advheader(path)
@@ -2945,7 +2948,7 @@ class YadoData(object):
         self.partyrecord.remove(header)
         self.deletedpaths.add(header.fpath)
 
-    def remove_emptypartyrecord(self):
+    def remove_emptypartyrecord(self) -> None:
         """メンバが全滅したパーティ記録を削除する。"""
         for header in self.partyrecord[:]:
             for member in header.members:
@@ -2962,7 +2965,7 @@ class YadoData(object):
                 return True
         return False
 
-    def can_restore(self, member):
+    def can_restore(self, member: str) -> bool:
         """memberがパーティの再結成に応じられるかを返す。
         アクティブでないパーティに所属しているなど、
         応じられない場合はFalseを返す。
@@ -3068,7 +3071,8 @@ class YadoData(object):
         cw.cwpy.ydata.party._loading = False
         return members
 
-    def create_advheader(self, path="", album=False, element=None):
+    def create_advheader(self, path: str = "", album: bool = False,
+                         element: Optional["CWPyElement"] = None) -> "cw.header.AdventurerHeader":
         """
         path: xmlのパス。
         album: Trueならアルバム用のAdventurerHeaderを作成。
@@ -3908,7 +3912,7 @@ def find_scefullpath(scepath, spaths):
 
 
 class Party(object):
-    def __init__(self, header, partyinfoonly=True):
+    def __init__(self, header: "cw.header.PartyHeader", partyinfoonly: bool = True) -> None:
         path = header.fpath
 
         # True時は、エリア移動中にPlayerCardスプライトを新規作成する
@@ -3965,7 +3969,8 @@ class Party(object):
     def get_showingname(self):
         return self.name
 
-    def sort_backpack(self, sorttype=None, test_aptitude=None):
+    def sort_backpack(self, sorttype: Optional[str] = None,
+                      test_aptitude: Optional["cw.character.Character"] = None) -> None:
         if sorttype is None:
             sorttype = cw.cwpy.setting.sort_cards
         if sorttype == "Aptitude" and test_aptitude:
@@ -3977,7 +3982,8 @@ class Party(object):
                 card.set_testaptitude(None)
         self.sorted_backpack_by_order = (sorttype == "order")
 
-    def find_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
+    def find_keycode(self, keycode: str, skill: bool = True, item: bool = True, beast: bool = True,
+                     hand: bool = True) -> Optional["cw.header.CardHeader"]:
         """指定されたキーコードを所持しているか。
         当該キーコードを含むカードを返す。
         見つからなかった場合はNoneを返す。
@@ -4239,7 +4245,7 @@ class Party(object):
 
         return seq
 
-    def is_adventuring(self):
+    def is_adventuring(self) -> bool:
         path = cw.util.splitext(self.data.fpath)[0] + ".wsl"
         return bool(cw.util.get_yadofilepath(path))
 
@@ -4260,7 +4266,7 @@ class Party(object):
         else:
             return None
 
-    def get_memberpaths(self):
+    def get_memberpaths(self) -> List[str]:
         """
         現在選択中のパーティのメンバーのxmlのpathリストを返す。
         """
@@ -4444,7 +4450,7 @@ class _CWPyElementInterface(object):
         except Exception:
             self._raiseerror(path, attr)
 
-    def make_element(self, *args, **kwargs):
+    def make_element(self, *args, **kwargs) -> "CWPyElement":
         return make_element(*args, **kwargs)
 
 
@@ -4480,7 +4486,7 @@ class CWPyElement(Element_Py, _CWPyElementInterface):
         subelement.cwxparent = self
         return Element_Py.insert(self, index, subelement)
 
-    def remove(self, subelement):
+    def remove(self, subelement: "CWPyElement") -> None:
         if subelement.cwxparent is self:
             subelement.cwxparent = None
         return Element_Py.remove(self, subelement)
@@ -4613,7 +4619,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
             f.close()
         cw.util.write_file(path, sbytes, cw.fsync)
 
-    def write_xml(self, nocheck_edited=False):
+    def write_xml(self, nocheck_edited: bool = False) -> None:
         """エレメントが編集されていたら、
         "Data/Temp/Yado"にxmlファイルを保存。
         """
@@ -4642,7 +4648,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
 
         self.is_edited = True
 
-    def append(self, path, element):
+    def append(self, path: str, element: CWPyElement) -> None:
         self.find(path).append(element)
         self.is_edited = True
 
@@ -4653,7 +4659,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         self.find(path).insert(index, element)
         self.is_edited = True
 
-    def remove(self, path, element=None, attrname=None):
+    def remove(self, path: str, element: Optional[CWPyElement] = None, attrname: Optional[str] = None) -> None:
         """パスのエレメントからelementを削除した後、
         CWPyElementTreeのインスタンスで返す。
         """
@@ -4694,7 +4700,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
 # xmlパーサ
 # ------------------------------------------------------------------------------
 
-def make_element(name, text="", attrs=None, tail=""):
+def make_element(name: str, text: str = "", attrs: Optional[Dict[str, str]] = None, tail: str = "") -> CWPyElement:
     if attrs is None:
         attrs = {}
     element = CWPyElement(name, attrs)
@@ -4820,7 +4826,7 @@ def xml2element(path: str = "", tag: str = "", stream: None = None, nocache: boo
 
 
 class CacheData(object):
-    def __init__(self, data, mtime):
+    def __init__(self, data: CWPyElement, mtime: float) -> None:
         self.data = data
         self.mtime = mtime
 

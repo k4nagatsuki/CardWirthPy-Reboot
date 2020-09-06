@@ -31,17 +31,18 @@ class ImageInfo(object):
             self.postype = postype
         self.basecardtype = basecardtype
 
-    def copy(self):
+    def copy(self) -> "ImageInfo":
         return ImageInfo(self.path, self.pcnumber, None, self.postype, self.basecardtype)
 
-    def set_attr(self, e):
+    def set_attr(self, e: cw.data.CWPyElement) -> None:
         """拡張情報をeへ登録する。
         """
         assert e.tag == "ImagePath"
         if self.postype not in ("Default", None):
             e.set("positiontype", self.postype)
 
-    def calc_basecardposition(self, params, noscale=False, basecardtype=None, cardpostype=None):
+    def calc_basecardposition(self, params: Tuple[int, int], noscale: bool = False, basecardtype: Optional[str] = None,
+                              cardpostype: Optional[str] = None) -> pygame.Rect:
         """カードに配置した時の描画位置を返す。
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
@@ -56,7 +57,7 @@ class ImageInfo(object):
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
 
     def calc_basecardposition_wx(self, imgsize: wx.Size, noscale: bool = False, basecardtype: Optional[str] = None,
-                                 cardpostype: Optional[str] = None) -> wx.Rect:
+                                 cardpostype: Optional[str] = None) -> pygame.Rect:
         """カードに配置した時の描画位置を返す。
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
@@ -72,7 +73,7 @@ class ImageInfo(object):
                                                 getsize)
 
     def _calc_basecardposition_impl(self, imgwidth: int, imgheight: int, noscale: bool, basecardtype: str,
-                                    cardpostype: str, ss: Callable, getsize: Callable) -> wx.Rect:
+                                    cardpostype: str, ss: Callable, getsize: Callable) -> pygame.Rect:
         if self.basecardtype:
             basecardtype = self.basecardtype
 
@@ -125,14 +126,14 @@ class ImageInfo(object):
 
         return pygame.Rect(x, y, w, h)
 
-    def __eq__(self, other):
+    def __eq__(self, other: "ImageInfo") -> bool:
         return isinstance(other, ImageInfo) and self.path == other.path and self.pcnumber == other.pcnumber and\
                self.postype == other.postype
 
-    def __ne__(self, other):
+    def __ne__(self, other: "ImageInfo") -> bool:
         return not self.__eq__(other)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.pcnumber:
             return "PC: %s" % (self.pcnumber)
         else:
@@ -931,7 +932,7 @@ class CharacterCardImage(CardImage):
             self.override_images_upd = None
             self.clear_cache()
 
-    def set_faceimgs(self, paths, can_loaded_scaledimage):
+    def set_faceimgs(self, paths: List[ImageInfo], can_loaded_scaledimage: bool) -> None:
         self.paths = paths
         self.can_loaded_scaledimage = can_loaded_scaledimage
         self.cardimgs = []
@@ -945,7 +946,7 @@ class CharacterCardImage(CardImage):
                                                              can_loaded_scaledimage=self.can_loaded_scaledimage,
                                                              use_excache=self.use_excache)))
 
-    def set_nameimg(self, name):
+    def set_nameimg(self, name: str) -> None:
         if name:
             font = cw.cwpy.rsrc.fonts["pcard_name"]
             self.nameimg = font.render(name, cw.cwpy.setting.fontsmoothing_cardname, (0, 0, 0))
@@ -958,7 +959,7 @@ class CharacterCardImage(CardImage):
         else:
             self.nameimg = None
 
-    def set_levelimg(self, level):
+    def set_levelimg(self, level: int) -> None:
         font = cw.cwpy.rsrc.fonts["pcard_level"]
         bgname = self.get_cardbgname(self.ccard)
         cardbg = cw.cwpy.rsrc.cardbgs[bgname]
@@ -1259,7 +1260,7 @@ class CharacterCardImage(CardImage):
         bmp = self._put_number(bmp, duration, is_runningevent=is_runningevent)
         seq.append(bmp)
 
-    def get_cardbgname(self, ccard):
+    def get_cardbgname(self, ccard: "cw.character.Character") -> str:
         if ccard.is_unconscious():
             return "FAINT"   # 意識不明
         elif ccard.is_petrified():

@@ -4,9 +4,12 @@
 import random
 import copy
 
+import typing
+from typing import List, Sequence
+
 
 class Dice(object):
-    def roll(self, times=1, sided=6):
+    def roll(self, times: int = 1, sided: int = 6) -> int:
         if sided <= 1:
             return times
 
@@ -22,18 +25,18 @@ class Dice(object):
 
         return n
 
-    def choice(self, seq):
+    def choice(self, seq: Sequence[typing.Any]) -> typing.Any:
         if seq:
             return random.choice(seq)
         else:
             return None
 
-    def shuffle(self, seq):
+    def shuffle(self, seq: Sequence[typing.Any]) -> Sequence[typing.Any]:
         seq2 = copy.copy(seq)
         random.shuffle(seq2)
         return seq2
 
-    def pop(self, seq):
+    def pop(self, seq: List[typing.Any]) -> typing.Any:
         item = self.choice(seq)
 
         if item:

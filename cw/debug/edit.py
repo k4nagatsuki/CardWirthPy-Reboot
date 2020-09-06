@@ -17,7 +17,7 @@ from typing import Callable, Dict, List, Set, Tuple
 
 class CouponEditDialog(wx.Dialog):
 
-    def __init__(self, parent, selected=-1):
+    def __init__(self, parent: wx.TopLevelWindow, selected: int = -1) -> None:
         wx.Dialog.__init__(self, parent, -1, "キャラクターの経歴の編集",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -112,7 +112,7 @@ class CouponEditDialog(wx.Dialog):
         self._bind()
         self._do_layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectTarget, self.target)
         self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
@@ -129,7 +129,7 @@ class CouponEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndLabelEdit, self.values)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
         sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
@@ -162,10 +162,10 @@ class CouponEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnSelectTarget(self, event):
+    def OnSelectTarget(self, event: wx.CommandEvent) -> None:
         self._select_target()
 
-    def OnLeftBtn(self, event):
+    def OnLeftBtn(self, event: wx.CommandEvent) -> None:
         index = self.target.GetSelection()
         if index <= 0:
             self.target.SetSelection(len(self.pcards))
@@ -173,7 +173,7 @@ class CouponEditDialog(wx.Dialog):
             self.target.SetSelection(index - 1)
         self._select_target()
 
-    def OnRightBtn(self, event):
+    def OnRightBtn(self, event: wx.CommandEvent) -> None:
         index = self.target.GetSelection()
         if len(self.pcards) <= index:
             self.target.SetSelection(0)
@@ -181,12 +181,12 @@ class CouponEditDialog(wx.Dialog):
             self.target.SetSelection(index + 1)
         self._select_target()
 
-    def OnItemSelected(self, event):
+    def OnItemSelected(self, event: wx.ListEvent) -> None:
         if self._processing:
             return
         self._item_selected()
 
-    def OnAddBtn(self, event):
+    def OnAddBtn(self, event: wx.CommandEvent) -> None:
         names = set()
         for i in range(self.values.GetItemCount()):
             names.add(self.values.GetItem(i, 0).GetText())
@@ -213,7 +213,7 @@ class CouponEditDialog(wx.Dialog):
 
         self.values.OpenEditor(0, 0)
 
-    def OnRemoveBtn(self, event):
+    def OnRemoveBtn(self, event: wx.CommandEvent) -> None:
         while True:
             index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
             if index <= -1:
@@ -221,7 +221,7 @@ class CouponEditDialog(wx.Dialog):
             self._remove_coupon(index)
         self._item_selected()
 
-    def _remove_coupon(self, index):
+    def _remove_coupon(self, index: int) -> None:
         name = self.values.GetItem(index, 0).GetText()
         cindex = self.target.GetSelection()
         if cindex == 0:
@@ -236,7 +236,7 @@ class CouponEditDialog(wx.Dialog):
             self.coupons[cindex-1].pop(index)
         self.values.DeleteItem(index)
 
-    def OnCopyBtn(self, event):
+    def OnCopyBtn(self, event: wx.CommandEvent) -> None:
         choices = [a.get_name() for a in self.pcards]
         dlg = cw.dialog.edit.ComboEditDialog2(self, "全て複製", "選択したメンバの全ての称号を編集中の称号に上書きコピーします。\nコピー元を選択してください。", choices)
         cw.cwpy.frame.move_dlg(dlg)
@@ -254,7 +254,7 @@ class CouponEditDialog(wx.Dialog):
             self._select_target()
         dlg.Destroy()
 
-    def OnValueBtn(self, event):
+    def OnValueBtn(self, event: wx.CommandEvent) -> None:
         index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
         if index <= -1:
             return
@@ -272,7 +272,7 @@ class CouponEditDialog(wx.Dialog):
             self._item_selected()
         dlg.Destroy()
 
-    def OnUpBtn(self, event):
+    def OnUpBtn(self, event: wx.CommandEvent) -> None:
         if self.target.GetSelection() == 0:
             # 全員を選択中
             return
@@ -289,7 +289,7 @@ class CouponEditDialog(wx.Dialog):
         self._item_selected()
         self.values.EnsureVisible(indexes[0]-1)
 
-    def OnDownBtn(self, event):
+    def OnDownBtn(self, event: wx.CommandEvent) -> None:
         if self.target.GetSelection() == 0:
             # 全員を選択中
             return
@@ -303,7 +303,7 @@ class CouponEditDialog(wx.Dialog):
         self._item_selected()
         self.values.EnsureVisible(indexes[-1]+1)
 
-    def _swap(self, index1, index2):
+    def _swap(self, index1: int, index2: int) -> None:
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員を選択中
@@ -325,7 +325,7 @@ class CouponEditDialog(wx.Dialog):
         set_item(index2)
         self._processing = False
 
-    def OnUp2Btn(self, event):
+    def OnUp2Btn(self, event: wx.CommandEvent) -> None:
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員を選択中
@@ -336,7 +336,7 @@ class CouponEditDialog(wx.Dialog):
         self._processing = False
         self._item_selected()
 
-    def OnDown2Btn(self, event):
+    def OnDown2Btn(self, event: wx.CommandEvent) -> None:
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員を選択中
@@ -347,7 +347,7 @@ class CouponEditDialog(wx.Dialog):
         self._processing = False
         self._item_selected()
 
-    def OnEndLabelEdit(self, event):
+    def OnEndLabelEdit(self, event: wx.ListEvent) -> None:
         index = event.GetIndex()
         col = event.GetColumn()
         if col == 0:
@@ -369,7 +369,7 @@ class CouponEditDialog(wx.Dialog):
             self._set_value(index, value)
         self._item_selected()
 
-    def OnOkBtn(self, event):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
         def func(pcards, coupons, syscoupons, cindex, adjust_level):
             update = False
             for i, pcard in enumerate(pcards):
@@ -387,7 +387,7 @@ class CouponEditDialog(wx.Dialog):
         cw.cwpy.exec_func(func, self.pcards, self.coupons, self.syscoupons, cindex, adjust_level)
         self.EndModal(wx.ID_OK)
 
-    def get_selectedindexes(self):
+    def get_selectedindexes(self) -> List[int]:
         index = -1
         indexes = []
         while True:
@@ -397,7 +397,7 @@ class CouponEditDialog(wx.Dialog):
             indexes.append(index)
         return indexes
 
-    def _get_valueimage(self, value):
+    def _get_valueimage(self, value: int) -> int:
         if 2 <= value:
             return self.imgidx_2
         elif 1 <= value:
@@ -407,14 +407,14 @@ class CouponEditDialog(wx.Dialog):
         else:
             return self.imgidx_m1
 
-    def _append_couponlist(self, name, value):
+    def _append_couponlist(self, name: str, value: int) -> None:
         # リストに称号を追加する
         index = self.values.GetItemCount()
         self.values.InsertItem(index, name)
         self.values.SetItem(index, 1, str(value))
         self.values.SetItemImage(index, self._get_valueimage(value))
 
-    def _select_target(self):
+    def _select_target(self) -> None:
         # 選択されたキャラクターの称号一覧を表示する
         self.values.DeleteAllItems()
         index = self.target.GetSelection()
@@ -434,7 +434,7 @@ class CouponEditDialog(wx.Dialog):
 
         self._item_selected()
 
-    def _get_coupons(self, pcard):
+    def _get_coupons(self, pcard: "cw.character.Player") -> List[Tuple[str, int]]:
         seq = []
         for e in pcard.data.getfind("Property/Coupons"):
             name = e.text
@@ -444,7 +444,7 @@ class CouponEditDialog(wx.Dialog):
             seq.append((name, int(value)))
         return seq
 
-    def _item_selected(self):
+    def _item_selected(self) -> None:
         self.Freeze()
         indexes = self.get_selectedindexes()
         focus = wx.Window.FindFocus()
@@ -507,7 +507,7 @@ class CouponEditDialog(wx.Dialog):
             self.values.SetFocus()
         self.Thaw()
 
-    def _set_name(self, index, oldname, newname):
+    def _set_name(self, index: int, oldname: str, newname: str) -> None:
         self.values.SetItem(index, 0, newname)
         cindex = self.target.GetSelection()
         if cindex == 0:
@@ -522,7 +522,7 @@ class CouponEditDialog(wx.Dialog):
             seq = self.coupons[cindex-1]
             seq[index] = (newname, seq[index][1])
 
-    def _set_value(self, index, value):
+    def _set_value(self, index: int, value: int) -> None:
         self.values.SetItem(index, 1, str(value))
         self.values.SetItemImage(index, self._get_valueimage(value))
         cindex = self.target.GetSelection()
@@ -790,12 +790,12 @@ class CompStampEditDialog(ListEditDialog):
 
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, cid, size, style):
+    def __init__(self, parent: CouponEditDialog, cid: int, size: Tuple[int, int], style: int) -> None:
         wx.ListCtrl.__init__(self, parent, cid, size=size, style=style)
         listmix.TextEditMixin.__init__(self)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
-    def OpenEditor(self, row, col):
+    def OpenEditor(self, row: int, col: int) -> None:
         # FIXME: 直接呼び出すとcol_locsが生成されないバグ
         self.col_locs = [0]
         loc = 0
@@ -1209,7 +1209,7 @@ class FindPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def find_up(self):
+    def find_up(self) -> None:
         if not self.text.GetValue():
             return
         if not self.values.GetItemCount():
@@ -1283,13 +1283,13 @@ class FindPanel(wx.Panel):
 
         self.item_selected()
 
-    def OnFindUp(self, event):
+    def OnFindUp(self, event: wx.CommandEvent) -> None:
         self.find_up()
 
     def OnFindDown(self, event):
         self.find_down()
 
-    def OnTextChanged(self, event):
+    def OnTextChanged(self, event: wx.CommandEvent) -> None:
         if self.text.GetValue() == "":
             self.text.SetBackgroundColour(self._color_found)
             self.text.Refresh()
@@ -1519,7 +1519,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         self.Thaw()
 
 
-def _get_iteminfos(values):
+def _get_iteminfos(values: EditableListCtrl) -> Tuple[List[List[str]], List[int]]:
     names = []
     images = []
     for index in range(values.GetItemCount()):
@@ -1532,7 +1532,7 @@ def _get_iteminfos(values):
     return names, images
 
 
-def up_to_top(values, seq, indexes):
+def up_to_top(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes: List[int]) -> None:
     """
     indexesが指すseq内のアイテムを最上段へ移動し、
     移動結果によってvalues(wx.ListCtrl)を更新する。
@@ -1572,7 +1572,7 @@ def up_to_top(values, seq, indexes):
     values.EnsureVisible(0)
 
 
-def down_to_bottom(values, seq, indexes):
+def down_to_bottom(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes: List[int]) -> None:
     """
     indexesが指すseq内のアイテムを最下段へ移動し、
     移動結果によってvalues(wx.ListCtrl)を更新する。

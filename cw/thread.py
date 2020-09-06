@@ -1417,7 +1417,7 @@ class CWPy(_Singleton, threading.Thread):
         if self._lazy_draw:
             self.draw()
 
-    def add_lazydraw(self, clip):
+    def add_lazydraw(self, clip: pygame.Rect) -> None:
         if self._lazy_clip:
             self._lazy_clip.union_ip(clip)
         else:
@@ -3474,7 +3474,7 @@ class CWPy(_Singleton, threading.Thread):
         self.list = self.get_mcards("selectable")
         self.index = -1
 
-    def update_mcardnames(self):
+    def update_mcardnames(self) -> None:
         for mcard in self.mcards_expandspchars:
             if mcard.is_initialized():
                 name = mcard.get_showingname()
@@ -5345,7 +5345,8 @@ class CWPy(_Singleton, threading.Thread):
         if not from_event and call_predlg:
             self.call_predlg()
 
-    def remove_xml(self, target):
+    def remove_xml(self, target: Union["cw.character.Player", "cw.header.AdventurerHeader",
+                                       "cw.header.CardHeader", cw.data.Party, str]) -> None:
         """xmlファイルを削除する。
         target: AdventurerHeader, PlayerCard, CardHeader, XMLFilePathを想定。
         """
@@ -5375,7 +5376,7 @@ class CWPy(_Singleton, threading.Thread):
                 data = cw.data.yadoxml2element(target)
                 self.remove_materials(data)
 
-    def remove_materials(self, data):
+    def remove_materials(self, data: cw.data.CWPyElement) -> None:
         """XMLElementに記されている
         素材ファイルを削除予定リストに追加する。
         """

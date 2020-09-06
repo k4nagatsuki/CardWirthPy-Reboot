@@ -11,7 +11,7 @@ import colorsys
 
 import cw
 
-from typing import Callable, Optional
+from typing import List, Tuple, Union, Callable, Optional
 
 
 # ------------------------------------------------------------------------------
@@ -288,7 +288,8 @@ class MoneyViewPanel(wx.Panel):
 
 class NumberEditDialog(wx.Dialog):
 
-    def __init__(self, parent, title, value, minvalue, maxvalue, page):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, value: int, minvalue: int, maxvalue: int,
+                 page: int) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -306,12 +307,12 @@ class NumberEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         sizer_panel.Add(self.panel, 1, wx.EXPAND | wx.ALL, cw.wins(5))
 
@@ -329,14 +330,14 @@ class NumberEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
         csize = self.GetClientSize()
         cw.util.fill_bitmap(dc, bmp, csize)
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("harvest")
         self.value = self.slider.get_value()
         self.EndModal(wx.ID_OK)
@@ -608,7 +609,7 @@ class SliderWithButton(wx.Panel):
         self.enable()
         self.Thaw()
 
-    def set_min(self, value):
+    def set_min(self, value: int) -> None:
         if not self.is_enabled:
             return
         self.Freeze()
@@ -652,7 +653,7 @@ class SliderWithButton(wx.Panel):
         sizer_slider.Fit(self)
         self.Layout()
 
-    def OnMouseDownBtn(self, event):
+    def OnMouseDownBtn(self, event: wx.MouseEvent) -> None:
         if event.GetId() == self.leftbtn.GetId():
             self._timerfunc = self._on_leftbtn
             self._timerbtn = self.leftbtn
@@ -666,17 +667,17 @@ class SliderWithButton(wx.Panel):
         self._timer.Start(SliderWithButton._repeat_first, wx.TIMER_ONE_SHOT)
         event.Skip()
 
-    def OnKillFocusBtn(self, event):
+    def OnKillFocusBtn(self, event: wx.FocusEvent) -> None:
         f = wx.Window.FindFocus()
         if f != self.leftbtn and f != self.rightbtn:
             self._end()
         event.Skip()
 
-    def OnMouseUpBtn(self, event):
+    def OnMouseUpBtn(self, event: wx.MouseEvent) -> None:
         self._end()
         event.Skip()
 
-    def _end(self):
+    def _end(self) -> None:
         self._timer.Stop()
 
         def func():
@@ -697,17 +698,17 @@ class SliderWithButton(wx.Panel):
         if self._timerbtn.GetRect().Contains(pos):
             self._timerfunc()
 
-    def OnLeftBtn(self, event):
+    def OnLeftBtn(self, event: wx.CommandEvent) -> None:
         if self._timerfunc:
             return
         self._on_leftbtn()
 
-    def OnRightBtn(self, event):
+    def OnRightBtn(self, event: wx.CommandEvent) -> None:
         if self._timerfunc:
             return
         self._on_rightbtn()
 
-    def _on_leftbtn(self):
+    def _on_leftbtn(self) -> None:
         value = self.slider.GetValue()
         if self.slider.GetMin() < value:
             self.slider.SetValue(value-1)
@@ -716,7 +717,7 @@ class SliderWithButton(wx.Panel):
             self.slider.ProcessEvent(event)
             self.enable()
 
-    def _on_rightbtn(self):
+    def _on_rightbtn(self) -> None:
         value = self.slider.GetValue()
         if value < self.slider.GetMax():
             self.slider.SetValue(value+1)
@@ -727,7 +728,7 @@ class SliderWithButton(wx.Panel):
 
 
 class NumberEditor(wx.Panel):
-    def __init__(self, parent, value, minvalue, maxvalue, page):
+    def __init__(self, parent: wx.Panel, value: int, minvalue: int, maxvalue: int, page: int) -> None:
         wx.Panel.__init__(self, parent, -1)
 
         # スライダー
@@ -748,33 +749,33 @@ class NumberEditor(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def get_value(self):
+    def get_value(self) -> int:
         return self.slider.slider.GetValue()
 
-    def set_value(self, value):
+    def set_value(self, value: int) -> None:
         self.slider.set_value(value)
         self.spinctrl.SetValue(value)
         self.enable()
 
-    def set_max(self, value):
+    def set_max(self, value: int) -> None:
         self.slider.set_max(value)
         self.spinctrl.SetRange(self.spinctrl.GetMin(), value)
         self.enable()
 
-    def set_min(self, value):
+    def set_min(self, value: int) -> None:
         self.slider.set_min(value)
         self.spinctrl.SetRange(value, self.spinctrl.GetMax())
         self.enable()
 
-    def enable(self):
+    def enable(self) -> None:
         self.spinctrl.Enable(self.slider.is_enabled)
         self.slider.enable()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.slider.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
         self.spinctrl.Bind(wx.EVT_SPINCTRL, self.OnSpinCtrl)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
 
         sizer_v1.Add(self.slider, 1, wx.BOTTOM | wx.EXPAND, cw.wins(5))
@@ -789,18 +790,18 @@ class NumberEditor(wx.Panel):
         sizer_v1.Fit(self)
         self.Layout()
 
-    def OnSlider(self, evt):
+    def OnSlider(self, evt: Union[wx.PyCommandEvent, wx.CommandEvent]) -> None:
         self.spinctrl.SetValue(self.slider.slider.GetValue())
         self.enable()
 
-    def OnSpinCtrl(self, evt):
+    def OnSpinCtrl(self, evt: wx.SpinEvent) -> None:
         self.slider.slider.SetValue(self.spinctrl.GetValue())
         self.enable()
 
 
 class ComboEditDialog(wx.Dialog):
 
-    def __init__(self, parent, title, label, mlist, selected):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, label: str, mlist: List[str], selected: int) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -833,12 +834,12 @@ class ComboEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_box = wx.StaticBoxSizer(self.box, wx.HORIZONTAL)
 
         if self._combo_panel:
@@ -876,14 +877,14 @@ class ComboEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
         csize = self.GetClientSize()
         cw.util.fill_bitmap(dc, bmp, csize)
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("harvest")
         self.selected = self.combo.GetSelection()
         self.EndModal(wx.ID_OK)
@@ -895,7 +896,7 @@ class ComboEditDialog(wx.Dialog):
 
 
 class ComboEditDialog2(wx.Dialog):
-    def __init__(self, parent, title, message, choices):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, message: str, choices: List[str]) -> None:
         wx.Dialog.__init__(self, parent, -1, title, size=(-1, -1),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.message = cw.util.txtwrap(message, 0, width=40, wrapschars=cw.util.WRAPS_CHARS)
@@ -917,7 +918,7 @@ class ComboEditDialog2(wx.Dialog):
         h = cw.wins(30) + self.okbtn.GetPosition()[1] + cw.wins(10)
         self.SetClientSize((w, h))
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("harvest")
         self.selected = self.combo.GetSelection()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
@@ -928,7 +929,7 @@ class ComboEditDialog2(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
@@ -942,12 +943,12 @@ class ComboEditDialog2(wx.Dialog):
         w, _h, _lineheight = dc.GetFullMultiLineTextExtent(s)
         dc.DrawText(s, (csize[0]-w)//2, cw.wins(10))
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         dc = wx.ClientDC(self)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
         dc.SetFont(font)
@@ -977,7 +978,8 @@ class ComboEditDialog2(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class LevelEditDialog(wx.Dialog):
-    def __init__(self, parent, mlist, selected, party=None):
+    def __init__(self, parent: wx.TopLevelWindow, mlist: List["cw.sprite.card.PlayerCard"], selected: int,
+                 party: Optional[cw.data.Party] = None) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -1017,14 +1019,14 @@ class LevelEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def get_selected(self):
+    def get_selected(self) -> List["cw.sprite.card.PlayerCard"]:
         index = self.target.GetSelection()
         if index <= 0:
             return self.list
         else:
             return [self.list[index-1]]
 
-    def get_currentlevel(self):
+    def get_currentlevel(self) -> int:
         level = None
 
         for ccard in self.get_selected():
@@ -1039,18 +1041,18 @@ class LevelEditDialog(wx.Dialog):
         else:
             return level
 
-    def get_maxlevel(self):
+    def get_maxlevel(self) -> int:
         maxvalue = 0
         for ccard in self.get_selected():
             maxvalue = max(maxvalue, ccard.get_limitlevel())
 
         return maxvalue
 
-    def _select_target(self):
+    def _select_target(self) -> None:
         self.slider.set_max(self.get_maxlevel())
         self.slider.set_value(self.get_currentlevel())
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectTarget, self.target)
         self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
@@ -1065,7 +1067,7 @@ class LevelEditDialog(wx.Dialog):
                 recurse(child)
         recurse(self)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
         sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
         sizer_combo.Add(self.target, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, border=cw.wins(5))
@@ -1090,7 +1092,7 @@ class LevelEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnSelectTarget(self, event):
+    def OnSelectTarget(self, event: wx.CommandEvent) -> None:
         self._select_target()
 
     def OnLeftBtn(self, event):
@@ -1109,14 +1111,14 @@ class LevelEditDialog(wx.Dialog):
             self.target.SetSelection(index + 1)
         self._select_target()
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
         csize = self.GetClientSize()
         cw.util.fill_bitmap(dc, bmp, csize)
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         def func(seq, level, party):
             update = False
             for ccard in seq:
@@ -1154,7 +1156,7 @@ class LevelEditDialog(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class BackColorEditDialog(wx.Dialog):
-    def __init__(self, parent, ccard):
+    def __init__(self, parent: wx.TopLevelWindow, ccard: cw.character.Player) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["edit_bgcolor"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -1234,13 +1236,13 @@ class BackColorEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def hsv2rgb(self, hsv):
+    def hsv2rgb(self, hsv: Tuple[float, float, float]) -> List[int]:
         return list(map(lambda x: round(x * 256), colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2])))
 
-    def rgb2hsv(self, rgb):
+    def rgb2hsv(self, rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
         return colorsys.rgb_to_hsv(rgb[0] / 256, rgb[1] / 256, rgb[2] / 256)
 
-    def get_rgblist(self):
+    def get_rgblist(self) -> Tuple[int, int, int]:
         r = cw.util.numwrap(self.ccard.data.getint("Property/BackColor", "r", -1), -1, 128)
         g = cw.util.numwrap(self.ccard.data.getint("Property/BackColor", "g", -1), -1, 128)
         b = cw.util.numwrap(self.ccard.data.getint("Property/BackColor", "b", -1), -1, 128)
@@ -1252,7 +1254,7 @@ class BackColorEditDialog(wx.Dialog):
 
         return (r, g, b)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.huepanel.Bind(wx.EVT_PAINT, self.OnPaintHuePanel)
         self.huepanel.Bind(wx.EVT_LEFT_DOWN, self.OnLeftClickHuePanel)
         self.huepanel.Bind(wx.EVT_MOTION, self.OnDragHuePanel)
@@ -1296,7 +1298,7 @@ class BackColorEditDialog(wx.Dialog):
                 recurse(child)
         recurse(self)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
         sizer_panel.Add(self.huepanel, 1, wx.CENTER | wx.ALL, cw.wins(5))
         sizer_panel.Add(self.saturationpanel, 1, wx.CENTER | wx.ALL, cw.wins(5))
@@ -1318,33 +1320,33 @@ class BackColorEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def update_panels(self):
+    def update_panels(self) -> None:
         self.huepanel.Refresh()
         self.saturationpanel.Refresh()
         self.valuepanel.Refresh()
 
-    def OnLeftClickHuePanel(self, evt):
+    def OnLeftClickHuePanel(self, evt: wx.MouseEvent) -> None:
         h = self._x_wrap(evt.GetX()) / cw.UP_WIN / 180
         self.hsv = (h, self.hsv[1], self.hsv[2])
         self.dragging_huepanel = True
         self.huepanel.SetFocus()
         self.update_panels()
 
-    def OnSetFocusHuePanel(self, evt):
+    def OnSetFocusHuePanel(self, evt: wx.FocusEvent) -> None:
         self.is_select_huepanel = True
         self.huepanel.Refresh()
 
-    def OnKillFocusHuePanel(self, evt):
+    def OnKillFocusHuePanel(self, evt: wx.FocusEvent) -> None:
         self.is_select_huepanel = False
         self.huepanel.Refresh()
 
-    def OnDragHuePanel(self, evt):
+    def OnDragHuePanel(self, evt: wx.MouseEvent) -> None:
         if self.dragging_huepanel:
             h = self._x_wrap(evt.GetX()) / cw.UP_WIN / 180
             self.hsv = (h, self.hsv[1], self.hsv[2])
             self.update_panels()
 
-    def OnReleaseHuePanel(self, evt):
+    def OnReleaseHuePanel(self, evt: wx.MouseEvent) -> None:
         self.dragging_huepanel = False
 
     def OnKeyDownHuePanel(self, evt):
@@ -1360,10 +1362,10 @@ class BackColorEditDialog(wx.Dialog):
         else:
             evt.Skip()
 
-    def OnPaintHuePanel(self, evt):
+    def OnPaintHuePanel(self, evt: wx.PaintEvent) -> None:
         self.draw_huepanel()
 
-    def draw_huepanel(self, update=False):
+    def draw_huepanel(self, update: bool = False) -> None:
         if update:
             dc = wx.ClientDC(self.huepanel)
         else:
@@ -1391,28 +1393,28 @@ class BackColorEditDialog(wx.Dialog):
         dc.SetPen(wx.Pen("white"))
         dc.DrawCircle(cw.wins(self.hsv[0] * 180), hsize[1] // 2, hsize[1] // 4)
 
-    def OnLeftClickSaturationPanel(self, evt):
+    def OnLeftClickSaturationPanel(self, evt: wx.MouseEvent) -> None:
         s = self._x_wrap(evt.GetX()) / cw.UP_WIN / 180
         self.hsv = (self.hsv[0], s, self.hsv[2])
         self.dragging_saturationpanel = True
         self.saturationpanel.SetFocus()
         self.update_panels()
 
-    def OnSetFocusSaturationPanel(self, evt):
+    def OnSetFocusSaturationPanel(self, evt: wx.FocusEvent) -> None:
         self.is_select_saturationpanel = True
         self.saturationpanel.Refresh()
 
-    def OnKillFocusSaturationPanel(self, evt):
+    def OnKillFocusSaturationPanel(self, evt: wx.FocusEvent) -> None:
         self.is_select_saturationpanel = False
         self.saturationpanel.Refresh()
 
-    def OnDragSaturationPanel(self, evt):
+    def OnDragSaturationPanel(self, evt: wx.MouseEvent) -> None:
         if self.dragging_saturationpanel:
             s = self._x_wrap(evt.GetX()) / cw.UP_WIN / 180
             self.hsv = (self.hsv[0], s, self.hsv[2])
             self.update_panels()
 
-    def OnReleaseSaturationPanel(self, evt):
+    def OnReleaseSaturationPanel(self, evt: wx.MouseEvent) -> None:
         self.dragging_saturationpanel = False
 
     def OnKeyDownSaturationPanel(self, evt):
@@ -1428,10 +1430,10 @@ class BackColorEditDialog(wx.Dialog):
         else:
             evt.Skip()
 
-    def OnPaintSaturationPanel(self, evt):
+    def OnPaintSaturationPanel(self, evt: wx.PaintEvent) -> None:
         self.draw_saturationpanel()
 
-    def draw_saturationpanel(self, update=False):
+    def draw_saturationpanel(self, update: bool = False) -> None:
         if update:
             dc = wx.ClientDC(self.saturationpanel)
             dc = wx.BufferedDC(dc, self.saturationpanel.GetClientSize())
@@ -1460,31 +1462,31 @@ class BackColorEditDialog(wx.Dialog):
         dc.SetPen(wx.Pen("white"))
         dc.DrawCircle(cw.wins(self.hsv[1] * 180), ssize[1] // 2, ssize[1] // 4)
 
-    def _x_wrap(self, x):
+    def _x_wrap(self, x: int) -> int:
         return min(max(0, x), cw.wins(180))
 
-    def OnLeftClickValuePanel(self, evt):
+    def OnLeftClickValuePanel(self, evt: wx.MouseEvent) -> None:
         v = 0.125 + (self._x_wrap(evt.GetX()) / cw.UP_WIN) / 480
         self.hsv = (self.hsv[0], self.hsv[1], v)
         self.dragging_valuepanel = True
         self.valuepanel.SetFocus()
         self.update_panels()
 
-    def OnSetFocusValuePanel(self, evt):
+    def OnSetFocusValuePanel(self, evt: wx.FocusEvent) -> None:
         self.is_select_valuepanel = True
         self.valuepanel.Refresh()
 
-    def OnKillFocusValuePanel(self, evt):
+    def OnKillFocusValuePanel(self, evt: wx.FocusEvent) -> None:
         self.is_select_valuepanel = False
         self.valuepanel.Refresh()
 
-    def OnDragValuePanel(self, evt):
+    def OnDragValuePanel(self, evt: wx.MouseEvent) -> None:
         if self.dragging_valuepanel:
             v = 0.125 + (self._x_wrap(evt.GetX()) / cw.UP_WIN) / 480
             self.hsv = (self.hsv[0], self.hsv[1], v)
             self.update_panels()
 
-    def OnReleaseValuePanel(self, evt):
+    def OnReleaseValuePanel(self, evt: wx.MouseEvent) -> None:
         self.dragging_valuepanel = False
 
     def OnKeyDownValuePanel(self, evt):
@@ -1500,10 +1502,10 @@ class BackColorEditDialog(wx.Dialog):
         else:
             evt.Skip()
 
-    def OnPaintValuePanel(self, evt):
+    def OnPaintValuePanel(self, evt: wx.PaintEvent) -> None:
         self.draw_valuepanel()
 
-    def draw_valuepanel(self, update=False):
+    def draw_valuepanel(self, update: bool = False) -> None:
         if update:
             dc = wx.ClientDC(self.valuepanel)
             dc = wx.BufferedDC(dc, self.valuepanel.GetClientSize())
@@ -1533,7 +1535,7 @@ class BackColorEditDialog(wx.Dialog):
         dc.SetPen(wx.Pen("white"))
         dc.DrawCircle(cw.wins((self.hsv[2] - 0.125) * 480), vsize[1] // 2, vsize[1] // 4)
 
-    def OnChoicePreset(self, evt):
+    def OnChoicePreset(self, evt: wx.CommandEvent) -> None:
         index = self.colorchoice.GetSelection()
         if index > 0:
             selected = self.colorchoice.GetString(index)
@@ -1542,13 +1544,13 @@ class BackColorEditDialog(wx.Dialog):
                     self.hsv = self.rgb2hsv((r, g, b))
                     self.update_panels()
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
         csize = self.GetClientSize()
         cw.util.fill_bitmap(dc, bmp, csize)
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         def func(ccard, rgb):
             if not ccard.data.find("Property/BackColor") is None:
                 ccard.data.edit("Property/BackColor", rgb[0], "r")
@@ -1571,12 +1573,12 @@ class BackColorEditDialog(wx.Dialog):
 
         self.EndModal(wx.ID_OK)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnDestroy(self, event):
+    def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
         self._destroyed = True
 
 
@@ -1637,7 +1639,7 @@ class InputTextDialog(wx.Dialog):
     def OnAddition(self, event):
         self.textctrl.SetValue(self.addition_func())
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         self.text = self.textctrl.GetValue()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)

@@ -2407,7 +2407,7 @@ class EffectContent(EventContentBase):
         d["absorbto"] = self.data.getattr(".", "absorbto", "None")
 
         # Effectインスタンス作成
-        motions = self.data.getfind("Motions").getchildren()
+        motions = self.data.getfind("Motions")
         self.eff = cw.effectmotion.Effect(motions, d, battlespeed=False)
 
         # 対象メンバ取得

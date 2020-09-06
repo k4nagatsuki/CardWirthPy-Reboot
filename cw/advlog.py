@@ -26,7 +26,7 @@ class AdventurerLogger(object):
         self._enable = False
         self._last_logtype = VOID
 
-    def start_scenario(self):
+    def start_scenario(self) -> None:
         self.resume_scenario("")
 
         lines = []
@@ -69,7 +69,7 @@ class AdventurerLogger(object):
 
         self._put(INITIAL, lines, lambda lines: "\n".join(lines))
 
-    def resume_scenario(self, logfilepath):
+    def resume_scenario(self, logfilepath: str) -> None:
         self.end_scenario(False, False)
         # ファイル名を生成。
         # 複数のシナリオのログを1つに収めてしまいたい場合も
@@ -85,7 +85,7 @@ class AdventurerLogger(object):
         self._logger = Logger(self.logfilepath, self._enable)
         self._logger.start()
 
-    def enable(self, enable):
+    def enable(self, enable: bool) -> None:
         if self._enable != enable:
             self._enable = enable
             if self._logger:
@@ -96,7 +96,7 @@ class AdventurerLogger(object):
                 else:
                     self.end_scenario(False, False)
 
-    def end_scenario(self, end, completestamp):
+    def end_scenario(self, end: bool, completestamp: bool) -> None:
         if self._logger:
             if end:
                 if completestamp:
@@ -111,15 +111,15 @@ class AdventurerLogger(object):
         self._logger = None
         self._last_logtype = VOID
 
-    def gameover(self):
+    def gameover(self) -> None:
         self._put(0, "== ゲームオーバー ==", lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
         self.end_scenario(False, False)
 
-    def f9(self):
+    def f9(self) -> None:
         self._put(0, "== 緊急避難 ==", lambda s: cw.util.ljustify(s, cw.LOG_SEPARATOR_LEN_LONG, '='))
         self.end_scenario(False, False)
 
-    def _put_logtype(self, logtype):
+    def _put_logtype(self, logtype: int) -> None:
         if self._enable:
             if self._last_logtype != VOID:
                 if self._last_logtype == MESSAGE and logtype != MESSAGE:

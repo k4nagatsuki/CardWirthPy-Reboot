@@ -1554,7 +1554,7 @@ def get_truetypefontname(path):
     return str(fontname, "ascii")
 
 
-def get_md5(path):
+def get_md5(path: str) -> str:
     """MD5を使ったハッシュ値を返す。
     path: ハッシュ値を求めるファイルのパス。
     """
@@ -1573,9 +1573,9 @@ def get_md5(path):
     return m.hexdigest()
 
 
-def get_md5_from_data(data):
+def get_md5_from_data(data: bytes) -> str:
     """MD5を使ったハッシュ値を返す。
-    path: ハッシュ値を求めるファイルのパス。
+    data: ハッシュ値を求めるデータ。
     """
     m = hashlib.md5()
     m.update(data)
@@ -3839,7 +3839,7 @@ def convert_to_image(bmp: wx.Bitmap) -> wx.Image:
     return img
 
 
-def wxbmp_to_buffer(bmp: wx.Bitmap) -> array:
+def wxbmp_to_buffer(bmp: wx.Bitmap) -> array.array:
     """wx.BitmapをRGBのバイト配列へ変換する。"""
     w, h = bmp.GetSize()
     buf = array.array('B', [0] * (w * h * 3))

@@ -692,7 +692,7 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg)
 
-    def OnPARTYSELECT(self, event):
+    def OnPARTYSELECT(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.select.PartySelect(self)
         self.move_dlg(dlg)
 
@@ -730,7 +730,7 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg)
 
-    def OnPLAYERSELECT(self, event):
+    def OnPLAYERSELECT(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.select.PlayerSelect(self)
         self.move_dlg(dlg)
         dlg.ShowModal()
@@ -823,7 +823,7 @@ class Frame(wx.Frame):
                     del self.kill_list[:]
                 self.exec_func(func)
 
-    def OnALBUM(self, event):
+    def OnALBUM(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.select.Album(self)
         self.move_dlg(dlg)
         dlg.ShowModal()
@@ -843,7 +843,7 @@ class Frame(wx.Frame):
 
         dlg.ShowModal()
 
-    def OnSTOREHOUSE(self, event):
+    def OnSTOREHOUSE(self, event: wx.PyCommandEvent) -> None:
         selection, preinfo = self._get_cardcontrolparams()
         areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", selection, preinfo, areaid=areaid)
@@ -868,7 +868,7 @@ class Frame(wx.Frame):
 
         dlg.ShowModal()
 
-    def OnHANDVIEW(self, event):
+    def OnHANDVIEW(self, event: wx.PyCommandEvent) -> None:
         selection, preinfo = self._get_cardcontrolparams()
         dlg = cw.dialog.cardcontrol.HandView(self, selection, preinfo)
         self.move_dlg(dlg, (0, cw.ppis(-63)))
@@ -895,7 +895,7 @@ class Frame(wx.Frame):
             preinfo = None
         return selection, preinfo
 
-    def OnINFOVIEW(self, event):
+    def OnINFOVIEW(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.cardcontrol.InfoView(self)
         self.move_dlg(dlg, (0, cw.ppis(-63)))
         dlg.ShowModal()
@@ -1254,7 +1254,7 @@ class Frame(wx.Frame):
             fc = fc.GetParent()
         return True
 
-    def find_activedialog(self):
+    def find_activedialog(self) -> Optional[wx.Dialog]:
         if cw.cwpy.is_showingdlg():
             return wx.GetActiveWindow()
         else:

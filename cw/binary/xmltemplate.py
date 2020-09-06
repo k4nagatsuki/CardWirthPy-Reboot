@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from string import Template
+from typing import Dict, Union
 
 
 Adventurer = """$indent<Adventurer scaledimage="$scaledimage">
@@ -393,11 +394,11 @@ $indent <Value9>$valname9</Value9>
 $indent</Step>"""
 
 
-def get_xmltemplate(name):
+def get_xmltemplate(name: str) -> str:
     return globals()[name]
 
 
-def get_xmltext(name, d):
+def get_xmltext(name: str, d: Dict[str, Union[str, int]]) -> str:
     s = get_xmltemplate(name)
     return Template(s).safe_substitute(d)
 

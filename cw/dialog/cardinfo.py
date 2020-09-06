@@ -7,7 +7,7 @@ import wx
 
 import cw
 
-from typing import List
+from typing import Union, List
 
 
 # ------------------------------------------------------------------------------
@@ -274,7 +274,9 @@ class MenuCardInfo(CardInfo):
 # ------------------------------------------------------------------------------
 
 class YadoCardInfo(CardInfo):
-    def __init__(self, parent, clist, selection, scedir=""):
+    def __init__(self, parent: wx.TopLevelWindow,
+                 clist: Union[List[cw.header.CardHeader], List[cw.header.InfoCardHeader]],
+                 selection: Union[cw.header.CardHeader, cw.header.InfoCardHeader], scedir: str = "") -> None:
         # カード情報
         self.selection = selection
         self.list = clist
@@ -296,7 +298,7 @@ class YadoCardInfo(CardInfo):
             self.Parent.update_cardpocketinfo_with(self.selection)
         self.draw(True)
 
-    def OnClickRightBtn(self, event):
+    def OnClickRightBtn(self, event: wx.PyCommandEvent) -> None:
         if self.index == len(self.list) - 1:
             self.index = 0
         else:

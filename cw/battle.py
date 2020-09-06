@@ -81,10 +81,10 @@ class BattleEngine(object):
         except BattleDefeatError:
             self.defeat(runevent=False)
 
-    def is_running(self):
+    def is_running(self) -> bool:
         return self._running
 
-    def is_ready(self):
+    def is_ready(self) -> bool:
         return self._ready
 
     def is_battlestarting(self):
