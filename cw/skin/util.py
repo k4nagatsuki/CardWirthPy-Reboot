@@ -9,7 +9,7 @@ import subprocess
 
 import cw
 
-from typing import Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 
 def find_skin(name, author, skintype=""):
@@ -126,7 +126,7 @@ INSTALL_PROGRESS = 3
 INSTALL_PROGRESS_ARCHIVE = 5
 
 
-def install_skin(path, tempdir, progress=lambda msg, progress: None):
+def install_skin(path, tempdir, progress=lambda msg, progress: Optional[Callable]):
     """
     pathのスキンをインストールする。
     :type path: str

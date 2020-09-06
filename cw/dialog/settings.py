@@ -11,7 +11,7 @@ import pygame
 
 import cw
 
-from typing import List, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 
 # build_exe.pyによって作られる一時モジュール
@@ -1818,7 +1818,8 @@ class SpeedPanel(wx.Panel):
 
 
 class DrawingSettingPanel(wx.Panel):
-    def __init__(self, parent: wx.Notebook, for_local: bool, get_localsettings: None, use_copybase: bool) -> None:
+    def __init__(self, parent: wx.Notebook, for_local: bool, get_localsettings: Optional[Callable],
+                 use_copybase: bool) -> None:
         wx.Panel.__init__(self, parent)
         self._for_local = for_local
         self._get_localsettings = get_localsettings
@@ -3102,7 +3103,8 @@ class UISettingPanel(wx.ScrolledWindow):
 
 
 class FontSettingPanel(wx.Panel):
-    def __init__(self, parent: wx.Notebook, for_local: bool, get_localsettings: None, use_copybase: bool) -> None:
+    def __init__(self, parent: wx.Notebook, for_local: bool, get_localsettings: Optional[Callable],
+                 use_copybase: bool) -> None:
         wx.Panel.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self._for_local = for_local

@@ -4737,15 +4737,15 @@ def yadoxml2element(path: str, tag: str = "", rootattrs: Dict[str, str] = None) 
         raise ValueError("%s is not found." % path)
 
 
-def xml2etree(path: str = "", tag: str = "", stream: None = None, element: None = None,
-              nocache: bool = False) -> CWPyElementTree:
+def xml2etree(path: str = "", tag: str = "", stream: Optional[io.RawIOBase] = None,
+              element: Optional[CWPyElement] = None, nocache: bool = False) -> CWPyElementTree:
     if element is None:
         element = xml2element(path, tag, stream, nocache=nocache)
 
     return CWPyElementTree(element=element)
 
 
-def xml2element(path: str = "", tag: str = "", stream: None = None, nocache: bool = False,
+def xml2element(path: str = "", tag: str = "", stream: Optional[io.RawIOBase] = None, nocache: bool = False,
                 rootattrs: Optional[Dict[str, str]] = None) -> CWPyElement:
     usecache = path and cw.cwpy and cw.cwpy.sdata and\
                isinstance(cw.cwpy.sdata, cw.data.ScenarioData) and\
@@ -4860,8 +4860,8 @@ class EndTargetTagException(Exception):
 
 
 class SimpleXmlParser(object):
-    def __init__(self, fpath: str, targettag: str = "", stream: None = None, targetonly: bool = False,
-                 rootattrs: None = None) -> None:
+    def __init__(self, fpath: str, targettag: str = "", stream: Optional[io.RawIOBase] = None, targetonly: bool = False,
+                 rootattrs: Optional[Dict[str, str]] = None) -> None:
         """
         targettag: 読み込むタグのロケーションパス。絶対パスは使えない。
             "Property/Name"という風にタグごとに"/"で区切って指定する。

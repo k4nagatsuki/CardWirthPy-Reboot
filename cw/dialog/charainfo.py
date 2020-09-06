@@ -26,7 +26,8 @@ class CharaInfo(wx.Dialog):
                      "cw.sprite.card.FriendCard",
                      cw.header.AdventurerHeader]]
 
-    def __init__(self, parent: wx.TopLevelWindow, redrawfunc: None, editable: bool, party: None = None) -> None:
+    def __init__(self, parent: wx.TopLevelWindow, redrawfunc: Optional[Callable], editable: bool,
+                 party: Optional[cw.data.Party] = None) -> None:
         # フォントサイズによってダイアログサイズを決定する
         dc = wx.ClientDC(parent)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
@@ -572,7 +573,8 @@ class TopPanel(wx.Panel):
     """
     顔画像などを描画するパネル
     """
-    def __init__(self, parent: ActiveCharaInfo, ccard: "cw.character.Character", redrawfunc: None) -> None:
+    def __init__(self, parent: ActiveCharaInfo, ccard: "cw.character.Character",
+                 redrawfunc: Optional[Callable]) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(105)))
         self.SetDoubleBuffered(True)
         # カードワース本来の背景値。暗くなりすぎるので保留

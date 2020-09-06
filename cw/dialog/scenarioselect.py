@@ -1132,7 +1132,7 @@ class ScenarioSelect(select.Select):
         return seq
 
     def set_selected(self, spaths: List[str], fullpath: str, opendir: bool = False, updatetree: bool = False,
-                     findresults: None = None) -> None:
+                     findresults: Optional[List[Union[str, cw.header.ScenarioHeader]]] = None) -> None:
         """
         シナリオを経路形式(ディレクトリ・ファイル名の配列)で
         設定する。
@@ -2982,11 +2982,11 @@ class ScenarioSelect(select.Select):
             self._last_narrowparams = t
             return True
 
-    def is_showing(self, header: None) -> bool:
+    def is_showing(self, header: cw.header.ScenarioHeader) -> bool:
         ntypes, narrow, intnarrow, donarrow, level, _unfitness, _complete, _invisible, _sort = self._get_narrowparams()
         return self._is_showing(header, ntypes, narrow, intnarrow, donarrow, level)
 
-    def _get_narrowparams(self) -> Tuple[Set[int], str, None, bool, int, bool, bool, bool, int]:
+    def _get_narrowparams(self) -> Tuple[Set[int], str, Optional[int], bool, int, bool, bool, bool, int]:
         if cw.cwpy.setting.show_unfitnessscenario:
             level = 0
         else:
@@ -3020,7 +3020,7 @@ class ScenarioSelect(select.Select):
                 self.sort.GetSelection())
 
     def _is_showing(self, header: Optional[Union[str, cw.header.ScenarioHeader]], ntypes: Set[int], narrow: str,
-                    intnarrow: None, donarrow: bool, level: int) -> bool:
+                    intnarrow: Optional[int], donarrow: bool, level: int) -> bool:
         if isinstance(header, cw.header.ScenarioHeader):
             if not cw.cwpy.setting.show_unfitnessscenario and not (ntypes == {_NARROW_LEVEL} and donarrow) and\
                     ((header.levelmin != 0 and level < header.levelmin) or

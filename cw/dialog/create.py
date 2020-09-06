@@ -1071,7 +1071,7 @@ class AdventurerCreaterPage(wx.Panel):
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
     def draw_clickablebmp(self, dc: wx.DC, bmp: wx.Bitmap, pos: Tuple[int, int], name: str, method: Callable,
-                          wheelmethod: None, mask: bool = True) -> None:
+                          wheelmethod: Optional[Callable], mask: bool = True) -> None:
         size = bmp.GetSize()
         dc.DrawBitmap(bmp, pos[0], pos[1], True)
 

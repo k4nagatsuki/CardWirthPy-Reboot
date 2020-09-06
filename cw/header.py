@@ -1977,7 +1977,7 @@ class GetName(object):
 
 class GetProperty(object):
     """XMLファイル中のProperty以下の内容を読む。"""
-    def __init__(self, fpath: str = "", stream: None = None) -> None:
+    def __init__(self, fpath: str = "", stream: Optional[io.RawIOBase] = None) -> None:
         if fpath and cw.fsync.is_waiting(fpath):
             cw.fsync.sync()
 

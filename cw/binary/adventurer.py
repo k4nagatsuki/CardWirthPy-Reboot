@@ -7,12 +7,15 @@ from . import base
 
 import cw
 
+from typing import Optional, Union
+
 
 class Adventurer(base.CWBinaryBase):
     """冒険者データ。埋め込み画像はないので
     wch・wptファイルから個別に引っ張ってくる必要がある。
     """
-    def __init__(self, parent: None, f: cw.binary.cwfile.CWFile, yadodata: bool = False, nameonly: bool = False,
+    def __init__(self, parent: Optional[Union["AdventurerCard", "AdventurerWithImage"]],
+                 f: cw.binary.cwfile.CWFile, yadodata: bool = False, nameonly: bool = False,
                  album120: bool = False) -> None:
         from . import item
         from . import skill

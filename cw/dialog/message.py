@@ -5,6 +5,8 @@ import wx
 
 import cw
 
+from typing import Iterable, Optional, Tuple, Union
+
 
 # ------------------------------------------------------------------------------
 # メッセージダイアログ
@@ -16,7 +18,10 @@ class Message(wx.Dialog):
     mode=1は「はい」「いいえ」。mode=2は「閉じる」。
     mode=3は、choicesに(テキスト, ID, 幅)のtupleまたはlistを指定する事で任意の選択肢を表示する。
     """
-    def __init__(self, parent: wx.TopLevelWindow, name: str, text: str, mode: int = 2, choices: None = None) -> None:
+    def __init__(self, parent: wx.TopLevelWindow, name: str, text: str, mode: int = 2,
+                 choices: Optional[Iterable[Union[Tuple[str, int, int, str],
+                                                  Tuple[str, int, str],
+                                                  Tuple[str, int]]]] = None) -> None:
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((355, 120)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
