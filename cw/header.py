@@ -882,7 +882,7 @@ class CardHeader(object):
         else:
             return self.keycodes
 
-    def set_hold(self, hold):
+    def set_hold(self, hold: bool) -> None:
         if self.type == "BeastCard":
             return
 
@@ -1021,7 +1021,7 @@ def is_removewithstatus(carddata, target):
 
 
 class InfoCardHeader(object):
-    def __init__(self, data, can_loaded_scaledimage):
+    def __init__(self, data: cw.data.CWPyElement, can_loaded_scaledimage: bool) -> None:
         """
         情報カードのヘッダ。引数のdataはPropertyElement。
         """
@@ -1041,7 +1041,7 @@ class InfoCardHeader(object):
         self.clickedflag = False
         self.deal_per = 100
 
-    def set_cardimg(self, can_loaded_scaledimage, anotherscenariocard):
+    def set_cardimg(self, can_loaded_scaledimage: bool, anotherscenariocard: bool) -> None:
         self.can_loaded_scaledimage = can_loaded_scaledimage
         self.anotherscenariocard = anotherscenariocard
         self._cardimg = cw.image.CardImage(self.imgpaths, "INFO", self.name,
@@ -1055,7 +1055,7 @@ class InfoCardHeader(object):
         self._bordering_cardname = cw.cwpy.setting.bordering_cardname
 
     @property
-    def cardimg(self):
+    def cardimg(self) -> "cw.image.CardImage":
         if self._cardscale != cw.UP_SCR or\
                 self._wxcardscale != cw.UP_WIN or\
                 self._skindirname != cw.cwpy.setting.skindirname or\
@@ -1063,7 +1063,7 @@ class InfoCardHeader(object):
             self.set_cardimg(self.can_loaded_scaledimage, False)
         return self._cardimg
 
-    def get_cardwxbmp(self, test_aptitude=None):
+    def get_cardwxbmp(self, test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
         if self.negaflag:
             return self.cardimg.get_wxnegabmp()
         else:
@@ -1182,7 +1182,7 @@ class AdventurerHeader(object):
             self.versionhint = cw.cwpy.sct.from_basehint(data.getattr(".", "versionHint", ""))
             self.wsnversion = rootattrs.get("dataVersion", "") if rootattrs else ""
 
-            for e in reversed(data.getfind("Coupons").getchildren()):
+            for e in reversed(data.getfind("Coupons")):
                 if not e.text:
                     continue
                 elif e.text in ages:
@@ -1239,7 +1239,7 @@ class AdventurerHeader(object):
 
         data.write_xml(True)
 
-    def grow(self):
+    def grow(self) -> None:
         """
         年代変更後のXMLを書き出す。
         このメソッドでは永眠処理は行わない。
@@ -1307,19 +1307,19 @@ class AdventurerHeader(object):
             seq.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info))
         return seq
 
-    def get_age(self):
+    def get_age(self) -> str:
         for period in cw.cwpy.setting.periods:
             if self.age == "＿" + period.name:
                 return period.subname
         return ""
 
-    def get_sex(self):
+    def get_sex(self) -> str:
         for sex in cw.cwpy.setting.sexes:
             if self.sex == "＿" + sex.name:
                 return sex.subname
         return ""
 
-    def get_race(self):
+    def get_race(self) -> "cw.header.RaceHeader":
         if self.race:
             for race in cw.cwpy.setting.races:
                 if race.name == self.race:
@@ -1347,15 +1347,15 @@ class Gene(object):
         if 0 <= index < 10:
             self.bits[index] = 0 if self.bits[index] else 1
 
-    def set_bit(self, index, value):
+    def set_bit(self, index: int, value: int) -> None:
         if 0 <= index < 10:
             self.bits[index] = 1 if value else 0
 
-    def set_randombit(self):
+    def set_randombit(self) -> None:
         n = cw.cwpy.dice.roll(sided=10)
         self.bits[n - 1] = 1
 
-    def set_talentbit(self, talent, oldtalent=""):
+    def set_talentbit(self, talent: str, oldtalent: str = "") -> None:
         for nature in cw.cwpy.setting.natures:
             if "＿" + nature.name == talent:
                 # 型に対応する型のbitを1にする
@@ -1368,14 +1368,14 @@ class Gene(object):
                     self.set_talentbit(oldtalent)
                 break
 
-    def count_bits(self):
+    def count_bits(self) -> int:
         return len([bit for bit in self.bits if bit])
 
     def reverse(self):
         bits = [int(not bit) for bit in self.bits]
         return Gene(bits)
 
-    def fusion(self, gene):
+    def fusion(self, gene: "Gene") -> "Gene":
         # 排他的論理和演算
         bits = [bit1 ^ bit2 for bit1, bit2 in zip(self.bits, gene.bits)]
         return Gene(bits)
@@ -1617,11 +1617,11 @@ class PartyHeader(object):
         self._membercoupons = None
         self._memberlevels = None
 
-    def is_adventuring(self):
+    def is_adventuring(self) -> bool:
         path = cw.util.splitext(self.fpath)[0] + ".wsl"
         return bool(cw.util.get_yadofilepath(path))
 
-    def get_sceheader(self):
+    def get_sceheader(self) -> None:
         """
         現在冒険中のシナリオのScenarioHeaderを返す。
         """
@@ -1659,14 +1659,14 @@ class PartyHeader(object):
 
         return seq
 
-    def _get_properties(self):
+    def _get_properties(self) -> List["GetProperty"]:
         if self._memberprops is None:
             self._memberprops = []
             for fpath in self.get_memberpaths():
                 self._memberprops.append(GetProperty(fpath))
         return self._memberprops
 
-    def get_membernames(self):
+    def get_membernames(self) -> List[str]:
         if self._membernames is None:
             self._membernames = []
             for prop in self._get_properties():
@@ -1751,7 +1751,7 @@ class PartyRecordHeader(object):
                 self.membernames.append(e.getattr(".", "name", ""))
             self.backpack = [e.get("name", "") for e in data.getfind("BackpackRecord")]
 
-    def rename_member(self, fpath, name):
+    def rename_member(self, fpath: str, name: str) -> None:
         """メンバの改名を通知する。"""
         s = os.path.basename(fpath)
         s = cw.util.splitext(s)[0]
@@ -1762,7 +1762,7 @@ class PartyRecordHeader(object):
             data.edit("Property/Members/Member[%s]" % (index+1), name, "name")
             data.write_xml()
 
-    def vanish_member(self, fpath):
+    def vanish_member(self, fpath: str) -> None:
         """メンバの消滅を通知する。"""
         s = os.path.basename(fpath)
         s = cw.util.splitext(s)[0]
@@ -1783,7 +1783,7 @@ class PartyRecordHeader(object):
 
             data.write_xml()
 
-    def get_memberpaths(self):
+    def get_memberpaths(self) -> List[str]:
         cw.fsync.sync()
         seq = []
 
@@ -1801,7 +1801,7 @@ class PartyRecordHeader(object):
 
         return seq
 
-    def get_membernames(self):
+    def get_membernames(self) -> List[str]:
         seq = []
 
         for i, fpath in enumerate(self.get_memberpaths()):

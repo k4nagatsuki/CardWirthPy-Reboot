@@ -10,7 +10,7 @@ import cw
 
 import wx.lib.agw.aui as aui
 
-from typing import List, Tuple, Union
+from typing import Callable, Optional, List, Tuple, Union
 
 
 # ------------------------------------------------------------------------------
@@ -309,7 +309,7 @@ class CharaInfo(wx.Dialog):
             page.Scroll(x, page.GetVirtualSize()[1])
             page.Refresh()
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -345,7 +345,7 @@ class CharaInfo(wx.Dialog):
             # btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, self.notebook.GetId())
             # self.ProcessEvent(btnevent)
 
-    def OnDebugMode(self, event):
+    def OnDebugMode(self, event: wx.CommandEvent) -> None:
         def func(self):
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
@@ -358,7 +358,7 @@ class CharaInfo(wx.Dialog):
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)
 
-    def update_debug(self):
+    def update_debug(self) -> None:
         if not self:
             return
         if self.descpanel.IsShown():
@@ -417,7 +417,7 @@ class CharaInfo(wx.Dialog):
             win.headers = []
             win.draw(True)
 
-    def OnClickRightBtn(self, event):
+    def OnClickRightBtn(self, event: wx.PyCommandEvent) -> None:
         if self.index == len(self.list) - 1:
             self.index = 0
         else:
@@ -457,7 +457,7 @@ class CharaInfo(wx.Dialog):
         cw.cwpy.play_sound("click")
         self.titlepanel.draw(True)
 
-    def draw(self, update):
+    def draw(self, update: bool) -> None:
         win = self.notebook.GetCurrentPage()
         dc = wx.ClientDC(win)
         dc.SetTextForeground(wx.WHITE)
@@ -498,7 +498,8 @@ class CharaInfo(wx.Dialog):
 
 
 class StandbyCharaInfo(CharaInfo):
-    def __init__(self, parent, headers, index, redrawfunc, is_playingscenario=False, party=None):
+    def __init__(self, parent: wx.TopLevelWindow, headers: List[cw.header.AdventurerHeader], index: int,
+                 redrawfunc: Callable, is_playingscenario: bool = False, party: Optional[cw.data.Party] = None) -> None:
         self.is_playingscenario = is_playingscenario
         self.list = headers
         self.index = index
@@ -516,7 +517,7 @@ class StandbyCharaInfo(CharaInfo):
 
 
 class StandbyPartyCharaInfo(StandbyCharaInfo):
-    def __init__(self, parent, partyheader, redrawfunc):
+    def __init__(self, parent: wx.TopLevelWindow, partyheader: cw.header.PartyHeader, redrawfunc: Callable) -> None:
         party = cw.data.Party(partyheader, True)
         partyheader.data = party
         headers = []
@@ -534,7 +535,7 @@ class ActiveCharaInfo(CharaInfo):
         self._update_list()
         CharaInfo.__init__(self, parent, None, True)
 
-    def update_debug(self):
+    def update_debug(self) -> None:
         CharaInfo.update_debug(self)
         if self._update_list():
             self.leftbtn.Enable(1 < len(self.list))
@@ -895,7 +896,7 @@ class DescPanel(wx.ScrolledWindow):
         else:
             self.SetCursor(wx.NullCursor)
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         if not (cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.character.Character)):
             return
         cw.cwpy.play_sound("click")
@@ -1006,7 +1007,7 @@ class HistoryPanel(wx.ScrolledWindow):
         else:
             self.SetCursor(wx.NullCursor)
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         if not (cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.character.Character)):
             return
         cw.cwpy.play_sound("click")
@@ -1170,6 +1171,7 @@ class EditButton():
         self.type = btype
         self.has_separator = has_separator
         self.negaflag = False
+        self.textpos = None  # type: Tuple[int, int]
 
 
 class EditPanel(wx.Panel):
@@ -1200,7 +1202,7 @@ class EditPanel(wx.Panel):
     def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
         self._destroy = True
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         for header in self.headers:
             if header.negaflag:
                 if header.type == 0:
@@ -1257,7 +1259,7 @@ class EditPanel(wx.Panel):
                 self.draw(True)
                 return
 
-    def get_charalist(self):
+    def get_charalist(self) -> List[cw.character.Player]:
         """編集用のcw.character.Playerのリストを取得する。"""
         if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
             seq = []
@@ -1274,7 +1276,7 @@ class EditPanel(wx.Panel):
         else:
             return self.list
 
-    def update_charalist(self, mlist):
+    def update_charalist(self, mlist: List[cw.character.Player]) -> None:
         """編集結果をヘッダ等に反映する。"""
         if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
             def func(parentheaders, mlist):
@@ -1293,7 +1295,7 @@ class EditPanel(wx.Panel):
     def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
 
-    def OnLeave(self, event):
+    def OnLeave(self, event: wx.MouseEvent) -> None:
         if not self.Parent.Parent.IsActive():
             return
 
@@ -1307,7 +1309,7 @@ class EditPanel(wx.Panel):
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
         self.Refresh()
 
-    def update_negaflag(self):
+    def update_negaflag(self) -> None:
         mousepos = self.ScreenToClient(wx.GetMousePosition())
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
@@ -1316,11 +1318,11 @@ class EditPanel(wx.Panel):
             elif header.negaflag:
                 header.negaflag = False
 
-    def OnMove(self, event):
+    def OnMove(self, event: wx.MouseEvent) -> None:
         mousepos = event.GetPosition()
         self._update_mousepos(mousepos)
 
-    def _update_mousepos(self, mousepos):
+    def _update_mousepos(self, mousepos: wx.Point) -> None:
         dc = wx.ClientDC(self)
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
@@ -1332,7 +1334,7 @@ class EditPanel(wx.Panel):
                 self.draw_header(dc, header)
         self.Refresh()
 
-    def draw_header(self, dc, header):
+    def draw_header(self, dc: wx.DC, header: EditButton) -> None:
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
         if header.negaflag:
@@ -1640,7 +1642,7 @@ class StatusPanel(wx.ScrolledWindow):
             msg = cw.cwpy.msgs["fine"]
         return colour, msg
 
-    def _get_poison(self):
+    def _get_poison(self) -> str:
         return "%s (%s)" % (cw.cwpy.msgs["poison"], cw.cwpy.msgs["intensity"] % self.ccard.poison)
 
     def _get_paralyze(self):
@@ -1664,19 +1666,19 @@ class StatusPanel(wx.ScrolledWindow):
         else:
             return "", ""
 
-    def _get_bind(self):
+    def _get_bind(self) -> str:
         return "%s (%s)" % (cw.cwpy.msgs["bind"], cw.cwpy.msgs["duration"] % self.ccard.bind)
 
-    def _get_silence(self):
+    def _get_silence(self) -> str:
         return "%s (%s)" % (cw.cwpy.msgs["silence"], cw.cwpy.msgs["duration"] % self.ccard.silence)
 
-    def _get_faceup(self):
+    def _get_faceup(self) -> str:
         return "%s (%s)" % (cw.cwpy.msgs["faceup"], cw.cwpy.msgs["duration"] % self.ccard.faceup)
 
-    def _get_antimagic(self):
+    def _get_antimagic(self) -> str:
         return "%s (%s)" % (cw.cwpy.msgs["antimagic"], cw.cwpy.msgs["duration"] % self.ccard.antimagic)
 
-    def _draw_status(self, dc, msg, imgname, height):
+    def _draw_status(self, dc: wx.DC, msg: str, imgname: str, height: int) -> int:
         bmp = cw.cwpy.rsrc.wxstatuses[imgname]
         dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1))
         dc.DrawText(msg, cw.wins(32), height)
@@ -1772,7 +1774,7 @@ class CardPanel(wx.Panel):
         self._update_rects(dc)
         dc.Destroy()
 
-    def update_debug(self):
+    def update_debug(self) -> None:
         self._update_debug()
         mousepos = self.ScreenToClient(wx.GetMousePosition())
         self._update_mousepos(mousepos)
@@ -1783,14 +1785,14 @@ class CardPanel(wx.Panel):
                 del header.textpos
                 del header.subrect
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         self._switch_hold()
 
     def OnKeyUp(self, event):
         if event.GetKeyCode() == wx.WXK_SPACE:
             self._switch_hold()
 
-    def _switch_hold(self):
+    def _switch_hold(self) -> None:
         if not cw.cwpy.is_debugmode() and not isinstance(self.ccard, cw.character.Player):
             # ホールド不可
             self._open_cardinfo()
@@ -1840,7 +1842,7 @@ class CardPanel(wx.Panel):
             return
         self.Parent.Parent.OnCancel(event)
 
-    def OnLeave(self, event):
+    def OnLeave(self, event: wx.MouseEvent) -> None:
         if not self.Parent.Parent.IsActive():
             return
 
@@ -1873,7 +1875,7 @@ class CardPanel(wx.Panel):
                 self.draw_header(dc, header)
         self.Refresh()
 
-    def update_negaflag(self):
+    def update_negaflag(self) -> None:
         mousepos = self.ScreenToClient(wx.GetMousePosition())
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
@@ -1882,7 +1884,7 @@ class CardPanel(wx.Panel):
             elif header.negaflag:
                 header.negaflag = False
 
-    def draw_header(self, dc, header):
+    def draw_header(self, dc: wx.DC, header: EditButton) -> None:
         if isinstance(header, HoldAll):
             self.Refresh()
             return

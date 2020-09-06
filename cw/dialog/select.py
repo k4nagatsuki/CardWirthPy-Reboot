@@ -15,7 +15,7 @@ import cw.binary.environment
 import cw.binary.party
 import cw.binary.adventurer
 
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple, Union
 
 
 # ------------------------------------------------------------------------------
@@ -113,7 +113,7 @@ class Select(wx.Dialog):
         if buttonlist:
             buttonlist[0].SetFocus()
 
-    def is_processing(self):
+    def is_processing(self) -> bool:
         return self._processing
 
     def OnPrevButton(self, event):
@@ -178,7 +178,7 @@ class Select(wx.Dialog):
         self.draw(True)
         self.index_changed()
 
-    def OnClickLeft2Btn(self, evt):
+    def OnClickLeft2Btn(self, evt: wx.PyCommandEvent) -> None:
         if len(self.list) <= 1:
             return
         if self.index == 0:
@@ -204,7 +204,7 @@ class Select(wx.Dialog):
         self.draw(True)
         self.index_changed()
 
-    def OnClickRight2Btn(self, evt):
+    def OnClickRight2Btn(self, evt: wx.PyCommandEvent) -> None:
         if len(self.list) <= 1:
             return
         if self.index == len(self.list) - 1:
@@ -312,7 +312,7 @@ class Select(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
 
-    def _add_topsizer(self):
+    def _add_topsizer(self) -> None:
         pass
 
     def set_panelsizer(self) -> None:
@@ -457,7 +457,7 @@ class Select(wx.Dialog):
         self.Bind(wx.EVT_MENU, self.OnToggleAdditionalControls, id=addctrl)
         seq.append((wx.ACCEL_CTRL, ord('F'), addctrl))
 
-    def OnToggleAdditionalControls(self, event):
+    def OnToggleAdditionalControls(self, event: wx.CommandEvent) -> None:
         self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
         self._additional_controls()
 
@@ -540,7 +540,7 @@ class MultiViewSelect(Select):
         cw.cwpy.play_sound("page")
         self.draw(True)
 
-    def OnClickLeftBtn(self, evt):
+    def OnClickLeftBtn(self, evt: wx.PyCommandEvent) -> None:
         if self._processing:
             return
         if self.views == 1 or evt.GetEventObject() != self.leftbtn or len(self.list) <= self.views:
@@ -553,7 +553,7 @@ class MultiViewSelect(Select):
         cw.cwpy.play_sound("page")
         self.draw(True)
 
-    def OnClickLeft2Btn(self, evt):
+    def OnClickLeft2Btn(self, evt: wx.PyCommandEvent) -> None:
         if self._processing:
             return
         if self.views == 1 or evt.GetEventObject() != self.left2btn or len(self.list) <= self.views:
@@ -569,7 +569,7 @@ class MultiViewSelect(Select):
         cw.cwpy.play_sound("page")
         self.draw(True)
 
-    def OnClickRightBtn(self, evt):
+    def OnClickRightBtn(self, evt: wx.PyCommandEvent) -> None:
         if self._processing:
             return
         if self.views == 1 or evt.GetEventObject() != self.rightbtn or len(self.list) <= self.views:
@@ -582,7 +582,7 @@ class MultiViewSelect(Select):
         cw.cwpy.play_sound("page")
         self.draw(True)
 
-    def OnClickRight2Btn(self, evt):
+    def OnClickRight2Btn(self, evt: wx.PyCommandEvent) -> None:
         if self._processing:
             return
         if self.views == 1 or evt.GetEventObject() != self.right2btn or len(self.list) <= self.views:
@@ -626,7 +626,7 @@ class MultiViewSelect(Select):
                 self.enable_btn()
                 self.draw(True)
 
-    def OnClickViewBtn(self, event):
+    def OnClickViewBtn(self, event: wx.CommandEvent) -> None:
         if self._processing:
             return
         cw.cwpy.play_sound("equipment")
@@ -634,7 +634,7 @@ class MultiViewSelect(Select):
         self.draw(True)
         self.enable_btn()
 
-    def change_view(self):
+    def change_view(self) -> None:
         if self.views == 1:
             self.views = self._views
             self.viewbtn.SetLabel(cw.cwpy.msgs["member_one"])
@@ -1827,7 +1827,7 @@ class PartySelect(MultiViewSelect):
     """
     パーティ選択ダイアログ。
     """
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         # ダイアログボックス作成
         MultiViewSelect.__init__(self, parent, cw.cwpy.msgs["resume_adventure"], wx.ID_OK, 8,
                                  cw.cwpy.setting.show_multipleparties)
@@ -1943,14 +1943,14 @@ class PartySelect(MultiViewSelect):
 
         self.draw(True)
 
-    def save_views(self, multi):
+    def save_views(self, multi: bool) -> None:
         cw.cwpy.setting.show_multipleparties = multi
 
-    def update_additionals(self):
+    def update_additionals(self) -> None:
         Select.update_additionals(self)
         cw.cwpy.setting.show_additional_party = self.addctrlbtn.GetToggle()
 
-    def _add_topsizer(self):
+    def _add_topsizer(self) -> None:
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         nsizer.Add(self.narrow_label, 0, wx.LEFT | wx.RIGHT | wx.CENTER, cw.wins(2))
@@ -1983,7 +1983,7 @@ class PartySelect(MultiViewSelect):
     def update_debug(self):
         self._on_narrowcondition()
 
-    def update_narrowcondition(self):
+    def update_narrowcondition(self) -> None:
         if 0 <= self.index and self.index < len(self.list):
             selected = self.list[self.index]
         else:
@@ -2092,7 +2092,7 @@ class PartySelect(MultiViewSelect):
             self.index = 0
         self.enable_btn()
 
-    def _get_bg(self):
+    def _get_bg(self) -> wx.Bitmap:
         if self._bg:
             return self._bg
         path = "Table/Book"
@@ -2152,7 +2152,7 @@ class PartySelect(MultiViewSelect):
         else:
             MultiViewSelect.OnMouseWheel(self, event)
 
-    def OnClickInfoBtn(self, event):
+    def OnClickInfoBtn(self, event: wx.CommandEvent) -> None:
         if not self.list:
             return
         cw.cwpy.play_sound("click")
@@ -2170,7 +2170,7 @@ class PartySelect(MultiViewSelect):
             self.draw(True)
         dlg.Destroy()
 
-    def OnClickEditBtn(self, event):
+    def OnClickEditBtn(self, event: wx.CommandEvent) -> None:
         if not self.list:
             return
         partyheader = self.list[self.index]
@@ -2191,7 +2191,7 @@ class PartySelect(MultiViewSelect):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def OnClickPartyRecordBtn(self, event):
+    def OnClickPartyRecordBtn(self, event: wx.CommandEvent) -> None:
         if self._processing:
             return
         cw.cwpy.play_sound("click")
@@ -2202,19 +2202,19 @@ class PartySelect(MultiViewSelect):
             self.partyrecordbtn.Disable()
         dlg.Destroy()
 
-    def get_selected(self):
+    def get_selected(self) -> cw.header.PartyHeader:
         if self.list:
             return self.list[self.index]
         else:
             return None
 
-    def update_standbys(self, selected):
+    def update_standbys(self, selected: cw.header.PartyHeader) -> None:
         pass
 
-    def can_clickcenter(self):
+    def can_clickcenter(self) -> bool:
         return self.okbtn.IsEnabled()
 
-    def enable_btn(self):
+    def enable_btn(self) -> None:
         # リストが空だったらボタンを無効化
         if not self.list:
             enables = set()
@@ -2230,7 +2230,7 @@ class PartySelect(MultiViewSelect):
         if not (cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord):
             self.partyrecordbtn.Disable()
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         dc, dest = self.draw2(update)
         # 背景
         bmp = cw.wins(self._get_bg())
@@ -2484,7 +2484,7 @@ class PlayerSelect(MultiViewSelect):
     """
     冒険者選択ダイアログ。
     """
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         # ダイアログボックス作成
         MultiViewSelect.__init__(self, parent, cw.cwpy.msgs["select_member_title"], wx.ID_ADD, 10,
                                  cw.cwpy.setting.show_multipleplayers)
@@ -2581,14 +2581,14 @@ class PlayerSelect(MultiViewSelect):
             self.append_addctrlaccelerator(seq)
         cw.util.set_acceleratortable(self, seq)
 
-    def save_views(self, multi):
+    def save_views(self, multi: bool) -> None:
         cw.cwpy.setting.show_multipleplayers = multi
 
-    def update_additionals(self):
+    def update_additionals(self) -> None:
         Select.update_additionals(self)
         cw.cwpy.setting.show_additional_player = self.addctrlbtn.GetToggle()
 
-    def _add_topsizer(self):
+    def _add_topsizer(self) -> None:
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         nsizer.Add(self.narrow_label, 0, wx.LEFT | wx.RIGHT | wx.CENTER, cw.wins(2))
@@ -2616,13 +2616,13 @@ class PlayerSelect(MultiViewSelect):
     def update_debug(self):
         self._on_narrowcondition()
 
-    def _on_narrowcondition(self):
+    def _on_narrowcondition(self) -> None:
         if self.narrow_type:
             cw.cwpy.setting.standbys_narrowtype = self.narrow_type.GetSelection()
             self.update_narrowcondition()
             self.draw(True)
 
-    def update_narrowcondition(self):
+    def update_narrowcondition(self) -> None:
         if 0 <= self.index and self.index < len(self.list):
             selected = self.list[self.index]
         else:
@@ -2726,7 +2726,7 @@ class PlayerSelect(MultiViewSelect):
                 event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.sort.GetId())
                 self.ProcessEvent(event)
 
-    def enable_btn(self):
+    def enable_btn(self) -> None:
         # リストが空だったらボタンを無効化
         disables = set()
         # 冒険者が6人だったら追加ボタン無効化
@@ -2764,7 +2764,7 @@ class PlayerSelect(MultiViewSelect):
             self.update_narrowcondition()
             self.draw(True)
 
-    def can_clickcenter(self):
+    def can_clickcenter(self) -> bool:
         return self.addbtn.IsEnabled() or not cw.cwpy.ydata.standbys
 
     def OnLeftDClick(self, event):
@@ -2775,7 +2775,7 @@ class PlayerSelect(MultiViewSelect):
             return
         MultiViewSelect.OnLeftDClick(self, event)
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -2805,7 +2805,7 @@ class PlayerSelect(MultiViewSelect):
 
         MultiViewSelect.OnSelect(self, event)
 
-    def OnClickNewBtn(self, event):
+    def OnClickNewBtn(self, event: wx.CommandEvent) -> None:
         if self._processing:
             return
         cw.cwpy.play_sound("click")
@@ -2827,12 +2827,13 @@ class PlayerSelect(MultiViewSelect):
         cw.cwpy.frame.move_dlg(dlg)
         self._create_common(dlg)
 
-    def _create_debug(self):
+    def _create_debug(self) -> None:
         dlg = cw.debug.charaedit.CharacterEditDialog(self, create=True)
         cw.cwpy.frame.move_dlg(dlg)
         self._create_common(dlg)
 
-    def _create_common(self, dlg):
+    def _create_common(self, dlg: Union["cw.dialog.create.AdventurerCreater",
+                                        cw.debug.charaedit.CharacterEditDialog]) -> None:
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.play_sound("page")
             header = cw.cwpy.ydata.add_standbys(dlg.fpath)
@@ -2915,7 +2916,7 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.ydata.create_party(header, chgarea=False)
             return True
 
-    def OnClickExBtn(self, event):
+    def OnClickExBtn(self, event: wx.CommandEvent) -> None:
         """
         拡張。
         """
@@ -2944,7 +2945,7 @@ class PlayerSelect(MultiViewSelect):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def grow_adventurer(self):
+    def grow_adventurer(self) -> None:
         """冒険者を成長させる。
         """
         header = self.list[self.index]
@@ -3002,7 +3003,7 @@ class PlayerSelect(MultiViewSelect):
         else:
             dlg.Destroy()
 
-    def delete_adventurer(self):
+    def delete_adventurer(self) -> None:
         """冒険者を削除する。
         """
         cw.cwpy.play_sound("signal")
@@ -3019,7 +3020,7 @@ class PlayerSelect(MultiViewSelect):
 
         dlg.Destroy()
 
-    def _move_allcards(self, header):
+    def _move_allcards(self, header: cw.header.AdventurerHeader) -> None:
         # 全ての手札カードをカード置場へ移動する
         data = cw.data.yadoxml2etree(header.fpath)
         ccard = cw.character.Character(data)
@@ -3028,7 +3029,7 @@ class PlayerSelect(MultiViewSelect):
                 cw.cwpy.trade("STOREHOUSE", header=card, from_event=True, sort=False)
         cw.cwpy.ydata.sort_storehouse()
 
-    def _delete_adventurer(self, header):
+    def _delete_adventurer(self, header: cw.header.AdventurerHeader) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self._move_allcards(header)
@@ -3052,7 +3053,7 @@ class PlayerSelect(MultiViewSelect):
         else:
             self.index = 0
 
-    def select_partyrecord(self):
+    def select_partyrecord(self) -> None:
         """編成記録ダイアログを開く。
         """
         cw.cwpy.play_sound("click")
@@ -3102,7 +3103,7 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.frame.exec_func(func, panel)
         cw.cwpy.exec_func(func, self)
 
-    def create_randomadventurer(self):
+    def create_randomadventurer(self) -> None:
         """ランダムな特性を持つキャラクターを生成する。
         """
         if self._processing:
@@ -3163,7 +3164,7 @@ class PlayerSelect(MultiViewSelect):
 
         self._processing = False
 
-    def OnClickInfoBtn(self, event):
+    def OnClickInfoBtn(self, event: wx.CommandEvent) -> None:
         from . import charainfo
 
         if self._processing:
@@ -3174,7 +3175,7 @@ class PlayerSelect(MultiViewSelect):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def update_character(self):
+    def update_character(self) -> None:
         def func():
             header = self.list[self.index]
             order = header.order
@@ -3234,7 +3235,7 @@ class PlayerSelect(MultiViewSelect):
         else:
             return [(10, header) for header in mlist]
 
-    def _get_bg(self):
+    def _get_bg(self) -> wx.Bitmap:
         if self._bg:
             return self._bg
         path = "Table/Book"
@@ -3242,7 +3243,7 @@ class PlayerSelect(MultiViewSelect):
         self._bg = cw.util.load_wxbmp(path, can_loaded_scaledimage=True)
         return self._bg
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         dc, dest = self.draw2(update)
         # 背景
         bmp = cw.wins(self._get_bg())
@@ -3443,7 +3444,7 @@ class Album(PlayerSelect):
     アルバムダイアログ。
     冒険者選択ダイアログを継承している。
     """
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["album"])
         self._bg = None
@@ -3475,19 +3476,19 @@ class Album(PlayerSelect):
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickDelBtn, self.delbtn)
 
-    def can_clickcenter(self):
+    def can_clickcenter(self) -> bool:
         return False
 
     def OnMouseWheel(self, event):
         Select.OnMouseWheel(self, event)
 
-    def _add_topsizer(self):
+    def _add_topsizer(self) -> None:
         pass
 
     def update_narrowcondition(self):
         pass
 
-    def OnClickDelBtn(self, event):
+    def OnClickDelBtn(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("signal")
         header = self.list[self.index]
         s = cw.cwpy.msgs["confirm_delete_character_in_album"] % (header.name)
@@ -3507,7 +3508,7 @@ class Album(PlayerSelect):
 
         dlg.Destroy()
 
-    def enable_btn(self):
+    def enable_btn(self) -> None:
         # リストが空だったらボタンを無効化
         if not self.list:
             self._disable_btn((self.closebtn,))

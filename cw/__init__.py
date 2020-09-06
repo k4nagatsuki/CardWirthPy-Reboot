@@ -260,7 +260,7 @@ def wins(num: Union[wx.Bitmap, Tuple[int, int], int, pygame.Rect, Tuple[int, int
     return _s_impl(num, UP_WIN)
 
 
-def s(num: Union[int, Tuple[int, int], util.Depth1Surface]) -> Union[int, Tuple[int, int], util.Depth1Surface]:
+def s(num: Union[int, Tuple[int, int], pygame.Surface]) -> Union[int, Tuple[int, int], pygame.Surface]:
     """numを描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
          or pygame.Surface or pygame.Bitmap or pygame.Image
@@ -312,7 +312,7 @@ def mwin2scr_s(num: wx.Image) -> wx.Image:
         return _s_impl(num, float(UP_SCR) / UP_WIN_M)
 
 
-def _s_impl(num: Union[wx.Bitmap, wx.Image, Tuple[int, int], int, pygame.Rect,
+def _s_impl(num: Union[wx.Bitmap, wx.Image, pygame.Surface, Tuple[int, int], int, pygame.Rect,
                        Tuple[int, int, int, int]], up_scr: Union[int, float])\
         -> Union[wx.Bitmap, wx.Image, Tuple[int, int], int, pygame.Rect, Tuple[int, int, int, int]]:
     if isinstance(num, tuple) and len(num) == 3 and num[2] is None:
@@ -394,6 +394,7 @@ def _s_impl(num: Union[wx.Bitmap, wx.Image, Tuple[int, int], int, pygame.Rect,
         up_scr /= scr_scale
         if up_scr == 1:
             return num
+        assert isinstance(num, pygame.Surface)
         w = int(num.get_width() * up_scr)
         h = int(num.get_height() * up_scr)
         if w <= 0 or h <= 0:

@@ -3,6 +3,8 @@
 
 import cw
 
+from typing import Union
+
 
 class Feature(object):
     """特性の定義。性別、年代、素質、特徴に派生する。"""
@@ -36,7 +38,8 @@ class Feature(object):
         # 狡猾-正直
         self.trickish = self.data.getfloat("Mental", "trickish", 0.0)
 
-    def modulate(self, data, physical=True, mental=True):
+    def modulate(self, data: Union["cw.dialog.create.AdventurerData", "cw.debug.charaedit.CharaInfo"],
+                 physical: bool = True, mental: bool = True) -> None:
         """dataの能力値を特性によって調整する。"""
         if physical:
             data.dex += self.dexbonus
@@ -52,7 +55,8 @@ class Feature(object):
             data.cautious += self.cautious
             data.trickish += self.trickish
 
-    def demodulate(self, data, physical=True, mental=True):
+    def demodulate(self, data: Union["cw.dialog.create.AdventurerData", "cw.debug.charaedit.CharaInfo"],
+                   physical: bool = True, mental: bool = True) -> None:
         """modulate()と逆の調整を行う。"""
         if physical:
             data.dex -= self.dexbonus
@@ -140,7 +144,7 @@ class SampleType(Feature):
         self.description = cw.util.decodewrap(self.data.gettext("Description", ""))
 
 
-def wrap_ability(data):
+def wrap_ability(data: Union["cw.dialog.create.AdventurerData", "cw.debug.charaedit.CharaInfo"]) -> None:
     """
     能力値の切り上げ・切り捨て。
     """

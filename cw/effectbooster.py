@@ -58,7 +58,7 @@ def wait_effectbooster(waittime, doanime):
 
 
 class AnimationCounter(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.count = 0
         self.skip_count = 0
         self.time_elapsed = 0
@@ -79,7 +79,7 @@ class AnimationCounter(object):
 
 
 class CutAnimation(AnimationCounter):
-    def __init__(self):
+    def __init__(self) -> None:
         AnimationCounter.__init__(self)
         self.all_cut = True
 

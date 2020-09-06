@@ -45,7 +45,7 @@ def create_versioninfo(parent: Union["SimpleSettingsPanel", "SettingsPanel"]) ->
     parent.versioninfo.SetMinSize((w + cw.ppis(15), h))
 
 
-def apply_levelupparams(can_levelup):
+def apply_levelupparams(can_levelup: bool) -> None:
     """レベル調節に関する状況が変わった時に呼び出され、
     レベルアップ不可→可能になった時にレベル上昇処理を行う。
     """
@@ -126,7 +126,7 @@ class SettingsDialog(wx.Dialog):
         if self.panel:
             self.panel.btn_apply.Enable()
 
-    def clear_applied(self):
+    def clear_applied(self) -> None:
         if self.panel:
             self.panel.btn_apply.Disable()
 
@@ -208,7 +208,7 @@ class SimpleSettingsPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_BUTTON, self.OnDetails, id=self.btn_details.GetId())
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         self.apply()
         if sys.platform == "win32":
             # FIXME: クローズしながらスキンを切り替えると時々エラーになる
@@ -226,7 +226,7 @@ class SimpleSettingsPanel(wx.Panel):
     def OnApply(self, event):
         self.apply()
 
-    def apply(self):
+    def apply(self) -> None:
         # 設定変更前はレベル上昇が可能な状態だったか
         can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
 
@@ -265,7 +265,7 @@ class SimpleSettingsPanel(wx.Panel):
     def OnClose(self, event):
         self.Parent.Close()
 
-    def close(self):
+    def close(self) -> None:
         pass
 
     def OnDetails(self, event: wx.CommandEvent) -> None:
@@ -1161,7 +1161,7 @@ class SkinPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def apply_skin(self, forceupdate):
+    def apply_skin(self, forceupdate: bool) -> bool:
         skinname = self.ch_skin.GetSelection()
         skinname = self.skindirs[skinname]
         if forceupdate or cw.cwpy.setting.skindirname != skinname:
@@ -1299,7 +1299,7 @@ class ExpandPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def apply_expand(self, setting):
+    def apply_expand(self, setting: cw.setting.Setting) -> None:
         """拡大設定を反映する。"""
         update = (setting == cw.cwpy.setting)
         if self.options:
@@ -1786,7 +1786,7 @@ class SpeedPanel(wx.Panel):
     def OnUseBattleSpeed(self, event):
         self.sl_deal_battle.Enable(not self.cb_use_battlespeed.GetValue())
 
-    def apply_speed(self, setting):
+    def apply_speed(self, setting: cw.setting.Setting) -> bool:
         updatemessage = False
         dealspeed = self.sl_deal.GetValue()
         if self.battlespeed:

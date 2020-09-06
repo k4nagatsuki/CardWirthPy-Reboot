@@ -1578,7 +1578,7 @@ class CardEvent(Event, Targeting):
         selectedmember = cw.cwpy.event.get_selectedmember()
 
         # Effectインスタンス作成
-        motions = data.getfind("Motions").getchildren()
+        motions = data.getfind("Motions")
         eff = cw.effectmotion.Effect(motions, d, battlespeed=cw.cwpy.is_battlestatus())
         self.eff = eff
         eff.update_status(selectedmember=selectedmember)

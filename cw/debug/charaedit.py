@@ -7,13 +7,15 @@ import wx
 
 import cw
 
+from typing import List, Optional
+
 
 # ------------------------------------------------------------------------------
 # キャラクター情報編集ダイアログ
 # ------------------------------------------------------------------------------
 
 class CharacterEditDialog(wx.Dialog):
-    def __init__(self, parent, selected=-1, create=False):
+    def __init__(self, parent: wx.TopLevelWindow, selected: int = -1, create: bool = False) -> None:
         wx.Dialog.__init__(self, parent, -1, "キャラクターの情報の編集",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -82,7 +84,7 @@ class CharacterEditDialog(wx.Dialog):
 
         self.select_target()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectTarget, self.target)
         self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
@@ -94,7 +96,7 @@ class CharacterEditDialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnReCalcCoupons, self.recalc_coupons)
         self.Bind(wx.EVT_CHECKBOX, self.OnDebugCoupon, self.debug_coupon)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         if not self.create:
             sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
@@ -126,7 +128,7 @@ class CharacterEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def _get_infos(self):
+    def _get_infos(self) -> List["CharaInfo"]:
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員
@@ -135,7 +137,7 @@ class CharacterEditDialog(wx.Dialog):
             # 誰か一人
             return [self.infos[cindex-1]]
 
-    def OnReCalcMaxLife(self, event):
+    def OnReCalcMaxLife(self, event: wx.CommandEvent) -> None:
         s3 = self.recalc_maxlife.Get3StateValue()
         if s3 == wx.CHK_UNDETERMINED:
             return
@@ -143,7 +145,7 @@ class CharacterEditDialog(wx.Dialog):
         for info in self._get_infos():
             info.recalc_maxlife = checked
 
-    def OnReCalcParameter(self, event):
+    def OnReCalcParameter(self, event: wx.CommandEvent) -> None:
         s3 = self.recalc_parameter.Get3StateValue()
         if s3 == wx.CHK_UNDETERMINED:
             return
@@ -153,7 +155,7 @@ class CharacterEditDialog(wx.Dialog):
         if self.stdbtn:
             self.stdbtn.Enable(checked)
 
-    def OnReCalcCoupons(self, event):
+    def OnReCalcCoupons(self, event: wx.CommandEvent) -> None:
         s3 = self.recalc_coupons.Get3StateValue()
         if s3 == wx.CHK_UNDETERMINED:
             return
@@ -161,7 +163,7 @@ class CharacterEditDialog(wx.Dialog):
         for info in self._get_infos():
             info.recalc_coupons = checked
 
-    def OnDebugCoupon(self, event):
+    def OnDebugCoupon(self, event: wx.CommandEvent) -> None:
         s3 = self.debug_coupon.Get3StateValue()
         if s3 == wx.CHK_UNDETERMINED:
             return
@@ -169,7 +171,7 @@ class CharacterEditDialog(wx.Dialog):
         for info in self._get_infos():
             info.debug_coupon = checked
 
-    def OnLeftBtn(self, event):
+    def OnLeftBtn(self, event: wx.CommandEvent) -> None:
         index = self.target.GetSelection()
         if index <= 0:
             self.target.SetSelection(len(self.infos))
@@ -177,7 +179,7 @@ class CharacterEditDialog(wx.Dialog):
             self.target.SetSelection(index - 1)
         self.select_target()
 
-    def OnRightBtn(self, event):
+    def OnRightBtn(self, event: wx.CommandEvent) -> None:
         index = self.target.GetSelection()
         if len(self.infos) <= index:
             self.target.SetSelection(0)
@@ -188,7 +190,7 @@ class CharacterEditDialog(wx.Dialog):
     def OnSelectTarget(self, event):
         self.select_target()
 
-    def OnStandardType(self, event):
+    def OnStandardType(self, event: wx.CommandEvent) -> None:
         seq = ["カスタム"]
         for sample in cw.cwpy.setting.sampletypes:
             seq.append(sample.name)
@@ -212,11 +214,11 @@ class CharacterEditDialog(wx.Dialog):
             self.pane_req.select_target(cindex)
         dlg.Destroy()
 
-    def OnAutoBtn(self, event):
+    def OnAutoBtn(self, event: wx.CommandEvent) -> None:
         self.pane_req.set_random()
         self.pane_sel.set_random()
 
-    def OnOkBtn(self, event):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
         if self.create:
             self.fpath = self.infos[0].create_adventurer()
         else:
@@ -239,7 +241,7 @@ class CharacterEditDialog(wx.Dialog):
 
         self.EndModal(wx.ID_OK)
 
-    def select_target(self):
+    def select_target(self) -> None:
         cindex = self.target.GetSelection()
         self.pane_req.select_target(cindex)
         self.pane_sel.select_target(cindex)
@@ -287,7 +289,7 @@ class CharacterEditDialog(wx.Dialog):
 
 class CharaInfo(object):
 
-    def __init__(self, pcard, debug_coupon=True):
+    def __init__(self, pcard: Optional["cw.character.Player"], debug_coupon: bool = True) -> None:
         if pcard:
             self.name = pcard.name
             self.race = pcard.get_race()
@@ -356,7 +358,7 @@ class CharaInfo(object):
             self.name = ""
             self.race = cw.cwpy.setting.unknown_race
             self.imgpaths = []
-            self.imgpaths_base = ""
+            self.imgpaths_base = []
             self.can_loaded_scaledimage = True
             self.can_loaded_scaledimage_base = self.can_loaded_scaledimage
             self.level = 1
@@ -377,7 +379,7 @@ class CharaInfo(object):
         self.debug_coupon_init = self.debug_coupon
         self.input_name = self.name
 
-    def set_randomfeatures(self):
+    def set_randomfeatures(self) -> None:
         """ランダムに特性を設定する。
         """
         self.race = cw.cwpy.dice.choice(cw.cwpy.setting.races)\
@@ -402,7 +404,7 @@ class CharaInfo(object):
 
         self.type = None
 
-    def get_paramtype(self, info):
+    def get_paramtype(self, info: "cw.character.Player") -> Optional[cw.features.SampleType]:
         for ctype in cw.cwpy.setting.sampletypes:
             if self.race.agl + ctype.aglbonus == info.physical["agl"] and\
                self.race.dex + ctype.dexbonus == info.physical["dex"] and\
@@ -418,7 +420,7 @@ class CharaInfo(object):
                 return ctype
         return None
 
-    def _calc_params(self):
+    def _calc_params(self) -> None:
         # 能力値の再計算
         race = self.race
         self.maxdex = race.dex + 6
@@ -497,7 +499,7 @@ class CharaInfo(object):
                         break
                 break
 
-    def put_params(self, pcard):
+    def put_params(self, pcard: "cw.character.Player") -> bool:
         self._calc_params()
 
         updatebase = (self.recalc_parameter and not self.recalc_parameter_init) or\
@@ -728,7 +730,7 @@ class CharaInfo(object):
 
         return updatebase or updateetc or updatelife
 
-    def create_adventurer(self, setlevel=True):
+    def create_adventurer(self, setlevel: bool = True) -> str:
         makings = self.get_makingslist()
 
         data = cw.dialog.create.AdventurerData()
@@ -771,7 +773,7 @@ class CharaInfo(object):
             data.set_coupon("＠デバグ", 0)
         return cw.xmlcreater.create_adventurer(data)
 
-    def get_makingslist(self):
+    def get_makingslist(self) -> List[str]:
         # 特徴の順序が不定になっているため、定義順にする
         makings = []
         for making in cw.cwpy.setting.makingcoupons:
@@ -782,7 +784,7 @@ class CharaInfo(object):
 
 class CharaRequirementPanel(wx.Panel):
 
-    def __init__(self, parent, infos, create):
+    def __init__(self, parent: wx.Panel, infos: List[CharaInfo], create: bool) -> None:
         wx.Panel.__init__(self, parent, -1)
         self.infos = infos
         self.create = create
@@ -858,7 +860,7 @@ class CharaRequirementPanel(wx.Panel):
         self._bind()
         self._do_layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_TEXT, self.OnName, self.name)
         self.Bind(wx.EVT_BUTTON, self.OnAutoName, self.autoname)
         self.Bind(wx.EVT_BUTTON, self.OnLevelBtn, self.levelbtn)
@@ -872,7 +874,7 @@ class CharaRequirementPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnAutoBtn, self.autobtn)
         self.imgbox.Bind(wx.EVT_DROP_FILES, self.OnImgBoxDropFiles)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_name = wx.StaticBoxSizer(self.namebox, wx.HORIZONTAL)
         sizer_name.Add(cw.ppis(5), 0, 0)
         sizer_name.Add(self.name, 1, wx.RIGHT | wx.BOTTOM | wx.CENTER, cw.ppis(2))
@@ -932,7 +934,7 @@ class CharaRequirementPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def OnName(self, event):
+    def OnName(self, event: wx.CommandEvent) -> None:
         if self._proc:
             return
         self.Parent.Parent.okbtn.Enable(False)
@@ -941,7 +943,7 @@ class CharaRequirementPanel(wx.Panel):
             info.input_name = info.name
         self._update_okbtn()
 
-    def OnAutoName(self, event):
+    def OnAutoName(self, event: wx.CommandEvent) -> None:
         if self._proc:
             return
         self._proc = True
@@ -961,11 +963,11 @@ class CharaRequirementPanel(wx.Panel):
         self._update_okbtn()
         self._proc = False
 
-    def _update_okbtn(self):
+    def _update_okbtn(self) -> None:
         for info in self._get_infos():
             self.Parent.Parent.okbtn.Enable(0 < len(info.name.strip()))
 
-    def OnLevelBtn(self, event):
+    def OnLevelBtn(self, event: wx.CommandEvent) -> None:
         infos = self._get_infos()
 
         level = 1
@@ -986,7 +988,7 @@ class CharaRequirementPanel(wx.Panel):
             self.levelbtn.SetLabel("Lv %s" % (dlg.value))
         dlg.Destroy()
 
-    def OnSelectImage(self, event):
+    def OnSelectImage(self, event: wx.CommandEvent) -> None:
         infos = self._get_infos()
 
         if self.imgcombo.GetSelection() == 0:
@@ -1042,20 +1044,20 @@ class CharaRequirementPanel(wx.Panel):
             info.sex = "＿" + self.sexes.GetStringSelection()
         self._update_images()
 
-    def OnSelectAge(self, event):
+    def OnSelectAge(self, event: wx.CommandEvent) -> None:
         for info in self._get_infos():
             info.age = "＿" + self.periods.GetStringSelection()
         self._update_images()
 
-    def OnSelectTalent(self, event):
+    def OnSelectTalent(self, event: wx.CommandEvent) -> None:
         for info in self._get_infos():
             info.talent = "＿" + self.natures.GetStringSelection()
         self._update_images()
 
-    def OnAutoBtn(self, event):
+    def OnAutoBtn(self, event: wx.CommandEvent) -> None:
         self.set_random()
 
-    def _update_images(self, img=None):
+    def _update_images(self, img: Optional[List[cw.image.ImageInfo]] = None) -> None:
         if img is None:
             img = []
         self.Freeze()
@@ -1095,7 +1097,7 @@ class CharaRequirementPanel(wx.Panel):
         self._select_image()
         self.Thaw()
 
-    def _select_image(self):
+    def _select_image(self) -> None:
         infos = self._get_infos()
 
         if self.imgcombo.GetSelection() == 0:
@@ -1130,7 +1132,7 @@ class CharaRequirementPanel(wx.Panel):
             postype = "Center" if self.imgcentering.GetValue() else "Default"
             self.img.SetBitmap([cw.ppis(bmp)], [bmp], infos=[cw.image.ImageInfo(img, postype=postype)])
 
-    def _get_infos(self):
+    def _get_infos(self) -> List[CharaInfo]:
         if self.cindex == 0:
             # 全員
             return self.infos
@@ -1138,7 +1140,7 @@ class CharaRequirementPanel(wx.Panel):
             # 誰か一人
             return [self.infos[self.cindex-1]]
 
-    def select_target(self, cindex):
+    def select_target(self, cindex: int) -> None:
         self._proc = True
         self.cindex = cindex
         name = ""
@@ -1229,7 +1231,7 @@ class CharaRequirementPanel(wx.Panel):
         self.Layout()
         self._proc = False
 
-    def set_random(self):
+    def set_random(self) -> None:
         infos = self._get_infos()
 
         for info in infos:
@@ -1268,7 +1270,7 @@ class CharaRequirementPanel(wx.Panel):
 
 class CharaSelectablePanel(wx.Panel):
 
-    def __init__(self, parent, infos, create):
+    def __init__(self, parent: wx.Panel, infos: List[CharaInfo], create: bool) -> None:
         wx.Panel.__init__(self, parent, -1)
         self.infos = infos
         self.create = create
@@ -1287,13 +1289,13 @@ class CharaSelectablePanel(wx.Panel):
         self._bind()
         self._do_layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         for check in self.makings:
             self.Bind(wx.EVT_CHECKBOX, self.OnCheck, check)
         self.Bind(wx.EVT_BUTTON, self.OnAutoBtn, self.autobtn)
         self.Bind(wx.EVT_BUTTON, self.OnClearBtn, self.clearbtn)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         cols = 4
         sizer_checks = wx.GridBagSizer()
         for i, check in enumerate(self.makings):
@@ -1349,7 +1351,7 @@ class CharaSelectablePanel(wx.Panel):
                     if making in info.makings:
                         info.makings.remove(making)
 
-    def OnAutoBtn(self, event):
+    def OnAutoBtn(self, event: wx.CommandEvent) -> None:
         self.set_random()
 
     def OnClearBtn(self, event):
@@ -1357,7 +1359,7 @@ class CharaSelectablePanel(wx.Panel):
             info.makings.clear()
         self.select_target(self.cindex)
 
-    def _get_infos(self):
+    def _get_infos(self) -> List[CharaInfo]:
         if self.cindex == 0:
             # 全員
             return self.infos
@@ -1365,7 +1367,7 @@ class CharaSelectablePanel(wx.Panel):
             # 誰か一人
             return [self.infos[self.cindex-1]]
 
-    def select_target(self, cindex):
+    def select_target(self, cindex: int) -> None:
         self.cindex = cindex
         if self.cindex == 0:
             # 全員
@@ -1385,7 +1387,7 @@ class CharaSelectablePanel(wx.Panel):
                 making = "＿" + check.GetLabel()
                 check.SetValue(making in self.infos[cindex-1].makings)
 
-    def set_random(self):
+    def set_random(self) -> None:
         # 特徴をランダムに設定する
         for info in self._get_infos():
             info.makings.clear()

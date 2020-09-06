@@ -1514,7 +1514,7 @@ def get_effectivetargets(header, targets):
     targets: Characters
     """
     effecttype = header.carddata.gettext("Property/EffectType", "")
-    motions = header.carddata.getfind("Motions").getchildren()
+    motions = header.carddata.getfind("Motions")
 
     ignore_antimagic = header.type == "BeastCard" or header.penalty or not isinstance(header.get_owner(),
                                                                                       cw.character.Player)

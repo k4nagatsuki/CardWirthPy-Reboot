@@ -7,6 +7,8 @@ import cw
 from . import base
 from .. import character
 
+from typing import List, Optional
+
 
 class CWPyCard(base.SelectableSprite):
     cardimg: cw.image.CardImage
@@ -785,12 +787,12 @@ class PlayerCard(CWPyCard, character.Player):
     def get_showingname(self) -> str:
         return self.name
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
         assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         character.Player.set_name(self, name)
         self.cardimg.set_nameimg(self.get_name())
 
-    def set_images(self, paths):
+    def set_images(self, paths: List[cw.image.ImageInfo]) -> None:
         assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         paths = character.Player.set_images(self, paths)
         self.imgpaths = []
@@ -902,7 +904,8 @@ class PlayerCard(CWPyCard, character.Player):
         cw.animation.animate_sprite(self, "click")
         cw.cwpy.call_modaldlg("CHARAINFO")
 
-    def set_level(self, value, regulate=False, debugedit=False, backpack_party=None, revert_cardpocket=True):
+    def set_level(self, value: int, regulate: bool = False, debugedit: bool = False,
+                  backpack_party: Optional[cw.data.Party] = None, revert_cardpocket: bool = True) -> None:
         assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         character.Player.set_level(self, value, regulate, debugedit, backpack_party, revert_cardpocket)
         self.cardimg.set_levelimg(self.level)
@@ -1078,7 +1081,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             if self.spchars:
                 cw.cwpy.mcards_expandspchars.add(self)
 
-    def initialize(self):
+    def initialize(self) -> bool:
         if self._init:
             return True
 
@@ -1151,7 +1154,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             if self.actions[0] != act0:
                 self.deck.set(self, draw=False)
 
-    def get_showingname(self):
+    def get_showingname(self) -> str:
         assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         self.initialize()
         if self.spchars:

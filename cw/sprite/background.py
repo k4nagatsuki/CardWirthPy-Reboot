@@ -11,6 +11,8 @@ import cw
 from . import base
 from . import card
 
+from typing import Iterable, List, Optional, Tuple, Union
+
 # ------------------------------------------------------------------------------
 # 背景スプライト
 # ------------------------------------------------------------------------------
@@ -177,7 +179,7 @@ class BackGround(base.CWPySprite):
         self._curtains = []
         cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def store_filepath(self, path):
+    def store_filepath(self, path: str) -> None:
         if not cw.cwpy.is_playingscenario():
             return
         ext = os.path.splitext(path)[1].lower()
@@ -209,8 +211,9 @@ class BackGround(base.CWPySprite):
                     break
         return False
 
-    def load_surface(self, path, mask, smoothing, size, flag, doanime, visible=True, nocheckvisible=False,
-                     can_loaded_scaledimage=True):
+    def load_surface(self, path: str, mask: bool, smoothing: str, size: Tuple[int, int], flag: str,
+                     doanime: cw.effectbooster.CutAnimation, visible: bool = True, nocheckvisible: bool = False,
+                     can_loaded_scaledimage: bool = True) -> Tuple[pygame.Surface, bool, bool]:
         """背景サーフェスを作成。
         path: 背景画像ファイルのパス。
         mask: (0, 0)の色でマスクするか否か。透過画像を使う場合は無視。
@@ -623,13 +626,18 @@ class BackGround(base.CWPySprite):
         else:
             assert False
 
-    def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, cellname="", repldata=None,
-               movedata=None, ignoreeffectbooster=False, nocheckvisible=False):
+    def reload(self, doanime: bool = True, ttype: Tuple[str, str] = ("Default", "Default"), redraw: bool = True,
+               cellname: str = "", repldata: Optional[Iterable[cw.data.CWPyElement]] = None,
+               movedata: Optional[Tuple[str, int, int, str, int, int]] = None, ignoreeffectbooster: bool = False,
+               nocheckvisible: bool = False) -> bool:
         return self._reload(doanime, ttype, redraw, False, redisplay=False, cellname=cellname, repldata=repldata,
                             movedata=movedata, ignoreeffectbooster=ignoreeffectbooster, nocheckvisible=nocheckvisible)
 
-    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False,
-                redisplay=True, beforeload=False, cellname="", repldata=None, movedata=None, ignoreeffectbooster=False):
+    def _reload(self, doanime: bool = True, ttype: Tuple[str, str] = ("Default", "Default"), redraw: bool = True,
+                force: bool = False, nocheckvisible: bool = False, redisplay: bool = True, beforeload: bool = False,
+                cellname: str = "", repldata: Optional[Iterable[cw.data.CWPyElement]] = None,
+                movedata: Optional[Tuple[str, int, int, str, int, int]] = None,
+                ignoreeffectbooster: bool = False) -> bool:
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
@@ -852,7 +860,14 @@ class BackGround(base.CWPySprite):
 
         return (x, y)
 
-    def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime, nocheckvisible=False):
+    def _add_imagecell(self, blitlist: List[Tuple[int, Tuple[pygame.Surface, Tuple[int, int], Tuple[int, int], int],
+                                                  str, int]],
+                       bgs: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int],
+                                                  str, bool, int, str]]],
+                       oldbgs: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int],
+                                                     str, bool, int, str]]],
+                       d: Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str],
+                       doanime: cw.effectbooster.CutAnimation, nocheckvisible: bool = False) -> Tuple[bool, bool, bool]:
         path, inusecard, scaledimage, mask, smoothing, size, pos, flag, visible, layer, cellname = d
         basepath = path
         bginhrt = True
@@ -1071,7 +1086,13 @@ class BackGround(base.CWPySprite):
         self.pc_cache[pi+1] = (paths, can_loaded_scaledimage)
         return paths, can_loaded_scaledimage
 
-    def _load_after(self, bginhrt, blitlist, doanime, animated, ttype, oldbgs, redraw, redisplay):
+    def _load_after(self, bginhrt: bool, blitlist: List[Tuple[int, Tuple[pygame.Surface, Tuple[int, int],
+                                                                         Tuple[int, int], int], str, int]],
+                    doanime: bool, animated: bool, ttype: Optional[str],
+                    oldbgs: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int],
+                                                  str, bool, int, str]]],
+                    redraw: bool, redisplay: bool) \
+            -> Tuple[List[Tuple[int, Tuple[pygame.Surface, Tuple[int, int], Tuple[int, int], int], str, int]], bool]:
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
 
         if isinstance(ttype, cw.sprite.transition.Transition):
@@ -1139,7 +1160,11 @@ class BackGround(base.CWPySprite):
         return blitlist2, transition
 
 
-def _equals_bgs(bgs1, bgs2, visibleonly):
+def _equals_bgs(bgs1: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int], str, bool,
+                                            int, str]]],
+                bgs2: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int], str, bool,
+                                            int, str]]],
+                visibleonly: bool) -> bool:
     bgs1 = filter(lambda t: t[1], bgs1)
     bgs2 = filter(lambda t: t[1], bgs2)
     if visibleonly:
@@ -1168,7 +1193,11 @@ def _equals_bgs(bgs1, bgs2, visibleonly):
     return True
 
 
-def _draw_bgcell(surface, bgdata, allclip=None):
+def _draw_bgcell(surface: pygame.Surface,
+                 bgdata: Tuple[int, Union[Tuple[pygame.Surface, Tuple[int, int], Tuple[int, int], int],
+                                          Tuple[str, str, int, Tuple[int, int, int], bool, bool, bool, bool, bool, bool,
+                                                Tuple[int, int, int], Tuple[int, int], Tuple[int, int]]]],
+                 allclip: Optional[pygame.Rect] = None) -> pygame.Rect:
     bgtype, d = bgdata
     srect = surface.get_rect()
     clip = surface.get_clip()

@@ -92,7 +92,7 @@ def to_negative_for_card(image, framewidth=0):
     return outimage
 
 
-def to_negative_for_wxcard(wxbmp, framewidth=0):
+def to_negative_for_wxcard(wxbmp: wx.Bitmap, framewidth: int = 0) -> wx.Bitmap:
     """色反転したwx.Bitmapを返す。
     カード画像用なので外枠1ピクセルは色反転しない。
     wxbmp: wx.Bitmap
@@ -901,7 +901,7 @@ def to_disabledsurface(image):
     return to_grayscale(image)
 
 
-def add_lightness_for_wxbmp(wxbmp, lightness, maskpos=(0, 0)):
+def add_lightness_for_wxbmp(wxbmp: wx.Bitmap, lightness: int, maskpos: Tuple[int, int] = (0, 0)) -> wx.Bitmap:
     """
     通常時のボタン画像からdisabled用の画像を作る。
     RGB値の範囲を 0～255 から min～max に変更する。
@@ -1201,7 +1201,7 @@ class Font(object):
         else:
             self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
 
-    def _is_cachable(self, s):
+    def _is_cachable(self, s: str) -> bool:
         s = str(s)
         return len(s) == 1 and (('ぁ' <= s <= 'ヶ') or (0 <= ord(s) <= 255) or ('！' <= s <= 'ﾟ'))
 
@@ -1238,7 +1238,7 @@ class Font(object):
             _imageretouch.font_bold(self.fontinfo, v)
             _imageretouch.font_bold(self.fontinfo2x, v)
 
-    def get_italic(self):
+    def get_italic(self) -> bool:
         if self.font:
             return self.font.get_italic()
         else:
@@ -1271,7 +1271,7 @@ class Font(object):
             _imageretouch.font_underline(self.fontinfo, v)
             _imageretouch.font_underline(self.fontinfo2x, v)
 
-    def get_height(self):
+    def get_height(self) -> int:
         if self.font:
             return self.font.get_height()
         elif self.pixels < 0:
@@ -1285,25 +1285,25 @@ class Font(object):
         else:
             return _imageretouch.font_height(self.fontinfo)
 
-    def size(self, text):
+    def size(self, text: str) -> Tuple[int, int]:
         if self.font:
             return self.font.size(text)
         else:
             return _imageretouch.font_imagesize(self.fontinfo, text.encode("utf-8"), False)
 
-    def size_withoutoverhang(self, text):
+    def size_withoutoverhang(self, text: str) -> Tuple[int, int]:
         if self.font:
             return self.font_notitalic.size(text)
         else:
             return _imageretouch.font_size(self.fontinfo, text.encode("utf-8"))
 
-    def render(self, text, antialias, colour):
+    def render(self, text: str, antialias: bool, colour: Tuple[int, int, int]) -> pygame.Surface:
         return self._render_impl(text, antialias, colour, False)
 
     def render_sbold(self, text, antialias, colour):
         return self._render_impl(text, antialias, colour, True)
 
-    def _render_impl(self, text, antialias, colour, sbold):
+    def _render_impl(self, text: str, antialias: bool, colour: Tuple[int, int, int], sbold: bool) -> pygame.Surface:
         cachable = self._is_cachable(text)
         if cachable:
             key = (text, antialias, colour)

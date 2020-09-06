@@ -545,10 +545,10 @@ class CardControl(wx.Dialog):
         self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
         self._additional_controls()
 
-    def OnAdditionalControls(self, event):
+    def OnAdditionalControls(self, event: wx.lib.buttons.GenButtonEvent) -> None:
         self._additional_controls()
 
-    def _additional_controls(self):
+    def _additional_controls(self) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("equipment")
         self.Freeze()
@@ -564,7 +564,7 @@ class CardControl(wx.Dialog):
             self.Thaw()
         cw.cwpy.frame.exec_func(func)
 
-    def OnNarrowCondition(self, event):
+    def OnNarrowCondition(self, event: wx.CommandEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
         # 日本語入力で一度に何度もイベントが発生する
@@ -844,7 +844,7 @@ class CardControl(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.closebtn.GetId())
         self.ProcessEvent(btnevent)
 
-    def OnRightUp2(self, event):
+    def OnRightUp2(self, event: wx.MouseEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("click")
         # キャンセルボタンイベント
@@ -1307,7 +1307,7 @@ class CardControl(wx.Dialog):
             y = header.wxrect.top + cw.wins(20)
         return wx.Rect(x, y, bmp.GetWidth(), bmp.GetHeight()), x, y
 
-    def draw(self, update=True):
+    def draw(self, update: bool = True) -> None:
         if update:
             self.draw_cards(update)
         self.toppanel.Refresh()
@@ -1717,7 +1717,7 @@ class CardControl(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def rclick_event(self, header):
+    def rclick_event(self, header: Union[cw.header.CardHeader, cw.header.InfoCardHeader]) -> None:
         from . import cardinfo
 
         dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
@@ -2207,7 +2207,7 @@ class CardHolder(CardControl):
         else:
             assert False
 
-    def OnPageSetFocus(self, event):
+    def OnPageSetFocus(self, event: wx.FocusEvent) -> None:
         def func():
             self.page.SetSelection(0, len(str(self.page.GetValue())))
         cw.cwpy.frame.exec_func(func)
@@ -2303,16 +2303,16 @@ class CardHolder(CardControl):
         else:
             return False
 
-    def OnShowSkill(self, event):
+    def OnShowSkill(self, event: wx.lib.buttons.GenButtonEvent) -> None:
         self._on_show(cw.POCKET_SKILL)
 
-    def OnShowItem(self, event):
+    def OnShowItem(self, event: wx.lib.buttons.GenButtonEvent) -> None:
         self._on_show(cw.POCKET_ITEM)
 
-    def OnShowBeast(self, event):
+    def OnShowBeast(self, event: wx.lib.buttons.GenButtonEvent) -> None:
         self._on_show(cw.POCKET_BEAST)
 
-    def _on_show(self, cardtype):
+    def _on_show(self, cardtype: int) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
         btn = self.show[cardtype]
@@ -2438,7 +2438,7 @@ class CardHolder(CardControl):
         else:
             CardControl.OnCancel(self, event)
 
-    def OnCancel2(self, event):
+    def OnCancel2(self, event: wx.CloseEvent) -> None:
         self._cancel_animation = True
         CardControl.OnCancel(self, event)
 
@@ -2795,7 +2795,7 @@ class CardHolder(CardControl):
 
         self.draw_cards()
 
-    def OnPageNum(self, event):
+    def OnPageNum(self, event: wx.lib.intctrl.IntUpdatedEvent) -> None:
         if self._proc_page:
             return
         if self.page.GetValue() < self.page.GetMin():
@@ -3085,7 +3085,8 @@ class CardHolder(CardControl):
 # ------------------------------------------------------------------------------
 
 class HandView(CardControl):
-    def __init__(self, parent, selection, pre_info=None):
+    def __init__(self, parent: wx.TopLevelWindow, selection: "cw.sprite.card.CWPyCard",
+                 pre_info: Optional[Tuple[str, Optional[int], wx.Point, Union[int, float]]] = None) -> None:
         self.callname = "HANDVIEW"
         self.owner = selection
 
@@ -3133,7 +3134,7 @@ class HandView(CardControl):
         # bind
         self._bind()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         CardControl._do_layout(self)
         if self.redeal:
             cwidth = cw.wins(520)
@@ -3143,7 +3144,7 @@ class HandView(CardControl):
             self.redeal.SetPosition((x, y))
             self.redeal.SetSize(cw.wins((24, 24)))
 
-    def _bind(self):
+    def _bind(self) -> None:
         CardControl._bind(self)
         if self.redeal:
             self.Bind(wx.EVT_BUTTON, self.OnReDeal, self.redeal)
@@ -3164,7 +3165,7 @@ class HandView(CardControl):
             self.leftbtn.Enable(len(self.list2) != 1)
             self.Refresh()
 
-    def _update_cardlist(self, selection):
+    def _update_cardlist(self, selection: cw.character.Character) -> None:
         status = "active"
         if isinstance(selection, cw.character.Player):
             self.list2 = cw.cwpy.get_pcards(status)
@@ -3232,17 +3233,17 @@ class HandView(CardControl):
         self.Parent.change_selection(self.selection)
         self.draw_cards()
 
-    def draw_cards(self, update=True, mode=-1):
+    def draw_cards(self, update: bool = True, mode: int = -1) -> None:
         if self.selection:
             self.list = self.selection.deck.hand
             s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
             self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
         CardControl.draw_cards(self, update, mode)
 
-    def get_headers(self):
+    def get_headers(self) -> List[cw.header.CardHeader]:
         return self.list
 
-    def _draw_additionals(self, dc):
+    def _draw_additionals(self, dc: wx.DC) -> None:
         if self.redeal and self.redeal.IsShown():
             fh = dc.GetTextExtent("#")[1]
             fy = (cw.wins(24) - fh) // 2
@@ -3432,7 +3433,7 @@ class ReplCardHolder(CardControl):
 # ------------------------------------------------------------------------------
 
 class InfoView(CardHolder):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         # ダイアログ作成
         CardHolder.__init__(self, parent, "INFOVIEW", None)
 

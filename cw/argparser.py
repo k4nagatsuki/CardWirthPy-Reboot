@@ -125,7 +125,7 @@ class Arg(object):
         self.default = default
         self.metavar = metavar
 
-    def eat(self, args):
+    def eat(self, args: List[str]) -> Union[str, bool]:
         """argsからオプション引数を得る。
         argsの要素は、得られた引数の分だけ
         前方から除去される。
@@ -140,7 +140,7 @@ class Arg(object):
         else:
             return True
 
-    def parse(self, value):
+    def parse(self, value: str) -> str:
         """型に応じて引数をパースする。"""
         if self.type == int:
             return int(value)
