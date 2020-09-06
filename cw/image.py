@@ -15,8 +15,8 @@ from typing import Dict, Callable, Optional, List, Tuple, Union
 
 
 class ImageInfo(object):
-    def __init__(self, path: str = "", pcnumber: int = 0, base: None = None, postype: str = "Default",
-                 basecardtype: None = None) -> None:
+    def __init__(self, path: str = "", pcnumber: int = 0, base: Optional["ImageInfo"] = None, postype: str = "Default",
+                 basecardtype: Optional[str] = None) -> None:
         """
         カードなどの画像の定義。
         """

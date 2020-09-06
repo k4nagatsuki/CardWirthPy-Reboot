@@ -536,7 +536,10 @@ class EffectMotion(object):
                                       "cw.sprite.card.EnemyCard",
                                       "cw.sprite.card.FriendCard"]] = None,
                  header: Optional["cw.header.CardHeader"] = None, targetlevel: int = 0, refability: bool = False,
-                 vocation: None = None, absorbto: str = "None", selectedmember: None = None) -> None:
+                 vocation: Optional[Tuple[str, str]] = None, absorbto: str = "None",
+                 selectedmember: Optional[Union["cw.sprite.card.PlayerCard",
+                                                "cw.sprite.card.EnemyCard",
+                                                "cw.sprite.card.FriendCard"]] = None) -> None:
         """
         効果モーションインスタンスを生成。MotionElementと
         user(PlayerCard, EnemyCard)とheader(CardHeader)を引数に取る。
