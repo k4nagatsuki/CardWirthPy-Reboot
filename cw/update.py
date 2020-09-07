@@ -6,10 +6,10 @@ import shutil
 
 import cw
 
-from typing import List
+from typing import List, Optional
 
 
-def update_files(dpath: str, rmname: str, permit: List[str] = None) -> None:
+def update_files(dpath: str, rmname: str, permit: Optional[List[str]] = None) -> None:
     """
     "<dpath>/UpdateInfo.xml"の情報に基づいてファイルの移動や削除を行う。
     基本的にdpathより上位のディレクトリを操作する事はないが、

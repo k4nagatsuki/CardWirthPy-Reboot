@@ -7,13 +7,15 @@ import wx
 
 import cw
 
+from typing import List
+
 
 # ------------------------------------------------------------------------------
 # テキストダイアログ　スーパークラス
 # ------------------------------------------------------------------------------
 
 class Text(wx.Dialog):
-    def __init__(self, parent, name):
+    def __init__(self, parent: wx.TopLevelWindow, name: str) -> None:
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((550, 290)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
@@ -102,7 +104,7 @@ class Text(wx.Dialog):
         ]
         cw.util.set_acceleratortable(self, seq)
 
-    def _set_text(self, value):
+    def _set_text(self, value: bytes) -> None:
         self.richtextctrl.set_text(value, linkurl=True)
 
     def OnCombobox(self, event):
@@ -190,7 +192,7 @@ class Text(wx.Dialog):
         event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.combo.GetId())
         self.ProcessEvent(event)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         assert isinstance(self, Readme)
         dc = wx.PaintDC(self.toppanel)
         csize = self.toppanel.GetSize()
@@ -221,7 +223,7 @@ class Text(wx.Dialog):
             pos = pos[0] - cw.wins(30), pos[1] - cw.wins(10)
             cw.util.draw_box(dc, pos, size)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         sizer_toppanel = wx.BoxSizer(wx.VERTICAL)
@@ -248,7 +250,7 @@ class Text(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
 
-    def _enable_btn(self):
+    def _enable_btn(self) -> None:
         # リストが空だったらボタンを無効化
         if isinstance(self.Parent, cw.dialog.scenarioselect.ScenarioSelect) and self.Parent.list:
             if len(self.Parent.list) == 1:
@@ -270,7 +272,7 @@ class Text(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class Readme(Text):
-    def __init__(self, parent, name, lists):
+    def __init__(self, parent: wx.TopLevelWindow, name: str, lists: List["ReadmeData"]) -> None:
         cw.util.sort_by_attr(lists, "noextname")
         self.list = []
         self.index = 0

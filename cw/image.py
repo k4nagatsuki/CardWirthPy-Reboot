@@ -312,7 +312,7 @@ class CardImage(Image):
                 return True
         return False
 
-    def get_image(self):
+    def get_image(self) -> pygame.Surface:
         if self._bmp and not self.is_modifiedfile():
             return self._bmp.copy()
 
@@ -396,7 +396,7 @@ class CardImage(Image):
         self._bmp = image.copy()
         return image
 
-    def get_cardimg(self, header):
+    def get_cardimg(self, header: cw.header.CardHeader) -> pygame.Surface:
         if header.negaflag:
             image = self.get_negaimg()
         else:
@@ -728,7 +728,8 @@ class CardImage(Image):
         image = image.Rescale(size[0], size[1], quality=cw.RESCALE_QUALITY)
         return image.ConvertToBitmap()
 
-    def get_wxdealingbmp(self, header, wxbmp, n, test_aptitude=None):
+    def get_wxdealingbmp(self, header: cw.header.CardHeader, wxbmp: wx.Bitmap, n: int,
+                         test_aptitude: Optional["cw.character.Character"] = None) -> wx.Bitmap:
         size = (self.wxrect.width * n // 100, self.wxrect.height)
         if wxbmp:
             image = wxbmp

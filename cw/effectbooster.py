@@ -10,12 +10,14 @@ import pygame.locals
 
 import cw
 
+from typing import Dict, List, Optional, Tuple
+
 
 class ScreenRescale(Exception):
     pass
 
 
-def wait_effectbooster(waittime, doanime):
+def wait_effectbooster(waittime: int, doanime: "AnimationCounter"):
     if waittime:
         cw.cwpy.event.refresh_activeitem()
     if 0 < waittime:
@@ -64,13 +66,13 @@ class AnimationCounter(object):
         self.time_elapsed = 0
         self.all_cut = False
 
-    def get_reloadcounter(self):
+    def get_reloadcounter(self) -> "AnimationCounter":
         counter = AnimationCounter()
         counter.skip_count = self.count - 1
         counter.time_elapsed = self.time_elapsed
         return counter
 
-    def countup(self):
+    def countup(self) -> bool:
         self.count += 1
         if not self.all_cut and self.skip_count < self.count:
             return True
@@ -83,15 +85,15 @@ class CutAnimation(AnimationCounter):
         AnimationCounter.__init__(self)
         self.all_cut = True
 
-    def get_reloadcounter(self):
+    def get_reloadcounter(self) -> "CutAnimation":
         return self
 
-    def countup(self):
+    def countup(self) -> bool:
         return False
 
 
 class _JpySubImage(cw.image.Image):
-    def __init__(self, config, section, cache):
+    def __init__(self, config: "EffectBoosterConfig", section: str, cache: "JpyCache") -> None:
         self.configpath = config.path
         self.configdepth = config.dirdepth
         self.cache = cache
@@ -132,7 +134,7 @@ class _JpySubImage(cw.image.Image):
         self.is_animated = False  # アニメーションが発生したか
         self.can_mask = True  # 加工でマスクが無効になっていないか
 
-    def draw2back(self, back, mask):
+    def draw2back(self, back: "cw.sprite.background.BackGround", mask: bool) -> None:
         """背景に描画。"""
         assert isinstance(self, (JpyPartsImage, JpyBackGroundImage))
         if self.visible:
@@ -159,7 +161,7 @@ class _JpySubImage(cw.image.Image):
                     elif self.mask == 3:
                         back.image = cw.imageretouch.add_transparentmesh(back.image, setalpha=True)
 
-    def drawtemp(self, doanime):
+    def drawtemp(self, doanime: AnimationCounter) -> None:
         """一時描画。"""
         assert isinstance(self, (JpyPartsImage, JpyBackGroundImage))
 
@@ -251,7 +253,9 @@ class _JpySubImage(cw.image.Image):
 
             self.cache.save_position_noscale(pos_noscale)
 
-    def _drawtemp_impl(self, doanime, background, pos, redraw=True, anime=False, waittime=None, nowait=False):
+    def _drawtemp_impl(self, doanime: AnimationCounter, background: pygame.Surface,
+                       pos: Tuple[int, int], redraw: bool = True, anime: bool = False, waittime: Optional[int] = None,
+                       nowait: bool = False) -> None:
         """backgroundのposの位置に一時描画。"""
         if waittime is None:
             waittime = self.waittime
@@ -289,7 +293,7 @@ class _JpySubImage(cw.image.Image):
         if not nowait:
             self.wait(doanime, anime=anime, waittime=waittime)
 
-    def clip_tempimg(self, image, pos):
+    def clip_tempimg(self, image: pygame.Surface, pos: Tuple[int, int]) -> pygame.Surface:
         if self.animeclip:
             size = image.get_size()
             x, y, w, h = self.animeclip
@@ -314,7 +318,7 @@ class _JpySubImage(cw.image.Image):
 
         return image
 
-    def wait(self, doanime, anime=False, waittime=None):
+    def wait(self, doanime: AnimationCounter, anime: bool = False, waittime: Optional[int] = None) -> None:
         if waittime is None:
             waittime = self.waittime
 
@@ -336,7 +340,7 @@ class _JpySubImage(cw.image.Image):
             if doanime.countup():
                 wait_effectbooster(0, doanime=doanime)
 
-    def _cut_waittime(self, waittime):
+    def _cut_waittime(self, waittime: int) -> int:
         """
         待機時間からイメージの加工等を行うのにかかった時間を差し引いて返す。
         """
@@ -346,7 +350,7 @@ class _JpySubImage(cw.image.Image):
                 waittime -= min(waittime, tick-self.starttick)
         return waittime
 
-    def retouch(self):
+    def retouch(self) -> None:
         """画像加工。"""
         assert isinstance(self, (JpyPartsImage, JpyBackGroundImage))
         image = self.get_image()
@@ -540,7 +544,7 @@ class _JpySubImage(cw.image.Image):
 
         self.image = image
 
-    def load(self, doanime):
+    def load(self, doanime: AnimationCounter) -> None:
         """画像作成。"""
         assert isinstance(self, (JpyPartsImage, JpyBackGroundImage))
         path, can_loaded_scaledimage = self.get_filepath()
@@ -653,7 +657,7 @@ class _JpySubImage(cw.image.Image):
 
         self.image = image
 
-    def get_filepath(self, dirtype=-1):
+    def get_filepath(self, dirtype: int = -1) -> Tuple[str, bool]:
         """読み込むファイルのパスを取得する。"""
         if self.filename:
             if dirtype == -1:
@@ -663,7 +667,8 @@ class _JpySubImage(cw.image.Image):
             return ("", False)
 
 
-def get_filepath_s(configpath, dirdepth, filename, dirtype=-1, scedir=""):
+def get_filepath_s(configpath: str, dirdepth: str, filename: str, dirtype: int = -1,
+                   scedir: str = "") -> Tuple[str, int]:
     """dirtypeに基づいて読み込むファイルのパスを取得する。"""
     if dirtype == -1:
         dirtype = 1
@@ -799,7 +804,7 @@ def get_filepath_s(configpath, dirdepth, filename, dirtype=-1, scedir=""):
 
 
 class JpyPartsImage(_JpySubImage):
-    def __init__(self, config, section, cache, mask):
+    def __init__(self, config: "EffectBoosterConfig", section: str, cache: "JpyCache", mask: bool) -> None:
         _JpySubImage.__init__(self, config, section, cache)
         self.height = cw.s(config.get_int(section, "height", -1))
         self.width = cw.s(config.get_int(section, "width", None))
@@ -815,7 +820,7 @@ class JpyPartsImage(_JpySubImage):
 
 
 class JpyBackGroundImage(_JpySubImage):
-    def __init__(self, config, cache, mask):
+    def __init__(self, config: "EffectBoosterConfig", cache: "JpyCache", mask: bool) -> None:
         _JpySubImage.__init__(self, config, "init", cache)
         self.backcolor = config.get_color("init", "backcolor", (0, 0, 0))
         self.width = cw.s(config.get_int("init", "backwidth", None))
@@ -835,7 +840,8 @@ class JpyBackGroundImage(_JpySubImage):
 
 
 class JpyImage(cw.image.Image):
-    def __init__(self, path, mask=False, cache=None, doanime=None, parent=None):
+    def __init__(self, path: str, mask: bool = False, cache: Optional["JpyCache"] = None,
+                 doanime: Optional[AnimationCounter] = None, parent: Optional[_JpySubImage] = None) -> None:
         starttick = pygame.time.get_ticks()
         if not cache:
             cache = JpyCache()
@@ -919,7 +925,7 @@ class JpyCache(object):
     最後に一時描画したポジションや、
     キャッシュした画像をセーブ・ロードする。
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self.pos_noscale = None
         self.img = {}
         # 一時描画を削除するために描画前背景を保存する
@@ -927,26 +933,26 @@ class JpyCache(object):
         self.beforeback = None
         self.beforerect = None  # 一時描画された領域
 
-    def restore(self):
+    def restore(self) -> None:
         if self.before:
             self.beforeback.blit(self.before, self.beforerect.topleft)
             self.before = None
             self.beforeback = None
             self.beforerect = None
 
-    def save_position_noscale(self, pos_noscale):
+    def save_position_noscale(self, pos_noscale: Tuple[int, int]) -> None:
         self.pos_noscale = pos_noscale
 
-    def load_position_noscale(self):
+    def load_position_noscale(self) -> Tuple[int, int]:
         if self.pos_noscale:
             return self.pos_noscale
         else:
             return (0, 0)
 
-    def save_image(self, n, image):
+    def save_image(self, n: int, image: pygame.Surface) -> None:
         self.img[n] = image
 
-    def load_image(self, n):
+    def load_image(self, n: int) -> pygame.Surface:
         image = self.img.get(n, None)
 
         if image:
@@ -958,7 +964,8 @@ class JpyCache(object):
 
 
 class JpdcImage(cw.image.Image):
-    def __init__(self, mask, path, cache=None, defaultcopymode=2, doanime=None):
+    def __init__(self, mask: bool, path: str, cache: Optional[JpyCache] = None, defaultcopymode: int = 2,
+                 doanime: Optional[AnimationCounter] = None) -> None:
         if not doanime:
             doanime = AnimationCounter()
         config = EffectBoosterConfig(path, "jpdc:init")
@@ -1143,7 +1150,7 @@ class JpdcImage(cw.image.Image):
             self.image = self.image.convert()
             self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)
 
-    def wait(self, doanime):
+    def wait(self, doanime: AnimationCounter) -> None:
         # 右クリックするまで待機
         cw.cwpy.change_cursor("mouse")
 
@@ -1153,7 +1160,7 @@ class JpdcImage(cw.image.Image):
 
 
 class JptxImage(cw.image.Image):
-    def __init__(self, path, mask):
+    def __init__(self, path: str, mask: bool) -> None:
         config = EffectBoosterConfig(path, "jptx:init", section_ignorecase=False)
         if not config.has_section("jptx:init"):
             self.image = pygame.Surface((cw.s(1), cw.s(1))).convert_alpha()
@@ -1444,7 +1451,7 @@ class JptxImage(cw.image.Image):
             rect = self.image.get_rect()
             self.image = self.image.subsurface(rect.clip(pygame.Rect(0, 0, info.w, info.h)))
 
-    def get_fontcolor(self, fontcolor, default=(0, 0, 0)):
+    def get_fontcolor(self, fontcolor: str, default: Tuple[int, int, int] = (0, 0, 0)) -> Tuple[int, int, int]:
         if not fontcolor:
             return default
 
@@ -1498,7 +1505,7 @@ class JptxImage(cw.image.Image):
         else:
             return default
 
-    def parse_tag(self, tag):
+    def parse_tag(self, tag: str) -> Tuple[str, str, Dict[str, str]]:
         """HTMLタグをパースして、
         (スタートタグか否か, タグ名, 属性の辞書)のタプルを返す。
         """
@@ -1525,7 +1532,7 @@ class JptxImage(cw.image.Image):
 
 
 class EffectBoosterConfig(object):
-    def __init__(self, path, firstsection, section_ignorecase=True):
+    def __init__(self, path: str, firstsection: str, section_ignorecase: bool = True) -> None:
         self.path = path
         self.dirdepth = 0
         r_sec = re.compile(r'\[([^]]+)]')
@@ -1603,13 +1610,13 @@ class EffectBoosterConfig(object):
             self._sections[firstsection] = cur_sec
             self._orderedsecs.append(firstsection)
 
-    def sections(self):
+    def sections(self) -> List[str]:
         return self._orderedsecs
 
-    def has_section(self, name):
+    def has_section(self, name: str) -> bool:
         return name in self._sections
 
-    def get(self, section, option, default=None):
+    def get(self, section: str, option: str, default: Optional[str] = None) -> str:
         sec = self._sections.get(section, None)
 
         if sec:
@@ -1617,7 +1624,7 @@ class EffectBoosterConfig(object):
         else:
             return default
 
-    def get_int(self, section, option, default=None):
+    def get_int(self, section: str, option: str, default: Optional[int] = None) -> int:
         try:
             value = self.get(section, option, default)
             if value == default:
@@ -1629,10 +1636,11 @@ class EffectBoosterConfig(object):
         except ValueError:
             return default
 
-    def get_bool(self, section, option, default=None):
+    def get_bool(self, section: str, option: str, default: Optional[bool] = None) -> bool:
         return bool(self.get_int(section, option, default))
 
-    def get_color(self, section, option, default=None):
+    def get_color(self, section: str, option: str,
+                  default: Optional[Tuple[int, int, int]] = None) -> Tuple[int, int, int]:
         # 仕様にはないがCardWirthの実装では次の名称が有効
         colortable = {
                        "black":   (0x00, 0x00, 0x00),
@@ -1666,7 +1674,7 @@ class EffectBoosterConfig(object):
         except ValueError:
             return default
 
-    def get_ints(self, section, option, length, default=None):
+    def get_ints(self, section: str, option: str, length: int, default: Tuple[int, ...] = None) -> Tuple[int, ...]:
         try:
             s = self.get(section, option, default)
             if s == default:

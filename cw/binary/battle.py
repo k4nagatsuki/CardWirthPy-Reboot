@@ -141,7 +141,7 @@ class EnemyCard(base.CWBinaryBase):
         self.scale = f.dword()
         self.left = f.dword()
         self.top = f.dword()
-        self.escape = f.bool()
+        self.escape = f.boolean()
 
         self.data = None
 

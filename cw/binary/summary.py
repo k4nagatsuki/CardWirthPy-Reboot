@@ -222,7 +222,7 @@ class Flag(base.CWBinaryBase):
     def __init__(self, parent: Summary, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = f.string()
-        self.default = f.bool()
+        self.default = f.boolean()
         self.variable_names = [f.string() for _cnt in range(2)]
 
         self.data = None

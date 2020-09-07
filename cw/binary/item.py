@@ -43,8 +43,8 @@ class ItemCard(base.CWBinaryBase):
         self.description = f.string(True)
         self.p_ability = f.dword()
         self.m_ability = f.dword()
-        self.silence = f.bool()
-        self.target_all = f.bool()
+        self.silence = f.boolean()
+        self.target_all = f.boolean()
         self.target = f.byte()
         self.effect_type = f.byte()
         self.resist_type = f.byte()
@@ -65,7 +65,7 @@ class ItemCard(base.CWBinaryBase):
             self.scenario_author = f.string()
             events_num = f.dword()
             self.events = [event.SimpleEvent(self, f) for _cnt in range(events_num)]
-            self.hold = f.bool()
+            self.hold = f.boolean()
         else:
             self.scenario_name = ""
             self.scenario_author = ""

@@ -948,7 +948,7 @@ def colorwrap(num):
     return cw.util.numwrap(num, 0, 255)
 
 
-def decode_rle4data(data, h, bpl):
+def decode_rle4data(data: bytes, h: int, bpl: int) -> bytes:
     return _imageretouch.decode_rle4data(data, h, bpl)
 
 

@@ -8,7 +8,8 @@ import cw
 
 class InfoCard(base.CWBinaryBase):
     """widファイルの情報カードのデータ。"""
-    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+    def __init__(self, parent: None, f: cw.binary.cwfile.CWFile, yadodata: bool = False, nameonly: bool = False,
+                 materialdir: str = "Material", image_export: bool = True) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = f.byte()
         self.image = f.image()
@@ -32,7 +33,7 @@ class InfoCard(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> cw.data.CWPyElement:
         if self.data is None:
             if self.image:
                 self.imgpath = self.export_image()

@@ -600,7 +600,7 @@ class CardControl(wx.Dialog):
     def OnSortWithStar(self, event):
         pass
 
-    def OnEditStar(self, event):
+    def OnEditStar(self, event: wx.lib.buttons.GenButtonEvent) -> None:
         cw.cwpy.play_sound("page")
         self._cancel_animation = True
         self._update_editstar()
@@ -797,7 +797,7 @@ class CardControl(wx.Dialog):
     def _update_sortattr(self, draw=True):
         pass
 
-    def _replace_position(self, header1, header2):
+    def _replace_position(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader) -> None:
         bheaders = self.get_beforepageheaders()
         if bheaders and bheaders[-1] is header1:
             # 前ページの末尾にある場合
@@ -1407,7 +1407,7 @@ class CardControl(wx.Dialog):
         for pos, header in zip(poslist, headers):
             header.wxrect.topleft = pos
 
-    def is_showpersonal(self):
+    def is_showpersonal(self) -> bool:
         return False
 
     def get_headers(self):
@@ -1449,7 +1449,7 @@ class CardControl(wx.Dialog):
             self._after_event = func3
         self._after_event = func2
 
-    def animate_starclick(self, header, func):
+    def animate_starclick(self, header: cw.header.CardHeader, func: Callable) -> None:
         # スターのクリックアニメーション。4フレーム分。
         if self._proc:
             return
@@ -1480,7 +1480,7 @@ class CardControl(wx.Dialog):
             self._after_event = func3
         self._after_event = func2
 
-    def animate_replsclick(self, header, func):
+    def animate_replsclick(self, header: cw.header.CardHeader, func: Callable) -> None:
         # 位置入替矢印のクリックアニメーション。4フレーム分。
         if self._proc:
             return
@@ -1510,7 +1510,8 @@ class CardControl(wx.Dialog):
             self._after_event = func3
         self._after_event = func2
 
-    def _animate_dealhide(self, header1, header2, func, dealing_scales, lastscale):
+    def _animate_dealhide(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader, func: Callable,
+                          dealing_scales: List[int], lastscale: int) -> None:
         if self._proc:
             return
         self._proc = True
@@ -1569,10 +1570,10 @@ class CardControl(wx.Dialog):
         else:
             func2()
 
-    def animate_hide(self, header1, header2, func):
+    def animate_hide(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader, func: Callable) -> None:
         self._animate_dealhide(header1, header2, func, cw.cwpy.setting.dealing_scales, 0)
 
-    def animate_deal(self, header1, header2, func):
+    def animate_deal(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader, func: Callable) -> None:
         self._animate_dealhide(header1, header2, func, cw.cwpy.setting.dealing_scales[::-1], 100)
 
     def lclick_event(self, header: cw.header.CardHeader) -> None:
@@ -1742,7 +1743,9 @@ class CardControl(wx.Dialog):
             dlg.Destroy()
             self.toppanel.SetFocusIgnoringChildren()
 
-    def check_using(self, owner, header):
+    def check_using(self,
+                    owner: Union["cw.sprite.card.EnemyCard", "cw.sprite.card.PlayerCard", "cw.sprite.card.FriendCard"],
+                    header: cw.header.CardHeader) -> bool:
         assert isinstance(self, (CardHolder, HandView))
 
         # 隠蔽中は使用不可
@@ -2684,7 +2687,7 @@ class CardHolder(CardControl):
         else:
             CardControl.lclick_event(self, header)
 
-    def OnClickToggleBtn(self, event):
+    def OnClickToggleBtn(self, event: wx.lib.buttons.GenButtonEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("click")
 
@@ -3058,7 +3061,7 @@ class CardHolder(CardControl):
         self._update_page()
         self.draw_cards()
 
-    def _replace_position_impl(self, header1, header2):
+    def _replace_position_impl(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader) -> None:
         if self.callname in ("BACKPACK", "CARDPOCKETB"):
             seq = cw.cwpy.ydata.party.backpack
         elif self.callname == "STOREHOUSE":
@@ -3178,7 +3181,7 @@ class HandView(CardControl):
             self.list2 = [pcard for pcard in self.list2 if not pcard.is_autoselectedpenalty()]
         self.list2 = [pcard for pcard in self.list2 if pcard.deck.hand]
 
-    def _update_enemylist(self, selection):
+    def _update_enemylist(self, selection: "cw.sprite.card.EnemyCard") -> bool:
         if isinstance(selection, cw.character.Enemy):
             if cw.cwpy.is_debugmode():
                 self.list2 = cw.cwpy.get_ecards("active")
@@ -3446,11 +3449,11 @@ class InfoView(CardHolder):
     def is_showpersonal(self):
         return False
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         self.OnRightUp(event)
 
 
-def get_spacer_x(mode):
+def get_spacer_x(mode: int) -> int:
     """
     カード間の隙間の幅を返す。
     """

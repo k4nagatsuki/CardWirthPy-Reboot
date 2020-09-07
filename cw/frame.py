@@ -432,7 +432,7 @@ class Frame(wx.Frame):
         self._update_mousepressed()
         cw.cwpy.keyevent.clear()
 
-    def OnKeyUp(self, event):
+    def OnKeyUp(self, event: wx.KeyEvent) -> None:
         keycode = event.GetKeyCode()
         if keycode != wx.WXK_CONTROL:
             self.update_keystate()
@@ -440,7 +440,7 @@ class Frame(wx.Frame):
             keycode = wx.WXK_SNAPSHOT
         cw.cwpy.keyevent.keyup(keycode)
 
-    def OnKeyDown(self, event):
+    def OnKeyDown(self, event: wx.KeyEvent) -> None:
         keycode = event.GetKeyCode()
         if sys.platform == "win32" and keycode == wx.WXK_F4 and event.AltDown():
             return  # WindowsではAlt+F4はウィンドウを閉じる操作
@@ -511,7 +511,7 @@ class Frame(wx.Frame):
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=3)
         cw.thread.post_pygameevent(evt)
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -993,7 +993,7 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg, redraw=False)
 
-    def OnUSECARD(self, event):
+    def OnUSECARD(self, event: wx.PyCommandEvent) -> None:
         header = cw.cwpy.selectedheader
         owner = header.get_owner()
 
@@ -1039,7 +1039,7 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg, lockmenucard=True)
 
-    def OnDATACOMP(self, event):
+    def OnDATACOMP(self, event: wx.PyCommandEvent) -> None:
         ccard = event.args.get("ccard", None)
         dlg = cw.dialog.create.AdventurerDataComp(self, ccard)
         self.move_dlg(dlg)
@@ -1058,7 +1058,7 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-    def OnINSTRUCTIONS(self, event):
+    def OnINSTRUCTIONS(self, event: wx.PyCommandEvent) -> None:
         seq = []
         sdata = cw.cwpy.ydata.losted_sdata if cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata else cw.cwpy.sdata
         for fpath in sdata.instructions:
@@ -1074,7 +1074,7 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-    def OnF9(self, event):
+    def OnF9(self, event: wx.PyCommandEvent) -> None:
         s = (cw.cwpy.msgs["f9_message"])
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)

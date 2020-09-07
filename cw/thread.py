@@ -18,7 +18,7 @@ from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREV
 import cw
 from cw.util import synclock
 
-from typing import Callable, Dict, List, Optional, Type, Union
+from typing import Tuple, Callable, Dict, List, Optional, Type, Union
 
 # build_exe.pyによって作られる一時モジュール
 # cw.versioninfoからビルド時間の情報を得る
@@ -1160,7 +1160,7 @@ class CWPy(_Singleton, threading.Thread):
             for inusecard in self.inusecards:
                 self.add_lazydraw(clip=inusecard.rect)
 
-    def _in_partyarea(self, mousepos):
+    def _in_partyarea(self, mousepos: Tuple[int, int]) -> bool:
         """
         全員分の戦闘行動表示の有無を切り替えるため、
         マウスカーソルがプレイヤーエリアないし同行キャストエリアにあるかを判定する。
@@ -1182,7 +1182,7 @@ class CWPy(_Singleton, threading.Thread):
                 return True
         return False
 
-    def update_mousepos(self):
+    def update_mousepos(self) -> bool:
         if sys.platform != "win32":
             self.mousepos = self.wxmousepos
             return True
@@ -1268,7 +1268,7 @@ class CWPy(_Singleton, threading.Thread):
                             clip = pygame.Rect(clip2)
         return clip
 
-    def update_groups(self, groups):
+    def update_groups(self, groups: Tuple[pygame.sprite.LayeredDirty]) -> None:
         self.lazy_selection = None
         pointed_tile = self.pointed_tile
 
@@ -5662,7 +5662,7 @@ class CWPy(_Singleton, threading.Thread):
     def is_curtained(self):
         return self._curtained
 
-    def is_dealing(self):
+    def is_dealing(self) -> bool:
         return self._dealing
 
     def is_autospread(self):
@@ -5689,7 +5689,7 @@ class CWPy(_Singleton, threading.Thread):
     def is_showingdebugger(self) -> bool:
         return bool(self.frame.debugger)
 
-    def is_showingbacklog(self):
+    def is_showingbacklog(self) -> bool:
         return self._is_showingbacklog
 
     def is_debugmode(self) -> bool:
@@ -5808,7 +5808,7 @@ class CWPy(_Singleton, threading.Thread):
 
         return pcards
 
-    def get_fcards(self, mode=""):
+    def get_fcards(self, mode: str = "") -> List["cw.sprite.card.FriendCard"]:
         """FriendCardインスタンスのリストを返す。
         シナリオプレイ中以外は空のリストを返す。
         mode: "unreversed" or "active"

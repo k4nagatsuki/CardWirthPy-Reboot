@@ -6,6 +6,8 @@ import shutil
 
 import cw
 
+from typing import Tuple, Union
+
 
 class CWScenario(object):
     def __init__(self, path, dstdir, skintype, materialdir="Material", image_export=True):
@@ -119,7 +121,16 @@ class CWScenario(object):
         self.maxnum += len(self.otherfiles)
         self.maxnum += len(self.otherdirs)
 
-    def load_file(self, path, nameonly=False, decodewrap=False):
+    def load_file(self, path: str, nameonly: bool = False, decodewrap: bool = False) \
+            -> Tuple[Union["cw.binary.summary.Summary",
+                           "cw.binary.area.Area",
+                           "cw.binary.battle.Battle",
+                           "cw.binary.package.Package",
+                           "cw.binary.cast.CastCard",
+                           "cw.binary.skill.SkillCard",
+                           "cw.binary.item.ItemCard",
+                           "cw.binary.beast.BeastCard",
+                           "cw.binary.info.InfoCard"], bytes]:
         """引数のファイル(wid, wsmファイル)を読み込む。"""
         from . import cwfile
         from . import summary

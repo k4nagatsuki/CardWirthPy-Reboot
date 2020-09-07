@@ -1416,7 +1416,7 @@ class Setting(object):
         else:
             return self.skin_local
 
-    def get_inusecardalpha(self, sprite):
+    def get_inusecardalpha(self, sprite: "cw.sprite.card.CWPyCard") -> int:
         alpha = 160
         if sprite.alpha is not None:
             alpha = min(alpha, sprite.alpha)
@@ -1486,7 +1486,7 @@ class Setting(object):
     def msg_exfonts(self) -> Dict[str, Tuple[str, str, int, bool, bool, bool]]:
         return self.get_fontsetting().msg_exfonts
 
-    def is_logscrollable(self):
+    def is_logscrollable(self) -> bool:
         return self.messagelog_type != LOG_SINGLE
 
     def write(self):

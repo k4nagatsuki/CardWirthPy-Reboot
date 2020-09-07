@@ -364,7 +364,7 @@ class Scenariodb(object):
         if commit:
             self.con.commit()
 
-    def delete(self, path, commit=True):
+    def delete(self, path: str, commit: bool = True) -> None:
         path = path.replace("\\", "/")
         dpath, fname = os.path.split(path)
         s = "DELETE FROM scenariodb WHERE dpath=? AND fname=?"

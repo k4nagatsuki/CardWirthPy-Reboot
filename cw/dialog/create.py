@@ -18,7 +18,7 @@ from typing import Dict, List, Set, Tuple, Union, Callable, Optional
 # ------------------------------------------------------------------------------
 
 class AdventurerDataComp(wx.Dialog):
-    def __init__(self, parent, ccard):
+    def __init__(self, parent: wx.TopLevelWindow, ccard: "cw.sprite.card.FriendCard") -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["insufficiency_title"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -101,12 +101,12 @@ class AdventurerDataComp(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.rb_sex.Bind(wx.EVT_RADIOBOX, self.OnClickRbSex)
         self.rb_age.Bind(wx.EVT_RADIOBOX, self.OnClickRbAge)
         self.Bind(wx.EVT_BUTTON, self.OnClickOkBtn, self.okbtn)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -136,13 +136,13 @@ class AdventurerDataComp(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnClickOkBtn(self, event):
+    def OnClickOkBtn(self, event: wx.CommandEvent) -> None:
         self.ccard.set_sex(self.sex)
         self.ccard.set_age(self.age)
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def OnClickRbSex(self, event):
+    def OnClickRbSex(self, event: wx.CommandEvent) -> None:
         s = event.GetString()
 
         for index, name in enumerate(cw.cwpy.setting.sexnames):
@@ -150,7 +150,7 @@ class AdventurerDataComp(wx.Dialog):
                 self.sex = cw.cwpy.setting.sexcoupons[index]
                 break
 
-    def OnClickRbAge(self, event):
+    def OnClickRbAge(self, event: wx.CommandEvent) -> None:
         s = event.GetString()
 
         for index, name in enumerate(cw.cwpy.setting.periodnames):

@@ -617,7 +617,7 @@ class ScenarioSelect(select.Select):
         nsizer.Add(self.bookmark, 0, wx.CENTER | wx.EXPAND, 0)
         return nsizer
 
-    def _get_findpanelheight(self):
+    def _get_findpanelheight(self) -> int:
         h1 = self.keyword_label.GetSize()[1] + self.narrow.GetSize()[1] + cw.wins(1)*2
         h2 = self.narrow_label.GetSize()[1] + self.narrow_type.GetSize()[1] + cw.wins(1)*2
         h3 = self.sort_label.GetSize()[1] + self.sort.GetSize()[1]
@@ -666,7 +666,8 @@ class ScenarioSelect(select.Select):
             self.draw(True)
         self._no_treechangedsound = False
 
-    def _set_findresult(self, headers, selfirstheader, expand=True, selindex=-1):
+    def _set_findresult(self, headers: List[cw.header.ScenarioHeader], selfirstheader: bool, expand: bool = True,
+                        selindex: int = -1) -> None:
         slist = self.scetable[self._get_linktarget(self.scedir)]
         if slist and isinstance(slist[0], FindResult):
             findresult = slist[0]
@@ -1026,12 +1027,12 @@ class ScenarioSelect(select.Select):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
             self.ProcessEvent(btnevent)
 
-    def OnLeftDClick2(self, event):
+    def OnLeftDClick2(self, event: wx.MouseEvent) -> None:
         if not (self.tree.HitTest(event.GetPosition())[1] & wx.TREE_HITTEST_ONITEM):
             return
         self._tree_dclick()
 
-    def _tree_dclick(self):
+    def _tree_dclick(self) -> None:
         selitem = self.tree.GetSelection()
         if not selitem:
             return
@@ -1101,7 +1102,7 @@ class ScenarioSelect(select.Select):
                 seq.append(os.path.basename(sel))
             return seq, os.path.abspath(sel)
 
-    def get_findresult(self):
+    def get_findresult(self) -> List[str]:
         seq = self.scetable[self._get_linktarget(self.scedir)]
         if seq and isinstance(seq[0], FindResult):
             return list(map(lambda header:
@@ -1851,7 +1852,7 @@ class ScenarioSelect(select.Select):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
             self.ProcessEvent(btnevent)
 
-    def OnClickViewBtn(self, event):
+    def OnClickViewBtn(self, event: Union[wx.PyCommandEvent, wx.CommandEvent]) -> None:
         if cw.cwpy.setting.show_paperandtree:
             return
 
@@ -2522,12 +2523,12 @@ class ScenarioSelect(select.Select):
 
         return num < header.couponsnum
 
-    def update_narrowcondition(self):
+    def update_narrowcondition(self) -> None:
         if not self._update_narrowparams():
             return
         self._update_narrowcondition_impl()
 
-    def _update_narrowcondition_impl(self):
+    def _update_narrowcondition_impl(self) -> None:
         self._processing = True
         self._no_treechangedsound = True
         selected = self.list[self.index] if self.list else None
@@ -2608,7 +2609,7 @@ class ScenarioSelect(select.Select):
         self._update_saveddirstack()
         self._update_pagelabel()
 
-    def create_treeitems(self, treeitem, freeze=True):
+    def create_treeitems(self, treeitem: wx.TreeItemId, freeze: bool = True) -> Tuple[List[wx.TreeItemId], List[str]]:
         if freeze:
             # 再描画を抑止して軽くする
             # self.tree.Freeze()にはほとんど効果が認められなかったので
@@ -2660,7 +2661,7 @@ class ScenarioSelect(select.Select):
 
         return itemlist, dpaths
 
-    def _create_findresultitem(self, index, treeitem, findresult):
+    def _create_findresultitem(self, index: int, treeitem: wx.TreeItemId, findresult: "FindResult") -> wx.TreeItemId:
         image = self._imgidx_findresult
         item = self.tree.InsertItem(treeitem, index, cw.cwpy.msgs["find_result"], image)
         self.tree.SetItemData(item, (index, findresult))
@@ -2678,7 +2679,7 @@ class ScenarioSelect(select.Select):
         else:
             return d.strftime("%Y-%m-%d")
 
-    def create_treeitem(self, index, treeitem, header):
+    def create_treeitem(self, index: int, treeitem: wx.TreeItemId, header: cw.header.ScenarioHeader) -> wx.TreeItemId:
         name = header.name
         image = self._imgidx_summary
 
@@ -2715,7 +2716,7 @@ class ScenarioSelect(select.Select):
         self.tree.SetItemData(item, (index, header))
         return item
 
-    def show_tree(self, freeze=True):
+    def show_tree(self, freeze: bool = True) -> None:
         # ツリーを初期化する
         self.tree.DeleteChildren(self._root)
 
@@ -2755,21 +2756,21 @@ class ScenarioSelect(select.Select):
                     self.tree.Expand(treeitem)
                 break
 
-    def OnTreeItemExpanded(self, event):
+    def OnTreeItemExpanded(self, event: wx.TreeEvent) -> None:
         if self._processing:
             return
 
         selitem = event.GetItem()
         self._expand_tree(selitem)
 
-    def _expand_tree(self, selitem):
+    def _expand_tree(self, selitem: wx.TreeItemId) -> None:
         data = self.tree.GetItemData(selitem)
         if data is None or isinstance(data[1], FindResult):
             return
         _index, dpath = data
         self._expandeditem(selitem, startdir=dpath, expandedset=set())
 
-    def _expandeditem(self, selitem, startdir, expandedset):
+    def _expandeditem(self, selitem: wx.TreeItemId, startdir: str, expandedset: Set[str]) -> None:
         if not self.tree.IsShown():
             return
         if self._processing:
@@ -2832,7 +2833,7 @@ class ScenarioSelect(select.Select):
         self.tree.SetItemData(child, None)
         self.tree.Collapse(item)
 
-    def OnTreeSelChanged(self, event):
+    def OnTreeSelChanged(self, event: wx.TreeEvent) -> None:
         if self._processing:
             return
         if not self or not self.tree:
@@ -2846,7 +2847,7 @@ class ScenarioSelect(select.Select):
                 cw.cwpy.play_sound("page")
             self.draw(True)
 
-    def _tree_selchanged(self):
+    def _tree_selchanged(self) -> None:
         selitem = self.tree.GetSelection()
         if not selitem:
             return
@@ -2872,7 +2873,7 @@ class ScenarioSelect(select.Select):
 
         self.enable_btn()
 
-    def get_dirstack(self, paritem):
+    def get_dirstack(self, paritem: wx.TreeItemId) -> List[Tuple[str, str]]:
         dirstack = []
         while paritem:
             _i, parpath = self.tree.GetItemData(paritem)
@@ -2890,7 +2891,7 @@ class ScenarioSelect(select.Select):
             paritem = self.tree.GetItemParent(paritem)
         return dirstack[1:]
 
-    def select_treeitem(self, index):
+    def select_treeitem(self, index: int) -> None:
         item = self.tree.GetSelection()
         if not item:
             return
@@ -2974,7 +2975,7 @@ class ScenarioSelect(select.Select):
 
         return dseq + self._sort_headers(seq)
 
-    def _update_narrowparams(self):
+    def _update_narrowparams(self) -> bool:
         t = self._get_narrowparams()
         if t == self._last_narrowparams:
             return False
@@ -3418,7 +3419,7 @@ class ScenarioSelect(select.Select):
 
 
 class FindResult(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.headers = []
 
 

@@ -1401,7 +1401,8 @@ class BattleCardImage(card.CWPyCard):
 
 
 class InuseCardImage(card.CWPyCard):
-    def __init__(self, user, header, status="normal", center=False, alpha=None, fore=False):
+    def __init__(self, user: "cw.sprite.card.CWPyCard", header: cw.header.CardHeader, status: str = "normal",
+                 center: bool = False, alpha: Optional[int] = None, fore: bool = False) -> None:
         """使用中のカード画像スプライト。
         user: Character。
         header: 使用するカードのCardHeader。
@@ -1434,7 +1435,7 @@ class InuseCardImage(card.CWPyCard):
         else:
             self.group.add(self, layer=cw.LAYER_FRONT_INUSECARD)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self.header.negaflag = False
         image = self.header.get_cardimg()
         self.image = self._image = image

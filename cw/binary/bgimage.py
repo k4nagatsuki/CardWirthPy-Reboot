@@ -28,7 +28,7 @@ class BgImage(base.CWBinaryBase):
         if dataversion <= 5:
             self.type = cw.sprite.background.BG_IMAGE
             self.imgpath = cw.util.validate_filepath(f.string())
-            self.mask = f.bool()
+            self.mask = f.boolean()
             if 2 < dataversion:
                 self.flag = f.string()
                 self.unknown = f.byte()
@@ -40,7 +40,7 @@ class BgImage(base.CWBinaryBase):
             if bgtype == 2:
                 # テキストセル
                 self.type = cw.sprite.background.BG_TEXT
-                self.mask = f.bool()
+                self.mask = f.boolean()
                 self.text = f.string(True)
                 self.fontface = f.string()
                 self.fontsize = f.dword()

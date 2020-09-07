@@ -37,7 +37,7 @@ class CWFile(io.BufferedReader):
         self.filedata = []
         self.decodewrap = decodewrap
 
-    def bool(self) -> bool:
+    def boolean(self) -> bool:
         """byteの値を真偽値にして返す。"""
         if self.byte():
             return True
