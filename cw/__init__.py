@@ -47,7 +47,6 @@ from . import nctype
 
 from typing import Tuple, Union
 
-
 # 実行ファイルのパス
 exepath = ""
 quit_app = False
@@ -260,7 +259,10 @@ def wins(num: Union[wx.Bitmap, Tuple[int, int], int, pygame.Rect, Tuple[int, int
     return _s_impl(num, UP_WIN)
 
 
-def s(num: Union[int, Tuple[int, int], pygame.Surface]) -> Union[int, Tuple[int, int], pygame.Surface]:
+def s(num: Union[int, Tuple[int, int], pygame.Surface, pygame.Rect]) -> Union[int,
+                                                                              Tuple[int, int],
+                                                                              pygame.Surface,
+                                                                              pygame.Rect]:
     """numを描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
          or pygame.Surface or pygame.Bitmap or pygame.Image

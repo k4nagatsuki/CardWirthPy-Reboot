@@ -36,16 +36,16 @@ class CastCard(base.CWBinaryBase):
             return
 
         # mate特有の属性値(真偽値)*10
-        self.noeffect_weapon = f.bool()
-        self.noeffect_magic = f.bool()
-        self.undead = f.bool()
-        self.automaton = f.bool()
-        self.unholy = f.bool()
-        self.constructure = f.bool()
-        self.resist_fire = f.bool()
-        self.resist_ice = f.bool()
-        self.weakness_fire = f.bool()
-        self.weakness_ice = f.bool()
+        self.noeffect_weapon = f.boolean()
+        self.noeffect_magic = f.boolean()
+        self.undead = f.boolean()
+        self.automaton = f.boolean()
+        self.unholy = f.boolean()
+        self.constructure = f.boolean()
+        self.resist_fire = f.boolean()
+        self.resist_ice = f.boolean()
+        self.weakness_fire = f.boolean()
+        self.weakness_ice = f.boolean()
 
         self.level = f.dword()
         self.money = f.dword()

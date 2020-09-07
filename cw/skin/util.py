@@ -9,10 +9,10 @@ import subprocess
 
 import cw
 
-from typing import Callable, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 
-def find_skin(name, author, skintype=""):
+def find_skin(name: str, author: str, skintype: str = "") -> List[str]:
     """
     名前と作者名でインストールされたスキンを検索し、
     フォルダ名の一覧を返す。

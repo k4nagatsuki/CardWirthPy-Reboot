@@ -21,7 +21,6 @@ from cw.util import synclock
 
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
-
 _lock = threading.Lock()
 
 _WSN_DATA_DIRS = ("area", "battle", "package", "castcard", "skillcard", "itemcard", "beastcard", "infocard")
@@ -3365,7 +3364,7 @@ class YadoData(object):
         """ゴシップ名をset型で返す。"""
         return set([e.text for e in self.environment.getfind("Gossips") if e.text])
 
-    def get_compstamps(self):
+    def get_compstamps(self) -> Set[str]:
         """冒険済みシナリオ名をset型で返す。"""
         return set([e.text for e in self.environment.getfind("CompleteStamps") if e.text])
 
@@ -3623,7 +3622,7 @@ class YadoData(object):
     # ここからpathリスト取得用メソッド
     # --------------------------------------------------------------------------
 
-    def get_nowplayingpaths(self):
+    def get_nowplayingpaths(self) -> Set[str]:
         """wslファイルを読み込んで、
         現在プレイ中のシナリオパスの集合を返す。
         """
@@ -4207,7 +4206,7 @@ class Party(object):
         cw.cwpy.remove_xml(self)
         cw.cwpy.ydata.deletedpaths.add(os.path.dirname(self.path))
 
-    def get_coupontable(self):
+    def get_coupontable(self) -> Dict[str, int]:
         """
         パーティ全体が所持しているクーポンの
         所持数テーブルを返す。

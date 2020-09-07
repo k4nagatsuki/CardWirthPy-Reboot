@@ -34,7 +34,7 @@ class Party(base.CWBinaryBase):
                     self.memberslist.append(util.check_filename(member))
             self.name = f.string()
             self.money = f.dword()  # 冒険中の現在値
-            self.nowadventuring = f.bool()
+            self.nowadventuring = f.boolean()
         else:
             # 1.20
             self.memberslist = []
@@ -46,7 +46,7 @@ class Party(base.CWBinaryBase):
             f.image()  # 宿の埋め込み画像は破棄
             self.name = ""
             self.money = 0
-            self.nowadventuring = f.bool()
+            self.nowadventuring = f.boolean()
 
         # 読み込み後に操作
         self.cards = []
@@ -225,7 +225,7 @@ class PartyMembers(base.CWBinaryBase):
 
             # ここから先はプレイ中のシナリオの状況が記録されている
             self.money_beforeadventure = f.dword()  # 冒険前の所持金。冒険中でなければ0
-            self.nowadventuring = f.bool()
+            self.nowadventuring = f.boolean()
             if self.nowadventuring:  # 冒険中か
                 _w = f.word()  # 不明(0)
                 self.scenariopath = f.rawstring()  # シナリオ
@@ -245,7 +245,7 @@ class PartyMembers(base.CWBinaryBase):
                 adv.adventurer.money = 0
             self.money_beforeadventure = self.money  # 1.20ではF9で所持金が戻らない
 
-            self.nowadventuring = f.bool()
+            self.nowadventuring = f.boolean()
             if self.nowadventuring:  # 冒険中か
                 self.scenariopath = ""
                 summary = summary.Summary(None, f, True, wpt120=True)
@@ -515,7 +515,7 @@ class BackpackCard(base.CWBinaryBase):
         if f:
             self.fname = f.rawstring()
             self.uselimit = f.dword()
-            self.mine = f.bool()
+            self.mine = f.boolean()
         else:
             self.fname = ""
             self.uselimit = 0

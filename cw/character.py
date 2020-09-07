@@ -411,7 +411,7 @@ class Character(object):
 
         return tuple(cardpocket)
 
-    def replace_cardposition(self, cardtype, header1, header2):
+    def replace_cardposition(self, cardtype: int, header1: cw.header.CardHeader, header2: cw.header.CardHeader) -> None:
         seq = self.cardpocket[cardtype]
         index1 = seq.index(header1)
         index2 = seq.index(header2)
@@ -1317,7 +1317,16 @@ class Character(object):
         targets, header = self.decide_usecard(headers)
 
         if header and not header.allrange and len(targets) > 1:
-            targets = [cw.cwpy.dice.choice(targets)]
+            # 効果ごとにtargetsから適用可能な対象を抽出し、
+            # 適用可能な対象が存在する効果が見つかったら
+            # その対象群から実際の対象を選択する
+            for motion in self._get_motions(header):
+                seq = [target for target in targets if target.is_effective(header, motion)]
+                if seq:
+                    targets = [cw.cwpy.dice.choice(seq)]
+                    break
+            else:
+                targets = [cw.cwpy.dice.choice(targets)]
 
         # 行動設定
         self.set_action(targets, header, beasts, True)
@@ -1883,7 +1892,7 @@ class Character(object):
     def has_sex(self):
         return self._has_sex()
 
-    def _has_sex(self):
+    def _has_sex(self) -> bool:
         for coupon in cw.cwpy.setting.sexcoupons:
             if coupon in self.coupons:
                 return True
@@ -1917,7 +1926,7 @@ class Character(object):
     def has_age(self):
         return self._has_age()
 
-    def _has_age(self):
+    def _has_age(self) -> bool:
         for coupon in cw.cwpy.setting.periodcoupons:
             if coupon in self.coupons:
                 return True
@@ -3398,7 +3407,7 @@ class Enemy(Character):
         b |= self.status == "hidden"
         return b
 
-    def is_inactive(self, check_reversed=True):
+    def is_inactive(self, check_reversed: bool = True) -> bool:
         """
         敵は隠蔽状態であれば行動不能と見做す。
         """
@@ -3410,7 +3419,7 @@ class Enemy(Character):
 
 class Friend(Character):
 
-    def set_vanished(self):
+    def set_vanished(self) -> None:
         """離脱時に消去されたとマークする。"""
         self._vanished = True
 

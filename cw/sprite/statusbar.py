@@ -10,7 +10,6 @@ import pygame.locals
 import cw
 from . import base
 
-
 LAYER_TOUCH_BUTTON = -1
 LAYER_BASE = 0
 LAYER_STATUS_ITEM = 1
@@ -628,7 +627,7 @@ class YadoMoneyPanel(StatusBarPanel):
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["MONEYY"]
 
-    def need_update(self, text, currency):
+    def need_update(self, text: int, currency: str) -> bool:
         return self.text != text or self.currency != currency or self.up_scr != cw.UP_SCR
 
     def put_updatekey(self, text, currency):
@@ -708,7 +707,7 @@ class PartyMoneyPanel(YadoMoneyPanel):
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["MONEYP"]
 
-    def get_money(self):
+    def get_money(self) -> int:
         return cw.cwpy.ydata.party.money if cw.cwpy.ydata and cw.cwpy.ydata.party else 0
 
     def update_color(self):
@@ -717,7 +716,7 @@ class PartyMoneyPanel(YadoMoneyPanel):
         else:
             self.set_backcolor((0, 0, 128))
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         StatusBarPanel.update(self, scr)
 
         if self.status == "blink":
@@ -855,13 +854,13 @@ class StatusBarButton(base.SelectableSprite):
             self._desc = None
         self.update(None)
 
-    def _is_notice(self):
+    def _is_notice(self) -> bool:
         if self.status == "blink":
             return self._blink_notice
         else:
             return self.notice
 
-    def get_btnimg(self, flags):
+    def get_btnimg(self, flags: int) -> pygame.Surface:
         maskmode = cw.cwpy.statusbar.maskmode
 
         if self.maskmode != maskmode:
@@ -927,13 +926,13 @@ class StatusBarButton(base.SelectableSprite):
 
         return self.get_btnimg(flags)
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:
             method()
 
-    def update_normal(self):
+    def update_normal(self) -> None:
         is_pushed = self.is_pushed
         self.update_selection()
 
@@ -988,7 +987,7 @@ class StatusBarButton(base.SelectableSprite):
         self._blink_notice = blink_notice
         self._upscr = cw.UP_SCR
 
-    def set_desc(self, desc):
+    def set_desc(self, desc: str) -> None:
         if self.desc == desc:
             return
         self.desc = desc
@@ -1005,7 +1004,7 @@ class StatusBarButton(base.SelectableSprite):
             cw.cwpy.sbargrp.remove(self._desc)
             self._desc = None
 
-    def is_selection(self):
+    def is_selection(self) -> bool:
         # FIXME: メッセージの選択肢と重なった領域でマウスポインタを
         #        動かすと解説表示が出たり消えたりするのを避ける。
         #        本来はすでに選択中のスプライトがselfより前にあれば
@@ -1017,7 +1016,7 @@ class StatusBarButton(base.SelectableSprite):
             return False
         return b
 
-    def update_image(self):
+    def update_image(self) -> None:
         if not self.enabled:
             return
 
@@ -1386,7 +1385,7 @@ class SettingsButton(StatusBarButton):
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["SETTINGS"]
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         if self.status != "normal":
             StatusBarButton.update(self, scr)
             return
@@ -1416,7 +1415,7 @@ class HelpButton(StatusBarButton):
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["HELP"]
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         if self.status != "normal":
             StatusBarButton.update(self, scr)
             return
@@ -1440,7 +1439,7 @@ class DebuggerButton(StatusBarButton):
         self.selectable_on_event = True
         self.is_showing = cw.cwpy.is_debugmode
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         self.update_selection()
 
         self.is_pushed = cw.cwpy.is_showingdebugger()
@@ -1474,7 +1473,7 @@ class BacklogButton(StatusBarButton):
         if enabled and self.is_selection():
             self.update_image()
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         if self.status != "normal":
             StatusBarButton.update(self, scr)
             return
@@ -1551,7 +1550,7 @@ class TouchMenuButton(StatusBarButton):
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["SHOW_CONTROLS"]
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         is_pushed = self.is_pushed
         self.update_selection()
 

@@ -336,7 +336,7 @@ class CardHeader(object):
     def get_cardwxbmp(self, test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
         return self.cardimg.get_cardwxbmp(self, test_aptitude=test_aptitude)
 
-    def get_cardimg(self):
+    def get_cardimg(self) -> pygame.Surface:
         return self.cardimg.get_cardimg(self)
 
     def set_resetvariables(self, resetvariables):
@@ -351,7 +351,7 @@ class CardHeader(object):
         if owner and isinstance(owner, cw.character.Character) and owner.data is not None:
             owner.data.is_edited = True
 
-    def do_write(self, dupcheck=True):
+    def do_write(self, dupcheck: bool = True) -> None:
         if self._lazy_write is not None:
             if dupcheck:
                 self._lazy_write.fpath = cw.util.dupcheck_plus(self._lazy_write.fpath)
@@ -894,7 +894,7 @@ class CardHeader(object):
             etree.edit("Property/Hold", str(self.hold))
             owner.data.is_edited = True
 
-    def set_star(self, star):
+    def set_star(self, star: int) -> None:
         if self.star == star:
             return
 

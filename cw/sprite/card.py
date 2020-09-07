@@ -7,13 +7,15 @@ import cw
 from . import base
 from .. import character
 
-from typing import List, Optional
+from typing import Tuple, List, Optional
 
 
 class CWPyCard(base.SelectableSprite):
     cardimg: cw.image.CardImage
+    layer: Tuple[int, int, int, int]
+    index: int
 
-    def __init__(self, status, flag=None):
+    def __init__(self, status: str, flag: Optional[str] = None) -> None:
         base.SelectableSprite.__init__(self)
         self.alpha = None
         # 状態
@@ -89,7 +91,7 @@ class CWPyCard(base.SelectableSprite):
                              not cw.cwpy.selectedheader or cw.cwpy.selectedheader.premium != "Premium"
         return mcardflag
 
-    def get_unselectedimage(self):
+    def get_unselectedimage(self) -> pygame.Surface:
         if self.status == "click":
             return self.image
         else:
@@ -98,26 +100,26 @@ class CWPyCard(base.SelectableSprite):
     def get_selectedimage(self):
         return cw.imageretouch.to_negative_for_card(self.get_animeimage())
 
-    def set_alpha(self, alpha):
+    def set_alpha(self, alpha: int) -> None:
         self.alpha = alpha
         for img, _rect in self.zoomimgs:
             img.set_alpha(alpha)
         self.image.set_alpha(alpha)
         self._image.set_alpha(alpha)
 
-    def get_animeimage(self):
+    def get_animeimage(self) -> pygame.Surface:
         if self.zoomimgs:
             return self.zoomimgs[-1][0]
         else:
             return self._image
 
-    def get_animerect(self):
+    def get_animerect(self) -> pygame.Rect:
         if self.zoomimgs:
             return self.zoomimgs[-1][1]
         else:
             return self._rect
 
-    def get_baserect(self):
+    def get_baserect(self) -> pygame.Rect:
         return self._rect
 
     def _get_dealingscales(self):
@@ -687,7 +689,7 @@ class CWPyCard(base.SelectableSprite):
         center = cw.s(center_noscale) if center_noscale else None
         self.set_pos(pos, center)
 
-    def set_pos(self, pos=None, center=None):
+    def set_pos(self, pos: Optional[Tuple[int, int]] = None, center: Optional[Tuple[int, int]] = None) -> None:
         """画面の拡大率を反映済みの座標を設定する。"""
         if pos:
             self._rect.topleft = pos

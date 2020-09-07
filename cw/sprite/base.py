@@ -11,7 +11,7 @@ class CWPySprite(pygame.sprite.DirtySprite):
     rect: pygame.Rect
     image: pygame.Surface
 
-    def __init__(self, *groups):
+    def __init__(self, *groups) -> None:
         pygame.sprite.DirtySprite.__init__(self, *groups)
         self.dirty = 2
 
@@ -74,15 +74,15 @@ class StopTheWorld(object):
 
 
 class MouseHandlerSprite(CWPySprite):
-    def __init__(self, *groups):
+    def __init__(self, *groups) -> None:
         CWPySprite.__init__(self, *groups)
         self.handling_rect = None
         self.handling = False
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         self.update_selection()
 
-    def update_selection(self):
+    def update_selection(self) -> None:
         if not self.handling_rect or not cw.cwpy.mousemotion:
             return
 
@@ -102,7 +102,7 @@ class MouseHandlerSprite(CWPySprite):
 
 
 class SelectableSprite(CWPySprite):
-    def __init__(self, *groups):
+    def __init__(self, *groups) -> None:
         self.selectable_on_event = False
         self.is_statusctrl = False
         CWPySprite.__init__(self, *groups)
@@ -134,7 +134,7 @@ class SelectableSprite(CWPySprite):
         if not cw.cwpy.is_lockmenucards(self):
             self.update_selection()
 
-    def update_selection(self):
+    def update_selection(self) -> None:
         if not cw.cwpy.is_lockmenucards(self):
             if cw.cwpy.pointed_tile:
                 return
@@ -145,7 +145,7 @@ class SelectableSprite(CWPySprite):
             elif self is cw.cwpy.selection:
                 cw.cwpy.clear_selection()
 
-    def is_selection(self):
+    def is_selection(self) -> bool:
         """選択中スプライトか判定。"""
         if cw.cwpy.is_dealing() and not self.selectable_on_event:
             return False

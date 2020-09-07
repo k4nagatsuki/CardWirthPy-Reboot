@@ -1167,8 +1167,8 @@ def remove_soundtempfile(basedir):
             remove(dpath)
 
 
-def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, str]],
-                         *attr, cmpfunc: Optional[Callable] = None) -> List[Union[Optional[object], int, float, str]]:
+def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, str]], *attr,
+                         cmpfunc: Optional[Callable] = None) -> List[Union[Optional[object], int, float, str]]:
     if attr:
         get = operator.attrgetter(*attr)
     else:
@@ -4211,7 +4211,7 @@ class CWPyStaticBitmap(wx.Panel):
 
     def __init__(self, parent: wx.Panel, cid: int, bmps: List[wx.Bitmap], bmps_bmpdepthkey: List[wx.Bitmap],
                  size: Optional[Tuple[int, int]] = None, infos: Optional[List["cw.image.ImageInfo"]] = None,
-                 ss: Optional[Callable] = None):
+                 ss: Optional[Callable] = None) -> None:
         if not size and bmps:
             w = 0
             h = 0
@@ -4445,7 +4445,7 @@ class CWBackCheckBox(wx.CheckBox):
         dc.DrawBitmap(basebmp, 0, 0)
 
 
-def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
+def add_sideclickhandlers(toppanel: wx.Panel, leftbtn: wx.BitmapButton, rightbtn: wx.BitmapButton) -> None:
     """toppanelの左右の領域をクリックすると
     leftbtnまたはrightbtnのイベントが実行されるように
     イベントへのバインドを行う。
@@ -4510,7 +4510,7 @@ def set_acceleratortable(panel: wx.Window, seq: List[Tuple[int, int, int]],
     recurse(panel)
 
 
-def adjust_dropdownwidth(choice):
+def adjust_dropdownwidth(choice: wx.ComboBox) -> None:
     """wx.Choiceまたはwx.ComboBoxのドロップダウンリストの
     横幅を内容に合わせて広げる。
     """
@@ -5073,11 +5073,11 @@ if sys.platform == "win32":
 
 
     class _Unlock(object):
-        def __init__(self, name, f):
+        def __init__(self, name: str, f: io.TextIOWrapper) -> None:
             self.name = name
             self.f = f
 
-        def unlock(self):
+        def unlock(self) -> None:
             if self.f:
                 kernel32 = ctypes.windll.kernel32
                 handle = msvcrt.get_osfhandle(self.f.fileno())

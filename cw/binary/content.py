@@ -97,7 +97,7 @@ class Content(base.CWBinaryBase):
         elif self.tag == "Start" and self.type == "Battle":
             self.properties["id"] = f.dword()
         elif self.tag == "End" and self.type == "":
-            self.properties["complete"] = f.bool()
+            self.properties["complete"] = f.boolean()
         elif self.tag == "End" and self.type == "BadEnd":
             pass
         elif self.tag == "Change" and self.type == "Area":
@@ -128,8 +128,8 @@ class Content(base.CWBinaryBase):
             self.motions = [effectmotion.EffectMotion(self, f, dataversion=self.version)
                             for _cnt in range(motions_num)]
         elif self.tag == "Branch" and self.type == "Select":
-            self.properties["targetall"] = f.bool()
-            if f.bool():
+            self.properties["targetall"] = f.boolean()
+            if f.boolean():
                 self.properties["method"] = "Random"
             else:
                 self.properties["method"] = "Manual"
@@ -145,7 +145,7 @@ class Content(base.CWBinaryBase):
             self.properties["flag"] = f.string()
         elif self.tag == "Set" and self.type == "Flag":
             self.properties["flag"] = f.string()
-            self.properties["value"] = f.bool()
+            self.properties["value"] = f.boolean()
         elif self.tag == "Branch" and self.type == "MultiStep":
             self.properties["step"] = f.string()
         elif self.tag == "Set" and self.type == "Step":
@@ -279,7 +279,7 @@ class Content(base.CWBinaryBase):
         elif self.tag == "Elapse" and self.type == "Time":
             pass
         elif self.tag == "Branch" and self.type == "Level":
-            self.properties["average"] = f.bool()
+            self.properties["average"] = f.boolean()
             self.properties["value"] = f.dword()
         elif self.tag == "Branch" and self.type == "Status":
             self.properties["status"] = self.conv_statustype(f.byte())

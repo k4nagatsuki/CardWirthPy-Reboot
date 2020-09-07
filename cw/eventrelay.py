@@ -10,6 +10,8 @@ from pygame.locals import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, 
                           K_LSHIFT, K_LCTRL, K_PRINT, K_SPACE, KEYUP, KEYDOWN, MOUSEBUTTONUP,\
                           K_PAGEUP, K_PAGEDOWN, K_HOME, K_END
 
+from typing import Optional
+
 
 class KeyEventRelay(object):
     def __init__(self) -> None:
@@ -88,7 +90,7 @@ class KeyEventRelay(object):
             else:
                 cw.thread.post_pygameevent(e)
 
-    def keydown(self, keycode):
+    def keydown(self, keycode: int) -> None:
         key = self.keymap.get(keycode, None)
 
         if key:
@@ -99,7 +101,7 @@ class KeyEventRelay(object):
             if self.keyin[key] <= self.threshold + 1:
                 self.keyin[key] += 1
 
-    def keyup(self, keycode):
+    def keyup(self, keycode: int) -> None:
         key = self.keymap.get(keycode, None)
 
         if key:
@@ -124,7 +126,7 @@ class KeyEventRelay(object):
         else:
             return False
 
-    def is_mousein(self, button=None):
+    def is_mousein(self, button: Optional[int] = None) -> bool:
         if button is None:
             button = 1
 
