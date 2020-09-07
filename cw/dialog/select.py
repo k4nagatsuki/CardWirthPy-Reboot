@@ -1156,11 +1156,11 @@ class YadoSelect(MultiViewSelect):
                     cw.cwpy.play_sound("signal")
                     path = self.list[self.index]
                     dname = os.path.basename(path)
+                    yname = self.names[self.index]
                     if self.isshortcuts[self.index]:
-                        yname = "%sへのショートカット" % (self.names[self.index])
+                        s = cw.cwpy.msgs["delete_base_shortcut"] % (yname)
                     else:
-                        yname = self.names[self.index]
-                    s = cw.cwpy.msgs["delete_base"] % (yname)
+                        s = cw.cwpy.msgs["delete_base"] % (yname)
                     dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
                     cw.cwpy.frame.move_dlg(dlg)
 

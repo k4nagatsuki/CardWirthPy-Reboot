@@ -899,6 +899,8 @@
     <Message key="now_loading">読込中...</Message>
     <Message key="scenarios_is_invisible">表示可能なシナリオはありません</Message>
     <Message key="scenario_is_not_found">シナリオはありません</Message>
+    <Message key="delete_base_shortcut">「%s」へのショートカットを破棄します。
+よろしいですか？</Message>
     <!-- 5.0 ここまで -->
   </Messages>
   <!-- importantdrawing = ユーザの描画オプションを上書きするか importantfont = フォントオプションを上書きするか -->
