@@ -4269,7 +4269,6 @@ class TalkMessageContent(TalkContent):
                         basecardtype = "LargeCard"
                     else:
                         basecardtype = "NormalCard"
-                    print(basecardtype)
                     talkers.append((cw.image.ImageInfo(imgpath, base=base, basecardtype=basecardtype),
                                     can_loaded_scaledimage, talker, {}))
             elif imgpath:
