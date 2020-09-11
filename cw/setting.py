@@ -5,7 +5,6 @@ import os
 import sys
 import ctypes
 import hashlib
-import inspect
 import math
 import struct
 import shutil
@@ -107,22 +106,37 @@ class LocalSetting(object):
     def __init__(self) -> None:
         """スキンで上書き可能な設定。"""
         self.important_draw = False
+        self.important_draw_init = self.important_draw
         self.important_font = False
+        self.important_font_init = self.important_font
 
         self.mwincolour = (0, 0, 80, 180)
+        self.mwincolour_init = self.mwincolour
         self.mwinframecolour = (128, 0, 0, 255)
+        self.mwinframecolour_init = self.mwinframecolour
         self.blwincolour = (80, 80, 80, 180)
+        self.blwincolour_init = self.blwincolour
         self.blwinframecolour = (128, 128, 128, 255)
+        self.blwinframecolour_init = self.blwinframecolour
         self.curtaincolour = (0, 0, 80, 128)
+        self.curtaincolour_init = self.curtaincolour
         self.blcurtaincolour = (0, 0, 0, 192)
+        self.blcurtaincolour_init = self.blcurtaincolour
         self.fullscreenbackgroundtype = 2
+        self.fullscreenbackgroundtype_init = self.fullscreenbackgroundtype
         self.fullscreenbackgroundfile = "Resource/Image/Dialog/PAD"
+        self.fullscreenbackgroundfile_init = self.fullscreenbackgroundfile
 
         self.decorationfont = False
+        self.decorationfont_init = self.decorationfont
         self.bordering_cardname = True
+        self.bordering_cardname_init = self.bordering_cardname
         self.fontsmoothing_message = False
+        self.fontsmoothing_message_init = self.fontsmoothing_message
         self.fontsmoothing_cardname = False
+        self.fontsmoothing_cardname_init = self.fontsmoothing_cardname
         self.fontsmoothing_statusbar = True
+        self.fontsmoothing_statusbar_init = self.fontsmoothing_statusbar
 
         self.basefont = {
             "gothic": "",
@@ -202,15 +216,9 @@ class LocalSetting(object):
         if "ＭＳ Ｐゴシック" in facenames:
             self.basefont["pgothic"] = "ＭＳ Ｐゴシック"
 
-        for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
-            if not t[0].startswith("__"):
-                if isinstance(t[1], list):
-                    v = t[1][:]
-                elif hasattr(t[1], "copy"):
-                    v = t[1].copy()
-                else:
-                    v = t[1]
-                setattr(self, "%s_init" % (t[0]), v)
+        self.basefont_init = self.basefont.copy()
+        self.fonttypes_init = self.fonttypes.copy()
+        self.msg_exfonts_init = self.msg_exfonts.copy()
 
     def load(self, data: Union[cw.data.CWPyElementTree, cw.data.CWPyElement]) -> None:
         """dataから設定をロードする。"""
@@ -338,211 +346,363 @@ class Setting(object):
         self.local = LocalSetting()
 
         self.show_advancedsettings = False
+        self.show_advancedsettings_init = self.show_advancedsettings
         self.editor = "cwxeditor"
+        self.editor_init = self.editor
         self.startupscene = OPEN_TITLE
+        self.startupscene_init = self.startupscene
         self.lastyado = ""
+        self.lastyado_init = self.lastyado
         self.lastscenario = []
+        self.lastscenario_init = self.lastscenario[:]
         self.lastscenariopath = ""
+        self.lastscenariopath_init = self.lastscenariopath
         self.lastfindresult = []
+        self.lastfindresult_init = self.lastfindresult[:]
         self.window_position = (None, None)
-        self.expanddrawing = 1
+        self.window_position_init = self.window_position
+        self.expanddrawing = 1.0
+        self.expanddrawing_init = self.expanddrawing
         self.expandmode = "FullScreen"
+        self.expandmode_init = self.expandmode
         self.is_expanded = False
+        self.is_expanded_init = self.is_expanded
         self.smoothexpand = True
+        self.smoothexpand_init = self.smoothexpand
         self.debug = False
+        self.debug_init = self.debug
         self.debug_saved = False
+        self.debug_saved_init = self.debug_saved
         self.no_levelup_in_debugmode = False
+        self.no_levelup_in_debugmode_init = self.no_levelup_in_debugmode
         self.play_bgm = True
+        self.play_bgm_init = self.play_bgm
         self.play_sound = True
+        self.play_sound_init = self.play_sound
         self.vol_master = 0.75
+        self.vol_master_init = self.vol_master
         self.vol_bgm = 0.4
+        self.vol_bgm_init = self.vol_bgm
         self.vol_bgm_midi = 0.4
+        self.vol_bgm_midi_init = self.vol_bgm_midi
         self.vol_sound = 0.4
+        self.vol_sound_init = self.vol_sound
         self.vol_sound_midi = 0.4
+        self.vol_sound_midi_init = self.vol_sound_midi
         self.soundfonts = [(cw.DEFAULT_SOUNDFONT, True, 100)]
+        self.soundfonts_init = self.soundfonts
         self.bassmidi_sample32bit = True
+        self.bassmidi_sample32bit_init = self.bassmidi_sample32bit
         self.sdlmixer_enabled = False
+        self.sdlmixer_enabled_init = self.sdlmixer_enabled
         self.messagespeed = 5
+        self.messagespeed_init = self.messagespeed
         # メッセージで句読点の後に空白時間を入れる
         self.wait_after_punctuation_mark = True
+        self.wait_after_punctuation_mark_init = self.wait_after_punctuation_mark
         self.dealspeed = 5
+        self.dealspeed_init = self.dealspeed
         self.dealspeed_battle = 5
+        self.dealspeed_battle_init = self.dealspeed_battle
         self.wait_usecard = True
+        self.wait_usecard_init = self.wait_usecard
         self.zoomout_friend = True
+        self.zoomout_friend_init = self.zoomout_friend
         self.enlarge_beastcardzoomingratio = True
+        self.enlarge_beastcardzoomingratio_init = self.enlarge_beastcardzoomingratio
         self.use_battlespeed = False
+        self.use_battlespeed_init = self.use_battlespeed
         self.transition = "Fade"
+        self.transition_init = self.transition
         self.transitionspeed = 5
+        self.transitionspeed_init = self.transitionspeed
         self.smoothscale_bg = False
+        self.smoothscale_bg_init = self.smoothscale_bg
         self.smoothing_card_up = True
+        self.smoothing_card_up_init = self.smoothing_card_up
         self.smoothing_card_down = True
+        self.smoothing_card_down_init = self.smoothing_card_down
         self.caution_beforesaving = True
+        self.caution_beforesaving_init = self.caution_beforesaving
         self.revert_cardpocket = True
+        self.revert_cardpocket_init = self.revert_cardpocket
         self.quickdeal = True
+        self.quickdeal_init = self.quickdeal
         self.all_quickdeal = False
+        self.all_quickdeal_init = self.all_quickdeal
         self.skindirname = "Classic"
+        self.skindirname_init = self.skindirname
         self.vocation120 = False
+        self.vocation120_init = self.vocation120
         self.sort_yado = "None"
+        self.sort_yado_init = self.sort_yado
         self.sort_standbys = "None"
+        self.sort_standbys_init = self.sort_standbys
         self.sort_parties = "None"
+        self.sort_parties_init = self.sort_parties
         self.sort_cards = "None"
+        self.sort_cards_init = self.sort_cards
         self.sort_cardswithstar = True
+        self.sort_cardswithstar_init = self.sort_cardswithstar
         self.card_narrow = ""
+        self.card_narrow_init = self.card_narrow
         self.card_narrowtype = 1
+        self.card_narrowtype_init = self.card_narrowtype
         self.edit_star = False
+        self.edit_star_init = self.edit_star
         self.yado_narrowtype = 1
+        self.yado_narrowtype_init = self.yado_narrowtype
         self.standbys_narrowtype = 1
+        self.standbys_narrowtype_init = self.standbys_narrowtype
         self.parties_narrowtype = 1
+        self.parties_narrowtype_init = self.parties_narrowtype
         self.infoview_narrowtype = 1
+        self.infoview_narrowtype_init = self.infoview_narrowtype
         self.backlogmax = 100
+        self.backlogmax_init = self.backlogmax
         self.messagelog_type = LOG_COMPRESS
+        self.messagelog_type_init = self.messagelog_type
         self.display_bill_in_messagelog = True
+        self.display_bill_in_messagelog_init = self.display_bill_in_messagelog
         self.showfps = False
+        self.showfps_init = self.showfps
         self.selectscenariofromtype = True
+        self.selectscenariofromtype_init = self.selectscenariofromtype
         self.show_unfitnessscenario = True
+        self.show_unfitnessscenario_init = self.show_unfitnessscenario
         self.show_completedscenario = True
+        self.show_completedscenario_init = self.show_completedscenario
         self.show_invisiblescenario = False
+        self.show_invisiblescenario_init = self.show_invisiblescenario
         self.wheelup_operation = WHEEL_SHOWLOG
+        self.wheelup_operation_init = self.wheelup_operation
         self.show_allselectedcards = True
+        self.show_allselectedcards_init = self.show_allselectedcards
         self.show_aim = True
+        self.show_aim_init = self.show_aim
         self.confirm_beforeusingcard = True
+        self.confirm_beforeusingcard_init = self.confirm_beforeusingcard
         self.confirm_beforesaving = CONFIRM_BEFORESAVING_YES
+        self.confirm_beforesaving_init = self.confirm_beforesaving
         self.confirm_dumpcard = CONFIRM_DUMPCARD_ALWAYS
+        self.confirm_dumpcard_init = self.confirm_dumpcard
         self.show_savedmessage = True
+        self.show_savedmessage_init = self.show_savedmessage
         self.show_backpackcard = True
+        self.show_backpackcard_init = self.show_backpackcard
         self.show_backpackcardatend = False
+        self.show_backpackcardatend_init = self.show_backpackcardatend
         self.show_statustime = "NotEventTime"
+        self.show_statustime_init = self.show_statustime
         self.noticeimpossibleaction = True
+        self.noticeimpossibleaction_init = self.noticeimpossibleaction
         self.initmoneyamount = basedata.getint("Property/InitialCash", 4000)
+        self.initmoneyamount_init = self.initmoneyamount
         self.initmoneyisinitialcash = True
+        self.initmoneyisinitialcash_init = self.initmoneyisinitialcash
         self.autosave_partyrecord = True
+        self.autosave_partyrecord_init = self.autosave_partyrecord
         self.overwrite_partyrecord = True
+        self.overwrite_partyrecord_init = self.overwrite_partyrecord
         self.folderoftype = []
+        self.folderoftype_init = self.folderoftype
         self.scenario_narrow = ""
+        self.scenario_narrow_init = self.scenario_narrow
         self.scenario_narrowtype = 1
+        self.scenario_narrowtype_init = self.scenario_narrowtype
         self.scenario_sorttype = 0
+        self.scenario_sorttype_init = self.scenario_sorttype
         self.ssinfoformat = "[%scenario%[(%author%)] - ][%party% at ]%yado%"
+        self.ssinfoformat_init = self.ssinfoformat
         self.ssfnameformat = \
             "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
+        self.ssfnameformat_init = self.ssfnameformat
         self.cardssfnameformat = \
             "ScreenShot/[%yado%/[%party%_]]%year%%month%%day%_%hour%%minute%%second%[_in_%scenario%].png"
+        self.cardssfnameformat_init = self.cardssfnameformat
         self.sswithstatusbar = True
-        self.titleformat = \
-            "%application% %skin%[ - %yado%[ %scenario%]]"
+        self.sswithstatusbar_init = self.sswithstatusbar
+        self.titleformat = "%application% %skin%[ - %yado%[ %scenario%]]"
+        self.titleformat_init = self.titleformat
         self.playlogformat = "PlayLog/%yado%/%party%_%year%%month%%day%_%hour%%minute%%second%_%scenario%.txt"
+        self.playlogformat_init = self.playlogformat
         self.ssinfofontcolor = (0, 0, 0, 255)
+        self.ssinfofontcolor_init = self.ssinfofontcolor
         self.ssinfobackcolor = (255, 255, 255, 255)
+        self.ssinfobackcolor_init = self.ssinfobackcolor
         self.ssinfobackimage = ""
+        self.ssinfobackimage_init = self.ssinfobackimage
         self.show_lifebar_on_selection = True
+        self.show_lifebar_on_selection_init = self.show_lifebar_on_selection
         self.show_fcardsinbattle = False
+        self.show_fcardsinbattle_init = self.show_fcardsinbattle
         self.statusbarmask = True
+        self.statusbarmask_init = self.statusbarmask
         self.show_experiencebar = True
+        self.show_experiencebar_init = self.show_experiencebar
         self.show_roundautostartbutton = True
+        self.show_roundautostartbutton_init = self.show_roundautostartbutton
         self.show_autobuttoninentrydialog = True
+        self.show_autobuttoninentrydialog_init = self.show_autobuttoninentrydialog
         self.unconvert_targetfolder = "UnconvertedYado"
+        self.unconvert_targetfolder_init = self.unconvert_targetfolder
         self.show_tiles = False
+        self.show_tiles_init = self.show_tiles
         self.enabled_right_flick = False
+        self.enabled_right_flick_init = self.enabled_right_flick
         self.can_repeatlclick = False
+        self.can_repeatlclick_init = self.can_repeatlclick
         self.shiftup_touchbutton = True  # タッチボタンをスライド表示する
+        self.shiftup_touchbutton_init = self.shiftup_touchbutton
         self.flick_time_msec = 300
+        self.flick_time_msec_init = self.flick_time_msec
         self.flick_distance = 30
+        self.flick_distance_init = self.flick_distance
         self.can_skipwait = True
+        self.can_skipwait_init = self.can_skipwait
         self.can_skipanimation = True
+        self.can_skipanimation_init = self.can_skipanimation
         self.can_skipwait_with_wheel = True
+        self.can_skipwait_with_wheel_init = self.can_skipwait_with_wheel
         self.can_forwardmessage_with_wheel = True
+        self.can_forwardmessage_with_wheel_init = self.can_forwardmessage_with_wheel
         self.cursor_type = CURSOR_WHITE
+        self.cursor_type_init = self.cursor_type
         self.autoenter_on_sprite = False
+        self.autoenter_on_sprite_init = self.autoenter_on_sprite
         self.blink_statusbutton = True
+        self.blink_statusbutton_init = self.blink_statusbutton
         self.blink_partymoney = True
+        self.blink_partymoney_init = self.blink_partymoney
         self.show_btndesc = True
+        self.show_btndesc_init = self.show_btndesc
         self.protect_staredcard = True
+        self.protect_staredcard_init = self.protect_staredcard
         self.protect_premiercard = True
+        self.protect_premiercard_init = self.protect_premiercard
         self.show_cardkind = True
+        self.show_cardkind_init = self.show_cardkind
         self.show_premiumicon = False
+        self.show_premiumicon_init = self.show_premiumicon
         self.can_clicksidesofcardcontrol = True
+        self.can_clicksidesofcardcontrol_init = self.can_clicksidesofcardcontrol
         self.radius_notdetectmovement = 5
+        self.radius_notdetectmovement_init = self.radius_notdetectmovement
         self.show_paperandtree = False
+        self.show_paperandtree_init = self.show_paperandtree
         self.filer_dir = ""
+        self.filer_dir_init = self.filer_dir
         self.filer_file = ""
+        self.filer_file_init = self.filer_file
         self.recenthistory_limit = 5  # 展開したシナリオを取っておく数
+        self.recenthistory_limit_init = self.recenthistory_limit
         self.volume_increment = 5  # ホイールによる全体音量調節での増減量
+        self.volume_increment_init = self.volume_increment
         self.show_debuglogdialog = True
+        self.show_debuglogdialog_init = self.show_debuglogdialog
         self.enabled_timekeeper = True
+        self.enabled_timekeeper_init = self.enabled_timekeeper
         self.write_playlog = False
+        self.write_playlog_init = self.write_playlog
         self.move_repeat = 250  # 移動ボタン押しっぱなしの速度
+        self.move_repeat_init = self.move_repeat
         self.open_lastscenario = True  # 最後に表示したシナリオを開くか
+        self.open_lastscenario_init = self.open_lastscenario
         self.open_lastfindresult = False  # 最後の検索結果を再表示するか
+        self.open_lastfindresult_init = self.open_lastfindresult
         self.spend_noeffectcard = True  # キーコード等の効果が無くても常にカードを消費するか
+        self.spend_noeffectcard_init = self.spend_noeffectcard
         # シナリオ選択ダイアログへシナリオをドロップした時はインストールダイアログを表示する
         # Falseの場合は常に検索結果として表示
         self.can_installscenariofromdrop = False
+        self.can_installscenariofromdrop_init = self.can_installscenariofromdrop
         # シナリオのインストールに成功したら元ファイルを削除する
         self.delete_sourceafterinstalled = False
+        self.delete_sourceafterinstalled_init = self.delete_sourceafterinstalled
         # シナリオのインストール時にシナリオ以外のファイルもコピーする
         self.install_notscenariofiles = True
+        self.install_notscenariofiles_init = self.install_notscenariofiles
         # アップデートに伴うファイルの自動移動・削除を行う
         self.auto_update_files = True
+        self.auto_update_files_init = self.auto_update_files
         # フォント表示例のフォーマット
         self.fontexampleformat = FONT_EXAMPLE_FORMAT_INIT
+        self.fontexampleformat_init = self.fontexampleformat
         self.fontexamplepixelsize = FONT_EXAMPLE_PIXEL_SIZE_INIT
+        self.fontexamplepixelsize_init = self.fontexamplepixelsize
         # 最小化中に完全に停止する
         self.stop_the_world_with_iconized = True
+        self.stop_the_world_with_iconized_init = self.stop_the_world_with_iconized
         # 送り先のカードが一杯の時は交換ダイアログを開く
         self.replacecard_when_sendfullcardpocket = True
+        self.replacecard_when_sendfullcardpocket_init = self.replacecard_when_sendfullcardpocket
         # プレミアカード選択中でも売却と破棄を表示する
         self.show_sell_with_premiercard = True
+        self.show_sell_with_premiercard_init = self.show_sell_with_premiercard
         # 荷物袋にあるカードのキャラクターごとの私有を許可する
         self.show_personal_cards = True
+        self.show_personal_cards_init = self.show_personal_cards
         # 私物入れの容量がレベル調節の影響を受けるようにする
         self.level_adjustment_affect_personal_pocket = True
+        self.level_adjustment_affect_personal_pocket_init = self.level_adjustment_affect_personal_pocket
 
         # 宿の表示順序
         self.yado_order = {}
+        self.yado_order_init = self.yado_order.copy()
 
         # 絞り込み・整列などのコントロールの表示有無
         self.show_additional_yado = False
+        self.show_additional_yado_init = self.show_additional_yado
         self.show_additional_player = False
+        self.show_additional_player_init = self.show_additional_player
         self.show_additional_party = False
+        self.show_additional_party_init = self.show_additional_party
         self.show_additional_scenario = False
+        self.show_additional_scenario_init = self.show_additional_scenario
         self.show_additional_card = False
+        self.show_additional_card_init = self.show_additional_card
         # 表示有無切替ボタン自体の表示有無
         self.show_addctrlbtn = True
+        self.show_addctrlbtn_init = self.show_addctrlbtn
 
         # カード選択ダイアログの移動モードの背景色を変更する
         self.trademode_cardholder_color = (32, 32, 64)
+        self.trademode_cardholder_color_init = self.trademode_cardholder_color
 
         # カード種の表示・非表示
         self.show_cardtype = [True] * 3
+        self.show_cardtype_init = self.show_cardtype[:]
         # カード選択ダイアログで選択中のカード種別
         self.last_cardpocket = 0
+        self.last_cardpocket_init = self.last_cardpocket
         # カード選択ダイアログでの転送先
         self.last_sendto = 0
+        self.last_sendto_init = self.last_sendto
         # カード選択ダイアログでのページ
         self.last_storehousepage = 0
+        self.last_storehousepage_init = self.last_storehousepage
         self.last_backpackpage = 0
+        self.last_backpackpage_init = self.last_backpackpage
         self.last_cardpocketbpage = [0] * 3  # 荷物袋からの使用
+        self.last_cardpocketbpage_init = self.last_cardpocketbpage[:]
 
         # 一覧表示
         self.show_multiplebases = False
+        self.show_multiplebases_init = self.show_multiplebases
         self.show_multipleparties = False
+        self.show_multipleparties_init = self.show_multipleparties
         self.show_multipleplayers = False
+        self.show_multipleplayers_init = self.show_multipleplayers
         self.show_scenariotree = False
+        self.show_scenariotree_init = self.show_scenariotree
 
         # シナリオのインストール先(キー=ルートディレクトリ毎)
         self.installed_dir = {}
+        self.installed_dir_init = self.installed_dir.copy()
 
         # カード編集ダイアログのブックマーク
         self.bookmarks_for_cardedit = []
-
-        for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
-            if not t[0].startswith("__"):
-                if isinstance(t[1], list):
-                    v = t[1][:]
-                elif hasattr(t[1], "copy"):
-                    v = t[1].copy()
-                else:
-                    v = t[1]
-                setattr(self, "%s_init" % (t[0]), v)
+        self.bookmarks_for_cardedit_init = self.bookmarks_for_cardedit[:]
 
         if not init:
             return
@@ -568,15 +728,15 @@ class Setting(object):
         self.local.load(data)
 
         # 最初から詳細モードで設定を行う
-        self.show_advancedsettings = data.getbool("ShowAdvancedSettings", self.show_advancedsettings)
+        self.show_advancedsettings = data.getbool("ShowAdvancedSettings", self.show_advancedsettings_init)
 
         # シナリオエディタ
-        self.editor = data.gettext("ScenarioEditor", self.editor)
+        self.editor = data.gettext("ScenarioEditor", self.editor_init)
 
         # 起動時の動作
-        self.startupscene = data.gettext("StartupScene", self.startupscene)
+        self.startupscene = data.gettext("StartupScene", self.startupscene_init)
         # 最後に選択した宿
-        self.lastyado = data.gettext("LastYado", self.lastyado)
+        self.lastyado = data.gettext("LastYado", self.lastyado_init)
         # 最後に選択したシナリオ(ショートカットがあるため経路を記憶)
         self.lastscenario = []
         self.lastscenariopath = ""  # 経路が辿れない時に使用するフルパス
@@ -589,12 +749,12 @@ class Setting(object):
             win_y = None
         self.window_position = (win_x, win_y)
         # 拡大モード
-        self.expandmode = data.gettext("ExpandMode", self.expandmode)
+        self.expandmode = data.gettext("ExpandMode", self.expandmode_init)
         if self.expandmode == "None":
             self.is_expanded = False
         else:
-            self.is_expanded = data.getbool("ExpandMode", "expanded", self.is_expanded)
-        self.smoothexpand = data.getbool("ExpandMode", "smooth", self.smoothexpand)
+            self.is_expanded = data.getbool("ExpandMode", "expanded", self.is_expanded_init)
+        self.smoothexpand = data.getbool("ExpandMode", "smooth", self.smoothexpand_init)
         # 描画倍率
         if self.expandmode in ("None", "FullScreen"):
             self.expanddrawing = 1.0
@@ -603,11 +763,11 @@ class Setting(object):
                 self.expanddrawing = float(self.expandmode)
             except Exception:
                 self.expanddrawing = 1.0
-        self.expanddrawing = data.getfloat("ExpandDrawing", self.expanddrawing)
+        self.expanddrawing = data.getfloat("ExpandDrawing", self.expanddrawing_init)
         if self.expanddrawing % 1 == 0:
             self.expanddrawing = int(self.expanddrawing)
         # デバッグモードかどうか
-        self.debug = data.getbool("DebugMode", self.debug)
+        self.debug = data.getbool("DebugMode", self.debug_init)
         self.debug_saved = self.debug
         if not loadfile:
             if cw.OPTIONS.debug:
@@ -619,21 +779,21 @@ class Setting(object):
         # シナリオのプレイ時間を記録する(隠しオプション)
         self.enabled_timekeeper = data.getbool("EnabledTimekeepr", self.enabled_timekeeper_init)
         # デバッグ時はレベル上昇しない
-        self.no_levelup_in_debugmode = data.getbool("NoLevelUpInDebugMode", self.no_levelup_in_debugmode)
+        self.no_levelup_in_debugmode = data.getbool("NoLevelUpInDebugMode", self.no_levelup_in_debugmode_init)
         # 音楽を再生する
-        self.play_bgm = data.getbool("PlayBgm", self.play_bgm)
+        self.play_bgm = data.getbool("PlayBgm", self.play_bgm_init)
         # 効果音を再生する
-        self.play_sound = data.getbool("PlaySound", self.play_sound)
+        self.play_sound = data.getbool("PlaySound", self.play_sound_init)
         # 音声全体のボリューム(0～1.0)
         self.vol_master = data.getint("MasterVolume", int(self.vol_master_init * 100))
         # 音楽のボリューム(0～1.0)
         self.vol_bgm = data.getint("BgmVolume", int(self.vol_bgm_init * 100))
         # midi音楽のボリューム(0～1.0)
-        self.vol_bgm_midi = data.getint("BgmVolume", "midi", self.vol_bgm)
+        self.vol_bgm_midi = data.getint("BgmVolume", "midi", self.vol_bgm_init)
         # 効果音ボリューム
         self.vol_sound = data.getint("SoundVolume", int(self.vol_sound_init * 100))
         # midi効果音のボリューム(0～1.0)
-        self.vol_sound_midi = data.getint("SoundVolume", "midi", self.vol_sound)
+        self.vol_sound_midi = data.getint("SoundVolume", "midi", self.vol_sound_init)
         # 音量の単位変更(0～100 to 0～1)
         self.vol_master = Setting.wrap_volumevalue(self.vol_master)
         self.vol_bgm = Setting.wrap_volumevalue(self.vol_bgm)
@@ -650,111 +810,111 @@ class Setting(object):
                 volume = e.getint(".", "volume", 100)
                 self.soundfonts.append((e.text, use, volume))
         # 32bitオプションでMIDIを再生する
-        self.bassmidi_sample32bit = data.getbool("Bassmidi32bit", self.bassmidi_sample32bit)
+        self.bassmidi_sample32bit = data.getbool("Bassmidi32bit", self.bassmidi_sample32bit_init)
         # BASS Audioが使えない時にSDL_mixerを使用する
-        self.sdlmixer_enabled = data.getbool("SDLMixerIsEnabled", self.sdlmixer_enabled)
+        self.sdlmixer_enabled = data.getbool("SDLMixerIsEnabled", self.sdlmixer_enabled_init)
         # メッセージスピード(数字が小さいほど速い)(0～100)
-        self.messagespeed = data.getint("MessageSpeed", self.messagespeed)
+        self.messagespeed = data.getint("MessageSpeed", self.messagespeed_init)
         self.messagespeed = cw.util.numwrap(self.messagespeed, 0, 100)
         # カードの表示スピード(数字が小さいほど速い)(1～100)
-        dealspeed = data.getint("CardDealingSpeed", self.dealspeed)
+        dealspeed = data.getint("CardDealingSpeed", self.dealspeed_init)
         # 戦闘行動の表示スピード(数字が小さいほど速い)(1～100)
-        dealspeed_battle = data.getint("CardDealingSpeedInBattle", self.dealspeed_battle)
-        use_battlespeed = data.getbool("CardDealingSpeedInBattle", "enabled", self.use_battlespeed)
+        dealspeed_battle = data.getint("CardDealingSpeedInBattle", self.dealspeed_battle_init)
+        use_battlespeed = data.getbool("CardDealingSpeedInBattle", "enabled", self.use_battlespeed_init)
         self.set_dealspeed(dealspeed, dealspeed_battle, use_battlespeed)
         # メッセージで句読点の後に空白時間を入れる
         self.wait_after_punctuation_mark = data.getbool("WaitAfterPunctuationMark",
                                                         self.wait_after_punctuation_mark_init)
         # カードの使用前に空白時間を入れる
-        self.wait_usecard = data.getbool("WaitUseCard", self.wait_usecard)
+        self.wait_usecard = data.getbool("WaitUseCard", self.wait_usecard_init)
         # 同行キャストの行動後に縮小処理を行う
-        self.zoomout_friend = data.getbool("ZoomOutFriendCard", self.zoomout_friend)
+        self.zoomout_friend = data.getbool("ZoomOutFriendCard", self.zoomout_friend_init)
         # 召喚獣カードの拡大率を大きくする
         self.enlarge_beastcardzoomingratio = data.getbool("EnlargeBeastCardZoomingRatio",
-                                                          self.enlarge_beastcardzoomingratio)
+                                                          self.enlarge_beastcardzoomingratio_init)
         # トランジション効果の種類
-        self.transition = data.gettext("Transition", self.transition)
-        self.transitionspeed = data.getint("Transition", "speed", self.transitionspeed)
+        self.transition = data.gettext("Transition", self.transition_init)
+        self.transitionspeed = data.getint("Transition", "speed", self.transitionspeed_init)
         self.transitionspeed = cw.util.numwrap(self.transitionspeed, 0, 10)
         # 背景のスムーススケーリング
-        self.smoothscale_bg = data.getbool("SmoothScaling", "bg", self.smoothscale_bg)
-        self.smoothing_card_up = data.getbool("SmoothScaling", "upcard", self.smoothing_card_up)
-        self.smoothing_card_down = data.getbool("SmoothScaling", "downcard", self.smoothing_card_down)
+        self.smoothscale_bg = data.getbool("SmoothScaling", "bg", self.smoothscale_bg_init)
+        self.smoothing_card_up = data.getbool("SmoothScaling", "upcard", self.smoothing_card_up_init)
+        self.smoothing_card_down = data.getbool("SmoothScaling", "downcard", self.smoothing_card_down_init)
         # 保存せずに終了しようとしたら警告
-        self.caution_beforesaving = data.getbool("CautionBeforeSaving", self.caution_beforesaving)
+        self.caution_beforesaving = data.getbool("CautionBeforeSaving", self.caution_beforesaving_init)
         # レベル調節で手放したカードを自動的に戻す
-        self.revert_cardpocket = data.getbool("RevertCardPocket", self.revert_cardpocket)
+        self.revert_cardpocket = data.getbool("RevertCardPocket", self.revert_cardpocket_init)
         # キャンプ等に高速で切り替える
-        self.quickdeal = data.getbool("QuickDeal", self.quickdeal)
+        self.quickdeal = data.getbool("QuickDeal", self.quickdeal_init)
         # 全てのシステムカードを高速表示する
-        self.all_quickdeal = data.getbool("AllQuickDeal", self.all_quickdeal)
+        self.all_quickdeal = data.getbool("AllQuickDeal", self.all_quickdeal_init)
         # ソート基準
-        self.sort_yado = data.getattr("SortKey", "yado", self.sort_yado)
-        self.sort_standbys = data.getattr("SortKey", "standbys", self.sort_standbys)
-        self.sort_parties = data.getattr("SortKey", "parties", self.sort_parties)
-        self.sort_cards = data.getattr("SortKey", "cards", self.sort_cards)
-        self.sort_cardswithstar = data.getbool("SortKey", "cardswithstar", self.sort_cardswithstar)
+        self.sort_yado = data.getattr("SortKey", "yado", self.sort_yado_init)
+        self.sort_standbys = data.getattr("SortKey", "standbys", self.sort_standbys_init)
+        self.sort_parties = data.getattr("SortKey", "parties", self.sort_parties_init)
+        self.sort_cards = data.getattr("SortKey", "cards", self.sort_cards_init)
+        self.sort_cardswithstar = data.getbool("SortKey", "cardswithstar", self.sort_cardswithstar_init)
         # 拠点絞込条件
-        self.yado_narrowtype = data.getint("YadoNarrowType", self.yado_narrowtype)
+        self.yado_narrowtype = data.getint("YadoNarrowType", self.yado_narrowtype_init)
         # 宿帳絞込条件
-        self.standbys_narrowtype = data.getint("StandbysNarrowType", self.standbys_narrowtype)
+        self.standbys_narrowtype = data.getint("StandbysNarrowType", self.standbys_narrowtype_init)
         # パーティ絞込条件
-        self.parties_narrowtype = data.getint("PartiesNarrowType", self.parties_narrowtype)
+        self.parties_narrowtype = data.getint("PartiesNarrowType", self.parties_narrowtype_init)
         # カード絞込条件
-        self.card_narrowtype = data.getint("CardNarrowType", self.card_narrowtype)
+        self.card_narrowtype = data.getint("CardNarrowType", self.card_narrowtype_init)
         # 情報カード絞込条件
-        self.infoview_narrowtype = data.getint("InfoViewNarrowType", self.infoview_narrowtype)
+        self.infoview_narrowtype = data.getint("InfoViewNarrowType", self.infoview_narrowtype_init)
         # メッセージログ最大数
-        self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
+        self.backlogmax = data.getint("MessageLogMax", self.backlogmax_init)
         # メッセージログ表示形式
-        self.messagelog_type = data.gettext("MessageLogType", self.messagelog_type)
+        self.messagelog_type = data.gettext("MessageLogType", self.messagelog_type_init)
         # メッセージログに貼紙を表示する
         self.display_bill_in_messagelog = data.gettext("DisplayBillInMessageLog", self.display_bill_in_messagelog_init)
 
         self.showfps = False
 
         # スキンによってシナリオの選択開始位置を変更する
-        self.selectscenariofromtype = data.getbool("SelectScenarioFromType", self.selectscenariofromtype)
+        self.selectscenariofromtype = data.getbool("SelectScenarioFromType", self.selectscenariofromtype_init)
         # 適正レベル以外のシナリオを表示する
-        self.show_unfitnessscenario = data.getbool("ShowUnfitnessScenario", self.show_unfitnessscenario)
+        self.show_unfitnessscenario = data.getbool("ShowUnfitnessScenario", self.show_unfitnessscenario_init)
         # 隠蔽シナリオを表示する
-        self.show_completedscenario = data.getbool("ShowCompletedScenario", self.show_completedscenario)
+        self.show_completedscenario = data.getbool("ShowCompletedScenario", self.show_completedscenario_init)
         # 終了済シナリオを表示する
-        self.show_invisiblescenario = data.getbool("ShowInvisibleScenario", self.show_invisiblescenario)
+        self.show_invisiblescenario = data.getbool("ShowInvisibleScenario", self.show_invisiblescenario_init)
 
         # マウスホイールを上回転させた時の挙動
-        self.wheelup_operation = data.gettext("WheelUpOperation", self.wheelup_operation)
+        self.wheelup_operation = data.gettext("WheelUpOperation", self.wheelup_operation_init)
         # 戦闘行動を全員分表示する
-        self.show_allselectedcards = data.getbool("ShowAllSelectedCards", self.show_allselectedcards)
+        self.show_allselectedcards = data.getbool("ShowAllSelectedCards", self.show_allselectedcards_init)
         # 選択キャラクターを対象とする行動を表示する
         self.show_aim = data.getbool("ShowAim", self.show_aim_init)
         # カード使用時に確認ダイアログを表示
-        self.confirm_beforeusingcard = data.getbool("ConfirmBeforeUsingCard", self.confirm_beforeusingcard)
+        self.confirm_beforeusingcard = data.getbool("ConfirmBeforeUsingCard", self.confirm_beforeusingcard_init)
         # セーブ前に確認ダイアログを表示
-        self.confirm_beforesaving = data.gettext("ConfirmBeforeSaving", self.confirm_beforesaving)
+        self.confirm_beforesaving = data.gettext("ConfirmBeforeSaving", self.confirm_beforesaving_init)
         # セーブ完了時に確認ダイアログを表示
-        self.show_savedmessage = data.getbool("ShowSavedMessage", self.show_savedmessage)
+        self.show_savedmessage = data.getbool("ShowSavedMessage", self.show_savedmessage_init)
         # カードの売却と破棄で確認ダイアログを表示
         self.confirm_dumpcard = data.gettext("ConfirmBeforeDumpCard", self.confirm_dumpcard_init)
 
         # 不可能な行動を選択した時に警告を表示
-        self.noticeimpossibleaction = data.getbool("NoticeImpossibleAction", self.noticeimpossibleaction)
+        self.noticeimpossibleaction = data.getbool("NoticeImpossibleAction", self.noticeimpossibleaction_init)
 
         # 荷物袋のカードを一時的に取り出して使えるようにする
-        self.show_backpackcard = data.getbool("ShowBackpackCard", self.show_backpackcard)
+        self.show_backpackcard = data.getbool("ShowBackpackCard", self.show_backpackcard_init)
         # 荷物袋カードを最後に配置する
-        self.show_backpackcardatend = data.getbool("ShowBackpackCardAtEnd", self.show_backpackcardatend)
+        self.show_backpackcardatend = data.getbool("ShowBackpackCardAtEnd", self.show_backpackcardatend_init)
         # 各種ステータスの残り時間を表示する
-        self.show_statustime = data.gettext("ShowStatusTime", self.show_statustime)
+        self.show_statustime = data.gettext("ShowStatusTime", self.show_statustime_init)
 
         # パーティ結成時の持出金額
-        self.initmoneyamount = data.getint("InitialMoneyAmount", self.initmoneyamount)
-        self.initmoneyisinitialcash = data.getbool("InitialMoneyAmount", "sameasbase", self.initmoneyisinitialcash)
+        self.initmoneyamount = data.getint("InitialMoneyAmount", self.initmoneyamount_init)
+        self.initmoneyisinitialcash = data.getbool("InitialMoneyAmount", "sameasbase", self.initmoneyisinitialcash_init)
 
         # 解散時、自動的にパーティ情報を記録する
-        self.autosave_partyrecord = data.getbool("AutoSavePartyRecord", self.autosave_partyrecord)
+        self.autosave_partyrecord = data.getbool("AutoSavePartyRecord", self.autosave_partyrecord_init)
         # 自動記録時、同名のパーティ記録へ上書きする
-        self.overwrite_partyrecord = data.getbool("OverwritePartyRecord", self.overwrite_partyrecord)
+        self.overwrite_partyrecord = data.getbool("OverwritePartyRecord", self.overwrite_partyrecord_init)
 
         # シナリオフォルダ(スキンタイプ別)
         for e_folder in data.getfind("ScenarioFolderOfSkinType", False):
@@ -763,8 +923,8 @@ class Setting(object):
             self.folderoftype.append((skintype, folder))
 
         # シナリオ絞込・整列条件
-        self.scenario_narrowtype = data.getint("ScenarioNarrowType", self.scenario_narrowtype)
-        self.scenario_sorttype = data.getint("ScenarioSortType", self.scenario_sorttype)
+        self.scenario_narrowtype = data.getint("ScenarioNarrowType", self.scenario_narrowtype_init)
+        self.scenario_sorttype = data.getint("ScenarioSortType", self.scenario_sorttype_init)
 
         # スクリーンショット情報
         self.ssinfoformat = data.gettext("ScreenShotInformationFormat", self.ssinfoformat_init)
@@ -789,20 +949,20 @@ class Setting(object):
         self.sswithstatusbar = data.getbool("ScreenShotWithStatusBar", self.sswithstatusbar_init)
 
         # イベント中にステータスバーの色を変える
-        self.statusbarmask = data.getbool("StatusBarMask", self.statusbarmask)
+        self.statusbarmask = data.getbool("StatusBarMask", self.statusbarmask_init)
 
         # 次のレベルアップまでの割合を表示する
-        self.show_experiencebar = data.getbool("ShowExperienceBar", self.show_experiencebar)
+        self.show_experiencebar = data.getbool("ShowExperienceBar", self.show_experiencebar_init)
 
         # バトルラウンドを自動開始可能にする
-        self.show_roundautostartbutton = data.getbool("ShowRoundAutoStartButton", self.show_roundautostartbutton)
+        self.show_roundautostartbutton = data.getbool("ShowRoundAutoStartButton", self.show_roundautostartbutton_init)
 
         # 新規登録ダイアログに自動ボタンを表示する
         self.show_autobuttoninentrydialog = data.getbool("ShowAutoButtonInEntryDialog",
-                                                         self.show_autobuttoninentrydialog)
+                                                         self.show_autobuttoninentrydialog_init)
 
         # 逆変換先ディレクトリ
-        self.unconvert_targetfolder = data.gettext("UnconvertTargetFolder", self.unconvert_targetfolder)
+        self.unconvert_targetfolder = data.gettext("UnconvertTargetFolder", self.unconvert_targetfolder_init)
 
         # タッチ操作用のタイルを表示する
         self.show_tiles = data.getbool("ShowTiles", self.show_tiles_init)
@@ -812,31 +972,31 @@ class Setting(object):
         self.can_repeatlclick = data.getbool("CanRepeatLClick", self.can_repeatlclick_init)
 
         # 空白時間をスキップ可能にする
-        self.can_skipwait = data.getbool("CanSkipWait", self.can_skipwait)
+        self.can_skipwait = data.getbool("CanSkipWait", self.can_skipwait_init)
         # アニメーションをスキップ可能にする
-        self.can_skipanimation = data.getbool("CanSkipAnimation", self.can_skipanimation)
+        self.can_skipanimation = data.getbool("CanSkipAnimation", self.can_skipanimation_init)
         # マウスのホイールで空白時間とアニメーションをスキップする
-        self.can_skipwait_with_wheel = data.getbool("CanSkipWaitWithWheel", self.can_skipwait_with_wheel)
+        self.can_skipwait_with_wheel = data.getbool("CanSkipWaitWithWheel", self.can_skipwait_with_wheel_init)
         # マウスのホイールでメッセージ送りを行う
         self.can_forwardmessage_with_wheel = data.getbool("CanForwardMessageWithWheel",
-                                                          self.can_forwardmessage_with_wheel)
+                                                          self.can_forwardmessage_with_wheel_init)
         # 方向キーやホイールの選択中にマウスカーソルの移動を検知しない半径
         self.radius_notdetectmovement = data.getint("RadiusForNotDetectingCursorMovement",
-                                                    self.radius_notdetectmovement)
+                                                    self.radius_notdetectmovement_init)
         # カーソルタイプ
-        self.cursor_type = data.gettext("CursorType", self.cursor_type)
+        self.cursor_type = data.gettext("CursorType", self.cursor_type_init)
         # 連打状態の時、カードなどの選択を自動的に決定する
-        self.autoenter_on_sprite = data.getbool("AutoEnterOnSprite", self.autoenter_on_sprite)
+        self.autoenter_on_sprite = data.getbool("AutoEnterOnSprite", self.autoenter_on_sprite_init)
         # 通知のあるステータスボタンを点滅させる
-        self.blink_statusbutton = data.getbool("BlinkStatusButton", self.blink_statusbutton)
+        self.blink_statusbutton = data.getbool("BlinkStatusButton", self.blink_statusbutton_init)
         # 所持金が増減した時に所持金欄を点滅させる
-        self.blink_partymoney = data.getbool("BlinkPartyMoney", self.blink_partymoney)
+        self.blink_partymoney = data.getbool("BlinkPartyMoney", self.blink_partymoney_init)
         # ステータスバーのボタンの解説を表示する
-        self.show_btndesc = data.getbool("ShowButtonDescription", self.show_btndesc)
+        self.show_btndesc = data.getbool("ShowButtonDescription", self.show_btndesc_init)
         # スターつきのカードの売却や破棄を禁止する
-        self.protect_staredcard = data.getbool("ProtectStaredCard", self.protect_staredcard)
+        self.protect_staredcard = data.getbool("ProtectStaredCard", self.protect_staredcard_init)
         # プレミアカードの売却や破棄を禁止する
-        self.protect_premiercard = data.getbool("ProtectPremierCard", self.protect_premiercard)
+        self.protect_premiercard = data.getbool("ProtectPremierCard", self.protect_premiercard_init)
         # プレミアカード選択中でも売却と破棄を表示する
         self.show_sell_with_premiercard = data.getbool("ShowSellAndDumpWithPremierCard",
                                                        self.show_sell_with_premiercard_init)
@@ -846,34 +1006,35 @@ class Setting(object):
         self.level_adjustment_affect_personal_pocket = data.getbool("LevelAdjustmentAffectPersonalPocket",
                                                                     self.level_adjustment_affect_personal_pocket_init)
         # カード置場と荷物袋でカードの種類を表示する
-        self.show_cardkind = data.getbool("ShowCardKind", self.show_cardkind)
+        self.show_cardkind = data.getbool("ShowCardKind", self.show_cardkind_init)
         # カードの希少度をアイコンで表示する
-        self.show_premiumicon = data.getbool("ShowPremiumIcon", self.show_premiumicon)
+        self.show_premiumicon = data.getbool("ShowPremiumIcon", self.show_premiumicon_init)
         # カード選択ダイアログの背景クリックで左右移動を行う
-        self.can_clicksidesofcardcontrol = data.getbool("CanClickSidesOfCardControl", self.can_clicksidesofcardcontrol)
+        self.can_clicksidesofcardcontrol = data.getbool("CanClickSidesOfCardControl",
+                                                        self.can_clicksidesofcardcontrol_init)
         # シナリオ選択ダイアログで貼紙と一覧を同時に表示する
-        self.show_paperandtree = data.getbool("ShowPaperAndTree", self.show_paperandtree)
+        self.show_paperandtree = data.getbool("ShowPaperAndTree", self.show_paperandtree_init)
         # シナリオ選択ダイアログでのファイラー
-        self.filer_dir = data.gettext("FilerDirectory", self.filer_dir)
-        self.filer_file = data.gettext("FilerFile", self.filer_file)
+        self.filer_dir = data.gettext("FilerDirectory", self.filer_dir_init)
+        self.filer_file = data.gettext("FilerFile", self.filer_file_init)
 
         # 圧縮されたシナリオの展開データ保存数
-        self.recenthistory_limit = data.getint("RecentHistoryLimit", self.recenthistory_limit)
+        self.recenthistory_limit = data.getint("RecentHistoryLimit", self.recenthistory_limit_init)
 
         # マウスホイールによる全体音量の増減量
-        self.volume_increment = data.getint("VolumeIncrement", self.volume_increment)
+        self.volume_increment = data.getint("VolumeIncrement", self.volume_increment_init)
 
         # キーコード等の効果が無くても常にカードを消費するか
         self.spend_noeffectcard = data.getbool("SpendNoEffectCard", self.spend_noeffectcard_init)
 
         # 一覧表示
-        self.show_multiplebases = data.getbool("ShowMultipleItems", "base", self.show_multiplebases)
-        self.show_multipleparties = data.getbool("ShowMultipleItems", "party", self.show_multipleparties)
-        self.show_multipleplayers = data.getbool("ShowMultipleItems", "player", self.show_multipleplayers)
-        self.show_scenariotree = data.getbool("ShowMultipleItems", "scenario", self.show_scenariotree)
+        self.show_multiplebases = data.getbool("ShowMultipleItems", "base", self.show_multiplebases_init)
+        self.show_multipleparties = data.getbool("ShowMultipleItems", "party", self.show_multipleparties_init)
+        self.show_multipleplayers = data.getbool("ShowMultipleItems", "player", self.show_multipleplayers_init)
+        self.show_scenariotree = data.getbool("ShowMultipleItems", "scenario", self.show_scenariotree_init)
 
         # タイトルバーの表示内容
-        self.titleformat = data.gettext("TitleFormat", self.titleformat)
+        self.titleformat = data.gettext("TitleFormat", self.titleformat_init)
 
         # 宿の表示順
         for e_yadoorder in data.getfind("YadoOrder", raiseerror=False):
@@ -886,20 +1047,20 @@ class Setting(object):
                 self.yado_order[name] = order
 
         # 絞り込み・整列などのコントロールの表示有無
-        self.show_additional_yado = data.getbool("ShowAdditionalControls", "yado", self.show_additional_yado)
-        self.show_additional_player = data.getbool("ShowAdditionalControls", "player", self.show_additional_player)
-        self.show_additional_party = data.getbool("ShowAdditionalControls", "party", self.show_additional_party)
+        self.show_additional_yado = data.getbool("ShowAdditionalControls", "yado", self.show_additional_yado_init)
+        self.show_additional_player = data.getbool("ShowAdditionalControls", "player", self.show_additional_player_init)
+        self.show_additional_party = data.getbool("ShowAdditionalControls", "party", self.show_additional_party_init)
         self.show_additional_scenario = data.getbool("ShowAdditionalControls", "scenario",
-                                                     self.show_additional_scenario)
-        self.show_additional_card = data.getbool("ShowAdditionalControls", "card", self.show_additional_card)
+                                                     self.show_additional_scenario_init)
+        self.show_additional_card = data.getbool("ShowAdditionalControls", "card", self.show_additional_card_init)
         # 絞り込み等の表示切替ボタンを表示する
         self.show_addctrlbtn = data.gettext("ShowAdditionalControls",
-                                            "" if self.show_addctrlbtn else "Hidden") != "Hidden"
+                                            "" if self.show_addctrlbtn_init else "Hidden") != "Hidden"
 
         # シナリオのプレイログを出力する
-        self.write_playlog = data.getbool("WritePlayLog", self.write_playlog)
+        self.write_playlog = data.getbool("WritePlayLog", self.write_playlog_init)
         # プレイログのフォーマット
-        self.playlogformat = data.gettext("PlayLogFormat", self.playlogformat)
+        self.playlogformat = data.gettext("PlayLogFormat", self.playlogformat_init)
 
         # 最小化中に完全に停止する
         self.stop_the_world_with_iconized = data.getbool("StopTheWorldWithIconization",
@@ -910,11 +1071,13 @@ class Setting(object):
         # 最後のシナリオ検索結果を再表示する
         self.open_lastfindresult = data.getbool("OpenFindScenarioResult", self.open_lastfindresult_init)
         # ドロップによるシナリオのインストールを可能にする
-        self.can_installscenariofromdrop = data.getbool("CanInstallScenarioFromDrop", self.can_installscenariofromdrop)
+        self.can_installscenariofromdrop = data.getbool("CanInstallScenarioFromDrop",
+                                                        self.can_installscenariofromdrop_init)
         # シナリオのインストールに成功したら元ファイルを削除する
-        self.delete_sourceafterinstalled = data.getbool("DeleteSourceAfterInstalled", self.delete_sourceafterinstalled)
+        self.delete_sourceafterinstalled = data.getbool("DeleteSourceAfterInstalled",
+                                                        self.delete_sourceafterinstalled_init)
         # シナリオのインストール時にシナリオ以外のファイルもコピーする
-        self.install_notscenariofiles = data.getbool("InstallNotScenarioFiles", self.install_notscenariofiles)
+        self.install_notscenariofiles = data.getbool("InstallNotScenarioFiles", self.install_notscenariofiles_init)
 
         # アップデートに伴うファイルの自動移動・削除を行う
         self.auto_update_files = data.getbool("AutoUpdateFiles", self.auto_update_files_init)
@@ -947,7 +1110,7 @@ class Setting(object):
                 self.bookmarks_for_cardedit.append((fpath, name))
 
         # スキン
-        self.skindirname = data.gettext("Skin", self.skindirname)
+        self.skindirname = data.gettext("Skin", self.skindirname_init)
 
         if not loadfile:
             self.init_skin(basedata=basedata)
