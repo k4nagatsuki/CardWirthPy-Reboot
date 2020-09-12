@@ -1494,20 +1494,24 @@ class Frame(wx.Frame):
             return cw.cwpy.areaid
         elif cw.cwpy.status == "Yado":
             def func(areaid):
-                cw.cwpy.change_specialarea(areaid)
-                cw.cwpy.statusbar.change()
+                def func(areaid):
+                    cw.cwpy.change_specialarea(areaid)
+                    cw.cwpy.statusbar.change()
+                cw.cwpy.exec_func(func, areaid)
             areaid = cw.AREA_TRADE2 if cw.cwpy.ydata.party else cw.AREA_TRADE1
-            cw.cwpy.exec_func(func, areaid)
+            cw.cwpy.frame.exec_func(func, areaid)
             return areaid
         elif cw.cwpy.is_playingscenario() and cw.cwpy.areaid == cw.AREA_CAMP:
             def func():
-                cw.cwpy.change_specialarea(cw.AREA_TRADE3)
-                cw.cwpy.statusbar.change()
-            cw.cwpy.exec_func(func)
+                def func():
+                    cw.cwpy.change_specialarea(cw.AREA_TRADE3)
+                    cw.cwpy.statusbar.change()
+                cw.cwpy.exec_func(func)
+            cw.cwpy.frame.exec_func(func)
             return cw.AREA_TRADE3
         return cw.cwpy.areaid
 
-    def GetClientPosition(self):
+    def GetClientPosition(self) -> Tuple[int, int]:
         size = self.GetSize()
         csize = self.GetClientSize()
         pos = self.GetPosition()
@@ -1562,7 +1566,7 @@ class MyApp(wx.App):
             frame.Show()
         return True
 
-    def OnCloseSkinDialog(self, event):
+    def OnCloseSkinDialog(self, event: wx.CloseEvent) -> None:
         # スキンが1つでもあればそのまま起動する
         self.skindlg.Destroy()
         skincount = get_skincount()[0]

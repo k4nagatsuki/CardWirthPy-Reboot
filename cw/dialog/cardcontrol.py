@@ -1862,6 +1862,8 @@ class CardControl(wx.Dialog):
 
         self.Enable(False)
         self.Show(False)
+        self.list = []
+        self.selection = None
 
         if self.Parent is cw.cwpy.frame:
             if self.callname not in ("CARDPOCKET_REPLACE", "INFOVIEW"):
