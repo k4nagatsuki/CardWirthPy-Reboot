@@ -945,10 +945,10 @@ class StatusBarButton(base.SelectableSprite):
             self.update_image()
 
     def update_click(self):
-        if self.frame == 0:
+        if self.frame < 4 and not self.is_pushed:
             self.is_pushed = True
             self.update_image()
-        elif self.frame == 4:
+        elif 4 <= self.frame:
             self.is_pushed = False
             self.update_image()
             self.status = "normal"

@@ -1548,6 +1548,7 @@ class ClickableSprite(base.SelectableSprite):
         self.status = "normal"
         self.old_status = "normal"
         self.frame = 0
+        self._clicking = False
 
         # キーボードで選択する時のグループ番号
         # 0でメニューカードより後かつPCより前に選択、1でPCより後に選択
@@ -1611,12 +1612,14 @@ class ClickableSprite(base.SelectableSprite):
         """
         クリック時のアニメーションを呼び出すメソッド。
         """
-        if self.frame == 0:
+        if self.frame < 3 and not self._clicking:
             self.image = self.get_selectedimage()
             self.rect = self._clickedrect
             self.status = "click"
-        elif self.frame == 3:
+            self._clicking = True
+        elif 3 <= self.frame:
             self.status = self.old_status
+            self._clicking = False
             self.image = self.get_selectedimage()
             self.rect = self._rect
             self.frame = 0

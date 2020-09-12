@@ -32,26 +32,19 @@ class CardControl(wx.Dialog):
     list: List[cw.header.CardHeader]
     selection: Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"]
 
-    def __init__(self, parent: wx.TopLevelWindow, name: str, sendto: bool, sort: bool, areaid: Optional[int] = None,
-                 drawcards: bool = True) -> None:
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         # ダイアログ作成
-        wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
-                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
+        wx.Dialog.__init__(self, parent, -1, "", style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         if not hasattr(self, "selection"):
             self.selection = None
         self.SetDoubleBuffered(True)
         self.additionals = []
         self.change_bgs = []
+        self.smallctrls = []
         self._redraw = True
         self._cancel_animation = True
-
-        self._quit = False
-
-        if areaid is None:
-            self.areaid = cw.cwpy.areaid
-        else:
-            self.areaid = areaid
+        self._replcardholder: Optional[ReplCardHolder] = None
 
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
@@ -82,8 +75,6 @@ class CardControl(wx.Dialog):
         self.starlight = cw.cwpy.rsrc.dialogs["BOOKMARK_LIGHTUP"]
         self.replace_arrow = cw.cwpy.rsrc.dialogs["REPLACE_POSITION"]
         self.replace_arrow_light = cw.imageretouch.add_lightness_for_wxbmp(cw.cwpy.rsrc.dialogs["REPLACE_POSITION"], 64)
-        self._laststar = None
-        self._lastrepls = None
 
         choices = [cw.cwpy.msgs["sort_no"],
                    cw.cwpy.msgs["sort_name"],
@@ -97,16 +88,8 @@ class CardControl(wx.Dialog):
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         self.sortwithstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
         self.sortwithstar.SetToolTip(cw.cwpy.msgs["sort_with_star"])
-        self._update_sortwithstar()
         self.editstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
         self.editstar.SetToolTip(cw.cwpy.msgs["edit_star"])
-        self.editstar.SetToggle(cw.cwpy.setting.edit_star)
-        self._update_editstar()
-        if not sort or not cw.cwpy.setting.show_additional_card:
-            self.sort.Hide()
-            self.sortwithstar.Hide()
-        if not sort:
-            self.editstar.Hide()
 
         def can_sort():
             return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB")
@@ -115,9 +98,9 @@ class CardControl(wx.Dialog):
         self.change_bgs.append(self.sortwithstar)
         self.change_bgs.append(self.editstar)
 
-        self.show = [None] * 3
-        self._typeicon_e = [None] * 3
-        self._typeicon_d = [None] * 3
+        self.show: List[Optional[wx.lib.buttons.ThemedGenBitmapToggleButton]] = [None] * 3
+        self._typeicon_e: List[Optional[wx.Bitmap]] = [None] * 3
+        self._typeicon_d: List[Optional[wx.Bitmap]] = [None] * 3
         show = (cw.cwpy.msgs["show_object"])
         for cardtype, bmp, msg in ((cw.POCKET_SKILL, cw.cwpy.rsrc.dialogs["STATUS8"],
                                     (show % cw.cwpy.msgs["skillcard"])),
@@ -129,19 +112,13 @@ class CardControl(wx.Dialog):
             self._typeicon_e[cardtype] = bmp
             dbmp = cw.imageretouch.to_disabledimage(bmp, maskpos=(bmp.GetWidth()-1, 0))
             self._typeicon_d[cardtype] = dbmp
-            if cw.cwpy.setting.show_cardtype[cardtype]:
-                btn.SetToggle(True)
-            else:
+            if not cw.cwpy.setting.show_cardtype[cardtype]:
                 bmp = dbmp
-                btn.SetToggle(False)
             btn.SetBitmapFocus(bmp)
             btn.SetBitmapLabel(bmp, False)
             btn.SetBitmapSelected(bmp)
             btn.SetToolTip(msg)
             self.show[cardtype] = btn
-            if self.callname not in ("BACKPACK", "STOREHOUSE") or\
-                    not cw.cwpy.setting.show_additional_card:
-                btn.Hide()
             self.additionals.append((btn, lambda: self.callname in ("BACKPACK", "STOREHOUSE")))
             self.change_bgs.append(btn)
 
@@ -157,28 +134,82 @@ class CardControl(wx.Dialog):
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp, chain=True)
-        if not sendto:
-            self.leftbtn2.Hide()
-            self.rightbtn2.Hide()
-            self.combo.Hide()
 
         # 追加的コントロールの表示切替
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB", "INFOVIEW"):
             self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None,
                                                                          size=cw.wins((24, 24)))
             self.addctrlbtn.SetToolTip(cw.cwpy.msgs["show_additional_controls"])
-            self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_card)
             self.change_bgs.append(self.addctrlbtn)
-            if not cw.cwpy.setting.show_addctrlbtn:
-                self.addctrlbtn.Hide()
         else:
             self.addctrlbtn = None
 
         # 絞込条件
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15))
         self.narrow = wx.TextCtrl(self.toppanel, -1, size=cw.wins((100, 20)))
-        self.narrow.SetValue(cw.cwpy.setting.card_narrow)
         self.narrow.SetFont(font)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
+        self.narrow_type = wx.ComboBox(self.toppanel, -1, size=cw.wins((90, 20)), choices=(), style=wx.CB_READONLY)
+        self.narrow_type.SetFont(font)
+
+        self.additionals.append((self.narrow, self._can_narrow))
+        self.additionals.append((self.narrow_type, self._can_narrow))
+
+        self.toppanel.SetFocusIgnoringChildren()
+
+    def reconstruct(self, callname: str, name: str, sendto: bool, sort: bool, areaid: Optional[int]) -> None:
+        self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], name))
+        self._quit = False
+        if areaid is None:
+            self.areaid = cw.cwpy.areaid
+        else:
+            self.areaid = areaid
+
+        if self.callname in ("HANDVIEW", "CARDPOCKET_REPLACE"):
+            s = cw.cwpy.msgs["entry_cancel"]
+        else:
+            s = cw.cwpy.msgs["close"]
+        self.closebtn.SetLabel(s)
+
+        self._laststar = None
+        self._lastrepls = None
+        self.editstar.SetToggle(cw.cwpy.setting.edit_star)
+        self._update_sortwithstar()
+        self._update_editstar()
+
+        if self.addctrlbtn:
+            self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_card)
+
+        if not sort or not cw.cwpy.setting.show_additional_card:
+            self.sort.Hide()
+            self.sortwithstar.Hide()
+        if not sort:
+            self.editstar.Hide()
+
+        for cardtype, btn in enumerate(self.show):
+            if cw.cwpy.setting.show_cardtype[cardtype]:
+                btn.SetToggle(True)
+            else:
+                btn.SetToggle(False)
+            if self.callname not in ("BACKPACK", "STOREHOUSE") or\
+                    not cw.cwpy.setting.show_additional_card:
+                btn.Hide()
+
+        if not sendto:
+            self.leftbtn2.Hide()
+            self.rightbtn2.Hide()
+            self.combo.Hide()
+
+        if not sort or not cw.cwpy.setting.show_additional_card:
+            self.sort.Hide()
+            self.sortwithstar.Hide()
+        if not sort:
+            self.editstar.Hide()
+
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB", "INFOVIEW"):
+            if not cw.cwpy.setting.show_addctrlbtn:
+                self.addctrlbtn.Hide()
+
         if self.callname == "INFOVIEW":
             choices = (cw.cwpy.msgs["all"],
                        cw.cwpy.msgs["card_name"],
@@ -196,9 +227,7 @@ class CardControl(wx.Dialog):
                        cw.cwpy.msgs["description"],
                        cw.cwpy.msgs["scenario_name"],
                        cw.cwpy.msgs["author"])
-        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
-        self.narrow_type = wx.ComboBox(self.toppanel, -1, size=cw.wins((90, 20)), choices=choices, style=wx.CB_READONLY)
-        self.narrow_type.SetFont(font)
+        self.narrow_type.SetItems(choices)
         if self.callname == "INFOVIEW":
             narrow_sel = cw.cwpy.setting.infoview_narrowtype
         else:
@@ -207,16 +236,11 @@ class CardControl(wx.Dialog):
             self.narrow_type.SetSelection(narrow_sel)
         else:
             self.narrow_type.SetSelection(1)
+        self.narrow.SetValue(cw.cwpy.setting.card_narrow)
 
-        def can_narrow():
-            return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")
-
-        if not can_narrow() or not cw.cwpy.setting.show_additional_card:
+        if not self._can_narrow() or not cw.cwpy.setting.show_additional_card:
             self.narrow.Hide()
             self.narrow_type.Hide()
-
-        self.additionals.append((self.narrow, can_narrow))
-        self.additionals.append((self.narrow_type, can_narrow))
 
         self._drawlist = {}
         self._leftmarks = []
@@ -226,11 +250,7 @@ class CardControl(wx.Dialog):
         self._animate_frame = 0
         self._price_sheet = None
 
-        self.smallctrls = []
-
         self._proc = False
-
-        self.toppanel.SetFocusIgnoringChildren()
 
         if self.addctrlbtn:
             self.update_additionals()
@@ -238,8 +258,7 @@ class CardControl(wx.Dialog):
         for ctrl in self.change_bgs:
             ctrl.SetBackgroundColour(self.bgcolour)
 
-        if drawcards:
-            self.draw_cards()
+        self.draw_cards()
 
     def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
@@ -270,7 +289,7 @@ class CardControl(wx.Dialog):
 
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=self.closebtn.GetId())
-        self.Bind(wx.EVT_CLOSE, self.OnCancel2)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         self.leftkeyid = wx.NewId()
         self.rightkeyid = wx.NewId()
@@ -326,6 +345,9 @@ class CardControl(wx.Dialog):
         seq.append((wx.ACCEL_CTRL, ord('D'), debugid))
 
         cw.util.set_acceleratortable(self, seq)
+
+    def _can_narrow(self):
+        return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")
 
     def OnNumberKeyDown(self, event):
         """
@@ -539,6 +561,10 @@ class CardControl(wx.Dialog):
         cw.cwpy.setting.show_additional_card = show
         self.set_cardpos()
 
+    def OnClose(self, event: wx.CloseEvent) -> None:
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.closebtn.GetId())
+        self.ProcessEvent(btnevent)
+
     def OnToggleAdditionalControls(self, event):
         if not self.addctrlbtn or self.callname not in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return
@@ -565,6 +591,8 @@ class CardControl(wx.Dialog):
         cw.cwpy.frame.exec_func(func)
 
     def OnNarrowCondition(self, event: wx.CommandEvent) -> None:
+        if not self.IsShown():
+            return
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
         # 日本語入力で一度に何度もイベントが発生する
@@ -1669,13 +1697,19 @@ class CardControl(wx.Dialog):
                             pocket = cw.POCKET_BEAST
                         if target.get_cardpocketspace()[pocket] <= len(target.cardpocket[pocket]) and\
                                 target is not header.get_owner():
-                            dlg = cw.dialog.cardcontrol.ReplCardHolder(self, target, header, personal=False)
+                            if not self._replcardholder:
+                                self._replcardholder = cw.dialog.cardcontrol.ReplCardHolder(self)
+                            self._replcardholder.reconstruct_replcardholder(target, header, personal=False)
+                            dlg = self._replcardholder
 
                     elif index in self._combo_personal:
                         target = self.list2[self._combo_personal[index]]
                         if target.get_personalpocketspace() <= len(target.personal_pocket) and\
                                 target is not header.personal_owner:
-                            dlg = cw.dialog.cardcontrol.ReplCardHolder(self, target, header, personal=True)
+                            if not self._replcardholder:
+                                self._replcardholder = cw.dialog.cardcontrol.ReplCardHolder(self)
+                            self._replcardholder.reconstruct_replcardholder(target, header, personal=False)
+                            dlg = self._replcardholder
 
                     if dlg:
                         cw.cwpy.frame.move_dlg(dlg)
@@ -1816,10 +1850,9 @@ class CardControl(wx.Dialog):
 
         if self.Parent is cw.cwpy.frame:
             cw.cwpy.frame.kill_dlg(None)
-            cw.cwpy.frame.append_killlist(self)
-
-    def OnCancel2(self, event):
-        self.OnCancel(event)
+            if hasattr(self, "touchtools"):
+                self.touchtools.Hide()
+            self.Hide()
 
     def OnCancel(self, event: wx.PyCommandEvent) -> None:
         if self._quit:
@@ -1837,7 +1870,9 @@ class CardControl(wx.Dialog):
                         cw.cwpy.clear_specialarea(redraw=False)
                 cw.cwpy.exec_func(func)
             cw.cwpy.frame.kill_dlg(None)
-            cw.cwpy.frame.append_killlist(self)
+            if hasattr(self, "touchtools"):
+                self.touchtools.Hide()
+            self.Hide()
 
 
 # ------------------------------------------------------------------------------
@@ -1845,10 +1880,72 @@ class CardControl(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class CardHolder(CardControl):
-    def __init__(self, parent: wx.TopLevelWindow, callname: str, selection: Optional["cw.sprite.card.CWPyCard"],
-                 pre_info: Optional[Tuple[str, Optional[int], wx.Point, Union[int, float]]] = None,
-                 areaid: Optional[int] = None) -> None:
+    def __init__(self, parent: wx.TopLevelWindow, callname: str) -> None:
         # タイプ判別
+        self.callname = callname
+
+        # ダイアログ作成
+        CardControl.__init__(self, parent)
+
+        # キャストの手札カード用のコントロール
+        # 情報カードダイアログの場合は切り替えが無いため不要
+        if self.callname != "INFOVIEW":
+            # skill
+            self.skillbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((74, 54)))
+            bmp = cw.cwpy.rsrc.buttons["SKILL"]
+            self.skillbtn.SetBitmapLabel(bmp, False)
+            self.skillbtn.SetBitmapSelected(bmp)
+            # item
+            self.itembtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((74, 54)))
+            bmp = cw.cwpy.rsrc.buttons["ITEM"]
+            self.itembtn.SetBitmapLabel(bmp, False)
+            self.itembtn.SetBitmapSelected(bmp)
+            # beast
+            self.beastbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((74, 54)))
+            bmp = cw.cwpy.rsrc.buttons["BEAST"]
+            self.beastbtn.SetBitmapLabel(bmp, False)
+            self.beastbtn.SetBitmapSelected(bmp)
+            if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB"):
+                # 私有
+                self.personalbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None,
+                                                                              size=cw.wins((74, 54)))
+                bmp = cw.cwpy.rsrc.buttons["PERSONAL"]
+                self.personalbtn.SetBitmapLabel(bmp, False)
+                self.personalbtn.SetBitmapSelected(bmp)
+            else:
+                self.personalbtn = None
+            # cw.cwpy.setting.last_cardpocketの値からトグルをセットする
+            for index, btn in enumerate((self.skillbtn, self.itembtn, self.beastbtn, self.personalbtn)):
+                if btn:
+                    btn.SetToggle(cw.cwpy.setting.last_cardpocket == index)
+                    self.change_bgs.append(btn)
+
+        # カード置き場、荷物袋、情報カード用のコントロール
+        # up
+        bmp = cw.cwpy.rsrc.buttons["UP"]
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp, chain=True)
+        # ページ指定
+        self.page = wx.lib.intctrl.IntCtrl(self.toppanel, -1, style=wx.TE_RIGHT, size=cw.wins((-1, 22)))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(17))
+        self.page.SetFont(font)
+        self.page.SetValue(1)
+        self.page.SetMin(1)
+        self.page.SetMax(1)
+        self.page.SetLimited(True)
+        self.page.SetNoneAllowed(False)
+        self.smallctrls.append(self.page)
+        self.additionals.append((self.page, lambda: self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB",
+                                                                      "INFOVIEW")))
+        # down
+        bmp = cw.cwpy.rsrc.buttons["DOWN"]
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp, chain=True)
+
+        # bind
+        self._bind()
+
+    def reconstruct_cardholder(self, callname: str, selection: Optional["cw.sprite.card.CWPyCard"],
+                               pre_info: Optional[Tuple[str, Optional[int], wx.Point, Union[int, float]]] = None,
+                               areaid: Optional[int] = None) -> None:
         self.callname = callname
         self.selection = None
 
@@ -1989,7 +2086,7 @@ class CardHolder(CardControl):
 
         # ダイアログ作成
         sort = self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB")
-        CardControl.__init__(self, parent, name, sendto, sort, areaid=areaid, drawcards=False)
+        CardControl.reconstruct(self, callname, name, sendto=sendto, sort=sort, areaid=areaid)
         if self.callname == "CARDPOCKETB":
             self.closebtn.SetLabel(cw.cwpy.msgs["return"])
 
@@ -2005,67 +2102,22 @@ class CardHolder(CardControl):
         # キャストの手札カード用のコントロール
         # 情報カードダイアログの場合は切り替えが無いため不要
         if self.callname != "INFOVIEW":
-            # skill
-            self.skillbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((74, 54)))
-            bmp = cw.cwpy.rsrc.buttons["SKILL"]
-            self.skillbtn.SetBitmapLabel(bmp, False)
-            self.skillbtn.SetBitmapSelected(bmp)
-            # item
-            self.itembtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((74, 54)))
-            bmp = cw.cwpy.rsrc.buttons["ITEM"]
-            self.itembtn.SetBitmapLabel(bmp, False)
-            self.itembtn.SetBitmapSelected(bmp)
-            # beast
-            self.beastbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((74, 54)))
-            bmp = cw.cwpy.rsrc.buttons["BEAST"]
-            self.beastbtn.SetBitmapLabel(bmp, False)
-            self.beastbtn.SetBitmapSelected(bmp)
             if cw.cwpy.setting.show_personal_cards and (isinstance(self.selection, cw.character.Player) or
                                                         self.callname in ("STOREHOUSE", "BACKPACK")):
-                # 私有
-                self.personalbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None,
-                                                                              size=cw.wins((74, 54)))
-                bmp = cw.cwpy.rsrc.buttons["PERSONAL"]
-                self.personalbtn.SetBitmapLabel(bmp, False)
-                self.personalbtn.SetBitmapSelected(bmp)
                 if not cw.cwpy.sdata.party_environment_backpack:
                     self.personalbtn.Hide()
             else:
-                self.personalbtn = None
                 if cw.cwpy.setting.last_cardpocket == cw.POCKET_BEAST:
                     cw.cwpy.setting.last_cardpocket = cw.POCKET_SKILL
-            # cw.cwpy.setting.last_cardpocketの値からトグルをセットする
-            for index, btn in enumerate((self.skillbtn, self.itembtn, self.beastbtn, self.personalbtn)):
-                if btn:
-                    btn.SetToggle(cw.cwpy.setting.last_cardpocket == index)
-                    self.change_bgs.append(btn)
+                self.personalbtn.Hide()
 
-        # カード置き場、荷物袋、情報カード用のコントロール
-        # up
-        bmp = cw.cwpy.rsrc.buttons["UP"]
-        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp, chain=True)
-        # ページ指定
-        self.page = wx.lib.intctrl.IntCtrl(self.toppanel, -1, style=wx.TE_RIGHT, size=cw.wins((-1, 22)))
         self._proc_page = False
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(17))
-        self.page.SetFont(font)
-        self.page.SetValue(1)
-        self.page.SetMin(1)
-        self.page.SetMax(1)
-        self.page.SetLimited(True)
-        self.page.SetNoneAllowed(False)
-        self.smallctrls.append(self.page)
-        self.additionals.append((self.page, lambda: self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB",
-                                                                      "INFOVIEW")))
-        # down
-        bmp = cw.cwpy.rsrc.buttons["DOWN"]
-        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp, chain=True)
-
         self._enable_updown()
 
         # 移動先選択コンボボックス(情報カードの場合は無し)
         self._cardpocketinfo = -1
         if sendto:
+            self.combo.Clear()
             bmp = cw.cwpy.rsrc.buttons["ARROW"]
             self._combo_manual = len(self.combo.GetItems())
             self.combo.Append(cw.cwpy.msgs["send_to_manual"], bmp)
@@ -2086,18 +2138,18 @@ class CardHolder(CardControl):
                     self._combo_cast[len(self.combo.GetItems())] = index
                     self.combo.Append(castdata.name, bmp)
                     index += 1
+
+                bmp = cw.cwpy.rsrc.buttons["CAST_PERSONAL"]
+                index = 0
+                for castdata in self.list2:
+                    self._combo_personal[len(self.combo.GetItems())] = index
+                    s = "%s(%s/%s)" % (cw.cwpy.msgs["send_to_personal"] % castdata.name,
+                                       len(castdata.personal_pocket),
+                                       castdata.get_personalpocketspace())
+                    self.combo.Append(s, bmp)
+                    index += 1
                 self._cardpocketinfo = -1
-                if self.personalbtn:
-                    bmp = cw.cwpy.rsrc.buttons["CAST_PERSONAL"]
-                    index = 0
-                    for castdata in self.list2:
-                        self._combo_personal[len(self.combo.GetItems())] = index
-                        s = "%s(%s/%s)" % (cw.cwpy.msgs["send_to_personal"] % castdata.name,
-                                           len(castdata.personal_pocket),
-                                           castdata.get_personalpocketspace())
-                        self.combo.Append(s, bmp)
-                        index += 1
-                    self._cardpocketinfo = -1
+
                 if self.callname == "CARDPOCKET":
                     self._update_cardpocketinfo(cw.cwpy.setting.last_cardpocket)
             if not cw.cwpy.is_playingscenario():
@@ -2139,8 +2191,6 @@ class CardHolder(CardControl):
 
         # layout
         self._do_layout()
-        # bind
-        self._bind()
 
     def _bind(self) -> None:
         CardControl._bind(self)
@@ -2149,16 +2199,13 @@ class CardHolder(CardControl):
             self.Bind(wx.EVT_BUTTON, self.OnClickToggleBtn, self.skillbtn)
             self.Bind(wx.EVT_BUTTON, self.OnClickToggleBtn, self.itembtn)
             self.Bind(wx.EVT_BUTTON, self.OnClickToggleBtn, self.beastbtn)
-            if self.personalbtn:
-                self.Bind(wx.EVT_BUTTON, self.OnClickToggleBtn, self.personalbtn)
+            self.Bind(wx.EVT_BUTTON, self.OnClickToggleBtn, self.personalbtn)
 
         self.Bind(wx.EVT_BUTTON, self.OnClickUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickDownBtn, self.downbtn)
 
         self.page.Bind(wx.lib.intctrl.EVT_INT, self.OnPageNum)
         self.page.Bind(wx.EVT_SET_FOCUS, self.OnPageSetFocus)
-
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
     def update_debug(self):
         CardControl.update_debug(self)
@@ -2215,12 +2262,6 @@ class CardHolder(CardControl):
             self.page.SetSelection(0, len(str(self.page.GetValue())))
         cw.cwpy.frame.exec_func(func)
         event.Skip()
-
-    def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
-        self._cancel_animation = True
-        for header in self._fulllist:
-            header.negaflag = False
-            header.clickedflag = False
 
     def OnSort(self, event):
         self._cancel_animation = True
@@ -2430,8 +2471,12 @@ class CardHolder(CardControl):
         self._redraw = True
         self.draw_cards()
 
+    def OnClose(self, event: wx.CloseEvent) -> None:
+        self._clear_flags()
+        CardControl.OnCancel(self, event)
+
     def OnCancel(self, event: wx.PyCommandEvent) -> None:
-        self._cancel_animation = True
+        self._clear_flags()
         if self.callname == "CARDPOCKETB":
             cw.cwpy.play_sound("page")
             old_callname = self.callname
@@ -2441,9 +2486,11 @@ class CardHolder(CardControl):
         else:
             CardControl.OnCancel(self, event)
 
-    def OnCancel2(self, event: wx.CloseEvent) -> None:
+    def _clear_flags(self) -> None:
         self._cancel_animation = True
-        CardControl.OnCancel(self, event)
+        for header in self._fulllist:
+            header.negaflag = False
+            header.clickedflag = False
 
     def _change_callname(self, old_callname: str) -> None:
         self.Freeze()
@@ -2568,8 +2615,7 @@ class CardHolder(CardControl):
                 self.skillbtn.Hide()
                 self.itembtn.Hide()
                 self.beastbtn.Hide()
-                if self.personalbtn:
-                    self.personalbtn.Hide()
+                self.personalbtn.Hide()
 
         # ソート条件
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
@@ -2654,11 +2700,11 @@ class CardHolder(CardControl):
         owner = self.selection
 
         if self.callname == "CARDPOCKET" and self.get_mode() == CCMODE_MOVE and owner.reversed and\
-                not (self.personalbtn and self.personalbtn.GetToggle()):
+                not self.personalbtn.GetToggle():
             s = cw.cwpy.msgs["move_failed_reversed"] % owner.name
             self.show_errordialog(s)
 
-        elif self.callname == "CARDPOCKETB" or (self.callname == "CARDPOCKET" and self.personalbtn and
+        elif self.callname == "CARDPOCKETB" or (self.callname == "CARDPOCKET" and
                                                 self.personalbtn.GetToggle() and self.get_mode() == CCMODE_USE):
             if not self.check_using(owner, header):
                 self.draw_cards()
@@ -2691,9 +2737,7 @@ class CardHolder(CardControl):
         self._cancel_animation = True
         cw.cwpy.play_sound("click")
 
-        seq = [self.skillbtn, self.itembtn, self.beastbtn]
-        if self.personalbtn:
-            seq.append(self.personalbtn)
+        seq = (self.skillbtn, self.itembtn, self.beastbtn, self.personalbtn)
         for index, btn in enumerate(seq):
             if btn == event.GetEventObject():
                 cw.cwpy.setting.last_cardpocket = index
@@ -2710,7 +2754,7 @@ class CardHolder(CardControl):
             # 特殊技能、アイテム、召喚獣を切り替え
             self._cancel_animation = True
             seq = [self.skillbtn, self.itembtn, self.beastbtn]
-            if self.personalbtn:
+            if self.personalbtn.IsShown():
                 seq.append(self.personalbtn)
             btn = seq[cw.cwpy.setting.last_cardpocket - 1]\
                 if not cw.cwpy.setting.last_cardpocket == 0 else seq[len(seq) - 1]
@@ -2728,7 +2772,7 @@ class CardHolder(CardControl):
             # 特殊技能、アイテム、召喚獣を切り替え
             self._cancel_animation = True
             seq = [self.skillbtn, self.itembtn, self.beastbtn]
-            if self.personalbtn:
+            if self.personalbtn.IsShown():
                 seq.append(self.personalbtn)
             btn = seq[cw.cwpy.setting.last_cardpocket + 1]\
                 if not cw.cwpy.setting.last_cardpocket == len(seq) - 1 else seq[0]
@@ -2859,7 +2903,7 @@ class CardHolder(CardControl):
                 # キャストの手札カード
                 # 特殊技能、アイテム、召喚獣を切り替え
                 seq = [self.skillbtn, self.itembtn, self.beastbtn]
-                if self.personalbtn:
+                if self.personalbtn.IsShown():
                     seq.append(self.personalbtn)
                 if cw.util.get_wheelrotation(event) > 0:
                     btn = seq[cw.cwpy.setting.last_cardpocket - 1]\
@@ -3067,7 +3111,7 @@ class CardHolder(CardControl):
         elif self.callname == "STOREHOUSE":
             seq = cw.cwpy.ydata.storehouse
         elif self.callname == "CARDPOCKET":
-            if self.personalbtn and self.personalbtn.GetToggle():
+            if self.personalbtn.GetToggle():
                 self.selection.replace_personalcardposition(header1, header2)
             else:
                 seq = self.selection.cardpocket[cw.cwpy.setting.last_cardpocket]
@@ -3088,9 +3132,24 @@ class CardHolder(CardControl):
 # ------------------------------------------------------------------------------
 
 class HandView(CardControl):
-    def __init__(self, parent: wx.TopLevelWindow, selection: "cw.sprite.card.CWPyCard",
-                 pre_info: Optional[Tuple[str, Optional[int], wx.Point, Union[int, float]]] = None) -> None:
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         self.callname = "HANDVIEW"
+
+        # ダイアログ作成
+        CardControl.__init__(self, parent)
+
+        # 手札再配布
+        bmp = cw.cwpy.rsrc.dialogs["HAND"]
+        self.redeal = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((24, 24)), bmp=bmp)
+        self.redeal.SetToolTip(cw.cwpy.msgs["re_deal"])
+
+        # layout
+        self._do_layout()
+        # bind
+        self._bind()
+
+    def reconstruct_handview(self, selection: "cw.sprite.card.CWPyCard",
+                             pre_info: Optional[Tuple[str, Optional[int], wx.Point, Union[int, float]]] = None) -> None:
         self.owner = selection
 
         # カードリスト
@@ -3116,14 +3175,11 @@ class HandView(CardControl):
         # ダイアログ作成
         name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
         self.bgcolour = wx.Colour(0, 0, 128)
-        CardControl.__init__(self, parent, name, False, False)
+        CardControl.reconstruct(self, self.callname, name, False, False, None)
         # 選択中カード色反転
         self.Parent.change_selection(self.selection)
 
         # 手札再配布
-        bmp = cw.cwpy.rsrc.dialogs["HAND"]
-        self.redeal = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((24, 24)), bmp=bmp)
-        self.redeal.SetToolTip(cw.cwpy.msgs["re_deal"])
         if not cw.cwpy.is_debugmode():
             self.redeal.Hide()
 
@@ -3131,11 +3187,6 @@ class HandView(CardControl):
         if len(self.list2) == 1:
             self.rightbtn.Disable()
             self.leftbtn.Disable()
-
-        # layout
-        self._do_layout()
-        # bind
-        self._bind()
 
     def _do_layout(self) -> None:
         CardControl._do_layout(self)
@@ -3261,9 +3312,19 @@ class HandView(CardControl):
 # ------------------------------------------------------------------------------
 
 class ReplCardHolder(CardControl):
-    def __init__(self, parent: wx.TopLevelWindow, selection: "cw.sprite.card.PlayerCard",
-                 target: "cw.header.CardHeader", personal: bool) -> None:
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         self.callname = "CARDPOCKET_REPLACE"
+
+        # ダイアログ作成
+        CardControl.__init__(self, parent)
+
+        # layout
+        self._do_layout()
+        # bind
+        self._bind()
+
+    def reconstruct_replcardholder(self, selection: "cw.sprite.card.PlayerCard", target: "cw.header.CardHeader",
+                                   personal: bool):
         self.owner = selection
         self.target = target
         self.personal = personal
@@ -3293,6 +3354,7 @@ class ReplCardHolder(CardControl):
             self.list = self.selection.personal_pocket
         else:
             self.list = self.selection.cardpocket[self.cardtype]
+
         # ダイアログ作成
         if personal:
             name = cw.cwpy.msgs["personal_cards"] % (self.selection.name)
@@ -3300,7 +3362,7 @@ class ReplCardHolder(CardControl):
             name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
         r, g, b = cw.cwpy.setting.trademode_cardholder_color
         self.bgcolour = wx.Colour(r, g, b)
-        CardControl.__init__(self, parent, name, False, False)
+        CardControl.reconstruct(self, self.callname, name, False, False, None)
         # 選択中カード色反転
         if self.Parent is cw.cwpy.frame:
             self.Parent.change_selection(self.selection)
@@ -3309,11 +3371,6 @@ class ReplCardHolder(CardControl):
         if len(self.list2) == 1:
             self.rightbtn.Disable()
             self.leftbtn.Disable()
-
-        # layout
-        self._do_layout()
-        # bind
-        self._bind()
 
     def _bind(self) -> None:
         CardControl._bind(self)
@@ -3438,13 +3495,10 @@ class ReplCardHolder(CardControl):
 class InfoView(CardHolder):
     def __init__(self, parent: wx.TopLevelWindow) -> None:
         # ダイアログ作成
-        CardHolder.__init__(self, parent, "INFOVIEW", None)
+        CardHolder.__init__(self, parent, "INFOVIEW")
 
-        def func():
-            if cw.cwpy.sdata.notice_infoview:
-                cw.cwpy.sdata.notice_infoview = False
-                cw.cwpy.statusbar.change()
-        cw.cwpy.exec_func(func)
+    def reconstruct_infoview(self):
+        CardHolder.reconstruct_cardholder(self, "INFOVIEW", None)
 
     def is_showpersonal(self):
         return False

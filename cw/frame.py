@@ -46,6 +46,11 @@ class Frame(wx.Frame):
         self.kill_list = []
         self.db = None
 
+        self._cardholder: Optional[cw.dialog.cardcontrol.CardHolder] = None
+        self._handview: Optional[cw.dialog.cardcontrol.HandView] = None
+        self._infoview: Optional[cw.dialog.cardcontrol.InfoView] = None
+        self._replcardholder: Optional[cw.dialog.cardcontrol.ReplCardHolder] = None
+
         # トップフレーム
         self.style = wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX & ~wx.RESIZE_BORDER
         if sys.platform == "win32":
@@ -175,6 +180,20 @@ class Frame(wx.Frame):
         if d == wx.NOT_FOUND:
             d = 0
         return wx.Display(d).GetGeometry().GetSize()
+
+    def update_dialogparams(self):
+        if self._cardholder:
+            self._cardholder.Destroy()
+            self._cardholder = None
+        if self._handview:
+            self._handview.Destroy()
+            self._handview = None
+        if self._infoview:
+            self._infoview.Destroy()
+            self._infoview = None
+        if self._replcardholder:
+            self._replcardholder.Destroy()
+            self._replcardholder = None
 
     def _bind(self) -> None:
         self.Bind(wx.EVT_CLOSE, self.OnCloseFromFrame)
@@ -838,18 +857,22 @@ class Frame(wx.Frame):
     def OnBACKPACK(self, event: wx.PyCommandEvent) -> None:
         selection, preinfo = self._get_cardcontrolparams()
         areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", selection, preinfo, areaid=areaid)
-        self.move_dlg(dlg, (0, cw.ppis(-63)))
+        if not self._cardholder:
+            self._cardholder = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK")
+        self._cardholder.reconstruct_cardholder("BACKPACK", selection, preinfo, areaid=areaid)
+        self.move_dlg(self._cardholder, (0, cw.ppis(-63)))
 
-        dlg.ShowModal()
+        self._cardholder.ShowModal()
 
     def OnSTOREHOUSE(self, event: wx.PyCommandEvent) -> None:
         selection, preinfo = self._get_cardcontrolparams()
         areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", selection, preinfo, areaid=areaid)
-        self.move_dlg(dlg, (0, cw.ppis(-63)))
+        if not self._cardholder:
+            self._cardholder = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE")
+        self._cardholder.reconstruct_cardholder("STOREHOUSE", selection, preinfo, areaid=areaid)
+        self.move_dlg(self._cardholder, (0, cw.ppis(-63)))
 
-        dlg.ShowModal()
+        self._cardholder.ShowModal()
 
     def OnCARDPOCKETB(self, event):
         self._cardpocket_impl("CARDPOCKETB")
@@ -863,26 +886,32 @@ class Frame(wx.Frame):
             areaid = cw.cwpy.areaid
         else:
             areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, callname, selection, preinfo, areaid=areaid)
-        self.move_dlg(dlg, (0, cw.ppis(-63)))
+        if not self._cardholder:
+            self._cardholder = cw.dialog.cardcontrol.CardHolder(self, callname)
+        self._cardholder.reconstruct_cardholder(callname, selection, preinfo, areaid=areaid)
+        self.move_dlg(self._cardholder, (0, cw.ppis(-63)))
 
-        dlg.ShowModal()
+        self._cardholder.ShowModal()
 
     def OnHANDVIEW(self, event: wx.PyCommandEvent) -> None:
         selection, preinfo = self._get_cardcontrolparams()
-        dlg = cw.dialog.cardcontrol.HandView(self, selection, preinfo)
-        self.move_dlg(dlg, (0, cw.ppis(-63)))
+        if not self._handview:
+            self._handview = cw.dialog.cardcontrol.HandView(self)
+        self._handview.reconstruct_handview(selection, preinfo)
+        self.move_dlg(self._handview, (0, cw.ppis(-63)))
 
-        dlg.ShowModal()
+        self._handview.ShowModal()
 
     def OnCARDPOCKET_REPLACE(self, event: wx.PyCommandEvent) -> None:
         selection = cw.cwpy.selection
         target = cw.cwpy.selectedheader
         if selection and target:
             personal = event.args.get("personal_cards", None)
-            dlg = cw.dialog.cardcontrol.ReplCardHolder(self, selection, target, personal=personal)
-            self.move_dlg(dlg, (0, cw.ppis(-63)))
-            dlg.ShowModal()
+            if not self._replcardholder:
+                self._replcardholder = cw.dialog.cardcontrol.ReplCardHolder(self)
+            self._replcardholder.reconstruct_replcardholder(selection, target, personal=personal)
+            self.move_dlg(self._replcardholder, (0, cw.ppis(-63)))
+            self._replcardholder.ShowModal()
         else:
             self.kill_dlg(None)
 
@@ -896,9 +925,17 @@ class Frame(wx.Frame):
         return selection, preinfo
 
     def OnINFOVIEW(self, event: wx.PyCommandEvent) -> None:
-        dlg = cw.dialog.cardcontrol.InfoView(self)
-        self.move_dlg(dlg, (0, cw.ppis(-63)))
-        dlg.ShowModal()
+        def func():
+            if cw.cwpy.sdata.notice_infoview:
+                cw.cwpy.sdata.notice_infoview = False
+                cw.cwpy.statusbar.change()
+        cw.cwpy.exec_func(func)
+
+        if not self._infoview:
+            self._infoview = cw.dialog.cardcontrol.InfoView(self)
+        self._infoview.reconstruct_infoview()
+        self.move_dlg(self._infoview, (0, cw.ppis(-63)))
+        self._infoview.ShowModal()
 
     def OnCHARAINFO(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.charainfo.ActiveCharaInfo(self)
@@ -944,7 +981,7 @@ class Frame(wx.Frame):
                 cw.cwpy.play_sound("signal")
                 if cw.cwpy.setting.show_savedmessage:
                     s = cw.cwpy.msgs["saved"]
-                    cw.cwpy.call_dlg("SAVED_MESSAGE", text=s)
+                    cw.cwpy.call_modaldlg("SAVED_MESSAGE", text=s)
                 else:
                     self._saved()
             cw.cwpy.exec_func(func)

@@ -20,6 +20,7 @@ class CWPyCard(base.SelectableSprite):
         self.alpha = None
         # 状態
         self.status = status
+        self._clicking = False
         self.debug_only = False
         self.old_status = status
         self.rect = cw.s(pygame.Rect(0, 0, 0, 0))
@@ -244,7 +245,7 @@ class CWPyCard(base.SelectableSprite):
             lifebar = lifebars[0]
         else:
             lifebar = None
-        if self.frame == 0:
+        if self.frame < 3 and not self._clicking:
             if lifebar:
                 lifebar.click()
             if self.reversed:
@@ -254,10 +255,12 @@ class CWPyCard(base.SelectableSprite):
             self.image.set_alpha(self.alpha)
             self.rect = self.image.get_rect(center=self.get_animerect().center)
             self.status = "click"
-        elif self.frame == 3:
+            self._clicking = True
+        elif 3 <= self.frame:
             if lifebar:
                 lifebar.declick()
             self.status = self.old_status
+            self._clicking = False
             self.image = self.get_selectedimage()
             self.rect = pygame.Rect(self.get_animerect())
             self.frame = 0
