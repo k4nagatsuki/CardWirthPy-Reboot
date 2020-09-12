@@ -887,6 +887,7 @@ class SelectionBar(base.SelectableSprite):
     def __init__(self, showing_index, name, pos_noscale, size_noscale, backlog=False, selected=False):
         base.SelectableSprite.__init__(self)
         self.selectable_on_event = True
+        self._clicking = False
         # 各種データ
         self.backlog = backlog
         self.selected = selected
@@ -965,12 +966,14 @@ class SelectionBar(base.SelectableSprite):
         else:
             layer1 = cw.LAYER_SELECTIONBAR_1
             layer2 = cw.LAYER_SELECTIONBAR_2
-        if self.frame == 0:
+        if self.frame < 6 and not self._clicking:
             self.rect.move_ip(cw.s(0), cw.s(+1))
             self.status = "click"
+            self._clicking = True
             self.group.change_layer(self, layer2)
-        elif self.frame == 6:
+        elif 6 <= self.frame:
             self.status = "normal"
+            self._clicking = False
             self.rect.move_ip(cw.s(0), cw.s(-1))
             self.frame = 0
             self.group.change_layer(self, layer1)

@@ -1059,15 +1059,17 @@ def show_touchtools(dlg: wx.TopLevelWindow) -> bool:
     if hasattr(dlg, "cwpy_debug") and dlg.cwpy_debug:
         return False
 
-    top = dlg
-    fc = dlg
-    while fc and top.GetTopLevelParent():
-        top = fc.GetTopLevelParent()
-        if hasattr(top, "cwpy_debug") and top.cwpy_debug:
-            return False
-        fc = fc.GetParent()
+    if not hasattr(dlg, "touchtools"):
+        top = dlg
+        fc = dlg
+        while fc and top.GetTopLevelParent():
+            top = fc.GetTopLevelParent()
+            if hasattr(top, "cwpy_debug") and top.cwpy_debug:
+                return False
+            fc = fc.GetParent()
 
-    dlg.touchtools = cw.dialog.etc.TouchTools(dlg)
+        dlg.touchtools = cw.dialog.etc.TouchTools(dlg)
+
     wx.CallAfter(dlg.touchtools.Show, True)
     return True
 

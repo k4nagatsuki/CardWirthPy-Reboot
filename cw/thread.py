@@ -368,6 +368,8 @@ class CWPy(_Singleton, threading.Thread):
     def _init_resources(self):
         try:
             """スキンが関わるリソースの初期化"""
+            self.frame.exec_func(self.frame.update_dialogparams)
+
             self.init_fullscreenparams()
 
             # リソース(辞書)
@@ -949,6 +951,8 @@ class CWPy(_Singleton, threading.Thread):
             if not pygame.event.peek(USEREVENT):
                 if update:
                     self.update()         # スプライトの更新
+                else:
+                    self.proc_animation()
                 self.draw(True)           # スプライトの描画
 
         if not self.is_runningevent() and self._clear_changed:
@@ -986,6 +990,7 @@ class CWPy(_Singleton, threading.Thread):
             self.rsrc.clear_systemfonttable()
 
     def tick_clock(self, framerate=0):
+        self.proc_animation()
         self.lazy_draw()
         if framerate:
             self.clock.tick(framerate)
@@ -1347,6 +1352,8 @@ class CWPy(_Singleton, threading.Thread):
             self.file_updates.clear()
 
     def proc_animation(self):
+        if not self.animations:
+            return
         if self.setting.stop_the_world_with_iconized:
             if self.frame.is_iconized:
                 if self._stop_animations is None:
@@ -1891,9 +1898,6 @@ class CWPy(_Singleton, threading.Thread):
                 pass
             self.frame.exec_func(func)
             self.frame.AddPendingEvent(event)
-            if sys.platform == "win32":
-                while self.is_running() and self.frame.IsEnabled() and stack < self._showingdlg:
-                    pass
         else:
             # BUG: シナリオインストールダイアログを開いたあとで
             #      フィルタイベントの挙動がおかしくなる
@@ -1907,7 +1911,7 @@ class CWPy(_Singleton, threading.Thread):
         stack = self.call_dlg(name, **kwargs)
 
         if threading.currentThread() == self:
-            while self.is_running() and stack < self._showingdlg:
+            while self.is_running() and self.frame.IsEnabled() and stack < self._showingdlg:
                 self.main_loop(False)
 
     def call_predlg(self):
