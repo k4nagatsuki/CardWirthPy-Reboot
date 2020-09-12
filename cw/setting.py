@@ -789,11 +789,11 @@ class Setting(object):
         # 音楽のボリューム(0～1.0)
         self.vol_bgm = data.getint("BgmVolume", int(self.vol_bgm_init * 100))
         # midi音楽のボリューム(0～1.0)
-        self.vol_bgm_midi = data.getint("BgmVolume", "midi", self.vol_bgm_init)
+        self.vol_bgm_midi = data.getint("BgmVolume", "midi", int(self.vol_bgm_init * 100))
         # 効果音ボリューム
         self.vol_sound = data.getint("SoundVolume", int(self.vol_sound_init * 100))
         # midi効果音のボリューム(0～1.0)
-        self.vol_sound_midi = data.getint("SoundVolume", "midi", self.vol_sound_init)
+        self.vol_sound_midi = data.getint("SoundVolume", "midi", int(self.vol_sound_init * 100))
         # 音量の単位変更(0～100 to 0～1)
         self.vol_master = Setting.wrap_volumevalue(self.vol_master)
         self.vol_bgm = Setting.wrap_volumevalue(self.vol_bgm)
