@@ -5082,11 +5082,14 @@ if sys.platform == "win32":
                 self.f = None
                 remove(self.name)
 
+    _mutex: List[Tuple[_Unlock, str]] = []
+
 else:
     import fcntl
 
+    _mutex: List[Tuple[io.FileIO, str]] = []
+
 _lock_mutex = threading.Lock()
-_mutex: List[Tuple[Union[_Unlock, io.FileIO], str]] = []
 
 
 @synclock(_lock_mutex)

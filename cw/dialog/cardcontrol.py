@@ -1839,7 +1839,8 @@ class CardControl(wx.Dialog):
         self._quit = True
         self._cancel_animation = True
 
-        self.Enable(False)
+        if hasattr(self, "touchtools"):
+            self.touchtools.Hide()
         self.Show(False)
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB", "HANDVIEW"):
@@ -1850,9 +1851,6 @@ class CardControl(wx.Dialog):
 
         if self.Parent is cw.cwpy.frame:
             cw.cwpy.frame.kill_dlg(None)
-            if hasattr(self, "touchtools"):
-                self.touchtools.Hide()
-            self.Hide()
 
     def OnCancel(self, event: wx.PyCommandEvent) -> None:
         if self._quit:
@@ -1860,7 +1858,8 @@ class CardControl(wx.Dialog):
         self._quit = True
         self._cancel_animation = True
 
-        self.Enable(False)
+        if hasattr(self, "touchtools"):
+            self.touchtools.Hide()
         self.Show(False)
         self.list = []
         self.selection = None
@@ -1872,9 +1871,6 @@ class CardControl(wx.Dialog):
                         cw.cwpy.clear_specialarea(redraw=False)
                 cw.cwpy.exec_func(func)
             cw.cwpy.frame.kill_dlg(None)
-            if hasattr(self, "touchtools"):
-                self.touchtools.Hide()
-            self.Hide()
 
 
 # ------------------------------------------------------------------------------
