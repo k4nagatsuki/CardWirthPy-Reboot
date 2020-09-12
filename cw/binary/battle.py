@@ -8,7 +8,8 @@ import cw
 
 class Battle(base.CWBinaryBase):
     """widファイルのバトルデータ。"""
-    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+    def __init__(self, parent: None, f: cw.binary.cwfile.CWFile, yadodata: bool = False, nameonly: bool = False,
+                 materialdir: str = "Material", image_export: bool = True) -> None:
         from . import event
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
@@ -49,7 +50,7 @@ class Battle(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> cw.data.CWPyElement:
         if self.data is None:
             self.data = cw.data.make_element("Battle")
             prop = cw.data.make_element("Property")
@@ -72,7 +73,7 @@ class Battle(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement) -> None:
         from . import event
 
         restype = 1
@@ -130,7 +131,7 @@ class EnemyCard(base.CWBinaryBase):
     主要なデータはキャストカードを参照する。
     escape:逃走フラグ(真偽値)。
     """
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent: Battle, f: cw.binary.cwfile.CWFile, yadodata: bool = False) -> None:
         from . import event
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -145,7 +146,7 @@ class EnemyCard(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> cw.data.CWPyElement:
         if self.data is None:
             self.data = cw.data.make_element("EnemyCard")
             self.data.set("escape", str(self.escape))
@@ -169,7 +170,7 @@ class EnemyCard(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement) -> None:
         from . import event
 
         cast_id = 0
@@ -227,7 +228,7 @@ class EnemyCard(base.CWBinaryBase):
         f.write_bool(escape)
 
 
-def main():
+def main() -> None:
     pass
 
 

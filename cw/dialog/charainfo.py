@@ -1173,7 +1173,7 @@ class EditButton():
         self.type = btype
         self.has_separator = has_separator
         self.negaflag = False
-        self.textpos = None  # type: Tuple[int, int]
+        self.textpos: Optional[Tuple[int, int]] = None
 
 
 class EditPanel(wx.Panel):

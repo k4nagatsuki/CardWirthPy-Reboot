@@ -8,7 +8,8 @@ import cw
 
 class Area(base.CWBinaryBase):
     """widファイルのエリアデータ。"""
-    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+    def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False, nameonly: bool = False,
+                 materialdir: str = "Material", image_export: bool = True) -> None:
         from . import event
         from . import bgimage
 
@@ -48,7 +49,7 @@ class Area(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             self.data = cw.data.make_element("Area")
             prop = cw.data.make_element("Property")
@@ -73,7 +74,7 @@ class Area(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         from . import event
         from . import bgimage
 
@@ -121,7 +122,8 @@ class Area(base.CWBinaryBase):
 
 class MenuCard(base.CWBinaryBase):
     """メニューカードのデータ。"""
-    def __init__(self, parent, f, yadodata=False, dataversion=4):
+    def __init__(self, parent: Area, f: "cw.binary.cwfile.CWFile", yadodata: bool = False,
+                 dataversion: int = 4) -> None:
         from . import event
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -143,7 +145,7 @@ class MenuCard(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             if self.image:
                 self.imgpath = self.export_image()
@@ -177,7 +179,7 @@ class MenuCard(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         from . import event
 
         image = None
@@ -250,7 +252,7 @@ class MenuCard(base.CWBinaryBase):
         f.write_string(imgpath)
 
 
-def main():
+def main() -> None:
     pass
 
 
