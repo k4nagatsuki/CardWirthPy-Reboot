@@ -181,7 +181,7 @@ class Frame(wx.Frame):
             d = 0
         return wx.Display(d).GetGeometry().GetSize()
 
-    def update_dialogparams(self):
+    def update_dialogparams(self) -> None:
         if self._cardholder:
             self._cardholder.Destroy()
             self._cardholder = None
@@ -194,6 +194,38 @@ class Frame(wx.Frame):
         if self._replcardholder:
             self._replcardholder.Destroy()
             self._replcardholder = None
+
+        # レスポンスをよくするため、各ダイアログを事前に生成しておく
+        def func(self: Frame) -> None:
+            def func1(self: Frame) -> None:
+                if not self:
+                    return
+                if not self._cardholder:
+                    self._cardholder = cw.dialog.cardcontrol.CardHolder(self, "CARDPOCKET")
+            cw.cwpy.frame.exec_func(func1, self)
+
+            def func2(self: Frame) -> None:
+                if not self:
+                    return
+                if not self._handview:
+                    self._handview = cw.dialog.cardcontrol.HandView(self)
+            cw.cwpy.frame.exec_func(func2, self)
+
+            def func3(self: Frame) -> None:
+                if not self:
+                    return
+                if not self._infoview:
+                    self._infoview = cw.dialog.cardcontrol.InfoView(self)
+            cw.cwpy.frame.exec_func(func3, self)
+
+            def func4(self: Frame) -> None:
+                if not self:
+                    return
+                if not self._replcardholder:
+                    self._replcardholder = cw.dialog.cardcontrol.ReplCardHolder(self)
+            cw.cwpy.frame.exec_func(func4, self)
+
+        cw.cwpy.exec_func(func, self)
 
     def _bind(self) -> None:
         self.Bind(wx.EVT_CLOSE, self.OnCloseFromFrame)
