@@ -2222,7 +2222,7 @@ class Character(object):
     @synclock(_couponlock)
     def get_coupon_at(self, index):
         """指定位置のクーポンを(name, value)で返す。"""
-        e_coupons = self.data.find("Property/Coupons")  # type: Optional[cw.data.CWPyElement]
+        e_coupons: Optional[cw.data.CWPyElement] = self.data.find("Property/Coupons")
         if e_coupons is None:
             raise Exception("No coupons.")
         e = e_coupons[index]

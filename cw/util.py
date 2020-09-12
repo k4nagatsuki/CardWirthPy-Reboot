@@ -4893,7 +4893,7 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
 # ------------------------------------------------------------------------------
 
 # CoInitialize()を呼び出し終えたスレッドのset
-_cominit_table = set()  # type: Set[threading.Thread]
+_cominit_table: Set[threading.Thread] = set()
 
 
 def _co_initialize() -> None:
@@ -5003,7 +5003,7 @@ def get_keypath(path: str) -> str:
 # パフォーマンスカウンタ
 # ------------------------------------------------------------------------------
 
-dictimes = {}  # type: Dict[str, float]
+dictimes: Dict[str, float] = {}
 times = [0.0] * 1024
 timer = 0.0
 
@@ -5058,9 +5058,6 @@ def t_print() -> None:
 # 同時起動制御
 # ------------------------------------------------------------------------------
 
-_lock_mutex = threading.Lock()
-_mutex = []  # type: List[Tuple[Union[_Unlock, io.FileIO], str]]
-
 if sys.platform == "win32":
     class _OVERLAPPED(ctypes.Structure):
         _fields_ = [
@@ -5087,6 +5084,9 @@ if sys.platform == "win32":
 
 else:
     import fcntl
+
+_lock_mutex = threading.Lock()
+_mutex: List[Tuple[Union[_Unlock, io.FileIO], str]] = []
 
 
 @synclock(_lock_mutex)

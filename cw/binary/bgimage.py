@@ -5,10 +5,17 @@ from . import base
 
 import cw
 
+from typing import Union
+
 
 class BgImage(base.CWBinaryBase):
     """背景のセルデータ。"""
-    def __init__(self, parent, f, yadodata=False):
+    from . import area
+    from . import content
+    from . import party
+
+    def __init__(self, parent: Union[area.Area, content.Content, party.PartyMembers], f: "cw.binary.cwfile.CWFile",
+                 yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.left = f.dword()
         self.top = f.dword()
@@ -101,7 +108,7 @@ class BgImage(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             def makecolor(tag, color):
                 return cw.data.make_element(tag, attrs={"r": str(color[0]),
@@ -169,7 +176,7 @@ class BgImage(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         left = 0
         top = 0
         width = 0
@@ -342,7 +349,7 @@ class BgImage(base.CWBinaryBase):
             f.check_wsnversion("1", "プレイヤーキャラクターセル")
 
 
-def main():
+def main() -> None:
     pass
 
 

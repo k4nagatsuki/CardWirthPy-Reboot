@@ -1386,8 +1386,7 @@ class Debugger(wx.Frame):
     def OnHidePartyTool(self, event):
         cw.cwpy.exec_func(cw.cwpy.hide_party)
 
-    def iconize_event(self, dlg):
-        # type: (wx.Dialog) -> None
+    def iconize_event(self, dlg: wx.Dialog) -> None:
         def OnIconize(event):
             cw.cwpy.frame.Iconize(event.IsIconized())
             event.Skip(False)

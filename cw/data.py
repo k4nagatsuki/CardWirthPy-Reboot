@@ -1202,12 +1202,12 @@ class ScenarioData(SystemData):
         self.notice_debuglog = 0
 
         # 各段階の互換性マーク
-        self.versionhint = [
+        self.versionhint: List[Optional[str]] = [
             None,  # メッセージ表示時の話者(キャストまたはカード)
             None,  # 使用中のカード
             None,  # エリア・バトル・パッケージ
             None,  # シナリオ本体
-        ]  # type: List[Optional[str]]
+        ]
 
         if cw.cwpy.classicdata:
             self.versionhint[cw.HINT_SCENARIO] = cw.cwpy.classicdata.versionhint
@@ -2162,7 +2162,7 @@ class ScenarioData(SystemData):
 def init_flags(data: "CWPyElement", writable: bool) -> Dict[str, "Flag"]:
     flags = {}
 
-    for e in data.getfind("Flags", raiseerror=False):  # type: CWPyElement
+    for e in data.getfind("Flags", raiseerror=False):
         defvalue = e.getbool(".", "default")
         value = e.getbool(".", "value", defvalue)
         name = e.gettext("Name", "")
@@ -2178,7 +2178,7 @@ def init_flags(data: "CWPyElement", writable: bool) -> Dict[str, "Flag"]:
 def init_steps(data: "CWPyElement", writable: bool) -> Dict[str, "Step"]:
     steps = {}
 
-    for e in data.getfind("Steps", raiseerror=False):  # type: CWPyElement
+    for e in data.getfind("Steps", raiseerror=False):
         defvalue = e.getint(".", "default")
         value = e.getint(".", "value", defvalue)
         name = e.gettext("Name", "")
@@ -2196,7 +2196,7 @@ def init_steps(data: "CWPyElement", writable: bool) -> Dict[str, "Step"]:
 def init_variants(data: "CWPyElement", writable: bool) -> Dict[str, "Variant"]:
     variants = {}
 
-    for e in data.getfind("Variants", raiseerror=False):  # type: CWPyElement
+    for e in data.getfind("Variants", raiseerror=False):
         deftype = e.getattr(".", "defaulttype", "String")
         vtype = e.getattr(".", "type", deftype)
         defvalue = e.getattr(".", "defaultvalue", "")
@@ -4078,7 +4078,9 @@ class Party(object):
         if cw.cwpy.cardgrp.has(pcard):
             cw.cwpy.cardgrp.remove(pcard)
             cw.cwpy.pcards.remove(pcard)
-        self.data.getfind("Property/Members").clear()
+        e_members = self.data.find("Property/Members")
+        if e_members is not None:
+            e_members.clear()
 
         for pcard in cw.cwpy.get_pcards():
             s = os.path.basename(pcard.data.fpath)
@@ -4103,7 +4105,9 @@ class Party(object):
             pcard.update_personalownerindex()
         cw.cwpy.pcards = seq
 
-        self.data.getfind("Property/Members").clear()
+        e_members = self.data.find("Property/Members")
+        if e_members is not None:
+            e_members.clear()
         for pcard in cw.cwpy.get_pcards():
             s = os.path.basename(pcard.data.fpath)
             s = cw.util.splitext(s)[0]
@@ -4365,7 +4369,7 @@ class _CWPyElementInterface(object):
         else:
             return bool(e is not None)
 
-    def getfind(self, path: str, raiseerror: bool = True) -> "CWPyElement":
+    def getfind(self, path: str, raiseerror: bool = True) -> Iterable["CWPyElement"]:
         e = self.find(path)
 
         if e is None:

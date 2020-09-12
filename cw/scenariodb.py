@@ -863,7 +863,7 @@ class Scenariodb(object):
         for tablename in ("scenariodb", "scenarioimage", "scenariotype"):
             s = "SELECT * FROM %s WHERE dpath LIKE ? ESCAPE '\\'" % tablename
             self.cur.execute(s, (before,))
-            for d in self.cur.fetchall():  # type: sqlite3.Cursor
+            for d in self.cur.fetchall():
                 s = "UPDATE %s SET dpath=? WHERE dpath=? AND fname=?" % tablename
                 ndpath = d["dpath"].replace(orig_before + "/", orig_after + "/", 1)
                 self.cur.execute(s, (ndpath, d["dpath"], d["fname"],))

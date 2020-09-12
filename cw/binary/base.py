@@ -9,13 +9,11 @@ import wx
 
 import cw
 
-from typing import Optional
+from typing import Dict, Optional, Set, Tuple, Union
 
 
 class CWBinaryBase(object):
-    from . import environment
-
-    def __init__(self, parent: Optional["environment.Environment"], f: "cw.binary.cwfile.CWFile",
+    def __init__(self, parent: Optional["CWBinaryBase"], f: "cw.binary.cwfile.CWFile",
                  yadodata: bool = False, materialdir: str = "Material", image_export: bool = True) -> None:
         self.set_root(parent)
         self.xmltype = self.__class__.__name__
@@ -37,28 +35,31 @@ class CWBinaryBase(object):
         else:
             self.yadodata = yadodata
 
-    def set_root(self, parent: Optional["environment.Environment"]) -> None:
+    def set_root(self, parent: Optional["CWBinaryBase"]) -> None:
         if parent:
             self.root = parent.root
         else:
             self.root = weakref.ref(self)
 
-    def get_root(self):
+    from . import environment
+    from . import cwscenario
+
+    def get_root(self) -> Union["environment.Environment", "cwscenario.CWScenario"]:
         return self.root()
 
-    def set_dir(self, path):
+    def set_dir(self, path: str) -> None:
         self.get_root().dir = path
 
-    def get_dir(self):
+    def get_dir(self) -> str:
         try:
             return self.get_root().dir
         except Exception:
             return ""
 
-    def set_imgdir(self, path):
+    def set_imgdir(self, path: str) -> None:
         self.get_root().imgdir = path
 
-    def get_imgdir(self):
+    def get_imgdir(self) -> str:
         try:
             return self.get_root().imgdir
         except Exception:
@@ -68,18 +69,18 @@ class CWBinaryBase(object):
         fname = os.path.basename(self.fpath)
         return cw.util.splitext(fname)[0]
 
-    def is_root(self):
+    def is_root(self) -> bool:
         return bool(self == self.get_root())
 
-    def is_yadodata(self):
-        return self.yadodata
+    def is_yadodata(self) -> bool:
+        return bool(self.yadodata)
 
     def set_materialdir(self, materialdir: str) -> None:
         """materialdirを素材ディレクトリとして登録する。
         デフォルト値は"Material"。"""
         self._materialdir = materialdir
 
-    def get_materialdir(self):
+    def get_materialdir(self) -> str:
         """素材ディレクトリ名を返す。
         親要素がある場合、親の設定が優先される。"""
         root = self.get_root()
@@ -93,7 +94,7 @@ class CWBinaryBase(object):
         self._image_export = image_export
         self._force_exportsetting = force
 
-    def get_image_export(self):
+    def get_image_export(self) -> bool:
         """XML変換時に格納イメージをエクスポートする場合はTrue。
         親要素がある場合、親の設定が優先される。"""
         if self._force_exportsetting:
@@ -109,7 +110,7 @@ class CWBinaryBase(object):
 # XML作成用
 # ------------------------------------------------------------------------------
 
-    def create_xml(self, dpath):
+    def create_xml(self, dpath: str) -> str:
         """XMLファイルを作成する。
         dpath: XMLを作成するディレクトリ
         """
@@ -147,7 +148,7 @@ class CWBinaryBase(object):
         self.xmlpath = path
         return path
 
-    def export_image(self):
+    def export_image(self) -> str:
         """内部画像を出力する"""
         from . import beast
         from . import util
@@ -225,7 +226,7 @@ class CWBinaryBase(object):
         return util.repl_escapechar(path)
 
     @staticmethod
-    def check_imgpath(f, e_imgpath, defpostype):
+    def check_imgpath(f: "cw.binary.cwfile.CWFileWriter", e_imgpath: "cw.data.CWPyElement", defpostype: str) -> None:
         """ImagePath要素のWSNバージョンをチェックする。"""
         if e_imgpath is None:
             return
@@ -236,14 +237,15 @@ class CWBinaryBase(object):
         f.check_wsnversion("2", "イメージ位置の指定")
 
     @staticmethod
-    def check_coupon(f, coupon):
+    def check_coupon(f: "cw.binary.cwfile.CWFileWriter", coupon: str) -> None:
         """称号名couponがシステムクーポンであればWSNバージョンをチェックする。
         """
         if coupon in ("＠効果対象", "＠効果対象外", "＠イベント対象", "＠使用者"):
             f.check_wsnversion("2", coupon)
 
     @staticmethod
-    def import_image(f, imagepath, convertbitmap=True, fullpath=False, defpostype="TopLeft"):
+    def import_image(f: "cw.binary.cwfile.CWFileWriter", imagepath: str, convertbitmap: bool = True,
+                     fullpath: bool = False, defpostype: str = "TopLeft") -> Optional[bytes]:
         """imagepathの画像を読み込み、バイナリデータとして返す。
         ビットマップ以外であればビットマップに変換する。
         """
@@ -292,11 +294,11 @@ class CWBinaryBase(object):
 
         return image
 
-    def get_data(self):
+    def get_data(self) -> Optional["cw.data.CWPyElement"]:
         """CWPyElementのインスタンスを返す。"""
         return None
 
-    def get_materialpath(self, path):
+    def get_materialpath(self, path: str) -> str:
         """引数のパスを素材ディレクトリに関連づける。
         dpath: 素材ファイルのパス。
         """
@@ -314,7 +316,7 @@ class CWBinaryBase(object):
             return ""
 
     @staticmethod
-    def materialpath(path):
+    def materialpath(path: str) -> str:
         """素材パスを逆変換する。"""
         if not path:
             return ""
@@ -325,11 +327,11 @@ class CWBinaryBase(object):
         else:
             return path
 
-    def get_indent(self, indent):
+    def get_indent(self, indent: int) -> str:
         """インデントの文字列を返す。スペース一個分。"""
         return " " * indent
 
-    def get_propertiestext(self, d):
+    def get_propertiestext(self, d: Dict[str, str]) -> str:
         """XMLエレメントのプロパティ文字列を返す。"""
         s = ""
 
@@ -342,7 +344,7 @@ class CWBinaryBase(object):
 # コンテント
 # ------------------------------------------------------------------------------
 
-    def conv_contenttype(self, n):
+    def conv_contenttype(self, n: int) -> Tuple[str, str]:
         """引数の値から、コンテントの種類を返す。"""
         if n == 0:
             return "Start", ""                # スタート
@@ -496,7 +498,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_contenttype(ctype, n, f):
+    def unconv_contenttype(ctype: str, n: str, f: "cw.binary.cwfile.CWFileWriter") -> int:
         if ctype == "Start" and n == "":
             return 0
         elif ctype == "Link" and n == "Start":
@@ -682,7 +684,7 @@ class CWBinaryBase(object):
 # 適用メンバ・適用範囲
 # ------------------------------------------------------------------------------
 
-    def conv_target_member(self, n):
+    def conv_target_member(self, n: int) -> str:
         """引数の値から、「適用メンバ」の種類を返す。
         0:Selected(現在選択中のメンバ), 1:Random(ランダムメンバ),
         2:Party(現在選択中以外のメンバ)
@@ -707,7 +709,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_target_member(n, f, effectcontent=False):
+    def unconv_target_member(n: str, f: "cw.binary.cwfile.CWFileWriter", effectcontent: bool = False) -> int:
         if n == "Selected":
             return 0
         elif n == "Random":
@@ -734,7 +736,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="対象「%s」" % n)
 
-    def conv_target_member_dialog(self, n):
+    def conv_target_member_dialog(self, n: int) -> str:
         """引数の値から、台詞コンテントの話者を返す。
         0:Selected(現在選択中のメンバ), 1:Random(ランダムメンバ),
         2:Unselected(現在選択中以外のメンバ)
@@ -753,7 +755,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_target_member_dialog(n, f):
+    def unconv_target_member_dialog(n: str, f: "cw.binary.cwfile.CWFileWriter") -> int:
         if n == "Selected":
             return 0
         elif n == "Random":
@@ -766,7 +768,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="話者「%s」" % n)
 
-    def conv_target_scope(self, n):
+    def conv_target_scope(self, n: int) -> str:
         """引数の値から、「適用範囲」の種類を返す。
         0:Selected(現在選択中のメンバ), 1:Random(パーティの誰か一人),
         2:Party(パーティの全員), 3:Backpack(荷物袋),
@@ -788,7 +790,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_target_scope(n, f):
+    def unconv_target_scope(n: str, f: "cw.binary.cwfile.CWFileWriter") -> int:
         if n == "Selected":
             return 0
         elif n == "Random":
@@ -810,7 +812,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="対象「%s」" % n)
 
-    def conv_target_scope_coupon(self, n):
+    def conv_target_scope_coupon(self, n: int) -> str:
         """引数の値から、「適用範囲」の種類を返す(1.30～のクーポン分岐)。
         0:Selected(現在選択中のメンバ), 1:Random(パーティの誰か一人),
         2:Party(パーティの全員), 3:Field(フィールド全体)
@@ -827,7 +829,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_target_scope_coupon(n, f):
+    def unconv_target_scope_coupon(n: str, f: "cw.binary.cwfile.CWFileWriter") -> int:
         if n == "Selected":
             return 0
         elif n == "Random":
@@ -840,7 +842,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="クーポン検索範囲「%s」" % n)
 
-    def conv_castranges(self, n):
+    def conv_castranges(self, n: int) -> Set[str]:
         """引数の値から、「適用メンバ」の種類をsetで返す(1.30)。
         0b0001:パーティ
         0b0010:エネミー
@@ -856,7 +858,7 @@ class CWBinaryBase(object):
         return s
 
     @staticmethod
-    def unconv_castranges(data):
+    def unconv_castranges(data: "cw.data.CWPyElement") -> int:
         value = 0
         for n in data:
             if n.text == "Party":
@@ -869,7 +871,7 @@ class CWBinaryBase(object):
                 raise cw.binary.cwfile.UnsupportedError(funcname="ランダム選択範囲「%s」" % n)
         return value
 
-    def conv_keycoderange(self, n):
+    def conv_keycoderange(self, n: int) -> str:
         """引数の値から、「キーコード取得範囲」の種類を返す(1.50～のキーコード所持分岐)。
         0:Selected(現在選択中のメンバ), 1:Random(パーティの誰か一人),
         2:Backpack(荷物袋), 3:PartyAndBackpack(全体(荷物袋含む))
@@ -886,7 +888,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_keycoderange(n, f):
+    def unconv_keycoderange(n: str, f: "cw.binary.cwfile.CWFileWriter") -> int:
         if n == "Selected":
             return 0
         elif n == "Random":
@@ -908,7 +910,7 @@ class CWBinaryBase(object):
 # コンテント系
 # ------------------------------------------------------------------------------
 
-    def conv_spreadtype(self, n):
+    def conv_spreadtype(self, n: int) -> str:
         """引数の値から、カードの並べ方を返す。"""
         if n == 0:
             return "Auto"
@@ -918,7 +920,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_spreadtype(n):
+    def unconv_spreadtype(n: str) -> int:
         if n == "Auto":
             return 0
         elif n == "Custom":
@@ -926,7 +928,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="カード配置タイプ「%s」" % n)
 
-    def conv_statustype(self, n):
+    def conv_statustype(self, n: int) -> str:
         """引数の値から、状態を返す。
         0:Active(行動可能), 1:Inactive(行動不可), 2:Alive(生存), 3:Dead(非生存),
         4:Fine(健康), 5:Injured(負傷), 6:Heavy-Injured(重傷),
@@ -999,7 +1001,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_statustype(n, f):
+    def unconv_statustype(n: str, f: "cw.binary.cwfile.CWFileWriter") -> int:
         if n == "Active":
             return 0
         elif n == "Inactive":
@@ -1072,7 +1074,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="ステータス「%s」" % n)
 
-    def conv_effectcardtype(self, n):
+    def conv_effectcardtype(self, n: int) -> str:
         """引数の値から、「カード種別」を返す(1.50～のキーコード所持分岐)。
         0:All(全種類), 1:Skill(特殊技能), 2:Item(アイテム), 3:Beast(召喚獣)
         """
@@ -1088,7 +1090,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_effectcardtype(n):
+    def unconv_effectcardtype(n: str) -> int:
         if n == "All":
             return 0
         elif n == "Skill":
@@ -1100,7 +1102,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="カードタイプ「%s」" % n)
 
-    def conv_comparison4(self, n):
+    def conv_comparison4(self, n: int) -> str:
         """引数の値から、「4路選択条件」を返す(1.50～のステップ判定)。
         0:=(条件値と一致), 1:<>(条件値と不一致),
         2:<(条件値より大きい), 3:>(条件値より小さい)
@@ -1117,7 +1119,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_comparison4(n):
+    def unconv_comparison4(n: str) -> int:
         if n == "=":
             return 0
         elif n == "<>":
@@ -1129,7 +1131,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="比較結果「%s」" % n)
 
-    def conv_comparison3(self, n):
+    def conv_comparison3(self, n: int) -> str:
         """引数の値から、「3路選択条件」を返す(1.50～のラウンド判定)。
         0:=(条件値と一致), 1:<(条件値より大きい), 2:>(条件値より小さい)
         """
@@ -1143,7 +1145,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_comparison3(n):
+    def unconv_comparison3(n: str) -> int:
         if n == "=":
             return 0
         elif n == "<":
@@ -1157,7 +1159,7 @@ class CWBinaryBase(object):
 # 効果モーション関連
 # ------------------------------------------------------------------------------
 
-    def conv_effectmotion_element(self, n):
+    def conv_effectmotion_element(self, n: int) -> str:
         """引数の値から、効果モーションの「属性」を返す。
         0:All(全), 1:Health(肉体), 2:Mind(精神), 3:Miracle(神聖),
         4:Magic(魔力), 5:Fire(炎), 6:Ice(冷)
@@ -1180,7 +1182,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_effectmotion_element(n):
+    def unconv_effectmotion_element(n: str) -> int:
         if n == "All":
             return 0
         elif n == "Health":
@@ -1198,7 +1200,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="効果属性「%s」" % n)
 
-    def conv_effectmotion_type(self, tabn, n):
+    def conv_effectmotion_type(self, tabn: int, n: int) -> str:
         """引数の値から、効果モーションの「種類」を返す。
         tabn: 大分類。
         n: 小分類。
@@ -1323,7 +1325,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_effectmotion_type(n, f):
+    def unconv_effectmotion_type(n: str, f: "cw.binary.cwfile.CWFileWriter") -> Tuple[int, int]:
         if n == "Heal":
             return 0, 0
         elif n == "Damage":
@@ -1421,7 +1423,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="効果「%s」" % n)
 
-    def conv_effectmotion_damagetype(self, n):
+    def conv_effectmotion_damagetype(self, n: int) -> str:
         """引数の値から、効果モーションの「属性」を返す。
         0:levelratio(レベル比), 1:normal(効果値), 2:max(最大値)
         """
@@ -1435,7 +1437,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_effectmotion_damagetype(n):
+    def unconv_effectmotion_damagetype(n: str) -> int:
         if n == "LevelRatio":
             return 0
         elif n == "Normal":
@@ -1449,7 +1451,7 @@ class CWBinaryBase(object):
 # スキル・アイテム・召喚獣関連
 # ------------------------------------------------------------------------------
 
-    def conv_card_effecttype(self, n):
+    def conv_card_effecttype(self, n: int) -> str:
         """引数の値から、「効果属性」の種類を返す。
         0:Physic(物理属性), 1:Magic(魔法属性), 2:MagicalPhysic(魔法的物理属性),
         3:PhysicalMagic(物理的魔法属性), 4:None(無属性)
@@ -1468,7 +1470,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_card_effecttype(n):
+    def unconv_card_effecttype(n: str) -> int:
         if n == "Physic":
             return 0
         elif n == "Magic":
@@ -1482,7 +1484,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="基本効果属性「%s」" % n)
 
-    def conv_card_resisttype(self, n):
+    def conv_card_resisttype(self, n: int) -> str:
         """引数の値から、「抵抗属性」の種類を返す。
         0:Avoid(物理属性), 1:Resist(抵抗属性), 3:Unfail(必中属性)
         """
@@ -1496,7 +1498,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_card_resisttype(n):
+    def unconv_card_resisttype(n: str) -> int:
         if n == "Avoid":
             return 0
         elif n == "Resist":
@@ -1506,7 +1508,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="回避属性「%s」" % n)
 
-    def conv_card_visualeffect(self, n):
+    def conv_card_visualeffect(self, n: int) -> str:
         """引数の値から、「視覚的効果」の種類を返す。
         0:None(無し), 1:Reverse(反転),
         2:Horizontal(横), 3:Vertical(縦)
@@ -1523,7 +1525,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_card_visualeffect(n):
+    def unconv_card_visualeffect(n: str) -> int:
         if n == "None":
             return 0
         elif n == "Reverse":
@@ -1535,7 +1537,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="カード視覚効果「%s」" % n)
 
-    def conv_card_physicalability(self, n):
+    def conv_card_physicalability(self, n: int) -> str:
         """引数の値から、身体的要素の種類を返す。
         0:Dex(器用), 1:Agl(素早さ), 2:Int(知力)
         3:Str(筋力), 4:Vit(生命), 5:Min(精神)
@@ -1556,7 +1558,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_card_physicalability(n):
+    def unconv_card_physicalability(n: str) -> int:
         if n == "Dex":
             return 0
         elif n == "Agl":
@@ -1572,7 +1574,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="身体能力「%s」" % n)
 
-    def conv_card_mentalability(self, n):
+    def conv_card_mentalability(self, n: int) -> str:
         """引数の値から、精神的要素の種類を返す。
         1:Aggressive(好戦), -1:Unaggressive(平和), 2:Cheerful(社交),
         -2:Uncheerful(内向), 3:Brave(勇敢), -3:Unbrave(臆病), 4:Cautious(慎重),
@@ -1602,7 +1604,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_card_mentalability(n):
+    def unconv_card_mentalability(n: str) -> int:
         if n == "Aggressive":
             return 1
         elif n == "Unaggressive":
@@ -1626,7 +1628,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="精神傾向「%s」" % n)
 
-    def conv_card_target(self, n):
+    def conv_card_target(self, n: int) -> str:
         """引数の値から、効果目標の種類を返す。
         0:None(対象無し), 1:User(使用者), 2:Party(味方),
         3:Enemy(敵方) ,4:Both(双方)
@@ -1645,7 +1647,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_card_target(n):
+    def unconv_card_target(n: str) -> int:
         if n == "None":
             return 0
         elif n == "User":
@@ -1659,7 +1661,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="効果目標「%s」" % n)
 
-    def conv_card_premium(self, n):
+    def conv_card_premium(self, n: int) -> str:
         """引数の値から、希少度の種類を返す。
         一時的に所持しているだけのF9でなくなるカードの場合は+3されている。
         0:Normal, 2:Rare, 1:Premium
@@ -1674,7 +1676,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_card_premium(n):
+    def unconv_card_premium(n: str) -> int:
         if n == "Normal":
             return 0
         elif n == "Rare":
@@ -1688,7 +1690,7 @@ class CWBinaryBase(object):
 # キャラクター関連
 # ------------------------------------------------------------------------------
 
-    def conv_mentality(self, n):
+    def conv_mentality(self, n: int) -> str:
         """引数の値から、精神状態の種類を返す。
         ここでは「"0"=正常状態」以外の判別は適当。
         """
@@ -1708,7 +1710,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_mentality(n):
+    def unconv_mentality(n: str) -> int:
         if n == "Normal":
             return 0
         elif n == "Sleep":
@@ -1728,7 +1730,7 @@ class CWBinaryBase(object):
 # 宿データ関連
 # ------------------------------------------------------------------------------
 
-    def conv_yadotype(self, n):
+    def conv_yadotype(self, n: int) -> str:
         """引数の値から、宿の種類を返す。
         1:Normal(ノーマル宿), 2:Debug(デバッグ宿)
         """
@@ -1740,7 +1742,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_yadotype(n):
+    def unconv_yadotype(n: str) -> int:
         if n == "Normal":
             return 1
         elif n == "Debug":
@@ -1748,7 +1750,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="宿タイプ「%s」" % n)
 
-    def conv_yado_summaryview(self, n):
+    def conv_yado_summaryview(self, n: int) -> str:
         """引数の値から、張り紙の表示の種類を返す。
         0:隠蔽シナリオ、終了済シナリオを表示しない, 1:隠蔽シナリオを表示しない,
         2:全てのシナリオを表示, 3:適応レベルのシナリオのみを表示
@@ -1765,7 +1767,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_yado_summaryview(n):
+    def unconv_yado_summaryview(n: str) -> int:
         if n == "HideHiddenAndCompleteScenario":
             return 0
         elif n == "HideHiddenScenario":
@@ -1777,7 +1779,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="シナリオ表示タイプ「%s」" % n)
 
-    def conv_yado_bgchange(self, n):
+    def conv_yado_bgchange(self, n: int) -> str:
         """引数の値から、背景の切り替え方式の種類を返す。
         0:アニメーションなし, 1:短冊式,
         2:色変換式, 3:ドット置換式
@@ -1794,7 +1796,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_yado_bgchange(n):
+    def unconv_yado_bgchange(n: str) -> int:
         if n == "NoAnimation":
             return 0
         elif n == "ReedShape":
@@ -1810,7 +1812,7 @@ class CWBinaryBase(object):
 # 特殊セル関連(1.50～)
 # ------------------------------------------------------------------------------
 
-    def conv_borderingtype(self, n):
+    def conv_borderingtype(self, n: int) -> str:
         """引数の値から、テキストセルの縁取り方式を返す。
         0:縁取り形式1, 1:縁取り形式2
         """
@@ -1822,7 +1824,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_borderingtype(n):
+    def unconv_borderingtype(n: str) -> int:
         if n == "Outline":
             return 0
         elif n == "Inline":
@@ -1830,7 +1832,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="縁取りタイプ「%s」" % n)
 
-    def conv_blendmode(self, n):
+    def conv_blendmode(self, n: int) -> str:
         """引数の値から、カラーセルの合成方法を返す。
         0,1:上書き, 2:加算, 3:減算, 4:乗算
         """
@@ -1846,7 +1848,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_blendmode(n):
+    def unconv_blendmode(n: str) -> int:
         if n == "Normal":
             return 0
         elif n == "Add":
@@ -1858,7 +1860,7 @@ class CWBinaryBase(object):
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="合成方法「%s」" % n)
 
-    def conv_gradientdir(self, n):
+    def conv_gradientdir(self, n: int) -> str:
         """引数の値から、グラデーション方向を返す。
         0: グラデーション無し, 1:左から右, 2: 上から下
         """
@@ -1872,7 +1874,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_gradientdir(n):
+    def unconv_gradientdir(n: str) -> int:
         if n == "None":
             return 0
         elif n == "LeftToRight":
@@ -1883,7 +1885,7 @@ class CWBinaryBase(object):
             raise cw.binary.cwfile.UnsupportedError(funcname="グラデーション方向「%s」" % n)
 
 
-def main():
+def main() -> None:
     pass
 
 
