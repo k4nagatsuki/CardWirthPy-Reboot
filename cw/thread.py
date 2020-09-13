@@ -1221,37 +1221,38 @@ class CWPy(_Singleton, threading.Thread):
 
         cw.cwpy.frame.check_killlist()
 
-        # 一時カードはダイアログを開き直す直前に荷物袋へ戻すが、
-        # 戦闘突入等でダイアログを開き直せなかった場合はここで戻す
-        self.return_takenoutcard()
-        # JPDC撮影などで更新されたメニューカードと背景を更新する
-        self.fix_updated_file()
-        # パーティが非表示であれば表示する
-        if not self.is_runningevent():
-            if not self.is_showparty:
-                self.show_party()
+        if not self.lock_menucards:
+            # 一時カードはダイアログを開き直す直前に荷物袋へ戻すが、
+            # 戦闘突入等でダイアログを開き直せなかった場合はここで戻す
+            self.return_takenoutcard()
+            # JPDC撮影などで更新されたメニューカードと背景を更新する
+            self.fix_updated_file()
+            # パーティが非表示であれば表示する
+            if not self.is_runningevent():
+                if not self.is_showparty:
+                    self.show_party()
 
-            clip = None
-            if cw.cwpy.sdata.infocards_beforeevent is not None:
-                # このブロックはイベント終了直後に一回だけ実行される
-                for _i in [i for i in cw.cwpy.sdata.get_infocards(False)
-                           if i not in cw.cwpy.sdata.infocards_beforeevent]:
-                    # イベント開始前には持っていなかった情報カードを入手している
-                    cw.cwpy.sdata.notice_infoview = True
-                    cw.cwpy.statusbar.change()
-                    clip = pygame.Rect(cw.cwpy.statusbar.rect)
-                    break
+                clip = None
+                if cw.cwpy.sdata.infocards_beforeevent is not None:
+                    # このブロックはイベント終了直後に一回だけ実行される
+                    for _i in [i for i in cw.cwpy.sdata.get_infocards(False)
+                               if i not in cw.cwpy.sdata.infocards_beforeevent]:
+                        # イベント開始前には持っていなかった情報カードを入手している
+                        cw.cwpy.sdata.notice_infoview = True
+                        cw.cwpy.statusbar.change()
+                        clip = pygame.Rect(cw.cwpy.statusbar.rect)
+                        break
 
-                clip = self.update_statusimgs(False, clip=clip)
+                    clip = self.update_statusimgs(False, clip=clip)
 
-                cw.cwpy.sdata.infocards_beforeevent = None
-                if clip:
-                    self.add_lazydraw(clip=clip)
+                    cw.cwpy.sdata.infocards_beforeevent = None
+                    if clip:
+                        self.add_lazydraw(clip=clip)
 
-            if self._need_disposition:
-                self.disposition_pcards()
+                if self._need_disposition:
+                    self.disposition_pcards()
 
-            self._reloading = False
+                self._reloading = False
 
         self.update_groups((self.cardgrp, self.topgrp, self.sbargrp))
 
