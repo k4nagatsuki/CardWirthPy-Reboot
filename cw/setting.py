@@ -390,7 +390,7 @@ class Setting(object):
         self.vol_sound_midi = 0.4
         self.vol_sound_midi_init = self.vol_sound_midi
         self.soundfonts = [(cw.DEFAULT_SOUNDFONT, True, 100)]
-        self.soundfonts_init = self.soundfonts
+        self.soundfonts_init = self.soundfonts[:]
         self.bassmidi_sample32bit = True
         self.bassmidi_sample32bit_init = self.bassmidi_sample32bit
         self.sdlmixer_enabled = False
@@ -505,7 +505,7 @@ class Setting(object):
         self.overwrite_partyrecord = True
         self.overwrite_partyrecord_init = self.overwrite_partyrecord
         self.folderoftype = []
-        self.folderoftype_init = self.folderoftype
+        self.folderoftype_init = self.folderoftype[:]
         self.scenario_narrow = ""
         self.scenario_narrow_init = self.scenario_narrow
         self.scenario_narrowtype = 1
