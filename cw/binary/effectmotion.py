@@ -5,12 +5,20 @@ from . import base
 
 import cw
 
+from typing import Union
+
 
 class EffectMotion(base.CWBinaryBase):
     """効果モーションのデータ。
     効果コンテントやスキル・アイテム・召喚獣カード等で使う。
     """
-    def __init__(self, parent, f, yadodata=False, dataversion=4):
+    from . import skill
+    from . import item
+    from . import beast
+    from . import content
+
+    def __init__(self, parent: Union["skill.SkillCard", "item.ItemCard", "beast.BeastCard", "content.Content"],
+                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False, dataversion: str = 4) -> None:
         from . import beast
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -64,7 +72,7 @@ class EffectMotion(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             self.data = cw.data.make_element("Motion")
             self.data.set("type", self.conv_effectmotion_type(self.tabtype, self.type))
@@ -82,7 +90,7 @@ class EffectMotion(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         from . import beast
 
         tabtype, mtype = base.CWBinaryBase.unconv_effectmotion_type(data.get("type"), f)
@@ -134,7 +142,7 @@ class EffectMotion(base.CWBinaryBase):
             raise ValueError(tabtype)
 
 
-def main():
+def main() -> None:
     pass
 
 

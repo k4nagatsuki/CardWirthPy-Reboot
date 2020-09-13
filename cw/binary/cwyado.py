@@ -10,7 +10,7 @@ import itertools
 
 import cw
 
-from typing import Optional
+from typing import Dict, Optional, Tuple
 
 
 class CWYado(object):
@@ -18,6 +18,8 @@ class CWYado(object):
     その他ファイルもコピー。
     """
     from . import environment
+    from . import party
+
     wyd: Optional[environment.Environment]
 
     def __init__(self, path: str, dstpath: str, skintype: str = "") -> None:
@@ -73,7 +75,7 @@ class CWYado(object):
             else:
                 self.otherdirs.append(path)
 
-    def write_errorlog(self, s):
+    def write_errorlog(self, s: str) -> None:
         self.errorlog += s + "\n"
 
     def is_convertible(self) -> bool:
@@ -94,7 +96,7 @@ class CWYado(object):
         else:
             return False
 
-    def convert(self):
+    def convert(self) -> None:
         from . import util
         from . import party
 
@@ -188,7 +190,7 @@ class CWYado(object):
         self.curnum = 100
         return self.dir
 
-    def load(self):
+    def load(self) -> None:
         """宿ファイルを読み込む。
         種類はtypeで判別できる(wydは"-1"、wptは"4"となっている)。
         """
@@ -286,7 +288,7 @@ class CWYado(object):
         # 同一データを使いまわすと複数カードが同一素材を参照してしまうので
         dictrecord = set()
 
-        def get_dictdata(cardname):
+        def get_dictdata(cardname: str) -> cw.data.CWPyElement:
             if cardname in dictrecord:
                 data = copy.deepcopy(carddatadict.get(cardname))
             else:
@@ -384,7 +386,7 @@ class CWYado(object):
 
         return data
 
-    def load_cardfile(self, path, d):
+    def load_cardfile(self, path: str, d: Dict[str, int]) -> "cw.data.CWPyElement":
         """引数のファイル(wid, wsmファイル)を読み込む。
         読み込みに際し、wydファイルから作成できる
         ファイルネームでカードの種類を判別する辞書が必要。
@@ -436,7 +438,7 @@ class CWYado(object):
 
         return data
 
-    def create_log(self, party, partymembers):
+    def create_log(self, party: party.Party, partymembers: party.PartyMembers) -> None:
         """シナリオ進行状況とF9用データの変換を行う。"""
         if not partymembers.nowadventuring:
             return
@@ -600,10 +602,10 @@ class UnconvCWYado(object):
         # エラーログ
         self.errorlog = ""
 
-    def write_errorlog(self, s):
+    def write_errorlog(self, s: str) -> None:
         self.errorlog += s + "\n"
 
-    def convert(self):
+    def convert(self) -> None:
         from . import util
         from . import cwfile
         from . import environment
@@ -617,12 +619,12 @@ class UnconvCWYado(object):
         # 変換中情報
         table = {"yadoname": self.name}
 
-        def create_fpath(name, ext):
+        def create_fpath(name: str, ext: str) -> str:
             fpath = util.join_paths(self.dir, util.check_filename(name) + ext)
             fpath = util.check_duplicate(fpath)
             return fpath
 
-        def write_card(header):
+        def write_card(header: cw.header.CardHeader) -> Tuple[cw.data.CWPyElement, str]:
             data = cw.data.xml2element(header.fpath)
             fpath = create_fpath(header.name, ".wid")
             try:
@@ -860,7 +862,7 @@ class UnconvCWYado(object):
             self.write_errorlog(s)
 
 
-def main():
+def main() -> None:
     pass
 
 

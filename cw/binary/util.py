@@ -87,13 +87,13 @@ def repl_specialchar(s: str) -> str:
     """特殊文字"\\[a-zA-Z0-9]"のエスケープ処理を行う。
     s: エスケープ処理を行う文字列。
     """
-    def repl_metachar(m):
+    def repl_metachar(m: re.Match) -> str:
         return m.group(0).replace("\\", "￥")
 
     return re.sub(r"\\[a-zA-Z0-9]", repl_metachar, s)
 
 
-def main():
+def main() -> None:
     pass
 
 

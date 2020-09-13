@@ -8,14 +8,16 @@ import cw
 
 class Dialog(base.CWBinaryBase):
     """台詞データ"""
-    def __init__(self, parent, f, yadodata=False):
+    from . import content
+
+    def __init__(self, parent: content.Content, f: cw.binary.cwfile.CWFile, yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.coupons = f.string(True)
         self.text = f.string(True)
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> cw.data.CWPyElement:
         if self.data is None:
             self.data = cw.data.make_element("Dialog")
             e = cw.data.make_element("RequiredCoupons", self.coupons)
@@ -25,7 +27,7 @@ class Dialog(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement) -> None:
         coupons = ""
         text = ""
 
@@ -39,7 +41,7 @@ class Dialog(base.CWBinaryBase):
         f.write_string(text, True)
 
 
-def main():
+def main() -> None:
     pass
 
 

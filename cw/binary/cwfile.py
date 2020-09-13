@@ -120,7 +120,7 @@ class CWFileWriter(io.BufferedWriter):
         self.targetengine = targetengine
         self.write_errorlog = write_errorlog
 
-    def check_version(self, engineversion, funcname=""):
+    def check_version(self, engineversion: float, funcname: str = "") -> None:
         """指定されたエンジンバージョンよりもengineversionが
         新しければUnsupportedErrorを投げる。
         """
@@ -132,13 +132,13 @@ class CWFileWriter(io.BufferedWriter):
             if self.targetengine < engineversion:
                 raise UnsupportedError(funcname=funcname)
 
-    def check_wsnversion(self, wsnversion, funcname=""):
+    def check_wsnversion(self, wsnversion: str, funcname: str = "") -> None:
         """指定されたWSNデータバージョンにかかわらず
         UnsupportedErrorを投げる。
         """
         raise UnsupportedError(funcname=funcname)
 
-    def check_bgmoptions(self, data):
+    def check_bgmoptions(self, data: "cw.data.CWPyElement") -> None:
         if data.getint(".", "volume", 100) != 100:
             self.check_wsnversion("1", "BGM音量の指定")
         if data.getint(".", "loopcount", 0) != 0:
@@ -148,7 +148,7 @@ class CWFileWriter(io.BufferedWriter):
         if data.getint(".", "fadein", 0) != 0:
             self.check_wsnversion("1", "BGMフェードイン")
 
-    def check_soundoptions(self, data):
+    def check_soundoptions(self, data: "cw.data.CWPyElement") -> None:
         if data.getint(".", "volume", 100) != 100:
             self.check_wsnversion("1", "効果音音量の指定")
         if data.getint(".", "loopcount", 1) != 1:
@@ -158,17 +158,17 @@ class CWFileWriter(io.BufferedWriter):
         if data.getint(".", "fadein", 0) != 0:
             self.check_wsnversion("1", "効果音フェードイン")
 
-    def write_bool(self, b):
+    def write_bool(self, b: bool) -> None:
         self.write_byte(1 if b else 0)
 
-    def write_string(self, s, multiline=False):
+    def write_string(self, s: str, multiline: bool = False) -> None:
         if s is None:
             s = ""
         if multiline and not self.decodewrap:
             s = cw.util.decodewrap(s, "\r\n")
         self.write_rawstring(s)
 
-    def write_rawstring(self, s):
+    def write_rawstring(self, s: str) -> None:
         if s:
             try:
                 s += "\x00"
@@ -187,19 +187,19 @@ class CWFileWriter(io.BufferedWriter):
             self.write_dword(1)
             self.write_byte(0)
 
-    def write_byte(self, b):
+    def write_byte(self, b: int) -> None:
         self.write(struct.pack("b", b))
 
-    def write_ubyte(self, b):
+    def write_ubyte(self, b: int) -> None:
         self.write(struct.pack("B", b))
 
-    def write_dword(self, dw):
+    def write_dword(self, dw: int) -> None:
         self.write(struct.pack("<l", dw))
 
-    def write_word(self, w):
+    def write_word(self, w: int) -> None:
         self.write(struct.pack("<h", w))
 
-    def write_image(self, image):
+    def write_image(self, image: bytes) -> None:
         if image:
             self.write_dword(len(image))
             self.write(image)
@@ -207,7 +207,7 @@ class CWFileWriter(io.BufferedWriter):
             self.write_dword(0)
 
 
-def main():
+def main() -> None:
     pass
 
 

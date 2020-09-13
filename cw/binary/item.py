@@ -5,12 +5,19 @@ from . import base
 
 import cw
 
+from typing import Union
+
 
 class ItemCard(base.CWBinaryBase):
     """widファイルのアイテムカードのデータ。
     hold(真偽値):True?だと自動選択されない。
     """
-    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+    from . import adventurer
+    from . import cast
+
+    def __init__(self, parent: Union[adventurer.Adventurer, cast.CastCard], f: "cw.binary.cwfile.CWFile",
+                 yadodata: bool = False, nameonly: bool = False, materialdir: str = "Material",
+                 image_export: bool = True) -> None:
         from . import effectmotion
         from . import event
 
@@ -93,7 +100,7 @@ class ItemCard(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             if 2 < self.premium:
                 # シナリオで入手したカード
@@ -174,7 +181,7 @@ class ItemCard(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data, ownerisadventurer):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", ownerisadventurer: bool) -> None:
         from . import effectmotion
         from . import event
 
@@ -336,7 +343,7 @@ class ItemCard(base.CWBinaryBase):
         f.write_dword(enhance_defense2)
 
 
-def main():
+def main() -> None:
     pass
 
 

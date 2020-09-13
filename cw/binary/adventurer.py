@@ -15,7 +15,7 @@ class Adventurer(base.CWBinaryBase):
     wch・wptファイルから個別に引っ張ってくる必要がある。
     """
     def __init__(self, parent: Optional[Union["AdventurerCard", "AdventurerWithImage"]],
-                 f: cw.binary.cwfile.CWFile, yadodata: bool = False, nameonly: bool = False,
+                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False, nameonly: bool = False,
                  album120: bool = False) -> None:
         from . import item
         from . import skill
@@ -243,13 +243,13 @@ class Adventurer(base.CWBinaryBase):
         self.data = None
         self.f9data = None
 
-    def get_data(self) -> cw.data.CWPyElement:
+    def get_data(self) -> "cw.data.CWPyElement":
         return self._get_data(False)
 
-    def get_f9data(self) -> cw.data.CWPyElement:
+    def get_f9data(self) -> "cw.data.CWPyElement":
         return self._get_data(True)
 
-    def _get_data(self, f9data: cw.data.CWPyElement) -> cw.data.CWPyElement:
+    def _get_data(self, f9data: "cw.data.CWPyElement") -> "cw.data.CWPyElement":
         if f9data:
             data = self.f9data
         else:
@@ -442,7 +442,7 @@ class Adventurer(base.CWBinaryBase):
         return path
 
     @staticmethod
-    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement, logdata: cw.data.CWPyElement) -> None:
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", logdata: "cw.data.CWPyElement") -> None:
         from . import item
         from . import skill
         from . import beast
@@ -768,7 +768,7 @@ class Adventurer(base.CWBinaryBase):
 
 class AdventurerCard(base.CWBinaryBase):
     """wcpファイル(type=1)。冒険者データが中に入っているだけ。"""
-    def __init__(self, parent: None, f: cw.binary.cwfile.CWFile, yadodata: bool = False) -> None:
+    def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 1
         self.fname = self.get_fname()
@@ -787,7 +787,7 @@ class AdventurerCard(base.CWBinaryBase):
         """埋め込み画像を取り込む時のメソッド。"""
         self.adventurer.image = image
 
-    def get_data(self) -> cw.data.CWPyElement:
+    def get_data(self) -> "cw.data.CWPyElement":
         return self.adventurer.get_data()
 
     def create_xml(self, dpath: str) -> str:
@@ -795,7 +795,7 @@ class AdventurerCard(base.CWBinaryBase):
         return self.adventurer.create_xml(dpath)
 
     @staticmethod
-    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement) -> None:
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         f.write_byte(0)  # 不明
         f.write_byte(0)  # 不明
         f.write_byte(0)  # 不明
@@ -810,16 +810,16 @@ class AdventurerWithImage(base.CWBinaryBase):
     """
     from . import party
 
-    def __init__(self, parent: party.PartyMembers, f: cw.binary.cwfile.CWFile, yadodata: bool = False) -> None:
+    def __init__(self, parent: "party.PartyMembers", f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         image = f.image()
         self.adventurer = Adventurer(self, f)
         self.adventurer.image = image
 
-    def get_data(self) -> cw.data.CWPyElement:
+    def get_data(self) -> "cw.data.CWPyElement":
         return self.adventurer.get_data()
 
-    def get_f9data(self) -> cw.data.CWPyElement:
+    def get_f9data(self) -> "cw.data.CWPyElement":
         return self.adventurer.get_f9data()
 
     def create_xml(self, dpath: str) -> str:
@@ -829,7 +829,7 @@ class AdventurerWithImage(base.CWBinaryBase):
         return path
 
     @staticmethod
-    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement, logdata: cw.data.CWPyElement) -> None:
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", logdata: "cw.data.CWPyElement") -> None:
         e = data.find("Property/ImagePaths")
         if e is None:
             e = data.find("Property/ImagePath")
@@ -843,7 +843,8 @@ class AdventurerHeader(base.CWBinaryBase):
     """wchファイル(type=0)。おそらく宿帳表示用の簡易データと思われる。
     必要なデータは埋め込み画像くらい？
     """
-    def __init__(self, parent: None, f: cw.binary.cwfile.CWFile, yadodata: bool = False, dataversion: int = 10) -> None:
+    def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False,
+                 dataversion: int = 10) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 0
         self.fname = self.get_fname()
@@ -886,7 +887,7 @@ class AdventurerHeader(base.CWBinaryBase):
             self.ep = self.level * 10
 
     @staticmethod
-    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement, fname: str) -> None:
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", fname: str) -> None:
         name = ""
         image = None
         level = 0

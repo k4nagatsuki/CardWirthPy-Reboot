@@ -5,9 +5,14 @@ from . import base
 
 import cw
 
+from typing import Union
+
 
 class Content(base.CWBinaryBase):
-    def __init__(self, parent, f, stratum):
+    from . import event
+
+    def __init__(self, parent: Union["event.Event", "event.SimpleEvent"], f: "cw.binary.cwfile.CWFile",
+                 stratum: int) -> None:
         base.CWBinaryBase.__init__(self, parent, f)
         self.xmltype = "Content"
 
@@ -73,7 +78,7 @@ class Content(base.CWBinaryBase):
 
             self._read_properties(f, tag, ctype, name, version)
 
-    def _read_properties(self, f, tag, ctype, name, version):
+    def _read_properties(self, f: "cw.binary.cwfile.CWFile", tag: str, ctype: str, name: str, version: str) -> None:
         from . import bgimage
         from . import dialog
         from . import effectmotion
@@ -377,7 +382,7 @@ class Content(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is not None:
             return self.data
 
@@ -446,7 +451,7 @@ class Content(base.CWBinaryBase):
             return contentsline
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         if data.tag == "ContentsLine":
             for child in data[:-1]:
                 Content._unconv_header(f, child)
@@ -469,7 +474,7 @@ class Content(base.CWBinaryBase):
             Content._unconv_properties(f, data)
 
     @staticmethod
-    def _unconv_header(f, data):
+    def _unconv_header(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         tag = data.tag
         ctype = data.get("type", "")
         name = data.get("name", "")
@@ -477,7 +482,7 @@ class Content(base.CWBinaryBase):
         f.write_string(name)
 
     @staticmethod
-    def _unconv_properties(f, data):
+    def _unconv_properties(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         from . import bgimage
         from . import dialog
         from . import effectmotion
@@ -924,7 +929,7 @@ class Content(base.CWBinaryBase):
             raise ValueError(tag + ", " + ctype)
 
 
-def main():
+def main() -> None:
     pass
 
 

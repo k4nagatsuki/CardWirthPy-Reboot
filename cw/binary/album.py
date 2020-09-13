@@ -8,7 +8,7 @@ import cw
 
 class Album(base.CWBinaryBase):
     """wrmファイル(type=4)。鬼籍に入った冒険者のデータ。"""
-    def __init__(self, parent: None, f: cw.binary.cwfile.CWFile, yadodata: bool = False) -> None:
+    def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         from . import coupon
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -83,7 +83,7 @@ class Album(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self) -> cw.data.CWPyElement:
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             if self.image:
                 self.imgpath = self.export_image()
@@ -143,7 +143,7 @@ class Album(base.CWBinaryBase):
         return path
 
     @staticmethod
-    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement) -> None:
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         from . import coupon
 
         name = ""
