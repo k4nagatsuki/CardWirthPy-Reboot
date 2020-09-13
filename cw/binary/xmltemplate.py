@@ -403,7 +403,7 @@ def get_xmltext(name: str, d: Dict[str, Union[str, int]]) -> str:
     return Template(s).safe_substitute(d)
 
 
-def main():
+def main() -> None:
     pass
 
 

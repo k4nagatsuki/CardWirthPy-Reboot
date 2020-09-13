@@ -41,10 +41,7 @@ class CWBinaryBase(object):
         else:
             self.root = weakref.ref(self)
 
-    from . import environment
-    from . import cwscenario
-
-    def get_root(self) -> Union["environment.Environment", "cwscenario.CWScenario"]:
+    def get_root(self) -> Union["cw.binary.environment.Environment", "cw.binary.cwscenario.CWScenario"]:
         return self.root()
 
     def set_dir(self, path: str) -> None:

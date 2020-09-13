@@ -6,6 +6,8 @@ from . import base
 
 import cw
 
+from typing import Dict
+
 
 class Environment(base.CWBinaryBase):
     """Environment.wyd(type=-1)
@@ -85,7 +87,7 @@ class Environment(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             self.data = cw.data.make_element("Environment")
 
@@ -128,7 +130,7 @@ class Environment(base.CWBinaryBase):
 
         return self.data
 
-    def get_cardtypedict(self):
+    def get_cardtypedict(self) -> Dict[str, str]:
         d = {}
 
         for card in self.yadocards:
@@ -137,7 +139,8 @@ class Environment(base.CWBinaryBase):
         return d
 
     @staticmethod
-    def unconv(f, data, table):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement",
+               table: Dict[str, Dict[str, str]]) -> None:
         yadotype = 1  # 常に通常宿とする
         play_bgm = True
         play_sound = True
@@ -168,7 +171,7 @@ class Environment(base.CWBinaryBase):
         elif cw.cwpy.setting.transition == "PixelDissolve":
             changetype_bg = 3
 
-        def roundval(value):
+        def roundval(value: int) -> int:
             return int(round((value-5) / 10.0 * 8.0)) + 4
         drawcard_speed = roundval(cw.cwpy.setting.get_dealspeed(False))
         drawbg_speed = roundval(cw.cwpy.setting.transitionspeed)
@@ -243,17 +246,17 @@ class UnusedCard(base.CWBinaryBase):
             self.uselimit = 0
         self.data = None
 
-    def set_data(self, data):
+    def set_data(self, data: "cw.data.CWPyElement") -> None:
         """widファイルから読み込んだカードデータを関連づける"""
         self.data = data
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         return self.data.get_data()
 
-    def create_xml(self, dpath):
+    def create_xml(self, dpath: str) -> str:
         return self.create_xml2(dpath, -1)
 
-    def create_xml2(self, dpath, cardorder):
+    def create_xml2(self, dpath: str, cardorder: int) -> str:
         """self.data.create_xml()"""
         self.data.limit = self.uselimit
         path = self.data.create_xml(dpath)
@@ -263,7 +266,7 @@ class UnusedCard(base.CWBinaryBase):
         return path
 
     @staticmethod
-    def unconv(f, data, fname):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", fname: str) -> None:
         f.write_rawstring(cw.util.splitext(fname)[0])
         f.write_dword(data.getint("Property/UseLimit", 0))
         f.write_byte(0)
@@ -284,7 +287,7 @@ class YadoCard(base.CWBinaryBase):
         self.number = f.dword()  # 個数
 
     @staticmethod
-    def unconv(f, data, fname):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", fname: str) -> None:
         name = data.gettext("Property/Name", "")
         description = data.gettext("Property/Description", "")
         if data.tag == "SkillCard":
@@ -304,7 +307,7 @@ class YadoCard(base.CWBinaryBase):
         f.write_dword(number)
 
 
-def main():
+def main() -> None:
     pass
 
 

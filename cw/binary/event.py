@@ -5,10 +5,16 @@ from . import base
 
 import cw
 
+from typing import Union
+
 
 class Event(base.CWBinaryBase):
     """イベント発火条件付のイベントデータのクラス。"""
-    def __init__(self, parent, f, yadodata=False):
+    from . import area
+    from . import battle
+
+    def __init__(self, parent: Union[area.Area, area.MenuCard, battle.Battle, battle.EnemyCard],
+                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         from . import content
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -21,7 +27,7 @@ class Event(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             self.data = cw.data.make_element("Event")
             e = cw.data.make_element("Ignitions")
@@ -44,7 +50,7 @@ class Event(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         contents = []
         ignitions = []
         keycodes = ""
@@ -87,7 +93,13 @@ class SimpleEvent(base.CWBinaryBase):
     """イベント発火条件なしのイベントデータのクラス。
     カードイベント・パッケージ等で使う。
     """
-    def __init__(self, parent, f, yadodata=False):
+    from . import package
+    from . import skill
+    from . import item
+    from . import beast
+
+    def __init__(self, parent: Union[package.Package, skill.SkillCard, item.ItemCard, beast.BeastCard],
+                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         from . import content
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -97,7 +109,7 @@ class SimpleEvent(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             self.data = cw.data.make_element("Event")
             e = cw.data.make_element("Contents")
@@ -107,7 +119,7 @@ class SimpleEvent(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         from . import content
 
         contents = []
@@ -121,7 +133,7 @@ class SimpleEvent(base.CWBinaryBase):
             content.Content.unconv(f, ct)
 
 
-def main():
+def main() -> None:
     pass
 
 

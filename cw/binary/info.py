@@ -53,7 +53,7 @@ class InfoCard(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement) -> None:
         restype = 4
         image = None
         name = ""
@@ -79,7 +79,7 @@ class InfoCard(base.CWBinaryBase):
         f.write_string(description, True)
 
 
-def main():
+def main() -> None:
     pass
 
 

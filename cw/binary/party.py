@@ -6,8 +6,12 @@ import io
 import sys
 
 from . import base
+from . import adventurer
+from . import album
 
 import cw
+
+from typing import Dict, List, Tuple
 
 
 class Party(base.CWBinaryBase):
@@ -56,7 +60,7 @@ class Party(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             self.data = cw.data.make_element("Party")
 
@@ -75,7 +79,7 @@ class Party(base.CWBinaryBase):
 
         return self.data
 
-    def create_xml(self, dpath):
+    def create_xml(self, dpath: str) -> str:
         path = base.CWBinaryBase.create_xml(self, dpath)
         yadodb = self.get_root().yadodb
         if yadodb:
@@ -100,7 +104,8 @@ class Party(base.CWBinaryBase):
         return path
 
     @staticmethod
-    def unconv(f, data, table, scenarioname):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", table: Dict[str, str],
+               scenarioname: str) -> None:
         if scenarioname:
             yadoname = scenarioname
             nowadventuring = True
@@ -143,7 +148,8 @@ class PartyMembers(base.CWBinaryBase):
     """wptファイル(type=3)。パーティメンバと
     荷物袋に入っているカードリストを格納している。
     """
-    def __init__(self, parent, f, yadodata=False, dataversion=10):
+    def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False,
+                 dataversion: str = 10) -> None:
         from . import adventurer
         from . import summary
         from . import skill
@@ -273,7 +279,7 @@ class PartyMembers(base.CWBinaryBase):
                 bgimgs_num = f.dword()
                 self.bgimgs = [bgimage.BgImage(self, f) for _cnt in range(bgimgs_num)]
 
-    def split_variables(self, text, step):
+    def split_variables(self, text: str, step: bool) -> Dict[str, str]:
         d = {}
         for ln in text.splitlines():
             index = ln.rfind('=')
@@ -284,14 +290,14 @@ class PartyMembers(base.CWBinaryBase):
                     d[ln[:index]] = bool(int(ln[index+1:]))
         return d
 
-    def split_ids(self, text):
+    def split_ids(self, text: str) -> List[int]:
         seq = []
         for ln in text.splitlines():
             if ln:
                 seq.append(int(ln))
         return seq
 
-    def create_xml(self, dpath):
+    def create_xml(self, dpath: str) -> None:
         """adventurercardだけxml化する。"""
         wpldata = self.wpl.get_data()
         me = wpldata.find("Property/Members")
@@ -300,14 +306,14 @@ class PartyMembers(base.CWBinaryBase):
             text = cw.util.splitext(os.path.basename(path))[0]
             me.append(cw.data.make_element("Member", text))
 
-    def create_vanisheds_xml(self, dpath):
+    def create_vanisheds_xml(self, dpath: str) -> None:
         for adventurer in self.vanisheds:
             data = adventurer.get_data()
             data.find("Property").set("lost", "True")
             adventurer.create_xml(dpath)
 
     @staticmethod
-    def join_variables(data):
+    def join_variables(data: "cw.data.CWPyElement") -> str:
         seq = []
         for e in data:
             name = e.text
@@ -322,7 +328,7 @@ class PartyMembers(base.CWBinaryBase):
         return "\r\n".join(seq)
 
     @staticmethod
-    def join_ids(data):
+    def join_ids(data: "cw.data.CWPyElement") -> str:
         seq = []
         for e in data:
             if e.tag == "CastCard":
@@ -334,7 +340,8 @@ class PartyMembers(base.CWBinaryBase):
         return "\r\n".join(seq)
 
     @staticmethod
-    def unconv(f, party, table, logdir):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", party: "cw.data.Party", table: Dict[str, Dict[str, str]],
+               logdir: str) -> None:
         from . import cwfile
         from . import adventurer
         from . import bgimage
@@ -511,7 +518,7 @@ class BackpackCard(base.CWBinaryBase):
     """荷物袋に入っているカードのデータ。
     self.dataにwidファイルから読み込んだカードデータがある。
     """
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent: PartyMembers, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         if f:
             self.fname = f.rawstring()
@@ -523,14 +530,14 @@ class BackpackCard(base.CWBinaryBase):
             self.mine = False
         self.data = None
 
-    def set_data(self, data):
+    def set_data(self, data: "cw.data.CWPyElement") -> None:
         """widファイルから読み込んだカードデータを関連づける"""
         self.data = data
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         return self.data.get_data()
 
-    def create_xml(self, dpath):
+    def create_xml(self, dpath: str) -> str:
         """self.data.create_xml()"""
         self.data.limit = self.uselimit
         if not self.mine:
@@ -541,16 +548,14 @@ class BackpackCard(base.CWBinaryBase):
         return self.data.create_xml(dpath)
 
     @staticmethod
-    def unconv(f, data, fname, mine):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", fname: str, mine: bool) -> None:
         f.write_rawstring(cw.util.splitext(fname)[0])
         f.write_dword(data.getint("Property/UseLimit", 0))
         f.write_bool(mine)
 
 
-def load_album120(parent, f):
-    from . import adventurer
-    from . import album
-
+def load_album120(parent: None,
+                  f: "cw.binary.cwfile.CWFile") -> Tuple[List[album.Album], List[adventurer.AdventurerCard]]:
     _dw = f.dword()  # 不明
     cardnum = f.dword()  # アルバム人数
     cards = []
@@ -588,7 +593,7 @@ def load_album120(parent, f):
     return cards, albums
 
 
-def main():
+def main() -> None:
     pass
 
 

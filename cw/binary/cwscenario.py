@@ -6,11 +6,12 @@ import shutil
 
 import cw
 
-from typing import Tuple, Union
+from typing import Optional, Tuple
 
 
 class CWScenario(object):
-    def __init__(self, path, dstdir, skintype, materialdir="Material", image_export=True):
+    def __init__(self, path: str, dstdir: str, skintype: str, materialdir: str = "Material",
+                 image_export: bool = True) -> None:
         """カードワースのシナリオを読み込み、XMLファイルに変換するクラス。
         path: カードワースシナリオフォルダのパス。
         dstdir: 変換先ディレクトリ。
@@ -73,30 +74,32 @@ class CWScenario(object):
             self.versionhint = cw.cwpy.sct.merge_versionhints(self.versionhint,
                                                               cw.cwpy.sct.get_versionhint(fpath=self.summarypath))
 
-    def read_modeini(self, fpath):
+    def read_modeini(self, fpath: str) -> None:
         if cw.cwpy and cw.cwpy.sct:
             versionhint = cw.cwpy.sct.read_modeini(fpath)
             if versionhint:
                 self.versionhint = versionhint
                 self.hasmodeini = True
 
-    def is_convertible(self):
+    def is_convertible(self) -> bool:
+        from . import summary
+
         if not self.summarypath:
             return False
 
         try:
             data, _filedata = self.load_file(self.summarypath)
-            if data is None or 4 < data.version:
+            if data is None or not isinstance(data, summary.Summary) or 4 < data.version:
                 return False
         except Exception:
             return False
 
         return True
 
-    def write_errorlog(self, s):
+    def write_errorlog(self, s: str) -> None:
         self.errorlog += s + "\n"
 
-    def load(self):
+    def load(self) -> None:
         """シナリオファイルのリストを読み込む。
         種類はtypeで判別できる(見出しは"-1"、パッケージは"7"となっている)。
         """
@@ -121,16 +124,10 @@ class CWScenario(object):
         self.maxnum += len(self.otherfiles)
         self.maxnum += len(self.otherdirs)
 
-    def load_file(self, path: str, nameonly: bool = False, decodewrap: bool = False) \
-            -> Tuple[Union["cw.binary.summary.Summary",
-                           "cw.binary.area.Area",
-                           "cw.binary.battle.Battle",
-                           "cw.binary.package.Package",
-                           "cw.binary.cast.CastCard",
-                           "cw.binary.skill.SkillCard",
-                           "cw.binary.item.ItemCard",
-                           "cw.binary.beast.BeastCard",
-                           "cw.binary.info.InfoCard"], bytes]:
+    from . import base
+
+    def load_file(self, path: str, nameonly: bool = False,
+                  decodewrap: bool = False) -> Tuple[Optional[base.CWBinaryBase], Optional[bytes]]:
         """引数のファイル(wid, wsmファイル)を読み込む。"""
         from . import cwfile
         from . import summary
@@ -206,7 +203,7 @@ class CWScenario(object):
             cw.util.print_ex()
             return None, None
 
-    def convert(self):
+    def convert(self) -> None:
         from . import util
 
         if not self.datalist:
@@ -260,7 +257,7 @@ class CWScenario(object):
         return self.dir
 
 
-def main():
+def main() -> None:
     pass
 
 

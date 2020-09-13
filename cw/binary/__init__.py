@@ -13,6 +13,7 @@ from . import event
 from . import bgimage
 from . import coupon
 from . import summary
+from . import environment
 
 from typing import Union
 

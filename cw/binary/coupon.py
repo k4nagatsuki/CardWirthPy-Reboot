@@ -7,12 +7,20 @@ from . import base
 
 import cw
 
+from typing import Union
+
 _120gene = re.compile(r"\A＠Ｇ[01]{10}-[0-9]+\Z")
 
 
 class Coupon(base.CWBinaryBase):
     """クーポンデータ。"""
-    def __init__(self, parent, f, yadodata=False, dataversion=5):
+    from . import adventurer
+    from . import album
+    from . import cast
+    from . import content
+
+    def __init__(self, parent: Union[album.Album, adventurer.Adventurer, cast.CastCard, content.Content],
+                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False, dataversion: str = 5) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         if f:
             self.name = f.string()
@@ -27,14 +35,14 @@ class Coupon(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             self.data = cw.data.make_element("Coupon", self.name)
             self.data.set("value", str(self.value))
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         name = data.text
         value = int(data.get("value"))
 
@@ -42,7 +50,7 @@ class Coupon(base.CWBinaryBase):
         f.write_dword(value)
 
 
-def main():
+def main() -> None:
     pass
 
 

@@ -17,7 +17,7 @@ class BeastCard(base.CWBinaryBase):
     from . import cast
     from . import effectmotion
 
-    def __init__(self, parent: Optional[Union[cast.CastCard, effectmotion.EffectMotion]], f: cw.binary.cwfile.CWFile,
+    def __init__(self, parent: Optional[Union[cast.CastCard, effectmotion.EffectMotion]], f: "cw.binary.cwfile.CWFile",
                  yadodata: bool = False, nameonly: bool = False, materialdir: str = "Material",
                  image_export: bool = True, summoneffect: bool = False) -> None:
         from . import adventurer
@@ -109,7 +109,7 @@ class BeastCard(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self) -> cw.data.CWPyElement:
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             if 2 < self.premium:
                 # シナリオで入手したカード
@@ -184,7 +184,7 @@ class BeastCard(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f: cw.binary.cwfile.CWFileWriter, data: cw.data.CWPyElement, ownerisadventurer: bool) -> None:
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", ownerisadventurer: bool) -> None:
         from . import effectmotion
         from . import event
 

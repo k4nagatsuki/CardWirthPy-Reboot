@@ -55,7 +55,7 @@ class Summary(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             if self.image:
                 self.imgpath = self.export_image()
@@ -98,7 +98,7 @@ class Summary(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         image = None
         name = ""
         description = ""
@@ -168,7 +168,7 @@ class Step(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             self.data = cw.data.make_element("Step")
             self.data.set("default", str(self.default))
@@ -197,7 +197,7 @@ class Step(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         name = ""
         default = int(data.get("default"))
         if data.getbool(".", "spchars", False):
@@ -227,7 +227,7 @@ class Flag(base.CWBinaryBase):
 
         self.data = None
 
-    def get_data(self):
+    def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
             self.data = cw.data.make_element("Flag")
             self.data.set("default", str(self.default))
@@ -240,7 +240,7 @@ class Flag(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         name = ""
         default = cw.util.str2bool(data.get("default"))
         if data.getbool(".", "spchars", False):
@@ -262,7 +262,7 @@ class Flag(base.CWBinaryBase):
             f.write_string(variable_name)
 
 
-def main():
+def main() -> None:
     pass
 
 
