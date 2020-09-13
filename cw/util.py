@@ -4827,6 +4827,10 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
         wx.adv.OwnerDrawnComboBox.__init__(self, parent, wid, value, pos, size, choices, style, validator, name)
         self._items = []
 
+    def Clear(self) -> None:
+        del self._items[:]
+        wx.adv.OwnerDrawnComboBox.Clear(self)
+
     def Append(self, s: str, bmp: wx.Bitmap) -> None:
         self._items.append((s, bmp))
         wx.adv.OwnerDrawnComboBox.Append(self, s)
