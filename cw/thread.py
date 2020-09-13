@@ -368,8 +368,6 @@ class CWPy(_Singleton, threading.Thread):
     def _init_resources(self):
         try:
             """スキンが関わるリソースの初期化"""
-            self.frame.exec_func(self.frame.update_dialogparams)
-
             self.init_fullscreenparams()
 
             # リソース(辞書)
@@ -403,6 +401,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sbargrp.set_clip(self.statusbar.rect)
 
             self.update_fullscreenbackground()
+            self.frame.exec_func(self.frame.update_dialogparams)
 
             return True
         except cw.setting.NoFontError:
