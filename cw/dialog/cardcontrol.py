@@ -180,35 +180,24 @@ class CardControl(wx.Dialog):
         if self.addctrlbtn:
             self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_card)
 
-        if not sort or not cw.cwpy.setting.show_additional_card:
-            self.sort.Hide()
-            self.sortwithstar.Hide()
-        if not sort:
-            self.editstar.Hide()
+        self.sort.Show(sort and cw.cwpy.setting.show_additional_card)
+        self.sortwithstar.Show(sort and cw.cwpy.setting.show_additional_card)
+
+        self.editstar.Show(sort)
 
         for cardtype, btn in enumerate(self.show):
             if cw.cwpy.setting.show_cardtype[cardtype]:
                 btn.SetToggle(True)
             else:
                 btn.SetToggle(False)
-            if self.callname not in ("BACKPACK", "STOREHOUSE") or\
-                    not cw.cwpy.setting.show_additional_card:
-                btn.Hide()
+            btn.Show(self.callname in ("BACKPACK", "STOREHOUSE") and cw.cwpy.setting.show_additional_card)
 
-        if not sendto:
-            self.leftbtn2.Hide()
-            self.rightbtn2.Hide()
-            self.combo.Hide()
-
-        if not sort or not cw.cwpy.setting.show_additional_card:
-            self.sort.Hide()
-            self.sortwithstar.Hide()
-        if not sort:
-            self.editstar.Hide()
+        self.leftbtn2.Show(sendto)
+        self.rightbtn2.Show(sendto)
+        self.combo.Show(sendto)
 
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB", "INFOVIEW"):
-            if not cw.cwpy.setting.show_addctrlbtn:
-                self.addctrlbtn.Hide()
+            self.addctrlbtn.Show(cw.cwpy.setting.show_addctrlbtn)
 
         if self.callname == "INFOVIEW":
             choices = (cw.cwpy.msgs["all"],
@@ -238,9 +227,8 @@ class CardControl(wx.Dialog):
             self.narrow_type.SetSelection(1)
         self.narrow.SetValue(cw.cwpy.setting.card_narrow)
 
-        if not self._can_narrow() or not cw.cwpy.setting.show_additional_card:
-            self.narrow.Hide()
-            self.narrow_type.Hide()
+        self.narrow.Show(self._can_narrow() and cw.cwpy.setting.show_additional_card)
+        self.narrow_type.Show(self._can_narrow() and cw.cwpy.setting.show_additional_card)
 
         self._drawlist = {}
         self._leftmarks = []
@@ -1862,6 +1850,7 @@ class CardControl(wx.Dialog):
             self.touchtools.Hide()
         self.Show(False)
         self.list = []
+        self.list2 = []
         self.selection = None
 
         if self.Parent is cw.cwpy.frame:
@@ -2102,8 +2091,7 @@ class CardHolder(CardControl):
         if self.callname != "INFOVIEW":
             if cw.cwpy.setting.show_personal_cards and (isinstance(self.selection, cw.character.Player) or
                                                         self.callname in ("STOREHOUSE", "BACKPACK")):
-                if not cw.cwpy.sdata.party_environment_backpack:
-                    self.personalbtn.Hide()
+                self.personalbtn.Show(cw.cwpy.sdata.party_environment_backpack)
             else:
                 if cw.cwpy.setting.last_cardpocket == cw.POCKET_BEAST:
                     cw.cwpy.setting.last_cardpocket = cw.POCKET_SKILL
@@ -2159,6 +2147,8 @@ class CardHolder(CardControl):
                 bmp = cw.cwpy.rsrc.buttons["TRUSH"]
                 self.combo.Append(cw.cwpy.msgs["send_to_trush"], bmp)
             self.combo.Select(cw.cwpy.setting.last_sendto)
+        else:
+            self.combo.Clear()
 
         self._sendto = sendto
 
@@ -3178,8 +3168,7 @@ class HandView(CardControl):
         self.Parent.change_selection(self.selection)
 
         # 手札再配布
-        if not cw.cwpy.is_debugmode():
-            self.redeal.Hide()
+        self.redeal.Show(cw.cwpy.is_debugmode())
 
         # 使用モードでパーティが一人だけの場合は左右ボタンを無効化
         if len(self.list2) == 1:
