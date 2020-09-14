@@ -155,8 +155,6 @@ class CardControl(wx.Dialog):
         self.additionals.append((self.narrow, self._can_narrow))
         self.additionals.append((self.narrow_type, self._can_narrow))
 
-        self.toppanel.SetFocusIgnoringChildren()
-
     def reconstruct(self, callname: str, name: str, sendto: bool, sort: bool, areaid: Optional[int]) -> None:
         self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], name))
         self._quit = False
@@ -247,6 +245,8 @@ class CardControl(wx.Dialog):
             ctrl.SetBackgroundColour(self.bgcolour)
 
         self.draw_cards()
+
+        self.toppanel.SetFocusIgnoringChildren()
 
     def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
