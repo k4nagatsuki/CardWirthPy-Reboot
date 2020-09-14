@@ -18,6 +18,7 @@ from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREV
 import cw
 from cw.util import synclock
 
+import typing
 from typing import Tuple, Callable, Dict, Iterable, List, Optional, Type, Union
 
 # build_exe.pyによって作られる一時モジュール
@@ -1868,7 +1869,7 @@ class CWPy(_Singleton, threading.Thread):
                 pygame.mouse.set_pos(x, y)
                 pygame.mouse.set_pos(pos)
 
-    def call_dlg(self, name, **kwargs):
+    def call_dlg(self, name: str, **kwargs) -> int:
         """ダイアログを開く。
         name: ダイアログ名。cw.frame参照。
         """
@@ -1904,17 +1905,17 @@ class CWPy(_Singleton, threading.Thread):
             self.frame.ProcessEvent(event)
         return stack
 
-    def call_modaldlg(self, name, **kwargs):
+    def call_modaldlg(self, name, **kwargs) -> None:
         """ダイアログを開き、閉じるまで待機する。
         name: ダイアログ名。cw.frame参照。
         """
         stack = self.call_dlg(name, **kwargs)
 
         if threading.currentThread() == self:
-            while self.is_running() and self.frame.IsEnabled() and stack < self._showingdlg:
+            while self.is_running() and stack < self._showingdlg:
                 self.main_loop(False)
 
-    def call_predlg(self):
+    def call_predlg(self) -> None:
         """直前に開いていたダイアログを再び開く。"""
         self.return_takenoutcard(checkevent=False)
         if self.pre_dialogs:
@@ -1948,13 +1949,13 @@ class CWPy(_Singleton, threading.Thread):
                 self.exec_func(self.clear_selection)
 
     @synclock(_dlg_mutex)
-    def _kill_showingdlg(self):
+    def _kill_showingdlg(self) -> int:
         oldval = self._showingdlg
         self._showingdlg -= 1
         return oldval
 
     @synclock(_dlg_mutex)
-    def add_showingdlg(self):
+    def add_showingdlg(self) -> int:
         oldval = self._showingdlg
         self._showingdlg += 1
         return oldval
@@ -1975,7 +1976,7 @@ class CWPy(_Singleton, threading.Thread):
         event = pygame.event.Event(cw.FORCE_USEREVENT, func=func, args=args, kwargs=kwargs)
         post_pygameevent(event)
 
-    def sync_exec(self, func, *args, **kwargs):
+    def sync_exec(self, func: Callable, *args, **kwargs) -> typing.Any:
         """CWPyスレッドで指定したファンクションを実行し、
         終了を待ち合わせる。ファンクションの戻り値を返す。
         func: 実行したいファンクションオブジェクト。
@@ -1998,7 +1999,8 @@ class CWPy(_Singleton, threading.Thread):
                 time.sleep(0.001)
             return result[0]
 
-    def set_expanded(self, flag, expandmode="", force=False, displaysize=None):
+    def set_expanded(self, flag: bool, expandmode: str = "", force: bool = False,
+                     displaysize: Optional[Tuple[int, int]] = None) -> None:
         """拡大表示する。すでに拡大表示されている場合は解除する。
         flag: Trueなら拡大表示、Falseなら解除。
         """
@@ -3558,7 +3560,9 @@ class CWPy(_Singleton, threading.Thread):
             self.battle.numenemy = len(cw.cwpy.get_mcards("flagtrue"))
 
     def set_mcards(self, stype_and_elements: Tuple[str, Iterable[cw.data.CWPyElement]], dealanime: bool = True,
-                   addgroup: bool = True, setautospread: bool = True, splayer: Optional[bool] = None):
+                   addgroup: bool = True, setautospread: bool = True,
+                   splayer: Optional[bool] = None) -> List[Union["cw.sprite.card.EnemyCard",
+                                                                 "cw.sprite.card.MenuCard"]]:
         """メニューカードスプライトを構成する。
         生成されたカードのlistを返す。
         (stype, elements): (spreadtype, MenuCardElementのリスト)のタプル
