@@ -1325,8 +1325,9 @@ class FriendCard(CWPyCard, character.Friend):
 # ------------------------------------------------------------------------------
 
 class MenuCard(CWPyCard):
-    def __init__(self, data, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0,
-                 moveddata=None):
+    def __init__(self, data: cw.data.CWPyElement, pos_noscale: Tuple[int, int] = (0, 0), status: str = "hidden",
+                 addgroup: bool = True, index: int = 0, moveddata: Optional[Tuple[int, int, int, int]] = None,
+                 splayer: Optional[bool] = None) -> None:
         """
         メニューカード用のスプライトを作成。
         """
@@ -1394,7 +1395,10 @@ class MenuCard(CWPyCard):
             else:
                 layer = cw.LAYER_MCARDS
 
-        if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
+        if splayer is None:
+            splayer = cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP
+
+        if splayer:
             self.layer = (layer+cw.LAYER_SP_LAYER, cw.LTYPE_MCARDS, self.index, 0)
         else:
             self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)

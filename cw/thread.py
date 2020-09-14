@@ -18,7 +18,7 @@ from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREV
 import cw
 from cw.util import synclock
 
-from typing import Tuple, Callable, Dict, List, Optional, Type, Union
+from typing import Tuple, Callable, Dict, Iterable, List, Optional, Type, Union
 
 # build_exe.pyによって作られる一時モジュール
 # cw.versioninfoからビルド時間の情報を得る
@@ -713,7 +713,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.update_scale()
                 if self.pre_mcards:
                     mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1][0], self.pre_areaids[-1][1])
-                    self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
+                    self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False, splayer=False)
                 if self.pre_areaids:
                     for i, (preareaid, _predata) in enumerate(self.pre_areaids[:]):
                         self.pre_areaids[i] = (preareaid, self.sdata.get_areadata(preareaid))
@@ -3557,7 +3557,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.battle:
             self.battle.numenemy = len(cw.cwpy.get_mcards("flagtrue"))
 
-    def set_mcards(self, stype_and_elements, dealanime=True, addgroup=True, setautospread=True):
+    def set_mcards(self, stype_and_elements: Tuple[str, Iterable[cw.data.CWPyElement]], dealanime: bool = True,
+                   addgroup: bool = True, setautospread: bool = True, splayer: Optional[bool] = None):
         """メニューカードスプライトを構成する。
         生成されたカードのlistを返す。
         (stype, elements): (spreadtype, MenuCardElementのリスト)のタプル
@@ -3605,7 +3606,7 @@ class CWPy(_Singleton, threading.Thread):
                                                  moveddata=moveddata)
             else:
                 mcard = cw.sprite.card.MenuCard(e, pos_noscale, status2, addgroup, i,
-                                                moveddata=moveddata)
+                                                moveddata=moveddata, splayer=splayer)
 
             if not mcard.is_flagtrue():
                 mcard.status = "hidden"
