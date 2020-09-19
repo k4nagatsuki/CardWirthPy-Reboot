@@ -197,29 +197,37 @@ class Frame(wx.Frame):
 
         # レスポンスをよくするため、各ダイアログを事前に生成しておく
         def func(self: Frame) -> None:
+            if cw.cwpy.rsrc is None:
+                return
+            rsrc = cw.cwpy.rsrc
+
+            @synclock(cw.thread.init_rsrc)
             def func1(self: Frame) -> None:
-                if not self:
+                if not self or rsrc is not cw.cwpy.rsrc:
                     return
                 if not self._cardholder:
                     self._cardholder = cw.dialog.cardcontrol.CardHolder(self, "CARDPOCKET")
             cw.cwpy.frame.exec_func(func1, self)
 
+            @synclock(cw.thread.init_rsrc)
             def func2(self: Frame) -> None:
-                if not self:
+                if not self or rsrc is not cw.cwpy.rsrc:
                     return
                 if not self._handview:
                     self._handview = cw.dialog.cardcontrol.HandView(self)
             cw.cwpy.frame.exec_func(func2, self)
 
+            @synclock(cw.thread.init_rsrc)
             def func3(self: Frame) -> None:
-                if not self:
+                if not self or rsrc is not cw.cwpy.rsrc:
                     return
                 if not self._infoview:
                     self._infoview = cw.dialog.cardcontrol.InfoView(self)
             cw.cwpy.frame.exec_func(func3, self)
 
+            @synclock(cw.thread.init_rsrc)
             def func4(self: Frame) -> None:
-                if not self:
+                if not self or rsrc is not cw.cwpy.rsrc:
                     return
                 if not self._replcardholder:
                     self._replcardholder = cw.dialog.cardcontrol.ReplCardHolder(self)
