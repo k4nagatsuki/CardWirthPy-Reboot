@@ -952,9 +952,15 @@ class ScenarioSelect(select.Select):
                         item.SetBitmap(icon_invisible)
                     else:
                         item.SetBitmap(icon_summary)
+
+                    ntypes, narrow, intnarrow, donarrow, level, _unfitness, _complete, _invisible, _sort = \
+                        self._get_narrowparams()
+                    item.Enable(self._is_showing(header, ntypes, narrow, intnarrow, donarrow, level))
                 else:
+                    enable = True
                     if not p:
                         p = "[フォルダが見つかりません]"
+                        enable = False
                     elif sys.platform == "win32":
                         sp = os.path.splitext(p)
                         if sp[1].lower() == ".lnk":
@@ -962,6 +968,7 @@ class ScenarioSelect(select.Select):
                     item = wx.MenuItem(menu, -1, p.replace("&", "&&"))
                     item.SetFont(font)
                     item.SetBitmap(icon_dir)
+                    item.Enable(enable)
 
                 openbookmark = OpenBookmark(self, bookmark, bookmarkpath)
                 menu.Append(item)
@@ -2610,6 +2617,7 @@ class ScenarioSelect(select.Select):
         self._no_treechangedsound = False
         self._update_saveddirstack()
         self._update_pagelabel()
+        self.create_bookmarkmenu()
 
     def create_treeitems(self, treeitem: wx.TreeItemId, freeze: bool = True) -> Tuple[List[wx.TreeItemId], List[str]]:
         if freeze:
