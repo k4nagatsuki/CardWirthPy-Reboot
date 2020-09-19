@@ -598,7 +598,7 @@ def convert_maskpos(maskpos: Tuple[int, int], width: int, height: int) -> Tuple[
     return maskpos
 
 
-def get_scaledimagepaths(path, can_loaded_scaledimage):
+def get_scaledimagepaths(path: str, can_loaded_scaledimage: bool) -> List[Tuple[str, int]]:
     """(スケーリングされたファイル名, スケール)のlistを返す。
     listには1倍スケールを示す(path, 1)が必ず含まれる。
     """
@@ -1901,7 +1901,7 @@ def dupcheck_plus(path: str, yado: bool = True) -> str:
     return join_paths(dpath, basename)
 
 
-def repl_dischar(fname):
+def repl_dischar(fname: str) -> str:
     """
     ファイル名使用不可文字を代替文字に置換し、
     両端に空白があった場合は削除する。
@@ -3088,7 +3088,7 @@ def decodewrap(s: str, code: str = "\n") -> str:
     return "".join(r)
 
 
-def encodetextlist(arr):
+def encodetextlist(arr: List[str]) -> str:
     """arrを\n区切りの文字列にする。"""
     return encodewrap("\n".join(arr))
 
@@ -5097,7 +5097,7 @@ _lock_mutex = threading.Lock()
 
 
 @synclock(_lock_mutex)
-def create_mutex(dpath):
+def create_mutex(dpath: str) -> bool:
     global _mutex
     if not os.path.isabs(dpath):
         dpath = os.path.abspath(dpath)
@@ -5136,7 +5136,7 @@ def create_mutex(dpath):
 
 
 @synclock(_lock_mutex)
-def exists_mutex(dpath):
+def exists_mutex(dpath: str) -> bool:
     global _mutex
     if not os.path.isabs(dpath):
         dpath = os.path.abspath(dpath)
@@ -5177,20 +5177,22 @@ def exists_mutex(dpath):
 
 
 @synclock(_lock_mutex)
-def release_mutex(index=-1):
+def release_mutex(index: int = -1) -> None:
     global _mutex
     if _mutex:
         if sys.platform == "win32":
             _mutex[index][0].unlock()
         else:
-            fcntl.flock(_mutex[index][0].fileno(), fcntl.LOCK_UN)
-            _mutex[index][0].close()
+            fio = _mutex[index][0]
+            assert isinstance(fio, io.FileIO)
+            fcntl.flock(fio.fileno(), fcntl.LOCK_UN)
+            fio.close()
             remove(_mutex[index][1])
         _mutex.pop(index)
 
 
 @synclock(_lock_mutex)
-def clear_mutex():
+def clear_mutex() -> None:
     global _mutex
     for mutex, name in _mutex:
         if sys.platform == "win32":
@@ -5203,7 +5205,7 @@ def clear_mutex():
     _mutex = []
 
 
-def main():
+def main() -> None:
     pass
 
 

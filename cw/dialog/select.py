@@ -259,7 +259,7 @@ class Select(wx.Dialog):
         else:
             self.OnSelect(event)
 
-    def OnSelect(self, event):
+    def OnSelect(self, event: wx.Event) -> None:
         if not self.list:
             return
 
@@ -598,7 +598,7 @@ class MultiViewSelect(Select):
         cw.cwpy.play_sound("page")
         self.draw(True)
 
-    def OnSelect(self, event: wx.MouseEvent) -> None:
+    def OnSelect(self, event: wx.Event) -> None:
         if self._processing:
             return
 
@@ -967,7 +967,7 @@ class YadoSelect(MultiViewSelect):
         if self.list and (cw.util.exists_mutex(self.list[self.index]) or not os.path.isdir(self.list[self.index])):
             self.okbtn.Disable()
 
-    def OnSelect(self, event: wx.MouseEvent) -> None:
+    def OnSelect(self, event: wx.Event) -> None:
         if self._list:
             MultiViewSelect.OnSelect(self, event)
         elif self.newbtn.IsEnabled():
@@ -2789,7 +2789,7 @@ class PlayerSelect(MultiViewSelect):
         else:
             MultiViewSelect.OnMouseWheel(self, event)
 
-    def OnSelect(self, event):
+    def OnSelect(self, event: wx.Event) -> None:
         if self._processing:
             return
 
@@ -2865,7 +2865,7 @@ class PlayerSelect(MultiViewSelect):
         self.enable_btn()
         self.draw(True)
 
-    def OnClickAddBtn(self, event):
+    def OnClickAddBtn(self, event: wx.PyCommandEvent) -> None:
         if self._processing:
             return
         self._processing = True
@@ -3517,7 +3517,7 @@ class Album(PlayerSelect):
         else:
             self._enable_btn()
 
-    def OnSelect(self, event):
+    def OnSelect(self, event: wx.Event) -> None:
         pass
 
 

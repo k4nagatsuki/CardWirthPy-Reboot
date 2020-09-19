@@ -13,6 +13,8 @@ import wx.lib.mixins.listctrl
 import cw
 from cw.util import synclock
 
+from typing import Dict, Optional
+
 mutex = threading.Lock()
 
 
@@ -60,7 +62,7 @@ ID_SELECTEDCARD = wx.NewId()
 
 
 class Debugger(wx.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent: "cw.frame.Frame") -> None:
         wx.Frame.__init__(
             self, parent, -1, "CardWirthPy Debugger", size=wx.DefaultSize,
             style=wx.CLIP_CHILDREN | wx.CAPTION |
@@ -531,7 +533,7 @@ class Debugger(wx.Frame):
         # bind
         self._bind()
 
-    def refresh_all(self):
+    def refresh_all(self) -> None:
         self.view_tree.refresh_tree()
         self.view_tree.refresh_activeitem()
         self.view_var.refresh_variablelist_impl()
@@ -539,7 +541,7 @@ class Debugger(wx.Frame):
         self._refresh_areaname(force=True)
         self._refresh_pausetool()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.sc_waittime.Bind(wx.EVT_SPINCTRL, self.OnWaitTime)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -776,7 +778,7 @@ class Debugger(wx.Frame):
             cw.cwpy.exec_func(func, dlg.value)
         dlg.Destroy()
 
-    def OnCardTool(self, event):
+    def OnCardTool(self, event: wx.CommandEvent) -> None:
         dlg = cw.debug.cardedit.CardEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
@@ -1521,7 +1523,7 @@ class Debugger(wx.Frame):
             return
         self._refresh_pausetool()
 
-    def _refresh_pausetool(self):
+    def _refresh_pausetool(self) -> None:
         assert threading.currentThread() != cw.cwpy
         if cw.cwpy.event.is_paused():
             bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PLAY"]
@@ -1571,7 +1573,7 @@ class Debugger(wx.Frame):
     def OnBreakpointTool(self, event):
         self.view_tree.switch_breakpoint()
 
-    def refresh_breakpointtool(self):
+    def refresh_breakpointtool(self) -> None:
         enable = bool(self.view_tree.selectionitem and cw.cwpy.is_playingscenario())
         if cw.cwpy.frame.debugger.mi_breakpoint.IsEnabled() != enable:
             cw.cwpy.frame.debugger.mi_breakpoint.Enable(enable)
@@ -1623,7 +1625,7 @@ class Debugger(wx.Frame):
             return
         self._refresh_areaname()
 
-    def _refresh_areaname(self, force=False):
+    def _refresh_areaname(self, force: bool = False) -> None:
         assert threading.currentThread() != cw.cwpy
         s = cw.cwpy.sdata.get_currentareaname()
         if sys.platform != "win32":
@@ -1727,13 +1729,13 @@ class Debugger(wx.Frame):
         if bitmap1 != self.tl_selectedcard.GetNormalBitmap():
             self.tb_selectedcard.Realize()
 
-    def refresh_tools(self):
+    def refresh_tools(self) -> None:
         assert threading.currentThread() != cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         self._refresh_tools()
 
-    def _refresh_tools(self):
+    def _refresh_tools(self) -> None:
         assert threading.currentThread() != cw.cwpy
 
         def func(self):
@@ -1923,7 +1925,7 @@ class Debugger(wx.Frame):
 
 
 class VariableListCtrl(wx.ListCtrl):
-    def __init__(self, parent):
+    def __init__(self, parent: Debugger) -> None:
         wx.ListCtrl.__init__(
             self, parent, -1, style=wx.LC_REPORT | wx.BORDER_NONE |
             wx.LC_SORT_ASCENDING | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL)
@@ -1949,7 +1951,7 @@ class VariableListCtrl(wx.ListCtrl):
         self.refresh_variablelist_impl()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
         self.Bind(wx.EVT_MENU, self.OnInitVariables, id=ID_INIT_VARIABLES)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
@@ -2017,7 +2019,7 @@ class VariableListCtrl(wx.ListCtrl):
             cw.cwpy.exec_func(func, variant, local, dlg.value)
         dlg.Destroy()
 
-    def OnGetItemText(self, row, col):
+    def OnGetItemText(self, row: int, col: int) -> str:
         i, _local, _editable = self.list[row]
 
         if col == 0:
@@ -2031,7 +2033,7 @@ class VariableListCtrl(wx.ListCtrl):
         else:
             return ""
 
-    def OnGetItemImage(self, row):
+    def OnGetItemImage(self, row: int) -> int:
         i, local, _editable = self.list[row]
 
         if isinstance(i, cw.data.Flag):
@@ -2067,13 +2069,13 @@ class VariableListCtrl(wx.ListCtrl):
         except Exception:
             self.refresh_variablelist()
 
-    def refresh_variablelist(self, event=None):
+    def refresh_variablelist(self, event: Optional[cw.event.Event] = None) -> None:
         assert threading.currentThread() != cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         self.refresh_variablelist_impl(event)
 
-    def refresh_variablelist_impl(self, event=None):
+    def refresh_variablelist_impl(self, event: Optional[cw.event.Event] = None) -> None:
         assert threading.currentThread() != cw.cwpy
 
         def func(self, event):
@@ -2111,7 +2113,7 @@ class VariableListCtrl(wx.ListCtrl):
 
 
 class EventView(wx.ScrolledWindow):
-    def __init__(self, parent):
+    def __init__(self, parent: Debugger) -> None:
         """イベントツリーを垂直表示するビュー。"""
         wx.ScrolledWindow.__init__(self, parent, -1)
         self.SetDoubleBuffered(True)
@@ -2141,7 +2143,7 @@ class EventView(wx.ScrolledWindow):
         self.lineheight = 1
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -2162,7 +2164,7 @@ class EventView(wx.ScrolledWindow):
     def OnKillFocus(self, event):
         pass
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         if not cw.cwpy.rsrc:
             return
 
@@ -2363,7 +2365,7 @@ class EventView(wx.ScrolledWindow):
                 i = len(seq) // 2
         return index + ii
 
-    def set_selectionitem(self, item):
+    def set_selectionitem(self, item: Optional["cw.content.EventContentBase"]) -> None:
         enable = bool(self.selectionitem)
         self.selectionitem = item
         if cw.cwpy.frame.debugger:
@@ -2494,7 +2496,7 @@ class EventView(wx.ScrolledWindow):
             y -= h // self.scrollrate_y
             self.Scroll(x, y)
 
-    def refresh_activeitem(self):
+    def refresh_activeitem(self) -> None:
         assert threading.currentThread() != cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
@@ -2533,7 +2535,7 @@ class EventView(wx.ScrolledWindow):
 
         cw.cwpy.exec_func(func, self)
 
-    def refresh_tree(self):
+    def refresh_tree(self) -> None:
         assert threading.currentThread() != cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
@@ -2586,7 +2588,8 @@ class EventView(wx.ScrolledWindow):
         cw.cwpy.exec_func(func, self, event)
         self.Parent.view_var.refresh_variablelist(event)
 
-    def _refresh_tree(self, nowrunning, trees):
+    def _refresh_tree(self, nowrunning: Optional[cw.event.Event],
+                      trees: Optional[Dict[str, "cw.content.StartContent"]]) -> None:
         if nowrunning is None:
             self._linenumwidth = cw.ppis(20)
             self.leftbarwidth = cw.ppis(24) + self._linenumwidth

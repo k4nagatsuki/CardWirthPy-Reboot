@@ -11,7 +11,7 @@ import subprocess
 import cw
 from cw.util import synclock
 
-from typing import Iterator, List, Optional, Set, Tuple
+from typing import Dict, Union, Iterator, List, Optional, Set, Tuple
 
 _lock = threading.Lock()
 
@@ -1137,7 +1137,8 @@ def read_summary(basepath: str) -> Optional[Tuple[Tuple[str, int, str, str, str,
     return imgbufs_to_result(summaryinfos, imgbufs)
 
 
-def parse_summarydata(basepath, data, scetype, mtime, rootattrs):
+def parse_summarydata(basepath: str, data: cw.data.CWPyElement, scetype: int, mtime: float,
+                      rootattrs: Dict[str, str]) -> Tuple[List["cw.image.ImageInfo"], List[Union[str, int, float]]]:
     wsnversion = rootattrs.get("dataVersion", "")
     imgpaths = []
     e = data.find("ImagePath")
@@ -1243,7 +1244,7 @@ def get_scenariopaths(path: str) -> Iterator[str]:
                 yield fname
 
 
-def get_scenario(fpath):
+def get_scenario(fpath: str) -> cw.data.ScenarioData:
     """fpathのシナリオのデータを生成して返す。"""
     lfpath = fpath.lower()
     if lfpath.endswith(".wsm") or lfpath.endswith(".xml"):

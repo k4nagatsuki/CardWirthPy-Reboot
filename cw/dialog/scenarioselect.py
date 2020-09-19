@@ -1345,7 +1345,7 @@ class ScenarioSelect(select.Select):
     def index_changed(self) -> None:
         self._update_saveddirstack()
 
-    def OnDropFiles(self, event):
+    def OnDropFiles(self, event: wx.DropFilesEvent) -> None:
         paths = event.GetFiles()
 
         headers_with_link, notscenariofiles = self._to_headers(paths, link=True)
@@ -1682,12 +1682,14 @@ class ScenarioSelect(select.Select):
         lastscenariopath = selection
         self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=[])
 
-    def _to_headers(self, paths, link):
+    def _to_headers(self, paths: List[str], link: bool) -> Tuple[Dict[Tuple[str, str],
+                                                                      List[cw.header.ScenarioHeader]],
+                                                                 Dict[Tuple[str, str], List[str]]]:
         from . import scenarioinstall
 
         return scenarioinstall.to_scenarioheaders(paths, self.db, cw.cwpy.setting.skintype, link=link)
 
-    def _show_selectedscenario(self, headers):
+    def _show_selectedscenario(self, headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]]) -> None:
         self._processing = True
         cw.cwpy.play_sound("equipment")
         self.narrow.SetValue("")
@@ -3404,7 +3406,7 @@ class ScenarioSelect(select.Select):
         self.Show(False)
         cw.cwpy.frame.ok_scenarioselect(self)
 
-    def OnCancel2(self, event):
+    def OnCancel2(self, event: Union[wx.PyCommandEvent, wx.CloseEvent]) -> None:
         if self._quit:
             return
         self._quit = True

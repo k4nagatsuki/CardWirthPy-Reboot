@@ -906,7 +906,7 @@ class Frame(wx.Frame):
 
         self._cardholder.ShowModal()
 
-    def OnCARDPOCKETB(self, event):
+    def OnCARDPOCKETB(self, event: wx.PyCommandEvent) -> None:
         self._cardpocket_impl("CARDPOCKETB")
 
     def OnCARDPOCKET(self, event: wx.PyCommandEvent) -> None:
