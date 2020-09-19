@@ -1299,13 +1299,13 @@ class Setting(object):
                     me.attrib["cautious"] = cheerful
                     me.attrib["cheerful"] = cautious
 
-                for e in data.getfind("Sexes"):
+                for e in data.getfind("Sexes", raiseerror=False):
                     update_mental(e)
-                for e in data.getfind("Periods"):
+                for e in data.getfind("Periods", raiseerror=False):
                     update_mental(e)
-                for e in data.getfind("Natures"):
+                for e in data.getfind("Natures", raiseerror=False):
                     update_mental(e)
-                for e in data.getfind("Makings"):
+                for e in data.getfind("Makings", raiseerror=False):
                     update_mental(e)
                 ste = data.find("SampleTypes")
                 if ste is not None:

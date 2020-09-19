@@ -45,7 +45,7 @@ from . import sprite
 from . import argparser
 from . import nctype
 
-from typing import Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 # 実行ファイルのパス
 exepath = ""
@@ -58,7 +58,7 @@ else:
     filesystem_encoding = sys.getfilesystemencoding()
 
 # CWPyThread
-cwpy = None
+cwpy: Optional[thread.CWPy] = None
 
 # ファイル出力スレッド
 fsync = util.FileSync()
@@ -243,7 +243,7 @@ if OPTIONS.force_skin:
     OPTIONS.skin = OPTIONS.force_skin
 
 # 起動オプション(スキン自動生成元)
-SKIN_CONV_ARGS = []
+SKIN_CONV_ARGS: List[str] = []
 for arg in OPTIONS.leftovers:
     if os.path.isfile(arg) and os.path.splitext(arg)[1].lower() == ".exe":
         SKIN_CONV_ARGS.append(arg)
@@ -478,7 +478,7 @@ def ppis(num: Union[int, wx.Bitmap, Tuple[int, int]]) -> Union[int, wx.Bitmap, T
     return _s_impl(num, dpi_level)
 
 
-def main():
+def main() -> None:
     pass
 
 

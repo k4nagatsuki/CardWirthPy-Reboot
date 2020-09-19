@@ -7,8 +7,11 @@ import pygame.locals
 
 import cw
 
+from typing import Iterable, Tuple
 
-def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbutton=False, battlespeed=False):
+
+def animate_sprite(sprite: "cw.sprite.base.CWPySprite", anitype: str, clearevent: bool = True, background: bool = False,
+                   statusbutton: bool = False, battlespeed: bool = False) -> None:
     if threading.currentThread() != cw.cwpy:
         raise Exception()
 
@@ -84,7 +87,8 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
     return skip
 
 
-def animate_sprites(sprites, anitype, clearevent=True, battlespeed=False):
+def animate_sprites(sprites: Iterable["cw.sprite.base.CWPySprite"], anitype: str, clearevent: bool = True,
+                    battlespeed: bool = False) -> None:
     """spritesに含まれる全てのスプライトをanitypeの
     アニメーションで動かす。
     """
@@ -92,7 +96,8 @@ def animate_sprites(sprites, anitype, clearevent=True, battlespeed=False):
     animate_sprites2(sprandanimes, clearevent, battlespeed)
 
 
-def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
+def animate_sprites2(sprandanimes: Iterable[Tuple["cw.sprite.base.CWPySprite", str]], clearevent: bool = True,
+                     battlespeed: bool = False) -> None:
     """スプライト毎にアニメーション内容を指定する。
     """
     if threading.currentThread() != cw.cwpy:
@@ -189,7 +194,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
     return skip
 
 
-def _inputevent(clip, clearevent, statusbutton):
+def _inputevent(clip: pygame.Rect, clearevent: bool, statusbutton: bool) -> pygame.Rect:
     if statusbutton:
         cw.cwpy.clear_inputevents()
     else:
@@ -200,7 +205,7 @@ def _inputevent(clip, clearevent, statusbutton):
     return clip
 
 
-def start_animation(sprite, anitype):
+def start_animation(sprite: "cw.sprite.base.CWPySprite", anitype: str) -> None:
     """spriteのアニメーションを開始する。
     アニメーションは他のイベント進行と平行して実行される。
     animate_sprite()と違ってフレームが進まなかったり飛んだりする
@@ -225,7 +230,7 @@ def start_animation(sprite, anitype):
     cw.cwpy.animations.add(sprite)
 
 
-def _get_skipstatus(clearevent):
+def _get_skipstatus(clearevent: bool) -> bool:
     if not clearevent and (cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein()):
         cw.cwpy.cut_animation = True
         return True
@@ -258,7 +263,7 @@ def _get_skipstatus(clearevent):
     return False
 
 
-def main():
+def main() -> None:
     pass
 
 

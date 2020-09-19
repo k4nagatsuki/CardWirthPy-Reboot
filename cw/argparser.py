@@ -75,7 +75,7 @@ class ArgParser(object):
 
         return r
 
-    def print_help(self):
+    def print_help(self) -> None:
         """ヘルプメッセージを表示する。
         """
         s = ["Usage:", self.appname]
@@ -147,7 +147,7 @@ class Arg(object):
         elif self.type == str:
             return value
 
-    def get_help(self, sep=", "):
+    def get_help(self, sep: str = ", ") -> str:
         """ヘルプメッセージ用のテキストを生成する。
         """
         s = self.arg
@@ -163,7 +163,7 @@ class Arg(object):
             return s
 
 
-def main():
+def main() -> None:
     parser = ArgParser(appname="args.py", description="Process some integers.")
     parser.add_argument("-h", argtype=bool, nargs=0,
                         helptext="このメッセージを表示して終了します。", arg2="--help", default=False)

@@ -957,7 +957,7 @@ class SkinPanel(wx.Panel):
                     self.all_skintypes.add(skintype2)
                     if skintype and skintype2 != skintype:
                         continue
-                    if prop.attrs.get(None, {}).get("dataVersion") in cw.SUPPORTED_SKIN:
+                    if prop.attrs.get(None, {}).get("dataVersion", "0") in cw.SUPPORTED_SKIN:
                         self.skins.append(prop.properties.get("Name", name))
                         self.skindirs.append(name)
                 except Exception:

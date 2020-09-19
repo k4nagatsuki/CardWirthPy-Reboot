@@ -800,7 +800,7 @@ class Logger(threading.Thread):
                 f.close()
 
 
-def main():
+def main() -> None:
     pass
 
 

@@ -27,7 +27,7 @@ class BattleDefeatError(BattleError):
 
 
 class BattleEngine(object):
-    def __init__(self, data):
+    def __init__(self, data: "cw.data.CWPyElement") -> None:
         """
         戦闘関係のデータ・処理をまとめたクラス。
         初期化時に自動的にready()を実行する。
@@ -87,10 +87,10 @@ class BattleEngine(object):
     def is_ready(self) -> bool:
         return self._ready
 
-    def is_battlestarting(self):
+    def is_battlestarting(self) -> bool:
         return not (self.is_running() or self.is_ready())
 
-    def start(self):
+    def start(self) -> None:
         try:
             self.run()
         except BattleStartBattleError:
@@ -102,7 +102,7 @@ class BattleEngine(object):
         except BattleDefeatError:
             self.defeat()
 
-    def process_exception(self, ex):
+    def process_exception(self, ex: BattleError) -> None:
         """イベントの強制実行等で発生したバトル例外を処理する。"""
         if isinstance(ex, BattleStartBattleError):
             self.end(False, startnextbattle=True)
@@ -115,7 +115,7 @@ class BattleEngine(object):
         else:
             assert False
 
-    def run(self):
+    def run(self) -> None:
         """戦闘行動を開始する。1ラウンド分の処理。"""
         cw.cwpy.clear_selection()
         cw.cwpy.clear_fcardsprites()
@@ -223,7 +223,7 @@ class BattleEngine(object):
             # 次ターン準備
             self.ready()
 
-    def end(self, areachange=True, f9=False, startnextbattle=False):
+    def end(self, areachange: bool = True, f9: bool = False, startnextbattle: bool = False) -> None:
         """勝利・敗北以外の戦闘終了処理。
         戦闘エリアを解除する。
         """
@@ -247,7 +247,7 @@ class BattleEngine(object):
             cw.cwpy.clear_battlearea(areachange=areachange, startnextbattle=startnextbattle,
                                      is_battlestarting=is_battlestarting)
 
-    def ready(self, redraw=True):
+    def ready(self, redraw: bool = True) -> None:
         """戦闘行動の準備を行う。
         1ラウンド終了するたびに自動的に呼ばれる。
         """
@@ -278,7 +278,7 @@ class BattleEngine(object):
             cw.cwpy.clear_selection()
             cw.cwpy.update_allselectedcards()
 
-    def update_debug(self):
+    def update_debug(self) -> None:
         # 敵の状態の暴露・非暴露切り替え
         for sprite in cw.cwpy.get_mcards():
             sprite.update_scale()
@@ -287,14 +287,14 @@ class BattleEngine(object):
         if self.is_ready():
             self.update_showfcards()
 
-    def update_showfcards(self):
+    def update_showfcards(self) -> None:
         cw.cwpy.clear_fcardsprites()
         if cw.cwpy.is_debugmode() and\
                 cw.cwpy.setting.show_fcardsinbattle and\
                 self.is_ready():
             cw.cwpy.add_fcardsprites(status="normal", alpha=192)
 
-    def runaway(self):
+    def runaway(self) -> None:
         """逃走処理。逃走イベントが存在する場合は、
         逃走イベント優先。
         """
@@ -351,7 +351,7 @@ class BattleEngine(object):
                 cw.cwpy.play_sound("error")
                 self.start()
 
-    def win(self, runevent=True):
+    def win(self, runevent: bool = True) -> None:
         """勝利処理。勝利イベント終了後も戦闘が続行していたら、
         強制的に戦闘エリアから離脱する。
         """
@@ -377,7 +377,7 @@ class BattleEngine(object):
         # 勝利イベント実行時は元のエリアに戻る
         cw.cwpy.clear_battlearea(True, eventkeynum=eventkeynum, is_battlestarting=is_battlestarting)
 
-    def defeat(self, runevent=True):
+    def defeat(self, runevent: bool = True) -> None:
         """敗北処理。敗北イベント後、
         パーティが全滅状態だったら、ゲームオーバ画面に遷移。
         """
@@ -408,7 +408,7 @@ class BattleEngine(object):
         else:
             cw.cwpy.set_gameover()
 
-    def check_win(self):
+    def check_win(self) -> bool:
         flag = True
 
         for ecard in cw.cwpy.get_ecards():
@@ -417,7 +417,7 @@ class BattleEngine(object):
 
         return flag
 
-    def check_defeat(self):
+    def check_defeat(self) -> None:
         flag = True
 
         for pcard in cw.cwpy.get_pcards():
@@ -426,7 +426,7 @@ class BattleEngine(object):
 
         return flag
 
-    def set_members(self):
+    def set_members(self) -> None:
         """戦闘参加メンバを設定する。
         行動可能でないものは除外。
         """
@@ -435,7 +435,7 @@ class BattleEngine(object):
         members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_fcards()))
         self.members = members
 
-    def set_actionorder(self):
+    def set_actionorder(self) -> None:
         """行動順を決める値を算出し、
         その値をもとに並び替えした戦闘参加メンバを設定する。
         """
@@ -451,12 +451,12 @@ class BattleEngine(object):
         assert len(members) == len(self.members)
         self.members = [o[2] for o in members]
 
-    def set_action(self):
+    def set_action(self) -> None:
         """戦闘参加メンバ全員、行動自動選択。"""
         for member in self.members:
             member.decide_action()
 
-    def clear_playersaction(self):
+    def clear_playersaction(self) -> None:
         """PlayerCard, FriendCardの行動をクリアする。"""
         for pcard in cw.cwpy.get_pcards():
             pcard.clear_action()
@@ -465,7 +465,7 @@ class BattleEngine(object):
             fcard.clear_action()
 
 
-def main():
+def main() -> None:
     pass
 
 
