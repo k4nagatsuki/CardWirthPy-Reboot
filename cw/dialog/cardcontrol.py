@@ -334,7 +334,7 @@ class CardControl(wx.Dialog):
 
         cw.util.set_acceleratortable(self, seq)
 
-    def _can_narrow(self):
+    def _can_narrow(self) -> bool:
         return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")
 
     def OnNumberKeyDown(self, event):
@@ -959,7 +959,7 @@ class CardControl(wx.Dialog):
                     self.draw_card(header)
         self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_ARROW"])
 
-    def OnClickLeftBtn2(self, event):
+    def OnClickLeftBtn2(self, event: wx.PyCommandEvent) -> None:
         self._cancel_animation = True
         count = len(self.combo.GetItems())
         index = self.combo.GetSelection()
@@ -970,7 +970,7 @@ class CardControl(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.combo.GetId())
         self.combo.ProcessEvent(btnevent)
 
-    def OnClickRightBtn2(self, event):
+    def OnClickRightBtn2(self, event: wx.PyCommandEvent) -> None:
         self._cancel_animation = True
         count = len(self.combo.GetItems())
         index = self.combo.GetSelection()
@@ -2251,7 +2251,7 @@ class CardHolder(CardControl):
         cw.cwpy.frame.exec_func(func)
         event.Skip()
 
-    def OnSort(self, event):
+    def OnSort(self, event: wx.CommandEvent) -> None:
         self._cancel_animation = True
         self.toppanel.SetFocusIgnoringChildren()
         index = self.sort.GetSelection()
@@ -2277,7 +2277,7 @@ class CardHolder(CardControl):
                 cw.cwpy.setting.sort_cards = sorttype
                 self._update_sortattr()
 
-    def OnSortWithStar(self, event):
+    def OnSortWithStar(self, event: wx.lib.buttons.GenButtonEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
@@ -2369,7 +2369,7 @@ class CardHolder(CardControl):
         self._enable_updown()
         self._update_page()
 
-    def OnClickLeftBtn(self, event):
+    def OnClickLeftBtn(self, event: wx.PyCommandEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
         self._redraw = False
@@ -2670,7 +2670,7 @@ class CardHolder(CardControl):
         self.page.SetValue(page)
         self._proc_page = False
 
-    def _set_backpacklist(self, narrow=True):
+    def _set_backpacklist(self, narrow: bool = True) -> None:
         if cw.cwpy.setting.last_cardpocket == cw.POCKET_SKILL:
             cardtype = "SkillCard"
         elif cw.cwpy.setting.last_cardpocket == cw.POCKET_ITEM:
@@ -2772,7 +2772,7 @@ class CardHolder(CardControl):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.downbtn.GetId())
             self.ProcessEvent(btnevent)
 
-    def OnClickUpBtn(self, event):
+    def OnClickUpBtn(self, event: wx.PyCommandEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("click")
         negaindex = -1
@@ -2801,7 +2801,7 @@ class CardHolder(CardControl):
 
         self.draw_cards()
 
-    def OnClickDownBtn(self, event):
+    def OnClickDownBtn(self, event: wx.PyCommandEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("click")
         negaindex = -1
@@ -3248,7 +3248,7 @@ class HandView(CardControl):
             header.negaflag = False
         self.draw_cards(update=True)
 
-    def OnClickLeftBtn(self, event):
+    def OnClickLeftBtn(self, event: wx.PyCommandEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
 
@@ -3261,7 +3261,7 @@ class HandView(CardControl):
         self.Parent.change_selection(self.selection)
         self.draw_cards()
 
-    def OnClickRightBtn(self, event):
+    def OnClickRightBtn(self, event: wx.PyCommandEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
 

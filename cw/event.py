@@ -330,12 +330,12 @@ class EventInterface(object):
         card = self._inusecard
         return card
 
-    def get_selectedcard(self):
+    def get_selectedcard(self) -> Optional["cw.header.CardHeader"]:
         """選択カード(CardHeaderインスタンス)を返す(Wsn.3)。"""
         card = self._selectedcard
         return card
 
-    def clear_selectedcard(self):
+    def clear_selectedcard(self) -> None:
         """選択中のメンバをクリアする。"""
         if self._selectedcard != self._inusecard:
             self._selectedcard = self._inusecard

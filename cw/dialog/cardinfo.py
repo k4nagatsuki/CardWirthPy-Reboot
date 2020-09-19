@@ -18,7 +18,7 @@ class CardInfo(wx.Dialog):
     """
     カード情報ダイアログ　スーパークラス
     """
-    list: List[cw.header.CardHeader]
+    list: List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]
     index: int
 
     def __init__(self, parent: wx.TopLevelWindow, scedir: str = "") -> None:
@@ -284,7 +284,7 @@ class YadoCardInfo(CardInfo):
         # ダイアログ作成
         CardInfo.__init__(self, parent, scedir=scedir)
 
-    def OnClickLeftBtn(self, event):
+    def OnClickLeftBtn(self, event: wx.PyCommandEvent) -> None:
         if self.index == 0:
             self.index = len(self.list) - 1
         else:

@@ -5415,9 +5415,10 @@ class CWPy(_Singleton, threading.Thread):
                     if os.path.isfile(temppath):
                         self.ydata.deletedpaths.add(temppath)
 
-    def copy_materials(self, data, dstdir, from_scenario=True, scedir="",
-                       yadodir=None, toyado=None, adventurer=False,
-                       imgpaths=None, importimage=False, can_loaded_scaledimage=False):
+    def copy_materials(self, data: cw.data.CWPyElementTree, dstdir: str, from_scenario: bool = True, scedir: str = "",
+                       yadodir: Optional[str] = None, toyado: Optional[str] = None, adventurer: bool = False,
+                       imgpaths: Optional[Dict[str, str]] = None, importimage: bool = False,
+                       can_loaded_scaledimage: bool = False) -> None:
         """
         from_scenario: Trueの場合は開いているシナリオから、
                        Falseの場合は開いている宿からコピーする
@@ -5527,8 +5528,10 @@ class CWPy(_Singleton, threading.Thread):
             elif e is not data and e.tag == "BeastCard" and from_scenario:
                 self.sdata.copy_carddata(e, dstdir, from_scenario, scedir, imgpaths)
 
-    def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material, yadodir,
-                       toyado, can_loaded_scaledimage):
+    def _copy_material(self, data: cw.data.CWPyElement, dstdir: str, from_scenario: bool, scedir: str,
+                       imgpaths: Optional[Dict[str, str]], e: cw.data.CWPyElement, materialpath: str,
+                       set_material: Callable, yadodir: Optional[str], toyado: Optional[str],
+                       can_loaded_scaledimage: bool) -> None:
         pisc = e is not None and e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
         if pisc:
             imgpath = materialpath

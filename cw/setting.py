@@ -1307,35 +1307,35 @@ class Setting(object):
                     update_mental(e)
                 for e in data.getfind("Makings"):
                     update_mental(e)
-                ste = data.getfind("SampleTypes")
+                ste = data.find("SampleTypes")
+                if ste is not None:
+                    def check_sampletype(ste, name, cautious, cheerful):
+                        # SampleTypeがSkinBaseの内容そのままかチェックする
+                        return ste.gettext("Name") == name and \
+                               ste.getfloat("Mental", "cautious") == cautious and \
+                               ste.getfloat("Mental", "cheerful") == cheerful
 
-                def check_sampletype(ste, name, cautious, cheerful):
-                    # SampleTypeがSkinBaseの内容そのままかチェックする
-                    return ste.gettext("Name") == name and \
-                           ste.getfloat("Mental", "cautious") == cautious and \
-                           ste.getfloat("Mental", "cheerful") == cheerful
-
-                if len(ste) != 5 or \
-                        not check_sampletype(ste[0], "バランス", 0.0, 0.0) or \
-                        not check_sampletype(ste[1], "ファイター", -0.5, 0.0) or \
-                        not check_sampletype(ste[2], "シーフ", 0.5, 0.0) or \
-                        not check_sampletype(ste[3], "プリースト", 0.0, 0.5) or \
-                        not check_sampletype(ste[4], "メイジ", 0.5, -0.5):
-                    # SkinBaseの内容そのままでない場合は入れ替え発生
+                    if len(ste) != 5 or \
+                            not check_sampletype(ste[0], "バランス", 0.0, 0.0) or \
+                            not check_sampletype(ste[1], "ファイター", -0.5, 0.0) or \
+                            not check_sampletype(ste[2], "シーフ", 0.5, 0.0) or \
+                            not check_sampletype(ste[3], "プリースト", 0.0, 0.5) or \
+                            not check_sampletype(ste[4], "メイジ", 0.5, -0.5):
+                        # SkinBaseの内容そのままでない場合は入れ替え発生
+                        for e in ste:
+                            update_mental(e)
                     for e in ste:
-                        update_mental(e)
-                for e in ste:
-                    me = e.find("Mental")
-                    aggressive = me.getfloat(".", "aggressive")
-                    brave = me.getfloat(".", "brave")
-                    cautious = me.getfloat(".", "cautious")
-                    cheerful = me.getfloat(".", "cheerful")
-                    trickish = me.getfloat(".", "trickish")
-                    me.attrib["aggressive"] = str(aggressive * 2)
-                    me.attrib["brave"] = str(brave * 2)
-                    me.attrib["cautious"] = str(cautious * 2)
-                    me.attrib["cheerful"] = str(cheerful * 2)
-                    me.attrib["trickish"] = str(trickish * 2)
+                        me: cw.data.CWPyElement = e.find("Mental")
+                        aggressive = me.getfloat(".", "aggressive")
+                        brave = me.getfloat(".", "brave")
+                        cautious = me.getfloat(".", "cautious")
+                        cheerful = me.getfloat(".", "cheerful")
+                        trickish = me.getfloat(".", "trickish")
+                        me.attrib["aggressive"] = str(aggressive * 2)
+                        me.attrib["brave"] = str(brave * 2)
+                        me.attrib["cautious"] = str(cautious * 2)
+                        me.attrib["cheerful"] = str(cheerful * 2)
+                        me.attrib["trickish"] = str(trickish * 2)
 
             if skinversion <= 5:
                 # dataVersion=5までは
@@ -1364,8 +1364,8 @@ class Setting(object):
                         e = cw.data.xml2etree(fpath)
                         updatemcards = False
                         for me in e.getfind("MenuCards"):
-                            events = me.getfind("Events")
-                            if 1 != len(events):
+                            events: Optional[cw.data.CWPyElement] = me.find("Events")
+                            if events is None or 1 != len(events):
                                 continue
                             ignum = events.gettext("Event/Ignitions/Number", "")
                             igkeycode = events.gettext("Event/Ignitions/KeyCodes", "")
@@ -1682,7 +1682,7 @@ class Setting(object):
                     break
         return scedir
 
-    def insert_yadoorder(self, yadodirname):
+    def insert_yadoorder(self, yadodirname: str) -> None:
         seq = []
         for dname, order in self.yado_order.items():
             seq.append((order, dname))
@@ -3213,7 +3213,7 @@ class ResourceTable(object):
         self._put_nokeyvalue(key)
         return key in self.dic
 
-    def copy(self):
+    def copy(self) -> "ResourceTable":
         tbl = ResourceTable(self.name, self.dic.copy(), self.deffunc, self.nokeyfunc)
         tbl.defvalue = self.defvalue
         tbl.defload = self.defload
@@ -3232,7 +3232,7 @@ class ResourceTable(object):
 
 
 class RecentHistory(object):
-    def __init__(self, tempdir, ydata):
+    def __init__(self, tempdir: str, ydata: cw.data.YadoData) -> None:
         """起動してから開いたシナリオの情報を
         (wsn・zipファイルのパス, 最終更新日, "Data/Temp"に展開したフォルダパス)の
         形式で保存し、管理するクラス。
@@ -3328,7 +3328,7 @@ class RecentHistory(object):
 
         self.data.write()
 
-    def set_limit(self, value):
+    def set_limit(self, value: int) -> None:
         """
         保持履歴数を設定する。
         履歴数を超えたデータは古い順(先頭)から削除。
@@ -3338,7 +3338,7 @@ class RecentHistory(object):
         if self._remove_old():
             self.write()
 
-    def _remove_old(self, exclude=None):
+    def _remove_old(self, exclude: Optional[str] = None) -> bool:
         if not self.limit:
             return False
         if not self.ydata:
@@ -3600,7 +3600,8 @@ class ScenarioCompatibilityTable(object):
 
         return currentversion[4]
 
-    def merge_versionhints(self, hint1, hint2):
+    def merge_versionhints(self, hint1: Tuple[str, str, bool, bool, bool],
+                           hint2: Tuple[str, str, bool, bool, bool]) -> Tuple[str, str, bool, bool, bool]:
         """hint1を高優先度としてhint2とマージする。"""
         if not hint1:
             return hint2

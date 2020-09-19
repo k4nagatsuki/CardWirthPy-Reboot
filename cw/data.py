@@ -19,7 +19,7 @@ import pygame.locals
 import cw
 from cw.util import synclock
 
-from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 _lock = threading.Lock()
 
@@ -31,13 +31,13 @@ _WSN_DATA_DIRS = ("area", "battle", "package", "castcard", "skillcard", "itemcar
 # ------------------------------------------------------------------------------
 
 class SystemData(object):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         引数のゲームの状態遷移の情報によって読み込むxmlを変える。
         """
         cw.cwpy.debug = cw.cwpy.setting.debug
         self.wsn_version = ""
-        self.data = None
+        self.data: Optional[CWPyElement] = None
         self.name = ""
         self.sdata = ""
         self.author = ""
@@ -46,14 +46,14 @@ class SystemData(object):
         self.tempdir = ""
         self.scedir = ""
 
-        self._areas = {}
-        self._battles = {}
-        self._packs = {}
-        self._casts = {}
-        self._infos = {}
-        self._items = {}
-        self._skills = {}
-        self._beasts = {}
+        self._areas: Dict[int, Tuple[str, str]] = {}
+        self._battles: Dict[int, Tuple[str, str]] = {}
+        self._packs: Dict[int, Tuple[str, str]] = {}
+        self._casts: Dict[int, Tuple[str, str]] = {}
+        self._infos: Dict[int, Tuple[str, str]] = {}
+        self._items: Dict[int, Tuple[str, str]] = {}
+        self._skills: Dict[int, Tuple[str, str]] = {}
+        self._beasts: Dict[int, Tuple[str, str]] = {}
 
         cw.cwpy.classicdata = None
 
@@ -61,53 +61,53 @@ class SystemData(object):
         self._init_sparea_mcards()
 
         self.is_playing = True
-        self.events = None
-        self.playerevents = None  # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
-        self.deletedpaths = set()
-        self.lostadventurers = set()
-        self.gossips = {}
-        self.compstamps = {}
-        self.friendcards = []
-        self.infocards = []
+        self.events: Optional[cw.event.EventEngine] = None
+        self.playerevents: Optional[cw.event.EventEngine] = None  # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
+        self.deletedpaths: Union[YadoDeletedPathSet, Set[str]] = set()
+        self.lostadventurers: Set[str] = set()
+        self.gossips: Dict[str, bool] = {}
+        self.compstamps: Dict[str, bool] = {}
+        self.friendcards: List[cw.sprite.card.FriendCard] = []
+        self.infocards: List[int] = []
         self.infocard_maxindex = 0
-        self._infocard_cache = {}
-        self.flags = {}
-        self.steps = {}
-        self.variants = {}
-        self.labels = {}
-        self.ignorecase_table = {}
+        self._infocard_cache: Dict[int, cw.header.InfoCardHeader] = {}
+        self.flags: Dict[str, Flag] = {}
+        self.steps: Dict[str, Step] = {}
+        self.variants: Dict[str, Variant] = {}
+        self.labels: Dict[str, str] = {}
+        self.ignorecase_table: Dict[str, str] = {}
         self.notice_infoview = False
-        self.infocards_beforeevent = None
+        self.infocards_beforeevent: Optional[Set[int]] = None
         self.party_environment_backpack = True
         self.pre_battleareadata = None
-        self.data_cache = {}
-        self.resource_cache = {}
+        self.data_cache: Dict[str, CacheData] = {}
+        self.resource_cache: Dict[str, object] = {}
         self.resource_cache_size = 0
         self.autostart_round = False
-        self.breakpoints = set()
+        self.breakpoints: Set[str] = set()
         self.in_f9 = False
         self.in_endprocess = False
-        self.background_image_mtime = {}
-        self.moved_mcards = {}
-        self.instructions = []
-        self.specialchars = set()
+        self.background_image_mtime: Dict[str, Tuple[str, float]] = {}
+        self.moved_mcards: Dict[Tuple[str, int], Tuple[int, int, int, int]] = {}
+        self.instructions: List[str] = []
+        self.specialchars = cw.setting.ResourceTable("Resource/Image/Font")
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
         # [path] = (x1 binary, x2 binary, ..., x16 binary)
-        self.ex_cache = {}
+        self.ex_cache: Dict[str, List[Optional[str]]] = {}
 
         # クリア時のデバッグ情報。デバッグ情報ダイアログ表示で削除
-        self.debuglog = None
+        self.debuglog: Optional[cw.debug.logging.DebugLog] = None
         # デバッグ情報がある事を通知する(0=通知無し,1=点滅あり,2=点滅無し)
         self.notice_debuglog = 0
 
         # "file.x2.bmp"などのスケーリングされたイメージを読み込むか
         self.can_loaded_scaledimage = True
 
-        # メッセージのバックログ
-        self.backlog = []
+        # メッセージログ
+        self.backlog: List[cw.sprite.message.BacklogData] = []
         # キャンプ中に移動したカードの使用回数の記憶
-        self.uselimit_table = {}
+        self.uselimit_table: Dict[Tuple[cw.sprite.card.PlayerCard, cw.header.CardHeader], int] = {}
 
         # シナリオごとのブレークポイントを保存する
         if isinstance(cw.cwpy.sdata, ScenarioData):
@@ -125,7 +125,7 @@ class SystemData(object):
             self.variants = {}
 
         # 各段階の互換性マーク(SystemDataでは全てNone)
-        self.versionhint = [
+        self.versionhint: List[Optional[str]] = [
             None,  # メッセージ表示時の話者(キャストまたはカード)
             None,  # 使用中のカード
             None,  # エリア・バトル・パッケージ
@@ -135,25 +135,25 @@ class SystemData(object):
         # refresh debugger
         self._init_debugger()
 
-    def _init_flags(self):
+    def _init_flags(self) -> None:
         """
         summary.xmlで定義されているフラグを初期化。
         """
         self.flags = init_flags(self.summary, False)
 
-    def _init_steps(self):
+    def _init_steps(self) -> None:
         """
         summary.xmlで定義されているステップを初期化。
         """
         self.steps = init_steps(self.summary, False)
 
-    def _init_variants(self):
+    def _init_variants(self) -> None:
         """
         summary.xmlで定義されているコモンを初期化。
         """
         self.variants = init_variants(self.summary, False)
 
-    def save_variables(self):
+    def save_variables(self) -> None:
         """宿ごとにスキンの状態変数値を記憶する。"""
         if not cw.cwpy.ydata:
             return
@@ -223,7 +223,7 @@ class SystemData(object):
         data.write_xml()
         cw.cwpy.ydata.deletedpaths.discard(data.fpath)
 
-    def load_variables(self):
+    def load_variables(self) -> None:
         """宿ごとの状態変数値をロードする。"""
         if not cw.cwpy.ydata:
             return
@@ -243,7 +243,7 @@ class SystemData(object):
                 self._load_variables(e_vars)
                 break
 
-    def _load_variables(self, data):
+    def _load_variables(self, data: "CWPyElement") -> None:
         for e in data.getfind("Flags", raiseerror=False):
             if e.text in self.flags:
                 self.flags[e.text].value = e.getbool(".", "value")
@@ -259,7 +259,7 @@ class SystemData(object):
                 value = Variant.value_from_str(vtype, value)
                 self.variants[e.text].value = value
 
-    def reset_variables(self):
+    def reset_variables(self) -> None:
         """すべての状態変数を初期化する。"""
         for e in self.summary.find("Steps"):
             value = e.getint(".", "default")
@@ -279,10 +279,10 @@ class SystemData(object):
             name = e.gettext("Name", "")
             self.variants[name].set(value)
 
-    def _init_debugger(self):
+    def _init_debugger(self) -> None:
         cw.cwpy.event.refresh_variablelist()
 
-    def update_skin(self):
+    def update_skin(self) -> None:
         self._init_xmlpaths()
         self._init_sparea_mcards()
 
@@ -299,13 +299,13 @@ class SystemData(object):
             self.variants = {}
         self._init_debugger()
 
-        def func():
+        def func() -> None:
             cw.cwpy.is_debuggerprocessing = False
             if cw.cwpy.is_showingdebugger() and cw.cwpy.event:
                 cw.cwpy.event.refresh_tools()
         cw.cwpy.frame.exec_func(func)
 
-    def _init_xmlpaths(self, xmlonly=False):
+    def _init_xmlpaths(self, xmlonly: bool = False) -> None:
         cw.fsync.sync()
         self._areas.clear()
         self._battles.clear()
@@ -342,7 +342,7 @@ class SystemData(object):
                     elif resid not in self._areas:
                         self._areas[resid] = (name, path)
 
-    def update_scenariopath(self, normpath, dst, dstisfile):
+    def update_scenariopath(self, normpath: str, dst: str, dstisfile: str) -> None:
         if not self.fpath:
             return
         normpath2 = cw.util.get_keypath(self.fpath)
@@ -355,7 +355,7 @@ class SystemData(object):
             self.tempdir = dst
             self.scedir = dst
 
-        def update_table(table):
+        def update_table(table: Dict[int, Tuple[str, str]]) -> None:
             d = table.copy()
             table.clear()
             for resid, (name, path) in d.items():
@@ -376,7 +376,7 @@ class SystemData(object):
         self.resource_cache = {}
         self.resource_cache_size = 0
 
-    def update_scenariopath2(self, normpath, dst, dstisfile):
+    def update_scenariopath2(self, normpath: str, dst: str, dstisfile: str) -> None:
         if not self.fpath:
             return
         if dstisfile:
@@ -388,7 +388,7 @@ class SystemData(object):
         cw.cwpy.rsrc.specialchars.reset()
         self.update_scale()
 
-    def _init_sparea_mcards(self):
+    def _init_sparea_mcards(self) -> None:
         """
         カード移動操作エリアのメニューカードを作成する。
         エリア移動時のタイムラグをなくすための操作。
@@ -406,7 +406,7 @@ class SystemData(object):
 
         self.sparea_mcards = d
 
-    def is_wsnversion(self, wsn_version, cardversion=None):
+    def is_wsnversion(self, wsn_version: str, cardversion: Optional[str] = None) -> None:
         if cardversion is None:
             swsnversion = self.wsn_version
         else:
@@ -426,11 +426,11 @@ class SystemData(object):
         """現在有効になっている互換性マークを返す(常に無し)。"""
         return None
 
-    def set_versionhint(self, pos, hint):
+    def set_versionhint(self, pos: int, hint: str) -> None:
         """互換性モードを設定する(処理無し)。"""
         pass
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         for mcards in self.sparea_mcards.values():
             for mcard in mcards:
                 mcard.update_scale()
@@ -493,7 +493,7 @@ class SystemData(object):
             return event.steps[path]
         return self.steps.get(path, None) if not is_differentscenario else None
 
-    def find_variant(self, path, is_differentscenario, event):
+    def find_variant(self, path: str, is_differentscenario: bool, event: "cw.event.Event") -> None:
         """
         pathが指すコモンを返す。
         eventにローカル変数がある場合は優先する。
@@ -502,31 +502,31 @@ class SystemData(object):
             return event.variants[path]
         return self.variants.get(path, None) if not is_differentscenario else None
 
-    def start(self):
+    def start(self) -> None:
         pass
 
-    def end(self, showdebuglog=False, complete=False, failure=False):
+    def end(self, showdebuglog: bool = False, complete: bool = False, failure: bool = False) -> None:
         pass
 
-    def save_breakpoints(self):
+    def save_breakpoints(self) -> None:
         pass
 
-    def get_totalpyaingtime(self):
+    def get_totalpyaingtime(self) -> int:
         return 0
 
-    def get_pausedtime(self):
+    def get_pausedtime(self) -> int:
         return 0
 
-    def start_timekeeper(self):
+    def start_timekeeper(self) -> None:
         pass
 
-    def resume_timekeeper(self):
+    def resume_timekeeper(self) -> None:
         pass
 
-    def sleep_timekeeper(self):
+    def sleep_timekeeper(self) -> None:
         pass
 
-    def set_log(self):
+    def set_log(self) -> Tuple[bool, Tuple[str, bool]]:
         """
         wslファイルの読み込みまたは新規作成を行う。
         読み込みを行った場合はTrue、新規作成を行った場合はFalseを返す。
@@ -544,10 +544,10 @@ class SystemData(object):
             self.create_log()
             return False, None
 
-    def create_log(self):
+    def create_log(self) -> None:
         pass
 
-    def remove_log(self, debuglog):
+    def remove_log(self, debuglog: Optional["cw.debug.logging.DebugLog"]) -> None:
         cw.fsync.sync()
         if debuglog:
             dpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Members")
@@ -607,7 +607,7 @@ class SystemData(object):
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         cw.cwpy.ydata.deletedpaths.add(path)
 
-    def load_log(self, path, recording):
+    def load_log(self, path: str, recording: bool) -> List[Tuple[str, int, int, bool, str]]:
         etree = xml2etree(path)
 
         for e in etree.getfind("Gossips"):
@@ -622,9 +622,9 @@ class SystemData(object):
             elif e.get("value") == "False":
                 self.compstamps[e.text] = False
 
-        return "", False
+        return []
 
-    def get_resdata(self, isbattle, resid):
+    def get_resdata(self, isbattle: bool, resid: int) -> Optional["CWPyElement"]:
         if isbattle:
             data = self.get_battledata(resid)
         else:
@@ -636,10 +636,10 @@ class SystemData(object):
         return xml2etree(element=data)
 
     def get_carddata(self, linkdata: "CWPyElement", inusecard: bool = True,
-                     inusecardheader: Optional["cw.header.CardHeader"] = None) -> "CWPyElement":
+                     inusecardheader: Optional["cw.header.CardHeader"] = None) -> Optional["CWPyElement"]:
         return linkdata
 
-    def is_updatedfilenames(self):
+    def is_updatedfilenames(self) -> bool:
         """WSNシナリオのデータ(XML)のファイル名がデータテーブル
         作成時点から変更されている場合はTrueを返す。
         """
@@ -683,104 +683,111 @@ class SystemData(object):
     def _get_resids(self, table: Dict[int, Tuple[str, str]]) -> List[int]:
         return list(table.keys())
 
-    def get_areadata(self, resid, tag="", nocache=False, rootattrs=None):
+    def get_areadata(self, resid: int, tag: str = "", nocache: bool = False,
+                     rootattrs: Optional[Dict[str, str]] = None) -> Optional["CWPyElement"]:
         return self._get_resdata(self._areas, resid, tag, nocache, resname="エリア", rootattrs=rootattrs)
 
     def get_areaname(self, resid: int) -> str:
         return self._get_resname(self._areas, resid)
 
-    def get_areafpath(self, resid):
+    def get_areafpath(self, resid: str) -> str:
         return self._get_resfpath(self._areas, resid)
 
     def get_areaids(self) -> List[int]:
         return self._get_resids(self._areas)
 
-    def get_battledata(self, resid, tag="", nocache=False, rootattrs=None):
+    def get_battledata(self, resid: int, tag: str = "", nocache: bool = False,
+                       rootattrs: Optional[Dict[str, str]] = None) -> Optional["CWPyElement"]:
         return self._get_resdata(self._battles, resid, tag, nocache, resname="バトル", rootattrs=rootattrs)
 
-    def get_battlename(self, resid):
+    def get_battlename(self, resid: int) -> str:
         return self._get_resname(self._battles, resid)
 
-    def get_battlefpath(self, resid):
+    def get_battlefpath(self, resid: int) -> str:
         return self._get_resfpath(self._battles, resid)
 
-    def get_battleids(self):
+    def get_battleids(self) -> List[int]:
         return self._get_resids(self._battles)
 
-    def get_packagedata(self, resid, tag="", nocache=False, rootattrs=None):
+    def get_packagedata(self, resid: int, tag: str = "", nocache: bool = False,
+                        rootattrs: Optional[Dict[str, str]] = None) -> Optional["CWPyElement"]:
         return self._get_resdata(self._packs, resid, tag, nocache, resname="パッケージ", rootattrs=rootattrs)
 
     def get_packagename(self, resid: int) -> str:
         return self._get_resname(self._packs, resid)
 
-    def get_packagefpath(self, resid):
+    def get_packagefpath(self, resid: int) -> str:
         return self._get_resfpath(self._packs, resid)
 
-    def get_packageids(self):
+    def get_packageids(self) -> List[int]:
         return self._get_resids(self._packs)
 
-    def get_castdata(self, resid, tag="", nocache=False, rootattrs=None):
+    def get_castdata(self, resid: int, tag: str = "", nocache: bool = False,
+                     rootattrs: Optional[Dict[str, str]] = None) -> Optional["CWPyElement"]:
         return self._get_resdata(self._casts, resid, tag, nocache, resname="キャスト", rootattrs=rootattrs)
 
-    def get_castname(self, resid):
+    def get_castname(self, resid: int) -> str:
         return self._get_resname(self._casts, resid)
 
-    def get_castfpath(self, resid):
+    def get_castfpath(self, resid: int) -> str:
         return self._get_resfpath(self._casts, resid)
 
-    def get_castids(self):
+    def get_castids(self) -> List[int]:
         return self._get_resids(self._casts)
 
-    def get_skilldata(self, resid, tag="", nocache=False, rootattrs=None):
+    def get_skilldata(self, resid: int, tag: str = "", nocache: bool = False,
+                      rootattrs: Optional[Dict[str, str]] = None) -> Optional["CWPyElement"]:
         return self._get_resdata(self._skills, resid, tag, nocache, resname="特殊技能", rootattrs=rootattrs)
 
-    def get_skillname(self, resid):
+    def get_skillname(self, resid: int) -> str:
         return self._get_resname(self._skills, resid)
 
-    def get_skillfpath(self, resid):
+    def get_skillfpath(self, resid: int) -> str:
         return self._get_resfpath(self._skills, resid)
 
-    def get_skillids(self):
+    def get_skillids(self) -> List[int]:
         return self._get_resids(self._skills)
 
-    def get_itemdata(self, resid, tag="", nocache=False, rootattrs=None):
+    def get_itemdata(self, resid: int, tag: str = "", nocache: bool = False,
+                     rootattrs: Optional[Dict[str, str]] = None) -> Optional["CWPyElement"]:
         return self._get_resdata(self._items, resid, tag, nocache, resname="アイテム", rootattrs=rootattrs)
 
-    def get_itemname(self, resid):
+    def get_itemname(self, resid: int) -> str:
         return self._get_resname(self._items, resid)
 
-    def get_itemfpath(self, resid):
+    def get_itemfpath(self, resid: int) -> str:
         return self._get_resfpath(self._items, resid)
 
-    def get_itemids(self):
+    def get_itemids(self) -> List[int]:
         return self._get_resids(self._items)
 
-    def get_beastdata(self, resid, tag="", nocache=False, rootattrs=None):
+    def get_beastdata(self, resid: int, tag: str = "", nocache: bool = False,
+                      rootattrs: Optional[Dict[str, str]] = None) -> Optional["CWPyElement"]:
         return self._get_resdata(self._beasts, resid, tag, nocache, resname="召喚獣", rootattrs=rootattrs)
 
-    def get_beastname(self, resid):
+    def get_beastname(self, resid: int) -> str:
         return self._get_resname(self._beasts, resid)
 
-    def get_beastfpath(self, resid):
+    def get_beastfpath(self, resid: int) -> str:
         return self._get_resfpath(self._beasts, resid)
 
-    def get_beastids(self):
+    def get_beastids(self) -> List[int]:
         return self._get_resids(self._beasts)
 
     def get_infodata(self, resid: int, tag: str = "", nocache: bool = False,
-                     rootattrs: Optional[Dict[str, str]] = None) -> "CWPyElement":
+                     rootattrs: Optional[Dict[str, str]] = None) -> Optional["CWPyElement"]:
         return self._get_resdata(self._infos, resid, tag, nocache, resname="情報", rootattrs=rootattrs)
 
-    def get_infoname(self, resid):
+    def get_infoname(self, resid: int) -> str:
         return self._get_resname(self._infos, resid)
 
-    def get_infofpath(self, resid):
+    def get_infofpath(self, resid: int) -> str:
         return self._get_resfpath(self._infos, resid)
 
     def get_infoids(self) -> List[int]:
         return self._get_resids(self._infos)
 
-    def _get_carddatapath(self, rtype, resid, dpath):
+    def _get_carddatapath(self, rtype: str, resid: str, dpath: str) -> str:
         cw.fsync.sync()
         dpath = cw.util.join_paths(dpath, rtype)
         if not os.path.isdir(dpath):
@@ -796,7 +803,8 @@ class SystemData(object):
 
         return ""
 
-    def copy_carddata(self, linkdata, dstdir, from_scenario, scedir, imgpaths):
+    def copy_carddata(self, linkdata: "CWPyElement", dstdir: str, from_scenario: bool, scedir: str,
+                      imgpaths: Dict[str, str]) -> None:
         """参照で指定された召喚獣カードを宿へコピーする。"""
         assert linkdata.tag == "BeastCard"
         resid = linkdata.getint("Property/LinkId", 0)
@@ -839,7 +847,7 @@ class SystemData(object):
         data.fpath = dstpath
         data.write_xml(True)
 
-    def change_data(self, resid, data=None):
+    def change_data(self, resid: int, data: Optional["CWPyElement"] = None) -> bool:
         if data is None:
             data = self.get_resdata(cw.cwpy.is_battlestatus(), resid)
         if data is None:
@@ -855,7 +863,8 @@ class SystemData(object):
         self.playerevents = cw.event.EventEngine(self.data.getfind("PlayerCardEvents/Events", False))
         return True
 
-    def start_event(self, keynum=None, keycodes=None, redraw=True):
+    def start_event(self, keynum: Optional[int] = None, keycodes: Optional[List[str]] = None,
+                    redraw: bool = True) -> None:
         if keycodes is None:
             keycodes = []
         cw.cwpy.statusbar.change(False)
@@ -867,7 +876,7 @@ class SystemData(object):
                 if redraw:
                     cw.cwpy.disposition_pcards()
 
-    def reload_variables(self):
+    def reload_variables(self) -> None:
         flagvals = {}
         stepvals = {}
         variantvals = {}
@@ -912,7 +921,8 @@ class SystemData(object):
         else:
             return []
 
-    def get_mcarddata(self, resid=None, battlestatus=None, data=None):
+    def get_mcarddata(self, resid: Optional[int] = None, battlestatus: Optional[bool] = None,
+                      data: Optional["CWPyElement"] = None) -> Tuple[str, Iterable["CWPyElement"]]:
         """spreadtypeの値("Custom", "Auto")と
         メニューカードのElementのリストをタプルで返す。
         id: 取得対象のエリア。不指定の場合は現在のエリア。
@@ -947,7 +957,7 @@ class SystemData(object):
 
         return stype, elements
 
-    def get_bgmpaths(self):
+    def get_bgmpaths(self) -> List[str]:
         """現在使用可能なBGMのパスのリストを返す。"""
         cw.fsync.sync()
         seq = []
@@ -972,15 +982,15 @@ class SystemData(object):
                         seq.append(cw.util.join_paths(dname, fname))
         return seq
 
-    def fullrecovery_fcards(self):
+    def fullrecovery_fcards(self) -> None:
         """同行中のNPCの状態を初期化する。"""
         pass  # stub
 
-    def has_infocards(self):
+    def has_infocards(self) -> bool:
         """情報カードを1枚でも所持しているか。"""
         return any(self.infocards)
 
-    def _tidying_infocards(self):
+    def _tidying_infocards(self) -> None:
         """情報カードの情報を整理する。"""
         nums = [a for a in self.infocards if 0 < a]
         indexes = {}
@@ -1006,7 +1016,7 @@ class SystemData(object):
 
         return [a[1] for a in reversed(sorted(infotable))]
 
-    def append_infocard(self, resid):
+    def append_infocard(self, resid: int) -> None:
         """情報カードを追加する。"""
         if 0x7fffffff <= self.infocard_maxindex:
             self._tidying_infocards()
@@ -1015,16 +1025,16 @@ class SystemData(object):
         self.infocard_maxindex += 1
         self.infocards[resid] = self.infocard_maxindex
 
-    def remove_infocard(self, resid):
+    def remove_infocard(self, resid: int) -> None:
         """情報カードを除去する。"""
         if resid < len(self.infocards):
             self.infocards[resid] = 0
 
-    def has_infocard(self, resid):
+    def has_infocard(self, resid: int) -> bool:
         """情報カードを所持しているか。"""
         return resid < len(self.infocards) and self.infocards[resid]
 
-    def count_infocards(self):
+    def count_infocards(self) -> int:
         """情報カードの所持枚数を返す。"""
         return len(self.infocards) - self.infocards.count(0)
 
@@ -1076,12 +1086,12 @@ def get_skinkeys() -> Tuple[Set[str], Dict[str, Tuple[str, str]]]:
 
 class ScenarioData(SystemData):
 
-    def __init__(self, header, cardonly=False):
-        self.data = None
+    def __init__(self, header: "cw.header.ScenarioHeader", cardonly: bool = False) -> None:
+        self.data: Optional[CWPyElement] = None
         self.is_playing = True
         self.in_f9 = False
         self.in_endprocess = False
-        self.background_image_mtime = {}
+        self.background_image_mtime: Dict[str, Tuple[str, float]] = {}
         self.fpath = cw.util.get_linktarget(header.get_fpath())
         self.summarypath = ""  # 概略ファイルのパス。_init_xmlpaths の中で取得
         # シナリオの更新時刻。アーカイブの場合はアーカイブ自体、展開済みの場合は概略ファイルの更新時刻となる
@@ -1117,16 +1127,16 @@ class ScenarioData(SystemData):
         self._r_specialchar = re.compile(r"^font_(.)[.]bmp$")
 
         # 添付テキストのパス
-        self.instructions = []
+        self.instructions: List[str] = []
 
-        self._areas = {}
-        self._battles = {}
-        self._packs = {}
-        self._casts = {}
-        self._infos = {}
-        self._items = {}
-        self._skills = {}
-        self._beasts = {}
+        self._areas: Dict[int, Tuple[str, str]] = {}
+        self._battles: Dict[int, Tuple[str, str]] = {}
+        self._packs: Dict[int, Tuple[str, str]] = {}
+        self._casts: Dict[int, Tuple[str, str]] = {}
+        self._infos: Dict[int, Tuple[str, str]] = {}
+        self._items: Dict[int, Tuple[str, str]] = {}
+        self._skills: Dict[int, Tuple[str, str]] = {}
+        self._beasts: Dict[int, Tuple[str, str]] = {}
 
         # 各種xmlファイルのパスを設定
         self._init_xmlpaths()
@@ -1138,27 +1148,27 @@ class ScenarioData(SystemData):
         self._init_sparea_mcards()
         # エリアデータ初期化
         self.data = None
-        self.events = None
+        self.events: Optional[cw.event.EventEngine] = None
         # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
-        self.playerevents = None
+        self.playerevents: Optional[cw.event.EventEngine] = None
         # シナリオプレイ中に削除されたファイルパスの集合
-        self.deletedpaths = set()
+        self.deletedpaths: Union[YadoDeletedPathSet, Set[str]] = set()
         # ロストした冒険者のXMLファイルパスの集合
-        self.lostadventurers = set()
+        self.lostadventurers: Set[str] = set()
         # シナリオプレイ中に追加・削除した終了印・ゴシップの辞書
         # key: 終了印・ゴシップ名
         # value: Trueなら追加。Falseなら削除。
-        self.gossips = {}
-        self.compstamps = {}
+        self.gossips: Dict[str, bool] = {}
+        self.compstamps: Dict[str, bool] = {}
         # FriendCardのリスト
-        self.friendcards = []
+        self.friendcards: Dict[str, bool] = []
         # 情報カードのリスト
         # 情報カードの枚数分の配列を確保し、各位置に入手順序を格納する
-        self.infocards = []
+        self.infocards: List[int] = []
         # 最後に設定した情報カードの入手順
         self.infocard_maxindex = 0
         # InfoCardHeaderのキャッシュ
-        self._infocard_cache = {}
+        self._infocard_cache: Dict[int, cw.header.InfoCardHeader] = {}
         # 情報カードを手に入れてから
         # 情報カードビューを開くまでの間True
         self.notice_infoview = False
@@ -1166,7 +1176,7 @@ class ScenarioData(SystemData):
         # 荷物袋の有効・無効(Wsn.4)
         self.party_environment_backpack = True
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
-        self.pre_battleareadata = None
+        self.pre_battleareadata: Optional[Tuple[int, str, Tuple[str, int, int, int]]] = None
         # バトル中、自動で行動開始するか
         self.autostart_round = False
         # flag set
@@ -1179,26 +1189,26 @@ class ScenarioData(SystemData):
         self._init_debugger()
 
         # ロードしたデータファイルのキャッシュ
-        self.data_cache = {}
+        self.data_cache: Dict[str, CacheData] = {}
         # ロードしたイメージ等のリソースのキャッシュ
-        self.resource_cache = {}
+        self.resource_cache: Dict[str, object] = {}
         self.resource_cache_size = 0
-        # メッセージのバックログ
-        self.backlog = []
+        # メッセージログ
+        self.backlog: List[cw.sprite.message.BacklogData] = []
         # キャンプ中に移動したカードの使用回数の記憶
-        self.uselimit_table = {}
+        self.uselimit_table: Dict[Tuple[cw.sprite.card.PlayerCard, cw.header.CardHeader], int] = {}
         # カード再配置コンテントで移動されたメニューカード
-        self.moved_mcards = {}
+        self.moved_mcards: Dict[Tuple[str, int], Tuple[int, int, int, int]] = {}
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
         # [path] = (x1 binary, x2 binary, ..., x16 binary)
-        self.ex_cache = {}
+        self.ex_cache: Dict[str, List[Optional[str]]] = {}
 
         # イベントが任意箇所に到達した時に実行を停止するためのブレークポイント
         self.breakpoints = cw.cwpy.breakpoint_table.get((self.name, self.author), set())
 
         # クリア時のデバッグ情報。デバッグ情報ダイアログ表示で削除
-        self.debuglog = None
+        self.debuglog: Optional[cw.debug.logging.DebugLog] = None
         self.notice_debuglog = 0
 
         # 各段階の互換性マーク
@@ -1213,7 +1223,7 @@ class ScenarioData(SystemData):
             self.versionhint[cw.HINT_SCENARIO] = cw.cwpy.classicdata.versionhint
 
         # プレイ開始時間
-        self._start_datetime = None
+        self._start_datetime: Optional[datetime.datetime] = None
         # 停止時間(秒)
         self._paused_time = 0
         # 展開中のファイル数
@@ -1221,7 +1231,7 @@ class ScenarioData(SystemData):
 
         self._init_ignorecase_table()
 
-    def _init_ignorecase_table(self):
+    def _init_ignorecase_table(self) -> None:
         """
         大文字・小文字を区別しないシステムでリソース内のファイルの
         取得に失敗する事があるので、すべて小文字のパスをキーにして
@@ -1237,7 +1247,7 @@ class ScenarioData(SystemData):
                     if os.path.isfile(path):
                         self.ignorecase_table[path.lower()] = path
 
-    def check_archiveupdated(self, reload):
+    def check_archiveupdated(self, reload: bool) -> None:
         """シナリオが圧縮されており、前回の展開より後に更新されていた
         場合は更新分をアーカイブから再取得する。
         圧縮されていない場合はSummary.xml等の更新をチェックし、
@@ -1257,15 +1267,15 @@ class ScenarioData(SystemData):
                 if reload:
                     self._reload()
 
-    def _decompress(self, overwrite):
+    def _decompress(self, overwrite: bool) -> str:
         # 展開を別スレッドで実行し、進捗をステータスバーに表示
         self._progress = False
         self._arcname = os.path.basename(self.fpath)
         self._format = ""
         self._cancel_decompress = False
 
-        def startup(filenum):
-            def func():
+        def startup(filenum: int) -> None:
+            def func() -> None:
                 self._filenum = filenum
                 self._format = "%%sを展開中... (%%%ds/%%s)" % len(str(self._filenum))
                 cw.cwpy.expanding = self._format % (self._arcname, 0, self._filenum)
@@ -1275,11 +1285,11 @@ class ScenarioData(SystemData):
                 cw.cwpy.statusbar.change()
             cw.cwpy.exec_func(func)
 
-        def progress(cur):
+        def progress(cur: int) -> bool:
             if not cw.cwpy.is_runningstatus() or self._cancel_decompress:
                 return True  # cancel
 
-            def func():
+            def func() -> None:
                 if not cw.cwpy.expanding:
                     return
                 cw.cwpy.expanding_cur = cur
@@ -1298,7 +1308,7 @@ class ScenarioData(SystemData):
             if not self.fpath.lower().endswith(".cab"):
                 z = cw.util.zip_file(self.fpath, "r")
 
-            def run_decompress():
+            def run_decompress() -> None:
                 try:
                     if self.fpath.lower().endswith(".cab"):
                         self.tempdir = cw.util.decompress_cab(self.fpath, self.tempdir,
@@ -1350,7 +1360,7 @@ class ScenarioData(SystemData):
         self._find_summaryintemp()
         return orig_tempdir
 
-    def _find_summaryintemp(self):
+    def _find_summaryintemp(self) -> None:
         # 展開先のフォルダのサブフォルダ内にシナリオ本体がある場合、
         # self.tempdirをサブフォルダに設定する
         cw.fsync.sync()
@@ -1382,14 +1392,15 @@ class ScenarioData(SystemData):
                 return hint
         return None
 
-    def set_versionhint(self, pos, hint):
+    def set_versionhint(self, pos: int, hint: str) -> None:
         """互換性モードを設定する。"""
         last = self.get_versionhint()
         self.versionhint[pos] = hint
         if cw.HINT_AREA <= pos and cw.cwpy.sct.to_basehint(last) != cw.cwpy.sct.to_basehint(self.get_versionhint()):
             cw.cwpy.update_titlebar()
 
-    def get_carddata(self, linkdata, inusecard=True, inusecardheader=None):
+    def get_carddata(self, linkdata: "CWPyElement", inusecard: bool = True,
+                     inusecardheader: Optional["cw.header.CardHeader"] = None) -> Optional["CWPyElement"]:
         """参照で設定されているデータの実体を取得する。"""
         resid = linkdata.getint("Property/LinkId", 0)
         if resid == 0:
@@ -1439,23 +1450,23 @@ class ScenarioData(SystemData):
             prop2.append(he1)
         return data
 
-    def save_breakpoints(self):
+    def save_breakpoints(self) -> None:
         key = (self.name, self.author)
         if self.breakpoints:
             cw.cwpy.breakpoint_table[key] = self.breakpoints
         elif key in cw.cwpy.breakpoint_table:
             del cw.cwpy.breakpoint_table[key]
 
-    def get_startdatetime(self):
+    def get_startdatetime(self) -> None:
         return self._start_datetime
 
-    def get_totalpyaingtime(self):
+    def get_totalpyaingtime(self) -> int:
         return (datetime.datetime.today()-self._start_datetime).total_seconds() - self._paused_time
 
-    def get_pausedtime(self):
+    def get_pausedtime(self) -> int:
         return self._paused_time
 
-    def start_timekeeper(self):
+    def start_timekeeper(self) -> None:
         if not cw.cwpy.setting.enabled_timekeeper:
             return
         if not (cw.cwpy.ydata and cw.cwpy.ydata.party):
@@ -1483,7 +1494,7 @@ class ScenarioData(SystemData):
                 shutil.move(fpath, dst)
         self.resume_timekeeper()
 
-    def resume_timekeeper(self):
+    def resume_timekeeper(self) -> None:
         if not cw.cwpy.setting.enabled_timekeeper:
             return
         if not (cw.cwpy.ydata and cw.cwpy.ydata.party):
@@ -1509,7 +1520,7 @@ class ScenarioData(SystemData):
                     self._paused_time = 0
                     return
 
-                def parse_datetime(tag):
+                def parse_datetime(tag: str) -> datetime.datetime:
                     year = etree.getint(tag, "year")
                     month = etree.getint(tag, "month")
                     day = etree.getint(tag, "day")
@@ -1534,7 +1545,7 @@ class ScenarioData(SystemData):
             self._start_datetime = datetime.datetime.today()
             self._paused_time = 0
 
-    def sleep_timekeeper(self):
+    def sleep_timekeeper(self) -> None:
         if not cw.cwpy.setting.enabled_timekeeper:
             return
         if not (cw.cwpy.ydata and cw.cwpy.ydata.party):
@@ -1594,33 +1605,33 @@ class ScenarioData(SystemData):
         etree.write(fpath)
         cw.cwpy.ydata.deletedpaths.discard(fpath)
 
-    def change_data(self, resid, data=None):
+    def change_data(self, resid: int, data: Optional["CWPyElement"] = None) -> bool:
         if data is None:
             self.check_archiveupdated(True)
         return SystemData.change_data(self, resid, data=data)
 
-    def reload(self):
+    def reload(self) -> None:
         self.check_archiveupdated(False)
         self._reload()
 
-    def save_variables(self):
+    def save_variables(self) -> None:
         pass
 
-    def load_variables(self):
+    def load_variables(self) -> None:
         pass
 
-    def update_skin(self):
+    def update_skin(self) -> None:
         self._init_xmlpaths()
         self._init_sparea_mcards()
         self._init_debugger()
 
-        def func():
+        def func() -> None:
             cw.cwpy.is_debuggerprocessing = False
             if cw.cwpy.is_showingdebugger() and cw.cwpy.event:
                 cw.cwpy.event.refresh_tools()
         cw.cwpy.frame.exec_func(func)
 
-    def _reload(self):
+    def _reload(self) -> None:
         self.reload_variables()
 
         self.data_cache = {}
@@ -1631,13 +1642,13 @@ class ScenarioData(SystemData):
         self._init_ignorecase_table()
         self._init_debugger()
 
-        def func():
+        def func() -> None:
             cw.cwpy.is_debuggerprocessing = False
             if cw.cwpy.is_showingdebugger() and cw.cwpy.event:
                 cw.cwpy.event.refresh_tools()
         cw.cwpy.frame.exec_func(func)
 
-    def is_updatedfilenames(self):
+    def is_updatedfilenames(self) -> bool:
         """WSNシナリオのデータ(XML)のファイル名がデータテーブル
         作成時点から変更されている場合はTrueを返す。
         """
@@ -1660,7 +1671,7 @@ class ScenarioData(SystemData):
 
         return datafilenames != self._datafilenames
 
-    def _init_xmlpaths(self, xmlonly=False):
+    def _init_xmlpaths(self, xmlonly: bool = False) -> None:
         """
         シナリオで使用されるXMLファイルのパスを辞書登録。
         また、"Summary.xml"のあるフォルダをシナリオディレクトリに設定する。
@@ -1788,7 +1799,7 @@ class ScenarioData(SystemData):
         # WSNバージョン
         self.wsn_version = self.summary.getattr(".", "dataVersion", "")
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         # 特殊文字の画像パスの集合(正規表現)
         SystemData.update_scale(self)
 
@@ -1799,10 +1810,10 @@ class ScenarioData(SystemData):
                     self.eat_spchar(dpath, fname, self.can_loaded_scaledimage)
         self.specialchars = cw.cwpy.rsrc.specialchars.copy()
 
-    def eat_spchar(self, dpath, fname, can_loaded_scaledimage):
+    def eat_spchar(self, dpath: str, fname: str, can_loaded_scaledimage: bool) -> bool:
         # "font_*.*"のファイルパスの画像を特殊文字に指定
         if self._r_specialchar.match(fname.lower()):
-            def load(dpath, fname):
+            def load(dpath: str, fname: str) -> Tuple[pygame.Surface, bool]:
                 path = cw.util.get_materialpath(fname, cw.M_IMG, scedir=dpath, findskin=False)
                 image = cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                 return image, True
@@ -1815,7 +1826,7 @@ class ScenarioData(SystemData):
         else:
             return False
 
-    def start(self):
+    def start(self) -> None:
         """
         シナリオの開始時の共通処理をまとめたもの。
         荷物袋のカード画像の更新を行う。
@@ -1825,7 +1836,7 @@ class ScenarioData(SystemData):
         for header in cw.cwpy.ydata.party.get_allcardheaders():
             header.set_scenariostart()
 
-    def end(self, showdebuglog=False, complete=False, failure=False):
+    def end(self, showdebuglog: bool = False, complete: bool = False, failure: bool = False) -> None:
         """
         シナリオの正規終了時の共通処理をまとめたもの。
         冒険の中断時やF9時には呼ばない。
@@ -1909,14 +1920,14 @@ class ScenarioData(SystemData):
         cw.cwpy.ydata.party.remove_numbercoupon()
         cw.fsync.sync()
 
-    def f9(self):
+    def f9(self) -> None:
         """
         シナリオ強制終了。俗に言うファッ○ユー。
         """
         self.in_f9 = True
         cw.cwpy.exec_func(cw.cwpy.f9)
 
-    def create_log(self):
+    def create_log(self) -> None:
         # play log
         cw.cwpy.advlog.start_scenario()
 
@@ -2001,7 +2012,7 @@ class ScenarioData(SystemData):
         cw.util.compress_zip(cw.util.join_paths(cw.tempdir, "ScenarioLog"), path, unicodefilename=True)
         cw.cwpy.ydata.deletedpaths.discard(path)
 
-    def load_log(self, path, recording):
+    def load_log(self, path: str, recording: bool) -> List[Tuple[str, int, int, bool, str]]:
         etree = xml2etree(path)
         # if not recording:
         #     cw.cwpy.debug = etree.getbool("Property/Debug")
@@ -2114,7 +2125,7 @@ class ScenarioData(SystemData):
         cw.fsync.sync()
         return musicpaths
 
-    def update_log(self):
+    def update_log(self) -> None:
         cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"), False,
                                          cw.cwpy.advlog.logfilepath)
         cw.cwpy.advlog.end_scenario(False, False)
@@ -2126,7 +2137,7 @@ class ScenarioData(SystemData):
 
         cw.util.compress_zip(cw.util.join_paths(cw.tempdir, "ScenarioLog"), path, unicodefilename=True)
 
-    def get_bgmpaths(self):
+    def get_bgmpaths(self) -> List[str]:
         """現在使用可能なBGMのパスのリストを返す。"""
         cw.fsync.sync()
         seq = SystemData.get_bgmpaths(self)
@@ -2141,7 +2152,7 @@ class ScenarioData(SystemData):
                     seq.append(cw.util.join_paths(dname, fname))
         return seq
 
-    def fullrecovery_fcards(self):
+    def fullrecovery_fcards(self) -> None:
         """同行中のNPCを回復する。"""
         seq = []
         for fcard in self.friendcards:
@@ -2211,7 +2222,8 @@ def init_variants(data: "CWPyElement", writable: bool) -> Dict[str, "Variant"]:
 
 
 class Flag(object):
-    def __init__(self, parent, data, value, name, truename, falsename, defaultvalue, spchars):
+    def __init__(self, parent: Optional["CWPyElement"], data: Optional["CWPyElement"], value: bool, name: str,
+                 truename: str, falsename: str, defaultvalue: bool, spchars: bool) -> None:
         self.is_writable = parent is not None
         self._parent = parent
         self._data = data
@@ -2223,10 +2235,10 @@ class Flag(object):
         self.spchars = spchars
         self.initialization = data.getattr(".", "initialize", "Leave") if data is not None else "Leave"
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.value
 
-    def redraw_cards(self, cardspeed=-1, overridecardspeed=False):
+    def redraw_cards(self, cardspeed: int = -1, overridecardspeed: bool = False) -> None:
         """対応するメニューカードの再描画処理"""
         override_dealspeed = cw.cwpy.override_dealspeed
         force_dealspeed = cw.cwpy.force_dealspeed
@@ -2241,7 +2253,7 @@ class Flag(object):
             cw.cwpy.override_dealspeed = override_dealspeed
             cw.cwpy.force_dealspeed = force_dealspeed
 
-    def set(self, value, updatedebugger=True):
+    def set(self, value: bool, updatedebugger: bool = True) -> None:
         if self.value != value:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
@@ -2250,7 +2262,7 @@ class Flag(object):
             if updatedebugger:
                 cw.cwpy.event.refresh_variable(self)
 
-    def reverse(self):
+    def reverse(self) -> None:
         self.set(not self.value)
 
     def get_valuename(self, value: Optional[bool] = None) -> str:
@@ -2267,13 +2279,13 @@ class Flag(object):
         else:
             return s
 
-    def write_value(self):
+    def write_value(self) -> None:
         if self.is_writable and self.initialization != "EventExit":
             self._data.set("value", str(self.value))
             self._parent.is_edited = True
 
 
-def redraw_cards(value, flag="", silent=False):
+def redraw_cards(value, flag: str = "", silent: bool = False) -> None:
     """フラグに対応するメニューカードの再描画処理"""
     quickdeal = cw.cwpy.areaid == cw.AREA_CAMP and cw.cwpy.setting.all_quickdeal
     if cw.cwpy.is_autospread():
@@ -2299,7 +2311,8 @@ def redraw_cards(value, flag="", silent=False):
 
 
 class Step(object):
-    def __init__(self, parent, data, value, name, valuenames, defaultvalue, spchars):
+    def __init__(self, parent: Optional["CWPyElement"], data: Optional["CWPyElement"], value: int, name: str,
+                 valuenames: List[str], defaultvalue: int, spchars: bool) -> None:
         self.is_writable = parent is not None
         self._parent = parent
         self._data = data
@@ -2310,7 +2323,7 @@ class Step(object):
         self.spchars = spchars
         self.initialization = data.getattr(".", "initialize", "Leave") if data is not None else "Leave"
 
-    def set(self, value, updatedebugger=True):
+    def set(self, value: int, updatedebugger: bool = True) -> None:
         value = cw.util.numwrap(value, 0, len(self.valuenames)-1)
         if self.value != value:
             if cw.cwpy.ydata:
@@ -2320,11 +2333,11 @@ class Step(object):
             if updatedebugger:
                 cw.cwpy.event.refresh_variable(self)
 
-    def up(self):
+    def up(self) -> None:
         if self.value < len(self.valuenames)-1:
             self.set(self.value + 1)
 
-    def down(self):
+    def down(self) -> None:
         if not self.value <= 0:
             self.set(self.value - 1)
 
@@ -2339,14 +2352,16 @@ class Step(object):
         else:
             return s
 
-    def write_value(self):
+    def write_value(self) -> None:
         if self.is_writable and self.initialization != "EventExit":
             self._data.set("value", str(self.value))
             self._parent.is_edited = True
 
 
 class Variant(object):
-    def __init__(self, parent, data, value, name, defaultvalue):
+    def __init__(self, parent: Optional["CWPyElement"], data: Optional["CWPyElement"],
+                 value: Union[str, decimal.Decimal, bool], name: str,
+                 defaultvalue: Union[str, decimal.Decimal, bool]) -> None:
         self.is_writable = parent is not None
         self._parent = parent
         self._data = data
@@ -2356,7 +2371,7 @@ class Variant(object):
         self.defaultvalue = defaultvalue
         self.initialization = data.getattr(".", "initialize", "Leave") if data is not None else "Leave"
 
-    def set(self, value, updatedebugger=True):
+    def set(self, value: Union[str, decimal.Decimal, bool], updatedebugger: bool = True) -> None:
         if self.value != value:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
@@ -2367,7 +2382,7 @@ class Variant(object):
                 cw.cwpy.event.refresh_variable(self)
 
     @staticmethod
-    def value_to_type(value):
+    def value_to_type(value: Union[str, decimal.Decimal, bool]) -> str:
         if isinstance(value, bool):
             return "Boolean"
         elif isinstance(value, decimal.Decimal):
@@ -2399,7 +2414,7 @@ class Variant(object):
     def string_value(self) -> str:
         return Variant.value_to_str(self.value)
 
-    def write_value(self):
+    def write_value(self) -> None:
         if self.is_writable and self.initialization != "EventExit":
             self._data.set("type", self.type)
             self._data.set("value", str(self.value))
@@ -2416,7 +2431,7 @@ class YadoDeletedPathSet(set):
         self.tempdir = tempdir
         set.__init__(self)
 
-    def write_list(self):
+    def write_list(self) -> None:
         if not os.path.isdir(self.tempdir):
             os.makedirs(self.tempdir)
         fpath = cw.util.join_paths(self.tempdir, "DeletedPaths.temp")
@@ -2451,13 +2466,13 @@ class YadoDeletedPathSet(set):
         else:
             set.add(self, path)
 
-    def remove(self, path):
+    def remove(self, path: str) -> None:
         if path.startswith(self.tempdir):
             path = path.replace(self.tempdir, self.yadodir, 1)
 
         set.remove(self, path)
 
-    def discard(self, path):
+    def discard(self, path: str) -> None:
         if path in self:
             self.remove(path)
 
@@ -2678,7 +2693,7 @@ class YadoData(object):
                 cw.OPTIONS.scenario = ""
                 self.load_party(None)
 
-    def update_version(self):
+    def update_version(self) -> None:
         """古いバージョンの宿データであれば更新する。
         """
         cw.fsync.sync()
@@ -2806,18 +2821,18 @@ class YadoData(object):
     def is_changed(self) -> bool:
         return self._changed
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return not (self.partys or self.standbys or self.storehouse or
                     self.album or self.partyrecord or self.savedjpdcimage or
                     self.get_gossips() or self.get_compstamps() or self.saved_variables)
 
-    def is_loading(self):
+    def is_loading(self) -> bool:
         """
         ロード中はTrue。
         """
         return self._loading
 
-    def set_skinname(self, skindirname, skintype):
+    def set_skinname(self, skindirname: str, skintype: str) -> None:
         self.skindirname = skindirname
         e = self.environment.find("Property/Skin")
         if e is None:
@@ -2835,12 +2850,11 @@ class YadoData(object):
 
         self.environment.is_edited = True
 
-    def get_showingname(self):
+    def get_showingname(self) -> str:
         return self.name
 
-    def load_party(self, header=None):
+    def load_party(self, header: Optional["cw.header.PartyHeader"] = None) -> None:
         """
-        header: PartyHeader
         引数のパーティー名のデータを読み込む。
         パーティー名がNoneの場合はパーティーデータは空になる
         """
@@ -2886,7 +2900,7 @@ class YadoData(object):
             self.sort_standbys()
         return header
 
-    def add_album(self, path):
+    def add_album(self, path: str) -> "cw.header.AdventurerHeader":
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         header = self.create_advheader(path, True)
@@ -2894,7 +2908,7 @@ class YadoData(object):
         cw.util.sort_by_attr(self.album, "name")
         return header
 
-    def add_party(self, party, sort=True):
+    def add_party(self, party: "Party", sort: bool = True) -> "cw.header.PartyHeader":
         fpath = party.path
         header = self.create_partyheader(fpath)
         header.data = party  # 保存時まで記憶しておく
@@ -2904,7 +2918,7 @@ class YadoData(object):
             self.sort_parties()
         return header
 
-    def add_partyrecord(self, partyrecord):
+    def add_partyrecord(self, partyrecord: "Party") -> "cw.header.PartyRecordHeader":
         """パーティ記録を追加する。"""
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
@@ -2915,7 +2929,7 @@ class YadoData(object):
         self.sort_partyrecord()
         return header
 
-    def replace_partyrecord(self, partyrecord):
+    def replace_partyrecord(self, partyrecord: "Party") -> "cw.header.PartyRecordHeader":
         """partyrecordと同名のパーティ記録を上書きする。
         同名の情報が無かった場合は、追加する。
         """
@@ -2927,7 +2941,7 @@ class YadoData(object):
                 return
         return self.add_partyrecord(partyrecord)
 
-    def set_partyrecord(self, index, partyrecord):
+    def set_partyrecord(self, index: int, partyrecord: "Party") -> "cw.header.PartyRecordHeader":
         """self.partyrecord[index]をpartyrecordで上書きする。
         """
         if cw.cwpy.ydata:
@@ -2940,7 +2954,7 @@ class YadoData(object):
         self.partyrecord[index] = header
         return header
 
-    def remove_partyrecord(self, header):
+    def remove_partyrecord(self, header: "cw.header.PartyRecordHeader") -> None:
         """パーティ記録を削除する。"""
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
@@ -2956,7 +2970,7 @@ class YadoData(object):
             else:
                 self.partyrecord.remove(header)
 
-    def can_restoreparty(self, partyrecordheader):
+    def can_restoreparty(self, partyrecordheader: "cw.header.PartyRecordHeader") -> bool:
         """partyrecordheaderが再結成可能であればTrueを返す。
         """
         for member in partyrecordheader.members:
@@ -2980,7 +2994,8 @@ class YadoData(object):
                     return True
         return False
 
-    def get_restoremembers(self, partyrecordheader):
+    def get_restoremembers(self,
+                           partyrecordheader: "cw.header.PartyRecordHeader") -> List["cw.header.AdventurerHeader"]:
         """partyrecordheaderの再結成で
         待機メンバでなくなるメンバの一覧を返す。
         """
@@ -2992,7 +3007,7 @@ class YadoData(object):
                     break
         return seq
 
-    def restore_party(self, partyrecordheader):
+    def restore_party(self, partyrecordheader: "cw.header.PartyRecordHeader") -> List["cw.header.AdventurerHeader"]:
         """partyrecordheaderからパーティを再結成する。
         現在操作中のパーティがいた場合は解散される。
         結成されたパーティに属するメンバのheaderのlistを返す。
@@ -3083,7 +3098,8 @@ class YadoData(object):
 
         return cw.header.AdventurerHeader(element, album, rootattrs=rootattrs)
 
-    def create_cardheader(self, path="", element=None, owner=None):
+    def create_cardheader(self, path: str = "", element: Optional["CWPyElement"] = None,
+                          owner: Optional["cw.character.Character"] = None) -> "cw.header.CardHeader":
         """
         path: xmlのパス。
         element: PropertyタグのElement。
@@ -3093,7 +3109,7 @@ class YadoData(object):
 
         return cw.header.CardHeader(element, owner=owner)
 
-    def create_partyheader(self, path="", element=None):
+    def create_partyheader(self, path: str = "", element: Optional["CWPyElement"] = None) -> "cw.header.PartyHeader":
         """
         path: xmlのパス。
         element: PropertyタグのElement。
@@ -3103,7 +3119,7 @@ class YadoData(object):
 
         return cw.header.PartyHeader(element)
 
-    def create_party(self, header, chgarea=True):
+    def create_party(self, header: "cw.header.PartyHeader", chgarea: bool = True) -> None:
         """新しくパーティを作る。
         header: AdventurerHeader
         """
@@ -3155,7 +3171,7 @@ class YadoData(object):
     def sort_partyrecord(self) -> None:
         cw.util.sort_by_attr(self.partyrecord, "name")
 
-    def save(self):
+    def save(self) -> None:
         """宿データをセーブする。"""
         if isinstance(cw.cwpy.sdata, cw.data.SystemData):
             cw.cwpy.sdata.save_variables()
@@ -3208,7 +3224,7 @@ class YadoData(object):
         cw.fsync.sync()
         self._transfer_temp()
 
-        def commit_timekeeper(ppath, is_adventuring):
+        def commit_timekeeper(ppath: str, is_adventuring: bool) -> None:
             # タイムキーパーをコミット
             dpath = os.path.dirname(ppath)
             if not dpath.lower().startswith("yado"):
@@ -3228,7 +3244,7 @@ class YadoData(object):
             cw.util.remove_emptydir(dpath)
 
         # 各パーティの荷物袋のデータを保存する
-        def update_backpack(party):
+        def update_backpack(party: Party) -> None:
             # カード置場の順序を記憶しておく
             cardorder = {}
             ppath = os.path.dirname(party.path)
@@ -3281,7 +3297,7 @@ class YadoData(object):
 
         # カードデータベースを更新
         @synclock(_lock)
-        def update_database(yadodir):
+        def update_database(yadodir: str) -> None:
             cw.fsync.sync()
             yadodb = cw.yadodb.YadoDB(yadodir)
             yadodb.update(cards=cardtable,
@@ -3304,7 +3320,7 @@ class YadoData(object):
         if self.deletedpaths.read_list():
             self._transfer_temp()
 
-    def _transfer_temp(self):
+    def _transfer_temp(self) -> None:
         # TEMPのファイルを移動
         cw.fsync.sync()
         deltempfpath = cw.util.join_paths(self.deletedpaths.tempdir, "DeletedPaths.temp")
@@ -3360,7 +3376,7 @@ class YadoData(object):
     # ゴシップ・シナリオ終了印用メソッド
     # --------------------------------------------------------------------------
 
-    def get_gossips(self):
+    def get_gossips(self) -> Set[str]:
         """ゴシップ名をset型で返す。"""
         return set([e.text for e in self.environment.getfind("Gossips") if e.text])
 
@@ -3368,15 +3384,15 @@ class YadoData(object):
         """冒険済みシナリオ名をset型で返す。"""
         return set([e.text for e in self.environment.getfind("CompleteStamps") if e.text])
 
-    def get_gossiplist(self):
+    def get_gossiplist(self) -> List[str]:
         """ゴシップ名をlist型で返す。"""
         return [e.text for e in self.environment.getfind("Gossips") if e.text]
 
-    def get_compstamplist(self):
+    def get_compstamplist(self) -> List[str]:
         """冒険済みシナリオ名をlist型で返す。"""
         return [e.text for e in self.environment.getfind("CompleteStamps") if e.text]
 
-    def has_compstamp(self, name):
+    def has_compstamp(self, name: str) -> bool:
         """冒険済みシナリオかどうかbool値で返す。
         name: シナリオ名。
         """
@@ -3386,7 +3402,7 @@ class YadoData(object):
 
         return False
 
-    def has_gossip(self, name):
+    def has_gossip(self, name: str) -> bool:
         """ゴシップを所持しているかどうかbool値で返す。
         name: ゴシップ名
         """
@@ -3396,7 +3412,7 @@ class YadoData(object):
 
         return False
 
-    def set_compstamp(self, name):
+    def set_compstamp(self, name: str) -> None:
         """冒険済みシナリオ印をセットする。シナリオプレイ中に取得した
         シナリオ印はScenarioDataのリストに登録する。
         name: シナリオ名
@@ -3413,7 +3429,7 @@ class YadoData(object):
                 else:
                     cw.cwpy.sdata.compstamps[name] = True
 
-    def set_gossip(self, name):
+    def set_gossip(self, name: str) -> None:
         """ゴシップをセットする。シナリオプレイ中に取得した
         ゴシップはScenarioDataのリストに登録する。
         name: ゴシップ名
@@ -3430,7 +3446,7 @@ class YadoData(object):
                 else:
                     cw.cwpy.sdata.gossips[name] = True
 
-    def remove_compstamp(self, name):
+    def remove_compstamp(self, name: str) -> None:
         """冒険済みシナリオ印を削除する。シナリオプレイ中に削除した
         シナリオ印はScenarioDataのリストから解除する。
         name: シナリオ名
@@ -3448,7 +3464,7 @@ class YadoData(object):
             else:
                 cw.cwpy.sdata.compstamps[name] = False
 
-    def remove_gossip(self, name):
+    def remove_gossip(self, name: str) -> None:
         """ゴシップを削除する。シナリオプレイ中に削除した
         ゴシップはScenarioDataのリストから解除する。
         name: ゴシップ名
@@ -3466,7 +3482,7 @@ class YadoData(object):
             else:
                 cw.cwpy.sdata.gossips[name] = False
 
-    def clear_compstamps(self):
+    def clear_compstamps(self) -> None:
         """冒険済みシナリオ印を全て削除する。"""
 
         for e in list(self.environment.getfind("CompleteStamps")):
@@ -3482,7 +3498,7 @@ class YadoData(object):
                     cw.cwpy.sdata.compstamps[name] = False
         assert len(self.environment.getfind("CompleteStamps")) == 0
 
-    def clear_gossips(self):
+    def clear_gossips(self) -> None:
         """ゴシップを全て削除する。"""
 
         for e in list(self.environment.getfind("Gossips")):
@@ -3498,7 +3514,7 @@ class YadoData(object):
                     cw.cwpy.sdata.gossips[name] = False
         assert len(self.environment.getfind("Gossips")) == 0
 
-    def find_gossip(self, matcher, startindex):
+    def find_gossip(self, matcher: Callable, startindex: int) -> int:
         """
         matcher(name)がTrueになるゴシップを
         startindexの位置から検索し、見つかった位置を返す。
@@ -3510,7 +3526,7 @@ class YadoData(object):
                     return i + startindex
         return -1
 
-    def get_gossip_at(self, index):
+    def get_gossip_at(self, index: int) -> str:
         """指定位置のゴシップ名を返す。"""
         e_gossips = self.environment.find("Gossips")
         if e_gossips is None:
@@ -3518,7 +3534,7 @@ class YadoData(object):
         e = e_gossips[index]
         return e.text
 
-    def gossips_len(self):
+    def gossips_len(self) -> int:
         """ゴシップ数を返す。"""
         e_gossips = self.environment.find("Gossips")
         if e_gossips is None:
@@ -3526,7 +3542,7 @@ class YadoData(object):
         else:
             return len(e_gossips)
 
-    def set_money(self, value, blink=False):
+    def set_money(self, value: int, blink: bool = False) -> None:
         """金庫に入っている金額を変更する。
         現在の所持金にvalue値をプラスするので注意。
         """
@@ -3547,7 +3563,7 @@ class YadoData(object):
     # パーティ連れ込み
     # --------------------------------------------------------------------------
 
-    def join_npcs(self):
+    def join_npcs(self) -> None:
         """
         シナリオのNPCを宿に連れ込む。
         """
@@ -3651,7 +3667,7 @@ class YadoData(object):
 
         return set(seq)
 
-    def get_partypaths(self):
+    def get_partypaths(self) -> List[str]:
         """パーティーのxmlファイルのpathリストを返す。"""
         cw.fsync.sync()
         seq = []
@@ -3665,7 +3681,7 @@ class YadoData(object):
 
         return seq
 
-    def get_storehousepaths(self):
+    def get_storehousepaths(self) -> List[str]:
         """BeastCard, ItemCard, SkillCardのディレクトリにあるカードの
         xmlのpathリストを返す。
         """
@@ -3681,7 +3697,7 @@ class YadoData(object):
 
         return seq
 
-    def get_standbypaths(self):
+    def get_standbypaths(self) -> List[str]:
         """パーティーに所属していない待機中冒険者のxmlのpathリストを返す。"""
         cw.fsync.sync()
         seq = []
@@ -3702,7 +3718,7 @@ class YadoData(object):
 
         return seq
 
-    def get_albumpaths(self):
+    def get_albumpaths(self) -> List[str]:
         """アルバムにある冒険者のxmlのpathリストを返す。"""
         cw.fsync.sync()
         seq = []
@@ -3719,7 +3735,7 @@ class YadoData(object):
     # ブックマーク
     # --------------------------------------------------------------------------
 
-    def add_bookmark(self, spaths, path):
+    def add_bookmark(self, spaths: Tuple[List[str], str], path: str) -> None:
         """シナリオのブックマークを追加する。"""
         self.changed()
         self.bookmarks.append((spaths, path))
@@ -3735,7 +3751,7 @@ class YadoData(object):
         self.environment.is_edited = True
         be.append(e)
 
-    def set_bookmarks(self, bookmarks):
+    def set_bookmarks(self, bookmarks: List[Tuple[List[str], str]]) -> None:
         """シナリオのブックマーク群を入れ替える。"""
         self.changed()
         self.bookmarks = bookmarks
@@ -3816,7 +3832,8 @@ class YadoData(object):
             d[key] = (e, flags, steps, variants)
         return d
 
-    def save_variables(self, scenario, author, complete, flags, steps, variants, debuglog):
+    def save_variables(self, scenario: str, author: str, complete: bool, flags: Dict[str, Flag], steps: Dict[str, Step],
+                       variants: Dict[str, Variant], debuglog: Optional["cw.debug.logging.DebugLog"]) -> None:
         target = ("None",) if complete else ("Complete", "None")
         d_flags = {}
         for flag in flags.values():
@@ -3882,7 +3899,7 @@ class YadoData(object):
         self.environment.is_edited = True
         self.saved_variables[key] = (e, d_flags, d_steps, d_variants)
 
-    def remove_savedvariables(self, scenario, author):
+    def remove_savedvariables(self, scenario: str, author: str) -> None:
         key = (scenario, author)
         d = self.saved_variables.get(key, None)
         if not d:
@@ -3893,7 +3910,7 @@ class YadoData(object):
         del self.saved_variables[key]
 
 
-def find_scefullpath(scepath, spaths):
+def find_scefullpath(scepath: str, spaths: List[str]) -> str:
     """開始ディレクトリscepathから経路spathsを
     辿った結果得られたフルパスを返す。
     辿れなかった場合は""を返す。
@@ -3965,7 +3982,7 @@ class Party(object):
             self.sort_backpack()
             self.sorted_backpack_by_order = False
 
-    def get_showingname(self):
+    def get_showingname(self) -> str:
         return self.name
 
     def sort_backpack(self, sorttype: Optional[str] = None,
@@ -4003,7 +4020,7 @@ class Party(object):
 
         return None
 
-    def get_relpath(self):
+    def get_relpath(self) -> str:
         ppath = os.path.dirname(self.path)
         if ppath.lower().startswith("yado"):
             relpath = cw.util.relpath(ppath, cw.cwpy.yadodir)
@@ -4011,28 +4028,28 @@ class Party(object):
             relpath = cw.util.relpath(ppath, cw.cwpy.tempdir)
         return cw.util.join_paths(relpath)
 
-    def get_yadodir(self):
+    def get_yadodir(self) -> str:
         return cw.util.join_paths(cw.cwpy.yadodir, self.get_relpath())
 
-    def get_tempdir(self):
+    def get_tempdir(self) -> str:
         return cw.util.join_paths(cw.cwpy.tempdir, self.get_relpath())
 
-    def is_loading(self):
+    def is_loading(self) -> bool:
         """membersのデータを元にPlayerCardインスタンスを
         生成していなかったら、Trueを返す。
         """
         return self._loading
 
-    def reload(self):
+    def reload(self) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         header = cw.header.PartyHeader(data=self.data.find("Property"))
         header.data = self
         self.__init__(header)
 
-    def add(self, header, data=None):
+    def add(self, header: "cw.header.AdventurerHeader", data: Optional["CWPyElementTree"] = None) -> None:
         """
-        メンバーを追加する。引数はAdventurerHeader。
+        メンバーを追加する。
         """
         pcardsnum = len(self.members)
 
@@ -4065,9 +4082,9 @@ class Party(object):
         pcard.restore_personalpocket()
         cw.animation.animate_sprite(pcard, "deal")
 
-    def remove(self, pcard):
+    def remove(self, pcard: "cw.sprite.card.PlayerCard") -> None:
         """
-        メンバーを削除する。引数はPlayerCard。
+        メンバーを削除する。
         """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
@@ -4088,7 +4105,7 @@ class Party(object):
             e = self.data.make_element("Member", s)
             self.data.append("Property/Members", e)
 
-    def replace_order(self, index1, index2):
+    def replace_order(self, index1: int, index2: int) -> None:
         """
         メンバーの位置を入れ替える。
         """
@@ -4122,7 +4139,7 @@ class Party(object):
         seq[index2].set_pos_noscale(pos_noscale)
         cw.animation.animate_sprites([pcard1, pcard2], "deal")
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
         """
         パーティ名を変更する。
         """
@@ -4135,7 +4152,7 @@ class Party(object):
             cw.cwpy.advlog.rename_party(self.name, oldname)
             cw.cwpy.background.reload(False, nocheckvisible=True)
 
-    def set_money(self, value, fromevent=False, blink=False):
+    def set_money(self, value: int, fromevent: bool = False, blink: bool = False) -> None:
         """
         パーティの所持金を変更する。
         """
@@ -4153,7 +4170,7 @@ class Party(object):
                 cw.cwpy.statusbar.change(showbuttons)
                 cw.cwpy.has_inputevent = True
 
-    def suspend_levelup(self, suspend):
+    def suspend_levelup(self, suspend: bool) -> None:
         """
         レベルアップの可否を設定する。
         """
@@ -4169,7 +4186,7 @@ class Party(object):
             else:
                 self.data.edit("Property/SuspendLevelUp", str(suspend))
 
-    def set_numbercoupon(self):
+    def set_numbercoupon(self) -> None:
         """
         番号クーポンを配布する。
         """
@@ -4182,20 +4199,20 @@ class Party(object):
                 pcard.set_coupon("：レベル補正中", 0)  # 1.28
             pcard.set_coupon("＠ＭＰ３", 0)  # 1.29
 
-    def remove_numbercoupon(self):
+    def remove_numbercoupon(self) -> None:
         """
         番号クーポンを除去する。
         """
         for pcard in cw.cwpy.get_pcards():
             pcard.remove_numbercoupon()
 
-    def write(self):
+    def write(self) -> None:
         self.data.write_xml()
 
         for member in self.members:
             member.write_xml()
 
-    def lost(self):
+    def lost(self) -> None:
         """ゲームオーバー時にパーティ全体を破棄する。
         """
         if cw.cwpy.ydata:
@@ -4226,7 +4243,7 @@ class Party(object):
 
         return d
 
-    def get_coupons(self):
+    def get_coupons(self) -> List[str]:
         """
         パーティ全体が所持しているクーポンをセット型で返す。
         """
@@ -4238,7 +4255,7 @@ class Party(object):
 
         return set(seq)
 
-    def get_allcardheaders(self):
+    def get_allcardheaders(self) -> List["cw.header.CardHeader"]:
         seq = []
         seq.extend(self.backpack)
 
@@ -4252,7 +4269,7 @@ class Party(object):
         path = cw.util.splitext(self.data.fpath)[0] + ".wsl"
         return bool(cw.util.get_yadofilepath(path))
 
-    def get_sceheader(self):
+    def get_sceheader(self) -> None:
         """
         現在冒険中のシナリオのScenarioHeaderを返す。
         """
@@ -4287,7 +4304,7 @@ class Party(object):
 
         return seq
 
-    def set_lastscenario(self, lastscenario, lastscenariopath):
+    def set_lastscenario(self, lastscenario: List[str], lastscenariopath: str) -> None:
         """
         プレイ中シナリオへの経路を記録する。
         """
@@ -4309,7 +4326,7 @@ def sort_cards(cards: List["cw.header.CardHeader"], condition: str, withstar: bo
     if withstar:
         seq.append("negastar")
 
-    def addetckey():
+    def addetckey() -> None:
         for key in ("name", "scenario", "author", "type_id", "level", "sellingprice"):
             if key != seq[0]:
                 seq.append(key)
@@ -4346,7 +4363,7 @@ def sort_cards(cards: List["cw.header.CardHeader"], condition: str, withstar: bo
 class _CWPyElementInterface(object):
     fpath: str
 
-    def _raiseerror(self, path, attr=""):
+    def _raiseerror(self, path: str, attr: str = "") -> None:
         if hasattr(self, "tag"):
             tag = self.tag + "/" + path
         elif hasattr(self, "getroot"):
@@ -4480,12 +4497,12 @@ class CWPyElement(Element_Py, _CWPyElementInterface):
         subelement.cwxparent = self
         return Element_Py.append(self, subelement)
 
-    def extend(self, subelements):
+    def extend(self, subelements: Iterable["CWPyElement"]) -> None:
         for subelement in subelements:
             subelement.cwxparent = self
         return Element_Py.extend(self, subelements)
 
-    def insert(self, index, subelement):
+    def insert(self, index: int, subelement: "CWPyElement") -> None:
         subelement.cwxparent = self
         return Element_Py.insert(self, index, subelement)
 
@@ -4494,7 +4511,7 @@ class CWPyElement(Element_Py, _CWPyElementInterface):
             subelement.cwxparent = None
         return Element_Py.remove(self, subelement)
 
-    def clear(self):
+    def clear(self) -> None:
         for subelement in self:
             subelement.cwxparent = None
         return Element_Py.clear(self)
@@ -4655,7 +4672,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         self.find(path).append(element)
         self.is_edited = True
 
-    def insert(self, path, element, index):
+    def insert(self, path: str, element: CWPyElement, index: int) -> None:
         """パスのエレメントの指定位置にelementを挿入。
         indexがNoneの場合はappend()の挙動。
         """
@@ -4834,7 +4851,7 @@ class CacheData(object):
         self.mtime = mtime
 
 
-def copydata(data, copyall=False):
+def copydata(data: Union[CWPyElementTree, CWPyElement], copyall: bool = False) -> Union[CWPyElementTree, CWPyElement]:
     if isinstance(data, CWPyElementTree):
         return CWPyElementTree(element=copydata(data.getroot()))
 
@@ -4959,7 +4976,7 @@ class SimpleXmlParser(object):
             err.args = (err.args[0] + s, )
             raise err
 
-    def _create_parser(self):
+    def _create_parser(self) -> xml.parsers.expat.XMLParserType:
         parser = xml.parsers.expat.ParserCreate()
         parser.buffer_text = 1
         parser.StartElementHandler = self.start_element
@@ -4988,7 +5005,7 @@ class SimpleXmlParser(object):
             return ""
 
 
-def main():
+def main() -> None:
     pass
 
 

@@ -2964,9 +2964,10 @@ class GetContent(EventContentBase):
                     get_card(etree, target, from_getcontent=True)
 
 
-def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None,
-             copymaterialfrom="", fromdebugger=False, from_getcontent=False, attachment=False,
-             update_image=True, anotherscenariocard=False):
+def get_card(etree: cw.data.CWPyElementTree, target: List[cw.header.CardHeader], notscenariocard: bool = False,
+             toindex: int = -1, insertorder: int = -1, party: Optional[cw.data.Party] = None,
+             copymaterialfrom: str = "", fromdebugger: bool = False, from_getcontent: bool = False,
+             attachment: bool = False, update_image: bool = True, anotherscenariocard: bool = False) -> None:
     """対象インスタンスにカードを配布する。cwpy.trade()参照。
     etree: ElementTree or Element
     target: Character or list(Backpack, Storehouse)
@@ -4520,7 +4521,7 @@ class TalkDialogContent(TalkContent):
         return None
 
     def get_status(self, event: cw.event.Event) -> str:
-        e = self.data.getfind("Dialogs")
+        e = self.data.find("Dialogs")
         if e is not None and len(e):
             s = e[0].gettext("Text", "").replace("\\n", "")
         else:

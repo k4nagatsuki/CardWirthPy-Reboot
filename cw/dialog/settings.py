@@ -435,7 +435,7 @@ class SettingsPanel(wx.Panel):
 
         self.GetTopLevelParent().applied()
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         self.apply(cw.cwpy.setting)
 
         if sys.platform == "win32":
@@ -454,7 +454,7 @@ class SettingsPanel(wx.Panel):
     def OnApply(self, event):
         self.apply(cw.cwpy.setting)
 
-    def apply(self, setting):
+    def apply(self, setting: cw.setting.Setting) -> None:
         update = (setting == cw.cwpy.setting)
 
         # 設定変更前はレベル上昇が可能な状態だったか
@@ -1975,7 +1975,7 @@ class DrawingSettingPanel(wx.Panel):
         self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
         self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
 
-    def apply_localsettings(self, local):
+    def apply_localsettings(self, local: cw.setting.LocalSetting) -> Tuple[bool, bool, bool]:
         updatemessage = False
         alpha = self.sc_mwin.GetValue()
         colour = self.cs_mwin.GetColour()
@@ -3475,7 +3475,7 @@ class FontSettingPanel(wx.Panel):
 
         self.update_example()
 
-    def apply_localsettings(self, local):
+    def apply_localsettings(self, local: cw.setting.LocalSetting) -> Tuple[bool, bool, bool, bool]:
         updatecardimg = False  # キャラクターカードイメージの更新が必要か
         updatemcardimg = False  # メニューカードイメージの更新が必要か
         updatemessage = False  # メッセージの更新が必要か

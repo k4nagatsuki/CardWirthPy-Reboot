@@ -385,7 +385,7 @@ class CharaInfo(wx.Dialog):
         if isinstance(self, StandbyCharaInfo):
             self.ccard.data.write_xml()
 
-    def OnClickLeftBtn(self, event):
+    def OnClickLeftBtn(self, event: wx.PyCommandEvent) -> None:
         if self.index == 0:
             self.index = len(self.list) - 1
         else:
@@ -1687,7 +1687,8 @@ class StatusPanel(wx.ScrolledWindow):
         self.Refresh()
         return height + cw.wins(17)
 
-    def _get_enhance(self, enhname, value, dur, enhimage, pnlimage):
+    def _get_enhance(self, enhname: str, value: int, dur: int, enhimage: str,
+                     pnlimage: str) -> Tuple[wx.Colour, wx.Bitmap, str]:
         if 0 == value:
             return None, None, ""
 

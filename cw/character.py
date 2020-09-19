@@ -88,11 +88,11 @@ class Character(object):
             self.enhance_def = 0
             self.enhance_def_dur = 0
         # 各種能力値
-        e = self.data.getfind("Property/Ability/Physical")
+        e = self.data.find("Property/Ability/Physical")
         self.physical = copy.copy(e.attrib)
-        e = self.data.getfind("Property/Ability/Mental")
+        e = self.data.find("Property/Ability/Mental")
         self.mental = copy.copy(e.attrib)
-        e = self.data.getfind("Property/Ability/Enhance")
+        e = self.data.find("Property/Ability/Enhance")
         self.enhance = copy.copy(e.attrib)
 
         for key, value in self.physical.items():
@@ -112,13 +112,13 @@ class Character(object):
                 self.enhance[key] = 0
 
         # 特性
-        e = self.data.getfind("Property/Feature/Type")
+        e = self.data.find("Property/Feature/Type")
         self.feature = copy.copy(e.attrib)
-        e = self.data.getfind("Property/Feature/NoEffect")
+        e = self.data.find("Property/Feature/NoEffect")
         self.noeffect = copy.copy(e.attrib)
-        e = self.data.getfind("Property/Feature/Resist")
+        e = self.data.find("Property/Feature/Resist")
         self.resist = copy.copy(e.attrib)
-        e = self.data.getfind("Property/Feature/Weakness")
+        e = self.data.find("Property/Feature/Weakness")
         self.weakness = copy.copy(e.attrib)
 
         for d in (self.feature, self.noeffect, self.resist, self.weakness):
@@ -621,7 +621,7 @@ class Character(object):
         """
         return not self.is_inactive()
 
-    def is_dead(self):
+    def is_dead(self) -> bool:
         """
         非生存状態かどうかをbool値で返す
         """
@@ -630,7 +630,7 @@ class Character(object):
         b |= self.is_reversed()
         return b
 
-    def is_alive(self):
+    def is_alive(self) -> bool:
         """
         生存状態かどうかをbool値で返す
         """
@@ -642,7 +642,7 @@ class Character(object):
         """
         return not self.is_injuredall() and not self.is_unconscious()
 
-    def is_analyzable(self):
+    def is_analyzable(self) -> bool:
         """
         各種データが暴露可能かどうかbool値で返す。
         EnemyCardのための処理。

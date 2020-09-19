@@ -545,7 +545,7 @@ class CardHeader(object):
                             cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
                             cw.animation.animate_sprite(owner, "deal", battlespeed=cw.cwpy.is_battlestatus())
 
-    def write(self, party=None, move=False, from_getcontent=False):
+    def write(self, party: Optional[cw.data.Party] = None, move: bool = False, from_getcontent: bool = False) -> None:
         def create_newpath(party):
             fname = cw.util.repl_dischar(self.name) + ".xml"
             if self._owner == "BACKPACK":
@@ -602,7 +602,7 @@ class CardHeader(object):
             if not from_getcontent or not self.scenariocard:
                 self.do_write(dupcheck=dupcheck)
 
-    def contain_xml(self, load=True):
+    def contain_xml(self, load: bool = True) -> None:
         if not load and self._lazy_write is not None:
             return
         if self.carddata is None:
@@ -764,7 +764,7 @@ class CardHeader(object):
     def is_ccardheader(self) -> bool:
         return bool(isinstance(self._owner, weakref.ref))
 
-    def is_backpackheader(self):
+    def is_backpackheader(self) -> bool:
         return bool(self._owner == "BACKPACK")
 
     def is_storehouseheader(self):
@@ -959,7 +959,7 @@ class CardHeader(object):
         assert self.carddata is not None
         return is_removewithstatus(self.carddata, ccard)
 
-    def is_activewithstatus(self, ccard):
+    def is_activewithstatus(self, ccard: "cw.character.Character") -> bool:
         """ccardはこの召喚獣カードが発動可能な状態か？"""
         if self.carddata is None:
             prop = cw.data.xml2element(self.fpath, "Property")
@@ -1712,7 +1712,7 @@ class PartyHeader(object):
 class PartyRecordHeader(object):
     def __init__(self, fpath: Optional[str] = None,
                  dbrec: Optional[sqlite3.Row] = None,
-                 partyrecord: Optional["cw.header.PartyRecordHeader"] = None) -> None:
+                 partyrecord: Optional["PartyRecordHeader"] = None) -> None:
         """
         fpath: ファイルから生成する場合はXMLファイルパス。
         dbrec: データベースから生成する場合は対象レコード。

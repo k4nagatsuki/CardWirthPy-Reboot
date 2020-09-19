@@ -17,7 +17,7 @@ import cw
 
 class CardEditDialog(wx.Dialog):
 
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         wx.Dialog.__init__(self, parent, -1, "手札カードの編集",
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -135,7 +135,7 @@ class CardEditDialog(wx.Dialog):
 
         self._update_cards()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnScenario, self.scenario)
         self.Bind(wx.EVT_BUTTON, self.OnBookmark, self.bookmark)
         self.Bind(wx.EVT_BUTTON, self.OnDetailBtn, self.dtlbtn)
@@ -148,7 +148,7 @@ class CardEditDialog(wx.Dialog):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnCardSelected, self.cards)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnCardSelected, self.cards)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_cards = wx.StaticBoxSizer(self.cardsbox, wx.VERTICAL)
 
         sizer_scenario = wx.BoxSizer(wx.HORIZONTAL)
@@ -245,7 +245,7 @@ class CardEditDialog(wx.Dialog):
         else:
             dlg.Destroy()
 
-    def select_scenario(self, fpath):
+    def select_scenario(self, fpath: str) -> None:
         try:
             scdata = cw.scenariodb.get_scenario(fpath)
             if scdata:
@@ -255,7 +255,7 @@ class CardEditDialog(wx.Dialog):
         except Exception:
             cw.util.print_ex(file=sys.stderr)
 
-    def OnBookmark(self, event):
+    def OnBookmark(self, event: wx.CommandEvent) -> None:
         """ブックマークメニューを生成して表示する。"""
         cw.cwpy.play_sound("page")
         if not self.bookmarkmenu:
@@ -264,7 +264,7 @@ class CardEditDialog(wx.Dialog):
         self._arrange_bookmark.Enable(bool(cw.cwpy.setting.bookmarks_for_cardedit))
         self.bookmark.PopupMenu(self.bookmarkmenu)
 
-    def create_bookmarkmenu(self):
+    def create_bookmarkmenu(self) -> None:
         if self.bookmarkmenu:
             self.bookmarkmenu.Destroy()
         menu = wx.Menu()
@@ -350,7 +350,7 @@ class CardEditDialog(wx.Dialog):
             else:
                 self.cards.SetItemState(i, 0, wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED)
 
-    def OnDealBtn(self, event):
+    def OnDealBtn(self, event: wx.CommandEvent) -> None:
         """選択したカードを配付する。"""
         cname = self.dealtarg.GetStringSelection()
         if cname == "カード置場":
@@ -743,11 +743,11 @@ class CardEditDialog(wx.Dialog):
             else:
                 data.write_xml()
 
-    def OnCardSelected(self, event):
+    def OnCardSelected(self, event: wx.ListEvent) -> None:
         """カードリストの選択変更時に呼び出される。"""
         self._update_enable()
 
-    def OnClose(self, event):
+    def OnClose(self, event: wx.CommandEvent) -> None:
         """ダイアログを閉じる。"""
         self._find = False
         cw.cwpy.ydata.sort_storehouse()
@@ -824,7 +824,7 @@ class CardEditDialog(wx.Dialog):
 
         return cards
 
-    def _update_cards(self):
+    def _update_cards(self) -> None:
         """シナリオ内のカードの一覧を表示する。"""
         self.cards.DeleteAllItems()
         self.targets.DeleteChildren(self.root)
@@ -862,7 +862,7 @@ class CardEditDialog(wx.Dialog):
         self._update_bookmarkname()
         self._update_enable()
 
-    def _update_bookmarkname(self):
+    def _update_bookmarkname(self) -> None:
         if self.scpath:
             scpath = cw.util.get_keypath(self.scpath)
             for i, (fpath, name) in enumerate(cw.cwpy.setting.bookmarks_for_cardedit):
@@ -870,7 +870,7 @@ class CardEditDialog(wx.Dialog):
                 if scpath == scpath2:
                     cw.cwpy.setting.bookmarks_for_cardedit[i] = (fpath, self.scdata.name)
 
-    def _update_enable(self):
+    def _update_enable(self) -> None:
         """各ボタンの押下可否を状況に応じて変更する。"""
         selected = -1 < self.cards.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
 
