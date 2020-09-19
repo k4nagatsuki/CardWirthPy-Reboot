@@ -28,6 +28,8 @@ try:
 except ImportError:
     versioninfo = None
 
+init_rsrc = threading.Lock()
+
 
 class CWPyRunningError(Exception):
     pass
@@ -528,11 +530,13 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.start_event(keynum=1, redraw=False)
 
         self.clear_selection()
+        init_rsrc.acquire()
         if self.rsrc:
             self.rsrc.dispose()
         self.rsrc = None
 
         def func():
+            init_rsrc.release()
             assert self.rsrc
             if afterfunc:
                 afterfunc()
