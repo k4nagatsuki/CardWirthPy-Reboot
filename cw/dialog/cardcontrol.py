@@ -2160,6 +2160,9 @@ class CardHolder(CardControl):
                 or (not sendto and len(self.list2) == 1):
             self.rightbtn.Disable()
             self.leftbtn.Disable()
+        else:
+            self.rightbtn.Enable()
+            self.leftbtn.Enable()
 
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
