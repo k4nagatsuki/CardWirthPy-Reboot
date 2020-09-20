@@ -12,7 +12,7 @@ from . import logging
 from . import selectedcard
 
 
-def main():
+def main() -> None:
     pass
 
 

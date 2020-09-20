@@ -30,7 +30,7 @@ class ConvertingThread(threading.Thread):
         self.complete = True
 
 
-def main():
+def main() -> None:
     pass
 
 
