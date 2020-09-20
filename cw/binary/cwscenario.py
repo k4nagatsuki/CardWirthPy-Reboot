@@ -203,7 +203,7 @@ class CWScenario(object):
             cw.util.print_ex()
             return None, None
 
-    def convert(self) -> None:
+    def convert(self) -> str:
         from . import util
 
         if not self.datalist:

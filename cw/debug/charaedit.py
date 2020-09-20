@@ -7,7 +7,7 @@ import wx
 
 import cw
 
-from typing import List, Optional
+from typing import Iterable, List, Tuple, Optional
 
 
 # ------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ class CharacterEditDialog(wx.Dialog):
             self.target.SetSelection(index + 1)
         self.select_target()
 
-    def OnSelectTarget(self, event):
+    def OnSelectTarget(self, event: wx.CommandEvent) -> None:
         self.select_target()
 
     def OnStandardType(self, event: wx.CommandEvent) -> None:
@@ -222,7 +222,7 @@ class CharacterEditDialog(wx.Dialog):
         if self.create:
             self.fpath = self.infos[0].create_adventurer()
         else:
-            def func(updates, pcards):
+            def func(updates: Iterable[int], pcards: List[cw.sprite.card.PlayerCard]) -> None:
                 for i in updates:
                     pcard = pcards[i]
                     cw.cwpy.play_sound("harvest")
@@ -535,7 +535,7 @@ class CharaInfo(object):
             for coupon in cw.cwpy.setting.makingcoupons:
                 syscoupons.add(coupon)
 
-            def create_parentmatcher(s):
+            def create_parentmatcher(s: str) -> Tuple[str, str]:
                 index = s.find("%s")
                 left = s[:index]
                 right = s[index+len("%s"):]
@@ -1013,11 +1013,11 @@ class CharaRequirementPanel(wx.Panel):
 
         self._select_image()
 
-    def OnImgBoxDropFiles(self, event):
+    def OnImgBoxDropFiles(self, event: wx.DropFilesEvent) -> None:
         files = event.GetFiles()
         self._put_image(files)
 
-    def _put_image(self, files):
+    def _put_image(self, files: Iterable[str]) -> None:
         seq = []
         for fpath in files:
             ext = os.path.splitext(fpath)[1].lower()
@@ -1035,11 +1035,11 @@ class CharaRequirementPanel(wx.Panel):
                 info.imgpaths = img
                 info.can_loaded_scaledimage = True
 
-    def OnRace(self, event):
+    def OnRace(self, event: wx.CommandEvent) -> None:
         for info in self._get_infos():
             info.race = cw.cwpy.setting.races[self.race.GetSelection()]
 
-    def OnSelectSex(self, event):
+    def OnSelectSex(self, event: wx.CommandEvent) -> None:
         for info in self._get_infos():
             info.sex = "＿" + self.sexes.GetStringSelection()
         self._update_images()
@@ -1324,7 +1324,7 @@ class CharaSelectablePanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def OnCheck(self, event):
+    def OnCheck(self, event: wx.CommandEvent) -> None:
         check = event.GetEventObject()
         value = event.IsChecked()
 
@@ -1354,7 +1354,7 @@ class CharaSelectablePanel(wx.Panel):
     def OnAutoBtn(self, event: wx.CommandEvent) -> None:
         self.set_random()
 
-    def OnClearBtn(self, event):
+    def OnClearBtn(self, event: wx.CommandEvent) -> None:
         for info in self._get_infos():
             info.makings.clear()
         self.select_target(self.cindex)
@@ -1396,7 +1396,7 @@ class CharaSelectablePanel(wx.Panel):
         self.select_target(self.cindex)
 
 
-def main():
+def main() -> None:
     pass
 
 

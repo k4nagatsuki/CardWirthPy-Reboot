@@ -737,6 +737,8 @@ class CWPyCard(base.SelectableSprite):
 # ------------------------------------------------------------------------------
 
 class PlayerCard(CWPyCard, character.Player):
+    cardimg: cw.image.CharacterCardImage
+
     def __init__(self, data, pos_noscale=(0, 0), status="hidden", index=0):
         CWPyCard.__init__(self, status)
         self.zoomsize_noscale = (16, 22)
@@ -1008,6 +1010,8 @@ def _select_action(sprite):
 # ------------------------------------------------------------------------------
 
 class EnemyCard(CWPyCard, character.Enemy):
+    cardimg: cw.image.CharacterCardImage
+
     def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0,
                  moveddata=None):
         CWPyCard.__init__(self, status)
@@ -1252,6 +1256,8 @@ class EnemyCard(CWPyCard, character.Enemy):
 # ------------------------------------------------------------------------------
 
 class FriendCard(CWPyCard, character.Friend):
+    cardimg: cw.image.CharacterCardImage
+
     def __init__(self, data=None, index=0):
         CWPyCard.__init__(self, "hidden")
         self.zoomsize_noscale = (32, 42)

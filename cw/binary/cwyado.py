@@ -96,7 +96,7 @@ class CWYado(object):
         else:
             return False
 
-    def convert(self) -> None:
+    def convert(self) -> str:
         from . import util
         from . import party
 
