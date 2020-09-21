@@ -29,7 +29,7 @@ CCMODE_REPLACE = 4  # 交換モード
 class CardControl(wx.Dialog):
     callname: str
     bgcolour: wx.Colour
-    list: List[cw.header.CardHeader]
+    list: List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]
     selection: Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"]
 
     def __init__(self, parent: wx.TopLevelWindow) -> None:
@@ -91,7 +91,7 @@ class CardControl(wx.Dialog):
         self.editstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
         self.editstar.SetToolTip(cw.cwpy.msgs["edit_star"])
 
-        def can_sort():
+        def can_sort() -> bool:
             return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB")
         self.additionals.append((self.sort, can_sort))
         self.additionals.append((self.sortwithstar, can_sort))
@@ -337,7 +337,7 @@ class CardControl(wx.Dialog):
     def _can_narrow(self) -> bool:
         return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")
 
-    def OnNumberKeyDown(self, event):
+    def OnNumberKeyDown(self, event: wx.KeyEvent) -> None:
         """
         数値キー'1'～'9'までの押下を処理する。
         CardControlではソート条件の変更を行う。
@@ -501,26 +501,26 @@ class CardControl(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
 
-    def OnClickLeftBtn(self, event):
+    def OnClickLeftBtn(self, event: wx.CommandEvent) -> None:
         pass
 
-    def OnClickRightBtn(self, event):
+    def OnClickRightBtn(self, event: wx.CommandEvent) -> None:
         pass
 
-    def OnDebugMode(self, event):
-        def func(self):
+    def OnDebugMode(self, event: wx.CommandEvent) -> None:
+        def func(self: CardControl) -> None:
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
             cw.cwpy.set_debug(value)
 
-            def func(self):
+            def func(self: CardControl) -> None:
                 if not self:
                     return
                 self.update_debug()
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)
 
-    def update_debug(self):
+    def update_debug(self) -> None:
         if self.callname != "INFOVIEW":
             if cw.cwpy.is_debugmode():
                 i = self.narrow_type.FindString(cw.cwpy.msgs["key_code"])
@@ -553,7 +553,7 @@ class CardControl(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.closebtn.GetId())
         self.ProcessEvent(btnevent)
 
-    def OnToggleAdditionalControls(self, event):
+    def OnToggleAdditionalControls(self, event: wx.CommandEvent) -> None:
         if not self.addctrlbtn or self.callname not in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return
         self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
@@ -571,7 +571,7 @@ class CardControl(wx.Dialog):
 
         # GTKで表示・非表示状態の反映が遅延する事があるので、
         # 再レイアウト以降の処理を遅延実行する
-        def func():
+        def func() -> None:
             self._do_layout()
             self._redraw = True
             self.update_narrowcondition()
@@ -588,7 +588,7 @@ class CardControl(wx.Dialog):
         self.narrow.SetFocus()
         self._reserved_narrowconditin = True
 
-        def func():
+        def func() -> None:
             if not self._reserved_narrowconditin:
                 return
             self._reserved_narrowconditin = False
@@ -607,13 +607,13 @@ class CardControl(wx.Dialog):
         else:
             self.draw_cards()
 
-    def update_narrowcondition(self):
+    def update_narrowcondition(self) -> None:
         self.draw_cards()
 
-    def OnSort(self, event):
+    def OnSort(self, event: wx.CommandEvent) -> None:
         pass
 
-    def OnSortWithStar(self, event):
+    def OnSortWithStar(self, event: wx.CommandEvent) -> None:
         pass
 
     def OnEditStar(self, event: wx.lib.buttons.GenButtonEvent) -> None:
@@ -623,13 +623,13 @@ class CardControl(wx.Dialog):
         self._on_move(mousepos=self.toppanel.ScreenToClient(wx.GetMousePosition()))
         self.Refresh()
 
-    def OnShowSkill(self, event):
+    def OnShowSkill(self, event: wx.CommandEvent) -> None:
         pass
 
-    def OnShowItem(self, event):
+    def OnShowItem(self, event: wx.CommandEvent) -> None:
         pass
 
-    def OnShowBeast(self, event):
+    def OnShowBeast(self, event: wx.CommandEvent) -> None:
         pass
 
     def _update_sortwithstar(self) -> None:
@@ -638,13 +638,13 @@ class CardControl(wx.Dialog):
     def _update_editstar(self) -> None:
         pass
 
-    def OnUp(self, event):
+    def OnUp(self, event: wx.CommandEvent) -> None:
         pass
 
-    def OnDown(self, event):
+    def OnDown(self, event: wx.CommandEvent) -> None:
         pass
 
-    def OnKeyDown(self, event):
+    def OnKeyDown(self, event: wx.KeyEvent) -> None:
         if self._proc:
             return
 
@@ -657,7 +657,7 @@ class CardControl(wx.Dialog):
                 if header.negaflag:
                     cw.cwpy.play_sound("click")
 
-                    def func():
+                    def func() -> None:
                         self.lclick_event(header)
                     self.animate_click(header, func)
                     return
@@ -666,7 +666,7 @@ class CardControl(wx.Dialog):
                 if header.negaflag:
                     cw.cwpy.play_sound("click")
 
-                    def func():
+                    def func() -> None:
                         self.rclick_event(header)
                     self.animate_click(header, func)
                     return
@@ -773,7 +773,7 @@ class CardControl(wx.Dialog):
                 if self._can_repls() and rect.Contains(mousepos):
                     cw.cwpy.play_sound("click")
 
-                    def func():
+                    def func() -> None:
                         i = self.list.index(header)
                         self._replace_position(header, self.list[i+1])
                     self.animate_replsclick(header, func)
@@ -785,7 +785,7 @@ class CardControl(wx.Dialog):
                 if self.editstar.GetToggle() and rect.Contains(mousepos):
                     cw.cwpy.play_sound("page")
 
-                    def func():
+                    def func() -> None:
                         if header.star:
                             header.set_star(0)
                         else:
@@ -798,7 +798,7 @@ class CardControl(wx.Dialog):
                 else:
                     cw.cwpy.play_sound("click")
 
-                    def func():
+                    def func() -> None:
                         self.lclick_event(header)
                     self.animate_click(header, func)
                     return
@@ -810,7 +810,7 @@ class CardControl(wx.Dialog):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
             self.ProcessEvent(btnevent)
 
-    def _update_sortattr(self, draw=True):
+    def _update_sortattr(self, draw: bool = True) -> None:
         pass
 
     def _replace_position(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader) -> None:
@@ -823,7 +823,7 @@ class CardControl(wx.Dialog):
         index2 = self.list.index(header2)
         h2shown = header2 in self.get_headers()
 
-        def func():
+        def func() -> None:
             cw.cwpy.ydata.changed()
             header1.wxrect, header2.wxrect = header2.wxrect, header1.wxrect
             header1.negaflag, header2.negaflag = header2.negaflag, header1.negaflag
@@ -839,7 +839,7 @@ class CardControl(wx.Dialog):
             self.Refresh()
         self.animate_hide(header1, header2 if h2shown else None, func)
 
-    def _replace_position_impl(self, header1, header2):
+    def _replace_position_impl(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader) -> None:
         pass
 
     def OnRightUp(self, event: wx.MouseEvent) -> None:
@@ -851,7 +851,7 @@ class CardControl(wx.Dialog):
 
         for header in self.get_headers():
             if header.wxrect.collidepoint(event.GetPosition()):
-                def func():
+                def func() -> None:
                     self.rclick_event(header)
                 self.animate_click(header, func)
                 return
@@ -1085,7 +1085,7 @@ class CardControl(wx.Dialog):
             y += (header.wxrect.height-h) // 2
             dc.DrawBitmap(bmp, x, y, usemask)
 
-            def draw_price():
+            def draw_price() -> None:
                 if price:
                     s = "%s" % (header.sellingprice if header.can_selling() else "---")
                     pw, ph = dc.GetTextExtent(s)
@@ -1103,7 +1103,7 @@ class CardControl(wx.Dialog):
                                                  cw.wins(0), quality=quality, scaledown=True,
                                                  alpha=255, bordering=True)
 
-            def draw_star():
+            def draw_star() -> None:
                 if self._show_star(header):
                     rect, x, y = self._get_starrect(header)
                     if self.editstar.GetToggle() and rect.Contains(mousepos):
@@ -1373,7 +1373,8 @@ class CardControl(wx.Dialog):
             return self.selection
         return None
 
-    def draw_card(self, header: cw.header.CardHeader, fromkeyevent: bool = False) -> None:
+    def draw_card(self, header: Union[cw.header.CardHeader, cw.header.InfoCardHeader],
+                  fromkeyevent: bool = False) -> None:
         if not fromkeyevent and self.IsActive() and self.IsShown():
             selected = None
             updated = False
@@ -1426,13 +1427,14 @@ class CardControl(wx.Dialog):
     def is_showpersonal(self) -> bool:
         return False
 
-    def get_headers(self):
-        pass
-
-    def get_beforepageheaders(self) -> List[cw.header.CardHeader]:
+    def get_headers(self) -> List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]:
         return []
 
-    def animate_click(self, header: cw.header.CardHeader, func: Callable[[], None]) -> None:
+    def get_beforepageheaders(self) -> List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]:
+        return []
+
+    def animate_click(self, header: Union[cw.header.CardHeader, cw.header.InfoCardHeader],
+                      func: Callable[[], None]) -> None:
         # クリックアニメーション。4フレーム分。
         if self._proc:
             return
@@ -1445,7 +1447,7 @@ class CardControl(wx.Dialog):
         header.clickedflag = True
         self.draw_card(header, fromkeyevent=True)
 
-        def func2():
+        def func2() -> None:
             if not self or self._cancel_animation:
                 header.clickedflag = False
                 self._proc = False
@@ -1455,7 +1457,7 @@ class CardControl(wx.Dialog):
             self.draw_card(header, fromkeyevent=True)
             header.negaflag = False
 
-            def func3():
+            def func3() -> None:
                 if not self or self._cancel_animation:
                     header.clickedflag = False
                     self._proc = False
@@ -1476,7 +1478,7 @@ class CardControl(wx.Dialog):
         self._starclickedflag = True
         self.draw_card(header, fromkeyevent=True)
 
-        def func2():
+        def func2() -> None:
             if not self or self._cancel_animation:
                 self._starclickedflag = False
                 self._proc = False
@@ -1486,7 +1488,7 @@ class CardControl(wx.Dialog):
             self.draw_card(header, fromkeyevent=True)
             header.negaflag = False
 
-            def func3():
+            def func3() -> None:
                 if not self or self._cancel_animation:
                     self._starclickedflag = False
                     self._proc = False
@@ -1507,7 +1509,7 @@ class CardControl(wx.Dialog):
         self._replclickedflag = True
         self.RefreshRect(rect=self._get_replsrect(header)[0])
 
-        def func2():
+        def func2() -> None:
             if not self or self._cancel_animation:
                 self._replclickedflag = False
                 self._proc = False
@@ -1516,7 +1518,7 @@ class CardControl(wx.Dialog):
             self._replclickedflag = False
             self.RefreshRect(rect=self._get_replsrect(header)[0])
 
-            def func3():
+            def func3() -> None:
                 if not self or self._cancel_animation:
                     self._replclickedflag = False
                     self._proc = False
@@ -1535,7 +1537,7 @@ class CardControl(wx.Dialog):
 
         self._animate_frame = 0
 
-        def func2():
+        def func2() -> None:
             if not self or self._cancel_animation:
                 header1.deal_per = 100
                 if header2:
@@ -1561,7 +1563,7 @@ class CardControl(wx.Dialog):
                 if header2:
                     self.draw_card(header2, fromkeyevent=True)
 
-                def func3():
+                def func3() -> None:
                     if not self or self._cancel_animation:
                         header1.deal_per = 100
                         if header2:
@@ -1594,7 +1596,7 @@ class CardControl(wx.Dialog):
                      func: Callable[[], None]) -> None:
         self._animate_dealhide(header1, header2, func, cw.cwpy.setting.dealing_scales[::-1], 100)
 
-    def lclick_event(self, header: cw.header.CardHeader) -> None:
+    def lclick_event(self, header: Union[cw.header.CardHeader, cw.header.InfoCardHeader]) -> None:
         if self._proc:
             return
         if self._quit:
@@ -1642,7 +1644,7 @@ class CardControl(wx.Dialog):
         if self.combo.IsShown():
             index = self.combo.GetSelection()
             if index != self._combo_manual:
-                def func(header):
+                def func(header: cw.header.CardHeader) -> None:
                     assert isinstance(self, CardHolder)
                     if index == self._combo_storehouse:
                         cw.cwpy.trade("STOREHOUSE", header=header, from_event=False, parentdialog=self, sound=False,
@@ -1661,6 +1663,7 @@ class CardControl(wx.Dialog):
                         cw.cwpy.trade("BACKPACK", header=header, from_event=False, parentdialog=self, sound=False,
                                       sort=False)
                         target = self.list2[self._combo_personal[index]]
+                        assert isinstance(target, cw.character.Player)
                         target.add_personalpocket(header)
                         cw.cwpy.ydata.party.sort_backpack()
                         cw.cwpy.frame.exec_func(self._update_cardpocketinfo, self._cardpocketinfo, force=True)
@@ -1669,7 +1672,7 @@ class CardControl(wx.Dialog):
                     elif index == self._combo_trush:
                         cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
 
-                    def func():
+                    def func() -> None:
                         self._proc = False
                         self.update_narrowcondition()
                     cw.cwpy.frame.exec_func(func)
@@ -1694,6 +1697,7 @@ class CardControl(wx.Dialog):
 
                     elif index in self._combo_personal:
                         target = self.list2[self._combo_personal[index]]
+                        assert isinstance(target, cw.character.Player)
                         if target.get_personalpocketspace() <= len(target.personal_pocket) and\
                                 target is not header.personal_owner:
                             if not self._replcardholder:
@@ -1706,8 +1710,8 @@ class CardControl(wx.Dialog):
                         dlg.ShowModal()
                         dlg.Destroy()
 
-                        def func(self):
-                            def func(self):
+                        def func(self: CardControl) -> None:
+                            def func(self: CardControl) -> None:
                                 if self:
                                     self.update_narrowcondition()
                                     self.draw_cards(True)
@@ -1726,14 +1730,14 @@ class CardControl(wx.Dialog):
             return
 
         # 開いていたダイアログの情報
-        def append_predialogs(callname, index2, pos):
+        def append_predialogs(callname: str, index2: int, pos: Tuple[int, int]) -> None:
             cw.cwpy.pre_dialogs.append((callname, index2, pos, cw.UP_WIN))
         cw.cwpy.exec_func(append_predialogs, self.callname, self.index2, self.GetPosition())
 
         # カード操作用データ(移動元データ, CardHeader)を設定
         cw.cwpy.selectedheader = header
 
-        def func():
+        def func() -> None:
             cw.cwpy.update_tradecards()
             cw.cwpy.set_testaptitude(cw.cwpy.selectedheader)
             cw.cwpy.update_selectablelist()
@@ -1753,10 +1757,10 @@ class CardControl(wx.Dialog):
         self._on_move(mousepos)
         self.toppanel.SetFocusIgnoringChildren()
 
-    def after_message(self):
+    def after_message(self) -> None:
         self.toppanel.SetFocusIgnoringChildren()
 
-    def show_errordialog(self, s):
+    def show_errordialog(self, s: str) -> None:
         from . import message
 
         cw.cwpy.play_sound("error")
@@ -1857,7 +1861,7 @@ class CardControl(wx.Dialog):
 
         if self.Parent is cw.cwpy.frame:
             if self.callname not in ("CARDPOCKET_REPLACE", "INFOVIEW"):
-                def func():
+                def func() -> None:
                     if cw.cwpy.areaid in cw.AREAS_TRADE:
                         cw.cwpy.clear_specialarea(redraw=False)
                 cw.cwpy.exec_func(func)
@@ -1964,7 +1968,7 @@ class CardHolder(CardControl):
             status = "active"
 
         # 適性・枚数・価格の表示を除去
-        def func():
+        def func() -> None:
             for pcard in cw.cwpy.get_pcards():
                 if pcard.test_aptitude:
                     pcard.test_aptitude = None
@@ -2200,7 +2204,7 @@ class CardHolder(CardControl):
         self.page.Bind(wx.lib.intctrl.EVT_INT, self.OnPageNum)
         self.page.Bind(wx.EVT_SET_FOCUS, self.OnPageSetFocus)
 
-    def update_debug(self):
+    def update_debug(self) -> None:
         CardControl.update_debug(self)
         if self._sendto and cw.cwpy.is_playingscenario():
             s = cw.cwpy.msgs["send_to_trush"]
@@ -2251,7 +2255,7 @@ class CardHolder(CardControl):
             assert False
 
     def OnPageSetFocus(self, event: wx.FocusEvent) -> None:
-        def func():
+        def func() -> None:
             self.page.SetSelection(0, len(str(self.page.GetValue())))
         cw.cwpy.frame.exec_func(func)
         event.Skip()
@@ -2547,6 +2551,7 @@ class CardHolder(CardControl):
                 elif icombo in self._combo_personal:
                     index = self._combo_personal[icombo]
                     castdata = self.list2[index]
+                    assert isinstance(castdata, cw.character.Player)
                     s = "%s(%s/%s)" % (cw.cwpy.msgs["send_to_personal"] % castdata.name,
                                        len(castdata.personal_pocket),
                                        castdata.get_personalpocketspace())
@@ -2688,7 +2693,7 @@ class CardHolder(CardControl):
         if narrow:
             self.list = self._narrow(self.list)
 
-    def lclick_event(self, header: cw.header.CardHeader) -> None:
+    def lclick_event(self, header: Union[cw.header.CardHeader, cw.header.InfoCardHeader]) -> None:
         header.negaflag = False
         owner = self.selection
 
@@ -2741,7 +2746,7 @@ class CardHolder(CardControl):
         self.draw_cards()
         self._update_cardpocketinfo(cw.cwpy.setting.last_cardpocket)
 
-    def OnUp(self, event):
+    def OnUp(self, event: wx.CommandEvent) -> None:
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
             # 特殊技能、アイテム、召喚獣を切り替え
@@ -2759,7 +2764,7 @@ class CardHolder(CardControl):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.upbtn.GetId())
             self.ProcessEvent(btnevent)
 
-    def OnDown(self, event):
+    def OnDown(self, event: wx.CommandEvent) -> None:
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
             # 特殊技能、アイテム、召喚獣を切り替え
@@ -2866,7 +2871,7 @@ class CardHolder(CardControl):
         mousepos = event.GetPosition()
         lwidth = cw.wins(80)
 
-        def selcombo(combo):
+        def selcombo(combo: Union[wx.ComboBox, cw.util.CWPyBitmapComboBox]) -> bool:
             if combo.IsShown() and combo.GetRect().Contains(mousepos):
                 index = combo.GetSelection()
                 count = combo.GetCount()
@@ -2990,7 +2995,7 @@ class CardHolder(CardControl):
                                     self.list.insert(10, cw.cwpy.rsrc.backpackcards[cardtype])
                                     break
 
-    def get_headers(self) -> List[cw.header.CardHeader]:
+    def get_headers(self) -> List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]:
         li = self.index * 10
         clist = self.list[li:li + 10]
         return clist
@@ -2999,7 +3004,7 @@ class CardHolder(CardControl):
         return cw.cwpy.setting.show_personal_cards and cw.cwpy.sdata.party_environment_backpack and\
                (isinstance(self.selection, cw.character.Player) or self.callname in ("BACKPACK", "STOREHOUSE"))
 
-    def get_beforepageheaders(self) -> List[cw.header.CardHeader]:
+    def get_beforepageheaders(self) -> List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]:
         if 0 < self.index:
             index = self.index-1
             li = index * 10
@@ -3008,7 +3013,8 @@ class CardHolder(CardControl):
             clist = []
         return clist
 
-    def _narrow(self, clist: List[cw.header.CardHeader]) -> List[cw.header.CardHeader]:
+    def _narrow(self, clist: List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]])\
+            -> List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]:
         self._fulllist = clist
         if self.callname not in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return self._fulllist
@@ -3073,7 +3079,7 @@ class CardHolder(CardControl):
                 if header.type == "BeastCard" and not show[cw.POCKET_BEAST]:
                     continue
 
-                def match_keycode():
+                def match_keycode() -> bool:
                     if narrow in header.name.lower():
                         # カード名もキーコードになる
                         return True
@@ -3195,7 +3201,7 @@ class HandView(CardControl):
         if self.redeal:
             self.Bind(wx.EVT_BUTTON, self.OnReDeal, self.redeal)
 
-    def update_debug(self):
+    def update_debug(self) -> None:
         if not cw.cwpy.is_debugmode():
             if isinstance(self.selection, cw.character.Friend):
                 self.Close()
@@ -3238,7 +3244,7 @@ class HandView(CardControl):
                 return False
         return True
 
-    def OnReDeal(self, event):
+    def OnReDeal(self, event: wx.CommandEvent) -> None:
         self._cancel_animation = True
         if self.selection.is_inactive():
             cw.cwpy.play_sound("error")
@@ -3286,7 +3292,7 @@ class HandView(CardControl):
             self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
         CardControl.draw_cards(self, update, mode)
 
-    def get_headers(self) -> List[cw.header.CardHeader]:
+    def get_headers(self) -> List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]:
         return self.list
 
     def _draw_additionals(self, dc: wx.DC) -> None:
@@ -3367,7 +3373,7 @@ class ReplCardHolder(CardControl):
     def _bind(self) -> None:
         CardControl._bind(self)
 
-    def OnClickLeftBtn(self, event):
+    def OnClickLeftBtn(self, event: wx.CommandEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
 
@@ -3381,7 +3387,7 @@ class ReplCardHolder(CardControl):
             self.Parent.change_selection(self.selection)
         self.draw_cards()
 
-    def OnClickRightBtn(self, event):
+    def OnClickRightBtn(self, event: wx.CommandEvent) -> None:
         self._cancel_animation = True
         cw.cwpy.play_sound("page")
 
@@ -3406,7 +3412,7 @@ class ReplCardHolder(CardControl):
             self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
         CardControl.draw_cards(self, update, mode)
 
-    def get_headers(self) -> List[cw.header.CardHeader]:
+    def get_headers(self) -> List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]:
         if self.cardtype == cw.POCKET_BEAST and not self.personal:
             return [c for c in self.list if c.attachment]
         return self.list
@@ -3417,7 +3423,8 @@ class ReplCardHolder(CardControl):
         header.negaflag = False
         self.toppanel.SetFocusIgnoringChildren()
 
-        def func(target, header, index, selection, personal, call_predlg):
+        def func(target: cw.header.CardHeader, header: cw.header.CardHeader, index: int, selection: cw.character.Player,
+                 personal: bool, call_predlg: bool) -> None:
             owner = target.get_owner()
             personal_owner = target.personal_owner
             if isinstance(owner, cw.character.Player):
@@ -3476,7 +3483,7 @@ class ReplCardHolder(CardControl):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def _replace_position_impl(self, header1, header2):
+    def _replace_position_impl(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader) -> None:
         self.owner.replace_cardposition(self.cardtype, header1, header2)
 
 
@@ -3489,10 +3496,10 @@ class InfoView(CardHolder):
         # ダイアログ作成
         CardHolder.__init__(self, parent, "INFOVIEW")
 
-    def reconstruct_infoview(self):
+    def reconstruct_infoview(self) -> None:
         CardHolder.reconstruct_cardholder(self, "INFOVIEW", None)
 
-    def is_showpersonal(self):
+    def is_showpersonal(self) -> bool:
         return False
 
     def OnLeftUp(self, event: wx.MouseEvent) -> None:
@@ -3567,7 +3574,7 @@ def get_poslist(num: int, mode: int = 1) -> List[Tuple[int, int]]:
     return poslist
 
 
-def main():
+def main() -> None:
     pass
 
 

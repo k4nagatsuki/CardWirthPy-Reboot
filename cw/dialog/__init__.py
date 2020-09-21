@@ -20,7 +20,7 @@ from . import transfer
 from . import progress
 
 
-def main():
+def main() -> None:
     pass
 
 

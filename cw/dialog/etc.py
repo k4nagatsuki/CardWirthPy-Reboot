@@ -17,12 +17,13 @@ from typing import Callable, Tuple, Union, List
 class BattleCommand(wx.Dialog):
     list: List[cw.header.CardHeader]
 
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["select_battle_action"],
                            style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
         self.list = []
-        self.func_list = []
+        self._func_list = []
+        self._clickedflag_index = -1
 
         # 行動開始
         path = "Resource/Image/Card/BATTLE"
@@ -32,8 +33,7 @@ class BattleCommand(wx.Dialog):
         w = cw.scr2win_s(header.rect.width)
         h = cw.scr2win_s(header.rect.height)
         header.rect = pygame.Rect(cw.wins(5), cw.wins(5), w, h)
-        header.clickedflag = False
-        self.func_list.append(self.start)
+        self._func_list.append(self.start)
         header.negaflag = False
         self.list.append(header)
         if cw.cwpy.battle.possible_runaway:
@@ -43,9 +43,8 @@ class BattleCommand(wx.Dialog):
             path = [cw.image.ImageInfo(path)]
             header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"], can_loaded_scaledimage=True)
             header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
-            header.clickedflag = False
             header.negaflag = False
-            self.func_list.append(self.runaway)
+            self._func_list.append(self.runaway)
             self.list.append(header)
         # キャンセル
         path = "Resource/Image/Card/COMMAND1"
@@ -53,9 +52,8 @@ class BattleCommand(wx.Dialog):
         path = [cw.image.ImageInfo(path)]
         header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["cancel"], can_loaded_scaledimage=True)
         header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
-        header.clickedflag = False
         header.negaflag = False
-        self.func_list.append(self.cancel)
+        self._func_list.append(self.cancel)
         self.list.append(header)
 
         self.toppanel = wx.Panel(self, -1, size=((w+cw.wins(5))*len(self.list)+cw.wins(5), h+cw.wins(5)*2))
@@ -68,14 +66,14 @@ class BattleCommand(wx.Dialog):
         pos = pos[0] - cw.wins(50), pos[1] - cw.wins(60)
         self.pre_pos = pos
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(self.toppanel, 1, wx.EXPAND, cw.wins(0))
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMove)
@@ -99,7 +97,7 @@ class BattleCommand(wx.Dialog):
         accel = wx.AcceleratorTable(seq)
         self.SetAcceleratorTable(accel)
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -112,7 +110,7 @@ class BattleCommand(wx.Dialog):
             e = wx.PyCommandEvent(wx.wxEVT_COMMAND_MENU_SELECTED, self.rightkeyid)
             self.ProcessEvent(e)
 
-    def OnKeyDown(self, event):
+    def OnKeyDown(self, event: wx.KeyEvent) -> None:
         if not self.toppanel.IsEnabled():
             return
         dc = wx.ClientDC(self.toppanel)
@@ -124,7 +122,7 @@ class BattleCommand(wx.Dialog):
                 if header.negaflag:
                     cw.cwpy.play_sound("click")
                     self.animate_click(header)
-                    self.func_list[i]()
+                    self._func_list[i]()
                     return
         elif resid == self.leftkeyid:
             seq = self.list[:]
@@ -154,32 +152,32 @@ class BattleCommand(wx.Dialog):
             c2.negaflag = True
             self.draw_card(dc, c2, True)
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         if not self.toppanel.IsEnabled():
             return
         for i, header in enumerate(self.list):
             if header.rect.collidepoint(event.GetPosition()):
                 cw.cwpy.play_sound("click")
                 self.animate_click(header)
-                self.func_list[i]()
+                self._func_list[i]()
                 return
 
-    def start(self):
+    def start(self) -> None:
         if cw.cwpy.battle and cw.cwpy.battle.is_ready():
             cw.cwpy.exec_func(cw.cwpy.battle.start)
 
         # FXIME: Skypeと同時起動するとEnter押し続けで
         #        しばらくフリーズする原因不明の不具合があるので、
         #        ダイアログのクローズを遅延する
-        def func(self):
-            def func(self):
+        def func(self: BattleCommand) -> None:
+            def func(self: BattleCommand) -> None:
                 if self:
                     self.Destroy()
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.force_exec_func(func, self)
         self.toppanel.Disable()
 
-    def runaway(self):
+    def runaway(self) -> None:
         s = cw.cwpy.msgs["confirm_runaway"]
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
@@ -193,8 +191,8 @@ class BattleCommand(wx.Dialog):
             # FXIME: Skypeと同時起動するとEnter押し続けで
             #        しばらくフリーズする原因不明の不具合があるので、
             #        ダイアログのクローズを遅延する
-            def func(self):
-                def func(self):
+            def func(self: BattleCommand) -> None:
+                def func(self: BattleCommand) -> None:
                     if self:
                         self.Destroy()
                 cw.cwpy.frame.exec_func(func, self)
@@ -205,25 +203,25 @@ class BattleCommand(wx.Dialog):
 
         dlg.Destroy()
 
-    def cancel(self):
+    def cancel(self) -> None:
         # FXIME: Skypeと同時起動するとEnter押し続けで
         #        しばらくフリーズする原因不明の不具合があるので、
         #        ダイアログのクローズを遅延する
-        def func(self):
-            def func(self):
+        def func(self: BattleCommand) -> None:
+            def func(self: BattleCommand) -> None:
                 if self:
                     self.Destroy()
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.force_exec_func(func, self)
         self.toppanel.Disable()
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         if not self.toppanel.IsEnabled():
             return
         cw.cwpy.play_sound("click")
         self.cancel()
 
-    def OnMove(self, event):
+    def OnMove(self, event: wx.MoveEvent) -> None:
         if not self.toppanel.IsEnabled():
             return
         dc = wx.ClientDC(self.toppanel)
@@ -239,12 +237,12 @@ class BattleCommand(wx.Dialog):
                 header.negaflag = False
                 self.draw_card(dc, header)
 
-    def OnEnter(self, event):
+    def OnEnter(self, event: wx.MouseEvent) -> None:
         if not self.toppanel.IsEnabled():
             return
         self.draw(True)
 
-    def OnLeave(self, event):
+    def OnLeave(self, event: wx.MouseEvent) -> None:
         if not self.toppanel.IsEnabled():
             return
         if self.IsActive():
@@ -254,10 +252,10 @@ class BattleCommand(wx.Dialog):
                     dc = wx.ClientDC(self.toppanel)
                     self.draw_card(dc, header)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         if update:
             dc = wx.ClientDC(self.toppanel)
             dc = wx.BufferedDC(dc, self.toppanel.GetSize())
@@ -274,7 +272,7 @@ class BattleCommand(wx.Dialog):
 
         return dc
 
-    def draw_card(self, dc, header, fromkeyevent=False):
+    def draw_card(self, dc: wx.DC, header: cw.image.CardImage, fromkeyevent: bool = False) -> None:
         if not fromkeyevent and self.IsActive():
             mousepos = self.toppanel.ScreenToClient(wx.GetMousePosition())
             if header.rect.collidepoint(mousepos):
@@ -289,7 +287,7 @@ class BattleCommand(wx.Dialog):
         else:
             bmp = header.get_wxbmp()
 
-        if header.clickedflag:
+        if self._clickedflag_index == self.list.index(header):
             bmp = header.get_wxclickedbmp(header, bmp)
             pos = (pos[0]+cw.wins(4), pos[1]+cw.wins(5))
 
@@ -297,11 +295,11 @@ class BattleCommand(wx.Dialog):
 
     def animate_click(self, header):
         # クリックアニメーション。4フレーム分。
-        header.clickedflag = True
+        self._clickedflag_index = self.list.index(header)
         self.draw(True)
         cw.cwpy.frame.start_wait()
         cw.cwpy.frame.wait_frame(4)
-        header.clickedflag = False
+        self._clickedflag_index = -1
         dc = wx.ClientDC(self.toppanel)
         self.draw_card(dc, header)
         header.negaflag = False
@@ -412,7 +410,7 @@ class ExtensionDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
         self.DestroyChildren()
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -422,7 +420,7 @@ class BookmarkDialog(wx.Dialog):
     """
     ブックマークの編集を行う。
     """
-    def __init__(self, parent, scedir, db):
+    def __init__(self, parent: wx.TopLevelWindow, scedir: str, db: cw.scenariodb.Scenariodb) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["arrange_bookmark"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -524,7 +522,7 @@ class BookmarkDialog(wx.Dialog):
         self._item_selected()
         self.values.resizeLastColumn(-1)
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
         self.Bind(wx.EVT_BUTTON, self.OnUp2Btn, self.up2btn)
@@ -540,16 +538,16 @@ class BookmarkDialog(wx.Dialog):
         for child in self.GetChildren():
             child.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
-    def OnPaint(self, event):
+    def OnPaint(self, event: wx.PaintEvent) -> None:
         dc = wx.BufferedPaintDC(self)
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
         cw.util.fill_bitmap(dc, bmp, self.GetClientSize())
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         self.Destroy()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
         sizer_right.Add(self.up2btn, 0, wx.EXPAND | wx.TOP, border=cw.wins(5))
@@ -568,7 +566,7 @@ class BookmarkDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnRemoveBtn(self, event):
+    def OnRemoveBtn(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("dump")
         while True:
             index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -578,7 +576,7 @@ class BookmarkDialog(wx.Dialog):
             self.bookmark.pop(index)
         self._item_selected()
 
-    def OnUpBtn(self, event):
+    def OnUpBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.get_selectedindexes()
         if not indexes or indexes[0] < 1:
             return
@@ -592,7 +590,7 @@ class BookmarkDialog(wx.Dialog):
         self._item_selected()
         self.values.EnsureVisible(indexes[0]-1)
 
-    def OnDownBtn(self, event):
+    def OnDownBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.get_selectedindexes()
         if not indexes or self.values.GetItemCount() <= indexes[-1] + 1:
             return
@@ -604,7 +602,7 @@ class BookmarkDialog(wx.Dialog):
         self._item_selected()
         self.values.EnsureVisible(indexes[-1]+1)
 
-    def OnUp2Btn(self, event):
+    def OnUp2Btn(self, event: wx.CommandEvent) -> None:
         self._processing = True
         indexes = self.get_selectedindexes()
         if not indexes:
@@ -614,7 +612,7 @@ class BookmarkDialog(wx.Dialog):
         self._processing = False
         self._item_selected()
 
-    def OnDown2Btn(self, event):
+    def OnDown2Btn(self, event: wx.CommandEvent) -> None:
         self._processing = True
         indexes = self.get_selectedindexes()
         if not indexes:
@@ -624,7 +622,7 @@ class BookmarkDialog(wx.Dialog):
         self._processing = False
         self._item_selected()
 
-    def _swap(self, index1, index2):
+    def _swap(self, index1: int, index2: int) -> None:
         self.bookmark[index1], self.bookmark[index2] = self.bookmark[index2], self.bookmark[index1]
 
         mask = wx.LIST_STATE_SELECTED
@@ -632,7 +630,7 @@ class BookmarkDialog(wx.Dialog):
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
 
-        def set_item(index, string, image):
+        def set_item(index: int, string: str, image: int) -> None:
             self.values.SetItem(index, 0, string)
             self.values.SetItemImage(index, image)
         string1 = self.values.GetItemText(index1)
@@ -642,10 +640,10 @@ class BookmarkDialog(wx.Dialog):
         set_item(index1, string2, image2)
         set_item(index2, string1, image1)
 
-    def OnItemSelected(self, event):
+    def OnItemSelected(self, event: wx.ListEvent) -> None:
         self._item_selected()
 
-    def get_selectedindexes(self):
+    def get_selectedindexes(self) -> List[int]:
         index = -1
         indexes = []
         while True:
@@ -655,7 +653,7 @@ class BookmarkDialog(wx.Dialog):
             indexes.append(index)
         return indexes
 
-    def _item_selected(self):
+    def _item_selected(self) -> None:
         self.Freeze()
         indexes = self.get_selectedindexes()
         if not indexes:
@@ -673,17 +671,17 @@ class BookmarkDialog(wx.Dialog):
             self.down2btn.Enable(indexes != list(range(lcount-len(indexes), lcount)))
         self.Thaw()
 
-    def OnOkBtn(self, event):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("harvest")
 
-        def func(bookmarks):
+        def func(bookmarks: List[Tuple[List[str], str]]) -> None:
             cw.cwpy.ydata.set_bookmarks(bookmarks)
         cw.cwpy.exec_func(func, self.bookmark)
         self.Destroy()
 
 
 class AutoListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, cid, size, style):
+    def __init__(self, parent: wx.Panel, cid: int, size: Tuple[int, int], style: int) -> None:
         wx.ListCtrl.__init__(self, parent, cid, size=size, style=style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
@@ -751,7 +749,7 @@ class ConvertYadoDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -960,7 +958,7 @@ else:
             self.GetParent().Bind(wx.EVT_MOVE, self.OnMove)
             self.GetParent().Bind(wx.EVT_SIZE, self.OnMove)
 
-        def on_motion(self):
+        def on_motion(self) -> bool:
             index = self._selected_index
             x, y = wx.GetMousePosition()
             parent = self.GetParent()
@@ -986,7 +984,7 @@ else:
                 self._check_click()
                 return False
 
-        def _update_tooltip(self):
+        def _update_tooltip(self) -> None:
             if self._selected_index == -1:
                 s = ""
             else:
@@ -994,7 +992,7 @@ else:
             if s != self.GetToolTipText():
                 self.SetToolTip(s)
 
-        def _check_click(self):
+        def _check_click(self) -> None:
             if self._selected_index == -1:
                 ldown = False
             else:
@@ -1008,7 +1006,7 @@ else:
                     wx.CallLater(cw.cwpy.setting.frametime*4, self._clicked)
                 self.Refresh()
 
-        def _clicked(self):
+        def _clicked(self) -> None:
             if not self:
                 return
             self._animate_down = False
@@ -1016,7 +1014,7 @@ else:
                 _s, _bmp, func = self._buttons[self._selected_index]
                 func()
 
-        def OnPaint(self, event):
+        def OnPaint(self, event: wx.PaintEvent) -> None:
             y = cw.wins(3)
             dc = wx.PaintDC(self)
             colour = wx.Colour(222, 222, 222)
@@ -1048,7 +1046,7 @@ else:
             y = pos[1]+size[1] - self.GetSize()[1]-1-cw.wins(10)
             self.SetPosition((x, y))
 
-        def IsIconized(self):
+        def IsIconized(self) -> bool:
             return False
 
 
@@ -1074,7 +1072,7 @@ def show_touchtools(dlg: wx.TopLevelWindow) -> bool:
     return True
 
 
-def main():
+def main() -> None:
     pass
 
 

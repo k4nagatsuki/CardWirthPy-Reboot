@@ -10,7 +10,7 @@ import pygame
 
 import cw
 
-from typing import Dict, List, Set, Tuple, Union, Callable, Optional
+from typing import Dict, Iterable, List, Set, Tuple, Union, Callable, Optional
 
 
 # ------------------------------------------------------------------------------
@@ -465,7 +465,7 @@ def create_description(talent: str, attrs: Union[List[str], Set[str]], desc: str
 
 
 class AdventurerCreater(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["entry_title"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -514,8 +514,8 @@ class AdventurerCreater(wx.Dialog):
             cw.util.set_acceleratortable(self.closebtn, seq)
             self.prevbtn.MoveBeforeInTabOrder(self.nextbtn)
 
-    def OnNUpKeyDown(self, event):
-        def focus_lastctrl():
+    def OnNUpKeyDown(self, event: wx.KeyEvent) -> None:
+        def focus_lastctrl() -> bool:
             for lastctrl in reversed(self.page.last_ctrls):
                 if lastctrl and lastctrl.IsShown() and lastctrl.IsEnabled():
                     lastctrl.SetFocus()
@@ -548,7 +548,7 @@ class AdventurerCreater(wx.Dialog):
         if fc:
             fc.Navigate(wx.NavigationKeyEvent.IsBackward)
 
-    def _init_pages(self):
+    def _init_pages(self) -> None:
         self.page1 = NamePage(self)
         self.page2 = RacePage(self)
         self.page3 = RelationPage(self)
@@ -566,7 +566,7 @@ class AdventurerCreater(wx.Dialog):
         self.page1.Show()
         self.page = self.page1
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -597,7 +597,7 @@ class AdventurerCreater(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnClickNextBtn, self.nextbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickPrevBtn, self.prevbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickPostBtn, self.postbtn)
@@ -605,7 +605,7 @@ class AdventurerCreater(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.OnClickAutoBtn, self.autobtn)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, self.closebtn)
 
-    def enable_btn(self):
+    def enable_btn(self) -> None:
         if self.page.get_next():
             self.nextbtn.Enable()
         else:
@@ -621,7 +621,7 @@ class AdventurerCreater(wx.Dialog):
         else:
             self.postbtn.Disable()
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         if not self.page1.name:
             cw.cwpy.play_sound("click")
             self.Destroy()
@@ -637,7 +637,7 @@ class AdventurerCreater(wx.Dialog):
 
         dlg.Destroy()
 
-    def OnClickNextBtn(self, event):
+    def OnClickNextBtn(self, event: wx.CommandEvent) -> None:
         nextpage = self.page.get_next()
 
         if nextpage:
@@ -652,7 +652,7 @@ class AdventurerCreater(wx.Dialog):
             self.page.Show()
             self.enable_btn()
 
-    def OnClickPrevBtn(self, event):
+    def OnClickPrevBtn(self, event: wx.CommandEvent) -> None:
         prevpage = self.page.get_prev()
 
         if prevpage:
@@ -667,11 +667,11 @@ class AdventurerCreater(wx.Dialog):
             self.page.Show()
             self.enable_btn()
 
-    def OnClickAutoBtn(self, event):
+    def OnClickAutoBtn(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("signal")
         self.page.select_autofeatures()
 
-    def OnClickPostBtn(self, event):
+    def OnClickPostBtn(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("signal")
         s = cw.cwpy.msgs["entry_decide_message"] % (self.page1.name)
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
@@ -684,7 +684,7 @@ class AdventurerCreater(wx.Dialog):
 
         dlg.Destroy()
 
-    def create_adventurer(self):
+    def create_adventurer(self) -> None:
         data = AdventurerData()
         # 親、＠レベル上限、遺伝情報、性別、年代、（種族）の順
         father = self.page3.father
@@ -764,11 +764,11 @@ class AdventurerCreaterPage(wx.Panel):
             self.Freeze()
             self.Hide()
 
-    def OnSetFocus(self, event):
+    def OnSetFocus(self, event: wx.FocusEvent) -> None:
         self.selected_clickable = self._find_nextclickable_h(None)
         self.Refresh()
 
-    def OnKillFocus(self, event):
+    def OnKillFocus(self, event: wx.FocusEvent) -> None:
         self.selected_clickable = None
         self.Refresh()
 
@@ -782,10 +782,10 @@ class AdventurerCreaterPage(wx.Panel):
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_MOTION, self.OnMotion)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         pass
 
-    def set_normalacceleratortable(self):
+    def set_normalacceleratortable(self) -> None:
         nleftkeyid = wx.NewId()
         nrightkeyid = wx.NewId()
         nupkeyid = wx.NewId()
@@ -808,7 +808,7 @@ class AdventurerCreaterPage(wx.Panel):
         ]
         cw.util.set_acceleratortable(self, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
 
-    def AcceptsFocus(self):
+    def AcceptsFocus(self) -> bool:
         return True
 
     def AcceptsFocusFromKeyboard(self) -> bool:
@@ -817,7 +817,7 @@ class AdventurerCreaterPage(wx.Panel):
     def AcceptsFocusRecursively(self) -> bool:
         return True
 
-    def OnEraseBackground(self, evt):
+    def OnEraseBackground(self, evt: wx.EraseEvent) -> None:
         """
         画面のちらつき防止。
         """
@@ -832,19 +832,19 @@ class AdventurerCreaterPage(wx.Panel):
         if s != self.GetToolTipText():
             self.SetToolTip(s)
 
-    def OnNLeftKeyDown(self, event):
+    def OnNLeftKeyDown(self, event: wx.KeyEvent) -> None:
         fc = wx.Window.FindFocus()
         if fc is self:
             self.move_left()
             event.Skip()
 
-    def OnNRightKeyDown(self, event):
+    def OnNRightKeyDown(self, event: wx.KeyEvent) -> None:
         fc = wx.Window.FindFocus()
         if fc is self:
             self.move_right()
             event.Skip()
 
-    def OnNUpKeyDown(self, event):
+    def OnNUpKeyDown(self, event: wx.KeyEvent) -> None:
         if wx.Window.FindFocus() is self:
             if (self.selected_clickable and self.is_selectionstart()) or\
                     event.GetId() == self.shifttabkeyid:
@@ -853,7 +853,7 @@ class AdventurerCreaterPage(wx.Panel):
                 self.move_up()
             event.Skip()
 
-    def OnNDownKeyDown(self, event):
+    def OnNDownKeyDown(self, event: wx.KeyEvent) -> None:
         if wx.Window.FindFocus() is self:
             if self.selected_clickable and self.is_selectionend() or\
                     event.GetId() == self.tabkeyid:
@@ -862,31 +862,31 @@ class AdventurerCreaterPage(wx.Panel):
                 self.move_down()
             event.Skip()
 
-    def move_right(self):
+    def move_right(self) -> None:
         self.selected_clickable = self._find_nextclickable_h(self.selected_clickable)
         self.Refresh()
 
-    def move_left(self):
+    def move_left(self) -> None:
         self.selected_clickable = self._find_prevclickable_h(self.selected_clickable)
         self.Refresh()
 
-    def move_down(self):
+    def move_down(self) -> None:
         self.selected_clickable = self._find_nextclickable_v(self.selected_clickable)
         self.Refresh()
 
-    def move_up(self):
+    def move_up(self) -> None:
         self.selected_clickable = self._find_prevclickable_v(self.selected_clickable)
         self.Refresh()
 
-    def is_selectionstart(self):
+    def is_selectionstart(self) -> bool:
         i, j = self._find_prevclickable_v(self.selected_clickable)
         return (i, j) == self._find_prevclickable_v(None)
 
-    def is_selectionend(self):
+    def is_selectionend(self) -> bool:
         i, j = self._find_nextclickable_v(self.selected_clickable)
         return (i, j) == self._find_nextclickable_v(None)
 
-    def _find_nextclickable_h(self, current):
+    def _find_nextclickable_h(self, current: Optional[Tuple[int, int]]) -> Optional[Tuple[int, int]]:
         if not self.clickable_table:
             return None
         if current is None:
@@ -905,7 +905,7 @@ class AdventurerCreaterPage(wx.Panel):
             if self.clickable_table[i][j]:
                 return (i, j)
 
-    def _find_prevclickable_h(self, current):
+    def _find_prevclickable_h(self, current: Optional[Tuple[int, int]]) -> Optional[Tuple[int, int]]:
         if not self.clickable_table:
             return None
         if current is None:
@@ -926,7 +926,7 @@ class AdventurerCreaterPage(wx.Panel):
             if self.clickable_table[i][j]:
                 return (i, j)
 
-    def _find_nextclickable_v(self, current):
+    def _find_nextclickable_v(self, current: Optional[Tuple[int, int]]) -> Optional[Tuple[int, int]]:
         if not self.clickable_table:
             return None
         if current is None:
@@ -945,7 +945,7 @@ class AdventurerCreaterPage(wx.Panel):
             if self.clickable_table[i][j]:
                 return (i, j)
 
-    def _find_prevclickable_v(self, current):
+    def _find_prevclickable_v(self, current: Optional[Tuple[int, int]]) -> Optional[Tuple[int, int]]:
         if not self.clickable_table:
             return None
         if current is None:
@@ -966,14 +966,14 @@ class AdventurerCreaterPage(wx.Panel):
             if self.clickable_table[i][j]:
                 return (i, j)
 
-    def OnDropFiles(self, event):
+    def OnDropFiles(self, event: wx.DropFilesEvent) -> None:
         """
         カードイメージのドロップ。
         """
         files = event.GetFiles()
         self._put_image(files)
 
-    def _put_image(self, files):
+    def _put_image(self, files: Iterable[str]) -> None:
         seq = []
         for fpath in files:
             ext = os.path.splitext(fpath)[1].lower()
@@ -1001,7 +1001,7 @@ class AdventurerCreaterPage(wx.Panel):
         self.ch_imgdpath.Select(index)
         self._choice_imgdpath()
 
-    def _choice_imgdpath(self):
+    def _choice_imgdpath(self) -> None:
         pass
 
     def OnPaint2(self, event: wx.PaintEvent) -> None:
@@ -1027,7 +1027,7 @@ class AdventurerCreaterPage(wx.Panel):
                 method(key)
                 break
 
-    def OnKeyDown(self, event):
+    def OnKeyDown(self, event: wx.KeyEvent) -> None:
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_SPACE and self.selected_clickable:
             i, j = self.selected_clickable
@@ -1047,7 +1047,9 @@ class AdventurerCreaterPage(wx.Panel):
             if wheelmethod and rect.collidepoint(mousepos):
                 wheelmethod(key, cw.util.get_wheelrotation(event))
 
-    def draw_clickabletext(self, dc, s, pos, name, method, wheelmethod, setname=None):
+    def draw_clickabletext(self, dc: wx.DC, s: str, pos: Tuple[int, int], name: str,
+                           method: Optional[Callable[[str], None]], wheelmethod: Optional[Callable[[str, int], None]],
+                           setname: Optional[str] = None) -> None:
         size = dc.GetTextExtent(s)
         dc.DrawText(s, pos[0], pos[1])
 
@@ -1079,25 +1081,25 @@ class AdventurerCreaterPage(wx.Panel):
 
         self.set_clickablearea(pos, size, name, method, wheelmethod)
 
-    def set_next(self, page):
+    def set_next(self, page: "AdventurerCreaterPage") -> None:
         self.next = page
 
-    def set_prev(self, page):
+    def set_prev(self, page: "AdventurerCreaterPage") -> None:
         self.prev = page
 
-    def get_next(self):
+    def get_next(self) -> "AdventurerCreaterPage":
         if self.next and self.next.is_skip():
             return self.next.get_next()
         else:
             return self.next
 
-    def get_prev(self):
+    def get_prev(self) -> "AdventurerCreaterPage":
         if self.prev and self.prev.is_skip():
             return self.prev.get_prev()
         else:
             return self.prev
 
-    def is_skip(self):
+    def is_skip(self) -> bool:
         return False
 
     def set_imgpathlist(self, reset: bool = True) -> None:
@@ -1182,7 +1184,7 @@ class AdventurerCreaterPage(wx.Panel):
         dc.DrawBitmap(dest, cw.wins(0), cw.wins(0))
         return dc
 
-    def select_autofeatures(self):
+    def select_autofeatures(self) -> None:
         pass
 
 
@@ -1193,7 +1195,7 @@ def _path_to_imageinfo(path: str) -> List[cw.image.ImageInfo]:
 
 
 class NamePage(AdventurerCreaterPage):
-    def __init__(self, parent):
+    def __init__(self, parent: AdventurerCreater) -> None:
         AdventurerCreaterPage.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
@@ -1271,30 +1273,30 @@ class NamePage(AdventurerCreaterPage):
         self.Bind(wx.EVT_MENU, self.OnNDownKeyDown, id=self.tabkeyid)
         self._set_acceleratortable(False, True)
 
-        def OnTextCtrlSetFocus(event):
+        def OnTextCtrlSetFocus(event: wx.FocusEvent) -> None:
             self._set_acceleratortable(False, True)
             event.Skip(True)
         self.textctrl.Bind(wx.EVT_SET_FOCUS, OnTextCtrlSetFocus)
 
-        def OnChoiceSetFocus(event):
+        def OnChoiceSetFocus(event: wx.FocusEvent) -> None:
             self._set_acceleratortable(True, False)
             event.Skip(True)
         self.ch_imgdpath.Bind(wx.EVT_SET_FOCUS, OnChoiceSetFocus)
 
-        def OnSkipFocus(event):
+        def OnSkipFocus(event: wx.FocusEvent) -> None:
             self._set_acceleratortable(True, True)
             event.Skip(True)
         self.cb_centering.Bind(wx.EVT_SET_FOCUS, OnSkipFocus)
         self.ref_image.Bind(wx.EVT_SET_FOCUS, OnSkipFocus)
 
-        def OnKillFocus(event):
+        def OnKillFocus(event: wx.FocusEvent) -> None:
             self._set_acceleratortable(True, True)
             event.Skip(True)
         self.textctrl.Bind(wx.EVT_KILL_FOCUS, OnKillFocus)
 
         self.draw(True)
 
-    def _set_acceleratortable(self, leftright, updown):
+    def _set_acceleratortable(self, leftright: bool, updown: bool) -> None:
         seq = [
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
@@ -1311,7 +1313,7 @@ class NamePage(AdventurerCreaterPage):
             seq.append((wx.ACCEL_NORMAL, wx.WXK_DOWN, self.ndownkeyid))
         cw.util.set_acceleratortable(self, seq, ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
 
-    def _bind(self):
+    def _bind(self) -> None:
         AdventurerCreaterPage._bind(self)
         self.Bind(wx.EVT_TEXT, self.OnInputText)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
@@ -1320,15 +1322,15 @@ class NamePage(AdventurerCreaterPage):
         self.ch_imgdpath.Bind(wx.EVT_CHOICE, self.OnChoiceImgDPath)
         self.cb_centering.Bind(wx.EVT_CHECKBOX, self.OnCentering)
 
-    def OnCtrlLeftKeyDown(self, event):
+    def OnCtrlLeftKeyDown(self, event: wx.KeyEvent) -> None:
         _rect, method, _wheelmethod = self.clickables["PrevImage"]
         method("PrevImage")
 
-    def OnCtrlRightKeyDown(self, event):
+    def OnCtrlRightKeyDown(self, event: wx.KeyEvent) -> None:
         _rect, method, _wheelmethod = self.clickables["NextImage"]
         method("NextImage")
 
-    def OnNDownKeyDown(self, event):
+    def OnNDownKeyDown(self, event: wx.KeyEvent) -> None:
         fc = wx.Window.FindFocus()
         if fc is self.textctrl:
             if self.autoname:
@@ -1363,7 +1365,7 @@ class NamePage(AdventurerCreaterPage):
         else:
             AdventurerCreaterPage.OnNDownKeyDown(self, event)
 
-    def OnNUpKeyDown(self, event):
+    def OnNUpKeyDown(self, event: wx.KeyEvent) -> None:
         fc = wx.Window.FindFocus()
         if fc is self.autoname:
             self.textctrl.SetFocus()
@@ -1398,21 +1400,21 @@ class NamePage(AdventurerCreaterPage):
         else:
             AdventurerCreaterPage.OnNUpKeyDown(self, event)
 
-    def OnNLeftKeyDown(self, event):
+    def OnNLeftKeyDown(self, event: wx.KeyEvent) -> None:
         if wx.Window.FindFocus() is self.ch_imgdpath:
             _rect, method, _wheelmethod = self.clickables["PrevImage"]
             method("PrevImage")
         else:
             AdventurerCreaterPage.OnNLeftKeyDown(self, event)
 
-    def OnNRightKeyDown(self, event):
+    def OnNRightKeyDown(self, event: wx.KeyEvent) -> None:
         if wx.Window.FindFocus() is self.ch_imgdpath:
             _rect, method, _wheelmethod = self.clickables["NextImage"]
             method("NextImage")
         else:
             AdventurerCreaterPage.OnNRightKeyDown(self, event)
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -1424,10 +1426,10 @@ class NamePage(AdventurerCreaterPage):
         else:
             AdventurerCreaterPage.OnMouseWheel(self, event)
 
-    def OnUpKeyDown(self, event):
+    def OnUpKeyDown(self, event: wx.KeyEvent) -> None:
         self._up_imgd()
 
-    def _up_imgd(self):
+    def _up_imgd(self) -> None:
         if self.ch_imgdpath.IsShown():
             index = self.imgdpath
             index -= 1
@@ -1437,10 +1439,10 @@ class NamePage(AdventurerCreaterPage):
             event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.ch_imgdpath.GetId())
             self.ch_imgdpath.ProcessEvent(event)
 
-    def OnDownKeyDown(self, event):
+    def OnDownKeyDown(self, event: wx.KeyEvent) -> None:
         self._down_imgd()
 
-    def _down_imgd(self):
+    def _down_imgd(self) -> None:
         if self.ch_imgdpath.IsShown():
             index = self.imgdpath
             index += 1
@@ -1450,7 +1452,7 @@ class NamePage(AdventurerCreaterPage):
             event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.ch_imgdpath.GetId())
             self.ch_imgdpath.ProcessEvent(event)
 
-    def OnInputText(self, event):
+    def OnInputText(self, event: wx.CommandEvent) -> None:
         self.name = self.textctrl.GetValue()
         self.input_name = self.name
 
@@ -1459,7 +1461,7 @@ class NamePage(AdventurerCreaterPage):
         else:
             self.Parent.nextbtn.Disable()
 
-    def OnAutoName(self, event):
+    def OnAutoName(self, event: wx.CommandEvent) -> None:
         if self.sex not in cw.cwpy.setting.sexcoupons:
             return
         cw.cwpy.play_sound("signal")
@@ -1469,13 +1471,13 @@ class NamePage(AdventurerCreaterPage):
             self.textctrl.SetValue(randomname)
             self.input_name = ""
 
-    def OnChoiceImgDPath(self, event):
+    def OnChoiceImgDPath(self, event: wx.CommandEvent) -> None:
         index = self.ch_imgdpath.GetSelection()
         if index != self.imgdpath:
             cw.cwpy.play_sound("page")
             self._choice_imgdpath()
 
-    def _choice_imgdpath(self):
+    def _choice_imgdpath(self) -> None:
         index = self.ch_imgdpath.GetSelection()
         self.imgdpath = index
         key = self.imgdpaths[index]
@@ -1483,11 +1485,11 @@ class NamePage(AdventurerCreaterPage):
         self.ch_imgdpath.SetToolTip(self.ch_imgdpath.GetLabelText())
         self.draw(True)
 
-    def OnCentering(self, event):
+    def OnCentering(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("page")
         self.draw(True)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         csize = self.GetClientSize()
         w1, _h1 = self.textctrl.GetSize()
         w2, h2 = self.ch_imgdpath.GetSize()
@@ -1510,7 +1512,7 @@ class NamePage(AdventurerCreaterPage):
         rs = self.ref_image.GetSize()
         self.ref_image.SetPosition((cpos[0]+cs[0]-rs[0], cpos[1]-rs[1]-cw.wins(1)))
 
-    def draw2(self, update=False):
+    def draw2(self, update: bool = False) -> None:
         if update:
             for info in self.imgpaths:
                 bmp = cw.util.load_wxbmp(info.path, True, can_loaded_scaledimage=True)
@@ -1623,7 +1625,7 @@ class NamePage(AdventurerCreaterPage):
 
         return dc, dest
 
-    def set_sex(self, name):
+    def set_sex(self, name: str) -> None:
         if not self.sex == name:
             cw.cwpy.play_sound("click")
             self.sex = name
@@ -1631,7 +1633,7 @@ class NamePage(AdventurerCreaterPage):
             self.draw(True)
             self._update_sex()
 
-    def _update_sex(self):
+    def _update_sex(self) -> None:
         if self.autoname:
             if self.sex in cw.cwpy.setting.sexcoupons:
                 sindex = cw.cwpy.setting.sexcoupons.index(self.sex)
@@ -1639,26 +1641,26 @@ class NamePage(AdventurerCreaterPage):
             else:
                 self.autoname.Enable(False)
 
-    def set_age(self, name):
+    def set_age(self, name: str) -> None:
         if not self.age == name:
             cw.cwpy.play_sound("click")
             self.age = name
             self.set_imgpathlist(True)
             self.draw(True)
 
-    def on_mousewheel(self, name, rotate):
+    def on_mousewheel(self, name: str, rotate: int) -> None:
         if rotate < 0:
             self.set_previmg(name)
         elif 0 < rotate:
             self.set_nextimg(name)
 
-    def set_nextimg(self, name):
+    def set_nextimg(self, name: str) -> None:
         _set_nextimg(self, name)
 
-    def set_previmg(self, name):
+    def set_previmg(self, name: str) -> None:
         _set_previmg(self, name)
 
-    def select_autofeatures(self):
+    def select_autofeatures(self) -> None:
         sindex = cw.cwpy.dice.roll(1, len(cw.cwpy.setting.sexcoupons)) - 1
         self.sex = cw.cwpy.setting.sexcoupons[sindex]
         self.age = cw.cwpy.dice.choice(cw.cwpy.setting.periodcoupons)
@@ -1762,7 +1764,7 @@ def _read_names(fpath: str) -> Set[str]:
 
 
 class RacePage(AdventurerCreaterPage):
-    def __init__(self, parent):
+    def __init__(self, parent: AdventurerCreater) -> None:
         AdventurerCreaterPage.__init__(self, parent)
         choices = [h.name for h in cw.cwpy.setting.races]
         self.race = choices[0]
@@ -1773,24 +1775,24 @@ class RacePage(AdventurerCreaterPage):
         self._bind()
         self._do_layout()
 
-    def AcceptsFocus(self):
+    def AcceptsFocus(self) -> bool:
         return False
 
-    def AcceptsFocusFromKeyboard(self):
+    def AcceptsFocusFromKeyboard(self) -> bool:
         return False
 
-    def _bind(self):
+    def _bind(self) -> None:
         AdventurerCreaterPage._bind(self)
         self.Bind(wx.EVT_CHOICE, self.OnChoice)
 
-    def OnChoice(self, event):
+    def OnChoice(self, event: wx.CommandEvent) -> None:
         race = self.choice.GetStringSelection()
 
         if not self.race == race:
             self.race = race
             self.draw(True)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         csize = self.GetClientSize()
         sizer_1.Add((csize[0], cw.wins(90)), 0, 0, 0)
@@ -1803,7 +1805,7 @@ class RacePage(AdventurerCreaterPage):
         sizer_1.Fit(self)
         self.Layout()
 
-    def draw2(self, update=False):
+    def draw2(self, update: bool = False) -> None:
         dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
         # 種族
@@ -1832,7 +1834,7 @@ class RacePage(AdventurerCreaterPage):
 
         return dc, dest
 
-    def get_race(self):
+    def get_race(self) -> cw.header.RaceHeader:
         """
         現在選択中の種族のElementを返す。
         """
@@ -1840,13 +1842,13 @@ class RacePage(AdventurerCreaterPage):
         index = self.choice.GetStrings().index(s)
         return cw.cwpy.setting.races[index]
 
-    def is_skip(self):
+    def is_skip(self) -> bool:
         if len(cw.cwpy.setting.races) > 1:
             return False
         else:
             return True
 
-    def select_autofeatures(self):
+    def select_autofeatures(self) -> None:
         index = cw.cwpy.dice.roll(1, self.choice.GetCount()) - 1
         self.choice.SetSelection(index)
         race = self.choice.GetStringSelection()
@@ -1855,7 +1857,7 @@ class RacePage(AdventurerCreaterPage):
 
 
 class RelationPage(AdventurerCreaterPage):
-    def __init__(self, parent):
+    def __init__(self, parent: AdventurerCreater) -> None:
         AdventurerCreaterPage.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self.set_parents()
@@ -1865,7 +1867,7 @@ class RelationPage(AdventurerCreaterPage):
 
         self.set_normalacceleratortable()
 
-    def draw2(self, update=False):
+    def draw2(self, update: bool = False) -> None:
         dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
         # 血縁
@@ -1924,7 +1926,7 @@ class RelationPage(AdventurerCreaterPage):
             can_loaded_scaledimage = True
             basecardtype = "NormalCard"
 
-        def draw_paths(pos, paths, can_loaded_scaledimage):
+        def draw_paths(pos: Tuple[int, int], paths: Iterable[cw.image.ImageInfo], can_loaded_scaledimage: bool) -> None:
             dc.SetClippingRegion(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1]))
             for info in paths:
                 if info.path:
@@ -2014,7 +2016,7 @@ class RelationPage(AdventurerCreaterPage):
 
         return dc, dest
 
-    def set_nextfather(self, name):
+    def set_nextfather(self, name: str) -> None:
         if 1 < len(self.fathers):
             cw.cwpy.play_sound("page")
             index = self.fathers.index(self.father) + 1
@@ -2026,7 +2028,7 @@ class RelationPage(AdventurerCreaterPage):
 
             self.draw(True)
 
-    def set_prevfather(self, name):
+    def set_prevfather(self, name: str) -> None:
         if 1 < len(self.fathers):
             cw.cwpy.play_sound("page")
             index = self.fathers.index(self.father) - 1
@@ -2038,7 +2040,7 @@ class RelationPage(AdventurerCreaterPage):
 
             self.draw(True)
 
-    def set_nextmother(self, name):
+    def set_nextmother(self, name: str) -> None:
         if 1 < len(self.mothers):
             cw.cwpy.play_sound("page")
             index = self.mothers.index(self.mother) + 1
@@ -2050,7 +2052,7 @@ class RelationPage(AdventurerCreaterPage):
 
             self.draw(True)
 
-    def set_prevmother(self, name):
+    def set_prevmother(self, name: str) -> None:
         if 1 < len(self.mothers):
             cw.cwpy.play_sound("page")
             index = self.mothers.index(self.mother) - 1
@@ -2062,7 +2064,7 @@ class RelationPage(AdventurerCreaterPage):
 
             self.draw(True)
 
-    def on_mousewheel(self, name, rotate):
+    def on_mousewheel(self, name: str, rotate: int) -> None:
         if name == "FatherFace":
             if rotate < 0:
                 self.set_prevfather(name)
@@ -2074,8 +2076,8 @@ class RelationPage(AdventurerCreaterPage):
             elif 0 < rotate:
                 self.set_nextmother(name)
 
-    def set_parents(self):
-        def append_header(self, header):
+    def set_parents(self) -> None:
+        def append_header(self: RelationPage, header: cw.header.AdventurerHeader) -> None:
             for sex in cw.cwpy.setting.sexes:
                 if header.sex == "＿" + sex.name:
                     if sex.father:
@@ -2097,13 +2099,13 @@ class RelationPage(AdventurerCreaterPage):
                     append_header(self, header)
                     break
 
-    def is_skip(self):
+    def is_skip(self) -> bool:
         if len(self.fathers) > 1 or len(self.mothers) > 1:
             return False
         else:
             return True
 
-    def select_autofeatures(self):
+    def select_autofeatures(self) -> None:
         cw.cwpy.play_sound("signal")
         self.father = cw.cwpy.dice.choice(self.fathers)
         self.mother = cw.cwpy.dice.choice(self.mothers)
@@ -2112,7 +2114,7 @@ class RelationPage(AdventurerCreaterPage):
 
 
 class TalentPage(AdventurerCreaterPage):
-    def __init__(self, parent):
+    def __init__(self, parent: AdventurerCreater) -> None:
         AdventurerCreaterPage.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self.talent = "＿" + cw.cwpy.setting.natures[0].name
@@ -2120,7 +2122,7 @@ class TalentPage(AdventurerCreaterPage):
 
         self.set_normalacceleratortable()
 
-    def draw2(self, update=False):
+    def draw2(self, update: bool = False) -> None:
         dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
         # 素質
@@ -2174,13 +2176,13 @@ class TalentPage(AdventurerCreaterPage):
 
         return dc, dest
 
-    def set_talent(self, name):
+    def set_talent(self, name: str) -> None:
         if not self.talent == name:
             cw.cwpy.play_sound("click")
             self.talent = name
             self.draw(True)
 
-    def select_autofeatures(self):
+    def select_autofeatures(self) -> None:
         cw.cwpy.play_sound("signal")
         talents = []
         for talent in cw.cwpy.setting.natures:
@@ -2192,7 +2194,7 @@ class TalentPage(AdventurerCreaterPage):
 
 
 class AttrPage(AdventurerCreaterPage):
-    def __init__(self, parent):
+    def __init__(self, parent: AdventurerCreater) -> None:
         AdventurerCreaterPage.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self.couponsdata = {}
@@ -2200,7 +2202,7 @@ class AttrPage(AdventurerCreaterPage):
 
         self.set_normalacceleratortable()
 
-    def draw2(self, update=False):
+    def draw2(self, update: bool = False) -> None:
         dc, dest = AdventurerCreaterPage.draw2(self, update)
         cwidth = self.GetClientSize()[0]
         # 特性
@@ -2250,7 +2252,9 @@ class AttrPage(AdventurerCreaterPage):
 
         return dc, dest
 
-    def draw_clickabletext(self, dc, s, pos, name, method, wheelmethod, setname=None):
+    def draw_clickabletext(self, dc: wx.DC, s: str, pos: Tuple[int, int], name: str,
+                           method: Optional[Callable[[str], None]], wheelmethod: Optional[Callable[[str, int], None]],
+                           setname: Optional[str] = None) -> None:
         size = dc.GetTextExtent(s)
         dc.DrawText(s, pos[0], pos[1])
 
@@ -2268,7 +2272,7 @@ class AttrPage(AdventurerCreaterPage):
             pos = pos[0] - cw.wins(1), pos[1] - cw.wins(1)
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
-    def set_coupon(self, name):
+    def set_coupon(self, name: Tuple[str, str]) -> None:
         name, coupons = name
 
         if self.couponsdata.get(coupons, "") == name:
@@ -2279,10 +2283,10 @@ class AttrPage(AdventurerCreaterPage):
         cw.cwpy.play_sound("click")
         self.draw(True)
 
-    def get_coupons(self):
+    def get_coupons(self) -> Set[str]:
         return set(value for value in self.couponsdata.values() if value)
 
-    def select_autofeatures(self):
+    def select_autofeatures(self) -> None:
         cw.cwpy.play_sound("signal")
         self.couponsdata = _get_randommakingsandpair()
         self.draw(True)
@@ -2431,7 +2435,7 @@ class YadoCreater(wx.Dialog):
 
         self.DragAcceptFiles(True)
 
-    def create_yado(self):
+    def create_yado(self) -> None:
         name = self.textctrl.GetValue().strip()
         skindirname = self.skindirnames[self.skin.GetSelection()]
         is_autoloadparty = self.autoload_party.GetValue()
@@ -2537,7 +2541,7 @@ class YadoCreater(wx.Dialog):
                 except Exception:
                     cw.util.print_ex()
 
-    def _put_image(self, fpath):
+    def _put_image(self, fpath: str) -> None:
         cw.cwpy.play_sound("equipment")
         self.Freeze()
         fpath = cw.util.find_noscalepath(fpath)
@@ -2551,7 +2555,7 @@ class YadoCreater(wx.Dialog):
         self.Refresh()
         self.Thaw()
 
-    def OnDelImage(self, event):
+    def OnDelImage(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("dump")
         self.Freeze()
         self.imgpaths = []
@@ -2564,7 +2568,7 @@ class YadoCreater(wx.Dialog):
         self.Refresh()
         self.Thaw()
 
-    def OnDropFiles(self, event):
+    def OnDropFiles(self, event: wx.DropFilesEvent) -> None:
         files = event.GetFiles()
         seq = []
         for fpath in files:
@@ -2597,7 +2601,7 @@ class YadoCreater(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -2688,7 +2692,7 @@ class YadoCreater(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnDelImage, self.del_image)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
 
-        def recurse(ctrl):
+        def recurse(ctrl: wx.Control) -> None:
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
             for child in ctrl.GetChildren():
@@ -2808,7 +2812,7 @@ class AdventurerDesignDialog(wx.Dialog):
     def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
 
-        def recurse(ctrl):
+        def recurse(ctrl: wx.Control) -> None:
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
             for child in ctrl.GetChildren():
@@ -2837,7 +2841,7 @@ class AdventurerDesignDialog(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         name = self.toppanel.namectrl.GetValue()
         desc = self.toppanel.descctrl.GetValue()
         if self.toppanel.centering_shown:
@@ -2854,7 +2858,8 @@ class AdventurerDesignDialog(wx.Dialog):
             imgpaths = self.toppanel.imgpaths
         is_changedimgpath = imgpaths != self.toppanel.oldimgpath
 
-        def func(ccard, name, desc, is_changedimgpath, imgpaths):
+        def func(ccard: cw.character.Character, name: str, desc: str, is_changedimgpath: bool,
+                 imgpaths: List[cw.image.ImageInfo]) -> None:
             cw.cwpy.play_sound("harvest")
             ccard.set_name(name)
             ccard.set_description(desc)
@@ -2871,7 +2876,7 @@ class AdventurerDesignDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -2978,22 +2983,22 @@ class DesignPanel(AdventurerCreaterPage):
         self.Bind(wx.EVT_MENU, self.OnTab, id=self.tabkeyid)
         self._set_acceleratortable(False, True)
 
-        def OnLeftRightSetFocus(event):
+        def OnLeftRightSetFocus(event: wx.FocusEvent) -> None:
             self._set_acceleratortable(False, True)
             event.Skip(True)
         self.namectrl.Bind(wx.EVT_SET_FOCUS, OnLeftRightSetFocus)
 
-        def OnArrowsSetFocus(event):
+        def OnArrowsSetFocus(event: wx.FocusEvent) -> None:
             self._set_acceleratortable(False, False)
             event.Skip(True)
         self.descctrl.Bind(wx.EVT_SET_FOCUS, OnArrowsSetFocus)
 
-        def OnUpDownSetFocus(event):
+        def OnUpDownSetFocus(event: wx.FocusEvent) -> None:
             self._set_acceleratortable(True, False)
             event.Skip(True)
         self.ch_imgdpath.Bind(wx.EVT_SET_FOCUS, OnUpDownSetFocus)
 
-        def OnKillFocus(event):
+        def OnKillFocus(event: wx.FocusEvent) -> None:
             self._set_acceleratortable(True, True)
             event.Skip(True)
         self.namectrl.Bind(wx.EVT_KILL_FOCUS, OnKillFocus)
@@ -3019,15 +3024,15 @@ class DesignPanel(AdventurerCreaterPage):
             seq.append((wx.ACCEL_NORMAL, wx.WXK_DOWN, self.ndownkeyid))
         cw.util.set_acceleratortable(self, list(seq), ignoreleftrightkeys=(wx.TextCtrl, wx.Dialog))
 
-    def is_selectionstart(self):
+    def is_selectionstart(self) -> bool:
         # 常にFalseを返す事で矢印キーによるフォーカス移動を行わせない
         return False
 
-    def is_selectionend(self):
+    def is_selectionend(self) -> bool:
         # 常にFalseを返す事で矢印キーによるフォーカス移動を行わせない
         return False
 
-    def OnShiftTab(self, event):
+    def OnShiftTab(self, event: wx.CommandEvent) -> None:
         fc = wx.Window.FindFocus()
         if fc and fc is self.autoname:
             self.namectrl.SetFocus()
@@ -3062,7 +3067,7 @@ class DesignPanel(AdventurerCreaterPage):
         elif fc:
             fc.Navigate(wx.NavigationKeyEvent.IsBackward)
 
-    def OnTab(self, event):
+    def OnTab(self, event: wx.CommandEvent) -> None:
         fc = wx.Window.FindFocus()
         if fc and fc is self.autoname:
             self.SetFocusIgnoringChildren()
@@ -3097,22 +3102,22 @@ class DesignPanel(AdventurerCreaterPage):
         elif fc:
             fc.Navigate(wx.NavigationKeyEvent.IsForward)
 
-    def OnCtrlLeftKeyDown(self, event):
+    def OnCtrlLeftKeyDown(self, event: wx.KeyEvent) -> None:
         _rect, method, _wheelmethod = self.clickables["PrevImage"]
         method("PrevImage")
 
-    def OnCtrlRightKeyDown(self, event):
+    def OnCtrlRightKeyDown(self, event: wx.KeyEvent) -> None:
         _rect, method, _wheelmethod = self.clickables["NextImage"]
         method("NextImage")
 
-    def OnNLeftKeyDown(self, event):
+    def OnNLeftKeyDown(self, event: wx.KeyEvent) -> None:
         if wx.Window.FindFocus() is self.ch_imgdpath:
             _rect, method, _wheelmethod = self.clickables["PrevImage"]
             method("PrevImage")
         else:
             AdventurerCreaterPage.OnNLeftKeyDown(self, event)
 
-    def OnNRightKeyDown(self, event):
+    def OnNRightKeyDown(self, event: wx.KeyEvent) -> None:
         if wx.Window.FindFocus() is self.ch_imgdpath:
             _rect, method, _wheelmethod = self.clickables["NextImage"]
             method("NextImage")
@@ -3143,10 +3148,10 @@ class DesignPanel(AdventurerCreaterPage):
         else:
             AdventurerCreaterPage.OnMouseWheel(self, event)
 
-    def OnUpKeyDown(self, event):
+    def OnUpKeyDown(self, event: wx.KeyEvent) -> None:
         self._up_imgd()
 
-    def _up_imgd(self):
+    def _up_imgd(self) -> None:
         if self.ch_imgdpath.IsShown():
             index = self.imgdpath
             index -= 1
@@ -3156,10 +3161,10 @@ class DesignPanel(AdventurerCreaterPage):
             event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.ch_imgdpath.GetId())
             self.ch_imgdpath.ProcessEvent(event)
 
-    def OnDownKeyDown(self, event):
+    def OnDownKeyDown(self, event: wx.KeyEvent) -> None:
         self._down_imgd()
 
-    def _down_imgd(self):
+    def _down_imgd(self) -> None:
         if self.ch_imgdpath.IsShown():
             index = self.imgdpath
             index += 1
@@ -3204,7 +3209,7 @@ class DesignPanel(AdventurerCreaterPage):
         self.ch_imgdpath.SetToolTip(self.ch_imgdpath.GetLabelText())
         self.draw(True)
 
-    def OnCentering(self, event):
+    def OnCentering(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("page")
         self.draw(True)
 
@@ -3343,7 +3348,7 @@ class DesignPanel(AdventurerCreaterPage):
         elif 0 < rotate:
             self.set_nextimg(name)
 
-    def set_nextimg(self, name):
+    def set_nextimg(self, name: str) -> None:
         _set_nextimg(self, name)
 
     def set_previmg(self, name: str) -> None:
@@ -3358,7 +3363,7 @@ def _index_of(imgpaths: List[cw.image.ImageInfo], imgpathlist: List[str]) -> int
         return imgpathlist.index(imgpaths[0].path)
 
 
-def _set_nextimg(panel, name):
+def _set_nextimg(panel: AdventurerCreaterPage, name: str) -> None:
     if panel.imgpathlist:
         cw.cwpy.play_sound("page")
         key = panel.imgdpaths[panel.imgdpath]
@@ -3409,7 +3414,7 @@ def create_refimage(parent: YadoCreater, tooltip: str, multiple: bool, callback:
     return ref_image
 
 
-def main():
+def main() -> None:
     pass
 
 

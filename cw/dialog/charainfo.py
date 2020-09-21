@@ -119,7 +119,7 @@ class CharaInfo(wx.Dialog):
         for i in range(len(self.bottompanel)):
             tabctrl = self.notebook.FindTab(self.notebook.GetPage(i))[0]
 
-            def onfocus(event):
+            def onfocus(event: wx.FocusEvent) -> None:
                 self.closebtn.SetFocus()
             tabctrl.Bind(wx.EVT_SET_FOCUS, onfocus)
         for panel in self.bottompanel:
@@ -130,7 +130,7 @@ class CharaInfo(wx.Dialog):
             panel.SetFocusFromKeyboard = lambda: None
             panel.SetCanFocus(False)
 
-            def onfocus(event):
+            def onfocus(event: wx.FocusEvent) -> None:
                 self.closebtn.SetFocus()
             panel.Bind(wx.EVT_SET_FOCUS, onfocus)
 
@@ -197,17 +197,17 @@ class CharaInfo(wx.Dialog):
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 
-        def recurse(ctrl):
+        def recurse(ctrl: wx.Control) -> None:
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl, CardPanel)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
             for child in ctrl.GetChildren():
                 recurse(child)
         recurse(self)
 
-    def OnCopyDetail(self, event):
+    def OnCopyDetail(self, event: wx.CommandEvent) -> None:
         self.copy_detail()
 
-    def copy_detail(self):
+    def copy_detail(self) -> None:
         cw.cwpy.play_sound("equipment")
         page = self.notebook.GetPage(self.notebook.GetSelection())
         lines = [][:]
@@ -219,7 +219,7 @@ class CharaInfo(wx.Dialog):
         lines.append("")
         cw.util.to_clipboard("\n".join(lines))
 
-    def OnEnter(self, event):
+    def OnEnter(self, event: wx.CommandEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if isinstance(page, CardPanel):
             event = wx.PyCommandEvent(wx.wxEVT_RIGHT_UP, wx.ID_UP)
@@ -228,13 +228,13 @@ class CharaInfo(wx.Dialog):
             event = wx.PyCommandEvent(wx.wxEVT_LEFT_UP, wx.ID_UP)
             page.ProcessEvent(event)
 
-    def OnOpenInfo(self, event):
+    def OnOpenInfo(self, event: wx.CommandEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if isinstance(page, CardPanel):
             event = wx.PyCommandEvent(wx.wxEVT_LEFT_UP, wx.ID_UP)
             page.ProcessEvent(event)
 
-    def OnUp(self, event):
+    def OnUp(self, event: wx.KeyEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if hasattr(page, "up"):
             page.up()
@@ -244,7 +244,7 @@ class CharaInfo(wx.Dialog):
             page.Scroll(x, y - 1)
             page.Refresh()
 
-    def OnPageUp(self, event):
+    def OnPageUp(self, event: wx.KeyEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if isinstance(page, wx.ScrolledWindow):
             x = page.GetScrollPos(wx.HORIZONTAL)
@@ -252,14 +252,14 @@ class CharaInfo(wx.Dialog):
             page.Scroll(x, y - 10)
             page.Refresh()
 
-    def OnHome(self, event):
+    def OnHome(self, event: wx.KeyEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if isinstance(page, wx.ScrolledWindow):
             x = page.GetScrollPos(wx.HORIZONTAL)
             page.Scroll(x, 0)
             page.Refresh()
 
-    def OnDown(self, event):
+    def OnDown(self, event: wx.KeyEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if hasattr(page, "down"):
             page.down()
@@ -269,7 +269,7 @@ class CharaInfo(wx.Dialog):
             page.Scroll(x, y + 1)
             page.Refresh()
 
-    def OnPageDown(self, event):
+    def OnPageDown(self, event: wx.KeyEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if isinstance(page, wx.ScrolledWindow):
             x = page.GetScrollPos(wx.HORIZONTAL)
@@ -277,7 +277,7 @@ class CharaInfo(wx.Dialog):
             page.Scroll(x, y + 10)
             page.Refresh()
 
-    def OnLeftKey(self, event):
+    def OnLeftKey(self, event: wx.KeyEvent) -> None:
         event.Skip()
         index = self.notebook.GetSelection()
         page = self.notebook.GetPage(index)
@@ -290,7 +290,7 @@ class CharaInfo(wx.Dialog):
                 return
         self.notebook.SetSelection(index-1 if 0 < index else len(self.bottompanel)-1)
 
-    def OnRightKey(self, event):
+    def OnRightKey(self, event: wx.KeyEvent) -> None:
         event.Skip()
         index = self.notebook.GetSelection()
         page = self.notebook.GetPage(index)
@@ -303,7 +303,7 @@ class CharaInfo(wx.Dialog):
                 return
         self.notebook.SetSelection((index+1) % len(self.bottompanel))
 
-    def OnEnd(self, event):
+    def OnEnd(self, event: wx.KeyEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
         if isinstance(page, wx.ScrolledWindow):
             x = page.GetScrollPos(wx.HORIZONTAL)
@@ -347,12 +347,12 @@ class CharaInfo(wx.Dialog):
             # self.ProcessEvent(btnevent)
 
     def OnDebugMode(self, event: wx.CommandEvent) -> None:
-        def func(self):
+        def func(self: CharaInfo) -> None:
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
             cw.cwpy.set_debug(value)
 
-            def func(self):
+            def func(self: CharaInfo) -> None:
                 if not self:
                     return
                 self.update_debug()
@@ -807,7 +807,7 @@ class TopPanel(wx.Panel):
         if update:
             self.Refresh()
 
-    def get_detailtext(self):
+    def get_detailtext(self) -> str:
         lines = []
         level = "%s" % (self.ccard.level)
         s = "[ %s ] Level %s" % (self.ccard.get_showingname(), level)
@@ -959,7 +959,7 @@ class DescPanel(wx.ScrolledWindow):
             dc.DrawText(line, x, y)
             y += cw.wins(13)
 
-    def get_detailtext(self):
+    def get_detailtext(self) -> str:
         return self.text
 
 
@@ -1020,8 +1020,8 @@ class HistoryPanel(wx.ScrolledWindow):
         dlg = cw.debug.edit.CouponEditDialog(parent, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
-            def func(panel):
-                def func(panel):
+            def func(panel: HistoryPanel) -> None:
+                def func(panel: HistoryPanel) -> None:
                     try:
                         panel.draw(True)
                         panel.Parent.Parent.toppanel.Refresh()
@@ -1149,7 +1149,7 @@ class HistoryPanel(wx.ScrolledWindow):
                 return "(%s)" % value
         return ""
 
-    def get_detailtext(self):
+    def get_detailtext(self) -> str:
         lines = []
         for text, value in self.coupons:
             text2 = self._append_text(text, value)
@@ -1215,7 +1215,7 @@ class EditPanel(wx.Panel):
                     dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent, self.ccard)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
-                        def func(panel):
+                        def func(panel: EditPanel) -> None:
                             if panel:
                                 panel.Parent.Parent.toppanel.Refresh()
                                 panel.Parent.Parent.descpanel.draw(True)
@@ -1231,7 +1231,7 @@ class EditPanel(wx.Panel):
                                                          party=party)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
-                        def func(panel):
+                        def func(panel: EditPanel) -> None:
                             if panel:
                                 panel.Parent.Parent.toppanel.Refresh()
                         self.update_charalist(mlist)
@@ -1246,7 +1246,7 @@ class EditPanel(wx.Panel):
                     if dlg.ShowModal() == wx.ID_OK:
                         colour = get_bgcolor(self.ccard)
 
-                        def func(panel, ccard):
+                        def func(panel: EditPanel, ccard: cw.character.Character) -> None:
                             if panel:
                                 tabs = [panel.Parent.Parent.titlepanel, panel.Parent.Parent.descpanel,
                                         panel.Parent.Parent.historypanel, panel.Parent.Parent.editpanel]
@@ -1283,14 +1283,15 @@ class EditPanel(wx.Panel):
     def update_charalist(self, mlist: List[cw.character.Player]) -> None:
         """編集結果をヘッダ等に反映する。"""
         if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
-            def func(parentheaders, mlist):
+            def func(parentheaders: List[cw.header.AdventurerHeader], mlist: List[cw.sprite.card.PlayerCard]) -> None:
                 for i, header in enumerate(parentheaders):
                     ccard = mlist[i]
                     ccard.data.write_xml()
                     header.level = ccard.level
             cw.cwpy.exec_func(func, self.list, mlist)
         elif isinstance(self.Parent.Parent, StandbyCharaInfo):
-            def func(index, headers, mlist):
+            def func(index: int, headers: List[cw.header.AdventurerHeader],
+                     mlist: List[cw.sprite.card.PlayerCard]) -> None:
                 ccard = mlist[0]
                 ccard.data.write_xml()
                 headers[index].level = ccard.level
@@ -1348,7 +1349,7 @@ class EditPanel(wx.Panel):
         else:
             dc.DrawText(header.name, header.textpos[0], header.textpos[1])
 
-    def up(self):
+    def up(self) -> None:
         if not self.headers:
             return
         dc = wx.ClientDC(self)
@@ -1364,7 +1365,7 @@ class EditPanel(wx.Panel):
         header.negaflag = True
         self.draw_header(dc, header)
 
-    def down(self):
+    def down(self) -> None:
         if not self.headers:
             return
         dc = wx.ClientDC(self)
@@ -1428,7 +1429,7 @@ class EditPanel(wx.Panel):
         if update:
             self.Refresh()
 
-    def get_detailtext(self):
+    def get_detailtext(self) -> str:
         return ""
 
 
@@ -1461,7 +1462,7 @@ class StatusPanel(wx.ScrolledWindow):
         else:
             self.SetCursor(wx.NullCursor)
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         if not (cw.cwpy.is_debugmode() and self._editable and
                 not isinstance(self.Parent.Parent, StandbyPartyCharaInfo)):
             return
@@ -1580,7 +1581,7 @@ class StatusPanel(wx.ScrolledWindow):
         height = self._draw_enhance(dc, cw.cwpy.msgs["enhance_defense"], self.ccard.enhance_def,
                                     self.ccard.enhance_def_dur, "UP3", "DOWN3", height)
 
-    def get_detailtext(self):
+    def get_detailtext(self) -> str:
         lines = []
         _colour, msg = self._get_life()
         lines.append(msg)
@@ -1649,10 +1650,10 @@ class StatusPanel(wx.ScrolledWindow):
     def _get_poison(self) -> str:
         return "%s (%s)" % (cw.cwpy.msgs["poison"], cw.cwpy.msgs["intensity"] % self.ccard.poison)
 
-    def _get_paralyze(self):
+    def _get_paralyze(self) -> str:
         return "%s (%s)" % (cw.cwpy.msgs["paralyze"], cw.cwpy.msgs["intensity"] % self.ccard.paralyze)
 
-    def _get_petrified(self):
+    def _get_petrified(self) -> str:
         return "%s (%s)" % (cw.cwpy.msgs["petrified"], cw.cwpy.msgs["intensity"] % self.ccard.paralyze)
 
     def _get_mentality(self) -> Tuple[str, str]:
@@ -1793,7 +1794,7 @@ class CardPanel(wx.Panel):
     def OnLeftUp(self, event: wx.MouseEvent) -> None:
         self._switch_hold()
 
-    def OnKeyUp(self, event):
+    def OnKeyUp(self, event: wx.KeyEvent) -> None:
         if event.GetKeyCode() == wx.WXK_SPACE:
             self._switch_hold()
 
@@ -1902,7 +1903,7 @@ class CardPanel(wx.Panel):
         else:
             dc.DrawText(header.name, header.textpos[0], header.textpos[1])
 
-    def up(self):
+    def up(self) -> None:
         if not self.headers and not self.hold_all:
             return
         if self.hold_all:
@@ -1924,7 +1925,7 @@ class CardPanel(wx.Panel):
         header.negaflag = True
         self.draw_header(dc, header)
 
-    def down(self):
+    def down(self) -> None:
         if not self.headers and not self.hold_all:
             return
         if self.hold_all:
@@ -2073,7 +2074,7 @@ class CardPanel(wx.Panel):
         maxn = self.ccard.get_cardpocketspace()[self.pocket]
         return cw.cwpy.msgs["card_number"] % (n, maxn)
 
-    def get_detailtext(self):
+    def get_detailtext(self) -> str:
         lines = []
         if self.ccard.hold_all[self.pocket]:
             lines.append("%s <%s>" % (self._get_cardnum(), cw.cwpy.msgs["hold_all"]))
@@ -2128,7 +2129,7 @@ class BeastPanel(SkillPanel):
     def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: "cw.character.Character") -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_BEAST)
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         # ホールド不可
         self._open_cardinfo()
 
@@ -2154,14 +2155,14 @@ def apply_bgcolor(currentpanel: wx.Window, ccard: "cw.character.Character") -> N
     colour = get_bgcolor(ccard)
     currentpanel.SetBackgroundColour(colour)
 
-    def func(panel):
+    def func(panel: wx.Panel) -> None:
         if panel:
             panel.Parent.Parent.titlepanel.SetBackgroundColour(colour)
             panel.Parent.Parent.titlepanel.draw(True)
     cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, currentpanel)
 
 
-def main():
+def main() -> None:
     pass
 
 
