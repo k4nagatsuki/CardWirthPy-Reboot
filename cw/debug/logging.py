@@ -6,6 +6,8 @@ import wx
 
 import cw
 
+from typing import List, Tuple
+
 
 # ------------------------------------------------------------------------------
 # デバッグ情報ダイアログ
@@ -19,7 +21,7 @@ class DebugLogDialog(wx.Dialog):
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
 
-        def func():
+        def func() -> None:
             if cw.cwpy.sdata.notice_debuglog:
                 cw.cwpy.sdata.notice_debuglog = 0
                 cw.cwpy.statusbar.change()
@@ -42,7 +44,7 @@ class DebugLogDialog(wx.Dialog):
             self.text.Newline()
             self.plain_text.append(s)
 
-            def timestr(sec):
+            def timestr(sec: float) -> str:
                 sec = int(round(sec))
                 hour = sec // 3600
                 minute = sec % 3600 // 60
@@ -346,7 +348,7 @@ class DebugLogDialog(wx.Dialog):
 
 
 class DebugLog(object):
-    def __init__(self, sname):
+    def __init__(self, sname: str) -> None:
         """シナリオプレイ結果を通知するために各種情報をまとめる。"""
         self.sname = sname
         self.friend = []
@@ -365,60 +367,69 @@ class DebugLog(object):
         self.variants = []
         self.is_removevariables = False
 
-    def add_friend(self, fcard):
+    def add_friend(self, fcard: "cw.sprite.card.FriendCard") -> None:
         """連れ込む同行キャストの情報を追加する。"""
         self.friend.append(fcard.name)
 
-    def add_lostplayer(self, ccard):
+    def add_lostplayer(self, ccard: "cw.character.Character") -> None:
         """対象消去されたPCの情報を追加する。"""
         self.lost_player.append((ccard.name, not ccard.has_coupon("＿消滅予約")))
 
-    def add_player(self, pcard, got_coupons, lost_coupons):
+    def add_player(self, pcard: "cw.sprite.card.PlayerCard", got_coupons: List[Tuple[str, int]],
+                   lost_coupons: List[Tuple[str, int]]) -> None:
         """PCの情報を追加する。"""
         self.player.append((pcard.name, got_coupons, lost_coupons))
 
-    def set_money(self, before, after):
+    def set_money(self, before: int, after: int) -> None:
         """所持金の情報を設定する。"""
         self.money = (before, after)
 
-    def add_gotcard(self, ctype, name, desc, scenario, author, premium):
+    def add_gotcard(self, ctype: str, name: str, desc: str, scenario: str, author: str, premium: str) -> None:
         """入手したカードの情報を追加する。"""
         key = (ctype, name, desc, premium)
         self.got_card[key] = self.got_card.get(key, 0) + 1
 
-    def add_lostcard(self, ctype, name, desc, scenario, author, premium):
+    def add_lostcard(self, ctype: str, name: str, desc: str, scenario: str, author: str, premium: str) -> None:
         """喪失したカードの情報を追加する。"""
         key = (ctype, name, desc, premium)
         self.lost_card[key] = self.lost_card.get(key, 0) + 1
 
-    def add_compstamp(self, compstamp, get):
+    def add_compstamp(self, compstamp: str, get: bool) -> None:
         """終了印の情報を追加する。"""
         self.compstamp.append((compstamp, get))
 
-    def add_gossip(self, gossip, get):
+    def add_gossip(self, gossip: str, get: bool) -> None:
         """ゴシップの情報を追加する。"""
         self.gossip.append((gossip, get))
 
-    def add_jpdcimage(self, fname):
+    def add_jpdcimage(self, fname: str) -> None:
         """保存されたJPDCイメージの情報を追加する。"""
         self.jpdc_image.append(fname)
 
-    def add_flag(self, name):
+    def add_flag(self, name: str) -> None:
         """保存されたフラグ値の情報を追加する。"""
         self.flags.append(name)
 
-    def add_step(self, name):
+    def add_step(self, name: str) -> None:
         """保存されたステップ値の情報を追加する。"""
         self.steps.append(name)
 
-    def add_variant(self, name):
+    def add_variant(self, name: str) -> None:
         """保存されたコモン値の情報を追加する。"""
         self.variants.append(name)
 
-    def remove_variables(self):
+    def remove_variables(self) -> None:
         """保存されていた状態変数値の削除情報を追加する。"""
         self.is_removevariables = True
 
-    def set_times(self, startdatetime, pausedtime):
+    def set_times(self, startdatetime: float, pausedtime: float) -> None:
         self.startdatetime = startdatetime
         self.pausedtime = pausedtime
+
+
+def main() -> None:
+    pass
+
+
+if __name__ == "__main__":
+    main()

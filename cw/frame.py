@@ -411,7 +411,7 @@ class Frame(wx.Frame):
             cw.cwpy.force_exec_func(func)
             cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
 
-    def exec_func(self, func: Callable, *args, **kwargs) -> None:
+    def exec_func(self, func: Callable[..., None], *args, **kwargs) -> None:
         """wxPythonスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
         """

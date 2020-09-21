@@ -5,13 +5,16 @@ import wx
 
 import cw
 
+from typing import Iterable, List, Optional, Tuple
+
 
 # ------------------------------------------------------------------------------
 # 選択カード変更ダイアログ
 # ------------------------------------------------------------------------------
 
 class SelectedCardDialog(wx.Dialog):
-    def __init__(self, parent, ccards, selectedcard):
+    def __init__(self, parent: wx.TopLevelWindow, ccards: Iterable[Tuple[str, List[cw.header.CardHeader]]],
+                 selectedcard: Optional[cw.header.CardHeader]) -> None:
         wx.Dialog.__init__(self, parent, -1, "選択カードの変更",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -67,7 +70,7 @@ class SelectedCardDialog(wx.Dialog):
         self._bind()
         self._do_layout()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.AddStretchSpacer(1)
         sizer_right.Add(self.okbtn, 0, wx.BOTTOM | wx.EXPAND, cw.ppis(5))
@@ -81,11 +84,11 @@ class SelectedCardDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.cards.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
         self.cards.Bind(wx.EVT_LEFT_DCLICK, self.OnTreeDClick)
 
-    def _changed_selection(self):
+    def _changed_selection(self) -> None:
         selitem = self.cards.GetSelection()
         if selitem:
             header = self.cards.GetItemData(selitem)
@@ -99,20 +102,28 @@ class SelectedCardDialog(wx.Dialog):
             self._selectedcard = None
             self.okbtn.Disable()
 
-    def OnTreeSelChanged(self, event):
+    def OnTreeSelChanged(self, event: wx.TreeEvent) -> None:
         if not self:
             return
         self._changed_selection()
 
-    def OnTreeDClick(self, event):
+    def OnTreeDClick(self, event: wx.MouseEvent) -> None:
         selitem = self.cards.GetSelection()
         if selitem:
             header = self.cards.GetItemData(selitem)
             if header:
                 self.EndModal(wx.ID_OK)
 
-    def OnOkBtn(self, event):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
         self.EndModal(wx.ID_OK)
 
-    def get_selectedcard(self):
+    def get_selectedcard(self) -> Optional[cw.header.CardHeader]:
         return self._selectedcard
+
+
+def main() -> None:
+    pass
+
+
+if __name__ == "__main__":
+    main()

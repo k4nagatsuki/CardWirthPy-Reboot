@@ -9,7 +9,7 @@ import subprocess
 
 import cw
 
-from typing import Callable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 
 def find_skin(name: str, author: str, skintype: str = "") -> List[str]:
@@ -126,12 +126,10 @@ INSTALL_PROGRESS = 3
 INSTALL_PROGRESS_ARCHIVE = 5
 
 
-def install_skin(path, tempdir, progress=lambda msg, progress: Optional[Callable]):
+def install_skin(path: str, tempdir: str,
+                 progress: type(lambda msg, progress=0: None) = lambda msg, progress=0: None) -> None:
     """
     pathのスキンをインストールする。
-    :type path: str
-    :type tempdir: str
-    :type progress: Callable[str]
     """
     tempdir2 = None
     try:
@@ -236,3 +234,11 @@ def install_skin(path, tempdir, progress=lambda msg, progress: Optional[Callable
         if tempdir2:
             progress("一時ファイルを削除しています...")
             cw.util.remove(tempdir2)
+
+
+def main() -> None:
+    pass
+
+
+if __name__ == "__main__":
+    main()

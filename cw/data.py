@@ -3514,7 +3514,7 @@ class YadoData(object):
                     cw.cwpy.sdata.gossips[name] = False
         assert len(self.environment.getfind("Gossips")) == 0
 
-    def find_gossip(self, matcher: Callable, startindex: int) -> int:
+    def find_gossip(self, matcher: Callable[[str], bool], startindex: int) -> int:
         """
         matcher(name)がTrueになるゴシップを
         startindexの位置から検索し、見つかった位置を返す。

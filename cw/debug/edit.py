@@ -8,7 +8,7 @@ import wx.lib.mixins.listctrl as listmix
 
 import cw
 
-from typing import Callable, Dict, List, Set, Tuple
+from typing import Callable, Dict, Iterable, List, Set, Tuple, Union
 
 
 # ------------------------------------------------------------------------------
@@ -317,7 +317,7 @@ class CouponEditDialog(wx.Dialog):
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
 
-        def set_item(index):
+        def set_item(index: int) -> None:
             self.values.SetItem(index, 0, seq[index][0])
             self.values.SetItem(index, 1, str(seq[index][1]))
             self.values.SetItemImage(index, self._get_valueimage(seq[index][1]))
@@ -370,7 +370,8 @@ class CouponEditDialog(wx.Dialog):
         self._item_selected()
 
     def OnOkBtn(self, event: wx.CommandEvent) -> None:
-        def func(pcards, coupons, syscoupons, cindex, adjust_level):
+        def func(pcards: cw.character.Character, coupons: List[List[Tuple[str, int]]], syscoupons: Set[str],
+                 cindex: int, adjust_level: bool) -> None:
             update = False
             for i, pcard in enumerate(pcards):
                 replaced = pcard.replace_allcoupons(reversed(coupons[i]), syscoupons)
@@ -545,7 +546,7 @@ class CouponEditDialog(wx.Dialog):
 
 class ListEditDialog(wx.Dialog):
 
-    def __init__(self, parent, title, mlist, image):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, mlist: List[str], image: wx.Bitmap) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -597,7 +598,7 @@ class ListEditDialog(wx.Dialog):
 
         self._item_selected()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_BUTTON, self.OnAddBtn, self.addbtn)
@@ -609,7 +610,7 @@ class ListEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndLabelEdit, self.values)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
         sizer_left.Add(self.find, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(3))
@@ -633,7 +634,7 @@ class ListEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnAddBtn(self, event):
+    def OnAddBtn(self, event: wx.CommandEvent) -> None:
         names = set()
         for name in self.list:
             names.add(name)
@@ -652,7 +653,7 @@ class ListEditDialog(wx.Dialog):
 
         self.values.OpenEditor(0, 0)
 
-    def OnRemoveBtn(self, event):
+    def OnRemoveBtn(self, event: wx.CommandEvent) -> None:
         while True:
             index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
             if index <= -1:
@@ -661,7 +662,7 @@ class ListEditDialog(wx.Dialog):
             self.values.DeleteItem(index)
         self._item_selected()
 
-    def OnUpBtn(self, event):
+    def OnUpBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.get_selectedindexes()
         if not indexes or indexes[0] < 1:
             return
@@ -674,7 +675,7 @@ class ListEditDialog(wx.Dialog):
         self._item_selected()
         self.values.EnsureVisible(indexes[0]-1)
 
-    def OnDownBtn(self, event):
+    def OnDownBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.get_selectedindexes()
         if not indexes or self.values.GetItemCount() <= indexes[-1] + 1:
             return
@@ -685,7 +686,7 @@ class ListEditDialog(wx.Dialog):
         self._item_selected()
         self.values.EnsureVisible(indexes[-1]+1)
 
-    def _swap(self, index1, index2):
+    def _swap(self, index1: int, index2: int) -> None:
         self._processing = True
         self.list[index1], self.list[index2] = self.list[index2], self.list[index1]
 
@@ -697,19 +698,19 @@ class ListEditDialog(wx.Dialog):
         self.values.SetItem(index2, 0, self.list[index2])
         self._processing = False
 
-    def OnUp2Btn(self, event):
+    def OnUp2Btn(self, event: wx.CommandEvent) -> None:
         self._processing = True
         up_to_top(self.values, self.list, self.get_selectedindexes())
         self._processing = False
         self._item_selected()
 
-    def OnDown2Btn(self, event):
+    def OnDown2Btn(self, event: wx.CommandEvent) -> None:
         self._processing = True
         down_to_bottom(self.values, self.list, self.get_selectedindexes())
         self._processing = False
         self._item_selected()
 
-    def OnEndLabelEdit(self, event):
+    def OnEndLabelEdit(self, event: wx.ListEvent) -> None:
         index = event.GetIndex()
         newname = event.GetText()
         if newname and -1 >= self.values.FindItem(-1, newname):
@@ -718,15 +719,15 @@ class ListEditDialog(wx.Dialog):
         else:
             event.Veto()
 
-    def OnOkBtn(self, event):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
         pass
 
-    def OnItemSelected(self, event):
+    def OnItemSelected(self, event: wx.ListEvent) -> None:
         if self._processing:
             return
         self._item_selected()
 
-    def get_selectedindexes(self):
+    def get_selectedindexes(self) -> List[int]:
         index = -1
         indexes = []
         while True:
@@ -736,7 +737,7 @@ class ListEditDialog(wx.Dialog):
             indexes.append(index)
         return indexes
 
-    def _item_selected(self):
+    def _item_selected(self) -> None:
         self.Freeze()
         focus = wx.Window.FindFocus()
         indexes = self.get_selectedindexes()
@@ -760,12 +761,12 @@ class ListEditDialog(wx.Dialog):
 
 
 class GossipEditDialog(ListEditDialog):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         ListEditDialog.__init__(self, parent, "ゴシップの編集",
                                 cw.cwpy.ydata.get_gossiplist(), cw.cwpy.rsrc.debugs["GOSSIP_dbg"])
 
-    def OnOkBtn(self, event):
-        def func(seq):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
+        def func(seq: Iterable[str]) -> None:
             cw.cwpy.play_sound("harvest")
             cw.cwpy.ydata.clear_gossips()
             for name in seq:
@@ -775,12 +776,12 @@ class GossipEditDialog(ListEditDialog):
 
 
 class CompStampEditDialog(ListEditDialog):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.TopLevelWindow) -> None:
         ListEditDialog.__init__(self, parent, "終了印の編集",
                                 cw.cwpy.ydata.get_compstamplist(), cw.cwpy.rsrc.debugs["COMPSTAMP_dbg"])
 
-    def OnOkBtn(self, event):
-        def func(seq):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
+        def func(seq: Iterable[str]) -> None:
             cw.cwpy.play_sound("harvest")
             cw.cwpy.ydata.clear_compstamps()
             for name in seq:
@@ -817,7 +818,8 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoW
 
 class SavedJPDCImageEditDialog(wx.Dialog):
 
-    def __init__(self, parent, savedjpdcimage):
+    def __init__(self, parent: wx.TopLevelWindow,
+                 savedjpdcimage: Dict[Tuple[str, str], cw.header.SavedJPDCImageHeader]) -> None:
         wx.Dialog.__init__(self, parent, -1, "JPDCイメージを保存したシナリオ",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -861,13 +863,13 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 
         self._item_selected()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
         sizer_left.Add(self.find, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(3))
@@ -886,7 +888,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnRemoveBtn(self, event):
+    def OnRemoveBtn(self, event: wx.CommandEvent) -> None:
         while True:
             index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
             if index <= -1:
@@ -895,8 +897,8 @@ class SavedJPDCImageEditDialog(wx.Dialog):
             self.values.DeleteItem(index)
         self._item_selected()
 
-    def OnOkBtn(self, event):
-        def func(removedlist):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
+        def func(removedlist: Iterable[Tuple[str, str]]) -> None:
             cw.cwpy.play_sound("harvest")
             for removed in removedlist:
                 if removed in cw.cwpy.ydata.savedjpdcimage:
@@ -908,10 +910,10 @@ class SavedJPDCImageEditDialog(wx.Dialog):
         cw.cwpy.exec_func(func, self._removed)
         self.EndModal(wx.ID_OK)
 
-    def OnItemSelected(self, event):
+    def OnItemSelected(self, event: wx.ListEvent) -> None:
         self._item_selected()
 
-    def get_selectedindexes(self):
+    def get_selectedindexes(self) -> List[int]:
         index = -1
         indexes = []
         while True:
@@ -921,7 +923,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
             indexes.append(index)
         return indexes
 
-    def _item_selected(self):
+    def _item_selected(self) -> None:
         indexes = self.get_selectedindexes()
         self.rmvbtn.Enable(bool(indexes))
 
@@ -932,7 +934,11 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 
 class SavedVariablesEditDialog(wx.Dialog):
 
-    def __init__(self, parent, savedvariables):
+    def __init__(self, parent: wx.TopLevelWindow,
+                 savedvariables: Dict[Tuple[str, str], Tuple[cw.data.CWPyElement,
+                                                             Dict[str, bool],
+                                                             Dict[str, int],
+                                                             Dict[str, Union[str, decimal.Decimal, bool]]]]) -> None:
         wx.Dialog.__init__(self, parent, -1, "状態変数を保存したシナリオ",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -976,13 +982,13 @@ class SavedVariablesEditDialog(wx.Dialog):
 
         self._item_selected()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
         sizer_left.Add(self.find, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(3))
@@ -1001,7 +1007,7 @@ class SavedVariablesEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnRemoveBtn(self, event):
+    def OnRemoveBtn(self, event: wx.CommandEvent) -> None:
         while True:
             index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
             if index <= -1:
@@ -1010,8 +1016,8 @@ class SavedVariablesEditDialog(wx.Dialog):
             self.values.DeleteItem(index)
         self._item_selected()
 
-    def OnOkBtn(self, event):
-        def func(removedlist):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
+        def func(removedlist: Iterable[Tuple[str, str]]) -> None:
             cw.cwpy.play_sound("harvest")
             for removed in removedlist:
                 if removed in cw.cwpy.ydata.saved_variables:
@@ -1021,10 +1027,10 @@ class SavedVariablesEditDialog(wx.Dialog):
         cw.cwpy.exec_func(func, self._removed)
         self.EndModal(wx.ID_OK)
 
-    def OnItemSelected(self, event):
+    def OnItemSelected(self, event: wx.ListEvent) -> None:
         self._item_selected()
 
-    def get_selectedindexes(self):
+    def get_selectedindexes(self) -> List[int]:
         index = -1
         indexes = []
         while True:
@@ -1034,7 +1040,7 @@ class SavedVariablesEditDialog(wx.Dialog):
             indexes.append(index)
         return indexes
 
-    def _item_selected(self):
+    def _item_selected(self) -> None:
         indexes = self.get_selectedindexes()
         self.rmvbtn.Enable(bool(indexes))
 
@@ -1123,8 +1129,8 @@ class BreakpointEditDialog(wx.Dialog):
             self.values.DeleteItem(index)
         self._item_selected()
 
-    def OnOkBtn(self, event):
-        def func(removedlist):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
+        def func(removedlist: Iterable[Tuple[str, str]]) -> None:
             cw.cwpy.play_sound("harvest")
             for removed in removedlist:
                 if removed in cw.cwpy.breakpoint_table:
@@ -1137,7 +1143,7 @@ class BreakpointEditDialog(wx.Dialog):
     def OnItemSelected(self, event: wx.ListEvent) -> None:
         self._item_selected()
 
-    def get_removed(self):
+    def get_removed(self) -> List[Tuple[str, str]]:
         return self._removed
 
     def get_selectedindexes(self) -> List[int]:
@@ -1166,7 +1172,7 @@ class AutoWidthListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
 
 class FindPanel(wx.Panel):
-    def __init__(self, parent: BreakpointEditDialog, values: AutoWidthListCtrl, item_selected: Callable,
+    def __init__(self, parent: BreakpointEditDialog, values: AutoWidthListCtrl, item_selected: Callable[[], None],
                  style: int = 0) -> None:
         """検索パネル。
         """
@@ -1246,7 +1252,7 @@ class FindPanel(wx.Panel):
 
         self.item_selected()
 
-    def find_down(self):
+    def find_down(self) -> None:
         if not self.text.GetValue():
             return
         if not self.values.GetItemCount():
@@ -1286,7 +1292,7 @@ class FindPanel(wx.Panel):
     def OnFindUp(self, event: wx.CommandEvent) -> None:
         self.find_up()
 
-    def OnFindDown(self, event):
+    def OnFindDown(self, event: wx.CommandEvent) -> None:
         self.find_down()
 
     def OnTextChanged(self, event: wx.CommandEvent) -> None:
@@ -1299,7 +1305,7 @@ class FindPanel(wx.Panel):
             self.findup.Enable()
             self.finddown.Enable()
 
-    def OnEnter(self, event):
+    def OnEnter(self, event: wx.CommandEvent) -> None:
         if wx.GetKeyState(wx.WXK_SHIFT):
             self.find_up()
         else:
@@ -1312,7 +1318,7 @@ class FindPanel(wx.Panel):
 
 class EditBookmarksForCardEditDialog(wx.Dialog):
 
-    def __init__(self, parent, bookmarks):
+    def __init__(self, parent: wx.TopLevelWindow, bookmarks: Dict[Tuple[str, str], Tuple[str, str]]) -> None:
         wx.Dialog.__init__(self, parent, -1, "ブックマーク",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -1363,7 +1369,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
 
         self._item_selected()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnUpdateBtn, self.updatebtn)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
         self.Bind(wx.EVT_BUTTON, self.OnUp2Btn, self.up2btn)
@@ -1374,7 +1380,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
 
@@ -1397,7 +1403,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnUpdateBtn(self, event):
+    def OnUpdateBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.get_selectedindexes()
         if indexes:
             flag = wx.LIST_STATE_SELECTED
@@ -1418,7 +1424,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
                 self.values.SetItem(index, 0, "*読込失敗*")
         self.SetCursor(wx.NullCursor)
 
-    def OnRemoveBtn(self, event):
+    def OnRemoveBtn(self, event: wx.CommandEvent) -> None:
         while True:
             index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
             if index <= -1:
@@ -1427,7 +1433,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
             self.values.DeleteItem(index)
         self._item_selected()
 
-    def OnUpBtn(self, event):
+    def OnUpBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.get_selectedindexes()
         if not indexes or indexes[0] < 1:
             return
@@ -1440,7 +1446,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         self._item_selected()
         self.values.EnsureVisible(indexes[0]-1)
 
-    def OnDownBtn(self, event):
+    def OnDownBtn(self, event: wx.CommandEvent) -> None:
         indexes = self.get_selectedindexes()
         if not indexes or self.values.GetItemCount() <= indexes[-1] + 1:
             return
@@ -1451,19 +1457,19 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         self._item_selected()
         self.values.EnsureVisible(indexes[-1]+1)
 
-    def OnUp2Btn(self, event):
+    def OnUp2Btn(self, event: wx.CommandEvent) -> None:
         self._processing = True
         up_to_top(self.values, self.list, self.get_selectedindexes())
         self._processing = False
         self._item_selected()
 
-    def OnDown2Btn(self, event):
+    def OnDown2Btn(self, event: wx.CommandEvent) -> None:
         self._processing = True
         down_to_bottom(self.values, self.list, self.get_selectedindexes())
         self._processing = False
         self._item_selected()
 
-    def _swap(self, index1, index2):
+    def _swap(self, index1: int, index2: int) -> None:
         self.list[index1], self.list[index2] = self.list[index2], self.list[index1]
 
         mask = wx.LIST_STATE_SELECTED
@@ -1471,7 +1477,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
 
-        def set_item(index, string, image):
+        def set_item(index: int, string: str, image: int) -> None:
             self.values.SetItem(index, 0, string[0])
             self.values.SetItem(index, 1, string[1])
             self.values.SetItemImage(index, image)
@@ -1482,13 +1488,13 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         set_item(index1, string2, image2)
         set_item(index2, string1, image1)
 
-    def OnOkBtn(self, event):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
         self.EndModal(wx.ID_OK)
 
-    def OnItemSelected(self, event):
+    def OnItemSelected(self, event: wx.ListEvent) -> None:
         self._item_selected()
 
-    def get_selectedindexes(self):
+    def get_selectedindexes(self) -> List[int]:
         index = -1
         indexes = []
         while True:
@@ -1498,7 +1504,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
             indexes.append(index)
         return indexes
 
-    def _item_selected(self):
+    def _item_selected(self) -> None:
         self.Freeze()
         self.updatebtn.Enable(bool(self.list))
 
@@ -1616,7 +1622,8 @@ def down_to_bottom(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes
 
 class VariantEditDialog(wx.Dialog):
 
-    def __init__(self, parent, title, label, value):
+    def __init__(self, parent: wx.TopLevelWindow, title: str, label: str,
+                 value: Union[str, decimal.Decimal, int]) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -1665,7 +1672,7 @@ class VariantEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_bool)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_num)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_str)
@@ -1673,7 +1680,7 @@ class VariantEditDialog(wx.Dialog):
         self.Bind(wx.EVT_TEXT, self.OnValue, self.value_num)
         self.Bind(wx.EVT_TEXT, self.OnValue, self.value_str)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_box = wx.StaticBoxSizer(self.box, wx.HORIZONTAL)
         sizer_grid = wx.GridBagSizer()
         sizer_grid.Add(self.type_num, pos=(0, 0), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
@@ -1698,16 +1705,16 @@ class VariantEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnType(self, event):
+    def OnType(self, event: wx.CommandEvent) -> None:
         self.value_num.Enable(self.type_num.GetValue())
         self.value_str.Enable(self.type_str.GetValue())
         self.value_bool.Enable(self.type_bool.GetValue())
         self._update_value()
 
-    def OnValue(self, event):
+    def OnValue(self, event: wx.CommandEvent) -> None:
         self._update_value()
 
-    def _update_value(self):
+    def _update_value(self) -> None:
         if self.type_bool.GetValue():
             self.value = self.value_bool.GetSelection() == 0
         elif self.type_num.GetValue():
@@ -1727,7 +1734,7 @@ class VariantEditDialog(wx.Dialog):
             self.value = self.value_str.GetValue()
 
 
-def main():
+def main() -> None:
     pass
 
 

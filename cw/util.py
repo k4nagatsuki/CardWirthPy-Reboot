@@ -40,6 +40,7 @@ from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREV
 
 import cw
 
+import typing
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 if sys.platform == "win32":
@@ -1168,7 +1169,8 @@ def remove_soundtempfile(basedir):
 
 
 def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, str]], *attr,
-                         cmpfunc: Optional[Callable] = None) -> List[Union[Optional[object], int, float, str]]:
+                         cmpfunc: Optional[Callable[[typing.Any, typing.Any], int]] = None)\
+        -> List[Union[Optional[object], int, float, str]]:
     if attr:
         get = operator.attrgetter(*attr)
     else:
@@ -2816,7 +2818,8 @@ def get_elementfromzip(zpath: str, name: str, tag: str = "") -> "cw.data.CWPyEle
     return element
 
 
-def decompress_cab(path: str, dstdir: str, dname: str = "", startup: Callable = None, progress: Callable = None,
+def decompress_cab(path: str, dstdir: str, dname: str = "", startup: Optional[Callable[[int], None]] = None,
+                   progress: Optional[Callable[[int], None]] = None,
                    overwrite: bool = False) -> str:
     """cabファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
@@ -3109,7 +3112,7 @@ def get_strlen(s: str) -> int:
     return reduce(lambda a, b: a + b, [1 if is_hw(c) else 2 for c in s])
 
 
-def slice_str(s: str, width: int, get_width: Optional[Callable] = None) -> Tuple[str, str]:
+def slice_str(s: str, width: int, get_width: Optional[Callable[[str], int]] = None) -> Tuple[str, str]:
     """
     sをwidthの位置でスライスし、2つの文字列にして返す。
     """
@@ -3350,8 +3353,9 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
     return "".join(seq).rstrip()
 
 
-def _wordwrap_impl(s: str, width: int, get_width: Callable, open_chars: str, close_chars: str, startindex: int,
-                   resultindex: int, spcharinfo: Optional[Set[int]], spcharinfo2: Optional[List[int]]) -> str:
+def _wordwrap_impl(s: str, width: int, get_width: Callable[[str], int], open_chars: str, close_chars: str,
+                   startindex: int, resultindex: int, spcharinfo: Optional[Set[int]],
+                   spcharinfo2: Optional[List[int]]) -> str:
     """
     sをwidthの幅で折り返す。
     テキストの長さをは計る時にget_width(s)を使用する。
@@ -3511,7 +3515,7 @@ def _wordwrap_impl(s: str, width: int, get_width: Callable, open_chars: str, clo
         return "\n".join(seq)
 
 
-def wordwrap(s: str, width: int, get_width: Optional[Callable] = None,
+def wordwrap(s: str, width: int, get_width: Optional[Callable[[str], int]] = None,
              open_chars: str = "\"'(<[`{‘“〈《≪「『【〔（＜［｛｢",
              close_chars: str = "!\"'),.:;>?]`}゜’”′″、。々＞》≫」』】〕〟゛°ゝゞヽヾ〻！），．：；＞？］｝｡｣､ﾞﾟ"
                                 "ぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ",
@@ -4108,8 +4112,8 @@ def get_boxpointlist(pos: Tuple[int, int], size: Tuple[int, int]) -> List[Tuple[
 
 
 def create_fileselection(parent: wx.TopLevelWindow, target: Optional[wx.TextCtrl], message: str, wildcard: str = "*.*",
-                         seldir: bool = False, getbasedir: Optional[Callable] = None,
-                         callback: Optional[Callable] = None, winsize: bool = False,
+                         seldir: bool = False, getbasedir: Optional[Callable[[], str]] = None,
+                         callback: Optional[Callable[[str], None]] = None, winsize: bool = False,
                          multiple: bool = False) -> wx.Button:
     """ファイルまたはディレクトリを選択する
     ダイアログを表示するボタンを生成する。
@@ -4211,7 +4215,22 @@ class CWPyStaticBitmap(wx.Panel):
 
     def __init__(self, parent: wx.Panel, cid: int, bmps: List[wx.Bitmap], bmps_bmpdepthkey: List[wx.Bitmap],
                  size: Optional[Tuple[int, int]] = None, infos: Optional[List["cw.image.ImageInfo"]] = None,
-                 ss: Optional[Callable] = None) -> None:
+                 ss: Optional[Callable[[Union[wx.Bitmap,
+                                              wx.Image,
+                                              pygame.Surface,
+                                              Tuple[int, int],
+                                              int,
+                                              wx.Rect,
+                                              pygame.Rect,
+                                              Tuple[int, int, int, int]]],
+                                       Union[wx.Bitmap,
+                                             wx.Image,
+                                             pygame.Surface,
+                                             Tuple[int, int],
+                                             int,
+                                             wx.Rect,
+                                             pygame.Rect,
+                                             Tuple[int, int, int, int]]]] = None) -> None:
         if not size and bmps:
             w = 0
             h = 0

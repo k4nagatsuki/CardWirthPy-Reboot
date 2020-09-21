@@ -250,8 +250,8 @@ for arg in OPTIONS.leftovers:
         sys.argv.remove(arg)
 
 
-def wins(num: Union[wx.Bitmap, Tuple[int, int], int, pygame.Rect, Tuple[int, int, int, int]])\
-        -> Union[wx.Bitmap, Tuple[int, int], int, pygame.Rect, Tuple[int, int, int, int]]:
+def wins(num: Union[wx.Bitmap, Tuple[int, int], int, wx.Rect, pygame.Rect, Tuple[int, int, int, int]])\
+        -> Union[wx.Bitmap, Tuple[int, int], int, wx.Rect, pygame.Rect, Tuple[int, int, int, int]]:
     """numを実際の表示サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
          or pygame.Surface or pygame.Bitmap or pygame.Image

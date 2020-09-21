@@ -1588,7 +1588,7 @@ class BackColorEditDialog(wx.Dialog):
 
 class InputTextDialog(wx.Dialog):
     def __init__(self, parent: wx.TopLevelWindow, title: str, msg: str, text: str = "", maxlength: int = 0,
-                 addition: str = "", addition_func: Callable = None) -> None:
+                 addition: str = "", addition_func: Optional[Callable[[], str]] = None) -> None:
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False

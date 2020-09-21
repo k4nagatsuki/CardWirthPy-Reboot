@@ -331,10 +331,10 @@ class ExtensionDialog(wx.Dialog):
     """
     解説つきのボタンをいくつか提示し、選択した処理を実行する。
     title: ダイアログのタイトル。
-    items: (name, description, func)のlist。
     """
     def __init__(self, parent: wx.TopLevelWindow, title: str,
-                 items: List[Union[Tuple[str, str, Callable], Tuple[str, str, Callable, bool]]]) -> None:
+                 items: List[Union[Tuple[str, str, Callable[[], None]],
+                                   Tuple[str, str, Callable[[], None], bool]]]) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False

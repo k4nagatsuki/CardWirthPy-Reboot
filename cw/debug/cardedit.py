@@ -870,7 +870,8 @@ class CardEditDialog(wx.Dialog):
 
         self.scenario.SetLabel(self.scdata.name)
 
-        def append_cards(getids: Callable, getdata: Callable, image: wx.Bitmap) -> None:
+        def append_cards(getids: Callable[[], Iterable[int]],
+                         getdata: Callable[[int], Optional[cw.data.CWPyElement]], image: wx.Bitmap) -> None:
             for resid in getids():
                 index = self.cards.GetItemCount()
                 e = getdata(resid)
