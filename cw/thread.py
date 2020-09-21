@@ -1458,7 +1458,10 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 clip = self._lazy_clip
             if clip:
-                clip = clip.clip(cw.s(pygame.Rect(0, 0, cw.SIZE_GAME[0], cw.SIZE_GAME[1])))
+                if self.scr_fullscreen:
+                    clip = clip.clip(pygame.Rect((-self.scr_pos[0], -self.scr_pos[1]), self.scr_fullscreen.get_size()))
+                else:
+                    clip = clip.clip(cw.s(pygame.Rect(0, 0, cw.SIZE_GAME[0], cw.SIZE_GAME[1])))
             self.scr_draw.set_clip(clip)
             self.cardgrp.set_clip(clip)
             self.topgrp.set_clip(clip)
