@@ -69,7 +69,7 @@ class ConstructScenarioDB(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def construct_scenariodb(self):
+    def construct_scenariodb(self) -> None:
         self._message = "フォルダの一覧を作成しています..."
         self._curnum = 0
 
@@ -135,7 +135,7 @@ class ConstructScenarioDB(wx.Dialog):
         thread = threading.Thread(target=self.construct_scenariodb)
         thread.start()
 
-        def progress():
+        def progress() -> None:
             while not self._complete and not dlg.cancel:
                 self._cancel = dlg.cancel
                 wx.CallAfter(dlg.UpdateProgress, self._curnum, self._message)
@@ -153,3 +153,11 @@ class ConstructScenarioDB(wx.Dialog):
             s = "データベースの構築が完了しました。"
             wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_INFORMATION, self)
             self.Destroy()
+
+
+def main() -> None:
+    pass
+
+
+if __name__ == "__main__":
+    main()

@@ -65,7 +65,7 @@ class CardInfo(wx.Dialog):
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
         cw.util.add_sideclickhandlers(self.toppanel, self.leftbtn, self.rightbtn)
 
-        def recurse(ctrl):
+        def recurse(ctrl: wx.Control) -> None:
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
             for child in ctrl.GetChildren():
@@ -99,7 +99,7 @@ class CardInfo(wx.Dialog):
             self.toppanel.SetBackgroundColour(self.toppanel.GetBackgroundColour())
             self.SetBackgroundColour(self.GetBackgroundColour())
 
-    def OnCopyDetail(self, event):
+    def OnCopyDetail(self, event: wx.CommandEvent) -> None:
         self.copy_detail()
 
     def copy_detail(self) -> None:
@@ -119,10 +119,10 @@ class CardInfo(wx.Dialog):
         lines.append("")
         cw.util.to_clipboard("\n".join(lines))
 
-    def OnClickLeftBtn(self, event):
+    def OnClickLeftBtn(self, event: wx.CommandEvent) -> None:
         pass
 
-    def OnClickRightBtn(self, event):
+    def OnClickRightBtn(self, event: wx.CommandEvent) -> None:
         pass
 
     def OnMouseWheel(self, event: wx.MouseEvent) -> None:
@@ -313,7 +313,7 @@ class YadoCardInfo(CardInfo):
         self.draw(True)
 
 
-def main():
+def main() -> None:
     pass
 
 

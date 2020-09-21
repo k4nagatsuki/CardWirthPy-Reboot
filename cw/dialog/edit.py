@@ -11,7 +11,7 @@ import colorsys
 
 import cw
 
-from typing import List, Tuple, Union, Callable, Optional
+from typing import Iterable, List, Tuple, Union, Callable, Optional
 
 
 # ------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ class PartyEditor(wx.Dialog):
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_CHECKBOX, self.OnSuspendLevelUp)
 
-        def recurse(ctrl):
+        def recurse(ctrl: wx.Control) -> None:
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
             for child in ctrl.GetChildren():
@@ -93,12 +93,12 @@ class PartyEditor(wx.Dialog):
     def OnSuspendLevelUp(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("page")
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("harvest")
         name = self.textctrl.GetValue()
         money = self.panel.value
 
-        def func(self, party, suspend_levelup):
+        def func(self: PartyEditor, party: cw.data.Party, suspend_levelup: bool) -> None:
             update = False
             if name != party.name:
                 party.set_name(name)
@@ -118,14 +118,14 @@ class PartyEditor(wx.Dialog):
                 party.write()
                 cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
 
-            def func(self):
+            def func(self: PartyEditor) -> None:
                 if self:
                     btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
                     self.ProcessEvent(btnevent)
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self, self.party, self.suspend_levelup.GetValue())
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -249,7 +249,7 @@ class MoneyEditPanel(wx.Panel):
 
 
 class MoneyViewPanel(wx.Panel):
-    def __init__(self, parent, party):
+    def __init__(self, parent: wx.Panel, party: cw.data.Party) -> None:
         wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
         self.value = party.money
         # bmp
@@ -265,7 +265,7 @@ class MoneyViewPanel(wx.Panel):
         self.text_party.SetFont(font)
         self._do_layout()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
@@ -342,7 +342,7 @@ class NumberEditDialog(wx.Dialog):
         self.value = self.slider.get_value()
         self.EndModal(wx.ID_OK)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -378,12 +378,12 @@ class Number2EditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_box1 = wx.StaticBoxSizer(self.box1, wx.HORIZONTAL)
         sizer_box2 = wx.StaticBoxSizer(self.box2, wx.HORIZONTAL)
 
@@ -409,20 +409,20 @@ class Number2EditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
         csize = self.GetClientSize()
         cw.util.fill_bitmap(dc, bmp, csize)
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("harvest")
         self.value1 = self.slider1.get_value()
         self.value2 = self.slider2.get_value()
         self.EndModal(wx.ID_OK)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -472,19 +472,19 @@ class NumberComboEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_box1 = wx.StaticBoxSizer(self.box1, wx.HORIZONTAL)
         sizer_box2 = wx.StaticBoxSizer(self.box2, wx.HORIZONTAL)
 
         if self._combo_panel:
             sizer_box1.Add(self._combo_panel, 1, wx.EXPAND | wx.ALL, cw.wins(5))
 
-            def func(self):
+            def func(self: NumberComboEditDialog) -> None:
                 if not self:
                     return
                 w, h = self._combo_panel.GetSize()
@@ -519,20 +519,20 @@ class NumberComboEditDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def OnPaint(self, evt):
+    def OnPaint(self, evt: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
         csize = self.GetClientSize()
         cw.util.fill_bitmap(dc, bmp, csize)
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("harvest")
         self.selected = self.combo.GetSelection()
         self.value = self.slider.get_value()
         self.EndModal(wx.ID_OK)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -680,12 +680,12 @@ class SliderWithButton(wx.Panel):
     def _end(self) -> None:
         self._timer.Stop()
 
-        def func():
+        def func() -> None:
             self._timerfunc = None
             self._timerbtn = None
         wx.CallAfter(func)
 
-    def OnTimer1(self, event):
+    def OnTimer1(self, event: wx.TimerEvent) -> None:
         pos = self.ScreenToClient(wx.GetMousePosition())
         if self._timerbtn.GetRect().Contains(pos):
             self._timerfunc()
@@ -693,7 +693,7 @@ class SliderWithButton(wx.Panel):
         self.Bind(wx.EVT_TIMER, self.OnTimer2, self._timer)
         self._timer.Start(SliderWithButton._repeat_second)
 
-    def OnTimer2(self, event):
+    def OnTimer2(self, event: wx.TimerEvent) -> None:
         pos = self.ScreenToClient(wx.GetMousePosition())
         if self._timerbtn.GetRect().Contains(pos):
             self._timerfunc()
@@ -845,7 +845,7 @@ class ComboEditDialog(wx.Dialog):
         if self._combo_panel:
             sizer_box.Add(self._combo_panel, 1, wx.EXPAND | wx.ALL, cw.wins(5))
 
-            def func(self):
+            def func(self: ComboEditDialog) -> None:
                 if not self:
                     return
                 w, h = self._combo_panel.GetSize()
@@ -889,7 +889,7 @@ class ComboEditDialog(wx.Dialog):
         self.selected = self.combo.GetSelection()
         self.EndModal(wx.ID_OK)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -924,7 +924,7 @@ class ComboEditDialog2(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -1060,7 +1060,7 @@ class LevelEditDialog(wx.Dialog):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
 
-        def recurse(ctrl):
+        def recurse(ctrl: wx.Control) -> None:
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
             for child in ctrl.GetChildren():
@@ -1095,7 +1095,7 @@ class LevelEditDialog(wx.Dialog):
     def OnSelectTarget(self, event: wx.CommandEvent) -> None:
         self._select_target()
 
-    def OnLeftBtn(self, event):
+    def OnLeftBtn(self, event: wx.CommandEvent) -> None:
         index = self.target.GetSelection()
         if index <= 0:
             self.target.SetSelection(len(self.list))
@@ -1103,7 +1103,7 @@ class LevelEditDialog(wx.Dialog):
             self.target.SetSelection(index - 1)
         self._select_target()
 
-    def OnRightBtn(self, event):
+    def OnRightBtn(self, event: wx.CommandEvent) -> None:
         index = self.target.GetSelection()
         if len(self.list) <= index:
             self.target.SetSelection(0)
@@ -1119,7 +1119,7 @@ class LevelEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event: wx.CommandEvent) -> None:
-        def func(seq, level, party):
+        def func(seq: Iterable[cw.sprite.card.PlayerCard], level: int, party: Optional[cw.data.Party]) -> None:
             update = False
             for ccard in seq:
                 clevel = min(level, ccard.get_limitlevel())
@@ -1145,7 +1145,7 @@ class LevelEditDialog(wx.Dialog):
 
         self.EndModal(wx.ID_OK)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -1162,7 +1162,7 @@ class BackColorEditDialog(wx.Dialog):
         self.cwpy_debug = False
 
         class NoFlickPanel(wx.Panel, cw.frame.NoFlick):
-            def __init__(self, parent):
+            def __init__(self, parent: BackColorEditDialog) -> None:
                 wx.Panel.__init__(self, parent, -1, size=cw.wins((181, 32)))
                 cw.frame.NoFlick.__init__(self)
 
@@ -1216,11 +1216,11 @@ class BackColorEditDialog(wx.Dialog):
         # ドラッグ中に離されたらドラッグを中止する
         self._destroyed = False
 
-        def func():
+        def func() -> None:
             while not self._destroyed:
                 time.sleep(0.001)
                 if self.dragging_huepanel or self.dragging_saturationpanel or self.dragging_valuepanel:
-                    def end_drag(self):
+                    def end_drag(self: BackColorEditDialog) -> None:
                         if not self:
                             return
                         st = wx.GetMouseState()
@@ -1291,7 +1291,7 @@ class BackColorEditDialog(wx.Dialog):
 
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
-        def recurse(ctrl):
+        def recurse(ctrl: wx.Control) -> None:
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
             for child in ctrl.GetChildren():
@@ -1349,7 +1349,7 @@ class BackColorEditDialog(wx.Dialog):
     def OnReleaseHuePanel(self, evt: wx.MouseEvent) -> None:
         self.dragging_huepanel = False
 
-    def OnKeyDownHuePanel(self, evt):
+    def OnKeyDownHuePanel(self, evt: wx.KeyEvent) -> None:
         keycode = evt.GetKeyCode()
         if keycode == wx.WXK_LEFT:
             h = max(self.hsv[0] - 0.05, 0)
@@ -1417,7 +1417,7 @@ class BackColorEditDialog(wx.Dialog):
     def OnReleaseSaturationPanel(self, evt: wx.MouseEvent) -> None:
         self.dragging_saturationpanel = False
 
-    def OnKeyDownSaturationPanel(self, evt):
+    def OnKeyDownSaturationPanel(self, evt: wx.KeyEvent) -> None:
         keycode = evt.GetKeyCode()
         if keycode == wx.WXK_LEFT:
             s = max(self.hsv[1] - 0.05, 0)
@@ -1489,7 +1489,7 @@ class BackColorEditDialog(wx.Dialog):
     def OnReleaseValuePanel(self, evt: wx.MouseEvent) -> None:
         self.dragging_valuepanel = False
 
-    def OnKeyDownValuePanel(self, evt):
+    def OnKeyDownValuePanel(self, evt: wx.KeyEvent) -> None:
         keycode = evt.GetKeyCode()
         if keycode == wx.WXK_LEFT:
             v = max(self.hsv[2] - 0.01875, 0.125)
@@ -1551,7 +1551,7 @@ class BackColorEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event: wx.CommandEvent) -> None:
-        def func(ccard, rgb):
+        def func(ccard: cw.character.Character, rgb: Tuple[int, int, int]) -> None:
             if not ccard.data.find("Property/BackColor") is None:
                 ccard.data.edit("Property/BackColor", rgb[0], "r")
                 ccard.data.edit("Property/BackColor", rgb[1], "g")
@@ -1628,7 +1628,7 @@ class InputTextDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def OnInput(self, event):
+    def OnInput(self, event: wx.CommandEvent) -> None:
         self.text = self.textctrl.GetValue()
 
         if self.text:
@@ -1636,7 +1636,7 @@ class InputTextDialog(wx.Dialog):
         else:
             self.okbtn.Disable()
 
-    def OnAddition(self, event):
+    def OnAddition(self, event: wx.CommandEvent) -> None:
         self.textctrl.SetValue(self.addition_func())
 
     def OnOk(self, event: wx.CommandEvent) -> None:
@@ -1644,7 +1644,7 @@ class InputTextDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         self.text = ""
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -1698,7 +1698,7 @@ class InputTextDialog(wx.Dialog):
         self.Layout()
 
 
-def main():
+def main() -> None:
     pass
 
 

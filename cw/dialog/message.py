@@ -86,10 +86,10 @@ class Message(wx.Dialog):
         ]
         cw.util.set_acceleratortable(self, seq)
 
-    def OnCopyDetail(self, event):
+    def OnCopyDetail(self, event: wx.CommandEvent) -> None:
         self.copy_detail()
 
-    def copy_detail(self):
+    def copy_detail(self) -> None:
         cw.cwpy.play_sound("equipment")
         s = ["[Window Title]", self.GetTitle(), "", "[Content]", self.basetext, ""]
         b = []
@@ -98,12 +98,12 @@ class Message(wx.Dialog):
         s.append(" ".join(b))
         cw.util.to_clipboard("\n".join(s))
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnButton(self, event):
+    def OnButton(self, event: wx.CommandEvent) -> None:
         button = event.GetEventObject()
         self.Close()
         self.SetReturnCode(button.GetId())
@@ -156,7 +156,7 @@ class YesNoMessage(Message):
 
 
 class YesNoCancelMessage(Message):
-    def __init__(self, parent, name, text):
+    def __init__(self, parent: wx.TopLevelWindow, name: str, text: str) -> None:
         choices = (
             ("はい", wx.ID_YES, cw.wins(105)),
             ("いいえ", wx.ID_NO, cw.wins(105)),
@@ -166,7 +166,7 @@ class YesNoCancelMessage(Message):
 
 
 class ErrorMessage(Message):
-    def __init__(self, parent, text):
+    def __init__(self, parent: wx.TopLevelWindow, text: str) -> None:
         cw.cwpy.play_sound("error")
         Message.__init__(self, parent, cw.cwpy.msgs["error_message"], text, 2)
 
@@ -177,7 +177,11 @@ class SysMessage(wx.Dialog):
     choicesに(テキスト, ID, 幅)のtupleまたはlistを指定する事で任意の選択肢を表示する。
     checkboxesに(キー, テキスト, 初期値)のtupleまたはistを指定する事で追加オプションのチェックボックスを表示する。
     """
-    def __init__(self, parent, name, text, choices=None, checkboxes=None):
+    def __init__(self, parent: wx.TopLevelWindow, name: str, text: str,
+                 choices: Optional[Iterable[Union[Tuple[str, int, int, str],
+                                                  Tuple[str, int, str],
+                                                  Tuple[str, int]]]] = None,
+                 checkboxes: Optional[Iterable[Tuple[str, str, bool]]] = None):
         if choices:
             style = wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX
         else:
@@ -193,13 +197,13 @@ class SysMessage(wx.Dialog):
         self._checkboxes = []
         if checkboxes:
             for key, text, value in checkboxes:
-                def func(key):
+                def func(key: str) -> None:
                     self._check_table[key] = value
                     checkbox = wx.CheckBox(self, -1, text)
                     checkbox.SetValue(value)
                     self._checkboxes.append((key, checkbox))
 
-                    def OnCheck(event):
+                    def OnCheck(event: wx.CommandEvent) -> None:
                         self._check_table[key] = checkbox.GetValue()
                     checkbox.Bind(wx.EVT_CHECKBOX, OnCheck)
 
@@ -240,13 +244,13 @@ class SysMessage(wx.Dialog):
         ]
         cw.util.set_acceleratortable(self, seq)
 
-    def get_check(self, key):
+    def get_check(self, key: str) -> bool:
         return self._check_table[key]
 
-    def OnCopyDetail(self, event):
+    def OnCopyDetail(self, event: wx.CommandEvent) -> None:
         self.copy_detail()
 
-    def copy_detail(self):
+    def copy_detail(self) -> None:
         s = ["[Window Title]", self.GetTitle(), "", "[Content]", self.basetext]
         if self.buttons:
             b = []
@@ -256,17 +260,17 @@ class SysMessage(wx.Dialog):
             s.append(" ".join(b))
         cw.util.to_clipboard("\n".join(s))
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnButton(self, event):
+    def OnButton(self, event: wx.CommandEvent) -> None:
         button = event.GetEventObject()
         self.Close()
         self.SetReturnCode(button.GetId())
         event.Skip()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         sizer.Add(self._st_text, 0, wx.ALL, cw.ppis(10))
@@ -296,7 +300,7 @@ class SysMessage(wx.Dialog):
         self.Layout()
 
 
-def main():
+def main() -> None:
     pass
 
 
