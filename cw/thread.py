@@ -1964,7 +1964,7 @@ class CWPy(_Singleton, threading.Thread):
         self._showingdlg += 1
         return oldval
 
-    def exec_func(self, func: Callable, *args, **kwargs) -> None:
+    def exec_func(self, func: Callable[..., None], *args, **kwargs) -> None:
         """CWPyスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
         """
@@ -1972,7 +1972,7 @@ class CWPy(_Singleton, threading.Thread):
                                    kwargs=kwargs)
         post_pygameevent(event)
 
-    def force_exec_func(self, func: Callable, *args, **kwargs) -> None:
+    def force_exec_func(self, func: Callable[..., None], *args, **kwargs) -> None:
         """CWPyスレッドで指定したファンクションを実行する。
         ファンクションはゲームのイベント処理の間に割り込んで実行される。
         func: 実行したいファンクションオブジェクト。
@@ -1980,7 +1980,7 @@ class CWPy(_Singleton, threading.Thread):
         event = pygame.event.Event(cw.FORCE_USEREVENT, func=func, args=args, kwargs=kwargs)
         post_pygameevent(event)
 
-    def sync_exec(self, func: Callable, *args, **kwargs) -> typing.Any:
+    def sync_exec(self, func: Callable[..., None], *args, **kwargs) -> typing.Any:
         """CWPyスレッドで指定したファンクションを実行し、
         終了を待ち合わせる。ファンクションの戻り値を返す。
         func: 実行したいファンクションオブジェクト。
@@ -5534,7 +5534,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def _copy_material(self, data: cw.data.CWPyElement, dstdir: str, from_scenario: bool, scedir: str,
                        imgpaths: Optional[Dict[str, str]], e: cw.data.CWPyElement, materialpath: str,
-                       set_material: Callable, yadodir: Optional[str], toyado: Optional[str],
+                       set_material: Callable[[str], None], yadodir: Optional[str], toyado: Optional[str],
                        can_loaded_scaledimage: bool) -> None:
         pisc = e is not None and e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
         if pisc:

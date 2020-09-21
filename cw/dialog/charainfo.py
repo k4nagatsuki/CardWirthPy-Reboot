@@ -26,7 +26,7 @@ class CharaInfo(wx.Dialog):
                      "cw.sprite.card.FriendCard",
                      cw.header.AdventurerHeader]]
 
-    def __init__(self, parent: wx.TopLevelWindow, redrawfunc: Optional[Callable], editable: bool,
+    def __init__(self, parent: wx.TopLevelWindow, redrawfunc: Optional[Callable[[], None]], editable: bool,
                  party: Optional[cw.data.Party] = None) -> None:
         # フォントサイズによってダイアログサイズを決定する
         dc = wx.ClientDC(parent)
@@ -500,7 +500,8 @@ class CharaInfo(wx.Dialog):
 
 class StandbyCharaInfo(CharaInfo):
     def __init__(self, parent: wx.TopLevelWindow, headers: List[cw.header.AdventurerHeader], index: int,
-                 redrawfunc: Callable, is_playingscenario: bool = False, party: Optional[cw.data.Party] = None) -> None:
+                 redrawfunc: Callable[[], None], is_playingscenario: bool = False,
+                 party: Optional[cw.data.Party] = None) -> None:
         self.is_playingscenario = is_playingscenario
         self.list = headers
         self.index = index
@@ -518,7 +519,8 @@ class StandbyCharaInfo(CharaInfo):
 
 
 class StandbyPartyCharaInfo(StandbyCharaInfo):
-    def __init__(self, parent: wx.TopLevelWindow, partyheader: cw.header.PartyHeader, redrawfunc: Callable) -> None:
+    def __init__(self, parent: wx.TopLevelWindow, partyheader: cw.header.PartyHeader,
+                 redrawfunc: Callable[[], None]) -> None:
         party = cw.data.Party(partyheader, True)
         partyheader.data = party
         headers = []
@@ -574,7 +576,7 @@ class TopPanel(wx.Panel):
     顔画像などを描画するパネル
     """
     def __init__(self, parent: ActiveCharaInfo, ccard: "cw.character.Character",
-                 redrawfunc: Optional[Callable]) -> None:
+                 redrawfunc: Optional[Callable[[], None]]) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(105)))
         self.SetDoubleBuffered(True)
         # カードワース本来の背景値。暗くなりすぎるので保留

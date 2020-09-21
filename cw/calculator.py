@@ -561,12 +561,12 @@ def _chk_diffsc(is_differentscenario, line, pos):
         raise DifferentScenarioException("Read a variable at different scenario.", line, pos)
 
 
-def _chk_argscount(args: List[Callable], n: int, func_name: str, line: int, pos: int) -> None:
+def _chk_argscount(args: List[Callable[[], ValueType]], n: int, func_name: str, line: int, pos: int) -> None:
     if len(args) != n:
         raise ArgumentsCountException("Invalid arguments count: %s != %s" % (n, len(args)), func_name, line, pos)
 
 
-def _chk_argscount2(args: List[Callable], n1: int, n2: int, func_name: str, line: int, pos: int) -> None:
+def _chk_argscount2(args: List[Callable[[], ValueType]], n1: int, n2: int, func_name: str, line: int, pos: int) -> None:
     if not len(args) in (n1, n2):
         raise ArgumentsCountException("Invalid arguments count: %s-%s != %s" % (n1, n2, len(args)), func_name, line,
                                       pos)
@@ -608,13 +608,13 @@ def _is_alldecimal(args: List[DecimalValue], func_name: str) -> bool:
     return True
 
 
-def _all_eval(args: List[Callable]) -> Union[List[ValueType], List[Union[StringValue, DecimalValue]]]:
+def _all_eval(args: List[Callable[[], ValueType]]) -> Union[List[ValueType], List[Union[StringValue, DecimalValue]]]:
     for i, arg in enumerate(args):
         args[i] = arg()
     return args
 
 
-def _func_max(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_max(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数中の最大の値を返す。"""
     args = _all_eval(args)
     if len(args) and _is_alldecimal(args, "MAX"):
@@ -622,7 +622,7 @@ def _func_max(args: List[Callable], is_differentscenario: bool, line: int, pos: 
     raise ArgumentsCountException("No argments of max.", "MAX", line, pos)
 
 
-def _func_min(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_min(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数中の最小の値を返す。"""
     args = _all_eval(args)
     if len(args) and _is_alldecimal(args, "MIN"):
@@ -630,7 +630,7 @@ def _func_min(args: List[Callable], is_differentscenario: bool, line: int, pos: 
     raise ArgumentsCountException("No argments of min.", "MIN", line, pos)
 
 
-def _func_len(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_len(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """文字列の文字数を返す。"""
     _chk_argscount(args, 1, "LEN", line, pos)
     args = _all_eval(args)
@@ -639,7 +639,7 @@ def _func_len(args: List[Callable], is_differentscenario: bool, line: int, pos: 
     return DecimalValue(len(a.value), line, pos)
 
 
-def _func_find(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_find(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """文字列内を検索する。"""
     _chk_argscount2(args, 2, 3, "FIND", line, pos)
     args = _all_eval(args)
@@ -669,7 +669,7 @@ def _func_find(args: List[Callable], is_differentscenario: bool, line: int, pos:
     return DecimalValue(r + 1, line, pos)
 
 
-def _func_left(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_left(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """文字列の左側を取り出す。"""
     _chk_argscount(args, 2, "LEFT", line, pos)
     args = _all_eval(args)
@@ -682,7 +682,7 @@ def _func_left(args: List[Callable], is_differentscenario: bool, line: int, pos:
     return StringValue(a[:int(v)], line, pos)
 
 
-def _func_right(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_right(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """文字列の右側を取り出す。"""
     _chk_argscount(args, 2, "RIGHT", line, pos)
     args = _all_eval(args)
@@ -695,7 +695,7 @@ def _func_right(args: List[Callable], is_differentscenario: bool, line: int, pos
     return StringValue(a[int(v):], line, pos)
 
 
-def _func_mid(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_mid(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """文字列の[N1-1:N1+N2]の範囲を取り出す。"""
     _chk_argscount2(args, 2, 3, "MID", line, pos)
     args = _all_eval(args)
@@ -717,7 +717,7 @@ def _func_mid(args: List[Callable], is_differentscenario: bool, line: int, pos: 
     return StringValue(a, line, pos)
 
 
-def _func_str(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_str(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """引数を文字列に変換する。"""
     _chk_argscount(args, 1, "STR", line, pos)
     args = _all_eval(args)
@@ -727,7 +727,7 @@ def _func_str(args: List[Callable], is_differentscenario: bool, line: int, pos: 
 _NUM_REG = re.compile("\\A\\s*-?([0-9]+(\\.[0-9]*)?|([0-9]*\\.)?[0-9]+)\\s*\\Z")
 
 
-def _func_value(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_value(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数を数値化する。"""
     _chk_argscount(args, 1, "VALUE", line, pos)
     args = _all_eval(args)
@@ -746,7 +746,7 @@ def _func_value(args: List[Callable], is_differentscenario: bool, line: int, pos
     return DecimalValue(value, line, pos)
 
 
-def _func_int(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_int(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数を整数化する。"""
     _chk_argscount(args, 1, "INT", line, pos)
     args = _all_eval(args)
@@ -763,7 +763,7 @@ def _func_int(args: List[Callable], is_differentscenario: bool, line: int, pos: 
     return DecimalValue(value.to_integral_exact(decimal.ROUND_DOWN), line, pos)
 
 
-def _func_if(args: List[Callable], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_if(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """args[0]がTrueであればargs[1]を、そうでなければargs[2]を返す。"""
     _chk_argscount(args, 3, "IF", line, pos)
     a = args[0]()

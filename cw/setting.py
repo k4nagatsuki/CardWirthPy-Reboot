@@ -2443,9 +2443,27 @@ class Resource(object):
 
         return btn.copy() if btn else None
 
-    def get_resources(self, func: Callable, dpath1: str, dpath2: str, ext: int, mask: Optional[bool] = None,
-                      ss: Optional[Callable] = None, noresize: Union[type(()), Tuple[str, ...]] = (),
-                      nodbg: bool = False, emptyfunc: Optional[Callable] = None, editor_res: Optional[str] = None,
+    def get_resources(self, func: Callable[..., typing.Any], dpath1: str, dpath2: str, ext: int,
+                      mask: Optional[bool] = None,
+                      ss: Optional[Callable[[Union[wx.Bitmap,
+                                                   wx.Image,
+                                                   pygame.Surface,
+                                                   Tuple[int, int],
+                                                   int,
+                                                   wx.Rect,
+                                                   pygame.Rect,
+                                                   Tuple[int, int, int, int]]],
+                                            Union[wx.Bitmap,
+                                                  wx.Image,
+                                                  pygame.Surface,
+                                                  Tuple[int, int],
+                                                  int,
+                                                  wx.Rect,
+                                                  pygame.Rect,
+                                                  Tuple[int, int, int, int]]]] = None,
+                      noresize: Union[type(()), Tuple[str, ...]] = (),
+                      nodbg: bool = False,
+                      emptyfunc: Optional[Callable[[], typing.Any]] = None, editor_res: Optional[str] = None,
                       warning: bool = True, can_loaded_scaledimage: bool = True) -> "ResourceTable":
         """
         各種リソースデータを辞書で返す。
@@ -2600,7 +2618,7 @@ class Resource(object):
         return self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Stone", dpath, self.ext_img,
                                   True, cw.wins, emptyfunc=empty_wxbmp)
 
-    def get_statuses(self, load_image: Callable) -> "ResourceTable":
+    def get_statuses(self, load_image: Callable[..., typing.Any]) -> "ResourceTable":
         """
         ステータス表示に使う画像を読み込んで、
         ("LIFEGUAGE", "TARGET", "LIFE", "UP*", "DOWN*"はマスクする)
@@ -2638,7 +2656,7 @@ class Resource(object):
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss,
                                   emptyfunc=emptyfunc)
 
-    def get_dialogs(self, load_image: Callable) -> "ResourceTable":
+    def get_dialogs(self, load_image: Callable[..., typing.Any]) -> "ResourceTable":
         """
         ダイアログで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2667,7 +2685,23 @@ class Resource(object):
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss,
                                   emptyfunc=emptyfunc)
 
-    def get_debugs(self, load_image: Callable, ss: Callable,
+    def get_debugs(self, load_image: Callable[..., typing.Any],
+                   ss: Callable[[Union[wx.Bitmap,
+                                       wx.Image,
+                                       pygame.Surface,
+                                       Tuple[int, int],
+                                       int,
+                                       wx.Rect,
+                                       pygame.Rect,
+                                       Tuple[int, int, int, int]]],
+                                Union[wx.Bitmap,
+                                      wx.Image,
+                                      pygame.Surface,
+                                      Tuple[int, int],
+                                      int,
+                                      wx.Rect,
+                                      pygame.Rect,
+                                      Tuple[int, int, int, int]]],
                    can_loaded_scaledimage: bool = True) -> "ResourceTable":
         """
         デバッガで使う画像を読み込んで、
@@ -2689,7 +2723,7 @@ class Resource(object):
         return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc, editor_res=editor_res,
                                   can_loaded_scaledimage=can_loaded_scaledimage)
 
-    def get_cardbgs(self, load_image: Callable) -> "ResourceTable":
+    def get_cardbgs(self, load_image: Callable[..., typing.Any]) -> "ResourceTable":
         """
         カードの背景画像を読み込んで、pygameのサーフェス
         ("PREMIER", "RARE", "HOLD", "PENALTY"はマスクする)
@@ -3119,7 +3153,8 @@ def empty_sound():
 
 
 class LazyResource(object):
-    def __init__(self, func: Callable, args: Iterable[typing.Any], kwargs: Dict[typing.Any, typing.Any]) -> None:
+    def __init__(self, func: Callable[..., typing.Any], args: Iterable[typing.Any],
+                 kwargs: Dict[typing.Any, typing.Any]) -> None:
         """リソースをfunc(*args, **kwargs)によって
         遅延読み込みする。
         """
@@ -3147,7 +3182,8 @@ class LazyResource(object):
 
 class ResourceTable(object):
     def __init__(self, name: str, init: Optional[Dict[typing.Any, typing.Any]] = None,
-                 deffunc: Optional[Callable] = None, nokeyfunc: Optional[Callable] = None) -> None:
+                 deffunc: Optional[Callable[[], typing.Any]] = None,
+                 nokeyfunc: Optional[Callable[[str], typing.Any]] = None) -> None:
         """文字列をキーとしたリソーステーブル。
         各リソースは必要になった時に遅延読み込みされる。
         """

@@ -1432,7 +1432,7 @@ class CardControl(wx.Dialog):
     def get_beforepageheaders(self) -> List[cw.header.CardHeader]:
         return []
 
-    def animate_click(self, header: cw.header.CardHeader, func: Callable) -> None:
+    def animate_click(self, header: cw.header.CardHeader, func: Callable[[], None]) -> None:
         # クリックアニメーション。4フレーム分。
         if self._proc:
             return
@@ -1465,7 +1465,7 @@ class CardControl(wx.Dialog):
             self._after_event = func3
         self._after_event = func2
 
-    def animate_starclick(self, header: cw.header.CardHeader, func: Callable) -> None:
+    def animate_starclick(self, header: cw.header.CardHeader, func: Callable[[], None]) -> None:
         # スターのクリックアニメーション。4フレーム分。
         if self._proc:
             return
@@ -1496,7 +1496,7 @@ class CardControl(wx.Dialog):
             self._after_event = func3
         self._after_event = func2
 
-    def animate_replsclick(self, header: cw.header.CardHeader, func: Callable) -> None:
+    def animate_replsclick(self, header: cw.header.CardHeader, func: Callable[[], None]) -> None:
         # 位置入替矢印のクリックアニメーション。4フレーム分。
         if self._proc:
             return
@@ -1526,7 +1526,7 @@ class CardControl(wx.Dialog):
             self._after_event = func3
         self._after_event = func2
 
-    def _animate_dealhide(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader, func: Callable,
+    def _animate_dealhide(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader, func: Callable[[], None],
                           dealing_scales: List[int], lastscale: int) -> None:
         if self._proc:
             return
@@ -1586,10 +1586,12 @@ class CardControl(wx.Dialog):
         else:
             func2()
 
-    def animate_hide(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader, func: Callable) -> None:
+    def animate_hide(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader,
+                     func: Callable[[], None]) -> None:
         self._animate_dealhide(header1, header2, func, cw.cwpy.setting.dealing_scales, 0)
 
-    def animate_deal(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader, func: Callable) -> None:
+    def animate_deal(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader,
+                     func: Callable[[], None]) -> None:
         self._animate_dealhide(header1, header2, func, cw.cwpy.setting.dealing_scales[::-1], 100)
 
     def lclick_event(self, header: cw.header.CardHeader) -> None:

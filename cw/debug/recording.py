@@ -4,7 +4,7 @@
 import cw
 
 
-def save(path):
+def save(path: str) -> str:
     """シナリオの実行状況を保存する。
     """
     if not cw.cwpy.is_playingscenario():
@@ -14,7 +14,7 @@ def save(path):
     return path
 
 
-def load(path):
+def load(path: str) -> None:
     """シナリオの実行状況を復元する。
     """
     if not cw.cwpy.is_playingscenario():
@@ -48,7 +48,7 @@ def load(path):
         cw.cwpy.exec_func(func, cw.cwpy.areaid, False, bginhrt=True, data=data)
 
 
-def main():
+def main() -> None:
     pass
 
 

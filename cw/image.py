@@ -73,7 +73,24 @@ class ImageInfo(object):
                                                 getsize)
 
     def _calc_basecardposition_impl(self, imgwidth: int, imgheight: int, noscale: bool, basecardtype: str,
-                                    cardpostype: str, ss: Callable, getsize: Callable) -> pygame.Rect:
+                                    cardpostype: str,
+                                    ss: Callable[[Union[wx.Bitmap,
+                                                        wx.Image,
+                                                        pygame.Surface,
+                                                        Tuple[int, int],
+                                                        int,
+                                                        wx.Rect,
+                                                        pygame.Rect,
+                                                        Tuple[int, int, int, int]]],
+                                                 Union[wx.Bitmap,
+                                                       wx.Image,
+                                                       pygame.Surface,
+                                                       Tuple[int, int],
+                                                       int,
+                                                       wx.Rect,
+                                                       pygame.Rect,
+                                                       Tuple[int, int, int, int]]],
+                                    getsize: Callable[[str], Tuple[int, int]]) -> pygame.Rect:
         if self.basecardtype:
             basecardtype = self.basecardtype
 

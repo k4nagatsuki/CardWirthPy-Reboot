@@ -1818,7 +1818,8 @@ class SpeedPanel(wx.Panel):
 
 
 class DrawingSettingPanel(wx.Panel):
-    def __init__(self, parent: wx.Notebook, for_local: bool, get_localsettings: Optional[Callable],
+    def __init__(self, parent: wx.Notebook, for_local: bool,
+                 get_localsettings: Optional[Callable[[], cw.setting.LocalSetting]],
                  use_copybase: bool) -> None:
         wx.Panel.__init__(self, parent)
         self._for_local = for_local
@@ -3103,7 +3104,8 @@ class UISettingPanel(wx.ScrolledWindow):
 
 
 class FontSettingPanel(wx.Panel):
-    def __init__(self, parent: wx.Notebook, for_local: bool, get_localsettings: Optional[Callable],
+    def __init__(self, parent: wx.Notebook, for_local: bool,
+                 get_localsettings: Optional[Callable[[], cw.setting.LocalSetting]],
                  use_copybase: bool) -> None:
         wx.Panel.__init__(self, parent)
         self.SetDoubleBuffered(True)

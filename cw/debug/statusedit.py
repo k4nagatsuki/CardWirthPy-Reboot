@@ -5,6 +5,8 @@ import wx
 
 import cw
 
+from typing import Callable, Iterable, List, Optional, Tuple, Union
+
 
 # ------------------------------------------------------------------------------
 # 状態編集ダイアログ
@@ -12,7 +14,11 @@ import cw
 
 class StatusEditDialog(wx.Dialog):
 
-    def __init__(self, parent, mlist, selected=-1):
+    def __init__(self, parent: wx.TopLevelWindow,
+                 mlist: List[Union["cw.sprite.card.PlayerCard",
+                                   "cw.sprite.card.EnemyCard",
+                                   "cw.sprite.card.FriendCard"]],
+                 selected: int = -1) -> None:
         wx.Dialog.__init__(self, parent, -1, "キャラクターの状態の編集",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -71,7 +77,7 @@ class StatusEditDialog(wx.Dialog):
 
         self._select_target()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectTarget, self.target)
         self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
@@ -92,7 +98,7 @@ class StatusEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnResist, self.resist)
         self.Bind(wx.EVT_BUTTON, self.OnDefense, self.defense)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_status = wx.GridBagSizer()
         sizer_status.Add(self.life, pos=(0, 0), flag=wx.RIGHT | wx.BOTTOM, border=cw.ppis(5))
         sizer_status.Add(self.poison, pos=(0, 1), flag=wx.RIGHT | wx.BOTTOM, border=cw.ppis(5))
@@ -131,15 +137,15 @@ class StatusEditDialog(wx.Dialog):
         self.Layout()
 
     @staticmethod
-    def _value(oldvalue, newvalue, force=True, defvalue=None):
+    def _value(oldvalue: int, newvalue: int, force: bool = True, defvalue: Optional[int] = None) -> int:
         if not force and oldvalue != newvalue:
             return defvalue
         return newvalue
 
-    def OnSelectTarget(self, event):
+    def OnSelectTarget(self, event: wx.CommandEvent) -> None:
         self._select_target()
 
-    def OnLeftBtn(self, event):
+    def OnLeftBtn(self, event: wx.CommandEvent) -> None:
         index = self.target.GetSelection()
         if index <= 0:
             self.target.SetSelection(len(self.pcards))
@@ -147,7 +153,7 @@ class StatusEditDialog(wx.Dialog):
             self.target.SetSelection(index - 1)
         self._select_target()
 
-    def OnRightBtn(self, event):
+    def OnRightBtn(self, event: wx.CommandEvent) -> None:
         index = self.target.GetSelection()
         if len(self.pcards) <= index:
             self.target.SetSelection(0)
@@ -155,7 +161,7 @@ class StatusEditDialog(wx.Dialog):
             self.target.SetSelection(index + 1)
         self._select_target()
 
-    def OnFullRecovery(self, event):
+    def OnFullRecovery(self, event: wx.CommandEvent) -> None:
         for status in self._get_statuses():
             status.life = 100
             status.mentality = "Normal"
@@ -176,7 +182,7 @@ class StatusEditDialog(wx.Dialog):
             status.enhance_def_dur = 0
         self._update_status()
 
-    def OnRestore(self, event):
+    def OnRestore(self, event: wx.CommandEvent) -> None:
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員
@@ -187,8 +193,9 @@ class StatusEditDialog(wx.Dialog):
             self.statuses[cindex-1] = Status(self.statuses_backup[cindex-1])
         self._update_status()
 
-    def OnOkBtn(self, event):
-        def func(pcards, updates):
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
+        def func(pcards: List[Union[cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard]],
+                 updates: Iterable[int]) -> None:
             for i in updates:
                 pcard = pcards[i]
                 cw.cwpy.play_sound("harvest")
@@ -223,7 +230,7 @@ class StatusEditDialog(wx.Dialog):
 
         self.EndModal(wx.ID_OK)
 
-    def OnLife(self, event):
+    def OnLife(self, event: wx.CommandEvent) -> None:
         value = 100
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.life, (i == 0), 100)
@@ -236,7 +243,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnPoison(self, event):
+    def OnPoison(self, event: wx.CommandEvent) -> None:
         value = 0
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.poison, (i == 0), 0)
@@ -249,7 +256,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnParalyze(self, event):
+    def OnParalyze(self, event: wx.CommandEvent) -> None:
         value = 0
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.paralyze, (i == 0), 0)
@@ -262,7 +269,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnMentality(self, event):
+    def OnMentality(self, event: wx.CommandEvent) -> None:
         value = "Normal"
         duration = 0
         for i, status in enumerate(self._get_statuses()):
@@ -296,7 +303,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnBind(self, event):
+    def OnBind(self, event: wx.CommandEvent) -> None:
         value = 0
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.bind, (i == 0), 0)
@@ -309,7 +316,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnSilence(self, event):
+    def OnSilence(self, event: wx.CommandEvent) -> None:
         value = 0
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.silence, (i == 0), 0)
@@ -322,7 +329,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnFaceUp(self, event):
+    def OnFaceUp(self, event: wx.CommandEvent) -> None:
         value = 0
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.faceup, (i == 0), 0)
@@ -335,7 +342,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnAntiMagic(self, event):
+    def OnAntiMagic(self, event: wx.CommandEvent) -> None:
         value = 0
         for i, status in enumerate(self._get_statuses()):
             value = self._value(value, status.antimagic, (i == 0), 0)
@@ -348,7 +355,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnAction(self, event):
+    def OnAction(self, event: wx.CommandEvent) -> None:
         value = 0
         duration = 0
         for i, status in enumerate(self._get_statuses()):
@@ -366,7 +373,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnAvoid(self, event):
+    def OnAvoid(self, event: wx.CommandEvent) -> None:
         value = 0
         duration = 0
         for i, status in enumerate(self._get_statuses()):
@@ -384,7 +391,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnResist(self, event):
+    def OnResist(self, event: wx.CommandEvent) -> None:
         value = 0
         duration = 0
         for i, status in enumerate(self._get_statuses()):
@@ -402,7 +409,7 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def OnDefense(self, event):
+    def OnDefense(self, event: wx.CommandEvent) -> None:
         value = 0
         duration = 0
         for i, status in enumerate(self._get_statuses()):
@@ -420,22 +427,22 @@ class StatusEditDialog(wx.Dialog):
             self._update_status()
         dlg.Destroy()
 
-    def _select_target(self):
+    def _select_target(self) -> None:
         self._update_status()
 
-    def _is_dead(self):
+    def _is_dead(self) -> bool:
         for status in self._get_statuses():
             if not status.is_dead():
                 return False
         return True
 
-    def _is_unconscious(self):
+    def _is_unconscious(self) -> bool:
         for status in self._get_statuses():
             if not status.is_unconscious():
                 return False
         return True
 
-    def _update_status(self):
+    def _update_status(self) -> None:
         for i, status in enumerate(self._get_statuses()):
             force = (i == 0)
             self.life.value = self._value(self.life.value, status.life, force)
@@ -459,7 +466,7 @@ class StatusEditDialog(wx.Dialog):
         for btn in self.statusbtns:
             btn.draw(True)
 
-    def _get_statuses(self):
+    def _get_statuses(self) -> List["Status"]:
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員
@@ -471,7 +478,9 @@ class StatusEditDialog(wx.Dialog):
 
 class Status(object):
 
-    def __init__(self, pcard):
+    def __init__(self, pcard: Union["cw.sprite.card.PlayerCard",
+                                    "cw.sprite.card.EnemyCard",
+                                    "cw.sprite.card.FriendCard"]) -> None:
         # 現在ライフ・最大ライフ
         if hasattr(pcard, "maxlife"):
             self.life = int(100 * pcard.life // pcard.maxlife)
@@ -523,13 +532,15 @@ class Status(object):
         else:
             self.enhance_def_dur = 0
 
-    def is_dead(self):
+    def is_dead(self) -> bool:
         return self.life == 0 or 0 < self.paralyze
 
-    def is_unconscious(self):
+    def is_unconscious(self) -> bool:
         return self.life == 0
 
-    def put_status(self, pcard):
+    def put_status(self, pcard: Union["cw.sprite.card.PlayerCard",
+                                      "cw.sprite.card.EnemyCard",
+                                      "cw.sprite.card.FriendCard"]) -> bool:
         update = False
         s = Status(pcard)
 
@@ -595,7 +606,8 @@ class Status(object):
 
 class StatusButton(wx.BitmapButton):
 
-    def __init__(self, parent, mode, is_dead, is_unconscious, size):
+    def __init__(self, parent: wx.Panel, mode: int, is_dead: Callable[[], bool], is_unconscious: Callable[[], bool],
+                 size: Tuple[int, int]) -> None:
         """
         mode: 0=ライフ, 1=中毒, 2=麻痺, 3=精神状態,
               4=呪縛, 5=沈黙, 6=暴露, 7=魔法無効,
@@ -614,7 +626,7 @@ class StatusButton(wx.BitmapButton):
             self.value = 0
         self.duration = 0
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
 
         if not update:
             return
@@ -825,7 +837,7 @@ class StatusButton(wx.BitmapButton):
         self.SetBitmapLabel(canvas.ConvertToBitmap())
 
 
-def main():
+def main() -> None:
     pass
 
 

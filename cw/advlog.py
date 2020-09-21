@@ -136,7 +136,8 @@ class AdventurerLogger(object):
         else:
             self._last_logtype = VOID
 
-    def _put(self, logtype: int, data: Optional[str], func: Optional[Callable] = None, usecard: bool = False) -> None:
+    def _put(self, logtype: int, data: Optional[str], func: Optional[Callable[..., str]] = None,
+             usecard: bool = False) -> None:
         if logtype in (MOTION, MOTION_IN_BATTLE) and not usecard:
             if not (cw.cwpy.event.in_cardeffectmotion or cw.cwpy.event.in_inusecardevent):
                 # カード効果以外の効果はあえて出力しない

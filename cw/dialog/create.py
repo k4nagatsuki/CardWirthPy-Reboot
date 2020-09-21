@@ -1063,15 +1063,17 @@ class AdventurerCreaterPage(wx.Panel):
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
     def set_clickablearea(self, pos: Tuple[int, int], size: Union[Tuple[int, int], wx.Size], name: str,
-                          method: Optional[Callable], wheelmethod: Optional[Callable]) -> None:
+                          method: Optional[Callable[[str], None]],
+                          wheelmethod: Optional[Callable[[str, int], None]]) -> None:
         if name not in self.clickables:
             # クリックしにくいのでサイズ拡大
             size = size[0] + cw.wins(20), size[1] + cw.wins(20)
             pos = pos[0] - cw.wins(10), pos[1] - cw.wins(10)
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
-    def draw_clickablebmp(self, dc: wx.DC, bmp: wx.Bitmap, pos: Tuple[int, int], name: str, method: Callable,
-                          wheelmethod: Optional[Callable], mask: bool = True) -> None:
+    def draw_clickablebmp(self, dc: wx.DC, bmp: wx.Bitmap, pos: Tuple[int, int], name: str,
+                          method: Callable[[str], None], wheelmethod: Optional[Callable[[str, int], None]],
+                          mask: bool = True) -> None:
         size = bmp.GetSize()
         dc.DrawBitmap(bmp, pos[0], pos[1], True)
 
@@ -3394,7 +3396,7 @@ def _set_previmg(panel: DesignPanel, name: str) -> None:
         panel.Refresh()
 
 
-def create_refimage(parent: YadoCreater, tooltip: str, multiple: bool, callback: Callable,
+def create_refimage(parent: YadoCreater, tooltip: str, multiple: bool, callback: Callable[[str], None],
                     setsize: bool = True) -> wx.Button:
     """イメージファイルの選択ダイアログを開く。"""
     tip = "画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*"

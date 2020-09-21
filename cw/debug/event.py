@@ -7,13 +7,15 @@ import wx
 
 import cw
 
+from typing import Callable, Optional, Tuple
+
 
 # ------------------------------------------------------------------------------
 # イベント選択ダイアログ
 # ------------------------------------------------------------------------------
 
 class EventListDialog(wx.Dialog):
-    def __init__(self, parent, currentfpath, showhiddencards):
+    def __init__(self, parent: wx.TopLevelWindow, currentfpath: str, showhiddencards: bool) -> None:
         wx.Dialog.__init__(self, parent, -1, "イベントの選択",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -35,7 +37,7 @@ class EventListDialog(wx.Dialog):
         self._bind()
         self._do_layout()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.events, 1, flag=wx.EXPAND)
         sizer_left.Add(self.showallcards, 0, flag=wx.EXPAND | wx.TOP, border=cw.ppis(5))
@@ -54,14 +56,14 @@ class EventListDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_CHECKBOX, self.OnShowAllCards, self.showallcards)
         self.Bind(wx.EVT_BUTTON, self.OnOpenBtn, self.openbtn)
         self.Bind(wx.EVT_BUTTON, self.OnStartBtn, self.startbtn)
         self.events.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
         self.events.Bind(wx.EVT_LEFT_DCLICK, self.OnOpenBtn)
 
-    def _changed_selection(self):
+    def _changed_selection(self) -> None:
         if self.events.get_selectedevent():
             self.openbtn.Enable()
             self.startbtn.Enable()
@@ -69,23 +71,23 @@ class EventListDialog(wx.Dialog):
             self.openbtn.Disable()
             self.startbtn.Disable()
 
-    def OnTreeSelChanged(self, event):
+    def OnTreeSelChanged(self, event: wx.TreeEvent) -> None:
         if not self:
             return
         self._changed_selection()
 
-    def OnShowAllCards(self, event):
+    def OnShowAllCards(self, event: wx.CommandEvent) -> None:
         self.showhiddencards = self.showallcards.GetValue()
         self.events.set_showallcards(self.showhiddencards)
         self._changed_selection()
 
-    def OnStartBtn(self, event):
+    def OnStartBtn(self, event: wx.CommandEvent) -> None:
         if self.events.get_selectedevent():
             cw.cwpy.play_sound("signal")
             self.start_event = True
             self.EndModal(wx.ID_OK)
 
-    def OnOpenBtn(self, event):
+    def OnOpenBtn(self, event: wx.CommandEvent) -> None:
         if self.events.get_selectedevent():
             cw.cwpy.play_sound("signal")
             self.start_event = False
@@ -101,7 +103,8 @@ class EventList(wx.TreeCtrl):
     選択できるようにする。
     """
 
-    def __init__(self, parent, size, currentfpath, showhiddencards):
+    def __init__(self, parent: EventListDialog, size: Tuple[int, int], currentfpath: str,
+                 showhiddencards: bool) -> None:
         """イベントリストのインスタンスを生成する。
         currentfpath: 最初から選択状態にするエリア等のファイルパス。
         """
@@ -126,7 +129,9 @@ class EventList(wx.TreeCtrl):
         self.SetImageList(self.imglist)
         self.root = self.AddRoot(cw.cwpy.sdata.name)
 
-        def append_item(getids, getname, getdata, getfpath, imgidx):
+        def append_item(getids: Callable[[], str], getname: Callable[[int], str],
+                        getdata: Callable[[int], cw.data.CWPyElement], getfpath: Callable[[int], str],
+                        imgidx: int) -> None:
             keys = getids()
             cw.util.sort_by_attr(keys)
             for resid in keys:
@@ -166,13 +171,13 @@ class EventList(wx.TreeCtrl):
 
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.OnTreeItemExpanded)
 
-    def OnTreeItemExpanded(self, event):
+    def OnTreeItemExpanded(self, event: wx.TreeEvent) -> None:
         self._expand_item(event.GetItem())
 
-    def _expand_item(self, selitem, virtual=False):
+    def _expand_item(self, selitem: wx.TreeItemId, virtual: bool = False) -> None:
         # エリア・バトル・パッケージ・カードに含まれる
         # イベント情報をツリーに追加する
         paritem = self.GetItemParent(selitem)
@@ -184,7 +189,9 @@ class EventList(wx.TreeCtrl):
 
         self.DeleteChildren(selitem)
 
-        def append(parent, data, tag, e_flags=None, e_steps=None, e_variants=None):
+        def append(parent: wx.TreeCtrl, data: cw.data.CWPyElement, tag: str,
+                   e_flags: Optional[cw.data.CWPyElement] = None, e_steps: Optional[cw.data.CWPyElement] = None,
+                   e_variants: Optional[cw.data.CWPyElement] = None) -> None:
             e = cw.event.Event(data)
             e.is_active = False
             if len(e.treekeys) == 0:
@@ -281,7 +288,7 @@ class EventList(wx.TreeCtrl):
         if not self.ItemHasChildren(selitem):
             self.AppendItem(selitem, "読込中...")
 
-    def set_showallcards(self, value):
+    def set_showallcards(self, value: bool) -> None:
         """フラグがオフのカードをリストに表示するか設定する。
         value: Trueの場合はフラグがオフのカードも
                含めてすべてのカードを表示する。
@@ -302,7 +309,7 @@ class EventList(wx.TreeCtrl):
                 item, cookie = self.GetNextChild(self.root, cookie)
             self.Thaw()
 
-    def get_selectedevent(self):
+    def get_selectedevent(self) -> Optional[cw.event.Event]:
         """選択中のイベントを返す。"""
         selitem = self.GetSelection()
         if not selitem:
@@ -326,7 +333,7 @@ class EventList(wx.TreeCtrl):
 
         return None
 
-    def get_currentfpath(self):
+    def get_currentfpath(self) -> None:
         """選択中のイベントが属するファイルのパスを返す。"""
         selitem = self.GetSelection()
         if not selitem:
@@ -338,3 +345,11 @@ class EventList(wx.TreeCtrl):
 
         _name, resid, _getdata, getfpath, _expanded = self.GetItemData(selitem)
         return getfpath(resid)
+
+
+def main() -> None:
+    pass
+
+
+if __name__ == "__main__":
+    main()
