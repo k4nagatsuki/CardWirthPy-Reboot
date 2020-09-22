@@ -1584,7 +1584,7 @@ class CWPy(_Singleton, threading.Thread):
             sur = pygame.Surface((w, h)).convert_alpha()
             sur.fill((255, 255, 255, 192))
             self.scr_fullscreen.blit(sur, (x, y))
-            self.draw(clip=self._get_fullclip())
+            self.add_lazydraw(clip=self._get_fullclip())
 
     def _get_fullclip(self) -> pygame.Rect:
         return pygame.Rect(cw.s((-self.scr_pos[0], -self.scr_pos[1])), cw.win2scr_s(self.scr_fullscreen.get_size()))
