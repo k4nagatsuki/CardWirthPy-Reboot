@@ -753,7 +753,8 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.init_fullscreenparams()
             self.update_fullscreenbackground()
-            cw.cwpy.frame.exec_func(self.rsrc.update_winscale)
+            self.frame.exec_func(self.rsrc.update_winscale)
+            self.frame.exec_func(self.frame.update_dialogparams)
 
         if self.ydata:
             self.ydata._changed = changed
