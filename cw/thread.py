@@ -1411,7 +1411,7 @@ class CWPy(_Singleton, threading.Thread):
             sprite.frame = 0
             self.animations.remove(sprite)
 
-    def draw_to(self, scr, draw_desc):
+    def draw_to(self, scr: pygame.Surface, draw_desc: bool) -> List[pygame.Rect]:
         dirty_rects = cw.sprite.background.layered_draw_ex(self.cardgrp, scr)
 
         dirty_rects.extend(self.topgrp.draw(scr))
@@ -1426,7 +1426,7 @@ class CWPy(_Singleton, threading.Thread):
 
         return dirty_rects
 
-    def lazy_draw(self):
+    def lazy_draw(self) -> None:
         if self._lazy_draw:
             self.draw()
 
@@ -1437,14 +1437,14 @@ class CWPy(_Singleton, threading.Thread):
             self._lazy_clip = pygame.Rect(clip)
         self._lazy_draw = True
 
-    def stop_the_world_with_iconized(self):
+    def stop_the_world_with_iconized(self) -> None:
         # 一時停止中はゲーム再開までブロックする
         while self.setting.stop_the_world_with_iconized and self.frame.is_iconized and self.is_running():
             self.input(inputonly=True)
             self.get_eventhandler().run()
             self.clock.tick(1000)
 
-    def draw(self, mainloop=False, clip=None):
+    def draw(self, mainloop: bool = False, clip: Optional[pygame.Rect] = None) -> None:
         self.stop_the_world_with_iconized()
         if not (clip or self._lazy_draw):
             return
@@ -1458,9 +1458,9 @@ class CWPy(_Singleton, threading.Thread):
                     clip = self._lazy_clip.union_ip(clip)
             else:
                 clip = self._lazy_clip
-            if clip:
+            if clip and False:
                 if self.scr_fullscreen:
-                    clip = clip.clip(pygame.Rect((-self.scr_pos[0], -self.scr_pos[1]), self.scr_fullscreen.get_size()))
+                    clip = clip.clip(self._get_fullclip())
                 else:
                     clip = clip.clip(cw.s(pygame.Rect(0, 0, cw.SIZE_GAME[0], cw.SIZE_GAME[1])))
             self.scr_draw.set_clip(clip)
@@ -1522,7 +1522,7 @@ class CWPy(_Singleton, threading.Thread):
 
             self.event.eventtimer = 0
 
-    def init_fullscreenparams(self):
+    def init_fullscreenparams(self) -> None:
         """フルスクリーン表示用のパラメータを計算する。"""
         if self.scr_fullscreen:
             fsize = self.scr_fullscreen.get_size()
@@ -1551,7 +1551,7 @@ class CWPy(_Singleton, threading.Thread):
             self.scr_scale = 1.0
             self.scr_pos = (0, 0)
 
-    def update_fullscreenbackground(self):
+    def update_fullscreenbackground(self) -> None:
         if self.scr_fullscreen:
             # 壁紙
             if self.setting.fullscreenbackgroundtype == 0:
@@ -1584,7 +1584,10 @@ class CWPy(_Singleton, threading.Thread):
             sur = pygame.Surface((w, h)).convert_alpha()
             sur.fill((255, 255, 255, 192))
             self.scr_fullscreen.blit(sur, (x, y))
-            self.draw(clip=pygame.Rect((-self.scr_pos[0], -self.scr_pos[1]), self.scr_fullscreen.get_size()))
+            self.draw(clip=self._get_fullclip())
+
+    def _get_fullclip(self) -> pygame.Rect:
+        return pygame.Rect(cw.s((-self.scr_pos[0], -self.scr_pos[1])), cw.win2scr_s(self.scr_fullscreen.get_size()))
 
     def change_cursor(self, name: str = "arrow", force: bool = False) -> None:
         """マウスカーソルを変更する。
