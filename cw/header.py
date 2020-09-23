@@ -1621,7 +1621,7 @@ class PartyHeader(object):
         path = cw.util.splitext(self.fpath)[0] + ".wsl"
         return bool(cw.util.get_yadofilepath(path))
 
-    def get_sceheader(self) -> None:
+    def get_sceheader(self) -> Optional[ScenarioHeader]:
         """
         現在冒険中のシナリオのScenarioHeaderを返す。
         """

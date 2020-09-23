@@ -11,7 +11,7 @@ import wx
 
 import cw
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 
 # ------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ class SelectScenarioDirectory(wx.Dialog):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_SIZE, self.OnResize)
 
-    def create_buttons(self):
+    def create_buttons(self) -> None:
         # OK・キャンセルボタン
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), cw.cwpy.msgs["ok"])
         self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["cancel"])
@@ -152,18 +152,18 @@ class SelectScenarioDirectory(wx.Dialog):
         if selected:
             cw.cwpy.frame.exec_func(self.tree.ScrollTo, selected)
 
-    def OnTreeItemExpanded(self, event):
+    def OnTreeItemExpanded(self, event: wx.TreeEvent) -> None:
         selitem = event.GetItem()
         self._create_treeitems(selitem)
 
-    def OnTreeItemCollapsed(self, event):
+    def OnTreeItemCollapsed(self, event: wx.TreeEvent) -> None:
         if not self.tree.IsShown():
             return
         item = event.GetItem()
         self.tree.DeleteChildren(item)
         self.tree.AppendItem(item, "読込中...")
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         selitem = self.tree.GetSelection()
         if not selitem.IsOk():
             return
@@ -373,8 +373,8 @@ def to_scenarioheaders(paths: List[str], db: cw.scenariodb.Scenariodb, skintype:
     pathsをcw.header.ScenarioHeaderに変換する。
     パスがシナリオか否かの判定にシナリオDBを使用する。
     """
-    headers = {}
-    notscenariofiles = {}
+    headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]] = {}
+    notscenariofiles: Dict[Tuple[str, str], List[str]] = {}
     if not paths:
         return headers, notscenariofiles
 
@@ -386,7 +386,7 @@ def to_scenarioheaders(paths: List[str], db: cw.scenariodb.Scenariodb, skintype:
     allparent = os.path.dirname(paths[0])
 
     for path in paths:
-        def recurse(parent, path, notscenariofiles2):
+        def recurse(parent: str, path: str, notscenariofiles2: Dict[Tuple[str, str], List[str]]) -> bool:
             # pathまたはサブディレクトリにシナリオを持つ場合はTrueを返す
 
             if not link and sys.platform == "win32" and path.lower().endswith(".lnk"):
@@ -477,11 +477,11 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
     dstpath = cw.util.get_linktarget(dstpath)
 
     if not cw.cwpy.setting.install_notscenariofiles:
-        notscenariofiles = {}
+        notscenariofiles: Dict[Tuple[str, str], List[str]] = {}
 
     # インストール済みの情報が見つかったシナリオ
-    db_exists = {}
-    links = []  # ショートカットファイルのリスト
+    db_exists: Dict[str, List[cw.header.ScenarioHeader]] = {}
+    links: List[str] = []  # ショートカットファイルのリスト
 
     headers_len = 0
     for headers_seq in headers.values():
@@ -521,7 +521,9 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                                             "", maximum=headers_len, cancelable=True)
 
     class InstallThread(threading.Thread):
-        def __init__(self, headers, notscenariofiles, dstpath, db_repls):
+        def __init__(self, headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
+                     notscenariofiles: Dict[Tuple[str, str], List[str]], dstpath: str,
+                     db_repls: Dict[str, List[str]]) -> None:
             threading.Thread.__init__(self)
             self.headers = headers
             self.notscenariofiles = notscenariofiles
@@ -530,14 +532,14 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
             self.num = 0
             self.msg = ""
             self.failed = None
-            self.updates = set()
-            self.paths = []
-            self.filepaths = []
-            self.repl_links = {}
+            self.updates: Set[str] = set()
+            self.paths: List[str] = []
+            self.filepaths: List[str] = []
+            self.repl_links: Dict[str, str] = {}
 
-        def run(self):
+        def run(self) -> None:
             dstpath = cw.util.get_keypath(self.dstpath)
-            allret = [None]
+            allret: List[Optional[int]] = [None]
             for (_parent, relparent), headers_seq in self.headers.items():
                 self._install(relparent, headers_seq, dstpath, allret)
             for (_parent, relparent), files_seq in self.notscenariofiles.items():
@@ -549,10 +551,11 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                     if not (relparent in ("", ".") or relparent.startswith(".." + os.path.sep)):
                         cw.util.remove_emptydir(parent)
 
-        def _confirm_overwrite(self, dlg, s, allret):
+        def _confirm_overwrite(self, dlg: cw.dialog.progress.ProgressDialog, s: str,
+                               allret: List[Optional[int]]) -> int:
             from . import message
 
-            def func():
+            def func() -> int:
                 choices = (
                     ("置換", wx.ID_YES, cw.wins(80)),
                     ("名前変更", wx.ID_DUPLICATE, cw.wins(80)),
@@ -574,7 +577,8 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                 ret = allret[0]
             return ret
 
-        def _install(self, parent, headers_seq, dstpath, allret):
+        def _install(self, parent: str, headers_seq: Iterable[cw.header.ScenarioHeader], dstpath: str,
+                     allret: List[Optional[int]]) -> None:
             if parent == ".":
                 parent = ""
             for header in headers_seq:
@@ -656,7 +660,8 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                     self.failed = header
                     break
 
-        def _install_files(self, parent, files_seq, dstpath, allret):
+        def _install_files(self, parent: str, files_seq: Iterable[str], dstpath: str,
+                           allret: List[Optional[int]]) -> None:
             if parent == ".":
                 parent = ""
             for fpath in files_seq:
@@ -730,7 +735,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
     thread = InstallThread(headers, notscenariofiles, dstpath, db_repls)
     thread.start()
 
-    def progress():
+    def progress() -> None:
         while thread.is_alive():
             wx.CallAfter(dlg.UpdateProgress, thread.num, thread.msg)
             time.sleep(0.001)
@@ -766,7 +771,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
     return thread.failed, thread.paths, thread.filepaths, False
 
 
-def update_scenariolog(normpath, dst, dstisfile):
+def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
     """
     インストールに伴うシナリオの移動を追跡する。
     """
@@ -862,7 +867,7 @@ def update_scenariolog(normpath, dst, dstisfile):
     cw.fsync.sync()
 
 
-def update_scenariolog2(normpath, dst, dstisfile):
+def update_scenariolog2(normpath: str, dst: str, dstisfile: bool) -> None:
     """
     インストールに伴うシナリオの移動を追跡する。
     移動後の処理。
@@ -974,7 +979,7 @@ class OverwriteScenarioDialog(wx.Dialog):
                 self.db_repls[fpath] = repls
         self.EndModal(wx.ID_OK)
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -1034,7 +1039,7 @@ def create_installdesc(headers_seq: List[cw.header.ScenarioHeader]) -> str:
     return desc
 
 
-def main():
+def main() -> None:
     pass
 
 
