@@ -64,7 +64,7 @@ class ProgressDialog(wx.Dialog):
         dc2 = wx.PaintDC(self)
         dc2.DrawBitmap(wxbmp, 0, 0)
 
-    def OnClickCancelBtn(self, event):
+    def OnClickCancelBtn(self, event: wx.CommandEvent) -> None:
         self.cancel = True
 
     def _do_layout(self) -> None:
@@ -149,3 +149,11 @@ class SysProgressDialog(wx.Dialog):
 
         self.SetSizer(sizer_1)
         self.Layout()
+
+
+def main() -> None:
+    pass
+
+
+if __name__ == "__main__":
+    main()

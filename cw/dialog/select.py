@@ -92,7 +92,7 @@ class Select(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickRight2Btn, self.right2btn)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 
-        def empty(event):
+        def empty(event: wx.EraseEvent) -> None:
             pass
         self.toppanel.Bind(wx.EVT_ERASE_BACKGROUND, empty)
         self.toppanel.Bind(wx.EVT_MIDDLE_DOWN, self.OnMouseDown)
@@ -100,7 +100,7 @@ class Select(wx.Dialog):
         self.toppanel.Bind(wx.EVT_MIDDLE_UP, self.OnSelectBase)
         self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnSelectBase)
 
-        def recurse(ctrl):
+        def recurse(ctrl: wx.Control) -> None:
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
                 ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
             for child in ctrl.GetChildren():
@@ -116,7 +116,7 @@ class Select(wx.Dialog):
     def is_processing(self) -> bool:
         return self._processing
 
-    def OnPrevButton(self, event):
+    def OnPrevButton(self, event: wx.CommandEvent) -> None:
         focus = wx.Window.FindFocus()
         buttonlist = [button for button in self.buttonlist if button.IsEnabled()]
         if buttonlist:
@@ -126,7 +126,7 @@ class Select(wx.Dialog):
             else:
                 buttonlist[-1].SetFocus()
 
-    def OnNextButton(self, event):
+    def OnNextButton(self, event: wx.CommandEvent) -> None:
         focus = wx.Window.FindFocus()
         buttonlist = [button for button in self.buttonlist if button.IsEnabled()]
         if buttonlist:
@@ -136,7 +136,7 @@ class Select(wx.Dialog):
             else:
                 buttonlist[0].SetFocus()
 
-    def OnDebugMode(self, event):
+    def OnDebugMode(self, event: wx.CommandEvent) -> None:
         pass
 
     def OnMotion(self, evt: wx.MouseEvent) -> None:
@@ -282,9 +282,9 @@ class Select(wx.Dialog):
         dc.Clear()
         return dc, dest
 
-    def draw(self, update=False):
+    def draw(self, update: bool = False) -> None:
         if not self.toppanel.IsShown():
-            return None
+            return
 
         dc, dest = self.draw2(update)
         self.draw3(dc, dest, update)
@@ -351,7 +351,7 @@ class Select(wx.Dialog):
             else:
                 btn.Enable()
 
-    def can_clickcenter(self):
+    def can_clickcenter(self) -> bool:
         """パネルの中央部分をクリックで決定可能ならTrue。"""
         return True
 
@@ -384,7 +384,7 @@ class Select(wx.Dialog):
         self.narrow.Bind(wx.EVT_TEXT_ENTER, self.OnFind)
         self.narrow_type.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
 
-    def OnFind(self, event):
+    def OnFind(self, event: wx.CommandEvent) -> None:
         pass
 
     def OnNarrowCondition(self, event: wx.CommandEvent) -> None:
@@ -397,14 +397,14 @@ class Select(wx.Dialog):
         if wx.Window.FindFocus() != self.narrow:
             self.toppanel.SetFocus()
 
-        def func():
+        def func() -> None:
             if not self._reserved_narrowconditin:
                 return
             self._on_narrowcondition()
             self._reserved_narrowconditin = False
         wx.CallAfter(func)
 
-    def _on_narrowcondition(self):
+    def _on_narrowcondition(self) -> None:
         pass
 
     def create_addctrlbtn(self, parent: wx.Panel, bg: wx.Bitmap, show: bool) -> None:
@@ -476,7 +476,7 @@ class Select(wx.Dialog):
         self.Refresh()
         self.Thaw()
 
-    def update_narrowcondition(self):
+    def update_narrowcondition(self) -> None:
         pass
 
 
@@ -644,7 +644,7 @@ class MultiViewSelect(Select):
             self.viewbtn.SetLabel(cw.cwpy.msgs["member_list"])
             self.save_views(False)
 
-    def enable_btn(self):
+    def enable_btn(self) -> None:
         pass
 
     def get_page(self) -> int:
@@ -653,7 +653,7 @@ class MultiViewSelect(Select):
     def get_pagecount(self) -> int:
         return (len(self.list) + self.views - 1) // self.views
 
-    def save_views(self, multi):
+    def save_views(self, multi: bool) -> None:
         pass
 
 
@@ -821,7 +821,7 @@ class YadoSelect(MultiViewSelect):
 
             seq = []
             for obj in objs:
-                def has_advname():
+                def has_advname() -> bool:
                     for advname in obj.advnames:
                         if narrow in advname.lower():
                             return True
@@ -852,7 +852,7 @@ class YadoSelect(MultiViewSelect):
         self._bg = cw.util.load_wxbmp(path, can_loaded_scaledimage=True)
         return self._bg
 
-    def OnNumberKeyDown(self, event):
+    def OnNumberKeyDown(self, event: wx.KeyEvent) -> None:
         """
         数値キー'1'～'9'までの押下を処理する。
         PlayerSelectではソート条件の変更を行う。
@@ -932,7 +932,7 @@ class YadoSelect(MultiViewSelect):
             self.isshortcuts.append(obj.isshortcut)
             self.imgpaths.append(obj.imgpaths)
 
-    def save_views(self, multi):
+    def save_views(self, multi: bool) -> None:
         cw.cwpy.setting.show_multiplebases = multi
 
     def index_changed(self) -> None:
@@ -985,7 +985,7 @@ class YadoSelect(MultiViewSelect):
         else:
             self.EndModal(wx.ID_OK)
 
-    def OnDropFiles(self, event):
+    def OnDropFiles(self, event: wx.DropFilesEvent) -> None:
         paths = event.GetFiles()
 
         for path in paths:
@@ -1265,7 +1265,7 @@ class YadoSelect(MultiViewSelect):
             self.draw3(dc, dest, update)
             return
 
-        def get_playingbmp():
+        def get_playingbmp() -> wx.Bitmap:
             fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING_YADO"), cw.M_IMG)
             if os.path.isfile(fpath):
                 return cw.wins((cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True),
@@ -1520,7 +1520,7 @@ class YadoSelect(MultiViewSelect):
                 dlg = cw.dialog.progress.ProgressDialog(self, cwdata.name + "の変換", "",
                                                         maximum=100)
 
-                def progress():
+                def progress() -> None:
                     while not thread.complete:
                         wx.CallAfter(dlg.UpdateProgress, cwdata.curnum, cwdata.message)
                         time.sleep(0.001)
@@ -1616,7 +1616,7 @@ class YadoSelect(MultiViewSelect):
             dlg = cw.dialog.progress.ProgressDialog(self, "%sの逆変換" % (yadoname), "",
                                                     maximum=unconv.maxnum)
 
-            def progress():
+            def progress() -> None:
                 while not thread.complete:
                     wx.CallAfter(dlg.UpdateProgress, unconv.curnum, unconv.message)
                     time.sleep(0.001)
@@ -1962,25 +1962,25 @@ class PartySelect(MultiViewSelect):
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
 
-    def _on_narrowcondition(self):
+    def _on_narrowcondition(self) -> None:
         cw.cwpy.setting.parties_narrowtype = self.narrow_type.GetSelection()
         self.update_narrowcondition()
         self.draw(True)
 
-    def OnDebugMode(self, event):
-        def func(self):
+    def OnDebugMode(self, event: wx.CommandEvent) -> None:
+        def func(self: PartySelect) -> None:
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
             cw.cwpy.set_debug(value)
 
-            def func(self):
+            def func(self: PartySelect) -> None:
                 if not self:
                     return
                 self.update_debug()
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)
 
-    def update_debug(self):
+    def update_debug(self) -> None:
         self._on_narrowcondition()
 
     def update_narrowcondition(self) -> None:
@@ -2030,19 +2030,19 @@ class PartySelect(MultiViewSelect):
 
             seq = []
             for header in self.list:
-                def has_membername():
+                def has_membername() -> bool:
                     for mname in header.get_membernames():
                         if narrow in mname.lower():
                             return True
                     return False
 
-                def has_memberdesc():
+                def has_memberdesc() -> bool:
                     for mdesc in header.get_memberdescs():
                         if narrow in mdesc.lower():
                             return True
                     return False
 
-                def has_memberhistory():
+                def has_memberhistory() -> bool:
                     for coupons in header.get_membercoupons():
                         for coupon in coupons:
                             if coupon:
@@ -2057,7 +2057,7 @@ class PartySelect(MultiViewSelect):
                                     return True
                     return False
 
-                def has_memberfeatures():
+                def has_memberfeatures() -> bool:
                     for coupons in header.get_membercoupons():
                         for coupon in coupons:
                             if coupon and coupon[0] == "＿":
@@ -2067,7 +2067,7 @@ class PartySelect(MultiViewSelect):
                                         return True
                     return False
 
-                def has_memberlevel():
+                def has_memberlevel() -> bool:
                     if intnarrow is None:
                         return False
                     maxlevel = max(*header.get_memberlevels())
@@ -2100,7 +2100,7 @@ class PartySelect(MultiViewSelect):
         self._bg = cw.util.load_wxbmp(path, can_loaded_scaledimage=True)
         return self._bg
 
-    def OnNumberKeyDown(self, event):
+    def OnNumberKeyDown(self, event: wx.KeyEvent) -> None:
         """
         数値キー'1'～'9'までの押下を処理する。
         PlayerSelectではソート条件の変更を行う。
@@ -2115,7 +2115,7 @@ class PartySelect(MultiViewSelect):
                 event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.sort.GetId())
                 self.ProcessEvent(event)
 
-    def OnSort(self, event):
+    def OnSort(self, event: wx.CommandEvent) -> None:
         if self._processing:
             return
 
@@ -2138,7 +2138,7 @@ class PartySelect(MultiViewSelect):
             self.update_narrowcondition()
             self.draw(True)
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
             return
 
@@ -2175,8 +2175,8 @@ class PartySelect(MultiViewSelect):
             return
         partyheader = self.list[self.index]
 
-        def redrawfunc():
-            def func():
+        def redrawfunc() -> None:
+            def func() -> None:
                 header = self.list[self.index]
                 header = cw.cwpy.ydata.create_partyheader(header.fpath)
                 header.data = partyheader.data
@@ -2242,7 +2242,12 @@ class PartySelect(MultiViewSelect):
             self.draw3(dc, dest, update)
             return
 
-        def get_image(header):
+        # bmp, bmp_noscale, bmp2, sceheader, imgpaths
+        def get_image(header: cw.header.PartyHeader) -> Tuple[List[wx.Bitmap],
+                                                              List[wx.Bitmap],
+                                                              List[wx.Bitmap],
+                                                              Optional[cw.header.ScenarioHeader],
+                                                              List[cw.image.ImageInfo]]:
             sceheader = header.get_sceheader()
 
             if sceheader:
@@ -2600,20 +2605,20 @@ class PlayerSelect(MultiViewSelect):
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
 
-    def OnDebugMode(self, event):
-        def func(self):
+    def OnDebugMode(self, event: wx.CommandEvent) -> None:
+        def func(self: PlayerSelect) -> None:
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
             cw.cwpy.set_debug(value)
 
-            def func(self):
+            def func(self: PlayerSelect) -> None:
                 if not self:
                     return
                 self.update_debug()
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)
 
-    def update_debug(self):
+    def update_debug(self) -> None:
         self._on_narrowcondition()
 
     def _on_narrowcondition(self) -> None:
@@ -2671,7 +2676,7 @@ class PlayerSelect(MultiViewSelect):
 
             seq = []
             for header in self.list:
-                def has_history():
+                def has_history() -> bool:
                     for coupon in header.history:
                         if coupon:
                             if cw.cwpy.is_debugmode():
@@ -2685,7 +2690,7 @@ class PlayerSelect(MultiViewSelect):
                                 return True
                     return False
 
-                def has_features():
+                def has_features() -> bool:
                     for coupon in header.history:
                         if coupon and coupon[0] == "＿":
                             coupon = coupon[1:]
@@ -2711,7 +2716,7 @@ class PlayerSelect(MultiViewSelect):
             self.index = 0
         self.enable_btn()
 
-    def OnNumberKeyDown(self, event):
+    def OnNumberKeyDown(self, event: wx.KeyEvent) -> None:
         """
         数値キー'1'～'9'までの押下を処理する。
         PlayerSelectではソート条件の変更を行う。
@@ -2743,7 +2748,7 @@ class PlayerSelect(MultiViewSelect):
         else:
             self._enable_btn(disables)
 
-    def OnSort(self, event):
+    def OnSort(self, event: wx.CommandEvent) -> None:
         if self._processing:
             return
         if self.isalbum:
@@ -2767,7 +2772,7 @@ class PlayerSelect(MultiViewSelect):
     def can_clickcenter(self) -> bool:
         return self.addbtn.IsEnabled() or not cw.cwpy.ydata.standbys
 
-    def OnLeftDClick(self, event):
+    def OnLeftDClick(self, event: wx.MouseEvent) -> None:
         # 一覧表示の場合はダブルクリックで編入
         if self._processing:
             return
@@ -2822,7 +2827,7 @@ class PlayerSelect(MultiViewSelect):
         else:
             self._create_normal()
 
-    def _create_normal(self):
+    def _create_normal(self) -> None:
         dlg = cw.dialog.create.AdventurerCreater(self)
         cw.cwpy.frame.move_dlg(dlg)
         self._create_common(dlg)
@@ -2846,13 +2851,13 @@ class PlayerSelect(MultiViewSelect):
 
         dlg.Destroy()
 
-    def get_selected(self):
+    def get_selected(self) -> Optional[cw.header.AdventurerHeader]:
         if self.list:
             return self.list[self.index]
         else:
             return None
 
-    def update_standbys(self, selected):
+    def update_standbys(self, selected: cw.header.AdventurerHeader) -> None:
         self.update_narrowcondition()
 
         if selected and selected in self.list:
@@ -2875,9 +2880,9 @@ class PlayerSelect(MultiViewSelect):
 
         header = self.list[self.index]
 
-        def func(self, header, index):
+        def func(self: PlayerSelect, header: cw.header.AdventurerHeader, index: int) -> None:
             if PlayerSelect._add(header):
-                def func(self):
+                def func(self: PlayerSelect) -> None:
                     if self:
                         self._processing = False
                         self.update_narrowcondition()
@@ -2890,14 +2895,14 @@ class PlayerSelect(MultiViewSelect):
                         self._update_mousepos()
                 cw.cwpy.frame.exec_func(func, self)
             else:
-                def func(self):
+                def func(self: PlayerSelect) -> None:
                     if self:
                         self._processing = False
                 cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self, header, self.index)
 
     @staticmethod
-    def _add(header):
+    def _add(header: cw.header.AdventurerHeader) -> bool:
         assert threading.currentThread() == cw.cwpy
         if cw.cwpy.ydata.party:
             if len(cw.cwpy.ydata.party.members) < 6:
@@ -3062,16 +3067,16 @@ class PlayerSelect(MultiViewSelect):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def random_team(self):
+    def random_team(self) -> None:
         """ランダムな編成のチームを組む。
         """
         if self._processing:
             return
         self._processing = True
 
-        def func(panel):
+        def func(panel: PartySelect) -> None:
             class Pocket(object):
-                def __init__(self, header, point):
+                def __init__(self, header: cw.header.AdventurerHeader, point: int) -> None:
                     self.header = header
                     self.point = point
 
@@ -3090,7 +3095,7 @@ class PlayerSelect(MultiViewSelect):
                     cw.util.sort_by_attr(seq2, "point")
                     PlayerSelect._add(seq2[0].header)
 
-            def func(panel):
+            def func(panel: PartySelect) -> None:
                 if panel:
                     panel._processing = False
                     panel.update_narrowcondition()
@@ -3129,7 +3134,7 @@ class PlayerSelect(MultiViewSelect):
         sex = header.get_sex()
         randomname = cw.dialog.create.get_randomname(sex)
 
-        def random_name():
+        def random_name() -> str:
             return cw.dialog.create.get_randomname(sex)
         addition = cw.cwpy.msgs["auto"] if cw.cwpy.setting.show_autobuttoninentrydialog else ""
         addition_func = random_name if cw.cwpy.setting.show_autobuttoninentrydialog else None
@@ -3176,7 +3181,7 @@ class PlayerSelect(MultiViewSelect):
         dlg.Destroy()
 
     def update_character(self) -> None:
-        def func():
+        def func() -> None:
             header = self.list[self.index]
             order = header.order
             if self.isalbum:
@@ -3194,7 +3199,7 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.frame.exec_func(self.draw, True)
         cw.cwpy.exec_func(func)
 
-    def calc_needs(self, mlist):
+    def calc_needs(self, mlist: cw.header.AdventurerHeader) -> Tuple[int, cw.header.AdventurerHeader]:
         """mlist内のメンバに対して、現在のパーティの構成から
         パーティにおける必要度を計算する。
         レベルが近く、同型のメンバが少ないほど必要度が高くなる。
@@ -3479,13 +3484,13 @@ class Album(PlayerSelect):
     def can_clickcenter(self) -> bool:
         return False
 
-    def OnMouseWheel(self, event):
+    def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         Select.OnMouseWheel(self, event)
 
     def _add_topsizer(self) -> None:
         pass
 
-    def update_narrowcondition(self):
+    def update_narrowcondition(self) -> None:
         pass
 
     def OnClickDelBtn(self, event: wx.CommandEvent) -> None:
@@ -3543,7 +3548,7 @@ def change_combo(combo: wx.Choice, event: wx.MouseEvent) -> bool:
         return False
 
 
-def main():
+def main() -> None:
     pass
 
 

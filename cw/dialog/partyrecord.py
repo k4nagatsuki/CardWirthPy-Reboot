@@ -56,7 +56,7 @@ class SelectPartyRecord(select.Select):
 
         self.draw(True)
 
-    def OnSelect(self, event):
+    def OnSelect(self, event: wx.Event) -> None:
         if not self.list[self.index] or not self.restorebtn.IsEnabled():
             return
 
@@ -85,7 +85,7 @@ class SelectPartyRecord(select.Select):
             return
         dlg.Destroy()
 
-        def func(panel, header, index):
+        def func(panel: SelectPartyRecord, header: Optional[cw.header.PartyRecordHeader], index: int) -> None:
             cw.cwpy.play_sound("harvest")
             partyrecord = cw.cwpy.get_partyrecord()
             if header:
@@ -93,7 +93,7 @@ class SelectPartyRecord(select.Select):
             else:
                 header = cw.cwpy.ydata.add_partyrecord(partyrecord)
 
-            def func(panel, header):
+            def func(panel: SelectPartyRecord, header: cw.header.PartyRecordHeader) -> None:
                 if panel:
                     panel.list = cw.cwpy.ydata.partyrecord[:]
                     panel.list.append(None)
@@ -123,14 +123,17 @@ class SelectPartyRecord(select.Select):
                 return
             dlg.Destroy()
 
-        def func(header, panel, parent, selected):
+        def func(header: cw.header.PartyRecordHeader, panel: SelectPartyRecord,
+                 parent: Union[select.PlayerSelect, select.PartySelect],
+                 selected: Optional[cw.header.AdventurerHeader, cw.header.PartyHeader]) -> None:
             cw.cwpy.play_sound("harvest")
             updatelist = bool(cw.cwpy.ydata.party)
             if updatelist:
                 cw.cwpy.save_partyrecord()
             cw.cwpy.ydata.restore_party(header)
 
-            def func(panel, parent, selected, updatelist):
+            def func(panel: SelectPartyRecord, parent: Union[select.PlayerSelect, select.PartySelect],
+                     selected: Optional[cw.header.AdventurerHeader, cw.header.PartyHeader], updatelist: bool) -> None:
                 if panel and updatelist:
                     header = panel.list[panel.index]
                     panel.list = cw.cwpy.ydata.partyrecord[:]
@@ -176,14 +179,14 @@ class SelectPartyRecord(select.Select):
 
         cw.cwpy.play_sound("dump")
 
-        def func(header):
+        def func(header: cw.header.PartyRecordHeader) -> None:
             cw.cwpy.ydata.remove_partyrecord(header)
         cw.cwpy.exec_func(func, header)
         self.list.remove(header)
         self.index = max(0, min(self.index, len(self.list)-2))
         if 1 < len(self.list) or cw.cwpy.ydata.party:
-            def func(panel):
-                def func(panel):
+            def func(panel: SelectPartyRecord) -> None:
+                def func(panel: SelectPartyRecord) -> None:
                     panel.restorable = [None]*len(panel.list)
                     panel.draw(True)
                 cw.cwpy.frame.exec_func(func, panel)
@@ -372,3 +375,11 @@ class SelectPartyRecord(select.Select):
 
         if update:
             self.enable_btn()
+
+
+def main() -> None:
+    pass
+
+
+if __name__ == "__main__":
+    main()
