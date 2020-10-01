@@ -1414,6 +1414,8 @@ class Frame(wx.Frame):
 
         def recurse(win):
             for child in win.GetChildren():
+                if not child.IsShown():
+                    continue
                 if not hasattr(child, "cwpy_debug"):
                     continue
                 if child.IsTopLevel() and not child.IsIconized() and\
