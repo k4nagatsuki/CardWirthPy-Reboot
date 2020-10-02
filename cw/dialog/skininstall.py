@@ -71,7 +71,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
         switch_skin = False
     cw.cwpy.frame.kill_dlg(dlg)
 
-    def change_cursor(cursor):
+    def change_cursor(cursor: str) -> None:
         cw.cwpy.exec_func(cw.cwpy.change_cursor, cursor, force=True)
     oldcursor = cw.cwpy.cursor
     change_cursor("wait")
@@ -83,7 +83,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
         progmax += 1
 
     class ProgressObj(object):
-        def __init__(self):
+        def __init__(self) -> None:
             self.msg = ""
             self.value = 0
             self.maximum = progmax
@@ -94,11 +94,11 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
     lock = threading.Lock()
 
     @synclock(lock)
-    def progress(msg, progress=1):
+    def progress(msg, progress: int = 1) -> None:
         obj.value += progress
         obj.msg = msg
 
-    def run():
+    def run() -> None:
         tempdir = "Data/Temp/SkinInstall"
         if not os.path.isdir(tempdir):
             os.makedirs(tempdir)
@@ -185,7 +185,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
                             etree.write()
             cw.fsync.sync()
 
-            def func(newskin, restartop):
+            def func(newskin: str, restartop: bool) -> None:
                 progress("スキンの切り替えを行っています...")
                 if newskin:
                     if cw.cwpy.ydata:
@@ -212,7 +212,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
                             cw.util.print_ex(file=sys.stderr)
                 change_cursor(oldcursor)
 
-                def func():
+                def func() -> None:
                     progress("スキンのインストールが完了しました。")
                     progdlg.Destroy()
                 cw.cwpy.frame.exec_func(func)
@@ -238,7 +238,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
     progdlg = cw.dialog.progress.SysProgressDialog(parent, "スキンのインストール",
                                                    "", maximum=obj.maximum)
 
-    def progress_run():
+    def progress_run() -> None:
         while thread.is_alive():
             wx.CallAfter(progdlg.UpdateProgress, obj.value, obj.msg)
             time.sleep(0.001)
@@ -257,7 +257,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
     return obj.installed_skindirnames
 
 
-def main():
+def main() -> None:
     pass
 
 

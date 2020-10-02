@@ -11,7 +11,7 @@ import pygame
 
 import cw
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Iterable, List, Optional, Sequence, Tuple, Union
 
 
 # build_exe.pyによって作られる一時モジュール
@@ -49,7 +49,7 @@ def apply_levelupparams(can_levelup: bool) -> None:
     """レベル調節に関する状況が変わった時に呼び出され、
     レベルアップ不可→可能になった時にレベル上昇処理を行う。
     """
-    def check_levelup(can_levelup_old):
+    def check_levelup(can_levelup_old: bool) -> None:
         if cw.cwpy.is_playingscenario():
             return
 
@@ -157,6 +157,8 @@ class SettingsDialog(wx.Dialog):
 
 
 class SimpleSettingsPanel(wx.Panel):
+    versioninfo: str
+
     def __init__(self, parent: SettingsDialog) -> None:
         wx.Panel.__init__(self, parent, -1)
 
@@ -213,8 +215,8 @@ class SimpleSettingsPanel(wx.Panel):
         if sys.platform == "win32":
             # FIXME: クローズしながらスキンを切り替えると時々エラーになる
             #        原因不明の不具合があるので、ダイアログのクローズを遅延する
-            def func(self):
-                def func(self):
+            def func(self: SimpleSettingsPanel) -> None:
+                def func(self: SimpleSettingsPanel) -> None:
                     if self:
                         self.Parent.Close()
                 cw.cwpy.frame.exec_func(func, self)
@@ -223,7 +225,7 @@ class SimpleSettingsPanel(wx.Panel):
         else:
             self.Parent.Close()
 
-    def OnApply(self, event):
+    def OnApply(self, event: wx.CommandEvent) -> None:
         self.apply()
 
     def apply(self) -> None:
@@ -262,7 +264,7 @@ class SimpleSettingsPanel(wx.Panel):
 
         self.GetTopLevelParent().clear_applied()
 
-    def OnClose(self, event):
+    def OnClose(self, event: wx.CloseEvent) -> None:
         self.Parent.Close()
 
     def close(self) -> None:
@@ -318,6 +320,8 @@ class SimpleSettingsPanel(wx.Panel):
 
 
 class SettingsPanel(wx.Panel):
+    versioninfo: str
+
     def __init__(self, parent: SettingsDialog) -> None:
         wx.Panel.__init__(self, parent, pos=(-1024, -1024))
         self.SetDoubleBuffered(True)
@@ -441,8 +445,8 @@ class SettingsPanel(wx.Panel):
         if sys.platform == "win32":
             # FIXME: クローズしながらスキンを切り替えると時々エラーになる
             #        原因不明の不具合があるので、ダイアログのクローズを遅延する
-            def func(self):
-                def func(self):
+            def func(self: SettingsPanel) -> None:
+                def func(self: SettingsPanel) -> None:
                     if self:
                         self.Parent.Close()
                 cw.cwpy.frame.exec_func(func, self)
@@ -451,7 +455,7 @@ class SettingsPanel(wx.Panel):
         else:
             self.Parent.Close()
 
-    def OnApply(self, event):
+    def OnApply(self, event: wx.CommandEvent) -> None:
         self.apply(cw.cwpy.setting)
 
     def apply(self, setting: cw.setting.Setting) -> None:
@@ -526,7 +530,7 @@ class SettingsPanel(wx.Panel):
         value = self.pane_gene.sc_backlogmax.GetValue()
         if value != setting.backlogmax:
             if update:
-                def func(backlogmax):
+                def func(backlogmax: int) -> None:
                     cw.cwpy.set_backlogmax(backlogmax)
                 cw.cwpy.exec_func(func, value)
                 updatestatusbar = True
@@ -563,7 +567,7 @@ class SettingsPanel(wx.Panel):
             else:
                 setting.cursor_type = cw.setting.CURSOR_BLACK
             if update:
-                def func():
+                def func() -> None:
                     cw.cwpy.change_cursor(cw.cwpy.cursor, force=True)
                 cw.cwpy.exec_func(func)
 
@@ -601,7 +605,7 @@ class SettingsPanel(wx.Panel):
             sfonts2 = [(sfont[0], sfont[2]/100.0) for sfont in setting.soundfonts if sfont[1]]
             setting.soundfonts = soundfonts
             if update and sfonts1 != sfonts2:
-                def func():
+                def func() -> None:
                     if cw.bassplayer.is_alivable():
                         if cw.bassplayer.change_soundfonts(sfonts1):
                             for music in cw.cwpy.music:
@@ -636,7 +640,7 @@ class SettingsPanel(wx.Panel):
             cw.cwpy.exec_func(cw.cwpy.update_curtainstyle)
 
         if update and updatefullscreen:
-            def func1():
+            def func1() -> None:
                 cw.cwpy.update_fullscreenbackground()
 
             cw.cwpy.exec_func(func1)
@@ -665,7 +669,7 @@ class SettingsPanel(wx.Panel):
         if value != setting.write_playlog:
             setting.write_playlog = value
 
-            def func():
+            def func() -> None:
                 cw.cwpy.advlog.enable(setting.write_playlog)
             cw.cwpy.exec_func(func)
         value = self.pane_scenario.cb_can_installscenariofromdrop.GetValue()
@@ -758,7 +762,7 @@ class SettingsPanel(wx.Panel):
             if not value and setting.last_cardpocket == cw.POCKET_PERSONAL:
                 setting.last_cardpocket = cw.POCKET_SKILL
 
-            def func():
+            def func() -> None:
                 if cw.cwpy.ydata and cw.cwpy.ydata.party:
                     cw.cwpy.ydata.party.sort_backpack()
                 if cw.cwpy.areaid in cw.AREAS_TRADE and cw.cwpy.selectedheader:
@@ -798,7 +802,7 @@ class SettingsPanel(wx.Panel):
             setting.show_roundautostartbutton = value
             updatestatusbar = True
             if update and not setting.show_roundautostartbutton:
-                def func():
+                def func() -> None:
                     if cw.cwpy.is_playingscenario():
                         cw.cwpy.sdata.autostart_round = False
                 cw.cwpy.exec_func(func)
@@ -810,7 +814,7 @@ class SettingsPanel(wx.Panel):
         if setting.protect_premiercard != value:
             setting.protect_premiercard = value
 
-            def func():
+            def func() -> None:
                 if cw.cwpy.selectedheader:
                     cw.cwpy.remove_pricesprites()
                     cw.data.redraw_cards(cw.cwpy.is_debugmode())
@@ -823,7 +827,7 @@ class SettingsPanel(wx.Panel):
 
         # 背景の更新
         if update and updatebg:
-            def func():
+            def func() -> None:
                 if cw.cwpy.is_playingscenario():
                     cw.cwpy.sdata.resource_cache = {}
                 cw.cwpy.background.reload()
@@ -831,7 +835,7 @@ class SettingsPanel(wx.Panel):
 
         # イメージの更新
         if update and (updatecardimg or updatemcardimg):
-            def func():
+            def func() -> None:
                 for ccard in cw.cwpy.get_pcards("unreversed"):
                     ccard.update_image()
                 if updatemcardimg:
@@ -847,7 +851,7 @@ class SettingsPanel(wx.Panel):
 
         # ステータスバーの更新
         if update and updatestatusbar:
-            def func():
+            def func() -> None:
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
             cw.cwpy.exec_func(func)
 
@@ -972,7 +976,7 @@ class SkinPanel(wx.Panel):
         self._choice_skin(applied=applied)
         self.ch_skin.Thaw()
 
-    def load_allskins(self):
+    def load_allskins(self) -> None:
         for skin in self.skindirs:
             self._load_skinproperties(skin)
 
@@ -1016,13 +1020,13 @@ class SkinPanel(wx.Panel):
         if not init and applied:
             self.GetTopLevelParent().applied()
 
-    def _get_localsettings(self):
+    def _get_localsettings(self) -> cw.setting.LocalSetting:
         local = cw.setting.LocalSetting()
         self.GetTopLevelParent().panel.pane_draw.apply_localsettings(local)
         self.GetTopLevelParent().panel.pane_font.apply_localsettings(local)
         return local
 
-    def OnInstallSkin(self, event):
+    def OnInstallSkin(self, event: wx.CommandEvent) -> None:
         pardlg = self.GetTopLevelParent()
         wildcard = "スキンファイル (*.zip; *.lzh; *.cab; Skin.xml)|*.zip;*.lzh;*.cab;Skin.xml"
         dlg = wx.FileDialog(pardlg, "インストールするスキンを選択", wildcard=wildcard,
@@ -1032,7 +1036,7 @@ class SkinPanel(wx.Panel):
             dlg.Destroy()
             pardlg.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
 
-            def validate_path(path):
+            def validate_path(path: str) -> str:
                 if os.path.basename(path) == "Skin.xml":
                     path = os.path.dirname(path)
                 d1 = cw.util.get_keypath(cw.util.get_symlinktarget(os.path.dirname(path)))
@@ -1048,8 +1052,8 @@ class SkinPanel(wx.Panel):
             if installed_skininfos:
                 skindirname, _name, _author, skintype, _is_archive = installed_skininfos[0]
 
-                def func(self):
-                    def func(self):
+                def func(self: SkinPanel) -> None:
+                    def func(self: SkinPanel) -> None:
                         if not self:
                             return
                         if skintype != cw.cwpy.setting.skintype and not self.cb_show_allskin.GetValue():
@@ -1063,7 +1067,7 @@ class SkinPanel(wx.Panel):
         else:
             dlg.Destroy()
 
-    def OnConvertSkin(self, event):
+    def OnConvertSkin(self, event: wx.CommandEvent) -> None:
         dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe="", from_settings=True,
                                                   get_localsettings=self._get_localsettings)
         cw.cwpy.frame.move_dlg(dlg)
@@ -1076,7 +1080,7 @@ class SkinPanel(wx.Panel):
                 self.pane_scenario.celleditor = None
         dlg.Destroy()
 
-    def OnEditSkin(self, event):
+    def OnEditSkin(self, event: wx.CommandEvent) -> None:
         skin = self.skindirs[self.ch_skin.GetSelection()]
         skinsummary = self.skin_summarys[skin]
         dlg = cw.dialog.skin.SkinEditDialog(self.TopLevelParent, skin, skinsummary,
@@ -1097,7 +1101,7 @@ class SkinPanel(wx.Panel):
         self.GetTopLevelParent().panel.pane_font.sc_example.SetValue(pixelsize)
         self.GetTopLevelParent().panel.pane_font.update_example()
 
-    def OnCopySkin(self, event):
+    def OnCopySkin(self, event: wx.CommandEvent) -> None:
         index = self.ch_skin.GetSelection()
         skin = self.skindirs[index]
         name = self.skins[index]
@@ -1115,7 +1119,7 @@ class SkinPanel(wx.Panel):
             self.TopLevelParent.SetCursor(wx.NullCursor)
             cw.cwpy.play_sound("harvest")
 
-    def OnDeleteSkin(self, event):
+    def OnDeleteSkin(self, event: wx.CommandEvent) -> None:
         index = self.ch_skin.GetSelection()
         skin = self.skindirs[index]
         name = self.skins[index]
@@ -1132,7 +1136,7 @@ class SkinPanel(wx.Panel):
                 self.pane_scenario.celleditor = None
             cw.cwpy.play_sound("dump")
 
-    def OnShowAllSkin(self, event):
+    def OnShowAllSkin(self, event: wx.CommandEvent) -> None:
         skin = self.skindirs[self.ch_skin.GetSelection()]
         self.update_skins(skin, applied=False)
 
@@ -1317,7 +1321,7 @@ class ExpandPanel(wx.Panel):
         if str(value) != str(setting.expandmode) or expanddrawing != setting.expanddrawing:
             if update and cw.cwpy.is_expanded():
                 # 設定が変更されたので拡大状態を切り替え
-                def func(value):
+                def func(value: Union[str, float, int]) -> None:
                     cw.cwpy.setting.expandmode = value
                     cw.cwpy.setting.expanddrawing = expanddrawing
                     if value == "FullScreen":
@@ -1523,7 +1527,7 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_sswithstatusbar.SetValue(setting.sswithstatusbar)
         self.expand.load(setting)
 
-    def init_values(self, setting):
+    def init_values(self, setting: cw.setting.Setting) -> None:
         self.cb_show_tiles.SetValue(setting.show_tiles_init)
         self.cb_enabled_right_flick.SetValue(setting.enabled_right_flick_init)
         self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick_init)
@@ -1562,7 +1566,7 @@ class GeneralSettingPanel(wx.Panel):
         self.tx_ssinfobackimage.SetValue(setting.ssinfobackimage_init)
         self.cb_sswithstatusbar.SetValue(setting.sswithstatusbar_init)
 
-    def OnSSTool(self, event):
+    def OnSSTool(self, event: wx.CommandEvent) -> None:
         if self.ti_ssins.GetId() == event.GetId():
             self.sstoolbar.PopupMenu(self.ssinsmenu)
         else:
@@ -1578,7 +1582,7 @@ class GeneralSettingPanel(wx.Panel):
                     else:
                         tx.WriteText("%%%s%%" % (p))
 
-    def OnSSFocus(self, event):
+    def OnSSFocus(self, event: wx.FocusEvent) -> None:
         self._ss_focus()
         event.Skip()
 
@@ -1586,10 +1590,10 @@ class GeneralSettingPanel(wx.Panel):
         enable = wx.Window.FindFocus() in self.ss_tx
         self.sstoolbar.Enable(enable)
 
-    def OnAutoSavePartyRecord(self, event):
+    def OnAutoSavePartyRecord(self, event: wx.CommandEvent) -> None:
         self.cb_overwritepartyrecord.Enable(self.cb_autosavepartyrecord.GetValue())
 
-    def OnInitMoneyIsInitialCash(self, event):
+    def OnInitMoneyIsInitialCash(self, event: wx.CommandEvent) -> None:
         self.sc_initmoneyamount.Enable(not self.cb_initmoneyisinitialcash.GetValue())
 
     def _do_layout(self) -> None:
@@ -1783,7 +1787,7 @@ class SpeedPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def OnUseBattleSpeed(self, event):
+    def OnUseBattleSpeed(self, event: wx.CommandEvent) -> None:
         self.sl_deal_battle.Enable(not self.cb_use_battlespeed.GetValue())
 
     def apply_speed(self, setting: cw.setting.Setting) -> bool:
@@ -1937,7 +1941,7 @@ class DrawingSettingPanel(wx.Panel):
 
         self._update_enabled()
 
-    def init_values(self, setting, local):
+    def init_values(self, setting: cw.setting.Setting, local: cw.setting.LocalSetting) -> None:
         if not self._for_local:
             self.cb_smoothing_card_up.SetValue(setting.smoothing_card_up_init)
             self.cb_smoothing_card_down.SetValue(setting.smoothing_card_down_init)
@@ -2164,7 +2168,7 @@ class DrawingSettingPanel(wx.Panel):
         self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
         self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
 
-    def OnImportant(self, event):
+    def OnImportant(self, event: wx.CommandEvent) -> None:
         self._update_enabled()
 
     def _update_enabled(self) -> None:
@@ -2187,11 +2191,11 @@ class DrawingSettingPanel(wx.Panel):
                 self.copybtn.Enable(enbl)
             self.initbtn.Enable(enbl)
 
-    def OnInitValue(self, event):
+    def OnInitValue(self, event: wx.CommandEvent) -> None:
         local = cw.setting.LocalSetting()
         self.init_values(None, local)
 
-    def OnCopyBase(self, event):
+    def OnCopyBase(self, event: wx.CommandEvent) -> None:
         local = self._get_localsettings()
         local.important_draw = True
         self.load(None, local)
@@ -2274,7 +2278,7 @@ class AudioSettingPanel(wx.Panel):
         self.sl_sound.SetValue(n)
         self._init_soundfont(setting.soundfonts)
 
-    def init_values(self, setting):
+    def init_values(self, setting: cw.setting.Setting) -> None:
         self.cb_playbgm.SetValue(setting.play_bgm_init)
         self.cb_playsound.SetValue(setting.play_sound_init)
         self.sl_master.SetValue(int(setting.vol_master_init * 100))
@@ -2544,7 +2548,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.tx_filer_file.SetValue(setting.filer_file)
         self._select_changed_folderoftype()
 
-    def init_values(self, setting):
+    def init_values(self, setting: cw.setting.Setting) -> None:
         self.tx_editor.SetValue(setting.editor_init)
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype_init)
         self.cb_show_paperandtree.SetValue(setting.show_paperandtree_init)
@@ -2617,7 +2621,7 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_application = wx.StaticBoxSizer(self.box_application, wx.VERTICAL)
         gbsizer_application = wx.GridBagSizer()
 
-        def add_application(ctrl, pos, flag):
+        def add_application(ctrl, pos: Tuple[int, int], flag: int) -> None:
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL, 0)
             gbsizer_application.Add(sizer, pos=pos, flag=flag | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(2))
@@ -2643,10 +2647,10 @@ class ScenarioSettingPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def OnGridCellChange(self, event):
+    def OnGridCellChange(self, event: wx.grid.GridEvent) -> None:
         self._grid_cell_change(event.Row, event.Col)
 
-    def _grid_cell_change(self, row, col):
+    def _grid_cell_change(self, row: int, col: int) -> None:
         if col == 0 and row + 1 == self.grid_folderoftype.GetNumberRows() and\
                 self.grid_folderoftype.GetCellValue(row, 0):
             self.grid_folderoftype.AppendRows(1)
@@ -3024,11 +3028,11 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_confirmbeforeusingcard.SetValue(setting.confirm_beforeusingcard_init)
         self.cb_noticeimpossibleaction.SetValue(setting.noticeimpossibleaction_init)
 
-    def OnQuickDeal(self, event):
+    def OnQuickDeal(self, event: wx.CommandEvent) -> None:
         if not self.cb_quickdeal.GetValue():
             self.cb_allquickdeal.SetValue(False)
 
-    def OnAllQuickDeal(self, event):
+    def OnAllQuickDeal(self, event: wx.CommandEvent) -> None:
         if self.cb_allquickdeal.GetValue():
             self.cb_quickdeal.SetValue(True)
 
@@ -3237,7 +3241,8 @@ class FontSettingPanel(wx.Panel):
         self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, "カード名の文字を滑らかにする")
         self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, "ステータスバーの文字を滑らかにする")
 
-        def create_grid(grid, seq, faces, cols, rowlblsize):
+        def create_grid(grid: wx.grid.Grid, seq: Sequence[str], faces: Callable[[str], Iterable[str]], cols: int,
+                        rowlblsize: int) -> List[wx.grid.GridCellChoiceEditor]:
             grid.CreateGrid(len(seq), cols)
             grid.DisableDragRowSize()
             grid.SetSelectionMode(wx.grid.Grid.SelectRows)
@@ -3257,7 +3262,7 @@ class FontSettingPanel(wx.Panel):
         self.base = wx.grid.Grid(self, -1, size=(-1, -1), style=wx.BORDER)
         self.base.SetDoubleBuffered(True)
 
-        def has_defaultfont(name):
+        def has_defaultfont(name: str) -> bool:
             if name == "gothic":
                 fname = "IPAゴシック"
             elif name == "pgothic":
@@ -3270,7 +3275,7 @@ class FontSettingPanel(wx.Panel):
                 fname = "IPA P明朝"
             return fname in faceset
 
-        def faces_from_basefont(name):
+        def faces_from_basefont(name: str) -> Iterable[str]:
             if has_defaultfont(name):
                 return self._fontface_array
             else:
@@ -3284,7 +3289,7 @@ class FontSettingPanel(wx.Panel):
         self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.type.SetDoubleBuffered(True)
 
-        def get_choices(ftype):
+        def get_choices(ftype: str) -> List[str]:
             if ftype in self.msg_exfonttypes:
                 return self._types_with_inherit
             else:
@@ -3354,7 +3359,7 @@ class FontSettingPanel(wx.Panel):
         self.cb_fontsmoothingcardname.SetValue(local.fontsmoothing_cardname)
         self.cb_fontsmoothingstatusbar.SetValue(local.fontsmoothing_statusbar)
 
-        def create_grid(grid, seq):
+        def create_grid(grid: wx.grid.Grid, seq: Iterable[str]) -> None:
             for i, name in enumerate(seq):
                 grid.SetRowLabelValue(i, self.typenames[name])
 
@@ -3445,7 +3450,7 @@ class FontSettingPanel(wx.Panel):
             for col in range(1, 5):
                 self.type.SetCellBackgroundColour(row, col, colour)
 
-    def init_values(self, setting, local):
+    def init_values(self, setting: Optional[cw.setting.Setting], local: cw.setting.LocalSetting) -> None:
         if setting:
             self.tx_example.SetValue(setting.fontexampleformat_init)
             self.sc_example.SetValue(setting.fontexamplepixelsize_init)
@@ -3599,17 +3604,17 @@ class FontSettingPanel(wx.Panel):
         self.sc_example.SetValue(cw.setting.FONT_EXAMPLE_PIXEL_SIZE_INIT)
         self.update_example()
 
-    def OnCellChangeBase(self, event):
+    def OnCellChangeBase(self, event: wx.grid.GridEvent) -> None:
         self._select_base(self.base.GetGridCursorRow())
 
-    def OnSelectFontBase(self, event):
-        def func(self):
+    def OnSelectFontBase(self, event: wx.grid.GridEvent) -> None:
+        def func(self: FontSettingPanel) -> None:
             if self:
                 self._select_base(self.base.GetGridCursorRow())
         wx.CallAfter(func, self)
         event.Skip()
 
-    def OnEditorCreatedBase(self, event):
+    def OnEditorCreatedBase(self, event: wx.grid.GridEvent) -> None:
         for editor in self.choicebases:
             if editor.GetControl():
                 editor.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeBase)
@@ -3635,31 +3640,31 @@ class FontSettingPanel(wx.Panel):
 
         return face
 
-    def _select_type(self, i):
+    def _select_type(self, i: int) -> None:
         if 0 <= i:
             self._last_face = self.get_typefontface(self.types[i])
             self.update_example()
 
-    def OnCellChangeType(self, event):
+    def OnCellChangeType(self, event: wx.grid.GridEvent) -> None:
         i = self.type.GetGridCursorRow()
         self._select_type(i)
         value = self.type.GetCellValue(i, self.type.GetGridCursorCol())
         self._update_rowcolour("inherit" if ("[%s]" % self.typenames["inherit"]) == value else "", i)
 
-    def OnSelectFontType(self, event):
-        def func(self):
+    def OnSelectFontType(self, event: wx.grid.GridEvent) -> None:
+        def func(self: FontSettingPanel) -> None:
             if self:
                 self._select_type(self.type.GetGridCursorRow())
         wx.CallAfter(func, self)
         event.Skip()
 
-    def OnEditorCreatedType(self, event):
+    def OnEditorCreatedType(self, event: wx.grid.GridEvent) -> None:
         for editor in self.choicetypes:
             ctrl = editor.GetControl()
             if ctrl:
                 ctrl.Bind(wx.EVT_COMBOBOX, self.OnCellChangeType)
 
-    def get_typefontface(self, fonttype, refeditors=True):
+    def get_typefontface(self, fonttype: str, refeditors: bool = True) -> str:
         if refeditors:
             editors = [choice for choice in self.choicetypes if choice.GetControl() and choice.GetControl().IsShown()]
         else:
@@ -3740,7 +3745,7 @@ class FontSettingPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def OnImportant(self, event):
+    def OnImportant(self, event: wx.CommandEvent) -> None:
         self._update_enabled()
 
     def _update_enabled(self) -> None:
@@ -3760,17 +3765,17 @@ class FontSettingPanel(wx.Panel):
                 self.copybtn.Enable(enbl)
             self.initbtn.Enable(enbl)
 
-    def OnInitValue(self, event):
+    def OnInitValue(self, event: wx.CommandEvent) -> None:
         local = cw.setting.LocalSetting()
         self.init_values(None, local)
 
-    def OnCopyBase(self, event):
+    def OnCopyBase(self, event: wx.CommandEvent) -> None:
         local = self._get_localsettings()
         local.important_font = True
         self.load(None, local)
 
 
-def main():
+def main() -> None:
     pass
 
 
