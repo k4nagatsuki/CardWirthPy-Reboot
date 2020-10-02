@@ -8,10 +8,12 @@ import pygame.locals
 import cw
 from . import base
 
+from typing import Tuple
+
 
 class Bill(object):
     """貼紙のデータ。メッセージログで使用する。"""
-    def __init__(self, header):
+    def __init__(self, header: cw.header.ScenarioHeader) -> None:
         self.header = header
         self.selections = []
         self.specialchars = {}
@@ -41,7 +43,7 @@ class Bill(object):
         h = size[1] + self._yp_noscale*2
         self.rect_noscale = pygame.Rect((cw.SIZE_AREA[0]-w) // 2, (cw.SIZE_AREA[1]-h) // 2, w, h)
 
-    def create_image(self):
+    def create_image(self) -> Tuple[pygame.Surface, Tuple[int, int]]:
         up_scr = cw.UP_SCR
         subimg = None
         bmps = None
@@ -119,15 +121,15 @@ class Bill(object):
 
         return image, cw.s(pygame.Rect(self.rect_noscale))
 
-    def get_height_noscale(self):
+    def get_height_noscale(self) -> int:
         return self.rect_noscale.height
 
-    def create_message(self):
+    def create_message(self) -> "BillSprite":
         return BillSprite(self)
 
 
 class BillSprite(base.CWPySprite):
-    def __init__(self, bill):
+    def __init__(self, bill: Bill) -> None:
         base.CWPySprite.__init__(self)
         self.bill = bill
         self.selections = bill.selections
@@ -136,12 +138,12 @@ class BillSprite(base.CWPySprite):
         self.update_scale()
         cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self.image, _rect = self.bill.create_image()
         self.rect = cw.s(pygame.Rect(self.rect_noscale))
 
 
-def get_detailtext(header):
+def get_detailtext(header: cw.header.ScenarioHeader) -> str:
     """ScenarioHeaderをテキスト表現に変換する。"""
     lines = []
     name = header.name
@@ -174,7 +176,7 @@ def get_detailtext(header):
     return "\n".join(lines)
 
 
-def main():
+def main() -> None:
     pass
 
 

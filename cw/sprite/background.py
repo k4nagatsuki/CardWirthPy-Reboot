@@ -11,7 +11,7 @@ import cw
 from . import base
 from . import card
 
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 # ------------------------------------------------------------------------------
 # 背景スプライト
@@ -25,7 +25,7 @@ BG_PC = 3
 
 
 class BackGround(base.CWPySprite):
-    def __init__(self):
+    def __init__(self) -> None:
         base.CWPySprite.__init__(self)
         self.bgs = []
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
@@ -60,7 +60,7 @@ class BackGround(base.CWPySprite):
 
         self.pc_cache = {}
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
         if self._in_playing:
@@ -70,7 +70,7 @@ class BackGround(base.CWPySprite):
             elements = self._elements
             ttype = self._ttype
 
-            def func():
+            def func() -> None:
                 # アニメーション前の背景を復元
                 self.image.fill((0, 0, 0))
                 self.bgs = bgs
@@ -95,10 +95,10 @@ class BackGround(base.CWPySprite):
             if self.curtained:
                 self.set_curtain(curtain_all=self.curtain_all)
 
-    def update_skin(self, oldskindir, newskindir):
+    def update_skin(self, oldskindir, newskindir) -> None:
         pass
 
-    def set_curtain(self, curtain_all):
+    def set_curtain(self, curtain_all: bool) -> None:
         self.clear_curtain()
         self.curtained = True
         self._curtains = []
@@ -163,7 +163,7 @@ class BackGround(base.CWPySprite):
                 self._curtains.append(maincurtain)
         cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def clear_curtain(self):
+    def clear_curtain(self) -> None:
         if not self.curtained:
             return
 
@@ -197,7 +197,7 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.sdata.background_image_mtime[cw.util.join_paths(rel).lower()] = (rel, os.path.getmtime(path))
                 break
 
-    def is_modifiedfile(self):
+    def is_modifiedfile(self) -> bool:
         if not cw.cwpy.is_playingscenario():
             return False
         cw.fsync.sync()
@@ -293,7 +293,7 @@ class BackGround(base.CWPySprite):
 
         return image, anime, True
 
-    def clear_background(self):
+    def clear_background(self) -> None:
         self._force_noinhrt = True
         self.pc_cache.clear()
 
@@ -468,7 +468,14 @@ class BackGround(base.CWPySprite):
         self._in_playing = False
         return update and redraw and not transition and not animated
 
-    def _create_bgdata(self, e, ignoreeffectbooster=False):
+    def _create_bgdata(self, e: cw.data.CWPyElement, ignoreeffectbooster: bool = False) ->\
+            Union[Tuple[pygame.Surface, bool, bool, bool, bool, Tuple[int, int], Tuple[int, int], str, bool, int, str],
+                  Tuple[str, List["cw.sprite.message.NameListItem"], str, int, Tuple[int, int, int], bool, bool, bool,
+                        bool, bool, bool, str, Tuple[int, int, int], int, bool, str, Tuple[int, int], Tuple[int, int],
+                        str, bool, int, str],
+                  Tuple[str, Tuple[int, int, int], str, Tuple[int, int, int], Tuple[int, int], Tuple[int, int], str,
+                        bool, int, str],
+                  Tuple[int, bool, bool, Tuple[int, int], Tuple[int, int], str, bool, int, str]]:
         assert e.tag != "Redisplay"
         left = e.getint("Location", "left")
         top = e.getint("Location", "top")
@@ -487,7 +494,7 @@ class BackGround(base.CWPySprite):
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         cellname = e.getattr(".", "cellname", "")
 
-        def getcolor(e, xpath, r, g, b, a):
+        def getcolor(e: cw.data.CWPyElement, xpath: str, r: int, g: int, b: int, a: int) -> Tuple[int, int, int, int]:
             r = e.getint(xpath, "r", r)
             g = e.getint(xpath, "g", g)
             b = e.getint(xpath, "b", b)
@@ -788,7 +795,7 @@ class BackGround(base.CWPySprite):
             # トランジション用スプライトが生成されている
             transitspr = ttype
 
-        def clear_forgrounds():
+        def clear_forgrounds() -> None:
             for sprite in self.foregrounds:
                 cw.cwpy.cardgrp.remove(sprite)
             self.foregrounds.clear()
@@ -818,7 +825,16 @@ class BackGround(base.CWPySprite):
             self._in_playing = False
             return update and redraw and not transition and not animated
 
-    def _is_flagchanged(self, bgtype, d):
+    def _is_flagchanged(self, bgtype: str,
+                        d: Union[Tuple[pygame.Surface, bool, bool, bool, bool, Tuple[int, int], Tuple[int, int], str,
+                                       bool, int, str],
+                                 Tuple[str, List["cw.sprite.message.NameListItem"], str, int, Tuple[int, int, int],
+                                       bool, bool, bool, bool, bool, bool, str, Tuple[int, int, int], int, bool, str,
+                                       Tuple[int, int], Tuple[int, int], str, bool, int, str],
+                                 Tuple[str, Tuple[int, int, int], str, Tuple[int, int, int], Tuple[int, int],
+                                       Tuple[int, int], str, bool, int, str],
+                                 Tuple[int, bool, bool, Tuple[int, int], Tuple[int, int], str, bool, int,
+                                       str]]) -> bool:
         if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR, BG_PC):
             visible = d[-3]
             flag = d[-4]
@@ -826,13 +842,30 @@ class BackGround(base.CWPySprite):
         else:
             return False
 
-    def _get_cellname(self, bgtype, d):
+    def _get_cellname(self, bgtype: str,
+                      d: Union[Tuple[pygame.Surface, bool, bool, bool, bool, Tuple[int, int], Tuple[int, int], str,
+                                     bool, int, str],
+                               Tuple[str, List["cw.sprite.message.NameListItem"], str, int, Tuple[int, int, int], bool,
+                                     bool, bool, bool, bool, bool, str, Tuple[int, int, int], int, bool, str,
+                                     Tuple[int, int], Tuple[int, int], str, bool, int, str],
+                               Tuple[str, Tuple[int, int, int], str, Tuple[int, int, int], Tuple[int, int],
+                                     Tuple[int, int], str, bool, int, str],
+                               Tuple[int, bool, bool, Tuple[int, int], Tuple[int, int], str, bool, int, str]]) -> str:
         if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR, BG_PC):
             return d[-1]
         else:
             return ""
 
-    def _move_bgdata(self, bgtype, d, movedata):
+    def _move_bgdata(self, bgtype: str,
+                     d: Union[Tuple[pygame.Surface, bool, bool, bool, bool, Tuple[int, int], Tuple[int, int], str, bool,
+                                    int, str],
+                              Tuple[str, List["cw.sprite.message.NameListItem"], str, int, Tuple[int, int, int], bool,
+                                    bool, bool, bool, bool, bool, str, Tuple[int, int, int], int, bool, str,
+                                    Tuple[int, int], Tuple[int, int], str, bool, int, str],
+                              Tuple[str, Tuple[int, int, int], str, Tuple[int, int, int], Tuple[int, int],
+                                    Tuple[int, int], str, bool, int, str],
+                              Tuple[int, bool, bool, Tuple[int, int], Tuple[int, int], str, bool, int, str]],
+                     movedata: Tuple[str, int, int, str, int, int]) -> Tuple[int, int]:
         positiontype, x, y, sizetype, width, height = movedata
         pos = d[-5]
         size = d[-6]
@@ -840,7 +873,8 @@ class BackGround(base.CWPySprite):
         size = self._calc_possize(sizetype, size, (width, height), True)
         return d[:-6] + (size, pos) + d[-4:]
 
-    def _calc_possize(self, ctype, vals, movevals, miniszero):
+    def _calc_possize(self, ctype: str, vals: Tuple[int, int], movevals: Tuple[int, int],
+                      miniszero: bool) -> Tuple[int, int]:
         x, y = vals
         mx, my = movevals
 
@@ -920,7 +954,16 @@ class BackGround(base.CWPySprite):
 
         return anime, update, bginhrt
 
-    def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
+    def _add_textcell(self, blitlist: List[Tuple[int, Tuple[pygame.Surface, Tuple[int, int], Tuple[int, int], int],
+                                                 str, int]],
+                      bgs: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int],
+                                str, bool, int, str]]],
+                      oldbgs: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int],
+                                   str, bool, int, str]]],
+                      d: Tuple[str, List["cw.sprite.message.NameListItem"], str, int, Tuple[int, int, int], bool, bool,
+                               bool, bool, bool, bool, str, Tuple[int, int, int], int, bool, str,
+                               Tuple[int, int], Tuple[int, int], str, bool, int, str],
+                      nocheckvisible: bool = False) -> bool:
         text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
             btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible and updatetype == "All":
@@ -971,7 +1014,15 @@ class BackGround(base.CWPySprite):
             oldbgs.append((BG_TEXT, d))
         return visible
 
-    def _add_colorcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
+    def _add_colorcell(self, blitlist: List[Tuple[int, Tuple[pygame.Surface, Tuple[int, int], Tuple[int, int], int],
+                                            str, int]],
+                       bgs: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int],
+                                 str, bool, int, str]]],
+                       oldbgs: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int],
+                                    str, bool, int, str]]],
+                       d: Tuple[str, Tuple[int, int, int], str, Tuple[int, int, int], Tuple[int, int], Tuple[int, int],
+                                str, bool, int, str],
+                       nocheckvisible: bool = False) -> bool:
         blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
@@ -1002,7 +1053,14 @@ class BackGround(base.CWPySprite):
             oldbgs.append((BG_COLOR, d))
         return visible
 
-    def _add_pccell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
+    def _add_pccell(self, blitlist: List[Tuple[int, Tuple[pygame.Surface, Tuple[int, int], Tuple[int, int], int],
+                                         str, int]],
+                    bgs: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int],
+                              str, bool, int, str]]],
+                    oldbgs: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int],
+                                 str, bool, int, str]]],
+                    d: Tuple[int, bool, bool, Tuple[int, int], Tuple[int, int], str, bool, int, str],
+                    nocheckvisible: bool = False) -> bool:
         pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
@@ -1071,7 +1129,7 @@ class BackGround(base.CWPySprite):
             oldbgs.append((BG_PC, d))
         return visible
 
-    def put_pccache(self, pi):
+    def put_pccache(self, pi: int) -> Tuple[List[cw.image.ImageInfo], bool]:
         pcards = cw.cwpy.ydata.party.members
         paths = []
         can_loaded_scaledimage = False
@@ -1237,7 +1295,16 @@ def _draw_bgcell(surface: pygame.Surface,
 
 
 class BgCell(base.CWPySprite):
-    def __init__(self, bgtype, d, flag, layer, index):
+    def __init__(self, bgtype: str,
+                 d: Union[Tuple[pygame.Surface, bool, bool, bool, bool, Tuple[int, int], Tuple[int, int], str, bool,
+                                int, str],
+                          Tuple[str, List["cw.sprite.message.NameListItem"], str, int, Tuple[int, int, int], bool, bool,
+                                bool, bool, bool, bool, str, Tuple[int, int, int], int, bool, str, Tuple[int, int],
+                                Tuple[int, int], str, bool, int, str],
+                          Tuple[str, Tuple[int, int, int], str, Tuple[int, int, int], Tuple[int, int], Tuple[int, int],
+                                str, bool, int, str],
+                          Tuple[int, bool, bool, Tuple[int, int], Tuple[int, int], str, bool, int, str]],
+                 flag: str, layer: int, index: int) -> None:
         cw.sprite.base.CWPySprite.__init__(self)
         self.bgtype = bgtype
         self.d = d
@@ -1258,7 +1325,7 @@ class BgCell(base.CWPySprite):
         self.rect = cw.s(self.rect_noscale)
 
 
-def layered_draw_ex(layered_updates, surface):
+def layered_draw_ex(layered_updates: pygame.sprite.LayeredDirty, surface: pygame.Surface) -> List[pygame.Rect]:
     rects = []
     srect = surface.get_rect()
     clip = surface.get_clip()
@@ -1308,7 +1375,7 @@ class Curtain(base.SelectableSprite):
         spritegrp.add(self, layer=self.layer)
         cw.cwpy.curtains.append(self)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         # 重なった領域・スケール変更
         self.image = pygame.Surface(self.target.rect.size).convert_alpha()
         self.image.fill(self.color)
@@ -1323,7 +1390,7 @@ class Curtain(base.SelectableSprite):
             mask.fill(self.color[:3] + (0,), special_flags=pygame.locals.BLEND_RGBA_ADD)
             self.image.blit(mask, (0, 0), special_flags=pygame.locals.BLEND_RGBA_MIN)
 
-    def create_mask(self):
+    def create_mask(self) -> pygame.Surface:
         if isinstance(self.target, BgCell):
             if self.target.bgtype == BG_TEXT:
                 # 縁取り形式2以外のテキストセル
@@ -1348,17 +1415,17 @@ class Curtain(base.SelectableSprite):
 
         return subimg
 
-    def rclick_event(self):
+    def rclick_event(self) -> None:
         cw.cwpy.cancel_cardcontrol()
 
-    def is_selection(self):
+    def is_selection(self) -> bool:
         if not self._is_selectable:
             return False
         return cw.sprite.base.SelectableSprite.is_selection(self)
 
 
 class BattleCardImage(card.CWPyCard):
-    def __init__(self):
+    def __init__(self) -> None:
         """戦闘開始時のアニメーションに使うスプライト。
         cw.animation.battlestart を参照。
         """
@@ -1374,7 +1441,7 @@ class BattleCardImage(card.CWPyCard):
         # spritegroupに追加
         cw.cwpy.cardgrp.add(self, layer=cw.LAYER_BATTLE_START)
 
-    def update_battlestart(self):
+    def update_battlestart(self) -> None:
         self.highspeed = True
         cw.animation.animate_sprite(self, "deal")
         cw.animation.animate_sprite(self, "hide")
@@ -1393,10 +1460,10 @@ class BattleCardImage(card.CWPyCard):
         cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
         self.highspeed = False
 
-    def update_image(self, update_statusimg=False, is_runningevent=None):
+    def update_image(self, update_statusimg: bool = False, is_runningevent: Optional[bool] = None) -> None:
         pass
 
-    def update_selection(self):
+    def update_selection(self) -> None:
         pass
 
 
@@ -1456,15 +1523,17 @@ class InuseCardImage(card.CWPyCard):
         if self.status == "hidden":
             self.clear_image()
 
-    def update_image(self, update_statusimg=False, is_runningevent=None):
+    def update_image(self, update_statusimg: bool = False, is_runningevent: Optional[bool] = None) -> None:
         pass
 
-    def update_selection(self):
+    def update_selection(self) -> None:
         pass
 
 
 class LifeBar(base.CWPySprite):
-    def __init__(self, ccard):
+    def __init__(self, ccard: Union["cw.sprite.card.PlayerCard",
+                                    "cw.sprite.card.EnemyCard",
+                                    "cw.sprite.card.FriendCard"]) -> None:
         """ccardのライフバーを切り出して単一のスプライトとする。
         ccard: Character。
         """
@@ -1478,7 +1547,7 @@ class LifeBar(base.CWPySprite):
         self.group = cw.cwpy.cardgrp
         self.group.add(self, layer=cw.LAYER_FRONT_LIFEBAR)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         bgname = self.ccard.cardimg.get_cardbgname(self.ccard)
         cardbg = cw.cwpy.rsrc.cardbgs[bgname]
         self.image = pygame.Surface(cardbg.get_size()).convert_alpha()
@@ -1491,20 +1560,20 @@ class LifeBar(base.CWPySprite):
         if self.ccard.status == "click":
             self.click()
 
-    def click(self):
+    def click(self) -> None:
         size = (self._rect.w * 9 // 10, self._rect.h * 9 // 10)
         self.image = pygame.transform.scale(self._image, size)
         self.rect = pygame.Rect(self._rect)
         self.rect.size = size
         self.rect.center = self._rect.center
 
-    def declick(self):
+    def declick(self) -> None:
         self.image = self._image
         self.rect = self._rect
 
 
 class TargetArrow(base.CWPySprite):
-    def __init__(self, target):
+    def __init__(self, target: "cw.sprite.card.CWPyCard") -> None:
         """ターゲット選択する矢印画像スプライト。
         target: Character。
         """
@@ -1514,14 +1583,14 @@ class TargetArrow(base.CWPySprite):
         # spritegroupに追加
         cw.cwpy.cardgrp.add(self, layer=cw.LAYER_TARGET_ARROW)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self.image = cw.cwpy.rsrc.statuses["TARGET"]
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.target.rect.right - cw.s(20), self.target.rect.bottom - cw.s(20))
 
 
 class Jpy1TemporalSprite(base.CWPySprite):
-    def __init__(self, background):
+    def __init__(self, background: pygame.Surface) -> None:
         """エフェクトブースターJpy1の一時描画用スプライト。
         Jpy1の読み込みがすべて終了したら、削除される。
         """
@@ -1535,7 +1604,10 @@ class Jpy1TemporalSprite(base.CWPySprite):
 
 
 class ClickableSprite(base.SelectableSprite):
-    def __init__(self, getimage, getselimage, pos_noscale, spritegrp, lclickevent=None, rclickevent=None):
+    def __init__(self, getimage: Callable[[], pygame.Surface], getselimage: Callable[[], pygame.Surface],
+                 pos_noscale: Tuple[int, int], spritegrp: pygame.sprite.LayeredDirty,
+                 lclickevent: Optional[Callable[[], None]] = None,
+                 rclickevent: Optional[Callable[[], None]] = None) -> None:
         """画面上に配置され、クリック可能なイメージ。
         """
         base.SelectableSprite.__init__(self)
@@ -1557,7 +1629,7 @@ class ClickableSprite(base.SelectableSprite):
         spritegrp.add(self, layer=cw.LAYER_CLICKABLE_SPRITES)
         self.spritegrp = spritegrp
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self._image = self._getimage()
         self._clickedimage = pygame.transform.rotozoom(self._image, 0, 0.9)
         if self._getselimage:
@@ -1573,42 +1645,42 @@ class ClickableSprite(base.SelectableSprite):
         self._clickedrect.center = self._rect.center
         self.rect = self._rect
 
-    def get_unselectedimage(self):
+    def get_unselectedimage(self) -> pygame.Surface:
         if self.status == "click":
             return self._clickedimage
         else:
             return self._image
 
-    def get_selectedimage(self):
+    def get_selectedimage(self) -> pygame.Surface:
         if self.status == "click":
             return self._selclickedimage
         else:
             return self._selimage
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         """左クリックイベント。"""
         if self._lclickevent:
             cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
             self._lclickevent()
 
-    def rclick_event(self):
+    def rclick_event(self) -> None:
         """右クリックイベント。"""
         if self._rclickevent:
             cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
             self._rclickevent()
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:
             method()
 
-    def update_normal(self):
+    def update_normal(self) -> None:
         self.update_selection()
 
-    def update_click(self):
+    def update_click(self) -> None:
         """
         クリック時のアニメーションを呼び出すメソッド。
         """
@@ -1627,7 +1699,7 @@ class ClickableSprite(base.SelectableSprite):
 
         self.frame += 1
 
-    def update_hide(self):
+    def update_hide(self) -> None:
         """
         カードのように横幅を縮めながら非表示にする。
         """
@@ -1653,7 +1725,7 @@ class ClickableSprite(base.SelectableSprite):
         self.rect = self.image.get_rect(center=rect.center)
         self.frame += 1
 
-    def update_delete(self):
+    def update_delete(self) -> None:
         """
         カードのように横幅を縮めながら非表示にし、
         画面上から除去する。
@@ -1664,7 +1736,8 @@ class ClickableSprite(base.SelectableSprite):
 
 
 class NumberOfCards(base.CWPySprite):
-    def __init__(self, pcard, cardtype, spritegrp):
+    def __init__(self, pcard: "cw.sprite.card.PlayerCard", cardtype: str,
+                 spritegrp: pygame.sprite.LayeredDirty) -> None:
         """カード所持枚数を表示するスプライト。
         pcard: カード所持者。
         cardtype: カード種別。
@@ -1677,7 +1750,7 @@ class NumberOfCards(base.CWPySprite):
         # spritegroupに追加
         spritegrp.add(self, layer=cw.LAYER_NUMBER_OF_CARDS)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         if self.cardtype == cw.POCKET_PERSONAL:
             num = len(self.pcard.personal_pocket)
             cap = self.pcard.get_personalpocketspace()
@@ -1731,7 +1804,8 @@ class NumberOfCards(base.CWPySprite):
 
 
 class PriceOfCard(base.CWPySprite):
-    def __init__(self, mcard, header, spritegrp):
+    def __init__(self, mcard: "cw.sprite.card.CWPyCard", header: cw.header.CardHeader,
+                 spritegrp: pygame.sprite.LayeredDirty) -> None:
         """カード価格を表示するスプライト。
         mcard: 「売却」カード。
         header: 対象カード。
@@ -1745,11 +1819,11 @@ class PriceOfCard(base.CWPySprite):
         self.layer = (mcard.layer[0], mcard.layer[1], mcard.layer[2], mcard.layer[3]+1)
         spritegrp.add(self, layer=self.layer)
 
-    def set_header(self, header):
+    def set_header(self, header: cw.header.CardHeader) -> None:
         self.header = header
         self.update_scale()
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         if not self.header:
             self.rect = pygame.Rect(0, 0, 0, 0)
             self.image = pygame.Surface(cw.s((0, 0))).convert()
@@ -1792,7 +1866,7 @@ class PriceOfCard(base.CWPySprite):
         self.image.blit(subimg, (px, padh))
 
 
-def main():
+def main() -> None:
     pass
 
 
