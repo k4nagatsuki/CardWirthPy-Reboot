@@ -22,13 +22,13 @@ class CWPySprite(pygame.sprite.DirtySprite):
         self.skipped = False
         self.frame = 0
 
-    def is_initialized(self):
+    def is_initialized(self) -> bool:
         return True
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         pass
 
-    def get_frame(self):
+    def get_frame(self) -> int:
         """
         システムタイマから計算した処理中のフレームを返す。
         処理落ちが発生した場合は途中が飛ばされる可能性もある。
@@ -46,15 +46,15 @@ class CWPySprite(pygame.sprite.DirtySprite):
 
 class StopTheWorld(object):
     """最小化時にカウントを止める機能を持つ経過時間カウンタ。"""
-    def __init__(self, start_ticks, waittime):
+    def __init__(self, start_ticks: float, waittime: int) -> None:
         self.start_ticks = start_ticks
         self.waittime = waittime
         self._stop_tick = None
 
-    def is_waiting(self):
+    def is_waiting(self) -> bool:
         return not self.is_done()
 
-    def is_done(self):
+    def is_done(self) -> bool:
         if cw.cwpy.setting.stop_the_world_with_iconized:
             if cw.cwpy.frame.is_iconized:
                 self._stop()
@@ -63,11 +63,11 @@ class StopTheWorld(object):
                 self._resume()
         return self.start_ticks + self.waittime <= pygame.time.get_ticks()
 
-    def _stop(self):
+    def _stop(self) -> None:
         if self._stop_tick is None:
             self._stop_tick = pygame.time.get_ticks()
 
-    def _resume(self):
+    def _resume(self) -> None:
         if self._stop_tick is not None and cw.cwpy.setting.stop_the_world_with_iconized:
             self.start_ticks += pygame.time.get_ticks() - self._stop_tick
         self._stop_tick = None
@@ -97,7 +97,7 @@ class MouseHandlerSprite(CWPySprite):
             self.handling = handling
             self.update_image()
 
-    def update_image(self):
+    def update_image(self) -> None:
         pass
 
 
@@ -112,25 +112,25 @@ class SelectableSprite(CWPySprite):
         # タッチ操作用のタイルで使用する。
         self.is_pointed = False
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         """左クリックイベント。"""
         pass
 
-    def rclick_event(self):
+    def rclick_event(self) -> None:
         """右クリックイベント。"""
         pass
 
-    def ldown_event(self):
+    def ldown_event(self) -> None:
         """マウス左ボタン押下イベント。"""
         pass
 
-    def get_selectedimage(self):
+    def get_selectedimage(self) -> pygame.Surface:
         return self.image
 
-    def get_unselectedimage(self):
+    def get_unselectedimage(self) -> pygame.Surface:
         return self.image
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         if not cw.cwpy.is_lockmenucards(self):
             self.update_selection()
 
@@ -178,7 +178,7 @@ class SelectableSprite(CWPySprite):
         return False
 
 
-def main():
+def main() -> None:
     pass
 
 

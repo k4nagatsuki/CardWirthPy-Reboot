@@ -8,9 +8,12 @@ import pygame.locals
 import cw
 from . import base
 
+from typing import Tuple
+
 
 class AnimationCell(base.SelectableSprite):
-    def __init__(self, path, size_noscale, pos_noscale, spritegrp, layer):
+    def __init__(self, path: str, size_noscale: Tuple[int, int], pos_noscale: Tuple[int, int],
+                 spritegrp: pygame.sprite.LayeredDirty, layer: int) -> None:
         """
         XMLの定義によってアニメーションを表示するセル。
         """
@@ -37,7 +40,7 @@ class AnimationCell(base.SelectableSprite):
 
         spritegrp.add(self, layer=layer)
 
-    def _iter_animes(self, anime):
+    def _iter_animes(self, anime: "_AnimationPart") -> None:
         """
         グループ内のものを含めた全ての_AnimationPartを返す。
         """
@@ -48,7 +51,7 @@ class AnimationCell(base.SelectableSprite):
         else:
             yield anime
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         for anime in self._iter_animes(self.animations):
             anime.load_cell()
 
@@ -78,13 +81,13 @@ class AnimationCell(base.SelectableSprite):
         for anime in self._iter_animes(self.animations):
             anime.update_scale()
 
-    def quit(self):
+    def quit(self) -> None:
         """アニメーションを終了する。"""
         self.status = "normal"
         self.rect = pygame.Rect(0, 0, 0, 0)
         self.frame = 0
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         if cw.cwpy.selection != self:
             # 他の選択がなされていない場合は常にAnimationCellを選択状態にする
             self.update_selection()
@@ -95,28 +98,28 @@ class AnimationCell(base.SelectableSprite):
         if method:
             method()
 
-    def update_normal(self):
+    def update_normal(self) -> None:
         if cw.cwpy.selection != self:
             # 他の選択がなされていない場合は常にAnimationCellを選択状態にする
             self.update_selection()
         if not cw.cwpy.selection:
             cw.cwpy.change_selection(self)
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         """
         左クリックイベント。
         アニメーションを飛ばす。
         """
         cw.cwpy.cut_animation = True
 
-    def rclick_event(self):
+    def rclick_event(self) -> None:
         """
         右クリックイベント。
         アニメーションを飛ばす。
         """
         cw.cwpy.cut_animation = True
 
-    def update_animation(self):
+    def update_animation(self) -> None:
         if self.end_frame <= self.frame or self.skipped or cw.cwpy.cut_animation:
             self.quit()
             return
@@ -133,7 +136,7 @@ class AnimationCell(base.SelectableSprite):
 
 
 class _AnimationPart(object):
-    def __init__(self, parent, data, startframe):
+    def __init__(self, parent: AnimationCell, data: cw.data.CWPyElement, startframe: int) -> None:
         """
         複合アニメーションのパーツ。
         個々のパーツか、並列・直列に実行するグループを表す。
@@ -189,7 +192,7 @@ class _AnimationPart(object):
         else:
             raise Exception("Invalid animation: %s" % (data.tag))
 
-    def load_cell(self):
+    def load_cell(self) -> None:
         left, top, width, height = self._rect_str
 
         if self.imgpath:
@@ -257,7 +260,7 @@ class _AnimationPart(object):
         self.pos_noscale = (left, top)
         self.size_noscale = (width, height)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         if self.image_noscale.get_width():
             w, h = self.image_noscale.get_size()
             scr_scale = self.image_noscale.scr_scale if hasattr(self.image_noscale, "scr_scale") else 1
@@ -277,12 +280,12 @@ class _AnimationPart(object):
 
         self.update_image()
 
-    def clear_image(self):
+    def clear_image(self) -> None:
         if self.image.get_width():
             self.image = pygame.Surface((0, 0)).convert()
         self.rect = pygame.Rect(0, 0, 0, 0)
 
-    def update_image(self):
+    def update_image(self) -> None:
         """
         現在のフレームに応じてイメージを更新する。
         パーツが出現中の時間でなければ、イメージをクリアする。
@@ -351,7 +354,7 @@ class _AnimationPart(object):
             raise Exception("Invalid AnimationType: %s" % (self.animation_type))
 
 
-def main():
+def main() -> None:
     pass
 
 
