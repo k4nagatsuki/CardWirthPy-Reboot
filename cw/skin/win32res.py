@@ -6,6 +6,7 @@ import struct
 
 import cw
 
+from typing import Dict, List, Optional, Union
 
 if sys.platform == "win32" and sys.maxsize == 0x7fffffff:
     _winapi = True
@@ -42,7 +43,7 @@ class Win32Res(object):
     Win64用のPEファイルにも恐らく有効。
     """
 
-    def __init__(self, fpath):
+    def __init__(self, fpath: str) -> None:
         object.__init__(self)
 
         self._table = {}
@@ -51,10 +52,10 @@ class Win32Res(object):
         if fpath:
             self.laod_resmodule(fpath)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.dispose()
 
-    def laod_resmodule(self, fpath):
+    def laod_resmodule(self, fpath: str) -> None:
         self._table = {}
 
         if _winapi:
@@ -159,7 +160,7 @@ class Win32Res(object):
                     self._table[name1] = {}
                 self._table[name1][name2] = res_data
 
-    def _res_name(self, base, res_addr, uint16, w1):
+    def _res_name(self, base: bytes, res_addr: int, uint16: struct.Struct, w1: int) -> Union[str, int]:
         if 0x80000000 == (w1 & 0x80000000):
             # Name is String
             offset = (w1 & ~0x80000000) + res_addr
@@ -170,14 +171,14 @@ class Win32Res(object):
             # ID
             return w1
 
-    def dispose(self):
+    def dispose(self) -> None:
         self._table = {}
 
         if self._winhandle:
             ctypes.windll.kernel32.FreeLibrary(self._winhandle)
             self._winhandle = None
 
-    def get_rcdata(self, valtype, name):
+    def get_rcdata(self, valtype: Union[str, bytes], name: Union[str, bytes]) -> Optional[bytes]:
         if self._winhandle:
             k = ctypes.windll.kernel32
             if isinstance(valtype, bytes):
@@ -205,7 +206,7 @@ class Win32Res(object):
                     return table[name]
         return None
 
-    def get_cursor(self, number):
+    def get_cursor(self, number: Union[int, str]) -> Optional[str]:
         ICONDIR_SIZE = 6
         ICONDIRENTRY_SIZE = 16
 
@@ -261,7 +262,7 @@ class Win32Res(object):
 
         return iconfileheader + icondirentry + data
 
-    def get_bitmap(self, name):
+    def get_bitmap(self, name: str) -> Optional[str]:
         BITMAPFILEHEADER_SIZE = 14
         RGBQUAD_SIZE = 4
 
@@ -300,7 +301,7 @@ class Win32Res(object):
 
         return header + data
 
-    def get_tpf0form(self, name):
+    def get_tpf0form(self, name: str) -> Optional[Dict[str, Union[List[str], int, str, bool, bytes, List[bytes]]]]:
         data = self.get_rcdata(RT_RCDATA, name)
         if not data:
             return None
@@ -392,3 +393,11 @@ class Win32Res(object):
                 stack[-1][str(key, cw.MBCS)] = value
 
         return table
+
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()

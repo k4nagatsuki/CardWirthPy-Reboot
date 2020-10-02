@@ -87,7 +87,7 @@ def get_skininfo(path: str) -> Optional[Tuple[str, str, str]]:
     return None
 
 
-def is_skin(path):
+def is_skin(path: str) -> bool:
     """
     pathがスキンのフォルダないしスキンを圧縮したものか。
     """
@@ -118,7 +118,7 @@ def is_skin(path):
 
 
 class SkinInstallError(Exception):
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         self.message = message
 
 
@@ -127,7 +127,7 @@ INSTALL_PROGRESS_ARCHIVE = 5
 
 
 def install_skin(path: str, tempdir: str,
-                 progress: type(lambda msg, progress=0: None) = lambda msg, progress=0: None) -> None:
+                 progress: type(lambda msg, progress=0: None) = lambda msg, progress=0: None) -> str:
     """
     pathのスキンをインストールする。
     """
@@ -145,17 +145,17 @@ def install_skin(path: str, tempdir: str,
                 raise SkinInstallError("%s はスキンではありません。" % os.path.basename(path))
 
             class ProgressObj(object):
-                def __init__(self):
+                def __init__(self) -> None:
                     self.file_count = 0
                     self.decompress_count = 0
             obj = ProgressObj()
 
-            def startup(num):
+            def startup(num: int) -> None:
                 obj.file_count = num
                 s = "%s を展開中... (%s/%s)" % (os.path.basename(path), obj.decompress_count, obj.file_count)
                 progress(s, progress=0)
 
-            def progress_arc(num):
+            def progress_arc(num: int) -> None:
                 obj.decompress_count = num
                 s = "%s を展開中... (%s/%s)" % (os.path.basename(path), obj.decompress_count, obj.file_count)
                 progress(s, progress=0)

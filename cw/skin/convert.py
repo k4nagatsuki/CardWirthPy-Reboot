@@ -9,6 +9,7 @@ import threading
 
 import cw
 
+from typing import Dict, Tuple
 
 IMGTBL = {
     "BUTTON_ARROW": "Button/ARROW",
@@ -205,7 +206,7 @@ CURTBL = {
 
 
 class Converter(threading.Thread):
-    def __init__(self, exe):
+    def __init__(self, exe: str) -> None:
         threading.Thread.__init__(self)
 
         self.maximum = 100
@@ -219,14 +220,14 @@ class Converter(threading.Thread):
         self.version = (1, 2, 8, 0)
         self.init(exe)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.dispose()
 
-    def dispose(self):
+    def dispose(self) -> None:
         if self.res:
             self.res.dispose()
 
-    def init(self, exe):
+    def init(self, exe: str) -> None:
         if self.res:
             self.res.dispose()
             self.res = None
@@ -273,7 +274,7 @@ class Converter(threading.Thread):
         self.partyinfo_res = None
         self._get_partyinfo()
 
-    def _get_resources(self, dpath):
+    def _get_resources(self, dpath: str) -> Dict[str, cw.data.CWPyElementTree]:
         dpath = cw.util.join_paths("Data/SkinBase/Resource/Xml/", dpath)
         rsrc = {}
         for path in os.listdir(dpath):
@@ -283,26 +284,26 @@ class Converter(threading.Thread):
                 rsrc[name] = cw.data.xml2etree(path)
         return rsrc
 
-    def _write_data(self, dpath, table):
+    def _write_data(self, dpath: str, table: Dict[str, cw.data.CWPyElementTree]) -> None:
         for data in list(table.values()):
             data.fpath = cw.util.join_paths(dpath, cw.util.relpath(data.fpath, "Data/SkinBase/"))
             data.write()
 
-    def find_skinname(self):
+    def find_skinname(self) -> str:
         if self.exe:
             exebasename = os.path.basename(self.exe)
             return cw.util.splitext(exebasename)[0]
         else:
             return "Default"
 
-    def find_description(self):
+    def find_description(self) -> str:
         if self.exe:
             exebasename = os.path.basename(self.exe)
             return ("%sをベースに自動生成したスキン。") % exebasename
         else:
             return ""
 
-    def find_datadir(self):
+    def find_datadir(self) -> str:
         if self.exe and ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             key = b"\\Midi\\DefReset.mid"
             index = self.exebinary.find(key)
@@ -312,7 +313,7 @@ class Converter(threading.Thread):
                 pass
         return "Data"
 
-    def find_scenariodir(self):
+    def find_scenariodir(self) -> str:
         if self.exe and ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             key = b"\0\\\0\\\0\\Summary.wsm\0\\\0\\\0.wid\0"
             index = self.exebinary.find(key)
@@ -323,7 +324,7 @@ class Converter(threading.Thread):
                 pass
         return "Scenario"
 
-    def find_yadodir(self):
+    def find_yadodir(self) -> str:
         if self.exe and ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             key = b"\\\0\\Environment.wyd\0"
             index = self.exebinary.find(key)
@@ -334,7 +335,7 @@ class Converter(threading.Thread):
                 pass
         return "Yado"
 
-    def find_type(self):
+    def find_type(self) -> str:
         if self.exe:
             fname = os.path.basename(self.exe).lower()
             fname = cw.util.splitext(fname)[0]
@@ -350,10 +351,10 @@ class Converter(threading.Thread):
                 return "ScienceFiction"
         return "MedievalFantasy"
 
-    def find_author(self):
+    def find_author(self) -> str:
         return ""
 
-    def find_initialcash(self):
+    def find_initialcash(self) -> int:
         prop = cw.header.GetProperty("Data/SkinBase/Skin.xml")
         cash = int(prop.properties.get("InitialCash", "4000"))
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
@@ -362,7 +363,7 @@ class Converter(threading.Thread):
             return cash
         return struct.unpack("<I", self.exebinary[0x31d97:0x31d97 + 4])[0]
 
-    def _get_features(self):
+    def _get_features(self) -> None:
         # バイナリ断片を手がかりにして特性値を探す。
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
@@ -373,8 +374,10 @@ class Converter(threading.Thread):
         mental = struct.Struct("<hhhhh")
 
         try:
-            def set_params(data, index, isnature, slist=("aggressive", "cautious", "brave", "cheerful", "trickish"),
-                           sperb=2.0):
+            def set_params(data: cw.data.CWPyElement, index: int, isnature: bool,
+                           slist: Tuple[str, str, str, str, str] = ("aggressive", "cautious", "brave",
+                                                                    "cheerful", "trickish"),
+                           sperb: float = 2.0) -> int:
                 # 特性名
                 n = self.exebinary[index:index + 20]
                 index += 20
@@ -493,20 +496,20 @@ class Converter(threading.Thread):
         except Exception:
             cw.util.print_ex()
 
-    def _get_sounds(self):
+    def _get_sounds(self) -> None:
         # バイナリ断片を手がかりにして音声ファイル名を探す。
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         try:
-            sounds = self.data.getfind("Sounds")
+            sounds = self.data.find("Sounds")
 
-            def get_keybefore(e, key, length, less=0):
+            def get_keybefore(e: cw.data.CWPyElement, key: bytes, length: int, less: int = 0) -> None:
                 index = self.exebinary.find(key)
                 if 0 <= index:
                     index -= less
                     e.text = str(self.exebinary[index - length:index], cw.MBCS)
 
-            def get_keyafter(e, key, length, than=0):
+            def get_keyafter(e: cw.data.CWPyElement, key: bytes, length: int, than: int = 0) -> None:
                 index = self.exebinary.find(key)
                 if 0 <= index:
                     index += len(key)
@@ -565,7 +568,7 @@ class Converter(threading.Thread):
         except Exception:
             cw.util.print_ex()
 
-    def _get_partyinfo(self):
+    def _get_partyinfo(self) -> None:
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         try:
@@ -579,7 +582,7 @@ class Converter(threading.Thread):
         except Exception:
             cw.util.print_ex()
 
-    def _get_cards(self):
+    def _get_cards(self) -> None:
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         try:
@@ -591,7 +594,7 @@ class Converter(threading.Thread):
                 # アクションカード
                 # 名前・解説・音声1・音声2・標準キーコード
                 # の順で文字列を取得する
-                def get_actioncard(cardkey, index, keycodenum):
+                def get_actioncard(cardkey: str, index: int, keycodenum: int) -> int:
                     name, index = self._get_text(index, True)
                     desc, index = self._get_text(index, True)
                     sound1, index = self._get_text(index)
@@ -635,7 +638,7 @@ class Converter(threading.Thread):
                 # の順で文字列を取得する
                 index += len(key)
 
-                def get_menucard(area, index):
+                def get_menucard(area: cw.data.ElementTree, index: int) -> int:
                     name, index = self._get_text(index, True)
                     desc, index = self._get_text(index, True)
                     _image, index = self._get_text(index)
@@ -702,7 +705,7 @@ class Converter(threading.Thread):
         except Exception:
             cw.util.print_ex()
 
-    def _get_bgs(self):
+    def _get_bgs(self) -> None:
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         try:
@@ -716,7 +719,7 @@ class Converter(threading.Thread):
         except Exception:
             cw.util.print_ex()
 
-    def _get_messages(self):
+    def _get_messages(self) -> None:
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         try:
@@ -1089,7 +1092,7 @@ class Converter(threading.Thread):
         except Exception:
             cw.util.print_ex()
 
-    def _get_text(self, index, cutzero=False):
+    def _get_text(self, index: int, cutzero: bool = False) -> Tuple[str, int]:
         end = self.exebinary.find(b'\0', index)
         s = str(self.exebinary[index:end], cw.MBCS)
         index = end + 1
@@ -1098,7 +1101,7 @@ class Converter(threading.Thread):
                 index += 1
         return s, index
 
-    def run(self):
+    def run(self) -> None:
         """クラシックなエンジンからリソースを取り出し、新規スキンを生成する。"""
         self.curnum = 0
         self.message = "スキンのベースをコピー中..."
@@ -1518,3 +1521,11 @@ class Converter(threading.Thread):
         finally:
             if f:
                 f.close()
+
+
+def main() -> None:
+    pass
+
+
+if __name__ == "__main__":
+    main()

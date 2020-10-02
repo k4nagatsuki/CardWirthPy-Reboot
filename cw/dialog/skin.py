@@ -11,13 +11,16 @@ import wx.grid
 
 import cw
 
+from typing import Callable, Dict, Optional, Tuple
+
 
 # ------------------------------------------------------------------------------
 # スキン変換ダイアログ
 # ------------------------------------------------------------------------------
 
 class SkinConversionDialog(wx.Dialog):
-    def __init__(self, parent, exe, from_settings=False, get_localsettings=None):
+    def __init__(self, parent: wx.TopLevelWindow, exe: str, from_settings: bool = False,
+                 get_localsettings: Optional[Callable[[], cw.setting.LocalSetting]] = None) -> None:
         self.conv = cw.skin.convert.Converter(exe)
         wx.Dialog.__init__(self, parent, -1, "スキンの自動生成",
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
@@ -27,7 +30,7 @@ class SkinConversionDialog(wx.Dialog):
             self.local = get_localsettings()
             use_copybase = True
         elif cw.cwpy:
-            def get_local():
+            def get_local() -> cw.setting.LocalSetting:
                 return cw.cwpy.setting.local
             get_localsettings = get_local
             self.local = cw.cwpy.setting.local
@@ -35,7 +38,7 @@ class SkinConversionDialog(wx.Dialog):
         else:
             self.local = cw.setting.LocalSetting()
 
-            def get_local():
+            def get_local() -> cw.setting.LocalSetting:
                 return self.local
             get_localsettings = get_local
             use_copybase = False
@@ -88,11 +91,11 @@ class SkinConversionDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         self.pane_feature.get_values(self.conv)
         self.pane_sound.get_values(self.conv)
         self.pane_message.get_values(self.conv)
@@ -137,7 +140,7 @@ class SkinConversionDialog(wx.Dialog):
         y += dlg.Parent.GetPosition()[1]
         dlg.SetPosition((x, y))
 
-        def progress():
+        def progress() -> None:
             while not self.conv.complete:
                 wx.CallAfter(dlg.UpdateProgress, self.conv.curnum, self.conv.message)
                 time.sleep(0.001)
@@ -256,13 +259,13 @@ class SkinConversionDialog(wx.Dialog):
             self.Close()
             self.Destroy()
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         if self.conv:
             self.conv.dispose()
         self.Close()
         self.Destroy()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.GridBagSizer()
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -289,7 +292,8 @@ class SkinConversionDialog(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class SkinEditDialog(wx.Dialog):
-    def __init__(self, parent, skindirname, skinsummary, get_localsettings):
+    def __init__(self, parent: wx.TopLevelWindow, skindirname: str, skinsummary: Tuple[str, str, str, str, bool, int],
+                 get_localsettings: Callable[[], cw.setting.LocalSetting]) -> None:
         wx.Dialog.__init__(self, parent, -1, "スキンの編集",
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
@@ -346,11 +350,11 @@ class SkinEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnImportResource, id=self.btn_importres.GetId())
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         skintype = self.info.typectrl.GetValue()
         skinname = self.info.namectrl.GetValue()
         author = self.info.authorctrl.GetValue()
@@ -390,7 +394,7 @@ class SkinEditDialog(wx.Dialog):
         e.write(skinpath)
 
         if cw.cwpy.setting.skindirname == self.skindirname:
-            def func(local, skinname, vocation120, initialcash):
+            def func(local: cw.setting.LocalSetting, skinname: str, vocation120: bool, initialcash: int) -> None:
                 cw.cwpy.setting.skin_local = local
                 cw.cwpy.setting.skinname = skinname
                 cw.cwpy.setting.skintype = skintype
@@ -411,7 +415,7 @@ class SkinEditDialog(wx.Dialog):
 
         self.EndModal(wx.ID_OK)
 
-    def OnImportResource(self, event):
+    def OnImportResource(self, event: wx.CommandEvent) -> None:
         s = "CardWirth用のイメージリソースをインポートしてこのスキンのリソースに上書きしますか？\n(元に戻すことはできません)"
         if wx.YES != wx.MessageBox(s, "メッセージ", wx.YES_NO | wx.ICON_QUESTION, self):
             return
@@ -437,7 +441,7 @@ class SkinEditDialog(wx.Dialog):
                     resname, ext = os.path.splitext(fname)
                     resname = resname.lower()
 
-                    def import_res(dpath, fname, ext, newresname):
+                    def import_res(dpath: str, fname: str, ext: str, newresname: str) -> None:
                         src = cw.util.join_paths(dpath, fname)
                         dst = cw.util.join_paths(skindir, newresname + ext)
                         dpath = os.path.dirname(dst)
@@ -476,7 +480,7 @@ class SkinEditDialog(wx.Dialog):
             self.SetCursor(wx.NullCursor)
         dlg.Destroy()
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -505,7 +509,7 @@ class SkinEditDialog(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class SkinBasePanel(wx.Panel):
-    def __init__(self, parent, conv):
+    def __init__(self, parent: wx.Panel, conv: cw.skin.convert.Converter) -> None:
         wx.Panel.__init__(self, parent)
         self.conv = conv
         self.exe = self.conv.exe
@@ -573,20 +577,20 @@ class SkinBasePanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         self.exectrl.Bind(wx.EVT_TEXT, self.OnInput)
         self.exectrl.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveExeCtrl)
         self.datactrl.Bind(wx.EVT_TEXT, self.OnInput)
         self.info.typectrl.Bind(wx.EVT_TEXT, self.OnInput)
         self.info.namectrl.Bind(wx.EVT_TEXT, self.OnInput)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer_gb = wx.GridBagSizer()
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
         gbsizer_base = wx.GridBagSizer()
 
-        def add_base(ctrl, pos):
+        def add_base(ctrl: wx.Control, pos: Tuple[int, int]) -> None:
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL, 0)
             gbsizer_base.Add(sizer, pos=pos, flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(3))
@@ -620,15 +624,15 @@ class SkinBasePanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def OnLeaveExeCtrl(self, event):
+    def OnLeaveExeCtrl(self, event: wx.MouseEvent) -> None:
         exe = self.exectrl.GetValue()
         if exe:
             self._selected_exe(exe)
 
-    def _get_basedir(self):
+    def _get_basedir(self) -> None:
         return os.path.dirname(self.exectrl.GetValue())
 
-    def _selected_exe(self, exe):
+    def _selected_exe(self, exe: str) -> None:
         if not os.path.isfile(exe) or exe == self.exe:
             self.exe = exe
             return
@@ -656,7 +660,7 @@ class SkinBasePanel(wx.Panel):
         self.Parent.Parent.pane_message.set_values(self.conv)
         self.Parent.Parent.pane_card.set_values(self.conv)
 
-    def OnInput(self, event):
+    def OnInput(self, event: wx.CommandEvent) -> None:
         exe = self.exectrl.GetValue().strip()
         data = self.datactrl.GetValue().strip()
         skintype = self.info.typectrl.GetValue().strip()
@@ -673,7 +677,7 @@ class SkinBasePanel(wx.Panel):
 # ------------------------------------------------------------------------------
 
 class SkinInfoPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent: wx.Panel) -> None:
         wx.Panel.__init__(self, parent)
 
         # スキンタイプ一覧
@@ -716,15 +720,16 @@ class SkinInfoPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
-    def _bind(self):
+    def _bind(self) -> None:
         pass
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         gbsizer_info = wx.GridBagSizer()
 
-        def add_info(ctrl, pos, colspan=1, rowspan=1, expand=True, growable=False):
+        def add_info(ctrl: wx.Control, pos: Tuple[int, int], colspan: int = 1, rowspan: int = 1, expand: bool = True,
+                     growable: bool = False) -> None:
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             growable = wx.EXPAND if growable else wx.ALIGN_CENTER_VERTICAL
             sizer.Add(ctrl, 1, growable, cw.ppis(0))
@@ -762,7 +767,7 @@ class SkinInfoPanel(wx.Panel):
 # ------------------------------------------------------------------------------
 
 class SkinFeaturePanel(wx.Panel):
-    def __init__(self, parent, conv):
+    def __init__(self, parent: wx.Panel, conv: cw.skin.convert.Converter) -> None:
         wx.Panel.__init__(self, parent)
 
         base = cw.data.xml2etree("Data/SkinBase/Skin.xml")
@@ -821,8 +826,8 @@ class SkinFeaturePanel(wx.Panel):
 
         self._do_layout()
 
-    def set_values(self, conv):
-        def set_rowdata(data, row):
+    def set_values(self, conv: cw.skin.convert.Converter) -> None:
+        def set_rowdata(data: cw.data.CWPyElement, row: int) -> int:
             self.grid.SetCellValue(row, 0, data.gettext("Name", ""))
             e = data.find("Physical")
             self.grid.SetCellValue(row, 1, e.get("dex", "0"))
@@ -849,10 +854,10 @@ class SkinFeaturePanel(wx.Panel):
         for data in conv.data.getfind("Makings"):
             row = set_rowdata(data, row)
 
-    def get_values(self, conv):
+    def get_values(self, conv: cw.skin.convert.Converter) -> None:
         row = 0
 
-        def get_rowdata(data, row):
+        def get_rowdata(data: cw.data.CWPyElement, row: int) -> int:
             data.find("Name").text = self.grid.GetCellValue(row, 0)
             e = data.find("Physical")
             e.set("dex", self.grid.GetCellValue(row, 1))
@@ -877,7 +882,7 @@ class SkinFeaturePanel(wx.Panel):
         for data in conv.data.getfind("Makings"):
             row = get_rowdata(data, row)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
         sizer.Add(self.grid, 0, wx.EXPAND | wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
@@ -890,7 +895,7 @@ class SkinFeaturePanel(wx.Panel):
 # ------------------------------------------------------------------------------
 
 class SkinSoundPanel(wx.Panel):
-    def __init__(self, parent, conv):
+    def __init__(self, parent: wx.Panel, conv: cw.skin.convert.Converter) -> None:
         wx.Panel.__init__(self, parent)
 
         base = cw.data.xml2etree("Data/SkinBase/Skin.xml")
@@ -912,15 +917,15 @@ class SkinSoundPanel(wx.Panel):
 
         self._do_layout()
 
-    def set_values(self, conv):
+    def set_values(self, conv: cw.skin.convert.Converter) -> None:
         for row, e in enumerate(conv.data.find("Sounds")):
             self.grid.SetCellValue(row, 0, e.text)
 
-    def get_values(self, conv):
+    def get_values(self, conv: cw.skin.convert.Converter) -> None:
         for row, e in enumerate(conv.data.find("Sounds")):
             e.text = self.grid.GetCellValue(row, 0)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
         sizer.Add(self.grid, 0, wx.EXPAND | wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
@@ -933,7 +938,7 @@ class SkinSoundPanel(wx.Panel):
 # ------------------------------------------------------------------------------
 
 class SkinMessagePanel(wx.Panel):
-    def __init__(self, parent, conv):
+    def __init__(self, parent: wx.Panel, conv: cw.skin.convert.Converter) -> None:
         wx.Panel.__init__(self, parent)
 
         base = cw.data.xml2etree("Data/SkinBase/Skin.xml")
@@ -984,7 +989,7 @@ class SkinMessagePanel(wx.Panel):
 
         self._do_layout()
 
-    def set_values(self, conv):
+    def set_values(self, conv: cw.skin.convert.Converter) -> None:
         row = 0
         for e in conv.data.find("Messages"):
             s = cw.util.encodewrap(e.text)
@@ -1015,7 +1020,7 @@ class SkinMessagePanel(wx.Panel):
         self.grid.SetCellValue(row, 0, e.find("Contents/Post[4]").get("name"))
         row += 1
 
-    def get_values(self, conv):
+    def get_values(self, conv: cw.skin.convert.Converter) -> None:
         row = 0
         for e in conv.data.find("Messages"):
             e.text = cw.util.decodewrap(self.grid.GetCellValue(row, 0))
@@ -1044,7 +1049,7 @@ class SkinMessagePanel(wx.Panel):
         e.find("Contents/Post[4]").get("name", self.grid.GetCellValue(row, 0))
         row += 1
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
         sizer.Add(self.grid, 0, wx.EXPAND | wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
@@ -1057,7 +1062,7 @@ class SkinMessagePanel(wx.Panel):
 # ------------------------------------------------------------------------------
 
 class SkinCardPanel(wx.Panel):
-    def __init__(self, parent, conv):
+    def __init__(self, parent: wx.Panel, conv: cw.skin.convert.Converter) -> None:
         wx.Panel.__init__(self, parent)
         baseconv = cw.skin.convert.Converter("")
 
@@ -1084,7 +1089,7 @@ class SkinCardPanel(wx.Panel):
             self.grid.SetRowLabelValue(row, "特殊カード:" + name)
             row += 1
 
-        def put_areacards(table, row):
+        def put_areacards(table: Dict[str, cw.data.CWPyElement], row: int) -> int:
             for key in cw.util.sorted_by_attr(iter(table.keys())):
                 data = table[key]
                 areaname = data.gettext("Property/Name", "")
@@ -1109,7 +1114,7 @@ class SkinCardPanel(wx.Panel):
 
         baseconv.dispose()
 
-    def set_values(self, conv):
+    def set_values(self, conv: cw.skin.convert.Converter) -> None:
         row = 0
         for key in cw.util.sorted_by_attr(iter(conv.actioncard.keys())):
             e = conv.actioncard[key]
@@ -1126,7 +1131,7 @@ class SkinCardPanel(wx.Panel):
             self.grid.SetCellValue(row, 1, desc)
             row += 1
 
-        def put_areacards(table, row):
+        def put_areacards(table: Dict[str, cw.data.CWPyElement], row: int) -> int:
             for key in cw.util.sorted_by_attr(iter(table.keys())):
                 data = table[key]
                 cards = data.getfind("MenuCards")
@@ -1143,7 +1148,7 @@ class SkinCardPanel(wx.Panel):
         row = put_areacards(conv.scenario, row)
         row = put_areacards(conv.gameover, row)
 
-    def get_values(self, conv):
+    def get_values(self, conv: cw.skin.convert.Converter) -> None:
         row = 0
         for key in cw.util.sorted_by_attr(iter(conv.actioncard.keys())):
             e = conv.actioncard[key]
@@ -1160,7 +1165,7 @@ class SkinCardPanel(wx.Panel):
             desc = e.find("Property/Description").text = desc
             row += 1
 
-        def get_areacards(table, row):
+        def get_areacards(table: Dict[str, cw.data.CWPyElement], row: int) -> int:
             for key in cw.util.sorted_by_attr(iter(table.keys())):
                 data = table[key]
                 cards = data.getfind("MenuCards")
@@ -1177,9 +1182,17 @@ class SkinCardPanel(wx.Panel):
         row = get_areacards(conv.scenario, row)
         row = get_areacards(conv.gameover, row)
 
-    def _do_layout(self):
+    def _do_layout(self) -> None:
         sizer = wx.GridSizer(1, 1, cw.ppis(0), cw.ppis(0))
         sizer.Add(self.grid, 0, wx.EXPAND | wx.ALL, cw.ppis(5))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
+
+def main() -> None:
+    pass
+
+
+if __name__ == "__main__":
+    main()

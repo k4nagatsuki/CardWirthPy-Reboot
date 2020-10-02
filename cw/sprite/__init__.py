@@ -13,7 +13,7 @@ from . import animationcell
 from . import bill
 
 
-def main():
+def main() -> None:
     pass
 
 

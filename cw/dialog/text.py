@@ -72,7 +72,7 @@ class Text(wx.Dialog):
         #        挙動が意味不明なので根本的な対処は行えていないが、
         #        以下のようにリサイズイベント中にレイアウトと
         #        再描画を行う事で回避できている。
-        def resize(event):
+        def resize(event: wx.SizeEvent) -> None:
             self.Layout()
             self.Refresh()
         self.Bind(wx.EVT_SIZE, resize)
@@ -107,13 +107,13 @@ class Text(wx.Dialog):
     def _set_text(self, value: bytes) -> None:
         self.richtextctrl.set_text(value, linkurl=True)
 
-    def OnCombobox(self, event):
+    def OnCombobox(self, event: wx.CommandEvent) -> None:
         assert isinstance(self, Readme)
         self.index = self.combo.GetSelection()
         self.index2 = self.index
         self._set_text(self.list2[self.index2])
 
-    def OnClickLeftBtn(self, event):
+    def OnClickLeftBtn(self, event: wx.CommandEvent) -> None:
         assert isinstance(self, Readme)
         self.Parent.OnClickLeftBtn(event)
         self._enable_btn()
@@ -142,7 +142,7 @@ class Text(wx.Dialog):
             self.richtextctrl.Hide()
             self.combo.Disable()
 
-    def OnClickRightBtn(self, event):
+    def OnClickRightBtn(self, event: wx.CommandEvent) -> None:
         assert isinstance(self, Readme)
         self.Parent.OnClickRightBtn(event)
         self._enable_btn()
@@ -171,7 +171,7 @@ class Text(wx.Dialog):
             self.richtextctrl.Hide()
             self.combo.Disable()
 
-    def OnUp(self, event):
+    def OnUp(self, event: wx.CommandEvent) -> None:
         if self.combo.GetCount() <= 1:
             return
         cw.cwpy.play_sound("page")
@@ -183,7 +183,7 @@ class Text(wx.Dialog):
         event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.combo.GetId())
         self.ProcessEvent(event)
 
-    def OnDown(self, event):
+    def OnDown(self, event: wx.CommandEvent) -> None:
         if self.combo.GetCount() <= 1:
             return
         cw.cwpy.play_sound("page")
@@ -263,7 +263,7 @@ class Text(wx.Dialog):
             self.rightbtn.Disable()
             self.leftbtn.Disable()
 
-    def upddate_lists(self):
+    def upddate_lists(self) -> None:
         pass
 
 
@@ -283,7 +283,7 @@ class Readme(Text):
             self.list2.append(s.content)
         Text.__init__(self, parent, name)
 
-    def update_lists(self):
+    def update_lists(self) -> None:
         lists = self.Parent.get_texts()
         cw.util.sort_by_attr(lists, "noextname")
         self.list = []
@@ -306,7 +306,7 @@ class ReadmeData(object):
         self.content = content
 
 
-def main():
+def main() -> None:
     pass
 
 

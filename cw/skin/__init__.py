@@ -6,7 +6,7 @@ from . import util
 from . import win32res
 
 
-def main():
+def main() -> None:
     pass
 
 

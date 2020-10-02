@@ -11,7 +11,7 @@ import wx
 
 import cw
 
-from typing import List
+from typing import Iterable, List, Tuple, Union
 
 
 class TransferYadoDataDialog(wx.Dialog):
@@ -288,7 +288,7 @@ class TransferYadoDataDialog(wx.Dialog):
     def OnToYado(self, event: wx.CommandEvent) -> None:
         self._enable_btn()
 
-    def OnOk(self, event):
+    def OnOk(self, event: wx.CommandEvent) -> None:
         # 転送を実行する
         cw.fsync.sync()
         index1 = self.fromyado.GetSelection()
@@ -351,158 +351,14 @@ class TransferYadoDataDialog(wx.Dialog):
             else:
                 assert False
 
-        class TransferThread(threading.Thread):
-            def __init__(self, outer):
-                threading.Thread.__init__(self)
-                self.outer = outer
-
-                def _skindir_to_scedir(skindir):
-                    scedir = "Scenario"
-                    if skindir:
-                        skindir = cw.util.join_paths("Data/Skin", skindir)
-                        fpath = cw.util.join_paths(skindir, "Skin.xml")
-                        if os.path.isfile(fpath):
-                            prop = cw.header.GetProperty(fpath)
-                            skintype = prop.properties.get("Type", "")
-                            if skintype:
-                                for stype, folder in cw.cwpy.setting.folderoftype:
-                                    if stype == skintype:
-                                        scedir = folder
-                                        break
-                    return scedir
-
-                prop = cw.header.GetProperty(cw.util.join_paths(fromyado, "Environment.xml"))
-                skindir = prop.properties.get("Skin", "")
-                self.fromscedir = _skindir_to_scedir(skindir)
-                self.environment = cw.data.xml2etree(cw.util.join_paths(toyado, "Environment.xml"))
-                self.skin_vars = None
-                self.saved_variables = cw.data.YadoData.get_savedvariables(self.environment)
-                self.toscedir = _skindir_to_scedir(self.environment.gettext("Property/Skin", ""))
-                self.imgpaths = {}
-                self.membertable = {}
-                self.num = 0
-                self.msg = ""
-
-            def run(self):
-                cw.fsync.sync()
-                seq2 = []
-                yadodb = cw.yadodb.YadoDB(toyado)
-                savedjpdcimage = yadodb.get_savedjpdcimage()
-                try:
-                    for data in seq:
-                        if isinstance(data, cw.data.CWPyElement):
-                            if data.tag == "Bookmarks":
-                                name = cw.cwpy.msgs["bookmark"]
-                            elif data.tag == "Gossips":
-                                name = cw.cwpy.msgs["gossip"]
-                            elif data.tag == "CompleteStamps":
-                                name = cw.cwpy.msgs["complete_stamp"]
-                            else:
-                                assert False
-                        elif isinstance(data, int):
-                            name = cw.cwpy.msgs["currency"] % (data)
-                        elif isinstance(data, list):
-                            if isinstance(data[0], cw.header.AdventurerHeader) and data[0].album:
-                                name = cw.cwpy.msgs["album"] % (data)
-                            elif isinstance(data[0], cw.header.PartyRecordHeader):
-                                seq2.append(data)  # 編成記録はAdventurerHeaderよりも遅延させる
-                                continue
-                            else:
-                                assert False
-                        elif isinstance(data, cw.header.SavedJPDCImageHeader):
-                            # 保存されたJPDCイメージ
-                            if data.scenarioauthor:
-                                name = "JPDC - %s(%s)" % (data.scenarioname, data.scenarioauthor)
-                            else:
-                                name = "JPDC - %s" % (data.scenarioname)
-                        elif isinstance(data, tuple) and data[1].tag == "Variables" and not data[2]:
-                            # 保存された状態変数
-                            scenario, author = data[0]
-                            if author:
-                                name = "状態変数 - %s(%s)" % (scenario, author)
-                            else:
-                                name = "状態変数 - %s" % (scenario)
-                        elif isinstance(data, tuple) and data[1].tag == "Variables" and data[2]:
-                            # 保存されたスキンの状態変数
-                            scenario, author = data[3], data[4]
-                            if author:
-                                name = "スキン「%s(%s)」の状態変数" % (scenario, author)
-                            else:
-                                name = "スキン「%s」の状態変数" % (scenario)
-                        else:
-                            name = data.name
-                        self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
-
-                        if isinstance(data, cw.data.CWPyElement):
-                            if data.tag == "Bookmarks":
-                                # ブックマーク
-                                self.outer.transfer_bookmark(self.fromscedir, self.toscedir, fromyado, toyado,
-                                                             data, self)
-                            elif data.tag == "Gossips":
-                                # ゴシップ
-                                self.outer.transfer_gossip(fromyado, toyado, data, self)
-                            elif data.tag == "CompleteStamps":
-                                # 終了印
-                                self.outer.transfer_completestamp(fromyado, toyado, data, self)
-                        elif isinstance(data, int):
-                            # 資金
-                            money = self.environment.getint("Property/Cashbox", 0) + data
-                            money = cw.util.numwrap(money, 0, 9999999)
-                            self.environment.edit("Property/Cashbox", str(money))
-                            self.num += 1
-                        elif isinstance(data, list):
-                            # アルバム
-                            self.outer.transfer_album(fromyado, toyado, data, yadodb, self)
-                        elif isinstance(data, cw.header.PartyHeader):
-                            # パーティ
-                            self.outer.transfer_party(fromyado, toyado, data, yadodb, self)
-                        elif isinstance(data, cw.header.AdventurerHeader):
-                            # プレイヤーカード
-                            self.outer.transfer_adventurer(fromyado, toyado, data, yadodb, self)
-                        elif isinstance(data, cw.header.CardHeader):
-                            # 手札
-                            self.outer.transfer_card(fromyado, toyado, data, yadodb, self)
-                        elif isinstance(data, cw.header.SavedJPDCImageHeader):
-                            # 保存されたJPDCイメージ
-                            self.outer.transfer_savedjpdcimage(fromyado, toyado, data, yadodb, savedjpdcimage, self)
-                        elif isinstance(data, tuple) and data[1].tag == "Variables" and not data[2]:
-                            # 保存された状態変数
-                            self.outer.transfer_savedvariables(fromyado, toyado, data, yadodb, data, self)
-                        elif isinstance(data, tuple) and data[1].tag == "Variables" and data[2]:
-                            # 保存されたスキンの状態変数
-                            self.outer.transfer_skinvariables(fromyado, toyado, data, yadodb, data, self)
-                        else:
-                            assert False
-
-                    for data in seq2:
-                        if isinstance(data, list):
-                            if isinstance(data[0], cw.header.PartyRecordHeader):
-                                # 編成記録
-                                name = cw.cwpy.msgs["select_party_record"]
-                                self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
-                                self.outer.transfer_partyrecord(fromyado, toyado, data, yadodb, self)
-                            else:
-                                assert False
-                        else:
-                            assert False
-
-                    yadodb.commit()
-
-                    if self.environment.is_edited:
-                        self.environment.write()
-                    if self.skin_vars and self.skin_vars[0].is_edited:
-                        self.skin_vars[0].write()
-                finally:
-                    yadodb.close()
-
-        thread = TransferThread(self)
+        thread = _TransferThread(self, fromyado, toyado, seq)
         thread.start()
 
         # プログレスダイアログ表示
         dlg = cw.dialog.progress.ProgressDialog(self, cw.cwpy.msgs["transfer_data"],
                                                 "", maximum=counter)
 
-        def progress():
+        def progress() -> None:
             while thread.is_alive():
                 wx.CallAfter(dlg.UpdateProgress, thread.num, thread.msg)
                 time.sleep(0.001)
@@ -522,7 +378,8 @@ class TransferYadoDataDialog(wx.Dialog):
 
         self.EndModal(wx.ID_OK)
 
-    def transfer_bookmark(self, fromscedir, toscedir, fromyado, toyado, be, counter):
+    def transfer_bookmark(self, fromscedir: str, toscedir: str, fromyado: str, toyado: str, be: cw.data.CWPyElement,
+                          counter: "_TransferThread") -> None:
         # ブックマークを転送する
         # ただし転送先にすでに存在するアイテムは転送しない
         targetbookmarks = set()
@@ -565,17 +422,19 @@ class TransferYadoDataDialog(wx.Dialog):
         data.is_edited = True
         counter.num += 1
 
-    def transfer_gossip(self, fromyado, toyado, ge, counter):
+    def transfer_gossip(self, fromyado: str, toyado: str, ge: cw.data.CWPyElement, counter: "_TransferThread") -> None:
         # ゴシップを転送する
         # ただし転送先にすでに存在するアイテムは転送しない
         self.transfer_elementlist(fromyado, toyado, ge, counter, "Gossips")
 
-    def transfer_completestamp(self, fromyado, toyado, ce, counter):
+    def transfer_completestamp(self, fromyado: str, toyado: str, ce: cw.data.CWPyElement,
+                               counter: "_TransferThread") -> None:
         # 終了印を転送する
         # ただし転送先にすでに存在するアイテムは転送しない
         self.transfer_elementlist(fromyado, toyado, ce, counter, "CompleteStamps")
 
-    def transfer_elementlist(self, fromyado, toyado, ee, counter, tag):
+    def transfer_elementlist(self, fromyado: str, toyado: str, ee: cw.data.CWPyElement, counter: "_TransferThread",
+                             tag: str) -> None:
         exists = set()
         edata = counter.environment.find(tag)
         for e in edata:
@@ -589,7 +448,8 @@ class TransferYadoDataDialog(wx.Dialog):
         counter.environment.is_edited = True
         counter.num += 1
 
-    def transfer_party(self, fromyado, toyado, header, yadodb, counter):
+    def transfer_party(self, fromyado: str, toyado: str, header: cw.header.PartyHeader, yadodb: cw.yadodb.YadoDB,
+                       counter: "_TransferThread") -> None:
         # パーティを転送する
         dpath = os.path.dirname(header.fpath)
         dstdir = dpath.replace(fromyado + "/", toyado + "/", 1)
@@ -713,7 +573,8 @@ class TransferYadoDataDialog(wx.Dialog):
         fpath = cw.util.join_paths(dstdir, os.path.basename(header.fpath))
         yadodb.insert_party(fpath)
 
-    def transfer_album(self, fromyado, toyado, album, yadodb, counter):
+    def transfer_album(self, fromyado: str, toyado: str, album: Iterable[cw.header.AdventurerHeader],
+                       yadodb: cw.yadodb.YadoDB, counter: "_TransferThread") -> None:
         # アルバムの転送
         for header in album:
             data = cw.data.xml2etree(header.fpath)
@@ -730,7 +591,8 @@ class TransferYadoDataDialog(wx.Dialog):
                 yadodb.insert_adventurer(data.fpath, album=True, commit=False)
             counter.num += 1
 
-    def transfer_adventurer(self, fromyado, toyado, data, yadodb, counter, overwrite=False):
+    def transfer_adventurer(self, fromyado: str, toyado: str, data: cw.data.CWPyElement, yadodb: cw.yadodb.YadoDB,
+                            counter: "_TransferThread", overwrite: bool = False) -> str:
         # 冒険者の転送
         if isinstance(data, cw.header.AdventurerHeader):
             data = cw.data.xml2etree(data.fpath)
@@ -760,7 +622,9 @@ class TransferYadoDataDialog(wx.Dialog):
             counter.num += 1
         return data.fpath
 
-    def transfer_card(self, fromyado, toyado, data, yadodb, counter):
+    def transfer_card(self, fromyado: str, toyado: str,
+                      data: Union[cw.data.CWPyElement, cw.data.CWPyElementTree, cw.header.CardHeader],
+                      yadodb: cw.yadodb.YadoDB, counter: "_TransferThread") -> None:
         # 個別のカードの転送
         if isinstance(data, cw.header.CardHeader):
             data = cw.data.xml2etree(data.fpath)
@@ -785,7 +649,8 @@ class TransferYadoDataDialog(wx.Dialog):
             yadodb.insert_card(data.fpath, commit=False)
             counter.num += 1
 
-    def transfer_partyrecord(self, fromyado, toyado, partyrecord, yadodb, counter):
+    def transfer_partyrecord(self, fromyado: str, toyado: str, partyrecord: Iterable[cw.header.PartyRecordHeader],
+                             yadodb: cw.yadodb.YadoDB, counter: "_TransferThread") -> None:
         # 編成記録の転送
         for header in partyrecord:
             data = cw.data.xml2etree(header.fpath)
@@ -800,7 +665,8 @@ class TransferYadoDataDialog(wx.Dialog):
                 yadodb.insert_partyrecord(data.fpath, commit=False)
             counter.num += 1
 
-    def transfer_savedjpdcimage(self, fromyado, toyado, header, yadodb, table, counter):
+    def transfer_savedjpdcimage(self, fromyado: str, toyado: str, header: cw.header.SavedJPDCImageHeader,
+                                yadodb: cw.yadodb.YadoDB, table, counter: "_TransferThread") -> None:
         # 保存されたJPDCイメージの転送
         key = (header.scenarioname, header.scenarioauthor)
         savejpdcdir = cw.util.join_paths(toyado, "SavedJPDCImage")
@@ -835,7 +701,8 @@ class TransferYadoDataDialog(wx.Dialog):
 
         counter.num += 1
 
-    def transfer_savedvariables(self, fromyado, toyado, header, yadodb, d, counter):
+    def transfer_savedvariables(self, fromyado: str, toyado: str, yadodb: cw.yadodb.YadoDB,
+                                d: Tuple[str, cw.data.CWPyElement, str], counter: "_TransferThread") -> None:
         # 保存された状態変数の転送
         # 転送先に同じシナリオの状態変数がある場合は上書きする
         key, e, _type = d
@@ -857,7 +724,8 @@ class TransferYadoDataDialog(wx.Dialog):
 
         counter.num += 1
 
-    def transfer_skinvariables(self, fromyado, toyado, header, yadodb, d, counter):
+    def transfer_skinvariables(self, fromyado: str, toyado: str, yadodb: cw.yadodb.YadoDB,
+                               d: Tuple[str, cw.data.CWPyElement, str, str, str], counter: "_TransferThread") -> None:
         # 保存されたスキンの状態変数の転送
         # 転送先に同じスキンの状態変数がある場合は上書きする
         key, e, _type, _name, _author = d
@@ -883,7 +751,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         counter.num += 1
 
-    def OnCancel(self, event):
+    def OnCancel(self, event: wx.CommandEvent) -> None:
         cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
@@ -965,7 +833,166 @@ class TransferYadoDataDialog(wx.Dialog):
         self._enable_btn()
 
 
-def main():
+class _TransferThread(threading.Thread):
+    def __init__(self, outer: TransferYadoDataDialog, fromyado: str, toyado: str,
+                 seq: Iterable[Union[cw.data.CWPyElement,
+                                     int,
+                                     List[cw.header.AdventurerHeader],
+                                     List[cw.header.PartyRecordHeader],
+                                     cw.header.PartyHeader,
+                                     cw.header.AdventurerHeader,
+                                     cw.header.CardHeader,
+                                     cw.header.SavedJPDCImageHeader,
+                                     Tuple[str, cw.data.CWPyElement, str],
+                                     Tuple[str, cw.data.CWPyElement, str, str, str]]]) -> None:
+        threading.Thread.__init__(self)
+        self.outer = outer
+        self.fromyado = fromyado
+        self.toyado = toyado
+        self.seq = seq
+
+        def _skindir_to_scedir(skindir: str) -> str:
+            scedir = "Scenario"
+            if skindir:
+                skindir = cw.util.join_paths("Data/Skin", skindir)
+                fpath = cw.util.join_paths(skindir, "Skin.xml")
+                if os.path.isfile(fpath):
+                    prop = cw.header.GetProperty(fpath)
+                    skintype = prop.properties.get("Type", "")
+                    if skintype:
+                        for stype, folder in cw.cwpy.setting.folderoftype:
+                            if stype == skintype:
+                                scedir = folder
+                                break
+            return scedir
+
+        prop = cw.header.GetProperty(cw.util.join_paths(fromyado, "Environment.xml"))
+        skindir = prop.properties.get("Skin", "")
+        self.fromscedir = _skindir_to_scedir(skindir)
+        self.environment = cw.data.xml2etree(cw.util.join_paths(toyado, "Environment.xml"))
+        self.skin_vars = None
+        self.saved_variables = cw.data.YadoData.get_savedvariables(self.environment)
+        self.toscedir = _skindir_to_scedir(self.environment.gettext("Property/Skin", ""))
+        self.imgpaths = {}
+        self.membertable = {}
+        self.num = 0
+        self.msg = ""
+
+    def run(self) -> None:
+        cw.fsync.sync()
+        fromyado = self.fromyado
+        toyado = self.toyado
+        seq2 = []
+        yadodb = cw.yadodb.YadoDB(toyado)
+        savedjpdcimage = yadodb.get_savedjpdcimage()
+        try:
+            for data in self.seq:
+                if isinstance(data, cw.data.CWPyElement):
+                    if data.tag == "Bookmarks":
+                        name = cw.cwpy.msgs["bookmark"]
+                    elif data.tag == "Gossips":
+                        name = cw.cwpy.msgs["gossip"]
+                    elif data.tag == "CompleteStamps":
+                        name = cw.cwpy.msgs["complete_stamp"]
+                    else:
+                        assert False
+                elif isinstance(data, int):
+                    name = cw.cwpy.msgs["currency"] % (data)
+                elif isinstance(data, list):
+                    if isinstance(data[0], cw.header.AdventurerHeader) and data[0].album:
+                        name = cw.cwpy.msgs["album"] % (data)
+                    elif isinstance(data[0], cw.header.PartyRecordHeader):
+                        seq2.append(data)  # 編成記録はAdventurerHeaderよりも遅延させる
+                        continue
+                    else:
+                        assert False
+                elif isinstance(data, cw.header.SavedJPDCImageHeader):
+                    # 保存されたJPDCイメージ
+                    if data.scenarioauthor:
+                        name = "JPDC - %s(%s)" % (data.scenarioname, data.scenarioauthor)
+                    else:
+                        name = "JPDC - %s" % (data.scenarioname)
+                elif isinstance(data, tuple) and data[1].tag == "Variables" and not data[2]:
+                    # 保存された状態変数
+                    scenario, author = data[0]
+                    if author:
+                        name = "状態変数 - %s(%s)" % (scenario, author)
+                    else:
+                        name = "状態変数 - %s" % (scenario)
+                elif isinstance(data, tuple) and data[1].tag == "Variables" and data[2]:
+                    # 保存されたスキンの状態変数
+                    scenario, author = data[3], data[4]
+                    if author:
+                        name = "スキン「%s(%s)」の状態変数" % (scenario, author)
+                    else:
+                        name = "スキン「%s」の状態変数" % (scenario)
+                else:
+                    name = data.name
+                self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
+
+                if isinstance(data, cw.data.CWPyElement):
+                    if data.tag == "Bookmarks":
+                        # ブックマーク
+                        self.outer.transfer_bookmark(self.fromscedir, self.toscedir, fromyado, toyado, data, self)
+                    elif data.tag == "Gossips":
+                        # ゴシップ
+                        self.outer.transfer_gossip(fromyado, toyado, data, self)
+                    elif data.tag == "CompleteStamps":
+                        # 終了印
+                        self.outer.transfer_completestamp(fromyado, toyado, data, self)
+                elif isinstance(data, int):
+                    # 資金
+                    money = self.environment.getint("Property/Cashbox", 0) + data
+                    money = cw.util.numwrap(money, 0, 9999999)
+                    self.environment.edit("Property/Cashbox", str(money))
+                    self.num += 1
+                elif isinstance(data, list):
+                    # アルバム
+                    self.outer.transfer_album(fromyado, toyado, data, yadodb, self)
+                elif isinstance(data, cw.header.PartyHeader):
+                    # パーティ
+                    self.outer.transfer_party(fromyado, toyado, data, yadodb, self)
+                elif isinstance(data, cw.header.AdventurerHeader):
+                    # プレイヤーカード
+                    self.outer.transfer_adventurer(fromyado, toyado, data, yadodb, self)
+                elif isinstance(data, cw.header.CardHeader):
+                    # 手札
+                    self.outer.transfer_card(fromyado, toyado, data, yadodb, self)
+                elif isinstance(data, cw.header.SavedJPDCImageHeader):
+                    # 保存されたJPDCイメージ
+                    self.outer.transfer_savedjpdcimage(fromyado, toyado, data, yadodb, savedjpdcimage, self)
+                elif isinstance(data, tuple) and data[1].tag == "Variables" and not data[2]:
+                    # 保存された状態変数
+                    self.outer.transfer_savedvariables(fromyado, toyado, yadodb, data, self)
+                elif isinstance(data, tuple) and data[1].tag == "Variables" and data[2]:
+                    # 保存されたスキンの状態変数
+                    self.outer.transfer_skinvariables(fromyado, toyado, yadodb, data, self)
+                else:
+                    assert False
+
+            for data in seq2:
+                if isinstance(data, list):
+                    if isinstance(data[0], cw.header.PartyRecordHeader):
+                        # 編成記録
+                        name = cw.cwpy.msgs["select_party_record"]
+                        self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
+                        self.outer.transfer_partyrecord(fromyado, toyado, data, yadodb, self)
+                    else:
+                        assert False
+                else:
+                    assert False
+
+            yadodb.commit()
+
+            if self.environment.is_edited:
+                self.environment.write()
+            if self.skin_vars and self.skin_vars[0].is_edited:
+                self.skin_vars[0].write()
+        finally:
+            yadodb.close()
+
+
+def main() -> None:
     pass
 
 
