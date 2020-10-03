@@ -718,16 +718,16 @@ class AdventurerLogger(object):
     def recover_mentality(self, ccard: cw.character.Character, mentality: str) -> None:
         self._put(ELAPSE_TIME, ccard.name, lambda name: "%sの精神は正常化した。" % (name))
 
-    def recover_enhance_act(self, ccard: cw.character.Character):
+    def recover_enhance_act(self, ccard: cw.character.Character) -> None:
         self._put(ELAPSE_TIME, ccard.name, lambda name: "%sの行動力は通常状態に戻った。" % (name))
 
-    def recover_enhance_avo(self, ccard: cw.character.Character):
+    def recover_enhance_avo(self, ccard: cw.character.Character) -> None:
         self._put(ELAPSE_TIME, ccard.name, lambda name: "%sの回避力は通常状態に戻った。" % (name))
 
-    def recover_enhance_res(self, ccard: cw.character.Character):
+    def recover_enhance_res(self, ccard: cw.character.Character) -> None:
         self._put(ELAPSE_TIME, ccard.name, lambda name: "%sの抵抗力は通常状態に戻った。" % (name))
 
-    def recover_enhance_def(self, ccard: cw.character.Character):
+    def recover_enhance_def(self, ccard: cw.character.Character) -> None:
         self._put(ELAPSE_TIME, ccard.name, lambda name: "%sの防御力は通常状態に戻った。" % (name))
 
     # 以下は当面出力しない(できない)。
