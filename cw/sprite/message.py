@@ -11,6 +11,7 @@ import pygame.locals
 import cw
 from . import base
 
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
 
 # 表示後に空白時間を入れる文字
 _WAIT_CHARS = "、。，．？！｡､!?"
@@ -19,13 +20,25 @@ _WAIT_CHARS_BEFORE_SPACE = "・´｀：；ー―～…‥’”）〕］｝〉�
 
 
 class MessageWindow(base.CWPySprite):
-    def __init__(self, text, names, imgpaths=None, talker=None,
-                 pos_noscale=None, size_noscale=None,
-                 nametable=None, namesubtable=None,
-                 flagtable=None, steptable=None, varianttable=None,
-                 backlog=False, result=None, showing_result=-1, versionhint="", specialchars=None,
-                 trim_top_noscale=0, columns=1, spcharinfo=None, centering_x=False, centering_y=False,
-                 boundarycheck=False):
+    def __init__(self, text: str, names: List[str],
+                 imgpaths: Optional[Iterable[Tuple[cw.image.ImageInfo,
+                                                   bool,
+                                                   Optional[Union[cw.character.Character, cw.header.CardHeader]],
+                                                   Dict[int, pygame.Surface]]]] = None,
+                 talker: Optional[Union[cw.character.Character, cw.header.CardHeader]] = None,
+                 pos_noscale: Optional[Tuple[int, int]] = None, size_noscale: Optional[Tuple[int, int]] = None,
+                 nametable: Optional[Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                     cw.data.Party, cw.data.YadoData]]] = None,
+                 namesubtable: Optional[Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                        cw.data.Party, cw.data.YadoData]]] = None,
+                 flagtable: Optional[Dict[str, cw.data.Flag]] = None,
+                 steptable: Optional[Dict[str, cw.data.Step]] = None,
+                 varianttable: Optional[Dict[str, cw.data.Variant]] = None,
+                 backlog: bool = False, result: Optional[int] = None, showing_result: int = -1, versionhint: str = "",
+                 specialchars: Optional[cw.setting.ResourceTable] = None,
+                 trim_top_noscale: int = 0, columns: int = 1, spcharinfo: Optional[Set[int]] = None,
+                 centering_x: bool = False, centering_y: bool = False,
+                 boundarycheck: bool = False) -> None:
         if imgpaths is None:
             imgpaths = []
         if nametable is None:
@@ -119,7 +132,7 @@ class MessageWindow(base.CWPySprite):
             cw.cwpy.cardgrp.add(self, layer=layer)
             cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def _init_image(self, size_noscale, pos_noscale):
+    def _init_image(self, size_noscale: Tuple[int, int], pos_noscale: Tuple[int, int]) -> None:
         # image
         self.image = pygame.Surface(cw.s(size_noscale)).convert_alpha()
         if self.backlog:
@@ -205,7 +218,7 @@ class MessageWindow(base.CWPySprite):
         self._back = None
         self._fore = None
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self.speed = cw.cwpy.setting.messagespeed
         if self.specialchars:
             self.specialchars.reset()
@@ -224,7 +237,7 @@ class MessageWindow(base.CWPySprite):
             self.draw_all()
 
     @staticmethod
-    def clear_selections():
+    def clear_selections() -> None:
         cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
         cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_1)
         cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
@@ -233,24 +246,24 @@ class MessageWindow(base.CWPySprite):
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         if self.is_drawing:
             self.draw_char()    # テキスト描画
 
     @staticmethod
-    def is_sbold():
+    def is_sbold() -> bool:
         return cw.cwpy.setting.fonttypes["message"][3 if cw.UP_SCR <= 1 else 4]
 
     @staticmethod
-    def get_messagestyledata():
+    def get_messagestyledata() -> Tuple[bool, Tuple[str, str, int, bool, bool, bool], int, bool]:
         return (MessageWindow.is_sbold(), cw.cwpy.setting.fonttypes["message"],
                 cw.UP_SCR, cw.cwpy.setting.decorationfont)
 
-    def draw_all(self):
+    def draw_all(self) -> None:
         while self.is_drawing:
             self.draw_char()
 
-    def draw_char(self):
+    def draw_char(self) -> None:
         if self.charimgs and not self._fore:
             if self.centering_y:
                 # 中央寄せ時の縦幅 = 描画した文字の下端-上端
@@ -339,7 +352,7 @@ class MessageWindow(base.CWPySprite):
             self._fore = None
             self._back = None
 
-    def create_selectionbar(self):
+    def create_selectionbar(self) -> None:
         # SelectionBarを描画
         if not self.backlog:
             cw.cwpy.list = self.selections
@@ -367,7 +380,9 @@ class MessageWindow(base.CWPySprite):
             else:
                 x_noscale += size_noscale[0]
 
-    def create_charimgs(self, pos_noscale=None, init=True):
+    def create_charimgs(self, pos_noscale: Optional[Tuple[int, int]] = None,
+                        init: bool = True) -> List[Tuple[Tuple[int, int], pygame.Surface, pygame.Surface,
+                                                         pygame.Surface, Optional[pygame.Rect], int]]:
         if pos_noscale is None:
             if self.centering_x:
                 pos_noscale = (-1, 9)
@@ -384,7 +399,7 @@ class MessageWindow(base.CWPySprite):
                     self.text = cw.util.txtwrap(self.text, 2, encodedtext=False, spcharinfo=self.spcharinfo)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if cw.cwpy.sct.lessthan("1.28", self.versionhint):
-                def calc_w(bmp_and_info):
+                def calc_w(bmp_and_info: Tuple[pygame.Surface, cw.image.ImageInfo]) -> int:
                     (bmp, info) = bmp_and_info
                     return bmp.get_width()
                 w = max(list(map(calc_w, self.talker_image)))
@@ -431,14 +446,14 @@ class MessageWindow(base.CWPySprite):
 
         bottom = self.rect_noscale[3]-yp_noscale-lineheight_noscale*7
 
-        def put_xinfo(x, width):
+        def put_xinfo(x: int, width: int) -> None:
             linerect2 = pygame.Rect(x, 0, width, 1)
             if self._linerect:
                 self._linerect.union_ip(linerect2)
             else:
                 self._linerect = linerect2
 
-        def put_topbottom(y, height):
+        def put_topbottom(y: int, height: int) -> None:
             self.top_noscale = min(y-yp_noscale, self.top_noscale)
             self.bottom_noscale = max(y+height+bottom, self.bottom_noscale)
             self.top_noscale = max(0, self.top_noscale)
@@ -452,7 +467,7 @@ class MessageWindow(base.CWPySprite):
         additional_wait_after_space = False
 
         for index, char in enumerate(self.text):
-            def add_wait(space, is_waitchar):
+            def add_wait(space: bool, is_waitchar: bool) -> Tuple[int, bool, bool]:
                 if cw.cwpy.setting.wait_after_punctuation_mark and not is_waitchar:
                     if additional_wait or (additional_wait_after_space and space):
                         wait = max(4, speed * 2)
@@ -641,7 +656,11 @@ class MessageWindow(base.CWPySprite):
         self._linerect = None
         return images
 
-    def rpl_specialstr(self, full, s, nametable=None, localvariables=True, show_cardname=True):
+    def rpl_specialstr(self, full: int, s: str,
+                       nametable: Optional[Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                           cw.data.Party, cw.data.YadoData]]] = None,
+                       localvariables: bool = True,
+                       show_cardname: bool = True) -> Union[str, Tuple[str, Optional[Set[int]]]]:
         """
         特殊文字列(#, $)を置換した文字列を返す。
         """
@@ -663,8 +682,11 @@ class MessageWindow(base.CWPySprite):
         else:
             return text
 
-    def get_stepvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist,
-                      namelistindex, stack):
+    def get_stepvalue(self, key: str, full: int, updatetype: str,
+                      name_table: Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                  cw.data.Party, cw.data.YadoData]],
+                      basenamelist: Sequence["NameListItem"], startindex: int, spcharinfo: Set[int],
+                      namelist: List["NameListItem"], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
         if self.backlog:
             if key in self.step_table:
                 v = self.step_table[key]
@@ -688,8 +710,11 @@ class MessageWindow(base.CWPySprite):
                                                      namelist, namelistindex, stack+1)
         return s, namelistindex
 
-    def get_flagvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist,
-                      namelistindex, stack):
+    def get_flagvalue(self, key: str, full: int, updatetype: str,
+                      name_table: Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                  cw.data.Party, cw.data.YadoData]],
+                      basenamelist: Sequence["NameListItem"], startindex: int, spcharinfo: int,
+                      namelist: List["NameListItem"], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
         if self.backlog:
             if key in self.flag_table:
                 v = self.flag_table[key]
@@ -711,8 +736,11 @@ class MessageWindow(base.CWPySprite):
                                                      namelist, namelistindex, stack+1)
         return s, namelistindex
 
-    def get_variantvalue(self, key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist,
-                         namelistindex, stack):
+    def get_variantvalue(self, key: str, full: int, updatetype: str,
+                         name_table: Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                     cw.data.Party, cw.data.YadoData]],
+                         basenamelist: Sequence["NameListItem"], startindex: int, spcharinfo: Set[int],
+                         namelist: List["NameListItem"], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
         if self.backlog:
             if key in self.variant_table:
                 v = self.variant_table[key]
@@ -727,7 +755,7 @@ class MessageWindow(base.CWPySprite):
         s = v.string_value()
         return s, namelistindex
 
-    def get_fontcolour(self, s):
+    def get_fontcolour(self, s: str) -> Tuple[int, int, int]:
         """引数の文字列からフォントカラーを返す。"""
         if s == "r":
             return (255, 0, 0)
@@ -755,10 +783,16 @@ class MessageWindow(base.CWPySprite):
 
 
 class SelectWindow(MessageWindow):
-    def __init__(self, names, text="", pos_noscale=None, size_noscale=None,
-                 backlog=False, result=None, showing_result=-1, columns=1, barspchr=True,
-                 nametable=None, namesubtable=None, flagtable=None, steptable=None,
-                 varianttable=None):
+    def __init__(self, names: List[str], text: str = "", pos_noscale: Optional[Tuple[int, int]] = None,
+                 size_noscale: Optional[Tuple[int, int]] = None, backlog: bool = False, result: Optional[int] = None,
+                 showing_result: int = -1, columns: int = 1, barspchr: bool = True,
+                 nametable: Optional[Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                     cw.data.Party, cw.data.YadoData]]] = None,
+                 namesubtable: Optional[Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                        cw.data.Party, cw.data.YadoData]]] = None,
+                 flagtable: Optional[Dict[str, cw.data.Flag]] = None,
+                 steptable: Optional[Dict[str, cw.data.Step]] = None,
+                 varianttable: Optional[Dict[str, cw.data.Variant]] = None):
         if nametable is None:
             nametable = {}
         if namesubtable is None:
@@ -837,7 +871,7 @@ class SelectWindow(MessageWindow):
             cw.cwpy.cardgrp.add(self, layer=layer)
             cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def _init_image(self, size_noscale, pos_noscale):
+    def _init_image(self, size_noscale: Tuple[int, int], pos_noscale: Tuple[int, int]) -> None:
         # image
         if self.backlog:
             colour = cw.cwpy.setting.blwincolour
@@ -856,7 +890,7 @@ class SelectWindow(MessageWindow):
         self._back = None
         self._fore = None
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs((14, 9), init=False)
         self.selections = []
@@ -865,12 +899,13 @@ class SelectWindow(MessageWindow):
         self.frame = 0
         self.draw_all()
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         pass
 
 
 class MemberSelectWindow(SelectWindow):
-    def __init__(self, pcards, pos_noscale=None, size_noscale=None):
+    def __init__(self, pcards: Sequence[cw.character.Character], pos_noscale: Optional[Tuple[int, int]] = None,
+                 size_noscale: Optional[Tuple[int, int]] = None) -> None:
         if pos_noscale is None:
             pos_noscale = (81, 50)
         if size_noscale is None:
@@ -884,7 +919,8 @@ class MemberSelectWindow(SelectWindow):
 
 
 class SelectionBar(base.SelectableSprite):
-    def __init__(self, showing_index, name, pos_noscale, size_noscale, backlog=False, selected=False):
+    def __init__(self, showing_index: int, name: Tuple[int, str], pos_noscale: Tuple[int, int],
+                 size_noscale: Tuple[int, int], backlog: bool = False, selected: bool = False) -> None:
         base.SelectableSprite.__init__(self)
         self.selectable_on_event = True
         self._clicking = False
@@ -935,16 +971,16 @@ class SelectionBar(base.SelectableSprite):
             self.rect_noscale.height = 0
         cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def get_unselectedimage(self):
+    def get_unselectedimage(self) -> pygame.Surface:
         return self._image
 
-    def get_selectedimage(self):
+    def get_selectedimage(self) -> pygame.Surface:
         return cw.imageretouch.to_negative(self._image)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         pass  # MessageWindowのupdate_scaleでremoveされる
 
-    def update(self, scr=None):
+    def update(self, scr: Optional[pygame.Surface] = None) -> None:
         if self.backlog:
             return
 
@@ -955,7 +991,7 @@ class SelectionBar(base.SelectableSprite):
             cw.cwpy.index = cw.cwpy.list.index(self)
             self.update_click()
 
-    def update_click(self):
+    def update_click(self) -> None:
         """
         左クリック時のアニメーションを呼び出すメソッド。
         軽く下に押すアニメーション。
@@ -981,7 +1017,7 @@ class SelectionBar(base.SelectableSprite):
 
         self.frame += 1
 
-    def get_image(self, size):
+    def get_image(self, size: Tuple[int, int]) -> pygame.Surface:
         image = pygame.Surface(size).convert_alpha()
         if self.backlog:
             colour = cw.cwpy.setting.blwincolour
@@ -1010,7 +1046,7 @@ class SelectionBar(base.SelectableSprite):
             image = cw.imageretouch.to_negative(image)
         return image
 
-    def lclick_event(self, skip=False):
+    def lclick_event(self, skip: bool = False) -> None:
         """
         メッセージ選択肢のクリックイベント。
         """
@@ -1045,7 +1081,7 @@ class SelectionBar(base.SelectableSprite):
 
 
 class BacklogData(object):
-    def __init__(self, base):
+    def __init__(self, base: Union[MessageWindow, SelectWindow]) -> None:
         """メッセージログ表示用のデータ。
         """
         if isinstance(base, SelectWindow):
@@ -1077,7 +1113,7 @@ class BacklogData(object):
         self.talker_top_noscale = base.talker_top_noscale
         self.talker_bottom_noscale = base.talker_bottom_noscale
 
-    def get_height_noscale(self):
+    def get_height_noscale(self) -> int:
         """メッセージと選択肢の表示高さを計算して返す。
         """
         if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
@@ -1096,14 +1132,14 @@ class BacklogData(object):
             return self.rect_noscale.height + ((len(self.names_log)+(self.columns-1)) // self.columns)*25
 
     @property
-    def _from_index(self):
+    def _from_index(self) -> int:
         return self.showing_result // self.columns * self.columns
 
     @property
-    def _to_index(self):
+    def _to_index(self) -> int:
         return min(len(self.names_log), self._from_index + self.columns)
 
-    def create_message(self):
+    def create_message(self) -> Union[MessageWindow, SelectWindow]:
         if self.type == 0:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
                 h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9,
@@ -1149,7 +1185,9 @@ class BacklogData(object):
 
 
 class BacklogCurtain(base.CWPySprite):
-    def __init__(self, spritegrp, layer, size_noscale, pos_noscale, color=None):
+    def __init__(self, spritegrp: pygame.sprite.LayeredDirty, layer: Tuple[int, int, int, int],
+                 size_noscale: Tuple[int, int], pos_noscale: Tuple[int, int],
+                 color: Optional[Tuple[int, int, int]] = None) -> None:
         """メッセージログ用の半透明黒背景スプライト。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         alpha: 透明度。
@@ -1169,7 +1207,7 @@ class BacklogCurtain(base.CWPySprite):
         # spritegroupに追加
         spritegrp.add(self, layer=layer)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self.image = pygame.Surface(cw.s(self.size_noscale)).convert()
         self.image.fill(self.color[:3])
         self.image.set_alpha(self.color[3])
@@ -1178,7 +1216,7 @@ class BacklogCurtain(base.CWPySprite):
 
 
 class BacklogPage(base.CWPySprite):
-    def __init__(self, page, pagemax, spritegrp):
+    def __init__(self, page: int, pagemax: int, spritegrp: pygame.sprite.LayeredDirty) -> None:
         """バックログの何ページ目を見ているかを表示するスプライト。
         page: 現在見ているページ。
         pagemax: ページの最大数。
@@ -1189,7 +1227,7 @@ class BacklogPage(base.CWPySprite):
         # spritegroupに追加
         spritegrp.add(self, layer=cw.LAYER_LOG_PAGE)
 
-    def update_page(self, page, pagemax):
+    def update_page(self, page: int, pagemax: int) -> None:
         """バックログの何ページ目を見ているかの情報を更新する。
         page: 現在見ているページ。
         pagemax: ページの最大数。
@@ -1198,7 +1236,7 @@ class BacklogPage(base.CWPySprite):
         self.max = pagemax
         self.update_scale()
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         font = cw.cwpy.rsrc.fonts["backlog_page"]
         s = "%s/%s" % (self.page, self.max)
         w, h = font.size(s)
@@ -1230,7 +1268,8 @@ _decorate_cache = {}
 _decorate_cache_upscr = 0
 
 
-def decorate(image, angle=8, basecolour=(255, 255, 255)):
+def decorate(image: pygame.Surface, angle: int = 8,
+             basecolour: Tuple[int, int, int] = (255, 255, 255)) -> pygame.Surface:
     """
     imageに装飾フォント処理を適用する。
     """
@@ -1278,7 +1317,8 @@ def decorate(image, angle=8, basecolour=(255, 255, 255)):
     return image
 
 
-def draw_frame(image, size, pos=None, backlog=False):
+def draw_frame(image: pygame.Surface, size: Tuple[int, int], pos: Optional[Tuple[int, int]] = None,
+               backlog: bool = False) -> None:
     """
     引数のサーフェスにメッセージウィンドウの外枠を描画。
     """
@@ -1298,7 +1338,11 @@ def draw_frame(image, size, pos=None, backlog=False):
     pygame.draw.lines(image, colour, False, pointlist)
 
 
-def get_pointlist(size, pos=(0, 0)):
+def get_pointlist(size: Tuple[int, int], pos: Tuple[int, int] = (0, 0)) -> Tuple[Tuple[int, int],
+                                                                                 Tuple[int, int],
+                                                                                 Tuple[int, int],
+                                                                                 Tuple[int, int],
+                                                                                 Tuple[int, int]]:
     """
     外枠描画のためのポイントリストを返す。
     """
@@ -1310,8 +1354,9 @@ def get_pointlist(size, pos=(0, 0)):
     return (pos1, pos2, pos3, pos4, pos5)
 
 
-def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All", localvariables=True,
-                   show_cardname=True):
+def rpl_specialstr(s: str, basenamelist: Optional[Sequence["NameListItem"]] = None, expandsharps: bool = True,
+                   updatetype: str = "All", localvariables: bool = True,
+                   show_cardname: bool = True) -> Tuple[str, List["NameListItem"]]:
     """
     テキストセルや選択肢のテキスト内の
     特殊文字列(#, $)を置換した文字列を返す。
@@ -1333,15 +1378,17 @@ def rpl_specialstr(s, basenamelist=None, expandsharps=True, updatetype="All", lo
 
 
 class _NameGetter(object):
-    def __init__(self, func):
+    def __init__(self, func: Callable[[], Union["cw.sprite.card.PlayerCard",
+                                                "cw.sprite.card.EnemyCard",
+                                                "cw.sprite.card.FriendCard"]]) -> None:
         self.func = func
         self.names = []
         self.count = 0
 
-    def reset(self):
+    def reset(self) -> None:
         self.count = 0
 
-    def get_name(self):
+    def get_name(self) -> str:
         if self.count < len(self.names):
             name = self.names[self.count]
         else:
@@ -1351,7 +1398,8 @@ class _NameGetter(object):
         return name
 
 
-def _reset_nametable(nametable):
+def _reset_nametable(nametable: Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                cw.data.Party, cw.data.YadoData]]) -> None:
     for name in nametable.values():
         if isinstance(name, _NameGetter):
             name.reset()
@@ -1362,12 +1410,14 @@ class NameListItem(object):
     後からテキストセルの内容を書き換えるため、
     内容を記録しておく。
     """
-    def __init__(self, data, name):
+    def __init__(self, data: Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                   cw.data.Party, cw.data.YadoData],
+                 name: str) -> None:
         self.data = data
         self.name = name
 
 
-def _get_namefromlist(index, namelist):
+def _get_namefromlist(index: int, namelist: Sequence[NameListItem]) -> Tuple[int, str]:
     item = namelist[index]
     if isinstance(item.data, str):
         name = item.data
@@ -1377,7 +1427,10 @@ def _get_namefromlist(index, namelist):
     return index, name
 
 
-def _get_namefromtable(nc, nametable, namelist):
+def _get_namefromtable(nc: str,
+                       nametable: Optional[Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                           cw.data.Party, cw.data.YadoData]]],
+                       namelist: List[NameListItem]) -> str:
     data = nametable.get("#" + nc, "")
     if isinstance(data, _NameGetter):
         data = data.get_name()
@@ -1392,8 +1445,13 @@ def _get_namefromtable(nc, nametable, namelist):
     return name
 
 
-def _create_nametable(full, talker, show_cardname=True):
-    def get_random():
+def _create_nametable(full: int, talker: Optional[Union[cw.character.Character, cw.header.CardHeader]],
+                      show_cardname: bool = True) -> Optional[Dict[str, Union[cw.character.Character,
+                                                                              cw.header.CardHeader,
+                                                                              "_NameGetter",
+                                                                              cw.data.Party,
+                                                                              cw.data.YadoData]]]:
+    def get_random() -> Union[cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard]:
         return cw.cwpy.event.get_targetmember("Random")
     selected = cw.cwpy.event.get_targetmember("Selected")\
         if cw.cwpy.event.has_selectedmember() else ""
@@ -1422,8 +1480,11 @@ def _create_nametable(full, talker, show_cardname=True):
     return name_table
 
 
-def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex,
-                   stack):
+def _get_stepvalue(key: str, full: int, updatetype: str,
+                   name_table: Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                               cw.data.Party, cw.data.YadoData]],
+                   basenamelist: Sequence[NameListItem], startindex: int, spcharinfo: Set[int],
+                   namelist: List[NameListItem], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
     # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
     v = cw.cwpy.sdata.find_step(key, False,
                                 cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
@@ -1450,11 +1511,12 @@ def _get_stepvalue(key, full, updatetype, name_table, basenamelist, startindex, 
     return s, namelistindex
 
 
-def get_spstep(name):
+def get_spstep(name: str) -> Tuple[Optional[cw.data.Step], int]:
     return _get_spstep(name, _SP_EXPAND_SHARPS, "Fixed", None, None, 0)[0]
 
 
-def _get_spstep(name, full, updatetype, basenamelist, namelist, namelistindex):
+def _get_spstep(name: str, full: int, updatetype: int, basenamelist: Sequence[NameListItem],
+                namelist: List[NameListItem], namelistindex: int) -> Tuple[Optional[cw.data.Step], int]:
     if cw.cwpy.event.in_inusecardevent:
         cardversion = cw.cwpy.event.get_inusecard().wsnversion
     else:
@@ -1498,8 +1560,11 @@ def _get_spstep(name, full, updatetype, basenamelist, namelist, namelistindex):
     return None, namelistindex
 
 
-def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo, namelist, namelistindex,
-                   stack):
+def _get_flagvalue(key: str, full: int, updatetype: str,
+                   name_table: Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                               cw.data.Party, cw.data.YadoData]],
+                   basenamelist: Sequence[NameListItem], startindex: int, spcharinfo: Set[int],
+                   namelist: List[NameListItem], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
     # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
     v = cw.cwpy.sdata.find_flag(key, False,
                                 cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
@@ -1524,8 +1589,11 @@ def _get_flagvalue(key, full, updatetype, name_table, basenamelist, startindex, 
     return s, namelistindex
 
 
-def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startindex, spcharinfo,
-                      namelist, namelistindex, stack):
+def _get_variantvalue(key: str, full: int, updatetype: str,
+                      name_table: Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                  cw.data.Party, cw.data.YadoData]],
+                      basenamelist: Sequence[NameListItem], startindex: int, spcharinfo: Set[int],
+                      namelist: List[NameListItem], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
     v = cw.cwpy.sdata.find_variant(key, _is_differentscenario(),
                                    cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
     if v is not None:
@@ -1544,7 +1612,7 @@ def _get_variantvalue(key, full, updatetype, name_table, basenamelist, startinde
     return s, namelistindex
 
 
-def _is_differentscenario():
+def _is_differentscenario() -> bool:
     if cw.cwpy.is_playingscenario():
         inusecard = cw.cwpy.event.get_inusecard()
         if cw.cwpy.event.in_inusecardevent and inusecard:
@@ -1562,8 +1630,25 @@ _SP_LOCAL_VARIABLES = 0x8
 _SP_CARD_NAME = 0x10
 
 
-def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_variant, basenamelist=None,
-                    startindex=0, spcharinfo=None, namelist=None, namelistindex=0, stack=0):
+def _rpl_specialstr(full: int, updatetype: str, s: str,
+                    name_table: Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
+                                                cw.data.Party, cw.data.YadoData]],
+                    get_step: Callable[[str, int, str, Dict[str, Union[cw.character.Character, cw.header.CardHeader,
+                                                                       "_NameGetter", cw.data.Party, cw.data.YadoData]],
+                                        Sequence[NameListItem], int, Set[int], List[NameListItem], int, int],
+                                       Tuple[Optional[str], int]],
+                    get_flag: Callable[[str, int, str, Dict[str, Union[cw.character.Character, cw.header.CardHeader,
+                                                                       "_NameGetter", cw.data.Party, cw.data.YadoData]],
+                                        Sequence[NameListItem], int, Set[int], List[NameListItem], int, int],
+                                       Tuple[Optional[str], int]],
+                    get_variant: Callable[[str, int, str, Dict[str, Union[cw.character.Character, cw.header.CardHeader,
+                                                                          "_NameGetter", cw.data.Party,
+                                                                          cw.data.YadoData]],
+                                           Sequence[NameListItem], int, Set[int], List[NameListItem], int, int],
+                                          Tuple[Optional[str], int]], basenamelist=None,
+                    startindex: int = 0, spcharinfo: Optional[Set[int]] = None,
+                    namelist: Optional[List[NameListItem]] = None, namelistindex: int = 0,
+                    stack: int = 0) -> Tuple[str, Set[int], Sequence[NameListItem], int]:
     """
     特殊文字列(#, $)を置換した文字列を返す。
     """
@@ -1581,7 +1666,22 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
             skip -= 1
             continue
 
-        def get_varvalue(get, c, namelistindex):
+        def get_varvalue(get: Callable[[str,
+                                        int,
+                                        str,
+                                        Optional[Dict[str, Union[cw.character.Character,
+                                                                 cw.header.CardHeader,
+                                                                 "_NameGetter",
+                                                                 cw.data.Party,
+                                                                 cw.data.YadoData]]],
+                                        Sequence[NameListItem],
+                                        int,
+                                        Set[int],
+                                        List[NameListItem],
+                                        int,
+                                        int],
+                                       Tuple[str, int]],
+                         c: str, namelistindex: int) -> Tuple[int, int]:
             if i+1 == len(s):
                 return 0, namelistindex
             nextpos = s[i+1:].find(c)
@@ -1671,7 +1771,7 @@ def _rpl_specialstr(full, updatetype, s, name_table, get_step, get_flag, get_var
     return "".join(buf), spcharinfo, namelist, namelistindex
 
 
-def get_messagelogtext(mwins, lastline=True):
+def get_messagelogtext(mwins: Iterable[Union[MessageWindow, "cw.sprite.bill.Bill"]], lastline: bool = True) -> str:
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。
     """
     lines = []
@@ -1724,7 +1824,7 @@ def get_messagelogtext(mwins, lastline=True):
     return "\n".join(lines)
 
 
-def update_scenariopath_for_log(normpath, dst):
+def update_scenariopath_for_log(normpath: str, dst: str) -> None:
     if cw.cwpy.is_showingmessage():
         logs = itertools.chain([cw.cwpy.get_messagewindow()], cw.cwpy.sdata.backlog)
     else:
@@ -1745,7 +1845,7 @@ def update_scenariopath_for_log(normpath, dst):
         update_scenariopath_for_spchars(log.specialchars, normpath, dst)
 
 
-def update_scenariopath_for_spchars(restbl, normpath, dst):
+def update_scenariopath_for_spchars(restbl: cw.setting.ResourceTable, normpath: str, dst: str) -> None:
     if not restbl:
         return
     restbl.reset()
@@ -1758,7 +1858,7 @@ def update_scenariopath_for_spchars(restbl, normpath, dst):
         lazyres.args = (dpath,) + lazyres.args[1:]
 
 
-def store_messagelogimage(path, can_loaded_scaledimage):
+def store_messagelogimage(path: str, can_loaded_scaledimage: bool) -> None:
     """メッセージログ内でpathが使用されている箇所があれば
     pathが上書きされた場合に備えて各スケールのイメージを読み込んでおく。
     """
@@ -1773,7 +1873,8 @@ def store_messagelogimage(path, can_loaded_scaledimage):
             # Billは最初から全てのイメージデータをロード済みなので再読込不要
             continue
         for i, (info, can_loaded_scaledimage2, basetalker, scaledimagedict) in enumerate(log.imgpaths):
-            def load_with_scaled(d, scaledimagedict):
+            def load_with_scaled(d: Dict[int, pygame.Surface],
+                                 scaledimagedict: Dict[int, pygame.Surface]) -> Dict[int, pygame.Surface]:
                 scaledimagedict.clear()
                 if d:
                     for key, value in d.items():
@@ -1811,7 +1912,7 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                         fdict2 = {}
                         fdict = load_with_scaled(fdict, fdict2)
 
-                        def load():
+                        def load() -> Tuple[pygame.Surface, bool]:
                             image_noscale = fdict2.get(1, None)
                             scale = int(math.pow(2, int(math.log(cw.UP_SCR, 2))))
                             while 2 <= scale:
@@ -1824,7 +1925,7 @@ def store_messagelogimage(path, can_loaded_scaledimage):
                         break
 
 
-def main():
+def main() -> None:
     pass
 
 

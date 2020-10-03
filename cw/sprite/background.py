@@ -297,8 +297,8 @@ class BackGround(base.CWPySprite):
         self._force_noinhrt = True
         self.pc_cache.clear()
 
-    def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True,
-             nocheckvisible=False, redraw=True):
+    def load(self, elements: cw.data.CWPyElement, doanime: bool = True, ttype: Tuple[str, str] = ("Default", "Default"),
+             bginhrt: bool = True, nocheckvisible: bool = False, redraw: bool = True) -> None:
         """背景画面を構成する。
         elements: BgImageElementのリスト。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
@@ -1347,8 +1347,9 @@ def layered_draw_ex(layered_updates: pygame.sprite.LayeredDirty, surface: pygame
 
 
 class Curtain(base.SelectableSprite):
-    def __init__(self, target, spritegrp, color=None, layer=None, cut_bgs=False,
-                 is_selectable=True, initialize=True):
+    def __init__(self, target: "cw.sprite.base.CWPySprite", spritegrp: pygame.sprite.LayeredDirty,
+                 color: Optional[Tuple[int, int, int]] = None, layer: Optional[Tuple[int, int, int, int]] = None,
+                 cut_bgs: bool = False, is_selectable: bool = True, initialize: bool = True) -> None:
         """半透明のブルーバックスプライト。右クリックで解除。
         target: 覆い隠す対象。
         spritegrp: 登録するSpriteGroup。

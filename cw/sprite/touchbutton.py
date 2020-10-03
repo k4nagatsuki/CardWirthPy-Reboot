@@ -7,6 +7,8 @@ import pygame.locals
 import cw
 from . import base
 
+from typing import Callable
+
 
 class TouchButton(base.SelectableSprite):
     """
@@ -14,7 +16,8 @@ class TouchButton(base.SelectableSprite):
     アイコン、ボタン名、簡単な解説を表示する。
     """
 
-    def __init__(self, icon, name, desc, hotkey, func, is_enabled, width=0):
+    def __init__(self, icon: pygame.Surface, name: str, desc: str, hotkey: str, func: Callable[[], None],
+                 is_enabled: Callable[[], bool], width: int = 0) -> None:
         assert func
         assert is_enabled
 
@@ -37,7 +40,7 @@ class TouchButton(base.SelectableSprite):
 
         self.update_scale()
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         assert self.name
         if self.hotkey:
             title = "%s(%s)" % (self.name, self.hotkey)
@@ -92,13 +95,13 @@ class TouchButton(base.SelectableSprite):
         if not self.is_enabled():
             self.image = self._disabledimage
 
-    def get_selectedimage(self):
+    def get_selectedimage(self) -> pygame.Surface:
         return self._selectedimage
 
-    def get_unselectedimage(self):
+    def get_unselectedimage(self) -> pygame.Surface:
         return self._unselectedimage
 
-    def update_image(self):
+    def update_image(self) -> None:
         if self.is_enabled():
             if self.is_selection():
                 self.image = self._selectedimage
@@ -108,7 +111,7 @@ class TouchButton(base.SelectableSprite):
             self.image = self._disabledimage
 
     @staticmethod
-    def calc_width(icon, name, desc, hotkey):
+    def calc_width(icon: pygame.Surface, name: str, desc: str, hotkey: str) -> int:
         """表示に必要な幅を計算する。"""
         font = cw.cwpy.rsrc.fonts["sbardesc"]
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
@@ -127,12 +130,12 @@ class TouchButton(base.SelectableSprite):
             tw = max(tw, fw + spx*2)
         return tw+cw.s(2)
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         if self.status != "shiftup":
             self._shift_start_top = None
         base.SelectableSprite.update(self, scr)
 
-    def update_selection(self):
+    def update_selection(self) -> None:
         base.SelectableSprite.update_selection(self)
         image = self.image
         if self.is_enabled():
@@ -145,7 +148,7 @@ class TouchButton(base.SelectableSprite):
         if image is not self.image:
             cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def update_shiftup(self):
+    def update_shiftup(self) -> None:
         FRAME = 5
 
         if self._shift_start_top is None:
@@ -163,13 +166,13 @@ class TouchButton(base.SelectableSprite):
 
         self.rect.top = self._shift_start_top + p
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         """左クリックイベント。"""
         if self.is_enabled():
             cw.cwpy.statusbar.hide_touchbuttons()
             self.func()
 
-    def rclick_event(self):
+    def rclick_event(self) -> None:
         """右クリックイベント。"""
         cw.cwpy.statusbar.hide_touchbuttons()
 
@@ -179,10 +182,11 @@ class _PointableTile(TouchButton):
     通常の選択は発生せず、マウスポインタが合った時に
     self.is_pointedがTrueになるタイル。
     """
-    def __init__(self, icon, name, desc, hotkey, func, is_enabled, width=0):
+    def __init__(self, icon: pygame.Surface, name: str, desc: str, hotkey: str, func: Callable[[], None],
+                 is_enabled: Callable[[], bool], width: bool = 0) -> None:
         TouchButton.__init__(self, icon, name, desc, hotkey, func, is_enabled, width)
 
-    def update_selection(self):
+    def update_selection(self) -> None:
         if self.status != "normal":
             return
 
@@ -202,7 +206,7 @@ class _PointableTile(TouchButton):
                     self.image = self._disabledimage
                 cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def is_selection(self):
+    def is_selection(self) -> bool:
         # 通常の衝突判定
         if 0 <= cw.cwpy.mousepos[0] and 0 <= cw.cwpy.mousepos[1] and\
                 self.rect.collidepoint(cw.cwpy.mousepos):
@@ -210,7 +214,7 @@ class _PointableTile(TouchButton):
         return False
 
 
-def _calc_singlelinetileheight():
+def _calc_singlelinetileheight() -> int:
     """
     タイルの縦幅を普通のタイルに合わせて計算する。
     """
@@ -232,11 +236,11 @@ class SwitchSpriteTile(_PointableTile):
     """
     画面上のスプライトを順番に選択するタイル。
     """
-    def __init__(self, icon, move_count, width=0):
+    def __init__(self, icon: pygame.Surface, move_count: int, width: int = 0) -> None:
         _PointableTile.__init__(self, icon, "", "", "", lambda: None, can_selectsprite, width=width)
         self.move_count = move_count
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         th = _calc_singlelinetileheight()
 
         # 画像を作成
@@ -257,7 +261,7 @@ class SwitchSpriteTile(_PointableTile):
         if not self.is_enabled():
             self.image = self._disabledimage
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         """左クリックイベント。"""
         if self.is_enabled():
             if cw.cwpy.interrupt_eventhandler:
@@ -274,10 +278,11 @@ class SimplePointableTile(_PointableTile):
     """
     選択されたスプライトのクリックイベントを発生させるタイル。
     """
-    def __init__(self, icon, name, func, is_enabled, width=0):
+    def __init__(self, icon: pygame.Surface, name: str, func: Callable[[], None], is_enabled: Callable[[], bool],
+                 width: int = 0) -> None:
         _PointableTile.__init__(self, icon, name, "", "", func, is_enabled, width=width)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
         th = _calc_singlelinetileheight()
 
@@ -307,7 +312,7 @@ class SimplePointableTile(_PointableTile):
             self.image = self._disabledimage
 
 
-def can_selectsprite():
+def can_selectsprite() -> bool:
     """
     画面上のスプライトがマウスやキーボードで選択可能な状態か。
     """
@@ -324,11 +329,11 @@ class VolumeTile(TouchButton):
     タッチ操作で音量調節を行うタイル。
     """
 
-    def __init__(self, width=0):
+    def __init__(self, width: int = 0) -> None:
         icon = cw.cwpy.rsrc.pygamedialogs["VOLUME"]
         TouchButton.__init__(self, icon, "", "", "", lambda: None, lambda: True, width=width)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         font = cw.cwpy.rsrc.fonts["sbarprogress"]
         spx = cw.s(10)
         spx2 = cw.s(5)
@@ -354,7 +359,7 @@ class VolumeTile(TouchButton):
 
         self.update_image()
 
-    def update_image(self):
+    def update_image(self) -> None:
         font = cw.cwpy.rsrc.fonts["sbarprogress"]
         volrect = self.padrect.copy()  # 現在の音量
         volrect.width = int(volrect.width * cw.cwpy.setting.vol_master)
@@ -388,15 +393,15 @@ class VolumeTile(TouchButton):
         else:
             self.image = self._unselectedimage
 
-    def update_selection(self):
+    def update_selection(self) -> None:
         TouchButton.update_selection(self)
         if cw.cwpy.mousemotion and cw.cwpy.mousein[0] and cw.cwpy.selection is self:
             self._moved()
 
-    def ldown_event(self):
+    def ldown_event(self) -> None:
         self._moved()
 
-    def _moved(self):
+    def _moved(self) -> None:
         x, y = cw.cwpy.mousepos
         x -= self.rect.x
         x -= self.padrect.x
@@ -416,11 +421,11 @@ class VolumeTile(TouchButton):
         self.update_image()
         cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         pass  # 何もしない
 
 
-def main():
+def main() -> None:
     pass
 
 

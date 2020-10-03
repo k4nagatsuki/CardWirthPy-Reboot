@@ -6,10 +6,13 @@ import pygame
 
 import cw
 
+from typing import Tuple
+
 
 class CWPySprite(pygame.sprite.DirtySprite):
     rect: pygame.Rect
     image: pygame.Surface
+    layer: Tuple[int, int, int, int]
 
     def __init__(self, *groups) -> None:
         pygame.sprite.DirtySprite.__init__(self, *groups)
