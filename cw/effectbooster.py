@@ -17,7 +17,7 @@ class ScreenRescale(Exception):
     pass
 
 
-def wait_effectbooster(waittime: int, doanime: "AnimationCounter"):
+def wait_effectbooster(waittime: int, doanime: "AnimationCounter") -> None:
     if waittime:
         cw.cwpy.event.refresh_activeitem()
     if 0 < waittime:
@@ -681,14 +681,14 @@ def get_filepath_s(configpath: str, dirdepth: str, filename: str, dirtype: int =
         else:
             scedir = cw.cwpy.sdata.scedir
 
-    def get_mtype(fpath):
+    def get_mtype(fpath: str) -> int:
         ext = os.path.splitext(fpath)[1].lower()
         if ext in cw.EXTS_SND:
             return cw.M_SND
         else:
             return cw.M_IMG
 
-    def find_materialpath(fpath):
+    def find_materialpath(fpath: str) -> str:
         mtype = get_mtype(fpath)
         inusecardpath = cw.util.get_inusecardmaterialpath(filename, mtype, findskin=False)
         if inusecardpath:
@@ -1202,7 +1202,8 @@ class JptxImage(cw.image.Image):
         italic = False
 
         class Info(object):
-            def __init__(self, outer, lineheight, fontface, fontpixels, fontpixels_noscale, fontcolor):
+            def __init__(self, outer: JptxImage, lineheight: int, fontface: str, fontpixels: int,
+                         fontpixels_noscale: int, fontcolor: Tuple[int, int, int]) -> None:
                 self.outer = outer
                 self.lineheight = lineheight
                 self.fontpixels = fontpixels
@@ -1221,7 +1222,7 @@ class JptxImage(cw.image.Image):
                 self.create_font()
                 self.chars = []
 
-            def create_font(self):
+            def create_font(self) -> None:
                 self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
                 if cw.UP_SCR == 1:
                     self.font_noscale = self.font
@@ -1251,12 +1252,12 @@ class JptxImage(cw.image.Image):
                 else:
                     self.font2_noscale = cw.imageretouch.Font(self.fontface, pixels_aa_noscale)
 
-            def get_height(self):
+            def get_height(self) -> int:
                 height = self.fontpixels
                 height += cw.s(2)
                 return height
 
-            def render(self):
+            def render(self) -> None:
                 if not self.chars:
                     return
                 chars = "".join(self.chars)
@@ -1320,7 +1321,7 @@ class JptxImage(cw.image.Image):
                 info.x = info.x + width
                 info.w = int(info.x) if info.x > info.w else info.w
 
-            def calc_lineheight(self):
+            def calc_lineheight(self) -> float:
                 return self.fontpixels * self.lineheight / 100.0
 
         info = Info(self, lineheight, fontface, fontpixels, fontpixels_noscale, fontcolor)
@@ -1696,7 +1697,7 @@ class EffectBoosterConfig(object):
             return default
 
 
-def main():
+def main() -> None:
     pass
 
 

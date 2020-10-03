@@ -8,23 +8,23 @@ import pygame.locals
 
 import cw
 
-from typing import Optional
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 
 class EventInterface(object):
     def __init__(self) -> None:
-        # イベントの選択メンバ(Character)
-        self._selectedmember = None
-        # イベントの使用中カード(CardHeader)
-        self._inusecard = None
-        # イベントの選択カード(Wsn.3) (CardHeader)
-        self._selectedcard = None
+        # イベントの選択メンバ
+        self._selectedmember: Optional[cw.character.Character] = None
+        # イベントの使用中カード
+        self._inusecard: Optional[cw.header.CardHeader] = None
+        # イベントの選択カード(Wsn.3)
+        self._selectedcard: Optional[cw.header.CardHeader] = None
         # 現在起動中のイベントのリスト(Event)
-        self._nowrunningevents = []
-        # 現在起動中のパッケージイベントの辞書(EventEngine, keyはID)
-        self.nowrunningpacks = {}
+        self._nowrunningevents: List[Event] = []
+        # 現在起動中のパッケージイベントの辞書(keyはパッケージID)
+        self.nowrunningpacks: Dict[int, EventEngine] = {}
         # デバッガで表示する呼出履歴
-        self.stackinfo = [None] * 16
+        self.stackinfo: List[Optional[Tuple[Event, cw.data.CWPyElement, int]]] = [None] * 16
         self.stackinfo_len = 0
         # デバッガのイベントコントロールバー用変数
         self.paused = False
@@ -38,13 +38,13 @@ class EventInterface(object):
         self.eventtimer = 1
 
         # 実行中の効果イベント
-        self.effectevent = None
+        self.effectevent: Optional[Targeting] = None
         # カードの効果実行中はTrue
         self.in_cardeffectmotion = False
         # 使用時イベントの実行中はTrue
         self.in_inusecardevent = False
         # 終了時実行関数。F9用
-        self.exit_func = None
+        self.exit_func: Optional[Callable[[], None]] = None
 
         # イベントを実行した結果、状況に変化が生じたか
         # カード消費判定に使用される
@@ -52,33 +52,24 @@ class EventInterface(object):
 
     def get_selectedmembername(self) -> str:
         """選択中メンバの名前を返す。"""
-        try:
-            return self._selectedmember.name
-        except Exception:
-            return "選択メンバ未定"
+        return self._selectedmember.name if self._selectedmember else "選択メンバ未定"
 
     def get_selectedcardname(self) -> str:
         """選択カードの名前を返す(Wsn.3)。"""
-        try:
-            return self._selectedcard.name
-        except Exception:
-            return "選択カード未定"
+        return self._selectedcard.name if self._selectedcard else "選択カード未定"
 
-    def get_selectedcardtype(self):
+    def get_selectedcardtype(self) -> Optional[str]:
         """選択カードのタイプを返す(Wsn.3)。"""
-        try:
-            return self._selectedcard.type
-        except Exception:
-            return None
+        return self._selectedcard.type if self._selectedcard else None
 
-    def pop_event(self):
+    def pop_event(self) -> "Event":
         event = self._nowrunningevents.pop()
         return event
 
-    def remove_event(self, event):
+    def remove_event(self, event: "Event") -> None:
         self._nowrunningevents.remove(event)
 
-    def append_event(self, event):
+    def append_event(self, event: "Event") -> None:
         if cw.LIMIT_RECURSE <= self.get_currentstack():
             s = "イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
             cw.cwpy.call_modaldlg("ERROR", text=s)
@@ -86,13 +77,13 @@ class EventInterface(object):
 
         self._nowrunningevents.append(event)
 
-    def replace_event(self, event, versionhint_base=None):
+    def replace_event(self, event: "Event", versionhint_base: Optional[Tuple[int, str]] = None) -> None:
         """パッケージへのリンクによって
         実行中のイベントを置換する。
         """
         self._nowrunningevents[-1].copy_from(event, versionhint_base)
 
-    def clear_events(self):
+    def clear_events(self) -> None:
         self._nowrunningevents = []
         self.clear_stackinfo()
 
@@ -107,32 +98,32 @@ class EventInterface(object):
         """カードなどの効果適用イベントが実行中であれば返す。"""
         return self.effectevent
 
-    def get_events(self):
+    def get_events(self) -> List["Event"]:
         return self._nowrunningevents
 
-    def get_currentstack(self):
+    def get_currentstack(self) -> int:
         if not self._nowrunningevents:
             return 0
         return len(self._nowrunningevents) - 1 + len(self.get_event().nowrunningcontents)
 
-    def get_trees(self):
+    def get_trees(self) -> Optional[Dict[str, "cw.content.StartContent"]]:
         if self._nowrunningevents:
             return self._nowrunningevents[-1].trees
         else:
             return None
 
-    def get_treekeys(self):
+    def get_treekeys(self) -> List[str]:
         if self._nowrunningevents:
             return self._nowrunningevents[-1].treekeys
         else:
             return []
 
-    def get_nowrunningevent(self):
+    def get_nowrunningevent(self) -> Optional["Event"]:
         if self._nowrunningevents:
             return self._nowrunningevents[-1]
         return None
 
-    def get_packageid(self):
+    def get_packageid(self) -> int:
         """実行中のパッケージIDを返す。"""
         event = self.get_nowrunningevent()
         if event:
@@ -140,7 +131,7 @@ class EventInterface(object):
         else:
             return 0
 
-    def clear(self):
+    def clear(self) -> None:
         self.set_inusecard(None)
         self.in_inusecardevent = False
         self.effectevent = None
@@ -153,14 +144,14 @@ class EventInterface(object):
         self.refresh_activeitem()
         self.exit_func = None
 
-    def set_inusecard(self, header):
+    def set_inusecard(self, header: "cw.header.CardHeader") -> None:
         """使用中カードを変更する。
         header: CardHeader or None
         """
         self._inusecard = header
         self.set_selectedcard(header)
 
-    def set_selectedmember(self, ccard):
+    def set_selectedmember(self, ccard: "cw.character.Character") -> None:
         """選択メンバを変更する。
         ccard: Character or None
         """
@@ -168,13 +159,14 @@ class EventInterface(object):
             self._selectedmember = ccard
             self.refresh_selectedmembername()
 
-    def set_selectedcard(self, header):
+    def set_selectedcard(self, header: "cw.header.CardHeader") -> None:
         """選択カードを変更する(Wsn.3)。"""
         if self._selectedcard != header:
             self._selectedcard = header
             self.refresh_selectedcardname()
 
-    def get_targetscope(self, scope, unreversed=True, cards=True, coupon=""):
+    def get_targetscope(self, scope: str, unreversed: bool = True, cards: bool = True,
+                        coupon: str = "") -> List[Union["cw.character.Character", List["cw.header.CardHeader"]]]:
         """
         コンテントの適用範囲を返す関数。
         すべてリストで返す。
@@ -230,7 +222,8 @@ class EventInterface(object):
 
         return seq
 
-    def get_targetmember(self, targetm, unreversed=True, coupon=""):
+    def get_targetmember(self, targetm: str, unreversed: bool = True,
+                         coupon: str = "") -> List["cw.character.Character"]:
         """コンテントの適用メンバを返す関数。
         該当するCharacterインスタンスまたはCardHeaderインスタンスを返す。
         targetm: Random or Selected or Unselected or Inusecard or Party
@@ -271,7 +264,7 @@ class EventInterface(object):
 
         return target
 
-    def get_randommember(self):
+    def get_randommember(self) -> "cw.character.Character":
         """ランダムでPlayerCardインスタンスを返す。
         行動可能状態のもの優先。
         """
@@ -282,12 +275,12 @@ class EventInterface(object):
 
         return cw.cwpy.dice.choice(pcards)
 
-    def has_selectedmember(self):
+    def has_selectedmember(self) -> bool:
         """選択メンバが存在する場合はTrueを返す。"""
         return bool(self._selectedmember and not (isinstance(self._selectedmember, cw.character.Character) and
                                                   self._selectedmember.is_vanished()))
 
-    def get_selectedmember(self):
+    def get_selectedmember(self) -> "cw.character.Character":
         """選択中のPlayerCardインスタンスを返す。
         存在しなかったらランダムで選択して返す。
         """
@@ -297,13 +290,13 @@ class EventInterface(object):
         card = self._selectedmember
         return card
 
-    def clear_selectedmember(self):
+    def clear_selectedmember(self) -> None:
         """選択中のメンバをクリアする。"""
         if self._selectedmember is not None:
             self._selectedmember = None
             self.refresh_selectedmembername()
 
-    def get_unselectedmember(self):
+    def get_unselectedmember(self) -> "cw.character.Character":
         """選択外のPlayerCardインスタンスを返す。"""
         if not self.has_selectedmember():
             return self.get_randommember()
@@ -319,7 +312,7 @@ class EventInterface(object):
 
         return cw.cwpy.dice.choice(pcards)
 
-    def get_firstmember(self, mode):
+    def get_firstmember(self, mode: str) -> "cw.character.Character":
         """先頭のPlayerCardインスタンスを返す。
         """
         pcards = cw.cwpy.get_pcards(mode)
@@ -345,65 +338,65 @@ class EventInterface(object):
     # デバッガ更新用メソッド
     # --------------------------------------------------------------------------
 
-    def refresh_tools(self):
+    def refresh_tools(self) -> None:
         """デバッガのツールが使用可能かどうかを更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
             func = dbg.refresh_tools
             cw.cwpy.frame.exec_func(func)
 
-    def refresh_showpartytools(self):
+    def refresh_showpartytools(self) -> None:
         """デバッガのツールのうち、パーティ表示に関するものを更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
             func = dbg.refresh_showpartytools
             cw.cwpy.frame.exec_func(func)
 
-    def refresh_variablelist(self):
+    def refresh_variablelist(self) -> None:
         """デバッガの状態変数のリストを更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
             func = dbg.view_var.refresh_variablelist
             cw.cwpy.frame.exec_func(func)
 
-    def refresh_variable(self, variable):
+    def refresh_variable(self, variable: Union[cw.data.Flag, cw.data.Step, cw.data.Variant]) -> None:
         """デバッガの状態変数の値を更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
             func = dbg.view_var.refresh_variable
             cw.cwpy.frame.exec_func(func, variable)
 
-    def refresh_selectedmembername(self):
+    def refresh_selectedmembername(self) -> None:
         """デバッガの選択メンバツールバーの表示を更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
             func = dbg.refresh_selectedmembername
             cw.cwpy.frame.exec_func(func)
 
-    def refresh_selectedcardname(self):
+    def refresh_selectedcardname(self) -> None:
         """デバッガの選択カードツールバーの表示を更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
             func = dbg.refresh_selectedcardname
             cw.cwpy.frame.exec_func(func)
 
-    def refresh_areaname(self):
+    def refresh_areaname(self) -> None:
         """デバッガのエリアツールバーの表示を更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
             func = dbg.refresh_areaname
             cw.cwpy.frame.exec_func(func)
 
-    def refresh_activeitem(self):
+    def refresh_activeitem(self) -> None:
         """デバッガのイベントツリーの実行中コンテントを更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
-            def func():
+            def func() -> None:
                 dbg.view_tree.refresh_tree()
                 dbg.view_tree.refresh_activeitem()
             cw.cwpy.frame.exec_func(func)
 
-    def append_stackinfo(self, item):
+    def append_stackinfo(self, item: Tuple["Event", cw.data.CWPyElement, int]) -> None:
         """呼び出し履歴を追加する。"""
         if len(self.stackinfo) <= self.stackinfo_len:
             self.stackinfo.extend([None] * len(self.stackinfo))
@@ -413,7 +406,7 @@ class EventInterface(object):
         if cw.cwpy.is_showingdebugger():
             dbg.append_stackinfo_cwpy(item)
 
-    def pop_stackinfo(self):
+    def pop_stackinfo(self) -> None:
         """呼び出し履歴の末尾を除去する。"""
         self.stackinfo_len -= 1
         self.stackinfo[self.stackinfo_len] = None
@@ -421,7 +414,7 @@ class EventInterface(object):
         if cw.cwpy.is_showingdebugger():
             dbg.pop_stackinfo_cwpy()
 
-    def replace_stackinfo(self, index, item):
+    def replace_stackinfo(self, index: int, item: Tuple["Event", cw.data.CWPyElement, int]) -> None:
         """呼び出し履歴の途中または末尾を置換する。"""
         assert isinstance(cw.cwpy.event.stackinfo[self.stackinfo_len+index], cw.event.Event)
         self.stackinfo[self.stackinfo_len+index] = item
@@ -429,7 +422,7 @@ class EventInterface(object):
         if cw.cwpy.is_showingdebugger():
             dbg.replace_stackinfo_cwpy(index, item)
 
-    def clear_stackinfo(self):
+    def clear_stackinfo(self) -> None:
         """呼び出し履歴をクリアする。"""
         self.stackinfo = [None] * 16
         self.stackinfo_len = 0
@@ -437,7 +430,7 @@ class EventInterface(object):
         if cw.cwpy.is_showingdebugger():
             dbg.clear_stackinfo_cwpy()
 
-    def wait(self):
+    def wait(self) -> None:
         """デバッガのイベントコントロールバーで指定した分だけ、
         イベントの実行を待機する。
         """
@@ -455,7 +448,7 @@ class EventInterface(object):
                 # ブレークポイント到達
                 self.paused = True
 
-                def func():
+                def func() -> None:
                     cw.cwpy.frame.debugger.pause(True)
                 cw.cwpy.frame.exec_func(func)
 
@@ -524,7 +517,7 @@ class EventInterface(object):
         if self.stoped:
             raise EffectBreakError()
 
-    def set_curcontent(self, content, event=None):
+    def set_curcontent(self, content: cw.data.CWPyElement, event: Optional["Event"] = None) -> None:
         """次に実行するイベントコンテントを強制的に差し替える。
         イベント実行中でなければ、イベントを開始する。
         content: 次に実行するイベントコンテント。現在実行中のイベント
@@ -563,16 +556,16 @@ class EventInterface(object):
                 if cw.cwpy.is_battlestatus():
                     cw.cwpy.battle.process_exception(ex)
 
-    def set_stepexec(self, step):
+    def set_stepexec(self, step: bool) -> None:
         self._step = step
 
-    def is_stepexec(self):
+    def is_stepexec(self) -> bool:
         return self._step
 
-    def set_stoped(self, stoped):
+    def set_stoped(self, stoped: bool) -> None:
         self.stoped = stoped
 
-    def is_stoped(self):
+    def is_stoped(self) -> bool:
         return self.stoped
 
     def is_paused(self) -> bool:
@@ -580,13 +573,14 @@ class EventInterface(object):
 
 
 class EventEngine(object):
-    def __init__(self, data):
+    def __init__(self, data: cw.data.CWPyElementTree) -> None:
         """引数のEventsElementからEventインスタンスのリストを生成。
         data: Area, BattleのElementTree
         """
         self.events = [Event(e) for e in data]
 
-    def start(self, keynum=None, keycodes=None, isinsideevent=False, successevent=False):
+    def start(self, keynum: Optional[int] = None, keycodes: Optional[Iterable[str]] = None, isinsideevent: bool = False,
+              successevent: bool = False) -> bool:
         """発火条件に適合するイベント
         (リストのindexが若いほど優先順位が高い)を起動させる。
         keynum: 発火キーナンバー。
@@ -595,12 +589,12 @@ class EventEngine(object):
         Trueの場合はイベントフロー例外をキャッチせず伝播させる。
         """
         if keycodes:
-            event = self.check_keycodes(keycodes, successevent=successevent)
+            evt = self.check_keycodes(keycodes, successevent=successevent)
         else:
-            event = self.check_keynum(keynum)
+            evt = self.check_keynum(keynum)
 
-        if event:
-            event.clear()
+        if evt:
+            evt.clear()
             isinsideevent |= bool(cw.cwpy.event.get_event())
             if not isinsideevent:
                 # メニューカードの選択を記憶
@@ -618,9 +612,9 @@ class EventEngine(object):
 
             # イベント実行
             if isinsideevent:
-                event.run()
+                evt.run()
             else:
-                event.start()
+                evt.start()
 
             # メニューカードの選択を復元
             if not isinsideevent:
@@ -634,7 +628,7 @@ class EventEngine(object):
         else:
             return False
 
-    def check_keycodes(self, keycodes, successevent=False):
+    def check_keycodes(self, keycodes: Iterable[str], successevent: bool = False) -> Optional["Event"]:
         kcset = set(keycodes)
         kcset.discard("")
         for event in self.events:
@@ -663,7 +657,7 @@ class EventEngine(object):
 
         return None
 
-    def check_keycode(self, keycode, keycodes, successevent=False):
+    def check_keycode(self, keycode: str, keycodes: Set[str], successevent: bool = False) -> bool:
         # 互換動作: 1.30以前では"！"で始まっていても普通のキーコード
         if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_AREA)):
             return keycode in keycodes
@@ -675,7 +669,7 @@ class EventEngine(object):
             else:
                 return keycode in keycodes
 
-    def check_keynum(self, keynum):
+    def check_keynum(self, keynum: int) -> Optional["Event"]:
         for event in self.events:
             if keynum in event.keynums:
                 return event
@@ -708,16 +702,16 @@ class ScenarioBadEndError(EventError):
 
 
 class EffectBreakError(EventError):
-    def __init__(self, consumecard=True):
+    def __init__(self, consumecard: bool = True) -> None:
         EventError.__init__(self)
         self.consumecard = consumecard
 
 
 class Event(object):
-    def __init__(self, event):
-        self.parent = None
-        self.base = None
-        self.inusecard = None
+    def __init__(self, event: cw.data.CWPyElement) -> None:
+        self.parent: Optional[Event] = None
+        self.base: Optional[Event] = None
+        self.inusecard: Optional[cw.header.CardHeader] = None
         if cw.cwpy.is_playingscenario():
             self.scenario = cw.cwpy.sdata.name
             self.author = cw.cwpy.sdata.author
@@ -729,31 +723,32 @@ class Event(object):
         # 次の子コンテンツインデックス。Contentの戻り値で設定される。
         self.index = 0
         # イベント実行中に発生したエラー
-        self.error = None
+        self.error: Optional[EventError] = None
         # コンテンツツリーの辞書(keyはスタートコンテントのname)
-        self.trees = {}
-        self.treekeys = []
-        self.starttree = self.cur_content = None
+        self.trees: Dict[str, cw.content.StartContent] = {}
+        self.treekeys: List[str] = []
+        self.starttree: Optional[cw.data.CWPyElement] = None
+        self.cur_content: Optional[cw.data.CWPyElement] = None
         # ContentsLine実行中の時の実行位置
         self.line_index = 0
         # (パッケージ, 呼出前のcur_content, 呼出前のversionhint)
         # パッケージがNoneならスタートの呼び出し
-        self.nowrunningcontents = []
+        self.nowrunningcontents: List[EventEngine, cw.data.CWPyElement, int, str] = []
         # 発火条件(数字)
-        self.keynums = []
+        self.keynums: List[int] = []
         # 発火キーコード(文字列)
-        self.keycodes = []
+        self.keycodes: List[str] = []
         # キーコード発火条件("Or":どれか一つが存在する, "And":全て存在する)
         self.keycode_matching = "Or"
         # パッケージイベントであればパッケージIDを設定
         self.packageid = 0
         # 実行後に互換性情報を書き戻す必要があれば設定
-        self._versionhint_base = None
+        self._versionhint_base: Optional[Tuple[int, str]] = None
 
         # ローカル変数(Wsn.4)
-        self.flags = {}
-        self.steps = {}
-        self.variants = {}
+        self.flags: Dict[str, cw.data.Flag] = {}
+        self.steps: Dict[str, cw.data.Step] = {}
+        self.variants: Dict[str, cw.data.Variant] = {}
 
         self._reset_changestate = True
 
@@ -787,7 +782,7 @@ class Event(object):
         self.force_nextcontent_index = -1
         self.skip_action = False
 
-    def copy_from(self, event, versionhint_base=None):
+    def copy_from(self, event: "Event", versionhint_base: Optional[Tuple[int, str]] = None) -> None:
         """実行中の処理をパッケージのイベントに差し替えるため、
         eventの情報をこのEventへコピーする。
         """
@@ -799,7 +794,7 @@ class Event(object):
         if not self._versionhint_base:
             self._versionhint_base = versionhint_base
 
-    def copy_from_impl(self, event):
+    def copy_from_impl(self, event: "Event") -> None:
         self.trees = event.trees
         self.treekeys = event.treekeys
         self.starttree = event.starttree
@@ -809,7 +804,7 @@ class Event(object):
         self.steps = event.steps
         self.variants = event.variants
 
-    def store_inusedata(self, selectuser):
+    def store_inusedata(self, selectuser: bool) -> None:
         if selectuser and isinstance(self, CardEvent):
             cw.cwpy.event.set_selectedmember(self.user)
             cw.cwpy.event.set_inusecard(self.inusecard)
@@ -820,7 +815,7 @@ class Event(object):
         self._stored_specialchars = cw.cwpy.rsrc.specialchars
         cw.cwpy.rsrc.specialchars = cw.cwpy.sdata.specialchars
 
-    def restore_inusedata(self):
+    def restore_inusedata(self) -> None:
         cw.cwpy.event.in_cardeffectmotion = self._stored_in_cardeffectmotion
         self._stored_in_cardeffectmotion = False
         cw.cwpy.event.in_inusecardevent = self._stored_in_inusecardevent
@@ -828,7 +823,7 @@ class Event(object):
         cw.cwpy.rsrc.specialchars = self._stored_specialchars
         self._stored_specialchars = None
 
-    def start(self):
+    def start(self) -> None:
         try:
             # ステータスバーの色を変更
             showbuttons = not cw.cwpy.is_playingscenario() or\
@@ -860,7 +855,7 @@ class Event(object):
 
         self.end()
 
-    def stop(self):
+    def stop(self) -> None:
         """イベント強制中断処理。
         起動中のイベントを全て中断させる。"""
         # イベントの前に開いていたダイアログをクリア
@@ -875,7 +870,7 @@ class Event(object):
             cw.cwpy.event.remove_event(event)
             event.clear()
 
-    def run(self, perf=False, isinside=False):
+    def run(self, perf: bool = False, isinside: bool = False) -> None:
         """イベント実行。子コンテンツを順番に実行する。
         実行対象のイベントコンテント・イベントツリーは
         このイベントに属すものではない事がある。
@@ -929,7 +924,7 @@ class Event(object):
                 if packevent:
                     cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
 
-    def run_exit(self):
+    def run_exit(self) -> None:
         if self.base:
             self.copy_from_impl(self.base)
             self.base = None
@@ -937,7 +932,7 @@ class Event(object):
         cw.cwpy.event.pop_event()
         self.clear()
 
-    def end(self):
+    def end(self) -> None:
         """共通終了処理。"""
         if self.base:
             self.copy_from_impl(self.base)
@@ -997,7 +992,7 @@ class Event(object):
         elif cw.cwpy.is_gameover() and cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9 and 0 <= cw.cwpy.areaid:
             cw.cwpy.set_gameover()
 
-    def get_events(self, target):
+    def get_events(self, target: "cw.sprite.card.CWPyCard") -> Optional[EventEngine]:
         """targetがEnemyであればtarget自身が持つEvents、
         Playerであればエリアのプレイヤーカードイベント(Wsn.2)を返す。
         """
@@ -1009,7 +1004,8 @@ class Event(object):
         else:
             return None
 
-    def ignition_characterevent(self, target, can_unconscious, keycodes):
+    def ignition_characterevent(self, target: "cw.character.Character", can_unconscious: bool,
+                                keycodes: Iterable[str]) -> Optional["Event"]:
         """targetのキーコードイベントが発生可能か。"""
         events = self.get_events(target)
         if events and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
@@ -1017,7 +1013,7 @@ class Event(object):
         else:
             return None
 
-    def ignition_deadevent(self, target, keycodes):
+    def ignition_deadevent(self, target: "cw.character.Character", keycodes: Iterable[str]) -> Optional["Event"]:
         """targetの死亡イベントが発生可能であれば該当イベントを返す。"""
         if cw.cwpy.msgs["runaway_keycode"] in keycodes:
             # キーコード「逃走」付きのカードは死亡イベントを発生させない
@@ -1030,14 +1026,14 @@ class Event(object):
         else:
             return None
 
-    def ignition_menucardevent(self, target, keycodes):
+    def ignition_menucardevent(self, target: "cw.sprite.card.MenuCard", keycodes: Iterable[str]) -> Optional["Event"]:
         events = self.get_events(target)
         if events:
             return events.check_keycodes(keycodes)
         else:
             return None
 
-    def _keycodes_for_successevent(self, keycodes, successflag):
+    def _keycodes_for_successevent(self, keycodes: Iterable[str], successflag: bool) -> List[str]:
         keycodes2 = []
         for keycode in keycodes:
             # BUG: CardWirthでは空文字列キーコードも成功・失敗判定の対象になる
@@ -1047,7 +1043,8 @@ class Event(object):
                 keycodes2.append(keycode + "×")
         return keycodes2
 
-    def ignition_successevent(self, target, successflag, keycodes):
+    def ignition_successevent(self, target: "cw.character.Character", successflag: bool,
+                              keycodes: Iterable[str]) -> Optional["Event"]:
         """targetのキーコード成功・失敗イベントが発生可能であれば該当イベントを返す。"""
         events = self.get_events(target)
         if events:
@@ -1056,7 +1053,7 @@ class Event(object):
         else:
             return None
 
-    def run_scenarioevent(self):
+    def run_scenarioevent(self) -> None:
         """効果コンテントなどの実行中に他のイベントを割り込ませる。"""
         event = cw.cwpy.event.get_event()
         versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
@@ -1081,13 +1078,13 @@ class Event(object):
         finally:
             event.restore_inusedata()
 
-    def clear(self):
+    def clear(self) -> None:
         self.index = 0
         self.cur_content = self.starttree
         self.line_index = 0
         self.nowrunningcontents = []
 
-    def action(self):
+    def action(self) -> None:
         if cw.cwpy.event.is_stoped():
             raise EffectBreakError()
 
@@ -1119,7 +1116,7 @@ class Event(object):
         if cw.cwpy.event.is_stoped() or cw.cwpy.sdata.in_f9:
             raise EffectBreakError()
 
-    def get_nextcontents(self):
+    def get_nextcontents(self) -> Optional[List[cw.data.CWPyElement]]:
         """self.cur_contentの子コンテントのリストを返す。"""
         if self.force_nextcontent is not None:
             content = self.force_nextcontent
@@ -1212,7 +1209,7 @@ class Event(object):
                     self.line_index = 0
                     return cur_content.nextelements
 
-    def check_gameover(self):
+    def check_gameover(self) -> None:
         """ゲームオーバーチェック。"""
         if cw.cwpy.is_playingscenario():
             flag = True
@@ -1230,7 +1227,10 @@ class Targeting(object):
     """
     カード等の効果対象の処理を行う。
     """
-    def __init__(self, user, targets, setcardtarget):
+    def __init__(self,
+                 user: Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"],
+                 targets: List["cw.character.Character"],
+                 setcardtarget: bool) -> None:
         self.user = user
         self.targets = targets
         self.waited = False
@@ -1242,7 +1242,7 @@ class Targeting(object):
         self._target_index = 0
         self.eff = None
 
-    def targets_to_coupon(self):
+    def targets_to_coupon(self) -> None:
         self.update_targets()
         self.clear_eventcoupons()
         if self.user:
@@ -1258,7 +1258,7 @@ class Targeting(object):
         self._target_updated = False
         self._target_index = 0
 
-    def clear_eventcoupons(self):
+    def clear_eventcoupons(self) -> None:
         self.update_targets()
         if self.user:
             self.user.remove_coupon("＠使用者")
@@ -1271,10 +1271,10 @@ class Targeting(object):
         self.coupon_owners.clear()
         self._target_updated = False
 
-    def in_effectmotionloop(self):
+    def in_effectmotionloop(self) -> bool:
         return self.waited
 
-    def update_targets(self):
+    def update_targets(self) -> None:
         if self._target_updated:
             self.targets = []
             for ccard in itertools.chain(cw.cwpy.get_pcards(),
@@ -1304,7 +1304,7 @@ class Targeting(object):
             self._target_index = 0
         self._target_updated = False
 
-    def get_nexttarget(self):
+    def get_nexttarget(self) -> Optional["cw.character.Character"]:
         self.update_targets()
         if self._target_index < len(self.targets):
             target = self.targets[self._target_index]
@@ -1313,7 +1313,7 @@ class Targeting(object):
         else:
             return None
 
-    def add_target(self, ccard):
+    def add_target(self, ccard: "cw.character.Character") -> None:
         """ccardを効果対象に追加する(Wsn.2)。
         "＠効果対象"はあらかじめ付与しておく事。
         """
@@ -1321,7 +1321,7 @@ class Targeting(object):
         self._target_updated = True
         self.coupon_owners.add(ccard)
 
-    def remove_target(self, ccard):
+    def remove_target(self, ccard: "cw.character.Character") -> None:
         """ccardを効果対象から外す(Wsn.2)。
         "＠効果対象"はあらかじめ外しておく事。
         """
@@ -1329,7 +1329,7 @@ class Targeting(object):
         self._target_updated = True
 
 
-def _get_targetinfo():
+def _get_targetinfo() -> List[str]:
     """
     デバッグ用に各システムクーポン所持者を取得する。
     """
@@ -1359,7 +1359,9 @@ def _get_targetinfo():
 
 
 class CardEvent(Event, Targeting):
-    def __init__(self, event, inusecard, user, targets):
+    def __init__(self, event: cw.data.CWPyElement, inusecard: "cw.header.CardHeader",
+                 user: Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"],
+                 targets: List["cw.character.Character"]) -> None:
         Event.__init__(self, event)
         Targeting.__init__(self, user, targets, True)
         self.inusecard = inusecard
@@ -1378,7 +1380,7 @@ class CardEvent(Event, Targeting):
         self._steps = self.steps
         self._variants = self.variants
 
-    def start(self):
+    def start(self) -> None:
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, self.inusecard.versionhint)
         cw.cwpy.event.is_changestate = False
@@ -1395,7 +1397,7 @@ class CardEvent(Event, Targeting):
         cw.cwpy.event.set_selectedmember(self.user)
         Event.start(self)
 
-    def run_exit(self):
+    def run_exit(self) -> None:
         """イベント実行の最後に行う終了処理。
         カード効果発動・効果中断コンテントに対応。
         """
@@ -1429,7 +1431,7 @@ class CardEvent(Event, Targeting):
         finally:
             cw.cwpy.event.effectevent = None
 
-    def end(self):
+    def end(self) -> None:
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
 
@@ -1441,7 +1443,7 @@ class CardEvent(Event, Targeting):
         cw.cwpy.event.is_changestate = False
 
         # ローカル変数を更新する(Wsn.4)
-        def save_var(v):
+        def save_var(v: Union[cw.data.Flag, cw.data.Step, cw.data.Variant]) -> None:
             if v.initialization == "EventExit":
                 v.value = v.defaultvalue
             else:
@@ -1469,6 +1471,7 @@ class CardEvent(Event, Targeting):
 
         # 効果中断等でターゲット色反転が解除されない場合があるため
         for target in self.targets:
+            assert isinstance(target, cw.sprite.card.CWPyCard)
             target.clear_cardtarget()
 
         # ズームアウトアニメーション
@@ -1488,20 +1491,20 @@ class CardEvent(Event, Targeting):
         # 特殊エリア解除・カード選択ダイアログを開く
         cw.cwpy.clear_specialarea()
 
-    def _exit_event(self):
+    def _exit_event(self) -> None:
         if not (isinstance(self.error, AreaChangeError) or
                 isinstance(self.error, ScenarioBadEndError)):
             if not cw.cwpy.is_gameover() and not cw.cwpy.event.is_stoped():
                 cw.cwpy.show_party()
 
-    def run_areaevent(self):
+    def run_areaevent(self) -> None:
         keycodes = self.inusecard.get_keycodes()
         self.store_inusedata(selectuser=True)
         cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
         self.restore_inusedata()
         self._exit_event()
 
-    def run_characterevent(self, target, can_unconscious):
+    def run_characterevent(self, target: "cw.character.Character", can_unconscious: bool) -> None:
         keycodes = self.inusecard.get_keycodes()
         if self.ignition_characterevent(target, can_unconscious, keycodes):
             self.store_inusedata(selectuser=True)
@@ -1509,16 +1512,18 @@ class CardEvent(Event, Targeting):
             self.restore_inusedata()
             self._exit_event()
 
-    def run_deadevent(self, target):
+    def run_deadevent(self, target: "cw.character.Character") -> bool:
         """targetの死亡イベントが発生可能であれば発生させる。"""
         if self.ignition_deadevent(target, self.inusecard.get_keycodes(with_name=False)):
             self.store_inusedata(selectuser=True)
             r = self.get_events(target).start(1, isinsideevent=True)
             self.restore_inusedata()
             self._exit_event()
-            return r
+            return bool(r)
+        else:
+            return False
 
-    def run_menucardevent(self, target):
+    def run_menucardevent(self, target: "cw.sprite.card.MenuCard") -> None:
         """
         MenuCardインスタンスのキーコードイベントを発動させる。
         """
@@ -1539,7 +1544,7 @@ class CardEvent(Event, Targeting):
             cw.cwpy.play_sound("ineffective", True)
             cw.cwpy.advlog.effect_failed(target, ismenucard=True)
 
-    def run_successevent(self, target, successflag):
+    def run_successevent(self, target: "cw.character.Character", successflag: bool) -> None:
         keycodes = self.inusecard.get_keycodes()
         if self.ignition_successevent(target, successflag, keycodes):
             keycodes = self._keycodes_for_successevent(keycodes, successflag)
@@ -1548,7 +1553,7 @@ class CardEvent(Event, Targeting):
             self.restore_inusedata()
             self._exit_event()
 
-    def effect_cardmotion(self):
+    def effect_cardmotion(self) -> None:
         """カード効果発動。イベント実行の最後に行う。"""
         self.update_targets()
         # ターゲットが存在しない場合は処理中断
@@ -1601,7 +1606,7 @@ class CardEvent(Event, Targeting):
         self._target_index = 0
 
         # 対象メンバに効果モーションを適用
-        def clear_params(target):
+        def clear_params(target: Union[cw.character.Character, cw.sprite.card.MenuCard]) -> None:
             if isinstance(target, cw.character.Character):
                 target.remove_coupon("＠効果対象")
             target.clear_cardtarget()
@@ -1702,7 +1707,7 @@ class CardEvent(Event, Targeting):
         self.check_gameover()
 
 
-def get_effecttargetstatus(target, eff):
+def get_effecttargetstatus(target: "cw.character.Character", eff: cw.effectmotion.Effect) -> Tuple[bool, bool]:
     unconscious_flag = (eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) or
                         eff.has_addablebeast(target) or
                         eff.has_removablebeast(target)) and \
@@ -1712,29 +1717,34 @@ def get_effecttargetstatus(target, eff):
     return unconscious_flag, paralyze_flag
 
 
-def initial_effect(eff, targets, allrange, path, volume, loopcount, channel, fade, remove_target=None):
+def initial_effect(eff: cw.effectmotion.Effect, targets: List["cw.character.Character"], allrange: bool, path: str,
+                   volume: int, loopcount: int, channel: int, fade: int,
+                   remove_target: Optional[Callable[["cw.character.Character"], None]] = None)\
+        -> List["cw.character.Character"]:
     """
     カード初期効果のターゲット色反転&初期音声再生&ウェイトを実行する。
     """
     skipped = False
     if not allrange and len(targets) == 1:
         assert len(targets) == 1
-        targets[0].set_cardtarget()
+        target: cw.sprite.card.CWPyCard = targets[0]
+        target.set_cardtarget()
         if path:
             cw.cwpy.play_sound_with(path, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
-        if eff.check_enabledtarget(targets[0], False):
+        if eff.check_enabledtarget(target, False):
             waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1) * 2
             skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
         else:
             waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus()) + 1
             skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-            targets[0].clear_cardtarget()
+            target.clear_cardtarget()
             if remove_target:
-                remove_target(targets[0])
+                remove_target(target)
             targets = []
     else:
         targets2 = []
         for target in targets:
+            assert isinstance(target, cw.sprite.card.CWPyCard)
             if eff.check_enabledtarget(target, False):
                 target.set_cardtarget()
                 if path:
@@ -1753,7 +1763,7 @@ def initial_effect(eff, targets, allrange, path, volume, loopcount, channel, fad
     return targets
 
 
-def main():
+def main() -> None:
     pass
 
 

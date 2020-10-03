@@ -3,7 +3,7 @@
 
 import cw
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 # 意識不明の対象に有効な効果。
 CAN_UNCONSCIOUS = (
@@ -18,7 +18,7 @@ CAN_UNCONSCIOUS = (
 )
 
 
-def is_noeffect(element, target):
+def is_noeffect(element: str, target: "cw.character.Character") -> bool:
     """
     属性の相性が無効ならTrueを返す。
     """
@@ -46,7 +46,7 @@ def is_noeffect(element, target):
         return False
 
 
-def check_noeffect(effecttype, target, ignore_antimagic=False):
+def check_noeffect(effecttype: str, target: "cw.character.Character", ignore_antimagic: bool = False) -> bool:
     noeffect_wpn = target.noeffect.get("weapon")
     noeffect_mgc = target.noeffect.get("magic")
     antimagic = target.is_antimagic() if not ignore_antimagic else False
@@ -119,7 +119,7 @@ class Effect(object):
                                          vocation=self.vocation, absorbto=self.absorbto)
                             for e in motions]
 
-    def update_status(self, selectedmember=None):
+    def update_status(self, selectedmember: Optional["cw.character.Character"] = None) -> None:
         if self.refability:
             ccard = selectedmember
             self._level = ccard.level if ccard else 0
@@ -128,17 +128,21 @@ class Effect(object):
         for motion in self.motions:
             motion.update_status(selectedmember=selectedmember)
 
-    def get_level(self):
+    def get_level(self) -> int:
         """使用者のレベルもしくは効果コンテントの対象レベル。"""
         return self._level
 
-    def apply(self, target, event=False, selectedmember=None):
+    def apply(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"], event: bool = False,
+              selectedmember: Optional["cw.character.Character"] = None) -> bool:
         if isinstance(target, cw.character.Character) and self.check_enabledtarget(target, event):
             return self.apply_charactercard(target, event=event, selectedmember=selectedmember)
         else:
             return False
 
-    def apply_charactercard(self, target, event=False, selectedmember=None):
+    def apply_charactercard(self, target: Union["cw.sprite.card.PlayerCard",
+                                                "cw.sprite.card.EnemyCard",
+                                                "cw.sprite.card.FriendCard"],
+                            event: bool = False, selectedmember: Optional["cw.character.Character"] = None) -> bool:
         """
         Characterインスタンスに効果モーションを適用する。
         """
@@ -335,16 +339,18 @@ class Effect(object):
 
         return True
 
-    def _get_cardspeed(self, target):
+    def _get_cardspeed(self, target: "cw.character.Character") -> int:
         if isinstance(target, cw.sprite.card.CWPyCard):
             return target.get_dealspeed(self.battlespeed)
         else:
+            assert False
             return cw.cwpy.setting.get_dealspeed(self.battlespeed)
 
-    def check_noeffect(self, target):
+    def check_noeffect(self, target: "cw.character.Character") -> bool:
         return check_noeffect(self.effecttype, target)
 
-    def check_avoid(self, target, selectedmember=None):
+    def check_avoid(self, target: "cw.character.Character",
+                    selectedmember: Optional["cw.character.Character"] = None) -> bool:
         if self.resisttype == "Avoid" and target.is_avoidable():
             targetbonus = target.get_enhance_avo()
             if 10 <= targetbonus:
@@ -367,7 +373,8 @@ class Effect(object):
 
         return False
 
-    def check_resist(self, target, selectedmember=None):
+    def check_resist(self, target: "cw.character.Character",
+                     selectedmember: Optional["cw.character.Character"] = None) -> bool:
         if self.resisttype == "Resist" and target.is_resistable():
             targetbonus = target.get_enhance_res()
             if 10 <= targetbonus:
@@ -390,7 +397,8 @@ class Effect(object):
 
         return False
 
-    def animate(self, target, update_image=False):
+    def animate(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"],
+                update_image: bool = False) -> None:
         """
         targetにtypenameの効果アニメーションを実行する。
         update_imageがTrueだったら、アニメ後にtargetの画像を更新する。
@@ -408,7 +416,8 @@ class Effect(object):
             cw.cwpy.override_dealspeed = override_dealspeed
             cw.cwpy.force_dealspeed = force_dealspeed
 
-    def _animate_impl(self, target, update_image):
+    def _animate_impl(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"],
+                      update_image: bool) -> None:
         battlespeed = self.battlespeed
         # 隠れているカードやFriendCardはアニメーションさせない
         if target.status == "hidden":
@@ -452,7 +461,7 @@ class Effect(object):
                 cw.cwpy.add_lazydraw(clip=target.rect)
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
 
-    def check_enabledtarget(self, target, event=False):
+    def check_enabledtarget(self, target: "cw.character.Character", event: bool = False) -> bool:
         """
         表示されていないか(敵のみ)、対象消去されている場合、
         反転している場合(イベント除く)は有効なターゲットではない。
@@ -478,7 +487,7 @@ class Effect(object):
         else:
             return True
 
-    def has_addablebeast(self, target):
+    def has_addablebeast(self, target: "cw.character.Character") -> bool:
         """意識不明状態でも消滅しない召喚獣を所持しているか。"""
         for motion in self.motions:
             if motion.has_addablebeast(target):
@@ -486,7 +495,7 @@ class Effect(object):
 
         return False
 
-    def has_removablebeast(self, target):
+    def has_removablebeast(self, target: "cw.character.Character") -> bool:
         """targetが剥奪可能な召喚獣を所持しているか。"""
         for motion in self.motions:
             if motion.has_removablebeast(target):
@@ -494,13 +503,13 @@ class Effect(object):
 
         return False
 
-    def has_motions(self, motiontypes):
+    def has_motions(self, motiontypes: Iterable[str]) -> bool:
         for motiontype in motiontypes:
             if self.has_motion(motiontype):
                 return True
         return False
 
-    def has_motion(self, motiontype):
+    def has_motion(self, motiontype: str) -> bool:
         """
         motiontypeで指定したEffectMotionインスタンスを所持しているかどうか。
         """
@@ -512,7 +521,7 @@ class Effect(object):
 
         return False
 
-    def count_motion(self, motiontype):
+    def count_motion(self, motiontype: str) -> int:
         """
         motiontypeで指定したEffectMotionインスタンスｎ所持数。
         """
@@ -599,26 +608,26 @@ class EffectMotion(object):
             # 使用者のレベルもしくは効果コンテントの対象レベル
             self._level = cw.util.numwrap(self.user.level if self.user else self._targetlevel, -65536, 65536)
 
-    def get_vocation_val(self):
+    def get_vocation_val(self) -> int:
         """成功率や効果値の計算に使用する適性値を返す。"""
         return self._vocation_val
 
-    def get_vocation_level(self):
+    def get_vocation_level(self) -> int:
         """成功率や効果値の計算に使用するレベルを返す。"""
         return self._vocation_level
 
-    def get_enhance_act(self):
+    def get_enhance_act(self) -> int:
         """使用者の行動力修正(技能カード以外は全て"0")。"""
         return self._enhance_act
 
-    def get_level(self):
+    def get_level(self) -> int:
         """使用者のレベルもしくは効果コンテントの対象レベル。"""
         return self._level
 
-    def is_effectcontent(self):
+    def is_effectcontent(self) -> bool:
         return not bool(self.cardheader)
 
-    def calc_skillpowervalue(self):
+    def calc_skillpowervalue(self) -> int:
         # 固定値(Wsn.1)
         value = self.value
         if self.damagetype == "Fixed":
@@ -627,7 +636,7 @@ class EffectMotion(object):
         # それ以外は最大値処理
         return 999
 
-    def calc_effectvalue(self, target, physical=False):
+    def calc_effectvalue(self, target: "cw.character.Character", physical: bool = False) -> int:
         """
         効果値から実数値を計算して返す。
         効果値が0の場合は実数値も0を返す。
@@ -679,7 +688,7 @@ class EffectMotion(object):
 
         return out_value
 
-    def calc_durationvalue(self, target, enhance):
+    def calc_durationvalue(self, target: "cw.character.Character", enhance: bool) -> int:
         """
         効果時間値から適性レベルに合わせた実数値を計算して返す。
         効果コンテントの場合も計算する。
@@ -707,7 +716,7 @@ class EffectMotion(object):
         else:
             assert False
 
-    def calc_defensedvalue(self, value, target):
+    def calc_defensedvalue(self, value: int, target: "cw.character.Character") -> int:
         """
         効果実数値に防御修正を加える。
         """
@@ -720,13 +729,13 @@ class EffectMotion(object):
             return value * 4
         return max(1, (value * (100 - enhance_def * 10)) // 100)
 
-    def is_noeffect(self, target):
+    def is_noeffect(self, target: "cw.character.Character") -> bool:
         """
         属性の相性が無効ならTrueを返す。
         """
         return is_noeffect(self.element, target)
 
-    def is_weakness(self, target):
+    def is_weakness(self, target: "cw.character.Character") -> bool:
         """
         炎冷属性の弱点ならTrueを返す。
         """
@@ -737,7 +746,7 @@ class EffectMotion(object):
         else:
             return False
 
-    def can_apply(self, target):
+    def can_apply(self, target: "cw.character.Character") -> bool:
         """
         実際に効果を適用しようとした時に無効であればFalseを返す。
         """
@@ -753,7 +762,7 @@ class EffectMotion(object):
 
         return True
 
-    def has_addablebeast(self, target):
+    def has_addablebeast(self, target: "cw.character.Character") -> bool:
         """targetに付与可能な召喚獣の召喚があるか。"""
         if self.type == "SummonBeast" and self.beasts is not None:
             for e in self.beasts:
@@ -764,7 +773,7 @@ class EffectMotion(object):
                     return True
         return False
 
-    def has_removablebeast(self, target):
+    def has_removablebeast(self, target: "cw.character.Character") -> bool:
         """targetから剥奪可能な召喚獣があるか。"""
         if self.type == "VanishBeast" and isinstance(target, cw.character.Character):
             seq = target.cardpocket[cw.POCKET_BEAST]
@@ -773,7 +782,7 @@ class EffectMotion(object):
                     return True
         return False
 
-    def apply(self, target, success_res):
+    def apply(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         target(PlayerCard, EnemyCard)に
         効果モーションを適用する。
@@ -791,7 +800,7 @@ class EffectMotion(object):
     # ----------------------------------------------------------------------
     # 「生命力」関連効果
     # ----------------------------------------------------------------------
-    def heal_motion(self, target, success_res):
+    def heal_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         回復。抵抗成功で無効化。
         """
@@ -805,7 +814,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.heal_motion(target, origvalue, target.life, oldlife)
         return 0 < value
 
-    def damage_motion(self, target, success_res):
+    def damage_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         ダメージ。抵抗成功で半減。
         """
@@ -837,7 +846,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.damage_motion(target, origvalue, target.life, oldlife, dissleep)
         return 0 < value
 
-    def absorb_motion(self, target, success_res):
+    def absorb_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         吸収。
         """
@@ -882,7 +891,7 @@ class EffectMotion(object):
     # ----------------------------------------------------------------------
     # 「肉体」関連効果
     # ----------------------------------------------------------------------
-    def paralyze_motion(self, target, success_res):
+    def paralyze_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         麻痺状態。抵抗成功で無効化。
         """
@@ -899,7 +908,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.paralyze_motion(target, target.paralyze, oldvalue)
         return 0 < value
 
-    def disparalyze_motion(self, target, success_res):
+    def disparalyze_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         麻痺解除。抵抗成功で無効化。
         """
@@ -916,7 +925,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.disparalyze_motion(target, target.paralyze, oldvalue)
         return value < 0
 
-    def poison_motion(self, target, success_res):
+    def poison_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         中毒状態。抵抗成功で無効化。
         """
@@ -933,7 +942,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.poison_motion(target, target.poison, oldvalue)
         return 0 < value
 
-    def dispoison_motion(self, target, success_res):
+    def dispoison_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         中毒解除。抵抗成功で無効化。
         """
@@ -953,7 +962,7 @@ class EffectMotion(object):
     # ----------------------------------------------------------------------
     # 「技能」関連効果
     # ----------------------------------------------------------------------
-    def getskillpower_motion(self, target, success_res):
+    def getskillpower_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         精神力回復。抵抗成功で無効化。
         """
@@ -964,7 +973,7 @@ class EffectMotion(object):
         cw.cwpy.advlog.getskillpower_motion(target, value)
         return True
 
-    def loseskillpower_motion(self, target, success_res):
+    def loseskillpower_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         精神力不能。抵抗成功で無効化。
         """
@@ -978,7 +987,7 @@ class EffectMotion(object):
     # ----------------------------------------------------------------------
     # 「精神」関連効果
     # ----------------------------------------------------------------------
-    def mentality(self, target, success_res):
+    def mentality(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         精神状態変更(睡眠・混乱・激昂・勇敢・恐慌・正常)。
         """
@@ -1006,28 +1015,28 @@ class EffectMotion(object):
             cw.cwpy.advlog.mentality_motion(target, self.type.title(), duration, oldmentality, oldduration)
         return eff
 
-    def sleep_motion(self, *args, **kwargs):
-        return self.mentality(*args, **kwargs)
+    def sleep_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
+        return self.mentality(target, success_res)
 
-    def confuse_motion(self, *args, **kwargs):
-        return self.mentality(*args, **kwargs)
+    def confuse_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
+        return self.mentality(target, success_res)
 
-    def overheat_motion(self, *args, **kwargs):
-        return self.mentality(*args, **kwargs)
+    def overheat_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
+        return self.mentality(target, success_res)
 
-    def brave_motion(self, *args, **kwargs):
-        return self.mentality(*args, **kwargs)
+    def brave_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
+        return self.mentality(target, success_res)
 
-    def panic_motion(self, *args, **kwargs):
-        return self.mentality(*args, **kwargs)
+    def panic_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
+        return self.mentality(target, success_res)
 
-    def normal_motion(self, *args, **kwargs):
-        return self.mentality(*args, **kwargs)
+    def normal_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
+        return self.mentality(target, success_res)
 
     # ----------------------------------------------------------------------
     # 「魔法」関連効果
     # ----------------------------------------------------------------------
-    def bind_motion(self, target, success_res):
+    def bind_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         束縛状態。
         """
@@ -1041,7 +1050,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.bind_motion(target, target.bind, oldvalue)
         return eff
 
-    def disbind_motion(self, target, success_res):
+    def disbind_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         束縛解除。
         """
@@ -1054,7 +1063,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.disbind_motion(target, target.bind, oldvalue)
         return 0 < duration
 
-    def silence_motion(self, target, success_res):
+    def silence_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         沈黙状態。
         """
@@ -1068,7 +1077,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.silence_motion(target, target.silence, oldvalue)
         return eff
 
-    def dissilence_motion(self, target, success_res):
+    def dissilence_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         沈黙解除。
         """
@@ -1081,7 +1090,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.dissilence_motion(target, target.silence, oldvalue)
         return 0 < duration
 
-    def faceup_motion(self, target, success_res):
+    def faceup_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         暴露状態。
         """
@@ -1095,7 +1104,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.faceup_motion(target, target.faceup, oldvalue)
         return eff
 
-    def facedown_motion(self, target, success_res):
+    def facedown_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         暴露解除。
         """
@@ -1108,7 +1117,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.facedown_motion(target, target.faceup, oldvalue)
         return 0 < duration
 
-    def antimagic_motion(self, target, success_res):
+    def antimagic_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         魔法無効化状態。
         """
@@ -1122,7 +1131,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.antimagic_motion(target, target.antimagic, oldvalue)
         return eff
 
-    def disantimagic_motion(self, target, success_res):
+    def disantimagic_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         魔法無効化解除。
         """
@@ -1138,7 +1147,7 @@ class EffectMotion(object):
     # ----------------------------------------------------------------------
     # 「能力」関連効果
     # ----------------------------------------------------------------------
-    def enhanceaction_motion(self, target, success_res):
+    def enhanceaction_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         行動力変化。
         """
@@ -1156,7 +1165,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.enhanceaction_motion(target, target.enhance_act, oldvalue)
         return eff
 
-    def enhanceavoid_motion(self, target, success_res):
+    def enhanceavoid_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         回避力変化。
         """
@@ -1174,7 +1183,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.enhanceavoid_motion(target, target.enhance_avo, oldvalue)
         return eff
 
-    def enhanceresist_motion(self, target, success_res):
+    def enhanceresist_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         抵抗力変化。
         """
@@ -1192,7 +1201,7 @@ class EffectMotion(object):
             cw.cwpy.advlog.enhanceresist_motion(target, target.enhance_res, oldvalue)
         return eff
 
-    def enhancedefense_motion(self, target, success_res):
+    def enhancedefense_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         防御力変化。
         """
@@ -1213,7 +1222,7 @@ class EffectMotion(object):
     # ----------------------------------------------------------------------
     # 「消滅」関連効果
     # ----------------------------------------------------------------------
-    def vanishtarget_motion(self, target, success_res):
+    def vanishtarget_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         対象消去。
         """
@@ -1227,7 +1236,7 @@ class EffectMotion(object):
         cw.cwpy.advlog.vanishtarget_motion(target, runaway)
         return True
 
-    def vanishcard_motion(self, target, success_res):
+    def vanishcard_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         カード消去。
         """
@@ -1241,7 +1250,7 @@ class EffectMotion(object):
             return True
         return False
 
-    def vanishbeast_motion(self, target, success_res):
+    def vanishbeast_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         召喚獣消去。
         """
@@ -1255,7 +1264,7 @@ class EffectMotion(object):
     # ----------------------------------------------------------------------
     # 「カード」関連効果
     # ----------------------------------------------------------------------
-    def dealattackcard_motion(self, target, success_res):
+    def dealattackcard_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         通常攻撃配布。
         """
@@ -1271,7 +1280,7 @@ class EffectMotion(object):
             return True
         return False
 
-    def dealpowerfulattackcard_motion(self, target, success_res):
+    def dealpowerfulattackcard_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         渾身の一撃配布。
         """
@@ -1287,7 +1296,7 @@ class EffectMotion(object):
             return True
         return False
 
-    def dealcriticalattackcard_motion(self, target, success_res):
+    def dealcriticalattackcard_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         会心の一撃配布。
         """
@@ -1303,7 +1312,7 @@ class EffectMotion(object):
             return True
         return False
 
-    def dealfeintcard_motion(self, target, success_res):
+    def dealfeintcard_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         フェイント配布。
         """
@@ -1319,7 +1328,7 @@ class EffectMotion(object):
             return True
         return False
 
-    def dealdefensecard_motion(self, target, success_res):
+    def dealdefensecard_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         防御配布。
         """
@@ -1335,7 +1344,7 @@ class EffectMotion(object):
             return True
         return False
 
-    def dealdistancecard_motion(self, target, success_res):
+    def dealdistancecard_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         見切り配布。
         """
@@ -1351,7 +1360,7 @@ class EffectMotion(object):
             return True
         return False
 
-    def dealconfusecard_motion(self, target, success_res):
+    def dealconfusecard_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         混乱配布。
         """
@@ -1367,7 +1376,7 @@ class EffectMotion(object):
             return True
         return False
 
-    def dealskillcard_motion(self, target, success_res):
+    def dealskillcard_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         特殊技能配布。
         """
@@ -1381,7 +1390,7 @@ class EffectMotion(object):
             return True
         return False
 
-    def cancelaction_motion(self, target, success_res):
+    def cancelaction_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         行動キャンセル(1.50)。
         """
@@ -1398,7 +1407,7 @@ class EffectMotion(object):
     # ----------------------------------------------------------------------
     # 「召喚」関連効果
     # ----------------------------------------------------------------------
-    def summonbeast_motion(self, target, success_res):
+    def summonbeast_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         """
         召喚獣召喚。
         """
@@ -1439,7 +1448,7 @@ class EffectMotion(object):
     # ----------------------------------------------------------------------
     # 「効果無し」効果
     # ----------------------------------------------------------------------
-    def noeffect_motion(self, target, success_res):
+    def noeffect_motion(self, target: "cw.character.Character", success_res: bool) -> bool:
         return True
 
 
@@ -1510,7 +1519,8 @@ def get_vocation_level(ccard: "cw.sprite.card.PlayerCard", vocation: Tuple[str, 
 # 有効な効果モーションのチェック用関数
 # ------------------------------------------------------------------------------
 
-def get_effectivetargets(header, targets):
+def get_effectivetargets(header: "cw.header.CardHeader",
+                         targets: Iterable["cw.character.Character"]) -> List["cw.character.Character"]:
     """
     カード効果が有効なターゲットのリストを返す。
     header: CardHeader
@@ -1543,7 +1553,7 @@ bonus_dict = {
 }
 
 
-def main():
+def main() -> None:
     pass
 
 

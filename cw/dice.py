@@ -45,7 +45,7 @@ class Dice(object):
         return item
 
 
-def main():
+def main() -> None:
     pass
 
 
