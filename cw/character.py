@@ -17,6 +17,7 @@ _couponlock = threading.Lock()
 
 class Character(object):
     status: str
+    actions: Dict[int, bool]
 
     def __init__(self, data: Optional[cw.data.CWPyElementTree] = None) -> None:
         if data is not None:

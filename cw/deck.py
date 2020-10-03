@@ -195,7 +195,7 @@ class Deck(object):
         talon = []
         skilltable = {}
 
-        def remove_skill(header, seq):
+        def remove_skill(header: cw.header.CardHeader, seq: List[cw.header.CardHeader]) -> None:
             if header.type == "SkillCard":
                 orig = header.ref_original()
                 removecount = skilltable.get(orig, 0)
@@ -367,7 +367,7 @@ class Deck(object):
                 self.shuffle()
 
 
-def main():
+def main() -> None:
     pass
 
 
