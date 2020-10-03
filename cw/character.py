@@ -10,7 +10,7 @@ import threading
 import cw
 from cw.util import synclock
 
-from typing import List, Set, Optional, Dict, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 _couponlock = threading.Lock()
 
@@ -428,7 +428,7 @@ class Character(object):
         e[index1], e[index2] = e[index2], e[index1]
         self.data.is_edited = True
 
-    def get_keycodes(self, skill=True, item=True, beast=True):
+    def get_keycodes(self, skill: bool = True, item: bool = True, beast: bool = True) -> Set[str]:
         """所持カードのキーコード一覧を返す。"""
         s = set()
         seq = []
@@ -446,7 +446,8 @@ class Character(object):
         s.discard("")
         return s
 
-    def find_keycode(self, keycode, skill=True, item=True, beast=True, hand=True):
+    def find_keycode(self, keycode: str, skill: bool = True, item: bool = True, beast: bool = True,
+                     hand: bool = True) -> Optional[cw.header.CardHeader]:
         """指定されたキーコードを所持しているか。
         当該キーコードを含むカードを返す。
         見つからなかった場合はNoneを返す。
@@ -478,7 +479,7 @@ class Character(object):
 
         return None
 
-    def lost(self):
+    def lost(self) -> None:
         """
         対象消去やゲームオーバー時に呼ばれる。
         Playerクラスでオーバーライト。
@@ -489,7 +490,7 @@ class Character(object):
     # 状態チェック用
     # --------------------------------------------------------------------------
 
-    def is_normal(self):
+    def is_normal(self) -> bool:
         """
         通常の精神状態かどうかをbool値で返す。
         """
@@ -597,7 +598,7 @@ class Character(object):
         """
         return Character.calc_injured(self.life, self.maxlife)
 
-    def is_injuredall(self):
+    def is_injuredall(self) -> bool:
         """
         負傷状態かどうかをbool値で返す
         """
@@ -636,7 +637,7 @@ class Character(object):
         """
         return not self.is_dead()
 
-    def is_fine(self):
+    def is_fine(self) -> bool:
         """
         健康状態かどうかをbool値で返す
         """
@@ -653,7 +654,7 @@ class Character(object):
         else:
             return True
 
-    def is_avoidable(self, use_enhance=True):
+    def is_avoidable(self, use_enhance=True) -> bool:
         """
         回避判定可能かどうかbool値で返す。
         """
@@ -662,7 +663,7 @@ class Character(object):
         else:
             return self.is_active()
 
-    def is_resistable(self, use_enhance=True):
+    def is_resistable(self, use_enhance: bool = True) -> bool:
         """
         抵抗判定可能かどうかbool値で返す。
         呪縛状態でも抵抗できる。
@@ -681,52 +682,52 @@ class Character(object):
         """
         return self.reversed
 
-    def is_vanished(self):
+    def is_vanished(self) -> bool:
         return self._vanished
 
-    def has_beast(self):
+    def has_beast(self) -> int:
         """
         付帯召喚じゃない召喚獣カードの所持数を返す。
         """
         return len([h for h in self.get_pocketcards(cw.POCKET_BEAST) if not h.attachment])
 
-    def is_enhanced_act(self):
+    def is_enhanced_act(self) -> bool:
         return self.enhance_act != 0 and 0 < self.enhance_act_dur
 
-    def is_enhanced_res(self):
+    def is_enhanced_res(self) -> bool:
         return self.enhance_res != 0 and 0 < self.enhance_res_dur
 
-    def is_enhanced_avo(self):
+    def is_enhanced_avo(self) -> bool:
         return self.enhance_avo != 0 and 0 < self.enhance_avo_dur
 
-    def is_enhanced_def(self):
+    def is_enhanced_def(self) -> bool:
         return self.enhance_def != 0 and 0 < self.enhance_def_dur
 
-    def is_upaction(self):
+    def is_upaction(self) -> bool:
         return self.enhance_act > 0 and 0 < self.enhance_act_dur
 
-    def is_upresist(self):
+    def is_upresist(self) -> bool:
         return self.enhance_res > 0 and 0 < self.enhance_res_dur
 
-    def is_upavoid(self):
+    def is_upavoid(self) -> bool:
         return self.enhance_avo > 0 and 0 < self.enhance_avo_dur
 
-    def is_updefense(self):
+    def is_updefense(self) -> bool:
         return self.enhance_def > 0 and 0 < self.enhance_def_dur
 
-    def is_downaction(self):
+    def is_downaction(self) -> bool:
         return self.enhance_act < 0 and 0 < self.enhance_act_dur
 
-    def is_downresist(self):
+    def is_downresist(self) -> bool:
         return self.enhance_res < 0 and 0 < self.enhance_res_dur
 
-    def is_downavoid(self):
+    def is_downavoid(self) -> bool:
         return self.enhance_avo < 0 and 0 < self.enhance_avo_dur
 
-    def is_downdefense(self):
+    def is_downdefense(self) -> bool:
         return self.enhance_def < 0 and 0 < self.enhance_def_dur
 
-    def is_effective(self, header, motion):
+    def is_effective(self, header: cw.header.CardHeader, motion: cw.data.CWPyElement) -> bool:
         """motionが現在のselfに対して有効な効果か。
         ターゲットの選択に使用される判定であるため、
         実際には有効であっても必ずしもTrueを返さない。
@@ -874,7 +875,8 @@ class Character(object):
     # カード操作
     # --------------------------------------------------------------------------
 
-    def use_card(self, targets, header):
+    def use_card(self, targets: Union[List[cw.sprite.card.CWPyCard], cw.sprite.card.CWPyCard],
+                 header: cw.header.CardHeader) -> None:
         """targetsにカードを使用する。"""
         cw.fsync.sync()
         cw.cwpy.advlog.use_card(self, header, targets)
@@ -1060,7 +1062,7 @@ class Character(object):
                 cw.cwpy.rsrc.specialchars = specialchars
                 cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
 
-    def throwaway_card(self, header, from_event=True, update_image=True):
+    def throwaway_card(self, header: cw.header.CardHeader, from_event: bool = True, update_image: bool = True) -> None:
         """
         引数のheaderのカードを破棄処理する。
         """
@@ -1079,7 +1081,7 @@ class Character(object):
     # 戦闘行動関係
     # --------------------------------------------------------------------------
 
-    def action(self):
+    def action(self) -> None:
         """設定している戦闘行動を行う。
         BattleEngineからのみ呼ばれる。
         """
@@ -1133,7 +1135,8 @@ class Character(object):
                     finally:
                         self.deck.use(header)
 
-    def set_action(self, target, header, beasts=None, auto=False):
+    def set_action(self, target: List[cw.sprite.card.CWPyCard], header: cw.header.CardHeader,
+                   beasts: Optional[List[cw.header.CardHeader]] = None, auto: bool = False) -> None:
         """
         戦闘行動を設定。
         auto: 自動手札選択から設定されたかどうか。
@@ -1162,7 +1165,7 @@ class Character(object):
 
         self.actionend = False
 
-    def _add_priorityacts(self, target, h):
+    def _add_priorityacts(self, target: List[cw.sprite.card.CWPyCard], h: cw.header.CardHeader) -> None:
         if cw.cwpy.battle and target and h:
             for e in self._get_motions(h):
                 t = e.get("type", "")
@@ -1190,7 +1193,7 @@ class Character(object):
             # 呪縛はキャンセルされない(CardWirth 1.50)
             self.deck.clear_nextcards()
 
-    def clear_action(self):
+    def clear_action(self) -> None:
         self.actiondata = None
         self.actionautoselected = False
         self.actionend = True
@@ -1213,7 +1216,8 @@ class Character(object):
     # 判定用
     # --------------------------------------------------------------------------
 
-    def decide_outcome(self, level, vocation, thresholdbonus=6, enhance=0, subbonus=0):
+    def decide_outcome(self, level: int, vocation: Tuple[str, str], thresholdbonus: int = 6, enhance: int = 0,
+                       subbonus: int = 0) -> bool:
         """
         行為判定を行う。成功ならTrue。失敗ならFalseを返す。
         level: 判定レベル。
@@ -1238,7 +1242,7 @@ class Character(object):
         tvalue = cw.util.div_vocation(bonus) + self.level + tdice
         return uvalue <= tvalue
 
-    def decide_misfire(self, level):
+    def decide_misfire(self, level: int) -> bool:
         """
         カードの不発判定を行う。成功ならTrue。失敗ならFalseを返す。
         level: 判定レベル(カードの技能レベル)。
@@ -1259,7 +1263,7 @@ class Character(object):
     # 戦闘行動設定関連
     # --------------------------------------------------------------------------
 
-    def decide_actionorder(self):
+    def decide_actionorder(self) -> int:
         """
         行動順位を判定する数値をself.actionorderに設定。
         敏捷度と大胆性で判定。レベル・行動力は関係なし。
@@ -1270,7 +1274,7 @@ class Character(object):
         self.actionorder = int((vocation_val+1) * 1.4) + d
         return self.actionorder
 
-    def decide_action(self):
+    def decide_action(self) -> None:
         """
         自動手札選択。
         """
@@ -1331,7 +1335,9 @@ class Character(object):
         # 行動設定
         self.set_action(targets, header, beasts, True)
 
-    def decide_usecard(self, headers):
+    def decide_usecard(self, headers: List[Tuple[List[cw.sprite.card.CWPyCard],
+                                           cw.header.CardHeader]]) -> Tuple[Optional[List[cw.sprite.card.CWPyCard]],
+                                                                            Optional[cw.header.CardHeader]]:
         """
         使用可能な手札のいずれかを自動選択する。
         """
@@ -1378,17 +1384,18 @@ class Character(object):
 
         return selected
 
-    def _get_motions(self, header):
+    def _get_motions(self, header: cw.header.CardHeader) -> cw.data.CWPyElement:
         if header.type == "ActionCard" and header.id == 7:
             # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
             return [{"type": "Runaway"}]
         else:
             return header.carddata.getfind("Motions")
 
-    def _is_bonusedmtype(self, mtype):
+    def _is_bonusedmtype(self, mtype: str) -> bool:
         return mtype in ("Runaway", "Heal")
 
-    def _get_targetingbonus_and_targets(self, header, targets):
+    def _get_targetingbonus_and_targets(self, header: cw.header.CardHeader, targets: List[cw.sprite.card.CWPyCard])\
+            -> Tuple[int, List[cw.sprite.card.CWPyCard]]:
         bonus = -2147483647
         maxbonustargs = []
         # 最大ボーナスを取得
@@ -1398,6 +1405,7 @@ class Character(object):
             if not self._is_bonusedmtype(mtype):
                 continue
             for targ in targets:
+                assert isinstance(targ, cw.character.Character)
                 b = targ.get_targetingbonus(mtype)
                 if bonus == b:
                     maxbonustargs.append(targ)
@@ -1413,7 +1421,7 @@ class Character(object):
     # 状態取得用
     # --------------------------------------------------------------------------
 
-    def get_targetingbonus(self, mtype):
+    def get_targetingbonus(self, mtype: str) -> int:
         """
         効果のターゲットとして選ばれやすくなるボーナス値を返す。
         現在は"Heal"タイプに対する体力減時ボーナスと
@@ -1511,7 +1519,7 @@ class Character(object):
         """
         return Character.calc_lifeper(self.life, self.maxlife)
 
-    def get_bonus(self, vocation, enhance_act=True):
+    def get_bonus(self, vocation: Tuple[str, str], enhance_act: bool = True) -> int:
         """
         適性値と行動力強化値を合計した、行為判定用のボーナス値を返す。
         vocation: 適性データ。(身体適性名, 精神適性名)のタプル。
@@ -1522,7 +1530,7 @@ class Character(object):
             value += self.get_enhance_act()
         return value
 
-    def get_vocation_val(self, vocation):
+    def get_vocation_val(self, vocation: Tuple[str, str]) -> int:
         """
         適性値(身体適性値 + 精神適性値)を返す。
         引数のvocationは(身体適性名, 精神適性名)のタプル。
@@ -1556,32 +1564,32 @@ class Character(object):
         """能力値のキャッシュをクリアする。"""
         self._voc_tbl = {}
 
-    def get_enhance_act(self):
+    def get_enhance_act(self) -> int:
         """
         行動力強化値を返す。行動力は効果コンテントによる強化値だけ。
         """
         return cw.util.numwrap(self.enhance_act, -10, 10)
 
-    def get_enhance_def(self):
+    def get_enhance_def(self) -> int:
         """
         初期・状態・カードによる防御力修正の計算結果を返す。
         単体で+10の修正がない場合は、合計値が+10を越えていても+9を返す。
         """
         return self._get_enhance_impl("defense", self.enhance_def, 2)
 
-    def get_enhance_res(self):
+    def get_enhance_res(self) -> int:
         """
         初期・状態・カードによる抵抗力修正の計算結果を返す。
         """
         return self._get_enhance_impl("resist", self.enhance_res, 1)
 
-    def get_enhance_avo(self):
+    def get_enhance_avo(self) -> int:
         """
         初期・状態・カードによる回避力修正の計算結果を返す。
         """
         return self._get_enhance_impl("avoid", self.enhance_avo, 0)
 
-    def _get_enhance_impl(self, name, initvalue, enhindex):
+    def _get_enhance_impl(self, name: str, initvalue: int, enhindex: int) -> int:
         """
         現在かけられている全ての能力修正値の合計を返す(ただし単純な加算ではない)。
         デフォルト修正値 + 状態修正値 + カード所持修正値 + カード使用修正値。
@@ -1594,11 +1602,11 @@ class Character(object):
         seq = [val1, val2]
         pvals = []
 
-        def add_pval(val):
+        def add_pval(val: int) -> None:
             if 0 < val and val < 10:
                 pvals.append(int(val))
 
-        def wrap_enhval(val, orig_val):
+        def wrap_enhval(val: int, orig_val: int) -> int:
             if orig_val < 0:
                 return cw.util.numwrap(val, -10, -1)
             elif 0 < orig_val:
@@ -1606,7 +1614,7 @@ class Character(object):
             else:
                 return 0
 
-        def addval(header, val, using=False):
+        def addval(header: cw.header.CardHeader, val: int, using: bool = False) -> None:
             val = int(val)
             val2 = val
             if header.type == "SkillCard":
@@ -1732,7 +1740,7 @@ class Character(object):
     # --------------------------------------------------------------------------
 
     @synclock(_couponlock)
-    def get_coupons(self):
+    def get_coupons(self) -> Set[str]:
         """
         所有クーポンをセット型で返す。
         """
@@ -1742,7 +1750,7 @@ class Character(object):
         return set(self.coupons.keys())
 
     @synclock(_couponlock)
-    def get_couponvalue(self, name, raiseerror=True):
+    def get_couponvalue(self, name: str, raiseerror: bool = True) -> int:
         """
         クーポンの値を返す。
         """
@@ -1759,7 +1767,7 @@ class Character(object):
                 return None
 
     @synclock(_couponlock)
-    def has_coupon(self, coupon):
+    def has_coupon(self, coupon: str) -> bool:
         """
         引数のクーポンを所持しているかbool値で返す。
         """
@@ -1768,11 +1776,11 @@ class Character(object):
     def _has_coupon(self, coupon: str) -> bool:
         return coupon in self.coupons
 
-    def has_coupon_nolock(self, coupon):
+    def has_coupon_nolock(self, coupon: str) -> bool:
         return coupon in self.coupons
 
     @synclock(_couponlock)
-    def get_couponsvalue(self):
+    def get_couponsvalue(self) -> int:
         return self._get_couponsvalue()
 
     def _get_couponsvalue(self) -> int:
@@ -1789,7 +1797,7 @@ class Character(object):
         return cnt
 
     @synclock(_couponlock)
-    def get_specialcoupons(self):
+    def get_specialcoupons(self) -> Dict[str, int]:
         """
         "＠"で始まる特殊クーポンの
         辞書(key=クーポン名, value=クーポン得点)を返す。
@@ -1807,7 +1815,7 @@ class Character(object):
         return d
 
     @synclock(_couponlock)
-    def replace_allcoupons(self, seq, syscoupons=None):
+    def replace_allcoupons(self, seq: List[Tuple[str, int]], syscoupons: Optional[Dict[str, int]] = None) -> bool:
         """システムクーポン以外の全てのクーポンを
         listの内容に入れ替える。
         所持クーポンが変化したらTrueを返す。
@@ -1866,7 +1874,7 @@ class Character(object):
         return new_coupons != old_coupons
 
     @synclock(_couponlock)
-    def get_sex(self):
+    def get_sex(self) -> str:
         return self._get_sex()
 
     def _get_sex(self) -> str:
@@ -1877,7 +1885,7 @@ class Character(object):
         return cw.cwpy.setting.sexcoupons[0]
 
     @synclock(_couponlock)
-    def set_sex(self, sex):
+    def set_sex(self, sex: str) -> None:
         self._set_sex(sex)
 
     def _set_sex(self, sex: str) -> None:
@@ -1889,7 +1897,7 @@ class Character(object):
         self._set_coupon(sex, 0)
 
     @synclock(_couponlock)
-    def has_sex(self):
+    def has_sex(self) -> bool:
         return self._has_sex()
 
     def _has_sex(self) -> bool:
@@ -1900,7 +1908,7 @@ class Character(object):
         return False
 
     @synclock(_couponlock)
-    def get_age(self):
+    def get_age(self) -> str:
         return self._get_age()
 
     def _get_age(self) -> str:
@@ -1911,7 +1919,7 @@ class Character(object):
         return cw.cwpy.setting.periodcoupons[0]
 
     @synclock(_couponlock)
-    def set_age(self, age):
+    def set_age(self, age: str) -> None:
         self._set_age(age)
 
     def _set_age(self, age: str) -> None:
@@ -1923,7 +1931,7 @@ class Character(object):
         self._set_coupon(age, 0)
 
     @synclock(_couponlock)
-    def has_age(self):
+    def has_age(self) -> bool:
         return self._has_age()
 
     def _has_age(self) -> bool:
@@ -1934,7 +1942,7 @@ class Character(object):
         return False
 
     @synclock(_couponlock)
-    def get_talent(self):
+    def get_talent(self) -> str:
         return self._get_talent()
 
     def _get_talent(self) -> str:
@@ -1945,7 +1953,7 @@ class Character(object):
         return cw.cwpy.setting.naturecoupons[0]
 
     @synclock(_couponlock)
-    def set_talent(self, talent):
+    def set_talent(self, talent: str) -> None:
         self._set_talent(talent)
 
     def _set_talent(self, talent: str) -> None:
@@ -1957,10 +1965,10 @@ class Character(object):
         self._set_coupon(talent, 0)
 
     @synclock(_couponlock)
-    def has_talent(self):
+    def has_talent(self) -> bool:
         return self._has_talent()
 
-    def _has_talent(self):
+    def _has_talent(self) -> bool:
         for coupon in cw.cwpy.setting.naturecoupons:
             if coupon in self.coupons:
                 return True
@@ -1968,7 +1976,7 @@ class Character(object):
         return False
 
     @synclock(_couponlock)
-    def get_makings(self):
+    def get_makings(self) -> Set[str]:
         return self._get_makings()
 
     def _get_makings(self) -> Set[str]:
@@ -1982,8 +1990,8 @@ class Character(object):
         return makings
 
     @synclock(_couponlock)
-    def set_makings(self, makings):
-        return self._set_makings(makings)
+    def set_makings(self, makings: List[str]) -> None:
+        self._set_makings(makings)
 
     def _set_makings(self, makings: List[str]) -> None:
         if cw.cwpy.ydata:
@@ -1995,7 +2003,7 @@ class Character(object):
             self._set_coupon(coupon, 0)
 
     @synclock(_couponlock)
-    def set_race(self, race):
+    def set_race(self, race: cw.header.RaceHeader) -> None:
         self._set_race(race)
 
     def _set_race(self, race: cw.header.RaceHeader) -> None:
@@ -2018,10 +2026,10 @@ class Character(object):
         self.data.edit("Property/Coefficient", str(self._coeff_ep), "ep")
 
     @synclock(_couponlock)
-    def get_race(self):
+    def get_race(self) -> cw.header.RaceHeader:
         return self._get_race()
 
-    def _get_race(self) -> "cw.header.UnknownRaceHeader":
+    def _get_race(self) -> cw.header.RaceHeader:
         for race in cw.cwpy.setting.races:
             if self._has_coupon("＠Ｒ" + race.name):
                 return race
@@ -2062,7 +2070,7 @@ class Character(object):
         return self._coeff_ep
 
     @synclock(_couponlock)
-    def count_timedcoupon(self, value=-1):
+    def count_timedcoupon(self, value: int = -1) -> None:
         """
         時限クーポンの点数を減らす。
         value: 減らす数。
@@ -2087,7 +2095,7 @@ class Character(object):
                     self._remove_coupon(coupon)
 
     @synclock(_couponlock)
-    def set_coupon(self, name, value):
+    def set_coupon(self, name: str, value: int) -> None:
         """
         クーポンを付与する。同名のクーポンがあったら上書き。
         時限クーポン("："or"；"で始まるクーポン)はtimedcouponsに登録する。
@@ -2130,7 +2138,7 @@ class Character(object):
         self.adjust_action()
 
     @synclock(_couponlock)
-    def get_timedcoupons(self):
+    def get_timedcoupons(self) -> Set[str]:
         """
         時限クーポンのデータをまとめたsetを返す。
         """
@@ -2143,7 +2151,7 @@ class Character(object):
         return s
 
     @synclock(_couponlock)
-    def remove_coupon(self, name):
+    def remove_coupon(self, name: str) -> bool:
         """
         同じ名前のクーポンを全て剥奪する。
         name: クーポン名。
@@ -2180,11 +2188,11 @@ class Character(object):
 
         return True
 
-    def reverse(self):
+    def reverse(self) -> None:
         pass
 
     @synclock(_couponlock)
-    def remove_timedcoupons(self, battleonly=False):
+    def remove_timedcoupons(self, battleonly: bool = False) -> None:
         """
         時限クーポンを削除する。イメージは更新しない。
         battleonly: Trueの場合は"；"の時限クーポンのみ削除。
@@ -2194,7 +2202,7 @@ class Character(object):
                 self._remove_coupon(name, False)
 
     @synclock(_couponlock)
-    def remove_numbercoupon(self):
+    def remove_numbercoupon(self) -> None:
         """
         "＿１"等の番号クーポンを削除。
         """
@@ -2207,7 +2215,7 @@ class Character(object):
             self._remove_coupon(name)
 
     @synclock(_couponlock)
-    def find_coupon(self, matcher, startindex):
+    def find_coupon(self, matcher: Callable[[str], bool], startindex: int) -> int:
         """
         matcher(name)がTrueになるクーポンを
         startindexの位置から検索し、見つかった位置を返す。
@@ -2220,7 +2228,7 @@ class Character(object):
         return -1
 
     @synclock(_couponlock)
-    def get_coupon_at(self, index):
+    def get_coupon_at(self, index: int) -> Tuple[str, int]:
         """指定位置のクーポンを(name, value)で返す。"""
         e_coupons: Optional[cw.data.CWPyElement] = self.data.find("Property/Coupons")
         if e_coupons is None:
@@ -2229,7 +2237,7 @@ class Character(object):
         return e.text, e.getint(".", "value", 0)
 
     @synclock(_couponlock)
-    def coupons_len(self):
+    def coupons_len(self) -> int:
         """クーポン数を返す。"""
         e_coupons = self.data.find("Property/Coupons")
         if e_coupons is None:
@@ -2242,7 +2250,7 @@ class Character(object):
     # --------------------------------------------------------------------------
 
     @synclock(_couponlock)
-    def get_limitlevel(self):
+    def get_limitlevel(self) -> int:
         """レベルの調節範囲の最大値を返す。"""
         return self._get_limitlevel()
 
@@ -2254,7 +2262,7 @@ class Character(object):
             return self.level
 
     @synclock(_couponlock)
-    def check_level(self):
+    def check_level(self) -> int:
         coupons = self._get_specialcoupons()
         level = coupons["＠レベル原点"]
 
@@ -2275,7 +2283,7 @@ class Character(object):
         return olevel - level
 
     @synclock(_couponlock)
-    def get_levelmax(self):
+    def get_levelmax(self) -> int:
         coupons = self._get_specialcoupons()
         return self._get_levelmax(coupons)
 
@@ -2290,7 +2298,8 @@ class Character(object):
         return limit
 
     @synclock(_couponlock)
-    def set_level(self, value, regulate=False, debugedit=False, backpack_party=None, revert_cardpocket=True):
+    def set_level(self, value: int, regulate: bool = False, debugedit: bool = False,
+                  backpack_party: Optional[cw.data.Party] = None, revert_cardpocket: bool = True) -> None:
         """レベルを設定する。
         regulate: レベルを調節する場合はTrue。
         backpack_party: レベルが下がって手札を持ちきれなくなった際、
@@ -2398,7 +2407,7 @@ class Character(object):
             # レベル調節で手放したカードを戻す
             self._revert_cardpocket(backpack_party)
 
-    def add_cardpocketmemory(self, header, personal):
+    def add_cardpocketmemory(self, header: cw.header.CardHeader, personal: bool) -> None:
         """レベル調節前に所持していたカードを記憶する。"""
         if personal:
             memories = self.data.find("./PersonalCardMemories")
@@ -2491,7 +2500,7 @@ class Character(object):
             self._revert_personalpocket(seq, True)
 
     @synclock(_couponlock)
-    def revert_personalpocket(self, headers, force):
+    def revert_personalpocket(self, headers: List[cw.header.CardHeader], force: bool) -> None:
         self._revert_personalpocket(headers, force)
 
     def _revert_personalpocket(self, headers: List[cw.header.CardHeader], force: bool) -> None:
@@ -2539,7 +2548,7 @@ class Character(object):
     # 状態変更用
     # --------------------------------------------------------------------------
 
-    def set_unconsciousstatus(self, clearbeast=True):
+    def set_unconsciousstatus(self, clearbeast: bool = True) -> None:
         """
         意識不明に伴う状態回復。
         強化値もすべて0、付帯召喚以外の召喚獣カードも消去。
@@ -2562,7 +2571,7 @@ class Character(object):
             if not header.attachment and header.is_removewithstatus(self):
                 self.throwaway_card(header, update_image=False)
 
-    def set_fullrecovery(self, decideaction=False):
+    def set_fullrecovery(self, decideaction: bool = False) -> None:
         """
         完全回復処理。HP＆精神力＆状態異常回復。
         強化値もすべて0、付帯召喚以外の召喚獣カードも消去。
@@ -2604,7 +2613,7 @@ class Character(object):
             self.adjust_beast()
         return self.life - oldlife
 
-    def set_paralyze(self, value):
+    def set_paralyze(self, value: int) -> int:
         """
         麻痺値を操作する。
         麻痺値は0～40の範囲を越えない。
@@ -2621,7 +2630,7 @@ class Character(object):
         self.adjust_beast()
         return self.paralyze - old
 
-    def set_poison(self, value):
+    def set_poison(self, value: int) -> int:
         """
         中毒値を操作する。
         中毒値は0～40の範囲を越えない。
@@ -2635,7 +2644,7 @@ class Character(object):
         self.adjust_beast()
         return self.poison - old
 
-    def set_mentality(self, name, value, overwrite=True):
+    def set_mentality(self, name: str, value: int, overwrite: bool = True) -> None:
         """
         精神状態とその継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
@@ -2664,7 +2673,7 @@ class Character(object):
         self.adjust_action()
         self.adjust_beast()
 
-    def set_bind(self, value, overwrite=True):
+    def set_bind(self, value: int, overwrite: bool = True) -> None:
         """
         束縛状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
@@ -2682,7 +2691,7 @@ class Character(object):
         self.adjust_action()
         self.adjust_beast()
 
-    def set_silence(self, value, overwrite=True):
+    def set_silence(self, value: int, overwrite: bool = True) -> None:
         """
         沈黙状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
@@ -2699,7 +2708,7 @@ class Character(object):
         self.data.edit("Property/Status/Silence", str(self.silence), "duration")
         self.adjust_beast()
 
-    def set_faceup(self, value, overwrite=True):
+    def set_faceup(self, value: int, overwrite: bool = True) -> None:
         """
         暴露状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
@@ -2716,7 +2725,7 @@ class Character(object):
         self.data.edit("Property/Status/FaceUp", str(self.faceup), "duration")
         self.adjust_beast()
 
-    def set_antimagic(self, value, overwrite=True):
+    def set_antimagic(self, value: int, overwrite: bool = True) -> None:
         """
         魔法無効状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
@@ -2733,7 +2742,7 @@ class Character(object):
         self.data.edit("Property/Status/AntiMagic", str(self.antimagic), "duration")
         self.adjust_beast()
 
-    def set_vanish(self, battlespeed=False):
+    def set_vanish(self, battlespeed: bool = False) -> None:
         """
         対象消去を行う。
         """
@@ -2775,7 +2784,7 @@ class Character(object):
                 self.commit_vanish()
             cw.cwpy.vanished_card(self)
 
-    def cancel_vanish(self):
+    def cancel_vanish(self) -> None:
         """対象消去をキャンセルする。
         表示処理は行わないため、呼び出し後に行う必要がある。
         """
@@ -2792,7 +2801,7 @@ class Character(object):
         cw.cwpy.cardgrp.add(self, layer=self.layer)
         cw.cwpy.pcards.insert(cw.cwpy.ydata.party.members.index(self.data), self)
 
-    def commit_vanish(self):
+    def commit_vanish(self) -> None:
         if not self.is_vanished():
             return
         if cw.cwpy.ydata:
@@ -2833,7 +2842,7 @@ class Character(object):
 
         self.lost()
 
-    def set_enhance_act(self, value, duration):
+    def set_enhance_act(self, value: int, duration: int) -> None:
         """
         行動力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
@@ -2856,7 +2865,7 @@ class Character(object):
         self.data.edit(path, str(self.enhance_act_dur), "duration")
         self.adjust_beast()
 
-    def set_enhance_avo(self, value, duration):
+    def set_enhance_avo(self, value: int, duration: int) -> None:
         """
         回避力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
@@ -2879,7 +2888,7 @@ class Character(object):
         self.data.edit(path, str(self.enhance_avo_dur), "duration")
         self.adjust_beast()
 
-    def set_enhance_res(self, value, duration):
+    def set_enhance_res(self, value: int, duration: int) -> None:
         """
         抵抗力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
@@ -2902,7 +2911,7 @@ class Character(object):
         self.data.edit(path, str(self.enhance_res_dur), "duration")
         self.adjust_beast()
 
-    def set_enhance_def(self, value, duration):
+    def set_enhance_def(self, value: int, duration: int) -> None:
         """
         抵抗力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
@@ -2925,7 +2934,7 @@ class Character(object):
         self.data.edit(path, str(self.enhance_def_dur), "duration")
         self.adjust_beast()
 
-    def set_skillpower(self, value=999):
+    def set_skillpower(self, value: int = 999) -> None:
         """
         精神力(スキルの使用回数)を操作する。
         recoveryがTrueだったら、最大値まで回復。
@@ -2943,7 +2952,8 @@ class Character(object):
             if cw.cwpy.is_battlestatus():
                 self.deck.lose_skillpower(self, -value)
 
-    def set_beast(self, element=None, vanish=False, is_scenariocard=False):
+    def set_beast(self, element: Optional[cw.data.CWPyElement] = None, vanish: bool = False,
+                  is_scenariocard: bool = False) -> bool:
         """召喚獣を召喚する。付帯召喚設定は強制的にクリアされる。
         vanish: 召喚獣を消去するかどうか。
         """
@@ -2963,13 +2973,13 @@ class Character(object):
             eff = True
         return eff
 
-    def can_addbeast(self, carddata):
+    def can_addbeast(self, carddata: cw.data.CWPyElement) -> bool:
         idx = cw.POCKET_BEAST
         if self.get_cardpocketspace()[idx] <= len(self.get_pocketcards(idx)):
             return False
         return not cw.header.is_removewithstatus(carddata, self)
 
-    def decrease_physical(self, stype, time):
+    def decrease_physical(self, stype: str, time: int) -> None:
         """中毒麻痺の時間経過による軽減。"""
         for _t in range(time):
             uvalue = cw.util.div_vocation(self.get_vocation_val(("vit", "aggressive"))) + self.level +\
@@ -2990,7 +3000,7 @@ class Character(object):
                     self.set_paralyze(-1)
         self.adjust_beast()
 
-    def set_timeelapse(self, time=1, fromevent=False):
+    def set_timeelapse(self, time: int = 1, fromevent: bool = False) -> None:
         """時間経過。"""
         assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if cw.cwpy.ydata:
@@ -3224,11 +3234,11 @@ class Player(Character):
         self.personal_pocket = []  # 荷物袋内の私有カード
 
     @synclock(_couponlock)
-    def add_personalpocket(self, header, index=-1):
+    def add_personalpocket(self, header: cw.header.CardHeader, index: int = -1) -> bool:
         """荷物袋内のカードを私有する。"""
         return self._add_personalpocket(header, index)
 
-    def _add_personalpocket(self, header, index=-1):
+    def _add_personalpocket(self, header: cw.header.CardHeader, index: int = -1) -> bool:
         assert cw.cwpy.ydata and cw.cwpy.ydata.party
         assert header.get_owner() is cw.cwpy.ydata.party.backpack
         assert header.personal_owner is None
@@ -3254,7 +3264,7 @@ class Player(Character):
         else:
             return False
 
-    def remove_personalpocket(self, header):
+    def remove_personalpocket(self, header: cw.header.CardHeader) -> None:
         """荷物袋内のカードの私有をやめる。"""
         assert cw.cwpy.ydata and cw.cwpy.ydata.party
         assert header.get_owner() is cw.cwpy.ydata.party.backpack
@@ -3276,7 +3286,7 @@ class Player(Character):
             self.data.remove(".", e)
         self.data.is_edited = True
 
-    def store_personalpocket(self):
+    def store_personalpocket(self) -> None:
         """パーティから離脱する時、荷物袋内の私有カードを所持状態に変更する。"""
         assert cw.cwpy.ydata and cw.cwpy.ydata.party
         if not self.personal_pocket:
@@ -3287,13 +3297,13 @@ class Player(Character):
         assert self.data.find("PersonalCards") is None
         cw.cwpy.ydata.sort_storehouse()
 
-    def restore_personalpocket(self, sort=True):
+    def restore_personalpocket(self, sort: bool = True) -> None:
         """パーティに加わる時、カード置場にある私有カードを荷物袋へ移す。"""
         self.revert_personalpocket(cw.cwpy.ydata.storehouse[:], False)
         if sort:
             cw.cwpy.ydata.party.sort_backpack()
 
-    def refresh_personalpocket(self, personalcard_tbl):
+    def refresh_personalpocket(self, personalcard_tbl: Dict[str, cw.header.CardHeader]) -> None:
         """スプライト生成後に荷物袋内の私有情報を更新する。"""
         assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         assert cw.cwpy.ydata and cw.cwpy.ydata.party
@@ -3317,7 +3327,7 @@ class Player(Character):
         self.update_personalownerindex()
 
     @synclock(_couponlock)
-    def get_personalpocketspace(self):
+    def get_personalpocketspace(self) -> int:
         return self._get_personalpocketspace()
 
     def _get_personalpocketspace(self) -> int:
@@ -3330,7 +3340,7 @@ class Player(Character):
         maxnum = cw.util.numwrap(maxnum, 1, 10)
         return maxnum
 
-    def replace_personalcardposition(self, header1, header2):
+    def replace_personalcardposition(self, header1: cw.header.CardHeader, header2: cw.header.CardHeader) -> None:
         """私有カードの位置を入れ替える。"""
         seq = self.personal_pocket
         index1 = seq.index(header1)
@@ -3346,7 +3356,7 @@ class Player(Character):
         cw.cwpy.ydata.party.sort_backpack()
         self.data.is_edited = True
 
-    def update_personalownerindex(self, index=-1):
+    def update_personalownerindex(self, index: int = -1) -> None:
         """私有カードにソート用の情報を設定する。"""
         assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         if index == -1:
@@ -3355,7 +3365,7 @@ class Player(Character):
         else:
             self.personal_pocket[index].personal_owner_index = (self.index, index)
 
-    def lost(self):
+    def lost(self) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.remove_numbercoupon()
@@ -3398,7 +3408,7 @@ assert calc_maxlife(9, 5, 10) == 96
 
 
 class Enemy(Character):
-    def is_dead(self):
+    def is_dead(self) -> bool:
         """
         敵は隠蔽状態であれば死亡と見做す。
         """
@@ -3448,7 +3458,7 @@ class AlbumPage(object):
         return d
 
 
-def main():
+def main() -> None:
     pass
 
 

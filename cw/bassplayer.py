@@ -743,7 +743,7 @@ def _stop(streamindex: int, fade: int, stopfadeout: bool) -> None:
             _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, 0, fade)
 
             @synclock(_fadeoutlock)
-            def func(stream):
+            def func(stream: c_HSYNC) -> None:
                 _fadeoutstreams[streamindex] = (stream, _loopcounts[streamindex], _loopstarts[streamindex])
             func(stream)
         else:

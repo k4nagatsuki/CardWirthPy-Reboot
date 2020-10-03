@@ -5066,7 +5066,7 @@ def get_content(data: cw.data.CWPyElement) -> EventContentBase:
         return None
 
 
-def main():
+def main() -> None:
     pass
 
 
