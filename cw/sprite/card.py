@@ -7,7 +7,7 @@ import cw
 from . import base
 from .. import character
 
-from typing import Tuple, List, Optional
+from typing import Iterable, List, Optional, Tuple
 
 
 class CWPyCard(base.SelectableSprite):
@@ -60,7 +60,7 @@ class CWPyCard(base.SelectableSprite):
         # フラグ
         self.flag = ""
 
-    def is_flagtrue(self):
+    def is_flagtrue(self) -> bool:
         mcardflag = bool(cw.cwpy.sdata.flags.get(self.flag, True))
         mcardflag &= bool(not self.debug_only or cw.cwpy.is_debugmode())
         if mcardflag and self.command == "ShowDialog" and self.arg == "INFOVIEW":
@@ -74,7 +74,7 @@ class CWPyCard(base.SelectableSprite):
         return mcardflag
 
     @staticmethod
-    def is_flagtrue_static(data):
+    def is_flagtrue_static(data: cw.data.CWPyElement) -> bool:
         flag = data.gettext("Property/Flag", "")
         mcardflag = bool(cw.cwpy.sdata.flags.get(flag, True))
         if mcardflag:
@@ -98,7 +98,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             return self.get_animeimage()
 
-    def get_selectedimage(self):
+    def get_selectedimage(self) -> pygame.Surface:
         return cw.imageretouch.to_negative_for_card(self.get_animeimage())
 
     def set_alpha(self, alpha: int) -> None:
@@ -123,7 +123,7 @@ class CWPyCard(base.SelectableSprite):
     def get_baserect(self) -> pygame.Rect:
         return self._rect
 
-    def _get_dealingscales(self):
+    def _get_dealingscales(self) -> List[int]:
         if cw.cwpy.force_dealspeed != -1:
             return cw.cwpy.setting.create_dealingscales(cw.cwpy.force_dealspeed)
         elif self.dealspeed != -1:
@@ -135,7 +135,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             return cw.cwpy.setting.dealing_scales
 
-    def get_dealspeed(self, battlespeed):
+    def get_dealspeed(self, battlespeed: bool) -> int:
         """このカードがアニメーションする速度を返す。"""
         if cw.cwpy.force_dealspeed != -1:
             return cw.cwpy.force_dealspeed
@@ -146,22 +146,22 @@ class CWPyCard(base.SelectableSprite):
         else:
             return cw.cwpy.setting.get_dealspeed(battlespeed)
 
-    def _get_dealspeed(self):
+    def _get_dealspeed(self) -> int:
         return self.get_dealspeed(self.battlespeed and cw.cwpy.setting.use_battlespeed)
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:
             method()
 
-    def update_normal(self):
+    def update_normal(self) -> None:
         self.update_selection()
 
-    def update_delete(self):
+    def update_delete(self) -> None:
         pass
 
-    def update_reversed(self):
+    def update_reversed(self) -> None:
         # デバッグモード時、またはキャンプ時(私有カード操作ができる場合)は反転中でも選択可能
         # ただしカード使用の選択対象にはならない
         if (cw.cwpy.is_debugmode() or (cw.cwpy.setting.show_personal_cards and
@@ -169,10 +169,10 @@ class CWPyCard(base.SelectableSprite):
                 not cw.cwpy.selectedheader:
             self.update_selection()
 
-    def update_hidden(self):
+    def update_hidden(self) -> None:
         pass
 
-    def update_reverse(self):
+    def update_reverse(self) -> None:
         """
         カードをひっくり返す。
         """
@@ -199,14 +199,14 @@ class CWPyCard(base.SelectableSprite):
             if self.reversed:
                 self.status = "reversed"
 
-    def reverse(self):
+    def reverse(self) -> None:
         """
         アニメーション無しでカードをひっくり返す。
         """
         self.reversed = not self.reversed
         self._reverse()
 
-    def _reverse(self):
+    def _reverse(self) -> None:
         # 表←→裏の画像切り替え
         if self.reversed:
             image = cw.cwpy.rsrc.cardbgs["REVERSE"]
@@ -236,7 +236,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             self.update_image()
 
-    def update_click(self):
+    def update_click(self) -> None:
         """
         クリック時のアニメーションを呼び出すメソッド。
         """
@@ -268,7 +268,7 @@ class CWPyCard(base.SelectableSprite):
 
         self.frame += 1
 
-    def update_deal(self):
+    def update_deal(self) -> None:
         """
         カード表示時のアニメーションを呼び出すメソッド。
         """
@@ -295,7 +295,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             self.frame += 1
 
-    def deal(self):
+    def deal(self) -> None:
         """カードをアニメーション無しで表示する。"""
         if self.reversed:
             self.status = "reversed"
@@ -309,7 +309,7 @@ class CWPyCard(base.SelectableSprite):
             self.image = cw.imageretouch.to_negative_for_card(self.image)
         self.rect = pygame.Rect(self.get_animerect())
 
-    def update_hide(self):
+    def update_hide(self) -> None:
         """
         カード非表示時のアニメーションを呼び出すメソッド。
         """
@@ -333,7 +333,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             self.frame += 1
 
-    def hide(self):
+    def hide(self) -> None:
         """カードをアニメーション無しで非表示にする。"""
         self.status = "hidden"
         self.clear_image()
@@ -341,7 +341,7 @@ class CWPyCard(base.SelectableSprite):
             cw.cwpy.clear_inusecardimg(self)
         self.clear_cardtarget()
 
-    def update_lateralvibe(self):
+    def update_lateralvibe(self) -> None:
         """
         横振動させる。
         """
@@ -380,7 +380,7 @@ class CWPyCard(base.SelectableSprite):
         self.rect.move_ip(cw.s(val), cw.s(0))
         self.frame += 1
 
-    def update_axialvibe(self):
+    def update_axialvibe(self) -> None:
         """
         縦振動させる。
         実際には横幅の周期的変動によって表現される。
@@ -423,31 +423,31 @@ class CWPyCard(base.SelectableSprite):
         self.frame += 1
         self.image = pygame.transform.scale(self.get_animeimage(), self.rect.size)
 
-    def update_zoomin(self):
+    def update_zoomin(self) -> None:
         """
         カードを拡大する。
         """
         self._update_zoominout(self._get_dealspeed()+1, True)
 
-    def update_zoomin_slow(self):
+    def update_zoomin_slow(self) -> None:
         """
         カードをゆっくりと拡大する。
         """
         self._update_zoominout(self._get_dealspeed()*2+1, True)
 
-    def update_zoomout(self):
+    def update_zoomout(self) -> None:
         """
         カードを縮小する。
         """
         self._update_zoominout(self._get_dealspeed()+1, False)
 
-    def update_zoomout_slow(self):
+    def update_zoomout_slow(self) -> None:
         """
         カードをゆっくりと縮小する。
         """
         self._update_zoominout(self._get_dealspeed()*2+1, False)
 
-    def _update_zoominout(self, ds, inout):
+    def _update_zoominout(self, ds, inout) -> None:
         if self.frame == 0:
             if inout:
                 self.zoomimgs.append((self.get_animeimage(), pygame.Rect(self.get_animerect())))
@@ -472,7 +472,7 @@ class CWPyCard(base.SelectableSprite):
                 h = self._rect.h
             self.frame = ds
         else:
-            def calc_zoom(zoom_val):
+            def calc_zoom(zoom_val: int) -> int:
                 if inout:
                     # 拡大
                     f = self.frame
@@ -514,12 +514,12 @@ class CWPyCard(base.SelectableSprite):
             if self.status == "hidden":
                 self.clear_image(move=False)
 
-    def clear_zoomimgs(self):
+    def clear_zoomimgs(self) -> None:
         del self.zoomimgs[:]
         if self.status == "hidden":
             self.clear_image(move=False)
 
-    def update_shiftup(self):
+    def update_shiftup(self) -> None:
         """下にさげていたカードを上にあげる。"""
         speed = (self._get_dealspeed()+1) * 3
         if self.frame == 0:
@@ -549,7 +549,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             self.frame += 1
 
-    def update_shiftdown(self):
+    def update_shiftdown(self) -> None:
         """上にあげていたカードを下にさげる。"""
         speed = (self._get_dealspeed()+1) * 3
 
@@ -576,7 +576,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             self.frame += 1
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         if not self.is_initialized():
             return
         if not (hasattr(self, "cardimg") and self.cardimg):
@@ -606,7 +606,7 @@ class CWPyCard(base.SelectableSprite):
         if self.status == "hidden":
             self.clear_image(True)
 
-    def update_image(self, update_statusimg=False, is_runningevent=None):
+    def update_image(self, update_statusimg: bool = False, is_runningevent: Optional[bool] = None) -> None:
         """
         画像を再構成する。
         """
@@ -675,14 +675,15 @@ class CWPyCard(base.SelectableSprite):
 
         return clip
 
-    def clear_image(self, move=True):
+    def clear_image(self, move: bool = True) -> None:
         self.image = pygame.Surface(cw.s((0, 0))).convert()
         if move:
             topleft = self.rect.topleft
             self.rect = self.image.get_rect()
             self.rect.topleft = topleft
 
-    def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
+    def set_pos_noscale(self, pos_noscale: Optional[Tuple[int, int]] = None,
+                        center_noscale: Optional[Tuple[int, int]] = None) -> None:
         """画面の拡大率を考慮せずに座標を設定する。"""
         if pos_noscale:
             self._pos_noscale = pos_noscale
@@ -707,10 +708,10 @@ class CWPyCard(base.SelectableSprite):
         if hasattr(self, "cardimg"):
             self.cardimg.rect.topleft = self._rect.topleft
 
-    def get_pos_noscale(self):
+    def get_pos_noscale(self) -> Tuple[int, int]:
         return self._pos_noscale
 
-    def set_scale(self, scale):
+    def set_scale(self, scale: int) -> None:
         if scale == self.scale:
             return
         for image, zrect in self.zoomimgs:
@@ -719,13 +720,13 @@ class CWPyCard(base.SelectableSprite):
         self.scale = scale
         self.update_image()
 
-    def set_cardtarget(self):
+    def set_cardtarget(self) -> None:
         if not self.cardtarget:
             self.cardtarget = True
             self.update_image()
             cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def clear_cardtarget(self):
+    def clear_cardtarget(self) -> None:
         if self.cardtarget:
             self.cardtarget = False
             self.update_image()
@@ -739,10 +740,10 @@ class CWPyCard(base.SelectableSprite):
 class PlayerCard(CWPyCard, character.Player):
     cardimg: cw.image.CharacterCardImage
 
-    def __init__(self, data, pos_noscale=(0, 0), status="hidden", index=0):
+    def __init__(self, data: cw.data.CWPyElementTree, pos_noscale: Tuple[int, int] = (0, 0),
+                 status: str = "hidden", index: int = 0) -> None:
         CWPyCard.__init__(self, status)
         self.zoomsize_noscale = (16, 22)
-        # CWPyElementTreeインスタンス
         self.data = data
         # CharacterCard初期化
         character.Player.__init__(self)
@@ -785,7 +786,7 @@ class PlayerCard(CWPyCard, character.Player):
         cw.cwpy.cardgrp.add(self, layer=self.layer)
         cw.cwpy.pcards.insert(index, self)
 
-    def set_pos(self, pos=None, center=None):
+    def set_pos(self, pos: Optional[Tuple[int, int]] = None, center: Optional[Tuple[int, int]] = None) -> None:
         CWPyCard.set_pos(self, pos, center)
         if self.status == "hidden":
             self.rect = pygame.Rect(self._rect)
@@ -807,14 +808,14 @@ class PlayerCard(CWPyCard, character.Player):
             self.imgpaths.append(cw.image.ImageInfo(cw.util.join_paths(cw.cwpy.yadodir, info.path), base=info))
         self.cardimg.set_faceimgs(self.imgpaths, can_loaded_scaledimage=True)
 
-        def func():
-            def func():
+        def func() -> None:
+            def func() -> None:
                 num = cw.cwpy.get_pcards().index(self)+1
                 cw.cwpy.update_pcimage(num, deal=True)
             cw.cwpy.exec_func(func)
         cw.cwpy.exec_func(func)
 
-    def update_levelup(self):
+    def update_levelup(self) -> None:
         """レベルアップ処理。"""
         assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         if self.frame % 5:
@@ -830,7 +831,7 @@ class PlayerCard(CWPyCard, character.Player):
 
         self.frame += 1
 
-    def update_delete(self):
+    def update_delete(self) -> None:
         """パーティから外す。"""
         if self.old_status == "hidden":
             self.hide()
@@ -840,7 +841,7 @@ class PlayerCard(CWPyCard, character.Player):
         if self.frame == 0:
             cw.cwpy.ydata.party.remove(self)
 
-    def update_vanish(self):
+    def update_vanish(self) -> None:
         """仮の対象消去。clear_vanish()で復元する事ができる。"""
         if self.old_status == "hidden":
             self.hide()
@@ -851,7 +852,7 @@ class PlayerCard(CWPyCard, character.Player):
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.pcards.remove(self)
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         """左クリックイベント。"""
         if self.reversed and not (cw.cwpy.setting.show_personal_cards and cw.cwpy.areaid == cw.AREA_CAMP):
             self.rclick_event()
@@ -905,7 +906,7 @@ class PlayerCard(CWPyCard, character.Player):
             cw.animation.animate_sprite(self, "click")
             cw.cwpy.call_modaldlg("CARDPOCKET")
 
-    def rclick_event(self):
+    def rclick_event(self) -> None:
         """右クリックイベント。"""
         cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
@@ -917,7 +918,7 @@ class PlayerCard(CWPyCard, character.Player):
         character.Player.set_level(self, value, regulate, debugedit, backpack_party, revert_cardpocket)
         self.cardimg.set_levelimg(self.level)
 
-    def adjust_level(self, fromscenario):
+    def adjust_level(self, fromscenario: bool) -> bool:
         """経験点を確認し、条件を満たしていれば
         レベルアップ・ダウン処理を行う。
         fromscenarioがTrueであれば同時に完全回復も行う。
@@ -988,14 +989,14 @@ class PlayerCard(CWPyCard, character.Player):
 
         return result
 
-    def lost(self):
+    def lost(self) -> None:
         cw.character.Player.lost(self)
         for pocket in self.cardpocket:
             for card in pocket[:]:
                 cw.cwpy.trade("TRASHBOX", header=card, from_event=True, sort=False)
 
 
-def _select_action(sprite):
+def _select_action(sprite: "cw.sprite.card.CWPyCard") -> None:
     """戦闘行動選択エリアで対象を左クリックした時の処理。"""
     header = cw.cwpy.selectedheader
     header.get_owner().set_action(sprite, header)
@@ -1012,8 +1013,9 @@ def _select_action(sprite):
 class EnemyCard(CWPyCard, character.Enemy):
     cardimg: cw.image.CharacterCardImage
 
-    def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0,
-                 moveddata=None):
+    def __init__(self, mcarddata: cw.data.CWPyElement, pos_noscale: Tuple[int, int] = (0, 0),
+                 status: str = "hidden", addgroup: bool = True, index: int = 0,
+                 moveddata: Optional[Tuple[int, int]] = None) -> None:
         CWPyCard.__init__(self, status)
         self.zoomsize_noscale = (16, 22)
         self.index = index
@@ -1147,10 +1149,10 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.set_skillpower()
         return True
 
-    def is_initialized(self):
+    def is_initialized(self) -> bool:
         return self._init
 
-    def update_skin(self):
+    def update_skin(self) -> None:
         if cw.cwpy.classicdata:
             act0 = self.actions.get(0, True)
             items = self.cardpocket[cw.POCKET_ITEM]
@@ -1171,7 +1173,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         else:
             return self._name
 
-    def update_name(self):
+    def update_name(self) -> None:
         assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         if not self._init:
             return
@@ -1187,13 +1189,13 @@ class EnemyCard(CWPyCard, character.Enemy):
             finally:
                 cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
-    def update(self, scr):
+    def update(self, scr) -> None:
         if self.status != "hidden" and not self._init:
             if not self.initialize():
                 return
         CWPyCard.update(self, scr)
 
-    def update_delete(self):
+    def update_delete(self) -> None:
         if self.old_status == "hidden":
             self.hide()
         else:
@@ -1205,7 +1207,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             cw.cwpy.mcards_expandspchars.discard(self)
             cw.cwpy.file_updates.discard(self)
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         """左クリックイベント。"""
         cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
@@ -1224,7 +1226,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             if cw.cwpy.is_battlestatus():
                 _select_action(self)
 
-    def rclick_event(self):
+    def rclick_event(self) -> None:
         """右クリックイベント。"""
         cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
@@ -1232,19 +1234,20 @@ class EnemyCard(CWPyCard, character.Enemy):
         if self.is_analyzable():
             cw.cwpy.call_modaldlg("CHARAINFO")
 
-    def get_pos_noscale(self):
+    def get_pos_noscale(self) -> Tuple[int, int]:
         if self.is_initialized():
             return CWPyCard.get_pos_noscale(self)
         else:
             return self._init_pos_noscale
 
-    def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
+    def set_pos_noscale(self, pos_noscale: Optional[Tuple[int, int]] = None,
+                        center_noscale: Optional[Tuple[int, int]] = None) -> None:
         if self.is_initialized():
             CWPyCard.set_pos_noscale(self, pos_noscale, center_noscale)
         else:
             self._init_pos_noscale = pos_noscale
 
-    def set_scale(self, scale):
+    def set_scale(self, scale) -> None:
         if self.is_initialized():
             CWPyCard.set_scale(self, scale)
         else:
@@ -1258,7 +1261,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 class FriendCard(CWPyCard, character.Friend):
     cardimg: cw.image.CharacterCardImage
 
-    def __init__(self, data=None, index=0):
+    def __init__(self, data: Optional[cw.data.CWPyElementTree] = None, index: int = 0) -> None:
         CWPyCard.__init__(self, "hidden")
         self.zoomsize_noscale = (32, 42)
         self.index = index
@@ -1288,10 +1291,10 @@ class FriendCard(CWPyCard, character.Friend):
         # 精神力回復
         self.set_skillpower()
 
-    def get_showingname(self):
+    def get_showingname(self) -> str:
         return self.name
 
-    def update_delete(self):
+    def update_delete(self) -> None:
         if self in cw.cwpy.sdata.friendcards:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
@@ -1299,7 +1302,7 @@ class FriendCard(CWPyCard, character.Friend):
 
         self.status = "hidden"
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         """左クリックイベント。"""
         cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
@@ -1317,7 +1320,7 @@ class FriendCard(CWPyCard, character.Friend):
             if not cw.cwpy.is_battlestatus():
                 cw.cwpy.call_modaldlg("CARDPOCKET")
 
-    def rclick_event(self):
+    def rclick_event(self) -> None:
         """右クリックイベント。"""
         cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
@@ -1416,7 +1419,7 @@ class MenuCard(CWPyCard):
             if self.spchars:
                 cw.cwpy.mcards_expandspchars.add(self)
 
-    def initialize(self):
+    def initialize(self) -> bool:
         if self._init:
             return True
 
@@ -1457,10 +1460,10 @@ class MenuCard(CWPyCard):
         self._pos_noscale2 = None
         return True
 
-    def get_showingname(self):
+    def get_showingname(self) -> str:
         return self.name
 
-    def update_name(self):
+    def update_name(self) -> None:
         if not self._init:
             return
         if self.spchars:
@@ -1478,21 +1481,21 @@ class MenuCard(CWPyCard):
             self.initialize()
         return self._cardimg
 
-    def is_initialized(self):
+    def is_initialized(self) -> bool:
         return self._init
 
-    def is_backpack(self):
+    def is_backpack(self) -> bool:
         return self._is_backpack
 
-    def is_storehouse(self):
+    def is_storehouse(self) -> bool:
         return self._is_storehouse
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         if self.status != "hidden" and not self._init:
             self.initialize()
         CWPyCard.update(self, scr)
 
-    def lclick_event(self):
+    def lclick_event(self) -> None:
         """左クリックイベント。"""
         # 通常のクリックイベント
         if not cw.cwpy.is_curtained():
@@ -1536,7 +1539,7 @@ class MenuCard(CWPyCard):
             else:
                 self.events.start(keynum=1)
 
-    def rclick_event(self):
+    def rclick_event(self) -> None:
         """右クリックイベント。"""
         if not cw.cwpy.is_showingdlg():
             cw.cwpy.play_sound("click")
@@ -1544,26 +1547,27 @@ class MenuCard(CWPyCard):
             if self.desc:
                 cw.cwpy.call_modaldlg("MENUCARDINFO")
 
-    def get_pos_noscale(self):
+    def get_pos_noscale(self) -> Tuple[int, int]:
         if self.is_initialized():
             return CWPyCard.get_pos_noscale(self)
         else:
             return self._pos_noscale2
 
-    def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
+    def set_pos_noscale(self, pos_noscale: Optional[Tuple[int, int]] = None,
+                        center_noscale: Optional[Tuple[int, int]] = None) -> None:
         if self.is_initialized():
             CWPyCard.set_pos_noscale(self, pos_noscale, center_noscale)
         else:
             self._pos_noscale2 = pos_noscale
 
-    def set_scale(self, scale):
+    def set_scale(self, scale: int) -> None:
         if self.is_initialized():
             CWPyCard.set_scale(self, scale)
         else:
             self.scale = scale
 
 
-def imageinfos_to_pathdata(infos):
+def imageinfos_to_pathdata(infos: Iterable[cw.image.ImageInfo]) -> Tuple[List[cw.image.ImageInfo], List[bool]]:
     """
     infosを実際に表示するファイルのパスとスケーリング可否情報に変換する。
     """
@@ -1588,7 +1592,7 @@ def imageinfos_to_pathdata(infos):
     return paths, can_loaded_scaledimages
 
 
-def main():
+def main() -> None:
     pass
 
 

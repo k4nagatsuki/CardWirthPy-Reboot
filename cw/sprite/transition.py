@@ -10,7 +10,7 @@ from typing import Optional, Tuple
 
 
 class Transition(base.CWPySprite):
-    def __init__(self, bgscr, speed):
+    def __init__(self, bgscr: pygame.Surface, speed: int) -> None:
         """背景変更時のトランジション用スプライト。
         image: 変更前の背景。
         speed: トランジション効果時のウェイト。
@@ -23,32 +23,32 @@ class Transition(base.CWPySprite):
         self.frame = 0
         self.speed = speed
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         pass
 
-    def clear(self):
+    def clear(self) -> None:
         self.image = pygame.Surface(cw.s((0, 0))).convert()
         self.rect = self.image.get_rect(center=self.rect.center)
         self.status = "hidden"
 
-    def update(self, scr):
+    def update(self, scr: pygame.Surface) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:
             method(scr)
 
-    def update_transition(self, scr):
+    def update_transition(self, scr: pygame.Surface) -> None:
         self.clear()
 
 
 class Fade(Transition):
-    def __init__(self, bgscr, speed):
+    def __init__(self, bgscr: pygame.Surface, speed: int) -> None:
         Transition.__init__(self, bgscr, speed)
         self.variation = (11 - self.speed) * 2
         self.m_frame = 255 // self.variation
         self.image.set_alpha(255)
 
-    def update_transition(self, scr):
+    def update_transition(self, scr: pygame.Surface) -> None:
         p_frame = self.get_frame()
 
         alpha = max(0, 255 - int(float(self.frame) / self.m_frame * 255))
@@ -63,7 +63,7 @@ class Fade(Transition):
 
 
 class PixelDissolve(Transition):
-    def __init__(self, bgscr, speed):
+    def __init__(self, bgscr: pygame.Surface, speed: int) -> None:
         Transition.__init__(self, bgscr, speed)
         self.variation = (11 - self.speed) * 15
         self.sec_w_noscale = 10
@@ -82,7 +82,7 @@ class PixelDissolve(Transition):
         self.image = self.image.convert_alpha()
         self.changecolor = (255, 255, 255, 0)
 
-    def update_transition(self, scr):
+    def update_transition(self, scr: pygame.Surface) -> None:
         p_frame = self.get_frame()
 
         for _cnt in range(self.variation * (p_frame - self.frame)):
@@ -103,7 +103,7 @@ class PixelDissolve(Transition):
 
 
 class Blinds(Transition):
-    def __init__(self, bgscr, speed):
+    def __init__(self, bgscr: pygame.Surface, speed: int) -> None:
         Transition.__init__(self, bgscr, speed)
         self.variation = (11 - self.speed)
         self.num_split = 30
@@ -117,7 +117,7 @@ class Blinds(Transition):
         self.image = self.image.convert_alpha()
         self.changecolor = (255, 255, 255, 0)
 
-    def update_transition(self, scr):
+    def update_transition(self, scr: pygame.Surface) -> None:
         p_frame = self.get_frame()
         self.frame = p_frame
 
@@ -159,7 +159,7 @@ def get_transition(name_and_speed: Tuple[str, str]) -> Optional[Transition]:
     return None
 
 
-def main():
+def main() -> None:
     pass
 
 

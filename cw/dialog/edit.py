@@ -350,9 +350,9 @@ class NumberEditDialog(wx.Dialog):
 
 class Number2EditDialog(wx.Dialog):
 
-    def __init__(self, parent, title,
-                 label1, value1, minvalue1, maxvalue1, page1,
-                 label2, value2, minvalue2, maxvalue2, page2):
+    def __init__(self, parent: wx.TopLevelWindow, title: str,
+                 label1: str, value1: int, minvalue1: int, maxvalue1: int, page1: int,
+                 label2: str, value2: int, minvalue2: int, maxvalue2: int, page2: int) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -430,9 +430,9 @@ class Number2EditDialog(wx.Dialog):
 
 class NumberComboEditDialog(wx.Dialog):
 
-    def __init__(self, parent, title,
-                 label1, mlist, selected,
-                 label2, value, minvalue, maxvalue, page):
+    def __init__(self, parent: wx.TopLevelWindow, title: str,
+                 label1: str, mlist: Union[List[str], List[Tuple[str, wx.Bitmap]]], selected: int,
+                 label2: str, value: int, minvalue: int, maxvalue: int, page: int) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False

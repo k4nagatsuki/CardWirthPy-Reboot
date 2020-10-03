@@ -9,7 +9,7 @@ from . import base
 
 class ScrollBar(base.CWPySprite):
 
-    def __init__(self, scrpos_noscale, scrsize_noscale, visible):
+    def __init__(self, scrpos_noscale: int, scrsize_noscale: int, visible: bool) -> None:
         base.CWPySprite.__init__(self)
         self.visible = visible
         self.width = 0
@@ -23,7 +23,7 @@ class ScrollBar(base.CWPySprite):
 
         self.update_scale()
 
-    def scroll_to_mousepos(self, lazy):
+    def scroll_to_mousepos(self, lazy: bool) -> None:
         """左クリックイベント。"""
         y = cw.cwpy.mousepos[1]/cw.UP_SCR
 
@@ -42,7 +42,7 @@ class ScrollBar(base.CWPySprite):
             self.lazypos_noscale = None
             self.set_pos(y, lazy=False)
 
-    def update_scale(self):
+    def update_scale(self) -> None:
         self.width = cw.s(8)
         self.image = pygame.Surface((self.width, cw.s(cw.SIZE_AREA[1]))).convert_alpha()
         self.rect = self.image.get_rect()
@@ -50,7 +50,7 @@ class ScrollBar(base.CWPySprite):
         self.image.fill((0, 0, 0, 0), rect=pygame.Rect(0, 0, self.rect.width, self.rect.height))
         self.set_params(self.scrpos_noscale, self.scrsize_noscale)
 
-    def update_lazyscroll(self):
+    def update_lazyscroll(self) -> None:
         scrframe = 10
 
         if self.lazypos_noscale is None:
@@ -74,7 +74,7 @@ class ScrollBar(base.CWPySprite):
                 if self.lazyscroll_func:
                     self.lazyscroll_func()
 
-    def set_pos(self, scrpos_noscale, lazy):
+    def set_pos(self, scrpos_noscale: int, lazy: bool) -> None:
         if lazy:
             self.lazypos_noscale = scrpos_noscale
             if self.status != "lazyscroll":
@@ -84,13 +84,13 @@ class ScrollBar(base.CWPySprite):
             self.lazypos_noscale = None
             self.set_params(scrpos_noscale, self.scrsize_noscale)
 
-    def get_pos(self):
+    def get_pos(self) -> int:
         if self.lazypos_noscale is None:
             return self.scrpos_noscale
         else:
             return self.lazypos_noscale
 
-    def set_params(self, scrpos_noscale, scrsize_noscale):
+    def set_params(self, scrpos_noscale: int, scrsize_noscale: int) -> None:
         minsize = cw.s(4)
         hwidth = self.width-cw.s(8)
         self.scrsize_noscale = max(cw.SIZE_AREA[1], scrsize_noscale)

@@ -6,7 +6,7 @@ import struct
 
 import cw.util
 
-from typing import Optional
+from typing import Callable, Optional
 
 
 class UnsupportedError(Exception):
@@ -111,8 +111,8 @@ class CWFileWriter(io.BufferedWriter):
     """CardWirth用のバイナリファイルを読み込むための
     メソッドを追加したBufferedWriter。
     """
-    def __init__(self, path, mode, decodewrap=False,
-                 targetengine=None, write_errorlog=None):
+    def __init__(self, path: str, mode: str, decodewrap: bool = False, targetengine: Optional[float] = None,
+                 write_errorlog: Optional[Callable[[str], None]] = None) -> None:
         f = io.FileIO(path, mode)
         io.BufferedWriter.__init__(self, f)
         f.name = path
