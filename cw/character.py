@@ -875,7 +875,7 @@ class Character(object):
     # カード操作
     # --------------------------------------------------------------------------
 
-    def use_card(self, targets: Union[List[cw.sprite.card.CWPyCard], cw.sprite.card.CWPyCard],
+    def use_card(self, targets: Union[List["cw.sprite.card.CWPyCard"], "cw.sprite.card.CWPyCard"],
                  header: cw.header.CardHeader) -> None:
         """targetsにカードを使用する。"""
         cw.fsync.sync()
@@ -1135,7 +1135,7 @@ class Character(object):
                     finally:
                         self.deck.use(header)
 
-    def set_action(self, target: List[cw.sprite.card.CWPyCard], header: cw.header.CardHeader,
+    def set_action(self, target: List["cw.sprite.card.CWPyCard"], header: cw.header.CardHeader,
                    beasts: Optional[List[cw.header.CardHeader]] = None, auto: bool = False) -> None:
         """
         戦闘行動を設定。
@@ -1165,7 +1165,7 @@ class Character(object):
 
         self.actionend = False
 
-    def _add_priorityacts(self, target: List[cw.sprite.card.CWPyCard], h: cw.header.CardHeader) -> None:
+    def _add_priorityacts(self, target: List["cw.sprite.card.CWPyCard"], h: cw.header.CardHeader) -> None:
         if cw.cwpy.battle and target and h:
             for e in self._get_motions(h):
                 t = e.get("type", "")
@@ -1335,8 +1335,8 @@ class Character(object):
         # 行動設定
         self.set_action(targets, header, beasts, True)
 
-    def decide_usecard(self, headers: List[Tuple[List[cw.sprite.card.CWPyCard],
-                                           cw.header.CardHeader]]) -> Tuple[Optional[List[cw.sprite.card.CWPyCard]],
+    def decide_usecard(self, headers: List[Tuple[List["cw.sprite.card.CWPyCard"],
+                                           cw.header.CardHeader]]) -> Tuple[Optional[List["cw.sprite.card.CWPyCard"]],
                                                                             Optional[cw.header.CardHeader]]:
         """
         使用可能な手札のいずれかを自動選択する。
@@ -1394,8 +1394,8 @@ class Character(object):
     def _is_bonusedmtype(self, mtype: str) -> bool:
         return mtype in ("Runaway", "Heal")
 
-    def _get_targetingbonus_and_targets(self, header: cw.header.CardHeader, targets: List[cw.sprite.card.CWPyCard])\
-            -> Tuple[int, List[cw.sprite.card.CWPyCard]]:
+    def _get_targetingbonus_and_targets(self, header: cw.header.CardHeader, targets: List["cw.sprite.card.CWPyCard"])\
+            -> Tuple[int, List["cw.sprite.card.CWPyCard"]]:
         bonus = -2147483647
         maxbonustargs = []
         # 最大ボーナスを取得
