@@ -5,7 +5,7 @@ import os
 
 import cw
 
-from typing import Dict, List
+from typing import Dict, List, Optional, Sequence, Tuple
 
 
 def _create_xml(name: str, path: str, d: Dict[str, str]) -> None:
@@ -20,7 +20,8 @@ def _create_xml(name: str, path: str, d: Dict[str, str]) -> None:
     cw.fsync.sync()
 
 
-def create_party(headers, moneyamount=0, pname=None, is_suspendlevelup=False):
+def create_party(headers: Sequence[cw.header.PartyHeader], moneyamount: int = 0, pname: Optional[str] = None,
+                 is_suspendlevelup: bool = False) -> str:
     """
     新しくパーティを作る。
     headers: 初期メンバーのファイル名(拡張子無し)のlist。
@@ -49,7 +50,7 @@ def create_party(headers, moneyamount=0, pname=None, is_suspendlevelup=False):
     return path
 
 
-def create_partyrecord(party):
+def create_partyrecord(party: cw.data.Party) -> str:
     d = {"name": cw.binary.util.repl_escapechar(party.name),
          "money": str(party.money),
          "suspend_levelup": str(party.is_suspendlevelup),
@@ -86,7 +87,8 @@ def create_partyrecord(party):
     return path
 
 
-def create_environment(name, dpath, skindirname, is_autoloadparty, imgpaths):
+def create_environment(name: str, dpath: str, skindirname: str, is_autoloadparty: bool,
+                       imgpaths: Sequence[cw.image.ImageInfo]) -> str:
     """
     dpath: "Environment.xml"を作成する宿のディレクトリパス。
     宿のデータを納める"Environment.xml"を作る。
@@ -125,13 +127,13 @@ def create_environment(name, dpath, skindirname, is_autoloadparty, imgpaths):
     return path
 
 
-def create_skinvariables(path):
+def create_skinvariables(path: str) -> None:
     """スキン(宿)の状態変数値を記憶するファイル"SkinVariables.xml"を生成する。"""
     d = {"indent": ""}
     _create_xml("SkinVariables", path, d)
 
 
-def copy_yadoimgpaths(yadodir, imgpaths):
+def copy_yadoimgpaths(yadodir: str, imgpaths: Sequence[cw.image.ImageInfo]) -> None:
     if not imgpaths:
         return
     idpath = cw.util.join_paths(yadodir, "Material", "Signboard")
@@ -146,7 +148,7 @@ def copy_yadoimgpaths(yadodir, imgpaths):
         info.path = cw.util.join_paths("Material", "Signboard", os.path.basename(dst))
 
 
-def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
+def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, fpath: str = "Settings.xml") -> str:
     """Settings.xmlを新しく作る。
     _create_xmlは不使用。
     setting: Settingインスタンス。
@@ -782,7 +784,7 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     return path
 
 
-def create_localsettings(element, local):
+def create_localsettings(element: cw.data.CWPyElement, local: cw.setting.LocalSetting) -> None:
     if local.important_draw != local.important_draw_init:
         element.set("importantdrawing", str(local.important_draw))
     if local.important_font != local.important_font_init:
@@ -930,7 +932,7 @@ def create_localsettings(element, local):
         element.append(e)
 
 
-def create_albumpage(path, lost=False, nocoupon=False):
+def create_albumpage(path: str, lost: bool = False, nocoupon: bool = False) -> str:
     """
     path: 冒険者XMLファイルのパス。
     lost: Trueなら「旅の中、帰らぬ人となる…」クーポン。
@@ -1005,7 +1007,7 @@ def create_adventurer(data: "cw.dialog.create.AdventurerData") -> str:
     d["scaledimage"] = str(True)
 
     # クーポン
-    def get_coupon(name, value):
+    def get_coupon(name: str, value: int) -> str:
         d = {"name": cw.binary.util.repl_escapechar(name), "value": value, "indent": "   "}
         s = cw.binary.xmltemplate.get_xmltext("Coupon", d)
         return s
@@ -1047,7 +1049,7 @@ def write_castimagepath(name: str, paths: List[cw.image.ImageInfo],
     return seq
 
 
-def create_scenariolog(sdata, path, recording, logfilepath):
+def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, logfilepath: str) -> str:
     """
     シナリオのプレイデータを記録したXMLファイルを作成する。
     """
@@ -1106,7 +1108,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
     e_bgimgs = cw.data.make_element("BgImages")
     element.append(e_bgimgs)
 
-    def make_colorelement(name, color):
+    def make_colorelement(name: str, color: Tuple[int, int, int]) -> cw.data.CWPyElement:
         e = cw.data.make_element(name, attrs={"r": str(color[0]),
                                               "g": str(color[1]),
                                               "b": str(color[2])})
@@ -1338,7 +1340,7 @@ def create_scenariolog(sdata, path, recording, logfilepath):
     return path
 
 
-def main():
+def main() -> None:
     pass
 
 

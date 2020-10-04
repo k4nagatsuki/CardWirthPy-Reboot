@@ -39,7 +39,7 @@ NC_CJK_KANJI = "CJK Kanji"
 NC_UNKNOWN = "Unknown"
 
 
-def nctype(c):
+def nctype(c: str) -> str:
     """
     cの文字タイプを返す。
     """

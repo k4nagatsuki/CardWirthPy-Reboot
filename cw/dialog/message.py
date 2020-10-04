@@ -181,7 +181,7 @@ class SysMessage(wx.Dialog):
                  choices: Optional[Iterable[Union[Tuple[str, int, int, str],
                                                   Tuple[str, int, str],
                                                   Tuple[str, int]]]] = None,
-                 checkboxes: Optional[Iterable[Tuple[str, str, bool]]] = None):
+                 checkboxes: Optional[Iterable[Tuple[str, str, bool]]] = None) -> None:
         if choices:
             style = wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX
         else:

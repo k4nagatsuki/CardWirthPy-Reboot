@@ -792,7 +792,7 @@ class SelectWindow(MessageWindow):
                                                         cw.data.Party, cw.data.YadoData]]] = None,
                  flagtable: Optional[Dict[str, cw.data.Flag]] = None,
                  steptable: Optional[Dict[str, cw.data.Step]] = None,
-                 varianttable: Optional[Dict[str, cw.data.Variant]] = None):
+                 varianttable: Optional[Dict[str, cw.data.Variant]] = None) -> None:
         if nametable is None:
             nametable = {}
         if namesubtable is None:

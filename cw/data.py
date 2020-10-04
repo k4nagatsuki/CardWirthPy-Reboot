@@ -1161,7 +1161,7 @@ class ScenarioData(SystemData):
         self.gossips: Dict[str, bool] = {}
         self.compstamps: Dict[str, bool] = {}
         # FriendCardのリスト
-        self.friendcards: Dict[str, bool] = []
+        self.friendcards: List[cw.sprite.card.FriendCard] = []
         # 情報カードのリスト
         # 情報カードの枚数分の配列を確保し、各位置に入手順序を格納する
         self.infocards: List[int] = []

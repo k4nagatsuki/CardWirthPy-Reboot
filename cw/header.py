@@ -250,7 +250,7 @@ class CardHeader(object):
             return 0
         return -self.star
 
-    def get_showingname(self):
+    def get_showingname(self) -> str:
         return self.name
 
     def set_cardimg(self, imgpaths: List["cw.image.ImageInfo"], can_loaded_scaledimage: bool,
@@ -283,7 +283,7 @@ class CardHeader(object):
         self._bordering_cardname = cw.cwpy.setting.bordering_cardname
         self._show_premiumicon = cw.cwpy.setting.show_premiumicon
 
-    def update_scenariopath(self, normpath, dst):
+    def update_scenariopath(self, normpath: str, dst: str) -> None:
         if not self.scenariocard:
             return
         normpath2 = cw.util.get_keypath(self.scedir)
@@ -292,7 +292,7 @@ class CardHeader(object):
         self._cardimg = None
         self.scedir = dst
 
-    def get_owner(self) -> Union[List["cw.header.CardHeader"], "cw.sprite.card.PlayerCard"]:
+    def get_owner(self) -> Union[List["CardHeader"], "cw.sprite.card.PlayerCard"]:
         if self._owner == "BACKPACK":
             return cw.cwpy.ydata.party.backpack
         elif self._owner == "STOREHOUSE":
@@ -339,7 +339,7 @@ class CardHeader(object):
     def get_cardimg(self) -> pygame.Surface:
         return self.cardimg.get_cardimg(self)
 
-    def set_resetvariables(self, resetvariables):
+    def set_resetvariables(self, resetvariables: bool) -> None:
         assert self.carddata is not None
         self.need_resetvariables = resetvariables
         if self.carddata is not None:
@@ -390,7 +390,7 @@ class CardHeader(object):
         else:
             return min(3, self.get_vocation_level(owner, enhance_act=False))
 
-    def get_vocation_val(self, owner, enhance_act=False):
+    def get_vocation_val(self, owner: "cw.character.Character", enhance_act: bool = False) -> int:
         """
         適性値(身体特性+精神特性の合計値)を返す。
         enhance_act : 行動力を加味する場合、True
@@ -399,7 +399,7 @@ class CardHeader(object):
             owner = self.get_owner()
         return cw.effectmotion.get_vocation_val(owner, self.vocation, enhance_act=enhance_act)
 
-    def set_testaptitude(self, test_aptitude):
+    def set_testaptitude(self, test_aptitude: "cw.character.Character") -> None:
         """ソート用の適性値を計算する。
         Noneを指定する事でリセットする。
         """
@@ -461,7 +461,7 @@ class CardHeader(object):
 
         return self.uselimit, self.maxuselimit
 
-    def get_enhance_val_used(self):
+    def get_enhance_val_used(self) -> Tuple[int, int, int]:
         """
         カード使用時に設定されている強化値を、
         (回避値, 抵抗値, 防御値)の順のタプルで返す。
@@ -471,7 +471,7 @@ class CardHeader(object):
         else:
             return 0, 0, 0
 
-    def get_enhance_val(self):
+    def get_enhance_val(self) -> Tuple[int, int, int]:
         """
         カード所持時に設定されている強化値を、
         (回避値, 抵抗値, 防御値)の順のタプルで返す。
@@ -481,7 +481,7 @@ class CardHeader(object):
         else:
             return 0, 0, 0
 
-    def set_uselimit(self, value, animate=False):
+    def set_uselimit(self, value: int, animate: bool = False) -> None:
         """
         カードの使用回数を操作する。
         value: 増減値。
@@ -546,7 +546,7 @@ class CardHeader(object):
                             cw.animation.animate_sprite(owner, "deal", battlespeed=cw.cwpy.is_battlestatus())
 
     def write(self, party: Optional[cw.data.Party] = None, move: bool = False, from_getcontent: bool = False) -> None:
-        def create_newpath(party):
+        def create_newpath(party: Optional[cw.data.Party]) -> str:
             fname = cw.util.repl_dischar(self.name) + ".xml"
             if self._owner == "BACKPACK":
                 if not party:
@@ -617,7 +617,7 @@ class CardHeader(object):
                 # self.fpathを削除予定のfpathリストに追加
                 cw.cwpy.ydata.deletedpaths.add(self.fpath, self.scenariocard)
 
-    def remove_importedmaterials(self):
+    def remove_importedmaterials(self) -> None:
         # 取り込み素材をフォルダごと削除
         if self.carddata is None:
             self.do_write()
@@ -631,7 +631,7 @@ class CardHeader(object):
             mates = cw.util.join_yadodir(emp.text)
             cw.cwpy.ydata.deletedpaths.add(mates, True)
 
-    def set_scenariostart(self):
+    def set_scenariostart(self) -> None:
         """
         シナリオ開始時に呼ばれる。
         """
@@ -645,7 +645,7 @@ class CardHeader(object):
             self.set_cardimg(imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False),
                              anotherscenariocard=self.carddata.getbool(".", "anotherscenariocard", False))
 
-    def set_scenarioend(self):
+    def set_scenarioend(self) -> None:
         """
         シナリオ終了時に呼ばれる。
         非付帯召喚カードを削除したり、
@@ -720,7 +720,7 @@ class CardHeader(object):
         elif self.is_backpackheader():
             cw.cwpy.ydata.party.data.is_edited = True
 
-    def reset_variables(self):
+    def reset_variables(self) -> None:
         """シナリオ終了時の状態変数初期化処理を行う。"""
         assert self.carddata is not None
         if not self.need_resetvariables:
@@ -751,7 +751,7 @@ class CardHeader(object):
         self.need_resetvariables = False
         self.carddata.is_edited = True
 
-    def copy(self):
+    def copy(self) -> "CardHeader":
         """
         Deckクラスで呼ばれる用。
         CardImageインスタンスを新しく生成して返す。
@@ -767,7 +767,7 @@ class CardHeader(object):
     def is_backpackheader(self) -> bool:
         return bool(self._owner == "BACKPACK")
 
-    def is_storehouseheader(self):
+    def is_storehouseheader(self) -> bool:
         return bool(self._owner == "STOREHOUSE")
 
     def is_hold(self) -> bool:
@@ -787,7 +787,7 @@ class CardHeader(object):
                 return True
         return False
 
-    def is_autoselectable(self):
+    def is_autoselectable(self) -> bool:
         card = self.ref_original()
 
         if card.recycle and card.uselimit <= 0:
@@ -826,7 +826,7 @@ class CardHeader(object):
 
         return not (noeffect or silence)
 
-    def get_targets(self):
+    def get_targets(self) -> List["cw.character.Character"]:
         """
         (ターゲットのリスト,
          効果のあるターゲットのリスト,
@@ -862,7 +862,7 @@ class CardHeader(object):
         effective = cw.effectmotion.get_effectivetargets(self, targets)
         return targets, effective
 
-    def is_noeffect(self, target):
+    def is_noeffect(self, target: "cw.character.Character") -> bool:
         effecttype = self.carddata.gettext("Property/EffectType", "")
         if cw.effectmotion.check_noeffect(effecttype, target):
             return True
@@ -872,7 +872,7 @@ class CardHeader(object):
                 return False
         return True
 
-    def get_keycodes(self, with_name=True):
+    def get_keycodes(self, with_name: bool = True) -> List[str]:
         if not with_name:
             return self.keycodes[:-1]
 
@@ -925,7 +925,7 @@ class CardHeader(object):
             self.fpath = data.fpath
 
     @property
-    def sellingprice(self):
+    def sellingprice(self) -> int:
         """カードの売却価格。"""
         # 互換動作: 1.30以前ではカードの売値は常に半額
         if cw.cwpy.sct.lessthan("1.30", self.versionhint):
@@ -941,7 +941,7 @@ class CardHeader(object):
 
         return price
 
-    def can_selling(self):
+    def can_selling(self) -> bool:
         """売却可能か？"""
         # プレミアカードは売却・破棄できない(イベントからの呼出以外)
         if not cw.cwpy.is_debugmode() and cw.cwpy.setting.protect_premiercard and\
@@ -954,7 +954,7 @@ class CardHeader(object):
 
         return True
 
-    def is_removewithstatus(self, ccard):
+    def is_removewithstatus(self, ccard: "cw.character.Character") -> bool:
         """召喚獣カードが消滅する状態か？"""
         assert self.carddata is not None
         return is_removewithstatus(self.carddata, ccard)
@@ -975,7 +975,7 @@ class CardHeader(object):
                     return True
         return False
 
-    def get_showstyle(self):
+    def get_showstyle(self) -> str:
         """発動時の視覚効果(Wsn.4)。"""
         if self.carddata is None:
             prop = cw.data.xml2element(self.fpath, "Property")
@@ -989,7 +989,7 @@ class CardHeader(object):
                 return "FrontOfUser"
         return e.text
 
-    def get_can_loaded_scaledimage(self):
+    def get_can_loaded_scaledimage(self) -> bool:
         """スケーリングされたイメージを使用可能なカードか。"""
         if self.carddata is None:
             self.do_write()
@@ -999,7 +999,7 @@ class CardHeader(object):
             return self.carddata.getbool(".", "scaledimage", False)
 
 
-def is_removewithstatus(carddata, target):
+def is_removewithstatus(carddata: cw.data.CWPyElement, target: "cw.character.Character") -> None:
     """targetはcarddataの召喚獣カードが消滅する状態か？"""
     if not isinstance(target, cw.character.Character):
         return False
@@ -1069,7 +1069,7 @@ class InfoCardHeader(object):
         else:
             return self.cardimg.get_wxbmp()
 
-    def get_cardimg(self):
+    def get_cardimg(self) -> "cw.image.CardImage":
         if self.negaflag:
             return self.cardimg.get_negaimg()
         else:
@@ -1200,7 +1200,7 @@ class AdventurerHeader(object):
 
                 self.history.append(e.text)
 
-    def made_baby(self):
+    def made_baby(self) -> None:
         """
         EP減少と子作り回数加算を行ったXMLファイルを書き出す。
         """
@@ -1301,7 +1301,7 @@ class AdventurerHeader(object):
 
         data.write_xml(True)
 
-    def get_imgpaths(self):
+    def get_imgpaths(self) -> List["cw.image.ImageInfo"]:
         seq = []
         for info in self.imgpaths:
             seq.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info))
@@ -1319,7 +1319,7 @@ class AdventurerHeader(object):
                 return sex.subname
         return ""
 
-    def get_race(self) -> "cw.header.RaceHeader":
+    def get_race(self) -> "RaceHeader":
         if self.race:
             for race in cw.cwpy.setting.races:
                 if race.name == self.race:
@@ -1343,7 +1343,7 @@ class Gene(object):
         self.bits = [int(char) for char in s]
         self.count = count
 
-    def reverse_bit(self, index):
+    def reverse_bit(self, index: int) -> None:
         if 0 <= index < 10:
             self.bits[index] = 0 if self.bits[index] else 1
 
@@ -1371,7 +1371,7 @@ class Gene(object):
     def count_bits(self) -> int:
         return len([bit for bit in self.bits if bit])
 
-    def reverse(self):
+    def reverse(self) -> "Gene":
         bits = [int(not bit) for bit in self.bits]
         return Gene(bits)
 
@@ -1467,7 +1467,7 @@ class ScenarioHeader(object):
     def get_fpath(self) -> str:
         return "/".join([self.dpath, self.fname])
 
-    def set_fpath(self, fpath):
+    def set_fpath(self, fpath: str) -> None:
         self.dpath = os.path.dirname(fpath)
         self.fname = os.path.basename(fpath)
 
@@ -1522,7 +1522,8 @@ class ScenarioHeader(object):
 
         return self._wxbmps, self._wxbmps_noscale, self._imginfos
 
-    def get_bmps(self, mask=True, up_scr=None):
+    def get_bmps(self, mask: bool = True,
+                 up_scr: Optional[int] = None) -> Optional[Tuple[List[pygame.Surface], List["cw.image.ImageInfo"]]]:
         """
         スケールありの見出しイメージ(pygame.Surface)、スケール情報を返す。
         指定スケールのイメージが存在しない場合はNoneを返す。
@@ -1673,14 +1674,14 @@ class PartyHeader(object):
                 self._membernames.append(prop.properties.get("Name", ""))
         return self._membernames
 
-    def get_memberdescs(self):
+    def get_memberdescs(self) -> List[str]:
         if self._memberdescs is None:
             self._memberdescs = []
             for prop in self._get_properties():
                 self._memberdescs.append(prop.properties.get("Description", ""))
         return self._memberdescs
 
-    def get_membercoupons(self):
+    def get_membercoupons(self) -> List[List[str]]:
         if self._membercoupons is None:
             self._membercoupons = []
             for prop in self._get_properties():
@@ -1692,7 +1693,7 @@ class PartyHeader(object):
                 self._membercoupons.append(coupons)
         return self._membercoupons
 
-    def get_memberlevels(self):
+    def get_memberlevels(self) -> List[int]:
         if self._memberlevels is None:
             self._memberlevels = []
             for prop in self._get_properties():
@@ -1700,12 +1701,12 @@ class PartyHeader(object):
         return self._memberlevels
 
     @property
-    def average_level(self):
+    def average_level(self) -> int:
         levels = self.get_memberlevels()
         return float(sum(levels))/len(levels) if len(levels) else 1
 
     @property
-    def highest_level(self):
+    def highest_level(self) -> int:
         return max(self.get_memberlevels())
 
 
@@ -1848,7 +1849,7 @@ class SavedJPDCImageHeader(object):
                         self.fpaths.append(e.text)
 
     @staticmethod
-    def create_header(debuglog):
+    def create_header(debuglog: Optional["cw.debug.logging.DebugLog"]) -> "SavedJPDCImageHeader":
         """シナリオ終了時にTempFileにある保存済みJPDCイメージを
         <Yado>/SavedJPDCImageに保存する。
         """
@@ -1863,7 +1864,7 @@ class SavedJPDCImageHeader(object):
         if header:
             header.remove_all()
         else:
-            header = cw.header.SavedJPDCImageHeader()
+            header = SavedJPDCImageHeader()
             header.dpath = cw.util.join_paths(savedjpdcimage, cw.util.repl_dischar(cw.cwpy.sdata.name))
             header.dpath = cw.util.dupcheck_plus(header.dpath)
             header.dpath = cw.util.relpath(header.dpath, savedjpdcimage)
@@ -1921,7 +1922,7 @@ class SavedJPDCImageHeader(object):
 
         return header
 
-    def remove_all(self):
+    def remove_all(self) -> None:
         """このオブジェクトで管理中の
         保存済みJPDCイメージを全て削除する。
         """
@@ -1963,7 +1964,7 @@ class GetName(object):
     def start_element(self, name: str, attrs: Dict[str, str]) -> None:
         self.stack.append(name)
 
-    def end_element(self, name):
+    def end_element(self, name: str) -> None:
         if self.stack[1:] == ["Property"]:
             raise Exception()
         if self.stack[1:] == ["Property", self.tagname]:
@@ -2054,7 +2055,7 @@ class GetRootAttribute(object):
                 pass
             f.close()
 
-    def start_element(self, name, attrs):
+    def start_element(self, name: str, attrs: Dict[str, str]) -> None:
         # ルート要素の属性
         self.attrs = attrs
         raise Exception()
@@ -2141,7 +2142,7 @@ class UnknownRaceHeader(RaceHeader):
         self.coupons = []
 
 
-def main():
+def main() -> None:
     pass
 
 

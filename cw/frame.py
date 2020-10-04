@@ -15,7 +15,8 @@ import cw
 import cw.debug.debugger
 from cw.util import synclock
 
-from typing import Callable, Optional, Tuple
+import typing
+from typing import Callable, Dict, List, Optional, Tuple
 
 _killlist_mutex = threading.Lock()
 
@@ -64,7 +65,7 @@ class Frame(wx.Frame):
         self.thread = threading.currentThread()
         self._skindirname = skindirname
 
-        def set_bounds():
+        def set_bounds() -> None:
             setfullscreensize = False
             if sys.platform != "win32":
                 if self._setting.is_expanded and self._setting.expandmode == "FullScreen":
@@ -76,7 +77,7 @@ class Frame(wx.Frame):
                     self.SetMinSize(self.GetBestSize())
                     self.SetMaxSize(self.GetBestSize())
 
-            def adjust_position():
+            def adjust_position() -> None:
                 if not (self._setting.window_position[0] is None and self._setting.window_position[1] is None):
                     pos = self.GetPosition()
                     if not self._setting.window_position[0] is None:
@@ -266,28 +267,28 @@ class Frame(wx.Frame):
             #      上手く取れない事への対策
             self._keybind = True
 
-            def panel_setfocus(event):
+            def panel_setfocus(event: wx.FocusEvent) -> None:
                 if not self._keybind:
                     self._keybind = True
                     self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
                     self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
             self.panel.Bind(wx.EVT_SET_FOCUS, panel_setfocus)
 
-            def panel_killfocus(event):
+            def panel_killfocus(event: wx.FocusEvent) -> None:
                 if self._keybind:
                     self._keybind = False
                     self.panel.Unbind(wx.EVT_KEY_UP, handler=self.OnKeyUp)
                     self.panel.Unbind(wx.EVT_KEY_DOWN, handler=self.OnKeyDown)
             self.panel.Bind(wx.EVT_KILL_FOCUS, panel_killfocus)
 
-            def activate(event):
+            def activate(event: wx.ActivateEvent) -> None:
                 if not self._keybind:
                     self._keybind = True
                     self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
                     self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
             self.Bind(wx.EVT_ACTIVATE, activate)
 
-        def activate_app(event):
+        def activate_app(event: wx.ActivateEvent) -> None:
             if not cw.cwpy:
                 return
             if not cw.cwpy.sdata:
@@ -296,12 +297,12 @@ class Frame(wx.Frame):
                 return
 
             if event.GetActive():
-                def func():
+                def func() -> None:
                     if cw.cwpy.sdata:
                         cw.cwpy.sdata.resume_timekeeper()
                 cw.cwpy.force_exec_func(func)
             else:
-                def func():
+                def func() -> None:
                     if cw.cwpy.sdata:
                         cw.cwpy.sdata.sleep_timekeeper()
                 cw.cwpy.force_exec_func(func)
@@ -378,7 +379,7 @@ class Frame(wx.Frame):
         self._clock = time.time()
 
     @synclock(cw.debug.debugger.mutex)
-    def show_debugger(self, refreshtree):
+    def show_debugger(self, refreshtree) -> None:
         """デバッガ開く。"""
         if cw.cwpy.is_debugmode() and not self.debugger:
             dlg = cw.debug.debugger.Debugger(self)
@@ -393,20 +394,20 @@ class Frame(wx.Frame):
             if refreshtree:
                 dlg.refresh_all()
 
-            def func():
+            def func() -> None:
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
             cw.cwpy.exec_func(func)
             dlg.Show()
 
     @synclock(cw.debug.debugger.mutex)
-    def close_debugger(self):
+    def close_debugger(self) -> None:
         """デバッガ閉じる。"""
         if self.debugger:
             debugger = self.debugger
             self.debugger = None
             debugger.Close()
 
-            def func():
+            def func() -> None:
                 cw.cwpy.event.waittime = 0
             cw.cwpy.force_exec_func(func)
             cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
@@ -423,7 +424,7 @@ class Frame(wx.Frame):
         event.kwargs = kwargs
         self.AddPendingEvent(event)
 
-    def sync_exec(self, func, *args, **kwargs):
+    def sync_exec(self, func: Callable[..., typing.Any], *args, **kwargs) -> typing.Any:
         """wxPythonスレッドで指定したファンクションを実行し、
         終了を待ち合わせる。ファンクションの戻り値を返す。
         func: 実行したいファンクションオブジェクト。
@@ -436,7 +437,7 @@ class Frame(wx.Frame):
             self._sync_result = None
             self._sync_running = True
 
-            def func2(*args, **kwargs):
+            def func2(*args, **kwargs) -> None:
                 try:
                     self._sync_result = func(*args, **kwargs)
                 finally:
@@ -509,7 +510,7 @@ class Frame(wx.Frame):
         if self.debugger:
             # デバッガのメニューのアクセラレータキーに
             # 一致するものがあれば、そのメニューを実行する
-            def recurse(menu):
+            def recurse(menu: wx.Menu) -> bool:
                 for item in menu.GetMenuItems():
                     if not item.IsEnabled():
                         continue
@@ -533,39 +534,39 @@ class Frame(wx.Frame):
 
         cw.cwpy.keyevent.keydown(keycode)
 
-    def OnMotion(self, event):
+    def OnMotion(self, event: wx.MouseEvent) -> None:
         if not (self.IsActive() or (self.debugger and self.debugger.IsActive())):
             pos = (-1, -1)
         else:
             pos = cw.mwin2scr_s((event.GetX()-cw.cwpy.scr_pos[0], event.GetY()-cw.cwpy.scr_pos[1]))
         cw.cwpy.wxmousepos = pos
 
-    def OnLeftUp(self, event):
+    def OnLeftUp(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
         cw.thread.post_pygameevent(evt)
 
-    def OnLeftDown(self, event):
+    def OnLeftDown(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=1)
         cw.thread.post_pygameevent(evt)
 
-    def OnMiddleUp(self, event):
+    def OnMiddleUp(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=2)
         cw.thread.post_pygameevent(evt)
 
-    def OnMiddleDown(self, event):
+    def OnMiddleDown(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=2)
         cw.thread.post_pygameevent(evt)
 
-    def OnRightUp(self, event):
+    def OnRightUp(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=3)
         cw.thread.post_pygameevent(evt)
 
-    def OnRightDown(self, event):
+    def OnRightDown(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=3)
         cw.thread.post_pygameevent(evt)
@@ -644,7 +645,7 @@ class Frame(wx.Frame):
         """最小化イベント。最小化したときBGMの音も消す。"""
         self.is_iconized = event.IsIconized()
         if self.is_iconized:
-            def func():
+            def func() -> None:
                 if not cw.cwpy:
                     return
                 if cw.cwpy.sdata:
@@ -661,7 +662,7 @@ class Frame(wx.Frame):
                         cw.cwpy.lastsound_system.set_mastervolume(False, 0)
             cw.cwpy.force_exec_func(func)
         else:
-            def func():
+            def func() -> None:
                 if not cw.cwpy:
                     return
                 if cw.cwpy.sdata:
@@ -761,7 +762,7 @@ class Frame(wx.Frame):
 
             # シナリオプレイ途中から再開
             if sceheader:
-                def func():
+                def func() -> None:
                     cw.cwpy.ydata.load_party(header)
                     cw.cwpy.set_scenario(sceheader, resume=True)
                 cw.cwpy.exec_func(func)
@@ -773,7 +774,7 @@ class Frame(wx.Frame):
                 self.move_dlg(mdlg)
 
                 if mdlg.ShowModal() == wx.ID_OK:
-                    def func():
+                    def func() -> None:
                         cw.cwpy.load_party(header, chgarea=False, newparty=False, loadsprites=False)
                         cw.cwpy.sdata.set_log()
                         cw.cwpy.f9(True)
@@ -795,7 +796,7 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-        def func():
+        def func() -> None:
             if cw.cwpy.ydata.party:
                 areaid = 2
             elif not cw.cwpy.ydata.is_empty() or cw.cwpy.ydata.is_changed():
@@ -847,7 +848,7 @@ class Frame(wx.Frame):
         sel, selpath = dlg.get_selected()
         cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
 
-        def func(header, sel, selpath):
+        def func(header: cw.header.ScenarioHeader, sel: List[str], selpath: str) -> None:
             cw.cwpy.selectedscenario = header
             cw.cwpy.ydata.party.set_lastscenario(sel, selpath)
             cw.cwpy.ydata.party.set_numbercoupon()
@@ -864,19 +865,19 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     @synclock(_killlist_mutex)
-    def append_killlist(self, dlg):
+    def append_killlist(self, dlg: wx.Dialog) -> None:
         if hasattr(dlg, "touchtools"):
             dlg.touchtools.Destroy()
         self.kill_list.append(dlg)
 
     @synclock(_killlist_mutex)
-    def check_killlist(self):
+    def check_killlist(self) -> None:
         assert threading.currentThread() is cw.cwpy
         if self.kill_list and not cw.cwpy.lock_menucards:
             # FIXME: ダイアログの遅延Kill。
             #        一部環境でたまにシナリオ選択後にハングアップするため。
             if not cw.cwpy.is_runningevent() and not cw.cwpy.is_showingdlg():
-                def func():
+                def func() -> None:
                     for dlg in self.kill_list:
                         dlg.Destroy()
                     del self.kill_list[:]
@@ -888,7 +889,7 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-    def OnPARTYRECORD(self, event):
+    def OnPARTYRECORD(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.partyrecord.SelectPartyRecord(self)
         self.move_dlg(dlg)
         dlg.ShowModal()
@@ -965,7 +966,7 @@ class Frame(wx.Frame):
         return selection, preinfo
 
     def OnINFOVIEW(self, event: wx.PyCommandEvent) -> None:
-        def func():
+        def func() -> None:
             if cw.cwpy.sdata.notice_infoview:
                 cw.cwpy.sdata.notice_infoview = False
                 cw.cwpy.statusbar.change()
@@ -1016,7 +1017,7 @@ class Frame(wx.Frame):
         if save:
             self.kill_dlg(dlg, lockmenucard=True)
 
-            def func():
+            def func() -> None:
                 cw.cwpy.ydata.save()
                 cw.cwpy.play_sound("signal")
                 if cw.cwpy.setting.show_savedmessage:
@@ -1028,14 +1029,14 @@ class Frame(wx.Frame):
         else:
             self.kill_dlg(dlg)
 
-    def OnSAVED_MESSAGE(self, event):
+    def OnSAVED_MESSAGE(self, event: wx.PyCommandEvent) -> None:
         self.OnMESSAGE(event)
 
-        def func():
+        def func() -> None:
             self._saved()
         cw.cwpy.exec_func(func)
 
-    def _saved(self):
+    def _saved(self) -> None:
         if cw.cwpy.is_playingscenario():
             return
 
@@ -1051,7 +1052,7 @@ class Frame(wx.Frame):
                 cw.cwpy.ydata.party._loading = False
             cw.cwpy.change_area(areaid)
 
-    def OnLOAD(self, event):
+    def OnLOAD(self, event: wx.PyCommandEvent) -> None:
         s = cw.cwpy.msgs["confirm_load"]
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
@@ -1059,7 +1060,7 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(cw.cwpy.reload_yado)
         self.kill_dlg(dlg)
 
-    def OnRUNAWAY(self, event):
+    def OnRUNAWAY(self, event: wx.PyCommandEvent) -> None:
         s = cw.cwpy.msgs["confirm_runaway"]
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
@@ -1088,7 +1089,8 @@ class Frame(wx.Frame):
 
         cw.cwpy.exec_func(cw.cwpy.clear_curtain)
 
-        def func(owner, header, targets):
+        def func(owner: cw.character.Character, header: cw.header.CardHeader,
+                 targets: List[cw.character.Character]) -> None:
             alpha = cw.cwpy.setting.get_inusecardalpha(owner)
             cw.cwpy.set_inusecardimg(owner, header, alpha=alpha, fore=True)
             if not cw.cwpy.setting.confirm_beforeusingcard or header.target == "None":
@@ -1129,7 +1131,7 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
-    def OnBATTLECOMMAND(self, event):
+    def OnBATTLECOMMAND(self, event: wx.PyCommandEvent) -> None:
         dlg = cw.dialog.etc.BattleCommand(self)
         self.move_dlg(dlg)
         dlg.ShowModal()
@@ -1157,7 +1159,7 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            def func():
+            def func() -> None:
                 if cw.cwpy.is_decompressing:
                     if cw.cwpy.is_playingscenario():
                         # リロード中
@@ -1176,7 +1178,7 @@ class Frame(wx.Frame):
                     mwin.result = cw.event.EffectBreakError()
                     cw.cwpy.exec_func(cw.cwpy.sdata.f9)
                 else:
-                    def stop():
+                    def stop() -> None:
                         if cw.cwpy.is_runningevent() and cw.cwpy.event.get_event():
                             # イベント中断
                             cw.cwpy.event.exit_func = cw.cwpy.sdata.f9
@@ -1188,7 +1190,7 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg)
 
-    def OnERROR(self, event):
+    def OnERROR(self, event: wx.PyCommandEvent) -> None:
         text = event.args.get("text", "")
         parent = event.args.get("parentdialog", self)
         if not parent:
@@ -1225,7 +1227,7 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg)
 
-    def OnMESSAGE(self, event):
+    def OnMESSAGE(self, event: wx.PyCommandEvent) -> None:
         text = event.args.get("text", "")
         parent = event.args.get("parentdialog", self)
         if not parent:
@@ -1284,7 +1286,7 @@ class Frame(wx.Frame):
         cw.util.adjust_position(dlg)
         cw.dialog.etc.show_touchtools(dlg)
 
-        def OnIconize(event):
+        def OnIconize(event: wx.IconizeEvent) -> None:
             self.Iconize(event.IsIconized())
             event.Skip(False)
         dlg.Bind(wx.EVT_ICONIZE, OnIconize)
@@ -1293,7 +1295,7 @@ class Frame(wx.Frame):
         if dlg:
             dlg.Destroy()
 
-        def func(lockmenucard, redraw):
+        def func(lockmenucard: bool, redraw: bool) -> None:
             # (-1, -1)にすると次のマウス移動判定で
             # cw.cwpy.mousemotionがFalseになるため、
             # 異なる値を設定する
@@ -1317,7 +1319,7 @@ class Frame(wx.Frame):
 
         cw.cwpy.exec_func(func, lockmenucard, redraw)
 
-    def can_screenshot(self):
+    def can_screenshot(self) -> bool:
         """スクリーンショットの撮影が可能か。
         """
         if not cw.cwpy.is_showingdlg():
@@ -1349,7 +1351,7 @@ class Frame(wx.Frame):
                 fc = fc.GetParent()
 
             # ダイアログを表示中の場合
-            def func(self):
+            def func(self: Frame) -> None:
                 cw.cwpy.play_sound("screenshot")
                 titledic, titledicfn = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
                 image, y = cw.util.create_screenshot(titledic)
@@ -1368,7 +1370,9 @@ class Frame(wx.Frame):
                     else:
                         colorkey = None
 
-                def func(w, h, alpha, buf, colorkey, titledicfn, y, fore, back):
+                def func(w: int, h: int, alpha: bool, buf: bytes, colorkey: Tuple[int, int, int, int],
+                         titledicfn: Dict[str, str], y: int, fore: Tuple[int, int, int],
+                         back: Tuple[int, int, int]) -> None:
                     if alpha:
                         bmp = wx.Bitmap.FromBufferRGBA(w, h, buf)
                     else:
@@ -1412,7 +1416,7 @@ class Frame(wx.Frame):
         mem.SetPen(wx.Pen(back))
         frect = self.GetRect()
 
-        def recurse(win):
+        def recurse(win: wx.TopLevelWindow) -> None:
             for child in win.GetChildren():
                 if not child.IsShown():
                     continue
@@ -1503,8 +1507,8 @@ class Frame(wx.Frame):
         if cw.cwpy.areaid in cw.AREAS_TRADE:
             return cw.cwpy.areaid
         elif cw.cwpy.status == "Yado":
-            def func(areaid):
-                def func(areaid):
+            def func(areaid: int) -> None:
+                def func(areaid: int) -> None:
                     cw.cwpy.change_specialarea(areaid)
                     cw.cwpy.statusbar.change()
                 cw.cwpy.exec_func(func, areaid)
@@ -1512,8 +1516,8 @@ class Frame(wx.Frame):
             cw.cwpy.frame.exec_func(func, areaid)
             return areaid
         elif cw.cwpy.is_playingscenario() and cw.cwpy.areaid == cw.AREA_CAMP:
-            def func():
-                def func():
+            def func() -> None:
+                def func() -> None:
                     cw.cwpy.change_specialarea(cw.AREA_TRADE3)
                     cw.cwpy.statusbar.change()
                 cw.cwpy.exec_func(func)
@@ -1636,7 +1640,7 @@ class MyApp(wx.App):
         # フリック開始位置で右クリックを発生させる
         if cw.cwpy and cw.cwpy.setting.enabled_right_flick and isinstance(event, wx.MouseEvent):
 
-            def end_flick():
+            def end_flick() -> int:
                 mousepos = wx.GetMousePosition()
                 xmove = cw.ppis(mousepos[0] - self.flick_start_pos[0])
                 ymove = cw.ppis(mousepos[1] - self.flick_start_pos[1])
@@ -1671,7 +1675,7 @@ class MyApp(wx.App):
                     # 1フレームごとにマウスボタンの状態を確認し、
                     # フリック中かつボタンが押されていなければ
                     # フリックイベントを発生させる。
-                    def watch_mousebutton():
+                    def watch_mousebutton() -> None:
                         if self.flick_status != FLICK_START:
                             return
                         dur = time.process_time() - self.flick_start_time
@@ -1706,7 +1710,7 @@ class MyApp(wx.App):
                 event.Skip()
                 return True
             if ord('D') == event.GetKeyCode() and event.ControlDown():
-                def func(updatedebug_on_dlg):
+                def func(updatedebug_on_dlg: bool) -> None:
                     if updatedebug_on_dlg:
                         cw.cwpy.play_sound("page")
                         cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
@@ -1753,7 +1757,7 @@ def get_skincount() -> Tuple[int, int]:
     return skincount, unknown_ver
 
 
-def main():
+def main() -> None:
     pass
 
 
