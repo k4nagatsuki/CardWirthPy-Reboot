@@ -11,7 +11,8 @@ from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND
 
 import cw
 
-from typing import Optional, Tuple
+import typing
+from typing import Callable, List, Optional, Sequence, Tuple
 
 
 try:
@@ -26,11 +27,12 @@ except ImportError as ex:
     _imageretouch = object()
 
 
-def _retouch(func, image, *args):
+def _retouch(func: Callable[[bytes, Tuple[int, int], typing.Any], bytes], image: pygame.Surface,
+             *args) -> pygame.Surface:
     """_imageretouchの関数のラッパ。
     func: _imageretouchの関数オブジェクト。
-    image: pygame.Surface。
-    *args: その他の引数。
+    image: 対象イメージ
+    *args: その他の引数
     """
     w, h = image.get_size()
 
@@ -54,9 +56,9 @@ def _retouch(func, image, *args):
     return outimage
 
 
-def to_negative(image):
+def to_negative(image: pygame.Surface) -> pygame.Surface:
     """色反転したpygame.Surfaceを返す。
-    image: pygame.Surface
+    image: 対象イメージ
     """
     outimage = image.copy()
 
@@ -69,10 +71,10 @@ def to_negative(image):
     return outimage
 
 
-def to_negative_for_card(image, framewidth=0):
+def to_negative_for_card(image: pygame.Surface, framewidth: int = 0) -> pygame.Surface:
     """色反転したpygame.Surfaceを返す。
     カード画像用なので外枠nピクセルは色反転しない。
-    image: pygame.Surface
+    image: 対象イメージ
     framewidth: 外枠の幅。現在は1.50に合わせて外枠無し(0)
     """
     w, h = image.get_size()
@@ -95,7 +97,7 @@ def to_negative_for_card(image, framewidth=0):
 def to_negative_for_wxcard(wxbmp: wx.Bitmap, framewidth: int = 0) -> wx.Bitmap:
     """色反転したwx.Bitmapを返す。
     カード画像用なので外枠1ピクセルは色反転しない。
-    wxbmp: wx.Bitmap
+    wxbmp: 対象イメージ
     framewidth: 外枠の幅。現在は1.50に合わせて外枠無し(0)
     """
     w, h = wxbmp.GetWidth(), wxbmp.GetHeight()
@@ -123,9 +125,9 @@ def to_negative_for_wxcard(wxbmp: wx.Bitmap, framewidth: int = 0) -> wx.Bitmap:
     return image
 
 
-def add_lightness(image, value):
+def add_lightness(image: pygame.Surface, value: int) -> pygame.Surface:
     """明度を調整する。
-    image: pygame.Surface
+    image: 対象イメージ
     value: 明暗値(-255～255)
     """
     value = cw.util.numwrap(value, -255, 255)
@@ -144,9 +146,9 @@ def add_lightness(image, value):
     return outimage
 
 
-def add_mosaic(image, value):
+def add_mosaic(image: pygame.Surface, value: int) -> pygame.Surface:
     """モザイクをかける。
-    image: pygame.Surface
+    image: 対象イメージ
     value: モザイクをかける度合い(0～255)
     """
     try:
@@ -157,7 +159,7 @@ def add_mosaic(image, value):
     return _retouch(func, image, value)
 
 
-def _add_mosaic(image, value):
+def _add_mosaic(image: pygame.Surface, value: int) -> pygame.Surface:
     value = cw.util.numwrap(value, 0, 255)
     image = image.copy()
 
@@ -181,9 +183,10 @@ def _add_mosaic(image, value):
     return image
 
 
-def to_binaryformat(image, value, basecolor=(255, 255, 255)):
+def to_binaryformat(image: pygame.Surface, value: int,
+                    basecolor: Tuple[int, int, int] = (255, 255, 255)) -> pygame.Surface:
     """二値化する。
-    image: pygame.Surface
+    image: 対象イメージ
     value: 閾値(-1～255)。-1の場合はbasecolor以外が黒になる
     basecolor: 閾値が-1の時に使用され、この色以外が黒になる
     """
@@ -195,7 +198,7 @@ def to_binaryformat(image, value, basecolor=(255, 255, 255)):
     return _retouch(func, image, value, basecolor)
 
 
-def _to_binaryformat(image, value, basecolor):
+def _to_binaryformat(image: pygame.Surface, value: int, basecolor: Tuple[int, int, int]) -> pygame.Surface:
     value = cw.util.numwrap(value, -1, 255)
     image = image.copy()
 
@@ -228,9 +231,9 @@ def _to_binaryformat(image, value, basecolor):
     return image
 
 
-def add_noise(image, value, colornoise=False):
+def add_noise(image: pygame.Surface, value: int, colornoise: bool = False) -> pygame.Surface:
     """ノイズを入れる。
-    image: pygame.Surface
+    image: 対象イメージ
     value: ノイズの度合い(-1～255)
     colornoise: カラーノイズか否か
     """
@@ -242,7 +245,7 @@ def add_noise(image, value, colornoise=False):
     return _retouch(func, image, value, colornoise)
 
 
-def _add_noise(image, value, colornoise=False):
+def _add_noise(image: pygame.Surface, value: int, colornoise: bool = False) -> pygame.Surface:
     value = cw.util.numwrap(value, -1, 255)
     image = image.copy()
 
@@ -294,9 +297,9 @@ def _add_noise(image, value, colornoise=False):
     return image
 
 
-def exchange_rgbcolor(image, colormodel):
+def exchange_rgbcolor(image: pygame.Surface, colormodel: str) -> pygame.Surface:
     """RGB入れ替えしたpygame.Surfaceを返す。
-    image: pygame.Surface
+    image: 対象イメージ
     colormodel: "r", "g", "b"を組み合わせた文字列。
     """
     colormodel = colormodel.lower()
@@ -309,28 +312,28 @@ def exchange_rgbcolor(image, colormodel):
     return _retouch(func, image, colormodel)
 
 
-def _exchange_rgbcolor(image, colormodel):
+def _exchange_rgbcolor(image: pygame.Surface, colormodel: str) -> pygame.Surface:
     colormodel = colormodel.lower()
     image = image.copy()
 
     if colormodel == "gbr":
-        def gbr(r, g, b):
+        def gbr(r: int, g: int, b: int) -> Tuple[int, int, int]:
             return (g, b, r)
         func = gbr
     elif colormodel == "brg":
-        def brg(r, g, b):
+        def brg(r: int, g: int, b: int) -> Tuple[int, int, int]:
             return (b, r, g)
         func = brg
     elif colormodel == "grb":
-        def grb(r, g, b):
+        def grb(r: int, g: int, b: int) -> Tuple[int, int, int]:
             return (g, r, b)
         func = grb
     elif colormodel == "bgr":
-        def bgr(r, g, b):
+        def bgr(r: int, g: int, b: int) -> Tuple[int, int, int]:
             return (b, g, r)
         func = bgr
     elif colormodel == "rbg":
-        def rbg(r, g, b):
+        def rbg(r: int, g: int, b: int) -> Tuple[int, int, int]:
             return (r, b, g)
         func = rbg
     else:
@@ -352,9 +355,9 @@ def _exchange_rgbcolor(image, colormodel):
     return image
 
 
-def to_grayscale(image):
+def to_grayscale(image: pygame.Surface) -> pygame.Surface:
     """グレイスケール化したpygame.Surfaceを返す。
-    image: pygame.Surface
+    image: 対象イメージ
     """
     try:
         func = _imageretouch.to_sepiatone
@@ -364,9 +367,9 @@ def to_grayscale(image):
     return _retouch(func, image, (0, 0, 0))
 
 
-def to_sepiatone(image, color=(30, 0, -30)):
+def to_sepiatone(image: pygame.Surface, color: Tuple[int, int, int] = (30, 0, -30)) -> pygame.Surface:
     """褐色系の画像に変換したpygame.Surfaceを返す。
-    image: pygame.Surface
+    image: 対象イメージ
     color: グレイスケール化した画像に付加する色。(r, g, b)のタプル
     """
     try:
@@ -377,7 +380,7 @@ def to_sepiatone(image, color=(30, 0, -30)):
     return _retouch(func, image, color)
 
 
-def _to_sepiatone(image, color=(30, 0, -30)):
+def _to_sepiatone(image: pygame.Surface, color: Tuple[int, int, int] = (30, 0, -30)) -> pygame.Surface:
     if color == (0, 0, 0):
         return retouch_grayscale(image)
 
@@ -403,7 +406,7 @@ def _to_sepiatone(image, color=(30, 0, -30)):
     return image
 
 
-def retouch_grayscale(image):
+def retouch_grayscale(image: pygame.Surface) -> pygame.Surface:
     image = image.copy()
     pxarray = pygame.PixelArray(image)
 
@@ -425,7 +428,7 @@ def retouch_grayscale(image):
     return image
 
 
-def spread_pixels(image):
+def spread_pixels(image: pygame.Surface) -> pygame.Surface:
     """ピクセル拡散させたpygame.Surfaceを返す。
     image: pygame.Surface
     """
@@ -437,7 +440,7 @@ def spread_pixels(image):
     return _retouch(func, image)
 
 
-def _spread_pixels(image):
+def _spread_pixels(image: pygame.Surface) -> pygame.Surface:
     out_image = image.copy()
     out_pxarray = pygame.PixelArray(out_image)
     pxarray = pygame.PixelArray(image)
@@ -461,7 +464,7 @@ def _spread_pixels(image):
     return out_image
 
 
-def _filter(image, weight, offset=0, div=1):
+def _filter(image: pygame.Surface, weight: int, offset: int = 0, div: int = 1) -> pygame.Surface:
     """フィルタを適用する。
     weight: 重み付け係数。
     offset: オフセット(整数)
@@ -475,7 +478,7 @@ def _filter(image, weight, offset=0, div=1):
     return _retouch(func, image, weight, offset, div)
 
 
-def __filter(image, weight, offset=0, div=1):
+def __filter(image: pygame.Surface, weight: Sequence[Sequence[int]], offset: int = 0, div: int = 1) -> pygame.Surface:
     out_image = image.copy()
     out_pxarray = pygame.PixelArray(out_image)
     pxarray = pygame.PixelArray(image)
@@ -520,7 +523,7 @@ def __filter(image, weight, offset=0, div=1):
     return out_image
 
 
-def filter_shape(image):
+def filter_shape(image: pygame.Surface) -> pygame.Surface:
     """画像にぼかしフィルターを適用。"""
     weight = (
         (1, 1, 1),
@@ -532,7 +535,7 @@ def filter_shape(image):
     return _filter(image, weight, offset, div)
 
 
-def filter_sharpness(image):
+def filter_sharpness(image: pygame.Surface) -> pygame.Surface:
     """画像にシャープフィルターを適用。"""
     weight = (
         (-1, -1, -1),
@@ -544,7 +547,7 @@ def filter_sharpness(image):
     return _filter(image, weight, offset, div)
 
 
-def filter_sunpower(image):
+def filter_sunpower(image: pygame.Surface) -> pygame.Surface:
     """画像にサンパワーフィルターを適用。"""
     weight = (
         (1, 3, 1),
@@ -556,7 +559,7 @@ def filter_sunpower(image):
     return _filter(image, weight, offset, div)
 
 
-def filter_emboss(image):
+def filter_emboss(image: pygame.Surface) -> pygame.Surface:
     """画像にエンボスフィルターを適用。"""
     image = to_grayscale(image)
     weight = (
@@ -569,7 +572,7 @@ def filter_emboss(image):
     return _filter(image, weight, offset, div)
 
 
-def filter_coloremboss(image):
+def filter_coloremboss(image: pygame.Surface) -> pygame.Surface:
     """画像にカラーエンボスフィルターを適用。"""
     weight = (
         (-1, -1, -1),
@@ -581,7 +584,7 @@ def filter_coloremboss(image):
     return _filter(image, weight, offset, div)
 
 
-def filter_darkemboss(image):
+def filter_darkemboss(image: pygame.Surface) -> pygame.Surface:
     """画像にダークエンボスフィルターを適用。"""
     weight = (
         (-1, -2, -1),
@@ -593,7 +596,7 @@ def filter_darkemboss(image):
     return _filter(image, weight, offset, div)
 
 
-def filter_electrical(image):
+def filter_electrical(image: pygame.Surface) -> pygame.Surface:
     """画像にエレクトリカルフィルターを適用。"""
     weight = (
         (1, 1, 1),
@@ -605,7 +608,8 @@ def filter_electrical(image):
     return _filter(image, weight, offset, div)
 
 
-def add_transparentline(image, vline, hline, rect=None, setalpha=False):
+def add_transparentline(image: pygame.Surface, vline: bool, hline: bool,
+                        rect: Optional[Tuple[int, int, int, int]] = None, setalpha: bool = False) -> pygame.Surface:
     """透明色ラインを入れる。
     image: pygame.Surface
     vline: bool値。Trueなら縦線を入れる。
@@ -633,7 +637,8 @@ def add_transparentline(image, vline, hline, rect=None, setalpha=False):
     return image
 
 
-def add_transparentmesh(image, rect=None, setalpha=False):
+def add_transparentmesh(image: pygame.Surface, rect: Optional[Tuple[int, int, int, int]] = None,
+                        setalpha: bool = False) -> pygame.Surface:
     """透明色の網の目を入れる。
     image: pygame.Surface
     """
@@ -657,10 +662,10 @@ def add_transparentmesh(image, rect=None, setalpha=False):
     return image
 
 
-def add_border(img, bordercolor, borderwidth):
+def add_border(img: pygame.Surface, bordercolor: Tuple[int, int, int], borderwidth: int) -> pygame.Surface:
     """textcolorの領域を縁取りする。
     この処理はwxPythonのインスタンスに対して行う。
-    img: pygame.Surface。
+    img: 描画対象。
     bordercolor: 縁取り色(R,G,B)。
     borderwidth: 縁取りの太さ。
     """
@@ -683,7 +688,7 @@ def add_border(img, bordercolor, borderwidth):
             pygame.draw.ellipse(img, bordercolor, pygame.Rect(x - hbw, y - hbw, borderwidth, borderwidth))
 
 
-def _bordering(data, size):
+def _bordering(data: str, size: Tuple[int, int]) -> List[int]:
     w = size[0]
     h = size[1]
 
@@ -730,7 +735,7 @@ def _bordering(data, size):
     return seq
 
 
-def blend_1_50(dest, pos, source, flag):
+def blend_1_50(dest: pygame.Surface, pos: Tuple[int, int], source: pygame.Surface, flag: int) -> None:
     """1.50の挙動に合わせて加算または減算合成を行う。
     dest: pygame.Surface。
     pos: 合成位置。
@@ -781,7 +786,7 @@ def blend_1_50(dest, pos, source, flag):
     dest.blit(outimage, rect.topleft, None, 0)
 
 
-def _blend_add_1_50(dest, source):
+def _blend_add_1_50(dest: pygame.Surface, source: pygame.Surface) -> pygame.Surface:
     w, h = dest.get_size()
     dbuf = pygame.image.tostring(dest, "RGBA")
     sbuf = pygame.image.tostring(source, "RGBA")
@@ -803,7 +808,7 @@ def _blend_add_1_50(dest, source):
     return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
 
 
-def _blend_sub_1_50(dest, source):
+def _blend_sub_1_50(dest: pygame.Surface, source: pygame.Surface) -> pygame.Surface:
     w, h = dest.get_size()
     dbuf = pygame.image.tostring(dest, "RGBA")
     sbuf = pygame.image.tostring(source, "RGBA")
@@ -825,7 +830,7 @@ def _blend_sub_1_50(dest, source):
     return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
 
 
-def _blend_mult_1_50(dest, source):
+def _blend_mult_1_50(dest: pygame.Surface, source: pygame.Surface) -> pygame.Surface:
     w, h = dest.get_size()
     dbuf = pygame.image.tostring(dest, "RGBA")
     sbuf = pygame.image.tostring(source, "RGBA")
@@ -876,11 +881,10 @@ def to_disabledimage(wxbmp: wx.Bitmap, maskpos: Tuple[int, int] = (0, 0)) -> wx.
     return wxbmp
 
 
-def _to_disabledimage(buf, size):
+def _to_disabledimage(buf: bytearray, size: Tuple[int, int]) -> None:
     """
     通常時のボタン画像からdisabled用の画像を作る
     グレイスケール処理後、RGB値の範囲を 0～255 から min～max に変更
-    wxbmp: wx.Bitmap
     """
     # 最終的なRGB値の範囲を設定
     nmin, nmax = 140, 240
@@ -894,7 +898,7 @@ def _to_disabledimage(buf, size):
             buf[px+2] = buf[px+2] * (nmax - nmin) // 255 + nmin
 
 
-def to_disabledsurface(image):
+def to_disabledsurface(image: pygame.Surface) -> pygame.Surface:
     """_to_disabledimage()のpygame.Surface版。"""
     image = image.copy()
     image.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
@@ -927,13 +931,13 @@ def add_lightness_for_wxbmp(wxbmp: wx.Bitmap, lightness: int, maskpos: Tuple[int
     return wxbmp
 
 
-def _add_lightness(buf, size, lightness):
+def _add_lightness(buf: bytearray, size: Tuple[int, int], lightness: int) -> None:
     (w, h) = size
     for i, v in enumerate(buf):
         buf[i] = cw.util.numwrap(v + lightness, 0, 255)
 
 
-def hex2color(hexnum):
+def hex2color(hexnum: int) -> Tuple[int, int, int]:
     """RGBデータの16進数を(r, g, b)のタプルで返す。
     hexnum: 16進数。
     """
@@ -943,7 +947,7 @@ def hex2color(hexnum):
     return r, g, b
 
 
-def colorwrap(num):
+def colorwrap(num: int) -> int:
     """numを0～255の値に丸める。"""
     return cw.util.numwrap(num, 0, 255)
 
@@ -952,7 +956,7 @@ def decode_rle4data(data: bytes, h: int, bpl: int) -> bytes:
     return _imageretouch.decode_rle4data(data, h, bpl)
 
 
-def patch_alphadata(image, ext, data):
+def patch_alphadata(image: pygame.Surface, ext: str, data: bytes) -> pygame.Surface:
     """CardWirthのビットマップデコーダは、32ビットイメージの
     各ピクセルの4バイト中、予備領域に1件でも0以外のデータがある時に限り
     予備領域をアルファ値として使用するので、それに合わせる。
@@ -988,13 +992,13 @@ def mul_wxalpha(wximg: wx.Image, alpha: int) -> wx.Image:
     return wximg
 
 
-def mul_alpha(image, alpha):
+def mul_alpha(image: pygame.Surface, alpha: int) -> pygame.Surface:
     """alpha/255分まで、imageのアルファ値を減少させる。"""
     image.fill((255, 255, 255, alpha), special_flags=pygame.locals.BLEND_RGBA_MULT)
     return image
 
 
-def blit_2bitbmp_to_card(dest, source, pos):
+def blit_2bitbmp_to_card(dest: pygame.Surface, source: pygame.Surface, pos: Tuple[int, int]) -> None:
     """
     CardWirthの「2bit ビットマップイメージが
     半透明で表示される」バグをある程度再現する。
@@ -1030,7 +1034,8 @@ def blit_2bitbmp_to_card(dest, source, pos):
     dest.blit(source, pos)
 
 
-def blit_2bitbmp_to_message(dest, source, pos, wincolour):
+def blit_2bitbmp_to_message(dest: pygame.Surface, source: pygame.Surface, pos: Tuple[int, int],
+                            wincolour: Tuple[int, int, int]) -> None:
     if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface) and source.bmpdepthis1:
         w, h = source.get_size()
         rect = pygame.Rect(pos, (w, h))
@@ -1122,7 +1127,7 @@ def wxblit_2bitbmp_to_card(dc: wx.MemoryDC, dest: wx.Bitmap, wxbmp: wx.Bitmap, x
     dc.DrawBitmap(wxbmp, x, y, useMask)
 
 
-def _create_mfont(name, pixels, bold, italic, sys):
+def _create_mfont(name: str, pixels: int, bold: bool, italic: bool, sys: bool) -> Tuple["Font", "Font", "Font"]:
     if sys:
         if pixels < 0:
             # FIXME: CreateFont()で高さにマイナス値を指定した場合には
@@ -1166,7 +1171,7 @@ def _create_mfont(name, pixels, bold, italic, sys):
 
 
 class Font(object):
-    def __init__(self, face, pixels, bold=False, italic=False):
+    def __init__(self, face: str, pixels: int, bold: bool = False, italic: bool = False) -> None:
         self._cache = {}
 
         face = get_fontface(face)
@@ -1205,7 +1210,7 @@ class Font(object):
         s = str(s)
         return len(s) == 1 and (('ぁ' <= s <= 'ヶ') or (0 <= ord(s) <= 255) or ('！' <= s <= 'ﾟ'))
 
-    def dispose(self):
+    def dispose(self) -> None:
         if not self.font and self.fontinfo:
             _imageretouch.font_del(self.fontinfo)
             _imageretouch.font_del(self.fontinfo2x)
@@ -1213,7 +1218,7 @@ class Font(object):
             self.fontinfo2x = None
             self._cache = None
 
-    def __del__(self):
+    def __del__(self) -> None:
         if not self.font and self.fontinfo:
             _imageretouch.font_del(self.fontinfo)
             _imageretouch.font_del(self.fontinfo2x)
@@ -1221,13 +1226,13 @@ class Font(object):
             self.fontinfo2x = None
             self._cache = None
 
-    def get_bold(self):
+    def get_bold(self) -> bool:
         if self.font:
             return self.font.get_bold()
         else:
             return self.bold
 
-    def set_bold(self, v):
+    def set_bold(self, v: bool) -> None:
         self._cache = {}
         if self.font:
             self.font.set_bold(v)
@@ -1244,7 +1249,7 @@ class Font(object):
         else:
             return self.italic
 
-    def set_italic(self, v):
+    def set_italic(self, v: bool) -> None:
         self._cache = {}
         if self.font:
             self.font.set_italic(v)
@@ -1254,13 +1259,13 @@ class Font(object):
             _imageretouch.font_italic(self.fontinfo, v)
             _imageretouch.font_italic(self.fontinfo2x, v)
 
-    def get_underline(self):
+    def get_underline(self) -> bool:
         if self.font:
             return self.font.get_underline()
         else:
             return self.underline
 
-    def set_underline(self, v):
+    def set_underline(self, v: bool) -> None:
         self._cache = {}
         if self.font:
             self.font.set_underline(v)
@@ -1279,7 +1284,7 @@ class Font(object):
         else:
             return self.pixels
 
-    def get_linesize(self):
+    def get_linesize(self) -> int:
         if self.font:
             return self.font.get_linesize()
         else:
@@ -1300,7 +1305,7 @@ class Font(object):
     def render(self, text: str, antialias: bool, colour: Tuple[int, int, int]) -> pygame.Surface:
         return self._render_impl(text, antialias, colour, False)
 
-    def render_sbold(self, text, antialias, colour):
+    def render_sbold(self, text: str, antialias: bool, colour: Tuple[int, int, int]) -> pygame.Surface:
         return self._render_impl(text, antialias, colour, True)
 
     def _render_impl(self, text: str, antialias: bool, colour: Tuple[int, int, int], sbold: bool) -> pygame.Surface:
@@ -1381,7 +1386,7 @@ class Font(object):
         return bmp
 
 
-def get_fontface(fontface):
+def get_fontface(fontface: str) -> str:
     """fontfaceが環境に無いフォントであれば
     差し替え用のフォント名を返す。
     存在するフォントであればfontfaceを返す。
@@ -1409,7 +1414,7 @@ def get_fontface(fontface):
             return cw.cwpy.rsrc.fontnames_init["gothic"]
 
 
-def main():
+def main() -> None:
     pass
 
 

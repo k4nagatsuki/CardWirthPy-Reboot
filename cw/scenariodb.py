@@ -11,7 +11,7 @@ import subprocess
 import cw
 from cw.util import synclock
 
-from typing import Dict, Union, Iterator, List, Optional, Set, Tuple
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
 
 _lock = threading.Lock()
 
@@ -36,7 +36,7 @@ class ScenariodbUpdatingThread(threading.Thread):
         self._dpath = dpath
         self._skintype = skintype
 
-    def run(self):
+    def run(self) -> None:
         type(self)._finished = False
         db = Scenariodb()
         db.update(skintype=self._skintype)
@@ -81,7 +81,7 @@ class Scenariodb(object):
     wsnversion(WSN形式の場合はそのバージョン)
     """
     @synclock(_lock)
-    def __init__(self):
+    def __init__(self) -> None:
         self.name = "Scenario.db"
 
         if os.path.isfile(self.name):
@@ -279,7 +279,7 @@ class Scenariodb(object):
             self.cur.execute("CREATE INDEX scenariotype_index1 ON scenariodb(dpath, fname)")
 
     @synclock(_lock)
-    def update(self, dpath="Scenario", skintype="", commit=True, update=True):
+    def update(self, dpath: str = "Scenario", skintype: str = "", commit: bool = True, update: bool = True) -> None:
         """データベースを更新する。"""
         if not update:
             return
@@ -295,7 +295,7 @@ class Scenariodb(object):
         data = self.cur.fetchall()
         dbpaths = []
 
-        def update_path(t, spath, path):
+        def update_path(t: sqlite3.Row, spath: str, path: str) -> None:
             if os.path.getmtime(spath) > t[2]:
                 # 情報を更新
                 self._insert_scenario(path, False, skintype=skintype)
@@ -338,7 +338,7 @@ class Scenariodb(object):
         if commit:
             self.con.commit()
 
-    def vacuum(self, commit=True):
+    def vacuum(self, commit: bool = True) -> None:
         """肥大化したDBファイルのサイズを最適化する。"""
         # 存在しないディレクトリが含まれる場合は除去
         s = "SELECT dpath FROM scenariodb GROUP BY dpath"
@@ -377,7 +377,7 @@ class Scenariodb(object):
         if commit:
             self.con.commit()
 
-    def delete_all(self, commit=True):
+    def delete_all(self, commit: bool = True) -> None:
         s = "DELETE FROM scenariodb"
         self.cur.execute(s)
         s = "DELETE FROM scenarioimage"
@@ -389,7 +389,7 @@ class Scenariodb(object):
             self.con.commit()
 
     def insert(self, t: Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
-                              bytes, None],
+                              bytes, Optional[str]],
                images: List[Tuple[bytes, "cw.image.ImageInfo", int]], commit: bool = True, skintype: str = "") -> None:
         s = """INSERT OR REPLACE INTO scenariodb(
                     dpath, type, fname, name, author, desc, skintype,
@@ -439,7 +439,7 @@ class Scenariodb(object):
             self.con.commit()
 
     @synclock(_lock)
-    def insert_scenario(self, path, commit=True, skintype=""):
+    def insert_scenario(self, path: str, commit: bool = True, skintype: str = "") -> None:
         """データベースにシナリオを登録する。"""
         self._insert_scenario(path, commit, skintype=skintype)
 
@@ -498,7 +498,7 @@ class Scenariodb(object):
         ltarg = cw.util.get_linktarget(path)
 
         if not os.path.isfile(ltarg):
-            def func(spath, header):
+            def func(spath: str, header: cw.header.ScenarioHeader) -> cw.header.ScenarioHeader:
                 # クラシックなシナリオ
                 if os.path.getmtime(spath) > header.mtime:
                     cs, images = read_summary(path)
@@ -551,7 +551,7 @@ class Scenariodb(object):
         return headers
 
     @synclock(_lock)
-    def search_path(self, path, skintype=""):
+    def search_path(self, path: str, skintype: str = "") -> Optional["cw.header.ScenarioHeader"]:
         return self._search_path(path, skintype=skintype)
 
     def _search_path(self, path: str, skintype: str = "") -> Optional["cw.header.ScenarioHeader"]:
@@ -615,7 +615,8 @@ class Scenariodb(object):
             self.cur.execute(s, (name, author,))
 
     @synclock(_lock)
-    def search_dpath(self, dpath, create=False, skintype="", update=True):
+    def search_dpath(self, dpath: str, create: bool = False, skintype: str = "",
+                     update: bool = True) -> List["cw.header.ScenarioHeader"]:
         dpath = cw.util.get_linktarget(dpath).replace("\\", "/")
 
         if skintype:
@@ -703,7 +704,7 @@ class Scenariodb(object):
         return self.sort_headers(headers)
 
     @synclock(_lock)
-    def get_header(self, path, skintype=""):
+    def get_header(self, path: str, skintype: str = "") -> Optional["cw.header.ScenarioHeader"]:
         dpath = os.path.dirname(path)
         fname = os.path.basename(path)
         self._fetch(dpath, fname, skintype)
@@ -713,11 +714,11 @@ class Scenariodb(object):
         return None
 
     @synclock(_lock)
-    def find_headers(self, ftypes, value, skintype=""):
+    def find_headers(self, ftypes: Iterable[int], value: str, skintype: str = "") -> List["cw.header.ScenarioHeader"]:
         where = []
         values = []
 
-        def encode_like(value):
+        def encode_like(value: str) -> str:
             value2 = value.replace("\\", "\\\\")
             value2 = value2.replace("%", "\\%")
             value2 = value2.replace("_", "\\_")
@@ -823,7 +824,8 @@ class Scenariodb(object):
         return self.sort_headers(seq)
 
     @synclock(_lock)
-    def find_scenario(self, name, author, skintype, ignore_dpath=None, ignore_fname=None):
+    def find_scenario(self, name: str, author: str, skintype: str, ignore_dpath: Optional[str] = None,
+                      ignore_fname: Optional[str] = None) -> List["cw.header.ScenarioHeader"]:
         """
         シナリオ名と作者名からシナリオDBを検索する。
         ただしファイルパスがignore_dpathとignore_fnameにマッチするシナリオは無視する。
@@ -849,7 +851,7 @@ class Scenariodb(object):
         return seq
 
     @synclock(_lock)
-    def rename_dir(self, before, after):
+    def rename_dir(self, before: str, after: str) -> None:
         """
         ディレクトリ名の変更を通知し、サブディレクトリ内の情報を更新する。
         """
@@ -871,7 +873,7 @@ class Scenariodb(object):
             self.cur.execute(s, (orig_after, orig_before,))
 
     @synclock(_lock)
-    def remove_dir(self, dpath):
+    def remove_dir(self, dpath: str) -> None:
         """
         ディレクトリの削除を通知する。
         """
@@ -885,14 +887,14 @@ class Scenariodb(object):
         self.cur.execute(s, (orig_dpath,))
 
     @synclock(_lock)
-    def commit(self):
+    def commit(self) -> None:
         self.con.commit()
 
-    def close(self):
+    def close(self) -> None:
         self.con.close()
 
 
-def find_alldirectories(dpath, is_cancel=None):
+def find_alldirectories(dpath: str, is_cancel: Optional[Callable[[], bool]] = None) -> Set[str]:
     """dpath以下のシナリオが存在しうる
     ディレクトリの一覧を取得する。
     シナリオのディレクトリ自体は除外される。
@@ -903,7 +905,8 @@ def find_alldirectories(dpath, is_cancel=None):
     return result
 
 
-def _find_alldirectories(dpath, result, exclude, is_cancel):
+def _find_alldirectories(dpath: str, result: Set[str], exclude: Set[str],
+                         is_cancel: Optional[Callable[[], bool]]) -> None:
     dpath = cw.util.get_linktarget(dpath)
     absval = cw.util.get_keypath(cw.util.get_symlinktarget(dpath))
     if absval in exclude:
@@ -938,10 +941,14 @@ def is_scenario(path: str) -> bool:
         return lpath.endswith(".wsn") or lpath.endswith(".zip") or lpath.endswith(".lzh") or lpath.endswith(".cab")
 
 
-def read_summary(basepath: str) -> Optional[Tuple[Tuple[str, int, str, str, str, str, str, int, int, str, int, int,
-                                                        str, float, float, str, bytes, None],
-                                                  List[Tuple[bytes, "cw.image.ImageInfo", int]]]]:
-    def imgbufs_to_result(summaryinfos, imgbufs):
+def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str, str, str, int, int, str, int, int,
+                                                        str, float, float, str, bytes, Optional[str]]],
+                                         List[Tuple[bytes, "cw.image.ImageInfo", int]]]:
+    def imgbufs_to_result(summaryinfos: List[str, int, str, str, str, str, str, int, int, str, int, int, str, float,
+                                             float, str],
+                          imgbufs: List[Tuple[Optional[bytes], cw.image.ImageInfo, int]])\
+            -> Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str, bytes,
+                     Optional[str]]:
         if len(imgbufs) == 0:
             imgbuf = ""
             imgpath = None
@@ -1181,9 +1188,9 @@ def parse_summarydata(basepath: str, data: cw.data.CWPyElement, scetype: int, mt
 
 def read_summary_classic(basepath: str, spath: str,
                          f: Optional[cw.binary.cwfile.CWFile] = None)\
-        -> Optional[Tuple[Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
-                                bytes, None],
-                          List[Tuple[bytes, "cw.image.ImageInfo", int]]]]:
+        -> Tuple[Optional[Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
+                                bytes, Optional[str]]],
+                 List[Tuple[bytes, "cw.image.ImageInfo", int]]]:
     try:
         if not f:
             f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
@@ -1287,7 +1294,7 @@ def get_scenario(fpath: str) -> cw.data.ScenarioData:
     return cw.data.ScenarioData(header, cardonly=True)
 
 
-def main():
+def main() -> None:
     db = Scenariodb()
     db.update()
     db.close()

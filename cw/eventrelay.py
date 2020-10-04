@@ -10,7 +10,7 @@ from pygame.locals import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, 
                           K_LSHIFT, K_LCTRL, K_PRINT, K_SPACE, KEYUP, KEYDOWN, MOUSEBUTTONUP,\
                           K_PAGEUP, K_PAGEDOWN, K_HOME, K_END
 
-from typing import Optional
+from typing import Optional, Tuple
 
 
 class KeyEventRelay(object):
@@ -73,7 +73,7 @@ class KeyEventRelay(object):
         self.mousein = [0, 0, 0]
         self.nokeyupevent = False
 
-    def peek_mousestate(self):
+    def peek_mousestate(self) -> None:
         """MOUSEUPイベントに対応するMOUSEDOWNイベントが
         無ければキューから取り除く。
         """
@@ -110,7 +110,7 @@ class KeyEventRelay(object):
             self.keyin[key] = 0
             self.nokeyupevent = False
 
-    def get_pressed(self):
+    def get_pressed(self) -> Tuple[int, ...]:
         return tuple(self.keyin)
 
     def is_keyin(self, keycode: int) -> bool:
@@ -152,7 +152,7 @@ class KeyEventRelay(object):
         return False
 
 
-def main():
+def main() -> None:
     pass
 
 

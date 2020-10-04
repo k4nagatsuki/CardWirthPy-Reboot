@@ -3322,7 +3322,7 @@ class ReplCardHolder(CardControl):
         self._bind()
 
     def reconstruct_replcardholder(self, selection: "cw.sprite.card.PlayerCard", target: "cw.header.CardHeader",
-                                   personal: bool):
+                                   personal: bool) -> None:
         self.owner = selection
         self.target = target
         self.personal = personal

@@ -9,7 +9,8 @@ import time
 import cw
 from cw.util import synclock
 
-from typing import Dict, List, Tuple
+import typing
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 
 _lock = threading.Lock()
@@ -22,7 +23,7 @@ class YadoDB(object):
 
     """カードのデータベース。ロックのタイムアウトは30秒指定。"""
     @synclock(_lock)
-    def __init__(self, ypath, mode=YADO):
+    def __init__(self, ypath: str, mode: int = YADO) -> None:
         self.ypath = ypath
         if mode == YADO:
             fname = "Yado.db"
@@ -458,8 +459,10 @@ class YadoDB(object):
                 self.cur.execute(s)
 
     @synclock(_lock)
-    def update(self, cards=True, adventurers=True, parties=True, cardorder=None,
-               adventurerorder=None, partyorder=None, partyrecord=True, savedjpdcimage=True):
+    def update(self, cards: bool = True, adventurers: bool = True, parties: bool = True,
+               cardorder: Optional[Dict[str, int]] = None, adventurerorder: Optional[Dict[str, int]] = None,
+               partyorder: Optional[Dict[str, int]] = None, partyrecord: bool = True,
+               savedjpdcimage: bool = True) -> None:
         """データベースを更新する。"""
         cw.fsync.sync()
 
@@ -470,7 +473,15 @@ class YadoDB(object):
         if partyorder is None:
             partyorder = {}
 
-        def walk(dpath, headertable, xmlname, insert, insertheader, *args):
+        def walk(dpath: str,
+                 headertable: Union[bool, Dict[str, Union[cw.header.AdventurerHeader, cw.header.PartyHeader,
+                                                          cw.header.CardHeader, cw.header.PartyRecordHeader,
+                                                          cw.header.SavedJPDCImageHeader]]],
+                 xmlname: str, insert: Callable[[str, typing.Any], None],
+                 insertheader: Callable[[Union[cw.header.AdventurerHeader, cw.header.PartyHeader,
+                                               cw.header.CardHeader, cw.header.PartyRecordHeader,
+                                               cw.header.SavedJPDCImageHeader], typing.Any], None],
+                 *args) -> None:
             dname = cw.util.join_paths(self.ypath, dpath)
             if os.path.isdir(dname):
                 for fname in os.listdir(dname):
@@ -638,7 +649,7 @@ class YadoDB(object):
 
         self.con.commit()
 
-    def vacuum(self, commit=True):
+    def vacuum(self, commit: bool = True) -> None:
         """肥大化したDBファイルのサイズを最適化する。"""
         s = "VACUUM card"
         self.cur.execute(s)
@@ -655,7 +666,7 @@ class YadoDB(object):
         if commit:
             self.con.commit()
 
-    def _delete_card(self, path, commit=True):
+    def _delete_card(self, path: str, commit: bool = True) -> None:
         s = "DELETE FROM card WHERE fpath=?"
         self.cur.execute(s, (path,))
         s = "DELETE FROM cardimage WHERE fpath=?"
@@ -665,7 +676,7 @@ class YadoDB(object):
         if commit:
             self.con.commit()
 
-    def _delete_adventurer(self, path, commit=True):
+    def _delete_adventurer(self, path: str, commit: bool = True) -> None:
         s = "DELETE FROM adventurer WHERE fpath=?"
         self.cur.execute(s, (path,))
         s = "DELETE FROM adventurerimage WHERE fpath=?"
@@ -675,7 +686,7 @@ class YadoDB(object):
         if commit:
             self.con.commit()
 
-    def _delete_party(self, path, commit=True):
+    def _delete_party(self, path: str, commit: bool = True) -> None:
         s = "DELETE FROM party WHERE fpath=?"
         self.cur.execute(s, (path,))
         s = "DELETE FROM partyorder WHERE fpath=?"
@@ -683,27 +694,27 @@ class YadoDB(object):
         if commit:
             self.con.commit()
 
-    def _delete_partyrecord(self, path, commit=True):
+    def _delete_partyrecord(self, path: str, commit: bool = True) -> None:
         s = "DELETE FROM partyrecord WHERE fpath=?"
         self.cur.execute(s, (path,))
         if commit:
             self.con.commit()
 
-    def _delete_savedjpdcimage(self, path, commit=True):
+    def _delete_savedjpdcimage(self, path: str, commit: bool = True) -> None:
         s = "DELETE FROM savedjpdcimage WHERE fpath=?"
         self.cur.execute(s, (path,))
         if commit:
             self.con.commit()
 
     @synclock(_lock)
-    def delete_savedjpdcimage(self, path, commit=True):
+    def delete_savedjpdcimage(self, path: str, commit: bool = True) -> None:
         self._delete_savedjpdcimage(path, commit)
 
     @synclock(_lock)
-    def insert_cardheader(self, header, commit=True, cardorder=-1):
-        return self._insert_cardheader(header, commit, cardorder)
+    def insert_cardheader(self, header: "cw.header.CardHeader", commit: bool = True, cardorder: int = -1) -> None:
+        self._insert_cardheader(header, commit, cardorder)
 
-    def _insert_cardheader(self, header, commit=True, cardorder=-1):
+    def _insert_cardheader(self, header: "cw.header.CardHeader", commit: bool = True, cardorder: int = -1) -> None:
         """データベースにカードを登録する。"""
         s = """
         INSERT OR REPLACE INTO card(
@@ -864,15 +875,15 @@ class YadoDB(object):
             self.con.commit()
 
     @synclock(_lock)
-    def insert_card(self, path, commit=True, cardorder=-1):
-        return self._insert_card(path, commit, cardorder)
+    def insert_card(self, path: str, commit: bool = True, cardorder: int = -1) -> None:
+        self._insert_card(path, commit, cardorder)
 
-    def _insert_card(self, path, commit=True, cardorder=-1):
+    def _insert_card(self, path: str, commit: bool = True, cardorder: int = -1) -> None:
         try:
             data = cw.data.xml2element(path)
             header = cw.header.CardHeader(carddata=data)
             header.fpath = path
-            return self._insert_cardheader(header, commit, cardorder)
+            self._insert_cardheader(header, commit, cardorder)
         except Exception:
             cw.util.print_ex()
 
@@ -963,7 +974,7 @@ class YadoDB(object):
         return headers
 
     @synclock(_lock)
-    def get_cardfpaths(self, scenariocard=True):
+    def get_cardfpaths(self, scenariocard: bool = True) -> List[str]:
         s = """
             SELECT
                 card.fpath
@@ -993,10 +1004,12 @@ class YadoDB(object):
         return seq
 
     @synclock(_lock)
-    def insert_adventurerheader(self, header, commit=True, adventurerorder=-1):
-        return self._insert_adventurerheader(header, commit, adventurerorder)
+    def insert_adventurerheader(self, header: "cw.header.AdventurerHeader", commit: bool = True,
+                                adventurerorder: int = -1) -> None:
+        self._insert_adventurerheader(header, commit, adventurerorder)
 
-    def _insert_adventurerheader(self, header, commit=True, adventurerorder=-1):
+    def _insert_adventurerheader(self, header: "cw.header.AdventurerHeader", commit: bool = True,
+                                 adventurerorder: int = -1) -> None:
         """データベースに冒険者を登録する。"""
         s = """
         INSERT OR REPLACE INTO adventurer(
@@ -1114,14 +1127,14 @@ class YadoDB(object):
             self.con.commit()
 
     @synclock(_lock)
-    def insert_adventurer(self, path, album, commit=True, adventurerorder=-1):
-        return self._insert_adventurer(path, album, commit, adventurerorder)
+    def insert_adventurer(self, path: str, album: bool, commit: bool = True, adventurerorder: int = -1) -> None:
+        self._insert_adventurer(path, album, commit, adventurerorder)
 
-    def _insert_adventurer(self, path, album, commit=True, adventurerorder=-1):
+    def _insert_adventurer(self, path: str, album: bool, commit: bool = True, adventurerorder: int = -1) -> None:
         try:
             header = cw.header.AdventurerHeader(fpath=path, album=album)
             header.fpath = path
-            return self._insert_adventurerheader(header, commit, adventurerorder)
+            self._insert_adventurerheader(header, commit, adventurerorder)
         except Exception:
             cw.util.print_ex()
 
@@ -1200,10 +1213,10 @@ class YadoDB(object):
         return self.get_adventurers(True)
 
     @synclock(_lock)
-    def insert_partyheader(self, header, commit=True, partyorder=-1):
-        return self._insert_partyheader(header, commit, partyorder)
+    def insert_partyheader(self, header: "cw.header.PartyHeader", commit: bool = True, partyorder: int = -1) -> None:
+        self._insert_partyheader(header, commit, partyorder)
 
-    def _insert_partyheader(self, header, commit=True, partyorder=-1):
+    def _insert_partyheader(self, header: "cw.header.PartyHeader", commit: bool = True, partyorder: int = -1) -> None:
         """データベースにパーティを登録する。"""
         s = """
         INSERT OR REPLACE INTO party(
@@ -1251,17 +1264,17 @@ class YadoDB(object):
             self.con.commit()
 
     @synclock(_lock)
-    def insert_party(self, path, commit=True, partyorder=-1):
-        return self._insert_party(path, commit, partyorder)
+    def insert_party(self, path: str, commit: bool = True, partyorder: int = -1) -> None:
+        self._insert_party(path, commit, partyorder)
 
-    def _insert_party(self, path, commit=True, partyorder=-1):
+    def _insert_party(self, path: str, commit: bool = True, partyorder: int = -1) -> None:
         try:
             # 新フォーマット(ディレクトリ)
             data = cw.data.xml2etree(path)
             e = data.find("Property")
             header = cw.header.PartyHeader(e)
             header.fpath = path
-            return self._insert_partyheader(header, commit, partyorder)
+            self._insert_partyheader(header, commit, partyorder)
         except Exception:
             cw.util.print_ex()
 
@@ -1295,10 +1308,10 @@ class YadoDB(object):
         return headers
 
     @synclock(_lock)
-    def insert_partyrecordheader(self, header, commit=True):
-        return self._insert_partyrecordheader(header, commit)
+    def insert_partyrecordheader(self, header: "cw.header.PartyRecordHeader", commit: bool = True) -> None:
+        self._insert_partyrecordheader(header, commit)
 
-    def _insert_partyrecordheader(self, header, commit=True):
+    def _insert_partyrecordheader(self, header: "cw.header.PartyRecordHeader", commit: bool = True) -> None:
         """データベースにパーティ記録を登録する。"""
         s = """
         INSERT OR REPLACE INTO partyrecord(
@@ -1340,13 +1353,13 @@ class YadoDB(object):
             self.con.commit()
 
     @synclock(_lock)
-    def insert_partyrecord(self, path, commit=True):
-        return self._insert_partyrecord(path, commit)
+    def insert_partyrecord(self, path: str, commit: bool = True) -> None:
+        self._insert_partyrecord(path, commit)
 
-    def _insert_partyrecord(self, path, commit=True):
+    def _insert_partyrecord(self, path: str, commit: bool = True) -> None:
         try:
             header = cw.header.PartyRecordHeader(fpath=path)
-            return self._insert_partyrecordheader(header, commit)
+            self._insert_partyrecordheader(header, commit)
         except Exception:
             cw.util.print_ex()
 
@@ -1367,10 +1380,10 @@ class YadoDB(object):
         return headers
 
     @synclock(_lock)
-    def insert_savedjpdcimageheader(self, header, commit=True):
-        return self._insert_savedjpdcimageheader(header, commit)
+    def insert_savedjpdcimageheader(self, header: "cw.header.SavedJPDCImageHeader", commit: bool = True) -> None:
+        self._insert_savedjpdcimageheader(header, commit)
 
-    def _insert_savedjpdcimageheader(self, header, commit=True):
+    def _insert_savedjpdcimageheader(self, header: "cw.header.SavedJPDCImageHeader", commit: bool = True) -> None:
         """データベースに保存されたJPDCイメージの情報を登録する。"""
         s = """
         INSERT OR REPLACE INTO savedjpdcimage(
@@ -1409,13 +1422,13 @@ class YadoDB(object):
             self.con.commit()
 
     @synclock(_lock)
-    def insert_savedjpdcimage(self, path, commit=True):
-        return self._insert_savedjpdcimage(path, commit)
+    def insert_savedjpdcimage(self, path: str, commit: bool = True) -> None:
+        self._insert_savedjpdcimage(path, commit)
 
-    def _insert_savedjpdcimage(self, path, commit=True):
+    def _insert_savedjpdcimage(self, path: str, commit: bool = True) -> None:
         try:
             header = cw.header.SavedJPDCImageHeader(fpath=path)
-            return self._insert_savedjpdcimageheader(header, commit)
+            self._insert_savedjpdcimageheader(header, commit)
         except Exception:
             cw.util.print_ex()
 

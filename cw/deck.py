@@ -52,7 +52,7 @@ class Deck(object):
         return seq
 
     def get_skillcards(self, ccard: "cw.character.Character",
-                       handcounts: Optional[Dict[cw.header.CardHeader, int]] = None):
+                       handcounts: Optional[Dict[cw.header.CardHeader, int]] = None) -> List[cw.header.CardHeader]:
         if handcounts is None:
             handcounts = {}
         seq = []

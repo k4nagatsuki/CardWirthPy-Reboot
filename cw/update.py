@@ -33,7 +33,7 @@ def update_files(dpath: str, rmname: str, permit: Optional[List[str]] = None) ->
             if e.tag != "UpdateFile":
                 continue
 
-            def check_targetpath(fpath):
+            def check_targetpath(fpath: str) -> bool:
                 fpath = os.path.normpath(fpath)
                 if os.path.isabs(fpath):
                     return False
@@ -95,7 +95,7 @@ def update_files(dpath: str, rmname: str, permit: Optional[List[str]] = None) ->
         cw.util.release_mutex()
 
 
-def main():
+def main() -> None:
     pass
 
 
