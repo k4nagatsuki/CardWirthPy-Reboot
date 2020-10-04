@@ -399,13 +399,11 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(func)
             dlg.Show()
 
-    @synclock(cw.debug.debugger.mutex)
     def close_debugger(self) -> None:
         """デバッガ閉じる。"""
         if self.debugger:
-            debugger = self.debugger
-            self.debugger = None
-            debugger.Close()
+            self.debugger.Close()
+            assert self.debugger is None
 
             def func() -> None:
                 cw.cwpy.event.waittime = 0
