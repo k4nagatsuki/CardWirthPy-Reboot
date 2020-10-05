@@ -7,27 +7,30 @@ import os
 import re
 import sys
 import time
+import types
 
 import cw
 
+from typing import Iterable, List, Literal, Optional, TextIO, Type, Iterator
 
 put_errorlog = ""
 
 
-class WriteError(io.RawIOBase):
+class WriteError(TextIO):
     def __init__(self):
-        self.f = None
+        self.f: Optional[TextIO] = None
         self._last_time = 0
         self._re_fpath = re.compile("^\\s*File\\s\"(.+?)\"", re.IGNORECASE)
         self._sep = os.sep
 
-    def _open(self):
+    def _open(self) -> None:
         if cw.quit_app:
             return
         global put_errorlog
         if not self.f:
             name = cw.exepath + ".log"
             self.f = open(name, "a", encoding="utf-8")
+            assert self.f is not None
             if 0 < self.tell():
                 self.f.write("\n")
                 self.f.write("-"*50)
@@ -56,58 +59,64 @@ class WriteError(io.RawIOBase):
         d = datetime.datetime.today()
         self.f.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
 
-    def close(self):
+    def close(self) -> None:
         if self.f:
-            return self.f.close()
+            self.f.close()
 
     @property
-    def closed(self):
+    def closed(self) -> bool:
         if self.f:
             return self.f.closed
         else:
             return True
 
-    def fileno(self):
-        if cw.quit_app:
-            return None
-        self._open()
-        return self.f.fileno()
-
-    def flush(self):
-        if self.f:
-            return self.f.flush()
-
-    def seek(self, offset, whence=io.SEEK_SET):
-        if cw.quit_app:
-            return
-        self._open()
-        return self.f.seek(offset, whence)
-
-    def seekable(self):
-        if cw.quit_app:
-            return False
-        self._open()
-        return self.f.seekable()
-
-    def tell(self):
+    def fileno(self) -> int:
         if cw.quit_app:
             return 0
         self._open()
-        return self.f.tell()
+        assert self.f is not None
+        return self.f.fileno()
 
-    def truncate(self, size=None):
+    def flush(self) -> None:
+        if self.f:
+            self.f.flush()
+
+    def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
         if cw.quit_app:
-            return
+            return 0
         self._open()
-        return self.f.truncate(size)
+        assert self.f is not None
+        return self.f.seek(offset, whence)
 
-    def writable(self):
+    def seekable(self) -> bool:
         if cw.quit_app:
             return False
         self._open()
+        assert self.f is not None
+        return self.f.seekable()
+
+    def tell(self) -> int:
+        if cw.quit_app:
+            return 0
+        self._open()
+        assert self.f is not None
+        return self.f.tell()
+
+    def truncate(self, size: Optional[int] = None) -> int:
+        if cw.quit_app:
+            return 0
+        self._open()
+        assert self.f is not None
+        return self.f.truncate(size)
+
+    def writable(self) -> bool:
+        if cw.quit_app:
+            return False
+        self._open()
+        assert self.f is not None
         return True
 
-    def writelines(self, lines):
+    def writelines(self, lines: Iterable[str]) -> None:
         if cw.quit_app:
             return
         if self.f and self._last_time + 1.0 <= time.process_time():
@@ -115,20 +124,21 @@ class WriteError(io.RawIOBase):
             self.f.write("\n")
             self._write_datetime()
         self._open()
-        r = self.f.writelines(lines)
+        assert self.f is not None
+        self.f.writelines(lines)
         self.f.flush()
         if sys.__stderr__:
             sys.__stderr__.writelines(lines)
         self._last_time = time.process_time()
-        return r
 
-    def write(self, b):
+    def write(self, b: str) -> int:
         if cw.quit_app:
-            return
+            return 0
         if self.f and self._last_time + 1.0 <= time.process_time():
             self.f.write("\n")
             self._write_datetime()
         self._open()
+        assert self.f is not None
         r = self.f.write(b)
         self.f.flush()
         if sys.__stderr__:
@@ -136,9 +146,42 @@ class WriteError(io.RawIOBase):
         self._last_time = time.process_time()
         return r
 
-    def __del__(self):
+    def isatty(self) -> bool:
+        if cw.quit_app:
+            return False
+        self._open()
+        assert self.f is not None
+        return self.f.isatty()
+
+    def readable(self) -> bool:
+        return False
+
+    def read(self, n: int = 0) -> str:
+        raise IOError()
+
+    def readline(self, limit: int = 0) -> str:
+        raise IOError()
+
+    def readlines(self, hint: int = 0) -> List[str]:
+        raise IOError()
+
+    def __del__(self) -> None:
         if self.f:
             del self.f
+
+    def __next__(self) -> str:
+        raise IOError()
+
+    def __iter__(self) -> Iterator[str]:
+        raise IOError()
+
+    def __enter__(self) -> TextIO:
+        return TextIO.__enter__(self)
+
+    def __exit__(self, t: Optional[Type[BaseException]], value: Optional[BaseException],
+                 traceback: Optional[types.TracebackType]) -> Literal[False]:
+        self.close()
+        return False
 
 
 if getattr(sys, 'frozen', False):
@@ -150,7 +193,7 @@ else:
 sys.setrecursionlimit(1073741824)
 
 
-def main():
+def main() -> None:
     if len(cw.SKIN_CONV_ARGS) > 0:
         os.chdir(os.path.dirname(sys.argv[0]) or '.')
     if sys.platform == "darwin":
