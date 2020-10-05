@@ -42,7 +42,7 @@ from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREV
 import cw
 
 import typing
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Type, Union
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, TextIO, Tuple, Type, Union
 
 if sys.platform == "win32":
     import win32api
@@ -1601,7 +1601,7 @@ def number_normalization(value: int, fromvalue: int, tovalue: int) -> int:
     return value
 
 
-def print_ex(file: Optional[io.IOBase] = None) -> None:
+def print_ex(file: Optional[TextIO] = None) -> None:
     """例外の内容を標準出力に書き足す。
     """
     if file is None:
