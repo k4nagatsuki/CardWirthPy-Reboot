@@ -944,8 +944,7 @@ def is_scenario(path: str) -> bool:
 def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str, str, str, int, int, str, int, int,
                                                         str, float, float, str, bytes, Optional[str]]],
                                          List[Tuple[bytes, "cw.image.ImageInfo", int]]]:
-    def imgbufs_to_result(summaryinfos: List[str, int, str, str, str, str, str, int, int, str, int, int, str, float,
-                                             float, str],
+    def imgbufs_to_result(summaryinfos: List[Union[str, int, float]],
                           imgbufs: List[Tuple[Optional[bytes], cw.image.ImageInfo, int]])\
             -> Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str, bytes,
                      Optional[str]]:
