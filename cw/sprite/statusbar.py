@@ -25,7 +25,14 @@ LAYER_DESC = 7
 
 class StatusBar(base.CWPySprite):
     def __init__(self) -> None:
+        self._init = False
+
+    def is_initialized(self):
+        return self._init
+
+    def init(self):
         base.CWPySprite.__init__(self)
+        self._init = True
         self.image = pygame.Surface(cw.s((632, 33))).convert()
         self.yadomoney = None
         self.partymoney = None
@@ -1439,7 +1446,7 @@ class DebuggerButton(StatusBarButton):
         image = cw.cwpy.rsrc.pygamedialogs["STATUS12"]
         name = "デバッガ"
         desc = "デバッガを表示します"
-        pushed = cw.cwpy.is_showingdebugger()
+        pushed = bool(cw.cwpy.is_showingdebugger())
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc,
                                  is_pushed=pushed, hotkey="F3")
         self.selectable_on_event = True
@@ -1448,7 +1455,7 @@ class DebuggerButton(StatusBarButton):
     def update(self, scr: pygame.Surface) -> None:
         self.update_selection()
 
-        self.is_pushed = cw.cwpy.is_showingdebugger()
+        self.is_pushed = bool(cw.cwpy.is_showingdebugger())
         if self.is_pushed:
             self.set_desc("デバッガを閉じます")
         else:

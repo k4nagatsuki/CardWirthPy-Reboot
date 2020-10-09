@@ -9,7 +9,7 @@ import threading
 
 import cw
 
-from typing import Callable, List, Tuple, Union, Optional
+from typing import Callable, List, Optional, TextIO, Tuple, Union
 
 VOID = 0
 INITIAL = 1
@@ -750,7 +750,7 @@ class Logger(threading.Thread):
         self.enable = enable
 
     def run(self) -> None:
-        f = None
+        f: Optional[TextIO] = None
         try:
             ret = '\n'
             lastwrite = time.process_time()

@@ -44,7 +44,7 @@ class CWScenario(object):
         self.summarypath = None
 
         # 互換性マーク
-        self.versionhint = None
+        self.versionhint = ("", "", False, False, False)
         self.hasmodeini = False
 
         if self.path == "":
@@ -98,6 +98,9 @@ class CWScenario(object):
 
     def write_errorlog(self, s: str) -> None:
         self.errorlog += s + "\n"
+
+    def is_yadodata(self) -> bool:
+        return False
 
     def load(self) -> None:
         """シナリオファイルのリストを読み込む。

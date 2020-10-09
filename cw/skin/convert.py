@@ -287,7 +287,7 @@ class Converter(threading.Thread):
     def _write_data(self, dpath: str, table: Dict[str, cw.data.CWPyElementTree]) -> None:
         for data in list(table.values()):
             data.fpath = cw.util.join_paths(dpath, cw.util.relpath(data.fpath, "Data/SkinBase/"))
-            data.write()
+            data.write_file()
 
     def find_skinname(self) -> str:
         if self.exe:
@@ -1150,7 +1150,7 @@ class Converter(threading.Thread):
 
             self.data.fpath = cw.util.join_paths(dpath, "Skin.xml")
 
-            self.data.write()
+            self.data.write_file()
 
             self._write_data(dpath, self.actioncard)
             self._write_data(dpath, self.gameover)
@@ -1467,7 +1467,7 @@ class Converter(threading.Thread):
                     data.edit("BgImages/BgImage[4]/Size", str(vsize[0]), "width")
                     data.edit("BgImages/BgImage[4]/Size", str(vsize[1]), "height")
 
-                data.write()
+                data.write_file()
 
             # 一部バリアントで「パーティ情報」のリソースが
             # "IMAGE_FATHER"から差し替えられているのに対応
@@ -1477,13 +1477,13 @@ class Converter(threading.Thread):
                     data = cw.data.xml2etree(fpath)
                     data.edit("MenuCards/MenuCard[8]/Property/ImagePath",
                               cw.util.join_paths("Resource/Image", partyinfo))
-                    data.write()
+                    data.write_file()
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Scenario/-4_Camp.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
                     data.edit("MenuCards/MenuCard[3]/Property/ImagePath",
                               cw.util.join_paths("Resource/Image", partyinfo))
-                    data.write()
+                    data.write_file()
 
             # 妖魔バリアントでAdventurersInn.bmpが
             # ForestofImages.bmpに差し替えられているのに対応
@@ -1492,17 +1492,17 @@ class Converter(threading.Thread):
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
                     data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths("Table", self.adventurersinn))
-                    data.write()
+                    data.write_file()
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/02_Yado2.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
                     data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths("Table", self.adventurersinn))
-                    data.write()
+                    data.write_file()
                 fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/03_YadoInitial.xml")
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
                     data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths("Table", self.adventurersinn))
-                    data.write()
+                    data.write_file()
 
             cw.fsync.sync()
             self.curnum = 100

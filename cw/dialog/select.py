@@ -1085,7 +1085,7 @@ class YadoSelect(MultiViewSelect):
                         self.TopLevelParent.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
                         shutil.copytree(path, newpath)
                         env = cw.util.join_paths(newpath, "Environment.xml")
-                        data.write(env)
+                        data.write_file(env)
                         cw.cwpy.play_sound("harvest")
                         cw.cwpy.setting.insert_yadoorder(os.path.basename(newpath))
                         self.update_list(newpath)

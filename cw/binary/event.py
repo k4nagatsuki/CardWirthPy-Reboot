@@ -5,7 +5,7 @@ from . import base
 
 import cw
 
-from typing import Union
+from typing import Optional, Sequence, Union
 
 
 class Event(base.CWBinaryBase):
@@ -25,7 +25,7 @@ class Event(base.CWBinaryBase):
         self.ignitions = [f.dword() for _cnt in range(ignitions_num)]
         self.keycodes = f.string(True)
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -51,8 +51,8 @@ class Event(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
-        contents = []
-        ignitions = []
+        contents: Sequence[cw.data.CWPyElement] = []
+        ignitions: List[int] = []
         keycodes = ""
 
         for e in data:

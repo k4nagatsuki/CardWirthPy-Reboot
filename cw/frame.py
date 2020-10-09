@@ -29,6 +29,7 @@ class Frame(wx.Frame):
 
         # 設定
         self._setting = cw.setting.Setting()
+        self._setting.init_settings()
         if self._setting.is_expanded:
             try:
                 cw.UP_WIN = float(self._setting.expandmode)
@@ -160,7 +161,7 @@ class Frame(wx.Frame):
             if not thr.daemon:
                 self.initialThreadCount += 1
         # CWPyサブスレッド
-        cw.cwpy = cw.thread.CWPy(self._setting, self)
+        cw.cwpy.init(self._setting, self)
         cw.cwpy.start()
         # データベースファイル更新をサブスレッドで実行
         folder = self._setting.get_scedir()
@@ -198,7 +199,7 @@ class Frame(wx.Frame):
 
         # レスポンスをよくするため、各ダイアログを事前に生成しておく
         def func(self: Frame) -> None:
-            if cw.cwpy.rsrc is None:
+            if not cw.cwpy.rsrc:
                 return
             rsrc = cw.cwpy.rsrc
 
@@ -782,8 +783,9 @@ class Frame(wx.Frame):
             else:
                 cw.cwpy.exec_func(cw.cwpy.load_party, header)
 
-            if cw.cwpy.is_showingdebugger():
-                func = cw.cwpy.frame.debugger.refresh_tools
+            debugger = cw.cwpy.is_showingdebugger()
+            if debugger:
+                func = debugger.refresh_tools
                 cw.cwpy.frame.exec_func(func)
 
         self.kill_dlg(dlg)

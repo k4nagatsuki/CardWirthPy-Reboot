@@ -58,7 +58,7 @@ else:
     filesystem_encoding = sys.getfilesystemencoding()
 
 # CWPyThread
-cwpy: Optional[thread.CWPy] = None
+cwpy = thread.CWPy()
 
 # ファイル出力スレッド
 fsync = util.FileSync()
@@ -234,13 +234,15 @@ _argparser.add_argument("--force-skin", argtype=str, nargs=1, default="", metava
 _argparser.add_argument("--debug-skin", argtype=bool, nargs=0,
                         helptext="スキンデバッグモードで起動します。")
 
-OPTIONS = _argparser.parse_args(sys.argv[1:])
-if OPTIONS.help:
+_options = _argparser.parse_args(sys.argv[1:])
+if not _options or _options.getbool("help"):
     _argparser.print_help()
     sys.exit(0)
 
-if OPTIONS.force_skin:
-    OPTIONS.skin = OPTIONS.force_skin
+OPTIONS = _options
+
+if OPTIONS.getstr("force_skin"):
+    OPTIONS.setstr("skin", OPTIONS.getstr("force_skin"))
 
 # 起動オプション(スキン自動生成元)
 SKIN_CONV_ARGS: List[str] = []

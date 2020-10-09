@@ -2513,7 +2513,7 @@ class YadoCreater(wx.Dialog):
                 cw.util.remove_emptydir(imgdir)
 
             self.data.is_eidted = True
-            self.data.write()
+            self.data.write_file()
 
     def _move_dir(self) -> None:
         name = self.textctrl.GetValue().strip()

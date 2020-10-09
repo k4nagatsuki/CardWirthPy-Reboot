@@ -5,6 +5,8 @@ from . import base
 
 import cw
 
+from typing import Optional
+
 
 class Package(base.CWBinaryBase):
     """widファイルの情報カードのデータ。
@@ -24,7 +26,7 @@ class Package(base.CWBinaryBase):
         events_num = f.dword()
         self.events = [event.SimpleEvent(self, f) for _cnt in range(events_num)]
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -47,7 +49,7 @@ class Package(base.CWBinaryBase):
 
         name = ""
         resid = 0
-        events = []
+        events: Optional[cw.data.CWPyElement] = None
 
         for e in data:
             if e.tag == "Property":
@@ -62,9 +64,12 @@ class Package(base.CWBinaryBase):
         f.write_dword(0)  # 不明
         f.write_string(name)
         f.write_dword(resid)
-        f.write_dword(len(events))
-        for evt in events:
-            event.SimpleEvent.unconv(f, evt)
+        if events is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(events))
+            for evt in events:
+                event.SimpleEvent.unconv(f, evt)
 
 
 def main() -> None:

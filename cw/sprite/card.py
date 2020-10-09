@@ -7,7 +7,7 @@ import cw
 from . import base
 from .. import character
 
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple, Union
 
 
 class CWPyCard(base.SelectableSprite):
@@ -24,10 +24,10 @@ class CWPyCard(base.SelectableSprite):
         self.debug_only = False
         self.old_status = status
         self.rect = cw.s(pygame.Rect(0, 0, 0, 0))
-        self._pos_noscale = None
+        self._pos_noscale: Optional[Tuple[int, int]] = None
         self._center_noscale = None
         # 前に表示中のカード
-        self.inusecardimg = None
+        self.inusecardimg: Optional[cw.sprite.background.InuseCardImage] = None
         # アニメ用フレーム数
         self.frame = 0
         # ズーム画像のリスト。(Surfaice, Rect)のタプル。
@@ -101,7 +101,7 @@ class CWPyCard(base.SelectableSprite):
     def get_selectedimage(self) -> pygame.Surface:
         return cw.imageretouch.to_negative_for_card(self.get_animeimage())
 
-    def set_alpha(self, alpha: int) -> None:
+    def set_alpha(self, alpha: Optional[int]) -> None:
         self.alpha = alpha
         for img, _rect in self.zoomimgs:
             img.set_alpha(alpha)
@@ -1015,7 +1015,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 
     def __init__(self, mcarddata: cw.data.CWPyElement, pos_noscale: Tuple[int, int] = (0, 0),
                  status: str = "hidden", addgroup: bool = True, index: int = 0,
-                 moveddata: Optional[Tuple[int, int]] = None) -> None:
+                 moveddata: Optional[Tuple[int, int, int, int]] = None) -> None:
         CWPyCard.__init__(self, status)
         self.zoomsize_noscale = (16, 22)
         self.index = index
@@ -1261,7 +1261,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 class FriendCard(CWPyCard, character.Friend):
     cardimg: cw.image.CharacterCardImage
 
-    def __init__(self, data: Optional[cw.data.CWPyElementTree] = None, index: int = 0) -> None:
+    def __init__(self, data: Union[cw.data.CWPyElement, cw.data.CWPyElementTree], index: int = 0) -> None:
         CWPyCard.__init__(self, "hidden")
         self.zoomsize_noscale = (32, 42)
         self.index = index

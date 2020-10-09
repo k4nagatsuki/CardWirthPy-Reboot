@@ -37,6 +37,7 @@ class SkinConversionDialog(wx.Dialog):
             use_copybase = True
         else:
             self.local = cw.setting.LocalSetting()
+            self.local.init()
 
             def get_local() -> cw.setting.LocalSetting:
                 return self.local
@@ -124,6 +125,7 @@ class SkinConversionDialog(wx.Dialog):
         else:
             e.clear()
         self.local = cw.setting.LocalSetting()
+        self.local.init()
         self.pane_draw.apply_localsettings(self.local)
         self.pane_font.apply_localsettings(self.local)
         cw.xmlcreater.create_localsettings(e, self.local)
@@ -176,6 +178,7 @@ class SkinConversionDialog(wx.Dialog):
                     setting = cw.cwpy.setting
                 else:
                     setting = cw.setting.Setting()
+                    setting.init_settings()
                 for skintype, _folder in setting.folderoftype:
                     if skintype == self.conv.skintype:
                         break  # 登録済み
@@ -310,6 +313,7 @@ class SkinEditDialog(wx.Dialog):
                 self.local = get_localsettings()
             else:
                 self.local = cw.setting.LocalSetting()
+                self.local.init()
                 self.local.load(e)
 
         self.warning = wx.StaticText(self, -1, "ここでの編集結果は、設定ダイアログでのOK・キャンセルの選択に関わらず即時に反映されます。")
@@ -387,11 +391,12 @@ class SkinEditDialog(wx.Dialog):
         else:
             element.clear()
         self.local = cw.setting.LocalSetting()
+        self.local.init()
         updatemessage, updatecurtain, updatefullscreen = self.pane_draw.apply_localsettings(self.local)
         updatefont = self.pane_font.apply_localsettings(self.local)
         cw.xmlcreater.create_localsettings(element, self.local)
 
-        e.write(skinpath)
+        e.write_file(skinpath)
 
         if cw.cwpy.setting.skindirname == self.skindirname:
             def func(local: cw.setting.LocalSetting, skinname: str, vocation120: bool, initialcash: int) -> None:

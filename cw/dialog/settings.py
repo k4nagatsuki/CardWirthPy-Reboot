@@ -259,8 +259,9 @@ class SimpleSettingsPanel(wx.Panel):
         # レベル調節
         apply_levelupparams(can_levelup)
 
-        if cw.cwpy.is_showingdebugger() and cw.cwpy.frame.debugger:
-            cw.cwpy.frame.debugger.refresh_tools()
+        debugger = cw.cwpy.is_showingdebugger()
+        if debugger:
+            debugger.refresh_tools()
 
         self.GetTopLevelParent().clear_applied()
 
@@ -396,7 +397,8 @@ class SettingsPanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             fpath = dlg.GetPath()
             try:
-                setting = cw.setting.Setting(init=False)
+                setting = cw.setting.Setting()
+                setting.init_settings(init=False)
                 self.apply(setting)
                 cw.xmlcreater.create_settings(setting, writeplayingdata=False, fpath=fpath)
             except Exception:
@@ -412,7 +414,8 @@ class SettingsPanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             fpath = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
             try:
-                setting = cw.setting.Setting(loadfile=fpath)
+                setting = cw.setting.Setting()
+                setting.init_settings(loadfile=fpath)
                 self.load(setting)
                 self.GetTopLevelParent().applied()
             except Exception:
@@ -855,8 +858,10 @@ class SettingsPanel(wx.Panel):
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
             cw.cwpy.exec_func(func)
 
-        if update and cw.cwpy.is_showingdebugger() and cw.cwpy.frame.debugger:
-            cw.cwpy.frame.debugger.refresh_tools()
+        if update:
+            debugger = cw.cwpy.is_showingdebugger()
+            if debugger:
+                debugger.refresh_tools()
 
         self.GetTopLevelParent().clear_applied()
 
@@ -1022,6 +1027,7 @@ class SkinPanel(wx.Panel):
 
     def _get_localsettings(self) -> cw.setting.LocalSetting:
         local = cw.setting.LocalSetting()
+        local.init()
         self.GetTopLevelParent().panel.pane_draw.apply_localsettings(local)
         self.GetTopLevelParent().panel.pane_font.apply_localsettings(local)
         return local
@@ -1114,7 +1120,7 @@ class SkinPanel(wx.Panel):
             fpath = cw.util.join_paths(dst, "Skin.xml")
             data = cw.data.xml2etree(fpath)
             data.edit("Property/Name", name + " - コピー")
-            data.write()
+            data.write_file()
             self.update_skins(os.path.basename(dst))
             self.TopLevelParent.SetCursor(wx.NullCursor)
             cw.cwpy.play_sound("harvest")
@@ -2193,6 +2199,7 @@ class DrawingSettingPanel(wx.Panel):
 
     def OnInitValue(self, event: wx.CommandEvent) -> None:
         local = cw.setting.LocalSetting()
+        local.init()
         self.init_values(None, local)
 
     def OnCopyBase(self, event: wx.CommandEvent) -> None:
@@ -3305,6 +3312,7 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColLabelValue(4, "斜体")
         self.type.SetColSize(4, cw.ppis(70))
         local = cw.setting.LocalSetting()
+        local.init()
         for i, name in enumerate(self.types):
             if name in self.msg_exfonttypes:
                 _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = local.msg_exfonts_init[name]
@@ -3767,10 +3775,12 @@ class FontSettingPanel(wx.Panel):
 
     def OnInitValue(self, event: wx.CommandEvent) -> None:
         local = cw.setting.LocalSetting()
+        local.init()
         self.init_values(None, local)
 
     def OnCopyBase(self, event: wx.CommandEvent) -> None:
         local = self._get_localsettings()
+        local.init()
         local.important_font = True
         self.load(None, local)
 

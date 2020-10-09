@@ -6,7 +6,7 @@ import wx
 
 import cw
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 
 # ------------------------------------------------------------------------------
@@ -360,8 +360,8 @@ class DebugLog(object):
         self.compstamp = []
         self.gossip = []
         self.jpdc_image = []
-        self.startdatetime = None
-        self.pausedtime = None
+        self.startdatetime: Optional[datetime.datetime] = None
+        self.pausedtime: Optional[float] = None
         self.flags = []
         self.steps = []
         self.variants = []
@@ -422,7 +422,7 @@ class DebugLog(object):
         """保存されていた状態変数値の削除情報を追加する。"""
         self.is_removevariables = True
 
-    def set_times(self, startdatetime: float, pausedtime: float) -> None:
+    def set_times(self, startdatetime: Optional[datetime.datetime], pausedtime: float) -> None:
         self.startdatetime = startdatetime
         self.pausedtime = pausedtime
 

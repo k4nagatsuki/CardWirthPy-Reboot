@@ -31,7 +31,7 @@ class Dice(object):
         else:
             return None
 
-    def shuffle(self, seq: Sequence[typing.Any]) -> Sequence[typing.Any]:
+    def shuffle(self, seq: List[typing.Any]) -> List[typing.Any]:
         seq2 = copy.copy(seq)
         random.shuffle(seq2)
         return seq2

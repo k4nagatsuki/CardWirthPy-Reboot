@@ -473,7 +473,7 @@ class TransferYadoDataDialog(wx.Dialog):
             self.transfer_card(fromyado, toyado, e, None, counter=counter)
             e.fpath = cw.util.join_paths(dstdir, cardtype, basename)
             e.fpath = cw.util.dupcheck_plus(e.fpath, yado=False)
-            e.write()
+            e.write_file()
             carddb.insert_card(e.fpath, commit=False, cardorder=i)
             basename2 = os.path.basename(e.fpath)
             if basename != basename2:
@@ -498,7 +498,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         # パーティデータの転送
         pdata.fpath = cw.util.join_paths(dstdir, "Party.xml")
-        pdata.write()
+        pdata.write_file()
         counter.num += 1
 
         wsl = os.path.splitext(header.fpath)[0] + ".wsl"
@@ -523,7 +523,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 if e.getbool("ImagePath", "inusecard", False):
                     e = e.find("ImagePath")
                     e.text = counter.imgpaths.get(e.text, e.text)
-            etree.write()
+            etree.write_file()
 
             fname = cw.util.join_paths(cw.tempdir, "ScenarioLog/Face/Log.xml")
             if os.path.isfile(fname):
@@ -538,7 +538,7 @@ class TransferYadoDataDialog(wx.Dialog):
                         # 新バージョン(複数イメージ対応後)
                         for e2 in e:
                             e2.text = counter.imgpaths.get(e2.text, e2.text)
-                etree.write()
+                etree.write_file()
 
             dname = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party")
             etree = None
@@ -548,7 +548,7 @@ class TransferYadoDataDialog(wx.Dialog):
                     break
             for e in etree.getfind("Property/Members"):
                 e.text = counter.membertable[e.text]
-            etree.write()
+            etree.write_file()
 
             dname = cw.util.join_paths(cw.tempdir, "ScenarioLog/Members")
             dname2 = cw.util.join_paths(cw.tempdir, "ScenarioLog/Members2")
@@ -586,7 +586,7 @@ class TransferYadoDataDialog(wx.Dialog):
                                    can_loaded_scaledimage=can_loaded_scaledimage)
             data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
             data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
-            data.write()
+            data.write_file()
             if yadodb:
                 yadodb.insert_adventurer(data.fpath, album=True, commit=False)
             counter.num += 1
@@ -615,7 +615,7 @@ class TransferYadoDataDialog(wx.Dialog):
             e.fpath = ""
             self.transfer_card(fromyado, toyado, cw.data.xml2etree(element=e), yadodb=None, counter=counter)
 
-        data.write()
+        data.write_file()
         if yadodb:
             yadodb.insert_adventurer(data.fpath, album=False, commit=False)
         if not overwrite:
@@ -644,7 +644,7 @@ class TransferYadoDataDialog(wx.Dialog):
         if data.fpath:
             data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
             data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
-            data.write()
+            data.write_file()
         if yadodb:
             yadodb.insert_card(data.fpath, commit=False)
             counter.num += 1
@@ -660,7 +660,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
             data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
             data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
-            data.write()
+            data.write_file()
             if yadodb:
                 yadodb.insert_partyrecord(data.fpath, commit=False)
             counter.num += 1
@@ -694,7 +694,7 @@ class TransferYadoDataDialog(wx.Dialog):
         data = cw.data.xml2etree(cw.util.join_paths(fromdir, "SavedJPDCImage.xml"))
         data.edit("Materials", header.dpath, "dpath")
         data.fpath = cw.util.join_paths(todir, "SavedJPDCImage.xml")
-        data.write()
+        data.write_file()
 
         if yadodb:
             yadodb.insert_savedjpdcimageheader(header, commit=False)
@@ -985,9 +985,9 @@ class _TransferThread(threading.Thread):
             yadodb.commit()
 
             if self.environment.is_edited:
-                self.environment.write()
+                self.environment.write_file()
             if self.skin_vars and self.skin_vars[0].is_edited:
-                self.skin_vars[0].write()
+                self.skin_vars[0].write_file()
         finally:
             yadodb.close()
 

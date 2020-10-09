@@ -5,20 +5,20 @@ from . import base
 
 import cw
 
-from typing import Union
+from typing import Dict, List, Optional, Sequence, Union
 
 
 class Content(base.CWBinaryBase):
     from . import event
 
-    def __init__(self, parent: Union["event.Event", "event.SimpleEvent"], f: "cw.binary.cwfile.CWFile",
-                 stratum: int) -> None:
+    def __init__(self, parent: Union["event.Event", "event.SimpleEvent", "Content"],
+                 f: "cw.binary.cwfile.CWFile", stratum: int, read: bool = True) -> None:
         base.CWBinaryBase.__init__(self, parent, f)
         self.xmltype = "Content"
 
-        self.children = []
+        self.children: List[Content] = []
 
-        if f is None:
+        if not read:
             return
 
         eventstack = []
@@ -56,7 +56,7 @@ class Content(base.CWBinaryBase):
                 if i+1 == len(eventstack):
                     e = self
                 else:
-                    e = Content(self, None, stratum)
+                    e = Content(self, f, stratum, read=False)
                 e._read_properties(f, tag, ctype, name, version)
                 for child in children:
                     e.children.append(child)
@@ -78,7 +78,7 @@ class Content(base.CWBinaryBase):
 
             self._read_properties(f, tag, ctype, name, version)
 
-    def _read_properties(self, f: "cw.binary.cwfile.CWFile", tag: str, ctype: str, name: str, version: str) -> None:
+    def _read_properties(self, f: "cw.binary.cwfile.CWFile", tag: str, ctype: str, name: str, version: int) -> None:
         from . import bgimage
         from . import dialog
         from . import effectmotion
@@ -93,7 +93,7 @@ class Content(base.CWBinaryBase):
         if 5 <= self.version:
             f.dword()
 
-        self.properties = {}
+        self.properties: Dict[str, Union[int, str]] = {}
 
         if self.tag == "Start" and self.type == "":
             pass
@@ -380,7 +380,7 @@ class Content(base.CWBinaryBase):
         else:
             raise ValueError(self.tag + ", " + self.type)
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is not None:
@@ -390,6 +390,7 @@ class Content(base.CWBinaryBase):
         child = self
         while True:
             child.data = cw.data.make_element(child.tag)
+            assert self.data is not None
             if child.type:
                 child.data.set("type", child.type)
             child.data.set("name", child.name)
@@ -453,23 +454,28 @@ class Content(base.CWBinaryBase):
     @staticmethod
     def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         if data.tag == "ContentsLine":
-            for child in data[:-1]:
+            e_slice = data[:-1]
+            assert isinstance(e_slice, list)
+            for child in e_slice:
                 Content._unconv_header(f, child)
                 f.write_dword(1 + 50000)
-            Content.unconv(f, data[-1])
-            for child in reversed(data[:-1]):
+            e_last = data[-1]
+            assert isinstance(e_last, cw.data.CWPyElement)
+            Content.unconv(f, e_last)
+            for child in reversed(e_slice):
                 Content._unconv_properties(f, child)
 
         else:
             Content._unconv_header(f, data)
 
-            children = ()
             for e in data:
                 if e.tag == "Contents":
-                    children = e
-            f.write_dword(len(children) + 50000)
-            for child in children:
-                Content.unconv(f, child)
+                    f.write_dword(len(e) + 50000)
+                    for child in e:
+                        Content.unconv(f, child)
+                    break
+            else:
+                f.write_dword(0 + 50000)
 
             Content._unconv_properties(f, data)
 
@@ -527,12 +533,13 @@ class Content(base.CWBinaryBase):
             if e_imgpaths is not None:
                 if 1 < len(e_imgpaths):
                     f.check_wsnversion("1", "複合イメージ")
-                base.CWBinaryBase.check_imgpath(f, e_imgpaths.find("ImagePath"), "TopLeft")
-                imgpath2 = e_imgpaths.gettext("ImagePath", "")
-                if imgpath2:
-                    imgpath = base.CWBinaryBase.materialpath(imgpath2)
-                else:
-                    imgpath = ""
+                imgpath = ""
+                e_imgpath = e_imgpaths.find("ImagePath")
+                if e_imgpath is not None:
+                    base.CWBinaryBase.check_imgpath(f, e_imgpath, "TopLeft")
+                    imgpath2 = e_imgpaths.gettext("ImagePath", "")
+                    if imgpath2:
+                        imgpath = base.CWBinaryBase.materialpath(imgpath2)
             else:
                 base.CWBinaryBase.check_imgpath(f, data, "TopLeft")
                 imgpath = data.get("path")
@@ -544,14 +551,13 @@ class Content(base.CWBinaryBase):
         elif tag == "Change" and ctype == "BgImage":
             if data.get("transition", "Default") != "Default":
                 f.check_wsnversion("", "背景切替方式の指定")
-            bgimgs = []
-            for e in data:
-                if e.tag == "BgImages":
-                    bgimgs = e
-                    break
-            f.write_dword(len(bgimgs))
-            for bgimg in bgimgs:
-                bgimage.BgImage.unconv(f, bgimg)
+            bgimgs = data.find("BgImages")
+            if bgimgs is None:
+                f.write_dword(0)
+            else:
+                f.write_dword(len(bgimgs))
+                for bgimg in bgimgs:
+                    bgimage.BgImage.unconv(f, bgimg)
         elif tag == "Play" and ctype == "Sound":
             f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
             f.check_soundoptions(data)
@@ -574,14 +580,13 @@ class Content(base.CWBinaryBase):
             f.write_string(base.CWBinaryBase.materialpath(data.get("sound")))
             f.write_byte(base.CWBinaryBase.unconv_card_visualeffect(data.get("visual")))
             f.check_soundoptions(data)
-            motions = []
-            for e in data:
-                if e.tag == "Motions":
-                    motions = e
-                    break
-            f.write_dword(len(motions))
-            for motion in motions:
-                effectmotion.EffectMotion.unconv(f, motion)
+            motions = data.find("Motions")
+            if motions is None:
+                f.write_dword(0)
+            else:
+                f.write_dword(len(motions))
+                for motion in motions:
+                    effectmotion.EffectMotion.unconv(f, motion)
         elif tag == "Branch" and ctype == "Select":
             f.write_bool(cw.util.str2bool(data.get("targetall")))
             if "method" in data.attrib:
@@ -725,7 +730,7 @@ class Content(base.CWBinaryBase):
             targetm = data.get("targetm")
             f.write_byte(base.CWBinaryBase.unconv_target_member_dialog(targetm, f))
             if targetm == "Valued":
-                coupons = []
+                coupons: List[cw.data.CWPyElement] = []
                 initvalue = data.get("initialValue", "0")
                 coupons.append(cw.data.make_element("Coupon", "", attrs={"value": initvalue}))
                 for e in data:
@@ -733,16 +738,15 @@ class Content(base.CWBinaryBase):
                         for e_coupon in e:
                             coupons.append(e_coupon)
                 f.write_dword(len(coupons))
-                for coupon in coupons:
-                    cw.binary.coupon.Coupon.unconv(f, coupon)
-            dialogs = []
-            for e in data:
-                if e.tag == "Dialogs":
-                    dialogs = e
-                    break
-            f.write_dword(len(dialogs))
-            for dialog in dialogs:
-                cw.binary.dialog.Dialog.unconv(f, dialog)
+                for e_coupon in coupons:
+                    cw.binary.coupon.Coupon.unconv(f, e_coupon)
+            dialogs = data.find("Dialogs")
+            if dialogs is None:
+                f.write_dword(0)
+            else:
+                f.write_dword(len(e))
+                for e_dialog in e:
+                    cw.binary.dialog.Dialog.unconv(f, e_dialog)
         elif tag == "Set" and ctype == "StepUp":
             f.write_string(data.get("step"))
         elif tag == "Set" and ctype == "StepDown":
@@ -834,19 +838,22 @@ class Content(base.CWBinaryBase):
             f.check_version(1.30, "ランダム選択コンテント")
             if data.getbool(".", "invert", False):
                 f.check_wsnversion("4", "判定条件の反転")
-            f.write_byte(base.CWBinaryBase.unconv_castranges(data.find("CastRanges")))
-            levelmin = data.get("levelmin", None)
-            levelmax = data.get("levelmax", None)
+            e_range = data.find("CastRanges")
+            if e_range is None:
+                raise ValueError(tag + ", " + ctype + ": CastRanges is not found.")
+            f.write_byte(base.CWBinaryBase.unconv_castranges(e_range))
+            levelmin = data.get("levelmin", "None")
+            levelmax = data.get("levelmax", "None")
             status = data.get("status", "None")
             style = 0
-            if not (levelmin is None and levelmax is None):
+            if not (levelmin == "None" or levelmax == "None"):
                 style |= 0b01
             if status != "None":
                 style |= 0b10
             f.write_byte(style)
             if (style & 0b01) != 0:
-                f.write_dword(levelmin)
-                f.write_dword(levelmax)
+                f.write_dword(int(levelmin))
+                f.write_dword(int(levelmax))
             if (style & 0b10) != 0:
                 f.write_byte(base.CWBinaryBase.unconv_statustype(status, f))
         elif tag == "Branch" and ctype == "KeyCode":  # 1.50

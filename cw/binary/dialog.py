@@ -5,6 +5,8 @@ from . import base
 
 import cw
 
+from typing import Optional
+
 
 class Dialog(base.CWBinaryBase):
     """台詞データ"""
@@ -15,7 +17,7 @@ class Dialog(base.CWBinaryBase):
         self.coupons = f.string(True)
         self.text = f.string(True)
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> cw.data.CWPyElement:
         if self.data is None:

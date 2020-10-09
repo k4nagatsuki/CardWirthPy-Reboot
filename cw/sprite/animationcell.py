@@ -146,7 +146,7 @@ class _AnimationPart(object):
         if data.tag == "Animations":
             # グループ
             self.type = "Group"
-            self.parallel = data.getattr(".", "parallel", False)  # 並列に実行するか
+            self.parallel = data.getbool(".", "parallel", False)  # 並列に実行するか
             self.parts = []
             startframe = self.startframe
             for a in data.find("."):

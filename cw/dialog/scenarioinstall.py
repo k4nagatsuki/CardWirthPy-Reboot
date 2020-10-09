@@ -839,7 +839,7 @@ def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
                 if normpath2 == normpath:
                     cw.cwpy.ydata.changed()
                     etree.edit("Property/WsnPath", dst)
-                    etree.write()
+                    etree.write_file()
 
                     if wsl.startswith(cw.cwpy.yadodir):
                         wsl = wsl.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)

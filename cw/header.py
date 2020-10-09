@@ -43,7 +43,7 @@ def to_imgpaths(dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> List[
 class CardHeader(object):
     def __init__(self, data: Optional[cw.data.CWPyElement] = None, owner: Optional["cw.character.Character"] = None,
                  carddata: Optional[cw.data.CWPyElement] = None, from_scenario: bool = False, scedir: str = "",
-                 put_db: bool = False, dbrec: Optional[sqlite3.Row] = None, imgdbrec: Optional[sqlite3.Row] = None,
+                 put_db: bool = False, dbrec: Optional[sqlite3.Row] = None, imgdbrec: Optional[sqlite3.Cursor] = None,
                  dbowner: str = "STOREHOUSE", bgtype: str = "") -> None:
         self.ref_original = weakref.ref(self)
         self.order = -1
@@ -303,7 +303,7 @@ class CardHeader(object):
         else:
             return None
 
-    def set_owner(self, owner: str) -> None:
+    def set_owner(self, owner: Optional[Union["cw.character.Character", str]]) -> None:
         if isinstance(owner, cw.character.Character):
             self._owner = weakref.ref(owner)
         else:
@@ -399,7 +399,7 @@ class CardHeader(object):
             owner = self.get_owner()
         return cw.effectmotion.get_vocation_val(owner, self.vocation, enhance_act=enhance_act)
 
-    def set_testaptitude(self, test_aptitude: "cw.character.Character") -> None:
+    def set_testaptitude(self, test_aptitude: Optional["cw.character.Character"]) -> None:
         """ソート用の適性値を計算する。
         Noneを指定する事でリセットする。
         """
@@ -1400,31 +1400,31 @@ assert Gene([0, 1, 1, 0, 0, 0, 0, 0, 0, 1], 3).rotate_mother().get_str() == "010
 
 
 class ScenarioHeader(object):
-    def __init__(self, dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> None:
-        self.dpath = dbrec["dpath"]
-        self.type = dbrec["type"]
-        self.fname = dbrec["fname"]
-        self.name = dbrec["name"]
-        self.author = dbrec["author"]
-        self.desc = dbrec["desc"]
-        self.skintype = dbrec["skintype"]
-        self.levelmin = dbrec["levelmin"]
-        self.levelmax = dbrec["levelmax"]
-        self.coupons = dbrec["coupons"]
-        self.couponsnum = dbrec["couponsnum"]
-        self.startid = dbrec["startid"]
-        self.tags = dbrec["tags"]
-        self.ctime = dbrec["ctime"]
-        self.mtime = dbrec["mtime"]
+    def __init__(self, dbrec: Union[sqlite3.Row, Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]]],
+                 imgdbrec: Union[Optional[sqlite3.Cursor], List[Dict[str, Union[int, str, Optional[bytes]]]]]) -> None:
+        self.dpath: str = dbrec["dpath"]
+        self.type: int = dbrec["type"]
+        self.fname: str = dbrec["fname"]
+        self.name: str = dbrec["name"]
+        self.author: str = dbrec["author"]
+        self.desc: str = dbrec["desc"]
+        self.skintype: str = dbrec["skintype"]
+        self.levelmin: int = dbrec["levelmin"]
+        self.levelmax: int = dbrec["levelmax"]
+        self.coupons: str = dbrec["coupons"]
+        self.couponsnum: int = dbrec["couponsnum"]
+        self.startid: int = dbrec["startid"]
+        self.tags: str = dbrec["tags"]
+        self.ctime: float = dbrec["ctime"]
+        self.mtime: float = dbrec["mtime"]
         # ""の場合はWsn.1以前
-        self.wsnversion = dbrec["wsnversion"]
-        if not self.wsnversion:
-            self.wsnversion = ""
+        wsnversion = dbrec["wsnversion"]
+        self.wsnversion = wsnversion if wsnversion is not None else ""
         self.images = {1: []}
         self.imgpaths = []
 
-        image = dbrec["image"]
-        imgpath = dbrec["imgpath"]
+        image: bytes = dbrec["image"]
+        imgpath: str = dbrec["imgpath"]
         if image or imgpath:
             self.images[1] = [image]
             self.imgpaths.append(cw.image.ImageInfo(path=imgpath if imgpath else ""))
@@ -1611,7 +1611,7 @@ class PartyHeader(object):
             self.money = data.getint("Money", 0)
             self.members = [e.text for e in data.getfind("Members") if e.text]
 
-        self.data = None
+        self.data: Optional[cw.data.Party] = None
         self._memberprops = None
         self._membernames = None
         self._memberdescs = None
@@ -1713,7 +1713,7 @@ class PartyHeader(object):
 class PartyRecordHeader(object):
     def __init__(self, fpath: Optional[str] = None,
                  dbrec: Optional[sqlite3.Row] = None,
-                 partyrecord: Optional["PartyRecordHeader"] = None) -> None:
+                 partyrecord: Optional[cw.thread.StoredParty] = None) -> None:
         """
         fpath: ファイルから生成する場合はXMLファイルパス。
         dbrec: データベースから生成する場合は対象レコード。
@@ -1910,7 +1910,7 @@ class SavedJPDCImageHeader(object):
             element.append(mates)
             # ファイル書き込み
             etree = cw.data.xml2etree(element=element)
-            etree.write(fpath)
+            etree.write_file(fpath)
             cw.cwpy.ydata.deletedpaths.discard(fpath)
             header.fpath = fpath
 

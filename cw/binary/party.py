@@ -11,7 +11,7 @@ from . import album
 
 import cw
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 
 class Party(base.CWBinaryBase):
@@ -46,7 +46,7 @@ class Party(base.CWBinaryBase):
             for member in cw.util.decodetextlist(f.string(True)):
                 if member != "":
                     self.memberslist.append(util.check_filename(member))
-            dataversion_str = f.string()
+            _dataversion_str = f.string()
             _scenarioname = f.string()  # プレイ中のシナリオ名
             f.image()  # 宿の埋め込み画像は破棄
             self.name = ""
@@ -58,7 +58,7 @@ class Party(base.CWBinaryBase):
         # データの取得に失敗したカード。変換時に追加する
         self.errorcards = []
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -358,7 +358,7 @@ class PartyMembers(base.CWBinaryBase):
         friendcards = ""
         infocards = ""
         music = ""
-        bgimgs = []
+        bgimgs: Sequence[cw.data.CWPyElement] = []
 
         for member in party.members:
             adventurers.append(member.find("."))

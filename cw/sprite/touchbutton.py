@@ -177,7 +177,7 @@ class TouchButton(base.SelectableSprite):
         cw.cwpy.statusbar.hide_touchbuttons()
 
 
-class _PointableTile(TouchButton):
+class PointableTile(TouchButton):
     """
     通常の選択は発生せず、マウスポインタが合った時に
     self.is_pointedがTrueになるタイル。
@@ -232,12 +232,12 @@ def _calc_singlelinetileheight() -> int:
     return th
 
 
-class SwitchSpriteTile(_PointableTile):
+class SwitchSpriteTile(PointableTile):
     """
     画面上のスプライトを順番に選択するタイル。
     """
     def __init__(self, icon: pygame.Surface, move_count: int, width: int = 0) -> None:
-        _PointableTile.__init__(self, icon, "", "", "", lambda: None, can_selectsprite, width=width)
+        PointableTile.__init__(self, icon, "", "", "", lambda: None, can_selectsprite, width=width)
         self.move_count = move_count
 
     def update_scale(self) -> None:
@@ -274,13 +274,13 @@ class SwitchSpriteTile(_PointableTile):
             cw.cwpy.statusbar.update_tiles()
 
 
-class SimplePointableTile(_PointableTile):
+class SimplePointableTile(PointableTile):
     """
     選択されたスプライトのクリックイベントを発生させるタイル。
     """
     def __init__(self, icon: pygame.Surface, name: str, func: Callable[[], None], is_enabled: Callable[[], bool],
                  width: int = 0) -> None:
-        _PointableTile.__init__(self, icon, name, "", "", func, is_enabled, width=width)
+        PointableTile.__init__(self, icon, name, "", "", func, is_enabled, width=width)
 
     def update_scale(self) -> None:
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]

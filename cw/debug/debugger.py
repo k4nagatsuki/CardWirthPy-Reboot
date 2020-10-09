@@ -1858,7 +1858,7 @@ class Debugger(wx.Frame):
                         enabled[self.mi_editor.GetId()] = (self.mi_editor, self.tl_editor, True)
 
                 if (not battle or not battle_is_running) and not is_runningevent and\
-                        (is_playingscenario or cw.OPTIONS.debug_skin):
+                        (is_playingscenario or cw.OPTIONS.getbool("debug_skin")):
                     enabled[self.mi_update.GetId()] = (self.mi_update, self.tl_update, True)
 
                 step = bool((event_paused or
@@ -2097,7 +2097,7 @@ class VariableListCtrl(wx.ListCtrl):
                 cw.util.sort_by_attr(seq, "name")
                 vlist.extend(map(lambda a: (a, local, editable), seq))
 
-            if cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin:
+            if cw.cwpy.is_playingscenario() or cw.OPTIONS.getbool("debug_skin"):
                 if event:
                     extend(event, True, editable)
                 if cw.cwpy.ydata:
@@ -2339,7 +2339,7 @@ class EventView(wx.ScrolledWindow):
                 break
 
     def enable_eventview(self) -> bool:
-        return cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin
+        return cw.cwpy.is_playingscenario() or cw.OPTIONS.getbool("debug_skin")
 
     def get_item(self, pos: Tuple[int, int]) -> Optional["EventViewItem"]:
         index = self.get_index(pos)
@@ -2790,7 +2790,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
             self.Parent.view_tree.set_event(evt, selection=cur_content)
 
     def enable_eventview(self) -> bool:
-        return cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin
+        return cw.cwpy.is_playingscenario() or cw.OPTIONS.getbool("debug_skin")
 
     def refresh_stackinfo(self) -> None:
         assert cw.cwpy != threading.currentThread()

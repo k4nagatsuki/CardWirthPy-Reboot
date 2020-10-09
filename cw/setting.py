@@ -105,6 +105,9 @@ class LocalSetting(object):
 
     def __init__(self) -> None:
         """スキンで上書き可能な設定。"""
+        pass
+
+    def init(self) -> None:
         self.important_draw = False
         self.important_draw_init = self.important_draw
         self.important_font = False
@@ -329,23 +332,23 @@ class LocalSetting(object):
 
 
 class Setting(object):
-    def __init__(self, loadfile: Optional[str] = None, init: bool = True) -> None:
+    def __init__(self) -> None:
         # フレームレート
         self.fps = 60
         # 1frame分のmillseconds
         self.frametime = 1000 // self.fps
-        # Settings
-        self.init_settings(loadfile, init=init)
+
+        self.skin_local = LocalSetting()
+        self.local = LocalSetting()
 
     def init_settings(self, loadfile: Optional[str] = None, init: bool = True) -> None:
         path = cw.util.join_paths("Data/SkinBase/Skin.xml")
         basedata = cw.data.xml2etree(path)
 
-        self.skin_local = LocalSetting()
+        self.skin_local.init()
+        self.local.init()
 
         # "Settings.xml"がなかったら新しく作る
-        self.local = LocalSetting()
-
         self.show_advancedsettings = False
         self.show_advancedsettings_init = self.show_advancedsettings
         self.editor = "cwxeditor"
@@ -771,10 +774,10 @@ class Setting(object):
         self.debug = data.getbool("DebugMode", self.debug_init)
         self.debug_saved = self.debug
         if not loadfile:
-            if cw.OPTIONS.debug:
+            if cw.OPTIONS.getbool("debug"):
                 # 強制デバッグモード起動
                 self.debug = True
-            cw.OPTIONS.debug = False
+            cw.OPTIONS.setbool("debug", False)
         # シナリオの終了時にデバッグ情報を表示する
         self.show_debuglogdialog = data.getbool("ShowDebugLogDialog", self.show_debuglogdialog_init)
         # シナリオのプレイ時間を記録する(隠しオプション)
@@ -1154,8 +1157,8 @@ class Setting(object):
                 self.vol_bgm_midi = self.vol_bgm * self.vol_bgm_midi
 
     def init_skin(self, basedata: Optional[cw.data.CWPyElementTree] = None) -> None:
-        optskin = cw.OPTIONS.skin
-        cw.OPTIONS.skin = ""
+        optskin = cw.OPTIONS.getstr("skin")
+        cw.OPTIONS.setstr("skin", "")
         if optskin:
             # 起動オプションで差し替え
             skinpath = cw.util.join_paths("Data/Skin", optskin, "Skin.xml")
@@ -1386,7 +1389,7 @@ class Setting(object):
                             events.clear()
                             updatemcards = True
                         if updatemcards:
-                            e.write()
+                            e.write_file()
 
             if skinversion <= 6:
                 # dataVersion=6までは標準混乱カードの効果が
@@ -1409,7 +1412,7 @@ class Setting(object):
                 resist = e.getint("Property/Enhance", "resist", -10)
                 if resist == -5:
                     e.edit("Property/Enhance", "-10", "resist")
-                e.write()
+                e.write_file()
 
             if skinversion <= 8:
                 # dataVersion=8までは`03_YadoInitial.xml`
@@ -1440,7 +1443,7 @@ class Setting(object):
                         e.edit("MenuCards/MenuCard[1]/Property/Location", "150", "top")
                         e.edit("MenuCards/MenuCard[2]/Property/Location", "318", "left")
                         e.edit("MenuCards/MenuCard[2]/Property/Location", "150", "top")
-                        e.write()
+                        e.write_file()
 
                 fpath1 = "Data/SkinBase/Resource/Xml/Yado/03_YadoInitial.xml"
                 fpath2 = cw.util.join_paths(self.skindir, "Resource/Xml/Yado/03_YadoInitial.xml")
@@ -1481,7 +1484,7 @@ class Setting(object):
                         if e_event is not None:
                             e.remove(".", e.find("Events"))
                             e.append(".", e_event)
-                        e.write()
+                        e.write_file()
 
             if skinversion <= 9:
                 fpath1 = "Data/SkinBase/Resource/Xml/Animation/Opening.xml"
@@ -1507,7 +1510,7 @@ class Setting(object):
 
             if update:
                 data.edit(".", "12", "dataVersion")
-                data.write()
+                data.write_file()
 
             return data
 
@@ -1728,7 +1731,17 @@ class _MsgDict(dict):
 
 
 class Resource(object):
-    def __init__(self, setting: Setting) -> None:
+    def __init__(self, setting: Optional[Setting]) -> None:
+        if setting:
+            self.init(setting)
+        else:
+            self._init = False
+
+    def __bool__(self) -> bool:
+        return self._init
+
+    def init(self, setting: Setting):
+        self._init = True
         self.setting = weakref.ref(setting)
         # 現在選択しているスキンのディレクトリ
         self.skindir = setting.skindir
@@ -1814,6 +1827,7 @@ class Resource(object):
                 font = self.fonts[key]
                 if isinstance(font, cw.imageretouch.Font):
                     font.dispose()
+        self._init = False
 
     @property
     def cardnamecolorborder(self) -> int:
@@ -2986,7 +3000,7 @@ SIZE_RESOURCES = {
 }
 
 
-def get_resourcesize(path: str) -> Optional[Tuple[int, int]]:
+def get_resourcesize(path: str) -> Tuple[int, int]:
     """指定されたリソースの標準サイズを返す。"""
     dpath = os.path.basename(os.path.dirname(path))
     fpath = os.path.splitext(os.path.basename(path))[0]
@@ -2994,7 +3008,7 @@ def get_resourcesize(path: str) -> Optional[Tuple[int, int]]:
     if key in SIZE_RESOURCES:
         return SIZE_RESOURCES[key]
     else:
-        return None
+        assert False
 
 
 # Data/Debuggerとcwxeditor/resource内にあるファイルとの対応表
@@ -3299,7 +3313,7 @@ class RecentHistory(object):
         else:
             self.data = cw.data.CWPyElementTree(element=cw.data.make_element("RecentHistory", ""))
             self.data.fpath = fpath
-            self.data.write()
+            self.data.write_file()
 
         # キャッシュ履歴を読み込み、
         # キャシュ元とキャッシュ本体が実在するものだけリストに追加する
@@ -3369,7 +3383,7 @@ class RecentHistory(object):
                 e_sce.append(e)
             data.append(e_sce)
 
-        self.data.write()
+        self.data.write_file()
 
     def set_limit(self, value: int) -> None:
         """
@@ -3559,6 +3573,8 @@ class ScenarioCompatibilityTable(object):
 
     def __init__(self) -> None:
         self.table = {}
+
+    def init(self) -> None:
         if os.path.isfile("Data/Compatibility.xml"):
             data = cw.data.xml2element(path="Data/Compatibility.xml")
             for e in data:
@@ -3576,7 +3592,7 @@ class ScenarioCompatibilityTable(object):
                     self.table[key] = (e.text, zindexmode, vanishmembercancellation, gossiprestoration,
                                        compstamprestoration)
 
-    def get_versionhint(self, fpath: Optional[str] = None, filedata: Optional[bytes] = None) -> Optional[str]:
+    def get_versionhint(self, fpath: Optional[str] = None, filedata: Optional[bytes] = None) -> Tuple[str, str, bool, bool, bool]:
         """fpathのファイル内容またはfiledataから、
         本来そのファイルが再生されるべきCardWirthの
         バージョンを取得する。
@@ -3586,7 +3602,7 @@ class ScenarioCompatibilityTable(object):
         else:
             key = cw.util.get_md5(fpath)
 
-        return self.table.get(key, None)
+        return self.table.get(key, ("", "", False, False, False))
 
     def lessthan(self, versionhint: str, currentversion: Tuple[str, str, bool, bool, bool]) -> bool:
         """currentversionがversionhint以下であればTrueを返す。"""
@@ -3670,13 +3686,11 @@ class ScenarioCompatibilityTable(object):
 
         return (engine, zindexmode, vanishmembercancellation, gossiprestration, compstamprestration)
 
-    def from_basehint(self, basehint: str) -> Optional[Tuple[str, str, bool, bool, bool]]:
+    def from_basehint(self, basehint: str) -> Tuple[str, str, bool, bool, bool]:
         """basehintから複合情報を生成する。"""
-        if not basehint:
-            return None
         return (basehint, "", False, False, False)
 
-    def to_basehint(self, versionhint: Optional[str]) -> str:
+    def to_basehint(self, versionhint: Tuple[str, str, bool, bool, bool]) -> str:
         """複合情報versionhintから最も基本的な情報を取り出す。"""
         if versionhint:
             return versionhint[0] if versionhint[0] else ""

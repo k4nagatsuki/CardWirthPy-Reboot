@@ -26,7 +26,14 @@ BG_PC = 3
 
 class BackGround(base.CWPySprite):
     def __init__(self) -> None:
+        self._init = False
+
+    def is_initialized(self):
+        return self._init
+
+    def init(self):
         base.CWPySprite.__init__(self)
+        self._init = True
         self.bgs = []
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
@@ -297,7 +304,7 @@ class BackGround(base.CWPySprite):
         self._force_noinhrt = True
         self.pc_cache.clear()
 
-    def load(self, elements: cw.data.CWPyElement, doanime: bool = True, ttype: Tuple[str, str] = ("Default", "Default"),
+    def load(self, elements: Iterable[cw.data.CWPyElement], doanime: bool = True, ttype: Tuple[str, str] = ("Default", "Default"),
              bginhrt: bool = True, nocheckvisible: bool = False, redraw: bool = True) -> None:
         """背景画面を構成する。
         elements: BgImageElementのリスト。
@@ -1737,7 +1744,7 @@ class ClickableSprite(base.SelectableSprite):
 
 
 class NumberOfCards(base.CWPySprite):
-    def __init__(self, pcard: "cw.sprite.card.PlayerCard", cardtype: str,
+    def __init__(self, pcard: "cw.sprite.card.PlayerCard", cardtype: int,
                  spritegrp: pygame.sprite.LayeredDirty) -> None:
         """カード所持枚数を表示するスプライト。
         pcard: カード所持者。

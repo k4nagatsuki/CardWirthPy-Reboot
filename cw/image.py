@@ -263,8 +263,8 @@ class CardImage(Image):
         self.scedir = scedir
 
         self.use_excache = False
-        self.paths_upd = None
-        self.can_loaded_scaledimage_upd = None
+        self.paths_upd: Optional[List[cw.image.ImageInfo]] = None
+        self.can_loaded_scaledimage_upd: Optional[List[bool]] = None
 
         self.update_scale()
 
@@ -915,7 +915,7 @@ class CharacterCardImage(CardImage):
                  pos_noscale: Tuple[int, int] = (0, 0), can_loaded_scaledimage: bool = False,
                  is_scenariocard: bool = False, scedir: str = "", is_override_name: bool = False,
                  override_name: str = "", is_override_image: bool = False,
-                 override_images: Optional[List[List[ImageInfo]]] = None) -> None:
+                 override_images: Optional[Tuple[List[ImageInfo], List[bool]]] = None) -> None:
         if override_images is None:
             override_images = []
         self.ccard = ccard
@@ -929,7 +929,7 @@ class CharacterCardImage(CardImage):
         self.is_scenariocard = is_scenariocard
         self.image_mtime = {}
         self.use_excache = False
-        self.override_images_upd = None
+        self.override_images_upd: Optional[Tuple[List[ImageInfo], List[bool]]] = None
         self.paths_upd = None
         self.can_loaded_scaledimage_upd = None
         self.scedir = scedir

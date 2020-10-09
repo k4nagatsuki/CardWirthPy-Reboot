@@ -1310,8 +1310,20 @@ def cmp(a: Optional[Union[Tuple[int, str], int]], b: Optional[Union[Tuple[int, s
     return 0
 
 
-def sorted_by_attr(seq: List[Union[Optional[object], int, float, str]],
-                   *attr) -> List[Union[Optional[object], int, float, str]]:
+@typing.overload
+def sorted_by_attr(seq: Iterable[int], *attr) -> Iterable[int]: ...
+
+@typing.overload
+def sorted_by_attr(seq: Iterable[float], *attr) -> Iterable[float]: ...
+
+@typing.overload
+def sorted_by_attr(seq: Iterable[str], *attr) -> Iterable[str]: ...
+
+@typing.overload
+def sorted_by_attr(seq: Iterable[Tuple[str, bool]], *attr) -> Iterable[Tuple[str, bool]]: ...
+
+def sorted_by_attr(seq: Iterable[Union[int, float, str, Tuple[str, bool]]],
+                   *attr) -> List[Union[int, float, str, Tuple[str, bool]]]:
     """非破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1319,8 +1331,29 @@ def sorted_by_attr(seq: List[Union[Optional[object], int, float, str]],
     return _sorted_by_attr_impl(False, seq, *attr)
 
 
-def sort_by_attr(seq: List[Union[Optional[object], int, float, str]],
-                 *attr) -> List[Union[Optional[object], int, float, str]]:
+@typing.overload
+def sort_by_attr(seq: List["cw.header.ScenarioHeader"], *attr) -> List["cw.header.ScenarioHeader"]: ...
+
+@typing.overload
+def sort_by_attr(seq: List["cw.header.AdventurerHeader"], *attr) -> List["cw.header.AdventurerHeader"]: ...
+
+@typing.overload
+def sort_by_attr(seq: List["cw.header.PartyRecordHeader"], *attr) -> List["cw.header.PartyRecordHeader"]: ...
+
+@typing.overload
+def sort_by_attr(seq: List["cw.header.CardHeader"], *attr) -> List["cw.header.CardHeader"]: ...
+
+@typing.overload
+def sort_by_attr(seq: List[int], *attr) -> List[int]: ...
+
+@typing.overload
+def sort_by_attr(seq: List[float], *attr) -> List[float]: ...
+
+@typing.overload
+def sort_by_attr(seq: List[str], *attr) -> List[str]: ...
+
+def sort_by_attr(seq: Union[List["cw.header.ScenarioHeader"], List["cw.header.AdventurerHeader"], List["cw.header.PartyRecordHeader"], List["cw.header.CardHeader"], List[int], List[float], List[str]],
+                 *attr) -> Union[List["cw.header.ScenarioHeader"], List["cw.header.AdventurerHeader"], List["cw.header.PartyRecordHeader"], List["cw.header.CardHeader"], List[int], List[float], List[str], List[Tuple[str, bool]]]:
     """破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1351,7 +1384,9 @@ def sort_by_filename(seq: List[str], *attr) -> List[str]:
     return seq
 
 
-def new_order(seq: Union["cw.header.AdventurerHeader", "cw.header.CardHeader", "cw.header.PartyHeader"],
+def new_order(seq: Union[Iterable["cw.header.AdventurerHeader"],
+                         Iterable["cw.header.CardHeader"],
+                         Iterable["cw.header.PartyHeader"]],
               mode: int = 1) -> int:
     """order属性を持つアイテムのlistを
     走査して新しいorderを返す。
@@ -1407,6 +1442,11 @@ assert relpath("a", "../bcde").replace("\\", "/") == os.path.relpath("a", "../bc
 assert relpath("../a", "../bcde").replace("\\", "/") == os.path.relpath("../a", "../bcde").replace("\\", "/")
 assert relpath("../a", "../").replace("\\", "/") == os.path.relpath("../a", "../").replace("\\", "/")
 
+@typing.overload
+def validate_filepath(fpath: Optional[str]) -> str: ...
+
+@typing.overload
+def validate_filepath(fpath: List[Optional[str]]) -> List[str]: ...
 
 def validate_filepath(fpath: Optional[Union[str, List[Optional[str]]]]) -> Union[List[str], str]:
     """
@@ -2038,7 +2078,7 @@ def get_inusecardmaterialpath(path: str, mtype: int, inusecard: Optional["cw.hea
     return imgpath
 
 
-def get_materialpath(path: str, mtype: str, scedir: str = "", system: bool = False, findskin: bool = True) -> str:
+def get_materialpath(path: str, mtype: int, scedir: str = "", system: bool = False, findskin: bool = True) -> str:
     """pathが指す素材を、シナリオプレイ中はシナリオ内から探し、
     プレイ中でない場合や存在しない場合はスキンから探す。
     path: 素材の相対パス。
@@ -2064,7 +2104,7 @@ def get_materialpath(path: str, mtype: str, scedir: str = "", system: bool = Fal
     return get_materialpathfromskin(path, mtype, findskin=findskin)
 
 
-def get_materialpathfromskin(path: str, mtype: str, findskin: bool = True) -> str:
+def get_materialpathfromskin(path: str, mtype: int, findskin: bool = True) -> str:
     cw.fsync.sync()
     if not os.path.isfile(path):
         if not findskin:
@@ -2616,7 +2656,7 @@ def compress_zip(path: str, zpath: str, unicodefilename: bool = False) -> str:
 
 
 def decompress_zip(path: str, dstdir: str, dname: str = "", startup: Optional[Callable[[int], None]] = None,
-                   progress: Optional[Callable[[int], None]] = None, overwrite: bool = False,
+                   progress: Optional[Callable[[int], bool]] = None, overwrite: bool = False,
                    z: Optional[zipfile.ZipFile] = None) -> str:
     """zipファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
@@ -2825,7 +2865,7 @@ def get_elementfromzip(zpath: str, name: str, tag: str = "") -> "cw.data.CWPyEle
 
 
 def decompress_cab(path: str, dstdir: str, dname: str = "", startup: Optional[Callable[[int], None]] = None,
-                   progress: Optional[Callable[[int], None]] = None,
+                   progress: Optional[Callable[[int], bool]] = None,
                    overwrite: bool = False) -> str:
     """cabファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。

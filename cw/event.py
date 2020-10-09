@@ -144,22 +144,20 @@ class EventInterface(object):
         self.refresh_activeitem()
         self.exit_func = None
 
-    def set_inusecard(self, header: "cw.header.CardHeader") -> None:
+    def set_inusecard(self, header: Optional["cw.header.CardHeader"]) -> None:
         """使用中カードを変更する。
-        header: CardHeader or None
         """
         self._inusecard = header
         self.set_selectedcard(header)
 
-    def set_selectedmember(self, ccard: "cw.character.Character") -> None:
+    def set_selectedmember(self, ccard: Optional["cw.character.Character"]) -> None:
         """選択メンバを変更する。
-        ccard: Character or None
         """
         if self._selectedmember != ccard:
             self._selectedmember = ccard
             self.refresh_selectedmembername()
 
-    def set_selectedcard(self, header: "cw.header.CardHeader") -> None:
+    def set_selectedcard(self, header: Optional["cw.header.CardHeader"]) -> None:
         """選択カードを変更する(Wsn.3)。"""
         if self._selectedcard != header:
             self._selectedcard = header
@@ -340,57 +338,57 @@ class EventInterface(object):
 
     def refresh_tools(self) -> None:
         """デバッガのツールが使用可能かどうかを更新する。"""
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             func = dbg.refresh_tools
             cw.cwpy.frame.exec_func(func)
 
     def refresh_showpartytools(self) -> None:
         """デバッガのツールのうち、パーティ表示に関するものを更新する。"""
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             func = dbg.refresh_showpartytools
             cw.cwpy.frame.exec_func(func)
 
     def refresh_variablelist(self) -> None:
         """デバッガの状態変数のリストを更新する。"""
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             func = dbg.view_var.refresh_variablelist
             cw.cwpy.frame.exec_func(func)
 
     def refresh_variable(self, variable: Union[cw.data.Flag, cw.data.Step, cw.data.Variant]) -> None:
         """デバッガの状態変数の値を更新する。"""
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             func = dbg.view_var.refresh_variable
             cw.cwpy.frame.exec_func(func, variable)
 
     def refresh_selectedmembername(self) -> None:
         """デバッガの選択メンバツールバーの表示を更新する。"""
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             func = dbg.refresh_selectedmembername
             cw.cwpy.frame.exec_func(func)
 
     def refresh_selectedcardname(self) -> None:
         """デバッガの選択カードツールバーの表示を更新する。"""
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             func = dbg.refresh_selectedcardname
             cw.cwpy.frame.exec_func(func)
 
     def refresh_areaname(self) -> None:
         """デバッガのエリアツールバーの表示を更新する。"""
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             func = dbg.refresh_areaname
             cw.cwpy.frame.exec_func(func)
 
     def refresh_activeitem(self) -> None:
         """デバッガのイベントツリーの実行中コンテントを更新する。"""
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             def func() -> None:
                 dbg.view_tree.refresh_tree()
                 dbg.view_tree.refresh_activeitem()
@@ -402,32 +400,32 @@ class EventInterface(object):
             self.stackinfo.extend([None] * len(self.stackinfo))
         self.stackinfo[self.stackinfo_len] = item
         self.stackinfo_len += 1
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             dbg.append_stackinfo_cwpy(item)
 
     def pop_stackinfo(self) -> None:
         """呼び出し履歴の末尾を除去する。"""
         self.stackinfo_len -= 1
         self.stackinfo[self.stackinfo_len] = None
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             dbg.pop_stackinfo_cwpy()
 
     def replace_stackinfo(self, index: int, item: Tuple["Event", cw.data.CWPyElement, int]) -> None:
         """呼び出し履歴の途中または末尾を置換する。"""
         assert isinstance(cw.cwpy.event.stackinfo[self.stackinfo_len+index], cw.event.Event)
         self.stackinfo[self.stackinfo_len+index] = item
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             dbg.replace_stackinfo_cwpy(index, item)
 
     def clear_stackinfo(self) -> None:
         """呼び出し履歴をクリアする。"""
         self.stackinfo = [None] * 16
         self.stackinfo_len = 0
-        dbg = cw.cwpy.frame.debugger
-        if cw.cwpy.is_showingdebugger():
+        dbg = cw.cwpy.is_showingdebugger()
+        if dbg:
             dbg.clear_stackinfo_cwpy()
 
     def wait(self) -> None:
@@ -442,14 +440,15 @@ class EventInterface(object):
         if cur_content is not None and cur_content.tag == "ContentsLine":
             cur_content = cur_content[event.line_index]
 
-        if cw.cwpy.is_showingdebugger() and (cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin) and\
+        if cw.cwpy.is_showingdebugger() and (cw.cwpy.is_playingscenario() or cw.OPTIONS.getbool("debug_skin")) and\
                 0 <= cw.cwpy.areaid:
             if not self.paused and cw.cwpy.sdata.breakpoints and cur_content.get_cwxpath() in cw.cwpy.sdata.breakpoints:
                 # ブレークポイント到達
                 self.paused = True
 
                 def func() -> None:
-                    cw.cwpy.frame.debugger.pause(True)
+                    if cw.cwpy.frame.debugg:
+                        cw.cwpy.frame.debugger.pause(True)
                 cw.cwpy.frame.exec_func(func)
 
         if self.stoped:
@@ -474,7 +473,7 @@ class EventInterface(object):
             raise EffectBreakError()
 
         if cw.cwpy.is_showingdebugger() and\
-                (cw.cwpy.is_playingscenario() or cw.OPTIONS.debug_skin) and 0 <= cw.cwpy.areaid:
+                (cw.cwpy.is_playingscenario() or cw.OPTIONS.getbool("debug_skin")) and 0 <= cw.cwpy.areaid:
             cnt = 0
 
             if self._step:
@@ -573,7 +572,7 @@ class EventInterface(object):
 
 
 class EventEngine(object):
-    def __init__(self, data: cw.data.CWPyElementTree) -> None:
+    def __init__(self, data: Iterable[cw.data.CWPyElement]) -> None:
         """引数のEventsElementからEventインスタンスのリストを生成。
         data: Area, BattleのElementTree
         """

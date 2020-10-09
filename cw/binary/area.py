@@ -5,6 +5,8 @@ from . import base
 
 import cw
 
+from typing import Optional
+
 
 class Area(base.CWBinaryBase):
     """widファイルのエリアデータ。"""
@@ -47,7 +49,7 @@ class Area(base.CWBinaryBase):
         bgimgs_num = f.dword()
         self.bgimgs = [bgimage.BgImage(self, f) for _cnt in range(bgimgs_num)]
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -81,10 +83,10 @@ class Area(base.CWBinaryBase):
         restype = 0
         name = ""
         resid = 0
-        events = []
+        events: Optional[cw.data.CWPyElement] = None
         spreadtype = 0
-        mcards = []
-        bgimgs = []
+        mcards: Optional[cw.data.CWPyElement] = None
+        bgimgs: Optional[cw.data.CWPyElement] = None
 
         for e in data:
             if e.tag == "Property":
@@ -108,16 +110,25 @@ class Area(base.CWBinaryBase):
         f.write_dword(0)  # 不明
         f.write_string(name)
         f.write_dword(resid + 40000)
-        f.write_dword(len(events))
-        for evt in events:
-            event.Event.unconv(f, evt)
+        if events is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(events))
+            for evt in events:
+                event.Event.unconv(f, evt)
         f.write_byte(spreadtype)
-        f.write_dword(len(mcards))
-        for mcard in mcards:
-            MenuCard.unconv(f, mcard)
-        f.write_dword(len(bgimgs))
-        for bgimg in bgimgs:
-            bgimage.BgImage.unconv(f, bgimg)
+        if mcards is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(mcards))
+            for mcard in mcards:
+                MenuCard.unconv(f, mcard)
+        if bgimgs is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(bgimgs))
+            for bgimg in bgimgs:
+                bgimage.BgImage.unconv(f, bgimg)
 
 
 class MenuCard(base.CWBinaryBase):
@@ -143,7 +154,7 @@ class MenuCard(base.CWBinaryBase):
         else:
             self.imgpath = f.string()
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -185,7 +196,7 @@ class MenuCard(base.CWBinaryBase):
         image = None
         name = ""
         description = ""
-        events = []
+        events: Optional[cw.data.CWPyElement] = None
         flag = ""
         scale = 0
         left = 0
@@ -207,10 +218,12 @@ class MenuCard(base.CWBinaryBase):
                         if 1 < len(prop):
                             f.check_wsnversion("1", "複合イメージ")
                         else:
-                            base.CWBinaryBase.check_imgpath(f, prop.find("ImagePath"), "TopLeft")
-                            imgpath2 = prop.gettext("ImagePath", "")
-                            if imgpath2:
-                                imgpath = base.CWBinaryBase.materialpath(imgpath2)
+                            e_imgpath = prop.find("ImagePath")
+                            if e_imgpath is not None:
+                                base.CWBinaryBase.check_imgpath(f, e_imgpath, "TopLeft")
+                                imgpath2 = prop.gettext("ImagePath", "")
+                                if imgpath2:
+                                    imgpath = base.CWBinaryBase.materialpath(imgpath2)
                     elif prop.tag == "PCNumber":
                         f.check_version(1.50, "メニューカードへのプレイヤーキャラクター表示")
                         imgpath = prop.text
@@ -222,11 +235,11 @@ class MenuCard(base.CWBinaryBase):
                         left = int(prop.get("left"))
                         top = int(prop.get("top"))
                     elif prop.tag == "Size":
-                        scale = prop.get("scale")
-                        if scale.endswith("%"):
-                            scale = int(scale[:-1])
+                        scale_str = prop.get("scale")
+                        if scale_str.endswith("%"):
+                            scale = int(scale_str[:-1])
                         else:
-                            scale = int(scale)
+                            scale = int(scale_str)
                     elif prop.tag == "Layer" and int(prop.text) != cw.LAYER_MCARDS:
                         f.check_wsnversion("1", "レイヤ")
                     elif prop.tag == "CardGroup" and prop.text:
@@ -242,9 +255,12 @@ class MenuCard(base.CWBinaryBase):
         f.write_string(name)
         f.write_dword(0)  # 不明
         f.write_string(description, True)
-        f.write_dword(len(events))
-        for evt in events:
-            event.Event.unconv(f, evt)
+        if events is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(events))
+            for evt in events:
+                event.Event.unconv(f, evt)
         f.write_string(flag)
         f.write_dword(scale)
         f.write_dword(left)

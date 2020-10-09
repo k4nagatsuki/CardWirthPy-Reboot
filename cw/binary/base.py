@@ -24,11 +24,11 @@ class CWBinaryBase(object):
         self.materialbasedir = ""
         self.set_materialdir(materialdir)
         self.set_image_export(image_export, False)
-        self.yadodb = None
+        self.yadodb: Optional[cw.yadodb.YadoDB] = None
         self.xmlpath = ""
         self.name = ""
         self.id = 0
-        self.image = ""
+        self.image: Optional[bytes] = None
 
         if parent:
             self.yadodata = parent.yadodata
@@ -141,7 +141,7 @@ class CWBinaryBase(object):
             os.makedirs(os.path.dirname(path))
 
         data = self.get_data()
-        cw.data.CWPyElementTree(element=data).write(path)
+        cw.data.CWPyElementTree(element=data).write_file(path)
         self.xmlpath = path
         return path
 
@@ -241,8 +241,9 @@ class CWBinaryBase(object):
             f.check_wsnversion("2", coupon)
 
     @staticmethod
-    def import_image(f: "cw.binary.cwfile.CWFileWriter", imagepath: str, convertbitmap: bool = True,
-                     fullpath: bool = False, defpostype: str = "TopLeft") -> Optional[bytes]:
+    def import_image(f: "cw.binary.cwfile.CWFileWriter", imagepath: Union[str, "cw.data.CWPyElement"],
+                     convertbitmap: bool = True, fullpath: bool = False,
+                     defpostype: str = "TopLeft") -> Optional[bytes]:
         """imagepathの画像を読み込み、バイナリデータとして返す。
         ビットマップ以外であればビットマップに変換する。
         """
@@ -291,9 +292,9 @@ class CWBinaryBase(object):
 
         return image
 
-    def get_data(self) -> Optional["cw.data.CWPyElement"]:
+    def get_data(self) -> "cw.data.CWPyElement":
         """CWPyElementのインスタンスを返す。"""
-        return None
+        raise ValueError()
 
     def get_materialpath(self, path: str) -> str:
         """引数のパスを素材ディレクトリに関連づける。

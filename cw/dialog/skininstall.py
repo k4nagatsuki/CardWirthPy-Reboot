@@ -182,7 +182,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
                         newskin = rename_table.get(envskin, "")
                         if newskin:
                             etree.edit("Property/Skin", newskin)
-                            etree.write()
+                            etree.write_file()
             cw.fsync.sync()
 
             def func(newskin: str, restartop: bool) -> None:

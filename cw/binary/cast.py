@@ -7,6 +7,8 @@ from . import base
 
 import cw
 
+from typing import Optional
+
 
 class CastCard(base.CWBinaryBase):
     """キャストデータ(widファイル)。"""
@@ -113,7 +115,7 @@ class CastCard(base.CWBinaryBase):
         else:
             self.coupons = []
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -231,18 +233,18 @@ class CastCard(base.CWBinaryBase):
             self.data.append(prop)
 
             e = cw.data.make_element("ItemCards")
-            for card in self.items:
-                e.append(card.get_data())
+            for item in self.items:
+                e.append(item.get_data())
             self.data.append(e)
 
             e = cw.data.make_element("SkillCards")
-            for card in self.skills:
-                e.append(card.get_data())
+            for skill in self.skills:
+                e.append(skill.get_data())
             self.data.append(e)
 
             e = cw.data.make_element("BeastCards")
-            for card in self.beasts:
-                e.append(card.get_data())
+            for beast in self.beasts:
+                e.append(beast.get_data())
             self.data.append(e)
 
         return self.data
@@ -313,11 +315,11 @@ class CastCard(base.CWBinaryBase):
         enhance_defense = 0
         duration_enhance_defense = 0
 
-        items = []
-        skills = []
-        beasts = []
+        items: Optional[cw.data.CWPyElement] = None
+        skills: Optional[cw.data.CWPyElement] = None
+        beasts: Optional[cw.data.CWPyElement] = None
 
-        coupons = []
+        coupons: Optional[cw.data.CWPyElement] = None
 
         for e in data:
             if e.tag == "Property":
@@ -477,85 +479,91 @@ class CastCard(base.CWBinaryBase):
 
         lenpos = f.tell()
         f.write_dword(0)
-        cardslen = 0
-        for card in items:
-            try:
-                pos = f.tell()
-                item.ItemCard.unconv(f, card, False)
-                cardslen += 1
-            except cw.binary.cwfile.UnsupportedError as ex:
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
-                    f.write_errorlog(s)
-            except Exception:
-                cw.util.print_ex(file=sys.stderr)
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
-                    f.write_errorlog(s)
-        tell = f.tell()
-        f.seek(lenpos)
-        f.write_dword(cardslen)
-        f.seek(tell)
+        if items is not None:
+            cardslen = 0
+            for card in items:
+                try:
+                    pos = f.tell()
+                    item.ItemCard.unconv(f, card, False)
+                    cardslen += 1
+                except cw.binary.cwfile.UnsupportedError as ex:
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                        f.write_errorlog(s)
+                except Exception:
+                    cw.util.print_ex(file=sys.stderr)
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                        f.write_errorlog(s)
+            tell = f.tell()
+            f.seek(lenpos)
+            f.write_dword(cardslen)
+            f.seek(tell)
 
         lenpos = f.tell()
         f.write_dword(0)
-        cardslen = 0
-        for card in skills:
-            try:
-                pos = f.tell()
-                skill.SkillCard.unconv(f, card, False)
-                cardslen += 1
-            except cw.binary.cwfile.UnsupportedError as ex:
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
-                    f.write_errorlog(s)
-            except Exception:
-                cw.util.print_ex(file=sys.stderr)
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
-                    f.write_errorlog(s)
-        tell = f.tell()
-        f.seek(lenpos)
-        f.write_dword(cardslen)
-        f.seek(tell)
+        if skills is not None:
+            cardslen = 0
+            for card in skills:
+                try:
+                    pos = f.tell()
+                    skill.SkillCard.unconv(f, card, False)
+                    cardslen += 1
+                except cw.binary.cwfile.UnsupportedError as ex:
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                        f.write_errorlog(s)
+                except Exception:
+                    cw.util.print_ex(file=sys.stderr)
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                        f.write_errorlog(s)
+            tell = f.tell()
+            f.seek(lenpos)
+            f.write_dword(cardslen)
+            f.seek(tell)
 
         lenpos = f.tell()
         f.write_dword(0)
-        cardslen = 0
-        for card in beasts:
-            try:
-                pos = f.tell()
-                beast.BeastCard.unconv(f, card, False)
-                cardslen += 1
-            except cw.binary.cwfile.UnsupportedError as ex:
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
-                    f.write_errorlog(s)
-            except Exception:
-                cw.util.print_ex(file=sys.stderr)
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
-                    f.write_errorlog(s)
-        tell = f.tell()
-        f.seek(lenpos)
-        f.write_dword(cardslen)
-        f.seek(tell)
+        if beasts is not None:
+            cardslen = 0
+            for card in beasts:
+                try:
+                    pos = f.tell()
+                    beast.BeastCard.unconv(f, card, False)
+                    cardslen += 1
+                except cw.binary.cwfile.UnsupportedError as ex:
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                        f.write_errorlog(s)
+                except Exception:
+                    cw.util.print_ex(file=sys.stderr)
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                        f.write_errorlog(s)
+            tell = f.tell()
+            f.seek(lenpos)
+            f.write_dword(cardslen)
+            f.seek(tell)
 
-        f.write_dword(len(coupons))
-        for cp in coupons:
-            coupon.Coupon.unconv(f, cp)
+        if coupons is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(coupons))
+            for cp in coupons:
+                coupon.Coupon.unconv(f, cp)
 
         f.truncate()
 

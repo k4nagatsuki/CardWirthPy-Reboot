@@ -529,7 +529,7 @@ class CWYado(object):
 
         # ファイル書き込み
         etree = cw.data.xml2etree(element=element)
-        etree.write(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"))
+        etree.write_file(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"))
 
         # party
         element = cw.data.make_element("ScenarioLog")
@@ -552,7 +552,7 @@ class CWYado(object):
             e_members.append(e)
 
         etree = cw.data.xml2etree(element=element)
-        etree.write(cw.util.join_paths(cw.tempdir, "ScenarioLog/Party/Party.xml"))
+        etree.write_file(cw.util.join_paths(cw.tempdir, "ScenarioLog/Party/Party.xml"))
 
         # member
         os.makedirs(cw.util.join_paths(cw.tempdir, "ScenarioLog/Members"))
@@ -560,7 +560,7 @@ class CWYado(object):
             dstpath = cw.util.join_paths(cw.util.join_paths(cw.tempdir, "ScenarioLog/Members"),
                                          os.path.basename(adventurer.xmlpath))
             etree = cw.data.xml2etree(element=adventurer.get_f9data())
-            etree.write(dstpath)
+            etree.write_file(dstpath)
 
         # 荷物袋内のカード群(ファイルパスのみ)
         element = cw.data.make_element("BackpackFiles")
@@ -572,7 +572,7 @@ class CWYado(object):
             element.append(cw.data.make_element("File", fpath))
         path = cw.util.join_paths(cw.tempdir, "ScenarioLog/Backpack.xml")
         etree = cw.data.xml2etree(element=element)
-        etree.write(path)
+        etree.write_file(path)
 
         # create_zip
         path = cw.util.splitext(party.xmlpath)[0] + ".wsl"

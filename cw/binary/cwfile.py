@@ -6,7 +6,7 @@ import struct
 
 import cw.util
 
-from typing import Callable, Optional
+from typing import BinaryIO, Callable, Optional
 
 
 class UnsupportedError(Exception):
@@ -27,7 +27,7 @@ class CWFile(io.BufferedReader):
     とやるとインスタンスオブジェクトが生成できる。
     """
     def __init__(self, path: str, mode: str, decodewrap: bool = False,
-                 f: Optional[io.RawIOBase] = None) -> None:
+                 f: Optional[BinaryIO] = None) -> None:
         if f:
             io.BufferedReader.__init__(self, f)
         else:
@@ -90,7 +90,7 @@ class CWFile(io.BufferedReader):
         data = struct.unpack("<h", raw_data)
         return data[0]
 
-    def image(self) -> bytes:
+    def image(self) -> Optional[bytes]:
         """dwordの値で読み込んだ画像のバイナリデータを返す。
         dwordの値が"0"だったらNoneを返す。
         """
@@ -199,7 +199,7 @@ class CWFileWriter(io.BufferedWriter):
     def write_word(self, w: int) -> None:
         self.write(struct.pack("<h", w))
 
-    def write_image(self, image: bytes) -> None:
+    def write_image(self, image: Optional[bytes]) -> None:
         if image:
             self.write_dword(len(image))
             self.write(image)

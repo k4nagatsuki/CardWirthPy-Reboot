@@ -5,6 +5,8 @@ from . import base
 
 import cw
 
+from typing import Optional
+
 
 class InfoCard(base.CWBinaryBase):
     """widファイルの情報カードのデータ。"""
@@ -31,7 +33,7 @@ class InfoCard(base.CWBinaryBase):
 
         self.description = f.string(True)
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> cw.data.CWPyElement:
         if self.data is None:

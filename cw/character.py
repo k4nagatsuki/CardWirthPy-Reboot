@@ -181,10 +181,10 @@ class Character(object):
             self.set_unconsciousstatus(clearbeast=False)
 
         # 適性検査用のCardHeader。
-        self.test_aptitude = None
+        self.test_aptitude: Optional[cw.header.CardHeader] = None
 
         # キャッシュ
-        self._voc_tbl = {}
+        self._voc_tbl: Dict[Tuple[str, str], Optional[int]] = {}
 
     def get_showingname(self) -> str:
         return self.get_name()
@@ -205,7 +205,7 @@ class Character(object):
         etree = None
         eimg = None
         infos = self.get_imagepaths()
-        can_loaded_scaledimage = self.data.getattr(".", "scaledimage", False)
+        can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
         if infos:
             if cw.cwpy.is_playingscenario():
                 # メッセージログのイメージが変化しないように
@@ -298,7 +298,7 @@ class Character(object):
         self.data.is_edited = True
 
         if etree is not None:
-            etree.write()
+            etree.write_file()
 
         return newpaths
 
@@ -329,7 +329,7 @@ class Character(object):
             self.life = max(1, int(self.maxlife * v))
             self.data.edit("Property/Life", str(int(self.maxlife)))
 
-        if self.data.getattr("Property/Life", "coefficient", 0):
+        if self.data.getfloat("Property/Life", "coefficient", 0.0):
             self.data.remove("Property/Life", attrname="coefficient")
 
         self.adjust_beast()
@@ -395,7 +395,7 @@ class Character(object):
                     if maxn <= len(headers):
                         # 最大所持数を越えたカードは消去
                         break
-                    e = cw.cwpy.sdata.get_carddata(e, inusecard=False)
+                    e = cw.cwpy.sdata.get_carddata(e, in_inusecard=False)
                     if e is None:
                         continue
                     header = cw.header.CardHeader(owner=self, carddata=e, from_scenario=flag)
@@ -969,8 +969,7 @@ class Character(object):
                                     fade=fade)
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # カード表示
-            inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True)
-            cw.cwpy.add_lazydraw(clip=inusecardimg.rect)
+            cw.cwpy.set_inusecardimg(self, header, center=True)
             if cw.cwpy.setting.wait_usecard:
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())*2+1
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)

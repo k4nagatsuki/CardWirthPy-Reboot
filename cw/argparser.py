@@ -3,7 +3,7 @@
 
 import sys
 
-from typing import List, Optional, Type, Union
+from typing import Dict, List, Optional, Type, Union
 
 
 class ArgParser(object):
@@ -16,11 +16,11 @@ class ArgParser(object):
         """
         self.appname = appname
         self.desc = description
-        self.args = {}
-        self.largs = []
+        self.args: Dict[str, Arg] = {}
+        self.largs: List[Arg] = []
 
     def add_argument(self, arg: str, argtype: Union[Type[bool], Type[str]], nargs: int, helptext: str, arg2: str = "",
-                     default: Optional[str] = None, metavar: Optional[str] = None) -> None:
+                     default: Optional[Union[str, int, bool]] = None, metavar: Optional[str] = None) -> None:
         """オプションの情報を追加する。
         arg: '-'で始まるオプション名。
         argtype: オプションの型。str, int, boolのいずれか。
@@ -36,7 +36,7 @@ class ArgParser(object):
             self.args[arg2] = argobj
         self.largs.append(argobj)
 
-    def parse_args(self, args: Optional[List[str]] = None) -> "ArgResult":
+    def parse_args(self, args: Optional[List[str]] = None) -> Optional["ArgResult"]:
         """引数をパースした結果を得る。
         args: 引数のリスト。未指定の場合はsys.argvを使用する。
         """
@@ -78,11 +78,11 @@ class ArgParser(object):
     def print_help(self) -> None:
         """ヘルプメッセージを表示する。
         """
-        s = ["Usage:", self.appname]
+        seq = ["Usage:", self.appname]
         for arg in self.largs:
             helptext = arg.get_help("|")
-            s.append("[%s]" % (helptext))
-        print(" ".join(s))
+            seq.append("[%s]" % (helptext))
+        print(" ".join(seq))
         print()
         print(self.desc)
         print()
@@ -102,12 +102,30 @@ class ArgResult(object):
         """起動オプションを解析した結果を持つオブジェクト。
         解析対象にならなかったオプションはleftoversメンバに記録される。
         """
-        self.leftovers = []
+        self.leftovers: List[str] = []
+
+    def getint(self, key: str) -> int:
+        return getattr(self, key)
+
+    def setint(self, key: str, value: int) -> None:
+        setattr(self, key, value)
+
+    def getstr(self, key: str) -> str:
+        return getattr(self, key)
+
+    def setstr(self, key: str, value: str) -> None:
+        setattr(self, key, value)
+
+    def getbool(self, key: str) -> bool:
+        return getattr(self, key)
+
+    def setbool(self, key: str, value: bool) -> None:
+        setattr(self, key, value)
 
 
 class Arg(object):
     def __init__(self, arg: str, argtype: Union[Type[bool], Type[str]], nargs: int, helptext: str, arg2: str = "",
-                 default: Optional[str] = None, metavar: Optional[str] = None) -> None:
+                 default: Optional[Union[str, int, bool]] = None, metavar: Optional[str] = None) -> None:
         """オプション情報。
         arg: '-'で始まるオプション名。
         argtype: オプションの型。str, int, boolのいずれか。
@@ -125,7 +143,7 @@ class Arg(object):
         self.default = default
         self.metavar = metavar
 
-    def eat(self, args: List[str]) -> Union[str, bool]:
+    def eat(self, args: List[str]) -> Union[str, int, List[Union[str, int]], bool]:
         """argsからオプション引数を得る。
         argsの要素は、得られた引数の分だけ
         前方から除去される。
@@ -134,18 +152,20 @@ class Arg(object):
             return self.parse(args.pop(0))
         elif 1 < self.nargs:
             seq = []
-            for _i in range(len(self.nargs)):
+            for _i in range(self.nargs):
                 seq.append(self.parse(args.pop(0)))
             return seq
         else:
             return True
 
-    def parse(self, value: str) -> str:
+    def parse(self, value: str) -> Union[str, int]:
         """型に応じて引数をパースする。"""
         if self.type == int:
             return int(value)
         elif self.type == str:
             return value
+        else:
+            assert False
 
     def get_help(self, sep: str = ", ") -> str:
         """ヘルプメッセージ用のテキストを生成する。
@@ -175,11 +195,11 @@ def main() -> None:
     args = parser.parse_args()
     if not args:
         sys.exit(-1)
-    if args.help:
+    if args.getbool("help"):
         parser.print_help()
         return
-    print("-y  :", args.y)
-    print("-dbg:", args.dbg)
+    print("-y  :", args.getstr("y"))
+    print("-dbg:", args.getstr("dbg"))
     print("    :", args.leftovers)
 
 

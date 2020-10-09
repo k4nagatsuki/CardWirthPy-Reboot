@@ -20,7 +20,7 @@ def _create_xml(name: str, path: str, d: Dict[str, str]) -> None:
     cw.fsync.sync()
 
 
-def create_party(headers: Sequence[cw.header.PartyHeader], moneyamount: int = 0, pname: Optional[str] = None,
+def create_party(headers: Sequence[cw.header.AdventurerHeader], moneyamount: int = 0, pname: Optional[str] = None,
                  is_suspendlevelup: bool = False) -> str:
     """
     新しくパーティを作る。
@@ -50,7 +50,7 @@ def create_party(headers: Sequence[cw.header.PartyHeader], moneyamount: int = 0,
     return path
 
 
-def create_partyrecord(party: cw.data.Party) -> str:
+def create_partyrecord(party: cw.thread.StoredParty) -> str:
     d = {"name": cw.binary.util.repl_escapechar(party.name),
          "money": str(party.money),
          "suspend_levelup": str(party.is_suspendlevelup),
@@ -780,7 +780,7 @@ def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, 
     # ファイル書き込み
     path = fpath
     etree = cw.data.xml2etree(element=element)
-    etree.write(path)
+    etree.write_file(path)
     return path
 
 
@@ -980,7 +980,7 @@ def create_albumpage(path: str, lost: bool = False, nocoupon: bool = False) -> s
     # ファイル書き込み
     path = cw.util.join_paths(cw.cwpy.tempdir, "Album", fname + ".xml")
     path = cw.util.dupcheck_plus(path)
-    etree.write(path)
+    etree.write_file(path)
     return path
 
 
@@ -1336,7 +1336,7 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
 
     # ファイル書き込み
     etree = cw.data.xml2etree(element=element)
-    etree.write(path)
+    etree.write_file(path)
     return path
 
 

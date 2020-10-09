@@ -478,9 +478,11 @@ class YadoDB(object):
                                                           cw.header.CardHeader, cw.header.PartyRecordHeader,
                                                           cw.header.SavedJPDCImageHeader]]],
                  xmlname: str, insert: Callable[[str, typing.Any], None],
-                 insertheader: Callable[[Union[cw.header.AdventurerHeader, cw.header.PartyHeader,
-                                               cw.header.CardHeader, cw.header.PartyRecordHeader,
-                                               cw.header.SavedJPDCImageHeader], typing.Any], None],
+                 insertheader: Union[Callable[[cw.header.AdventurerHeader, bool, bool], None],
+                                     Callable[[cw.header.PartyHeader, bool], None],
+                                     Callable[[cw.header.CardHeader, bool], None],
+                                     Callable[[cw.header.PartyRecordHeader, bool], None],
+                                     Callable[[cw.header.SavedJPDCImageHeader, bool], None]],
                  *args) -> None:
             dname = cw.util.join_paths(self.ypath, dpath)
             if os.path.isdir(dname):
@@ -495,7 +497,29 @@ class YadoDB(object):
                         path = cw.util.join_paths(dpath, fname)
                     if path not in dbpaths:
                         if isinstance(headertable, dict) and path in headertable:
-                            insertheader(headertable[path], *args)
+                            header = headertable[path]
+                            if isinstance(header, cw.header.AdventurerHeader):
+                                func1 = typing.cast(Callable[[cw.header.AdventurerHeader, bool, bool], None], insertheader)
+                                args1 = typing.cast(Tuple[bool, bool], args)
+                                func1(header, *args1)
+                            elif isinstance(header, cw.header.PartyHeader):
+                                func2 = typing.cast(Callable[[cw.header.PartyHeader, bool], None], insertheader)
+                                args2 = typing.cast(Tuple[bool], args)
+                                func2(header, *args2)
+                            elif isinstance(header, cw.header.CardHeader):
+                                func3 = typing.cast(Callable[[cw.header.CardHeader, bool], None], insertheader)
+                                args3 = typing.cast(Tuple[bool], args)
+                                func3(header, *args3)
+                            elif isinstance(header, cw.header.PartyRecordHeader):
+                                func4 = typing.cast(Callable[[cw.header.PartyRecordHeader, bool], None], insertheader)
+                                args4 = typing.cast(Tuple[bool], args)
+                                func4(header, *args4)
+                            elif isinstance(header, cw.header.SavedJPDCImageHeader):
+                                func5 = typing.cast(Callable[[cw.header.SavedJPDCImageHeader, bool], None], insertheader)
+                                args5 = typing.cast(Tuple[bool], args)
+                                func5(header, *args5)
+                            else:
+                                assert False
                         else:
                             insert(cw.util.join_paths(self.ypath, path), *args)
 
@@ -794,7 +818,7 @@ class YadoDB(object):
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
         if len(header.imgpaths) == 1 and header.imgpaths[0].postype == "Default":
-            imgpath = header.imgpaths[0].path
+            imgpath: Optional[str] = header.imgpaths[0].path
         elif not header.imgpaths:
             imgpath = ""
         else:
@@ -851,7 +875,7 @@ class YadoDB(object):
             DELETE FROM cardimage WHERE fpath=?
             """
             self.cur.execute(s, (fpath,))
-            for i, imgpath in enumerate(header.imgpaths):
+            for i, info in enumerate(header.imgpaths):
                 s = """
                 INSERT OR REPLACE INTO cardimage (
                     fpath,
@@ -865,11 +889,11 @@ class YadoDB(object):
                     ?
                 )
                 """
-                if imgpath.postype == "Default":
+                if info.postype == "Default":
                     postype = None
                 else:
-                    postype = imgpath.postype
-                self.cur.execute(s, (fpath, i, imgpath.path, postype,))
+                    postype = info.postype
+                self.cur.execute(s, (fpath, i, info.path, postype,))
 
         if commit:
             self.con.commit()
@@ -964,7 +988,7 @@ class YadoDB(object):
                 continue
             paths.add(keypath)
             if rec["imgpath"] is None:
-                imgdbrec = self.cur.execute(s, (fpath,))
+                imgdbrec: Optional[sqlite3.Cursor] = self.cur.execute(s, (fpath,))
             else:
                 imgdbrec = None
             header = cw.header.CardHeader(dbrec=rec, imgdbrec=imgdbrec, dbowner=owner)
@@ -1057,7 +1081,7 @@ class YadoDB(object):
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
         if len(header.imgpaths) == 1 and header.imgpaths[0].postype == "Default":
-            imgpath = header.imgpaths[0].path
+            imgpath: Optional[str] = header.imgpaths[0].path
         elif not header.imgpaths:
             imgpath = ""
         else:
@@ -1103,7 +1127,7 @@ class YadoDB(object):
             DELETE FROM adventurerimage WHERE fpath=?
             """
             self.cur.execute(s, (fpath,))
-            for i, imgpath in enumerate(header.imgpaths):
+            for i, info in enumerate(header.imgpaths):
                 s = """
                 INSERT OR REPLACE INTO adventurerimage (
                     fpath,
@@ -1117,11 +1141,11 @@ class YadoDB(object):
                     ?
                 )
                 """
-                if imgpath.postype == "Default":
+                if info.postype == "Default":
                     postype = None
                 else:
-                    postype = imgpath.postype
-                self.cur.execute(s, (fpath, i, imgpath.path, postype))
+                    postype = info.postype
+                self.cur.execute(s, (fpath, i, info.path, postype))
 
         if commit:
             self.con.commit()
@@ -1141,7 +1165,7 @@ class YadoDB(object):
     def get_adventurers(self, album: bool) -> List["cw.header.AdventurerHeader"]:
         if album:
             s = "SELECT * FROM adventurer WHERE album=? ORDER BY name"
-            album = 1
+            album_int = 1
         else:
             s = """
             SELECT
@@ -1158,8 +1182,8 @@ class YadoDB(object):
                 numorder,
                 name
             """
-            album = 0
-        self.cur.execute(s, (album,))
+            album_int = 0
+        self.cur.execute(s, (album_int,))
         headers = []
 
         s = """
@@ -1183,7 +1207,7 @@ class YadoDB(object):
                 continue
             paths.add(keypath)
             if rec["imgpath"] is None:
-                imgdbrec = self.cur.execute(s, (fpath,))
+                imgdbrec: Optional[sqlite3.Cursor] = self.cur.execute(s, (fpath,))
             else:
                 imgdbrec = None
             header = cw.header.AdventurerHeader(dbrec=rec, imgdbrec=imgdbrec)
