@@ -2611,8 +2611,7 @@ class YadoCreater(wx.Dialog):
         imgdata = self.cautions[index]
         bmp = imgdata[1]
         if not bmp:
-            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], False, can_loaded_scaledimage=True),
-                           cw.setting.SIZE_RESOURCES["Dialog/CAUTION"]))
+            bmp = cw.wins(cw.util.load_wxbmp(imgdata[0], False, can_loaded_scaledimage=True))
             imgdata[1] = bmp
         return bmp
 
