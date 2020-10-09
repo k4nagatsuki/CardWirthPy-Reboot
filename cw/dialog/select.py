@@ -1268,13 +1268,11 @@ class YadoSelect(MultiViewSelect):
         def get_playingbmp() -> wx.Bitmap:
             fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING_YADO"), cw.M_IMG)
             if os.path.isfile(fpath):
-                return cw.wins((cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True),
-                                cw.setting.SIZE_RESOURCES["Dialog/PLAYING_YADO"]))
+                return cw.wins(cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True))
             else:
                 fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING"), cw.M_IMG)
                 if os.path.isfile(fpath):
-                    return cw.wins((cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True),
-                                    cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
+                    return cw.wins(cw.util.load_wxbmp(fpath, True, can_loaded_scaledimage=True))
                 elif "PLAYING_YADO" in cw.cwpy.rsrc.dialogs:
                     return cw.cwpy.rsrc.dialogs["PLAYING_YADO"]
                 else:
