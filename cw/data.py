@@ -1850,8 +1850,9 @@ class ScenarioData(SystemData):
             for fcard in cw.cwpy.get_fcards():
                 debuglog.add_friend(fcard)
 
-        # NPCの連れ込み
-        cw.cwpy.ydata.join_npcs()
+        if not failure:
+            # NPCの連れ込み
+            cw.cwpy.ydata.join_npcs()
 
         self.is_playing = False
 
