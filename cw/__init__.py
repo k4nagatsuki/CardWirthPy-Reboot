@@ -554,7 +554,7 @@ def _s_impl(num: Union[wx.Bitmap,
         return result
 
     else:
-        assert False
+        assert False, str(num)
 
     return num
 

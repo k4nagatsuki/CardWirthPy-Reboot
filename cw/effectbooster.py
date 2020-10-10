@@ -103,7 +103,8 @@ class _JpySubImage(cw.image.Image):
         self.dirtype = config.get_int(section, "dirtype", 1)
         self.filename = config.get(section, "filename", "")
         self.smooth = config.get_bool(section, "smooth", False)
-        self.clip = cw.s(config.get_ints(section, "clip", 4, None))
+        clip = config.get_ints(section, "clip", 4, None)
+        self.clip = cw.s(clip) if clip else None
         self.loadcache = config.get_int(section, "loadcache", 0)
         # image retouch
         self.flip = config.get_bool(section, "flip", False)
@@ -122,11 +123,12 @@ class _JpySubImage(cw.image.Image):
         self.waittime = config.get_int(section, "wait", 0)
         self.animation = config.get_int(section, "animation", 0)
         self.animemove_noscale = config.get_ints(section, "animemove", 2, None)
-        self.animemove = cw.s(self.animemove_noscale)
-        self.animeclip = cw.s(config.get_ints(section, "animeclip", 4, None))
+        self.animemove = cw.s(self.animemove_noscale) if self.animemove_noscale else None
+        animeclip = config.get_ints(section, "animeclip", 4, None)
+        self.animeclip = cw.s(animeclip) if animeclip else None
         self.animespeed = config.get_int(section, "animespeed", 0)
         self.animeposition_noscale = config.get_ints(section, "animeposition", 2, None)
-        self.animeposition = cw.s(self.animeposition_noscale)
+        self.animeposition = cw.s(self.animeposition_noscale) if self.animeposition_noscale else None
         self.paintmode = config.get_int(section, "paintmode", 0)
 
         self.defaultcopymode = 2
@@ -807,13 +809,14 @@ class JpyPartsImage(_JpySubImage):
     def __init__(self, config: "EffectBoosterConfig", section: str, cache: "JpyCache", mask: bool) -> None:
         _JpySubImage.__init__(self, config, section, cache)
         self.height = cw.s(config.get_int(section, "height", -1))
-        self.width = cw.s(config.get_int(section, "width", None))
+        width = config.get_int(section, "width", None)
+        self.width = cw.s(width) if width is not None else None
         self.haswidth = self.width is not None
         if self.width is None:
             self.width = -1
         self.color = config.get_color(section, "color", (0, 0, 0))
         self.position_noscale = config.get_ints(section, "position", 2, (0, 0))
-        self.position = cw.s(self.position_noscale)
+        self.position = cw.s(self.position_noscale) if self.position_noscale else None
         self.savecache = config.get_int(section, "savecache", 0)
         self.visible = config.get_bool(section, "visible", True)
         self.transparent = config.get_bool(section, "transparent", True)
@@ -823,7 +826,8 @@ class JpyBackGroundImage(_JpySubImage):
     def __init__(self, config: "EffectBoosterConfig", cache: "JpyCache", mask: bool) -> None:
         _JpySubImage.__init__(self, config, "init", cache)
         self.backcolor = config.get_color("init", "backcolor", (0, 0, 0))
-        self.width = cw.s(config.get_int("init", "backwidth", None))
+        width = config.get_int("init", "backwidth", None)
+        self.width = cw.s(width) if width is not None else None
         self.vanish_anime = self.width is not None and self.width < 0
         if self.width is None:
             self.width = -1
