@@ -1940,7 +1940,7 @@ class EventHandlerForEffectBooster(EventHandler):
         if not self.can_input():
             return
         cw.cwpy.exec_func(EventHandler.f4key_event, self)
-        if cw.cwpy.setting.expanddrawing != 1:
+        if cw.cwpy.setting.expanddrawing != 1.0:
             raise cw.effectbooster.ScreenRescale()
 
 

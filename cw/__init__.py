@@ -45,7 +45,8 @@ from . import sprite
 from . import argparser
 from . import nctype
 
-from typing import List, Optional, Tuple, Union
+import typing
+from typing import List, Tuple, Type, Union
 
 # 実行ファイルのパス
 exepath = ""
@@ -193,13 +194,13 @@ LAYER_LOG_SCROLLBAR = (2004, 0, 0, 0)  # ログのスクロールバー
 LAYER_CLICKABLE_SPRITES = 0  # topgrpに表示されるClickableSprite
 
 # ゲーム画面構築の拡大率
-UP_SCR = 1
+UP_SCR = 1.0
 # ダイアログ描画時の拡大率(UP_SCRが1の時の値)
-UP_WIN = 1
+UP_WIN = 1.0
 # ゲーム画面の拡大率
 # フルスクリーン時にはダイアログを若干小さく表示するため、
 # UP_WINとは異なる値になる
-UP_WIN_M = 1
+UP_WIN_M = 1.0
 
 # wxPythonでイメージをスムージングしつつサイズ変更する際に用いるフラグ
 RESCALE_QUALITY = wx.IMAGE_QUALITY_BILINEAR
@@ -252,6 +253,38 @@ for arg in OPTIONS.leftovers:
         sys.argv.remove(arg)
 
 
+# @typing.overload
+# def wins(num: wx.Bitmap) -> wx.Bitmap: ...
+
+
+# @typing.overload
+# def wins(num: wxImage) -> wxImage: ...
+
+
+# @typing.overload
+# def wins(num: pygame.Surface) -> pygame.Surface: ...
+
+
+# @typing.overload
+# def wins(num: pygame.Rect) -> pygame.Rect: ...
+
+
+@typing.overload
+def wins(num: Tuple[int, int]) -> Tuple[int, int]: ...
+
+
+@typing.overload
+def wins(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
+
+
+@typing.overload
+def wins(num: int) -> int: ...
+
+
+@typing.overload
+def wins(num: float) -> float: ...
+
+
 def wins(num: Union[wx.Bitmap,
                     wx.Image,
                     pygame.Surface,
@@ -270,6 +303,38 @@ def wins(num: Union[wx.Bitmap,
     """numを実際の表示サイズに変換する。
     """
     return _s_impl(num, UP_WIN)
+
+
+# @typing.overload
+# def s(num: wx.Bitmap) -> wx.Bitmap: ...
+
+
+# @typing.overload
+# def s(num: wx.Image) -> wx.Image: ...
+
+
+# @typing.overload
+# def s(num: pygame.Surface) -> pygame.Surface: ...
+
+
+# @typing.overload
+# def s(num: pygame.Rect) -> pygame.Rect: ...
+
+
+@typing.overload
+def s(num: Tuple[int, int]) -> Tuple[int, int]: ...
+
+
+@typing.overload
+def s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
+
+
+@typing.overload
+def s(num: int) -> int: ...
+
+
+@typing.overload
+def s(num: float) -> float: ...
 
 
 def s(num: Union[wx.Bitmap,
@@ -294,6 +359,38 @@ def s(num: Union[wx.Bitmap,
     return _s_impl(num, UP_SCR)
 
 
+# @typing.overload
+# def scr2win_s(num: wx.Bitmap) -> wx.Bitmap: ...
+
+
+# @typing.overload
+# def scr2win_s(num: wx.Image) -> wx.Image: ...
+
+
+# @typing.overload
+# def scr2win_s(num: pygame.Surface) -> pygame.Surface: ...
+
+
+# @typing.overload
+# def scr2win_s(num: pygame.Rect) -> pygame.Rect: ...
+
+
+@typing.overload
+def scr2win_s(num: Tuple[int, int]) -> Tuple[int, int]: ...
+
+
+@typing.overload
+def scr2win_s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
+
+
+@typing.overload
+def scr2win_s(num: int) -> int: ...
+
+
+@typing.overload
+def scr2win_s(num: float) -> float: ...
+
+
 def scr2win_s(num: Union[wx.Bitmap,
                          wx.Image,
                          pygame.Surface,
@@ -312,9 +409,41 @@ def scr2win_s(num: Union[wx.Bitmap,
     """numを描画サイズから表示サイズに変換する。
     """
     if UP_WIN == UP_SCR:
-        return _s_impl(num, 1)
+        return _s_impl(num, 1.0)
     else:
         return _s_impl(num, float(UP_WIN) / UP_SCR)
+
+
+# @typing.overload
+# def win2scr_s(num: wx.Bitmap) -> wx.Bitmap: ...
+
+
+# @typing.overload
+# def win2scr_s(num: wx.Image) -> wx.Image: ...
+
+
+# @typing.overload
+# def win2scr_s(num: pygame.Surface) -> pygame.Surface: ...
+
+
+# @typing.overload
+# def win2scr_s(num: pygame.Rect) -> pygame.Rect: ...
+
+
+@typing.overload
+def win2scr_s(num: Tuple[int, int]) -> Tuple[int, int]: ...
+
+
+@typing.overload
+def win2scr_s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
+
+
+@typing.overload
+def win2scr_s(num: int) -> int: ...
+
+
+@typing.overload
+def win2scr_s(num: float) -> float: ...
 
 
 def win2scr_s(num: Union[wx.Bitmap,
@@ -335,9 +464,41 @@ def win2scr_s(num: Union[wx.Bitmap,
     """numを表示サイズから描画サイズに変換する。
     """
     if UP_WIN == UP_SCR:
-        return _s_impl(num, 1)
+        return _s_impl(num, 1.0)
     else:
         return _s_impl(num, float(UP_SCR) / UP_WIN)
+
+
+# @typing.overload
+# def scr2mwin_s(num: wx.Bitmap) -> wx.Bitmap: ...
+
+
+# @typing.overload
+# def scr2mwin_s(num: wx.Image) -> wx.Image: ...
+
+
+# @typing.overload
+# def scr2mwin_s(num: pygame.Surface) -> pygame.Surface: ...
+
+
+# @typing.overload
+# def scr2mwin_s(num: pygame.Rect) -> pygame.Rect: ...
+
+
+@typing.overload
+def scr2mwin_s(num: Tuple[int, int]) -> Tuple[int, int]: ...
+
+
+@typing.overload
+def scr2mwin_s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
+
+
+@typing.overload
+def scr2mwin_s(num: int) -> int: ...
+
+
+@typing.overload
+def scr2mwin_s(num: float) -> float: ...
 
 
 def scr2mwin_s(num: Union[wx.Bitmap,
@@ -358,9 +519,41 @@ def scr2mwin_s(num: Union[wx.Bitmap,
     """numを描画サイズから表示サイズに変換する。
     """
     if UP_WIN_M == UP_SCR:
-        return _s_impl(num, 1)
+        return _s_impl(num, 1.0)
     else:
         return _s_impl(num, float(UP_WIN_M) / UP_SCR)
+
+
+# @typing.overload
+# def mwin2scr_s(num: wx.Bitmap) -> wx.Bitmap: ...
+
+
+# @typing.overload
+# def mwin2scr_s(num: wx.Image) -> wx.Image: ...
+
+
+# @typing.overload
+# def mwin2scr_s(num: pygame.Surface) -> pygame.Surface: ...
+
+
+# @typing.overload
+# def mwin2scr_s(num: pygame.Rect) -> pygame.Rect: ...
+
+
+@typing.overload
+def mwin2scr_s(num: Tuple[int, int]) -> Tuple[int, int]: ...
+
+
+@typing.overload
+def mwin2scr_s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
+
+
+@typing.overload
+def mwin2scr_s(num: int) -> int: ...
+
+
+@typing.overload
+def mwin2scr_s(num: float) -> float: ...
 
 
 def mwin2scr_s(num: Union[wx.Bitmap,
@@ -381,9 +574,41 @@ def mwin2scr_s(num: Union[wx.Bitmap,
     """numを表示サイズから描画サイズに変換する。
     """
     if UP_WIN_M == UP_SCR:
-        return _s_impl(num, 1)
+        return _s_impl(num, 1.0)
     else:
         return _s_impl(num, float(UP_SCR) / UP_WIN_M)
+
+
+# @typing.overload
+# def _s_impl(num: wx.Bitmap, up_scr: float) -> wx.Bitmap: ...
+
+
+# @typing.overload
+# def _s_impl(num: wx.Image, up_scr: float) -> wx.Image: ...
+
+
+# @typing.overload
+# def _s_impl(num: pygame.Surface, up_scr: float) -> pygame.Surface: ...
+
+
+# @typing.overload
+# def _s_impl(num: pygame.Rect, up_scr: float) -> pygame.Rect: ...
+
+
+@typing.overload
+def _s_impl(num: Tuple[int, int], up_scr: float) -> Tuple[int, int]: ...
+
+
+@typing.overload
+def _s_impl(num: Tuple[int, int, int, int], up_scr: float) -> Tuple[int, int, int, int]: ...
+
+
+@typing.overload
+def _s_impl(num: int, up_scr: float) -> int: ...
+
+
+@typing.overload
+def _s_impl(num: float, up_scr: float) -> float: ...
 
 
 def _s_impl(num: Union[wx.Bitmap,
@@ -394,16 +619,17 @@ def _s_impl(num: Union[wx.Bitmap,
                        Tuple[int, int, int, int],
                        int,
                        float],
-            up_scr: Union[int, float]) -> Union[wx.Bitmap,
-                                                wx.Image,
-                                                pygame.Surface,
-                                                pygame.Rect,
-                                                Tuple[int, int],
-                                                Tuple[int, int, int, int],
-                                                int,
-                                                float]:
+            up_scr: float) -> Union[wx.Bitmap,
+                                    wx.Image,
+                                    pygame.Surface,
+                                    pygame.Rect,
+                                    Tuple[int, int],
+                                    Tuple[int, int, int, int],
+                                    int,
+                                    float]:
     if isinstance(num, tuple) and len(num) == 3 and num[2] is None:
         # スケール情報無し
+        assert False
         return _s_impl(num[:2], up_scr)
 
     if up_scr == 1 and not (isinstance(num, tuple) and len(num) == 3):
@@ -430,7 +656,7 @@ def _s_impl(num: Union[wx.Bitmap,
     elif isinstance(num, tuple):
         if isinstance(num[0], pygame.Surface):
             assert False
-            bmp = num[0]
+            bmp: pygame.Surface = num[0]
             if bmp.get_width() <= 0 or bmp.get_width() <= 0:
                 return bmp
             return _s_impl(bmp, up_scr)
@@ -442,20 +668,20 @@ def _s_impl(num: Union[wx.Bitmap,
             return _s_impl(img, up_scr)
         elif isinstance(num[0], wx.Bitmap):
             assert False
-            bmp = num[0]
-            bmpdepthis1 = hasattr(bmp, "bmpdepthis1")
-            maskcolour = bmp.maskcolour if hasattr(bmp, "maskcolour") else None
-            scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
+            wxbmp = num[0]
+            bmpdepthis1 = hasattr(wxbmp, "bmpdepthis1")
+            maskcolour = wxbmp.maskcolour if hasattr(wxbmp, "maskcolour") else None
+            scr_scale = wxbmp.scr_scale if hasattr(wxbmp, "scr_scale") else 1
             up_scr /= scr_scale
             if up_scr == 1:
-                return bmp
-            if bmp.GetWidth() <= 0 or bmp.GetHeight() <= 0:
-                return bmp
+                return wxbmp
+            if wxbmp.GetWidth() <= 0 or wxbmp.GetHeight() <= 0:
+                return wxbmp
             # wx.Bitmap
             if bmpdepthis1:
-                img = util.convert_to_image(bmp)
+                img = util.convert_to_image(wxbmp)
             else:
-                img = bmp.ConvertToImage()
+                img = wxbmp.ConvertToImage()
             result = _s_impl((img, num[1]), up_scr).ConvertToBitmap()
             if bmpdepthis1:
                 result.bmpdepthis1 = bmpdepthis1
@@ -483,18 +709,18 @@ def _s_impl(num: Union[wx.Bitmap,
         up_scr /= scr_scale
         if up_scr == 1:
             return num
-        num: pygame.Surface = num
-        w = int(num.get_width() * up_scr)
-        h = int(num.get_height() * up_scr)
+        bmp = num
+        w = int(bmp.get_width() * up_scr)
+        h = int(bmp.get_height() * up_scr)
         if w <= 0 or h <= 0:
-            return num
+            return bmp
         size = (w, h)
         if up_scr % 1 == 0:
-            result = pygame.transform.scale(num, size)
+            result = pygame.transform.scale(bmp, size)
         else:
-            if not (num.get_flags() & pygame.locals.SRCALPHA) and num.get_colorkey():
-                num = num.convert_alpha()
-            result = image.smoothscale(num, size)
+            if not (bmp.get_flags() & pygame.locals.SRCALPHA) and bmp.get_colorkey():
+                bmp = bmp.convert_alpha()
+            result = image.smoothscale(bmp, size)
         if isinstance(bmp0, util.Depth1Surface):
             result = util.Depth1Surface(result, scr_scale)
             result.bmpdepthis1 = bmp0.bmpdepthis1
@@ -541,11 +767,11 @@ def _s_impl(num: Union[wx.Bitmap,
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
             return num
-        bmp = num
+        wxbmp = num
         if bmpdepthis1:
-            img = util.convert_to_image(bmp)
+            img = util.convert_to_image(wxbmp)
         else:
-            img = bmp.ConvertToImage()
+            img = wxbmp.ConvertToImage()
         img = _s_impl(img, up_scr)
         result = img.ConvertToBitmap()
 
@@ -564,6 +790,38 @@ def _s_impl(num: Union[wx.Bitmap,
 dpi_level = 1
 
 
+# @typing.overload
+# def ppis(num: wx.Bitmap) -> wx.Bitmap: ...
+
+
+# @typing.overload
+# def ppis(num: wx.Image) -> wx.Image: ...
+
+
+# @typing.overload
+# def ppis(num: pygame.Surface) -> pygame.Surface: ...
+
+
+# @typing.overload
+# def ppis(num: pygame.Rect) -> pygame.Rect: ...
+
+
+@typing.overload
+def ppis(num: Tuple[int, int]) -> Tuple[int, int]: ...
+
+
+@typing.overload
+def ppis(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
+
+
+@typing.overload
+def ppis(num: int) -> int: ...
+
+
+@typing.overload
+def ppis(num: float) -> float: ...
+
+
 def ppis(num: Union[wx.Bitmap,
                     wx.Image,
                     pygame.Surface,
@@ -579,7 +837,7 @@ def ppis(num: Union[wx.Bitmap,
                                      Tuple[int, int, int, int],
                                      int,
                                      float]:
-    return _s_impl(num, dpi_level)
+    return _s_impl(num, float(dpi_level))
 
 
 def main() -> None:

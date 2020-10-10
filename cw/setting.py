@@ -22,7 +22,7 @@ import pygame.locals
 import cw
 
 import typing
-from typing import List, Callable, Dict, Iterable, Optional, Set, Tuple, Union
+from typing import List, Callable, Dict, Generic, Iterable, Optional, Set, Tuple, TypeVar, Union
 
 
 class NoFontError(ValueError):
@@ -768,8 +768,8 @@ class Setting(object):
             except Exception:
                 self.expanddrawing = 1.0
         self.expanddrawing = data.getfloat("ExpandDrawing", self.expanddrawing_init)
-        if self.expanddrawing % 1 == 0:
-            self.expanddrawing = int(self.expanddrawing)
+        if self.expanddrawing % 1.0 == 0.0:
+            self.expanddrawing = float(int(self.expanddrawing))
         # デバッグモードかどうか
         self.debug = data.getbool("DebugMode", self.debug_init)
         self.debug_saved = self.debug
@@ -1790,6 +1790,9 @@ class Resource(object):
         self._statusbtnbmp1 = {}
         self._statusbtnbmp2 = {}
 
+        self.actioncards: Dict[int, cw.header.CardHeader] = {}
+        self.backpackcards: Dict[str, cw.header.CardHeader] = {}
+
         self.ignorecase_table = {}
 
         cw.cwpy.frame.exec_func(self.init_wxresources)
@@ -2029,7 +2032,7 @@ class Resource(object):
 
         fontname, _pixels, bold, bold_upscr, italic = self.get_fontfromtype(name)
 
-        if cw.UP_SCR <= 1:
+        if cw.UP_SCR <= 1.0:
             if bold is not None:
                 weight = wx.FONTWEIGHT_BOLD if bold else wx.FONTWEIGHT_NORMAL
         else:
@@ -2075,7 +2078,7 @@ class Resource(object):
             bold = False
             bold_upscr = False
 
-        if cw.UP_SCR > 1:
+        if cw.UP_SCR > 1.0:
             bold = bold_upscr
 
         return cw.imageretouch.Font(fontname, -cw.s(pixels_noscale), bold=bold, italic=italic)
@@ -3201,10 +3204,14 @@ class LazyResource(object):
         return self._res
 
 
-class ResourceTable(object):
-    def __init__(self, name: str, init: Optional[Dict[typing.Any, typing.Any]] = None,
-                 deffunc: Optional[Callable[[], typing.Any]] = None,
-                 nokeyfunc: Optional[Callable[[str], typing.Any]] = None) -> None:
+_T = TypeVar("_T")
+_N = TypeVar("_N")
+
+
+class ResourceTable(Generic[_T, _N]):
+    def __init__(self, name: str, init: Optional[Dict[_T, _N]] = None,
+                 deffunc: Optional[Callable[[], _N]] = None,
+                 nokeyfunc: Optional[Callable[[str], _N]] = None) -> None:
         """文字列をキーとしたリソーステーブル。
         各リソースは必要になった時に遅延読み込みされる。
         """
@@ -3223,12 +3230,12 @@ class ResourceTable(object):
         for lazy in self.dic.values():
             lazy.clear()
 
-    def merge(self, d: "ResourceTable") -> None:
+    def merge(self, d: "ResourceTable[_T, _N]") -> None:
         for key, value in self.dic.items():
             if key not in self.dic:
                 self.dic[key] = value
 
-    def __getitem__(self, key: str) -> typing.Any:
+    def __getitem__(self, key: str) -> _N:
         self._put_nokeyvalue(key)
         lazy = self.dic.get(key, None)
         if lazy:
@@ -3247,7 +3254,7 @@ class ResourceTable(object):
                 sys.stderr.write(s)
             val = self.get_defvalue()
 
-    def get_defvalue(self) -> typing.Any:
+    def get_defvalue(self) -> _N:
         if not self.defload:
             self.defvalue = self.deffunc()
             self.defload = True
@@ -3257,20 +3264,20 @@ class ResourceTable(object):
         if self.nokeyfunc and key not in self.dic:
             self.dic[key] = LazyResource(lambda: self.nokeyfunc(key), (), {})
 
-    def get(self, key: str, defvalue: Optional[typing.Any] = None) -> typing.Any:
+    def get(self, key: str, defvalue: Optional[_N] = None) -> _N:
         self._put_nokeyvalue(key)
         if key in self.dic:
             return self[key]
         return defvalue
 
-    def set(self, key: str, func: Callable[..., typing.Any], *args, **kwargs) -> None:
+    def set(self, key: str, func: Callable[..., _N], *args, **kwargs) -> None:
         self.dic[key] = LazyResource(func, args, kwargs)
 
     def __contains__(self, key: str) -> bool:
         self._put_nokeyvalue(key)
         return key in self.dic
 
-    def copy(self) -> "ResourceTable":
+    def copy(self) -> "ResourceTable[_T, _N]":
         tbl = ResourceTable(self.name, self.dic.copy(), self.deffunc, self.nokeyfunc)
         tbl.defvalue = self.defvalue
         tbl.defload = self.defload
@@ -3592,7 +3599,8 @@ class ScenarioCompatibilityTable(object):
                     self.table[key] = (e.text, zindexmode, vanishmembercancellation, gossiprestoration,
                                        compstamprestoration)
 
-    def get_versionhint(self, fpath: Optional[str] = None, filedata: Optional[bytes] = None) -> Tuple[str, str, bool, bool, bool]:
+    def get_versionhint(self, fpath: Optional[str] = None,
+                        filedata: Optional[bytes] = None) -> Optional[Tuple[str, str, bool, bool, bool]]:
         """fpathのファイル内容またはfiledataから、
         本来そのファイルが再生されるべきCardWirthの
         バージョンを取得する。
@@ -3602,9 +3610,9 @@ class ScenarioCompatibilityTable(object):
         else:
             key = cw.util.get_md5(fpath)
 
-        return self.table.get(key, ("", "", False, False, False))
+        return self.table.get(key, None)
 
-    def lessthan(self, versionhint: str, currentversion: Tuple[str, str, bool, bool, bool]) -> bool:
+    def lessthan(self, versionhint: str, currentversion: Optional[Tuple[str, str, bool, bool, bool]]) -> bool:
         """currentversionがversionhint以下であればTrueを返す。"""
         if not currentversion:
             return False
@@ -3618,7 +3626,7 @@ class ScenarioCompatibilityTable(object):
         except Exception:
             return False
 
-    def zindexmode(self, currentversion: Tuple[str, str, bool, bool, bool]) -> bool:
+    def zindexmode(self, currentversion: Optional[Tuple[str, str, bool, bool, bool]]) -> bool:
         """メニューカードをプレイヤーカードより前に配置するモードで
         あればTrueを返す。
         """
@@ -3633,7 +3641,7 @@ class ScenarioCompatibilityTable(object):
         else:
             return self.lessthan("1.20", currentversion)
 
-    def enable_vanishmembercancellation(self, currentversion: Tuple[str, str, bool, bool, bool]) -> bool:
+    def enable_vanishmembercancellation(self, currentversion: Optional[Tuple[str, str, bool, bool, bool]]) -> bool:
         """パーティメンバが再配置される前であれば
         対象消去がキャンセルされるモードであればTrueを返す。
         """
@@ -3642,7 +3650,7 @@ class ScenarioCompatibilityTable(object):
 
         return currentversion[2]
 
-    def disable_gossiprestration(self, currentversion: Tuple[str, str, bool, bool, bool]) -> bool:
+    def disable_gossiprestration(self, currentversion: Optional[Tuple[str, str, bool, bool, bool]]) -> bool:
         """F9でのゴシップ復元を無効にする問題を
         再現するモードであればTrueを返す。
         """
@@ -3651,7 +3659,7 @@ class ScenarioCompatibilityTable(object):
 
         return currentversion[3]
 
-    def disable_compstamprestration(self, currentversion: Tuple[str, str, bool, bool, bool]) -> bool:
+    def disable_compstamprestration(self, currentversion: Optional[Tuple[str, str, bool, bool, bool]]) -> bool:
         """F9での終了印復元を無効にする問題を
         再現するモードであればTrueを返す。
         """
@@ -3660,8 +3668,9 @@ class ScenarioCompatibilityTable(object):
 
         return currentversion[4]
 
-    def merge_versionhints(self, hint1: Tuple[str, str, bool, bool, bool],
-                           hint2: Tuple[str, str, bool, bool, bool]) -> Tuple[str, str, bool, bool, bool]:
+    def merge_versionhints(self, hint1: Optional[Tuple[str, str, bool, bool, bool]],
+                           hint2: Optional[Tuple[str, str, bool, bool, bool]])\
+            -> Optional[Tuple[str, str, bool, bool, bool]]:
         """hint1を高優先度としてhint2とマージする。"""
         if not hint1:
             return hint2
@@ -3690,14 +3699,14 @@ class ScenarioCompatibilityTable(object):
         """basehintから複合情報を生成する。"""
         return (basehint, "", False, False, False)
 
-    def to_basehint(self, versionhint: Tuple[str, str, bool, bool, bool]) -> str:
+    def to_basehint(self, versionhint: Optional[Tuple[str, str, bool, bool, bool]]) -> str:
         """複合情報versionhintから最も基本的な情報を取り出す。"""
         if versionhint:
             return versionhint[0] if versionhint[0] else ""
         else:
             return ""
 
-    def read_modeini(self, fpath: str) -> Tuple[str, str, bool, bool, bool]:
+    def read_modeini(self, fpath: str) -> Optional[Tuple[str, str, bool, bool, bool]]:
         """クラシックなシナリオのmode.iniから互換性情報を読み込む。
         互換性情報が無いか、読込に失敗した場合はNoneを返す。
         """

@@ -203,7 +203,7 @@ class AdventurerLogger(object):
         return MOTION_IN_BATTLE if cw.cwpy.is_battlestatus() else MOTION
 
     def use_card(self, ccard: cw.character.Character, header: cw.header.CardHeader,
-                 targets: Union[cw.character.Character, List[cw.character.Character]]) -> None:
+                 targets: List["cw.sprite.card.CWPyCard"]) -> None:
         def use_card(params: Tuple[str, str, bool, str, str, bool]) -> str:
             (castname, cardname, isbeast, targetname, targettype, is_battlestatus) = params
             if is_battlestatus:
@@ -222,7 +222,7 @@ class AdventurerLogger(object):
         isbeast = header.type == "BeastCard"
         if isinstance(targets, list) and len(targets) == 1:
             targets = targets[0]
-        targetname = targets.name if targets and not isinstance(targets, list) else None
+        targetname = targets.get_showingname() if targets and not isinstance(targets, list) else None
         targettype = header.target
         is_battlestatus = cw.cwpy.is_battlestatus()
         if is_battlestatus:

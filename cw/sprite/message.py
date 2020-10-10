@@ -34,7 +34,8 @@ class MessageWindow(base.CWPySprite):
                  flagtable: Optional[Dict[str, cw.data.Flag]] = None,
                  steptable: Optional[Dict[str, cw.data.Step]] = None,
                  varianttable: Optional[Dict[str, cw.data.Variant]] = None,
-                 backlog: bool = False, result: Optional[int] = None, showing_result: int = -1, versionhint: str = "",
+                 backlog: bool = False, result: Optional[Union[int, cw.event.EffectBreakError]] = None,
+                 showing_result: int = -1, versionhint: str = "",
                  specialchars: Optional[cw.setting.ResourceTable] = None,
                  trim_top_noscale: int = 0, columns: int = 1, spcharinfo: Optional[Set[int]] = None,
                  centering_x: bool = False, centering_y: bool = False,
@@ -252,7 +253,7 @@ class MessageWindow(base.CWPySprite):
 
     @staticmethod
     def is_sbold() -> bool:
-        return cw.cwpy.setting.fonttypes["message"][3 if cw.UP_SCR <= 1 else 4]
+        return cw.cwpy.setting.fonttypes["message"][3 if cw.UP_SCR <= 1.0 else 4]
 
     @staticmethod
     def get_messagestyledata() -> Tuple[bool, Tuple[str, str, int, bool, bool, bool], int, bool]:
@@ -784,8 +785,9 @@ class MessageWindow(base.CWPySprite):
 
 class SelectWindow(MessageWindow):
     def __init__(self, names: List[str], text: str = "", pos_noscale: Optional[Tuple[int, int]] = None,
-                 size_noscale: Optional[Tuple[int, int]] = None, backlog: bool = False, result: Optional[int] = None,
-                 showing_result: int = -1, columns: int = 1, barspchr: bool = True,
+                 size_noscale: Optional[Tuple[int, int]] = None, backlog: bool = False,
+                 result: Optional[Union[int, cw.event.EffectBreakError]] = None, showing_result: int = -1,
+                 columns: int = 1, barspchr: bool = True,
                  nametable: Optional[Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
                                                      cw.data.Party, cw.data.YadoData]]] = None,
                  namesubtable: Optional[Dict[str, Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
@@ -1187,7 +1189,7 @@ class BacklogData(object):
 class BacklogCurtain(base.CWPySprite):
     def __init__(self, spritegrp: pygame.sprite.LayeredDirty, layer: Tuple[int, int, int, int],
                  size_noscale: Tuple[int, int], pos_noscale: Tuple[int, int],
-                 color: Optional[Tuple[int, int, int]] = None) -> None:
+                 color: Optional[Tuple[int, int, int, int]] = None) -> None:
         """メッセージログ用の半透明黒背景スプライト。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         alpha: 透明度。
@@ -1299,7 +1301,7 @@ def decorate(image: pygame.Surface, angle: int = 8,
                 # グラデーション
                 rect = (0, mid-y, w, 1)
                 c = max(0, y-cw.s(1))*angle
-                if cw.UP_SCR != 1:
+                if cw.UP_SCR != 1.0:
                     c = int(float(c) / cw.UP_SCR)
                 c = min(c, 255)
                 color = (c, c, c, 0)

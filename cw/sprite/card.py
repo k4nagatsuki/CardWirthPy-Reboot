@@ -60,6 +60,9 @@ class CWPyCard(base.SelectableSprite):
         # フラグ
         self.flag = ""
 
+    def get_showingname(self) -> str:
+        return ""
+
     def is_flagtrue(self) -> bool:
         mcardflag = bool(cw.cwpy.sdata.flags.get(self.flag, True))
         mcardflag &= bool(not self.debug_only or cw.cwpy.is_debugmode())
@@ -744,9 +747,8 @@ class PlayerCard(CWPyCard, character.Player):
                  status: str = "hidden", index: int = 0) -> None:
         CWPyCard.__init__(self, status)
         self.zoomsize_noscale = (16, 22)
-        self.data = data
         # CharacterCard初期化
-        character.Player.__init__(self)
+        character.Player.__init__(self, data)
         # カード画像
         self.imgpaths = []
         for info in cw.image.get_imageinfos(self.data.find("Property")):

@@ -15,14 +15,18 @@ import cw.binary.environment
 import cw.binary.party
 import cw.binary.adventurer
 
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Iterable, List, Generic, Optional, Tuple, TypeVar, Union
+
+_T = TypeVar("_T")
 
 
 # ------------------------------------------------------------------------------
 # 選択ダイアログ スーパークラス
 # ------------------------------------------------------------------------------
 
-class Select(wx.Dialog):
+class Select(wx.Dialog, Generic[_T]):
+    list: List[_T]
+
     def __init__(self, parent: wx.TopLevelWindow, name: str) -> None:
         wx.Dialog.__init__(self, parent, -1, name,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
@@ -32,7 +36,7 @@ class Select(wx.Dialog):
         self.toppanel = None
 
         self.additionals = []
-        self.addctrlbtn = None
+        self.addctrlbtn: Optional[wx.lib.buttons.ThemedGenBitmapToggleButton] = None
 
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
@@ -359,7 +363,7 @@ class Select(wx.Dialog):
         """パネルの左右クリックでページ切替可能ならTrue。"""
         return True
 
-    def _init_narrowpanel(self, choices: Tuple[str, str, str, str], narrowtext: str, narrowtype: int,
+    def _init_narrowpanel(self, choices: Iterable[str], narrowtext: str, narrowtype: int,
                           tworows: bool = False) -> None:
         font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         if tworows:
@@ -484,7 +488,7 @@ class Select(wx.Dialog):
 # 一覧表示可能な選択ダイアログ(抽象クラス)
 # ------------------------------------------------------------------------------
 
-class MultiViewSelect(Select):
+class MultiViewSelect(Generic[_T], Select[_T]):
     def __init__(self, parent: wx.TopLevelWindow, title: str, enterid: int, views: int = 10, show_multi: bool = False,
                  lines: int = 2) -> None:
         # ダイアログボックス作成
@@ -664,7 +668,7 @@ class MultiViewSelect(Select):
 _okid = wx.NewId()
 
 
-class YadoSelect(MultiViewSelect):
+class YadoSelect(MultiViewSelect[str]):
     """
     宿選択ダイアログ。
     """
@@ -1821,7 +1825,7 @@ class _YadoObj(object):
 # パーティ選択ダイアログ
 # ------------------------------------------------------------------------------
 
-class PartySelect(MultiViewSelect):
+class PartySelect(MultiViewSelect[cw.header.PartyHeader]):
     """
     パーティ選択ダイアログ。
     """
@@ -2483,7 +2487,7 @@ class PartySelect(MultiViewSelect):
 # 冒険者選択ダイアログ
 # ------------------------------------------------------------------------------
 
-class PlayerSelect(MultiViewSelect):
+class PlayerSelect(MultiViewSelect[cw.header.AdventurerHeader]):
     """
     冒険者選択ダイアログ。
     """

@@ -12,7 +12,7 @@ from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND
 import cw
 
 import typing
-from typing import Callable, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 
 try:
@@ -110,8 +110,8 @@ def to_negative_for_wxcard(wxbmp: wx.Bitmap, framewidth: int = 0) -> wx.Bitmap:
         x, y, w, h = wx.Rect(cw.wins(framewidth), cw.wins(framewidth),
                              w - cw.wins(framewidth*2), h - cw.wins(framewidth*2))
         subbmp = wxbmp.GetSubBitmap(wx.Rect(x, y, w, h))
-        buf = cw.util.wxbmp_to_buffer(subbmp)
-        buf = bytearray(buf)
+        buf_bytes = cw.util.wxbmp_to_buffer(subbmp)
+        buf = bytearray(buf_bytes)
         try:
             func = _imageretouch.to_negative
             func(buf, (w, h))
@@ -464,7 +464,8 @@ def _spread_pixels(image: pygame.Surface) -> pygame.Surface:
     return out_image
 
 
-def _filter(image: pygame.Surface, weight: int, offset: int = 0, div: int = 1) -> pygame.Surface:
+def _filter(image: pygame.Surface, weight: Tuple[Tuple[int, int,int], Tuple[int, int, int], Tuple[int, int, int]],
+            offset: int = 0, div: int = 1) -> pygame.Surface:
     """フィルタを適用する。
     weight: 重み付け係数。
     offset: オフセット(整数)
@@ -473,12 +474,13 @@ def _filter(image: pygame.Surface, weight: int, offset: int = 0, div: int = 1) -
     try:
         func = _imageretouch.filter
     except Exception:
-        return __filter(image, weight, offset, div)
+        return _filter2(image, weight, offset, div)
 
     return _retouch(func, image, weight, offset, div)
 
 
-def __filter(image: pygame.Surface, weight: Sequence[Sequence[int]], offset: int = 0, div: int = 1) -> pygame.Surface:
+def _filter2(image: pygame.Surface, weight: Tuple[Tuple[int, int,int], Tuple[int, int, int], Tuple[int, int, int]],
+             offset: int = 0, div: int = 1) -> pygame.Surface:
     out_image = image.copy()
     out_pxarray = pygame.PixelArray(out_image)
     pxarray = pygame.PixelArray(image)
@@ -720,14 +722,14 @@ def _bordering(data: str, size: Tuple[int, int]) -> List[int]:
                 continue
 
             find = False
-            find |= 0 < x and 0 < y and color[(x - 1) + (yi - w)]
-            find |= 0 < y and color[(x + 0) + (yi - w)]
-            find |= x + 1 < w and 0 < y and color[(x + 1) + (yi - w)]
-            find |= 0 < x and color[(x - 1) + (yi)]
-            find |= x + 1 < w and color[(x + 1) + (yi)]
-            find |= 0 < x and y + 1 < h and color[(x - 1) + (yi + w)]
-            find |= y + 1 < h and color[(x + 0) + (yi + w)]
-            find |= x + 1 < w and y + 1 < h and color[(x + 1) + (yi + w)]
+            find |= bool(0 < x and 0 < y and color[(x - 1) + (yi - w)])
+            find |= bool(0 < y and color[(x + 0) + (yi - w)])
+            find |= bool(x + 1 < w and 0 < y and color[(x + 1) + (yi - w)])
+            find |= bool(0 < x and color[(x - 1) + (yi)])
+            find |= bool(x + 1 < w and color[(x + 1) + (yi)])
+            find |= bool(0 < x and y + 1 < h and color[(x - 1) + (yi + w)])
+            find |= bool(y + 1 < h and color[(x + 0) + (yi + w)])
+            find |= bool(x + 1 < w and y + 1 < h and color[(x + 1) + (yi + w)])
 
             if find:
                 seq.append(x)
@@ -804,8 +806,8 @@ def _blend_add_1_50(dest: pygame.Surface, source: pygame.Surface) -> pygame.Surf
         buf.extend([chr(dr), chr(dg), chr(db), chr(da)])
 
     assert len(buf) == len(dbuf)
-    buf = "".join(buf)
-    return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
+    s = "".join(buf)
+    return pygame.image.frombuffer(s, (w, h), "RGBA").convert_alpha()
 
 
 def _blend_sub_1_50(dest: pygame.Surface, source: pygame.Surface) -> pygame.Surface:
@@ -826,8 +828,8 @@ def _blend_sub_1_50(dest: pygame.Surface, source: pygame.Surface) -> pygame.Surf
         buf.extend([chr(dr), chr(dg), chr(db), chr(da)])
 
     assert len(buf) == len(dbuf)
-    buf = "".join(buf)
-    return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
+    s = "".join(buf)
+    return pygame.image.frombuffer(s, (w, h), "RGBA").convert_alpha()
 
 
 def _blend_mult_1_50(dest: pygame.Surface, source: pygame.Surface) -> pygame.Surface:
@@ -852,8 +854,8 @@ def _blend_mult_1_50(dest: pygame.Surface, source: pygame.Surface) -> pygame.Sur
         buf.extend([chr(dr), chr(dg), chr(db), chr(da)])
 
     assert len(buf) == len(dbuf)
-    buf = "".join(buf)
-    return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
+    s = "".join(buf)
+    return pygame.image.frombuffer(s, (w, h), "RGBA").convert_alpha()
 
 
 def to_disabledimage(wxbmp: wx.Bitmap, maskpos: Tuple[int, int] = (0, 0)) -> wx.Bitmap:
@@ -1102,12 +1104,12 @@ def wxblit_2bitbmp_to_card(dc: wx.MemoryDC, dest: wx.Bitmap, wxbmp: wx.Bitmap, x
         wximg = wxbmp2.ConvertToImage()
         if not wximg.HasAlpha():
             wximg.InitAlpha()
-        buf = wximg.GetDataBuffer()
+        buf1 = wximg.GetDataBuffer()
         alphabuf = wximg.GetAlphaBuffer()
-        dbuf = cw.util.wxbmp_to_buffer(sub)
+        buf2 = cw.util.wxbmp_to_buffer(sub)
 
-        dbuf = bytearray(dbuf)
-        buf = bytearray(buf)
+        dbuf = bytearray(buf2)
+        buf = bytearray(buf1)
         assert len(dbuf) == len(buf)
         assert len(dbuf) == len(alphabuf)*3
         try:
@@ -1171,6 +1173,11 @@ def _create_mfont(name: str, pixels: int, bold: bool, italic: bool, sys: bool) -
 
 
 class Font(object):
+    font: Optional["cw.imageretouch.Font"]
+    font2x: Optional["cw.imageretouch.Font"]
+    font_notitalic: Optional["cw.imageretouch.Font"]
+    _cache: Dict[Tuple[str, bool, Tuple[int, int, int]], pygame.Surface]
+
     def __init__(self, face: str, pixels: int, bold: bool = False, italic: bool = False) -> None:
         self._cache = {}
 
@@ -1212,19 +1219,21 @@ class Font(object):
 
     def dispose(self) -> None:
         if not self.font and self.fontinfo:
+            assert self.fontinfo2x
             _imageretouch.font_del(self.fontinfo)
             _imageretouch.font_del(self.fontinfo2x)
             self.fontinfo = None
             self.fontinfo2x = None
-            self._cache = None
+            self._cache = {}
 
     def __del__(self) -> None:
         if not self.font and self.fontinfo:
+            assert self.fontinfo2x
             _imageretouch.font_del(self.fontinfo)
             _imageretouch.font_del(self.fontinfo2x)
             self.fontinfo = None
             self.fontinfo2x = None
-            self._cache = None
+            self._cache = {}
 
     def get_bold(self) -> bool:
         if self.font:
@@ -1235,6 +1244,8 @@ class Font(object):
     def set_bold(self, v: bool) -> None:
         self._cache = {}
         if self.font:
+            assert self.font2x
+            assert self.font_notitalic
             self.font.set_bold(v)
             self.font2x.set_bold(v)
             self.font_notitalic.set_bold(v)
@@ -1252,6 +1263,7 @@ class Font(object):
     def set_italic(self, v: bool) -> None:
         self._cache = {}
         if self.font:
+            assert self.font2x
             self.font.set_italic(v)
             self.font2x.set_italic(v)
         else:
@@ -1268,6 +1280,8 @@ class Font(object):
     def set_underline(self, v: bool) -> None:
         self._cache = {}
         if self.font:
+            assert self.font2x
+            assert self.font_notitalic
             self.font.set_underline(v)
             self.font2x.set_underline(v)
             self.font_notitalic.set_underline(v)
@@ -1298,6 +1312,7 @@ class Font(object):
 
     def size_withoutoverhang(self, text: str) -> Tuple[int, int]:
         if self.font:
+            assert self.font_notitalic
             return self.font_notitalic.size(text)
         else:
             return _imageretouch.font_size(self.fontinfo, text.encode("utf-8"))
@@ -1316,6 +1331,7 @@ class Font(object):
                 return self._cache[key].copy()
 
         if self.font:
+            assert self.font2x
             if antialias:
                 image = self.font2x.render(text, antialias, colour)
                 size = self.size(text)
@@ -1340,15 +1356,15 @@ class Font(object):
                     image2.blit(bmp, (1, 0))
                     bmp = image2
         elif antialias:
-            text = text.encode("utf-8")
-            size = _imageretouch.font_imagesize(self.fontinfo2x, text, antialias)
-            buf = _imageretouch.font_render(self.fontinfo2x, text, antialias, colour[:3])
+            b_text = text.encode("utf-8")
+            size = _imageretouch.font_imagesize(self.fontinfo2x, b_text, antialias)
+            buf = _imageretouch.font_render(self.fontinfo2x, b_text, antialias, colour[:3])
             # BUG: Windows 10 1709で、フォント「游明朝」で「ーム」を含む文字列のサイズが
             #      ランダムに変動してしまう不具合を暫定的に回避する
             size = (len(buf) // size[1] // 4, size[1])
             assert len(buf) == size[0]*size[1]*4
             image = pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
-            size2 = _imageretouch.font_imagesize(self.fontinfo, text, antialias)
+            size2 = _imageretouch.font_imagesize(self.fontinfo, b_text, antialias)
             if sbold:
                 size = (size[0]+4, size[1])
                 image2 = pygame.Surface(size).convert_alpha()
@@ -1360,13 +1376,13 @@ class Font(object):
 
             bmp = pygame.transform.smoothscale(image, size2)
         else:
-            text = text.encode("utf-8")
+            b_text = text.encode("utf-8")
             # BUG: font_render()からタプルを返そうとするとbufがGCで
             #      回収されなくなってしまうため、bufのみを返すようにし、
             #      (w, h)取得用にfont_imagesize()を用意してある
             # buf, size = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
-            size = _imageretouch.font_imagesize(self.fontinfo, text, antialias)
-            buf = _imageretouch.font_render(self.fontinfo, text, antialias, colour[:3])
+            size = _imageretouch.font_imagesize(self.fontinfo, b_text, antialias)
+            buf = _imageretouch.font_render(self.fontinfo, b_text, antialias, colour[:3])
             # BUG: Windows 10 1709で、フォント「游明朝」で「ーム」を含む文字列のサイズが
             #      ランダムに変動してしまう不具合を暫定的に回避する
             size = (len(buf) // size[1] // 4, size[1])

@@ -520,8 +520,9 @@ class SoundInterface(object):
 # ------------------------------------------------------------------------------
 
 def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullscreen: bool = False,
-         soundfonts: Optional[List[str]] = None, fullscreensize: Tuple[int, int] = (0, 0),
-         sdlmixer_enabled: bool = False) -> Tuple[pygame.Surface, pygame.Surface, pygame.Surface, pygame.time.Clock]:
+         soundfonts: Optional[List[Tuple[str, bool, int]]] = None, fullscreensize: Tuple[int, int] = (0, 0),
+         sdlmixer_enabled: bool = False) -> Tuple[pygame.Surface, pygame.Surface, Optional[pygame.Surface],
+                                                  pygame.time.Clock]:
     """pygame初期化。"""
     if sys.platform == "win32":
         # FIXME: SDLがWindowsの言語設定に勝手にUSキーボード設定を追加してしまうので
@@ -897,7 +898,7 @@ def put_number(image: pygame.Surface, num: int) -> pygame.Surface:
     y = image.get_height() - subimg.get_height()
     pos = (x, y)
     for i, c in enumerate(s):
-        cimg = font.render(c, 2 <= cw.UP_SCR, (0, 0, 0))
+        cimg = font.render(c, 2.0 <= cw.UP_SCR, (0, 0, 0))
         image.blit(cimg, (pos[0] + 1 + i * w, pos[1] + 1))
         image.blit(cimg, (pos[0] + 1 + i * w, pos[1] - 1))
         image.blit(cimg, (pos[0] - 1 + i * w, pos[1] + 1))
@@ -906,7 +907,7 @@ def put_number(image: pygame.Surface, num: int) -> pygame.Surface:
         image.blit(cimg, (pos[0] - 1 + i * w, pos[1]))
         image.blit(cimg, (pos[0] + i * w, pos[1] + 1))
         image.blit(cimg, (pos[0] + i * w, pos[1] - 1))
-        cimg = font.render(c, 2 <= cw.UP_SCR, (255, 255, 255))
+        cimg = font.render(c, 2.0 <= cw.UP_SCR, (255, 255, 255))
         image.blit(cimg, (pos[0] + i * w, pos[1]))
     return image
 
@@ -1313,14 +1314,18 @@ def cmp(a: Optional[Union[Tuple[int, str], int]], b: Optional[Union[Tuple[int, s
 @typing.overload
 def sorted_by_attr(seq: Iterable[int], *attr) -> Iterable[int]: ...
 
+
 @typing.overload
 def sorted_by_attr(seq: Iterable[float], *attr) -> Iterable[float]: ...
+
 
 @typing.overload
 def sorted_by_attr(seq: Iterable[str], *attr) -> Iterable[str]: ...
 
+
 @typing.overload
 def sorted_by_attr(seq: Iterable[Tuple[str, bool]], *attr) -> Iterable[Tuple[str, bool]]: ...
+
 
 def sorted_by_attr(seq: Iterable[Union[int, float, str, Tuple[str, bool]]],
                    *attr) -> List[Union[int, float, str, Tuple[str, bool]]]:
@@ -1334,26 +1339,69 @@ def sorted_by_attr(seq: Iterable[Union[int, float, str, Tuple[str, bool]]],
 @typing.overload
 def sort_by_attr(seq: List["cw.header.ScenarioHeader"], *attr) -> List["cw.header.ScenarioHeader"]: ...
 
+
 @typing.overload
 def sort_by_attr(seq: List["cw.header.AdventurerHeader"], *attr) -> List["cw.header.AdventurerHeader"]: ...
+
 
 @typing.overload
 def sort_by_attr(seq: List["cw.header.PartyRecordHeader"], *attr) -> List["cw.header.PartyRecordHeader"]: ...
 
+
 @typing.overload
 def sort_by_attr(seq: List["cw.header.CardHeader"], *attr) -> List["cw.header.CardHeader"]: ...
+
+
+@typing.overload
+def sort_by_attr(seq: List["cw.data.Flag"], *attr) -> List["cw.data.Flag"]: ...
+
+
+@typing.overload
+def sort_by_attr(seq: List["cw.data.Step"], *attr) -> List["cw.data.Step"]: ...
+
+
+@typing.overload
+def sort_by_attr(seq: List["cw.data.Variant"], *attr) -> List["cw.data.Variant"]: ...
+
 
 @typing.overload
 def sort_by_attr(seq: List[int], *attr) -> List[int]: ...
 
+
 @typing.overload
 def sort_by_attr(seq: List[float], *attr) -> List[float]: ...
+
 
 @typing.overload
 def sort_by_attr(seq: List[str], *attr) -> List[str]: ...
 
-def sort_by_attr(seq: Union[List["cw.header.ScenarioHeader"], List["cw.header.AdventurerHeader"], List["cw.header.PartyRecordHeader"], List["cw.header.CardHeader"], List[int], List[float], List[str]],
-                 *attr) -> Union[List["cw.header.ScenarioHeader"], List["cw.header.AdventurerHeader"], List["cw.header.PartyRecordHeader"], List["cw.header.CardHeader"], List[int], List[float], List[str], List[Tuple[str, bool]]]:
+
+@typing.overload
+def sort_by_attr(seq: List[Tuple[int, str]], *attr) -> List[Tuple[int, str]]: ...
+
+
+def sort_by_attr(seq: Union[List["cw.header.ScenarioHeader"],
+                            List["cw.header.AdventurerHeader"],
+                            List["cw.header.PartyRecordHeader"],
+                            List["cw.header.CardHeader"],
+                            List["cw.data.Flag"],
+                            List["cw.data.Step"],
+                            List["cw.data.Variant"],
+                            List[int],
+                            List[float],
+                            List[str],
+                            List[Tuple[int, str]]],
+                 *attr) -> Union[List["cw.header.ScenarioHeader"],
+                                 List["cw.header.AdventurerHeader"],
+                                 List["cw.header.PartyRecordHeader"],
+                                 List["cw.header.CardHeader"],
+                                 List["cw.data.Flag"],
+                                 List["cw.data.Step"],
+                                 List["cw.data.Variant"],
+                                 List[int],
+                                 List[float],
+                                 List[str],
+                                 List[Tuple[int, str]]]:
     """破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1373,7 +1421,16 @@ if sys.platform == "win32":
         _shlwapi.StrCmpLogicalW.restype = ctypes.wintypes.INT
 
 
-def sort_by_filename(seq: List[str], *attr) -> List[str]:
+@typing.overload
+def sort_by_filename(seq: List[str], *attr) -> List[str]: ...
+
+
+@typing.overload
+def sort_by_filename(seq: List["cw.header.ScenarioHeader"], *attr) -> List["cw.header.ScenarioHeader"]: ...
+
+
+def sort_by_filename(seq: Union[List[str], List["cw.header.ScenarioHeader"]],
+                     *attr) -> Union[List[str], List["cw.header.ScenarioHeader"]]:
     if sys.platform == "win32" and _shlwapi:
         def cmp(a: str, b: str) -> int:
             return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
@@ -1442,11 +1499,14 @@ assert relpath("a", "../bcde").replace("\\", "/") == os.path.relpath("a", "../bc
 assert relpath("../a", "../bcde").replace("\\", "/") == os.path.relpath("../a", "../bcde").replace("\\", "/")
 assert relpath("../a", "../").replace("\\", "/") == os.path.relpath("../a", "../").replace("\\", "/")
 
+
 @typing.overload
 def validate_filepath(fpath: Optional[str]) -> str: ...
 
+
 @typing.overload
 def validate_filepath(fpath: List[Optional[str]]) -> List[str]: ...
+
 
 def validate_filepath(fpath: Optional[Union[str, List[Optional[str]]]]) -> Union[List[str], str]:
     """
@@ -1527,7 +1587,15 @@ def str2bool(s: str) -> bool:
             raise ValueError("%s is incorrect value!" % (s))
 
 
-def numwrap(n: int, nmin: int, nmax: int) -> int:
+@typing.overload
+def numwrap(n: int, nmin: int, nmax: int) -> int: ...
+
+
+@typing.overload
+def numwrap(n: float, nmin: float, nmax: float) -> float: ...
+
+
+def numwrap(n: Union[int, float], nmin: Union[int, float], nmax: Union[int, float]) -> Union[int, float]:
     """最小値、最大値の範囲内でnの値を返す。
     n: 範囲内で調整される値。
     nmin: 最小値。
@@ -1753,7 +1821,7 @@ def create_screenshot(titledic: Dict[str, str]) -> Tuple[pygame.Surface, int]:
     return bmp, y
 
 
-def card_screenshot() -> bool:
+def card_screenshot() -> None:
     """ パーティー所持カードのスクリーンショットをファイルへ書き出す。
     """
     if cw.cwpy.ydata:
@@ -1773,8 +1841,6 @@ def card_screenshot() -> bool:
                 cw.util.print_ex()
                 s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
                 cw.cwpy.call_modaldlg("ERROR", text=s)
-            return True
-    return False
 
 
 def create_cardscreenshotfilename(titledic: Dict[str, str]) -> str:
@@ -2489,7 +2555,7 @@ NO_OVERWRITE = 1
 OVERWRITE_WITH_LATEST_FILES = 2
 
 
-def copytree_overwrite(src: str, dst: str, files_overwrite: bool = OVERWRITE_ALWAYS) -> None:
+def copytree_overwrite(src: str, dst: str, files_overwrite: int = OVERWRITE_ALWAYS) -> None:
     """
     ディレクトリを上書きコピーないし統合する。
     files_overwrite=Falseの時は同一のファイルを上書きしない。

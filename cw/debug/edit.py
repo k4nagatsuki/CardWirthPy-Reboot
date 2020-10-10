@@ -935,10 +935,10 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 class SavedVariablesEditDialog(wx.Dialog):
 
     def __init__(self, parent: wx.TopLevelWindow,
-                 savedvariables: Dict[Tuple[str, str], Tuple[cw.data.CWPyElement,
-                                                             Dict[str, bool],
-                                                             Dict[str, int],
-                                                             Dict[str, Union[str, decimal.Decimal, bool]]]]) -> None:
+                 savedvariables: Dict[Union[Tuple[str, str], str],
+                                      Tuple[cw.data.CWPyElement, Dict[str, bool],
+                                            Dict[str, int],
+                                            Dict[str, Union[str, decimal.Decimal, bool]]]]) -> None:
         wx.Dialog.__init__(self, parent, -1, "状態変数を保存したシナリオ",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True

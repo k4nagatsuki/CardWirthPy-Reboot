@@ -20,8 +20,7 @@ class Message(wx.Dialog):
     """
     def __init__(self, parent: wx.TopLevelWindow, name: str, text: str, mode: int = 2,
                  choices: Optional[Iterable[Union[Tuple[str, int, int, str],
-                                                  Tuple[str, int, str],
-                                                  Tuple[str, int]]]] = None) -> None:
+                                                  Tuple[str, int, int]]]] = None) -> None:
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((355, 120)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -179,8 +178,7 @@ class SysMessage(wx.Dialog):
     """
     def __init__(self, parent: wx.TopLevelWindow, name: str, text: str,
                  choices: Optional[Iterable[Union[Tuple[str, int, int, str],
-                                                  Tuple[str, int, str],
-                                                  Tuple[str, int]]]] = None,
+                                                  Tuple[str, int, int]]]] = None,
                  checkboxes: Optional[Iterable[Tuple[str, str, bool]]] = None) -> None:
         if choices:
             style = wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX

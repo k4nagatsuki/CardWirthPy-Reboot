@@ -1032,7 +1032,7 @@ class JpdcImage(cw.image.Image):
 
             saveimage_noscale = self.image
             saveimage = None
-            if cw.UP_SCR != 1:
+            if cw.UP_SCR != 1.0:
                 saveimage_noscale = cw.image.smoothscale(saveimage_noscale, (w_noscale, h_noscale))
                 saveimage = self.image
 
@@ -1224,7 +1224,7 @@ class JptxImage(cw.image.Image):
 
             def create_font(self) -> None:
                 self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
-                if cw.UP_SCR == 1:
+                if cw.UP_SCR == 1.0:
                     self.font_noscale = self.font
                 else:
                     self.font_noscale = cw.imageretouch.Font(self.fontface, self.fontpixels_noscale)
@@ -1247,7 +1247,7 @@ class JptxImage(cw.image.Image):
                 pixels_aa_noscale = max(1, pixels_aa)
                 pixels_aa = cw.s(pixels_aa_noscale)
                 self.font2 = cw.imageretouch.Font(self.fontface, pixels_aa)
-                if cw.UP_SCR == 1:
+                if cw.UP_SCR == 1.0:
                     self.font2_noscale = self.font2
                 else:
                     self.font2_noscale = cw.imageretouch.Font(self.fontface, pixels_aa_noscale)
@@ -1265,7 +1265,7 @@ class JptxImage(cw.image.Image):
 
                 if antialias:
                     subimg = info.font2.render(chars, True, info.fontcolor)
-                    if cw.UP_SCR == 1:
+                    if cw.UP_SCR == 1.0:
                         size = info.font2.size(chars)
                     else:
                         size = cw.s(info.font2_noscale.size(chars))
@@ -1275,7 +1275,7 @@ class JptxImage(cw.image.Image):
                     rect = pygame.Rect(int(info.x), int(info.y)+yp, width, height)
                     rect = rect.clip(self.outer.image.get_rect())
                     if 0 < rect.width and 0 < rect.height:
-                        if cw.UP_SCR != 1 and subimg.get_size() != size:
+                        if cw.UP_SCR != 1.0 and subimg.get_size() != size:
                             # 1倍で描画した時のサイズに合せる
                             subimg = pygame.transform.smoothscale(subimg, size)
                         # 拡大した背景にBlitし、その後縮小する
@@ -1288,7 +1288,7 @@ class JptxImage(cw.image.Image):
                         # 縮小
                         subimg = pygame.transform.smoothscale(subimg2, (w, h))
 
-                    if cw.UP_SCR == 1:
+                    if cw.UP_SCR == 1.0:
                         width = info.font2.size_withoutoverhang(chars)[0] // 2
                     else:
                         width = cw.s(info.font2_noscale.size_withoutoverhang(chars))[0] // 2
@@ -1301,7 +1301,7 @@ class JptxImage(cw.image.Image):
                         antialias2 = antialias
 
                     subimg = info.font.render(chars, antialias2, info.fontcolor)
-                    if cw.UP_SCR == 1:
+                    if cw.UP_SCR == 1.0:
                         width = info.font.size_withoutoverhang(chars)[0]
                     else:
                         # 1倍で描画した時のサイズに合せる
@@ -1363,21 +1363,21 @@ class JptxImage(cw.image.Image):
                     bold = start
                     info.font.set_bold(start)
                     info.font2.set_bold(start)
-                    if cw.UP_SCR != 1:
+                    if cw.UP_SCR != 1.0:
                         info.font_noscale.set_bold(start)
                         info.font2_noscale.set_bold(start)
                 elif name == "u":
                     underline = start
                     info.font.set_underline(start)
                     info.font2.set_underline(start)
-                    if cw.UP_SCR != 1:
+                    if cw.UP_SCR != 1.0:
                         info.font_noscale.set_underline(start)
                         info.font2_noscale.set_underline(start)
                 elif name == "i":
                     italic = start
                     info.font.set_italic(start)
                     info.font2.set_italic(start)
-                    if cw.UP_SCR != 1:
+                    if cw.UP_SCR != 1.0:
                         info.font_noscale.set_italic(start)
                         info.font2_noscale.set_italic(start)
                 elif name == "s":
@@ -1416,17 +1416,17 @@ class JptxImage(cw.image.Image):
                         info.fontcolor = color
                     info.font.set_bold(bold)
                     info.font2.set_bold(bold)
-                    if cw.UP_SCR != 1:
+                    if cw.UP_SCR != 1.0:
                         info.font_noscale.set_bold(bold)
                         info.font2_noscale.set_bold(bold)
                     info.font.set_italic(italic)
                     info.font2.set_italic(italic)
-                    if cw.UP_SCR != 1:
+                    if cw.UP_SCR != 1.0:
                         info.font_noscale.set_italic(italic)
                         info.font2_noscale.set_italic(italic)
                     info.font.set_underline(underline)
                     info.font2.set_underline(underline)
-                    if cw.UP_SCR != 1:
+                    if cw.UP_SCR != 1.0:
                         info.font_noscale.set_underline(underline)
                         info.font2_noscale.set_underline(underline)
 

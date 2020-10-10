@@ -13,12 +13,11 @@ from typing import Union, List, Optional
 # パーティの記録
 # ------------------------------------------------------------------------------
 
-class SelectPartyRecord(select.Select):
+class SelectPartyRecord(select.Select[Optional[cw.header.PartyRecordHeader]]):
     """
     パーティ記録・再結成ダイアログ。
     """
     index: int
-    list: List[Optional[cw.header.PartyRecordHeader]]
     restorable: List[List[Optional[cw.header.PartyRecordHeader]]]
 
     def __init__(self, parent: Union["cw.dialog.select.PartySelect", "cw.dialog.select.PlayerSelect"]) -> None:

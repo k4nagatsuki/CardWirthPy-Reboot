@@ -96,6 +96,8 @@ class ConstructScenarioDB(wx.Dialog):
             self._curnum += 1
 
         db = cw.cwpy.frame.open_scenariodb()
+        if not db:
+            return
         if self._clear and not self._cancel:
             db.delete_all(commit=False)
 

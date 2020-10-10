@@ -304,8 +304,9 @@ class BackGround(base.CWPySprite):
         self._force_noinhrt = True
         self.pc_cache.clear()
 
-    def load(self, elements: Iterable[cw.data.CWPyElement], doanime: bool = True, ttype: Tuple[str, str] = ("Default", "Default"),
-             bginhrt: bool = True, nocheckvisible: bool = False, redraw: bool = True) -> None:
+    def load(self, elements: Iterable[cw.data.CWPyElement], doanime: bool = True,
+             ttype: Tuple[str, Union[str, int]] = ("Default", "Default"), bginhrt: bool = True,
+             nocheckvisible: bool = False, redraw: bool = True) -> None:
         """背景画面を構成する。
         elements: BgImageElementのリスト。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
@@ -640,16 +641,16 @@ class BackGround(base.CWPySprite):
         else:
             assert False
 
-    def reload(self, doanime: bool = True, ttype: Tuple[str, str] = ("Default", "Default"), redraw: bool = True,
-               cellname: str = "", repldata: Optional[Iterable[cw.data.CWPyElement]] = None,
+    def reload(self, doanime: bool = True, ttype: Tuple[str, Union[str, int]] = ("Default", "Default"),
+               redraw: bool = True, cellname: str = "", repldata: Optional[Iterable[cw.data.CWPyElement]] = None,
                movedata: Optional[Tuple[str, int, int, str, int, int]] = None, ignoreeffectbooster: bool = False,
                nocheckvisible: bool = False) -> bool:
         return self._reload(doanime, ttype, redraw, False, redisplay=False, cellname=cellname, repldata=repldata,
                             movedata=movedata, ignoreeffectbooster=ignoreeffectbooster, nocheckvisible=nocheckvisible)
 
-    def _reload(self, doanime: bool = True, ttype: Tuple[str, str] = ("Default", "Default"), redraw: bool = True,
-                force: bool = False, nocheckvisible: bool = False, redisplay: bool = True, beforeload: bool = False,
-                cellname: str = "", repldata: Optional[Iterable[cw.data.CWPyElement]] = None,
+    def _reload(self, doanime: bool = True, ttype: Tuple[str, Union[str, int]] = ("Default", "Default"),
+                redraw: bool = True, force: bool = False, nocheckvisible: bool = False, redisplay: bool = True,
+                beforeload: bool = False, cellname: str = "", repldata: Optional[Iterable[cw.data.CWPyElement]] = None,
                 movedata: Optional[Tuple[str, int, int, str, int, int]] = None,
                 ignoreeffectbooster: bool = False) -> bool:
         """背景画面を再構成する。
@@ -1355,7 +1356,7 @@ def layered_draw_ex(layered_updates: pygame.sprite.LayeredDirty, surface: pygame
 
 class Curtain(base.SelectableSprite):
     def __init__(self, target: "cw.sprite.base.CWPySprite", spritegrp: pygame.sprite.LayeredDirty,
-                 color: Optional[Tuple[int, int, int]] = None, layer: Optional[Tuple[int, int, int, int]] = None,
+                 color: Optional[Tuple[int, int, int, int]] = None, layer: Optional[Tuple[int, int, int, int]] = None,
                  cut_bgs: bool = False, is_selectable: bool = True, initialize: bool = True) -> None:
         """半透明のブルーバックスプライト。右クリックで解除。
         target: 覆い隠す対象。

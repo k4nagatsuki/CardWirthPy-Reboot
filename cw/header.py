@@ -227,7 +227,7 @@ class CardHeader(object):
             self.get_uselimit()
 
         # 荷物袋にある時の私有者
-        self.personal_owner = None
+        self.personal_owner: Optional[cw.sprite.card.PlayerCard] = None
         self.personal_owner_index = (-1, -1)
 
         # ソート用の型ID
@@ -826,7 +826,7 @@ class CardHeader(object):
 
         return not (noeffect or silence)
 
-    def get_targets(self) -> List["cw.character.Character"]:
+    def get_targets(self) -> Tuple[List["cw.sprite.card.CWPyCard"], List["cw.sprite.card.CWPyCard"]]:
         """
         (ターゲットのリスト,
          効果のあるターゲットのリスト,
@@ -837,7 +837,7 @@ class CardHeader(object):
 
         if self.target == "Both":
             if isinstance(owner, cw.character.Enemy):
-                targets = cw.cwpy.get_ecards("unreversed")[:]
+                targets: List[cw.sprite.card.CWPyCard] = cw.cwpy.get_ecards("unreversed")[:]
                 targets.extend(cw.cwpy.get_pcards("unreversed"))
             else:
                 targets = cw.cwpy.get_pcards("unreversed")[:]
@@ -999,7 +999,7 @@ class CardHeader(object):
             return self.carddata.getbool(".", "scaledimage", False)
 
 
-def is_removewithstatus(carddata: cw.data.CWPyElement, target: "cw.character.Character") -> None:
+def is_removewithstatus(carddata: cw.data.CWPyElement, target: "cw.character.Character") -> bool:
     """targetはcarddataの召喚獣カードが消滅する状態か？"""
     if not isinstance(target, cw.character.Character):
         return False
@@ -1515,7 +1515,7 @@ class ScenarioHeader(object):
                     if path:
                         bmp = cw.util.load_wxbmp(path, mask=mask, noscale=True)
                         self._wxbmps_noscale.append(bmp)
-                        if not cw.UP_SCR == 1:
+                        if not cw.UP_SCR == 1.0:
                             bmp = cw.util.load_wxbmp(path, mask=mask, can_loaded_scaledimage=True)
                         self._wxbmps.append(cw.wins(bmp))
                         self._imginfos.append(info)
@@ -1634,6 +1634,8 @@ class PartyHeader(object):
             e = cw.util.get_elementfromzip(path, "ScenarioLog.xml", "Property")
             path = e.gettext("WsnPath", "")
             db = cw.cwpy.frame.open_scenariodb()
+            if not db:
+                return None
             sceheader = db.search_path(path)
             return sceheader
         else:

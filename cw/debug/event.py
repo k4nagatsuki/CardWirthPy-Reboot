@@ -333,11 +333,11 @@ class EventList(wx.TreeCtrl):
 
         return None
 
-    def get_currentfpath(self) -> None:
+    def get_currentfpath(self) -> str:
         """選択中のイベントが属するファイルのパスを返す。"""
         selitem = self.GetSelection()
         if not selitem:
-            return
+            return ""
         parent = self.GetItemParent(selitem)
         while parent != self.root:
             selitem = parent

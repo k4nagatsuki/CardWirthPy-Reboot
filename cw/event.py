@@ -94,7 +94,7 @@ class EventInterface(object):
         else:
             return None
 
-    def get_effectevent(self) -> Optional["Event"]:
+    def get_effectevent(self) -> Optional["Targeting"]:
         """カードなどの効果適用イベントが実行中であれば返す。"""
         return self.effectevent
 
@@ -724,7 +724,7 @@ class Event(object):
         # イベント実行中に発生したエラー
         self.error: Optional[EventError] = None
         # コンテンツツリーの辞書(keyはスタートコンテントのname)
-        self.trees: Dict[str, cw.content.StartContent] = {}
+        self.trees: Dict[str, cw.data.CWPyElement] = {}
         self.treekeys: List[str] = []
         self.starttree: Optional[cw.data.CWPyElement] = None
         self.cur_content: Optional[cw.data.CWPyElement] = None
@@ -1360,7 +1360,7 @@ def _get_targetinfo() -> List[str]:
 class CardEvent(Event, Targeting):
     def __init__(self, event: cw.data.CWPyElement, inusecard: "cw.header.CardHeader",
                  user: Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"],
-                 targets: List["cw.character.Character"]) -> None:
+                 targets: List["cw.sprite.card.CWPyCard"]) -> None:
         Event.__init__(self, event)
         Targeting.__init__(self, user, targets, True)
         self.inusecard = inusecard

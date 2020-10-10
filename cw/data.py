@@ -99,7 +99,8 @@ class SystemData(object):
         self.background_image_mtime: Dict[str, Tuple[str, float]] = {}
         self.moved_mcards: Dict[Tuple[str, int], Tuple[int, int, int, int]] = {}
         self.instructions: List[str] = []
-        self.specialchars = cw.setting.ResourceTable("Resource/Image/Font")
+        self.specialchars: cw.setting.ResourceTable[str, pygame.Surface] =\
+            cw.setting.ResourceTable("Resource/Image/Font")
         self.sparea_mcards: Dict[int, List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]]] = {}
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
@@ -115,7 +116,7 @@ class SystemData(object):
         self.can_loaded_scaledimage = True
 
         # メッセージログ
-        self.backlog: List[cw.sprite.message.BacklogData] = []
+        self.backlog: List[Union[cw.sprite.bill.Bill, cw.sprite.message.BacklogData]] = []
         # キャンプ中に移動したカードの使用回数の記憶
         self.uselimit_table: Dict[Tuple[cw.sprite.card.PlayerCard, cw.header.CardHeader], int] = {}
 
@@ -135,11 +136,11 @@ class SystemData(object):
             self.variants = {}
 
         # 各段階の互換性マーク(SystemDataでは全て互換性情報無し)
-        self.versionhint = [
-            ("", "", False, False, False),  # メッセージ表示時の話者(キャストまたはカード)
-            ("", "", False, False, False),  # 使用中のカード
-            ("", "", False, False, False),  # エリア・バトル・パッケージ
-            ("", "", False, False, False),  # シナリオ本体
+        self.versionhint: List[Optional[Tuple[str, str, bool, bool, bool]]] = [
+            None,  # メッセージ表示時の話者(キャストまたはカード)
+            None,  # 使用中のカード
+            None,  # エリア・バトル・パッケージ
+            None,  # シナリオ本体
         ]
 
         # refresh debugger
@@ -439,11 +440,11 @@ class SystemData(object):
             except Exception:
                 return False
 
-    def get_versionhint(self, frompos: int = 0) -> Tuple[str, str, bool, bool, bool]:
+    def get_versionhint(self, frompos: int = 0) -> Optional[Tuple[str, str, bool, bool, bool]]:
         """現在有効になっている互換性マークを返す(常に無し)。"""
-        return ("", "", False, False, False)
+        return None
 
-    def set_versionhint(self, pos: int, hint: Tuple[str, str, bool, bool, bool]) -> None:
+    def set_versionhint(self, pos: int, hint: Optional[Tuple[str, str, bool, bool, bool]]) -> None:
         """互換性モードを設定する(処理無し)。"""
         pass
 
@@ -452,7 +453,7 @@ class SystemData(object):
             for mcard in mcards:
                 mcard.update_scale()
         for log in self.backlog:
-            if log.specialchars:
+            if isinstance(log, cw.sprite.message.BacklogData) and log.specialchars:
                 log.specialchars.reset()
 
     def sweep_resourcecache(self, size: int) -> None:
@@ -1217,7 +1218,7 @@ class ScenarioData(SystemData):
         self.resource_cache: Dict[str, object] = {}
         self.resource_cache_size = 0
         # メッセージログ
-        self.backlog: List[cw.sprite.message.BacklogData] = []
+        self.backlog: List[Union[cw.sprite.bill.Bill, cw.sprite.message.BacklogData]] = []
         # キャンプ中に移動したカードの使用回数の記憶
         self.uselimit_table: Dict[Tuple[cw.sprite.card.PlayerCard, cw.header.CardHeader], int] = {}
         # カード再配置コンテントで移動されたメニューカード
@@ -1235,11 +1236,11 @@ class ScenarioData(SystemData):
         self.notice_debuglog = 0
 
         # 各段階の互換性マーク
-        self.versionhint = [
-            ("", "", False, False, False),  # メッセージ表示時の話者(キャストまたはカード)
-            ("", "", False, False, False),  # 使用中のカード
-            ("", "", False, False, False),  # エリア・バトル・パッケージ
-            ("", "", False, False, False),  # シナリオ本体
+        self.versionhint: List[Optional[Tuple[str, str, bool, bool, bool]]] = [
+            None,  # メッセージ表示時の話者(キャストまたはカード)
+            None,  # 使用中のカード
+            None,  # エリア・バトル・パッケージ
+            None,  # シナリオ本体
         ]
 
         if cw.cwpy.classicdata:
@@ -1405,7 +1406,7 @@ class ScenarioData(SystemData):
                         break
             self.tempdir = cw.util.join_paths(self.tempdir)
 
-    def get_versionhint(self, frompos: int = 0) -> Tuple[str, str, bool, bool, bool]:
+    def get_versionhint(self, frompos: int = 0) -> Optional[Tuple[str, str, bool, bool, bool]]:
         """現在有効になっている互換性マークを返す。"""
         for i, hint in enumerate(self.versionhint[frompos:]):
             if cw.HINT_AREA <= i + frompos and cw.cwpy.event.in_inusecardevent:
@@ -1413,9 +1414,9 @@ class ScenarioData(SystemData):
                 break
             if hint:
                 return hint
-        return ("", "", False, False, False)
+        return None
 
-    def set_versionhint(self, pos: int, hint: Tuple[str, str, bool, bool, bool]) -> None:
+    def set_versionhint(self, pos: int, hint: Optional[Tuple[str, str, bool, bool, bool]]) -> None:
         """互換性モードを設定する。"""
         last = self.get_versionhint()
         self.versionhint[pos] = hint
@@ -2213,7 +2214,7 @@ class ScenarioData(SystemData):
         self.friendcards = seq
 
 
-def init_flags(data: "CWPyElementTree", writable: bool) -> Dict[str, "Flag"]:
+def init_flags(data: Union["CWPyElementTree", "CWPyElement"], writable: bool) -> Dict[str, "Flag"]:
     flags = {}
 
     for e in data.getfind("Flags", raiseerror=False):
@@ -2229,7 +2230,7 @@ def init_flags(data: "CWPyElementTree", writable: bool) -> Dict[str, "Flag"]:
     return flags
 
 
-def init_steps(data: "CWPyElementTree", writable: bool) -> Dict[str, "Step"]:
+def init_steps(data: Union["CWPyElementTree", "CWPyElement"], writable: bool) -> Dict[str, "Step"]:
     steps = {}
 
     for e in data.getfind("Steps", raiseerror=False):
@@ -2247,7 +2248,7 @@ def init_steps(data: "CWPyElementTree", writable: bool) -> Dict[str, "Step"]:
     return steps
 
 
-def init_variants(data: "CWPyElementTree", writable: bool) -> Dict[str, "Variant"]:
+def init_variants(data: Union["CWPyElementTree", "CWPyElement"], writable: bool) -> Dict[str, "Variant"]:
     variants = {}
 
     for e in data.getfind("Variants", raiseerror=False):
@@ -2265,8 +2266,8 @@ def init_variants(data: "CWPyElementTree", writable: bool) -> Dict[str, "Variant
 
 
 class Flag(object):
-    def __init__(self, parent: Optional["CWPyElementTree"], data: Optional["CWPyElement"], value: bool, name: str,
-                 truename: str, falsename: str, defaultvalue: bool, spchars: bool) -> None:
+    def __init__(self, parent: Optional[Union["CWPyElementTree", "CWPyElement"]], data: Optional["CWPyElement"],
+                 value: bool, name: str, truename: str, falsename: str, defaultvalue: bool, spchars: bool) -> None:
         self.is_writable = parent is not None and data is not None
         self._parent = parent
         self._data = data
@@ -2327,7 +2328,8 @@ class Flag(object):
             assert self._parent is not None
             assert self._data is not None
             self._data.set("value", str(self.value))
-            self._parent.is_edited = True
+            if isinstance(self._parent, CWPyElementTree):
+                self._parent.is_edited = True
 
 
 def redraw_cards(value, flag: str = "", silent: bool = False) -> None:
@@ -2356,8 +2358,8 @@ def redraw_cards(value, flag: str = "", silent: bool = False) -> None:
 
 
 class Step(object):
-    def __init__(self, parent: Optional["CWPyElementTree"], data: Optional["CWPyElement"], value: int, name: str,
-                 valuenames: List[str], defaultvalue: int, spchars: bool) -> None:
+    def __init__(self, parent: Optional[Union["CWPyElementTree", "CWPyElement"]], data: Optional["CWPyElement"],
+                 value: int, name: str, valuenames: List[str], defaultvalue: int, spchars: bool) -> None:
         self.is_writable = parent is not None and data is not None
         self._parent = parent
         self._data = data
@@ -2402,11 +2404,12 @@ class Step(object):
             assert self._parent is not None
             assert self._data is not None
             self._data.set("value", str(self.value))
-            self._parent.is_edited = True
+            if isinstance(self._parent, CWPyElementTree):
+                self._parent.is_edited = True
 
 
 class Variant(object):
-    def __init__(self, parent: Optional["CWPyElementTree"], data: Optional["CWPyElement"],
+    def __init__(self, parent: Optional[Union["CWPyElementTree", "CWPyElement"]], data: Optional["CWPyElement"],
                  value: Union[str, decimal.Decimal, bool], name: str,
                  defaultvalue: Union[str, decimal.Decimal, bool]) -> None:
         self.is_writable = parent is not None and data is not None
@@ -2467,7 +2470,8 @@ class Variant(object):
             assert self._data is not None
             self._data.set("type", self.type)
             self._data.set("value", str(self.value))
-            self._parent.is_edited = True
+            if isinstance(self._parent, CWPyElementTree):
+                self._parent.is_edited = True
 
 
 # ------------------------------------------------------------------------------
@@ -2536,6 +2540,8 @@ class YadoDeletedPathSet(object):
 
 
 class YadoData(object):
+    name: str
+    skindirname: str
     storehouse: List["cw.header.CardHeader"]
     partyrecord: List["cw.header.PartyRecordHeader"]
     recenthistory: "cw.setting.RecentHistory"
@@ -2545,6 +2551,7 @@ class YadoData(object):
                                 Dict[str, bool],
                                 Dict[str, int],
                                 Dict[str, Union[str, decimal.Decimal, bool]]]]
+    bookmarks: List[Tuple[List[str], str]]
 
     def __init__(self, yadodir: str, tempdir: str, loadparty: bool = True) -> None:
         cw.fsync.sync()
@@ -2699,7 +2706,7 @@ class YadoData(object):
         self.saved_variables = cw.data.YadoData.get_savedvariables(self.environment)
 
         # ゲームオーバーに至ったシナリオのデータ
-        self.losted_sdata = None
+        self.losted_sdata: Optional[cw.data.ScenarioData] = None
 
         # ブックマーク
         self.bookmarks = []
@@ -4590,11 +4597,11 @@ class _ElementWrapper(xml.etree.cElementTree.Element):
         self.wrap = wrap
 
 
-class CWPyElement(_CWPyElementInterface):
+class CWPyElement(_CWPyElementInterface, Sequence["CWPyElement"]):
     def __init__(self, tag: str, attrib: Dict[str, str] = None) -> None:
         if attrib is None:
             attrib = {}
-        self._e = _ElementWrapper(self, tag, attrib)
+        self.element = _ElementWrapper(self, tag, attrib)
 
         self.fpath = ""
 
@@ -4610,14 +4617,14 @@ class CWPyElement(_CWPyElementInterface):
 
     @property
     def tag(self) -> str:
-        return self._e.tag
+        return self.element.tag
 
     @tag.setter
     def tag(self, tag: str) -> None:
-        self._e.tag = tag
+        self.element.tag = tag
 
     def find(self, path: str) -> Optional["CWPyElement"]:
-        e = self._e.find(path)
+        e = self.element.find(path)
         if e is None:
             return None
         return typing.cast(_ElementWrapper, e).wrap
@@ -4637,62 +4644,66 @@ class CWPyElement(_CWPyElementInterface):
 
     @property
     def attrib(self) -> Dict[str, str]:
-        return self._e.attrib
+        return self.element.attrib
 
     @property
     def text(self) -> str:
-        return self._e.text if self._e.text is not None else ""
+        return self.element.text if self.element.text is not None else ""
 
     @text.setter
     def text(self, text: str) -> None:
-        self._e.text = text
+        self.element.text = text
 
     @property
     def tail(self) -> str:
-        return self._e.tail if self._e.tail is not None else ""
+        return self.element.tail if self.element.tail is not None else ""
 
     @tail.setter
     def tail(self, tail: str) -> None:
-        self._e.tail = tail
+        self.element.tail = tail
 
     def get(self, key: str, defaultvalue: str = "") -> str:
-        return self._e.get(key, defaultvalue)
+        return self.element.get(key, defaultvalue)
 
     def set(self, key: str, value: str) -> None:
-        self._e.set(key, value)
+        self.element.set(key, value)
 
     def keys(self) -> KeysView[str]:
-        return self._e.keys()
+        return self.element.keys()
 
     def items(self) -> ItemsView[str, str]:
-        return self._e.items()
+        return self.element.items()
 
     def append(self, subelement: "CWPyElement") -> None:
         subelement.cwxparent = self
-        self._e.append(subelement._e)
+        self.element.append(subelement.element)
 
     def extend(self, subelements: Iterable["CWPyElement"]) -> None:
         for subelement in subelements:
             subelement.cwxparent = self
-        self._e.extend(map(lambda e: e._e, subelements))
+        self.element.extend(map(lambda e: e.element, subelements))
 
     def insert(self, index: int, subelement: "CWPyElement") -> None:
         subelement.cwxparent = self
-        self._e.insert(index, subelement._e)
+        self.element.insert(index, subelement.element)
 
     def remove(self, subelement: "CWPyElement") -> None:
         assert subelement.cwxparent is self
         subelement.cwxparent = None
-        self._e.remove(subelement._e)
+        self.element.remove(subelement.element)
 
     def clear(self) -> None:
         for subelement in self:
             subelement.cwxparent = None
-        self._e.clear()
+        self.element.clear()
 
-    def index(self, subelement: "CWPyElement") -> int:
-        for i, e in enumerate(self):
-            if e == subelement:
+    def index(self, subelement: "CWPyElement", start: Optional[int] = None, end: Optional[int] = None) -> int:
+        if start is None:
+            start = 0
+        if end is None:
+            end = len(self)
+        for i in range(start, end):
+            if self[i] == subelement:
                 return i
         return -1
 
@@ -4804,13 +4815,13 @@ class CWPyElement(_CWPyElementInterface):
             yield from e.iter(tag)
 
     def __repr__(self) -> str:
-        return self._e.__repr__()
+        return self.element.__repr__()
 
     def __len__(self) -> int:
-        return self._e.__len__()
+        return self.element.__len__()
 
     def __bool__(self) -> bool:
-        return self._e.__bool__()
+        return True
 
     @typing.overload
     def __getitem__(self, index: int) -> "CWPyElement": ...
@@ -4820,18 +4831,18 @@ class CWPyElement(_CWPyElementInterface):
 
     def __getitem__(self, index: Union[int, slice]) -> Union["CWPyElement", Sequence["CWPyElement"]]:
         if isinstance(index, int):
-            e = self._e.__getitem__(index)
+            e = self.element.__getitem__(index)
             return typing.cast(_ElementWrapper, e).wrap
         else:
             assert isinstance(index, slice)
-            return [typing.cast(_ElementWrapper, e).wrap for e in self._e.__getitem__(index)]
+            return [typing.cast(_ElementWrapper, e).wrap for e in self.element.__getitem__(index)]
 
     def __setitem__(self, index: int, element: "CWPyElement") -> None:
         e = self[index]
         assert isinstance(e, CWPyElement)
         e.cwxparent = None
         element.cwxparent = self
-        self._e.__setitem__(index, element._e)
+        self.element.__setitem__(index, element.element)
 
     def __delitem__(self, index: Union[int, slice]) -> None:
         if isinstance(index, int):
@@ -4842,7 +4853,7 @@ class CWPyElement(_CWPyElementInterface):
             assert isinstance(index, slice)
             for e in self[index]:
                 e.cwxparent = None
-        self._e.__delitem__(index)
+        self.element.__delitem__(index)
 
     def __iter__(self) -> Iterator["CWPyElement"]:
         self._iter = 0
@@ -4870,7 +4881,7 @@ class CWPyElementTree(_CWPyElementInterface):
         if element is None:
             element = xml2element(fpath)
 
-        self._etree = ElementTree(element=element._e)
+        self._etree = ElementTree(element=element.element)
         self._root = element
         self.fpath = element.fpath
         self.is_edited = False

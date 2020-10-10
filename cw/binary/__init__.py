@@ -19,7 +19,7 @@ from typing import Union
 
 
 class ConvertingThread(threading.Thread):
-    def __init__(self, cwdata: Union[cwyado.CWYado, cwyado.UnconvCWYado]) -> None:
+    def __init__(self, cwdata: Union[cwyado.CWYado, cwyado.UnconvCWYado, cwscenario.CWScenario]) -> None:
         threading.Thread.__init__(self)
         self.cwdata = cwdata
         self.path = ""

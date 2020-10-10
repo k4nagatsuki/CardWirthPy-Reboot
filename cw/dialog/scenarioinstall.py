@@ -11,7 +11,7 @@ import wx
 
 import cw
 
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
 
 # ------------------------------------------------------------------------------
@@ -469,7 +469,12 @@ def create_dir(parentdialog: ScenarioInstall, dpath: str) -> str:
 
 def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
                      notscenariofiles: Dict[Tuple[str, str], List[str]], scedir: str, dstpath: str,
-                     db: cw.scenariodb.Scenariodb, skintype: str) -> Tuple[None, List[str], List[str], bool]:
+                     db: cw.scenariodb.Scenariodb,
+                     skintype: str) -> Tuple[Optional[cw.header.ScenarioHeader],
+                                             List[Union[cw.header.ScenarioHeader,
+                                                        str,
+                                                        "cw.dialog.scenarioselect.FindResult"]],
+                                             List[str], bool]:
     """
     headersをインストールする。
     進捗ダイアログが表示される。
@@ -533,7 +538,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
             self.msg = ""
             self.failed = None
             self.updates: Set[str] = set()
-            self.paths: List[str] = []
+            self.paths: List[Union[cw.header.ScenarioHeader, str, cw.dialog.scenarioselect.FindResult]] = []
             self.filepaths: List[str] = []
             self.repl_links: Dict[str, str] = {}
 

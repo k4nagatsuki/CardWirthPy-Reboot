@@ -44,7 +44,7 @@ class CWScenario(object):
         self.summarypath = None
 
         # 互換性マーク
-        self.versionhint = ("", "", False, False, False)
+        self.versionhint: Optional[Tuple[str, str, bool, bool, bool]] = None
         self.hasmodeini = False
 
         if self.path == "":
