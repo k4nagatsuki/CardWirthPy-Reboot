@@ -14,7 +14,7 @@ from pygame.locals import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, 
 
 import cw
 
-from typing import List, Sequence, Union
+from typing import Callable, Iterable, List, Optional, Sequence, Union
 
 
 class EventHandler(object):
@@ -141,8 +141,10 @@ class EventHandler(object):
     def is_skiptrigger(self, event: pygame.event.Event) -> bool:
         if event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
             return event.button in (1, 3)
-        if event.type in (KEYDOWN, KEYUP):
+        elif event.type in (KEYDOWN, KEYUP):
             return event.key == K_RETURN
+        else:
+            return False
 
     def clear_touchmenu(self) -> None:
         if cw.cwpy.pointed_tile:
@@ -199,7 +201,7 @@ class EventHandler(object):
                 cw.cwpy.keyevent.flick_status = cw.frame.FLICK_NONE
                 cw.cwpy.keyevent.flick_sprite = None
                 cw.cwpy.keyevent.flick_start_pos = (-1, -1)
-                cw.cwpy.keyevent.flick_start_time = 0
+                cw.cwpy.keyevent.flick_start_time = 0.0
 
                 if flick:
                     self.rclick_event(flick=True)
@@ -297,6 +299,7 @@ class EventHandler(object):
                             seq.append(sprite)
                 return seq
 
+            funcs: Iterable[Callable[[], List[cw.sprite.base.SelectableSprite]]]
             if not cw.cwpy.selection or isinstance(cw.cwpy.selection,
                                                    cw.sprite.background.Curtain):
                 if y < 0:
@@ -344,7 +347,7 @@ class EventHandler(object):
                 cw.cwpy.change_selection(sprite)
                 cw.cwpy.wheelmode_cursorpos = cw.cwpy.mousepos
 
-    def _update_selection(self, is_runningevent: bool) -> "cw.sprite.base.SelectableSprite":
+    def _update_selection(self, is_runningevent: bool) -> Optional["cw.sprite.base.SelectableSprite"]:
         # マウスポインタの移動を検知する前にクリックイベントが
         # 発生する可能性があるので、キーボード等で選択された
         # 状態でなければ、選択状態を更新しておく
@@ -480,6 +483,8 @@ class EventHandler(object):
 
             # スキン固有のエリアにいる時
             elif cw.cwpy.status == "Yado" and cw.SKIN_AREAS_MIN <= cw.cwpy.areaid <= cw.SKIN_AREAS_MAX:
+                assert cw.cwpy.ydata
+                assert cw.cwpy.sdata.data is not None
                 act = cw.cwpy.sdata.data.gettext("Property/BackgroundAction", "")
                 if act == "ReturnTitle":
                     cw.cwpy.play_sound("click")
@@ -531,7 +536,7 @@ class EventHandler(object):
                 return
 
             # シナリオ戦闘時、戦闘行動選択ダイアログ表示
-            elif cw.cwpy.is_battlestatus() and cw.cwpy.battle.is_ready():
+            elif cw.cwpy.is_battlestatus() and cw.cwpy.battle and cw.cwpy.battle.is_ready():
                 cw.cwpy.play_sound("click")
                 cw.cwpy.call_modaldlg("BATTLECOMMAND")
                 return
@@ -663,7 +668,7 @@ class EventHandler(object):
             if not cw.cwpy.is_battlestatus() and cw.cwpy.sdata.has_infocards():
                 cw.cwpy.play_sound("click")
                 cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
-            elif cw.cwpy.is_battlestatus() and cw.cwpy.is_debugmode() and\
+            elif cw.cwpy.is_battlestatus() and cw.cwpy.is_debugmode() and cw.cwpy.battle and\
                     cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
                 cw.cwpy.play_sound("page")
                 cw.cwpy.setting.show_fcardsinbattle = not cw.cwpy.setting.show_fcardsinbattle
@@ -722,6 +727,9 @@ class EventHandler(object):
 
     @staticmethod
     def can_f9() -> bool:
+        if not cw.cwpy.ydata:
+            return False
+
         if cw.cwpy.is_decompressing:
             # アーカイブの展開をキャンセルする場合
             return True
@@ -731,9 +739,12 @@ class EventHandler(object):
         is_playingscenario = cw.cwpy.is_playingscenario() or (cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata)
         if is_playingscenario and not sdata.in_endprocess and not sdata.in_f9 and\
                 not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
+            assert cw.cwpy.ydata.party
             fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
             path = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party", fname)
             return os.path.isfile(path)
+        else:
+            return False
 
     def returnkey_event(self) -> None:
         """
@@ -1170,7 +1181,7 @@ class EventHandlerForMessageWindow(EventHandler):
     def keydown_event(self, key: int) -> bool:
         """その他のKEYDOWNイベント。"""
         if not EventHandler.keydown_event(self, key):
-            return
+            return False
 
         if not self.can_input():
             return False
@@ -1265,6 +1276,8 @@ class EventHandlerForBacklog(EventHandler):
                  index: int) -> None:
         """バックログ表示中のイベントハンドラ。
         """
+        self.mwin: Optional[Union[cw.sprite.bill.BillSprite, cw.sprite.message.MessageWindow]] = None
+
         self.backlog_all = backlog
         self.index = index
         self._scrollnum_noscale = cw.SIZE_AREA[1] // 4
@@ -1332,9 +1345,9 @@ class EventHandlerForBacklog(EventHandler):
             else:
                 # 1件ずつ表示する時はステータスバー上の選択肢にもカーテンをかける
                 sbarbar = sbarbar[0]
-                self._curtain2 = cw.sprite.message.BacklogCurtain(cw.cwpy.sbargrp,
-                                                                  cw.sprite.statusbar.LAYER_MESSAGE_LOG_CURTAIN,
-                                                                  sbarbar.size_noscale, sbarbar.pos_noscale)
+                self._curtain2: Optional[cw.sprite.message.BacklogCurtain] =\
+                    cw.sprite.message.BacklogCurtain(cw.cwpy.sbargrp, cw.sprite.statusbar.LAYER_MESSAGE_LOG_CURTAIN,
+                                                     sbarbar.size_noscale, sbarbar.pos_noscale)
                 self._sbarbar = None
         else:
             self._curtain2 = None
@@ -1353,7 +1366,8 @@ class EventHandlerForBacklog(EventHandler):
             self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
         cw.cwpy.backloggrp.add(self._scrollbar, layer=cw.LAYER_LOG_SCROLLBAR)
 
-        self._mwins = [None] * len(self.backlog)
+        self._mwins: List[Optional[Union[cw.sprite.bill.BillSprite,
+                                         cw.sprite.message.MessageWindow]]] = [None] * len(self.backlog)
         self.mwin = None
 
         cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
@@ -1677,10 +1691,10 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
         cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
 
-    def keydown_event(self, key: int) -> None:
+    def keydown_event(self, key: int) -> bool:
         """その他のKEYDOWNイベント。"""
         if not EventHandler.keydown_event(self, key):
-            return
+            return False
 
         ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
         if ctrldown and key == ord('C') and self.can_copytext():

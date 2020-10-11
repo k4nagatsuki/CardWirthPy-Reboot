@@ -113,7 +113,7 @@ class CardInfo(wx.Dialog):
         else:
             s = "[ %s ]" % (self.selection.name)
 
-        lines = [][:]
+        lines = []
         lines.append(s)
         lines.append(self.get_desc())
         lines.append("")

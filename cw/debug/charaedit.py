@@ -1020,7 +1020,7 @@ class CharaRequirementPanel(wx.Panel):
     def _put_image(self, files: Iterable[str]) -> None:
         seq = []
         for fpath in files:
-            ext = os.path.splitext(fpath)[1].lower()
+            ext = cw.util.splitext(fpath)[1].lower()
             if ext in cw.EXTS_IMG:
                 fpath = cw.util.find_noscalepath(fpath)
                 seq.append(fpath)

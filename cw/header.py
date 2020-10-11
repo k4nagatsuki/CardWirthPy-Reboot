@@ -1544,7 +1544,7 @@ class ScenarioHeader(object):
                 if info.path:
                     path = cw.util.get_materialpathfromskin(info.path, cw.M_IMG)
                     if path:
-                        spext = os.path.splitext(path)
+                        spext = cw.util.splitext(path)
                         fname = "%s.x%s%s" % (spext[0], up_scr, spext[1])
                         if os.path.isfile(fname):
                             has_scaledimage = True

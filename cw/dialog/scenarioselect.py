@@ -987,7 +987,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
                         p = "[フォルダが見つかりません]"
                         enable = False
                     elif sys.platform == "win32":
-                        sp = os.path.splitext(p)
+                        sp = cw.util.splitext(p)
                         if sp[1].lower() == ".lnk":
                             p = sp[0]
                     item = wx.MenuItem(menu, -1, p.replace("&", "&&"))
@@ -1012,7 +1012,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         else:
             name = os.path.basename(header)
             if sys.platform == "win32":
-                sp = os.path.splitext(name)
+                sp = cw.util.splitext(name)
                 if sp[1].lower() == ".lnk":
                     name = sp[0]
         s = cw.cwpy.msgs["add_bookmark_message"] % (name)
@@ -1493,7 +1493,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             fpath = header
             name = os.path.basename(fpath)
             if sys.platform == "win32" and name.lower().endswith(".lnk"):
-                s = "ショートカット「%s」の移動先を選択してください。" % os.path.splitext(name)[0]
+                s = "ショートカット「%s」の移動先を選択してください。" % cw.util.splitext(name)[0]
             else:
                 s = "「%s」の移動先を選択してください。\n大量のシナリオやサブフォルダがある場合、移動には時間がかかる可能性があります。" % name
 
@@ -1582,7 +1582,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             fpath = header
             name = os.path.basename(fpath)
             if sys.platform == "win32" and os.path.isfile(fpath) and name.lower().endswith(".lnk"):
-                name = os.path.splitext(name)[0]
+                name = cw.util.splitext(name)[0]
                 s = "ショートカット「%s」を削除します。\nよろしいですか？" % name
             else:
                 s = "フォルダ「%s」を削除します。\nフォルダの中に存在する全てのサブフォルダとシナリオも削除されます。よろしいですか？" % name
@@ -1649,7 +1649,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             fname, ext = os.path.basename(fpath), ""
         else:
             # ファイルの場合は拡張子を変更の対象外とする
-            fname, ext = os.path.splitext(os.path.basename(fpath))
+            fname, ext = cw.util.splitext(os.path.basename(fpath))
 
         s = "「%s」の新しい名前を入力してください。" % (fname)
         dlg = cw.dialog.edit.InputTextDialog(self, cw.cwpy.msgs["rename"],
@@ -1772,8 +1772,8 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
 
         cw.cwpy.play_sound("signal")
         headers_seq = functools.reduce(lambda a, b: a + b, iter(headers.values()))
-        if sys.platform == "win32" and os.path.isfile(dpath) and os.path.splitext(dpath)[1].lower() == ".lnk":
-            dname = os.path.splitext(os.path.basename(dpath))[0]
+        if sys.platform == "win32" and os.path.isfile(dpath) and cw.util.splitext(dpath)[1].lower() == ".lnk":
+            dname = cw.util.splitext(os.path.basename(dpath))[0]
         else:
             dname = os.path.basename(dpath)
         if 1 < len(headers_seq):
@@ -2169,7 +2169,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             else:
                 dpath = os.path.basename(obj)
                 if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
-                    dpath = os.path.splitext(dpath)[0]
+                    dpath = cw.util.splitext(dpath)[0]
                 name = "[ %s ]" % dpath
             slen = cw.util.get_strlen(name)
             if slen < 38:
@@ -2416,7 +2416,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
                     #     # 整列条件: ファイル名
                     #     fname = header.fname
                     #     if sys.platform == "win32" and fname.lower().endswith(".lnk"):
-                    #         fname = os.path.splitext(fname)[0]
+                    #         fname = cw.util.splitext(fname)[0]
                     #     addition = fname
                     elif self.sort.GetSelection() == 4:
                         # 整列条件: 更新日時
@@ -2776,7 +2776,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             # ファイル名による整列中
             fname = header.fname
             if sys.platform == "win32" and fname.lower().endswith(".lnk"):
-                fname = os.path.splitext(fname)[0]
+                fname = cw.util.splitext(fname)[0]
             name = "%s (%s)" % (name, fname)
         elif self.sort.GetSelection() == 2 and header.author:
             # 作者名による整列中
@@ -3315,7 +3315,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             dpath = cw.util.get_linktarget(header)
             if os.path.isdir(dpath):
                 for fname in os.listdir(dpath):
-                    if os.path.splitext(fname)[1].lower().endswith(".txt"):
+                    if cw.util.splitext(fname)[1].lower().endswith(".txt"):
                         fpath = cw.util.join_paths(dpath, fname)
                         with open(fpath, "rb") as f:
                             data = f.read()

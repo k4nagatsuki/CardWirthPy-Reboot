@@ -684,7 +684,7 @@ def get_filepath_s(configpath: str, dirdepth: str, filename: str, dirtype: int =
             scedir = cw.cwpy.sdata.scedir
 
     def get_mtype(fpath: str) -> int:
-        ext = os.path.splitext(fpath)[1].lower()
+        ext = cw.util.splitext(fpath)[1].lower()
         if ext in cw.EXTS_SND:
             return cw.M_SND
         else:
@@ -1058,7 +1058,7 @@ class JpdcImage(cw.image.Image):
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
                 cw.sprite.message.store_messagelogimage(path, True)
-                spext = os.path.splitext(path)
+                spext = cw.util.splitext(path)
 
                 npath = cw.util.get_keypath(path)
                 if npath in cw.cwpy.sdata.ex_cache:
@@ -1074,7 +1074,7 @@ class JpdcImage(cw.image.Image):
                     elif os.path.isfile(scpath):
                         nexist = True
                         ex_cache[0] = scpath
-                        scpathsp = os.path.splitext(scpath)
+                        scpathsp = cw.util.splitext(scpath)
                         for i, scale in enumerate(cw.SCALE_LIST):
                             scpathxn = "%s.x%d%s" % (scpathsp[0], scale, scpathsp[1])
                             if os.path.isfile(scpathxn):
@@ -1119,10 +1119,10 @@ class JpdcImage(cw.image.Image):
                 for cachekey in cw.cwpy.sdata.resource_cache.keys():
                     if isinstance(cachekey, tuple) and len(cachekey) == 5:
                         if isinstance(cachekey[3], str) and\
-                                os.path.splitext(cachekey[3])[1].lower() == ".jpy1":
+                                cw.util.splitext(cachekey[3])[1].lower() == ".jpy1":
                             removekeys.append(cachekey)
                         elif isinstance(cachekey[0], str) and\
-                                os.path.splitext(cachekey[0])[1].lower() == ".jpy1":
+                                cw.util.splitext(cachekey[0])[1].lower() == ".jpy1":
                             removekeys.append(cachekey)
                 for key in removekeys:
                     del cw.cwpy.sdata.resource_cache[key]
@@ -1547,7 +1547,7 @@ class EffectBoosterConfig(object):
         cur_sec = {}
         jptxtxt = []
         in_jptxtxt = False
-        ext = os.path.splitext(path)[1].lower()
+        ext = cw.util.splitext(path)[1].lower()
 
         with open(path, "rb") as f:
 

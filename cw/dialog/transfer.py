@@ -239,7 +239,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 for member in header.members:
                     partymembers.add(member)
             elif isinstance(header, cw.header.AdventurerHeader):
-                if os.path.splitext(os.path.basename(header.fpath))[0] in partymembers:
+                if cw.util.splitext(os.path.basename(header.fpath))[0] in partymembers:
                     continue
                 image = self.imgidx_standby_nc
             elif isinstance(header, cw.header.CardHeader):
@@ -490,9 +490,9 @@ class TransferYadoDataDialog(wx.Dialog):
             if e_personals is not None:
                 for e_personal in e_personals:
                     e_personal.text = rename_tbl.get(e_personal.text, e_personal.text)
-            name1 = os.path.splitext(os.path.basename(fpath))[0]
+            name1 = cw.util.splitext(os.path.basename(fpath))[0]
             fpath = self.transfer_adventurer(fromyado, toyado, data, yadodb, counter=counter)
-            name = os.path.splitext(os.path.basename(fpath))[0]
+            name = cw.util.splitext(os.path.basename(fpath))[0]
             pdata.find("Property/Members/Member[%s]" % (i+1)).text = name
             counter.membertable[name1] = name
 
@@ -501,7 +501,7 @@ class TransferYadoDataDialog(wx.Dialog):
         pdata.write_file()
         counter.num += 1
 
-        wsl = os.path.splitext(header.fpath)[0] + ".wsl"
+        wsl = cw.util.splitext(header.fpath)[0] + ".wsl"
         if os.path.isfile(wsl):
             # 冒険中情報
             cw.util.decompress_zip(wsl, cw.tempdir, "ScenarioLog")
@@ -558,7 +558,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 if not p.lower().endswith(".xml"):
                     continue
                 e = cw.data.xml2etree(cw.util.join_paths(dname, p))
-                p2 = counter.membertable[os.path.splitext(p)[0]] + ".xml"
+                p2 = counter.membertable[cw.util.splitext(p)[0]] + ".xml"
                 e.fpath = cw.util.join_paths(dname2, p2)
                 self.transfer_adventurer(fromyado, toyado, e, None, counter=counter, overwrite=True)
             cw.util.remove(dname)

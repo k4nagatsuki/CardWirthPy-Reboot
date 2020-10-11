@@ -225,7 +225,7 @@ class Character(object):
                         cw.sprite.message.store_messagelogimage(fpath2, can_loaded_scaledimage)
 
                 # F9のためにシナリオ突入時の画像の記録を取る
-                name = os.path.splitext(os.path.basename(self.data.fpath))[0]
+                name = cw.util.splitext(os.path.basename(self.data.fpath))[0]
                 log = cw.util.join_paths(cw.tempdir, "ScenarioLog/Face/Log.xml")
                 if cw.fsync.is_waiting(log):
                     cw.fsync.sync()
@@ -417,7 +417,7 @@ class Character(object):
                 for e in list(pe):
                     pe.remove(e)
                 for header in headers:
-                    assert header.carddata
+                    assert header.carddata is not None
                     pe.append(header.carddata)
 
         return cardpocket
@@ -1416,7 +1416,7 @@ class Character(object):
             # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
             return [{"type": "Runaway"}]
         else:
-            assert header.carddata
+            assert header.carddata is not None
             return header.carddata.find_exists("Motions")
 
     def _is_bonusedmtype(self, mtype: str) -> bool:

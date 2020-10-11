@@ -12,7 +12,7 @@ from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND
 import cw
 
 import typing
-from typing import Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 
 try:
@@ -464,7 +464,7 @@ def _spread_pixels(image: pygame.Surface) -> pygame.Surface:
     return out_image
 
 
-def _filter(image: pygame.Surface, weight: Tuple[Tuple[int, int,int], Tuple[int, int, int], Tuple[int, int, int]],
+def _filter(image: pygame.Surface, weight: Tuple[Tuple[int, int, int], Tuple[int, int, int], Tuple[int, int, int]],
             offset: int = 0, div: int = 1) -> pygame.Surface:
     """フィルタを適用する。
     weight: 重み付け係数。
@@ -479,7 +479,7 @@ def _filter(image: pygame.Surface, weight: Tuple[Tuple[int, int,int], Tuple[int,
     return _retouch(func, image, weight, offset, div)
 
 
-def _filter2(image: pygame.Surface, weight: Tuple[Tuple[int, int,int], Tuple[int, int, int], Tuple[int, int, int]],
+def _filter2(image: pygame.Surface, weight: Tuple[Tuple[int, int, int], Tuple[int, int, int], Tuple[int, int, int]],
              offset: int = 0, div: int = 1) -> pygame.Surface:
     out_image = image.copy()
     out_pxarray = pygame.PixelArray(out_image)
@@ -738,7 +738,7 @@ def _bordering(data: str, size: Tuple[int, int]) -> List[int]:
 
 
 def blend_1_50(dest: pygame.Surface, pos: Tuple[int, int], source: pygame.Surface, flag: int) -> None:
-    """1.50の挙動に合わせて加算または減算合成を行う。
+    """CardWirth 1.50の挙動に合わせて加算または減算合成を行う。
     dest: pygame.Surface。
     pos: 合成位置。
     image: pygame.Surface。
@@ -862,7 +862,6 @@ def to_disabledimage(wxbmp: wx.Bitmap, maskpos: Tuple[int, int] = (0, 0)) -> wx.
     """
     通常時のボタン画像からdisabled用の画像を作る。
     RGB値の範囲を 0～255 から min～max に変更する。
-    wxbmp: wx.Bitmap
     """
     try:
         func = _imageretouch.to_disabledimage
@@ -908,10 +907,7 @@ def to_disabledsurface(image: pygame.Surface) -> pygame.Surface:
 
 
 def add_lightness_for_wxbmp(wxbmp: wx.Bitmap, lightness: int, maskpos: Tuple[int, int] = (0, 0)) -> wx.Bitmap:
-    """
-    通常時のボタン画像からdisabled用の画像を作る。
-    RGB値の範囲を 0～255 から min～max に変更する。
-    wxbmp: wx.Bitmap
+    """イメージに明るさを加える。
     """
     try:
         func = _imageretouch.add_lightness
@@ -955,6 +951,8 @@ def colorwrap(num: int) -> int:
 
 
 def decode_rle4data(data: bytes, h: int, bpl: int) -> bytes:
+    """Windows BitmapのRLE4データをデコードする。
+    """
     return _imageretouch.decode_rle4data(data, h, bpl)
 
 

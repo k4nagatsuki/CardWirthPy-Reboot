@@ -3,6 +3,7 @@
 
 import cw
 
+import typing
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 # 意識不明の対象に有効な効果。
@@ -74,14 +75,73 @@ def check_noeffect(effecttype: str, target: "cw.character.Character", ignore_ant
     return False
 
 
+class EffectParams(object):
+    def __init__(self):
+        self.inusecard: Optional[cw.header.CardHeader] = None
+        self.str_params: Dict[str, str] = {}
+        self.int_params: Dict[str, int] = {}
+        self.bool_params: Dict[str, bool] = {}
+        self.ccard_params: Dict[str, Optional[Union[cw.sprite.card.PlayerCard,
+                                                    cw.sprite.card.EnemyCard,
+                                                    cw.sprite.card.FriendCard]]] = {}
+
+    def __setitem__(self, key: str, value: Union[str, int, bool, Optional[Union["cw.sprite.card.PlayerCard",
+                                                                                "cw.sprite.card.EnemyCard",
+                                                                                "cw.sprite.card.FriendCard"]]]) -> None:
+        if isinstance(value, str):
+            self.str_params[key] = value
+        elif isinstance(value, int):
+            self.int_params[key] = value
+        elif isinstance(value, bool):
+            self.bool_params[key] = value
+        else:
+            self.ccard_params[key] = value
+
+    @typing.overload
+    def get(self, key: str, defvalue: str) -> str: ...
+
+    @typing.overload
+    def get(self, key: str, defvalue: bool) -> bool: ...
+
+    @typing.overload
+    def get(self, key: str, defvalue: int) -> int: ...
+
+    @typing.overload
+    def get(self, key: str, defvalue: None) -> Optional[Union["cw.sprite.card.PlayerCard",
+                                                              "cw.sprite.card.EnemyCard",
+                                                              "cw.sprite.card.FriendCard"]]: ...
+
+    @typing.overload
+    def get(self, key: str, defvalue: Union[str, int, bool, Optional[Union["cw.sprite.card.PlayerCard",
+                                                                           "cw.sprite.card.EnemyCard",
+                                                                           "cw.sprite.card.FriendCard"]]])\
+        -> Union[str, int, bool, Optional[Union["cw.sprite.card.PlayerCard",
+                                                "cw.sprite.card.EnemyCard",
+                                                "cw.sprite.card.FriendCard"]]]: ...
+
+    def get(self, key: str, defvalue: Union[str, int, bool, Optional[Union["cw.sprite.card.PlayerCard",
+                                                                           "cw.sprite.card.EnemyCard",
+                                                                           "cw.sprite.card.FriendCard"]]])\
+            -> Union[str, int, bool, Optional[Union["cw.sprite.card.PlayerCard",
+                                                    "cw.sprite.card.EnemyCard",
+                                                    "cw.sprite.card.FriendCard"]]]:
+        if isinstance(defvalue, str):
+            return self.str_params.get(key, defvalue)
+        elif isinstance(defvalue, int):
+            return self.int_params.get(key, defvalue)
+        elif isinstance(defvalue, bool):
+            return self.bool_params.get(key, defvalue)
+        else:
+            return self.ccard_params.get(key, defvalue)
+
+
 class Effect(object):
     inusecard: Optional["cw.header.CardHeader"]
     user: Optional[Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"]]
 
-    def __init__(self, motions: List[cw.data.CWPyElement], d: Dict[str, Union[int, str, bool]],
-                 battlespeed: bool = False) -> None:
+    def __init__(self, motions: Iterable[cw.data.CWPyElement], d: EffectParams, battlespeed: bool = False) -> None:
         self.user = d.get("user", None)
-        self.inusecard = d.get("inusecard", None)
+        self.inusecard = d.inusecard
         self.level = d.get("level", 0)
         self.successrate = d.get("successrate", 0)
         self.effecttype = d.get("effecttype", "Physic")
@@ -102,13 +162,13 @@ class Effect(object):
         if self.refability:
             physical = d.get("physical", "Dex")
             mental = d.get("mental", "Aggressive")
-            self.vocation = (physical.lower(), mental.lower())
+            self.vocation: Optional[Tuple[str, str]] = (physical.lower(), mental.lower())
         else:
             self.vocation = None
 
         # 行動力修正の影響を受けるか
         # アクションカードまたは特殊技能の場合のみ
-        self.is_enhance_act = self.inusecard and self.inusecard.type in ("ActionCard", "SkillCard")
+        self.is_enhance_act = bool(self.inusecard and self.inusecard.type in ("ActionCard", "SkillCard"))
 
         if self.user and self.inusecard:
             self.motions = [EffectMotion(e, self.user, self.inusecard, refability=self.refability,
@@ -126,6 +186,9 @@ class Effect(object):
         else:
             self._level = cw.util.numwrap(self.user.level if self.user else self.level, -65536, 65536)
         for motion in self.motions:
+            assert isinstance(selectedmember, (cw.sprite.card.PlayerCard,
+                                               cw.sprite.card.EnemyCard,
+                                               cw.sprite.card.FriendCard))
             motion.update_status(selectedmember=selectedmember)
 
     def get_level(self) -> int:
@@ -135,6 +198,9 @@ class Effect(object):
     def apply(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"], event: bool = False,
               selectedmember: Optional["cw.character.Character"] = None) -> bool:
         if isinstance(target, cw.character.Character) and self.check_enabledtarget(target, event):
+            assert isinstance(target, (cw.sprite.card.PlayerCard,
+                                       cw.sprite.card.EnemyCard,
+                                       cw.sprite.card.FriendCard))
             return self.apply_charactercard(target, event=event, selectedmember=selectedmember)
         else:
             return False
@@ -170,7 +236,15 @@ class Effect(object):
         # 吸収後のエフェクトを発生させるか
         # 判定するために記憶しておく
         if self.absorbto == "Selected":
-            absorbto = selectedmember
+            if selectedmember:
+                assert isinstance(selectedmember, (cw.sprite.card.PlayerCard,
+                                                   cw.sprite.card.EnemyCard,
+                                                   cw.sprite.card.FriendCard))
+                absorbto: Optional[Union[cw.sprite.card.PlayerCard,
+                                         cw.sprite.card.EnemyCard,
+                                         cw.sprite.card.FriendCard]] = selectedmember
+            else:
+                absorbto = None
         elif self.absorbto == "User":
             absorbto = self.user
         else:
@@ -340,11 +414,8 @@ class Effect(object):
         return True
 
     def _get_cardspeed(self, target: "cw.character.Character") -> int:
-        if isinstance(target, cw.sprite.card.CWPyCard):
-            return target.get_dealspeed(self.battlespeed)
-        else:
-            assert False
-            return cw.cwpy.setting.get_dealspeed(self.battlespeed)
+        assert isinstance(target, cw.sprite.card.CWPyCard)
+        return target.get_dealspeed(self.battlespeed)
 
     def check_noeffect(self, target: "cw.character.Character") -> bool:
         return check_noeffect(self.effecttype, target)
@@ -360,6 +431,7 @@ class Effect(object):
 
             userbonus = 6
             if self.refability:
+                assert self.vocation
                 ccard = selectedmember
                 if ccard:
                     userbonus = ccard.get_bonus(self.vocation, enhance_act=True)
@@ -384,6 +456,7 @@ class Effect(object):
 
             userbonus = 6
             if self.refability:
+                assert self.vocation
                 ccard = selectedmember
                 if ccard:
                     userbonus = ccard.get_bonus(self.vocation, enhance_act=True)
@@ -397,8 +470,7 @@ class Effect(object):
 
         return False
 
-    def animate(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"],
-                update_image: bool = False) -> None:
+    def animate(self, target: "cw.sprite.card.CWPyCard", update_image: bool = False) -> None:
         """
         targetにtypenameの効果アニメーションを実行する。
         update_imageがTrueだったら、アニメ後にtargetの画像を更新する。
@@ -416,8 +488,7 @@ class Effect(object):
             cw.cwpy.override_dealspeed = override_dealspeed
             cw.cwpy.force_dealspeed = force_dealspeed
 
-    def _animate_impl(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"],
-                      update_image: bool) -> None:
+    def _animate_impl(self, target: "cw.sprite.card.CWPyCard", update_image: bool) -> None:
         battlespeed = self.battlespeed
         # 隠れているカードやFriendCardはアニメーションさせない
         if target.status == "hidden":
@@ -556,9 +627,9 @@ class EffectMotion(object):
         # 効果の種類
         self.type = data.get("type")
         # 効果属性
-        self.element = data.get("element", None)
+        self.element = data.get("element", "All")
         # 効果値の種類
-        self.damagetype = data.get("damagetype", None)
+        self.damagetype = data.get("damagetype", "")
         # 効果値
         self.value = int(data.get("value", "0"))
         # 効果時間値
@@ -571,7 +642,7 @@ class EffectMotion(object):
         self.user = user
         # 行動力修正の影響を受けるか
         # アクションカードまたは特殊技能の場合のみ
-        self.is_enhance_act = header and header.type in ("ActionCard", "SkillCard")
+        self.is_enhance_act = bool(header and header.type in ("ActionCard", "SkillCard"))
         # 使用カード(CardHeader)
         self.cardheader = header
         # 選択メンバの能力参照(Wsn.2)
@@ -585,7 +656,10 @@ class EffectMotion(object):
             self.update_status(None)
         # 吸収者(Wsn.4)
         self.absorbto = absorbto
-        self.absorber = None  # 吸収者の実体
+        # 吸収者の実体
+        self.absorber: Optional[Union["cw.sprite.card.PlayerCard",
+                                      "cw.sprite.card.EnemyCard",
+                                      "cw.sprite.card.FriendCard"]] = None
 
     def update_status(self, selectedmember: Optional[Union["cw.sprite.card.PlayerCard",
                                                            "cw.sprite.card.EnemyCard",
@@ -593,10 +667,14 @@ class EffectMotion(object):
         if self.refability:
             self._enhance_act = 0
             ccard = selectedmember
+            assert isinstance(ccard, cw.character.Character)
+            assert self._vocation
             self._vocation_val = get_vocation_val(ccard, self._vocation, enhance_act=True) if ccard else 6
             self._vocation_level = get_vocation_level(ccard, self._vocation, enhance_act=True) if ccard else 2
             self._level = ccard.level if ccard else 0
         else:
+            assert self.cardheader
+            assert isinstance(self.user, cw.character.Character)
             # 使用者の行動力修正
             self._enhance_act = self.user.get_enhance_act() if self.is_enhance_act else 0
             # 使用者の適性値(効果コンテントの場合は"6")
@@ -1228,7 +1306,7 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        target.set_vanish(battlespeed=self.cardheader and cw.cwpy.is_battlestatus())
+        target.set_vanish(battlespeed=bool(self.cardheader and cw.cwpy.is_battlestatus()))
         if self.cardheader:
             runaway = cw.cwpy.msgs["runaway_keycode"] in self.cardheader.get_keycodes(with_name=False)
         else:
@@ -1428,17 +1506,19 @@ class EffectMotion(object):
             self.duration = e.getint("Property/UseLimit")
             recycle = cw.cwpy.msgs["recycle_keycode"] in cw.util.decodetextlist(e.gettext("Property/KeyCodes", ""))
             duration = self.calc_durationvalue(target, recycle)
-            e.find("Property/UseLimit").text = str(duration)
+            e.find_exists("Property/UseLimit").text = str(duration)
             header = self.cardheader
             if not header and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion):
                 # 使用時イベント中の効果コンテントからの実行の時
                 header = cw.cwpy.event.get_inusecard()
-            is_scenariocard = not header or (header.scenariocard and
-                                             not header.carddata.gettext("Property/Materials", ""))
-            matedir = header.carddata.gettext("Property/Materials", "") if header else ""
-            if matedir and e.find("Property/Materials") is None:
-                e_prop = e.find("Property")
-                e_prop.append(cw.data.make_element("Materials", matedir))
+            is_scenariocard = not header or bool(header.scenariocard and header.carddata and
+                                                 not header.carddata.gettext("Property/Materials", ""))
+            if header:
+                assert header.carddata is not None
+                matedir = header.carddata.gettext("Property/Materials", "") if header else ""
+                if matedir and e.find("Property/Materials") is None:
+                    e_prop = e.find_exists("Property")
+                    e_prop.append(cw.data.make_element("Materials", matedir))
             if target.set_beast(e, is_scenariocard=is_scenariocard):
                 cw.cwpy.advlog.summonbeast_motion(target, e2)
                 eff = True
@@ -1457,20 +1537,21 @@ def get_vocation_val(ccard: "cw.sprite.card.PlayerCard", vocation: Tuple[str, st
     適性値(身体特性+精神特性の合計値)を返す。
     enhance_act : 行動力を加味する場合、True
     """
-    physical = vocation[0]
-    mental = vocation[1].replace("un", "", 1)
-    physical = ccard.data.getint("Property/Ability/Physical", physical, 0)
-    mental = ccard.data.getint("Property/Ability/Mental", mental, 0)
+    physical_name = vocation[0]
+    mental_name = vocation[1].replace("un", "", 1)
+    physical = ccard.data.getint("Property/Ability/Physical", physical_name, 0)
+    mental = ccard.data.getint("Property/Ability/Mental", mental_name, 0)
 
     if vocation[1].startswith("un"):
         mental = -mental
 
     if int(mental) != mental:
-        if mental < 0:
-            mental += 0.5
+        fmental = float(mental)
+        if fmental < 0:
+            fmental += 0.5
         else:
-            mental -= 0.5
-        mental = int(mental)
+            fmental -= 0.5
+        mental = int(fmental)
 
     if enhance_act:
         n = physical + mental + ccard.data.getint("Property/Enhance/Action")
@@ -1526,6 +1607,7 @@ def get_effectivetargets(header: "cw.header.CardHeader",
     header: CardHeader
     targets: Characters
     """
+    assert header.carddata is not None
     effecttype = header.carddata.gettext("Property/EffectType", "")
     motions = header.carddata.getfind("Motions")
 

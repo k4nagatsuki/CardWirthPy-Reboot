@@ -424,7 +424,7 @@ class CardEditDialog(wx.Dialog):
                 if matcher in self.target_table:
                     self.target_table[matcher][item] = (toplevel, owner, data, not insce)
                 else:
-                    t = {}.copy()
+                    t = {}
                     t[item] = (toplevel, owner, data, not insce)
                     self.target_table[matcher] = t
 

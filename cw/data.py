@@ -99,13 +99,12 @@ class SystemData(object):
         self.background_image_mtime: Dict[str, Tuple[str, float]] = {}
         self.moved_mcards: Dict[Tuple[str, int], Tuple[int, int, int, int]] = {}
         self.instructions: List[str] = []
-        self.specialchars: cw.setting.ResourceTable[str, pygame.Surface] =\
-            cw.setting.ResourceTable("Resource/Image/Font")
+        self.specialchars = cw.setting.ResourceTable[str, Tuple[pygame.Surface, bool]]("Resource/Image/Font")
         self.sparea_mcards: Dict[int, List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]]] = {}
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
         # [path] = (x1 binary, x2 binary, ..., x16 binary)
-        self.ex_cache: Dict[str, List[Optional[str]]] = {}
+        self.ex_cache: Dict[str, List[Optional[bytes]]] = {}
 
         # クリア時のデバッグ情報。デバッグ情報ダイアログ表示で削除
         self.debuglog: Optional[cw.debug.logging.DebugLog] = None
@@ -1171,7 +1170,6 @@ class ScenarioData(SystemData):
         # 特殊エリアのメニューカードを作成
         self._init_sparea_mcards()
         # エリアデータ初期化
-        self.data = None
         self.events: Optional[cw.event.EventEngine] = None
         # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)
         self.playerevents: Optional[cw.event.EventEngine] = None
@@ -1226,7 +1224,7 @@ class ScenarioData(SystemData):
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
         # [path] = (x1 binary, x2 binary, ..., x16 binary)
-        self.ex_cache: Dict[str, List[Optional[str]]] = {}
+        self.ex_cache: Dict[str, List[Optional[bytes]]] = {}
 
         # イベントが任意箇所に到達した時に実行を停止するためのブレークポイント
         self.breakpoints = cw.cwpy.breakpoint_table.get((self.name, self.author), set())
@@ -1435,7 +1433,7 @@ class ScenarioData(SystemData):
         else:
             inusecard = None
         if inusecard and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion or inusecardheader):
-            assert inusecard.carddata
+            assert inusecard.carddata is not None
             if not inusecard.scenariocard or inusecard.carddata.gettext("Property/Materials", ""):
                 # プレイ中のシナリオ外のカードを使用
                 mates = inusecard.carddata.gettext("Property/Materials", "")
@@ -2748,7 +2746,7 @@ class YadoData(object):
                     if not os.path.isfile(pfile):
                         # 古いデータではParty.xmlでない場合があるのでXMLファイルを探す
                         for fname in os.listdir(pdpath):
-                            if os.path.splitext(fname)[1].lower() == ".xml":
+                            if cw.util.splitext(fname)[1].lower() == ".xml":
                                 pfile = cw.util.join_paths(pdpath, fname)
                                 break
 
@@ -3060,13 +3058,13 @@ class YadoData(object):
         応じられない場合はFalseを返す。
         """
         for standby in self.standbys:
-            if os.path.splitext(os.path.basename(standby.fpath))[0] == member:
+            if cw.util.splitext(os.path.basename(standby.fpath))[0] == member:
                 return True
         if self.party:
             # 現在のパーティは再結成の前に解散するため
             # standbysの中にいるのと同様に扱う
             for m in self.party.members:
-                if os.path.splitext(os.path.basename(m.fpath))[0] == member:
+                if cw.util.splitext(os.path.basename(m.fpath))[0] == member:
                     return True
         return False
 
@@ -3078,7 +3076,7 @@ class YadoData(object):
         seq = []
         for member in partyrecordheader.members:
             for standby in self.standbys:
-                if os.path.splitext(os.path.basename(standby.fpath))[0] == member:
+                if cw.util.splitext(os.path.basename(standby.fpath))[0] == member:
                     seq.append(standby)
                     break
         return seq
@@ -3099,7 +3097,7 @@ class YadoData(object):
         members = []
         for member in partyrecordheader.members:
             for standby in self.standbys:
-                if os.path.splitext(os.path.basename(standby.fpath))[0] == member:
+                if cw.util.splitext(os.path.basename(standby.fpath))[0] == member:
                     members.append(standby)
                     break
         if not members:
@@ -4821,6 +4819,8 @@ class CWPyElement(_CWPyElementInterface, Sequence["CWPyElement"]):
         return self.element.__len__()
 
     def __bool__(self) -> bool:
+        import warnings
+        warnings.warn("CWPyElement.__bool__ has been deprected.")
         return True
 
     @typing.overload

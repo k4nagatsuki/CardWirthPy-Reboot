@@ -318,7 +318,7 @@ class CWYado(object):
                     ".wci": 2,
                     ".wcb": 3
                 }
-                ctype = cd.get(os.path.splitext(fname)[1].lower(), 0)
+                ctype = cd.get(cw.util.splitext(fname)[1].lower(), 0)
                 if ctype:
                     carddata.type = ctype
                     carddata.fname = fname
@@ -401,7 +401,7 @@ class CWYado(object):
             fname = os.path.basename(path)
             if fname.lower().endswith(".wcl"):
                 # 1.20以前の「カード購入」にあるカード
-                name = os.path.splitext(path)[0]
+                name = cw.util.splitext(path)[0]
                 # 拡張子で識別する
                 cd = {
                     ".wck": skill.SkillCard,

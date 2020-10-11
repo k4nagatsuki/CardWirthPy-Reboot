@@ -1569,7 +1569,7 @@ class MyApp(wx.App):
         self.flick_status = FLICK_NONE
         self.flick_window = None
         self.flick_start_pos = (-1, -1)
-        self.flick_start_time = 0
+        self.flick_start_time = 0.0
 
     def OnInit(self) -> bool:
         wx.Log.SetLogLevel(wx.LOG_Error)
@@ -1679,7 +1679,7 @@ class MyApp(wx.App):
                 self.flick_status = FLICK_NONE
                 self.flick_window = None
                 self.flick_start_pos = (-1, -1)
-                self.flick_start_time = 0
+                self.flick_start_time = 0.0
                 return exit_value
 
             if event.GetEventType() == wx.EVT_LEFT_DOWN.typeId:

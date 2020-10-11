@@ -976,7 +976,7 @@ class AdventurerCreaterPage(wx.Panel):
     def _put_image(self, files: Iterable[str]) -> None:
         seq = []
         for fpath in files:
-            ext = os.path.splitext(fpath)[1].lower()
+            ext = cw.util.splitext(fpath)[1].lower()
             if ext in cw.EXTS_IMG:
                 fpath = cw.util.find_noscalepath(fpath)
                 seq.append(fpath)
@@ -1730,10 +1730,10 @@ def _get_randomnamefromexample(sex: str, skintype: str) -> Set[str]:
         for fname in fnames:
             if fname in names:
                 continue
-            sfname = os.path.splitext(fname)[0] + "_"
+            sfname = cw.util.splitext(fname)[0] + "_"
             for fname2 in os.listdir(exdirpath):
                 if fname2.startswith(sfname):
-                    types = os.path.splitext(fname2[len(sfname):])[0]
+                    types = cw.util.splitext(fname2[len(sfname):])[0]
                     types = types.lower().split("+")
                     if skintype.lower() in types:
                         fpath = cw.util.join_paths(exdirpath, fname2)
@@ -2572,7 +2572,7 @@ class YadoCreater(wx.Dialog):
         files = event.GetFiles()
         seq = []
         for fpath in files:
-            ext = os.path.splitext(fpath)[1].lower()
+            ext = cw.util.splitext(fpath)[1].lower()
             if ext in cw.EXTS_IMG:
                 seq.append(fpath)
         if not seq:

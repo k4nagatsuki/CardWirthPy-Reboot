@@ -2954,7 +2954,7 @@ class CardHolder(CardControl):
             elif self.callname == "CARDPOCKETB":
                 paths = []
                 for info in cw.cwpy.rsrc.backpackcards["ItemCard"].imgpaths:
-                    paths.append(os.path.splitext(info.path)[0])
+                    paths.append(cw.util.splitext(info.path)[0])
             self._leftmarks = []
             for path in paths:
                 path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)

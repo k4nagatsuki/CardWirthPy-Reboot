@@ -490,7 +490,7 @@ class BookmarkDialog(wx.Dialog):
                     p = "[フォルダが見つかりません]"
 
                 elif sys.platform == "win32":
-                    sp = os.path.splitext(p)
+                    sp = cw.util.splitext(p)
                     if sp[1].lower() == ".lnk":
                         p = sp[0]
                 item = self.values.InsertItem(i, p)

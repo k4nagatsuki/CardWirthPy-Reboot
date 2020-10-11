@@ -36,7 +36,7 @@ class MessageWindow(base.CWPySprite):
                  varianttable: Optional[Dict[str, cw.data.Variant]] = None,
                  backlog: bool = False, result: Optional[Union[int, cw.event.EffectBreakError]] = None,
                  showing_result: int = -1, versionhint: str = "",
-                 specialchars: Optional[cw.setting.ResourceTable] = None,
+                 specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.Surface, bool]]] = None,
                  trim_top_noscale: int = 0, columns: int = 1, spcharinfo: Optional[Set[int]] = None,
                  centering_x: bool = False, centering_y: bool = False,
                  boundarycheck: bool = False) -> None:
@@ -1187,7 +1187,7 @@ class BacklogData(object):
 
 
 class BacklogCurtain(base.CWPySprite):
-    def __init__(self, spritegrp: pygame.sprite.LayeredDirty, layer: Tuple[int, int, int, int],
+    def __init__(self, spritegrp: pygame.sprite.LayeredDirty, layer: Union[int, Tuple[int, int, int, int]],
                  size_noscale: Tuple[int, int], pos_noscale: Tuple[int, int],
                  color: Optional[Tuple[int, int, int, int]] = None) -> None:
         """メッセージログ用の半透明黒背景スプライト。
@@ -1773,7 +1773,7 @@ def _rpl_specialstr(full: int, updatetype: str, s: str,
     return "".join(buf), spcharinfo, namelist, namelistindex
 
 
-def get_messagelogtext(mwins: Iterable[Union[MessageWindow, "cw.sprite.bill.Bill"]], lastline: bool = True) -> str:
+def get_messagelogtext(mwins: Iterable[Union[BacklogData, "cw.sprite.bill.Bill"]], lastline: bool = True) -> str:
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。
     """
     lines = []
@@ -1847,7 +1847,8 @@ def update_scenariopath_for_log(normpath: str, dst: str) -> None:
         update_scenariopath_for_spchars(log.specialchars, normpath, dst)
 
 
-def update_scenariopath_for_spchars(restbl: cw.setting.ResourceTable, normpath: str, dst: str) -> None:
+def update_scenariopath_for_spchars(restbl: cw.setting.ResourceTable[str, Tuple[str, pygame.Surface]],
+                                    normpath: str, dst: str) -> None:
     if not restbl:
         return
     restbl.reset()
@@ -1892,7 +1893,7 @@ def store_messagelogimage(path: str, can_loaded_scaledimage: bool) -> None:
                     bmp = cw.util.load_image(fpath, True, noscale=True)
                     scaledimagedict[1] = bmp
                     if can_loaded_scaledimage2:
-                        spext = os.path.splitext(fpath)
+                        spext = cw.util.splitext(fpath)
                         for scale in cw.SCALE_LIST:
                             fname = "%s.x%s%s" % (spext[0], scale, spext[1])
                             if os.path.isfile(fname):

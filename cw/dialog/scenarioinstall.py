@@ -380,7 +380,7 @@ def to_scenarioheaders(paths: List[str], db: cw.scenariodb.Scenariodb, skintype:
 
     exists = set()
 
-    if os.path.isfile(paths[0]) and os.path.splitext(paths[0])[1].lower() in (".xml", ".wsm"):
+    if os.path.isfile(paths[0]) and cw.util.splitext(paths[0])[1].lower() in (".xml", ".wsm"):
         paths = [os.path.dirname(paths[0])]
 
     allparent = os.path.dirname(paths[0])
@@ -828,7 +828,7 @@ def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
     # パーティのプレイ中情報
     for header in cw.cwpy.ydata.partys:
         dpath = os.path.dirname(header.fpath)
-        wsl = os.path.splitext(header.fpath)[0] + ".wsl"
+        wsl = cw.util.splitext(header.fpath)[0] + ".wsl"
         wsl = cw.util.get_yadofilepath(wsl)
         if not os.path.isfile(wsl):
             continue

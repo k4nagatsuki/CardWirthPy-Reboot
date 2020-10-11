@@ -46,7 +46,7 @@ from . import argparser
 from . import nctype
 
 import typing
-from typing import List, Tuple, Type, Union
+from typing import List, Tuple, TypeVar, Union
 
 # 実行ファイルのパス
 exepath = ""
@@ -248,110 +248,22 @@ if OPTIONS.getstr("force_skin"):
 # 起動オプション(スキン自動生成元)
 SKIN_CONV_ARGS: List[str] = []
 for arg in OPTIONS.leftovers:
-    if os.path.isfile(arg) and os.path.splitext(arg)[1].lower() == ".exe":
+    if os.path.isfile(arg) and util.splitext(arg)[1].lower() == ".exe":
         SKIN_CONV_ARGS.append(arg)
         sys.argv.remove(arg)
 
 
-# @typing.overload
-# def wins(num: wx.Bitmap) -> wx.Bitmap: ...
+Scalable = TypeVar("Scalable", wx.Bitmap, wx.Image, pygame.Surface, pygame.Rect, Tuple[int, int],
+                   Tuple[int, int, int, int], int, float)
 
 
-# @typing.overload
-# def wins(num: wxImage) -> wxImage: ...
-
-
-# @typing.overload
-# def wins(num: pygame.Surface) -> pygame.Surface: ...
-
-
-# @typing.overload
-# def wins(num: pygame.Rect) -> pygame.Rect: ...
-
-
-@typing.overload
-def wins(num: Tuple[int, int]) -> Tuple[int, int]: ...
-
-
-@typing.overload
-def wins(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
-
-
-@typing.overload
-def wins(num: int) -> int: ...
-
-
-@typing.overload
-def wins(num: float) -> float: ...
-
-
-def wins(num: Union[wx.Bitmap,
-                    wx.Image,
-                    pygame.Surface,
-                    pygame.Rect,
-                    Tuple[int, int],
-                    Tuple[int, int, int, int],
-                    int,
-                    float]) -> Union[wx.Bitmap,
-                                     wx.Image,
-                                     pygame.Surface,
-                                     pygame.Rect,
-                                     Tuple[int, int],
-                                     Tuple[int, int, int, int],
-                                     int,
-                                     float]:
+def wins(num: Scalable) -> Scalable:
     """numを実際の表示サイズに変換する。
     """
     return _s_impl(num, UP_WIN)
 
 
-# @typing.overload
-# def s(num: wx.Bitmap) -> wx.Bitmap: ...
-
-
-# @typing.overload
-# def s(num: wx.Image) -> wx.Image: ...
-
-
-# @typing.overload
-# def s(num: pygame.Surface) -> pygame.Surface: ...
-
-
-# @typing.overload
-# def s(num: pygame.Rect) -> pygame.Rect: ...
-
-
-@typing.overload
-def s(num: Tuple[int, int]) -> Tuple[int, int]: ...
-
-
-@typing.overload
-def s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
-
-
-@typing.overload
-def s(num: int) -> int: ...
-
-
-@typing.overload
-def s(num: float) -> float: ...
-
-
-def s(num: Union[wx.Bitmap,
-                 wx.Image,
-                 pygame.Surface,
-                 pygame.Rect,
-                 Tuple[int, int],
-                 Tuple[int, int, int, int],
-                 int,
-                 float]) -> Union[wx.Bitmap,
-                                  wx.Image,
-                                  pygame.Surface,
-                                  pygame.Rect,
-                                  Tuple[int, int],
-                                  Tuple[int, int, int, int],
-                                  int,
-                                  float]:
+def s(num: Scalable) -> Scalable:
     """numを描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
          or pygame.Surface or pygame.Bitmap or pygame.Image
@@ -359,53 +271,7 @@ def s(num: Union[wx.Bitmap,
     return _s_impl(num, UP_SCR)
 
 
-# @typing.overload
-# def scr2win_s(num: wx.Bitmap) -> wx.Bitmap: ...
-
-
-# @typing.overload
-# def scr2win_s(num: wx.Image) -> wx.Image: ...
-
-
-# @typing.overload
-# def scr2win_s(num: pygame.Surface) -> pygame.Surface: ...
-
-
-# @typing.overload
-# def scr2win_s(num: pygame.Rect) -> pygame.Rect: ...
-
-
-@typing.overload
-def scr2win_s(num: Tuple[int, int]) -> Tuple[int, int]: ...
-
-
-@typing.overload
-def scr2win_s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
-
-
-@typing.overload
-def scr2win_s(num: int) -> int: ...
-
-
-@typing.overload
-def scr2win_s(num: float) -> float: ...
-
-
-def scr2win_s(num: Union[wx.Bitmap,
-                         wx.Image,
-                         pygame.Surface,
-                         pygame.Rect,
-                         Tuple[int, int],
-                         Tuple[int, int, int, int],
-                         int,
-                         float]) -> Union[wx.Bitmap,
-                                          wx.Image,
-                                          pygame.Surface,
-                                          pygame.Rect,
-                                          Tuple[int, int],
-                                          Tuple[int, int, int, int],
-                                          int,
-                                          float]:
+def scr2win_s(num: Scalable) -> Scalable:
     """numを描画サイズから表示サイズに変換する。
     """
     if UP_WIN == UP_SCR:
@@ -414,53 +280,7 @@ def scr2win_s(num: Union[wx.Bitmap,
         return _s_impl(num, float(UP_WIN) / UP_SCR)
 
 
-# @typing.overload
-# def win2scr_s(num: wx.Bitmap) -> wx.Bitmap: ...
-
-
-# @typing.overload
-# def win2scr_s(num: wx.Image) -> wx.Image: ...
-
-
-# @typing.overload
-# def win2scr_s(num: pygame.Surface) -> pygame.Surface: ...
-
-
-# @typing.overload
-# def win2scr_s(num: pygame.Rect) -> pygame.Rect: ...
-
-
-@typing.overload
-def win2scr_s(num: Tuple[int, int]) -> Tuple[int, int]: ...
-
-
-@typing.overload
-def win2scr_s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
-
-
-@typing.overload
-def win2scr_s(num: int) -> int: ...
-
-
-@typing.overload
-def win2scr_s(num: float) -> float: ...
-
-
-def win2scr_s(num: Union[wx.Bitmap,
-                         wx.Image,
-                         pygame.Surface,
-                         pygame.Rect,
-                         Tuple[int, int],
-                         Tuple[int, int, int, int],
-                         int,
-                         float]) -> Union[wx.Bitmap,
-                                          wx.Image,
-                                          pygame.Surface,
-                                          pygame.Rect,
-                                          Tuple[int, int],
-                                          Tuple[int, int, int, int],
-                                          int,
-                                          float]:
+def win2scr_s(num: Scalable) -> Scalable:
     """numを表示サイズから描画サイズに変換する。
     """
     if UP_WIN == UP_SCR:
@@ -469,53 +289,7 @@ def win2scr_s(num: Union[wx.Bitmap,
         return _s_impl(num, float(UP_SCR) / UP_WIN)
 
 
-# @typing.overload
-# def scr2mwin_s(num: wx.Bitmap) -> wx.Bitmap: ...
-
-
-# @typing.overload
-# def scr2mwin_s(num: wx.Image) -> wx.Image: ...
-
-
-# @typing.overload
-# def scr2mwin_s(num: pygame.Surface) -> pygame.Surface: ...
-
-
-# @typing.overload
-# def scr2mwin_s(num: pygame.Rect) -> pygame.Rect: ...
-
-
-@typing.overload
-def scr2mwin_s(num: Tuple[int, int]) -> Tuple[int, int]: ...
-
-
-@typing.overload
-def scr2mwin_s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
-
-
-@typing.overload
-def scr2mwin_s(num: int) -> int: ...
-
-
-@typing.overload
-def scr2mwin_s(num: float) -> float: ...
-
-
-def scr2mwin_s(num: Union[wx.Bitmap,
-                          wx.Image,
-                          pygame.Surface,
-                          pygame.Rect,
-                          Tuple[int, int],
-                          Tuple[int, int, int, int],
-                          int,
-                          float]) -> Union[wx.Bitmap,
-                                           wx.Image,
-                                           pygame.Surface,
-                                           pygame.Rect,
-                                           Tuple[int, int],
-                                           Tuple[int, int, int, int],
-                                           int,
-                                           float]:
+def scr2mwin_s(num: Scalable) -> Scalable:
     """numを描画サイズから表示サイズに変換する。
     """
     if UP_WIN_M == UP_SCR:
@@ -524,53 +298,7 @@ def scr2mwin_s(num: Union[wx.Bitmap,
         return _s_impl(num, float(UP_WIN_M) / UP_SCR)
 
 
-# @typing.overload
-# def mwin2scr_s(num: wx.Bitmap) -> wx.Bitmap: ...
-
-
-# @typing.overload
-# def mwin2scr_s(num: wx.Image) -> wx.Image: ...
-
-
-# @typing.overload
-# def mwin2scr_s(num: pygame.Surface) -> pygame.Surface: ...
-
-
-# @typing.overload
-# def mwin2scr_s(num: pygame.Rect) -> pygame.Rect: ...
-
-
-@typing.overload
-def mwin2scr_s(num: Tuple[int, int]) -> Tuple[int, int]: ...
-
-
-@typing.overload
-def mwin2scr_s(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
-
-
-@typing.overload
-def mwin2scr_s(num: int) -> int: ...
-
-
-@typing.overload
-def mwin2scr_s(num: float) -> float: ...
-
-
-def mwin2scr_s(num: Union[wx.Bitmap,
-                          wx.Image,
-                          pygame.Surface,
-                          pygame.Rect,
-                          Tuple[int, int],
-                          Tuple[int, int, int, int],
-                          int,
-                          float]) -> Union[wx.Bitmap,
-                                           wx.Image,
-                                           pygame.Surface,
-                                           pygame.Rect,
-                                           Tuple[int, int],
-                                           Tuple[int, int, int, int],
-                                           int,
-                                           float]:
+def mwin2scr_s(num: Scalable) -> Scalable:
     """numを表示サイズから描画サイズに変換する。
     """
     if UP_WIN_M == UP_SCR:
@@ -579,66 +307,9 @@ def mwin2scr_s(num: Union[wx.Bitmap,
         return _s_impl(num, float(UP_SCR) / UP_WIN_M)
 
 
-# @typing.overload
-# def _s_impl(num: wx.Bitmap, up_scr: float) -> wx.Bitmap: ...
-
-
-# @typing.overload
-# def _s_impl(num: wx.Image, up_scr: float) -> wx.Image: ...
-
-
-# @typing.overload
-# def _s_impl(num: pygame.Surface, up_scr: float) -> pygame.Surface: ...
-
-
-# @typing.overload
-# def _s_impl(num: pygame.Rect, up_scr: float) -> pygame.Rect: ...
-
-
-@typing.overload
-def _s_impl(num: Tuple[int, int], up_scr: float) -> Tuple[int, int]: ...
-
-
-@typing.overload
-def _s_impl(num: Tuple[int, int, int, int], up_scr: float) -> Tuple[int, int, int, int]: ...
-
-
-@typing.overload
-def _s_impl(num: int, up_scr: float) -> int: ...
-
-
-@typing.overload
-def _s_impl(num: float, up_scr: float) -> float: ...
-
-
-def _s_impl(num: Union[wx.Bitmap,
-                       wx.Image,
-                       pygame.Surface,
-                       pygame.Rect,
-                       Tuple[int, int],
-                       Tuple[int, int, int, int],
-                       int,
-                       float],
-            up_scr: float) -> Union[wx.Bitmap,
-                                    wx.Image,
-                                    pygame.Surface,
-                                    pygame.Rect,
-                                    Tuple[int, int],
-                                    Tuple[int, int, int, int],
-                                    int,
-                                    float]:
-    if isinstance(num, tuple) and len(num) == 3 and num[2] is None:
-        # スケール情報無し
-        assert False
-        return _s_impl(num[:2], up_scr)
-
-    if up_scr == 1 and not (isinstance(num, tuple) and len(num) == 3):
-        # 拡大率が1倍で、スケール情報も無い
-        if isinstance(num, tuple) and len(num) == 2:
-            if isinstance(num[0], pygame.Surface) or isinstance(num[0], wx.Bitmap) or isinstance(num[0], wx.Image):
-                # 画像はそのままのサイズで表示
-                return num[0]
-        # 座標等はそのまま返す
+def _s_impl(num: Scalable, up_scr: float) -> Scalable:
+    if up_scr == 1.0:
+        # 拡大率が1倍なのでそのまま返す
         return num
 
     if isinstance(num, int) or isinstance(num, float):
@@ -654,53 +325,27 @@ def _s_impl(num: Union[wx.Bitmap,
         return pygame.Rect(x, y, w, h)
 
     elif isinstance(num, tuple):
-        if isinstance(num[0], pygame.Surface):
-            assert False
-            bmp: pygame.Surface = num[0]
-            if bmp.get_width() <= 0 or bmp.get_width() <= 0:
-                return bmp
-            return _s_impl(bmp, up_scr)
-        elif isinstance(num[0], wx.Image):
-            assert False
-            img = num[0]
-            if img.GetWidth() <= 0 or img.GetHeight() <= 0:
-                return img
-            return _s_impl(img, up_scr)
-        elif isinstance(num[0], wx.Bitmap):
-            assert False
-            wxbmp = num[0]
-            bmpdepthis1 = hasattr(wxbmp, "bmpdepthis1")
-            maskcolour = wxbmp.maskcolour if hasattr(wxbmp, "maskcolour") else None
-            scr_scale = wxbmp.scr_scale if hasattr(wxbmp, "scr_scale") else 1
-            up_scr /= scr_scale
-            if up_scr == 1:
-                return wxbmp
-            if wxbmp.GetWidth() <= 0 or wxbmp.GetHeight() <= 0:
-                return wxbmp
-            # wx.Bitmap
-            if bmpdepthis1:
-                img = util.convert_to_image(wxbmp)
-            else:
-                img = wxbmp.ConvertToImage()
-            result = _s_impl((img, num[1]), up_scr).ConvertToBitmap()
-            if bmpdepthis1:
-                result.bmpdepthis1 = bmpdepthis1
-            if maskcolour:
-                result.maskcolour = maskcolour
-            return result
-
-        elif len(num) == 4:
+        if len(num) == 4:
             # 矩形
-            x = int(num[0] * up_scr)
-            y = int(num[1] * up_scr)
-            w = int(num[2] * up_scr)
-            h = int(num[3] * up_scr)
-            return (x, y, w, h)
+            # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同され以下の警告が発生する(mypy 0.782)
+            #      Tuple index out of range
+            t4 = typing.cast(Tuple[int, int, int, int], num)
+            x = int(t4[0] * up_scr)
+            y = int(t4[1] * up_scr)
+            w = int(t4[2] * up_scr)
+            h = int(t4[3] * up_scr)
+            # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同され以下の警告が発生する(mypy 0.782)
+            #      Incompatible return value type (got "Tuple[int, int, int, int]", expecte "Tuple[int, int]")
+            return typing.cast(typing.Any, (x, y, w, h))
         elif len(num) == 2:
             # 座標
             x = int(num[0] * up_scr)
             y = int(num[1] * up_scr)
-            return (x, y)
+            # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同され以下の警告が発生する(mypy 0.782)
+            #      Incompatible return value type (got "Tuple[int, int]", expected "Tuple[it, int, int, int]")
+            return typing.cast(typing.Any, (x, y))
+        else:
+            assert False
 
     elif isinstance(num, pygame.Surface):
         # スケール情報の無いpygame.Surface(単純拡大)
@@ -709,7 +354,7 @@ def _s_impl(num: Union[wx.Bitmap,
         up_scr /= scr_scale
         if up_scr == 1:
             return num
-        bmp = num
+        bmp: pygame.Surface = num
         w = int(bmp.get_width() * up_scr)
         h = int(bmp.get_height() * up_scr)
         if w <= 0 or h <= 0:
@@ -784,59 +429,11 @@ def _s_impl(num: Union[wx.Bitmap,
     else:
         assert False, str(num)
 
-    return num
-
 
 dpi_level = 1
 
 
-# @typing.overload
-# def ppis(num: wx.Bitmap) -> wx.Bitmap: ...
-
-
-# @typing.overload
-# def ppis(num: wx.Image) -> wx.Image: ...
-
-
-# @typing.overload
-# def ppis(num: pygame.Surface) -> pygame.Surface: ...
-
-
-# @typing.overload
-# def ppis(num: pygame.Rect) -> pygame.Rect: ...
-
-
-@typing.overload
-def ppis(num: Tuple[int, int]) -> Tuple[int, int]: ...
-
-
-@typing.overload
-def ppis(num: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
-
-
-@typing.overload
-def ppis(num: int) -> int: ...
-
-
-@typing.overload
-def ppis(num: float) -> float: ...
-
-
-def ppis(num: Union[wx.Bitmap,
-                    wx.Image,
-                    pygame.Surface,
-                    pygame.Rect,
-                    Tuple[int, int],
-                    Tuple[int, int, int, int],
-                    int,
-                    float]) -> Union[wx.Bitmap,
-                                     wx.Image,
-                                     pygame.Surface,
-                                     pygame.Rect,
-                                     Tuple[int, int],
-                                     Tuple[int, int, int, int],
-                                     int,
-                                     float]:
+def ppis(num: Scalable) -> Scalable:
     return _s_impl(num, float(dpi_level))
 
 

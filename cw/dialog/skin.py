@@ -443,7 +443,7 @@ class SkinEditDialog(wx.Dialog):
                     imgtbl[key.lower()] = value
 
                 for fname in os.listdir(dpath):
-                    resname, ext = os.path.splitext(fname)
+                    resname, ext = cw.util.splitext(fname)
                     resname = resname.lower()
 
                     def import_res(dpath: str, fname: str, ext: str, newresname: str) -> None:

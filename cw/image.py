@@ -73,23 +73,7 @@ class ImageInfo(object):
                                                 getsize)
 
     def _calc_basecardposition_impl(self, imgwidth: int, imgheight: int, noscale: bool, basecardtype: str,
-                                    cardpostype: str,
-                                    ss: Callable[[Union[wx.Bitmap,
-                                                        wx.Image,
-                                                        pygame.Surface,
-                                                        Tuple[int, int],
-                                                        int,
-                                                        wx.Rect,
-                                                        pygame.Rect,
-                                                        Tuple[int, int, int, int]]],
-                                                 Union[wx.Bitmap,
-                                                       wx.Image,
-                                                       pygame.Surface,
-                                                       Tuple[int, int],
-                                                       int,
-                                                       wx.Rect,
-                                                       pygame.Rect,
-                                                       Tuple[int, int, int, int]]],
+                                    cardpostype: str, ss: Callable[["cw.Scalable"], "cw.Scalable"],
                                     getsize: Callable[[str], Tuple[int, int]]) -> pygame.Rect:
         if self.basecardtype:
             basecardtype = self.basecardtype
@@ -1567,7 +1551,7 @@ def smoothscale(surface: pygame.Surface, size: Tuple[int, int], smoothing: bool 
         return pygame.transform.scale(surface, size)
 
 
-def fix_cwnext16bitbitmap(data: bytes) -> Union[Tuple[bytes, bool], Tuple[Image, bool]]:
+def fix_cwnext16bitbitmap(data: bytes) -> Tuple[bytes, bool]:
     """一部バージョンのCardWirthNextが生成するBitmap(16 bit)は
     bfOffBitsが壊れているので予め訂正する。
     FIXME: 末尾に余計なデータがついている画像は却って上手くいかない可能性があるが、

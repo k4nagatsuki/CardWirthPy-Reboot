@@ -51,12 +51,20 @@ class CWPy(threading.Thread):
 
     mousepos: Tuple[int, int]
     wxmousepos: Tuple[int, int]
+    wheelmode_cursorpos: Tuple[int, int]
+    mousein: Tuple[int, int, int]
     cursor: str
 
     event: cw.event.EventInterface
     music: List[cw.util.MusicInterface]
 
+    override_dealspeed: int
+    force_dealspeed: int
     cardgrp: pygame.sprite.LayeredDirty
+    topgrp: pygame.sprite.LayeredDirty
+    sbargrp: pygame.sprite.LayeredDirty
+    backloggrp: pygame.sprite.LayeredDirty
+    index: int
 
     advlog: "cw.advlog.AdventurerLogger"
 
@@ -93,7 +101,7 @@ class CWPy(threading.Thread):
         self.sct = cw.setting.ScenarioCompatibilityTable()
 
         self.setting = cw.setting.Setting()
-        self.skinsounds: cw.setting.ResourceTable = cw.setting.ResourceTable("")
+        self.skinsounds = cw.setting.ResourceTable[str, cw.util.SoundInterface]("")
 
     def init(self, setting: cw.setting.Setting, frame: Optional["cw.frame.Frame"] = None) -> None:
         self._init = True
@@ -581,16 +589,16 @@ class CWPy(threading.Thread):
                     ccard.deck.set(ccard)
                     if self.battle.is_ready():
                         ccard.decide_action()
-                for ccard in self.get_ecards():
-                    ccard.update_skin()
-                    if not ccard.is_reversed():
-                        ccard.deck.set(ccard)
+                for ecard in self.get_ecards():
+                    ecard.update_skin()
+                    if not ecard.is_reversed():
+                        ecard.deck.set(ecard)
                         if self.battle.is_ready():
-                            ccard.decide_action()
-                for ccard in self.get_fcards():
-                    ccard.deck.set(ccard)
+                            ecard.decide_action()
+                for fcard in self.get_fcards():
+                    fcard.deck.set(fcard)
                     if self.battle.is_ready():
-                        ccard.decide_action()
+                        fcard.decide_action()
 
             self.update_titlebar()
 
@@ -2919,7 +2927,7 @@ class CWPy(threading.Thread):
 
             # カード画像が変更されているPCは戻す
             if elog is not None:
-                name = os.path.splitext(os.path.basename(data.fpath))[0]
+                name = cw.util.splitext(os.path.basename(data.fpath))[0]
 
                 for eimg in elog.getfind(".", raiseerror=False):
                     if eimg.get("member", "") == name:
@@ -4741,7 +4749,7 @@ class CWPy(threading.Thread):
                 # それ以外だったら特殊エリアをクリアする
                 self.clear_specialarea(redraw=False)
 
-    def is_lockmenucards(self, sprite: "cw.sprite.base.SelectableSprite") -> bool:
+    def is_lockmenucards(self, sprite: Optional["cw.sprite.base.SelectableSprite"]) -> bool:
         """メニューカードをクリック出来ない状態か。"""
         if (isinstance(sprite, cw.sprite.animationcell.AnimationCell) or
             (sprite and sprite.is_statusctrl)) and\
@@ -4820,7 +4828,6 @@ class CWPy(threading.Thread):
         """
         assert self.ydata
         self.ydata.load_party(header)
-        assert self.ydata.party
 
         if chgarea:
             if header:
@@ -4832,6 +4839,7 @@ class CWPy(threading.Thread):
             self.cardgrp.remove(self.pcards)
             self.pcards = []
             if loadsprites:
+                assert self.ydata.party
                 for i, e in enumerate(self.ydata.party.members):
                     pos_noscale = (9 + 95 * i + 9 * i, 285)
                     pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=i)
@@ -4839,6 +4847,7 @@ class CWPy(threading.Thread):
                 self.show_party()
         else:
             # 新規パーティ結成
+            assert self.ydata.party
             self.cardgrp.remove(self.pcards)
             self.pcards = []
             if loadsprites and self.ydata.party:
@@ -4985,7 +4994,7 @@ class CWPy(threading.Thread):
             # シナリオ側でスキン付属効果音を上書きする
             sound = self.sounds[name]
             path = os.path.basename(sound.get_path())
-            path = os.path.splitext(path)[0]
+            path = cw.util.splitext(path)[0]
             path = cw.util.join_paths(self.sdata.scedir, path)
             path = os.path.basename(cw.util.find_resource(path, cw.M_SND))
             inusecard = self.event.get_inusecard()
@@ -5247,7 +5256,7 @@ class CWPy(threading.Thread):
                     self.sdata.uselimit_table[(owner, header)] = header.uselimit
                 header.maxuselimit = 0
                 header.uselimit = 0
-                assert header.carddata
+                assert header.carddata is not None
                 header.carddata.find_exists("Property/UseLimit").text = "0"
 
             # ホールドをFalseに

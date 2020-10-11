@@ -210,7 +210,7 @@ class CharaInfo(wx.Dialog):
     def copy_detail(self) -> None:
         cw.cwpy.play_sound("equipment")
         page = self.notebook.GetPage(self.notebook.GetSelection())
-        lines = [][:]
+        lines = []
         lines.append(self.toppanel.get_detailtext())
         lines.append("-" * 40)
         s = page.get_detailtext()

@@ -63,6 +63,9 @@ ID_SELECTEDCARD = wx.NewId()
 
 
 class Debugger(wx.Frame):
+    view_var: "VariableListCtrl"
+    view_tree: "EventView"
+
     def __init__(self, parent: "cw.frame.Frame") -> None:
         wx.Frame.__init__(
             self, parent, -1, "CardWirthPy Debugger", size=wx.DefaultSize,
@@ -954,7 +957,8 @@ class Debugger(wx.Frame):
             self.tl_showstacktrace.Toggle()
             self.tb_event.Realize()
 
-    def append_stackinfo_cwpy(self, item: Tuple[cw.event.Event, cw.data.CWPyElement, int]) -> None:
+    def append_stackinfo_cwpy(self, item: Union[cw.event.Event, Tuple[cw.event.Event, cw.data.CWPyElement, int]])\
+            -> None:
         assert threading.currentThread() is cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
@@ -1525,7 +1529,7 @@ class Debugger(wx.Frame):
 
         step = bool(cw.cwpy.event.paused and cw.cwpy.is_runningevent())
 
-        enabled = {}.copy()
+        enabled = {}
         enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, step)
         enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, step)
         enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, step)
@@ -1574,7 +1578,7 @@ class Debugger(wx.Frame):
             else:
                 cw.cwpy.event.stoped = True
 
-        enabled = {}.copy()
+        enabled = {}
         enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, False)
         enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, False)
         enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, False)
@@ -1784,7 +1788,7 @@ class Debugger(wx.Frame):
                 if not self:
                     return
 
-                enabled = {}.copy()
+                enabled = {}
 
                 enabled[self.mi_comp.GetId()] = (self.mi_comp, self.tl_comp, False)
                 enabled[self.mi_gossip.GetId()] = (self.mi_gossip, self.tl_gossip, False)
@@ -1926,7 +1930,7 @@ class Debugger(wx.Frame):
 
     def _refresh_showpartytools(self) -> None:
         assert threading.currentThread() != cw.cwpy
-        enabled = {}.copy()
+        enabled = {}
 
         enabled[self.mi_showparty.GetId()] = (self.mi_showparty, self.tl_showparty, False)
         enabled[self.mi_hideparty.GetId()] = (self.mi_hideparty, self.tl_hideparty, False)
@@ -2540,10 +2544,10 @@ class EventView(wx.ScrolledWindow):
 
         def func(self: Debugger) -> None:
             event = cw.cwpy.event.get_event()
-            assert event
             nowrunning = cw.cwpy.event.get_nowrunningevent()
             cur_content = event.cur_content if event else None
             if cur_content is not None and cur_content.tag == "ContentsLine":
+                assert event
                 cur_content = cur_content[event.line_index]
 
             def func(self, nowrunning: Optional[cw.event.Event], event: Optional[cw.event.Event],

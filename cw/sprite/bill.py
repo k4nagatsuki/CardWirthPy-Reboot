@@ -26,7 +26,7 @@ class Bill(object):
         fpath = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         self._bgs[1] = cw.util.load_image(fpath, can_loaded_scaledimage=True, noscale=True)
         self._bmps[1] = header.get_bmps(up_scr=1)
-        spext = os.path.splitext(fpath)
+        spext = cw.util.splitext(fpath)
         for scale in cw.SCALE_LIST:
             fname = "%s.x%s%s" % (spext[0], scale, spext[1])
             if os.path.isfile(fname):

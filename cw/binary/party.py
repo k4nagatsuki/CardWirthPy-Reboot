@@ -256,10 +256,10 @@ class PartyMembers(base.CWBinaryBase):
             if self.nowadventuring:  # 冒険中か
                 self.scenariopath = ""
                 summary = summary.Summary(None, f, True, wpt120=True)
-                self.steps = {}.copy()
+                self.steps = {}
                 for step in summary.steps:
                     self.steps[step.name] = step.default
-                self.flags = {}.copy()
+                self.flags = {}
                 for flag in summary.flags:
                     self.flags[flag.name] = flag.default
                 self.scenariopath = f.rawstring()  # シナリオ

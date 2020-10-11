@@ -348,7 +348,7 @@ class AdventurerLogger(object):
                 return self.wrap_effectmotion(s, in_cardeffectmotion)
             self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), dissleep)
 
-    def absorb_motion(self, user: cw.character.Character, healvalue: int, newulife: int, oldulife: int,
+    def absorb_motion(self, user: Optional[cw.character.Character], healvalue: int, newulife: int, oldulife: int,
                       target: cw.character.Character, value: int, newlife: int, oldlife: int, dissleep: bool) -> None:
         self.damage_motion(target, value, newlife, oldlife, dissleep)
         if user:

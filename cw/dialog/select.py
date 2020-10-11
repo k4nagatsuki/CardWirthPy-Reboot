@@ -1763,7 +1763,7 @@ class YadoSelect(MultiViewSelect[str]):
                     # 1.20のアルバムデータは時間がかかる可能性があるため
                     # リストに表示しない
                     for fname in os.listdir(yadodir):
-                        ext = os.path.splitext(fname)[1].lower()
+                        ext = cw.util.splitext(fname)[1].lower()
                         if ext == ".wch":
                             fpath = cw.util.join_paths(yadodir, fname)
                             if wyd.dataversion_int <= 8:

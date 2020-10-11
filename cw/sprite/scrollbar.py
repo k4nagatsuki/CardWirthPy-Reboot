@@ -6,6 +6,8 @@ import pygame
 import cw
 from . import base
 
+from typing import Callable, Optional
+
 
 class ScrollBar(base.CWPySprite):
 
@@ -16,7 +18,7 @@ class ScrollBar(base.CWPySprite):
         self._skipcount = 0
 
         self.lazypos_noscale = None
-        self.lazyscroll_func = None
+        self.lazyscroll_func: Optional[Callable[[bool], None]] = None
 
         self.scrsize_noscale = scrsize_noscale
         self.scrpos_noscale = scrpos_noscale

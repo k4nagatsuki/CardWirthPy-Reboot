@@ -189,7 +189,7 @@ class BackGround(base.CWPySprite):
     def store_filepath(self, path: str) -> None:
         if not cw.cwpy.is_playingscenario():
             return
-        ext = os.path.splitext(path)[1].lower()
+        ext = cw.util.splitext(path)[1].lower()
         if ext in (".jpy1", ".jptx", ".jpdc") or ext in cw.EXTS_SND:
             return
         if not os.path.isfile(path):
@@ -514,7 +514,7 @@ class BackGround(base.CWPySprite):
             mask = e.getbool(".", "mask", False)
             smoothing = e.getattr(".", "smoothing", "Default")
             path = cw.util.validate_filepath(e.gettext("ImagePath", ""))
-            if ignoreeffectbooster and os.path.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
+            if ignoreeffectbooster and cw.util.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
                 # 背景置換コンテントでエフェクトブースターファイルが
                 # 完全に無視される(CWNext 1.60との互換動作)
                 return None
@@ -668,7 +668,7 @@ class BackGround(base.CWPySprite):
             for bgtype, d in self.bgs:
                 if bgtype == BG_IMAGE and ignoreeffectbooster:
                     path = d[0]
-                    if os.path.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
+                    if cw.util.splitext(path)[1].lower() in (".jpy1", ".jptx", ".jpdc"):
                         bgs2.append((bgtype, d))
                         continue
 
@@ -933,7 +933,7 @@ class BackGround(base.CWPySprite):
                                                  visible=visible,
                                                  nocheckvisible=nocheckvisible, can_loaded_scaledimage=scaledimage)
 
-        ext = os.path.splitext(path)[1].lower()
+        ext = cw.util.splitext(path)[1].lower()
         if not anime and ext != ".jpdc" and pygame.Rect(pos, size).contains(pygame.Rect((0, 0), cw.SIZE_AREA)) and\
                 visible and not mask and not flag:
             if image and not image.get_colorkey() and not (image.get_flags() & pygame.locals.SRCALPHA):
@@ -1247,8 +1247,8 @@ def _equals_bgs(bgs1: List[Tuple[int, Tuple[str, bool, bool, bool, str, Tuple[in
         l2 = list(t2[1])
         if bgtype == BG_IMAGE:
             # ファイルパスの拡張子を取り除き、ケースを正規化
-            l1[0] = os.path.splitext(l1[0])[0].lower()
-            l2[0] = os.path.splitext(l2[0])[0].lower()
+            l1[0] = cw.util.splitext(l1[0])[0].lower()
+            l2[0] = cw.util.splitext(l2[0])[0].lower()
         # flag, cellname を取り除く
         l1[-4] = ""
         l2[-4] = ""

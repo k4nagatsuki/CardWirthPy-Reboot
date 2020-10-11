@@ -2371,7 +2371,7 @@ class EffectContent(EventContentBase):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
         # 各種データ取得
-        d = {}.copy()
+        d = {}
         d["level"] = self.data.getint(".", "level", 0)
         d["successrate"] = self.data.getint(".", "successrate", 0)
         d["effecttype"] = self.data.get("effecttype", "Physic")
@@ -4789,7 +4789,7 @@ class MoveBgImageContent(EventContentBase):
         return 0
 
     def get_status(self, event: Optional[cw.event.Event]) -> str:
-        seq = [][:]
+        seq = []
         seq.append("セル名称 = 【%s】" % (self.cellname))
         if self.positiontype != "None":
             if self.positiontype == "Absolute":
@@ -4903,7 +4903,7 @@ class MoveCardContent(EventContentBase):
         return 0
 
     def get_status(self, event: Optional[cw.event.Event]) -> str:
-        seq = [][:]
+        seq = []
         seq.append("カードグループ = 【%s】" % (self.cardgroup))
         if self.positiontype != "None":
             if self.positiontype == "Absolute":

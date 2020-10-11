@@ -3637,7 +3637,7 @@ class FontSettingPanel(wx.Panel):
             if cw.cwpy:
                 d = cw.cwpy.rsrc.fontnames_init
             else:
-                d = {}.copy()
+                d = {}
                 d["gothic"] = "IPAゴシック"
                 d["uigothic"] = "IPA UIゴシック"
                 d["mincho"] = "IPA明朝"
