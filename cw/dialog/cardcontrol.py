@@ -1907,11 +1907,6 @@ class CardHolder(CardControl):
                 self.personalbtn.SetBitmapSelected(bmp)
             else:
                 self.personalbtn = None
-            # cw.cwpy.setting.last_cardpocketの値からトグルをセットする
-            for index, btn in enumerate((self.skillbtn, self.itembtn, self.beastbtn, self.personalbtn)):
-                if btn:
-                    btn.SetToggle(cw.cwpy.setting.last_cardpocket == index)
-                    self.change_bgs.append(btn)
 
         # カード置き場、荷物袋、情報カード用のコントロール
         # up
@@ -1945,6 +1940,10 @@ class CardHolder(CardControl):
         if self.callname == "CARDPOCKETB" and not cw.cwpy.sdata.party_environment_backpack:
             # 荷物袋から一時的に取り出してカードを使用した際に発火したイベントで荷物袋が禁止された
             self.callname = "CARDPOCKET"
+
+        if self.callname != "INFOVIEW" and not cw.cwpy.setting.show_personal_cards:
+            if cw.cwpy.setting.last_cardpocket == cw.POCKET_PERSONAL:
+                cw.cwpy.setting.last_cardpocket = cw.POCKET_SKILL
 
         # 移動先関係
         self._combo_storehouse = -1
@@ -2099,9 +2098,13 @@ class CardHolder(CardControl):
                                                         self.callname in ("STOREHOUSE", "BACKPACK")):
                 self.personalbtn.Show(cw.cwpy.sdata.party_environment_backpack)
             else:
-                if cw.cwpy.setting.last_cardpocket == cw.POCKET_BEAST:
-                    cw.cwpy.setting.last_cardpocket = cw.POCKET_SKILL
                 self.personalbtn.Hide()
+
+            # cw.cwpy.setting.last_cardpocketの値からトグルをセットする
+            for index, btn in enumerate((self.skillbtn, self.itembtn, self.beastbtn, self.personalbtn)):
+                if btn:
+                    btn.SetToggle(cw.cwpy.setting.last_cardpocket == index)
+                    self.change_bgs.append(btn)
 
         self._proc_page = False
         self._enable_updown()
