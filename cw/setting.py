@@ -3256,6 +3256,9 @@ class ResourceTable(Generic[_KeyType, _ResType]):
     def set(self, key: _KeyType, func: Callable[..., _ResType], *args, **kwargs) -> None:
         self.dic[key] = LazyResource(func, args, kwargs)
 
+    def remove(self, key: _KeyType):
+        del self.dic[key]
+
     def __contains__(self, key: _KeyType) -> bool:
         self._put_nokeyvalue(key)
         return key in self.dic
