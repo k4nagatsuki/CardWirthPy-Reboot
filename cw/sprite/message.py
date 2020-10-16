@@ -72,6 +72,7 @@ class MessageWindow(base.CWPySprite):
         self.step_table = steptable
         self.variant_table = varianttable
         self.specialchars = specialchars if specialchars else cw.cwpy.rsrc.specialchars.copy()
+        self.specialchars_used: Set[str] = set()
 
         # メッセージの選択結果
         self.result = result
@@ -505,6 +506,7 @@ class MessageWindow(base.CWPySprite):
                 if r_specialfont.match(chars):
                     specialchars = self.specialchars
                     if chars in specialchars:
+                        self.specialchars_used.add(chars)
                         charimg, userfont = specialchars[chars]
                         w, h = charimg.get_size()
                         scr_scale = charimg.scr_scale if hasattr(charimg, "scr_scale") else 1
@@ -834,6 +836,7 @@ class SelectWindow(MessageWindow):
         self.talker_image = []
         self.versionhint = None
         self.specialchars = None
+        self.specialchars_used = None
 
         # メッセージの選択結果
         self.result = result
@@ -1107,6 +1110,10 @@ class BacklogData(object):
         self.showing_result = base.showing_result
         self.versionhint = base.versionhint
         self.specialchars = base.specialchars
+        if self.specialchars:
+            for key in list(self.specialchars.iterkeys()):
+                if key not in base.specialchars_used:
+                    self.specialchars.remove(key)
         self.centering_x = base.centering_x
         self.centering_y = base.centering_y
         self.boundarycheck = base.boundarycheck
